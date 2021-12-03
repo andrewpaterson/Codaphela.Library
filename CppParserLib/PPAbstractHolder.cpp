@@ -60,6 +60,21 @@ BOOL CPPAbstractHolder::IsAbstractHolder(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPPAbstractHolder::Print(CChars* psz)
 {
+	if (mcTokens.mcArray.NumElements() > 0)
+	{
+		PrintWithoutNewline(psz);
+		psz->AppendNewLine();
+	}
+	return psz->Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPPAbstractHolder::PrintWithoutNewline(CChars* psz)
+{
 	if (mcTokens.mcArray.IsNotEmpty())
 	{
 		mcTokens.Print(psz);
@@ -111,30 +126,13 @@ CPPToken* CPPAbstractHolder::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Dump(void)
-{
-	CChars	sz;
-
-	sz.Init();
-	Print(&sz);
-	sz.AppendNewLine();
-	sz.Dump();
-	sz.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CPPAbstractHolder::SavageDump(void)
 {
 	CChars	sz;
 
 	sz.Init();
 	mcTokens.SavageAppend(&sz, 0);
-	sz.Dump();
-	sz.Kill();
+	sz.DumpKill();
 }
 
 
@@ -196,8 +194,9 @@ CPPTokenHolder* CPPAbstractHolder::GetTokens(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPPAbstractHolder::Sizeof(void)
+void CPPAbstractHolder::Fake(CPPTokenHolder* pcTokens)
 {
-	return sizeof(CPPAbstractHolder);
+	Set(-1, -1);
+	memcpy(&mcTokens, pcTokens, sizeof(CPPTokenHolder));
 }
 

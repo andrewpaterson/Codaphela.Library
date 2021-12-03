@@ -25,9 +25,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPPTextWithSource : public CPPText
 {
-public:
+protected:
 	char*	mszText;
 
+public:
 	TOKEN_CONSTRUCT(CPPTextWithSource);
 	void 	Init(int iLine, int iColumn);
 	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength);
@@ -37,7 +38,6 @@ public:
 	BOOL 	HasSource(void);
 	char*	TextStart(void);
 	char*	TextEndInclusive(void);
-	int		Sizeof(void);
 };
 
 

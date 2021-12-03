@@ -34,7 +34,6 @@ public:
 	TOKEN_CONSTRUCT(CPPConditional);
 	void				Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn);
 	void				Set(CPPConditional* pcNext);
-	int					Sizeof(void);
 	CPPConditional*		GetNext(void);
 	SPPTokenBlockIndex	GetTokenBlock(void);
 };

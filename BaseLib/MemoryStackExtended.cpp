@@ -95,6 +95,7 @@ void* CMemoryStackExtended::Add(int iSize)
 	int				i;
 	CMemoryStack*	pcStack;
 	int				iRemaining;
+	int				iNumStacks;
 
 	if (iSize > miChunkSize)
 	{
@@ -104,7 +105,8 @@ void* CMemoryStackExtended::Add(int iSize)
 		return pcStack->Add(iSize);
 	}
 
-	for (i = mcStacks.NumElements()-1; i >= 0; i--)
+	iNumStacks = mcStacks.NumElements();
+	for (i = iNumStacks - 1; i >= 0; i--)
 	{
 		pcStack = mcStacks.Get(i);
 		iRemaining = pcStack->GetRemainingMemory();

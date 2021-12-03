@@ -32,7 +32,6 @@ protected:
 public:
 	TOKEN_CONSTRUCT(CPPInclude);
 	void	Init(int iLine, int iColumn);
-	int		Sizeof(void);
 };
 
 

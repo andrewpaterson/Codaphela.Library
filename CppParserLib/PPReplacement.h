@@ -41,7 +41,6 @@ public:
 	BOOL	Equals(CPPToken* pcOther);
 	BOOL	IsEmpty(void);
 	BOOL	IsVariadic(void);
-	int		Sizeof(void);
 };
 
 

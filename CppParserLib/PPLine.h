@@ -31,14 +31,9 @@ public:
 	TOKEN_CONSTRUCT(CPPLine);
 	void	Init(int iLine, int miColumn);
 	void	Kill(void);
-	void	Fake(CPPTokenHolder* pcTokens);
 	BOOL	IsLine(void);
-	char*	Print(CChars* psz);
-	void	AppendNoNewline(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
-	void	Dump(void);
 	BOOL	Equals(CPPToken* pcOther);
-	int		Sizeof(void);
 };
 
 

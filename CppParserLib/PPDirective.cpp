@@ -38,7 +38,7 @@ void CPPDirective::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPDirective::Init(EPreprocessorDirective eType, int iLine, int iColumn)
 {
-	CPPLine::Init(iLine, iColumn);
+	CPPAbstractHolder::Init(iLine, iColumn);
 	Set(eType);
 }
 
@@ -107,10 +107,11 @@ char* CPPDirective::Print(CChars* psz)
 		psz->Append("pragma");
 		break;
 	}
+
 	if (mcTokens.mcArray.IsNotEmpty())
 	{
 		psz->Append(' ');
-		CPPLine::Print(psz);
+		CPPAbstractHolder::Print(psz);
 	}
 	else
 	{
@@ -132,7 +133,7 @@ void CPPDirective::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 	if (pcSource->IsDirective())
 	{
 		pcCast = (CPPDirective*)pcSource;
-		CPPLine::Copy(pcSource, pcTokens);
+		CPPAbstractHolder::Copy(pcCast, pcTokens);
 		meType = pcCast->meType;
 	}
 }
@@ -162,8 +163,11 @@ BOOL CPPDirective::IsConditional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPPDirective::Sizeof(void)
+BOOL CPPDirective::Equals(CPPToken* pcOther)
 {
-	return sizeof(CPPDirective);
+	if (pcOther->IsLine())
+	{
+		return CPPAbstractHolder::Equals(pcOther);
+	}
+	return FALSE;
 }
-
