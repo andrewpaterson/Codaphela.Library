@@ -21,16 +21,16 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __HEADER_NAME_MAP_STACK_H__
 #define __HEADER_NAME_MAP_STACK_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "HeaderNameMap.h"
+#include "HeaderFiles.h"
 
 
 class CHeaderNameMapDirectory
 {
 public:
-	CHeaderNameMap*		mpcHeaderNameMap;
+	CHeaderFiles*		mpcHeaderNameMap;
 	CChars				mszBaseDirectoryName;
 
-	void Init(CHeaderNameMap* pcHeaderNameMap, char* szBaseDirectoryName);
+	void Init(CHeaderFiles* pcHeaderNameMap, char* szBaseDirectoryName);
 	void Kill(void);
 };
 

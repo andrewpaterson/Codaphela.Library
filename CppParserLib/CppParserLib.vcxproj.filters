@@ -243,7 +243,7 @@
     <ClCompile Include="HeaderFileMap.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="HeaderNameMap.cpp">
+    <ClCompile Include="HeaderFiles.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
     <ClCompile Include="HeaderNameMapStack.cpp">
@@ -255,7 +255,7 @@
     <ClCompile Include="TranslationUnit.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="TranslationUnitList.cpp">
+    <ClCompile Include="TranslationUnits.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
     <ClCompile Include="CppParser.cpp">
@@ -545,7 +545,7 @@
     <ClInclude Include="HeaderFileMap.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="HeaderNameMap.h">
+    <ClInclude Include="HeaderFiles.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="HeaderNameMapStack.h">
@@ -557,7 +557,7 @@
     <ClInclude Include="TranslationUnit.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="TranslationUnitList.h">
+    <ClInclude Include="TranslationUnits.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="CPPParser.h">

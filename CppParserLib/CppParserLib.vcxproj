@@ -244,11 +244,11 @@
     <ClCompile Include="CFile.cpp" />
     <ClCompile Include="HeaderFile.cpp" />
     <ClCompile Include="HeaderFileMap.cpp" />
-    <ClCompile Include="HeaderNameMap.cpp" />
+    <ClCompile Include="HeaderFiles.cpp" />
     <ClCompile Include="HeaderNameMapStack.cpp" />
     <ClCompile Include="Headers.cpp" />
     <ClCompile Include="TranslationUnit.cpp" />
-    <ClCompile Include="TranslationUnitList.cpp" />
+    <ClCompile Include="TranslationUnits.cpp" />
     <ClCompile Include="CppParser.cpp" />
     <ClCompile Include="CPPReturn.cpp" />
     <ClCompile Include="Config.cpp" />
@@ -347,11 +347,11 @@
     <ClInclude Include="CFile.h" />
     <ClInclude Include="HeaderFile.h" />
     <ClInclude Include="HeaderFileMap.h" />
-    <ClInclude Include="HeaderNameMap.h" />
+    <ClInclude Include="HeaderFiles.h" />
     <ClInclude Include="HeaderNameMapStack.h" />
     <ClInclude Include="Headers.h" />
     <ClInclude Include="TranslationUnit.h" />
-    <ClInclude Include="TranslationUnitList.h" />
+    <ClInclude Include="TranslationUnits.h" />
     <ClInclude Include="CPPParser.h" />
     <ClInclude Include="CPPReturn.h" />
     <ClInclude Include="Config.h" />

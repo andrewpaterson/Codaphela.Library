@@ -61,9 +61,5 @@ public:
 };
 
 
-//CTranslationUnit is used because it is largest of CTranslationUnit and CHeader
-typedef CMapStringTemplate<CTranslationUnit>	CMapStringCFile;
-
-
 #endif	// __TRANSLATION_UNIT_H__
 

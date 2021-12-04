@@ -18,43 +18,32 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __HEADER_NAME_MAP_H__
-#define __HEADER_NAME_MAP_H__
-#include "BaseLib/MapStringTemplate.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "HeaderFile.h"
+#ifndef __TRANSLATION_UNIT_LIST_H__
+#define __TRANSLATION_UNIT_LIST_H__
+#include "BaseLib/LinkedListTemplate.h"
+#include "TranslationUnit.h"
 
 
-typedef CMapStringTemplate<CHeaderFile*>	CMapStringHeaderFilePtr;
+typedef CLinkedListTemplate<CTranslationUnit>	CListTranslationUnit;
 
 
-class CHeaderFileMap;
-class CHeaderNameMap
+class CLibrary;
+class CTranslationUnits
 {
 protected:
-	CHeaderFileMap*				mpcFileMap;
-	CMapStringHeaderFilePtr		mcFileNames;
-	CChars						mszBaseDirectory;
-	BOOL						mbSystem;
+	CListTranslationUnit	mcFiles;
+	CLibrary*				mpcLibrary;
 
 public:
-	BOOL			Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem);
-	void			Kill(void);
+	void 				Init(CLibrary* pcLibrary);
+	void 				Kill(void);
 
-	void			AddFiles(BOOL bIncludeSubDirectories);
-	void			AddFile(char* szFile);
-
-	CHeaderFile*	GetFile(char* szFile);
-	
-	int				GetBaseDirectoryLength(void);
-
-	void			Dump(void);
+	void				AddAllFiles(CChars* pszBaseDir, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	CTranslationUnit*	AddFile(char* szRelativeFileName, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	CTranslationUnit*	GetFirst(void);
+	CTranslationUnit*	GetNext(CTranslationUnit* pcCurrent);
 };
 
 
-typedef CArrayTemplate<CHeaderNameMap*> CArrayHeaderNameMapPtr;
-typedef CArrayTemplate<CHeaderNameMap> CArrayHeaderNameMap;
-
-
-#endif // !__HEADER_NAME_MAP_H__
+#endif // !__TRANSLATION_UNIT_LIST_H__
 
