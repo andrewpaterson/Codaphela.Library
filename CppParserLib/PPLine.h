@@ -34,6 +34,7 @@ public:
 	BOOL	IsLine(void);
 	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
 	BOOL	Equals(CPPToken* pcOther);
+	BOOL	NeedsNewLine(void);
 };
 
 

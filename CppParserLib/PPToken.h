@@ -61,6 +61,7 @@ public:
 
 			int				Line(void);
 			int				Column(void);
+	virtual BOOL			NeedsNewLine(void);
 			void			Dump(void);
 };
 

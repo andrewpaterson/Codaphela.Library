@@ -32,9 +32,8 @@ public:
 	BOOL	mbEndOfFile;
 	int		miLine;
 	int		miColumn;
-	BOOL	mbAllowAnnotations;
 
-	void	Init(char* szStart, char* szEnd, BOOL bAllowAnnotations);
+	void	Init(char* szStart, char* szEnd);
 
 	void	StepRight(void);
 	void	StepRight(int iDist);

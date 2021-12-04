@@ -35,7 +35,6 @@ public:
 	void				Fake(CPPTokenHolder* pcTokens);
 	BOOL 				IsAbstractHolder(void);
 	char*				Print(CChars* psz);
-	char*				PrintWithoutNewline(CChars* psz);
 	void 				Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);

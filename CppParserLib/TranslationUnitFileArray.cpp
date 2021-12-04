@@ -110,16 +110,17 @@ CTranslationUnit* CTranslationUnitFileArray::AddFile(char* szRelativeFileName, B
 {
 	CChars				szTemp;
 	CTranslationUnit*	pcTranslationUnit;
-	CTranslationUnit	cTranslationUnit;
+
+	
+
+	pcTranslationUnit = mcFiles.InsertAfterTail();
+	New<CTranslationUnit>(pcTranslationUnit);
 
 	szTemp.Init(mpcLibrary->mszBaseDir);
 	szTemp.Append(FILE_SEPARATOR);
 	szTemp.Append(szRelativeFileName);
-	cTranslationUnit.Init(szTemp.Text(), mpcLibrary, bLogIncludes, bLogBlocks);
+	pcTranslationUnit->Init(szTemp.Text(), mpcLibrary, bLogIncludes, bLogBlocks);
 	szTemp.Kill();
-
-	pcTranslationUnit = mcFiles.InsertAfterTail();
-	memcpy(pcTranslationUnit, &cTranslationUnit, sizeof(CTranslationUnit));
 
 	return pcTranslationUnit;
 }

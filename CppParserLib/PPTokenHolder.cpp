@@ -57,6 +57,10 @@ char* CPPTokenHolder::Print(CChars* psz)
 	{
 		pcToken = *mcArray.Get(i);
 		pcToken->Print(psz);
+		if (pcToken->NeedsNewLine())
+		{
+			psz->AppendNewLine();
+		}
 	}
 	return psz->Text();
 }

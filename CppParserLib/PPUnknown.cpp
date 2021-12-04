@@ -66,7 +66,7 @@ char* CPPUnknown::Print(CChars* psz)
 {
 	psz->Append("#!UNKNOWN!");
 	psz->Append(' ');
-	CPPDirective::PrintWithoutNewline(psz);
+	CPPDirective::Print(psz);
 	return psz->Text();
 }
 

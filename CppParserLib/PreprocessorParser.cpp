@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorParser::Init(char* szStart, char* szEnd, BOOL bAllowAnnotations)
+void CPreprocessorParser::Init(char* szStart, char* szEnd)
 {
 	int		iLen;
 
@@ -45,7 +45,6 @@ void CPreprocessorParser::Init(char* szStart, char* szEnd, BOOL bAllowAnnotation
 	TestEnd();
 	miLine = 0;
 	miColumn = 0;
-	mbAllowAnnotations = bAllowAnnotations;
 }
 
 
@@ -255,15 +254,6 @@ void CPreprocessorParser::SkipCPPStyleComment(void)
 			return;
 		}
 
-		if ((mbAllowAnnotations) && (iCharNum == 0))
-		{
-			if (cCurrent == '@')
-			{
-				//Wasn't a comment, was an annotation.
-				mszPos-=3;
-				return;
-			}
-		}
 		StepRight();
 		iCharNum++;
 	}

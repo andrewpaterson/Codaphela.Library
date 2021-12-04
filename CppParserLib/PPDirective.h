@@ -59,6 +59,7 @@ public:
 	BOOL	Is(EPreprocessorDirective eType);
 	BOOL	IsConditional(void);
 	BOOL	Equals(CPPToken* pcOther);
+	BOOL	NeedsNewLine(void);
 };
 
 

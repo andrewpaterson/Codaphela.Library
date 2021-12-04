@@ -62,7 +62,7 @@ void CPreprocessorTokeniser::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos, int iLength, BOOL bAllowAnnotations)
+BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos, int iLength)
 {
 	char*					szEnd;
 	EPreprocessorDirective	eDirective;
@@ -88,7 +88,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 	pcBlockSet = NULL;
 	mpcPrev = NULL;
 	szEnd = szPos + iLength-1;
-	mcParser.Init(szPos, szEnd, bAllowAnnotations);
+	mcParser.Init(szPos, szEnd);
 
 	bNewBlock = TRUE;
 	bLastDirective = FALSE;
@@ -163,7 +163,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* pcTokens, char* szPos, int iLength, BOOL bAllowAnnotations, int iBlock, int iIndex)
+BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
 {
 	char*					szEnd;
 	int						iLine;
@@ -172,7 +172,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* 
 
 	mpcPrev = NULL;
 	szEnd = szPos + iLength-1;
-	mcParser.Init(szPos, szEnd, bAllowAnnotations);
+	mcParser.Init(szPos, szEnd);
 
 	iLine = 0;
 	while (!mcParser.mbEndOfFile)
@@ -212,7 +212,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* 
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokens* pcTokens)
 {
-	mcParser.Init(sz, NULL, FALSE);
+	mcParser.Init(sz, NULL);
 	CPreprocessorLineTokensier::Preprocess(pcHolder, &mcParser, pcTokens, TRUE);
 }
 

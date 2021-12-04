@@ -312,7 +312,7 @@ void CCPPTokeniser::PrintError(CPPLine* pcLine)
 
 	sz.Append("\n");
 	sz.Append("Line[");
-	pcLine->PrintWithoutNewline(&sz);
+	pcLine->Print(&sz);
 	sz.Append("]\nRemain[");
 	mcParser.AppendRemaining(&sz);
 	sz.Append("]\n");
