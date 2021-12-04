@@ -141,15 +141,15 @@ void CPreprocessorTokenParser::Bump(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::MarkDown(CPPAbstractHolder* pcHolder)
 {
-	CPPToken**		ppcToken;
+	CPPToken*		pcToken;
 
 	mpsCurrent = macPPHolderMark.Add();
 	mpsCurrent->Init(pcHolder, NULL, 0);
 
-	ppcToken = pcHolder->GetTokens()->mcArray.SafeGet(0);
-	if (ppcToken)
+	pcToken = pcHolder->GetTokens()->Get(0);
+	if (pcToken)
 	{
-		AssignCurrent(*ppcToken, 0);
+		AssignCurrent(pcToken, 0);
 		Bump();
 	}
 }

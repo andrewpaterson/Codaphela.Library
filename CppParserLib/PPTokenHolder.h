@@ -26,16 +26,19 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPPTokenHolder
 {
-public:
+protected:
 	CArrayPPTokenPtrs	mcArray;
 
-	void	Init(void);
-	void	Kill(void);
-	char*	Print(CChars* psz);
-	void	Add(CPPToken* ppcToken);
-	BOOL	Equals(CPPTokenHolder* pcOther);
-	void	SavageAppend(CChars* psz, int iDepth);
-	void	Dump(void);
+public:
+	void		Init(void);
+	void		Kill(void);
+	char*		Print(CChars* psz);
+	void		Add(CPPToken* ppcToken);
+	BOOL		Equals(CPPTokenHolder* pcOther);
+	void		SavageAppend(CChars* psz, int iDepth);
+	int			NumTokens(void);
+	CPPToken*	Get(int iTokenIndex);
+	void		Dump(void);
 };
 
 

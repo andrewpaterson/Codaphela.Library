@@ -79,7 +79,7 @@ void CTranslationUnit::Kill(void)
 		free(mpcLogs);
 	}
 
-	mcHolder.GetTokens()->mcArray.Kill();  //Kill isn't called on mcTokens because it will free the tokens in the blocks also.
+	mcHolder.Kill();
 	CCFile::Kill();
 }
 

@@ -61,15 +61,17 @@ void CPPLine::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
 	CPPLine*	pcCast;
 	CPPToken*	pcToken;
 	int			i;
+	int			iNumTokens;
 
 	if (pcSource->IsLine())
 	{
 		pcCast = (CPPLine*)pcSource;
 		Init(pcCast->miLine, pcCast->miColumn);
 
-		for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
+		iNumTokens = pcCast->mcTokens.NumTokens();
+		for (i = 0; i < iNumTokens; i++)
 		{
-			pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
+			pcToken = DuplicatePPToken(pcCast->mcTokens.Get(i), pcTokens);
 			mcTokens.Add(pcToken);
 		}
 	}

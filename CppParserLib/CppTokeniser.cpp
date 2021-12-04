@@ -250,11 +250,12 @@ BOOL CCPPTokeniser::Line(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CCPPTokeniser::Tokenise(CPPTokenHolder* pcSource)
 {
-	int			i;
-	BOOL		bResult;
-	CPPToken*	pcToken;
-	CPPLine*	pcLine;
-	CCTNewLine*	pcNewLine;
+	int				i;
+	BOOL			bResult;
+	CPPToken*		pcToken;
+	CPPLine*		pcLine;
+	CCTNewLine*		pcNewLine;
+	int				iNumTokens;
 
 	mcTokens.Kill();
 	mcTokens.Init();
@@ -262,9 +263,10 @@ BOOL CCPPTokeniser::Tokenise(CPPTokenHolder* pcSource)
 	bResult = TRUE;
 	pcLine = NULL;
 	mcParser.Init();
-	for (i = 0; i < pcSource->mcArray.NumElements(); i++)
+	iNumTokens = pcSource->NumTokens();
+	for (i = 0; i < iNumTokens; i++)
 	{
-		pcToken = *pcSource->mcArray.Get(i);
+		pcToken = pcSource->Get(i);
 		if (pcToken->IsLine())
 		{
 			pcLine = (CPPLine*)pcToken;

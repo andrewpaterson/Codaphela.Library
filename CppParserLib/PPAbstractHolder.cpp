@@ -70,7 +70,7 @@ char* CPPAbstractHolder::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 char* CPPAbstractHolder::PrintWithoutNewline(CChars* psz)
 {
-	if (mcTokens.mcArray.IsNotEmpty())
+	if (mcTokens.NumTokens() != 0)
 	{
 		mcTokens.Print(psz);
 	}
@@ -86,12 +86,14 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens)
 {
 	int			i;
 	CPPToken*	pcToken;
+	int			iNumTokens;
 
 	Init(pcCast->miLine, pcCast->miColumn);
 
-	for (i = 0; i < pcCast->mcTokens.mcArray.NumElements(); i++)
+	iNumTokens = pcCast->mcTokens.NumTokens();
+	for (i = 0; i < iNumTokens; i++)
 	{
-		pcToken = DuplicatePPToken(*pcCast->mcTokens.mcArray.Get(i), pcTokens);
+		pcToken = DuplicatePPToken(pcCast->Get(i), pcTokens);
 		mcTokens.Add(pcToken);
 	}
 }
@@ -103,7 +105,7 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens)
 //////////////////////////////////////////////////////////////////////////
 int CPPAbstractHolder::TokenLength(void)
 {
-	return mcTokens.mcArray.NumElements();
+	return mcTokens.NumTokens();
 }
 
 
@@ -113,7 +115,7 @@ int CPPAbstractHolder::TokenLength(void)
 //////////////////////////////////////////////////////////////////////////
 CPPToken* CPPAbstractHolder::Get(int iIndex)
 {
-	return *mcTokens.mcArray.Get(iIndex);
+	return mcTokens.Get(iIndex);
 }
 
 
@@ -157,13 +159,15 @@ BOOL CPPAbstractHolder::IsEmpty(void)
 {
 	int			i;
 	CPPToken*	pcToken;
+	int			iNumTokens;
 
-	if (mcTokens.mcArray.NumElements() == 0)
+	iNumTokens = mcTokens.NumTokens();
+	if (iNumTokens == 0)
 	{
 		return TRUE;
 	}
 
-	for (i = 0; i < mcTokens.mcArray.NumElements(); i++)
+	for (i = 0; i < iNumTokens; i++)
 	{
 		pcToken = Get(i);
 		if (!pcToken->IsEmpty())

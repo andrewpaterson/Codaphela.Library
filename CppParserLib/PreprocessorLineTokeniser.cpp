@@ -35,7 +35,7 @@ void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPrep
 {
 	CPreprocessorLineTokensier	cLinePreprocessor;
 
-	cLinePreprocessor.Init(&pcLinesTokens->mcArray, pcParser, pcTokens, bAllowEscapes);
+	cLinePreprocessor.Init(pcLinesTokens, pcParser, pcTokens, bAllowEscapes);
 	cLinePreprocessor.Preprocess();
 	cLinePreprocessor.Kill();
 }
@@ -44,10 +44,10 @@ void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPrep
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Init(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Init(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
 {
 	mpcParser = pcParser;
-	mpcTokenPtrs = pcTokenPtrs;
+	mpcTokenHolder = pcLinesTokens;
 	mpcTokens = pcTokens;
 	mbOnlyWhiteSpace = TRUE;
 	mbAllowEscapes = bAllowEscapes;
@@ -261,18 +261,9 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				mszWhiteSpaceStart = mpcParser->mszPos;
 				mpcParser->StepRight(2);
 
-				if ((*mpcParser->mszPos) == '@')
-				{
-					AddAnnotationToken();
-					mpcParser->SkipNewLine();
-					return TRUE;
-				}
-				else
-				{
-					mpcParser->SkipCPPStyleComment();
-					mpcParser->SkipNewLine();
-					return TRUE;
-				}
+				mpcParser->SkipCPPStyleComment();
+				mpcParser->SkipNewLine();
+				return TRUE;
 			}
 			else if ((*mpcParser->mszPos) == '*')
 			{
@@ -301,18 +292,9 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 			{
 				mpcParser->StepRight();
 
-				if ((*mpcParser->mszPos) == '@')
-				{
-					AddAnnotationToken();
-					mpcParser->SkipNewLine();
-					return TRUE;
-				}
-				else
-				{
-					mpcParser->SkipCPPStyleComment();
-					mpcParser->SkipNewLine();
-					return TRUE;
-				}
+				mpcParser->SkipCPPStyleComment();
+				mpcParser->SkipNewLine();
+				return TRUE;
 			}
 			else if ((*mpcParser->mszPos) == '*')
 			{
@@ -367,14 +349,14 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 		if (!mbOnlyWhiteSpace)
 		{
 			pcWhiteSpace = mpcTokens->AddWhiteSpace();
-			AddToken(pcWhiteSpace, mpcTokenPtrs);
+			mpcTokenHolder->Add(pcWhiteSpace);
 			pcWhiteSpace->Init(mpcParser->miLine, mpcParser->miColumn);
 		}
 	}
 	else if ((mszHashStart) && (mszHashStart <= mpcParser->mszEnd))
 	{
 		pcHashes = mpcTokens->AddHashes();
-		AddToken(pcHashes, mpcTokenPtrs);
+		mpcTokenHolder->Add(pcHashes);
 		pcHashes->Init((int)(mpcParser->mszPos - mszHashStart), mpcParser->miLine, mpcParser->miColumn);
 		mbOnlyWhiteSpace = FALSE;
 	}
@@ -395,7 +377,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	if (!mbContainsLineContinuers)
 	{
 		pcText = mpcTokens->AddText();
-		AddToken(pcText, mpcTokenPtrs);
+		mpcTokenHolder->Add(pcText);
 		pcText->Init(eType, mpcParser->miLine, mpcParser->miColumn, szStart, szEndExclusive);
 		return pcText;
 	}
@@ -404,7 +386,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 		sz.Init();
 		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
 		pcTextWithSource = mpcTokens->AddTextWithSource();
-		AddToken(pcTextWithSource, mpcTokenPtrs);
+		mpcTokenHolder->Add(pcTextWithSource);
 		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
 		sz.Kill();
 		return pcTextWithSource;
@@ -427,7 +409,7 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
-			AddToken(pcText, mpcTokenPtrs);
+			mpcTokenHolder->Add(pcText);
 			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mszDoubleQuoteStart, mpcParser->mszPos);
 		}
 		else
@@ -435,7 +417,7 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 			sz.Init();
 			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->mszPos-1, '"');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			AddToken(pcTextWithSource, mpcTokenPtrs);
+			mpcTokenHolder->Add(pcTextWithSource);
 			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
 			sz.Kill();
 		}
@@ -459,7 +441,7 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
-			AddToken(pcText, mpcTokenPtrs);
+			mpcTokenHolder->Add(pcText);
 			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mszSingleQuoteStart, mpcParser->mszPos);
 		}
 		else
@@ -467,36 +449,12 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 			sz.Init();
 			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->mszPos-1, '\'');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			AddToken(pcTextWithSource, mpcTokenPtrs);
+			mpcTokenHolder->Add(pcTextWithSource);
 			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
 			sz.Kill();
 		}
 		mbOnlyWhiteSpace = FALSE;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::AddAnnotationToken(void)
-{
-	//Oi!  Annotations please.
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessorLineTokensier::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
-{
-	CPPToken**	ppcToken;
-
-	ppcToken = pcTokens->Add();
-	*ppcToken = pcToken;
-	return pcToken;
 }
 
 

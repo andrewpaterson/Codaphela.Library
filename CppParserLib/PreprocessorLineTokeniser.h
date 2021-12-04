@@ -32,7 +32,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPreprocessorLineTokensier
 {
 protected:
-	CArrayPPTokenPtrs*		mpcTokenPtrs;
+	CPPTokenHolder*			mpcTokenHolder;
 	char*					mszWhiteSpaceStart;
 	char*					mszIdentifierStart;
 	char*					mszDecorationStart;
@@ -50,7 +50,7 @@ public:
 	static void		Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
 
 public:
-	void		Init(CArrayPPTokenPtrs* pcTokenPtrs, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
+	void		Init(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
 	void		Kill(void);
 	void		Preprocess(void);
 	BOOL		PossibleComment(void);
@@ -58,8 +58,6 @@ public:
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
 	void		AddDoubleQuotedToken(void);
 	void		AddSingleQuotedToken(void);
-	void		AddAnnotationToken(void);
-	CPPToken*	AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens);
 	void		NullAll(void);
 	void		ReplaceEscapeCodes(CChars* psz, char* szStart, char* szEnd, char cQuotes);
 	void		ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd);
