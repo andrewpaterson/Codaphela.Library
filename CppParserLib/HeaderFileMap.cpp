@@ -93,11 +93,11 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CHeaderFile* CHeaderFileMap::GetFile(char* szRelativeName)
+CHeaderFile* CHeaderFileMap::GetFile(char* szAbsoluteFileName)
 {
 	CHeaderFile**	pcHeader;
 
-	pcHeader = mcFileMap.Get(szRelativeName);
+	pcHeader = mcFileMap.Get(szAbsoluteFileName);
 	if (pcHeader)
 	{
 		return *pcHeader;

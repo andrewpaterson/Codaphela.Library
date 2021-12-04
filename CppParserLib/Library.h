@@ -22,8 +22,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __LIBRARY_H__
 #include "BaseLib/LinkedListTemplate.h"
 #include "Config.h"
-#include "TranslationUnitList.h"
-#include "HeaderNameMap.h"
+#include "TranslationUnits.h"
+#include "HeaderFiles.h"
 
 
 struct SCFileIter
@@ -36,8 +36,8 @@ struct SCFileIter
 class CLibrary
 {
 public:
-	CTranslationUnitList	mcTranslationUnits;
-	CHeaderNameMap			mcHeaderNameMap;
+	CTranslationUnits	mcTranslationUnits;
+	CHeaderFiles			mcHeaderNameMap;
 	CChars					mszName;
 	CChars					mszBaseDir;
 	CListConfigs			mcConfigs;

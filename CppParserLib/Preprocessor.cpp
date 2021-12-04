@@ -115,7 +115,7 @@ void CPreprocessor::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
 {
-	CHeaderNameMap*		pcHeaderNameMap;
+	CHeaderFiles*		pcHeaderNameMap;
 	int					i;
 
 	for (i = 0; i < pcHeaderNames->NumElements(); i++)
@@ -130,7 +130,7 @@ void CPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::AddIncludeDirectory(CHeaderNameMap* pcHeaderMapName)
+void CPreprocessor::AddIncludeDirectory(CHeaderFiles* pcHeaderMapName)
 {
 	mcHeaderNames.Add(&pcHeaderMapName);
 }
@@ -514,7 +514,7 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 {
 	BOOL						bResult;
 	CHeaderFile*				pcIncludeFile;
-	CHeaderNameMap*				pcHeaderNameMap;
+	CHeaderFiles*				pcHeaderNameMap;
 	CExternalString				cExternalString;
 	CChars						sz;
 	CHeaderNameMapDirectory*	pcNewDirectory;
@@ -565,7 +565,7 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap)
+BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap)
 {
 	BOOL						bResult;
 	CExternalString				cExternalString;
@@ -616,15 +616,15 @@ BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHead
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap)
+void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap)
 {
 	CChars						szInclude;
 	CHeaderFile*				pcBestFile;
-	CHeaderNameMap*				pcBestHeaderNameMap;
+	CHeaderFiles*				pcBestHeaderNameMap;
 	int							iMatch;
 	int							iBestMatch;
 	int							i;
-	CHeaderNameMap*				pcHeaderNameMap;
+	CHeaderFiles*				pcHeaderNameMap;
 	CHeaderFile*				pcHeaderFile;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
 	CChars						szPath;
@@ -1637,7 +1637,7 @@ BOOL CPreprocessor::ProcessDefinedIdentifier(CPPTokenHolder* pcDest, CPPText* pc
 BOOL CPreprocessor::ProcessHasIncludeIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser)
 {
 	CHeaderFile*			pcIncludeFile;
-	CHeaderNameMap*			pcHeaderNameMap;
+	CHeaderFiles*			pcHeaderNameMap;
 	BOOL					bResult;
 	CPPText*				pcDecorator;
 	char*					pcValue;

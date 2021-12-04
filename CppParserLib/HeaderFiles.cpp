@@ -19,7 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
-#include "HeaderNameMap.h"
+#include "HeaderFiles.h"
 #include "HeaderFileMap.h"
 
 
@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem)
+BOOL CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem)
 {
 	CFileUtil cFileUtil;
 
@@ -58,7 +58,7 @@ BOOL CHeaderNameMap::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMap::Kill(void)
+void CHeaderFiles::Kill(void)
 {
 	mcFileNames.Kill();
 	mszBaseDirectory.Kill();
@@ -70,7 +70,7 @@ void CHeaderNameMap::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMap::AddFiles(BOOL bIncludeSubDirectories)
+void CHeaderFiles::AddFiles(BOOL bIncludeSubDirectories)
 {
 	CChars					szTemp;
 	CArrayChars				aszHeaderExtensions;
@@ -123,19 +123,19 @@ void CHeaderNameMap::AddFiles(BOOL bIncludeSubDirectories)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMap::AddFile(char* szFile)
+void CHeaderFiles::AddFile(char* szRelativeFileName)
 {
-	CHeaderFile* pcHeader;
+	CHeaderFile*	pcHeader;
 	CChars			szShortName;
 	CChars			szFullName;
 
 	szFullName.Init(mszBaseDirectory);
 	szFullName.Append(FILE_SEPARATOR);
-	szFullName.Append(szFile);
+	szFullName.Append(szRelativeFileName);
 	pcHeader = mpcFileMap->AddFile(szFullName.Text(), mbSystem);
 	szFullName.Kill();
 
-	szShortName.Init(szFile);
+	szShortName.Init(szRelativeFileName);
 	szShortName.Replace('\\', '/');
 	if (!mcFileNames.HasKey(szShortName.Text()))
 	{
@@ -149,9 +149,20 @@ void CHeaderNameMap::AddFile(char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHeaderFile* CHeaderNameMap::GetFile(char* szAbsoluteFileName)
+CHeaderFile* CHeaderFiles::GetFile(char* szRelativeFileName)
 {
-	return mpcFileMap->GetFile(szAbsoluteFileName);
+	CHeaderFile** ppcHeaderFile;
+
+	ppcHeaderFile = mcFileNames.Get(szRelativeFileName);
+	if (ppcHeaderFile)
+	{
+		return *ppcHeaderFile;
+	}
+
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -159,7 +170,7 @@ CHeaderFile* CHeaderNameMap::GetFile(char* szAbsoluteFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHeaderNameMap::GetBaseDirectoryLength(void)
+int CHeaderFiles::GetBaseDirectoryLength(void)
 {
 	return mszBaseDirectory.Length();
 }
@@ -169,7 +180,7 @@ int CHeaderNameMap::GetBaseDirectoryLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderNameMap::Dump(void)
+void CHeaderFiles::Dump(void)
 {
 	CHeaderFile*	pcHeader;
 	CChars			sz;

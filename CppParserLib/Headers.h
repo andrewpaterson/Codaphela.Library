@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __HEADERS_H__
 #define __HEADERS_H__
-#include "HeaderNameMap.h"
+#include "HeaderFiles.h"
 
 
 //This is the complete set of include directories for the Project.  Only the project, not the libraries.

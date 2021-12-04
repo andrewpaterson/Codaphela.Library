@@ -38,7 +38,7 @@ void CHeaders::Init(CHeaderFileMap* pcFileMap)
 //////////////////////////////////////////////////////////////////////////
 void CHeaders::Kill(void)
 {
-	CHeaderNameMap*		pcHeaderNameMap;
+	CHeaderFiles*		pcHeaderNameMap;
 	int					i;
 
 	for (i = 0; i < mcHeaderNames.NumElements(); i++)
@@ -58,7 +58,7 @@ void CHeaders::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CHeaders::Add(char* szDirectoryName, BOOL bIncludeSubDirectories, BOOL bSystem)
 {
-	CHeaderNameMap*		pcHeaderNameMap;
+	CHeaderFiles*		pcHeaderNameMap;
 
 	pcHeaderNameMap = mcHeaderNames.Add();
 	pcHeaderNameMap->Init(szDirectoryName, mpcFileMap, bIncludeSubDirectories, bSystem);

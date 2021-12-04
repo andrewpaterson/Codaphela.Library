@@ -40,7 +40,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Library.h"
 #include "TranslationUnit.h"
 #include "PPTokenBlockIndex.h"
-#include "HeaderNameMap.h"
+#include "HeaderFiles.h"
 #include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
 
@@ -87,7 +87,7 @@ public:
 	void				LogBlocks(BOOL bLogBlocks);
 	void				LogDumping(BOOL bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
-	void				AddIncludeDirectory(CHeaderNameMap* pcHeaderNames);
+	void				AddIncludeDirectory(CHeaderFiles* pcHeaderNames);
 	int					GetBlockReuse(void);
 
 	CDefine*			GetDefine(CExternalString* pcString, BOOL bExact);
@@ -130,12 +130,12 @@ public:
 	BOOL				ProcessHasBuiltInIdentifier(CPPTokenHolder* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
 	BOOL				ProcessUnknownDirective(CPreprocessorTokenParser* pcParser, CPPTokenHolder* pcDest);
-	BOOL				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
+	BOOL				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
 	BOOL				ProcessDirectiveLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, int iDepth);
 	BOOL				ProcessNormalLine(CPPTokenHolder* pcTokenHolder, CPreprocessorTokenParser* pcParser, int iDepth);
 	BOOL				ProcessSingleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessDoubleHash(CPPTokenHolder* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
-	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderNameMap** ppcHeaderNameMap);
+	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
 	BOOL				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenHolders* pacArguments);
 	SPPTokenBlockIndex	Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	void				AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcToken);
