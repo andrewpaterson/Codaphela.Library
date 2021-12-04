@@ -38,7 +38,7 @@ public:
 	void 				Init(CLibrary* pcLibrary);
 	void 				Kill(void);
 
-	void				AddAllFiles(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	void				AddAllFiles(CChars* pszBaseDir, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
 	CTranslationUnit*	AddFile(char* szRelativeFileName, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
 	CTranslationUnit*	GetFirst(void);
 	CTranslationUnit*	GetNext(CTranslationUnit* pcCurrent);

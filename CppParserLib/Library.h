@@ -37,10 +37,10 @@ class CLibrary
 {
 public:
 	CTranslationUnitList	mcTranslationUnits;
-	CHeaderNameMap				mcHeaderNameMap;
-	CChars						mszName;
-	CChars						mszBaseDir;
-	CListConfigs				mcConfigs;
+	CHeaderNameMap			mcHeaderNameMap;
+	CChars					mszName;
+	CChars					mszBaseDir;
+	CListConfigs			mcConfigs;
 
 	void				Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap);
 	void				Kill(void);

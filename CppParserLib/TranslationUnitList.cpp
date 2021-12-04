@@ -57,25 +57,25 @@ void CTranslationUnitList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnitList::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
+void CTranslationUnitList::AddAllFiles(CChars* pszBaseDir, BOOL bLogInlucdes, BOOL bLogBlocks)
 {
-	CChars					szTemp;
-	CArrayChars			aszTemp;
-	int						i;
-	CChars*					pszFile;
-	int						iIndex;
-	int						j;
-	CChars*					szFile;
-	char*					szExtension;
-	int						iBaseDirLen;
-	CFileUtil				cFileUtil;
-	CArrayChars			aszFileNames;
+	CChars			szTemp;
+	CArrayChars		aszTemp;
+	int				i;
+	CChars*			pszFile;
+	int				iIndex;
+	int				j;
+	CChars*			szFile;
+	char*			szExtension;
+	int				iBaseDirLen;
+	CFileUtil		cFileUtil;
+	CArrayChars		aszFileNames;
 
 	szTemp.Init("*.c;*.cpp");
 
 	aszTemp.Init();
 	szTemp.Split(&aszTemp, ';');
-	iBaseDirLen = mpcLibrary->mszBaseDir.Length();
+	iBaseDirLen = pszBaseDir->Length();
 
 	for (i = 0; i < aszTemp.NumElements(); i++)
 	{
@@ -86,7 +86,7 @@ void CTranslationUnitList::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
 		szExtension = pszFile->Text(iIndex+1);
 
 		aszFileNames.Init();
-		cFileUtil.FindFilesWithExtension(mpcLibrary->mszBaseDir.Text(), szExtension, &aszFileNames);
+		cFileUtil.FindFilesWithExtension(pszBaseDir->Text(), szExtension, &aszFileNames);
 
 		for (j = 0; j < aszFileNames.NumElements(); j++)
 		{

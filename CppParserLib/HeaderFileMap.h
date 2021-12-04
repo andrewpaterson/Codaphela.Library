@@ -30,7 +30,7 @@ typedef CLinkedListTemplate<CHeaderFile>	CHeadFileList;
 
 class CHeaderFileMap
 {
-private:
+protected:
 	CHeaderFilePtrMap	mcFileMap;
 	CHeadFileList		mcFileList;
 
@@ -39,7 +39,7 @@ public:
 	void 			Kill(void);
 
 	CHeaderFile*	AddFile(char* szAbsoluteFileName, BOOL bSystem);
-	CHeaderFile*	FindFile(char* szAbsoluteFileName);
+	CHeaderFile*	GetFile(char* szRelativeName);
 	CHeaderFile*	StartIteration(SMapIterator* psIter);
 	CHeaderFile*	Iterate(SMapIterator* psIter);
 };

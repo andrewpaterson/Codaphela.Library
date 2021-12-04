@@ -82,7 +82,7 @@ CTranslationUnit* CLibrary::AddFile(char* szRelativeNameFile, BOOL bLogIncludes,
 //////////////////////////////////////////////////////////////////////////
 void CLibrary::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
 {
-	mcTranslationUnits.AddAllFiles(bLogInlucdes, bLogBlocks);
+	mcTranslationUnits.AddAllFiles(&mszBaseDir, bLogInlucdes, bLogBlocks);
 }
 
 

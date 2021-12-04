@@ -31,19 +31,24 @@ typedef CMapStringTemplate<CHeaderFile*>	CMapStringHeaderFilePtr;
 class CHeaderFileMap;
 class CHeaderNameMap
 {
-public:
+protected:
 	CHeaderFileMap*				mpcFileMap;
 	CMapStringHeaderFilePtr		mcFileNames;
 	CChars						mszBaseDirectory;
 	BOOL						mbSystem;
 
-	BOOL Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem);
-	void Kill(void);
+public:
+	BOOL			Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem);
+	void			Kill(void);
 
-	void AddFiles(BOOL bIncludeSubDirectories);
-	void AddFile(char* szFile);
+	void			AddFiles(BOOL bIncludeSubDirectories);
+	void			AddFile(char* szFile);
 
-	void Dump(void);
+	CHeaderFile*	GetFile(char* szFile);
+	
+	int				GetBaseDirectoryLength(void);
+
+	void			Dump(void);
 };
 
 

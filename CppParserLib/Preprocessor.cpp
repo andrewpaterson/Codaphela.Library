@@ -625,7 +625,6 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile
 	int							iBestMatch;
 	int							i;
 	CHeaderNameMap*				pcHeaderNameMap;
-	CHeaderFile**				ppcHeaderFile;
 	CHeaderFile*				pcHeaderFile;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
 	CChars						szPath;
@@ -641,10 +640,9 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile
 	{
 		pcHeaderNameMap = *mcHeaderNames.Get(i);
 
-		ppcHeaderFile = pcHeaderNameMap->mcFileNames.Get(szInclude.Text());
-		if (ppcHeaderFile)
+		pcHeaderFile = pcHeaderNameMap->GetFile(szInclude.Text());
+		if (pcHeaderFile)
 		{
-			pcHeaderFile = *ppcHeaderFile;
 			iMatch = 2;
 
 			if (pcHeaderFile->IsSystemFile() && bSystemFile)
@@ -670,16 +668,15 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile
 
 			if (pcHeaderNameMap == pcCurrentDirectory->mpcHeaderNameMap)
 			{
-				if (pcCurrentDirectory->mszBaseDirectoryName.Length() > pcHeaderNameMap->mszBaseDirectory.Length())
+				if (pcCurrentDirectory->mszBaseDirectoryName.Length() > pcHeaderNameMap->GetBaseDirectoryLength())
 				{
 					szPath.Init(pcCurrentDirectory->mszBaseDirectoryName);
-					szPath.RemoveFromStart(pcHeaderNameMap->mszBaseDirectory.Length()+1);
+					szPath.RemoveFromStart(pcHeaderNameMap->GetBaseDirectoryLength()+1);
 					szPath.Append('/');
 					szPath.Append(szInclude);
-					ppcHeaderFile = pcHeaderNameMap->mcFileNames.Get(szPath.Text());
-					if (ppcHeaderFile)
+					pcHeaderFile = pcHeaderNameMap->GetFile(szPath.Text());
+					if (pcHeaderFile)
 					{
-						pcHeaderFile = *ppcHeaderFile;
 						iMatch = 2;
 
 						if (pcHeaderFile->IsSystemFile() && bSystemFile)
