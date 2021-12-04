@@ -108,7 +108,7 @@ char* CPPDirective::Print(CChars* psz)
 		break;
 	}
 
-	if (mcTokens.mcArray.IsNotEmpty())
+	if (mcTokens.NumTokens() > 0)
 	{
 		psz->Append(' ');
 		CPPAbstractHolder::Print(psz);

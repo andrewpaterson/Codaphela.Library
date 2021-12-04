@@ -134,15 +134,17 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 {
 	CPPToken*	pcToken;
 	int			i;
+	int			iNumTokens;
 
-	if (mcRawTokens.mcArray.NumElements() == iToken)
+	iNumTokens = mcRawTokens.NumTokens();
+	if (iNumTokens == iToken)
 	{
 		return TRUE;
 	}
 
-	for (i = mcRawTokens.mcArray.NumElements()-1; i >= iToken; i--)
+	for (i = iNumTokens - 1; i >= iToken; i--)
 	{
-		pcToken = *mcRawTokens.mcArray.Get(i);
+		pcToken = mcRawTokens.Get(i);
 		if (!pcToken->IsEmpty())
 		{
 			return FALSE;
