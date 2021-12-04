@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TRANSLATION_UNIT_FILE_ARRAY_H__
-#define __TRANSLATION_UNIT_FILE_ARRAY_H__
+#ifndef __TRANSLATION_UNIT_LIST_H__
+#define __TRANSLATION_UNIT_LIST_H__
 #include "BaseLib/LinkedListTemplate.h"
 #include "TranslationUnit.h"
 
@@ -28,19 +28,22 @@ typedef CLinkedListTemplate<CTranslationUnit>	CListTranslationUnit;
 
 
 class CLibrary;
-class CTranslationUnitFileArray
+class CTranslationUnitList
 {
-public:
+protected:
 	CListTranslationUnit	mcFiles;
 	CLibrary*				mpcLibrary;
 
+public:
 	void 				Init(CLibrary* pcLibrary);
 	void 				Kill(void);
 
 	void				AddAllFiles(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
 	CTranslationUnit*	AddFile(char* szRelativeFileName, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	CTranslationUnit*	GetFirst(void);
+	CTranslationUnit*	GetNext(CTranslationUnit* pcCurrent);
 };
 
 
-#endif // !__TRANSLATION_UNIT_FILE_ARRAY_H__
+#endif // !__TRANSLATION_UNIT_LIST_H__
 

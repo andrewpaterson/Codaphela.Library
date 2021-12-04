@@ -21,16 +21,18 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __HEADER_FILE_MAP_H__
 #define __HEADER_FILE_MAP_H__
 #include "BaseLib/MapStringTemplate.h"
+#include "BaseLib/LinkedListTemplate.h"
 #include "HeaderFile.h"
 
 
-typedef CMapStringTemplate<CHeaderFile>	CMapStringCHeaderFile;
-
+typedef CMapStringTemplate<CHeaderFile*>	CHeaderFilePtrMap;
+typedef CLinkedListTemplate<CHeaderFile>	CHeadFileList;
 
 class CHeaderFileMap
 {
 private:
-	CMapStringCHeaderFile	mcFiles;
+	CHeaderFilePtrMap	mcFileMap;
+	CHeadFileList		mcFileList;
 
 public:
 	void 			Init(void);

@@ -262,8 +262,7 @@ void CProject::DumpProcessedCPPFileName(CCFile* pcFile)
 	sz.Init("Process (");
 	sz.Append(pcFile->ShortName());
 	sz.Append(")\n");
-	sz.Dump();
-	sz.Kill();
+	sz.DumpKill();
 }
 
 

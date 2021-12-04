@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "TranslationUnitFileArray.h"
+#include "TranslationUnitList.h"
 #include "BaseLib/FileUtil.h"
 #include "Library.h"
 
@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnitFileArray::Init(CLibrary* pcLibrary)
+void CTranslationUnitList::Init(CLibrary* pcLibrary)
 {
 	mcFiles.Init();
 	mpcLibrary = pcLibrary;
@@ -38,7 +38,7 @@ void CTranslationUnitFileArray::Init(CLibrary* pcLibrary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnitFileArray::Kill(void)
+void CTranslationUnitList::Kill(void)
 {
 	CTranslationUnit*	pcFile;
 
@@ -57,7 +57,7 @@ void CTranslationUnitFileArray::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnitFileArray::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
+void CTranslationUnitList::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
 {
 	CChars					szTemp;
 	CArrayChars			aszTemp;
@@ -106,12 +106,10 @@ void CTranslationUnitFileArray::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTranslationUnit* CTranslationUnitFileArray::AddFile(char* szRelativeFileName, BOOL bLogIncludes, BOOL bLogBlocks)
+CTranslationUnit* CTranslationUnitList::AddFile(char* szRelativeFileName, BOOL bLogIncludes, BOOL bLogBlocks)
 {
 	CChars				szTemp;
 	CTranslationUnit*	pcTranslationUnit;
-
-	
 
 	pcTranslationUnit = mcFiles.InsertAfterTail();
 	New<CTranslationUnit>(pcTranslationUnit);
@@ -124,3 +122,24 @@ CTranslationUnit* CTranslationUnitFileArray::AddFile(char* szRelativeFileName, B
 
 	return pcTranslationUnit;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTranslationUnit* CTranslationUnitList::GetFirst(void)
+{
+	return mcFiles.GetHead();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTranslationUnit* CTranslationUnitList::GetNext(CTranslationUnit* pcCurrent)
+{
+	return mcFiles.GetNext(pcCurrent);
+}
+

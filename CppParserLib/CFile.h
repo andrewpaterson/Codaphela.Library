@@ -46,6 +46,7 @@ public:
 	virtual BOOL				IsTranslationUnit(void) =0;
 	virtual BOOL				IsHeader(void) =0;
 			char*				ShortName(void);
+			char*				FullName(void);
 	virtual BOOL				IsPragmaOnced(void) =0;
 	virtual BOOL				IsSystemFile(void) =0;
 			void				Path(CChars* pszPath);

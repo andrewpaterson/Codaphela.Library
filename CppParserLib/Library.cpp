@@ -127,7 +127,7 @@ CConfig* CLibrary::GetConfig(char* szConfiguration)
 //////////////////////////////////////////////////////////////////////////
 CTranslationUnit* CLibrary::GetFirstTranslationUnit(SCFileIter* psIter)
 {
-	psIter->pcLast = mcTranslationUnits.mcFiles.GetHead();
+	psIter->pcLast = mcTranslationUnits.GetFirst();
 	if (psIter->pcLast)
 	{
 		psIter->bValid = TRUE;
@@ -151,7 +151,7 @@ CTranslationUnit* CLibrary::GetNextTranslationUnit(SCFileIter* psIter)
 		return NULL;
 	}
 	
-	psIter->pcLast = mcTranslationUnits.mcFiles.GetNext(psIter->pcLast);
+	psIter->pcLast = mcTranslationUnits.GetNext(psIter->pcLast);
 	if (psIter->pcLast)
 	{
 		return psIter->pcLast;
