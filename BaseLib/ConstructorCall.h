@@ -45,6 +45,16 @@ Class* NewMalloc(void)
 
 
 template<class Class>
+Class* New(Class* pv)
+{
+	memset(pv, 0, sizeof(Class));
+	new(pv) Class;
+
+	return pv;
+}
+
+
+template<class Class>
 class CPostMalloc
 {
 public:

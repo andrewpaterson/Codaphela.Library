@@ -60,7 +60,6 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 {
 	CHeaderFile*		pcHeader;
 	char*				szName;
-	CHeaderFile			cHeader;
 
 	
 	pcHeader = mcFiles.Get(szAbsoluteFileName);
@@ -69,8 +68,8 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 		pcHeader = mcFiles.Put(szAbsoluteFileName);
 		szName = mcFiles.GetKeyForData(pcHeader);
 		
-		cHeader.Init(szName, bSystem);
-		memcpy(pcHeader, &cHeader, sizeof(CHeaderFile));  //Initialise virtual function table.
+		New<CHeaderFile>(pcHeader);
+		pcHeader->Init(szName, bSystem);
 	}
 	return pcHeader;
 }
