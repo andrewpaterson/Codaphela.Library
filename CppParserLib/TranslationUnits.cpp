@@ -114,7 +114,7 @@ CTranslationUnit* CTranslationUnits::AddFile(char* szRelativeFileName, BOOL bLog
 	pcTranslationUnit = mcFiles.InsertAfterTail();
 	New<CTranslationUnit>(pcTranslationUnit);
 
-	szTemp.Init(mpcLibrary->mszBaseDir);
+	szTemp.Init(mpcLibrary->GetBaseDir());
 	szTemp.Append(FILE_SEPARATOR);
 	szTemp.Append(szRelativeFileName);
 	pcTranslationUnit->Init(szTemp.Text(), mpcLibrary, bLogIncludes, bLogBlocks);

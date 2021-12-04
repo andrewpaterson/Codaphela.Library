@@ -35,21 +35,25 @@ struct SCFileIter
 
 class CLibrary
 {
-public:
+protected:
 	CTranslationUnits	mcTranslationUnits;
-	CHeaderFiles			mcHeaderNameMap;
-	CChars					mszName;
-	CChars					mszBaseDir;
-	CListConfigs			mcConfigs;
+	CHeaderFiles		mcHeaderNameMap;
+	CChars				mszName;
+	CChars				mszBaseDir;
+	CListConfigs		mcConfigs;
 
+public:
 	void				Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap);
 	void				Kill(void);
-	CTranslationUnit*  	AddFile(char* szRelativeNameFile, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
-	void				AddAllFiles(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	CTranslationUnit*	AddTranslationUnit(char* szRelativeNameFile, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	void				AddAllTranslationUnitsInBaseDir(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
 	CConfig*			AddConfiguration(char* szConfig);
 	CConfig*			GetConfig(char* szConfiguration);
 	CTranslationUnit*	GetFirstTranslationUnit(SCFileIter* psIter);
 	CTranslationUnit*	GetNextTranslationUnit(SCFileIter* psIter);
+	char*				GetBaseDir(void);
+	BOOL				IsNamed(char* szName);
+	CHeaderFiles*		GetHeaderFiles(void);
 };
 
 
