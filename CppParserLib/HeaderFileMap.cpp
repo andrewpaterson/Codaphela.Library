@@ -27,7 +27,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFileMap::Init(void)
 {
-	mcFiles.Init(3, FALSE);
+	mcFileMap.Init(TRUE, FALSE);
+	mcFileList.Init();
 }
 
 
@@ -38,17 +39,16 @@ void CHeaderFileMap::Init(void)
 void CHeaderFileMap::Kill(void)
 {
 	CHeaderFile*	pcHeader;
-	SMapIterator	sIter;
-	BOOL			bResult;
 
-	bResult = mcFiles.StartIteration(&sIter, NULL, NULL, (void**)&pcHeader, NULL);
-	while (bResult)
+	pcHeader = mcFileList.GetHead();
+	while (pcHeader)
 	{
 		pcHeader->Kill();
-		bResult = mcFiles.Iterate(&sIter, NULL, NULL, (void**)&pcHeader, NULL);
+		pcHeader = mcFileList.GetNext(pcHeader);
 	}
 
-	mcFiles.Kill();
+	mcFileMap.Kill();
+	mcFileList.Kill();
 }
 
 
@@ -58,20 +58,34 @@ void CHeaderFileMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 {
+	CHeaderFile**		ppcHeader;
 	CHeaderFile*		pcHeader;
-	char*				szName;
-
+	BOOL				bResult;
 	
-	pcHeader = mcFiles.Get(szAbsoluteFileName);
-	if (!pcHeader)
+	ppcHeader = mcFileMap.Get(szAbsoluteFileName);
+	if (!ppcHeader)
 	{
-		pcHeader = mcFiles.Put(szAbsoluteFileName);
-		szName = mcFiles.GetKeyForData(pcHeader);
-		
-		New<CHeaderFile>(pcHeader);
-		pcHeader->Init(szName, bSystem);
+		pcHeader = mcFileList.Add();
+		if (pcHeader)
+		{
+			bResult = mcFileMap.Put(szAbsoluteFileName, &pcHeader);
+			if (bResult)
+			{
+				New<CHeaderFile>(pcHeader);
+				pcHeader->Init(szAbsoluteFileName, bSystem);
+				return pcHeader;
+			}
+			else
+			{
+				mcFileList.Remove(pcHeader);
+			}
+		}
+		return NULL;
 	}
-	return pcHeader;
+	else
+	{
+		return *ppcHeader;
+	}
 }
 
 
@@ -81,7 +95,17 @@ CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::FindFile(char* szAbsoluteFileName)
 {
-	return mcFiles.Get(szAbsoluteFileName);
+	CHeaderFile**	pcHeader;
+
+	pcHeader = mcFileMap.Get(szAbsoluteFileName);
+	if (pcHeader)
+	{
+		return *pcHeader;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -91,13 +115,13 @@ CHeaderFile* CHeaderFileMap::FindFile(char* szAbsoluteFileName)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 {
-	CHeaderFile*	pcHeader;
+	CHeaderFile**	ppcHeader;
 	BOOL			bResult;
 
-	bResult = mcFiles.StartIteration(psIter, NULL, NULL, (void**)&pcHeader, NULL);
-	if (bResult)
+	bResult = mcFileMap.StartIteration(psIter, NULL, NULL, (void**)&ppcHeader, NULL);
+	if (bResult && ppcHeader != NULL)
 	{
-		return pcHeader;
+		return *ppcHeader;
 	}
 	else
 	{
@@ -112,18 +136,17 @@ CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 CHeaderFile* CHeaderFileMap::Iterate(SMapIterator* psIter)
 {
-	CHeaderFile*	pcHeader;
+	CHeaderFile**	ppcHeader;
 	BOOL			bResult;
 
-	bResult = mcFiles.Iterate(psIter, NULL, NULL, (void**)&pcHeader, NULL);
-	if (bResult)
+	bResult = mcFileMap.Iterate(psIter, NULL, NULL, (void**)&ppcHeader, NULL);
+	if (bResult && ppcHeader != NULL)
 	{
-		return pcHeader;
+		return *ppcHeader;
 	}
 	else
 	{
 		return NULL;
 	}
 }
-
 

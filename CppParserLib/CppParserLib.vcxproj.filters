@@ -255,7 +255,7 @@
     <ClCompile Include="TranslationUnit.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="TranslationUnitFileArray.cpp">
+    <ClCompile Include="TranslationUnitList.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
     <ClCompile Include="CppParser.cpp">
@@ -557,7 +557,7 @@
     <ClInclude Include="TranslationUnit.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="TranslationUnitFileArray.h">
+    <ClInclude Include="TranslationUnitList.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="CPPParser.h">

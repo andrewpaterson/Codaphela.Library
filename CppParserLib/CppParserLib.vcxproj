@@ -248,7 +248,7 @@
     <ClCompile Include="HeaderNameMapStack.cpp" />
     <ClCompile Include="Headers.cpp" />
     <ClCompile Include="TranslationUnit.cpp" />
-    <ClCompile Include="TranslationUnitFileArray.cpp" />
+    <ClCompile Include="TranslationUnitList.cpp" />
     <ClCompile Include="CppParser.cpp" />
     <ClCompile Include="CPPReturn.cpp" />
     <ClCompile Include="Config.cpp" />
@@ -351,7 +351,7 @@
     <ClInclude Include="HeaderNameMapStack.h" />
     <ClInclude Include="Headers.h" />
     <ClInclude Include="TranslationUnit.h" />
-    <ClInclude Include="TranslationUnitFileArray.h" />
+    <ClInclude Include="TranslationUnitList.h" />
     <ClInclude Include="CPPParser.h" />
     <ClInclude Include="CPPReturn.h" />
     <ClInclude Include="Config.h" />
