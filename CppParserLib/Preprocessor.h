@@ -60,8 +60,8 @@ protected:
 	CArrayHeaderNameMapPtr			mcHeaderNames;
 	CHeaderNameMapStack				mcHeadersStack;
 
-	CTranslationUnit*				mpcUnit;
-	CPPTokens*						mpcTokens;
+	CPPTokenHolder*					mpcProcessedTokens;
+	CPPTokens*						mpcTokenMemory;
 
 	int								miBlockReuse;
 	BOOL							mbLogBlocks;
@@ -100,8 +100,8 @@ public:
 	CSpecialOperator*	GetSpecialOperator(char* szName, BOOL bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
-	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
-	BOOL				PreprocessBlockSets(CArrayCBlockSet* pacBlockSets, CPPTokens* pcSourceTokenMemory);
+	BOOL				PreprocessFile(CPPTokenHolder* pcTokenHolder, CCFile* pcFile, CCFile* pcFromFile);
+	BOOL				PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlockSet* pacBlockSets, CPPTokens* pcSourceTokenMemory);
 	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
