@@ -52,7 +52,7 @@ void STULog::Kill(void)
 void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks)
 {
 	CCFile::Init(szFullName);
-	mcHolder.Init(0, 0);
+	mcTokenHolder.Init();
 	mpcLibrary = pcLibrary;
 
 	if (bLogBlocks || bLogIncludes)
@@ -79,7 +79,7 @@ void CTranslationUnit::Kill(void)
 		free(mpcLogs);
 	}
 
-	mcHolder.Kill();
+	mcTokenHolder.Kill();
 	CCFile::Kill();
 }
 
@@ -90,7 +90,7 @@ void CTranslationUnit::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CTranslationUnit::Print(CChars* psz)
 {
-	mcHolder.Print(psz);
+	mcTokenHolder.Print(psz);
 	return psz->Text();
 }
 
@@ -170,12 +170,12 @@ BOOL CTranslationUnit::IsSystemFile(void)
 
 
 //////////////////////////////////////////////////////////////////////////
-//
-//
+//																		//
+//																		//
 //////////////////////////////////////////////////////////////////////////
-CPPHolder* CTranslationUnit::GetHolder(void)
+CPPTokenHolder* CTranslationUnit::GetTokenHolder(void)
 {
-	return &mcHolder;
+	return &mcTokenHolder;
 }
 
 

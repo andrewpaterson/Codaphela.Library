@@ -32,7 +32,7 @@ protected:
 	CChars					mszContents;
 	CChars					mszFullName;
 	BOOL					mbLoaded;
-	CPPTokens				mcTokens;  //All tokens for this file.
+	CPPTokens				mcTokenMemory;
 	CArrayCBlockSet			macBlockSets;
 
 public:
@@ -52,7 +52,7 @@ public:
 			char*				GetContents(void);
 			int					GetContentsLength(void);
 			CArrayCBlockSet*	GetBlockSets(void);
-			CPPTokens*			GetTokens(void);
+			CPPTokens*			GetTokenMemory(void);
 };
 
 

@@ -41,23 +41,23 @@ struct STULog
 class CTranslationUnit : public CCFile
 {
 protected:
-	CPPHolder	mcHolder;  //This is really just an array of CBlock*'s but the parser only works with CPPHolder's.
-	STULog*		mpcLogs;
-	CLibrary*	mpcLibrary;
+	CPPTokenHolder	mcTokenHolder;
+	STULog*			mpcLogs;
+	CLibrary*		mpcLibrary;
 
 public:
-	void			Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
-	void			Kill(void);
-	char*			Print(CChars* psz);
-	BOOL			IsTranslationUnit(void);
-	BOOL			IsHeader(void);
-	BOOL			LogBlocks(void);
-	BOOL			LogInlucdes(void);
-	BOOL			IsPragmaOnced(void);
-	BOOL			IsSystemFile(void);
-	CPPHolder*		GetHolder(void);
-	STULog*			GetLogs(void);
-	CLibrary*		GetLibrary(void);
+	void				Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
+	void				Kill(void);
+	char*				Print(CChars* psz);
+	BOOL				IsTranslationUnit(void);
+	BOOL				IsHeader(void);
+	BOOL				LogBlocks(void);
+	BOOL				LogInlucdes(void);
+	BOOL				IsPragmaOnced(void);
+	BOOL				IsSystemFile(void);
+	CPPTokenHolder*		GetTokenHolder(void);
+	STULog*				GetLogs(void);
+	CLibrary*			GetLibrary(void);
 };
 
 

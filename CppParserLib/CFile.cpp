@@ -35,8 +35,8 @@ void CCFile::Init(char* szName)
 	mszContents.Init();
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
-	mcTokens.Init();
-	macBlockSets.Init(&mcTokens);
+	mcTokenMemory.Init();
+	macBlockSets.Init(&mcTokenMemory);
 }
 
 
@@ -55,7 +55,7 @@ void CCFile::Kill(void)
 		pcBlockSet->Kill();
 	}
 	macBlockSets.Kill();
-	mcTokens.Kill();
+	mcTokenMemory.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
 	mbLoaded = FALSE;
@@ -189,9 +189,9 @@ int CCFile::GetContentsLength(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPTokens* CCFile::GetTokens(void)
+CPPTokens* CCFile::GetTokenMemory(void)
 {
-	return &mcTokens;
+	return &mcTokenMemory;
 }
 
 
@@ -203,5 +203,4 @@ CArrayCBlockSet* CCFile::GetBlockSets(void)
 {
 	return &macBlockSets;
 }
-
 
