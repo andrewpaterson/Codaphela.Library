@@ -101,7 +101,7 @@ CLibrary* CProject::GetLibrary(char* szLibrary)
 	pcLibrary = mcLibraries.GetHead();
 	while (pcLibrary)
 	{
-		if (pcLibrary->mszName.Equals(szLibrary))
+		if (pcLibrary->IsNamed(szLibrary))
 		{
 			return pcLibrary;
 		}
@@ -228,7 +228,7 @@ void CProject::Process(char* szConfiguration)
 
 		cPreprocessor.Init(pcConfig, pcFile->GetTokenMemory());
 		cPreprocessor.AddIncludeDirectories(&mcIncludeNames.mcHeaderNames);
-		cPreprocessor.AddIncludeDirectory(&pcFile->GetLibrary()->mcHeaderNameMap);
+		cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 		cPreprocessor.LogDumping(mbDumpLogs);
 		cPreprocessor.LogBlocks(mbLogBlocks);
 

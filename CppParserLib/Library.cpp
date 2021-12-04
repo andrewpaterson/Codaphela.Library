@@ -70,7 +70,7 @@ void CLibrary::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTranslationUnit* CLibrary::AddFile(char* szRelativeNameFile, BOOL bLogIncludes, BOOL bLogBlocks)
+CTranslationUnit* CLibrary::AddTranslationUnit(char* szRelativeNameFile, BOOL bLogIncludes, BOOL bLogBlocks)
 {
 	return mcTranslationUnits.AddFile(szRelativeNameFile, bLogIncludes, bLogBlocks);
 }
@@ -80,7 +80,7 @@ CTranslationUnit* CLibrary::AddFile(char* szRelativeNameFile, BOOL bLogIncludes,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLibrary::AddAllFiles(BOOL bLogInlucdes, BOOL bLogBlocks)
+void CLibrary::AddAllTranslationUnitsInBaseDir(BOOL bLogInlucdes, BOOL bLogBlocks)
 {
 	mcTranslationUnits.AddAllFiles(&mszBaseDir, bLogInlucdes, bLogBlocks);
 }
@@ -161,5 +161,35 @@ CTranslationUnit* CLibrary::GetNextTranslationUnit(SCFileIter* psIter)
 		psIter->bValid = FALSE;
 		return NULL;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CLibrary::GetBaseDir(void)
+{
+	return mszBaseDir.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+BOOL CLibrary::IsNamed(char* szName)
+{
+	return mszName.Equals(szName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CHeaderFiles* CLibrary::GetHeaderFiles(void)
+{
+	return &mcHeaderNameMap;
 }
 
