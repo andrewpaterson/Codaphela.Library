@@ -27,11 +27,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlockSet::Init(CPPTokenMemory* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks)
+void CPPBlockSet::Init(CPPTokenMemory* pcTokenMemory, int iLine, int iBlock, BOOL bTextBlocks)
 {
 	mcRawTokens.Init();
 	mapcBlocks.Init();
-	mpcFileTokens = pcFileTokens;
+	mpcTokenMemory = pcTokenMemory;
 	miColumn = 0;
 	miLine = iLine;
 	miBlock = iBlock;
@@ -56,7 +56,7 @@ void CPPBlockSet::Kill(void)
 
 	mapcBlocks.Kill();
 	mcRawTokens.Kill();
-	mpcFileTokens = NULL;
+	mpcTokenMemory = NULL;
 }
 
 
@@ -91,7 +91,7 @@ CPPBlock* CPPBlockSet::CreateBlock(void)
 {
 	CPPBlock*	pcBlock;
 
-	pcBlock = mpcFileTokens->AddBlock();
+	pcBlock = mpcTokenMemory->AddBlock();
 	pcBlock->Init(this, miLine, miColumn);
 	return pcBlock;
 }
@@ -199,7 +199,7 @@ BOOL CPPBlockSet::IsDirective(void)
 //////////////////////////////////////////////////////////////////////////
 CPPTokenMemory* CPPBlockSet::GetFileTokens(void)
 {
-	return mpcFileTokens;
+	return mpcTokenMemory;
 }
 
 

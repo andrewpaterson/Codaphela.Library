@@ -18,8 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __C_BLOCK_SET_H__
-#define __C_BLOCK_SET_H__
+#ifndef __P_P_BLOCK_SET_H__
+#define __P_P_BLOCK_SET_H__
 #include "PPBlock.h"
 #include "DefineMap.h"
 #include "PPTokenMemory.h"
@@ -29,7 +29,7 @@ class CPPBlockSet
 {
 protected:
 	CPPTokenHolder		mcRawTokens;
-	CPPTokenMemory*		mpcFileTokens;
+	CPPTokenMemory*		mpcTokenMemory;
 	int					miLine;
 	int					miColumn;
 	int					miBlock;
@@ -39,22 +39,22 @@ protected:
 	CArrayPtrCBlocks	mapcBlocks;
 
 public:
-	void 					Init(CPPTokenMemory* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks);
-	void 					Kill(void);
-	CPPBlock*				GetMatchingBlock(CPPBlock* pcOtherBlock);
-	CPPBlock*				CreateBlock(void);
-	CPPBlock*				AddBlock(void);
-	BOOL					AddBlock(CPPBlock* pcBlock);
-	BOOL					IsLastToken(int iToken);
-	BOOL					IsDirective(void);
-	CPPTokenMemory*			GetFileTokens(void);
-	CPPTokenHolder*			GetRawTokensHolder(void);
-	int						Line(void);
-	int						Column(void);
-	int						Block(void);
-	void					Dump(void);
+	void 				Init(CPPTokenMemory* pcTokenMemory, int iLine, int iBlock, BOOL bTextBlocks);
+	void 				Kill(void);
+	CPPBlock*			GetMatchingBlock(CPPBlock* pcOtherBlock);
+	CPPBlock*			CreateBlock(void);
+	CPPBlock*			AddBlock(void);
+	BOOL				AddBlock(CPPBlock* pcBlock);
+	BOOL				IsLastToken(int iToken);
+	BOOL				IsDirective(void);
+	CPPTokenMemory*		GetFileTokens(void);
+	CPPTokenHolder*		GetRawTokensHolder(void);
+	int					Line(void);
+	int					Column(void);
+	int					Block(void);
+	void				Dump(void);
 };
 
 
-#endif // !__C_BLOCK_SET_H__
+#endif // !__P_P_BLOCK_SET_H__
 
