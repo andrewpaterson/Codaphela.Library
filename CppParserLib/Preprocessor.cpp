@@ -1037,15 +1037,23 @@ BOOL CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 	int						iFileLength;
 
 	pcFile->Load();
-	cTokeniser.Init();
-
 	pcBlockSets = pcFile->GetBlockSets();
-	szFileContents = pcFile->GetContents();
-	iFileLength = pcFile->GetContentsLength();
-	bResult = cTokeniser.Tokenise(pcBlockSets, szFileContents, iFileLength);
-	cTokeniser.Kill();
 
-	return bResult;
+	if (!pcBlockSets->IsRawProcessed())
+	{
+		cTokeniser.Init();
+
+		szFileContents = pcFile->GetContents();
+		iFileLength = pcFile->GetContentsLength();
+		bResult = cTokeniser.Tokenise(pcBlockSets, szFileContents, iFileLength);
+		cTokeniser.Kill();
+
+		return bResult;
+	}
+	else
+	{
+		return TRUE;
+	}
 }
 
 
