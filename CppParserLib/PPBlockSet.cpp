@@ -31,7 +31,6 @@ void CPPBlockSet::Init(CPPTokenMemory* pcTokenMemory, int iLine, int iBlock, BOO
 {
 	mcRawTokens.Init();
 	mapcBlocks.Init();
-	mpcTokenMemory = pcTokenMemory;
 	miColumn = 0;
 	miLine = iLine;
 	miBlock = iBlock;
@@ -56,7 +55,6 @@ void CPPBlockSet::Kill(void)
 
 	mapcBlocks.Kill();
 	mcRawTokens.Kill();
-	mpcTokenMemory = NULL;
 }
 
 
@@ -87,42 +85,10 @@ CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPBlock* CPPBlockSet::CreateBlock(void)
-{
-	CPPBlock*	pcBlock;
-
-	pcBlock = mpcTokenMemory->AddBlock();
-	pcBlock->Init(this, miLine, miColumn);
-	return pcBlock;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPBlock* CPPBlockSet::AddBlock(void)
-{
-	CPPBlock*	pcBlock;
-
-	pcBlock = CreateBlock();
-	mapcBlocks.Add(&pcBlock);
-	return pcBlock;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 BOOL CPPBlockSet::AddBlock(CPPBlock* pcBlock)
 {
-	if (pcBlock->IsForBlockSet(this))
-	{
-		mapcBlocks.Add(&pcBlock);
-		return TRUE;
-	}
-	return FALSE;
+	mapcBlocks.Add(&pcBlock);
+	return TRUE;
 }
 
 
@@ -190,16 +156,6 @@ void CPPBlockSet::Dump(void)
 BOOL CPPBlockSet::IsDirective(void)
 {
 	return !mbTextBlocks;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPPTokenMemory* CPPBlockSet::GetFileTokens(void)
-{
-	return mpcTokenMemory;
 }
 
 
