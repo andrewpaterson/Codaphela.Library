@@ -102,7 +102,7 @@ public:
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
-	BOOL				PreprocessBlockSets(CArrayCBlockSet* pacBlockSets);
+	BOOL				PreprocessBlockSets(CPPBlockSetArray* pacBlockSets);
 	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
@@ -149,7 +149,7 @@ public:
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
 	void				DeltaDefines(CArrayNamedDefines* pcDelta);
-	void				LogBlocks(CArrayCBlockSet* pacBlockSets, SPPTokenBlockIndex sResult);
+	void				LogBlocks(CPPBlockSetArray* pacBlockSets, SPPTokenBlockIndex sResult);
 	void				LogInclude(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);

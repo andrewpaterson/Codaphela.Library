@@ -90,8 +90,7 @@ void CTranslationUnit::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CTranslationUnit::Print(CChars* psz)
 {
-	mcTokenHolder.Print(psz);
-	return psz->Text();
+	return mcTokenHolder.Print(psz);
 }
 
 

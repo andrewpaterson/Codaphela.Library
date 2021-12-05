@@ -222,7 +222,7 @@
     <ClCompile Include="PPTextWithSource.cpp">
       <Filter>Source\Preprocessor\Tokens\Text</Filter>
     </ClCompile>
-    <ClCompile Include="ArrayCBlockSet.cpp">
+    <ClCompile Include="PPBlockSetArray.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
     <ClCompile Include="PPBlock.cpp">
@@ -524,7 +524,7 @@
     <ClInclude Include="PPTextWithSource.h">
       <Filter>Source\Preprocessor\Tokens\Text</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayCBlockSet.h">
+    <ClInclude Include="PPBlockSetArray.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="PPBlock.h">

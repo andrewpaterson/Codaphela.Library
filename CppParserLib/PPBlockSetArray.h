@@ -18,29 +18,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_C_BLOCK_SET_H__
-#define __ARRAY_C_BLOCK_SET_H__
+#ifndef __P_P_BLOCK_SET_ARRAY_H__
+#define __P_P_BLOCK_SET_ARRAY_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "PPBlockSet.h"
 
 
-typedef CArrayTemplate<CPPBlockSet> __CArrayCBlockSet;
+typedef CArrayTemplate<CPPBlockSet> __CArrayPPBlockSet;
 
 
-class CArrayCBlockSet : public __CArrayCBlockSet
+class CPPBlockSetArray : public __CArrayPPBlockSet
 {
-public:
-	BOOL		mbRawProcessed;
-	CPPTokenMemory*	mpcTokenMemory;
+protected:
+	BOOL				mbRawProcessed;
+	CPPTokenMemory*		mpcTokenMemory;
 
 public:
-	void 			Init(CPPTokenMemory* pcTokenMemory);
-	void			RawProcessed(void);
-	BOOL			IsRawProcessed(void);
-	CPPBlockSet*	Add(int iLine, BOOL bTextBlocks);
-	void			Dump(void);
+	void 				Init(CPPTokenMemory* pcTokenMemory);
+	void				RawProcessed(void);
+	BOOL				IsRawProcessed(void);
+	CPPBlockSet*		Add(int iLine, BOOL bTextBlocks);
+	void				Dump(void);
+	CPPTokenMemory*		GetTokenMemory(void);
 };
 
 
-#endif // !__ARRAY_C_BLOCK_SET_H__
+#endif // !__P_P_BLOCK_SET_ARRAY_H__
 

@@ -237,7 +237,7 @@
     <ClCompile Include="TokenHelper.cpp" />
     <ClCompile Include="PPText.cpp" />
     <ClCompile Include="PPTextWithSource.cpp" />
-    <ClCompile Include="ArrayCBlockSet.cpp" />
+    <ClCompile Include="PPBlockSetArray.cpp" />
     <ClCompile Include="PPBlock.cpp" />
     <ClCompile Include="PPBlockSet.cpp" />
     <ClCompile Include="PPTokenBlockIndex.cpp" />
@@ -340,7 +340,7 @@
     <ClInclude Include="TokenHelper.h" />
     <ClInclude Include="PPText.h" />
     <ClInclude Include="PPTextWithSource.h" />
-    <ClInclude Include="ArrayCBlockSet.h" />
+    <ClInclude Include="PPBlockSetArray.h" />
     <ClInclude Include="PPBlock.h" />
     <ClInclude Include="PPBlockSet.h" />
     <ClInclude Include="PPTokenBlockIndex.h" />
