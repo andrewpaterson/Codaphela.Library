@@ -41,8 +41,8 @@ public:
 	BOOL			Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem);
 	void			Kill(void);
 
+	CHeaderFile*	AddFile(char* szRelativeFileName);
 	void			AddFiles(BOOL bIncludeSubDirectories);
-	void			AddFile(char* szRelativeFileName);
 
 	CHeaderFile*	GetFile(char* szRelativeFileName);
 	

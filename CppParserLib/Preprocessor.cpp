@@ -877,17 +877,17 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlo
 
 	mpcProcessedTokens = pcDestHolder;
 	sResult.Init(0, 0);
+	pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
+	if (pcBlocksSet == NULL)
+	{
+		gcUserError.Set("No Blocks ins source block set.");
+		mpcProcessedTokens = NULL;
+		return FALSE;
+	}
 
 	for (;;)
 	{
 		LogBlocks(pacSourceBlockSets, sResult);
-
-		pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
-		if (!pcBlocksSet)
-		{
-			mpcProcessedTokens = NULL;
-			return FALSE;
-		}
 
 		if (pcBlocksSet->IsDirective())
 		{
@@ -909,6 +909,11 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlo
 
 			pcBlockProcessed = pcBlocksSet->CreateBlock();
 			sResult = PreprocessNormalLineTokens(pcBlockProcessed->GetTokens(), pcSourceTokenMemory, pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+			if (sResult.iTokenIndex == -1)
+			{
+				mpcProcessedTokens = NULL;
+				return FALSE;
+			}
 
 			pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
 			if (!pcBlockMatching)
@@ -942,9 +947,11 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlo
 			{
 				sResult.iBlockIndex++;
 				sResult.iTokenIndex = 0;
+				pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
 			}
 		}
-		else
+
+		if (pcBlocksSet == NULL)
 		{
 			mpcProcessedTokens = NULL;
 			return TRUE;

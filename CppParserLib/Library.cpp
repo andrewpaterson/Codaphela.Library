@@ -35,11 +35,11 @@ void CLibrary::Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, 
 	cFileUtil.FullPath(&szPath);
 
 	mszName.Init(szName);
-	mszBaseDir.Init(szPath);
+	mszBaseDirectory.Init(szPath);
 	szPath.Kill();
 	mcConfigs.Init();
 	mcTranslationUnits.Init(this);
-	mcHeaderNameMap.Init(mszBaseDir.Text(), pcHeaderFileMap, bIncludeSubDirectories, FALSE);
+	mcHeaderNameMap.Init(mszBaseDirectory.Text(), pcHeaderFileMap, bIncludeSubDirectories, FALSE);
 }
 
 
@@ -62,7 +62,7 @@ void CLibrary::Kill(void)
 	}
 	mcConfigs.Kill();
 	mszName.Kill();
-	mszBaseDir.Kill();
+	mszBaseDirectory.Kill();
 }
 
 
@@ -80,9 +80,19 @@ CTranslationUnit* CLibrary::AddTranslationUnit(char* szRelativeNameFile, BOOL bL
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CHeaderFile* CLibrary::AddHeaderFile(char* szRelativeNameFile)
+{
+	return mcHeaderNameMap.AddFile(szRelativeNameFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CLibrary::AddAllTranslationUnitsInBaseDir(BOOL bLogInlucdes, BOOL bLogBlocks)
 {
-	mcTranslationUnits.AddAllFiles(&mszBaseDir, bLogInlucdes, bLogBlocks);
+	mcTranslationUnits.AddAllFiles(&mszBaseDirectory, bLogInlucdes, bLogBlocks);
 }
 
 
@@ -170,7 +180,7 @@ CTranslationUnit* CLibrary::GetNextTranslationUnit(SCFileIter* psIter)
 //////////////////////////////////////////////////////////////////////////
 char* CLibrary::GetBaseDir(void)
 {
-	return mszBaseDir.Text();
+	return mszBaseDirectory.Text();
 }
 
 
