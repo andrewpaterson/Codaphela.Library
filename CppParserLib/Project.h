@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Preprocessor.h"
 #include "CppParser.h"
 #include "CppTokeniser.h"
-#include "CFile.h"
+#include "SourceFile.h"
 #include "TranslationUnit.h"
 #include "HeaderFileMap.h"
 #include "Headers.h"
@@ -65,7 +65,7 @@ public:
 	void				ClearPragmaOnceFromAllFiles(void);
 	CTranslationUnit*	Start(SProcessIter* psIter, char* szConfiguration);
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
-	void				DumpProcessedCPPFileName(CCFile* pcFile);
+	void				DumpProcessedCPPFileName(CSourceFile* pcFile);
 	int					GetBlockReuse(void);
 };
 

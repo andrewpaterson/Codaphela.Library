@@ -20,10 +20,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __HEADER_FILE_H__
 #define __HEADER_FILE_H__
-#include "CFile.h"
+#include "SourceFile.h"
 
 
-class CHeaderFile : public CCFile
+class CHeaderFile : public CSourceFile
 {
 protected:
 	BOOL	mbSystemFile;

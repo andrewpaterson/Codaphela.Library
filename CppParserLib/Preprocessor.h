@@ -49,7 +49,7 @@ class CPreprocessor
 {
 protected:
 	CConditionalStack				mcConditionalStack;
-	CCFile*							mpcCurrentFile;
+	CSourceFile*							mpcCurrentFile;
 	CPPAbstractHolder*				mpcCurrentLine;
 	CPreprocessorTokenParser*		mpcCurrentLineParser;
 	CASCIITree						mcDirectives;
@@ -101,7 +101,7 @@ public:
 	CSpecialOperator*	GetSpecialOperator(char* szName, BOOL bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
-	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
+	BOOL				PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile);
 	BOOL				PreprocessBlockSets(CPPBlockSetArray* pacBlockSets);
 	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
@@ -147,10 +147,10 @@ public:
 	void				ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenHolder* pcDest, int iDepth);
 	CPPToken*			QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
-	BOOL				TokeniseFile(CCFile* pcFile);
+	BOOL				TokeniseFile(CSourceFile* pcFile);
 	void				DeltaDefines(CArrayNamedDefines* pcDelta);
 	void				LogBlocks(CPPBlockSetArray* pacBlockSets, SPPTokenBlockIndex sResult);
-	void				LogInclude(CCFile* pcFile);
+	void				LogInclude(CSourceFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
 	void				MarkPositionForError(SPreprocessorPosition* psPos);

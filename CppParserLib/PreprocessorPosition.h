@@ -3,7 +3,7 @@
 
 
 class CPreprocessorTokenParser;
-class CCFile;
+class CSourceFile;
 class CChars;
 struct SPreprocessorPosition
 {
@@ -11,7 +11,7 @@ struct SPreprocessorPosition
 	int		miColumn;
 	char*	mszShortName;
 
-	void	Init(CPreprocessorTokenParser* pcParser, CCFile* pcFile);
+	void	Init(CPreprocessorTokenParser* pcParser, CSourceFile* pcFile);
 	void	Init(int iLine, int iColumn, char* mszShortName);
 
 	CChars* Message(CChars* pszUninitialised);

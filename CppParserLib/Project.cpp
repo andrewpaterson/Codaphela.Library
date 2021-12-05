@@ -255,7 +255,7 @@ void CProject::Process(char* szConfiguration)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CProject::DumpProcessedCPPFileName(CCFile* pcFile)
+void CProject::DumpProcessedCPPFileName(CSourceFile* pcFile)
 {
 	CChars			sz;
 
