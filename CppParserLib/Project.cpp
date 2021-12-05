@@ -211,11 +211,11 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 //////////////////////////////////////////////////////////////////////////
 void CProject::Process(char* szConfiguration)
 {
-	CTranslationUnit*			pcFile;
-	CConfig*					pcConfig;
-	BOOL						bResult;
-	CPreprocessor				cPreprocessor;
-	SProcessIter				sPreIter;
+	CTranslationUnit*	pcFile;
+	CConfig*			pcConfig;
+	BOOL				bResult;
+	CPreprocessor		cPreprocessor;
+	SProcessIter		sPreIter;
 
 	CreatePost();
 
@@ -226,7 +226,7 @@ void CProject::Process(char* szConfiguration)
 		
 		pcConfig = pcFile->GetLibrary()->GetConfig(szConfiguration);
 
-		cPreprocessor.Init(pcConfig, pcFile->GetTokenMemory());
+		cPreprocessor.Init(pcConfig, pcFile->GetTokenMemory(), pcFile->GetTokenHolder());
 		cPreprocessor.AddIncludeDirectories(&mcIncludeNames.mcHeaderNames);
 		cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 		cPreprocessor.LogDumping(mbDumpLogs);
