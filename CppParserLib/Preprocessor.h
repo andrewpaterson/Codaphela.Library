@@ -52,31 +52,31 @@ typedef CArrayTemplate<CHeaderFiles> CArrayHeaderNameMap;
 class CPreprocessor
 {
 protected:
-	CConditionalStack				mcConditionalStack;
-	CSourceFile*					mpcCurrentFile;
-	CPPAbstractHolder*				mpcCurrentLine;
-	CPreprocessorTokenParser*		mpcCurrentLineParser;
-	CASCIITree						mcDirectives;
-	CDefineMap						mcDefines;
-	CSpecialOperatorMap				mcSpecialOperators;
-	CDefineArguments				mcArguments;
-	int								miIncludeDepth;
-	CArrayHeaderFiles				mcHeaderNames;
-	CHeaderNameMapStack				mcHeadersStack;
+	CConditionalStack			mcConditionalStack;
+	CSourceFile*				mpcCurrentFile;
+	CPPAbstractHolder*			mpcCurrentLine;
+	CPreprocessorTokenParser*	mpcCurrentLineParser;
+	CASCIITree					mcDirectives;
+	CDefineMap					mcDefines;
+	CSpecialOperatorMap			mcSpecialOperators;
+	CDefineArguments			mcArguments;
+	int							miIncludeDepth;
+	CArrayHeaderFiles			mcHeaderNames;
+	CHeaderNameMapStack			mcHeadersStack;
 
-	CPPTokenHolder*					mpcProcessedTokens;
-	CPPTokenMemory*					mpcTokenMemory;
+	CPPTokenHolder*				mpcProcessedTokens;
+	CPPTokenMemory*				mpcTokenMemory;
 
-	int								miBlockReuse;
-	BOOL							mbLogBlocks;
-	BOOL							mbLogInlucdes;
-	BOOL							mbDumpLogs;
-	CChars*							mpszBlocksLog;
-	CChars*							mpszIncludesLog;
-	int								miDefineReuse;
-	CChars							mszVaArgs;
+	int							miBlockReuse;
+	BOOL						mbLogBlocks;
+	BOOL						mbLogInlucdes;
+	BOOL						mbDumpLogs;
+	CChars*						mpszBlocksLog;
+	CChars*						mpszIncludesLog;
+	int							miDefineReuse;
+	CChars						mszVaArgs;
 
-	int								miProcessTokensCalledCount;
+	int							miProcessTokensCalledCount;
 
 public:
 	static void			Preprocess(char* szSource, CChars* szDest);
