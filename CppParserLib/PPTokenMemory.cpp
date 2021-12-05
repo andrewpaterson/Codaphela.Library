@@ -1,12 +1,12 @@
 #include "BaseLib/Numbers.h"
-#include "PPTokens.h"
+#include "PPTokenMemory.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokens::Init(void)
+void CPPTokenMemory::Init(void)
 {
 	mcStack.Init(4 KB);
 }
@@ -16,7 +16,7 @@ void CPPTokens::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokens::Kill(void)
+void CPPTokenMemory::Kill(void)
 {
 	SPPTokenIterator	sIter;
 	CPPToken*			pcPPToken;
@@ -36,7 +36,7 @@ void CPPTokens::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPBlock* CPPTokens::AddBlock(void)
+CPPBlock* CPPTokenMemory::AddBlock(void)
 {
 	CPPBlock* pcToken;
 		
@@ -50,7 +50,7 @@ CPPBlock* CPPTokens::AddBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPWhiteSpace* CPPTokens::AddWhiteSpace(void)
+CPPWhiteSpace* CPPTokenMemory::AddWhiteSpace(void)
 {
 	CPPWhiteSpace* pcToken;
 
@@ -64,7 +64,7 @@ CPPWhiteSpace* CPPTokens::AddWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPHashes* CPPTokens::AddHashes(void)
+CPPHashes* CPPTokenMemory::AddHashes(void)
 {
 	CPPHashes* pcToken;
 
@@ -78,7 +78,7 @@ CPPHashes* CPPTokens::AddHashes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPReplacement* CPPTokens::AddReplacement(void)
+CPPReplacement* CPPTokenMemory::AddReplacement(void)
 {
 	CPPReplacement* pcToken;
 
@@ -92,7 +92,7 @@ CPPReplacement* CPPTokens::AddReplacement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPText* CPPTokens::AddText(void)
+CPPText* CPPTokenMemory::AddText(void)
 {
 	CPPText* pcToken;
 
@@ -106,7 +106,7 @@ CPPText* CPPTokens::AddText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTextWithSource* CPPTokens::AddTextWithSource(void)
+CPPTextWithSource* CPPTokenMemory::AddTextWithSource(void)
 {
 	CPPTextWithSource* pcToken;
 
@@ -120,7 +120,7 @@ CPPTextWithSource* CPPTokens::AddTextWithSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPHolder* CPPTokens::AddHolder(void)
+CPPHolder* CPPTokenMemory::AddHolder(void)
 {
 	CPPHolder* pcToken;
 
@@ -134,7 +134,7 @@ CPPHolder* CPPTokens::AddHolder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPLine* CPPTokens::AddLine(void)
+CPPLine* CPPTokenMemory::AddLine(void)
 {
 	CPPLine* pcToken;
 
@@ -148,7 +148,7 @@ CPPLine* CPPTokens::AddLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPPTokens::AddDirective(void)
+CPPDirective* CPPTokenMemory::AddDirective(void)
 {
 	CPPDirective* pcToken;
 
@@ -162,7 +162,7 @@ CPPDirective* CPPTokens::AddDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPConditional* CPPTokens::AddConditional(void)
+CPPConditional* CPPTokenMemory::AddConditional(void)
 {
 	CPPConditional* pcToken;
 
@@ -176,7 +176,7 @@ CPPConditional* CPPTokens::AddConditional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPInclude* CPPTokens::AddInclude(void)
+CPPInclude* CPPTokenMemory::AddInclude(void)
 {
 	CPPInclude* pcToken;
 
@@ -190,7 +190,7 @@ CPPInclude* CPPTokens::AddInclude(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokens::Mark(CStackMarkExtended* psMark)
+void CPPTokenMemory::Mark(CStackMarkExtended* psMark)
 {
 	mcStack.Mark(psMark);
 }
@@ -200,7 +200,7 @@ void CPPTokens::Mark(CStackMarkExtended* psMark)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokens::Rollback(CStackMarkExtended* psMark)
+void CPPTokenMemory::Rollback(CStackMarkExtended* psMark)
 {
 	mcStack.Rollback(psMark);
 }
@@ -210,7 +210,7 @@ void CPPTokens::Rollback(CStackMarkExtended* psMark)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPPTokens::StartIteration(SPPTokenIterator* psIter)
+CPPToken* CPPTokenMemory::StartIteration(SPPTokenIterator* psIter)
 {
 	CPPToken*		pcPPToken;
 	int				iNumStacks;
@@ -244,7 +244,7 @@ CPPToken* CPPTokens::StartIteration(SPPTokenIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPPTokens::Iterate(SPPTokenIterator* psIter)
+CPPToken* CPPTokenMemory::Iterate(SPPTokenIterator* psIter)
 {
 	CPPToken*		pcPPToken;
 	CMemoryStack*	pcStack;
@@ -280,7 +280,7 @@ CPPToken* CPPTokens::Iterate(SPPTokenIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPTokens::Print(CChars* psz)
+char* CPPTokenMemory::Print(CChars* psz)
 {
 	SPPTokenIterator	sIter;
 	CPPToken* pcPPToken;
@@ -299,7 +299,7 @@ char* CPPTokens::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokens::Dump(void)
+void CPPTokenMemory::Dump(void)
 {
 	CChars	sz;
 

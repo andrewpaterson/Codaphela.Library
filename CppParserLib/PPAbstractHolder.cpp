@@ -19,7 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "TokenHelper.h"
-#include "PPTokens.h"
+#include "PPTokenMemory.h"
 #include "PPAbstractHolder.h"
 
 
@@ -72,7 +72,7 @@ char* CPPAbstractHolder::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens)
+void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokenMemory* pcTokens)
 {
 	int			i;
 	CPPToken*	pcToken;

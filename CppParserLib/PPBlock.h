@@ -33,7 +33,7 @@ class CPPBlock : public CPPAbstractHolder
 {
 protected:
 	CPPBlockSet*			mpcBlockSet;  //The blockset this block is in.
-	CPPTokens*				mpcFileTokens;  //From CFile (from CBlockSet).
+	CPPTokenMemory*				mpcFileTokens;  //From CFile (from CBlockSet).
 	SPPTokenBlockIndex		msNext;
 
 public:
@@ -43,7 +43,7 @@ public:
 	void 				Kill(void);
 	BOOL 				IsBlock(void);
 	BOOL				IsForBlockSet(CPPBlockSet* pcBlockSet);
-	void				Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void				Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	void				SetNext(int	iTokenIndex, int iBlockIndex);
 	BOOL				Equals(CPPToken* pcOther);
 	SPPTokenBlockIndex	GetNextTokenBlock(void);

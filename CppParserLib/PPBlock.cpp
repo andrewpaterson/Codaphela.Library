@@ -82,7 +82,7 @@ BOOL CPPBlock::IsForBlockSet(CPPBlockSet* pcBlockSet)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlock::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPBlock*	pcCast;
 	CPPToken*	pcToken;

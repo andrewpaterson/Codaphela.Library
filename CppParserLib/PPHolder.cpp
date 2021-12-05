@@ -45,7 +45,7 @@ void CPPHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHolder::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	if (pcSource->IsHolder())
 	{

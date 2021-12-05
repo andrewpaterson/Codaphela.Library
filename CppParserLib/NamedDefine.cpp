@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CPPTokens* pcTokens)
+void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPLine	cLine;
 

@@ -163,7 +163,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
+BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
 {
 	char*					szEnd;
 	int						iLine;
@@ -210,7 +210,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokens* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokens* pcTokens)
+void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokenMemory* pcTokens)
 {
 	mcParser.Init(sz, NULL);
 	CPreprocessorLineTokensier::Preprocess(pcHolder, &mcParser, pcTokens, TRUE);
@@ -247,7 +247,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokens* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex)
 {
 	switch (eDirective)
 	{
@@ -282,7 +282,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseDirective(CPPTokens* pcTokens, EPr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokens* pcTokens)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokenMemory* pcTokens)
 {
 	CPPDirective*	pcDefine;
 
@@ -299,7 +299,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokens* pcTokens)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokens* pcTokens)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokenMemory* pcTokens)
 {
 	CPPDirective*			pcUndef;
 
@@ -316,7 +316,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokens* pcTokens)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokens* pcTokens)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokenMemory* pcTokens)
 {
 	CPPInclude*			pcInclude;
 
@@ -333,7 +333,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokens* pcTokens)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CPPTokens* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcIfNDef;
 
@@ -349,7 +349,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CPPTokens* pcTokens, in
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CPPTokens* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcIfDef;
 
@@ -365,7 +365,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CPPTokens* pcTokens, int
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CPPTokens* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcElse;
 
@@ -381,7 +381,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CPPTokens* pcTokens, int 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CPPTokens* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
 {
 	//IF and Elif are special cases because the calculator does it's own parsing.
 	CPPConditional*		pcIf;
@@ -398,7 +398,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CPPTokens* pcTokens, int iB
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CPPTokens* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
 {
 	//IF and Elif are special cases because the calculator does it's own parsing.
 	CPPConditional*		pcElif;
@@ -415,7 +415,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CPPTokens* pcTokens, int 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CPPTokens* pcTokens, int iBlock, int iIndex)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CPPTokenMemory* pcTokens, int iBlock, int iIndex)
 {
 	CPPConditional*		pcEndif;
 
@@ -431,7 +431,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CPPTokens* pcTokens, int
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CPPTokens* pcTokens)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CPPTokenMemory* pcTokens)
 {
 	CPPDirective*		pcError;
 
@@ -446,7 +446,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CPPTokens* pcTokens)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CPPTokens* pcTokens)
+CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CPPTokenMemory* pcTokens)
 {
 	CPPDirective*		pcPragma;
 
@@ -461,7 +461,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CPPTokens* pcTokens)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPLine* CPreprocessorTokeniser::Line(CPPTokens* pcTokens)
+CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 {
 	CPPLine		cLine;
 	CPPLine*	pcLine;

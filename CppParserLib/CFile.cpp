@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/FileUtil.h"
 #include "Library.h"
 #include "CFile.h"
-#include "PPTokens.h"
+#include "PPTokenMemory.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,7 +199,7 @@ int CCFile::GetContentsLength(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPTokens* CCFile::GetTokenMemory(void)
+CPPTokenMemory* CCFile::GetTokenMemory(void)
 {
 	return &mcTokenMemory;
 }

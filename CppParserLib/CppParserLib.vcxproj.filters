@@ -363,7 +363,7 @@
     <ClCompile Include="PreprocessorPosition.cpp">
       <Filter>Source\Preprocessor</Filter>
     </ClCompile>
-    <ClCompile Include="PPTokens.cpp">
+    <ClCompile Include="PPTokenMemory.cpp">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClCompile>
     <ClCompile Include="PreprocessorTokeniser.cpp">
@@ -578,9 +578,6 @@
     <ClInclude Include="CPPTokeniser.h">
       <Filter>Source\Tokeniser</Filter>
     </ClInclude>
-    <ClInclude Include="CPPTokens.h">
-      <Filter>Source\Tokeniser</Filter>
-    </ClInclude>
     <ClInclude Include="CPPToken.h">
       <Filter>Source\Tokeniser\Tokens</Filter>
     </ClInclude>
@@ -671,14 +668,15 @@
     <ClInclude Include="PreprocessorPosition.h">
       <Filter>Source\Preprocessor</Filter>
     </ClInclude>
-    <ClInclude Include="PPTokens.h">
-      <Filter>Source\Preprocessor\Tokens\Text</Filter>
-    </ClInclude>
     <ClInclude Include="PreprocessorTokeniser.h">
       <Filter>Source\Preprocessor\Tokeniser</Filter>
     </ClInclude>
     <ClInclude Include="PreprocessorLineTokeniser.h">
       <Filter>Source\Preprocessor\Tokeniser</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPTokens.h" />
+    <ClInclude Include="PPTokenMemory.h">
+      <Filter>Source\Preprocessor\Tokens</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -46,7 +46,7 @@ void CPPUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPUnknown::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPUnknown::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPDirective* pcCast;
 

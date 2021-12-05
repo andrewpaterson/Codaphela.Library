@@ -31,10 +31,10 @@ class CArrayCBlockSet : public __CArrayCBlockSet
 {
 public:
 	BOOL		mbRawProcessed;
-	CPPTokens*	mpcTokenMemory;
+	CPPTokenMemory*	mpcTokenMemory;
 
 public:
-	void 			Init(CPPTokens* pcTokenMemory);
+	void 			Init(CPPTokenMemory* pcTokenMemory);
 	void			RawProcessed(void);
 	BOOL			IsRawProcessed(void);
 	CPPBlockSet*	Add(int iLine, BOOL bTextBlocks);

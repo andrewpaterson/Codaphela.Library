@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCBlockSet::Init(CPPTokens* pcTokenMemory)
+void CArrayCBlockSet::Init(CPPTokenMemory* pcTokenMemory)
 {
 	mbRawProcessed = FALSE;
 	mpcTokenMemory = pcTokenMemory;

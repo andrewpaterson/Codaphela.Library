@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlockSet::Init(CPPTokens* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks)
+void CPPBlockSet::Init(CPPTokenMemory* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks)
 {
 	mcRawTokens.Init();
 	mapcBlocks.Init();
@@ -197,7 +197,7 @@ BOOL CPPBlockSet::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokens* CPPBlockSet::GetFileTokens(void)
+CPPTokenMemory* CPPBlockSet::GetFileTokens(void)
 {
 	return mpcFileTokens;
 }

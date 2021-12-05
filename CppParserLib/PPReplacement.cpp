@@ -84,7 +84,7 @@ BOOL CPPReplacement::IsReplacement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPReplacement::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPReplacement*	pcCast;
 
