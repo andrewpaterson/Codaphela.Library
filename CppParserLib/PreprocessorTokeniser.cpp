@@ -62,7 +62,7 @@ void CPreprocessorTokeniser::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos, int iLength)
+BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, char* szPos, int iLength)
 {
 	char*					szEnd;
 	EPreprocessorDirective	eDirective;
@@ -109,13 +109,13 @@ BOOL CPreprocessorTokeniser::Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos
 				return FALSE;
 			}
 			pcLine = NULL;
-			pcDirective = TokeniseDirective(pacBlockSets->mpcTokenMemory, eDirective, iBlock, iIndex);
+			pcDirective = TokeniseDirective(pacBlockSets->GetTokenMemory(), eDirective, iBlock, iIndex);
 			pcToken = pcDirective;
 		}
 		else
 		{
 			pcDirective = NULL;
-			pcLine = Line(pacBlockSets->mpcTokenMemory);
+			pcLine = Line(pacBlockSets->GetTokenMemory());
 			pcToken = pcLine;
 			if (pcLine)
 			{

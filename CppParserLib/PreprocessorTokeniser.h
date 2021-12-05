@@ -41,7 +41,7 @@ public:
 	void 					Init(void);
 	void 					Kill(void);
 
-	BOOL					Tokenise(CArrayCBlockSet* pacBlockSets, char* szPos, int iLength);
+	BOOL					Tokenise(CPPBlockSetArray* pacBlockSets, char* szPos, int iLength);
 	BOOL					Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex);
 	void					TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokenMemory* pcTokens);
 	EPreprocessorDirective	GetDirective(void);

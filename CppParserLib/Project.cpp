@@ -322,7 +322,7 @@ void CProject::WritePost(CTranslationUnit* pcTU)
 
 	pcTU->Print(&sz);
 	cDestFile.Write(sz.Text(), sz.Length(), 1);
-	//	EngineOutput(sz.Text());
+
 	sz.Kill();
 	szPath.Kill();
 	cDestFile.Close();

@@ -28,15 +28,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPBlockSet
 {
 protected:
-	CPPTokenHolder			mcRawTokens;
-	CPPTokenMemory*			mpcFileTokens;
-	int						miLine;
-	int						miColumn;
-	int						miBlock;
-	BOOL					mbTextBlocks;
+	CPPTokenHolder		mcRawTokens;
+	CPPTokenMemory*		mpcFileTokens;
+	int					miLine;
+	int					miColumn;
+	int					miBlock;
+	BOOL				mbTextBlocks;
 
 	//If TextBlocks then the following are valid.  Otherwise this is a # directive block.
-	CArrayPtrCBlocks		mapcBlocks;
+	CArrayPtrCBlocks	mapcBlocks;
 
 public:
 	void 					Init(CPPTokenMemory* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks);

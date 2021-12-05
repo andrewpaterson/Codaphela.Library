@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __C_FILE_H__
 #define __C_FILE_H__
 #include "BaseLib/Chars.h"
-#include "ArrayCBlockSet.h"
+#include "PPBlockSetArray.h"
 #include "PPTokenMemory.h"
 
 
@@ -32,8 +32,8 @@ protected:
 	CChars					mszContents;
 	CChars					mszFullName;
 	BOOL					mbLoaded;
-	CPPTokenMemory				mcTokenMemory;
-	CArrayCBlockSet			macBlockSets;
+	CPPTokenMemory			mcTokenMemory;
+	CPPBlockSetArray			macBlockSets;
 
 public:
 			void				Init(char* pszFullName);
@@ -52,7 +52,7 @@ public:
 			void				Path(CChars* pszPath);
 			char*				GetContents(void);
 			int					GetContentsLength(void);
-			CArrayCBlockSet*	GetBlockSets(void);
+			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*			GetTokenMemory(void);
 };
 

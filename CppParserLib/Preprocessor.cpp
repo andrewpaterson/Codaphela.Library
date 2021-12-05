@@ -764,10 +764,10 @@ char* CPreprocessor::GetFileName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogBlocks(CArrayCBlockSet* pacSourceBlockSets, SPPTokenBlockIndex sResult)
+void CPreprocessor::LogBlocks(CPPBlockSetArray* pacSourceBlockSets, SPPTokenBlockIndex sResult)
 {
 	CChars			szLine;
-	CPPBlockSet*		pcBlocksSet;
+	CPPBlockSet*	pcBlocksSet;
 
 	if (mbLogBlocks)
 	{
@@ -877,10 +877,10 @@ void CPreprocessor::LogDumping(BOOL bDumpLogs)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::PreprocessBlockSets(CArrayCBlockSet* pacSourceBlockSets)
+BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 {
-	CPPBlockSet*			pcBlocksSet;
-	SPPTokenBlockIndex		sResult;
+	CPPBlockSet*		pcBlocksSet;
+	SPPTokenBlockIndex	sResult;
 
 	sResult.Init(0, 0);
 	pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
@@ -968,7 +968,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CArrayCBlockSet* pacSourceBlockSets)
 BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
 {
 	BOOL					bResult;
-	CArrayCBlockSet*		pacSourceBlockSets;
+	CPPBlockSetArray*		pacSourceBlockSets;
 
 	miIncludeDepth++;
 	LogInclude(pcFile);
@@ -1032,7 +1032,7 @@ BOOL CPreprocessor::TokeniseFile(CCFile* pcFile)
 {
 	CPreprocessorTokeniser	cTokeniser;
 	BOOL					bResult;
-	CArrayCBlockSet*		pcBlockSets;
+	CPPBlockSetArray*		pcBlockSets;
 	char*					szFileContents;
 	int						iFileLength;
 
@@ -2515,7 +2515,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	int						iLen;
 	CPPTokenMemory			cTokenMemory;
 	CPPTokenHolder			cOutput;
-	CArrayCBlockSet			acBlockSets;
+	CPPBlockSetArray			acBlockSets;
 	BOOL					bResult;
 
 	cTokeniser.Init();

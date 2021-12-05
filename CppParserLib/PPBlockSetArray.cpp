@@ -18,18 +18,18 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "ArrayCBlockSet.h"
+#include "PPBlockSetArray.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCBlockSet::Init(CPPTokenMemory* pcTokenMemory)
+void CPPBlockSetArray::Init(CPPTokenMemory* pcTokenMemory)
 {
 	mbRawProcessed = FALSE;
 	mpcTokenMemory = pcTokenMemory;
-	__CArrayCBlockSet::Init();
+	__CArrayPPBlockSet::Init();
 }
 
 
@@ -37,7 +37,7 @@ void CArrayCBlockSet::Init(CPPTokenMemory* pcTokenMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCBlockSet::RawProcessed(void)
+void CPPBlockSetArray::RawProcessed(void)
 {
 	mbRawProcessed = TRUE;
 }
@@ -47,22 +47,21 @@ void CArrayCBlockSet::RawProcessed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCBlockSet::IsRawProcessed(void)
+BOOL CPPBlockSetArray::IsRawProcessed(void)
 {
 	return mbRawProcessed;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPBlockSet* CArrayCBlockSet::Add(int iLine, BOOL bTextBlocks)
+CPPBlockSet* CPPBlockSetArray::Add(int iLine, BOOL bTextBlocks)
 {
 	CPPBlockSet* pcBlockSet;
 
-	pcBlockSet = __CArrayCBlockSet::Add();
+	pcBlockSet = __CArrayPPBlockSet::Add();
 	pcBlockSet->Init(mpcTokenMemory, iLine, miUsedElements-1, bTextBlocks);
 	return pcBlockSet;
 }
@@ -72,7 +71,17 @@ CPPBlockSet* CArrayCBlockSet::Add(int iLine, BOOL bTextBlocks)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCBlockSet::Dump(void)
+CPPTokenMemory* CPPBlockSetArray::GetTokenMemory(void)
+{
+	return mpcTokenMemory;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPBlockSetArray::Dump(void)
 {
 	int				i;
 	CPPBlockSet*	pcBlockSet;

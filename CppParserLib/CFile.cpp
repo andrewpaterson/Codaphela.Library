@@ -47,7 +47,7 @@ void CCFile::Init(char* szName)
 void CCFile::Kill(void)
 {
 	int				i;
-	CPPBlockSet*		pcBlockSet;
+	CPPBlockSet*	pcBlockSet;
 
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{
@@ -152,7 +152,7 @@ char* CCFile::FullName(void)
 void CCFile::Dump(void)
 {
 	int				i;
-	CPPBlockSet*		pcBlockSet;
+	CPPBlockSet*	pcBlockSet;
 
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{
@@ -209,7 +209,7 @@ CPPTokenMemory* CCFile::GetTokenMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CArrayCBlockSet* CCFile::GetBlockSets(void)
+CPPBlockSetArray* CCFile::GetBlockSets(void)
 {
 	return &macBlockSets;
 }
