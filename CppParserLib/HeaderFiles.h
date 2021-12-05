@@ -32,7 +32,7 @@ class CHeaderFileMap;
 class CHeaderFiles
 {
 protected:
-	CHeaderFileMap*		mpcFileMap;
+	CHeaderFileMap*		mpcFileMap;  //Relative names
 	CHeaderFilePtrMap	mcFileNames;
 	CChars				mszBaseDirectory;
 	BOOL				mbSystem;
@@ -50,10 +50,6 @@ public:
 
 	void			Dump(void);
 };
-
-
-typedef CArrayTemplate<CHeaderFiles*> CArrayHeaderNameMapPtr;
-typedef CArrayTemplate<CHeaderFiles> CArrayHeaderNameMap;
 
 
 #endif // !__HEADER_NAME_MAP_H__
