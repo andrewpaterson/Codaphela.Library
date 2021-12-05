@@ -249,9 +249,6 @@
     <ClCompile Include="HeaderNameMapStack.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="Headers.cpp">
-      <Filter>Source\Preprocessor\Maybe</Filter>
-    </ClCompile>
     <ClCompile Include="TranslationUnit.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
@@ -549,9 +546,6 @@
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="HeaderNameMapStack.h">
-      <Filter>Source\Preprocessor\Maybe</Filter>
-    </ClInclude>
-    <ClInclude Include="Headers.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="TranslationUnit.h">

@@ -29,7 +29,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SourceFile.h"
 #include "TranslationUnit.h"
 #include "HeaderFileMap.h"
-#include "Headers.h"
 
 struct SProcessIter
 {
@@ -44,13 +43,13 @@ struct SProcessIter
 class CProject
 {
 protected:
-	CListLibraries		mcLibraries;
-	int					miNumSystemLibraries;
-	int					miBlockReuse;
-	BOOL				mbDumpLogs;
-	BOOL				mbLogBlocks;
-	CHeaders			mcIncludeNames;
-	CHeaderFileMap		mcIncludeFiles;
+	CListLibraries			mcLibraries;
+	int						miNumSystemLibraries;
+	int						miBlockReuse;
+	BOOL					mbDumpLogs;
+	BOOL					mbLogBlocks;
+	CArrayHeaderNameMap		mcHeaderNames;
+	CHeaderFileMap			mcIncludeFiles;
 
 public:
 	void				Init(BOOL bDumpLogs = FALSE, BOOL bLogBlocks = FALSE);
@@ -67,6 +66,8 @@ public:
 	CTranslationUnit*	Iterate(SProcessIter* psIter);
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);
 	int					GetBlockReuse(void);
+
+	void				AddHeaderFiles(char* szDirectoryName, BOOL bIncludeSubDirectories, BOOL bSystem);
 };
 
 

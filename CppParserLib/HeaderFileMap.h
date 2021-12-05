@@ -28,6 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CMapStringTemplate<CHeaderFile*>	CHeaderFilePtrMap;
 typedef CLinkedListTemplate<CHeaderFile>	CHeadFileList;
 
+
 class CHeaderFileMap
 {
 protected:
