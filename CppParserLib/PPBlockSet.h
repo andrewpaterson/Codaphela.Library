@@ -29,7 +29,7 @@ class CPPBlockSet
 {
 protected:
 	CPPTokenHolder			mcRawTokens;
-	CPPTokenMemory*				mpcFileTokens;
+	CPPTokenMemory*			mpcFileTokens;
 	int						miLine;
 	int						miColumn;
 	int						miBlock;
@@ -47,7 +47,7 @@ public:
 	BOOL					AddBlock(CPPBlock* pcBlock);
 	BOOL					IsLastToken(int iToken);
 	BOOL					IsDirective(void);
-	CPPTokenMemory*				GetFileTokens(void);
+	CPPTokenMemory*			GetFileTokens(void);
 	CPPTokenHolder*			GetRawTokensHolder(void);
 	int						Line(void);
 	int						Column(void);

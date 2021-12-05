@@ -33,7 +33,7 @@ class CPPBlock : public CPPAbstractHolder
 {
 protected:
 	CPPBlockSet*			mpcBlockSet;  //The blockset this block is in.
-	CPPTokenMemory*				mpcFileTokens;  //From CFile (from CBlockSet).
+	CPPTokenMemory*			mpcFileTokens;  //From CFile (from CBlockSet).
 	SPPTokenBlockIndex		msNext;
 
 public:

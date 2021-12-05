@@ -78,7 +78,8 @@ public:
 	static void			Preprocess(char* szSource, CChars* szDest);
 
 public:
-	void 				Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory);
+	void 				Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTokenHolder* pcProcessedTokens);
+	void				Init(CConfig* pcConfig, CTranslationUnit* pcFile);
 	void 				Kill(void);
 	void				InitPlatformSpecific(void);
 	void				AddConfigDefines(CConfig* pcConfig);	
@@ -100,10 +101,10 @@ public:
 	CSpecialOperator*	GetSpecialOperator(char* szName, BOOL bExact);
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
-	BOOL				PreprocessFile(CPPTokenHolder* pcTokenHolder, CCFile* pcFile, CCFile* pcFromFile);
-	BOOL				PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlockSet* pacBlockSets);
+	BOOL				PreprocessFile(CCFile* pcFile, CCFile* pcFromFile);
+	BOOL				PreprocessBlockSets(CArrayCBlockSet* pacBlockSets);
 	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
-	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
+	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
 	BOOL 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
@@ -117,7 +118,7 @@ public:
 	SPPTokenBlockIndex 	ProcessHashElif(CPreprocessorTokenParser* pcParser, CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	BOOL 				ProcessHashError(CPreprocessorTokenParser* pcParser);
 	BOOL 				ProcessHashPragma(CPreprocessorTokenParser* pcParser);
-	BOOL				ProcessNormalLine(CPPTokenHolder* pcDest, CPreprocessorTokenParser* pcParser);
+	BOOL				ProcessNormalLine(CPreprocessorTokenParser* pcParser);
 
 	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
