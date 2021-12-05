@@ -45,11 +45,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HeaderNameMapStack.h"
 
 
+typedef CArrayTemplate<CHeaderFiles*> CArrayHeaderFiles;
+typedef CArrayTemplate<CHeaderFiles> CArrayHeaderNameMap;
+
+
 class CPreprocessor
 {
 protected:
 	CConditionalStack				mcConditionalStack;
-	CSourceFile*							mpcCurrentFile;
+	CSourceFile*					mpcCurrentFile;
 	CPPAbstractHolder*				mpcCurrentLine;
 	CPreprocessorTokenParser*		mpcCurrentLineParser;
 	CASCIITree						mcDirectives;
@@ -57,7 +61,7 @@ protected:
 	CSpecialOperatorMap				mcSpecialOperators;
 	CDefineArguments				mcArguments;
 	int								miIncludeDepth;
-	CArrayHeaderNameMapPtr			mcHeaderNames;
+	CArrayHeaderFiles				mcHeaderNames;
 	CHeaderNameMapStack				mcHeadersStack;
 
 	CPPTokenHolder*					mpcProcessedTokens;
