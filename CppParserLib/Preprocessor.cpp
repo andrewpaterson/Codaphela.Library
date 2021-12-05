@@ -38,7 +38,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokens)
+void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory)
 {
 	mcDefines.Init();
 	mcSpecialOperators.Init();
@@ -59,7 +59,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokens)
 	miProcessTokensCalledCount = 0;
 	mcHeadersStack.Init();
 
-	mpcTokenMemory = pcTokens;
+	mpcTokenMemory = pcTokenMemory;
 	mcHeaderNames.Init();
 
 	AddSpecialDefine("__DATE__");
@@ -2144,11 +2144,11 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pcTokens)
+CPPToken* CPreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pacTokenPts)
 {
 	CPPToken**	ppcToken;
 
-	ppcToken = pcTokens->Add();
+	ppcToken = pacTokenPts->Add();
 	*ppcToken = pcToken;
 	return pcToken;
 }
@@ -2262,7 +2262,7 @@ void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcT
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenMemory* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenMemory* pcTokenMemory, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
 	SPPTokenBlockIndex			sLine;
 	int							iNumLines;
@@ -2274,7 +2274,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenMemory* pcTo
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
-	mpcTokenMemory = pcTokens;
+	mpcTokenMemory = pcTokenMemory;
 	mpcCurrentLineParser = NULL;
 
 	MarkPositionForError(&sPos);
@@ -2420,7 +2420,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenMemory* pcTo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokenMemory* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokenMemory* pcTokenMemory, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
 	SPPTokenBlockIndex			sLine;
 	int							iNumLines;
@@ -2432,7 +2432,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcD
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
-	mpcTokenMemory = pcTokens;
+	mpcTokenMemory = pcTokenMemory;
 	mpcCurrentLineParser = NULL;
 
 	MarkPositionForError(&sPos);
@@ -2592,7 +2592,7 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokenMemory* pcTokens)
+void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokenMemory* pcTokenMemory)
 {
 	int					i;
 	CNamedDefine*		pcNamedDefine;
@@ -2618,7 +2618,7 @@ void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokenMemory* pc
 			pcDefine = mcDefines.AddDefine(&cIdentifier);
 
 			pcDefine->GetArguments()->Copy(pcNamedDefine->GetArguments());
-			pcDefine->GetReplacement()->Copy(pcNamedDefine->GetReplacement(), pcTokens);
+			pcDefine->GetReplacement()->Copy(pcNamedDefine->GetReplacement(), pcTokenMemory);
 			pcDefine->SetBracketed(pcNamedDefine->IsBacketed());
 		}
 	}
