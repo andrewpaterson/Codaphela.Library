@@ -34,7 +34,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokens* pcTokens)
+CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPDirective*			pcDirective;
 	CPPLine*				pcLine;

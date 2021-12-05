@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ExternalString.h"
 #include "PPLine.h"
 #include "PPText.h"
-#include "PPtokens.h"
+#include "PPTokenMemory.h"
 
 
 class CPreprocessorLineTokensier
@@ -42,15 +42,15 @@ protected:
 	char*					mszNumberStart;
 	BOOL					mbOnlyWhiteSpace;
 	CPreprocessorParser*	mpcParser;
-	CPPTokens*				mpcTokens;
+	CPPTokenMemory*				mpcTokens;
 	BOOL					mbContainsLineContinuers;
 	BOOL					mbAllowEscapes;
 
 public:
-	static void		Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
+	static void		Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes);
 
 public:
-	void		Init(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes);
+	void		Init(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes);
 	void		Kill(void);
 	void		Preprocess(void);
 	BOOL		PossibleComment(void);

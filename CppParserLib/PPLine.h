@@ -32,7 +32,7 @@ public:
 	void	Init(int iLine, int miColumn);
 	void	Kill(void);
 	BOOL	IsLine(void);
-	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	BOOL	Equals(CPPToken* pcOther);
 	BOOL	NeedsNewLine(void);
 };

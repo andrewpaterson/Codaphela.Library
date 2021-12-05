@@ -74,7 +74,7 @@ void CPPTextWithSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTextWithSource::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPTextWithSource::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPTextWithSource*	pcCast;
 

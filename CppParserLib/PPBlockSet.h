@@ -22,14 +22,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __C_BLOCK_SET_H__
 #include "PPBlock.h"
 #include "DefineMap.h"
-#include "PPTokens.h"
+#include "PPTokenMemory.h"
 
 
 class CPPBlockSet
 {
 protected:
 	CPPTokenHolder			mcRawTokens;
-	CPPTokens*				mpcFileTokens;
+	CPPTokenMemory*				mpcFileTokens;
 	int						miLine;
 	int						miColumn;
 	int						miBlock;
@@ -39,7 +39,7 @@ protected:
 	CArrayPtrCBlocks		mapcBlocks;
 
 public:
-	void 					Init(CPPTokens* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks);
+	void 					Init(CPPTokenMemory* pcFileTokens, int iLine, int iBlock, BOOL bTextBlocks);
 	void 					Kill(void);
 	CPPBlock*				GetMatchingBlock(CPPBlock* pcOtherBlock);
 	CPPBlock*				CreateBlock(void);
@@ -47,7 +47,7 @@ public:
 	BOOL					AddBlock(CPPBlock* pcBlock);
 	BOOL					IsLastToken(int iToken);
 	BOOL					IsDirective(void);
-	CPPTokens*				GetFileTokens(void);
+	CPPTokenMemory*				GetFileTokens(void);
 	CPPTokenHolder*			GetRawTokensHolder(void);
 	int						Line(void);
 	int						Column(void);

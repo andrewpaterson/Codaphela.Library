@@ -41,7 +41,7 @@ struct SPPTokenIterator
 };
 
 
-class CPPTokens
+class CPPTokenMemory
 {
 protected:
 	CMemoryStackExtended	mcStack;

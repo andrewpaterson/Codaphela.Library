@@ -31,14 +31,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TokenHelper.h"
 #include "GeneralToken.h"
 #include "PreprocessorPosition.h"
-#include "PPTokens.h"
+#include "PPTokenMemory.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Init(CConfig* pcConfig, CPPTokens* pcTokens)
+void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokens)
 {
 	mcDefines.Init();
 	mcSpecialOperators.Init();
@@ -870,7 +870,7 @@ void CPreprocessor::LogDumping(BOOL bDumpLogs)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlockSet* pacSourceBlockSets, CPPTokens* pcSourceTokenMemory)
+BOOL CPreprocessor::PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlockSet* pacSourceBlockSets, CPPTokenMemory* pcSourceTokenMemory)
 {
 	CPPBlockSet*			pcBlocksSet;
 	SPPTokenBlockIndex		sResult;
@@ -968,7 +968,7 @@ BOOL CPreprocessor::PreprocessFile(CPPTokenHolder* pcTokenHolder, CCFile* pcFile
 {
 	BOOL					bResult;
 	CArrayCBlockSet*		pacSourceBlockSets;
-	CPPTokens*				pcSourceTokenMemory;
+	CPPTokenMemory*				pcSourceTokenMemory;
 
 	miIncludeDepth++;
 	LogInclude(pcFile);
@@ -2262,7 +2262,7 @@ void CPreprocessor::AddTokenToArgument(CPPTokenHolder* pcArgument, CPPToken* pcT
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenMemory* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
 	SPPTokenBlockIndex			sLine;
 	int							iNumLines;
@@ -2420,7 +2420,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokens* pcTokens,
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokens* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokenMemory* pcTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken)
 {
 	SPPTokenBlockIndex			sLine;
 	int							iNumLines;
@@ -2508,7 +2508,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	CPreprocessor			cPreprocessor;
 	CPreprocessorTokeniser	cTokeniser;
 	int						iLen;
-	CPPTokens				cTokenMemory;
+	CPPTokenMemory				cTokenMemory;
 	CPPTokenHolder			cOutput;
 	CArrayCBlockSet			acBlockSets;
 	BOOL					bResult;
@@ -2592,7 +2592,7 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokens* pcTokens)
+void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokenMemory* pcTokens)
 {
 	int					i;
 	CNamedDefine*		pcNamedDefine;

@@ -126,7 +126,7 @@ char* CPPDirective::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPDirective::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPDirective::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPDirective*	pcCast;
 

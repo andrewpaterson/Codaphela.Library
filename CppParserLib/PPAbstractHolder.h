@@ -35,7 +35,7 @@ public:
 	void				Fake(CPPTokenHolder* pcTokens);
 	BOOL 				IsAbstractHolder(void);
 	char*				Print(CChars* psz);
-	void 				Copy(CPPAbstractHolder* pcCast, CPPTokens* pcTokens);
+	void 				Copy(CPPAbstractHolder* pcCast, CPPTokenMemory* pcTokens);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);
 	void				SavageDump(void);

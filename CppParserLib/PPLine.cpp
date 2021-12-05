@@ -56,7 +56,7 @@ BOOL CPPLine::IsLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPLine::Copy(CPPToken* pcSource, CPPTokens* pcTokens)
+void CPPLine::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPLine*	pcCast;
 	CPPToken*	pcToken;

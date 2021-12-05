@@ -31,7 +31,7 @@ public:
 	TOKEN_CONSTRUCT(CPPUnknown);
 	void	Init(int iLine, int iColumn);
 	void	Kill(void);
-	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	char*	Print(CChars* psz);
 	BOOL	IsUnknown(void);
 };

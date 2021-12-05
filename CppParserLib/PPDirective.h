@@ -55,7 +55,7 @@ public:
 	BOOL	IsDirective(void);
 	void	Set(EPreprocessorDirective eType);
 	char*	Print(CChars* psz);
-	void	Copy(CPPToken* pcSource, CPPTokens* pcTokens);
+	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	BOOL	Is(EPreprocessorDirective eType);
 	BOOL	IsConditional(void);
 	BOOL	Equals(CPPToken* pcOther);

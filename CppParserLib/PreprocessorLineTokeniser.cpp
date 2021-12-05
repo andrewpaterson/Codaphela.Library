@@ -31,7 +31,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes)
 {
 	CPreprocessorLineTokensier	cLinePreprocessor;
 
@@ -44,7 +44,7 @@ void CPreprocessorLineTokensier::Preprocess(CPPTokenHolder* pcLinesTokens, CPrep
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Init(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokens* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Init(CPPTokenHolder* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes)
 {
 	mpcParser = pcParser;
 	mpcTokenHolder = pcLinesTokens;
