@@ -38,7 +38,7 @@ void CProject::Init(BOOL bDumpLogs, BOOL bLogBlocks)
 	mbDumpLogs = bDumpLogs;
 	mbLogBlocks = bLogBlocks;
 	mcIncludeFiles.Init();
-	mcIncludeNames.Init(&mcIncludeFiles);
+	mcHeaderNames.Init();
 }
 
 
@@ -50,7 +50,17 @@ void CProject::Kill(void)
 {
 	CLibrary*	pcLibrary;
 
-	mcIncludeNames.Kill();
+	CHeaderFiles* pcHeaderNameMap;
+	int					i;
+
+	for (i = 0; i < mcHeaderNames.NumElements(); i++)
+	{
+		pcHeaderNameMap = mcHeaderNames.Get(i);
+		pcHeaderNameMap->Kill();
+	}
+
+	mcHeaderNames.Kill();
+
 	mcIncludeFiles.Kill();
 
 	miNumSystemLibraries = 0;
@@ -86,7 +96,7 @@ CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDi
 //////////////////////////////////////////////////////////////////////////
 void CProject::AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem)
 {
-	mcIncludeNames.Add(szBaseDir, bIncludeSubDirectories, bSystem);
+	AddHeaderFiles(szBaseDir, bIncludeSubDirectories, bSystem);
 }
 
 
@@ -227,7 +237,7 @@ void CProject::Process(char* szConfiguration)
 		pcConfig = pcFile->GetLibrary()->GetConfig(szConfiguration);
 
 		cPreprocessor.Init(pcConfig, pcFile->GetTokenMemory(), pcFile->GetTokenHolder());
-		cPreprocessor.AddIncludeDirectories(&mcIncludeNames.mcHeaderNames);
+		cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
 		cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 		cPreprocessor.LogDumping(mbDumpLogs);
 		cPreprocessor.LogBlocks(mbLogBlocks);
@@ -355,4 +365,16 @@ int CProject::GetBlockReuse(void)
 	return miBlockReuse;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CProject::AddHeaderFiles(char* szDirectoryName, BOOL bIncludeSubDirectories, BOOL bSystem)
+{
+	CHeaderFiles* pcHeaderNameMap;
+
+	pcHeaderNameMap = mcHeaderNames.Add();
+	pcHeaderNameMap->Init(szDirectoryName, &mcIncludeFiles, bIncludeSubDirectories, bSystem);
+}
 
