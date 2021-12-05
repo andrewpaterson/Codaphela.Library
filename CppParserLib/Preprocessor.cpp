@@ -88,6 +88,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 	mszVaArgs.Init("__VA_ARGS__");
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -911,7 +912,9 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 
 			mpcTokenMemory->Mark(&cMark);
 
-			pcBlockProcessed = pcBlocksSet->CreateBlock();
+			pcBlockProcessed = mpcTokenMemory->AddBlock();
+			pcBlockProcessed->Init(pcBlocksSet->Line(), pcBlocksSet->Column());
+
 			sResult = PreprocessNormalLineTokens(pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
 			if (sResult.iTokenIndex == -1)
 			{
@@ -2523,7 +2526,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	int						iLen;
 	CPPTokenMemory			cTokenMemory;
 	CPPTokenHolder			cOutput;
-	CPPBlockSetArray			acBlockSets;
+	CPPBlockSetArray		acBlockSets;
 	BOOL					bResult;
 
 	cTokeniser.Init();

@@ -32,26 +32,19 @@ class CPPBlockSet;
 class CPPBlock : public CPPAbstractHolder
 {
 protected:
-	CPPBlockSet*			mpcBlockSet;  //The blockset this block is in.
-	CPPTokenMemory*			mpcFileTokens;
 	SPPTokenBlockIndex		msNext;
 
 public:
 	TOKEN_CONSTRUCT(CPPBlock);
 	void 				Init(int iLine, int iColumn);
-	void 				Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn);
 	void 				Kill(void);
 	BOOL 				IsBlock(void);
-	BOOL				IsForBlockSet(CPPBlockSet* pcBlockSet);
 	void				Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	void				SetNext(int	iTokenIndex, int iBlockIndex);
 	BOOL				Equals(CPPToken* pcOther);
 	SPPTokenBlockIndex	GetNextTokenBlock(void);
 	void				DumpPointersAsChars(CArrayIntAndPointer* papc);
 };
-
-
-typedef CArrayTemplate<CPPBlock*>	CArrayPtrCBlocks;
 
 
 #endif //__P_P_BLOCK_H__

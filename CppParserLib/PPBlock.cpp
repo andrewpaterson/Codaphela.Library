@@ -30,18 +30,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CPPBlock::Init(int iLine, int iColumn)
 {
 	CPPAbstractHolder::Init(iLine, iColumn);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CPPBlock::Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn)
-{
-	Init(iLine, iColumn);
-	mpcBlockSet = pcBlockSet;
-	mpcFileTokens = pcBlockSet->GetFileTokens();
 	msNext.Init(-1, -1);
 }
 
@@ -53,8 +41,6 @@ void CPPBlock::Init(CPPBlockSet* pcBlockSet, int iLine, int iColumn)
 void CPPBlock::Kill(void)
 {
 	CPPAbstractHolder::Kill();
-	mpcBlockSet = NULL;
-	mpcFileTokens = NULL;
 }
 
 
@@ -65,16 +51,6 @@ void CPPBlock::Kill(void)
 BOOL CPPBlock::IsBlock(void)
 {
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CPPBlock::IsForBlockSet(CPPBlockSet* pcBlockSet)
-{
-	return this->mpcBlockSet == pcBlockSet;
 }
 
 
@@ -100,9 +76,6 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 			pcToken = DuplicatePPToken(pcCast->GetTokens()->Get(i), pcTokens);
 			mcTokens.Add(pcToken);
 		}
-
-		mpcBlockSet = pcCast->mpcBlockSet;
-		mpcFileTokens = pcCast->mpcFileTokens;
 	}
 }
 

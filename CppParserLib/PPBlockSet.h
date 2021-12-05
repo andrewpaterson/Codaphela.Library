@@ -25,29 +25,28 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPTokenMemory.h"
 
 
+typedef CArrayTemplate<CPPBlock*>	CArrayPPBlocks;
+
+
 class CPPBlockSet
 {
 protected:
 	CPPTokenHolder		mcRawTokens;
-	CPPTokenMemory*		mpcTokenMemory;
 	int					miLine;
 	int					miColumn;
 	int					miBlock;
 	BOOL				mbTextBlocks;
 
 	//If TextBlocks then the following are valid.  Otherwise this is a # directive block.
-	CArrayPtrCBlocks	mapcBlocks;
+	CArrayPPBlocks		mapcBlocks;
 
 public:
 	void 				Init(CPPTokenMemory* pcTokenMemory, int iLine, int iBlock, BOOL bTextBlocks);
 	void 				Kill(void);
 	CPPBlock*			GetMatchingBlock(CPPBlock* pcOtherBlock);
-	CPPBlock*			CreateBlock(void);
-	CPPBlock*			AddBlock(void);
 	BOOL				AddBlock(CPPBlock* pcBlock);
 	BOOL				IsLastToken(int iToken);
 	BOOL				IsDirective(void);
-	CPPTokenMemory*		GetFileTokens(void);
 	CPPTokenHolder*		GetRawTokensHolder(void);
 	int					Line(void);
 	int					Column(void);
