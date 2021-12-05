@@ -61,7 +61,6 @@ void CPreprocessorLineTokensier::Init(CPPTokenHolder* pcLinesTokens, CPreprocess
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokensier::Kill(void)
 {
-
 }
 
 
@@ -97,7 +96,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 			mpcParser->SkipNewLine();
 			break;
 		}
-		else if ((*mpcParser->mszPos) == '\\')
+		else if ((*mpcParser->GetPos()) == '\\')
 		{
 			mpcParser->StepRight();
 			if (mpcParser->IsNewLine())
@@ -117,7 +116,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				mpcParser->StepRight();
 			}
 		}
-		else if ((*mpcParser->mszPos) == '"')
+		else if ((*mpcParser->GetPos()) == '"')
 		{
 			if (!mszSingleQuoteStart)
 			{
@@ -125,7 +124,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszDoubleQuoteStart = mpcParser->mszPos;
+					mszDoubleQuoteStart = mpcParser->GetPos();
 					mpcParser->StepRight();
 				}
 				else
@@ -140,7 +139,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				mpcParser->StepRight();
 			}
 		}
-		else if ((*mpcParser->mszPos) == '\'')
+		else if ((*mpcParser->GetPos()) == '\'')
 		{
 			if (!mszDoubleQuoteStart)
 			{
@@ -148,7 +147,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszSingleQuoteStart = mpcParser->mszPos;
+					mszSingleQuoteStart = mpcParser->GetPos();
 					mpcParser->StepRight();
 				}
 				else
@@ -172,19 +171,19 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszWhiteSpaceStart = mpcParser->mszPos;
+					mszWhiteSpaceStart = mpcParser->GetPos();
 				}
 			}
 			mpcParser->StepRight();
 		}
-		else if ((*mpcParser->mszPos) == '/')
+		else if ((*mpcParser->GetPos()) == '/')
 		{
 			if (PossibleComment())
 			{
 				break;
 			}
 		}
-		else if ((*mpcParser->mszPos) == '#')
+		else if ((*mpcParser->GetPos()) == '#')
 		{
 			if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 			{
@@ -192,7 +191,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszHashStart = mpcParser->mszPos;
+					mszHashStart = mpcParser->GetPos();
 				}
 			}
 			mpcParser->StepRight();
@@ -205,7 +204,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszIdentifierStart = mpcParser->mszPos;
+					mszIdentifierStart = mpcParser->GetPos();
 				}
 			}
 			mpcParser->StepRight();
@@ -218,7 +217,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszNumberStart = mpcParser->mszPos;
+					mszNumberStart = mpcParser->GetPos();
 				}
 			}
 			mpcParser->StepRight();
@@ -229,7 +228,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 			{
 				AddRelevantToken();
 				NullAll();
-				mszDecorationStart = mpcParser->mszPos;
+				mszDecorationStart = mpcParser->GetPos();
 			}
 			mpcParser->StepRight();
 		}
@@ -253,24 +252,24 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 		if (!mszWhiteSpaceStart)
 		{
 			mpcParser->StepRight();
-			if ((*mpcParser->mszPos) == '/')
+			if ((*mpcParser->GetPos()) == '/')
 			{
 				mpcParser->StepLeft();
 				AddRelevantToken();
 				NullAll();
-				mszWhiteSpaceStart = mpcParser->mszPos;
+				mszWhiteSpaceStart = mpcParser->GetPos();
 				mpcParser->StepRight(2);
 
 				mpcParser->SkipCPPStyleComment();
 				mpcParser->SkipNewLine();
 				return TRUE;
 			}
-			else if ((*mpcParser->mszPos) == '*')
+			else if ((*mpcParser->GetPos()) == '*')
 			{
 				mpcParser->StepLeft();
 				AddRelevantToken();
 				NullAll();
-				mszWhiteSpaceStart = mpcParser->mszPos;
+				mszWhiteSpaceStart = mpcParser->GetPos();
 				mpcParser->StepRight(2);
 				mpcParser->SkipCStyleComment();
 				return FALSE;
@@ -280,7 +279,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				mpcParser->StepLeft();
 				AddRelevantToken();
 				NullAll();
-				mszDecorationStart = mpcParser->mszPos;
+				mszDecorationStart = mpcParser->GetPos();
 				mpcParser->StepRight();
 				return FALSE;
 			}
@@ -288,7 +287,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 		else
 		{
 			mpcParser->StepRight();
-			if ((*mpcParser->mszPos) == '/')
+			if ((*mpcParser->GetPos()) == '/')
 			{
 				mpcParser->StepRight();
 
@@ -296,7 +295,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				mpcParser->SkipNewLine();
 				return TRUE;
 			}
-			else if ((*mpcParser->mszPos) == '*')
+			else if ((*mpcParser->GetPos()) == '*')
 			{
 				mpcParser->StepRight();
 				mpcParser->SkipCStyleComment();
@@ -307,7 +306,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				mpcParser->StepLeft();
 				AddRelevantToken();
 				NullAll();
-				mszDecorationStart = mpcParser->mszPos;
+				mszDecorationStart = mpcParser->GetPos();
 				mpcParser->StepRight();
 				return FALSE;
 			}
@@ -331,20 +330,20 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 	CPPHashes*		pcHashes;
 	CPPText*		pcText;
 
-	if ((mszDecorationStart) && (mszDecorationStart <= mpcParser->mszEnd))
+	if ((mszDecorationStart) && (mszDecorationStart <= mpcParser->GetEnd()))
 	{
 		//The length of a decorator must be 1!
-		AddText(PPT_Decorator, mszDecorationStart, mpcParser->mszPos);
+		AddText(PPT_Decorator, mszDecorationStart, mpcParser->GetPos());
 	}
-	else if ((mszIdentifierStart) && (mszIdentifierStart <= mpcParser->mszEnd))
+	else if ((mszIdentifierStart) && (mszIdentifierStart <= mpcParser->GetEnd()))
 	{
-		pcText = AddText(PPT_Identifier, mszIdentifierStart, mpcParser->mszPos);
+		pcText = AddText(PPT_Identifier, mszIdentifierStart, mpcParser->GetPos());
 	}
-	else if ((mszNumberStart) && (mszNumberStart <= mpcParser->mszEnd))
+	else if ((mszNumberStart) && (mszNumberStart <= mpcParser->GetEnd()))
 	{
-		AddText(PPT_Number, mszNumberStart, mpcParser->mszPos);
+		AddText(PPT_Number, mszNumberStart, mpcParser->GetPos());
 	}
-	else if ((mszWhiteSpaceStart) && (mszWhiteSpaceStart <= mpcParser->mszEnd))
+	else if ((mszWhiteSpaceStart) && (mszWhiteSpaceStart <= mpcParser->GetEnd()))
 	{
 		if (!mbOnlyWhiteSpace)
 		{
@@ -353,11 +352,11 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 			pcWhiteSpace->Init(mpcParser->miLine, mpcParser->miColumn);
 		}
 	}
-	else if ((mszHashStart) && (mszHashStart <= mpcParser->mszEnd))
+	else if ((mszHashStart) && (mszHashStart <= mpcParser->GetEnd()))
 	{
 		pcHashes = mpcTokens->AddHashes();
 		mpcTokenHolder->Add(pcHashes);
-		pcHashes->Init((int)(mpcParser->mszPos - mszHashStart), mpcParser->miLine, mpcParser->miColumn);
+		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn);
 		mbOnlyWhiteSpace = FALSE;
 	}
 }
@@ -410,12 +409,12 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 		{
 			pcText = mpcTokens->AddText();
 			mpcTokenHolder->Add(pcText);
-			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mszDoubleQuoteStart, mpcParser->mszPos);
+			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mszDoubleQuoteStart, mpcParser->GetPos());
 		}
 		else
 		{
 			sz.Init();
-			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->mszPos-1, '"');
+			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->GetPos()-1, '"');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
 			mpcTokenHolder->Add(pcTextWithSource);
 			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
@@ -442,12 +441,12 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 		{
 			pcText = mpcTokens->AddText();
 			mpcTokenHolder->Add(pcText);
-			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mszSingleQuoteStart, mpcParser->mszPos);
+			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mszSingleQuoteStart, mpcParser->GetPos());
 		}
 		else
 		{
 			sz.Init();
-			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->mszPos-1, '\'');
+			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->GetPos()-1, '\'');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
 			mpcTokenHolder->Add(pcTextWithSource);
 			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());

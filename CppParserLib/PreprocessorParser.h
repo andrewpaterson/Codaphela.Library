@@ -26,9 +26,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPreprocessorParser
 {
 public:
-	char*	mszStart;
-	char*	mszPos;
-	char*	mszEnd;
+	char*	mszStartOfText;
+	char*	mszParserPos;
+	char*	mszEndOfText;
 	BOOL	mbEndOfFile;
 	int		miLine;
 	int		miColumn;
@@ -49,6 +49,9 @@ public:
 	int		CalculateColumn(void);
 	void	BackupNewLine(void);
 	BOOL	IsNewLine(void);
+	char*	GetPos(void);
+	char*	GetEnd(void);
+	void	Dump(void);
 };
 
 

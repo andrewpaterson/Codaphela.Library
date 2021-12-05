@@ -41,7 +41,7 @@ void CDefineMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefineMap::Kill(void)
 {
-	CDefine* pcDefine;
+	CDefine*							pcDefine;
 	SIndexTreeMemoryUnsafeIterator		sIter;
 	int64								lli;
 	BOOL								bHasNext;
