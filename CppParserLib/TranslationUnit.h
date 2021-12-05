@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __TRANSLATION_UNIT_H__
 #define __TRANSLATION_UNIT_H__
 #include "BaseLib/MapStringTemplate.h"
-#include "CFile.h"
+#include "SourceFile.h"
 #include "PPBlock.h"
 #include "PPHolder.h"
 
@@ -38,7 +38,7 @@ struct STULog
 };
 
 
-class CTranslationUnit : public CCFile
+class CTranslationUnit : public CSourceFile
 {
 protected:
 	CPPTokenHolder	mcTokenHolder;

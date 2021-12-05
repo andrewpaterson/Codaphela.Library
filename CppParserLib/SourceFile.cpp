@@ -22,7 +22,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Numbers.h"
 #include "BaseLib/FileUtil.h"
 #include "Library.h"
-#include "CFile.h"
+#include "SourceFile.h"
 #include "PPTokenMemory.h"
 
 
@@ -30,7 +30,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::Init(char* szName)
+void CSourceFile::Init(char* szName)
 {
 	mszContents.Init();
 	mszFullName.Init(szName);
@@ -44,7 +44,7 @@ void CCFile::Init(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::Kill(void)
+void CSourceFile::Kill(void)
 {
 	int				i;
 	CPPBlockSet*	pcBlockSet;
@@ -66,7 +66,7 @@ void CCFile::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::Load(void)
+void CSourceFile::Load(void)
 {
 	CTextFile	cFile;
 
@@ -89,7 +89,7 @@ void CCFile::Load(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CCFile::IsLoaded(void)
+BOOL CSourceFile::IsLoaded(void)
 {
 	return mbLoaded;
 }
@@ -99,7 +99,7 @@ BOOL CCFile::IsLoaded(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CCFile::IsNamed(char* szName)
+BOOL CSourceFile::IsNamed(char* szName)
 {
 	return (strcmp(ShortName(), szName) == 0);
 }
@@ -109,7 +109,7 @@ BOOL CCFile::IsNamed(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::SetContents(const char* sz)
+void CSourceFile::SetContents(const char* sz)
 {
 	mszContents.Set(sz);
 	mbLoaded = TRUE;
@@ -119,7 +119,7 @@ void CCFile::SetContents(const char* sz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CCFile::ShortName(void)
+char* CSourceFile::ShortName(void)
 {
 	int		iIndex;
 
@@ -139,7 +139,7 @@ char* CCFile::ShortName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CCFile::FullName(void)
+char* CSourceFile::FullName(void)
 {
 	return mszFullName.Text();
 }
@@ -149,7 +149,7 @@ char* CCFile::FullName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::Dump(void)
+void CSourceFile::Dump(void)
 {
 	int				i;
 	CPPBlockSet*	pcBlockSet;
@@ -166,7 +166,7 @@ void CCFile::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCFile::Path(CChars* pszPath)
+void CSourceFile::Path(CChars* pszPath)
 {
 	CFileUtil	cFileUtil;
 
@@ -179,7 +179,7 @@ void CCFile::Path(CChars* pszPath)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CCFile::GetContents(void)
+char* CSourceFile::GetContents(void)
 {
 	return mszContents.Text();
 }
@@ -189,7 +189,7 @@ char* CCFile::GetContents(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CCFile::GetContentsLength(void)
+int CSourceFile::GetContentsLength(void)
 {
 	return mszContents.Length();
 }
@@ -199,7 +199,7 @@ int CCFile::GetContentsLength(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPTokenMemory* CCFile::GetTokenMemory(void)
+CPPTokenMemory* CSourceFile::GetTokenMemory(void)
 {
 	return &mcTokenMemory;
 }
@@ -209,7 +209,7 @@ CPPTokenMemory* CCFile::GetTokenMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPBlockSetArray* CCFile::GetBlockSets(void)
+CPPBlockSetArray* CSourceFile::GetBlockSets(void)
 {
 	return &macBlockSets;
 }

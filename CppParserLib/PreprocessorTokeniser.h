@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __PREPROCESSOR_TOKENISER_H__
 #define __PREPROCESSOR_TOKENISER_H__
 #include "BaseLib/Define.h"
-#include "CFile.h"
+#include "SourceFile.h"
 #include "DirectiveMap.h"
 #include "PreprocessorParser.h"
 #include "PPDirective.h"

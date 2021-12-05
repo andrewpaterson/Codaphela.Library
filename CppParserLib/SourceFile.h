@@ -18,22 +18,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __C_FILE_H__
-#define __C_FILE_H__
+#ifndef __SOURCE_FILE_H__
+#define __SOURCE_FILE_H__
 #include "BaseLib/Chars.h"
 #include "PPBlockSetArray.h"
 #include "PPTokenMemory.h"
 
 
 class CLibrary;
-class CCFile
+class CSourceFile
 {
 protected:
 	CChars					mszContents;
 	CChars					mszFullName;
 	BOOL					mbLoaded;
 	CPPTokenMemory			mcTokenMemory;
-	CPPBlockSetArray			macBlockSets;
+	CPPBlockSetArray		macBlockSets;
 
 public:
 			void				Init(char* pszFullName);
@@ -53,9 +53,9 @@ public:
 			char*				GetContents(void);
 			int					GetContentsLength(void);
 			CPPBlockSetArray*	GetBlockSets(void);
-			CPPTokenMemory*			GetTokenMemory(void);
+			CPPTokenMemory*		GetTokenMemory(void);
 };
 
 
-#endif // !__C_FILE_H__
+#endif // !__SOURCE_FILE_H__
 

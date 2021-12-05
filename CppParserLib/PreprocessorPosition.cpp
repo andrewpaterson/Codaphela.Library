@@ -1,5 +1,5 @@
 #include "BaseLib/Chars.h"
-#include "CFile.h"
+#include "SourceFile.h"
 #include "PreprocessorTokenParser.h"
 #include "PreprocessorPosition.h"
 
@@ -21,7 +21,7 @@ void SPreprocessorPosition::Init(int iLine, int iColumn, char* szShortName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SPreprocessorPosition::Init(CPreprocessorTokenParser* pcParser, CCFile* pcFile)
+void SPreprocessorPosition::Init(CPreprocessorTokenParser* pcParser, CSourceFile* pcFile)
 {
 	char*	szShortName;
 

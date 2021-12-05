@@ -716,7 +716,7 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::LogInclude(CCFile* pcFile)
+void CPreprocessor::LogInclude(CSourceFile* pcFile)
 {
 	CChars			sz;
 
@@ -965,7 +965,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::PreprocessFile(CCFile* pcFile, CCFile* pcFromFile)
+BOOL CPreprocessor::PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile)
 {
 	BOOL					bResult;
 	CPPBlockSetArray*		pacSourceBlockSets;
@@ -1028,7 +1028,7 @@ BOOL CPreprocessor::PreprocessTranslationUnit(CTranslationUnit* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::TokeniseFile(CCFile* pcFile)
+BOOL CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 {
 	CPreprocessorTokeniser	cTokeniser;
 	BOOL					bResult;

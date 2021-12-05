@@ -19,7 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "PPDirective.h"
-#include "CFile.h"
+#include "SourceFile.h"
 #include "PPBlockSet.h"
 
 

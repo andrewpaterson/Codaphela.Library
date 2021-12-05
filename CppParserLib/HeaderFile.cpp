@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFile::Init(char* szFullName, BOOL bSystemFile)
 {
-	CCFile::Init(szFullName);
+	CSourceFile::Init(szFullName);
 
 	mbSystemFile = bSystemFile;
 	mbPragmaOnce = FALSE;
@@ -40,7 +40,7 @@ void CHeaderFile::Init(char* szFullName, BOOL bSystemFile)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFile::Kill(void)
 {
-	CCFile::Kill();
+	CSourceFile::Kill();
 }
 
 

@@ -234,7 +234,7 @@
     <ClCompile Include="PPTokenBlockIndex.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
-    <ClCompile Include="CFile.cpp">
+    <ClCompile Include="SourceFile.cpp">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClCompile>
     <ClCompile Include="HeaderFile.cpp">
@@ -536,7 +536,7 @@
     <ClInclude Include="PPTokenBlockIndex.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
-    <ClInclude Include="CFile.h">
+    <ClInclude Include="SourceFile.h">
       <Filter>Source\Preprocessor\Maybe</Filter>
     </ClInclude>
     <ClInclude Include="HeaderFile.h">

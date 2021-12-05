@@ -51,7 +51,7 @@ void STULog::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks)
 {
-	CCFile::Init(szFullName);
+	CSourceFile::Init(szFullName);
 	mcTokenHolder.Init();
 	mpcLibrary = pcLibrary;
 
@@ -80,7 +80,7 @@ void CTranslationUnit::Kill(void)
 	}
 
 	mcTokenHolder.Kill();
-	CCFile::Kill();
+	CSourceFile::Kill();
 }
 
 
