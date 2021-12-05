@@ -42,7 +42,7 @@ protected:
 	char*					mszNumberStart;
 	BOOL					mbOnlyWhiteSpace;
 	CPreprocessorParser*	mpcParser;
-	CPPTokenMemory*				mpcTokens;
+	CPPTokenMemory*			mpcTokens;
 	BOOL					mbContainsLineContinuers;
 	BOOL					mbAllowEscapes;
 
