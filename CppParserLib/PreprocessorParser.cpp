@@ -20,6 +20,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "BaseLib/ErrorHandler.h"
+#include "BaseLib/ExternalString.h"
+#include "BaseLib/Chars.h"
 #include "PreprocessorParser.h"
 
 
@@ -31,16 +33,16 @@ void CPreprocessorParser::Init(char* szStart, char* szEnd)
 {
 	int		iLen;
 
-	mszPos = szStart;
-	mszStart = mszPos;
+	mszParserPos = szStart;
+	mszStartOfText = mszParserPos;
 	if (!szEnd)
 	{
 		iLen = (int)strlen(szStart);
-		mszEnd = szStart+iLen-1;
+		mszEndOfText = szStart+iLen-1;
 	}
 	else
 	{
-		mszEnd = szEnd;
+		mszEndOfText = szEnd;
 	}
 	TestEnd();
 	miLine = 0;
@@ -61,7 +63,7 @@ void CPreprocessorParser::StepRight(void)
 	else
 	{
 		miColumn++;
-		mszPos++;
+		mszParserPos++;
 	}
 	TestEnd();
 }
@@ -82,7 +84,7 @@ void CPreprocessorParser::StepLeft(void)
 	else
 	{
 		miColumn--;
-		mszPos--;
+		mszParserPos--;
 	}
 }
 
@@ -117,7 +119,7 @@ void CPreprocessorParser::SkipWhiteSpace(void)
 			return;
 		}
 
-		cCurrent = mszPos[0];
+		cCurrent = mszParserPos[0];
 
 		//Nice clean white space...
 		if (IsWhiteSpace())
@@ -132,7 +134,7 @@ void CPreprocessorParser::SkipWhiteSpace(void)
 
 			if (!mbEndOfFile)
 			{
-				cCurrent = mszPos[0];
+				cCurrent = mszParserPos[0];
 				if (cCurrent == '*')
 				{
 					StepRight();
@@ -145,7 +147,7 @@ void CPreprocessorParser::SkipWhiteSpace(void)
 				}
 				else
 				{
-					mszPos--;
+					mszParserPos--;
 					break;
 				}
 			}
@@ -178,14 +180,14 @@ void CPreprocessorParser::SkipCStyleComment(void)
 			return;
 		}
 
-		cCurrent = mszPos[0];
+		cCurrent = mszParserPos[0];
 		if (cCurrent == '/')
 		{
 			StepRight();
 			TestEnd();
 			if (!mbEndOfFile)
 			{
-				cCurrent = mszPos[0];
+				cCurrent = mszParserPos[0];
 				if (cCurrent == '*')
 				{
 					iDepth++;
@@ -202,7 +204,7 @@ void CPreprocessorParser::SkipCStyleComment(void)
 			TestEnd();
 			if (!mbEndOfFile)
 			{
-				cCurrent = mszPos[0];
+				cCurrent = mszParserPos[0];
 				if (cCurrent == '/')
 				{
 					StepRight();
@@ -242,11 +244,11 @@ void CPreprocessorParser::SkipCPPStyleComment(void)
 		return;
 	}
 
-	cCurrent = mszPos[0];
+	cCurrent = mszParserPos[0];
 	iCharNum = 0;
 	while (!mbEndOfFile)
 	{
-		cCurrent = mszPos[0];
+		cCurrent = mszParserPos[0];
 
 		if ((cCurrent == '\n') || (cCurrent == '\r'))
 		{
@@ -266,7 +268,7 @@ void CPreprocessorParser::SkipCPPStyleComment(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorParser::TestEnd(void)
 {
-	if (mszPos <= mszEnd)
+	if (mszParserPos <= mszEndOfText)
 	{
 		mbEndOfFile = FALSE;
 	}
@@ -284,7 +286,7 @@ void CPreprocessorParser::TestEnd(void)
 BOOL CPreprocessorParser::IsWhiteSpace(void)
 {
 	char c;
-	c = *mszPos;
+	c = *mszParserPos;
 	return (c == ' ') || (c >= 128) || (c >= 1 && c <= 9) || (c == 11) || (c == 12);
 }
 
@@ -297,7 +299,7 @@ BOOL CPreprocessorParser::IsFirstIdentifier(void)
 {
 	char c;
 
-	c = *mszPos;
+	c = *mszParserPos;
 	if ((c >= 'A') && (c <= 'Z'))
 	{
 		return TRUE;
@@ -322,7 +324,7 @@ BOOL CPreprocessorParser::IsFirstIdentifier(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessorParser::IsDigit(void)
 {
-	if (((*mszPos) >= '0') && ((*mszPos) <= '9'))
+	if (((*mszParserPos) >= '0') && ((*mszParserPos) <= '9'))
 	{
 		return TRUE;
 	}
@@ -339,22 +341,22 @@ void CPreprocessorParser::SkipNewLine(void)
 {
 	if (!mbEndOfFile)
 	{
-		if ((*mszPos) == '\n')
+		if ((*mszParserPos) == '\n')
 		{
-			mszPos++;
-			if ((*mszPos) == '\r')
+			mszParserPos++;
+			if ((*mszParserPos) == '\r')
 			{
-				mszPos++;
+				mszParserPos++;
 			}
 			miLine++;
 			miColumn = 0;
 		}
-		else if ((*mszPos) == '\r')
+		else if ((*mszParserPos) == '\r')
 		{
-			mszPos++;
-			if ((*mszPos) == '\n')
+			mszParserPos++;
+			if ((*mszParserPos) == '\n')
 			{
-				mszPos++;
+				mszParserPos++;
 			}
 			miLine++;
 			miColumn = 0;
@@ -375,9 +377,9 @@ int CPreprocessorParser::CalculateColumn(void)
 	BOOL	bAny;
 
 	iCount = 0;
-	sz = mszPos;
+	sz = mszParserPos;
 	bAny = FALSE;
-	while ((*sz != '\r') && (*sz != '\n') && (sz != mszStart))
+	while ((*sz != '\r') && (*sz != '\n') && (sz != mszStartOfText))
 	{
 		sz--;
 		iCount++;
@@ -398,22 +400,22 @@ int CPreprocessorParser::CalculateColumn(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorParser::BackupNewLine(void)
 {
-	if ((*mszPos) == '\n')
+	if ((*mszParserPos) == '\n')
 	{
-		mszPos--;
-		if ((*mszPos) == '\r')
+		mszParserPos--;
+		if ((*mszParserPos) == '\r')
 		{
-			mszPos--;
+			mszParserPos--;
 		}
 		miLine--;
 		miColumn = CalculateColumn();
 	}
-	else if ((*mszPos) == '\r')
+	else if ((*mszParserPos) == '\r')
 	{
-		mszPos--;
-		if ((*mszPos) == '\n')
+		mszParserPos--;
+		if ((*mszParserPos) == '\n')
 		{
-			mszPos--;
+			mszParserPos--;
 		}
 		miLine--;
 		miColumn = CalculateColumn();
@@ -427,9 +429,53 @@ void CPreprocessorParser::BackupNewLine(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessorParser::IsNewLine(void)
 {
-	if (((*mszPos) == '\n') || ((*mszPos) == '\r'))
+	if (((*mszParserPos) == '\n') || ((*mszParserPos) == '\r'))
 	{
 		return TRUE;
 	}
 	return FALSE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPreprocessorParser::GetPos(void)
+{
+	return mszParserPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPreprocessorParser::GetEnd(void)
+{
+	return mszEndOfText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessorParser::Dump(void)
+{
+	CChars				sz;
+	CExternalString		pac;
+	int					iBefore;
+
+	pac.Init(mszStartOfText, mszEndOfText);
+	sz.Init(&pac);
+
+	iBefore = mszParserPos - mszStartOfText;
+	sz.AppendNewLine();
+	sz.Append(' ', iBefore);
+	sz.Append('^');
+	sz.AppendNewLine();
+
+	sz.DumpKill();
+}
+

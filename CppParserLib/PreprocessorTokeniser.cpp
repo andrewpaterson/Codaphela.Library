@@ -99,7 +99,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, char* szPo
 	{
 		iLine = mcParser.miLine;
 		mcParser.SkipWhiteSpace();
-		if ((*mcParser.mszPos) == '#')
+		if ((*mcParser.GetPos()) == '#')
 		{
 			bDirective = TRUE;
 			mcParser.StepRight();
@@ -178,7 +178,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokenMem
 	while (!mcParser.mbEndOfFile)
 	{
 		mcParser.SkipWhiteSpace();
-		if ((*mcParser.mszPos) == '#')
+		if ((*mcParser.GetPos()) == '#')
 		{
 			mcParser.StepRight();
 			eDirective = GetDirective();
@@ -232,7 +232,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 		return PPD_nomore;
 	}
 
-	cName.Init(mcParser.mszPos, mcParser.mszEnd);
+	cName.Init(mcParser.GetPos(), mcParser.GetEnd());
 	pcDirective = mcDirectives.GetDirective(&cName, FALSE);
 	if (pcDirective == NULL)
 	{
@@ -470,7 +470,7 @@ CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 	CPreprocessorLineTokensier::Preprocess(cLine.GetTokens(), &mcParser, pcTokens, TRUE);
 	if (cLine.IsEmpty())
 	{
-		cLine.Kill();  //Stuff is still allocated on pcStack, it'll be killed when the stack is.  It's too small to worry about.
+		cLine.Kill();  //Stuff is still allocated in pcTokens, it'll be killed when the pcTokens is.  It's too small to worry about.
 		return NULL;
 	}
 	else
