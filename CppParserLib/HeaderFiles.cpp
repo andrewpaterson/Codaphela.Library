@@ -123,7 +123,7 @@ void CHeaderFiles::AddFiles(BOOL bIncludeSubDirectories)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderFiles::AddFile(char* szRelativeFileName)
+CHeaderFile* CHeaderFiles::AddFile(char* szRelativeFileName)
 {
 	CHeaderFile*	pcHeader;
 	CChars			szShortName;
@@ -142,6 +142,8 @@ void CHeaderFiles::AddFile(char* szRelativeFileName)
 		mcFileNames.Put(szShortName.Text(), &pcHeader);
 	}
 	szShortName.Kill();
+
+	return pcHeader;
 }
 
 

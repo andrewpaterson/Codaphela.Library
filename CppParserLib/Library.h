@@ -39,7 +39,7 @@ protected:
 	CTranslationUnits	mcTranslationUnits;
 	CHeaderFiles		mcHeaderNameMap;
 	CChars				mszName;
-	CChars				mszBaseDir;
+	CChars				mszBaseDirectory;
 	CListConfigs		mcConfigs;
 
 public:
@@ -47,6 +47,7 @@ public:
 	void				Kill(void);
 	CTranslationUnit*	AddTranslationUnit(char* szRelativeNameFile, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
 	void				AddAllTranslationUnitsInBaseDir(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	CHeaderFile*		AddHeaderFile(char* szRelativeNameFile);
 	CConfig*			AddConfiguration(char* szConfig);
 	CConfig*			GetConfig(char* szConfiguration);
 	CTranslationUnit*	GetFirstTranslationUnit(SCFileIter* psIter);
