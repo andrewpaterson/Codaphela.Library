@@ -101,9 +101,9 @@ public:
 	CSpecialOperator*	AddSpecialOperator(char* szSpecialOperator, EPreprocessorSpecialOperator eType);
 
 	BOOL				PreprocessFile(CPPTokenHolder* pcTokenHolder, CCFile* pcFile, CCFile* pcFromFile);
-	BOOL				PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlockSet* pacBlockSets, CPPTokenMemory* pcSourceTokenMemory);
-	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenMemory* pcTokenMemory, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
-	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokenMemory* pcTokenMemory, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
+	BOOL				PreprocessBlockSets(CPPTokenHolder* pcDestHolder, CArrayCBlockSet* pacBlockSets);
+	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
+	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenHolder* pcDestTokens, CPPTokenHolder* pcSourceTokens, int iBlock, int iToken);
 	BOOL				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
 	BOOL 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
@@ -147,7 +147,7 @@ public:
 	CPPToken*			QuoteTokens(CPPTokenHolder* pcDest, CPPAbstractHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenHolder* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CCFile* pcFile);
-	void				DeltaDefines(CArrayNamedDefines* pcDelta, CPPTokenMemory* pcTokenMemory);
+	void				DeltaDefines(CArrayNamedDefines* pcDelta);
 	void				LogBlocks(CArrayCBlockSet* pacBlockSets, SPPTokenBlockIndex sResult);
 	void				LogInclude(CCFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
@@ -155,6 +155,7 @@ public:
 	void				MarkPositionForError(SPreprocessorPosition* psPos);
 	void				KillArguments(SDefineArgument* psArguments);
 	char*				GetFileName(void);
+	CPPToken*			DuplicatePPToken(CPPToken* pcSource);
 
 	void				AddComma(CPPTokenHolder* pcDest);
 	void				AddZero(CPPTokenHolder* pcDest);
