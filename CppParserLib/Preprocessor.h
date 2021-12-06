@@ -52,30 +52,28 @@ typedef CArrayTemplate<CHeaderFiles> CArrayHeaderNameMap;
 class CPreprocessor
 {
 protected:
-	CConditionalStack			mcConditionalStack;
-	CSourceFile*				mpcCurrentFile;
-	CPreprocessorTokenParser*	mpcCurrentLineParser;
-	CASCIITree					mcDirectives;
-	CDefineMap					mcDefines;
-	CSpecialOperatorMap			mcSpecialOperators;
-	CDefineArguments			mcArguments;
-	int							miIncludeDepth;
-	CArrayHeaderFiles			mcHeaderNames;
-	CHeaderNameMapStack			mcHeadersStack;
+	CConditionalStack		mcConditionalStack;
+	CSourceFile*			mpcCurrentFile;
+	CASCIITree				mcDirectives;
+	CDefineMap				mcDefines;
+	CSpecialOperatorMap		mcSpecialOperators;
+	CDefineArguments		mcArguments;
+	CArrayHeaderFiles		mcHeaderNames;
+	CHeaderNameMapStack		mcHeadersStack;
 
-	CPPTokenList*				mpcProcessedTokens;
-	CPPTokenMemory*				mpcTokenMemory;
+	CChars*					mpszBlocksLog;
+	CChars*					mpszIncludesLog;
+	int						miDefineReuse;
+	int						miIncludeDepth;
+	int						miBlockReuse;
 
-	int							miBlockReuse;
-	BOOL						mbLogBlocks;
-	BOOL						mbLogInlucdes;
-	BOOL						mbDumpLogs;
-	CChars*						mpszBlocksLog;
-	CChars*						mpszIncludesLog;
-	int							miDefineReuse;
-	CChars						mszVaArgs;
+	CPPTokenList*			mpcProcessedTokens;
+	CPPTokenMemory*			mpcTokenMemory;
 
-	int							miProcessTokensCalledCount;
+	BOOL					mbLogBlocks;
+	BOOL					mbLogInlucdes;
+	BOOL					mbDumpLogs;
+	CChars					mszVaArgs;
 
 public:
 	static void			Preprocess(char* szSource, CChars* szDest);
@@ -156,10 +154,13 @@ public:
 	void				LogInclude(CSourceFile* pcFile);
 	void				TranslationUnitLogging(CTranslationUnit* pcFile);
 	CSpecialOperator*	ProcessSpecialOperator(CPreprocessorTokenParser* pcParser);
-	void				MarkPositionForError(SPreprocessorPosition* psPos);
+
 	void				KillArguments(SDefineArgument* psArguments);
 	char*				GetFileName(void);
 	CPPToken*			DuplicatePPToken(CPPToken* pcSource);
+
+	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
+	void				MarkPositionForError(int iLine, int iColumn, SPreprocessorPosition* psPos);
 
 	void				AddComma(CPPTokenList* pcDest);
 	void				AddZero(CPPTokenList* pcDest);
