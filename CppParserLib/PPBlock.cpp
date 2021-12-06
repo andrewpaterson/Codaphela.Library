@@ -73,7 +73,7 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 		iNumTokens = pcCast->mcTokens.NumTokens();
 		for (i = 0; i < iNumTokens; i++)
 		{
-			pcToken = DuplicatePPToken(pcCast->GetTokens()->Get(i), pcTokens);
+			pcToken = DuplicatePPToken(pcCast->GetTokenList()->Get(i), pcTokens);
 			mcTokens.Add(pcToken);
 		}
 	}

@@ -41,7 +41,7 @@ public:
 	void				SavageDump(void);
 	BOOL				Equals(CPPToken* pcOther);
 	BOOL				IsEmpty(void);
-	CPPTokenList*		GetTokens(void);
+	CPPTokenList*		GetTokenList(void);
 };
 
 

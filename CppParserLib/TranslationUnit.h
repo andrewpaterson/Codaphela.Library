@@ -55,7 +55,7 @@ public:
 	BOOL				LogInlucdes(void);
 	BOOL				IsPragmaOnced(void);
 	BOOL				IsSystemFile(void);
-	CPPTokenList*		GetTokenHolder(void);
+	CPPTokenList*		GetTokenList(void);
 	STULog*				GetLogs(void);
 	CLibrary*			GetLibrary(void);
 };

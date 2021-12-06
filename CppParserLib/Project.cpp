@@ -236,7 +236,7 @@ void CProject::Process(char* szConfiguration)
 		
 		pcConfig = pcFile->GetLibrary()->GetConfig(szConfiguration);
 
-		cPreprocessor.Init(pcConfig, pcFile->GetTokenMemory(), pcFile->GetTokenHolder());
+		cPreprocessor.Init(pcConfig, pcFile->GetTokenMemory(), pcFile->GetTokenList());
 		cPreprocessor.AddIncludeDirectories(&mcHeaderNames);
 		cPreprocessor.AddIncludeDirectory(pcFile->GetLibrary()->GetHeaderFiles());
 		cPreprocessor.LogDumping(mbDumpLogs);
