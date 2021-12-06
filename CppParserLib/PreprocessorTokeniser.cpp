@@ -148,8 +148,8 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, CPPTokenMe
 
 		if (pcToken)
 		{
-			pcBlockSet->GetRawTokensHolder()->Add(pcToken);
-			iIndex = pcBlockSet->GetRawTokensHolder()->NumTokens();
+			pcBlockSet->GetUnprocssedTokens()->Add(pcToken);
+			iIndex = pcBlockSet->GetUnprocssedTokens()->NumTokens();
 		}
 
 		bLastDirective = bDirective;

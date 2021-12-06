@@ -41,7 +41,7 @@ struct STULog
 class CTranslationUnit : public CSourceFile
 {
 protected:
-	CPPTokenList	mcTokenHolder;
+	CPPTokenList	mcTokenList;
 	STULog*			mpcLogs;
 	CLibrary*		mpcLibrary;
 
