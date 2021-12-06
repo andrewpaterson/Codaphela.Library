@@ -1048,7 +1048,7 @@ BOOL CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 
 		szFileContents = pcFile->GetContents();
 		iFileLength = pcFile->GetContentsLength();
-		bResult = cTokeniser.Tokenise(pcBlockSets, szFileContents, iFileLength);
+		bResult = cTokeniser.Tokenise(pcBlockSets, mpcTokenMemory,  szFileContents, iFileLength);
 		cTokeniser.Kill();
 
 		return bResult;
@@ -2531,8 +2531,8 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	cTokeniser.Init();
 	cTokenMemory.Init();
 	iLen = (int)strlen(szSource);
-	acBlockSets.Init(&cTokenMemory);
-	bResult = cTokeniser.Tokenise(&acBlockSets, szSource, iLen);
+	acBlockSets.Init();
+	bResult = cTokeniser.Tokenise(&acBlockSets, &cTokenMemory, szSource, iLen);
 	cTokeniser.Kill();
 
 	cOutput.Init();

@@ -41,7 +41,7 @@ protected:
 	CArrayPPBlocks		mapcBlocks;
 
 public:
-	void 				Init(CPPTokenMemory* pcTokenMemory, int iLine, int iBlock, BOOL bTextBlocks);
+	void 				Init(int iLine, int iBlock, BOOL bTextBlocks);
 	void 				Kill(void);
 	CPPBlock*			GetMatchingBlock(CPPBlock* pcOtherBlock);
 	BOOL				AddBlock(CPPBlock* pcBlock);

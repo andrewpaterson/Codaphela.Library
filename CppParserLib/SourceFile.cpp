@@ -36,7 +36,7 @@ void CSourceFile::Init(char* szName)
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
 	mcTokenMemory.Init();
-	macBlockSets.Init(&mcTokenMemory);
+	macBlockSets.Init();
 }
 
 

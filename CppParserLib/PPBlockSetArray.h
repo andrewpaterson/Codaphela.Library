@@ -32,15 +32,13 @@ class CPPBlockSetArray : public __CArrayPPBlockSet
 {
 protected:
 	BOOL				mbRawProcessed;
-	CPPTokenMemory*		mpcTokenMemory;
 
 public:
-	void 				Init(CPPTokenMemory* pcTokenMemory);
+	void 				Init(void);
 	void				RawProcessed(void);
 	BOOL				IsRawProcessed(void);
 	CPPBlockSet*		Add(int iLine, BOOL bTextBlocks);
 	void				Dump(void);
-	CPPTokenMemory*		GetTokenMemory(void);
 };
 
 
