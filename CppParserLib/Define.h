@@ -18,7 +18,7 @@ class CDefine
 {
 protected:
 	CPPLine			mcReplacement;
-	CArrayChars		mcArguments;
+	CArrayChars		maszArguments;
 	int64			mlliID;			//If a token is undef'd and redef'd it's muiID will change.
 	CDefineMap*		mpcDefineMap;
 	int				miFlags;

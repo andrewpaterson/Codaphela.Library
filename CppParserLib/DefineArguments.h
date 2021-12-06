@@ -25,8 +25,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SDefineArgument 
 {
-	int64					mlliDefineID;
-	CArrayPPTokenHolders	mcArguments;
+	int64				mlliDefineID;
+	CArrayPPTokenLists	macTokenArguments;
 };
 
 
