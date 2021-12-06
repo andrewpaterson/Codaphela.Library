@@ -34,6 +34,7 @@ public:
 	void 	Init(CMallocator* pcMalloc);
 	void 	Init(CMallocator* pcMalloc, int iChunkSize);
 	void	Fake(M* pvData, int iNum, int iChunkSize = 1);
+	void	Kill(void);
 
 	M*		Add(void);
 	M*		Add(M* pvData);
@@ -61,8 +62,8 @@ public:
 	int		InsertIntoSorted(DataCompare fCompare, M* pvData, BOOL bOverwriteExisting);
 	M*		InsertNumAt(int iNumElements, int iIndex);
 
-	void	Pop(M* pvData);
-	void	Pop(void);
+	BOOL	Pop(M* pvData);
+	BOOL	Pop(void);
 	void 	Push(M* pvData);
 	M*		Push(void);
 	M*		PushCopy(void);
@@ -108,6 +109,17 @@ template<class M>
 void CArrayTemplate<M>::Init(CMallocator* pcMalloc, int iChunkSize)
 {
 	CArrayBlock::Init(pcMalloc, sizeof(M), iChunkSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplate<M>::Kill(void)
+{
+	CArrayBlock::Kill();
 }
 
 
@@ -248,9 +260,9 @@ M* CArrayTemplate<M>::PushCopy(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Pop(M* pvData)
+BOOL CArrayTemplate<M>::Pop(M* pvData)
 {
-	CArrayBlock::Pop(pvData);
+	return CArrayBlock::Pop(pvData);
 }
 
 
@@ -259,9 +271,9 @@ void CArrayTemplate<M>::Pop(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplate<M>::Pop(void)
+BOOL CArrayTemplate<M>::Pop(void)
 {
-	CArrayBlock::Pop();
+	return CArrayBlock::Pop();
 }
 
 

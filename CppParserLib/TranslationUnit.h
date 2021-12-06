@@ -41,21 +41,18 @@ struct STULog
 class CTranslationUnit : public CSourceFile
 {
 protected:
-	CPPTokenList	mcTokenList;
 	STULog*			mpcLogs;
 	CLibrary*		mpcLibrary;
 
 public:
 	void				Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
 	void				Kill(void);
-	char*				Print(CChars* psz);
 	BOOL				IsTranslationUnit(void);
 	BOOL				IsHeader(void);
 	BOOL				LogBlocks(void);
 	BOOL				LogInlucdes(void);
 	BOOL				IsPragmaOnced(void);
 	BOOL				IsSystemFile(void);
-	CPPTokenList*		GetTokenList(void);
 	STULog*				GetLogs(void);
 	CLibrary*			GetLibrary(void);
 };

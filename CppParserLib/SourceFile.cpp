@@ -33,6 +33,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CSourceFile::Init(char* szName)
 {
 	mszContents.Init();
+	mcTokenList.Init();
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
 	mcTokenMemory.Init();
@@ -49,12 +50,15 @@ void CSourceFile::Kill(void)
 	int				i;
 	CPPBlockSet*	pcBlockSet;
 
+
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{
 		pcBlockSet = macBlockSets.Get(i);
 		pcBlockSet->Kill();
 	}
 	macBlockSets.Kill();
+	mcTokenList.Kill();
+
 	mcTokenMemory.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
@@ -149,10 +153,44 @@ char* CSourceFile::FullName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+CPPTokenList* CSourceFile::GetTokenList(void)
+{
+	return &mcTokenList;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CSourceFile::Print(CChars* psz)
+{
+	return mcTokenList.Print(psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CSourceFile::Dump(void)
 {
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::DumpBlocks(void)
+{
 	int				i;
-	CPPBlockSet*	pcBlockSet;
+	CPPBlockSet* pcBlockSet;
 
 	for (i = 0; i < macBlockSets.NumElements(); i++)
 	{

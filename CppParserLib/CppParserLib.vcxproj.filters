@@ -369,6 +369,9 @@
     <ClCompile Include="PreprocessorLineTokeniser.cpp">
       <Filter>Source\Preprocessor\Tokeniser</Filter>
     </ClCompile>
+    <ClCompile Include="PreprocessorStack.cpp">
+      <Filter>Source\Preprocessor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h">
@@ -671,6 +674,9 @@
     <ClInclude Include="CPPTokens.h" />
     <ClInclude Include="PPTokenMemory.h">
       <Filter>Source\Preprocessor\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="PreprocessorStack.h">
+      <Filter>Source\Preprocessor</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

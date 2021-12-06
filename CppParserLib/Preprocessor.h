@@ -43,6 +43,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "HeaderFiles.h"
 #include "PreprocessorPosition.h"
 #include "HeaderNameMapStack.h"
+#include "PreprocessorStack.h"
 
 
 typedef CArrayTemplate<CHeaderFiles*> CArrayHeaderFiles;
@@ -67,8 +68,7 @@ protected:
 	int						miIncludeDepth;
 	int						miBlockReuse;
 
-	CPPTokenList*			mpcProcessedTokens;
-	CPPTokenMemory*			mpcTokenMemory;
+	CPreprocessorStack		mcStack;
 
 	BOOL					mbLogBlocks;
 	BOOL					mbLogInlucdes;
