@@ -54,7 +54,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 
 	mcConditionalStack.Init();
 	mpcCurrentFile = NULL;
-	mpcCurrentLine = NULL;
 	mpcCurrentLineParser = NULL;
 	miProcessTokensCalledCount = 0;
 	mcHeadersStack.Init();
@@ -2314,14 +2313,12 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 	sLine.iBlockIndex = iBlock;
 	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
 	{
-		mpcCurrentLine = NULL;
 		mpcCurrentLineParser = NULL;
 		iOldLine = sLine.iTokenIndex;
 		pcToken = pcSourceTokens->Get(sLine.iTokenIndex);
 		if (pcToken->IsDirective())
 		{
 			pcDirective = (CPPDirective*)pcToken;
-			mpcCurrentLine = pcDirective;
 			mpcCurrentLineParser = &cParser;
 			cParser.Init(pcDirective);
 			if (pcDirective->IsConditional())
@@ -2471,7 +2468,6 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSou
 	sLine.iBlockIndex = iBlock;
 	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
 	{
-		mpcCurrentLine = NULL;
 		mpcCurrentLineParser = NULL;
 		iOldLine = sLine.iTokenIndex;
 		pcToken = pcSourceTokens->Get(sLine.iTokenIndex);
@@ -2680,14 +2676,7 @@ void CPreprocessor::MarkPositionForError(SPreprocessorPosition* psPos)
 	{
 		if (mpcCurrentLineParser->Line() == -1)
 		{
-			if (mpcCurrentLine)
-			{
-				psPos->Init(mpcCurrentLine->Line(), mpcCurrentLine->Column(), szShortFileName);
-			}
-			else
-			{
-				psPos->Init(-1, -1, szShortFileName);
-			}
+			psPos->Init(-1, -1, szShortFileName);
 		}
 		else
 		{
