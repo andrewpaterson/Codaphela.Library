@@ -18,14 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "PPHolder.h"
+#include "PPTokenReplacementsHolder.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHolder::Init(int iLine, int iColumn)
+void CPPTokenReplacementsHolder::Init(int iLine, int iColumn)
 {
 	CPPTokenListHolder::Init(iLine, iColumn);
 }
@@ -35,7 +35,7 @@ void CPPHolder::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHolder::Kill(void)
+void CPPTokenReplacementsHolder::Kill(void)
 {
 	CPPTokenListHolder::Kill();
 }
@@ -45,9 +45,9 @@ void CPPHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
+void CPPTokenReplacementsHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
-	if (pcSource->IsHolder())
+	if (pcSource->IsTokenReplacementsHolder())
 	{
 		CPPTokenListHolder::Copy((CPPTokenListHolder*)pcSource, pcTokens);
 	}
@@ -58,9 +58,9 @@ void CPPHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPHolder::Equals(CPPToken* pcOther)
+BOOL CPPTokenReplacementsHolder::Equals(CPPToken* pcOther)
 {
-	if (pcOther->IsHolder())
+	if (pcOther->IsTokenReplacementsHolder())
 	{
 		return CPPTokenListHolder::Equals(pcOther);
 	}
@@ -72,7 +72,7 @@ BOOL CPPHolder::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPHolder::IsHolder(void)
+BOOL CPPTokenReplacementsHolder::IsHolder2(void)
 {
 	return TRUE;
 }

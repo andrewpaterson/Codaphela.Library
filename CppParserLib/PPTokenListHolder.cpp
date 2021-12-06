@@ -48,7 +48,7 @@ void CPPTokenListHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenListHolder::IsAbstractHolder(void)
+BOOL CPPTokenListHolder::IsTokenListHolder(void)
 {
 	return TRUE;
 }
@@ -131,7 +131,7 @@ BOOL CPPTokenListHolder::Equals(CPPToken* pcOther)
 {
 	CPPTokenListHolder*	pcCast;	
 
-	if (pcOther->IsAbstractHolder())
+	if (pcOther->IsTokenListHolder())
 	{
 		pcCast = (CPPTokenListHolder*)pcOther;
 

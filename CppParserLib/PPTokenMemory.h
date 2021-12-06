@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPHashes.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
-#include "PPHolder.h"
+#include "PPTokenReplacementsHolder.h"
 #include "PPDirective.h"
 #include "PPConditional.h"
 #include "PPInclude.h"
@@ -47,30 +47,30 @@ protected:
 	CMemoryStackExtended	mcStack;
 
 public:
-	void				Init(void);
-	void				Kill(void);
+	void							Init(void);
+	void							Kill(void);
 
-	void				Mark(CStackMarkExtended* psMark);
-	void				Rollback(CStackMarkExtended* psMark);
+	void							Mark(CStackMarkExtended* psMark);
+	void							Rollback(CStackMarkExtended* psMark);
 
-	CPPHashes*			AddHashes(void);
-	CPPReplacement*		AddReplacement(void);
-	CPPText*			AddText(void);
-	CPPTextWithSource*	AddTextWithSource(void);
-	CPPWhiteSpace*		AddWhiteSpace(void);
+	CPPHashes*						AddHashes(void);
+	CPPReplacement*					AddReplacement(void);
+	CPPText*						AddText(void);
+	CPPTextWithSource*				AddTextWithSource(void);
+	CPPWhiteSpace*					AddWhiteSpace(void);
 
-	CPPBlock*			AddBlock(void);
-	CPPHolder*			AddHolder(void);
-	CPPLine*			AddLine(void);
-	CPPDirective*		AddDirective(void);
+	CPPBlock*						AddBlock(void);
+	CPPTokenReplacementsHolder*		AddTokenReplacementsHolder(void);
+	CPPLine*						AddLine(void);
+	CPPDirective*					AddDirective(void);
 
-	CPPConditional*		AddConditional(void);
-	CPPInclude*			AddInclude(void);
+	CPPConditional*					AddConditional(void);
+	CPPInclude*						AddInclude(void);
 
-	CPPToken*			StartIteration(SPPTokenIterator* psIter);
-	CPPToken*			Iterate(SPPTokenIterator* psIter);
-	char*				Print(CChars* psz);
-	void				Dump(void);
+	CPPToken*						StartIteration(SPPTokenIterator* psIter);
+	CPPToken*						Iterate(SPPTokenIterator* psIter);
+	char*							Print(CChars* psz);
+	void							Dump(void);
 };
 
 

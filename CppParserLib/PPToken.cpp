@@ -97,7 +97,7 @@ BOOL CPPToken::IsHash(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsHolder(void)
+BOOL CPPToken::IsTokenReplacementsHolder(void)
 {
 	return FALSE;
 }
@@ -139,7 +139,7 @@ BOOL CPPToken::IsBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsAbstractHolder(void)
+BOOL CPPToken::IsTokenListHolder(void)
 {
 	return FALSE;
 }

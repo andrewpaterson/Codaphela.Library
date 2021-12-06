@@ -1457,7 +1457,7 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 		iReplacementTokens = pcDefine->GetReplacement()->GetTokens()->NumTokens();
 		if (iReplacementTokens > 0)
 		{
-			pcHolder = mpcTokenMemory->AddHolder();
+			pcHolder = mpcTokenMemory->AddTokenReplacementsHolder();
 			pcDest->Add(pcHolder);
 			pcHolder->Init(-1, -1);
 
@@ -1532,7 +1532,7 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 		iReplacementTokens = pcDefine->GetReplacement()->GetTokens()->NumTokens();
 		if (iReplacementTokens > 0)
 		{
-			pcHolder = mpcTokenMemory->AddHolder();
+			pcHolder = mpcTokenMemory->AddTokenReplacementsHolder();
 			pcDest->Add(pcHolder);
 			pcHolder->Init(-1, -1);
 			
@@ -2034,7 +2034,7 @@ BOOL CPreprocessor::ProcessDirectiveLine(CPPTokenList* pcDest, CPreprocessorToke
 BOOL CPreprocessor::ProcessNormalLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth)
 {
 	CPPHashes* pcHash;
-	CPPHolder				cHolder;
+	CPPTokenReplacementsHolder				cHolder;
 	int						iHashCount;
 	CPPToken* pcTemp;
 	CPPToken* pcPrev;

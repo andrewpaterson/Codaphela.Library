@@ -120,12 +120,12 @@ CPPTextWithSource* CPPTokenMemory::AddTextWithSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPHolder* CPPTokenMemory::AddHolder(void)
+CPPTokenReplacementsHolder* CPPTokenMemory::AddTokenReplacementsHolder(void)
 {
-	CPPHolder* pcToken;
+	CPPTokenReplacementsHolder* pcToken;
 
-	pcToken = (CPPHolder*)mcStack.Add(sizeof(CPPHolder));
-	CPPHolder::Construct(pcToken);
+	pcToken = (CPPTokenReplacementsHolder*)mcStack.Add(sizeof(CPPTokenReplacementsHolder));
+	CPPTokenReplacementsHolder::Construct(pcToken);
 	return pcToken;
 }
 
