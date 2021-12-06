@@ -54,7 +54,6 @@ class CPreprocessor
 protected:
 	CConditionalStack			mcConditionalStack;
 	CSourceFile*				mpcCurrentFile;
-	CPPTokenListHolder*			mpcCurrentLine;
 	CPreprocessorTokenParser*	mpcCurrentLineParser;
 	CASCIITree					mcDirectives;
 	CDefineMap					mcDefines;
