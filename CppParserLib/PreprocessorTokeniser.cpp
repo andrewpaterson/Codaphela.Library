@@ -62,7 +62,7 @@ void CPreprocessorTokeniser::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength)
+BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength)
 {
 	char*					szEnd;
 	EPreprocessorDirective	eDirective;
@@ -78,12 +78,12 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, CPPTokenMe
 	int						iIndex;
 	BOOL					bMustAdd;
 
-	if (pacBlockSets->IsRawProcessed())
+	if (pacDestBlockSets->IsRawProcessed())
 	{
 		return TRUE;
 	}
 
-	pacBlockSets->RawProcessed();
+	pacDestBlockSets->RawProcessed();
 
 	pcBlockSet = NULL;
 	mpcPrev = NULL;
@@ -92,7 +92,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, CPPTokenMe
 
 	bNewBlock = TRUE;
 	bLastDirective = FALSE;
-	iBlock = pacBlockSets->NumElements();
+	iBlock = pacDestBlockSets->NumElements();
 	iIndex = 0;
 
 	while (!mcParser.mbEndOfFile)
@@ -142,7 +142,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, CPPTokenMe
 
 		if (bMustAdd)
 		{
-			pcBlockSet = pacBlockSets->Add(iLine, !bDirective);
+			pcBlockSet = pacDestBlockSets->Add(iLine, !bDirective);
 			iBlock = pcBlockSet->Block();
 		}
 
@@ -163,7 +163,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, CPPTokenMe
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CPPTokenList* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
+BOOL CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
 {
 	char*					szEnd;
 	int						iLine;
@@ -196,7 +196,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenList* pcTokenHolder, CPPTokenMemor
 
 		if (pcToken)
 		{
-			pcTokenHolder->Add(pcToken);
+			pcDestTokenHolder->Add(pcToken);
 		}
 
 		//Add Token here.
