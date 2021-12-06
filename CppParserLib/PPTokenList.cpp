@@ -126,7 +126,7 @@ void CPPTokenList::SavageAppend(CChars* psz, int iDepth)
 		if (pcToken->IsTokenListHolder())
 		{
 			pcHolder = (CPPTokenListHolder*)pcToken;
-			pcHolder->GetTokens()->SavageAppend(psz, iDepth+1);
+			pcHolder->GetTokenList()->SavageAppend(psz, iDepth+1);
 		}
 		else
 		{

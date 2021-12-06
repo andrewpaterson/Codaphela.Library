@@ -146,7 +146,7 @@ void CPreprocessorTokenParser::MarkDown(CPPTokenListHolder* pcHolder)
 	mpsCurrent = macPPHolderMark.Add();
 	mpsCurrent->Init(pcHolder, NULL, 0);
 
-	pcToken = pcHolder->GetTokens()->Get(0);
+	pcToken = pcHolder->GetTokenList()->Get(0);
 	if (pcToken)
 	{
 		AssignCurrent(pcToken, 0);

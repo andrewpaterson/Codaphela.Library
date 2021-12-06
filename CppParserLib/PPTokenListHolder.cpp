@@ -173,7 +173,7 @@ BOOL CPPTokenListHolder::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenList* CPPTokenListHolder::GetTokens(void)
+CPPTokenList* CPPTokenListHolder::GetTokenList(void)
 {
 	return &mcTokens;
 }
