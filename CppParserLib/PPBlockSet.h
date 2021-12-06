@@ -31,7 +31,7 @@ typedef CArrayTemplate<CPPBlock*>	CArrayPPBlocks;
 class CPPBlockSet
 {
 protected:
-	CPPTokenList		mcRawTokens;
+	CPPTokenList		mcUnprocessedTokens;
 	int					miLine;
 	int					miColumn;
 	int					miBlock;
@@ -47,7 +47,7 @@ public:
 	BOOL				AddBlock(CPPBlock* pcBlock);
 	BOOL				IsLastToken(int iToken);
 	BOOL				IsDirective(void);
-	CPPTokenList*		GetRawTokensHolder(void);
+	CPPTokenList*		GetUnprocssedTokens(void);
 	int					Line(void);
 	int					Column(void);
 	int					Block(void);

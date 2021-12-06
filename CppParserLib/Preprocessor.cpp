@@ -898,7 +898,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 		if (pcBlocksSet->IsDirective())
 		{
 			//The conditional directives need to be expanded so &pcFile->mcStack is needed.  A #define directive will be expanded too.  Write a test for it.
-			sResult = PreprocessDirectiveTokens(pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+			sResult = PreprocessDirectiveTokens(pcBlocksSet->GetUnprocssedTokens(), sResult.iBlockIndex, sResult.iTokenIndex);
 			if (sResult.iTokenIndex == -1)
 			{
 				return FALSE;
@@ -915,7 +915,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 			pcBlockProcessed = mpcTokenMemory->AddBlock();
 			pcBlockProcessed->Init(pcBlocksSet->Line(), pcBlocksSet->Column());
 
-			sResult = PreprocessNormalLineTokens(pcBlocksSet->GetRawTokensHolder(), sResult.iBlockIndex, sResult.iTokenIndex);
+			sResult = PreprocessNormalLineTokens(pcBlocksSet->GetUnprocssedTokens(), sResult.iBlockIndex, sResult.iTokenIndex);
 			if (sResult.iTokenIndex == -1)
 			{
 				return FALSE;
@@ -948,7 +948,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 		pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
 		if (pcBlocksSet)
 		{
-			if (pcBlocksSet->GetRawTokensHolder()->NumTokens() == sResult.iTokenIndex)
+			if (pcBlocksSet->GetUnprocssedTokens()->NumTokens() == sResult.iTokenIndex)
 			{
 				sResult.iBlockIndex++;
 				sResult.iTokenIndex = 0;

@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPBlockSet::Init(int iLine, int iBlock, BOOL bTextBlocks)
 {
-	mcRawTokens.Init();
+	mcUnprocessedTokens.Init();
 	mapcBlocks.Init();
 	miColumn = 0;
 	miLine = iLine;
@@ -54,7 +54,7 @@ void CPPBlockSet::Kill(void)
 	}
 
 	mapcBlocks.Kill();
-	mcRawTokens.Kill();
+	mcUnprocessedTokens.Kill();
 }
 
 
@@ -102,7 +102,7 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 	int			i;
 	int			iNumTokens;
 
-	iNumTokens = mcRawTokens.NumTokens();
+	iNumTokens = mcUnprocessedTokens.NumTokens();
 	if (iNumTokens == iToken)
 	{
 		return TRUE;
@@ -110,7 +110,7 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 
 	for (i = iNumTokens - 1; i >= iToken; i--)
 	{
-		pcToken = mcRawTokens.Get(i);
+		pcToken = mcUnprocessedTokens.Get(i);
 		if (!pcToken->IsEmpty())
 		{
 			return FALSE;
@@ -143,7 +143,7 @@ void CPPBlockSet::Dump(void)
 		sz.Append(miLine + 1);
 		sz.Append(" ---- */\n");
 	}
-	mcRawTokens.Print(&sz);
+	mcUnprocessedTokens.Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }
@@ -163,9 +163,9 @@ BOOL CPPBlockSet::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenList* CPPBlockSet::GetRawTokensHolder(void)
+CPPTokenList* CPPBlockSet::GetUnprocssedTokens(void)
 {
-	return &mcRawTokens;
+	return &mcUnprocessedTokens;
 }
 
 
@@ -197,5 +197,4 @@ int CPPBlockSet::Block(void)
 {
 	return miBlock;
 }
-
 
