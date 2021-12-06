@@ -85,6 +85,8 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 	InitPlatformSpecific();
 	AddConfigDefines(pcConfig);
 	mszVaArgs.Init("__VA_ARGS__");
+
+	mcArguments.Init();
 }
 
 
@@ -104,6 +106,7 @@ void CPreprocessor::Init(CConfig* pcConfig, CTranslationUnit* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::Kill(void)
 {
+	mcArguments.Kill();
 	mszVaArgs.Kill();
 	mpcCurrentFile = NULL;
 	mpcProcessedTokens = NULL;
@@ -2294,18 +2297,6 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 
 	MarkPositionForError(&sPos);
 
-	if (miProcessTokensCalledCount > 0)
-	{
-		//sPos.Message(&szError);
-		//gcUserError.Set("PreprocessTokens has already been called.");
-		//sLine.Init(-1, -1);
-		//return sLine;
-	}
-	else
-	{
-		mcArguments.Init();
-	}
-
 	miProcessTokensCalledCount++;
 
 	bResult = TRUE;
@@ -2420,11 +2411,6 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 	//mpcStack = NULL;
 	miProcessTokensCalledCount--;
 
-	if (miProcessTokensCalledCount == 0)
-	{
-		mcArguments.Kill();
-
-	}
 	return sLine;
 }
 
