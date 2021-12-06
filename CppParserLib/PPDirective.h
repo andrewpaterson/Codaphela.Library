@@ -43,7 +43,7 @@ enum EPreprocessorDirective
 };
 
 
-class CPPDirective : public CPPAbstractHolder
+class CPPDirective : public CPPTokenListHolder
 {
 protected:
 	EPreprocessorDirective	meType;

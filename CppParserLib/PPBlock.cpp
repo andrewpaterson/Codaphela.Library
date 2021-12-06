@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPBlock::Init(int iLine, int iColumn)
 {
-	CPPAbstractHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn);
 	msNext.Init(-1, -1);
 }
 
@@ -40,7 +40,7 @@ void CPPBlock::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPBlock::Kill(void)
 {
-	CPPAbstractHolder::Kill();
+	CPPTokenListHolder::Kill();
 }
 
 
@@ -88,7 +88,7 @@ BOOL CPPBlock::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsBlock())
 	{
-		if (CPPAbstractHolder::Equals(pcOther))
+		if (CPPTokenListHolder::Equals(pcOther))
 		{
 			return TRUE;
 		}

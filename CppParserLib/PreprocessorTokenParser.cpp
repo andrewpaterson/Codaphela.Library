@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SPPHolderMark::Init(CPPAbstractHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex)
+void SPPHolderMark::Init(CPPTokenListHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex)
 {
 	this->pcHolder = pcHolder;
 	this->pcCurrentToken = pcCurrentToken;
@@ -81,7 +81,7 @@ void CPreprocessorTokenParser::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokenParser::Init(CPPAbstractHolder* pcLine)
+void CPreprocessorTokenParser::Init(CPPTokenListHolder* pcLine)
 {
 	macPPHolderMark.Init();
 	mpsCurrent = NULL;
@@ -122,13 +122,13 @@ void CPreprocessorTokenParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::Bump(void)
 {
-	CPPAbstractHolder*		pcHolder;
+	CPPTokenListHolder*		pcHolder;
 
 	if (mpsCurrent->pcCurrentToken != NULL)
 	{
 		if (mpsCurrent->pcCurrentToken->IsAbstractHolder())
 		{
-			pcHolder = (CPPAbstractHolder*)mpsCurrent->pcCurrentToken;
+			pcHolder = (CPPTokenListHolder*)mpsCurrent->pcCurrentToken;
 			MarkDown(pcHolder);
 		}
 	}
@@ -139,7 +139,7 @@ void CPreprocessorTokenParser::Bump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokenParser::MarkDown(CPPAbstractHolder* pcHolder)
+void CPreprocessorTokenParser::MarkDown(CPPTokenListHolder* pcHolder)
 {
 	CPPToken*		pcToken;
 
@@ -948,7 +948,7 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPreprocessorTokenParser::NextToken(void)
 {
-	CPPAbstractHolder*	pcHolder;
+	CPPTokenListHolder*	pcHolder;
 	int					iIndex;
 
 	if (mpsCurrent->pcCurrentToken)
@@ -1067,7 +1067,7 @@ int CPreprocessorTokenParser::Column(void)
 void CPreprocessorTokenParser::AppendRemaining(CChars* psz)
 {
 	SPPHolderMark*	psMark;
-	CPPAbstractHolder*		pcHolder;
+	CPPTokenListHolder*		pcHolder;
 
 	psMark = macPPHolderMark.Get(0);
 	pcHolder = psMark->pcHolder;
@@ -1079,18 +1079,18 @@ void CPreprocessorTokenParser::AppendRemaining(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPAbstractHolder* pcHolder, BOOL bAppending)
+BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* pcHolder, BOOL bAppending)
 {
 	int			i;
 	CPPToken*	pcToken;
-	CPPAbstractHolder*	pcChild;
+	CPPTokenListHolder*	pcChild;
 
 	for (i = 0; i < pcHolder->TokenLength(); i++)
 	{
 		pcToken = pcHolder->Get(i);
 		if (pcToken->IsAbstractHolder())
 		{
-			pcChild = (CPPAbstractHolder*)pcToken;
+			pcChild = (CPPTokenListHolder*)pcToken;
 			if (AppendRemaining(psz, pcChild, bAppending))
 			{
 				bAppending = TRUE;
@@ -1130,7 +1130,7 @@ BOOL CPreprocessorTokenParser::HasToken(void)
 BOOL CPreprocessorTokenParser::HasTokens(void)
 {
 	SPPHolderMark*			psMark;
-	CPPAbstractHolder*		pcHolder;
+	CPPTokenListHolder*		pcHolder;
 
 	psMark = macPPHolderMark.Get(0);
 	pcHolder = psMark->pcHolder;
@@ -1205,7 +1205,7 @@ void CPreprocessorTokenParser::AssignCurrent(CPPToken* pcToken, int iTokenIndex)
 	int						iIndex;
 	CPPToken*				pcTest;
 	int						i;
-	CPPAbstractHolder*		pcHolder;
+	CPPTokenListHolder*		pcHolder;
 
 	if ((pcToken != NULL) && (pcToken->IsAbstractHolder()))
 	{

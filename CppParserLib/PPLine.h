@@ -22,10 +22,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __P_P_LINE_H__
 #include "PPToken.h"
 #include "PPTokenList.h"
-#include "PPAbstractHolder.h"
+#include "PPTokenListHolder.h"
 
 
-class CPPLine : public CPPAbstractHolder
+class CPPLine : public CPPTokenListHolder
 {
 public:
 	TOKEN_CONSTRUCT(CPPLine);

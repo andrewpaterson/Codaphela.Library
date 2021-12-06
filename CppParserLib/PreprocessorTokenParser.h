@@ -29,9 +29,9 @@ struct SPPHolderMark
 {
 	CPPToken*		pcCurrentToken;
 	int				iTokenIndex;
-	CPPAbstractHolder*		pcHolder;
+	CPPTokenListHolder*		pcHolder;
 
-	void Init(CPPAbstractHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex);
+	void Init(CPPTokenListHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex);
 	void Kill(void);
 };
 
@@ -59,10 +59,10 @@ public:
 	SPPHolderMark*			mpsCurrent;
 
 	void 		Init(void);
-	void 		Init(CPPAbstractHolder* pcLine);
+	void 		Init(CPPTokenListHolder* pcLine);
 	void 		Kill(void);
 	void		Bump(void);
-	void		MarkDown(CPPAbstractHolder* pcHolder);
+	void		MarkDown(CPPTokenListHolder* pcHolder);
 	void		MarkUp(void);
 	BOOL 		GetIdentifier(CExternalString* pcIdentifier);
 	BOOL		GetNumber(CExternalString* pcIdentifier);
@@ -83,7 +83,7 @@ public:
 	int			Line(void);
 	int			Column(void);
 	void		AppendRemaining(CChars* psz);
-	BOOL		AppendRemaining(CChars* psz, CPPAbstractHolder* pcHolder, BOOL bAppending);
+	BOOL		AppendRemaining(CChars* psz, CPPTokenListHolder* pcHolder, BOOL bAppending);
 	BOOL		GetDigits(uint64* pulli, int* piNumDecimals);
 	BOOL		GetHexadecimal(uint64* pulli, int* piNumDigits);
 	BOOL		GetOctal(uint64* pulli, int* piNumDigits);

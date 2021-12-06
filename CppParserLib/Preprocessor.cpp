@@ -1389,7 +1389,7 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 	CDefine*					pcDefine;
 	BOOL						bResult;
 	CSpecialOperator*			pcSpecialOperator;
-	CPPAbstractHolder*			pcHolder;
+	CPPTokenListHolder*			pcHolder;
 	SDefineArgument*			psArguments;
 	int							iArgIndex;
 	int							iReplacementTokens;
@@ -1494,7 +1494,7 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 	CPPToken*					pcToken;
 	CDefine*					pcDefine;
 	BOOL						bResult;
-	CPPAbstractHolder*			pcHolder;
+	CPPTokenListHolder*			pcHolder;
 	SDefineArgument*			psArguments;
 	int							iArgIndex;
 	int							iReplacementTokens;
@@ -2124,7 +2124,7 @@ CPPToken* CPreprocessor::ConcaternateTokens(CPPTokenList* pcDest, CPPToken* pcLe
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPreprocessor::QuoteTokens(CPPTokenList* pcDest, CPPAbstractHolder* pcHolder)
+CPPToken* CPreprocessor::QuoteTokens(CPPTokenList* pcDest, CPPTokenListHolder* pcHolder)
 {
 	int				j;
 	BOOL			bQuoteNextReplacement;

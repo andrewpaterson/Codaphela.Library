@@ -54,7 +54,7 @@ class CPreprocessor
 protected:
 	CConditionalStack			mcConditionalStack;
 	CSourceFile*				mpcCurrentFile;
-	CPPAbstractHolder*			mpcCurrentLine;
+	CPPTokenListHolder*			mpcCurrentLine;
 	CPreprocessorTokenParser*	mpcCurrentLineParser;
 	CASCIITree					mcDirectives;
 	CDefineMap					mcDefines;
@@ -149,7 +149,7 @@ public:
 	BOOL				ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
 	void				ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth);
 	void				ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth);
-	CPPToken*			QuoteTokens(CPPTokenList* pcDest, CPPAbstractHolder* pcHolder);
+	CPPToken*			QuoteTokens(CPPTokenList* pcDest, CPPTokenListHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenList* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	BOOL				TokeniseFile(CSourceFile* pcFile);
 	void				DeltaDefines(CArrayNamedDefines* pcDelta);

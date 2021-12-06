@@ -38,7 +38,7 @@ void CPPDirective::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPDirective::Init(EPreprocessorDirective eType, int iLine, int iColumn)
 {
-	CPPAbstractHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn);
 	Set(eType);
 }
 
@@ -111,7 +111,7 @@ char* CPPDirective::Print(CChars* psz)
 	if (mcTokens.NumTokens() > 0)
 	{
 		psz->Append(' ');
-		CPPAbstractHolder::Print(psz);
+		CPPTokenListHolder::Print(psz);
 	}
 	else
 	{
@@ -133,7 +133,7 @@ void CPPDirective::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsDirective())
 	{
 		pcCast = (CPPDirective*)pcSource;
-		CPPAbstractHolder::Copy(pcCast, pcTokens);
+		CPPTokenListHolder::Copy(pcCast, pcTokens);
 		meType = pcCast->meType;
 	}
 }
@@ -167,7 +167,7 @@ BOOL CPPDirective::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsLine())
 	{
-		return CPPAbstractHolder::Equals(pcOther);
+		return CPPTokenListHolder::Equals(pcOther);
 	}
 	return FALSE;
 }

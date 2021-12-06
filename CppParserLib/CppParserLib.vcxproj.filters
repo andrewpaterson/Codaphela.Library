@@ -198,7 +198,7 @@
     <ClCompile Include="PPUnknown.cpp">
       <Filter>Source\Preprocessor\Tokens\Directives</Filter>
     </ClCompile>
-    <ClCompile Include="PPAbstractHolder.cpp">
+    <ClCompile Include="PPTokenListHolder.cpp">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClCompile>
     <ClCompile Include="PPDirective.cpp">
@@ -497,7 +497,7 @@
     <ClInclude Include="PPUnknown.h">
       <Filter>Source\Preprocessor\Tokens\Directives</Filter>
     </ClInclude>
-    <ClInclude Include="PPAbstractHolder.h">
+    <ClInclude Include="PPTokenListHolder.h">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClInclude>
     <ClInclude Include="PPDirective.h">

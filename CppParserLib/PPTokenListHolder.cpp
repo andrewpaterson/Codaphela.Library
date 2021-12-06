@@ -20,14 +20,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "TokenHelper.h"
 #include "PPTokenMemory.h"
-#include "PPAbstractHolder.h"
+#include "PPTokenListHolder.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Init(int iLine, int iColumn)
+void CPPTokenListHolder::Init(int iLine, int iColumn)
 {
 	Set(iLine, iColumn);
 	mcTokens.Init();
@@ -38,7 +38,7 @@ void CPPAbstractHolder::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Kill(void)
+void CPPTokenListHolder::Kill(void)
 {
 	mcTokens.Kill();
 }
@@ -48,7 +48,7 @@ void CPPAbstractHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPAbstractHolder::IsAbstractHolder(void)
+BOOL CPPTokenListHolder::IsAbstractHolder(void)
 {
 	return TRUE;
 }
@@ -58,7 +58,7 @@ BOOL CPPAbstractHolder::IsAbstractHolder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPAbstractHolder::Print(CChars* psz)
+char* CPPTokenListHolder::Print(CChars* psz)
 {
 	if (mcTokens.NumTokens() != 0)
 	{
@@ -72,7 +72,7 @@ char* CPPAbstractHolder::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokenMemory* pcTokens)
+void CPPTokenListHolder::Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens)
 {
 	int			i;
 	CPPToken*	pcToken;
@@ -93,7 +93,7 @@ void CPPAbstractHolder::Copy(CPPAbstractHolder* pcCast, CPPTokenMemory* pcTokens
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPPAbstractHolder::TokenLength(void)
+int CPPTokenListHolder::TokenLength(void)
 {
 	return mcTokens.NumTokens();
 }
@@ -103,7 +103,7 @@ int CPPAbstractHolder::TokenLength(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPPAbstractHolder::Get(int iIndex)
+CPPToken* CPPTokenListHolder::Get(int iIndex)
 {
 	return mcTokens.Get(iIndex);
 }
@@ -113,7 +113,7 @@ CPPToken* CPPAbstractHolder::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::SavageDump(void)
+void CPPTokenListHolder::SavageDump(void)
 {
 	CChars	sz;
 
@@ -127,13 +127,13 @@ void CPPAbstractHolder::SavageDump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPAbstractHolder::Equals(CPPToken* pcOther)
+BOOL CPPTokenListHolder::Equals(CPPToken* pcOther)
 {
-	CPPAbstractHolder*	pcCast;	
+	CPPTokenListHolder*	pcCast;	
 
 	if (pcOther->IsAbstractHolder())
 	{
-		pcCast = (CPPAbstractHolder*)pcOther;
+		pcCast = (CPPTokenListHolder*)pcOther;
 
 		return mcTokens.Equals(&pcCast->mcTokens);
 	}
@@ -145,7 +145,7 @@ BOOL CPPAbstractHolder::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPAbstractHolder::IsEmpty(void)
+BOOL CPPTokenListHolder::IsEmpty(void)
 {
 	int			i;
 	CPPToken*	pcToken;
@@ -173,7 +173,7 @@ BOOL CPPAbstractHolder::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenList* CPPAbstractHolder::GetTokens(void)
+CPPTokenList* CPPTokenListHolder::GetTokens(void)
 {
 	return &mcTokens;
 }
@@ -183,7 +183,7 @@ CPPTokenList* CPPAbstractHolder::GetTokens(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Fake(CPPTokenList* pcTokens)
+void CPPTokenListHolder::Fake(CPPTokenList* pcTokens)
 {
 	Set(-1, -1);
 	memcpy(&mcTokens, pcTokens, sizeof(CPPTokenList));

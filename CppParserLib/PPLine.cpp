@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPLine::Init(int iLine, int iColumn)
 {
-	CPPAbstractHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn);
 }
 
 
@@ -38,7 +38,7 @@ void CPPLine::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPLine::Kill(void)
 {
-	CPPAbstractHolder::Kill();
+	CPPTokenListHolder::Kill();
 }
 
 
@@ -86,7 +86,7 @@ BOOL CPPLine::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsLine())
 	{
-		return CPPAbstractHolder::Equals(pcOther);
+		return CPPTokenListHolder::Equals(pcOther);
 	}
 	return FALSE;
 }
