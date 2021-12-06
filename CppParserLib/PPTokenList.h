@@ -42,7 +42,7 @@ public:
 };
 
 
-typedef CArrayTemplate<CPPTokenList> CArrayPPTokenHolders;
+typedef CArrayTemplate<CPPTokenList> CArrayPPTokenLists;
 
 
 #endif // !__P_P_TOKEN_LIST_H__

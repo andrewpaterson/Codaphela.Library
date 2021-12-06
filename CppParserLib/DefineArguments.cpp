@@ -44,7 +44,7 @@ void CDefineArguments::Kill(void)
 	for (i = 0; i < mcDefineToArguments.NumElements(); i++)
 	{
 		psDefineArg = mcDefineToArguments.Get(i);
-		psDefineArg->mcArguments.Kill();
+		psDefineArg->macTokenArguments.Kill();
 	}
 
 	mcDefineToArguments.Kill();
@@ -83,13 +83,13 @@ SDefineArgument* CDefineArguments::Add(int64 lliDefineID)
 	psDefineArg = Get(lliDefineID);
 	if (psDefineArg)
 	{
-		psDefineArg->mcArguments.Kill();
+		psDefineArg->macTokenArguments.Kill();
 	}
 	else
 	{
 		psDefineArg = mcDefineToArguments.Add();
 	}
-	psDefineArg->mcArguments.Init();
+	psDefineArg->macTokenArguments.Init();
 	psDefineArg->mlliDefineID = lliDefineID;
 	return psDefineArg;
 }
@@ -110,7 +110,7 @@ void CDefineArguments::Remove(int64 lliDefineID)
 		psDefineArg = mcDefineToArguments.Get(i);
 		if (psDefineArg->mlliDefineID == lliDefineID)
 		{
-			psDefineArg->mcArguments.Kill();
+			psDefineArg->macTokenArguments.Kill();
 			mcDefineToArguments.RemoveAt(i, FALSE);
 			return;
 		}

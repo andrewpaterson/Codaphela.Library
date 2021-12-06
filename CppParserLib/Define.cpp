@@ -14,7 +14,7 @@ void CDefine::Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap)
 	cPostMalloc.PostMalloc(&mcReplacement);
 
 	mcReplacement.Init(-1, -1);
-	mcArguments.Init();
+	maszArguments.Init();
 	miFlags = ((pcDefineMap == NULL) ? 0 : DEFINE_FLAGS_IN_MAP);
 	mlliID = uiID;
 	mpcDefineMap = pcDefineMap;
@@ -29,7 +29,7 @@ void CDefine::Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap)
 void CDefine::Kill(void)
 {
 	mszName.Kill();
-	mcArguments.Kill();
+	maszArguments.Kill();
 	mcReplacement.Kill();
 	miFlags = DEFINE_FLAGS_KILLED;
 }
@@ -41,7 +41,7 @@ void CDefine::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::AddArgument(CExternalString* pcName)
 {
-	mcArguments.Add(pcName->msz, 0, pcName->miLen);
+	maszArguments.Add(pcName->msz, 0, pcName->miLen);
 }
 
 
@@ -171,11 +171,11 @@ BOOL CDefine::CanProcessArguments(int iNumArguments)
 {
 	if (!IsVariadic())
 	{
-		return iNumArguments == mcArguments.NumElements();
+		return iNumArguments == maszArguments.NumElements();
 	}
 	else
 	{
-		return iNumArguments >= (mcArguments.NumElements() - 1);
+		return iNumArguments >= (maszArguments.NumElements() - 1);
 	}
 }
 
@@ -224,12 +224,12 @@ void CDefine::Dump(void)
 	if (IsBacketed())
 	{
 		sz.Append('(');
-		for (i = 0; i < mcArguments.NumElements(); i++)
+		for (i = 0; i < maszArguments.NumElements(); i++)
 		{
-			psz = mcArguments.Get(i);
+			psz = maszArguments.Get(i);
 			sz.Append(psz->Text());
 
-			if (i != mcArguments.NumElements() - 1)
+			if (i != maszArguments.NumElements() - 1)
 			{
 				sz.Append(", ");
 			}
@@ -263,7 +263,7 @@ void CDefine::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayChars* CDefine::GetArguments(void)
 {
-	return &mcArguments;
+	return &maszArguments;
 }
 
 

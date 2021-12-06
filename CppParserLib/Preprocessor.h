@@ -140,7 +140,7 @@ public:
 	BOOL				ProcessSingleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	BOOL				ProcessDoubleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	void				FindBestInclude(CExternalString* pcInclude, BOOL bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
-	BOOL				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenHolders* pacArguments);
+	BOOL				FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenLists* pacArguments);
 	SPPTokenBlockIndex	Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	void				AddTokenToArgument(CPPTokenList* pcArgument, CPPToken* pcToken);
 	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pacTokenPts);

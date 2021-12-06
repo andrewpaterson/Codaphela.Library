@@ -1433,7 +1433,7 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 			pcParser->NextToken();
 			psArguments = mcArguments.Add(pcDefine->GetID());
 			iArgIndex = mcArguments.mcDefineToArguments.GetIndex(psArguments);
-			bResult = FindArguments(pcParser, &psArguments->mcArguments);
+			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
 			if (!bResult)
 			{
 				KillArguments(psArguments);
@@ -1441,7 +1441,7 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 
 				return FALSE;
 			}
-			else if (!pcDefine->CanProcessArguments(psArguments->mcArguments.NumElements()))
+			else if (!pcDefine->CanProcessArguments(psArguments->macTokenArguments.NumElements()))
 			{
 				KillArguments(psArguments);
 				mcArguments.Remove(pcDefine->GetID());
@@ -1508,7 +1508,7 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 			pcParser->NextToken();
 			psArguments = mcArguments.Add(pcDefine->GetID());
 			iArgIndex = mcArguments.mcDefineToArguments.GetIndex(psArguments);
-			bResult = FindArguments(pcParser, &psArguments->mcArguments);
+			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
 			if (!bResult)
 			{
 				KillArguments(psArguments);
@@ -1516,7 +1516,7 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 
 				return FALSE;
 			}
-			else if (!pcDefine->CanProcessArguments(psArguments->mcArguments.NumElements()))
+			else if (!pcDefine->CanProcessArguments(psArguments->macTokenArguments.NumElements()))
 			{
 				KillArguments(psArguments);
 				mcArguments.Remove(pcDefine->GetID());
@@ -1568,9 +1568,9 @@ void CPreprocessor::KillArguments(SDefineArgument* psArguments)
 	int					i;
 	CPPTokenList*		pcTokenHolder;
 
-	for (i = 0; i < psArguments->mcArguments.NumElements(); i++)
+	for (i = 0; i < psArguments->macTokenArguments.NumElements(); i++)
 	{
-		pcTokenHolder = psArguments->mcArguments.Get(i);
+		pcTokenHolder = psArguments->macTokenArguments.Get(i);
 		pcTokenHolder->Kill();
 	}
 }
@@ -1890,7 +1890,7 @@ BOOL CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPToken
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth)
 {
-	CArrayPPTokenHolders*		pcArguments;
+	CArrayPPTokenLists*		pcArguments;
 	CPPTokenList*				pcArgument;
 	CPreprocessorTokenParser	cParser;
 	CPPLine						cLine;
@@ -1899,7 +1899,7 @@ void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CP
 	BOOL						bFirst;
 
 	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
-	pcArguments = &psDefineArgument->mcArguments;
+	pcArguments = &psDefineArgument->macTokenArguments;
 	if (pcArguments)
 	{
 		if (!pcReplacement->IsVariadic())
@@ -1946,7 +1946,7 @@ void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CP
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth)
 {
-	CArrayPPTokenHolders* pcArguments;
+	CArrayPPTokenLists* pcArguments;
 	CPPTokenList* pcArgument;
 	CPreprocessorTokenParser	cParser;
 	CPPLine						cLine;
@@ -1955,7 +1955,7 @@ void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, C
 	BOOL						bFirst;
 
 	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
-	pcArguments = &psDefineArgument->mcArguments;
+	pcArguments = &psDefineArgument->macTokenArguments;
 	if (pcArguments)
 	{
 		if (!pcReplacement->IsVariadic())
@@ -2174,7 +2174,7 @@ CPPToken* CPreprocessor::AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pacToken
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenHolders* pacArguments)
+BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTokenLists* pacArguments)
 {
 	CPPTokenList*			pcArgument;
 	BOOL					bResult;
