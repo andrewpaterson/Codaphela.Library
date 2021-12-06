@@ -34,6 +34,7 @@ protected:
 	BOOL					mbLoaded;
 	CPPTokenMemory			mcTokenMemory;
 	CPPBlockSetArray		macBlockSets;
+	CPPTokenList			mcTokenList;
 
 public:
 			void				Init(char* pszFullName);
@@ -42,7 +43,6 @@ public:
 			void				SetContents(const char* sz);
 			BOOL				IsLoaded(void);
 			BOOL				IsNamed(char* szName);
-			void				Dump(void);
 	virtual BOOL				IsTranslationUnit(void) =0;
 	virtual BOOL				IsHeader(void) =0;
 			char*				ShortName(void);
@@ -54,6 +54,10 @@ public:
 			int					GetContentsLength(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);
+			CPPTokenList*		GetTokenList(void);
+			char*				Print(CChars* psz);
+			void				Dump(void);
+			void				DumpBlocks(void);
 };
 
 

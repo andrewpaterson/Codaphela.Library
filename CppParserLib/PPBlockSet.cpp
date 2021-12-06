@@ -64,11 +64,13 @@ void CPPBlockSet::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 {
-	int				i;
-	CPPBlock*		pcBlock;
-	BOOL			bResult;
+	int			i;
+	CPPBlock*	pcBlock;
+	BOOL		bResult;
+	int			iNumElements;
 
-	for (i = mapcBlocks.NumElements()-1; i >= 0; i--)
+	iNumElements = mapcBlocks.NumElements();
+	for (i = iNumElements - 1; i >= 0; i--)
 	{
 		pcBlock = *mapcBlocks.Get(i);
 		bResult = pcOtherBlock->Equals(pcBlock);

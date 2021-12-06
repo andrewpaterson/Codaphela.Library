@@ -52,7 +52,6 @@ void STULog::Kill(void)
 void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks)
 {
 	CSourceFile::Init(szFullName);
-	mcTokenList.Init();
 	mpcLibrary = pcLibrary;
 
 	if (bLogBlocks || bLogIncludes)
@@ -78,19 +77,8 @@ void CTranslationUnit::Kill(void)
 		mpcLogs->Kill();
 		free(mpcLogs);
 	}
-
-	mcTokenList.Kill();
+	
 	CSourceFile::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CTranslationUnit::Print(CChars* psz)
-{
-	return mcTokenList.Print(psz);
 }
 
 
@@ -165,16 +153,6 @@ BOOL CTranslationUnit::IsPragmaOnced(void)
 BOOL CTranslationUnit::IsSystemFile(void)
 {
 	return FALSE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPTokenList* CTranslationUnit::GetTokenList(void)
-{
-	return &mcTokenList;
 }
 
 
