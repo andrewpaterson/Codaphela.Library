@@ -21,18 +21,18 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __P_P_ABSTRACT_HOLDER_H__
 #define __P_P_ABSTRACT_HOLDER_H__
 #include "PPToken.h"
-#include "PPTokenHolder.h"
+#include "PPTokenList.h"
 
 
 class CPPAbstractHolder : public CPPToken
 {
 protected:
-	CPPTokenHolder	mcTokens;
+	CPPTokenList	mcTokens;
 
 public:
 	void 				Init(int iLine, int iColumn);
 	void 				Kill(void);
-	void				Fake(CPPTokenHolder* pcTokens);
+	void				Fake(CPPTokenList* pcTokens);
 	BOOL 				IsAbstractHolder(void);
 	char*				Print(CChars* psz);
 	void 				Copy(CPPAbstractHolder* pcCast, CPPTokenMemory* pcTokens);
@@ -41,7 +41,7 @@ public:
 	void				SavageDump(void);
 	BOOL				Equals(CPPToken* pcOther);
 	BOOL				IsEmpty(void);
-	CPPTokenHolder*		GetTokens(void);
+	CPPTokenList*		GetTokens(void);
 };
 
 

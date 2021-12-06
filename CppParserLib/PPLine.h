@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __P_P_LINE_H__
 #define __P_P_LINE_H__
 #include "PPToken.h"
-#include "PPTokenHolder.h"
+#include "PPTokenList.h"
 #include "PPAbstractHolder.h"
 
 

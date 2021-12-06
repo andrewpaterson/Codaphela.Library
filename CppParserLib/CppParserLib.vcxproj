@@ -231,7 +231,7 @@
     <ClCompile Include="PPDirective.cpp" />
     <ClCompile Include="PPHolder.cpp" />
     <ClCompile Include="PPLine.cpp" />
-    <ClCompile Include="PPTokenHolder.cpp" />
+    <ClCompile Include="PPTokenList.cpp" />
     <ClCompile Include="SpecialOperator.cpp" />
     <ClCompile Include="SpecialOperatorMap.cpp" />
     <ClCompile Include="TokenHelper.cpp" />
@@ -333,7 +333,7 @@
     <ClInclude Include="PPDirective.h" />
     <ClInclude Include="PPHolder.h" />
     <ClInclude Include="PPLine.h" />
-    <ClInclude Include="PPTokenHolder.h" />
+    <ClInclude Include="PPTokenList.h" />
     <ClInclude Include="SpecialOperator.h" />
     <ClInclude Include="SpecialOperatorMap.h" />
     <ClInclude Include="TokenHelper.h" />

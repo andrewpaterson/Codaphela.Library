@@ -173,7 +173,7 @@ BOOL CPPAbstractHolder::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenHolder* CPPAbstractHolder::GetTokens(void)
+CPPTokenList* CPPAbstractHolder::GetTokens(void)
 {
 	return &mcTokens;
 }
@@ -183,9 +183,9 @@ CPPTokenHolder* CPPAbstractHolder::GetTokens(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPAbstractHolder::Fake(CPPTokenHolder* pcTokens)
+void CPPAbstractHolder::Fake(CPPTokenList* pcTokens)
 {
 	Set(-1, -1);
-	memcpy(&mcTokens, pcTokens, sizeof(CPPTokenHolder));
+	memcpy(&mcTokens, pcTokens, sizeof(CPPTokenList));
 }
 

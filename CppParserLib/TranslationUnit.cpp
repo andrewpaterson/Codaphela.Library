@@ -172,7 +172,7 @@ BOOL CTranslationUnit::IsSystemFile(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPTokenHolder* CTranslationUnit::GetTokenHolder(void)
+CPPTokenList* CTranslationUnit::GetTokenHolder(void)
 {
 	return &mcTokenHolder;
 }

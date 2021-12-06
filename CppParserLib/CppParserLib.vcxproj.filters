@@ -210,7 +210,7 @@
     <ClCompile Include="PPLine.cpp">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClCompile>
-    <ClCompile Include="PPTokenHolder.cpp">
+    <ClCompile Include="PPTokenList.cpp">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClCompile>
     <ClCompile Include="TokenHelper.cpp">
@@ -509,7 +509,7 @@
     <ClInclude Include="PPLine.h">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClInclude>
-    <ClInclude Include="PPTokenHolder.h">
+    <ClInclude Include="PPTokenList.h">
       <Filter>Source\Preprocessor\Tokens\Holders</Filter>
     </ClInclude>
     <ClInclude Include="TokenHelper.h">

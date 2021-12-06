@@ -163,7 +163,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPBlockSetArray* pacBlockSets, char* szPo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
+BOOL CPreprocessorTokeniser::Tokenise(CPPTokenList* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
 {
 	char*					szEnd;
 	int						iLine;
@@ -210,7 +210,7 @@ BOOL CPreprocessorTokeniser::Tokenise(CPPTokenHolder* pcTokenHolder, CPPTokenMem
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokeniser::TokeniseDefine(CPPTokenHolder* pcHolder, char* sz, CPPTokenMemory* pcTokens)
+void CPreprocessorTokeniser::TokeniseDefine(CPPTokenList* pcHolder, char* sz, CPPTokenMemory* pcTokens)
 {
 	mcParser.Init(sz, NULL);
 	CPreprocessorLineTokensier::Preprocess(pcHolder, &mcParser, pcTokens, TRUE);
