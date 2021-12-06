@@ -11,8 +11,8 @@ struct SPreprocessorPosition
 	int		miColumn;
 	char*	mszShortName;
 
-	void	Init(CPreprocessorTokenParser* pcParser, CSourceFile* pcFile);
-	void	Init(int iLine, int iColumn, char* mszShortName);
+	void	Init(CPreprocessorTokenParser* pcParser, char* szShortName);
+	void	Init(int iLine, int iColumn, char* szShortName);
 
 	CChars* Message(CChars* pszUninitialised);
 };

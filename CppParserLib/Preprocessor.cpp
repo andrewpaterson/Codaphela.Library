@@ -54,8 +54,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 
 	mcConditionalStack.Init();
 	mpcCurrentFile = NULL;
-	mpcCurrentLineParser = NULL;
-	miProcessTokensCalledCount = 0;
 	mcHeadersStack.Init();
 
 	mpcTokenMemory = pcTokenMemory;
@@ -274,7 +272,7 @@ BOOL CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
@@ -360,7 +358,7 @@ BOOL CPreprocessor::ProcessUnknownDirective(CPreprocessorTokenParser* pcParser, 
 	char					c;
 	CChars					szError;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
@@ -534,7 +532,7 @@ BOOL CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 
 	pcParser->SkipWhiteSpace();
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bResult = ProcessIncludeFile(pcParser, &pcIncludeFile, &pcHeaderNameMap);
 	if (bResult)
@@ -584,7 +582,7 @@ BOOL CPreprocessor::ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHead
 	char						cOpen;
 	char						cClose;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	cOpen = ' ';
 	cClose = ' ';
@@ -1183,7 +1181,7 @@ SPPTokenBlockIndex CPreprocessor::ProcessHashIf(CPreprocessorTokenParser* pcPars
 	CChars					szError;
 	BOOL					bResult;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	cTokenHolder.Init();
 	bResult = ProcessDirectiveLine(&cTokenHolder, pcParser, 0);
@@ -1242,7 +1240,7 @@ SPPTokenBlockIndex CPreprocessor::ProcessHashElif(CPreprocessorTokenParser* pcPa
 	CChars					szCaclulatorError;
 	CChars					szError;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	cTokenHolder.Init();
 	szCaclulatorError.Init();
@@ -1595,7 +1593,7 @@ BOOL CPreprocessor::ProcessDefinedIdentifier(CPPTokenList* pcDest, CPPText* pcTe
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bOpenBracket = pcParser->GetExactDecorator('(');
 	pcParser->SkipWhiteSpace();
@@ -1661,7 +1659,7 @@ BOOL CPreprocessor::ProcessHasIncludeIdentifier(CPPTokenList* pcDest, CPPText* p
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bResult = pcParser->GetExactDecorator('(', TRUE);
 	if (bResult)
@@ -1728,7 +1726,7 @@ BOOL CPreprocessor::ProcessHasCPPAttributeIdentifier(CPPTokenList* pcDest, CPPTe
 	BOOL					bClosingBracket;
 	CExternalString			pcIdentifier;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bResult = pcParser->GetExactDecorator('(');
 	if (!bResult)
@@ -2010,7 +2008,7 @@ BOOL CPreprocessor::ProcessDirectiveLine(CPPTokenList* pcDest, CPreprocessorToke
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	iHashCount = 0;
 	while (pcParser->HasToken())
@@ -2186,7 +2184,7 @@ BOOL CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTo
 	BOOL					bReturn;
 	SPreprocessorPosition	sPos;
 
-	MarkPositionForError(&sPos);
+	MarkPositionForError(pcParser, &sPos);
 
 	bResult = pcParser->GetExactDecorator('(');
 	if (!bResult)
@@ -2293,24 +2291,16 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
-	mpcCurrentLineParser = NULL;
-
-	MarkPositionForError(&sPos);
-
-	miProcessTokensCalledCount++;
-
 	bResult = TRUE;
 	iNumLines = pcSourceTokens->NumTokens();
 	sLine.iBlockIndex = iBlock;
 	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
 	{
-		mpcCurrentLineParser = NULL;
 		iOldLine = sLine.iTokenIndex;
 		pcToken = pcSourceTokens->Get(sLine.iTokenIndex);
 		if (pcToken->IsDirective())
 		{
 			pcDirective = (CPPDirective*)pcToken;
-			mpcCurrentLineParser = &cParser;
 			cParser.Init(pcDirective);
 			if (pcDirective->IsConditional())
 			{
@@ -2396,6 +2386,8 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 		else
 		{
 			bResult = FALSE;
+
+			MarkPositionForError(pcToken->Line(), pcToken->Column(), &sPos);
 			sPos.Message(&szError);
 			szError.Append("Expected a Directive got [");
 			szError.Append(pcToken->ClassName());
@@ -2409,7 +2401,6 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 	//Seriously, do something about this.  They should be passed as parameters, not global variables.
 	//mpcPostprocessedTokens = NULL;
 	//mpcStack = NULL;
-	miProcessTokensCalledCount--;
 
 	return sLine;
 }
@@ -2431,35 +2422,15 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSou
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
-	mpcCurrentLineParser = NULL;
-
-	MarkPositionForError(&sPos);
-
-	if (miProcessTokensCalledCount > 0)
-	{
-		//sPos.Message(&szError);
-		//gcUserError.Set("PreprocessTokens has already been called.");
-		//sLine.Init(-1, -1);
-		//return sLine;
-	}
-	else
-	{
-		mcArguments.Init();
-	}
-
-	miProcessTokensCalledCount++;
-
 	bResult = TRUE;
 	iNumLines = pcSourceTokens->NumTokens();
 	sLine.iBlockIndex = iBlock;
 	for (sLine.iTokenIndex = iToken; sLine.iTokenIndex < iNumLines; )
 	{
-		mpcCurrentLineParser = NULL;
 		iOldLine = sLine.iTokenIndex;
 		pcToken = pcSourceTokens->Get(sLine.iTokenIndex);
 		if (pcToken->IsLine())
 		{
-			mpcCurrentLineParser = &cParser;
 			if (mcConditionalStack.IsParsing())
 			{
 				pcLine = (CPPLine*)pcToken;
@@ -2472,6 +2443,8 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSou
 		else
 		{
 			bResult = FALSE;
+
+			MarkPositionForError(pcToken->Line(), pcToken->Column(), &sPos);
 			sPos.Message(&szError);
 			szError.Append("Expected a Normal Line got [");
 			szError.Append(pcToken->ClassName());
@@ -2485,13 +2458,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSou
 	//Seriously, do something about this.  They should be passed as parameters, not global variables.
 	//mpcPostprocessedTokens = NULL;
 	//mpcStack = NULL;
-	miProcessTokensCalledCount--;
 
-	if (miProcessTokensCalledCount == 0)
-	{
-		mcArguments.Kill();
-
-	}
 	return sLine;
 }
 
@@ -2653,28 +2620,26 @@ CSpecialOperator* CPreprocessor::ProcessSpecialOperator(CPreprocessorTokenParser
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::MarkPositionForError(SPreprocessorPosition* psPos)
+void CPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos)
 {
 	char* szShortFileName;
 
 	szShortFileName = GetFileName();
-	if (mpcCurrentLineParser)
-	{
-		if (mpcCurrentLineParser->Line() == -1)
-		{
-			psPos->Init(-1, -1, szShortFileName);
-		}
-		else
-		{
-			psPos->Init(mpcCurrentLineParser, mpcCurrentFile);
-		}
-	}
-	else
-	{
-		psPos->Init(-1, -1, gszEmptyString);
-	}
+	psPos->Init(pcParser, szShortFileName);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CPreprocessor::MarkPositionForError(int iLine, int iColumn, SPreprocessorPosition* psPos)
+{
+	char* szShortFileName;
+
+	szShortFileName = GetFileName();
+	psPos->Init(iLine, iColumn, szShortFileName);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
