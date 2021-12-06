@@ -227,7 +227,7 @@
     <ClCompile Include="PPConditional.cpp" />
     <ClCompile Include="PPInclude.cpp" />
     <ClCompile Include="PPUnknown.cpp" />
-    <ClCompile Include="PPAbstractHolder.cpp" />
+    <ClCompile Include="PPTokenListHolder.cpp" />
     <ClCompile Include="PPDirective.cpp" />
     <ClCompile Include="PPHolder.cpp" />
     <ClCompile Include="PPLine.cpp" />
@@ -329,7 +329,7 @@
     <ClInclude Include="PPConditional.h" />
     <ClInclude Include="PPInclude.h" />
     <ClInclude Include="PPUnknown.h" />
-    <ClInclude Include="PPAbstractHolder.h" />
+    <ClInclude Include="PPTokenListHolder.h" />
     <ClInclude Include="PPDirective.h" />
     <ClInclude Include="PPHolder.h" />
     <ClInclude Include="PPLine.h" />

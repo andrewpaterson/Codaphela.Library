@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CPPBlockSet;
-class CPPBlock : public CPPAbstractHolder
+class CPPBlock : public CPPTokenListHolder
 {
 protected:
 	SPPTokenBlockIndex		msNext;

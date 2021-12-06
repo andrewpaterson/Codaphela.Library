@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPHolder::Init(int iLine, int iColumn)
 {
-	CPPAbstractHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn);
 }
 
 
@@ -37,7 +37,7 @@ void CPPHolder::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPHolder::Kill(void)
 {
-	CPPAbstractHolder::Kill();
+	CPPTokenListHolder::Kill();
 }
 
 
@@ -49,7 +49,7 @@ void CPPHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	if (pcSource->IsHolder())
 	{
-		CPPAbstractHolder::Copy((CPPAbstractHolder*)pcSource, pcTokens);
+		CPPTokenListHolder::Copy((CPPTokenListHolder*)pcSource, pcTokens);
 	}
 }
 
@@ -62,7 +62,7 @@ BOOL CPPHolder::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsHolder())
 	{
-		return CPPAbstractHolder::Equals(pcOther);
+		return CPPTokenListHolder::Equals(pcOther);
 	}
 	return FALSE;
 }

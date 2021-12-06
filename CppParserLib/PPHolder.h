@@ -20,10 +20,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __P_P_HOLDER_H__
 #define __P_P_HOLDER_H__
-#include "PPAbstractHolder.h"
+#include "PPTokenListHolder.h"
 
 
-class CPPHolder : public CPPAbstractHolder
+class CPPHolder : public CPPTokenListHolder
 {
 public:
 	TOKEN_CONSTRUCT(CPPHolder);

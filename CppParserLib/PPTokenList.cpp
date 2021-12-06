@@ -19,7 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "PPTokenList.h"
-#include "PPAbstractHolder.h"
+#include "PPTokenListHolder.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -118,14 +118,14 @@ void CPPTokenList::SavageAppend(CChars* psz, int iDepth)
 {
 	CPPToken*			pcToken;
 	int					i;
-	CPPAbstractHolder*	pcHolder;
+	CPPTokenListHolder*	pcHolder;
 
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		pcToken = *mcArray.Get(i);
 		if (pcToken->IsAbstractHolder())
 		{
-			pcHolder = (CPPAbstractHolder*)pcToken;
+			pcHolder = (CPPTokenListHolder*)pcToken;
 			pcHolder->GetTokens()->SavageAppend(psz, iDepth+1);
 		}
 		else
