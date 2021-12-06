@@ -34,8 +34,8 @@ void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CPPTokenMe
 	mszName.Init();
 	mszName.AppendSubString(pcName->msz, pcName->miLen);
 	miFlags = pcSource->IsBacketed() ? NAMED_DEFINE_FLAGS_BRACKETED : 0;
-	mcArguments.Init();
-	mcArguments.Copy(pcSource->GetArguments());
+	maszArguments.Init();
+	maszArguments.Copy(pcSource->GetArguments());
 	mcReplacement.Init(pcSource->GetReplacement()->Line(), pcSource->GetReplacement()->Column());
 	mcReplacement.Copy(pcSource->GetReplacement(), pcTokens);
 }
@@ -55,7 +55,7 @@ void CNamedDefine::Undef(CExternalString* pcName)
 	mszName.AppendSubString(pcName->msz, pcName->miLen);
 	miFlags = NAMED_DEFINE_FLAGS_UNDEFFED;
 	mcReplacement.Init(-1, -1);
-	mcArguments.Init();
+	maszArguments.Init();
 }
 
 
@@ -66,7 +66,7 @@ void CNamedDefine::Undef(CExternalString* pcName)
 void CNamedDefine::Kill(void)
 {
 	mszName.Kill();
-	mcArguments.Kill();
+	maszArguments.Kill();
 	mcReplacement.Kill();
 }
 
@@ -93,7 +93,7 @@ BOOL CNamedDefine::Equals(CNamedDefine* pcOther)
 		{
 			if (miFlags == pcOther->miFlags)
 			{
-				if (mcArguments.Equals(pcOther->GetArguments()))
+				if (maszArguments.Equals(pcOther->GetArguments()))
 				{
 					return TRUE;
 				}
@@ -121,12 +121,12 @@ void CNamedDefine::Dump(void)
 	if (IsBacketed())
 	{
 		sz.Append('(');
-		for (i = 0; i < mcArguments.NumElements(); i++)
+		for (i = 0; i < maszArguments.NumElements(); i++)
 		{
-			psz = mcArguments.Get(i);
+			psz = maszArguments.Get(i);
 			sz.Append(psz->Text());
 
-			if (i != mcArguments.NumElements()-1)
+			if (i != maszArguments.NumElements()-1)
 			{
 				sz.Append(", ");
 			}
@@ -234,7 +234,7 @@ int CNamedDefine::GetNameLength(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayChars* CNamedDefine::GetArguments(void)
 {
-	return &mcArguments;
+	return &maszArguments;
 }
 
 
