@@ -35,14 +35,16 @@ typedef CArrayTemplate<SDefineArgument> CArrayDefineArgument;
 
 class CDefineArguments
 {
-public:
+protected:
 	CArrayDefineArgument	mcDefineToArguments;
 
+public:
 	void 					Init(void);
 	void 					Kill(void);
 	SDefineArgument*		Get(int64 lliDefineID);
 	SDefineArgument*		Add(int64 lliDefineID);
 	void					Remove(int64 lliDefineID);
+	int						GetDefineArgumentsIndex(SDefineArgument* psArguments);
 };
 
 

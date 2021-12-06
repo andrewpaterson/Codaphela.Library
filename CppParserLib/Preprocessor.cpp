@@ -1432,7 +1432,7 @@ BOOL CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 		{
 			pcParser->NextToken();
 			psArguments = mcArguments.Add(pcDefine->GetID());
-			iArgIndex = mcArguments.mcDefineToArguments.GetIndex(psArguments);
+			iArgIndex = mcArguments.GetDefineArgumentsIndex(psArguments);
 			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
 			if (!bResult)
 			{
@@ -1507,7 +1507,7 @@ BOOL CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 		{
 			pcParser->NextToken();
 			psArguments = mcArguments.Add(pcDefine->GetID());
-			iArgIndex = mcArguments.mcDefineToArguments.GetIndex(psArguments);
+			iArgIndex = mcArguments.GetDefineArgumentsIndex(psArguments);
 			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
 			if (!bResult)
 			{
