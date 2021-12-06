@@ -18,23 +18,22 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __P_P_HOLDER_H__
-#define __P_P_HOLDER_H__
+#ifndef __P_P_TOKEN_REPLACEMENTS_HOLDER_H__
+#define __P_P_TOKEN_REPLACEMENTS_HOLDER_H__
 #include "PPTokenListHolder.h"
 
 
-class CPPHolder : public CPPTokenListHolder
+class CPPTokenReplacementsHolder : public CPPTokenListHolder
 {
 public:
-	TOKEN_CONSTRUCT(CPPHolder);
+	TOKEN_CONSTRUCT(CPPTokenReplacementsHolder);
 	void 	Init(int iLine, int iColumn);
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	BOOL	Equals(CPPToken* pcOther);
-	BOOL	IsHolder(void);
+	BOOL	IsHolder2(void);
 };
 
 
-#endif // !__P_P_HOLDER_H__
-
+#endif // !__P_P_TOKEN_REPLACEMENTS_HOLDER_H__
 

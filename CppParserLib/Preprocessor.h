@@ -30,7 +30,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ASCIITree.h"
 #include "PreprocessorTokeniser.h"
 #include "PPDirective.h"
-#include "PPHolder.h"
+#include "PPTokenReplacementsHolder.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
 #include "PPHashes.h"

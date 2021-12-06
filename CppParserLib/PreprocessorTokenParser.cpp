@@ -126,7 +126,7 @@ void CPreprocessorTokenParser::Bump(void)
 
 	if (mpsCurrent->pcCurrentToken != NULL)
 	{
-		if (mpsCurrent->pcCurrentToken->IsAbstractHolder())
+		if (mpsCurrent->pcCurrentToken->IsTokenListHolder())
 		{
 			pcHolder = (CPPTokenListHolder*)mpsCurrent->pcCurrentToken;
 			MarkDown(pcHolder);
@@ -1088,7 +1088,7 @@ BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* 
 	for (i = 0; i < pcHolder->TokenLength(); i++)
 	{
 		pcToken = pcHolder->Get(i);
-		if (pcToken->IsAbstractHolder())
+		if (pcToken->IsTokenListHolder())
 		{
 			pcChild = (CPPTokenListHolder*)pcToken;
 			if (AppendRemaining(psz, pcChild, bAppending))
@@ -1207,7 +1207,7 @@ void CPreprocessorTokenParser::AssignCurrent(CPPToken* pcToken, int iTokenIndex)
 	int						i;
 	CPPTokenListHolder*		pcHolder;
 
-	if ((pcToken != NULL) && (pcToken->IsAbstractHolder()))
+	if ((pcToken != NULL) && (pcToken->IsTokenListHolder()))
 	{
 		return;
 	}

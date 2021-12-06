@@ -47,9 +47,9 @@ public:
 	virtual BOOL			IsWhiteSpace(void);
 	virtual BOOL			IsReplacement(void);
 	virtual BOOL			IsHash(void);
-	virtual BOOL			IsAbstractHolder(void);
+	virtual BOOL			IsTokenListHolder(void);
 	virtual BOOL			IsLine(void);
-	virtual BOOL			IsHolder(void);
+	virtual BOOL			IsTokenReplacementsHolder(void);
 	virtual BOOL			IsFile(void);
 	virtual BOOL			IsBlock(void);
 	virtual BOOL			IsUnknown(void);

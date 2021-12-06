@@ -123,7 +123,7 @@ void CPPTokenList::SavageAppend(CChars* psz, int iDepth)
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		pcToken = *mcArray.Get(i);
-		if (pcToken->IsAbstractHolder())
+		if (pcToken->IsTokenListHolder())
 		{
 			pcHolder = (CPPTokenListHolder*)pcToken;
 			pcHolder->GetTokens()->SavageAppend(psz, iDepth+1);

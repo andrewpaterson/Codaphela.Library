@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPText.h"
 #include "PPTextWithSource.h"
 #include "PPHashes.h"
-#include "PPHolder.h"
+#include "PPTokenReplacementsHolder.h"
 #include "PPBlock.h"
 
 
@@ -42,7 +42,7 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	CPPReplacement*			pcReplacement;
 	CPPText*				pcText;
 	CPPTextWithSource*		pcTextWithSource;
-	CPPHolder*				pcHolder;
+	CPPTokenReplacementsHolder*				pcHolder;
 	CPPHashes*				pcHashes;
 	CPPBlock*				pcBlock;
 
@@ -97,10 +97,10 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 		pcBlock->Copy((CPPBlock*)pcSource, pcTokens);
 		return pcBlock;
 	}	
-	else if (pcSource->IsHolder())
+	else if (pcSource->IsTokenReplacementsHolder())
 	{
-		pcHolder = pcTokens->AddHolder();
-		pcHolder->Copy((CPPHolder*)pcSource, pcTokens);
+		pcHolder = pcTokens->AddTokenReplacementsHolder();
+		pcHolder->Copy((CPPTokenReplacementsHolder*)pcSource, pcTokens);
 		return pcHolder;
 	}
 	else

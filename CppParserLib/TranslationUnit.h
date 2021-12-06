@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MapStringTemplate.h"
 #include "SourceFile.h"
 #include "PPBlock.h"
-#include "PPHolder.h"
+#include "PPTokenReplacementsHolder.h"
 
 
 struct STULog
