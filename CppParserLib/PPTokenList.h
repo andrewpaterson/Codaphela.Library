@@ -18,13 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __P_P_TOKEN_HOLDER_H__
-#define __P_P_TOKEN_HOLDER_H__
+#ifndef __P_P_TOKEN_LIST_H__
+#define __P_P_TOKEN_LIST_H__
 #include "BaseLib/Chars.h"
 #include "PPToken.h"
 
 
-class CPPTokenHolder
+class CPPTokenList
 {
 protected:
 	CArrayPPTokenPtrs	mcArray;
@@ -34,7 +34,7 @@ public:
 	void		Kill(void);
 	char*		Print(CChars* psz);
 	void		Add(CPPToken* ppcToken);
-	BOOL		Equals(CPPTokenHolder* pcOther);
+	BOOL		Equals(CPPTokenList* pcOther);
 	void		SavageAppend(CChars* psz, int iDepth);
 	int			NumTokens(void);
 	CPPToken*	Get(int iTokenIndex);
@@ -42,8 +42,8 @@ public:
 };
 
 
-typedef CArrayTemplate<CPPTokenHolder> CArrayPPTokenHolders;
+typedef CArrayTemplate<CPPTokenList> CArrayPPTokenHolders;
 
 
-#endif // !__P_P_TOKEN_HOLDER_H__
+#endif // !__P_P_TOKEN_LIST_H__
 

@@ -27,6 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 typedef CArrayTemplate<CPPBlockSet> __CArrayPPBlockSet;
 
 
+//Re-write this to have a freelist of CPPBlockSet rather than being an array of.
 class CPPBlockSetArray : public __CArrayPPBlockSet
 {
 protected:

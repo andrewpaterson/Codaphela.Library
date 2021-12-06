@@ -248,7 +248,7 @@ BOOL CCPPTokeniser::Line(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCPPTokeniser::Tokenise(CPPTokenHolder* pcSource)
+BOOL CCPPTokeniser::Tokenise(CPPTokenList* pcSource)
 {
 	int				i;
 	BOOL			bResult;

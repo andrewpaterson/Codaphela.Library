@@ -43,7 +43,7 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL 	Tokenise(CPPTokenHolder* pcSource);
+	BOOL 	Tokenise(CPPTokenList* pcSource);
 	BOOL	Line(void);
 	BOOL	Literal(void);
 	BOOL	ReservedWord(void);

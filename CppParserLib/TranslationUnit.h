@@ -41,7 +41,7 @@ struct STULog
 class CTranslationUnit : public CSourceFile
 {
 protected:
-	CPPTokenHolder	mcTokenHolder;
+	CPPTokenList	mcTokenHolder;
 	STULog*			mpcLogs;
 	CLibrary*		mpcLibrary;
 
@@ -55,7 +55,7 @@ public:
 	BOOL				LogInlucdes(void);
 	BOOL				IsPragmaOnced(void);
 	BOOL				IsSystemFile(void);
-	CPPTokenHolder*		GetTokenHolder(void);
+	CPPTokenList*		GetTokenHolder(void);
 	STULog*				GetLogs(void);
 	CLibrary*			GetLibrary(void);
 };

@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DEFINE_ARGUMENTS_H__
 #define __DEFINE_ARGUMENTS_H__
-#include "PPTokenHolder.h"
+#include "PPTokenList.h"
 
 
 struct SDefineArgument 

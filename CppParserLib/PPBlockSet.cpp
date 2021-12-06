@@ -163,7 +163,7 @@ BOOL CPPBlockSet::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPTokenHolder* CPPBlockSet::GetRawTokensHolder(void)
+CPPTokenList* CPPBlockSet::GetRawTokensHolder(void)
 {
 	return &mcRawTokens;
 }

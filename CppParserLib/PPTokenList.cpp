@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "PPTokenHolder.h"
+#include "PPTokenList.h"
 #include "PPAbstractHolder.h"
 
 
@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Init(void)
+void CPPTokenList::Init(void)
 {
 	mcArray.Init();
 }
@@ -36,7 +36,7 @@ void CPPTokenHolder::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Kill(void)
+void CPPTokenList::Kill(void)
 {
 	mcArray.Kill();
 }
@@ -46,7 +46,7 @@ void CPPTokenHolder::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CPPTokenHolder::Print(CChars* psz)
+char* CPPTokenList::Print(CChars* psz)
 {
 	CPPToken*	pcToken;
 	int			i;
@@ -70,7 +70,7 @@ char* CPPTokenHolder::Print(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Add(CPPToken* pcToken)
+void CPPTokenList::Add(CPPToken* pcToken)
 {
 	mcArray.Add(&pcToken);
 }
@@ -80,7 +80,7 @@ void CPPTokenHolder::Add(CPPToken* pcToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenHolder::Equals(CPPTokenHolder* pcOther)
+BOOL CPPTokenList::Equals(CPPTokenList* pcOther)
 {
 	int					i;
 	CPPToken*			pcThisToken;
@@ -114,7 +114,7 @@ BOOL CPPTokenHolder::Equals(CPPTokenHolder* pcOther)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::SavageAppend(CChars* psz, int iDepth)
+void CPPTokenList::SavageAppend(CChars* psz, int iDepth)
 {
 	CPPToken*			pcToken;
 	int					i;
@@ -144,7 +144,7 @@ void CPPTokenHolder::SavageAppend(CChars* psz, int iDepth)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenHolder::Dump(void)
+void CPPTokenList::Dump(void)
 {
 	CChars	sz;
 
@@ -159,7 +159,7 @@ void CPPTokenHolder::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPPTokenHolder::Get(int iTokenIndex)
+CPPToken* CPPTokenList::Get(int iTokenIndex)
 {
 	CPPToken**	ppcToken;
 
@@ -179,7 +179,7 @@ CPPToken* CPPTokenHolder::Get(int iTokenIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CPPTokenHolder::NumTokens(void)
+int CPPTokenList::NumTokens(void)
 {
 	return mcArray.NumElements();
 }
