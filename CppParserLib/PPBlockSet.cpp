@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlockSet::Init(CPPTokenMemory* pcTokenMemory, int iLine, int iBlock, BOOL bTextBlocks)
+void CPPBlockSet::Init(int iLine, int iBlock, BOOL bTextBlocks)
 {
 	mcRawTokens.Init();
 	mapcBlocks.Init();
