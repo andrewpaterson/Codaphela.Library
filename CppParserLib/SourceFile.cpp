@@ -187,16 +187,9 @@ void CSourceFile::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSourceFile::DumpBlocks(void)
+void CSourceFile::DumpBlockSets(void)
 {
-	int				i;
-	CPPBlockSet* pcBlockSet;
-
-	for (i = 0; i < macBlockSets.NumElements(); i++)
-	{
-		pcBlockSet = macBlockSets.Get(i);
-		pcBlockSet->Dump();
-	}
+	macBlockSets.DumpBlockSets();
 }
 
 

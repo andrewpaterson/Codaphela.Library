@@ -51,7 +51,9 @@ public:
 	int					Line(void);
 	int					Column(void);
 	int					Block(void);
+	void				Print(CChars* psz);
 	void				Dump(void);
+	void				DumpBlockSet(void);
 };
 
 

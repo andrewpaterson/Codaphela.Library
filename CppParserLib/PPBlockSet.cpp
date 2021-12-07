@@ -126,7 +126,43 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CPPBlockSet::Print(CChars* psz)
+{
+	int				iNumElements;
+	int				i;
+	CPPBlock*		pcBlock;
+
+	if (mbTextBlocks)
+	{
+		iNumElements = mapcBlocks.NumElements();
+		for (i = 0; i < iNumElements; i++)
+		{
+			pcBlock = *mapcBlocks.Get(i);
+			pcBlock->Print(psz);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CPPBlockSet::Dump(void)
+{
+	CChars			sz;
+			
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPBlockSet::DumpBlockSet(void)
 {
 	CChars			sz;
 	int				iLast;

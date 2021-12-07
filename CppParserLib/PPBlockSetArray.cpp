@@ -70,7 +70,38 @@ CPPBlockSet* CPPBlockSetArray::Add(int iLine, BOOL bTextBlocks)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CPPBlockSetArray::Print(CChars* psz)
+{
+	int				i;
+	CPPBlockSet* pcBlockSet;
+
+	for (i = 0; i < NumElements(); i++)
+	{
+		pcBlockSet = Get(i);
+		pcBlockSet->Print(psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CPPBlockSetArray::Dump(void)
+{
+	CChars			sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPPBlockSetArray::DumpBlockSets(void)
 {
 	int				i;
 	CPPBlockSet*	pcBlockSet;
@@ -78,7 +109,7 @@ void CPPBlockSetArray::Dump(void)
 	for (i = 0; i < NumElements(); i++)
 	{
 		pcBlockSet = Get(i);
-		pcBlockSet->Dump();
+		pcBlockSet->DumpBlockSet();
 	}
 }
 

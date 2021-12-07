@@ -936,8 +936,6 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 				return FALSE;
 			}
 
-			pcBlocksSet->AddBlock(pcBlockProcessed);
-			pcBlockProcessed->SetNext(sResult.iTokenIndex, sResult.iBlockIndex);
 			pcBlockMatching = pcBlockProcessed;
 			if (!pcBlockProcessed->IsEmpty())
 			{
@@ -2508,10 +2506,6 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSou
 			break;
 		}
 	}
-
-	//Seriously, do something about this.  They should be passed as parameters, not global variables.
-	//mpcPostprocessedTokens = NULL;
-	//mpcStack = NULL;
 
 	return sLine;
 }

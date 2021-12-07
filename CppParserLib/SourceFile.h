@@ -57,7 +57,7 @@ public:
 			CPPTokenList*		GetTokenList(void);
 			char*				Print(CChars* psz);
 			void				Dump(void);
-			void				DumpBlocks(void);
+			void				DumpBlockSets(void);
 };
 
 
