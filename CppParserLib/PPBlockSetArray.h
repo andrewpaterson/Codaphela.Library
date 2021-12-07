@@ -38,7 +38,9 @@ public:
 	void				RawProcessed(void);
 	BOOL				IsRawProcessed(void);
 	CPPBlockSet*		Add(int iLine, BOOL bTextBlocks);
+	void				Print(CChars* psz);
 	void				Dump(void);
+	void				DumpBlockSets(void);
 };
 
 
