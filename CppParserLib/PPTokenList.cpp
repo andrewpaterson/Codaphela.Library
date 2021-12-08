@@ -38,6 +38,16 @@ void CPPTokenList::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenList::Kill(void)
 {
+	CPPToken*	pcToken;
+	int			i;
+	int			iNumTokens;
+
+	iNumTokens = mcArray.NumElements();
+	for (i = 0; i < iNumTokens; i++)
+	{
+		pcToken = *mcArray.Get(i);
+		pcToken->Kill();
+	}
 	mcArray.Kill();
 }
 

@@ -35,6 +35,7 @@ protected:
 
 public:
 	void 				Init(void);
+	void				Kill(void);
 	void				RawProcessed(void);
 	BOOL				IsRawProcessed(void);
 	CPPBlockSet*		Add(int iLine, BOOL bTextBlocks);

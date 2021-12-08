@@ -470,7 +470,7 @@ CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 	CPreprocessorLineTokensier::Preprocess(cLine.GetTokenList(), &mcParser, pcTokens, TRUE);
 	if (cLine.IsEmpty())
 	{
-		cLine.Kill();  //Stuff is still allocated in pcTokens, it'll be killed when the pcTokens is.  It's too small to worry about.
+		cLine.Kill();  //Stuff is still allocated in pcTokens.
 		return NULL;
 	}
 	else

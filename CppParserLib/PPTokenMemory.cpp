@@ -18,15 +18,15 @@ void CPPTokenMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenMemory::Kill(void)
 {
-	SPPTokenIterator	sIter;
-	CPPToken*			pcPPToken;
+	//SPPTokenIterator	sIter;
+	//CPPToken*			pcPPToken;
 
-	pcPPToken = StartIteration(&sIter);
-	while (pcPPToken)
-	{
-		pcPPToken->Kill();
-		pcPPToken = Iterate(&sIter);
-	}
+	//pcPPToken = StartIteration(&sIter);
+	//while (pcPPToken)
+	//{
+	//	pcPPToken->Kill();
+	//	pcPPToken = Iterate(&sIter);
+	//}
 
 	mcStack.Kill();
 }

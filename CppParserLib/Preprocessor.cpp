@@ -73,7 +73,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 	AddSpecialDefine("__OBJC__");
 	AddSpecialDefine("__ASSEMBLER__");
 
-
 	AddSpecialOperator("defined", PPSO_Defined);
 	AddSpecialOperator("__has_attribute", PPSO_HasAttribute);
 	AddSpecialOperator("__has_cpp_attribute", PPSO_HasCppAttribute);
@@ -2540,6 +2539,8 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	{
 		cOutput.Print(pszDest);
 	}
+
+	cPreprocessor.Kill();
 
 	acBlockSets.Kill();
 
