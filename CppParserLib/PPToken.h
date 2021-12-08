@@ -34,9 +34,10 @@ class CPPToken
 protected:
 	int		miLine;
 	int		miColumn;
-	
+	int		miUsage;
+
 public:
-	virtual void			Init(int iLine, int iColumn) =0;
+	virtual void			Init(int iLine, int iColumn);
 	virtual void			Kill(void) =0;
 
 	virtual const char*		ClassName(void) =0;
@@ -58,6 +59,8 @@ public:
 	virtual char*			Print(CChars* psz) =0;
 	virtual void			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens) =0;
 	virtual BOOL			Equals(CPPToken* pcOther) =0;
+			void			Use(void);
+			void			Unuse(void);
 
 			int				Line(void);
 			int				Column(void);
