@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPDirective::Init(int iLine, int iColumn)
 {
-	//Ignored.
+	CPPTokenListHolder::Init(iLine, iColumn);
 }
 
 

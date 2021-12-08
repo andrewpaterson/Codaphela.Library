@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenListHolder::Init(int iLine, int iColumn)
 {
-	Set(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn);
 	mcTokens.Init();
 }
 

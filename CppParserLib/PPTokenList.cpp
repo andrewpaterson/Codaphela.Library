@@ -46,7 +46,7 @@ void CPPTokenList::Kill(void)
 	for (i = 0; i < iNumTokens; i++)
 	{
 		pcToken = *mcArray.Get(i);
-		pcToken->Kill();
+		pcToken->Unuse();
 	}
 	mcArray.Kill();
 }
@@ -82,6 +82,7 @@ char* CPPTokenList::Print(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenList::Add(CPPToken* pcToken)
 {
+	pcToken->Use();
 	mcArray.Add(&pcToken);
 }
 

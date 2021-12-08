@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPReplacement::Init(int iLine, int iColumn)
 {
-	//Ignored.
+	CPPToken::Init(iLine, iColumn);
 }
 
 

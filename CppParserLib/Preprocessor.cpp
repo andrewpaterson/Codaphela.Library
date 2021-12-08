@@ -922,8 +922,6 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 			pcTokenMemory->Mark(&cMark);
 
 			pcBlockProcessed = pcTokenMemory->AddBlock();
-			
-
 			pcBlockProcessed->Init(pcBlocksSet->Line(), pcBlocksSet->Column());
 
 			mcStack.Push(pcBlockProcessed->GetTokenList(), pcTokenMemory);
@@ -935,29 +933,19 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 				return FALSE;
 			}
 
-			pcBlockMatching = pcBlockProcessed;
-			if (!pcBlockProcessed->IsEmpty())
+			pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
+			if (pcBlockMatching == NULL)
 			{
-				pcBlockMatching = pcBlocksSet->GetMatchingBlock(pcBlockProcessed);
-				if (pcBlockMatching == NULL)
-				{
-					pcBlocksSet->AddBlock(pcBlockProcessed);
-					pcBlockProcessed->SetNext(sResult.iTokenIndex, sResult.iBlockIndex);
-					pcBlockMatching = pcBlockProcessed;
-				}
-				else
-				{
-					pcBlockProcessed->Kill();
-					pcTokenMemory->Rollback(&cMark);
-					miBlockReuse++;
-					sResult = pcBlockMatching->GetNextTokenBlock();
-				}
+				pcBlocksSet->AddBlock(pcBlockProcessed);
+				pcBlockProcessed->SetNext(sResult.iTokenIndex, sResult.iBlockIndex);
+				pcBlockMatching = pcBlockProcessed;
 			}
 			else
 			{
 				pcBlockProcessed->Kill();
 				pcTokenMemory->Rollback(&cMark);
-				pcBlockMatching = NULL;
+				miBlockReuse++;
+				sResult = pcBlockMatching->GetNextTokenBlock();
 			}
 			cMark.Kill();
 
@@ -966,10 +954,7 @@ BOOL CPreprocessor::PreprocessBlockSets(CPPBlockSetArray* pacSourceBlockSets)
 				return FALSE;
 			}
 
-			if (pcBlockMatching)
-			{
-				pcTokenList->Add(pcBlockMatching);
-			}
+			pcTokenList->Add(pcBlockMatching);
 		}
 
 		pcBlocksSet = pacSourceBlockSets->SafeGet(sResult.iBlockIndex);
@@ -2526,6 +2511,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 
 	cTokeniser.Init();
 	cTokenMemory.Init();
+
 	iLen = (int)strlen(szSource);
 	acBlockSets.Init();
 	bResult = cTokeniser.TokeniseIntoBlockSets(&acBlockSets, &cTokenMemory, szSource, iLen);
