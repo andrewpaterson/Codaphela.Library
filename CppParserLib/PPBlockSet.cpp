@@ -52,7 +52,7 @@ void CPPBlockSet::Kill(void)
 	for (i = 0; i < iNumElements; i++)
 	{
 		pcBlock = *mapcBlocks.Get(i);
-		pcBlock->Kill();
+		pcBlock->Unuse();
 	}
 
 	mapcBlocks.Kill();
@@ -89,10 +89,10 @@ CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlockSet::AddBlock(CPPBlock* pcBlock)
+void CPPBlockSet::AddBlock(CPPBlock* pcBlock)
 {
+	pcBlock->Use();
 	mapcBlocks.Add(&pcBlock);
-	return TRUE;
 }
 
 

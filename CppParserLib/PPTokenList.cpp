@@ -38,6 +38,7 @@ void CPPTokenList::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPTokenList::Kill(void)
 {
+	CPPToken**	ppcToken;
 	CPPToken*	pcToken;
 	int			i;
 	int			iNumTokens;
@@ -45,8 +46,12 @@ void CPPTokenList::Kill(void)
 	iNumTokens = mcArray.NumElements();
 	for (i = 0; i < iNumTokens; i++)
 	{
-		pcToken = *mcArray.Get(i);
-		pcToken->Unuse();
+		ppcToken = mcArray.Get(i);
+		if (ppcToken)
+		{
+			pcToken = *ppcToken;
+			pcToken->Unuse();
+		}
 	}
 	mcArray.Kill();
 }
@@ -58,6 +63,7 @@ void CPPTokenList::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPPTokenList::Print(CChars* psz)
 {
+	CPPToken**	ppcToken;
 	CPPToken*	pcToken;
 	int			i;
 	int			iNumTokens;
@@ -65,11 +71,15 @@ char* CPPTokenList::Print(CChars* psz)
 	iNumTokens = mcArray.NumElements();
 	for (i = 0; i < iNumTokens; i++)
 	{
-		pcToken = *mcArray.Get(i);
-		pcToken->Print(psz);
-		if (pcToken->NeedsNewLine())
+		ppcToken = mcArray.Get(i);
+		if (ppcToken)
 		{
-			psz->AppendNewLine();
+			pcToken = *mcArray.Get(i);
+			pcToken->Print(psz);
+			if (pcToken->NeedsNewLine())
+			{
+				psz->AppendNewLine();
+			}
 		}
 	}
 	return psz->Text();

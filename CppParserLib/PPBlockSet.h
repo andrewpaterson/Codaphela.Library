@@ -44,7 +44,7 @@ public:
 	void 				Init(int iLine, int iBlock, BOOL bTextBlocks);
 	void 				Kill(void);
 	CPPBlock*			GetMatchingBlock(CPPBlock* pcOtherBlock);
-	BOOL				AddBlock(CPPBlock* pcBlock);
+	void				AddBlock(CPPBlock* pcBlock);
 	BOOL				IsLastToken(int iToken);
 	BOOL				IsDirective(void);
 	CPPTokenList*		GetUnprocssedTokens(void);
