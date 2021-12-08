@@ -376,8 +376,9 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	if (!mbContainsLineContinuers)
 	{
 		pcText = mpcTokens->AddText();
-		mpcTokenHolder->Add(pcText);
 		pcText->Init(eType, mpcParser->miLine, mpcParser->miColumn, szStart, szEndExclusive);
+
+		mpcTokenHolder->Add(pcText);
 		return pcText;
 	}
 	else
@@ -385,8 +386,9 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 		sz.Init();
 		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
 		pcTextWithSource = mpcTokens->AddTextWithSource();
-		mpcTokenHolder->Add(pcTextWithSource);
 		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
+
+		mpcTokenHolder->Add(pcTextWithSource);
 		sz.Kill();
 		return pcTextWithSource;
 	}

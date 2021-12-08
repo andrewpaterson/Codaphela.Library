@@ -36,6 +36,27 @@ void CPPBlockSetArray::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CPPBlockSetArray::Kill(void)
+{
+	int				i;
+	int				iNumElements;
+	CPPBlockSet*	pcBlockSet;
+
+	iNumElements = NumElements();
+	for (i = 0; i < iNumElements; i++)
+	{
+		pcBlockSet = Get(i);
+		pcBlockSet->Kill();
+	}
+	__CArrayPPBlockSet::Kill();
+	mbRawProcessed = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CPPBlockSetArray::RawProcessed(void)
 {
 	mbRawProcessed = TRUE;

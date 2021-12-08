@@ -46,8 +46,10 @@ void CPPBlockSet::Kill(void)
 {
 	int			i;
 	CPPBlock*	pcBlock;
+	int			iNumElements;
 
-	for (i = 0; i < mapcBlocks.NumElements(); i++)
+	iNumElements = mapcBlocks.NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		pcBlock = *mapcBlocks.Get(i);
 		pcBlock->Kill();

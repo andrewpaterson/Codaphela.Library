@@ -47,15 +47,6 @@ void CSourceFile::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CSourceFile::Kill(void)
 {
-	int				i;
-	CPPBlockSet*	pcBlockSet;
-
-
-	for (i = 0; i < macBlockSets.NumElements(); i++)
-	{
-		pcBlockSet = macBlockSets.Get(i);
-		pcBlockSet->Kill();
-	}
 	macBlockSets.Kill();
 	mcTokenList.Kill();
 
