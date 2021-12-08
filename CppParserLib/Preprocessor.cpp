@@ -989,11 +989,8 @@ BOOL CPreprocessor::PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile)
 	LogInclude(pcFile);
 	mpcCurrentFile = pcFile;
 
-	mcStack.Push(pcFile->GetTokenList(), pcFile->GetTokenMemory());
-
 	bResult = TokeniseFile(pcFile);
 
-	mcStack.Pop();
 	if (!bResult)
 	{
 		return FALSE;
@@ -1003,7 +1000,10 @@ BOOL CPreprocessor::PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile)
 	if (!mpcCurrentFile->IsPragmaOnced())
 	{
 		pacSourceBlockSets = pcFile->GetBlockSets();
+
+		mcStack.Push(pcFile->GetTokenList(), pcFile->GetTokenMemory());
 		bResult = PreprocessBlockSets(pacSourceBlockSets);
+		mcStack.Pop();
 	}
 
 	mpcCurrentFile = pcFromFile;
