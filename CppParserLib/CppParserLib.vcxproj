@@ -270,7 +270,6 @@
     <ClCompile Include="CTNumber.cpp" />
     <ClCompile Include="CTShort.cpp" />
     <ClCompile Include="CTNewLine.cpp" />
-    <ClCompile Include="GeneralToken.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AbstractSyntaxTree.h" />

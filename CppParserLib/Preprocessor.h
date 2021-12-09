@@ -58,6 +58,7 @@ protected:
 	CASCIITree				mcDirectives;
 	CDefineMap				mcDefines;
 	CPPTokenMemory			mcDefineReplacementMemory;
+	CMemoryStackExtended	mcDefineStrings;
 	CSpecialOperatorMap		mcSpecialOperators;
 	CDefineArguments		mcArguments;
 	CArrayHeaderFiles		mcHeaderNames;

@@ -42,6 +42,8 @@ void CPreprocessor::Init(CConfig* pcConfig)
 {
 	mcDefines.Init();
 	mcDefineReplacementMemory.Init();
+	mcDefineStrings.Init(256);
+
 	mcSpecialOperators.Init();
 	miIncludeDepth = 0;
 	miBlockReuse = 0;
@@ -101,8 +103,10 @@ void CPreprocessor::Kill(void)
 	mcConditionalStack.Kill();
 	mcHeaderNames.Kill();
 	mcSpecialOperators.Kill();
+
 	mcDefines.Kill();
 	mcDefineReplacementMemory.Kill();
+	mcDefineStrings.Kill();
 }
 
 
@@ -228,7 +232,7 @@ CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenM
 
 	iLen = (int)strlen(szReplacement);
 	pcDefine = mcDefines.AddDefine(szDefine);
-	sz = (char*)gcTokenStrings.Add(iLen+1);
+	sz = (char*)mcDefineStrings.Add(iLen+1);
 	memcpy(sz, szReplacement, iLen+1);
 
 	cTokeniser.Init();
@@ -1617,7 +1621,7 @@ BOOL CPreprocessor::ProcessDefinedIdentifier(CPPTokenList* pcDest, CPPText* pcTe
 	pcToken = pcParser->GetToken();
 	pcTokenMemory = mcStack.GetTokenMemory();
 	pcDecorator = pcTokenMemory->AddText();
-	pcValue = (char*)gcTokenStrings.Add(1);
+	pcValue = (char*)mcDefineStrings.Add(1);
 	*pcValue = '0';
 	pcDecorator->Init(PPT_Number, -1, -1, pcValue, pcValue + 1);
 	if (pcToken)
@@ -1688,7 +1692,7 @@ BOOL CPreprocessor::ProcessHasIncludeIdentifier(CPPTokenList* pcDest, CPPText* p
 		{
 			pcTokenMemory = mcStack.GetTokenMemory();
 			pcDecorator = pcTokenMemory->AddText();
-			pcValue = (char*)gcTokenStrings.Add(1);
+			pcValue = (char*)mcDefineStrings.Add(1);
 			*pcValue = '0';
 			pcDecorator->Init(PPT_Number, -1, -1, pcValue, pcValue + 1);
 			if (pcIncludeFile)
@@ -2124,7 +2128,7 @@ CPPToken* CPreprocessor::ConcaternateTokens(CPPTokenList* pcDest, CPPToken* pcLe
 			pcLeftText->Print(&szConcaternated);
 			pcRightText->Print(&szConcaternated);
 
-			szInStrings = (char*)gcTokenStrings.Add(szConcaternated.Length()+1);
+			szInStrings = (char*)mcDefineStrings.Add(szConcaternated.Length()+1);
 			memcpy(szInStrings, szConcaternated.Text(), szConcaternated.Length()+1);
 
 			pcLeftText->mcText.msz = szInStrings;
@@ -2169,7 +2173,7 @@ CPPToken* CPreprocessor::QuoteTokens(CPPTokenList* pcDest, CPPTokenListHolder* p
 	szQuoted.Append('"');
 	bQuoteNextReplacement = FALSE;
 
-	szInStrings = (char*)gcTokenStrings.Add(szQuoted.Length()+1);
+	szInStrings = (char*)mcDefineStrings.Add(szQuoted.Length()+1);
 	memcpy(szInStrings, szQuoted.Text(), szQuoted.Length()+1);
 	pcTokenMemory = mcStack.GetTokenMemory();
 	pcQuoted = pcTokenMemory->AddText();
