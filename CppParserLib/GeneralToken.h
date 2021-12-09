@@ -24,12 +24,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Constructable.h"
 
-//The token memory should be moved out to each preprocessed file etc... but... later.
-
-
-extern CMemoryStackExtended gcTokenMemory;
-extern CMemoryStackExtended gcTokenStrings;
-
 
 #define TOKEN_CONSTRUCT(TOKEN)\
 CONSTRUCTABLE(TOKEN)\
@@ -37,10 +31,6 @@ static TOKEN* Construct(void* pvMem)\
 {\
 	return new(pvMem) TOKEN();\
 }
-
-
-void InitTokenMemory(void);
-void KillTokenMemory(void);
 
 
 #endif // !__GENERAL_TOKEN_H__

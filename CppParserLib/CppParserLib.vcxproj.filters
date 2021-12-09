@@ -318,9 +318,6 @@
     <ClCompile Include="CTNewLine.cpp">
       <Filter>Source\Tokeniser\Tokens\Helpers</Filter>
     </ClCompile>
-    <ClCompile Include="GeneralToken.cpp">
-      <Filter>Source\General</Filter>
-    </ClCompile>
     <ClCompile Include="ASCIITree.cpp">
       <Filter>Source\Preprocessor\ASCII</Filter>
     </ClCompile>
