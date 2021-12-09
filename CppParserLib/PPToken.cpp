@@ -43,6 +43,10 @@ void CPPToken::Unuse(void)
 	{
 		Kill();
 	}
+	else if (miUsage < 0)
+	{
+		gcUserError.Set("Usage went negative.");
+	}
 }
 
 

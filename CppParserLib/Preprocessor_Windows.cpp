@@ -35,7 +35,7 @@ void CPreprocessor::InitPlatformSpecific(void)
 	AddSpecialDefine("__FUNCDNAME__");
 
 	AddDefine("_M_IX86");
-	AddDefine("__inline", "inline");
+	AddDefine("__inline", "inline", &mcDefineReplacementMemory);
 
 #ifdef _ATL_VER
 	AddDefine("_ATL_VER", _ATL_VER);
@@ -60,7 +60,7 @@ void CPreprocessor::InitPlatformSpecific(void)
 #ifdef _INTEGRAL_MAX_BITS
 	sz.Init();
 	sz.Append(_INTEGRAL_MAX_BITS);
-	AddDefine("_INTEGRAL_MAX_BITS", sz.Text());
+	AddDefine("_INTEGRAL_MAX_BITS", sz.Text(), &mcDefineReplacementMemory);
 	sz.Kill();
 #endif
 
@@ -76,14 +76,14 @@ void CPreprocessor::InitPlatformSpecific(void)
 #ifdef _MSC_EXTENSIONS
 	sz.Init();
 	sz.Append(_MSC_EXTENSIONS);
-	AddDefine("_MSC_EXTENSIONS", sz.Text());
+	AddDefine("_MSC_EXTENSIONS", sz.Text(), &mcDefineReplacementMemory);
 	sz.Kill();
 #endif
 
 #ifdef _MSC_VER
 	sz.Init();
 	sz.Append(_MSC_VER);
-	AddDefine("_MSC_VER", sz.Text());
+	AddDefine("_MSC_VER", sz.Text(), &mcDefineReplacementMemory);
 	sz.Kill();
 #endif
 
@@ -110,14 +110,14 @@ void CPreprocessor::InitPlatformSpecific(void)
 #ifdef _MSC_FULL_VER
 	sz.Init();
 	sz.Append(_MSC_FULL_VER);
-	AddDefine("_MSC_FULL_VER", sz.Text());
+	AddDefine("_MSC_FULL_VER", sz.Text(), &mcDefineReplacementMemory);
 	sz.Kill();
 #endif
 
 #ifdef _WIN32_WINNT
 	sz.Init();
 	sz.Append(_WIN32_WINNT);
-	AddDefine("_WIN32_WINNT", sz.Text());
+	AddDefine("_WIN32_WINNT", sz.Text(), &mcDefineReplacementMemory);
 	sz.Kill();
 #else
 	AddDefine("_WIN32_WINNT", "0");
@@ -130,13 +130,13 @@ void CPreprocessor::InitPlatformSpecific(void)
 	AddDefine("_WIN32_FUSION", sz.Text());
 	sz.Kill();
 #else
-	AddDefine("_WIN32_FUSION", "0");
+	AddDefine("_WIN32_FUSION", "0", &mcDefineReplacementMemory);
 #endif
 
 #ifdef _WIN32_WINDOWS
 	sz.Init();
 	sz.Append(_WIN32_WINDOWS);
-	AddDefine("_WIN32_WINDOWS", sz.Text());
+	AddDefine("_WIN32_WINDOWS", sz.Text(), &mcDefineReplacementMemory);
 	sz.Kill();
 #else
 	AddDefine("_WIN32_WINDOWS", "0");

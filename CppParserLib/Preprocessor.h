@@ -57,6 +57,7 @@ protected:
 	CSourceFile*			mpcCurrentFile;
 	CASCIITree				mcDirectives;
 	CDefineMap				mcDefines;
+	CPPTokenMemory			mcDefineReplacementMemory;
 	CSpecialOperatorMap		mcSpecialOperators;
 	CDefineArguments		mcArguments;
 	CArrayHeaderFiles		mcHeaderNames;
@@ -79,8 +80,7 @@ public:
 	static void			Preprocess(char* szSource, CChars* szDest);
 
 public:
-	void 				Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTokenList* pcProcessedTokens);
-	void				Init(CConfig* pcConfig, CTranslationUnit* pcFile);
+	void 				Init(CConfig* pcConfig);
 	void 				Kill(void);
 	void				InitPlatformSpecific(void);
 	void				AddConfigDefines(CConfig* pcConfig);	
@@ -95,7 +95,7 @@ public:
 	CDefine*			GetDefine(CExternalString* pcString, BOOL bExact);
 	CDefine*			GetDefine(char* szName, BOOL bExact);
 	CDefine* 			AddDefine(char* szDefine);
-	CDefine*			AddDefine(char* szDefine, char* szReplacement);
+	CDefine*			AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory);
 	CDefine*			AddSpecialDefine(char* szDefine);
 
 	CSpecialOperator*	GetSpecialOperator(CExternalString* pcString, BOOL bExact);

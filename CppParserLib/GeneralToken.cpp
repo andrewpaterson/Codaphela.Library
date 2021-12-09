@@ -46,3 +46,4 @@ void KillTokenMemory(void)
 	gcTokenStrings.Kill();
 	gcTokenMemory.Kill();
 }
+
