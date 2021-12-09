@@ -50,7 +50,7 @@ void CPPUnknown::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPDirective* pcCast;
 
-	if (pcSource->IsDirective())
+	if (pcSource->IsUnknown())
 	{
 		pcCast = (CPPDirective*)pcSource;
 		CPPTokenListHolder::Copy(pcCast, pcTokens);

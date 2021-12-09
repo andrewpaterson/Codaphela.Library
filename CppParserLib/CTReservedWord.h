@@ -28,7 +28,7 @@ class CCTReservedWord : public CCPPToken
 public:
 	int64	mlliReservedWord;
 
-	TOKEN_CONSTRUCT(CCTReservedWord);
+	CPP_TOKEN_CONSTRUCT(CCTReservedWord);
 	void Init(void);
 	void Init(int64 iReservedWord);
 	void Kill(void);

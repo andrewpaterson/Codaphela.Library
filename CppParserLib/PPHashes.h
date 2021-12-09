@@ -28,7 +28,7 @@ class CPPHashes : public CPPToken
 public:
 	int		miCount;
 
-	TOKEN_CONSTRUCT(CPPHashes);
+	PP_TOKEN_CONSTRUCT(CPPHashes);
 	void	Init(int iLine, int iColumn);
 	void	Init(int iCount, int iLine, int iColumn);
 	void	Kill(void);

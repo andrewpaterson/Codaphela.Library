@@ -37,6 +37,7 @@ void CPPHashes::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPHashes::Init(int iCount, int iLine, int iColumn)
 {
+	CPPToken::Init(iLine, iColumn);
 	Set(iLine, iColumn);
 	miCount = iCount;
 }
@@ -83,8 +84,7 @@ void CPPHashes::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsHash())
 	{
 		pcCast = (CPPHashes*)pcSource;
-		Set(pcCast->miLine, pcCast->miColumn);
-		miCount = pcCast->miCount;
+		Init(pcCast->miCount, pcCast->miLine, pcCast->miColumn);
 	}
 }
 

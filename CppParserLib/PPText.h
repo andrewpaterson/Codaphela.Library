@@ -40,7 +40,7 @@ public:
 	EPreprocessorText	meType;
 	CExternalString		mcText;
 
-	TOKEN_CONSTRUCT(CPPText);
+	PP_TOKEN_CONSTRUCT(CPPText);
 	void 			Init(int iLine, int iColumn);
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength);
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive);

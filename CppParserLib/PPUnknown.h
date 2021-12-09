@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPUnknown : public CPPDirective
 {
 public:
-	TOKEN_CONSTRUCT(CPPUnknown);
+	PP_TOKEN_CONSTRUCT(CPPUnknown);
 	void	Init(int iLine, int iColumn);
 	void	Kill(void);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);

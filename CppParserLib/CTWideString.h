@@ -28,7 +28,7 @@ class CCTWideString : public CCPPToken
 public:
 	short*	mwszString;
 
-	TOKEN_CONSTRUCT(CCTWideString);
+	CPP_TOKEN_CONSTRUCT(CCTWideString);
 	void Init(void);
 	void Init(char* szStart, char* szEnd);
 	void Kill(void);

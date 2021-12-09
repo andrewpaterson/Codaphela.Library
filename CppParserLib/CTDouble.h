@@ -28,7 +28,7 @@ class CCTDouble : public CCTNumber
 public:
 	double mcValue;
 
-	TOKEN_CONSTRUCT(CCTDouble);
+	CPP_TOKEN_CONSTRUCT(CCTDouble);
 	void Init(void);
 	void Init(double d);
 	void Kill(void);

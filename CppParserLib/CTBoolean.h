@@ -28,7 +28,7 @@ class CCTBoolean : public CCPPToken
 public:
 	bool	mcBool;
 
-	TOKEN_CONSTRUCT(CCTBoolean);
+	CPP_TOKEN_CONSTRUCT(CCTBoolean);
 	void Init(void);
 	void Init(bool bBool);
 	void Kill(void);

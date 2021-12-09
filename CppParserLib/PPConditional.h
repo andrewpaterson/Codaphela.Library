@@ -31,7 +31,7 @@ protected:
 	SPPTokenBlockIndex	msIndex;
 
 public:
-	TOKEN_CONSTRUCT(CPPConditional);
+	PP_TOKEN_CONSTRUCT(CPPConditional);
 	void				Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn);
 	void				Set(CPPConditional* pcNext);
 	CPPConditional*		GetNext(void);

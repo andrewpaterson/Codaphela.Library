@@ -30,7 +30,7 @@ protected:
 	CExternalString		mcFile;
 
 public:
-	TOKEN_CONSTRUCT(CPPInclude);
+	PP_TOKEN_CONSTRUCT(CPPInclude);
 	void	Init(int iLine, int iColumn);
 };
 

@@ -65,10 +65,10 @@ void CDefineMap::Kill(void)
 CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 {
 	CDefine				cDefine;
-	CDefine* pcDefine;
+	CDefine*			pcDefine;
 	int64				lliID;
 	BOOL				bResult;
-	SASCIINameIndex* psNameIndex;
+	SASCIINameIndex*	psNameIndex;
 
 	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
 	if (psNameIndex == NULL)

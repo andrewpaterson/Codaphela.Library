@@ -35,7 +35,7 @@ protected:
 	SPPTokenBlockIndex		msNext;
 
 public:
-	TOKEN_CONSTRUCT(CPPBlock);
+	PP_TOKEN_CONSTRUCT(CPPBlock);
 	void 				Init(int iLine, int iColumn);
 	void 				Kill(void);
 	BOOL 				IsBlock(void);

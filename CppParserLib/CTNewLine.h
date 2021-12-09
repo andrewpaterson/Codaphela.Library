@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCTNewLine : public CCPPToken
 {
 public:
-	TOKEN_CONSTRUCT(CCTNewLine);
+	CPP_TOKEN_CONSTRUCT(CCTNewLine);
 	void Init(void);
 	void Kill(void);
 	BOOL IsHelper(void);

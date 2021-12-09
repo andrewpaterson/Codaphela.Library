@@ -29,7 +29,7 @@ public:
 	unsigned long long int	mcValue;
 	BOOL					mbSigned;
 
-	TOKEN_CONSTRUCT(CCTLongLong);
+	CPP_TOKEN_CONSTRUCT(CCTLongLong);
 	void Init(void);
 	void Init(unsigned long long int ulli);
 	void Kill(void);

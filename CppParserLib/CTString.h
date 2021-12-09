@@ -29,7 +29,7 @@ public:
 	char*	mszStart;  //This is the starting quote (") inclusive.
 	char*	mszEnd;  //This is the ending quote (") inclusive.
 
-	TOKEN_CONSTRUCT(CCTString);
+	CPP_TOKEN_CONSTRUCT(CCTString);
 	void Init(void);
 	void Init(char* szStart, char* szEnd);
 	void Kill(void);

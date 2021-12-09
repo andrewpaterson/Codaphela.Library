@@ -29,7 +29,7 @@ protected:
 	char*	mszText;
 
 public:
-	TOKEN_CONSTRUCT(CPPTextWithSource);
+	PP_TOKEN_CONSTRUCT(CPPTextWithSource);
 	void 	Init(int iLine, int iColumn);
 	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength);
 	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive);
