@@ -1925,13 +1925,14 @@ BOOL CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPToken
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth)
 {
-	CArrayPPTokenLists*		pcArguments;
+	CArrayPPTokenLists*			pcArguments;
 	CPPTokenList*				pcArgument;
 	CPreprocessorTokenParser	cParser;
 	CPPLine						cLine;
 	SDefineArgument*			psDefineArgument;
 	int							i;
 	BOOL						bFirst;
+	int							iNumElements;
 
 	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
 	pcArguments = &psDefineArgument->macTokenArguments;
@@ -1951,7 +1952,8 @@ void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CP
 		else
 		{
 			bFirst = TRUE;
-			for (i = pcReplacement->miArgIndex; i < pcArguments->NumElements(); i++)
+			iNumElements = pcArguments->NumElements();
+			for (i = pcReplacement->miArgIndex; i < iNumElements; i++)
 			{
 				pcArgument = pcArguments->Get(i);
 				if (pcArgument)
@@ -1985,9 +1987,10 @@ void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, C
 	CPPTokenList* pcArgument;
 	CPreprocessorTokenParser	cParser;
 	CPPLine						cLine;
-	SDefineArgument* psDefineArgument;
+	SDefineArgument*			psDefineArgument;
 	int							i;
 	BOOL						bFirst;
+	int							iNumElements;
 
 	psDefineArgument = mcArguments.Get(pcReplacement->mlliDefineID);
 	pcArguments = &psDefineArgument->macTokenArguments;
@@ -2007,7 +2010,8 @@ void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, C
 		else
 		{
 			bFirst = TRUE;
-			for (i = pcReplacement->miArgIndex; i < pcArguments->NumElements(); i++)
+			iNumElements = pcArguments->NumElements();
+			for (i = pcReplacement->miArgIndex; i < iNumElements; i++)
 			{
 				pcArgument = pcArguments->Get(i);
 				if (pcArgument)

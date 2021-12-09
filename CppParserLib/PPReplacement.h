@@ -29,8 +29,10 @@ class CPPReplacement : public CPPToken
 public:
 	int		miArgIndex;
 	int64	mlliDefineID;
+protected:
 	BOOL	mbVariadic;
 
+public:
 	PP_TOKEN_CONSTRUCT(CPPReplacement);
 	void 	Init(int iLine, int iColumn);
 	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic);
