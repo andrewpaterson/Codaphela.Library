@@ -38,11 +38,12 @@ void CPPReplacement::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic)
 {
-	Set(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn);
 	miArgIndex = iArgIndex;
 	mlliDefineID = lliDefineID;;
 	mbVariadic = bVariadic;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -91,10 +92,7 @@ void CPPReplacement::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsReplacement())
 	{
 		pcCast = (CPPReplacement*)pcSource;
-		Set(pcCast->miLine, pcCast->miColumn);
-		miArgIndex = pcCast->miArgIndex;
-		mlliDefineID = pcCast->mlliDefineID;
-		mbVariadic = pcCast->mbVariadic;
+		Init(pcCast->mlliDefineID, pcCast->miArgIndex, pcCast->mbVariadic, pcCast->miLine, pcCast->miColumn);
 	}
 }
 

@@ -28,7 +28,7 @@ class CCTIdentifier : public CCPPToken
 public:
 	int64	mlliIdentifier;
 
-	TOKEN_CONSTRUCT(CCTIdentifier);
+	CPP_TOKEN_CONSTRUCT(CCTIdentifier);
 	void Init(void);
 	void Init(int64 lliIdentifier);
 	void Kill(void);

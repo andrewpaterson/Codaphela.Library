@@ -25,7 +25,17 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Constructable.h"
 
 
-#define TOKEN_CONSTRUCT(TOKEN)\
+#define PP_TOKEN_CONSTRUCT(TOKEN)\
+CONSTRUCTABLE(TOKEN)\
+static TOKEN* Construct(void* pvMem)\
+{\
+	TOKEN* psToken = new(pvMem) TOKEN();\
+	psToken->miUsage = -1;\
+	return psToken;\
+}
+
+
+#define CPP_TOKEN_CONSTRUCT(TOKEN)\
 CONSTRUCTABLE(TOKEN)\
 static TOKEN* Construct(void* pvMem)\
 {\

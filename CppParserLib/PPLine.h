@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPLine : public CPPTokenListHolder
 {
 public:
-	TOKEN_CONSTRUCT(CPPLine);
+	PP_TOKEN_CONSTRUCT(CPPLine);
 	void	Init(int iLine, int miColumn);
 	void	Kill(void);
 	BOOL	IsLine(void);

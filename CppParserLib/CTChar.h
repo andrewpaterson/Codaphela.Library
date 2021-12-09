@@ -28,7 +28,7 @@ class CCTChar : public CCPPToken
 public:
 	char	mcChar;  //This represents a char literal ie: 'c'
 
-	TOKEN_CONSTRUCT(CCTChar);
+	CPP_TOKEN_CONSTRUCT(CCTChar);
 	void Init(void);
 	void Init(char c);
 	void Kill(void);

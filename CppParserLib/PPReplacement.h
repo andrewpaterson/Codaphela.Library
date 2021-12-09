@@ -31,7 +31,7 @@ public:
 	int64	mlliDefineID;
 	BOOL	mbVariadic;
 
-	TOKEN_CONSTRUCT(CPPReplacement);
+	PP_TOKEN_CONSTRUCT(CPPReplacement);
 	void 	Init(int iLine, int iColumn);
 	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic);
 	void 	Kill(void);

@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPTokenReplacementsHolder : public CPPTokenListHolder
 {
 public:
-	TOKEN_CONSTRUCT(CPPTokenReplacementsHolder);
+	PP_TOKEN_CONSTRUCT(CPPTokenReplacementsHolder);
 	void 	Init(int iLine, int iColumn);
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);

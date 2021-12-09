@@ -348,15 +348,17 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 		if (!mbOnlyWhiteSpace)
 		{
 			pcWhiteSpace = mpcTokens->AddWhiteSpace();
-			mpcTokenHolder->Add(pcWhiteSpace);
 			pcWhiteSpace->Init(mpcParser->miLine, mpcParser->miColumn);
+
+			mpcTokenHolder->Add(pcWhiteSpace);
 		}
 	}
 	else if ((mszHashStart) && (mszHashStart <= mpcParser->GetEnd()))
 	{
 		pcHashes = mpcTokens->AddHashes();
-		mpcTokenHolder->Add(pcHashes);
 		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn);
+
+		mpcTokenHolder->Add(pcHashes);
 		mbOnlyWhiteSpace = FALSE;
 	}
 }
@@ -385,6 +387,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	{
 		sz.Init();
 		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
+
 		pcTextWithSource = mpcTokens->AddTextWithSource();
 		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
 
@@ -410,16 +413,18 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
-			mpcTokenHolder->Add(pcText);
 			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mszDoubleQuoteStart, mpcParser->GetPos());
+
+			mpcTokenHolder->Add(pcText);
 		}
 		else
 		{
 			sz.Init();
 			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->GetPos()-1, '"');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			mpcTokenHolder->Add(pcTextWithSource);
 			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
+
+			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
 		}
 		mbOnlyWhiteSpace = FALSE;
@@ -442,16 +447,18 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
-			mpcTokenHolder->Add(pcText);
 			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mszSingleQuoteStart, mpcParser->GetPos());
+
+			mpcTokenHolder->Add(pcText);
 		}
 		else
 		{
 			sz.Init();
 			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->GetPos()-1, '\'');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			mpcTokenHolder->Add(pcTextWithSource);
 			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
+
+			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
 		}
 		mbOnlyWhiteSpace = FALSE;

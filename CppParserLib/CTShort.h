@@ -29,7 +29,7 @@ public:
 	unsigned short int	mcValue;
 	BOOL				mbSigned;
 
-	TOKEN_CONSTRUCT(CCTShort);
+	CPP_TOKEN_CONSTRUCT(CCTShort);
 	void Init(void);
 	void Init(unsigned short int s);
 	void Kill(void);

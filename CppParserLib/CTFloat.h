@@ -28,7 +28,7 @@ class CCTFloat : public CCTNumber
 public:
 	float mcValue;
 
-	TOKEN_CONSTRUCT(CCTFloat);
+	CPP_TOKEN_CONSTRUCT(CCTFloat);
 	void Init(void);
 	void Init(float f);
 	void Kill(void);

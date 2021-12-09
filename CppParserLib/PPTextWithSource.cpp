@@ -38,13 +38,14 @@ void CPPTextWithSource::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength)
 {
-	mszText = (char*)malloc(iLength+1);
-	memcpy(mszText, szStart, iLength+1);
+	mszText = (char*)malloc(iLength + 1);
+	memcpy(mszText, szStart, iLength + 1);
+
 	CPPText::Init(eType, iLine, iColumn, mszText, iLength);
 
 	if ((eType == PPT_Decorator) && (iLength != 1))
 	{
-		int xxx = 0;
+		gcUserError.Set("Decorators must be exactly one character long.");
 	}
 }
 
@@ -81,11 +82,7 @@ void CPPTextWithSource::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsText())
 	{
 		pcCast = (CPPTextWithSource*)pcSource;
-		Set(pcCast->miLine, pcCast->miColumn);
-		meType = pcCast->meType;
-		mszText = (char*)malloc(pcCast->mcText.miLen+1);
-		memcpy(mszText, pcCast->mcText.msz, pcCast->mcText.miLen+1);
-		mcText.Init(mszText, pcCast->mcText.miLen);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mcText.msz, pcCast->mcText.miLen);
 	}
 }
 

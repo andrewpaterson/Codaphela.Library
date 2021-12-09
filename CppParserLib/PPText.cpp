@@ -38,7 +38,7 @@ void CPPText::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength)
 {
-	Set(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn);
 	mcText.Init(szStart, iLength);
 	meType = eType;
 }
@@ -119,9 +119,7 @@ void CPPText::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsText())
 	{
 		pcCast = (CPPText*)pcSource;
-		Set(pcCast->miLine, pcCast->miColumn);
-		meType = pcCast->meType;
-		mcText.Init(pcCast->mcText.msz, pcCast->mcText.miLen);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mcText.msz, pcCast->mcText.miLen);
 	}
 }
 

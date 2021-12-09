@@ -49,7 +49,7 @@ protected:
 	EPreprocessorDirective	meType;
 
 public:
-	TOKEN_CONSTRUCT(CPPDirective);
+	PP_TOKEN_CONSTRUCT(CPPDirective);
 	void	Init(int iLine, int iColumn);
 	void	Init(EPreprocessorDirective eType, int iLine, int iColumn);
 	BOOL	IsDirective(void);

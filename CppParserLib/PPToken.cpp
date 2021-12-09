@@ -38,6 +38,11 @@ void CPPToken::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPToken::Unuse(void)
 {
+	if (this->IsText())
+	{
+		int xxx = 0;
+	}
+
 	miUsage--;
 	if (miUsage == 0)
 	{
@@ -56,6 +61,10 @@ void CPPToken::Unuse(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPToken::Use(void)
 {
+	if (miUsage < 0)
+	{
+		gcUserError.Set("Usage started negative.");
+	}
 	miUsage++;
 }
 

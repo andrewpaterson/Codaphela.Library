@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPWhiteSpace : public CPPToken
 {
 public:
-	TOKEN_CONSTRUCT(CPPWhiteSpace);
+	PP_TOKEN_CONSTRUCT(CPPWhiteSpace);
 	void	Init(int iLine, int iColumn);
 	void	Kill(void);
 	BOOL	IsWhiteSpace(void);

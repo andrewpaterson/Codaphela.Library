@@ -78,7 +78,7 @@ protected:
 	CChars					mszVaArgs;
 
 public:
-	static void			Preprocess(char* szSource, CChars* szDest);
+	static BOOL			Preprocess(char* szSource, CChars* szDest);
 
 public:
 	void 				Init(CConfig* pcConfig);
@@ -162,6 +162,9 @@ public:
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
 	void				MarkPositionForError(int iLine, int iColumn, SPreprocessorPosition* psPos);
+
+	void				StackPush(CPPTokenList* pcTokenList, CPPTokenMemory* pcTokenMemory);
+	void				StackPop(void);
 
 	void				AddComma(CPPTokenList* pcDest);
 	void				AddZero(CPPTokenList* pcDest);

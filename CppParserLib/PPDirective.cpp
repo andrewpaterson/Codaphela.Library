@@ -133,8 +133,8 @@ void CPPDirective::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsDirective())
 	{
 		pcCast = (CPPDirective*)pcSource;
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn);
 		CPPTokenListHolder::Copy(pcCast, pcTokens);
-		meType = pcCast->meType;
 	}
 }
 
