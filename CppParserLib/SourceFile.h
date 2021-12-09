@@ -34,7 +34,7 @@ protected:
 	BOOL					mbLoaded;
 	CPPTokenMemory			mcTokenMemory;
 	CPPBlockSetArray		macBlockSets;
-	CPPTokenList			mcTokenList;
+	CPPTokenList			mcProcessedTokenList;
 
 public:
 			void				Init(char* pszFullName);
@@ -54,7 +54,7 @@ public:
 			int					GetContentsLength(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);
-			CPPTokenList*		GetTokenList(void);
+			CPPTokenList*		GetProcessedTokenList(void);
 			char*				Print(CChars* psz);
 			void				Dump(void);
 			void				DumpBlockSets(void);

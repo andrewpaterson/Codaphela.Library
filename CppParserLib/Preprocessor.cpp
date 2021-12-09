@@ -38,9 +38,10 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTokenList* pcProcessedTokens)
+void CPreprocessor::Init(CConfig* pcConfig)
 {
 	mcDefines.Init();
+	mcDefineReplacementMemory.Init();
 	mcSpecialOperators.Init();
 	miIncludeDepth = 0;
 	miBlockReuse = 0;
@@ -56,7 +57,6 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 	mcHeadersStack.Init();  //Current file should be included in the stack.
 
 	mcStack.Init();
-	mcStack.Push(pcProcessedTokens, pcTokenMemory);
 	mcHeaderNames.Init();
 
 	AddSpecialDefine("__DATE__");
@@ -91,28 +91,18 @@ void CPreprocessor::Init(CConfig* pcConfig, CPPTokenMemory* pcTokenMemory, CPPTo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::Init(CConfig* pcConfig, CTranslationUnit* pcFile)
-{
-	Init(pcConfig, pcFile->GetTokenMemory(), pcFile->GetTokenList());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CPreprocessor::Kill(void)
 {
 	mcArguments.Kill();
 	mszVaArgs.Kill();
 	mpcCurrentFile = NULL;
-	mcStack.Pop();
 	mcStack.Kill();
 	mcHeadersStack.Kill();
 	mcConditionalStack.Kill();
 	mcHeaderNames.Kill();
 	mcSpecialOperators.Kill();
 	mcDefines.Kill();
+	mcDefineReplacementMemory.Kill();
 }
 
 
@@ -228,21 +218,18 @@ CSpecialOperator* CPreprocessor::AddSpecialOperator(char* szSpecialOperator, EPr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement)
+CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory)
 {
 	CDefine*				pcDefine;
 	int						iLen;
 	char*					sz;
 	CPPText					pcText;
 	CPreprocessorTokeniser	cTokeniser;
-	CPPTokenMemory*			pcTokenMemory;
 
 	iLen = (int)strlen(szReplacement);
 	pcDefine = mcDefines.AddDefine(szDefine);
 	sz = (char*)gcTokenStrings.Add(iLen+1);
 	memcpy(sz, szReplacement, iLen+1);
-
-	pcTokenMemory = mcStack.GetTokenMemory();
 
 	cTokeniser.Init();
 	cTokeniser.TokeniseDefine(pcDefine->GetReplacement()->GetTokenList(), sz, pcTokenMemory);
@@ -989,7 +976,9 @@ BOOL CPreprocessor::PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile)
 	LogInclude(pcFile);
 	mpcCurrentFile = pcFile;
 
+	mcStack.Push(NULL, pcFile->GetTokenMemory());
 	bResult = TokeniseFile(pcFile);
+	mcStack.Pop();
 
 	if (!bResult)
 	{
@@ -1001,7 +990,7 @@ BOOL CPreprocessor::PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile)
 	{
 		pacSourceBlockSets = pcFile->GetBlockSets();
 
-		mcStack.Push(pcFile->GetTokenList(), pcFile->GetTokenMemory());
+		mcStack.Push(pcFile->GetProcessedTokenList(), pcFile->GetTokenMemory());
 		bResult = PreprocessBlockSets(pacSourceBlockSets);
 		mcStack.Pop();
 	}
@@ -2518,7 +2507,7 @@ void CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 	cTokeniser.Kill();
 
 	cOutput.Init();
-	cPreprocessor.Init(NULL, &cTokenMemory, &cOutput);
+	cPreprocessor.Init(NULL);
 	cPreprocessor.PreprocessBlockSets(&acBlockSets);
 
 	if (pszDest)
