@@ -28,6 +28,5 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CPPInclude::Init(int iLine, int iColumn)
 {
 	CPPDirective::Init(PPD_include, iLine, iColumn);
-	mcFile.Init();
 }
 

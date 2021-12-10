@@ -59,7 +59,7 @@ public:
 	virtual char*			Print(CChars* psz) =0;
 	virtual void			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens) =0;
 	virtual BOOL			Equals(CPPToken* pcOther) =0;
-			void			Use(void);
+	virtual void			Use(void);
 			void			Unuse(void);
 
 			int				Line(void);
