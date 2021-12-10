@@ -26,9 +26,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CPPInclude : public CPPDirective
 {
-protected:
-	CExternalString		mcFile;
-
 public:
 	PP_TOKEN_CONSTRUCT(CPPInclude);
 	void	Init(int iLine, int iColumn);

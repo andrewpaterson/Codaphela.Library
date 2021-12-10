@@ -38,11 +38,6 @@ void CPPToken::Init(int iLine, int iColumn)
 //////////////////////////////////////////////////////////////////////////
 void CPPToken::Unuse(void)
 {
-	if (this->IsText())
-	{
-		int xxx = 0;
-	}
-
 	miUsage--;
 	if (miUsage == 0)
 	{
