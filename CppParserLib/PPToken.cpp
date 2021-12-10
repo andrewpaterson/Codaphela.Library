@@ -38,7 +38,7 @@ void SetBreakOnTokenInit(int64 iTokenNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPToken::Init(int iLine, int iColumn)
+void CPPToken::Init(int iLine, int iColumn, char* szFileName)
 {
 	Set(iLine, iColumn);
 	miUsage = 0;
@@ -52,8 +52,9 @@ void CPPToken::Init(int iLine, int iColumn)
 	}
 
 	giTokenNum++;
-#endif // DEBUG
 
+	mszFileName = szFileName;
+#endif // DEBUG
 }
 
 
@@ -97,6 +98,20 @@ void CPPToken::Set(int iLine, int iColumn)
 {
 	miLine = iLine;
 	miColumn = iColumn;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPPToken::ShortFileName(void)
+{
+#ifdef DEBUG
+	return mszFileName;
+#else
+	return gszEmptyString;
+#endif // DEBUG
 }
 
 

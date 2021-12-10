@@ -29,12 +29,11 @@ class CLibrary;
 class CSourceFile
 {
 protected:
-	CChars					mszContents;
-	CChars					mszFullName;
-	BOOL					mbLoaded;
-	CPPTokenMemory			mcTokenMemory;
-	CPPBlockSetArray		macBlockSets;
-	CPPTokenList			mcProcessedTokenList;
+	CChars				mszContents;
+	CChars				mszFullName;
+	BOOL				mbLoaded;
+	CPPTokenMemory		mcTokenMemory;
+	CPPBlockSetArray	macBlockSets;
 
 public:
 			void				Init(char* pszFullName);
@@ -54,9 +53,6 @@ public:
 			int					GetContentsLength(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);
-			CPPTokenList*		GetProcessedTokenList(void);
-			char*				Print(CChars* psz);
-			void				Dump(void);
 			void				DumpBlockSets(void);
 };
 

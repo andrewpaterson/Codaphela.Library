@@ -78,6 +78,7 @@ char* CPPTokenList::Print(CChars* psz)
 	CPPToken*	pcToken;
 	int			i;
 	int			iNumTokens;
+	CChars		sz;
 
 	iNumTokens = mcArray.NumElements();
 	for (i = 0; i < iNumTokens; i++)
@@ -86,6 +87,22 @@ char* CPPTokenList::Print(CChars* psz)
 		if (ppcToken)
 		{
 			pcToken = *mcArray.Get(i);
+
+#ifdef DEBUG
+			if (pcToken->NeedsNewLine())
+			{
+				psz->Append("/* ");
+				psz->LeftAlign(pcToken->ShortFileName(), ' ', 20);
+
+				sz.Init();
+				sz.Append(pcToken->Line());
+				psz->RightAlign(sz, ' ', 4);
+				sz.Kill();
+
+				psz->Append(" */ ");
+			}
+#endif
+
 			pcToken->Print(psz);
 			if (pcToken->NeedsNewLine())
 			{

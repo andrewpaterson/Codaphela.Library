@@ -13,7 +13,7 @@ void CDefine::Init(CExternalString* pcName, int64 uiID, CDefineMap* pcDefineMap)
 
 	cPostMalloc.PostMalloc(&mcReplacement);
 
-	mcReplacement.Init(-1, -1);
+	mcReplacement.Init(-1, -1, gszEmptyString);
 	maszArguments.Init();
 	miFlags = ((pcDefineMap == NULL) ? 0 : DEFINE_FLAGS_IN_MAP);
 	mlliID = uiID;

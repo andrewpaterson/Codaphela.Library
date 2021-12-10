@@ -29,7 +29,7 @@ class CPPLine : public CPPTokenListHolder
 {
 public:
 	PP_TOKEN_CONSTRUCT(CPPLine);
-	void	Init(int iLine, int miColumn);
+	void	Init(int iLine, int miColumn, char* szFileName);
 	void	Kill(void);
 	BOOL	IsLine(void);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);

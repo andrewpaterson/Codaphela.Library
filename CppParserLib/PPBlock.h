@@ -36,7 +36,7 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPBlock);
-	void 				Init(int iLine, int iColumn);
+	void 				Init(int iLine, int iColumn, char* szFileName);
 	void 				Kill(void);
 	BOOL 				IsBlock(void);
 	void				Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);

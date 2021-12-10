@@ -27,9 +27,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenListHolder::Init(int iLine, int iColumn)
+void CPPTokenListHolder::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPToken::Init(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 	mcTokens.Init();
 }
 
@@ -60,7 +60,7 @@ BOOL CPPTokenListHolder::IsTokenListHolder(void)
 //////////////////////////////////////////////////////////////////////////
 char* CPPTokenListHolder::Print(CChars* psz)
 {
-	if (mcTokens.NumTokens() != 0)
+	if (mcTokens.NumTokens() > 0)
 	{
 		mcTokens.Print(psz);
 	}
@@ -78,7 +78,7 @@ void CPPTokenListHolder::Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcToke
 	CPPToken*	pcToken;
 	int			iNumTokens;
 
-	Init(pcCast->miLine, pcCast->miColumn);
+	Init(pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
 
 	iNumTokens = pcCast->mcTokens.NumTokens();
 	for (i = 0; i < iNumTokens; i++)

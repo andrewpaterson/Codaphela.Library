@@ -41,20 +41,25 @@ struct STULog
 class CTranslationUnit : public CSourceFile
 {
 protected:
-	STULog*			mpcLogs;
-	CLibrary*		mpcLibrary;
+	STULog*		mpcLogs;
+	CLibrary*	mpcLibrary;
+	CPPBlock*	mpcProcessed;
 
 public:
-	void				Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
-	void				Kill(void);
-	BOOL				IsTranslationUnit(void);
-	BOOL				IsHeader(void);
-	BOOL				LogBlocks(void);
-	BOOL				LogInlucdes(void);
-	BOOL				IsPragmaOnced(void);
-	BOOL				IsSystemFile(void);
-	STULog*				GetLogs(void);
-	CLibrary*			GetLibrary(void);
+	void			Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
+	void			Kill(void);
+	BOOL			IsTranslationUnit(void);
+	BOOL			IsHeader(void);
+	BOOL			LogBlocks(void);
+	BOOL			LogInlucdes(void);
+	BOOL			IsPragmaOnced(void);
+	BOOL			IsSystemFile(void);
+	STULog*			GetLogs(void);
+	CLibrary*		GetLibrary(void);
+	CPPTokenList*	GetProcessedTokenList(void);
+	CPPBlock*		AddProcessedBlock(void);
+	char*			Print(CChars* psz);
+	void			Dump(void);
 };
 
 

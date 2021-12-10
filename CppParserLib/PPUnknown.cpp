@@ -25,9 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPUnknown::Init(int iLine, int iColumn)
+void CPPUnknown::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPToken::Set(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 }
 
 

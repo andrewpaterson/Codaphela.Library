@@ -50,8 +50,8 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPDirective);
-	void	Init(int iLine, int iColumn);
-	void	Init(EPreprocessorDirective eType, int iLine, int iColumn);
+	void	Init(int iLine, int iColumn, char* szFileName);
+	void	Init(EPreprocessorDirective eType, int iLine, int iColumn, char* szFileName);
 	BOOL	IsDirective(void);
 	void	Set(EPreprocessorDirective eType);
 	char*	Print(CChars* psz);

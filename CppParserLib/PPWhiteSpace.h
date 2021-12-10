@@ -27,7 +27,7 @@ class CPPWhiteSpace : public CPPToken
 {
 public:
 	PP_TOKEN_CONSTRUCT(CPPWhiteSpace);
-	void	Init(int iLine, int iColumn);
+	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Kill(void);
 	BOOL	IsWhiteSpace(void);
 	char*	Print(CChars* psz);

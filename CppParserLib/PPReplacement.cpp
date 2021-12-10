@@ -26,9 +26,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Init(int iLine, int iColumn)
+void CPPReplacement::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPToken::Init(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 }
 
 
@@ -36,9 +36,9 @@ void CPPReplacement::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic)
+void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, BOOL bVariadic)
 {
-	CPPToken::Init(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 	miArgIndex = iArgIndex;
 	mlliDefineID = lliDefineID;;
 	mbVariadic = bVariadic;
@@ -92,7 +92,7 @@ void CPPReplacement::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsReplacement())
 	{
 		pcCast = (CPPReplacement*)pcSource;
-		Init(pcCast->mlliDefineID, pcCast->miArgIndex, pcCast->miLine, pcCast->miColumn, pcCast->mbVariadic);
+		Init(pcCast->mlliDefineID, pcCast->miArgIndex, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName, pcCast->mbVariadic);
 	}
 }
 

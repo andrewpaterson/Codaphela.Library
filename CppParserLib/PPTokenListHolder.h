@@ -30,7 +30,7 @@ protected:
 	CPPTokenList	mcTokens;
 
 public:
-	void 				Init(int iLine, int iColumn);
+	void 				Init(int iLine, int iColumn, char* szFileName);
 	void 				Kill(void);
 	void				Fake(CPPTokenList* pcTokens);
 	BOOL 				IsTokenListHolder(void);

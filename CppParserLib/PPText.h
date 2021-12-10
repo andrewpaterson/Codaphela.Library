@@ -41,9 +41,9 @@ public:
 	CExternalString		mcText;
 
 	PP_TOKEN_CONSTRUCT(CPPText);
-	void 			Init(int iLine, int iColumn);
-	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength);
-	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive);
+	void 			Init(int iLine, int iColumn, char* szFileName);
+	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength);
+	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive);
 	void 			Kill(void);
 	BOOL 			IsText(void);
 	char* 			Print(CChars* psz);

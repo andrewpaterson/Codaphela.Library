@@ -36,7 +36,7 @@ void CNamedDefine::Define(CExternalString* pcName, CDefine* pcSource, CPPTokenMe
 	miFlags = pcSource->IsBacketed() ? NAMED_DEFINE_FLAGS_BRACKETED : 0;
 	maszArguments.Init();
 	maszArguments.Copy(pcSource->GetArguments());
-	mcReplacement.Init(pcSource->GetReplacement()->Line(), pcSource->GetReplacement()->Column());
+	mcReplacement.Init(pcSource->GetReplacement()->Line(), pcSource->GetReplacement()->Column(), gszEmptyString);
 	mcReplacement.Copy(pcSource->GetReplacement(), pcTokens);
 }
 
@@ -54,7 +54,7 @@ void CNamedDefine::Undef(CExternalString* pcName)
 	mszName.Init();
 	mszName.AppendSubString(pcName->msz, pcName->miLen);
 	miFlags = NAMED_DEFINE_FLAGS_UNDEFFED;
-	mcReplacement.Init(-1, -1);
+	mcReplacement.Init(-1, -1, gszEmptyString);
 	maszArguments.Init();
 }
 

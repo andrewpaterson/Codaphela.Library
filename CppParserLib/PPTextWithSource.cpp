@@ -26,9 +26,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTextWithSource::Init(int iLine, int iColumn)
+void CPPTextWithSource::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPText::Init(iLine, iColumn);
+	CPPText::Init(iLine, iColumn, szFileName);
 }
 
 
@@ -36,12 +36,12 @@ void CPPTextWithSource::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength)
+void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength)
 {
 	mszText = (char*)malloc(iLength + 1);
 	memcpy(mszText, szStart, iLength + 1);
 
-	CPPText::Init(eType, iLine, iColumn, mszText, iLength);
+	CPPText::Init(eType, iLine, iColumn, szFileName, mszText, iLength);
 
 	if ((eType == PPT_Decorator) && (iLength != 1))
 	{
@@ -54,9 +54,9 @@ void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive)
+void CPPTextWithSource::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive)
 {
-	Init(eType, iLine, iColumn, szStart, (int)(szEndExclusive - szStart));
+	Init(eType, iLine, iColumn, szFileName, szStart, (int)(szEndExclusive - szStart));
 }
 
 
@@ -82,7 +82,7 @@ void CPPTextWithSource::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsText())
 	{
 		pcCast = (CPPTextWithSource*)pcSource;
-		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mcText.msz, pcCast->mcText.miLen);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName, pcCast->mcText.msz, pcCast->mcText.miLen);
 	}
 }
 

@@ -29,7 +29,7 @@ class CPPUnknown : public CPPDirective
 {
 public:
 	PP_TOKEN_CONSTRUCT(CPPUnknown);
-	void	Init(int iLine, int iColumn);
+	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Kill(void);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	char*	Print(CChars* psz);

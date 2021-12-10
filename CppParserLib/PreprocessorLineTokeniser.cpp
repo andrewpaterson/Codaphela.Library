@@ -348,7 +348,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 		if (!mbOnlyWhiteSpace)
 		{
 			pcWhiteSpace = mpcTokens->AddWhiteSpace();
-			pcWhiteSpace->Init(mpcParser->miLine, mpcParser->miColumn);
+			pcWhiteSpace->Init(mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
 
 			mpcTokenHolder->Add(pcWhiteSpace);
 		}
@@ -356,7 +356,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 	else if ((mszHashStart) && (mszHashStart <= mpcParser->GetEnd()))
 	{
 		pcHashes = mpcTokens->AddHashes();
-		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn);
+		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
 
 		mpcTokenHolder->Add(pcHashes);
 		mbOnlyWhiteSpace = FALSE;
@@ -378,7 +378,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	if (!mbContainsLineContinuers)
 	{
 		pcText = mpcTokens->AddText();
-		pcText->Init(eType, mpcParser->miLine, mpcParser->miColumn, szStart, szEndExclusive);
+		pcText->Init(eType, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, szStart, szEndExclusive);
 
 		mpcTokenHolder->Add(pcText);
 		return pcText;
@@ -389,7 +389,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 		ReplaceLineContinuers(&sz, szStart, szEndExclusive);
 
 		pcTextWithSource = mpcTokens->AddTextWithSource();
-		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
+		pcTextWithSource->Init(eType, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, sz.Text(), sz.Length());
 
 		mpcTokenHolder->Add(pcTextWithSource);
 		sz.Kill();
@@ -413,7 +413,7 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
-			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mszDoubleQuoteStart, mpcParser->GetPos());
+			pcText->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, mszDoubleQuoteStart, mpcParser->GetPos());
 
 			mpcTokenHolder->Add(pcText);
 		}
@@ -422,7 +422,7 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 			sz.Init();
 			ReplaceEscapeCodes(&sz, mszDoubleQuoteStart+1, mpcParser->GetPos()-1, '"');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
+			pcTextWithSource->Init(PPT_DoubleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, sz.Text(), sz.Length());
 
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
@@ -447,7 +447,7 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 		if (!mbAllowEscapes)
 		{
 			pcText = mpcTokens->AddText();
-			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mszSingleQuoteStart, mpcParser->GetPos());
+			pcText->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, mszSingleQuoteStart, mpcParser->GetPos());
 
 			mpcTokenHolder->Add(pcText);
 		}
@@ -456,7 +456,7 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 			sz.Init();
 			ReplaceEscapeCodes(&sz, mszSingleQuoteStart+1, mpcParser->GetPos()-1, '\'');
 			pcTextWithSource = mpcTokens->AddTextWithSource();
-			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, sz.Text(), sz.Length());
+			pcTextWithSource->Init(PPT_SingleQuoted, mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName, sz.Text(), sz.Length());
 
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();

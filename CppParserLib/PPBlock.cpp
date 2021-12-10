@@ -27,9 +27,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlock::Init(int iLine, int iColumn)
+void CPPBlock::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPTokenListHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn, szFileName);
 	msNext.Init(-1, -1);
 }
 
@@ -68,7 +68,7 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsBlock())
 	{
 		pcCast = (CPPBlock*)pcSource;
-		Init(pcCast->miLine, pcCast->miColumn);
+		Init(pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
 
 		iNumTokens = pcCast->mcTokens.NumTokens();
 		for (i = 0; i < iNumTokens; i++)

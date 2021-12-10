@@ -26,9 +26,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Init(int iLine, int iColumn)
+void CPPText::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPToken::Init(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 }
 
 
@@ -36,9 +36,9 @@ void CPPText::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength)
+void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength)
 {
-	CPPToken::Init(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 	mcText.Init(szStart, iLength);
 	meType = eType;
 }
@@ -48,9 +48,9 @@ void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive)
+void CPPText::Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive)
 {
-	Init(eType, iLine, iColumn, szStart, (int)(szEndExclusive - szStart));
+	Init(eType, iLine, iColumn, szFileName, szStart, (int)(szEndExclusive - szStart));
 }
 
 
@@ -119,7 +119,7 @@ void CPPText::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsText())
 	{
 		pcCast = (CPPText*)pcSource;
-		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mcText.msz, pcCast->mcText.miLen);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName, pcCast->mcText.msz, pcCast->mcText.miLen);
 	}
 }
 

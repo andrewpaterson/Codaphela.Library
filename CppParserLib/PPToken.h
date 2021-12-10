@@ -38,14 +38,16 @@ protected:
 
 #ifdef DEBUG
 	int64		miTokenNum;
+	char*		mszFileName;
 #endif // DEBUG
 
 public:
-	virtual void			Init(int iLine, int iColumn);
+	virtual void			Init(int iLine, int iColumn, char* szFileName);
 	virtual void			Kill(void) =0;
 
 	virtual const char*		ClassName(void) =0;
 	virtual unsigned int	ClassSize(void) =0;
+			char*			ShortFileName(void);
 
 	virtual BOOL			IsDirective(void);
 	virtual BOOL			IsText(void);
