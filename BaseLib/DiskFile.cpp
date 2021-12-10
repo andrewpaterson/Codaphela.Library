@@ -241,6 +241,11 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	unsigned int	uiTruncatedLength;
 	unsigned int	uiReadLength;
 
+	if (iSize == 0)
+	{
+		return 0;
+	}
+
 	if (IsOpen())
 	{
 		iByteLength = iSize * iCount;

@@ -69,6 +69,8 @@ public:
 
 	CPPToken*						StartIteration(SPPTokenIterator* psIter);
 	CPPToken*						Iterate(SPPTokenIterator* psIter);
+
+	size_t							Size(void);
 	char*							Print(CChars* psz);
 	void							Dump(void);
 };

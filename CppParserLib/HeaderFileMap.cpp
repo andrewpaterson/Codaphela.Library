@@ -43,14 +43,13 @@ void CHeaderFileMap::Kill(void)
 	pcHeader = mcFileList.GetHead();
 	while (pcHeader)
 	{
-		CChars sz;
+		pcHeader->KillBlockSets();
+		pcHeader = mcFileList.GetNext(pcHeader);
+	}
 
-		sz.Init();
-		sz.Append("Kill \"");
-		sz.Append(pcHeader->ShortName());
-		sz.Append("\"\n");
-		sz.DumpKill();
-
+	pcHeader = mcFileList.GetHead();
+	while (pcHeader)
+	{
 		pcHeader->Kill();
 		pcHeader = mcFileList.GetNext(pcHeader);
 	}

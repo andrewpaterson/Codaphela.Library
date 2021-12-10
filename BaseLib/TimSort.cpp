@@ -23,7 +23,7 @@
 #include <stddef.h>		// size_t, NULL
 #include <stdlib.h>		// malloc, free
 #include <string.h>		// memcpy, memmove
-#include "timsort.h"
+#include "TimSort.h"
 
 
 int timsort(void* base, size_t nel, size_t width, int (*compar) (const void*, const void*));

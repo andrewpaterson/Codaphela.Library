@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Validation.h"
 #include "PPToken.h"
 
 
@@ -28,7 +29,7 @@ int64		giTokenBreak = -1;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetBreakOnTokenInit(int64 iTokenNum)
+void PPSetBreakOnTokenInit(int64 iTokenNum)
 {
 	giTokenBreak = iTokenNum;
 }
@@ -48,7 +49,7 @@ void CPPToken::Init(int iLine, int iColumn, char* szFileName)
 
 	if (miTokenNum == giTokenBreak)
 	{
-		gcUserError.Set("Break on token.");
+		BREAK();
 	}
 
 	giTokenNum++;

@@ -84,7 +84,7 @@ void CPPHashes::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsHash())
 	{
 		pcCast = (CPPHashes*)pcSource;
-		Init(pcCast->miCount, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
+		Init(pcCast->miCount, pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 	}
 }
 

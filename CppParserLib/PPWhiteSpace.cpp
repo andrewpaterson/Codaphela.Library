@@ -71,7 +71,7 @@ void CPPWhiteSpace::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsWhiteSpace())
 	{
 		pcCast = (CPPWhiteSpace*)pcSource;
-		Init(pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
+		Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 	}
 }
 

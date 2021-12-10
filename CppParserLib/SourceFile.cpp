@@ -37,6 +37,18 @@ void CSourceFile::Init(char* szName)
 	mbLoaded = FALSE;
 	mcTokenMemory.Init();
 	macBlockSets.Init();
+	mbBlockSetsKilled = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CSourceFile::KillBlockSets(void)
+{
+	macBlockSets.Kill();
+	mbBlockSetsKilled = TRUE;
 }
 
 
@@ -46,7 +58,10 @@ void CSourceFile::Init(char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CSourceFile::Kill(void)
 {
-	macBlockSets.Kill();
+	if (!mbBlockSetsKilled)
+	{
+		macBlockSets.Kill();
+	}
 	mcTokenMemory.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
@@ -177,6 +192,16 @@ char* CSourceFile::GetContents(void)
 int CSourceFile::GetContentsLength(void)
 {
 	return mszContents.Length();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size_t CSourceFile::GetTokenMemoryUsed(void)
+{
+	return mcTokenMemory.Size();
 }
 
 

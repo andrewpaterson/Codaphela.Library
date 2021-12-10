@@ -73,8 +73,11 @@ void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncl
 //////////////////////////////////////////////////////////////////////////
 void CTranslationUnit::Kill(void)
 {
-	mpcProcessed->Kill();
-	mpcProcessed = NULL;
+	if (mpcProcessed)
+	{
+		mpcProcessed->Kill();
+		mpcProcessed = NULL;
+	}
 
 	if (mpcLogs)
 	{

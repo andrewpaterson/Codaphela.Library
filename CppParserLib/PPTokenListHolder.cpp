@@ -78,7 +78,7 @@ void CPPTokenListHolder::Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcToke
 	CPPToken*	pcToken;
 	int			iNumTokens;
 
-	Init(pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
+	Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 
 	iNumTokens = pcCast->mcTokens.NumTokens();
 	for (i = 0; i < iNumTokens; i++)
