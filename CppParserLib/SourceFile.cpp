@@ -33,7 +33,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CSourceFile::Init(char* szName)
 {
 	mszContents.Init();
-	mcProcessedTokenList.Init();
 	mszFullName.Init(szName);
 	mbLoaded = FALSE;
 	mcTokenMemory.Init();
@@ -48,7 +47,6 @@ void CSourceFile::Init(char* szName)
 void CSourceFile::Kill(void)
 {
 	macBlockSets.Kill();
-	mcProcessedTokenList.Kill();
 	mcTokenMemory.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
@@ -136,40 +134,6 @@ char* CSourceFile::ShortName(void)
 char* CSourceFile::FullName(void)
 {
 	return mszFullName.Text();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-CPPTokenList* CSourceFile::GetProcessedTokenList(void)
-{
-	return &mcProcessedTokenList;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CSourceFile::Print(CChars* psz)
-{
-	return mcProcessedTokenList.Print(psz);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CSourceFile::Dump(void)
-{
-	CChars	sz;
-
-	sz.Init();
-	Print(&sz);
-	sz.DumpKill();
 }
 
 

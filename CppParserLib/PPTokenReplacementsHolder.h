@@ -27,7 +27,7 @@ class CPPTokenReplacementsHolder : public CPPTokenListHolder
 {
 public:
 	PP_TOKEN_CONSTRUCT(CPPTokenReplacementsHolder);
-	void 	Init(int iLine, int iColumn);
+	void 	Init(int iLine, int iColumn, char* szFileName);
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	BOOL	Equals(CPPToken* pcOther);

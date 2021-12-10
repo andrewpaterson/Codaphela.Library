@@ -25,8 +25,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPInclude::Init(int iLine, int iColumn)
+void CPPInclude::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPDirective::Init(PPD_include, iLine, iColumn);
+	CPPDirective::Init(PPD_include, iLine, iColumn, szFileName);
 }
 

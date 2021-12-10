@@ -25,9 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenReplacementsHolder::Init(int iLine, int iColumn)
+void CPPTokenReplacementsHolder::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPTokenListHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn, szFileName);
 }
 
 

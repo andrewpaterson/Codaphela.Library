@@ -32,7 +32,7 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPConditional);
-	void				Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn);
+	void				Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn, char* szFileName);
 	void				Set(CPPConditional* pcNext);
 	CPPConditional*		GetNext(void);
 	SPPTokenBlockIndex	GetTokenBlock(void);

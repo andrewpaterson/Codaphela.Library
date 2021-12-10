@@ -36,9 +36,10 @@ protected:
 	CDirectiveMap			mcDirectives;
 	CPreprocessorParser		mcParser;
 	CPPConditional*			mpcPrev;
+	char*					mszFileName;
 
 public:
-	void 					Init(void);
+	void 					Init(char* szFileName);
 	void 					Kill(void);
 
 	BOOL					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength);

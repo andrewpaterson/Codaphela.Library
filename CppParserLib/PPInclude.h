@@ -28,7 +28,7 @@ class CPPInclude : public CPPDirective
 {
 public:
 	PP_TOKEN_CONSTRUCT(CPPInclude);
-	void	Init(int iLine, int iColumn);
+	void	Init(int iLine, int iColumn, char* szFileName);
 };
 
 

@@ -25,9 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPConditional::Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn)
+void CPPConditional::Init(EPreprocessorDirective eType, int iBlockIndex, int iTokenIndex, int iLine, int iColumn, char* szFileName)
 {
-	CPPDirective::Init(eType, iLine, iColumn);
+	CPPDirective::Init(eType, iLine, iColumn, szFileName);
 	mpcNext = NULL;
 	msIndex.iBlockIndex = iBlockIndex;
 	msIndex.iTokenIndex = iTokenIndex;

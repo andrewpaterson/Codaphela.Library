@@ -26,9 +26,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPDirective::Init(int iLine, int iColumn)
+void CPPDirective::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPTokenListHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn, szFileName);
 }
 
 
@@ -36,9 +36,9 @@ void CPPDirective::Init(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPDirective::Init(EPreprocessorDirective eType, int iLine, int iColumn)
+void CPPDirective::Init(EPreprocessorDirective eType, int iLine, int iColumn, char* szFileName)
 {
-	CPPTokenListHolder::Init(iLine, iColumn);
+	CPPTokenListHolder::Init(iLine, iColumn, szFileName);
 	Set(eType);
 }
 
@@ -133,7 +133,7 @@ void CPPDirective::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsDirective())
 	{
 		pcCast = (CPPDirective*)pcSource;
-		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
 		CPPTokenListHolder::Copy(pcCast, pcTokens);
 	}
 }

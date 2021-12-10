@@ -32,8 +32,9 @@ public:
 	BOOL	mbEndOfFile;
 	int		miLine;
 	int		miColumn;
+	char*	mszFileName;
 
-	void	Init(char* szStart, char* szEnd);
+	void	Init(char* szStart, char* szEnd, char* szFileName);
 
 	void	StepRight(void);
 	void	StepRight(int iDist);

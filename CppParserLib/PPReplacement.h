@@ -34,8 +34,8 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPReplacement);
-	void 	Init(int iLine, int iColumn);
-	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, BOOL bVariadic);
+	void 	Init(int iLine, int iColumn, char* szFileName);
+	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, BOOL bVariadic);
 	void 	Kill(void);
 	BOOL 	IsReplacement(void);
 	char* 	Print(CChars* psz);

@@ -30,9 +30,9 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPTextWithSource);
-	void 	Init(int iLine, int iColumn);
-	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, int iLength);
-	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szStart, char* szEndExclusive);
+	void 	Init(int iLine, int iColumn, char* szFileName);
+	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength);
+	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive);
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	BOOL 	HasSource(void);

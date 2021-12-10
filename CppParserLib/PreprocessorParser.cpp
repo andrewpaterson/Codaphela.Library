@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorParser::Init(char* szStart, char* szEnd)
+void CPreprocessorParser::Init(char* szStart, char* szEnd, char* szFileName)
 {
 	int		iLen;
 
@@ -47,6 +47,7 @@ void CPreprocessorParser::Init(char* szStart, char* szEnd)
 	TestEnd();
 	miLine = 0;
 	miColumn = 0;
+	mszFileName = szFileName;
 }
 
 

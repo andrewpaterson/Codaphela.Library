@@ -53,6 +53,7 @@ void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncl
 {
 	CSourceFile::Init(szFullName);
 	mpcLibrary = pcLibrary;
+	mpcProcessed = NULL;
 
 	if (bLogBlocks || bLogIncludes)
 	{
@@ -72,6 +73,9 @@ void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncl
 //////////////////////////////////////////////////////////////////////////
 void CTranslationUnit::Kill(void)
 {
+	mpcProcessed->Kill();
+	mpcProcessed = NULL;
+
 	if (mpcLogs)
 	{
 		mpcLogs->Kill();
@@ -173,5 +177,51 @@ STULog* CTranslationUnit::GetLogs(void)
 CLibrary* CTranslationUnit::GetLibrary(void)
 {
 	return mpcLibrary;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CPPTokenList* CTranslationUnit::GetProcessedTokenList(void)
+{
+	return mpcProcessed->GetTokenList();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPPBlock* CTranslationUnit::AddProcessedBlock(void)
+{
+	mpcProcessed = mcTokenMemory.AddBlock();
+	mpcProcessed->Init(-1, -1, ShortName());
+	return mpcProcessed;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTranslationUnit::Print(CChars* psz)
+{
+	return mpcProcessed->Print(psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CTranslationUnit::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
 }
 

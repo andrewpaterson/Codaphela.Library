@@ -25,9 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPWhiteSpace::Init(int iLine, int iColumn)
+void CPPWhiteSpace::Init(int iLine, int iColumn, char* szFileName)
 {
-	CPPToken::Init(iLine, iColumn);
+	CPPToken::Init(iLine, iColumn, szFileName);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -71,7 +71,7 @@ void CPPWhiteSpace::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsWhiteSpace())
 	{
 		pcCast = (CPPWhiteSpace*)pcSource;
-		Init(pcCast->miLine, pcCast->miColumn);
+		Init(pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
 	}
 }
 

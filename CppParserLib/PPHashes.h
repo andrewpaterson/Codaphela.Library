@@ -29,8 +29,8 @@ public:
 	int		miCount;
 
 	PP_TOKEN_CONSTRUCT(CPPHashes);
-	void	Init(int iLine, int iColumn);
-	void	Init(int iCount, int iLine, int iColumn);
+	void	Init(int iLine, int iColumn, char* szFileName);
+	void	Init(int iCount, int iLine, int iColumn, char* szFileName);
 	void	Kill(void);
 	BOOL	IsHash(void);
 	char*	Print(CChars* psz);
