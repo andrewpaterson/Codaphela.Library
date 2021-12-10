@@ -61,7 +61,6 @@ void CProject::Kill(void)
 
 	mcHeaderNames.Kill();
 
-	mcIncludeFiles.Kill();
 
 	miNumSystemLibraries = 0;
 
@@ -72,6 +71,9 @@ void CProject::Kill(void)
 		pcLibrary = mcLibraries.GetNext(pcLibrary);
 	}
 	mcLibraries.Kill();
+
+	mcIncludeFiles.Kill();
+
 }
 
 
@@ -152,7 +154,6 @@ CTranslationUnit* CProject::Start(SProcessIter* psIter, char* szConfiguration)
 	CConfig*	pcConfig;
 
 	psIter->szConfiguration = szConfiguration;
-	psIter->bError = FALSE;
 	psIter->pcLibrary = mcLibraries.GetHead();
 
 	while (psIter->pcLibrary)
@@ -179,11 +180,6 @@ CTranslationUnit* CProject::Start(SProcessIter* psIter, char* szConfiguration)
 CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 {
 	CConfig*	pcConfig;
-
-	if (psIter->bError)
-	{
-		return NULL;
-	}
 
 	if (!psIter->pcLibrary)
 	{
@@ -219,16 +215,18 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CProject::Process(char* szConfiguration)
+BOOL CProject::Process(char* szConfiguration)
 {
 	CTranslationUnit*	pcFile;
 	CConfig*			pcConfig;
 	BOOL				bResult;
 	CPreprocessor		cPreprocessor;
 	SProcessIter		sPreIter;
+	BOOL				bTotalResult;
 
 	CreatePost();
 
+	bTotalResult = TRUE;
 	pcFile = Start(&sPreIter, szConfiguration);
 	while (pcFile)
 	{
@@ -245,12 +243,7 @@ void CProject::Process(char* szConfiguration)
 		ClearPragmaOnceFromAllFiles();
 
 		bResult = cPreprocessor.PreprocessTranslationUnit(pcFile);
-		if (!bResult)
-		{
-			sPreIter.bError = TRUE;
-			cPreprocessor.Kill();
-			break;
-		}
+		bTotalResult &= bResult;
 		miBlockReuse += cPreprocessor.GetBlockReuse();
 
 		WritePost(pcFile);
@@ -258,6 +251,8 @@ void CProject::Process(char* szConfiguration)
 		cPreprocessor.Kill();
 		pcFile = Iterate(&sPreIter);
 	}
+
+	return bTotalResult;
 }
 
 

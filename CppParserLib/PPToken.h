@@ -78,7 +78,7 @@ public:
 typedef CArrayTemplate<CPPToken*> CArrayPPTokenPtrs;
 
 
-void SetBreakOnTokenInit(int64 iTokenNum);
+void PPSetBreakOnTokenInit(int64 iTokenNum);
 
 
 #endif // !__P_P_TOKEN_H__

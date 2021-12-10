@@ -45,6 +45,7 @@ void CTranslationUnits::Kill(void)
 	pcFile = mcFiles.GetHead();
 	while (pcFile)
 	{
+		pcFile->KillBlockSets();
 		pcFile->Kill();
 		pcFile = mcFiles.GetNext(pcFile);
 	}

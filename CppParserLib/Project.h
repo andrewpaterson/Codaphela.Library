@@ -35,7 +35,6 @@ struct SProcessIter
 	char*				szConfiguration;
 	CLibrary*			pcLibrary;
 	SCFileIter			sIter;
-	BOOL				bError;
 	CTranslationUnit*	pcFile;
 };
 
@@ -57,7 +56,7 @@ public:
 	CLibrary*			AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories);
 	void				AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem);
 	CLibrary*			GetLibrary(char* szLibrary);
-	void				Process(char* szConfiguration);
+	BOOL				Process(char* szConfiguration);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);

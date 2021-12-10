@@ -34,10 +34,13 @@ protected:
 	BOOL				mbLoaded;
 	CPPTokenMemory		mcTokenMemory;
 	CPPBlockSetArray	macBlockSets;
+	BOOL				mbBlockSetsKilled;
 
 public:
 			void				Init(char* pszFullName);
 	virtual void				Kill(void);
+
+			void				KillBlockSets(void);
 			void				Load(void);
 			void				SetContents(const char* sz);
 			BOOL				IsLoaded(void);
@@ -51,6 +54,7 @@ public:
 			void				Path(CChars* pszPath);
 			char*				GetContents(void);
 			int					GetContentsLength(void);
+			size_t				GetTokenMemoryUsed(void);
 			CPPBlockSetArray*	GetBlockSets(void);
 			CPPTokenMemory*		GetTokenMemory(void);
 			void				DumpBlockSets(void);

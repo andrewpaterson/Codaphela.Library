@@ -68,7 +68,7 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsBlock())
 	{
 		pcCast = (CPPBlock*)pcSource;
-		Init(pcCast->miLine, pcCast->miColumn, pcCast->mszFileName);
+		Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 
 		iNumTokens = pcCast->mcTokens.NumTokens();
 		for (i = 0; i < iNumTokens; i++)

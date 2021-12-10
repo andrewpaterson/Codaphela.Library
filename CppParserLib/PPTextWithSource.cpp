@@ -82,7 +82,7 @@ void CPPTextWithSource::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsText())
 	{
 		pcCast = (CPPTextWithSource*)pcSource;
-		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName, pcCast->mcText.msz, pcCast->mcText.miLen);
+		Init(pcCast->meType, pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName(), pcCast->mcText.msz, pcCast->mcText.miLen);
 	}
 }
 

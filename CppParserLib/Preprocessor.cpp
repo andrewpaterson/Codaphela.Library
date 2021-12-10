@@ -2457,10 +2457,6 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 		}
 	}
 
-	//Seriously, do something about this.  They should be passed as parameters, not global variables.
-	//mpcPostprocessedTokens = NULL;
-	//mpcStack = NULL;
-
 	return sLine;
 }
 

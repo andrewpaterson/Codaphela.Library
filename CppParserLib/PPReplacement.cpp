@@ -92,7 +92,7 @@ void CPPReplacement::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 	if (pcSource->IsReplacement())
 	{
 		pcCast = (CPPReplacement*)pcSource;
-		Init(pcCast->mlliDefineID, pcCast->miArgIndex, pcCast->miLine, pcCast->miColumn, pcCast->mszFileName, pcCast->mbVariadic);
+		Init(pcCast->mlliDefineID, pcCast->miArgIndex, pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName(), pcCast->mbVariadic);
 	}
 }
 
