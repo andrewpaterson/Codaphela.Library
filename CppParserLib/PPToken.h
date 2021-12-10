@@ -32,9 +32,13 @@ class CPPTokenMemory;
 class CPPToken
 {
 protected:
-	int		miLine;
-	int		miColumn;
-	int		miUsage;
+	int32		miLine;
+	int16		miColumn;
+	int16		miUsage;
+
+#ifdef DEBUG
+	int64		miTokenNum;
+#endif // DEBUG
 
 public:
 	virtual void			Init(int iLine, int iColumn);
@@ -70,6 +74,9 @@ public:
 
 
 typedef CArrayTemplate<CPPToken*> CArrayPPTokenPtrs;
+
+
+void SetBreakOnTokenInit(int64 iTokenNum);
 
 
 #endif // !__P_P_TOKEN_H__

@@ -21,6 +21,19 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPToken.h"
 
 
+int64		giTokenNum = 0;
+int64		giTokenBreak = -1;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SetBreakOnTokenInit(int64 iTokenNum)
+{
+	giTokenBreak = iTokenNum;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -29,6 +42,18 @@ void CPPToken::Init(int iLine, int iColumn)
 {
 	Set(iLine, iColumn);
 	miUsage = 0;
+
+#ifdef DEBUG
+	miTokenNum = giTokenNum;
+
+	if (miTokenNum == giTokenBreak)
+	{
+		gcUserError.Set("Break on token.");
+	}
+
+	giTokenNum++;
+#endif // DEBUG
+
 }
 
 
