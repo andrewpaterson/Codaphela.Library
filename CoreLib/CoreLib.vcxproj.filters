@@ -504,6 +504,12 @@
     <ClCompile Include="CalcObject.cpp">
       <Filter>Source\Text\Calculator\Abstract</Filter>
     </ClCompile>
+    <ClCompile Include="XMLProlog.cpp">
+      <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="CharEncoding.cpp">
+      <Filter>Source\Text\XML</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">
@@ -844,6 +850,12 @@
     </ClInclude>
     <ClInclude Include="TransientSequence.h">
       <Filter>Source\Sequence</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLProlog.h">
+      <Filter>Source\Text\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="CharEncoding.h">
+      <Filter>Source\Text\XML</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

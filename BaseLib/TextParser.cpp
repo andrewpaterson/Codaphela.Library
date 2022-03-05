@@ -2154,6 +2154,47 @@ TRISTATE CTextParser::GetHFExactIdentifierAndString(char* szIdentifier, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetHFOpeningQuote(char* pcDestQuoteType)
+{
+	TRISTATE		tSingle;
+	TRISTATE		tDouble;
+
+	tDouble = TRIFALSE;
+	tSingle = GetExactCharacter('\'');
+	ReturnOnError(tSingle);
+	if (tSingle == TRIFALSE)
+	{
+		tDouble = GetExactCharacter('"');
+		ReturnErrorOnErrorAndFalse(tDouble);
+		*pcDestQuoteType = '"';
+		return TRITRUE;
+	}
+	else
+	{
+		*pcDestQuoteType = '\'';
+		return TRITRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetHFClosingQuote(char cQuoteType)
+{
+	TRISTATE tResult;
+
+	tResult = GetExactCharacter(cQuoteType);
+	ReturnErrorOnErrorAndFalse(tResult);
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::ReadLine(CTextParser* pcLine)
 {
 	char*	szStart;
@@ -2291,7 +2332,6 @@ int CTextParser::RemainingLength(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2326,21 +2366,112 @@ void CTextParser::SetErrorSyntaxError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParser::Dump(void)
+void CTextParser::PrintPosition(CChars* pszDest)
 {
-	CChars				sz;
+	CChars				szParserText;
+	int					iPreviousLineEnd;
+	int					iLineEnd;
+
+	szParserText.Fake(mszStartOfText, 0, Length() - 1);
+	iPreviousLineEnd = szParserText.FindFromEnd(UsedLength() - 1, "\n");
+
+	iLineEnd = szParserText.Find(UsedLength(), "\n");
+
+	if (iPreviousLineEnd == -1 && iLineEnd == -1)
+	{
+		PrintPositionSingleLineParser(pszDest);
+	}
+	else
+	{
+		PrintPositionMultilineParser(pszDest);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::PrintPositionSingleLineParser(CChars* pszDest)
+{
 	CExternalString		pac;
 	int					iBefore;
 
 	pac.Init(mszStartOfText, mszEndOfText);
-	sz.Init(&pac);
 
+	pszDest->Append(&pac);
 	iBefore = mszParserPos - mszStartOfText;
-	sz.AppendNewLine();
-	sz.Append(' ', iBefore);
-	sz.Append('^');
-	sz.AppendNewLine();
+	pszDest->AppendNewLine();
+	pszDest->Append(' ', iBefore);
+	pszDest->Append('^');
+	pszDest->AppendNewLine();
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
+{
+	CChars				szParserLine;
+	CExternalString		pac;
+	CChars				szParserText;
+	int					iPreviousLineEnd;
+	int					iLineEnd;
+	int					iParserPos;
+	CChars				szLine;
+
+	szParserText.Fake(mszStartOfText, 0, Length() - 1);
+	iPreviousLineEnd = szParserText.FindFromEnd(UsedLength() - 1, "\n");
+
+	iLineEnd = szParserText.Find(UsedLength(), "\n");
+
+	if (iPreviousLineEnd == -1)
+	{
+		iPreviousLineEnd = 0;
+	}
+	if (iLineEnd == -1)
+	{
+		iLineEnd = Length();
+	}
+
+	pac.Init(&mszStartOfText[iPreviousLineEnd], &mszStartOfText[iLineEnd]);
+
+	iParserPos = mszParserPos - mszStartOfText;
+
+	szParserLine.Init(&pac);
+	szParserLine.Replace("\n", " ");
+	szParserLine.Replace("\r", "");
+
+	szLine.Init();
+	szLine.Append('[');
+	szLine.Append(miLine);
+	szLine.Append("]: ");
+
+	pszDest->Append(szLine);
+	pszDest->Append(szParserLine);
+	pszDest->AppendNewLine();
+	pszDest->Append(' ', szLine.Length());
+	pszDest->Append(' ', iParserPos - iPreviousLineEnd);
+	pszDest->Append('^');
+	pszDest->AppendNewLine();
+
+	szLine.Kill();
+	szParserLine.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::Dump(void)
+{
+	CChars				sz;
+
+	sz.Init();
+	PrintPosition(&sz);
 	sz.DumpKill();
 }
 

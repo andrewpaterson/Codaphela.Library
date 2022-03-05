@@ -26,10 +26,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Log.h"
 #include "BaseLib/TextParser.h"
 #include "XMLEntity.h"
+#include "XMLProlog.h"
 
 
 class CXMLParser
 {
+protected:
+	CXMLProlog					mcProlog;
+
 public:
 	CTextParser					mcParser;
 	int							miDepth;
@@ -47,6 +51,7 @@ public:
 
 	TRISTATE	Parse(char* szText, char* szSourceContext);
 	TRISTATE	ParseProlog(void);
+	TRISTATE	ParseStandalone(void);
 	TRISTATE	ParseVersion(void);
 	TRISTATE	ParseEncoding(void);
 	TRISTATE	ParseElement(void);

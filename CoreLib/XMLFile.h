@@ -30,7 +30,6 @@ class CXMLFile
 {
 public:
 	CMarkup		mcMarkup;
-	CChars		mszDirectory;
 			
 	void 	Init(void);
 	void 	Kill(void);
@@ -38,8 +37,8 @@ public:
 	BOOL 	Write(char* szFileName, char* szDirectory);
 
 private:
-	BOOL	Entities(CXMLParser* pcXMLParser);
-	BOOL	Read(char* szFileName, CMarkupDoc* pcDoc);
+	BOOL	Entities(CXMLParser* pcXMLParser, CChars* pszDirectory);
+	BOOL	Read(char* szFileName, CMarkupDoc* pcDoc, CChars* pszDirectory);
 };
 
 
