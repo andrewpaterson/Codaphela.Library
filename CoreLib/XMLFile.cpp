@@ -53,11 +53,12 @@ BOOL CXMLFile::Read(char* szFileName, char* szDirectory)
 {
 	BOOL			bResult;
 	CMarkupDoc*		pcDoc;
+	CChars			mszDirectory;
 
 	mszDirectory.Init(szDirectory);
 
 	pcDoc = mcMarkup.mpcDoc;
-	bResult = Read(szFileName, pcDoc);
+	bResult = Read(szFileName, pcDoc, &mszDirectory);
 	if (!bResult)
 	{
 		mszDirectory.Kill();
@@ -79,7 +80,7 @@ BOOL CXMLFile::Read(char* szFileName, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
+BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc, CChars* pszDirectory)
 {
 	CXMLParser	cXMLParser;
 	CTextFile	cTextFile;
@@ -88,7 +89,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
 	CFileUtil	cFileUtil;
 	CChars		szPath;
 
-	szPath.Init(mszDirectory);
+	szPath.Init(pszDirectory);
 	cFileUtil.FullPath(&szPath);
 	cFileUtil.AppendToPath(&szPath, szFileName);
 
@@ -112,7 +113,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
 		return FALSE;
 	}
 
-	bResult = Entities(&cXMLParser);
+	bResult = Entities(&cXMLParser, pszDirectory);
 	if (!bResult)
 	{
 		cXMLParser.Kill();
@@ -132,7 +133,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Entities(CXMLParser* pcXMLParser)
+BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 {
 	int					i;
 	CXMLEntity*			pcEntity;
@@ -156,7 +157,7 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser)
 			pcSubDoc->Init(pcEntity->mszName.Text(), pcDoc);
 			pcParentDoc->AddSubstitute(pcSubDoc);
 		
-			bResult = Read(pcEntity->mszValue.Text(), pcDoc);
+			bResult = Read(pcEntity->mszValue.Text(), pcDoc, pszDirectory);
 			if (!bResult)
 			{
 				return FALSE;

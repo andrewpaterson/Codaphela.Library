@@ -44,6 +44,7 @@ void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
 	miDepth = 0;
 	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
+	mcProlog.Init();
 	macEntities.Init();
 }
 
@@ -65,6 +66,7 @@ void CXMLParser::Kill(void)
 		pcEntity->Kill();
 	}
 	macEntities.Kill();
+	mcProlog.Kill();
 }
 
 
@@ -155,6 +157,7 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 	}
 
 	tResult = ParseElement();
+	mcParser.Dump();
 	mcParser.Kill();
 	if (tResult != TRITRUE)
 	{
@@ -171,41 +174,25 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 TRISTATE CXMLParser::ParseVersion(void)
 {
 	TRISTATE		tResult;
-	double		pfVersion;
-	TRISTATE		tSingle;
-	TRISTATE		tDouble;
+	double			pfVersion;
+	char			cQuote;
 
 	tResult = mcParser.GetExactIdentifier("version");
-	if (tResult != TRITRUE)
-	{
-		return TRIERROR;
-	}
+	ReturnErrorOnErrorAndFalse(tResult);
 
 	tResult = mcParser.GetExactCharacter('=', FALSE);
-	if (tResult != TRITRUE)
-	{
-		return TRIERROR;
-	}
+	ReturnErrorOnErrorAndFalse(tResult);
 
-	tDouble = TRIFALSE;
-	tSingle = mcParser.GetExactCharacter('\'');
-	ReturnOnError(tSingle);
-	if (tSingle == TRIFALSE)
-	{
-		tDouble = mcParser.GetExactCharacter('"');
-		ReturnErrorOnErrorAndFalse(tDouble);
-	}
+	tResult = mcParser.GetHFOpeningQuote(&cQuote);
+	ReturnErrorOnErrorAndFalse(tResult);
+
 	tResult = mcParser.GetFloat(&pfVersion);
-	if (tSingle == TRITRUE)
-	{
-		tSingle = mcParser.GetExactCharacter('\'');
-		ReturnErrorOnErrorAndFalse(tSingle);
-	}
-	else
-	{
-		tDouble = mcParser.GetExactCharacter('"');
-		ReturnErrorOnErrorAndFalse(tDouble);
-	}
+	ReturnErrorOnErrorAndFalse(tResult);
+
+	tResult = mcParser.GetHFClosingQuote(cQuote);
+
+	mcProlog.SetVersion((float)pfVersion);
+
 	if (pfVersion != 1.0f)
 	{
 		return TRIERROR;
@@ -222,6 +209,7 @@ TRISTATE CXMLParser::ParseEncoding(void)
 {
 	TRISTATE		tResult;
 	CChars			szEncoding;
+	ECharEncoding	eEncoding;
 
 	tResult = mcParser.GetExactIdentifier("encoding");
 	if (tResult != TRITRUE)
@@ -231,13 +219,69 @@ TRISTATE CXMLParser::ParseEncoding(void)
 
 	szEncoding.Init();
 	tResult = ParseValue(&szEncoding);
+	if (tResult != TRITRUE)
+	{
+		szEncoding.Kill();
+		return TRIERROR;
+	}
+
+	szEncoding.StripWhiteSpace();
+
+	eEncoding = CCharEncoding::ParseEncoding(szEncoding.Text());
 	szEncoding.Kill();
 
-	if (tResult != TRITRUE)
+	mcProlog.SetEncoding(eEncoding);
+	if (eEncoding == CE_NoSet || eEncoding == CE_Unkown)
 	{
 		return TRIERROR;
 	}
+
 	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CXMLParser::ParseStandalone(void)
+{
+	TRISTATE		tResult;
+	CChars			szStandalone;
+
+	tResult = mcParser.GetExactIdentifier("standalone");
+	if (tResult == TRIFALSE)
+	{
+		mcProlog.SetStandalone(TRUE);
+		return TRITRUE;
+	}
+	ReturnOnError(tResult);
+
+	szStandalone.Init();
+	tResult = ParseValue(&szStandalone);
+	if (tResult != TRITRUE)
+	{
+		szStandalone.Kill();
+		return TRIERROR;
+	}
+
+	szStandalone.StripWhiteSpace();
+	if (szStandalone.EqualsIgnoreCase("yes"))
+	{
+		mcProlog.SetStandalone(TRUE);
+		szStandalone.Kill();
+		return TRITRUE;
+	}
+	else if (szStandalone.EqualsIgnoreCase("no"))
+	{
+		mcProlog.SetStandalone(FALSE);
+		szStandalone.Kill();
+		return TRITRUE;
+	}
+	else
+	{
+		return TRIERROR;
+	}
 }
 
 
@@ -265,6 +309,13 @@ TRISTATE CXMLParser::ParseProlog(void)
 	}
 
 	tResult = ParseEncoding();
+	if (tResult == TRIERROR)
+	{
+		mcParser.PopPosition();
+		return TRIERROR;
+	}
+
+	tResult = ParseStandalone();
 	if (tResult == TRIERROR)
 	{
 		mcParser.PopPosition();
@@ -924,14 +975,7 @@ TRISTATE CXMLParser::ParseDocType(void)
 	CChars		szRootName;
 
 	tResult = mcParser.GetExactCaseInsensitiveCharacterSequence("<!DOCTYPE");
-	if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
-	else if (tResult == TRIFALSE)
-	{
-		return TRIFALSE;
-	}
+	ReturnOnErrorAndFalse(tResult);
 
 	szRootName.Init();
 	tResult = ParseIdentifier(&szRootName);

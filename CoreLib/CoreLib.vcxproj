@@ -183,6 +183,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CalcObject.cpp" />
+    <ClCompile Include="CharEncoding.cpp" />
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="FileIterator.cpp" />
@@ -286,8 +287,10 @@
     <ClCompile Include="OperatorIncrement.cpp" />
     <ClCompile Include="OperatorRemainder.cpp" />
     <ClCompile Include="OperatorAssignment.cpp" />
+    <ClCompile Include="XMLProlog.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CharEncoding.h" />
     <ClInclude Include="Codabase.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
@@ -401,6 +404,7 @@
     <ClInclude Include="OperatorIncrement.h" />
     <ClInclude Include="OperatorRemainder.h" />
     <ClInclude Include="OperatorAssignment.h" />
+    <ClInclude Include="XMLProlog.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl" />

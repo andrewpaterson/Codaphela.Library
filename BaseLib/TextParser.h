@@ -143,11 +143,17 @@ public:
 	//Helper Functions.
 	TRISTATE	GetHFExactIdentifierAndInteger(char* szIdentifier, int* piInt);
 	TRISTATE	GetHFExactIdentifierAndString(char* szIdentifier, char* szString);
+	TRISTATE	GetHFOpeningQuote(char* pcDestQuoteType);
+	TRISTATE	GetHFClosingQuote(char cQuoteType);
 	TRISTATE	ReadLine(CTextParser* pcLine);
 	TRISTATE	GetDebugCharacterSequence(char* szSequence);
 
 	void		SetErrorEndOfFile(void);
 	void		SetErrorSyntaxError(void);
+
+	void		PrintPosition(CChars* pszDest);
+	void		PrintPositionSingleLineParser(CChars* pszDest);
+	void		PrintPositionMultilineParser(CChars* pszDest);
 
 	void		Dump(void);
 
