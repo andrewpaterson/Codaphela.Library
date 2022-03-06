@@ -82,6 +82,7 @@ public:
 	void	Append(double d, int iNumDecimals);
 	void	Append(long long int lli);
 	void	Append(unsigned long long int ulli);
+	CChars*	Append(CExternalString* pcString);
 	void	AppendList(const char* szFirst, ...);
 	void	AppendQuoted(char c);
 	void	AppendQuoted(const char* sz);

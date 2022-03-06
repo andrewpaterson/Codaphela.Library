@@ -526,13 +526,32 @@ void CChars::SetChar(int iIndex, char c)
 CChars* CChars::Append(const char* sz)
 {
 	int		iLen;
-	char*	pcPosition;
+	char* pcPosition;
 
 	if (!StrEmpty(sz))
 	{
 		iLen = (int)strlen(sz);
 		pcPosition = PrivateGrow(iLen);
-		strcpy(pcPosition, sz);
+		memcpy(pcPosition, sz, iLen);
+		pcPosition[iLen] = '\0';
+	}
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CChars::Append(CExternalString* pcString)
+{
+	char*	pcPosition;
+
+	if (pcString && pcString->miLen > 0)
+	{
+		pcPosition = PrivateGrow(pcString->miLen);
+		memcpy(pcPosition, pcString->msz, pcString->miLen);
+		pcPosition[pcString->miLen] = '\0';
 	}
 	return this;
 }

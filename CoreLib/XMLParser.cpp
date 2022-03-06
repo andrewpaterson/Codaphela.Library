@@ -46,6 +46,7 @@ void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
 	mpcLogger = pcLogger;
 	mcProlog.Init();
 	macEntities.Init();
+	gcLogger.Enable();
 }
 
 
@@ -171,30 +172,99 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CXMLParser::FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected)
+{
+	if (tResult == TRIERROR)
+	{
+		CChars	szError;
+
+		szError.Init("Expected [");
+		szError.Append(szExpected);
+		szError.Append("].  Got ");
+		mcParser.AppendError(&szError);
+		szError.Append('.');
+		szError.AppendNewLine();
+		mcParser.PrintPosition(&szError);
+		gcLogger.Warning(szError.Text());
+		szError.Kill();
+	}
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CXMLParser::Fail(TRISTATE tResult, char* szExpected)
+{
+	CChars	szError;
+
+	szError.Init("Expected [");
+	szError.Append(szExpected);
+	szError.Append("].");
+	if (tResult == TRIERROR)
+	{
+		szError.Append("  Got ");
+		mcParser.AppendError(&szError);
+		szError.Append('.');
+	}
+	szError.AppendNewLine();
+	mcParser.PrintPosition(&szError);
+	gcLogger.Warning(szError.Text());
+	szError.Kill();
+
+	return TRIERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseVersion(void)
 {
 	TRISTATE		tResult;
 	double			pfVersion;
-	char			cQuote;
+	char			acQuote[2];
 
 	tResult = mcParser.GetExactIdentifier("version");
-	ReturnErrorOnErrorAndFalse(tResult);
+	if (NotTrue(tResult))
+	{
+		return Fail(tResult, "version");
+	}
 
 	tResult = mcParser.GetExactCharacter('=', FALSE);
-	ReturnErrorOnErrorAndFalse(tResult);
-
-	tResult = mcParser.GetHFOpeningQuote(&cQuote);
-	ReturnErrorOnErrorAndFalse(tResult);
+	if (NotTrue(tResult))
+	{
+		return Fail(tResult, "=");
+	}
+	
+	acQuote[0] = '\0';
+	acQuote[1] = '\0';
+	tResult = mcParser.GetHFOpeningQuote(acQuote);
+	if (NotTrue(tResult))
+	{
+		return Fail(tResult, "'] or [\"");
+	}
 
 	tResult = mcParser.GetFloat(&pfVersion);
-	ReturnErrorOnErrorAndFalse(tResult);
+	if (NotTrue(tResult))
+	{
+		return Fail(tResult, "${float}");
+	}
 
-	tResult = mcParser.GetHFClosingQuote(cQuote);
+	tResult = mcParser.GetHFClosingQuote(acQuote[0]);
+	if (NotTrue(tResult))
+	{
+		return Fail(tResult, acQuote);
+	}
 
 	mcProlog.SetVersion((float)pfVersion);
 
 	if (pfVersion != 1.0f)
 	{
+		gcLogger.Warning("Expected XML version equal to 1.0");
 		return TRIERROR;
 	}
 	return TRITRUE;

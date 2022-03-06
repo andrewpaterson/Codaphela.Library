@@ -68,6 +68,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 	//This assumes that szText has already been passified.
 	if (szText == NULL)
 	{
+		meError = TPE_NotSet;
 		miLine = 0;
 		miColumn = 0;
 		mszStartOfText = NULL;
@@ -82,6 +83,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 	}
 	else if (CountCarriageReturns(szText, iTextLen) == 0)
 	{
+		meError = TPE_NotSet;
 		miLine = 0;
 		miColumn = 0;
 		mszStartOfText = szText;
@@ -97,6 +99,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 	}
 	else
 	{
+		meError = TPE_NotSet;
 		miLine = 0;
 		miColumn = 0;
 		mszStartOfText = NULL;
@@ -2359,6 +2362,28 @@ void CTextParser::SetErrorEndOfFile(void)
 void CTextParser::SetErrorSyntaxError(void)
 {
 	meError = TPE_SyntaxError;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::AppendError(CChars* pszDest)
+{
+	pszDest->Append("parser error [");
+	if (meError == TPE_NotSet)
+	{
+		pszDest->Append("Not Set");
+	}
+	else if (meError == TPE_EndOfFile)
+	{
+		pszDest->Append("End of File");
+	}
+	else if (meError == TPE_SyntaxError)
+	{
+		pszDest->Append("Syntax Error");
+	}
+	pszDest->Append("]");
 }
 
 

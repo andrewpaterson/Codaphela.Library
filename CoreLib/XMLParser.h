@@ -74,6 +74,8 @@ public:
 	TRISTATE	ParseInternalEntity(char* szName, char* szContent);
 	BOOL		IsAllowedIdentifierChar(BOOL bFirstChar, unsigned char cChar);
 	BOOL		IsAllowedTextChar(unsigned char cChar);
+	TRISTATE	FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected);
+	TRISTATE	Fail(TRISTATE tResult, char* szExpected);
 };
 
 
