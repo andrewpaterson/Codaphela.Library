@@ -64,6 +64,7 @@ extern TRISTATE	gTriState;
 #define ContinueOnTrue(p)				if (p == TRITRUE) { continue; }
 TRISTATE Negate(TRISTATE tristate);
 TRISTATE Fix(TRISTATE tristate);
+BOOL NotTrue(TRISTATE tristate);
 
 //Not specifically TRISTATE related but errors nonetheless.
 #define ReturnZeroOnZero(p)				if (p == 0)  { return 0; }

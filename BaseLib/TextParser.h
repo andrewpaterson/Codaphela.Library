@@ -52,10 +52,11 @@ struct SParseState
 };
 
 
-enum TextParseError
+enum ETextParseError
 {
 	TPE_EndOfFile,
 	TPE_SyntaxError,
+	TPE_NotSet,
 };
 
 
@@ -72,7 +73,7 @@ public:
 	int					miLine;
 	int					miColumn;
 	BOOL				mbAnnotated;
-	TextParseError		meError;
+	ETextParseError		meError;
 
 	BOOL 		Init(char* szText, int iTextLen);
 	BOOL 		Init(char* szText);
@@ -150,6 +151,7 @@ public:
 
 	void		SetErrorEndOfFile(void);
 	void		SetErrorSyntaxError(void);
+	void		AppendError(CChars* pszDest);
 
 	void		PrintPosition(CChars* pszDest);
 	void		PrintPositionSingleLineParser(CChars* pszDest);
