@@ -47,8 +47,6 @@ public:
 	void		Init(CMarkupDoc* pcDoc, CLogger* pcLogger);
 	void		Kill(void);
 
-	void		LogError(char* szText, ...);
-
 	TRISTATE	Parse(char* szText, char* szSourceContext);
 	TRISTATE	ParseProlog(void);
 	TRISTATE	ParseStandalone(void);
@@ -75,7 +73,7 @@ public:
 	BOOL		IsAllowedIdentifierChar(BOOL bFirstChar, unsigned char cChar);
 	BOOL		IsAllowedTextChar(unsigned char cChar);
 	TRISTATE	FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected);
-	TRISTATE	Fail(TRISTATE tResult, char* szExpected);
+	TRISTATE	FailAlways(TRISTATE tResult, char* szExpected);
 };
 
 

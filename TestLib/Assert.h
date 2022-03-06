@@ -68,6 +68,7 @@ BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int 
 BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, int iLine, char* szFile);
 BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, size_t iLength, int iLine, char* szFile);
 BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szString, int iLine, char* szFile);
+BOOL PrivateAssertStringStartsWith(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile);
 
 
 #define TestStatistics()					PrivateTestStatistics()
@@ -75,6 +76,7 @@ BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szStrin
 #define AssertString(e, a)					Validate(PrivateAssertString(e, a, TRUE, __LINE__, __FILE__))
 #define AssertStringCase(e, a, c)			Validate(PrivateAssertString(e, a, c, __LINE__, __FILE__))
 #define AssertStringApproximate(e, a)		Validate(PrivateAssertStringApproximate(e, a, TRUE, __LINE__, __FILE__))
+#define AssertStringStartsWith(e, a)		Validate(PrivateAssertStringStartsWith(e, a, TRUE, __LINE__, __FILE__))
 #define AssertTristate(e, a)				Validate(PrivateAssertTristate(e, a, __LINE__, __FILE__))
 #define AssertBool(e, a)					Validate(PrivateAssertBool(e, a, __LINE__, __FILE__))
 #define AssertTrue(a)						Validate(PrivateAssertBool(TRUE, a, __LINE__, __FILE__))

@@ -33,9 +33,7 @@ enum TRISTATE
 {
 	TRITRUE	= TRUE,
 	TRIFALSE = FALSE,
-	TRIERROR = -1,
-
-	FORCE_DWORD = 0xffffffff
+	TRIERROR = 0xffffffff
 };
 
 

@@ -1109,7 +1109,7 @@ TRISTATE CTextParser::GetString(char* szString, int* piLength)
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength, BOOL bPassOnTest, BOOL bSkipWhiteSpace)
+TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength, BOOL bPassOnTest, BOOL bSkipWhiteSpace, BOOL bAllowEscapeCharacters)
 {
 	int			iPos;
 	char		cCurrent;
@@ -1149,7 +1149,7 @@ TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuo
 						return TRITRUE;
 					}
 					//We have an escape character...
-					else if (cCurrent == '\\')
+					else if (cCurrent == '\\' && bAllowEscapeCharacters)
 					{
 						StepRight();
 						tReturn = GetEscapeCode(&cEscape);
@@ -2471,7 +2471,7 @@ void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
 
 	szLine.Init();
 	szLine.Append('[');
-	szLine.Append(miLine);
+	szLine.Append(miLine + 1);
 	szLine.Append("]: ");
 
 	pszDest->Append(szLine);
