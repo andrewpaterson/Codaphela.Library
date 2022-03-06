@@ -300,6 +300,63 @@ BOOL PrivateAssertStringApproximate(const char* szExpected, const char* szActual
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertStringStartsWith(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile)
+{
+	int		iStrLenExpected;
+	int		iStrLenActual;
+	int		i;
+
+	if ((szExpected == NULL) && (szActual == NULL))
+	{
+		return Pass();
+	}
+	else if (szActual == NULL)
+	{
+		return Failed(szExpected, "** NULL **", iLine, szFile);
+	}
+	else if (szExpected == NULL)
+	{
+		return Failed("** NULL **", szActual, iLine, szFile);
+	}
+	else
+	{
+		iStrLenActual = StrLen(szActual);
+		iStrLenExpected = StrLen(szExpected);
+
+		if (iStrLenActual < iStrLenExpected)
+		{
+			return Failed(szExpected, szActual, iLine, szFile);
+		}
+
+		if (bTestCase)
+		{
+			for (i = 0; i < iStrLenExpected; i++)
+			{
+				if (szExpected[i] != szActual[i])
+				{
+					return Failed(szExpected, szActual, iLine, szFile);
+				}
+			}
+		}
+		else
+		{
+			for (i = 0; i < iStrLenExpected; i++)
+			{
+				if (ToLower(szExpected[i]) != ToLower(szActual[i]))
+				{
+					return Failed(szExpected, szActual, iLine, szFile);
+				}
+			}
+		}
+		return Pass();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, int iLine, char* szFile)
 {
 	char szExpected[32];

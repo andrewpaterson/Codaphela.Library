@@ -46,7 +46,6 @@ void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
 	mpcLogger = pcLogger;
 	mcProlog.Init();
 	macEntities.Init();
-	gcLogger.Enable();
 }
 
 
@@ -158,7 +157,7 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 	}
 
 	tResult = ParseElement();
-	mcParser.Dump();
+
 	mcParser.Kill();
 	if (tResult != TRITRUE)
 	{
@@ -185,7 +184,7 @@ TRISTATE CXMLParser::FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected
 		szError.Append('.');
 		szError.AppendNewLine();
 		mcParser.PrintPosition(&szError);
-		gcLogger.Warning(szError.Text());
+		mpcLogger->Warning(szError.Text());
 		szError.Kill();
 	}
 	return tResult;
@@ -196,7 +195,7 @@ TRISTATE CXMLParser::FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CXMLParser::Fail(TRISTATE tResult, char* szExpected)
+TRISTATE CXMLParser::FailAlways(TRISTATE tResult, char* szExpected)
 {
 	CChars	szError;
 
@@ -211,7 +210,7 @@ TRISTATE CXMLParser::Fail(TRISTATE tResult, char* szExpected)
 	}
 	szError.AppendNewLine();
 	mcParser.PrintPosition(&szError);
-	gcLogger.Warning(szError.Text());
+	mpcLogger->Warning(szError.Text());
 	szError.Kill();
 
 	return TRIERROR;
@@ -231,13 +230,13 @@ TRISTATE CXMLParser::ParseVersion(void)
 	tResult = mcParser.GetExactIdentifier("version");
 	if (NotTrue(tResult))
 	{
-		return Fail(tResult, "version");
+		return FailAlways(tResult, "version");
 	}
 
 	tResult = mcParser.GetExactCharacter('=', FALSE);
 	if (NotTrue(tResult))
 	{
-		return Fail(tResult, "=");
+		return FailAlways(tResult, "=");
 	}
 	
 	acQuote[0] = '\0';
@@ -245,26 +244,26 @@ TRISTATE CXMLParser::ParseVersion(void)
 	tResult = mcParser.GetHFOpeningQuote(acQuote);
 	if (NotTrue(tResult))
 	{
-		return Fail(tResult, "'] or [\"");
+		return FailAlways(tResult, "'] or [\"");
 	}
 
 	tResult = mcParser.GetFloat(&pfVersion);
 	if (NotTrue(tResult))
 	{
-		return Fail(tResult, "${float}");
+		return FailAlways(tResult, "${float}");
 	}
 
 	tResult = mcParser.GetHFClosingQuote(acQuote[0]);
 	if (NotTrue(tResult))
 	{
-		return Fail(tResult, acQuote);
+		return FailAlways(tResult, acQuote);
 	}
 
 	mcProlog.SetVersion((float)pfVersion);
 
 	if (pfVersion != 1.0f)
 	{
-		gcLogger.Warning("Expected XML version equal to 1.0");
+		mpcLogger->Warning("Expected XML version equal to 1.0");
 		return TRIERROR;
 	}
 	return TRITRUE;
@@ -457,20 +456,18 @@ TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 	tResult = mcParser.GetExactCharacter('=', FALSE);
 	if (tResult != TRITRUE)
 	{
-		LogError("'=' expected after attribute.", NULL);
-		return TRIERROR;
+		return FailAlways(tResult, "=");
 	}
 
 	szStart = mcParser.mszParserPos;
-	tSingle = mcParser.GetQuotedCharacterSequence('\'', '\'', NULL, NULL, TRUE, FALSE);
+	tSingle = mcParser.GetQuotedCharacterSequence('\'', '\'', NULL, NULL, TRUE, FALSE, FALSE);
 	ReturnOnError(tSingle);
 	if (tSingle == TRIFALSE)
 	{
-		tDouble = mcParser.GetQuotedCharacterSequence('"', '"', NULL, NULL, TRUE, FALSE);
+		tDouble = mcParser.GetQuotedCharacterSequence('"', '"', NULL, NULL, TRUE, FALSE, FALSE);
 		if (tDouble != TRITRUE)
 		{
-			LogError("' or \" expected around value.", NULL);
-			return TRIERROR;
+			return FailAlways(tResult, "'] or [\"");
 		}
 	}
 
@@ -1273,38 +1270,3 @@ TRISTATE CXMLParser::ParseInternalEntity(char* szName, char* szContent)
 	return TRITRUE;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CXMLParser::LogError(char* szText, ...)
-{
-	va_list		vaMarker;
-	char*		sz;
-	CChars		szError;
-
-	szError.Init();
-	szError.Append(mszSourceContext);
-	szError.Append(" [");
-	szError.Append(mcParser.Line()+1);
-	szError.Append(", ");
-	szError.Append(mcParser.Column()+1);
-	szError.Append("]: ");
-
-	if (szText)
-	{
-		szError.Append(szText);
-
-		va_start(vaMarker, szText);
-		sz = va_arg(vaMarker, char*);
-		while (sz != NULL)
-		{
-			szError.Append(sz);
-			sz = va_arg(vaMarker, char*);
-		}
-		va_end(vaMarker);
-	}
-	mpcLogger->Error(szError.Text());
-	szError.Kill();
-}

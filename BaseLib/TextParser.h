@@ -117,7 +117,7 @@ public:
 	TRISTATE	GetExactIdentifier(char* szIdentifier);
 	TRISTATE	GetIdentifier(char* szIdentifier, int* piLength = NULL, BOOL bPassOnTest = FALSE);
 	TRISTATE	GetString(char* szString, int* piLength = NULL);  //Quotes not included.
-	TRISTATE	GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE);  //'Quotes' not included.
+	TRISTATE	GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE, BOOL bAllowEscapeCharacters = TRUE);  //'Quotes' not included.
 	TRISTATE	GetExactCharacterSequence(char* szSequence);
 	TRISTATE	GetCharacterSequence(char* szSequence, int* piLength = NULL);
 	TRISTATE	GetExactCaseInsensitiveCharacterSequence(const char* szSequence);
