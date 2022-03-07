@@ -10,9 +10,11 @@ public:
 	int x, y;
 
 	SInt2();
+	SInt2(const SInt2& v);
 	SInt2(int x, int y);
 
 	void	Init(int x, int y);
+	void	Init(const SInt2& v);
 	void	Zero(void);
 
 	BOOL operator == (const SInt2&) const;

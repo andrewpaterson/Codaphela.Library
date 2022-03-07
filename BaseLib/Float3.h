@@ -60,6 +60,7 @@ public:
 	BOOL operator != (const SFloat3&) const;
 
 	void 	Init(float x, float y, float z);
+	void 	Init(const SFloat3& v);
 	void 	Zero(void);
 
 	BOOL 	Save(CFileWriter* pcFile);
