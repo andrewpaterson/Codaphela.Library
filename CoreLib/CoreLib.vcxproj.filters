@@ -106,9 +106,6 @@
     <Filter Include="Source\Text\XML">
       <UniqueIdentifier>{f8bd701d-f38a-495b-b113-88d2d33beddf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Text\Markup">
-      <UniqueIdentifier>{7048d359-247b-4c09-a619-0575b301aa4e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Text\Editor">
       <UniqueIdentifier>{9307b93b-595f-4a74-8b5a-cbb26416f201}</UniqueIdentifier>
     </Filter>
@@ -248,9 +245,6 @@
     </ClCompile>
     <ClCompile Include="XMLParser.cpp">
       <Filter>Source\Text\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="MarkupTextParser.cpp">
-      <Filter>Source\Text\Markup</Filter>
     </ClCompile>
     <ClCompile Include="PlainTextEditor.cpp">
       <Filter>Source\Text\Editor</Filter>
@@ -574,9 +568,6 @@
     </ClInclude>
     <ClInclude Include="XMLParser.h">
       <Filter>Source\Text\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="MarkupTextParser.h">
-      <Filter>Source\Text\Markup</Filter>
     </ClInclude>
     <ClInclude Include="PlainTextEditor.h">
       <Filter>Source\Text\Editor</Filter>
