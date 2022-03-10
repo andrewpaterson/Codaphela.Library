@@ -326,3 +326,35 @@ DataCompare CMapStringBlock::CalculateCompareFunc(BOOL bCaseSensitive)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CMapStringBlock::GetKeysAsString(CChars* pszDest, char* szSeparator)
+{
+	SMapIterator	sIter;
+	char*			szKey;
+	int				iStrLen;
+	BOOL			bHasNext;
+	BOOL			bFirst;
+
+	bFirst = TRUE;
+	bHasNext = StartIteration(&sIter, (void**)&szKey, &iStrLen, NULL, NULL);
+	while (bHasNext)
+	{
+		if (bFirst)
+		{
+			bFirst = FALSE;
+		}
+		else
+		{
+			pszDest->Append(szSeparator);
+		}
+
+		pszDest->Append(szKey, iStrLen - 1);
+
+		bHasNext = Iterate(&sIter, (void**)&szKey, &iStrLen, NULL, NULL);
+	}
+}
+
