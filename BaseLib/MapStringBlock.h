@@ -60,6 +60,8 @@ public:
 	BOOL		IsCaseSensitive(void);
 	void		SetCaseSensitive(BOOL bCaseSensitive);
 
+	void		GetKeysAsString(CChars* pszDest, char* szSeparator);
+
 protected:
 	DataCompare	CalculateCompareFunc(BOOL bCaseSensitive);
 };
