@@ -254,7 +254,6 @@
     <ClCompile Include="CalcUnaryExpression.cpp" />
     <ClCompile Include="XMLEntity.cpp" />
     <ClCompile Include="XMLParser.cpp" />
-    <ClCompile Include="MarkupTextParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
     <ClCompile Include="WinConfig.cpp" />
@@ -370,7 +369,6 @@
     <ClInclude Include="CalcUnaryExpression.h" />
     <ClInclude Include="XMLEntity.h" />
     <ClInclude Include="XMLParser.h" />
-    <ClInclude Include="MarkupTextParser.h" />
     <ClInclude Include="PlainTextEditor.h" />
     <ClInclude Include="TextEditor.h" />
     <ClInclude Include="Timer.h" />

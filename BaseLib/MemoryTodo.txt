@@ -43,4 +43,4 @@ CImageCel
 Fix
 ---
 TakeControlOfImages
-NamedObjects must allow for nameless versions also.
+* NamedObjects must allow for nameless versions also.
