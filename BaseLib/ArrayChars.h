@@ -36,6 +36,7 @@ public:
 
 	void 		_Init(void);
 	void 		Init(void);
+	void 		Init(const char* szFirst, ...);
 	void 		Init(CArrayChars* pasz);
 	void 		Fake(void);
 	void 		ReInit(void);
@@ -45,6 +46,7 @@ public:
 	CChars*	 	Add(CChars cChars);
 	CChars*		Add(CChars* pcChars);
 	CChars*	 	Add(char* szString);
+	CChars*	 	Add(const char* szString);
 	CChars*		Add(void);
 	CChars*		Add(char* szString, int iStartInclusive, int iEndExclusive);
 	CChars*		Add(char* szText, char* szLastCharInclusive);
