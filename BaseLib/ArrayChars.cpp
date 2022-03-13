@@ -34,7 +34,7 @@ void CArrayChars::_Init(void)
 }
 
 
-////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -42,6 +42,34 @@ void CArrayChars::Init(void)
 {
 	mcArray.Init();
 	mbFaked = FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayChars::Init(const char* szFirst, ...)
+{
+	va_list		vaMarker;
+	char*		sz;
+
+	Init();
+
+
+	if (szFirst != NULL)
+	{
+		Add(szFirst);
+
+		va_start(vaMarker, szFirst);
+		sz = va_arg(vaMarker, char*);
+		while (sz != NULL)
+		{
+			Add(sz);
+			sz = va_arg(vaMarker, char*);
+		}
+		va_end(vaMarker);
+	}
 }
 
 
@@ -155,7 +183,17 @@ CChars* CArrayChars::Add(CChars* pcChars)
 //////////////////////////////////////////////////////////////////////////
 CChars* CArrayChars::Add(char* szString)
 {
-	CChars*		pcChars2;
+	return Add((const char*)szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+CChars* CArrayChars::Add(const char* szString)
+{
+	CChars* pcChars2;
 
 	pcChars2 = mcArray.Add();
 	if (!mbFaked)

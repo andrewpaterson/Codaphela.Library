@@ -163,7 +163,7 @@ void CLogger::Break(void)
 	if (msConfig.bBreakOnError)
 	{
 		BREAK();
-	}
+	} 
 }
 
 
