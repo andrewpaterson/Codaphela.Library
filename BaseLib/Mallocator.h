@@ -12,7 +12,9 @@
 
 class CFileReader;
 class CFileWriter;
-class CArrayVoidPtr;
+template<class M>
+class CArrayTemplatePtr;
+typedef CArrayTemplatePtr<void>	CArrayVoidPtr;
 class CMallocator : public CConstructable, public CKillable
 {
 public:

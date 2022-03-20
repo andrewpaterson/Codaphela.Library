@@ -183,6 +183,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
+    <ClInclude Include="ArrayTemplatePtr.h" />
     <ClInclude Include="BubbleSort.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="DataIO.h" />
@@ -465,7 +466,6 @@
     <ClCompile Include="ArrayCharMinimal.cpp" />
     <ClCompile Include="ArrayChars.cpp" />
     <ClCompile Include="ArraySizer.cpp" />
-    <ClCompile Include="ArrayVoidPtr.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="BaseLinkedListBlock.cpp" />
     <ClCompile Include="BaseMemory.cpp" />
