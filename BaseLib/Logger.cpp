@@ -508,4 +508,3 @@ void CLogger::RemoveOutput(CAbstractFile* pcFile)
 	mapcFiles.RemoveAt(iIndex);
 }
 
-

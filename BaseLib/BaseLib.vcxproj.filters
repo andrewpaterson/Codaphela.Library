@@ -1008,6 +1008,9 @@
     <ClInclude Include="IndexStringBlock.h">
       <Filter>Source\Data\Map\Index\String</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayTemplatePtr.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1261,9 +1264,6 @@
     </ClCompile>
     <ClCompile Include="ArrayBit.cpp">
       <Filter>Source\Data\Array\Bit</Filter>
-    </ClCompile>
-    <ClCompile Include="ArrayVoidPtr.cpp">
-      <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClCompile>
     <ClCompile Include="ArrayIntAndPointer.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>

@@ -1,14 +1,34 @@
+#ifndef __ARRAY_TEMPLATE_POINTER_H__
+#define __ARRAY_TEMPLATE_POINTER_H__
 #include "PointerFunctions.h"
-#include "ArrayVoidPtr.h"
+#include "ArrayTemplate.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayVoidPtr::Init(void)
+template<class M>
+class CArrayTemplatePtr : public CArrayTemplate<M*>
 {
-	__CArrayVoidPtr::Init();
+public:
+	void	Init(void);
+	void	Kill(void);
+	void	Add(M* pv);
+	M*		GetPtr(int iIndex);
+	BOOL	Get(int iIndex, M** pv);
+	M**		Get(int iIndex);
+	void	QuickSort(void);
+	int		Find(M* pv);
+	void 	Push(M* pv);
+	M*		Pop(void);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::Init(void)
+{
+	CArrayTemplate<M*>::Init();
 }
 
 
@@ -16,9 +36,10 @@ void CArrayVoidPtr::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayVoidPtr::Kill(void)
+template<class M>
+void CArrayTemplatePtr<M>::Kill(void)
 {
-	__CArrayVoidPtr::Kill();
+	CArrayTemplate<M*>::Kill();
 }
 
 
@@ -26,11 +47,12 @@ void CArrayVoidPtr::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayVoidPtr::Add(void* pv)
+template<class M>
+void CArrayTemplatePtr<M>::Add(M* pv)
 {
-	void**	pvTemp;
+	M** pvTemp;
 
-	pvTemp = __CArrayVoidPtr::Add();
+	pvTemp = CArrayTemplate<M*>::Add();
 	*pvTemp = pv;
 }
 
@@ -39,11 +61,12 @@ void CArrayVoidPtr::Add(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayVoidPtr::Get(int iIndex, void** pv)
+template<class M>
+BOOL CArrayTemplatePtr<M>::Get(int iIndex, M** pv)
 {
-	void**	pvTemp;
+	M** pvTemp;
 
-	pvTemp = __CArrayVoidPtr::SafeGet(iIndex);
+	pvTemp = CArrayTemplate<M*>::SafeGet(iIndex);
 	if (pvTemp)
 	{
 		*pv = *pvTemp;
@@ -60,9 +83,10 @@ BOOL CArrayVoidPtr::Get(int iIndex, void** pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void** CArrayVoidPtr::Get(int iIndex)
+template<class M>
+M** CArrayTemplatePtr<M>::Get(int iIndex)
 {
-	return __CArrayVoidPtr::Get(iIndex);
+	return CArrayTemplate<M*>::Get(iIndex);
 }
 
 
@@ -70,9 +94,10 @@ void** CArrayVoidPtr::Get(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayVoidPtr::GetPtr(int iIndex)
+template<class M>
+M* CArrayTemplatePtr<M>::GetPtr(int iIndex)
 {
-	return *__CArrayVoidPtr::Get(iIndex);
+	return *CArrayTemplate<M*>::Get(iIndex);
 }
 
 
@@ -80,9 +105,10 @@ void* CArrayVoidPtr::GetPtr(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayVoidPtr::QuickSort(void)
+template<class M>
+void CArrayTemplatePtr<M>::QuickSort(void)
 {
-	__CArrayVoidPtr::QuickSort(&ComparePtrPtr);
+	CArrayTemplate<M*>::QuickSort(&ComparePtrPtr);
 }
 
 
@@ -90,10 +116,11 @@ void CArrayVoidPtr::QuickSort(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayVoidPtr::Find(void* pv)
+template<class M>
+int CArrayTemplatePtr<M>::Find(M* pv)
 {
 	int		i;
-	void**	pvData;
+	M**		pvData;
 
 	pvData = GetData();
 	for (i = 0; i < NumElements(); i++)
@@ -111,7 +138,8 @@ int CArrayVoidPtr::Find(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayVoidPtr::Push(void* pv)
+template<class M>
+void CArrayTemplatePtr<M>::Push(M* pv)
 {
 	Add(pv);
 }
@@ -121,11 +149,15 @@ void CArrayVoidPtr::Push(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayVoidPtr::Pop(void)
+template<class M>
+M* CArrayTemplatePtr<M>::Pop(void)
 {
-	void* pv;
+	M* pv;
 
-	__CArrayVoidPtr::Pop(&pv);
+	CArrayTemplate<M*>::Pop(&pv);
 	return pv;
 }
+
+
+#endif // !__ARRAY_TEMPLATE_POINTER_H__
 
