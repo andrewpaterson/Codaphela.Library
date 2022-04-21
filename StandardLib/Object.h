@@ -120,6 +120,8 @@ public:
 	void				UnmanagedChar(char16* pc, char* szFieldName);
 	void				UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName);
 
+	void				UnmanagedEnum(void* pe, char* szFieldName);
+
 	void				UnmanagedString(CChars* pcChars, char* szFieldName);
 	void				UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
 	void				UnmanagedDate(CDate* pcDate, char* szFieldName);

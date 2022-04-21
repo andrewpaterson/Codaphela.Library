@@ -272,6 +272,8 @@ void CClass::UnmanagedChar(CBaseObject* pcThis, char8* pac, size_t uiLength, cha
 void CClass::UnmanagedChar(CBaseObject* pcThis, char16* pc, char* szFieldName)						{ Unmanaged(pcThis, PT_char16, pc, szFieldName); }
 void CClass::UnmanagedChar(CBaseObject* pcThis, char16* pac, size_t uiLength, char* szFieldName)	{ Unmanaged(pcThis, PT_char16, pac, uiLength, szFieldName); }
 
+void CClass::UnmanagedEnum(CBaseObject* pcThis, void* pe, char* szFieldName) { Unmanaged(pcThis, PT_Enum, pe, szFieldName); }
+
 void CClass::UnmanagedString(CBaseObject* pcThis, CChars* pcChars, char* szFieldName)				{ Unmanaged(pcThis, PT_String, pcChars, szFieldName); }
 void CClass::UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName)				{ Unmanaged(pcThis, PT_Number, pcNumber, szFieldName); }
 void CClass::UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName)					{ Unmanaged(pcThis, PT_Date, pcDate, szFieldName); }

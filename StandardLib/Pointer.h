@@ -41,6 +41,9 @@ public:
 	void	operator = (Ptr& pcPointer);
 	M*		operator -> ();
 	M*		operator & ();
+
+	Ptr<M>	operator + (Ptr<M> obj);
+	Ptr<M>	operator + (char* sz);
 };
 
 
@@ -156,5 +159,46 @@ M* Ptr<M>::operator & ()
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> Ptr<M>::operator + (Ptr<M> pObject)
+{
+	M*	p = (M*)DereferenceArrow();
+
+	if (p)
+	{
+		return p->AddOperator(pObject);
+	}
+	else
+	{
+		return Ptr();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M> Ptr<M>::operator + (char* sz)
+{
+	M* p = (M*)DereferenceArrow();
+
+	if (p)
+	{
+		return p->AddOperator(sz);
+	}
+	else
+	{
+		return Ptr();
+	}
+}
+
+
 #endif // !__POINTER_H__
+
 

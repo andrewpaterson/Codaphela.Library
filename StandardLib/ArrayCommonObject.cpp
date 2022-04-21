@@ -195,10 +195,16 @@ BOOL CArrayCommonObject::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Add(CPointer& pObject)
+BOOL CArrayCommonObject::Add(CPointer& pObject)
 {
-	mcArray.Add(pObject.Object());
-	pObject.AddHeapFrom(this);
+	BOOL	bAdded;
+
+	bAdded = mcArray.Add(pObject.Object());
+	if (bAdded)
+	{
+		pObject.AddHeapFrom(this);
+	}
+	return bAdded;
 }
 
 
@@ -294,6 +300,16 @@ int CArrayCommonObject::Size(void)
 int CArrayCommonObject::Length(void)
 {
 	return NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CArrayCommonObject::IsEmpty(void)
+{
+	return NumElements() == 0;
 }
 
 

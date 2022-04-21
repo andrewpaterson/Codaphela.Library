@@ -119,6 +119,8 @@ public:
 	void				UnmanagedChar(CBaseObject* pcThis, char16* pc, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char16* pac, size_t uiLength, char* szFieldName);
 
+	void				UnmanagedEnum(CBaseObject* pcThis, void* pe, char* szFieldName);
+
 	void				UnmanagedString(CBaseObject* pcThis, CChars* pcChars, char* szFieldName);
 	void				UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName);
 	void				UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName);

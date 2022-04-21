@@ -18,11 +18,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __A_S_T_AGGREGATE_H__
-#define __A_S_T_AGGREGATE_H__
+#ifndef __JAVA_TOKEN_PARSER_H__
+#define __JAVA_TOKEN_PARSER_H__
+#include "BaseLib/TextParser.h"
+#include "BaseLib/ArrayChars.h"
+#include "JavaTokens.h"
+
+class CJavaTokenParser
+{
+protected:
+	CJavaTokens		mcTokens;
+	CTextParser		mcParser;
+
+public:
+	void 		Init(char* szText, int iTextLen);
+	void 		Kill(void);
+
+	TRISTATE	Parse(void);
+};
 
 
-
-
-#endif // !__A_S_T_AGGREGATE_H__
+#endif // !__JAVA_TOKEN_PARSER_H__
 

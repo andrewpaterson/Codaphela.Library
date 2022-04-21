@@ -32,6 +32,9 @@ public:
 
 	void			D(void);
 
+	Ptr<CString>	AddOperator(Ptr<CString> pString);
+	Ptr<CString>	AddOperator(char* sz);
+
 	int				Length(void) { return msz.Length(); }
 	Ptr<CString>	Set(const char* sz) { msz.Set(sz); D(); return this; }
 	Ptr<CString>	Set(Ptr<CString> pString);
@@ -41,6 +44,7 @@ public:
 	Ptr<CString>	Append(const char* sz, int iStrlen) { msz.Append(sz, iStrlen); D(); return this; }
 	Ptr<CString>	Append(Ptr<CString> pString);
 	Ptr<CString>	Append(Ptr<CString> pString, int iStrlen);
+	Ptr<CString>	Append(CString* pcString);
 	Ptr<CString>	Append(CChars sz) { msz.Append(sz); D(); return this; }
 	Ptr<CString>	Append(CChars* psz) { msz.Append(psz); D(); return this; }
 	Ptr<CString>	Append(char c) { msz.Append(c); D(); return this; }

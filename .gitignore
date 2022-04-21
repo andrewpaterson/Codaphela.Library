@@ -41,3 +41,4 @@ us.stackdump
 /CoreLib/x64/Release/*
 /StandardLib/x64/Release/*
 /InputLib/x64/Release/*
+/JavaParserLib/Debug/*

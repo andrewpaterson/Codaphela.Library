@@ -18,11 +18,47 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __A_S_T_AGGREGATE_H__
-#define __A_S_T_AGGREGATE_H__
+#include "BaseLib/TextParser.h"
+#include "JavaTokenParser.h"
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::Init(char* szText, int iTextLen)
+{
+	mcTokens.Init();
+	mcParser.Init(szText, iTextLen);
+}
 
 
-#endif // !__A_S_T_AGGREGATE_H__
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::Kill(void)
+{
+	mcParser.Kill();
+	mcTokens.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::Parse(void)
+{	
+	BOOL	bResult;
+
+	for (;;)
+	{
+		bResult = mcParser.SkipCPPStyleComment();
+		if (bResult)
+		{
+			mcTokens.AddComment(NULL, 0);
+		}
+	}
+}
 

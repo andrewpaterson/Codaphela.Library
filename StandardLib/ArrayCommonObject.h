@@ -37,7 +37,7 @@ public:
 	Ptr<CArrayCommonObject>	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder);
 	void					Class(void);
 
-	void					Add(CPointer& pObject);
+	BOOL					Add(CPointer& pObject);
 	void					AddAll(CArrayCommonObject* pcArray);
 	void					Set(int iIndex, CPointer& pObject);
 
@@ -50,6 +50,7 @@ public:
 	int						NonNullElements(void);
 	int						Size(void);
 	int						Length(void);
+	BOOL					IsEmpty(void);
 
 	void					MakeSubRoot(void);
 	BOOL					IsSubRoot(void);
