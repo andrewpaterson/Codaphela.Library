@@ -866,6 +866,8 @@ void CObject::UnmanagedChar(char8* pac, size_t uiLength, char* szFieldName) { mp
 void CObject::UnmanagedChar(char16* pc, char* szFieldName) { mpcClass->UnmanagedChar(this, pc, szFieldName); }
 void CObject::UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName) { mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
 	 
+void CObject::UnmanagedEnum(void* pe, char* szFieldName) { mpcClass->UnmanagedEnum(this, pe, szFieldName); }
+
 void CObject::UnmanagedString(CChars* pcChars, char* szFieldName) { mpcClass->UnmanagedString(this, pcChars, szFieldName); };
 void CObject::UnmanagedNumber(CNumber* pcNumber, char* szFieldName) { mpcClass->UnmanagedNumber(this, pcNumber, szFieldName); };
 void CObject::UnmanagedDate(CDate* pcDate, char* szFieldName) { mpcClass->UnmanagedDate(this, pcDate, szFieldName); };

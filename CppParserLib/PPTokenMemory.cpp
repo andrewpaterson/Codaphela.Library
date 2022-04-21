@@ -293,7 +293,7 @@ size_t CPPTokenMemory::Size(void)
 char* CPPTokenMemory::Print(CChars* psz)
 {
 	SPPTokenIterator	sIter;
-	CPPToken* pcPPToken;
+	CPPToken*			pcPPToken;
 
 	pcPPToken = StartIteration(&sIter);
 	while (pcPPToken)

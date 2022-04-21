@@ -135,6 +135,9 @@ enum EPrimitiveType
 	PT_Pointer,		//An arbitrary void pointer.
 	PT_Data,		//8 Unknown arrays of bytes.  Data implies you should not perform operations/transformations directy on the data array.
 
+	//Enum
+	PT_Enum,
+
 	NUM_PRIMITIVE_TYPES,
 	CLASS_TYPES = 0x40,  //Any type with an ID >= 0x40 is a class type.
 };

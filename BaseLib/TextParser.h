@@ -86,10 +86,10 @@ public:
 	void 		StepRight(void);
 	void 		StepLeft(void);
 	void		TestEnd(void);
-	void 		SkipWhiteSpace(void);
-	void 		SkipCStyleComment(void);
+	void 		SkipWhiteSpace(BOOL bSkipComments = TRUE);
+	BOOL 		SkipCStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
 	void		SkipLeftCStyleComment(void);
-	BOOL  		SkipCPPStyleComment(void);
+	BOOL  		SkipCPPStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
 	void		SkipNewLine(void);
 	void		Restart(void);
 	void		SaveState(SParseState* psTextPosition);
@@ -114,25 +114,25 @@ public:
 	TRISTATE	GetCharacter(char* pc);
 	TRISTATE	GetEscapeCode(char* c);
 
-	TRISTATE	GetExactIdentifier(char* szIdentifier);
-	TRISTATE	GetIdentifier(char* szIdentifier, int* piLength = NULL, BOOL bPassOnTest = FALSE);
+	TRISTATE	GetExactIdentifier(char* szIdentifier, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetIdentifier(char* szIdentifier, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetString(char* szString, int* piLength = NULL);  //Quotes not included.
 	TRISTATE	GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE, BOOL bAllowEscapeCharacters = TRUE);  //'Quotes' not included.
-	TRISTATE	GetExactCharacterSequence(char* szSequence);
-	TRISTATE	GetCharacterSequence(char* szSequence, int* piLength = NULL);
-	TRISTATE	GetExactCaseInsensitiveCharacterSequence(const char* szSequence);
+	TRISTATE	GetExactCharacterSequence(char* szSequence, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetCharacterSequence(char* szSequence, int* piLength = NULL, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetExactCaseInsensitiveCharacterSequence(const char* szSequence, BOOL bSkipWhiteSpace = TRUE);
 
 	TRISTATE	GetDigit(int* pi, int iBase = 10);
 	TRISTATE	GetSign(int* pi);
 	TRISTATE	GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, BOOL bSkipWhiteSpace = TRUE, BOOL bTestSign = TRUE);
 	TRISTATE	GetInteger(unsigned long long int* pulli, int* piSign, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetInteger(int* pi, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE	GetHexadecimal(unsigned long long int* pulli, int* iNumDigits = NULL);
+	TRISTATE	GetHexadecimal(unsigned long long int* pulli, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetHexadecimalPart(unsigned long long int* pulli, int* piNumDigits, int iMaxDigits = 16);
-	TRISTATE	GetOctal(unsigned long long int* pulli, int* iNumDigits = NULL);
-	TRISTATE	GetFloat(float* pf);
-	TRISTATE	GetFloat(double* pf);
-	TRISTATE	GetNumber(CNumber* pcNumber);
+	TRISTATE	GetOctal(unsigned long long int* pulli, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetFloat(float* pf, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetFloat(double* pf, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetNumber(CNumber* pcNumber, BOOL bSkipWhiteSpace = TRUE);
 
 	//Non linear functions.
 	TRISTATE	FindExactIdentifier(char* szIdentifier);
