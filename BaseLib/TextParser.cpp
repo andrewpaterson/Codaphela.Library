@@ -425,6 +425,7 @@ BOOL CTextParser::SkipCStyleComment(char** pszBegin, char** pszEnd)
 						SafeAssign(pszBegin, &mszParserPos[-1]);
 					}
 
+					StepRight();
 					iDepth--;
 				}
 				else
