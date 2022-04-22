@@ -30,6 +30,98 @@ void CJavaTokenParser::Init(char* szText, int iTextLen)
 {
 	mcTokens.Init();
 	mcParser.Init(szText, iTextLen);
+
+	InitKeywords();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::Init(char* szText)
+{
+	int		iTextLen;
+
+	iTextLen = strlen(szText);
+	Init(szText, iTextLen);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::InitKeywords(void)
+{
+	mcKeywords.Init();
+
+	AddKeywordDefinition("abstract", JK_abstract);
+	AddKeywordDefinition("assert", JK_assert);
+	AddKeywordDefinition("boolean", JK_boolean);
+	AddKeywordDefinition("break", JK_break);
+	AddKeywordDefinition("byte", JK_byte);
+	AddKeywordDefinition("case", JK_case);
+	AddKeywordDefinition("catch", JK_catch);
+	AddKeywordDefinition("char", JK_char);
+	AddKeywordDefinition("class", JK_class);
+	AddKeywordDefinition("const", JK_const);
+	AddKeywordDefinition("continue", JK_continue);
+	AddKeywordDefinition("default", JK_default);
+	AddKeywordDefinition("do", JK_do);
+	AddKeywordDefinition("double", JK_double);
+	AddKeywordDefinition("else", JK_else);
+	AddKeywordDefinition("enum", JK_enum);
+	AddKeywordDefinition("extends", JK_extends);
+	AddKeywordDefinition("final", JK_final);
+	AddKeywordDefinition("finally", JK_finally);
+	AddKeywordDefinition("float", JK_float);
+	AddKeywordDefinition("for", JK_for);
+	AddKeywordDefinition("goto", JK_goto);
+	AddKeywordDefinition("if", JK_if);
+	AddKeywordDefinition("implements", JK_implements);
+	AddKeywordDefinition("import", JK_import);
+	AddKeywordDefinition("instanceof", JK_instanceof);
+	AddKeywordDefinition("int", JK_int);
+	AddKeywordDefinition("interface", JK_interface);
+	AddKeywordDefinition("long", JK_long);
+	AddKeywordDefinition("native", JK_native);
+	AddKeywordDefinition("new", JK_new);
+	AddKeywordDefinition("package", JK_package);
+	AddKeywordDefinition("private", JK_private);
+	AddKeywordDefinition("protected", JK_protected);
+	AddKeywordDefinition("public", JK_public);
+	AddKeywordDefinition("return", JK_return);
+	AddKeywordDefinition("short", JK_short);
+	AddKeywordDefinition("static", JK_static);
+	AddKeywordDefinition("strictfp", JK_strictfp);
+	AddKeywordDefinition("super", JK_super);
+	AddKeywordDefinition("switch", JK_switch);
+	AddKeywordDefinition("synchronized", JK_synchronized);
+	AddKeywordDefinition("this", JK_this);
+	AddKeywordDefinition("throw", JK_throw);
+	AddKeywordDefinition("throws", JK_throws);
+	AddKeywordDefinition("transient", JK_transient);
+	AddKeywordDefinition("try", JK_try);
+	AddKeywordDefinition("void", JK_void);
+	AddKeywordDefinition("volatile", JK_volatile);
+	AddKeywordDefinition("while", JK_while);
+	AddKeywordDefinition("true", JK_true);
+	AddKeywordDefinition("false", JK_false);
+	AddKeywordDefinition("null", JK_null);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword)
+{
+	CJavaKeywordDefinition	cDefinition;
+
+	cDefinition.Init(eKeyword, szKeyword);
+	mcKeywords.Add(szKeyword, &cDefinition, eKeyword);
 }
 
 
@@ -41,6 +133,31 @@ void CJavaTokenParser::Kill(void)
 {
 	mcParser.Kill();
 	mcTokens.Kill();
+
+	KillKeywords();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::KillKeywords(void)
+{
+	char*					szName;
+	SEnumeratorIterator		sIterator;
+	int						iID;
+	CJavaKeywordDefinition* pcKeyword;
+
+	mcKeywords.StartIteration(&sIterator, &szName, &iID, &pcKeyword);
+	while(sIterator.bValid)
+	{
+		pcKeyword->Kill();
+		mcKeywords.Iterate(&sIterator, &szName, &iID, &pcKeyword);
+	}
+
+	mcKeywords.Kill();
+
 }
 
 

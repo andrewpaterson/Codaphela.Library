@@ -9,9 +9,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="JavaTokenParser.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="JavaToken.cpp">
       <Filter>Source\Tokens</Filter>
     </ClCompile>
@@ -23,6 +20,15 @@
     </ClCompile>
     <ClCompile Include="JavaTokens.cpp">
       <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaKeyword.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaTokenParser.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Test.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +45,9 @@
       <Filter>Source\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="JavaTokenMemory.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaKeyword.h">
       <Filter>Source\Tokens</Filter>
     </ClInclude>
   </ItemGroup>

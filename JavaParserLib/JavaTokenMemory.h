@@ -3,6 +3,7 @@
 #include "BaseLib/Constructable.h"
 #include "BaseLib/MemoryStackExtended.h"
 #include "JavaComment.h"
+#include "JavaKeyword.h"
 
 
 class CJavaTokenMemory

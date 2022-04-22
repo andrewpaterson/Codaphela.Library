@@ -84,7 +84,6 @@
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <StringPooling>false</StringPooling>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
@@ -93,13 +92,13 @@
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
-      <CallingConvention>VectorCall</CallingConvention>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <ExceptionHandling>false</ExceptionHandling>
+      <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
+      <CallingConvention>VectorCall</CallingConvention>
     </ClCompile>
     <Lib />
-    <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
-    </Bscmake>
+    <Bscmake />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -179,12 +178,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="JavaComment.cpp" />
+    <ClCompile Include="JavaKeyword.cpp" />
     <ClCompile Include="JavaTokenMemory.cpp" />
-    <ClCompile Include="JavaTokenParser.cpp" />
     <ClCompile Include="JavaToken.cpp" />
+    <ClCompile Include="JavaTokenParser.cpp" />
     <ClCompile Include="JavaTokens.cpp" />
+    <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="JavaKeyword.h" />
     <ClInclude Include="JavaTokenMemory.h" />
     <ClInclude Include="JavaComment.h" />
     <ClInclude Include="JavaToken.h" />

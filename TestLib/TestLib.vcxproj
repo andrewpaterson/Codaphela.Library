@@ -90,15 +90,13 @@
       <BrowseInformation>true</BrowseInformation>
       <OpenMPSupport>true</OpenMPSupport>
       <SDLCheck>true</SDLCheck>
-      <CallingConvention>VectorCall</CallingConvention>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
       <ExceptionHandling>false</ExceptionHandling>
+      <CallingConvention>VectorCall</CallingConvention>
     </ClCompile>
     <Lib />
-    <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
-    </Bscmake>
+    <Bscmake />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

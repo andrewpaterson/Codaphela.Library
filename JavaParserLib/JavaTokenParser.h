@@ -22,19 +22,34 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __JAVA_TOKEN_PARSER_H__
 #include "BaseLib/TextParser.h"
 #include "BaseLib/ArrayChars.h"
+#include "BaseLib/EnumeratorTemplate.h"
 #include "JavaTokens.h"
+#include "JavaKeyword.h"
+
+
+typedef CEnumeratorTemplate<CJavaKeywordDefinition> CKeywordEnumerator;
+
 
 class CJavaTokenParser
 {
 protected:
-	CJavaTokens		mcTokens;
-	CTextParser		mcParser;
+	CJavaTokens			mcTokens;
+	CTextParser			mcParser;
+
+	CKeywordEnumerator	mcKeywords;
 
 public:
+	void		Init(char* szText);
 	void 		Init(char* szText, int iTextLen);
 	void 		Kill(void);
 
 	TRISTATE	Parse(void);
+
+protected:
+	void		InitKeywords(void);
+	void		AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword);
+
+	void		KillKeywords(void);
 };
 
 
