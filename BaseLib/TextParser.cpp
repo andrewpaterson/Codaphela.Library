@@ -420,13 +420,10 @@ BOOL CTextParser::SkipCStyleComment(char** pszBegin, char** pszEnd)
 				cCurrent = mszParserPos[0];
 				if (cCurrent == '/')
 				{
-					if (iDepth == 1)
-					{
-						SafeAssign(pszBegin, &mszParserPos[-1]);
-					}
+					SafeAssign(pszEnd, &mszParserPos[-2]);
 
 					StepRight();
-					iDepth--;
+					return TRUE;
 				}
 				else
 				{
@@ -441,11 +438,6 @@ BOOL CTextParser::SkipCStyleComment(char** pszBegin, char** pszEnd)
 			}
 		}
 
-		if (iDepth == 0)
-		{
-			//No more nested comments...  bail..
-			return TRUE;
-		}
 		StepRight();
 	}
 
@@ -546,6 +538,9 @@ BOOL CTextParser::SkipCPPStyleComment(char** pszBegin, char** pszEnd)
 	PushPosition();
 	cCurrent = mszParserPos[0];
 
+	SafeAssign(pszBegin, NULL);
+	SafeAssign(pszEnd, NULL);
+
 	if (cCurrent == '/')
 	{
 		StepRight();
@@ -554,6 +549,8 @@ BOOL CTextParser::SkipCPPStyleComment(char** pszBegin, char** pszEnd)
 			cCurrent = mszParserPos[0];
 			if (cCurrent == '/')
 			{
+				SafeAssign(pszBegin, &mszParserPos[1]);
+
 				for (iCount = 0;; iCount++)
 				{
 					StepRight();
@@ -563,6 +560,8 @@ BOOL CTextParser::SkipCPPStyleComment(char** pszBegin, char** pszEnd)
 
 						if (cCurrent == '\n')
 						{
+							SafeAssign(pszEnd, &mszParserPos[-1]);
+
 							//This is the end of the line and the end of the comment.
 							StepRight();
 							PassPosition();
@@ -573,6 +572,8 @@ BOOL CTextParser::SkipCPPStyleComment(char** pszBegin, char** pszEnd)
 						{
 							if (cCurrent == '@')
 							{
+								SafeAssign(pszBegin, NULL);
+
 								//Wasn't a comment, was an annotation.
 								PopPosition();
 								return FALSE;
@@ -581,6 +582,8 @@ BOOL CTextParser::SkipCPPStyleComment(char** pszBegin, char** pszEnd)
 					}
 					else
 					{
+						SafeAssign(pszEnd, mszEndOfText);
+
 						PassPosition();
 						return TRUE;
 					}
@@ -1140,6 +1143,101 @@ TRISTATE CTextParser::GetIdentifier(char* szIdentifier, int* piLength, BOOL bPas
 		}
 		bFirst = FALSE;
 		iPos++;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetComment(char* szComment, int* piLength, char* szBegin, char* szEnd)
+{
+	ptrdiff_t	iLength;
+
+	if ((szBegin == NULL || szEnd == NULL))
+	{
+		PopPosition();
+		return TRIFALSE;
+	}
+
+	iLength = szEnd - szBegin + 1;
+	if (szComment)
+	{
+		memcpy(szComment, szBegin, iLength);
+		szComment[iLength] = '\0';
+	}
+	SafeAssign(piLength, iLength);
+
+	PassPosition();
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetComment(char* szComment, int* piLength, BOOL bSkipWhiteSpace)
+{
+	char		cCurrent;
+	char*		szBegin;
+	char*		szEnd;
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace(FALSE);
+	}
+
+	cCurrent = mszParserPos[0];
+	if (cCurrent == '/')
+	{
+		StepRight();
+
+		if (!mbOutsideText)
+		{
+			cCurrent = mszParserPos[0];
+			if (cCurrent == '*')
+			{
+				StepLeft();
+				if (!SkipCStyleComment(&szBegin, &szEnd))
+				{
+					PassPosition();
+					return TRIERROR;
+				}
+
+				return GetComment(szComment, piLength, szBegin, szEnd);
+			}
+			else if (cCurrent == '/')
+			{
+				StepLeft();
+				if (!SkipCPPStyleComment(&szBegin, &szEnd))
+				{
+					PassPosition();
+					return TRIERROR;
+				}
+
+				return GetComment(szComment, piLength, szBegin, szEnd);
+
+			}
+			else
+			{
+				PopPosition();
+				return TRIFALSE;
+			}
+		}
+		else
+		{
+			PassPosition();
+			return TRIERROR;
+		}
+	}
+	else
+	{
+		PopPosition();
+		return TRIFALSE;
 	}
 }
 
