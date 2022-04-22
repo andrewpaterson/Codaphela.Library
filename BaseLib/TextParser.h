@@ -121,6 +121,7 @@ public:
 	TRISTATE	GetExactCharacterSequence(char* szSequence, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetCharacterSequence(char* szSequence, int* piLength = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetExactCaseInsensitiveCharacterSequence(const char* szSequence, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetComment(char* szComment, int* piLength, BOOL bSkipWhiteSpace = TRUE);
 
 	TRISTATE	GetDigit(int* pi, int iBase = 10);
 	TRISTATE	GetSign(int* pi);
@@ -160,6 +161,9 @@ public:
 	void		Dump(void);
 
 	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID);
+
+protected:
+	TRISTATE	GetComment(char* szComment, int* piLength, char* szBegin, char* szEnd);
 };
 
 
