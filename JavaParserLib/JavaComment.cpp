@@ -19,6 +19,8 @@ void CJavaComment::Init(char* szComment, int iLength)
 //////////////////////////////////////////////////////////////////////////
 void CJavaComment::Kill(void)
 {
+	mszComment = NULL;
+	miLength = 0;
 	CJavaToken::Kill();
 }
 

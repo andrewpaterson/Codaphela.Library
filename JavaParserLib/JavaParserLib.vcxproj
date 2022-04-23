@@ -177,16 +177,25 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="JavaAmbiguous.cpp" />
     <ClCompile Include="JavaComment.cpp" />
+    <ClCompile Include="JavaGeneric.cpp" />
+    <ClCompile Include="JavaIdentifier.cpp" />
     <ClCompile Include="JavaKeyword.cpp" />
+    <ClCompile Include="JavaOperator.cpp" />
+    <ClCompile Include="JavaSeparator.cpp" />
     <ClCompile Include="JavaTokenMemory.cpp" />
     <ClCompile Include="JavaToken.cpp" />
     <ClCompile Include="JavaTokenParser.cpp" />
     <ClCompile Include="JavaTokens.cpp" />
-    <ClCompile Include="Test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="JavaAmbiguous.h" />
+    <ClInclude Include="JavaGeneric.h" />
+    <ClInclude Include="JavaIdentifier.h" />
     <ClInclude Include="JavaKeyword.h" />
+    <ClInclude Include="JavaOperator.h" />
+    <ClInclude Include="JavaSeparator.h" />
     <ClInclude Include="JavaTokenMemory.h" />
     <ClInclude Include="JavaComment.h" />
     <ClInclude Include="JavaToken.h" />

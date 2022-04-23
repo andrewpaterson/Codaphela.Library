@@ -11,10 +11,14 @@ protected:
 	CJavaTokenMemory	mcMemory;
 
 public:
-	void			Init(void);
-	void			Kill(void);
+	void				Init(void);
+	void				Kill(void);
 
-	CJavaComment*	AddComment(char* szComment, int iLength);
+	CJavaComment*		AddComment(char* szComment, int iLength);
+	CJavaKeyword*		AddKeyword(EJavaKeyword eKeyword);
+	CJavaIdentifier*	AddIdentifier(char* szIdentifier, int iLength);
+	CJavaOperator*		AddOperator(EJavaOperatorType eType, EJavaOperator eOperator);
+	CJavaSeparator*		AddSeparator(EJavaSeparator eSeparator);
 };
 
 
