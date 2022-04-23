@@ -158,9 +158,11 @@ public:
 	void		PrintPositionSingleLineParser(CChars* pszDest);
 	void		PrintPositionMultilineParser(CChars* pszDest);
 
+	BOOL		IsOutside(void);
+
 	void		Dump(void);
 
-	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID);
+	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace = TRUE);
 
 protected:
 	TRISTATE	GetComment(char* szComment, int* piLength, char* szBegin, char* szEnd);
@@ -176,7 +178,7 @@ TRISTATE ParseFloat(double* pf, char* szText);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID)
+TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace)
 {
 	char*					szName;
 	SEnumeratorIterator		sIterator;
@@ -185,10 +187,14 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 
 	pcEnumerator->StartIteration(&sIterator, &szName, &iID, NULL);
 
-	SkipWhiteSpace();
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
 	while(sIterator.bValid)
 	{
-		tReturn = GetExactIdentifier(szName);
+		tReturn = GetExactIdentifier(szName, FALSE);
 		if (tReturn == TRITRUE)
 		{
 			*piID = iID;

@@ -19,6 +19,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TextParser.h"
+#include "BaseLib/Numbers.h"
+#include "BaseLib/NewLine.h"
 #include "JavaTokenParser.h"
 
 
@@ -32,6 +34,8 @@ void CJavaTokenParser::Init(char* szText, int iTextLen)
 	mcParser.Init(szText, iTextLen);
 
 	InitKeywords();
+	InitOperators();
+	InitSeparators();
 }
 
 
@@ -116,6 +120,78 @@ void CJavaTokenParser::InitKeywords(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::InitOperators(void)
+{
+	mcOperators.Init();
+
+	AddOperatorDefinition(JOT_Arithmetic, JO_Plus, "+");
+	AddOperatorDefinition(JOT_Arithmetic, JO_Minus, "-");
+	AddOperatorDefinition(JOT_Arithmetic, JO_Divide, "/");
+	AddOperatorDefinition(JOT_Arithmetic, JO_Multipy, "*");
+	AddOperatorDefinition(JOT_Arithmetic, JO_Modulus, "%");
+
+	AddOperatorDefinition(JOT_Unary, JO_Increment, "++");
+	AddOperatorDefinition(JOT_Unary, JO_Decrement, "--");
+
+	AddOperatorDefinition(JOT_Assignment, JO_Assign, "=");
+	AddOperatorDefinition(JOT_Assignment, JO_PlusAssign, "+=");
+	AddOperatorDefinition(JOT_Assignment, JO_MinusAssign, "-=");
+	AddOperatorDefinition(JOT_Assignment, JO_MultiplyAssign, "*=");
+	AddOperatorDefinition(JOT_Assignment, JO_DivideAssign, "/=");
+	AddOperatorDefinition(JOT_Assignment, JO_ModulusAssign, "%=");
+	AddOperatorDefinition(JOT_Assignment, JO_ExclusiveOrAssign, "^=");
+	AddOperatorDefinition(JOT_Assignment, JO_LeftShiftAssign, "<<=");
+	AddOperatorDefinition(JOT_Assignment, JO_RightShiftAssign, ">>=");
+	AddOperatorDefinition(JOT_Assignment, JO_RightShiftZeroAssign, ">>>=");
+
+	AddOperatorDefinition(JOT_Relational, JO_Equal, "==");
+	AddOperatorDefinition(JOT_Relational, JO_NotEqual, "!=");
+	AddOperatorDefinition(JOT_Relational, JO_LessThan, "<");
+	AddOperatorDefinition(JOT_Relational, JO_GreaterThan, ">");
+	AddOperatorDefinition(JOT_Relational, JO_LessThanOrEqual, "<=");
+	AddOperatorDefinition(JOT_Relational, JO_GreaterThanOrEqual, ">=");
+
+	AddOperatorDefinition(JOT_Logical, JO_LogicalNegate, "!");
+	AddOperatorDefinition(JOT_Logical, JO_LogicalAnd, "&&");
+	AddOperatorDefinition(JOT_Logical, JO_LogicalOr, "||");
+
+	AddOperatorDefinition(JOT_Ternary, JO_TernaryCondition, "?");
+	AddOperatorDefinition(JOT_Ternary, JO_TernaryStatement, ":");
+
+	AddOperatorDefinition(JOT_Bitwise, JO_BitwiseAnd, "&");
+	AddOperatorDefinition(JOT_Bitwise, JO_BitwiseOr, "|");
+	AddOperatorDefinition(JOT_Bitwise, JO_BitwiseExclusiveOr, "^");
+	AddOperatorDefinition(JOT_Bitwise, JO_BitwiseNot, "~");
+	AddOperatorDefinition(JOT_Bitwise, JO_LeftShift, "<<");
+	AddOperatorDefinition(JOT_Bitwise, JO_RightShift, ">>");
+	AddOperatorDefinition(JOT_Bitwise, JO_RightShiftZero, ">>>");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::InitSeparators(void)
+{
+	mcSeparators.Init();
+
+	AddSeparatorDefinition(";", JS_Semicolon);
+	AddSeparatorDefinition(",", JS_Comma);
+	AddSeparatorDefinition(".", JS_Dot);
+	AddSeparatorDefinition("(", JS_RoundBracketLeft);
+	AddSeparatorDefinition(")", JS_RoundBracketRight);
+	AddSeparatorDefinition("{", JS_CurlyBracketLeft);
+	AddSeparatorDefinition("}", JS_CurlyBracketRight);
+	AddSeparatorDefinition("[", JS_SquareBracketLeft);
+	AddSeparatorDefinition("]", JS_AquareBracketRight);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword)
 {
 	CJavaKeywordDefinition	cDefinition;
@@ -129,12 +205,40 @@ void CJavaTokenParser::AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeywo
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator)
+{
+	CJavaSeparatorDefinition	cDefinition;
+
+	cDefinition.Init(eSeparator, szSeparator);
+	mcSeparators.Add(szSeparator, &cDefinition, eSeparator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator)
+{
+	CJavaOperatorDefinition	cDefinition;
+
+	cDefinition.Init(eType, eOperator, szOperator);
+	mcOperators.Add(szOperator, &cDefinition, eOperator);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::Kill(void)
 {
 	mcParser.Kill();
 	mcTokens.Kill();
 
 	KillKeywords();
+	KillOperators();
+	KillSeparators();
 }
 
 
@@ -157,7 +261,50 @@ void CJavaTokenParser::KillKeywords(void)
 	}
 
 	mcKeywords.Kill();
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::KillSeparators(void)
+{
+	char* szName;
+	SEnumeratorIterator		sIterator;
+	int						iID;
+	CJavaSeparatorDefinition* pcSeparator;
+
+	mcSeparators.StartIteration(&sIterator, &szName, &iID, &pcSeparator);
+	while (sIterator.bValid)
+	{
+		pcSeparator->Kill();
+		mcSeparators.Iterate(&sIterator, &szName, &iID, &pcSeparator);
+	}
+
+	mcSeparators.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::KillOperators(void)
+{
+	char* szName;
+	SEnumeratorIterator		sIterator;
+	int						iID;
+	CJavaOperatorDefinition* pcOperator;
+
+	mcOperators.StartIteration(&sIterator, &szName, &iID, &pcOperator);
+	while (sIterator.bValid)
+	{
+		pcOperator->Kill();
+		mcOperators.Iterate(&sIterator, &szName, &iID, &pcOperator);
+	}
+
+	mcOperators.Kill();
 }
 
 
@@ -167,15 +314,92 @@ void CJavaTokenParser::KillKeywords(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::Parse(void)
 {	
-	BOOL	bResult;
+	//BOOL						bResult;
+	char						szText[4 KB];
+	int							iLength;
+	TRISTATE					tResult;
+	CJavaToken*					pcCurrent;
+	CJavaToken*					pcPrevious;
+	EJavaKeyword				eKeyword;
+	EJavaOperator				eOperator;
+	EJavaSeparator				eSeparator;
+	CJavaOperatorDefinition*	peOperatorDefinition;
 
+	pcCurrent = NULL;
+	pcPrevious = NULL;
 	for (;;)
 	{
-		bResult = mcParser.SkipCPPStyleComment();
-		if (bResult)
+		mcParser.SkipWhiteSpace(FALSE);
+		if (mcParser.IsOutside())
 		{
-			mcTokens.AddComment(NULL, 0);
+			return TRITRUE;
 		}
+
+		if (pcPrevious && pcCurrent)
+		{
+			pcPrevious->SetNext(pcCurrent);
+		}
+
+		pcPrevious = pcCurrent;
+		pcCurrent = NULL;
+
+		tResult = mcParser.GetComment(szText, &iLength, FALSE);
+		if (tResult == TRITRUE)
+		{
+			pcCurrent = mcTokens.AddComment(szText, iLength);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		tResult = mcParser.GetEnumeratorIdentifier<CJavaKeywordDefinition>(&mcKeywords, (int*)&eKeyword, FALSE);
+		if (tResult == TRITRUE)
+		{
+			pcCurrent = mcTokens.AddKeyword(eKeyword);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		tResult = mcParser.GetEnumeratorIdentifier<CJavaOperatorDefinition>(&mcOperators, (int*)&eOperator, FALSE);
+		if (tResult == TRITRUE)
+		{
+			mcOperators.GetWithID(eOperator, &peOperatorDefinition, NULL);
+			pcCurrent = mcTokens.AddOperator(peOperatorDefinition->GetType(), eOperator);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		tResult = mcParser.GetEnumeratorIdentifier<CJavaSeparatorDefinition>(&mcSeparators, (int*)&eSeparator, FALSE);
+		if (tResult == TRITRUE)
+		{
+			pcCurrent = mcTokens.AddSeparator(eSeparator);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		tResult = mcParser.GetIdentifier(szText, &iLength, FALSE, FALSE);
+		if (tResult == TRITRUE)
+		{
+			pcCurrent = mcTokens.AddIdentifier(szText, iLength);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		return TRIERROR;
 	}
 }
 

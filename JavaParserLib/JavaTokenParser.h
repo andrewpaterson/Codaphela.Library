@@ -28,15 +28,20 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 typedef CEnumeratorTemplate<CJavaKeywordDefinition> CKeywordEnumerator;
+typedef CEnumeratorTemplate<CJavaSeparatorDefinition> CSeparatorEnumerator;
+typedef CEnumeratorTemplate<CJavaOperatorDefinition> COperatorEnumerator;
+typedef CEnumeratorTemplate<CJavaOperatorDefinition> COperatorEnumerator;
 
 
 class CJavaTokenParser
 {
 protected:
-	CJavaTokens			mcTokens;
-	CTextParser			mcParser;
+	CJavaTokens				mcTokens;
+	CTextParser				mcParser;
 
-	CKeywordEnumerator	mcKeywords;
+	CKeywordEnumerator		mcKeywords;
+	COperatorEnumerator		mcOperators;
+	CSeparatorEnumerator	mcSeparators;
 
 public:
 	void		Init(char* szText);
@@ -47,9 +52,16 @@ public:
 
 protected:
 	void		InitKeywords(void);
+	void		InitOperators(void);
+	void		InitSeparators(void);
+
 	void		AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword);
+	void		AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator);
+	void		AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator);
 
 	void		KillKeywords(void);
+	void		KillOperators(void);
+	void		KillSeparators(void);
 };
 
 

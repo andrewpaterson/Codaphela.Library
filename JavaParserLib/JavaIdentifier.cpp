@@ -1,14 +1,14 @@
-#include "JavaComment.h"
+#include "JavaIdentifier.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaComment::Init(char* szComment, int iLength)
+void CJavaIdentifier::Init(char* szIdentifier, int iLength)
 {
 	CJavaToken::Init();
-	mszComment = szComment;
+	mszIdentifier = szIdentifier;
 	miLength = iLength;
 }
 
@@ -17,9 +17,9 @@ void CJavaComment::Init(char* szComment, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaComment::Kill(void)
+void CJavaIdentifier::Kill(void)
 {
-	mszComment = NULL;
+	mszIdentifier = NULL;
 	miLength = 0;
 	CJavaToken::Kill();
 }

@@ -59,7 +59,7 @@ public:
 	int			GetNumMatchingWithKey(char* szName, M* pvKey, int iKeySize);
 	int			GetWithKey(char* szName, M* pvKey, int iKeySize, M** pvData, int iMatchNum = 0);
 	int			GetWithKey(char* szName, int iNameLen, M* pvKey, int iKeySize, M** pvData, int iMatchNum = 0);
-	void		GetWithID(int iID, M** pvData, char** pcName);
+	BOOL		GetWithID(int iID, M** pvData, char** pcName);
 	int			NumElements(void);
 	void		StartIteration(SEnumeratorIterator* psIterator, char** szName, int* piID, M** pvData);
 	void		Iterate(SEnumeratorIterator* psIterator, char** szName, int* piID, M** pvData);
@@ -606,7 +606,7 @@ int __CEnumeratorTemplate<M>::GetWithKey(char* szName, int iNameLen, M* pvKey, i
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CEnumeratorTemplate<M>::GetWithID(int iID, M** pvData, char** pcName)
+BOOL __CEnumeratorTemplate<M>::GetWithID(int iID, M** pvData, char** pcName)
 {
 	SENode*		psNode;
 
@@ -625,25 +625,15 @@ void __CEnumeratorTemplate<M>::GetWithID(int iID, M** pvData, char** pcName)
 
 	if (psNode)
 	{
-		if (pvData)
-		{
-			(*pvData) = (M*)psNode->pvData;
-		}
-		if (pcName)
-		{
-			*pcName = psNode->szName;
-		}
+		SafeAssign(pvData, (M*)psNode->pvData);
+		SafeAssign(pcName, psNode->szName);
+		return TRUE;
 	}
 	else
 	{
-		if (pvData)
-		{
-			*pvData = NULL;
-		}
-		if (pcName)
-		{
-			*pcName = NULL;
-		}
+		SafeAssign(pvData, NULL);
+		SafeAssign(pcName, NULL);
+		return FALSE;
 	}
 }
 

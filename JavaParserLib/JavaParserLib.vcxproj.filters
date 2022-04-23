@@ -27,8 +27,20 @@
     <ClCompile Include="JavaTokenParser.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Test.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="JavaIdentifier.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSeparator.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaOperator.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaAmbiguous.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaGeneric.cpp">
+      <Filter>Source\Tokens</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,6 +60,21 @@
       <Filter>Source\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="JavaKeyword.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaIdentifier.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSeparator.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaOperator.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaAmbiguous.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaGeneric.h">
       <Filter>Source\Tokens</Filter>
     </ClInclude>
   </ItemGroup>
