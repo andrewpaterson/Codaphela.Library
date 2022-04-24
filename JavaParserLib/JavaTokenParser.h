@@ -46,6 +46,8 @@ protected:
 	CAmbiguousEnumerator	mcAmbiguous;
 	CGenericEnumerator		mcGenerics;
 
+	CJavaToken*				mpcStart;
+
 public:
 	void		Init(char* szText);
 	void 		Init(char* szText, int iTextLen);

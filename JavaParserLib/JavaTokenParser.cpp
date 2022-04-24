@@ -32,6 +32,7 @@ void CJavaTokenParser::Init(char* szText, int iTextLen)
 {
 	mcTokens.Init();
 	mcParser.Init(szText, iTextLen);
+	mpcStart = NULL;
 
 	InitKeywords();
 	InitOperators();
@@ -202,7 +203,7 @@ void CJavaTokenParser::InitAmbiguous(void)
 	AddAmbiguousDefinition("<", JA_AngleBracketLeft);
 	AddAmbiguousDefinition(">", JA_AngleBracketRight);
 	AddAmbiguousDefinition("?", JA_QuestionMark);
-	AddAmbiguousDefinition("*", JA_QuestionMark);
+	AddAmbiguousDefinition("*", JA_Asterisk);
 }
 
 
@@ -291,6 +292,8 @@ void CJavaTokenParser::AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous 
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::Kill(void)
 {
+	mpcStart = NULL;
+
 	mcParser.Kill();
 	mcTokens.Kill();
 
@@ -419,7 +422,6 @@ void CJavaTokenParser::KillGenerics(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::Parse(void)
 {	
-	//BOOL						bResult;
 	char						szText[4 KB];
 	int							iLength;
 	TRISTATE					tResult;
