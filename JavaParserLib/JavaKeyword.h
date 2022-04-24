@@ -62,16 +62,19 @@ enum EJavaKeyword
 	JK_Unknown = -1
 };
 
-
+class CJavaKeywordDefinition;
 class CJavaKeyword : public CJavaToken
 {
 CONSTRUCTABLE(CJavaKeyword);
 protected:
-	EJavaKeyword	meKeyword;
+	CJavaKeywordDefinition*	mpcKeyword;
 
 public:
-	void 	Init(EJavaKeyword eKeyword);
+	void 	Init(CJavaKeywordDefinition* pcKeyword);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 
@@ -84,6 +87,8 @@ protected:
 public:
 	void 	Init(EJavaKeyword eKeyword, char* szName);
 	void 	Kill(void);
+
+	char*	GetName(void);
 };
 
 

@@ -187,7 +187,6 @@
     <ClCompile Include="JavaTokenMemory.cpp" />
     <ClCompile Include="JavaToken.cpp" />
     <ClCompile Include="JavaTokenParser.cpp" />
-    <ClCompile Include="JavaTokens.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaAmbiguous.h" />
@@ -200,7 +199,6 @@
     <ClInclude Include="JavaComment.h" />
     <ClInclude Include="JavaToken.h" />
     <ClInclude Include="JavaTokenParser.h" />
-    <ClInclude Include="JavaTokens.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

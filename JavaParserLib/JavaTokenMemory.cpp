@@ -64,7 +64,7 @@ CJavaComment* CJavaTokenMemory::CreateComment(char* szComment, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaKeyword* CJavaTokenMemory::CreateKeyword(EJavaKeyword eKeyword)
+CJavaKeyword* CJavaTokenMemory::CreateKeyword(CJavaKeywordDefinition* pcKeyword)
 {
 	CJavaKeyword*	pcToken;
 
@@ -74,7 +74,7 @@ CJavaKeyword* CJavaTokenMemory::CreateKeyword(EJavaKeyword eKeyword)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaKeyword;
-		pcToken->Init(eKeyword);
+		pcToken->Init(pcKeyword);
 	}
 
 	return pcToken;
@@ -110,7 +110,7 @@ CJavaIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int iLen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaOperator* CJavaTokenMemory::CreateOperator(EJavaOperatorType eType, EJavaOperator eOperator)
+CJavaOperator* CJavaTokenMemory::CreateOperator(CJavaOperatorDefinition* pcOperator)
 {
 	CJavaOperator* pcToken;
 
@@ -120,7 +120,7 @@ CJavaOperator* CJavaTokenMemory::CreateOperator(EJavaOperatorType eType, EJavaOp
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaOperator;
-		pcToken->Init(eType, eOperator);
+		pcToken->Init(pcOperator);
 	}
 
 	return pcToken;
@@ -131,7 +131,7 @@ CJavaOperator* CJavaTokenMemory::CreateOperator(EJavaOperatorType eType, EJavaOp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSeparator* CJavaTokenMemory::CreateSeparator(EJavaSeparator eSeparator)
+CJavaSeparator* CJavaTokenMemory::CreateSeparator(CJavaSeparatorDefinition* pcSeparator)
 {
 	CJavaSeparator* pcToken;
 
@@ -141,7 +141,7 @@ CJavaSeparator* CJavaTokenMemory::CreateSeparator(EJavaSeparator eSeparator)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaSeparator;
-		pcToken->Init(eSeparator);
+		pcToken->Init(pcSeparator);
 	}
 
 	return pcToken;
@@ -152,7 +152,7 @@ CJavaSeparator* CJavaTokenMemory::CreateSeparator(EJavaSeparator eSeparator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaGeneric* CJavaTokenMemory::CreateGeneric(EJavaGeneric eGeneric)
+CJavaGeneric* CJavaTokenMemory::CreateGeneric(CJavaGenericDefinition* pcGeneric)
 {
 	CJavaGeneric* pcToken;
 
@@ -162,7 +162,7 @@ CJavaGeneric* CJavaTokenMemory::CreateGeneric(EJavaGeneric eGeneric)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaGeneric;
-		pcToken->Init(eGeneric);
+		pcToken->Init(pcGeneric);
 	}
 
 	return pcToken;
@@ -173,7 +173,7 @@ CJavaGeneric* CJavaTokenMemory::CreateGeneric(EJavaGeneric eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaAmbiguous* CJavaTokenMemory::CreateAmbiguous(EJavaAmbiguous eAmbiguous)
+CJavaAmbiguous* CJavaTokenMemory::CreateAmbiguous(CJavaAmbiguousDefinition* pcAmbiguous)
 {
 	CJavaAmbiguous* pcToken;
 
@@ -183,7 +183,7 @@ CJavaAmbiguous* CJavaTokenMemory::CreateAmbiguous(EJavaAmbiguous eAmbiguous)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaAmbiguous;
-		pcToken->Init(eAmbiguous);
+		pcToken->Init(pcAmbiguous);
 	}
 
 	return pcToken;

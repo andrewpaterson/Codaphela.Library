@@ -14,6 +14,9 @@ protected:
 public:
 	void 	Init(char* szIdentifier, int iLength);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 

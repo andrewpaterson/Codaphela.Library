@@ -14,15 +14,19 @@ enum EJavaGeneric
 };
 
 
+class CJavaGenericDefinition;
 class CJavaGeneric : public CJavaToken
 {
 CONSTRUCTABLE(CJavaGeneric);
 protected:
-	EJavaGeneric	meGeneric;
+	CJavaGenericDefinition*	mpcGeneric;
 
 public:
-	void 	Init(EJavaGeneric eGeneric);
+	void 	Init(CJavaGenericDefinition* pcGeneric);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 
@@ -35,6 +39,8 @@ protected:
 public:
 	void 	Init(EJavaGeneric eGeneric, char* szName);
 	void 	Kill(void);
+
+	char*	GetName(void);
 };
 
 
