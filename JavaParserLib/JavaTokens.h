@@ -19,6 +19,8 @@ public:
 	CJavaIdentifier*	AddIdentifier(char* szIdentifier, int iLength);
 	CJavaOperator*		AddOperator(EJavaOperatorType eType, EJavaOperator eOperator);
 	CJavaSeparator*		AddSeparator(EJavaSeparator eSeparator);
+	CJavaAmbiguous*		AddAmbiguous(EJavaAmbiguous eAmbiguous);
+	CJavaGeneric*		AddGeneric(EJavaGeneric eGeneric);
 };
 
 

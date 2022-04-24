@@ -100,6 +100,9 @@ public:
 	BOOL		IsWhiteSpace(char cCurrent);
 	void		PassPositions(int iNum);
 	void		PopPositions(int iNum);
+	void		LastPosition(void);
+	void		GetPosition(STextPosition* psPosition);
+	void		SetPosition(STextPosition* psPosition);
 
 	int			Line(void);
 	int			Column(void);
@@ -163,6 +166,7 @@ public:
 	void		Dump(void);
 
 	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace = TRUE);
+	template<class M>	TRISTATE	GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace = TRUE);
 
 protected:
 	TRISTATE	GetComment(char* szComment, int* piLength, char* szBegin, char* szEnd);
@@ -180,25 +184,39 @@ TRISTATE ParseFloat(double* pf, char* szText);
 template<class M>
 TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace)
 {
-	char*					szName;
+	char* szName;
 	SEnumeratorIterator		sIterator;
 	int						iID;
 	TRISTATE				tReturn;
+	int						iLongestLength;
+	int						iLength;
+	BOOL					bFound;
+	STextPosition			sStartPosition;
+	STextPosition			sFoundPosition;
 
-	pcEnumerator->StartIteration(&sIterator, &szName, &iID, NULL);
-
+	GetPosition(&sStartPosition);
 	if (bSkipWhiteSpace)
 	{
 		SkipWhiteSpace();
 	}
 
-	while(sIterator.bValid)
+	iLongestLength = -1;
+	bFound = FALSE;
+	pcEnumerator->StartIteration(&sIterator, &szName, &iID, NULL);
+	while (sIterator.bValid)
 	{
 		tReturn = GetExactIdentifier(szName, FALSE);
 		if (tReturn == TRITRUE)
 		{
-			*piID = iID;
-			return TRITRUE;
+			iLength = strlen(szName);
+			if (iLength > iLongestLength)
+			{
+				iLongestLength = iLength;
+				*piID = iID;
+				bFound = TRUE;
+				GetPosition(&sFoundPosition);
+			}
+			SetPosition(&sStartPosition);
 		}
 		else if (tReturn == TRIERROR)
 		{
@@ -206,8 +224,80 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 		}
 		pcEnumerator->Iterate(&sIterator, &szName, &iID, NULL);
 	}
-	*piID = -1;
-	return TRIFALSE;
+
+	if (bFound)
+	{
+		SetPosition(&sFoundPosition);
+		return TRITRUE;
+	}
+	else
+	{
+		SetPosition(&sStartPosition);
+		*piID = -1;
+		return TRIFALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace)
+{
+	char*					szName;
+	SEnumeratorIterator		sIterator;
+	int						iID;
+	TRISTATE				tReturn;
+	int						iLongestLength;
+	int						iLength;
+	BOOL					bFound;
+	STextPosition			sStartPosition;
+	STextPosition			sFoundPosition;
+
+	GetPosition(&sStartPosition);
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
+	iLongestLength = -1;
+	bFound = FALSE;
+	pcEnumerator->StartIteration(&sIterator, &szName, &iID, NULL);
+	while(sIterator.bValid)
+	{
+		tReturn = GetExactCharacterSequence(szName, FALSE);
+		if (tReturn == TRITRUE)
+		{
+			iLength = strlen(szName);
+			if (iLength > iLongestLength)
+			{
+				iLongestLength = iLength;
+				*piID = iID;
+				bFound = TRUE;
+				GetPosition(&sFoundPosition);
+			}
+			SetPosition(&sStartPosition);
+		}
+		else if (tReturn == TRIERROR)
+		{
+			return TRIERROR;
+		}
+		pcEnumerator->Iterate(&sIterator, &szName, &iID, NULL);
+	}
+
+	if (bFound)
+	{
+		SetPosition(&sFoundPosition);
+		return TRITRUE;
+	}
+	else
+	{
+		SetPosition(&sStartPosition);
+		*piID = -1;
+		return TRIFALSE;
+	}
 }
 
 

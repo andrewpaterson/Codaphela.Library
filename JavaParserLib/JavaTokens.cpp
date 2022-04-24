@@ -90,3 +90,31 @@ CJavaOperator* CJavaTokens::AddOperator(EJavaOperatorType eType, EJavaOperator e
 	return pcToken;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaAmbiguous* CJavaTokens::AddAmbiguous(EJavaAmbiguous eAmbiguous)
+{
+	CJavaAmbiguous* pcToken;
+
+	pcToken = mcMemory.CreateAmbiguous(eAmbiguous);
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaGeneric* CJavaTokens::AddGeneric(EJavaGeneric eGeneric)
+{
+	CJavaGeneric* pcToken;
+
+	pcToken = mcMemory.CreateGeneric(eGeneric);
+
+	return pcToken;
+}
+

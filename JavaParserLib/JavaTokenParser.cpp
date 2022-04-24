@@ -36,6 +36,9 @@ void CJavaTokenParser::Init(char* szText, int iTextLen)
 	InitKeywords();
 	InitOperators();
 	InitSeparators();
+	InitGenerics();
+
+	InitAmbiguous();
 }
 
 
@@ -192,6 +195,35 @@ void CJavaTokenParser::InitSeparators(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::InitAmbiguous(void)
+{
+	mcAmbiguous.Init();
+
+	AddAmbiguousDefinition("<", JA_AngleBracketLeft);
+	AddAmbiguousDefinition(">", JA_AngleBracketRight);
+	AddAmbiguousDefinition("?", JA_QuestionMark);
+	AddAmbiguousDefinition("*", JA_QuestionMark);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::InitGenerics(void)
+{
+	mcGenerics.Init();
+
+	AddGenericDefinition("<", JG_AngleBracketLeft);
+	AddGenericDefinition(">", JG_AngleBracketRight);
+	AddGenericDefinition("?", JG_QuestionMark);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword)
 {
 	CJavaKeywordDefinition	cDefinition;
@@ -231,14 +263,43 @@ void CJavaTokenParser::AddOperatorDefinition(EJavaOperatorType eType, EJavaOpera
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::AddGenericDefinition(char* szGeneric, EJavaGeneric eGeneric)
+{
+	CJavaGenericDefinition	cDefinition;
+
+	cDefinition.Init(eGeneric, szGeneric);
+	mcGenerics.Add(szGeneric, &cDefinition, eGeneric);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous)
+{
+	CJavaAmbiguousDefinition	cDefinition;
+
+	cDefinition.Init(eAmbiguous, szAmbiguous);
+	mcAmbiguous.Add(szAmbiguous, &cDefinition, eAmbiguous);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::Kill(void)
 {
 	mcParser.Kill();
 	mcTokens.Kill();
 
+	KillAmbiguous();
+
 	KillKeywords();
 	KillOperators();
 	KillSeparators();
+	KillGenerics();
 }
 
 
@@ -293,9 +354,9 @@ void CJavaTokenParser::KillSeparators(void)
 void CJavaTokenParser::KillOperators(void)
 {
 	char* szName;
-	SEnumeratorIterator		sIterator;
-	int						iID;
-	CJavaOperatorDefinition* pcOperator;
+	SEnumeratorIterator			sIterator;
+	int							iID;
+	CJavaOperatorDefinition*	pcOperator;
 
 	mcOperators.StartIteration(&sIterator, &szName, &iID, &pcOperator);
 	while (sIterator.bValid)
@@ -305,6 +366,50 @@ void CJavaTokenParser::KillOperators(void)
 	}
 
 	mcOperators.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::KillAmbiguous(void)
+{
+	char* szName;
+	SEnumeratorIterator			sIterator;
+	int							iID;
+	CJavaAmbiguousDefinition* pcAmbiguous;
+
+	mcAmbiguous.StartIteration(&sIterator, &szName, &iID, &pcAmbiguous);
+	while (sIterator.bValid)
+	{
+		pcAmbiguous->Kill();
+		mcAmbiguous.Iterate(&sIterator, &szName, &iID, &pcAmbiguous);
+	}
+
+	mcAmbiguous.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::KillGenerics(void)
+{
+	char* szName;
+	SEnumeratorIterator			sIterator;
+	int							iID;
+	CJavaGenericDefinition* pcGeneric;
+
+	mcGenerics.StartIteration(&sIterator, &szName, &iID, &pcGeneric);
+	while (sIterator.bValid)
+	{
+		pcGeneric->Kill();
+		mcGenerics.Iterate(&sIterator, &szName, &iID, &pcGeneric);
+	}
+
+	mcGenerics.Kill();
 }
 
 
@@ -324,6 +429,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 	EJavaOperator				eOperator;
 	EJavaSeparator				eSeparator;
 	CJavaOperatorDefinition*	peOperatorDefinition;
+	EJavaAmbiguous				eAmbiguous;
+	EJavaGeneric				eGeneric;
 
 	pcCurrent = NULL;
 	pcPrevious = NULL;
@@ -365,7 +472,18 @@ TRISTATE CJavaTokenParser::Parse(void)
 			return TRIERROR;
 		}
 
-		tResult = mcParser.GetEnumeratorIdentifier<CJavaOperatorDefinition>(&mcOperators, (int*)&eOperator, FALSE);
+		tResult = mcParser.GetEnumeratorSequence<CJavaAmbiguousDefinition>(&mcAmbiguous, (int*)&eAmbiguous, FALSE);
+		if (tResult == TRITRUE)
+		{
+			pcCurrent = mcTokens.AddAmbiguous(eAmbiguous);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		tResult = mcParser.GetEnumeratorSequence<CJavaOperatorDefinition>(&mcOperators, (int*)&eOperator, FALSE);
 		if (tResult == TRITRUE)
 		{
 			mcOperators.GetWithID(eOperator, &peOperatorDefinition, NULL);
@@ -377,10 +495,21 @@ TRISTATE CJavaTokenParser::Parse(void)
 			return TRIERROR;
 		}
 
-		tResult = mcParser.GetEnumeratorIdentifier<CJavaSeparatorDefinition>(&mcSeparators, (int*)&eSeparator, FALSE);
+		tResult = mcParser.GetEnumeratorSequence<CJavaSeparatorDefinition>(&mcSeparators, (int*)&eSeparator, FALSE);
 		if (tResult == TRITRUE)
 		{
 			pcCurrent = mcTokens.AddSeparator(eSeparator);
+			continue;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+
+		tResult = mcParser.GetEnumeratorSequence<CJavaGenericDefinition>(&mcGenerics, (int*)&eGeneric, FALSE);
+		if (tResult == TRITRUE)
+		{
+			pcCurrent = mcTokens.AddGeneric(eGeneric);
 			continue;
 		}
 		else if (tResult == TRIERROR)
