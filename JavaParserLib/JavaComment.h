@@ -14,6 +14,8 @@ protected:
 public:
 	void 	Init(char* szComment, int iLength);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
 };
 
 

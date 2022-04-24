@@ -18,9 +18,6 @@
     <ClCompile Include="JavaTokenMemory.cpp">
       <Filter>Source\Tokens</Filter>
     </ClCompile>
-    <ClCompile Include="JavaTokens.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
     <ClCompile Include="JavaKeyword.cpp">
       <Filter>Source\Tokens</Filter>
     </ClCompile>
@@ -51,9 +48,6 @@
       <Filter>Source\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="JavaComment.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaTokens.h">
       <Filter>Source\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="JavaTokenMemory.h">

@@ -15,15 +15,19 @@ enum EJavaAmbiguous
 };
 
 
+class CJavaAmbiguousDefinition;
 class CJavaAmbiguous : public CJavaToken
 {
 CONSTRUCTABLE(CJavaAmbiguous);
 protected:
-	EJavaAmbiguous	meAmbiguous;
+	CJavaAmbiguousDefinition*	mpcDefinition;
 
 public:
-	void 	Init(EJavaAmbiguous eAmbiguous);
+	void 	Init(CJavaAmbiguousDefinition* pcDefinition);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 
@@ -36,6 +40,8 @@ protected:
 public:
 	void 	Init(EJavaAmbiguous eAmbiguous, char* szName);
 	void 	Kill(void);
+
+	char*	GetName(void);
 };
 
 

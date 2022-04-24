@@ -20,15 +20,19 @@ enum EJavaSeparator
 };
 
 
+class CJavaSeparatorDefinition;
 class CJavaSeparator : public CJavaToken
 {
-	CONSTRUCTABLE(CJavaSeparator);
+CONSTRUCTABLE(CJavaSeparator);
 protected:
-	EJavaSeparator	meSeparator;
+	CJavaSeparatorDefinition*	mpcSeparator;
 
 public:
-	void 	Init(EJavaSeparator eSeparator);
+	void 	Init(CJavaSeparatorDefinition* pcSeparator);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 
@@ -41,6 +45,8 @@ protected:
 public:
 	void 	Init(EJavaSeparator eSeparator, char* szName);
 	void 	Kill(void);
+
+	char*	GetName(void);
 };
 
 

@@ -65,16 +65,19 @@ enum EJavaOperator
 };
 
 
+class CJavaOperatorDefinition;
 class CJavaOperator : public CJavaToken
 {
 CONSTRUCTABLE(CJavaOperator);
 protected:
-	EJavaOperatorType	meType;
-	EJavaOperator		meOperator;
+	CJavaOperatorDefinition*	mpcOperator;
 
 public:
-	void 	Init(EJavaOperatorType eType, EJavaOperator eOperator);
+	void 	Init(CJavaOperatorDefinition* pcOperator);
 	void 	Kill(void);
+
+	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 
@@ -89,6 +92,7 @@ public:
 	void 				Init(EJavaOperatorType meType, EJavaOperator eOperator, char* szName);
 	void 				Kill(void);
 	EJavaOperatorType	GetType(void);
+	char*				GetName(void);
 };
 
 

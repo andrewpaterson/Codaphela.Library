@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TextParser.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/EnumeratorTemplate.h"
-#include "JavaTokens.h"
+#include "JavaTokenMemory.h"
 #include "JavaKeyword.h"
 
 
@@ -37,7 +37,7 @@ typedef CEnumeratorTemplate<CJavaGenericDefinition> CGenericEnumerator;
 class CJavaTokenParser
 {
 protected:
-	CJavaTokens				mcTokens;
+	CJavaTokenMemory		mcTokens;
 	CTextParser				mcParser;
 
 	CKeywordEnumerator		mcKeywords;

@@ -1,3 +1,4 @@
+#include "BaseLib/NewLine.h"
 #include "JavaComment.h"
 
 
@@ -22,5 +23,29 @@ void CJavaComment::Kill(void)
 	mszComment = NULL;
 	miLength = 0;
 	CJavaToken::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaComment::Print(CChars* pszDest)
+{
+	int		iNewLines;
+	
+	iNewLines = CountLineFeeds(mszComment, miLength);
+	if (iNewLines > 0)
+	{
+		pszDest->Append("/*");
+		pszDest->Append(mszComment);
+		pszDest->Replace("\n", " \\n ");
+		pszDest->Append("*/");
+	}
+	else
+	{
+		pszDest->Append("//");
+		pszDest->Append(mszComment);
+	}
 }
 

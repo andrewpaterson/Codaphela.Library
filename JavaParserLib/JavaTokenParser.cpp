@@ -428,11 +428,15 @@ TRISTATE CJavaTokenParser::Parse(void)
 	CJavaToken*					pcCurrent;
 	CJavaToken*					pcPrevious;
 	EJavaKeyword				eKeyword;
+	CJavaKeywordDefinition*		pcKeyword;
 	EJavaOperator				eOperator;
+	CJavaOperatorDefinition*	pcOperator;
 	EJavaSeparator				eSeparator;
-	CJavaOperatorDefinition*	peOperatorDefinition;
+	CJavaSeparatorDefinition*	pcSeparator;
 	EJavaAmbiguous				eAmbiguous;
+	CJavaAmbiguousDefinition*	pcAmbiguous;
 	EJavaGeneric				eGeneric;
+	CJavaGenericDefinition*		pcGeneric;
 
 	pcCurrent = NULL;
 	pcPrevious = NULL;
@@ -444,9 +448,17 @@ TRISTATE CJavaTokenParser::Parse(void)
 			return TRITRUE;
 		}
 
-		if (pcPrevious && pcCurrent)
+		if (pcCurrent)
 		{
-			pcPrevious->SetNext(pcCurrent);
+			if (mpcStart == NULL)
+			{
+				mpcStart = pcCurrent;
+			}
+
+			if (pcPrevious)
+			{
+				pcPrevious->SetNext(pcCurrent);
+			}
 		}
 
 		pcPrevious = pcCurrent;
@@ -455,7 +467,7 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetComment(szText, &iLength, FALSE);
 		if (tResult == TRITRUE)
 		{
-			pcCurrent = mcTokens.AddComment(szText, iLength);
+			pcCurrent = mcTokens.CreateComment(szText, iLength);
 			continue;
 		}
 		else if (tResult == TRIERROR)
@@ -466,7 +478,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetEnumeratorIdentifier<CJavaKeywordDefinition>(&mcKeywords, (int*)&eKeyword, FALSE);
 		if (tResult == TRITRUE)
 		{
-			pcCurrent = mcTokens.AddKeyword(eKeyword);
+			mcKeywords.GetWithID(eKeyword, &pcKeyword, NULL);
+			pcCurrent = mcTokens.CreateKeyword(pcKeyword);
 			continue;
 		}
 		else if (tResult == TRIERROR)
@@ -477,7 +490,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetEnumeratorSequence<CJavaAmbiguousDefinition>(&mcAmbiguous, (int*)&eAmbiguous, FALSE);
 		if (tResult == TRITRUE)
 		{
-			pcCurrent = mcTokens.AddAmbiguous(eAmbiguous);
+			mcAmbiguous.GetWithID(eAmbiguous, &pcAmbiguous, NULL);
+			pcCurrent = mcTokens.CreateAmbiguous(pcAmbiguous);
 			continue;
 		}
 		else if (tResult == TRIERROR)
@@ -488,8 +502,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetEnumeratorSequence<CJavaOperatorDefinition>(&mcOperators, (int*)&eOperator, FALSE);
 		if (tResult == TRITRUE)
 		{
-			mcOperators.GetWithID(eOperator, &peOperatorDefinition, NULL);
-			pcCurrent = mcTokens.AddOperator(peOperatorDefinition->GetType(), eOperator);
+			mcOperators.GetWithID(eOperator, &pcOperator, NULL);
+			pcCurrent = mcTokens.CreateOperator(pcOperator);
 			continue;
 		}
 		else if (tResult == TRIERROR)
@@ -500,7 +514,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetEnumeratorSequence<CJavaSeparatorDefinition>(&mcSeparators, (int*)&eSeparator, FALSE);
 		if (tResult == TRITRUE)
 		{
-			pcCurrent = mcTokens.AddSeparator(eSeparator);
+			mcSeparators.GetWithID(eSeparator, &pcSeparator, NULL);
+			pcCurrent = mcTokens.CreateSeparator(pcSeparator);
 			continue;
 		}
 		else if (tResult == TRIERROR)
@@ -511,7 +526,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetEnumeratorSequence<CJavaGenericDefinition>(&mcGenerics, (int*)&eGeneric, FALSE);
 		if (tResult == TRITRUE)
 		{
-			pcCurrent = mcTokens.AddGeneric(eGeneric);
+			mcGenerics.GetWithID(eGeneric, &pcGeneric, NULL);
+			pcCurrent = mcTokens.CreateGeneric(pcGeneric);
 			continue;
 		}
 		else if (tResult == TRIERROR)
@@ -522,7 +538,7 @@ TRISTATE CJavaTokenParser::Parse(void)
 		tResult = mcParser.GetIdentifier(szText, &iLength, FALSE, FALSE);
 		if (tResult == TRITRUE)
 		{
-			pcCurrent = mcTokens.AddIdentifier(szText, iLength);
+			pcCurrent = mcTokens.CreateIdentifier(szText, iLength);
 			continue;
 		}
 		else if (tResult == TRIERROR)

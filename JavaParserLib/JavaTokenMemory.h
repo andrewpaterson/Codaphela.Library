@@ -27,12 +27,12 @@ public:
 	void				Kill(void);
 
 	CJavaComment*		CreateComment(char* szComment, int iLength);
-	CJavaKeyword*		CreateKeyword(EJavaKeyword eKeyword);
 	CJavaIdentifier*	CreateIdentifier(char* szIdentifier, int iLength);
-	CJavaOperator*		CreateOperator(EJavaOperatorType eType, EJavaOperator eOperator);
-	CJavaSeparator*		CreateSeparator(EJavaSeparator eSeparator);
-	CJavaGeneric*		CreateGeneric(EJavaGeneric eGeneric);
-	CJavaAmbiguous*		CreateAmbiguous(EJavaAmbiguous eAmbiguous);
+	CJavaKeyword*		CreateKeyword(CJavaKeywordDefinition* pcKeyword);
+	CJavaOperator*		CreateOperator(CJavaOperatorDefinition* pcOperator);
+	CJavaSeparator*		CreateSeparator(CJavaSeparatorDefinition* pcSeparator);
+	CJavaGeneric*		CreateGeneric(CJavaGenericDefinition* pcGeneric);
+	CJavaAmbiguous*		CreateAmbiguous(CJavaAmbiguousDefinition* pcAmbiguous);
 };
 
 
