@@ -30,6 +30,7 @@ void CJavaTokenMemory::Kill(void)
 		pcToken->Kill();
 	}
 
+	mapcTokens.Kill();
 	mcStack.Kill();
 }
 

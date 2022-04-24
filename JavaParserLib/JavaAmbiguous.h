@@ -9,6 +9,7 @@ enum EJavaAmbiguous
 	JA_AngleBracketLeft,
 	JA_AngleBracketRight,
 	JA_QuestionMark,
+	JA_Asterisk,
 
 	JA_Unknown = -1
 };
