@@ -2450,7 +2450,49 @@ void CTextParser::PopPositions(int iNum)
 	miLine = psTextPosition->iLine;
 	miColumn = psTextPosition->iColumn;
 	mszParserPos = psTextPosition->szParserPos;
-	masPositions.RemoveRange(masPositions.NumElements()-iNum, masPositions.NumElements());
+	TestEnd();
+
+	masPositions.RemoveRange(masPositions.NumElements() - iNum, masPositions.NumElements());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::LastPosition(void)
+{
+	STextPosition* psTextPosition;
+
+	psTextPosition = masPositions.Tail();
+	miLine = psTextPosition->iLine;
+	miColumn = psTextPosition->iColumn;
+	mszParserPos = psTextPosition->szParserPos;
+	TestEnd();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::GetPosition(STextPosition* psPosition)
+{
+	psPosition->iLine = miLine;
+	psPosition->iColumn = miColumn;
+	psPosition->szParserPos = mszParserPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::SetPosition(STextPosition* psPosition)
+{
+	miLine = psPosition->iLine;
+	miColumn = psPosition->iColumn;
+	mszParserPos = psPosition->szParserPos;
 	TestEnd();
 }
 

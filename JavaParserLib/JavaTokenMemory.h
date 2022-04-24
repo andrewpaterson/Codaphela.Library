@@ -2,6 +2,7 @@
 #define __JAVA_TOKEN_MEMORY_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/MemoryStackExtended.h"
+#include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaComment.h"
 #include "JavaKeyword.h"
 #include "JavaIdentifier.h"
@@ -11,11 +12,15 @@
 #include "JavaAmbiguous.h"
 
 
+typedef CArrayTemplatePtr<CJavaToken>	CTokenPtrArray;
+
+
 class CJavaTokenMemory
 {
 CONSTRUCTABLE(CJavaTokenMemory);
 protected:
 	CMemoryStackExtended	mcStack;
+	CTokenPtrArray			mapcTokens;
 
 public:
 	void				Init(void);

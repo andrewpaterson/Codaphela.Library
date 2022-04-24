@@ -9,6 +9,7 @@
 void CJavaTokenMemory::Init(void)
 {
 	mcStack.Init(4 KB);
+	mapcTokens.Init();
 }
 
 
@@ -18,15 +19,16 @@ void CJavaTokenMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenMemory::Kill(void)
 {
-	//CJavaToken*			pcToken;
-	//int					iNumTokens;
-	//int					i;
+	CJavaToken*			pcToken;
+	int					iNumTokens;
+	int					i;
 
-	//for (i = 0; i < iNumTokens; i++)
-	//{
-	//	pcToken = mapcTokens.Get(i);
-	//	pcToken->Kill();
-	//}
+	iNumTokens = mapcTokens.NumElements();
+	for (i = 0; i < iNumTokens; i++)
+	{
+		pcToken = mapcTokens.GetPtr(i);
+		pcToken->Kill();
+	}
 
 	mcStack.Kill();
 }
@@ -44,6 +46,8 @@ CJavaComment* CJavaTokenMemory::CreateComment(char* szComment, int iLength)
 	pcToken = (CJavaComment*)mcStack.Add(sizeof(CJavaComment) + iLength + 1);
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaComment;
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaComment));
 		memcpy(szDest, szComment, iLength);
@@ -66,6 +70,8 @@ CJavaKeyword* CJavaTokenMemory::CreateKeyword(EJavaKeyword eKeyword)
 	pcToken = (CJavaKeyword*)mcStack.Add(sizeof(CJavaKeyword));
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaKeyword;
 		pcToken->Init(eKeyword);
 	}
@@ -86,6 +92,8 @@ CJavaIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int iLen
 	pcToken = (CJavaIdentifier*)mcStack.Add(sizeof(CJavaIdentifier) + iLength + 1);
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaIdentifier;
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaIdentifier));
 		memcpy(szDest, szIdentifier, iLength);
@@ -108,6 +116,8 @@ CJavaOperator* CJavaTokenMemory::CreateOperator(EJavaOperatorType eType, EJavaOp
 	pcToken = (CJavaOperator*)mcStack.Add(sizeof(CJavaOperator));
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaOperator;
 		pcToken->Init(eType, eOperator);
 	}
@@ -127,6 +137,8 @@ CJavaSeparator* CJavaTokenMemory::CreateSeparator(EJavaSeparator eSeparator)
 	pcToken = (CJavaSeparator*)mcStack.Add(sizeof(CJavaSeparator));
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaSeparator;
 		pcToken->Init(eSeparator);
 	}
@@ -146,6 +158,8 @@ CJavaGeneric* CJavaTokenMemory::CreateGeneric(EJavaGeneric eGeneric)
 	pcToken = (CJavaGeneric*)mcStack.Add(sizeof(CJavaGeneric));
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaGeneric;
 		pcToken->Init(eGeneric);
 	}
@@ -165,6 +179,8 @@ CJavaAmbiguous* CJavaTokenMemory::CreateAmbiguous(EJavaAmbiguous eAmbiguous)
 	pcToken = (CJavaAmbiguous*)mcStack.Add(sizeof(CJavaAmbiguous));
 	if (pcToken)
 	{
+		mapcTokens.Add(pcToken);
+
 		new(pcToken) CJavaAmbiguous;
 		pcToken->Init(eAmbiguous);
 	}
