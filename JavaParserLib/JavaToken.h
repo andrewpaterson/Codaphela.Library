@@ -12,11 +12,13 @@ protected:
 	CJavaToken*		mpcNext;
 
 public:
-			void	Init(void);
-	virtual void	Kill(void);
+			void		Init(void);
+	virtual void		Kill(void);
 
-			void	SetNext(CJavaToken* pcNext);
-	virtual void	Print(CChars* pszDest) =0;
+			void		SetNext(CJavaToken* pcNext);
+	virtual void		Print(CChars* pszDest) =0;
+	virtual char*		GetType(void) =0;
+			CJavaToken* GetNext(void);
 };
 
 

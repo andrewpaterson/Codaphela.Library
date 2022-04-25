@@ -442,12 +442,6 @@ TRISTATE CJavaTokenParser::Parse(void)
 	pcPrevious = NULL;
 	for (;;)
 	{
-		mcParser.SkipWhiteSpace(FALSE);
-		if (mcParser.IsOutside())
-		{
-			return TRITRUE;
-		}
-
 		if (pcCurrent)
 		{
 			if (mpcStart == NULL)
@@ -459,6 +453,12 @@ TRISTATE CJavaTokenParser::Parse(void)
 			{
 				pcPrevious->SetNext(pcCurrent);
 			}
+		}
+
+		mcParser.SkipWhiteSpace(FALSE);
+		if (mcParser.IsOutside())
+		{
+			return TRITRUE;
 		}
 
 		pcPrevious = pcCurrent;
@@ -548,5 +548,76 @@ TRISTATE CJavaTokenParser::Parse(void)
 
 		return TRIERROR;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaToken* CJavaTokenParser::GetFirstToken(void)
+{
+	return mpcStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::PrettyPrint(CChars* pszDest)
+{
+	CJavaToken*		pcToken;
+
+	pcToken = GetFirstToken();
+	while (pcToken != NULL)
+	{
+
+		pcToken = pcToken->GetNext();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::TypePrint(CChars* pszDest)
+{
+	CJavaToken*		pcToken;
+
+	pcToken = GetFirstToken();
+	while (pcToken != NULL)
+	{
+		pszDest->Append(pcToken->GetType());
+		pszDest->Append(": ");
+		pcToken->Print(pszDest);
+		pszDest->AppendNewLine();
+
+		pcToken = pcToken->GetNext();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::Dump(BOOL bIncludeType)
+{
+	CChars	szDest;
+
+	szDest.Init();
+
+	if (bIncludeType)
+	{
+		TypePrint(&szDest);
+	}
+	else
+	{
+		PrettyPrint(&szDest);
+	}
+
+	szDest.DumpKill();
 }
 

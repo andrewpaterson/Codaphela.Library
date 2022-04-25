@@ -16,6 +16,7 @@ public:
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);
+	char*	GetType(void);
 };
 
 
