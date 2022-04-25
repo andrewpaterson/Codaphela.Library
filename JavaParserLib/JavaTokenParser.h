@@ -62,23 +62,27 @@ public:
 	void			Dump(BOOL bIncludeType = FALSE);
 
 protected:
-	void		InitKeywords(void);
-	void		InitOperators(void);
-	void		InitSeparators(void);
-	void		InitAmbiguous(void);
-	void		InitGenerics(void);
+	void			InitKeywords(void);
+	void			InitOperators(void);
+	void			InitSeparators(void);
+	void			InitAmbiguous(void);
+	void			InitGenerics(void);
 
-	void		AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword);
-	void		AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator);
-	void		AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator);
-	void		AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous);
-	void		AddGenericDefinition(char* szGeneric, EJavaGeneric eGeneric);
+	void			AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword);
+	void			AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator);
+	void			AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator);
+	void			AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous);
+	void			AddGenericDefinition(char* szGeneric, EJavaGeneric eGeneric);
 
-	void		KillKeywords(void);
-	void		KillOperators(void);
-	void		KillSeparators(void);
-	void		KillAmbiguous(void);
-	void		KillGenerics(void);
+	void			KillKeywords(void);
+	void			KillOperators(void);
+	void			KillSeparators(void);
+	void			KillAmbiguous(void);
+	void			KillGenerics(void);
+
+	CJavaToken*		GetLineEndToken(CJavaToken* pcStartToken);
+	void			PrintLine(CChars* pszDest, CJavaToken* pcStartToken, CJavaToken* pcEndToken);
+	int				ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 };
 
 

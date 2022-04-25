@@ -19,6 +19,10 @@ public:
 	virtual void		Print(CChars* pszDest) =0;
 	virtual char*		GetType(void) =0;
 			CJavaToken* GetNext(void);
+
+	virtual BOOL		IsSeparator(void);
+	virtual BOOL		IsComment(void);
+	virtual BOOL		IsKeyword(void);
 };
 
 

@@ -567,14 +567,126 @@ CJavaToken* CJavaTokenParser::GetFirstToken(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::PrettyPrint(CChars* pszDest)
 {
-	CJavaToken*		pcToken;
+	int					iBlockDepth;
+	CJavaToken*			pcStartToken;
+	CJavaToken*			pcEndToken;
+	int					iBlockChange;
 
-	pcToken = GetFirstToken();
-	while (pcToken != NULL)
+	iBlockDepth = 0;
+
+	pcStartToken = GetFirstToken();
+
+	for (;;)
 	{
+		pcEndToken = GetLineEndToken(pcStartToken);
+		iBlockChange = ChangeDepth(pcStartToken, pcEndToken);
+
+		if (iBlockChange < 0)
+		{
+			iBlockDepth += iBlockChange;
+		}
+
+		pszDest->Append('\t', iBlockDepth);
+
+		PrintLine(pszDest, pcStartToken, pcEndToken);
+
+		if (iBlockChange >= 0)
+		{
+			iBlockDepth += iBlockChange;
+		}
+
+		pcStartToken = pcEndToken->GetNext();
+		if (pcStartToken == NULL)
+		{
+			break;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CJavaTokenParser::ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken)
+{
+	CJavaToken*			pcToken;
+	CJavaSeparator*		pcSeparator;
+	BOOL				bDone;
+	int					iBlockDepth;
+
+	bDone = FALSE;
+	pcToken = pcStartToken;
+	if (pcToken == pcEndToken)
+	{
+		bDone = TRUE;
+	}
+
+	iBlockDepth = 0;
+	do
+	{
+		if (pcToken->IsSeparator())
+		{
+			pcSeparator = (CJavaSeparator*)pcToken;
+			if (pcSeparator->Is(JS_CurlyBracketLeft))
+			{
+				iBlockDepth++;
+			}
+			else if (pcSeparator->Is(JS_CurlyBracketRight))
+			{
+				iBlockDepth--;
+			}
+		}
 
 		pcToken = pcToken->GetNext();
+		if (bDone)
+		{
+			break;
+		}
+
+		if (pcToken == pcEndToken)
+		{
+			bDone = TRUE;
+		}
+	} while (TRUE);
+
+	return iBlockDepth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenParser::PrintLine(CChars* pszDest, CJavaToken* pcStartToken ,CJavaToken* pcEndToken)
+{
+	CJavaToken*			pcToken;
+	BOOL				bDone;
+
+	bDone = FALSE;
+	pcToken = pcStartToken;
+	if (pcToken == pcEndToken)
+	{
+		bDone = TRUE;
 	}
+
+	do
+	{
+		pcToken->Print(pszDest);
+
+		pcToken = pcToken->GetNext();
+		if (bDone)
+		{
+			break;
+		}
+
+		if (pcToken == pcEndToken)
+		{
+			bDone = TRUE;
+		}
+	} while (TRUE);
+
+	pszDest->AppendNewLine();
 }
 
 
@@ -619,5 +731,107 @@ void CJavaTokenParser::Dump(BOOL bIncludeType)
 	}
 
 	szDest.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
+{
+	CJavaToken*			pcToken;
+	CJavaSeparator*		pcSeparator;
+	CJavaKeyword*		pcKeyWord;
+	BOOL				bInFor;
+	BOOL				bLineEnder;
+	CJavaToken*			pcPrevious;
+	int					iRoundDepth;
+	BOOL				bCloseCurly;
+
+	pcToken = pcStartToken;
+	bInFor = FALSE;
+	bLineEnder = FALSE;
+	iRoundDepth = 0;
+	bCloseCurly = FALSE;
+	pcPrevious = NULL;
+
+	while (pcToken != NULL)
+	{
+		if (pcToken->IsComment())
+		{
+			return pcToken;
+		}
+		else
+		{
+			if (bLineEnder)
+			{
+				if (pcToken->IsKeyword())
+				{
+					pcKeyWord = (CJavaKeyword*)pcToken;
+					if (pcKeyWord->Is(JK_while))
+					{
+						bLineEnder = FALSE;
+					}
+					else
+					{
+						return pcPrevious;
+					}
+				}
+				else
+				{
+					return pcPrevious;
+				}
+			}
+		}
+
+		if (pcToken->IsSeparator())
+		{
+			pcSeparator = (CJavaSeparator*)pcToken;
+			if (pcSeparator->Is(JS_Semicolon) && !bInFor)
+			{
+				bLineEnder = TRUE;
+			}
+			else if (pcSeparator->Is(JS_CurlyBracketLeft))
+			{
+				bLineEnder = TRUE;
+			}
+			else if (pcSeparator->Is(JS_CurlyBracketRight))
+			{
+				bCloseCurly = TRUE;
+				bLineEnder = TRUE;
+			}
+			else if (bInFor && pcSeparator->Is(JS_RoundBracketLeft))
+			{
+				iRoundDepth++;
+			}
+			else if (bInFor && pcSeparator->Is(JS_RoundBracketRight))
+			{
+				iRoundDepth--;
+				if (iRoundDepth == 0)
+				{
+					bLineEnder = TRUE;
+				}
+			}
+		}
+		else if (pcToken->IsKeyword())
+		{
+			pcKeyWord = (CJavaKeyword*)pcToken;
+			if (pcKeyWord->Is(JK_do))
+			{
+				bLineEnder = TRUE;
+			}
+			else if (pcKeyWord->Is(JK_for))
+			{
+				bInFor = TRUE;
+				iRoundDepth = 0;
+			}
+		}
+
+		pcPrevious = pcToken;
+		pcToken = pcToken->GetNext();
+	}
+
+	return pcPrevious;
 }
 
