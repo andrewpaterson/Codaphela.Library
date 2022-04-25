@@ -190,3 +190,212 @@ CJavaAmbiguous* CJavaTokenMemory::CreateAmbiguous(CJavaAmbiguousDefinition* pcAm
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaNull* CJavaTokenMemory::CreateNull(void)
+{
+	CJavaNull*	pcToken;
+
+	pcToken = (CJavaNull*)mcStack.Add(sizeof(CJavaNull));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaNull;
+		pcToken->Init();
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaBoolean* CJavaTokenMemory::CreateBoolean(BOOL bValue)
+{
+	CJavaBoolean* pcToken;
+
+	pcToken = (CJavaBoolean*)mcStack.Add(sizeof(CJavaBoolean));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaBoolean;
+		pcToken->Init(bValue);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaCharacter* CJavaTokenMemory::CreateCharacter(char c)
+{
+	CJavaCharacter* pcToken;
+
+	pcToken = (CJavaCharacter*)mcStack.Add(sizeof(CJavaCharacter));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaCharacter;
+		pcToken->Init(c);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaCharacter* CJavaTokenMemory::CreateCharacter(char16 c)
+{
+	CJavaCharacter* pcToken;
+
+	pcToken = (CJavaCharacter*)mcStack.Add(sizeof(CJavaCharacter));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaCharacter;
+		pcToken->Init(c);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaInteger* CJavaTokenMemory::CreateInteger(int32 iValue)
+{
+	CJavaInteger* pcToken;
+
+	pcToken = (CJavaInteger*)mcStack.Add(sizeof(CJavaInteger));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaInteger;
+		pcToken->Init(iValue);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaInteger* CJavaTokenMemory::CreateInteger(int64 iValue)
+{
+	CJavaInteger* pcToken;
+
+	pcToken = (CJavaInteger*)mcStack.Add(sizeof(CJavaInteger));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaInteger;
+		pcToken->Init(iValue);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaFloat* CJavaTokenMemory::CreateFloat(float32 fValue)
+{
+	CJavaFloat* pcToken;
+
+	pcToken = (CJavaFloat*)mcStack.Add(sizeof(CJavaFloat));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaFloat;
+		pcToken->Init(fValue);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaFloat* CJavaTokenMemory::CreateFloat(float64 fValue)
+{
+	CJavaFloat* pcToken;
+
+	pcToken = (CJavaFloat*)mcStack.Add(sizeof(CJavaFloat));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaFloat;
+		pcToken->Init(fValue);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaString* CJavaTokenMemory::CreateString(char* szString, int iLength)
+{
+	CJavaString* pcToken;
+
+	pcToken = (CJavaString*)mcStack.Add(sizeof(CJavaString));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaString;
+		pcToken->Init(szString, iLength);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaString* CJavaTokenMemory::CreateString(char16* szString, int iLength)
+{
+	CJavaString* pcToken;
+
+	pcToken = (CJavaString*)mcStack.Add(sizeof(CJavaString));
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaString;
+		pcToken->Init(szString, iLength);
+	}
+
+	return pcToken;
+}
+

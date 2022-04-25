@@ -1,15 +1,13 @@
-#include "JavaIdentifier.h"
+#include "JavaCharacter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Init(char* szIdentifier, int iLength)
+void CJavaCharacter::Init(char c)
 {
-	CJavaToken::Init();
-	mszIdentifier = szIdentifier;
-	miLength = iLength;
+	mc = c;
 }
 
 
@@ -17,11 +15,9 @@ void CJavaIdentifier::Init(char* szIdentifier, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Kill(void)
+void CJavaCharacter::Init(char16 c)
 {
-	mszIdentifier = NULL;
-	miLength = 0;
-	CJavaToken::Kill();
+	mc = c;
 }
 
 
@@ -29,9 +25,9 @@ void CJavaIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Print(CChars* pszDest)
+void CJavaCharacter::Kill(void)
 {
-	pszDest->Append(mszIdentifier);
+	mc = -1;
 }
 
 
@@ -39,5 +35,28 @@ void CJavaIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaIdentifier::GetType(void) { return "Identifier"; }
-BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }
+void CJavaCharacter::Print(CChars* pszDest)
+{
+	pszDest->Append('\'');
+	if ((mc >= 32) && (mc <= 255))
+	{
+		pszDest->Append((char)mc);
+	}
+	else
+	{
+		pszDest->Append("[?]");
+	}
+	pszDest->Append('\'');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaCharacter::IsCharacter(void)
+{
+	return TRUE;
+}
+
+

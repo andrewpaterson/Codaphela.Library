@@ -1,15 +1,13 @@
-#include "JavaIdentifier.h"
+#include "JavaBoolean.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Init(char* szIdentifier, int iLength)
+void CJavaBoolean::Init(BOOL bValue)
 {
-	CJavaToken::Init();
-	mszIdentifier = szIdentifier;
-	miLength = iLength;
+	mbValue = bValue;
 }
 
 
@@ -17,11 +15,9 @@ void CJavaIdentifier::Init(char* szIdentifier, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Kill(void)
+void CJavaBoolean::Kill(void)
 {
-	mszIdentifier = NULL;
-	miLength = 0;
-	CJavaToken::Kill();
+	mbValue = FALSE;
 }
 
 
@@ -29,9 +25,16 @@ void CJavaIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Print(CChars* pszDest)
+void CJavaBoolean::Print(CChars* pszDest)
 {
-	pszDest->Append(mszIdentifier);
+	if (mbValue)
+	{
+		pszDest->Append("true");
+	}
+	else
+	{
+		pszDest->Append("false");
+	}
 }
 
 
@@ -39,5 +42,5 @@ void CJavaIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaIdentifier::GetType(void) { return "Identifier"; }
-BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }
+BOOL CJavaBoolean::IsBoolean(void) { return TRUE; }
+

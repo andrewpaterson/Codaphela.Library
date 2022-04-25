@@ -83,6 +83,16 @@ protected:
 	CJavaToken*		GetLineEndToken(CJavaToken* pcStartToken);
 	void			PrintLine(CChars* pszDest, CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 	int				ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
+	BOOL			PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight);
+
+	TRISTATE		ParseComment(CJavaToken** ppcCurrent);
+	TRISTATE		ParseKeyword(CJavaToken** ppcCurrent);
+	TRISTATE		ParseAmbiguous(CJavaToken** ppcCurrent);
+	TRISTATE		ParseOperator(CJavaToken** ppcCurrent);
+	TRISTATE		ParseSeparator(CJavaToken** ppcCurrent);
+	TRISTATE		ParseGeneric(CJavaToken** ppcCurrent);
+	TRISTATE		ParseBoolean(CJavaToken** ppcCurrent);
+	TRISTATE		ParseIdentifier(CJavaToken** ppcCurrent);
 };
 
 

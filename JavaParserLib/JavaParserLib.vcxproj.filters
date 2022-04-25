@@ -39,6 +39,27 @@
     <ClCompile Include="JavaGeneric.cpp">
       <Filter>Source\Tokens</Filter>
     </ClCompile>
+    <ClCompile Include="JavaLiteral.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaCharacter.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaNull.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaBoolean.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaInteger.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaFloat.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaString.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaTokenParser.h">
@@ -69,6 +90,27 @@
       <Filter>Source\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="JavaGeneric.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaLiteral.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaCharacter.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaNull.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaBoolean.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaInteger.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaFloat.h">
+      <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaString.h">
       <Filter>Source\Tokens</Filter>
     </ClInclude>
   </ItemGroup>

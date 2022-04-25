@@ -60,6 +60,7 @@ extern TRISTATE	gTriState;
 #define BreakOnFalse(p)					if (p == TRIFALSE) { break; }
 #define BreakOnTrue(p)					if (p == TRITRUE) { break; }
 #define ContinueOnTrue(p)				if (p == TRITRUE) { continue; }
+#define ContinueOnTrueReturnOnError(p)	TTV(__LINE__) = p; if ((TTV(__LINE__) == TRITRUE)) { continue; } else if ((TTV(__LINE__) == TRIERROR)) { return TRIERROR; }
 TRISTATE Negate(TRISTATE tristate);
 TRISTATE Fix(TRISTATE tristate);
 BOOL NotTrue(TRISTATE tristate);

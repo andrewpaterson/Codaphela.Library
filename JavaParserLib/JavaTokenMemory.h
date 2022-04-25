@@ -10,6 +10,12 @@
 #include "JavaSeparator.h"
 #include "JavaGeneric.h"
 #include "JavaAmbiguous.h"
+#include "JavaNull.h"
+#include "JavaBoolean.h"
+#include "JavaCharacter.h"
+#include "JavaInteger.h"
+#include "JavaFloat.h"
+#include "JavaString.h"
 
 
 typedef CArrayTemplatePtr<CJavaToken>	CTokenPtrArray;
@@ -33,6 +39,16 @@ public:
 	CJavaSeparator*		CreateSeparator(CJavaSeparatorDefinition* pcSeparator);
 	CJavaGeneric*		CreateGeneric(CJavaGenericDefinition* pcGeneric);
 	CJavaAmbiguous*		CreateAmbiguous(CJavaAmbiguousDefinition* pcAmbiguous);
+	CJavaNull*			CreateNull(void);
+	CJavaBoolean*		CreateBoolean(BOOL bValue);
+	CJavaCharacter*		CreateCharacter(char c);
+	CJavaCharacter*		CreateCharacter(char16 iChar);
+	CJavaInteger*		CreateInteger(int32 iValue);
+	CJavaInteger*		CreateInteger(int64 iValue);
+	CJavaFloat*			CreateFloat(float32 fValue);
+	CJavaFloat*			CreateFloat(float64 fValue);
+	CJavaString*		CreateString(char* szString, int iLength);
+	CJavaString*		CreateString(char16* szString, int iLength);
 };
 
 

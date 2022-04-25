@@ -56,9 +56,6 @@ enum EJavaKeyword
 	JK_void,
 	JK_volatile,
 	JK_while,
-	JK_true, 
-	JK_false,
-	JK_null,
 	JK_Unknown = -1
 };
 

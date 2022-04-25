@@ -1,15 +1,12 @@
-#include "JavaIdentifier.h"
+#include "JavaNull.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Init(char* szIdentifier, int iLength)
+void CJavaNull::Init(void)
 {
-	CJavaToken::Init();
-	mszIdentifier = szIdentifier;
-	miLength = iLength;
 }
 
 
@@ -17,11 +14,8 @@ void CJavaIdentifier::Init(char* szIdentifier, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Kill(void)
+void CJavaNull::Kill(void)
 {
-	mszIdentifier = NULL;
-	miLength = 0;
-	CJavaToken::Kill();
 }
 
 
@@ -29,9 +23,9 @@ void CJavaIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Print(CChars* pszDest)
+void CJavaNull::Print(CChars* pszDest)
 {
-	pszDest->Append(mszIdentifier);
+	pszDest->Append("null");
 }
 
 
@@ -39,5 +33,5 @@ void CJavaIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaIdentifier::GetType(void) { return "Identifier"; }
-BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }
+BOOL CJavaNull::IsNull(void) { return TRUE; }
+
