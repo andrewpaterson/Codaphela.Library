@@ -49,11 +49,17 @@ protected:
 	CJavaToken*				mpcStart;
 
 public:
-	void		Init(char* szText);
-	void 		Init(char* szText, int iTextLen);
-	void 		Kill(void);
+	void			Init(char* szText);
+	void 			Init(char* szText, int iTextLen);
+	void 			Kill(void);
 
-	TRISTATE	Parse(void);
+	TRISTATE		Parse(void);
+
+	CJavaToken*		GetFirstToken(void);
+
+	void			PrettyPrint(CChars* pszDest);
+	void			TypePrint(CChars* pszDest);
+	void			Dump(BOOL bIncludeType = FALSE);
 
 protected:
 	void		InitKeywords(void);
