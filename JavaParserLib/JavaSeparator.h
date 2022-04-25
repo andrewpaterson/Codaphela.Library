@@ -33,6 +33,9 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
+
+	BOOL	IsSeparator(void);
+	BOOL	Is(EJavaSeparator eSeparator);
 };
 
 
@@ -43,10 +46,11 @@ protected:
 	CChars			mszName;
 
 public:
-	void 	Init(EJavaSeparator eSeparator, char* szName);
-	void 	Kill(void);
+	void 			Init(EJavaSeparator eSeparator, char* szName);
+	void 			Kill(void);
 
-	char*	GetName(void);
+	EJavaSeparator	Get(void);
+	char*			GetName(void);
 };
 
 

@@ -35,8 +35,8 @@ void CJavaToken::SetNext(CJavaToken* pcNext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaToken* CJavaToken::GetNext(void)
-{
-	return mpcNext;
-}
+CJavaToken* CJavaToken::GetNext(void) {	return mpcNext; }
+BOOL CJavaToken::IsSeparator(void) { return FALSE; }
+BOOL CJavaToken::IsComment(void) { return FALSE; }
+BOOL CJavaToken::IsKeyword(void) { return FALSE; }
 

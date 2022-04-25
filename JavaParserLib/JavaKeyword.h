@@ -75,6 +75,9 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
+	BOOL	IsKeyword(void);
+
+	BOOL	Is(EJavaKeyword eKeyword);
 };
 
 
@@ -85,10 +88,11 @@ protected:
 	CChars			mszName;
 
 public:
-	void 	Init(EJavaKeyword eKeyword, char* szName);
-	void 	Kill(void);
+	void 			Init(EJavaKeyword eKeyword, char* szName);
+	void 			Kill(void);
 
-	char*	GetName(void);
+	char*			GetName(void);
+	EJavaKeyword	Get(void);
 };
 
 

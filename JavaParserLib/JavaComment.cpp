@@ -54,8 +54,6 @@ void CJavaComment::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaComment::GetType(void)
-{
-	return "Comment";
-}
+char* CJavaComment::GetType(void) {	return "Comment"; }
+BOOL CJavaComment::IsComment(void) { return TRUE; }
 
