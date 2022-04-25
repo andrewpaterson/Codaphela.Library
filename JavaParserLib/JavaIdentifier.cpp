@@ -39,8 +39,5 @@ void CJavaIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaIdentifier::GetType(void)
-{
-	return "Identifier";
-}
-
+char* CJavaIdentifier::GetType(void) { return "Identifier"; }
+BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }
