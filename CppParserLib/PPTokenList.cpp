@@ -72,7 +72,7 @@ void CPPTokenList::Add(CPPToken* pcToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CPPTokenList::Print(CChars* psz)
+char* CPPTokenList::Print(CChars* psz, BOOL bShowFileAndLine)
 {
 	CPPToken**	ppcToken;
 	CPPToken*	pcToken;
@@ -87,22 +87,23 @@ char* CPPTokenList::Print(CChars* psz)
 		{
 			pcToken = *mcArray.Get(i);
 
-#ifdef DEBUG
-			CChars		sz;
-
-			if (pcToken->NeedsNewLine())
+			if (bShowFileAndLine)
 			{
-				psz->Append("/* ");
-				psz->LeftAlign(pcToken->ShortFileName(), ' ', 20);
+				CChars		sz;
 
-				sz.Init();
-				sz.Append(pcToken->Line() + 1);
-				psz->RightAlign(sz, ' ', 4);
-				sz.Kill();
+				if (pcToken->NeedsNewLine())
+				{
+					psz->Append("/* ");
+					psz->LeftAlign(pcToken->ShortFileName(), ' ', 20);
 
-				psz->Append(" */ ");
+					sz.Init();
+					sz.Append(pcToken->Line() + 1);
+					psz->RightAlign(sz, ' ', 4);
+					sz.Kill();
+
+					psz->Append(" */ ");
+				}
 			}
-#endif
 
 			pcToken->Print(psz);
 			if (pcToken->NeedsNewLine())

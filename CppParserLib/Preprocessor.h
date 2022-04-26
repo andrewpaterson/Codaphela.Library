@@ -78,7 +78,7 @@ protected:
 	CChars					mszVaArgs;
 
 public:
-	static BOOL			Preprocess(char* szSource, CChars* szDest);
+	static BOOL			Preprocess(char* szSource, CChars* szDest, BOOL bShowFileAndLine = FALSE);
 
 public:
 	void 				Init(CConfig* pcConfig);

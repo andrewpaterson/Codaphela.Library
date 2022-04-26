@@ -199,3 +199,45 @@ int CPropertiesFile::NumProperties(void)
 	return mcProperties.NumElements();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPropertiesFile::Print(CChars* pszDest)
+{
+	char*			szProperty;
+	char*			szValue;
+	SMapIterator	sIter;
+	BOOL			bResult;
+
+	mcProperties.FinaliseSorted();
+	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);
+	while (bResult)
+	{
+		pszDest->Append(szProperty);
+		
+		if (!StrEmpty(szValue))
+		{
+			pszDest->Append(" = ");
+			pszDest->Append(szValue);
+		}
+		pszDest->AppendNewLine();
+		bResult = mcProperties.Iterate(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPropertiesFile::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
+}
+
