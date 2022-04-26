@@ -60,6 +60,26 @@ enum ETextParseError
 };
 
 
+#define INTEGER_PREFIX_DEFAULT		0x00
+#define INTEGER_PREFIX_BINARY		0x01
+#define INTEGER_PREFIX_OCTAL		0x02
+#define INTEGER_PREFIX_HEXADECIMAL	0x04
+#define INTEGER_PREFIX_ALL			(INTEGER_PREFIX_BINARY | INTEGER_PREFIX_OCTAL | INTEGER_PREFIX_HEXADECIMAL)
+
+#define INTEGER_SUFFIX_NONE			0x0000
+#define INTEGER_SUFFIX_L			0x0100
+#define INTEGER_SUFFIX_LL			0x0200
+#define INTEGER_SUFFIX_U			0x0400
+#define INTEGER_SUFFIX_UL			0x0800
+#define INTEGER_SUFFIX_ULL			0x1000
+#define INTEGER_SUFFIX_CPP			(INTEGER_SUFFIX_L | INTEGER_SUFFIX_LL | INTEGER_SUFFIX_U | INTEGER_SUFFIX_UL | INTEGER_SUFFIX_ULL)
+#define INTEGER_SUFFIX_JAVA			INTEGER_SUFFIX_L
+
+#define INTEGER_SEPARATOR_UNDERSCORE	0x10000000
+#define INTEGER_SEPARATOR_APOSTROPHE	0x20000000
+#define INTEGER_SEPARATOR_NONE			0x00000000
+
+
 class CTextParser
 {
 public:
@@ -128,7 +148,7 @@ public:
 
 	TRISTATE	GetDigit(int* pi, int iBase = 10);
 	TRISTATE	GetSign(int* pi);
-	TRISTATE	GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, BOOL bSkipWhiteSpace = TRUE, BOOL bTestSign = TRUE);
+	TRISTATE	GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, BOOL bSkipWhiteSpace = TRUE, BOOL bTestSign = TRUE, int iBase = 10, int iAllowedSeparator = INTEGER_SEPARATOR_NONE);
 	TRISTATE	GetInteger(unsigned long long int* pulli, int* piSign, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetInteger(int* pi, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetHexadecimal(unsigned long long int* pulli, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
@@ -137,6 +157,7 @@ public:
 	TRISTATE	GetFloat(float* pf, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetFloat(double* pf, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetNumber(CNumber* pcNumber, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE	GetInteger(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace);
 
 	//Non linear functions.
 	TRISTATE	FindExactIdentifier(char* szIdentifier);
@@ -170,6 +191,11 @@ public:
 
 protected:
 	TRISTATE	GetComment(char* szComment, int* piLength, char* szBegin, char* szEnd);
+	TRISTATE	GetSingleInteger(char cCurrent, unsigned long long int* pulli, int* piBase, int* piNumDigits);
+	int			GetDigit(char cCurrent, int iBase);
+	BOOL		IsDigit(char cCurrent, int iBase);
+	TRISTATE	GetIntegerSuffix(int* piSuffix, int iAllowedSuffix);
+	TRISTATE	GetIntegerSeparator(int iAllowedSeparator);
 };
 
 

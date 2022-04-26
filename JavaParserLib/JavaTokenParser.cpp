@@ -28,11 +28,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenParser::Init(char* szText, int iTextLen)
+void CJavaTokenParser::Init(char* szFilename, char* szText, int iTextLen)
 {
 	mcTokens.Init();
 	mcParser.Init(szText, iTextLen);
 	mpcStart = NULL;
+	mszFileName.Init(szFilename);
 
 	InitKeywords();
 	InitOperators();
@@ -47,12 +48,12 @@ void CJavaTokenParser::Init(char* szText, int iTextLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenParser::Init(char* szText)
+void CJavaTokenParser::Init(char* szFilename, char* szText)
 {
 	int		iTextLen;
 
 	iTextLen = strlen(szText);
-	Init(szText, iTextLen);
+	Init(szFilename, szText, iTextLen);
 }
 
 
@@ -294,6 +295,8 @@ void CJavaTokenParser::Kill(void)
 	mcParser.Kill();
 	mcTokens.Kill();
 
+	mszFileName.Kill();
+
 	KillAmbiguous();
 
 	KillKeywords();
@@ -460,6 +463,36 @@ TRISTATE CJavaTokenParser::Parse(void)
 		ContinueOnTrueReturnOnError(ParseIdentifier(&pcCurrent));
 
 		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaTokenParser::Parse(BOOL bFailOnError)
+{
+	TRISTATE	tResult;
+
+	tResult = Parse();
+	if (tResult == TRITRUE)
+	{
+		return TRUE;
+	}
+	else
+	{
+		CChars	szError;
+
+		szError.Init();
+		szError.Append("[");
+		szError.Append(mszFileName);
+		szError.Append("] Tokenising failed:");
+		szError.AppendNewLine();
+		mcParser.PrintPosition(&szError);
+		szError.DumpKill();
+
+		return FALSE;
 	}
 }
 
@@ -1009,6 +1042,43 @@ TRISTATE CJavaTokenParser::ParseIdentifier(CJavaToken** ppcCurrent)
 	{
 		*ppcCurrent = mcTokens.CreateIdentifier(szText, iLength);
 		return TRITRUE;;
+	}
+	else if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+	else
+	{
+		return TRIFALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::ParseInteger(CJavaToken** ppcCurrent)
+{
+	uint64		ulli;
+	int			iBase;
+	int			iNumDigits;
+	TRISTATE	tResult;
+	int			iSuffix;
+
+	tResult = mcParser.GetInteger(&ulli, INTEGER_PREFIX_ALL, &iBase, INTEGER_SUFFIX_JAVA, &iSuffix, INTEGER_SEPARATOR_UNDERSCORE, &iNumDigits, FALSE);
+	if (tResult == TRITRUE)
+	{
+		if (iSuffix & INTEGER_SUFFIX_L)
+		{
+			*ppcCurrent = mcTokens.CreateInteger((int64)ulli);
+			return TRITRUE;;
+		}
+		else
+		{
+			*ppcCurrent = mcTokens.CreateInteger((int32)ulli);
+			return TRITRUE;;
+		}
 	}
 	else if (tResult == TRIERROR)
 	{

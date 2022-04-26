@@ -1396,44 +1396,250 @@ TRISTATE CTextParser::GetEscapeCode(char* c)
 TRISTATE CTextParser::GetDigit(int* pi, int iBase)
 {
 	char	cCurrent;
+	int		iDigit;
 
 	if (!mbOutsideText)
 	{
 		cCurrent = mszParserPos[0];
-		if (iBase <= 10)
+		iDigit = GetDigit(cCurrent, iBase);
+		if (iDigit != -1)
 		{
-			if ((cCurrent >= '0') && (cCurrent <= ('0' + iBase - 1)))
-			{
-				*pi = (int)(cCurrent - '0');
-				StepRight();
-				return TRITRUE;
-			}
-			else
-			{
-				return TRIFALSE;
-			}
+			*pi = iDigit;
+			StepRight();
+			return TRITRUE;
 		}
 		else
 		{
-			cCurrent = ToUpper(cCurrent);
+			return TRIFALSE;
+		}
+	}
+	else
+	{
+		SetErrorEndOfFile();
+		return TRIERROR;
+	}
+}
 
-			if ((cCurrent >= '0') && (cCurrent <= '9'))
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTextParser::GetDigit(char cCurrent, int iBase)
+{
+	if (iBase <= 10)
+	{
+		if ((cCurrent >= '0') && (cCurrent <= ('0' + iBase - 1)))
+		{
+			return (int)(cCurrent - '0');
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else
+	{
+		cCurrent = ToUpper(cCurrent);
+
+		if ((cCurrent >= '0') && (cCurrent <= '9'))
+		{
+			return (int)(cCurrent - '0');
+		}
+		else if ((cCurrent >= 'A') && (cCurrent <= ('A' + iBase - 11)))
+		{
+			return (int)(cCurrent - 'A' + 10);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CTextParser::IsDigit(char cCurrent, int iBase)
+{
+	if (iBase <= 10)
+	{
+		if ((cCurrent >= '0') && (cCurrent <= ('0' + iBase - 1)))
+		{
+			return TRUE;
+		}
+		else
 			{
-				*pi = (int)(cCurrent - '0');
+			return FALSE;
+		}
+	}
+	else
+	{
+		cCurrent = ToUpper(cCurrent);
+
+		if ((cCurrent >= '0') && (cCurrent <= '9'))
+		{
+			return TRUE;
+		}
+		else if ((cCurrent >= 'A') && (cCurrent <= ('A' + iBase - 11)))
+		{
+			return TRUE;
+		}
+		else
+		{
+			return FALSE;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetIntegerSuffix(int* piSuffix, int iAllowedSuffix)
+{
+	char	cCurrent;
+	BOOL	bU;
+	BOOL	bL;
+
+	if (!mbOutsideText)
+	{
+		bU = FALSE;
+		bL = FALSE;
+
+		PushPosition();
+
+		cCurrent = mszParserPos[0];
+		if ((iAllowedSuffix & INTEGER_SUFFIX_ULL) || (iAllowedSuffix & INTEGER_SUFFIX_UL) || (iAllowedSuffix & INTEGER_SUFFIX_U))
+		{
+			if ((cCurrent == 'u') || (cCurrent == 'U'))
+			{
+				bU = TRUE;
 				StepRight();
-				return TRITRUE;
+
+				if (mbOutsideText)
+				{
+					*piSuffix = INTEGER_SUFFIX_U;
+					PassPosition();
+					return TRITRUE;
+				}
 			}
-			else if ((cCurrent >= 'A') && (cCurrent <= ('A' + iBase - 11)))
+			else if ((cCurrent == 'l') || (cCurrent == 'L'))
 			{
-				*pi = (int)(cCurrent - 'A' + 10);
-				StepRight();
-				return TRITRUE;
 			}
 			else
 			{
+				PopPosition();
 				return TRIFALSE;
 			}
 		}
+
+		cCurrent = mszParserPos[0];
+		if ((iAllowedSuffix & INTEGER_SUFFIX_ULL) || (iAllowedSuffix & INTEGER_SUFFIX_UL) || (iAllowedSuffix & INTEGER_SUFFIX_LL) || (iAllowedSuffix & INTEGER_SUFFIX_L))
+		{
+			if ((cCurrent == 'l') || (cCurrent == 'L'))
+			{
+				bL = TRUE;
+				StepRight();
+
+				if (mbOutsideText)
+				{
+					if (bU)
+					{
+						*piSuffix = INTEGER_SUFFIX_UL;
+					}
+					else
+					{
+						*piSuffix = INTEGER_SUFFIX_L;
+					}
+					PassPosition();
+					return TRITRUE;
+				}
+			}
+			else
+			{
+				if (bU)
+				{
+					*piSuffix = INTEGER_SUFFIX_UL;
+				}
+				else
+				{
+					*piSuffix = INTEGER_SUFFIX_L;
+				}
+				PassPosition();
+				return TRITRUE;
+			}
+		}
+
+		cCurrent = mszParserPos[0];
+		if ((iAllowedSuffix & INTEGER_SUFFIX_ULL) || (iAllowedSuffix & INTEGER_SUFFIX_LL))
+		{
+			if ((cCurrent == 'l') || (cCurrent == 'L'))
+			{
+				StepRight();
+
+				if (mbOutsideText)
+				{
+					if (bU && bL)
+					{
+						*piSuffix = INTEGER_SUFFIX_ULL;
+					}
+					else if (!bU && bL)
+					{
+						*piSuffix = INTEGER_SUFFIX_LL;
+					}
+					else
+					{
+						PopPosition();
+						return TRIFALSE;
+					}
+					PassPosition();
+					return TRITRUE;
+				}
+				else
+				{
+					if (bU && bL)
+					{
+						*piSuffix = INTEGER_SUFFIX_ULL;
+					}
+					else if (!bU && bL)
+					{
+						*piSuffix = INTEGER_SUFFIX_LL;
+					}
+					else
+					{
+						PopPosition();
+						return TRIFALSE;
+					}
+					PassPosition();
+					return TRITRUE;
+				}
+			}
+			else
+			{
+				if (bU && bL)
+				{
+					*piSuffix = INTEGER_SUFFIX_UL;
+				}
+				else if (!bU && bL)
+				{
+					*piSuffix = INTEGER_SUFFIX_L;
+				}
+				else
+				{
+					PopPosition();
+					return TRIFALSE;
+				}
+				PassPosition();
+				return TRITRUE;
+			}
+		}
+
+		PopPosition();
+		return TRIFALSE;
 	}
 	else
 	{
@@ -1499,7 +1705,7 @@ TRISTATE CTextParser::GetInteger(unsigned long long int* pulli, int* piSign, int
 		return TRIERROR;
 	}
 
-	tResult  = GetDigits(pulli, piSign, piNumDigits, bSkipWhiteSpace);
+	tResult = GetDigits(pulli, piSign, piNumDigits, bSkipWhiteSpace);
 	if (tResult == TRITRUE)
 	{
 		//Make sure there are no decimals.
@@ -1537,9 +1743,160 @@ TRISTATE CTextParser::GetInteger(int* pi, int* piNumDigits, BOOL bSkipWhiteSpace
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetDigits(unsigned long long int* pulli, int* piSign, int* piNumDigits, BOOL bSkipWhiteSpace, BOOL bTestSign)
+TRISTATE CTextParser::GetInteger(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace)
 {
-	unsigned long long int	iNum;
+	char		cCurrent;
+	char		cNext;
+	BOOL		bFirstZero;
+	int			iBase;
+	BOOL		bDone;
+	TRISTATE	tResult;
+	int			iSuffix;
+	BOOL		bSeparator;
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
+	iBase = 10;
+	bDone = FALSE;
+
+	if (!mbOutsideText)
+	{
+		cCurrent = mszParserPos[0];
+
+		StepRight();
+
+		if (mbOutsideText)
+		{
+			SafeAssign(piSuffix, INTEGER_SUFFIX_NONE);
+			return GetSingleInteger(cCurrent, pulli, piBase, piNumDigits);
+		}
+		else
+		{
+			bFirstZero = cCurrent == '0';
+
+			cNext = mszParserPos[0];
+
+			if (bFirstZero)
+			{
+				if ((cNext == 'x' || cNext == 'X') && (iAllowedPrefix & INTEGER_PREFIX_HEXADECIMAL))
+				{
+					iBase = 16;
+				}
+				else if ((cNext == 'b' || cNext == 'B') && (iAllowedPrefix & INTEGER_PREFIX_BINARY))
+				{
+					iBase = 2;
+				}
+			}
+
+			bSeparator = (((cNext == '_') && (iAllowedSeparator & INTEGER_SEPARATOR_UNDERSCORE)) ||
+			 			((cNext == '\'') && (iAllowedSeparator & INTEGER_SEPARATOR_APOSTROPHE)));
+
+			if (!IsDigit(cNext, iBase) && iBase == 10 && !bSeparator)
+			{
+				iSuffix = INTEGER_SUFFIX_NONE;
+				tResult = GetIntegerSuffix(&iSuffix, iAllowedSuffix);
+				if (tResult == TRITRUE || tResult == TRIFALSE)
+				{
+					SafeAssign(piSuffix, iSuffix);
+					return GetSingleInteger(cCurrent, pulli, piBase, piNumDigits);
+				}
+				else
+				{
+					PassPosition();
+					return TRIFALSE;
+				}
+			}
+
+			if (bFirstZero)
+			{
+				if (iBase == 10)
+				{
+					if (cNext >= '0' && cNext <= '7')
+					{
+						iBase = 8;
+					}
+				}
+				else
+				{
+					StepRight();
+				}
+			}
+			else
+			{
+				StepLeft();
+			}
+
+			tResult = GetDigits(pulli, NULL, piNumDigits, FALSE, FALSE, iBase, iAllowedSeparator);
+			if (tResult == TRITRUE)
+			{
+				iSuffix = INTEGER_SUFFIX_NONE;
+				if (!mbOutsideText)
+				{
+					tResult = GetIntegerSuffix(&iSuffix, iAllowedSuffix);
+					if (tResult == TRIERROR)
+					{
+						PassPosition();
+						return TRIERROR;
+					}
+				}
+
+				PassPosition();
+				SafeAssign(piSuffix, iSuffix);
+				SafeAssign(piBase, iBase);
+				return TRITRUE;
+			}
+			else
+			{
+				PopPosition();
+				return tResult;
+			}
+
+
+		}
+	}
+	else
+	{
+		PopPosition();
+		SetErrorEndOfFile();
+		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetSingleInteger(char cCurrent, unsigned long long int* pulli, int* piBase, int* piNumDigits)
+{
+	if (cCurrent >= '0' && cCurrent <= '9')
+	{
+		PassPosition();
+		SafeAssign(pulli, cCurrent - '0');
+		SafeAssign(piBase, 10);
+		SafeAssign(piNumDigits, 1);
+		return TRITRUE;
+	}
+	else
+	{
+		PopPosition();
+		return TRIFALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetDigits(unsigned long long int* pulli, int* piSign, int* piNumDigits, BOOL bSkipWhiteSpace, BOOL bTestSign, int iBase, int iAllowedSeparator)
+{
+	unsigned long long int	ulliValue;
 	int						iSign;
 	int						iTemp;
 	TRISTATE				tReturn;
@@ -1558,26 +1915,51 @@ TRISTATE CTextParser::GetDigits(unsigned long long int* pulli, int* piSign, int*
 	i = 0;
 	if (!mbOutsideText)
 	{
-		iNum = 0;
+		ulliValue = 0;
 
 		if (bTestSign)
+		{
 			GetSign(&iSign);
+		}
 		else
+		{
 			iSign = 1;
+		}
 
 		bFirstDigit = TRUE;
+		BOOL bSeparator = FALSE;
 		for (;;)
 		{
 			if (!mbOutsideText)
 			{
-				tReturn = GetDigit(&iTemp);
+				tReturn = GetDigit(&iTemp, iBase);
 				if (tReturn == TRITRUE)
 				{
 					i++;
-					iNum *= 10;
-					iNum += iTemp;
+					ulliValue *= iBase;
+					ulliValue += iTemp;
+					bSeparator = FALSE;
 				}
-				else if ((tReturn == TRIFALSE) || (tReturn == TRIERROR))
+				else if (tReturn == TRIFALSE)
+				{
+					if (!bSeparator)
+					{
+						tReturn = GetIntegerSeparator(iAllowedSeparator);
+						if ((tReturn == TRIFALSE) || (tReturn == TRIERROR))
+						{
+							break;
+						}
+						else
+						{
+							bSeparator = TRUE;
+						}
+					}
+					else
+					{
+						break;
+					}
+				}
+				else if (tReturn == TRIERROR)
 				{
 					break;
 				}
@@ -1589,21 +1971,23 @@ TRISTATE CTextParser::GetDigits(unsigned long long int* pulli, int* piSign, int*
 			}
 		}
 
+		if (bSeparator)
+		{
+			PopPosition();
+			return TRIFALSE;
+		}
+
 		if (bFirstDigit)
 		{
-			//might already have got a sign...  so reset the parser.
 			PopPosition();
 			return TRIFALSE;
 		}
 		else
 		{
-			*piSign = iSign;
-			*pulli = iNum;
-			if (piNumDigits)
-			{
-				*piNumDigits = i;
-			}
 			PassPosition();
+			SafeAssign(piSign, iSign);
+			SafeAssign(pulli, ulliValue);
+			SafeAssign(piNumDigits, i);
 			return TRITRUE;
 		}
 	}
@@ -1620,9 +2004,58 @@ TRISTATE CTextParser::GetDigits(unsigned long long int* pulli, int* piSign, int*
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetIntegerSeparator(int iAllowedSeparator)
+{
+	char	cCurrent;
+
+	if (!mbOutsideText)
+	{
+		if (iAllowedSeparator & INTEGER_SEPARATOR_APOSTROPHE)
+		{
+			cCurrent = mszParserPos[0];
+			if (cCurrent == '\'')
+			{
+				StepRight();
+				return TRITRUE;
+			}
+			else
+			{
+				return TRIFALSE;
+			}
+		}
+		if (iAllowedSeparator & INTEGER_SEPARATOR_UNDERSCORE)
+		{
+			cCurrent = mszParserPos[0];
+			if (cCurrent == '_')
+			{
+				StepRight();
+				return TRITRUE;
+			}
+			else
+			{
+				return TRIFALSE;
+			}
+		}
+		else
+		{
+			return TRIFALSE;
+		}
+	}
+	else
+	{
+		SetErrorEndOfFile();
+		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetHexadecimal(unsigned long long int* pulli, int* piNumDigits, BOOL bSkipWhiteSpace)
 {
-	TRISTATE				tReturn;
+	TRISTATE	tReturn;
 
 	PushPosition();
 
@@ -1947,7 +2380,6 @@ TRISTATE CTextParser::GetNumber(CNumber* pcNumber, BOOL bSkipWhiteSpace)
 	TRISTATE	tResult;
 	int			iLength;
 
-	SkipWhiteSpace();
 	szStart = mszParserPos;
 	tResult = GetFloat(&fIgnored, bSkipWhiteSpace);
 	if (tResult == TRITRUE)

@@ -39,6 +39,7 @@ class CJavaTokenParser
 protected:
 	CJavaTokenMemory		mcTokens;
 	CTextParser				mcParser;
+	CChars					mszFileName;
 
 	CKeywordEnumerator		mcKeywords;
 	COperatorEnumerator		mcOperators;
@@ -49,11 +50,12 @@ protected:
 	CJavaToken*				mpcStart;
 
 public:
-	void			Init(char* szText);
-	void 			Init(char* szText, int iTextLen);
+	void			Init(char* szFilename, char* szText);
+	void 			Init(char* szFilename, char* szText, int iTextLen);
 	void 			Kill(void);
 
 	TRISTATE		Parse(void);
+	BOOL			Parse(BOOL bFailOnError);
 
 	CJavaToken*		GetFirstToken(void);
 
@@ -93,6 +95,7 @@ protected:
 	TRISTATE		ParseGeneric(CJavaToken** ppcCurrent);
 	TRISTATE		ParseBoolean(CJavaToken** ppcCurrent);
 	TRISTATE		ParseIdentifier(CJavaToken** ppcCurrent);
+	TRISTATE		ParseInteger(CJavaToken** ppcCurrent);
 };
 
 
