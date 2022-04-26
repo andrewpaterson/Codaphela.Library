@@ -438,6 +438,11 @@ BOOL CTextParser::SkipCStyleComment(char** pszBegin, char** pszEnd)
 			}
 		}
 
+		if (iDepth == 0)
+		{
+			//No more nested comments...  bail..
+			return TRUE;
+		}
 		StepRight();
 	}
 

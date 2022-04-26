@@ -29,10 +29,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CPropertiesFile
 {
-public:
+protected:
 	CMapStringString	mcProperties;
 	CChars				mszName;
 
+public:
 	void 	Init(char* szFileName);
 	void 	Kill(void);
 	char*	Get(char* szProperty);
@@ -40,6 +41,8 @@ public:
 	BOOL	Read(void);
 	BOOL	Write(void);
 	int		NumProperties(void);
+	void	Print(CChars* pszDest);
+	void	Dump(void);
 };
 
 

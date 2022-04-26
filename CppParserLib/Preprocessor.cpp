@@ -2518,7 +2518,7 @@ SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSou
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
+BOOL CPreprocessor::Preprocess(char* szSource, CChars* pszDest, BOOL bShowFileAndLine)
 {
 	CPreprocessor			cPreprocessor;
 	CPreprocessorTokeniser	cTokeniser;
@@ -2549,7 +2549,7 @@ BOOL CPreprocessor::Preprocess(char* szSource, CChars* pszDest)
 
 	if (pszDest)
 	{
-		cOutput.Print(pszDest);
+		cOutput.Print(pszDest, bShowFileAndLine);
 	}
 
 	cPreprocessor.Kill();
