@@ -96,6 +96,7 @@ protected:
 	TRISTATE		ParseBoolean(CJavaToken** ppcCurrent);
 	TRISTATE		ParseIdentifier(CJavaToken** ppcCurrent);
 	TRISTATE		ParseInteger(CJavaToken** ppcCurrent);
+	TRISTATE		ParseCharacter(CJavaToken** ppcCurrent);
 };
 
 
