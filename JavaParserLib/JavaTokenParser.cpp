@@ -461,6 +461,8 @@ TRISTATE CJavaTokenParser::Parse(void)
 		ContinueOnTrueReturnOnError(ParseGeneric(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseBoolean(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseIdentifier(&pcCurrent));
+		ContinueOnTrueReturnOnError(ParseInteger(&pcCurrent));
+		ContinueOnTrueReturnOnError(ParseCharacter(&pcCurrent));
 
 		return TRIERROR;
 	}
@@ -1025,7 +1027,6 @@ TRISTATE CJavaTokenParser::ParseBoolean(CJavaToken** ppcCurrent)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1066,7 +1067,7 @@ TRISTATE CJavaTokenParser::ParseInteger(CJavaToken** ppcCurrent)
 	TRISTATE	tResult;
 	int			iSuffix;
 
-	tResult = mcParser.GetInteger(&ulli, INTEGER_PREFIX_ALL, &iBase, INTEGER_SUFFIX_JAVA, &iSuffix, INTEGER_SEPARATOR_UNDERSCORE, &iNumDigits, FALSE);
+	tResult = mcParser.GetIntegerLiteral(&ulli, INTEGER_PREFIX_ALL, &iBase, INTEGER_SUFFIX_JAVA, &iSuffix, INTEGER_SEPARATOR_UNDERSCORE, &iNumDigits, FALSE);
 	if (tResult == TRITRUE)
 	{
 		if (iSuffix & INTEGER_SUFFIX_L)
@@ -1089,4 +1090,44 @@ TRISTATE CJavaTokenParser::ParseInteger(CJavaToken** ppcCurrent)
 		return TRIFALSE;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::ParseCharacter(CJavaToken** ppcCurrent)
+{
+	TRISTATE	tResult;
+	int			iWidth;
+	uint16		c;
+
+	tResult = mcParser.GetCharacterLiteral(&c, TRUE, &iWidth, FALSE);
+	if (tResult == TRITRUE)
+	{
+		if (iWidth == 1)
+		{
+			*ppcCurrent = mcTokens.CreateCharacter((char)c);
+			return TRITRUE;;
+		}
+		else if (iWidth = 2)
+		{
+			*ppcCurrent = mcTokens.CreateInteger((char16)c);
+			return TRITRUE;;
+		}
+		else
+		{
+			return TRIERROR;
+		}
+	}
+	else if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+	else
+	{
+		return TRIFALSE;
+	}
+}
+
 

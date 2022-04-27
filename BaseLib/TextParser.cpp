@@ -1748,7 +1748,7 @@ TRISTATE CTextParser::GetInteger(int* pi, int* piNumDigits, BOOL bSkipWhiteSpace
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetInteger(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace)
+TRISTATE CTextParser::GetIntegerLiteral(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace)
 {
 	char		cCurrent;
 	char		cNext;
@@ -3211,5 +3211,212 @@ TRISTATE ParseFloat(double* pf, char* szText)
 	cTextParser.Kill();
 
 	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth, BOOL bSkipWhiteSpace)
+{
+	TRISTATE				tResult;
+	char					c;
+	char					cEscape;
+	int						iWidth;
+	unsigned short			ui;
+	unsigned long long int	ulli;
+	int						iNumDigits;
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
+	tResult = GetExactCharacter('\'', FALSE);
+	if (tResult == TRITRUE)
+	{
+		tResult = GetCharacter(&c);
+		if (tResult == TRITRUE)
+		{
+			if (c == '\\')
+			{
+				tResult = GetCharacter(&c);
+				if (tResult == TRITRUE)
+				{
+					cEscape = ::GetEscapeCode(c);
+					if (cEscape != '@' && cEscape != 0)
+					{
+						ui = cEscape;
+						iWidth = 1;
+					}
+					else if (IsDigit(c, 8))
+					{
+						StepLeft();
+						tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 8, INTEGER_SEPARATOR_NONE);
+						if (tResult == TRITRUE)
+						{
+							if (ulli < 0x100)
+							{
+								ui = (unsigned short)ulli;
+								iWidth = 1;
+							}
+							else
+							{
+								PassPosition();
+								return TRIERROR;
+							}
+						}
+						else
+						{
+							PassPosition();
+							return TRIERROR;
+						}
+					}
+					else if (c == 'x')
+					{
+						tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
+						if (tResult == TRITRUE)
+						{
+							if (iNumDigits >= 1 && iNumDigits <= 4)
+							{
+								ui = (unsigned short)ulli;
+								if (ulli < 0x100)
+								{
+									iWidth = 1;
+								}
+								else if (ulli < 0x10000)
+								{
+									iWidth = 2;
+								}
+								else
+								{
+									PassPosition();
+									return TRIERROR;
+								}
+							}
+							else
+							{
+								PassPosition();
+								return TRIERROR;
+							}
+						}
+						else if (tResult == TRIFALSE)
+						{
+							PopPosition();
+							return TRIFALSE;
+						}
+						else
+						{
+							PassPosition();
+							return TRIERROR;
+						}
+					}
+					else if (c == 'u')
+					{
+						tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
+						if (tResult == TRITRUE)
+						{
+							ui = (unsigned short)ulli;
+							if (iNumDigits == 4)
+							{
+								iWidth = 2;
+							}
+							else
+							{
+								PassPosition();
+								return TRIERROR;
+							}
+						}
+						else if (tResult == TRIFALSE)
+						{
+							PopPosition();
+							return TRIFALSE;
+						}
+						else
+						{
+							PassPosition();
+							return TRIERROR;
+						}
+					}
+					else
+					{
+						PassPosition();
+						return TRIERROR;
+					}
+
+					tResult = GetExactCharacter('\'', FALSE);
+					if (tResult == TRITRUE)
+					{
+						PassPosition();
+						SafeAssign(piCharacterWidth, iWidth);
+						SafeAssign(pc, ui);
+						return TRITRUE;
+					}
+					else if (tResult == TRIFALSE)
+					{
+						PopPosition();
+						return TRIFALSE;
+					}
+					else
+					{
+						PassPosition();
+						return TRIERROR;
+					}
+				}
+				else if (tResult == TRIFALSE)
+				{
+					PopPosition();
+					return TRIFALSE;
+				}
+				else
+				{
+					PassPosition();
+					return TRIERROR;
+				}
+			}
+			else
+			{
+				ui = c;
+				iWidth = 1;
+			}
+
+			tResult = GetExactCharacter('\'', FALSE);
+			if (tResult == TRITRUE)
+			{
+				PassPosition();
+				SafeAssign(piCharacterWidth, iWidth);
+				SafeAssign(pc, ui);
+				return TRITRUE;
+			}
+			else if (tResult == TRIFALSE)
+			{
+				PopPosition();
+				return TRIFALSE;
+			}
+			else
+			{
+				PassPosition();
+				return TRIERROR;
+			}
+		}
+		else
+		{
+			PassPosition();
+			return TRIERROR;
+		}
+	}
+	else if (tResult == TRIFALSE)
+	{
+		PopPosition();
+		return TRIFALSE;
+	}
+	else
+	{
+		PassPosition();
+		return TRIERROR;
+	}
 }
 
