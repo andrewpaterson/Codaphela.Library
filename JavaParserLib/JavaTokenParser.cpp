@@ -460,9 +460,11 @@ TRISTATE CJavaTokenParser::Parse(void)
 		ContinueOnTrueReturnOnError(ParseSeparator(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseGeneric(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseBoolean(&pcCurrent));
+		ContinueOnTrueReturnOnError(ParseNull(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseIdentifier(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseInteger(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseCharacter(&pcCurrent));
+		ContinueOnTrueReturnOnError(ParseString(&pcCurrent));
 
 		return TRIERROR;
 	}
@@ -1112,7 +1114,7 @@ TRISTATE CJavaTokenParser::ParseCharacter(CJavaToken** ppcCurrent)
 		}
 		else if (iWidth = 2)
 		{
-			*ppcCurrent = mcTokens.CreateInteger((char16)c);
+			*ppcCurrent = mcTokens.CreateCharacter((char16)c);
 			return TRITRUE;;
 		}
 		else
@@ -1130,4 +1132,68 @@ TRISTATE CJavaTokenParser::ParseCharacter(CJavaToken** ppcCurrent)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::ParseString(CJavaToken** ppcCurrent)
+{
+	TRISTATE	tResult;
+	int			iWidth;
+	char		sz[4 KB];
+	int			iLength;
+
+	tResult = mcParser.GetStringLiteral(&sz, 4 KB, TRUE, &iLength, &iWidth, FALSE);
+	if (tResult == TRITRUE)
+	{
+		if (iWidth == 1)
+		{
+			*ppcCurrent = mcTokens.CreateString(sz, iLength);
+			return TRITRUE;;
+		}
+		else if (iWidth = 2)
+		{
+			*ppcCurrent = mcTokens.CreateString((char16*)sz, iLength);
+			return TRITRUE;;	
+		}
+		else
+		{
+			return TRIERROR;
+		}
+	}
+	else if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+	else
+	{
+		return TRIFALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::ParseNull(CJavaToken** ppcCurrent)
+{
+	TRISTATE					tResult;
+
+	tResult = mcParser.GetExactIdentifier("null", FALSE);
+	if (tResult == TRITRUE)
+	{
+		*ppcCurrent = mcTokens.CreateNull();
+		return TRITRUE;;
+	}
+	else if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+	else
+	{
+		return TRIFALSE;
+	}
+}
 

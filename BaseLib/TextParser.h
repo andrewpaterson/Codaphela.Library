@@ -159,6 +159,7 @@ public:
 	TRISTATE	GetNumber(CNumber* pcNumber, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetIntegerLiteral(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace);
 	TRISTATE	GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth, BOOL bSkipWhiteSpace);
+	TRISTATE	GetStringLiteral(void* szDest, size_t uiDestByteLength, BOOL bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, BOOL bSkipWhiteSpace);
 
 	//Non linear functions.
 	TRISTATE	FindExactIdentifier(char* szIdentifier);
@@ -197,6 +198,8 @@ protected:
 	BOOL		IsDigit(char cCurrent, int iBase);
 	TRISTATE	GetIntegerSuffix(int* piSuffix, int iAllowedSuffix);
 	TRISTATE	GetIntegerSeparator(int iAllowedSeparator);
+	TRISTATE	GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth);
+	int			ChangeWidth(int iWidth, int iOldWidth, void* szDest, size_t uiDestByteLength, int iLength);
 };
 
 

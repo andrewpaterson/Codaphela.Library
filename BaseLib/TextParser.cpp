@@ -108,7 +108,7 @@ BOOL CTextParser::Init(char* szText, int iTextLen)
 		miTextLen = 0;
 		masPositions.Init();
 
-		gcLogger.Error("Parsed text contains carriage returns.");
+		gcLogger.Error2(__METHOD__, " Parsed text contains carriage returns.", NULL);
 		return FALSE;
 	}
 }
@@ -3220,13 +3220,9 @@ TRISTATE ParseFloat(double* pf, char* szText)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth, BOOL bSkipWhiteSpace)
 {
-	TRISTATE				tResult;
-	char					c;
-	char					cEscape;
-	int						iWidth;
-	unsigned short			ui;
-	unsigned long long int	ulli;
-	int						iNumDigits;
+	TRISTATE		tResult;
+	int				iWidth;
+	unsigned short	ui;
 
 	PushPosition();
 
@@ -3238,151 +3234,9 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, 
 	tResult = GetExactCharacter('\'', FALSE);
 	if (tResult == TRITRUE)
 	{
-		tResult = GetCharacter(&c);
+		tResult = GetCharacterLiteral(&ui, bAllowUTF16, &iWidth);
 		if (tResult == TRITRUE)
 		{
-			if (c == '\\')
-			{
-				tResult = GetCharacter(&c);
-				if (tResult == TRITRUE)
-				{
-					cEscape = ::GetEscapeCode(c);
-					if (cEscape != '@' && cEscape != 0)
-					{
-						ui = cEscape;
-						iWidth = 1;
-					}
-					else if (IsDigit(c, 8))
-					{
-						StepLeft();
-						tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 8, INTEGER_SEPARATOR_NONE);
-						if (tResult == TRITRUE)
-						{
-							if (ulli < 0x100)
-							{
-								ui = (unsigned short)ulli;
-								iWidth = 1;
-							}
-							else
-							{
-								PassPosition();
-								return TRIERROR;
-							}
-						}
-						else
-						{
-							PassPosition();
-							return TRIERROR;
-						}
-					}
-					else if (c == 'x')
-					{
-						tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
-						if (tResult == TRITRUE)
-						{
-							if (iNumDigits >= 1 && iNumDigits <= 4)
-							{
-								ui = (unsigned short)ulli;
-								if (ulli < 0x100)
-								{
-									iWidth = 1;
-								}
-								else if (ulli < 0x10000)
-								{
-									iWidth = 2;
-								}
-								else
-								{
-									PassPosition();
-									return TRIERROR;
-								}
-							}
-							else
-							{
-								PassPosition();
-								return TRIERROR;
-							}
-						}
-						else if (tResult == TRIFALSE)
-						{
-							PopPosition();
-							return TRIFALSE;
-						}
-						else
-						{
-							PassPosition();
-							return TRIERROR;
-						}
-					}
-					else if (c == 'u')
-					{
-						tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
-						if (tResult == TRITRUE)
-						{
-							ui = (unsigned short)ulli;
-							if (iNumDigits == 4)
-							{
-								iWidth = 2;
-							}
-							else
-							{
-								PassPosition();
-								return TRIERROR;
-							}
-						}
-						else if (tResult == TRIFALSE)
-						{
-							PopPosition();
-							return TRIFALSE;
-						}
-						else
-						{
-							PassPosition();
-							return TRIERROR;
-						}
-					}
-					else
-					{
-						PassPosition();
-						return TRIERROR;
-					}
-
-					tResult = GetExactCharacter('\'', FALSE);
-					if (tResult == TRITRUE)
-					{
-						PassPosition();
-						SafeAssign(piCharacterWidth, iWidth);
-						SafeAssign(pc, ui);
-						return TRITRUE;
-					}
-					else if (tResult == TRIFALSE)
-					{
-						PopPosition();
-						return TRIFALSE;
-					}
-					else
-					{
-						PassPosition();
-						return TRIERROR;
-					}
-				}
-				else if (tResult == TRIFALSE)
-				{
-					PopPosition();
-					return TRIFALSE;
-				}
-				else
-				{
-					PassPosition();
-					return TRIERROR;
-				}
-			}
-			else
-			{
-				ui = c;
-				iWidth = 1;
-			}
-
 			tResult = GetExactCharacter('\'', FALSE);
 			if (tResult == TRITRUE)
 			{
@@ -3402,6 +3256,11 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, 
 				return TRIERROR;
 			}
 		}
+		else if (tResult == TRIFALSE)
+		{
+			PopPosition();
+			return TRIFALSE;
+		}
 		else
 		{
 			PassPosition();
@@ -3417,6 +3276,280 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, 
 	{
 		PassPosition();
 		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth)
+{
+	TRISTATE				tResult;
+	char					c;
+	char					cEscape;
+	int						iWidth;
+	unsigned short			ui;
+	unsigned long long int	ulli;
+	int						iNumDigits;
+
+	tResult = GetCharacter(&c);
+	if (tResult == TRITRUE)
+	{
+		if (c == '\\')
+		{
+			tResult = GetCharacter(&c);
+			if (tResult == TRITRUE)
+			{
+				cEscape = ::GetEscapeCode(c);
+				if (cEscape != '@' && cEscape != 0)
+				{
+					ui = cEscape;
+					iWidth = 1;
+				}
+				else if (IsDigit(c, 8))
+				{
+					StepLeft();
+					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 8, INTEGER_SEPARATOR_NONE);
+					if (tResult == TRITRUE)
+					{
+						if (ulli < 0x100)
+						{
+							ui = (unsigned short)ulli;
+							iWidth = 1;
+						}
+						else
+						{
+							return TRIERROR;
+						}
+					}
+					else
+					{
+						return TRIERROR;
+					}
+				}
+				else if (c == 'x')
+				{
+					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
+					if (tResult == TRITRUE)
+					{
+						if (iNumDigits >= 1 && iNumDigits <= 4)
+						{
+							ui = (unsigned short)ulli;
+							if (ulli < 0x100)
+							{
+								iWidth = 1;
+							}
+							else if (ulli < 0x10000)
+							{
+								iWidth = 2;
+							}
+							else
+							{
+								return TRIERROR;
+							}
+						}
+						else
+						{
+							return TRIERROR;
+						}
+					}
+					else if (tResult == TRIFALSE)
+					{
+						return TRIFALSE;
+					}
+					else
+					{
+						return TRIERROR;
+					}
+				}
+				else if (c == 'u')
+				{
+					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
+					if (tResult == TRITRUE)
+					{
+						ui = (unsigned short)ulli;
+						if (iNumDigits == 4)
+						{
+							iWidth = 2;
+						}
+						else
+						{
+							return TRIERROR;
+						}
+					}
+					else if (tResult == TRIFALSE)
+					{
+						return TRIFALSE;
+					}
+					else
+					{
+						return TRIERROR;
+					}
+				}
+				else if ((cEscape == '@') && (c == '\n'))
+				{
+					return TRIGNORED;
+				}
+				else
+				{
+					return TRIERROR;
+				}
+
+				*piCharacterWidth = iWidth;
+				*pc = ui;
+				return tResult;
+			}
+			else
+			{
+				return tResult;
+			}
+		}
+		else
+		{
+			ui = c;
+			iWidth = 1;
+		}
+
+		*piCharacterWidth = iWidth;
+		*pc = ui;
+		return tResult;
+	}
+	else
+	{
+	return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetStringLiteral(void* szDest, size_t uiDestByteLength, BOOL bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, BOOL bSkipWhiteSpace)
+{
+	TRISTATE				tResult;
+	int						iWidth;
+	unsigned short			ui;
+	int						iPosition;
+	int						iOldWidth;
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
+	tResult = GetExactCharacter('"', FALSE);
+	iOldWidth = 0;
+	if (tResult == TRITRUE)
+	{
+		iPosition = 0;
+		for (;;)
+		{
+			tResult = GetCharacterLiteral(&ui, bAllowUTF16, &iWidth);
+			if (tResult == TRITRUE)
+			{
+				if (ui == '\"')
+				{
+					SafeAssign(piCharacterCount, iPosition);
+					SafeAssign(piCharacterWidth, iOldWidth);
+					if (iOldWidth == 1)
+					{
+						((char*)(szDest))[iPosition] = '\0';
+					}
+					else if (iOldWidth == 2)
+					{
+						((unsigned short*)(szDest))[iPosition] = 0;
+					}
+					PassPosition();
+					return TRITRUE;
+				}
+
+				iOldWidth = ChangeWidth(iWidth, iOldWidth, szDest, uiDestByteLength, iPosition);
+
+				if (iOldWidth == 1)
+				{
+					((char*)(szDest))[iPosition] = (char)ui;
+				}
+				else if (iOldWidth == 2)
+				{
+					((unsigned short*)(szDest))[iPosition] = ui;
+				}
+
+				iPosition++;
+			}
+			else if (tResult == TRIFALSE)
+			{
+				PopPosition();
+				return TRIFALSE;
+			}
+			else
+			{
+				PassPosition();
+				return TRIERROR;
+			}
+		}
+	}
+	else if (tResult == TRIFALSE)
+	{
+		PopPosition();
+		return TRIFALSE;
+	}
+	else
+	{
+		PassPosition();
+		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CTextParser::ChangeWidth(int iWidth, int iOldWidth, void* szDest, size_t uiDestByteLength, int iLength)
+{
+	int		i;
+	int		iByte;
+	char	c;
+
+	if (iWidth == iOldWidth)
+	{
+		return iWidth;
+	}
+
+	if (iLength == 0)
+	{
+		return iWidth;
+	}
+
+	if ((iOldWidth == 1) && (iWidth == 2))
+	{
+		if ((size_t)(iLength * 2) > uiDestByteLength)
+		{
+			return 0;
+		}
+
+		for (i = iLength - 1; i >= 0; i--)
+		{
+			iByte = i * 2;
+			c = ((char*)szDest)[i];
+			((char*)szDest)[iByte + 1] = '\0';
+			((char*)szDest)[iByte] = c;
+		}
+		return iWidth;
+	}
+	else if ((iOldWidth == 2) && (iWidth == 1))
+	{
+		return iOldWidth;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Cannot convert string with character width [", IntToString(iOldWidth), "] to new character width [", IntToString(iWidth), "].", NULL);
+		return -1;
 	}
 }
 
