@@ -33,6 +33,7 @@ enum TRISTATE
 {
 	TRITRUE	= TRUE,
 	TRIFALSE = FALSE,
+	TRIGNORED = 0xfffffffe,
 	TRIERROR = 0xffffffff
 };
 
