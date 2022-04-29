@@ -364,15 +364,19 @@ CJavaFloat* CJavaTokenMemory::CreateFloat(float64 fValue)
 //////////////////////////////////////////////////////////////////////////
 CJavaString* CJavaTokenMemory::CreateString(char* szString, int iLength)
 {
-	CJavaString* pcToken;
+	CJavaString*	pcToken;
+	char*			szDest;
 
-	pcToken = (CJavaString*)mcStack.Add(sizeof(CJavaString));
+	pcToken = (CJavaString*)mcStack.Add(sizeof(CJavaString) + iLength + 1);
 	if (pcToken)
 	{
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaString;
-		pcToken->Init(szString, iLength);
+		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaString));
+		memcpy(szDest, szString, iLength);
+		szDest[iLength] = '\0';
+		pcToken->Init(szDest, iLength);
 	}
 
 	return pcToken;
@@ -385,15 +389,19 @@ CJavaString* CJavaTokenMemory::CreateString(char* szString, int iLength)
 //////////////////////////////////////////////////////////////////////////
 CJavaString* CJavaTokenMemory::CreateString(char16* szString, int iLength)
 {
-	CJavaString* pcToken;
+	CJavaString*	pcToken;
+	char16*			szDest;
 
-	pcToken = (CJavaString*)mcStack.Add(sizeof(CJavaString));
+	pcToken = (CJavaString*)mcStack.Add(sizeof(CJavaString) + ((iLength + 1) * sizeof(char16)));
 	if (pcToken)
 	{
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaString;
-		pcToken->Init(szString, iLength);
+		szDest = (char16*)RemapSinglePointer(pcToken, sizeof(CJavaString));
+		memcpy(szDest, szString, iLength * sizeof(char16));
+		szDest[iLength] = '\0';
+		pcToken->Init(szDest, iLength);
 	}
 
 	return pcToken;

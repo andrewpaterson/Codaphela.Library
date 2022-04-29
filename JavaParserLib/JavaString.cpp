@@ -1,3 +1,4 @@
+#include "JavaCharacter.h"
 #include "JavaString.h"
 
 
@@ -34,6 +35,27 @@ void CJavaString::Kill(void)
 	msz = NULL;
 	miLength = 0;
 	meType = JST_Unknown;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaString::GetType(void)
+{
+	if (meType == JCT_char8)
+	{
+		return "Literal (char8)";
+	}
+	else if (meType == JCT_char16)
+	{
+		return "Literal (char16)";
+	}
+	else
+	{
+		return CJavaLiteral::GetType();
+	}
 }
 
 

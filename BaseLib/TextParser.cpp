@@ -1566,13 +1566,17 @@ TRISTATE CTextParser::GetIntegerSuffix(int* piSuffix, int iAllowedSuffix)
 			}
 			else
 			{
-				if (bU)
+				if (bU && bL)
 				{
 					*piSuffix = INTEGER_SUFFIX_UL;
 				}
-				else
+				else if (bL && !bU)
 				{
 					*piSuffix = INTEGER_SUFFIX_L;
+				}
+				else if (!bL && !bU)
+				{
+					*piSuffix = INTEGER_SUFFIX_NONE;
 				}
 				PassPosition();
 				return TRITRUE;
@@ -1641,6 +1645,24 @@ TRISTATE CTextParser::GetIntegerSuffix(int* piSuffix, int iAllowedSuffix)
 				PassPosition();
 				return TRITRUE;
 			}
+		}
+		else
+		{
+			if (bU && bL)
+			{
+				*piSuffix = INTEGER_SUFFIX_UL;
+			}
+			else if (!bU && bL)
+			{
+				*piSuffix = INTEGER_SUFFIX_L;
+			}
+			else
+			{
+				PopPosition();
+				return TRIFALSE;
+			}
+			PassPosition();
+			return TRITRUE;
 		}
 
 		PopPosition();

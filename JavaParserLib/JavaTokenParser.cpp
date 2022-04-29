@@ -751,6 +751,10 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 			}
 			else if (pcSeparator->Is(JS_CurlyBracketLeft))
 			{
+				if (pcPrevious)
+				{
+					pcToken = pcPrevious;
+				}
 				bLineEnder = TRUE;
 			}
 			else if (pcSeparator->Is(JS_CurlyBracketRight))

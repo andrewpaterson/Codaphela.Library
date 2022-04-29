@@ -14,6 +14,8 @@ public:
 	void 	Init(BOOL bValue);
 	void 	Kill(void);
 
+	char*	GetType(void);
+
 	void	Print(CChars* pszDest);
 	BOOL	IsBoolean(void);
 };
