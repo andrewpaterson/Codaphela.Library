@@ -60,5 +60,26 @@ void CJavaInteger::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CJavaInteger::GetType(void)
+{
+	if (meType == JIT_int32)
+	{
+		return "Literal (int32)";
+	}
+	else if (meType == JIT_int64)
+	{
+		return "Literal (int64)";
+	}
+	else
+	{
+		return CJavaLiteral::GetType();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CJavaInteger::IsInteger(void) { return TRUE; }
 

@@ -27,6 +27,8 @@ public:
 	void 	Init(char16* sz, int iLength);
 	void 	Kill(void);
 
+	char*	GetType(void);
+
 	void	Print(CChars* pszDest);
 	BOOL	IsString(void);
 };

@@ -26,6 +26,8 @@ public:
 	void 	Init(float64 fValue);
 	void 	Kill(void);
 
+	char*	GetType(void);
+
 	void	Print(CChars* pszDest);
 	BOOL	IsFloat(void);
 };

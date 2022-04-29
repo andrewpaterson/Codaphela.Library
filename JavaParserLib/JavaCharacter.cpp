@@ -8,6 +8,7 @@
 void CJavaCharacter::Init(char c)
 {
 	mc = c;
+	meType = JCT_char8;
 }
 
 
@@ -18,6 +19,7 @@ void CJavaCharacter::Init(char c)
 void CJavaCharacter::Init(char16 c)
 {
 	mc = c;
+	meType = JCT_char8;
 }
 
 
@@ -27,7 +29,29 @@ void CJavaCharacter::Init(char16 c)
 //////////////////////////////////////////////////////////////////////////
 void CJavaCharacter::Kill(void)
 {
+	meType = JCT_Unknown;
 	mc = -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaCharacter::GetType(void)
+{
+	if (meType == JCT_char8)
+	{
+		return "Literal (char8)";
+	}
+	else if (meType == JCT_char16)
+	{
+		return "Literal (char16)";
+	}
+	else
+	{
+		return CJavaLiteral::GetType();
+	}
 }
 
 

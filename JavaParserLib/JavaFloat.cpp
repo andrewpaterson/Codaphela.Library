@@ -61,5 +61,26 @@ void CJavaFloat::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CJavaFloat::GetType(void)
+{
+	if (meType == JFT_float32)
+	{
+		return "Literal (float32)";
+	}
+	else if (meType == JFT_float64)
+	{
+		return "Literal (float64)";
+	}
+	else
+	{
+		return CJavaLiteral::GetType();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CJavaFloat::IsFloat(void) { return TRUE; }
 

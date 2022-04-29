@@ -26,6 +26,8 @@ public:
 	void 	Init(int64 iValue);
 	void 	Kill(void);
 
+	char*	GetType(void);
+
 	void	Print(CChars* pszDest);
 	BOOL	IsInteger(void);
 };
