@@ -60,11 +60,13 @@ enum ETextParseError
 };
 
 
-#define INTEGER_PREFIX_DEFAULT		0x00
-#define INTEGER_PREFIX_BINARY		0x01
-#define INTEGER_PREFIX_OCTAL		0x02
-#define INTEGER_PREFIX_HEXADECIMAL	0x04
-#define INTEGER_PREFIX_ALL			(INTEGER_PREFIX_BINARY | INTEGER_PREFIX_OCTAL | INTEGER_PREFIX_HEXADECIMAL)
+#define NUMBER_PREFIX_DEFAULT		0x00
+#define NUMBER_PREFIX_BINARY		0x01
+#define NUMBER_PREFIX_OCTAL			0x02
+#define NUMBER_PREFIX_HEXADECIMAL	0x04
+
+#define INTEGER_PREFIX_ALL			(NUMBER_PREFIX_BINARY | NUMBER_PREFIX_OCTAL | NUMBER_PREFIX_HEXADECIMAL)
+#define FLOAT_PREFIX_ALL			NUMBER_PREFIX_HEXADECIMAL
 
 #define INTEGER_SUFFIX_NONE			0x0000
 #define INTEGER_SUFFIX_L			0x0100
@@ -75,9 +77,22 @@ enum ETextParseError
 #define INTEGER_SUFFIX_CPP			(INTEGER_SUFFIX_L | INTEGER_SUFFIX_LL | INTEGER_SUFFIX_U | INTEGER_SUFFIX_UL | INTEGER_SUFFIX_ULL)
 #define INTEGER_SUFFIX_JAVA			INTEGER_SUFFIX_L
 
-#define INTEGER_SEPARATOR_UNDERSCORE	0x10000000
-#define INTEGER_SEPARATOR_APOSTROPHE	0x20000000
-#define INTEGER_SEPARATOR_NONE			0x00000000
+#define FLOAT_SUFFIX_NONE			0x0000
+#define FLOAT_SUFFIX_F				0x0100
+#define FLOAT_SUFFIX_D				0x0200
+#define FLOAT_SUFFIX_L				0x0400
+
+#define FLOAT_SUFFIX_CPP			(FLOAT_SUFFIX_F | FLOAT_SUFFIX_D | FLOAT_SUFFIX_L)
+#define FLOAT_SUFFIX_JAVA			(FLOAT_SUFFIX_F | FLOAT_SUFFIX_D)
+
+#define FLOAT_EXPONENT_DEFAULT		0x000000
+#define FLOAT_EXPONENT_DECIMAL		0x100000
+#define FLOAT_EXPONENT_BINARY		0x200000
+#define FLOAT_EXPONENT_ALL			(FLOAT_EXPONENT_DECIMAL | FLOAT_EXPONENT_BINARY)
+
+#define NUMBER_SEPARATOR_UNDERSCORE	0x10000000
+#define NUMBER_SEPARATOR_APOSTROPHE	0x20000000
+#define NUMBER_SEPARATOR_NONE		0x00000000
 
 
 class CTextParser
@@ -148,7 +163,7 @@ public:
 
 	TRISTATE	GetDigit(int* pi, int iBase = 10);
 	TRISTATE	GetSign(int* pi);
-	TRISTATE	GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, BOOL bSkipWhiteSpace = TRUE, BOOL bTestSign = TRUE, int iBase = 10, int iAllowedSeparator = INTEGER_SEPARATOR_NONE);
+	TRISTATE	GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, BOOL bSkipWhiteSpace = TRUE, BOOL bTestSign = TRUE, int iBase = 10, int iAllowedSeparator = NUMBER_SEPARATOR_NONE);
 	TRISTATE	GetInteger(unsigned long long int* pulli, int* piSign, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetInteger(int* pi, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
 	TRISTATE	GetHexadecimal(unsigned long long int* pulli, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
@@ -160,6 +175,7 @@ public:
 	TRISTATE	GetIntegerLiteral(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace);
 	TRISTATE	GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth, BOOL bSkipWhiteSpace);
 	TRISTATE	GetStringLiteral(void* szDest, size_t uiDestByteLength, BOOL bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, BOOL bSkipWhiteSpace);
+	TRISTATE	GetFloatLiteral(long double* pldf , int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, BOOL bSkipWhiteSpace);
 
 	//Non linear functions.
 	TRISTATE	FindExactIdentifier(char* szIdentifier);
@@ -200,6 +216,8 @@ protected:
 	TRISTATE	GetIntegerSeparator(int iAllowedSeparator);
 	TRISTATE	GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth);
 	int			ChangeWidth(int iWidth, int iOldWidth, void* szDest, size_t uiDestByteLength, int iLength);
+	TRISTATE	GetFloatSuffix(int* piSuffix, int iAllowedSuffix);
+	long double	MakeLongDouble(int iBase, unsigned long long int ulliWholeNumber, unsigned long long int ulliDecimalNumber, int iNumDecimalDigits, long long int lliExponentNumber);
 };
 
 

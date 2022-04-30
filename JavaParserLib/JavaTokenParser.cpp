@@ -462,6 +462,7 @@ TRISTATE CJavaTokenParser::Parse(void)
 		ContinueOnTrueReturnOnError(ParseBoolean(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseNull(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseIdentifier(&pcCurrent));
+		ContinueOnTrueReturnOnError(ParseFloat(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseInteger(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseCharacter(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseString(&pcCurrent));
@@ -1073,18 +1074,66 @@ TRISTATE CJavaTokenParser::ParseInteger(CJavaToken** ppcCurrent)
 	TRISTATE	tResult;
 	int			iSuffix;
 
-	tResult = mcParser.GetIntegerLiteral(&ulli, INTEGER_PREFIX_ALL, &iBase, INTEGER_SUFFIX_JAVA, &iSuffix, INTEGER_SEPARATOR_UNDERSCORE, &iNumDigits, FALSE);
+	tResult = mcParser.GetIntegerLiteral(&ulli, INTEGER_PREFIX_ALL, &iBase, INTEGER_SUFFIX_JAVA, &iSuffix, NUMBER_SEPARATOR_UNDERSCORE, &iNumDigits, FALSE);
 	if (tResult == TRITRUE)
 	{
-		if (iSuffix & INTEGER_SUFFIX_L)
+		if (iSuffix == INTEGER_SUFFIX_L)
 		{
 			*ppcCurrent = mcTokens.CreateInteger((int64)ulli);
 			return TRITRUE;;
 		}
-		else
+		else if (iSuffix == INTEGER_SUFFIX_NONE)
 		{
 			*ppcCurrent = mcTokens.CreateInteger((int32)ulli);
 			return TRITRUE;;
+		}
+		else
+		{
+			return TRIERROR;
+		}
+	}
+	else if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+	else
+	{
+		return TRIFALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::ParseFloat(CJavaToken** ppcCurrent)
+{
+	float96		ldf;
+	int			iBase;
+	int			iNumWholeDigits;
+	int			iNumDecinalDigits;
+	int			iNumExponentDigits;
+	TRISTATE	tResult;
+	int			iSuffix;
+	int			iExponent;
+
+	tResult = mcParser.GetFloatLiteral(&ldf, FLOAT_PREFIX_ALL, &iBase, FLOAT_SUFFIX_JAVA, &iSuffix, FLOAT_EXPONENT_ALL, &iExponent, NUMBER_SEPARATOR_UNDERSCORE, &iNumWholeDigits, &iNumDecinalDigits, &iNumExponentDigits, FALSE);
+	if (tResult == TRITRUE)
+	{
+		if ((iSuffix == FLOAT_SUFFIX_D) || (iSuffix == FLOAT_SUFFIX_NONE))
+		{
+			*ppcCurrent = mcTokens.CreateFloat((float64)ldf);
+			return TRITRUE;;
+		}
+		else if (iSuffix == FLOAT_SUFFIX_F)
+		{
+			*ppcCurrent = mcTokens.CreateFloat((float32)ldf);
+			return TRITRUE;;
+		}
+		else
+		{
+			return TRIERROR;
 		}
 	}
 	else if (tResult == TRIERROR)
