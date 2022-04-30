@@ -657,6 +657,31 @@ BOOL PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iL
 }
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL PrivateAssertLongDouble(long double fExpected, long double fActual, int iDecimals, int iLine, char* szFile)
+{
+	char			szExpected[32];
+	char			szActual[32];
+	long double		fTolerance;
+
+	fTolerance = DoubleToleranceForDecimals(iDecimals);
+	if (!LongDoubleEqual(fExpected, fActual, fTolerance))
+	{
+		ToDoubleString(fExpected, szExpected, iDecimals);
+		ToDoubleString(fActual, szActual, iDecimals);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1249,6 +1274,18 @@ void ToDoubleString(double f, char* sz, int iDecimals)
 	sprintf(sz, szFormatter, f);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongDoubleString(long double f, char* sz, int iDecimals)
+{
+	char szFormatter[20];
+
+	sprintf(szFormatter, "%%.%ifL", iDecimals);
+	sprintf(sz, szFormatter, f);
+}
 
 
 //////////////////////////////////////////////////////////////////////////

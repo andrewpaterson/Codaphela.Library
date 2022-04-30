@@ -1680,6 +1680,57 @@ TRISTATE CTextParser::GetIntegerSuffix(int* piSuffix, int iAllowedSuffix)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetFloatSuffix(int* piSuffix, int iAllowedSuffix)
+{
+	char	cCurrent;
+
+	if (!mbOutsideText)
+	{
+		PushPosition();
+
+		cCurrent = mszParserPos[0];
+		if ((iAllowedSuffix & FLOAT_SUFFIX_F) && ((cCurrent == 'f') || (cCurrent == 'F')))
+		{
+			StepRight();
+
+			*piSuffix = FLOAT_SUFFIX_F;
+			PassPosition();
+			return TRITRUE;
+		}
+
+		if ((iAllowedSuffix & FLOAT_SUFFIX_D) && ((cCurrent == 'd') || (cCurrent == 'D')))
+		{
+			StepRight();
+
+			*piSuffix = FLOAT_SUFFIX_D;
+			PassPosition();
+			return TRITRUE;
+		}
+
+		if ((iAllowedSuffix & FLOAT_SUFFIX_L) && ((cCurrent == 'l') || (cCurrent == 'L')))
+		{
+			StepRight();
+
+			*piSuffix = FLOAT_SUFFIX_D;
+			PassPosition();
+			return TRITRUE;
+		}
+
+		PopPosition();
+		return TRIFALSE;
+	}
+	else
+	{
+		SetErrorEndOfFile();
+		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetSign(int* pi)
 {
 	char	cCurrent;
@@ -1810,18 +1861,18 @@ TRISTATE CTextParser::GetIntegerLiteral(unsigned long long int* pulli, int iAllo
 
 			if (bFirstZero)
 			{
-				if ((cNext == 'x' || cNext == 'X') && (iAllowedPrefix & INTEGER_PREFIX_HEXADECIMAL))
+				if ((cNext == 'x' || cNext == 'X') && (iAllowedPrefix & NUMBER_PREFIX_HEXADECIMAL))
 				{
 					iBase = 16;
 				}
-				else if ((cNext == 'b' || cNext == 'B') && (iAllowedPrefix & INTEGER_PREFIX_BINARY))
+				else if ((cNext == 'b' || cNext == 'B') && (iAllowedPrefix & NUMBER_PREFIX_BINARY))
 				{
 					iBase = 2;
 				}
 			}
 
-			bSeparator = (((cNext == '_') && (iAllowedSeparator & INTEGER_SEPARATOR_UNDERSCORE)) ||
-			 			((cNext == '\'') && (iAllowedSeparator & INTEGER_SEPARATOR_APOSTROPHE)));
+			bSeparator = (((cNext == '_') && (iAllowedSeparator & NUMBER_SEPARATOR_UNDERSCORE)) ||
+			 			((cNext == '\'') && (iAllowedSeparator & NUMBER_SEPARATOR_APOSTROPHE)));
 
 			if (!IsDigit(cNext, iBase) && iBase == 10 && !bSeparator)
 			{
@@ -1882,7 +1933,217 @@ TRISTATE CTextParser::GetIntegerLiteral(unsigned long long int* pulli, int iAllo
 				PopPosition();
 				return tResult;
 			}
+		}
+	}
+	else
+	{
+		PopPosition();
+		SetErrorEndOfFile();
+		return TRIERROR;
+	}
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetFloatLiteral(long double* pldf, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, BOOL bSkipWhiteSpace)
+{
+	char					cCurrent;
+	char					cNext;
+	BOOL					bFirstZero;
+	int						iBase;
+	BOOL					bDone;
+	TRISTATE				tResult;
+	int						iSuffix;
+	int						iExponent;
+	BOOL					bSeparator;
+	unsigned long long int	ulliWholeNumber;
+	unsigned long long int	ulliDecimalNumber;
+	long long int			lliExponentNumber;
+	long double				ldf;
+	int						iNumWholeDigits;
+	int						iNumDecimalDigits;
+	int						iNumExponentDigits;
+	int						iSign;
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
+	iBase = 10;
+	bDone = FALSE;
+
+	if (!mbOutsideText)
+	{
+		cCurrent = mszParserPos[0];
+
+		StepRight();
+
+		if (mbOutsideText)
+		{
+			PopPosition();
+			return TRIFALSE;
+		}
+		else
+		{
+			bFirstZero = cCurrent == '0';
+
+			cNext = mszParserPos[0];
+
+			if (bFirstZero)
+			{
+				if ((cNext == 'x' || cNext == 'X') && (iAllowedPrefix & NUMBER_PREFIX_HEXADECIMAL))
+				{
+					iBase = 16;
+					StepRight();
+					cNext = mszParserPos[0];
+				}
+			}
+
+			bSeparator = (((cNext == '_') && (iAllowedSeparator & NUMBER_SEPARATOR_UNDERSCORE)) ||
+			 			((cNext == '\'') && (iAllowedSeparator & NUMBER_SEPARATOR_APOSTROPHE)));
+
+			if (iBase != 16)
+			{
+				StepLeft();
+			}
+
+			tResult = GetDigits(&ulliWholeNumber, NULL, &iNumWholeDigits, FALSE, FALSE, iBase, iAllowedSeparator);
+			if (tResult == TRITRUE)
+			{
+				cCurrent = mszParserPos[0];
+				if (cCurrent == '.')
+				{
+					StepRight();
+
+					if (mbOutsideText)
+					{
+						PassPosition();
+						iExponent = 0;
+						iNumDecimalDigits = 0;
+						ulliDecimalNumber = 0;
+						lliExponentNumber = 0;
+						iNumExponentDigits = 0;
+						iSuffix = FLOAT_SUFFIX_NONE;
+						ldf = MakeLongDouble(iBase, ulliWholeNumber, ulliDecimalNumber, iNumDecimalDigits, lliExponentNumber);
+						SafeAssign(pldf, ldf);
+						SafeAssign(piExponent, iExponent);
+						SafeAssign(piNumWholeDigits, iNumWholeDigits);
+						SafeAssign(piNumDecinalDigits, iNumDecimalDigits);
+						SafeAssign(piNumExponentDigits, iNumExponentDigits);
+						SafeAssign(piSuffix, iSuffix);
+						SafeAssign(piBase, iBase);
+						return TRITRUE;
+					}
+
+					iNumDecimalDigits = 0;
+					ulliDecimalNumber = 0;
+					tResult = GetDigits(&ulliDecimalNumber, NULL, &iNumDecimalDigits, FALSE, FALSE, iBase, iAllowedSeparator);
+					if (tResult == TRIERROR)
+					{
+						PassPosition();
+						return TRIERROR;
+					}
+
+					iExponent = FLOAT_EXPONENT_DEFAULT;
+					if (iBase == 10)
+					{
+						cCurrent = mszParserPos[0];
+						if (cCurrent == 'E' || cCurrent == 'e')
+						{
+							iExponent = FLOAT_EXPONENT_DECIMAL;
+							StepRight();
+
+							if (!mbOutsideText)
+							{
+								tResult = GetDigits((unsigned long long int*)&lliExponentNumber, &iSign, &iNumExponentDigits, FALSE, TRUE, iBase, iAllowedSeparator);
+								if (tResult == TRIERROR)
+								{
+									PassPosition();
+									return TRIERROR;
+								}
+							}
+							else
+							{
+								PassPosition();
+								return TRIERROR;
+							}
+						}
+						else
+						{
+							lliExponentNumber = 0;
+							iNumExponentDigits = 0;
+						}
+					}
+					else if (iBase == 16)
+					{
+						cCurrent = mszParserPos[0];
+						if (cCurrent == 'P' || cCurrent == 'p')
+						{
+							iExponent = FLOAT_EXPONENT_BINARY;
+							StepRight();
+
+							if (!mbOutsideText)
+							{
+								tResult = GetDigits((unsigned long long int*) &lliExponentNumber, &iSign, &iNumExponentDigits, FALSE, TRUE, iBase, iAllowedSeparator);
+								if (tResult == TRIERROR)
+								{
+									PassPosition();
+									return TRIERROR;
+								}
+								lliExponentNumber *= iSign;
+							}
+							else
+							{
+								PassPosition();
+								return TRIERROR;
+							}
+						}
+						else
+						{
+							lliExponentNumber = 0;
+							iNumExponentDigits = 0;
+						}
+					}
+
+					iSuffix = FLOAT_SUFFIX_NONE;
+					if (!mbOutsideText)
+					{
+						tResult = GetFloatSuffix(&iSuffix, iAllowedSuffix);
+						if (tResult == TRIERROR)
+						{
+							PassPosition();
+							return TRIERROR;
+						}
+					}
+
+					PassPosition();
+					ldf = MakeLongDouble(iBase, ulliWholeNumber, ulliDecimalNumber, iNumDecimalDigits, lliExponentNumber);
+					SafeAssign(pldf, ldf);
+					SafeAssign(piExponent, iExponent);
+					SafeAssign(piNumWholeDigits, iNumWholeDigits);
+					SafeAssign(piNumDecinalDigits, iNumDecimalDigits);
+					SafeAssign(piNumExponentDigits, iNumExponentDigits);
+					SafeAssign(piSuffix, iSuffix);
+					SafeAssign(piBase, iBase);
+					return TRITRUE;
+				}
+				else
+				{
+					PopPosition();
+					return TRIFALSE;
+				}
+			}
+			else
+			{
+				PopPosition();
+				return tResult;
+			}
 
 		}
 	}
@@ -1891,6 +2152,45 @@ TRISTATE CTextParser::GetIntegerLiteral(unsigned long long int* pulli, int iAllo
 		PopPosition();
 		SetErrorEndOfFile();
 		return TRIERROR;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+long double	CTextParser::MakeLongDouble(int iBase, unsigned long long int ulliWholeNumber, unsigned long long int ulliDecimalNumber, int iNumDecimalDigits, long long int lliExponentNumber)
+{
+	long double		ldf;
+	long double		ldfPow;
+	long double		ldfExp;
+
+	if (iBase == 10)
+	{
+		ldf = (long double)ulliWholeNumber;
+		ldfPow = 1.l / powl(10, iNumDecimalDigits);
+		ldf += ulliDecimalNumber * ldfPow;
+		if (lliExponentNumber > 0)
+		{
+			ldfExp = powl(10, (long double)lliExponentNumber);
+			ldf *= ldfExp;
+		}
+		else if (lliExponentNumber < 0)
+		{
+			ldfExp = 1.l / powl(10, -((long double)lliExponentNumber));
+			ldf *= ldfExp;
+		}
+		return ldf;
+	}
+	else if (iBase == 16)
+	{
+		return 0;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Cannot make double with base [", IntToString(iBase), "].");
+		return 0;
 	}
 }
 
@@ -2037,7 +2337,7 @@ TRISTATE CTextParser::GetIntegerSeparator(int iAllowedSeparator)
 
 	if (!mbOutsideText)
 	{
-		if (iAllowedSeparator & INTEGER_SEPARATOR_APOSTROPHE)
+		if (iAllowedSeparator & NUMBER_SEPARATOR_APOSTROPHE)
 		{
 			cCurrent = mszParserPos[0];
 			if (cCurrent == '\'')
@@ -2050,7 +2350,7 @@ TRISTATE CTextParser::GetIntegerSeparator(int iAllowedSeparator)
 				return TRIFALSE;
 			}
 		}
-		if (iAllowedSeparator & INTEGER_SEPARATOR_UNDERSCORE)
+		if (iAllowedSeparator & NUMBER_SEPARATOR_UNDERSCORE)
 		{
 			cCurrent = mszParserPos[0];
 			if (cCurrent == '_')
@@ -3333,7 +3633,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, 
 				else if (IsDigit(c, 8))
 				{
 					StepLeft();
-					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 8, INTEGER_SEPARATOR_NONE);
+					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 8, NUMBER_SEPARATOR_NONE);
 					if (tResult == TRITRUE)
 					{
 						if (ulli < 0x100)
@@ -3353,7 +3653,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, 
 				}
 				else if (c == 'x')
 				{
-					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
+					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, NUMBER_SEPARATOR_NONE);
 					if (tResult == TRITRUE)
 					{
 						if (iNumDigits >= 1 && iNumDigits <= 4)
@@ -3388,7 +3688,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, 
 				}
 				else if (c == 'u')
 				{
-					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, INTEGER_SEPARATOR_NONE);
+					tResult = GetDigits(&ulli, NULL, &iNumDigits, FALSE, FALSE, 16, NUMBER_SEPARATOR_NONE);
 					if (tResult == TRITRUE)
 					{
 						ui = (unsigned short)ulli;

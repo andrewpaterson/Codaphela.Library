@@ -58,6 +58,8 @@ double	InterpolateDouble(double f1, double f2, double fPos);
 void	InterpolateDouble(double* fDest, double f1, double f2, double fPos);
 double	DoubleToleranceForDecimals(int iDecimals);
 int		DoubleWholeNumbers(double f);
+BOOL	LongDoubleEqual(long double f1, long double f2);
+BOOL	LongDoubleEqual(long double f1, long double f2, long double fTolerance);
 void	Swap(float* f1, float* f2);
 float	NotANumber(void);
 BOOL	IsNotANumber(float* pf);
