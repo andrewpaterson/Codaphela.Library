@@ -170,6 +170,8 @@ public:
 	BOOL	ReadString(CFileReader* pcReader);
 	BOOL	ReadChars(CFileReader* pcReader);  //Call this if the string was saved from a char*
 
+	char*	CopyIntoBuffer(char* szDest, int iDestLength);
+
 	//Suspicious... should probably be in a helper class or something.
 	void	PassifyNewlines(void);
 	void	MakeCPlusPlus(void);
