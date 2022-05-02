@@ -1011,6 +1011,9 @@
     <ClInclude Include="ArrayTemplatePtr.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
+    <ClInclude Include="FloatPrinter.h">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1594,6 +1597,9 @@
     </ClCompile>
     <ClCompile Include="IndexStringBlock.cpp">
       <Filter>Source\Data\Map\Index\String</Filter>
+    </ClCompile>
+    <ClCompile Include="FloatPrinter.cpp">
+      <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

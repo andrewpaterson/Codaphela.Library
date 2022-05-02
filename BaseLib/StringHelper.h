@@ -51,6 +51,7 @@ size_t		StrLen(const char* szString, const char* szLastCharInclusive = NULL);
 char*		NullToEmpty(const char* szString);
 char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);
 
+extern char gszDigits[17];
 extern char	gszEmptyString[4];
 
 

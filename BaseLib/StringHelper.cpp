@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StringHelper.h"
 
 
+char	gszDigits[17] = { "0123456789abcdef" };
 char	gszEmptyString[4] = { '\0', '\0', '\0', '\0' };
 
 
@@ -230,7 +231,6 @@ void MemSwp(const void* pv1, const void* pv2, size_t uiLength)
 ////////////////////////////////////////////////////////////////////////////////////
 char* IToA(int iValue, char* szResult, int iBase)
 {
-	char	szDigits[] = "0123456789abcdef";
 	int		iQuotient;
 	int     iDigit;
 	int     iPos;
@@ -259,13 +259,11 @@ char* IToA(int iValue, char* szResult, int iBase)
 		iDigit = iQuotient % iBase;
 		iQuotient /= iBase;
 
-		szResult[iPos] = szDigits[iDigit];
+		szResult[iPos] = gszDigits[iDigit];
 		iPos++;
 
 	} while (iQuotient != 0);
 
-
-	// Only apply negative sign for iBase 10
 	if (bNegative)
 	{
 		szResult[iPos] = '-';

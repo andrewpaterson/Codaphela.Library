@@ -33,6 +33,7 @@ int IncrementLogToStringCount(void);
 
 char* CharToString(char c);
 char* IntToString(int i, int iBase = 10);
+char* FloatToString(float f);
 char* FloatToString(float f, int iDecimals);
 char* LongLongToString(long long int lli, int iBase = 10);
 char* SizeToString(size_t i, int iBase = 10);
