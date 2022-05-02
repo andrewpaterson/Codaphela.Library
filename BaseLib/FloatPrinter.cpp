@@ -76,14 +76,18 @@ void FloatToString(char* szDest, int iDestLength, float f)
 		int			iLeftMost;
 		CChars		sz;
 		int			iFractionalPart;
+		BOOL		bNumeric;
 
 		cExponent.Init(iExponent);
 		cTwo.Init(2, 1, 0);
 
-		iWholeDigits = 0;
 		if (iExponent >= 0)
 		{
-			iWholeDigits = GetPow2DigitsToPow10Digits(iExponent);;
+			iWholeDigits = GetPow2DigitsToPow10Digits(iExponent);
+		}
+		else
+		{
+			iWholeDigits = GetPow2DigitsToPow10Digits(-iExponent);
 		}
 		iWholeDigits+=2;
 		iFractionalPart = iExponent - 24;
@@ -120,59 +124,15 @@ void FloatToString(char* szDest, int iDestLength, float f)
 		pcResult->RoundSignificant(9);
 
 		sz.Init();
-		pcResult->PrintFloating(&sz);
-		sz.Append('f');
+		bNumeric = pcResult->PrintFloating(&sz);
+		if (bNumeric)
+		{
+			sz.Append('f');
+		}
 		sz.CopyIntoBuffer(szDest, iDestLength);
 		sz.Kill();
 
 		gcNumberControl.Remove(2);
-		//char	szTemp[24];
-		//int		iFraction;
-		//int		iFractionDigits;
-		//int		iDivisor;
-
-		//iFraction = 0;
-		//iFractionDigits = 0;
-		//if (iExponent > 23)
-		//{
-		//	iValue <<= iExponent - 23;
-		//}
-		//else if (iExponent < 23)
-		//{
-		//	iValue >>= 23 - iExponent;
-		//	iFraction = iValue << (iExponent + 9);
-		//	iFractionDigits = 23 - iExponent;
-		//	iDivisor = 1 << iFractionDigits;
-		//}
-		//int iQuotient = iValue;
-		//int iPos = 0;
-
-		//szTemp[iPos] = 'f';
-		//iPos++;
-		//szTemp[iPos] = '.';
-		//iPos++;
-
-		//do
-		//{
-		//	int iDigit = iQuotient % 10;
-		//	iQuotient /= 10;
-
-		//	szTemp[iPos] = gszDigits[iDigit];
-		//	iPos++;
-
-		//} while (iQuotient != 0);
-
-		//if (iSign)
-		//{
-		//	szTemp[iPos] = '-';
-		//	iPos++;
-		//}
-
-		//szTemp[iPos] = '\0';
-
-		////Reverse the string.
-		//StrRev(szTemp, iPos);
-		//StrCpySafe(szDest, szTemp, iDestLength);
 	}
 }
 
