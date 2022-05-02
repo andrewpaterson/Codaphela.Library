@@ -2107,7 +2107,7 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 			if (iResultantDigit > mcMaxWholeNumbers)
 			{
 				gcNumberControl.Remove(1+1);
-				return Overflow(GetSign()*pcMultiplicand->GetSign());
+				return Overflow(GetSign() * pcMultiplicand->GetSign());
 			}
 			else
 			{
@@ -2594,6 +2594,7 @@ void CNumber::PrivateIntegerExponent(int iExponent)
 	}
 	else if (iExponent < 0)
 	{
+		iExponent = -iExponent;
 		iDecimals = mcMaxDecimals + 3;
 
 		pcResult = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
@@ -3609,7 +3610,7 @@ char* CNumber::DigitToArray(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrintFloating(CChars* pcChars)
+BOOL CNumber::PrintFloating(CChars* pcChars)
 {
 	int		iFirstDigit;
 	int		iLastDigit;
@@ -3621,12 +3622,12 @@ void CNumber::PrintFloating(CChars* pcChars)
 	if (IsNAN())
 	{
 		pcChars->Append("nan");
-		return;
+		return FALSE;
 	}
 	if (IsDivisionByZero())
 	{
 		pcChars->Append("nan");
-		return;
+		return FALSE;
 	}
 
 	if (IsNegative())
@@ -3637,7 +3638,7 @@ void CNumber::PrintFloating(CChars* pcChars)
 	if (IsOverflow())
 	{
 		pcChars->Append("inf");
-		return;
+		return FALSE;
 	}
 
 	iFirstDigit = GetFirstNonZeroDigit();
@@ -3685,21 +3686,46 @@ void CNumber::PrintFloating(CChars* pcChars)
 		pcChars->Append('+');
 		pcChars->Append(iStart - 1);
 	}
-	else if ((iStart == -1) && (iStop < 0))
+	else if ((iStart == -1) || (iStart == -2) || (iStart == -3) && (iStop < 0))
 	{
 		pcChars->Append('0');
 		pcChars->Append('.');
+		if (iStart == -2)
+		{
+			pcChars->Append('0');
+		}
+		if (iStart == -3)
+		{
+			pcChars->Append('0');
+			pcChars->Append('0');
+		}
+
 		for (i = iStart; i >= iStop; i--)
 		{
 			c = GetDigit(i) + '0';
 			pcChars->Append(c);
 		}
 	}
+	else if ((iStart < 0) && (iStop < 0))
+	{
+		for (i = iStart; i >= iStop; i--)
+		{
+			c = GetDigit(i) + '0';
+			pcChars->Append(c);
+			if (i == iStart)
+			{
+				pcChars->Append('.');
+			}
+		}
+		pcChars->Append('e');
+		pcChars->Append(iStart);
+	}
 
 	if (!IsClean())
 	{
 		pcChars->Append(" (Unclean!)");
 	}
+	return TRUE;
 }
 
 

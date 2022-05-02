@@ -222,7 +222,7 @@ public:
 	char		GetDigit(int iDigit);  //zero returns '.' or '\0'.
 	char		SafeGetDigit(int iDigit);
 	void		Print(CChars* pcChars);
-	void		PrintFloating(CChars* pcChars);
+	BOOL		PrintFloating(CChars* pcChars);
 	void		Dump(void);
 	void		Dump(BOOL bNewLine);
 };
