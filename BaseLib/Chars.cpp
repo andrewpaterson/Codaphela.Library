@@ -2742,6 +2742,28 @@ void CChars::UnfakeIfFakeEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* CChars::CopyIntoBuffer(char* szDest, int iDestLength)
+{
+	int		iLength;
+
+	iLength = Length();
+	if (iLength < iDestLength)
+	{
+		memcpy(szDest, Text(), iLength + 1);
+	}
+	else
+	{
+		memcpy(szDest, Text(), iDestLength - 2);
+		szDest[iDestLength - 1] = '\0';
+	}
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChars::Dump(void)
 {
 	CChars	sz;

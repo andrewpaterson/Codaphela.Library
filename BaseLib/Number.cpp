@@ -1001,6 +1001,7 @@ void CNumber::RoundSignificant(int iSignificantDigits)
 		}
 		SetLastNonZeroDigit(iNewLast);
 		PrivateZeroDigits(iBeyondLast, iLast);
+		Clean();
 	}
 }
 
@@ -1146,6 +1147,11 @@ CNumber* CNumber::Shift(int iOffset)
 	char*	pcNew;
 
 	if (iOffset == 0)
+	{
+		return this;
+	}
+
+	if (IsOverflow() || IsNAN())
 	{
 		return this;
 	}
@@ -2153,7 +2159,7 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 				if (iFirstSignificantDigit > mcMaxWholeNumbers)
 				{
 					gcNumberControl.Remove(1+1);
-					return Overflow(GetSign()*pcMultiplicand->GetSign());
+					return Overflow(GetSign() * pcMultiplicand->GetSign());
 				}
 				pcLine->SetDigitUnsafe(iFirstSignificantDigit, cCarry);
 			}
@@ -2200,7 +2206,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 	iDecimals = mcMaxDecimals + 3;
 
 	pcDivisor = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
-	pcPartialDividend = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
+	pcPartialDividend = gcNumberControl.Add(mcMaxWholeNumbers + 1, iDecimals);
 	pcQuotient = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 
 	pcDivisor->Init(pcDivisorIn, mcMaxWholeNumbers, iDecimals);
@@ -2210,7 +2216,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 	iDividendDigit = GetFirstNonZeroDigit();
 	iLastDigit = GetLastNonZeroDigit();
 	cThisDigit = GetDigit(iDividendDigit);
-	pcPartialDividend->Digit(iLastDivisorDigit, cThisDigit, mcMaxWholeNumbers, iDecimals);
+	pcPartialDividend->Digit(iLastDivisorDigit, cThisDigit, mcMaxWholeNumbers + 1, iDecimals);
 
 	if (iLastDivisorDigit > 0)
 	{
@@ -2250,7 +2256,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 			{
 				break;
 			}
-			pcPartialDividend->Digit(iLastDivisorDigit, cThisDigit, mcMaxWholeNumbers, iDecimals);
+			pcPartialDividend->Digit(iLastDivisorDigit, cThisDigit, mcMaxWholeNumbers + 1, iDecimals);
 		}
 		else
 		{
@@ -2527,8 +2533,7 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 void CNumber::PrivateIntegerExponent(int iExponent)
 {
 	CNumber*	pcResult;
-	CNumber*	pcTwo;
-	CNumber*	pcThis;
+	CNumber*	pcBase;
 	int			iDecimals;
 
 	if (iExponent == 0)
@@ -2555,29 +2560,63 @@ void CNumber::PrivateIntegerExponent(int iExponent)
 		iDecimals = mcMaxDecimals + 3;
 
 		pcResult = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
-		pcTwo = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
-		pcThis = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
+		pcBase = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
 
 		pcResult->One(mcMaxWholeNumbers, iDecimals);
-		pcTwo->Init(2, mcMaxWholeNumbers, iDecimals);
-		pcThis->Init(this, mcMaxWholeNumbers, iDecimals);
-		while (iExponent)
+		pcBase->Init(this, mcMaxWholeNumbers, iDecimals);
+		for (;;)
 		{
 			if (iExponent & 1)
 			{
-				pcResult->Multiply(pcThis);
-				iExponent--;
+				pcResult->Multiply(pcBase);
 			}
-			pcThis->Squared();
-			iExponent /= 2;
+			iExponent >>= 1;
+			if (iExponent == 0)
+			{
+				break;
+			}
+			pcBase->Squared();
 		}
 		Init(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
 		gcNumberControl.Remove(1 + 1);
 	}
-	else
+	else if (iExponent == -1)
 	{
-//		gcLogger.Error();
-		return;
+		Inverse();
+	}
+	else if (iExponent == -2)
+	{
+		InverseSquared();
+	}
+	else if (iExponent == -3)
+	{
+		InverseCubed();
+	}
+	else if (iExponent < 0)
+	{
+		iDecimals = mcMaxDecimals + 3;
+
+		pcResult = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
+		pcBase = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
+
+		pcResult->One(mcMaxWholeNumbers, iDecimals);
+		pcBase->Init(this, mcMaxWholeNumbers, iDecimals);
+		for (;;)
+		{
+			if (iExponent & 1)
+			{
+				pcResult->Multiply(pcBase);
+			}
+			iExponent >>= 1;
+			if (iExponent == 0)
+			{
+				break;
+			}
+			pcBase->Squared();
+		}
+		Init(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
+		gcNumberControl.Remove(1 + 1);
+		Inverse();
 	}
 }
 
@@ -2645,6 +2684,30 @@ CNumber* CNumber::Inverse(void)
 	pcOne->One(mcMaxWholeNumbers, mcMaxDecimals)->Divide(this);
 	Copy(pcOne, mcMaxWholeNumbers, mcMaxDecimals);
 	gcNumberControl.Remove();
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNumber* CNumber::InverseSquared(void)
+{
+	Squared();
+	Inverse();
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNumber* CNumber::InverseCubed(void)
+{
+	Cubed();
+	Inverse();
 	return this;
 }
 
@@ -2792,7 +2855,7 @@ CNumber* CNumber::Power(CNumber* pcExponentIn)
 	int			iDecimals;
 	CNumber*	pcExponent;
 
-	if (pcExponentIn->IsInteger() && pcExponentIn->IsPositiveOrZero())
+	if (pcExponentIn->IsInteger())
 	{
 		PrivateIntegerExponent(pcExponentIn);
 		return this;
@@ -3546,6 +3609,104 @@ char* CNumber::DigitToArray(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CNumber::PrintFloating(CChars* pcChars)
+{
+	int		iFirstDigit;
+	int		iLastDigit;
+	int		i;
+	char	c;
+	int		iStart;
+	int		iStop;
+
+	if (IsNAN())
+	{
+		pcChars->Append("nan");
+		return;
+	}
+	if (IsDivisionByZero())
+	{
+		pcChars->Append("nan");
+		return;
+	}
+
+	if (IsNegative())
+	{
+		pcChars->Append("-");
+	}
+
+	if (IsOverflow())
+	{
+		pcChars->Append("inf");
+		return;
+	}
+
+	iFirstDigit = GetFirstNonZeroDigit();
+	iLastDigit = GetLastNonZeroDigit();
+
+	iStart = iFirstDigit;
+	iStop = iLastDigit;
+
+	if ((iStart >= 1) && (iStop <= -1))
+	{
+		for (i = iStart; i >= iStop; i--)
+		{
+			if (i != 0)
+			{
+				c = GetDigit(i) + '0';
+				pcChars->Append(c);
+			}
+			else
+			{
+				pcChars->Append('.');
+			}
+		}
+	}
+	else if ((iStart >= 1) && (iStop == 1))
+	{
+		for (i = iStart; i >= iStop; i--)
+		{
+				c = GetDigit(i) + '0';
+				pcChars->Append(c);
+		}
+		pcChars->Append('.');
+	}
+	else if ((iStart >= 1) && (iStop >= 1))
+	{
+		for (i = iStart; i >= iStop; i--)
+		{
+			c = GetDigit(i) + '0';
+			pcChars->Append(c);
+			if (i == iStart)
+			{
+				pcChars->Append('.');
+			}
+		}
+		pcChars->Append('e');
+		pcChars->Append('+');
+		pcChars->Append(iStart - 1);
+	}
+	else if ((iStart == -1) && (iStop < 0))
+	{
+		pcChars->Append('0');
+		pcChars->Append('.');
+		for (i = iStart; i >= iStop; i--)
+		{
+			c = GetDigit(i) + '0';
+			pcChars->Append(c);
+		}
+	}
+
+	if (!IsClean())
+	{
+		pcChars->Append(" (Unclean!)");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CNumber::Print(CChars* pcChars)
 {
 	int		iFirstDigit;
@@ -3604,11 +3765,7 @@ void CNumber::Print(CChars* pcChars)
 	{
 		if (i != 0)
 		{
-			c = '0';
-			if ((i <= iFirstDigit) && (i >= iLastDigit))
-			{
-				c = GetDigit(i) + '0';
-			}
+			c = SafeGetDigit(i) + '0';
 			pcChars->Append(c);
 		}
 		else

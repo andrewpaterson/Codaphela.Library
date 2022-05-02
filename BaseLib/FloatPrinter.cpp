@@ -16,7 +16,7 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 {
 	if (iPow2 < 0)
 	{
-		return 0;
+		return -iPow2;  //The number of fractional digits in base 2 is the SAME as the number of fractional digits in base 10.
 	}
 	else if (iPow2 < 64)
 	{
@@ -67,47 +67,112 @@ void FloatToString(char* szDest, int iDestLength, float f)
 	{
 		iExponent = iExponent - 127;  //Convert by exponent bias.
 		iValue = (iMantissa | 0x800000);  //Add implied [1.fraction].
-
+		CNumber*	pcResult;
+		CNumber*	pcTwoPower;
 		int			iWholeDigits;
+		int			iFractionalDigits;
 		CNumber		cExponent;
 		CNumber		cTwo;
 		int			iLeftMost;
+		CChars		sz;
+		int			iFractionalPart;
 
 		cExponent.Init(iExponent);
 		cTwo.Init(2, 1, 0);
 
-		if (iExponent > 29)
+		iWholeDigits = 0;
+		if (iExponent >= 0)
 		{
-			CNumber*	pcResult;
-			CNumber*	pcTwoPower;
+			iWholeDigits = GetPow2DigitsToPow10Digits(iExponent);;
+		}
+		iWholeDigits+=2;
+		iFractionalPart = iExponent - 24;
+		if (iFractionalPart >= 0)
+		{
+			iFractionalDigits = 0;
+		}
+		else
+		{
+			iFractionalDigits = GetPow2DigitsToPow10Digits(iFractionalPart);
+			iFractionalDigits++;
+		}
+			
+		pcResult = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
+		pcTwoPower = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
 
-			iWholeDigits = GetPow2DigitsToPow10Digits(iExponent);
-			pcResult = gcNumberControl.Add(iWholeDigits, 0);
-			pcTwoPower = gcNumberControl.Add(iWholeDigits, 0);
+		pcTwoPower->Init(2, iWholeDigits, iFractionalDigits);
+		pcTwoPower->Power(&cExponent);
 
-			pcTwoPower->Init(2, iWholeDigits, 0);
-			pcTwoPower->Power(&cExponent);
+		pcResult->Zero(iWholeDigits, iFractionalDigits);
 
-			pcResult->Zero(iWholeDigits, 0);
-
-			int iDigit = 0x800000;
-			for (int i = 0; i < 24; i++)
+		int iDigit = 0x800000;
+		for (int i = 0; i < 24; i++)
+		{
+			if (iValue & iDigit)
 			{
-				if (iValue & iDigit)
-				{
-					pcResult->Add(pcTwoPower);
-				}
-				pcTwoPower->Divide(&cTwo);
-				iDigit >>= 1;
+				pcResult->Add(pcTwoPower);
 			}
-
-			iLeftMost = pcResult->GetFirstNonZeroDigit();
-			pcResult->RoundSignificant(9);
-			pcResult->Dump();
-
-			gcNumberControl.Remove(2);
+			pcTwoPower->Divide(&cTwo);
+			iDigit >>= 1;
 		}
 
+		iLeftMost = pcResult->GetFirstNonZeroDigit();
+		pcResult->RoundSignificant(9);
+
+		sz.Init();
+		pcResult->PrintFloating(&sz);
+		sz.Append('f');
+		sz.CopyIntoBuffer(szDest, iDestLength);
+		sz.Kill();
+
+		gcNumberControl.Remove(2);
+		//char	szTemp[24];
+		//int		iFraction;
+		//int		iFractionDigits;
+		//int		iDivisor;
+
+		//iFraction = 0;
+		//iFractionDigits = 0;
+		//if (iExponent > 23)
+		//{
+		//	iValue <<= iExponent - 23;
+		//}
+		//else if (iExponent < 23)
+		//{
+		//	iValue >>= 23 - iExponent;
+		//	iFraction = iValue << (iExponent + 9);
+		//	iFractionDigits = 23 - iExponent;
+		//	iDivisor = 1 << iFractionDigits;
+		//}
+		//int iQuotient = iValue;
+		//int iPos = 0;
+
+		//szTemp[iPos] = 'f';
+		//iPos++;
+		//szTemp[iPos] = '.';
+		//iPos++;
+
+		//do
+		//{
+		//	int iDigit = iQuotient % 10;
+		//	iQuotient /= 10;
+
+		//	szTemp[iPos] = gszDigits[iDigit];
+		//	iPos++;
+
+		//} while (iQuotient != 0);
+
+		//if (iSign)
+		//{
+		//	szTemp[iPos] = '-';
+		//	iPos++;
+		//}
+
+		//szTemp[iPos] = '\0';
+
+		////Reverse the string.
+		//StrRev(szTemp, iPos);
+		//StrCpySafe(szDest, szTemp, iDestLength);
 	}
 }
 

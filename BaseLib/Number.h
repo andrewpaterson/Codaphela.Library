@@ -188,6 +188,8 @@ public:
 	CNumber*	CubeRoot(void);
 	CNumber*	Squared(void);
 	CNumber*	Cubed(void);
+	CNumber*	InverseSquared(void);
+	CNumber*	InverseCubed(void);
 	CNumber*	Modulus(CNumber* pcNumber);
 	CNumber*	ArithmeticGeometricMean(CNumber* pcOther);
 	CNumber*	LogicalNot(void);
@@ -220,6 +222,7 @@ public:
 	char		GetDigit(int iDigit);  //zero returns '.' or '\0'.
 	char		SafeGetDigit(int iDigit);
 	void		Print(CChars* pcChars);
+	void		PrintFloating(CChars* pcChars);
 	void		Dump(void);
 	void		Dump(BOOL bNewLine);
 };
