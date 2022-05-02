@@ -55,12 +55,12 @@ public:
 
 	char		mcDigits[DEFAULT_DIGITS];		// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
 												//
-												// 01234567891111111111222222 2222333333333344 <- Array Position
-												//			 0123456789012345 6789012345678901
+												// 00000000001111111111222222 2222333333333344 <- Array Position
+												// 01234567890123456789012345 6789012345678901
 												//
 												// ++++++++++++++++++++++++++ ----------------
-												// 2222222111111111198765432101234567891111111 <- Digit Access (Get/Set)
-												// 65432109876543210                   0123456
+												// 2222222111111111100000000000000000001111111 <- Digit Access (Get/Set)
+												// 6543210987654321098765432101234567890123456
 	//Initialisation
 	CNumber*	Init(void);
 	CNumber*	Init(int i);
@@ -115,6 +115,8 @@ public:
 	BOOL		IsUnderflow(void);
 	BOOL		IsOverflow(void);
 	BOOL		IsNegative(void);
+	BOOL		IsPositive(void);
+	BOOL		IsPositiveOrZero(void);
 	BOOL		IsClean(void);
 	BOOL		IsDivisionByZero(void);
 	BOOL		IsError(void);
@@ -209,11 +211,14 @@ public:
 	CNumber*	TruncateHigh(int iDigit);
 	CNumber*	Integer(void);
 	CNumber*	Fractional(void);
+	CNumber*	Ceiling(void);
+	CNumber*	Floor(void);
 
 	//Conversion
 	int  		IntValue(void);
 	float		FloatValue(void);
 	char		GetDigit(int iDigit);  //zero returns '.' or '\0'.
+	char		SafeGetDigit(int iDigit);
 	void		Print(CChars* pcChars);
 	void		Dump(void);
 	void		Dump(BOOL bNewLine);

@@ -734,7 +734,7 @@ void CChars::Append(double d, int iNumDecimals)
 
 	strcpy(sz, "%.");
 	strcat(sz, IToA(iNumDecimals, szd, 10));
-	strcat(sz, "d");
+	strcat(sz, "lf");
 	sprintf(szd, sz, d);
 	Append(szd);
 }
