@@ -51,7 +51,7 @@ public:
 
 
 extern CNumberControl gcNumberControl;
-
+extern BOOL gbNumberControl;
 
 void NumberInit(int iScratchPadSize = 1 MB);
 void NumberKill(void);

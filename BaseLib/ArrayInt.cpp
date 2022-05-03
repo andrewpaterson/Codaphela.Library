@@ -155,7 +155,7 @@ void CArrayInt::Dump(void)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		iValue = GetValue(i);
-		IToA(iValue, sz, 10);
+		IntToString(sz, 32, iValue, 10);
 		EngineOutput(sz);
 		EngineOutput(" ");
 	}

@@ -33,6 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FileReader.h"
 #include "FileUtil.h"
 #include "NullAllocator.h"
+#include "FloatPrinter.h"
 #include "Chars.h"
 
 
@@ -622,7 +623,7 @@ CChars* CChars::Append(int i)
 {
 	char sz[32];
 
-	IToA(i, sz, 10);
+	IntToString(sz, 32, i, 10);
 	return Append(sz);
 }
 
@@ -635,7 +636,7 @@ CChars* CChars::Append(int i, int iBase)
 {
 	char sz[32];
 
-	IToA(i, sz, iBase);
+	IntToString(sz, 32, i, iBase);
 	return Append(sz);
 }
 
@@ -648,7 +649,7 @@ void CChars::Append(unsigned long long int ulli)
 {
 	char sz[64];
 
-	IToA(ulli, sz, 10);
+	IntToString(sz, 64, ulli, 10);
 	Append(sz);
 }
 
@@ -661,7 +662,7 @@ void CChars::Append(long long int lli)
 {
 	char sz[64];
 
-	IToA(lli, sz, 10);
+	IntToString(sz, 64, lli, 10);
 	Append(sz);
 }
 
@@ -674,7 +675,7 @@ void CChars::Append(unsigned int ui)
 {
 	char sz[32];
 
-	IToA(ui, sz, 10);
+	IntToString(sz, 32, ui, 10);
 	Append(sz);
 }
 
@@ -687,7 +688,8 @@ void CChars::Append(float f)
 {
 	char sz[32];
 
-	sprintf(sz, "%.2f", f);
+	FloatToString(sz, 32, f);
+
 	Append(sz);
 }
 
@@ -702,7 +704,7 @@ void CChars::Append(float f, int iNumDecimals)
 	char	szd[128];
 
 	strcpy(sz, "%.");
-	strcat(sz, IToA(iNumDecimals, szd, 10));
+	strcat(sz, IntToString(szd, 128, iNumDecimals, 10));
 	strcat(sz, "f");
 	sprintf(szd, sz, f);
 	Append(szd);
@@ -733,7 +735,7 @@ void CChars::Append(double d, int iNumDecimals)
 	char	szd[128];
 
 	strcpy(sz, "%.");
-	strcat(sz, IToA(iNumDecimals, szd, 10));
+	strcat(sz, IntToString(szd, 128, iNumDecimals, 10));
 	strcat(sz, "lf");
 	sprintf(szd, sz, d);
 	Append(szd);
@@ -2746,17 +2748,29 @@ char* CChars::CopyIntoBuffer(char* szDest, int iDestLength)
 {
 	int		iLength;
 
-	iLength = Length();
-	if (iLength < iDestLength)
+	if (iDestLength > 0)
 	{
-		memcpy(szDest, Text(), iLength + 1);
+		iLength = Length();
+		if (iLength < iDestLength)
+		{
+			memcpy(szDest, Text(), iLength + 1);
+		}
+		else
+		{
+			memcpy(szDest, Text(), iDestLength - 2);
+			szDest[iDestLength - 1] = '\0';
+		}
+		return szDest;
+	}
+	else if (iDestLength == 0)
+	{
+		return szDest;
 	}
 	else
 	{
-		memcpy(szDest, Text(), iDestLength - 2);
-		szDest[iDestLength - 1] = '\0';
+		strcpy(szDest, Text());
+		return szDest;
 	}
-	return szDest;
 }
 
 

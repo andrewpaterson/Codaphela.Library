@@ -42,7 +42,7 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void FloatToString(char* szDest, int iDestLength, float f)
+char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BOOL bAppendF)
 {
 	unsigned char*	pui;
 	int				iMantissa;
@@ -57,11 +57,11 @@ void FloatToString(char* szDest, int iDestLength, float f)
 
 	if (iExponent == 0)
 	{
-
+		return NULL;
 	}
 	else if (iExponent == 255)
 	{
-
+		return NULL;
 	}
 	else
 	{
@@ -77,6 +77,7 @@ void FloatToString(char* szDest, int iDestLength, float f)
 		CChars		sz;
 		int			iFractionalPart;
 		BOOL		bNumeric;
+		int			iSignificantDigits;
 
 		cExponent.Init(iExponent);
 		cTwo.Init(2, 1, 0);
@@ -121,11 +122,22 @@ void FloatToString(char* szDest, int iDestLength, float f)
 		}
 
 		iLeftMost = pcResult->GetFirstNonZeroDigit();
-		pcResult->RoundSignificant(9);
+		iSignificantDigits = 9;
+		if (iMaxDecimals >= 0)
+		{
+			if (iLeftMost < 9)
+			{
+				if (iLeftMost + iMaxDecimals < iSignificantDigits)
+				{
+					iSignificantDigits = iLeftMost + iMaxDecimals;
+				}
+			}
+		}
+		pcResult->RoundSignificant(iSignificantDigits);
 
 		sz.Init();
 		bNumeric = pcResult->PrintFloating(&sz);
-		if (bNumeric)
+		if (bNumeric && bAppendF)
 		{
 			sz.Append('f');
 		}
@@ -134,5 +146,7 @@ void FloatToString(char* szDest, int iDestLength, float f)
 
 		gcNumberControl.Remove(2);
 	}
+
+	return szDest;
 }
 

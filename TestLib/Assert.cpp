@@ -41,18 +41,18 @@ clock_t gClock;
 
 BOOL Failed(void);
 BOOL Failed(const char* szExpected, const char* szActual, int iLine, char* szFile);
-void ToTristateString(TRISTATE t, char* sz);
-void ToBoolString(BOOL b, char* sz);
-void ToCharString(char c, char* sz);
-void ToIntString(int i, char* sz);
-void ToIntHexString(int i, char* sz);
-void ToLongLongIntString(long long int i, char* sz);
-void ToLongLongIntHexString(long long int i, char* sz);
+void ToTristateString(TRISTATE t, char* szString, int iStringLength);
+void ToBoolString(BOOL b, char* szString, int iStringLength);
+void ToCharString(char c, char* szString, int iStringLength);
+void ToIntString(int i, char* szString, int iStringLength);
+void ToIntHexString(int i, char* szString, int iStringLength);
+void ToLongLongIntString(long long int i, char* szString, int iStringLength);
+void ToLongLongIntHexString(long long int i, char* szString, int iStringLength);
 void ToFloatString(float f, char* sz, int iDecimals);
 void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
 void ToDoubleString(double f, char* sz, int iDecimals);
-void ToPointerString(void* pv, char* sz);
-void ToMD5String(unsigned char* puc, char* sz);
+void ToPointerString(void* pv, char* sz, int iStringLength);
+void ToMD5String(unsigned char* puc, char* sz, int iStringLength);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -142,6 +142,15 @@ int TestTotalStatistics(void)
 	sz.Init();
 	sz.Append("------------------------------ Total Results ------------------------------\n");
 
+	if (!gbFastFunctions)
+	{
+		FastFunctionsInit();
+	}
+	if (!gbNumberControl)
+	{
+		NumberInit();
+	}
+
 	if (giTotalTestsRun > 0)
 	{
 		sz.Append("Total Tests Run: ");
@@ -164,6 +173,15 @@ int TestTotalStatistics(void)
 
 	}
 	sz.Kill();
+
+	if (gbNumberControl)
+	{
+		NumberKill();
+	}
+	if (gbFastFunctions)
+	{
+		FastFunctionsKill();
+	}
 
 	gcLogger.Kill();
 	return giTotalTestsFailed;
@@ -364,8 +382,8 @@ BOOL PrivateAssertTristate(TRISTATE tExpected, TRISTATE tActual, int iLine, char
 
 	if (tExpected != tActual)
 	{
-		ToTristateString(tExpected, szExpected);
-		ToTristateString(tActual, szActual);
+		ToTristateString(tExpected, szExpected, 32);
+		ToTristateString(tActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -386,8 +404,8 @@ BOOL PrivateAssertBool(BOOL bExpected, BOOL bActual, int iLine, char* szFile)
 
 	if (!((((bExpected == 0) && (bActual == 0))) || (((bExpected != 0) && (bActual != 0)))))
 	{
-		ToBoolString(bExpected, szExpected);
-		ToBoolString(bActual, szActual);
+		ToBoolString(bExpected, szExpected, 32);
+		ToBoolString(bActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -408,8 +426,8 @@ BOOL PrivateAssertChar(char cExpected, char cActual, int iLine, char* szFile)
 
 	if (cExpected != cActual)
 	{
-		ToCharString(cExpected, szExpected);
-		ToCharString(cActual, szActual);
+		ToCharString(cExpected, szExpected, 5);
+		ToCharString(cActual, szActual, 5);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -430,8 +448,8 @@ BOOL PrivateAssertInt(int iExpected, int iActual, int iLine, char* szFile)
 
 	if (iExpected != iActual)
 	{
-		ToIntString(iExpected, szExpected);
-		ToIntString(iActual, szActual);
+		ToIntString(iExpected, szExpected, 32);
+		ToIntString(iActual, szActual, 323);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -452,8 +470,8 @@ BOOL PrivateAssertSize(size_t iExpected, size_t iActual, int iLine, char* szFile
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntString(iExpected, szExpected);
-		ToLongLongIntString(iActual, szActual);
+		ToLongLongIntString(iExpected, szExpected, 32);
+		ToLongLongIntString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -474,8 +492,8 @@ BOOL PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile)
 
 	if (iExpected != iActual)
 	{
-		ToIntHexString(iExpected, szExpected);
-		ToIntHexString(iActual, szActual);
+		ToIntHexString(iExpected, szExpected, 32);
+		ToIntHexString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -496,8 +514,8 @@ BOOL PrivateAssertShort(int16 iExpected, int16 iActual, int iLine, char* szFile)
 
 	if (iExpected != iActual)
 	{
-		ToIntString(iExpected, szExpected);
-		ToIntString(iActual, szActual);
+		ToIntString(iExpected, szExpected, 32);
+		ToIntString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -518,8 +536,8 @@ BOOL PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFi
 
 	if (iExpected != iActual)
 	{
-		ToIntHexString(iExpected, szExpected);
-		ToIntHexString(iActual, szActual);
+		ToIntHexString(iExpected, szExpected, 32);
+		ToIntHexString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -540,8 +558,8 @@ BOOL PrivateAssertLongLongInt(long long int iExpected, long long int iActual, in
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntString(iExpected, szExpected);
-		ToLongLongIntString(iActual, szActual);
+		ToLongLongIntString(iExpected, szExpected, 32);
+		ToLongLongIntString(iActual, szActual, 32);
 		strcat(szExpected, "LL");
 		strcat(szActual, "LL");
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
@@ -564,8 +582,8 @@ BOOL PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual,
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntHexString(iExpected, szExpected);
-		ToLongLongIntHexString(iActual, szActual);
+		ToLongLongIntHexString(iExpected, szExpected, 32);
+		ToLongLongIntHexString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -586,8 +604,8 @@ BOOL PrivateAssertLongHex(long long int iExpected, long long int iActual, int iL
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntHexString(iExpected, szExpected);
-		ToLongLongIntHexString(iActual, szActual);
+		ToLongLongIntHexString(iExpected, szExpected, 32);
+		ToLongLongIntHexString(iActual, szActual, 32);
 		strcat(szExpected, "LL");
 		strcat(szActual, "LL");
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
@@ -803,7 +821,7 @@ BOOL PrivateAssertNegative(int i, int iLine, char* szFile)
 	if (i >= 0)
 	{
 		sprintf(szExpected, ">= 0");
-		ToIntString(i, szActual);
+		ToIntString(i, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -825,7 +843,7 @@ BOOL PrivateAssertPositive(int i, int iLine, char* szFile)
 	if (i <= 0)
 	{
 		sprintf(szExpected, "<= 0");
-		ToIntString(i, szActual);
+		ToIntString(i, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -894,8 +912,8 @@ BOOL PrivateAssertPointer(void* pvExpected, void* pvActual, int iLine, char* szF
 
 	if (pvExpected != pvActual)
 	{
-		ToPointerString(pvExpected, szExpected);
-		ToPointerString(pvActual, szActual);
+		ToPointerString(pvExpected, szExpected, 32);
+		ToPointerString(pvActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -920,14 +938,14 @@ BOOL PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int 
 	}
 	else if (pucActual == NULL)
 	{
-		ToMD5String(pucExpected, szExpected);
+		ToMD5String(pucExpected, szExpected, 33);
 		return Failed((const char*)szExpected, "** NULL **", iLine, szFile);
 	}
 
 	if (memcmp(pucExpected, pucActual, 16) != 0)
 	{
-		ToMD5String(pucExpected, szExpected);
-		ToMD5String(pucActual, szActual);
+		ToMD5String(pucExpected, szExpected, 33);
+		ToMD5String(pucActual, szActual, 33);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile);
 	}
 	else
@@ -1058,7 +1076,7 @@ BOOL Failed(int iLine, char* szFile)
 
 	Failed();
 
-	IToA(iLine, szLine, 10);
+	IntToString(szLine, 1024, iLine, 10);
 	szError.Init("Failed: ");
 	szError.Append(szFile);
 	szError.Append(" line ");
@@ -1084,7 +1102,7 @@ BOOL Failed(const char* szExpected, const char* szActual, int iLine, char* szFil
 
 	Failed();
 
-	IToA(iLine, szLine, 10);
+	IntToString(szLine, 1024, iLine, 10);
 	szError.Init("Failed: ");
 	szError.Append(szFile);
 	szError.Append(" line ");
@@ -1145,23 +1163,23 @@ BOOL Pass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToTristateString(TRISTATE t, char* sz)
+void ToTristateString(TRISTATE t, char* szString, int iStringLength)
 {
 	if (t == TRITRUE)
 	{
-		strcpy(sz, "TRITRUE");
+		StrCpySafe(szString, "TRITRUE", iStringLength);
 	}
 	else if (t == TRIFALSE)
 	{
-		strcpy(sz, "TRIFALSE");
+		StrCpySafe(szString, "TRIFALSE", iStringLength);
 	}
 	else if (t == TRIERROR)
 	{
-		strcpy(sz, "TRIERROR");
+		StrCpySafe(szString, "TRIERROR", iStringLength);
 	}
 	else
 	{
-		strcpy(sz, "UNDEFINED");
+		StrCpySafe(szString, "UNDEFINED", iStringLength);
 	}
 }
 
@@ -1170,15 +1188,15 @@ void ToTristateString(TRISTATE t, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToBoolString(BOOL b, char* sz)
+void ToBoolString(BOOL b, char* szString, int iStringLength)
 {
 	if (b)
 	{
-		strcpy(sz, "TRUE");
+		StrCpySafe(szString, "TRUE", iStringLength);
 	}
 	else
 	{
-		strcpy(sz, "FALSE");
+		StrCpySafe(szString, "FALSE", iStringLength);
 	}
 }
 
@@ -1187,9 +1205,9 @@ void ToBoolString(BOOL b, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToIntString(int i, char* sz)
+void ToIntString(int i, char* szString, int iStringLength)
 {
-	IToA(i, sz, 10);
+	IntToString(szString, iStringLength, i, 10);
 }
 
 
@@ -1197,29 +1215,28 @@ void ToIntString(int i, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToIntHexString(int i, char* sz)
+void ToIntHexString(int i, char* szString, int iStringLength)
 {
-	IToA(i, &sz[2], 16);
-	sz[0] = '0';
-	sz[1] = 'x';
+	IntToString(&szString[2], iStringLength-2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToCharString(char c, char* sz)
+void ToCharString(char c, char* szString, int iStringLength)
 {
 	if ((c >= 0 && c <= 31) || (c == 127) || ((unsigned char)c >= 128 && (unsigned char)c <= 159))
 	{
-		ToIntHexString(c, sz);
+		ToIntHexString(c, szString, iStringLength);
 	}
 	else
 	{
-		sz[0] = c;
-		sz[1] = 0;
+		szString[0] = c;
+		szString[1] = 0;
 	}
 }
 
@@ -1228,9 +1245,9 @@ void ToCharString(char c, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongLongIntString(long long int i, char* sz)
+void ToLongLongIntString(long long int i, char* szString, int iStringLength)
 {
-    IToA(i, sz, 10);
+    IntToString(szString, iStringLength, i, 10);
 }
 
 
@@ -1257,7 +1274,7 @@ void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimal
 
 	c.Init();
 	psFloat3->Print(&c, iWholeNumbers, iDecimals);
-	strcpy(sz, c.Text());
+	c.CopyIntoBuffer(sz, -1);
 	c.Kill();
 }
 
@@ -1292,11 +1309,11 @@ void ToLongDoubleString(long double f, char* sz, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongLongIntHexString(long long int i, char* sz)
+void ToLongLongIntHexString(long long int i, char* szString, int iStringLength)
 {
-	IToA(i, &sz[2], 16);
-	sz[0] = '0';
-	sz[1] = 'x';
+	IntToString(&szString[2], iStringLength-2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
 }
 
 
@@ -1304,15 +1321,16 @@ void ToLongLongIntHexString(long long int i, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToPointerString(void* pv, char* sz)
+void ToPointerString(void* pv, char* szString, int iStringLength)
 {
 	CChars	c;
 
-	IToA((int)(size_t)pv, sz, 16);
-	c.Init(sz);
+	IntToString(szString, iStringLength, (int)(size_t)pv, 16);
+
+	c.Init(szString);
 	c.RightAlign('0', 8);
 	c.Insert(0, "0x");
-	strcpy(sz, c.Text());
+	strcpy(szString, c.Text());
 	c.Kill();
 }
 
@@ -1320,13 +1338,13 @@ void ToPointerString(void* pv, char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToMD5String(unsigned char* puc, char* sz)
+void ToMD5String(unsigned char* puc, char* sz, int iStringLength)
 {
 	CChars	c;
 
 	c.Init();
 	c.AppendHexLoHi(puc, 16);
-	strcpy(sz, c.Text());
+	c.CopyIntoBuffer(sz, iStringLength);
 	c.Kill();
 }
 
