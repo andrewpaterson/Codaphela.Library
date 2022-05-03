@@ -45,6 +45,8 @@ public:
 	CNumber*	Add(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void		Remove(void);
 	void		Remove(int iNumToRemove);
+
+	int			NumElements(void);
 };
 
 

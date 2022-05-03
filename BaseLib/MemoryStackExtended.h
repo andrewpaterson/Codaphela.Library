@@ -52,6 +52,7 @@ public:
 	int				GetUsedMemory(void);
 	CMemoryStack*	GetStack(int iIndex);
 	int				NumStacks(void);
+	int				NumElements(void);
 
 };
 

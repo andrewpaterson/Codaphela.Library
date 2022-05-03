@@ -219,7 +219,7 @@ public:
 	//Conversion
 	int  		IntValue(void);
 	float		FloatValue(void);
-	char		GetDigit(int iDigit);  //zero returns '.' or '\0'.
+	char		GetDigitUnsafe(int iDigit);  //zero returns '.' or '\0'.
 	char		SafeGetDigit(int iDigit);
 	void		Print(CChars* pcChars);
 	BOOL		PrintFloating(CChars* pcChars);
