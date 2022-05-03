@@ -2,6 +2,7 @@
 #include "Chars.h"
 #include "FileUtil.h"
 #include "StringHelper.h"
+#include "FloatPrinter.h"
 #include "LogString.h"
 
 
@@ -47,7 +48,7 @@ char* IntToString(int i, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
 
-	IToA(i, gaszLogToStringScratchPad[iCount], iBase);
+	IntToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, i, iBase);
 	return gaszLogToStringScratchPad[iCount];
 }
 
@@ -68,6 +69,18 @@ char* FloatToString(float f, int iDecimals)
 	sz[2] = '0' + iDecimals;
 	sprintf(gaszLogToStringScratchPad[iCount], sz, f);
 	return gaszLogToStringScratchPad[iCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FloatToString(float f)
+{
+	int iCount = IncrementLogToStringCount();
+
+	return FloatToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, f);
 }
 
 
@@ -155,7 +168,7 @@ char* LongLongToString(long long int lli, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
 
-	IToA(lli, gaszLogToStringScratchPad[iCount], iBase);
+	IntToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, lli, iBase);
 	return gaszLogToStringScratchPad[iCount];
 }
 

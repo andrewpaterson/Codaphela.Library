@@ -229,7 +229,7 @@ void MemSwp(const void* pv1, const void* pv2, size_t uiLength)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IToA(int iValue, char* szResult, int iBase)
+char* IntToString(char* szDest, int iDestLength, int iValue, int iBase)
 {
 	int		iQuotient;
 	int     iDigit;
@@ -238,7 +238,7 @@ char* IToA(int iValue, char* szResult, int iBase)
 
 	if (iBase != 10)
 	{
-		return IToA((unsigned int)iValue, szResult, iBase);
+		return IntToString(szDest, iDestLength, (unsigned int)iValue, iBase);
 	}
 
 	bNegative = iValue < 0;
@@ -246,8 +246,8 @@ char* IToA(int iValue, char* szResult, int iBase)
 	{
 		if (iValue == MIN_INT)
 		{
-			strcpy(szResult, "-2147483648");
-			return szResult;
+			strcpy(szDest, "-2147483648");
+			return szDest;
 		}
 		iValue *= -1;
 	}
@@ -259,23 +259,23 @@ char* IToA(int iValue, char* szResult, int iBase)
 		iDigit = iQuotient % iBase;
 		iQuotient /= iBase;
 
-		szResult[iPos] = gszDigits[iDigit];
+		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
 	} while (iQuotient != 0);
 
 	if (bNegative)
 	{
-		szResult[iPos] = '-';
+		szDest[iPos] = '-';
 		iPos++;
 	}
 
-	szResult[iPos] = '\0';
+	szDest[iPos] = '\0';
 
 	//Reverse the string.
-	StrRev(szResult, iPos);
+	StrRev(szDest, iPos);
 
-	return szResult;
+	return szDest;
 }
 
 
@@ -283,7 +283,7 @@ char* IToA(int iValue, char* szResult, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IToA(unsigned int iValue, char* szResult, int iBase)
+char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
 {
 	char			szDigits[] = "0123456789abcdef";
 	unsigned int	iQuotient;
@@ -292,8 +292,8 @@ char* IToA(unsigned int iValue, char* szResult, int iBase)
 
 	if (iBase < 2 || iBase > 16)
 	{
-		szResult[0] = 0;
-		return szResult;
+		szDest[0] = 0;
+		return szDest;
 	}
 
 	iQuotient = iValue;
@@ -304,18 +304,18 @@ char* IToA(unsigned int iValue, char* szResult, int iBase)
 		iDigit = iQuotient % iBase;
 		iQuotient /= iBase;
 
-		szResult[iPos] = szDigits[iDigit];
+		szDest[iPos] = szDigits[iDigit];
 		iPos++;
 
 	} while (iQuotient != 0);
 
 
-	szResult[iPos] = '\0';
+	szDest[iPos] = '\0';
 
 	//Reverse the string.
-	StrRev(szResult, iPos);
+	StrRev(szDest, iPos);
 
-	return szResult;
+	return szDest;
 }
 
 
@@ -323,7 +323,7 @@ char* IToA(unsigned int iValue, char* szResult, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IToA(unsigned long long int ulliValue, char* szResult, int iBase)
+char* IntToString(char* szDest, int iDestLength, unsigned long long int ulliValue, int iBase)
 {
 	char					szDigits[] = "0123456789abcdef";
 	unsigned long long int	ulliQuotient;
@@ -332,8 +332,8 @@ char* IToA(unsigned long long int ulliValue, char* szResult, int iBase)
 
 	if (iBase < 2 || iBase > 16)
 	{
-		szResult[0] = 0;
-		return szResult;
+		szDest[0] = 0;
+		return szDest;
 	}
 
 	ulliQuotient = ulliValue;
@@ -344,18 +344,18 @@ char* IToA(unsigned long long int ulliValue, char* szResult, int iBase)
 		iDigit = (unsigned int)(ulliQuotient % iBase);
 		ulliQuotient /= iBase;
 
-		szResult[iPos] = szDigits[iDigit];
+		szDest[iPos] = szDigits[iDigit];
 		iPos++;
 
 	} while (ulliQuotient != 0);
 
 
-	szResult[iPos] = '\0';
+	szDest[iPos] = '\0';
 
 	//Reverse the string.
-	StrRev(szResult, iPos);
+	StrRev(szDest, iPos);
 
-	return szResult;
+	return szDest;
 }
 
 
@@ -363,17 +363,17 @@ char* IToA(unsigned long long int ulliValue, char* szResult, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IToA(long long int lliValue, char* szResult, int iBase)
+char* IntToString(char* szDest, int iDestLength, long long int lliValue, int iBase)
 {
-	char	szDigits[] = "0123456789abcdef";
-	long long int		lliQuotient;
-	int     iDigit;
-	int     iPos;
-	int		bNegative;
+	char			szDigits[] = "0123456789abcdef";
+	long long int	lliQuotient;
+	int				iDigit;
+	int				iPos;
+	int				bNegative;
 
 	if (iBase != 10)
 	{
-		return IToA((unsigned long long int)lliValue, szResult, iBase);
+		return IntToString(szDest, iDestLength, (unsigned long long int)lliValue, iBase);
 	}
 
 	bNegative = lliValue < 0;
@@ -389,7 +389,7 @@ char* IToA(long long int lliValue, char* szResult, int iBase)
 		iDigit = (int)(lliQuotient % iBase);
 		lliQuotient /= iBase;
 
-		szResult[iPos] = szDigits[iDigit];
+		szDest[iPos] = szDigits[iDigit];
 		iPos++;
 
 	} while (lliQuotient != 0);
@@ -398,16 +398,16 @@ char* IToA(long long int lliValue, char* szResult, int iBase)
 	// Only apply negative sign for iBase 10
 	if (bNegative && (iBase == 10))
 	{
-		szResult[iPos] = '-';
+		szDest[iPos] = '-';
 		iPos++;
 	}
 
-	szResult[iPos] = '\0';
+	szDest[iPos] = '\0';
 
 	//Reverse the string.
-	StrRev(szResult, iPos);
+	StrRev(szDest, iPos);
 
-	return szResult;
+	return szDest;
 }
 
 
