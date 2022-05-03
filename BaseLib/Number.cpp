@@ -677,7 +677,7 @@ BOOL CNumber::IsZero(void)
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
 
-	if ((iFirst == 1) && (iLast == 1) && (GetDigit(1) == 0))
+	if ((iFirst == 1) && (iLast == 1) && (GetDigitUnsafe(1) == 0))
 	{
 		return TRUE;
 	}
@@ -708,7 +708,7 @@ BOOL CNumber::IsOdd(void)
 	{
 		return FALSE;
 	}
-	cDigit = GetDigit(1);
+	cDigit = GetDigitUnsafe(1);
 	return (cDigit % 2) == 1;
 }
 
@@ -736,7 +736,7 @@ BOOL CNumber::IsEven(void)
 	{
 		return FALSE;
 	}
-	cDigit = GetDigit(1);
+	cDigit = GetDigitUnsafe(1);
 	return (cDigit % 2) == 0;
 }
 
@@ -834,7 +834,7 @@ void CNumber::CleanLeft(void)
 	{
 		if (i != 0)
 		{
-			c = GetDigit(i);
+			c = GetDigitUnsafe(i);
 			if ((c != 0) && (!bAnyNonZero))
 			{
 				bAnyNonZero = TRUE;
@@ -881,7 +881,7 @@ void CNumber::CleanRight(void)
 	{
 		if (i != 0)
 		{
-			c = GetDigit(i);
+			c = GetDigitUnsafe(i);
 			if ((c != 0) && (!bAnyNonZero))
 			{
 				bAnyNonZero = TRUE;
@@ -991,7 +991,7 @@ void CNumber::RoundSignificant(int iSignificantDigits)
 		iDifference = iDigits - iSignificantDigits;
 		iNewLast = OffsetDigit(iLast, iDifference);
 		iBeyondLast = OffsetDigit(iNewLast, -1);
-		cBeyondDigit = GetDigit(iBeyondLast);
+		cBeyondDigit = GetDigitUnsafe(iBeyondLast);
 		if (cBeyondDigit >= 5)
 		{
 			pcRound = gcNumberControl.Add(mcMaxWholeNumbers, mcMaxDecimals);
@@ -1828,7 +1828,7 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 	iOtherLastDigit = pcNumber->GetLastNonZeroDigit();
 
 	iLast = iThisLastDigit;
-	if (iThisLastDigit > iOtherLastDigit)
+	if (iOtherLastDigit < iThisLastDigit)
 	{
 		SetLastNonZeroDigit(iOtherLastDigit);
 		iLast = iOtherLastDigit;
@@ -1865,14 +1865,21 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 		}
 	}
 
-	//Oi!  You don't test for positive overflow.
 	if (cCarry > 0)
 	{
 		if (i == 0)
 		{
 			i++;
 		}
-		SetDigitUnsafe(i, cCarry);
+		if (i <= mcMaxWholeNumbers)
+		{
+			SetDigitUnsafe(i, cCarry);
+		}
+		else
+		{
+			Overflow(GetSign());
+			return;
+		}
 	}
 	SetFirstNonZerotDigit(i);
 	Clean();
@@ -2098,7 +2105,7 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 			{
 				iOtherDigit--;
 			}
-			cOtherDigit = pcMultiplicand->GetDigit(j);
+			cOtherDigit = pcMultiplicand->GetDigitUnsafe(j);
 
 			cCarry = 0;
 
@@ -2142,12 +2149,12 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 						iResultantDigit++;
 					}
 
+					cThisDigit = GetDigitUnsafe(i);
+					cResult = cThisDigit * cOtherDigit + cCarry;
+					cCarry = cResult / 10;
+					cResult %= 10;
 					if (iResultantDigit >= -iDecimals)
 					{
-						cThisDigit = GetDigit(i);
-						cResult = cThisDigit*cOtherDigit + cCarry;
-						cCarry = cResult/10;
-						cResult %= 10;
 						pcLine->SetDigitUnsafe(iResultantDigit, cResult);
 					}
 				}
@@ -2215,7 +2222,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 
 	iDividendDigit = GetFirstNonZeroDigit();
 	iLastDigit = GetLastNonZeroDigit();
-	cThisDigit = GetDigit(iDividendDigit);
+	cThisDigit = GetDigitUnsafe(iDividendDigit);
 	pcPartialDividend->Digit(iLastDivisorDigit, cThisDigit, mcMaxWholeNumbers + 1, iDecimals);
 
 	if (iLastDivisorDigit > 0)
@@ -2249,7 +2256,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 			break;
 		}
 
-		cThisDigit = GetDigit(iDividendDigit);
+		cThisDigit = GetDigitUnsafe(iDividendDigit);
 		if (bExact)
 		{
 			if (iDividendDigit < iLastDigit)
@@ -3409,7 +3416,7 @@ int CNumber::IntValue(void)
 
 	for (i = 1; i <= iFirst; i++)
 	{
-		iValue = GetDigit(i);
+		iValue = GetDigitUnsafe(i);
 		iResult += (iValue*iTimes);
 		iTimes *= 10;
 	}
@@ -3447,7 +3454,7 @@ float CNumber::FloatValue(void)
 	//{
 	//	if (i != 0)
 	//	{
-	//		iValue = GetDigit(i);
+	//		iValue = GetDigitUnsafe(i);
 	//		iResult += (iValue*iTimes);
 	//		iTimes *= 10;
 	//	}
@@ -3484,7 +3491,7 @@ char CNumber::SafeGetDigit(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CNumber::GetDigit(int iDigit)
+char CNumber::GetDigitUnsafe(int iDigit)
 {
 	if ((iDigit > 0) && (iDigit <= mcMaxWholeNumbers))
 	{
@@ -3653,7 +3660,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 		{
 			if (i != 0)
 			{
-				c = GetDigit(i) + '0';
+				c = GetDigitUnsafe(i) + '0';
 				pcChars->Append(c);
 			}
 			else
@@ -3666,7 +3673,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-				c = GetDigit(i) + '0';
+				c = GetDigitUnsafe(i) + '0';
 				pcChars->Append(c);
 		}
 		pcChars->Append('.');
@@ -3675,7 +3682,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigit(i) + '0';
+			c = GetDigitUnsafe(i) + '0';
 			pcChars->Append(c);
 			if (i == iStart)
 			{
@@ -3702,7 +3709,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigit(i) + '0';
+			c = GetDigitUnsafe(i) + '0';
 			pcChars->Append(c);
 		}
 	}
@@ -3710,7 +3717,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigit(i) + '0';
+			c = GetDigitUnsafe(i) + '0';
 			pcChars->Append(c);
 			if (i == iStart)
 			{
