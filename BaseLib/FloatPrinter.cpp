@@ -1,4 +1,5 @@
 #include "StringHelper.h"
+#include "IntegerHelper.h"
 #include "Number.h"
 #include "NumberControl.h"
 #include "FloatPrinter.h"
@@ -42,18 +43,42 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* NumberToString(char* szDest, int iDestLength, CNumber* pcNumber, int iMaxDecimals, BOOL bAppendF)
+{	
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BOOL bAppendF)
 {
 	unsigned char*	pui;
 	int				iMantissa;
-	int				iSign;
+	BOOL			bNegative;
 	int				iExponent;
 	int				iValue;
+	CNumber*		pcResult;
+	CNumber*		pcTwoPower;
+	int				iWholeDigits;
+	int				iFractionalDigits;
+	CNumber			cExponent;
+	CNumber			cTwo;
+	int				iLeftMost;
+	CChars			sz;
+	int				iFractionalPart;
+	BOOL			bNumeric;
+	int				iSignificantDigits;
+	int				iIndex;
+	int				iLength;
+	int				iMaxSignificantDigits;
 
 	pui = (unsigned char*)&f;
 	iExponent = (*((int*)pui) & 0x7f800000) >> 23;
 	iMantissa = *((int*)pui) & 0x7fffff;
-	iSign = (*((int*)pui) & 0x80000000) == 0x80000000;
+	bNegative = FixBool((*((int*)pui) & 0x80000000) == 0x80000000);
 
 	if (iExponent == 0)
 	{
@@ -61,25 +86,28 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 	}
 	else if (iExponent == 255)
 	{
-		return NULL;
+		CChars	sz;
+
+		sz.Init();
+		if (iMantissa == 0)
+		{
+			if (bNegative)
+			{
+				sz.Append("-");
+			}
+			sz.Append(NUMBER_INFINITE_STRING);
+			sz.CopyIntoBuffer(szDest, iDestLength);
+		}
+		else
+		{
+			sz.Append(NUMBER_NOT_A_NUMBER);
+		}
+		sz.Kill();
+
+		return szDest;
 	}
 	else
 	{
-		CNumber*	pcResult;
-		CNumber*	pcTwoPower;
-		int			iWholeDigits;
-		int			iFractionalDigits;
-		CNumber		cExponent;
-		CNumber		cTwo;
-		int			iLeftMost;
-		CChars		sz;
-		int			iFractionalPart;
-		BOOL		bNumeric;
-		int			iSignificantDigits;
-		int			iIndex;
-		int			iLength;
-		int			iMaxSignificantDigits;
-
 		iMaxSignificantDigits = 9;
 		iExponent = iExponent - 127;  //Convert by exponent bias.
 		iValue = (iMantissa | 0x800000);  //Add implied [1.fraction].
@@ -158,6 +186,14 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 			pcResult->Zero(iWholeDigits, iFractionalDigits);
 		}
 
+		if ((!pcResult->IsError() || pcResult->IsOverflow()) && !pcResult->IsZero())
+		{
+			if (bNegative)
+			{
+				pcResult->SetSign(-1);
+			}
+		}
+
 		sz.Init();
 		bNumeric = pcResult->PrintFloating(&sz);
 		if (bNumeric && bAppendF)
@@ -190,8 +226,7 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 		sz.Kill();
 
 		gcNumberControl.Remove(2);
+		return szDest;
 	}
-
-	return szDest;
 }
 

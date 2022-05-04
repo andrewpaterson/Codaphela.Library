@@ -3628,12 +3628,12 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 
 	if (IsNAN())
 	{
-		pcChars->Append("nan");
+		pcChars->Append(NUMBER_NOT_A_NUMBER);
 		return FALSE;
 	}
 	if (IsDivisionByZero())
 	{
-		pcChars->Append("nan");
+		pcChars->Append(NUMBER_NOT_A_NUMBER);
 		return FALSE;
 	}
 
@@ -3644,7 +3644,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 
 	if (IsOverflow())
 	{
-		pcChars->Append("inf");
+		pcChars->Append(NUMBER_INFINITE_STRING);
 		return FALSE;
 	}
 
