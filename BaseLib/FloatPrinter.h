@@ -4,6 +4,7 @@
 
 
 char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals = -1, BOOL bAppendF = FALSE);
+char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals = -1, BOOL bAppendF = FALSE);
 
 
 #endif // !__FLOAT_PRINTER_H__

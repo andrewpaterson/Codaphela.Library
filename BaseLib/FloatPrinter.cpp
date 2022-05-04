@@ -25,16 +25,16 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 	}
 	else
 	{
-		CNumber		cPow2;
-		CNumber		cLog2;
-		CNumber		cNum;
+		UNumber(5, 40)	cPow2;
+		UNumber(5, 40)	cLog2;
+		CNumber			cNum;
 
-		cLog2.Init(szCommonLogarithmOfTwo, 2, 40);
-		cPow2.Init(&cLog2);
+		cLog2.c.Init(szCommonLogarithmOfTwo, 5, 40);
+		cPow2.c.Init(&cLog2.c);
 		cNum.Init(iPow2);
-		cPow2.Multiply(&cNum);
-		cPow2.Ceiling();
-		return cPow2.IntValue();
+		cPow2.c.Multiply(&cNum);
+		cPow2.c.Ceiling();
+		return cPow2.c.IntValue();
 	}
 }
 
@@ -43,23 +43,14 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* NumberToString(char* szDest, int iDestLength, CNumber* pcNumber, int iMaxDecimals, BOOL bAppendF)
+template<class FLOAT, class INTEGER>
+char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {	
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BOOL bAppendF)
-{
 	unsigned char*	pui;
-	int				iMantissa;
+	INTEGER			iMantissa;
 	BOOL			bNegative;
 	int				iExponent;
-	int				iValue;
+	INTEGER			iValue;
 	CNumber*		pcResult;
 	CNumber*		pcTwoPower;
 	int				iWholeDigits;
@@ -73,18 +64,17 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 	int				iSignificantDigits;
 	int				iIndex;
 	int				iLength;
-	int				iMaxSignificantDigits;
 
 	pui = (unsigned char*)&f;
-	iExponent = (*((int*)pui) & 0x7f800000) >> 23;
-	iMantissa = *((int*)pui) & 0x7fffff;
-	bNegative = FixBool((*((int*)pui) & 0x80000000) == 0x80000000);
+	iExponent = (int)((*((INTEGER*)pui) & iExponentMask) >> iExponentShift);
+	iMantissa = *((INTEGER*)pui) & iMantissaMask;
+	bNegative = FixBool((*((INTEGER*)pui) & iNegativeBit) == iNegativeBit);
 
 	if (iExponent == 0)
 	{
 		return NULL;
 	}
-	else if (iExponent == 255)
+	else if (iExponent == iReservedExponent)
 	{
 		CChars	sz;
 
@@ -108,9 +98,8 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 	}
 	else
 	{
-		iMaxSignificantDigits = 9;
-		iExponent = iExponent - 127;  //Convert by exponent bias.
-		iValue = (iMantissa | 0x800000);  //Add implied [1.fraction].
+		iExponent = iExponent - iExponentBias;  //Convert by exponent bias.
+		iValue = (iMantissa | iFirstMantisaBit);  //Add implied [1.fraction].
 
 		cExponent.Init(iExponent);
 		cTwo.Init(2, 1, 0);
@@ -123,7 +112,7 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 		{
 			iWholeDigits = GetPow2DigitsToPow10Digits(-iExponent);
 		}
-		iWholeDigits+=2;
+		iWholeDigits += 2;
 		iFractionalPart = iExponent - 24;
 		if (iFractionalPart >= 0)
 		{
@@ -134,7 +123,7 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 			iFractionalDigits = GetPow2DigitsToPow10Digits(iFractionalPart);
 			iFractionalDigits++;
 		}
-			
+
 		pcResult = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
 		pcTwoPower = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
 
@@ -143,8 +132,8 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 
 		pcResult->Zero(iWholeDigits, iFractionalDigits);
 
-		int iDigit = 0x800000;
-		for (int i = 0; i < 24; i++)
+		INTEGER iDigit = iFirstMantisaBit;
+		for (int i = 0; i <= iExponentShift; i++)
 		{
 			if (iValue & iDigit)
 			{
@@ -196,7 +185,7 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 
 		sz.Init();
 		bNumeric = pcResult->PrintFloating(&sz);
-		if (bNumeric && bAppendF)
+		if (bNumeric && bAppendType)
 		{
 			sz.Append('f');
 		}
@@ -228,5 +217,25 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 		gcNumberControl.Remove(2);
 		return szDest;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BOOL bAppendType)
+{
+	return NumberToString<float, int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "f", 0x80000000, 0x7fffff, 0x800000, 0x7f800000, 23, 255, 127, 9);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals, BOOL bAppendType)
+{
+	return NumberToString<double, long long int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0x7ffffffffffff, 0x8000000000000, 0x3FF8000000000000, 51, 0x7FF, 1023, 16);
 }
 
