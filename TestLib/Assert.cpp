@@ -164,7 +164,7 @@ int TestTotalStatistics(void)
 		sz.AppendNewLine();
 		sz.AppendNewLine();
 		sz.Append("Time Taken: ");
-		sz.Append((float)time / ((float)CLOCKS_PER_SEC));
+		sz.Append((float)time / ((float)CLOCKS_PER_SEC), 2);
 		sz.Append("s");
 		sz.AppendNewLine();
 		sz.AppendNewLine();

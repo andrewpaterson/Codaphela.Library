@@ -131,6 +131,7 @@ public:
 	BOOL	ContainsIgnoreCase(const char* szString);
 	BOOL	EndsWith(const char* szString);
 	BOOL	EndsWithIgnoreCase(const char* szString);
+	BOOL	EndsWith(char c);
 	BOOL	StartsWith(const char* szString);
 	BOOL	StartsWithIgnoreCase(const char* szString);
 	int		Occurrences(const char* szString);

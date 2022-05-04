@@ -256,6 +256,9 @@
     <Filter Include="Source\Data\Map\Index\Primitive">
       <UniqueIdentifier>{406e33e0-eebc-45ac-b6e5-6b9ebf6ff776}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Data\Markup\Parser">
+      <UniqueIdentifier>{1c5bb033-05a0-4ff4-87ba-fef6f9815c2b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1014,6 +1017,9 @@
     <ClInclude Include="FloatPrinter.h">
       <Filter>Source\Math\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="MarkupTextParser.h">
+      <Filter>Source\Data\Markup\Parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1600,6 +1606,9 @@
     </ClCompile>
     <ClCompile Include="FloatPrinter.cpp">
       <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="MarkupTextParser.cpp">
+      <Filter>Source\Data\Markup\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -299,6 +299,7 @@
     <ClInclude Include="MapPrimitiveTemplate.h" />
     <ClInclude Include="MapStringBlock.h" />
     <ClInclude Include="MapStringPrimitive.h" />
+    <ClInclude Include="MarkupTextParser.h" />
     <ClInclude Include="MemoryAllocator.h" />
     <ClInclude Include="Mallocators.h" />
     <ClInclude Include="MemoryBlock.h" />
@@ -520,6 +521,7 @@
     <ClCompile Include="MapMapIterator.cpp" />
     <ClCompile Include="MapNode.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />
+    <ClCompile Include="MarkupTextParser.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
     <ClCompile Include="MemoryBlock.cpp" />

@@ -22,7 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
-#include "CoreLib/MarkupTextParser.h"
+#include "BaseLib/MarkupTextParser.h"
 #include "SubImageXML.h"
 
 

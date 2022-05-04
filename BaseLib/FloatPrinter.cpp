@@ -65,8 +65,6 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 	}
 	else
 	{
-		iExponent = iExponent - 127;  //Convert by exponent bias.
-		iValue = (iMantissa | 0x800000);  //Add implied [1.fraction].
 		CNumber*	pcResult;
 		CNumber*	pcTwoPower;
 		int			iWholeDigits;
@@ -78,6 +76,13 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 		int			iFractionalPart;
 		BOOL		bNumeric;
 		int			iSignificantDigits;
+		int			iIndex;
+		int			iLength;
+		int			iMaxSignificantDigits;
+
+		iMaxSignificantDigits = 9;
+		iExponent = iExponent - 127;  //Convert by exponent bias.
+		iValue = (iMantissa | 0x800000);  //Add implied [1.fraction].
 
 		cExponent.Init(iExponent);
 		cTwo.Init(2, 1, 0);
@@ -122,24 +127,64 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 		}
 
 		iLeftMost = pcResult->GetFirstNonZeroDigit();
-		iSignificantDigits = 9;
+		iSignificantDigits = iMaxSignificantDigits;
+		if (iMaxDecimals > iMaxSignificantDigits)
+		{
+			iMaxDecimals = iMaxSignificantDigits;
+		}
+
 		if (iMaxDecimals >= 0)
 		{
-			if (iLeftMost < 9)
+			if (iLeftMost < iMaxSignificantDigits)
 			{
-				if (iLeftMost + iMaxDecimals < iSignificantDigits)
+				if (iLeftMost + iMaxDecimals <= iSignificantDigits)
 				{
 					iSignificantDigits = iLeftMost + iMaxDecimals;
 				}
+
+				if ((iLeftMost < 0) && (iSignificantDigits < iMaxSignificantDigits))
+				{
+					iSignificantDigits++;
+				}
 			}
 		}
-		pcResult->RoundSignificant(iSignificantDigits);
+
+		if (iSignificantDigits > 0)
+		{
+			pcResult->RoundSignificant(iSignificantDigits);
+		}
+		else
+		{
+			pcResult->Zero(iWholeDigits, iFractionalDigits);
+		}
 
 		sz.Init();
 		bNumeric = pcResult->PrintFloating(&sz);
 		if (bNumeric && bAppendF)
 		{
 			sz.Append('f');
+		}
+		else
+		{
+			if (!sz.Contains("e"))
+			{
+				if (iMaxDecimals > 0)
+				{
+					iIndex = sz.Find('.');
+					if (iIndex >= 0)
+					{
+						iLength = sz.Length();
+						sz.Append('0', (iMaxDecimals - (iLength - iIndex)) + 1);
+					}
+				}
+				else
+				{
+					if (sz.EndsWith('.'))
+					{
+						sz.RemoveFromEnd(1);
+					}
+				}
+			}
 		}
 		sz.CopyIntoBuffer(szDest, iDestLength);
 		sz.Kill();
