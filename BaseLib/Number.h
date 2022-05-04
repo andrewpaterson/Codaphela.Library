@@ -42,6 +42,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define UNumber(p, q) union { CNumber c; char a[NUMBER_SIZE(p, q)];	}
 
 
+#define NUMBER_INFINITE_STRING "inf"
+#define NUMBER_NOT_A_NUMBER "nan"
+
+
 class CNumberControl;
 class CNumber
 {
