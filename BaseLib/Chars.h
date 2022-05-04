@@ -76,8 +76,7 @@ public:
 	CChars* Append(int i);
 	CChars* Append(int i, int iBase);
 	void	Append(unsigned int ui);
-	void	Append(float f);
-	void	Append(float f, int iNumDecimals);
+	void	Append(float f, int iMaxDecimals = -1, BOOL bAppendF = FALSE);
 	void	Append(double d);
 	void	Append(double d, int iNumDecimals);
 	void	Append(long long int lli);

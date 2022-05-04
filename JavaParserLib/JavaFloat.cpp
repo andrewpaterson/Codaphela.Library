@@ -42,7 +42,7 @@ void CJavaFloat::Print(CChars* pszDest)
 {
 	if (meType == JFT_float32)
 	{
-		pszDest->Append((float32)mfValue);
+		pszDest->Append((float32)mfValue, -1, TRUE);
 	}
 	else if (meType == JFT_float64)
 	{
