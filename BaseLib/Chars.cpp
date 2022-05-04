@@ -1569,6 +1569,25 @@ BOOL CChars::EndsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CChars::EndsWith(char c)
+{
+	int		iLength;
+
+	iLength = Length();
+	if (iLength > 0)
+	{
+		if (Text()[iLength - 1] == c)
+		{
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CChars::EndsWithIgnoreCase(const char* szString)
 {
 	if (szString == NULL)
