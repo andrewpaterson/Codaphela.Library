@@ -684,32 +684,14 @@ void CChars::Append(unsigned int ui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(float f)
+void CChars::Append(float f, int iMaxDecimals, BOOL bAppendF)
 {
 	char sz[32];
 
-	FloatToString(sz, 32, f);
+	FloatToString(sz, 32, f, iMaxDecimals, bAppendF);
 
 	Append(sz);
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChars::Append(float f, int iNumDecimals)
-{
-	char	sz[128];
-	char	szd[128];
-
-	strcpy(sz, "%.");
-	strcat(sz, IntToString(szd, 128, iNumDecimals, 10));
-	strcat(sz, "f");
-	sprintf(szd, sz, f);
-	Append(szd);
-}
-
 
 
 //////////////////////////////////////////////////////////////////////////
