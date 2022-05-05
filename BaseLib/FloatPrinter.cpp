@@ -187,7 +187,7 @@ char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, B
 		bNumeric = pcResult->PrintFloating(&sz);
 		if (bNumeric && bAppendType)
 		{
-			sz.Append('f');
+			sz.Append(szType);
 		}
 		else
 		{
@@ -236,6 +236,6 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 //////////////////////////////////////////////////////////////////////////
 char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals, BOOL bAppendType)
 {
-	return NumberToString<double, long long int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0x7ffffffffffff, 0x8000000000000, 0x3FF8000000000000, 51, 0x7FF, 1023, 16);
+	return NumberToString<double, long long int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0xfffffffffffff, 0x10000000000000, 0x7ff0000000000000, 52, 0x7ff, 1023, 17);
 }
 
