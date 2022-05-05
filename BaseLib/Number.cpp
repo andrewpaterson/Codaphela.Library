@@ -1031,7 +1031,7 @@ void CNumber::PrivateZeroEnds(void)
 	int		iLast;
 
 	iFirst = OffsetDigit(GetFirstNonZeroDigit(), 1);
-	if (iFirst < mcMaxWholeNumbers)
+	if (iFirst <= mcMaxWholeNumbers)
 	{
 		PrivateZeroDigits(mcMaxWholeNumbers, iFirst);
 	}
@@ -3678,6 +3678,16 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 		}
 		pcChars->Append('.');
 	}
+	else if ((iStart >= 1)  && (iStart <= 8) && (iStop >= 1) && (iStop <= 4))
+	{
+		for (i = iStart; i >= iStop; i--)
+		{
+			c = GetDigitUnsafe(i) + '0';
+			pcChars->Append(c);
+		}
+		pcChars->Append('0', iStop - 1);
+		pcChars->Append('.');
+	}
 	else if ((iStart >= 1) && (iStop >= 1))
 	{
 		for (i = iStart; i >= iStop; i--)
@@ -3693,19 +3703,11 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 		pcChars->Append('+');
 		pcChars->Append(iStart - 1);
 	}
-	else if ((iStart == -1) || (iStart == -2) || (iStart == -3) && (iStop < 0))
+	else if ((iStart <= -1) && (iStart >= -4)  && (iStop <= -1))
 	{
 		pcChars->Append('0');
 		pcChars->Append('.');
-		if (iStart == -2)
-		{
-			pcChars->Append('0');
-		}
-		if (iStart == -3)
-		{
-			pcChars->Append('0');
-			pcChars->Append('0');
-		}
+		pcChars->Append('0', (-iStart) -1);
 
 		for (i = iStart; i >= iStop; i--)
 		{
