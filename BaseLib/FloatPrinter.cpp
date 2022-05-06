@@ -44,8 +44,8 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
-{	
+char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+{
 	unsigned char*	pui;
 	INTEGER			iMantissa;
 	BOOL			bNegative;
@@ -70,13 +70,288 @@ char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, B
 	iMantissa = *((INTEGER*)pui) & iMantissaMask;
 	bNegative = FixBool((*((INTEGER*)pui) & iNegativeBit) == iNegativeBit);
 
+	iExponent = iExponent - iExponentBias;  //Convert by exponent bias.
+	iValue = (iMantissa | iFirstMantisaBit);  //Add implied [1.fraction].
+
+	cExponent.Init(iExponent);
+	cTwo.Init(2, 1, 0);
+
+	if (iExponent >= 0)
+	{
+		iWholeDigits = GetPow2DigitsToPow10Digits(iExponent);
+	}
+	else
+	{
+		iWholeDigits = GetPow2DigitsToPow10Digits(-iExponent);
+	}
+	iWholeDigits += 2;
+	iFractionalPart = iExponent - iExponentShift;
+	if (iFractionalPart >= 0)
+	{
+		iFractionalDigits = 0;
+	}
+	else
+	{
+		iFractionalDigits = GetPow2DigitsToPow10Digits(iFractionalPart);
+		iFractionalDigits++;
+	}
+
+	pcResult = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
+	pcTwoPower = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
+
+	pcTwoPower->Init(2, iWholeDigits, iFractionalDigits);
+	pcTwoPower->Power(&cExponent);
+
+	pcResult->Zero(iWholeDigits, iFractionalDigits);
+
+	INTEGER iDigit = iFirstMantisaBit;
+	for (int i = 0; i <= iExponentShift; i++)
+	{
+		if (iValue & iDigit)
+		{
+			pcResult->Add(pcTwoPower);
+		}
+		pcTwoPower->Divide(&cTwo);
+		iDigit >>= 1;
+	}
+
+	iLeftMost = pcResult->GetFirstNonZeroDigit();
+	iSignificantDigits = iMaxSignificantDigits;
+	if (iMaxDecimals > iMaxSignificantDigits)
+	{
+		iMaxDecimals = iMaxSignificantDigits;
+	}
+
+	if (iMaxDecimals >= 0)
+	{
+		if (iLeftMost < iMaxSignificantDigits)
+		{
+			if (iLeftMost + iMaxDecimals <= iSignificantDigits)
+			{
+				iSignificantDigits = iLeftMost + iMaxDecimals;
+			}
+
+			if ((iLeftMost < 0) && (iSignificantDigits < iMaxSignificantDigits))
+			{
+				iSignificantDigits++;
+			}
+		}
+	}
+
+	if (iSignificantDigits > 0)
+	{
+		pcResult->RoundSignificant(iSignificantDigits);
+	}
+	else
+	{
+		pcResult->Zero(iWholeDigits, iFractionalDigits);
+	}
+
+	if ((!pcResult->IsError() || pcResult->IsOverflow()) && !pcResult->IsZero())
+	{
+		if (bNegative)
+		{
+			pcResult->SetSign(-1);
+		}
+	}
+
+	sz.Init();
+	bNumeric = pcResult->PrintFloating(&sz);
+	if (bNumeric && bAppendType)
+	{
+		sz.Append(szType);
+	}
+	else
+	{
+		if (!sz.Contains("e"))
+		{
+			if (iMaxDecimals > 0)
+			{
+				iIndex = sz.Find('.');
+				if (iIndex >= 0)
+				{
+					iLength = sz.Length();
+					sz.Append('0', (iMaxDecimals - (iLength - iIndex)) + 1);
+				}
+			}
+			else
+			{
+				if (sz.EndsWith('.'))
+				{
+					sz.RemoveFromEnd(1);
+				}
+			}
+		}
+	}
+	sz.CopyIntoBuffer(szDest, iDestLength);
+	sz.Kill();
+
+	gcNumberControl.Remove(2);
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class FLOAT, class INTEGER>
+char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+{
+	unsigned char*	pui;
+	INTEGER			iMantissa;
+	BOOL			bNegative;
+	int				iExponent;
+	INTEGER			iValue;
+	CNumber*		pcResult;
+	CNumber*		pcTwoPower;
+	int				iWholeDigits;
+	int				iFractionalDigits;
+	CNumber			cExponent;
+	CNumber			cTwo;
+	int				iLeftMost;
+	CChars			sz;
+	int				iFractionalPart;
+	BOOL			bNumeric;
+	int				iSignificantDigits;
+	int				iIndex;
+	int				iLength;
+
+	pui = (unsigned char*)&f;
+	iExponent = -126;
+	iMantissa = *((INTEGER*)pui) & iMantissaMask;
+	bNegative = FixBool((*((INTEGER*)pui) & iNegativeBit) == iNegativeBit);
+
+	iValue = iMantissa;
+
+	cExponent.Init(-126);
+	cTwo.Init(2, 1, 0);
+
+	iWholeDigits = GetPow2DigitsToPow10Digits(-iExponent);
+
+	iFractionalPart = iExponent;
+	iFractionalDigits = GetPow2DigitsToPow10Digits(iFractionalPart);
+	iFractionalDigits++;
+
+	pcResult = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
+	pcTwoPower = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
+
+	pcTwoPower->Init(2, iWholeDigits, iFractionalDigits);
+	pcTwoPower->Power(&cExponent);
+
+	pcResult->Zero(iWholeDigits, iFractionalDigits);
+
+	INTEGER iDigit = iFirstMantisaBit;
+	for (int i = 0; i <= iExponentShift; i++)
+	{
+		if (iValue & iDigit)
+		{
+			pcResult->Add(pcTwoPower);
+		}
+		pcTwoPower->Divide(&cTwo);
+		iDigit >>= 1;
+	}
+
+	iLeftMost = pcResult->GetFirstNonZeroDigit();
+	iSignificantDigits = iMaxSignificantDigits;
+	if (iMaxDecimals > iMaxSignificantDigits)
+	{
+		iMaxDecimals = iMaxSignificantDigits;
+	}
+
+	if (iMaxDecimals >= 0)
+	{
+		if (iLeftMost < iMaxSignificantDigits)
+		{
+			if (iLeftMost + iMaxDecimals <= iSignificantDigits)
+			{
+				iSignificantDigits = iLeftMost + iMaxDecimals;
+			}
+
+			if ((iLeftMost < 0) && (iSignificantDigits < iMaxSignificantDigits))
+			{
+				iSignificantDigits++;
+			}
+		}
+	}
+
+	if (iSignificantDigits > 0)
+	{
+		pcResult->RoundSignificant(iSignificantDigits);
+	}
+	else
+	{
+		pcResult->Zero(iWholeDigits, iFractionalDigits);
+	}
+
+	if ((!pcResult->IsError() || pcResult->IsOverflow()) && !pcResult->IsZero())
+	{
+		if (bNegative)
+		{
+			pcResult->SetSign(-1);
+		}
+	}
+
+	sz.Init();
+	bNumeric = pcResult->PrintFloating(&sz);
+	if (bNumeric && bAppendType)
+	{
+		sz.Append(szType);
+	}
+	else
+	{
+		if (!sz.Contains("e"))
+		{
+			if (iMaxDecimals > 0)
+			{
+				iIndex = sz.Find('.');
+				if (iIndex >= 0)
+				{
+					iLength = sz.Length();
+					sz.Append('0', (iMaxDecimals - (iLength - iIndex)) + 1);
+				}
+			}
+			else
+			{
+				if (sz.EndsWith('.'))
+				{
+					sz.RemoveFromEnd(1);
+				}
+			}
+		}
+	}
+	sz.CopyIntoBuffer(szDest, iDestLength);
+	sz.Kill();
+
+	gcNumberControl.Remove(2);
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class FLOAT, class INTEGER>
+char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+{	
+	unsigned char*	pui;
+	INTEGER			iMantissa;
+	BOOL			bNegative;
+	int				iExponent;
+
+	pui = (unsigned char*)&f;
+	iExponent = (int)((*((INTEGER*)pui) & iExponentMask) >> iExponentShift);
+
 	if (iExponent == 0)
 	{
-		return NULL;
+		return SubnormalNumberToString<FLOAT, INTEGER>(szDest, iDestLength, f, iMaxDecimals, bAppendType, szType, iNegativeBit, iMantissaMask, iFirstMantisaBit, iExponentMask, iExponentShift, iReservedExponent, iExponentBias, iMaxSignificantDigits);
 	}
 	else if (iExponent == iReservedExponent)
 	{
-		CChars	sz;
+		CChars		sz;
+		iMantissa = *((INTEGER*)pui) & iMantissaMask;
+		bNegative = FixBool((*((INTEGER*)pui) & iNegativeBit) == iNegativeBit);
 
 		sz.Init();
 		if (iMantissa == 0)
@@ -98,124 +373,7 @@ char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, B
 	}
 	else
 	{
-		iExponent = iExponent - iExponentBias;  //Convert by exponent bias.
-		iValue = (iMantissa | iFirstMantisaBit);  //Add implied [1.fraction].
-
-		cExponent.Init(iExponent);
-		cTwo.Init(2, 1, 0);
-
-		if (iExponent >= 0)
-		{
-			iWholeDigits = GetPow2DigitsToPow10Digits(iExponent);
-		}
-		else
-		{
-			iWholeDigits = GetPow2DigitsToPow10Digits(-iExponent);
-		}
-		iWholeDigits += 2;
-		iFractionalPart = iExponent - 24;
-		if (iFractionalPart >= 0)
-		{
-			iFractionalDigits = 0;
-		}
-		else
-		{
-			iFractionalDigits = GetPow2DigitsToPow10Digits(iFractionalPart);
-			iFractionalDigits++;
-		}
-
-		pcResult = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
-		pcTwoPower = gcNumberControl.Add(iWholeDigits, iFractionalDigits);
-
-		pcTwoPower->Init(2, iWholeDigits, iFractionalDigits);
-		pcTwoPower->Power(&cExponent);
-
-		pcResult->Zero(iWholeDigits, iFractionalDigits);
-
-		INTEGER iDigit = iFirstMantisaBit;
-		for (int i = 0; i <= iExponentShift; i++)
-		{
-			if (iValue & iDigit)
-			{
-				pcResult->Add(pcTwoPower);
-			}
-			pcTwoPower->Divide(&cTwo);
-			iDigit >>= 1;
-		}
-
-		iLeftMost = pcResult->GetFirstNonZeroDigit();
-		iSignificantDigits = iMaxSignificantDigits;
-		if (iMaxDecimals > iMaxSignificantDigits)
-		{
-			iMaxDecimals = iMaxSignificantDigits;
-		}
-
-		if (iMaxDecimals >= 0)
-		{
-			if (iLeftMost < iMaxSignificantDigits)
-			{
-				if (iLeftMost + iMaxDecimals <= iSignificantDigits)
-				{
-					iSignificantDigits = iLeftMost + iMaxDecimals;
-				}
-
-				if ((iLeftMost < 0) && (iSignificantDigits < iMaxSignificantDigits))
-				{
-					iSignificantDigits++;
-				}
-			}
-		}
-
-		if (iSignificantDigits > 0)
-		{
-			pcResult->RoundSignificant(iSignificantDigits);
-		}
-		else
-		{
-			pcResult->Zero(iWholeDigits, iFractionalDigits);
-		}
-
-		if ((!pcResult->IsError() || pcResult->IsOverflow()) && !pcResult->IsZero())
-		{
-			if (bNegative)
-			{
-				pcResult->SetSign(-1);
-			}
-		}
-
-		sz.Init();
-		bNumeric = pcResult->PrintFloating(&sz);
-		if (bNumeric && bAppendType)
-		{
-			sz.Append(szType);
-		}
-		else
-		{
-			if (!sz.Contains("e"))
-			{
-				if (iMaxDecimals > 0)
-				{
-					iIndex = sz.Find('.');
-					if (iIndex >= 0)
-					{
-						iLength = sz.Length();
-						sz.Append('0', (iMaxDecimals - (iLength - iIndex)) + 1);
-					}
-				}
-				else
-				{
-					if (sz.EndsWith('.'))
-					{
-						sz.RemoveFromEnd(1);
-					}
-				}
-			}
-		}
-		sz.CopyIntoBuffer(szDest, iDestLength);
-		sz.Kill();
-
-		gcNumberControl.Remove(2);
-		return szDest;
+		return NormalNumberToString<FLOAT, INTEGER>(szDest, iDestLength, f, iMaxDecimals, bAppendType, szType, iNegativeBit, iMantissaMask, iFirstMantisaBit, iExponentMask, iExponentShift, iReservedExponent, iExponentBias, iMaxSignificantDigits);
 	}
 }
 
