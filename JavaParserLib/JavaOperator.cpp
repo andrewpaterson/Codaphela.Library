@@ -37,10 +37,9 @@ void CJavaOperator::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaOperator::GetType(void)
-{
-	return "Operator";
-}
+char* CJavaOperator::GetType(void) { return "Operator"; }
+BOOL CJavaOperator::IsOperator(void) { return TRUE; }
+BOOL CJavaOperator::Is(EJavaOperator eOperator) { return mpcOperator->Is(eOperator); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -82,4 +81,5 @@ char* CJavaOperatorDefinition::GetName(void)
 //
 //////////////////////////////////////////////////////////////////////////
 EJavaOperatorType CJavaOperatorDefinition::GetType(void) { return meType; }
+BOOL CJavaOperatorDefinition::Is(EJavaOperator eOperator) { return meOperator == eOperator; }
 

@@ -1,3 +1,4 @@
+#include "BaseLib/IntegerHelper.h"
 #include "JavaBoolean.h"
 
 
@@ -29,6 +30,16 @@ void CJavaBoolean::Kill(void)
 char* CJavaBoolean::GetType(void)
 {
 	return "Literal (bool)";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaBoolean::Is(BOOL b)
+{
+	return FixBool(mbValue) == FixBool(b);
 }
 
 

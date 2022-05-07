@@ -817,6 +817,11 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 		return TRUE;
 	}
 
+	if (pcLeft->IsOperator() || pcRight->IsOperator())
+	{
+		return TRUE;
+	}
+
 	bCharThingLeft = pcLeft->IsKeyword() || pcLeft->IsIdentifier() || pcLeft->IsLiteral();
 	bCharThingRight = pcRight->IsKeyword() || pcRight->IsIdentifier() || pcRight->IsLiteral();
 

@@ -39,5 +39,24 @@ void CJavaIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+BOOL CJavaIdentifier::Is(char* szIdentifier)
+{
+	int	iLength = StrLen(szIdentifier);
+
+	if (miLength != iLength)
+	{ 
+		return FALSE;
+	}
+	else
+	{
+		return memcmp(szIdentifier, mszIdentifier, iLength) == 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CJavaIdentifier::GetType(void) { return "Identifier"; }
 BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }

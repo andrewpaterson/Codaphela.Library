@@ -15,6 +15,7 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void);
+	BOOL	Is(BOOL b);
 
 	void	Print(CChars* pszDest);
 	BOOL	IsBoolean(void);

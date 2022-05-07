@@ -19,6 +19,7 @@ public:
 	char*	GetType(void);
 
 	BOOL	IsIdentifier(void);
+	BOOL	Is(char* szIdentifier);
 };
 
 

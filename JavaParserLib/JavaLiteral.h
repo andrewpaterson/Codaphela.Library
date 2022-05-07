@@ -11,14 +11,14 @@ public:
 			void 	Init(void);
 			void 	Kill(void);
 
-			char*	GetType(void);
+			char*	GetType(void) override;
 
-			BOOL	IsLiteral(void);
+			BOOL	IsLiteral(void) override;
 	virtual BOOL	IsCharacter(void);
 	virtual BOOL	IsBoolean(void);
 	virtual BOOL	IsString(void);
 	virtual BOOL	IsInteger(void);
-	virtual BOOL	IsFloating(void);
+	virtual BOOL	IsFloat(void);
 	virtual BOOL	IsNull(void);
 };
 

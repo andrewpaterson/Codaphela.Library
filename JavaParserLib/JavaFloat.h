@@ -27,6 +27,8 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void);
+	BOOL	Is(float32 fValue);
+	BOOL	Is(float64 fValue);
 
 	void	Print(CChars* pszDest);
 	BOOL	IsFloat(void);

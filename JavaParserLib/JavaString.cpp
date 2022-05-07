@@ -77,8 +77,7 @@ void CJavaString::Print(CChars* pszDest)
 		for (i = 0; i < miLength; i++)
 		{
 			c8 = ((char*)msz)[i];
-			GetEscapeString(c8, sz);
-			pszDest->Append(sz);
+			pszDest->Append(GetEscapeString(c8, sz));
 		}
 		pszDest->Append('"');
 	}
@@ -103,6 +102,32 @@ void CJavaString::Print(CChars* pszDest)
 	else
 	{
 		pszDest->Append("[String?]");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaString::Is(char* szString)
+{
+	if (meType == JST_string8)
+	{
+		int	iLength = StrLen(szString);
+
+		if (miLength != iLength)
+		{
+			return FALSE;
+		}
+		else
+		{
+			return memcmp(szString, msz, iLength) == 0;
+		}
+	}
+	else
+	{
+		return FALSE;
 	}
 }
 

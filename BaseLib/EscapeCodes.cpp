@@ -88,13 +88,39 @@ char GetEscapeCode(char cCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void StrEscapeUnicode(char16 c, char* szDest)
+{
+	char c1;
+	char c2;
+	char c3;
+	char c4;
+
+	c1 = (c & 0xf);
+	c2 = (c & 0xf0) >> 4;
+	c3 = (c & 0xf00) >> 8;
+	c4 = (c & 0xf000) >> 12;
+
+	szDest[0] = '\\';
+	szDest[1] = 'u';
+	szDest[2] = GetHexChar(c4);
+	szDest[3] = GetHexChar(c3);
+	szDest[4] = GetHexChar(c2);
+	szDest[5] = GetHexChar(c1);
+	szDest[6] = '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void StrEscapeHex(char c, char* szDest)
 {
 	char cRight;
 	char cLeft;
 
-	cRight = c & 0xf;
-	cLeft = (c & 0xf0) >> 4;
+	cRight = (c & 0xf);
+	cLeft  = (c & 0xf0) >> 4;
 
 	szDest[0] = '\\';
 	szDest[1] = 'x';
@@ -137,66 +163,71 @@ char* GetEscapeString(unsigned char cCurrent, char* szDest)
 	{
 		StrEscapeChar('\\', szDest);
 	}
+	else if (cCurrent == '\n')
+	{
+		StrEscapeChar('n', szDest);
+	}
+	else if (cCurrent == '\"')
+	{
+		StrEscapeChar('\"', szDest);
+	}
+	else if (cCurrent == '\'')
+	{
+		StrEscapeChar('\'', szDest);
+	}
+	else if (cCurrent == '\?')
+	{
+		StrEscapeChar('?', szDest);
+	}
+	else if (cCurrent == '\0')
+	{
+		StrEscapeChar('0', szDest);
+	}
+	else if (cCurrent == '\a')
+	{
+		StrEscapeChar('a', szDest);
+	}
+	else if (cCurrent == '\b')
+	{
+		StrEscapeChar('b', szDest);
+	}
+	else if (cCurrent == '\f')
+	{
+		StrEscapeChar('f', szDest);
+	}
+	else if (cCurrent == '\r')
+	{
+		StrEscapeChar('r', szDest);
+	}
+	else if (cCurrent == '\t')
+	{
+		StrEscapeChar('t', szDest);
+	}
+	else if (cCurrent == '\v')
+	{
+		StrEscapeChar('v', szDest);
+	}
 	else if (((cCurrent >= 32) && (cCurrent <= 126)) || (cCurrent == 128) || ((cCurrent >= 130) && (cCurrent <= 254)))
 	{
 		szDest[0] = cCurrent;
 		szDest[1] = '\0';
 	}
-	else if ((cCurrent >= 0) && (cCurrent <= 31))
-	{
-		if (cCurrent == '\n')
-		{
-			StrEscapeChar('n', szDest);
-		}
-		else if (cCurrent == '\'')
-		{
-			StrEscapeChar('\"', szDest);
-		}
-		else if (cCurrent == '\'')
-		{
-			StrEscapeChar('\'', szDest);
-		}
-		else if (cCurrent == '\?')
-		{
-			StrEscapeChar('?', szDest);
-		}
-		else if (cCurrent == '\0')
-		{
-			StrEscapeChar('0', szDest);
-		}
-		else if (cCurrent == '\a')
-		{
-			StrEscapeChar('a', szDest);
-		}				
-		else if (cCurrent == '\b')
-		{
-			StrEscapeChar('b', szDest);
-		}				
-		else if (cCurrent == '\f')
-		{
-			StrEscapeChar('f', szDest);
-		}				
-		else if (cCurrent == '\r')
-		{
-			StrEscapeChar('r', szDest);
-		}
-		else if (cCurrent == '\t')
-		{
-			StrEscapeChar('t', szDest);
-		}
-		else if (cCurrent == '\v')
-		{
-			StrEscapeChar('v', szDest);
-		}
-		else
-		{
-			StrEscapeHex(cCurrent, szDest);
-		}
-	}
 	else 
 	{
 		StrEscapeHex(cCurrent, szDest);
 	}
+
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* GetEscapeString(char16 cCurrent, char* szDest)
+{
+	StrEscapeUnicode(cCurrent, szDest);
 	return szDest;
 }
 
