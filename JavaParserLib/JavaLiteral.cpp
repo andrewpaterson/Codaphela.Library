@@ -32,6 +32,6 @@ BOOL CJavaLiteral::IsCharacter(void) { return FALSE; }
 BOOL CJavaLiteral::IsBoolean(void) { return FALSE; }
 BOOL CJavaLiteral::IsString(void) { return FALSE; }
 BOOL CJavaLiteral::IsInteger(void) { return FALSE; }
-BOOL CJavaLiteral::IsFloating(void) { return FALSE; }
+BOOL CJavaLiteral::IsFloat(void) { return FALSE; }
 BOOL CJavaLiteral::IsNull(void) { return FALSE; }
 

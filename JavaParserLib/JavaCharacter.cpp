@@ -1,3 +1,4 @@
+#include "BaseLib/EscapeCodes.h"
 #include "JavaCharacter.h"
 
 
@@ -19,7 +20,7 @@ void CJavaCharacter::Init(char c)
 void CJavaCharacter::Init(char16 c)
 {
 	mc = c;
-	meType = JCT_char8;
+	meType = JCT_char16;
 }
 
 
@@ -59,16 +60,52 @@ char* CJavaCharacter::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaCharacter::Print(CChars* pszDest)
+BOOL CJavaCharacter::Is(char8 c)
 {
-	pszDest->Append('\'');
-	if ((mc >= 32) && (mc <= 255))
+	if (meType == JCT_char8)
 	{
-		pszDest->Append((char)mc);
+		return (char)mc == c;
 	}
 	else
 	{
-		pszDest->Append("[?]");
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaCharacter::Is(char16 c)
+{
+	if (meType == JCT_char16)
+	{
+		return mc == c;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaCharacter::Print(CChars* pszDest)
+{
+	char	sz[10];
+
+	pszDest->Append('\'');
+	if (mc <= 255)
+	{
+		pszDest->Append(GetEscapeString((char)mc, sz));
+	}
+	else
+	{
+		pszDest->Append(GetEscapeString(mc, sz));
 	}
 	pszDest->Append('\'');
 }

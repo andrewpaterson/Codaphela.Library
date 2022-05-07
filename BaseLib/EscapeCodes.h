@@ -22,11 +22,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ESCAPE_CODES_H__
 #define __ESCAPE_CODES_H__
+#include "PrimitiveTypes.h"
 
 
 char GetEscapeCode(char cCurrent);
 char* GetEscapeString(char cCurrent, char* szDest);
 char* GetEscapeString(unsigned char cCurrent, char* szDest);
+char* GetEscapeString(char16 cCurrent, char* szDest);
 
 
 #endif // !__ESCAPE_CODES_H__

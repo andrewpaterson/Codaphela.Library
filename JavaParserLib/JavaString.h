@@ -28,6 +28,7 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void);
+	BOOL	Is(char* szString);
 
 	void	Print(CChars* pszDest);
 	BOOL	IsString(void);

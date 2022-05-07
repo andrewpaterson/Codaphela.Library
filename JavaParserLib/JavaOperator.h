@@ -78,6 +78,8 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
+	BOOL	IsOperator(void);
+	BOOL	Is(EJavaOperator eOperator);
 };
 
 
@@ -93,6 +95,7 @@ public:
 	void 				Kill(void);
 	EJavaOperatorType	GetType(void);
 	char*				GetName(void);
+	BOOL				Is(EJavaOperator eOperator);
 };
 
 
