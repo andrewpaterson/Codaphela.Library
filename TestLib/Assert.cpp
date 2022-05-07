@@ -878,8 +878,8 @@ BOOL PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, c
 		iDecimals = 0;
 	}
 
-	pcExpected = gcNumberControl.Add(pcActual->mcMaxWholeNumbers, iDecimals);
-	pcExpected->Init(szExpected, pcActual->mcMaxWholeNumbers, iDecimals);
+	pcExpected = gcNumberControl.Add(pcActual->GetMaxWholeNumbers(), iDecimals);
+	pcExpected->Init(szExpected, pcActual->GetMaxWholeNumbers(), iDecimals);
 	if (!pcExpected->Equals(pcActual))
 	{
 		szExpectedAsChars.Init();

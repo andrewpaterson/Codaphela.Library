@@ -698,29 +698,13 @@ void CChars::Append(float f, int iMaxDecimals, BOOL bAppendF)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(double d)
-{
-	char sz[32];
-
-	sprintf(sz, "%.8f", d);
-	Append(sz);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChars::Append(double d, int iNumDecimals)
+void CChars::Append(double d, int iMaxDecimals, BOOL bAppendD)
 {
 	char	sz[128];
-	char	szd[128];
 
-	strcpy(sz, "%.");
-	strcat(sz, IntToString(szd, 128, iNumDecimals, 10));
-	strcat(sz, "lf");
-	sprintf(szd, sz, d);
-	Append(szd);
+	DoubleToString(sz, 128, d, iMaxDecimals, bAppendD);
+
+	Append(sz);
 }
 
 

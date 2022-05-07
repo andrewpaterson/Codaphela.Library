@@ -3771,25 +3771,33 @@ TRISTATE CTextParser::GetStringLiteral(void* szDest, size_t uiDestByteLength, BO
 		iPosition = 0;
 		for (;;)
 		{
+			tResult = GetExactCharacter('"', FALSE);
+			if (tResult == TRITRUE)
+			{
+				if ((iOldWidth == 1) || (iOldWidth == 0))
+				{
+					((char*)(szDest))[iPosition] = '\0';
+					iOldWidth = 1;
+				}
+				else if (iOldWidth == 2)
+				{
+					((unsigned short*)(szDest))[iPosition] = 0;
+				}
+				SafeAssign(piCharacterCount, iPosition);
+				SafeAssign(piCharacterWidth, iOldWidth);
+
+				PassPosition();
+				return TRITRUE;
+			}
+			else if (tResult == TRIERROR)
+			{
+				PassPosition();
+				return TRIERROR;
+			}
+
 			tResult = GetCharacterLiteral(&ui, bAllowUTF16, &iWidth);
 			if (tResult == TRITRUE)
 			{
-				if (ui == '\"')
-				{
-					SafeAssign(piCharacterCount, iPosition);
-					SafeAssign(piCharacterWidth, iOldWidth);
-					if (iOldWidth == 1)
-					{
-						((char*)(szDest))[iPosition] = '\0';
-					}
-					else if (iOldWidth == 2)
-					{
-						((unsigned short*)(szDest))[iPosition] = 0;
-					}
-					PassPosition();
-					return TRITRUE;
-				}
-
 				iOldWidth = ChangeWidth(iWidth, iOldWidth, szDest, uiDestByteLength, iPosition);
 
 				if (iOldWidth == 1)

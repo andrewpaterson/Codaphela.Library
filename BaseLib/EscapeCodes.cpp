@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include <string.h>
+#include "StringHelper.h"
 #include "EscapeCodes.h"
 
 
@@ -88,85 +88,115 @@ char GetEscapeCode(char cCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int GetEscapeString(char cCurrent, char* szDest)
+void StrEscapeHex(char c, char* szDest)
+{
+	char cRight;
+	char cLeft;
+
+	cRight = c & 0xf;
+	cLeft = (c & 0xf0) >> 4;
+
+	szDest[0] = '\\';
+	szDest[1] = 'x';
+	szDest[2] = GetHexChar(cLeft);
+	szDest[3] = GetHexChar(cRight);
+	szDest[4] = '\0';
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void StrEscapeChar(char c, char* szDest)
+{
+	szDest[0] = '\\';
+	szDest[1] = c;
+	szDest[2] = '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* GetEscapeString(char cCurrent, char* szDest)
+{
+	return GetEscapeString((unsigned char)cCurrent, szDest);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* GetEscapeString(unsigned char cCurrent, char* szDest)
 {
 	if (cCurrent == '\\')
 	{
-		strcpy(szDest, "\\\\");
-		return 1;
+		StrEscapeChar('\\', szDest);
 	}
-
-	if ((cCurrent >= 32) && (cCurrent <= 126))
+	else if (((cCurrent >= 32) && (cCurrent <= 126)) || (cCurrent == 128) || ((cCurrent >= 130) && (cCurrent <= 254)))
 	{
 		szDest[0] = cCurrent;
 		szDest[1] = '\0';
-		return 1;
 	}
-	
-	if ((cCurrent >= 0) && (cCurrent <= 31))
+	else if ((cCurrent >= 0) && (cCurrent <= 31))
 	{
 		if (cCurrent == '\n')
 		{
-			strcpy(szDest, "\\n");
-			return 1;
-		}
-		else if (cCurrent == '\"')
-		{
-			strcpy(szDest, "\\\"");
-			return 1;
+			StrEscapeChar('n', szDest);
 		}
 		else if (cCurrent == '\'')
 		{
-			strcpy(szDest, "\\'");
-			return 1;
+			StrEscapeChar('\"', szDest);
+		}
+		else if (cCurrent == '\'')
+		{
+			StrEscapeChar('\'', szDest);
 		}
 		else if (cCurrent == '\?')
 		{
-			strcpy(szDest, "\\?");
-			return 1;
+			StrEscapeChar('?', szDest);
 		}
 		else if (cCurrent == '\0')
 		{
-			strcpy(szDest, "\\0");
-			return 1;
+			StrEscapeChar('0', szDest);
 		}
 		else if (cCurrent == '\a')
 		{
-			strcpy(szDest, "\\a");
-			return 1;
+			StrEscapeChar('a', szDest);
 		}				
 		else if (cCurrent == '\b')
 		{
-			strcpy(szDest, "\\b");
-			return 1;
+			StrEscapeChar('b', szDest);
 		}				
 		else if (cCurrent == '\f')
 		{
-			strcpy(szDest, "\\f");
-			return 1;
+			StrEscapeChar('f', szDest);
 		}				
 		else if (cCurrent == '\r')
 		{
-			strcpy(szDest, "\\r");
-			return 1;
+			StrEscapeChar('r', szDest);
 		}
 		else if (cCurrent == '\t')
 		{
-			strcpy(szDest, "\\t");
-			return 1;
+			StrEscapeChar('t', szDest);
 		}
 		else if (cCurrent == '\v')
 		{
-			strcpy(szDest, "\\v");
-			return 1;
+			StrEscapeChar('v', szDest);
+		}
+		else
+		{
+			StrEscapeHex(cCurrent, szDest);
 		}
 	}
-
-	if (cCurrent == 127)
+	else 
 	{
-		strcpy(szDest, "\\x7F");
-		return 1;
+		StrEscapeHex(cCurrent, szDest);
 	}
-	return 0;
+	return szDest;
 }
 

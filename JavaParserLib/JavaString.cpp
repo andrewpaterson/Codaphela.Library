@@ -1,3 +1,4 @@
+#include "BaseLib/EscapeCodes.h"
 #include "JavaCharacter.h"
 #include "JavaString.h"
 
@@ -66,12 +67,19 @@ char* CJavaString::GetType(void)
 void CJavaString::Print(CChars* pszDest)
 {
 	int		i;
-	char16	c;
+	char16	c16;
+	char	c8;
+	char	sz[10];
 
 	if (meType == JST_string8)
 	{
 		pszDest->Append('"');
-		pszDest->Append((const char*)msz, miLength);
+		for (i = 0; i < miLength; i++)
+		{
+			c8 = ((char*)msz)[i];
+			GetEscapeString(c8, sz);
+			pszDest->Append(sz);
+		}
 		pszDest->Append('"');
 	}
 	else if (meType == JST_string16)
@@ -79,10 +87,10 @@ void CJavaString::Print(CChars* pszDest)
 		pszDest->Append('"');
 		for (i = 0; i < miLength; i++)
 		{
-			c = ((char16*)msz)[i];
-			if ((c >= 32) && (c <= 255))
+			c16 = ((char16*)msz)[i];
+			if ((c16 >= 32) && (c16 <= 255))
 			{
-				pszDest->Append((char)c);
+				pszDest->Append((char)c16);
 			}
 			else
 			{
