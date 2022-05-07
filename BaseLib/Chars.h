@@ -77,8 +77,7 @@ public:
 	CChars* Append(int i, int iBase);
 	void	Append(unsigned int ui);
 	void	Append(float f, int iMaxDecimals = -1, BOOL bAppendF = FALSE);
-	void	Append(double d);
-	void	Append(double d, int iNumDecimals);
+	void	Append(double d, int iMaxDecimals = -1, BOOL bAppendD = FALSE);
 	void	Append(long long int lli);
 	void	Append(unsigned long long int ulli);
 	CChars*	Append(CExternalString* pcString);

@@ -38,24 +38,30 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define NUMBER_FLAGS_DIVISION_BY_ZERO	0x10
 #define NUMBER_FIRST_DIGIT_SHIFT		8
 
-#define NUMBER_SIZE(p, q) (p + q + 10)
-#define UNumber(p, q) union { CNumber c; char a[NUMBER_SIZE(p, q)];	}
-
-
 #define NUMBER_INFINITE_STRING "inf"
 #define NUMBER_NOT_A_NUMBER "nan"
 
 
-class CNumberControl;
-class CNumber
+class CNumberDetail
 {
-CONSTRUCTABLE(CNumber);
-public:
+protected:
 	int16		mcMaxWholeNumbers;
 	int16		mcMaxDecimals;
 	int16		mcFirstDigit;
 	int16		mcLastDigit;
 	int16		mcFlags;
+};
+
+
+#define NUMBER_SIZE(p, q) (p + q + sizeof(CNumberDetail))
+#define UNumber(p, q) union { CNumber c; char a[NUMBER_SIZE(p, q)];	}
+
+
+class CNumberControl;
+class CNumber : public CNumberDetail
+{
+CONSTRUCTABLE(CNumber);
+public:
 
 	char		mcDigits[DEFAULT_DIGITS];		// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
 												//
@@ -110,6 +116,8 @@ public:
 	int			GetSign(void);
 	void		SetFlag(int16 iFlag);
 	void		ClearFlag(int16 iFlags);
+	int16		GetMaxWholeNumbers(void);
+	int16		GetMaxDecimals(void);
 	int16		GetFirstNonZeroDigit(void);  //GetFirstNonZeroDigit
 	int16		GetLastNonZeroDigit(void);  //GetLastNonZeroDigit
 	int			GetDecimals(void);

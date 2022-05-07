@@ -50,6 +50,7 @@ int			StrPrintable(const char* szString, int iLength);
 size_t		StrLen(const char* szString, const char* szLastCharInclusive = NULL);
 char*		NullToEmpty(const char* szString);
 char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);
+char		GetHexChar(char c4Bit);
 
 extern char gszDigits[17];
 extern char	gszEmptyString[4];

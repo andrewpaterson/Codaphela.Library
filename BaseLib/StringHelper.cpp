@@ -765,3 +765,24 @@ char* StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive
 	return szDest;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char GetHexChar(char c4Bit)
+{
+	if (c4Bit < 10)
+	{
+		return '0' + c4Bit;
+	}
+	else if (c4Bit < 16)
+	{
+		return 'a' + c4Bit - 10;
+	}
+	else
+	{
+		return '?';
+	}
+}
+

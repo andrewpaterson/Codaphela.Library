@@ -1205,7 +1205,7 @@ TRISTATE CJavaTokenParser::ParseString(CJavaToken** ppcCurrent)
 			*ppcCurrent = mcTokens.CreateString(sz, iLength);
 			return TRITRUE;;
 		}
-		else if (iWidth = 2)
+		else if (iWidth == 2)
 		{
 			*ppcCurrent = mcTokens.CreateString((char16*)sz, iLength);
 			return TRITRUE;;	
