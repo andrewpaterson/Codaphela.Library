@@ -51,6 +51,9 @@ size_t		StrLen(const char* szString, const char* szLastCharInclusive = NULL);
 char*		NullToEmpty(const char* szString);
 char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);
 char		GetHexChar(char c4Bit);
+char*		FlagsToString(char* szDest, int iDestLength, int iFlags);
+char*		FlagsToString(char* szDest, int iDestLength, short int iFlags);
+char*		FlagsToString(char* szDest, int iDestLength, char iFlags);
 
 extern char gszDigits[17];
 extern char	gszEmptyString[4];
