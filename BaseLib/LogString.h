@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __LOG_TO_STRING_H__
 #define __LOG_TO_STRING_H__
+#include "PrimitiveTypes.h"
 
 
 #define __METHOD__ MethodToString(__FILE__, __LINE__, __ENGINE_PRETTY_FUNCTION__)
@@ -32,10 +33,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 int IncrementLogToStringCount(void);
 
 char* CharToString(char c);
+char* CharToString(unsigned char c);
+char* CharToString(char16 c);
 char* IntToString(int i, int iBase = 10);
-char* FloatToString(float f);
-char* FloatToString(float f, int iDecimals);
 char* LongLongToString(long long int lli, int iBase = 10);
+char* FloatToString(float f, int iDecimals = -1);
+char* DoubleToString(double d, int iDecimals = -1);
 char* SizeToString(size_t i, int iBase = 10);
 char* PointerToString(void* pv);
 char* MethodToString(const char* szFile, int iLine, const char* szFunction);
@@ -43,6 +46,7 @@ char* IntToFlags(int iInt);
 char* ShortToFlags(int siShort);
 char* StringToString(char* sz);
 char* StringToString(char* szStart, char* szLastCharInclusive);
+char* BoolToString(BOOL b);
 
 extern char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
 extern int  giLogToStringCount;

@@ -191,6 +191,7 @@
     <ClCompile Include="JavaOperator.cpp" />
     <ClCompile Include="JavaSeparator.cpp" />
     <ClCompile Include="JavaString.cpp" />
+    <ClCompile Include="JavaTokenDefinitions.cpp" />
     <ClCompile Include="JavaTokenMemory.cpp" />
     <ClCompile Include="JavaToken.cpp" />
     <ClCompile Include="JavaTokenParser.cpp" />
@@ -209,6 +210,7 @@
     <ClInclude Include="JavaOperator.h" />
     <ClInclude Include="JavaSeparator.h" />
     <ClInclude Include="JavaString.h" />
+    <ClInclude Include="JavaTokenDefinitions.h" />
     <ClInclude Include="JavaTokenMemory.h" />
     <ClInclude Include="JavaComment.h" />
     <ClInclude Include="JavaToken.h" />

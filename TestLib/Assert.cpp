@@ -1192,11 +1192,11 @@ void ToBoolString(BOOL b, char* szString, int iStringLength)
 {
 	if (b)
 	{
-		StrCpySafe(szString, "TRUE", iStringLength);
+		StrCpySafe(szString, "true", iStringLength);
 	}
 	else
 	{
-		StrCpySafe(szString, "FALSE", iStringLength);
+		StrCpySafe(szString, "false", iStringLength);
 	}
 }
 

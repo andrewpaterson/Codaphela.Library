@@ -17,6 +17,8 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
+	BOOL	Is(char* szComment);
+	void	GetComment(CChars* psz);
 
 	BOOL	IsComment(void);
 };

@@ -31,7 +31,7 @@ void CJavaIdentifier::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaIdentifier::Print(CChars* pszDest)
 {
-	pszDest->Append(mszIdentifier);
+	pszDest->Append(mszIdentifier, miLength);
 }
 
 
@@ -60,3 +60,4 @@ BOOL CJavaIdentifier::Is(char* szIdentifier)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaIdentifier::GetType(void) { return "Identifier"; }
 BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }
+
