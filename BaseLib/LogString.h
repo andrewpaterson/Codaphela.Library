@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define __METHOD__ MethodToString(__FILE__, __LINE__, __ENGINE_PRETTY_FUNCTION__)
 #define LOG_TO_STRING_SCRATCH_PAD_SIZE	32
-#define LOG_TO_STRING_MAX_LENGTH		8192
+#define LOG_TO_STRING_MAX_LENGTH		512
 
 
 int IncrementLogToStringCount(void);

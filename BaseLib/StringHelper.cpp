@@ -786,3 +786,112 @@ char GetHexChar(char c4Bit)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
+{
+	short int		iIndex;
+	char			iBit;
+	int				i;
+	char			iByte;
+	char			iBitIndex;
+	unsigned char	iBitMask;
+	BOOL			bAppendedSpace;
+
+	if ((iDestLength == 0) || (iByteCount > 16))
+	{
+		return szDest;
+	}
+
+	iIndex = 0;
+	iByte = iByteCount-1;
+	iBitIndex = 0;
+	iBitMask = 0x80;
+	for (i = 0; i < iDestLength; i++)
+	{
+		iBit = iBitMask & pvMem[iByte];
+		if (iBit)
+		{
+			szDest[iIndex] = '1';
+			iIndex++;
+			if (iIndex == iDestLength)
+			{
+				break;
+			}
+		}
+		else
+		{
+			szDest[iIndex] = '0';
+			iIndex++;
+			if (iIndex == iDestLength)
+			{
+				break;
+			}
+		}
+
+		iBitIndex++;
+		iBitMask >>= 1;
+		bAppendedSpace = FALSE;
+		if (iBitIndex == 8)
+		{
+			iBitMask = 0x80;
+			iBitIndex = 0;
+			iByte--;
+			szDest[iIndex] = ' ';
+			bAppendedSpace = TRUE;
+			iIndex++;
+			if (iIndex == iDestLength)
+			{
+				break;
+			}
+			if (iByte < 0)
+			{
+				break;
+			}
+		}
+	}
+
+
+	if ((iIndex == iDestLength) || (bAppendedSpace))
+	{
+		iIndex--;
+	}
+	szDest[iIndex] = '\0';
+	
+	return szDest;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FlagsToString(char* szDest, int iDestLength, int iFlags)
+{
+	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 4);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FlagsToString(char* szDest, int iDestLength, short int iFlags)
+{
+	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FlagsToString(char* szDest, int iDestLength, char iFlags)
+{
+	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 1);
+}
+
