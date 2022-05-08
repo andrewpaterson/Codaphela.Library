@@ -71,6 +71,7 @@ BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, siz
 BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szString, int iLine, char* szFile);
 BOOL PrivateAssertStringStartsWith(const char* szExpected, const char* szActual, BOOL bTestCase, int iLine, char* szFile);
 
+BOOL Failed(const char* szExpected, const char* szActual, int iLine, char* szFile);
 
 #define TestStatistics()					PrivateTestStatistics()
 #define BeginTests()						PrivateBeginTests(__FILE__)

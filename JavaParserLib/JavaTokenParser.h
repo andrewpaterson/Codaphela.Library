@@ -24,14 +24,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/EnumeratorTemplate.h"
 #include "JavaTokenMemory.h"
+#include "JavaTokenDefinitions.h"
 #include "JavaKeyword.h"
-
-
-typedef CEnumeratorTemplate<CJavaKeywordDefinition> CKeywordEnumerator;
-typedef CEnumeratorTemplate<CJavaSeparatorDefinition> CSeparatorEnumerator;
-typedef CEnumeratorTemplate<CJavaOperatorDefinition> COperatorEnumerator;
-typedef CEnumeratorTemplate<CJavaAmbiguousDefinition> CAmbiguousEnumerator;
-typedef CEnumeratorTemplate<CJavaGenericDefinition> CGenericEnumerator;
 
 
 class CJavaTokenParser
@@ -41,17 +35,13 @@ protected:
 	CTextParser				mcParser;
 	CChars					mszFileName;
 
-	CKeywordEnumerator		mcKeywords;
-	COperatorEnumerator		mcOperators;
-	CSeparatorEnumerator	mcSeparators;
-	CAmbiguousEnumerator	mcAmbiguous;
-	CGenericEnumerator		mcGenerics;
+	CJavaTokenDefinitions*	mpcDefinitions;
 
 	CJavaToken*				mpcStart;
 
 public:
-	void			Init(char* szFilename, char* szText);
-	void 			Init(char* szFilename, char* szText, int iTextLen);
+	void			Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, char* szText);
+	void 			Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, char* szText, int iTextLen);
 	void 			Kill(void);
 
 	TRISTATE		Parse(void);
@@ -64,24 +54,6 @@ public:
 	void			Dump(BOOL bIncludeType = FALSE);
 
 protected:
-	void			InitKeywords(void);
-	void			InitOperators(void);
-	void			InitSeparators(void);
-	void			InitAmbiguous(void);
-	void			InitGenerics(void);
-
-	void			AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword);
-	void			AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator);
-	void			AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator);
-	void			AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous);
-	void			AddGenericDefinition(char* szGeneric, EJavaGeneric eGeneric);
-
-	void			KillKeywords(void);
-	void			KillOperators(void);
-	void			KillSeparators(void);
-	void			KillAmbiguous(void);
-	void			KillGenerics(void);
-
 	CJavaToken*		GetLineEndToken(CJavaToken* pcStartToken);
 	void			PrintLine(CChars* pszDest, CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 	int				ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken);

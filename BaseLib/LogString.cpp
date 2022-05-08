@@ -3,6 +3,7 @@
 #include "FileUtil.h"
 #include "StringHelper.h"
 #include "FloatPrinter.h"
+#include "EscapeCodes.h"
 #include "LogString.h"
 
 
@@ -33,9 +34,69 @@ int IncrementLogToStringCount(void)
 //////////////////////////////////////////////////////////////////////////
 char* CharToString(char c)
 {
+	return CharToString((unsigned char)c);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CharToString(unsigned char c)
+{
+	char	sz[10];
+	CChars	szDest;
+
+	szDest.Init();
+	szDest.Append('\'');
+	szDest.Append(GetEscapeString(c, sz));
+	szDest.Append('\'');
+
 	int iCount = IncrementLogToStringCount();
-	gaszLogToStringScratchPad[iCount][0] = c;
-	gaszLogToStringScratchPad[iCount][1] = '\0';
+	szDest.CopyIntoBuffer(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH);
+	szDest.Kill();
+	return gaszLogToStringScratchPad[iCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CharToString(char16 c)
+{
+	char	sz[10];
+	CChars	szDest;
+
+	szDest.Init();
+	szDest.Append('\'');
+	szDest.Append(GetEscapeString(c, sz));
+	szDest.Append('\'');
+
+	int iCount = IncrementLogToStringCount();
+	szDest.CopyIntoBuffer(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH);
+	szDest.Kill();
+	return gaszLogToStringScratchPad[iCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* BoolToString(BOOL b)
+{
+	int iCount = IncrementLogToStringCount();
+
+	if (b)
+	{
+		StrCpySafe(gaszLogToStringScratchPad[iCount], "true", LOG_TO_STRING_MAX_LENGTH);
+	}
+	else
+	{
+		StrCpySafe(gaszLogToStringScratchPad[iCount], "false", LOG_TO_STRING_MAX_LENGTH);
+	}
+
 	return gaszLogToStringScratchPad[iCount];
 }
 
@@ -59,16 +120,9 @@ char* IntToString(int i, int iBase)
 //////////////////////////////////////////////////////////////////////////
 char* FloatToString(float f, int iDecimals)
 {
-	char	sz[] = "%.2f";
 	int iCount = IncrementLogToStringCount();
-	if (iDecimals > 9)
-	{
-		iDecimals = 9;
-	}
 
-	sz[2] = '0' + iDecimals;
-	sprintf(gaszLogToStringScratchPad[iCount], sz, f);
-	return gaszLogToStringScratchPad[iCount];
+	return FloatToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, f, iDecimals);
 }
 
 
@@ -76,12 +130,13 @@ char* FloatToString(float f, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FloatToString(float f)
+char* DoubleToString(double d, int iDecimals)
 {
 	int iCount = IncrementLogToStringCount();
 
-	return FloatToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, f);
+	return DoubleToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, d, iDecimals);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -276,6 +331,7 @@ char* StringToString(char* szStart, char* szLastCharInclusive)
 		{
 			iCount = IncrementLogToStringCount();
 			sz = gaszLogToStringScratchPad[iCount];
+			//Should be StrCpySafe but a Safe version hasn't been written yet.
 			StrCpy(sz, szStart, szLastCharInclusive);
 		}
 		return sz;
