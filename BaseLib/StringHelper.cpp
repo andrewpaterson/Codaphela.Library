@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <string.h>
 #include <ctype.h>
 #include "DataTypes.h"
+#include "EscapeCodes.h"
 #include "StringHelper.h"
 
 
@@ -323,10 +324,10 @@ char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, unsigned long long int ulliValue, int iBase)
+char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 {
 	char					szDigits[] = "0123456789abcdef";
-	unsigned long long int	ulliQuotient;
+	uint64	ulliQuotient;
 	unsigned int    		iDigit;
 	unsigned int    		iPos;
 
@@ -363,17 +364,17 @@ char* IntToString(char* szDest, int iDestLength, unsigned long long int ulliValu
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, long long int lliValue, int iBase)
+char* IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase)
 {
-	char			szDigits[] = "0123456789abcdef";
-	long long int	lliQuotient;
-	int				iDigit;
-	int				iPos;
-	int				bNegative;
+	char	szDigits[] = "0123456789abcdef";
+	int64	lliQuotient;
+	int		iDigit;
+	int		iPos;
+	int		bNegative;
 
 	if (iBase != 10)
 	{
-		return IntToString(szDest, iDestLength, (unsigned long long int)lliValue, iBase);
+		return IntToString(szDest, iDestLength, (uint64)lliValue, iBase);
 	}
 
 	bNegative = lliValue < 0;
@@ -533,11 +534,13 @@ const char* FindChar(const char* szString, char c, BOOL bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StrCpySafe(char* szDest, const char* szSource, int iDestLength)
+char* StrCpySafe(char* szDest, const char* szSource, int iDestLength, int* piSourceLength)
 {
 	int iLen;	
 
 	iLen = (int)strlen(szSource);
+	SafeAssign(piSourceLength, iLen);
+
 	if (iLen >= iDestLength)
 	{
 		iLen = iDestLength-1;
@@ -787,6 +790,10 @@ char GetHexChar(char c4Bit)
 }
 
 
+#define INCREMENT_INDEX_BREAK_ON_MAX(INDEX, MAX) INDEX++; if (INDEX == MAX) { break; }
+#define INDEX_RETURN_ON_MAX(INDEX, MAX, DEST) if (INDEX >= MAX) { DEST[iDestLength - 1] = '\0';  return DEST; }
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -816,20 +823,12 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 		if (iBit)
 		{
 			szDest[iIndex] = '1';
-			iIndex++;
-			if (iIndex == iDestLength)
-			{
-				break;
-			}
+			INCREMENT_INDEX_BREAK_ON_MAX(iIndex, iDestLength);
 		}
 		else
 		{
 			szDest[iIndex] = '0';
-			iIndex++;
-			if (iIndex == iDestLength)
-			{
-				break;
-			}
+			INCREMENT_INDEX_BREAK_ON_MAX(iIndex, iDestLength);
 		}
 
 		iBitIndex++;
@@ -842,11 +841,8 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 			iByte--;
 			szDest[iIndex] = ' ';
 			bAppendedSpace = TRUE;
-			iIndex++;
-			if (iIndex == iDestLength)
-			{
-				break;
-			}
+			INCREMENT_INDEX_BREAK_ON_MAX(iIndex, iDestLength);
+
 			if (iByte < 0)
 			{
 				break;
@@ -894,4 +890,85 @@ char* FlagsToString(char* szDest, int iDestLength, char iFlags)
 {
 	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 1);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CharToString(char* szDest, int iDestLength, char c)
+{
+	return CharToString(szDest, iDestLength, (unsigned char)c);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CharToString(char* szDest, int iDestLength, unsigned char c)
+{
+	char		sz[10];
+	short int	iIndex;
+	int			iLength;
+
+	if (iDestLength == 0)
+	{
+		return szDest;
+	}
+
+	iIndex = 0;
+	szDest[iIndex] = '\'';
+	iIndex++;
+	INDEX_RETURN_ON_MAX(iIndex, iDestLength, szDest);
+
+	GetEscapeString(c, sz);
+	StrCpySafe(&szDest[iIndex], sz, iDestLength - iIndex, &iLength);
+
+	iIndex += iLength;
+	INDEX_RETURN_ON_MAX(iIndex, iDestLength, szDest);
+
+	szDest[iIndex] = '\'';
+	iIndex++;
+	INDEX_RETURN_ON_MAX(iIndex, iDestLength, szDest);
+
+	szDest[iIndex] = '\0';
+	return szDest;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CharToString(char* szDest, int iDestLength, char16 c)
+{
+	char		sz[10];
+	short int	iIndex;
+	int			iLength;
+
+	if (iDestLength == 0)
+	{
+		return szDest;
+	}
+
+	iIndex = 0;
+	szDest[iIndex] = '\'';
+	iIndex++;
+	INDEX_RETURN_ON_MAX(iIndex, iDestLength, szDest);
+
+	GetEscapeString(c, sz);
+	StrCpySafe(&szDest[iIndex], sz, iDestLength - iIndex, &iLength);
+
+	iIndex += iLength;
+	INDEX_RETURN_ON_MAX(iIndex, iDestLength, szDest);
+
+	szDest[iIndex] = '\'';
+	iIndex++;
+	INDEX_RETURN_ON_MAX(iIndex, iDestLength, szDest);
+
+	szDest[iIndex] = '\0';
+	return szDest;
+}
+
 

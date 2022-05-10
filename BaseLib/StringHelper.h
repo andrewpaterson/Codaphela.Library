@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __STRING_HELPER_H__
 #include <string.h>
 #include "Define.h"
+#include "PrimitiveTypes.h"
 
 
 int			StringCompare(const char* ps1, const char* ps2);
@@ -34,12 +35,12 @@ int			MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2);
 void		MemSwp(const void* pv1, const void* pv2, size_t uiLength);
 char*		IntToString(char* szDest, int iDestLength, int iValue, int iBase = 10);
 char*		IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase = 10);
-char*		IntToString(char* szDest, int iDestLength, long long int lliValue, int iBase = 10);
-char*		IntToString(char* szDest, int iDestLength, unsigned long long int ulliValue, int iBase = 10);
+char*		IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase = 10);
+char*		IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase = 10);
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, int iLength);
-const char*	FindChar(const char* szString, char c, BOOL bReverse = 0);
-char*		StrCpySafe(char* szDest, const char* szSource, int iDestLength);
+const char*	FindChar(const char* szString, char c, BOOL bReverse = FALSE);
+char*		StrCpySafe(char* szDest, const char* szSource, int iDestLength, int* piSourceLength = NULL);
 void		ToLower(char* szString);
 void		ToUpper(char* szString);
 char		ToLower(char c);
@@ -54,6 +55,9 @@ char		GetHexChar(char c4Bit);
 char*		FlagsToString(char* szDest, int iDestLength, int iFlags);
 char*		FlagsToString(char* szDest, int iDestLength, short int iFlags);
 char*		FlagsToString(char* szDest, int iDestLength, char iFlags);
+char*		CharToString(char* szDest, int iDestLength, char c);
+char*		CharToString(char* szDest, int iDestLength, unsigned char c);
+char*		CharToString(char* szDest, int iDestLength, char16 c);
 
 extern char gszDigits[17];
 extern char	gszEmptyString[4];
