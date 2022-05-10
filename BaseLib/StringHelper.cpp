@@ -286,7 +286,6 @@ char* IntToString(char* szDest, int iDestLength, int iValue, int iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
 {
-	char			szDigits[] = "0123456789abcdef";
 	unsigned int	iQuotient;
 	unsigned int    iDigit;
 	unsigned int    iPos;
@@ -305,7 +304,7 @@ char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
 		iDigit = iQuotient % iBase;
 		iQuotient /= iBase;
 
-		szDest[iPos] = szDigits[iDigit];
+		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
 	} while (iQuotient != 0);
@@ -326,10 +325,9 @@ char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 {
-	char					szDigits[] = "0123456789abcdef";
-	uint64	ulliQuotient;
-	unsigned int    		iDigit;
-	unsigned int    		iPos;
+	uint64			ulliQuotient;
+	unsigned int    iDigit;
+	unsigned int    iPos;
 
 	if (iBase < 2 || iBase > 16)
 	{
@@ -345,7 +343,7 @@ char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 		iDigit = (unsigned int)(ulliQuotient % iBase);
 		ulliQuotient /= iBase;
 
-		szDest[iPos] = szDigits[iDigit];
+		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
 	} while (ulliQuotient != 0);
@@ -366,7 +364,6 @@ char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 ////////////////////////////////////////////////////////////////////////////////////
 char* IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase)
 {
-	char	szDigits[] = "0123456789abcdef";
 	int64	lliQuotient;
 	int		iDigit;
 	int		iPos;
@@ -390,7 +387,7 @@ char* IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase)
 		iDigit = (int)(lliQuotient % iBase);
 		lliQuotient /= iBase;
 
-		szDest[iPos] = szDigits[iDigit];
+		szDest[iPos] = gszDigits[iDigit];
 		iPos++;
 
 	} while (lliQuotient != 0);
