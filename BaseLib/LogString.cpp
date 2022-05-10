@@ -68,17 +68,7 @@ char* CharToString(char16 c)
 char* BoolToString(BOOL b)
 {
 	int iCount = IncrementLogToStringCount();
-
-	if (b)
-	{
-		StrCpySafe(gaszLogToStringScratchPad[iCount], "true", LOG_TO_STRING_MAX_LENGTH);
-	}
-	else
-	{
-		StrCpySafe(gaszLogToStringScratchPad[iCount], "false", LOG_TO_STRING_MAX_LENGTH);
-	}
-
-	return gaszLogToStringScratchPad[iCount];
+	return BoolToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, b);
 }
 
 
@@ -125,37 +115,11 @@ char* DoubleToString(double d, int iDecimals)
 //////////////////////////////////////////////////////////////////////////
 char* IntToFlags(int iInt)
 {
-	int iIndex;
-	int iCount = IncrementLogToStringCount();
-	int iBit;
-	int	i;
 	char* sz;
-
+	int iCount = IncrementLogToStringCount();
 	sz = gaszLogToStringScratchPad[iCount];
-	iIndex = 0;
-	for (i = 31; i >= 0; i--)
-	{
-		iBit = (1 << i) & iInt;
-		if (iBit)
-		{
-			sz[iIndex] = '1';
-			iIndex++;
-		}
-		else
-		{
-			sz[iIndex] = '0';
-			iIndex++;
-		}
 
-		if ((i % 8 == 0) && (i != 0))
-		{
-			sz[iIndex] = ' ';
-			iIndex++;
-		}
-	}
-	
-	sz[iIndex] = '\0';
-	return gaszLogToStringScratchPad[iCount];
+	return FlagsToString(sz, LOG_TO_STRING_MAX_LENGTH, iInt);
 }
 
 
@@ -163,37 +127,13 @@ char* IntToFlags(int iInt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* ShortToFlags(int siShort)
+char* ShortToFlags(int iShort)
 {
-	int iIndex;
+	char* sz;
 	int iCount = IncrementLogToStringCount();
-	int iBit;
-	int	i;
+	sz = gaszLogToStringScratchPad[iCount];
 
-	iIndex = 0;
-	for (i = 15; i >= 0; i--)
-	{
-		iBit = (1 << i) & siShort;
-		if (iBit)
-		{
-			gaszLogToStringScratchPad[iCount][iIndex] = '1';
-			iIndex++;
-		}
-		else
-		{
-			gaszLogToStringScratchPad[iCount][iIndex] = '0';
-			iIndex++;
-		}
-
-		if ((i % 8 == 0) && (i != 0))
-		{
-			gaszLogToStringScratchPad[iCount][iIndex] = ' ';
-			iIndex++;
-		}
-	}
-
-	gaszLogToStringScratchPad[iCount][iIndex] = '\0';
-	return gaszLogToStringScratchPad[iCount];
+	return FlagsToString(sz, LOG_TO_STRING_MAX_LENGTH, iShort);
 }
 
 
@@ -243,7 +183,7 @@ char* PointerToString(void* pv)
 
 	sz.Init();
 	sz.AppendHexHiLo(&pv, sizeof(size_t));
-	strcpy(gaszLogToStringScratchPad[iCount], sz.Text());
+	StrCpySafe(gaszLogToStringScratchPad[iCount], sz.Text(), LOG_TO_STRING_MAX_LENGTH);
 	sz.Kill();
 	return gaszLogToStringScratchPad[iCount];
 }
