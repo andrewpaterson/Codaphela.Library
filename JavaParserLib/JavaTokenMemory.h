@@ -6,6 +6,7 @@
 #include "JavaComment.h"
 #include "JavaKeyword.h"
 #include "JavaIdentifier.h"
+#include "JavaAnnotation.h"
 #include "JavaOperator.h"
 #include "JavaSeparator.h"
 #include "JavaGeneric.h"
@@ -34,6 +35,7 @@ public:
 
 	CJavaComment*		CreateComment(char* szComment, int iLength);
 	CJavaIdentifier*	CreateIdentifier(char* szIdentifier, int iLength);
+	CJavaAnnotation*	CreateAnnotation(char* szAnnotation, int iLength);
 	CJavaKeyword*		CreateKeyword(CJavaKeywordDefinition* pcKeyword);
 	CJavaOperator*		CreateOperator(CJavaOperatorDefinition* pcOperator);
 	CJavaSeparator*		CreateSeparator(CJavaSeparatorDefinition* pcSeparator);

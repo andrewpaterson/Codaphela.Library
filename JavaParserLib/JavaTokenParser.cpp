@@ -115,6 +115,7 @@ TRISTATE CJavaTokenParser::Parse(void)
 		ContinueOnTrueReturnOnError(ParseBoolean(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseNull(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseIdentifier(&pcCurrent));
+		ContinueOnTrueReturnOnError(ParseAnnotation(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseFloat(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseInteger(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseCharacter(&pcCurrent));
@@ -782,6 +783,47 @@ TRISTATE CJavaTokenParser::ParseIdentifier(CJavaToken** ppcCurrent)
 	}
 	else
 	{
+		return TRIFALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CJavaTokenParser::ParseAnnotation(CJavaToken** ppcCurrent)
+{
+	TRISTATE	tResult;
+	char		szText[4 KB];
+	int			iLength;
+
+	mcParser.PushPosition();
+	tResult = mcParser.GetExactCharacter('@', FALSE);
+	if (tResult == TRITRUE)
+	{
+		tResult = mcParser.GetIdentifier(szText, &iLength, FALSE, FALSE);
+		if (tResult == TRITRUE)
+		{
+			*ppcCurrent = mcTokens.CreateAnnotation(szText, iLength);
+			return TRITRUE;;
+		}
+		else if (tResult == TRIERROR)
+		{
+			return TRIERROR;
+		}
+		else
+		{
+			return TRIFALSE;
+		}
+	}
+	else if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+	else
+	{
+		mcParser.PopPosition();
 		return TRIFALSE;
 	}
 }

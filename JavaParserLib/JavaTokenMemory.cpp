@@ -110,6 +110,31 @@ CJavaIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int iLen
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CJavaAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int iLength)
+{
+	CJavaAnnotation*	pcToken;
+	char*				szDest;
+
+	pcToken = (CJavaAnnotation*)mcStack.Add(sizeof(CJavaAnnotation) + iLength + 1);
+	if (pcToken)
+	{
+		mapcTokens.Add(pcToken);
+
+		new(pcToken) CJavaAnnotation;
+		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaAnnotation));
+		memcpy(szDest, szAnnotation, iLength);
+		szDest[iLength] = '\0';
+		pcToken->Init(szDest, iLength);
+	}
+
+	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CJavaOperator* CJavaTokenMemory::CreateOperator(CJavaOperatorDefinition* pcOperator)
 {
 	CJavaOperator* pcToken;

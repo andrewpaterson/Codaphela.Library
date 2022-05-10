@@ -63,6 +63,9 @@
     <ClCompile Include="JavaTokenDefinitions.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="JavaAnnotation.cpp">
+      <Filter>Source\Tokens</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaTokenParser.h">
@@ -118,6 +121,9 @@
     </ClInclude>
     <ClInclude Include="JavaTokenDefinitions.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaAnnotation.h">
+      <Filter>Source\Tokens</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
