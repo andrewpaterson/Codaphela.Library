@@ -759,13 +759,9 @@ CChars* CChars::AppendNewLine(CChars sz)
 //////////////////////////////////////////////////////////////////////////
 char GetNumberAs1DigitHex(int nybble)
 {
-	if ((nybble >= 0) && (nybble <= 9))
+	if ((nybble >= 0) && (nybble <= 15))
 	{
-		return '0' + nybble;
-	}
-	else if ((nybble >= 10) && (nybble <= 15))
-	{
-		return 'A' + (nybble - 10);
+		return gszDigits[nybble];
 	}
 	return '?';
 }

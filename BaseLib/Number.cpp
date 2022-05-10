@@ -27,6 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "NumberControl.h"
 
 
+#define ZERO '0'
+#define NINE '9'
+#define DOT '.'
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -257,17 +262,17 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	for (i = 0; i < iLen; i++)
 	{
 		c = szNumber[i];
-		if ((c >= '0') && (c <= '9'))
+		if ((c >= ZERO) && (c <= NINE))
 		{
 			bAnyDigits = TRUE;
-			if ((c != '0') && (iNonZero == -1))
+			if ((c != ZERO) && (iNonZero == -1))
 			{
 				iNonZero = iPos;
 			}
-			cDigits[iPos] = c - '0';
+			cDigits[iPos] = c - ZERO;
 			iPos++;
 		}
-		else if (c == '.')
+		else if (c == DOT)
 		{
 			if (iDecimalPoint != 0)
 			{
@@ -3549,7 +3554,7 @@ void CNumber::SetDigit(int iDigit, char cValue)
 	}
 	else if (iDigit == 0)
 	{
-		if (cValue != '.')
+		if (cValue != DOT)
 		{
 			SetFlag(NUMBER_FLAGS_NAN);
 		}
@@ -3680,12 +3685,12 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 		{
 			if (i != 0)
 			{
-				c = GetDigitUnsafe(i) + '0';
+				c = GetDigitUnsafe(i) + ZERO;
 				pcChars->Append(c);
 			}
 			else
 			{
-				pcChars->Append('.');
+				pcChars->Append(DOT);
 			}
 		}
 	}
@@ -3693,30 +3698,30 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-				c = GetDigitUnsafe(i) + '0';
+				c = GetDigitUnsafe(i) + ZERO;
 				pcChars->Append(c);
 		}
-		pcChars->Append('.');
+		pcChars->Append(DOT);
 	}
 	else if ((iStart >= 1)  && (iStart <= 8) && (iStop >= 1) && (iStop <= 4))
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigitUnsafe(i) + '0';
+			c = GetDigitUnsafe(i) + ZERO;
 			pcChars->Append(c);
 		}
-		pcChars->Append('0', iStop - 1);
-		pcChars->Append('.');
+		pcChars->Append(ZERO, iStop - 1);
+		pcChars->Append(DOT);
 	}
 	else if ((iStart >= 1) && (iStop >= 1))
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigitUnsafe(i) + '0';
+			c = GetDigitUnsafe(i) + ZERO;
 			pcChars->Append(c);
 			if (i == iStart)
 			{
-				pcChars->Append('.');
+				pcChars->Append(DOT);
 			}
 		}
 		pcChars->Append('e');
@@ -3725,13 +3730,13 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	}
 	else if ((iStart <= -1) && (iStart >= -4)  && (iStop <= -1))
 	{
-		pcChars->Append('0');
-		pcChars->Append('.');
-		pcChars->Append('0', (-iStart) -1);
+		pcChars->Append(ZERO);
+		pcChars->Append(DOT);
+		pcChars->Append(ZERO, (-iStart) -1);
 
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigitUnsafe(i) + '0';
+			c = GetDigitUnsafe(i) + ZERO;
 			pcChars->Append(c);
 		}
 	}
@@ -3739,11 +3744,11 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	{
 		for (i = iStart; i >= iStop; i--)
 		{
-			c = GetDigitUnsafe(i) + '0';
+			c = GetDigitUnsafe(i) + ZERO;
 			pcChars->Append(c);
 			if (i == iStart)
 			{
-				pcChars->Append('.');
+				pcChars->Append(DOT);
 			}
 		}
 		pcChars->Append('e');
@@ -3820,12 +3825,12 @@ void CNumber::Print(CChars* pcChars)
 	{
 		if (i != 0)
 		{
-			c = SafeGetDigit(i) + '0';
+			c = SafeGetDigit(i) + ZERO;
 			pcChars->Append(c);
 		}
 		else
 		{
-			pcChars->Append('.');
+			pcChars->Append(DOT);
 		}
 	}
 
