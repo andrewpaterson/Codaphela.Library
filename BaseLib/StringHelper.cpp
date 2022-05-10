@@ -536,10 +536,15 @@ const char* FindChar(const char* szString, char c, BOOL bReverse)
 //////////////////////////////////////////////////////////////////////////
 char* StrCpySafe(char* szDest, const char* szSource, int iDestLength, int* piSourceLength)
 {
-	int iLen;	
+	int iLen;
 
 	iLen = (int)strlen(szSource);
 	SafeAssign(piSourceLength, iLen);
+
+	if (iDestLength == 0)
+	{
+		return szDest;
+	}
 
 	if (iLen >= iDestLength)
 	{
@@ -971,4 +976,21 @@ char* CharToString(char* szDest, int iDestLength, char16 c)
 	return szDest;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* BoolToString(char* szDest, int iDestLength, BOOL b)
+{
+	if (b)
+	{
+		StrCpySafe(szDest, "true", iDestLength);
+	}
+	else
+	{
+		StrCpySafe(szDest, "false", iDestLength);
+	}
+	return szDest;
+}
 
