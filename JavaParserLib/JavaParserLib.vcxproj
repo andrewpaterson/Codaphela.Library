@@ -178,6 +178,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="JavaAmbiguous.cpp" />
+    <ClCompile Include="JavaAnnotation.cpp" />
     <ClCompile Include="JavaBoolean.cpp" />
     <ClCompile Include="JavaCharacter.cpp" />
     <ClCompile Include="JavaComment.cpp" />
@@ -197,6 +198,7 @@
     <ClCompile Include="JavaTokenParser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="JavaAnnotation.h" />
     <ClInclude Include="JavaBoolean.h" />
     <ClInclude Include="JavaFloat.h" />
     <ClInclude Include="JavaInteger.h" />

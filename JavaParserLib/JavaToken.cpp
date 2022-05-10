@@ -44,3 +44,5 @@ BOOL CJavaToken::IsGeneric(void) { return FALSE; }
 BOOL CJavaToken::IsAmbiguous(void) { return FALSE; }
 BOOL CJavaToken::IsOperator(void) { return FALSE; }
 BOOL CJavaToken::IsLiteral(void) { return FALSE; }
+BOOL CJavaToken::IsAnnotation(void) { return FALSE; }
+

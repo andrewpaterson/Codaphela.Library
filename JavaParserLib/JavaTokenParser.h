@@ -73,6 +73,7 @@ protected:
 	TRISTATE		ParseCharacter(CJavaToken** ppcCurrent);
 	TRISTATE		ParseString(CJavaToken** ppcCurrent);
 	TRISTATE		ParseNull(CJavaToken** ppcCurrent);
+	TRISTATE		ParseAnnotation(CJavaToken** ppcCurrent);
 };
 
 

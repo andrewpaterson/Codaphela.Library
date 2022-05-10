@@ -28,6 +28,7 @@ public:
 	virtual BOOL		IsAmbiguous(void);
 	virtual BOOL		IsOperator(void);
 	virtual BOOL		IsLiteral(void);
+	virtual BOOL		IsAnnotation(void);
 };
 
 
