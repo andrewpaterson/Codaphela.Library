@@ -14,7 +14,7 @@ enum EJavaSeparator
 	JS_CurlyBracketLeft,
 	JS_CurlyBracketRight,
 	JS_SquareBracketLeft,
-	JS_AquareBracketRight,
+	JS_SquareBracketRight,
 
 	JS_Unknown = -1
 };

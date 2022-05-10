@@ -178,10 +178,14 @@ void CJavaTokenParser::PrettyPrint(CChars* pszDest)
 	CJavaToken*			pcLastStartToken;
 	int					iBlockChange;
 	BOOL				bAppendNewLine;
+	BOOL				bMethodDeclaration;
+	BOOL				bAnnotation;
+	BOOL				bLastAnnotation;
 
 	iBlockDepth = 0;
 
 	pcLastStartToken = NULL;
+	bLastAnnotation = FALSE;
 	pcStartToken = GetFirstToken();
 
 	for (;;)
@@ -194,11 +198,14 @@ void CJavaTokenParser::PrettyPrint(CChars* pszDest)
 			iBlockDepth += iBlockChange;
 		}
 
+		bMethodDeclaration = IsMethodDeclaration(pcStartToken, pcEndToken);
+		bAnnotation = IsAnnotation(pcStartToken, pcEndToken);
 		bAppendNewLine = PrintNewLine(pcStartToken, pcLastStartToken);
-		if (bAppendNewLine)
+		if ((bAppendNewLine || bMethodDeclaration) && !bLastAnnotation)
 		{
 			pszDest->AppendNewLine();
 		}
+		bLastAnnotation = bAnnotation;
 
 		pszDest->Append('\t', iBlockDepth);
 
@@ -225,8 +232,8 @@ void CJavaTokenParser::PrettyPrint(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaTokenParser::PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLastStartToken)
 {
-	CJavaKeyword*	pcStartKeyWord;
-	CJavaKeyword*	pcPreviousStartKeyWord;
+	CJavaKeyword*		pcStartKeyWord;
+	CJavaKeyword*		pcPreviousStartKeyWord;
 
 	if (pcLastStartToken != NULL)
 	{
@@ -251,10 +258,139 @@ BOOL CJavaTokenParser::PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLast
 				return TRUE;
 			}
 		}
+
+		if (pcStartToken->IsKeyword())
+		{
+			pcStartKeyWord = (CJavaKeyword*)pcStartToken;
+			if (pcStartKeyWord->Is(JK_if) || pcStartKeyWord->Is(JK_for))
+			{
+				if (!pcLastStartToken->IsSeparator())
+				{
+					return TRUE;
+				}
+			}
+		}
+
+		if (pcStartToken->IsAnnotation())
+		{
+			return TRUE;
+		}
 	}
+
 	return FALSE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaTokenParser::IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken* pcEndToken)
+{
+	CJavaToken*			pcToken;
+	CJavaSeparator*		pcSeparator;
+	CJavaKeyword*		pcKeyword;
+	BOOL				bDone;
+	int					iLeftPosition;
+	int					iRightPosition;
+	int					iPosition;
+	int					iLeftCount;
+	int					iRightCount;
+	int					iModifierCount;
+
+	bDone = FALSE;
+	pcToken = pcStartToken;
+	if (pcToken == pcEndToken)
+	{
+		return FALSE;
+	}
+
+	iPosition = 0;
+	iLeftCount = 0;
+	iRightCount = 0;
+	iModifierCount = 0;
+	do
+	{
+		if (pcToken->IsSeparator())
+		{
+			pcSeparator = (CJavaSeparator*)pcToken;
+			if (pcSeparator->Is(JS_RoundBracketLeft))
+			{
+				iLeftPosition = iPosition;
+				iLeftCount++;
+			}
+			else if (pcSeparator->Is(JS_RoundBracketRight))
+			{
+
+				iRightPosition = iPosition;
+				iRightCount++;
+			}
+		}
+
+		if (pcToken->IsKeyword())
+		{
+			pcKeyword = (CJavaKeyword*)pcToken;
+			if (pcKeyword->Is(JK_private) || pcKeyword->Is(JK_protected) || pcKeyword->Is(JK_public))
+			{
+				iModifierCount++;
+			}
+		}
+
+		pcToken = pcToken->GetNext();
+		if (bDone)
+		{
+			break;
+		}
+
+		if (pcToken == pcEndToken)
+		{
+			bDone = TRUE;
+		}
+	} while (TRUE);
+
+	if ((iLeftCount == 1) && (iRightCount == 1) && (iModifierCount > 0))
+	{
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaTokenParser::IsAnnotation(CJavaToken* pcStartToken, CJavaToken* pcEndToken)
+{
+	CJavaToken*			pcToken;
+	BOOL				bDone;
+
+	bDone = FALSE;
+	pcToken = pcStartToken;
+	bDone = (pcToken == pcEndToken);
+
+	do
+	{
+		if (pcToken->IsAnnotation())
+		{
+			return TRUE;
+		}
+
+		pcToken = pcToken->GetNext();
+		if (bDone)
+		{
+			break;
+		}
+
+		if (pcToken == pcEndToken)
+		{
+			bDone = TRUE;
+		}
+	} while (TRUE);
+
+	return FALSE;
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -490,6 +626,10 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 				iRoundDepth = 0;
 			}
 		}
+		else if (pcToken->IsAnnotation())
+		{
+			bLineEnder = TRUE;
+		}
 
 		pcPrevious = pcToken;
 		pcToken = pcToken->GetNext();
@@ -509,6 +649,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 	BOOL				bCharThingRight;
 	CJavaSeparator*		pcSeparator;
 	CJavaAmbiguous*		pcAmbiguous;
+	CJavaKeyword*		pcKeyword;
 
 	if (pcRight == NULL)
 	{
@@ -538,6 +679,36 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 	{
 		pcAmbiguous = (CJavaAmbiguous*)pcLeft;
 		if (pcAmbiguous->Is(JA_QuestionMark))
+		{
+			return TRUE;
+		}
+	}
+
+	if (pcRight->IsAmbiguous())
+	{
+		pcAmbiguous = (CJavaAmbiguous*)pcRight;
+		if (pcAmbiguous->Is(JA_QuestionMark))
+		{
+			if (pcLeft->IsIdentifier())
+			{
+				return TRUE;
+			}
+
+			if (pcLeft->IsSeparator())
+			{
+				pcSeparator = (CJavaSeparator*)pcLeft;
+				if (pcSeparator->Is(JS_SquareBracketRight) || pcSeparator->Is(JS_RoundBracketRight))
+				{
+					return TRUE;
+				}
+			}
+		}
+	}
+
+	if (pcLeft->IsKeyword())
+	{
+		pcKeyword = (CJavaKeyword*)pcLeft;
+		if (pcKeyword->Is(JK_if) || pcKeyword->Is(JK_for))
 		{
 			return TRUE;
 		}
