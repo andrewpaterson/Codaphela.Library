@@ -168,7 +168,7 @@ void CJavaTokenDefinitions::InitSeparators(void)
 	AddSeparatorDefinition("{", JS_CurlyBracketLeft);
 	AddSeparatorDefinition("}", JS_CurlyBracketRight);
 	AddSeparatorDefinition("[", JS_SquareBracketLeft);
-	AddSeparatorDefinition("]", JS_AquareBracketRight);
+	AddSeparatorDefinition("]", JS_SquareBracketRight);
 }
 
 
