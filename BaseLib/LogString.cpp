@@ -32,9 +32,10 @@ int IncrementLogToStringCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(char c)
+char* CharToString(unsigned char c)
 {
-	return CharToString((unsigned char)c);
+	int iCount = IncrementLogToStringCount();
+	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);
 }
 
 
@@ -42,20 +43,10 @@ char* CharToString(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(unsigned char c)
+char* CharToString(char c)
 {
-	char	sz[10];
-	CChars	szDest;
-
-	szDest.Init();
-	szDest.Append('\'');
-	szDest.Append(GetEscapeString(c, sz));
-	szDest.Append('\'');
-
 	int iCount = IncrementLogToStringCount();
-	szDest.CopyIntoBuffer(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH);
-	szDest.Kill();
-	return gaszLogToStringScratchPad[iCount];
+	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);
 }
 
 
@@ -65,18 +56,8 @@ char* CharToString(unsigned char c)
 //////////////////////////////////////////////////////////////////////////
 char* CharToString(char16 c)
 {
-	char	sz[10];
-	CChars	szDest;
-
-	szDest.Init();
-	szDest.Append('\'');
-	szDest.Append(GetEscapeString(c, sz));
-	szDest.Append('\'');
-
 	int iCount = IncrementLogToStringCount();
-	szDest.CopyIntoBuffer(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH);
-	szDest.Kill();
-	return gaszLogToStringScratchPad[iCount];
+	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);
 }
 
 

@@ -1158,7 +1158,6 @@ BOOL Pass(void)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1177,6 +1176,10 @@ void ToTristateString(TRISTATE t, char* szString, int iStringLength)
 	{
 		StrCpySafe(szString, "TRIERROR", iStringLength);
 	}
+	else if (t == TRIGNORED)
+	{
+		StrCpySafe(szString, "TRIGNORED", iStringLength);
+	}	
 	else
 	{
 		StrCpySafe(szString, "UNDEFINED", iStringLength);
@@ -1229,6 +1232,7 @@ void ToIntHexString(int i, char* szString, int iStringLength)
 //////////////////////////////////////////////////////////////////////////
 void ToCharString(char c, char* szString, int iStringLength)
 {
+	CharToString(c);
 	if ((c >= 0 && c <= 31) || (c == 127) || ((unsigned char)c >= 128 && (unsigned char)c <= 159))
 	{
 		ToIntHexString(c, szString, iStringLength);
