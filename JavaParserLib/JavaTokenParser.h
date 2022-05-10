@@ -58,6 +58,7 @@ protected:
 	void			PrintLine(CChars* pszDest, CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 	int				ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 	BOOL			PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight);
+	BOOL			PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLastStartToken);
 
 	TRISTATE		ParseComment(CJavaToken** ppcCurrent);
 	TRISTATE		ParseKeyword(CJavaToken** ppcCurrent);

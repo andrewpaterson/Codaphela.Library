@@ -26,8 +26,11 @@ public:
 	void 	Init(CJavaAmbiguousDefinition* pcDefinition);
 	void 	Kill(void);
 
+	BOOL	IsAmbiguous(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
+
+	BOOL	Is(EJavaAmbiguous eAmbiguous);
 };
 
 
@@ -38,10 +41,11 @@ protected:
 	CChars			mszName;
 
 public:
-	void 	Init(EJavaAmbiguous eAmbiguous, char* szName);
-	void 	Kill(void);
+	void 			Init(EJavaAmbiguous eAmbiguous, char* szName);
+	void 			Kill(void);
 
-	char*	GetName(void);
+	char*			GetName(void);
+	EJavaAmbiguous	Get(void);
 };
 
 
