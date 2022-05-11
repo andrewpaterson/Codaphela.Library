@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaInteger::Init(int32 iValue)
 {
+	CJavaLiteral::Init(JLT_Integer);
 	miValue = iValue;
 	meType = JIT_int32;
 }
@@ -20,6 +21,7 @@ void CJavaInteger::Init(int64 iValue)
 {
 	miValue = iValue;
 	meType = JIT_int64;
+	CJavaLiteral::Kill();
 }
 
 

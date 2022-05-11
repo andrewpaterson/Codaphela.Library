@@ -37,10 +37,18 @@ void CJavaGeneric::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaGeneric::GetType(void)
+BOOL CJavaGeneric::Is(EJavaGeneric eGeneric)
 {
-	return "Generic";
+	return mpcGeneric->Get() == eGeneric;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaGeneric::GetType(void) { return "Generic"; }
+BOOL CJavaGeneric::IsGeneric(void) { return TRUE; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,8 +77,6 @@ void CJavaGenericDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaGenericDefinition::GetName(void)
-{
-	return mszName.Text();
-}
+char* CJavaGenericDefinition::GetName(void) { return mszName.Text(); }
+EJavaGeneric CJavaGenericDefinition::Get(void) { return meGeneric; }
 

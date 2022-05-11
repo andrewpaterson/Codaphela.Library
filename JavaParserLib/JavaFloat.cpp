@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaFloat::Init(float32 fValue)
 {
+	CJavaLiteral::Init(JLT_Float);
 	mfValue = fValue;
 	meType = JFT_float32;
 }
@@ -20,6 +21,7 @@ void CJavaFloat::Init(float64 fValue)
 {
 	mfValue = fValue;
 	meType = JFT_float64;
+	CJavaLiteral::Kill();
 }
 
 

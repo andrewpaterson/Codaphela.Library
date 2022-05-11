@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaString::Init(char* sz, int iLength)
 {
+	CJavaLiteral::Init(JLT_String);
 	msz = sz;
 	meType = JST_string8;
 	miLength = iLength;
@@ -24,6 +25,7 @@ void CJavaString::Init(char16* sz, int iLength)
 	msz = sz;
 	meType = JST_string16;
 	miLength = iLength;
+	CJavaLiteral::Kill();
 }
 
 

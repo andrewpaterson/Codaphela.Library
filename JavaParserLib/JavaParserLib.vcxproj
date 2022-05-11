@@ -197,6 +197,7 @@
     <ClCompile Include="JavaSyntaxImport.cpp" />
     <ClCompile Include="JavaSyntaxMemory.cpp" />
     <ClCompile Include="JavaSyntaxPackage.cpp" />
+    <ClCompile Include="JavaSyntaxParser.cpp" />
     <ClCompile Include="JavaSyntaxTopLevel.cpp" />
     <ClCompile Include="JavaSyntaxTree.cpp" />
     <ClCompile Include="JavaTokenDefinitions.cpp" />
@@ -224,6 +225,7 @@
     <ClInclude Include="JavaSyntaxImport.h" />
     <ClInclude Include="JavaSyntaxMemory.h" />
     <ClInclude Include="JavaSyntaxPackage.h" />
+    <ClInclude Include="JavaSyntaxParser.h" />
     <ClInclude Include="JavaSyntaxTopLevel.h" />
     <ClInclude Include="JavaSyntaxTree.h" />
     <ClInclude Include="JavaTokenDefinitions.h" />

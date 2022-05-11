@@ -25,8 +25,11 @@ public:
 	void 	Init(CJavaGenericDefinition* pcGeneric);
 	void 	Kill(void);
 
+	BOOL	IsGeneric(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
+
+	BOOL	Is(EJavaGeneric eGeneric);
 };
 
 
@@ -37,10 +40,11 @@ protected:
 	CChars			mszName;
 
 public:
-	void 	Init(EJavaGeneric eGeneric, char* szName);
-	void 	Kill(void);
+	void 			Init(EJavaGeneric eGeneric, char* szName);
+	void 			Kill(void);
 
-	char*	GetName(void);
+	char*			GetName(void);
+	EJavaGeneric	Get(void);
 };
 
 

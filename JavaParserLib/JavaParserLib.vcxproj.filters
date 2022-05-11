@@ -90,6 +90,9 @@
     <ClCompile Include="JavaSyntaxTopLevel.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxParser.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaTokenParser.h">
@@ -169,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="JavaSyntaxTopLevel.h">
       <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxParser.h">
+      <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
