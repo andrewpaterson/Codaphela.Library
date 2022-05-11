@@ -23,6 +23,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "JavaSyntaxMemory.h"
 #include "JavaTokenDefinitions.h"
 #include "JavaSyntaxTree.h"
+#include "JavaSyntaxError.h"
+#include "JavaSyntaxMismatch.h"
 
 
 class CJavaSyntaxParser
@@ -33,28 +35,47 @@ protected:
 	CJavaTokenDefinitions*	mpcDefinitions;
 
 	CJavaToken*				mpcFirstToken;
+	CJavaToken*				mpcCurrentToken;
+	CJavaTokenPtrArray		mapcPositions;
+
 	CJavaSyntaxTree			mcSyntaxTree;
 
+	CJavaSyntaxError		mcError;
+	CJavaSyntaxMismatch		mcMismatch;
+
 public:
-	void			Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
-	void 			Kill(void);
+	void				Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
+	void 				Kill(void);
 
-	TRISTATE		Parse(void);
-	BOOL			Parse(BOOL bFailOnError);
+	BOOL				Parse(void);
+	BOOL				Parse(BOOL bFailOnError);
 
-	void			PrettyPrint(CChars* pszDest);
-	void			TypePrint(CChars* pszDest);
-	void			Dump(BOOL bIncludeType = FALSE);
+	void				PrettyPrint(CChars* pszDest);
+	void				TypePrint(CChars* pszDest);
+	void				Dump(BOOL bIncludeType = FALSE);
 
 protected:
-	BOOL			IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
-	BOOL			IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
-	BOOL			IsGeneric(CJavaToken* pcToken, EJavaGeneric eGeneric);
-	BOOL			IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous);
-	BOOL			IsOperator(CJavaToken* pcToken, EJavaOperator eOperator);
-	BOOL			IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType);
+	void				PushPosition(void);
+	void				PopPosition(void);
+	void				PassPosition(void);
+	
+	CJavaSyntaxPackage*	ParsePackage(void);
 
-	CJavaToken*		SkipComments(CJavaToken* pcToken);
+	BOOL				GetKeyword(EJavaKeyword eKeyword);
+	BOOL				GetSeparator(EJavaSeparator eSeparator);
+	CJavaIdentifier*	GetIdentifier(void);
+
+	BOOL				IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
+	BOOL				IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
+	BOOL				IsGeneric(CJavaToken* pcToken, EJavaGeneric eGeneric);
+	BOOL				IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous);
+	BOOL				IsOperator(CJavaToken* pcToken, EJavaOperator eOperator);
+	BOOL				IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType);
+	BOOL				IsIdentifier(CJavaToken* pcToken);
+
+	void				Next(void);
+	BOOL				HasNext(void);
+	void				SkipComments(void);
 };
 
 

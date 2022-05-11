@@ -11,8 +11,14 @@ void CJavaSyntaxParser::Init(CJavaTokenDefinitions* pcDefinitions, char* szFilen
 
 	mpcDefinitions = pcDefinitions;
 	mpcFirstToken = pcFirstToken;
+	mpcCurrentToken = mpcFirstToken;
+
+	mapcPositions.Init();
+	PushPosition();
 
 	mcSyntaxTree.Init(szFilename);
+	mcError.Init(&mcSyntaxTree);
+	mcMismatch.Init(&mcSyntaxTree);
 }
 
 
@@ -22,7 +28,12 @@ void CJavaSyntaxParser::Init(CJavaTokenDefinitions* pcDefinitions, char* szFilen
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxParser::Kill(void)
 {
+	mcMismatch.Kill();
+	mcError.Kill();
 	mcSyntaxTree.Kill();
+
+	PopPosition();
+	mapcPositions.Kill();
 
 	mcSyntaxes.Kill();
 
@@ -35,24 +46,32 @@ void CJavaSyntaxParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJavaSyntaxParser::Parse(void)
+BOOL CJavaSyntaxParser::Parse(void)
 {
-	CJavaToken*			pcToken;
-	CJavaSyntaxFile*	pcFile;
+	CJavaSyntaxFile*		pcFile;
+	CJavaSyntaxPackage*		pcPackage;
 
-	pcToken = mpcFirstToken;
-	pcToken = SkipComments(pcToken);
+	SkipComments();
 
-	if (pcToken)
+	if (mpcCurrentToken)
 	{
 		pcFile = mcSyntaxes.CreateFile(&mcSyntaxTree);
 		mcSyntaxTree.SetRoot(pcFile);
 
-		if (IsKeyword(pcToken, JK_package))
+		pcPackage = ParsePackage();
+		if (pcPackage->IsError())
 		{
-			ParsePackage(pcToken);
+			return FALSE;
+		}
+		else if (pcPackage->IsPackage())
+		{
+			if (!pcFile->SetPackage(pcPackage))
+			{
+				return FALSE;
+			}
 		}
 	}
+	return TRUE;
 }
 
 
@@ -62,10 +81,10 @@ TRISTATE CJavaSyntaxParser::Parse(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxParser::Parse(BOOL bFailOnError)
 {
-	TRISTATE	tResult;
+	BOOL	bResult;
 
-	tResult = Parse();
-	if (tResult == TRITRUE)
+	bResult = Parse();
+	if (bResult == TRITRUE)
 	{
 		return TRUE;
 	}
@@ -222,12 +241,187 @@ BOOL CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteral
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaToken* CJavaSyntaxParser::SkipComments(CJavaToken* pcToken)
+BOOL CJavaSyntaxParser::IsIdentifier(CJavaToken* pcToken)
 {
-	while (pcToken && pcToken->IsComment())
+	return (pcToken && pcToken->IsIdentifier());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::Next(void)
+{
+	if (mpcCurrentToken)
 	{
-		pcToken = pcToken->GetNext();
+		mpcCurrentToken = mpcCurrentToken->GetNext();
 	}
-	return pcToken;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::HasNext(void)
+{
+	return mpcCurrentToken != NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::SkipComments(void)
+{
+	while (mpcCurrentToken && mpcCurrentToken->IsComment())
+	{
+		mpcCurrentToken = mpcCurrentToken->GetNext();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
+{
+	CJavaSyntaxPackage*		pcPackage;
+	CJavaIdentifier*		pcIdentifier;
+
+	PushPosition();
+	if (!GetKeyword(JK_package))
+	{
+		PopPosition();
+		return (CJavaSyntaxPackage*)&mcMismatch;
+	}
+	else
+	{
+		pcPackage = mcSyntaxes.CreatePackage(&mcSyntaxTree);
+		if (pcPackage == NULL)
+		{
+			//Error: Out of memory.
+			PassPosition();
+			return (CJavaSyntaxPackage*)&mcError;
+		}
+
+		for (;;)
+		{
+			pcIdentifier = GetIdentifier();
+			if (pcIdentifier == NULL)
+			{
+				//Error: Identifier expected.
+				PassPosition();
+				return (CJavaSyntaxPackage*)&mcError;
+			}
+
+			pcPackage->AddIdentifier(pcIdentifier);
+
+			if (GetSeparator(JS_Dot))
+			{
+			}
+			else if (GetSeparator(JS_Semicolon))
+			{
+				PassPosition();
+				return pcPackage;
+			}
+			else
+			{
+				//Error: '.' or ';' expected.
+				PassPosition();
+				return (CJavaSyntaxPackage*)&mcError;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::GetKeyword(EJavaKeyword eKeyword)
+{
+	if (IsKeyword(mpcCurrentToken, eKeyword))
+	{
+		Next();
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::GetSeparator(EJavaSeparator eSeparator)
+{
+	if (IsSeparator(mpcCurrentToken, eSeparator))
+	{
+		Next();
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaIdentifier* CJavaSyntaxParser::GetIdentifier(void)
+{
+	CJavaIdentifier*	pcIdentifier;
+
+	pcIdentifier = (CJavaIdentifier*)mpcCurrentToken;
+	if (IsIdentifier(pcIdentifier))
+	{
+		Next();
+		return pcIdentifier;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::PushPosition(void)
+{
+	mapcPositions.Push(mpcCurrentToken);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::PopPosition(void)
+{
+	mpcCurrentToken = mapcPositions.Pop();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::PassPosition(void)
+{
+	mapcPositions.Pop();
 }
 

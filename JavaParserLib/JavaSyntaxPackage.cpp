@@ -8,6 +8,7 @@
 void CJavaSyntaxPackage::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
+	mapcIdentifiers.Init();
 }
 
 
@@ -17,6 +18,7 @@ void CJavaSyntaxPackage::Init(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxPackage::Kill(void)
 {
+	mapcIdentifiers.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -28,6 +30,16 @@ void CJavaSyntaxPackage::Kill(void)
 char* CJavaSyntaxPackage::GetType(void)
 {
 	return "Package";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxPackage::AddIdentifier(CJavaIdentifier* pcIdentifier)
+{
+	mapcIdentifiers.Add(pcIdentifier);
 }
 
 

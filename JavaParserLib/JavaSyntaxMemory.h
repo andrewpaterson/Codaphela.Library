@@ -4,8 +4,9 @@
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntaxFile.h"
+#include "JavaSyntaxPackage.h"
 
-typedef CArrayTemplatePtr<CJavaSyntaxFile>	CSyntaxPtrArray;
+typedef CArrayTemplatePtr<CJavaSyntax>	CSyntaxPtrArray;
 
 
 class CJavaSyntaxMemory
@@ -13,13 +14,14 @@ class CJavaSyntaxMemory
 CONSTRUCTABLE(CJavaSyntaxMemory);
 protected:
 	CMemoryStackExtended	mcStack;
-	CSyntaxPtrArray			mapcSyntaxs;
+	CSyntaxPtrArray			mapcSyntaxes;
 
 public:
 	void				Init(void);
 	void				Kill(void);
 
 	CJavaSyntaxFile*	CreateFile(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxPackage*	CreatePackage(CJavaSyntaxTree* pcTree);
 
 };
 

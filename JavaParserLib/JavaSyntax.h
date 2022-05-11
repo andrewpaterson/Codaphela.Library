@@ -20,6 +20,9 @@ public:
 	virtual BOOL		IsImport(void);
 	virtual BOOL		IsPackage(void);
 	virtual BOOL		IsTopLevel(void);
+
+	virtual BOOL		IsError(void);
+	virtual BOOL		IsMismatch(void);
 };
 
 
