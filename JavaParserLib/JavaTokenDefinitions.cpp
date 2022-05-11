@@ -149,6 +149,9 @@ void CJavaTokenDefinitions::InitOperators(void)
 	AddOperatorDefinition(JOT_Bitwise, JO_LeftShift, "<<");
 	AddOperatorDefinition(JOT_Bitwise, JO_RightShift, ">>");
 	AddOperatorDefinition(JOT_Bitwise, JO_RightShiftZero, ">>>");
+
+	AddOperatorDefinition(JOT_Method, JO_MethodReference, "::");
+	AddOperatorDefinition(JOT_Method, JO_LambdaOperator, "->");
 }
 
 

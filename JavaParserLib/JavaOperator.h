@@ -13,6 +13,7 @@ enum EJavaOperatorType
 	JOT_Logical,
 	JOT_Ternary,
 	JOT_Bitwise,
+	JOT_Method,
 	JOT_Unknown = -1
 };
 
@@ -60,6 +61,9 @@ enum EJavaOperator
 	JO_LeftShift,
 	JO_RightShift,
 	JO_RightShiftZero,
+
+	JO_MethodReference,
+	JO_LambdaOperator,
 
 	JO_Unknown = -1
 };

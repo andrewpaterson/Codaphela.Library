@@ -19,9 +19,9 @@ void CJavaTokenMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenMemory::Kill(void)
 {
-	CJavaToken*			pcToken;
-	int					iNumTokens;
-	int					i;
+	CJavaToken*		pcToken;
+	int				iNumTokens;
+	int				i;
 
 	iNumTokens = mapcTokens.NumElements();
 	for (i = 0; i < iNumTokens; i++)

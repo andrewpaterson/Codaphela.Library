@@ -7,6 +7,9 @@
     <Filter Include="Source\Tokens">
       <UniqueIdentifier>{e4dfd05a-1033-4f1d-b123-d2c2ecd78e0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Syntax">
+      <UniqueIdentifier>{4705c1c0-3f23-44ed-99ce-89f0631c831d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JavaToken.cpp">
@@ -66,6 +69,27 @@
     <ClCompile Include="JavaAnnotation.cpp">
       <Filter>Source\Tokens</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxTree.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntax.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxMemory.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxFile.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxImport.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxPackage.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxTopLevel.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaTokenParser.h">
@@ -124,6 +148,27 @@
     </ClInclude>
     <ClInclude Include="JavaAnnotation.h">
       <Filter>Source\Tokens</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTree.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntax.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxMemory.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxFile.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxImport.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxPackage.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTopLevel.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

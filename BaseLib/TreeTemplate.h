@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ConstructorCall.h"
 
 
-//NEVER use this tree, use CTreeTemplateFreeList instead.
+//NEVER use this tree.
 //Fix the trees that currently DO to use this one.
 struct STNode
 {
