@@ -650,6 +650,9 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 	CJavaSeparator*		pcSeparator;
 	CJavaAmbiguous*		pcAmbiguous;
 	CJavaKeyword*		pcKeyword;
+	CJavaOperator*		pcOperator;
+	BOOL				bMethodLeft;
+	BOOL				bMethodRight;
 
 	if (pcRight == NULL)
 	{
@@ -661,9 +664,34 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 		return TRUE;
 	}
 
+	bCharThingLeft = pcLeft->IsKeyword() || pcLeft->IsIdentifier() || pcLeft->IsLiteral();
+	bCharThingRight = pcRight->IsKeyword() || pcRight->IsIdentifier() || pcRight->IsLiteral();
+
 	if (pcLeft->IsOperator() || pcRight->IsOperator())
 	{
-		return TRUE;
+		bMethodLeft = FALSE;
+		bMethodRight = FALSE;
+		if (pcLeft->IsOperator())
+		{
+			pcOperator = (CJavaOperator*)pcLeft;
+			if (pcOperator->Is(JO_MethodReference))
+			{
+				bMethodLeft = TRUE;
+			}
+		}
+		if (pcRight->IsOperator())
+		{
+			pcOperator = (CJavaOperator*)pcRight;
+			if (pcOperator->Is(JO_MethodReference))
+			{
+				bMethodRight = TRUE;
+			}
+		}
+
+		if (!bMethodLeft && !bMethodRight)
+		{
+			return TRUE;
+		}
 	}
 
 	if (pcLeft->IsSeparator())
@@ -673,6 +701,14 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 		{
 			return TRUE;
 		}
+
+		if (pcSeparator->Is(JS_SquareBracketRight))
+		{
+			if (bCharThingRight)
+			{
+				return TRUE;
+			}
+		}
 	}
 
 	if (pcLeft->IsAmbiguous())
@@ -681,6 +717,14 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 		if (pcAmbiguous->Is(JA_QuestionMark))
 		{
 			return TRUE;
+		}
+
+		if (pcAmbiguous->Is(JA_AngleBracketRight))
+		{
+			if (bCharThingRight)
+			{
+				return TRUE;
+			}
 		}
 	}
 
@@ -713,9 +757,6 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 			return TRUE;
 		}
 	}
-
-	bCharThingLeft = pcLeft->IsKeyword() || pcLeft->IsIdentifier() || pcLeft->IsLiteral();
-	bCharThingRight = pcRight->IsKeyword() || pcRight->IsIdentifier() || pcRight->IsLiteral();
 
 	if (bCharThingLeft && bCharThingRight)
 	{

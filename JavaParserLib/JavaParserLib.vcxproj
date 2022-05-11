@@ -182,6 +182,7 @@
     <ClCompile Include="JavaBoolean.cpp" />
     <ClCompile Include="JavaCharacter.cpp" />
     <ClCompile Include="JavaComment.cpp" />
+    <ClCompile Include="JavaSyntaxFile.cpp" />
     <ClCompile Include="JavaFloat.cpp" />
     <ClCompile Include="JavaGeneric.cpp" />
     <ClCompile Include="JavaIdentifier.cpp" />
@@ -192,6 +193,12 @@
     <ClCompile Include="JavaOperator.cpp" />
     <ClCompile Include="JavaSeparator.cpp" />
     <ClCompile Include="JavaString.cpp" />
+    <ClCompile Include="JavaSyntax.cpp" />
+    <ClCompile Include="JavaSyntaxImport.cpp" />
+    <ClCompile Include="JavaSyntaxMemory.cpp" />
+    <ClCompile Include="JavaSyntaxPackage.cpp" />
+    <ClCompile Include="JavaSyntaxTopLevel.cpp" />
+    <ClCompile Include="JavaSyntaxTree.cpp" />
     <ClCompile Include="JavaTokenDefinitions.cpp" />
     <ClCompile Include="JavaTokenMemory.cpp" />
     <ClCompile Include="JavaToken.cpp" />
@@ -200,6 +207,7 @@
   <ItemGroup>
     <ClInclude Include="JavaAnnotation.h" />
     <ClInclude Include="JavaBoolean.h" />
+    <ClInclude Include="JavaSyntaxFile.h" />
     <ClInclude Include="JavaFloat.h" />
     <ClInclude Include="JavaInteger.h" />
     <ClInclude Include="JavaNull.h" />
@@ -212,6 +220,12 @@
     <ClInclude Include="JavaOperator.h" />
     <ClInclude Include="JavaSeparator.h" />
     <ClInclude Include="JavaString.h" />
+    <ClInclude Include="JavaSyntax.h" />
+    <ClInclude Include="JavaSyntaxImport.h" />
+    <ClInclude Include="JavaSyntaxMemory.h" />
+    <ClInclude Include="JavaSyntaxPackage.h" />
+    <ClInclude Include="JavaSyntaxTopLevel.h" />
+    <ClInclude Include="JavaSyntaxTree.h" />
     <ClInclude Include="JavaTokenDefinitions.h" />
     <ClInclude Include="JavaTokenMemory.h" />
     <ClInclude Include="JavaComment.h" />
