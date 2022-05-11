@@ -9,7 +9,7 @@
 void CJavaSyntaxMemory::Init(void)
 {
 	mcStack.Init(4 KB);
-	mapcSyntaxs.Init();
+	mapcSyntaxes.Init();
 }
 
 
@@ -23,14 +23,14 @@ void CJavaSyntaxMemory::Kill(void)
 	int				iNumSyntaxs;
 	int				i;
 
-	iNumSyntaxs = mapcSyntaxs.NumElements();
+	iNumSyntaxs = mapcSyntaxes.NumElements();
 	for (i = 0; i < iNumSyntaxs; i++)
 	{
-		pcSyntax = mapcSyntaxs.GetPtr(i);
+		pcSyntax = mapcSyntaxes.GetPtr(i);
 		pcSyntax->Kill();
 	}
 
-	mapcSyntaxs.Kill();
+	mapcSyntaxes.Kill();
 	mcStack.Kill();
 }
 
@@ -46,9 +46,30 @@ CJavaSyntaxFile* CJavaSyntaxMemory::CreateFile(CJavaSyntaxTree* pcTree)
 	pcSyntax = (CJavaSyntaxFile*)mcStack.Add(sizeof(CJavaSyntaxFile));
 	if (pcSyntax)
 	{
-		mapcSyntaxs.Add(pcSyntax);
+		mapcSyntaxes.Add(pcSyntax);
 
 		new(pcSyntax) CJavaSyntaxFile;
+		pcSyntax->Init(pcTree);
+	}
+
+	return pcSyntax;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxPackage* CJavaSyntaxMemory::CreatePackage(CJavaSyntaxTree* pcTree)
+{
+	CJavaSyntaxPackage* pcSyntax;
+
+	pcSyntax = (CJavaSyntaxPackage*)mcStack.Add(sizeof(CJavaSyntaxPackage));
+	if (pcSyntax)
+	{
+		mapcSyntaxes.Add(pcSyntax);
+
+		new(pcSyntax) CJavaSyntaxPackage;
 		pcSyntax->Init(pcTree);
 	}
 

@@ -32,5 +32,8 @@ public:
 };
 
 
+typedef CArrayTemplatePtr<CJavaToken> CJavaTokenPtrArray;
+
+
 #endif // !__JAVA_TOKEN_H__
 

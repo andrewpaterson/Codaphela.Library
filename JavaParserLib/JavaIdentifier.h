@@ -23,5 +23,8 @@ public:
 };
 
 
+typedef CArrayTemplatePtr<CJavaIdentifier> CJavaIdentifierPtrArray;
+
+
 #endif // !__JAVA_IDENTIFIER_H__
 

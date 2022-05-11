@@ -8,6 +8,12 @@
 void CJavaSyntaxFile::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
+	mpcPackage = NULL;;
+	mapcImports.Init();
+
+	mpcPublicClass = NULL;
+	mapcPackageClasses.Init();
+
 }
 
 
@@ -17,6 +23,11 @@ void CJavaSyntaxFile::Init(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxFile::Kill(void)
 {
+	mpcPackage = NULL;;
+	mapcImports.Kill();
+
+	mpcPublicClass = NULL;
+	mapcPackageClasses.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -38,5 +49,61 @@ char* CJavaSyntaxFile::GetType(void)
 BOOL CJavaSyntaxFile::IsFile(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxFile::SetPackage(CJavaSyntaxPackage* pcPackage)
+{
+	if (mpcPackage == NULL)
+	{
+		mpcPackage = pcPackage;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxFile::AddImport(CJavaSyntaxImport* pcImport)
+{
+	mapcImports.Add(pcImport);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxFile::SetPublicClass(CJavaSyntaxTopLevel* pcTopLevel)
+{
+	if (mpcPublicClass == NULL)
+	{
+		mpcPublicClass = pcTopLevel;
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxFile::AddPackageClass(CJavaSyntaxTopLevel* pcTopLevel)
+{
+	mapcPackageClasses.Add(pcTopLevel);
 }
 

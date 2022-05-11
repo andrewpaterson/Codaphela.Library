@@ -30,3 +30,6 @@ BOOL CJavaSyntax::IsImport(void) { return FALSE; }
 BOOL CJavaSyntax::IsPackage(void) { return FALSE; }
 BOOL CJavaSyntax::IsTopLevel(void) { return FALSE; }
 
+BOOL CJavaSyntax::IsError(void) { return FALSE; }
+BOOL CJavaSyntax::IsMismatch(void) { return FALSE; }
+

@@ -93,6 +93,12 @@
     <ClCompile Include="JavaSyntaxParser.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxError.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxMismatch.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaTokenParser.h">
@@ -175,6 +181,12 @@
     </ClInclude>
     <ClInclude Include="JavaSyntaxParser.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxError.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxMismatch.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

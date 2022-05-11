@@ -6,7 +6,7 @@
 
 class CJavaAnnotation : public CJavaToken
 {
-	CONSTRUCTABLE(CJavaAnnotation);
+CONSTRUCTABLE(CJavaAnnotation);
 protected:
 	char* mszAnnotation;
 	int		miLength;
@@ -16,7 +16,7 @@ public:
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);
-	char* GetType(void);
+	char*	GetType(void);
 
 	BOOL	IsAnnotation(void);
 	BOOL	Is(char* szAnnotation);

@@ -24,6 +24,12 @@ public:
 	char*	GetType(void) override;
 
 	BOOL	IsFile(void) override;
+
+	BOOL	SetPackage(CJavaSyntaxPackage* pcPackage);
+	void	AddImport(CJavaSyntaxImport* pcImport);
+
+	BOOL	SetPublicClass(CJavaSyntaxTopLevel* pcTopLevel);
+	void	AddPackageClass(CJavaSyntaxTopLevel* pcTopLevel);
 };
 
 
