@@ -8,6 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaCharacter::Init(char c)
 {
+	CJavaLiteral::Init(JLT_Character);
 	mc = c;
 	meType = JCT_char8;
 }
@@ -21,6 +22,7 @@ void CJavaCharacter::Init(char16 c)
 {
 	mc = c;
 	meType = JCT_char16;
+	CJavaLiteral::Kill();
 }
 
 

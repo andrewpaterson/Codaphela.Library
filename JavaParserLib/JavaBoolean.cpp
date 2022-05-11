@@ -8,6 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaBoolean::Init(BOOL bValue)
 {
+	CJavaLiteral::Init(JLT_Boolean);
 	mbValue = bValue;
 }
 
@@ -19,6 +20,7 @@ void CJavaBoolean::Init(BOOL bValue)
 void CJavaBoolean::Kill(void)
 {
 	mbValue = FALSE;
+	CJavaLiteral::Kill();
 }
 
 

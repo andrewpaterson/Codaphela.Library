@@ -12,6 +12,9 @@ protected:
 public:
 	void	Init(char* szFileFile);
 	void	Kill(void);
+
+	void	SetRoot(CJavaSyntaxFile* pcRoot);
+	char*	GetFileName(void);
 };
 
 
