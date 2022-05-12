@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GlobalMemory.h"
 #include "BaseLib/DebugOutput.h"
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/StackMemory.h"
 #include "CoreLib/DataConnection.h"
 #include "CoreLib/TransientSequence.h"

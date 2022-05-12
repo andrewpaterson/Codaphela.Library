@@ -22,9 +22,33 @@ public:
 
 	CJavaSyntaxFile*	CreateFile(CJavaSyntaxTree* pcTree);
 	CJavaSyntaxPackage*	CreatePackage(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxImport*	CreateImport(CJavaSyntaxTree* pcTree);
 
+protected:
+	template<class M>	M*	Create(CJavaSyntaxTree* pcTree);
 };
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>	
+M* CJavaSyntaxMemory::Create(CJavaSyntaxTree* pcTree)
+{
+	M* pcSyntax;
+
+	pcSyntax = (M*)mcStack.Add(sizeof(M));
+	if (pcSyntax)
+	{
+		mapcSyntaxes.Add(pcSyntax);
+
+		new(pcSyntax) M;
+		pcSyntax->Init(pcTree);
+	}
+
+	return pcSyntax;
+}
 
 #endif // !__JAVA_SYNTAX_MEMORY_H__
 

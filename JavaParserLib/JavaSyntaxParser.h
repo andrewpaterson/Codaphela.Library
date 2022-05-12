@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __JAVA_SYNTAX_PARSER_H__
 #define __JAVA_SYNTAX_PARSER_H__
+#include "BaseLib/Logger.h"
 #include "JavaSyntaxMemory.h"
 #include "JavaTokenDefinitions.h"
 #include "JavaSyntaxTree.h"
@@ -43,8 +44,10 @@ protected:
 	CJavaSyntaxError		mcError;
 	CJavaSyntaxMismatch		mcMismatch;
 
+	CLogger*				mpcLogger;
+
 public:
-	void				Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
+	void				Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
 	void 				Kill(void);
 
 	BOOL				Parse(void);
@@ -60,10 +63,14 @@ protected:
 	void				PassPosition(void);
 	
 	CJavaSyntaxPackage*	ParsePackage(void);
+	CJavaSyntaxImport*	ParseImport(void);
 
 	BOOL				GetKeyword(EJavaKeyword eKeyword);
 	BOOL				GetSeparator(EJavaSeparator eSeparator);
 	CJavaIdentifier*	GetIdentifier(void);
+	BOOL				GetGeneric(EJavaGeneric eGeneric);
+	BOOL				GetAmbiguous(EJavaAmbiguous eAmbiguous);
+	BOOL				GetOperator(EJavaOperator eOperator);
 
 	BOOL				IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
 	BOOL				IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
@@ -76,7 +83,23 @@ protected:
 	void				Next(void);
 	BOOL				HasNext(void);
 	void				SkipComments(void);
+
+protected:
+	template<class M>	M*	Error(char* szError);
 };
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CJavaSyntaxParser::Error(char* szError)
+{
+	mpcLogger->Error(szError);
+	PassPosition();
+	return (M*)&mcError;
+}
 
 
 #endif // !__JAVA_SYNTAX_PARSER_H__

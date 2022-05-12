@@ -1,6 +1,6 @@
 #ifndef __DEPENDENT_READ_OBJECTS_H__
 #define __DEPENDENT_READ_OBJECTS_H__
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "ObjectHeader.h"
 #include "BaseObject.h"
 #include "Pointer.h"

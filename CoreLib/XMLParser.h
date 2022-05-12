@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __XML_PARSER_H__
 #define __XML_PARSER_H__
 #include "BaseLib/Markup.h"
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/TextParser.h"
 #include "XMLEntity.h"
 #include "XMLProlog.h"

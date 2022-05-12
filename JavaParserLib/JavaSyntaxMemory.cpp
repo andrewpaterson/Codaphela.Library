@@ -41,18 +41,7 @@ void CJavaSyntaxMemory::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxFile* CJavaSyntaxMemory::CreateFile(CJavaSyntaxTree* pcTree)
 {
-	CJavaSyntaxFile* pcSyntax;
-
-	pcSyntax = (CJavaSyntaxFile*)mcStack.Add(sizeof(CJavaSyntaxFile));
-	if (pcSyntax)
-	{
-		mapcSyntaxes.Add(pcSyntax);
-
-		new(pcSyntax) CJavaSyntaxFile;
-		pcSyntax->Init(pcTree);
-	}
-
-	return pcSyntax;
+	return Create<CJavaSyntaxFile>(pcTree);
 }
 
 
@@ -62,17 +51,16 @@ CJavaSyntaxFile* CJavaSyntaxMemory::CreateFile(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxPackage* CJavaSyntaxMemory::CreatePackage(CJavaSyntaxTree* pcTree)
 {
-	CJavaSyntaxPackage* pcSyntax;
+	return Create<CJavaSyntaxPackage>(pcTree);
+}
 
-	pcSyntax = (CJavaSyntaxPackage*)mcStack.Add(sizeof(CJavaSyntaxPackage));
-	if (pcSyntax)
-	{
-		mapcSyntaxes.Add(pcSyntax);
 
-		new(pcSyntax) CJavaSyntaxPackage;
-		pcSyntax->Init(pcTree);
-	}
-
-	return pcSyntax;
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxImport* CJavaSyntaxMemory::CreateImport(CJavaSyntaxTree* pcTree)
+{
+	return Create<CJavaSyntaxImport>(pcTree);
 }
 

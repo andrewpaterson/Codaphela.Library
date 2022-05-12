@@ -23,7 +23,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/Define.h"
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/FileCompare.h"
 #include "BaseLib/Float3.h"
 #include "Assert.h"

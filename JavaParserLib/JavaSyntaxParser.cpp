@@ -5,8 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken)
+void CJavaSyntaxParser::Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken)
 {
+	mpcLogger = pcLogger;
+
 	mcSyntaxes.Init();
 
 	mpcDefinitions = pcDefinitions;
@@ -39,6 +41,8 @@ void CJavaSyntaxParser::Kill(void)
 
 	mpcDefinitions = NULL;
 	mpcFirstToken = NULL;
+
+	mpcLogger = NULL;
 }
 
 
@@ -50,26 +54,45 @@ BOOL CJavaSyntaxParser::Parse(void)
 {
 	CJavaSyntaxFile*		pcFile;
 	CJavaSyntaxPackage*		pcPackage;
+	CJavaSyntaxImport*		pcImport;	
 
 	SkipComments();
 
-	if (mpcCurrentToken)
+	if (HasNext())
 	{
 		pcFile = mcSyntaxes.CreateFile(&mcSyntaxTree);
 		mcSyntaxTree.SetRoot(pcFile);
 
-		pcPackage = ParsePackage();
-		if (pcPackage->IsError())
+		for (;;)
 		{
-			return FALSE;
-		}
-		else if (pcPackage->IsPackage())
-		{
-			if (!pcFile->SetPackage(pcPackage))
+			pcPackage = ParsePackage();
+			if (pcPackage->IsPackage())
+			{
+				if (!pcFile->SetPackage(pcPackage))
+				{
+					mpcLogger->Error("'class' or 'interface' expected.");
+					return FALSE;
+				}
+				continue;
+			}
+			else if (pcPackage->IsError())
 			{
 				return FALSE;
 			}
+
+			pcImport = ParseImport();
+			if (pcImport->IsImport())
+			{
+				pcFile->AddImport(pcImport);
+				continue;
+			}
+			else if (pcImport->IsError())
+			{
+				return FALSE;
+			}
+
 		}
+
 	}
 	return TRUE;
 }
@@ -303,9 +326,7 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 		pcPackage = mcSyntaxes.CreatePackage(&mcSyntaxTree);
 		if (pcPackage == NULL)
 		{
-			//Error: Out of memory.
-			PassPosition();
-			return (CJavaSyntaxPackage*)&mcError;
+			return Error<CJavaSyntaxPackage>("Out of memory.");
 		}
 
 		for (;;)
@@ -313,9 +334,7 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 			pcIdentifier = GetIdentifier();
 			if (pcIdentifier == NULL)
 			{
-				//Error: Identifier expected.
-				PassPosition();
-				return (CJavaSyntaxPackage*)&mcError;
+				return Error<CJavaSyntaxPackage>("Identifier expected.");
 			}
 
 			pcPackage->AddIdentifier(pcIdentifier);
@@ -330,14 +349,85 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 			}
 			else
 			{
-				//Error: '.' or ';' expected.
-				PassPosition();
-				return (CJavaSyntaxPackage*)&mcError;
+				return Error<CJavaSyntaxPackage>("'.' or ';' expected.");
 			}
 		}
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
+{
+	CJavaSyntaxImport*	pcImport;
+	CJavaIdentifier*	pcIdentifier;
+	int					iIdentifierCount;
+
+	PushPosition();
+	if (!GetKeyword(JK_import))
+	{
+		PopPosition();
+		return (CJavaSyntaxImport*)&mcMismatch;
+	}
+	else
+	{
+		pcImport = mcSyntaxes.CreateImport(&mcSyntaxTree);
+		if (pcImport == NULL)
+		{
+			return Error<CJavaSyntaxImport>("Out of memory.");
+		}
+
+		if (GetKeyword(JK_static))
+		{
+			pcImport->SetStatic(TRUE);
+		}
+
+		iIdentifierCount = 0;
+		for (;;)
+		{
+			if ((iIdentifierCount > 0) && GetAmbiguous(JA_Asterisk))
+			{
+				pcImport->SetWild(TRUE);
+				if (GetSeparator(JS_Semicolon))
+				{
+					PassPosition();
+					return pcImport;
+				}
+				else
+				{
+					return Error<CJavaSyntaxImport>("';' expected.");
+				}
+			}
+			else
+			{
+				pcIdentifier = GetIdentifier();
+				if (pcIdentifier == NULL)
+				{
+					return Error<CJavaSyntaxImport>("Identifier expected.");
+				}
+
+				iIdentifierCount++;
+				pcImport->AddIdentifier(pcIdentifier);
+
+				if (GetSeparator(JS_Dot))
+				{
+				}
+				else if (GetSeparator(JS_Semicolon))
+				{
+					PassPosition();
+					return pcImport;
+				}
+				else
+				{
+					return Error<CJavaSyntaxImport>("'.' or ';' expected.");
+				}
+			}
+		}
+	}
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -392,6 +482,60 @@ CJavaIdentifier* CJavaSyntaxParser::GetIdentifier(void)
 	else
 	{
 		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::GetGeneric(EJavaGeneric eGeneric)
+{
+	if (IsGeneric(mpcCurrentToken, eGeneric))
+	{
+		Next();
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::GetAmbiguous(EJavaAmbiguous eAmbiguous)
+{
+	if (IsAmbiguous(mpcCurrentToken, eAmbiguous))
+	{
+		Next();
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::GetOperator(EJavaOperator eOperator)
+{
+	if (IsOperator(mpcCurrentToken, eOperator))
+	{
+		Next();
+		return TRUE;
+	}
+	else
+	{
+		return FALSE;
 	}
 }
 
