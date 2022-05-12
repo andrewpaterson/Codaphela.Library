@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include "ErrorHandler.h"
-#include "Log.h"
+#include "Logger.h"
 #include "Numbers.h"
 #include "Chars.h"
 

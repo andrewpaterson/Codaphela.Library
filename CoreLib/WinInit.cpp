@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ErrorHandler.h"
 #include "BaseLib/FloatHelper.h"
 #include "BaseLib/DataTypes.h"
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 
 
 //////////////////////////////////////////////////////////////////////////

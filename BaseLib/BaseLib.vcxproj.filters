@@ -570,9 +570,6 @@
     <ClInclude Include="Validation.h">
       <Filter>Source\Validation</Filter>
     </ClInclude>
-    <ClInclude Include="Log.h">
-      <Filter>Source\Error</Filter>
-    </ClInclude>
     <ClInclude Include="LogConfig.h">
       <Filter>Source\Error</Filter>
     </ClInclude>

@@ -23,7 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MemoryAllocator.h"
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Constructors.h"
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "BaseLib/LifeCycle.h"
 #include "ArrayUnknownPtr.h"
 #include "Iterables.h"

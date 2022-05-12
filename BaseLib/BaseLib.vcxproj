@@ -281,7 +281,6 @@
     <ClInclude Include="ListVariable.h" />
     <ClInclude Include="LocalMallocator.h" />
     <ClInclude Include="LocalMallocatorConstructors.h" />
-    <ClInclude Include="Log.h" />
     <ClInclude Include="LogConfig.h" />
     <ClInclude Include="LogString.h" />
     <ClInclude Include="Mallocator.h" />

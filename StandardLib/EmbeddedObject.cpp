@@ -1,4 +1,4 @@
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "Objects.h"
 #include "BaseObject.h"
 #include "EmbeddedObject.h"

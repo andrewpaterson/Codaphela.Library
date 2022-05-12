@@ -20,7 +20,7 @@ along with Codaphela CoreLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "XMLParser.h"
 
 
