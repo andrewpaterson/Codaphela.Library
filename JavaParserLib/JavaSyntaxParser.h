@@ -31,7 +31,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CJavaSyntaxParser
 {
 protected:
-	CJavaSyntaxMemory		mcSyntaxes;
+	CJavaSyntaxMemory*		mpcSyntaxes;
+	CJavaTokenMemory*		mpcTokens;
 
 	CJavaTokenDefinitions*	mpcDefinitions;
 
@@ -47,7 +48,7 @@ protected:
 	CLogger*				mpcLogger;
 
 public:
-	void	Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
+	void	Init(CLogger* pcLogger, CJavaSyntaxMemory* pcSyntaxes, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, CJavaToken* pcFirstToken);
 	void 	Kill(void);
 
 	BOOL	Parse(void);
@@ -74,13 +75,13 @@ protected:
 	BOOL						GetKeyword(EJavaKeyword eKeyword);
 	BOOL						GetSeparator(EJavaSeparator eSeparator);
 	CJavaIdentifier*			GetIdentifier(void);
-	BOOL						GetGeneric(EJavaGeneric eGeneric);
-	BOOL						GetAmbiguous(EJavaAmbiguous eAmbiguous);
+	BOOL						GetScope(EJavaScope eGeneric);
+	BOOL						GetAmbiguous(EJavaAmbiguous eAmbiguous, CJavaAmbiguous** ppcAmbiguous = NULL);
 	BOOL						GetOperator(EJavaOperator eOperator);
 
 	BOOL						IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
 	BOOL						IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
-	BOOL						IsClassGeneric(CJavaToken* pcToken, EJavaGeneric eGeneric);
+	BOOL						IsScope(CJavaToken* pcToken, EJavaScope eGeneric);
 	BOOL						IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous);
 	BOOL						IsOperator(CJavaToken* pcToken, EJavaOperator eOperator);
 	BOOL						IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType);
@@ -89,6 +90,8 @@ protected:
 	void						Next(void);
 	BOOL						HasNext(void);
 	void						SkipComments(void);
+
+	void						ReplaceAmbiguous(CJavaToken* pcCurrent, CJavaToken* pcReplacement);
 
 protected:
 	template<class M>	M*	Error(char* szError);

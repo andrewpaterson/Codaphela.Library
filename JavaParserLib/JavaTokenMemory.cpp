@@ -177,16 +177,16 @@ CJavaSeparator* CJavaTokenMemory::CreateSeparator(CJavaSeparatorDefinition* pcSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaGeneric* CJavaTokenMemory::CreateGeneric(CJavaGenericDefinition* pcGeneric)
+CJavaScope* CJavaTokenMemory::CreateScope(CJavaScopeDefinition* pcGeneric)
 {
-	CJavaGeneric* pcToken;
+	CJavaScope* pcToken;
 
-	pcToken = (CJavaGeneric*)mcStack.Add(sizeof(CJavaGeneric));
+	pcToken = (CJavaScope*)mcStack.Add(sizeof(CJavaScope));
 	if (pcToken)
 	{
 		mapcTokens.Add(pcToken);
 
-		new(pcToken) CJavaGeneric;
+		new(pcToken) CJavaScope;
 		pcToken->Init(pcGeneric);
 	}
 

@@ -4,47 +4,48 @@
 #include "JavaToken.h"
 
 
-enum EJavaGeneric
+enum EJavaScope
 {
 	JG_AngleBracketLeft,
 	JG_AngleBracketRight,
 	JG_QuestionMark,
+	JG_Asterisk,
 
 	JG_Unknown = -1
 };
 
 
-class CJavaGenericDefinition;
-class CJavaGeneric : public CJavaToken
+class CJavaScopeDefinition;
+class CJavaScope : public CJavaToken
 {
-CONSTRUCTABLE(CJavaGeneric);
+CONSTRUCTABLE(CJavaScope);
 protected:
-	CJavaGenericDefinition*	mpcGeneric;
+	CJavaScopeDefinition*	mpcGeneric;
 
 public:
-	void 	Init(CJavaGenericDefinition* pcGeneric);
+	void 	Init(CJavaScopeDefinition* pcGeneric);
 	void 	Kill(void);
 
-	BOOL	IsClassGeneric(void);
+	BOOL	IsScope(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	Is(EJavaGeneric eGeneric);
+	BOOL	Is(EJavaScope eGeneric);
 };
 
 
-class CJavaGenericDefinition
+class CJavaScopeDefinition
 {
 protected:
-	EJavaGeneric	meGeneric;
-	CChars			mszName;
+	EJavaScope	meScope;
+	CChars		mszName;
 
 public:
-	void 			Init(EJavaGeneric eGeneric, char* szName);
+	void 			Init(EJavaScope eGeneric, char* szName);
 	void 			Kill(void);
 
 	char*			GetName(void);
-	EJavaGeneric	Get(void);
+	EJavaScope	Get(void);
 };
 
 

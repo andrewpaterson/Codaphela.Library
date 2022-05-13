@@ -196,11 +196,12 @@ void CJavaTokenDefinitions::InitAmbiguous(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenDefinitions::InitGenerics(void)
 {
-	mcGenerics.Init();
+	mcScopes.Init();
 
 	AddGenericDefinition("<", JG_AngleBracketLeft);
 	AddGenericDefinition(">", JG_AngleBracketRight);
 	AddGenericDefinition("?", JG_QuestionMark);
+	AddGenericDefinition("*", JG_Asterisk);
 }
 
 
@@ -247,12 +248,12 @@ void CJavaTokenDefinitions::AddOperatorDefinition(EJavaOperatorType eType, EJava
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenDefinitions::AddGenericDefinition(char* szGeneric, EJavaGeneric eGeneric)
+void CJavaTokenDefinitions::AddGenericDefinition(char* szGeneric, EJavaScope eGeneric)
 {
-	CJavaGenericDefinition	cDefinition;
+	CJavaScopeDefinition	cDefinition;
 
 	cDefinition.Init(eGeneric, szGeneric);
-	mcGenerics.Add(szGeneric, &cDefinition, eGeneric);
+	mcScopes.Add(szGeneric, &cDefinition, eGeneric);
 }
 
 
@@ -381,16 +382,16 @@ void CJavaTokenDefinitions::KillGenerics(void)
 	char* szName;
 	SEnumeratorIterator			sIterator;
 	int							iID;
-	CJavaGenericDefinition* pcGeneric;
+	CJavaScopeDefinition* pcGeneric;
 
-	mcGenerics.StartIteration(&sIterator, &szName, &iID, &pcGeneric);
+	mcScopes.StartIteration(&sIterator, &szName, &iID, &pcGeneric);
 	while (sIterator.bValid)
 	{
 		pcGeneric->Kill();
-		mcGenerics.Iterate(&sIterator, &szName, &iID, &pcGeneric);
+		mcScopes.Iterate(&sIterator, &szName, &iID, &pcGeneric);
 	}
 
-	mcGenerics.Kill();
+	mcScopes.Kill();
 }
 
 
@@ -438,9 +439,9 @@ CAmbiguousEnumerator* CJavaTokenDefinitions::GetAmbiguous(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGenericEnumerator* CJavaTokenDefinitions::GetGenerics(void)
+CScopeEnumerator* CJavaTokenDefinitions::GetScopes(void)
 {
-	return &mcGenerics;
+	return &mcScopes;
 }
 
 
@@ -504,11 +505,11 @@ CJavaAmbiguousDefinition* CJavaTokenDefinitions::GetAmbiguous(EJavaAmbiguous eAm
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaGenericDefinition* CJavaTokenDefinitions::GetGeneric(EJavaGeneric eGeneric)
+CJavaScopeDefinition* CJavaTokenDefinitions::GetScope(EJavaScope eGeneric)
 {
-	CJavaGenericDefinition* pcGeneric;
+	CJavaScopeDefinition* pcGeneric;
 
-	mcGenerics.GetWithID(eGeneric, &pcGeneric, NULL);
+	mcScopes.GetWithID(eGeneric, &pcGeneric, NULL);
 
 	return pcGeneric;
 }

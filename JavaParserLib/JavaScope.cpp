@@ -1,11 +1,11 @@
-#include "JavaGeneric.h"
+#include "JavaScope.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaGeneric::Init(CJavaGenericDefinition* pcGeneric)
+void CJavaScope::Init(CJavaScopeDefinition* pcGeneric)
 {
 	CJavaToken::Init();
 	mpcGeneric = pcGeneric;
@@ -16,7 +16,7 @@ void CJavaGeneric::Init(CJavaGenericDefinition* pcGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaGeneric::Kill(void)
+void CJavaScope::Kill(void)
 {
 	mpcGeneric = NULL;
 	CJavaToken::Kill();
@@ -27,7 +27,7 @@ void CJavaGeneric::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaGeneric::Print(CChars* pszDest)
+void CJavaScope::Print(CChars* pszDest)
 {
 	pszDest->Append(mpcGeneric->GetName());
 }
@@ -37,7 +37,7 @@ void CJavaGeneric::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaGeneric::Is(EJavaGeneric eGeneric)
+BOOL CJavaScope::Is(EJavaScope eGeneric)
 {
 	return mpcGeneric->Get() == eGeneric;
 }
@@ -47,17 +47,17 @@ BOOL CJavaGeneric::Is(EJavaGeneric eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaGeneric::GetType(void) { return "Generic"; }
-BOOL CJavaGeneric::IsClassGeneric(void) { return TRUE; }
+char* CJavaScope::GetType(void) { return "Generic"; }
+BOOL CJavaScope::IsScope(void) { return TRUE; }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaGenericDefinition::Init(EJavaGeneric eGeneric, char* szName)
+void CJavaScopeDefinition::Init(EJavaScope eGeneric, char* szName)
 {
-	meGeneric = eGeneric;
+	meScope = eGeneric;
 	mszName.Init(szName);
 }
 
@@ -66,9 +66,9 @@ void CJavaGenericDefinition::Init(EJavaGeneric eGeneric, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaGenericDefinition::Kill(void)
+void CJavaScopeDefinition::Kill(void)
 {
-	meGeneric = JG_Unknown;
+	meScope = JG_Unknown;
 	mszName.Kill();
 }
 
@@ -77,6 +77,6 @@ void CJavaGenericDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaGenericDefinition::GetName(void) { return mszName.Text(); }
-EJavaGeneric CJavaGenericDefinition::Get(void) { return meGeneric; }
+char* CJavaScopeDefinition::GetName(void) { return mszName.Text(); }
+EJavaScope CJavaScopeDefinition::Get(void) { return meScope; }
 

@@ -31,7 +31,7 @@ typedef CEnumeratorTemplate<CJavaKeywordDefinition> CKeywordEnumerator;
 typedef CEnumeratorTemplate<CJavaSeparatorDefinition> CSeparatorEnumerator;
 typedef CEnumeratorTemplate<CJavaOperatorDefinition> COperatorEnumerator;
 typedef CEnumeratorTemplate<CJavaAmbiguousDefinition> CAmbiguousEnumerator;
-typedef CEnumeratorTemplate<CJavaGenericDefinition> CGenericEnumerator;
+typedef CEnumeratorTemplate<CJavaScopeDefinition> CScopeEnumerator;
 
 
 class CJavaTokenDefinitions
@@ -41,7 +41,7 @@ protected:
 	COperatorEnumerator		mcOperators;
 	CSeparatorEnumerator	mcSeparators;
 	CAmbiguousEnumerator	mcAmbiguous;
-	CGenericEnumerator		mcGenerics;
+	CScopeEnumerator		mcScopes;
 
 public:
 	void 						Init(void);
@@ -51,13 +51,13 @@ public:
 	CSeparatorEnumerator*		GetSeparators(void);
 	COperatorEnumerator*		GetOperators(void);
 	CAmbiguousEnumerator*		GetAmbiguous(void);
-	CGenericEnumerator*			GetGenerics(void);
+	CScopeEnumerator*			GetScopes(void);
 
 	CJavaKeywordDefinition*		GetKeyword(EJavaKeyword eKeyword);
 	CJavaOperatorDefinition*	GetOperator(EJavaOperator eOperator);
 	CJavaSeparatorDefinition*	GetSeparator(EJavaSeparator eSeparator);
 	CJavaAmbiguousDefinition*	GetAmbiguous(EJavaAmbiguous eAmbiguous);
-	CJavaGenericDefinition*		GetGeneric(EJavaGeneric eGeneric);
+	CJavaScopeDefinition*		GetScope(EJavaScope eGeneric);
 
 protected:
 	void						InitKeywords(void);
@@ -70,7 +70,7 @@ protected:
 	void						AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator);
 	void						AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator);
 	void						AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous);
-	void						AddGenericDefinition(char* szGeneric, EJavaGeneric eGeneric);
+	void						AddGenericDefinition(char* szGeneric, EJavaScope eGeneric);
 
 	void						KillKeywords(void);
 	void						KillOperators(void);

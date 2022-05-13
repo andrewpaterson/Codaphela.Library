@@ -24,7 +24,7 @@ public:
 	virtual BOOL		IsComment(void);
 	virtual BOOL		IsKeyword(void);
 	virtual BOOL		IsIdentifier(void);
-	virtual BOOL		IsClassGeneric(void);
+	virtual BOOL		IsScope(void);
 	virtual BOOL		IsAmbiguous(void);
 	virtual BOOL		IsOperator(void);
 	virtual BOOL		IsLiteral(void);
