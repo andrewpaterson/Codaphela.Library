@@ -4,188 +4,233 @@
     <Filter Include="Source">
       <UniqueIdentifier>{b8a314c4-62d9-4c4a-a75d-2fb4bd092e84}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Tokens">
-      <UniqueIdentifier>{e4dfd05a-1033-4f1d-b123-d2c2ecd78e0e}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Syntax">
       <UniqueIdentifier>{4705c1c0-3f23-44ed-99ce-89f0631c831d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Syntax\Elements">
+      <UniqueIdentifier>{b8a140c3-6224-483a-84a0-9d026862ecf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Token">
+      <UniqueIdentifier>{e4dfd05a-1033-4f1d-b123-d2c2ecd78e0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Token\Elements">
+      <UniqueIdentifier>{2ddb221c-00c2-4e2c-8365-0b0a3cb51505}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="JavaToken.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntax.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaComment.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxClass.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaTokenMemory.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxClassGeneric.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaKeyword.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxEnum.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaTokenParser.cpp">
-      <Filter>Source</Filter>
+    <ClCompile Include="JavaSyntaxError.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaIdentifier.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxFile.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSeparator.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxImport.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaOperator.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxInterface.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaAmbiguous.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxMismatch.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaGeneric.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxPackage.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaLiteral.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaCharacter.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaNull.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaBoolean.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaInteger.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaFloat.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaString.cpp">
-      <Filter>Source\Tokens</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaTokenDefinitions.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaAnnotation.cpp">
-      <Filter>Source\Tokens</Filter>
+    <ClCompile Include="JavaSyntaxTopLevel.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxTree.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxType.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxTypeGeneric.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxParser.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntax.cpp">
-      <Filter>Source\Syntax</Filter>
+    <ClCompile Include="JavaAmbiguous.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaAnnotation.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaBoolean.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaCharacter.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaComment.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaFloat.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaGeneric.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaIdentifier.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaInteger.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaKeyword.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaLiteral.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaNull.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaOperator.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSeparator.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaString.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaToken.cpp">
+      <Filter>Source\Token\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaTokenMemory.cpp">
+      <Filter>Source\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaTokenDefinitions.cpp">
+      <Filter>Source\Token</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaTokenParser.cpp">
+      <Filter>Source\Token</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxMemory.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxFile.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxImport.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxPackage.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxTopLevel.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxParser.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxError.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxMismatch.cpp">
-      <Filter>Source\Syntax</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="JavaTokenParser.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaToken.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaComment.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaTokenMemory.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaKeyword.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaIdentifier.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSeparator.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaOperator.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaAmbiguous.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaGeneric.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaLiteral.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaCharacter.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaNull.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaBoolean.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaInteger.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaFloat.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaString.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaTokenDefinitions.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaAnnotation.h">
-      <Filter>Source\Tokens</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxTree.h">
-      <Filter>Source\Syntax</Filter>
+    <ClInclude Include="JavaSyntaxTypeGeneric.h">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntax.h">
-      <Filter>Source\Syntax</Filter>
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxMemory.h">
-      <Filter>Source\Syntax</Filter>
+    <ClInclude Include="JavaSyntaxClass.h">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxFile.h">
-      <Filter>Source\Syntax</Filter>
+    <ClInclude Include="JavaSyntaxClassGeneric.h">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxImport.h">
-      <Filter>Source\Syntax</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxPackage.h">
-      <Filter>Source\Syntax</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxTopLevel.h">
-      <Filter>Source\Syntax</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxParser.h">
-      <Filter>Source</Filter>
+    <ClInclude Include="JavaSyntaxEnum.h">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxError.h">
-      <Filter>Source\Syntax</Filter>
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxFile.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxImport.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxInterface.h">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxMismatch.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxPackage.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTopLevel.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTree.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxType.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxParser.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxParserErrors.h">
+      <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaAmbiguous.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaAnnotation.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaBoolean.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaCharacter.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaComment.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaFloat.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaGeneric.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaIdentifier.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaInteger.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaKeyword.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaLiteral.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaNull.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaOperator.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSeparator.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaString.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaToken.h">
+      <Filter>Source\Token\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaTokenMemory.h">
+      <Filter>Source\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaTokenDefinitions.h">
+      <Filter>Source\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaTokenParser.h">
+      <Filter>Source\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxMemory.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
   </ItemGroup>

@@ -25,7 +25,7 @@ public:
 	void 	Init(CJavaGenericDefinition* pcGeneric);
 	void 	Kill(void);
 
-	BOOL	IsGeneric(void);
+	BOOL	IsClassGeneric(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
