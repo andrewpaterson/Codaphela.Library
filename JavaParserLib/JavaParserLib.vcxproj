@@ -182,6 +182,8 @@
     <ClCompile Include="JavaBoolean.cpp" />
     <ClCompile Include="JavaCharacter.cpp" />
     <ClCompile Include="JavaComment.cpp" />
+    <ClCompile Include="JavaSyntaxClass.cpp" />
+    <ClCompile Include="JavaSyntaxEnum.cpp" />
     <ClCompile Include="JavaSyntaxError.cpp" />
     <ClCompile Include="JavaSyntaxFile.cpp" />
     <ClCompile Include="JavaFloat.cpp" />
@@ -195,13 +197,17 @@
     <ClCompile Include="JavaSeparator.cpp" />
     <ClCompile Include="JavaString.cpp" />
     <ClCompile Include="JavaSyntax.cpp" />
+    <ClCompile Include="JavaSyntaxClassGeneric.cpp" />
     <ClCompile Include="JavaSyntaxImport.cpp" />
+    <ClCompile Include="JavaSyntaxInterface.cpp" />
     <ClCompile Include="JavaSyntaxMemory.cpp" />
     <ClCompile Include="JavaSyntaxMismatch.cpp" />
     <ClCompile Include="JavaSyntaxPackage.cpp" />
     <ClCompile Include="JavaSyntaxParser.cpp" />
     <ClCompile Include="JavaSyntaxTopLevel.cpp" />
     <ClCompile Include="JavaSyntaxTree.cpp" />
+    <ClCompile Include="JavaSyntaxType.cpp" />
+    <ClCompile Include="JavaSyntaxTypeGeneric.cpp" />
     <ClCompile Include="JavaTokenDefinitions.cpp" />
     <ClCompile Include="JavaTokenMemory.cpp" />
     <ClCompile Include="JavaToken.cpp" />
@@ -210,6 +216,8 @@
   <ItemGroup>
     <ClInclude Include="JavaAnnotation.h" />
     <ClInclude Include="JavaBoolean.h" />
+    <ClInclude Include="JavaSyntaxClass.h" />
+    <ClInclude Include="JavaSyntaxEnum.h" />
     <ClInclude Include="JavaSyntaxError.h" />
     <ClInclude Include="JavaSyntaxFile.h" />
     <ClInclude Include="JavaFloat.h" />
@@ -225,13 +233,18 @@
     <ClInclude Include="JavaSeparator.h" />
     <ClInclude Include="JavaString.h" />
     <ClInclude Include="JavaSyntax.h" />
+    <ClInclude Include="JavaSyntaxClassGeneric.h" />
     <ClInclude Include="JavaSyntaxImport.h" />
+    <ClInclude Include="JavaSyntaxInterface.h" />
     <ClInclude Include="JavaSyntaxMemory.h" />
     <ClInclude Include="JavaSyntaxMismatch.h" />
     <ClInclude Include="JavaSyntaxPackage.h" />
     <ClInclude Include="JavaSyntaxParser.h" />
+    <ClInclude Include="JavaSyntaxParserErrors.h" />
     <ClInclude Include="JavaSyntaxTopLevel.h" />
     <ClInclude Include="JavaSyntaxTree.h" />
+    <ClInclude Include="JavaSyntaxType.h" />
+    <ClInclude Include="JavaSyntaxTypeGeneric.h" />
     <ClInclude Include="JavaTokenDefinitions.h" />
     <ClInclude Include="JavaTokenMemory.h" />
     <ClInclude Include="JavaComment.h" />

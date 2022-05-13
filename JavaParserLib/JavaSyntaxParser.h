@@ -47,45 +47,52 @@ protected:
 	CLogger*				mpcLogger;
 
 public:
-	void				Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
-	void 				Kill(void);
+	void	Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken);
+	void 	Kill(void);
 
-	BOOL				Parse(void);
-	BOOL				Parse(BOOL bFailOnError);
+	BOOL	Parse(void);
+	BOOL	Parse(BOOL bFailOnError);
 
-	void				PrettyPrint(CChars* pszDest);
-	void				TypePrint(CChars* pszDest);
-	void				Dump(BOOL bIncludeType = FALSE);
+	void	PrettyPrint(CChars* pszDest);
+	void	TypePrint(CChars* pszDest);
+	void	Dump(BOOL bIncludeType = FALSE);
 
 protected:
-	void				PushPosition(void);
-	void				PopPosition(void);
-	void				PassPosition(void);
+	void						PushPosition(void);
+	void						PopPosition(void);
+	void						PassPosition(void);
 	
-	CJavaSyntaxPackage*	ParsePackage(void);
-	CJavaSyntaxImport*	ParseImport(void);
+	CJavaSyntaxPackage*			ParsePackage(void);
+	CJavaSyntaxImport*			ParseImport(void);
+	CJavaSyntaxClass*			ParseClass(void);
+	CJavaSyntaxEnum*			ParseEnum(void);
+	CJavaSyntaxInterface*		ParseInterface(void);
+	CJavaSyntaxClassGeneric*	ParseClassGeneric(void);
 
-	BOOL				GetKeyword(EJavaKeyword eKeyword);
-	BOOL				GetSeparator(EJavaSeparator eSeparator);
-	CJavaIdentifier*	GetIdentifier(void);
-	BOOL				GetGeneric(EJavaGeneric eGeneric);
-	BOOL				GetAmbiguous(EJavaAmbiguous eAmbiguous);
-	BOOL				GetOperator(EJavaOperator eOperator);
+	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
 
-	BOOL				IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
-	BOOL				IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
-	BOOL				IsGeneric(CJavaToken* pcToken, EJavaGeneric eGeneric);
-	BOOL				IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous);
-	BOOL				IsOperator(CJavaToken* pcToken, EJavaOperator eOperator);
-	BOOL				IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType);
-	BOOL				IsIdentifier(CJavaToken* pcToken);
+	BOOL						GetKeyword(EJavaKeyword eKeyword);
+	BOOL						GetSeparator(EJavaSeparator eSeparator);
+	CJavaIdentifier*			GetIdentifier(void);
+	BOOL						GetGeneric(EJavaGeneric eGeneric);
+	BOOL						GetAmbiguous(EJavaAmbiguous eAmbiguous);
+	BOOL						GetOperator(EJavaOperator eOperator);
 
-	void				Next(void);
-	BOOL				HasNext(void);
-	void				SkipComments(void);
+	BOOL						IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
+	BOOL						IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
+	BOOL						IsClassGeneric(CJavaToken* pcToken, EJavaGeneric eGeneric);
+	BOOL						IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous);
+	BOOL						IsOperator(CJavaToken* pcToken, EJavaOperator eOperator);
+	BOOL						IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType);
+	BOOL						IsIdentifier(CJavaToken* pcToken);
+
+	void						Next(void);
+	BOOL						HasNext(void);
+	void						SkipComments(void);
 
 protected:
 	template<class M>	M*	Error(char* szError);
+	template<class M>	M*	Mismatch(void);
 };
 
 
@@ -99,6 +106,18 @@ M* CJavaSyntaxParser::Error(char* szError)
 	mpcLogger->Error(szError);
 	PassPosition();
 	return (M*)&mcError;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CJavaSyntaxParser::Mismatch(void)
+{
+	PopPosition();
+	return (M*)&mcMismatch;
 }
 
 

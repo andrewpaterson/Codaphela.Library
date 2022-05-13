@@ -1,17 +1,14 @@
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxClass.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree)
 {
-	CJavaSyntax::Init(pcTree);
-	mpcName = NULL;
-	mbPublic = FALSE;
-	mbAbstract = FALSE;
-	mbFinal = FALSE;
+	CJavaSyntaxTopLevel::Init(pcTree);
+	mapcGenerics.Init();
 }
 
 
@@ -19,13 +16,10 @@ void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Kill(void)
+void CJavaSyntaxClass::Kill(void)
 {
-	mpcName = NULL;
-	mbPublic = FALSE;
-	mbAbstract = FALSE;
-	mbFinal = FALSE;
-	CJavaSyntax::Kill();
+	mapcGenerics.Kill();
+	CJavaSyntaxTopLevel::Kill();
 }
 
 
@@ -33,9 +27,9 @@ void CJavaSyntaxTopLevel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxTopLevel::GetType(void)
+char* CJavaSyntaxClass::GetType(void)
 {
-	return "TopLevel";
+	return "Class";
 }
 
 
@@ -43,7 +37,7 @@ char* CJavaSyntaxTopLevel::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxTopLevel::IsTopLevel(void)
+BOOL CJavaSyntaxClass::IsClass(void)
 {
 	return TRUE;
 }
@@ -53,8 +47,8 @@ BOOL CJavaSyntaxTopLevel::IsTopLevel(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::SetName(CJavaIdentifier* pcName) { mpcName = pcName; }
-void CJavaSyntaxTopLevel::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
-void CJavaSyntaxTopLevel::SetAbstract(BOOL bAbstract) { mbAbstract = bAbstract; }
-void CJavaSyntaxTopLevel::SetFinal(BOOL bFinal) { mbFinal = bFinal; }
+void CJavaSyntaxClass::AddGeneric(CJavaSyntaxClassGeneric* pcGeneric)
+{
+	mapcGenerics.Add(pcGeneric);
+}
 

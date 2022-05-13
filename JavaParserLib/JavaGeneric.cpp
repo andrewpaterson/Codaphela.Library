@@ -48,7 +48,7 @@ BOOL CJavaGeneric::Is(EJavaGeneric eGeneric)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaGeneric::GetType(void) { return "Generic"; }
-BOOL CJavaGeneric::IsGeneric(void) { return TRUE; }
+BOOL CJavaGeneric::IsClassGeneric(void) { return TRUE; }
 
 
 //////////////////////////////////////////////////////////////////////////

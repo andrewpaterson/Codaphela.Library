@@ -5,6 +5,14 @@
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntaxFile.h"
 #include "JavaSyntaxPackage.h"
+#include "JavaSyntaxImport.h"
+#include "JavaSyntaxClass.h"
+#include "JavaSyntaxEnum.h"
+#include "JavaSyntaxInterface.h"
+#include "JavaSyntaxClassGeneric.h"
+#include "JavaSyntaxType.h"
+#include "JavaSyntaxTypeGeneric.h"
+
 
 typedef CArrayTemplatePtr<CJavaSyntax>	CSyntaxPtrArray;
 
@@ -17,12 +25,18 @@ protected:
 	CSyntaxPtrArray			mapcSyntaxes;
 
 public:
-	void				Init(void);
-	void				Kill(void);
+	void						Init(void);
+	void						Kill(void);
 
-	CJavaSyntaxFile*	CreateFile(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxPackage*	CreatePackage(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxImport*	CreateImport(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxFile*			CreateFile(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxPackage*			CreatePackage(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxImport*			CreateImport(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxClass*			CreateClass(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxEnum*			CreateEnum(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxInterface*		CreateInterface(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxClassGeneric*	CreateClassGeneric(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxType*			CreateType(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxTypeGeneric*		CreateTypeGeneric(CJavaSyntaxTree* pcTree);
 
 protected:
 	template<class M>	M*	Create(CJavaSyntaxTree* pcTree);
