@@ -40,7 +40,7 @@ BOOL CJavaToken::IsSeparator(void) { return FALSE; }
 BOOL CJavaToken::IsComment(void) { return FALSE; }
 BOOL CJavaToken::IsKeyword(void) { return FALSE; }
 BOOL CJavaToken::IsIdentifier(void) { return FALSE; }
-BOOL CJavaToken::IsClassGeneric(void) { return FALSE; }
+BOOL CJavaToken::IsScope(void) { return FALSE; }
 BOOL CJavaToken::IsAmbiguous(void) { return FALSE; }
 BOOL CJavaToken::IsOperator(void) { return FALSE; }
 BOOL CJavaToken::IsLiteral(void) { return FALSE; }

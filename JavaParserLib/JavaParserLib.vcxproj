@@ -187,7 +187,7 @@
     <ClCompile Include="JavaSyntaxError.cpp" />
     <ClCompile Include="JavaSyntaxFile.cpp" />
     <ClCompile Include="JavaFloat.cpp" />
-    <ClCompile Include="JavaGeneric.cpp" />
+    <ClCompile Include="JavaScope.cpp" />
     <ClCompile Include="JavaIdentifier.cpp" />
     <ClCompile Include="JavaInteger.cpp" />
     <ClCompile Include="JavaKeyword.cpp" />
@@ -225,7 +225,7 @@
     <ClInclude Include="JavaNull.h" />
     <ClInclude Include="JavaAmbiguous.h" />
     <ClInclude Include="JavaCharacter.h" />
-    <ClInclude Include="JavaGeneric.h" />
+    <ClInclude Include="JavaScope.h" />
     <ClInclude Include="JavaIdentifier.h" />
     <ClInclude Include="JavaKeyword.h" />
     <ClInclude Include="JavaLiteral.h" />

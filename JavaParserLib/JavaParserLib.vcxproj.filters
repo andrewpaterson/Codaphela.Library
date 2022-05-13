@@ -81,7 +81,7 @@
     <ClCompile Include="JavaFloat.cpp">
       <Filter>Source\Token\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaGeneric.cpp">
+    <ClCompile Include="JavaScope.cpp">
       <Filter>Source\Token\Elements</Filter>
     </ClCompile>
     <ClCompile Include="JavaIdentifier.cpp">
@@ -191,7 +191,7 @@
     <ClInclude Include="JavaFloat.h">
       <Filter>Source\Token\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="JavaGeneric.h">
+    <ClInclude Include="JavaScope.h">
       <Filter>Source\Token\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaIdentifier.h">

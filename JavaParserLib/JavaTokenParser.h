@@ -31,7 +31,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CJavaTokenParser
 {
 protected:
-	CJavaTokenMemory		mcTokens;
+	CJavaTokenMemory*		mpcTokens;
 	CTextParser				mcParser;
 	CChars					mszFileName;
 
@@ -40,8 +40,8 @@ protected:
 	CJavaToken*				mpcStart;
 
 public:
-	void			Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, char* szText);
-	void 			Init(CJavaTokenDefinitions* pcDefinitions, char* szFilename, char* szText, int iTextLen);
+	void			Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText);
+	void 			Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen);
 	void 			Kill(void);
 
 	TRISTATE		Parse(void);
@@ -67,7 +67,7 @@ protected:
 	TRISTATE		ParseAmbiguous(CJavaToken** ppcCurrent);
 	TRISTATE		ParseOperator(CJavaToken** ppcCurrent);
 	TRISTATE		ParseSeparator(CJavaToken** ppcCurrent);
-	TRISTATE		ParseGeneric(CJavaToken** ppcCurrent);
+	TRISTATE		ParseScope(CJavaToken** ppcCurrent);
 	TRISTATE		ParseBoolean(CJavaToken** ppcCurrent);
 	TRISTATE		ParseIdentifier(CJavaToken** ppcCurrent);
 	TRISTATE		ParseFloat(CJavaToken** ppcCurrent);

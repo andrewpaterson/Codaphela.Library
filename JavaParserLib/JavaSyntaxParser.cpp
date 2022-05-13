@@ -6,11 +6,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, char* szFilename, CJavaToken* pcFirstToken)
+void CJavaSyntaxParser::Init(CLogger* pcLogger, CJavaSyntaxMemory* pcSyntaxes, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, CJavaToken* pcFirstToken)
 {
 	mpcLogger = pcLogger;
 
-	mcSyntaxes.Init();
+	mpcTokens = pcTokens;
+	mpcSyntaxes = pcSyntaxes;
 
 	mpcDefinitions = pcDefinitions;
 	mpcFirstToken = pcFirstToken;
@@ -38,7 +39,8 @@ void CJavaSyntaxParser::Kill(void)
 	PopPosition();
 	mapcPositions.Kill();
 
-	mcSyntaxes.Kill();
+	mpcSyntaxes = NULL;
+	mpcTokens = NULL;
 
 	mpcDefinitions = NULL;
 	mpcFirstToken = NULL;
@@ -64,7 +66,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 
 	if (HasNext())
 	{
-		pcFile = mcSyntaxes.CreateFile(&mcSyntaxTree);
+		pcFile = mpcSyntaxes->CreateFile(&mcSyntaxTree);
 		mcSyntaxTree.SetRoot(pcFile);
 
 		for (;;)
@@ -228,13 +230,13 @@ BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsClassGeneric(CJavaToken* pcToken, EJavaGeneric eGeneric)
+BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaScope eGeneric)
 {
-	CJavaGeneric* pcGeneric;
+	CJavaScope* pcGeneric;
 
-	if (pcToken && pcToken->IsClassGeneric())
+	if (pcToken && pcToken->IsScope())
 	{
-		pcGeneric = (CJavaGeneric*)pcToken;
+		pcGeneric = (CJavaScope*)pcToken;
 		return pcGeneric->Is(eGeneric);
 	}
 	return FALSE;
@@ -354,7 +356,7 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 	}
 	else
 	{
-		pcPackage = mcSyntaxes.CreatePackage(&mcSyntaxTree);
+		pcPackage = mpcSyntaxes->CreatePackage(&mcSyntaxTree);
 		if (pcPackage == NULL)
 		{
 			return Error<CJavaSyntaxPackage>(OUT_OUF_MEMORY);
@@ -396,6 +398,8 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 	CJavaSyntaxImport*	pcImport;
 	CJavaIdentifier*	pcIdentifier;
 	int					iIdentifierCount;
+	CJavaAmbiguous*		pcAmbiguousAsterisk;
+	CJavaScope*			pcScopeAsterisk;
 
 	PushPosition();
 	if (!GetKeyword(JK_import))
@@ -404,7 +408,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 	}
 	else
 	{
-		pcImport = mcSyntaxes.CreateImport(&mcSyntaxTree);
+		pcImport = mpcSyntaxes->CreateImport(&mcSyntaxTree);
 		if (pcImport == NULL)
 		{
 			return Error<CJavaSyntaxImport>(OUT_OUF_MEMORY);
@@ -418,11 +422,13 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 		iIdentifierCount = 0;
 		for (;;)
 		{
-			if ((iIdentifierCount > 0) && GetAmbiguous(JA_Asterisk))
+			if ((iIdentifierCount > 0) && GetAmbiguous(JA_Asterisk, &pcAmbiguousAsterisk))
 			{
 				pcImport->SetWild(TRUE);
 				if (GetSeparator(JS_Semicolon))
 				{
+					pcScopeAsterisk = mpcTokens->CreateScope(mpcDefinitions->GetScope(JG_Asterisk));
+					ReplaceAmbiguous(pcAmbiguousAsterisk, pcScopeAsterisk);
 					PassPosition();
 					return pcImport;
 				}
@@ -489,7 +495,7 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 	}
 	else
 	{
-		pcClass = mcSyntaxes.CreateClass(&mcSyntaxTree);
+		pcClass = mpcSyntaxes->CreateClass(&mcSyntaxTree);
 		if (pcClass == NULL)
 		{
 			return Error<CJavaSyntaxClass>(OUT_OUF_MEMORY);
@@ -589,7 +595,7 @@ CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(void)
 	}
 	else
 	{
-		pcEnum = mcSyntaxes.CreateEnum(&mcSyntaxTree);
+		pcEnum = mpcSyntaxes->CreateEnum(&mcSyntaxTree);
 		if (pcEnum == NULL)
 		{
 			return Error<CJavaSyntaxEnum>(OUT_OUF_MEMORY);
@@ -628,7 +634,7 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
 	}
 	else
 	{
-		pcInterface = mcSyntaxes.CreateInterface(&mcSyntaxTree);
+		pcInterface = mpcSyntaxes->CreateInterface(&mcSyntaxTree);
 		if (pcInterface == NULL)
 		{
 			return Error<CJavaSyntaxInterface>(OUT_OUF_MEMORY);
@@ -653,7 +659,7 @@ CJavaSyntaxClassGeneric* CJavaSyntaxParser::ParseClassGeneric(void)
 	if (GetAmbiguous(JA_AngleBracketLeft))
 	{
 
-		pcGeneric = mcSyntaxes.CreateClassGeneric(&mcSyntaxTree);
+		pcGeneric = mpcSyntaxes->CreateClassGeneric(&mcSyntaxTree);
 		if (pcGeneric == NULL)
 		{
 			return Error<CJavaSyntaxClassGeneric>(OUT_OUF_MEMORY);
@@ -728,9 +734,9 @@ CJavaIdentifier* CJavaSyntaxParser::GetIdentifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetGeneric(EJavaGeneric eGeneric)
+BOOL CJavaSyntaxParser::GetScope(EJavaScope eGeneric)
 {
-	if (IsClassGeneric(mpcCurrentToken, eGeneric))
+	if (IsScope(mpcCurrentToken, eGeneric))
 	{
 		Next();
 		return TRUE;
@@ -746,10 +752,11 @@ BOOL CJavaSyntaxParser::GetGeneric(EJavaGeneric eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetAmbiguous(EJavaAmbiguous eAmbiguous)
+BOOL CJavaSyntaxParser::GetAmbiguous(EJavaAmbiguous eAmbiguous, CJavaAmbiguous** ppcAmbiguous)
 {
 	if (IsAmbiguous(mpcCurrentToken, eAmbiguous))
 	{
+		SafeAssign(ppcAmbiguous, (CJavaAmbiguous*)mpcCurrentToken);
 		Next();
 		return TRUE;
 	}
@@ -805,5 +812,15 @@ void CJavaSyntaxParser::PopPosition(void)
 void CJavaSyntaxParser::PassPosition(void)
 {
 	mapcPositions.Pop();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcCurrent, CJavaToken* pcReplacement)
+{
+	int x = 0;
 }
 

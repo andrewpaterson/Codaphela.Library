@@ -9,7 +9,7 @@
 #include "JavaAnnotation.h"
 #include "JavaOperator.h"
 #include "JavaSeparator.h"
-#include "JavaGeneric.h"
+#include "JavaScope.h"
 #include "JavaAmbiguous.h"
 #include "JavaNull.h"
 #include "JavaBoolean.h"
@@ -39,7 +39,7 @@ public:
 	CJavaKeyword*		CreateKeyword(CJavaKeywordDefinition* pcKeyword);
 	CJavaOperator*		CreateOperator(CJavaOperatorDefinition* pcOperator);
 	CJavaSeparator*		CreateSeparator(CJavaSeparatorDefinition* pcSeparator);
-	CJavaGeneric*		CreateGeneric(CJavaGenericDefinition* pcGeneric);
+	CJavaScope*			CreateScope(CJavaScopeDefinition* pcGeneric);
 	CJavaAmbiguous*		CreateAmbiguous(CJavaAmbiguousDefinition* pcAmbiguous);
 	CJavaNull*			CreateNull(void);
 	CJavaBoolean*		CreateBoolean(BOOL bValue);
