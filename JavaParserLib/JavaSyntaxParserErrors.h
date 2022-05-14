@@ -9,6 +9,7 @@
 #define EXPECTED_CLASS_OR_INTERFACE				"'class' or 'interface' expected."
 #define EXPECTED_CLASS							"'class' expected."
 #define EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET	"'{' or '<' expected."
+#define EXPECTED_CLOSE_ANGLE_BRACKET_OR_COMMA	"'>' or ',' expected."
 
 #define EXPECTED_
 #endif // !__JAVA_SYNTAX_PARSER_ERRORS_H__

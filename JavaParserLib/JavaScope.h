@@ -20,7 +20,7 @@ class CJavaScope : public CJavaToken
 {
 CONSTRUCTABLE(CJavaScope);
 protected:
-	CJavaScopeDefinition*	mpcGeneric;
+	CJavaScopeDefinition*	mpcScope;
 
 public:
 	void 	Init(CJavaScopeDefinition* pcGeneric);

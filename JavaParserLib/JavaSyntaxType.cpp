@@ -9,6 +9,7 @@
 void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
+	mpcGeneric = NULL;
 }
 
 

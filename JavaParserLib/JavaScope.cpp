@@ -8,7 +8,7 @@
 void CJavaScope::Init(CJavaScopeDefinition* pcGeneric)
 {
 	CJavaToken::Init();
-	mpcGeneric = pcGeneric;
+	mpcScope = pcGeneric;
 }
 
 
@@ -18,7 +18,7 @@ void CJavaScope::Init(CJavaScopeDefinition* pcGeneric)
 //////////////////////////////////////////////////////////////////////////
 void CJavaScope::Kill(void)
 {
-	mpcGeneric = NULL;
+	mpcScope = NULL;
 	CJavaToken::Kill();
 }
 
@@ -29,7 +29,7 @@ void CJavaScope::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaScope::Print(CChars* pszDest)
 {
-	pszDest->Append(mpcGeneric->GetName());
+	pszDest->Append(mpcScope->GetName());
 }
 
 
@@ -39,7 +39,7 @@ void CJavaScope::Print(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaScope::Is(EJavaScope eGeneric)
 {
-	return mpcGeneric->Get() == eGeneric;
+	return mpcScope->Get() == eGeneric;
 }
 
 
