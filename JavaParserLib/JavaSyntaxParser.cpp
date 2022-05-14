@@ -476,8 +476,8 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 	BOOL					bPublic;
 	BOOL					bAbstract;
 	BOOL					bFinal;
-	CJavaTokenIdentifier*	pcName;
 	BOOL					bOpen;
+	CJavaSyntaxType*		pcType;
 
 	PushPosition();
 
@@ -504,17 +504,18 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 		pcClass->SetAbstract(bAbstract);
 		pcClass->SetFinal(bFinal);
 
-		pcName = GetIdentifier();
-		if (pcName == NULL)
+		pcType = ParseType();
+		if (pcType->IsType())
 		{
-			return Error<CJavaSyntaxClass>(EXPECTED_CLASS);
+			pcClass->SetSyntaxType(pcType);
 		}
-
-		pcClass->SetName(pcName);
-
-		if (!ParseClassGenerics(pcClass))
+		else if (pcType->IsError())
 		{
-			return (CJavaSyntaxClass*)&mcError;
+			return Error<CJavaSyntaxClass>();
+		}
+		else
+		{
+			return Error<CJavaSyntaxClass>(EXPECTED_IDENTIFIER);
 		}
 
 		bOpen = GetSeparator(JS_CurlyBracketLeft);
@@ -647,103 +648,44 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxClassGeneric* CJavaSyntaxParser::ParseClassGeneric(void)
+CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 {
-	CJavaSyntaxClassGeneric*	pcGeneric;
-	CJavaTokenIdentifier*		pcIdentifier;
-	CJavaSyntaxType*			pcType;
+	CJavaSyntaxType*		pcType;
+	CJavaSyntaxGeneric*		pcGeneric;
+	CJavaTokenIdentifier*	pcIdentifier;
+	CCJavaTokenAmbiguous*	pcAmbiguousAngleBracketLeft;
+	CJavaTokenScope*		pcScopeAngleBracketLeft;
+	CCJavaTokenAmbiguous*	pcAmbiguousAngleBracketRight;
+	CJavaTokenScope*		pcScopeAngleBracketRight;
 
 	PushPosition();
 
 	pcIdentifier = GetIdentifier();
 	if (pcIdentifier == NULL)
 	{
-		return Mismatch<CJavaSyntaxClassGeneric>();
+		return Mismatch<CJavaSyntaxType>();
 	}
 
-	pcGeneric = mpcSyntaxes->CreateClassGeneric(&mcSyntaxTree);
-	if (pcGeneric == NULL)
+	pcType = mpcSyntaxes->CreateType(&mcSyntaxTree);
+	if (pcType == NULL)
 	{
-		return Error<CJavaSyntaxClassGeneric>(OUT_OUF_MEMORY);
+		return Error<CJavaSyntaxType>(OUT_OUF_MEMORY);
 	}
 
-	pcGeneric->SetName(pcIdentifier);
+	pcType->SetName(pcIdentifier);
 
-	if (GetKeyword(JK_extends))
-	{
-		pcType = ParseType();
-		if (pcType->IsType())
-		{
-			pcGeneric->SetExtends(pcType);
-		}
-		else 
-		{
-			if (pcType->IsMismatch())
-			{
-				PopPosition();
-				return Mismatch<CJavaSyntaxClassGeneric>();
-			}
-			else
-			{
-				PassPosition();
-				return Error<CJavaSyntaxClassGeneric>();
-			}
-		}
-	}
-
-	PassPosition();
-	return pcGeneric;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
-{
-
-	//CCJavaTokenAmbiguous* pcAmbiguousQuestionMark;
-	//CJavaTokenScope* pcScopeQuestionMark;
-	//if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
-	//{
-
-	//}
-	return NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::ParseClassGenerics(CJavaSyntaxClass* pcClass)
-{
-	CJavaSyntaxClassGeneric*	pcGeneric;
-	CCJavaTokenAmbiguous*				pcAmbiguousAngleBracketLeft;
-	CJavaTokenScope*					pcScopeAngleBracketLeft;
-	CCJavaTokenAmbiguous*				pcAmbiguousAngleBracketRight;
-	CJavaTokenScope*					pcScopeAngleBracketRight;
-
-	PushPosition();
 	if (GetAmbiguous(JA_AngleBracketLeft, &pcAmbiguousAngleBracketLeft))
 	{
 		for (;;)
 		{
-			pcGeneric = ParseClassGeneric();
-			if (pcGeneric->IsClassGeneric())
+			pcGeneric = ParseGeneric();
+			if (pcGeneric->IsGeneric())
 			{
-				pcClass->AddGeneric(pcGeneric);
+				pcType->AddGeneric(pcGeneric);
 			}
-			else if (pcGeneric->IsError())
+			else
 			{
-				return FALSE;
-			}
-			else if (pcGeneric->IsMismatch())
-			{
-				PassPosition();
-				mpcLogger->Error(EXPECTED_IDENTIFIER);
-				return FALSE;
+				return Error<CJavaSyntaxType>(EXPECTED_GENERIC);
 			}
 
 			if (GetSeparator(JS_Comma))
@@ -757,21 +699,82 @@ BOOL CJavaSyntaxParser::ParseClassGenerics(CJavaSyntaxClass* pcClass)
 				ReplaceAmbiguous(pcAmbiguousAngleBracketLeft, pcScopeAngleBracketLeft);
 				ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
 				PassPosition();
-				return TRUE;
+				return pcType;
 			}
 			else
 			{
-				PassPosition();
-				mpcLogger->Error(EXPECTED_CLOSE_ANGLE_BRACKET_OR_COMMA);
-				return FALSE;
+				return Error<CJavaSyntaxType>(EXPECTED_CLOSE_ANGLE_BRACKET_OR_COMMA);
 			}
 		}
 	}
+
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
+{
+	CJavaSyntaxGeneric*			pcGeneric;
+	CCJavaTokenAmbiguous*		pcAmbiguousQuestionMark;
+	CJavaTokenScope*			pcScopeQuestionMark;
+	BOOL						bQuestionMark;
+	CJavaTokenIdentifier*		pcIdentifier;
+	CJavaSyntaxType*			pcExtends;
+	CJavaSyntaxType*			pcType;
+
+	PushPosition();
+	bQuestionMark = FALSE;
+	pcIdentifier = NULL;
+	if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
+	{
+		bQuestionMark = TRUE;
+	}
 	else
 	{
-		PassPosition();
-		return TRUE;
+		pcType = ParseType();
 	}
+
+	if ((bQuestionMark && pcIdentifier != NULL) || ((!bQuestionMark && pcIdentifier == NULL)))
+	{
+		return Error<CJavaSyntaxGeneric>(EXPECTED_IDENTIFIER_OR_QUESTION_MARK);
+	}
+
+	pcGeneric = mpcSyntaxes->CreateGeneric(&mcSyntaxTree);
+	if (bQuestionMark && pcIdentifier == NULL)
+	{
+		pcGeneric->SetWildCard(TRUE);
+	}
+	else if (!bQuestionMark && pcIdentifier != NULL)
+	{
+		pcGeneric->SetName(pcIdentifier);
+	}
+
+	if (GetKeyword(JK_extends))
+	{
+		pcExtends = ParseType();
+		if (pcExtends->IsType())
+		{
+			pcGeneric->SetExtends(pcExtends);
+		}
+		else if (pcExtends->IsError())
+		{
+			return Error<CJavaSyntaxGeneric>();
+		}
+
+	}
+
+	if (bQuestionMark)
+	{
+		pcScopeQuestionMark = CreateScope(JG_QuestionMark);
+		ReplaceAmbiguous(pcAmbiguousQuestionMark, pcScopeQuestionMark);
+	}
+
+	PassPosition();
+	return pcGeneric;
 }
 
 

@@ -9,10 +9,7 @@ class CJavaSyntaxTopLevel : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxTopLevel);
 protected:
-	CJavaTokenIdentifier*	mpcName;
-	BOOL				mbPublic;
-	BOOL				mbAbstract;
-	BOOL				mbFinal;
+	BOOL					mbPublic;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree);
@@ -22,10 +19,7 @@ public:
 
 	BOOL	IsTopLevel(void) override;
 
-	void	SetName(CJavaTokenIdentifier* pcName);
 	void	SetPublic(BOOL bPublic);
-	void	SetAbstract(BOOL bAbstract);
-	void	SetFinal(BOOL bFinal);
 };
 
 

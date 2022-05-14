@@ -197,7 +197,6 @@
     <ClCompile Include="JavaTokenSeparator.cpp" />
     <ClCompile Include="JavaTokenString.cpp" />
     <ClCompile Include="JavaSyntax.cpp" />
-    <ClCompile Include="JavaSyntaxClassGeneric.cpp" />
     <ClCompile Include="JavaSyntaxImport.cpp" />
     <ClCompile Include="JavaSyntaxInterface.cpp" />
     <ClCompile Include="JavaSyntaxMemory.cpp" />
@@ -207,7 +206,7 @@
     <ClCompile Include="JavaSyntaxTopLevel.cpp" />
     <ClCompile Include="JavaSyntaxTree.cpp" />
     <ClCompile Include="JavaSyntaxType.cpp" />
-    <ClCompile Include="JavaSyntaxTypeGeneric.cpp" />
+    <ClCompile Include="JavaSyntaxGeneric.cpp" />
     <ClCompile Include="JavaTokenDefinitions.cpp" />
     <ClCompile Include="JavaTokenMemory.cpp" />
     <ClCompile Include="JavaToken.cpp" />
@@ -233,7 +232,6 @@
     <ClInclude Include="JavaTokenSeparator.h" />
     <ClInclude Include="JavaTokenString.h" />
     <ClInclude Include="JavaSyntax.h" />
-    <ClInclude Include="JavaSyntaxClassGeneric.h" />
     <ClInclude Include="JavaSyntaxImport.h" />
     <ClInclude Include="JavaSyntaxInterface.h" />
     <ClInclude Include="JavaSyntaxMemory.h" />
@@ -244,7 +242,7 @@
     <ClInclude Include="JavaSyntaxTopLevel.h" />
     <ClInclude Include="JavaSyntaxTree.h" />
     <ClInclude Include="JavaSyntaxType.h" />
-    <ClInclude Include="JavaSyntaxTypeGeneric.h" />
+    <ClInclude Include="JavaSyntaxGeneric.h" />
     <ClInclude Include="JavaTokenDefinitions.h" />
     <ClInclude Include="JavaTokenMemory.h" />
     <ClInclude Include="JavaTokenComment.h" />

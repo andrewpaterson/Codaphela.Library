@@ -24,9 +24,6 @@
     <ClCompile Include="JavaSyntaxClass.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxClassGeneric.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
     <ClCompile Include="JavaSyntaxEnum.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
@@ -57,7 +54,7 @@
     <ClCompile Include="JavaSyntaxType.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxTypeGeneric.cpp">
+    <ClCompile Include="JavaSyntaxGeneric.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxParser.cpp">
@@ -125,16 +122,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="JavaSyntaxTypeGeneric.h">
+    <ClInclude Include="JavaSyntaxGeneric.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntax.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxClass.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxClassGeneric.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxEnum.h">

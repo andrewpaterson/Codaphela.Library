@@ -8,7 +8,9 @@
 void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntaxTopLevel::Init(pcTree);
-	mapcGenerics.Init();
+	mpcType = NULL;
+	mbAbstract = FALSE;
+	mbFinal = FALSE;
 }
 
 
@@ -18,7 +20,9 @@ void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClass::Kill(void)
 {
-	mapcGenerics.Kill();
+	mbAbstract = FALSE;
+	mbFinal = FALSE;
+	mpcType = NULL;
 	CJavaSyntaxTopLevel::Kill();
 }
 
@@ -47,8 +51,7 @@ BOOL CJavaSyntaxClass::IsClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::AddGeneric(CJavaSyntaxClassGeneric* pcGeneric)
-{
-	mapcGenerics.Add(pcGeneric);
-}
+void CJavaSyntaxClass::SetAbstract(BOOL bAbstract) { mbAbstract = bAbstract; }
+void CJavaSyntaxClass::SetFinal(BOOL bFinal) { mbFinal = bFinal; }
+void CJavaSyntaxClass::SetSyntaxType(CJavaSyntaxType* pcType) { mpcType = pcType; }
 

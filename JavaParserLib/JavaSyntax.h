@@ -23,9 +23,8 @@ public:
 	virtual BOOL		IsEnum(void);
 	virtual BOOL		IsInterface(void);
 	virtual BOOL		IsClass(void);
-	virtual BOOL		IsClassGeneric(void);
 	virtual BOOL		IsType(void);
-	virtual BOOL		IsTypeGeneric(void);
+	virtual BOOL		IsGeneric(void);
 
 	virtual BOOL		IsError(void);
 	virtual BOOL		IsMismatch(void);
