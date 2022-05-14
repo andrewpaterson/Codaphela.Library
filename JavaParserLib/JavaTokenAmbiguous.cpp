@@ -1,11 +1,11 @@
-#include "JavaAmbiguous.h"
+#include "JavaTokenAmbiguous.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAmbiguous::Init(CJavaAmbiguousDefinition* pcDefinition)
+void CCJavaTokenAmbiguous::Init(CCJavaTokenAmbiguousDefinition* pcDefinition)
 {
 	CJavaToken::Init();
 	mpcDefinition = pcDefinition;
@@ -16,7 +16,7 @@ void CJavaAmbiguous::Init(CJavaAmbiguousDefinition* pcDefinition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAmbiguous::Kill(void)
+void CCJavaTokenAmbiguous::Kill(void)
 {
 	mpcDefinition = NULL;
 	CJavaToken::Kill();
@@ -27,7 +27,7 @@ void CJavaAmbiguous::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaAmbiguous::Is(EJavaAmbiguous eAmbiguous)
+BOOL CCJavaTokenAmbiguous::Is(ECJavaTokenAmbiguous eAmbiguous)
 {
 	return mpcDefinition->Get() == eAmbiguous;
 }
@@ -37,7 +37,7 @@ BOOL CJavaAmbiguous::Is(EJavaAmbiguous eAmbiguous)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaAmbiguous::IsAmbiguous(void) 
+BOOL CCJavaTokenAmbiguous::IsAmbiguous(void) 
 { 
 	return TRUE; 
 }
@@ -47,7 +47,7 @@ BOOL CJavaAmbiguous::IsAmbiguous(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAmbiguousDefinition::Init(EJavaAmbiguous eAmbiguous, char* szName)
+void CCJavaTokenAmbiguousDefinition::Init(ECJavaTokenAmbiguous eAmbiguous, char* szName)
 {
 	meAmbiguous = eAmbiguous;
 	mszName.Init(szName);
@@ -58,7 +58,7 @@ void CJavaAmbiguousDefinition::Init(EJavaAmbiguous eAmbiguous, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAmbiguousDefinition::Kill(void)
+void CCJavaTokenAmbiguousDefinition::Kill(void)
 {
 	meAmbiguous = JA_Unknown;
 	mszName.Kill();
@@ -69,7 +69,7 @@ void CJavaAmbiguousDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAmbiguous::Print(CChars* pszDest)
+void CCJavaTokenAmbiguous::Print(CChars* pszDest)
 {
 	pszDest->Append(mpcDefinition->GetName());
 }
@@ -79,7 +79,7 @@ void CJavaAmbiguous::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaAmbiguous::GetType(void)
+char* CCJavaTokenAmbiguous::GetType(void)
 {
 	return "Ambiguous";
 }
@@ -89,6 +89,6 @@ char* CJavaAmbiguous::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaAmbiguousDefinition::GetName(void) { return mszName.Text(); }
-EJavaAmbiguous CJavaAmbiguousDefinition::Get(void) { return meAmbiguous; }
+char* CCJavaTokenAmbiguousDefinition::GetName(void) { return mszName.Text(); }
+ECJavaTokenAmbiguous CCJavaTokenAmbiguousDefinition::Get(void) { return meAmbiguous; }
 

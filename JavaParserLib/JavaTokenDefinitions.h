@@ -24,14 +24,14 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/EnumeratorTemplate.h"
 #include "JavaTokenMemory.h"
-#include "JavaKeyword.h"
+#include "JavaTokenKeyword.h"
 
 
-typedef CEnumeratorTemplate<CJavaKeywordDefinition> CKeywordEnumerator;
-typedef CEnumeratorTemplate<CJavaSeparatorDefinition> CSeparatorEnumerator;
-typedef CEnumeratorTemplate<CJavaOperatorDefinition> COperatorEnumerator;
-typedef CEnumeratorTemplate<CJavaAmbiguousDefinition> CAmbiguousEnumerator;
-typedef CEnumeratorTemplate<CJavaScopeDefinition> CScopeEnumerator;
+typedef CEnumeratorTemplate<CJavaTokenKeywordDefinition> CKeywordEnumerator;
+typedef CEnumeratorTemplate<CJavaTokenSeparatorDefinition> CSeparatorEnumerator;
+typedef CEnumeratorTemplate<CJavaTokenOperatorDefinition> COperatorEnumerator;
+typedef CEnumeratorTemplate<CCJavaTokenAmbiguousDefinition> CAmbiguousEnumerator;
+typedef CEnumeratorTemplate<CJavaTokenScopeDefinition> CScopeEnumerator;
 
 
 class CJavaTokenDefinitions
@@ -53,11 +53,11 @@ public:
 	CAmbiguousEnumerator*		GetAmbiguous(void);
 	CScopeEnumerator*			GetScopes(void);
 
-	CJavaKeywordDefinition*		GetKeyword(EJavaKeyword eKeyword);
-	CJavaOperatorDefinition*	GetOperator(EJavaOperator eOperator);
-	CJavaSeparatorDefinition*	GetSeparator(EJavaSeparator eSeparator);
-	CJavaAmbiguousDefinition*	GetAmbiguous(EJavaAmbiguous eAmbiguous);
-	CJavaScopeDefinition*		GetScope(EJavaScope eGeneric);
+	CJavaTokenKeywordDefinition*		GetKeyword(EJavaTokenKeyword eKeyword);
+	CJavaTokenOperatorDefinition*	GetOperator(EJavaTokenOperator eOperator);
+	CJavaTokenSeparatorDefinition*	GetSeparator(EJavaTokenSeparator eSeparator);
+	CCJavaTokenAmbiguousDefinition*	GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous);
+	CJavaTokenScopeDefinition*		GetScope(EJavaTokenScope eGeneric);
 
 protected:
 	void						InitKeywords(void);
@@ -66,11 +66,11 @@ protected:
 	void						InitAmbiguous(void);
 	void						InitGenerics(void);
 
-	void						AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword);
-	void						AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator);
-	void						AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator);
-	void						AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous);
-	void						AddGenericDefinition(char* szGeneric, EJavaScope eGeneric);
+	void						AddKeywordDefinition(char* szKeyword, EJavaTokenKeyword eKeyword);
+	void						AddSeparatorDefinition(char* szSeparator, EJavaTokenSeparator eSeparator);
+	void						AddOperatorDefinition(EJavaTokenOperatorType eType, EJavaTokenOperator eOperator, char* szOperator);
+	void						AddAmbiguousDefinition(char* szAmbiguous, ECJavaTokenAmbiguous eAmbiguous);
+	void						AddGenericDefinition(char* szGeneric, EJavaTokenScope eGeneric);
 
 	void						KillKeywords(void);
 	void						KillOperators(void);

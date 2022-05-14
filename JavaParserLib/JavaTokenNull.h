@@ -1,12 +1,12 @@
 #ifndef __JAVA_NULL_H__
 #define __JAVA_NULL_H__
 #include "BaseLib/Chars.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
-class CJavaNull : public CJavaLiteral
+class CJavaTokenNull : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaNull);
+CONSTRUCTABLE(CJavaTokenNull);
 public:
 	void 	Init(void);
 	void 	Kill(void);

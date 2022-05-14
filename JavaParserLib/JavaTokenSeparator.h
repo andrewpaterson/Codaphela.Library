@@ -4,7 +4,7 @@
 #include "JavaToken.h"
 
 
-enum EJavaSeparator
+enum EJavaTokenSeparator
 {
 	JS_Semicolon,
 	JS_Comma,
@@ -20,36 +20,36 @@ enum EJavaSeparator
 };
 
 
-class CJavaSeparatorDefinition;
-class CJavaSeparator : public CJavaToken
+class CJavaTokenSeparatorDefinition;
+class CJavaTokenSeparator : public CJavaToken
 {
-CONSTRUCTABLE(CJavaSeparator);
+CONSTRUCTABLE(CJavaTokenSeparator);
 protected:
-	CJavaSeparatorDefinition*	mpcSeparator;
+	CJavaTokenSeparatorDefinition*	mpcSeparator;
 
 public:
-	void 	Init(CJavaSeparatorDefinition* pcSeparator);
+	void 	Init(CJavaTokenSeparatorDefinition* pcSeparator);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
 	BOOL	IsSeparator(void);
-	BOOL	Is(EJavaSeparator eSeparator);
+	BOOL	Is(EJavaTokenSeparator eSeparator);
 };
 
 
-class CJavaSeparatorDefinition
+class CJavaTokenSeparatorDefinition
 {
 protected:
-	EJavaSeparator	meSeparator;
+	EJavaTokenSeparator	meSeparator;
 	CChars			mszName;
 
 public:
-	void 			Init(EJavaSeparator eSeparator, char* szName);
+	void 			Init(EJavaTokenSeparator eSeparator, char* szName);
 	void 			Kill(void);
 
-	EJavaSeparator	Get(void);
+	EJavaTokenSeparator	Get(void);
 	char*			GetName(void);
 };
 

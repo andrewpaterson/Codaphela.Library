@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/EnumeratorTemplate.h"
 #include "JavaTokenMemory.h"
 #include "JavaTokenDefinitions.h"
-#include "JavaKeyword.h"
+#include "JavaTokenKeyword.h"
 
 
 class CJavaTokenParser

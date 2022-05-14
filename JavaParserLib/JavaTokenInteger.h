@@ -2,10 +2,10 @@
 #define __JAVA_INTEGER_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/PrimitiveTypes.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
-enum EJavaIntegerType
+enum EJavaTokenIntegerType
 {
 	JIT_int32,
 	JIT_int64,
@@ -14,12 +14,12 @@ enum EJavaIntegerType
 };
 
 
-class CJavaInteger : public CJavaLiteral
+class CJavaTokenInteger : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaInteger);
+CONSTRUCTABLE(CJavaTokenInteger);
 protected:
 	int64				miValue;
-	EJavaIntegerType	meType;
+	EJavaTokenIntegerType	meType;
 
 public:
 	void 	Init(int32 iValue);

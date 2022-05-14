@@ -2,10 +2,10 @@
 #define __JAVA_CHARACTER_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/PrimitiveTypes.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
-enum EJavaCharacterType
+enum EJavaTokenCharacterType
 {
 	JCT_char8,
 	JCT_char16,
@@ -14,12 +14,12 @@ enum EJavaCharacterType
 };
 
 
-class CJavaCharacter : public CJavaLiteral
+class CJavaTokenCharacter : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaCharacter);
+CONSTRUCTABLE(CJavaTokenCharacter);
 protected:
 	char16				mc;
-	EJavaCharacterType	meType;
+	EJavaTokenCharacterType	meType;
 
 public:
 	void 	Init(char c);

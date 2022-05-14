@@ -4,7 +4,7 @@
 #include "JavaToken.h"
 
 
-enum EJavaLiteralType
+enum EJavaTokenLiteralType
 {
 	JLT_Character,
 	JLT_Boolean,
@@ -15,18 +15,18 @@ enum EJavaLiteralType
 };
 
 
-class CJavaLiteral : public CJavaToken
+class CJavaTokenLiteral : public CJavaToken
 {
-CONSTRUCTABLE(CJavaLiteral);
+CONSTRUCTABLE(CJavaTokenLiteral);
 protected:
-	EJavaLiteralType	meLiteralType;
+	EJavaTokenLiteralType	meLiteralType;
 
 public:
-			void 	Init(EJavaLiteralType eType);
+			void 	Init(EJavaTokenLiteralType eType);
 			void 	Kill(void);
 
 			char*	GetType(void) override;
-			BOOL	IsLiteralType(EJavaLiteralType eType);
+			BOOL	IsLiteralType(EJavaTokenLiteralType eType);
 
 			BOOL	IsLiteral(void) override;
 	virtual BOOL	IsCharacter(void);

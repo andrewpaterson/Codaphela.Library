@@ -1,18 +1,16 @@
 #include "BaseLib/EscapeCodes.h"
-#include "JavaCharacter.h"
-#include "JavaString.h"
+#include "JavaTokenCharacter.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaString::Init(char* sz, int iLength)
+void CJavaTokenCharacter::Init(char c)
 {
-	CJavaLiteral::Init(JLT_String);
-	msz = sz;
-	meType = JST_string8;
-	miLength = iLength;
+	CJavaTokenLiteral::Init(JLT_Character);
+	mc = c;
+	meType = JCT_char8;
 }
 
 
@@ -20,12 +18,11 @@ void CJavaString::Init(char* sz, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaString::Init(char16* sz, int iLength)
+void CJavaTokenCharacter::Init(char16 c)
 {
-	msz = sz;
-	meType = JST_string16;
-	miLength = iLength;
-	CJavaLiteral::Kill();
+	mc = c;
+	meType = JCT_char16;
+	CJavaTokenLiteral::Kill();
 }
 
 
@@ -33,11 +30,10 @@ void CJavaString::Init(char16* sz, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaString::Kill(void)
+void CJavaTokenCharacter::Kill(void)
 {
-	msz = NULL;
-	miLength = 0;
-	meType = JST_Unknown;
+	meType = JCT_Unknown;
+	mc = -1;
 }
 
 
@@ -45,7 +41,7 @@ void CJavaString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaString::GetType(void)
+char* CJavaTokenCharacter::GetType(void)
 {
 	if (meType == JCT_char8)
 	{
@@ -57,7 +53,7 @@ char* CJavaString::GetType(void)
 	}
 	else
 	{
-		return CJavaLiteral::GetType();
+		return CJavaTokenLiteral::GetType();
 	}
 }
 
@@ -66,66 +62,11 @@ char* CJavaString::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaString::Print(CChars* pszDest)
+BOOL CJavaTokenCharacter::Is(char8 c)
 {
-	int		i;
-	char16	c16;
-	char	c8;
-	char	sz[10];
-
-	if (meType == JST_string8)
+	if (meType == JCT_char8)
 	{
-		pszDest->Append('"');
-		for (i = 0; i < miLength; i++)
-		{
-			c8 = ((char*)msz)[i];
-			pszDest->Append(GetEscapeString(c8, sz));
-		}
-		pszDest->Append('"');
-	}
-	else if (meType == JST_string16)
-	{
-		pszDest->Append('"');
-		for (i = 0; i < miLength; i++)
-		{
-			c16 = ((char16*)msz)[i];
-			if ((c16 >= 32) && (c16 <= 255))
-			{
-				pszDest->Append((char)c16);
-			}
-			else
-			{
-				pszDest->Append("[?]");
-			}
-
-		}
-		pszDest->Append('"');
-	}
-	else
-	{
-		pszDest->Append("[String?]");
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CJavaString::Is(char* szString)
-{
-	if (meType == JST_string8)
-	{
-		int	iLength = StrLen(szString);
-
-		if (miLength != iLength)
-		{
-			return FALSE;
-		}
-		else
-		{
-			return memcmp(szString, msz, iLength) == 0;
-		}
+		return (char)mc == c;
 	}
 	else
 	{
@@ -138,5 +79,47 @@ BOOL CJavaString::Is(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaString::IsString(void) { return TRUE; }
+BOOL CJavaTokenCharacter::Is(char16 c)
+{
+	if (meType == JCT_char16)
+	{
+		return mc == c;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenCharacter::Print(CChars* pszDest)
+{
+	char	sz[10];
+
+	pszDest->Append('\'');
+	if (mc <= 255)
+	{
+		pszDest->Append(GetEscapeString((char)mc, sz));
+	}
+	else
+	{
+		pszDest->Append(GetEscapeString(mc, sz));
+	}
+	pszDest->Append('\'');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaTokenCharacter::IsCharacter(void)
+{
+	return TRUE;
+}
+
 

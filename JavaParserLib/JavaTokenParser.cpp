@@ -75,10 +75,10 @@ void CJavaTokenParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::Parse(void)
 {	
-	CJavaToken*		pcCurrent;
-	CJavaToken*		pcPrevious;
-	CJavaNull		pcNull;
-	CJavaBoolean	pcBoolean;
+	CJavaToken*			pcCurrent;
+	CJavaToken*			pcPrevious;
+	CJavaTokenNull		pcNull;
+	CJavaTokenBoolean	pcBoolean;
 
 	pcCurrent = NULL;
 	pcPrevious = NULL;
@@ -232,18 +232,18 @@ void CJavaTokenParser::PrettyPrint(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaTokenParser::PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLastStartToken)
 {
-	CJavaKeyword*		pcStartKeyWord;
-	CJavaKeyword*		pcPreviousStartKeyWord;
+	CJavaTokenKeyword*		pcStartKeyWord;
+	CJavaTokenKeyword*		pcPreviousStartKeyWord;
 
 	if (pcLastStartToken != NULL)
 	{
 		if (pcLastStartToken->IsKeyword())
 		{
-			pcPreviousStartKeyWord = (CJavaKeyword*)pcLastStartToken;
+			pcPreviousStartKeyWord = (CJavaTokenKeyword*)pcLastStartToken;
 
 			if (pcStartToken->IsKeyword())
 			{
-				pcStartKeyWord = (CJavaKeyword*)pcStartToken;
+				pcStartKeyWord = (CJavaTokenKeyword*)pcStartToken;
 				if (pcStartKeyWord->Is(JK_import) && pcPreviousStartKeyWord->Is(JK_package))
 				{
 					return TRUE;
@@ -261,7 +261,7 @@ BOOL CJavaTokenParser::PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLast
 
 		if (pcStartToken->IsKeyword())
 		{
-			pcStartKeyWord = (CJavaKeyword*)pcStartToken;
+			pcStartKeyWord = (CJavaTokenKeyword*)pcStartToken;
 			if (pcStartKeyWord->Is(JK_if) || pcStartKeyWord->Is(JK_for))
 			{
 				if (!pcLastStartToken->IsSeparator())
@@ -287,16 +287,16 @@ BOOL CJavaTokenParser::PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLast
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaTokenParser::IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken* pcEndToken)
 {
-	CJavaToken*			pcToken;
-	CJavaSeparator*		pcSeparator;
-	CJavaKeyword*		pcKeyword;
-	BOOL				bDone;
-	int					iLeftPosition;
-	int					iRightPosition;
-	int					iPosition;
-	int					iLeftCount;
-	int					iRightCount;
-	int					iModifierCount;
+	CJavaToken*				pcToken;
+	CJavaTokenSeparator*	pcSeparator;
+	CJavaTokenKeyword*		pcKeyword;
+	BOOL					bDone;
+	int						iLeftPosition;
+	int						iRightPosition;
+	int						iPosition;
+	int						iLeftCount;
+	int						iRightCount;
+	int						iModifierCount;
 
 	bDone = FALSE;
 	pcToken = pcStartToken;
@@ -313,7 +313,7 @@ BOOL CJavaTokenParser::IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken*
 	{
 		if (pcToken->IsSeparator())
 		{
-			pcSeparator = (CJavaSeparator*)pcToken;
+			pcSeparator = (CJavaTokenSeparator*)pcToken;
 			if (pcSeparator->Is(JS_RoundBracketLeft))
 			{
 				iLeftPosition = iPosition;
@@ -329,7 +329,7 @@ BOOL CJavaTokenParser::IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken*
 
 		if (pcToken->IsKeyword())
 		{
-			pcKeyword = (CJavaKeyword*)pcToken;
+			pcKeyword = (CJavaTokenKeyword*)pcToken;
 			if (pcKeyword->Is(JK_private) || pcKeyword->Is(JK_protected) || pcKeyword->Is(JK_public))
 			{
 				iModifierCount++;
@@ -363,8 +363,8 @@ BOOL CJavaTokenParser::IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken*
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaTokenParser::IsAnnotation(CJavaToken* pcStartToken, CJavaToken* pcEndToken)
 {
-	CJavaToken*			pcToken;
-	BOOL				bDone;
+	CJavaToken*		pcToken;
+	BOOL			bDone;
 
 	bDone = FALSE;
 	pcToken = pcStartToken;
@@ -398,10 +398,10 @@ BOOL CJavaTokenParser::IsAnnotation(CJavaToken* pcStartToken, CJavaToken* pcEndT
 //////////////////////////////////////////////////////////////////////////
 int CJavaTokenParser::ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken)
 {
-	CJavaToken*			pcToken;
-	CJavaSeparator*		pcSeparator;
-	BOOL				bDone;
-	int					iBlockDepth;
+	CJavaToken*				pcToken;
+	CJavaTokenSeparator*	pcSeparator;
+	BOOL					bDone;
+	int						iBlockDepth;
 
 	bDone = FALSE;
 	pcToken = pcStartToken;
@@ -415,7 +415,7 @@ int CJavaTokenParser::ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndTok
 	{
 		if (pcToken->IsSeparator())
 		{
-			pcSeparator = (CJavaSeparator*)pcToken;
+			pcSeparator = (CJavaTokenSeparator*)pcToken;
 			if (pcSeparator->Is(JS_CurlyBracketLeft))
 			{
 				iBlockDepth++;
@@ -448,9 +448,9 @@ int CJavaTokenParser::ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndTok
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenParser::PrintLine(CChars* pszDest, CJavaToken* pcStartToken ,CJavaToken* pcEndToken)
 {
-	CJavaToken*			pcToken;
-	CJavaToken*			pcNextToken;
-	BOOL				bDone;
+	CJavaToken*		pcToken;
+	CJavaToken*		pcNextToken;
+	BOOL			bDone;
 
 	bDone = FALSE;
 	pcToken = pcStartToken;
@@ -535,14 +535,14 @@ void CJavaTokenParser::Dump(BOOL bIncludeType)
 //////////////////////////////////////////////////////////////////////////
 CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 {
-	CJavaToken*			pcToken;
-	CJavaSeparator*		pcSeparator;
-	CJavaKeyword*		pcKeyWord;
-	BOOL				bInFor;
-	BOOL				bLineEnder;
-	CJavaToken*			pcPrevious;
-	int					iRoundDepth;
-	BOOL				bCloseCurly;
+	CJavaToken*				pcToken;
+	CJavaTokenSeparator*	pcSeparator;
+	CJavaTokenKeyword*		pcKeyWord;
+	BOOL					bInFor;
+	BOOL					bLineEnder;
+	CJavaToken*				pcPrevious;
+	int						iRoundDepth;
+	BOOL					bCloseCurly;
 
 	pcToken = pcStartToken;
 	bInFor = FALSE;
@@ -563,7 +563,7 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 			{
 				if (pcToken->IsKeyword())
 				{
-					pcKeyWord = (CJavaKeyword*)pcToken;
+					pcKeyWord = (CJavaTokenKeyword*)pcToken;
 					if (pcKeyWord->Is(JK_while))
 					{
 						bLineEnder = FALSE;
@@ -582,7 +582,7 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 
 		if (pcToken->IsSeparator())
 		{
-			pcSeparator = (CJavaSeparator*)pcToken;
+			pcSeparator = (CJavaTokenSeparator*)pcToken;
 			if (pcSeparator->Is(JS_Semicolon) && !bInFor)
 			{
 				bLineEnder = TRUE;
@@ -615,7 +615,7 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 		}
 		else if (pcToken->IsKeyword())
 		{
-			pcKeyWord = (CJavaKeyword*)pcToken;
+			pcKeyWord = (CJavaTokenKeyword*)pcToken;
 			if (pcKeyWord->Is(JK_do))
 			{
 				bLineEnder = TRUE;
@@ -645,14 +645,14 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 {
-	BOOL				bCharThingLeft;
-	BOOL				bCharThingRight;
-	CJavaSeparator*		pcSeparator;
-	CJavaAmbiguous*		pcAmbiguous;
-	CJavaKeyword*		pcKeyword;
-	CJavaOperator*		pcOperator;
-	BOOL				bMethodLeft;
-	BOOL				bMethodRight;
+	BOOL					bCharThingLeft;
+	BOOL					bCharThingRight;
+	CJavaTokenSeparator*	pcSeparator;
+	CCJavaTokenAmbiguous*	pcAmbiguous;
+	CJavaTokenKeyword*		pcKeyword;
+	CJavaTokenOperator*		pcOperator;
+	BOOL					bMethodLeft;
+	BOOL					bMethodRight;
 
 	if (pcRight == NULL)
 	{
@@ -673,7 +673,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 		bMethodRight = FALSE;
 		if (pcLeft->IsOperator())
 		{
-			pcOperator = (CJavaOperator*)pcLeft;
+			pcOperator = (CJavaTokenOperator*)pcLeft;
 			if (pcOperator->Is(JO_MethodReference))
 			{
 				bMethodLeft = TRUE;
@@ -681,7 +681,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 		}
 		if (pcRight->IsOperator())
 		{
-			pcOperator = (CJavaOperator*)pcRight;
+			pcOperator = (CJavaTokenOperator*)pcRight;
 			if (pcOperator->Is(JO_MethodReference))
 			{
 				bMethodRight = TRUE;
@@ -696,7 +696,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 
 	if (pcLeft->IsSeparator())
 	{
-		pcSeparator = (CJavaSeparator*)pcLeft;
+		pcSeparator = (CJavaTokenSeparator*)pcLeft;
 		if (pcSeparator->Is(JS_Comma))
 		{
 			return TRUE;
@@ -713,7 +713,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 
 	if (pcLeft->IsAmbiguous())
 	{
-		pcAmbiguous = (CJavaAmbiguous*)pcLeft;
+		pcAmbiguous = (CCJavaTokenAmbiguous*)pcLeft;
 		if (pcAmbiguous->Is(JA_QuestionMark))
 		{
 			return TRUE;
@@ -730,7 +730,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 
 	if (pcRight->IsAmbiguous())
 	{
-		pcAmbiguous = (CJavaAmbiguous*)pcRight;
+		pcAmbiguous = (CCJavaTokenAmbiguous*)pcRight;
 		if (pcAmbiguous->Is(JA_QuestionMark))
 		{
 			if (pcLeft->IsIdentifier())
@@ -740,7 +740,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 
 			if (pcLeft->IsSeparator())
 			{
-				pcSeparator = (CJavaSeparator*)pcLeft;
+				pcSeparator = (CJavaTokenSeparator*)pcLeft;
 				if (pcSeparator->Is(JS_SquareBracketRight) || pcSeparator->Is(JS_RoundBracketRight))
 				{
 					return TRUE;
@@ -751,7 +751,7 @@ BOOL CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 
 	if (pcLeft->IsKeyword())
 	{
-		pcKeyword = (CJavaKeyword*)pcLeft;
+		pcKeyword = (CJavaTokenKeyword*)pcLeft;
 		if (pcKeyword->Is(JK_if) || pcKeyword->Is(JK_for))
 		{
 			return TRUE;
@@ -802,11 +802,11 @@ TRISTATE CJavaTokenParser::ParseComment(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseKeyword(CJavaToken** ppcCurrent)
 {
-	EJavaKeyword				eKeyword;
-	CJavaKeywordDefinition*		pcKeyword;
-	TRISTATE					tResult;
+	EJavaTokenKeyword				eKeyword;
+	CJavaTokenKeywordDefinition*	pcKeyword;
+	TRISTATE						tResult;
 
-	tResult = mcParser.GetEnumeratorIdentifier<CJavaKeywordDefinition>(mpcDefinitions->GetKeywords(), (int*)&eKeyword, FALSE);
+	tResult = mcParser.GetEnumeratorIdentifier<CJavaTokenKeywordDefinition>(mpcDefinitions->GetKeywords(), (int*)&eKeyword, FALSE);
 	if (tResult == TRITRUE)
 	{
 		pcKeyword = mpcDefinitions->GetKeyword(eKeyword);
@@ -830,11 +830,11 @@ TRISTATE CJavaTokenParser::ParseKeyword(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseAmbiguous(CJavaToken** ppcCurrent)
 {
-	TRISTATE					tResult;
-	EJavaAmbiguous				eAmbiguous;
-	CJavaAmbiguousDefinition*	pcAmbiguous;
+	TRISTATE							tResult;
+	ECJavaTokenAmbiguous				eAmbiguous;
+	CCJavaTokenAmbiguousDefinition*		pcAmbiguous;
 
-	tResult = mcParser.GetEnumeratorSequence<CJavaAmbiguousDefinition>(mpcDefinitions->GetAmbiguous(), (int*)&eAmbiguous, FALSE);
+	tResult = mcParser.GetEnumeratorSequence<CCJavaTokenAmbiguousDefinition>(mpcDefinitions->GetAmbiguous(), (int*)&eAmbiguous, FALSE);
 	if (tResult == TRITRUE)
 	{
 		pcAmbiguous = mpcDefinitions->GetAmbiguous(eAmbiguous);
@@ -858,11 +858,11 @@ TRISTATE CJavaTokenParser::ParseAmbiguous(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseOperator(CJavaToken** ppcCurrent)
 {
-	TRISTATE					tResult;
-	EJavaOperator				eOperator;
-	CJavaOperatorDefinition*	pcOperator;
+	TRISTATE						tResult;
+	EJavaTokenOperator				eOperator;
+	CJavaTokenOperatorDefinition*	pcOperator;
 
-	tResult = mcParser.GetEnumeratorSequence<CJavaOperatorDefinition>(mpcDefinitions->GetOperators(), (int*)&eOperator, FALSE);
+	tResult = mcParser.GetEnumeratorSequence<CJavaTokenOperatorDefinition>(mpcDefinitions->GetOperators(), (int*)&eOperator, FALSE);
 	if (tResult == TRITRUE)
 	{
 		pcOperator = mpcDefinitions->GetOperator(eOperator);
@@ -886,11 +886,11 @@ TRISTATE CJavaTokenParser::ParseOperator(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseSeparator(CJavaToken** ppcCurrent)
 {
-	TRISTATE					tResult;
-	EJavaSeparator				eSeparator;
-	CJavaSeparatorDefinition*	pcSeparator;
+	TRISTATE						tResult;
+	EJavaTokenSeparator				eSeparator;
+	CJavaTokenSeparatorDefinition*	pcSeparator;
 
-	tResult = mcParser.GetEnumeratorSequence<CJavaSeparatorDefinition>(mpcDefinitions->GetSeparators(), (int*)&eSeparator, FALSE);
+	tResult = mcParser.GetEnumeratorSequence<CJavaTokenSeparatorDefinition>(mpcDefinitions->GetSeparators(), (int*)&eSeparator, FALSE);
 	if (tResult == TRITRUE)
 	{
 		pcSeparator = mpcDefinitions->GetSeparator(eSeparator);
@@ -915,10 +915,10 @@ TRISTATE CJavaTokenParser::ParseSeparator(CJavaToken** ppcCurrent)
 TRISTATE CJavaTokenParser::ParseScope(CJavaToken** ppcCurrent)
 {
 	TRISTATE					tResult;
-	EJavaScope				eScope;
-	CJavaScopeDefinition*		pcScope;
+	EJavaTokenScope				eScope;
+	CJavaTokenScopeDefinition*	pcScope;
 
-	tResult = mcParser.GetEnumeratorSequence<CJavaScopeDefinition>(mpcDefinitions->GetScopes(), (int*)&eScope, FALSE);
+	tResult = mcParser.GetEnumeratorSequence<CJavaTokenScopeDefinition>(mpcDefinitions->GetScopes(), (int*)&eScope, FALSE);
 	if (tResult == TRITRUE)
 	{
 		pcScope = mpcDefinitions->GetScope(eScope);
@@ -942,7 +942,7 @@ TRISTATE CJavaTokenParser::ParseScope(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseBoolean(CJavaToken** ppcCurrent)
 {
-	TRISTATE					tResult;
+	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("true", FALSE);
 	if (tResult == TRITRUE)
@@ -1211,7 +1211,7 @@ TRISTATE CJavaTokenParser::ParseString(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseNull(CJavaToken** ppcCurrent)
 {
-	TRISTATE					tResult;
+	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactIdentifier("null", FALSE);
 	if (tResult == TRITRUE)

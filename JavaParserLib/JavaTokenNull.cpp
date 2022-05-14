@@ -1,13 +1,13 @@
-#include "JavaNull.h"
+#include "JavaTokenNull.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaNull::Init(void)
+void CJavaTokenNull::Init(void)
 {
-	CJavaLiteral::Init(JLT_Null);
+	CJavaTokenLiteral::Init(JLT_Null);
 }
 
 
@@ -15,9 +15,9 @@ void CJavaNull::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaNull::Kill(void)
+void CJavaTokenNull::Kill(void)
 {
-	CJavaLiteral::Kill();
+	CJavaTokenLiteral::Kill();
 }
 
 
@@ -25,7 +25,7 @@ void CJavaNull::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaNull::Print(CChars* pszDest)
+void CJavaTokenNull::Print(CChars* pszDest)
 {
 	pszDest->Append("null");
 }
@@ -35,5 +35,5 @@ void CJavaNull::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaNull::IsNull(void) { return TRUE; }
+BOOL CJavaTokenNull::IsNull(void) { return TRUE; }
 

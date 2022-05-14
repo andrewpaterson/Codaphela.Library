@@ -2,10 +2,10 @@
 #define __JAVA_STRING_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/PrimitiveTypes.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
-enum EJavaStringType
+enum EJavaTokenStringType
 {
 	JST_string8,
 	JST_string16,
@@ -14,12 +14,12 @@ enum EJavaStringType
 };
 
 
-class CJavaString : public CJavaLiteral
+class CJavaTokenString : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaString);
+CONSTRUCTABLE(CJavaTokenString);
 protected:
 	void*				msz;
-	EJavaStringType		meType;
+	EJavaTokenStringType		meType;
 	int					miLength;
 
 public:

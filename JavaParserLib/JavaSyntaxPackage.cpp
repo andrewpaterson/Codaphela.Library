@@ -37,7 +37,7 @@ char* CJavaSyntaxPackage::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxPackage::AddIdentifier(CJavaIdentifier* pcIdentifier)
+void CJavaSyntaxPackage::AddIdentifier(CJavaTokenIdentifier* pcIdentifier)
 {
 	mapcIdentifiers.Add(pcIdentifier);
 }

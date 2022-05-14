@@ -4,7 +4,7 @@
 #include "JavaToken.h"
 
 
-enum EJavaAmbiguous
+enum ECJavaTokenAmbiguous
 {
 	JA_AngleBracketLeft,
 	JA_AngleBracketRight,
@@ -15,37 +15,37 @@ enum EJavaAmbiguous
 };
 
 
-class CJavaAmbiguousDefinition;
-class CJavaAmbiguous : public CJavaToken
+class CCJavaTokenAmbiguousDefinition;
+class CCJavaTokenAmbiguous : public CJavaToken
 {
-CONSTRUCTABLE(CJavaAmbiguous);
+CONSTRUCTABLE(CCJavaTokenAmbiguous);
 protected:
-	CJavaAmbiguousDefinition*	mpcDefinition;
+	CCJavaTokenAmbiguousDefinition*	mpcDefinition;
 
 public:
-	void 	Init(CJavaAmbiguousDefinition* pcDefinition);
+	void 	Init(CCJavaTokenAmbiguousDefinition* pcDefinition);
 	void 	Kill(void);
 
 	BOOL	IsAmbiguous(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	Is(EJavaAmbiguous eAmbiguous);
+	BOOL	Is(ECJavaTokenAmbiguous eAmbiguous);
 };
 
 
-class CJavaAmbiguousDefinition
+class CCJavaTokenAmbiguousDefinition
 {
 protected:
-	EJavaAmbiguous	meAmbiguous;
+	ECJavaTokenAmbiguous	meAmbiguous;
 	CChars			mszName;
 
 public:
-	void 			Init(EJavaAmbiguous eAmbiguous, char* szName);
+	void 			Init(ECJavaTokenAmbiguous eAmbiguous, char* szName);
 	void 			Kill(void);
 
 	char*			GetName(void);
-	EJavaAmbiguous	Get(void);
+	ECJavaTokenAmbiguous	Get(void);
 };
 
 

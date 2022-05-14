@@ -49,7 +49,7 @@ BOOL CJavaSyntaxClassGeneric::IsClassGeneric(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassGeneric::SetName(CJavaIdentifier* pcName)
+void CJavaSyntaxClassGeneric::SetName(CJavaTokenIdentifier* pcName)
 {
 	mpcName = pcName;
 }

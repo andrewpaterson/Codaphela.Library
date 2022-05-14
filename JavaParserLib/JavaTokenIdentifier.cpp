@@ -1,11 +1,11 @@
-#include "JavaIdentifier.h"
+#include "JavaTokenIdentifier.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Init(char* szIdentifier, int iLength)
+void CJavaTokenIdentifier::Init(char* szIdentifier, int iLength)
 {
 	CJavaToken::Init();
 	mszIdentifier = szIdentifier;
@@ -17,7 +17,7 @@ void CJavaIdentifier::Init(char* szIdentifier, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Kill(void)
+void CJavaTokenIdentifier::Kill(void)
 {
 	mszIdentifier = NULL;
 	miLength = 0;
@@ -29,7 +29,7 @@ void CJavaIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaIdentifier::Print(CChars* pszDest)
+void CJavaTokenIdentifier::Print(CChars* pszDest)
 {
 	pszDest->Append(mszIdentifier, miLength);
 }
@@ -39,7 +39,7 @@ void CJavaIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaIdentifier::Is(char* szIdentifier)
+BOOL CJavaTokenIdentifier::Is(char* szIdentifier)
 {
 	int	iLength = StrLen(szIdentifier);
 
@@ -58,6 +58,6 @@ BOOL CJavaIdentifier::Is(char* szIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaIdentifier::GetType(void) { return "Identifier"; }
-BOOL CJavaIdentifier::IsIdentifier(void) { return TRUE; }
+char* CJavaTokenIdentifier::GetType(void) { return "Identifier"; }
+BOOL CJavaTokenIdentifier::IsIdentifier(void) { return TRUE; }
 

@@ -177,25 +177,25 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="JavaAmbiguous.cpp" />
-    <ClCompile Include="JavaAnnotation.cpp" />
-    <ClCompile Include="JavaBoolean.cpp" />
-    <ClCompile Include="JavaCharacter.cpp" />
-    <ClCompile Include="JavaComment.cpp" />
+    <ClCompile Include="JavaTokenAmbiguous.cpp" />
+    <ClCompile Include="JavaTokenAnnotation.cpp" />
+    <ClCompile Include="JavaTokenBoolean.cpp" />
+    <ClCompile Include="JavaTokenCharacter.cpp" />
+    <ClCompile Include="JavaTokenComment.cpp" />
     <ClCompile Include="JavaSyntaxClass.cpp" />
     <ClCompile Include="JavaSyntaxEnum.cpp" />
     <ClCompile Include="JavaSyntaxError.cpp" />
     <ClCompile Include="JavaSyntaxFile.cpp" />
-    <ClCompile Include="JavaFloat.cpp" />
-    <ClCompile Include="JavaScope.cpp" />
-    <ClCompile Include="JavaIdentifier.cpp" />
-    <ClCompile Include="JavaInteger.cpp" />
-    <ClCompile Include="JavaKeyword.cpp" />
-    <ClCompile Include="JavaLiteral.cpp" />
-    <ClCompile Include="JavaNull.cpp" />
-    <ClCompile Include="JavaOperator.cpp" />
-    <ClCompile Include="JavaSeparator.cpp" />
-    <ClCompile Include="JavaString.cpp" />
+    <ClCompile Include="JavaTokenFloat.cpp" />
+    <ClCompile Include="JavaTokenScope.cpp" />
+    <ClCompile Include="JavaTokenIdentifier.cpp" />
+    <ClCompile Include="JavaTokenInteger.cpp" />
+    <ClCompile Include="JavaTokenKeyword.cpp" />
+    <ClCompile Include="JavaTokenLiteral.cpp" />
+    <ClCompile Include="JavaTokenNull.cpp" />
+    <ClCompile Include="JavaTokenOperator.cpp" />
+    <ClCompile Include="JavaTokenSeparator.cpp" />
+    <ClCompile Include="JavaTokenString.cpp" />
     <ClCompile Include="JavaSyntax.cpp" />
     <ClCompile Include="JavaSyntaxClassGeneric.cpp" />
     <ClCompile Include="JavaSyntaxImport.cpp" />
@@ -214,24 +214,24 @@
     <ClCompile Include="JavaTokenParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="JavaAnnotation.h" />
-    <ClInclude Include="JavaBoolean.h" />
+    <ClInclude Include="JavaTokenAnnotation.h" />
+    <ClInclude Include="JavaTokenBoolean.h" />
     <ClInclude Include="JavaSyntaxClass.h" />
     <ClInclude Include="JavaSyntaxEnum.h" />
     <ClInclude Include="JavaSyntaxError.h" />
     <ClInclude Include="JavaSyntaxFile.h" />
-    <ClInclude Include="JavaFloat.h" />
-    <ClInclude Include="JavaInteger.h" />
-    <ClInclude Include="JavaNull.h" />
-    <ClInclude Include="JavaAmbiguous.h" />
-    <ClInclude Include="JavaCharacter.h" />
-    <ClInclude Include="JavaScope.h" />
-    <ClInclude Include="JavaIdentifier.h" />
-    <ClInclude Include="JavaKeyword.h" />
-    <ClInclude Include="JavaLiteral.h" />
-    <ClInclude Include="JavaOperator.h" />
-    <ClInclude Include="JavaSeparator.h" />
-    <ClInclude Include="JavaString.h" />
+    <ClInclude Include="JavaTokenFloat.h" />
+    <ClInclude Include="JavaTokenInteger.h" />
+    <ClInclude Include="JavaTokenNull.h" />
+    <ClInclude Include="JavaTokenAmbiguous.h" />
+    <ClInclude Include="JavaTokenCharacter.h" />
+    <ClInclude Include="JavaTokenScope.h" />
+    <ClInclude Include="JavaTokenIdentifier.h" />
+    <ClInclude Include="JavaTokenKeyword.h" />
+    <ClInclude Include="JavaTokenLiteral.h" />
+    <ClInclude Include="JavaTokenOperator.h" />
+    <ClInclude Include="JavaTokenSeparator.h" />
+    <ClInclude Include="JavaTokenString.h" />
     <ClInclude Include="JavaSyntax.h" />
     <ClInclude Include="JavaSyntaxClassGeneric.h" />
     <ClInclude Include="JavaSyntaxImport.h" />
@@ -247,7 +247,7 @@
     <ClInclude Include="JavaSyntaxTypeGeneric.h" />
     <ClInclude Include="JavaTokenDefinitions.h" />
     <ClInclude Include="JavaTokenMemory.h" />
-    <ClInclude Include="JavaComment.h" />
+    <ClInclude Include="JavaTokenComment.h" />
     <ClInclude Include="JavaToken.h" />
     <ClInclude Include="JavaTokenParser.h" />
   </ItemGroup>

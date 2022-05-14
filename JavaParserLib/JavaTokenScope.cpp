@@ -1,15 +1,14 @@
-#include "JavaInteger.h"
+#include "JavaTokenScope.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaInteger::Init(int32 iValue)
+void CJavaTokenScope::Init(CJavaTokenScopeDefinition* pcGeneric)
 {
-	CJavaLiteral::Init(JLT_Integer);
-	miValue = iValue;
-	meType = JIT_int32;
+	CJavaToken::Init();
+	mpcScope = pcGeneric;
 }
 
 
@@ -17,11 +16,10 @@ void CJavaInteger::Init(int32 iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaInteger::Init(int64 iValue)
+void CJavaTokenScope::Kill(void)
 {
-	miValue = iValue;
-	meType = JIT_int64;
-	CJavaLiteral::Kill();
+	mpcScope = NULL;
+	CJavaToken::Kill();
 }
 
 
@@ -29,10 +27,9 @@ void CJavaInteger::Init(int64 iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaInteger::Kill(void)
+void CJavaTokenScope::Print(CChars* pszDest)
 {
-	miValue = 0;
-	meType = JIT_Unknown;
+	pszDest->Append(mpcScope->GetName());
 }
 
 
@@ -40,21 +37,9 @@ void CJavaInteger::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaInteger::Print(CChars* pszDest)
+BOOL CJavaTokenScope::Is(EJavaTokenScope eGeneric)
 {
-	if (meType == JIT_int32)
-	{
-		pszDest->Append((int32)miValue);
-	}
-	else if (meType == JIT_int64)
-	{
-		pszDest->Append(miValue);
-		pszDest->Append('L');
-	}
-	else
-	{
-		pszDest->Append("[int?]");
-	}
+	return mpcScope->Get() == eGeneric;
 }
 
 
@@ -62,20 +47,18 @@ void CJavaInteger::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaInteger::GetType(void)
+char* CJavaTokenScope::GetType(void) { return "Generic"; }
+BOOL CJavaTokenScope::IsScope(void) { return TRUE; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenScopeDefinition::Init(EJavaTokenScope eGeneric, char* szName)
 {
-	if (meType == JIT_int32)
-	{
-		return "Literal (int32)";
-	}
-	else if (meType == JIT_int64)
-	{
-		return "Literal (int64)";
-	}
-	else
-	{
-		return CJavaLiteral::GetType();
-	}
+	meScope = eGeneric;
+	mszName.Init(szName);
 }
 
 
@@ -83,16 +66,10 @@ char* CJavaInteger::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaInteger::Is(int64 lli)
+void CJavaTokenScopeDefinition::Kill(void)
 {
-	if (meType == JIT_int64)
-	{
-		return miValue == lli;
-	}
-	else
-	{
-		return FALSE;
-	}
+	meScope = JG_Unknown;
+	mszName.Kill();
 }
 
 
@@ -100,22 +77,6 @@ BOOL CJavaInteger::Is(int64 lli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaInteger::Is(int32 i)
-{
-	if (meType == JIT_int32)
-	{
-		return (int32)miValue == i;
-	}
-	else
-	{
-		return FALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CJavaInteger::IsInteger(void) { return TRUE; }
+char* CJavaTokenScopeDefinition::GetName(void) { return mszName.Text(); }
+EJavaTokenScope CJavaTokenScopeDefinition::Get(void) { return meScope; }
 

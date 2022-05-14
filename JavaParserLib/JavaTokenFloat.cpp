@@ -1,13 +1,13 @@
-#include "JavaFloat.h"
+#include "JavaTokenFloat.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaFloat::Init(float32 fValue)
+void CJavaTokenFloat::Init(float32 fValue)
 {
-	CJavaLiteral::Init(JLT_Float);
+	CJavaTokenLiteral::Init(JLT_Float);
 	mfValue = fValue;
 	meType = JFT_float32;
 }
@@ -17,11 +17,11 @@ void CJavaFloat::Init(float32 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaFloat::Init(float64 fValue)
+void CJavaTokenFloat::Init(float64 fValue)
 {
 	mfValue = fValue;
 	meType = JFT_float64;
-	CJavaLiteral::Kill();
+	CJavaTokenLiteral::Kill();
 }
 
 
@@ -29,7 +29,7 @@ void CJavaFloat::Init(float64 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaFloat::Kill(void)
+void CJavaTokenFloat::Kill(void)
 {
 	mfValue = 0.0f;
 	meType = JFT_Unknown;
@@ -40,7 +40,7 @@ void CJavaFloat::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaFloat::Print(CChars* pszDest)
+void CJavaTokenFloat::Print(CChars* pszDest)
 {
 	if (meType == JFT_float32)
 	{
@@ -61,7 +61,7 @@ void CJavaFloat::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaFloat::GetType(void)
+char* CJavaTokenFloat::GetType(void)
 {
 	if (meType == JFT_float32)
 	{
@@ -73,7 +73,7 @@ char* CJavaFloat::GetType(void)
 	}
 	else
 	{
-		return CJavaLiteral::GetType();
+		return CJavaTokenLiteral::GetType();
 	}
 }
 
@@ -82,7 +82,7 @@ char* CJavaFloat::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaFloat::Is(float32 fValue)
+BOOL CJavaTokenFloat::Is(float32 fValue)
 {
 	if (meType == JFT_float32)
 	{
@@ -99,7 +99,7 @@ BOOL CJavaFloat::Is(float32 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaFloat::Is(float64 fValue)
+BOOL CJavaTokenFloat::Is(float64 fValue)
 {
 	if (meType == JFT_float64)
 	{
@@ -116,5 +116,5 @@ BOOL CJavaFloat::Is(float64 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaFloat::IsFloat(void) { return TRUE; }
+BOOL CJavaTokenFloat::IsFloat(void) { return TRUE; }
 

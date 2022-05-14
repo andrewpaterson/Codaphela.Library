@@ -1,16 +1,14 @@
-#include "BaseLib/EscapeCodes.h"
-#include "JavaCharacter.h"
+#include "JavaTokenKeyword.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaCharacter::Init(char c)
+void CJavaTokenKeyword::Init(CJavaTokenKeywordDefinition* pcKeyword)
 {
-	CJavaLiteral::Init(JLT_Character);
-	mc = c;
-	meType = JCT_char8;
+	CJavaToken::Init();
+	mpcKeyword = pcKeyword;
 }
 
 
@@ -18,11 +16,10 @@ void CJavaCharacter::Init(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaCharacter::Init(char16 c)
+void CJavaTokenKeyword::Kill(void)
 {
-	mc = c;
-	meType = JCT_char16;
-	CJavaLiteral::Kill();
+	mpcKeyword = NULL;
+	CJavaToken::Kill();
 }
 
 
@@ -30,10 +27,9 @@ void CJavaCharacter::Init(char16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaCharacter::Kill(void)
+void CJavaTokenKeyword::Print(CChars* pszDest)
 {
-	meType = JCT_Unknown;
-	mc = -1;
+	pszDest->Append(mpcKeyword->GetName());
 }
 
 
@@ -41,20 +37,9 @@ void CJavaCharacter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaCharacter::GetType(void)
+BOOL CJavaTokenKeyword::Is(EJavaTokenKeyword eKeyword)
 {
-	if (meType == JCT_char8)
-	{
-		return "Literal (char8)";
-	}
-	else if (meType == JCT_char16)
-	{
-		return "Literal (char16)";
-	}
-	else
-	{
-		return CJavaLiteral::GetType();
-	}
+	return mpcKeyword->Get() == eKeyword;
 }
 
 
@@ -62,16 +47,18 @@ char* CJavaCharacter::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaCharacter::Is(char8 c)
+char* CJavaTokenKeyword::GetType(void) {	return "Keyword"; }
+BOOL CJavaTokenKeyword::IsKeyword(void) { return TRUE; }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenKeywordDefinition::Init(EJavaTokenKeyword eKeyword, char* szName)
 {
-	if (meType == JCT_char8)
-	{
-		return (char)mc == c;
-	}
-	else
-	{
-		return FALSE;
-	}
+	meKeyword = eKeyword;
+	mszName.Init(szName);
 }
 
 
@@ -79,16 +66,10 @@ BOOL CJavaCharacter::Is(char8 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaCharacter::Is(char16 c)
+void CJavaTokenKeywordDefinition::Kill(void)
 {
-	if (meType == JCT_char16)
-	{
-		return mc == c;
-	}
-	else
-	{
-		return FALSE;
-	}
+	meKeyword = JK_Unknown;
+	mszName.Kill();
 }
 
 
@@ -96,20 +77,9 @@ BOOL CJavaCharacter::Is(char16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaCharacter::Print(CChars* pszDest)
+char* CJavaTokenKeywordDefinition::GetName(void)
 {
-	char	sz[10];
-
-	pszDest->Append('\'');
-	if (mc <= 255)
-	{
-		pszDest->Append(GetEscapeString((char)mc, sz));
-	}
-	else
-	{
-		pszDest->Append(GetEscapeString(mc, sz));
-	}
-	pszDest->Append('\'');
+	return mszName.Text();
 }
 
 
@@ -117,9 +87,5 @@ void CJavaCharacter::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaCharacter::IsCharacter(void)
-{
-	return TRUE;
-}
-
+EJavaTokenKeyword CJavaTokenKeywordDefinition::Get(void) { return meKeyword; }
 
