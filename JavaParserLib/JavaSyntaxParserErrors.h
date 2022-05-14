@@ -6,6 +6,8 @@
 #define EXPECTED_DOT_OR_SEMICOLON				"'.' or ';' expected."
 #define EXPECTED_SEMICOLON						"';' expected."
 #define EXPECTED_IDENTIFIER						"Identifier expected."
+#define EXPECTED_IDENTIFIER_OR_QUESTION_MARK	"'?' or Identifier expected."
+#define EXPECTED_GENERIC						"Genric expected."
 #define EXPECTED_CLASS_OR_INTERFACE				"'class' or 'interface' expected."
 #define EXPECTED_CLASS							"'class' expected."
 #define EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET	"'{' or '<' expected."

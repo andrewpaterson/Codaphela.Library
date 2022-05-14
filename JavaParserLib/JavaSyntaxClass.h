@@ -1,7 +1,7 @@
 #ifndef __JAVA_SYNTAX_CLASS_H__
 #define __JAVA_SYNTAX_CLASS_H__
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "JavaSyntaxClassGeneric.h"
+#include "JavaSyntaxType.h"
 #include "JavaSyntaxTopLevel.h"
 
 
@@ -9,7 +9,9 @@ class CJavaSyntaxClass : public CJavaSyntaxTopLevel
 {
 CONSTRUCTABLE(CJavaSyntaxClass);
 protected:
-	CJavaSyntaxClassGenericPtrArray		mapcGenerics;
+	CJavaSyntaxType*	mpcType;
+	BOOL				mbAbstract;
+	BOOL				mbFinal;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree);
@@ -19,7 +21,9 @@ public:
 
 	BOOL	IsClass(void) override;
 
-	void	AddGeneric(CJavaSyntaxClassGeneric* pcGeneric);
+	void	SetSyntaxType(CJavaSyntaxType* pcType);
+	void	SetAbstract(BOOL bAbstract);
+	void	SetFinal(BOOL bFinal);
 };
 
 

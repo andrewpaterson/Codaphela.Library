@@ -1,14 +1,16 @@
-#include "JavaSyntaxClassGeneric.h"
+#include "JavaSyntaxType.h"
+#include "JavaSyntaxGeneric.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassGeneric::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
 	mpcName = NULL;
+	mbWildCard = FALSE;
 	mpcExtends = NULL;
 }
 
@@ -17,9 +19,10 @@ void CJavaSyntaxClassGeneric::Init(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassGeneric::Kill(void)
+void CJavaSyntaxGeneric::Kill(void)
 {
 	mpcName = NULL;
+	mbWildCard = FALSE;
 	mpcExtends = NULL;
 	CJavaSyntax::Kill();
 }
@@ -29,9 +32,9 @@ void CJavaSyntaxClassGeneric::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxClassGeneric::GetType(void)
+char* CJavaSyntaxGeneric::GetType(void)
 {
-	return "Class Generic";
+	return "Type Generic";
 }
 
 
@@ -39,7 +42,7 @@ char* CJavaSyntaxClassGeneric::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxClassGeneric::IsClassGeneric(void)
+BOOL CJavaSyntaxGeneric::IsGeneric(void)
 {
 	return TRUE;
 }
@@ -49,18 +52,7 @@ BOOL CJavaSyntaxClassGeneric::IsClassGeneric(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassGeneric::SetName(CJavaTokenIdentifier* pcName)
-{
-	mpcName = pcName;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassGeneric::SetExtends(CJavaSyntaxType* pcExtends)
-{
-	mpcExtends = pcExtends;
-}
+void CJavaSyntaxGeneric::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
+void CJavaSyntaxGeneric::SetExtends(CJavaSyntaxType* pcType) { mpcExtends = pcType; }
+void CJavaSyntaxGeneric::SetWildCard(BOOL bWildCard) { mbWildCard = bWildCard; }
 

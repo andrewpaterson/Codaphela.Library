@@ -99,16 +99,6 @@ CJavaSyntaxInterface* CJavaSyntaxMemory::CreateInterface(CJavaSyntaxTree* pcTree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxClassGeneric* CJavaSyntaxMemory::CreateClassGeneric(CJavaSyntaxTree* pcTree)
-{
-	return Create<CJavaSyntaxClassGeneric>(pcTree);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CJavaSyntaxType* CJavaSyntaxMemory::CreateType(CJavaSyntaxTree* pcTree)
 {
 	return Create<CJavaSyntaxType>(pcTree);
@@ -119,8 +109,8 @@ CJavaSyntaxType* CJavaSyntaxMemory::CreateType(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxTypeGeneric* CJavaSyntaxMemory::CreateTypeGeneric(CJavaSyntaxTree* pcTree)
+CJavaSyntaxGeneric* CJavaSyntaxMemory::CreateGeneric(CJavaSyntaxTree* pcTree)
 {
-	return Create<CJavaSyntaxTypeGeneric>(pcTree);
+	return Create<CJavaSyntaxGeneric>(pcTree);
 }
 

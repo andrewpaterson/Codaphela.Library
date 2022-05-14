@@ -68,15 +68,14 @@ protected:
 	CJavaSyntaxClass*			ParseClass(void);
 	CJavaSyntaxEnum*			ParseEnum(void);
 	CJavaSyntaxInterface*		ParseInterface(void);
-	BOOL						ParseClassGenerics(CJavaSyntaxClass* pcClass);
-	CJavaSyntaxClassGeneric*	ParseClassGeneric(void);
 	CJavaSyntaxType*			ParseType(void);
+	CJavaSyntaxGeneric*			ParseGeneric(void);
 
 	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
 
 	BOOL						GetKeyword(EJavaTokenKeyword eKeyword);
 	BOOL						GetSeparator(EJavaTokenSeparator eSeparator);
-	CJavaTokenIdentifier*			GetIdentifier(void);
+	CJavaTokenIdentifier*		GetIdentifier(void);
 	BOOL						GetScope(EJavaTokenScope eGeneric);
 	BOOL						GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
 	BOOL						GetOperator(EJavaTokenOperator eOperator);
@@ -94,7 +93,7 @@ protected:
 	void						SkipComments(void);
 
 	BOOL						ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
-	CJavaTokenScope*					CreateScope(EJavaTokenScope eScope);
+	CJavaTokenScope*			CreateScope(EJavaTokenScope eScope);
 
 protected:
 	template<class M>	M*	Error(char* szError);

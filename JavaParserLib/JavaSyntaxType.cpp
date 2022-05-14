@@ -1,4 +1,4 @@
-#include "JavaSyntaxTypeGeneric.h"
+#include "JavaSyntaxGeneric.h"
 #include "JavaSyntaxType.h"
 
 
@@ -9,7 +9,8 @@
 void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
-	mpcGeneric = NULL;
+	mpcName = NULL;
+	mapcGenerics.Init();
 }
 
 
@@ -19,6 +20,8 @@ void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxType::Kill(void)
 {
+	mpcName = NULL;
+	mapcGenerics.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -41,4 +44,12 @@ BOOL CJavaSyntaxType::IsType(void)
 {
 	return TRUE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxType::AddGeneric(CJavaSyntaxGeneric* pcGeneric) { mapcGenerics.Add(pcGeneric); }
+void CJavaSyntaxType::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
 

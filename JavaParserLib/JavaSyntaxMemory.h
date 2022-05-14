@@ -9,9 +9,8 @@
 #include "JavaSyntaxClass.h"
 #include "JavaSyntaxEnum.h"
 #include "JavaSyntaxInterface.h"
-#include "JavaSyntaxClassGeneric.h"
 #include "JavaSyntaxType.h"
-#include "JavaSyntaxTypeGeneric.h"
+#include "JavaSyntaxGeneric.h"
 
 
 typedef CArrayTemplatePtr<CJavaSyntax>	CSyntaxPtrArray;
@@ -34,9 +33,8 @@ public:
 	CJavaSyntaxClass*			CreateClass(CJavaSyntaxTree* pcTree);
 	CJavaSyntaxEnum*			CreateEnum(CJavaSyntaxTree* pcTree);
 	CJavaSyntaxInterface*		CreateInterface(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxClassGeneric*	CreateClassGeneric(CJavaSyntaxTree* pcTree);
 	CJavaSyntaxType*			CreateType(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxTypeGeneric*		CreateTypeGeneric(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxGeneric*			CreateGeneric(CJavaSyntaxTree* pcTree);
 
 protected:
 	template<class M>	M*	Create(CJavaSyntaxTree* pcTree);
