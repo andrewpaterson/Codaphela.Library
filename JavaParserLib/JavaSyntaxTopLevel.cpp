@@ -53,7 +53,7 @@ BOOL CJavaSyntaxTopLevel::IsTopLevel(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::SetName(CJavaIdentifier* pcName) { mpcName = pcName; }
+void CJavaSyntaxTopLevel::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
 void CJavaSyntaxTopLevel::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
 void CJavaSyntaxTopLevel::SetAbstract(BOOL bAbstract) { mbAbstract = bAbstract; }
 void CJavaSyntaxTopLevel::SetFinal(BOOL bFinal) { mbFinal = bFinal; }

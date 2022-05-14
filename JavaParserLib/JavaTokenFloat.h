@@ -2,10 +2,10 @@
 #define __JAVA_FLOAT_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/PrimitiveTypes.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
-enum EJavaFloatType
+enum EJavaTokenFloatType
 {
 	JFT_float32,
 	JFT_float64,
@@ -14,12 +14,12 @@ enum EJavaFloatType
 };
 
 
-class CJavaFloat : public CJavaLiteral
+class CJavaTokenFloat : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaFloat);
+CONSTRUCTABLE(CJavaTokenFloat);
 protected:
 	float64			mfValue;
-	EJavaFloatType	meType;
+	EJavaTokenFloatType	meType;
 
 public:
 	void 	Init(float32 fValue);

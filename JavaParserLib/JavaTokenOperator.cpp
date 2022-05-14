@@ -1,14 +1,14 @@
-#include "JavaScope.h"
+#include "JavaTokenOperator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaScope::Init(CJavaScopeDefinition* pcGeneric)
+void CJavaTokenOperator::Init(CJavaTokenOperatorDefinition* pcOperator)
 {
 	CJavaToken::Init();
-	mpcScope = pcGeneric;
+	mpcOperator = pcOperator;
 }
 
 
@@ -16,9 +16,9 @@ void CJavaScope::Init(CJavaScopeDefinition* pcGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaScope::Kill(void)
+void CJavaTokenOperator::Kill(void)
 {
-	mpcScope = NULL;
+	mpcOperator = NULL;
 	CJavaToken::Kill();
 }
 
@@ -27,9 +27,9 @@ void CJavaScope::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaScope::Print(CChars* pszDest)
+void CJavaTokenOperator::Print(CChars* pszDest)
 {
-	pszDest->Append(mpcScope->GetName());
+	pszDest->Append(mpcOperator->GetName());
 }
 
 
@@ -37,27 +37,19 @@ void CJavaScope::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaScope::Is(EJavaScope eGeneric)
+char* CJavaTokenOperator::GetType(void) { return "Operator"; }
+BOOL CJavaTokenOperator::IsOperator(void) { return TRUE; }
+BOOL CJavaTokenOperator::Is(EJavaTokenOperator eOperator) { return mpcOperator->Is(eOperator); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaTokenOperatorDefinition::Init(EJavaTokenOperatorType eType, EJavaTokenOperator eOperator, char* szName)
 {
-	return mpcScope->Get() == eGeneric;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CJavaScope::GetType(void) { return "Generic"; }
-BOOL CJavaScope::IsScope(void) { return TRUE; }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaScopeDefinition::Init(EJavaScope eGeneric, char* szName)
-{
-	meScope = eGeneric;
+	meOperator = eOperator;
+	meType = eType;
 	mszName.Init(szName);
 }
 
@@ -66,9 +58,10 @@ void CJavaScopeDefinition::Init(EJavaScope eGeneric, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaScopeDefinition::Kill(void)
+void CJavaTokenOperatorDefinition::Kill(void)
 {
-	meScope = JG_Unknown;
+	meType = JOT_Unknown;
+	meOperator = JO_Unknown;
 	mszName.Kill();
 }
 
@@ -77,6 +70,16 @@ void CJavaScopeDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaScopeDefinition::GetName(void) { return mszName.Text(); }
-EJavaScope CJavaScopeDefinition::Get(void) { return meScope; }
+char* CJavaTokenOperatorDefinition::GetName(void)
+{
+	return mszName.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EJavaTokenOperatorType CJavaTokenOperatorDefinition::GetType(void) { return meType; }
+BOOL CJavaTokenOperatorDefinition::Is(EJavaTokenOperator eOperator) { return meOperator == eOperator; }
 

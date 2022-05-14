@@ -4,9 +4,9 @@
 #include "JavaToken.h"
 
 
-class CJavaIdentifier : public CJavaToken
+class CJavaTokenIdentifier : public CJavaToken
 {
-CONSTRUCTABLE(CJavaIdentifier);
+CONSTRUCTABLE(CJavaTokenIdentifier);
 protected:
 	char*	mszIdentifier;
 	int		miLength;
@@ -23,7 +23,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaIdentifier> CJavaIdentifierPtrArray;
+typedef CArrayTemplatePtr<CJavaTokenIdentifier> CJavaTokenIdentifierPtrArray;
 
 
 #endif // !__JAVA_IDENTIFIER_H__

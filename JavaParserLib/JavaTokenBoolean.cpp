@@ -1,15 +1,15 @@
-#include "JavaAnnotation.h"
+#include "BaseLib/IntegerHelper.h"
+#include "JavaTokenBoolean.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAnnotation::Init(char* szAnnotation, int iLength)
+void CJavaTokenBoolean::Init(BOOL bValue)
 {
-	CJavaToken::Init();
-	mszAnnotation = szAnnotation;
-	miLength = iLength;
+	CJavaTokenLiteral::Init(JLT_Boolean);
+	mbValue = bValue;
 }
 
 
@@ -17,11 +17,21 @@ void CJavaAnnotation::Init(char* szAnnotation, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAnnotation::Kill(void)
+void CJavaTokenBoolean::Kill(void)
 {
-	mszAnnotation = NULL;
-	miLength = 0;
-	CJavaToken::Kill();
+	mbValue = FALSE;
+	CJavaTokenLiteral::Kill();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaTokenBoolean::GetType(void)
+{
+	return "Literal (bool)";
 }
 
 
@@ -29,10 +39,9 @@ void CJavaAnnotation::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaAnnotation::Print(CChars* pszDest)
+BOOL CJavaTokenBoolean::Is(BOOL b)
 {
-	pszDest->Append('@');
-	pszDest->Append(mszAnnotation, miLength);
+	return FixBool(mbValue) == FixBool(b);
 }
 
 
@@ -40,17 +49,15 @@ void CJavaAnnotation::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaAnnotation::Is(char* szAnnotation)
+void CJavaTokenBoolean::Print(CChars* pszDest)
 {
-	int	iLength = StrLen(szAnnotation);
-
-	if (miLength != iLength)
+	if (mbValue)
 	{
-		return FALSE;
+		pszDest->Append("true");
 	}
 	else
 	{
-		return memcmp(szAnnotation, mszAnnotation, iLength) == 0;
+		pszDest->Append("false");
 	}
 }
 
@@ -59,6 +66,5 @@ BOOL CJavaAnnotation::Is(char* szAnnotation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaAnnotation::GetType(void) { return "Annotation"; }
-BOOL CJavaAnnotation::IsAnnotation(void) { return TRUE; }
+BOOL CJavaTokenBoolean::IsBoolean(void) { return TRUE; }
 

@@ -1,14 +1,15 @@
-#include "JavaOperator.h"
+#include "JavaTokenInteger.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaOperator::Init(CJavaOperatorDefinition* pcOperator)
+void CJavaTokenInteger::Init(int32 iValue)
 {
-	CJavaToken::Init();
-	mpcOperator = pcOperator;
+	CJavaTokenLiteral::Init(JLT_Integer);
+	miValue = iValue;
+	meType = JIT_int32;
 }
 
 
@@ -16,10 +17,11 @@ void CJavaOperator::Init(CJavaOperatorDefinition* pcOperator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaOperator::Kill(void)
+void CJavaTokenInteger::Init(int64 iValue)
 {
-	mpcOperator = NULL;
-	CJavaToken::Kill();
+	miValue = iValue;
+	meType = JIT_int64;
+	CJavaTokenLiteral::Kill();
 }
 
 
@@ -27,9 +29,10 @@ void CJavaOperator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaOperator::Print(CChars* pszDest)
+void CJavaTokenInteger::Kill(void)
 {
-	pszDest->Append(mpcOperator->GetName());
+	miValue = 0;
+	meType = JIT_Unknown;
 }
 
 
@@ -37,20 +40,21 @@ void CJavaOperator::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaOperator::GetType(void) { return "Operator"; }
-BOOL CJavaOperator::IsOperator(void) { return TRUE; }
-BOOL CJavaOperator::Is(EJavaOperator eOperator) { return mpcOperator->Is(eOperator); }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaOperatorDefinition::Init(EJavaOperatorType eType, EJavaOperator eOperator, char* szName)
+void CJavaTokenInteger::Print(CChars* pszDest)
 {
-	meOperator = eOperator;
-	meType = eType;
-	mszName.Init(szName);
+	if (meType == JIT_int32)
+	{
+		pszDest->Append((int32)miValue);
+	}
+	else if (meType == JIT_int64)
+	{
+		pszDest->Append(miValue);
+		pszDest->Append('L');
+	}
+	else
+	{
+		pszDest->Append("[int?]");
+	}
 }
 
 
@@ -58,11 +62,20 @@ void CJavaOperatorDefinition::Init(EJavaOperatorType eType, EJavaOperator eOpera
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaOperatorDefinition::Kill(void)
+char* CJavaTokenInteger::GetType(void)
 {
-	meType = JOT_Unknown;
-	meOperator = JO_Unknown;
-	mszName.Kill();
+	if (meType == JIT_int32)
+	{
+		return "Literal (int32)";
+	}
+	else if (meType == JIT_int64)
+	{
+		return "Literal (int64)";
+	}
+	else
+	{
+		return CJavaTokenLiteral::GetType();
+	}
 }
 
 
@@ -70,9 +83,16 @@ void CJavaOperatorDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaOperatorDefinition::GetName(void)
+BOOL CJavaTokenInteger::Is(int64 lli)
 {
-	return mszName.Text();
+	if (meType == JIT_int64)
+	{
+		return miValue == lli;
+	}
+	else
+	{
+		return FALSE;
+	}
 }
 
 
@@ -80,6 +100,22 @@ char* CJavaOperatorDefinition::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EJavaOperatorType CJavaOperatorDefinition::GetType(void) { return meType; }
-BOOL CJavaOperatorDefinition::Is(EJavaOperator eOperator) { return meOperator == eOperator; }
+BOOL CJavaTokenInteger::Is(int32 i)
+{
+	if (meType == JIT_int32)
+	{
+		return (int32)miValue == i;
+	}
+	else
+	{
+		return FALSE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaTokenInteger::IsInteger(void) { return TRUE; }
 

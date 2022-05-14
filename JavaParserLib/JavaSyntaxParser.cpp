@@ -196,13 +196,13 @@ void CJavaSyntaxParser::Dump(BOOL bIncludeType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword)
+BOOL CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword)
 {
-	CJavaKeyword* pcKeyword;
+	CJavaTokenKeyword* pcKeyword;
 	
 	if (pcToken && pcToken->IsKeyword())
 	{
-		pcKeyword = (CJavaKeyword*)pcToken;
+		pcKeyword = (CJavaTokenKeyword*)pcToken;
 		return pcKeyword->Is(eKeyword);
 	}
 	return FALSE;
@@ -213,13 +213,13 @@ BOOL CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator)
+BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator)
 {
-	CJavaSeparator* pcSeparator;
+	CJavaTokenSeparator* pcSeparator;
 	
 	if (pcToken && pcToken->IsSeparator())
 	{
-		pcSeparator = (CJavaSeparator*)pcToken;
+		pcSeparator = (CJavaTokenSeparator*)pcToken;
 		return pcSeparator->Is(eSeparator);
 	}
 	return FALSE;
@@ -230,13 +230,13 @@ BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaScope eGeneric)
+BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric)
 {
-	CJavaScope* pcGeneric;
+	CJavaTokenScope* pcGeneric;
 
 	if (pcToken && pcToken->IsScope())
 	{
-		pcGeneric = (CJavaScope*)pcToken;
+		pcGeneric = (CJavaTokenScope*)pcToken;
 		return pcGeneric->Is(eGeneric);
 	}
 	return FALSE;
@@ -247,13 +247,13 @@ BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaScope eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous)
+BOOL CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous)
 {
-	CJavaAmbiguous* pcAmbiguous;
+	CCJavaTokenAmbiguous* pcAmbiguous;
 
 	if (pcToken && pcToken->IsAmbiguous())
 	{
-		pcAmbiguous = (CJavaAmbiguous*)pcToken;
+		pcAmbiguous = (CCJavaTokenAmbiguous*)pcToken;
 		return pcAmbiguous->Is(eAmbiguous);
 	}
 	return FALSE;
@@ -264,13 +264,13 @@ BOOL CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaOperator eOperator)
+BOOL CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator)
 {
-	CJavaOperator* pcOperator;
+	CJavaTokenOperator* pcOperator;
 
 	if (pcToken && pcToken->IsOperator())
 	{
-		pcOperator = (CJavaOperator*)pcToken;
+		pcOperator = (CJavaTokenOperator*)pcToken;
 		return pcOperator->Is(eOperator);
 	}
 	return FALSE;
@@ -281,13 +281,13 @@ BOOL CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaOperator eOperator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType)
+BOOL CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType)
 {
-	CJavaLiteral* pcLiteral;
+	CJavaTokenLiteral* pcLiteral;
 
 	if (pcToken && pcToken->IsLiteral())
 	{
-		pcLiteral = (CJavaLiteral*)pcToken;
+		pcLiteral = (CJavaTokenLiteral*)pcToken;
 		return pcLiteral->IsLiteralType(eLiteralType);
 	}
 	return FALSE;
@@ -347,7 +347,7 @@ void CJavaSyntaxParser::SkipComments(void)
 CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 {
 	CJavaSyntaxPackage*		pcPackage;
-	CJavaIdentifier*		pcIdentifier;
+	CJavaTokenIdentifier*	pcIdentifier;
 
 	PushPosition();
 	if (!GetKeyword(JK_package))
@@ -396,10 +396,10 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 {
 	CJavaSyntaxImport*		pcImport;
-	CJavaIdentifier*		pcIdentifier;
+	CJavaTokenIdentifier*	pcIdentifier;
 	int						iIdentifierCount;
-	CJavaAmbiguous*			pcAmbiguousAsterisk;
-	CJavaScope*				pcScopeAsterisk;
+	CCJavaTokenAmbiguous*	pcAmbiguousAsterisk;
+	CJavaTokenScope*		pcScopeAsterisk;
 
 	PushPosition();
 	if (!GetKeyword(JK_import))
@@ -472,12 +472,12 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 {
-	CJavaSyntaxClass*			pcClass;
-	BOOL						bPublic;
-	BOOL						bAbstract;
-	BOOL						bFinal;
-	CJavaIdentifier*			pcName;
-	BOOL						bOpen;
+	CJavaSyntaxClass*		pcClass;
+	BOOL					bPublic;
+	BOOL					bAbstract;
+	BOOL					bFinal;
+	CJavaTokenIdentifier*	pcName;
+	BOOL					bOpen;
 
 	PushPosition();
 
@@ -650,7 +650,7 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
 CJavaSyntaxClassGeneric* CJavaSyntaxParser::ParseClassGeneric(void)
 {
 	CJavaSyntaxClassGeneric*	pcGeneric;
-	CJavaIdentifier*			pcIdentifier;
+	CJavaTokenIdentifier*		pcIdentifier;
 	CJavaSyntaxType*			pcType;
 
 	PushPosition();
@@ -703,8 +703,8 @@ CJavaSyntaxClassGeneric* CJavaSyntaxParser::ParseClassGeneric(void)
 CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 {
 
-	//CJavaAmbiguous* pcAmbiguousQuestionMark;
-	//CJavaScope* pcScopeQuestionMark;
+	//CCJavaTokenAmbiguous* pcAmbiguousQuestionMark;
+	//CJavaTokenScope* pcScopeQuestionMark;
 	//if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
 	//{
 
@@ -720,10 +720,10 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 BOOL CJavaSyntaxParser::ParseClassGenerics(CJavaSyntaxClass* pcClass)
 {
 	CJavaSyntaxClassGeneric*	pcGeneric;
-	CJavaAmbiguous*				pcAmbiguousAngleBracketLeft;
-	CJavaScope*					pcScopeAngleBracketLeft;
-	CJavaAmbiguous*				pcAmbiguousAngleBracketRight;
-	CJavaScope*					pcScopeAngleBracketRight;
+	CCJavaTokenAmbiguous*				pcAmbiguousAngleBracketLeft;
+	CJavaTokenScope*					pcScopeAngleBracketLeft;
+	CCJavaTokenAmbiguous*				pcAmbiguousAngleBracketRight;
+	CJavaTokenScope*					pcScopeAngleBracketRight;
 
 	PushPosition();
 	if (GetAmbiguous(JA_AngleBracketLeft, &pcAmbiguousAngleBracketLeft))
@@ -779,7 +779,7 @@ BOOL CJavaSyntaxParser::ParseClassGenerics(CJavaSyntaxClass* pcClass)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetKeyword(EJavaKeyword eKeyword)
+BOOL CJavaSyntaxParser::GetKeyword(EJavaTokenKeyword eKeyword)
 {
 	if (IsKeyword(mpcCurrentToken, eKeyword))
 	{
@@ -797,7 +797,7 @@ BOOL CJavaSyntaxParser::GetKeyword(EJavaKeyword eKeyword)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetSeparator(EJavaSeparator eSeparator)
+BOOL CJavaSyntaxParser::GetSeparator(EJavaTokenSeparator eSeparator)
 {
 	if (IsSeparator(mpcCurrentToken, eSeparator))
 	{
@@ -815,11 +815,11 @@ BOOL CJavaSyntaxParser::GetSeparator(EJavaSeparator eSeparator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaIdentifier* CJavaSyntaxParser::GetIdentifier(void)
+CJavaTokenIdentifier* CJavaSyntaxParser::GetIdentifier(void)
 {
-	CJavaIdentifier*	pcIdentifier;
+	CJavaTokenIdentifier*	pcIdentifier;
 
-	pcIdentifier = (CJavaIdentifier*)mpcCurrentToken;
+	pcIdentifier = (CJavaTokenIdentifier*)mpcCurrentToken;
 	if (IsIdentifier(pcIdentifier))
 	{
 		Next();
@@ -836,7 +836,7 @@ CJavaIdentifier* CJavaSyntaxParser::GetIdentifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetScope(EJavaScope eGeneric)
+BOOL CJavaSyntaxParser::GetScope(EJavaTokenScope eGeneric)
 {
 	if (IsScope(mpcCurrentToken, eGeneric))
 	{
@@ -854,11 +854,11 @@ BOOL CJavaSyntaxParser::GetScope(EJavaScope eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetAmbiguous(EJavaAmbiguous eAmbiguous, CJavaAmbiguous** ppcAmbiguous)
+BOOL CJavaSyntaxParser::GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous)
 {
 	if (IsAmbiguous(mpcCurrentToken, eAmbiguous))
 	{
-		SafeAssign(ppcAmbiguous, (CJavaAmbiguous*)mpcCurrentToken);
+		SafeAssign(ppcAmbiguous, (CCJavaTokenAmbiguous*)mpcCurrentToken);
 		Next();
 		return TRUE;
 	}
@@ -873,7 +873,7 @@ BOOL CJavaSyntaxParser::GetAmbiguous(EJavaAmbiguous eAmbiguous, CJavaAmbiguous**
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetOperator(EJavaOperator eOperator)
+BOOL CJavaSyntaxParser::GetOperator(EJavaTokenOperator eOperator)
 {
 	if (IsOperator(mpcCurrentToken, eOperator))
 	{
@@ -950,10 +950,10 @@ BOOL CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcRep
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaScope* CJavaSyntaxParser::CreateScope(EJavaScope eScope)
+CJavaTokenScope* CJavaSyntaxParser::CreateScope(EJavaTokenScope eScope)
 {
-	CJavaScope*				pcScope;
-	CJavaScopeDefinition*	pcDefinition;
+	CJavaTokenScope*				pcScope;
+	CJavaTokenScopeDefinition*	pcDefinition;
 
 	pcDefinition = mpcDefinitions->GetScope(JG_Asterisk);
 	pcScope = mpcTokens->CreateScope(pcDefinition);

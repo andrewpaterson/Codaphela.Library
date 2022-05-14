@@ -3,20 +3,20 @@
 #include "BaseLib/Constructable.h"
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "JavaComment.h"
-#include "JavaKeyword.h"
-#include "JavaIdentifier.h"
-#include "JavaAnnotation.h"
-#include "JavaOperator.h"
-#include "JavaSeparator.h"
-#include "JavaScope.h"
-#include "JavaAmbiguous.h"
-#include "JavaNull.h"
-#include "JavaBoolean.h"
-#include "JavaCharacter.h"
-#include "JavaInteger.h"
-#include "JavaFloat.h"
-#include "JavaString.h"
+#include "JavaTokenComment.h"
+#include "JavaTokenKeyword.h"
+#include "JavaTokenIdentifier.h"
+#include "JavaTokenAnnotation.h"
+#include "JavaTokenOperator.h"
+#include "JavaTokenSeparator.h"
+#include "JavaTokenScope.h"
+#include "JavaTokenAmbiguous.h"
+#include "JavaTokenNull.h"
+#include "JavaTokenBoolean.h"
+#include "JavaTokenCharacter.h"
+#include "JavaTokenInteger.h"
+#include "JavaTokenFloat.h"
+#include "JavaTokenString.h"
 
 
 typedef CArrayTemplatePtr<CJavaToken>	CTokenPtrArray;
@@ -33,24 +33,24 @@ public:
 	void				Init(void);
 	void				Kill(void);
 
-	CJavaComment*		CreateComment(char* szComment, int iLength);
-	CJavaIdentifier*	CreateIdentifier(char* szIdentifier, int iLength);
-	CJavaAnnotation*	CreateAnnotation(char* szAnnotation, int iLength);
-	CJavaKeyword*		CreateKeyword(CJavaKeywordDefinition* pcKeyword);
-	CJavaOperator*		CreateOperator(CJavaOperatorDefinition* pcOperator);
-	CJavaSeparator*		CreateSeparator(CJavaSeparatorDefinition* pcSeparator);
-	CJavaScope*			CreateScope(CJavaScopeDefinition* pcGeneric);
-	CJavaAmbiguous*		CreateAmbiguous(CJavaAmbiguousDefinition* pcAmbiguous);
-	CJavaNull*			CreateNull(void);
-	CJavaBoolean*		CreateBoolean(BOOL bValue);
-	CJavaCharacter*		CreateCharacter(char c);
-	CJavaCharacter*		CreateCharacter(char16 iChar);
-	CJavaInteger*		CreateInteger(int32 iValue);
-	CJavaInteger*		CreateInteger(int64 iValue);
-	CJavaFloat*			CreateFloat(float32 fValue);
-	CJavaFloat*			CreateFloat(float64 fValue);
-	CJavaString*		CreateString(char* szString, int iLength);
-	CJavaString*		CreateString(char16* szString, int iLength);
+	CJavaTokenComment*		CreateComment(char* szComment, int iLength);
+	CJavaTokenIdentifier*	CreateIdentifier(char* szIdentifier, int iLength);
+	CJavaTokenAnnotation*	CreateAnnotation(char* szAnnotation, int iLength);
+	CJavaTokenKeyword*		CreateKeyword(CJavaTokenKeywordDefinition* pcKeyword);
+	CJavaTokenOperator*		CreateOperator(CJavaTokenOperatorDefinition* pcOperator);
+	CJavaTokenSeparator*		CreateSeparator(CJavaTokenSeparatorDefinition* pcSeparator);
+	CJavaTokenScope*			CreateScope(CJavaTokenScopeDefinition* pcGeneric);
+	CCJavaTokenAmbiguous*		CreateAmbiguous(CCJavaTokenAmbiguousDefinition* pcAmbiguous);
+	CJavaTokenNull*			CreateNull(void);
+	CJavaTokenBoolean*		CreateBoolean(BOOL bValue);
+	CJavaTokenCharacter*		CreateCharacter(char c);
+	CJavaTokenCharacter*		CreateCharacter(char16 iChar);
+	CJavaTokenInteger*		CreateInteger(int32 iValue);
+	CJavaTokenInteger*		CreateInteger(int64 iValue);
+	CJavaTokenFloat*			CreateFloat(float32 fValue);
+	CJavaTokenFloat*			CreateFloat(float64 fValue);
+	CJavaTokenString*		CreateString(char* szString, int iLength);
+	CJavaTokenString*		CreateString(char16* szString, int iLength);
 };
 
 

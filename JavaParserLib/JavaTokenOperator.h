@@ -4,7 +4,7 @@
 #include "JavaToken.h"
 
 
-enum EJavaOperatorType
+enum EJavaTokenOperatorType
 {
 	JOT_Arithmetic,
 	JOT_Unary,
@@ -18,7 +18,7 @@ enum EJavaOperatorType
 };
 
 
-enum EJavaOperator
+enum EJavaTokenOperator
 {
 	JO_Plus,
 	JO_Minus,
@@ -69,37 +69,37 @@ enum EJavaOperator
 };
 
 
-class CJavaOperatorDefinition;
-class CJavaOperator : public CJavaToken
+class CJavaTokenOperatorDefinition;
+class CJavaTokenOperator : public CJavaToken
 {
-CONSTRUCTABLE(CJavaOperator);
+CONSTRUCTABLE(CJavaTokenOperator);
 protected:
-	CJavaOperatorDefinition*	mpcOperator;
+	CJavaTokenOperatorDefinition*	mpcOperator;
 
 public:
-	void 	Init(CJavaOperatorDefinition* pcOperator);
+	void 	Init(CJavaTokenOperatorDefinition* pcOperator);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 	BOOL	IsOperator(void);
-	BOOL	Is(EJavaOperator eOperator);
+	BOOL	Is(EJavaTokenOperator eOperator);
 };
 
 
-class CJavaOperatorDefinition
+class CJavaTokenOperatorDefinition
 {
 protected:
-	EJavaOperator		meOperator;
-	EJavaOperatorType	meType;
+	EJavaTokenOperator		meOperator;
+	EJavaTokenOperatorType	meType;
 	CChars				mszName;
 
 public:
-	void 				Init(EJavaOperatorType meType, EJavaOperator eOperator, char* szName);
+	void 				Init(EJavaTokenOperatorType meType, EJavaTokenOperator eOperator, char* szName);
 	void 				Kill(void);
-	EJavaOperatorType	GetType(void);
+	EJavaTokenOperatorType	GetType(void);
 	char*				GetName(void);
-	BOOL				Is(EJavaOperator eOperator);
+	BOOL				Is(EJavaTokenOperator eOperator);
 };
 
 

@@ -4,7 +4,7 @@
 #include "JavaToken.h"
 
 
-enum EJavaKeyword
+enum EJavaTokenKeyword
 {
 	JK_abstract,
 	JK_assert,
@@ -59,37 +59,37 @@ enum EJavaKeyword
 	JK_Unknown = -1
 };
 
-class CJavaKeywordDefinition;
-class CJavaKeyword : public CJavaToken
+class CJavaTokenKeywordDefinition;
+class CJavaTokenKeyword : public CJavaToken
 {
-CONSTRUCTABLE(CJavaKeyword);
+CONSTRUCTABLE(CJavaTokenKeyword);
 protected:
-	CJavaKeywordDefinition*	mpcKeyword;
+	CJavaTokenKeywordDefinition*	mpcKeyword;
 
 public:
-	void 	Init(CJavaKeywordDefinition* pcKeyword);
+	void 	Init(CJavaTokenKeywordDefinition* pcKeyword);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 	BOOL	IsKeyword(void);
 
-	BOOL	Is(EJavaKeyword eKeyword);
+	BOOL	Is(EJavaTokenKeyword eKeyword);
 };
 
 
-class CJavaKeywordDefinition
+class CJavaTokenKeywordDefinition
 {
 protected:
-	EJavaKeyword	meKeyword;
+	EJavaTokenKeyword	meKeyword;
 	CChars			mszName;
 
 public:
-	void 			Init(EJavaKeyword eKeyword, char* szName);
+	void 			Init(EJavaTokenKeyword eKeyword, char* szName);
 	void 			Kill(void);
 
 	char*			GetName(void);
-	EJavaKeyword	Get(void);
+	EJavaTokenKeyword	Get(void);
 };
 
 

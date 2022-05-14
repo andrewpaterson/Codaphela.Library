@@ -4,7 +4,7 @@
 #include "JavaToken.h"
 
 
-enum EJavaScope
+enum EJavaTokenScope
 {
 	JG_AngleBracketLeft,
 	JG_AngleBracketRight,
@@ -15,37 +15,37 @@ enum EJavaScope
 };
 
 
-class CJavaScopeDefinition;
-class CJavaScope : public CJavaToken
+class CJavaTokenScopeDefinition;
+class CJavaTokenScope : public CJavaToken
 {
-CONSTRUCTABLE(CJavaScope);
+CONSTRUCTABLE(CJavaTokenScope);
 protected:
-	CJavaScopeDefinition*	mpcScope;
+	CJavaTokenScopeDefinition*	mpcScope;
 
 public:
-	void 	Init(CJavaScopeDefinition* pcGeneric);
+	void 	Init(CJavaTokenScopeDefinition* pcGeneric);
 	void 	Kill(void);
 
 	BOOL	IsScope(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	Is(EJavaScope eGeneric);
+	BOOL	Is(EJavaTokenScope eGeneric);
 };
 
 
-class CJavaScopeDefinition
+class CJavaTokenScopeDefinition
 {
 protected:
-	EJavaScope	meScope;
+	EJavaTokenScope	meScope;
 	CChars		mszName;
 
 public:
-	void 			Init(EJavaScope eGeneric, char* szName);
+	void 			Init(EJavaTokenScope eGeneric, char* szName);
 	void 			Kill(void);
 
 	char*			GetName(void);
-	EJavaScope	Get(void);
+	EJavaTokenScope	Get(void);
 };
 
 

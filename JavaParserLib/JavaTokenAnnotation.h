@@ -4,9 +4,9 @@
 #include "JavaToken.h"
 
 
-class CJavaAnnotation : public CJavaToken
+class CJavaTokenAnnotation : public CJavaToken
 {
-CONSTRUCTABLE(CJavaAnnotation);
+CONSTRUCTABLE(CJavaTokenAnnotation);
 protected:
 	char* mszAnnotation;
 	int		miLength;

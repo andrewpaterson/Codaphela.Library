@@ -1,12 +1,12 @@
 #ifndef __JAVA_BOOLEAN_H__
 #define __JAVA_BOOLEAN_H__
 #include "BaseLib/Chars.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
-class CJavaBoolean : public CJavaLiteral
+class CJavaTokenBoolean : public CJavaTokenLiteral
 {
-CONSTRUCTABLE(CJavaBoolean);
+CONSTRUCTABLE(CJavaTokenBoolean);
 protected:
 	BOOL	mbValue;
 

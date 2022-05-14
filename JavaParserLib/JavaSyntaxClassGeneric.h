@@ -3,14 +3,14 @@
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntaxType.h"
 #include "JavaSyntax.h"
-#include "JavaIdentifier.h"
+#include "JavaTokenIdentifier.h"
 
 
 class CJavaSyntaxClassGeneric : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxClassGeneric);
 protected:
-	CJavaIdentifier*	mpcName;
+	CJavaTokenIdentifier*	mpcName;
 	CJavaSyntaxType*	mpcExtends;  //NULL if does not extend a Type.
 
 public:
@@ -21,7 +21,7 @@ public:
 
 	BOOL	IsClassGeneric(void) override;
 
-	void	SetName(CJavaIdentifier* pcName);
+	void	SetName(CJavaTokenIdentifier* pcName);
 	void	SetExtends(CJavaSyntaxType* pcExtends);
 };
 

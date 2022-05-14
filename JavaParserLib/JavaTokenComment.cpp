@@ -1,12 +1,12 @@
 #include "BaseLib/NewLine.h"
-#include "JavaComment.h"
+#include "JavaTokenComment.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaComment::Init(char* szComment, int iLength)
+void CJavaTokenComment::Init(char* szComment, int iLength)
 {
 	CJavaToken::Init();
 	mszComment = szComment;
@@ -18,7 +18,7 @@ void CJavaComment::Init(char* szComment, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaComment::Kill(void)
+void CJavaTokenComment::Kill(void)
 {
 	mszComment = NULL;
 	miLength = 0;
@@ -30,7 +30,7 @@ void CJavaComment::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaComment::Print(CChars* pszDest)
+void CJavaTokenComment::Print(CChars* pszDest)
 {
 	int		iNewLines;
 	
@@ -54,7 +54,7 @@ void CJavaComment::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaComment::Is(char* szComment)
+BOOL CJavaTokenComment::Is(char* szComment)
 {
 	int	iLength = StrLen(szComment);
 
@@ -73,7 +73,7 @@ BOOL CJavaComment::Is(char* szComment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaComment::GetComment(CChars* psz)
+void CJavaTokenComment::GetComment(CChars* psz)
 {
 	psz->Append(mszComment, miLength);
 }
@@ -83,6 +83,6 @@ void CJavaComment::GetComment(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaComment::GetType(void) {	return "Comment"; }
-BOOL CJavaComment::IsComment(void) { return TRUE; }
+char* CJavaTokenComment::GetType(void) {	return "Comment"; }
+BOOL CJavaTokenComment::IsComment(void) { return TRUE; }
 

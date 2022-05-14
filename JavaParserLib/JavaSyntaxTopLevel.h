@@ -2,14 +2,14 @@
 #define __JAVA_SYNTAX_TOP_LEVEL_H__
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntax.h"
-#include "JavaIdentifier.h"
+#include "JavaTokenIdentifier.h"
 
 
 class CJavaSyntaxTopLevel : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxTopLevel);
 protected:
-	CJavaIdentifier*	mpcName;
+	CJavaTokenIdentifier*	mpcName;
 	BOOL				mbPublic;
 	BOOL				mbAbstract;
 	BOOL				mbFinal;
@@ -22,7 +22,7 @@ public:
 
 	BOOL	IsTopLevel(void) override;
 
-	void	SetName(CJavaIdentifier* pcName);
+	void	SetName(CJavaTokenIdentifier* pcName);
 	void	SetPublic(BOOL bPublic);
 	void	SetAbstract(BOOL bAbstract);
 	void	SetFinal(BOOL bFinal);

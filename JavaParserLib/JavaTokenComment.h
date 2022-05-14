@@ -4,9 +4,9 @@
 #include "JavaToken.h"
 
 
-class CJavaComment : public CJavaToken
+class CJavaTokenComment : public CJavaToken
 {
-CONSTRUCTABLE(CJavaComment);
+CONSTRUCTABLE(CJavaTokenComment);
 protected:
 	char*	mszComment;
 	int		miLength;

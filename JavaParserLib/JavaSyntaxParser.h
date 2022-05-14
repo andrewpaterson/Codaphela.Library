@@ -74,19 +74,19 @@ protected:
 
 	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
 
-	BOOL						GetKeyword(EJavaKeyword eKeyword);
-	BOOL						GetSeparator(EJavaSeparator eSeparator);
-	CJavaIdentifier*			GetIdentifier(void);
-	BOOL						GetScope(EJavaScope eGeneric);
-	BOOL						GetAmbiguous(EJavaAmbiguous eAmbiguous, CJavaAmbiguous** ppcAmbiguous = NULL);
-	BOOL						GetOperator(EJavaOperator eOperator);
+	BOOL						GetKeyword(EJavaTokenKeyword eKeyword);
+	BOOL						GetSeparator(EJavaTokenSeparator eSeparator);
+	CJavaTokenIdentifier*			GetIdentifier(void);
+	BOOL						GetScope(EJavaTokenScope eGeneric);
+	BOOL						GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
+	BOOL						GetOperator(EJavaTokenOperator eOperator);
 
-	BOOL						IsKeyword(CJavaToken* pcToken, EJavaKeyword eKeyword);
-	BOOL						IsSeparator(CJavaToken* pcToken, EJavaSeparator eSeparator);
-	BOOL						IsScope(CJavaToken* pcToken, EJavaScope eGeneric);
-	BOOL						IsAmbiguous(CJavaToken* pcToken, EJavaAmbiguous eAmbiguous);
-	BOOL						IsOperator(CJavaToken* pcToken, EJavaOperator eOperator);
-	BOOL						IsLiteral(CJavaToken* pcToken, EJavaLiteralType eLiteralType);
+	BOOL						IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
+	BOOL						IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);
+	BOOL						IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric);
+	BOOL						IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous);
+	BOOL						IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator);
+	BOOL						IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType);
 	BOOL						IsIdentifier(CJavaToken* pcToken);
 
 	void						Next(void);
@@ -94,7 +94,7 @@ protected:
 	void						SkipComments(void);
 
 	BOOL						ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
-	CJavaScope*					CreateScope(EJavaScope eScope);
+	CJavaTokenScope*					CreateScope(EJavaTokenScope eScope);
 
 protected:
 	template<class M>	M*	Error(char* szError);

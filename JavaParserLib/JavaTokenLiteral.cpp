@@ -1,12 +1,12 @@
 #include "BaseLib/NewLine.h"
-#include "JavaLiteral.h"
+#include "JavaTokenLiteral.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaLiteral::Init(EJavaLiteralType eType)
+void CJavaTokenLiteral::Init(EJavaTokenLiteralType eType)
 {
 	CJavaToken::Init();
 	meLiteralType = eType;
@@ -17,7 +17,7 @@ void CJavaLiteral::Init(EJavaLiteralType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaLiteral::Kill(void)
+void CJavaTokenLiteral::Kill(void)
 {
 	CJavaToken::Kill();
 }
@@ -27,7 +27,7 @@ void CJavaLiteral::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaLiteral::IsLiteralType(EJavaLiteralType eType)
+BOOL CJavaTokenLiteral::IsLiteralType(EJavaTokenLiteralType eType)
 {
 	return meLiteralType == eType;
 }
@@ -36,12 +36,12 @@ BOOL CJavaLiteral::IsLiteralType(EJavaLiteralType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaLiteral::GetType(void) { return "Literal"; }
-BOOL CJavaLiteral::IsLiteral(void) { return TRUE; }
-BOOL CJavaLiteral::IsCharacter(void) { return FALSE; }
-BOOL CJavaLiteral::IsBoolean(void) { return FALSE; }
-BOOL CJavaLiteral::IsString(void) { return FALSE; }
-BOOL CJavaLiteral::IsInteger(void) { return FALSE; }
-BOOL CJavaLiteral::IsFloat(void) { return FALSE; }
-BOOL CJavaLiteral::IsNull(void) { return FALSE; }
+char* CJavaTokenLiteral::GetType(void) { return "Literal"; }
+BOOL CJavaTokenLiteral::IsLiteral(void) { return TRUE; }
+BOOL CJavaTokenLiteral::IsCharacter(void) { return FALSE; }
+BOOL CJavaTokenLiteral::IsBoolean(void) { return FALSE; }
+BOOL CJavaTokenLiteral::IsString(void) { return FALSE; }
+BOOL CJavaTokenLiteral::IsInteger(void) { return FALSE; }
+BOOL CJavaTokenLiteral::IsFloat(void) { return FALSE; }
+BOOL CJavaTokenLiteral::IsNull(void) { return FALSE; }
 

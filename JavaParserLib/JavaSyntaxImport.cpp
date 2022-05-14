@@ -41,7 +41,7 @@ char* CJavaSyntaxImport::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxImport::AddIdentifier(CJavaIdentifier* pcIdentifier)
+void CJavaSyntaxImport::AddIdentifier(CJavaTokenIdentifier* pcIdentifier)
 {
 	mapcIdentifiers.Add(pcIdentifier);
 }

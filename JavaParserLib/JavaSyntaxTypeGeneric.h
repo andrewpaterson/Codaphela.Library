@@ -1,7 +1,7 @@
 #ifndef __JAVA_SYNTAX_TYPE_GENERIC_H__
 #define __JAVA_SYNTAX_TYPE_GENERIC_H__
 #include "JavaSyntax.h"
-#include "JavaIdentifier.h"
+#include "JavaTokenIdentifier.h"
 
 
 class CJavaSyntaxType;
@@ -9,7 +9,7 @@ class CJavaSyntaxTypeGeneric : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxTypeGeneric);
 protected:
-	CJavaIdentifier* mpcName;
+	CJavaTokenIdentifier* mpcName;
 	CJavaSyntaxType* mpcType;  //NULL if does not extend a Type.
 
 public:

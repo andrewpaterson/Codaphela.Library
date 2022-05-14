@@ -209,9 +209,9 @@ void CJavaTokenDefinitions::InitGenerics(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenDefinitions::AddKeywordDefinition(char* szKeyword, EJavaKeyword eKeyword)
+void CJavaTokenDefinitions::AddKeywordDefinition(char* szKeyword, EJavaTokenKeyword eKeyword)
 {
-	CJavaKeywordDefinition	cDefinition;
+	CJavaTokenKeywordDefinition	cDefinition;
 
 	cDefinition.Init(eKeyword, szKeyword);
 	mcKeywords.Add(szKeyword, &cDefinition, eKeyword);
@@ -222,9 +222,9 @@ void CJavaTokenDefinitions::AddKeywordDefinition(char* szKeyword, EJavaKeyword e
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenDefinitions::AddSeparatorDefinition(char* szSeparator, EJavaSeparator eSeparator)
+void CJavaTokenDefinitions::AddSeparatorDefinition(char* szSeparator, EJavaTokenSeparator eSeparator)
 {
-	CJavaSeparatorDefinition	cDefinition;
+	CJavaTokenSeparatorDefinition	cDefinition;
 
 	cDefinition.Init(eSeparator, szSeparator);
 	mcSeparators.Add(szSeparator, &cDefinition, eSeparator);
@@ -235,9 +235,9 @@ void CJavaTokenDefinitions::AddSeparatorDefinition(char* szSeparator, EJavaSepar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenDefinitions::AddOperatorDefinition(EJavaOperatorType eType, EJavaOperator eOperator, char* szOperator)
+void CJavaTokenDefinitions::AddOperatorDefinition(EJavaTokenOperatorType eType, EJavaTokenOperator eOperator, char* szOperator)
 {
-	CJavaOperatorDefinition	cDefinition;
+	CJavaTokenOperatorDefinition	cDefinition;
 
 	cDefinition.Init(eType, eOperator, szOperator);
 	mcOperators.Add(szOperator, &cDefinition, eOperator);
@@ -248,9 +248,9 @@ void CJavaTokenDefinitions::AddOperatorDefinition(EJavaOperatorType eType, EJava
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenDefinitions::AddGenericDefinition(char* szGeneric, EJavaScope eGeneric)
+void CJavaTokenDefinitions::AddGenericDefinition(char* szGeneric, EJavaTokenScope eGeneric)
 {
-	CJavaScopeDefinition	cDefinition;
+	CJavaTokenScopeDefinition	cDefinition;
 
 	cDefinition.Init(eGeneric, szGeneric);
 	mcScopes.Add(szGeneric, &cDefinition, eGeneric);
@@ -261,9 +261,9 @@ void CJavaTokenDefinitions::AddGenericDefinition(char* szGeneric, EJavaScope eGe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenDefinitions::AddAmbiguousDefinition(char* szAmbiguous, EJavaAmbiguous eAmbiguous)
+void CJavaTokenDefinitions::AddAmbiguousDefinition(char* szAmbiguous, ECJavaTokenAmbiguous eAmbiguous)
 {
-	CJavaAmbiguousDefinition	cDefinition;
+	CCJavaTokenAmbiguousDefinition	cDefinition;
 
 	cDefinition.Init(eAmbiguous, szAmbiguous);
 	mcAmbiguous.Add(szAmbiguous, &cDefinition, eAmbiguous);
@@ -294,7 +294,7 @@ void CJavaTokenDefinitions::KillKeywords(void)
 	char* szName;
 	SEnumeratorIterator		sIterator;
 	int						iID;
-	CJavaKeywordDefinition* pcKeyword;
+	CJavaTokenKeywordDefinition* pcKeyword;
 
 	mcKeywords.StartIteration(&sIterator, &szName, &iID, &pcKeyword);
 	while (sIterator.bValid)
@@ -316,7 +316,7 @@ void CJavaTokenDefinitions::KillSeparators(void)
 	char* szName;
 	SEnumeratorIterator		sIterator;
 	int						iID;
-	CJavaSeparatorDefinition* pcSeparator;
+	CJavaTokenSeparatorDefinition* pcSeparator;
 
 	mcSeparators.StartIteration(&sIterator, &szName, &iID, &pcSeparator);
 	while (sIterator.bValid)
@@ -338,7 +338,7 @@ void CJavaTokenDefinitions::KillOperators(void)
 	char* szName;
 	SEnumeratorIterator			sIterator;
 	int							iID;
-	CJavaOperatorDefinition* pcOperator;
+	CJavaTokenOperatorDefinition* pcOperator;
 
 	mcOperators.StartIteration(&sIterator, &szName, &iID, &pcOperator);
 	while (sIterator.bValid)
@@ -360,7 +360,7 @@ void CJavaTokenDefinitions::KillAmbiguous(void)
 	char* szName;
 	SEnumeratorIterator			sIterator;
 	int							iID;
-	CJavaAmbiguousDefinition* pcAmbiguous;
+	CCJavaTokenAmbiguousDefinition* pcAmbiguous;
 
 	mcAmbiguous.StartIteration(&sIterator, &szName, &iID, &pcAmbiguous);
 	while (sIterator.bValid)
@@ -382,7 +382,7 @@ void CJavaTokenDefinitions::KillGenerics(void)
 	char* szName;
 	SEnumeratorIterator			sIterator;
 	int							iID;
-	CJavaScopeDefinition* pcGeneric;
+	CJavaTokenScopeDefinition* pcGeneric;
 
 	mcScopes.StartIteration(&sIterator, &szName, &iID, &pcGeneric);
 	while (sIterator.bValid)
@@ -449,9 +449,9 @@ CScopeEnumerator* CJavaTokenDefinitions::GetScopes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaKeywordDefinition* CJavaTokenDefinitions::GetKeyword(EJavaKeyword eKeyword)
+CJavaTokenKeywordDefinition* CJavaTokenDefinitions::GetKeyword(EJavaTokenKeyword eKeyword)
 {
-	CJavaKeywordDefinition* pcKeyword;
+	CJavaTokenKeywordDefinition* pcKeyword;
 
 	mcKeywords.GetWithID(eKeyword, &pcKeyword, NULL);
 
@@ -463,9 +463,9 @@ CJavaKeywordDefinition* CJavaTokenDefinitions::GetKeyword(EJavaKeyword eKeyword)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaOperatorDefinition* CJavaTokenDefinitions::GetOperator(EJavaOperator eOperator)
+CJavaTokenOperatorDefinition* CJavaTokenDefinitions::GetOperator(EJavaTokenOperator eOperator)
 {
-	CJavaOperatorDefinition* pcOperator;
+	CJavaTokenOperatorDefinition* pcOperator;
 
 	mcOperators.GetWithID(eOperator, &pcOperator, NULL);
 
@@ -477,9 +477,9 @@ CJavaOperatorDefinition* CJavaTokenDefinitions::GetOperator(EJavaOperator eOpera
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSeparatorDefinition* CJavaTokenDefinitions::GetSeparator(EJavaSeparator eSeparator)
+CJavaTokenSeparatorDefinition* CJavaTokenDefinitions::GetSeparator(EJavaTokenSeparator eSeparator)
 {
-	CJavaSeparatorDefinition* pcSeparator;
+	CJavaTokenSeparatorDefinition* pcSeparator;
 
 	mcSeparators.GetWithID(eSeparator, &pcSeparator, NULL);
 
@@ -491,9 +491,9 @@ CJavaSeparatorDefinition* CJavaTokenDefinitions::GetSeparator(EJavaSeparator eSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaAmbiguousDefinition* CJavaTokenDefinitions::GetAmbiguous(EJavaAmbiguous eAmbiguous)
+CCJavaTokenAmbiguousDefinition* CJavaTokenDefinitions::GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous)
 {
-	CJavaAmbiguousDefinition* pcAmbiguous;
+	CCJavaTokenAmbiguousDefinition* pcAmbiguous;
 
 	mcAmbiguous.GetWithID(eAmbiguous, &pcAmbiguous, NULL);
 
@@ -505,9 +505,9 @@ CJavaAmbiguousDefinition* CJavaTokenDefinitions::GetAmbiguous(EJavaAmbiguous eAm
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaScopeDefinition* CJavaTokenDefinitions::GetScope(EJavaScope eGeneric)
+CJavaTokenScopeDefinition* CJavaTokenDefinitions::GetScope(EJavaTokenScope eGeneric)
 {
-	CJavaScopeDefinition* pcGeneric;
+	CJavaTokenScopeDefinition* pcGeneric;
 
 	mcScopes.GetWithID(eGeneric, &pcGeneric, NULL);
 

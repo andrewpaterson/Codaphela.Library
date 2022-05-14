@@ -1,11 +1,11 @@
-#include "JavaSeparator.h"
+#include "JavaTokenSeparator.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSeparator::Init(CJavaSeparatorDefinition* pcSeparator)
+void CJavaTokenSeparator::Init(CJavaTokenSeparatorDefinition* pcSeparator)
 {
 	CJavaToken::Init();
 	mpcSeparator = pcSeparator;
@@ -16,7 +16,7 @@ void CJavaSeparator::Init(CJavaSeparatorDefinition* pcSeparator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSeparator::Kill(void)
+void CJavaTokenSeparator::Kill(void)
 {
 	mpcSeparator = NULL;
 	CJavaToken::Kill();
@@ -27,7 +27,7 @@ void CJavaSeparator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSeparator::Print(CChars* pszDest)
+void CJavaTokenSeparator::Print(CChars* pszDest)
 {
 	pszDest->Append(mpcSeparator->GetName());
 }
@@ -37,7 +37,7 @@ void CJavaSeparator::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSeparator::Is(EJavaSeparator eSeparator)
+BOOL CJavaTokenSeparator::Is(EJavaTokenSeparator eSeparator)
 {
 	return mpcSeparator->Get() == eSeparator;
 }
@@ -47,15 +47,15 @@ BOOL CJavaSeparator::Is(EJavaSeparator eSeparator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSeparator::GetType(void) { return "Separator"; }
-BOOL CJavaSeparator::IsSeparator(void) { return TRUE; }
+char* CJavaTokenSeparator::GetType(void) { return "Separator"; }
+BOOL CJavaTokenSeparator::IsSeparator(void) { return TRUE; }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSeparatorDefinition::Init(EJavaSeparator eSeparator, char* szName)
+void CJavaTokenSeparatorDefinition::Init(EJavaTokenSeparator eSeparator, char* szName)
 {
 	meSeparator = eSeparator;
 	mszName.Init(szName);
@@ -66,7 +66,7 @@ void CJavaSeparatorDefinition::Init(EJavaSeparator eSeparator, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSeparatorDefinition::Kill(void)
+void CJavaTokenSeparatorDefinition::Kill(void)
 {
 	meSeparator = JS_Unknown;
 	mszName.Kill();
@@ -77,7 +77,7 @@ void CJavaSeparatorDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSeparatorDefinition::GetName(void)
+char* CJavaTokenSeparatorDefinition::GetName(void)
 {
 	return mszName.Text();
 }
@@ -87,5 +87,5 @@ char* CJavaSeparatorDefinition::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EJavaSeparator CJavaSeparatorDefinition::Get(void) { return meSeparator; }
+EJavaTokenSeparator CJavaTokenSeparatorDefinition::Get(void) { return meSeparator; }
 
