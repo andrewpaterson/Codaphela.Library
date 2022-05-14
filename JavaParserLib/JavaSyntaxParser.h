@@ -68,7 +68,9 @@ protected:
 	CJavaSyntaxClass*			ParseClass(void);
 	CJavaSyntaxEnum*			ParseEnum(void);
 	CJavaSyntaxInterface*		ParseInterface(void);
+	BOOL						ParseClassGenerics(CJavaSyntaxClass* pcClass);
 	CJavaSyntaxClassGeneric*	ParseClassGeneric(void);
+	CJavaSyntaxType*			ParseType(void);
 
 	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
 
@@ -91,10 +93,12 @@ protected:
 	BOOL						HasNext(void);
 	void						SkipComments(void);
 
-	void						ReplaceAmbiguous(CJavaToken* pcCurrent, CJavaToken* pcReplacement);
+	BOOL						ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
+	CJavaScope*					CreateScope(EJavaScope eScope);
 
 protected:
 	template<class M>	M*	Error(char* szError);
+	template<class M>	M*	Error(void);
 	template<class M>	M*	Mismatch(void);
 };
 
@@ -107,6 +111,18 @@ template<class M>
 M* CJavaSyntaxParser::Error(char* szError)
 {
 	mpcLogger->Error(szError);
+	PassPosition();
+	return (M*)&mcError;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CJavaSyntaxParser::Error(void)
+{
 	PassPosition();
 	return (M*)&mcError;
 }

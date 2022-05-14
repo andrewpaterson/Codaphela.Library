@@ -395,11 +395,11 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 {
-	CJavaSyntaxImport*	pcImport;
-	CJavaIdentifier*	pcIdentifier;
-	int					iIdentifierCount;
-	CJavaAmbiguous*		pcAmbiguousAsterisk;
-	CJavaScope*			pcScopeAsterisk;
+	CJavaSyntaxImport*		pcImport;
+	CJavaIdentifier*		pcIdentifier;
+	int						iIdentifierCount;
+	CJavaAmbiguous*			pcAmbiguousAsterisk;
+	CJavaScope*				pcScopeAsterisk;
 
 	PushPosition();
 	if (!GetKeyword(JK_import))
@@ -427,7 +427,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 				pcImport->SetWild(TRUE);
 				if (GetSeparator(JS_Semicolon))
 				{
-					pcScopeAsterisk = mpcTokens->CreateScope(mpcDefinitions->GetScope(JG_Asterisk));
+					pcScopeAsterisk = CreateScope(JG_Asterisk);
 					ReplaceAmbiguous(pcAmbiguousAsterisk, pcScopeAsterisk);
 					PassPosition();
 					return pcImport;
@@ -476,7 +476,6 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 	BOOL						bPublic;
 	BOOL						bAbstract;
 	BOOL						bFinal;
-	CJavaSyntaxClassGeneric*	pcGeneric;
 	CJavaIdentifier*			pcName;
 	BOOL						bOpen;
 
@@ -513,20 +512,16 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 
 		pcClass->SetName(pcName);
 
-		for (;;)
+		if (!ParseClassGenerics(pcClass))
 		{
-			pcGeneric = ParseClassGeneric();
-			if (pcGeneric)
-			{
-				pcClass->AddGeneric(pcGeneric);
-			}
+			return (CJavaSyntaxClass*)&mcError;
+		}
 
-			bOpen = GetSeparator(JS_CurlyBracketLeft);
+		bOpen = GetSeparator(JS_CurlyBracketLeft);
 
-			if (pcGeneric == NULL && !bOpen)
-			{
-				return Error<CJavaSyntaxClass>(EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET);
-			}
+		if (!bOpen)
+		{
+			return Error<CJavaSyntaxClass>(EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET);
 		}
 		return pcClass;
 	}
@@ -655,20 +650,127 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
 CJavaSyntaxClassGeneric* CJavaSyntaxParser::ParseClassGeneric(void)
 {
 	CJavaSyntaxClassGeneric*	pcGeneric;
+	CJavaIdentifier*			pcIdentifier;
+	CJavaSyntaxType*			pcType;
 
-	if (GetAmbiguous(JA_AngleBracketLeft))
+	PushPosition();
+
+	pcIdentifier = GetIdentifier();
+	if (pcIdentifier == NULL)
 	{
+		return Mismatch<CJavaSyntaxClassGeneric>();
+	}
 
-		pcGeneric = mpcSyntaxes->CreateClassGeneric(&mcSyntaxTree);
-		if (pcGeneric == NULL)
+	pcGeneric = mpcSyntaxes->CreateClassGeneric(&mcSyntaxTree);
+	if (pcGeneric == NULL)
+	{
+		return Error<CJavaSyntaxClassGeneric>(OUT_OUF_MEMORY);
+	}
+
+	pcGeneric->SetName(pcIdentifier);
+
+	if (GetKeyword(JK_extends))
+	{
+		pcType = ParseType();
+		if (pcType->IsType())
 		{
-			return Error<CJavaSyntaxClassGeneric>(OUT_OUF_MEMORY);
+			pcGeneric->SetExtends(pcType);
 		}
-		return pcGeneric;
+		else 
+		{
+			if (pcType->IsMismatch())
+			{
+				PopPosition();
+				return Mismatch<CJavaSyntaxClassGeneric>();
+			}
+			else
+			{
+				PassPosition();
+				return Error<CJavaSyntaxClassGeneric>();
+			}
+		}
+	}
+
+	PassPosition();
+	return pcGeneric;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
+{
+
+	//CJavaAmbiguous* pcAmbiguousQuestionMark;
+	//CJavaScope* pcScopeQuestionMark;
+	//if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
+	//{
+
+	//}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxParser::ParseClassGenerics(CJavaSyntaxClass* pcClass)
+{
+	CJavaSyntaxClassGeneric*	pcGeneric;
+	CJavaAmbiguous*				pcAmbiguousAngleBracketLeft;
+	CJavaScope*					pcScopeAngleBracketLeft;
+	CJavaAmbiguous*				pcAmbiguousAngleBracketRight;
+	CJavaScope*					pcScopeAngleBracketRight;
+
+	PushPosition();
+	if (GetAmbiguous(JA_AngleBracketLeft, &pcAmbiguousAngleBracketLeft))
+	{
+		for (;;)
+		{
+			pcGeneric = ParseClassGeneric();
+			if (pcGeneric->IsClassGeneric())
+			{
+				pcClass->AddGeneric(pcGeneric);
+			}
+			else if (pcGeneric->IsError())
+			{
+				return FALSE;
+			}
+			else if (pcGeneric->IsMismatch())
+			{
+				PassPosition();
+				mpcLogger->Error(EXPECTED_IDENTIFIER);
+				return FALSE;
+			}
+
+			if (GetSeparator(JS_Comma))
+			{
+				continue;
+			}
+			else if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
+			{
+				pcScopeAngleBracketLeft = CreateScope(JG_AngleBracketLeft);
+				pcScopeAngleBracketRight = CreateScope(JG_AngleBracketRight);
+				ReplaceAmbiguous(pcAmbiguousAngleBracketLeft, pcScopeAngleBracketLeft);
+				ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
+				PassPosition();
+				return TRUE;
+			}
+			else
+			{
+				PassPosition();
+				mpcLogger->Error(EXPECTED_CLOSE_ANGLE_BRACKET_OR_COMMA);
+				return FALSE;
+			}
+		}
 	}
 	else
 	{
-		return NULL;
+		PassPosition();
+		return TRUE;
 	}
 }
 
@@ -819,8 +921,43 @@ void CJavaSyntaxParser::PassPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcCurrent, CJavaToken* pcReplacement)
+BOOL CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement)
 {
-	int x = 0;
+	CJavaToken*		pcCurrent;
+	CJavaToken*		pcPrevious;
+
+	pcPrevious = NULL;
+	pcCurrent = mpcFirstToken;
+	while (pcCurrent)
+	{
+		if (pcCurrent == pcSearch)
+		{
+			if (pcPrevious)
+			{
+				pcPrevious->SetNext(pcReplacement);
+			}
+			pcReplacement->SetNext(pcCurrent->GetNext());
+			return TRUE;
+		}
+		pcPrevious = pcCurrent;
+		pcCurrent = pcCurrent->GetNext();
+	}
+	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaScope* CJavaSyntaxParser::CreateScope(EJavaScope eScope)
+{
+	CJavaScope*				pcScope;
+	CJavaScopeDefinition*	pcDefinition;
+
+	pcDefinition = mpcDefinitions->GetScope(JG_Asterisk);
+	pcScope = mpcTokens->CreateScope(pcDefinition);
+	return pcScope;
+
 }
 

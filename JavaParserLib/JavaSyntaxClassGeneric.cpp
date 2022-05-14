@@ -8,6 +8,8 @@
 void CJavaSyntaxClassGeneric::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
+	mpcName = NULL;
+	mpcExtends = NULL;
 }
 
 
@@ -17,6 +19,8 @@ void CJavaSyntaxClassGeneric::Init(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassGeneric::Kill(void)
 {
+	mpcName = NULL;
+	mpcExtends = NULL;
 	CJavaSyntax::Kill();
 }
 
@@ -38,5 +42,25 @@ char* CJavaSyntaxClassGeneric::GetType(void)
 BOOL CJavaSyntaxClassGeneric::IsClassGeneric(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClassGeneric::SetName(CJavaIdentifier* pcName)
+{
+	mpcName = pcName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClassGeneric::SetExtends(CJavaSyntaxType* pcExtends)
+{
+	mpcExtends = pcExtends;
 }
 

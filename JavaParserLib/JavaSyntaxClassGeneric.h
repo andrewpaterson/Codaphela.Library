@@ -11,7 +11,7 @@ class CJavaSyntaxClassGeneric : public CJavaSyntax
 CONSTRUCTABLE(CJavaSyntaxClassGeneric);
 protected:
 	CJavaIdentifier*	mpcName;
-	CJavaSyntaxType*	mpcType;  //NULL if does not extend a Type.
+	CJavaSyntaxType*	mpcExtends;  //NULL if does not extend a Type.
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree);
@@ -20,6 +20,9 @@ public:
 	char*	GetType(void) override;
 
 	BOOL	IsClassGeneric(void) override;
+
+	void	SetName(CJavaIdentifier* pcName);
+	void	SetExtends(CJavaSyntaxType* pcExtends);
 };
 
 
