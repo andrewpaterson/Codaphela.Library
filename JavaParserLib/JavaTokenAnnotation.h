@@ -8,11 +8,11 @@ class CJavaTokenAnnotation : public CJavaToken
 {
 CONSTRUCTABLE(CJavaTokenAnnotation);
 protected:
-	char* mszAnnotation;
+	char*	mszAnnotation;
 	int		miLength;
 
 public:
-	void 	Init(char* szAnnotation, int iLength);
+	void 	Init(char* szAnnotation, int iLength, STextPosition* psPosition);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);

@@ -753,8 +753,10 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
 		pcGeneric->SetName(pcIdentifier);
 	}
 
+	PushPosition();
 	if (GetKeyword(JK_extends))
 	{
+		PassPosition();
 		pcExtends = ParseType();
 		if (pcExtends->IsType())
 		{
@@ -764,7 +766,15 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
 		{
 			return Error<CJavaSyntaxGeneric>();
 		}
-
+	}
+	else if (GetAmbiguous(JA_AngleBracketLeft))
+	{
+		PopPosition();
+		ParseType();
+	}
+	else
+	{
+		PassPosition();
 	}
 
 	if (bQuestionMark)

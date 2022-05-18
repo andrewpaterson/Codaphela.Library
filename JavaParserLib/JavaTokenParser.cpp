@@ -1006,18 +1006,20 @@ TRISTATE CJavaTokenParser::ParseIdentifier(CJavaToken** ppcCurrent)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseAnnotation(CJavaToken** ppcCurrent)
 {
-	TRISTATE	tResult;
-	char		szText[4 KB];
-	int			iLength;
+	TRISTATE		tResult;
+	char			szText[4 KB];
+	int				iLength;
+	STextPosition	sPosition;
 
 	mcParser.PushPosition();
 	tResult = mcParser.GetExactCharacter('@', FALSE);
 	if (tResult == TRITRUE)
 	{
+		mcParser.GetPosition(&sPosition);
 		tResult = mcParser.GetIdentifier(szText, &iLength, FALSE, FALSE);
 		if (tResult == TRITRUE)
 		{
-			*ppcCurrent = mpcTokens->CreateAnnotation(szText, iLength);
+			*ppcCurrent = mpcTokens->CreateAnnotation(szText, iLength, &sPosition);
 			return TRITRUE;;
 		}
 		else if (tResult == TRIERROR)

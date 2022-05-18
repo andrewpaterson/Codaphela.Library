@@ -142,18 +142,6 @@ BOOL CTextParser::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(void)
-{
-	szParserPos = NULL;
-	iLine = 0;
-	iColumn = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void SParseState::Init(void)
 {
 	sCurrent.Init();
@@ -3354,9 +3342,9 @@ void CTextParser::AppendError(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextParser::PrintPosition(CChars* pszDest)
 {
-	CChars				szParserText;
-	int					iPreviousLineEnd;
-	int					iLineEnd;
+	CChars	szParserText;
+	int		iPreviousLineEnd;
+	int		iLineEnd;
 
 	szParserText.Fake(mszStartOfText, 0, Length() - 1);
 	iPreviousLineEnd = szParserText.FindFromEnd(UsedLength() - 1, "\n");

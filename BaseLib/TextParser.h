@@ -27,16 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "EnumeratorTemplate.h"
 #include "Define.h"
 #include "Number.h"
-
-
-struct STextPosition
-{
-	char*		szParserPos;
-	int			iLine;
-	int			iColumn;
-
-	void Init(void);
-};
+#include "TextPosition.h"
 
 
 typedef CArrayTemplate<STextPosition>	CArrayTextPosition;

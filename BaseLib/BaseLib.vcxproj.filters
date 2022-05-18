@@ -1017,6 +1017,9 @@
     <ClInclude Include="MarkupTextParser.h">
       <Filter>Source\Data\Markup\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="TextPosition.h">
+      <Filter>Source\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1606,6 +1609,9 @@
     </ClCompile>
     <ClCompile Include="MarkupTextParser.cpp">
       <Filter>Source\Data\Markup\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TextPosition.cpp">
+      <Filter>Source\Text</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
