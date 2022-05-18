@@ -3,6 +3,8 @@
 #include "BaseLib/Constructable.h"
 #include "BaseLib/MemoryStackExtended.h"
 #include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/TextPosition.h"
 #include "JavaTokenComment.h"
 #include "JavaTokenKeyword.h"
 #include "JavaTokenIdentifier.h"
@@ -30,25 +32,25 @@ protected:
 	CTokenPtrArray			mapcTokens;
 
 public:
-	void				Init(void);
-	void				Kill(void);
+	void					Init(void);
+	void					Kill(void);
 
 	CJavaTokenComment*		CreateComment(char* szComment, int iLength);
 	CJavaTokenIdentifier*	CreateIdentifier(char* szIdentifier, int iLength);
-	CJavaTokenAnnotation*	CreateAnnotation(char* szAnnotation, int iLength);
+	CJavaTokenAnnotation*	CreateAnnotation(char* szAnnotation, int iLength, STextPosition* psPosition);
 	CJavaTokenKeyword*		CreateKeyword(CJavaTokenKeywordDefinition* pcKeyword);
 	CJavaTokenOperator*		CreateOperator(CJavaTokenOperatorDefinition* pcOperator);
-	CJavaTokenSeparator*		CreateSeparator(CJavaTokenSeparatorDefinition* pcSeparator);
-	CJavaTokenScope*			CreateScope(CJavaTokenScopeDefinition* pcGeneric);
-	CCJavaTokenAmbiguous*		CreateAmbiguous(CCJavaTokenAmbiguousDefinition* pcAmbiguous);
+	CJavaTokenSeparator*	CreateSeparator(CJavaTokenSeparatorDefinition* pcSeparator);
+	CJavaTokenScope*		CreateScope(CJavaTokenScopeDefinition* pcGeneric);
+	CCJavaTokenAmbiguous*	CreateAmbiguous(CCJavaTokenAmbiguousDefinition* pcAmbiguous);
 	CJavaTokenNull*			CreateNull(void);
 	CJavaTokenBoolean*		CreateBoolean(BOOL bValue);
-	CJavaTokenCharacter*		CreateCharacter(char c);
-	CJavaTokenCharacter*		CreateCharacter(char16 iChar);
+	CJavaTokenCharacter*	CreateCharacter(char c);
+	CJavaTokenCharacter*	CreateCharacter(char16 iChar);
 	CJavaTokenInteger*		CreateInteger(int32 iValue);
 	CJavaTokenInteger*		CreateInteger(int64 iValue);
-	CJavaTokenFloat*			CreateFloat(float32 fValue);
-	CJavaTokenFloat*			CreateFloat(float64 fValue);
+	CJavaTokenFloat*		CreateFloat(float32 fValue);
+	CJavaTokenFloat*		CreateFloat(float64 fValue);
 	CJavaTokenString*		CreateString(char* szString, int iLength);
 	CJavaTokenString*		CreateString(char16* szString, int iLength);
 };

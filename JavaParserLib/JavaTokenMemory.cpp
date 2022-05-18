@@ -110,10 +110,10 @@ CJavaTokenIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int iLength)
+CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int iLength, STextPosition* psPosition)
 {
 	CJavaTokenAnnotation*	pcToken;
-	char*				szDest;
+	char*					szDest;
 
 	pcToken = (CJavaTokenAnnotation*)mcStack.Add(sizeof(CJavaTokenAnnotation) + iLength + 1);
 	if (pcToken)
@@ -124,7 +124,7 @@ CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaTokenAnnotation));
 		memcpy(szDest, szAnnotation, iLength);
 		szDest[iLength] = '\0';
-		pcToken->Init(szDest, iLength);
+		pcToken->Init(szDest, iLength, psPosition);
 	}
 
 	return pcToken;

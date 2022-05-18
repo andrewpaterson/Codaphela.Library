@@ -3,6 +3,7 @@
 #include "BaseLib/Define.h"
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/TextPosition.h"
 
 
 class CJavaToken

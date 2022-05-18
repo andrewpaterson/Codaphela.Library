@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenAnnotation::Init(char* szAnnotation, int iLength)
+void CJavaTokenAnnotation::Init(char* szAnnotation, int iLength, STextPosition* psPosition)
 {
 	CJavaToken::Init();
 	mszAnnotation = szAnnotation;
