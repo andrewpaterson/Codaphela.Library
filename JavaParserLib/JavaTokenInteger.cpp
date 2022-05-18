@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenInteger::Init(int32 iValue)
+void CJavaTokenInteger::Init(STextPosition* psPosition, int32 iValue)
 {
-	CJavaTokenLiteral::Init(JLT_Integer);
+	CJavaTokenLiteral::Init(psPosition, JLT_Integer);
 	miValue = iValue;
 	meType = JIT_int32;
 }
@@ -17,11 +17,11 @@ void CJavaTokenInteger::Init(int32 iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenInteger::Init(int64 iValue)
+void CJavaTokenInteger::Init(STextPosition* psPosition, int64 iValue)
 {
+	CJavaTokenLiteral::Init(psPosition, JLT_Integer);
 	miValue = iValue;
 	meType = JIT_int64;
-	CJavaTokenLiteral::Kill();
 }
 
 
@@ -33,6 +33,7 @@ void CJavaTokenInteger::Kill(void)
 {
 	miValue = 0;
 	meType = JIT_Unknown;
+	CJavaTokenLiteral::Kill();
 }
 
 

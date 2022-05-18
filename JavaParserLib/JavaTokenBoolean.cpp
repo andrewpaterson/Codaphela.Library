@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenBoolean::Init(BOOL bValue)
+void CJavaTokenBoolean::Init(STextPosition* psPosition, BOOL bValue)
 {
-	CJavaTokenLiteral::Init(JLT_Boolean);
+	CJavaTokenLiteral::Init(psPosition, JLT_Boolean);
 	mbValue = bValue;
 }
 

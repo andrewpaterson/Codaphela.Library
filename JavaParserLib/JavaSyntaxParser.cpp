@@ -427,7 +427,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 				pcImport->SetWild(TRUE);
 				if (GetSeparator(JS_Semicolon))
 				{
-					pcScopeAsterisk = CreateScope(JG_Asterisk);
+					pcScopeAsterisk = CreateScope(pcAmbiguousAsterisk->GetPosition(), JG_Asterisk);
 					ReplaceAmbiguous(pcAmbiguousAsterisk, pcScopeAsterisk);
 					PassPosition();
 					return pcImport;
@@ -694,8 +694,8 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 			}
 			else if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
 			{
-				pcScopeAngleBracketLeft = CreateScope(JG_AngleBracketLeft);
-				pcScopeAngleBracketRight = CreateScope(JG_AngleBracketRight);
+				pcScopeAngleBracketLeft = CreateScope(pcAmbiguousAngleBracketLeft->GetPosition(), JG_AngleBracketLeft);
+				pcScopeAngleBracketRight = CreateScope(pcAmbiguousAngleBracketRight->GetPosition(), JG_AngleBracketRight);
 				ReplaceAmbiguous(pcAmbiguousAngleBracketLeft, pcScopeAngleBracketLeft);
 				ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
 				PassPosition();
@@ -779,7 +779,7 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
 
 	if (bQuestionMark)
 	{
-		pcScopeQuestionMark = CreateScope(JG_QuestionMark);
+		pcScopeQuestionMark = CreateScope(pcAmbiguousQuestionMark->GetPosition(), JG_QuestionMark);
 		ReplaceAmbiguous(pcAmbiguousQuestionMark, pcScopeQuestionMark);
 	}
 
@@ -963,14 +963,13 @@ BOOL CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcRep
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenScope* CJavaSyntaxParser::CreateScope(EJavaTokenScope eScope)
+CJavaTokenScope* CJavaSyntaxParser::CreateScope(STextPosition* psPosition, EJavaTokenScope eScope)
 {
 	CJavaTokenScope*				pcScope;
 	CJavaTokenScopeDefinition*	pcDefinition;
 
 	pcDefinition = mpcDefinitions->GetScope(JG_Asterisk);
-	pcScope = mpcTokens->CreateScope(pcDefinition);
+	pcScope = mpcTokens->CreateScope(psPosition, pcDefinition);
 	return pcScope;
-
 }
 

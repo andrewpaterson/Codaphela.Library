@@ -5,8 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaToken::Init(void)
+void CJavaToken::Init(STextPosition* psPosition)
 {
+	msPos = *psPosition;
 	mpcNext = NULL;
 }
 
@@ -17,6 +18,7 @@ void CJavaToken::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaToken::Kill(void)
 {
+	msPos.Clear();
 	mpcNext = NULL;
 }
 
@@ -28,6 +30,16 @@ void CJavaToken::Kill(void)
 void CJavaToken::SetNext(CJavaToken* pcNext)
 {
 	mpcNext = pcNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STextPosition* CJavaToken::GetPosition(void)
+{
+	return &msPos;
 }
 
 

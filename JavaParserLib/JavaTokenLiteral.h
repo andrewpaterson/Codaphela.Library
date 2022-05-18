@@ -22,7 +22,7 @@ protected:
 	EJavaTokenLiteralType	meLiteralType;
 
 public:
-			void 	Init(EJavaTokenLiteralType eType);
+			void 	Init(STextPosition* psPosition, EJavaTokenLiteralType eType);
 			void 	Kill(void);
 
 			char*	GetType(void) override;

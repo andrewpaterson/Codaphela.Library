@@ -67,7 +67,7 @@ protected:
 	CJavaTokenKeywordDefinition*	mpcKeyword;
 
 public:
-	void 	Init(CJavaTokenKeywordDefinition* pcKeyword);
+	void 	Init(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);

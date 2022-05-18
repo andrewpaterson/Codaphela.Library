@@ -23,7 +23,7 @@ protected:
 	CJavaTokenScopeDefinition*	mpcScope;
 
 public:
-	void 	Init(CJavaTokenScopeDefinition* pcGeneric);
+	void 	Init(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric);
 	void 	Kill(void);
 
 	BOOL	IsScope(void);

@@ -22,8 +22,8 @@ protected:
 	EJavaTokenCharacterType	meType;
 
 public:
-	void 	Init(char c);
-	void 	Init(char16 c);
+	void 	Init(STextPosition* psPosition, char c);
+	void 	Init(STextPosition* psPosition, char16 c);
 	void 	Kill(void);
 
 	char*	GetType(void);

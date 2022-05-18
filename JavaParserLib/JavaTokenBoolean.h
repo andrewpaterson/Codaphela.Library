@@ -11,7 +11,7 @@ protected:
 	BOOL	mbValue;
 
 public:
-	void 	Init(BOOL bValue);
+	void 	Init(STextPosition* psPosition, BOOL bValue);
 	void 	Kill(void);
 
 	char*	GetType(void);

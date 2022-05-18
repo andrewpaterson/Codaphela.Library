@@ -39,7 +39,7 @@ void CJavaTokenMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenComment* CJavaTokenMemory::CreateComment(char* szComment, int iLength)
+CJavaTokenComment* CJavaTokenMemory::CreateComment(STextPosition* psPosition, char* szComment, int iLength)
 {
 	CJavaTokenComment*	pcToken;
 	char*			szDest;
@@ -53,7 +53,7 @@ CJavaTokenComment* CJavaTokenMemory::CreateComment(char* szComment, int iLength)
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaTokenComment));
 		memcpy(szDest, szComment, iLength);
 		szDest[iLength] = '\0';
-		pcToken->Init(szDest, iLength);
+		pcToken->Init(psPosition, szDest, iLength);
 	}
 
 	return pcToken;
@@ -64,7 +64,7 @@ CJavaTokenComment* CJavaTokenMemory::CreateComment(char* szComment, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenKeyword* CJavaTokenMemory::CreateKeyword(CJavaTokenKeywordDefinition* pcKeyword)
+CJavaTokenKeyword* CJavaTokenMemory::CreateKeyword(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword)
 {
 	CJavaTokenKeyword*	pcToken;
 
@@ -74,7 +74,7 @@ CJavaTokenKeyword* CJavaTokenMemory::CreateKeyword(CJavaTokenKeywordDefinition* 
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenKeyword;
-		pcToken->Init(pcKeyword);
+		pcToken->Init(psPosition, pcKeyword);
 	}
 
 	return pcToken;
@@ -85,7 +85,7 @@ CJavaTokenKeyword* CJavaTokenMemory::CreateKeyword(CJavaTokenKeywordDefinition* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int iLength)
+CJavaTokenIdentifier* CJavaTokenMemory::CreateIdentifier(STextPosition* psPosition, char* szIdentifier, int iLength)
 {
 	CJavaTokenIdentifier*	pcToken;
 	char*				szDest;
@@ -99,7 +99,7 @@ CJavaTokenIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaTokenIdentifier));
 		memcpy(szDest, szIdentifier, iLength);
 		szDest[iLength] = '\0';
-		pcToken->Init(szDest, iLength);
+		pcToken->Init(psPosition, szDest, iLength);
 	}
 
 	return pcToken;
@@ -110,7 +110,7 @@ CJavaTokenIdentifier* CJavaTokenMemory::CreateIdentifier(char* szIdentifier, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int iLength, STextPosition* psPosition)
+CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(STextPosition* psPosition, char* szAnnotation, int iLength)
 {
 	CJavaTokenAnnotation*	pcToken;
 	char*					szDest;
@@ -124,7 +124,7 @@ CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaTokenAnnotation));
 		memcpy(szDest, szAnnotation, iLength);
 		szDest[iLength] = '\0';
-		pcToken->Init(szDest, iLength, psPosition);
+		pcToken->Init(psPosition, szDest, iLength);
 	}
 
 	return pcToken;
@@ -135,7 +135,7 @@ CJavaTokenAnnotation* CJavaTokenMemory::CreateAnnotation(char* szAnnotation, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenOperator* CJavaTokenMemory::CreateOperator(CJavaTokenOperatorDefinition* pcOperator)
+CJavaTokenOperator* CJavaTokenMemory::CreateOperator(STextPosition* psPosition, CJavaTokenOperatorDefinition* pcOperator)
 {
 	CJavaTokenOperator* pcToken;
 
@@ -145,7 +145,7 @@ CJavaTokenOperator* CJavaTokenMemory::CreateOperator(CJavaTokenOperatorDefinitio
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenOperator;
-		pcToken->Init(pcOperator);
+		pcToken->Init(psPosition, pcOperator);
 	}
 
 	return pcToken;
@@ -156,7 +156,7 @@ CJavaTokenOperator* CJavaTokenMemory::CreateOperator(CJavaTokenOperatorDefinitio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenSeparator* CJavaTokenMemory::CreateSeparator(CJavaTokenSeparatorDefinition* pcSeparator)
+CJavaTokenSeparator* CJavaTokenMemory::CreateSeparator(STextPosition* psPosition, CJavaTokenSeparatorDefinition* pcSeparator)
 {
 	CJavaTokenSeparator* pcToken;
 
@@ -166,7 +166,7 @@ CJavaTokenSeparator* CJavaTokenMemory::CreateSeparator(CJavaTokenSeparatorDefini
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenSeparator;
-		pcToken->Init(pcSeparator);
+		pcToken->Init(psPosition, pcSeparator);
 	}
 
 	return pcToken;
@@ -177,7 +177,7 @@ CJavaTokenSeparator* CJavaTokenMemory::CreateSeparator(CJavaTokenSeparatorDefini
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenScope* CJavaTokenMemory::CreateScope(CJavaTokenScopeDefinition* pcGeneric)
+CJavaTokenScope* CJavaTokenMemory::CreateScope(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric)
 {
 	CJavaTokenScope* pcToken;
 
@@ -187,7 +187,7 @@ CJavaTokenScope* CJavaTokenMemory::CreateScope(CJavaTokenScopeDefinition* pcGene
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenScope;
-		pcToken->Init(pcGeneric);
+		pcToken->Init(psPosition, pcGeneric);
 	}
 
 	return pcToken;
@@ -198,7 +198,7 @@ CJavaTokenScope* CJavaTokenMemory::CreateScope(CJavaTokenScopeDefinition* pcGene
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCJavaTokenAmbiguous* CJavaTokenMemory::CreateAmbiguous(CCJavaTokenAmbiguousDefinition* pcAmbiguous)
+CCJavaTokenAmbiguous* CJavaTokenMemory::CreateAmbiguous(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcAmbiguous)
 {
 	CCJavaTokenAmbiguous* pcToken;
 
@@ -208,7 +208,7 @@ CCJavaTokenAmbiguous* CJavaTokenMemory::CreateAmbiguous(CCJavaTokenAmbiguousDefi
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CCJavaTokenAmbiguous;
-		pcToken->Init(pcAmbiguous);
+		pcToken->Init(psPosition, pcAmbiguous);
 	}
 
 	return pcToken;
@@ -219,7 +219,7 @@ CCJavaTokenAmbiguous* CJavaTokenMemory::CreateAmbiguous(CCJavaTokenAmbiguousDefi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenNull* CJavaTokenMemory::CreateNull(void)
+CJavaTokenNull* CJavaTokenMemory::CreateNull(STextPosition* psPosition)
 {
 	CJavaTokenNull*	pcToken;
 
@@ -229,7 +229,7 @@ CJavaTokenNull* CJavaTokenMemory::CreateNull(void)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenNull;
-		pcToken->Init();
+		pcToken->Init(psPosition);
 	}
 
 	return pcToken;
@@ -240,7 +240,7 @@ CJavaTokenNull* CJavaTokenMemory::CreateNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenBoolean* CJavaTokenMemory::CreateBoolean(BOOL bValue)
+CJavaTokenBoolean* CJavaTokenMemory::CreateBoolean(STextPosition* psPosition, BOOL bValue)
 {
 	CJavaTokenBoolean* pcToken;
 
@@ -250,7 +250,7 @@ CJavaTokenBoolean* CJavaTokenMemory::CreateBoolean(BOOL bValue)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenBoolean;
-		pcToken->Init(bValue);
+		pcToken->Init(psPosition, bValue);
 	}
 
 	return pcToken;
@@ -261,7 +261,7 @@ CJavaTokenBoolean* CJavaTokenMemory::CreateBoolean(BOOL bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(char c)
+CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(STextPosition* psPosition, char c)
 {
 	CJavaTokenCharacter* pcToken;
 
@@ -271,7 +271,7 @@ CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(char c)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenCharacter;
-		pcToken->Init(c);
+		pcToken->Init(psPosition, c);
 	}
 
 	return pcToken;
@@ -282,7 +282,7 @@ CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(char16 c)
+CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(STextPosition* psPosition, char16 c)
 {
 	CJavaTokenCharacter* pcToken;
 
@@ -292,7 +292,7 @@ CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(char16 c)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenCharacter;
-		pcToken->Init(c);
+		pcToken->Init(psPosition, c);
 	}
 
 	return pcToken;
@@ -303,7 +303,7 @@ CJavaTokenCharacter* CJavaTokenMemory::CreateCharacter(char16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenInteger* CJavaTokenMemory::CreateInteger(int32 iValue)
+CJavaTokenInteger* CJavaTokenMemory::CreateInteger(STextPosition* psPosition, int32 iValue)
 {
 	CJavaTokenInteger* pcToken;
 
@@ -313,7 +313,7 @@ CJavaTokenInteger* CJavaTokenMemory::CreateInteger(int32 iValue)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenInteger;
-		pcToken->Init(iValue);
+		pcToken->Init(psPosition, iValue);
 	}
 
 	return pcToken;
@@ -324,7 +324,7 @@ CJavaTokenInteger* CJavaTokenMemory::CreateInteger(int32 iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenInteger* CJavaTokenMemory::CreateInteger(int64 iValue)
+CJavaTokenInteger* CJavaTokenMemory::CreateInteger(STextPosition* psPosition, int64 iValue)
 {
 	CJavaTokenInteger* pcToken;
 
@@ -334,7 +334,7 @@ CJavaTokenInteger* CJavaTokenMemory::CreateInteger(int64 iValue)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenInteger;
-		pcToken->Init(iValue);
+		pcToken->Init(psPosition, iValue);
 	}
 
 	return pcToken;
@@ -345,7 +345,7 @@ CJavaTokenInteger* CJavaTokenMemory::CreateInteger(int64 iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenFloat* CJavaTokenMemory::CreateFloat(float32 fValue)
+CJavaTokenFloat* CJavaTokenMemory::CreateFloat(STextPosition* psPosition, float32 fValue)
 {
 	CJavaTokenFloat* pcToken;
 
@@ -355,7 +355,7 @@ CJavaTokenFloat* CJavaTokenMemory::CreateFloat(float32 fValue)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenFloat;
-		pcToken->Init(fValue);
+		pcToken->Init(psPosition, fValue);
 	}
 
 	return pcToken;
@@ -366,7 +366,7 @@ CJavaTokenFloat* CJavaTokenMemory::CreateFloat(float32 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenFloat* CJavaTokenMemory::CreateFloat(float64 fValue)
+CJavaTokenFloat* CJavaTokenMemory::CreateFloat(STextPosition* psPosition, float64 fValue)
 {
 	CJavaTokenFloat* pcToken;
 
@@ -376,7 +376,7 @@ CJavaTokenFloat* CJavaTokenMemory::CreateFloat(float64 fValue)
 		mapcTokens.Add(pcToken);
 
 		new(pcToken) CJavaTokenFloat;
-		pcToken->Init(fValue);
+		pcToken->Init(psPosition, fValue);
 	}
 
 	return pcToken;
@@ -387,7 +387,7 @@ CJavaTokenFloat* CJavaTokenMemory::CreateFloat(float64 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenString* CJavaTokenMemory::CreateString(char* szString, int iLength)
+CJavaTokenString* CJavaTokenMemory::CreateString(STextPosition* psPosition, char* szString, int iLength)
 {
 	CJavaTokenString*	pcToken;
 	char*			szDest;
@@ -401,7 +401,7 @@ CJavaTokenString* CJavaTokenMemory::CreateString(char* szString, int iLength)
 		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaTokenString));
 		memcpy(szDest, szString, iLength);
 		szDest[iLength] = '\0';
-		pcToken->Init(szDest, iLength);
+		pcToken->Init(psPosition, szDest, iLength);
 	}
 
 	return pcToken;
@@ -412,7 +412,7 @@ CJavaTokenString* CJavaTokenMemory::CreateString(char* szString, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenString* CJavaTokenMemory::CreateString(char16* szString, int iLength)
+CJavaTokenString* CJavaTokenMemory::CreateString(STextPosition* psPosition, char16* szString, int iLength)
 {
 	CJavaTokenString*	pcToken;
 	char16*			szDest;
@@ -426,7 +426,7 @@ CJavaTokenString* CJavaTokenMemory::CreateString(char16* szString, int iLength)
 		szDest = (char16*)RemapSinglePointer(pcToken, sizeof(CJavaTokenString));
 		memcpy(szDest, szString, iLength * sizeof(char16));
 		szDest[iLength] = '\0';
-		pcToken->Init(szDest, iLength);
+		pcToken->Init(psPosition, szDest, iLength);
 	}
 
 	return pcToken;

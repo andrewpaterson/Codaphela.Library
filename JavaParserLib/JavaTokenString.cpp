@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenString::Init(char* sz, int iLength)
+void CJavaTokenString::Init(STextPosition* psPosition, char* sz, int iLength)
 {
-	CJavaTokenLiteral::Init(JLT_String);
+	CJavaTokenLiteral::Init(psPosition, JLT_String);
 	msz = sz;
 	meType = JST_string8;
 	miLength = iLength;
@@ -20,12 +20,12 @@ void CJavaTokenString::Init(char* sz, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenString::Init(char16* sz, int iLength)
+void CJavaTokenString::Init(STextPosition* psPosition, char16* sz, int iLength)
 {
+	CJavaTokenLiteral::Init(psPosition, JLT_String);
 	msz = sz;
 	meType = JST_string16;
 	miLength = iLength;
-	CJavaTokenLiteral::Kill();
 }
 
 
@@ -38,6 +38,7 @@ void CJavaTokenString::Kill(void)
 	msz = NULL;
 	miLength = 0;
 	meType = JST_Unknown;
+	CJavaTokenLiteral::Kill();
 }
 
 

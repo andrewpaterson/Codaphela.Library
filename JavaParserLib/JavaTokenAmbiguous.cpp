@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCJavaTokenAmbiguous::Init(CCJavaTokenAmbiguousDefinition* pcDefinition)
+void CCJavaTokenAmbiguous::Init(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcDefinition)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mpcDefinition = pcDefinition;
 }
 

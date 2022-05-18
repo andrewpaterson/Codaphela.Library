@@ -93,7 +93,7 @@ protected:
 	void						SkipComments(void);
 
 	BOOL						ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
-	CJavaTokenScope*			CreateScope(EJavaTokenScope eScope);
+	CJavaTokenScope*			CreateScope(STextPosition* psPosition, EJavaTokenScope eScope);
 
 protected:
 	template<class M>	M*	Error(char* szError);

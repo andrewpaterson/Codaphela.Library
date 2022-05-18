@@ -1673,11 +1673,15 @@ int CChars::FindFromEnd(int iIndex, const char* szString)
 {
 	int	i;
 
+	if ((iIndex < 0) || (iIndex > Length()))
+	{
+		return -1;
+	}
+
 	for (i = iIndex; i >= 0; i--)
 	{
 		if (SubStringEquals(i, szString))
 		{
-
 			return i;
 		}
 	}
@@ -2537,6 +2541,50 @@ void CChars::PassifyNewlines(void)
 	{
 		mcText.Resize(iNewLen+1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CChars::FindLineContaining(char* szPosition, int* piLineNumber)
+{
+	int		i;
+	int		iNumLineFeeds;
+	int		iLen;
+	char*	szString;
+	char*	szStartOfLine;
+	char*	szPrevStartOfLine;
+	char*	szCurrent;
+
+	iLen = Length();
+	iNumLineFeeds = 0;
+	szString = Text();
+	szStartOfLine = Text();
+	szPrevStartOfLine = szStartOfLine;
+	for (i = 0; i < iLen; i++)
+	{
+		szCurrent = &szString[i];
+		if (*szCurrent == '\n')
+		{
+			szPrevStartOfLine = szStartOfLine;
+			szStartOfLine = &szString[i + 1];
+		}
+
+		if (szCurrent == szPosition)
+		{
+			break;
+		}
+
+		if (*szCurrent == '\n')
+		{
+			iNumLineFeeds++;
+		}
+	}
+
+	SafeAssign(piLineNumber, iNumLineFeeds);
+	return szStartOfLine;
 }
 
 

@@ -28,7 +28,7 @@ protected:
 	CJavaTokenSeparatorDefinition*	mpcSeparator;
 
 public:
-	void 	Init(CJavaTokenSeparatorDefinition* pcSeparator);
+	void 	Init(STextPosition* psPosition, CJavaTokenSeparatorDefinition* pcSeparator);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);

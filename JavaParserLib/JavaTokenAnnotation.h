@@ -12,7 +12,7 @@ protected:
 	int		miLength;
 
 public:
-	void 	Init(char* szAnnotation, int iLength, STextPosition* psPosition);
+	void 	Init(STextPosition* psPosition, char* szAnnotation, int iLength);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);

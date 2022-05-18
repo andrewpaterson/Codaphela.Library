@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenOperator::Init(CJavaTokenOperatorDefinition* pcOperator)
+void CJavaTokenOperator::Init(STextPosition* psPosition, CJavaTokenOperatorDefinition* pcOperator)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mpcOperator = pcOperator;
 }
 

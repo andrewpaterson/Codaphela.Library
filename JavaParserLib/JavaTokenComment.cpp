@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenComment::Init(char* szComment, int iLength)
+void CJavaTokenComment::Init(STextPosition* psPosition, char* szComment, int iLength)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mszComment = szComment;
 	miLength = iLength;
 }

@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenKeyword::Init(CJavaTokenKeywordDefinition* pcKeyword)
+void CJavaTokenKeyword::Init(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mpcKeyword = pcKeyword;
 }
 

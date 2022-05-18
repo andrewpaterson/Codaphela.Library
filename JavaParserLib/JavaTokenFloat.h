@@ -18,12 +18,12 @@ class CJavaTokenFloat : public CJavaTokenLiteral
 {
 CONSTRUCTABLE(CJavaTokenFloat);
 protected:
-	float64			mfValue;
-	EJavaTokenFloatType	meType;
+	float64					mfValue;
+	EJavaTokenFloatType		meType;
 
 public:
-	void 	Init(float32 fValue);
-	void 	Init(float64 fValue);
+	void 	Init(STextPosition* psPosition, float32 fValue);
+	void 	Init(STextPosition* psPosition, float64 fValue);
 	void 	Kill(void);
 
 	char*	GetType(void);

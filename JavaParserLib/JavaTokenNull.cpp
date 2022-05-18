@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenNull::Init(void)
+void CJavaTokenNull::Init(STextPosition* psPosition)
 {
-	CJavaTokenLiteral::Init(JLT_Null);
+	CJavaTokenLiteral::Init(psPosition, JLT_Null);
 }
 
 

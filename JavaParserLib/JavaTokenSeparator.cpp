@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenSeparator::Init(CJavaTokenSeparatorDefinition* pcSeparator)
+void CJavaTokenSeparator::Init(STextPosition* psPosition, CJavaTokenSeparatorDefinition* pcSeparator)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mpcSeparator = pcSeparator;
 }
 
