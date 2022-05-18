@@ -23,7 +23,7 @@ protected:
 	CCJavaTokenAmbiguousDefinition*	mpcDefinition;
 
 public:
-	void 	Init(CCJavaTokenAmbiguousDefinition* pcDefinition);
+	void 	Init(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcDefinition);
 	void 	Kill(void);
 
 	BOOL	IsAmbiguous(void);

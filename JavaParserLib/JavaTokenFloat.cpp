@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenFloat::Init(float32 fValue)
+void CJavaTokenFloat::Init(STextPosition* psPosition, float32 fValue)
 {
-	CJavaTokenLiteral::Init(JLT_Float);
+	CJavaTokenLiteral::Init(psPosition, JLT_Float);
 	mfValue = fValue;
 	meType = JFT_float32;
 }
@@ -17,11 +17,11 @@ void CJavaTokenFloat::Init(float32 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenFloat::Init(float64 fValue)
+void CJavaTokenFloat::Init(STextPosition* psPosition, float64 fValue)
 {
+	CJavaTokenLiteral::Init(psPosition, JLT_Float);
 	mfValue = fValue;
 	meType = JFT_float64;
-	CJavaTokenLiteral::Kill();
 }
 
 
@@ -33,6 +33,7 @@ void CJavaTokenFloat::Kill(void)
 {
 	mfValue = 0.0f;
 	meType = JFT_Unknown;
+	CJavaTokenLiteral::Kill();
 }
 
 

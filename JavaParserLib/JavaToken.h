@@ -11,25 +11,27 @@ class CJavaToken
 CONSTRUCTABLE(CJavaToken);
 protected:
 	CJavaToken*		mpcNext;
+	STextPosition	msPos;
 
 public:
-			void		Init(void);
-	virtual void		Kill(void);
+			void			Init(STextPosition* psPosition);
+	virtual void			Kill(void);
 
-			void		SetNext(CJavaToken* pcNext);
-	virtual void		Print(CChars* pszDest) =0;
-	virtual char*		GetType(void) =0;
-			CJavaToken* GetNext(void);
+			void			SetNext(CJavaToken* pcNext);
+	virtual void			Print(CChars* pszDest) =0;
+	virtual char*			GetType(void) =0;
+			CJavaToken*		GetNext(void);
+			STextPosition*	GetPosition(void);
 
-	virtual BOOL		IsSeparator(void);
-	virtual BOOL		IsComment(void);
-	virtual BOOL		IsKeyword(void);
-	virtual BOOL		IsIdentifier(void);
-	virtual BOOL		IsScope(void);
-	virtual BOOL		IsAmbiguous(void);
-	virtual BOOL		IsOperator(void);
-	virtual BOOL		IsLiteral(void);
-	virtual BOOL		IsAnnotation(void);
+	virtual BOOL			IsSeparator(void);
+	virtual BOOL			IsComment(void);
+	virtual BOOL			IsKeyword(void);
+	virtual BOOL			IsIdentifier(void);
+	virtual BOOL			IsScope(void);
+	virtual BOOL			IsAmbiguous(void);
+	virtual BOOL			IsOperator(void);
+	virtual BOOL			IsLiteral(void);
+	virtual BOOL			IsAnnotation(void);
 };
 
 

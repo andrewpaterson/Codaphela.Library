@@ -8,7 +8,7 @@ class CJavaTokenNull : public CJavaTokenLiteral
 {
 CONSTRUCTABLE(CJavaTokenNull);
 public:
-	void 	Init(void);
+	void 	Init(STextPosition* psPosition);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);

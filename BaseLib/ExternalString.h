@@ -32,6 +32,7 @@ public:
 	void	Init(void);
 	void	Init(char* sz, int iLen);
 	void	Init(char* szStart, char* szLastCharInclusive);
+	void	Clear(void);
 	char*	EndInclusive(void);
 	void	Dump(void);
 	BOOL	Equals(CExternalString* pcOther);

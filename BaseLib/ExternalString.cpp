@@ -29,8 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CExternalString::Init(void)
 {
-	msz = NULL;
-	miLen = 0;
+	Clear();
 }
 
 
@@ -53,6 +52,17 @@ void CExternalString::Init(char* szStart, char* szLastCharInclusive)
 {
 	msz = szStart;
 	miLen = StrLen(szStart, szLastCharInclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CExternalString::Clear(void)
+{
+	msz = NULL;
+	miLen = 0;
 }
 
 

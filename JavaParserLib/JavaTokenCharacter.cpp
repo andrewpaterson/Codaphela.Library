@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenCharacter::Init(char c)
+void CJavaTokenCharacter::Init(STextPosition* psPosition, char c)
 {
-	CJavaTokenLiteral::Init(JLT_Character);
+	CJavaTokenLiteral::Init(psPosition, JLT_Character);
 	mc = c;
 	meType = JCT_char8;
 }
@@ -18,11 +18,11 @@ void CJavaTokenCharacter::Init(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenCharacter::Init(char16 c)
+void CJavaTokenCharacter::Init(STextPosition* psPosition, char16 c)
 {
+	CJavaTokenLiteral::Init(psPosition, JLT_Character);
 	mc = c;
 	meType = JCT_char16;
-	CJavaTokenLiteral::Kill();
 }
 
 
@@ -34,6 +34,7 @@ void CJavaTokenCharacter::Kill(void)
 {
 	meType = JCT_Unknown;
 	mc = -1;
+	CJavaTokenLiteral::Kill();
 }
 
 

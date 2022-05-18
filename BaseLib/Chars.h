@@ -174,6 +174,7 @@ public:
 	//Suspicious... should probably be in a helper class or something.
 	void	PassifyNewlines(void);
 	void	MakeCPlusPlus(void);
+	char*	FindLineContaining(char* szPosition, int* piLineNumber);
 
 	void	Dump(void);
 	static void Dump(const char* sz);

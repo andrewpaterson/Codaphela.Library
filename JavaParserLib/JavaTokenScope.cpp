@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenScope::Init(CJavaTokenScopeDefinition* pcGeneric)
+void CJavaTokenScope::Init(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mpcScope = pcGeneric;
 }
 

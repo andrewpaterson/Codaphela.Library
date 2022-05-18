@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenLiteral::Init(EJavaTokenLiteralType eType)
+void CJavaTokenLiteral::Init(STextPosition* psPosition, EJavaTokenLiteralType eType)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	meLiteralType = eType;
 }
 

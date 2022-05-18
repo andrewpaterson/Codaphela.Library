@@ -77,7 +77,7 @@ protected:
 	CJavaTokenOperatorDefinition*	mpcOperator;
 
 public:
-	void 	Init(CJavaTokenOperatorDefinition* pcOperator);
+	void 	Init(STextPosition* psPosition, CJavaTokenOperatorDefinition* pcOperator);
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);

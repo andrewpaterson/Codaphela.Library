@@ -2717,9 +2717,7 @@ TRISTATE CTextParser::GetNumber(CNumber* pcNumber, BOOL bSkipWhiteSpace)
 void CTextParser::SaveState(SParseState* psParserState)
 {
 	psParserState->Init();
-	psParserState->sCurrent.szParserPos = mszParserPos;
-	psParserState->sCurrent.iLine = miLine;
-	psParserState->sCurrent.iColumn = miColumn;
+	psParserState->sCurrent.Init(mszParserPos, miLine, miColumn);
 
 	psParserState->asPrev.Copy(&masPositions);
 }
@@ -2731,7 +2729,7 @@ void CTextParser::SaveState(SParseState* psParserState)
 //////////////////////////////////////////////////////////////////////////
 void CTextParser::LoadState(SParseState* psParserState)
 {
-	mszParserPos = psParserState->sCurrent.szParserPos;
+	mszParserPos = psParserState->sCurrent.szPos;
 	miLine = psParserState->sCurrent.iLine;
 	miColumn = psParserState->sCurrent.iColumn;
 	masPositions.Copy(&psParserState->asPrev);
@@ -3137,9 +3135,7 @@ void CTextParser::PushPosition(void)
 	STextPosition*	psTextPosition;
 
 	psTextPosition = masPositions.Push();
-	psTextPosition->iLine = miLine;
-	psTextPosition->iColumn = miColumn;
-	psTextPosition->szParserPos = mszParserPos;
+	psTextPosition->Init(mszParserPos, miLine, miColumn);
 }
 
 
@@ -3154,7 +3150,7 @@ void CTextParser::PopPosition(void)
 	masPositions.Pop(&sTextPosition);
 	miLine = sTextPosition.iLine;
 	miColumn = sTextPosition.iColumn;
-	mszParserPos = sTextPosition.szParserPos;
+	mszParserPos = sTextPosition.szPos;
 	TestEnd();
 }
 
@@ -3196,7 +3192,7 @@ void CTextParser::PopPositions(int iNum)
 	psTextPosition = masPositions.Get(masPositions.NumElements()-iNum-0);
 	miLine = psTextPosition->iLine;
 	miColumn = psTextPosition->iColumn;
-	mszParserPos = psTextPosition->szParserPos;
+	mszParserPos = psTextPosition->szPos;
 	TestEnd();
 
 	masPositions.RemoveRange(masPositions.NumElements() - iNum, masPositions.NumElements());
@@ -3214,7 +3210,7 @@ void CTextParser::LastPosition(void)
 	psTextPosition = masPositions.Tail();
 	miLine = psTextPosition->iLine;
 	miColumn = psTextPosition->iColumn;
-	mszParserPos = psTextPosition->szParserPos;
+	mszParserPos = psTextPosition->szPos;
 	TestEnd();
 }
 
@@ -3223,11 +3219,10 @@ void CTextParser::LastPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParser::GetPosition(STextPosition* psPosition)
+STextPosition* CTextParser::GetPosition(STextPosition* psPosition)
 {
-	psPosition->iLine = miLine;
-	psPosition->iColumn = miColumn;
-	psPosition->szParserPos = mszParserPos;
+	psPosition->Init(mszParserPos, miLine, miColumn);
+	return psPosition;
 }
 
 
@@ -3239,7 +3234,7 @@ void CTextParser::SetPosition(STextPosition* psPosition)
 {
 	miLine = psPosition->iLine;
 	miColumn = psPosition->iColumn;
-	mszParserPos = psPosition->szParserPos;
+	mszParserPos = psPosition->szPos;
 	TestEnd();
 }
 
@@ -3434,6 +3429,7 @@ void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
 	szLine.Kill();
 	szParserLine.Kill();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

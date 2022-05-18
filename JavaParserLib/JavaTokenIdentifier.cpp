@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenIdentifier::Init(char* szIdentifier, int iLength)
+void CJavaTokenIdentifier::Init(STextPosition* psPosition, char* szIdentifier, int iLength)
 {
-	CJavaToken::Init();
+	CJavaToken::Init(psPosition);
 	mszIdentifier = szIdentifier;
 	miLength = iLength;
 }

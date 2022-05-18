@@ -18,13 +18,13 @@ class CJavaTokenString : public CJavaTokenLiteral
 {
 CONSTRUCTABLE(CJavaTokenString);
 protected:
-	void*				msz;
-	EJavaTokenStringType		meType;
-	int					miLength;
+	void*					msz;
+	EJavaTokenStringType	meType;
+	int						miLength;
 
 public:
-	void 	Init(char* sz, int iLength);
-	void 	Init(char16* sz, int iLength);
+	void 	Init(STextPosition* psPosition, char* sz, int iLength);
+	void 	Init(STextPosition* psPosition, char16* sz, int iLength);
 	void 	Kill(void);
 
 	char*	GetType(void);

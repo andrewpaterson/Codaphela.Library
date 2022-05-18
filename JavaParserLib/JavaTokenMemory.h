@@ -35,24 +35,24 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	CJavaTokenComment*		CreateComment(char* szComment, int iLength);
-	CJavaTokenIdentifier*	CreateIdentifier(char* szIdentifier, int iLength);
-	CJavaTokenAnnotation*	CreateAnnotation(char* szAnnotation, int iLength, STextPosition* psPosition);
-	CJavaTokenKeyword*		CreateKeyword(CJavaTokenKeywordDefinition* pcKeyword);
-	CJavaTokenOperator*		CreateOperator(CJavaTokenOperatorDefinition* pcOperator);
-	CJavaTokenSeparator*	CreateSeparator(CJavaTokenSeparatorDefinition* pcSeparator);
-	CJavaTokenScope*		CreateScope(CJavaTokenScopeDefinition* pcGeneric);
-	CCJavaTokenAmbiguous*	CreateAmbiguous(CCJavaTokenAmbiguousDefinition* pcAmbiguous);
-	CJavaTokenNull*			CreateNull(void);
-	CJavaTokenBoolean*		CreateBoolean(BOOL bValue);
-	CJavaTokenCharacter*	CreateCharacter(char c);
-	CJavaTokenCharacter*	CreateCharacter(char16 iChar);
-	CJavaTokenInteger*		CreateInteger(int32 iValue);
-	CJavaTokenInteger*		CreateInteger(int64 iValue);
-	CJavaTokenFloat*		CreateFloat(float32 fValue);
-	CJavaTokenFloat*		CreateFloat(float64 fValue);
-	CJavaTokenString*		CreateString(char* szString, int iLength);
-	CJavaTokenString*		CreateString(char16* szString, int iLength);
+	CJavaTokenComment*		CreateComment(STextPosition* psPosition, char* szComment, int iLength);
+	CJavaTokenIdentifier*	CreateIdentifier(STextPosition* psPosition, char* szIdentifier, int iLength);
+	CJavaTokenAnnotation*	CreateAnnotation(STextPosition* psPosition, char* szAnnotation, int iLength);
+	CJavaTokenKeyword*		CreateKeyword(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword);
+	CJavaTokenOperator*		CreateOperator(STextPosition* psPosition, CJavaTokenOperatorDefinition* pcOperator);
+	CJavaTokenSeparator*	CreateSeparator(STextPosition* psPosition, CJavaTokenSeparatorDefinition* pcSeparator);
+	CJavaTokenScope*		CreateScope(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric);
+	CCJavaTokenAmbiguous*	CreateAmbiguous(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcAmbiguous);
+	CJavaTokenNull*			CreateNull(STextPosition* psPosition);
+	CJavaTokenBoolean*		CreateBoolean(STextPosition* psPosition, BOOL bValue);
+	CJavaTokenCharacter*	CreateCharacter(STextPosition* psPosition, char c);
+	CJavaTokenCharacter*	CreateCharacter(STextPosition* psPosition, char16 iChar);
+	CJavaTokenInteger*		CreateInteger(STextPosition* psPosition, int32 iValue);
+	CJavaTokenInteger*		CreateInteger(STextPosition* psPosition, int64 iValue);
+	CJavaTokenFloat*		CreateFloat(STextPosition* psPosition, float32 fValue);
+	CJavaTokenFloat*		CreateFloat(STextPosition* psPosition, float64 fValue);
+	CJavaTokenString*		CreateString(STextPosition* psPosition, char* szString, int iLength);
+	CJavaTokenString*		CreateString(STextPosition* psPosition, char16* szString, int iLength);
 };
 
 
