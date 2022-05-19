@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree);
+	CJavaSyntax::Init(pcTree, pcParent);
 	mpcName = NULL;
 	mapcGenerics.Init();
 }

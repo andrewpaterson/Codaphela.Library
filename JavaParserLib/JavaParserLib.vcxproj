@@ -187,6 +187,7 @@
     <ClCompile Include="JavaSyntaxError.cpp" />
     <ClCompile Include="JavaSyntaxFile.cpp" />
     <ClCompile Include="JavaTokenFloat.cpp" />
+    <ClCompile Include="JavaTokenParserEnvironment.cpp" />
     <ClCompile Include="JavaTokenScope.cpp" />
     <ClCompile Include="JavaTokenIdentifier.cpp" />
     <ClCompile Include="JavaTokenInteger.cpp" />
@@ -224,6 +225,7 @@
     <ClInclude Include="JavaTokenNull.h" />
     <ClInclude Include="JavaTokenAmbiguous.h" />
     <ClInclude Include="JavaTokenCharacter.h" />
+    <ClInclude Include="JavaTokenParserEnvironment.h" />
     <ClInclude Include="JavaTokenScope.h" />
     <ClInclude Include="JavaTokenIdentifier.h" />
     <ClInclude Include="JavaTokenKeyword.h" />

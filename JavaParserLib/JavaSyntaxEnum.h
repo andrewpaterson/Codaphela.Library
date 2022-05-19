@@ -9,7 +9,7 @@ class CJavaSyntaxEnum : public CJavaSyntaxTopLevel
 CONSTRUCTABLE(CJavaSyntaxEnum);
 protected:
 public:
-	void 	Init(CJavaSyntaxTree* pcTree);
+	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
 	char*	GetType(void) override;

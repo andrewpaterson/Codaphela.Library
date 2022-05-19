@@ -12,7 +12,7 @@ protected:
 	CJavaSyntaxGenericPtrArray	mapcGenerics;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree);
+	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
 	char*	GetType(void) override;

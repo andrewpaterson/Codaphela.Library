@@ -5,9 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntax::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntax::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	mpcTree = pcTree;
+	mpcParent = pcParent;
 }
 
 
@@ -18,6 +19,18 @@ void CJavaSyntax::Init(CJavaSyntaxTree* pcTree)
 void CJavaSyntax::Kill(void)
 {
 	mpcTree = NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntax::Print(CChars* pszDest, int iDepth)
+{
+	pszDest->Append(' ', iDepth * 2);
+	pszDest->Append(GetType());
+	pszDest->Append(": ");
 }
 
 

@@ -9,12 +9,14 @@ class CJavaSyntax
 CONSTRUCTABLE(CJavaSyntax);
 protected:
 	CJavaSyntaxTree*	mpcTree;
+	CJavaSyntax*		mpcParent;
 
 public:
-			void		Init(CJavaSyntaxTree* pcTree);
+			void		Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	virtual void		Kill(void);
 
 	virtual char*		GetType(void) =0;
+	virtual void		Print(CChars* pszDest, int iDepth);
 
 	virtual BOOL		IsFile(void);
 	virtual BOOL		IsImport(void);

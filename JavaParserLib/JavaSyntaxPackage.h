@@ -12,10 +12,12 @@ protected:
 	CJavaTokenIdentifierPtrArray		mapcIdentifiers;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree);
+	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
 	char*	GetType(void) override;
+	void	Print(CChars* pszDest, int iDepth);
+
 	void	AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
 
 	BOOL	IsPackage(void) override;

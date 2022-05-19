@@ -5,9 +5,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxFile::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxFile::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree);
+	CJavaSyntax::Init(pcTree, pcParent);
+
+	mszFilename.Init();
+
 	mpcPackage = NULL;;
 	mapcImports.Init();
 
@@ -28,7 +31,20 @@ void CJavaSyntaxFile::Kill(void)
 
 	mpcPublicClass = NULL;
 	mapcPackageClasses.Kill();
+
+	mszFilename.Kill();
+
 	CJavaSyntax::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxFile::SetFileName(char* szFileName)
+{
+	mszFilename.Set(szFileName);
 }
 
 
@@ -39,6 +55,44 @@ void CJavaSyntaxFile::Kill(void)
 char* CJavaSyntaxFile::GetType(void)
 {
 	return "File";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxFile::Print(CChars* pszDest, int iDepth)
+{
+	int						i;
+	CJavaSyntaxImport*		pcSyntax;
+	CJavaSyntaxTopLevel*	pcTopLevel;
+
+	CJavaSyntax::Print(pszDest, iDepth);
+	pszDest->Append(&mszFilename);
+	pszDest->AppendNewLine();
+
+	if (mpcPackage)
+	{
+		mpcPackage->Print(pszDest, iDepth + 1);
+	}
+
+	for (i = 0; i < mapcImports.NumElements(); i++)
+	{
+		pcSyntax = mapcImports.GetPtr(i);
+		pcSyntax->Print(pszDest, iDepth + 1);
+	}
+
+	if (mpcPublicClass)
+	{
+		mpcPublicClass->Print(pszDest, iDepth + 1);
+	}
+
+	for (i = 0; i < mapcPackageClasses.NumElements(); i++)
+	{
+		pcTopLevel = mapcPackageClasses.GetPtr(i);
+		pcTopLevel->Print(pszDest, iDepth + 1);
+	}
 }
 
 

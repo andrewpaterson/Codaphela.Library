@@ -120,6 +120,9 @@
     <ClCompile Include="JavaSyntaxMemory.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="JavaTokenParserEnvironment.cpp">
+      <Filter>Source\Token</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaSyntaxGeneric.h">
@@ -226,6 +229,9 @@
     </ClInclude>
     <ClInclude Include="JavaSyntaxMemory.h">
       <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaTokenParserEnvironment.h">
+      <Filter>Source\Token</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

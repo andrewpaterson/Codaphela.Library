@@ -1,13 +1,16 @@
-#include "JavaSyntaxInterface.h"
+#include "JavaTokenParserEnvironment.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInterface::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CTokenParserEnvironment::Init(char* szFilename, char* szText)
 {
-	CJavaSyntaxTopLevel::Init(pcTree, pcParent);
+	int		iTextLen;
+
+	iTextLen = strlen(szText);
+	Init(szFilename, szText, iTextLen);
 }
 
 
@@ -15,9 +18,12 @@ void CJavaSyntaxInterface::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInterface::Kill(void)
+void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen)
 {
-	CJavaSyntaxTopLevel::Kill();
+	mcLogger.Init();
+	mcTokenDefinitions.Init();
+	mcTokenMemory.Init();
+	mcTokenParser.Init(&mcLogger, &mcTokenDefinitions, &mcTokenMemory, szFilename, szText, iTextLen);
 }
 
 
@@ -25,9 +31,12 @@ void CJavaSyntaxInterface::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxInterface::GetType(void)
+void CTokenParserEnvironment::Kill(void)
 {
-	return "Interface";
+	mcTokenParser.Kill();
+	mcTokenMemory.Kill();
+	mcTokenDefinitions.Kill();
+	mcLogger.Kill();
 }
 
 
@@ -35,9 +44,9 @@ char* CJavaSyntaxInterface::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxInterface::IsInterface(void)
+BOOL CTokenParserEnvironment::Parse(BOOL bFailOnError)
 {
-	return TRUE;
+	return mcTokenParser.Parse(bFailOnError);
 }
 
 
@@ -45,7 +54,8 @@ BOOL CJavaSyntaxInterface::IsInterface(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInterface::SetAbstract(BOOL bAbstract) { mbAbstract = bAbstract; }
-void CJavaSyntaxInterface::SetFinal(BOOL bFinal) { mbFinal = bFinal; }
-void CJavaSyntaxInterface::SetSyntaxType(CJavaSyntaxType* pcType) { mpcType = pcType; }
+CJavaTokenParser* CTokenParserEnvironment::GetParser(void)
+{
+	return &mcTokenParser;
+}
 

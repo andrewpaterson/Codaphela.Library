@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxEnum::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxEnum::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxTopLevel::Init(pcTree);
+	CJavaSyntaxTopLevel::Init(pcTree, pcParent);
 }
 
 
