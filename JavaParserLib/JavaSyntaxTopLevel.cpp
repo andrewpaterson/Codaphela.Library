@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree);
+	CJavaSyntax::Init(pcTree, pcParent);
 	mbPublic = FALSE;
 }
 

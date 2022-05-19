@@ -15,7 +15,7 @@ protected:
 	CJavaSyntaxType*		mpcExtends;  //NULL if does not extend a Type.
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree);
+	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
 	char*	GetType(void) override;

@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxPackage::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxPackage::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree);
+	CJavaSyntax::Init(pcTree, pcParent);
 	mapcIdentifiers.Init();
 }
 
@@ -30,6 +30,32 @@ void CJavaSyntaxPackage::Kill(void)
 char* CJavaSyntaxPackage::GetType(void)
 {
 	return "Package";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxPackage::Print(CChars* pszDest, int iDepth)
+{
+	int						i;
+	CJavaTokenIdentifier*	pcIdentifier;
+
+	CJavaSyntax::Print(pszDest, iDepth);
+	
+	for (i = 0; i < mapcIdentifiers.NumElements(); i++)
+	{
+		if (i != 0)
+		{
+			pszDest->Append('.');
+		}
+
+		pcIdentifier = mapcIdentifiers.GetPtr(i);
+		pcIdentifier->Print(pszDest);
+	}
+
+	pszDest->AppendNewLine();
 }
 
 

@@ -45,6 +45,7 @@ protected:
 	CJavaSyntaxError		mcError;
 	CJavaSyntaxMismatch		mcMismatch;
 
+	CChars					mszFilename;
 	CLogger*				mpcLogger;
 
 public:
@@ -63,13 +64,13 @@ protected:
 	void						PopPosition(void);
 	void						PassPosition(void);
 	
-	CJavaSyntaxPackage*			ParsePackage(void);
-	CJavaSyntaxImport*			ParseImport(void);
-	CJavaSyntaxClass*			ParseClass(void);
-	CJavaSyntaxEnum*			ParseEnum(void);
-	CJavaSyntaxInterface*		ParseInterface(void);
-	CJavaSyntaxType*			ParseType(void);
-	CJavaSyntaxGeneric*			ParseGeneric(void);
+	CJavaSyntaxPackage*			ParsePackage(CJavaSyntax* pcParent);
+	CJavaSyntaxImport*			ParseImport(CJavaSyntax* pcParent);
+	CJavaSyntaxClass*			ParseClass(CJavaSyntax* pcParent);
+	CJavaSyntaxEnum*			ParseEnum(CJavaSyntax* pcParent);
+	CJavaSyntaxInterface*		ParseInterface(CJavaSyntax* pcParent);
+	CJavaSyntaxType*			ParseType(CJavaSyntax* pcParent);
+	CJavaSyntaxGeneric*			ParseGeneric(CJavaSyntax* pcParent);
 
 	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
 

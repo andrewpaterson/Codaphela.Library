@@ -6,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree);
+	CJavaSyntax::Init(pcTree, pcParent);
 	mpcGenericType = NULL;
 	mbWildCard = FALSE;
 	mpcExtends = NULL;
@@ -34,7 +34,7 @@ void CJavaSyntaxGeneric::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxGeneric::GetType(void)
 {
-	return "Type Generic";
+	return "Generic";
 }
 
 

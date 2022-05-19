@@ -5,9 +5,8 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTree::Init(char* szFilename)
+void CJavaSyntaxTree::Init(void)
 {
-	mszFilename.Init(szFilename);
 	mpcRoot = NULL;
 }
 
@@ -19,7 +18,6 @@ void CJavaSyntaxTree::Init(char* szFilename)
 void CJavaSyntaxTree::Kill(void)
 {
 	mpcRoot = NULL;
-	mszFilename.Kill();
 }
 
 
@@ -37,8 +35,8 @@ void CJavaSyntaxTree::SetRoot(CJavaSyntaxFile* pcRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxTree::GetFilename(void)
+void CJavaSyntaxTree::Print(CChars* pszDest)
 {
-	return mszFilename.Text();
+	mpcRoot->Print(pszDest, 0);
 }
 

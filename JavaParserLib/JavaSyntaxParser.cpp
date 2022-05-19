@@ -20,9 +20,11 @@ void CJavaSyntaxParser::Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pc
 	mapcPositions.Init();
 	PushPosition();
 
-	mcSyntaxTree.Init(pcTokenParser->GetFilename());
-	mcError.Init(&mcSyntaxTree);
-	mcMismatch.Init(&mcSyntaxTree);
+	mszFilename.Init(pcTokenParser->GetFilename());
+
+	mcSyntaxTree.Init();
+	mcError.Init(&mcSyntaxTree, NULL);
+	mcMismatch.Init(&mcSyntaxTree, NULL);
 }
 
 
@@ -38,6 +40,8 @@ void CJavaSyntaxParser::Kill(void)
 
 	PopPosition();
 	mapcPositions.Kill();
+
+	mszFilename.Kill();
 
 	mpcSyntaxes = NULL;
 	mpcTokens = NULL;
@@ -66,12 +70,13 @@ BOOL CJavaSyntaxParser::Parse(void)
 
 	if (HasNext())
 	{
-		pcFile = mpcSyntaxes->CreateFile(&mcSyntaxTree);
+		pcFile = mpcSyntaxes->CreateFile(&mcSyntaxTree, NULL);
+		pcFile->SetFileName(mszFilename.Text());
 		mcSyntaxTree.SetRoot(pcFile);
 
 		for (;;)
 		{
-			pcPackage = ParsePackage();
+			pcPackage = ParsePackage(pcFile);
 			if (pcPackage->IsPackage())
 			{
 				if (!pcFile->SetPackage(pcPackage))
@@ -86,7 +91,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 				return FALSE;
 			}
 
-			pcImport = ParseImport();
+			pcImport = ParseImport(pcFile);
 			if (pcImport->IsImport())
 			{
 				pcFile->AddImport(pcImport);
@@ -97,7 +102,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 				return FALSE;
 			}
 
-			pcClass = ParseClass();
+			pcClass = ParseClass(pcFile);
 			if (pcClass->IsClass())
 			{
 
@@ -107,7 +112,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 				return FALSE;
 			}
 
-			pcEnum = ParseEnum();
+			pcEnum = ParseEnum(pcFile);
 			if (pcEnum->IsEnum())
 			{
 
@@ -117,7 +122,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 				return FALSE;
 			}
 
-			pcInterface = ParseInterface();
+			pcInterface = ParseInterface(pcFile);
 			if (pcInterface->IsInterface())
 			{
 
@@ -126,6 +131,8 @@ BOOL CJavaSyntaxParser::Parse(void)
 			{
 				return FALSE;
 			}
+
+			break;
 		}
 	}
 	return TRUE;
@@ -151,7 +158,7 @@ BOOL CJavaSyntaxParser::Parse(BOOL bFailOnError)
 
 		szError.Init();
 		szError.Append("[");
-		szError.Append(mcSyntaxTree.GetFilename());
+		szError.Append(&mszFilename);
 		szError.Append("] Syntax error:");
 		szError.AppendNewLine();
 //		mcParser.PrintPosition(&szError);
@@ -178,7 +185,7 @@ void CJavaSyntaxParser::PrettyPrint(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxParser::TypePrint(CChars* pszDest)
 {
-
+	mcSyntaxTree.Print(pszDest);
 }
 
 
@@ -188,7 +195,20 @@ void CJavaSyntaxParser::TypePrint(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxParser::Dump(BOOL bIncludeType)
 {
+	CChars	szDest;
 
+	szDest.Init();
+
+	if (bIncludeType)
+	{
+		TypePrint(&szDest);
+	}
+	else
+	{
+		PrettyPrint(&szDest);
+	}
+
+	szDest.DumpKill();
 }
 
 
@@ -344,7 +364,7 @@ void CJavaSyntaxParser::SkipComments(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
+CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxPackage*		pcPackage;
 	CJavaTokenIdentifier*	pcIdentifier;
@@ -356,7 +376,7 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 	}
 	else
 	{
-		pcPackage = mpcSyntaxes->CreatePackage(&mcSyntaxTree);
+		pcPackage = mpcSyntaxes->CreatePackage(&mcSyntaxTree, pcParent);
 		if (pcPackage == NULL)
 		{
 			return Error<CJavaSyntaxPackage>(OUT_OUF_MEMORY);
@@ -393,7 +413,7 @@ CJavaSyntaxPackage* CJavaSyntaxParser::ParsePackage(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
+CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxImport*		pcImport;
 	CJavaTokenIdentifier*	pcIdentifier;
@@ -408,7 +428,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 	}
 	else
 	{
-		pcImport = mpcSyntaxes->CreateImport(&mcSyntaxTree);
+		pcImport = mpcSyntaxes->CreateImport(&mcSyntaxTree, pcParent);
 		if (pcImport == NULL)
 		{
 			return Error<CJavaSyntaxImport>(OUT_OUF_MEMORY);
@@ -470,7 +490,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
+CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxClass*		pcClass;
 	BOOL					bPublic;
@@ -494,7 +514,7 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 	}
 	else
 	{
-		pcClass = mpcSyntaxes->CreateClass(&mcSyntaxTree);
+		pcClass = mpcSyntaxes->CreateClass(&mcSyntaxTree, pcParent);
 		if (pcClass == NULL)
 		{
 			return Error<CJavaSyntaxClass>(OUT_OUF_MEMORY);
@@ -504,7 +524,7 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(void)
 		pcClass->SetAbstract(bAbstract);
 		pcClass->SetFinal(bFinal);
 
-		pcType = ParseType();
+		pcType = ParseType(pcClass);
 		if (pcType->IsType())
 		{
 			pcClass->SetSyntaxType(pcType);
@@ -577,7 +597,7 @@ void CJavaSyntaxParser::ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(void)
+CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxEnum*	pcEnum;
 	BOOL				bPublic;
@@ -591,7 +611,7 @@ CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(void)
 	}
 	else
 	{
-		pcEnum = mpcSyntaxes->CreateEnum(&mcSyntaxTree);
+		pcEnum = mpcSyntaxes->CreateEnum(&mcSyntaxTree, pcParent);
 		if (pcEnum == NULL)
 		{
 			return Error<CJavaSyntaxEnum>(OUT_OUF_MEMORY);
@@ -609,7 +629,7 @@ CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
+CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxInterface*	pcInterface;
 	BOOL					bPublic;
@@ -630,7 +650,7 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
 	}
 	else
 	{
-		pcInterface = mpcSyntaxes->CreateInterface(&mcSyntaxTree);
+		pcInterface = mpcSyntaxes->CreateInterface(&mcSyntaxTree, pcParent);
 		if (pcInterface == NULL)
 		{
 			return Error<CJavaSyntaxInterface>(OUT_OUF_MEMORY);
@@ -648,7 +668,7 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
+CJavaSyntaxType* CJavaSyntaxParser::ParseType(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxType*		pcType;
 	CJavaSyntaxGeneric*		pcGeneric;
@@ -666,7 +686,7 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 		return Mismatch<CJavaSyntaxType>();
 	}
 
-	pcType = mpcSyntaxes->CreateType(&mcSyntaxTree);
+	pcType = mpcSyntaxes->CreateType(&mcSyntaxTree, pcParent);
 	if (pcType == NULL)
 	{
 		return Error<CJavaSyntaxType>(OUT_OUF_MEMORY);
@@ -678,7 +698,7 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 	{
 		for (;;)
 		{
-			pcGeneric = ParseGeneric();
+			pcGeneric = ParseGeneric(pcType);
 			if (pcGeneric->IsGeneric())
 			{
 				pcType->AddGeneric(pcGeneric);
@@ -725,52 +745,46 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
+CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxGeneric*			pcGeneric;
 	CCJavaTokenAmbiguous*		pcAmbiguousQuestionMark;
 	CJavaTokenScope*			pcScopeQuestionMark;
 	BOOL						bQuestionMark;
-	CJavaSyntaxType*			pcExtends;
-	CJavaSyntaxType*			pcType;
+	CJavaSyntaxType*			pcExtendsType;
+	CJavaSyntaxType*			pcGenericType;
 
 	PushPosition();
 	bQuestionMark = FALSE;
-	pcType = NULL;
+	pcGenericType = NULL;
+	pcGeneric = mpcSyntaxes->CreateGeneric(&mcSyntaxTree, pcParent);
+
 	if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
 	{
 		bQuestionMark = TRUE;
+		pcGeneric->SetWildCard(TRUE);
 	}
 	else
 	{
-		pcType = ParseType();
+		pcGenericType = ParseType(pcGeneric);
+		pcGeneric->SetGenericType(pcGenericType);
 	}
 
-	if ((bQuestionMark && pcType != NULL) || ((!bQuestionMark && pcType == NULL)))
+	if ((bQuestionMark && pcGenericType != NULL) || ((!bQuestionMark && pcGenericType == NULL)))
 	{
 		return Error<CJavaSyntaxGeneric>(EXPECTED_IDENTIFIER_OR_QUESTION_MARK);
-	}
-
-	pcGeneric = mpcSyntaxes->CreateGeneric(&mcSyntaxTree);
-	if (bQuestionMark && pcType == NULL)
-	{
-		pcGeneric->SetWildCard(TRUE);
-	}
-	else if (!bQuestionMark && pcType != NULL)
-	{
-		pcGeneric->SetGenericType(pcType);
 	}
 
 	PushPosition();
 	if (GetKeyword(JK_extends))
 	{
 		PassPosition();
-		pcExtends = ParseType();
-		if (pcExtends->IsType())
+		pcExtendsType = ParseType(pcGeneric);
+		if (pcExtendsType->IsType())
 		{
-			pcGeneric->SetExtends(pcExtends);
+			pcGeneric->SetExtends(pcExtendsType);
 		}
-		else if (pcExtends->IsError())
+		else if (pcExtendsType->IsError())
 		{
 			return Error<CJavaSyntaxGeneric>();
 		}
@@ -778,7 +792,7 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
 	else if (GetAmbiguous(JA_AngleBracketLeft))
 	{
 		PopPosition();
-		ParseType();
+		ParseType(pcGeneric);  //Can't do this.
 	}
 	else
 	{

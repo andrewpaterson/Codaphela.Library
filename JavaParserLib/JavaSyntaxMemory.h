@@ -27,17 +27,17 @@ public:
 	void						Init(void);
 	void						Kill(void);
 
-	CJavaSyntaxFile*			CreateFile(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxPackage*			CreatePackage(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxImport*			CreateImport(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxClass*			CreateClass(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxEnum*			CreateEnum(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxInterface*		CreateInterface(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxType*			CreateType(CJavaSyntaxTree* pcTree);
-	CJavaSyntaxGeneric*			CreateGeneric(CJavaSyntaxTree* pcTree);
+	CJavaSyntaxFile*			CreateFile(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxPackage*			CreatePackage(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxImport*			CreateImport(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxClass*			CreateClass(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxEnum*			CreateEnum(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxInterface*		CreateInterface(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxType*			CreateType(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxGeneric*			CreateGeneric(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 
 protected:
-	template<class M>	M*	Create(CJavaSyntaxTree* pcTree);
+	template<class M>	M*	Create(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 };
 
 
@@ -46,7 +46,7 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>	
-M* CJavaSyntaxMemory::Create(CJavaSyntaxTree* pcTree)
+M* CJavaSyntaxMemory::Create(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	M* pcSyntax;
 
@@ -56,7 +56,7 @@ M* CJavaSyntaxMemory::Create(CJavaSyntaxTree* pcTree)
 		mapcSyntaxes.Add(pcSyntax);
 
 		new(pcSyntax) M;
-		pcSyntax->Init(pcTree);
+		pcSyntax->Init(pcTree, pcParent);
 	}
 
 	return pcSyntax;

@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxTopLevel::Init(pcTree);
+	CJavaSyntaxTopLevel::Init(pcTree, pcParent);
 	mpcType = NULL;
 	mbAbstract = FALSE;
 	mbFinal = FALSE;

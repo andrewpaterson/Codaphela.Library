@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInterface::Init(CJavaSyntaxTree* pcTree)
+void CJavaSyntaxInterface::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxTopLevel::Init(pcTree);
+	CJavaSyntaxTopLevel::Init(pcTree, pcParent);
 }
 
 

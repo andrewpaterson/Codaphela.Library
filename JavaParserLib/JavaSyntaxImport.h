@@ -9,15 +9,17 @@ class CJavaSyntaxImport : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxImport);
 protected:
-	CJavaTokenIdentifierPtrArray		mapcIdentifiers;
-	BOOL						mbStatic;
-	BOOL						mbWild;
+	CJavaTokenIdentifierPtrArray	mapcIdentifiers;
+	BOOL							mbStatic;
+	BOOL							mbWild;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree);
+	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
 	char*	GetType(void) override;
+	void	Print(CChars* pszDest, int iDepth);
+
 	void	AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
 	void	SetStatic(BOOL bStatic);
 	void	SetWild(BOOL bWild);

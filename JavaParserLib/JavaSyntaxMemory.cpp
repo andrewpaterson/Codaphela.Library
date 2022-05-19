@@ -39,9 +39,9 @@ void CJavaSyntaxMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxFile* CJavaSyntaxMemory::CreateFile(CJavaSyntaxTree* pcTree)
+CJavaSyntaxFile* CJavaSyntaxMemory::CreateFile(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxFile>(pcTree);
+	return Create<CJavaSyntaxFile>(pcTree, pcParent);
 }
 
 
@@ -49,9 +49,9 @@ CJavaSyntaxFile* CJavaSyntaxMemory::CreateFile(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxPackage* CJavaSyntaxMemory::CreatePackage(CJavaSyntaxTree* pcTree)
+CJavaSyntaxPackage* CJavaSyntaxMemory::CreatePackage(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxPackage>(pcTree);
+	return Create<CJavaSyntaxPackage>(pcTree, pcParent);
 }
 
 
@@ -59,9 +59,9 @@ CJavaSyntaxPackage* CJavaSyntaxMemory::CreatePackage(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxImport* CJavaSyntaxMemory::CreateImport(CJavaSyntaxTree* pcTree)
+CJavaSyntaxImport* CJavaSyntaxMemory::CreateImport(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxImport>(pcTree);
+	return Create<CJavaSyntaxImport>(pcTree, pcParent);
 }
 
 
@@ -69,9 +69,9 @@ CJavaSyntaxImport* CJavaSyntaxMemory::CreateImport(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxClass* CJavaSyntaxMemory::CreateClass(CJavaSyntaxTree* pcTree)
+CJavaSyntaxClass* CJavaSyntaxMemory::CreateClass(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxClass>(pcTree);
+	return Create<CJavaSyntaxClass>(pcTree, pcParent);
 }
 
 
@@ -79,9 +79,9 @@ CJavaSyntaxClass* CJavaSyntaxMemory::CreateClass(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxEnum* CJavaSyntaxMemory::CreateEnum(CJavaSyntaxTree* pcTree)
+CJavaSyntaxEnum* CJavaSyntaxMemory::CreateEnum(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxEnum>(pcTree);
+	return Create<CJavaSyntaxEnum>(pcTree, pcParent);
 }
 
 
@@ -89,9 +89,9 @@ CJavaSyntaxEnum* CJavaSyntaxMemory::CreateEnum(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxInterface* CJavaSyntaxMemory::CreateInterface(CJavaSyntaxTree* pcTree)
+CJavaSyntaxInterface* CJavaSyntaxMemory::CreateInterface(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxInterface>(pcTree);
+	return Create<CJavaSyntaxInterface>(pcTree, pcParent);
 }
 
 
@@ -99,9 +99,9 @@ CJavaSyntaxInterface* CJavaSyntaxMemory::CreateInterface(CJavaSyntaxTree* pcTree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxType* CJavaSyntaxMemory::CreateType(CJavaSyntaxTree* pcTree)
+CJavaSyntaxType* CJavaSyntaxMemory::CreateType(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxType>(pcTree);
+	return Create<CJavaSyntaxType>(pcTree, pcParent);
 }
 
 
@@ -109,8 +109,8 @@ CJavaSyntaxType* CJavaSyntaxMemory::CreateType(CJavaSyntaxTree* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxGeneric* CJavaSyntaxMemory::CreateGeneric(CJavaSyntaxTree* pcTree)
+CJavaSyntaxGeneric* CJavaSyntaxMemory::CreateGeneric(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxGeneric>(pcTree);
+	return Create<CJavaSyntaxGeneric>(pcTree, pcParent);
 }
 
