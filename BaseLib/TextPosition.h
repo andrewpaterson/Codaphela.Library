@@ -23,10 +23,10 @@ class CTextPositionPrinter
 protected:
 	STextPosition		mcTextPosition;
 	CExternalString		mcText;
-	char*				mszFileName;
+	char*				mszFilename;
 
 public:
-	void	Init(CExternalString* pcText, STextPosition* pcTextPosition, char* szFileName = NULL);
+	void	Init(CExternalString* pcText, STextPosition* pcTextPosition, char* szFilename = NULL);
 	void	Kill(void);
 
 	void	PrintPosition(CChars* pszDest);

@@ -48,7 +48,7 @@ private:
 	int				miFileNumber;  //There may be more than one file of the same size.
 
 public:
-	BOOL			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, unsigned int uiDataSize, int iFileNum);
+	BOOL			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, unsigned int uiDataSize, int iFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
 	BOOL			IsFull(void);
@@ -67,7 +67,7 @@ public:
 	BOOL			IsFileIndex(int iFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
-	char*			GetFileName(void);
+	char*			GetFilename(void);
 	int				GetFileNumber(void);
 	char*			GetRewriteName(void);
 	unsigned int	GetDataSize(void);

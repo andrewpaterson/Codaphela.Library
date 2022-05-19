@@ -24,10 +24,10 @@ char* CObjectIO::Unnamed(CSerialisedObject* pcSerialised, CChars* pszDestName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CObjectIO::FileName(char* szSerialisedName, char* szWorkingDirectory, CChars* pszDestDirectory, CChars* pszDestFullFileName)
+char* CObjectIO::Filename(char* szSerialisedName, char* szWorkingDirectory, CChars* pszDestDirectory, CChars* pszDestFullFilename)
 {
 	CFileUtil	cFileUtil;
-	CChars		szShortFileName;
+	CChars		szShortFilename;
 	CChars		szDirectory;
 	CChars*		pszDirectoryTemp;
 
@@ -40,24 +40,24 @@ char* CObjectIO::FileName(char* szSerialisedName, char* szWorkingDirectory, CCha
 		pszDirectoryTemp = &szDirectory;
 	}
 
-	szShortFileName.Init();
+	szShortFilename.Init();
 	pszDirectoryTemp->Init();
-	cFileUtil.SplitPath(szSerialisedName, &szShortFileName, pszDirectoryTemp);
-	szShortFileName.Append(".");
-	szShortFileName.Append(OBJECT_FILE_EXTENSION);
+	cFileUtil.SplitPath(szSerialisedName, &szShortFilename, pszDirectoryTemp);
+	szShortFilename.Append(".");
+	szShortFilename.Append(OBJECT_FILE_EXTENSION);
 
-	pszDestFullFileName->Init(szWorkingDirectory);
-	cFileUtil.AppendToPath(pszDestFullFileName, pszDirectoryTemp->Text());
-	pszDirectoryTemp->Set(pszDestFullFileName);
+	pszDestFullFilename->Init(szWorkingDirectory);
+	cFileUtil.AppendToPath(pszDestFullFilename, pszDirectoryTemp->Text());
+	pszDirectoryTemp->Set(pszDestFullFilename);
 
-	cFileUtil.AppendToPath(pszDestFullFileName, szShortFileName.Text());
-	szShortFileName.Kill();
+	cFileUtil.AppendToPath(pszDestFullFilename, szShortFilename.Text());
+	szShortFilename.Kill();
 
 	if (!pszDestDirectory)
 	{
 		szDirectory.Kill();
 	}
 
-	return pszDestFullFileName->Text();
+	return pszDestFullFilename->Text();
 }
 

@@ -54,7 +54,7 @@ public:
 
 	BOOL		Truncate(filePos iSize);
 
-	char*		GetFileName(void);
+	char*		GetFilename(void);
 
 	//Generally you shouldn't use these.  Use WriteData instead.
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);

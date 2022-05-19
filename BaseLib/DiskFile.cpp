@@ -70,11 +70,11 @@ HANDLE GetHandle(CDiskFile* pcDiskFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDiskFile::Init(const char* szFileName)
+void CDiskFile::Init(const char* szFilename)
 {
 	CAbstractFile::Init();
 	SetHandle(this, INVALID_HANDLE_VALUE);
-	mszFileName.Init(szFileName);
+	mszFilename.Init(szFilename);
 }
 
 
@@ -82,12 +82,12 @@ void CDiskFile::Init(const char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDiskFile::Init(CChars szFileName)
+void CDiskFile::Init(CChars szFilename)
 {
 	CAbstractFile::Init();
 
 	SetHandle(this, INVALID_HANDLE_VALUE);
-	mszFileName.Init(szFileName);
+	mszFilename.Init(szFilename);
 }
 
 
@@ -97,7 +97,7 @@ void CDiskFile::Init(CChars szFileName)
 //////////////////////////////////////////////////////////////////////////
 void CDiskFile::Kill(void)
 {
-	mszFileName.Kill();
+	mszFilename.Kill();
 	SetHandle(this, INVALID_HANDLE_VALUE);
 }
 
@@ -176,23 +176,23 @@ BOOL CDiskFile::Open(EFileMode eMode)
 
 	if (eMode == EFM_Read)
 	{
-		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
 	}
 	else if (eMode == EFM_Read_Create)
 	{
-		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_ALWAYS);
+		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_READ, FILE_SHARE_READ, OPEN_ALWAYS);
 	}
 	else if (eMode == EFM_Write_Create)
 	{
-		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
+		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_WRITE, FILE_SHARE_READ, OPEN_ALWAYS);
 	}
 	else if (eMode == EFM_ReadWrite)
 	{
-		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING);
+		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_EXISTING);
 	}
 	else if (eMode == EFM_ReadWrite_Create)
 	{
-		hFile = CreateWindowsFile(mszFileName.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_ALWAYS);
+		hFile = CreateWindowsFile(mszFilename.Text(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, OPEN_ALWAYS);
 	}
 	else
 	{
@@ -455,7 +455,7 @@ BOOL CDiskFile::Delete(void)
 		return FALSE;
 	}
 
-	return cFileUtil.Delete(mszFileName.Text());
+	return cFileUtil.Delete(mszFilename.Text());
 }
 
 
@@ -463,11 +463,11 @@ BOOL CDiskFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDiskFile::GetFileName(void)
+char* CDiskFile::GetFilename(void)
 {
-	if (!mszFileName.Empty())
+	if (!mszFilename.Empty())
 	{
-		return mszFileName.Text();
+		return mszFilename.Text();
 	}
 	return NULL;
 }

@@ -21,7 +21,7 @@ public:
 
 	char*			GetFileExtension(void);
 	BOOL			IsFor(CAbstractFile* pcFile);
-	CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFileName);
+	CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFilename);
 	CBaseObject*	Convert(CObjectSource* pcSource, char* szObjectName);
 	BOOL			IsNative(void);
 

@@ -32,12 +32,12 @@ DESTRUCTABLE(CChunkFileObjectWriter);
 protected:
 	CChunkFile				mcChunkFile;
 	CChunkFileFileSystem	mcChunkFileFileSystem;
-	CChars					mszFileName;
+	CChars					mszFilename;
 	CChars					mszDirectory;
 	CChars					mszObjectBaseName;
 
 public:
-	void	Init(char* szDirectory, char* szBaseName, char* szChunkFileName);
+	void	Init(char* szDirectory, char* szBaseName, char* szChunkFilename);
 	void	Kill(void);
 
 	BOOL	Begin(void);

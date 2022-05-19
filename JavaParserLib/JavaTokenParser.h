@@ -23,6 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TextParser.h"
 #include "BaseLib/ArrayChars.h"
 #include "BaseLib/EnumeratorTemplate.h"
+#include "BaseLib/Logger.h"
 #include "JavaTokenMemory.h"
 #include "JavaTokenDefinitions.h"
 #include "JavaTokenKeyword.h"
@@ -31,27 +32,33 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CJavaTokenParser
 {
 protected:
+	CLogger*				mpcLogger;
 	CJavaTokenMemory*		mpcTokens;
 	CTextParser				mcParser;
-	CChars					mszFileName;
+	CChars					mszFilename;
 
 	CJavaTokenDefinitions*	mpcDefinitions;
 
 	CJavaToken*				mpcStart;
 
 public:
-	void			Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText);
-	void 			Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen);
-	void 			Kill(void);
+	void					Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText);
+	void 					Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen);
+	void 					Kill(void);
 
-	TRISTATE		Parse(void);
-	BOOL			Parse(BOOL bFailOnError);
+	TRISTATE				Parse(void);
+	BOOL					Parse(BOOL bFailOnError);
 
-	CJavaToken*		GetFirstToken(void);
+	CJavaToken*				GetFirstToken(void);
+	CLogger*				GetLogger(void);
 
-	void			PrettyPrint(CChars* pszDest);
-	void			TypePrint(CChars* pszDest);
-	void			Dump(BOOL bIncludeType = FALSE);
+	CJavaTokenMemory*		GetTokenMemory(void);
+	CJavaTokenDefinitions*	GetTokenDefinitions(void);
+	char*					GetFilename(void);
+
+	void					PrettyPrint(CChars* pszDest);
+	void					TypePrint(CChars* pszDest);
+	void					Dump(BOOL bIncludeType = FALSE);
 
 protected:
 	CJavaToken*		GetLineEndToken(CJavaToken* pcStartToken);

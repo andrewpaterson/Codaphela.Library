@@ -95,11 +95,11 @@ BOOL CDurableFileController::Init(char* szDirectory, char* szRewriteDirectory, c
 
 	if (!szFileListWrite)
 	{
-		szFileListWrite = "FileNames.Write";
+		szFileListWrite = "Filenames.Write";
 	}
 	if (!szFileListRewrite)
 	{
-		szFileListRewrite = "FileNames.Rewrite";
+		szFileListRewrite = "Filenames.Rewrite";
 	}
 	mcFileList.Init(this, szFileListWrite, szFileListRewrite);
 	
@@ -237,8 +237,8 @@ BOOL CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 	unsigned int	uiFileCount;
 	BOOL			bResult;
 	CStackMemory<>	cStack;
-	int				iFileNameLength;
-	char*			szFileName;
+	int				iFilenameLength;
+	char*			szFilename;
 	int				iWriteOrRewrite;
 	
 	uiFileCount = 0;
@@ -257,16 +257,16 @@ BOOL CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file number [", IntToString(uiFileCount), "] but read number [", IntToString(uiFileNumber), "].", NULL);
 		}
 
-		iFileNameLength = 0;
-		bResult = pcFile->ReadStringLength(&iFileNameLength);
+		iFilenameLength = 0;
+		bResult = pcFile->ReadStringLength(&iFilenameLength);
 		if (bResult)
 		{
-			szFileName = (char*)cStack.Init(iFileNameLength + 1);
-			bResult = pcFile->ReadStringChars(szFileName, iFileNameLength);
+			szFilename = (char*)cStack.Init(iFilenameLength + 1);
+			bResult = pcFile->ReadStringChars(szFilename, iFilenameLength);
 			if (bResult)
 			{
 				bResult = pcFile->ReadInt(&iWriteOrRewrite);
-				mcNameMap.Put(szFileName, iWriteOrRewrite);
+				mcNameMap.Put(szFilename, iWriteOrRewrite);
 			}
 			cStack.Kill();
 		}

@@ -32,10 +32,10 @@ class CDiskFile : public CAbstractFile
 {
 public:
 	unsigned char	maFile[8];
-	CChars			mszFileName;
+	CChars			mszFilename;
 
-	void		Init(const char* szFileName);
-	void		Init(CChars szFileName);
+	void		Init(const char* szFilename);
+	void		Init(CChars szFilename);
 	void		Kill(void);
 
 	BOOL		Open(EFileMode eMode);
@@ -49,7 +49,7 @@ public:
 	BOOL		Truncate(filePos iSize);
 	BOOL		Flush(void);
 	BOOL		Delete(void);
-	char*		GetFileName(void);
+	char*		GetFilename(void);
 
 	void		SetFile(void* pvFile, size_t uiSize);
 	BOOL		IsFile(void* pvFile, size_t uiSize);

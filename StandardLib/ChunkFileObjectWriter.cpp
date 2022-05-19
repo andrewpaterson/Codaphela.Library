@@ -31,11 +31,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szChunkFileName)
+void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szChunkFilename)
 {
 	CExternalObjectWriter::Init(szDirectory);
 	mszDirectory.Init(szDirectory);
-	mszFileName.Init(szChunkFileName);
+	mszFilename.Init(szChunkFilename);
 	mszObjectBaseName.Init(szBaseName);
 
 	mszObjectBaseName.Replace("\\", "/");
@@ -56,7 +56,7 @@ void CChunkFileObjectWriter::Init(char* szDirectory, char* szBaseName, char* szC
 void CChunkFileObjectWriter::Kill(void)
 {
 	mszObjectBaseName.Kill();
-	mszFileName.Kill();
+	mszFilename.Kill();
 	mszDirectory.Kill();
 	CExternalObjectWriter::Kill();
 }
@@ -71,7 +71,7 @@ BOOL CChunkFileObjectWriter::Begin(void)
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
 	CChars		szFullDirectory;
-	CChars		szFileName;
+	CChars		szFilename;
 
 	CExternalObjectWriter::Begin();
 
@@ -85,15 +85,15 @@ BOOL CChunkFileObjectWriter::Begin(void)
 			gcLogger.Error2(__METHOD__, " Could not create directory [", szFullDirectory.Text(), "].", NULL);
 		}
 	}
-	szFileName.Init(szFullDirectory);
+	szFilename.Init(szFullDirectory);
 	szFullDirectory.Kill();
 
-	cFileUtil.AppendToPath(&szFileName, mszFileName.Text());
-	szFileName.Append(".");
-	szFileName.Append(OBJECT_FILE_EXTENSION);
+	cFileUtil.AppendToPath(&szFilename, mszFilename.Text());
+	szFilename.Append(".");
+	szFilename.Append(OBJECT_FILE_EXTENSION);
 
-	pcDiskFile = DiskFile(szFileName.Text());
-	szFileName.Kill();
+	pcDiskFile = DiskFile(szFilename.Text());
+	szFilename.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
 	mcChunkFileFileSystem.Init(&mcChunkFile);

@@ -4,7 +4,7 @@
 #include "ChunkFile.h"
 
 
-struct SChunkFileNameIterator
+struct SChunkFilenameIterator
 {
 	CChars		szFullName;
 	CArrayInt	aiIndex;
@@ -39,9 +39,9 @@ public:
 	BOOL		ReadChunkEnd(void);
 	BOOL		ReadClose(void);
 
-	char*		StartNameIteration(SChunkFileNameIterator* psIter);
-	char*		IterateName(SChunkFileNameIterator* psIter);
-	BOOL		StopIteration(SChunkFileNameIterator* psIter);
+	char*		StartNameIteration(SChunkFilenameIterator* psIter);
+	char*		IterateName(SChunkFilenameIterator* psIter);
+	BOOL		StopIteration(SChunkFilenameIterator* psIter);
 
 	CChunkFile* GetChunkFile(void);
 

@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 CTextFile* CTextFile::Init(void)
 {
 	mcText.Init();
-	mszFileName.Init();
+	mszFilename.Init();
 	return this;
 }
 
@@ -44,7 +44,7 @@ void CTextFile::Init(char* szText)
 {
 	mcText.Init();
 	mcText.Append(szText);
-	mszFileName.Init();
+	mszFilename.Init();
 }
 
 
@@ -65,7 +65,7 @@ void CTextFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextFile::KillExceptBuffer(void)
 {
-	mszFileName.Kill();
+	mszFilename.Kill();
 }
 
 
@@ -73,15 +73,15 @@ void CTextFile::KillExceptBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextFile::Read(char* szFileName)
+BOOL CTextFile::Read(char* szFilename)
 {
 	CDiskFile*	pcDiskFile;
 	
-    if (szFileName)
+    if (szFilename)
 	{
-		mszFileName.Kill();
-		mszFileName.Init(szFileName);
-		pcDiskFile = DiskFile(szFileName);
+		mszFilename.Kill();
+		mszFilename.Init(szFilename);
+		pcDiskFile = DiskFile(szFilename);
 		return Read(pcDiskFile);
 	}
 	return FALSE;
@@ -117,15 +117,15 @@ BOOL CTextFile::Read(CAbstractFile* pcAbstractFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextFile::Write(char* szFileName)
+BOOL CTextFile::Write(char* szFilename)
 {
 	CFileBasic	mcFile;
 
-	if (szFileName)
+	if (szFilename)
 	{
-		mszFileName.Kill();
-		mszFileName.Init(szFileName);
-		mcFile.Init(DiskFile(szFileName));
+		mszFilename.Kill();
+		mszFilename.Init(szFilename);
+		mcFile.Init(DiskFile(szFilename));
 		if (mcFile.Open(EFM_Write_Create))
 		{
 			mcFile.WriteData(mcText.Text(), mcText.Length());

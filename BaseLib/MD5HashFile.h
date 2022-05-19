@@ -59,7 +59,7 @@ public:
 	BOOL		Truncate(filePos iSize);
 	BOOL		Flush(void);
 	BOOL		Delete(void);
-	char*		GetFileName(void);
+	char*		GetFilename(void);
 
 	void		StopHashing(void);
 	void		StartHashing(void);

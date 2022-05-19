@@ -281,7 +281,7 @@ CPackFile* CFiles::GetPackFile(CPackFileOffset*	pcPackFiles, char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFiles::GetFileNames(CMapStringInt* pcFileNames)
+void CFiles::GetFilenames(CMapStringInt* pcFilenames)
 {
 	CFileIterator			cIter;
 	CFileIteratorReturn*	pcReturn;
@@ -291,11 +291,11 @@ void CFiles::GetFileNames(CMapStringInt* pcFileNames)
 	pcReturn = StartIteration(&cIter);
 	while (pcReturn)
 	{
-		piValue = pcFileNames->CMapStringTemplate::Get(pcReturn->GetFullName());
+		piValue = pcFilenames->CMapStringTemplate::Get(pcReturn->GetFullName());
 		if (!piValue)
 		{
 			iRank = pcReturn->GetFileRank() << 16;
-			pcFileNames->Put(pcReturn->GetFullName(), iRank + 1);
+			pcFilenames->Put(pcReturn->GetFullName(), iRank + 1);
 		}
 		else
 		{

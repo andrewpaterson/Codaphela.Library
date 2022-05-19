@@ -16,7 +16,7 @@ protected:
 	CChunkFileObjectReader*		mpcReader;
 
 public:
-	BOOL			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
+	BOOL			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
 	void			Kill(void);
 
 	BOOL			ReadNames(void);

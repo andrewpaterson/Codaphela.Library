@@ -9,7 +9,7 @@ class CObjectIO
 {
 public:
 	static char*	Unnamed(CSerialisedObject* pcSerialised, CChars* pszUnnamed);
-	static char*	FileName(char* szSerialisedName, char* szWorkingDirectory, CChars* pszFullDirectory, CChars* pszFullFileName);
+	static char*	Filename(char* szSerialisedName, char* szWorkingDirectory, CChars* pszFullDirectory, CChars* pszFullFilename);
 };
 
 

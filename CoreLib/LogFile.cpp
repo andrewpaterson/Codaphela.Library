@@ -170,7 +170,7 @@ void CLogFile::ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFi
 	pszDest->Append(" Could not execute command [");
 	pszDest->Append(psCommand->GetType());
 	pszDest->Append("] on file [");
-	GetSafeFileName(pszDest, pcFile);
+	GetSafeFilename(pszDest, pcFile);
 	pszDest->Append("].");
 }
 
@@ -185,7 +185,7 @@ void CLogFile::AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCo
 	pszDest->Append(" Could not Add command [");
 	pszDest->Append(psCommand->GetType());
 	pszDest->Append("] if not begun on file [");
-	GetSafeFileName(pszDest, pcFile);
+	GetSafeFilename(pszDest, pcFile);
 	pszDest->Append("].");
 }
 
@@ -194,14 +194,14 @@ void CLogFile::AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFile::GetSafeFileName(CChars* pszDest, CAbstractFile* pcFile)
+void CLogFile::GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile)
 {
-	char*	pszFileName;
+	char*	pszFilename;
 
-	pszFileName = pcFile->GetFileName();
-	if (pszFileName)
+	pszFilename = pcFile->GetFilename();
+	if (pszFilename)
 	{
-		pszDest->Append(pszFileName);
+		pszDest->Append(pszFilename);
 	}
 	else
 	{
@@ -226,7 +226,7 @@ BOOL CLogFile::ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile
 		szError.Append(" if not begun.");
 
 		szError.Append("] on file [");
-		GetSafeFileName(&szError, pcFile);
+		GetSafeFilename(&szError, pcFile);
 		szError.Append("].");
 
 		gcLogger.Error(szError.Text());
@@ -1152,9 +1152,9 @@ BOOL CLogFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CLogFile::GetFileName(void)
+char* CLogFile::GetFilename(void)
 {
-	return mpcBackingFile->GetFileName();
+	return mpcBackingFile->GetFilename();
 }
 
 

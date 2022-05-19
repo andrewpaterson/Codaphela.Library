@@ -52,7 +52,7 @@ public:
 	CFileIteratorReturn*	Iterate(CFileIterator* pcIter);
 	void					StopIteration(CFileIterator* pcIter);
 
-	void					GetFileNames(CMapStringInt* cFileNames);
+	void					GetFilenames(CMapStringInt* cFilenames);
 
 	CPackFiles*				GetPackFiles(int iIndex);
 

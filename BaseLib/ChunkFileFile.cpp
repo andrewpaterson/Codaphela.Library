@@ -231,7 +231,7 @@ BOOL CChunkFileFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChunkFileFile::GetFileName(void)
+char* CChunkFileFile::GetFilename(void)
 {
 	return NULL;
 }

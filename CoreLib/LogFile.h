@@ -43,7 +43,7 @@ public:
 	BOOL					IsOpen(void);
 	BOOL					Flush(void);
 	BOOL					Delete(void);
-	char*					GetFileName(void);
+	char*					GetFilename(void);
 
 	BOOL					Commit(CAbstractFile* pcFile);
 
@@ -70,7 +70,7 @@ protected:
 
 	BOOL					ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile);
 
-	void					GetSafeFileName(CChars* pszDest, CAbstractFile* pcFile);
+	void					GetSafeFilename(CChars* pszDest, CAbstractFile* pcFile);
 	void					ExecuteCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
 	void					AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
 

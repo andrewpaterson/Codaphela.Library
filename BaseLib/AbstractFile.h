@@ -45,7 +45,7 @@ public:
 	virtual BOOL		Truncate(filePos iSize) =0;
 	virtual BOOL		Flush(void) =0;
 	virtual BOOL		Delete(void) =0;
-	virtual char*		GetFileName(void) =0;
+	virtual char*		GetFilename(void) =0;
 };
 
 

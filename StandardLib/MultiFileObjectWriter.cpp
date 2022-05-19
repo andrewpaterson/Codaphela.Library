@@ -83,7 +83,7 @@ BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	CFileUtil		cFileUtil;
 	CChars			szDirectory;
-	CChars			szFileName;
+	CChars			szFilename;
 	CFileBasic		cFile;
 	char*			szExtension;
 	CChars			szUnnamed;
@@ -91,11 +91,11 @@ BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	if (pcSerialised->IsNamed())
 	{
 		ReturnOnFalse(ObjectStartsWithBaseName(pcSerialised->GetName()));
-		FileName(pcSerialised->GetName(), mszDirectory.Text(), &szDirectory, &szFileName);
+		Filename(pcSerialised->GetName(), mszDirectory.Text(), &szDirectory, &szFilename);
 	}
 	else if (pcSerialised->IsIndexed())
 	{
-		FileName(Unnamed(pcSerialised, &szUnnamed), mszDirectory.Text(), &szDirectory, &szFileName);
+		Filename(Unnamed(pcSerialised, &szUnnamed), mszDirectory.Text(), &szDirectory, &szFilename);
 		szUnnamed.Kill();
 	}
 	else
@@ -107,8 +107,8 @@ BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	ReturnOnFalse(ObjectStartsWithBaseName(pcSerialised->GetName()));
 
 	cFileUtil.MakeDir(szDirectory.Text());
-	cFile.Init(DiskFile(szFileName.Text()));
-	szFileName.Kill();
+	cFile.Init(DiskFile(szFilename.Text()));
+	szFilename.Kill();
 	szDirectory.Kill();
 
 	cFile.Open(EFM_Write_Create);

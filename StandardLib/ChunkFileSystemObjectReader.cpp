@@ -31,10 +31,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChunkFileSystemObjectReader::Init(char* szDirectory, char* szChunkFileName)
+void CChunkFileSystemObjectReader::Init(char* szDirectory, char* szChunkFilename)
 {
 	CChunkFileObjectReader::Init(&mcChunkFileFileSystem);
-	mszFileName.Init(szChunkFileName);
+	mszFilename.Init(szChunkFilename);
 	mszFullDirectory.Init(szDirectory);
 }
 
@@ -46,7 +46,7 @@ void CChunkFileSystemObjectReader::Init(char* szDirectory, char* szChunkFileName
 void CChunkFileSystemObjectReader::Kill(void)
 {
 	mszFullDirectory.Kill();
-	mszFileName.Kill();
+	mszFilename.Kill();
 	CExternalObjectReader::Kill();
 }
 
@@ -59,18 +59,18 @@ BOOL CChunkFileSystemObjectReader::Begin(void)
 {
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
-	CChars		szFileName;
+	CChars		szFilename;
 
 	CExternalObjectReader::Begin();
 
-	szFileName.Init(mszFullDirectory);
+	szFilename.Init(mszFullDirectory);
 
-	cFileUtil.AppendToPath(&szFileName, mszFileName.Text());
-	szFileName.Append(".");
-	szFileName.Append(OBJECT_FILE_EXTENSION);
+	cFileUtil.AppendToPath(&szFilename, mszFilename.Text());
+	szFilename.Append(".");
+	szFilename.Append(OBJECT_FILE_EXTENSION);
 
-	pcDiskFile = DiskFile(szFileName.Text());
-	szFileName.Kill();
+	pcDiskFile = DiskFile(szFilename.Text());
+	szFilename.Kill();
 
 	mcChunkFile.Init(pcDiskFile);
 	mcChunkFileFileSystem.Init(&mcChunkFile);

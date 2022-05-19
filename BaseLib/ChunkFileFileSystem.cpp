@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SChunkFileNameIterator::Init(void)
+void SChunkFilenameIterator::Init(void)
 {
 	szFullName.Init();
 	aiIndex.Init();
@@ -18,7 +18,7 @@ void SChunkFileNameIterator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SChunkFileNameIterator::Kill(void)
+void SChunkFilenameIterator::Kill(void)
 {
 	szValue.Kill();
 	aiIndex.Kill();
@@ -326,7 +326,7 @@ BOOL CChunkFileFileSystem::ReadChunkEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChunkFileFileSystem::StartNameIteration(SChunkFileNameIterator* psIter)
+char* CChunkFileFileSystem::StartNameIteration(SChunkFilenameIterator* psIter)
 {
 	psIter->Init();
 	psIter->aiIndex.Add(0);
@@ -338,7 +338,7 @@ char* CChunkFileFileSystem::StartNameIteration(SChunkFileNameIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChunkFileFileSystem::IterateName(SChunkFileNameIterator* psIter)
+char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 {
 	int		iNumChunks;
 	char*	szName;
@@ -408,7 +408,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFileNameIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::StopIteration(SChunkFileNameIterator* psIter)
+BOOL CChunkFileFileSystem::StopIteration(SChunkFilenameIterator* psIter)
 {
 	psIter->Kill();
 

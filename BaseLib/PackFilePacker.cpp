@@ -15,18 +15,18 @@ BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* s
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
-	CChars		szPackFileName;
+	CChars		szPackFilename;
 	CFileUtil	cFileUtil;
 	BOOL		bResult;
 
-	szPackFileName.Init(szDestPakFile);
-	cFileUtil.FullPath(&szPackFileName);
+	szPackFilename.Init(szDestPakFile);
+	cFileUtil.FullPath(&szPackFilename);
 
-	cFileUtil.Delete(szPackFileName.Text());
+	cFileUtil.Delete(szPackFilename.Text());
 
-	pcDiskFile = DiskFile(szPackFileName.Text());
+	pcDiskFile = DiskFile(szPackFilename.Text());
 
-	szPackFileName.Kill();
+	szPackFilename.Kill();
 
 	cPackFiles.Init(pcDiskFile, PFM_Write);
 	bResult = cPackFiles.AddDirectory(szSourceDirectory, szPackDirectory);
@@ -52,14 +52,14 @@ BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, BOOL 
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
 	BOOL		bResult;
-	CChars		szPackFileName;
+	CChars		szPackFilename;
 
-	szPackFileName.Init(szSourcePakFile);
-	cFileUtil.FullPath(&szPackFileName);
-	pcDiskFile = DiskFile(szPackFileName.Text());
-	szPackFileName.Kill();
+	szPackFilename.Init(szSourcePakFile);
+	cFileUtil.FullPath(&szPackFilename);
+	pcDiskFile = DiskFile(szPackFilename.Text());
+	szPackFilename.Kill();
 
-	if (cFileUtil.Exists(pcDiskFile->mszFileName.Text()))
+	if (cFileUtil.Exists(pcDiskFile->mszFilename.Text()))
 	{
 		if (bRemoveDestDir)
 		{
@@ -141,15 +141,15 @@ BOOL CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
-	CChars		szPackFileName;
+	CChars		szPackFilename;
 	CFileUtil	cFileUtil;
 
-	szPackFileName.Init(szSourcePakFile);
-	cFileUtil.FullPath(&szPackFileName);
-	pcDiskFile = DiskFile(szPackFileName.Text());
-	szPackFileName.Kill();
+	szPackFilename.Init(szSourcePakFile);
+	cFileUtil.FullPath(&szPackFilename);
+	pcDiskFile = DiskFile(szPackFilename.Text());
+	szPackFilename.Kill();
 
-	if (cFileUtil.Exists(pcDiskFile->mszFileName.Text()))
+	if (cFileUtil.Exists(pcDiskFile->mszFilename.Text()))
 	{
 		cPackFiles.Init(pcDiskFile, PFM_Read);
 		List(&cPackFiles, pszDest);

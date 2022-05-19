@@ -10,7 +10,7 @@ class CJavaSyntaxGeneric : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxGeneric);
 protected:
-	CJavaTokenIdentifier*	mpcName;
+	CJavaSyntaxType*		mpcGenericType;
 	BOOL					mbWildCard;
 	CJavaSyntaxType*		mpcExtends;  //NULL if does not extend a Type.
 
@@ -22,7 +22,7 @@ public:
 
 	BOOL	IsGeneric(void) override;
 
-	void	SetName(CJavaTokenIdentifier* pcName);
+	void	SetGenericType(CJavaSyntaxType* pcGenericType);
 	void	SetExtends(CJavaSyntaxType* pcType);
 	void	SetWildCard(BOOL bWildCard);
 };
