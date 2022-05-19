@@ -20,7 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __JAVA_SYNTAX_PARSER_H__
 #define __JAVA_SYNTAX_PARSER_H__
-#include "BaseLib/Logger.h"
+#include "JavaTokenParser.h"
 #include "JavaSyntaxMemory.h"
 #include "JavaTokenDefinitions.h"
 #include "JavaSyntaxTree.h"
@@ -48,7 +48,7 @@ protected:
 	CLogger*				mpcLogger;
 
 public:
-	void	Init(CLogger* pcLogger, CJavaSyntaxMemory* pcSyntaxes, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, CJavaToken* pcFirstToken);
+	void	Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser);
 	void 	Kill(void);
 
 	BOOL	Parse(void);

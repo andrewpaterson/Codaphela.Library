@@ -13,7 +13,7 @@ public:
 	void				Init(void);
 	void				Kill(void);
 
-	void				Add(const char* szFileName, DataIO_FileWriter fSpecificClassFileSave, DataIO_FileReader fSpecificClassFileLoad);
+	void				Add(const char* szFilename, DataIO_FileWriter fSpecificClassFileSave, DataIO_FileReader fSpecificClassFileLoad);
 	template<class Class>
 	void				Add(char* szClassName);
 	template<class Class>

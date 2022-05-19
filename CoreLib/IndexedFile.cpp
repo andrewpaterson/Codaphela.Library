@@ -28,13 +28,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFileName, char* szRewriteName, unsigned int uiDataSize, int iFileNum)
+BOOL CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, unsigned int uiDataSize, int iFileNum)
 {
 	miFileIndex = iFileIndex;
 	muiDataSize = uiDataSize;
 	miFileNumber = iFileNum;
 
-	mcFile.Init(pcDurableFileControl, szFileName, szRewriteName);
+	mcFile.Init(pcDurableFileControl, szFilename, szRewriteName);
 	miNumDatas = CalculateNumDatas();
 	return miNumDatas >= 0;
 }
@@ -297,7 +297,7 @@ void CIndexedFile::Dump(void)
 	sz.Append(miFileIndex);
 	sz.Append(")\n------------------\n");
 	sz.Append("Primary Name: ");
-	sz.Append(mcFile.GetFileName());
+	sz.Append(mcFile.GetFilename());
 	sz.AppendNewLine();
 	sz.Append("Rewrite Name: ");
 	sz.Append(mcFile.GetRewriteName());
@@ -387,7 +387,7 @@ int CIndexedFile::GetUsedDataIndices(CArrayBit* pab)
 int CIndexedFile::GetFileIndex(void) { return miFileIndex; }
 int CIndexedFile::GetFileNumber(void) { return miFileNumber; }
 BOOL CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
-char* CIndexedFile::GetFileName(void) { return mcFile.GetFileName(); }
+char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
 unsigned int CIndexedFile::GetDataSize(void) { return muiDataSize; }
 filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }

@@ -30,14 +30,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CFileSystem
 {
 protected:
-	CSystemFileNames	mcNames;
+	CSystemFilenames	mcNames;
 	CChars				mszDirectory;
 
 public:
 	void					Init(char* szDirectory);
 	void					Kill(void);
 
-	char*					GetFileName(char* szFileName);
+	char*					GetFilename(char* szFilename);
 	CFileNodeSystemFile*	GetFileNode(char* szName, CChars* pszRemainingName);
 	CChars*					GetFullDirectoryName(void);
 	void					GetFiles(CArraySystemFilePtrs* pcSystemFiles);

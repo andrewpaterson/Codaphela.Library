@@ -50,12 +50,12 @@ CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChars				szDirectory;
-	CChars				szFileName;
+	CChars				szFilename;
 	char				szExtension[4];
 	BOOL				bResult;
 	int					iFileType;
 
-	szFileName.Kill();
+	szFilename.Kill();
 	szDirectory.Kill();
 
 	bResult = mpcFile->Open(EFM_Read);

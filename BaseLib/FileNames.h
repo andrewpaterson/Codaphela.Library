@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template <class M>
-class CFileNames
+class CFilenames
 {
 protected:
 	CFileNode<M>	mcRoot;
@@ -52,7 +52,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CFileNames<M>::Init(void)
+void CFilenames<M>::Init(void)
 {
 	mcRoot.InitDirectory("", NULL);
 	mbParentsValid = FALSE;
@@ -64,7 +64,7 @@ void CFileNames<M>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CFileNames<M>::Kill(void)
+void CFilenames<M>::Kill(void)
 {
 	mcRoot.Kill();
 }
@@ -75,7 +75,7 @@ void CFileNames<M>::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFileNames<M>::GetRoot(void)
+CFileNode<M>* CFilenames<M>::GetRoot(void)
 {
 	return &mcRoot;
 }
@@ -86,7 +86,7 @@ CFileNode<M>* CFileNames<M>::GetRoot(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFileNames<M>::GetNode(char* szFullName)
+CFileNode<M>* CFilenames<M>::GetNode(char* szFullName)
 {
 	CChars			szFake;
 	CArrayChars		asNames;
@@ -130,7 +130,7 @@ CFileNode<M>* CFileNames<M>::GetNode(char* szFullName)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CFileNode<M>* CFileNames<M>::AddFile(char* szFullName)
+CFileNode<M>* CFilenames<M>::AddFile(char* szFullName)
 {
 	CChars			szFake;
 	CArrayChars		asNames;
@@ -184,7 +184,7 @@ CFileNode<M>* CFileNames<M>::AddFile(char* szFullName)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-M* CFileNames<M>::GetNearestFile(char* szFullName, CChars* pszRemaining)
+M* CFilenames<M>::GetNearestFile(char* szFullName, CChars* pszRemaining)
 {
 	CChars			szFake;
 	CArrayChars	asNames;
@@ -237,7 +237,7 @@ M* CFileNames<M>::GetNearestFile(char* szFullName, CChars* pszRemaining)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CFileNames<M>::FixParents(void)
+void CFilenames<M>::FixParents(void)
 {
 	if (!mbParentsValid)
 	{

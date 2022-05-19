@@ -261,11 +261,11 @@ BOOL CMD5HashFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMD5HashFile::GetFileName(void)
+char* CMD5HashFile::GetFilename(void)
 {
 	if (mpcFile)
 	{
-		return mpcFile->GetFileName();
+		return mpcFile->GetFilename();
 	}
 	return NULL;
 }

@@ -54,7 +54,7 @@ BOOL CObjectConverterNative::IsFor(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char* szFileName)
+CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char* szFilename)
 {
 	CObjectSourceChunked*	pcSourceChunked;
 	CObjectSourceSimple*	pcSourceSimple;
@@ -62,7 +62,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 	CFileBasic				cFile;
 	int						c;
 
-	if ((!pcFile) || (!szFileName))
+	if ((!pcFile) || (!szFilename))
 	{
 		return NULL;
 	}
@@ -83,7 +83,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 	if (c == CHUNKED_OBJECT_FILE)
 	{
 		pcSourceChunked = UMalloc(CObjectSourceChunked);
-		bResult = pcSourceChunked->Init(this, pcFile, szFileName);
+		bResult = pcSourceChunked->Init(this, pcFile, szFilename);
 		if (!bResult)
 		{
 			return NULL;
@@ -93,7 +93,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 	else if (c == BASIC_OBJECT_FILE)
 	{
 		pcSourceSimple = UMalloc(CObjectSourceSimple);
-		pcSourceSimple->Init(this, pcFile, szFileName);
+		pcSourceSimple->Init(this, pcFile, szFilename);
 		return pcSourceSimple;
 	}
 	else

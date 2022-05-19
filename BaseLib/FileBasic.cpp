@@ -47,7 +47,7 @@ void CFileBasic::Kill(void)
 {
 	if (IsOpen())
 	{
-		gcLogger.Error2(__METHOD__, " File [", StringToString(GetFileName()), "] has not been closed before kill.", NULL);
+		gcLogger.Error2(__METHOD__, " File [", StringToString(GetFilename()), "] has not been closed before kill.", NULL);
 	}
 	if ((mpcFile != NULL) && (mpcFile->mbBasicFileMustFree))
 	{
@@ -279,8 +279,8 @@ BOOL CFileBasic::Delete(void)
 // 
 // 
 //////////////////////////////////////////////////////////////////////////
-char* CFileBasic::GetFileName(void)
+char* CFileBasic::GetFilename(void)
 {
-	return mpcFile->GetFileName();
+	return mpcFile->GetFilename();
 }
 

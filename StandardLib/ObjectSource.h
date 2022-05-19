@@ -37,7 +37,7 @@ protected:
 	CAbstractFile*		mpcFile;
 
 public:
-			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
+			void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
 			void			Kill(void);
 
 	virtual CBaseObject*	Convert(char* szFullName) =0;

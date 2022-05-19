@@ -336,7 +336,7 @@ BOOL CPackFiles::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFile* CPackFiles::WriteOpen(char* szFileName)
+CPackFile* CPackFiles::WriteOpen(char* szFilename)
 {
 	CFileNodePackFileNode*	pcFileNode;
 	CPackFile*				pcFile;
@@ -350,7 +350,7 @@ CPackFile* CPackFiles::WriteOpen(char* szFileName)
 
 	if (meMode == PFM_Write)
 	{
-		pcFileNode = GetNode(szFileName);
+		pcFileNode = GetNode(szFilename);
 		if (pcFileNode != NULL)
 		{
 			
@@ -358,7 +358,7 @@ CPackFile* CPackFiles::WriteOpen(char* szFileName)
 			return NULL;
 		}
 
-		pcFileNode = AddFile(szFileName);
+		pcFileNode = AddFile(szFilename);
 		if (pcFileNode)
 		{
 			pcFile = PackFile(this, pcFileNode->File());
@@ -380,7 +380,7 @@ CPackFile* CPackFiles::WriteOpen(char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFile* CPackFiles::ReadOpen(char* szFileName)
+CPackFile* CPackFiles::ReadOpen(char* szFilename)
 {
 	CFileNodePackFileNode*	pcFileNode;
 	CPackFile*				pcFile;
@@ -389,7 +389,7 @@ CPackFile* CPackFiles::ReadOpen(char* szFileName)
 
 	if (meMode == PFM_Read)
 	{
-		pcFileNode = GetNode(szFileName);
+		pcFileNode = GetNode(szFilename);
 		if ((pcFileNode == NULL) || (!pcFileNode->IsFile()))
 		{
 			return NULL;
@@ -442,13 +442,13 @@ BOOL CPackFiles::Close(CPackFile* pcPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFileName)
+BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
 {
 	CPackFile*		pcPackFile;
 	CFileCopier		cCopier;
 	BOOL			bResult;
 	
-	pcPackFile = WriteOpen(szFileName);
+	pcPackFile = WriteOpen(szFilename);
 	if (!pcPackFile)
 	{
 		return FALSE;
@@ -470,30 +470,30 @@ BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFileName)
 BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 {
 	CFileUtil		cFileUtil;
-	CArrayChars	aszFileNames;
+	CArrayChars	aszFilenames;
 	int				i;
-	CChars*			pszFileName;
+	CChars*			pszFilename;
 	CDiskFile		cDiskFile;
 	CChars			szName;
 	CChars			szNameDirectory;
 	BOOL			bResult;
 	BOOL			bAnyFiles;
 
-	aszFileNames.Init();
-	bAnyFiles = cFileUtil.FindAllFiles(szDirectory, &aszFileNames, TRUE, FALSE);
+	aszFilenames.Init();
+	bAnyFiles = cFileUtil.FindAllFiles(szDirectory, &aszFilenames, TRUE, FALSE);
 
 	if (!bAnyFiles)
 	{
-		aszFileNames.Kill();
+		aszFilenames.Kill();
 		return FALSE;
 	}
 
 	szNameDirectory.Init(szDirectory);
-	for (i = 0; i < aszFileNames.NumElements(); i++)
+	for (i = 0; i < aszFilenames.NumElements(); i++)
 	{
-		pszFileName = aszFileNames.Get(i);
-		cDiskFile.Init(pszFileName->Text());
-		cFileUtil.MakeNameFromDirectory(&szName, pszFileName, &szNameDirectory);
+		pszFilename = aszFilenames.Get(i);
+		cDiskFile.Init(pszFilename->Text());
+		cFileUtil.MakeNameFromDirectory(&szName, pszFilename, &szNameDirectory);
 		if (szPackDirectory)
 		{
 			szName.Insert(0, '/');
@@ -507,13 +507,13 @@ BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 		if (!bResult)
 		{
 			szNameDirectory.Kill();
-			aszFileNames.Kill();
+			aszFilenames.Kill();
 			return FALSE;
 		}
 	}
 
 	szNameDirectory.Kill();
-	aszFileNames.Kill();
+	aszFilenames.Kill();
 	return TRUE;
 }
 
@@ -877,7 +877,7 @@ BOOL CPackFiles::Unpack(char* szDestination)
 //////////////////////////////////////////////////////////////////////////
 BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination)
 {
-	CChars					szFileName;
+	CChars					szFilename;
 	CFileNodePackFileNode*	pcChild;
 	int						i;
 	CPackFileNode*			pcFile;
@@ -899,29 +899,29 @@ BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestinatio
 	}
 	else if (pcNode->IsFile())
 	{
-		szFileName.Init(szDestination);
-		szFileName.Append('/');
-		pcNode->GetFullName(&szFileName);
-		szFileName.Replace('/', FILE_SEPARATOR[0]);
+		szFilename.Init(szDestination);
+		szFilename.Append('/');
+		pcNode->GetFullName(&szFilename);
+		szFilename.Replace('/', FILE_SEPARATOR[0]);
 
 		pcFile = pcNode->File();
 		pcPackFile = PackFile(this, pcFile);
 
 		if (!pcPackFile)
 		{
-			szFileName.Kill();
+			szFilename.Kill();
 			return FALSE;
 		}
 
-		cDiskFile.Init(szFileName.Text());
+		cDiskFile.Init(szFilename.Text());
 
-		cFileUtil.RemoveLastFromPath(&szFileName);
-		cFileUtil.MakeDir(szFileName.Text());
+		cFileUtil.RemoveLastFromPath(&szFilename);
+		cFileUtil.MakeDir(szFilename.Text());
 		bResult = cCopier.Copy(pcPackFile, &cDiskFile);
 
 		cDiskFile.Kill();
 
-		szFileName.Kill();
+		szFilename.Kill();
 		return bResult;
 	}
 	return FALSE;
@@ -1027,8 +1027,8 @@ void CPackFiles::StopIteration(CPackFileIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPackFiles::GetFileName(void)
+char* CPackFiles::GetFilename(void)
 {
-	return mcFile.GetFileName();
+	return mcFile.GetFilename();
 }
 

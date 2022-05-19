@@ -151,7 +151,7 @@ BOOL CDebugOutputFile::Delete(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CDebugOutputFile::GetFileName(void)
+char* CDebugOutputFile::GetFilename(void)
 {
 	return "DebugOutput";
 }

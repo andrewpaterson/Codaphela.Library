@@ -57,26 +57,26 @@ void CFileSystem::Kill(void)
 void CFileSystem::ReadDirectory(void)
 {
 	CFileUtil			cFileUtil;
-	CArrayChars		aszFileNames;
+	CArrayChars		aszFilenames;
 	int					i;
-	CChars*				pszFileName;
+	CChars*				pszFilename;
 	CSystemFileNode*	pcNode;
 	CChars				szName;
 
-	aszFileNames.Init();
-	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFileNames, TRUE, FALSE);
+	aszFilenames.Init();
+	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFilenames, TRUE, FALSE);
 
-	for (i = 0; i < aszFileNames.NumElements(); i++)
+	for (i = 0; i < aszFilenames.NumElements(); i++)
 	{
-		pszFileName = aszFileNames.Get(i);
-		cFileUtil.MakeNameFromDirectory(&szName, pszFileName, &mszDirectory);
+		pszFilename = aszFilenames.Get(i);
+		cFileUtil.MakeNameFromDirectory(&szName, pszFilename, &mszDirectory);
 
 		pcNode = mcNames.AddFile(szName.Text());
-		pcNode->File()->SetFullName(pszFileName->Text());
+		pcNode->File()->SetFullName(pszFilename->Text());
 		szName.Kill();
 	}
 
-	aszFileNames.Kill();
+	aszFilenames.Kill();
 }
 
 
@@ -84,11 +84,11 @@ void CFileSystem::ReadDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFileSystem::GetFileName(char* szFileName)
+char* CFileSystem::GetFilename(char* szFilename)
 {
 	CSystemFileNode*	pcNode;
 
-	pcNode = mcNames.GetNode(szFileName);
+	pcNode = mcNames.GetNode(szFilename);
 	if (pcNode)
 	{
 		return pcNode->File()->GetFullName();

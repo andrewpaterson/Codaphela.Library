@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CTextFile
 {
 public:
-	CChars		mszFileName;
+	CChars		mszFilename;
 	CChars		mcText;
 
 	CTextFile*	Init(void);
@@ -39,9 +39,9 @@ public:
 	void		Kill(void);
 	void		KillExceptBuffer(void);
 
-	BOOL		Read(char* szFileName);
+	BOOL		Read(char* szFilename);
 	BOOL		Read(CAbstractFile* pcAbstractFile);
-	BOOL		Write(char* szFileName);
+	BOOL		Write(char* szFilename);
 
 	char*		Text(void);
 	char*		Text(int iOffset);

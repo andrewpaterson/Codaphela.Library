@@ -49,17 +49,17 @@ BOOL CObjectConverterText::IsFor(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* szFileName)
+CObjectSource* CObjectConverterText::CreateSource(CAbstractFile* pcFile, char* szFilename)
 {
 	CObjectSourceText*	pcSource;
 
-	if ((!pcFile) || (!szFileName))
+	if ((!pcFile) || (!szFilename))
 	{
 		return NULL;
 	}
 
 	pcSource = UMalloc(CObjectSourceText);
-	pcSource->Init(this, pcFile, szFileName);
+	pcSource->Init(this, pcFile, szFilename);
 	return pcSource;
 }
 

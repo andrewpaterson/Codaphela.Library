@@ -456,7 +456,7 @@
     <ClInclude Include="FileMode.h">
       <Filter>Source\File\Common</Filter>
     </ClInclude>
-    <ClInclude Include="FileNames.h">
+    <ClInclude Include="Filenames.h">
       <Filter>Source\File\Names</Filter>
     </ClInclude>
     <ClInclude Include="FileNode.h">

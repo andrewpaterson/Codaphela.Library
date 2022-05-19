@@ -328,7 +328,7 @@ BOOL CMemoryFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMemoryFile::GetFileName(void)
+char* CMemoryFile::GetFilename(void)
 {
 	return NULL;
 }

@@ -173,11 +173,11 @@ BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Touch(const char* szFileName)
+BOOL CFileUtil::Touch(const char* szFilename)
 {
 	HANDLE	h;
 
-	h = CreateFile(szFileName, STANDARD_RIGHTS_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	h = CreateFile(szFilename, STANDARD_RIGHTS_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (h != INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(h);
@@ -191,11 +191,11 @@ BOOL CFileUtil::Touch(const char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Delete(const char* szFileName)
+BOOL CFileUtil::Delete(const char* szFilename)
 {
-	if (Exists(szFileName))
+	if (Exists(szFilename))
 	{
-		return DeleteFile(szFileName);
+		return DeleteFile(szFilename);
 	}
 	else
 	{
@@ -207,9 +207,9 @@ BOOL CFileUtil::Delete(const char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(const char* szFileName)
+BOOL CFileUtil::Exists(const char* szFilename)
 {
-	return PathFileExists(szFileName);
+	return PathFileExists(szFilename);
 }
 
 
@@ -217,12 +217,12 @@ BOOL CFileUtil::Exists(const char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CFileUtil::Size(const char*szFileName)
+filePos CFileUtil::Size(const char*szFilename)
 {
 	HANDLE		h;
 	filePos		iSize;
 
-	h = CreateFile(szFileName, STANDARD_RIGHTS_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	h = CreateFile(szFilename, STANDARD_RIGHTS_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (h != INVALID_HANDLE_VALUE)
 	{
 		GetFileSizeEx(h, (PLARGE_INTEGER)&iSize);

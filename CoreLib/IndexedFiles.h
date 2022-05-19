@@ -46,7 +46,7 @@ public:
 
 	BOOL			ReadIndexedFileDescriptors(void);
 	BOOL			WriteIndexedFileDescriptors(void);
-	BOOL			DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
+	BOOL			DataFilename(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
 
 	CIndexedFile* 	GetOrCreateFile(unsigned int uiDataSize);
 	CIndexedFile* 	GetFile(unsigned int uiDataSize, int iFileNum);

@@ -60,11 +60,11 @@ void STextPosition::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextPositionPrinter::Init(CExternalString* pcText, STextPosition* pcTextPosition, char* szFileName)
+void CTextPositionPrinter::Init(CExternalString* pcText, STextPosition* pcTextPosition, char* szFilename)
 {
 	mcTextPosition = *pcTextPosition;
 	mcText = *pcText;
-	mszFileName = szFileName;
+	mszFilename = szFilename;
 }
 
 
@@ -76,7 +76,7 @@ void CTextPositionPrinter::Kill(void)
 {
 	mcTextPosition.Clear();
 	mcText.Clear();
-	mszFileName = NULL;
+	mszFilename = NULL;
 }
 
 

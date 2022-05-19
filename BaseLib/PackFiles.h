@@ -38,7 +38,7 @@ class CPackFiles
 friend class CPackFile;
 protected:
 	CFileBasic					mcFile;
-	CFileNamesPackFileNode		mcNames;
+	CFilenamesPackFileNode		mcNames;
 	EPackFileMode				meMode;
 	filePos						miNodes;
 	filePos						miNextNodesPtr;
@@ -55,10 +55,10 @@ public:
 	BOOL					IsWriteMode(void);
 	BOOL					IsReadMode(void);
 
-	CPackFile*				WriteOpen(char* szFileName);
-	CPackFile*				ReadOpen(char* szFileName);
+	CPackFile*				WriteOpen(char* szFilename);
+	CPackFile*				ReadOpen(char* szFilename);
 
-	BOOL					AddFile(CAbstractFile* pcFile, char* szFileName);
+	BOOL					AddFile(CAbstractFile* pcFile, char* szFilename);
 	BOOL					AddDirectory(char* szDirectory, char* szPackDirectory = NULL);
 
 	CFileNodePackFileNode*	StartIteration(CPackFileIterator* psIter);
@@ -70,7 +70,7 @@ public:
 
 	BOOL					Unpack(char* szDirectory);
 	void					FixParents(void);
-	char*					GetFileName(void);
+	char*					GetFilename(void);
 
 protected:
 	BOOL					BeginRead(void);

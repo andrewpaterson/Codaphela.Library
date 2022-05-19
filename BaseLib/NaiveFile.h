@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CNaiveFile
 {
 protected:
-	CChars		mszFileName;
+	CChars		mszFilename;
 	void*		mpvMem;
 	filePos		miSize;
 
@@ -42,9 +42,9 @@ public:
 	void		Kill(void);
 	void		KillExceptBuffer(void);
 
-	BOOL		Read(const char* szFileName);
+	BOOL		Read(const char* szFilename);
 	BOOL		Read(CAbstractFile* pcAbstractFile);
-	BOOL		Write(const char* szFileName);
+	BOOL		Write(const char* szFilename);
 
 	void*		Get(void);
 	void*		Get(int iOffset);
@@ -55,7 +55,7 @@ public:
 };
 
 
-int CompareFileToMemory(const char* szFileName, void* pvMem, int iLength);
+int CompareFileToMemory(const char* szFilename, void* pvMem, int iLength);
 
 
 #endif // !__NAIVE_FILE_H__

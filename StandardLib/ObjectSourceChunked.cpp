@@ -10,9 +10,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName)
+BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename)
 {
-	CObjectSource::Init(pcConverter, pcFile, szFileName);
+	CObjectSource::Init(pcConverter, pcFile, szFilename);
 
 	mcChunkFile.Init(pcFile);
 	mcChunkFileFileSystem.Init(&mcChunkFile);
@@ -48,7 +48,7 @@ void CObjectSourceChunked::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 BOOL CObjectSourceChunked::ReadNames(void)
 {
-	SChunkFileNameIterator	sIter;
+	SChunkFilenameIterator	sIter;
 	char*					szName;
 
 	szName = mcChunkFileFileSystem.StartNameIteration(&sIter);

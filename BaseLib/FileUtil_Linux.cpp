@@ -153,11 +153,11 @@ BOOL CFileUtil::RecurseRemoveDir(const char*szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Touch(const char*szFileName)
+BOOL CFileUtil::Touch(const char*szFilename)
 {
     int     iHandle;
 
-    iHandle = open(szFileName, O_WRONLY | O_CREAT | O_EXCL, S_IWUSR | S_IRUSR);
+    iHandle = open(szFilename, O_WRONLY | O_CREAT | O_EXCL, S_IWUSR | S_IRUSR);
 	if (iHandle != -1)
 	{
 		close(iHandle);
@@ -171,11 +171,11 @@ BOOL CFileUtil::Touch(const char*szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Delete(const char*szFileName)
+BOOL CFileUtil::Delete(const char*szFilename)
 {
     int     iResult;
 
-	iResult = unlink(szFileName);
+	iResult = unlink(szFilename);
 	if (iResult == 0)
 	{
 	    return TRUE;
@@ -191,17 +191,17 @@ BOOL CFileUtil::Delete(const char*szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(const char* szFileName)
+BOOL CFileUtil::Exists(const char* szFilename)
 {
     int     iHandle;
 
-    iHandle = open(szFileName, O_RDONLY, S_IWUSR | S_IRUSR);
+    iHandle = open(szFilename, O_RDONLY, S_IWUSR | S_IRUSR);
 	if (iHandle != -1)
 	{
 		close(iHandle);
 		return TRUE;
 	}
-	printf("%s: %s\n", strerror(errno), szFileName);
+	printf("%s: %s\n", strerror(errno), szFilename);
 	return FALSE;
 }
 
@@ -211,13 +211,13 @@ BOOL CFileUtil::Exists(const char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CFileUtil::Size(const char*szFileName)
+filePos CFileUtil::Size(const char*szFilename)
 {
     struct stat         sBuffer;
     int                 iStatus;
     CChars              sz;
 
-    sz.Init(szFileName);
+    sz.Init(szFilename);
     FullPath(&sz);
     iStatus = stat(sz.Text(), &sBuffer);
     if (iStatus == -1)

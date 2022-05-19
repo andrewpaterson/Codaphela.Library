@@ -6,21 +6,21 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::Init(CLogger* pcLogger, CJavaSyntaxMemory* pcSyntaxes, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, CJavaToken* pcFirstToken)
+void CJavaSyntaxParser::Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser)
 {
-	mpcLogger = pcLogger;
+	mpcLogger = pcTokenParser->GetLogger();
 
-	mpcTokens = pcTokens;
+	mpcTokens = pcTokenParser->GetTokenMemory();
 	mpcSyntaxes = pcSyntaxes;
 
-	mpcDefinitions = pcDefinitions;
-	mpcFirstToken = pcFirstToken;
+	mpcDefinitions = pcTokenParser->GetTokenDefinitions();
+	mpcFirstToken = pcTokenParser->GetFirstToken();
 	mpcCurrentToken = mpcFirstToken;
 
 	mapcPositions.Init();
 	PushPosition();
 
-	mcSyntaxTree.Init(szFilename);
+	mcSyntaxTree.Init(pcTokenParser->GetFilename());
 	mcError.Init(&mcSyntaxTree);
 	mcMismatch.Init(&mcSyntaxTree);
 }
@@ -151,7 +151,7 @@ BOOL CJavaSyntaxParser::Parse(BOOL bFailOnError)
 
 		szError.Init();
 		szError.Append("[");
-		szError.Append(mcSyntaxTree.GetFileName());
+		szError.Append(mcSyntaxTree.GetFilename());
 		szError.Append("] Syntax error:");
 		szError.AppendNewLine();
 //		mcParser.PrintPosition(&szError);
@@ -707,8 +707,17 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(void)
 			}
 		}
 	}
-
-	return NULL;
+	else if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
+	{
+		pcScopeAngleBracketRight = CreateScope(pcAmbiguousAngleBracketRight->GetPosition(), JG_AngleBracketRight);
+		ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
+		PassPosition();
+		return pcType;
+	}
+	else
+	{
+		return Error<CJavaSyntaxType>(EXPECTED_OPEN_OR_CLOSE_ANGLE_BRACKET);
+	}
 }
 
 
@@ -722,13 +731,12 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
 	CCJavaTokenAmbiguous*		pcAmbiguousQuestionMark;
 	CJavaTokenScope*			pcScopeQuestionMark;
 	BOOL						bQuestionMark;
-	CJavaTokenIdentifier*		pcIdentifier;
 	CJavaSyntaxType*			pcExtends;
 	CJavaSyntaxType*			pcType;
 
 	PushPosition();
 	bQuestionMark = FALSE;
-	pcIdentifier = NULL;
+	pcType = NULL;
 	if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
 	{
 		bQuestionMark = TRUE;
@@ -738,19 +746,19 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(void)
 		pcType = ParseType();
 	}
 
-	if ((bQuestionMark && pcIdentifier != NULL) || ((!bQuestionMark && pcIdentifier == NULL)))
+	if ((bQuestionMark && pcType != NULL) || ((!bQuestionMark && pcType == NULL)))
 	{
 		return Error<CJavaSyntaxGeneric>(EXPECTED_IDENTIFIER_OR_QUESTION_MARK);
 	}
 
 	pcGeneric = mpcSyntaxes->CreateGeneric(&mcSyntaxTree);
-	if (bQuestionMark && pcIdentifier == NULL)
+	if (bQuestionMark && pcType == NULL)
 	{
 		pcGeneric->SetWildCard(TRUE);
 	}
-	else if (!bQuestionMark && pcIdentifier != NULL)
+	else if (!bQuestionMark && pcType != NULL)
 	{
-		pcGeneric->SetName(pcIdentifier);
+		pcGeneric->SetGenericType(pcType);
 	}
 
 	PushPosition();

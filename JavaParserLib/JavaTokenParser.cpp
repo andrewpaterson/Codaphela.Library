@@ -28,14 +28,15 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenParser::Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen)
+void CJavaTokenParser::Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText, int iTextLen)
 {
 	mpcTokens = pcTokens;
 	mcParser.Init(szText, iTextLen);
 	mpcStart = NULL;
-	mszFileName.Init(szFilename);
+	mszFilename.Init(szFilename);
 
 	mpcDefinitions = pcDefinitions;
+	mpcLogger = pcLogger;
 }
 
 
@@ -43,12 +44,12 @@ void CJavaTokenParser::Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenParser::Init(CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText)
+void CJavaTokenParser::Init(CLogger* pcLogger, CJavaTokenDefinitions* pcDefinitions, CJavaTokenMemory* pcTokens, char* szFilename, char* szText)
 {
 	int		iTextLen;
 
 	iTextLen = strlen(szText);
-	Init(pcDefinitions, pcTokens, szFilename, szText, iTextLen);
+	Init(pcLogger, pcDefinitions, pcTokens, szFilename, szText, iTextLen);
 }
 
 
@@ -63,7 +64,7 @@ void CJavaTokenParser::Kill(void)
 	mcParser.Kill();
 	mpcTokens = NULL;
 
-	mszFileName.Kill();
+	mszFilename.Kill();
 
 	mpcDefinitions = NULL;
 }
@@ -145,7 +146,7 @@ BOOL CJavaTokenParser::Parse(BOOL bFailOnError)
 
 		szError.Init();
 		szError.Append("[");
-		szError.Append(mszFileName);
+		szError.Append(mszFilename);
 		szError.Append("] Tokenising failed:");
 		szError.AppendNewLine();
 		mcParser.PrintPosition(&szError);
@@ -163,6 +164,46 @@ BOOL CJavaTokenParser::Parse(BOOL bFailOnError)
 CJavaToken* CJavaTokenParser::GetFirstToken(void)
 {
 	return mpcStart;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CLogger* CJavaTokenParser::GetLogger(void)
+{
+	return mpcLogger;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenMemory* CJavaTokenParser::GetTokenMemory(void)
+{
+	return mpcTokens;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenDefinitions* CJavaTokenParser::GetTokenDefinitions(void)
+{
+	return mpcDefinitions;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaTokenParser::GetFilename(void)
+{
+	return mszFilename.Text();
 }
 
 

@@ -96,7 +96,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	filePos						iNumFiles;
 	SIndexedFileDescriptor*		pasFileDescriptors;
 	CIndexedFile*				pcIndexedFile;
-	char						szDataFileName[MAX_DIRECTORY_LENGTH];
+	char						szDataFilename[MAX_DIRECTORY_LENGTH];
 	char						szDataRewriteName[MAX_DIRECTORY_LENGTH];
 	filePos						iRead;
 	int							iRemainder;
@@ -140,11 +140,11 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	bResult = TRUE;
 	for (i = 0; i < iNumFiles; i++)
 	{
-		bResult &= DataFileName(szDataFileName, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
+		bResult &= DataFilename(szDataFilename, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
 		if (bResult)
 		{
 			pcIndexedFile = mcFiles.Add();
-			pcIndexedFile->Init(mpcDurableFileControl, pasFileDescriptors[i].iFileIndex, szDataFileName, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
+			pcIndexedFile->Init(mpcDurableFileControl, pasFileDescriptors[i].iFileIndex, szDataFilename, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
 		}
 	}
 	SafeFree(pasFileDescriptors);
@@ -188,9 +188,9 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, int iFileNum)
+BOOL CIndexedFiles::DataFilename(char* szFile1, char* szFile2, int iDataSize, int iFileNum)
 {
-	CChars		szFileName;
+	CChars		szFilename;
 	CChars		szRewriteName;
 	CFileUtil	cFileUtil;
 	CChars		sz;
@@ -202,9 +202,9 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 	sz.Append(".");
 	sz.Append(mszDataExtension);
 
-	szFileName.Init();
-	cFileUtil.AppendToPath(&szFileName, mszSubDirectory.Text());
-	cFileUtil.AppendToPath(&szFileName, sz.Text());
+	szFilename.Init();
+	cFileUtil.AppendToPath(&szFilename, mszSubDirectory.Text());
+	cFileUtil.AppendToPath(&szFilename, sz.Text());
 
 	sz.Insert(0, '_');
 
@@ -214,17 +214,17 @@ BOOL CIndexedFiles::DataFileName(char* szFile1, char* szFile2, int iDataSize, in
 
 	sz.Kill();
 
-	if (szFileName.Length() < MAX_DIRECTORY_LENGTH)
+	if (szFilename.Length() < MAX_DIRECTORY_LENGTH)
 	{
-		strcpy(szFile1, szFileName.Text());
-		szFileName.Kill();
+		strcpy(szFile1, szFilename.Text());
+		szFilename.Kill();
 		strcpy(szFile2, szRewriteName.Text());
 		szRewriteName.Kill();
 		return TRUE;
 	}
 	else
 	{
-		szFileName.Kill();
+		szFilename.Kill();
 		szRewriteName.Kill();
 		return FALSE;
 	}
@@ -240,7 +240,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(unsigned int uiDataSize)
 	int				i;
 	CIndexedFile*	pcIndexedFile;
 	int				iNumFilesWithSize;
-	char			szFileName[MAX_DIRECTORY_LENGTH];
+	char			szFilename[MAX_DIRECTORY_LENGTH];
 	char			szRewriteName[MAX_DIRECTORY_LENGTH];
 	BOOL			bResult;
 	int				iNumFiles;
@@ -270,8 +270,8 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(unsigned int uiDataSize)
 		return NULL;
 	}
 
-	DataFileName(szFileName, szRewriteName, uiDataSize, iNumFilesWithSize);
-	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFileName, szRewriteName, uiDataSize, iNumFilesWithSize);
+	DataFilename(szFilename, szRewriteName, uiDataSize, iNumFilesWithSize);
+	bResult = pcIndexedFile->Init(mpcDurableFileControl, mcFiles.NumElements()-1, szFilename, szRewriteName, uiDataSize, iNumFilesWithSize);
 	if (!bResult)
 	{
 		return NULL;

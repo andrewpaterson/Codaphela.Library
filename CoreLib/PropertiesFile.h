@@ -34,7 +34,7 @@ protected:
 	CChars				mszName;
 
 public:
-	void 	Init(char* szFileName);
+	void 	Init(char* szFilename);
 	void 	Kill(void);
 	char*	Get(char* szProperty);
 	void	Set(char* szProperty, char* szValue);

@@ -36,7 +36,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName)
+BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFilename, char* szRewriteName)
 {
 	CChars		szPath;
 	CFileUtil	cFileUtil;
@@ -45,7 +45,7 @@ BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 	mpcController = pcController;
 	InitBasic();
 
-	if (StrEmpty(szFileName))
+	if (StrEmpty(szFilename))
 	{
 		InitError();
 		return gcLogger.Error2(__METHOD__, " Primary DurableFile file name may not be [NULL].", NULL);
@@ -58,9 +58,9 @@ BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 	}
 
 	szPath.Init(pcController->GetDirectory());
-	cFileUtil.AppendToPath(&szPath, szFileName);
+	cFileUtil.AppendToPath(&szPath, szFilename);
 
-	mszFileName.Init(szPath);
+	mszFilename.Init(szPath);
 	mcPrimaryDiskFile.Init(szPath);
 	mcLogFile.Init(&mcPrimaryDiskFile);
 	mcPrimaryFile.Init(&mcLogFile);
@@ -77,7 +77,7 @@ BOOL CDurableFile::Init(CDurableFileController* pcController, char* szFileName, 
 		}
 		else
 		{
-			cFileUtil.AppendToPath(&szPath, szFileName);
+			cFileUtil.AppendToPath(&szPath, szFilename);
 		}
 		mszRewriteName.Init(szPath);
 		mcRewriteDiskFile.Init(szPath);
@@ -115,7 +115,7 @@ void CDurableFile::InitBasic(void)
 //////////////////////////////////////////////////////////////////////////
 void CDurableFile::InitError(void)
 {
-	mszFileName.Init();
+	mszFilename.Init();
 	mcPrimaryDiskFile.Init(NULL);
 	mcLogFile.Init(&mcPrimaryDiskFile);
 	mcPrimaryFile.Init(&mcLogFile);
@@ -137,7 +137,7 @@ BOOL CDurableFile::Kill(void)
 	bAnyOpen = mcPrimaryFile.IsOpen();
 	mcPrimaryFile.Kill();
 	mcPrimaryDiskFile.Kill();
-	mszFileName.Kill();
+	mszFilename.Kill();
 
 	if (IsDurable())
 	{
@@ -192,7 +192,7 @@ BOOL CDurableFile::Commit(void)
 	bResult = mcLogFile.Commit();
 	if (!bResult)
 	{
-		return gcLogger.Error2(__METHOD__, " Commit durable file [", mszFileName.Text(), "] failed.", NULL);
+		return gcLogger.Error2(__METHOD__, " Commit durable file [", mszFilename.Text(), "] failed.", NULL);
 	}
 
 	InitBasic();
@@ -421,14 +421,14 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
 	bResult = Seek(eOrigin, iDistance, TRUE);
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFilename.Text(), "] that cannot Seek.", NULL);
 		return 0;
 	}
 
@@ -446,7 +446,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot write to a CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
@@ -480,7 +480,7 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
@@ -491,7 +491,7 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 		{
 			return 0;
 		}
-		gcLogger.Error2(__METHOD__, " Cannot read from a CDurableFile [", mszFileName.Text(), "] that cannot Seek.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from a CDurableFile [", mszFilename.Text(), "] that cannot Seek.", NULL);
 		return 0;
 	}
 
@@ -509,7 +509,7 @@ filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot read from CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return 0;
 	}
 
@@ -550,7 +550,7 @@ filePos CDurableFile::Tell(void)
 {
 	if (!IsBegun())
 	{
-		 gcLogger.Error2(__METHOD__, " Cannot tell from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		 gcLogger.Error2(__METHOD__, " Cannot tell from CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 
@@ -568,7 +568,7 @@ filePos CDurableFile::Size(void)
 
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot size from CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot size from CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 
@@ -604,7 +604,7 @@ BOOL CDurableFile::Truncate(filePos iSize)
 {
 	if (!IsBegun())
 	{
-		gcLogger.Error2(__METHOD__, " Cannot truncate CDurableFile [", mszFileName.Text(), "] that is not Begun.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot truncate CDurableFile [", mszFilename.Text(), "] that is not Begun.", NULL);
 		return -1;
 	}
 
@@ -700,10 +700,10 @@ BOOL CDurableFile::CheckIdentical(BOOL bThorough, BOOL bLogError)
 		return FALSE;
 	}
 
-	bResult = cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
+	bResult = cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text());
 	if (bLogError && !bResult)
 	{
-		return gcLogger.Error2(__METHOD__, " File mismatch [", mszFileName.Text(), "] and [", mszRewriteName.Text(), "].", NULL);
+		return gcLogger.Error2(__METHOD__, " File mismatch [", mszFilename.Text(), "] and [", mszRewriteName.Text(), "].", NULL);
 	}
 	return bResult;
 }
@@ -725,13 +725,13 @@ BOOL CDurableFile::Delete(void)
 
 	if (IsDurable())
 	{
-		bResult = cFileUtil.Delete(mszFileName.Text());
+		bResult = cFileUtil.Delete(mszFilename.Text());
 		bResult &= cFileUtil.Delete(mszRewriteName.Text());
 		return bResult;
 	}
 	else
 	{
-		return cFileUtil.Delete(mszFileName.Text());
+		return cFileUtil.Delete(mszFilename.Text());
 	}
 }
 
@@ -749,11 +749,11 @@ BOOL CDurableFile::CopyBackupToPrimary(void)
 		return FALSE;
 	}
 
-	if (!cFileUtil.Copy(mszRewriteName.Text(), mszFileName.Text()))
+	if (!cFileUtil.Copy(mszRewriteName.Text(), mszFilename.Text()))
 	{
 		return FALSE;
 	}
-	return cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
+	return cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text());
 }
 
 
@@ -770,12 +770,12 @@ BOOL CDurableFile::CopyPrimaryToBackup(void)
 		return FALSE;
 	}
 
-	if (!cFileUtil.Copy(mszFileName.Text(), mszRewriteName.Text()))
+	if (!cFileUtil.Copy(mszFilename.Text(), mszRewriteName.Text()))
 	{
 		return FALSE;
 	}
 
-	return cFileUtil.Compare(mszFileName.Text(), mszRewriteName.Text());
+	return cFileUtil.Compare(mszFilename.Text(), mszRewriteName.Text());
 }
 
 
@@ -802,9 +802,9 @@ CFileBasic*	CDurableFile::DumpGetPrimaryFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CDurableFile::GetFileName(void)
+char* CDurableFile::GetFilename(void)
 {
-	return mszFileName.Text();
+	return mszFilename.Text();
 }
 
 

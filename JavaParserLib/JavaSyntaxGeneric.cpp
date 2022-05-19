@@ -9,7 +9,7 @@
 void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree)
 {
 	CJavaSyntax::Init(pcTree);
-	mpcName = NULL;
+	mpcGenericType = NULL;
 	mbWildCard = FALSE;
 	mpcExtends = NULL;
 }
@@ -21,7 +21,7 @@ void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxGeneric::Kill(void)
 {
-	mpcName = NULL;
+	mpcGenericType = NULL;
 	mbWildCard = FALSE;
 	mpcExtends = NULL;
 	CJavaSyntax::Kill();
@@ -52,7 +52,7 @@ BOOL CJavaSyntaxGeneric::IsGeneric(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxGeneric::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
+void CJavaSyntaxGeneric::SetGenericType(CJavaSyntaxType* pcGenericType) { mpcGenericType = pcGenericType; }
 void CJavaSyntaxGeneric::SetExtends(CJavaSyntaxType* pcType) { mpcExtends = pcType; }
 void CJavaSyntaxGeneric::SetWildCard(BOOL bWildCard) { mbWildCard = bWildCard; }
 

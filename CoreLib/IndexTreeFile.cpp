@@ -3378,7 +3378,7 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	bResult = pcFile->Read(uiIndex, pvBuffer);
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Could not read tree node in file number [", IntToString(iFile), "] name [", StringToString(pcFile->GetFileName()), "] at index [", IntToString(uiIndex), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not read tree node in file number [", IntToString(iFile), "] name [", StringToString(pcFile->GetFilename()), "] at index [", IntToString(uiIndex), "].", NULL);
 		return FALSE;
 	}
 		

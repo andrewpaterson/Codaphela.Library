@@ -49,7 +49,7 @@ void CXMLFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Read(char* szFileName, char* szDirectory)
+BOOL CXMLFile::Read(char* szFilename, char* szDirectory)
 {
 	BOOL			bResult;
 	CMarkupDoc*		pcDoc;
@@ -58,7 +58,7 @@ BOOL CXMLFile::Read(char* szFileName, char* szDirectory)
 	mszDirectory.Init(szDirectory);
 
 	pcDoc = mcMarkup.mpcDoc;
-	bResult = Read(szFileName, pcDoc, &mszDirectory);
+	bResult = Read(szFilename, pcDoc, &mszDirectory);
 	if (!bResult)
 	{
 		mszDirectory.Kill();
@@ -80,7 +80,7 @@ BOOL CXMLFile::Read(char* szFileName, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc, CChars* pszDirectory)
+BOOL CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 {
 	CXMLParser	cXMLParser;
 	CTextFile	cTextFile;
@@ -91,7 +91,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc, CChars* pszDirectory)
 
 	szPath.Init(pszDirectory);
 	cFileUtil.FullPath(&szPath);
-	cFileUtil.AppendToPath(&szPath, szFileName);
+	cFileUtil.AppendToPath(&szPath, szFilename);
 
 	cTextFile.Init();
 	bResult = cTextFile.Read(szPath.Text());
@@ -104,7 +104,7 @@ BOOL CXMLFile::Read(char* szFileName, CMarkupDoc* pcDoc, CChars* pszDirectory)
 
 	cTextFile.PassifyNewlines();
 	cXMLParser.Init(pcDoc, &gcLogger);
-	tResult = cXMLParser.Parse(cTextFile.Text(), szFileName);
+	tResult = cXMLParser.Parse(cTextFile.Text(), szFilename);
 	if (tResult != TRITRUE)
 	{
 		cXMLParser.Kill();
@@ -178,7 +178,7 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Write(char* szFileName, char* szDirectory)
+BOOL CXMLFile::Write(char* szFilename, char* szDirectory)
 {
 	return FALSE;
 }

@@ -7,14 +7,14 @@ class CJavaSyntaxTree
 {
 protected:
 	CJavaSyntaxFile*	mpcRoot;
-	CChars				mszFileName;
+	CChars				mszFilename;
 
 public:
-	void	Init(char* szFileFile);
+	void	Init(char* szFilename);
 	void	Kill(void);
 
 	void	SetRoot(CJavaSyntaxFile* pcRoot);
-	char*	GetFileName(void);
+	char*	GetFilename(void);
 };
 
 

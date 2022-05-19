@@ -39,7 +39,7 @@ public:
 								void			Init(void);
 								void			Kill(void);
 	template<class TConverter>	TConverter*		AddConverter(void);
-	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, char* szFileName);
+	template<class TConverter>	CObjectSource*	AddSource(CAbstractFile* pcFile, char* szFilename);
 								CObjectSource*	GetSource(char* szObjectName);
 
 };
@@ -49,13 +49,13 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class TConverter>
-CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, char* szFileName)
+CObjectSource* CObjectsSource::AddSource(CAbstractFile* pcFile, char* szFilename)
 {
 	TConverter*		pcConveter;
 	CObjectSource*	pcSource;
 
 	pcConveter = AddConverter<TConverter>();
-	pcSource = pcConveter->CreateSource(pcFile, szFileName);
+	pcSource = pcConveter->CreateSource(pcFile, szFilename);
 	if (pcSource)
 	{
 		macSources.Add(pcSource);

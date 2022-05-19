@@ -994,7 +994,7 @@ BOOL PrivateAssertNull(void* pvActual, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, int iLine, char* szFile)
+BOOL PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, int iLine, char* szFile)
 {
 	CFileCompare	cCompare;
 	BOOL			bResult;
@@ -1003,7 +1003,7 @@ BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, i
 
 	szExpected.Init();
 	szActual.Init();
-	bResult = cCompare.Compare(szExpectedFileName, szActualFileName, &szExpected, &szActual);
+	bResult = cCompare.Compare(szExpectedFilename, szActualFilename, &szExpected, &szActual);
 
 	if (!bResult)
 	{
@@ -1025,7 +1025,7 @@ BOOL PrivateAssertFile(const char* szExpectedFileName, char* szActualFileName, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, size_t iLength, int iLine, char* szFile)
+BOOL PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size_t iLength, int iLine, char* szFile)
 {
 	CFileCompare	cCompare;
 	BOOL			bResult;
@@ -1034,7 +1034,7 @@ BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, siz
 
 	szExpected.Init();
 	szActual.Init();
-	bResult = cCompare.Compare(szExpectedFileName, pcMemory, iLength, &szExpected, &szActual);
+	bResult = cCompare.Compare(szExpectedFilename, pcMemory, iLength, &szExpected, &szActual);
 
 	if (!bResult)
 	{
@@ -1056,12 +1056,12 @@ BOOL PrivateAssertFileMemory(const char* szExpectedFileName, void* pcMemory, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertFileString(const char* szExpectedFileName, const char* szString, int iLine, char* szFile)
+BOOL PrivateAssertFileString(const char* szExpectedFilename, const char* szString, int iLine, char* szFile)
 {
 	size_t iLength;
 
 	iLength = strlen(szString);
-	return PrivateAssertFileMemory(szExpectedFileName, (void*)szString, iLength, iLine, szFile);
+	return PrivateAssertFileMemory(szExpectedFilename, (void*)szString, iLength, iLine, szFile);
 }
 
 

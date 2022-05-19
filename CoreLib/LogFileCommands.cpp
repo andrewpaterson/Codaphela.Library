@@ -94,14 +94,14 @@ BOOL CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 {
 	BOOL		bResult;
 	CFileUtil	cFileUtil;
-	char*		szFileName;
+	char*		szFilename;
 
 	if (IsFileModeCreate(eMode))
 	{
-		szFileName = pcFile->GetFileName();
-		if (szFileName)
+		szFilename = pcFile->GetFilename();
+		if (szFilename)
 		{
-			cFileUtil.TouchDir(szFileName, TRUE);
+			cFileUtil.TouchDir(szFilename, TRUE);
 		}
 	}
 

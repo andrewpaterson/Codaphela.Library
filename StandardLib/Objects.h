@@ -80,7 +80,7 @@ public:
 						void					Kill(void);
 
 	template<class M>	void					AddConstructor(void);
-	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFileName);
+	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFilename);
 
 						BOOL					Flush(void);
 						BOOL					ForceSave(CBaseObject* pcObject);
@@ -429,9 +429,9 @@ void CObjects::AddConstructor(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFileName)
+CObjectSource* CObjects::AddSource(CAbstractFile* pcFile, char* szFilename)
 {
-	return mcSource.AddSource<SpecificClass>(pcFile, szFileName);
+	return mcSource.AddSource<SpecificClass>(pcFile, szFilename);
 }
 
 

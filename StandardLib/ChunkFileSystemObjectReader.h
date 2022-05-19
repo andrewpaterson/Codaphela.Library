@@ -29,11 +29,11 @@ CONSTRUCTABLE(CChunkFileSystemObjectReader);
 protected:
 	CChunkFile				mcChunkFile;
 	CChunkFileFileSystem	mcChunkFileFileSystem;
-	CChars					mszFileName;
+	CChars					mszFilename;
 	CChars					mszFullDirectory;
 
 public:
-	void				Init(char* szDirectory, char* szChunkFileName);
+	void				Init(char* szDirectory, char* szChunkFilename);
 	void				Kill(void);
 
 	BOOL				Begin(void);

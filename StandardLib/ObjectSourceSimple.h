@@ -12,7 +12,7 @@ protected:
 	CFileObjectReader*	mpcReader;
 
 public:
-	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFileName);
+	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
 	void			Kill(void);
 
 	BOOL			IsSimple(void);

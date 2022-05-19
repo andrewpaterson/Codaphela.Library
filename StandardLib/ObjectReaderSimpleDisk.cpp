@@ -33,21 +33,21 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
 	CChars				szDirectory;
-	CChars				szFileName;
+	CChars				szFilename;
 	char				szExtension[4];
 	BOOL				bResult;
 	int					iFileType;
 
-	FileName(szObjectName, mszFullDirectory.Text(), &szDirectory, &szFileName);
+	Filename(szObjectName, mszFullDirectory.Text(), &szDirectory, &szFilename);
 
-	mcFile.Init(DiskFile(szFileName.Text()));
-	szFileName.Kill();
+	mcFile.Init(DiskFile(szFilename.Text()));
+	szFilename.Kill();
 	szDirectory.Kill();
 
 	bResult = mcFile.Open(EFM_Read);
 	if (!bResult)
 	{
-		gcLogger.Error2(__METHOD__, " Could not open file [", mcFile.GetFileName(), "] for reading.", NULL);
+		gcLogger.Error2(__METHOD__, " Could not open file [", mcFile.GetFilename(), "] for reading.", NULL);
 		mcFile.Kill();
 		return NULL;
 	}

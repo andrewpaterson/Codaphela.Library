@@ -46,7 +46,7 @@ class CDurableFileController;
 class CDurableFile : public CFileIO
 {
 private:
-	CChars						mszFileName;
+	CChars						mszFilename;
 	CChars						mszRewriteName;
 
 	CFileBasic					mcPrimaryFile;
@@ -63,7 +63,7 @@ private:
 	BOOL						mbAddedToController;
 
 public:
-	BOOL		Init(CDurableFileController* pcController, char* szFileName, char* szRewriteName);
+	BOOL		Init(CDurableFileController* pcController, char* szFilename, char* szRewriteName);
 	BOOL		Kill(void);
 	void		InitBasic(void);
 	void		InitError(void);
@@ -100,7 +100,7 @@ public:
 
 	BOOL		TestGetOpenedSinceBegin(void);
 	BOOL		IsOpen(void);
-	char*		GetFileName(void);
+	char*		GetFilename(void);
 	char*		GetRewriteName(void);
 
 	void		Dump(void);

@@ -33,7 +33,7 @@ CNaiveFile::CNaiveFile()
 {
 	mpvMem = NULL;
 	miSize = 0;
-	mszFileName._Init();
+	mszFilename._Init();
 }
 
 
@@ -45,7 +45,7 @@ CNaiveFile* CNaiveFile::Init(void)
 {
 	mpvMem = NULL;
 	miSize = 0;
-	mszFileName.Init();
+	mszFilename.Init();
 	return this;
 }
 
@@ -80,7 +80,7 @@ void CNaiveFile::Kill(void)
 void CNaiveFile::KillExceptBuffer(void)
 {
 	miSize = 0;
-	mszFileName.Kill();
+	mszFilename.Kill();
 }
 
 
@@ -88,16 +88,16 @@ void CNaiveFile::KillExceptBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNaiveFile::Read(const char* szFileName)
+BOOL CNaiveFile::Read(const char* szFilename)
 {
 	CFileBasic	mcFile;
 	CDiskFile*	pcDiskFile;
 
-	if (szFileName)
+	if (szFilename)
 	{
-		mszFileName.Kill();
-		mszFileName.Init(szFileName);
-		pcDiskFile = DiskFile(szFileName);
+		mszFilename.Kill();
+		mszFilename.Init(szFilename);
+		pcDiskFile = DiskFile(szFilename);
 		return Read(pcDiskFile);
 	}
 	return FALSE;
@@ -135,16 +135,16 @@ BOOL CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNaiveFile::Write(const char* szFileName)
+BOOL CNaiveFile::Write(const char* szFilename)
 {
 	CFileBasic	mcFile;
 
-	mcFile.Init(DiskFile(szFileName));
+	mcFile.Init(DiskFile(szFilename));
 
-	if (szFileName)
+	if (szFilename)
 	{
-		mszFileName.Kill();
-		mszFileName.Init(szFileName);
+		mszFilename.Kill();
+		mszFilename.Init(szFilename);
 		if (mcFile.Open(EFM_Write_Create))
 		{
 			mcFile.WriteData(mpvMem, (int)miSize);
@@ -232,13 +232,13 @@ int CNaiveFile::Compare(void* pvOther, int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CompareFileToMemory(const char* szFileName, void* pvMem, int iSize)
+int CompareFileToMemory(const char* szFilename, void* pvMem, int iSize)
 {
 	CNaiveFile	cNaiveFile;
 	int			iResult;
 
 	cNaiveFile.Init();
-	if (!cNaiveFile.Read(szFileName))
+	if (!cNaiveFile.Read(szFilename))
 	{
 		cNaiveFile.Kill();
 		return -1;

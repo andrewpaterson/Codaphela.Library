@@ -28,9 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPropertiesFile::Init(char* szFileName)
+void CPropertiesFile::Init(char* szFilename)
 {
-	mszName.Init(szFileName);
+	mszName.Init(szFilename);
 	mcProperties.Init(4, FALSE);
 }
 

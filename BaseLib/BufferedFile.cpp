@@ -369,11 +369,11 @@ BOOL CBufferedFile::Delete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CBufferedFile::GetFileName(void)
+char* CBufferedFile::GetFilename(void)
 {
 	if (mpcFile)
 	{
-		return mpcFile->GetFileName();
+		return mpcFile->GetFilename();
 	}
 	return NULL;
 }
