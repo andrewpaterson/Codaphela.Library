@@ -16,6 +16,7 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void) override;
+	void	Print(CChars* pszDest, int iDepth);
 
 	BOOL	IsType(void) override;
 	void	AddGeneric(CJavaSyntaxGeneric* pcGeneric);

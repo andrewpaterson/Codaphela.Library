@@ -42,6 +42,39 @@ char* CJavaSyntaxGeneric::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxGeneric::Print(CChars* pszDest, int iDepth)
+{
+	CJavaSyntax::Print(pszDest, iDepth);
+	if (mbWildCard)
+	{
+		pszDest->Append('?');
+		if (mpcGenericType)
+		{
+			pszDest->Append(" extends");
+		}
+	}
+	pszDest->AppendNewLine();
+
+	if (mpcGenericType)
+	{
+		mpcGenericType->Print(pszDest, iDepth + 1);
+	}
+	if (mpcExtends)
+	{
+		if (!mbWildCard)
+		{
+			pszDest->Append(' ', (iDepth + 1) * 2);
+			pszDest->Append("extends");
+		}
+		mpcExtends->Print(pszDest, iDepth + 1);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxGeneric::IsGeneric(void)
 {
 	return TRUE;

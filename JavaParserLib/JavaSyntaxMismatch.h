@@ -12,6 +12,7 @@ class CJavaSyntaxMismatch : public CJavaSyntax
 CONSTRUCTABLE(CJavaSyntaxMismatch);
 public:
 	char*	GetType(void) override;
+	void	Print(CChars* pszDest, int iDepth);
 	BOOL	IsMismatch(void) override;
 };
 
