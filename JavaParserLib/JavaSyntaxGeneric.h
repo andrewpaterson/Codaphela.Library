@@ -19,6 +19,7 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void) override;
+	void	Print(CChars* pszDest, int iDepth);
 
 	BOOL	IsGeneric(void) override;
 

@@ -17,6 +17,7 @@ public:
 
 	virtual char*		GetType(void) =0;
 	virtual void		Print(CChars* pszDest, int iDepth);
+			void		Dump(void);
 
 	virtual BOOL		IsFile(void);
 	virtual BOOL		IsImport(void);

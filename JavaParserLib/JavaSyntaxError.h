@@ -12,6 +12,7 @@ class CJavaSyntaxError : public CJavaSyntax
 CONSTRUCTABLE(CJavaSyntaxError);
 public:
 	char*	GetType(void) override;
+	void	Print(CChars* pszDest, int iDepth);
 	BOOL	IsError(void) override;
 };
 

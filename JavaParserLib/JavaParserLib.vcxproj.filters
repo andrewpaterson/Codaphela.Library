@@ -48,9 +48,6 @@
     <ClCompile Include="JavaSyntaxTopLevel.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxTree.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
     <ClCompile Include="JavaSyntaxType.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
@@ -123,6 +120,9 @@
     <ClCompile Include="JavaTokenParserEnvironment.cpp">
       <Filter>Source\Token</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxTree.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaSyntaxGeneric.h">
@@ -156,9 +156,6 @@
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxTopLevel.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxTree.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxType.h">
@@ -232,6 +229,9 @@
     </ClInclude>
     <ClInclude Include="JavaTokenParserEnvironment.h">
       <Filter>Source\Token</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTree.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
