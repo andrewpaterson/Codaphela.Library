@@ -70,6 +70,8 @@ protected:
 	CJavaSyntaxEnum*			ParseEnum(CJavaSyntax* pcParent);
 	CJavaSyntaxInterface*		ParseInterface(CJavaSyntax* pcParent);
 	CJavaSyntaxType*			ParseType(CJavaSyntax* pcParent);
+	CJavaSyntaxExtent*			ParseExtent(CJavaSyntax* pcParent);
+	CJavaSyntaxTypeCommon*		ParseTypeCommon(CJavaSyntax* pcParent);
 	CJavaSyntaxGeneric*			ParseGeneric(CJavaSyntax* pcParent);
 
 	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);

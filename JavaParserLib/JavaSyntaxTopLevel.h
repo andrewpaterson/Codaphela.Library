@@ -17,9 +17,10 @@ public:
 
 	char*	GetType(void) override;
 
-	BOOL	IsTopLevel(void) override;
+	BOOL	IsClassCommon(void) override;
 
 	void	SetPublic(BOOL bPublic);
+	BOOL	IsPublic(void);
 };
 
 

@@ -109,6 +109,16 @@ CJavaSyntaxType* CJavaSyntaxMemory::CreateType(CJavaSyntaxTree* pcTree, CJavaSyn
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CJavaSyntaxExtent* CJavaSyntaxMemory::CreateExtent(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+{
+	return Create<CJavaSyntaxExtent>(pcTree, pcParent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CJavaSyntaxGeneric* CJavaSyntaxMemory::CreateGeneric(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	return Create<CJavaSyntaxGeneric>(pcTree, pcParent);

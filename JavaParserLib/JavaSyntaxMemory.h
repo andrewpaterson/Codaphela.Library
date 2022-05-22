@@ -10,6 +10,7 @@
 #include "JavaSyntaxEnum.h"
 #include "JavaSyntaxInterface.h"
 #include "JavaSyntaxType.h"
+#include "JavaSyntaxExtent.h"
 #include "JavaSyntaxGeneric.h"
 
 
@@ -34,6 +35,7 @@ public:
 	CJavaSyntaxEnum*			CreateEnum(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxInterface*		CreateInterface(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxType*			CreateType(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxExtent*			CreateExtent(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxGeneric*			CreateGeneric(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 
 protected:

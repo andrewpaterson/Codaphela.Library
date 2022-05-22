@@ -10,7 +10,7 @@ void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 	mpcName = NULL;
-	mapcGenerics.Init();
+	mpcGeneric = NULL;
 }
 
 
@@ -21,7 +21,7 @@ void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 void CJavaSyntaxType::Kill(void)
 {
 	mpcName = NULL;
-	mapcGenerics.Kill();
+	mpcGeneric = NULL;
 	CJavaSyntax::Kill();
 }
 
@@ -42,17 +42,16 @@ char* CJavaSyntaxType::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxType::Print(CChars* pszDest, int iDepth)
 {
-	int						i;
-	CJavaSyntaxGeneric*		pcGenric;
-
 	CJavaSyntax::Print(pszDest, iDepth);
-	mpcName->Print(pszDest);
+	if (mpcName)
+	{
+		mpcName->Print(pszDest);
+	}
 	pszDest->AppendNewLine();
 
-	for (i = 0; i < mapcGenerics.NumElements(); i++)
+	if (mpcGeneric)
 	{
-		pcGenric = mapcGenerics.GetPtr(i);
-		pcGenric->Print(pszDest, iDepth + 1);
+		mpcGeneric->Print(pszDest, iDepth + 1);
 	}
 }
 
@@ -71,6 +70,6 @@ BOOL CJavaSyntaxType::IsType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::AddGeneric(CJavaSyntaxGeneric* pcGeneric) { mapcGenerics.Add(pcGeneric); }
-void CJavaSyntaxType::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
+void CJavaSyntaxType::SetGeneric(CJavaSyntaxGeneric* pcGeneric) { mpcGeneric = pcGeneric; }
+
 

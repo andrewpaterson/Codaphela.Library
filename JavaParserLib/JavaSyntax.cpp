@@ -55,12 +55,15 @@ void CJavaSyntax::Dump(void)
 BOOL CJavaSyntax::IsFile(void) { return FALSE; }
 BOOL CJavaSyntax::IsImport(void) { return FALSE; }
 BOOL CJavaSyntax::IsPackage(void) { return FALSE; }
-BOOL CJavaSyntax::IsTopLevel(void) { return FALSE; }
 BOOL CJavaSyntax::IsEnum(void) { return FALSE; }
 BOOL CJavaSyntax::IsInterface(void) { return FALSE; }
 BOOL CJavaSyntax::IsClass(void) { return FALSE; }
 BOOL CJavaSyntax::IsType(void) { return FALSE; }
+BOOL CJavaSyntax::IsExtent(void) { return FALSE; }
 BOOL CJavaSyntax::IsGeneric(void) { return FALSE; }
+
+BOOL CJavaSyntax::IsClassCommon(void) { return FALSE; }
+BOOL CJavaSyntax::IsTypeCommon(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsError(void) { return FALSE; }
 BOOL CJavaSyntax::IsMismatch(void) { return FALSE; }

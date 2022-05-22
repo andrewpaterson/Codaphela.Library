@@ -37,7 +37,7 @@ char* CJavaSyntaxTopLevel::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxTopLevel::IsTopLevel(void)
+BOOL CJavaSyntaxTopLevel::IsClassCommon(void)
 {
 	return TRUE;
 }
@@ -48,4 +48,5 @@ BOOL CJavaSyntaxTopLevel::IsTopLevel(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxTopLevel::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
+BOOL CJavaSyntaxTopLevel::IsPublic(void) { return mbPublic; }
 

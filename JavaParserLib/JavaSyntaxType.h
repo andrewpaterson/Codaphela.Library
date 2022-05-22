@@ -1,15 +1,14 @@
 #ifndef __JAVA_SYNTAX_TYPE_H__
 #define __JAVA_SYNTAX_TYPE_H__
-#include "JavaSyntaxGeneric.h"
+#include "JavaSyntaxTypeCommon.h"
 
 
 class CJavaSyntaxGeneric;
-class CJavaSyntaxType : public CJavaSyntax
+class CJavaSyntaxType : public CJavaSyntaxTypeCommon
 {
 CONSTRUCTABLE(CJavaSyntaxType);
 protected:
-	CJavaTokenIdentifier*		mpcName;
-	CJavaSyntaxGenericPtrArray	mapcGenerics;
+	CJavaSyntaxGeneric*		mpcGeneric;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -19,9 +18,11 @@ public:
 	void	Print(CChars* pszDest, int iDepth);
 
 	BOOL	IsType(void) override;
-	void	AddGeneric(CJavaSyntaxGeneric* pcGeneric);
-	void	SetName(CJavaTokenIdentifier* pcName);
+	void	SetGeneric(CJavaSyntaxGeneric* pcGeneric);
 };
+
+
+typedef CArrayTemplatePtr<CJavaSyntaxType>	CJavaSyntaxTypePtrArray;
 
 
 #endif // !__JAVA_SYNTAX_TYPE_H__

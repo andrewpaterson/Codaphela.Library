@@ -105,7 +105,22 @@ BOOL CJavaSyntaxParser::Parse(void)
 			pcClass = ParseClass(pcFile);
 			if (pcClass->IsClass())
 			{
-
+				if (!pcClass->IsPackageModifier())
+				{
+					if (!pcFile->HasClass())
+					{
+						pcFile->SetClass(pcClass);
+					}
+					else
+					{
+						mpcLogger->Error(UNEXPECTED_MODIFIER);
+						return FALSE;
+					}
+				}
+				else
+				{
+					pcFile->AddPackageClass(pcClass);
+				}
 			}
 			else if (pcClass->IsError())
 			{
@@ -496,8 +511,9 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 	BOOL					bPublic;
 	BOOL					bAbstract;
 	BOOL					bFinal;
-	BOOL					bOpen;
 	CJavaSyntaxType*		pcType;
+	BOOL					bOpen;
+	BOOL					bClose;
 
 	PushPosition();
 
@@ -539,11 +555,18 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 		}
 
 		bOpen = GetSeparator(JS_CurlyBracketLeft);
-
 		if (!bOpen)
 		{
 			return Error<CJavaSyntaxClass>(EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET);
 		}
+
+		bClose = GetSeparator(JS_CurlyBracketRight);
+		if (!bClose)
+		{
+			return Error<CJavaSyntaxClass>("Fake error.  Expected '}'.");
+		}
+
+		PassPosition();
 		return pcClass;
 	}
 }
@@ -668,15 +691,69 @@ CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(CJavaSyntax* pcParent)
+{
+	CJavaSyntaxGeneric*		pcGeneric;
+	CJavaSyntaxTypeCommon*	pcType;
+	CCJavaTokenAmbiguous*	pcAmbiguousAngleBracketLeft;
+	CJavaTokenScope*		pcScopeAngleBracketLeft;
+	CCJavaTokenAmbiguous*	pcAmbiguousAngleBracketRight;
+	CJavaTokenScope*		pcScopeAngleBracketRight;
+
+	PushPosition();
+
+	if (GetAmbiguous(JA_AngleBracketLeft, &pcAmbiguousAngleBracketLeft))
+	{
+		pcGeneric = mpcSyntaxes->CreateGeneric(&mcSyntaxTree, pcParent);
+		for (;;)
+		{
+			if (GetSeparator(JS_Comma))
+			{
+				continue;
+			}
+			
+			if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
+			{
+				pcScopeAngleBracketLeft = CreateScope(pcAmbiguousAngleBracketLeft->GetPosition(), JG_AngleBracketLeft);
+				pcScopeAngleBracketRight = CreateScope(pcAmbiguousAngleBracketRight->GetPosition(), JG_AngleBracketRight);
+				ReplaceAmbiguous(pcAmbiguousAngleBracketLeft, pcScopeAngleBracketLeft);
+				ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
+				PassPosition();
+				return pcGeneric;
+			}
+
+			pcType = ParseTypeCommon(pcGeneric);
+			if (pcType->IsTypeCommon())
+			{
+				pcGeneric->AddType(pcType);
+			}
+			else if (pcType->IsMismatch())
+			{
+				return Error<CJavaSyntaxGeneric>(EXPECTED_TYPE);
+			}
+			else
+			{
+				return Error<CJavaSyntaxGeneric>();
+			}
+		}
+	}
+	else
+	{
+		return Mismatch<CJavaSyntaxGeneric>();
+	}
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CJavaSyntaxType* CJavaSyntaxParser::ParseType(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxType*		pcType;
 	CJavaSyntaxGeneric*		pcGeneric;
 	CJavaTokenIdentifier*	pcIdentifier;
-	CCJavaTokenAmbiguous*	pcAmbiguousAngleBracketLeft;
-	CJavaTokenScope*		pcScopeAngleBracketLeft;
-	CCJavaTokenAmbiguous*	pcAmbiguousAngleBracketRight;
-	CJavaTokenScope*		pcScopeAngleBracketRight;
 
 	PushPosition();
 
@@ -694,49 +771,22 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(CJavaSyntax* pcParent)
 
 	pcType->SetName(pcIdentifier);
 
-	if (GetAmbiguous(JA_AngleBracketLeft, &pcAmbiguousAngleBracketLeft))
+	pcGeneric = ParseGeneric(pcType);
+	if (pcGeneric->IsGeneric())
 	{
-		for (;;)
-		{
-			pcGeneric = ParseGeneric(pcType);
-			if (pcGeneric->IsGeneric())
-			{
-				pcType->AddGeneric(pcGeneric);
-			}
-			else
-			{
-				return Error<CJavaSyntaxType>(EXPECTED_GENERIC);
-			}
-
-			if (GetSeparator(JS_Comma))
-			{
-				continue;
-			}
-			else if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
-			{
-				pcScopeAngleBracketLeft = CreateScope(pcAmbiguousAngleBracketLeft->GetPosition(), JG_AngleBracketLeft);
-				pcScopeAngleBracketRight = CreateScope(pcAmbiguousAngleBracketRight->GetPosition(), JG_AngleBracketRight);
-				ReplaceAmbiguous(pcAmbiguousAngleBracketLeft, pcScopeAngleBracketLeft);
-				ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
-				PassPosition();
-				return pcType;
-			}
-			else
-			{
-				return Error<CJavaSyntaxType>(EXPECTED_CLOSE_ANGLE_BRACKET_OR_COMMA);
-			}
-		}
+		pcType->SetGeneric(pcGeneric);
+		PassPosition();
+		return pcType;
 	}
-	else if (GetAmbiguous(JA_AngleBracketRight, &pcAmbiguousAngleBracketRight))
+	else if (pcGeneric->IsMismatch())
 	{
-		pcScopeAngleBracketRight = CreateScope(pcAmbiguousAngleBracketRight->GetPosition(), JG_AngleBracketRight);
-		ReplaceAmbiguous(pcAmbiguousAngleBracketRight, pcScopeAngleBracketRight);
 		PassPosition();
 		return pcType;
 	}
 	else
 	{
-		return Error<CJavaSyntaxType>(EXPECTED_OPEN_OR_CLOSE_ANGLE_BRACKET);
+		PassPosition();
+		return Error<CJavaSyntaxType>();
 	}
 }
 
@@ -745,68 +795,112 @@ CJavaSyntaxType* CJavaSyntaxParser::ParseType(CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(CJavaSyntax* pcParent)
+CJavaSyntaxExtent* CJavaSyntaxParser::ParseExtent(CJavaSyntax* pcParent)
 {
-	CJavaSyntaxGeneric*			pcGeneric;
-	CCJavaTokenAmbiguous*		pcAmbiguousQuestionMark;
-	CJavaTokenScope*			pcScopeQuestionMark;
-	BOOL						bQuestionMark;
-	CJavaSyntaxType*			pcExtendsType;
-	CJavaSyntaxType*			pcGenericType;
+	CCJavaTokenAmbiguous*	pcAmbiguousQuestionMark;
+	CJavaTokenIdentifier*	pcIdentifier;
+	BOOL					bQuestionMark;
+	CJavaSyntaxExtent*		pcExtent;
+	CJavaTokenScope*		pcScopeQuestionMark;
+	BOOL					bExtends;
+	CJavaSyntaxType*		pcType;
 
 	PushPosition();
 	bQuestionMark = FALSE;
-	pcGenericType = NULL;
-	pcGeneric = mpcSyntaxes->CreateGeneric(&mcSyntaxTree, pcParent);
+	pcIdentifier = NULL;
 
 	if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
 	{
 		bQuestionMark = TRUE;
-		pcGeneric->SetWildCard(TRUE);
 	}
 	else
 	{
-		pcGenericType = ParseType(pcGeneric);
-		pcGeneric->SetGenericType(pcGenericType);
+		pcIdentifier = GetIdentifier();
 	}
 
-	if ((bQuestionMark && pcGenericType != NULL) || ((!bQuestionMark && pcGenericType == NULL)))
+	if (!bQuestionMark && pcIdentifier == NULL)
 	{
-		return Error<CJavaSyntaxGeneric>(EXPECTED_IDENTIFIER_OR_QUESTION_MARK);
+		return Mismatch<CJavaSyntaxExtent>();
 	}
 
-	PushPosition();
-	if (GetKeyword(JK_extends))
+	bExtends = GetKeyword(JK_extends);
+
+	if (bQuestionMark && !bExtends)
 	{
+		pcExtent = mpcSyntaxes->CreateExtent(&mcSyntaxTree, pcParent);
+		pcExtent->SetWildCard(TRUE);
+
+		pcScopeQuestionMark = CreateScope(pcAmbiguousQuestionMark->GetPosition(), JG_QuestionMark);
+		ReplaceAmbiguous(pcAmbiguousQuestionMark, pcScopeQuestionMark);
+
 		PassPosition();
-		pcExtendsType = ParseType(pcGeneric);
-		if (pcExtendsType->IsType())
-		{
-			pcGeneric->SetExtends(pcExtendsType);
-		}
-		else if (pcExtendsType->IsError())
-		{
-			return Error<CJavaSyntaxGeneric>();
-		}
+		return pcExtent;
 	}
-	else if (GetAmbiguous(JA_AngleBracketLeft))
+	else if (!bExtends)
 	{
-		PopPosition();
-		ParseType(pcGeneric);  //Can't do this.
-	}
-	else
-	{
-		PassPosition();
+		return Mismatch<CJavaSyntaxExtent>();
 	}
 
+	pcExtent = mpcSyntaxes->CreateExtent(&mcSyntaxTree, pcParent);
 	if (bQuestionMark)
 	{
+		pcExtent->SetWildCard(TRUE);
+
 		pcScopeQuestionMark = CreateScope(pcAmbiguousQuestionMark->GetPosition(), JG_QuestionMark);
 		ReplaceAmbiguous(pcAmbiguousQuestionMark, pcScopeQuestionMark);
 	}
+	else if (pcIdentifier)
+	{
+		pcExtent->SetName(pcIdentifier);
+	}
 
-	PassPosition();
-	return pcGeneric;
+	pcType = ParseType(pcExtent);
+	if (pcType->IsError())
+	{
+		return Error<CJavaSyntaxExtent>();
+	}
+	else if (pcType->IsMismatch())
+	{
+		return Mismatch<CJavaSyntaxExtent>();
+	}
+
+	pcExtent->SetExtends(pcType);
+
+	PassPosition(); 
+	return pcExtent;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxTypeCommon* CJavaSyntaxParser::ParseTypeCommon(CJavaSyntax* pcParent)
+{
+	CJavaSyntaxType*	pcType;
+	CJavaSyntaxExtent*	pcExtent;
+
+	pcExtent = ParseExtent(pcParent);
+	if (pcExtent->IsExtent())
+	{
+		return pcExtent;
+	}
+	else if (pcExtent->IsError())
+	{
+		return Error<CJavaSyntaxTypeCommon>();
+	}
+
+	pcType = ParseType(pcParent);
+	if (pcType->IsType())
+	{
+		return pcType;
+	}
+	else if (pcType->IsError())
+	{
+		return Error<CJavaSyntaxTypeCommon>();
+	}
+
+	return Mismatch<CJavaSyntaxTypeCommon>();
 }
 
 

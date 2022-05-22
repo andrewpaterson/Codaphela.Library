@@ -9,9 +9,7 @@
 void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
-	mpcGenericType = NULL;
-	mbWildCard = FALSE;
-	mpcExtends = NULL;
+	mapc.Init();
 }
 
 
@@ -21,9 +19,7 @@ void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxGeneric::Kill(void)
 {
-	mpcGenericType = NULL;
-	mbWildCard = FALSE;
-	mpcExtends = NULL;
+	mapc.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -44,29 +40,16 @@ char* CJavaSyntaxGeneric::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxGeneric::Print(CChars* pszDest, int iDepth)
 {
+	int						i;
+	CJavaSyntaxTypeCommon*	pcType;
+
 	CJavaSyntax::Print(pszDest, iDepth);
-	if (mbWildCard)
-	{
-		pszDest->Append('?');
-		if (mpcGenericType)
-		{
-			pszDest->Append(" extends");
-		}
-	}
 	pszDest->AppendNewLine();
 
-	if (mpcGenericType)
+	for (i = 0; i < mapc.NumElements(); i++)
 	{
-		mpcGenericType->Print(pszDest, iDepth + 1);
-	}
-	if (mpcExtends)
-	{
-		if (!mbWildCard)
-		{
-			pszDest->Append(' ', (iDepth + 1) * 2);
-			pszDest->Append("extends");
-		}
-		mpcExtends->Print(pszDest, iDepth + 1);
+		pcType = mapc.GetPtr(i);
+		pcType->Print(pszDest, iDepth + 1);
 	}
 }
 
@@ -85,7 +68,8 @@ BOOL CJavaSyntaxGeneric::IsGeneric(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxGeneric::SetGenericType(CJavaSyntaxType* pcGenericType) { mpcGenericType = pcGenericType; }
-void CJavaSyntaxGeneric::SetExtends(CJavaSyntaxType* pcType) { mpcExtends = pcType; }
-void CJavaSyntaxGeneric::SetWildCard(BOOL bWildCard) { mbWildCard = bWildCard; }
+void CJavaSyntaxGeneric::AddType(CJavaSyntaxTypeCommon* pcType)
+{
+	mapc.Add(pcType);
+}
 
