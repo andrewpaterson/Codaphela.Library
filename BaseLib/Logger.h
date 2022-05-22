@@ -60,7 +60,7 @@ public:
 	void		Enable(void);
 	void		SetBreakOnError(BOOL bBreakOnError);
 	void		SetBreakOnWarning(BOOL bBreakOnWarning);
-	SLogConfig	SetSilent(void);
+	SLogConfig	SetSilent(BOOL bBreakOnError = FALSE);
 	void		SetConfig(SLogConfig* psConfig);
 	void		GetConfig(SLogConfig* psConfig);
 

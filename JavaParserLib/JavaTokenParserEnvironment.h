@@ -21,6 +21,7 @@ public:
 	BOOL				Parse(BOOL bFailOnError = TRUE);
 	CJavaTokenParser*	GetParser(void);
 	char*				GetOutput(int* piLength = NULL);
+	char*				GetOutput(CChars* pszDest);
 };
 
 
