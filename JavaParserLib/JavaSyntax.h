@@ -28,6 +28,7 @@ public:
 	virtual BOOL		IsType(void);
 	virtual BOOL		IsGeneric(void);
 	virtual BOOL		IsExtent(void);
+	virtual BOOL		IsBlock(void);
 
 	virtual BOOL		IsClassCommon(void);
 	virtual BOOL		IsTypeCommon(void);

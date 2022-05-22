@@ -2,10 +2,10 @@
 #define __JAVA_SYNTAX_CLASS_H__
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntaxType.h"
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxClassCommon.h"
 
 
-class CJavaSyntaxClass : public CJavaSyntaxTopLevel
+class CJavaSyntaxClass : public CJavaSyntaxClassCommon
 {
 CONSTRUCTABLE(CJavaSyntaxClass);
 protected:

@@ -5,9 +5,9 @@
 #include "JavaTokenIdentifier.h"
 
 
-class CJavaSyntaxTopLevel : public CJavaSyntax
+class CJavaSyntaxClassCommon : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxTopLevel);
+CONSTRUCTABLE(CJavaSyntaxClassCommon);
 protected:
 	BOOL					mbPublic;
 
@@ -24,7 +24,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxTopLevel>	CJavaSyntaxTopLevelPtrArray;
+typedef CArrayTemplatePtr<CJavaSyntaxClassCommon>	CJavaSyntaxClassCommonPtrArray;
 
 
 #endif // !__JAVA_SYNTAX_TOP_LEVEL_H__

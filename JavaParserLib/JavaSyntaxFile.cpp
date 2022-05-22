@@ -16,7 +16,6 @@ void CJavaSyntaxFile::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 
 	mpcClass = NULL;
 	mapcPackageClasses.Init();
-
 }
 
 
@@ -66,7 +65,7 @@ void CJavaSyntaxFile::Print(CChars* pszDest, int iDepth)
 {
 	int						i;
 	CJavaSyntaxImport*		pcSyntax;
-	CJavaSyntaxTopLevel*	pcTopLevel;
+	CJavaSyntaxClassCommon*	pcClassCommon;
 
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->Append(&mszFilename);
@@ -90,8 +89,8 @@ void CJavaSyntaxFile::Print(CChars* pszDest, int iDepth)
 
 	for (i = 0; i < mapcPackageClasses.NumElements(); i++)
 	{
-		pcTopLevel = mapcPackageClasses.GetPtr(i);
-		pcTopLevel->Print(pszDest, iDepth + 1);
+		pcClassCommon = mapcPackageClasses.GetPtr(i);
+		pcClassCommon->Print(pszDest, iDepth + 1);
 	}
 }
 
@@ -138,11 +137,11 @@ void CJavaSyntaxFile::AddImport(CJavaSyntaxImport* pcImport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxFile::SetClass(CJavaSyntaxTopLevel* pcTopLevel)
+BOOL CJavaSyntaxFile::SetClass(CJavaSyntaxClassCommon* pcClassCommon)
 {
 	if (mpcClass == NULL)
 	{
-		mpcClass = pcTopLevel;
+		mpcClass = pcClassCommon;
 		return TRUE;
 	}
 	else
@@ -166,8 +165,8 @@ BOOL CJavaSyntaxFile::HasClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxFile::AddPackageClass(CJavaSyntaxTopLevel* pcTopLevel)
+void CJavaSyntaxFile::AddPackageClass(CJavaSyntaxClassCommon* pcClassCommon)
 {
-	mapcPackageClasses.Add(pcTopLevel);
+	mapcPackageClasses.Add(pcClassCommon);
 }
 

@@ -4,7 +4,7 @@
 #include "JavaSyntax.h"
 #include "JavaSyntaxImport.h"
 #include "JavaSyntaxPackage.h"
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxClassCommon.h"
 
 
 class CJavaSyntaxError : public CJavaSyntax
