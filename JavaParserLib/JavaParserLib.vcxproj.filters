@@ -123,6 +123,12 @@
     <ClCompile Include="JavaSyntaxTree.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxExtent.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxTypeCommon.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaSyntaxGeneric.h">
@@ -232,6 +238,12 @@
     </ClInclude>
     <ClInclude Include="JavaSyntaxTree.h">
       <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxExtent.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTypeCommon.h">
+      <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

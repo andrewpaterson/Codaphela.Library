@@ -1,16 +1,17 @@
-#include "JavaSyntaxGeneric.h"
 #include "JavaSyntaxType.h"
+#include "JavaSyntaxExtent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxExtent::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 	mpcName = NULL;
-	mpcGeneric = NULL;
+	mbWildCard = FALSE;
+	mpcExtends = NULL;
 }
 
 
@@ -18,10 +19,11 @@ void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::Kill(void)
+void CJavaSyntaxExtent::Kill(void)
 {
 	mpcName = NULL;
-	mpcGeneric = NULL;
+	mbWildCard = FALSE;
+	mpcExtends = NULL;
 	CJavaSyntax::Kill();
 }
 
@@ -30,9 +32,9 @@ void CJavaSyntaxType::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxType::GetType(void)
+char* CJavaSyntaxExtent::GetType(void)
 {
-	return "Type";
+	return "Extent";
 }
 
 
@@ -40,18 +42,22 @@ char* CJavaSyntaxType::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxExtent::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
-	if (mpcName)
+	if (mbWildCard)
+	{
+		pszDest->Append('?');
+	}
+	if (mpcName) 
 	{
 		mpcName->Print(pszDest);
 	}
 	pszDest->AppendNewLine();
 
-	if (mpcGeneric)
+	if (mpcExtends)
 	{
-		mpcGeneric->Print(pszDest, iDepth + 1);
+		mpcExtends->Print(pszDest, iDepth + 1);
 	}
 }
 
@@ -60,7 +66,7 @@ void CJavaSyntaxType::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxType::IsType(void)
+BOOL CJavaSyntaxExtent::IsExtent(void)
 {
 	return TRUE;
 }
@@ -70,6 +76,18 @@ BOOL CJavaSyntaxType::IsType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::SetGeneric(CJavaSyntaxGeneric* pcGeneric) { mpcGeneric = pcGeneric; }
+void CJavaSyntaxExtent::SetExtends(CJavaSyntaxType* pcExtends)
+{
+	mpcExtends = pcExtends;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxExtent::SetWildCard(BOOL bWildCard)
+{
+	mbWildCard = bWildCard;
+}
 

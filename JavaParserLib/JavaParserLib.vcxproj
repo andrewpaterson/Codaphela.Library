@@ -177,6 +177,8 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="JavaSyntaxExtent.cpp" />
+    <ClCompile Include="JavaSyntaxTypeCommon.cpp" />
     <ClCompile Include="JavaTokenAmbiguous.cpp" />
     <ClCompile Include="JavaTokenAnnotation.cpp" />
     <ClCompile Include="JavaTokenBoolean.cpp" />
@@ -214,6 +216,8 @@
     <ClCompile Include="JavaTokenParser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="JavaSyntaxTypeCommon.h" />
+    <ClInclude Include="JavaSyntaxExtent.h" />
     <ClInclude Include="JavaTokenAnnotation.h" />
     <ClInclude Include="JavaTokenBoolean.h" />
     <ClInclude Include="JavaSyntaxClass.h" />

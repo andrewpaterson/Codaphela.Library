@@ -22,12 +22,15 @@ public:
 	virtual BOOL		IsFile(void);
 	virtual BOOL		IsImport(void);
 	virtual BOOL		IsPackage(void);
-	virtual BOOL		IsTopLevel(void);
 	virtual BOOL		IsEnum(void);
 	virtual BOOL		IsInterface(void);
 	virtual BOOL		IsClass(void);
 	virtual BOOL		IsType(void);
 	virtual BOOL		IsGeneric(void);
+	virtual BOOL		IsExtent(void);
+
+	virtual BOOL		IsClassCommon(void);
+	virtual BOOL		IsTypeCommon(void);
 
 	virtual BOOL		IsError(void);
 	virtual BOOL		IsMismatch(void);

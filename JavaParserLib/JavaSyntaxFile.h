@@ -16,7 +16,7 @@ protected:
 	CJavaSyntaxPackage*				mpcPackage;
 	CJavaSyntaxImportPtrArray		mapcImports;
 
-	CJavaSyntaxTopLevel*			mpcPublicClass;			// The only public class, interface or enum in the file.
+	CJavaSyntaxTopLevel*			mpcClass;				// The only public class, interface or enum in the file.
 	CJavaSyntaxTopLevelPtrArray		mapcPackageClasses;		// All other package classes, interfaces and enums in the file.
 
 public:
@@ -33,8 +33,9 @@ public:
 	BOOL	SetPackage(CJavaSyntaxPackage* pcPackage);
 	void	AddImport(CJavaSyntaxImport* pcImport);
 
-	BOOL	SetPublicClass(CJavaSyntaxTopLevel* pcTopLevel);
+	BOOL	SetClass(CJavaSyntaxTopLevel* pcTopLevel);
 	void	AddPackageClass(CJavaSyntaxTopLevel* pcTopLevel);
+	BOOL	HasClass(void);
 };
 
 

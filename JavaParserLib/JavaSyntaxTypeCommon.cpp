@@ -1,14 +1,14 @@
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxTypeCommon.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxTypeCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
-	mbPublic = FALSE;
+	mpcName = NULL;
 }
 
 
@@ -16,9 +16,9 @@ void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Kill(void)
+void CJavaSyntaxTypeCommon::Kill(void)
 {
-	mbPublic = FALSE;
+	mpcName = NULL;
 	CJavaSyntax::Kill();
 }
 
@@ -27,9 +27,9 @@ void CJavaSyntaxTopLevel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxTopLevel::GetType(void)
+char* CJavaSyntaxTypeCommon::GetType(void)
 {
-	return "TopLevel";
+	return "Type (Common)";
 }
 
 
@@ -37,16 +37,6 @@ char* CJavaSyntaxTopLevel::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxTopLevel::IsClassCommon(void)
-{
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
-BOOL CJavaSyntaxTopLevel::IsPublic(void) { return mbPublic; }
+void CJavaSyntaxTypeCommon::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
+BOOL CJavaSyntaxTypeCommon::IsTypeCommon(void) { return TRUE; }
 
