@@ -51,6 +51,7 @@ public:
 
 	CJavaToken*				GetFirstToken(void);
 	CLogger*				GetLogger(void);
+	void					GetText(CExternalString* pcDest);
 
 	CJavaTokenMemory*		GetTokenMemory(void);
 	CJavaTokenDefinitions*	GetTokenDefinitions(void);

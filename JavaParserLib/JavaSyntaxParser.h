@@ -46,6 +46,7 @@ protected:
 	CJavaSyntaxMismatch		mcMismatch;
 
 	CChars					mszFilename;
+	CExternalString			mcText;
 	CLogger*				mpcLogger;
 
 public:

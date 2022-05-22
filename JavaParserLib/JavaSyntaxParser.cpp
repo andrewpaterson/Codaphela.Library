@@ -1,3 +1,4 @@
+#include "BaseLib/Logger.h"
 #include "JavaSyntaxParserErrors.h"
 #include "JavaSyntaxParser.h"
 
@@ -21,6 +22,7 @@ void CJavaSyntaxParser::Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pc
 	PushPosition();
 
 	mszFilename.Init(pcTokenParser->GetFilename());
+	pcTokenParser->GetText(&mcText);
 
 	mcSyntaxTree.Init();
 	mcError.Init(&mcSyntaxTree, NULL);
@@ -124,6 +126,17 @@ BOOL CJavaSyntaxParser::Parse(void)
 			}
 			else if (pcClass->IsError())
 			{
+				STextPosition*			psPos;
+				CTextPositionPrinter	cPrinter;
+				CChars					sz;
+
+				psPos = mpcCurrentToken->GetPosition();
+
+				cPrinter.Init(&mcText, psPos, mszFilename.Text());
+				sz.Init();
+				cPrinter.PrintPosition(&sz);
+				sz.DumpKill();
+
 				return FALSE;
 			}
 
@@ -895,9 +908,13 @@ CJavaSyntaxTypeCommon* CJavaSyntaxParser::ParseTypeCommon(CJavaSyntax* pcParent)
 	{
 		return pcType;
 	}
-	else if (pcType->IsError())
+	else if (pcType->IsError() || pcType->IsMismatch())
 	{
-		return Error<CJavaSyntaxTypeCommon>();
+		return pcType;
+	}
+	else
+	{
+		gcLogger.Error2(__METHOD__, " Invalid parse return.", NULL);
 	}
 
 	return Mismatch<CJavaSyntaxTypeCommon>();

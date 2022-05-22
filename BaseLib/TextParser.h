@@ -186,6 +186,7 @@ public:
 	void			SetErrorEndOfFile(void);
 	void			SetErrorSyntaxError(void);
 	void			AppendError(CChars* pszDest);
+	void			GetText(CExternalString* pcDest);
 
 	void			PrintPosition(CChars* pszDest);
 	void			PrintPositionSingleLineParser(CChars* pszDest);
