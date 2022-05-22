@@ -61,8 +61,15 @@ BOOL CJavaSyntax::IsClass(void) { return FALSE; }
 BOOL CJavaSyntax::IsType(void) { return FALSE; }
 BOOL CJavaSyntax::IsExtent(void) { return FALSE; }
 BOOL CJavaSyntax::IsGeneric(void) { return FALSE; }
-BOOL CJavaSyntax::IsBlock(void) { return FALSE; }
 
+BOOL CJavaSyntax::IsBlock(void) { return FALSE; }
+BOOL CJavaSyntax::IsExpression(void) { return FALSE; }
+BOOL CJavaSyntax::IsOriginalFor(void) { return FALSE; }
+BOOL CJavaSyntax::IsIterativeFor(void) { return FALSE; }
+BOOL CJavaSyntax::IsDeclaration(void) { return FALSE; }
+BOOL CJavaSyntax::IsAssignment(void) { return FALSE; }
+
+BOOL CJavaSyntax::IsStatement(void) { return FALSE; }
 BOOL CJavaSyntax::IsClassCommon(void) { return FALSE; }
 BOOL CJavaSyntax::IsTypeCommon(void) { return FALSE; }
 

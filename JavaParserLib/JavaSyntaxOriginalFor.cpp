@@ -1,11 +1,11 @@
-#include "JavaSyntaxBlock.h"
+#include "JavaSyntaxOriginalFor.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxBlock::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxOriginalFor::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 }
@@ -15,7 +15,7 @@ void CJavaSyntaxBlock::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxBlock::Kill(void)
+void CJavaSyntaxOriginalFor::Kill(void)
 {
 	CJavaSyntax::Kill();
 }
@@ -25,9 +25,9 @@ void CJavaSyntaxBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxBlock::GetType(void)
+char* CJavaSyntaxOriginalFor::GetType(void)
 {
-	return "Block";
+	return "OriginalFor";
 }
 
 
@@ -35,7 +35,7 @@ char* CJavaSyntaxBlock::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxBlock::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxOriginalFor::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
@@ -46,7 +46,7 @@ void CJavaSyntaxBlock::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxBlock::IsBlock(void)
+BOOL CJavaSyntaxOriginalFor::IsOriginalFor(void)
 {
 	return TRUE;
 }

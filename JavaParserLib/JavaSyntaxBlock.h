@@ -2,7 +2,7 @@
 #define __JAVA_SYNTAX_BLOCK_H__
 #include "JavaSyntax.h"
 
-
+// { Statement ; ... Statement ; }
 class CJavaSyntaxBlock : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxBlock);

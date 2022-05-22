@@ -16,42 +16,21 @@
     <Filter Include="Source\Token\Elements">
       <UniqueIdentifier>{2ddb221c-00c2-4e2c-8365-0b0a3cb51505}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Syntax\Elements\Package">
+      <UniqueIdentifier>{1f2ba5df-3dc2-4f8b-9f28-03d42ff41127}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Syntax\Elements\Behaviour">
+      <UniqueIdentifier>{75aa4dd5-00cb-4ddd-8229-d91d37030bae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Syntax\Elements\Control">
+      <UniqueIdentifier>{ae8460be-8876-4449-bd81-4f3fb29fc094}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Syntax\Elements\Common">
+      <UniqueIdentifier>{b055be43-d6fa-4b03-ba3d-2d6e789e6189}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JavaSyntax.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxClass.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxEnum.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxError.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxFile.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxImport.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxInterface.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxMismatch.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxPackage.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxClassCommon.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxType.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxGeneric.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxParser.cpp">
@@ -123,51 +102,69 @@
     <ClCompile Include="JavaSyntaxTree.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxExtent.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxTypeCommon.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
+    <ClCompile Include="JavaSyntaxAssignment.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxBlock.cpp">
-      <Filter>Source\Syntax\Elements</Filter>
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxDeclaration.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxExpression.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxIterativeFor.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxOriginalFor.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxClass.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxClassCommon.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxEnum.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxFile.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxImport.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxInterface.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxPackage.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxStatement.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxMismatch.cpp">
+      <Filter>Source\Syntax\Elements\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxError.cpp">
+      <Filter>Source\Syntax\Elements\Control</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxExtent.cpp">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxGeneric.cpp">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxType.cpp">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxTypeCommon.cpp">
+      <Filter>Source\Syntax\Elements\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="JavaSyntaxGeneric.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
     <ClInclude Include="JavaSyntax.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxClass.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxEnum.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxError.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxFile.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxImport.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxInterface.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxMismatch.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxPackage.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxClassCommon.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxType.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxParser.h">
@@ -242,14 +239,65 @@
     <ClInclude Include="JavaSyntaxTree.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxExtent.h">
-      <Filter>Source\Syntax\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxTypeCommon.h">
-      <Filter>Source\Syntax\Elements</Filter>
+    <ClInclude Include="JavaSyntaxAssignment.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxBlock.h">
-      <Filter>Source\Syntax\Elements</Filter>
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxDeclaration.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxExpression.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxIterativeFor.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxOriginalFor.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxClass.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxClassCommon.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxEnum.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxFile.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxImport.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxInterface.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxPackage.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxStatement.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxMismatch.h">
+      <Filter>Source\Syntax\Elements\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxError.h">
+      <Filter>Source\Syntax\Elements\Control</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxExtent.h">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxGeneric.h">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxType.h">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxTypeCommon.h">
+      <Filter>Source\Syntax\Elements\Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
