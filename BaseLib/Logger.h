@@ -44,6 +44,7 @@ public:
 	void		Init(const char* szName);
 	void		Init(CAbstractFile* pcFile, const char* szName);
 	void		Kill(void);
+
 	void		Add(const char* szText);
 	void		Add(const char* szErrorLevel, const char* szText);
 	BOOL		Error(const char* szText);
@@ -54,6 +55,7 @@ public:
 	void		Info2(const char* szText, ...);
 	void		Debug(const char* szText);
 	void		Debug2(const char* szText, ...);
+
 	void		Disable(void);
 	void		Enable(void);
 	void		SetBreakOnError(BOOL bBreakOnError);
@@ -61,6 +63,7 @@ public:
 	SLogConfig	SetSilent(void);
 	void		SetConfig(SLogConfig* psConfig);
 	void		GetConfig(SLogConfig* psConfig);
+
 	void		AddOutput(CAbstractFile* pcFile);
 	void		RemoveOutput(CAbstractFile* pcFile);
 

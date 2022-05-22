@@ -113,8 +113,21 @@ protected:
 template<class M>
 M* CJavaSyntaxParser::Error(char* szError)
 {
-	mpcLogger->Error(szError);
 	PassPosition();
+
+	STextPosition*			psPos;
+	CTextPositionPrinter	cPrinter;
+	CChars					sz;
+
+	psPos = mpcCurrentToken->GetPosition();
+
+	cPrinter.Init(&mcText, psPos, mszFilename.Text());
+	sz.Init(szError);
+	sz.AppendNewLine();
+	cPrinter.PrintPosition(&sz);
+
+	mpcLogger->Error(sz.Text());
+	sz.Kill();
 	return (M*)&mcError;
 }
 

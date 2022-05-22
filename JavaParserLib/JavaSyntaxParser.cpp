@@ -126,17 +126,6 @@ BOOL CJavaSyntaxParser::Parse(void)
 			}
 			else if (pcClass->IsError())
 			{
-				STextPosition*			psPos;
-				CTextPositionPrinter	cPrinter;
-				CChars					sz;
-
-				psPos = mpcCurrentToken->GetPosition();
-
-				cPrinter.Init(&mcText, psPos, mszFilename.Text());
-				sz.Init();
-				cPrinter.PrintPosition(&sz);
-				sz.DumpKill();
-
 				return FALSE;
 			}
 
@@ -742,7 +731,7 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(CJavaSyntax* pcParent)
 			}
 			else if (pcType->IsMismatch())
 			{
-				return Error<CJavaSyntaxGeneric>(EXPECTED_TYPE);
+				return Error<CJavaSyntaxGeneric>(EXPECTED_TYPE_OR_CLOSE_ANGLE_BRACKET);
 			}
 			else
 			{

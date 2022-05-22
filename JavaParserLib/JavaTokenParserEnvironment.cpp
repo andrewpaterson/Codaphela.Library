@@ -1,3 +1,4 @@
+#include "BaseLib/MemoryFile.h"
 #include "JavaTokenParserEnvironment.h"
 
 
@@ -22,6 +23,10 @@ void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen,
 {
 	mcLogger.Init();
 	mcLogger.SetBreakOnError(bBreakOnError);
+
+	mcMemoryLog.Init();
+	mcLogger.AddOutput(&mcMemoryLog);
+
 	mcTokenDefinitions.Init();
 	mcTokenMemory.Init();
 	mcTokenParser.Init(&mcLogger, &mcTokenDefinitions, &mcTokenMemory, szFilename, szText, iTextLen);
@@ -38,6 +43,8 @@ void CTokenParserEnvironment::Kill(void)
 	mcTokenMemory.Kill();
 	mcTokenDefinitions.Kill();
 	mcLogger.Kill();
+	mcMemoryLog.Kill();
+	
 }
 
 
@@ -58,5 +65,16 @@ BOOL CTokenParserEnvironment::Parse(BOOL bFailOnError)
 CJavaTokenParser* CTokenParserEnvironment::GetParser(void)
 {
 	return &mcTokenParser;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTokenParserEnvironment::GetOutput(int* piLength)
+{
+	SafeAssign(piLength, mcMemoryLog.GetBufferSize());
+	return (char*)mcMemoryLog.GetBufferPointer();
 }
 

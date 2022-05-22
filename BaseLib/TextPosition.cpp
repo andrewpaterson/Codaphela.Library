@@ -178,6 +178,11 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 
 	szLine.Init();
 	szLine.Append('[');
+	if (mszFilename)
+	{
+		szLine.Append(mszFilename);
+		szLine.Append(':');
+	}
 	szLine.Append(mcTextPosition.iLine + 1);
 	szLine.Append("]: ");
 
