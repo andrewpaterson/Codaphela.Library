@@ -1095,3 +1095,36 @@ CJavaTokenScope* CJavaSyntaxParser::CreateScope(STextPosition* psPosition, EJava
 	return pcScope;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParser::PrivateError(char* szError)
+{
+	PassPosition();
+
+	STextPosition* psPos;
+	CTextPositionPrinter	cPrinter;
+	CChars					sz;
+	STextPosition			sPos;
+
+	if (mpcCurrentToken)
+	{
+		psPos = mpcCurrentToken->GetPosition();
+	}
+	else
+	{
+		sPos.Init(mcText.msz, mcText.miLen, &(mcText.msz[mcText.miLen]));
+		psPos = &sPos;
+	}
+
+	cPrinter.Init(&mcText, psPos, mszFilename.Text());
+	sz.Init(szError);
+	sz.AppendNewLine();
+	cPrinter.PrintPosition(&sz);
+
+	mpcLogger->Error(sz.Text());
+	sz.Kill();
+}
+

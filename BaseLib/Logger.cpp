@@ -106,13 +106,28 @@ void CLogger::Kill(void)
 {
 	int				i;
 	CAbstractFile*	pcFile;
+	BOOL			bDebugFreed;
 
+	bDebugFreed = FALSE;
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcFile = *mapcFiles.Get(i);
+		if (pcFile == mpcDebugOutputFile)
+		{
+			bDebugFreed = TRUE;
+		}
 		if (pcFile->mbBasicFileMustFree)
 		{
 			SafeKill(pcFile);
+		}
+	}
+
+	if (!bDebugFreed)
+	{
+		if (mpcDebugOutputFile->mbBasicFileMustFree)
+		{
+			SafeKill(mpcDebugOutputFile);
+			free(mpcDebugOutputFile);
 		}
 	}
 	mapcFiles.Kill();
