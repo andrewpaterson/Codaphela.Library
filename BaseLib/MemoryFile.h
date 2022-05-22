@@ -35,7 +35,7 @@ protected:
 	void*		mpvInitialMem;
 	int			miInitialLength;
 	BOOL		mbFakeArray;
-	CArrayChar	mcArray;  //protect me please.
+	CArrayChar	mcArray;
 
 public:
 	void		Init(void);
