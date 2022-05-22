@@ -98,6 +98,7 @@ protected:
 
 	BOOL						ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
 	CJavaTokenScope*			CreateScope(STextPosition* psPosition, EJavaTokenScope eScope);
+	void						PrivateError(char* szError);
 
 protected:
 	template<class M>	M*	Error(char* szError);
@@ -113,21 +114,7 @@ protected:
 template<class M>
 M* CJavaSyntaxParser::Error(char* szError)
 {
-	PassPosition();
-
-	STextPosition*			psPos;
-	CTextPositionPrinter	cPrinter;
-	CChars					sz;
-
-	psPos = mpcCurrentToken->GetPosition();
-
-	cPrinter.Init(&mcText, psPos, mszFilename.Text());
-	sz.Init(szError);
-	sz.AppendNewLine();
-	cPrinter.PrintPosition(&sz);
-
-	mpcLogger->Error(sz.Text());
-	sz.Kill();
+	PrivateError(szError);
 	return (M*)&mcError;
 }
 
