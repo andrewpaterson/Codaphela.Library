@@ -1,13 +1,14 @@
-#include "JavaSyntaxEnum.h"
+#include "JavaSyntaxClassCommon.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxEnum::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxClassCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxClassCommon::Init(pcTree, pcParent);
+	CJavaSyntax::Init(pcTree, pcParent);
+	mbPublic = FALSE;
 }
 
 
@@ -15,9 +16,10 @@ void CJavaSyntaxEnum::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxEnum::Kill(void)
+void CJavaSyntaxClassCommon::Kill(void)
 {
-	CJavaSyntaxClassCommon::Kill();
+	mbPublic = FALSE;
+	CJavaSyntax::Kill();
 }
 
 
@@ -25,9 +27,9 @@ void CJavaSyntaxEnum::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxEnum::GetType(void)
+char* CJavaSyntaxClassCommon::GetType(void)
 {
-	return "Enum";
+	return "ClassCommon";
 }
 
 
@@ -35,20 +37,16 @@ char* CJavaSyntaxEnum::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxEnum::Print(CChars* pszDest, int iDepth)
-{
-	CJavaSyntax::Print(pszDest, iDepth);
-
-	pszDest->AppendNewLine();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxEnum::IsEnum(void)
+BOOL CJavaSyntaxClassCommon::IsClassCommon(void)
 {
 	return TRUE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClassCommon::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
+BOOL CJavaSyntaxClassCommon::IsPublic(void) { return mbPublic; }
 

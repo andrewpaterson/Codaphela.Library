@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxInterface::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxTopLevel::Init(pcTree, pcParent);
+	CJavaSyntaxClassCommon::Init(pcTree, pcParent);
 }
 
 
@@ -17,7 +17,7 @@ void CJavaSyntaxInterface::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxInterface::Kill(void)
 {
-	CJavaSyntaxTopLevel::Kill();
+	CJavaSyntaxClassCommon::Kill();
 }
 
 

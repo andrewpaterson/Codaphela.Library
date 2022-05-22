@@ -124,3 +124,13 @@ CJavaSyntaxGeneric* CJavaSyntaxMemory::CreateGeneric(CJavaSyntaxTree* pcTree, CJ
 	return Create<CJavaSyntaxGeneric>(pcTree, pcParent);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxBlock* CJavaSyntaxMemory::CreateBlock(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+{
+	return Create<CJavaSyntaxBlock>(pcTree, pcParent);
+}
+

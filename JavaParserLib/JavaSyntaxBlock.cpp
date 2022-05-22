@@ -1,14 +1,13 @@
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxBlock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxBlock::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
-	mbPublic = FALSE;
 }
 
 
@@ -16,9 +15,8 @@ void CJavaSyntaxTopLevel::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::Kill(void)
+void CJavaSyntaxBlock::Kill(void)
 {
-	mbPublic = FALSE;
 	CJavaSyntax::Kill();
 }
 
@@ -27,9 +25,9 @@ void CJavaSyntaxTopLevel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxTopLevel::GetType(void)
+char* CJavaSyntaxBlock::GetType(void)
 {
-	return "TopLevel";
+	return "Block";
 }
 
 
@@ -37,16 +35,20 @@ char* CJavaSyntaxTopLevel::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxTopLevel::IsClassCommon(void)
+void CJavaSyntaxBlock::Print(CChars* pszDest, int iDepth)
+{
+	CJavaSyntax::Print(pszDest, iDepth);
+	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxBlock::IsBlock(void)
 {
 	return TRUE;
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTopLevel::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
-BOOL CJavaSyntaxTopLevel::IsPublic(void) { return mbPublic; }
 

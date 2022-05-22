@@ -45,7 +45,7 @@
     <ClCompile Include="JavaSyntaxPackage.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxTopLevel.cpp">
+    <ClCompile Include="JavaSyntaxClassCommon.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxType.cpp">
@@ -129,6 +129,9 @@
     <ClCompile Include="JavaSyntaxTypeCommon.cpp">
       <Filter>Source\Syntax\Elements</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxBlock.cpp">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaSyntaxGeneric.h">
@@ -161,7 +164,7 @@
     <ClInclude Include="JavaSyntaxPackage.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxTopLevel.h">
+    <ClInclude Include="JavaSyntaxClassCommon.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxType.h">
@@ -243,6 +246,9 @@
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxTypeCommon.h">
+      <Filter>Source\Syntax\Elements</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxBlock.h">
       <Filter>Source\Syntax\Elements</Filter>
     </ClInclude>
   </ItemGroup>

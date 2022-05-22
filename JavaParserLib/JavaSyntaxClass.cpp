@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxTopLevel::Init(pcTree, pcParent);
+	CJavaSyntaxClassCommon::Init(pcTree, pcParent);
 	mpcType = NULL;
 	mbAbstract = FALSE;
 	mbFinal = FALSE;
@@ -27,7 +27,7 @@ void CJavaSyntaxClass::Kill(void)
 	mpcType = NULL;
 	mbProtected = FALSE;
 	mbPrivate = FALSE;
-	CJavaSyntaxTopLevel::Kill();
+	CJavaSyntaxClassCommon::Kill();
 }
 
 

@@ -4,7 +4,7 @@
 #include "JavaSyntax.h"
 #include "JavaSyntaxImport.h"
 #include "JavaSyntaxPackage.h"
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxClassCommon.h"
 
 
 class CJavaSyntaxFile : public CJavaSyntax
@@ -16,8 +16,8 @@ protected:
 	CJavaSyntaxPackage*				mpcPackage;
 	CJavaSyntaxImportPtrArray		mapcImports;
 
-	CJavaSyntaxTopLevel*			mpcClass;				// The only public class, interface or enum in the file.
-	CJavaSyntaxTopLevelPtrArray		mapcPackageClasses;		// All other package classes, interfaces and enums in the file.
+	CJavaSyntaxClassCommon*			mpcClass;				// The only public class, interface or enum in the file.
+	CJavaSyntaxClassCommonPtrArray		mapcPackageClasses;		// All other package classes, interfaces and enums in the file.
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -33,8 +33,8 @@ public:
 	BOOL	SetPackage(CJavaSyntaxPackage* pcPackage);
 	void	AddImport(CJavaSyntaxImport* pcImport);
 
-	BOOL	SetClass(CJavaSyntaxTopLevel* pcTopLevel);
-	void	AddPackageClass(CJavaSyntaxTopLevel* pcTopLevel);
+	BOOL	SetClass(CJavaSyntaxClassCommon* pcClassCommon);
+	void	AddPackageClass(CJavaSyntaxClassCommon* pcClassCommon);
 	BOOL	HasClass(void);
 };
 

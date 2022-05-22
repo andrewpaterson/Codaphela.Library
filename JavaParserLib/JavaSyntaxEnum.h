@@ -1,10 +1,10 @@
 #ifndef __JAVA_SYNTAX_ENUM_H__
 #define __JAVA_SYNTAX_ENUM_H__
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "JavaSyntaxTopLevel.h"
+#include "JavaSyntaxClassCommon.h"
 
 
-class CJavaSyntaxEnum : public CJavaSyntaxTopLevel
+class CJavaSyntaxEnum : public CJavaSyntaxClassCommon
 {
 CONSTRUCTABLE(CJavaSyntaxEnum);
 protected:

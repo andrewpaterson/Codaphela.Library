@@ -74,6 +74,7 @@ protected:
 	CJavaSyntaxExtent*			ParseExtent(CJavaSyntax* pcParent);
 	CJavaSyntaxTypeCommon*		ParseTypeCommon(CJavaSyntax* pcParent);
 	CJavaSyntaxGeneric*			ParseGeneric(CJavaSyntax* pcParent);
+	CJavaSyntaxBlock*			ParseBlock(CJavaSyntax* pcParent);
 
 	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
 
