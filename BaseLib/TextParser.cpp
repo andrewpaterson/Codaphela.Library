@@ -3308,6 +3308,7 @@ void CTextParser::SetErrorSyntaxError(void)
 	meError = TPE_SyntaxError;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -3328,6 +3329,16 @@ void CTextParser::AppendError(CChars* pszDest)
 		pszDest->Append("Syntax Error");
 	}
 	pszDest->Append("]");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::GetText(CExternalString* pcDest)
+{
+	pcDest->Init(mszStartOfText, mszEndOfText);
 }
 
 

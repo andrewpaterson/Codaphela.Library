@@ -5,12 +5,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokenParserEnvironment::Init(char* szFilename, char* szText)
+void CTokenParserEnvironment::Init(char* szFilename, char* szText, BOOL bBreakOnError)
 {
 	int		iTextLen;
 
 	iTextLen = strlen(szText);
-	Init(szFilename, szText, iTextLen);
+	Init(szFilename, szText, iTextLen, bBreakOnError);
 }
 
 
@@ -18,9 +18,10 @@ void CTokenParserEnvironment::Init(char* szFilename, char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen)
+void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen, BOOL bBreakOnError)
 {
 	mcLogger.Init();
+	mcLogger.SetBreakOnError(bBreakOnError);
 	mcTokenDefinitions.Init();
 	mcTokenMemory.Init();
 	mcTokenParser.Init(&mcLogger, &mcTokenDefinitions, &mcTokenMemory, szFilename, szText, iTextLen);

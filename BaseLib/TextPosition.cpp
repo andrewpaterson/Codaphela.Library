@@ -174,7 +174,7 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 
 	szParserLine.Init(&pac);
 	szParserLine.Replace("\n", " ");
-	szParserLine.Replace("\r", "");
+	szParserLine.Replace("\r", " ");
 
 	szLine.Init();
 	szLine.Append('[');
