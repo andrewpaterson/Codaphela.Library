@@ -51,4 +51,3 @@ BOOL CJavaSyntaxBlock::IsBlock(void)
 	return TRUE;
 }
 
-

@@ -177,8 +177,14 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="JavaSyntaxAssignment.cpp" />
+    <ClCompile Include="JavaSyntaxDeclaration.cpp" />
     <ClCompile Include="JavaSyntaxBlock.cpp" />
+    <ClCompile Include="JavaSyntaxExpression.cpp" />
     <ClCompile Include="JavaSyntaxExtent.cpp" />
+    <ClCompile Include="JavaSyntaxIterativeFor.cpp" />
+    <ClCompile Include="JavaSyntaxOriginalFor.cpp" />
+    <ClCompile Include="JavaSyntaxStatement.cpp" />
     <ClCompile Include="JavaSyntaxTypeCommon.cpp" />
     <ClCompile Include="JavaTokenAmbiguous.cpp" />
     <ClCompile Include="JavaTokenAnnotation.cpp" />
@@ -217,7 +223,13 @@
     <ClCompile Include="JavaTokenParser.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="JavaSyntaxAssignment.h" />
+    <ClInclude Include="JavaSyntaxDeclaration.h" />
     <ClInclude Include="JavaSyntaxBlock.h" />
+    <ClInclude Include="JavaSyntaxExpression.h" />
+    <ClInclude Include="JavaSyntaxIterativeFor.h" />
+    <ClInclude Include="JavaSyntaxOriginalFor.h" />
+    <ClInclude Include="JavaSyntaxStatement.h" />
     <ClInclude Include="JavaSyntaxTypeCommon.h" />
     <ClInclude Include="JavaSyntaxExtent.h" />
     <ClInclude Include="JavaTokenAnnotation.h" />
