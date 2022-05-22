@@ -439,14 +439,14 @@ void CLogger::SetBreakOnWarning(BOOL bBreakOnWarning)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SLogConfig CLogger::SetSilent(void)
+SLogConfig CLogger::SetSilent(BOOL bBreakOnError)
 {
 	SLogConfig sExisting;
 
 	GetConfig(&sExisting);
 
 	msConfig.bEnabled = TRUE;
-	msConfig.bBreakOnError = FALSE;
+	msConfig.bBreakOnError = bBreakOnError;
 	msConfig.bBreakOnWarning = FALSE;
 	msConfig.bDebugOutput = FALSE;
 

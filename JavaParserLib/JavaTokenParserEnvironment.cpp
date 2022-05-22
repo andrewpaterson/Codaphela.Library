@@ -21,8 +21,8 @@ void CTokenParserEnvironment::Init(char* szFilename, char* szText, BOOL bBreakOn
 //////////////////////////////////////////////////////////////////////////
 void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen, BOOL bBreakOnError)
 {
-	mcLogger.Init();
-	mcLogger.SetBreakOnError(bBreakOnError);
+	mcLogger.Init(NULL);
+	mcLogger.SetSilent(bBreakOnError);
 
 	mcMemoryLog.Init();
 	mcLogger.AddOutput(&mcMemoryLog);
@@ -76,5 +76,22 @@ char* CTokenParserEnvironment::GetOutput(int* piLength)
 {
 	SafeAssign(piLength, mcMemoryLog.GetBufferSize());
 	return (char*)mcMemoryLog.GetBufferPointer();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTokenParserEnvironment::GetOutput(CChars* pszDest)
+{
+	char*	szBuffer;
+	int		iLength;
+
+	iLength = 0;
+	szBuffer = GetOutput(&iLength);
+	pszDest->Init(szBuffer, 0, iLength);
+	pszDest->StripWhiteSpace(TRUE);
+	return pszDest->Text();
 }
 
