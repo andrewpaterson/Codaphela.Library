@@ -2,6 +2,7 @@
 #define __JAVA_SYNTAX_TOP_LEVEL_H__
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntax.h"
+#include "JavaModifier.h"
 #include "JavaTokenIdentifier.h"
 
 
@@ -9,18 +10,18 @@ class CJavaSyntaxClassCommon : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxClassCommon);
 protected:
-	BOOL					mbPublic;
+	CJavaModifiers	mcModifiers;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 				Kill(void);
 
-	char*	GetType(void) override;
+	char*				GetType(void) override;
 
-	BOOL	IsClassCommon(void) override;
+	BOOL				IsClassCommon(void) override;
 
-	void	SetPublic(BOOL bPublic);
-	BOOL	IsPublic(void);
+	CJavaModifiers*		GetModifiers(void);
+	void				SetModifiers(CJavaModifiers cModifiers);
 };
 
 

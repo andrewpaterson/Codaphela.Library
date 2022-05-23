@@ -48,6 +48,9 @@ void CJavaSyntaxIterativeFor::Print(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxIterativeFor::IsIterativeFor(void)
 {
+	int x = 3;
+
+	x += (x * 7);
 	return TRUE;
 }
 

@@ -162,6 +162,12 @@
     <ClCompile Include="JavaSyntaxTypeCommon.cpp">
       <Filter>Source\Syntax\Elements\Common</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxVariableCommon.cpp">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaModifier.cpp">
+      <Filter>Source\Syntax</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaSyntax.h">
@@ -298,6 +304,12 @@
     </ClInclude>
     <ClInclude Include="JavaSyntaxTypeCommon.h">
       <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxVariableCommon.h">
+      <Filter>Source\Syntax\Elements\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaModifier.h">
+      <Filter>Source\Syntax</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

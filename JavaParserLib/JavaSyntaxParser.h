@@ -76,7 +76,7 @@ protected:
 	CJavaSyntaxGeneric*			ParseGeneric(CJavaSyntax* pcParent);
 	CJavaSyntaxBlock*			ParseBlock(CJavaSyntax* pcParent);
 
-	void						ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal);
+	CJavaModifiers				ParseModifiers(uint8 uiAllowedModifiers);
 
 	BOOL						GetKeyword(EJavaTokenKeyword eKeyword);
 	BOOL						GetSeparator(EJavaTokenSeparator eSeparator);

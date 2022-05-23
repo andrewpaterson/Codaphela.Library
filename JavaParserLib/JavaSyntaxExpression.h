@@ -2,6 +2,7 @@
 #define __JAVA_SYNTAX_EXPRESSION_H__
 #include "JavaSyntax.h"
 
+// (Expression); x = (Expression)
 
 class CJavaSyntaxExpression : public CJavaSyntax
 {
@@ -12,7 +13,7 @@ public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
-	char* GetType(void) override;
+	char*	GetType(void) override;
 	void	Print(CChars* pszDest, int iDepth);
 
 	BOOL	IsExpression(void) override;

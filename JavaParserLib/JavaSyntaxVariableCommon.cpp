@@ -1,14 +1,13 @@
-#include "JavaSyntaxClass.h"
+#include "JavaSyntaxVariableCommon.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxVariableCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntaxClassCommon::Init(pcTree, pcParent);
-	mpcType = NULL;
+	CJavaSyntax::Init(pcTree, pcParent);
 }
 
 
@@ -16,10 +15,9 @@ void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::Kill(void)
+void CJavaSyntaxVariableCommon::Kill(void)
 {
-	mpcType = NULL;
-	CJavaSyntaxClassCommon::Kill();
+	CJavaSyntax::Kill();
 }
 
 
@@ -27,9 +25,9 @@ void CJavaSyntaxClass::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxClass::GetType(void)
+char* CJavaSyntaxVariableCommon::GetType(void)
 {
-	return "Class";
+	return "Variable (Common)";
 }
 
 
@@ -37,12 +35,10 @@ char* CJavaSyntaxClass::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVariableCommon::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
-	mcModifiers.Print(pszDest);
 	pszDest->AppendNewLine();
-	mpcType->Print(pszDest, iDepth + 1);
 }
 
 
@@ -50,18 +46,8 @@ void CJavaSyntaxClass::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxClass::IsClass(void)
+BOOL CJavaSyntaxVariableCommon::IsVariableCommon(void)
 {
 	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::SetSyntaxType(CJavaSyntaxType* pcType)
-{
-	mpcType = pcType;
 }
 

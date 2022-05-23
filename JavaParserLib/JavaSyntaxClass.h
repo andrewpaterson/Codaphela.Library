@@ -10,10 +10,6 @@ class CJavaSyntaxClass : public CJavaSyntaxClassCommon
 CONSTRUCTABLE(CJavaSyntaxClass);
 protected:
 	CJavaSyntaxType*	mpcType;
-	BOOL				mbAbstract;
-	BOOL				mbFinal;
-	BOOL				mbProtected;
-	BOOL				mbPrivate;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -25,14 +21,6 @@ public:
 	BOOL	IsClass(void) override;
 
 	void	SetSyntaxType(CJavaSyntaxType* pcType);
-	void	SetAbstract(BOOL bAbstract);
-	void	SetFinal(BOOL bFinal);
-
-	BOOL	IsPackageModifier(void);
-	BOOL	IsAbstract(void);
-	BOOL	IsFinal(void);
-	BOOL	IsProtected(void);
-	BOOL	IsPrivate(void);
 };
 
 

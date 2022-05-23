@@ -26,4 +26,3 @@ typedef CArrayTemplatePtr<CJavaSyntaxTypeCommon>	CJavaSyntaxTypeCommonPtrArray;
 
 #endif // !__JAVA_SYNTAX_TYPE_H__
 
-

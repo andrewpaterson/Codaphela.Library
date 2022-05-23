@@ -2,7 +2,9 @@
 #define __JAVA_SYNTAX_DECLARATION_H__
 #include "JavaSyntaxStatement.h"
 
-//X x = y;  X (Assignment)
+// X x = y;  
+// X (Assignment)
+
 class CJavaSyntaxDeclaration : public CJavaSyntaxStatement
 {
 CONSTRUCTABLE(CJavaSyntaxDeclaration);

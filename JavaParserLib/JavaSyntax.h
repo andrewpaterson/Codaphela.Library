@@ -39,6 +39,7 @@ public:
 	virtual BOOL		IsStatement(void);
 	virtual BOOL		IsClassCommon(void);
 	virtual BOOL		IsTypeCommon(void);
+	virtual BOOL		IsVariableCommon(void);
 
 	virtual BOOL		IsError(void);
 	virtual BOOL		IsMismatch(void);
