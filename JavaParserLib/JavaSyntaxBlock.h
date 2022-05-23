@@ -3,6 +3,7 @@
 #include "JavaSyntax.h"
 
 // { Statement ; ... Statement ; }
+
 class CJavaSyntaxBlock : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxBlock);

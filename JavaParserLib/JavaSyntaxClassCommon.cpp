@@ -8,7 +8,7 @@
 void CJavaSyntaxClassCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
-	mbPublic = FALSE;
+	mcModifiers.Init();
 }
 
 
@@ -18,7 +18,7 @@ void CJavaSyntaxClassCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassCommon::Kill(void)
 {
-	mbPublic = FALSE;
+	mcModifiers.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -29,7 +29,7 @@ void CJavaSyntaxClassCommon::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxClassCommon::GetType(void)
 {
-	return "ClassCommon";
+	return "Class (Common)";
 }
 
 
@@ -47,6 +47,18 @@ BOOL CJavaSyntaxClassCommon::IsClassCommon(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassCommon::SetPublic(BOOL bPublic) { mbPublic = bPublic; }
-BOOL CJavaSyntaxClassCommon::IsPublic(void) { return mbPublic; }
+CJavaModifiers* CJavaSyntaxClassCommon::GetModifiers(void)
+{
+	return &mcModifiers;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClassCommon::SetModifiers(CJavaModifiers cModifiers)
+{
+	mcModifiers = cModifiers;
+}
 

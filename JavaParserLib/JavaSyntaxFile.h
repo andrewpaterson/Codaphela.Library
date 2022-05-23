@@ -17,7 +17,7 @@ protected:
 	CJavaSyntaxImportPtrArray		mapcImports;
 
 	CJavaSyntaxClassCommon*			mpcClass;				// The only public class, interface or enum in the file.
-	CJavaSyntaxClassCommonPtrArray		mapcPackageClasses;		// All other package classes, interfaces and enums in the file.
+	CJavaSyntaxClassCommonPtrArray	mapcPackageClasses;		// All other package classes, interfaces and enums in the file.
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

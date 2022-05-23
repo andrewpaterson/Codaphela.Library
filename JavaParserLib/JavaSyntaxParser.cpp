@@ -107,7 +107,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 			pcClass = ParseClass(pcFile);
 			if (pcClass->IsClass())
 			{
-				if (!pcClass->IsPackageModifier())
+				if (!pcClass->GetModifiers()->IsPackageModifier())
 				{
 					if (!pcFile->HasClass())
 					{
@@ -510,18 +510,16 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(CJavaSyntax* pcParent)
 CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxClass*		pcClass;
-	BOOL					bPublic;
-	BOOL					bAbstract;
-	BOOL					bFinal;
 	CJavaSyntaxType*		pcType;
 	BOOL					bOpen;
 	BOOL					bClose;
+	CJavaModifiers			cModifers;
 
 	PushPosition();
 
-	ParseClassModifier(&bPublic, &bAbstract, &bFinal);
+	cModifers = ParseModifiers(JM_public | JM_protected | JM_private | JM_abstract | JM_final | JM_strictfp);
 
-	if (bFinal && bAbstract)
+	if (!cModifers.IsValid())
 	{
 		return Error<CJavaSyntaxClass>(EXPECTED_CLASS);
 	}
@@ -538,9 +536,7 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 			return Error<CJavaSyntaxClass>(OUT_OUF_MEMORY);
 		}
 
-		pcClass->SetPublic(bPublic);
-		pcClass->SetAbstract(bAbstract);
-		pcClass->SetFinal(bFinal);
+		pcClass->SetModifiers(cModifers);
 
 		pcType = ParseType(pcClass);
 		if (pcType->IsType())
@@ -578,43 +574,88 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::ParseClassModifier(BOOL* pbPublic, BOOL* pbAbstract, BOOL* pbFinal)
+CJavaModifiers CJavaSyntaxParser::ParseModifiers(uint8 uiAllowedModifiers)
 {
-	*pbPublic = FALSE;
-	*pbAbstract = FALSE;
-	*pbFinal = FALSE;
+	BOOL			bResult;
+	CJavaModifiers	cModifiers;
 
+	cModifiers.Init();
 	for (;;)
 	{
-		if (!*pbPublic)
+		if ((uiAllowedModifiers & JM_public) && !cModifiers.IsPublic())
 		{
-			*pbPublic = GetKeyword(JK_public);
-			if (*pbPublic)
+			bResult = GetKeyword(JK_public);
+			if (bResult)
 			{
+				cModifiers.Set(JM_public);
 				continue;
 			}
 		}
 
-		if (!*pbAbstract)
+		if ((uiAllowedModifiers & JM_protected) && !cModifiers.IsProtected())
 		{
-			*pbAbstract = GetKeyword(JK_abstract);
-			if (*pbAbstract)
+			bResult = GetKeyword(JK_protected);
+			if (bResult)
 			{
+				cModifiers.Set(JM_protected);
 				continue;
 			}
 		}
 
-		if (!*pbFinal)
+		if ((uiAllowedModifiers & JM_private) && !cModifiers.IsPrivate())
 		{
-			*pbFinal = GetKeyword(JK_final);
-			if (*pbFinal)
+			bResult = GetKeyword(JK_private);
+			if (bResult)
 			{
+				cModifiers.Set(JM_private);
+				continue;
+			}
+		}
+
+		if ((uiAllowedModifiers & JM_final) && !cModifiers.IsFinal())
+		{
+			bResult = GetKeyword(JK_final);
+			if (bResult)
+			{
+				cModifiers.Set(JM_final);
+				continue;
+			}
+		}
+
+		if ((uiAllowedModifiers & JM_static) && !cModifiers.IsStatic())
+		{
+			bResult = GetKeyword(JK_static);
+			if (bResult)
+			{
+				cModifiers.Set(JM_static);
+				continue;
+			}
+		}
+
+		if ((uiAllowedModifiers & JM_abstract) && !cModifiers.IsAbstract())
+		{
+			bResult = GetKeyword(JK_abstract);
+			if (bResult)
+			{
+				cModifiers.Set(JM_abstract);
+				continue;
+			}
+		}
+
+		if ((uiAllowedModifiers & JM_strictfp) && !cModifiers.IsStrictfp())
+		{
+			bResult = GetKeyword(JK_strictfp);
+			if (bResult)
+			{
+				cModifiers.Set(JM_strictfp);
 				continue;
 			}
 		}
 
 		break;
 	}
+
+	return cModifiers;
 }
 
 
