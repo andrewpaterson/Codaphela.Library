@@ -11,9 +11,9 @@
 
 struct SArrayTemplateHeader
 {
-	int			miElementSize;
-	int			miUsedElements;
-	int			miChunkSize;
+	int		miElementSize;
+	int		miUsedElements;
+	int		miChunkSize;
 };
 
 
@@ -28,8 +28,8 @@ class CRandom;
 class CArrayBlock : public CMalloc, protected SArrayTemplateHeader
 {
 protected:
-	int				miNumElements;
-	void*			mpvArray;
+	int		miNumElements;
+	void*	mpvArray;
 
 public:
 	void 	_Init(void);

@@ -1,5 +1,5 @@
 #include "BaseLib/IntegerHelper.h"
-#include "JavaModifier.h"
+#include "JavaModifiers.h"
 
 
 //////////////////////////////////////////////////////////////////////////

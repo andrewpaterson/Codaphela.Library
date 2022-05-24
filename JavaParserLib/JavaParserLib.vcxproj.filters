@@ -108,7 +108,7 @@
     <ClCompile Include="JavaSyntaxBlock.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxDeclaration.cpp">
+    <ClCompile Include="JavaSyntaxVariableDeclaration.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxExpression.cpp">
@@ -165,7 +165,7 @@
     <ClCompile Include="JavaSyntaxVariableCommon.cpp">
       <Filter>Source\Syntax\Elements\Common</Filter>
     </ClCompile>
-    <ClCompile Include="JavaModifier.cpp">
+    <ClCompile Include="JavaModifiers.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
   </ItemGroup>
@@ -251,7 +251,7 @@
     <ClInclude Include="JavaSyntaxBlock.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxDeclaration.h">
+    <ClInclude Include="JavaSyntaxVariableDeclaration.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxExpression.h">
@@ -308,7 +308,7 @@
     <ClInclude Include="JavaSyntaxVariableCommon.h">
       <Filter>Source\Syntax\Elements\Common</Filter>
     </ClInclude>
-    <ClInclude Include="JavaModifier.h">
+    <ClInclude Include="JavaModifiers.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
   </ItemGroup>
