@@ -177,9 +177,9 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="JavaModifier.cpp" />
+    <ClCompile Include="JavaModifiers.cpp" />
     <ClCompile Include="JavaSyntaxAssignment.cpp" />
-    <ClCompile Include="JavaSyntaxDeclaration.cpp" />
+    <ClCompile Include="JavaSyntaxVariableDeclaration.cpp" />
     <ClCompile Include="JavaSyntaxBlock.cpp" />
     <ClCompile Include="JavaSyntaxExpression.cpp" />
     <ClCompile Include="JavaSyntaxExtent.cpp" />
@@ -225,9 +225,9 @@
     <ClCompile Include="JavaTokenParser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="JavaModifier.h" />
+    <ClInclude Include="JavaModifiers.h" />
     <ClInclude Include="JavaSyntaxAssignment.h" />
-    <ClInclude Include="JavaSyntaxDeclaration.h" />
+    <ClInclude Include="JavaSyntaxVariableDeclaration.h" />
     <ClInclude Include="JavaSyntaxBlock.h" />
     <ClInclude Include="JavaSyntaxExpression.h" />
     <ClInclude Include="JavaSyntaxIterativeFor.h" />

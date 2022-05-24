@@ -1,11 +1,11 @@
-#include "JavaSyntaxDeclaration.h"
+#include "JavaSyntaxVariableDeclaration.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxDeclaration::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxVariableDeclaration::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 }
@@ -15,7 +15,7 @@ void CJavaSyntaxDeclaration::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxDeclaration::Kill(void)
+void CJavaSyntaxVariableDeclaration::Kill(void)
 {
 	CJavaSyntax::Kill();
 }
@@ -25,9 +25,9 @@ void CJavaSyntaxDeclaration::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxDeclaration::GetType(void)
+char* CJavaSyntaxVariableDeclaration::GetType(void)
 {
-	return "Declaration";
+	return "Variable Declaration";
 }
 
 
@@ -35,7 +35,7 @@ char* CJavaSyntaxDeclaration::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxDeclaration::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVariableDeclaration::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
@@ -46,7 +46,7 @@ void CJavaSyntaxDeclaration::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxDeclaration::IsDeclaration(void)
+BOOL CJavaSyntaxVariableDeclaration::IsVariableDeclaration(void)
 {
 	return TRUE;
 }

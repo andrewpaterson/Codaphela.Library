@@ -66,7 +66,7 @@ BOOL CJavaSyntax::IsBlock(void) { return FALSE; }
 BOOL CJavaSyntax::IsExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsOriginalFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsIterativeFor(void) { return FALSE; }
-BOOL CJavaSyntax::IsDeclaration(void) { return FALSE; }
+BOOL CJavaSyntax::IsVariableDeclaration(void) { return FALSE; }
 BOOL CJavaSyntax::IsAssignment(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsStatement(void) { return FALSE; }
