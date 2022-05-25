@@ -27,9 +27,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M, int I>
-class CArrayTemplateEmbedded : protected SArrayTemplateHeader, protected CPostMalloc<M>
+class CArrayTemplateEmbedded : protected CPostMalloc<M>
 {
 protected:
+	int		miUsedElements;
+	int		miChunkSize;
+
 	union
 	{
 		CArrayTemplate<M>	mcArray;
@@ -104,7 +107,6 @@ void CArrayTemplateEmbedded<M, I>::Init(void)
 		this->miChunkSize = I;
 	//}
 
-	this->miElementSize = sizeof(M);
 	this->miUsedElements = 0;
 }
 
@@ -165,12 +167,12 @@ BOOL CArrayTemplateEmbedded<M, I>::IsArray(void)
 template<class M, int I>
 void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 {
-	M	am[I];
+	M	am[I];  //Problem
 
-	memcpy(am, mam, miUsedElements*miElementSize);
+	memcpy(am, mam, miUsedElements * sizeof(M));
 	mcArray.Init();
 	mcArray.AddNum(iUsedElements);
-	memcpy(mcArray.GetData(), am, miUsedElements*miElementSize);
+	memcpy(mcArray.GetData(), am, miUsedElements * sizeof(M));
 	miUsedElements = iUsedElements;
 }
 
@@ -182,12 +184,12 @@ void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 template<class M, int I>
 void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
 {
-	M	am[I];
+	M	am[I];  //Problem
 
-	memcpy(am, mcArray.GetData(), iUsedElements*miElementSize);
+	memcpy(am, mcArray.GetData(), iUsedElements * sizeof(M));
 	mcArray.Kill();
 
-	memcpy(mam, am, iUsedElements * miElementSize);
+	memcpy(mam, am, iUsedElements * sizeof(M));
 	miUsedElements = iUsedElements;
 }
 
@@ -232,7 +234,7 @@ M* CArrayTemplateEmbedded<M, I>::Add(M* pData)
 	M*	pAdded;
 
 	pAdded = Add();
-	memcpy(pAdded, pData, miElementSize);
+	memcpy(pAdded, pData, sizeof(M));
 	return pAdded;
 }
 
@@ -260,7 +262,7 @@ int CArrayTemplateEmbedded<M, I>::ByteSize(void)
 {
 	if (IsEmbedded())
 	{
-		miUsedElements * miElementSize;
+		miUsedElements * sizeof(M);
 	}
 	else
 	{
@@ -347,13 +349,13 @@ int CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
 	tDifference = tIndex - tBase;
 
 	//Make sure the element is correctly aligned.
-	if (tDifference % miElementSize != 0)
+	if (tDifference % sizeof(M) != 0)
 	{
 		return -1;
 	}
 
 	//Make sure the element lies within the array.
-	tIndex = tDifference / miElementSize;
+	tIndex = tDifference / sizeof(M);
 	if ((tIndex < 0) || (tIndex >= miUsedElements))
 	{
 		return -1;
@@ -376,7 +378,7 @@ int CArrayTemplateEmbedded<M, I>::Find(M* pData)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pIndex = Get(i);
-		if (memcmp(pIndex, pData, miElementSize) == 0)
+		if (memcmp(pIndex, pData, sizeof(M)) == 0)
 		{
 			return i;
 		}
@@ -473,16 +475,16 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
 			BecomeArray(miUsedElements+1);
 
 			pSource = mcArray.Get(iIndex);
-			pDest = RemapSinglePointer(pSource, miElementSize);
-			memmove(pDest, pSource, miElementSize * (miUsedElements - 1 - iIndex));
+			pDest = RemapSinglePointer(pSource, sizeof(M));
+			memmove(pDest, pSource, sizeof(M) * (miUsedElements - 1 - iIndex));
 			pv = (M*)pSource;
 		}
 		else
 		{
 			miUsedElements++;
 			pSource = &mam[iIndex];
-			pDest = RemapSinglePointer(pSource, miElementSize);
-			memmove(pDest, pSource, miElementSize * (miUsedElements - 1 - iIndex));
+			pDest = RemapSinglePointer(pSource, sizeof(M));
+			memmove(pDest, pSource, sizeof(M) * (miUsedElements - 1 - iIndex));
 			pv = (M*)pSource;
 		}
 	}
@@ -505,7 +507,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pData, int iIndex)
 	M*	pAdded;
 
 	pAdded = InsertAt(iIndex);
-	memcpy(pAdded, pData, miElementSize);
+	memcpy(pAdded, pData, sizeof(M));
 	return pAdded;
 }
 
@@ -579,14 +581,14 @@ void CArrayTemplateEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
 	if (IsEmbedded())
 	{
 		pDest = Get(iIndex);
-		pSource = RemapSinglePointer(pDest, miElementSize);
+		pSource = RemapSinglePointer(pDest, sizeof(M));
 
 		miUsedElements--;
 
 		iMove = miUsedElements - iIndex;
 		if (iMove > 0)
 		{
-			memmove(pDest, pSource, miElementSize * iMove);
+			memmove(pDest, pSource, sizeof(M) * iMove);
 		}
 	}
 	else
@@ -649,7 +651,7 @@ BOOL CArrayTemplateEmbedded<M, I>::TestInternalConsistency(void)
 		{
 			return FALSE;
 		}
-		if (miElementSize != mcArray.ElementSize())
+		if (sizeof(M) != mcArray.ElementSize())
 		{
 			return FALSE;
 		}
@@ -669,7 +671,7 @@ void CArrayTemplateEmbedded<M, I>::Zero(void)
 	{
 		if (miUsedElements != 0)
 		{
-			memset_fast(mam, 0, miUsedElements * miElementSize);
+			memset_fast(mam, 0, miUsedElements * sizeof(M));
 		}
 	}
 	else
