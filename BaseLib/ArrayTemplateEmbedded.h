@@ -37,8 +37,6 @@ protected:
 	};
 
 protected:
-	BOOL	IsEmbedded(void);
-	BOOL	IsArray(void);
 	void	BecomeArray(int iUsedElements);
 	void	BecomeEmbedded(int iUsedElements);
 
@@ -70,6 +68,8 @@ public:
 	M*		InsertAt(M* pData, int iIndex);
 	BOOL	IsEmpty(void);
 	BOOL	IsNotEmpty(void);
+	BOOL	IsEmbedded(void);
+	BOOL	IsArray(void);
 	int		NumElements(void);
 	BOOL	Remove(M* pvElement, int bPreserveOrder = TRUE);
 	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
@@ -89,9 +89,23 @@ public:
 template<class M, int I>
 void CArrayTemplateEmbedded<M, I>::Init(void)
 {
+	//int		iEmbeddedSize;
+	//int		iArraySize;
+	//
+	//iEmbeddedSize = sizeof(M) * I;
+	//iArraySize = sizeof(CArrayTemplate<M>);
+
+	//if (iEmbeddedSize < iArraySize)
+	//{
+	//	this->miChunkSize = iArraySize / sizeof(M);
+	//}
+	//else
+	//{
+		this->miChunkSize = I;
+	//}
+
 	this->miElementSize = sizeof(M);
 	this->miUsedElements = 0;
-	this->miChunkSize = I;
 }
 
 
@@ -188,9 +202,9 @@ M* CArrayTemplateEmbedded<M, I>::Add(void)
 	M*	pv;
 	if (IsEmbedded())
 	{
-		if (miUsedElements+1 > miChunkSize)
+		if (miUsedElements + 1 > miChunkSize)
 		{
-			BecomeArray(miUsedElements+1);
+			BecomeArray(miUsedElements + 1);
 			pv = mcArray.Tail();
 		}
 		else

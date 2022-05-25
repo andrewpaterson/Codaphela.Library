@@ -1020,6 +1020,9 @@
     <ClInclude Include="TextPosition.h">
       <Filter>Source\Text</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayTemplateEmbeddedPtr.h">
+      <Filter>Source\Data\Array\Embedded</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
