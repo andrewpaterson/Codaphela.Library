@@ -67,12 +67,16 @@ BOOL CJavaSyntax::IsExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsOriginalFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsIterativeFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsVariableDeclaration(void) { return FALSE; }
-BOOL CJavaSyntax::IsAssignment(void) { return FALSE; }
+BOOL CJavaSyntax::IsInitialiser(void) { return FALSE; }
+BOOL CJavaSyntax::IsVoidExpression(void) { return FALSE; }
+BOOL CJavaSyntax::IsValueExpression(void) { return FALSE; }
+BOOL CJavaSyntax::IsArrayValueExpression(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsStatement(void) { return FALSE; }
 BOOL CJavaSyntax::IsClassCommon(void) { return FALSE; }
 BOOL CJavaSyntax::IsTypeCommon(void) { return FALSE; }
 BOOL CJavaSyntax::IsVariableCommon(void) { return FALSE; }
+BOOL CJavaSyntax::IsExpressionCommon(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsError(void) { return FALSE; }
 BOOL CJavaSyntax::IsMismatch(void) { return FALSE; }

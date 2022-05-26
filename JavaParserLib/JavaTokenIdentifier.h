@@ -1,6 +1,7 @@
 #ifndef __JAVA_IDENTIFIER_H__
 #define __JAVA_IDENTIFIER_H__
 #include "BaseLib/Chars.h"
+#include "BaseLib/ArrayTemplateEmbeddedPtr.h"
 #include "JavaToken.h"
 
 
@@ -24,6 +25,7 @@ public:
 
 
 typedef CArrayTemplatePtr<CJavaTokenIdentifier> CJavaTokenIdentifierPtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaTokenIdentifier, 6> CJavaTokenIdentifierPtrEmbeddedArray;
 
 
 #endif // !__JAVA_IDENTIFIER_H__

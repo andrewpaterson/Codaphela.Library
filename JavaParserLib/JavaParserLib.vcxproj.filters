@@ -102,7 +102,7 @@
     <ClCompile Include="JavaSyntaxTree.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxAssignment.cpp">
+    <ClCompile Include="JavaSyntaxInitialiser.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxBlock.cpp">
@@ -111,7 +111,7 @@
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxExpression.cpp">
+    <ClCompile Include="JavaSyntaxExpressionCommon.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxIterativeFor.cpp">
@@ -167,6 +167,15 @@
     </ClCompile>
     <ClCompile Include="JavaModifiers.cpp">
       <Filter>Source\Syntax</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxValueExpression.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxVoidExpression.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxArrayValueExpression.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -245,7 +254,7 @@
     <ClInclude Include="JavaSyntaxTree.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxAssignment.h">
+    <ClInclude Include="JavaSyntaxInitialiser.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxBlock.h">
@@ -254,7 +263,7 @@
     <ClInclude Include="JavaSyntaxVariableDeclaration.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxExpression.h">
+    <ClInclude Include="JavaSyntaxExpressionCommon.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxIterativeFor.h">
@@ -310,6 +319,15 @@
     </ClInclude>
     <ClInclude Include="JavaModifiers.h">
       <Filter>Source\Syntax</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxValueExpression.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxVoidExpression.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxArrayValueExpression.h">
+      <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

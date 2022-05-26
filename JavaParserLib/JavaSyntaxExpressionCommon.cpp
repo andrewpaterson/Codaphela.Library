@@ -1,11 +1,11 @@
-#include "JavaSyntaxIterativeFor.h"
+#include "JavaSyntaxExpressionCommon.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxIterativeFor::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxExpressionCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 }
@@ -15,7 +15,7 @@ void CJavaSyntaxIterativeFor::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxIterativeFor::Kill(void)
+void CJavaSyntaxExpressionCommon::Kill(void)
 {
 	CJavaSyntax::Kill();
 }
@@ -25,9 +25,9 @@ void CJavaSyntaxIterativeFor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxIterativeFor::GetType(void)
+char* CJavaSyntaxExpressionCommon::GetType(void)
 {
-	return "Iterative For";
+	return "Expression (Common)";
 }
 
 
@@ -35,7 +35,7 @@ char* CJavaSyntaxIterativeFor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxIterativeFor::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxExpressionCommon::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
@@ -46,7 +46,7 @@ void CJavaSyntaxIterativeFor::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxIterativeFor::IsIterativeFor(void)
+BOOL CJavaSyntaxExpressionCommon::IsExpressionCommon(void)
 {
 	return TRUE;
 }
