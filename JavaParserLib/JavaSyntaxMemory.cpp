@@ -129,8 +129,38 @@ CJavaSyntaxGeneric* CJavaSyntaxMemory::CreateGeneric(CJavaSyntaxTree* pcTree, CJ
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxBlock* CJavaSyntaxMemory::CreateBlock(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+CJavaSyntaxClassBlock* CJavaSyntaxMemory::CreateClassBlock(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	return Create<CJavaSyntaxBlock>(pcTree, pcParent);
+	return Create<CJavaSyntaxClassBlock>(pcTree, pcParent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxVariableDeclaration* CJavaSyntaxMemory::CreateVariableDeclaration(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+{
+	return Create<CJavaSyntaxVariableDeclaration>(pcTree, pcParent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxValueExpression* CJavaSyntaxMemory::CreateValueExpression(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+{
+	return Create<CJavaSyntaxValueExpression>(pcTree, pcParent);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxArrayValueExpression* CJavaSyntaxMemory::CreateArrayValueExpression(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+{
+	return Create<CJavaSyntaxArrayValueExpression>(pcTree, pcParent);
 }
 

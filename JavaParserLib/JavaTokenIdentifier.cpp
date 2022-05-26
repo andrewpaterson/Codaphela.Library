@@ -60,4 +60,5 @@ BOOL CJavaTokenIdentifier::Is(char* szIdentifier)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenIdentifier::GetType(void) { return "Identifier"; }
 BOOL CJavaTokenIdentifier::IsIdentifier(void) { return TRUE; }
+char* CJavaTokenIdentifier::GetIdentifer(void) { return mszIdentifier; }
 

@@ -27,7 +27,7 @@ void CJavaSyntaxValueExpression::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxValueExpression::GetType(void)
 {
-	return "Value Expression";
+	return "Value";
 }
 
 

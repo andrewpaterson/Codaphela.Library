@@ -511,9 +511,8 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxClass*		pcClass;
 	CJavaSyntaxType*		pcType;
-	BOOL					bOpen;
-	BOOL					bClose;
 	CJavaModifiers			cModifers;
+	CJavaSyntaxClassBlock*	pcBlock;
 
 	PushPosition();
 
@@ -552,21 +551,123 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 			return Error<CJavaSyntaxClass>(EXPECTED_IDENTIFIER);
 		}
 
-		bOpen = GetSeparator(JS_CurlyBracketLeft);
-		if (!bOpen)
-		{
-			return Error<CJavaSyntaxClass>(EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET);
-		}
-
-		bClose = GetSeparator(JS_CurlyBracketRight);
-		if (!bClose)
-		{
-			return Error<CJavaSyntaxClass>("Fake error.  Expected '}'.");
-		}
+		pcBlock = ParseClassBlock(pcClass);
+	
 
 		PassPosition();
 		return pcClass;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxClassBlock* CJavaSyntaxParser::ParseClassBlock(CJavaSyntax* pcParent)
+{
+	CJavaSyntaxClassBlock*	pcBlock;
+	BOOL					bOpen;
+	BOOL					bClose;
+	CJavaSyntaxStatement*	pcStatement;
+
+	PushPosition();
+
+	bOpen = GetSeparator(JS_CurlyBracketLeft);
+	if (!bOpen)
+	{
+		return Error<CJavaSyntaxClassBlock>(EXPECTED_OPEN_CURLY_OR_ANGLE_BRACKET);
+	}
+
+	pcBlock = mpcSyntaxes->CreateClassBlock(&mcSyntaxTree, pcParent);
+	for (;;)
+	{
+		pcStatement = ParseClassBlockStatement(pcParent);
+		if (pcStatement->IsStatement())
+		{
+			continue;
+		}
+		else if (pcStatement->IsError())
+		{
+			return Error<CJavaSyntaxClassBlock>();
+		}
+
+		bClose = GetSeparator(JS_CurlyBracketRight);
+		if (bClose)
+		{
+			GetSeparator(JS_Semicolon);
+			PassPosition();
+			return pcBlock;
+		}
+		else
+		{
+			return Error<CJavaSyntaxClassBlock>(EXPECTED_CLOSE_CURLY_BRACKET);
+		}
+	}
+
+	return pcBlock;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* pcParent)
+{
+	CJavaModifiers						cModifers;
+	CJavaTokenKeyword*					pcModifer;
+	CJavaTokenKeyword*					pcPrimitive;
+	CJavaTokenIdentifier*				pcIdentifier;
+	CJavaSyntaxVariableDeclaration*		pcVariable;
+	CJavaSyntaxGeneric*					pcGeneric;
+
+	PushPosition();
+
+	cModifers = ParseModifiers(JM_static | JM_final | JM_public | JM_protected | JM_private);
+	pcModifer = GetModifierKeyword();
+	if (pcModifer != NULL)
+	{
+		return Mismatch<CJavaSyntaxStatement>();
+	}
+
+	pcVariable = mpcSyntaxes->CreateVariableDeclaration(&mcSyntaxTree, pcParent);
+
+	pcPrimitive = GetPrimitveKeyword();
+	if (pcPrimitive)
+	{
+		pcVariable->SetPrimitiveType(pcPrimitive);
+	}
+	else
+	{
+		for (;;)
+		{
+			pcIdentifier = GetIdentifier();
+			if (pcIdentifier == NULL)
+			{
+				return Error<CJavaSyntaxStatement>(EXPECTED_IDENTIFIER);
+			}
+
+			pcVariable->AddIdentifierType(pcIdentifier);
+
+			if (!GetSeparator(JS_Dot))
+			{
+				break;
+			}
+		}
+
+		pcGeneric = ParseGeneric(pcVariable);
+	}
+
+	pcIdentifier = GetIdentifier();
+	if (pcIdentifier == NULL)
+	{
+		return Error<CJavaSyntaxStatement>(EXPECTED_IDENTIFIER);
+	}
+
+	pcVariable->SetName(pcIdentifier);
+
+	return pcVariable;
 }
 
 
@@ -966,6 +1067,61 @@ BOOL CJavaSyntaxParser::GetKeyword(EJavaTokenKeyword eKeyword)
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenKeyword* CJavaSyntaxParser::GetModifierKeyword(void)
+{
+	CJavaTokenKeyword*	pcKeyword;
+
+	if (mpcCurrentToken && mpcCurrentToken->IsKeyword())
+	{
+		pcKeyword = (CJavaTokenKeyword*)mpcCurrentToken;
+		if (pcKeyword->Is(JK_public) ||
+			pcKeyword->Is(JK_protected) ||
+			pcKeyword->Is(JK_private) ||
+			pcKeyword->Is(JK_final) ||
+			pcKeyword->Is(JK_static) ||
+			pcKeyword->Is(JK_abstract) ||
+			pcKeyword->Is(JK_strictfp))
+		{
+			Next();
+			return pcKeyword;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenKeyword* CJavaSyntaxParser::GetPrimitveKeyword(void)
+{
+	CJavaTokenKeyword* pcKeyword;
+	
+	if (mpcCurrentToken && mpcCurrentToken->IsKeyword())
+	{
+		pcKeyword = (CJavaTokenKeyword*)mpcCurrentToken;
+		if (pcKeyword->Is(JK_boolean) ||
+			pcKeyword->Is(JK_byte) ||
+			pcKeyword->Is(JK_char) ||
+			pcKeyword->Is(JK_double) ||
+			pcKeyword->Is(JK_float) ||
+			pcKeyword->Is(JK_int) ||
+			pcKeyword->Is(JK_long) ||
+			pcKeyword->Is(JK_short))
+		{
+			Next();
+			return pcKeyword;
+		}
+	}
+	return NULL;
 }
 
 

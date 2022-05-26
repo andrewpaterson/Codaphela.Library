@@ -21,6 +21,7 @@ public:
 
 	BOOL	IsIdentifier(void);
 	BOOL	Is(char* szIdentifier);
+	char*	GetIdentifer(void);
 };
 
 

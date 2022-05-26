@@ -1,7 +1,7 @@
 #ifndef __JAVA_SYNTAX_TOP_LEVEL_H__
 #define __JAVA_SYNTAX_TOP_LEVEL_H__
 #include "BaseLib/ArrayTemplatePtr.h"
-#include "JavaSyntax.h"
+#include "JavaSyntaxStatement.h"
 #include "JavaModifiers.h"
 #include "JavaTokenIdentifier.h"
 
@@ -21,7 +21,7 @@
 //      ClassBlock
 //  
 
-class CJavaSyntaxClassCommon : public CJavaSyntax
+class CJavaSyntaxClassCommon : public CJavaSyntaxStatement
 {
 CONSTRUCTABLE(CJavaSyntaxClassCommon);
 protected:

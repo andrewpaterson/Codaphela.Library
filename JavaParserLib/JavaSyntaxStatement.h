@@ -3,7 +3,8 @@
 #include "JavaSyntax.h"
 
 
-class CJavaSyntaxStatement : public CJavaSyntax
+//Everything in a Class- or Code Block is a statement.
+class  CJavaSyntaxStatement : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxStatement);
 protected:

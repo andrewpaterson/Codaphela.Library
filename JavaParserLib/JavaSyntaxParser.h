@@ -74,7 +74,8 @@ protected:
 	CJavaSyntaxExtent*			ParseExtent(CJavaSyntax* pcParent);
 	CJavaSyntaxTypeCommon*		ParseTypeCommon(CJavaSyntax* pcParent);
 	CJavaSyntaxGeneric*			ParseGeneric(CJavaSyntax* pcParent);
-	CJavaSyntaxBlock*			ParseBlock(CJavaSyntax* pcParent);
+	CJavaSyntaxClassBlock*		ParseClassBlock(CJavaSyntax* pcParent);
+	CJavaSyntaxStatement*		ParseClassBlockStatement(CJavaSyntax* pcParent);
 
 	CJavaModifiers				ParseModifiers(uint8 uiAllowedModifiers);
 
@@ -84,6 +85,8 @@ protected:
 	BOOL						GetScope(EJavaTokenScope eGeneric);
 	BOOL						GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
 	BOOL						GetOperator(EJavaTokenOperator eOperator);
+	CJavaTokenKeyword*			GetModifierKeyword(void);
+	CJavaTokenKeyword*			GetPrimitveKeyword(void);
 
 	BOOL						IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
 	BOOL						IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);

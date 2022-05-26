@@ -105,9 +105,6 @@
     <ClCompile Include="JavaSyntaxInitialiser.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxBlock.cpp">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClCompile>
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
@@ -176,6 +173,9 @@
     </ClCompile>
     <ClCompile Include="JavaSyntaxArrayValueExpression.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxClassBlock.cpp">
+      <Filter>Source\Syntax\Elements\Package</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -257,9 +257,6 @@
     <ClInclude Include="JavaSyntaxInitialiser.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxBlock.h">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClInclude>
     <ClInclude Include="JavaSyntaxVariableDeclaration.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
@@ -328,6 +325,9 @@
     </ClInclude>
     <ClInclude Include="JavaSyntaxArrayValueExpression.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxClassBlock.h">
+      <Filter>Source\Syntax\Elements\Package</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
