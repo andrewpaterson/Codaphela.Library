@@ -182,7 +182,7 @@
     <ClCompile Include="JavaSyntaxInitialiser.cpp" />
     <ClCompile Include="JavaSyntaxValueExpression.cpp" />
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp" />
-    <ClCompile Include="JavaSyntaxBlock.cpp" />
+    <ClCompile Include="JavaSyntaxClassBlock.cpp" />
     <ClCompile Include="JavaSyntaxExpressionCommon.cpp" />
     <ClCompile Include="JavaSyntaxExtent.cpp" />
     <ClCompile Include="JavaSyntaxIterativeFor.cpp" />
@@ -233,7 +233,7 @@
     <ClInclude Include="JavaSyntaxInitialiser.h" />
     <ClInclude Include="JavaSyntaxValueExpression.h" />
     <ClInclude Include="JavaSyntaxVariableDeclaration.h" />
-    <ClInclude Include="JavaSyntaxBlock.h" />
+    <ClInclude Include="JavaSyntaxClassBlock.h" />
     <ClInclude Include="JavaSyntaxExpressionCommon.h" />
     <ClInclude Include="JavaSyntaxIterativeFor.h" />
     <ClInclude Include="JavaSyntaxOriginalFor.h" />

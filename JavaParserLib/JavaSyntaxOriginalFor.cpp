@@ -27,7 +27,7 @@ void CJavaSyntaxOriginalFor::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxOriginalFor::GetType(void)
 {
-	return "OriginalFor";
+	return "Original For";
 }
 
 

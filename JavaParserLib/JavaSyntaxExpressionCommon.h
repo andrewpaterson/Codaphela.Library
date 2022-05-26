@@ -1,10 +1,10 @@
 #ifndef __JAVA_SYNTAX_EXPRESSION_COMMON_H__
 #define __JAVA_SYNTAX_EXPRESSION_COMMON_H__
-#include "JavaSyntax.h"
+#include "JavaSyntaxStatement.h"
 
 // (ExpressionCommon); x = (ExpressionCommon)
 
-class CJavaSyntaxExpressionCommon : public CJavaSyntax
+class CJavaSyntaxExpressionCommon : public CJavaSyntaxStatement
 {
 CONSTRUCTABLE(CJavaSyntaxExpressionCommon);
 protected:

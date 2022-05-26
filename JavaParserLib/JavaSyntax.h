@@ -29,7 +29,7 @@ public:
 	virtual BOOL		IsGeneric(void);
 	virtual BOOL		IsExtent(void);
 
-	virtual BOOL		IsBlock(void);
+	virtual BOOL		IsClassBlock(void);
 	virtual BOOL		IsExpression(void);
 	virtual BOOL		IsOriginalFor(void);
 	virtual BOOL		IsIterativeFor(void);
