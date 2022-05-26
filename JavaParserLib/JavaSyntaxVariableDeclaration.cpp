@@ -13,6 +13,8 @@ void CJavaSyntaxVariableDeclaration::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* 
 	mapcType.Init();
 	mpcPrimitiveType = NULL;
 	mpcName = NULL;
+	mpcGeneric = NULL;
+	miArrayDimension = 0;
 
 	mpcInitialiser = NULL;
 }
@@ -28,10 +30,29 @@ void CJavaSyntaxVariableDeclaration::Kill(void)
 		
 	mpcPrimitiveType = NULL;
 	mpcName = NULL;
+	mpcGeneric = NULL;
+	miArrayDimension = 0;
 	mapcType.Kill();
 	mcModifiers.Kill();
 
-	CJavaSyntax::Kill();
+	CJavaSyntaxStatement::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxVariableDeclaration::ReInit(void)
+{
+	mpcInitialiser = NULL;
+
+	mpcGeneric = NULL;
+	miArrayDimension = 0;
+	mpcPrimitiveType = NULL;
+	mpcName = NULL;
+	mapcType.ReInit();
+	mcModifiers.ReInit();
 }
 
 

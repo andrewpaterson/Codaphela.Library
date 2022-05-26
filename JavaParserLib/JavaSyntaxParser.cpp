@@ -632,6 +632,7 @@ CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* p
 	}
 
 	pcVariable = mpcSyntaxes->CreateVariableDeclaration(&mcSyntaxTree, pcParent);
+	pcVariable->SetModifiers(cModifers);
 
 	pcPrimitive = GetPrimitveKeyword();
 	if (pcPrimitive)
@@ -645,7 +646,8 @@ CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* p
 			pcIdentifier = GetIdentifier();
 			if (pcIdentifier == NULL)
 			{
-				return Error<CJavaSyntaxStatement>(EXPECTED_IDENTIFIER);
+				pcVariable->ReInit();
+				return Mismatch<CJavaSyntaxStatement>();
 			}
 
 			pcVariable->AddIdentifierType(pcIdentifier);

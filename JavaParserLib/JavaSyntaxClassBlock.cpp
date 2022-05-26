@@ -27,7 +27,7 @@ void CJavaSyntaxClassBlock::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxClassBlock::GetType(void)
 {
-	return "Block";
+	return "Class Block";
 }
 
 

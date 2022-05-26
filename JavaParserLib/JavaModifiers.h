@@ -25,6 +25,7 @@ protected:
 public:
 	void Init(void);
 	void Kill(void);
+	void ReInit(void);
 
 	void Set(EJavaModifier eModifier);
 

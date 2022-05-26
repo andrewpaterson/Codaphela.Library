@@ -8,7 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxType::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree, pcParent);
+	CJavaSyntaxTypeCommon::Init(pcTree, pcParent);
+
 	mpcName = NULL;
 	mpcGeneric = NULL;
 }
@@ -22,7 +23,8 @@ void CJavaSyntaxType::Kill(void)
 {
 	mpcName = NULL;
 	mpcGeneric = NULL;
-	CJavaSyntax::Kill();
+
+	CJavaSyntaxTypeCommon::Kill();
 }
 
 
@@ -42,7 +44,7 @@ char* CJavaSyntaxType::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxType::Print(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntaxTypeCommon::Print(pszDest, iDepth);
 	if (mpcName)
 	{
 		mpcName->Print(pszDest);

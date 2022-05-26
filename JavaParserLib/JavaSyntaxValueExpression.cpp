@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree, pcParent);
+	CJavaSyntaxExpressionCommon::Init(pcTree, pcParent);
 }
 
 
@@ -17,7 +17,7 @@ void CJavaSyntaxValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcPa
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxValueExpression::Kill(void)
 {
-	CJavaSyntax::Kill();
+	CJavaSyntaxExpressionCommon::Kill();
 }
 
 
@@ -37,7 +37,7 @@ char* CJavaSyntaxValueExpression::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxValueExpression::Print(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntaxExpressionCommon::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
 }
 
