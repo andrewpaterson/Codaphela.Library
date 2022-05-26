@@ -1,11 +1,11 @@
-#include "JavaSyntaxExpression.h"
+#include "JavaSyntaxInitialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxInitialiser::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 }
@@ -15,7 +15,7 @@ void CJavaSyntaxExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxExpression::Kill(void)
+void CJavaSyntaxInitialiser::Kill(void)
 {
 	CJavaSyntax::Kill();
 }
@@ -25,9 +25,9 @@ void CJavaSyntaxExpression::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxExpression::GetType(void)
+char* CJavaSyntaxInitialiser::GetType(void)
 {
-	return "Expression";
+	return "Initialiser";
 }
 
 
@@ -35,7 +35,7 @@ char* CJavaSyntaxExpression::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxExpression::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxInitialiser::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
@@ -46,7 +46,7 @@ void CJavaSyntaxExpression::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxExpression::IsExpression(void)
+BOOL CJavaSyntaxInitialiser::IsInitialiser(void)
 {
 	return TRUE;
 }

@@ -1,11 +1,11 @@
-#include "JavaSyntaxAssignment.h"
+#include "JavaSyntaxValueExpression.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxAssignment::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 }
@@ -15,7 +15,7 @@ void CJavaSyntaxAssignment::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxAssignment::Kill(void)
+void CJavaSyntaxValueExpression::Kill(void)
 {
 	CJavaSyntax::Kill();
 }
@@ -25,9 +25,9 @@ void CJavaSyntaxAssignment::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxAssignment::GetType(void)
+char* CJavaSyntaxValueExpression::GetType(void)
 {
-	return "Assignment";
+	return "Value Expression";
 }
 
 
@@ -35,7 +35,7 @@ char* CJavaSyntaxAssignment::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxAssignment::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxValueExpression::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
@@ -46,7 +46,7 @@ void CJavaSyntaxAssignment::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxAssignment::IsAssignment(void)
+BOOL CJavaSyntaxValueExpression::IsValueExpression(void)
 {
 	return TRUE;
 }

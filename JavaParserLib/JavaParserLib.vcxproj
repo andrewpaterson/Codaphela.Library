@@ -178,16 +178,19 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="JavaModifiers.cpp" />
-    <ClCompile Include="JavaSyntaxAssignment.cpp" />
+    <ClCompile Include="JavaSyntaxArrayValueExpression.cpp" />
+    <ClCompile Include="JavaSyntaxInitialiser.cpp" />
+    <ClCompile Include="JavaSyntaxValueExpression.cpp" />
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp" />
     <ClCompile Include="JavaSyntaxBlock.cpp" />
-    <ClCompile Include="JavaSyntaxExpression.cpp" />
+    <ClCompile Include="JavaSyntaxExpressionCommon.cpp" />
     <ClCompile Include="JavaSyntaxExtent.cpp" />
     <ClCompile Include="JavaSyntaxIterativeFor.cpp" />
     <ClCompile Include="JavaSyntaxOriginalFor.cpp" />
     <ClCompile Include="JavaSyntaxStatement.cpp" />
     <ClCompile Include="JavaSyntaxTypeCommon.cpp" />
     <ClCompile Include="JavaSyntaxVariableCommon.cpp" />
+    <ClCompile Include="JavaSyntaxVoidExpression.cpp" />
     <ClCompile Include="JavaTokenAmbiguous.cpp" />
     <ClCompile Include="JavaTokenAnnotation.cpp" />
     <ClCompile Include="JavaTokenBoolean.cpp" />
@@ -226,16 +229,19 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaModifiers.h" />
-    <ClInclude Include="JavaSyntaxAssignment.h" />
+    <ClInclude Include="JavaSyntaxArrayValueExpression.h" />
+    <ClInclude Include="JavaSyntaxInitialiser.h" />
+    <ClInclude Include="JavaSyntaxValueExpression.h" />
     <ClInclude Include="JavaSyntaxVariableDeclaration.h" />
     <ClInclude Include="JavaSyntaxBlock.h" />
-    <ClInclude Include="JavaSyntaxExpression.h" />
+    <ClInclude Include="JavaSyntaxExpressionCommon.h" />
     <ClInclude Include="JavaSyntaxIterativeFor.h" />
     <ClInclude Include="JavaSyntaxOriginalFor.h" />
     <ClInclude Include="JavaSyntaxStatement.h" />
     <ClInclude Include="JavaSyntaxTypeCommon.h" />
     <ClInclude Include="JavaSyntaxExtent.h" />
     <ClInclude Include="JavaSyntaxVariableCommon.h" />
+    <ClInclude Include="JavaSyntaxVoidExpression.h" />
     <ClInclude Include="JavaTokenAnnotation.h" />
     <ClInclude Include="JavaTokenBoolean.h" />
     <ClInclude Include="JavaSyntaxClass.h" />

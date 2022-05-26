@@ -1,6 +1,8 @@
 #ifndef __JAVA_SYNTAX_VARIABLE_DECLARATION_H__
 #define __JAVA_SYNTAX_VARIABLE_DECLARATION_H__
 #include "JavaModifiers.h"
+#include "JavaTokenIdentifier.h"
+#include "JavaSyntaxInitialiser.h"
 #include "JavaSyntaxStatement.h"
 
 // X x = y;  
@@ -10,8 +12,10 @@ class CJavaSyntaxVariableDeclaration : public CJavaSyntaxStatement
 {
 CONSTRUCTABLE(CJavaSyntaxVariableDeclaration);
 protected:
-	CJavaModifiers	mcModifiers;
-	
+	CJavaModifiers							mcModifiers;
+	CJavaTokenIdentifierPtrEmbeddedArray	mapcType;
+	CJavaTokenIdentifier*					mpcName;
+	CJavaSyntaxInitialiser*					mpcInitialiser;				
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
