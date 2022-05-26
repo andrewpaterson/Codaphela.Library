@@ -38,7 +38,6 @@ char* CJavaSyntaxStatement::GetType(void)
 void CJavaSyntaxStatement::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
-	pszDest->AppendNewLine();
 }
 
 

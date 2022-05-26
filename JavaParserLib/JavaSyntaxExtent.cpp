@@ -8,7 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxExtent::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree, pcParent);
+	CJavaSyntaxTypeCommon::Init(pcTree, pcParent);
+
 	mpcName = NULL;
 	mbWildCard = FALSE;
 	mpcExtends = NULL;
@@ -24,7 +25,8 @@ void CJavaSyntaxExtent::Kill(void)
 	mpcName = NULL;
 	mbWildCard = FALSE;
 	mpcExtends = NULL;
-	CJavaSyntax::Kill();
+
+	CJavaSyntaxTypeCommon::Kill();
 }
 
 
@@ -44,7 +46,7 @@ char* CJavaSyntaxExtent::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxExtent::Print(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntaxTypeCommon::Print(pszDest, iDepth);
 	if (mbWildCard)
 	{
 		pszDest->Append('?');

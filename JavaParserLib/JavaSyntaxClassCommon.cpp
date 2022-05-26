@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree, pcParent);
+	CJavaSyntaxStatement::Init(pcTree, pcParent);
 	mcModifiers.Init();
 }
 
@@ -19,7 +19,7 @@ void CJavaSyntaxClassCommon::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent
 void CJavaSyntaxClassCommon::Kill(void)
 {
 	mcModifiers.Kill();
-	CJavaSyntax::Kill();
+	CJavaSyntaxStatement::Kill();
 }
 
 

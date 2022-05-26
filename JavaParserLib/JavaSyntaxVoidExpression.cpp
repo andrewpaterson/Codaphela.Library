@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxVoidExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree, pcParent);
+	CJavaSyntaxStatement::Init(pcTree, pcParent);
 }
 
 
@@ -17,7 +17,7 @@ void CJavaSyntaxVoidExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcPar
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxVoidExpression::Kill(void)
 {
-	CJavaSyntax::Kill();
+	CJavaSyntaxStatement::Kill();
 }
 
 
@@ -37,7 +37,7 @@ char* CJavaSyntaxVoidExpression::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxVoidExpression::Print(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
 }
 

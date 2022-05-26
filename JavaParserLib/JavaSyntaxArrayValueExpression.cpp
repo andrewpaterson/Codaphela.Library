@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxArrayValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
-	CJavaSyntax::Init(pcTree, pcParent);
+	CJavaSyntaxExpressionCommon::Init(pcTree, pcParent);
 }
 
 
@@ -17,7 +17,7 @@ void CJavaSyntaxArrayValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax*
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxArrayValueExpression::Kill(void)
 {
-	CJavaSyntax::Kill();
+	CJavaSyntaxExpressionCommon::Kill();
 }
 
 

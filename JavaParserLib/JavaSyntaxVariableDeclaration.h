@@ -40,6 +40,7 @@ protected:
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
+	void 	ReInit(void);
 
 	char*	GetType(void) override;
 	void	Print(CChars* pszDest, int iDepth);
