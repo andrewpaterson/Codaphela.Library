@@ -95,3 +95,16 @@ char* CTokenParserEnvironment::GetOutput(CChars* pszDest)
 	return pszDest->Text();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTokenParserEnvironment::DumpLog(void)
+{
+	CChars	sz;
+
+	sz.Init((char*)mcMemoryLog.GetBufferPointer(), 0, mcMemoryLog.GetBufferSize());
+	sz.DumpKill();
+}
+

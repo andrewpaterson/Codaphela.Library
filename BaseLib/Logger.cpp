@@ -54,8 +54,16 @@ void CLogger::Init(const char* szName)
 {
 	CFileUtil cFileUtil;
 
-	cFileUtil.Delete(szName);
-	Init(DiskFile(szName), szName);
+	if (szName)
+	{
+		cFileUtil.Delete(szName);
+		Init(DiskFile(szName), szName);
+	}
+	else
+	{
+		Init(NULL, NULL);
+	}
+
 
 	msConfig.bBreakOnWarning = FALSE;
 	msConfig.bBreakOnError = FALSE;
@@ -81,7 +89,11 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 	CDebugOutputFile*	pcDebugFile;
 
 	mapcFiles.Init();
-	mapcFiles.Add(&pcFile);
+
+	if (pcFile)
+	{
+		mapcFiles.Add(&pcFile);
+	}
 
 	pcDebugFile = DebugOutputFile();
 	mapcFiles.Add((CAbstractFile**)&pcDebugFile);
@@ -366,7 +378,7 @@ void CLogger::Debug(const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Add(const char* szErrorLevel, const char* szText)
 {
-	char	szMessage[16384];
+	char	szMessage[1 KB];
 	int		iLength;
 
 	if (szText == NULL)
@@ -381,7 +393,7 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 		iLength += (int)strlen(szErrorLevel);
 	}
 
-	if (iLength > 16000)
+	if (iLength > (1 KB - 80))
 	{
 		//This is really slow because the file must be opened and closed every add...
 		if (szErrorLevel)
