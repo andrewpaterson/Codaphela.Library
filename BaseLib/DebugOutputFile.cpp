@@ -169,6 +169,5 @@ CDebugOutputFile* DebugOutputFile(void)
 	pcDebugOutputFile->Init();
 	pcDebugOutputFile->mbBasicFileMustFree = TRUE;
 	return pcDebugOutputFile;
-
 }
 

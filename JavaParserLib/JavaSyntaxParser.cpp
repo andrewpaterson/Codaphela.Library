@@ -664,6 +664,7 @@ CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* p
 	pcIdentifier = GetIdentifier();
 	if (pcIdentifier == NULL)
 	{
+		pcVariable->ReInit();
 		return Error<CJavaSyntaxStatement>(EXPECTED_IDENTIFIER);
 	}
 

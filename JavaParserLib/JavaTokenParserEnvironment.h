@@ -17,11 +17,13 @@ public:
 	void				Init(char* szFilename, char* szText, BOOL bBreakOnError);
 	void				Init(char* szFilename, char* szText, int iTextLen, BOOL bBreakOnError);
 	void				Kill(void);
-
+	
 	BOOL				Parse(BOOL bFailOnError = TRUE);
 	CJavaTokenParser*	GetParser(void);
 	char*				GetOutput(int* piLength = NULL);
 	char*				GetOutput(CChars* pszDest);
+
+	void				DumpLog(void);
 };
 
 
