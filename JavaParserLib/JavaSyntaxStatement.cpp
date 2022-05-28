@@ -35,9 +35,9 @@ char* CJavaSyntaxStatement::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxStatement::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxStatement::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 }
 
 

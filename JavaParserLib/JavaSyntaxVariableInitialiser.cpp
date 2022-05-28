@@ -35,10 +35,20 @@ char* CJavaSyntaxVariableInitialiser::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxVariableInitialiser::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVariableInitialiser::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxVariableInitialiser::PrettyPrint(CChars* pszDest)
+{
+	return NULL;
 }
 
 

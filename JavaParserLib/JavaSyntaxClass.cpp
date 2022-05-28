@@ -39,11 +39,21 @@ char* CJavaSyntaxClass::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClass::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxClass::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxClassCommon::Print(pszDest, iDepth);
-	mpcType->Print(pszDest, iDepth + 1);
-	mpcBlock->Print(pszDest, iDepth + 1);
+	CJavaSyntaxClassCommon::TypePrint(pszDest, iDepth);
+	mpcType->TypePrint(pszDest, iDepth + 1);
+	mpcBlock->TypePrint(pszDest, iDepth + 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxClass::PrettyPrint(CChars* pszDest)
+{
+	return NULL;
 }
 
 
@@ -75,4 +85,25 @@ void CJavaSyntaxClass::SetBlock(CJavaSyntaxClassBlock* pcBlock)
 {
 	mpcBlock = pcBlock;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxType* CJavaSyntaxClass::GetSyntaxType(void)
+{
+	return mpcType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxClassBlock* CJavaSyntaxClass::GetBlock(void)
+{
+	return mpcBlock;
+}
+
 

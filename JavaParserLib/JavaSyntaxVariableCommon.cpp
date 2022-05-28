@@ -35,9 +35,9 @@ char* CJavaSyntaxVariableCommon::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxVariableCommon::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVariableCommon::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxStatement::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 }
 

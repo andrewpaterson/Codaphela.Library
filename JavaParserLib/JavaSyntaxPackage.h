@@ -12,15 +12,18 @@ protected:
 	CIdentifierArray	mapcIdentifiers;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 				Kill(void);
 
-	char*	GetType(void) override;
-	void	Print(CChars* pszDest, int iDepth);
+	char*				GetType(void) override;
+	void				TypePrint(CChars* pszDest, int iDepth) override;
+	char*				PrettyPrint(CChars* pszDest);
 
-	void	AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
+	void				AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
 
-	BOOL	IsPackage(void) override;
+	BOOL				IsPackage(void) override;
+
+	CIdentifierArray*	GetIdentifiers(void);
 };
 
 

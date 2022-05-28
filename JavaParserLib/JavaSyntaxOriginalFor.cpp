@@ -35,9 +35,9 @@ char* CJavaSyntaxOriginalFor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxOriginalFor::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxOriginalFor::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 }
 

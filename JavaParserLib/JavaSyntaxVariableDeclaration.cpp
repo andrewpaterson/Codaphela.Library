@@ -53,9 +53,9 @@ char* CJavaSyntaxVariableDeclaration::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxVariableDeclaration::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVariableDeclaration::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxStatement::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::TypePrint(pszDest, iDepth);
 	mcModifiers.Print(pszDest);
 	pszDest->Append(' ');
 
@@ -84,13 +84,23 @@ void CJavaSyntaxVariableDeclaration::Print(CChars* pszDest, int iDepth)
 
 	if (mpcGeneric)
 	{
-		mpcGeneric->Print(pszDest, iDepth + 1);
+		mpcGeneric->TypePrint(pszDest, iDepth + 1);
 	}
 
 	if (mpcInitialiser)
 	{
-		mpcInitialiser->Print(pszDest, iDepth + 1);
+		mpcInitialiser->TypePrint(pszDest, iDepth + 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest)
+{
+	return NULL;
 }
 
 

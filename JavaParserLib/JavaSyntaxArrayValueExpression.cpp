@@ -35,10 +35,20 @@ char* CJavaSyntaxArrayValueExpression::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxArrayValueExpression::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxArrayValueExpression::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxArrayValueExpression::PrettyPrint(CChars* pszDest)
+{
+	return NULL;
 }
 
 

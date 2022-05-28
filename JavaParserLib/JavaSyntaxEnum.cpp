@@ -35,11 +35,21 @@ char* CJavaSyntaxEnum::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxEnum::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxEnum::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxEnum::PrettyPrint(CChars* pszDest)
+{
+	return NULL;
 }
 
 

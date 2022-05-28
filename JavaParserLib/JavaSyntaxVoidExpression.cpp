@@ -35,9 +35,9 @@ char* CJavaSyntaxVoidExpression::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxVoidExpression::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVoidExpression::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxStatement::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 }
 

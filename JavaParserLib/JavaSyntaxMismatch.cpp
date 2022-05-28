@@ -15,10 +15,21 @@ char* CJavaSyntaxMismatch::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxMismatch::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxMismatch::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxMismatch::PrettyPrint(CChars* pszDest)
+{
+	pszDest->Append(GetType());
+	return pszDest->Text();
 }
 
 

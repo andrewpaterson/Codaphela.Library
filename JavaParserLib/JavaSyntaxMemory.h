@@ -30,8 +30,8 @@ protected:
 	CSyntaxPtrArray			mapcSyntaxes;
 
 public:
-	void						Init(void);
-	void						Kill(void);
+	void								Init(void);
+	void								Kill(void);
 
 	CJavaSyntaxFile*					CreateFile(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxPackage*					CreatePackage(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

@@ -37,7 +37,7 @@ void CJavaSyntax::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntax::Print(CChars* pszDest, int iDepth)
+void CJavaSyntax::TypePrint(CChars* pszDest, int iDepth)
 {
 	pszDest->Append(' ', iDepth * 2);
 	pszDest->Append(GetType());
@@ -76,7 +76,7 @@ void CJavaSyntax::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	Print(&sz, 0);
+	PrettyPrint(&sz);
 	sz.DumpKill();
 }
 

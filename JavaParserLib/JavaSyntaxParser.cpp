@@ -206,9 +206,9 @@ BOOL CJavaSyntaxParser::Parse(BOOL bFailOnError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::PrettyPrint(CChars* pszDest)
+char* CJavaSyntaxParser::PrettyPrint(CChars* pszDest)
 {
-
+	return mcSyntaxTree.PrettyPrint(pszDest);
 }
 
 
@@ -218,7 +218,7 @@ void CJavaSyntaxParser::PrettyPrint(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxParser::TypePrint(CChars* pszDest)
 {
-	mcSyntaxTree.Print(pszDest);
+	mcSyntaxTree.TypePrint(pszDest);
 }
 
 

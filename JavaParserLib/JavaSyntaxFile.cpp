@@ -59,32 +59,64 @@ char* CJavaSyntaxFile::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxFile::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxFile::TypePrint(CChars* pszDest, int iDepth)
 {
 	int						i;
 	CJavaSyntaxImport*		pcSyntax;
 	CJavaSyntaxClassCommon*	pcClassCommon;
 
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->Append(&mszFilename);
 	pszDest->AppendNewLine();
 
 	if (mpcPackage)
 	{
-		mpcPackage->Print(pszDest, iDepth + 1);
+		mpcPackage->TypePrint(pszDest, iDepth + 1);
 	}
 
 	for (i = 0; i < mapcImports.NumElements(); i++)
 	{
 		pcSyntax = mapcImports.GetPtr(i);
-		pcSyntax->Print(pszDest, iDepth + 1);
+		pcSyntax->TypePrint(pszDest, iDepth + 1);
 	}
 
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClassCommon = mapcClasses.GetPtr(i);
-		pcClassCommon->Print(pszDest, iDepth + 1);
+		pcClassCommon->TypePrint(pszDest, iDepth + 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxFile::PrettyPrint(CChars* pszDest)
+{
+	mpcPackage->PrettyPrint(pszDest);
+	pszDest->AppendNewLine();
+	pszDest->AppendNewLine();
+
+	int						i;
+	CJavaSyntaxImport* pcSyntax;
+	CJavaSyntaxClassCommon* pcClassCommon;
+
+	for (i = 0; i < mapcImports.NumElements(); i++)
+	{
+		pcSyntax = mapcImports.GetPtr(i);
+		pcSyntax->PrettyPrint(pszDest);
+		pszDest->AppendNewLine();
+	}
+
+	for (i = 0; i < mapcClasses.NumElements(); i++)
+	{
+		pcClassCommon = mapcClasses.GetPtr(i);
+		pcClassCommon->PrettyPrint(pszDest);
+		pszDest->AppendNewLine();
+	}
+
+	return pszDest->Text();
 }
 
 
@@ -133,5 +165,35 @@ void CJavaSyntaxFile::AddImport(CJavaSyntaxImport* pcImport)
 void CJavaSyntaxFile::AddClass(CJavaSyntaxClassCommon* pcClassCommon)
 {
 	mapcClasses.Add(pcClassCommon);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxPackage* CJavaSyntaxFile::GetPackage(void)
+{
+	return mpcPackage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CImportArray* CJavaSyntaxFile::GetImports(void)
+{
+	return &mapcImports;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CClassCommonArray* CJavaSyntaxFile::GetClasses(void)
+{
+	return &mapcClasses;
 }
 

@@ -37,9 +37,9 @@ char* CJavaSyntaxClassCommon::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassCommon::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxClassCommon::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxStatement::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::TypePrint(pszDest, iDepth);
 	mcModifiers.Print(pszDest);
 	pszDest->AppendNewLine();
 }

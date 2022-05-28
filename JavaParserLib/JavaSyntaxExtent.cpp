@@ -44,9 +44,9 @@ char* CJavaSyntaxExtent::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxExtent::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxExtent::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxTypeCommon::Print(pszDest, iDepth);
+	CJavaSyntaxTypeCommon::TypePrint(pszDest, iDepth);
 	if (mbWildCard)
 	{
 		pszDest->Append('?');
@@ -59,7 +59,7 @@ void CJavaSyntaxExtent::Print(CChars* pszDest, int iDepth)
 
 	if (mpcExtends)
 	{
-		mpcExtends->Print(pszDest, iDepth + 1);
+		mpcExtends->TypePrint(pszDest, iDepth + 1);
 	}
 }
 

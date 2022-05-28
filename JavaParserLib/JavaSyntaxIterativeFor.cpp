@@ -35,9 +35,9 @@ char* CJavaSyntaxIterativeFor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxIterativeFor::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxIterativeFor::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxStatement::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 }
 

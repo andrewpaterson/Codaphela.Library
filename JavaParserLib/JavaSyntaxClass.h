@@ -14,16 +14,19 @@ protected:
 	CJavaSyntaxClassBlock*	mpcBlock;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 					Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 					Kill(void);
 
-	char*	GetType(void) override;
-	void	Print(CChars* pszDest, int iDepth);
+	char*					GetType(void) override;
+	void					TypePrint(CChars* pszDest, int iDepth) override;
+	char*					PrettyPrint(CChars* pszDest) override;
+	BOOL					IsClass(void) override;
 
-	BOOL	IsClass(void) override;
+	void					SetSyntaxType(CJavaSyntaxType* pcType);
+	void					SetBlock(CJavaSyntaxClassBlock* pcBlock);
 
-	void	SetSyntaxType(CJavaSyntaxType* pcType);
-	void	SetBlock(CJavaSyntaxClassBlock* pcBlock);
+	CJavaSyntaxType*		GetSyntaxType(void);
+	CJavaSyntaxClassBlock*	GetBlock(void);
 };
 
 

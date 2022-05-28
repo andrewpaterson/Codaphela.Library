@@ -18,7 +18,8 @@ public:
 			void		Clear(void);
 
 	virtual char*		GetType(void) =0;
-	virtual void		Print(CChars* pszDest, int iDepth);
+	virtual void		TypePrint(CChars* pszDest, int iDepth);
+	virtual char*		PrettyPrint(CChars* pszDest) =0;
 			void		Dump(void);
 
 	virtual BOOL		IsFile(void);

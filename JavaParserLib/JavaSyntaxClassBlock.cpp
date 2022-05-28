@@ -37,19 +37,29 @@ char* CJavaSyntaxClassBlock::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxClassBlock::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxClassBlock::TypePrint(CChars* pszDest, int iDepth)
 {
 	int						i;
 	CJavaSyntaxStatement*	pcStatement;
 
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 
 	for (i = 0; i < mapcStatements.NumElements(); i++)
 	{
 		pcStatement = mapcStatements.GetPtr(i);
-		pcStatement->Print(pszDest, iDepth + 1);
+		pcStatement->TypePrint(pszDest, iDepth + 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxClassBlock::PrettyPrint(CChars* pszDest)
+{
+	return NULL;
 }
 
 

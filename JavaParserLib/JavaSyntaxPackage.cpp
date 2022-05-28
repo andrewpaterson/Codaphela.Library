@@ -37,13 +37,23 @@ char* CJavaSyntaxPackage::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxPackage::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxPackage::TypePrint(CChars* pszDest, int iDepth)
+{
+	CJavaSyntax::TypePrint(pszDest, iDepth);
+	PrettyPrint(pszDest);
+	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxPackage::PrettyPrint(CChars* pszDest)
 {
 	int						i;
-	CJavaTokenIdentifier*	pcIdentifier;
+	CJavaTokenIdentifier* pcIdentifier;
 
-	CJavaSyntax::Print(pszDest, iDepth);
-	
 	for (i = 0; i < mapcIdentifiers.NumElements(); i++)
 	{
 		if (i != 0)
@@ -55,7 +65,7 @@ void CJavaSyntaxPackage::Print(CChars* pszDest, int iDepth)
 		pcIdentifier->Print(pszDest);
 	}
 
-	pszDest->AppendNewLine();
+	return pszDest->Text();
 }
 
 
@@ -76,5 +86,15 @@ void CJavaSyntaxPackage::AddIdentifier(CJavaTokenIdentifier* pcIdentifier)
 BOOL CJavaSyntaxPackage::IsPackage(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIdentifierArray* CJavaSyntaxPackage::GetIdentifiers(void)
+{
+	return &mapcIdentifiers;
 }
 
