@@ -8,6 +8,7 @@
 void CJavaSyntaxClassBlock::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
+	mapcStatements.Init();
 }
 
 
@@ -17,6 +18,7 @@ void CJavaSyntaxClassBlock::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassBlock::Kill(void)
 {
+	mapcStatements.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -27,7 +29,7 @@ void CJavaSyntaxClassBlock::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxClassBlock::GetType(void)
 {
-	return "Class Block";
+	return "Block";
 }
 
 
@@ -37,8 +39,17 @@ char* CJavaSyntaxClassBlock::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassBlock::Print(CChars* pszDest, int iDepth)
 {
+	int						i;
+	CJavaSyntaxStatement*	pcStatement;
+
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
+
+	for (i = 0; i < mapcStatements.NumElements(); i++)
+	{
+		pcStatement = mapcStatements.GetPtr(i);
+		pcStatement->Print(pszDest, iDepth + 1);
+	}
 }
 
 
@@ -49,5 +60,15 @@ void CJavaSyntaxClassBlock::Print(CChars* pszDest, int iDepth)
 BOOL CJavaSyntaxClassBlock::IsClassBlock(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClassBlock::AddStatement(CJavaSyntaxStatement* pcStatement)
+{
+	mapcStatements.Add(pcStatement);
 }
 

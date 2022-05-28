@@ -49,6 +49,8 @@ protected:
 	CExternalString			mcText;
 	CLogger*				mpcLogger;
 
+	int						miErrors;
+
 public:
 	void	Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser);
 	void 	Kill(void);
@@ -61,48 +63,50 @@ public:
 	void	Dump(BOOL bIncludeType = FALSE);
 
 protected:
-	void						PushPosition(void);
-	void						PopPosition(void);
-	void						PassPosition(void);
+	void							PushPosition(void);
+	void							PopPosition(void);
+	void							PassPosition(void);
 	
-	CJavaSyntaxPackage*			ParsePackage(CJavaSyntax* pcParent);
-	CJavaSyntaxImport*			ParseImport(CJavaSyntax* pcParent);
-	CJavaSyntaxClass*			ParseClass(CJavaSyntax* pcParent);
-	CJavaSyntaxEnum*			ParseEnum(CJavaSyntax* pcParent);
-	CJavaSyntaxInterface*		ParseInterface(CJavaSyntax* pcParent);
-	CJavaSyntaxType*			ParseType(CJavaSyntax* pcParent);
-	CJavaSyntaxExtent*			ParseExtent(CJavaSyntax* pcParent);
-	CJavaSyntaxTypeCommon*		ParseTypeCommon(CJavaSyntax* pcParent);
-	CJavaSyntaxGeneric*			ParseGeneric(CJavaSyntax* pcParent);
-	CJavaSyntaxClassBlock*		ParseClassBlock(CJavaSyntax* pcParent);
-	CJavaSyntaxStatement*		ParseClassBlockStatement(CJavaSyntax* pcParent);
+	CJavaSyntaxPackage*				ParsePackage(CJavaSyntax* pcParent);
+	CJavaSyntaxImport*				ParseImport(CJavaSyntax* pcParent);
+	CJavaSyntaxClass*				ParseClass(CJavaSyntax* pcParent);
+	CJavaSyntaxEnum*				ParseEnum(CJavaSyntax* pcParent);
+	CJavaSyntaxInterface*			ParseInterface(CJavaSyntax* pcParent);
+	CJavaSyntaxType*				ParseType(CJavaSyntax* pcParent);
+	CJavaSyntaxExtent*				ParseExtent(CJavaSyntax* pcParent);
+	CJavaSyntaxTypeCommon*			ParseTypeCommon(CJavaSyntax* pcParent);
+	CJavaSyntaxGeneric*				ParseGeneric(CJavaSyntax* pcParent);
+	CJavaSyntaxClassBlock*			ParseClassBlock(CJavaSyntax* pcParent);
+	CJavaSyntaxStatement*			ParseClassBlockStatement(CJavaSyntax* pcParent);
+	CJavaSyntaxVariableDeclaration* ParseClassVariable(CJavaSyntax* pcParent);
+	CJavaSyntaxVariableInitialiser* ParseVariableInitialiser(CJavaSyntax* pcParent);
 
-	CJavaModifiers				ParseModifiers(uint8 uiAllowedModifiers);
+	CJavaModifiers					ParseModifiers(uint8 uiAllowedModifiers);
 
-	BOOL						GetKeyword(EJavaTokenKeyword eKeyword);
-	BOOL						GetSeparator(EJavaTokenSeparator eSeparator);
-	CJavaTokenIdentifier*		GetIdentifier(void);
-	BOOL						GetScope(EJavaTokenScope eGeneric);
-	BOOL						GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
-	BOOL						GetOperator(EJavaTokenOperator eOperator);
-	CJavaTokenKeyword*			GetModifierKeyword(void);
-	CJavaTokenKeyword*			GetPrimitveKeyword(void);
+	BOOL							GetKeyword(EJavaTokenKeyword eKeyword);
+	BOOL							GetSeparator(EJavaTokenSeparator eSeparator);
+	CJavaTokenIdentifier*			GetIdentifier(void);
+	BOOL							GetScope(EJavaTokenScope eGeneric);
+	BOOL							GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
+	BOOL							GetOperator(EJavaTokenOperator eOperator);
+	CJavaTokenKeyword*				GetModifierKeyword(void);
+	CJavaTokenKeyword*				GetPrimitveKeyword(void);
 
-	BOOL						IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
-	BOOL						IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);
-	BOOL						IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric);
-	BOOL						IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous);
-	BOOL						IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator);
-	BOOL						IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType);
-	BOOL						IsIdentifier(CJavaToken* pcToken);
+	BOOL							IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
+	BOOL							IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);
+	BOOL							IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric);
+	BOOL							IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous);
+	BOOL							IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator);
+	BOOL							IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType);
+	BOOL							IsIdentifier(CJavaToken* pcToken);
 
-	void						Next(void);
-	BOOL						HasNext(void);
-	void						SkipComments(void);
+	void							Next(void);
+	BOOL							HasNext(void);
+	void							SkipComments(void);
 
-	BOOL						ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
-	CJavaTokenScope*			CreateScope(STextPosition* psPosition, EJavaTokenScope eScope);
-	void						PrivateError(char* szError);
+	BOOL							ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
+	CJavaTokenScope*				CreateScope(STextPosition* psPosition, EJavaTokenScope eScope);
+	void							PrivateError(char* szError);
 
 protected:
 	template<class M>	M*	Error(char* szError);

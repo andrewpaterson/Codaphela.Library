@@ -1,6 +1,7 @@
 #ifndef __JAVA_SYNTAX_CLASS_BLOCK_H__
 #define __JAVA_SYNTAX_CLASS_BLOCK_H__
 #include "JavaSyntax.h"
+#include "JavaSyntaxStatement.h"
 
 // { Statement ; ... Statement ; }
 
@@ -16,7 +17,8 @@ class CJavaSyntaxClassBlock : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxClassBlock);
 protected:
-
+	CJavaSyntaxStatementPtrEmbeddedArray	mapcStatements;
+		
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
@@ -25,6 +27,8 @@ public:
 	void	Print(CChars* pszDest, int iDepth);
 
 	BOOL	IsClassBlock(void) override;
+
+	void	AddStatement(CJavaSyntaxStatement* pcStatement);
 };
 
 

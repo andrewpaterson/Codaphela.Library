@@ -1,6 +1,7 @@
 #ifndef __JAVA_SYNTAX_H__
 #define __JAVA_SYNTAX_H__
 #include "BaseLib/Chars.h"
+#include "JavaTokenIdentifier.h"
 
 
 class CJavaSyntaxTree;
@@ -12,8 +13,9 @@ protected:
 	CJavaSyntax*		mpcParent;
 
 public:
-			void		Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	virtual void		Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	virtual void		Kill(void);
+			void		Clear(void);
 
 	virtual char*		GetType(void) =0;
 	virtual void		Print(CChars* pszDest, int iDepth);
@@ -34,7 +36,7 @@ public:
 	virtual BOOL		IsOriginalFor(void);
 	virtual BOOL		IsIterativeFor(void);
 	virtual BOOL		IsVariableDeclaration(void);
-	virtual BOOL		IsInitialiser(void);
+	virtual BOOL		IsVariableInitialiser(void);
 	virtual BOOL		IsVoidExpression(void);
 	virtual BOOL		IsValueExpression(void);
 	virtual BOOL		IsArrayValueExpression(void);
@@ -47,6 +49,9 @@ public:
 
 	virtual BOOL		IsError(void);
 	virtual BOOL		IsMismatch(void);
+
+protected:
+	void	PrintTokenArray(CChars* pszDest, CJavaTokenIdentifierPtrEmbeddedArray* papcTokens);
 };
 
 

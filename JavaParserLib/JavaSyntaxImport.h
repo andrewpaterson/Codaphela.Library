@@ -1,6 +1,6 @@
 #ifndef __JAVA_SYNTAX_IMPORT_H__
 #define __JAVA_SYNTAX_IMPORT_H__
-#include "BaseLib/ArrayTemplatePtr.h"
+#include "BaseLib/ArrayTemplateEmbeddedPtr.h"
 #include "JavaSyntax.h"
 #include "JavaTokenIdentifier.h"
 
@@ -9,9 +9,9 @@ class CJavaSyntaxImport : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxImport);
 protected:
-	CJavaTokenIdentifierPtrArray	mapcIdentifiers;
-	BOOL							mbStatic;
-	BOOL							mbWild;
+	CJavaTokenIdentifierPtrEmbeddedArray	mapcIdentifiers;
+	BOOL									mbStatic;
+	BOOL									mbWild;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

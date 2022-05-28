@@ -27,6 +27,8 @@ void CJavaSyntaxParser::Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pc
 	mcSyntaxTree.Init();
 	mcError.Init(&mcSyntaxTree, NULL);
 	mcMismatch.Init(&mcSyntaxTree, NULL);
+
+	miErrors = 0;
 }
 
 
@@ -151,6 +153,15 @@ BOOL CJavaSyntaxParser::Parse(void)
 
 			break;
 		}
+	}
+
+	if (miErrors == 0)
+	{
+		mpcLogger->Info2("Syntax parsing file [", mszFilename.Text(), "] successful.", NULL);
+	}
+	else
+	{
+		mpcLogger->Info2("Syntax parsing file [", mszFilename.Text(), "] failed with [", IntToString(miErrors), "].", NULL);
 	}
 	return TRUE;
 }
@@ -552,7 +563,11 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 		}
 
 		pcBlock = ParseClassBlock(pcClass);
-	
+		if (pcBlock->IsClassBlock())
+		{
+			pcClass->SetBlock(pcBlock);
+		}
+
 
 		PassPosition();
 		return pcClass;
@@ -585,10 +600,13 @@ CJavaSyntaxClassBlock* CJavaSyntaxParser::ParseClassBlock(CJavaSyntax* pcParent)
 		pcStatement = ParseClassBlockStatement(pcParent);
 		if (pcStatement->IsStatement())
 		{
+			pcBlock->AddStatement(pcStatement);
 			continue;
 		}
 		else if (pcStatement->IsError())
 		{
+			//pcBlock->ClearHierarchy();
+			pcBlock->Clear();
 			return Error<CJavaSyntaxClassBlock>();
 		}
 
@@ -601,6 +619,8 @@ CJavaSyntaxClassBlock* CJavaSyntaxParser::ParseClassBlock(CJavaSyntax* pcParent)
 		}
 		else
 		{
+			//pcBlock->ClearHierarchy();
+			pcBlock->Clear();
 			return Error<CJavaSyntaxClassBlock>(EXPECTED_CLOSE_CURLY_BRACKET);
 		}
 	}
@@ -615,12 +635,42 @@ CJavaSyntaxClassBlock* CJavaSyntaxParser::ParseClassBlock(CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* pcParent)
 {
+	CJavaSyntaxVariableDeclaration*		pcVariable;
+	PushPosition();
+
+	pcVariable = ParseClassVariable(pcParent);
+	if (pcVariable->IsVariableDeclaration())
+	{
+		PassPosition();
+		return pcVariable;
+	}
+	else if (pcVariable->IsError())
+	{
+		return Error<CJavaSyntaxStatement>();
+	}
+	else
+	{
+		return Mismatch<CJavaSyntaxStatement>();
+	}
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSyntax* pcParent)
+{
 	CJavaModifiers						cModifers;
 	CJavaTokenKeyword*					pcModifer;
 	CJavaTokenKeyword*					pcPrimitive;
-	CJavaTokenIdentifier*				pcIdentifier;
+	CJavaTokenIdentifier*				pcType;
+	CJavaTokenIdentifier*				pcName;
 	CJavaSyntaxVariableDeclaration*		pcVariable;
 	CJavaSyntaxGeneric*					pcGeneric;
+	int									iArrayDepth;
+	CJavaSyntaxVariableInitialiser*		pcInitialiser;
 
 	PushPosition();
 
@@ -628,7 +678,7 @@ CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* p
 	pcModifer = GetModifierKeyword();
 	if (pcModifer != NULL)
 	{
-		return Mismatch<CJavaSyntaxStatement>();
+		return Mismatch<CJavaSyntaxVariableDeclaration>();
 	}
 
 	pcVariable = mpcSyntaxes->CreateVariableDeclaration(&mcSyntaxTree, pcParent);
@@ -643,14 +693,14 @@ CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* p
 	{
 		for (;;)
 		{
-			pcIdentifier = GetIdentifier();
-			if (pcIdentifier == NULL)
+			pcType = GetIdentifier();
+			if (pcType == NULL)
 			{
-				pcVariable->ReInit();
-				return Mismatch<CJavaSyntaxStatement>();
+				pcVariable->Clear();
+				return Mismatch<CJavaSyntaxVariableDeclaration>();
 			}
 
-			pcVariable->AddIdentifierType(pcIdentifier);
+			pcVariable->AddIdentifierType(pcType);
 
 			if (!GetSeparator(JS_Dot))
 			{
@@ -661,16 +711,88 @@ CJavaSyntaxStatement* CJavaSyntaxParser::ParseClassBlockStatement(CJavaSyntax* p
 		pcGeneric = ParseGeneric(pcVariable);
 	}
 
-	pcIdentifier = GetIdentifier();
-	if (pcIdentifier == NULL)
+	iArrayDepth = 0;
+	for (;;)
 	{
-		pcVariable->ReInit();
-		return Error<CJavaSyntaxStatement>(EXPECTED_IDENTIFIER);
+		if (GetSeparator(JS_SquareBracketLeft))
+		{
+			if (!GetSeparator(JS_SquareBracketLeft))
+			{
+				pcVariable->Clear();
+				return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_CLOSE_SQUARE_BRACKET);
+			}
+			iArrayDepth++;
+		}
+		else
+		{
+			break;
+		}
 	}
 
-	pcVariable->SetName(pcIdentifier);
+	pcName = GetIdentifier();
+	if (pcName == NULL)
+	{
+		pcVariable->Clear();
+		return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_IDENTIFIER);
+	}
 
+	pcVariable->SetName(pcName);
+
+	if (iArrayDepth == 0)
+	{
+		for (;;)
+		{
+			if (GetSeparator(JS_SquareBracketLeft))
+			{
+				if (!GetSeparator(JS_SquareBracketLeft))
+				{
+					pcVariable->Clear();
+					return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_CLOSE_SQUARE_BRACKET);
+				}
+				iArrayDepth++;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+
+	pcVariable->SetArrayDimension(iArrayDepth);
+
+	if (!GetSeparator(JS_Semicolon))
+	{
+		pcInitialiser = ParseVariableInitialiser(pcParent);
+		if (pcInitialiser->IsVariableInitialiser())
+		{
+			pcVariable->SetInitialiser(pcInitialiser);
+		}
+		else if (pcInitialiser->IsMismatch())
+		{
+			pcVariable->Clear();
+			return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_SOMETHING_ELSE);
+		}
+		else if (pcInitialiser->IsError())
+		{
+			pcVariable->Clear();
+			return Error<CJavaSyntaxVariableDeclaration>();
+		}
+	}
+
+	PassPosition();
 	return pcVariable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxVariableInitialiser* CJavaSyntaxParser::ParseVariableInitialiser(CJavaSyntax* pcParent)
+{
+	PushPosition();
+
+	return Error<CJavaSyntaxVariableInitialiser>();
 }
 
 
@@ -1308,6 +1430,8 @@ void CJavaSyntaxParser::PrivateError(char* szError)
 	CTextPositionPrinter	cPrinter;
 	CChars					sz;
 	STextPosition			sPos;
+
+	miErrors++;
 
 	if (mpcCurrentToken)
 	{

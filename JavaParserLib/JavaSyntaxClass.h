@@ -3,13 +3,15 @@
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "JavaSyntaxType.h"
 #include "JavaSyntaxClassCommon.h"
+#include "JavaSyntaxClassBlock.h"
 
 
 class CJavaSyntaxClass : public CJavaSyntaxClassCommon
 {
 CONSTRUCTABLE(CJavaSyntaxClass);
 protected:
-	CJavaSyntaxType*	mpcType;
+	CJavaSyntaxType*		mpcType;
+	CJavaSyntaxClassBlock*	mpcBlock;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -21,6 +23,7 @@ public:
 	BOOL	IsClass(void) override;
 
 	void	SetSyntaxType(CJavaSyntaxType* pcType);
+	void	SetBlock(CJavaSyntaxClassBlock* pcBlock);
 };
 
 

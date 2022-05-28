@@ -9,6 +9,7 @@ void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntaxClassCommon::Init(pcTree, pcParent);
 	mpcType = NULL;
+	mpcBlock = NULL;
 }
 
 
@@ -18,6 +19,7 @@ void CJavaSyntaxClass::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClass::Kill(void)
 {
+	mpcBlock = NULL;
 	mpcType = NULL;
 	CJavaSyntaxClassCommon::Kill();
 }
@@ -39,10 +41,9 @@ char* CJavaSyntaxClass::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClass::Print(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
-	mcModifiers.Print(pszDest);
-	pszDest->AppendNewLine();
+	CJavaSyntaxClassCommon::Print(pszDest, iDepth);
 	mpcType->Print(pszDest, iDepth + 1);
+	mpcBlock->Print(pszDest, iDepth + 1);
 }
 
 
@@ -63,5 +64,15 @@ BOOL CJavaSyntaxClass::IsClass(void)
 void CJavaSyntaxClass::SetSyntaxType(CJavaSyntaxType* pcType)
 {
 	mpcType = pcType;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClass::SetBlock(CJavaSyntaxClassBlock* pcBlock)
+{
+	mpcBlock = pcBlock;
 }
 

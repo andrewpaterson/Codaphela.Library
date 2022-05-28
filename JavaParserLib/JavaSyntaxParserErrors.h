@@ -17,6 +17,10 @@
 #define EXPECTED_OPEN_OR_CLOSE_ANGLE_BRACKET	"'<' or '>' expected."
 #define UNEXPECTED_MODIFIER						"Modifier not expected."
 #define EXPECTED_CLOSE_CURLY_BRACKET			"'}' expected."
+#define EXPECTED_CLOSE_SQUARE_BRACKET			"']' expected."
+
+#define EXPECTED_SOMETHING_ELSE					"Parsing broke."
+
 
 #endif // !__JAVA_SYNTAX_PARSER_ERRORS_H__
 

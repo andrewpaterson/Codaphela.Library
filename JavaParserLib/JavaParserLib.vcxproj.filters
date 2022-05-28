@@ -102,7 +102,7 @@
     <ClCompile Include="JavaSyntaxTree.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxInitialiser.cpp">
+    <ClCompile Include="JavaSyntaxVariableInitialiser.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp">
@@ -254,7 +254,7 @@
     <ClInclude Include="JavaSyntaxTree.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxInitialiser.h">
+    <ClInclude Include="JavaSyntaxVariableInitialiser.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxVariableDeclaration.h">
