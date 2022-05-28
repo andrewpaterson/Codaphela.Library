@@ -43,22 +43,8 @@ char* CJavaSyntaxImport::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxImport::Print(CChars* pszDest, int iDepth)
 {
-	int						i;
-	CJavaTokenIdentifier* pcIdentifier;
-
 	CJavaSyntax::Print(pszDest, iDepth);
-
-	for (i = 0; i < mapcIdentifiers.NumElements(); i++)
-	{
-		if (i != 0)
-		{
-			pszDest->Append('.');
-		}
-
-		pcIdentifier = mapcIdentifiers.GetPtr(i);
-		pcIdentifier->Print(pszDest);
-	}
-
+	PrintTokenArray(pszDest, &mapcIdentifiers);
 	pszDest->AppendNewLine();
 }
 

@@ -6,9 +6,9 @@
 #include "JavaSyntaxArrayValueExpression.h"
 
 
-class CJavaSyntaxInitialiser : public CJavaSyntax
+class CJavaSyntaxVariableInitialiser : public CJavaSyntax
 {
-CONSTRUCTABLE(CJavaSyntaxInitialiser);
+CONSTRUCTABLE(CJavaSyntaxVariableInitialiser);
 protected:
 	CJavaSyntaxArrayValueExpression*	mpcArrayValue;
 	CJavaSyntaxValueExpression*			mpValue;
@@ -20,7 +20,7 @@ public:
 	char*	GetType(void) override;
 	void	Print(CChars* pszDest, int iDepth);
 
-	BOOL	IsInitialiser(void) override;
+	BOOL	IsVariableInitialiser(void) override;
 };
 
 

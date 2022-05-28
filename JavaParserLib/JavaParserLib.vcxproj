@@ -179,7 +179,7 @@
   <ItemGroup>
     <ClCompile Include="JavaModifiers.cpp" />
     <ClCompile Include="JavaSyntaxArrayValueExpression.cpp" />
-    <ClCompile Include="JavaSyntaxInitialiser.cpp" />
+    <ClCompile Include="JavaSyntaxVariableInitialiser.cpp" />
     <ClCompile Include="JavaSyntaxValueExpression.cpp" />
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp" />
     <ClCompile Include="JavaSyntaxClassBlock.cpp" />
@@ -230,7 +230,7 @@
   <ItemGroup>
     <ClInclude Include="JavaModifiers.h" />
     <ClInclude Include="JavaSyntaxArrayValueExpression.h" />
-    <ClInclude Include="JavaSyntaxInitialiser.h" />
+    <ClInclude Include="JavaSyntaxVariableInitialiser.h" />
     <ClInclude Include="JavaSyntaxValueExpression.h" />
     <ClInclude Include="JavaSyntaxVariableDeclaration.h" />
     <ClInclude Include="JavaSyntaxClassBlock.h" />

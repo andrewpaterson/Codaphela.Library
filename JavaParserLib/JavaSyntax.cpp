@@ -26,11 +26,44 @@ void CJavaSyntax::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaSyntax::Clear(void)
+{
+	Kill();
+	Init(NULL, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CJavaSyntax::Print(CChars* pszDest, int iDepth)
 {
 	pszDest->Append(' ', iDepth * 2);
 	pszDest->Append(GetType());
 	pszDest->Append(": ");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntax::PrintTokenArray(CChars* pszDest, CJavaTokenIdentifierPtrEmbeddedArray* papcTokens)
+{
+	int						i;
+	CJavaTokenIdentifier*	pcIdentifier;
+
+	for (i = 0; i < papcTokens->NumElements(); i++)
+	{
+		if (i != 0)
+		{
+			pszDest->Append('.');
+		}
+
+		pcIdentifier = papcTokens->GetPtr(i);
+		pcIdentifier->Print(pszDest);
+	}
 }
 
 
@@ -67,7 +100,7 @@ BOOL CJavaSyntax::IsExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsOriginalFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsIterativeFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsVariableDeclaration(void) { return FALSE; }
-BOOL CJavaSyntax::IsInitialiser(void) { return FALSE; }
+BOOL CJavaSyntax::IsVariableInitialiser(void) { return FALSE; }
 BOOL CJavaSyntax::IsVoidExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsValueExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsArrayValueExpression(void) { return FALSE; }

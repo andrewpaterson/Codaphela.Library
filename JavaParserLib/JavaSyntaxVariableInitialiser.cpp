@@ -1,11 +1,11 @@
-#include "JavaSyntaxInitialiser.h"
+#include "JavaSyntaxVariableInitialiser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInitialiser::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
+void CJavaSyntaxVariableInitialiser::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 }
@@ -15,7 +15,7 @@ void CJavaSyntaxInitialiser::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInitialiser::Kill(void)
+void CJavaSyntaxVariableInitialiser::Kill(void)
 {
 	CJavaSyntax::Kill();
 }
@@ -25,7 +25,7 @@ void CJavaSyntaxInitialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxInitialiser::GetType(void)
+char* CJavaSyntaxVariableInitialiser::GetType(void)
 {
 	return "Initialiser";
 }
@@ -35,7 +35,7 @@ char* CJavaSyntaxInitialiser::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInitialiser::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxVariableInitialiser::Print(CChars* pszDest, int iDepth)
 {
 	CJavaSyntax::Print(pszDest, iDepth);
 	pszDest->AppendNewLine();
@@ -46,7 +46,7 @@ void CJavaSyntaxInitialiser::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxInitialiser::IsInitialiser(void)
+BOOL CJavaSyntaxVariableInitialiser::IsVariableInitialiser(void)
 {
 	return TRUE;
 }

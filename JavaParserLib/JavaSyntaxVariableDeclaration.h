@@ -3,7 +3,7 @@
 #include "JavaModifiers.h"
 #include "JavaTokenIdentifier.h"
 #include "JavaTokenKeyword.h"
-#include "JavaSyntaxInitialiser.h"
+#include "JavaSyntaxVariableInitialiser.h"
 #include "JavaSyntaxStatement.h"
 #include "JavaSyntaxGeneric.h"
 
@@ -35,12 +35,11 @@ protected:
 	int										miArrayDimension;
 
 	CJavaTokenIdentifier*					mpcName;
-	CJavaSyntaxInitialiser*					mpcInitialiser;
+	CJavaSyntaxVariableInitialiser*			mpcInitialiser;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
-	void 	ReInit(void);
 
 	char*	GetType(void) override;
 	void	Print(CChars* pszDest, int iDepth);
@@ -52,8 +51,9 @@ public:
 	void	AddIdentifierType(CJavaTokenIdentifier* pcIdentifier);
 	void	SetGeneric(CJavaSyntaxGeneric* pcGeneric);
 	void	SetName(CJavaTokenIdentifier* pcName);
+	void	SetArrayDimension(int iArrayDimension);
 
-	void	SetInitialiser(CJavaSyntaxInitialiser* pcInitialiser);
+	void	SetInitialiser(CJavaSyntaxVariableInitialiser* pcInitialiser);
 
 	BOOL	IsPrimitiveType(void);
 	BOOL	IsReferenceType(void);

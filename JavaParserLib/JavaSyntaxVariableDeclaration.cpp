@@ -43,26 +43,9 @@ void CJavaSyntaxVariableDeclaration::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxVariableDeclaration::ReInit(void)
-{
-	mpcInitialiser = NULL;
-
-	mpcGeneric = NULL;
-	miArrayDimension = 0;
-	mpcPrimitiveType = NULL;
-	mpcName = NULL;
-	mapcType.ReInit();
-	mcModifiers.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxVariableDeclaration::GetType(void)
 {
-	return "Variable Declaration";
+	return "Variable";
 }
 
 
@@ -72,8 +55,42 @@ char* CJavaSyntaxVariableDeclaration::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxVariableDeclaration::Print(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntaxStatement::Print(pszDest, iDepth);
+	mcModifiers.Print(pszDest);
+	pszDest->Append(' ');
+
+	if (mpcPrimitiveType)
+	{
+		mpcPrimitiveType->Print(pszDest);
+		pszDest->Append(' ');
+	}
+	
+	if (mapcType.IsNotEmpty())
+	{
+		PrintTokenArray(pszDest, &mapcType);
+		pszDest->Append(' ');
+	}
+
+	mpcName->Print(pszDest);
+	pszDest->Append(' ');
+
+	int i;
+	for (i = 0; i < miArrayDimension; i++)
+	{
+		pszDest->Append("[] ");
+	}
+
 	pszDest->AppendNewLine();
+
+	if (mpcGeneric)
+	{
+		mpcGeneric->Print(pszDest, iDepth + 1);
+	}
+
+	if (mpcInitialiser)
+	{
+		mpcInitialiser->Print(pszDest, iDepth + 1);
+	}
 }
 
 
@@ -131,7 +148,7 @@ void CJavaSyntaxVariableDeclaration::SetName(CJavaTokenIdentifier* pcName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxVariableDeclaration::SetInitialiser(CJavaSyntaxInitialiser* pcInitialiser)
+void CJavaSyntaxVariableDeclaration::SetInitialiser(CJavaSyntaxVariableInitialiser* pcInitialiser)
 {
 	mpcInitialiser = pcInitialiser;
 }
@@ -144,6 +161,16 @@ void CJavaSyntaxVariableDeclaration::SetInitialiser(CJavaSyntaxInitialiser* pcIn
 void CJavaSyntaxVariableDeclaration::SetGeneric(CJavaSyntaxGeneric* pcGeneric)
 {
 	mpcGeneric = pcGeneric;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxVariableDeclaration::SetArrayDimension(int iArrayDimension)
+{
+	miArrayDimension = iArrayDimension;
 }
 
 
@@ -199,4 +226,3 @@ char* CJavaSyntaxVariableDeclaration::GetName(void)
 	}
 	return NULL;
 }
-

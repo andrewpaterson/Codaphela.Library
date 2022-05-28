@@ -27,12 +27,12 @@ CONSTRUCTABLE(CJavaSyntaxClassCommon);
 protected:
 	CJavaModifiers	mcModifiers;
 
-
 public:
 	void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 				Kill(void);
 
 	char*				GetType(void) override;
+	void				Print(CChars* pszDest, int iDepth);
 
 	BOOL				IsClassCommon(void) override;
 
