@@ -30,7 +30,7 @@ protected:
 	CJavaModifiers							mcModifiers;
 
 	CJavaTokenKeyword*						mpcPrimitiveType;
-	CJavaTokenIdentifierPtrEmbeddedArray	mapcType;
+	CIdentifierArray	mapcType;
 	CJavaSyntaxGeneric*						mpcGeneric;
 	int										miArrayDimension;
 

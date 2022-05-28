@@ -61,6 +61,26 @@ void CJavaSyntaxParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CJavaSyntaxFile* CJavaSyntaxParser::GetSyntaxFile(void)
+{
+	return mcSyntaxTree.GetRoot();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxParser::GetFilename(void)
+{
+	return mszFilename.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxParser::Parse(void)
 {
 	CJavaSyntaxFile*		pcFile;
@@ -109,22 +129,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 			pcClass = ParseClass(pcFile);
 			if (pcClass->IsClass())
 			{
-				if (!pcClass->GetModifiers()->IsPackageModifier())
-				{
-					if (!pcFile->HasClass())
-					{
-						pcFile->SetClass(pcClass);
-					}
-					else
-					{
-						mpcLogger->Error(UNEXPECTED_MODIFIER);
-						return FALSE;
-					}
-				}
-				else
-				{
-					pcFile->AddPackageClass(pcClass);
-				}
+				pcFile->AddClass(pcClass);
 			}
 			else if (pcClass->IsError())
 			{

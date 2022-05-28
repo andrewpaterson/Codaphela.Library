@@ -19,7 +19,7 @@ public:
 	BOOL	IsStatement(void) override;
 };
 
-typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxStatement, 6> CJavaSyntaxStatementPtrEmbeddedArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxStatement, 6> CStatementArray;
 
 
 #endif // !__JAVA_SYNTAX_STATEMENT_H__

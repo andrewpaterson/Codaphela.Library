@@ -9,7 +9,7 @@ class CJavaSyntaxPackage : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxPackage);
 protected:
-	CJavaTokenIdentifierPtrArray		mapcIdentifiers;
+	CIdentifierArray	mapcIdentifiers;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

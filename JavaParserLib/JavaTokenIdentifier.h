@@ -25,8 +25,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaTokenIdentifier> CJavaTokenIdentifierPtrArray;
-typedef CArrayTemplateEmbeddedPtr<CJavaTokenIdentifier, 6> CJavaTokenIdentifierPtrEmbeddedArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaTokenIdentifier, 6> CIdentifierArray;
 
 
 #endif // !__JAVA_IDENTIFIER_H__
