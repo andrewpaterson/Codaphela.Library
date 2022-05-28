@@ -17,6 +17,9 @@ public:
 	char*	GetType(void) override;
 	BOOL	IsTypeCommon(void);
 
+	void	TypePrint(CChars* pszDest, int iDepth) override;
+	char*	PrettyPrint(CChars* pszDest) override;
+
 	void	SetName(CJavaTokenIdentifier* pcName);
 };
 

@@ -42,19 +42,30 @@ char* CJavaSyntaxType::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxType::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxType::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntaxTypeCommon::Print(pszDest, iDepth);
-	if (mpcName)
-	{
-		mpcName->Print(pszDest);
-	}
+	CJavaSyntaxTypeCommon::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 
 	if (mpcGeneric)
 	{
-		mpcGeneric->Print(pszDest, iDepth + 1);
+		mpcGeneric->TypePrint(pszDest, iDepth + 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxType::PrettyPrint(CChars* pszDest)
+{
+	CJavaSyntaxTypeCommon::PrettyPrint(pszDest);
+	if (mpcGeneric)
+	{
+		mpcGeneric->PrettyPrint(pszDest);
+	}
+	return pszDest->Text();
 }
 
 

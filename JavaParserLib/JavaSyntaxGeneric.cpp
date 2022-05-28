@@ -38,19 +38,37 @@ char* CJavaSyntaxGeneric::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxGeneric::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxGeneric::TypePrint(CChars* pszDest, int iDepth)
 {
 	int						i;
-	CJavaSyntaxTypeCommon*	pcType;
+	CJavaSyntaxTypeCommon* pcType;
 
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 
 	for (i = 0; i < mapc.NumElements(); i++)
 	{
 		pcType = mapc.GetPtr(i);
-		pcType->Print(pszDest, iDepth + 1);
+		pcType->TypePrint(pszDest, iDepth + 1);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest)
+{
+	int						i;
+	CJavaSyntaxTypeCommon* pcType;
+
+	for (i = 0; i < mapc.NumElements(); i++)
+	{
+		pcType = mapc.GetPtr(i);
+		pcType->PrettyPrint(pszDest);
+	}
+	return pszDest->Text();
 }
 
 

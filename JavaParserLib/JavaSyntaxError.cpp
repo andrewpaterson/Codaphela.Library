@@ -15,10 +15,21 @@ char* CJavaSyntaxError::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxError::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxError::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxError::PrettyPrint(CChars* pszDest)
+{
+	pszDest->Append(GetType());
+	return pszDest->Text();
 }
 
 

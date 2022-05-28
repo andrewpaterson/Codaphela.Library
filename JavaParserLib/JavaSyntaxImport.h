@@ -18,7 +18,8 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void) override;
-	void	Print(CChars* pszDest, int iDepth);
+	void	TypePrint(CChars* pszDest, int iDepth) override;
+	char*	PrettyPrint(CChars* pszDest);
 
 	void	AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
 	void	SetStatic(BOOL bStatic);

@@ -41,11 +41,22 @@ char* CJavaSyntaxImport::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxImport::Print(CChars* pszDest, int iDepth)
+void CJavaSyntaxImport::TypePrint(CChars* pszDest, int iDepth)
 {
-	CJavaSyntax::Print(pszDest, iDepth);
-	PrintTokenArray(pszDest, &mapcIdentifiers);
+	CJavaSyntax::TypePrint(pszDest, iDepth);
+	PrettyPrint(pszDest);
 	pszDest->AppendNewLine();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxImport::PrettyPrint(CChars* pszDest)
+{
+	PrintTokenArray(pszDest, &mapcIdentifiers);
+	return pszDest->Text();
 }
 
 

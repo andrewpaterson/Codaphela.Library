@@ -61,7 +61,7 @@ public:
 	CJavaSyntaxFile*	GetSyntaxFile(void);
 	char*				GetFilename(void);
 
-	void				PrettyPrint(CChars* pszDest);
+	char*				PrettyPrint(CChars* pszDest);
 	void				TypePrint(CChars* pszDest);
 	void				Dump(BOOL bIncludeType = FALSE);
 

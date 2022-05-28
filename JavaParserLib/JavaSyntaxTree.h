@@ -12,7 +12,8 @@ public:
 	void				Init(void);
 	void				Kill(void);
 
-	void				Print(CChars* pszDest);
+	void				TypePrint(CChars* pszDest);
+	char*				PrettyPrint(CChars* pszDest);
 
 	void				SetRoot(CJavaSyntaxFile* pcRoot);
 	CJavaSyntaxFile*	GetRoot(void);

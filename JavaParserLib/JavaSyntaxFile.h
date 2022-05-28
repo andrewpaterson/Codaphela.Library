@@ -19,21 +19,24 @@ protected:
 	CClassCommonArray		mapcClasses;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 					Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 					Kill(void);
 
-	char*	GetType(void) override;
-	void	Print(CChars* pszDest, int iDepth);
+	char*					GetType(void) override;
+	void					TypePrint(CChars* pszDest, int iDepth) override;
+	char*					PrettyPrint(CChars* pszDest) override;
 
-	BOOL	IsFile(void) override;
+	BOOL					IsFile(void) override;
 
-	void	SetFileName(char* szFileName);
+	void					SetFileName(char* szFileName);
 
-	BOOL	SetPackage(CJavaSyntaxPackage* pcPackage);
-	void	AddImport(CJavaSyntaxImport* pcImport);
-	void	AddClass(CJavaSyntaxClassCommon* pcClassCommon);
+	BOOL					SetPackage(CJavaSyntaxPackage* pcPackage);
+	void					AddImport(CJavaSyntaxImport* pcImport);
+	void					AddClass(CJavaSyntaxClassCommon* pcClassCommon);
 
-
+	CJavaSyntaxPackage*		GetPackage(void);
+	CImportArray*			GetImports(void);
+	CClassCommonArray*		GetClasses(void);
 };
 
 

@@ -35,9 +35,20 @@ void CJavaSyntaxTree::SetRoot(CJavaSyntaxFile* pcRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxTree::Print(CChars* pszDest)
+void CJavaSyntaxTree::TypePrint(CChars* pszDest)
 {
-	mpcRoot->Print(pszDest, 0);
+	mpcRoot->TypePrint(pszDest, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CJavaSyntaxTree::PrettyPrint(CChars* pszDest)
+{
+	mpcRoot->PrettyPrint(pszDest);
+	return pszDest->Text();
 }
 
 
