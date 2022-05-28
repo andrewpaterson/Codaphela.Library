@@ -85,6 +85,7 @@ protected:
 	CJavaSyntaxVariableInitialiser* ParseVariableInitialiser(CJavaSyntax* pcParent);
 
 	CJavaModifiers					ParseModifiers(uint8 uiAllowedModifiers);
+	int								ParseArrayDeclaration(void);
 
 	BOOL							GetKeyword(EJavaTokenKeyword eKeyword);
 	BOOL							GetSeparator(EJavaTokenSeparator eSeparator);

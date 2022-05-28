@@ -572,6 +572,14 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 		{
 			pcClass->SetBlock(pcBlock);
 		}
+		else if (pcBlock->IsError())
+		{
+			return Error<CJavaSyntaxClass>();
+		}
+		else if (pcBlock->IsMismatch())
+		{
+			return Error<CJavaSyntaxClass>(EXPECTED_SOMETHING_ELSE);
+		}
 
 
 		PassPosition();
@@ -716,22 +724,11 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 		pcGeneric = ParseGeneric(pcVariable);
 	}
 
-	iArrayDepth = 0;
-	for (;;)
+	iArrayDepth = ParseArrayDeclaration();
+	if (iArrayDepth == -1)
 	{
-		if (GetSeparator(JS_SquareBracketLeft))
-		{
-			if (!GetSeparator(JS_SquareBracketLeft))
-			{
-				pcVariable->Clear();
-				return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_CLOSE_SQUARE_BRACKET);
-			}
-			iArrayDepth++;
-		}
-		else
-		{
-			break;
-		}
+		pcVariable->Clear();
+		return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_CLOSE_SQUARE_BRACKET);
 	}
 
 	pcName = GetIdentifier();
@@ -745,21 +742,11 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 
 	if (iArrayDepth == 0)
 	{
-		for (;;)
+		iArrayDepth = ParseArrayDeclaration();
+		if (iArrayDepth == -1)
 		{
-			if (GetSeparator(JS_SquareBracketLeft))
-			{
-				if (!GetSeparator(JS_SquareBracketLeft))
-				{
-					pcVariable->Clear();
-					return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_CLOSE_SQUARE_BRACKET);
-				}
-				iArrayDepth++;
-			}
-			else
-			{
-				break;
-			}
+			pcVariable->Clear();
+			return Error<CJavaSyntaxVariableDeclaration>(EXPECTED_CLOSE_SQUARE_BRACKET);
 		}
 	}
 
@@ -786,6 +773,33 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 
 	PassPosition();
 	return pcVariable;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CJavaSyntaxParser::ParseArrayDeclaration(void)
+{
+	int		iArrayDepth;
+
+	iArrayDepth = 0;
+	for (;;)
+	{
+		if (GetSeparator(JS_SquareBracketLeft))
+		{
+			if (!GetSeparator(JS_SquareBracketRight))
+			{
+				return -1;
+			}
+			iArrayDepth++;
+		}
+		else
+		{
+			return iArrayDepth;
+		}
+	}
 }
 
 

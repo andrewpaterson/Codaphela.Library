@@ -27,15 +27,15 @@ class CJavaSyntaxVariableDeclaration : public CJavaSyntaxStatement
 {
 CONSTRUCTABLE(CJavaSyntaxVariableDeclaration);
 protected:
-	CJavaModifiers							mcModifiers;
+	CJavaModifiers						mcModifiers;
 
-	CJavaTokenKeyword*						mpcPrimitiveType;
-	CIdentifierArray	mapcType;
-	CJavaSyntaxGeneric*						mpcGeneric;
-	int										miArrayDimension;
+	CJavaTokenKeyword*					mpcPrimitiveType;
+	CIdentifierArray					mapcType;
+	CJavaSyntaxGeneric*					mpcGeneric;
+	int									miArrayDimension;
 
-	CJavaTokenIdentifier*					mpcName;
-	CJavaSyntaxVariableInitialiser*			mpcInitialiser;
+	CJavaTokenIdentifier*				mpcName;
+	CJavaSyntaxVariableInitialiser*		mpcInitialiser;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

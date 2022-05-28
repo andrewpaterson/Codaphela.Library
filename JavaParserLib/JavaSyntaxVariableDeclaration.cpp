@@ -100,7 +100,42 @@ void CJavaSyntaxVariableDeclaration::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest)
 {
-	return NULL;
+	mcModifiers.Print(pszDest);
+	pszDest->Append(' ');
+
+	if (mpcPrimitiveType)
+	{
+		mpcPrimitiveType->Print(pszDest);
+		pszDest->Append(' ');
+	}
+
+	if (mapcType.IsNotEmpty())
+	{
+		PrintTokenArray(pszDest, &mapcType);
+		pszDest->Append(' ');
+	}
+
+	mpcName->Print(pszDest);
+	if (mpcGeneric)
+	{
+		mpcGeneric->PrettyPrint(pszDest);
+	}
+
+	int i;
+	for (i = 0; i < miArrayDimension; i++)
+	{
+		pszDest->Append("[]");
+	}
+
+	if (mpcInitialiser)
+	{
+		pszDest->Append(' ');
+		mpcInitialiser->PrettyPrint(pszDest);
+	}
+
+	pszDest->Append(';');
+
+	return pszDest->Text();
 }
 
 

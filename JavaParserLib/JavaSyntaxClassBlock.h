@@ -17,19 +17,21 @@ class CJavaSyntaxClassBlock : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxClassBlock);
 protected:
-	CStatementArray	mapcStatements;
+	CStatementArray		mapcStatements;
 		
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 				Kill(void);
 
-	char*	GetType(void) override;
-	void	TypePrint(CChars* pszDest, int iDepth) override;
-	char*	PrettyPrint(CChars* pszDest) override;
+	char*				GetType(void) override;
+	void				TypePrint(CChars* pszDest, int iDepth) override;
+	char*				PrettyPrint(CChars* pszDest) override;
 
-	BOOL	IsClassBlock(void) override;
+	BOOL				IsClassBlock(void) override;
 
-	void	AddStatement(CJavaSyntaxStatement* pcStatement);
+	void				AddStatement(CJavaSyntaxStatement* pcStatement);
+
+	CStatementArray*	GetStatements(void);
 };
 
 
