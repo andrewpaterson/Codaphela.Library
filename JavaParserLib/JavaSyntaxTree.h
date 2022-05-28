@@ -9,12 +9,13 @@ protected:
 	CJavaSyntaxFile*	mpcRoot;
 
 public:
-	void	Init(void);
-	void	Kill(void);
+	void				Init(void);
+	void				Kill(void);
 
-	void	Print(CChars* pszDest);
+	void				Print(CChars* pszDest);
 
-	void	SetRoot(CJavaSyntaxFile* pcRoot);
+	void				SetRoot(CJavaSyntaxFile* pcRoot);
+	CJavaSyntaxFile*	GetRoot(void);
 };
 
 

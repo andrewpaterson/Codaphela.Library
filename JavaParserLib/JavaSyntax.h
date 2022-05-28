@@ -51,7 +51,7 @@ public:
 	virtual BOOL		IsMismatch(void);
 
 protected:
-	void	PrintTokenArray(CChars* pszDest, CJavaTokenIdentifierPtrEmbeddedArray* papcTokens);
+	void	PrintTokenArray(CChars* pszDest, CIdentifierArray* papcTokens);
 };
 
 

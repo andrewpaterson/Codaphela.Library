@@ -52,15 +52,18 @@ protected:
 	int						miErrors;
 
 public:
-	void	Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser);
-	void 	Kill(void);
+	void				Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser);
+	void 				Kill(void);
 
-	BOOL	Parse(void);
-	BOOL	Parse(BOOL bFailOnError);
+	BOOL				Parse(void);
+	BOOL				Parse(BOOL bFailOnError);
 
-	void	PrettyPrint(CChars* pszDest);
-	void	TypePrint(CChars* pszDest);
-	void	Dump(BOOL bIncludeType = FALSE);
+	CJavaSyntaxFile*	GetSyntaxFile(void);
+	char*				GetFilename(void);
+
+	void				PrettyPrint(CChars* pszDest);
+	void				TypePrint(CChars* pszDest);
+	void				Dump(BOOL bIncludeType = FALSE);
 
 protected:
 	void							PushPosition(void);

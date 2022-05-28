@@ -9,7 +9,7 @@ class CJavaSyntaxImport : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxImport);
 protected:
-	CJavaTokenIdentifierPtrEmbeddedArray	mapcIdentifiers;
+	CIdentifierArray	mapcIdentifiers;
 	BOOL									mbStatic;
 	BOOL									mbWild;
 
@@ -28,7 +28,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxImport>	CJavaSyntaxImportPtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxImport, 6>	CImportArray;
 
 
 #endif // !__JAVA_SYNTAX_IMPORT_H__

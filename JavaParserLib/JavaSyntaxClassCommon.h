@@ -41,7 +41,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxClassCommon>	CJavaSyntaxClassCommonPtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxClassCommon, 6>	CClassCommonArray;
 
 
 #endif // !__JAVA_SYNTAX_TOP_LEVEL_H__

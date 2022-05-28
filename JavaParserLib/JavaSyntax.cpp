@@ -49,7 +49,7 @@ void CJavaSyntax::Print(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntax::PrintTokenArray(CChars* pszDest, CJavaTokenIdentifierPtrEmbeddedArray* papcTokens)
+void CJavaSyntax::PrintTokenArray(CChars* pszDest, CIdentifierArray* papcTokens)
 {
 	int						i;
 	CJavaTokenIdentifier*	pcIdentifier;

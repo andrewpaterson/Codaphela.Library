@@ -11,13 +11,12 @@ class CJavaSyntaxFile : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxFile);
 protected:
-	CChars							mszFilename;
+	CChars					mszFilename;
 
-	CJavaSyntaxPackage*				mpcPackage;
-	CJavaSyntaxImportPtrArray		mapcImports;
+	CJavaSyntaxPackage*		mpcPackage;
+	CImportArray			mapcImports;
 
-	CJavaSyntaxClassCommon*			mpcClass;				// The only public class, interface or enum in the file.
-	CJavaSyntaxClassCommonPtrArray	mapcPackageClasses;		// All other package classes, interfaces and enums in the file.
+	CClassCommonArray		mapcClasses;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -32,10 +31,9 @@ public:
 
 	BOOL	SetPackage(CJavaSyntaxPackage* pcPackage);
 	void	AddImport(CJavaSyntaxImport* pcImport);
+	void	AddClass(CJavaSyntaxClassCommon* pcClassCommon);
 
-	BOOL	SetClass(CJavaSyntaxClassCommon* pcClassCommon);
-	void	AddPackageClass(CJavaSyntaxClassCommon* pcClassCommon);
-	BOOL	HasClass(void);
+
 };
 
 

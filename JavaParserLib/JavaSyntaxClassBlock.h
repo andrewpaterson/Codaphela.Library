@@ -17,7 +17,7 @@ class CJavaSyntaxClassBlock : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxClassBlock);
 protected:
-	CJavaSyntaxStatementPtrEmbeddedArray	mapcStatements;
+	CStatementArray	mapcStatements;
 		
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
