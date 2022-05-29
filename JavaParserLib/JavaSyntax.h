@@ -33,7 +33,6 @@ public:
 	virtual BOOL		IsExtent(void);
 
 	virtual BOOL		IsClassBlock(void);
-	virtual BOOL		IsExpression(void);
 	virtual BOOL		IsOriginalFor(void);
 	virtual BOOL		IsIterativeFor(void);
 	virtual BOOL		IsVariableDeclaration(void);

@@ -762,7 +762,14 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 
 	if (!GetSeparator(JS_Semicolon))
 	{
-		pcInitialiser = ParseVariableInitialiser(pcParent);
+		if (iArrayDepth == 0)
+		{
+			pcInitialiser = ParseVariableInitialiser(pcParent);
+		}
+		else
+		{
+			pcInitialiser = ParseArrayVariableInitialiser(pcParent);
+		}
 		if (pcInitialiser->IsVariableInitialiser())
 		{
 			pcVariable->SetInitialiser(pcInitialiser);
@@ -817,9 +824,102 @@ int CJavaSyntaxParser::ParseArrayDeclaration(void)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxVariableInitialiser* CJavaSyntaxParser::ParseVariableInitialiser(CJavaSyntax* pcParent)
 {
+	CJavaSyntaxValueExpression*			pcExpression;
+	CJavaSyntaxVariableInitialiser*		pcVariableInitialiser;
+
 	PushPosition();
 
-	return Error<CJavaSyntaxVariableInitialiser>();
+	if (!GetOperator(JO_Assign))
+	{
+		return Mismatch<CJavaSyntaxVariableInitialiser>();
+	}
+
+	pcVariableInitialiser = mpcSyntaxes->CreateVariableInitialiser(&mcSyntaxTree, pcParent);
+
+	pcExpression = ParseExpression(pcVariableInitialiser);
+	if (pcExpression->IsValueExpression())
+	{
+		pcVariableInitialiser->SetSingleValueExpression(pcExpression);
+		PassPosition();
+		return pcVariableInitialiser;
+	}
+	else if (pcExpression->IsMismatch())
+	{
+		return Error<CJavaSyntaxVariableInitialiser>(EXPECTED_EXPRESSION);
+	}
+	else
+	{
+		return Error<CJavaSyntaxVariableInitialiser>();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxVariableInitialiser* CJavaSyntaxParser::ParseArrayVariableInitialiser(CJavaSyntax* pcParent)
+{
+	CJavaSyntaxValueExpression*			pcSingleExpression;
+	CJavaSyntaxArrayValueExpression*	pcArrayExpression;
+	CJavaSyntaxVariableInitialiser*		pcVariableInitialiser;
+
+	PushPosition();
+
+	if (!GetOperator(JO_Assign))
+	{
+		return Mismatch<CJavaSyntaxVariableInitialiser>();
+	}
+
+	pcVariableInitialiser = mpcSyntaxes->CreateVariableInitialiser(&mcSyntaxTree, pcParent);
+
+	pcArrayExpression = ParseArrayExpression(pcVariableInitialiser);
+	if (pcArrayExpression->IsArrayValueExpression())
+	{
+		pcVariableInitialiser->SetArrayValueExpression(pcArrayExpression);
+		PassPosition();
+		return pcVariableInitialiser;
+	}
+	else if (pcArrayExpression->IsError())
+	{
+		return Error<CJavaSyntaxVariableInitialiser>();
+	}
+
+	pcSingleExpression = ParseExpression(pcVariableInitialiser);
+	if (pcSingleExpression->IsValueExpression())
+	{
+		pcVariableInitialiser->SetSingleValueExpression(pcSingleExpression);
+		PassPosition();
+		return pcVariableInitialiser;
+	}
+	else if (pcSingleExpression->IsMismatch())
+	{
+		return Error<CJavaSyntaxVariableInitialiser>(EXPECTED_EXPRESSION);
+	}
+	else
+	{
+		return Error<CJavaSyntaxVariableInitialiser>();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcParent)
+{
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxArrayValueExpression* CJavaSyntaxParser::ParseArrayExpression(CJavaSyntax* pcParent)
+{
+
 }
 
 

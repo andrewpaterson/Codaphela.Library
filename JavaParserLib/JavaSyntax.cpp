@@ -96,7 +96,6 @@ BOOL CJavaSyntax::IsExtent(void) { return FALSE; }
 BOOL CJavaSyntax::IsGeneric(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsClassBlock(void) { return FALSE; }
-BOOL CJavaSyntax::IsExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsOriginalFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsIterativeFor(void) { return FALSE; }
 BOOL CJavaSyntax::IsVariableDeclaration(void) { return FALSE; }
