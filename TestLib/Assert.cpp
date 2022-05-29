@@ -1113,17 +1113,27 @@ BOOL Failed(const char* szExpected, const char* szActual, int iLine, char* szFil
 	szError.Append("Expected: ");
 	if (bNewLine)
 	{
+		szError.Append("--->");
 		szError.AppendNewLine();
 	}
 	szError.Append(szExpected);
+	if (bNewLine)
+	{
+		szError.Append("<---");
+	}
 	szError.AppendNewLine();
 
 	szError.Append("Actual:   ");
 	if (bNewLine)
 	{
+		szError.Append("--->");
 		szError.AppendNewLine();
 	}
 	szError.Append(szActual);
+	if (bNewLine)
+	{
+		szError.Append("<---");
+	}
 	szError.AppendNewLine();
 	szError.AppendNewLine();
 
