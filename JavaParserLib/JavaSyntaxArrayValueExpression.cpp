@@ -46,9 +46,8 @@ void CJavaSyntaxArrayValueExpression::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxArrayValueExpression::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxArrayValueExpression::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	return NULL;
 }
 
 
@@ -59,5 +58,15 @@ char* CJavaSyntaxArrayValueExpression::PrettyPrint(CChars* pszDest)
 BOOL CJavaSyntaxArrayValueExpression::IsArrayValueExpression(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxArrayValueExpression::IsCompoundStatement(void)
+{
+	return FALSE;
 }
 

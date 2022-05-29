@@ -76,7 +76,7 @@ void CJavaSyntax::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	PrettyPrint(&sz);
+	PrettyPrint(&sz, 0);
 	sz.DumpKill();
 }
 

@@ -19,7 +19,7 @@ public:
 
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;
-	char*	PrettyPrint(CChars* pszDest);
+	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0);
 
 	void	AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
 	void	SetStatic(BOOL bStatic);

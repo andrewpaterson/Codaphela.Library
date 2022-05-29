@@ -57,20 +57,35 @@ void CJavaSyntaxClassBlock::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxClassBlock::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxClassBlock::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	int						i;
 	CJavaSyntaxStatement* pcStatement;
 
-	for (i = 0; i < mapcStatements.NumElements(); i++)
+	if (mapcStatements.IsNotEmpty())
 	{
-		pcStatement = mapcStatements.GetPtr(i);
-		pcStatement->PrettyPrint(pszDest);
-		pszDest->Append(';');
+		pszDest->Append('\t', iBlockDepth);
+		pszDest->Append('{');
+		pszDest->AppendNewLine();
+		for (i = 0; i < mapcStatements.NumElements(); i++)
+		{
+			pcStatement = mapcStatements.GetPtr(i);
+			if (!pcStatement->IsCompoundStatement())
+			{
+				pszDest->Append('\t', iBlockDepth + 1);
+				pcStatement->PrettyPrint(pszDest, iBlockDepth + 1);
+				pszDest->Append(';');
+				pszDest->AppendNewLine();
+			}
+			else
+			{
+				pcStatement->PrettyPrint(pszDest, iBlockDepth + 1);
+			}
+		}
+		pszDest->Append('\t', iBlockDepth);
+		pszDest->Append('}');
 		pszDest->AppendNewLine();
 	}
-
-	return pszDest->Text();
 }
 
 

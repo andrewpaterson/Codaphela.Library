@@ -51,9 +51,13 @@ void CJavaSyntaxClass::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxClass::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxClass::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	return NULL;
+	pszDest->Append('\t', iBlockDepth);
+	CJavaSyntaxClassCommon::PrettyPrint(pszDest, iBlockDepth);
+	mpcType->PrettyPrint(pszDest);
+	pszDest->AppendNewLine();
+	mpcBlock->PrettyPrint(pszDest, iBlockDepth);
 }
 
 
@@ -62,6 +66,16 @@ char* CJavaSyntaxClass::PrettyPrint(CChars* pszDest)
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxClass::IsClass(void)
+{
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxClass::IsCompoundStatement(void)
 {
 	return TRUE;
 }

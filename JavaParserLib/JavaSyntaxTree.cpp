@@ -47,7 +47,7 @@ void CJavaSyntaxTree::TypePrint(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 char* CJavaSyntaxTree::PrettyPrint(CChars* pszDest)
 {
-	mpcRoot->PrettyPrint(pszDest);
+	mpcRoot->PrettyPrint(pszDest, 0);
 	return pszDest->Text();
 }
 

@@ -26,10 +26,9 @@ void CJavaSyntaxMismatch::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxMismatch::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxMismatch::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	pszDest->Append(GetType());
-	return pszDest->Text();
 }
 
 

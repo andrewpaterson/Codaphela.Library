@@ -98,7 +98,7 @@ void CJavaSyntaxVariableDeclaration::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	mcModifiers.Print(pszDest);
 	pszDest->Append(' ');
@@ -133,9 +133,6 @@ char* CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest)
 		mpcInitialiser->PrettyPrint(pszDest);
 	}
 
-	pszDest->Append(';');
-
-	return pszDest->Text();
 }
 
 
@@ -146,6 +143,16 @@ char* CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest)
 BOOL CJavaSyntaxVariableDeclaration::IsVariableDeclaration(void)
 {
 	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxVariableDeclaration::IsCompoundStatement(void)
+{
+	return FALSE;
 }
 
 
@@ -271,3 +278,4 @@ char* CJavaSyntaxVariableDeclaration::GetName(void)
 	}
 	return NULL;
 }
+

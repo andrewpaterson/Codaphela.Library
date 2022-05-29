@@ -49,7 +49,7 @@ void CJavaSyntaxPackage::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxPackage::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxPackage::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	int						i;
 	CJavaTokenIdentifier* pcIdentifier;
@@ -64,8 +64,6 @@ char* CJavaSyntaxPackage::PrettyPrint(CChars* pszDest)
 		pcIdentifier = mapcIdentifiers.GetPtr(i);
 		pcIdentifier->Print(pszDest);
 	}
-
-	return pszDest->Text();
 }
 
 

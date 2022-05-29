@@ -49,13 +49,12 @@ void CJavaSyntaxTypeCommon::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxTypeCommon::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxTypeCommon::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	if (mpcName)
 	{
 		mpcName->Print(pszDest);
 	}
-	return pszDest->Text();
 }
 
 
