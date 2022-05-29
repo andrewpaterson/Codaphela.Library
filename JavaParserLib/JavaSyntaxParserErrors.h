@@ -18,6 +18,7 @@
 #define UNEXPECTED_MODIFIER						"Modifier not expected."
 #define EXPECTED_CLOSE_CURLY_BRACKET			"'}' expected."
 #define EXPECTED_CLOSE_SQUARE_BRACKET			"']' expected."
+#define EXPECTED_EXPRESSION						"Expression expected."
 
 #define EXPECTED_SOMETHING_ELSE					"Parsing broke."
 

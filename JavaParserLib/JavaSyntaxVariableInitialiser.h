@@ -10,18 +10,27 @@ class CJavaSyntaxVariableInitialiser : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxVariableInitialiser);
 protected:
-	CJavaSyntaxArrayValueExpression*	mpcArrayValue;
-	CJavaSyntaxValueExpression*			mpValue;
+	CJavaSyntaxValueExpression*			mpcSingleValueExpression;
+	CJavaSyntaxArrayValueExpression*	mpcArrayValueExpression;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 								Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 								Kill(void);
 
-	char*	GetType(void) override;
-	void	TypePrint(CChars* pszDest, int iDepth) override;
-	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
+	char*								GetType(void) override;
+	void								TypePrint(CChars* pszDest, int iDepth) override;
+	void								PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsVariableInitialiser(void) override;
+	BOOL								IsVariableInitialiser(void) override;
+	BOOL								IsArrayExpression(void);
+	BOOL								IsSingleExpression(void);
+
+	void								SetArrayValueExpression(CJavaSyntaxArrayValueExpression* pcArrayValueExpression);
+	void								SetSingleValueExpression(CJavaSyntaxValueExpression* pValueExpression);
+
+	CJavaSyntaxArrayValueExpression*	GetArrayValueExpression(void);
+	CJavaSyntaxValueExpression*			GetSingleValueExpression(void);
+
 };
 
 

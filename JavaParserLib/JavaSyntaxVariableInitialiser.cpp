@@ -8,6 +8,8 @@
 void CJavaSyntaxVariableInitialiser::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
+	mpcArrayValueExpression = NULL;
+	mpcSingleValueExpression = NULL;
 }
 
 
@@ -17,6 +19,8 @@ void CJavaSyntaxVariableInitialiser::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* 
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxVariableInitialiser::Kill(void)
 {
+	mpcSingleValueExpression = NULL;
+	mpcArrayValueExpression = NULL;
 	CJavaSyntax::Kill();
 }
 
@@ -55,8 +59,29 @@ void CJavaSyntaxVariableInitialiser::PrettyPrint(CChars* pszDest, int iBlockDept
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableInitialiser::IsVariableInitialiser(void)
+BOOL CJavaSyntaxVariableInitialiser::IsArrayExpression(void)
 {
-	return TRUE;
+	return (mpcArrayValueExpression != NULL) && (mpcSingleValueExpression == NULL);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxVariableInitialiser::IsSingleExpression(void)
+{
+	return (mpcArrayValueExpression == NULL) && (mpcSingleValueExpression != NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxVariableInitialiser::IsVariableInitialiser(void) { return TRUE; }
+void CJavaSyntaxVariableInitialiser::SetArrayValueExpression(CJavaSyntaxArrayValueExpression* pcArrayValueExpression) { mpcArrayValueExpression = pcArrayValueExpression; }
+void CJavaSyntaxVariableInitialiser::SetSingleValueExpression(CJavaSyntaxValueExpression* pValueExpression) { mpcSingleValueExpression = pValueExpression; }
+CJavaSyntaxArrayValueExpression* CJavaSyntaxVariableInitialiser::GetArrayValueExpression(void) { return mpcArrayValueExpression; }
+CJavaSyntaxValueExpression* CJavaSyntaxVariableInitialiser::GetSingleValueExpression(void) { return mpcSingleValueExpression; }
 
