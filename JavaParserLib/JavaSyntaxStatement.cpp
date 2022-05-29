@@ -50,3 +50,17 @@ BOOL CJavaSyntaxStatement::IsStatement(void)
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxStatement::PrintModifiers(CChars* pszDest, CJavaModifiers cModifiers)
+{
+	cModifiers.Print(pszDest);
+	if (!cModifiers.IsNone())
+	{
+		pszDest->Append(' ');
+	}
+}
+

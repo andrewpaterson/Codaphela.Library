@@ -722,6 +722,14 @@ CJavaSyntaxVariableDeclaration* CJavaSyntaxParser::ParseClassVariable(CJavaSynta
 		}
 
 		pcGeneric = ParseGeneric(pcVariable);
+		if (pcGeneric->IsGeneric())
+		{
+			pcVariable->SetGeneric(pcGeneric);
+		}
+		else if (pcGeneric->IsError())
+		{
+			return Error<CJavaSyntaxVariableDeclaration>();
+		}
 	}
 
 	iArrayDepth = ParseArrayDeclaration();
@@ -1029,7 +1037,6 @@ CJavaSyntaxGeneric* CJavaSyntaxParser::ParseGeneric(CJavaSyntax* pcParent)
 	{
 		return Mismatch<CJavaSyntaxGeneric>();
 	}
-
 }
 
 

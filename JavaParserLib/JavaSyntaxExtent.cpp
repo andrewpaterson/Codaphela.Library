@@ -68,9 +68,19 @@ void CJavaSyntaxExtent::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxExtent::IsExtent(void)
+void CJavaSyntaxExtent::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	return TRUE;
+	CJavaSyntaxTypeCommon::PrettyPrint(pszDest);
+	if (mbWildCard)
+	{
+		pszDest->Append('?');
+	}
+
+	if (mpcExtends)
+	{
+		pszDest->Append(" extends ");
+		mpcExtends->PrettyPrint(pszDest, iBlockDepth);
+	}
 }
 
 
@@ -78,18 +88,8 @@ BOOL CJavaSyntaxExtent::IsExtent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxExtent::SetExtends(CJavaSyntaxType* pcExtends)
-{
-	mpcExtends = pcExtends;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxExtent::SetWildCard(BOOL bWildCard)
-{
-	mbWildCard = bWildCard;
-}
+BOOL CJavaSyntaxExtent::IsExtent(void) { return TRUE; }
+void CJavaSyntaxExtent::SetExtends(CJavaSyntaxType* pcExtends) { mpcExtends = pcExtends; }
+void CJavaSyntaxExtent::SetWildCard(BOOL bWildCard) { mbWildCard = bWildCard; }
+BOOL CJavaSyntaxExtent::IsWildCard(void) { return mbWildCard; }
 

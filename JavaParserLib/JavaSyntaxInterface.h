@@ -30,7 +30,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxInterface>	CJavaSyntaxInterfacePtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxInterface, 6>	CJavaSyntaxInterfacePtrArray;
 
 
 #endif // !__JAVA_SYNTAX_INTERFACE_H__

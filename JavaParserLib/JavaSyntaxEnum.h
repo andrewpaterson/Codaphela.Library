@@ -21,7 +21,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxEnum>	CJavaSyntaxEnumPtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxEnum, 6>	CEnumArray;
 
 
 #endif // !__JAVA_SYNTAX_ENUM_H__

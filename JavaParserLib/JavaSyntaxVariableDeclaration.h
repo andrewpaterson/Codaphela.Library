@@ -41,28 +41,32 @@ public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	void 	Kill(void);
 
-	char*	GetType(void) override;
-	void	TypePrint(CChars* pszDest, int iDepth) override;
-	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
+	char*				GetType(void) override;
+	void				TypePrint(CChars* pszDest, int iDepth) override;
+	void				PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsVariableDeclaration(void) override;
-	BOOL	IsCompoundStatement(void);
+	BOOL				IsVariableDeclaration(void) override;
+	BOOL				IsCompoundStatement(void);
 
-	void	SetModifiers(CJavaModifiers cModifiers);
-	void	SetPrimitiveType(CJavaTokenKeyword* pcPrimitiveType);
-	void	AddIdentifierType(CJavaTokenIdentifier* pcIdentifier);
-	void	SetGeneric(CJavaSyntaxGeneric* pcGeneric);
-	void	SetName(CJavaTokenIdentifier* pcName);
-	void	SetArrayDimension(int iArrayDimension);
+	void				SetModifiers(CJavaModifiers cModifiers);
+	void				SetPrimitiveType(CJavaTokenKeyword* pcPrimitiveType);
+	void				AddIdentifierType(CJavaTokenIdentifier* pcIdentifier);
+	void				SetGeneric(CJavaSyntaxGeneric* pcGeneric);
+	void				SetName(CJavaTokenIdentifier* pcName);
+	void				SetArrayDimension(int iArrayDimension);
 
-	void	SetInitialiser(CJavaSyntaxVariableInitialiser* pcInitialiser);
+	void				SetInitialiser(CJavaSyntaxVariableInitialiser* pcInitialiser);
 
-	BOOL	IsPrimitiveType(void);
-	BOOL	IsReferenceType(void);
-	BOOL	IsGeneric(void);
-	int		GetArrayDepth(void);
-	char*	GetName(void);
+	BOOL				IsPrimitiveType(void);
+	BOOL				IsReferenceType(void);
+	BOOL				IsGeneric(void);
+	int					GetArrayDepth(void);
+	char*				GetName(void);
+	CJavaModifiers*		GetModifiers(void);
 
+	CIdentifierArray*	GetReferenceType(void);
+	CJavaTokenKeyword*	GetPrimitiveType(void);
+	CJavaSyntaxGeneric* GetGeneric(void);
 };
 
 

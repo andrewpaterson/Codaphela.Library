@@ -11,20 +11,21 @@ protected:
 	CJavaTokenIdentifier*	mpcName;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 					Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 					Kill(void);
 
-	char*	GetType(void) override;
-	BOOL	IsTypeCommon(void);
+	char*					GetType(void) override;
+	BOOL					IsTypeCommon(void);
 
-	void	TypePrint(CChars* pszDest, int iDepth) override;
-	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
+	void					TypePrint(CChars* pszDest, int iDepth) override;
+	void					PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	void	SetName(CJavaTokenIdentifier* pcName);
+	void					SetName(CJavaTokenIdentifier* pcName);
+	CJavaTokenIdentifier*	GetName(void);
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxTypeCommon>	CJavaSyntaxTypeCommonPtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxTypeCommon, 6>	CTypeCommonArray;
 
 
 #endif // !__JAVA_SYNTAX_TYPE_H__
