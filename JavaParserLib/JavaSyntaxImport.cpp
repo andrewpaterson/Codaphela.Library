@@ -53,10 +53,9 @@ void CJavaSyntaxImport::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxImport::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxImport::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	PrintTokenArray(pszDest, &mapcIdentifiers);
-	return pszDest->Text();
 }
 
 

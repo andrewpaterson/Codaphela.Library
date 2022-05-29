@@ -25,7 +25,7 @@ public:
 
 	char*				GetType(void) override;
 	void				TypePrint(CChars* pszDest, int iDepth) override;
-	char*				PrettyPrint(CChars* pszDest) override;
+	void				PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
 	BOOL				IsClassBlock(void) override;
 

@@ -58,14 +58,13 @@ void CJavaSyntaxType::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxType::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxType::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	CJavaSyntaxTypeCommon::PrettyPrint(pszDest);
 	if (mpcGeneric)
 	{
 		mpcGeneric->PrettyPrint(pszDest);
 	}
-	return pszDest->Text();
 }
 
 

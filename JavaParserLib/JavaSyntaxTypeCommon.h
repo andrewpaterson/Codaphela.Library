@@ -18,7 +18,7 @@ public:
 	BOOL	IsTypeCommon(void);
 
 	void	TypePrint(CChars* pszDest, int iDepth) override;
-	char*	PrettyPrint(CChars* pszDest) override;
+	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
 	void	SetName(CJavaTokenIdentifier* pcName);
 };

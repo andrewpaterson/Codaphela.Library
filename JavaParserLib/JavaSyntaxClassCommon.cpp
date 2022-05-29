@@ -49,6 +49,22 @@ void CJavaSyntaxClassCommon::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxClassCommon::PrettyPrint(CChars* pszDest, int iBlockDepth)
+{
+	mcModifiers.Print(pszDest);
+	if (!mcModifiers.IsNone())
+	{
+		pszDest->Append(' ');
+	}
+	pszDest->Append(GetType());
+	pszDest->Append(' ');
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxClassCommon::IsClassCommon(void)
 {
 	return TRUE;

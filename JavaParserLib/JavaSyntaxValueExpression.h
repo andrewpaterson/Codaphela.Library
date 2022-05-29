@@ -14,9 +14,10 @@ public:
 
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;
-	char*	PrettyPrint(CChars* pszDest) override;
+	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
 	BOOL	IsValueExpression(void) override;
+	BOOL	IsCompoundStatement(void);
 };
 
 

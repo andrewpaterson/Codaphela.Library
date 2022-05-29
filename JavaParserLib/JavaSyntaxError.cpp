@@ -26,10 +26,9 @@ void CJavaSyntaxError::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxError::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxError::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	pszDest->Append(GetType());
-	return pszDest->Text();
 }
 
 

@@ -19,7 +19,7 @@ public:
 
 	virtual char*		GetType(void) =0;
 	virtual void		TypePrint(CChars* pszDest, int iDepth);
-	virtual char*		PrettyPrint(CChars* pszDest) =0;
+	virtual void		PrettyPrint(CChars* pszDest, int iBlockDepth) =0;
 			void		Dump(void);
 
 	virtual BOOL		IsFile(void);

@@ -33,6 +33,7 @@ public:
 
 	char*				GetType(void) override;
 	void				TypePrint(CChars* pszDest, int iDepth) override;
+	void				PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
 	BOOL				IsClassCommon(void) override;
 

@@ -47,9 +47,8 @@ void CJavaSyntaxInterface::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxInterface::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxInterface::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	return NULL;
 }
 
 
@@ -58,6 +57,16 @@ char* CJavaSyntaxInterface::PrettyPrint(CChars* pszDest)
 //
 //////////////////////////////////////////////////////////////////////////
 BOOL CJavaSyntaxInterface::IsInterface(void)
+{
+	return TRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxInterface::IsCompoundStatement(void)
 {
 	return TRUE;
 }

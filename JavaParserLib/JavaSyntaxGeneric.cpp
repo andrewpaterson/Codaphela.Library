@@ -58,7 +58,7 @@ void CJavaSyntaxGeneric::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
 	int						i;
 	CJavaSyntaxTypeCommon* pcType;
@@ -68,7 +68,6 @@ char* CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest)
 		pcType = mapc.GetPtr(i);
 		pcType->PrettyPrint(pszDest);
 	}
-	return pszDest->Text();
 }
 
 

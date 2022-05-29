@@ -19,8 +19,9 @@ public:
 
 	char*					GetType(void) override;
 	void					TypePrint(CChars* pszDest, int iDepth) override;
-	char*					PrettyPrint(CChars* pszDest) override;
+	void					PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 	BOOL					IsClass(void) override;
+	BOOL					IsCompoundStatement(void);
 
 	void					SetSyntaxType(CJavaSyntaxType* pcType);
 	void					SetBlock(CJavaSyntaxClassBlock* pcBlock);

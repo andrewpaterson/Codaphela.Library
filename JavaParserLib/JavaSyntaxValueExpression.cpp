@@ -46,9 +46,8 @@ void CJavaSyntaxValueExpression::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxValueExpression::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxValueExpression::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	return NULL;
 }
 
 
@@ -61,3 +60,12 @@ BOOL CJavaSyntaxValueExpression::IsValueExpression(void)
 	return TRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+BOOL CJavaSyntaxValueExpression::IsCompoundStatement(void)
+{
+	return FALSE;
+}

@@ -46,9 +46,8 @@ void CJavaSyntaxVariableInitialiser::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxVariableInitialiser::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxVariableInitialiser::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	return NULL;
 }
 
 

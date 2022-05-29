@@ -92,15 +92,18 @@ void CJavaSyntaxFile::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CJavaSyntaxFile::PrettyPrint(CChars* pszDest)
+void CJavaSyntaxFile::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	mpcPackage->PrettyPrint(pszDest);
-	pszDest->AppendNewLine();
-	pszDest->AppendNewLine();
+	int							i;
+	CJavaSyntaxImport*			pcSyntax;
+	CJavaSyntaxClassCommon*		pcClassCommon;
 
-	int						i;
-	CJavaSyntaxImport* pcSyntax;
-	CJavaSyntaxClassCommon* pcClassCommon;
+	if (mpcPackage)
+	{
+		mpcPackage->PrettyPrint(pszDest);
+		pszDest->AppendNewLine();
+		pszDest->AppendNewLine();
+	}
 
 	for (i = 0; i < mapcImports.NumElements(); i++)
 	{
@@ -112,11 +115,8 @@ char* CJavaSyntaxFile::PrettyPrint(CChars* pszDest)
 	for (i = 0; i < mapcClasses.NumElements(); i++)
 	{
 		pcClassCommon = mapcClasses.GetPtr(i);
-		pcClassCommon->PrettyPrint(pszDest);
-		pszDest->AppendNewLine();
+		pcClassCommon->PrettyPrint(pszDest, iBlockDepth);
 	}
-
-	return pszDest->Text();
 }
 
 
