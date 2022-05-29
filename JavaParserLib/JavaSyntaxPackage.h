@@ -27,7 +27,7 @@ public:
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxPackage>	CJavaSyntaxPackagePtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxPackage, 6>	CPackageArray;
 
 
 #endif // !__JAVA_SYNTAX_PACKAGE_H__

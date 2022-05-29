@@ -11,19 +11,20 @@ protected:
 	CJavaSyntaxGeneric*		mpcGeneric;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 					Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 					Kill(void);
 
-	char*	GetType(void) override;
-	void	TypePrint(CChars* pszDest, int iDepth) override;
-	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
+	char*					GetType(void) override;
+	void					TypePrint(CChars* pszDest, int iDepth) override;
+	void					PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsType(void) override;
-	void	SetGeneric(CJavaSyntaxGeneric* pcGeneric);
+	BOOL					IsType(void) override;
+	void					SetGeneric(CJavaSyntaxGeneric* pcGeneric);
+	CJavaSyntaxGeneric*		GetGeneric(void);
 };
 
 
-typedef CArrayTemplatePtr<CJavaSyntaxType>	CJavaSyntaxTypePtrArray;
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxType,6>	CTypeArray;
 
 
 #endif // !__JAVA_SYNTAX_TYPE_H__

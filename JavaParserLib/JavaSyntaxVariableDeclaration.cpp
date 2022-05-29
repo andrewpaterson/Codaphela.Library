@@ -100,26 +100,25 @@ void CJavaSyntaxVariableDeclaration::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	mcModifiers.Print(pszDest);
-	pszDest->Append(' ');
+	PrintModifiers(pszDest, mcModifiers);
 
 	if (mpcPrimitiveType)
 	{
 		mpcPrimitiveType->Print(pszDest);
-		pszDest->Append(' ');
 	}
 
 	if (mapcType.IsNotEmpty())
 	{
 		PrintTokenArray(pszDest, &mapcType);
-		pszDest->Append(' ');
 	}
 
-	mpcName->Print(pszDest);
 	if (mpcGeneric)
 	{
 		mpcGeneric->PrettyPrint(pszDest);
 	}
+	pszDest->Append(' ');
+
+	mpcName->Print(pszDest);
 
 	int i;
 	for (i = 0; i < miArrayDimension; i++)
@@ -279,3 +278,13 @@ char* CJavaSyntaxVariableDeclaration::GetName(void)
 	return NULL;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaModifiers* CJavaSyntaxVariableDeclaration::GetModifiers(void) { return &mcModifiers; }
+CIdentifierArray* CJavaSyntaxVariableDeclaration::GetReferenceType(void) { return &mapcType; }
+CJavaTokenKeyword* CJavaSyntaxVariableDeclaration::GetPrimitiveType(void) { return mpcPrimitiveType; }
+CJavaSyntaxGeneric* CJavaSyntaxVariableDeclaration::GetGeneric(void) { return mpcGeneric; }

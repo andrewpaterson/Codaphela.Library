@@ -83,5 +83,5 @@ BOOL CJavaSyntaxType::IsType(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxType::SetGeneric(CJavaSyntaxGeneric* pcGeneric) { mpcGeneric = pcGeneric; }
-
+CJavaSyntaxGeneric* CJavaSyntaxType::GetGeneric(void) { return mpcGeneric; }
 

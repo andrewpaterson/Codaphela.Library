@@ -9,19 +9,20 @@ class CJavaSyntaxGeneric : public CJavaSyntax
 {
 CONSTRUCTABLE(CJavaSyntaxGeneric);
 protected:
-	CJavaSyntaxTypeCommonPtrArray	mapc;
+	CTypeCommonArray	mapcGenerics;
 
 public:
-	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
-	void 	Kill(void);
+	void 				Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	void 				Kill(void);
 
-	char*	GetType(void) override;
-	void	TypePrint(CChars* pszDest, int iDepth) override;
-	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
+	char*				GetType(void) override;
+	void				TypePrint(CChars* pszDest, int iDepth) override;
+	void				PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsGeneric(void) override;
+	BOOL				IsGeneric(void) override;
 
-	void	AddType(CJavaSyntaxTypeCommon* pcType);
+	void				AddType(CJavaSyntaxTypeCommon* pcType);
+	CTypeCommonArray*	GetGenerics(void);
 };
 
 

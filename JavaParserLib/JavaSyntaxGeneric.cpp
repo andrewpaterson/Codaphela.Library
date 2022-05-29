@@ -9,7 +9,7 @@
 void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
-	mapc.Init();
+	mapcGenerics.Init();
 }
 
 
@@ -19,7 +19,7 @@ void CJavaSyntaxGeneric::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxGeneric::Kill(void)
 {
-	mapc.Kill();
+	mapcGenerics.Kill();
 	CJavaSyntax::Kill();
 }
 
@@ -46,9 +46,9 @@ void CJavaSyntaxGeneric::TypePrint(CChars* pszDest, int iDepth)
 	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 
-	for (i = 0; i < mapc.NumElements(); i++)
+	for (i = 0; i < mapcGenerics.NumElements(); i++)
 	{
-		pcType = mapc.GetPtr(i);
+		pcType = mapcGenerics.GetPtr(i);
 		pcType->TypePrint(pszDest, iDepth + 1);
 	}
 }
@@ -63,11 +63,17 @@ void CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest, int iBlockDepth)
 	int						i;
 	CJavaSyntaxTypeCommon* pcType;
 
-	for (i = 0; i < mapc.NumElements(); i++)
+	pszDest->Append('<');
+	for (i = 0; i < mapcGenerics.NumElements(); i++)
 	{
-		pcType = mapc.GetPtr(i);
+		if (i != 0)
+		{
+			pszDest->Append(", ");
+		}
+		pcType = mapcGenerics.GetPtr(i);
 		pcType->PrettyPrint(pszDest);
 	}
+	pszDest->Append('>');
 }
 
 
@@ -75,18 +81,7 @@ void CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxGeneric::IsGeneric(void)
-{
-	return TRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxGeneric::AddType(CJavaSyntaxTypeCommon* pcType)
-{
-	mapc.Add(pcType);
-}
+BOOL CJavaSyntaxGeneric::IsGeneric(void) { return TRUE; }
+void CJavaSyntaxGeneric::AddType(CJavaSyntaxTypeCommon* pcType) { mapcGenerics.Add(pcType); }
+CTypeCommonArray* CJavaSyntaxGeneric::GetGenerics(void) { return &mapcGenerics; }
 
