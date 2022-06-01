@@ -909,6 +909,56 @@ CJavaSyntaxVariableInitialiser* CJavaSyntaxParser::ParseArrayVariableInitialiser
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcParent)
 {
+	// 5, 'a', 6.0f, "st", true, null
+	// (int), (X)
+	// new
+	// *
+	// (  )
+	// net.method( ... )
+	// x
+	// x[ ]
+	// X 
+
+	CJavaSyntaxValueExpression*		pcExpression;
+
+	pcExpression = mpcSyntaxes->CreateValueExpression(&mcSyntaxTree, pcParent);
+
+	ParseLiteral(pcExpression);
+	ParseMethodCall(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxLiteral* CJavaSyntaxParser::ParseLiteral(CJavaSyntax* pcParent)
+{
+	CJavaTokenLiteral*		pcTokenLiteral;
+	CJavaSyntaxLiteral*		pcLiteral;
+
+	PushPosition();
+
+	pcTokenLiteral = GetLiteral();
+	if (pcTokenLiteral == NULL)
+	{
+		return Mismatch<CJavaSyntaxLiteral>();
+	}
+
+	pcLiteral = mpcSyntaxes->CreateLiteral(&mcSyntaxTree, pcParent);
+	pcLiteral->SetLiteral(pcTokenLiteral);
+
+	PassPosition();
+	return pcLiteral;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxMethodCall CJavaSyntaxParser::ParseMethodCall(CJavaSyntax* pcParent)
+{
 
 }
 
@@ -1373,6 +1423,24 @@ CJavaTokenKeyword* CJavaSyntaxParser::GetPrimitveKeyword(void)
 		}
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenLiteral* CJavaSyntaxParser::GetLiteral(void)
+{
+	if (mpcCurrentToken->IsLiteral())
+	{
+		Next();
+		return (CJavaTokenLiteral*)mpcCurrentToken;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
