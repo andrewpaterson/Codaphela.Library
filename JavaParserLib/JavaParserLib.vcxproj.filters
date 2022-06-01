@@ -28,6 +28,9 @@
     <Filter Include="Source\Syntax\Elements\Common">
       <UniqueIdentifier>{b055be43-d6fa-4b03-ba3d-2d6e789e6189}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Syntax\Elements\Behaviour\Expression">
+      <UniqueIdentifier>{9acdb5e6-8f4c-4f65-bb10-31ea53a909a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="JavaSyntax.cpp">
@@ -108,9 +111,6 @@
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxExpressionCommon.cpp">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClCompile>
     <ClCompile Include="JavaSyntaxIterativeFor.cpp">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClCompile>
@@ -165,17 +165,20 @@
     <ClCompile Include="JavaModifiers.cpp">
       <Filter>Source\Syntax</Filter>
     </ClCompile>
-    <ClCompile Include="JavaSyntaxValueExpression.cpp">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxVoidExpression.cpp">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClCompile>
-    <ClCompile Include="JavaSyntaxArrayValueExpression.cpp">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClCompile>
     <ClCompile Include="JavaSyntaxClassBlock.cpp">
       <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxExpressionCommon.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxValueExpression.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxArrayValueExpression.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxLiteral.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -260,9 +263,6 @@
     <ClInclude Include="JavaSyntaxVariableDeclaration.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxExpressionCommon.h">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClInclude>
     <ClInclude Include="JavaSyntaxIterativeFor.h">
       <Filter>Source\Syntax\Elements\Behaviour</Filter>
     </ClInclude>
@@ -317,17 +317,20 @@
     <ClInclude Include="JavaModifiers.h">
       <Filter>Source\Syntax</Filter>
     </ClInclude>
-    <ClInclude Include="JavaSyntaxValueExpression.h">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxVoidExpression.h">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaSyntaxArrayValueExpression.h">
-      <Filter>Source\Syntax\Elements\Behaviour</Filter>
-    </ClInclude>
     <ClInclude Include="JavaSyntaxClassBlock.h">
       <Filter>Source\Syntax\Elements\Package</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxExpressionCommon.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxValueExpression.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxArrayValueExpression.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxLiteral.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -109,6 +109,7 @@ BOOL CJavaSyntax::IsClassCommon(void) { return FALSE; }
 BOOL CJavaSyntax::IsTypeCommon(void) { return FALSE; }
 BOOL CJavaSyntax::IsVariableCommon(void) { return FALSE; }
 BOOL CJavaSyntax::IsExpressionCommon(void) { return FALSE; }
+BOOL CJavaSyntax::IsLiteral(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsError(void) { return FALSE; }
 BOOL CJavaSyntax::IsMismatch(void) { return FALSE; }

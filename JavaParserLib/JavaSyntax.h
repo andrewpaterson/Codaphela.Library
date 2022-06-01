@@ -46,6 +46,7 @@ public:
 	virtual BOOL		IsTypeCommon(void);
 	virtual BOOL		IsVariableCommon(void);
 	virtual BOOL		IsExpressionCommon(void);
+	virtual BOOL		IsLiteral(void);
 
 	virtual BOOL		IsError(void);
 	virtual BOOL		IsMismatch(void);
