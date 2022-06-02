@@ -180,6 +180,15 @@
     <ClCompile Include="JavaSyntaxLiteral.cpp">
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClCompile>
+    <ClCompile Include="JavaSyntaxMethodCall.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxParentheses.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="JavaSyntaxOperator.cpp">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="JavaSyntax.h">
@@ -330,6 +339,15 @@
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClInclude>
     <ClInclude Include="JavaSyntaxLiteral.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxMethodCall.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxParentheses.h">
+      <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="JavaSyntaxOperator.h">
       <Filter>Source\Syntax\Elements\Behaviour\Expression</Filter>
     </ClInclude>
   </ItemGroup>

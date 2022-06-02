@@ -18,6 +18,10 @@
 #include "JavaSyntaxArrayValueExpression.h"
 #include "JavaSyntaxVariableInitialiser.h"
 #include "JavaSyntaxLiteral.h"
+#include "JavaSyntaxMethodCall.h"
+#include "JavaSyntaxParentheses.h"
+#include "JavaSyntaxOperator.h"
+#include "JavaSyntaxMemory.h"
 
 
 typedef CArrayTemplatePtr<CJavaSyntax>	CSyntaxPtrArray;
@@ -49,6 +53,9 @@ public:
 	CJavaSyntaxArrayValueExpression*	CreateArrayValueExpression(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxVariableInitialiser*		CreateVariableInitialiser(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 	CJavaSyntaxLiteral*					CreateLiteral(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxMethodCall*				CreateMethodCall(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxParentheses*				CreateParentheses(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
+	CJavaSyntaxOperator*				CreateOperator(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
 
 protected:
 	template<class M>	M*	Create(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);

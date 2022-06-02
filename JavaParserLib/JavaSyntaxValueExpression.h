@@ -17,7 +17,7 @@ public:
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
 	BOOL	IsValueExpression(void) override;
-	BOOL	IsCompoundStatement(void);
+	BOOL	IsCompoundStatement(void) override;
 };
 
 

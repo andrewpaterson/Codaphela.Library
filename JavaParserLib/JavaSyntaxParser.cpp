@@ -910,19 +910,22 @@ CJavaSyntaxVariableInitialiser* CJavaSyntaxParser::ParseArrayVariableInitialiser
 CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcParent)
 {
 	// 5, 'a', 6.0f, "st", true, null
-	// (int), (X)
 	// new
-	// *
-	// (  )
-	// net.method( ... )
-	// x
-	// x[ ]
-	// X 
+	// super(), this()					//Constructor call:	
+	// *, +, <<, ? ... :, ==
+	// ( ... )							//Parentheses:		
+	// method( ... )					//Method call:		Sinternal.InterfaceInAClassInAClass.InnerFace.LetOut()
+	// x								//Variable:			valu3_Pr0p
+	// x[ ]								//Variable Array:	array[3, 5]
+	// X								//Type:				final List<Map<? extends X, ? extends Integer>>
 
 	CJavaSyntaxValueExpression*		pcExpression;
 
 	pcExpression = mpcSyntaxes->CreateValueExpression(&mcSyntaxTree, pcParent);
 
+	ParseParentheses(pcExpression);
+	ParseOperator(pcExpression);
+	ParseNewOperator(pcExpression);
 	ParseLiteral(pcExpression);
 	ParseMethodCall(pcExpression);
 }
@@ -957,7 +960,7 @@ CJavaSyntaxLiteral* CJavaSyntaxParser::ParseLiteral(CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaSyntaxMethodCall CJavaSyntaxParser::ParseMethodCall(CJavaSyntax* pcParent)
+CJavaSyntaxMethodCall* CJavaSyntaxParser::ParseMethodCall(CJavaSyntax* pcParent)
 {
 
 }
