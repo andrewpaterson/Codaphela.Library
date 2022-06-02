@@ -40,6 +40,9 @@ public:
 	virtual BOOL		IsVoidExpression(void);
 	virtual BOOL		IsValueExpression(void);
 	virtual BOOL		IsArrayValueExpression(void);
+	virtual BOOL		IsMethodCall(void);
+	virtual BOOL		IsParentheses(void);
+	virtual BOOL		IsOperator(void);
 
 	virtual BOOL		IsStatement(void);
 	virtual BOOL		IsClassCommon(void);

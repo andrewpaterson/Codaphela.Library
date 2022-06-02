@@ -103,6 +103,9 @@ BOOL CJavaSyntax::IsVariableInitialiser(void) { return FALSE; }
 BOOL CJavaSyntax::IsVoidExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsValueExpression(void) { return FALSE; }
 BOOL CJavaSyntax::IsArrayValueExpression(void) { return FALSE; }
+BOOL CJavaSyntax::IsMethodCall(void) { return FALSE; }
+BOOL CJavaSyntax::IsParentheses(void) { return FALSE; }
+BOOL CJavaSyntax::IsOperator(void) { return FALSE; }
 
 BOOL CJavaSyntax::IsStatement(void) { return FALSE; }
 BOOL CJavaSyntax::IsClassCommon(void) { return FALSE; }

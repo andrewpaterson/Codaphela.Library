@@ -54,4 +54,7 @@ CJavaSyntaxValueExpression*			CJavaSyntaxMemory::CreateValueExpression(CJavaSynt
 CJavaSyntaxArrayValueExpression*	CJavaSyntaxMemory::CreateArrayValueExpression(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)	{ return Create<CJavaSyntaxArrayValueExpression>(pcTree, pcParent); }
 CJavaSyntaxVariableInitialiser*		CJavaSyntaxMemory::CreateVariableInitialiser(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)	{ return Create<CJavaSyntaxVariableInitialiser>(pcTree, pcParent); }
 CJavaSyntaxLiteral*					CJavaSyntaxMemory::CreateLiteral(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)				{ return Create<CJavaSyntaxLiteral>(pcTree, pcParent); }
+CJavaSyntaxMethodCall*				CJavaSyntaxMemory::CreateMethodCall(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)				{ return Create<CJavaSyntaxMethodCall>(pcTree, pcParent); }
+CJavaSyntaxParentheses*				CJavaSyntaxMemory::CreateParentheses(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)			{ return Create<CJavaSyntaxParentheses>(pcTree, pcParent); }
+CJavaSyntaxOperator*				CJavaSyntaxMemory::CreateOperator(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)				{ return Create<CJavaSyntaxOperator>(pcTree, pcParent); }
 

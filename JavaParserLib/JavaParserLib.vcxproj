@@ -180,6 +180,9 @@
     <ClCompile Include="JavaModifiers.cpp" />
     <ClCompile Include="JavaSyntaxArrayValueExpression.cpp" />
     <ClCompile Include="JavaSyntaxLiteral.cpp" />
+    <ClCompile Include="JavaSyntaxMethodCall.cpp" />
+    <ClCompile Include="JavaSyntaxOperator.cpp" />
+    <ClCompile Include="JavaSyntaxParentheses.cpp" />
     <ClCompile Include="JavaSyntaxVariableInitialiser.cpp" />
     <ClCompile Include="JavaSyntaxValueExpression.cpp" />
     <ClCompile Include="JavaSyntaxVariableDeclaration.cpp" />
@@ -231,6 +234,9 @@
     <ClInclude Include="JavaSyntaxLiteral.h" />
     <ClInclude Include="JavaModifiers.h" />
     <ClInclude Include="JavaSyntaxArrayValueExpression.h" />
+    <ClInclude Include="JavaSyntaxMethodCall.h" />
+    <ClInclude Include="JavaSyntaxOperator.h" />
+    <ClInclude Include="JavaSyntaxParentheses.h" />
     <ClInclude Include="JavaSyntaxVariableInitialiser.h" />
     <ClInclude Include="JavaSyntaxValueExpression.h" />
     <ClInclude Include="JavaSyntaxVariableDeclaration.h" />

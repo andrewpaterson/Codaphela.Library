@@ -1,11 +1,11 @@
-#ifndef __JAVA_SYNTAX_VALUE_EXPRESSION_H__
-#define __JAVA_SYNTAX_VALUE_EXPRESSION_H__
+#ifndef __JAVA_SYNTAX_METHOD_CALL_H__
+#define __JAVA_SYNTAX_METHOD_CALL_H__
 #include "JavaSyntaxExpressionCommon.h"
 
 
-class CJavaSyntaxValueExpression : public CJavaSyntaxExpressionCommon
+class CJavaSyntaxMethodCall : public CJavaSyntaxExpressionCommon
 {
-CONSTRUCTABLE(CJavaSyntaxValueExpression);
+CONSTRUCTABLE(CJavaSyntaxMethodCall);
 protected:
 
 public:
@@ -16,10 +16,10 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsValueExpression(void) override;
+	BOOL	IsMethodCall(void) override;
 	BOOL	IsCompoundStatement(void) override;
 };
 
 
-#endif // !__JAVA_SYNTAX_VALUE_EXPRESSION_H__
+#endif // !__JAVA_SYNTAX_METHOD_CALL_H__
 

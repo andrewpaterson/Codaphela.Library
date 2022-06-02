@@ -40,6 +40,8 @@ public:
 	CJavaTokenInteger*		GetInteger(void);
 	CJavaTokenFloat*		GetFloat(void);
 	CJavaTokenNull*			GetNull(void);
+
+	BOOL					IsCompoundStatement(void) override;
 };
 
 
