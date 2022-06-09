@@ -921,13 +921,179 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 
 	CJavaSyntaxValueExpression*		pcExpression;
 
+	CJavaSyntaxParentheses*			pcParentheses;
+	CJavaSyntaxOperator*			pcOperator;
+	CJavaSyntaxLiteral*				pcLiteral;
+	CJavaSyntaxMethodCall*			pcMethodCall;
+	int								iCount;
+
+	PushPosition();
+
 	pcExpression = mpcSyntaxes->CreateValueExpression(&mcSyntaxTree, pcParent);
 
-	ParseParentheses(pcExpression);
-	ParseOperator(pcExpression);
-	ParseNewOperator(pcExpression);
-	ParseLiteral(pcExpression);
-	ParseMethodCall(pcExpression);
+	for (iCount = 0; ; iCount++)
+	{
+		pcParentheses = ParseParentheses(pcExpression);
+		if (pcParentheses->IsParentheses())
+		{
+			pcExpression->AddExpression(pcParentheses);
+			continue;
+		}
+		else if (pcParentheses->IsError())
+		{
+			return Error<CJavaSyntaxValueExpression>();
+		}
+
+		if (iCount == 0)
+		{
+			pcOperator = ParsePrefixOperator(pcExpression);
+		}
+		else
+		{
+			pcOperator = ParseOperator(pcExpression);
+		}
+		if (pcOperator->IsOperator())
+		{
+			pcExpression->AddExpression(pcOperator);
+			continue;
+		}
+		else if (pcOperator->IsError())
+		{
+			return Error<CJavaSyntaxValueExpression>();
+		}
+
+		pcLiteral = ParseLiteral(pcExpression);
+		if (pcLiteral->IsLiteral())
+		{
+			pcExpression->AddExpression(pcOperator);
+			continue;
+		}
+		else if (pcLiteral->IsError())
+		{
+			return Error<CJavaSyntaxValueExpression>();
+		}
+
+		pcMethodCall = ParseMethodCall(pcExpression);
+		if (pcMethodCall->IsMethodCall())
+		{
+			pcExpression->AddExpression(pcOperator);
+			continue;
+		}
+		else if (pcMethodCall->IsError())
+		{
+			return Error<CJavaSyntaxValueExpression>();
+		}
+		
+		if (iCount > 0)
+		{
+			PassPosition();
+			return pcExpression;
+		}
+		else
+		{
+			pcExpression->Clear();
+			return Mismatch<CJavaSyntaxValueExpression>();
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxParentheses* CJavaSyntaxParser::ParseParentheses(CJavaSyntax* pcParent)
+{
+	BOOL							bOpen;
+	BOOL							bClose;
+	CJavaSyntaxParentheses*			pcParentheses;
+	CJavaSyntaxExpressionCommon*	pcExpression;
+
+	PushPosition();
+
+	bOpen = GetSeparator(JS_RoundBracketLeft);
+	if (bOpen)
+	{
+		pcParentheses = mpcSyntaxes->CreateParentheses(&mcSyntaxTree, pcParent);
+		pcExpression = ParseExpression(pcParentheses);
+		if (pcExpression->IsExpressionCommon())
+		{
+			bClose = GetSeparator(JS_RoundBracketRight);
+			if (!bClose)
+			{
+				pcParentheses->Clear();
+				return Mismatch<CJavaSyntaxParentheses>();
+			}
+			pcParentheses->SetExpression(pcExpression);
+			PassPosition();
+			return pcParentheses;
+		}
+		else if (pcExpression->IsMismatch())
+		{
+			pcParentheses->Clear();
+			return Mismatch<CJavaSyntaxParentheses>();
+		}
+		else
+		{
+			return Error<CJavaSyntaxParentheses>();
+		}
+	}
+	else
+	{
+		return Mismatch<CJavaSyntaxParentheses>();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxOperator* CJavaSyntaxParser::ParsePrefixOperator(CJavaSyntax* pcParent)
+{
+	CJavaTokenOperator*		pcTokenOperator;
+	CJavaSyntaxOperator*	pcSyntaxOperator;
+
+	PushPosition();
+	
+	pcTokenOperator = GetPrefixOperator();
+	if (pcTokenOperator)
+	{
+		pcSyntaxOperator = mpcSyntaxes->CreateOperator(&mcSyntaxTree, pcParent);
+		pcSyntaxOperator->SetOperator(pcTokenOperator);
+		PassPosition();
+		return pcSyntaxOperator;
+	}
+	else
+	{
+		return Mismatch<CJavaSyntaxOperator>();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaSyntaxOperator* CJavaSyntaxParser::ParseOperator(CJavaSyntax* pcParent)
+{
+	CJavaTokenOperator* pcTokenOperator;
+	CJavaSyntaxOperator* pcSyntaxOperator;
+
+	PushPosition();
+
+	pcTokenOperator = GetOperator();
+	if (pcTokenOperator)
+	{
+		pcSyntaxOperator = mpcSyntaxes->CreateOperator(&mcSyntaxTree, pcParent);
+		pcSyntaxOperator->SetOperator(pcTokenOperator);
+		PassPosition();
+		return pcSyntaxOperator;
+	}
+	else
+	{
+		return Mismatch<CJavaSyntaxOperator>();
+	}
 }
 
 
@@ -962,7 +1128,8 @@ CJavaSyntaxLiteral* CJavaSyntaxParser::ParseLiteral(CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxMethodCall* CJavaSyntaxParser::ParseMethodCall(CJavaSyntax* pcParent)
 {
-
+	PushPosition();
+	return Mismatch<CJavaSyntaxMethodCall>();
 }
 
 
@@ -972,7 +1139,8 @@ CJavaSyntaxMethodCall* CJavaSyntaxParser::ParseMethodCall(CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxArrayValueExpression* CJavaSyntaxParser::ParseArrayExpression(CJavaSyntax* pcParent)
 {
-
+	PushPosition();
+	return Mismatch<CJavaSyntaxArrayValueExpression>();
 }
 
 
@@ -1538,6 +1706,77 @@ BOOL CJavaSyntaxParser::GetOperator(EJavaTokenOperator eOperator)
 	{
 		return FALSE;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenOperator* CJavaSyntaxParser::GetPrefixOperator(void)
+{
+	CJavaTokenOperator* pcOperator;
+
+	if (mpcCurrentToken && mpcCurrentToken->IsOperator())
+	{
+		pcOperator = (CJavaTokenOperator*)mpcCurrentToken;
+		if (pcOperator->Is(JO_Plus) ||
+			pcOperator->Is(JO_Minus) ||
+			pcOperator->Is(JO_Increment) ||
+			pcOperator->Is(JO_Decrement) ||
+			pcOperator->Is(JO_LogicalNegate) ||
+			pcOperator->Is(JO_BitwiseNot))
+		{
+			Next();
+			return pcOperator;
+		}
+	}
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CJavaTokenOperator* CJavaSyntaxParser::GetOperator(void)
+{
+	CJavaTokenOperator* pcOperator;
+
+	if (mpcCurrentToken && mpcCurrentToken->IsOperator())
+	{
+		pcOperator = (CJavaTokenOperator*)mpcCurrentToken;
+		if (pcOperator->Is(JO_Plus) ||
+			pcOperator->Is(JO_Minus) ||
+			pcOperator->Is(JO_Divide) ||
+			pcOperator->Is(JO_Multipy) ||
+			pcOperator->Is(JO_Modulus) ||
+			pcOperator->Is(JO_Increment) ||
+			pcOperator->Is(JO_Decrement) ||
+			pcOperator->Is(JO_Equal) ||
+			pcOperator->Is(JO_NotEqual) ||
+			pcOperator->Is(JO_LessThan) ||
+			pcOperator->Is(JO_GreaterThan) ||
+			pcOperator->Is(JO_LessThanOrEqual) ||
+			pcOperator->Is(JO_GreaterThanOrEqual) ||
+			pcOperator->Is(JO_LogicalNegate) ||
+			pcOperator->Is(JO_LogicalAnd) ||
+			pcOperator->Is(JO_LogicalOr) ||
+			pcOperator->Is(JO_TernaryCondition) ||
+			pcOperator->Is(JO_TernaryStatement) ||
+			pcOperator->Is(JO_BitwiseAnd) ||
+			pcOperator->Is(JO_BitwiseOr) ||
+			pcOperator->Is(JO_BitwiseExclusiveOr) ||
+			pcOperator->Is(JO_BitwiseNot) ||
+			pcOperator->Is(JO_LeftShift) ||
+			pcOperator->Is(JO_RightShift) ||
+			pcOperator->Is(JO_RightShiftZero))
+		{
+			Next();
+			return pcOperator;
+		}
+	}
+	return NULL;
 }
 
 

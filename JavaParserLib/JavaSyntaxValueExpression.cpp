@@ -8,6 +8,7 @@
 void CJavaSyntaxValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntaxExpressionCommon::Init(pcTree, pcParent);
+	mapcExpressions.Init();
 }
 
 
@@ -17,6 +18,7 @@ void CJavaSyntaxValueExpression::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcPa
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxValueExpression::Kill(void)
 {
+	mapcExpressions.Kill();
 	CJavaSyntaxExpressionCommon::Kill();
 }
 
@@ -69,3 +71,14 @@ BOOL CJavaSyntaxValueExpression::IsCompoundStatement(void)
 {
 	return FALSE;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxValueExpression::AddExpression(CJavaSyntaxExpressionCommon* pcExpression)
+{
+	mapcExpressions.Add(pcExpression);
+}
+

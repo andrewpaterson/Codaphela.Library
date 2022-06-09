@@ -7,6 +7,7 @@ class CJavaSyntaxValueExpression : public CJavaSyntaxExpressionCommon
 {
 CONSTRUCTABLE(CJavaSyntaxValueExpression);
 protected:
+	CExpressionArray	mapcExpressions;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -18,6 +19,8 @@ public:
 
 	BOOL	IsValueExpression(void) override;
 	BOOL	IsCompoundStatement(void) override;
+
+	void	AddExpression(CJavaSyntaxExpressionCommon* pcExpression);
 };
 
 
