@@ -20,5 +20,8 @@ public:
 };
 
 
+typedef CArrayTemplateEmbeddedPtr<CJavaSyntaxExpressionCommon, 6> CExpressionArray;
+
+
 #endif // !__JAVA_SYNTAX_EXPRESSION_COMMON_H__
 

@@ -85,6 +85,9 @@ protected:
 	CJavaSyntaxVariableDeclaration*		ParseClassVariable(CJavaSyntax* pcParent);
 	CJavaSyntaxVariableInitialiser*		ParseVariableInitialiser(CJavaSyntax* pcParent);
 	CJavaSyntaxVariableInitialiser*		ParseArrayVariableInitialiser(CJavaSyntax* pcParent);
+	CJavaSyntaxParentheses*				ParseParentheses(CJavaSyntax* pcParent);
+	CJavaSyntaxOperator*				ParsePrefixOperator(CJavaSyntax* pcParent);
+	CJavaSyntaxOperator*				ParseOperator(CJavaSyntax* pcParent);
 
 	CJavaSyntaxValueExpression*			ParseExpression(CJavaSyntax* pcParent);
 	CJavaSyntaxArrayValueExpression*	ParseArrayExpression(CJavaSyntax* pcParent);
@@ -104,6 +107,8 @@ protected:
 	CJavaTokenKeyword*		GetModifierKeyword(void);
 	CJavaTokenKeyword*		GetPrimitveKeyword(void);
 	CJavaTokenLiteral*		GetLiteral(void);
+	CJavaTokenOperator*		GetPrefixOperator(void);
+	CJavaTokenOperator*		GetOperator(void);
 
 	BOOL					IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
 	BOOL					IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);

@@ -7,6 +7,7 @@ class CJavaSyntaxParentheses : public CJavaSyntaxExpressionCommon
 {
 CONSTRUCTABLE(CJavaSyntaxParentheses);
 protected:
+	CJavaSyntaxExpressionCommon*	mpcExpression;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -18,6 +19,8 @@ public:
 
 	BOOL	IsParentheses(void) override;
 	BOOL	IsCompoundStatement(void) override;
+
+	void	SetExpression(CJavaSyntaxExpressionCommon* pcExpression);
 };
 
 

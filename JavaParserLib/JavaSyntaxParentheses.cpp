@@ -8,6 +8,7 @@
 void CJavaSyntaxParentheses::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntaxExpressionCommon::Init(pcTree, pcParent);
+	mpcExpression = NULL;
 }
 
 
@@ -17,6 +18,7 @@ void CJavaSyntaxParentheses::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxParentheses::Kill(void)
 {
+	mpcExpression = NULL;
 	CJavaSyntaxExpressionCommon::Kill();
 }
 
@@ -68,5 +70,15 @@ BOOL CJavaSyntaxParentheses::IsParentheses(void)
 BOOL CJavaSyntaxParentheses::IsCompoundStatement(void)
 {
 	return FALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CJavaSyntaxParentheses::SetExpression(CJavaSyntaxExpressionCommon* pcExpression)
+{
+	mpcExpression = pcExpression;
 }
 
