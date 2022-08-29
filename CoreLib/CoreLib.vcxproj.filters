@@ -187,6 +187,9 @@
     <Filter Include="Source\Sequence\Config">
       <UniqueIdentifier>{a413eb42-1e57-4123-b4dd-49f19fb7f871}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\FileSystem">
+      <UniqueIdentifier>{eb1e2ef3-5d3d-48cd-be5e-bb225057c607}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -503,6 +506,12 @@
     </ClCompile>
     <ClCompile Include="CharEncoding.cpp">
       <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="Fat32.cpp">
+      <Filter>Source\FileSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="Fat32Debug.cpp">
+      <Filter>Source\FileSystem</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -847,6 +856,15 @@
     </ClInclude>
     <ClInclude Include="CharEncoding.h">
       <Filter>Source\Text\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Fat32.h">
+      <Filter>Source\FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Fat32Debug.h">
+      <Filter>Source\FileSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="Fat32Common.h">
+      <Filter>Source\FileSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
