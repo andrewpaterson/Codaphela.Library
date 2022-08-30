@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include "MemoryDrive.h"
 
 
@@ -15,16 +16,24 @@ bool CMemoryDrive::Init(size_t uiSizeInBytes)
 
 	uiSectorCount = uiSizeInBytes / DRIVE_SECTOR_SIZE;
 	uiSectorRemainder = uiSizeInBytes % DRIVE_SECTOR_SIZE;
-	mapsSectors = NULL;
+	mpasSectors = NULL;
 
 	if (uiSectorRemainder != 0)
 	{
 		return false;
 	}
 
-	mapsSectors = (SDriveSector*)malloc(uiSizeInBytes);
-	uiMaxSector = uiSectorCount;
-	return true;
+	mpasSectors = (SDriveSector*)malloc(uiSizeInBytes);
+	if (mpasSectors)
+	{
+		memset(mpasSectors, 0, uiSizeInBytes);
+		muiMaxSector = uiSectorCount;
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -34,10 +43,10 @@ bool CMemoryDrive::Init(size_t uiSizeInBytes)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryDrive::Kill(void)
 {
-	if (mapsSectors)
+	if (mpasSectors)
 	{
-		free(mapsSectors);
-		mapsSectors = NULL;
+		free(mpasSectors);
+		mpasSectors = NULL;
 	}
 }
 
@@ -46,9 +55,17 @@ void CMemoryDrive::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryDrive::Read(uint64 uiSector, SDriveSector* psSector)
+bool CMemoryDrive::Read(uint64 uiSector, SDriveSector* psSector)
 {
-
+	if (uiSector < muiMaxSector)
+	{
+		memcpy(psSector, &mpasSectors[uiSector], sizeof(SDriveSector));
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -56,8 +73,16 @@ void CMemoryDrive::Read(uint64 uiSector, SDriveSector* psSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryDrive::Write(uint64 uiSector, SDriveSector* psSector)
+bool CMemoryDrive::Write(uint64 uiSector, SDriveSector* psSector)
 {
-
+	if (uiSector < muiMaxSector)
+	{
+		memcpy(&mpasSectors[uiSector], psSector, sizeof(SDriveSector));
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
