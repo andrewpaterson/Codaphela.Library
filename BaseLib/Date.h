@@ -37,11 +37,11 @@ class CDate
 CONSTRUCTABLE(CDate);
 public:
 	int16	msYear;
-	char	mcMonth;
-	char	mcDay;
+	int8	mcMonth;
+	int8	mcDay;
 
 	void 	Init(void);  //Sets date to today.
-	void 	Init(int16 sYear, char cMonth, char cDay);
+	void 	Init(int16 sYear, int8 cMonth, int8 cDay);
 	void 	Today(void);
 	void 	Tomorrow(void);
 	void 	Yesterday(void);
