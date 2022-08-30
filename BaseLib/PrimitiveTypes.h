@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Bool.h"
 
 
-typedef char					int8;
+typedef signed char				int8;
 typedef short int				int16;
 typedef int						int32;
 typedef long long int			int64;
