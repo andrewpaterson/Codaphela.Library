@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include "FileDrive.h"
 
 
 #define TF_MAX_PATH 256
@@ -25,33 +26,7 @@
 #define LFN_ENTRY_CAPACITY 13       // bytes per LFN entry
 
 #define TF_ATTR_DIRECTORY 0x10
-//  #define TF_DEBUG 1
 
-
-#ifdef DEBUG
-
-#define dbg_printf(...) printf(__VA_ARGS__)
-#define dbg_printHex(x,y) printHex(x,y)
-
-#ifdef TF_DEBUG
-typedef struct struct_TFStats {
-    unsigned long sector_reads;
-    unsigned long sector_writes;
-} TFStats;
-
-#define tf_printf(...) printf(__VA_ARGS__)
-#define tf_printHex(x,y) printHex(x,y)
-#else
-#define tf_printf(...) 
-#define tf_printHex(x,y)
-#endif  // TF_DEBUG
-
-#else   // DEBUG
-#define dbg_printf(...)
-#define dbg_printHex(x,y)
-#define tf_printf(...) 
-#define tf_printHex(x,y)
-#endif  // DEBUG
 
 #define LSN(CN, bpb) SSA + ((CN-2) * bpb->SectorsPerCluster)
 
@@ -70,7 +45,8 @@ typedef struct struct_TFStats {
 //    * The number of reserved sectors (pulled directly from the BPB)
 // 4) The current sector in memory.  No sense reading it if it's already in memory!
 
-typedef struct struct_tfinfo {
+struct TFInfo
+{
     // FILESYSTEM INFO PROPER
     uint8_t type; // 0 for FAT16, 1 for FAT32.  FAT12 NOT SUPPORTED
     uint8_t sectorsPerCluster;
@@ -82,11 +58,11 @@ typedef struct struct_tfinfo {
     uint8_t sectorFlags;
     uint32_t rootDirectorySize;
     uint8_t buffer[512];
-} TFInfo;
+};
 
 /////////////////////////////////////////////////////////////////////////////////
 
-typedef struct struct_TFFILE 
+struct TFFile
 {
     uint32_t    parentStartCluster;
     uint32_t    startCluster;
@@ -100,7 +76,7 @@ typedef struct struct_TFFILE
     uint8_t     mode;
     uint32_t    size;
     char        filename[TF_MAX_PATH];
-} TFFile;
+};
 
 
 #define TF_MODE_READ 0x01
@@ -118,8 +94,6 @@ typedef struct struct_TFFILE
 #define TF_ATTR_UNUSED 0x80
 
 
-int read_sector(uint8_t* data, uint32_t blocknum);
-int write_sector(uint8_t* data, uint32_t blocknum);
 // New error codes
 #define TF_ERR_NO_ERROR 0
 #define TF_ERR_BAD_BOOT_SIGNATURE 1
@@ -130,6 +104,11 @@ int write_sector(uint8_t* data, uint32_t blocknum);
 // FS Types
 #define TF_TYPE_FAT16 0
 #define TF_TYPE_FAT32 1
+
+
+int read_sector(uint8_t* data, uint32_t blocknum);
+int write_sector(uint8_t* data, uint32_t blocknum);
+
 
 // New backend functions
 int tf_init(void);
@@ -146,7 +125,6 @@ TFFile* tf_parent(char* filename, const char* mode, int mkParents);
 int tf_shorten_filename(char* dest, char* src, char num);
 
 // New frontend functions
-int tf_init();
 int tf_fflush(TFFile* fp);
 int tf_fseek(TFFile* fp, int32_t base, long offset);
 int tf_fclose(TFFile* fp);

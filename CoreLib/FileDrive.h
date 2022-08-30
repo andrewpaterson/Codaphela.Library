@@ -15,14 +15,16 @@ struct SDriveSector
 class CFileDrive
 {
 protected:
-	uint64 uiMaxSector;  //Not inclusive
+	uint64 muiMaxSector;  //Not inclusive
 
 public:
 			void	Init(void);
 	virtual void	Kill(void) =0;
 
-	virtual void	Read(uint64 uiSector, SDriveSector* psSector) =0;
-	virtual void	Write(uint64 uiSector, SDriveSector* psSector) =0;
+	virtual bool	Read(uint64 uiSector, SDriveSector* psSector) =0;
+	virtual bool	Write(uint64 uiSector, SDriveSector* psSector) =0;
+			bool	Read(uint64 uiSector, void* pvData);
+			bool	Write(uint64 uiSector, void* pvData);
 };
 
 
