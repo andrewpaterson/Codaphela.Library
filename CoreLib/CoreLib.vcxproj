@@ -185,6 +185,7 @@
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="Fat32.cpp" />
     <ClCompile Include="Fat32Debug.cpp" />
+    <ClCompile Include="FileDrive.cpp" />
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
     <ClCompile Include="Files.cpp" />
@@ -221,6 +222,7 @@
     <ClCompile Include="IndexTreeFileKeyDiagnosticCountingCallback.cpp" />
     <ClCompile Include="LogFile.cpp" />
     <ClCompile Include="LogFileCommands.cpp" />
+    <ClCompile Include="MemoryDrive.cpp" />
     <ClCompile Include="NamedIndexedData.cpp" />
     <ClCompile Include="NamedIndexedHeader.cpp" />
     <ClCompile Include="NamedIndexes.cpp" />
@@ -295,6 +297,7 @@
     <ClInclude Include="Fat32.h" />
     <ClInclude Include="Fat32Common.h" />
     <ClInclude Include="Fat32Debug.h" />
+    <ClInclude Include="FileDrive.h" />
     <ClInclude Include="IndexedDataEvictionCallback.h" />
     <ClInclude Include="IndexedDataEvictionCounter.h" />
     <ClInclude Include="IndexTreeEvictionCounter.h" />
@@ -305,6 +308,7 @@
     <ClInclude Include="IndexTreeFileDiagnosticCallback.h" />
     <ClInclude Include="IndexTreeFileIterator.h" />
     <ClInclude Include="IndexTreeFileDiagnosticLoggingCallback.h" />
+    <ClInclude Include="MemoryDrive.h" />
     <ClInclude Include="NamedIndexedHeader.h" />
     <ClInclude Include="NamedIndexesConfig.h" />
     <ClInclude Include="IndexedCacheResult.h" />

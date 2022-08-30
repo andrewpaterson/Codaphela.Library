@@ -193,6 +193,9 @@
     <Filter Include="Source\FileSystem\Fat32">
       <UniqueIdentifier>{557a93d5-3d11-423a-be71-3574b1e104c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\FileSystem\Underlying">
+      <UniqueIdentifier>{78914b64-e340-4e2c-b12f-89b17f130b76}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="IndexedData.cpp">
@@ -515,6 +518,12 @@
     </ClCompile>
     <ClCompile Include="Fat32Debug.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="FileDrive.cpp">
+      <Filter>Source\FileSystem\Underlying</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryDrive.cpp">
+      <Filter>Source\FileSystem\Underlying</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -868,6 +877,12 @@
     </ClInclude>
     <ClInclude Include="Fat32Common.h">
       <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FileDrive.h">
+      <Filter>Source\FileSystem\Underlying</Filter>
+    </ClInclude>
+    <ClInclude Include="MemoryDrive.h">
+      <Filter>Source\FileSystem\Underlying</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
