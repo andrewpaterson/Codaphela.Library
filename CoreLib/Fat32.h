@@ -140,14 +140,14 @@ int tf_mkdir(char* filename, int mkParents);
 int tf_remove(char* filename);
 void tf_print_open_handles(void);
 
-uint32_t tf_find_free_cluster();
+uint32_t tf_find_free_cluster(void);
 uint32_t tf_find_free_cluster_from(uint32_t c);
 
 uint32_t tf_initializeMedia(uint32_t totalSectors);
 uint32_t tf_initializeMediaNoBlock(uint32_t totalSectors, int start);
 
 // hidden functions... IAR requires that all functions be declared
-TFFile* tf_get_free_handle();
+TFFile* tf_get_free_handle(void);
 uint8_t upper(uint8_t c);
 
 // New Datas
