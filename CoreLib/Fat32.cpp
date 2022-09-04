@@ -1,1841 +1,2860 @@
-#include <string.h>
 #include <stdio.h>
-#include "Fat32.h"
-#include "Fat32Debug.h"
-#include "Fat32Common.h"
-#include "MemoryDrive.h"
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdlib.h>
 
 
-CMemoryDrive    gcDrive;
+#define FAT12 0
+#define FAT16 1
+#define FAT32 2
 
+//FAT constants
+#define Partition_LBA_Begin 0 //first byte of the partition
+#define ENTRIES_PER_SECTOR 16
+#define DIR_SIZE 32 //in bytes
+#define SECTOR_SIZE 64//in bytes
+#define FAT_ENTRY_SIZE 4//in bytes
+#define MAX_FILENAME_SIZE 8
+#define MAX_EXTENTION_SIZE 3
+//file table
+#define TBL_OPEN_FILES 75 //Max size of open file table
+#define TBL_DIR_STATS  75 //Max size of open directory table
+//open file codes
+#define MODE_READ 0
+#define MODE_WRITE 1
+#define MODE_BOTH 2
+#define MODE_UNKNOWN 3 //when first created and directories
 
-// USERLAND
-int read_sector(uint8_t* data, uint32_t sector)
-{
-    if (gcDrive.CFileDrive::Read(sector, data))
-    {
-        return TF_ERR_NO_ERROR;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-int write_sector(uint8_t* data, uint32_t sector)
-{
-    if (gcDrive.CFileDrive::Write(sector, data))
-    {
-        return TF_ERR_NO_ERROR;
-    }
-    else
-    {
-        return 1;
-    }
-}
-
-
-//#define TF_DEBUG
-
-TFInfo tf_info;
-TFFile tf_file_handles[TF_FILE_HANDLES];
-#ifdef TF_DEBUG
-TFStats tf_stats;
-#endif
-
-/*
- * Fetch a single sector from disk.
- * ARGS
- *   sector - the sector number to fetch.
- * SIDE EFFECTS
- *   tf_info.buffer contains the DRIVE_SECTOR_SIZE byte sector requested
- *   tf_info.currentSector contains the sector number retrieved
- *   if tf_info.buffer already contained a fetched sector, and was marked dirty, that sector is
- *   tf_store()d back to its appropriate location before executing the fetch.
- * RETURN
- *   the return code given by the users read_sector() (should be zero for NO ERROR, nonzero otherwise)
- */
-int tf_fetch(uint32_t sector) 
-{
-    int rc = 0;
-    // Don't actually do the fetch if we already have it in memory
-    if (sector == tf_info.currentSector)
-    {
-        return TF_ERR_NO_ERROR;
-    }
-
-    // If the sector we already have prefetched is dirty, write it before reading out the new one
-    if (tf_info.sectorFlags & TF_FLAG_DIRTY) 
-    {
-        rc |= tf_store();
-    }
-
-    // Do the read, pass up the error flag
-    rc |= read_sector(tf_info.buffer, sector);
-    if (rc == TF_ERR_NO_ERROR)
-    {
-        tf_info.currentSector = sector;
-    }
-    return rc;
-}
+//generic
+#define SUCCESS 0
+const char* ROOT = "/";
+const char* PARENT = "..";
+const char* SELF = ".";
+const char* PATH_DELIMITER = "/";
+const char* DEBUG_FLAG = "-d";
+bool DEBUG;
+//Parsing
+#define PERIOD 46
+#define ALPHA_NUMBERS_LOWER_BOUND 48
+#define ALPHA_NUMBERS_UPPER_BOUND 57
+#define ALPHA_UPPERCASE_LOWER_BOUND 65
+#define ALPHA_UPPERCASE_UPPER_BOUND 90
+#define ALPHA_LOWERCASE_LOWER_BOUND 97
+#define ALPHA_LOWERCASE_UPPER_BOUND 122
+//File attributes
+const char ATTR_READ_ONLY = 0x01;
+const char ATTR_HIDDEN = 0x02;
+const char ATTR_SYSTEM = 0x04;
+const char ATTR_VOLUME_ID = 0x08;
+const char ATTR_DIRECTORY = 0x10;
+const char ATTR_ARCHIVE = 0x20;
+const char ATTR_LONG_NAME = 0x0F;
+//Clusters   
+uint32_t FAT_FREE_CLUSTER = 0x00000000;
+uint32_t FAT_EOC = 0x0FFFFFF8;
+uint32_t MASK_IGNORE_MSB = 0x0FFFFFFF;
 
 /*
- * Store the current sector back to disk
- * SIDE EFFECTS
- *   DRIVE_SECTOR_SIZE bytes of tf_info.buffer are stored on disk in the sector specified by tf_info.currentSector
- * RETURN
- *   the error code given by the users write_sector() (should be zero for NO ERROR, nonzero otherwise)
- */
-int tf_store()
-{
-    tf_info.sectorFlags &= ~TF_FLAG_DIRTY;
-    return write_sector(tf_info.buffer, tf_info.currentSector);
-}
-
-/*
- * Initialize the filesystem
- * Reads filesystem info from disk into tf_info and checks that info for validity
- * SIDE EFFECTS
- *   Sector 0 is fetched into tf_info.buffer
- *   If TF_DEBUG is specified tf_stats is initialized
- * RETURN
- *   0 for a successfully initialized filesystem, nonzero otherwise.
- */
-int tf_init(void)
-{
-    BPB_struct* bpb;
-    uint32_t fat_size, root_dir_sectors, data_sectors, cluster_count, temp;
-    TFFile* fp;
-    FatFileEntry e;
-
-    // Initialize the runtime portion of the TFInfo structure, and read sec0
-    tf_info.currentSector = -1;
-    tf_info.sectorFlags = 0;
-    tf_fetch(0);
-
-    // Cast to a BPB, so we can extract relevant data
-    bpb = (BPB_struct*)tf_info.buffer;
-
-    /* Some sanity checks to make sure we're really dealing with FAT here
-     * see fatgen103.pdf pg. 9ff. for details */
-
-     /* BS_jmpBoot needs to contain specific instructions */
-    if (!(bpb->BS_JumpBoot[0] == 0xEB && bpb->BS_JumpBoot[2] == 0x90) && !(bpb->BS_JumpBoot[0] == 0xE9))
-    {
-        //tf_init FAILED: stupid jmp instruction isn't exactly right...
-        return TF_ERR_BAD_FS_TYPE;
-    }
-
-    /* Only specific bytes per sector values are allowed
-     * FIXME: Only DRIVE_SECTOR_SIZE bytes are supported by thinfat at the moment */
-    if (bpb->BytesPerSector != DRIVE_SECTOR_SIZE)
-    {
-        //tf_init FAILED: Bad Filesystem Type (!=DRIVE_SECTOR_SIZE bytes/sector)
-        return TF_ERR_BAD_FS_TYPE;
-    }
-
-    if (bpb->ReservedSectorCount == 0)
-    {
-        //tf_init() FAILED: ReservedSectorCount == 0
-        return TF_ERR_BAD_FS_TYPE;
-    }
-
-    /* Valid media types */
-    if ((bpb->Media != 0xF0) && ((bpb->Media < 0xF8) || (bpb->Media > 0xFF)))
-    {
-        //tf_init() FAILED: Invalid Media Type!  (0xf0, or 0xf8 <= type <= 0xff)
-        return TF_ERR_BAD_FS_TYPE;
-    }
-
-    // See the FAT32 SPEC for how this is all computed
-    fat_size = (bpb->FATSize16 != 0) ? bpb->FATSize16 : bpb->FSTypeSpecificData.fat32.FATSize;
-    root_dir_sectors = ((bpb->RootEntryCount * 32) + (bpb->BytesPerSector - 1)) / (DRIVE_SECTOR_SIZE); // The DRIVE_SECTOR_SIZE here is a hardcoded bpb->bytesPerSector (TODO: Replace /,* with shifts?)
-    tf_info.totalSectors = (bpb->TotalSectors16 != 0) ? bpb->TotalSectors16 : bpb->TotalSectors32;
-    data_sectors = tf_info.totalSectors - (bpb->ReservedSectorCount + (bpb->NumFATs * fat_size) + root_dir_sectors);
-    tf_info.sectorsPerCluster = bpb->SectorsPerCluster;
-    cluster_count = data_sectors / tf_info.sectorsPerCluster;
-    tf_info.reservedSectors = bpb->ReservedSectorCount;
-    tf_info.firstDataSector = bpb->ReservedSectorCount + (bpb->NumFATs * fat_size) + root_dir_sectors;
-
-    // Now that we know the total count of clusters, we can compute the FAT type
-    if (cluster_count < 65525)
-    {
-        //tf_init FAILED: cluster_count < 65525
-        return TF_ERR_BAD_FS_TYPE;
-    }
-    else tf_info.type = TF_TYPE_FAT32;
-
-    // TODO ADD SANITY CHECKING HERE (CHECK THE BOOT SIGNATURE, ETC... ETC...)
-    tf_info.rootDirectorySize = 0xffffffff;
-    temp = 0;
-
-    // Like recording the root directory size!
-    // TODO, THis probably isn't necessary.  Remove later
-    fp = tf_fopen("/", "r");
-    do 
-    {
-        temp += sizeof(FatFileEntry);
-        tf_fread((uint8_t*)&e, sizeof(FatFileEntry), fp);
-    } 
-    while (e.msdos.filename[0] != '\0');
-    tf_fclose(fp);
-    tf_info.rootDirectorySize = temp;
-
-    tf_fclose(fp);
-    tf_release_handle(fp);
-    return TF_ERR_NO_ERROR;
-}
-
-/*
- * Return the FAT entry for the given cluster
- * ARGS
- *   cluster - The cluster number for the requested FAT entry
- * SIDE EFFECTS
- *   Retreives whatever sector happens to contain that FAT entry (if it's not already in memory)
- * RETURN
- *   The value of the fat entry for the specified cluster.
- */
-uint32_t tf_get_fat_entry(uint32_t cluster) 
-{
-    uint32_t offset = cluster * 4;
-    tf_fetch(tf_info.reservedSectors + (offset / DRIVE_SECTOR_SIZE)); // DRIVE_SECTOR_SIZE is hardcoded bpb->bytesPerSector
-    return *((uint32_t*)&(tf_info.buffer[offset % DRIVE_SECTOR_SIZE]));
-}
-
-/*
- * Sets the fat entry on disk for a given cluster to the specified value.
- * ARGS
- *   cluster - The cluster number for which to set the FAT entry
- *     value - The new value for the FAT entry
- * SIDE EFFECTS
- *   Fetches whatever sector happens to contain the pertinent fat entry (if it's not already in memory)
- * RETURN
- *   0 for no error, or nonzero for error with fetch
- * TODO
- *   Does the sector modified here need to be flagged as dirty?
- */
-int tf_set_fat_entry(uint32_t cluster, uint32_t value) 
-{
-    uint32_t    offset;
-    int         rc;
-    offset = cluster * 4; // FAT32
-    rc = tf_fetch(tf_info.reservedSectors + (offset / DRIVE_SECTOR_SIZE)); // DRIVE_SECTOR_SIZE is hardcoded bpb->bytesPerSector
-    if (*((uint32_t*)&(tf_info.buffer[offset % DRIVE_SECTOR_SIZE])) != value) 
-    {
-        tf_info.sectorFlags |= TF_FLAG_DIRTY; // Mark this sector as dirty
-        *((uint32_t*)&(tf_info.buffer[offset % DRIVE_SECTOR_SIZE])) = value;
-    }
-    return rc;
-}
-
-
-/*
- * Return the index of the first sector for the provided cluster
- * ARGS
- *   cluster - The cluster of interest
- * RETURN
- *   The first sector of the provided cluster
- */
-uint32_t tf_first_sector(uint32_t cluster) 
-{
-    return ((cluster - 2) * tf_info.sectorsPerCluster) + tf_info.firstDataSector;
-}
-
-/*
- * Walks the path provided, returning a valid file pointer for each successive level in the path.
  *
- * example:  tf_walk("/home/ryan/myfile.txt", fp to "/")
- *          Call once: returns pointer to string: home/ryan/myfile.txt, fp now points to directory for /
- *          Call again: returns pointer to string: ryan/myfile.txt, fp now points to directory for /home
- *          Call again: returns pointer to string: myfile.txt, fp now points to directory for /home/ryan
- *          Call again: returns pointer to the end of the string, fp now points to /home/ryan/myfile.txt
- *          Call again: returns NULL pointer. fp is unchanged
- * ARGS
- *   filename - a string containing the full path
+ * BEGIN STRUCTURE DEFINITIONS
  *
- * SIDE EFFECTS
- *   The filesystem is traversed, so files are opened and closed, sectors are read, etc...
- * RETURN
- *   A string pointer to the next level in the path, or NULL if this is the end of the path
  */
-char* tf_walk(char* filename, TFFile* fp) 
+#pragma pack(push, 1)
+struct BS_BPB 
 {
-    FatFileEntry    entry;
-    int             iResult;
-    
-    // We're out of path. this walk is COMPLETE
-    if (*filename == '/') 
-    {
-        filename++;
-        if (*filename == '\0')
-        {
-            return NULL;
-        }
-    }
-    // There's some path left
-    if (*filename != '\0') 
-    {
-        // fp is the handle for the current directory
-        // filename is the name of the current file in that directory
-        // Go fetch the FatFileEntry that corresponds to the current file
-        // Remember that tf_find_file is only going to search from the beginning of the filename
-        // up until the first path separation character
-        iResult = tf_find_file(fp, filename);
-        if (iResult != TF_ERR_NO_ERROR)
-        {
-            // This happens when we couldn't actually find the file
-            fp->flags = 0xff;
-            //[DEBUG-tf_walk] Exiting - not found
-            return NULL;
-        }
+    char BS_jmpBoot[3]; //1-3
+    char BS_OEMName[8]; //4-11
+    uint16_t BPB_BytsPerSec;//12-13
+    char BPB_SecPerClus; //14
+    uint16_t BPB_RsvdSecCnt; //15-16
+    char BPB_NumFATs; //17
+    uint16_t BPB_RootEntCnt; //18-19
+    uint16_t BPB_TotSec16; //20-21
+    char BPB_Media; //22
+    uint16_t BPB_FATSz16; //23-24
+    uint16_t BPB_SecPerTrk; //25-26
+    uint16_t BPB_NumHeads; //27-28
+    uint32_t BPB_HiddSec; //29-32
+    uint32_t BPB_TotSec32; //33-36
+    uint32_t BPB_FATSz32; //37-40
+    uint16_t BPB_ExtFlags; //41-42
+    uint16_t BPB_FSVer; //43-44
+    uint32_t BPB_RootClus;//45-48
+    uint16_t BPB_FSInfo; //49-50
+    uint16_t BPB_BkBootSec;//51-52
+    char BPB_Reserved[12]; //53-64
+    char BS_DrvNum;//65
+    char BS_Reserved1;//66
+    char BS_BootSig;//67
+    uint32_t BS_VolID;//68-71
+    char BS_VolLab[11]; //72-82
+    char BS_FilSysType[8]; //83-89
 
-        tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), fp);
 
-        // Walk over path separators
-        while ((*filename != '/') && (*filename != '\0'))
-        {
-            filename += 1;
-        }
-        if (*filename == '/')
-        {
-            filename += 1;
-        }
+};
+#pragma pack(pop)
 
-        // Set up the file pointer now that we've got information for the next level in the path hierarchy
-        fp->parentStartCluster = fp->startCluster;
-        fp->startCluster = ((uint32_t)(entry.msdos.eaIndex & 0xffff) << 16) | (entry.msdos.firstCluster & 0xffff);
-        fp->attributes = entry.msdos.attributes;
-        fp->currentCluster = fp->startCluster;
-        fp->currentClusterIdx = 0;
-        fp->currentSector = 0;
-        fp->currentByte = 0;
-        fp->pos = 0;
-        fp->flags = TF_FLAG_OPEN;
-        fp->size = (entry.msdos.attributes & TF_ATTR_DIRECTORY) ? 0xffffffff : entry.msdos.fileSize;
-        if (*filename == '\0')
-        {
-            return NULL;
-        }
-        return filename;
-    }
-    // We're out of path.  This walk is COMPLETE.
-    return NULL;
+
+#pragma pack(push, 1)
+struct DIR_ENTRY
+{
+    char filename[11];
+    char attributes;
+    char r1;
+    char r2;
+    uint16_t crtTime;
+    uint16_t crtDate;
+    uint16_t accessDate;
+    char hiCluster[2];
+    uint16_t lastWrTime;
+    uint16_t lastWrDate;
+    char loCluster[2];
+    uint32_t fileSize;
+};
+#pragma pack(pop)
+
+
+#pragma pack(push, 1)
+struct FILEDESCRIPTOR 
+{
+    char filename[9];
+    char extention[4];
+    char parent[100];
+    uint32_t firstCluster;
+    int mode;
+    uint32_t size;
+    bool dir; //is it a directory
+    bool isOpen;
+    char fullFilename[13];
+};
+#pragma pack(pop)
+
+
+struct ENVIRONMENT 
+{
+    char pwd[100];
+    char imageName[100];
+    int pwd_cluster;
+    uint32_t io_writeCluster; //< - deprecated
+    int tbl_dirStatsIndex;
+    int tbl_openFilesIndex;
+    int tbl_dirStatsSize;
+    int tbl_openFilesSize;
+    char last_pwd[100];
+    struct FILEDESCRIPTOR* openFilesTbl; //open file history table
+    struct FILEDESCRIPTOR* dirStatsTbl; //directory history table
+
+} environment;
+
+
+void bzero(void* pvMem, size_t uiSize)
+{
+    memset(pvMem, 0, uiSize);
 }
 
 
-/*
- * Searches the list of system file handles for a free one, and returns it.
- * RETURN
- *   NULL if no system file handles are free, or the free handle if one is available.
+void checkForFileError(FILE* f) {
+    if (f == NULL) {
+        printf("FATAL ERROR: Problem openning image -- EXITTING!\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+//-------------END BOOT SECTOR FUNCTIONS -----------------------
+/* notes: the alias shown above the functions match up the variables from
+ * the Microsoft FAT specificatiions
  */
-TFFile* tf_get_free_handle(void) 
-{
-    int         i;
-    TFFile*     fp;
-    for (i = 0; i < TF_FILE_HANDLES; i++) 
-    {
-        fp = &tf_file_handles[i];
-        if (fp->flags & TF_FLAG_OPEN)
-        {
-            continue;
+
+ //alias := rootDirSectors
+int rootDirSectorCount(struct BS_BPB* bs) {
+    return (bs->BPB_RootEntCnt * 32) + (bs->BPB_BytsPerSec - 1) / bs->BPB_BytsPerSec;
+
+}
+//alias := FirstDataSector
+int firstDataSector(struct BS_BPB* bs) {
+    int FATSz;
+    if (bs->BPB_FATSz16 != 0)
+        FATSz = bs->BPB_FATSz16;
+    else
+        FATSz = bs->BPB_FATSz32;
+    return bs->BPB_RsvdSecCnt + (bs->BPB_NumFATs * FATSz) + rootDirSectorCount(bs);
+
+}
+//alias := FirstSectorofCluster
+uint32_t firstSectorofCluster(struct BS_BPB* bs, uint32_t clusterNum) {
+    return (clusterNum - 2) * (bs->BPB_SecPerClus) + firstDataSector(bs);
+
+}
+
+/* decription: feed it a cluster and it returns the byte offset
+ * of the beginning of that cluster's data
+ * */
+uint32_t byteOffsetOfCluster(struct BS_BPB* bs, uint32_t clusterNum) {
+    return firstSectorofCluster(bs, clusterNum) * bs->BPB_BytsPerSec;
+}
+
+//alias := DataSec
+int sectorsInDataRegion(struct BS_BPB* bs) {
+    int FATSz;
+    int TotSec;
+    if (bs->BPB_FATSz16 != 0)
+        FATSz = bs->BPB_FATSz16;
+    else
+        FATSz = bs->BPB_FATSz32;
+    if (bs->BPB_TotSec16 != 0)
+        TotSec = bs->BPB_TotSec16;
+    else
+        TotSec = bs->BPB_TotSec32;
+    return TotSec - (bs->BPB_RsvdSecCnt + (bs->BPB_NumFATs * FATSz) + rootDirSectorCount(bs));
+
+}
+
+//alias := CountofClusters
+int countOfClusters(struct BS_BPB* bs) {
+    return sectorsInDataRegion(bs) / bs->BPB_SecPerClus;
+}
+
+int getFatType(struct BS_BPB* bs) {
+    int clusterCount = countOfClusters(bs);
+    if (clusterCount < 4085)
+        return FAT12;
+    else if (clusterCount < 65525)
+        return FAT16;
+    else
+        return FAT32;
+}
+
+int firstFatTableSector(struct BS_BPB* bs) {
+    return Partition_LBA_Begin + bs->BPB_RsvdSecCnt;
+}
+//the sector of the first clustor
+//cluster_begin_lba
+int firstClusterSector(struct BS_BPB* bs) {
+    return Partition_LBA_Begin + bs->BPB_RsvdSecCnt + (bs->BPB_NumFATs * bs->BPB_SecPerClus);
+}
+
+
+//----------------OPEN FILE/DIRECTORY TABLES-----------------
+/* create a new file to be put in the file descriptor table
+ * */
+struct FILEDESCRIPTOR* TBL_createFile(
+    const char* filename,
+    const char* extention,
+    const char* parent,
+    uint32_t firstCluster,
+    int mode,
+    uint32_t size,
+    int dir,
+    int isOpen) {
+    struct FILEDESCRIPTOR* newFile = (struct FILEDESCRIPTOR*)malloc(sizeof(struct FILEDESCRIPTOR));
+    strcpy(newFile->filename, filename);
+    strcpy(newFile->extention, extention);
+    strcpy(newFile->parent, parent);
+
+    if (strlen(newFile->extention) > 0) {
+        strcpy(newFile->fullFilename, newFile->filename);
+        strcat(newFile->fullFilename, ".");
+        strcat(newFile->fullFilename, newFile->extention);
+    }
+    else {
+        strcpy(newFile->fullFilename, newFile->filename);
+    }
+
+    newFile->firstCluster = firstCluster;
+    newFile->mode = mode;
+    newFile->size = size;
+    newFile->dir = dir;
+    newFile->isOpen = isOpen;
+    return newFile;
+}
+/* adds a file object to either the fd table or the dir history table
+ */
+int TBL_addFileToTbl(struct FILEDESCRIPTOR* file, bool isDir) {
+    if (isDir == true) {
+        if (environment.tbl_dirStatsSize < TBL_DIR_STATS) {
+            environment.dirStatsTbl[environment.tbl_dirStatsIndex % TBL_DIR_STATS] = *file;
+            if (DEBUG == true) printf("adding %s\n", environment.dirStatsTbl[environment.tbl_dirStatsIndex % TBL_DIR_STATS].filename);
+            environment.tbl_dirStatsSize++;
+            environment.tbl_dirStatsIndex = ++environment.tbl_dirStatsIndex % TBL_DIR_STATS;
+            return 0;
+        }
+        else {
+            environment.dirStatsTbl[environment.tbl_dirStatsIndex % TBL_DIR_STATS] = *file;
+            environment.tbl_dirStatsIndex = ++environment.tbl_dirStatsIndex % TBL_DIR_STATS;
+            return 0;
         }
 
-        // We get here if we find a free handle
-        fp->flags = TF_FLAG_OPEN;
-        return fp;
+
     }
-    return NULL;
+    else {
+        if (environment.tbl_openFilesSize < TBL_OPEN_FILES) {
+            environment.openFilesTbl[environment.tbl_openFilesIndex % TBL_OPEN_FILES] = *file;
+            environment.tbl_openFilesSize++;
+            environment.tbl_openFilesIndex = ++environment.tbl_openFilesIndex % TBL_OPEN_FILES;
+            return 0;
+        }
+        else {
+            environment.openFilesTbl[environment.tbl_openFilesIndex % TBL_OPEN_FILES] = *file;
+            environment.tbl_openFilesIndex = ++environment.tbl_openFilesIndex % TBL_OPEN_FILES;
+            return 0;
+        }
+
+    }
 }
 
-
-/*
- * Release a filesystem handle (mark as available)
+/* description: if <isDir> is set prints the content of the open files table
+ * if not prints the open directory table
  */
-void tf_release_handle(TFFile* fp) 
-{
-    fp->flags &= ~TF_FLAG_OPEN;
+int TBL_printFileTbl(bool isDir) {
+    if (DEBUG == true) printf("environment.tbl_dirStatsSize: %d\n", environment.tbl_dirStatsSize);
+    if (DEBUG == true) printf("environment.tbl_openFilesSize: %d\n", environment.tbl_openFilesSize);
+    if (isDir == true) {
+        puts("\nDirectory Table\n");
+        if (environment.tbl_dirStatsSize > 0) {
+            int x;
+            for (x = 0; x < environment.tbl_dirStatsSize; x++) {
+
+                printf("[%d] filename: %s, parent: %s, isOpen: %d, Size: %d, mode: %d\n",
+                    x, environment.dirStatsTbl[x % TBL_DIR_STATS].fullFilename,
+                    environment.dirStatsTbl[x % TBL_DIR_STATS].parent,
+                    environment.dirStatsTbl[x % TBL_DIR_STATS].isOpen,
+                    environment.dirStatsTbl[x % TBL_DIR_STATS].size,
+                    environment.dirStatsTbl[x % TBL_DIR_STATS].mode);
+            }
+            return 0;
+        }
+        else {
+            return 1;
+        }
+    }
+    else {
+        puts("\nOpen File Table\n");
+        if (environment.tbl_openFilesSize > 0) {
+            int x;
+            for (x = 0; x < environment.tbl_openFilesSize; x++) {
+
+                printf("[%d] filename: %s, parent:%s, isOpen: %d, Size: %d, mode: %d\n",
+                    x, environment.openFilesTbl[x % TBL_OPEN_FILES].fullFilename,
+                    environment.openFilesTbl[x % TBL_OPEN_FILES].parent,
+                    environment.openFilesTbl[x % TBL_OPEN_FILES].isOpen,
+                    environment.openFilesTbl[x % TBL_OPEN_FILES].size,
+                    environment.openFilesTbl[x % TBL_OPEN_FILES].mode);
+
+            }
+            return 0;
+        }
+        else {
+            return 1;
+        }
+    }
 }
 
-
-// Convert a character to uppercase
-// TODO: Re-do how filename conversions are done.
-uint8_t upper(uint8_t c) 
-{
-    if (c >= 'a' && c <= 'z') 
-    {
-        return c + ('A' - 'a');
+/* desctipion searches the open directory table for entry if it finds it,
+ * it returns the name of the parent directory, else it returns an empty string
+*/
+const char* TBL_getParent(const char* dirName) {
+    if (environment.tbl_dirStatsSize > 0) {
+        int x;
+        for (x = 0; x < environment.tbl_dirStatsSize; x++) {
+            if (DEBUG == true) printf("searching for %s in table, found %s\n", dirName, environment.dirStatsTbl[x % TBL_DIR_STATS].filename);
+            if (strcmp(environment.dirStatsTbl[x % TBL_DIR_STATS].filename, dirName) == 0)
+                return environment.dirStatsTbl[x % TBL_DIR_STATS].parent;
+        }
+        return "";
     }
-    else 
-    {
-        return c;
+    else {
+        return "";
     }
 }
 
+/* description:  "index" is set to the index where the found element resides
+ * returns true if file was found in the file table
+ *
+ */
+bool TBL_getFileDescriptor(int* index, const char* filename, bool isDir) {
+    if (isDir == true) {
+        if (environment.tbl_dirStatsSize > 0) {
 
-//AP - This method looks very iffy 
-void tf_choose_sfn(char* dest, char* src, TFFile* fp)
-{
-    char    temp[13];
-    int     results;
-    int     num = 1;
-    TFFile  xfile;
-
-    // throwaway fp that doesn't muck with the original
-    memcpy(&xfile, fp, sizeof(TFFile));
-
-    for (;;)
-    {
-        results = tf_shorten_filename(dest, src, num);
-        switch (results)
-        {
-        case 0: // ok
-            // does the file collide with the current directory?
-            //tf_fseek(xfile, 0, 0);
-            memcpy(temp, dest, 8);
-            memcpy(temp + 9, dest + 8, 3);
-            temp[8] = '.';
-            temp[12] = 0;
-
-            if (0 > tf_find_file(&xfile, temp))
-            {
-                return;
+            int x;
+            for (x = 0; x < environment.tbl_dirStatsSize; x++) {
+                if (DEBUG == true) printf("searching for %s in table, found %s\n", filename, environment.dirStatsTbl[x % TBL_DIR_STATS].filename);
+                if (strcmp(environment.dirStatsTbl[x % TBL_DIR_STATS].fullFilename, filename) == 0) {
+                    *index = x;
+                    return true;
+                }
             }
 
-            num++;
-            return;
-
-        case -1: // error
-            //[DEBUG-tf_choose_sfn] error selecting short filename!
-            return;
-        }
-    }
-}
-
-/*
- * Take the long filename (filename only, not full path) specified by src,
- * and convert it to an 8.3 compatible filename, storing the result at dst
- * TODO: This should return something, an error code for conversion failure.
- * TODO: This should handle special chars etc.
- * TODO: Test for short filenames, (<7 characters)
- * TODO: Modify this to use the basis name generation algorithm described in the FAT32 whitepaper.
- */
-int tf_shorten_filename(char* dest, char* src, char num) 
-{
-    int     l = strlen(src);
-    int     i;
-    int     lossy_flag = 0;
-    char*   tmp;
-
-    // strip through and chop special chars
-
-    tmp = strrchr(src, '.');
-    // copy the extension
-    for (i = 0; i < 3; i++)
-    {
-        while (tmp != 0 &&
-              *tmp != 0 &&
-              !(*tmp < 0x7f &&
-                *tmp > 20 &&  //AP - This looks iffy.
-                *tmp != 0x22 &&
-                *tmp != 0x2a &&
-                *tmp != 0x2e &&
-                *tmp != 0x2f &&
-                *tmp != 0x3a &&
-                *tmp != 0x3c &&
-                *tmp != 0x3e &&
-                *tmp != 0x3f &&
-                *tmp != 0x5b &&
-                *tmp != 0x5c &&
-                *tmp != 0x5d &&
-                *tmp != 0x7c))
-        {
-            tmp++;
-        }
-
-        if (tmp == 0 || *tmp == 0)
-        {
-            *(dest + 8 + i) = ' ';
         }
         else
-        {
-            *(dest + 8 + i) = upper(*(tmp++));
+            return false;
+    }
+    else {
+
+        if (environment.tbl_openFilesSize > 0) {
+
+            int x;
+            for (x = 0; x < environment.tbl_openFilesSize; x++) {
+
+                if (strcmp(environment.openFilesTbl[x % TBL_OPEN_FILES].fullFilename, filename) == 0) {
+                    *index = x;
+                    return true;
+                }
+            }
+
         }
+        else
+            return false;
     }
 
-    // Copy the basename
-    i = 0;
-    tmp = strrchr(src, '.');
-    for (;;)
-    {
-        if (i == 8)
-        {
+    return false;
+}
+
+
+//-----------------------------------------------------------------------------
+/*description: feed this a cluster and it returns an offset, in bytes, where the
+ * fat entry for this cluster is locted
+ *
+ * use: use the result to seek to the place in the image and read
+ * the FAT entry
+* */
+uint32_t getFatAddressByCluster(struct BS_BPB* bs, uint32_t clusterNum) {
+    uint32_t FATOffset = clusterNum * 4;
+    uint32_t ThisFATSecNum = bs->BPB_RsvdSecCnt + (FATOffset / bs->BPB_BytsPerSec);
+    uint32_t ThisFATEntOffset = FATOffset % bs->BPB_BytsPerSec;
+    return (ThisFATSecNum * bs->BPB_BytsPerSec + ThisFATEntOffset);
+}
+
+
+/*description: finds the location of this clusters FAT entry, reads
+ * and returns the entry value
+ *
+ * use: use the result to seek to the place in the image and read
+ * the FAT entry
+* */
+uint32_t FAT_getFatEntry(struct BS_BPB* bs, uint32_t clusterNum) {
+
+    FILE* f = fopen(environment.imageName, "r");
+    checkForFileError(f);
+    char aFatEntry[FAT_ENTRY_SIZE];
+    uint32_t FATOffset = clusterNum * 4;
+    fseek(f, getFatAddressByCluster(bs, clusterNum), 0);
+    fread(aFatEntry, 1, FAT_ENTRY_SIZE, f);
+    fclose(f);
+    uint32_t fatEntry = 0x00000000;
+
+    int x;
+    for (x = 0; x < 4; x++) {
+        fatEntry |= aFatEntry[(FATOffset % FAT_ENTRY_SIZE) + x] << 8 * x;
+    }
+
+    return fatEntry;
+}
+/* description: takes a value, newFatVal, and writes it to the destination
+ * cluster,
+ */
+int FAT_writeFatEntry(struct BS_BPB* bs, uint32_t destinationCluster, uint32_t* newFatVal) {
+    FILE* f = fopen(environment.imageName, "r+");
+    checkForFileError(f);
+    fseek(f, getFatAddressByCluster(bs, destinationCluster), 0);
+    fwrite(newFatVal, 4, 1, f);
+    fclose(f);
+    if (DEBUG == true) printf("FAT_writeEntry: wrote->%d to cluster %d", *newFatVal, destinationCluster);
+    return 0;
+}
+
+/* desctipion: NOT USED but might be in future to clear newly freed clusters
+*/
+void clearCluster(struct BS_BPB* bs, uint32_t targetCluster) 
+{
+    uint8_t* clearedCluster = (uint8_t*)malloc(bs->BPB_BytsPerSec);
+     
+    //i didn't want to do it this way but compiler wont let me initalize 
+    //an array that's sized with a variable :(
+    int x;
+    for (x = 0; x < bs->BPB_BytsPerSec; x++) { clearedCluster[x] = 0x00; }
+    FILE* f = fopen(environment.imageName, "r+");
+    checkForFileError(f);
+    fseek(f, byteOffsetOfCluster(bs, targetCluster), 0);
+    fwrite(clearedCluster, 1, bs->BPB_BytsPerSec, f);
+    fclose(f);
+
+    free(clearedCluster);
+}
+
+/*description:walks a FAT chain until 0x0fffffff, returns the number of iterations
+ * which is the size of the cluster chiain
+*/
+int getFileSizeInClusters(struct BS_BPB* bs, uint32_t firstClusterVal) {
+    int size = 1;
+    firstClusterVal = (int)FAT_getFatEntry(bs, firstClusterVal);
+
+    while ((firstClusterVal = (firstClusterVal & MASK_IGNORE_MSB)) < FAT_EOC) {
+
+        size++;
+        firstClusterVal = FAT_getFatEntry(bs, firstClusterVal);
+    }
+    return size;
+
+}
+/*description: walks a FAT chain until returns the last cluster, where
+* the current EOC is. returns the cluster number passed in if it's empty,
+* , you should probly call getFirstFreeCluster if you intend to write to
+* the FAT to keep things orderly
+*/
+uint32_t getLastClusterInChain(struct BS_BPB* bs, uint32_t firstClusterVal) {
+    int size = 1;
+    uint32_t lastCluster = firstClusterVal;
+    firstClusterVal = (int)FAT_getFatEntry(bs, firstClusterVal);
+    //if cluster is empty return cluster number passed in
+    if ((((firstClusterVal & MASK_IGNORE_MSB) | FAT_FREE_CLUSTER) == FAT_FREE_CLUSTER))
+        return lastCluster;
+    //mask the 1st 4 msb, they are special and don't count    
+    while ((firstClusterVal = (firstClusterVal & MASK_IGNORE_MSB)) < FAT_EOC) {
+        lastCluster = firstClusterVal;
+        firstClusterVal = FAT_getFatEntry(bs, firstClusterVal);
+    }
+    return lastCluster;
+
+}
+/* description: traverses the FAT sequentially and find the first open cluster
+ */
+int FAT_findFirstFreeCluster(struct BS_BPB* bs) {
+    int i = 0;
+    int totalClusters = countOfClusters(bs);
+    while (i < totalClusters) {
+        if (((FAT_getFatEntry(bs, i) & MASK_IGNORE_MSB) | FAT_FREE_CLUSTER) == FAT_FREE_CLUSTER)
             break;
-        }
-
-        if (src == tmp)
-        {
-            dest[i++] = ' ';
-            continue;
-        }
-
-        if ((*dest == ' ')) 
-        { 
-            lossy_flag = 1; 
-        }
-        else 
-        {
-            while (*src != 0 &&
-                  !(*src < 0x7f &&
-                    *src > 20 &&  //AP - This looks iffy.
-                    *src != 0x22 &&
-                    *src != 0x2a &&
-                    *src != 0x2e &&
-                    *src != 0x2f &&
-                    *src != 0x3a &&
-                    *src != 0x3c &&
-                    *src != 0x3e &&
-                    *src != 0x3f &&
-                    *src != 0x5b &&
-                    *src != 0x5c &&
-                    *src != 0x5d &&
-                    *src != 0x7c))
-            {
-                src++;
-            }
-
-            if (*src == 0)
-            {
-                dest[i] = ' ';
-            }
-            else if (*src == ',' || 
-                     *src == '[' || 
-                     *src == ']')
-            {
-                dest[i] = '_';
-            }
-            else
-            {
-                dest[i] = upper(*(src++));
-            }
-        }
-
         i++;
     }
-
-    // now that they are populated, do analysis.
-    // if num>4, do 2 letters
-    if (num > 4)
-    {
-        snprintf(dest + 2, 6, "%.4X~", num);
-        dest[7] = '1';
-    }
-    else
-    {
-        tmp = strchr(dest, ' ');
-        //printf("\r\n=-=-=- tf_shorten_filename:  %x - %x = %x",
-        //       tmp, dest, tmp-dest);
-        if (tmp == 0 || tmp - dest > 6)
-        {
-            dest[6] = '~';
-            dest[7] = num + 0x30;
-        }
-        else
-        {
-            *tmp++ = '~';
-            *tmp++ = num + 0x30;
-        }
-    }
-
-    /*
-    // Copy the basename
-    while(1) {
-        if(i==8) break;
-        if((i==6) || (*src == '.') || (*src == '\0'))break;
-        if((*dest == ' '))  {lossy_flag = 1; } else {
-            *(dest++) = upper(*(src++));
-        }
-        i+=1;
-    }
-    // Funny tail if basename was too long
-    if(i==6) {
-        *(dest++) = '~';
-        *(dest++) = num+0x30;        // really? hard coded? wow. FIXME: make check filesystem
-        i+=2;
-    }
-    // Or Not
-    else {
-        while(i<8) {
-            *(dest++) = ' ';
+    return i;
+}
+/* decription: returns the total number of open clusters
+ */
+int FAT_findTotalFreeCluster(struct BS_BPB* bs) {
+    int i = 0;
+    int fatIndex = 0;
+    int totalClusters = countOfClusters(bs);
+    while (fatIndex < totalClusters) {
+        if ((((FAT_getFatEntry(bs, fatIndex) & MASK_IGNORE_MSB) | FAT_FREE_CLUSTER) == FAT_FREE_CLUSTER))
             i++;
-        }
+        fatIndex++;
     }
-    // Last . in the filename
-    src = strrchr(src, '.');
-
-    *(dest++) = ' ';
-    *(dest++) = ' ';
-    *(dest++) = ' ';
-    dest -= 3;
-    //*(dest++) = '\0';   // this field really *is* 11 bytes long, no terminating NULL necessary.
-    //dest -= 4;            // and thank you to not since it clobbers the next byte (.attributes)
-    if(src != NULL) {
-        src +=1;
-        while(i < 11) {     // this field really *is* 11 bytes long, no terminating NULL necessary.
-            if(*src == '\0') break;
-        *(dest++) = upper(*(src++));
-        i+=1;
-        }
-    }*/
-    return TF_ERR_NO_ERROR;
+    return i;
 }
 
-/*
- * Create a LFN entry from the filename provided.
- * - The entry is constructed from all, or the first 13 characters in the filename (whichever is smaller)
- * - If filename is <=13 bytes long, the NULL pointer is returned
- * - If the filename >13 bytes long, an entry is constructed for the first 13 bytes, and a pointer is
- *   returned to the remainder of the filename.
- * ARGS
- *   filename - string containing the filename for which to create an entry
- *   entry - pointer to a FatFileEntry structure, which is populated as an LFN entry
- * RETURN
- *   NULL if this is the last entry for this file, or a string pointer to the remainder of the string
- *   if the entire filename won't fit in one entry
- * WARNING
- *   Because this function works in forward order, and LFN entries are stored in reverse, it does
- *   NOT COMPUTE LFN SEQUENCE NUMBERS.  You have to do that on your own.  Also, because the function
- *   acts on partial filenames IT DOES NOT COMPUTE LFN CHECKSUMS.  You also have to do that on your own.
- * TODO
- *   Test and further improve on this function
+
+
+/* description: pass in a entry and this properly formats the
+ * "firstCluster" from the 2 byte segments in the file structure
  */
-char* tf_create_lfn_entry(char* filename, FatFileEntry* entry) 
-{
-    int i, done = 0;
+uint32_t buildClusterAddress(struct DIR_ENTRY* entry) {
+    uint32_t firstCluster = 0x00000000;
+    firstCluster |= entry->hiCluster[1] << 24;
+    firstCluster |= entry->hiCluster[0] << 16;
+    firstCluster |= entry->loCluster[1] << 8;
+    firstCluster |= entry->loCluster[0];
+    return firstCluster;
+}
 
-    for (i = 0; i < 5; i++) 
-    {
-        if (!done)
-        {
-            entry->lfn.name1[i] = (unsigned short)*(filename);
-        }
+/* description: convert uint32_t to hiCluster and loCluster byte array
+ * and stores it into <entry>
+ */
+int deconstructClusterAddress(struct DIR_ENTRY* entry, uint32_t cluster) {
+    entry->loCluster[0] = cluster;
+    entry->loCluster[1] = cluster >> 8;
+    entry->hiCluster[0] = cluster >> 16;
+    entry->hiCluster[1] = cluster >> 24;
+    return 0;
+}
+/* description: takes a directory entry populates a file descriptor
+ * to be used in the file tables
+ * */
+struct FILEDESCRIPTOR* makeFileDecriptor(struct DIR_ENTRY* entry, struct FILEDESCRIPTOR* fd) {
+    char newFilename[12];
+    bzero(fd->filename, 9);
+    bzero(fd->extention, 4);
+    memcpy(newFilename, entry->filename, 11);
+    newFilename[11] = '\0';
+    int x;
+    for (x = 0; x < 8; x++) {
+        if (newFilename[x] == ' ')
+            break;
+        fd->filename[x] = newFilename[x];
+    }
+    fd->filename[++x] = '\0';
+    for (x = 8; x < 11; x++) {
+        if (newFilename[x] == ' ')
+            break;
+        fd->extention[x - 8] = newFilename[x];
+    }
+    fd->extention[++x - 8] = '\0';
+    if (strlen(fd->extention) > 0) {
+        strcpy(fd->fullFilename, fd->filename);
+        strcat(fd->fullFilename, ".");
+        strcat(fd->fullFilename, fd->extention);
+    }
+    else {
+        strcpy(fd->fullFilename, fd->filename);
+    }
+    fd->firstCluster = buildClusterAddress(entry);
+    fd->size = entry->fileSize;
+    fd->mode = MODE_UNKNOWN;
+    if ((entry->attributes & ATTR_DIRECTORY) == ATTR_DIRECTORY)
+        fd->dir = true;
+    else
+        fd->dir = false;
+    return fd;
+}
+
+/* description: prints the contents of a directory entry
+*/
+void showEntry(struct DIR_ENTRY* entry) {
+    puts("First Cluster\n");
+    printf("lo[0]%02x, lo[1]%02x, hi[0]%02x, hi[1]%02x\n", entry->loCluster[0],
+        entry->loCluster[1],
+        entry->hiCluster[0],
+        entry->hiCluster[1]);
+    int x;
+    for (x = 0; x < 11; x++) {
+        if (entry->filename[x] == ' ')
+            printf("filename[%d]->%s\n", x, "SPACE");
         else
-        {
-            entry->lfn.name1[i] = 0xffff;
-        }
-        if (*filename++ == '\0')
-        {
-            done = 1;
-        }
+            printf("filename[%d]->%c\n", x, entry->filename[x]);
     }
 
-    for (i = 0; i < 6; i++) 
-    {
-        if (!done)
-        {
-            entry->lfn.name2[i] = (unsigned short)*(filename);
-        }
-        else
-        {
-            entry->lfn.name2[i] = 0xffff;
-        }
-        if (*filename++ == '\0')
-        {
-            done = 1;
-        }
-    }
+    printf("\nattr->0x%x, size->0x%x ", entry->attributes, entry->fileSize);
+}
 
-    for (i = 0; i < 2; i++) 
-    {
-        if (!done)
-        {
-            entry->lfn.name3[i] = (unsigned short)*(filename);
-        }
-        else
-        {
-            entry->lfn.name3[i] = 0xffff;
-        }
-        if (*filename++ == '\0')
-        {
-            done = 1;
-        }
-    }
+/* description: takes a cluster number where bunch of directories are and
+ * the offst of the directory you want read and it will store that directory
+ * info into the variable dir
+ */
+struct DIR_ENTRY* readEntry(struct BS_BPB* bs, struct DIR_ENTRY* entry, uint32_t clusterNum, int offset) {
+    offset *= 32;
+    uint32_t dataAddress = byteOffsetOfCluster(bs, clusterNum);
 
-    entry->lfn.attributes = 0x0f;
-    entry->lfn.reserved = 0;
-    entry->lfn.firstCluster = 0;
-    if (done)
-    {
-        return NULL;
-    }
+    FILE* f = fopen(environment.imageName, "r");
+    checkForFileError(f);
+    fseek(f, dataAddress + offset, 0);
+    fread(entry, sizeof(struct DIR_ENTRY), 1, f);
 
-    if (*filename)
-    {
-        return filename;
+    fclose(f);
+    return entry;
+}
+/* description: takes a cluster number and offset where you want an entry written and write to that
+ * position
+ */
+struct DIR_ENTRY* writeEntry(struct BS_BPB* bs, struct DIR_ENTRY* entry, uint32_t clusterNum, int offset) {
+    offset *= 32;
+    uint32_t dataAddress = byteOffsetOfCluster(bs, clusterNum);
+    FILE* f = fopen(environment.imageName, "r+");
+    checkForFileError(f);
+
+    fseek(f, dataAddress + offset, 0);
+    fwrite(entry, 1, sizeof(struct DIR_ENTRY), f);
+    if (DEBUG == true) printf("writeEntry-> address: %d...Calling showEntry()\n", dataAddress);
+    if (DEBUG == true) showEntry(entry);
+    fclose(f);
+    return entry;
+}
+
+/* description: takes a directory cluster and give you the byte address of the entry at
+ * the offset provided. used to write dot entries. POSSIBLY REDUNDANT
+ */
+uint32_t byteOffsetofDirectoryEntry(struct BS_BPB* bs, uint32_t clusterNum, int offset) {
+    if (DEBUG == true) printf("\nbyteOffsetofDirectoryEntry: passed in offset->%d\n", offset);
+    offset *= 32;
+    if (DEBUG == true) printf("\nbyteOffsetofDirectoryEntry: offset*32->%d\n", offset);
+    uint32_t dataAddress = byteOffsetOfCluster(bs, clusterNum);
+    if (DEBUG == true) printf("\nbyteOffsetofDirectoryEntry: clusterNum: %d, offset: %d, returning: %d\n", clusterNum, offset, (dataAddress + offset));
+    return (dataAddress + offset);
+}
+
+/* description: feed this a cluster that's a member of a chain and this
+ * sets your environment variable "io_writeCluster" to the last in that
+ * chain. The thinking is this is where you'll write in order to grow
+ * that file. before writing to cluster check with FAT_findNextOpenEntry()
+ * to see if there's space or you need to extend the chain using FAT_extendClusterChain()
+ */
+int FAT_setIoWriteCluster(struct BS_BPB* bs, uint32_t clusterChainMember) {
+    environment.io_writeCluster = getLastClusterInChain(bs, clusterChainMember);
+    return 0;
+}
+
+/* This is the workhorse. It is used for ls, cd, filesearching.
+ * Directory Functionality:
+ * It is used to perform cd, which you use by setting <cd>. if <goingUp> is set it uses
+ * the open directory table to find the pwd's parent. if not it searches the pwd for
+ * <directoryName>. If <cd> is not set this prits the contents of the pwd to the screen
+ *
+ * Search Functionality
+ * if <useAsSearch> is set this short circuits the cd functionality and returns true
+ * if found
+ *
+ * ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, searchForDirectory)
+ */
+
+bool ls(struct BS_BPB* bs, uint32_t clusterNum, bool cd, const char* directoryName, bool goingUp, struct FILEDESCRIPTOR* searchFile, bool useAsSearch, bool searchForDir) {
+
+    struct DIR_ENTRY dir;
+    int dirSizeInCluster = getFileSizeInClusters(bs, clusterNum);
+    int clusterCount;
+    int offset;
+    int increment;
+
+    for (clusterCount = 0; clusterCount < dirSizeInCluster; clusterCount++) {
+        //root doesn't have . and .., so we traverse it differently
+        // we only increment 1 to get . and .. then we go in 2's to avoid longname entries
+        if (strcmp(directoryName, ROOT) == 0) {
+            offset = 1;
+            increment = 2;
+        }
+        else {
+            offset = 0;
+            increment = 1;
+        }
+
+        for (; offset < ENTRIES_PER_SECTOR; offset += increment) {
+            //this is a hack to properly display the dir contents of folders
+            //with . and .. w/o displaying longname entries
+            //if not root folder we need to read the 1st 2 entries (. and ..)
+            //sequential then resume skipping longnames by incrementing by 2
+            if (strcmp(directoryName, ROOT) != 0 && offset == 2) {
+                increment = 2;
+                offset -= 1;
+                continue;
+            }
+
+            readEntry(bs, &dir, clusterNum, offset);
+            makeFileDecriptor(&dir, searchFile);
+
+            if (cd == false) {
+                //we don't want to print 0xE5 to the screen
+                if (searchFile->filename[0] != 0xE5) {
+                    if (searchFile->dir == true)
+                        printf("dir->%s   ", searchFile->fullFilename);
+                    else
+                        printf("%s     ", searchFile->fullFilename);
+                }
+            }
+            else {
+
+                //if there's an extention we expect the user must type it in with the '.' and the extention
+                //because of this we must compare it to a recontructed filename with the implied '.' put
+                //back in. also searchForDir tells us whether the file being searched for is a directory or not
+                if (useAsSearch == true) {
+                    if (strcmp(searchFile->fullFilename, directoryName) == 0 && searchFile->dir == searchForDir)
+                        return true;
+                }
+                else {
+
+                    /* if we're going down we search pwd for directory with the name passed in.
+                    * if we find it we add it to the directory table and return true. else
+                    * we fall out of this loop and return false at the end of the function
+                    */
+                    if (searchFile->dir == true && strcmp(searchFile->fullFilename, directoryName) == 0 && goingUp == false) {// <--------CHANGED
+                        environment.pwd_cluster = searchFile->firstCluster;
+                        if (strcmp(TBL_getParent(directoryName), "") == 0)//if directory not already in open dir history table
+                            TBL_addFileToTbl(TBL_createFile(searchFile->filename, "", environment.pwd, searchFile->firstCluster, searchFile->mode, searchFile->size, true, false), true);
+
+                        FAT_setIoWriteCluster(bs, environment.pwd_cluster);
+                        return true;
+                    }
+
+                    //fetch parent cluster from the directory table
+                    if (searchFile->dir == true && strcmp(directoryName, PARENT) == 0 && goingUp == true) {
+                        const char* parent = TBL_getParent(environment.pwd);
+                        if (strcmp(parent, "") != 0) { //we found parent in the table
+
+                            if (strcmp(parent, "/") == 0)
+                                environment.pwd_cluster = 2; //sets pwd_cluster to where we're headed
+                            else
+                                environment.pwd_cluster = searchFile->firstCluster;
+
+                            strcpy(environment.last_pwd, environment.pwd);
+                            strcpy(environment.pwd, TBL_getParent(environment.pwd));
+                            FAT_setIoWriteCluster(bs, environment.pwd_cluster);
+
+                            return true; //cd to parent was successful
+                        }
+                        else
+                            return false; //cd to parent not successful
+                    }
+
+                } // end cd block
+
+            }
+
+        }
+
+        clusterNum = FAT_getFatEntry(bs, clusterNum);
+        //printf("next cluster: %d\n", FAT_getFatEntry(bs, clusterNum));
+
+    }
+    return false;
+}
+
+/* descriptioin: takes a FILEDESCRIPTOR and checks if the entry it was
+ * created from is empty. Helper function
+ */
+bool isEntryEmpty(struct FILEDESCRIPTOR* fd) {
+    if ((fd->filename[0] != 0x00) && (fd->filename[0] != 0xE5))
+        return false;
+    else
+        return true;
+}
+
+/* description: walks a directory cluster chain looking for empty entries, if it finds one
+ * it returns the byte offset of that entry. If it finds none then it returns -1;
+ */
+uint32_t FAT_findNextOpenEntry(struct BS_BPB* bs, uint32_t pwdCluster) {
+
+    struct DIR_ENTRY dir;
+    struct FILEDESCRIPTOR fd;
+    int dirSizeInCluster = getFileSizeInClusters(bs, pwdCluster);
+    int clusterCount;
+    int offset;
+    int increment;
+
+    for (clusterCount = 0; clusterCount < dirSizeInCluster; clusterCount++) {
+        if (strcmp(environment.pwd, ROOT) == 0) {
+            offset = 1;
+            increment = 2;
+        }
+        else {
+            offset = 0;
+            increment = 1;
+        }
+
+        for (; offset < ENTRIES_PER_SECTOR; offset += increment) {
+            if (strcmp(environment.pwd, ROOT) != 0 && offset == 2) {
+                increment = 2;
+                offset -= 1;
+                continue;
+            }
+
+            if (DEBUG == true) printf("\nFAT_findNextOpenEntry: offset->%d\n", offset);
+
+            readEntry(bs, &dir, pwdCluster, offset);
+            makeFileDecriptor(&dir, &fd);
+
+            if (isEntryEmpty(&fd) == true) {
+                //this should tell me exactly where to write my new entry to
+                //printf("cluster #%d, byte offset: %d: ", offset, byteOffsetofDirectoryEntry(bs, pwdCluster, offset));             
+                return byteOffsetofDirectoryEntry(bs, pwdCluster, offset);
+            }
+        }
+        //pwdCluster becomes the next cluster in the chain starting at the passed in pwdCluster
+        pwdCluster = FAT_getFatEntry(bs, pwdCluster);
+
+    }
+    return -1; //cluster chain is full
+}
+
+/* description: wrapper for ls. tries to change the pwd to <directoryName>
+ * This doesn't use the print to screen functinoality of ls. if <goingUp>
+ * is set it uses the open directory table to find the pwd's parent
+ */
+bool cd(struct BS_BPB* bs, const char* directoryName, int goingUp, struct FILEDESCRIPTOR* searchFile) {
+
+    return ls(bs, environment.pwd_cluster, true, directoryName, goingUp, searchFile, false, false);
+}
+
+/* desctipion: wrapper that uses ls to search a pwd for a file and puts its info
+ * into searchFile if found. if <useAsFileSearch> is set it disables the printing enabling
+ * it to be used as a file search utility. if <searchForDirectory> is set it excludes
+ * files from the search
+ */
+bool searchOrPrintFileSize(struct BS_BPB* bs, const char* fileName, bool useAsFileSearch, bool searchForDirectory, struct FILEDESCRIPTOR* searchFile) {
+
+    if (ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, searchForDirectory) == true) {
+        if (useAsFileSearch == false)
+            printf("File: %s is %d byte(s) in size", fileName, searchFile->size);
+        return true;
+    }
+    else {
+        if (useAsFileSearch == false)
+            printf("ERROR: File: %s was not found", fileName);
+        return false;
+    }
+}
+
+/* desctipion: wrapper that uses ls to search a pwd for a file and puts its info
+ * into searchFile if found. Prints result for both file and directories
+ */
+bool printFileOrDirectorySize(struct BS_BPB* bs, const char* fileName, struct FILEDESCRIPTOR* searchFile) {
+
+    if (ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, true) == true ||
+        ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, false) == true) {
+        printf("File: %s is %d byte(s) in size", fileName, searchFile->size);
+        return true;
     }
     else
-    {
-        return NULL;
-    }
+        return false;
+
 }
 
-
-// Taken from http://en.wikipedia.org/wiki/File_Allocation_Table
-//
-uint8_t tf_lfn_checksum(const char* pFcbName)
-{
-    int     i;
-    uint8_t sum = 0;
-
-    for (i = 11; i; i--)
-    {
-        sum = ((sum & 1) << 7) + (sum >> 1) + *pFcbName++;
-    }
-    return sum;
+/* description: wrapper for searchOrPrintFileSize searchs pwd for filename.
+ * returns true if found, if found the resulting entry is put into searchFile
+ * for use outside the function. if <searchForDirectory> is set it excludes
+ * files from the search
+ */
+bool searchForFile(struct BS_BPB* bs, const char* fileName, bool searchForDirectory, struct FILEDESCRIPTOR* searchFile) {
+    return searchOrPrintFileSize(bs, fileName, true, searchForDirectory, searchFile);
 }
 
+/* decription: feed this a cluster number that's part of a chain and this
+ * traverses it to find the last entry as well as finding the first available
+ * free cluster and adds that free cluster to the chain
+ */
+uint32_t FAT_extendClusterChain(struct BS_BPB* bs, uint32_t clusterChainMember) {
+    uint32_t firstFreeCluster = FAT_findFirstFreeCluster(bs);
+    uint32_t lastClusterinChain = getLastClusterInChain(bs, clusterChainMember);
 
-int tf_place_lfn_chain(TFFile* fp, char* filename, char* sfn) 
-{
-    // Windows does reverse chaining:  0x44, 0x03, 0x02, 0x01
-    char*           strptr = filename;
-    int             entries = 1;
-    int             i;
-    char*           last_strptr = filename;
-    FatFileEntry    entry;
-    uint8_t         seq;
-    int             iWritten;
-    //uint8_t sfn[12];
-
-    //tf_choose_sfn(sfn, filename, fp);
-    //tf_shorten_filename(sfn, filename, 1);
-    //sfn[11] = 0;     // tf_shorten_filename no longer does this...
-
-    // create the chains - probably only to get a count!?
-    // FIXME: just pre-calculate and don't do all this recomputing!
-    while (strptr = tf_create_lfn_entry(strptr, &entry)) 
-    {
-        last_strptr = strptr;
-        entries += 1;
-    }
-
-    // LFN sequence number (first byte of LFN)
-    seq = entries | 0x40;
-    for (i = 0; i < entries; i++) 
-    {
-        tf_create_lfn_entry(last_strptr, &entry);
-        entry.lfn.sequence_number = seq;
-        entry.lfn.checksum = tf_lfn_checksum(sfn);
-
-        iWritten = tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-        if (iWritten != 1)
-        {
-            return 1;
-        }
-        seq = ((seq & ~0x40) - 1);
-        last_strptr -= 13;
-    }
-    return TF_ERR_NO_ERROR;
+    FAT_writeFatEntry(bs, lastClusterinChain, &firstFreeCluster);
+    FAT_writeFatEntry(bs, firstFreeCluster, &FAT_EOC);
+    return firstFreeCluster;
 }
 
-
-int tf_create(char* filename) 
-{
-    TFFile*         fp;
-    FatFileEntry    entry;
-    uint32_t        cluster;
-    char*           temp;
-    int             iResult;
-    int             iWritten;
-
-    fp = tf_parent(filename, "r", false);
-    if (fp == NULL)
-    {
-        return 1;
-    }
-        
-    tf_fclose(fp);
-    fp = tf_parent(filename, "r+", false);
-    if (fp == NULL)
-    {
-        return 1;
-    }
-
-    // Now we have the directory in which we want to create the file, open for overwrite
-    do 
-    {
-        //"seek" to the end
-        iResult = tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), fp);
-        if (iResult != TF_ERR_NO_ERROR)
-        {
-            return 1;
-        }
-        //Skipping existing directory entry... 
-    } 
-    while (entry.msdos.filename[0] != '\0');
-
-    // Back up one entry, this is where we put the new filename entry
-    iResult = tf_fseek(fp, -((int32_t)sizeof(FatFileEntry)), fp->pos);
-    if (iResult != TF_ERR_NO_ERROR)
-    {
-        return 1;
-    }
-
-    cluster = tf_find_free_cluster();
-    tf_set_fat_entry(cluster, TF_MARK_EOC32); // Marks the new cluster as the last one (but no longer free)
-    
-    entry.msdos.attributes = 0;
-    entry.msdos.creationTimeMs = 0x25;
-    entry.msdos.creationTime = 0x7e3c;
-    entry.msdos.creationDate = 0x4262;
-    entry.msdos.lastAccessTime = 0x4262;
-    entry.msdos.eaIndex = (cluster >> 16) & 0xffff;
-    entry.msdos.modifiedTime = 0x7e3c;
-    entry.msdos.modifiedDate = 0x4262;
-    entry.msdos.firstCluster = cluster & 0xffff;
-    entry.msdos.fileSize = 0;
-
-    temp = strrchr(filename, '/') + 1;
-   
-    tf_choose_sfn(entry.msdos.filename, temp, fp);
-
-    iResult = tf_place_lfn_chain(fp, temp, entry.msdos.filename);
-    if (iResult != TF_ERR_NO_ERROR)
-    {
-        return 1;
-    }
-
-    iWritten = tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-    if (iWritten != 1)
-    {
-        return 1;
-    }
-
-    memset(&entry, 0, sizeof(FatFileEntry));
-    
-    iWritten = tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-    if (iWritten != 1)
-    {
-        return 1;
-    }
-
-    iResult = tf_fclose(fp);
-
-    return iResult;
-}
-
-/* tf_mkdir attempts to create a new directory in the filesystem.  duplicates
-are *not* allowed!
-returns 1 on failure
-returns 0 on success
+/* desctipion: pass in a free cluster and this marks it with EOC and sets
+ * the environment.io_writeCluster to the end of newly created cluster
+ * chain
 */
-int tf_mkdir(char* filename, int mkParents) 
-{
-    // FIXME: verify that we can't create multiples of the same one.
-    // FIXME: figure out how the root directory location is determined.
-    char orig_fn[TF_MAX_PATH];
-    TFFile* fp;
-    FatFileEntry entry, blank;
+int FAT_allocateClusterChain(struct BS_BPB* bs, uint32_t clusterNum) {
+    FAT_writeFatEntry(bs, clusterNum, &FAT_EOC);
+    return 0;
+}
 
-    uint32_t psc;
-    uint32_t cluster;
-    char* temp;
+/* desctipion: pass in the 1st cluster of a chain and this traverses the
+ * chain and writes FAT_FREE_CLUSTER to every link, thereby freeing the
+ * chain for reallocation
+*/
+int FAT_freeClusterChain(struct BS_BPB* bs, uint32_t firstClusterOfChain) {
+    int dirSizeInCluster = getFileSizeInClusters(bs, firstClusterOfChain);
+    if (DEBUG == true) printf("dir Size: %d\n", dirSizeInCluster);
+    int currentCluster = firstClusterOfChain;
+    int nextCluster;
+    int clusterCount;
 
-    strncpy(orig_fn, filename, TF_MAX_PATH - 1);
-    orig_fn[TF_MAX_PATH - 1] = 0;
-
-    memset(&blank, 0, sizeof(FatFileEntry));
-
-    fp = tf_fopen(filename, "r");
-    if (fp)  // if not NULL, the filename already exists.
-    {
-        tf_fclose(fp);
-        tf_release_handle(fp);
-        if (mkParents)
-        {
-            return TF_ERR_NO_ERROR;
-        }
-        return 1;
+    for (clusterCount = 0; clusterCount < dirSizeInCluster; clusterCount++) {
+        nextCluster = FAT_getFatEntry(bs, currentCluster);
+        FAT_writeFatEntry(bs, currentCluster, &FAT_FREE_CLUSTER);
+        currentCluster = nextCluster;
     }
+    return 0;
 
-    fp = tf_parent(filename, "r+", mkParents);
-    if (!fp)
-    {
-        return 1;
-    }
-
-    // Now we have the directory in which we want to create the file, open for overwrite
-    do 
-    {
-        tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), fp);
-    } 
-    while (entry.msdos.filename[0] != '\0');
-    // Back up one entry, this is where we put the new filename entry
-    tf_fseek(fp, -((int32_t)sizeof(FatFileEntry)), fp->pos);
-
-    // go find some space for our new friend
-    cluster = tf_find_free_cluster();
-    tf_set_fat_entry(cluster, TF_MARK_EOC32); // Marks the new cluster as the last one (but no longer free)
-
-    // set up our new directory entry
-    // TODO shorten these entries with memset
-    entry.msdos.attributes = TF_ATTR_DIRECTORY;
-    entry.msdos.creationTimeMs = 0x25;
-    entry.msdos.creationTime = 0x7e3c;
-    entry.msdos.creationDate = 0x4262;
-    entry.msdos.lastAccessTime = 0x4262;
-    entry.msdos.eaIndex = (cluster >> 16) & 0xffff;
-    entry.msdos.modifiedTime = 0x7e3c;
-    entry.msdos.modifiedDate = 0x4262;
-    entry.msdos.firstCluster = cluster & 0xffff;
-    entry.msdos.fileSize = 0;
-    temp = strrchr(filename, '/') + 1;
-
-    tf_choose_sfn(entry.msdos.filename, temp, fp);
-
-    tf_place_lfn_chain(fp, temp, entry.msdos.filename);
-    //tf_choose_sfn(entry.msdos.filename, temp, fp);
-    //tf_shorten_filename(entry.msdos.filename, temp, 1);
-    //printf("\r\n==== tf_mkdir: SFN: %s", entry.msdos.filename);
-    //    dbg_printf("  3 mkdir: attr: %x ", entry.msdos.attributes); // attribute byte still getting whacked.
-    //entry.msdos.attributes = TF_ATTR_DIRECTORY ;
-    //    dbg_printf("  4 mkdir: attr: %x ", entry.msdos.attributes);
-    tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-
-    psc = fp->startCluster; // store this for later
-
-    // placing a 0 at the end of the FAT
-    tf_fwrite((uint8_t*)&blank, sizeof(FatFileEntry), 1, fp);
-    tf_fclose(fp);
-    tf_release_handle(fp);
-
-    fp = tf_fopen(orig_fn, "w");
-
-    // set up .
-    memcpy(entry.msdos.filename, ".          ", 11);
-    //entry.msdos.attributes = TF_ATTR_DIRECTORY;
-    //entry.msdos.firstCluster = cluster & 0xffff    
-    tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-
-    // set up ..
-    memcpy(entry.msdos.filename, "..         ", 11);
-    //entry.msdos.attributes = TF_ATTR_DIRECTORY;
-    //entry.msdos.firstCluster = cluster & 0xffff
-    tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-
-    // placing a 0 at the end of the FAT
-    tf_fwrite((uint8_t*)&blank, sizeof(FatFileEntry), 1, fp);
-
-    tf_fclose(fp);
-    tf_release_handle(fp);
-    return TF_ERR_NO_ERROR;
 }
 
 
-//**** COMPLETE UNTESTED tf_listdir ****//
-// this may be better served by simply opening the directory directly through C2
-// parsing is not a huge deal...
-// returns 1 when valid entry, 0 when done.
-int tf_listdir(char* filename, FatFileEntry* entry, TFFile** fp) 
-{
-    // May Require a terminating "/."
-    // FIXME: What do we do with the results?!  perhaps take in a fp and assume
-    //  that if not NULL, it's already in the middle of a listdir!  if NULL
-    //  we do the tf_parent thing and then start over.  if not, we return the 
-    //  next FatFileEntry almost like a callback...  and return NULL when we've
-    //  reached the end.  almost like.. gulp... strtok.  ugh.  maybe not.  
-    //  still, it may suck less than other things... i mean, by nature, listdir 
-    //  is inherently dynamic in size, and we have no re/malloc.
+/* description: takes a directory entry and all the necesary info
+    and populates the entry with the info in a correct format for
+    insertion into a disk.
+*/
+int createEntry(struct DIR_ENTRY* entry,
+    const char* filename,
+    const char* ext,
+    bool isDir,
+    uint32_t firstCluster,
+    uint32_t filesize,
+    bool emptyAfterThis,
+    bool emptyDirectory) {
+    //set the same no matter the entry
+    entry->r1 = 0;
+    entry->r2 = 0;
+    entry->crtTime = 0;
+    entry->crtDate = 0;
+    entry->accessDate = 0;
+    entry->lastWrTime = 0;
+    entry->lastWrDate = 0;
 
-    if (*fp == NULL)
-    {
-        *fp = tf_parent(filename, "r", false);
-    }
-
-    if (!*fp) 
-    { 
-        return 1; 
-    }
-
-    // do magic here.
-    for (;;)
-    {
-        tf_fread((uint8_t*)entry, sizeof(FatFileEntry), *fp);
-        switch (((uint8_t*)entry)[0]) {
-        case 0x05:
-            // pending delete files under some implementations.  ignore it.
-            break;
-        case 0xe5:
-            // freespace (deleted file)
-            break;
-        case 0x2e:
-            // '.' or '..'
-            break;
-        case 0x00:
-            // no further entries exist, and this one is available
-            tf_fclose(*fp);
-            *fp = NULL;
-            return TF_ERR_NO_ERROR;
-
-        default:
-            return 1;
+    if (emptyAfterThis == false && emptyDirectory == false) { //if both are false
+        size_t x;
+        for (x = 0; x < MAX_FILENAME_SIZE; x++) {
+            if (x < strlen(filename))
+                entry->filename[x] = filename[x];
+            else
+                entry->filename[x] = ' ';
         }
+
+        for (x = 0; x < MAX_EXTENTION_SIZE; x++) {
+            if (x < strlen(ext))
+                entry->filename[MAX_FILENAME_SIZE + x] = ext[x];
+            else
+                entry->filename[MAX_FILENAME_SIZE + x] = ' ';
+        }
+
+        deconstructClusterAddress(entry, firstCluster);
+
+        if (isDir == true) {
+            entry->fileSize = 0;
+            entry->attributes = ATTR_DIRECTORY;
+        }
+        else {
+            entry->fileSize = filesize;
+            entry->attributes = ATTR_ARCHIVE;
+        }
+        return 0; //stops execution so we don't flow out into empty entry config code below
+
+    }
+    else if (emptyAfterThis == true) { //if this isn't true, then the other must be
+        entry->filename[0] = (char)0xE5;
+        entry->attributes = 0x00;
+    }
+    else {                             //hence no condition check here
+        entry->filename[0] = 0x00;
+        entry->attributes = 0x00;
     }
 
-    return TF_ERR_NO_ERROR;
+    //if i made it here we're creating an empty entry and both conditions
+    //require this setup
+    int x;
+    for (x = 1; x < 11; x++)
+        entry->filename[x] = 0x00;
+
+    entry->loCluster[0] = 0x00;
+    entry->loCluster[1] = 0x00;
+    entry->hiCluster[0] = 0x00;
+    entry->hiCluster[1] = 0x00;
+    entry->attributes = 0x00;
+    entry->fileSize = 0;
+
+    return 0;
 }
 
 
-TFFile* tf_fopen(char* filename, const char* mode) 
-{
-    TFFile* fp;
-    int     iResult;
+/* description: take two entries and cluster info and populates	them with
+ * '.' and '..' entriy information. The entries are	ready for writing to
+ * the disk after this. helper function for mkdir()
+  */
+int makeSpecialDirEntries(struct DIR_ENTRY* dot,
+    struct DIR_ENTRY* dotDot,
+    uint32_t newlyAllocatedCluster,
+    uint32_t pwdCluster) {
+    createEntry(dot, ".", "", true, newlyAllocatedCluster, 0, false, false);
+    createEntry(dotDot, "..", "", true, pwdCluster, 0, false, false);
+    return 0;
+}
 
-    fp = tf_fnopen(filename, mode, strlen(filename));
-    if (fp == NULL) 
-    {
-        if (strchr(mode, '+') || strchr(mode, 'w') || strchr(mode, 'a')) 
-        {
-            iResult = tf_create(filename);
-            if (iResult != TF_ERR_NO_ERROR)
-            {
-                return NULL;
+/* description: this will write a new entry to <destinationCluster>. if that cluster
+ * is full it grows the cluster chain and write the entry in the first spot
+ * of the new cluster. if <isDotEntries> is set this automatically writes both
+ * '.' and '..' to offsets 0 and 1 of <destinationCluster>
+ *
+ */
+int writeFileEntry(struct BS_BPB* bs, struct DIR_ENTRY* entry, uint32_t destinationCluster, bool isDotEntries) {
+    int dataAddress;
+    int freshCluster;
+    FILE* f = fopen(environment.imageName, "r+");
+    checkForFileError(f);
+    if (isDotEntries == false) {
+        if ((dataAddress = FAT_findNextOpenEntry(bs, destinationCluster)) != -1) {//-1 means current cluster is at capacity
+            fseek(f, dataAddress, 0);
+            fwrite(entry, 1, sizeof(struct DIR_ENTRY), f);
+        }
+        else {
+            freshCluster = FAT_extendClusterChain(bs, destinationCluster);
+            dataAddress = FAT_findNextOpenEntry(bs, freshCluster);
+            fseek(f, dataAddress, 0);
+            fwrite(entry, 1, sizeof(struct DIR_ENTRY), f);
+        }
+    }
+    else {
+        struct DIR_ENTRY dotEntry;
+        struct DIR_ENTRY dotDotEntry;
+        makeSpecialDirEntries(&dotEntry, &dotDotEntry, destinationCluster, environment.pwd_cluster);
+        //seek to first spot in new dir cluster chin and write the '.' entry
+        dataAddress = byteOffsetofDirectoryEntry(bs, destinationCluster, 0);
+        fseek(f, dataAddress, 0);
+        fwrite(&dotEntry, 1, sizeof(struct DIR_ENTRY), f);
+        //seek to second spot in new dir cluster chin and write the '..' entry
+        dataAddress = byteOffsetofDirectoryEntry(bs, destinationCluster, 1);
+        fseek(f, dataAddress, 0);
+        fwrite(&dotDotEntry, 1, sizeof(struct DIR_ENTRY), f);
+    }
+    fclose(f);
+    return 0;
+}
+
+
+
+/* returns offset of the entry, <searchName> in the pwd
+ * if found return the offset, if not return -1
+ */
+int getEntryOffset(struct BS_BPB* bs, const char* searchName) {
+    struct DIR_ENTRY entry;
+    struct FILEDESCRIPTOR fd;
+    uint32_t currentCluster = environment.pwd_cluster;
+    int dirSizeInCluster = getFileSizeInClusters(bs, currentCluster);
+    int clusterCount;
+    int offset;
+    int increment;
+
+    for (clusterCount = 0; clusterCount < dirSizeInCluster; clusterCount++) {
+        if (strcmp(environment.pwd, ROOT) == 0) {
+            offset = 1;
+            increment = 2;
+        }
+        else {
+            offset = 0;
+            increment = 1;
+        }
+
+        for (; offset < ENTRIES_PER_SECTOR; offset += increment) {
+            if (strcmp(environment.pwd, ROOT) != 0 && offset == 2) {
+                increment = 2;
+                offset -= 1;
+                continue;
             }
-        }
-        fp = tf_fnopen(filename, mode, strlen(filename));
-    }
-    return fp;
-}
 
+            readEntry(bs, &entry, currentCluster, offset);
+            makeFileDecriptor(&entry, &fd);
 
-//
-// Just like fopen, but only look at n uint8_tacters of the path
-TFFile* tf_fnopen(char* filename, const char* mode, int n) 
-{
-    // Request a new file handle from the system
-    TFFile*     fp;
-    char        myfile[256];
-    char*       tempFilename;
-    uint32_t    cluster;
+            if (strcmp(searchName, fd.fullFilename) == 0) {
 
-    tempFilename = myfile;
-    fp = tf_get_free_handle();
-    if (fp == NULL)
-    {
-        return (TFFile*)-1;
-    }
-
-    strncpy(myfile, filename, n);
-    myfile[n] = 0;
-    fp->currentCluster = 2;           // FIXME: this is likely supposed to be the first cluster of the Root directory...
-                                    // however, this is set in the BPB...
-    fp->startCluster = 2;
-    fp->parentStartCluster = 0xffffffff;
-    fp->currentClusterIdx = 0;
-    fp->currentSector = 0;
-    fp->currentByte = 0;
-    fp->attributes = TF_ATTR_DIRECTORY;
-    fp->pos = 0;
-    fp->flags |= TF_FLAG_ROOT;
-    fp->size = 0xffffffff;
-    //fp->size=tf_info.rootDirectorySize;
-    fp->mode = TF_MODE_READ | TF_MODE_WRITE | TF_MODE_OVERWRITE;
-
-    while (tempFilename != NULL) 
-    {
-        tempFilename = tf_walk(tempFilename, fp);
-        if (fp->flags == 0xff) 
-        {
-            tf_release_handle(fp);
-            return NULL;
-        }
-    }
-
-    if (strchr(mode, 'r')) 
-    {
-        fp->mode |= TF_MODE_READ;
-    }
-
-    if (strchr(mode, 'a')) 
-    {
-        tf_unsafe_fseek(fp, fp->size, 0);
-        fp->mode |= TF_MODE_WRITE | TF_MODE_OVERWRITE;
-    }
-
-    if (strchr(mode, '+'))
-    {
-        fp->mode |= TF_MODE_OVERWRITE | TF_MODE_WRITE;
-    }
-    
-    if (strchr(mode, 'w')) 
-    {
-        /* Opened for writing. Truncate file only if it's not a directory*/
-        if (!(fp->attributes & TF_ATTR_DIRECTORY)) 
-        {
-            fp->size = 0;
-            tf_unsafe_fseek(fp, 0, 0);
-            /* Free the clusterchain starting with the second one if the file
-             * uses more than one */
-            if ((cluster = tf_get_fat_entry(fp->startCluster)) != TF_MARK_EOC32) 
-            {
-                tf_free_clusterchain(cluster);
-                tf_set_fat_entry(fp->startCluster, TF_MARK_EOC32);
+                return offset;
             }
+
+
+
         }
-        fp->mode |= TF_MODE_WRITE;
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+
     }
-
-    strncpy(fp->filename, myfile, n);
-
-    fp->filename[n] = 0;
-    return fp;
+    return -1;
 }
+/* description: prints info about the image to the screen
+ */
+int showDriveDetails(struct BS_BPB* bs) {
 
-int tf_free_clusterchain(uint32_t cluster) 
-{
-    uint32_t fat_entry;
-    
-    fat_entry = tf_get_fat_entry(cluster);
-    while (fat_entry < TF_MARK_EOC32) 
-    {
-        if (fat_entry <= 2)        // catch-all to save root directory from corrupted stuff
-        {
-            //SOMETHING WICKED THIS WAY COMES!  End of FAT cluster chain is <=2 (end should be 0x0ffffff8)
-            break;
+    puts("\nBoot Sector Info:\n");
+    if (DEBUG == true) {
+        printf("First jmpBoot value (must be 0xEB or 0xE9): 0x%x\n", bs->BS_jmpBoot[0]);
+        printf("OEM Name: %s\n", bs->BS_OEMName);
+        printf("Sectors occupied by one FAT: %d\n", bs->BPB_FATSz32);
+        printf("Number of  Root Dirs: %d\n", bs->BPB_RootEntCnt);
+        printf("Total Number of Sectors: %d\n", bs->BPB_TotSec32);
+        printf("Fat Type: %d\n\n", getFatType(bs));
+        printf("Data Sector size (kB): %d\n", (sectorsInDataRegion(bs) * 512) / 1024);
+        printf("Number of Reserved Sectors: %d\n", bs->BPB_RsvdSecCnt);
+        puts("More Info:\n");
+        printf("Number of Data sectors: %d\n", sectorsInDataRegion(bs));
+        printf("Root Dir 1st Cluster: %d\n", bs->BPB_RootClus);
+        printf("1st data sector: %d\n", firstDataSector(bs));
+        printf("1st Sector of the Root Dir: %d\n\n ", firstSectorofCluster(bs, bs->BPB_RootClus));
+    }
+    printf("Bytes Per Sector (block size):%d\n", bs->BPB_BytsPerSec);
+    printf("Sectors per Cluster: %d\n", bs->BPB_SecPerClus);
+    printf("Total clusters: %d\n", countOfClusters(bs));
+    printf("Number of FATs: %d\n", bs->BPB_NumFATs);
+    printf("Sectors occupied by one FAT: %d\nComputing Free Sectors.......\n", bs->BPB_FATSz32);
+    printf("Number of free sectors: %d\n", FAT_findTotalFreeCluster(bs));
+
+
+
+    return 0;
+}
+/* description: DOES NOT allocate a cluster chain. Writes a directory
+ * entry to <targetDirectoryCluster>. Error handling is done in the driver
+ */
+int touch(struct BS_BPB* bs, const char* filename, const char* extention, uint32_t targetDirectoryCluster) {
+    struct DIR_ENTRY newFileEntry;
+    createEntry(&newFileEntry, filename, extention, false, 0, 0, false, false);
+    writeFileEntry(bs, &newFileEntry, targetDirectoryCluster, false);
+    return 0;
+}
+/* description: allocates a new cluster chain to <dirName> and writes the directory
+ * entry to <targetDirectoryCluster>, then writes '.' and '..' entries into the first
+ * cluster of the newly allocated chain. Error handling is done in the driver
+ */
+int mkdir(struct BS_BPB* bs, const char* dirName, const char* extention, uint32_t targetDirectoryCluster) {
+    struct DIR_ENTRY newDirEntry;
+
+    //write directory entry to pwd
+    uint32_t beginNewDirClusterChain = FAT_findFirstFreeCluster(bs);
+    FAT_allocateClusterChain(bs, beginNewDirClusterChain);
+    createEntry(&newDirEntry, dirName, extention, true, beginNewDirClusterChain, 0, false, false);
+    writeFileEntry(bs, &newDirEntry, targetDirectoryCluster, false);
+    //writing dot entries to newly allocated cluster chain
+    writeFileEntry(bs, &newDirEntry, beginNewDirClusterChain, true);
+    return 0;
+}
+/*
+ * success code 0: file found and removed
+ * error code 1: file is open
+ * error code 2: file is a directory
+ * error code 3: file or directory not found
+ *
+ * description: removes a file entry from the <searchDirectoryCluster> if
+ * it exists. see error codes for other assumptions
+ */
+int rm(struct BS_BPB* bs, const char* searchName, uint32_t searchDirectoryCluster) {
+    struct DIR_ENTRY entry;
+    struct FILEDESCRIPTOR fd;
+    uint32_t currentCluster = searchDirectoryCluster;
+    int dirSizeInCluster = getFileSizeInClusters(bs, currentCluster);
+    int fileTblIndex;
+    int clusterCount;
+    int offset;
+    int increment;
+
+    uint32_t hitCluster;
+    uint32_t hitFileFirstCluster;
+    int entriesAfterHit = 0;
+    int searchHitOffset = 0;
+    bool hasSearchHit = false;
+
+
+    for (clusterCount = 0; clusterCount < dirSizeInCluster; clusterCount++) {
+        if (strcmp(environment.pwd, ROOT) == 0) {
+            offset = 1;
+            increment = 2;
         }
-        
-        tf_set_fat_entry(cluster, 0x00000000);
-        fat_entry = tf_get_fat_entry(fat_entry);
-        cluster = fat_entry;
+        else {
+            offset = 0;
+            increment = 1;
+        }
+
+        for (; offset < ENTRIES_PER_SECTOR; offset += increment) {
+            if (strcmp(environment.pwd, ROOT) != 0 && offset == 2) {
+                increment = 2;
+                offset -= 1;
+                continue;
+            }
+            if (DEBUG == true) printf("\rm: offset->%d\n", offset);
+            readEntry(bs, &entry, currentCluster, offset);
+
+            makeFileDecriptor(&entry, &fd);
+
+
+            if (strcmp(searchName, fd.fullFilename) == 0) {
+                //is the file a directory?
+                if (entry.attributes == ATTR_DIRECTORY)
+                    return 2;
+                //can we find this file in the open file table?
+                if (TBL_getFileDescriptor(&fileTblIndex, fd.fullFilename, false) == true) {
+                    if (environment.openFilesTbl[fileTblIndex].isOpen == true)
+                        return 1;
+                }
+
+                searchHitOffset = offset;
+                hitCluster = currentCluster;
+                hasSearchHit = true;
+                hitFileFirstCluster = fd.firstCluster;
+                continue;
+            }
+            //use this to correctly set the empty entry symbol below
+            if (hasSearchHit == true) {
+                if (isEntryEmpty(&fd) == false) {
+                    entriesAfterHit++;
+                }
+            }
+
+        }
+
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+
     }
-    return TF_ERR_NO_ERROR;
+    struct DIR_ENTRY entryToWrite;
+    if (hasSearchHit == true) {
+        if (entriesAfterHit == 0) {
+            //writing 0x00 at filename[0] of this entry
+            createEntry(&entryToWrite, "", "", false, 0, 0, false, true);
+            writeEntry(bs, &entryToWrite, hitCluster, searchHitOffset);
+            //this is to protect against writing to cluster 0 if the file
+            //we are trying to remove has only been touched
+            if (hitFileFirstCluster != 0)
+                FAT_freeClusterChain(bs, hitFileFirstCluster);
+            return 0;
+        }
+        else {
+            //writing 0x05 at filename[0] of this entry
+            createEntry(&entryToWrite, "", "", false, 0, 0, true, false);
+            writeEntry(bs, &entryToWrite, hitCluster, searchHitOffset);
+            if (hitFileFirstCluster != 0)
+                FAT_freeClusterChain(bs, hitFileFirstCluster);
+            return 0;
+        }
+    }
+    else {
+        return 3;
+    }
 }
 
-
-
-int tf_fseek(TFFile* fp, int32_t base, long offset) 
-{
-    uint64_t pos = base + offset;
-    if (pos >= fp->size)
-    {
-        return TF_ERR_INVALID_SEEK;
-    }
-    return tf_unsafe_fseek(fp, base, offset);
-}
 
 /*
- * TODO: Make it so seek fails aren't destructive to the file handle
+ * success code 0: file or directory found and removed
+ * error code 1: directory is not empty
+ * error code 2: file is not a directory
+ * error code 3: file or directory not found
+ *
+ * description: removes a directory entry from the <searchDirectoryCluster> if
+ * it exists. see error codes for other assumptions
+ *
  */
-int tf_unsafe_fseek(TFFile* fp, int32_t base, long offset) 
-{
-    uint32_t cluster_idx;
-    uint64_t pos = base + offset;
-    uint32_t mark;
-    uint32_t temp;
+int rmDir(struct BS_BPB* bs, const char* searchName, uint32_t searchDirectoryCluster) {
+    struct DIR_ENTRY entry;
+    struct FILEDESCRIPTOR fd;
+    uint32_t currentCluster = searchDirectoryCluster;
+    int dirSizeInCluster = getFileSizeInClusters(bs, currentCluster);
+    if (DEBUG == true) printf("dir Size: %d\n", dirSizeInCluster);
+    int clusterCount;
+    int offset;
+    int increment;
+    uint32_t hitCluster; //the cluster where the entry is
+    uint32_t hitFileFirstCluster;//the cluster where the entry's data starts
+    int entriesAfterHit = 0;
+    int searchHitOffset = 0;
+    bool hasSearchHit = false;
 
-    mark = tf_info.type ? TF_MARK_EOC32 : TF_MARK_EOC16;
-    // We're only allowed to seek one past the end of the file (For writing new stuff)
-    if (pos > fp->size) 
-    {
-        //[DEBUG-tf_unsafe_fseek] SEEK ERROR
-        return TF_ERR_INVALID_SEEK;
-    }
-    if (pos == fp->size) 
-    {
-        fp->size += 1;
-        fp->flags |= TF_FLAG_SIZECHANGED;
-    }
-
-    // Compute the cluster index of the new location
-    cluster_idx = (uint32_t)(pos / (tf_info.sectorsPerCluster * DRIVE_SECTOR_SIZE)); // The cluster we want in the file
-
-    // If the cluster index matches the index we're already at, we don't need to look in the FAT
-    // If it doesn't match, we have to follow the linked list to arrive at the correct cluster 
-    if (cluster_idx != fp->currentClusterIdx) 
-    {
-        temp = cluster_idx;
-        /* Shortcut: If we are looking for a cluster that comes *after* the current we don't
-         * need to start at the beginning */
-        if (cluster_idx > fp->currentClusterIdx) 
-        {
-            cluster_idx -= fp->currentClusterIdx;
+    for (clusterCount = 0; clusterCount < dirSizeInCluster; clusterCount++) {
+        if (strcmp(searchName, ROOT) == 0) {
+            offset = 1;
+            increment = 2;
         }
-        else 
-        {
-            fp->currentCluster = fp->startCluster;
+        else {
+            offset = 0;
+            increment = 1;
         }
-        fp->currentClusterIdx = temp;
-        while (cluster_idx > 0) 
-        {
-            // TODO Check file mode here for r/w/a/etc...
-            temp = tf_get_fat_entry(fp->currentCluster); // next, next, next
-            if ((temp & 0x0fffffff) != mark)
-            {
-                fp->currentCluster = temp;
-            }
-            else 
-            {
-                // We've reached the last cluster in the file (omg)
-                // If the file is writable, we have to allocate new space
-                // If the file isn't, our job is easy, just report an error
-                // Also, probably report an error if we're out of space
-                temp = tf_find_free_cluster_from(fp->currentCluster);
-                tf_set_fat_entry(fp->currentCluster, temp); // Allocates new space
-                tf_set_fat_entry(temp, mark); // Marks the new cluster as the last one
-                fp->currentCluster = temp;
-            }
-            cluster_idx--;
 
-            if (fp->currentCluster >= mark) 
-            {
-                if (cluster_idx > 0) 
-                {
-                    return TF_ERR_INVALID_SEEK;
+        for (; offset < ENTRIES_PER_SECTOR; offset += increment) {
+            if (strcmp(searchName, ROOT) != 0 && offset == 2) {
+                increment = 2;
+                offset -= 1;
+                continue;
+            }
+
+            readEntry(bs, &entry, currentCluster, offset);
+            if (DEBUG == true) printf("\ncluster num: %d\n", searchDirectoryCluster);
+            makeFileDecriptor(&entry, &fd);
+
+            if (strcmp(searchName, fd.fullFilename) == 0) {
+
+                if (entry.attributes != ATTR_DIRECTORY)
+                    return 2; //maybe we should return here to print error
+
+                searchHitOffset = offset;
+                hitCluster = currentCluster;
+                hasSearchHit = true;
+                hitFileFirstCluster = fd.firstCluster;
+                continue;
+            }
+
+            if (hasSearchHit == true) {
+                if (isEntryEmpty(&fd) == false) {
+                    entriesAfterHit++;
+                }
+            }
+
+        }
+
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+
+    }
+    //now traverse the data of the directory to see if it's empty
+    if (hasSearchHit == true) {
+        offset = 0;
+        increment = 1;
+        for (; offset < ENTRIES_PER_SECTOR; offset += increment) {
+            if (strcmp(searchName, ROOT) != 0 && offset == 2) {
+                increment = 2;
+                offset -= 1;
+                continue;
+            }
+            readEntry(bs, &entry, hitFileFirstCluster, offset);
+            makeFileDecriptor(&entry, &fd);
+
+            if (isEntryEmpty(&fd) == false) {
+                if ((strcmp(".", fd.filename) != 0) && (strcmp("..", fd.filename) != 0)) {
+                    return 1;
                 }
             }
         }
-        // We now have the correct cluster number (whether we had to fetch it from the fat, or realized we already had it)
-        // Now we need just compute the correct sector and byte index into the cluster
     }
-    fp->currentByte = pos % (tf_info.sectorsPerCluster * DRIVE_SECTOR_SIZE); // The offset into the cluster
-    fp->pos = (uint32_t)pos;
+    //write empty entries into pwd_cluster ,aliased as hitCluster here,
+    //and free the cluster chain
 
-    return TF_ERR_NO_ERROR;
+    if (hasSearchHit == true) {
+        struct DIR_ENTRY entryToWrite;
+        if (entriesAfterHit == 0) {
+            createEntry(&entryToWrite, "", "", false, 0, 0, true, false);
+            writeEntry(bs, &entryToWrite, hitCluster, searchHitOffset);
+            FAT_freeClusterChain(bs, hitFileFirstCluster);
+            return 0;
+        }
+        else {
+            createEntry(&entryToWrite, "", "", false, 0, 0, false, true);
+            writeEntry(bs, &entryToWrite, hitCluster, searchHitOffset);
+            FAT_freeClusterChain(bs, hitFileFirstCluster);
+            return 0;
+        }
+    }
+
+    //if we reached here the file wasn't found    
+    return 3;
+
 }
-
-/*
- * Given a file handle to the current directory and a filename, populate the provided FatFileEntry with the
- * file information for the given file.
- * SIDE EFFECT: the position in current_directory will be set to the beginning of the fatfile entry (for overwriting purposes)
- * returns 0 on match, -1 on fail
+/* success code: 0 if fclose succeeded
+ * error code 1: no filename given
+ * error code 2: filename not found in pwd
+ * error code 3: filename was never opened
+ * error code 4: filename is currently closed
+ *
+ * description: attempts to change the status of <filename> in the open file table
+ * from open to closed. see error codes above for assumptions
+ *
  */
-int tf_find_file(TFFile* current_directory, char* name) 
-{
-    int     rc;
-    int     iResult;
+int fClose(struct BS_BPB* bs, int argC, const char* filename) {
+    int fIndex;
+    struct FILEDESCRIPTOR searchFileInflator;
+    struct FILEDESCRIPTOR* searchFile = &searchFileInflator;
 
-    iResult = tf_fseek(current_directory, 0, 0);
-
-    for (;;)
-    {
-        rc = tf_compare_filename(current_directory, name);
-        if (rc < 0)
-        {
-            break;
-        }
-        else if (rc == 1)    // found!
-        {
-            return TF_ERR_NO_ERROR;
-        }
-    }
-    return -1;
-}
-
-
-/*! tf_compare_filename_segment compares a given filename against a particular
-FatFileEntry (a 32-byte structure pulled off disk, all of these are back-to-back
-in a typical Directory entry on the disk)
-figures out formatted name, does comparison, and returns 0:failure, 1:match
-*/
-int tf_compare_filename_segment(FatFileEntry* entry, char* name) 
-{
-    int i, j;
-    char reformatted_file[16];
-    char* entryname = entry->msdos.filename;
-    
-    if (entry->msdos.attributes != 0x0f) 
-    {
-        // Filename
-        j = 0;
-        for (i = 0; i < 8; i++) 
-        {
-            if (entryname[i] != ' ') 
-            {
-                reformatted_file[j++] = entryname[i];
-            }
-        }
-        reformatted_file[j++] = '.';
-        // Extension
-        for (i = 8; i < 11; i++)
-        {
-            if (entryname[i] != ' ')
-            {
-                reformatted_file[j++] = entryname[i];
-            }
-        }
-    }
-    else
-    {
-        j = 0;
-        for (i = 0; i < 5; i++)
-        {
-            reformatted_file[j++] = (uint8_t)entry->lfn.name1[i];
-        }
-        for (i = 0; i < 6; i++)
-        {
-            reformatted_file[j++] = (uint8_t)entry->lfn.name2[i];
-        }
-        for (i = 0; i < 2; i++)
-        {
-            reformatted_file[j++] = (uint8_t)entry->lfn.name3[i];
-        }
-    }
-
-    reformatted_file[j++] = '\0';
-    i = 0;
-    while ((name[i] != '/') && (name[i] != '\0'))
-    {
-        i++; // will this work for 8.3?  this should be calculated in the section with knowledge of lfn/8.3
-    }
-
-    // FIXME: only compare the 13 or less bytes left in the reformatted_file string... but that doesn't match all the way to the end of the test string....
-
-
-    // the role of 'i' changes here to become the return value.  perhaps this doesn't gain us enough in performance to avoid using a real retval?
-    /// PROBLEM: THIS FUNCTION assumes that if the length of the "name" is tested by the caller.
-    ///   if the LFN pieces all match, but the "name" is longer... this will never fail.
-    if (i > 13)
-    {
-        if (_strnicmp(name, reformatted_file, 13))
-        {
-            // 0 (doesn't match)
-            i = 0;
-        }
-        else
-        {
-            // 1 (match)
-            i = 1;
-        }
-    }
-    else
-    {
-        if (reformatted_file[i] != 0 || _strnicmp(name, reformatted_file, i))
-        {
-            i = 0;
-            //0 (doesn't match)
-        }
-        else
-        {
-            i = 1;
-            //1 (match)
-        }
-    }
-    return i;
-}
-
-
-// 
-// Reads a single FatFileEntry from fp, compares it to the MSDOS filename specified by *name
-// Returns:
-//   1 for entry matches filename.  Side effect: fp seeks to that entry
-//   0 for entry doesn't match filename.  Side effect: fp seeks to next entry
-//   -1 for couldn't read an entry, due to EOF or other fread error
-//
-int tf_compare_filename(TFFile* fp, char* name) 
-{
-    uint32_t        i;
-    uint32_t        j = 0;
-    uint32_t        namelen;
-    FatFileEntry    entry;
-    char*           compare_name = name;
-    uint32_t        lfn_entries;
-
-    // Read a single directory entry
-    tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), fp);
-
-    // Fail if its bogus
-    if (entry.msdos.filename[0] == 0x00) return -1;
-
-    // If it's a DOS entry, then:
-    if (entry.msdos.attributes != 0x0f) 
-    {
-        // If it's a match, seek back an entry to the beginning of it, return 1
-        if (1 == tf_compare_filename_segment(&entry, name)) 
-        { //, true)) 
-            tf_fseek(fp, -((int32_t)sizeof(FatFileEntry)), fp->pos);
-            //[DEBUG-tf_compare_filename] 8.3 Exiting... returning 1 (match)
-            return 1;
-        }
-        else 
-        {
-            //[DEBUG-tf_compare_filename] 8.3 Exiting... returning 0 (doesn't match)
-            return TF_ERR_NO_ERROR;
-        }
-    }
-    else if ((entry.lfn.sequence_number & 0xc0) == 0x40)
-    {
-        //CHECK FOR 0x40 bit set or this is not the first (last) LFN entry!
-        // If this is the first LFN entry, mask off the extra bit (0x40) and you get the number of entries in the chain
-        lfn_entries = entry.lfn.sequence_number & ~0x40;
-
-        // Seek to the last entry in the chain (LFN entries store name in reverse, so the last shall be first)
-        tf_fseek(fp, (int32_t)sizeof(FatFileEntry) * (lfn_entries - 1), fp->pos);
-
-        // get the length of the file first off.  LFN count should be easily checked from here.
-        namelen = strlen(name);
-        if (((namelen + 12) / LFN_ENTRY_CAPACITY) != lfn_entries)
-        {
-            // skip this LFN, it isn't it.
-            //  not necessary, we're already there.  // tf_fseek(fp, (int32_t)((i))*sizeof(FatFileEntry), fp->pos);
-            //[DEBUG-tf_compare_filename] LFN Exiting... returning 0  (no match)
-            return TF_ERR_NO_ERROR;
-        }
-
-        for (i = 0; i < lfn_entries; i++) 
-        {
-            // Seek back one and read it
-            tf_fseek(fp, -((int32_t)sizeof(FatFileEntry)), fp->pos);
-            tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), fp);
-
-            // Compare it.  If it's not a match, jump to the end of the chain, return failure 
-            // Otherwise, continue looping until there's no entries left.
-            if (!tf_compare_filename_segment(&entry, compare_name)) 
-            {
-                tf_fseek(fp, (int32_t)((i)) * sizeof(FatFileEntry), fp->pos);
-                //[DEBUG-tf_compare_filename] LFN Exiting... returning 0  (no match)
-                return TF_ERR_NO_ERROR;
-            }
-
-            tf_fseek(fp, -((int32_t)sizeof(FatFileEntry)), fp->pos);
-
-            compare_name += 13;
-        }
-
-        // If we made it here, match was a success!  Return so... 
-        // ONLY if next entry is valid!
-        tf_fseek(fp, (int32_t)sizeof(FatFileEntry) * lfn_entries, fp->pos);
-        //[DEBUG-tf_compare_filename] LFN Exiting... returning 1
+    if (argC != 2) {
         return 1;
     }
-    //[DEBUG-tf_compare_filename] (---) Exiting... returning -1
-    return -1;
+
+    if (searchForFile(bs, filename, false, searchFile) == false) {
+        return 2;
+    }
+
+    if (TBL_getFileDescriptor(&fIndex, filename, false) == false) {
+        return 3;
+    }
+
+    if (TBL_getFileDescriptor(&fIndex, filename, false) == true && environment.openFilesTbl[fIndex].isOpen == false) {
+        return 4;
+    }
+
+    environment.openFilesTbl[fIndex].isOpen = false;
+    return 0;
 }
 
-
-int tf_fread(uint8_t* dest, int size, TFFile* fp) 
-{
-    uint32_t sector;
-    while (size > 0) 
-    {
-        sector = tf_first_sector(fp->currentCluster) + (fp->currentByte / DRIVE_SECTOR_SIZE);
-        tf_fetch(sector);       // wtfo?  i know this is cached, but why!?
-        
-        *dest++ = tf_info.buffer[fp->currentByte % DRIVE_SECTOR_SIZE];
-        size--;
-
-        if (fp->attributes & TF_ATTR_DIRECTORY) 
-        {
-            //dbg_printf("READING DIRECTORY");
-            if (tf_fseek(fp, 0, fp->pos + 1)) 
-            {
-                return -1;
-            }
-        }
-        else 
-        {
-            if (tf_fseek(fp, 0, fp->pos + 1)) 
-            {
-                return -1;
-            }
-        }
-    }
-    return TF_ERR_NO_ERROR;
-}
-
-
-int tf_fwrite(uint8_t* src, int size, int count, TFFile* fp)
-{
-    int         i;
-    int         tracking;
-    int         segsize;
-    uint32_t    uiFirstSector;
-    int         iResult;
-    int         j;
-
-    fp->flags |= TF_FLAG_DIRTY;
-    for (j = 0; j < count; j++)
-    {
-        i = size;
-        fp->flags |= TF_FLAG_SIZECHANGED;
-        while (i > 0)
-        {  
-            // FIXME: even this new algorithm could be more efficient by elegantly combining count/size
-            uiFirstSector = tf_first_sector(fp->currentCluster);
-            iResult = tf_fetch(uiFirstSector + (fp->currentByte / DRIVE_SECTOR_SIZE));
-            if (iResult != TF_ERR_NO_ERROR)
-            {
-                return -1;
-            }
-
-            tracking = fp->currentByte % DRIVE_SECTOR_SIZE;
-            segsize = (i < DRIVE_SECTOR_SIZE ? i : DRIVE_SECTOR_SIZE);
-
-            memcpy(&tf_info.buffer[tracking], src, segsize);
-            tf_info.sectorFlags |= TF_FLAG_DIRTY; // Mark this sector as dirty
-
-            if (fp->pos + segsize > fp->size)
-            {
-                fp->size += segsize - (fp->pos % DRIVE_SECTOR_SIZE);
-            }
-
-            iResult = tf_unsafe_fseek(fp, 0, fp->pos + segsize);
-            if (iResult != TF_ERR_NO_ERROR)
-            {
-                return -1;
-            }
-
-            i -= segsize;
-            src += segsize;
-        }
-    }
-    return j;
-}
-
-
-int tf_fputs(char* src, TFFile* fp) 
-{
-    return tf_fwrite((uint8_t*)src, 1, strlen(src), fp);
-}
-
-
-int tf_fclose(TFFile* fp) 
-{
-    int rc;
-
-    rc = tf_fflush(fp);
-    fp->flags &= ~TF_FLAG_OPEN; // Mark the file as available for the system to use
-    // FIXME: is there any reason not to release the handle here?
-    return rc;
-}
-
-
-/* tf_parent attempts to open the parent directory of whatever file you request
-returns basically a fp the tf_fnopen returns
-*/
-TFFile* tf_parent(char* filename, const char* mode, int mkParents) 
-{
-    TFFile*     retval;
-    const char* f2;
-
-    f2 = strrchr((char const*)filename, '/');
-    if (f2 == NULL)
-    {
-        return NULL;
-    }
-
-    retval = tf_fnopen(filename, "rw", (int)(f2 - filename));
-    // if retval == NULL, why!?  we could be out of handles
-    if (retval == NULL && mkParents)
-    {   // warning: recursion could fry some resources on smaller procs
-        char tmpbuf[260];
-        if (f2 - filename > 260)
-        {
-            return NULL;
-        }
-        strncpy(tmpbuf, filename, f2 - filename);
-        tmpbuf[f2 - filename] = 0;
-
-        tf_mkdir(tmpbuf, mkParents);
-        retval = tf_parent(filename, mode, mkParents);
-    }
-    else if (retval == (void*)-1)
-    {
-        //[DEBUG-tf_parent] uh oh.  tf_fopen() return -1, out of handles?
-    }
-
-    return retval;
-}
-
-
-int tf_fflush(TFFile* fp) 
-{
-    int rc = 0;
-    TFFile* dir;
-    FatFileEntry entry;
-    char* filename = entry.msdos.filename;
-
-    if (!(fp->flags & TF_FLAG_DIRTY))
-    {
-        return TF_ERR_NO_ERROR;
-    }
-
-    // First write any pending data to disk
-    if (tf_info.sectorFlags & TF_FLAG_DIRTY) 
-    {
-        rc = tf_store();
-    }
-    // Now go modify the directory entry for this file to reflect changes in the file's size
-    // (If they occurred)
-    if (fp->flags & TF_FLAG_SIZECHANGED)
-    {
-
-        if (fp->attributes & 0x10)
-        {
-            // TODO Deal with changes in the root directory size here
-        }
-        else
-        {
-            // Open the parent directory
-            dir = tf_parent(fp->filename, "r+", false);
-            if (dir == (void*)-1)
-            {
-                //[DEBUG-tf_fflush] FAILED to get parent!
-                return -1;
-            }
-
-            filename = (char*)strrchr((char const*)fp->filename, '/');
-
-            // Seek to the entry we want to modify and pull it from disk
-            tf_find_file(dir, filename + 1);
-            tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), dir);
-            tf_fseek(dir, -((int32_t)sizeof(FatFileEntry)), dir->pos);
-
-            // Modify the entry in place to reflect the new file size
-            entry.msdos.fileSize = fp->size - 1;
-            tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, dir); // Write fatfile entry back to disk
-            tf_fclose(dir);
-        }
-        fp->flags &= ~TF_FLAG_SIZECHANGED;
-    }
-
-    fp->flags &= ~TF_FLAG_DIRTY;
-    return rc;
-}
-
-
-/*
- * Remove a file from the filesystem
- * @param filename - The full path of the file to be removed
- * @return
+/* success code: 0 if fclose succeeded
+ * error code 1: no filename given
+ * error code 2: filename is a directory
+ * error code 3: filename was not found
+ * error code 4: filename is currently open
+ * error code 5: invalid option given
+ * error code 6: file table was not updated
+ *
+ * description: attempts to add <filename> to the open file table. if <filename> isn't
+ * currently open and a valid file mode <option> is given the file is added to the file table.
+ * <modeName> is passed in for the purose of displaying the selected mode to the user outside
+ * of this function. See error codes above for other assumptions.
+ *
+ * Assumptions: modeName must be at least 21 characters
  */
-int tf_remove(char* filename)
-{
-    TFFile*         fp;
-    FatFileEntry    entry;
-    int             rc;
-    uint32_t        startCluster;
+int fOpen(struct BS_BPB* bs, int argC, const char* filename, const char* option, char* modeName) {
 
-    // Sanity check
-    fp = tf_fopen(filename, "r");
-    if (fp == NULL)
-    {
-        return -1; // return an error if we're removing a file that doesn't exist
+    struct FILEDESCRIPTOR searchFileInflator;
+    struct FILEDESCRIPTOR* searchFile = &searchFileInflator;
+    int fileMode;
+    int fileTblIndex;
+
+    if (argC != 3) {
+        return 1;
     }
 
-    startCluster = fp->startCluster; // Remember first cluster of the file so we can remove the clusterchain
-    tf_fclose(fp);
-
-    // TODO Don't leave an orphaned LFN
-    fp = tf_parent(filename, "r+", false);
-    rc = tf_find_file(fp, (strrchr(filename, '/') + 1));
-    if (!rc) 
-    {
-        for (;;)
-        {
-            rc = tf_fseek(fp, sizeof(FatFileEntry), fp->pos);
-            if (rc) break;
-            tf_fread((uint8_t*)&entry, sizeof(FatFileEntry), fp); // Read one entry ahead
-            tf_fseek(fp, -((int32_t)(2 * sizeof(FatFileEntry))), fp->pos);
-            tf_fwrite((uint8_t*)&entry, sizeof(FatFileEntry), 1, fp);
-            if (entry.msdos.filename[0] == 0) break;
-        }
-        fp->size -= sizeof(FatFileEntry);
-        fp->flags |= TF_FLAG_SIZECHANGED;
+    if (searchForFile(bs, filename, true, searchFile) == true) {
+        return 2;
     }
 
-    tf_fclose(fp);
-    tf_free_clusterchain(startCluster); // Free the data associated with the file
+    if (searchForFile(bs, filename, false, searchFile) == false) {
+        return 3;
+    }
 
-    return TF_ERR_NO_ERROR;
+    if (TBL_getFileDescriptor(&fileTblIndex, filename, false) == true && environment.openFilesTbl[fileTblIndex].isOpen == true) {
+        return 4;
+    }
+
+    if (strcmp(option, "w") == 0) {
+        fileMode = MODE_WRITE;
+        strcpy(modeName, "Writing");
+    }
+    else if (strcmp(option, "r") == 0) {
+        fileMode = MODE_READ;
+        strcpy(modeName, "Reading");
+    }
+    else if (strcmp(option, "x") == 0) {
+        fileMode = MODE_BOTH;
+        strcpy(modeName, "Reading and Writing");
+    }
+    else {
+        return 5;
+    }
+
+    if (TBL_getFileDescriptor(&fileTblIndex, filename, false) == false) {
+        TBL_addFileToTbl(TBL_createFile(searchFile->filename, searchFile->extention, environment.pwd, searchFile->firstCluster, fileMode, searchFile->size, false, true), false);
+    }
+    else {
+        //update  entry if file is reopened
+        environment.openFilesTbl[fileTblIndex].isOpen = true;
+        uint32_t offset;
+        struct DIR_ENTRY entry;
+        if ((offset = getEntryOffset(bs, filename)) == -1)
+            return 6;
+
+        readEntry(bs, &entry, environment.pwd_cluster, offset);
+        environment.openFilesTbl[fileTblIndex].size = entry.fileSize;
+        environment.openFilesTbl[fileTblIndex].mode = fileMode;
+
+    }
+
+    return 0;
 }
 
+/* description: takes a cluster number of the first cluster of a file and its size.
+ * this function will write <dataSize> bytes starting at position <pos>.
+ */
+int FWRITE_writeData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, const char* data, uint32_t dataSize) {
 
-// Walk the FAT from the very first data sector and find a cluster that's available
-// Return the cluster index 
-// TODO: Rewrite this function so that you can start finding a free cluster at somewhere other than the beginning
-uint32_t tf_find_free_cluster(void) 
-{
-    uint32_t    i;
-    uint32_t    entry;
-    uint32_t    totalClusters;
+    //determine the cluster offset of the cluster
+    uint32_t currentCluster = firstCluster;
+    // where pos is to start writing data
+    uint32_t writeClusterOffset = (pos / bs->BPB_BytsPerSec);
+    uint32_t posRelativeToCluster = pos % bs->BPB_BytsPerSec;
+    uint32_t fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
+    uint32_t remainingClustersToWalk = fileSizeInClusters - writeClusterOffset;
+    if (DEBUG == true)  printf("pos: %d, writeClusterOffset: %d, posRelativeToCluster: %d\n", pos, writeClusterOffset, posRelativeToCluster);
+    uint32_t x;
+    int dataIndex;
+    //seek to the proper cluster offset from first cluster
+    for (x = 0; x < writeClusterOffset; x++)
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+    if (DEBUG == true)  printf("after seek currentCluster is: %d\n", currentCluster);
+    //if here, we just start writing at the last cluster right after
+    //the last writen byte
+    dataIndex = 0;
+    uint32_t dataWriteLength = dataSize;
+    uint32_t dataRemaining = dataSize;
+    uint32_t fileWriteOffset;
+    uint32_t startWritePos;
+    FILE* f = fopen(environment.imageName, "r+");
+    checkForFileError(f);
+    for (x = 0; x < remainingClustersToWalk; x++) {
 
-    totalClusters = tf_info.totalSectors / tf_info.sectorsPerCluster;
-    for (i = 0; i < totalClusters; i++) 
-    {
-        entry = tf_get_fat_entry(i);
-        if ((entry & 0x0fffffff) == 0)
-        {
+        startWritePos = byteOffsetOfCluster(bs, currentCluster);
+
+        if (x == 0)
+            startWritePos += posRelativeToCluster;
+
+        if (dataRemaining > bs->BPB_BytsPerSec)
+            dataWriteLength = bs->BPB_BytsPerSec;
+        else
+            dataWriteLength = dataRemaining;
+        if (DEBUG == true)  printf("right before write: dataWriteLength:%d\n", dataWriteLength);
+        //write data 1 character at a time
+        for (fileWriteOffset = 0; fileWriteOffset < dataWriteLength; fileWriteOffset++) {
+            fseek(f, startWritePos + fileWriteOffset, 0);
+            if (DEBUG == true) printf("writing: %c to (startWritePos->%d + fileWriteOffset->%d) = %d, dataWriteLength: %d, dataRemaining:%d\n", data[dataIndex], startWritePos, fileWriteOffset, (startWritePos + fileWriteOffset), dataWriteLength, dataRemaining);
+            char dataChar[1] = { data[dataIndex++] };
+            fwrite(dataChar, 1, 1, f);
+
+        }
+
+        dataRemaining -= dataWriteLength;
+        if (dataRemaining == 0) {
+            if (DEBUG == true)  puts("dataRemaining is 0\n");
             break;
         }
+
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+        if (DEBUG == true)  printf("Moving to cluster: %d", currentCluster);
     }
-    return i;
+    fclose(f);
+    return 0;
+}
+/* description: takes a cluster number of a file and its size. this function will read <dataSize>
+ * bytes starting at position <pos>. It will print <dataSize> bytes to the screen until the end of
+ * the file is reached, as determined by <fileSize>
+ */
+int FREAD_readData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, uint32_t dataSize, uint32_t fileSize) {
+
+    //determine the cluster offset of the cluster
+    uint32_t currentCluster = firstCluster;
+    // where pos is to start writing data
+    uint32_t readClusterOffset = (pos / bs->BPB_BytsPerSec);
+    uint32_t posRelativeToCluster = pos % bs->BPB_BytsPerSec;
+    uint32_t fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
+    uint32_t remainingClustersToWalk = fileSizeInClusters - readClusterOffset;
+    if (DEBUG == true)  printf("fread> pos: %d, readClusterOffset: %d, posRelativeToCluster: %d\n", pos, readClusterOffset, posRelativeToCluster);
+    uint32_t x;
+    //seek to the proper cluster offset from first cluster
+    for (x = 0; x < readClusterOffset; x++)
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+    if (DEBUG == true) ("fread> after seek currentCluster is: %d\n", currentCluster);
+    //if here, we just start writing at the last cluster right after
+    //the last writen byte
+    uint32_t dataReadLength = dataSize;
+    uint32_t dataRemaining = dataSize;
+    uint32_t fileReadOffset;
+    uint32_t startReadPos;
+    FILE* f = fopen(environment.imageName, "r");
+    checkForFileError(f);
+    for (x = 0; x < remainingClustersToWalk; x++) {
+
+        startReadPos = byteOffsetOfCluster(bs, currentCluster);
+
+        if (x == 0)
+            startReadPos += posRelativeToCluster;
+
+        if (dataRemaining > bs->BPB_BytsPerSec)
+            dataReadLength = bs->BPB_BytsPerSec;
+        else
+            dataReadLength = dataRemaining;
+        if (DEBUG == true)  printf("fread> right before write: dataReadLength:%d\n", dataReadLength);
+        //write data 1 character at a time
+        for (fileReadOffset = 0; fileReadOffset < dataReadLength && (pos + fileReadOffset) < fileSize; fileReadOffset++) {
+            fseek(f, startReadPos + fileReadOffset, 0);
+            if (DEBUG == true)  printf("fread> (startReadPos->%d + fileReadOffset->%d) = %d, dataReadLength: %d, dataRemaining:%d\n", startReadPos, fileReadOffset, (startReadPos + fileReadOffset), dataReadLength, dataRemaining);
+            char dataChar[1];
+            fread(dataChar, 1, 1, f);
+            printf("%c", dataChar[0]);
+        }
+
+        dataRemaining -= dataReadLength;
+        if (dataRemaining == 0) {
+            if (DEBUG == true)  puts("fread> dataRemaining is 0\n");
+            break;
+        }
+
+        currentCluster = FAT_getFatEntry(bs, currentCluster);
+        if (DEBUG == true)  printf("fread> Moving to cluster: %d\n", currentCluster);
+    }
+    fclose(f);
+    return 0;
 }
 
 
-/* Optimize search for a free cluster */
-uint32_t tf_find_free_cluster_from(uint32_t c)
+
+/* success code: 0 if fwrite succeeded
+ * error code 1: filename is a directory
+ * error code 2: filename was never opened
+ * error code 3: filename is not currently open
+ * error code 4: no data to be written
+ * error code 5: not open for writing
+ * error code 6: filename does not exist in pwd
+ * error code 7: empty file entry could allocated space
+ * error code 8: file entry could be updated w/ new file size
+ */
+ /* description: Takes a filename, checks if file has been opened for writing. If so
+  * it uses FWRITE_writeData() to write <data> to <filename>. If <position> is larger
+  * than the current filesize this grows it to the size required and fills the gap created with 0x20 (SPACE).
+  * After writing if the filesize has changed this updates the directory entry of <filename> the new size
+  */
+int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const char* data) 
 {
-    uint32_t i, entry, totalClusters;
+	bool debug = true;
+	int fileTblIndex;
+	struct FILEDESCRIPTOR searchFileInflator;
+	struct FILEDESCRIPTOR* searchFile = &searchFileInflator;
+	struct DIR_ENTRY entry;
+	uint32_t offset; //for updating directory entry
 
-    totalClusters = tf_info.totalSectors / tf_info.sectorsPerCluster;
-    for (i = c; i < totalClusters; i++)
-    {
-        entry = tf_get_fat_entry(i);
-        if ((entry & 0x0fffffff) == 0) break;
+	uint32_t pos = atoi(position);
+	uint32_t firstCluster;
+    uint32_t currentCluster;
+    uint32_t dataSize = strlen(data);
+    uint32_t fileSize;
+    uint32_t newSize;
+
+    uint32_t totalSectors;
+    uint32_t additionalsectors;
+    uint32_t paddingClusterOffset;
+
+    uint32_t remainingClustersToWalk;
+
+    uint32_t paddingLength = 0;
+    uint32_t paddingRemaining;
+
+    uint32_t usedBytesInLastSector = 0;
+    uint32_t openBytesInLastSector = 0;
+    uint32_t startWritePos;
+
+    uint32_t paddingWriteLength;
+
+    uint32_t fileWriteOffset;
+
+    uint32_t x;
+    //error checking
+    if (searchForFile(bs, filename, true, searchFile) == true)
+        return 1;
+    if (TBL_getFileDescriptor(&fileTblIndex, filename, false) == false)
+        return 2;
+    if (TBL_getFileDescriptor(&fileTblIndex, filename, false) == true && environment.openFilesTbl[fileTblIndex].isOpen == false)
+        return 3;
+    if (dataSize < 1)
+        return 4;
+    if (environment.openFilesTbl[fileTblIndex].mode != MODE_WRITE && environment.openFilesTbl[fileTblIndex].mode != MODE_BOTH)
+        return 5;
+    if (searchForFile(bs, filename, false, searchFile) == false)
+        return 6;
+
+    FILE* f = fopen(environment.imageName, "r+");
+    checkForFileError(f);
+    //if file was touched, no cluster chain was allocated, do it here
+    if (searchFile->firstCluster == 0) {
+        if ((offset = getEntryOffset(bs, filename)) == -1)
+            return 7;
+        readEntry(bs, &entry, environment.pwd_cluster, offset);
+
+        firstCluster = FAT_findFirstFreeCluster(bs);
+        FAT_allocateClusterChain(bs, firstCluster);
+
+        deconstructClusterAddress(&entry, firstCluster);
+        if (DEBUG == true)  printf("Retreiving Entry From Offset %d, First cluster allocated %d", offset, firstCluster);
+        environment.openFilesTbl[fileTblIndex].firstCluster = firstCluster;//set firstCluster
+        environment.openFilesTbl[fileTblIndex].size = 0;                    // set size, althoug it's probaly set
+        writeEntry(bs, &entry, environment.pwd_cluster, offset);
+    }
+    else {
+        fileSize = environment.openFilesTbl[fileTblIndex].size;
+        firstCluster = currentCluster = environment.openFilesTbl[fileTblIndex].firstCluster;
+    }
+    //get max chain size for walking the chain
+    uint32_t fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
+
+    if (DEBUG == true)  printf("fwrite> data:%s, data length:%d, pos:%d, fileSize:%d, firstCluster:%d \n", data, dataSize, pos, fileSize, firstCluster);
+    if (DEBUG == true)  printf("fwrite> (pos + dataSize):%d,  \n", (pos + dataSize));
+
+    if ((pos + dataSize) > fileSize) {
+        //cluster size must grow
+        if (DEBUG == true)  puts("case 1\n");
+        newSize = pos + dataSize;
+
+        totalSectors = newSize / bs->BPB_BytsPerSec;
+        if (newSize > 0 && (newSize % bs->BPB_BytsPerSec != 0))
+            totalSectors++;
+
+        //determine newsize of chain
+        additionalsectors = totalSectors - fileSizeInClusters;
+
+        //grow the chain to new necessary size
+        for (x = 0; x < additionalsectors; x++) {
+            if (DEBUG == true)  printf("\nExtending chain: %d\n", x);
+            FAT_extendClusterChain(bs, firstCluster);
+        }
+
+        //reacquire new size
+        fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
+
+        //create padding with 0x20
+
+        if (pos > fileSize)
+            paddingLength = pos - fileSize;
+        else
+            paddingLength = 0;
+
+        paddingRemaining = paddingLength;
+        //determine used/open bytes in the last sector
+        if (fileSize > 0) {
+            if ((fileSize % bs->BPB_BytsPerSec) == 0)
+                usedBytesInLastSector = bs->BPB_BytsPerSec;
+            else
+                usedBytesInLastSector = fileSize % bs->BPB_BytsPerSec;
+        }
+
+        openBytesInLastSector = bs->BPB_BytsPerSec - usedBytesInLastSector;
+        if (DEBUG == true)  printf("totalSectors: %d,additionalsectors: %d,fileSizeInClusters: %d,paddingLength: %d, usedBytesInLastSector: %d,openBytesInLastSector: %d\n", totalSectors, additionalsectors, fileSizeInClusters, paddingLength, usedBytesInLastSector, openBytesInLastSector);
+        if (paddingLength > 0) {
+            if (DEBUG == true)  puts("padding \n");
+            //determine the cluster offset of the last cluster
+            //to start padding 
+            paddingClusterOffset = (fileSize / bs->BPB_BytsPerSec);
+
+            //set remaining number of clusters to be walked til EOC
+            remainingClustersToWalk = fileSizeInClusters - paddingClusterOffset;
+
+            //seek to the proper cluster offset
+            for (x = 0; x < paddingClusterOffset; x++)
+                currentCluster = FAT_getFatEntry(bs, currentCluster);
+
+            char padding[1] = { 0x20 };
+            if (DEBUG == true)  printf("paddingClusterOffset: %d, remainingClustersToWalk: %d,currentCluster: %d\n", paddingClusterOffset, remainingClustersToWalk, currentCluster);
+            //determine where start writing padding
+            for (x = 0; x < remainingClustersToWalk; x++) {
+                if (x == 0) {
+                    startWritePos = byteOffsetOfCluster(bs, currentCluster) + usedBytesInLastSector;
+                    if ((usedBytesInLastSector + paddingRemaining) > bs->BPB_BytsPerSec)
+                        paddingWriteLength = openBytesInLastSector;
+                    else
+                        paddingWriteLength = paddingRemaining;
+
+                }
+                else {
+                    startWritePos = byteOffsetOfCluster(bs, currentCluster);
+                    if (paddingRemaining > bs->BPB_BytsPerSec)
+                        paddingWriteLength = bs->BPB_BytsPerSec;
+                    else
+                        paddingWriteLength = paddingRemaining;
+
+
+                }
+
+                //write padding
+                for (fileWriteOffset = 0; fileWriteOffset < paddingWriteLength; fileWriteOffset++) {
+                    fseek(f, startWritePos + fileWriteOffset, 0);
+                    fwrite(padding, 1, 1, f);
+                }
+
+                paddingRemaining -= paddingWriteLength;
+                if (paddingRemaining == 0) {
+                    if (DEBUG == true)  puts("paddingRemaining is 0\n");
+                    break;
+                }
+                currentCluster = FAT_getFatEntry(bs, currentCluster);
+                if (DEBUG == true)  printf("Moving tp cluster: %d", currentCluster);
+            }
+        } //end padding if
+
+        if (DEBUG == true)  puts("Starting Data Write From Case 1\n");
+        FWRITE_writeData(bs, firstCluster, pos, data, dataSize);
+
+    }
+    else {
+        //cluster size will not grow
+        newSize = fileSize;
+        if (DEBUG == true) puts("Starting Data Write From Case 2\n");
+        FWRITE_writeData(bs, firstCluster, pos, data, dataSize);
     }
 
-    /* We couldn't find anything here so search from the beginning */
-    if (i == totalClusters)
-    {
-        return tf_find_free_cluster();
-    }
 
-    return i;
+
+    //update filesize
+
+    if (fileSize != newSize) {
+        if ((offset = getEntryOffset(bs, filename)) == -1)
+            return 8;
+        readEntry(bs, &entry, environment.pwd_cluster, offset);
+        entry.fileSize = newSize;
+        if (DEBUG == true)  printf("Retreiving Entry From Offset %d, filesize is now %d", offset, entry.fileSize);
+        environment.openFilesTbl[fileTblIndex].size = newSize;
+        writeEntry(bs, &entry, environment.pwd_cluster, offset);
+    }
+    fclose(f);
+    return 0;
+
 }
 
-/* Initialize the FileSystem metadata on the media (yes, the "FORMAT" command
-    that Windows doesn't allow for large volumes */
-uint32_t tf_initializeMedia(uint32_t totalSectors)       // this should take in some lun number to make this all good...   but we'll do that when we get read/write_sector lun-aware.  Also, hardcoded sector configuration.
+/* success code: 0 if fwrite succeeded
+ * error code 1: filename is a directory
+ * error code 2: filename was never opened
+ * error code 3: filename is not currently open
+ * error code 4: position is greater than filesize
+ * error code 5: not open for reading
+ * error code 6: filename does not exist in pwd
+ */
+ /* description: Takes a filename, checks if file has been opened for reading. If so
+  * it uses FREAD_readData() to print <numberOfBytes> to the screen, starting at <position>
+  * 'th byte. <actualBytesRead> is to be passed back to the caller
+  */
+int fRead(struct BS_BPB* bs, const char* filename, const char* position, const char* numberOfBytes, uint32_t* actualBytesRead) {
+    bool debug = false;
+    int fileTblIndex;
+    struct FILEDESCRIPTOR searchFileInflator;
+    struct FILEDESCRIPTOR* searchFile = &searchFileInflator;
+
+    uint32_t pos = atoi(position);
+    uint32_t dataSize = atoi(numberOfBytes);
+
+    uint32_t firstCluster;
+    uint32_t currentCluster;
+    uint32_t fileSize;
+
+    //error checking
+    if (searchForFile(bs, filename, true, searchFile) == true)
+        return 1;
+    if (TBL_getFileDescriptor(&fileTblIndex, filename, false) == false)
+        return 2;
+    if (TBL_getFileDescriptor(&fileTblIndex, filename, false) == true && environment.openFilesTbl[fileTblIndex].isOpen == false)
+        return 3;
+    if (pos > environment.openFilesTbl[fileTblIndex].size)
+        return 4;
+    if (environment.openFilesTbl[fileTblIndex].mode != MODE_READ && environment.openFilesTbl[fileTblIndex].mode != MODE_BOTH)
+        return 5;
+    if (searchForFile(bs, filename, false, searchFile) == false)
+        return 6;
+
+    FILE* f = fopen(environment.imageName, "r");
+    checkForFileError(f);
+    fileSize = environment.openFilesTbl[fileTblIndex].size;
+    *actualBytesRead = fileSize; //to be passed back to the caller
+    firstCluster = currentCluster = environment.openFilesTbl[fileTblIndex].firstCluster;
+    FREAD_readData(bs, firstCluster, pos, dataSize, fileSize);
+
+    fclose(f);
+    return 0;
+}
+
+//------ARGUMENT PARSING UTILITIES --------------
+//puts tokens into argV[x], returns number of tokens in argC
+int tokenize(char* argString, char** argV, const char* delimiter)
 {
-    gcDrive.Init(totalSectors * DRIVE_SECTOR_SIZE);
-
-    uint8_t sectorBuf0[DRIVE_SECTOR_SIZE];
-    uint8_t sectorBuf[DRIVE_SECTOR_SIZE];
-    BPB_struct bpb; // = (BPB_struct*)sectorBuf0;
-    uint32_t scl, ssa, fat;
-
-    memset(sectorBuf0, 0x00, 0x200);
-    memset(&bpb, 0, sizeof(bpb));
-
-    // jump instruction
-    bpb.BS_JumpBoot[0] = 0xEB;
-    bpb.BS_JumpBoot[1] = 0x58;
-    bpb.BS_JumpBoot[2] = 0x90;
-
-    // OEM name
-    memcpy(bpb.BS_OEMName, " mkdosfs", 8);
-
-    // BPB
-    bpb.BytesPerSector = 0x200;        // hard coded, must be a define somewhere
-    bpb.SectorsPerCluster = 32;        // this may change based on drive size
-    bpb.ReservedSectorCount = 32;
-    bpb.NumFATs = 2;
-    //bpb.RootEntryCount = 0;
-    //bpb.TotalSectors16 = 0;
-    bpb.Media = 0xf8;
-    //bpb.FATSize16 = 0;
-    bpb.SectorsPerTrack = 32;          // unknown here
-    bpb.NumberOfHeads = 64;            // ?
-    //bpb.HiddenSectors = 0;
-    bpb.TotalSectors32 = totalSectors;
-    // BPB-FAT32 Extension
-    bpb.FSTypeSpecificData.fat32.FATSize = totalSectors / 4095;
-    //bpb.FSTypeSpecificData.fat32.ExtFlags = 0;
-    //bpb.FSTypeSpecificData.fat32.FSVersion = 0;
-    bpb.FSTypeSpecificData.fat32.RootCluster = 2;
-    bpb.FSTypeSpecificData.fat32.FSInfo = 1;
-    bpb.FSTypeSpecificData.fat32.BkBootSec = 6;
-    //memset( bpb.FSTypeSpecificData.fat32.Reserved, 0x00, 12 );
-    //bpb.FSTypeSpecificData.fat32.BS_DriveNumber = 0;
-    //bpb.FSTypeSpecificData.fat32.BS_Reserved1 = 0;
-    bpb.FSTypeSpecificData.fat32.BS_BootSig = 0x29;
-    bpb.FSTypeSpecificData.fat32.BS_VolumeID = 0xf358ddc1;      // hardcoded volume id.  this is weird.  should be generated each time.
-    memset(bpb.FSTypeSpecificData.fat32.BS_VolumeLabel, 0x20, 11);
-    memcpy(bpb.FSTypeSpecificData.fat32.BS_FileSystemType, "FAT32   ", 8);
-    memcpy(sectorBuf0, &bpb, sizeof(bpb));
-
-    memcpy(sectorBuf0 + 0x5a, "\x0e\x1f\xbe\x77\x7c\xac\x22\xc0\x74\x0b\x56\xb4\x0e\xbb\x07\x00\xcd\x10\x5e\xeb\xf0\x32\xe4\xcd\x17\xcd\x19\xeb\xfeThis is not a bootable disk.  Please insert a bootable floppy and\r\npress any key to try again ... \r\n", 129);
-
-    fat = (bpb.ReservedSectorCount);
-
-        // ending signatures
-    sectorBuf0[0x1fe] = 0x55;
-    sectorBuf0[0x1ff] = 0xAA;
-    write_sector(sectorBuf0, 0);
-
-    // set up key sectors...
-
-    ssa = (bpb.NumFATs * bpb.FSTypeSpecificData.fat32.FATSize) + fat;
-
-    // FSInfo sector
-    memset(sectorBuf, 0x00, 0x200);
-    *((uint32_t*)sectorBuf) = 0x41615252;
-    *((uint32_t*)(sectorBuf + 0x1e4)) = 0x61417272;
-    *((uint32_t*)(sectorBuf + 0x1e8)) = 0xffffffff; // last known number of free data clusters on volume
-    *((uint32_t*)(sectorBuf + 0x1ec)) = 0xffffffff; // number of most recently known to be allocated cluster
-    *((uint32_t*)(sectorBuf + 0x1f0)) = 0;  // reserved
-    *((uint32_t*)(sectorBuf + 0x1f4)) = 0;  // reserved
-    *((uint32_t*)(sectorBuf + 0x1f8)) = 0;  // reserved
-    *((uint32_t*)(sectorBuf + 0x1fc)) = 0xaa550000;
-    write_sector(sectorBuf, 1);
-    fat = (bpb.ReservedSectorCount);
-
-    memset(sectorBuf, 0x00, 0x200);
-    for (scl = 2; scl < bpb.SectorsPerCluster; scl++)
-    {
-        memset(sectorBuf, 0x00, 0x200);
-        write_sector(sectorBuf, scl);
-    }
-    // write backup copy of metadata
-    write_sector(sectorBuf0, 6);
-
-
-
-    // make Root Directory 
-
-    // whack ROOT directory file: SSA = RSC + FN x SF + ceil((32 x RDE)/SS)  and LSN = SSA + (CN-2) x SC
-    // this clears the first cluster of the root directory
-    memset(sectorBuf, 0x00, 0x200);     // 0x00000000 is the unallocated marker
-    for (scl = ssa + bpb.SectorsPerCluster; scl >= ssa; scl--)
-    {
-        write_sector(sectorBuf, scl);
+    int index = 0;
+    char* tokens = strtok(argString, delimiter);
+    while (tokens != NULL) {
+        argV[index] = tokens;
+        tokens = strtok(NULL, delimiter);
+        index++;
     }
 
-    /*// whack a few clusters 1/4th through the partition as well.
-    // FIXME: This is a total hack, based on observed behavior.  use determinism
-    for (scl=(10 * bpb->SectorsPerCluster); scl>0; scl--)
-    {
-        dbg_printf("wiping sector %x", scl+(bpb->TotalSectors32 / 2048));
-        write_sector( sectorBuf, scl+(bpb->TotalSectors32 / 2048) );
-    }*/
-
-    memset(sectorBuf, 0x00, 0x200);     // 0x00000000 is the unallocated marker
-    for (scl = fat; scl < ssa / 2; scl++)
-    {
-        write_sector(sectorBuf, scl);
-        write_sector(sectorBuf, scl + (ssa / 2));
+    return index;
+}
+/* description: if a path character exists mark this as a path
+ * <delimiter> is a single character string
+ */
+bool isPathName(const char* pathName, const char* delimiter) {
+    int pathLength = strlen(pathName);
+    int x;
+    for (x = 0; x < pathLength; x++) {
+        if (pathName[x] == delimiter[0])
+            return true;
     }
-
-    //SSA = RSC + FN x SF + ceil((32 x RDE)/SS)  and LSN = SSA + (CN-2) x SC
-
-    // now set up first sector and write.
-    *((uint32_t*)(sectorBuf + 0x000)) = 0x0ffffff8;   // special - EOF marker
-    *((uint32_t*)(sectorBuf + 0x004)) = 0x0fffffff;   // special and clean
-    *((uint32_t*)(sectorBuf + 0x008)) = 0x0ffffff8;   // root directory (one cluster)
-    write_sector(sectorBuf, bpb.SectorsPerCluster);
-
-    return TF_ERR_NO_ERROR;
+    return false;
 }
 
-
-/*! tf_get_open_handles()
-    returns a bitfield where the handles are open (1) or free (0)
-    assumes there are <64 handles
+/*
+* error code 1: too many invalid characters
+* error code 2: extention given but no filename
+* error code 3: filename longer than 8 characters
+* error code 4: extension longer than 3 characters
+* error code 5: cannot touch or mkdir special directories
+* success code 0: filename is valid
 */
-uint64_t tf_get_open_handles(void)
-{
-    int         i;
-    TFFile*     fp;
-    uint64_t    retval = 0;
 
-    for (i = 0; i < min(TF_FILE_HANDLES, 64); i++) 
-    {
-        retval <<= 1;
-        fp = &tf_file_handles[i];
-        if (fp->flags & TF_FLAG_OPEN)
+int filterFilename(const char* argument, bool isTouchOrMkdir, bool isCdOrLs) {
+    char filename[200];
+    int invalid = 0;
+    int periodCnt = 0;
+    int tokenCount = 0;
+    char* tokens[10];
+    bool periodFlag = false;
+    size_t x;
+
+    strcpy(filename, argument);
+
+    // '.' and '..' are not allowed with touch or mkdir
+    if (isTouchOrMkdir == true && (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0))
+        return 5;
+
+    //cd and ls will allow special directories
+    if (isCdOrLs == true && (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0))
+        return 0;
+
+    for (x = 0; x < strlen(filename); x++) {
+        if (
+            ((filename[x] >= ALPHA_NUMBERS_LOWER_BOUND && filename[x] <= ALPHA_NUMBERS_UPPER_BOUND) ||
+                (filename[x] >= ALPHA_UPPERCASE_LOWER_BOUND && filename[x] <= ALPHA_UPPERCASE_UPPER_BOUND)) == false)
         {
-            retval |= 1;
+            invalid++;
+            if (filename[x] == PERIOD) {
+                periodCnt++;
+                periodFlag = true;
+            }
         }
     }
-    return retval;
+
+    if (invalid > 1) {//more than 1 invalid character
+        return 1;
+    }
+    else
+        if (invalid == 1 && periodCnt == 0) {//invalid that's not a period
+            return 1;
+        }
+        else
+            if (invalid == 1 && periodCnt == 1) { // a single period
+
+                tokenCount = tokenize(filename, tokens, ".");
+
+                if (tokenCount < 2) { //is filename or ext missing?
+                    return 2;
+                }
+
+                if (strlen(tokens[0]) > 8) { //is filename > 8?
+                    return 3;
+                }
+
+                if (strlen(tokens[1]) > 3) { //is ext < 3
+                    return 4;
+                }
+                return SUCCESS; //we've passed all check for filename with '.'
+            }
+            else
+                if (invalid == 0) { //there's no period
+                   //is filename > 8?
+                    if (strlen(filename) > 8) {
+                        return 3;
+                    }
+                    else
+                        return SUCCESS; //we've passed all check for filename with no extenion
+                }
+    //AP - This looks like it was not completed.
+    //AP - Should SUCCESS be returned?.
+    //re-tokenize once we exit here
+    return SUCCESS;
 }
 
+
+//this does just what it sounds like
+void printFilterError(const char* commandName, const char* filename, bool isDir, int exitCode) {
+    char fileType[11];
+
+    if (isDir == true)
+        strcpy(fileType, "directory");
+    else
+        strcpy(fileType, "file");
+
+    switch (exitCode) {
+    case 1:
+        printf("\nERROR: \"%s\" not a valid %s name: only uppercase alphameric characters allowed\n", filename, fileType);
+        break;
+    case 2:
+        printf("\nERROR: %s failed on filename %s, name or extention not given", commandName, fileType);
+        break;
+    case 3:
+        printf("\nERROR: %s failed, %s name \"%s\" longer than 8 characters", commandName, fileType, filename);
+        break;
+    case 4:
+        printf("\nERROR: %s failed, extention \"%s\" longer than 3 characters", commandName, filename);
+        break;
+    case 5:
+        printf("\nERROR: %s failed, cannot \"%s\" using \"%s\" as a name", commandName, commandName, filename);
+        break;
+
+    }
+}
+/* description: the name is a misnomer, it handles absolute and relative paths.
+ * this uses ls to traverse the <path> until reaches the end. If it reaches the end
+ * then all path components were valid directories and it is resolved. We then
+ * pass first cluster of the target directory of the path back using
+ * <targetCluster> If not we pass the directory name that caused the
+ * resolution to fail back to the caller with <failFilename>. if <isCd>
+ * is set we try to resolve and if we care able to do that then we cd
+ * into the target directory using a iterative loop. For functions like
+ * touch we need to stop the resolution one token before the end of the path
+ * and pass back that cluster number through <targetcluster> so shorten
+ * the iterations by 1 if <searchFile> is set. <isMkdir> is DEPRECATED
+ * and slated for removal.
+ */
+bool handleAbsolutePaths(struct BS_BPB* bs, uint32_t* targetCluster, char* path, char* successFilename, char* failFilename, bool isCd, bool searchForFile, bool isMkdir) {
+    int x;
+    char* paths[400];
+    int pathsArgC;
+    bool isValidPath = true;
+    struct FILEDESCRIPTOR searchFileInflator;
+    struct FILEDESCRIPTOR* searchFile = &searchFileInflator;
+    uint32_t pwdCluster = *targetCluster;
+    uint32_t previousCluster;
+
+    if (strcmp(path, ".") == 0) {
+        *targetCluster = environment.pwd_cluster;
+        strcpy(successFilename, environment.pwd);
+        return true;
+    }
+
+    //if this is absolute path
+    if (path[0] == PATH_DELIMITER[0])
+        pwdCluster = *targetCluster = bs->BPB_RootClus;
+    pathsArgC = tokenize(path, paths, PATH_DELIMITER);
+
+    //we resolve for directories
+    //because the last token will be a file we stop iterating right before it
+    if (searchForFile == true)
+        pathsArgC -= 1;
+
+    for (x = 0; x < pathsArgC; x++) {
+        if (ls(bs, *targetCluster, true, paths[x], false, searchFile, true, true) == true) {
+            previousCluster = *targetCluster;
+            *targetCluster = searchFile->firstCluster;
+        }
+        else {
+            strcpy(failFilename, paths[x]); // pass back to caller
+            if (DEBUG == true) printf("failed on %s\n", failFilename);
+            if (isCd == true)
+                isValidPath = false;
+            else
+                return false;
+            break;
+        }
+    }//end for
+    if (isCd == true) {
+
+        if (isValidPath == false)
+            return false;
+        else {
+            *targetCluster = pwdCluster;
+            //if validPath is true we know we can safely walk to the intended dir
+            for (x = 0; x < pathsArgC; x++) {
+                ls(bs, *targetCluster, true, paths[x], false, searchFile, false, false);
+                *targetCluster = searchFile->firstCluster;
+                strcpy(environment.pwd, paths[x]);
+            }
+            //strcpy(environment.pwd, paths[pathsArgC - 1]);
+            return true;
+        }
+
+    }
+    else {
+        //because we subtracted by 1 above we can get the last elements 
+        //by indexing the size and we won't bound out
+        if (searchForFile == true)
+            strcpy(successFilename, paths[pathsArgC]);
+        else
+            strcpy(successFilename, paths[pathsArgC - 1]);
+
+        if (isMkdir == true)
+            *targetCluster = previousCluster;
+
+        return true;
+
+    }
+}
+//------------ INITIALIZATION ------------------------------
+/* loads up boot sector and initalizes file and directory tables
+*/
+
+void allocateFileTable() {
+    //initalize and allocate open directory table
+    environment.dirStatsTbl = (FILEDESCRIPTOR*)malloc(TBL_DIR_STATS * sizeof(struct FILEDESCRIPTOR));
+    int i;
+    for (i = 0; i < TBL_DIR_STATS; i++)
+        environment.dirStatsTbl[i] = *((struct FILEDESCRIPTOR*)malloc(sizeof(struct FILEDESCRIPTOR)));
+
+    //initalize and allocate open files table
+    environment.openFilesTbl = (FILEDESCRIPTOR*)malloc(TBL_OPEN_FILES * sizeof(struct FILEDESCRIPTOR));
+    for (i = 0; i < TBL_OPEN_FILES; i++)
+        environment.openFilesTbl[i] = *((struct FILEDESCRIPTOR*)malloc(sizeof(struct FILEDESCRIPTOR)));
+}
+
+
+int initEnvironment(const char* imageName, struct BS_BPB* boot_sector, bool isDebug) {
+
+    DEBUG = isDebug;
+    FILE* f = fopen(imageName, "r");
+    if (f == NULL) {
+        return 1;
+    }
+    strcpy(environment.imageName, imageName);
+    fread(boot_sector, sizeof(struct BS_BPB), 1, f);
+    fclose(f);
+    strcpy(environment.pwd, ROOT);
+    strcpy(environment.last_pwd, ROOT);
+
+    environment.pwd_cluster = boot_sector->BPB_RootClus;
+    environment.tbl_dirStatsIndex = 0;
+    environment.tbl_dirStatsSize = 0;
+    environment.tbl_openFilesIndex = 0;
+    environment.tbl_openFilesSize = 0;
+
+    FAT_setIoWriteCluster(boot_sector, environment.pwd_cluster);
+    allocateFileTable();
+
+    return 0;
+}
+
+void showPromptAndClearBuffer(char* buffer) {
+    printf("\n%s:%s> ", environment.imageName, environment.pwd);
+    bzero(buffer, 100);
+}
+
+int TestMain(char* szImageName, char* szDebugFlag)
+{
+    struct BS_BPB boot_sector;
+    struct FILEDESCRIPTOR searchFileInflator;
+    struct FILEDESCRIPTOR* searchFile = &searchFileInflator;
+
+    char inputChar;
+    char inputBuffer[200];
+    char inputBuffer2[200];
+    char* my_argv[400];
+
+    //paths
+    char successFilename[200];
+    char failFilename[200];
+
+    bzero(inputBuffer, 100);
+    int argC = 0;
+    int length = 0;
+    char* tokens[10];
+    int exitCode;
+    bool isDebug = false;
+
+    if (strcmp(szDebugFlag, "-d") == 0) {
+        isDebug = true;
+        puts("\fedit is running in debug mode\n");
+    }
+    else {
+        puts("\nUsage: ./fedit <image name> [-d]\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (initEnvironment(szImageName, &boot_sector, isDebug) == 1) {
+        printf("\nFATAL ERROR: image %s not found\n", environment.imageName);
+        return 1;
+    }
+
+
+    printf("%s:%s> ", szImageName, environment.pwd);
+
+    inputChar = 0;
+    while (inputChar != EOF)
+    {
+        inputChar = getchar();
+
+        switch (inputChar)
+        {
+        case '\n':
+
+            if (inputBuffer[0] != '\0') //SOMETHING WAS TYPED IN
+            {
+                strncat(inputBuffer, "\0", 1);
+                length = strlen(inputBuffer);
+                if (length > 200) {
+                    puts("\nERROR: Maximum buffer length of 200 exceeded\n");
+                    showPromptAndClearBuffer(inputBuffer);
+                    break;
+                }
+                strcpy(inputBuffer2, inputBuffer);
+
+                argC = tokenize(inputBuffer, my_argv, " ");
+
+                if (strcmp(my_argv[0], "exit") == 0) //EXIT COMMAND
+                {
+                    inputChar = EOF;
+                    return EXIT_SUCCESS;
+                    break;
+                }
+                else
+
+                    if (strcmp(my_argv[0], "ls") == 0) //LS COMMAND
+                    {
+                        if (argC > 2) {
+                            puts("\nUsage: ls [<path>]\n");
+                            //if a path was used
+                        }
+                        else if (argC == 2) {
+                            uint32_t currentCluster = environment.pwd_cluster;
+                            if (isPathName(my_argv[1], PATH_DELIMITER) == true && strcmp(my_argv[1], ROOT) != 0) {
+                                //if abs/relative ath
+                                if (handleAbsolutePaths(&boot_sector, &currentCluster, my_argv[1], successFilename, failFilename, false, false, false) == true) {
+                                    if ((exitCode = filterFilename(successFilename, false, true)) != SUCCESS) {
+                                        printFilterError("ls", my_argv[1], true, exitCode);
+                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                        bzero(inputBuffer, 100);
+                                        break;
+                                    }
+                                    ls(&boot_sector, currentCluster, false, successFilename, false, searchFile, false, false);
+                                }
+                                else
+                                    printf("ERROR: : %s is not a valid directory", failFilename);
+
+                            }
+                            else if (argC > 1 && strcmp(my_argv[1], ROOT) != 0) {
+                                //looking down a single level
+                                if ((exitCode = filterFilename(my_argv[1], false, true)) != SUCCESS) {
+                                    printFilterError("ls", my_argv[1], true, exitCode);
+                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                    bzero(inputBuffer, 100);
+                                    break;
+                                }
+
+                                if (searchForFile(&boot_sector, my_argv[1], true, searchFile) == true)
+                                    ls(&boot_sector, searchFile->firstCluster, false, my_argv[1], false, searchFile, false, false);
+                                else
+                                    printf("ERROR: : %s is not a valid directory", my_argv[1]);
+                            }
+                            else if (argC > 1 && strcmp(my_argv[1], ROOT) == 0) {
+                                //ls /
+
+                                ls(&boot_sector, boot_sector.BPB_RootClus, false, ROOT, false, searchFile, false, false);
+                            }
+                        }
+                        else {
+                            //no path was used
+                            ls(&boot_sector, environment.pwd_cluster, false, environment.pwd, false, searchFile, false, false);
+                        }
+                        showPromptAndClearBuffer(inputBuffer);
+                        break;
+                    }
+                    else
+
+                        if (strcmp(my_argv[0], "info") == 0) //INFO COMMAND
+                        {
+                            if (argC > 1) {
+                                puts("\nUsage: info\n");
+                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                bzero(inputBuffer, 100);
+                                break;
+                            }
+
+                            puts("Current Environment\n");
+                            if (DEBUG == true) printf("pwd: %s\npwd_cluster: %d\nio_writeCluster: %d\nlast_pwd: %s",
+                                environment.pwd, environment.pwd_cluster, environment.io_writeCluster, environment.last_pwd);
+                            showDriveDetails(&boot_sector);
+                            showPromptAndClearBuffer(inputBuffer);
+                            break;
+                        }
+                        else
+
+                            if (strcmp(my_argv[0], "show") == 0) //SHOW COMMAND
+                            {
+                                TBL_printFileTbl(true);
+                                TBL_printFileTbl(false);
+                                showPromptAndClearBuffer(inputBuffer);
+                                break;
+                            }
+                            else
+
+                                if (strcmp(my_argv[0], "size") == 0) //SIZE COMMAND 
+                                {
+
+                                    if (argC != 2) {
+                                        puts("\nUsage: size <filename>\n");
+                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                        bzero(inputBuffer, 100);
+                                        break;
+                                    }
+
+                                    if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                        printFilterError("size", my_argv[1], false, exitCode);
+                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                        bzero(inputBuffer, 100);
+                                        break;
+                                    }
+                                    if (printFileOrDirectorySize(&boot_sector, my_argv[1], searchFile) == false)
+                                        printf("ERROR: %s not found\n", my_argv[1]);
+                                    //searchOrPrintFileSize(&boot_sector, my_argv[1], false, false, searchFile);
+                                    showPromptAndClearBuffer(inputBuffer);
+                                    break;
+                                }
+                                else
+
+                                    if (strcmp(my_argv[0], "rm") == 0) //RM COMMAND 
+                                    //searchOrPrintFileSize(struct BS_BPB * bs, const char * fileName, bool useAsFileSearch, bool searchForDirectory, struct FILEDESCRIPTOR * searchFile)
+                                    {
+                                        if (argC != 2) {
+                                            puts("\nUsage: rm <filename | path>\n");
+                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                            bzero(inputBuffer, 100);
+                                            break;
+                                        }
+
+                                        if (isPathName(my_argv[1], PATH_DELIMITER) == false) {
+                                            if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                                printFilterError("rm", my_argv[1], false, exitCode);
+                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                bzero(inputBuffer, 100);
+                                                break;
+                                            }
+                                        }
+                                        int returnCode;
+                                        uint32_t targetCluster = environment.pwd_cluster;
+
+                                        if (isPathName(my_argv[1], PATH_DELIMITER) == true && handleAbsolutePaths(&boot_sector, &targetCluster, my_argv[1], successFilename, failFilename, false, true, false) == true) {
+                                            returnCode = rm(&boot_sector, successFilename, targetCluster);
+                                            strcpy(my_argv[1], successFilename);
+                                        }
+                                        else
+                                            returnCode = rm(&boot_sector, my_argv[1], environment.pwd_cluster);
+
+                                        switch (returnCode) {
+                                        case 0:
+                                            printf("rm Success: \"%s\" has been removed", my_argv[1]);
+                                            break;
+                                        case 1:
+                                            printf("ERROR: %s failed, \"%s\" is currently open", "rm", my_argv[1]);
+                                            break;
+                                        case 2:
+                                            printf("ERROR: %s failed, \"%s\" is a directory", "rm", my_argv[1]);
+                                            break;
+                                        case 3:
+                                            printf("ERROR: %s failed, \"%s\" not found", "rm", my_argv[1]);
+                                            break;
+                                        }
+
+
+                                        showPromptAndClearBuffer(inputBuffer);
+                                        break;
+                                    }
+                                    else
+
+                                        if (strcmp(my_argv[0], "rmdir") == 0) //RMDIR COMMAND 
+                                        //searchOrPrintFileSize(struct BS_BPB * bs, const char * fileName, bool useAsFileSearch, bool searchForDirectory, struct FILEDESCRIPTOR * searchFile)
+                                        {
+                                            if (argC != 2) {
+                                                puts("\nUsage: rmdir <filename | path>\n");
+                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                bzero(inputBuffer, 100);
+                                                break;
+                                            }
+                                            if (isPathName(my_argv[1], PATH_DELIMITER) == false) {
+                                                if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                                    printFilterError("rmdir", my_argv[1], true, exitCode);
+                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                    bzero(inputBuffer, 100);
+                                                    break;
+                                                }
+                                            }
+                                            //handleAbsolutePaths(struct BS_BPB * bs, uint32_t * targetCluster, char * path, char * successFilename, char * failFilename, bool isCd, bool searchForFile)
+                                            int returnCode;
+                                            uint32_t targetCluster = environment.pwd_cluster;
+                                            if (isPathName(my_argv[1], PATH_DELIMITER) == true && handleAbsolutePaths(&boot_sector, &targetCluster, my_argv[1], successFilename, failFilename, false, false, true) == true) {
+                                                returnCode = rmDir(&boot_sector, successFilename, targetCluster);
+                                                strcpy(my_argv[1], successFilename);
+                                            }
+                                            else
+                                                returnCode = rmDir(&boot_sector, my_argv[1], environment.pwd_cluster);
+
+
+                                            switch (returnCode) {
+                                            case 0:
+                                                printf("rm Success: \"%s\" has been removed\n", my_argv[1]);
+                                                break;
+                                            case 1:
+                                                printf("ERROR: %s failed, \"%s\" not empty\n", "rmdir", my_argv[1]);
+                                                break;
+                                            case 2:
+                                                printf("ERROR: %s failed, \"%s\" is not a directory\n", "rmdir", my_argv[1]);
+                                                break;
+                                            case 3:
+                                                printf("ERROR: %s failed, \"%s\" not found\n", "rmdir", my_argv[1]);
+                                                break;
+                                            }
+
+
+                                            showPromptAndClearBuffer(inputBuffer);
+                                            break;
+                                        }
+                                        else
+
+                                            if (strcmp(my_argv[0], "cd") == 0) //CD COMMAND
+                                            {
+                                                if (argC != 2) {
+                                                    puts("\nUsage: cd <directory_name | path>\n");
+                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                    bzero(inputBuffer, 100);
+                                                    break;
+                                                }
+                                                //don't snag path names
+                                                if (isPathName(my_argv[1], PATH_DELIMITER) == false) {
+                                                    if ((exitCode = filterFilename(my_argv[1], false, true)) != SUCCESS) {
+                                                        printFilterError("cd", my_argv[1], true, exitCode);
+                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                        bzero(inputBuffer, 100);
+                                                        break;
+                                                    }
+                                                }
+
+                                                //printf("my_argv[1]%s\n", my_argv[1]);
+                                                if (strcmp(my_argv[1], SELF) == 0) // going to '.'
+                                                    ;
+                                                else if (strcmp(my_argv[1], ROOT) == 0) {// going to '/'
+                                                    strcpy(environment.last_pwd, ROOT);
+                                                    strcpy(environment.pwd, ROOT);
+                                                    environment.pwd_cluster = boot_sector.BPB_RootClus;
+                                                    FAT_setIoWriteCluster(&boot_sector, environment.pwd_cluster);
+                                                }
+                                                else if (strcmp(my_argv[1], PARENT) == 0) {
+                                                    //going up the tree
+                                                    if (cd(&boot_sector, PARENT, true, searchFile) == true) {
+                                                    }
+                                                    else {
+
+                                                        puts("\n ERROR: directory not found: '..'\n");
+                                                    }
+                                                }
+                                                else {//going down the tree
+
+                                                    if (isPathName(my_argv[1], PATH_DELIMITER) == true) {
+                                                        uint32_t currentCluster = environment.pwd_cluster;
+                                                        if (handleAbsolutePaths(&boot_sector, &currentCluster, my_argv[1], successFilename, failFilename, true, false, false) == false)
+                                                            printf("\nERROR: directory not found: %s\n", failFilename);
+                                                    }
+                                                    else if (cd(&boot_sector, my_argv[1], false, searchFile) == true) {
+                                                        strcpy(environment.last_pwd, environment.pwd);
+                                                        strcpy(environment.pwd, my_argv[1]);
+                                                    }
+                                                    else {
+                                                        if (cd(&boot_sector, PARENT, false, searchFile) == true)
+                                                            printf("\n ERROR: \"%s\" is a file:\n", my_argv[1]);
+                                                        else
+                                                            printf("\nERROR: directory not found: %s\n", my_argv[1]);
+                                                    }
+                                                }
+                                                showPromptAndClearBuffer(inputBuffer);
+                                                break;
+                                            }
+                                            else
+
+                                                if (strcmp(my_argv[0], "touch") == 0 || strcmp(my_argv[0], "mkdir") == 0) //TOUCH & MKDIR COMMAND
+                                                {
+                                                    int tokenCnt = 0;
+                                                    bool isMkdir = false; //is the file we are creating a directory?
+                                                    char commandName[6];
+                                                    char fileType[10];
+                                                    char fullFilename[13];
+
+                                                    if (strcmp(my_argv[0], "mkdir") == 0) {
+                                                        isMkdir = true;
+                                                        strcpy(commandName, "mkdir");
+                                                        strcpy(fileType, "directory");
+                                                    }
+                                                    else {
+                                                        strcpy(commandName, "touch");
+                                                        strcpy(fileType, "file");
+                                                    }
+
+                                                    //if only "touch" is typed with no args
+                                                    if (argC != 2) {
+                                                        printf("\nUsage: %s <[path to] %sname>\n", commandName, fileType);
+                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                        bzero(inputBuffer, 100);
+                                                        break;
+
+                                                    }
+
+                                                    uint32_t targetCluster = environment.pwd_cluster;
+                                                    //if there's a path try to resolve it
+                                                    if (isPathName(my_argv[1], PATH_DELIMITER) == true) {
+                                                        if (handleAbsolutePaths(&boot_sector, &targetCluster, my_argv[1], successFilename, failFilename, false, true, false) == true) {
+                                                            if (DEBUG == true) printf("targetCluster: %d\n", targetCluster);
+                                                            strcpy(my_argv[1], successFilename);
+                                                        }
+                                                        else {
+                                                            printf("ERROR: Directory not found: \"%s\"\n", failFilename);
+                                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                            bzero(inputBuffer, 100);
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    //check if filename is valid
+                                                    if ((exitCode = filterFilename(my_argv[1], true, false)) != SUCCESS) {
+                                                        printFilterError(commandName, my_argv[1], isMkdir, exitCode);
+                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                        bzero(inputBuffer, 100);
+                                                        break;
+                                                    }
+
+                                                    strcpy(fullFilename, my_argv[1]);
+                                                    tokenCnt = tokenize(my_argv[1], tokens, ".");
+
+                                                    if (isMkdir == true)
+                                                    {   //check if filename exists (whether dir or file)
+                                                        if (searchForFile(&boot_sector, fullFilename, isMkdir, searchFile) == true ||
+                                                            searchForFile(&boot_sector, fullFilename, !isMkdir, searchFile) == true) {
+                                                            printf("ERROR: %s failed, \"%s\" already exists", commandName, fullFilename);
+                                                        }
+                                                        else {
+                                                            if (tokenCnt > 1)
+                                                                mkdir(&boot_sector, tokens[0], tokens[1], targetCluster);
+                                                            else
+                                                                mkdir(&boot_sector, tokens[0], "", targetCluster);
+
+                                                            printf("%s \"%s\" created\n", fileType, my_argv[1]);
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (searchForFile(&boot_sector, fullFilename, isMkdir, searchFile) == true ||
+                                                            searchForFile(&boot_sector, fullFilename, !isMkdir, searchFile) == true) {
+                                                            printf("ERROR: %s failed, \"%s\" already exists", commandName, fullFilename);
+                                                        }
+                                                        else {
+                                                            if (tokenCnt > 1)
+                                                                touch(&boot_sector, tokens[0], tokens[1], targetCluster);
+                                                            else
+                                                                touch(&boot_sector, tokens[0], "", targetCluster);
+
+                                                            printf("%s \"%s\" created\n", fileType, my_argv[1]);
+                                                        }
+                                                    }
+
+
+
+                                                    showPromptAndClearBuffer(inputBuffer);
+                                                    break;
+                                                }
+                                                else
+
+                                                    if (strcmp(my_argv[0], "fopen") == 0) //FOPEN COMMAND
+                                                    {
+                                                        char modeName[21];
+
+                                                        if (argC < 2) {
+                                                            puts("\nUsage: fopen <filename> <r | w | x>\n");
+                                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                            bzero(inputBuffer, 100);
+                                                            break;
+                                                        }
+
+                                                        if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                                            printFilterError("fopen", my_argv[1], false, exitCode);
+                                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                            bzero(inputBuffer, 100);
+                                                            break;
+                                                        }
+
+                                                        switch (fOpen(&boot_sector, argC, my_argv[1], my_argv[2], modeName)) {
+                                                        case 0:
+                                                            printf("File \"%s\" opened for %s", my_argv[1], modeName);
+                                                            break;
+                                                        case 1:
+                                                            puts("\nUsage: fopen <filename> <r | w | x>\n");
+                                                            break;
+                                                        case 2:
+                                                            printf("ERROR: fopen failed, \"%s\" is a directory\n", my_argv[1]);
+                                                            break;
+                                                        case 3:
+                                                            printf("ERROR: fopen failed, \"%s\" not found\n", my_argv[1]);
+                                                            break;
+                                                        case 4:
+                                                            printf("ERROR: fopen failed, \"%s\" is already open\n", my_argv[1]);
+                                                            break;
+                                                        case 5:
+                                                            printf("ERROR: fopen failed, \"%s\" is not a valid option\n", my_argv[2]);
+                                                            puts("\nUsage: fopen <filename> <r | w | x>\n");
+                                                            break;
+                                                        case 6:
+                                                            printf("ERROR: fopen succeeded, but the filetable could not be updated \"%s\"\n", my_argv[1]);
+                                                            break;
+                                                        }
+
+                                                        showPromptAndClearBuffer(inputBuffer);
+                                                        break;
+
+
+                                                    }
+                                                    else
+
+                                                        if (strcmp(my_argv[0], "fclose") == 0) //FCLOSE COMMAND
+                                                        {
+                                                            if (argC != 2) {
+                                                                puts("\nUsage: fclose <filename>\n");
+                                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                bzero(inputBuffer, 100);
+                                                                break;
+                                                            }
+
+                                                            if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                                                printFilterError("fclose", my_argv[1], false, exitCode);
+                                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                bzero(inputBuffer, 100);
+                                                                break;
+                                                            }
+
+                                                            switch (fClose(&boot_sector, argC, my_argv[1])) {
+                                                            case 0:
+                                                                printf("fclose success, \"%s\" has been closed\n", my_argv[1]);
+                                                                break;
+                                                            case 1:
+                                                                puts("\nUsage: fclose <filename>\n");
+                                                                break;
+                                                            case 2:
+                                                                printf("ERROR: fclose failed, \"%s\" not found\n", my_argv[1]);
+                                                                break;
+                                                            case 3:
+                                                                printf("ERROR: fclose failed, \"%s\" has never been opened\n", my_argv[1]);
+                                                                break;
+                                                            case 4:
+                                                                printf("ERROR: fclose failed, \"%s\" is currently closed\n", my_argv[1]);
+                                                                break;
+                                                            }
+                                                            showPromptAndClearBuffer(inputBuffer);
+                                                            break;
+                                                        }
+                                                        else
+
+                                                            if (strcmp(my_argv[0], "fwrite") == 0) //FWRITE COMMAND
+                                                            {
+
+
+                                                                int firstByte;
+                                                                int lastByte;
+                                                                if (argC < 4) {
+                                                                    puts("\nUsage: fwrite <filename> <position> <data>\n");
+                                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                    bzero(inputBuffer, 100);
+                                                                    break;
+                                                                }
+
+                                                                if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                                                    printFilterError("fwrite", my_argv[1], false, exitCode);
+                                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                    bzero(inputBuffer, 100);
+                                                                    break;
+                                                                }
+
+                                                                int startData = strlen(my_argv[0]) + strlen(my_argv[1]) + strlen(my_argv[2]);
+                                                                startData += 3; //the spaces
+                                                                int totalLen = length;
+                                                                int dataSize = totalLen - startData;
+                                                                char* data = (char*)malloc(dataSize + 1);
+                                                                int x;
+                                                                for (x = 0; x < dataSize; x++) {
+                                                                    data[x] = inputBuffer2[startData + x];
+                                                                }
+                                                                data[dataSize] = '\0';
+
+
+                                                                if (DEBUG == true) printf("inputBuffer: %s, startdata: %d, totalLen: %d, dataSize: %d, data: %s", inputBuffer2, startData, totalLen, dataSize, data);
+                                                                /* success code: 0 if fwrite succeeded
+                                                                 * error code 1: filename is a directory
+                                                                 * error code 2: filename was never opened
+                                                                 * error code 3: filename is not currently open
+                                                                 * error code 4: no data to be written
+                                                                 * error code 5: not open for writing
+                                                                 * error code 6: filename does not exist in pwd
+                                                                 */
+                                                                switch (fWrite(&boot_sector, my_argv[1], my_argv[2], data)) {
+                                                                case 0:
+                                                                    firstByte = atoi(my_argv[2]);
+                                                                    lastByte = firstByte + strlen(data);
+                                                                    printf("fwrite success, wrote \"%s\" to bytes %d-%d of \"%s\"\n", data, firstByte, lastByte, my_argv[1]);
+                                                                    break;
+                                                                case 1:
+                                                                    printf("ERROR: fwrite failed, \"%s\" is a directory\n", my_argv[1]);;
+                                                                    break;
+                                                                case 2:
+                                                                    printf("ERROR: fwrite failed, \"%s\" has never been opened\n", my_argv[1]);
+                                                                    break;
+                                                                case 3:
+                                                                    printf("ERROR: fwrite failed, \"%s\" is not open\n", my_argv[1]);
+                                                                    break;
+                                                                case 4:
+                                                                    printf("ERROR: fwrite failed on \"%s\" no data to be written\n", my_argv[1]);
+                                                                    break;
+                                                                case 5:
+                                                                    printf("\nERROR: fwrite failed, \"%s\" is not open for writing \n", my_argv[1]);
+                                                                    break;
+                                                                case 6:
+                                                                    printf("\nERROR: fwrite failed, \"%s\" does not exist in pwd \n", my_argv[1]);
+                                                                    break;
+                                                                case 7:
+                                                                    printf("\nERROR: fwrite failed, \"%s\" could not be allocated space \n", my_argv[1]);
+                                                                    break;
+                                                                case 8:
+                                                                    printf("\nERROR: fwrite succeeded, but the file size of \"%s\" was not updated \n", my_argv[1]);
+                                                                    break;
+                                                                }
+                                                                showPromptAndClearBuffer(inputBuffer);
+
+                                                                free(data);
+                                                                data = NULL;
+                                                                break;
+                                                            }
+                                                            else
+
+                                                                if (strcmp(my_argv[0], "fread") == 0) //TESTING TOOL
+                                                                {
+                                                                    if (argC < 4) {
+                                                                        puts("\nUsage: fread <filename> <position> <number of bytes>\n");
+                                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                        bzero(inputBuffer, 100);
+                                                                        break;
+                                                                    }
+
+                                                                    if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
+                                                                        printFilterError("fread", my_argv[1], false, exitCode);
+                                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                        bzero(inputBuffer, 100);
+                                                                        break;
+                                                                    }
+
+                                                                    /* success code: 0 if fwrite succeeded
+                                                                     * error code 1: filename is a directory
+                                                                     * error code 2: filename was never opened
+                                                                     * error code 3: filename is not currently open
+                                                                     * error code 4: position is greater than filesize
+                                                                     * error code 5: not open for reading
+                                                                     * error code 6: filename does not exist in pwd
+                                                                     */
+                                                                    uint32_t numBytes;
+                                                                    uint32_t actualBytesRead;
+                                                                    //fRead(struct BS_BPB * bs, const char * filename, const char * position, const char * numberOfBytes)
+                                                                    switch (fRead(&boot_sector, my_argv[1], my_argv[2], my_argv[3], &actualBytesRead)) {
+                                                                    case 0:
+                                                                        numBytes = atoi(my_argv[3]); //if file is smaller, only report
+                                                                        if (numBytes >= actualBytesRead)//we read the filesize bytes
+                                                                            numBytes = actualBytesRead;
+                                                                        printf("\nfread success, read %d bytes from \"%s\"\n", numBytes, my_argv[1]);
+                                                                        break;
+                                                                    case 1:
+                                                                        printf("ERROR: fread failed, \"%s\" is a directory\n", my_argv[1]);;
+                                                                        break;
+                                                                    case 2:
+                                                                        printf("ERROR: fread failed, \"%s\" has never been opened\n", my_argv[1]);
+                                                                        break;
+                                                                    case 3:
+                                                                        printf("ERROR: fread failed, \"%s\" is not open\n", my_argv[1]);
+                                                                        break;
+                                                                    case 4:
+                                                                        printf("ERROR: fread failed on \"%s\" position > filesize\n", my_argv[1]);
+                                                                        break;
+                                                                    case 5:
+                                                                        printf("\nERROR: fread failed, \"%s\" is not open for reading \n", my_argv[1]);
+                                                                        break;
+                                                                    case 6:
+                                                                        printf("\nERROR: fread failed, \"%s\" does not exist in pwd \n", my_argv[1]);
+                                                                        break;
+                                                                    }
+                                                                    showPromptAndClearBuffer(inputBuffer);
+                                                                    break;
+                                                                }
+                                                                else
+
+                                                                    if (strcmp(my_argv[0], "nextopen") == 0) //MY TESTING TOOL
+                                                                    {
+                                                                        int result;
+                                                                        //returns the address of the first available entry spot for this chain
+                                                                        if ((result = FAT_findNextOpenEntry(&boot_sector, environment.pwd_cluster)) == -1)
+                                                                            puts("This cluster is currently full\n");
+                                                                        else
+                                                                            printf("Entry %d is free in %s\n", result, environment.pwd);
+                                                                        showPromptAndClearBuffer(inputBuffer);
+                                                                        break;
+                                                                    }
+                                                                    else
+
+                                                                        if (strcmp(my_argv[0], "last") == 0) //MY TESTING TOOL
+                                                                        {
+                                                                            /* use this to find the end of a chain
+                                                                            *
+                                                                            * */
+                                                                            if (argC == 2)
+                                                                                printf("%d afterreturn %08x\n", getLastClusterInChain(&boot_sector, atoi(my_argv[1])), getLastClusterInChain(&boot_sector, atoi(my_argv[1])));
+                                                                            showPromptAndClearBuffer(inputBuffer);
+                                                                            break;
+                                                                        }
+                                                                        else
+
+                                                                            if (strcmp(my_argv[0], "free") == 0) //MY TESTING TOOL
+                                                                            {
+
+                                                                                /* pass pass this a cluster number and free a cluster chain, will destroy data /* WARNING */
+
+                                                                                if (argC == 2)
+                                                                                    FAT_freeClusterChain(&boot_sector, atoi(my_argv[1]));
+                                                                                showPromptAndClearBuffer(inputBuffer);
+                                                                                break;
+                                                                            }
+                                                                            else {
+
+                                                                                printf("Command: \"%s\" Not Recognized\n", my_argv[0]);
+                                                                                showPromptAndClearBuffer(inputBuffer);
+                                                                                break;
+
+                                                                            }
+            } // END INPUT BLOCK
+
+         //if there isn't a '\n' in the buffer load up inputBuffer with
+         //that character
+        default:
+            strncat(inputBuffer, &inputChar, 1);
+            break;
+        }
+
+    }
+
+    return 0;
+}
