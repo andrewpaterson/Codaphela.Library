@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include "BaseLib/RedirectPrintf.h"
 
 
 #define FAT12 0
@@ -156,7 +157,7 @@ void bzero(void* pvMem, size_t uiSize)
 
 void checkForFileError(FILE* f) {
     if (f == NULL) {
-        printf("FATAL ERROR: Problem openning image -- EXITTING!\n");
+        eprintf("FATAL ERROR: Problem openning image -- EXITTING!\n");
         exit(EXIT_FAILURE);
     }
 }
@@ -274,7 +275,7 @@ int TBL_addFileToTbl(struct FILEDESCRIPTOR* file, bool isDir) {
     if (isDir == true) {
         if (environment.tbl_dirStatsSize < TBL_DIR_STATS) {
             environment.dirStatsTbl[environment.tbl_dirStatsIndex % TBL_DIR_STATS] = *file;
-            if (DEBUG == true) printf("adding %s\n", environment.dirStatsTbl[environment.tbl_dirStatsIndex % TBL_DIR_STATS].filename);
+            if (DEBUG == true) eprintf("adding %s\n", environment.dirStatsTbl[environment.tbl_dirStatsIndex % TBL_DIR_STATS].filename);
             environment.tbl_dirStatsSize++;
             environment.tbl_dirStatsIndex = ++environment.tbl_dirStatsIndex % TBL_DIR_STATS;
             return 0;
@@ -307,15 +308,15 @@ int TBL_addFileToTbl(struct FILEDESCRIPTOR* file, bool isDir) {
  * if not prints the open directory table
  */
 int TBL_printFileTbl(bool isDir) {
-    if (DEBUG == true) printf("environment.tbl_dirStatsSize: %d\n", environment.tbl_dirStatsSize);
-    if (DEBUG == true) printf("environment.tbl_openFilesSize: %d\n", environment.tbl_openFilesSize);
+    if (DEBUG == true) eprintf("environment.tbl_dirStatsSize: %d\n", environment.tbl_dirStatsSize);
+    if (DEBUG == true) eprintf("environment.tbl_openFilesSize: %d\n", environment.tbl_openFilesSize);
     if (isDir == true) {
         puts("\nDirectory Table\n");
         if (environment.tbl_dirStatsSize > 0) {
             int x;
             for (x = 0; x < environment.tbl_dirStatsSize; x++) {
 
-                printf("[%d] filename: %s, parent: %s, isOpen: %d, Size: %d, mode: %d\n",
+                eprintf("[%d] filename: %s, parent: %s, isOpen: %d, Size: %d, mode: %d\n",
                     x, environment.dirStatsTbl[x % TBL_DIR_STATS].fullFilename,
                     environment.dirStatsTbl[x % TBL_DIR_STATS].parent,
                     environment.dirStatsTbl[x % TBL_DIR_STATS].isOpen,
@@ -334,7 +335,7 @@ int TBL_printFileTbl(bool isDir) {
             int x;
             for (x = 0; x < environment.tbl_openFilesSize; x++) {
 
-                printf("[%d] filename: %s, parent:%s, isOpen: %d, Size: %d, mode: %d\n",
+                eprintf("[%d] filename: %s, parent:%s, isOpen: %d, Size: %d, mode: %d\n",
                     x, environment.openFilesTbl[x % TBL_OPEN_FILES].fullFilename,
                     environment.openFilesTbl[x % TBL_OPEN_FILES].parent,
                     environment.openFilesTbl[x % TBL_OPEN_FILES].isOpen,
@@ -357,7 +358,7 @@ const char* TBL_getParent(const char* dirName) {
     if (environment.tbl_dirStatsSize > 0) {
         int x;
         for (x = 0; x < environment.tbl_dirStatsSize; x++) {
-            if (DEBUG == true) printf("searching for %s in table, found %s\n", dirName, environment.dirStatsTbl[x % TBL_DIR_STATS].filename);
+            if (DEBUG == true) eprintf("searching for %s in table, found %s\n", dirName, environment.dirStatsTbl[x % TBL_DIR_STATS].filename);
             if (strcmp(environment.dirStatsTbl[x % TBL_DIR_STATS].filename, dirName) == 0)
                 return environment.dirStatsTbl[x % TBL_DIR_STATS].parent;
         }
@@ -378,7 +379,7 @@ bool TBL_getFileDescriptor(int* index, const char* filename, bool isDir) {
 
             int x;
             for (x = 0; x < environment.tbl_dirStatsSize; x++) {
-                if (DEBUG == true) printf("searching for %s in table, found %s\n", filename, environment.dirStatsTbl[x % TBL_DIR_STATS].filename);
+                if (DEBUG == true) eprintf("searching for %s in table, found %s\n", filename, environment.dirStatsTbl[x % TBL_DIR_STATS].filename);
                 if (strcmp(environment.dirStatsTbl[x % TBL_DIR_STATS].fullFilename, filename) == 0) {
                     *index = x;
                     return true;
@@ -459,7 +460,7 @@ int FAT_writeFatEntry(struct BS_BPB* bs, uint32_t destinationCluster, uint32_t* 
     fseek(f, getFatAddressByCluster(bs, destinationCluster), 0);
     fwrite(newFatVal, 4, 1, f);
     fclose(f);
-    if (DEBUG == true) printf("FAT_writeEntry: wrote->%d to cluster %d", *newFatVal, destinationCluster);
+    if (DEBUG == true) eprintf("FAT_writeEntry: wrote->%d to cluster %d", *newFatVal, destinationCluster);
     return 0;
 }
 
@@ -611,19 +612,19 @@ struct FILEDESCRIPTOR* makeFileDecriptor(struct DIR_ENTRY* entry, struct FILEDES
 */
 void showEntry(struct DIR_ENTRY* entry) {
     puts("First Cluster\n");
-    printf("lo[0]%02x, lo[1]%02x, hi[0]%02x, hi[1]%02x\n", entry->loCluster[0],
+    eprintf("lo[0]%02x, lo[1]%02x, hi[0]%02x, hi[1]%02x\n", entry->loCluster[0],
         entry->loCluster[1],
         entry->hiCluster[0],
         entry->hiCluster[1]);
     int x;
     for (x = 0; x < 11; x++) {
         if (entry->filename[x] == ' ')
-            printf("filename[%d]->%s\n", x, "SPACE");
+            eprintf("filename[%d]->%s\n", x, "SPACE");
         else
-            printf("filename[%d]->%c\n", x, entry->filename[x]);
+            eprintf("filename[%d]->%c\n", x, entry->filename[x]);
     }
 
-    printf("\nattr->0x%x, size->0x%x ", entry->attributes, entry->fileSize);
+    eprintf("\nattr->0x%x, size->0x%x ", entry->attributes, entry->fileSize);
 }
 
 /* description: takes a cluster number where bunch of directories are and
@@ -653,7 +654,7 @@ struct DIR_ENTRY* writeEntry(struct BS_BPB* bs, struct DIR_ENTRY* entry, uint32_
 
     fseek(f, dataAddress + offset, 0);
     fwrite(entry, 1, sizeof(struct DIR_ENTRY), f);
-    if (DEBUG == true) printf("writeEntry-> address: %d...Calling showEntry()\n", dataAddress);
+    if (DEBUG == true) eprintf("writeEntry-> address: %d...Calling showEntry()\n", dataAddress);
     if (DEBUG == true) showEntry(entry);
     fclose(f);
     return entry;
@@ -663,11 +664,11 @@ struct DIR_ENTRY* writeEntry(struct BS_BPB* bs, struct DIR_ENTRY* entry, uint32_
  * the offset provided. used to write dot entries. POSSIBLY REDUNDANT
  */
 uint32_t byteOffsetofDirectoryEntry(struct BS_BPB* bs, uint32_t clusterNum, int offset) {
-    if (DEBUG == true) printf("\nbyteOffsetofDirectoryEntry: passed in offset->%d\n", offset);
+    if (DEBUG == true) eprintf("\nbyteOffsetofDirectoryEntry: passed in offset->%d\n", offset);
     offset *= 32;
-    if (DEBUG == true) printf("\nbyteOffsetofDirectoryEntry: offset*32->%d\n", offset);
+    if (DEBUG == true) eprintf("\nbyteOffsetofDirectoryEntry: offset*32->%d\n", offset);
     uint32_t dataAddress = byteOffsetOfCluster(bs, clusterNum);
-    if (DEBUG == true) printf("\nbyteOffsetofDirectoryEntry: clusterNum: %d, offset: %d, returning: %d\n", clusterNum, offset, (dataAddress + offset));
+    if (DEBUG == true) eprintf("\nbyteOffsetofDirectoryEntry: clusterNum: %d, offset: %d, returning: %d\n", clusterNum, offset, (dataAddress + offset));
     return (dataAddress + offset);
 }
 
@@ -733,9 +734,9 @@ bool ls(struct BS_BPB* bs, uint32_t clusterNum, bool cd, const char* directoryNa
                 //we don't want to print 0xE5 to the screen
                 if (searchFile->filename[0] != 0xE5) {
                     if (searchFile->dir == true)
-                        printf("dir->%s   ", searchFile->fullFilename);
+                        eprintf("dir->%s   ", searchFile->fullFilename);
                     else
-                        printf("%s     ", searchFile->fullFilename);
+                        eprintf("%s     ", searchFile->fullFilename);
                 }
             }
             else {
@@ -789,7 +790,7 @@ bool ls(struct BS_BPB* bs, uint32_t clusterNum, bool cd, const char* directoryNa
         }
 
         clusterNum = FAT_getFatEntry(bs, clusterNum);
-        //printf("next cluster: %d\n", FAT_getFatEntry(bs, clusterNum));
+        //eprintf("next cluster: %d\n", FAT_getFatEntry(bs, clusterNum));
 
     }
     return false;
@@ -834,14 +835,14 @@ uint32_t FAT_findNextOpenEntry(struct BS_BPB* bs, uint32_t pwdCluster) {
                 continue;
             }
 
-            if (DEBUG == true) printf("\nFAT_findNextOpenEntry: offset->%d\n", offset);
+            if (DEBUG == true) eprintf("\nFAT_findNextOpenEntry: offset->%d\n", offset);
 
             readEntry(bs, &dir, pwdCluster, offset);
             makeFileDecriptor(&dir, &fd);
 
             if (isEntryEmpty(&fd) == true) {
                 //this should tell me exactly where to write my new entry to
-                //printf("cluster #%d, byte offset: %d: ", offset, byteOffsetofDirectoryEntry(bs, pwdCluster, offset));             
+                //eprintf("cluster #%d, byte offset: %d: ", offset, byteOffsetofDirectoryEntry(bs, pwdCluster, offset));             
                 return byteOffsetofDirectoryEntry(bs, pwdCluster, offset);
             }
         }
@@ -870,12 +871,12 @@ bool searchOrPrintFileSize(struct BS_BPB* bs, const char* fileName, bool useAsFi
 
     if (ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, searchForDirectory) == true) {
         if (useAsFileSearch == false)
-            printf("File: %s is %d byte(s) in size", fileName, searchFile->size);
+            eprintf("File: %s is %d byte(s) in size", fileName, searchFile->size);
         return true;
     }
     else {
         if (useAsFileSearch == false)
-            printf("ERROR: File: %s was not found", fileName);
+            eprintf("ERROR: File: %s was not found", fileName);
         return false;
     }
 }
@@ -887,7 +888,7 @@ bool printFileOrDirectorySize(struct BS_BPB* bs, const char* fileName, struct FI
 
     if (ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, true) == true ||
         ls(bs, environment.pwd_cluster, true, fileName, false, searchFile, true, false) == true) {
-        printf("File: %s is %d byte(s) in size", fileName, searchFile->size);
+        eprintf("File: %s is %d byte(s) in size", fileName, searchFile->size);
         return true;
     }
     else
@@ -932,7 +933,7 @@ int FAT_allocateClusterChain(struct BS_BPB* bs, uint32_t clusterNum) {
 */
 int FAT_freeClusterChain(struct BS_BPB* bs, uint32_t firstClusterOfChain) {
     int dirSizeInCluster = getFileSizeInClusters(bs, firstClusterOfChain);
-    if (DEBUG == true) printf("dir Size: %d\n", dirSizeInCluster);
+    if (DEBUG == true) eprintf("dir Size: %d\n", dirSizeInCluster);
     int currentCluster = firstClusterOfChain;
     int nextCluster;
     int clusterCount;
@@ -1129,26 +1130,26 @@ int showDriveDetails(struct BS_BPB* bs) {
 
     puts("\nBoot Sector Info:\n");
     if (DEBUG == true) {
-        printf("First jmpBoot value (must be 0xEB or 0xE9): 0x%x\n", bs->BS_jmpBoot[0]);
-        printf("OEM Name: %s\n", bs->BS_OEMName);
-        printf("Sectors occupied by one FAT: %d\n", bs->BPB_FATSz32);
-        printf("Number of  Root Dirs: %d\n", bs->BPB_RootEntCnt);
-        printf("Total Number of Sectors: %d\n", bs->BPB_TotSec32);
-        printf("Fat Type: %d\n\n", getFatType(bs));
-        printf("Data Sector size (kB): %d\n", (sectorsInDataRegion(bs) * 512) / 1024);
-        printf("Number of Reserved Sectors: %d\n", bs->BPB_RsvdSecCnt);
+        eprintf("First jmpBoot value (must be 0xEB or 0xE9): 0x%x\n", bs->BS_jmpBoot[0]);
+        eprintf("OEM Name: %s\n", bs->BS_OEMName);
+        eprintf("Sectors occupied by one FAT: %d\n", bs->BPB_FATSz32);
+        eprintf("Number of  Root Dirs: %d\n", bs->BPB_RootEntCnt);
+        eprintf("Total Number of Sectors: %d\n", bs->BPB_TotSec32);
+        eprintf("Fat Type: %d\n\n", getFatType(bs));
+        eprintf("Data Sector size (kB): %d\n", (sectorsInDataRegion(bs) * 512) / 1024);
+        eprintf("Number of Reserved Sectors: %d\n", bs->BPB_RsvdSecCnt);
         puts("More Info:\n");
-        printf("Number of Data sectors: %d\n", sectorsInDataRegion(bs));
-        printf("Root Dir 1st Cluster: %d\n", bs->BPB_RootClus);
-        printf("1st data sector: %d\n", firstDataSector(bs));
-        printf("1st Sector of the Root Dir: %d\n\n ", firstSectorofCluster(bs, bs->BPB_RootClus));
+        eprintf("Number of Data sectors: %d\n", sectorsInDataRegion(bs));
+        eprintf("Root Dir 1st Cluster: %d\n", bs->BPB_RootClus);
+        eprintf("1st data sector: %d\n", firstDataSector(bs));
+        eprintf("1st Sector of the Root Dir: %d\n\n ", firstSectorofCluster(bs, bs->BPB_RootClus));
     }
-    printf("Bytes Per Sector (block size):%d\n", bs->BPB_BytsPerSec);
-    printf("Sectors per Cluster: %d\n", bs->BPB_SecPerClus);
-    printf("Total clusters: %d\n", countOfClusters(bs));
-    printf("Number of FATs: %d\n", bs->BPB_NumFATs);
-    printf("Sectors occupied by one FAT: %d\nComputing Free Sectors.......\n", bs->BPB_FATSz32);
-    printf("Number of free sectors: %d\n", FAT_findTotalFreeCluster(bs));
+    eprintf("Bytes Per Sector (block size):%d\n", bs->BPB_BytsPerSec);
+    eprintf("Sectors per Cluster: %d\n", bs->BPB_SecPerClus);
+    eprintf("Total clusters: %d\n", countOfClusters(bs));
+    eprintf("Number of FATs: %d\n", bs->BPB_NumFATs);
+    eprintf("Sectors occupied by one FAT: %d\nComputing Free Sectors.......\n", bs->BPB_FATSz32);
+    eprintf("Number of free sectors: %d\n", FAT_findTotalFreeCluster(bs));
 
 
 
@@ -1221,7 +1222,7 @@ int rm(struct BS_BPB* bs, const char* searchName, uint32_t searchDirectoryCluste
                 offset -= 1;
                 continue;
             }
-            if (DEBUG == true) printf("\rm: offset->%d\n", offset);
+            if (DEBUG == true) eprintf("\rm: offset->%d\n", offset);
             readEntry(bs, &entry, currentCluster, offset);
 
             makeFileDecriptor(&entry, &fd);
@@ -1297,7 +1298,7 @@ int rmDir(struct BS_BPB* bs, const char* searchName, uint32_t searchDirectoryClu
     struct FILEDESCRIPTOR fd;
     uint32_t currentCluster = searchDirectoryCluster;
     int dirSizeInCluster = getFileSizeInClusters(bs, currentCluster);
-    if (DEBUG == true) printf("dir Size: %d\n", dirSizeInCluster);
+    if (DEBUG == true) eprintf("dir Size: %d\n", dirSizeInCluster);
     int clusterCount;
     int offset;
     int increment;
@@ -1325,7 +1326,7 @@ int rmDir(struct BS_BPB* bs, const char* searchName, uint32_t searchDirectoryClu
             }
 
             readEntry(bs, &entry, currentCluster, offset);
-            if (DEBUG == true) printf("\ncluster num: %d\n", searchDirectoryCluster);
+            if (DEBUG == true) eprintf("\ncluster num: %d\n", searchDirectoryCluster);
             makeFileDecriptor(&entry, &fd);
 
             if (strcmp(searchName, fd.fullFilename) == 0) {
@@ -1515,13 +1516,13 @@ int FWRITE_writeData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, con
     uint32_t posRelativeToCluster = pos % bs->BPB_BytsPerSec;
     uint32_t fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
     uint32_t remainingClustersToWalk = fileSizeInClusters - writeClusterOffset;
-    if (DEBUG == true)  printf("pos: %d, writeClusterOffset: %d, posRelativeToCluster: %d\n", pos, writeClusterOffset, posRelativeToCluster);
+    if (DEBUG == true)  eprintf("pos: %d, writeClusterOffset: %d, posRelativeToCluster: %d\n", pos, writeClusterOffset, posRelativeToCluster);
     uint32_t x;
     int dataIndex;
     //seek to the proper cluster offset from first cluster
     for (x = 0; x < writeClusterOffset; x++)
         currentCluster = FAT_getFatEntry(bs, currentCluster);
-    if (DEBUG == true)  printf("after seek currentCluster is: %d\n", currentCluster);
+    if (DEBUG == true)  eprintf("after seek currentCluster is: %d\n", currentCluster);
     //if here, we just start writing at the last cluster right after
     //the last writen byte
     dataIndex = 0;
@@ -1542,11 +1543,11 @@ int FWRITE_writeData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, con
             dataWriteLength = bs->BPB_BytsPerSec;
         else
             dataWriteLength = dataRemaining;
-        if (DEBUG == true)  printf("right before write: dataWriteLength:%d\n", dataWriteLength);
+        if (DEBUG == true)  eprintf("right before write: dataWriteLength:%d\n", dataWriteLength);
         //write data 1 character at a time
         for (fileWriteOffset = 0; fileWriteOffset < dataWriteLength; fileWriteOffset++) {
             fseek(f, startWritePos + fileWriteOffset, 0);
-            if (DEBUG == true) printf("writing: %c to (startWritePos->%d + fileWriteOffset->%d) = %d, dataWriteLength: %d, dataRemaining:%d\n", data[dataIndex], startWritePos, fileWriteOffset, (startWritePos + fileWriteOffset), dataWriteLength, dataRemaining);
+            if (DEBUG == true) eprintf("writing: %c to (startWritePos->%d + fileWriteOffset->%d) = %d, dataWriteLength: %d, dataRemaining:%d\n", data[dataIndex], startWritePos, fileWriteOffset, (startWritePos + fileWriteOffset), dataWriteLength, dataRemaining);
             char dataChar[1] = { data[dataIndex++] };
             fwrite(dataChar, 1, 1, f);
 
@@ -1559,7 +1560,7 @@ int FWRITE_writeData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, con
         }
 
         currentCluster = FAT_getFatEntry(bs, currentCluster);
-        if (DEBUG == true)  printf("Moving to cluster: %d", currentCluster);
+        if (DEBUG == true)  eprintf("Moving to cluster: %d", currentCluster);
     }
     fclose(f);
     return 0;
@@ -1577,7 +1578,7 @@ int FREAD_readData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, uint3
     uint32_t posRelativeToCluster = pos % bs->BPB_BytsPerSec;
     uint32_t fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
     uint32_t remainingClustersToWalk = fileSizeInClusters - readClusterOffset;
-    if (DEBUG == true)  printf("fread> pos: %d, readClusterOffset: %d, posRelativeToCluster: %d\n", pos, readClusterOffset, posRelativeToCluster);
+    if (DEBUG == true)  eprintf("fread> pos: %d, readClusterOffset: %d, posRelativeToCluster: %d\n", pos, readClusterOffset, posRelativeToCluster);
     uint32_t x;
     //seek to the proper cluster offset from first cluster
     for (x = 0; x < readClusterOffset; x++)
@@ -1602,14 +1603,14 @@ int FREAD_readData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, uint3
             dataReadLength = bs->BPB_BytsPerSec;
         else
             dataReadLength = dataRemaining;
-        if (DEBUG == true)  printf("fread> right before write: dataReadLength:%d\n", dataReadLength);
+        if (DEBUG == true)  eprintf("fread> right before write: dataReadLength:%d\n", dataReadLength);
         //write data 1 character at a time
         for (fileReadOffset = 0; fileReadOffset < dataReadLength && (pos + fileReadOffset) < fileSize; fileReadOffset++) {
             fseek(f, startReadPos + fileReadOffset, 0);
-            if (DEBUG == true)  printf("fread> (startReadPos->%d + fileReadOffset->%d) = %d, dataReadLength: %d, dataRemaining:%d\n", startReadPos, fileReadOffset, (startReadPos + fileReadOffset), dataReadLength, dataRemaining);
+            if (DEBUG == true)  eprintf("fread> (startReadPos->%d + fileReadOffset->%d) = %d, dataReadLength: %d, dataRemaining:%d\n", startReadPos, fileReadOffset, (startReadPos + fileReadOffset), dataReadLength, dataRemaining);
             char dataChar[1];
             fread(dataChar, 1, 1, f);
-            printf("%c", dataChar[0]);
+            eprintf("%c", dataChar[0]);
         }
 
         dataRemaining -= dataReadLength;
@@ -1619,7 +1620,7 @@ int FREAD_readData(struct BS_BPB* bs, uint32_t firstCluster, uint32_t pos, uint3
         }
 
         currentCluster = FAT_getFatEntry(bs, currentCluster);
-        if (DEBUG == true)  printf("fread> Moving to cluster: %d\n", currentCluster);
+        if (DEBUG == true)  eprintf("fread> Moving to cluster: %d\n", currentCluster);
     }
     fclose(f);
     return 0;
@@ -1702,7 +1703,7 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
         FAT_allocateClusterChain(bs, firstCluster);
 
         deconstructClusterAddress(&entry, firstCluster);
-        if (DEBUG == true)  printf("Retreiving Entry From Offset %d, First cluster allocated %d", offset, firstCluster);
+        if (DEBUG == true)  eprintf("Retreiving Entry From Offset %d, First cluster allocated %d", offset, firstCluster);
         environment.openFilesTbl[fileTblIndex].firstCluster = firstCluster;//set firstCluster
         environment.openFilesTbl[fileTblIndex].size = 0;                    // set size, althoug it's probaly set
         writeEntry(bs, &entry, environment.pwd_cluster, offset);
@@ -1714,8 +1715,8 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
     //get max chain size for walking the chain
     uint32_t fileSizeInClusters = getFileSizeInClusters(bs, firstCluster);
 
-    if (DEBUG == true)  printf("fwrite> data:%s, data length:%d, pos:%d, fileSize:%d, firstCluster:%d \n", data, dataSize, pos, fileSize, firstCluster);
-    if (DEBUG == true)  printf("fwrite> (pos + dataSize):%d,  \n", (pos + dataSize));
+    if (DEBUG == true)  eprintf("fwrite> data:%s, data length:%d, pos:%d, fileSize:%d, firstCluster:%d \n", data, dataSize, pos, fileSize, firstCluster);
+    if (DEBUG == true)  eprintf("fwrite> (pos + dataSize):%d,  \n", (pos + dataSize));
 
     if ((pos + dataSize) > fileSize) {
         //cluster size must grow
@@ -1731,7 +1732,7 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
 
         //grow the chain to new necessary size
         for (x = 0; x < additionalsectors; x++) {
-            if (DEBUG == true)  printf("\nExtending chain: %d\n", x);
+            if (DEBUG == true)  eprintf("\nExtending chain: %d\n", x);
             FAT_extendClusterChain(bs, firstCluster);
         }
 
@@ -1755,7 +1756,7 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
         }
 
         openBytesInLastSector = bs->BPB_BytsPerSec - usedBytesInLastSector;
-        if (DEBUG == true)  printf("totalSectors: %d,additionalsectors: %d,fileSizeInClusters: %d,paddingLength: %d, usedBytesInLastSector: %d,openBytesInLastSector: %d\n", totalSectors, additionalsectors, fileSizeInClusters, paddingLength, usedBytesInLastSector, openBytesInLastSector);
+        if (DEBUG == true)  eprintf("totalSectors: %d,additionalsectors: %d,fileSizeInClusters: %d,paddingLength: %d, usedBytesInLastSector: %d,openBytesInLastSector: %d\n", totalSectors, additionalsectors, fileSizeInClusters, paddingLength, usedBytesInLastSector, openBytesInLastSector);
         if (paddingLength > 0) {
             if (DEBUG == true)  puts("padding \n");
             //determine the cluster offset of the last cluster
@@ -1770,7 +1771,7 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
                 currentCluster = FAT_getFatEntry(bs, currentCluster);
 
             char padding[1] = { 0x20 };
-            if (DEBUG == true)  printf("paddingClusterOffset: %d, remainingClustersToWalk: %d,currentCluster: %d\n", paddingClusterOffset, remainingClustersToWalk, currentCluster);
+            if (DEBUG == true)  eprintf("paddingClusterOffset: %d, remainingClustersToWalk: %d,currentCluster: %d\n", paddingClusterOffset, remainingClustersToWalk, currentCluster);
             //determine where start writing padding
             for (x = 0; x < remainingClustersToWalk; x++) {
                 if (x == 0) {
@@ -1803,7 +1804,7 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
                     break;
                 }
                 currentCluster = FAT_getFatEntry(bs, currentCluster);
-                if (DEBUG == true)  printf("Moving tp cluster: %d", currentCluster);
+                if (DEBUG == true)  eprintf("Moving tp cluster: %d", currentCluster);
             }
         } //end padding if
 
@@ -1827,7 +1828,7 @@ int fWrite(struct BS_BPB* bs, const char* filename, const char* position, const 
             return 8;
         readEntry(bs, &entry, environment.pwd_cluster, offset);
         entry.fileSize = newSize;
-        if (DEBUG == true)  printf("Retreiving Entry From Offset %d, filesize is now %d", offset, entry.fileSize);
+        if (DEBUG == true)  eprintf("Retreiving Entry From Offset %d, filesize is now %d", offset, entry.fileSize);
         environment.openFilesTbl[fileTblIndex].size = newSize;
         writeEntry(bs, &entry, environment.pwd_cluster, offset);
     }
@@ -1922,7 +1923,8 @@ bool isPathName(const char* pathName, const char* delimiter) {
 * success code 0: filename is valid
 */
 
-int filterFilename(const char* argument, bool isTouchOrMkdir, bool isCdOrLs) {
+int filterFilename(const char* argument, bool isTouchOrMkdir, bool isCdOrLs) 
+{
     char filename[200];
     int invalid = 0;
     int periodCnt = 0;
@@ -1941,57 +1943,79 @@ int filterFilename(const char* argument, bool isTouchOrMkdir, bool isCdOrLs) {
     if (isCdOrLs == true && (strcmp(filename, ".") == 0 || strcmp(filename, "..") == 0))
         return 0;
 
-    for (x = 0; x < strlen(filename); x++) {
-        if (
-            ((filename[x] >= ALPHA_NUMBERS_LOWER_BOUND && filename[x] <= ALPHA_NUMBERS_UPPER_BOUND) ||
-                (filename[x] >= ALPHA_UPPERCASE_LOWER_BOUND && filename[x] <= ALPHA_UPPERCASE_UPPER_BOUND)) == false)
+    for (x = 0; x < strlen(filename); x++) 
+    {
+        if (((filename[x] >= ALPHA_NUMBERS_LOWER_BOUND && filename[x] <= ALPHA_NUMBERS_UPPER_BOUND) ||
+             (filename[x] >= ALPHA_UPPERCASE_LOWER_BOUND && filename[x] <= ALPHA_UPPERCASE_UPPER_BOUND)) == false)
         {
             invalid++;
-            if (filename[x] == PERIOD) {
+            if (filename[x] == PERIOD) 
+            {
                 periodCnt++;
                 periodFlag = true;
             }
         }
     }
 
-    if (invalid > 1) {//more than 1 invalid character
+    if (invalid > 1) 
+    {
+        //more than 1 invalid character
         return 1;
     }
     else
-        if (invalid == 1 && periodCnt == 0) {//invalid that's not a period
+    {
+        if (invalid == 1 && periodCnt == 0) 
+        {
+            //invalid that's not a period
             return 1;
         }
         else
-            if (invalid == 1 && periodCnt == 1) { // a single period
-
+        {
+            if (invalid == 1 && periodCnt == 1) 
+            { 
+                // a single period
                 tokenCount = tokenize(filename, tokens, ".");
 
-                if (tokenCount < 2) { //is filename or ext missing?
+                if (tokenCount < 2) 
+                { 
+                    //is filename or ext missing?
                     return 2;
                 }
 
-                if (strlen(tokens[0]) > 8) { //is filename > 8?
+                if (strlen(tokens[0]) > 8) 
+                {
+                    //is filename > 8?
                     return 3;
                 }
 
-                if (strlen(tokens[1]) > 3) { //is ext < 3
+                if (strlen(tokens[1]) > 3) 
+                { //is ext < 3
                     return 4;
                 }
                 return SUCCESS; //we've passed all check for filename with '.'
             }
             else
-                if (invalid == 0) { //there's no period
+            {
+                if (invalid == 0)
+                { //there's no period
                    //is filename > 8?
-                    if (strlen(filename) > 8) {
+                    if (strlen(filename) > 8) 
+                    {
                         return 3;
                     }
                     else
+                    {
                         return SUCCESS; //we've passed all check for filename with no extenion
+                    }
                 }
+
+                //AP - Should this be a failure?  Not finished.
+                return 1;
+            }
+        }
+    }
     //AP - This looks like it was not completed.
-    //AP - Should SUCCESS be returned?.
     //re-tokenize once we exit here
-    return SUCCESS;
 }
 
 
@@ -2006,19 +2030,19 @@ void printFilterError(const char* commandName, const char* filename, bool isDir,
 
     switch (exitCode) {
     case 1:
-        printf("\nERROR: \"%s\" not a valid %s name: only uppercase alphameric characters allowed\n", filename, fileType);
+        eprintf("\nERROR: \"%s\" not a valid %s name: only uppercase alphameric characters allowed\n", filename, fileType);
         break;
     case 2:
-        printf("\nERROR: %s failed on filename %s, name or extention not given", commandName, fileType);
+        eprintf("\nERROR: %s failed on filename %s, name or extention not given", commandName, fileType);
         break;
     case 3:
-        printf("\nERROR: %s failed, %s name \"%s\" longer than 8 characters", commandName, fileType, filename);
+        eprintf("\nERROR: %s failed, %s name \"%s\" longer than 8 characters", commandName, fileType, filename);
         break;
     case 4:
-        printf("\nERROR: %s failed, extention \"%s\" longer than 3 characters", commandName, filename);
+        eprintf("\nERROR: %s failed, extention \"%s\" longer than 3 characters", commandName, filename);
         break;
     case 5:
-        printf("\nERROR: %s failed, cannot \"%s\" using \"%s\" as a name", commandName, commandName, filename);
+        eprintf("\nERROR: %s failed, cannot \"%s\" using \"%s\" as a name", commandName, commandName, filename);
         break;
 
     }
@@ -2069,7 +2093,7 @@ bool handleAbsolutePaths(struct BS_BPB* bs, uint32_t* targetCluster, char* path,
         }
         else {
             strcpy(failFilename, paths[x]); // pass back to caller
-            if (DEBUG == true) printf("failed on %s\n", failFilename);
+            if (DEBUG == true) eprintf("failed on %s\n", failFilename);
             if (isCd == true)
                 isValidPath = false;
             else
@@ -2130,6 +2154,9 @@ void allocateFileTable() {
 int initEnvironment(const char* imageName, struct BS_BPB* boot_sector, bool isDebug) {
 
     DEBUG = isDebug;
+
+    memset(&environment, 0, sizeof(ENVIRONMENT));
+
     FILE* f = fopen(imageName, "r");
     if (f == NULL) {
         return 1;
@@ -2153,9 +2180,72 @@ int initEnvironment(const char* imageName, struct BS_BPB* boot_sector, bool isDe
 }
 
 void showPromptAndClearBuffer(char* buffer) {
-    printf("\n%s:%s> ", environment.imageName, environment.pwd);
+    eprintf("\n%s:%s> ", environment.imageName, environment.pwd);
     bzero(buffer, 100);
 }
+
+
+void ListDirectory(char* szPath, char* szImageName, BS_BPB* boot_sector)
+{
+    ;
+    FILEDESCRIPTOR searchFileInflator;
+    FILEDESCRIPTOR* searchFile = &searchFileInflator;
+    char successFilename[200];
+    char failFilename[200];
+    int exitCode;
+
+    if (szPath)
+    {
+        uint32_t currentCluster = environment.pwd_cluster;
+        if (isPathName(szPath, PATH_DELIMITER) == true && strcmp(szPath, ROOT) != 0)
+        {
+            //if abs/relative ath
+            if (handleAbsolutePaths(boot_sector, &currentCluster, szPath, successFilename, failFilename, false, false, false) == true)
+            {
+                if ((exitCode = filterFilename(successFilename, false, true)) != SUCCESS)
+                {
+                    printFilterError("ls", szPath, true, exitCode);
+                    eprintf("\n%s:%s> ", szImageName, environment.pwd);
+                    return;
+                }
+                ls(boot_sector, currentCluster, false, successFilename, false, searchFile, false, false);
+            }
+            else
+            {
+                eprintf("ERROR: : %s is not a valid directory", failFilename);
+            }
+        }
+        else if (strcmp(szPath, ROOT) != 0)
+        {
+            //looking down a single level
+            if ((exitCode = filterFilename(szPath, false, true)) != SUCCESS)
+            {
+                printFilterError("ls", szPath, true, exitCode);
+                eprintf("\n%s:%s> ", szImageName, environment.pwd);
+                return;
+            }
+
+            if (searchForFile(boot_sector, szPath, true, searchFile) == true)
+            {
+                ls(boot_sector, searchFile->firstCluster, false, szPath, false, searchFile, false, false);
+            }
+            else
+            {
+                eprintf("ERROR: : %s is not a valid directory", szPath);
+            }
+        }
+        else if (strcmp(szPath, ROOT) == 0)
+        {
+            ls(boot_sector, boot_sector->BPB_RootClus, false, ROOT, false, searchFile, false, false);
+        }
+    }
+    else
+    {
+        //no path was used
+        ls(boot_sector, environment.pwd_cluster, false, environment.pwd, false, searchFile, false, false);
+    }
+}
+
 
 int TestMain(char* szImageName, char* szDebugFlag)
 {
@@ -2188,14 +2278,17 @@ int TestMain(char* szImageName, char* szDebugFlag)
         exit(EXIT_FAILURE);
     }
 
-    if (initEnvironment(szImageName, &boot_sector, isDebug) == 1) {
-        printf("\nFATAL ERROR: image %s not found\n", environment.imageName);
+    if (initEnvironment(szImageName, &boot_sector, isDebug) == 1) 
+    {
+        eprintf("\nFATAL ERROR: image %s not found\n", environment.imageName);
         return 1;
     }
 
+    eprintf("%s:%s> ", szImageName, environment.pwd);
 
-    printf("%s:%s> ", szImageName, environment.pwd);
+    ListDirectory(NULL, szImageName, &boot_sector);
 
+    return 0;
     inputChar = 0;
     while (inputChar != EOF)
     {
@@ -2225,56 +2318,10 @@ int TestMain(char* szImageName, char* szDebugFlag)
                     break;
                 }
                 else
-
+                {
                     if (strcmp(my_argv[0], "ls") == 0) //LS COMMAND
                     {
-                        if (argC > 2) {
-                            puts("\nUsage: ls [<path>]\n");
-                            //if a path was used
-                        }
-                        else if (argC == 2) {
-                            uint32_t currentCluster = environment.pwd_cluster;
-                            if (isPathName(my_argv[1], PATH_DELIMITER) == true && strcmp(my_argv[1], ROOT) != 0) {
-                                //if abs/relative ath
-                                if (handleAbsolutePaths(&boot_sector, &currentCluster, my_argv[1], successFilename, failFilename, false, false, false) == true) {
-                                    if ((exitCode = filterFilename(successFilename, false, true)) != SUCCESS) {
-                                        printFilterError("ls", my_argv[1], true, exitCode);
-                                        printf("\n%s:%s> ", szImageName, environment.pwd);
-                                        bzero(inputBuffer, 100);
-                                        break;
-                                    }
-                                    ls(&boot_sector, currentCluster, false, successFilename, false, searchFile, false, false);
-                                }
-                                else
-                                    printf("ERROR: : %s is not a valid directory", failFilename);
-
-                            }
-                            else if (argC > 1 && strcmp(my_argv[1], ROOT) != 0) {
-                                //looking down a single level
-                                if ((exitCode = filterFilename(my_argv[1], false, true)) != SUCCESS) {
-                                    printFilterError("ls", my_argv[1], true, exitCode);
-                                    printf("\n%s:%s> ", szImageName, environment.pwd);
-                                    bzero(inputBuffer, 100);
-                                    break;
-                                }
-
-                                if (searchForFile(&boot_sector, my_argv[1], true, searchFile) == true)
-                                    ls(&boot_sector, searchFile->firstCluster, false, my_argv[1], false, searchFile, false, false);
-                                else
-                                    printf("ERROR: : %s is not a valid directory", my_argv[1]);
-                            }
-                            else if (argC > 1 && strcmp(my_argv[1], ROOT) == 0) {
-                                //ls /
-
-                                ls(&boot_sector, boot_sector.BPB_RootClus, false, ROOT, false, searchFile, false, false);
-                            }
-                        }
-                        else {
-                            //no path was used
-                            ls(&boot_sector, environment.pwd_cluster, false, environment.pwd, false, searchFile, false, false);
-                        }
-                        showPromptAndClearBuffer(inputBuffer);
-                        break;
+                        ListDirectory(my_argv[1], szImageName, &boot_sector);
                     }
                     else
 
@@ -2282,13 +2329,13 @@ int TestMain(char* szImageName, char* szDebugFlag)
                         {
                             if (argC > 1) {
                                 puts("\nUsage: info\n");
-                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                 bzero(inputBuffer, 100);
                                 break;
                             }
 
                             puts("Current Environment\n");
-                            if (DEBUG == true) printf("pwd: %s\npwd_cluster: %d\nio_writeCluster: %d\nlast_pwd: %s",
+                            if (DEBUG == true) eprintf("pwd: %s\npwd_cluster: %d\nio_writeCluster: %d\nlast_pwd: %s",
                                 environment.pwd, environment.pwd_cluster, environment.io_writeCluster, environment.last_pwd);
                             showDriveDetails(&boot_sector);
                             showPromptAndClearBuffer(inputBuffer);
@@ -2310,19 +2357,19 @@ int TestMain(char* szImageName, char* szDebugFlag)
 
                                     if (argC != 2) {
                                         puts("\nUsage: size <filename>\n");
-                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                         bzero(inputBuffer, 100);
                                         break;
                                     }
 
                                     if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                         printFilterError("size", my_argv[1], false, exitCode);
-                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                         bzero(inputBuffer, 100);
                                         break;
                                     }
                                     if (printFileOrDirectorySize(&boot_sector, my_argv[1], searchFile) == false)
-                                        printf("ERROR: %s not found\n", my_argv[1]);
+                                        eprintf("ERROR: %s not found\n", my_argv[1]);
                                     //searchOrPrintFileSize(&boot_sector, my_argv[1], false, false, searchFile);
                                     showPromptAndClearBuffer(inputBuffer);
                                     break;
@@ -2334,7 +2381,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                     {
                                         if (argC != 2) {
                                             puts("\nUsage: rm <filename | path>\n");
-                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                            eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                             bzero(inputBuffer, 100);
                                             break;
                                         }
@@ -2342,7 +2389,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                         if (isPathName(my_argv[1], PATH_DELIMITER) == false) {
                                             if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                                 printFilterError("rm", my_argv[1], false, exitCode);
-                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                 bzero(inputBuffer, 100);
                                                 break;
                                             }
@@ -2359,16 +2406,16 @@ int TestMain(char* szImageName, char* szDebugFlag)
 
                                         switch (returnCode) {
                                         case 0:
-                                            printf("rm Success: \"%s\" has been removed", my_argv[1]);
+                                            eprintf("rm Success: \"%s\" has been removed", my_argv[1]);
                                             break;
                                         case 1:
-                                            printf("ERROR: %s failed, \"%s\" is currently open", "rm", my_argv[1]);
+                                            eprintf("ERROR: %s failed, \"%s\" is currently open", "rm", my_argv[1]);
                                             break;
                                         case 2:
-                                            printf("ERROR: %s failed, \"%s\" is a directory", "rm", my_argv[1]);
+                                            eprintf("ERROR: %s failed, \"%s\" is a directory", "rm", my_argv[1]);
                                             break;
                                         case 3:
-                                            printf("ERROR: %s failed, \"%s\" not found", "rm", my_argv[1]);
+                                            eprintf("ERROR: %s failed, \"%s\" not found", "rm", my_argv[1]);
                                             break;
                                         }
 
@@ -2383,14 +2430,14 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                         {
                                             if (argC != 2) {
                                                 puts("\nUsage: rmdir <filename | path>\n");
-                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                 bzero(inputBuffer, 100);
                                                 break;
                                             }
                                             if (isPathName(my_argv[1], PATH_DELIMITER) == false) {
                                                 if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                                     printFilterError("rmdir", my_argv[1], true, exitCode);
-                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                    eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                     bzero(inputBuffer, 100);
                                                     break;
                                                 }
@@ -2408,16 +2455,16 @@ int TestMain(char* szImageName, char* szDebugFlag)
 
                                             switch (returnCode) {
                                             case 0:
-                                                printf("rm Success: \"%s\" has been removed\n", my_argv[1]);
+                                                eprintf("rm Success: \"%s\" has been removed\n", my_argv[1]);
                                                 break;
                                             case 1:
-                                                printf("ERROR: %s failed, \"%s\" not empty\n", "rmdir", my_argv[1]);
+                                                eprintf("ERROR: %s failed, \"%s\" not empty\n", "rmdir", my_argv[1]);
                                                 break;
                                             case 2:
-                                                printf("ERROR: %s failed, \"%s\" is not a directory\n", "rmdir", my_argv[1]);
+                                                eprintf("ERROR: %s failed, \"%s\" is not a directory\n", "rmdir", my_argv[1]);
                                                 break;
                                             case 3:
-                                                printf("ERROR: %s failed, \"%s\" not found\n", "rmdir", my_argv[1]);
+                                                eprintf("ERROR: %s failed, \"%s\" not found\n", "rmdir", my_argv[1]);
                                                 break;
                                             }
 
@@ -2431,7 +2478,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                             {
                                                 if (argC != 2) {
                                                     puts("\nUsage: cd <directory_name | path>\n");
-                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                    eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                     bzero(inputBuffer, 100);
                                                     break;
                                                 }
@@ -2439,13 +2486,13 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                 if (isPathName(my_argv[1], PATH_DELIMITER) == false) {
                                                     if ((exitCode = filterFilename(my_argv[1], false, true)) != SUCCESS) {
                                                         printFilterError("cd", my_argv[1], true, exitCode);
-                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                         bzero(inputBuffer, 100);
                                                         break;
                                                     }
                                                 }
 
-                                                //printf("my_argv[1]%s\n", my_argv[1]);
+                                                //eprintf("my_argv[1]%s\n", my_argv[1]);
                                                 if (strcmp(my_argv[1], SELF) == 0) // going to '.'
                                                     ;
                                                 else if (strcmp(my_argv[1], ROOT) == 0) {// going to '/'
@@ -2468,7 +2515,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                     if (isPathName(my_argv[1], PATH_DELIMITER) == true) {
                                                         uint32_t currentCluster = environment.pwd_cluster;
                                                         if (handleAbsolutePaths(&boot_sector, &currentCluster, my_argv[1], successFilename, failFilename, true, false, false) == false)
-                                                            printf("\nERROR: directory not found: %s\n", failFilename);
+                                                            eprintf("\nERROR: directory not found: %s\n", failFilename);
                                                     }
                                                     else if (cd(&boot_sector, my_argv[1], false, searchFile) == true) {
                                                         strcpy(environment.last_pwd, environment.pwd);
@@ -2476,9 +2523,9 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                     }
                                                     else {
                                                         if (cd(&boot_sector, PARENT, false, searchFile) == true)
-                                                            printf("\n ERROR: \"%s\" is a file:\n", my_argv[1]);
+                                                            eprintf("\n ERROR: \"%s\" is a file:\n", my_argv[1]);
                                                         else
-                                                            printf("\nERROR: directory not found: %s\n", my_argv[1]);
+                                                            eprintf("\nERROR: directory not found: %s\n", my_argv[1]);
                                                     }
                                                 }
                                                 showPromptAndClearBuffer(inputBuffer);
@@ -2506,8 +2553,8 @@ int TestMain(char* szImageName, char* szDebugFlag)
 
                                                     //if only "touch" is typed with no args
                                                     if (argC != 2) {
-                                                        printf("\nUsage: %s <[path to] %sname>\n", commandName, fileType);
-                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                        eprintf("\nUsage: %s <[path to] %sname>\n", commandName, fileType);
+                                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                         bzero(inputBuffer, 100);
                                                         break;
 
@@ -2517,12 +2564,12 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                     //if there's a path try to resolve it
                                                     if (isPathName(my_argv[1], PATH_DELIMITER) == true) {
                                                         if (handleAbsolutePaths(&boot_sector, &targetCluster, my_argv[1], successFilename, failFilename, false, true, false) == true) {
-                                                            if (DEBUG == true) printf("targetCluster: %d\n", targetCluster);
+                                                            if (DEBUG == true) eprintf("targetCluster: %d\n", targetCluster);
                                                             strcpy(my_argv[1], successFilename);
                                                         }
                                                         else {
-                                                            printf("ERROR: Directory not found: \"%s\"\n", failFilename);
-                                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                            eprintf("ERROR: Directory not found: \"%s\"\n", failFilename);
+                                                            eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                             bzero(inputBuffer, 100);
                                                             break;
                                                         }
@@ -2531,7 +2578,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                     //check if filename is valid
                                                     if ((exitCode = filterFilename(my_argv[1], true, false)) != SUCCESS) {
                                                         printFilterError(commandName, my_argv[1], isMkdir, exitCode);
-                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                         bzero(inputBuffer, 100);
                                                         break;
                                                     }
@@ -2543,7 +2590,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                     {   //check if filename exists (whether dir or file)
                                                         if (searchForFile(&boot_sector, fullFilename, isMkdir, searchFile) == true ||
                                                             searchForFile(&boot_sector, fullFilename, !isMkdir, searchFile) == true) {
-                                                            printf("ERROR: %s failed, \"%s\" already exists", commandName, fullFilename);
+                                                            eprintf("ERROR: %s failed, \"%s\" already exists", commandName, fullFilename);
                                                         }
                                                         else {
                                                             if (tokenCnt > 1)
@@ -2551,14 +2598,14 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                             else
                                                                 mkdir(&boot_sector, tokens[0], "", targetCluster);
 
-                                                            printf("%s \"%s\" created\n", fileType, my_argv[1]);
+                                                            eprintf("%s \"%s\" created\n", fileType, my_argv[1]);
                                                         }
                                                     }
                                                     else
                                                     {
                                                         if (searchForFile(&boot_sector, fullFilename, isMkdir, searchFile) == true ||
                                                             searchForFile(&boot_sector, fullFilename, !isMkdir, searchFile) == true) {
-                                                            printf("ERROR: %s failed, \"%s\" already exists", commandName, fullFilename);
+                                                            eprintf("ERROR: %s failed, \"%s\" already exists", commandName, fullFilename);
                                                         }
                                                         else {
                                                             if (tokenCnt > 1)
@@ -2566,7 +2613,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                             else
                                                                 touch(&boot_sector, tokens[0], "", targetCluster);
 
-                                                            printf("%s \"%s\" created\n", fileType, my_argv[1]);
+                                                            eprintf("%s \"%s\" created\n", fileType, my_argv[1]);
                                                         }
                                                     }
 
@@ -2583,40 +2630,40 @@ int TestMain(char* szImageName, char* szDebugFlag)
 
                                                         if (argC < 2) {
                                                             puts("\nUsage: fopen <filename> <r | w | x>\n");
-                                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                            eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                             bzero(inputBuffer, 100);
                                                             break;
                                                         }
 
                                                         if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                                             printFilterError("fopen", my_argv[1], false, exitCode);
-                                                            printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                            eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                             bzero(inputBuffer, 100);
                                                             break;
                                                         }
 
                                                         switch (fOpen(&boot_sector, argC, my_argv[1], my_argv[2], modeName)) {
                                                         case 0:
-                                                            printf("File \"%s\" opened for %s", my_argv[1], modeName);
+                                                            eprintf("File \"%s\" opened for %s", my_argv[1], modeName);
                                                             break;
                                                         case 1:
                                                             puts("\nUsage: fopen <filename> <r | w | x>\n");
                                                             break;
                                                         case 2:
-                                                            printf("ERROR: fopen failed, \"%s\" is a directory\n", my_argv[1]);
+                                                            eprintf("ERROR: fopen failed, \"%s\" is a directory\n", my_argv[1]);
                                                             break;
                                                         case 3:
-                                                            printf("ERROR: fopen failed, \"%s\" not found\n", my_argv[1]);
+                                                            eprintf("ERROR: fopen failed, \"%s\" not found\n", my_argv[1]);
                                                             break;
                                                         case 4:
-                                                            printf("ERROR: fopen failed, \"%s\" is already open\n", my_argv[1]);
+                                                            eprintf("ERROR: fopen failed, \"%s\" is already open\n", my_argv[1]);
                                                             break;
                                                         case 5:
-                                                            printf("ERROR: fopen failed, \"%s\" is not a valid option\n", my_argv[2]);
+                                                            eprintf("ERROR: fopen failed, \"%s\" is not a valid option\n", my_argv[2]);
                                                             puts("\nUsage: fopen <filename> <r | w | x>\n");
                                                             break;
                                                         case 6:
-                                                            printf("ERROR: fopen succeeded, but the filetable could not be updated \"%s\"\n", my_argv[1]);
+                                                            eprintf("ERROR: fopen succeeded, but the filetable could not be updated \"%s\"\n", my_argv[1]);
                                                             break;
                                                         }
 
@@ -2631,33 +2678,33 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                         {
                                                             if (argC != 2) {
                                                                 puts("\nUsage: fclose <filename>\n");
-                                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                                 bzero(inputBuffer, 100);
                                                                 break;
                                                             }
 
                                                             if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                                                 printFilterError("fclose", my_argv[1], false, exitCode);
-                                                                printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                                 bzero(inputBuffer, 100);
                                                                 break;
                                                             }
 
                                                             switch (fClose(&boot_sector, argC, my_argv[1])) {
                                                             case 0:
-                                                                printf("fclose success, \"%s\" has been closed\n", my_argv[1]);
+                                                                eprintf("fclose success, \"%s\" has been closed\n", my_argv[1]);
                                                                 break;
                                                             case 1:
                                                                 puts("\nUsage: fclose <filename>\n");
                                                                 break;
                                                             case 2:
-                                                                printf("ERROR: fclose failed, \"%s\" not found\n", my_argv[1]);
+                                                                eprintf("ERROR: fclose failed, \"%s\" not found\n", my_argv[1]);
                                                                 break;
                                                             case 3:
-                                                                printf("ERROR: fclose failed, \"%s\" has never been opened\n", my_argv[1]);
+                                                                eprintf("ERROR: fclose failed, \"%s\" has never been opened\n", my_argv[1]);
                                                                 break;
                                                             case 4:
-                                                                printf("ERROR: fclose failed, \"%s\" is currently closed\n", my_argv[1]);
+                                                                eprintf("ERROR: fclose failed, \"%s\" is currently closed\n", my_argv[1]);
                                                                 break;
                                                             }
                                                             showPromptAndClearBuffer(inputBuffer);
@@ -2673,14 +2720,14 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                 int lastByte;
                                                                 if (argC < 4) {
                                                                     puts("\nUsage: fwrite <filename> <position> <data>\n");
-                                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                    eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                                     bzero(inputBuffer, 100);
                                                                     break;
                                                                 }
 
                                                                 if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                                                     printFilterError("fwrite", my_argv[1], false, exitCode);
-                                                                    printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                    eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                                     bzero(inputBuffer, 100);
                                                                     break;
                                                                 }
@@ -2697,7 +2744,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                 data[dataSize] = '\0';
 
 
-                                                                if (DEBUG == true) printf("inputBuffer: %s, startdata: %d, totalLen: %d, dataSize: %d, data: %s", inputBuffer2, startData, totalLen, dataSize, data);
+                                                                if (DEBUG == true) eprintf("inputBuffer: %s, startdata: %d, totalLen: %d, dataSize: %d, data: %s", inputBuffer2, startData, totalLen, dataSize, data);
                                                                 /* success code: 0 if fwrite succeeded
                                                                  * error code 1: filename is a directory
                                                                  * error code 2: filename was never opened
@@ -2710,31 +2757,31 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                 case 0:
                                                                     firstByte = atoi(my_argv[2]);
                                                                     lastByte = firstByte + strlen(data);
-                                                                    printf("fwrite success, wrote \"%s\" to bytes %d-%d of \"%s\"\n", data, firstByte, lastByte, my_argv[1]);
+                                                                    eprintf("fwrite success, wrote \"%s\" to bytes %d-%d of \"%s\"\n", data, firstByte, lastByte, my_argv[1]);
                                                                     break;
                                                                 case 1:
-                                                                    printf("ERROR: fwrite failed, \"%s\" is a directory\n", my_argv[1]);;
+                                                                    eprintf("ERROR: fwrite failed, \"%s\" is a directory\n", my_argv[1]);;
                                                                     break;
                                                                 case 2:
-                                                                    printf("ERROR: fwrite failed, \"%s\" has never been opened\n", my_argv[1]);
+                                                                    eprintf("ERROR: fwrite failed, \"%s\" has never been opened\n", my_argv[1]);
                                                                     break;
                                                                 case 3:
-                                                                    printf("ERROR: fwrite failed, \"%s\" is not open\n", my_argv[1]);
+                                                                    eprintf("ERROR: fwrite failed, \"%s\" is not open\n", my_argv[1]);
                                                                     break;
                                                                 case 4:
-                                                                    printf("ERROR: fwrite failed on \"%s\" no data to be written\n", my_argv[1]);
+                                                                    eprintf("ERROR: fwrite failed on \"%s\" no data to be written\n", my_argv[1]);
                                                                     break;
                                                                 case 5:
-                                                                    printf("\nERROR: fwrite failed, \"%s\" is not open for writing \n", my_argv[1]);
+                                                                    eprintf("\nERROR: fwrite failed, \"%s\" is not open for writing \n", my_argv[1]);
                                                                     break;
                                                                 case 6:
-                                                                    printf("\nERROR: fwrite failed, \"%s\" does not exist in pwd \n", my_argv[1]);
+                                                                    eprintf("\nERROR: fwrite failed, \"%s\" does not exist in pwd \n", my_argv[1]);
                                                                     break;
                                                                 case 7:
-                                                                    printf("\nERROR: fwrite failed, \"%s\" could not be allocated space \n", my_argv[1]);
+                                                                    eprintf("\nERROR: fwrite failed, \"%s\" could not be allocated space \n", my_argv[1]);
                                                                     break;
                                                                 case 8:
-                                                                    printf("\nERROR: fwrite succeeded, but the file size of \"%s\" was not updated \n", my_argv[1]);
+                                                                    eprintf("\nERROR: fwrite succeeded, but the file size of \"%s\" was not updated \n", my_argv[1]);
                                                                     break;
                                                                 }
                                                                 showPromptAndClearBuffer(inputBuffer);
@@ -2749,14 +2796,14 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                 {
                                                                     if (argC < 4) {
                                                                         puts("\nUsage: fread <filename> <position> <number of bytes>\n");
-                                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                                         bzero(inputBuffer, 100);
                                                                         break;
                                                                     }
 
                                                                     if ((exitCode = filterFilename(my_argv[1], false, false)) != SUCCESS) {
                                                                         printFilterError("fread", my_argv[1], false, exitCode);
-                                                                        printf("\n%s:%s> ", szImageName, environment.pwd);
+                                                                        eprintf("\n%s:%s> ", szImageName, environment.pwd);
                                                                         bzero(inputBuffer, 100);
                                                                         break;
                                                                     }
@@ -2777,25 +2824,25 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                         numBytes = atoi(my_argv[3]); //if file is smaller, only report
                                                                         if (numBytes >= actualBytesRead)//we read the filesize bytes
                                                                             numBytes = actualBytesRead;
-                                                                        printf("\nfread success, read %d bytes from \"%s\"\n", numBytes, my_argv[1]);
+                                                                        eprintf("\nfread success, read %d bytes from \"%s\"\n", numBytes, my_argv[1]);
                                                                         break;
                                                                     case 1:
-                                                                        printf("ERROR: fread failed, \"%s\" is a directory\n", my_argv[1]);;
+                                                                        eprintf("ERROR: fread failed, \"%s\" is a directory\n", my_argv[1]);;
                                                                         break;
                                                                     case 2:
-                                                                        printf("ERROR: fread failed, \"%s\" has never been opened\n", my_argv[1]);
+                                                                        eprintf("ERROR: fread failed, \"%s\" has never been opened\n", my_argv[1]);
                                                                         break;
                                                                     case 3:
-                                                                        printf("ERROR: fread failed, \"%s\" is not open\n", my_argv[1]);
+                                                                        eprintf("ERROR: fread failed, \"%s\" is not open\n", my_argv[1]);
                                                                         break;
                                                                     case 4:
-                                                                        printf("ERROR: fread failed on \"%s\" position > filesize\n", my_argv[1]);
+                                                                        eprintf("ERROR: fread failed on \"%s\" position > filesize\n", my_argv[1]);
                                                                         break;
                                                                     case 5:
-                                                                        printf("\nERROR: fread failed, \"%s\" is not open for reading \n", my_argv[1]);
+                                                                        eprintf("\nERROR: fread failed, \"%s\" is not open for reading \n", my_argv[1]);
                                                                         break;
                                                                     case 6:
-                                                                        printf("\nERROR: fread failed, \"%s\" does not exist in pwd \n", my_argv[1]);
+                                                                        eprintf("\nERROR: fread failed, \"%s\" does not exist in pwd \n", my_argv[1]);
                                                                         break;
                                                                     }
                                                                     showPromptAndClearBuffer(inputBuffer);
@@ -2810,7 +2857,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                         if ((result = FAT_findNextOpenEntry(&boot_sector, environment.pwd_cluster)) == -1)
                                                                             puts("This cluster is currently full\n");
                                                                         else
-                                                                            printf("Entry %d is free in %s\n", result, environment.pwd);
+                                                                            eprintf("Entry %d is free in %s\n", result, environment.pwd);
                                                                         showPromptAndClearBuffer(inputBuffer);
                                                                         break;
                                                                     }
@@ -2822,7 +2869,7 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                             *
                                                                             * */
                                                                             if (argC == 2)
-                                                                                printf("%d afterreturn %08x\n", getLastClusterInChain(&boot_sector, atoi(my_argv[1])), getLastClusterInChain(&boot_sector, atoi(my_argv[1])));
+                                                                                eprintf("%d afterreturn %08x\n", getLastClusterInChain(&boot_sector, atoi(my_argv[1])), getLastClusterInChain(&boot_sector, atoi(my_argv[1])));
                                                                             showPromptAndClearBuffer(inputBuffer);
                                                                             break;
                                                                         }
@@ -2840,11 +2887,12 @@ int TestMain(char* szImageName, char* szDebugFlag)
                                                                             }
                                                                             else {
 
-                                                                                printf("Command: \"%s\" Not Recognized\n", my_argv[0]);
+                                                                                eprintf("Command: \"%s\" Not Recognized\n", my_argv[0]);
                                                                                 showPromptAndClearBuffer(inputBuffer);
                                                                                 break;
 
                                                                             }
+                }
             } // END INPUT BLOCK
 
          //if there isn't a '\n' in the buffer load up inputBuffer with
