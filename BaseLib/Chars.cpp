@@ -1875,23 +1875,9 @@ void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewInd
 BOOL CChars::IsWhiteSpace(int iPos, BOOL bIncludeNewLines)
 {
 	char	c;
+
 	c = GetChar(iPos);
-	if (bIncludeNewLines)
-	{
-		if ((c == ' ') || (c == '\t') || (c == '\n') || (c == '\r'))
-		{
-			return TRUE;
-		}
-		return FALSE;
-	}
-	else
-	{
-		if ((c == ' ') || (c == '\t'))
-		{
-			return TRUE;
-		}
-		return FALSE;
-	}
+	return ::IsWhiteSpace(c, bIncludeNewLines);
 }
 
 

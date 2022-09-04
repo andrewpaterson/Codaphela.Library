@@ -516,9 +516,6 @@
     <ClCompile Include="Fat32.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
-    <ClCompile Include="Fat32Debug.cpp">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClCompile>
     <ClCompile Include="FileDrive.cpp">
       <Filter>Source\FileSystem\Underlying</Filter>
     </ClCompile>
@@ -869,13 +866,7 @@
     <ClInclude Include="CharEncoding.h">
       <Filter>Source\Text\XML</Filter>
     </ClInclude>
-    <ClInclude Include="Fat32Debug.h">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClInclude>
     <ClInclude Include="Fat32.h">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="Fat32Common.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
     <ClInclude Include="FileDrive.h">

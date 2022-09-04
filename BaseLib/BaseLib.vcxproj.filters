@@ -1023,6 +1023,12 @@
     <ClInclude Include="ArrayTemplateEmbeddedPtr.h">
       <Filter>Source\Data\Array\Embedded</Filter>
     </ClInclude>
+    <ClInclude Include="RedirectPrintf.h">
+      <Filter>Source\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="CharHelper.h">
+      <Filter>Source\Math\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1615,6 +1621,12 @@
     </ClCompile>
     <ClCompile Include="TextPosition.cpp">
       <Filter>Source\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="RedirectPrintf.cpp">
+      <Filter>Source\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="CharHelper.cpp">
+      <Filter>Source\Math\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

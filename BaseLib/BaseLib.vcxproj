@@ -183,6 +183,7 @@
     <ClInclude Include="ArrayTemplateEmbeddedPtr.h" />
     <ClInclude Include="ArrayTemplatePtr.h" />
     <ClInclude Include="BubbleSort.h" />
+    <ClInclude Include="CharHelper.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="DataIO.h" />
     <ClInclude Include="DataOrderers.h" />
@@ -198,6 +199,7 @@
     <ClInclude Include="ExternalString.h" />
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="RedirectPrintf.h" />
     <ClInclude Include="IndexLongString.h" />
     <ClInclude Include="IndexPrimitiveTemplate.h" />
     <ClInclude Include="IndexMapAccess.h" />
@@ -437,6 +439,7 @@
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
     <ClCompile Include="BubbleSort.cpp" />
+    <ClCompile Include="CharHelper.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="DataCallback.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
@@ -536,6 +539,7 @@
     <ClCompile Include="PackFileIterator.cpp" />
     <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="QuickSort.cpp" />
+    <ClCompile Include="RedirectPrintf.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="DebugOutputFile.cpp" />
     <ClCompile Include="StdRandom.cpp" />
