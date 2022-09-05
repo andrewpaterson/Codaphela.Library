@@ -5,9 +5,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileDrive::Init(void)
+void CFileDrive::Init(uint32 uiSectorSize)
 {
 	muiMaxSector = 0;
+	muiSectorSize = uiSectorSize;
 }
 
 
@@ -15,9 +16,9 @@ void CFileDrive::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFileDrive::Read(uint64 uiSector, void* pvData)
+uint64 CFileDrive::GetTotalSectors(void)
 {
-	return Read(uiSector, (SDriveSector*)pvData);
+	return muiMaxSector - 1;
 }
 
 
@@ -25,9 +26,18 @@ bool CFileDrive::Read(uint64 uiSector, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFileDrive::Write(uint64 uiSector, void* pvData)
+uint32 CFileDrive::GetSectorSize(void)
 {
-	return Write(uiSector, (SDriveSector*)pvData);
+	return muiSectorSize;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFileDrive::GetPageSize(void)
+{
+	return 1;  //The page size is represented as multiples of sectors.
+}
 
