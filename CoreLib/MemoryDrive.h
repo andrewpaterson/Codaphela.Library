@@ -6,14 +6,17 @@
 class CMemoryDrive : public CFileDrive
 {
 protected:
-	SDriveSector*	mpasSectors;
+	void*	mpvData;
 
 public:
-	bool	Init(size_t uiSizeInBytes);
+	bool	Init(size_t uiSizeInBytes, uint32 uiSectorSize);
 	void	Kill(void);
 
-	bool	Read(uint64 uiSector, SDriveSector* psSector);
-	bool	Write(uint64 uiSector, SDriveSector* psSector);
+	bool	Read(uint64 uiSector, void* pvData);
+	bool	Write(uint64 uiSector, void* pvData);
+	bool    Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive);
+
+	void*	GetMemory(void);
 };
 
 

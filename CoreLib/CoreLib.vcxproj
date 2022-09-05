@@ -183,7 +183,9 @@
     <ClCompile Include="CharEncoding.cpp" />
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
-    <ClCompile Include="Fat32.cpp" />
+    <ClCompile Include="Fat.cpp" />
+    <ClCompile Include="FatCluster.cpp" />
+    <ClCompile Include="FatFormat.cpp" />
     <ClCompile Include="FileDrive.cpp" />
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
@@ -293,7 +295,9 @@
     <ClInclude Include="Codabase.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
-    <ClInclude Include="Fat32.h" />
+    <ClInclude Include="Fat.h" />
+    <ClInclude Include="FatCommon.h" />
+    <ClInclude Include="FatInternals.h" />
     <ClInclude Include="FileDrive.h" />
     <ClInclude Include="IndexedDataEvictionCallback.h" />
     <ClInclude Include="IndexedDataEvictionCounter.h" />

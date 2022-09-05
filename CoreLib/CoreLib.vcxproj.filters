@@ -513,14 +513,20 @@
     <ClCompile Include="CharEncoding.cpp">
       <Filter>Source\Text\XML</Filter>
     </ClCompile>
-    <ClCompile Include="Fat32.cpp">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClCompile>
     <ClCompile Include="FileDrive.cpp">
       <Filter>Source\FileSystem\Underlying</Filter>
     </ClCompile>
     <ClCompile Include="MemoryDrive.cpp">
       <Filter>Source\FileSystem\Underlying</Filter>
+    </ClCompile>
+    <ClCompile Include="Fat.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="FatCluster.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="FatFormat.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -866,14 +872,20 @@
     <ClInclude Include="CharEncoding.h">
       <Filter>Source\Text\XML</Filter>
     </ClInclude>
-    <ClInclude Include="Fat32.h">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClInclude>
     <ClInclude Include="FileDrive.h">
       <Filter>Source\FileSystem\Underlying</Filter>
     </ClInclude>
     <ClInclude Include="MemoryDrive.h">
       <Filter>Source\FileSystem\Underlying</Filter>
+    </ClInclude>
+    <ClInclude Include="Fat.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FatInternals.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FatCommon.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

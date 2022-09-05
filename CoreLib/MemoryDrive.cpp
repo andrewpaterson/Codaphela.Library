@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include "BaseLib/PointerFunctions.h"
+#include "BaseLib/PointerRemapper.h"
 #include "MemoryDrive.h"
 
 
@@ -7,26 +9,26 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryDrive::Init(size_t uiSizeInBytes)
+bool CMemoryDrive::Init(size_t uiSizeInBytes, uint32 uiSectorSize)
 {
-	uint64	uiSectorCount;
+	size_t	uiSectorCount;
 	uint64	uiSectorRemainder;
 
-	CFileDrive::Init();
+	CFileDrive::Init(uiSectorSize);
 
-	uiSectorCount = uiSizeInBytes / DRIVE_SECTOR_SIZE;
-	uiSectorRemainder = uiSizeInBytes % DRIVE_SECTOR_SIZE;
-	mpasSectors = NULL;
+	uiSectorCount = uiSizeInBytes / uiSectorSize;
+	uiSectorRemainder = uiSizeInBytes % uiSectorSize;
+	mpvData = NULL;
 
 	if (uiSectorRemainder != 0)
 	{
-		return false;
+		uiSectorCount++;
 	}
 
-	mpasSectors = (SDriveSector*)malloc(uiSizeInBytes);
-	if (mpasSectors)
+	mpvData = malloc(uiSectorCount * muiSectorSize);
+	if (mpvData)
 	{
-		memset(mpasSectors, 0, uiSizeInBytes);
+		memset(mpvData, 0, uiSectorCount * muiSectorSize);
 		muiMaxSector = uiSectorCount;
 		return true;
 	}
@@ -43,11 +45,7 @@ bool CMemoryDrive::Init(size_t uiSizeInBytes)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryDrive::Kill(void)
 {
-	if (mpasSectors)
-	{
-		free(mpasSectors);
-		mpasSectors = NULL;
-	}
+	SafeFree(mpvData);
 }
 
 
@@ -55,11 +53,11 @@ void CMemoryDrive::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryDrive::Read(uint64 uiSector, SDriveSector* psSector)
+bool CMemoryDrive::Read(uint64 uiSector, void* pvData)
 {
 	if (uiSector < muiMaxSector)
 	{
-		memcpy(psSector, &mpasSectors[uiSector], sizeof(SDriveSector));
+		memcpy(pvData, RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), muiSectorSize);
 		return true;
 	}
 	else
@@ -73,16 +71,44 @@ bool CMemoryDrive::Read(uint64 uiSector, SDriveSector* psSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryDrive::Write(uint64 uiSector, SDriveSector* psSector)
+bool CMemoryDrive::Write(uint64 uiSector, void* pvData)
 {
 	if (uiSector < muiMaxSector)
 	{
-		memcpy(&mpasSectors[uiSector], psSector, sizeof(SDriveSector));
+		memcpy(RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), pvData, muiSectorSize);
 		return true;
 	}
 	else
 	{
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMemoryDrive::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
+{
+	if ((uiStartSector < muiMaxSector) && (uiStopSectorInclusive < muiMaxSector) && (uiStartSector >= uiStartSector))
+	{
+		memset(RemapSinglePointer(mpvData, (ptrdiff_t)(uiStartSector* muiSectorSize)), 0, (size_t)(((uiStopSectorInclusive - uiStartSector) + 1)* muiSectorSize));
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryDrive::GetMemory(void)
+{
+	return mpvData;
 }
 
