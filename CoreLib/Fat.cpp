@@ -324,7 +324,7 @@ retry:
 
 		FAT_QUERY_STATE_INTERNAL query;
 		query.buffer = buffer;
-		if (fat_query_first_entry(volume, 0, FAT_ATTR_VOLUME_ID, (FAT_QUERY_STATE*)&query, 1) == FAT_SUCCESS)
+		if (fat_query_first_entry(volume, 0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
 		{
 			if (*query.current_entry_raw->ENTRY.sFatRawCommon.name != 0)
 			{
@@ -818,7 +818,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	uint8* pLevel;
 	SFatRawDirectoryEntry* current_entry;
 	FAT_QUERY_STATE_INTERNAL query;
-	/* FAT_QUERY_STATE query; */
+	/* SFatQueryState query; */
 
 	char using_lfn;
 	/* char using_lfn_and_short; */
@@ -935,7 +935,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 		/*
 		// try to find the first entry
 		*/
-		uiResult = fat_query_first_entry(volume, current_entry, 0, (FAT_QUERY_STATE*)&query, 1);
+		uiResult = fat_query_first_entry(volume, current_entry, 0, (SFatQueryState*)&query, 1);
 		/*
 		// if we could not find the entry then
 		// return an error code
@@ -994,7 +994,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 			/*
 			//  try to get the next file
 			*/
-			uiResult = fat_query_next_entry(volume, (FAT_QUERY_STATE*)&query, 1, 0);
+			uiResult = fat_query_next_entry(volume, (SFatQueryState*)&query, 1, 0);
 			/*
 			// if we received an error message then return
 			// it to the calling function
@@ -1086,7 +1086,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 // initializes a query of a set of directory
 // entries
 */
-uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, FAT_QUERY_STATE* query, char buffer_locked)
+uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
 {
 	bool	bSuccess;
 	uint32	first_sector;
@@ -1193,7 +1193,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 /*
 // moves a query to the next entry
 */
-uint16 fat_query_next_entry(SFatVolume* volume, FAT_QUERY_STATE* query, char buffer_locked, char first_entry)
+uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry)
 {
 	char	pass;
 	bool	bSuccess;
@@ -1565,7 +1565,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 	*/
 	if (uiResult == FAT_LFN_GENERATED)
 	{
-		FAT_QUERY_STATE query;
+		SFatQueryState query;
 		uint16 name_suffix = 0;
 		char is_valid_entry;
 		char name_suffix_str[6];

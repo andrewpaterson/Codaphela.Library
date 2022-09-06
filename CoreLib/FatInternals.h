@@ -97,7 +97,7 @@ typedef uint32 FAT_ENTRY;
 */
 typedef struct _FILESYSTEM_QUERY_INNER {
 	SFatDirectoryEntry current_entry;
-	FAT_QUERY_STATE state;
+	SFatQueryState state;
 }
 FAT_FILESYSTEM_QUERY_INNER;
 
@@ -242,8 +242,8 @@ char fat_is_eof_entry(SFatVolume* volume, FAT_ENTRY fat);
 uint8 fat_long_entry_checksum(uint8* filename);
 uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
 uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result);
-uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, FAT_QUERY_STATE* query, char buffer_locked);
-uint16 fat_query_next_entry(SFatVolume* volume, FAT_QUERY_STATE* query, char buffer_locked, char first_entry);
+uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
+uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
 uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT_FILE* handle, uint8 access_flags);
 uint16 fat_file_read_internal(FAT_FILE* handle, unsigned char* buff, uint32 length, uint32* bytes_read, uint16* state, FAT_ASYNC_CALLBACK* callback, void* callback_context);
 void fat_file_read_callback(FAT_FILE* handle, uint16* async_state);

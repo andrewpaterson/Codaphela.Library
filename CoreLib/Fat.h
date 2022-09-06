@@ -305,15 +305,15 @@ struct SFatDirectoryEntry
 /*
 // Holds the internal state of a directory query.
 */
-struct FAT_QUERY_STATE
+struct SFatQueryState
 {
 	uint8						Attributes;
 	uint16						current_sector;
 	uint32						current_cluster;
-	SFatRawDirectoryEntry*	current_entry_raw;
+	SFatRawDirectoryEntry*		current_entry_raw;
 	uint8*						buffer;
 
-	SFatRawDirectoryEntry*	first_entry_raw;
+	SFatRawDirectoryEntry*		first_entry_raw;
 	/*
 	// LFN support members
 	*/
@@ -393,7 +393,7 @@ typedef struct FAT_FILE
 typedef struct FILESYSTEM_QUERY
 {
 	SFatDirectoryEntry current_entry;
-	FAT_QUERY_STATE state;
+	SFatQueryState state;
 }
 FAT_FILESYSTEM_QUERY;
 
