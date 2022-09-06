@@ -57,10 +57,10 @@
  /*
  // prototypes for static functions
  */
-static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 count, char zero, uint32 page_size, uint16* result);
-static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 cluster, uint8* buffer);
-static uint16 fat_zero_cluster(FAT_VOLUME* volume, uint32 cluster, uint8* buffer);
-static bool fat_write_fat_sector(FAT_VOLUME * volume, uint32 sector_address, uint8 * buffer);
+static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result);
+static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer);
+static uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer);
+static bool fat_write_fat_sector(SFatVolume * volume, uint32 sector_address, uint8 * buffer);
 
 
 // allocates a cluster for a directory - finds a free cluster, initializes it as
@@ -68,7 +68,7 @@ static bool fat_write_fat_sector(FAT_VOLUME * volume, uint32 sector_address, uin
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-uint32 fat_allocate_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint16* result)
+uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result)
 {
 	return fat_allocate_cluster(volume, parent, 1, 1, 1, result);
 }
@@ -80,14 +80,14 @@ uint32 fat_allocate_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTR
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-uint32 fat_allocate_data_cluster(FAT_VOLUME* volume, uint32 count, char zero, uint16* result)
+uint32 fat_allocate_data_cluster(SFatVolume* volume, uint32 count, char zero, uint16* result)
 {
 	return fat_allocate_cluster(volume, 0, count, zero, 1, result);
 }
 
 
 #if defined(FAT_OPTIMIZE_FOR_FLASH)
-uint32 fat_allocate_data_cluster_ex(FAT_VOLUME* volume, uint32 count, char zero, uint32 page_size, uint16* result)
+uint32 fat_allocate_data_cluster_ex(SFatVolume* volume, uint32 count, char zero, uint32 page_size, uint16* result)
 {
 	return fat_allocate_cluster(volume, 0, count, zero, page_size, result);
 }
@@ -120,7 +120,7 @@ static uint32 fat_gcd(uint32 a, uint32 b)
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 count, char zero, uint32 page_size, uint16* result)
+static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result)
 {
 	bool		bSuccess;
 	uint32		entry_sector;			/* the address of the cached sector */
@@ -336,8 +336,8 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 					// it as we're already returning an error code so we can only
 					// hope that the clusters get freed.
 					*/
-					uint16 ret;
-					ret = fat_free_cluster_chain(volume, last_fat_entry);
+					uint16 uiResult;
+					uiResult = fat_free_cluster_chain(volume, last_fat_entry);
 				}
 				/*
 				// return insufficient disk space error
@@ -949,14 +949,14 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 					*/
 					if (parent)
 					{
-						uint16 ret;
-						ret = fat_initialize_directory_cluster(volume, parent, cluster, buffer);
-						if (ret != FAT_SUCCESS)
+						uint16 uiResult;
+						uiResult = fat_initialize_directory_cluster(volume, parent, cluster, buffer);
+						if (uiResult != FAT_SUCCESS)
 						{
 							FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
 							FAT_UNLOCK_BUFFER();
 							FAT_RELINQUISH_WRITE_ACCESS();
-							*result = ret;
+							*result = uiResult;
 							return 0;
 						}
 					}
@@ -964,14 +964,14 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 					{
 						if (zero)
 						{
-							uint16 ret;
-							ret = fat_zero_cluster(volume, cluster, buffer);
-							if (ret != FAT_SUCCESS)
+							uint16 uiResult;
+							uiResult = fat_zero_cluster(volume, cluster, buffer);
+							if (uiResult != FAT_SUCCESS)
 							{
 								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
-								*result = ret;
+								*result = uiResult;
 								return 0;
 							}
 						}
@@ -1035,7 +1035,7 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 
 
 // marks all the clusters in the cluster chain as free
-uint16 fat_free_cluster_chain(FAT_VOLUME* volume, uint32 cluster)
+uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;		/* the offset of the cluster entry within the FAT table */
@@ -1293,7 +1293,7 @@ uint16 fat_free_cluster_chain(FAT_VOLUME* volume, uint32 cluster)
 /*
 // gets the FAT structure for a given cluster number
 */
-uint16 fat_get_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY* fat_entry)
+uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;	/* todo: this one may require 64 bits for large drives? */
@@ -1432,7 +1432,7 @@ uint16 fat_get_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY* fat_
 
 
 // updates the FAT entry for a given cluster
-uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_entry)
+uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1586,7 +1586,7 @@ uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_e
 // increase a cluster address by the amount of clusters indicated by count. This function will
 // follow the FAT entry chain to fat the count-th cluster allocated to a file relative from the
 // current_cluster cluster
-char fat_increase_cluster_address(FAT_VOLUME* volume, uint32 cluster, uint16 count, uint32* value)
+char fat_increase_cluster_address(SFatVolume* volume, uint32 cluster, uint16 count, uint32* value)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1774,7 +1774,7 @@ char fat_increase_cluster_address(FAT_VOLUME* volume, uint32 cluster, uint16 cou
 // checks if a fat entry represents the
 // last entry of a file
 */
-char fat_is_eof_entry(FAT_VOLUME* volume, FAT_ENTRY fat)
+char fat_is_eof_entry(SFatVolume* volume, FAT_ENTRY fat)
 {
 	switch (volume->fs_type)
 	{
@@ -1788,18 +1788,18 @@ char fat_is_eof_entry(FAT_VOLUME* volume, FAT_ENTRY fat)
 
 
 // initializes a directory cluster
-static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 cluster, uint8* buffer)
+static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer)
 {
 	bool						bSuccess;
 	uint16						counter;
 	uint32						current_sector;
-	FAT_RAW_DIRECTORY_ENTRY*	entries;
+	SFatRawDirectoryEntry*	entries;
 	/*
 	// if this is a big endian system or the compiler does not support
-	// struct packing we cannot use FAT_RAW_DIRECTORY_ENTRY to write directly
+	// struct packing we cannot use SFatRawDirectoryEntry to write directly
 	// to the buffer
 	*/
-	entries = (FAT_RAW_DIRECTORY_ENTRY*)buffer;
+	entries = (SFatRawDirectoryEntry*)buffer;
 
 	FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
 	/*
@@ -1807,28 +1807,28 @@ static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIREC
 	// the dot entry
 	*/
 	memset(buffer, 0, volume->no_of_bytes_per_serctor);
-	entries->ENTRY.STD.name[0x0] = '.';
-	entries->ENTRY.STD.name[0x1] = ' ';
-	entries->ENTRY.STD.name[0x2] = ' ';
-	entries->ENTRY.STD.name[0x3] = ' ';
-	entries->ENTRY.STD.name[0x4] = ' ';
-	entries->ENTRY.STD.name[0x5] = ' ';
-	entries->ENTRY.STD.name[0x6] = ' ';
-	entries->ENTRY.STD.name[0x7] = ' ';
-	entries->ENTRY.STD.name[0x8] = ' ';
-	entries->ENTRY.STD.name[0x9] = ' ';
-	entries->ENTRY.STD.name[0xA] = ' ';
-	entries->ENTRY.STD.attributes = FAT_ATTR_DIRECTORY;
-	entries->ENTRY.STD.size = 0x0;
-	entries->ENTRY.STD.reserved = 0;
-	entries->ENTRY.STD.first_cluster_lo = LO16(cluster);
-	entries->ENTRY.STD.first_cluster_hi = HI16(cluster);
-	entries->ENTRY.STD.create_date = rtc_get_fat_date();
-	entries->ENTRY.STD.create_time = rtc_get_fat_time();
-	entries->ENTRY.STD.modify_date = entries->ENTRY.STD.create_date;
-	entries->ENTRY.STD.modify_time = entries->ENTRY.STD.create_time;
-	entries->ENTRY.STD.access_date = entries->ENTRY.STD.create_date;
-	entries->ENTRY.STD.create_time_tenth = 0xc6;
+	entries->ENTRY.sFatRawCommon.name[0x0] = '.';
+	entries->ENTRY.sFatRawCommon.name[0x1] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x2] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x3] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x4] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x5] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x6] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x7] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x8] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x9] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0xA] = ' ';
+	entries->ENTRY.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
+	entries->ENTRY.sFatRawCommon.size = 0x0;
+	entries->ENTRY.sFatRawCommon.reserved = 0;
+	entries->ENTRY.sFatRawCommon.first_cluster_lo = LO16(cluster);
+	entries->ENTRY.sFatRawCommon.first_cluster_hi = HI16(cluster);
+	entries->ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	entries->ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	entries->ENTRY.sFatRawCommon.modify_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.modify_time = entries->ENTRY.sFatRawCommon.create_time;
+	entries->ENTRY.sFatRawCommon.access_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.create_time_tenth = 0xc6;
 	/*
 	// write the entry to the buffer or move to the next entry
 	// as required by target platform
@@ -1838,44 +1838,43 @@ static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIREC
 	/*
 	// initialize the dot dot entry
 	*/
-	entries->ENTRY.STD.name[0x0] = '.';
-	entries->ENTRY.STD.name[0x1] = '.';
-	entries->ENTRY.STD.name[0x2] = ' ';
-	entries->ENTRY.STD.name[0x3] = ' ';
-	entries->ENTRY.STD.name[0x4] = ' ';
-	entries->ENTRY.STD.name[0x5] = ' ';
-	entries->ENTRY.STD.name[0x6] = ' ';
-	entries->ENTRY.STD.name[0x7] = ' ';
-	entries->ENTRY.STD.name[0x8] = ' ';
-	entries->ENTRY.STD.name[0x9] = ' ';
-	entries->ENTRY.STD.name[0xA] = ' ';
-	entries->ENTRY.STD.attributes = FAT_ATTR_DIRECTORY;
-	entries->ENTRY.STD.size = 0x0;
-	entries->ENTRY.STD.reserved = 0;
-	entries->ENTRY.STD.first_cluster_lo = parent->ENTRY.STD.first_cluster_lo;
-	entries->ENTRY.STD.first_cluster_hi = parent->ENTRY.STD.first_cluster_hi;
-	entries->ENTRY.STD.create_date = rtc_get_fat_date();
-	entries->ENTRY.STD.create_time = rtc_get_fat_time();
-	entries->ENTRY.STD.modify_date = entries->ENTRY.STD.create_date;
-	entries->ENTRY.STD.modify_time = entries->ENTRY.STD.create_time;
-	entries->ENTRY.STD.access_date = entries->ENTRY.STD.create_date;
-	entries->ENTRY.STD.create_time_tenth = 0xc6;
-	/*
+	entries->ENTRY.sFatRawCommon.name[0x0] = '.';
+	entries->ENTRY.sFatRawCommon.name[0x1] = '.';
+	entries->ENTRY.sFatRawCommon.name[0x2] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x3] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x4] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x5] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x6] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x7] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x8] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x9] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0xA] = ' ';
+	entries->ENTRY.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
+	entries->ENTRY.sFatRawCommon.size = 0x0;
+	entries->ENTRY.sFatRawCommon.reserved = 0;
+	entries->ENTRY.sFatRawCommon.first_cluster_lo = parent->ENTRY.sFatRawCommon.first_cluster_lo;
+	entries->ENTRY.sFatRawCommon.first_cluster_hi = parent->ENTRY.sFatRawCommon.first_cluster_hi;
+	entries->ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	entries->ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	entries->ENTRY.sFatRawCommon.modify_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.modify_time = entries->ENTRY.sFatRawCommon.create_time;
+	entries->ENTRY.sFatRawCommon.access_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.create_time_tenth = 0xc6;
+
 	// when the parent is the root directory the dotdot entry always points
 	// to cluster 0, even in FAT32 when the root directory is not actually on
 	// cluster 0 so we need to check if the parent is the root directory and
 	// in that case set the 1st cluster to 0
-	*/
 	if (volume->fs_type == FAT_FS_TYPE_FAT32)
 	{
 		uint32 parent_cluster;
-		((uint16*)&parent_cluster)[INT32_WORD0] = parent->ENTRY.STD.first_cluster_lo;
-		((uint16*)&parent_cluster)[INT32_WORD1] = parent->ENTRY.STD.first_cluster_hi;
+		((uint16*)&parent_cluster)[INT32_WORD0] = parent->ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&parent_cluster)[INT32_WORD1] = parent->ENTRY.sFatRawCommon.first_cluster_hi;
 
 		if (volume->root_cluster == parent_cluster)
 		{
-			entries->ENTRY.STD.first_cluster_lo = 0;
-			entries->ENTRY.STD.first_cluster_hi = 0;
+			entries->ENTRY.sFatRawCommon.first_cluster_lo = 0;
+			entries->ENTRY.sFatRawCommon.first_cluster_hi = 0;
 		}
 	}
 	/*
@@ -1891,7 +1890,7 @@ static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIREC
 	// clear the . and .. entries from the buffer and
 	// initialize the rest of the sectors of this cluster
 	*/
-	memset(buffer, 0, sizeof(FAT_RAW_DIRECTORY_ENTRY) * 2);
+	memset(buffer, 0, sizeof(SFatRawDirectoryEntry) * 2);
 	counter = volume->no_of_sectors_per_cluster - 1;
 	while (counter--)
 	{
@@ -1909,7 +1908,7 @@ static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIREC
 
 
 // sets all sectors in a cluster to zeroes
-static uint16 fat_zero_cluster(FAT_VOLUME* volume, uint32 cluster, uint8* buffer)
+static uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer)
 {
 	bool	bSuccess;
 	uint16	counter;
@@ -1949,7 +1948,7 @@ static uint16 fat_zero_cluster(FAT_VOLUME* volume, uint32 cluster, uint8* buffer
 // writes a sector of the FAT table to the active table and (if option is enabled)
 // to all other FAT tables
 */
-static bool fat_write_fat_sector(FAT_VOLUME* volume, uint32 sector_address, uint8* buffer)
+static bool fat_write_fat_sector(SFatVolume* volume, uint32 sector_address, uint8* buffer)
 {
 	bool bSuccess;
 

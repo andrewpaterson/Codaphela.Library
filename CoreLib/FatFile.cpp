@@ -16,15 +16,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-
- /*
- // TODO:
- //
- // 1. Fix thread safety issues with write_stream
- // 2. Fix file system alignment issue with fat_format
- //
- //
- */
 #include <stdio.h>
 #include <string.h>
 #include "Fat.h"
@@ -41,10 +32,9 @@ uint16 fat_file_update_sequential_cluster_count(FAT_FILE* handle)
 {
 	uint32 current_cluster;
 	uint32 next_cluster;
-	/*
+
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
-	*/
 	handle->no_of_sequential_clusters = 0;
 	current_cluster = handle->current_clus_addr;
 
@@ -69,13 +59,11 @@ uint16 fat_file_update_sequential_cluster_count(FAT_FILE* handle)
 	return FAT_SUCCESS;
 }
 
-/*
 // opens a file
-*/
-uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT_FILE* handle)
+uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, FAT_FILE* handle)
 {
-	uint16 ret;
-	FAT_DIRECTORY_ENTRY file_entry;
+	uint16					uiResult;
+	SFatDirectoryEntry		file_entry;
 
 	// use the internal buffer
 	if (!(access_flags & FAT_FILE_FLAG_NO_BUFFERING))
@@ -83,28 +71,23 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 		handle->buffer = handle->buffer_internal;
 	}
 
-	/*
 	// check that the user supplied a filename
-	*/
 	if (filename == 0 || strlen(filename) > FAT_MAX_PATH)
 	{
 		return FAT_INVALID_FILENAME;
 	}
-	/*
+
 	// get the file entry
-	*/
-	ret = fat_get_file_entry(volume, filename, &file_entry);
-	/*
+	uiResult = fat_get_file_entry(volume, filename, &file_entry);
+
 	// if we could not get the file entry then return
 	// the error that we received from fat_get_file_entry
-	*/
-	if (ret != FAT_SUCCESS)
+	if (uiResult != FAT_SUCCESS)
 	{
-		return ret;
+		return uiResult;
 	}
-	/*
+
 	// if the entry was not found...
-	*/
 	if (*file_entry.name == 0)
 	{
 		/*
@@ -119,7 +102,7 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 			size_t path_len;
 			char* filename_scanner;
 			char file_path[FAT_MAX_PATH + 1];
-			FAT_DIRECTORY_ENTRY parent_entry;
+			SFatDirectoryEntry parent_entry;
 			/*
 			// get the name of the file path including
 			// the filename
@@ -166,14 +149,14 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 			/*
 			// try to get the entry for the parent directory
 			*/
-			ret = fat_get_file_entry(volume, file_path, &parent_entry);
+			uiResult = fat_get_file_entry(volume, file_path, &parent_entry);
 			/*
 			// if fat_get_file_entry returned an error
 			// then we return the error code to the calling
 			// function
 			*/
-			if (ret != FAT_SUCCESS)
-				return ret;
+			if (uiResult != FAT_SUCCESS)
+				return uiResult;
 			/*
 			// if the parent directory does not exists
 			*/
@@ -182,7 +165,7 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 			/*
 			// try to create the directory entry
 			*/
-			ret = fat_create_directory_entry(volume, &parent_entry.raw, filename_scanner, 0, 0, &file_entry);
+			uiResult = fat_create_directory_entry(volume, &parent_entry.raw, filename_scanner, 0, 0, &file_entry);
 			/*
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
@@ -192,8 +175,8 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 			// if we were unable to create the entry for the file
 			// and
 			*/
-			if (ret != FAT_SUCCESS)
-				return ret;
+			if (uiResult != FAT_SUCCESS)
+				return uiResult;
 
 		}
 		// if the create flag is not set then return the
@@ -205,10 +188,10 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 	}
 
 	// open the file
-	ret = fat_open_file_by_entry(volume, &file_entry, handle, access_flags);
-	if (ret != FAT_SUCCESS)
+	uiResult = fat_open_file_by_entry(volume, &file_entry, handle, access_flags);
+	if (uiResult != FAT_SUCCESS)
 	{
-		return ret;
+		return uiResult;
 	}
 
 	// if the file has no clusters allocated then allocate one
@@ -227,10 +210,10 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 // opens a file given a pointer to it's
 // directory entry
 */
-uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FAT_FILE* handle, uint8 access_flags)
+uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT_FILE* handle, uint8 access_flags)
 {
 	bool	bSuccess;
-	uint16	ret;
+	uint16	uiResult;
 
 	/*
 	// set implicit access flags
@@ -272,8 +255,8 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 	/*
 	// read the the cluster number
 	*/
-	((uint16*)&handle->current_clus_addr)[INT32_WORD0] = entry->raw.ENTRY.STD.first_cluster_lo;
-	((uint16*)&handle->current_clus_addr)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry->raw.ENTRY.STD.first_cluster_hi : 0;
+	((uint16*)&handle->current_clus_addr)[INT32_WORD0] = entry->raw.ENTRY.sFatRawCommon.first_cluster_lo;
+	((uint16*)&handle->current_clus_addr)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry->raw.ENTRY.sFatRawCommon.first_cluster_hi : 0;
 
 	if (access_flags & FAT_FILE_ACCESS_APPEND)
 	{
@@ -281,11 +264,11 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 		// if the file is being opened for append access we
 		// seek to the end of the file
 		*/
-		ret = fat_file_seek(handle, 0, FAT_SEEK_END);
-		if (ret != FAT_SUCCESS)
+		uiResult = fat_file_seek(handle, 0, FAT_SEEK_END);
+		if (uiResult != FAT_SUCCESS)
 		{
 			handle->magic = 0;
-			return ret;
+			return uiResult;
 		}
 	}
 	else if (access_flags & FAT_FILE_ACCESS_OVERWRITE)
@@ -299,16 +282,16 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 		// if the file is not already empty then
 		// we'll empty it
 		*/
-		if (entry->raw.ENTRY.STD.first_cluster_lo != 0x0 || entry->raw.ENTRY.STD.first_cluster_hi != 0x0)
+		if (entry->raw.ENTRY.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.ENTRY.sFatRawCommon.first_cluster_hi != 0x0)
 		{
 			uint8* buffer = fat_shared_buffer;
 
 			/*
 			// update the entry to point to cluster 0
 			*/
-			entry->raw.ENTRY.STD.first_cluster_lo = 0x0;
-			entry->raw.ENTRY.STD.first_cluster_hi = 0x0;
-			entry->raw.ENTRY.STD.size = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_lo = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_hi = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.size = 0x0;
 			handle->directory_entry = *entry;
 			handle->current_size = entry->size;
 			/*
@@ -319,8 +302,8 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 			// read the sector that contains the entry
 			*/
 			bSuccess = volume->device->Read(entry->sector_addr, buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				handle->magic = 0;
 				return FAT_CANNOT_READ_MEDIA;
@@ -331,14 +314,14 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 #if defined(NO_STRUCT_PACKING) || defined(BIG_ENDIAN)
 			fat_write_raw_directory_entry(&entry->raw, buffer + entry->sector_offset);
 #else
-			memcpy(buffer + entry->sector_offset, &entry->raw, sizeof(FAT_RAW_DIRECTORY_ENTRY));
+			memcpy(buffer + entry->sector_offset, &entry->raw, sizeof(SFatRawDirectoryEntry));
 #endif
 			/*
 			// write the modified entry to the media
 			*/
 			bSuccess = volume->device->Write(entry->sector_addr, buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				handle->magic = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -376,7 +359,7 @@ uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
 {
 	if (file->buffer_head != file->buffer)
 	{
-		uint16	ret;
+		uint16	uiResult;
 		uint32	sector_address;
 		bool	bSuccess;
 
@@ -384,8 +367,8 @@ uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
 		file->buffer = buffer;
 		file->buffer_head = buffer + (uintptr_t)file->buffer_head;
 		bSuccess = file->volume->device->Read(sector_address, file->buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			file->busy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -406,15 +389,15 @@ uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
 */
 uint32 fat_file_get_unique_id(FAT_FILE* file)
 {
-	/*return file->directory_entry.raw.ENTRY.STD.first_cluster_lo
-		& (file->directory_entry.raw.ENTRY.STD.first_cluster_hi << 16); */
+	/*return file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo
+		& (file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi << 16); */
 
 	uint32 id;
-	((uint16*)&id)[INT32_WORD0] = file->directory_entry.raw.ENTRY.STD.first_cluster_lo;
+	((uint16*)&id)[INT32_WORD0] = file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
 
 	if (file->volume->fs_type == FAT_FS_TYPE_FAT32)
 	{
-		((uint16*)&id)[INT32_WORD1] = file->directory_entry.raw.ENTRY.STD.first_cluster_hi;
+		((uint16*)&id)[INT32_WORD1] = file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi;
 	}
 	else
 	{
@@ -427,11 +410,11 @@ uint32 fat_file_get_unique_id(FAT_FILE* file)
 /*
 // Deletes a file.
 */
-uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
+uint16 fat_file_delete(SFatVolume* volume, char* filename)
 {
-	uint16					ret;
+	uint16					uiResult;
 	uint32					first_cluster;
-	FAT_DIRECTORY_ENTRY		entry;
+	SFatDirectoryEntry		entry;
 	uint8					buffer[MAX_SECTOR_LENGTH];
 	bool					bSuccess;
 
@@ -444,9 +427,9 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 	/*
 	// get the entry for the file
 	*/
-	ret = fat_get_file_entry(volume, filename, &entry);
-	if (ret != FAT_SUCCESS)
-		return ret;
+	uiResult = fat_get_file_entry(volume, filename, &entry);
+	if (uiResult != FAT_SUCCESS)
+		return uiResult;
 	/*
 	// if the entry is located go ahead and delete it.
 	*/
@@ -455,7 +438,7 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 		/*
 		// compute the checksum for the file
 		*/
-		checksum = fat_long_entry_checksum((uint8*)entry.raw.ENTRY.STD.name);
+		checksum = fat_long_entry_checksum((uint8*)entry.raw.ENTRY.sFatRawCommon.name);
 
 		/*
 		// make sure we're not trying to delete a directory
@@ -468,34 +451,34 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 		/*
 		// find the entry's first cluster address
 		*/
-		((uint16*)&first_cluster)[INT32_WORD0] = entry.raw.ENTRY.STD.first_cluster_lo;
-		((uint16*)&first_cluster)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry.raw.ENTRY.STD.first_cluster_hi : 0;
+		((uint16*)&first_cluster)[INT32_WORD0] = entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&first_cluster)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry.raw.ENTRY.sFatRawCommon.first_cluster_hi : 0;
 		/*
 		// free the file's cluster change
 		*/
 		if (first_cluster)
 		{
-			ret = fat_free_cluster_chain(volume, first_cluster);
-			if (ret != FAT_SUCCESS)
-				return ret;
+			uiResult = fat_free_cluster_chain(volume, first_cluster);
+			if (uiResult != FAT_SUCCESS)
+				return uiResult;
 		}
 		/*
 		// mark the entry as deleted
 		*/
-		entry.raw.ENTRY.STD.name[0] = FAT_DELETED_ENTRY;
+		entry.raw.ENTRY.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
 		bSuccess = volume->device->Read(entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
-			return ret;
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
+			return uiResult;
 
 		memcpy(buffer + entry.sector_offset, &entry.raw, sizeof(entry.raw));
 
 		bSuccess = volume->device->Write(entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 	}
 
@@ -507,35 +490,35 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 	/*
 	// get the 1st LFN entry of the parent directory
 	*/
-	ret = fat_find_first_entry(volume, path_part, FAT_ATTR_LONG_NAME, 0, &query);
-	if (ret != FAT_SUCCESS)
-		return ret;
+	uiResult = fat_find_first_entry(volume, path_part, FAT_ATTR_LONG_NAME, 0, &query);
+	if (uiResult != FAT_SUCCESS)
+		return uiResult;
 	/*
 	// loop through each entry.
 	*/
-	while (*query.current_entry.raw.ENTRY.STD.name != 0)
+	while (*query.current_entry.raw.ENTRY.sFatRawCommon.name != 0)
 	{
 		if (query.current_entry.raw.ENTRY.LFN.lfn_checksum == checksum)
 		{
 			/*
 			// mark the entry as deleted
 			*/
-			query.current_entry.raw.ENTRY.STD.name[0] = FAT_DELETED_ENTRY;
+			query.current_entry.raw.ENTRY.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
 			bSuccess = volume->device->Read(query.current_entry.sector_addr, buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
-				return ret;
+				return uiResult;
 			}
 
 			memcpy(buffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(entry.raw));
 
 			bSuccess = volume->device->Write(query.current_entry.sector_addr, buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
-				return ret;
+				return uiResult;
 			}
 		}
 		/*
@@ -552,14 +535,14 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 
 
 // renames a file
-uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_filename)
+uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_filename)
 {
-	uint16					ret;
+	uint16					uiResult;
 	uint32					entry_cluster;
 	char					new_parent[256];
 	char*					original_filename_part;
-	FAT_DIRECTORY_ENTRY		original_entry;
-	FAT_DIRECTORY_ENTRY		new_entry;
+	SFatDirectoryEntry		original_entry;
+	SFatDirectoryEntry		new_entry;
 	bool					bSuccess;
 
 	uint8					checksum = 0;
@@ -588,76 +571,76 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 
 	if (*original_entry.name != 0)
 	{
-		FAT_DIRECTORY_ENTRY parent;
+		SFatDirectoryEntry parent;
 		/*
 		// compute the checksum for the file
 		*/
-		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.ENTRY.STD.name);
+		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.ENTRY.sFatRawCommon.name);
 
 		/*
 		// get the cluster # for the entry
 		*/
-		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.ENTRY.STD.first_cluster_lo;
-		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.ENTRY.STD.first_cluster_hi;
+		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi;
 		/*
 		// get the new parent entry
 		*/
-		ret = fat_get_file_entry(volume, new_parent, &parent);
-		if (ret != FAT_SUCCESS)
-			return ret;
+		uiResult = fat_get_file_entry(volume, new_parent, &parent);
+		if (uiResult != FAT_SUCCESS)
+			return uiResult;
 		/*
 		// create the new entry in the parent folder
 		*/
-		ret = fat_create_directory_entry(volume, &parent.raw, new_filename_part, original_entry.attributes, entry_cluster, &new_entry);
-		if (ret != FAT_SUCCESS)
-			return ret;
+		uiResult = fat_create_directory_entry(volume, &parent.raw, new_filename_part, original_entry.attributes, entry_cluster, &new_entry);
+		if (uiResult != FAT_SUCCESS)
+			return uiResult;
 		/*
 		// copy all info except name from the old entry to the new one
 		*/
-		new_entry.raw.ENTRY.STD.access_date = original_entry.raw.ENTRY.STD.access_date;
-		new_entry.raw.ENTRY.STD.attributes = original_entry.raw.ENTRY.STD.attributes;
-		new_entry.raw.ENTRY.STD.create_date = original_entry.raw.ENTRY.STD.create_date;
-		new_entry.raw.ENTRY.STD.create_time = original_entry.raw.ENTRY.STD.create_time;
-		new_entry.raw.ENTRY.STD.create_time_tenth = original_entry.raw.ENTRY.STD.create_time_tenth;
-		new_entry.raw.ENTRY.STD.first_cluster_hi = original_entry.raw.ENTRY.STD.first_cluster_hi;
-		new_entry.raw.ENTRY.STD.first_cluster_lo = original_entry.raw.ENTRY.STD.first_cluster_lo;
-		new_entry.raw.ENTRY.STD.modify_date = original_entry.raw.ENTRY.STD.modify_date;
-		new_entry.raw.ENTRY.STD.modify_time = original_entry.raw.ENTRY.STD.modify_time;
-		new_entry.raw.ENTRY.STD.reserved = original_entry.raw.ENTRY.STD.reserved;
-		new_entry.raw.ENTRY.STD.size = original_entry.raw.ENTRY.STD.size;
+		new_entry.raw.ENTRY.sFatRawCommon.access_date = original_entry.raw.ENTRY.sFatRawCommon.access_date;
+		new_entry.raw.ENTRY.sFatRawCommon.attributes = original_entry.raw.ENTRY.sFatRawCommon.attributes;
+		new_entry.raw.ENTRY.sFatRawCommon.create_date = original_entry.raw.ENTRY.sFatRawCommon.create_date;
+		new_entry.raw.ENTRY.sFatRawCommon.create_time = original_entry.raw.ENTRY.sFatRawCommon.create_time;
+		new_entry.raw.ENTRY.sFatRawCommon.create_time_tenth = original_entry.raw.ENTRY.sFatRawCommon.create_time_tenth;
+		new_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi;
+		new_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+		new_entry.raw.ENTRY.sFatRawCommon.modify_date = original_entry.raw.ENTRY.sFatRawCommon.modify_date;
+		new_entry.raw.ENTRY.sFatRawCommon.modify_time = original_entry.raw.ENTRY.sFatRawCommon.modify_time;
+		new_entry.raw.ENTRY.sFatRawCommon.reserved = original_entry.raw.ENTRY.sFatRawCommon.reserved;
+		new_entry.raw.ENTRY.sFatRawCommon.size = original_entry.raw.ENTRY.sFatRawCommon.size;
 		/*
 		// write modified entry to drive
 		*/
 		FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
 		bSuccess = volume->device->Read(new_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 		memcpy(buffer + new_entry.sector_offset, &new_entry.raw, sizeof(new_entry.raw));
 		bSuccess = volume->device->Write(new_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 		/*
 		// mark the original entry as deleted.
 		*/
-		*original_entry.raw.ENTRY.STD.name = FAT_DELETED_ENTRY;
+		*original_entry.raw.ENTRY.sFatRawCommon.name = FAT_DELETED_ENTRY;
 		bSuccess = volume->device->Read(original_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 		memcpy(buffer + original_entry.sector_offset, &original_entry.raw, sizeof(original_entry.raw));
 		bSuccess = volume->device->Write(original_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 		/*
 		// release lock on the buffer
@@ -668,13 +651,13 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 		/*
 		// get the 1st LFN entry of the parent directory
 		*/
-		ret = fat_find_first_entry(volume, original_parent, FAT_ATTR_LONG_NAME, 0, &query);
-		if (ret != FAT_SUCCESS)
-			return ret;
+		uiResult = fat_find_first_entry(volume, original_parent, FAT_ATTR_LONG_NAME, 0, &query);
+		if (uiResult != FAT_SUCCESS)
+			return uiResult;
 		/*
 		// loop through each entry.
 		*/
-		while (*query.current_entry.raw.ENTRY.STD.name != 0)
+		while (*query.current_entry.raw.ENTRY.sFatRawCommon.name != 0)
 		{
 			if (query.current_entry.raw.ENTRY.LFN.lfn_checksum == checksum)
 			{
@@ -682,19 +665,19 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 				// mark the entry as deleted
 				*/
 				FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
-				query.current_entry.raw.ENTRY.STD.name[0] = FAT_DELETED_ENTRY;
+				query.current_entry.raw.ENTRY.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 				bSuccess = volume->device->Read(query.current_entry.sector_addr, buffer);
-				ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (ret != STORAGE_SUCCESS)
+				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+				if (uiResult != STORAGE_SUCCESS)
 				{
-					return ret;
+					return uiResult;
 				}
 				memcpy(buffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(query.current_entry.raw));
 				bSuccess = volume->device->Write(query.current_entry.sector_addr, buffer);
-				ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (ret != STORAGE_SUCCESS)
+				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+				if (uiResult != STORAGE_SUCCESS)
 				{
-					return ret;
+					return uiResult;
 				}
 			}
 			/*
@@ -712,7 +695,7 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 */
 uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 {
-	uint16	ret;
+	uint16	uiResult;
 	uint32	new_cluster;
 	uint32	no_of_clusters_needed;
 	bool	bSuccess;
@@ -780,20 +763,20 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 					return FAT_UNKNOWN_ERROR;
 				}
 
-				new_cluster = fat_allocate_data_cluster_ex(file->volume, no_of_clusters_needed, 0, page_size, &ret);
-				if (ret != FAT_SUCCESS)
+				new_cluster = fat_allocate_data_cluster_ex(file->volume, no_of_clusters_needed, 0, page_size, &uiResult);
+				if (uiResult != FAT_SUCCESS)
 				{
 					file->busy = 0;
-					return ret;
+					return uiResult;
 				}
 			}
 			else
 			{
-				new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 1, &ret);
-				if (ret != FAT_SUCCESS)
+				new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 1, &uiResult);
+				if (uiResult != FAT_SUCCESS)
 				{
 					file->busy = 0;
-					return ret;
+					return uiResult;
 				}
 			}
 			/*
@@ -835,34 +818,34 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 		}
 		else
 		{
-			new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 0, &ret);
-			if (ret != FAT_SUCCESS)
+			new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 0, &uiResult);
+			if (uiResult != FAT_SUCCESS)
 			{
 				file->busy = 0;
-				return ret;
+				return uiResult;
 			}
 		}
 	}
 #else
-	new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 0, &ret);
-	if (ret != FAT_SUCCESS)
+	new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 0, &uiResult);
+	if (uiResult != FAT_SUCCESS)
 	{
 		file->busy = 0;
-		return ret;
+		return uiResult;
 	}
 #endif
 	/*
 	// if this is the 1st cluster cluster allocated
 	// to the file then we must modify the file's entry
 	*/
-	if (!file->directory_entry.raw.ENTRY.STD.first_cluster_lo && !file->directory_entry.raw.ENTRY.STD.first_cluster_hi)
+	if (!file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo && !file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi)
 	{
 		/*
 		// modify the file entry to point to the
 		// new cluster
 		*/
-		file->directory_entry.raw.ENTRY.STD.first_cluster_lo = LO16(new_cluster);
-		file->directory_entry.raw.ENTRY.STD.first_cluster_hi = HI16(new_cluster);
+		file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo = LO16(new_cluster);
+		file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
 		/*
 		// mark the cached sector as unknown
 		*/
@@ -871,11 +854,11 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 		// try load the sector that contains the entry
 		*/
 		bSuccess = file->volume->device->Read(file->directory_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			file->busy = 0;
-			return ret;
+			return uiResult;
 		}
 		/*
 		// copy the modified file entry to the
@@ -884,17 +867,17 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 #if defined(NO_STRUCT_PACKING) || defined(BIG_ENDIAN)
 		fat_write_raw_directory_entry(&file->directory_entry.raw, buffer + file->directory_entry.sector_offset);
 #else
-		memcpy(buffer + file->directory_entry.sector_offset, &file->directory_entry.raw, sizeof(FAT_RAW_DIRECTORY_ENTRY));
+		memcpy(buffer + file->directory_entry.sector_offset, &file->directory_entry.raw, sizeof(SFatRawDirectoryEntry));
 #endif
 		/*
 		// write the modified entry to the media
 		*/
 		bSuccess = file->volume->device->Write(file->directory_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			file->busy = 0;
-			return ret;
+			return uiResult;
 		}
 	}
 	// if there are clusters allocated to the file update the last FAT entry
@@ -920,11 +903,11 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 		// set the FAT entry for the last cluster to the beggining of the newly
 		// allocated cluster chain (ie. link them)
 		*/
-		ret = fat_set_cluster_entry(file->volume, last_cluster, (FAT_ENTRY)new_cluster);
-		if (ret != FAT_SUCCESS)
+		uiResult = fat_set_cluster_entry(file->volume, last_cluster, (FAT_ENTRY)new_cluster);
+		if (uiResult != FAT_SUCCESS)
 		{
 			file->busy = 0;
-			return ret;
+			return uiResult;
 		}
 	}
 	/*
@@ -962,7 +945,7 @@ uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
 	uint32	cluster_count;
 	uint32	old_cluster;
 	uint32	sector_address;
-	uint16	ret;
+	uint16	uiResult;
 	bool	bSuccess;
 	/*
 	// check that this is a valid handle
@@ -1034,9 +1017,9 @@ uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
 	/*
 	// set the 1st cluster as the current cluster, we'll seek from there
 	*/
-	((uint16*)&file->current_clus_addr)[INT32_WORD0] = file->directory_entry.raw.ENTRY.STD.first_cluster_lo;
+	((uint16*)&file->current_clus_addr)[INT32_WORD0] = file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
 	((uint16*)&file->current_clus_addr)[INT32_WORD1] =
-		(file->volume->fs_type == FAT_FS_TYPE_FAT32) ? file->directory_entry.raw.ENTRY.STD.first_cluster_hi : 0;
+		(file->volume->fs_type == FAT_FS_TYPE_FAT32) ? file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi : 0;
 	/*
 	// if the file occupies more than one cluster
 	*/
@@ -1087,8 +1070,8 @@ uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
 	if (file->buffer)
 	{
 		bSuccess = file->volume->device->Read(sector_address, file->buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			file->busy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -1120,7 +1103,7 @@ uint16 fat_file_write(FAT_FILE* handle, uint8* buffer, uint32 length)
 // writes to a file
 uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
-	uint32 ret;
+	uint32 uiResult;
 	/*
 	// check that this is a valid handle
 	*/
@@ -1141,10 +1124,10 @@ uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uin
 
 	// if there's no clusters allocated to this file allocate
 	// enough clusters for this request
-	ret = fat_file_alloc(handle, length);
-	if (ret != FAT_SUCCESS)
+	uiResult = fat_file_alloc(handle, length);
+	if (uiResult != FAT_SUCCESS)
 	{
-		return ret;
+		return uiResult;
 	}
 
 	/*
@@ -1248,7 +1231,7 @@ uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uin
 
 void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
 {
-	uint16	ret;
+	uint16	uiResult;
 	uint16* async_state;
 	bool	bSuccess;
 
@@ -1290,13 +1273,13 @@ void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
 			// write the cached sector to media
 			*/
 			bSuccess = handle->volume->device->Write(handle->op_state.sector_addr, handle->buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 
 			/*
 			// if we were unable to read the sector
 			// then throw an error
 			*/
-			if (ret != STORAGE_SUCCESS)
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				/*
 				// set result code
@@ -1322,9 +1305,9 @@ void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
 			*/
 			if (handle->current_sector_idx == handle->volume->no_of_sectors_per_cluster - 1)
 			{
-				ret = fat_get_cluster_entry(handle->volume,
+				uiResult = fat_get_cluster_entry(handle->volume,
 					handle->current_clus_addr, &handle->current_clus_addr);
-				if (ret != STORAGE_SUCCESS)
+				if (uiResult != STORAGE_SUCCESS)
 				{
 					/*
 					// set result code
@@ -1429,10 +1412,7 @@ uint16 fat_file_read(FAT_FILE* hdl, uint8* buffer, uint32 length, uint32* bytes_
 
 uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
-	/*uint32 ret;*/
-	/*
 	// check that this is a valid handle
-	*/
 	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
@@ -1532,7 +1512,7 @@ uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint
 */
 void fat_file_read_callback(FAT_FILE* handle, uint16* async_state)
 {
-	uint16	ret;
+	uint16	uiResult;
 	bool	bSuccess;
 	/*
 	// reset the # of bytes read
@@ -1552,8 +1532,8 @@ void fat_file_read_callback(FAT_FILE* handle, uint16* async_state)
 		// read the current sector synchronously
 		*/
 		bSuccess = handle->volume->device->Read(handle->op_state.sector_addr, handle->buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			*async_state = FAT_CANNOT_READ_MEDIA;
 			/*
@@ -1679,8 +1659,8 @@ void fat_file_read_callback(FAT_FILE* handle, uint16* async_state)
 			// read the next sector into the cache
 			*/
 			bSuccess = handle->volume->device->Read(handle->op_state.sector_addr, handle->buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				/*
 				// set the error code
@@ -1776,7 +1756,7 @@ uint16 fat_file_flush(FAT_FILE* handle)
 #if defined(FAT_READ_ONLY)
 	return FAT_FEATURE_NOT_SUPPORTED;
 #else
-	uint16	ret;
+	uint16	uiResult;
 	uint32	sector_address = 0;
 	bool	bSuccess;
 	uint8*	buffer = fat_shared_buffer;
@@ -1827,11 +1807,11 @@ uint16 fat_file_flush(FAT_FILE* handle)
 				uint16 i;
 				uint8 buff[MAX_SECTOR_LENGTH];
 				bSuccess = handle->volume->device->Read(sector_address, buff);
-				ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (ret != STORAGE_SUCCESS)
+				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+				if (uiResult != STORAGE_SUCCESS)
 				{
 					handle->busy = 0;
-					return ret;
+					return uiResult;
 				}
 
 				for (i = (uint16)(handle->buffer_head -
@@ -1844,28 +1824,27 @@ uint16 fat_file_flush(FAT_FILE* handle)
 			// write the cached sector to media
 			*/
 			bSuccess = handle->volume->device->Write(sector_address, handle->buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				handle->busy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
 		}
-		/*
+
 		// update the file size on the entry
-		*/
-		handle->directory_entry.raw.ENTRY.STD.size = handle->current_size;
-		handle->directory_entry.raw.ENTRY.STD.modify_date = rtc_get_fat_date();
-		handle->directory_entry.raw.ENTRY.STD.modify_time = rtc_get_fat_time();
-		handle->directory_entry.raw.ENTRY.STD.access_date = handle->directory_entry.raw.ENTRY.STD.modify_date;
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.size = handle->current_size;
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.modify_date = rtc_get_fat_date();
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.modify_time = rtc_get_fat_time();
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.access_date = handle->directory_entry.raw.ENTRY.sFatRawCommon.modify_date;
 		/*
 		// try load the sector that contains the entry
 		*/
 		FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
 
 		bSuccess = handle->volume->device->Read(handle->directory_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			handle->busy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -1877,14 +1856,14 @@ uint16 fat_file_flush(FAT_FILE* handle)
 #if defined(NO_STRUCT_PACKING) || defined(BIG_ENDIAN)
 		fat_write_raw_directory_entry(&handle->directory_entry.raw, buffer + handle->directory_entry.sector_offset);
 #else
-		memcpy(buffer + handle->directory_entry.sector_offset, &handle->directory_entry.raw, sizeof(FAT_RAW_DIRECTORY_ENTRY));
+		memcpy(buffer + handle->directory_entry.sector_offset, &handle->directory_entry.raw, sizeof(SFatRawDirectoryEntry));
 #endif
 		/*
 		// write the modified entry to the media
 		*/
 		bSuccess = handle->volume->device->Write(handle->directory_entry.sector_addr, buffer);
-		ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (ret != STORAGE_SUCCESS)
+		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+		if (uiResult != STORAGE_SUCCESS)
 		{
 			handle->busy = 0;
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -1897,15 +1876,15 @@ uint16 fat_file_flush(FAT_FILE* handle)
 		*/
 		{
 			bSuccess = handle->volume->device->Read(handle->directory_entry.sector_addr + 1, buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				handle->busy = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
 			bSuccess = handle->volume->device->Write(handle->directory_entry.sector_addr + 1, buffer);
-			ret = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (ret != STORAGE_SUCCESS)
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+			if (uiResult != STORAGE_SUCCESS)
 			{
 				handle->busy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -1928,7 +1907,7 @@ uint16 fat_file_flush(FAT_FILE* handle)
 */
 uint16 fat_file_close(FAT_FILE* handle)
 {
-	uint16		ret;
+	uint16		uiResult;
 	FAT_ENTRY	fat_entry;
 
 	// check that this is a valid handle
@@ -1938,10 +1917,10 @@ uint16 fat_file_close(FAT_FILE* handle)
 	}
 
 	// flush the file buffers
-	ret = fat_file_flush(handle);
-	if (ret != FAT_SUCCESS)
+	uiResult = fat_file_flush(handle);
+	if (uiResult != FAT_SUCCESS)
 	{
-		return ret;
+		return uiResult;
 	}
 
 	if (handle->access_flags & FAT_FILE_ACCESS_WRITE)
@@ -1955,9 +1934,9 @@ uint16 fat_file_close(FAT_FILE* handle)
 		/*
 		// seek to the end of the file
 		*/
-		ret = fat_file_seek(handle, handle->current_size - 1, FAT_SEEK_START);
-		if (ret != FAT_SUCCESS)
-			return ret;
+		uiResult = fat_file_seek(handle, handle->current_size - 1, FAT_SEEK_START);
+		if (uiResult != FAT_SUCCESS)
+			return uiResult;
 		/*
 		// check that another operation is not using the
 		// handle at this time
@@ -1971,18 +1950,18 @@ uint16 fat_file_close(FAT_FILE* handle)
 		/*
 		// free unused clusters
 		*/
-		ret = fat_get_cluster_entry(handle->volume, handle->current_clus_addr, &fat_entry);
-		if (ret != FAT_SUCCESS)
+		uiResult = fat_get_cluster_entry(handle->volume, handle->current_clus_addr, &fat_entry);
+		if (uiResult != FAT_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 
 		if (!fat_is_eof_entry(handle->volume, fat_entry))
 		{
-			ret = fat_free_cluster_chain(handle->volume, fat_entry);
-			if (ret != FAT_SUCCESS)
+			uiResult = fat_free_cluster_chain(handle->volume, fat_entry);
+			if (uiResult != FAT_SUCCESS)
 			{
-				return ret;
+				return uiResult;
 			}
 
 			switch (handle->volume->fs_type)
@@ -1991,10 +1970,10 @@ uint16 fat_file_close(FAT_FILE* handle)
 			case FAT_FS_TYPE_FAT16: fat_entry = FAT16_EOC; break;
 			case FAT_FS_TYPE_FAT32: fat_entry = FAT32_EOC; break;
 			}
-			ret = fat_set_cluster_entry(handle->volume, handle->current_clus_addr, fat_entry);
-			if (ret != FAT_SUCCESS)
+			uiResult = fat_set_cluster_entry(handle->volume, handle->current_clus_addr, fat_entry);
+			if (uiResult != FAT_SUCCESS)
 			{
-				return ret;
+				return uiResult;
 			}
 		}
 	}

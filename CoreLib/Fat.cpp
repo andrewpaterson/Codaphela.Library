@@ -17,22 +17,19 @@
  *
  */
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include "Fat.h"
 #include "FatInternals.h"
 
- /*
  // macros for setting the cached sector
- */
-#define FAT_SET_LOADED_SECTOR(volume, sector)		fat_shared_buffer_sector = (sector)
+ #define FAT_SET_LOADED_SECTOR(volume, sector)		fat_shared_buffer_sector = (sector)
 
 
- /*
  // function pointer for rtc access routing
- */
-#if !defined(FAT_USE_SYSTEM_TIME)
+ #if !defined(FAT_USE_SYSTEM_TIME)
 typedef struct TIMEKEEPER
 {
 	FAT_GET_SYSTEM_TIME fat_get_system_time;
@@ -71,7 +68,7 @@ void fat_init()
 /*
 // mounts a FAT volume
 */
-uint16 fat_mount_volume(FAT_VOLUME* volume, CFileDrive* device)
+uint16 fat_mount_volume(SFatVolume* volume, CFileDrive* device)
 {
 	bool					bSuccess;
 	FAT_BPB*				bpb;
@@ -199,15 +196,15 @@ retry:
 	/*
 	// make sure that SecPerClus is a power of two
 	*/
-	uint16 ret = bpb->BPB_SecPerClus;
-	while (ret != 0x1)
+	uint16 uiResult = bpb->BPB_SecPerClus;
+	while (uiResult != 0x1)
 	{
-		if (ret & 0x1)
+		if (uiResult & 0x1)
 		{
 			partitions_tried++;
 			goto retry;
 		}
-		ret >>= 1;
+		uiResult >>= 1;
 	}
 
 	/*
@@ -329,9 +326,9 @@ retry:
 		query.buffer = buffer;
 		if (fat_query_first_entry(volume, 0, FAT_ATTR_VOLUME_ID, (FAT_QUERY_STATE*)&query, 1) == FAT_SUCCESS)
 		{
-			if (*query.current_entry_raw->ENTRY.STD.name != 0)
+			if (*query.current_entry_raw->ENTRY.sFatRawCommon.name != 0)
 			{
-				strtrim(volume->label, (char*)query.current_entry_raw->ENTRY.STD.name, 11);
+				strtrim(volume->label, (char*)query.current_entry_raw->ENTRY.sFatRawCommon.name, 11);
 			}
 		}
 	}
@@ -395,7 +392,7 @@ retry:
 /*
 // dismounts a FAT volume
 */
-uint16 fat_unmount_volume(FAT_VOLUME* volume)
+uint16 fat_unmount_volume(SFatVolume* volume)
 {
 	/*
 	// if this is a FAT32 volume we'll update the fsinfo structure
@@ -460,7 +457,7 @@ uint16 fat_unmount_volume(FAT_VOLUME* volume)
 /*
 // gets the sector size of the volume.
 */
-uint16 fat_get_sector_size(FAT_VOLUME* volume)
+uint16 fat_get_sector_size(SFatVolume* volume)
 {
 	return volume->no_of_bytes_per_serctor;
 }
@@ -478,10 +475,10 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time)
 /*
 // finds the first file in a directory
 */
-uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attributes, FAT_DIRECTORY_ENTRY** dir_entry, FAT_FILESYSTEM_QUERY* q) 
+uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, FAT_FILESYSTEM_QUERY* q) 
 {
-	uint16 ret;
-	FAT_DIRECTORY_ENTRY parent_entry;
+	uint16 uiResult;
+	SFatDirectoryEntry parent_entry;
 	FAT_FILESYSTEM_QUERY_INNER* query = (FAT_FILESYSTEM_QUERY_INNER*)q;
 
 	// make sure the query has a buffer
@@ -504,32 +501,32 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 	if (parent_path != NULL)
 	{
 		// try to get the entry for the parent
-		ret = fat_get_file_entry(volume, parent_path, &parent_entry);
+		uiResult = fat_get_file_entry(volume, parent_path, &parent_entry);
 
 		// if we were unable to get the parent entry
 		// then return the error that we received from
 		// fat_get_file_entry
-		if (ret != FAT_SUCCESS)
+		if (uiResult != FAT_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 
 		// try to get the 1st entry of the
 		// query results
-		ret = fat_query_first_entry(volume, &parent_entry.raw, attributes, &query->state, 0);
+		uiResult = fat_query_first_entry(volume, &parent_entry.raw, attributes, &query->state, 0);
 	}
 	// if the parent was not supplied then we
 	// submit the query without it
 	else
 	{
-		ret = fat_query_first_entry(volume, 0, attributes, &query->state, 0);
+		uiResult = fat_query_first_entry(volume, 0, attributes, &query->state, 0);
 	}
 
 	// if we cant get the 1st entry then return the
 	// error that we received from fat_Query_First_entry
-	if (ret != FAT_SUCCESS)
+	if (uiResult != FAT_SUCCESS)
 	{
-		return ret;
+		return uiResult;
 	}
 
 	// if there are no more entries
@@ -561,7 +558,7 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 	// calculate the offset of the entry within it's sector
 	query->current_entry.sector_offset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.buffer);
 	// store a copy of the original FAT directory entry
-	// within the FAT_DIRECTORY_ENTRY structure that is returned
+	// within the SFatDirectoryEntry structure that is returned
 	// to users
 	query->current_entry.raw = *query->state.current_entry_raw;
 
@@ -570,10 +567,10 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 	{
 		if (*query->state.long_filename != 0)
 		{
-			for (ret = 0; ret < 256; ret++)
+			for (uiResult = 0; uiResult < 256; uiResult++)
 			{
-				query->current_entry.name[ret] = (uint8)query->state.long_filename[ret];
-				if (query->state.long_filename[ret] == 0)
+				query->current_entry.name[uiResult] = (uint8)query->state.long_filename[uiResult];
+				if (query->state.long_filename[uiResult] == 0)
 				{
 					break;
 				}
@@ -600,21 +597,21 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 /*
 // finds the next file in the directory
 */
-uint16 fat_find_next_entry(	FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry, FAT_FILESYSTEM_QUERY* q) 
+uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, FAT_FILESYSTEM_QUERY* q) 
 {
-	uint16 ret;
+	uint16 uiResult;
 	FAT_FILESYSTEM_QUERY_INNER* query = (FAT_FILESYSTEM_QUERY_INNER*)q;
 
 	/*
 	// try to get the next entry of the query
 	*/
-	ret = fat_query_next_entry(volume, &query->state, 0, 0);
+	uiResult = fat_query_next_entry(volume, &query->state, 0, 0);
 	/*
 	// if we received an error from fat_query_next_entry
 	// then we return the error code to the calling function
 	*/
-	if (ret != FAT_SUCCESS)
-		return ret;
+	if (uiResult != FAT_SUCCESS)
+		return uiResult;
 	/*
 	// if there are no more entries
 	*/
@@ -657,7 +654,7 @@ uint16 fat_find_next_entry(	FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry,
 	query->current_entry.sector_offset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.buffer);
 	/*
 	// store a copy of the original FAT directory entry
-	// within the FAT_DIRECTORY_ENTRY structure that is returned
+	// within the SFatDirectoryEntry structure that is returned
 	// to users
 	*/
 	query->current_entry.raw = *query->state.current_entry_raw;
@@ -666,10 +663,10 @@ uint16 fat_find_next_entry(	FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry,
 	{
 		if (*query->state.long_filename != 0)
 		{
-			for (ret = 0; ret < 256; ret++)
+			for (uiResult = 0; uiResult < 256; uiResult++)
 			{
-				query->current_entry.name[ret] = (uint8)query->state.long_filename[ret];
-				if (query->state.long_filename[ret] == 0)
+				query->current_entry.name[uiResult] = (uint8)query->state.long_filename[uiResult];
+				if (query->state.long_filename[uiResult] == 0)
 					break;
 			}
 		}
@@ -690,31 +687,31 @@ uint16 fat_find_next_entry(	FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry,
 // from a raw directory entry
 */
 void fat_fill_directory_entry_from_raw(
-	FAT_DIRECTORY_ENTRY* entry, FAT_RAW_DIRECTORY_ENTRY* raw_entry) {
+	SFatDirectoryEntry* entry, SFatRawDirectoryEntry* raw_entry) {
 
 	/*
 	// copy the filename and transform the filename
 	// from the internal structure to the public one
 	*/
-	fat_get_short_name_from_entry(entry->name, raw_entry->ENTRY.STD.name);
+	fat_get_short_name_from_entry(entry->name, raw_entry->ENTRY.sFatRawCommon.name);
 	/*
 	// copy other data from the internal entry structure
 	// to the public one
 	*/
-	entry->attributes = raw_entry->ENTRY.STD.attributes;
-	entry->size = raw_entry->ENTRY.STD.size;
-	entry->create_time = fat_decode_date_time(raw_entry->ENTRY.STD.create_date, raw_entry->ENTRY.STD.create_time);
-	entry->modify_time = fat_decode_date_time(raw_entry->ENTRY.STD.modify_date, raw_entry->ENTRY.STD.modify_time);
-	entry->access_time = fat_decode_date_time(raw_entry->ENTRY.STD.access_date, 0);
+	entry->attributes = raw_entry->ENTRY.sFatRawCommon.attributes;
+	entry->size = raw_entry->ENTRY.sFatRawCommon.size;
+	entry->create_time = fat_decode_date_time(raw_entry->ENTRY.sFatRawCommon.create_date, raw_entry->ENTRY.sFatRawCommon.create_time);
+	entry->modify_time = fat_decode_date_time(raw_entry->ENTRY.sFatRawCommon.modify_date, raw_entry->ENTRY.sFatRawCommon.modify_time);
+	entry->access_time = fat_decode_date_time(raw_entry->ENTRY.sFatRawCommon.access_date, 0);
 	entry->raw = *raw_entry;
 }
 
 
 // creates a directory
-uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
+uint16 fat_create_directory(SFatVolume* volume, char* directory)
 {
-	uint16 ret;
-	FAT_DIRECTORY_ENTRY entry;
+	uint16 uiResult;
+	SFatDirectoryEntry entry;
 	/*
 	// check that we got a valid pathname
 	*/
@@ -723,9 +720,9 @@ uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
 	/*
 	// try get the file entry
 	*/
-	ret = fat_get_file_entry(volume, directory, &entry);
-	if (ret != FAT_SUCCESS)
-		return ret;
+	uiResult = fat_get_file_entry(volume, directory, &entry);
+	if (uiResult != FAT_SUCCESS)
+		return uiResult;
 	/*
 	// if we don'tfind a file or directory by that name
 	// we can create it, otherwise return file already exists error
@@ -738,7 +735,7 @@ uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
 		size_t path_len;
 		char* path_scanner;
 		char file_path[FAT_MAX_PATH + 1];
-		FAT_DIRECTORY_ENTRY parent_entry;
+		SFatDirectoryEntry parent_entry;
 		/*
 		// get the name of the file path including
 		// the filename
@@ -785,14 +782,14 @@ uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
 		/*
 		// try to get the entry for the parent directory
 		*/
-		ret = fat_get_file_entry(volume, file_path, &parent_entry);
+		uiResult = fat_get_file_entry(volume, file_path, &parent_entry);
 		/*
 		// if fat_get_file_entry returned an error
 		// then we return the error code to the calling
 		// function
 		*/
-		if (ret != FAT_SUCCESS)
-			return ret;
+		if (uiResult != FAT_SUCCESS)
+			return uiResult;
 		/*
 		// if the parent directory does not exists
 		*/
@@ -812,14 +809,14 @@ uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
 }
 
 
-// gets a FAT_DIRECTORY_ENTRY by it's full path
-uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* entry)
+// gets a SFatDirectoryEntry by it's full path
+uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* entry)
 {
-	uint16 ret;
+	uint16 uiResult;
 	char match;
 	uint8 target_file[13];
 	uint8* pLevel;
-	FAT_RAW_DIRECTORY_ENTRY* current_entry;
+	SFatRawDirectoryEntry* current_entry;
 	FAT_QUERY_STATE_INTERNAL query;
 	/* FAT_QUERY_STATE query; */
 
@@ -861,12 +858,12 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 		// entry in their respective formats
 		*/
 		strcpy((char*)entry->name, "ROOT");
-		get_short_name_for_entry(entry->raw.ENTRY.STD.name, entry->name, 1);
+		get_short_name_for_entry(entry->raw.ENTRY.sFatRawCommon.name, entry->name, 1);
 		/*
 		// set the general fields of the entry
 		*/
-		entry->attributes = entry->raw.ENTRY.STD.attributes = FAT_ATTR_DIRECTORY;
-		entry->size = entry->raw.ENTRY.STD.size = 0x0;
+		entry->attributes = entry->raw.ENTRY.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
+		entry->size = entry->raw.ENTRY.sFatRawCommon.size = 0x0;
 		/*
 		// since the entry does not physically exist the
 		// address fields are set to zero as well
@@ -884,8 +881,8 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			// directory is located on the data section just like
 			// any other directory
 			*/
-			entry->raw.ENTRY.STD.first_cluster_lo = LO16(volume->root_cluster);
-			entry->raw.ENTRY.STD.first_cluster_hi = HI16(volume->root_cluster);
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_lo = LO16(volume->root_cluster);
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_hi = HI16(volume->root_cluster);
 		}
 		else
 		{
@@ -895,8 +892,8 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			// directory we'll calculate the address right after
 			// the end of the FATs
 			*/
-			entry->raw.ENTRY.STD.first_cluster_lo = 0x0;
-			entry->raw.ENTRY.STD.first_cluster_hi = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_lo = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_hi = 0x0;
 		}
 		/*
 		// return success code
@@ -925,10 +922,10 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 		/*
 		// copy the name of the current level entry
 		*/
-		ret = 0;
+		uiResult = 0;
 		while (*path != 0x0 && *path != '\\')
 		{
-			if (ret++ > FAT_MAX_PATH)
+			if (uiResult++ > FAT_MAX_PATH)
 			{
 				return FAT_INVALID_FILENAME;
 			}
@@ -938,20 +935,20 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 		/*
 		// try to find the first entry
 		*/
-		ret = fat_query_first_entry(volume, current_entry, 0, (FAT_QUERY_STATE*)&query, 1);
+		uiResult = fat_query_first_entry(volume, current_entry, 0, (FAT_QUERY_STATE*)&query, 1);
 		/*
 		// if we could not find the entry then
 		// return an error code
 		*/
-		if (ret != FAT_SUCCESS)
+		if (uiResult != FAT_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 		/*
 		// if the output of fat_query_first_entry indicates that
 		// there are no entries available...
 		*/
-		if (*query.current_entry_raw->ENTRY.STD.name == 0x0)
+		if (*query.current_entry_raw->ENTRY.sFatRawCommon.name == 0x0)
 		{
 			/*
 			// set the name of the entry to 0
@@ -981,11 +978,11 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			}
 			using_lfn = 1;
 			match = fat_compare_long_name(target_file_long, query.long_filename)
-				|| fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
+				|| fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.sFatRawCommon.name);
 		}
 		else
 		{
-			match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
+			match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.sFatRawCommon.name);
 		}
 
 		/*
@@ -997,14 +994,14 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			/*
 			//  try to get the next file
 			*/
-			ret = fat_query_next_entry(volume, (FAT_QUERY_STATE*)&query, 1, 0);
+			uiResult = fat_query_next_entry(volume, (FAT_QUERY_STATE*)&query, 1, 0);
 			/*
 			// if we received an error message then return
 			// it to the calling function
 			*/
-			if (ret != FAT_SUCCESS)
+			if (uiResult != FAT_SUCCESS)
 			{
-				return ret;
+				return uiResult;
 			}
 			/*
 			// if the output of fat_query_first_entry indicates that
@@ -1022,11 +1019,11 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			if (using_lfn)
 			{
 				match = fat_compare_long_name(target_file_long, query.long_filename)
-					|| fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
+					|| fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.sFatRawCommon.name);
 			}
 			else
 			{
-				match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
+				match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.sFatRawCommon.name);
 			}
 		}
 		/*
@@ -1039,16 +1036,16 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 	// copy the filename and transform the filename
 	// from the internal structure to the public one
 	*/
-	fat_get_short_name_from_entry(entry->name, query.current_entry_raw->ENTRY.STD.name);
+	fat_get_short_name_from_entry(entry->name, query.current_entry_raw->ENTRY.sFatRawCommon.name);
 	/*
 	// copy other data from the internal entry structure
 	// to the public one
 	*/
-	entry->attributes = query.current_entry_raw->ENTRY.STD.attributes;
-	entry->size = query.current_entry_raw->ENTRY.STD.size;
-	entry->create_time = fat_decode_date_time(query.current_entry_raw->ENTRY.STD.create_date, query.current_entry_raw->ENTRY.STD.create_time);
-	entry->modify_time = fat_decode_date_time(query.current_entry_raw->ENTRY.STD.modify_date, query.current_entry_raw->ENTRY.STD.modify_time);
-	entry->access_time = fat_decode_date_time(query.current_entry_raw->ENTRY.STD.access_date, 0);
+	entry->attributes = query.current_entry_raw->ENTRY.sFatRawCommon.attributes;
+	entry->size = query.current_entry_raw->ENTRY.sFatRawCommon.size;
+	entry->create_time = fat_decode_date_time(query.current_entry_raw->ENTRY.sFatRawCommon.create_date, query.current_entry_raw->ENTRY.sFatRawCommon.create_time);
+	entry->modify_time = fat_decode_date_time(query.current_entry_raw->ENTRY.sFatRawCommon.modify_date, query.current_entry_raw->ENTRY.sFatRawCommon.modify_time);
+	entry->access_time = fat_decode_date_time(query.current_entry_raw->ENTRY.sFatRawCommon.access_date, 0);
 	/*
 	// calculate the sector address of the entry - if
 	// query->CurrentCluster equals zero then this is the root
@@ -1074,7 +1071,7 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 
 	/*
 	// store a copy of the original FAT directory entry
-	// within the FAT_DIRECTORY_ENTRY structure that is returned
+	// within the SFatDirectoryEntry structure that is returned
 	// to users
 	*/
 	entry->raw = *query.current_entry_raw;
@@ -1089,7 +1086,7 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 // initializes a query of a set of directory
 // entries
 */
-uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* directory, uint8 attributes, FAT_QUERY_STATE* query, char buffer_locked)
+uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, FAT_QUERY_STATE* query, char buffer_locked)
 {
 	bool	bSuccess;
 	uint32	first_sector;
@@ -1105,7 +1102,7 @@ uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* direct
 	*/
 	if (directory)
 	{
-		if (directory->ENTRY.STD.first_cluster_hi == 0 && directory->ENTRY.STD.first_cluster_lo == 0)
+		if (directory->ENTRY.sFatRawCommon.first_cluster_hi == 0 && directory->ENTRY.sFatRawCommon.first_cluster_lo == 0)
 		{
 			directory = 0;
 		}
@@ -1139,22 +1136,22 @@ uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* direct
 		// if the entry provided is not a directory
 		// entry return an error code
 		*/
-		if (!(directory->ENTRY.STD.attributes & FAT_ATTR_DIRECTORY))
+		if (!(directory->ENTRY.sFatRawCommon.attributes & FAT_ATTR_DIRECTORY))
 			return FAT_NOT_A_DIRECTORY;
 		/*
 		// set the CurrentCluster field of the query
 		// state structure to the values found on the
 		// directory entry structure
 		*/
-		((uint16*)&query->current_cluster)[INT32_WORD0] = directory->ENTRY.STD.first_cluster_lo;
+		((uint16*)&query->current_cluster)[INT32_WORD0] = directory->ENTRY.sFatRawCommon.first_cluster_lo;
 		/*
 		// read the upper word of the cluster address
 		// only if this is a FAT32 volume
 		*/
 		if (volume->fs_type == FAT_FS_TYPE_FAT32)
 		{
-			((uint8*)&query->current_cluster)[INT32_BYTE2] = LO8(directory->ENTRY.STD.first_cluster_hi);
-			((uint8*)&query->current_cluster)[INT32_BYTE3] = HI8(directory->ENTRY.STD.first_cluster_hi);
+			((uint8*)&query->current_cluster)[INT32_BYTE2] = LO8(directory->ENTRY.sFatRawCommon.first_cluster_hi);
+			((uint8*)&query->current_cluster)[INT32_BYTE3] = HI8(directory->ENTRY.sFatRawCommon.first_cluster_hi);
 		}
 		else
 		{
@@ -1185,8 +1182,8 @@ uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* direct
 	query->Attributes = attributes;
 	query->current_sector = 0;
 
-	query->first_entry_raw = (FAT_RAW_DIRECTORY_ENTRY*)query->buffer;
-	query->current_entry_raw = (FAT_RAW_DIRECTORY_ENTRY*)query->buffer;
+	query->first_entry_raw = (SFatRawDirectoryEntry*)query->buffer;
+	query->current_entry_raw = (SFatRawDirectoryEntry*)query->buffer;
 
 	/*
 	// find the 1st entry and return it's result code
@@ -1196,7 +1193,7 @@ uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* direct
 /*
 // moves a query to the next entry
 */
-uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buffer_locked, char first_entry)
+uint16 fat_query_next_entry(SFatVolume* volume, FAT_QUERY_STATE* query, char buffer_locked, char first_entry)
 {
 	char	pass;
 	bool	bSuccess;
@@ -1238,7 +1235,7 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 						/*
 						// set the current entry to 0
 						*/
-						*query->current_entry_raw->ENTRY.STD.name = 0;
+						*query->current_entry_raw->ENTRY.sFatRawCommon.name = 0;
 						/*
 						// and return success
 						*/
@@ -1277,7 +1274,7 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 					{
 						if (query->current_sector == volume->root_directory_sectors)
 						{
-							*query->current_entry_raw->ENTRY.STD.name = 0;
+							*query->current_entry_raw->ENTRY.sFatRawCommon.name = 0;
 							return FAT_SUCCESS;
 						}
 						sector_address =
@@ -1304,8 +1301,8 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 				// on the query state to the 1st entry of the
 				// directory
 				*/
-				query->first_entry_raw = (FAT_RAW_DIRECTORY_ENTRY*)query->buffer;
-				query->current_entry_raw = (FAT_RAW_DIRECTORY_ENTRY*)query->buffer;
+				query->first_entry_raw = (SFatRawDirectoryEntry*)query->buffer;
+				query->current_entry_raw = (SFatRawDirectoryEntry*)query->buffer;
 			}
 			/*
 			// if there are more entries on the current sector...
@@ -1325,7 +1322,7 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 		/*
 		// if this is a long filename entry...
 		*/
-		if (query->current_entry_raw->ENTRY.STD.attributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(query->current_entry_raw))
+		if (query->current_entry_raw->ENTRY.sFatRawCommon.attributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(query->current_entry_raw))
 		{
 			/*
 			// if this enntry is marked as the 1st LFN entry
@@ -1394,25 +1391,25 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 			// attributes check
 			*/
 			pass =
-				(!(query->current_entry_raw->ENTRY.STD.attributes & FAT_ATTR_HIDDEN) || (query->Attributes & FAT_ATTR_HIDDEN)) &&
-				(!(query->current_entry_raw->ENTRY.STD.attributes & FAT_ATTR_SYSTEM) || (query->Attributes & FAT_ATTR_SYSTEM)) &&
-				(!(query->current_entry_raw->ENTRY.STD.attributes & FAT_ATTR_VOLUME_ID) || (query->Attributes & FAT_ATTR_VOLUME_ID)) &&
-				(!(query->current_entry_raw->ENTRY.STD.attributes & FAT_ATTR_LONG_NAME) || (query->Attributes & FAT_ATTR_LONG_NAME));
+				(!(query->current_entry_raw->ENTRY.sFatRawCommon.attributes & FAT_ATTR_HIDDEN) || (query->Attributes & FAT_ATTR_HIDDEN)) &&
+				(!(query->current_entry_raw->ENTRY.sFatRawCommon.attributes & FAT_ATTR_SYSTEM) || (query->Attributes & FAT_ATTR_SYSTEM)) &&
+				(!(query->current_entry_raw->ENTRY.sFatRawCommon.attributes & FAT_ATTR_VOLUME_ID) || (query->Attributes & FAT_ATTR_VOLUME_ID)) &&
+				(!(query->current_entry_raw->ENTRY.sFatRawCommon.attributes & FAT_ATTR_LONG_NAME) || (query->Attributes & FAT_ATTR_LONG_NAME));
 		}
 	}
 	/*
 	// repeat the process until we find a valid entry
 	// that matches the attributes given
 	*/
-	while (!pass || *query->current_entry_raw->ENTRY.STD.name == 0xE5);
+	while (!pass || *query->current_entry_raw->ENTRY.sFatRawCommon.name == 0xE5);
 	/*
 	// if we found an entry we need to check it's LFN checksum
 	// to make sure that the long filename that we've associated
 	// with it belongs to it. If it doesn't clear it.
 	*/
-	if (*query->current_entry_raw->ENTRY.STD.name != 0x0)
+	if (*query->current_entry_raw->ENTRY.sFatRawCommon.name != 0x0)
 	{
-		if (query->lfn_checksum != fat_long_entry_checksum((uint8*)query->current_entry_raw->ENTRY.STD.name))
+		if (query->lfn_checksum != fat_long_entry_checksum((uint8*)query->current_entry_raw->ENTRY.sFatRawCommon.name))
 		{
 			query->long_filename[0] = 0x0;
 		}
@@ -1423,38 +1420,38 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 	// lowercase version
 	*/
 	if (query->long_filename[0] == 0 &&
-		(query->current_entry_raw->ENTRY.STD.reserved & (FAT_LOWERCASE_EXTENSION | FAT_LOWERCASE_BASENAME)))
+		(query->current_entry_raw->ENTRY.sFatRawCommon.reserved & (FAT_LOWERCASE_EXTENSION | FAT_LOWERCASE_BASENAME)))
 	{
 		int i = 0;
-		for (uint16 ret = 0; ret < 8; ret++)
+		for (uint16 uiResult = 0; uiResult < 8; uiResult++)
 		{
-			if (query->current_entry_raw->ENTRY.STD.name[ret] != 0x20)
+			if (query->current_entry_raw->ENTRY.sFatRawCommon.name[uiResult] != 0x20)
 			{
-				if (query->current_entry_raw->ENTRY.STD.reserved & FAT_LOWERCASE_BASENAME)
+				if (query->current_entry_raw->ENTRY.sFatRawCommon.reserved & FAT_LOWERCASE_BASENAME)
 				{
-					query->long_filename[i++] = tolower(query->current_entry_raw->ENTRY.STD.name[ret]);
+					query->long_filename[i++] = tolower(query->current_entry_raw->ENTRY.sFatRawCommon.name[uiResult]);
 				}
 				else
 				{
-					query->long_filename[i++] = query->current_entry_raw->ENTRY.STD.name[ret];
+					query->long_filename[i++] = query->current_entry_raw->ENTRY.sFatRawCommon.name[uiResult];
 				}
 			}
 		}
-		if (query->current_entry_raw->ENTRY.STD.name[8] != 0x20)
+		if (query->current_entry_raw->ENTRY.sFatRawCommon.name[8] != 0x20)
 		{
 			query->long_filename[i++] = '.';
 
-			for (uint16 ret = 8; ret < 11; ret++)
+			for (uint16 uiResult = 8; uiResult < 11; uiResult++)
 			{
-				if (query->current_entry_raw->ENTRY.STD.name[ret] != 0x20)
+				if (query->current_entry_raw->ENTRY.sFatRawCommon.name[uiResult] != 0x20)
 				{
-					if (query->current_entry_raw->ENTRY.STD.reserved & FAT_LOWERCASE_EXTENSION)
+					if (query->current_entry_raw->ENTRY.sFatRawCommon.reserved & FAT_LOWERCASE_EXTENSION)
 					{
-						query->long_filename[i++] = tolower(query->current_entry_raw->ENTRY.STD.name[ret]);
+						query->long_filename[i++] = tolower(query->current_entry_raw->ENTRY.sFatRawCommon.name[uiResult]);
 					}
 					else
 					{
-						query->long_filename[i++] = query->current_entry_raw->ENTRY.STD.name[ret];
+						query->long_filename[i++] = query->current_entry_raw->ENTRY.sFatRawCommon.name[uiResult];
 					}
 				}
 			}
@@ -1471,9 +1468,9 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 /*
 // creates a FAT directory entry
 */
-uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, char* name, uint8 attribs, uint32 entry_cluster, FAT_DIRECTORY_ENTRY* new_entry)
+uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
 {
-	uint16							ret;
+	uint16							uiResult;
 	int16							char_index;
 	uint16							illegal_char;
 	uint16							entries_count = 0;
@@ -1482,7 +1479,7 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	uintptr_t						last_entry_address;
 	FAT_ENTRY						fat;
 	FAT_ENTRY						last_fat;
-	FAT_RAW_DIRECTORY_ENTRY*		parent_entry;
+	SFatRawDirectoryEntry*		parent_entry;
 
 	int								no_of_lfn_entries_needed = 0;
 	int								no_of_lfn_entries_found;
@@ -1493,17 +1490,17 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	/*
 	// get the length of the filename
 	*/
-	ret = (uint16)strlen(name);
+	uiResult = (uint16)strlen(name);
 
 	/*
 	// check that the character is a valid 8.3 filename, the
 	// file is invalid if:
 	//
 	//	- name part is more than 8 chars (char_index > 8)
-	//	- extension part is more than 3 (ret - char_index > 4)
+	//	- extension part is more than 3 (uiResult - char_index > 4)
 	//	- it has more than one dot (indexof('.', name, char_index + 1) >= 0)
 	*/
-	if (ret > 255)
+	if (uiResult > 255)
 	{
 		return FAT_FILENAME_TOO_LONG;
 	}
@@ -1514,12 +1511,12 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	*/
 	char_index = indexof('.', name, 0x0);
 
-	if (char_index == 0 || char_index == (ret - 1))
+	if (char_index == 0 || char_index == (uiResult - 1))
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	for (char_index = 0x0; char_index < ret; char_index++)
+	for (char_index = 0x0; char_index < uiResult; char_index++)
 	{
 		/*
 		// if the character is less than 0x20 with the
@@ -1553,12 +1550,12 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	// to the format required by the directory entry
 	// and copy it to it's field
 	*/
-	ret = get_short_name_for_entry(new_entry->raw.ENTRY.STD.name, (uint8*)name, 0);
+	uiResult = get_short_name_for_entry(new_entry->raw.ENTRY.sFatRawCommon.name, (uint8*)name, 0);
 	/*
 	// if the above operation failed then the filename
 	// is invalid
 	*/
-	if (ret != FAT_SUCCESS && ret != FAT_LFN_GENERATED)
+	if (uiResult != FAT_SUCCESS && uiResult != FAT_LFN_GENERATED)
 	{
 		return FAT_INVALID_FILENAME;
 	}
@@ -1566,7 +1563,7 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	// if this is going to be an lfn entry we need to make
 	// sure that the short filename is available
 	*/
-	if (ret == FAT_LFN_GENERATED)
+	if (uiResult == FAT_LFN_GENERATED)
 	{
 		FAT_QUERY_STATE query;
 		uint16 name_suffix = 0;
@@ -1580,36 +1577,36 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 
 			memset(&query, 0, sizeof(query));
 			query.buffer = query.buff;
-			ret = fat_query_first_entry(volume, parent, 0, &query, 0);
-			if (ret != FAT_SUCCESS)
+			uiResult = fat_query_first_entry(volume, parent, 0, &query, 0);
+			if (uiResult != FAT_SUCCESS)
 			{
-				return ret;
+				return uiResult;
 			}
 
 			sprintf(name_suffix_str, "~%i", name_suffix);
 
 			for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
-				if (new_entry->raw.ENTRY.STD.name[i] == 0x20)
+				if (new_entry->raw.ENTRY.sFatRawCommon.name[i] == 0x20)
 					break;
 
 			for (c = 0; c < (char)strlen(name_suffix_str); c++)
-				new_entry->raw.ENTRY.STD.name[i++] = name_suffix_str[c];
+				new_entry->raw.ENTRY.sFatRawCommon.name[i++] = name_suffix_str[c];
 			/*
 			// loop through all entries in the parent directory
 			// and if we find one with the same name as hours mark the name
 			// as invalid
 			*/
-			while (*query.current_entry_raw->ENTRY.STD.name != 0)
+			while (*query.current_entry_raw->ENTRY.sFatRawCommon.name != 0)
 			{
-				if (memcmp(query.current_entry_raw->ENTRY.STD.name, new_entry->raw.ENTRY.STD.name, 11) == 0)
+				if (memcmp(query.current_entry_raw->ENTRY.sFatRawCommon.name, new_entry->raw.ENTRY.sFatRawCommon.name, 11) == 0)
 				{
 					is_valid_entry = 0;
 					break;
 				}
-				ret = fat_query_next_entry(volume, &query, 0, 0);
-				if (ret != FAT_SUCCESS)
+				uiResult = fat_query_next_entry(volume, &query, 0, 0);
+				if (uiResult != FAT_SUCCESS)
 				{
-					return ret;
+					return uiResult;
 				}
 			}
 			/*
@@ -1625,11 +1622,11 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 				sprintf(name_suffix_str, "~%i", name_suffix++);
 
 				for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
-					if (new_entry->raw.ENTRY.STD.name[i] == 0x20)
+					if (new_entry->raw.ENTRY.sFatRawCommon.name[i] == 0x20)
 						break;
 
 				for (c = 0; c < (char)strlen(name_suffix_str); c++)
-					new_entry->raw.ENTRY.STD.name[i++] = name_suffix_str[c];
+					new_entry->raw.ENTRY.sFatRawCommon.name[i++] = name_suffix_str[c];
 			}
 		} while (!is_valid_entry);
 		/*
@@ -1646,10 +1643,10 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	*/
 	if (entry_cluster == 0 && (attribs & FAT_ATTR_DIRECTORY))
 	{
-		entry_cluster = fat_allocate_directory_cluster(volume, parent, &ret);
-		if (ret != FAT_SUCCESS)
+		entry_cluster = fat_allocate_directory_cluster(volume, parent, &uiResult);
+		if (uiResult != FAT_SUCCESS)
 		{
-			return ret;
+			return uiResult;
 		}
 	}
 	/*
@@ -1658,20 +1655,20 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	strcpy((char*)new_entry->name, name);
 	new_entry->attributes = attribs;
 	new_entry->size = 0x0;
-	new_entry->raw.ENTRY.STD.attributes = attribs;
-	new_entry->raw.ENTRY.STD.reserved = 0;
-	new_entry->raw.ENTRY.STD.size = 0x0;
-	new_entry->raw.ENTRY.STD.first_cluster_lo = LO16(entry_cluster);
-	new_entry->raw.ENTRY.STD.first_cluster_hi = HI16(entry_cluster);
-	new_entry->raw.ENTRY.STD.create_time_tenth = 0x0;
-	new_entry->raw.ENTRY.STD.create_date = rtc_get_fat_date();
-	new_entry->raw.ENTRY.STD.create_time = rtc_get_fat_time();
-	new_entry->raw.ENTRY.STD.modify_date = new_entry->raw.ENTRY.STD.create_date;
-	new_entry->raw.ENTRY.STD.modify_time = new_entry->raw.ENTRY.STD.create_time;
-	new_entry->raw.ENTRY.STD.access_date = new_entry->raw.ENTRY.STD.create_date;
-	new_entry->create_time = fat_decode_date_time(new_entry->raw.ENTRY.STD.create_date, new_entry->raw.ENTRY.STD.create_time);
-	new_entry->modify_time = fat_decode_date_time(new_entry->raw.ENTRY.STD.modify_date, new_entry->raw.ENTRY.STD.modify_time);
-	new_entry->access_time = fat_decode_date_time(new_entry->raw.ENTRY.STD.access_date, 0);
+	new_entry->raw.ENTRY.sFatRawCommon.attributes = attribs;
+	new_entry->raw.ENTRY.sFatRawCommon.reserved = 0;
+	new_entry->raw.ENTRY.sFatRawCommon.size = 0x0;
+	new_entry->raw.ENTRY.sFatRawCommon.first_cluster_lo = LO16(entry_cluster);
+	new_entry->raw.ENTRY.sFatRawCommon.first_cluster_hi = HI16(entry_cluster);
+	new_entry->raw.ENTRY.sFatRawCommon.create_time_tenth = 0x0;
+	new_entry->raw.ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	new_entry->raw.ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	new_entry->raw.ENTRY.sFatRawCommon.modify_date = new_entry->raw.ENTRY.sFatRawCommon.create_date;
+	new_entry->raw.ENTRY.sFatRawCommon.modify_time = new_entry->raw.ENTRY.sFatRawCommon.create_time;
+	new_entry->raw.ENTRY.sFatRawCommon.access_date = new_entry->raw.ENTRY.sFatRawCommon.create_date;
+	new_entry->create_time = fat_decode_date_time(new_entry->raw.ENTRY.sFatRawCommon.create_date, new_entry->raw.ENTRY.sFatRawCommon.create_time);
+	new_entry->modify_time = fat_decode_date_time(new_entry->raw.ENTRY.sFatRawCommon.modify_date, new_entry->raw.ENTRY.sFatRawCommon.modify_time);
+	new_entry->access_time = fat_decode_date_time(new_entry->raw.ENTRY.sFatRawCommon.access_date, 0);
 
 	/*
 	// there's no fat entry that points to the 1st cluster of
@@ -1681,15 +1678,15 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	// cluster with the same code as all other clusters
 	// in the chain
 	*/
-	if (parent && (parent->ENTRY.STD.first_cluster_lo != 0x0 || parent->ENTRY.STD.first_cluster_hi != 0x0))
+	if (parent && (parent->ENTRY.sFatRawCommon.first_cluster_lo != 0x0 || parent->ENTRY.sFatRawCommon.first_cluster_hi != 0x0))
 	{
 		/*
 		// read the low word of the cluster address
 		// and read the high word of the 1st cluster address
 		// ONLY if the file system type is FAT32
 		*/
-		((uint16*)&fat)[INT32_WORD0] = parent->ENTRY.STD.first_cluster_lo;
-		((uint16*)&fat)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? parent->ENTRY.STD.first_cluster_hi : 0x0;
+		((uint16*)&fat)[INT32_WORD0] = parent->ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&fat)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? parent->ENTRY.sFatRawCommon.first_cluster_hi : 0x0;
 	}
 	/*
 	// if no parent was specified then we create
@@ -1722,7 +1719,7 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 	{
 		/*
 		// calculate the address of the 1st sector
-		// of the cluster - skip this step if ret equals
+		// of the cluster - skip this step if uiResult equals
 		// 1, this means that this is the 1st sector of the
 		// root entry which doesn't start at the beggining
 		// of the cluster
@@ -1761,7 +1758,7 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 			// set the parent entry pointer to the 1st
 			// entry of the current sector
 			*/
-			parent_entry = (FAT_RAW_DIRECTORY_ENTRY*)buffer;
+			parent_entry = (SFatRawDirectoryEntry*)buffer;
 
 			/*
 			// for each directory entry in the sector...
@@ -1842,13 +1839,13 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 									return FAT_CANNOT_READ_MEDIA;
 								}
 								last_entry_address = ((uintptr_t)buffer + volume->no_of_bytes_per_serctor) - 0x20;
-								parent_entry = (FAT_RAW_DIRECTORY_ENTRY*)last_entry_address;
+								parent_entry = (SFatRawDirectoryEntry*)last_entry_address;
 							}
 						}
 						/*
 						// compute the checksum for this entry
 						*/
-						lfn_checksum = fat_long_entry_checksum((uint8*)new_entry->raw.ENTRY.STD.name);
+						lfn_checksum = fat_long_entry_checksum((uint8*)new_entry->raw.ENTRY.sFatRawCommon.name);
 						/*
 						// now we can start writting
 						*/
@@ -1863,7 +1860,7 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 								*/
 								parent_entry->ENTRY.LFN.lfn_sequence = (uint8)no_of_lfn_entries_found;
 								parent_entry->ENTRY.LFN.lfn_checksum = lfn_checksum;
-								parent_entry->ENTRY.STD.attributes = FAT_ATTR_LONG_NAME;
+								parent_entry->ENTRY.sFatRawCommon.attributes = FAT_ATTR_LONG_NAME;
 								parent_entry->ENTRY.LFN.lfn_first_cluster = 0;
 								parent_entry->ENTRY.LFN.lfn_type = 0;
 								/*
@@ -1944,10 +1941,10 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 										// we can update it bellow if it's the eof cluster
 										*/
 										last_fat = fat;
-										ret = fat_get_cluster_entry(volume, fat, &fat);
-										if (ret != FAT_SUCCESS)
+										uiResult = fat_get_cluster_entry(volume, fat, &fat);
+										if (uiResult != FAT_SUCCESS)
 										{
-											return ret;
+											return uiResult;
 										}
 										/*
 										// if this is the end of the FAT chain allocate
@@ -1955,16 +1952,16 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 										*/
 										if (fat_is_eof_entry(volume, fat))
 										{
-											FAT_ENTRY newfat = fat_allocate_data_cluster(volume, 1, 1, &ret);
-											if (ret != FAT_SUCCESS)
+											FAT_ENTRY newfat = fat_allocate_data_cluster(volume, 1, 1, &uiResult);
+											if (uiResult != FAT_SUCCESS)
 											{
-												return ret;
+												return uiResult;
 											}
 
-											ret = fat_set_cluster_entry(volume, last_fat, newfat);
-											if (ret != FAT_SUCCESS)
+											uiResult = fat_set_cluster_entry(volume, last_fat, newfat);
+											if (uiResult != FAT_SUCCESS)
 											{
-												return ret;
+												return uiResult;
 											}
 											fat = newfat;
 										}
@@ -1985,7 +1982,7 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 									{
 										return FAT_CANNOT_READ_MEDIA;
 									}
-									parent_entry = (FAT_RAW_DIRECTORY_ENTRY*)buffer;
+									parent_entry = (SFatRawDirectoryEntry*)buffer;
 								}
 							}
 							else
@@ -2045,9 +2042,9 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 		// case we need to rewind to write lfn entries
 		*/
 		last_fat = fat;
-		ret = fat_get_cluster_entry(volume, fat, &fat);
-		if (ret != FAT_SUCCESS)
-			return ret;
+		uiResult = fat_get_cluster_entry(volume, fat, &fat);
+		if (uiResult != FAT_SUCCESS)
+			return uiResult;
 		/*
 		// if this is the end of the FAT chain allocate
 		// a new cluster to this folder and continue
@@ -2058,15 +2055,15 @@ uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* p
 			/*
 			// allocate the cluster
 			*/
-			newfat = fat_allocate_data_cluster(volume, 1, 1, &ret);
-			if (ret != FAT_SUCCESS)
-				return ret;
+			newfat = fat_allocate_data_cluster(volume, 1, 1, &uiResult);
+			if (uiResult != FAT_SUCCESS)
+				return uiResult;
 			/*
 			// link it to the cluster chain
 			*/
-			ret = fat_set_cluster_entry(volume, last_fat, newfat);
-			if (ret != FAT_SUCCESS)
-				return ret;
+			uiResult = fat_set_cluster_entry(volume, last_fat, newfat);
+			if (uiResult != FAT_SUCCESS)
+				return uiResult;
 			fat = newfat;
 		}
 
