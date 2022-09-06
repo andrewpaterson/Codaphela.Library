@@ -185,6 +185,7 @@
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="Fat.cpp" />
     <ClCompile Include="FatCluster.cpp" />
+    <ClCompile Include="FatFile.cpp" />
     <ClCompile Include="FatFormat.cpp" />
     <ClCompile Include="FileDrive.cpp" />
     <ClCompile Include="FileIterator.cpp" />
