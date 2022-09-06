@@ -77,8 +77,7 @@ uint16 fat_file_update_sequential_cluster_count(FAT_FILE* handle)
 /*
 // opens a file
 */
-uint16 fat_file_open(FAT_VOLUME* volume,
-	char* filename, uint8 access_flags, FAT_FILE* handle)
+uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT_FILE* handle)
 {
 	uint16 ret;
 	FAT_DIRECTORY_ENTRY file_entry;
@@ -87,7 +86,9 @@ uint16 fat_file_open(FAT_VOLUME* volume,
 	*/
 #if defined(FAT_ALLOCATE_FILE_BUFFERS)
 	if (!(access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	{
 		handle->buffer = handle->buffer_internal;
+	}
 #else
 	handle->buffer = 0;
 #endif
@@ -95,7 +96,9 @@ uint16 fat_file_open(FAT_VOLUME* volume,
 	// check that the user supplied a filename
 	*/
 	if (filename == 0 || strlen(filename) > FAT_MAX_PATH)
+	{
 		return FAT_INVALID_FILENAME;
+	}
 	/*
 	// get the file entry
 	*/
@@ -105,7 +108,9 @@ uint16 fat_file_open(FAT_VOLUME* volume,
 	// the error that we received from fat_get_file_entry
 	*/
 	if (ret != FAT_SUCCESS)
+	{
 		return ret;
+	}
 	/*
 	// if the entry was not found...
 	*/
@@ -1565,13 +1570,17 @@ uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint
 	// check that this is a valid handle
 	*/
 	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
+	{
 		return FAT_INVALID_HANDLE;
+	}
 	/*
 	// make sure that either a buffer is set or the file has been
 	// opened in unbuffered mode
 	*/
 	if (!handle->buffer && !(handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	{
 		return FAT_FILE_BUFFER_NOT_SET;
+	}
 	/*
 	// make sure length is not larger than 16-bit
 	*/

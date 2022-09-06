@@ -133,7 +133,7 @@
 // smlib will allocate the file buffers from the heap unless SM_FILE_FLAG_NO_BUFFERING
 // is specified.
 */
-/* #define FAT_ALLOCATE_FILE_BUFFERS */
+ #define FAT_ALLOCATE_FILE_BUFFERS
 
 /*
 // if this option is specified this library will be compiled only with the functions
@@ -435,25 +435,25 @@ FAT_DIRECTORY_ENTRY;
 */
 typedef struct FAT_QUERY_STATE
 {
-	uint8 Attributes;
-	uint16 current_sector;
-	uint32 current_cluster;
-	FAT_RAW_DIRECTORY_ENTRY* current_entry_raw;
-	uint8* buffer;
+	uint8						Attributes;
+	uint16						current_sector;
+	uint32						current_cluster;
+	FAT_RAW_DIRECTORY_ENTRY*	current_entry_raw;
+	uint8*						buffer;
 
-	FAT_RAW_DIRECTORY_ENTRY* first_entry_raw;
+	FAT_RAW_DIRECTORY_ENTRY*	first_entry_raw;
 	/*
 	// LFN support members
 	*/
 #if !defined(FAT_DISABLE_LONG_FILENAMES)
-	uint16 long_filename[256];
-	uint8 lfn_sequence;
-	uint8 lfn_checksum;
+	uint16						long_filename[256];
+	uint8						lfn_sequence;
+	uint8						lfn_checksum;
 #endif
 	/*
 	// buffer (MUST ALWAYS BE LAST!!!)
 	*/
-	uint8 buff[MAX_SECTOR_LENGTH];
+	uint8						buff[MAX_SECTOR_LENGTH];
 }
 FAT_QUERY_STATE;
 
@@ -500,9 +500,6 @@ FAT_OP_STATE;
  */
 typedef struct FAT_FILE
 {
-	/*!
-		\internal
-	*/
 	FAT_VOLUME*				volume;
 	FAT_DIRECTORY_ENTRY		directory_entry;
 	uint32					current_size;
@@ -521,11 +518,7 @@ typedef struct FAT_FILE
 #if defined(FAT_ALLOCATE_FILE_BUFFERS)
 	uint8 buffer_internal[MAX_SECTOR_LENGTH];
 #endif
-	/*!
-		\endinternal
-	*/
-}
-FAT_FILE;
+} FAT_FILE;
 
 /*!
  * <summary>Holds the state of a directory query.</summary>
