@@ -37,7 +37,7 @@
 #define ILLEGAL_CHARS_COUNT 			( 0x10 )
 #define BACKSLASH						( 0x5C )
 #define FAT_OPEN_HANDLE_MAGIC			( 0x4B )
-#define FAT_DELETED_ENTRY				( (char)0xE5 )
+#define FAT_DELETED_ENTRY				( 0xE5 )
 #define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
 
 
@@ -61,8 +61,8 @@
  // macros for checking if a directory entry is free
  // and if it's the last entry on the directory
  */
-#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0xE5 || *(entry)->uEntry.sFatRawCommon.name == 0x0)
-#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0x0)
+#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->ENTRY.sFatRawCommon.name == 0xE5 || *(entry)->ENTRY.sFatRawCommon.name == 0x0)
+#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->ENTRY.sFatRawCommon.name == 0x0)
 
 
  /*
@@ -213,12 +213,14 @@ typedef struct FAT_QUERY_STATE_INTERNAL
 	uint8						Attributes;
 	uint16						current_sector;
 	uint32						current_cluster;
-	SFatRawDirectoryEntry*		current_entry_raw;
+	SFatRawDirectoryEntry*	current_entry_raw;
 	uint8*						buffer;
 
-	SFatRawDirectoryEntry*		first_entry_raw;
+	SFatRawDirectoryEntry*	first_entry_raw;
 
+	/*
 	// LFN support members
+	*/
 	uint16						long_filename[256];
 	uint8						lfn_sequence;
 	uint8						lfn_checksum;
@@ -238,7 +240,7 @@ char fat_increase_cluster_address(SFatVolume* volume, uint32 current_cluster, ui
 char fat_is_eof_entry(SFatVolume* volume, FAT_ENTRY fat);
 
 uint8 fat_long_entry_checksum(uint8* filename);
-uint16 get_short_name_for_entry(char* dest, char* src, char lfn_disabled);
+uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
 uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result);
 uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, FAT_QUERY_STATE* query, char buffer_locked);
 uint16 fat_query_next_entry(SFatVolume* volume, FAT_QUERY_STATE* query, char buffer_locked, char first_entry);
@@ -251,8 +253,8 @@ void fat_file_write_callback(FAT_FILE* handle, uint16* async_state);
 
 int indexof(char chr, char* str, int index);
 
-void fat_get_short_name_from_entry(char* dest, const char* src);
-char fat_compare_short_name(char* name1, char* name2);
+void fat_get_short_name_from_entry(uint8* dest, const uint8* src);
+char fat_compare_short_name(uint8* name1, uint8* name2);
 uint8 fat_get_fat32_sec_per_clus(uint32 sector_count);
 uint8 fat_get_fat16_sec_per_clus(uint32 sector_count);
 void fat_fill_directory_entry_from_raw(SFatDirectoryEntry* entry, SFatRawDirectoryEntry* raw_entry);
@@ -267,6 +269,6 @@ uint32 fat_allocate_data_cluster_ex(SFatVolume* volume, uint32 count, char zero,
 #endif
 
 char fat_compare_long_name(uint16* name1, uint16* name2);
-char get_long_name_for_entry(uint16* dst, char* src);
+char get_long_name_for_entry(uint16* dst, uint8* src);
 
 #endif

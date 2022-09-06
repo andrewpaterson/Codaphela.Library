@@ -613,17 +613,17 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 
 	// initialize the volume label entry
 	entry = (SFatRawDirectoryEntry*)buffer;
-	entry->uEntry.sFatRawCommon.attributes = FAT_ATTR_VOLUME_ID;
-	entry->uEntry.sFatRawCommon.first_cluster_hi = 0;
-	entry->uEntry.sFatRawCommon.first_cluster_lo = 0;
-	entry->uEntry.sFatRawCommon.reserved = 0;
-	entry->uEntry.sFatRawCommon.size = 0;
-	entry->uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	entry->uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
-	entry->uEntry.sFatRawCommon.modify_date = entry->uEntry.sFatRawCommon.create_date;
-	entry->uEntry.sFatRawCommon.modify_time = entry->uEntry.sFatRawCommon.create_time;
-	entry->uEntry.sFatRawCommon.access_date = entry->uEntry.sFatRawCommon.create_date;
-	entry->uEntry.sFatRawCommon.create_time_tenth = 0;
+	entry->ENTRY.sFatRawCommon.attributes = FAT_ATTR_VOLUME_ID;
+	entry->ENTRY.sFatRawCommon.first_cluster_hi = 0;
+	entry->ENTRY.sFatRawCommon.first_cluster_lo = 0;
+	entry->ENTRY.sFatRawCommon.reserved = 0;
+	entry->ENTRY.sFatRawCommon.size = 0;
+	entry->ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	entry->ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	entry->ENTRY.sFatRawCommon.modify_date = entry->ENTRY.sFatRawCommon.create_date;
+	entry->ENTRY.sFatRawCommon.modify_time = entry->ENTRY.sFatRawCommon.create_time;
+	entry->ENTRY.sFatRawCommon.access_date = entry->ENTRY.sFatRawCommon.create_date;
+	entry->ENTRY.sFatRawCommon.create_time_tenth = 0;
 
 	// set the volume label
 	if ((c = strlen(volume_label)))
@@ -632,11 +632,11 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		{
 			if (i < c)
 			{
-				entry->uEntry.sFatRawCommon.name[i] = (volume_label[i]);
+				entry->ENTRY.sFatRawCommon.name[i] = (volume_label[i]);
 			}
 			else
 			{
-				entry->uEntry.sFatRawCommon.name[i] = 0x20;
+				entry->ENTRY.sFatRawCommon.name[i] = 0x20;
 			}
 		}
 	}

@@ -212,7 +212,9 @@ typedef void (*STORAGE_CALLBACK)(void* context, uint16* result);
  //* as a parameter to the driver's asynchronous IO functions.
 struct SStorageCallbackInfo
 {
+	 //* <summary>The callback function for an asynchronous IO function.</summary>
 	STORAGE_CALLBACK	Callback;
+	 //* <summary>The callback context for an asynchronous IO function.</summary>
 	void*				Context;
 };
 
@@ -225,7 +227,7 @@ struct SFatRawDirectoryEntry
 	{
 		struct SFatRawCommon
 		{
-			char name[11];
+			uint8 name[11];
 			uint8 attributes;
 			uint8 reserved;
 			uint8 create_time_tenth;
@@ -238,8 +240,7 @@ struct SFatRawDirectoryEntry
 			uint16 first_cluster_lo;
 			uint32 size;
 		} sFatRawCommon;
-
-		struct SFatRawCommonLongFileName
+		struct LFN
 		{
 			uint8 lfn_sequence;
 			uint8 lfn_chars_1[10];
@@ -249,28 +250,61 @@ struct SFatRawDirectoryEntry
 			uint8 lfn_chars_2[12];
 			uint16 lfn_first_cluster;
 			uint8 lfn_chars_3[4];
-		} sFatRawLongFileName;
-	} uEntry;
+		} LFN;
+	} ENTRY;
 };
 #pragma pack(pop)
 
 
- // Stores information about directory entries.
+/*!
+ * <summary>
+ * Stores information about directory entries.
+ * </summary>
+*/
 struct SFatDirectoryEntry
 {
-	char					name[FAT_MAX_FILENAME + 1];
-	uint8					attributes;
-	time_t					create_time;
-	time_t					modify_time;
-	time_t					access_time;
-	uint32					size;
-	uint32					sector_addr;
-	uint16					sector_offset;
-	SFatRawDirectoryEntry	raw;
+	/*!
+	 * <summary>The name of the file.</summary>
+	 */
+	uint8 name[FAT_MAX_FILENAME + 1];
+	/*!
+	 * <summary>The list of file attributes ORed together.</summary>
+	*/
+	uint8 attributes;
+	/*!
+	 * <summary>The creation timestamp of the file.</summary>
+	*/
+	time_t create_time;
+	/*!
+	 * <summary>The modification timestamp of the file.</summary>
+	 */
+	time_t modify_time;
+	/*!
+	 * <summary>The access timestamp of the file.</summary>
+	*/
+	time_t access_time;
+	/*!
+	 * <summary>The size of the file.</summary>
+	*/
+	uint32 size;
+	/*!
+	 * <summary>Reserved for internal use.</summary>
+	*/
+	uint32 sector_addr;
+	/*!
+	 * <summary>Reserved for internal use.</summary>
+	*/
+	uint16 sector_offset;
+	/*!
+	 * <summary>Reserved for internal use.</summary>
+	*/
+	SFatRawDirectoryEntry raw;
 };
 
 
+/*
 // Holds the internal state of a directory query.
+*/
 struct FAT_QUERY_STATE
 {
 	uint8						Attributes;
