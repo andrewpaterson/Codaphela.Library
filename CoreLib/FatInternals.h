@@ -106,7 +106,8 @@ FAT_FILESYSTEM_QUERY_INNER;
 // FAT32 FSInfo structure
 */
 #pragma pack(push, 1)
-typedef struct FAT_FSINFO {
+typedef struct FAT_FSINFO 
+{
 	uint32 TrailSig;
 	uint8 Reserved2[12];
 	uint32 Nxt_Free;
@@ -114,8 +115,7 @@ typedef struct FAT_FSINFO {
 	uint32 StructSig;
 	uint8 Reserved1[480];
 	uint32 LeadSig;
-}
-FAT_FSINFO;
+} FAT_FSINFO;
 #pragma pack(pop)
 
 
@@ -140,8 +140,7 @@ typedef struct FAT_PARTITION_ENTRY
 	uint8 chs_last_sector[3];
 	uint32 lba_first_sector;
 	uint32 total_sectors;
-}
-FAT_PARTITION_ENTRY;
+} FAT_PARTITION_ENTRY;
 #pragma pack(pop)
 
 
@@ -203,8 +202,7 @@ typedef struct FAT_BPB
 			char	BS_FilSysType[8];
 		} FAT32;
 	} BPB_EX;
-}
-FAT_BPB;
+} FAT_BPB;
 #pragma pack(pop)
 #if defined(USE_PRAGMA_PACK)
 #pragma pack()
@@ -227,8 +225,7 @@ typedef struct FAT_QUERY_STATE_INTERNAL
 	uint8 lfn_sequence;
 	uint8 lfn_checksum;
 #endif
-}
-FAT_QUERY_STATE_INTERNAL;
+} FAT_QUERY_STATE_INTERNAL;
 
 
 /*
@@ -248,8 +245,12 @@ uint32 fat_allocate_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTR
 uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* directory, uint8 attributes, FAT_QUERY_STATE* query, char buffer_locked);
 uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buffer_locked, char first_entry);
 uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FAT_FILE* handle, uint8 access_flags);
-uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* state);
-uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint16* result);
+uint16 fat_file_read_internal(FAT_FILE* handle, unsigned char* buff, uint32 length, uint32* bytes_read, uint16* state, FAT_ASYNC_CALLBACK* callback, void* callback_context);
+void fat_file_read_callback(FAT_FILE* handle, uint16* async_state);
+uint16 fat_file_write_internal(FAT_FILE* handle, unsigned char* buff, uint32 length, uint16* result, FAT_ASYNC_CALLBACK* callback, void* callback_context);
+void fat_file_write_callback(FAT_FILE* handle, uint16* async_state);
+
+
 int indexof(char chr, char* str, int index);
 
 void fat_get_short_name_from_entry(uint8* dest, const uint8* src);

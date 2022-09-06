@@ -312,6 +312,38 @@ typedef struct FAT_VOLUME
 }
 FAT_VOLUME;
 
+
+/*!
+ * <summary>
+ * This is the callback function for an asynchronous operation.
+ * </summary>
+ * <param name="context">The context pointer of the asynchronous operation.</param>
+ * <param name="result">A pointer to the result of the asynchronous operation.</param>
+ */
+typedef void (*STORAGE_CALLBACK)(void* context, uint16* result);
+
+
+/*!
+ * <summary>
+ * This structure holds the callback function pointer and
+ * the callback context and is passed by the file system driver
+ * as a parameter to the driver's asynchronous IO functions.
+ * </summary>
+ */
+typedef struct _STORAGE_CALLBACK_INFO
+{
+	/*!
+	 * <summary>The callback function for an asynchronous IO function.</summary>
+	 */
+	STORAGE_CALLBACK Callback;
+	/*!
+	 * <summary>The callback context for an asynchronous IO function.</summary>
+	 */
+	void* Context;
+}
+STORAGE_CALLBACK_INFO, * PSTORAGE_CALLBACK_INFO;
+
+
 /*
 // fat 32-byte directory entry structure
 */
@@ -427,6 +459,12 @@ FAT_QUERY_STATE;
 
 
 /*!
+ * <summary>Callback function for asynchronous IO.</summary>
+*/
+typedef void FAT_ASYNC_CALLBACK(void* context, uint16* state);
+
+
+/*!
  * <summary>Callback function for asynchronous STREAMING IO.</summary>
  */
 typedef void FAT_STREAM_CALLBACK(void* context, uint16* state, uint8** buffer, uint16* response);
@@ -436,19 +474,20 @@ typedef void FAT_STREAM_CALLBACK(void* context, uint16* state, uint8** buffer, u
  */
 typedef struct FAT_OP_STATE
 {
-	uint32				pos;
-	uint16				bytes_remaining;
-	uint32				sector_addr;
-	uint16*				async_state;
-	uint32*				bytes_read;
-	uint16				length;
-	uint16				storage_state;
-	uint8*				end_of_buffer;
-	uint8*				buffer;
-	uint8				internal_state;
+	uint32					pos;
+	uint16					bytes_remaining;
+	uint32					sector_addr;
+	uint16*					async_state;
+	uint32*					bytes_read;
+	uint16					length;
+	uint16					storage_state;
+	uint8*					end_of_buffer;
+	uint8*					buffer;
+	uint8					internal_state;
 
-
-	void*				callback_context;
+	STORAGE_CALLBACK_INFO	storage_callback_info;
+	FAT_ASYNC_CALLBACK*		callback;
+	void*					callback_context;
 }
 FAT_OP_STATE;
 
@@ -464,21 +503,21 @@ typedef struct FAT_FILE
 	/*!
 		\internal
 	*/
-	FAT_VOLUME* volume;
-	FAT_DIRECTORY_ENTRY directory_entry;
-	uint32 current_size;
-	uint32 current_clus_addr;
-	uint32 current_clus_idx;
-	uint32 current_sector_idx;
-	uint32 no_of_clusters_after_pos;
-	uint16 no_of_sequential_clusters;
-	uint8* buffer_head;
-	char buffer_dirty;
-	char busy;
-	uint8 magic;
-	uint8 access_flags;
-	FAT_OP_STATE op_state;
-	uint8* buffer;
+	FAT_VOLUME*				volume;
+	FAT_DIRECTORY_ENTRY		directory_entry;
+	uint32					current_size;
+	uint32					current_clus_addr;
+	uint32					current_clus_idx;
+	uint32					current_sector_idx;
+	uint32					no_of_clusters_after_pos;
+	uint16					no_of_sequential_clusters;
+	uint8*					buffer_head;
+	char					buffer_dirty;
+	char					busy;
+	uint8					magic;
+	uint8					access_flags;
+	FAT_OP_STATE			op_state;
+	uint8*					buffer;
 #if defined(FAT_ALLOCATE_FILE_BUFFERS)
 	uint8 buffer_internal[MAX_SECTOR_LENGTH];
 #endif
@@ -513,10 +552,12 @@ extern uint32 fat_shared_buffer_sector;
 void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 #endif
 
+
 /*!
  * <summary>Initializes the FAT library.</summary>
  */
-void fat_init();
+void fat_init(void);
+
 
 /*!
  * <summary>
@@ -526,11 +567,8 @@ void fat_init();
  * <param name="device">A pointer to the storage device driver STORAGE_DEVICE structure.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
  */
-uint16 fat_mount_volume
-(
-	FAT_VOLUME* volume,
-	CFileDrive* device
-);
+uint16 fat_mount_volume(FAT_VOLUME* volume, CFileDrive* device);
+
 
 /**
  * <summary>
@@ -538,19 +576,15 @@ uint16 fat_mount_volume
  * </summary>
  * <param name="volume">The handle of the volume to dismount.</param>
  */
-uint16 fat_dismount_volume
-(
-	FAT_VOLUME* volume
-);
+uint16 fat_dismount_volume(FAT_VOLUME* volume);
+
 
 /**
  * <summary>Gets the sector size of a volume in bytes.</summary>
  * <param name="volume">A pointer to the volume handle.</param>
  */
-uint16 fat_get_sector_size
-(
-	FAT_VOLUME* volume
-);
+uint16 fat_get_sector_size(FAT_VOLUME* volume);
+
 
 /**
  * <summary>
@@ -568,12 +602,8 @@ uint16 fat_get_sector_size
  * result codes defined in fat.h
  * </result>
  */
-uint16 fat_get_file_entry
-(
-	FAT_VOLUME* volume,
-	char* path,
-	FAT_DIRECTORY_ENTRY* entry
-);
+uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* entry);
+
 
 /**
  * <summary>
@@ -589,14 +619,8 @@ uint16 fat_get_file_entry
  * <param name="query">A pointer to a FAT_FILESYSTEM_QUERY that will be initialized as the query handle.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_find_first_entry
-(
-	FAT_VOLUME* volume,
-	char* path,
-	uint8 attributes,
-	FAT_DIRECTORY_ENTRY** dir_entry,
-	FAT_FILESYSTEM_QUERY* query
-);
+uint16 fat_find_first_entry(FAT_VOLUME* volume, char* path, uint8 attributes, FAT_DIRECTORY_ENTRY** dir_entry, FAT_FILESYSTEM_QUERY* query);
+
 
 /**
  * <summary>
@@ -610,12 +634,8 @@ uint16 fat_find_first_entry
  * <param name="query">The file system query object.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_find_next_entry
-(
-	FAT_VOLUME* volume,
-	FAT_DIRECTORY_ENTRY** dir_entry,
-	FAT_FILESYSTEM_QUERY* query
-);
+uint16 fat_find_next_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry, FAT_FILESYSTEM_QUERY* query);
+
 
 /**
  * <summary>
@@ -625,11 +645,8 @@ uint16 fat_find_next_entry
  * <param name="filename">The full path to the new directory.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_create_directory
-(
-	FAT_VOLUME* volume,
-	char* filename
-);
+uint16 fat_create_directory(FAT_VOLUME* volume, char* filename);
+
 
 /**
  * <summary>
@@ -639,11 +656,8 @@ uint16 fat_create_directory
  * <param name="filename">The full path and filename of the file to delete.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_file_delete
-(
-	FAT_VOLUME* volume,
-	char* filename
-);
+uint16 fat_file_delete(FAT_VOLUME* volume, char* filename);
+
 
 /**
  * <summary>
@@ -654,12 +668,8 @@ uint16 fat_file_delete
  * <param name="new_filename">The full path and new filename for the file.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_file_rename
-(
-	FAT_VOLUME* volume,
-	char* original_filename,
-	char* new_filename
-);
+uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_filename);
+
 
 /**
  * <summary>
@@ -671,24 +681,16 @@ uint16 fat_file_rename
  * <param name="file">A pointer to a file handle FAT_FILE structure.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_file_open
-(
-	FAT_VOLUME* volume,
-	char* filename,
-	uint8 access_flags,
-	FAT_FILE* file
-);
+uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT_FILE* file);
+
 
 /**
  * <summary>
  * Sets an external buffer for this file handle.
  * </summary>
 */
-uint16 fat_file_set_buffer
-(
-	FAT_FILE* file,
-	uint8* buffer
-);
+uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer);
+
 
 /**
  * <summary>
@@ -696,10 +698,8 @@ uint16 fat_file_set_buffer
  * </summary>
  * <param name="file">An open file handle.</param>
  */
-uint32 fat_file_get_unique_id
-(
-	FAT_FILE* file
-);
+uint32 fat_file_get_unique_id(FAT_FILE* file);
+
 
 /**
  * <summary>
@@ -725,6 +725,7 @@ uint16 fat_file_alloc
 	uint32 bytes
 );
 
+
 /**
  * <summary>
  * Moves the file cursor to a new position within the file.
@@ -743,6 +744,7 @@ uint16 fat_file_seek
 	uint32 offset,
 	char mode
 );
+
 
 /**
  * <summary>

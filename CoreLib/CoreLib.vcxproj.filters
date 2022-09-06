@@ -528,6 +528,9 @@
     <ClCompile Include="FatFormat.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
+    <ClCompile Include="FatFile.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">
