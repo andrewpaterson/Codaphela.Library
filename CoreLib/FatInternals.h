@@ -244,11 +244,11 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
 uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result);
 uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
 uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
-uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT_FILE* handle, uint8 access_flags);
-uint16 fat_file_read_internal(FAT_FILE* handle, unsigned char* buff, uint32 length, uint32* bytes_read, uint16* state, FAT_ASYNC_CALLBACK* callback, void* callback_context);
-void fat_file_read_callback(FAT_FILE* handle, uint16* async_state);
-uint16 fat_file_write_internal(FAT_FILE* handle, unsigned char* buff, uint32 length, uint16* result, FAT_ASYNC_CALLBACK* callback, void* callback_context);
-void fat_file_write_callback(FAT_FILE* handle, uint16* async_state);
+uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
+uint16 fat_file_read_internal(SFatFile* handle, unsigned char* buff, uint32 length, uint32* bytes_read, uint16* state, FAT_ASYNC_CALLBACK* callback, void* callback_context);
+void fat_file_read_callback(SFatFile* handle, uint16* async_state);
+uint16 fat_file_write_internal(SFatFile* handle, unsigned char* buff, uint32 length, uint16* result, FAT_ASYNC_CALLBACK* callback, void* callback_context);
+void fat_file_write_callback(SFatFile* handle, uint16* async_state);
 
 
 int indexof(char chr, char* str, int index);

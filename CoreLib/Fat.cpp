@@ -475,7 +475,7 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time)
 /*
 // finds the first file in a directory
 */
-uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, FAT_FILESYSTEM_QUERY* q) 
+uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q) 
 {
 	uint16 uiResult;
 	SFatDirectoryEntry parent_entry;
@@ -597,7 +597,7 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 /*
 // finds the next file in the directory
 */
-uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, FAT_FILESYSTEM_QUERY* q) 
+uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q) 
 {
 	uint16 uiResult;
 	FAT_FILESYSTEM_QUERY_INNER* query = (FAT_FILESYSTEM_QUERY_INNER*)q;

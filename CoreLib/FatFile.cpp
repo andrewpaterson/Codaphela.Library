@@ -25,10 +25,10 @@
 #define FAT_SET_LOADED_SECTOR(volume, sector)		fat_shared_buffer_sector = (sector)
 
 
-uint16 fat_file_update_sequential_cluster_count(FAT_FILE* file);
+uint16 fat_file_update_sequential_cluster_count(SFatFile* file);
 
 
-uint16 fat_file_update_sequential_cluster_count(FAT_FILE* handle)
+uint16 fat_file_update_sequential_cluster_count(SFatFile* handle)
 {
 	uint32 current_cluster;
 	uint32 next_cluster;
@@ -60,7 +60,7 @@ uint16 fat_file_update_sequential_cluster_count(FAT_FILE* handle)
 }
 
 // opens a file
-uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, FAT_FILE* handle)
+uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, SFatFile* handle)
 {
 	uint16					uiResult;
 	SFatDirectoryEntry		file_entry;
@@ -210,7 +210,7 @@ uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, FAT
 // opens a file given a pointer to it's
 // directory entry
 */
-uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT_FILE* handle, uint8 access_flags)
+uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags)
 {
 	bool	bSuccess;
 	uint16	uiResult;
@@ -355,7 +355,7 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT
 
 
 // sets the buffer of the file
-uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
+uint16 fat_file_set_buffer(SFatFile* file, uint8* buffer)
 {
 	if (file->buffer_head != file->buffer)
 	{
@@ -387,7 +387,7 @@ uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
 /*
 // gets a unique identifier of the file (ie. first cluster)
 */
-uint32 fat_file_get_unique_id(FAT_FILE* file)
+uint32 fat_file_get_unique_id(SFatFile* file)
 {
 	/*return file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo
 		& (file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi << 16); */
@@ -421,7 +421,7 @@ uint16 fat_file_delete(SFatVolume* volume, char* filename)
 	char					path_part[256];
 	char*					name_part;
 	uint8					checksum;
-	FAT_FILESYSTEM_QUERY	query;
+	SFatFileSystemQuery	query;
 
 
 	/*
@@ -647,7 +647,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 		*/
 	}
 	{
-		FAT_FILESYSTEM_QUERY query;
+		SFatFileSystemQuery query;
 		/*
 		// get the 1st LFN entry of the parent directory
 		*/
@@ -693,7 +693,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 /*
 // pre-allocates disk space for a file
 */
-uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
+uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 {
 	uint16	uiResult;
 	uint32	new_cluster;
@@ -938,7 +938,7 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 /*
 // moves the file cursor to the specified offset
 */
-uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
+uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 {
 	uint32	new_pos;
 	uint32	sector_count;
@@ -1094,14 +1094,14 @@ uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
 }
 
 
-uint16 fat_file_write(FAT_FILE* handle, uint8* buffer, uint32 length)
+uint16 fat_file_write(SFatFile* handle, uint8* buffer, uint32 length)
 {
 	return fat_file_write_internal(handle, buffer, length, 0, 0, 0);
 }
 
 
 // writes to a file
-uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
+uint16 fat_file_write_internal(SFatFile* handle, uint8* buff, uint32 length, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
 	uint32 uiResult;
 	/*
@@ -1229,7 +1229,7 @@ uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uin
 }
 
 
-void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
+void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 {
 	uint16	uiResult;
 	uint16* async_state;
@@ -1404,13 +1404,13 @@ void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
 }
 
 
-uint16 fat_file_read(FAT_FILE* hdl, uint8* buffer, uint32 length, uint32* bytes_read)
+uint16 fat_file_read(SFatFile* hdl, uint8* buffer, uint32 length, uint32* bytes_read)
 {
 	return fat_file_read_internal(hdl, buffer, length, bytes_read, 0, 0, 0);
 }
 
 
-uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
+uint16 fat_file_read_internal(SFatFile* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
 	// check that this is a valid handle
 	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
@@ -1510,7 +1510,7 @@ uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint
 /*
 // asynchronous write callback
 */
-void fat_file_read_callback(FAT_FILE* handle, uint16* async_state)
+void fat_file_read_callback(SFatFile* handle, uint16* async_state)
 {
 	uint16	uiResult;
 	bool	bSuccess;
@@ -1751,7 +1751,7 @@ void fat_file_read_callback(FAT_FILE* handle, uint16* async_state)
 /*
 // flushes file buffers
 */
-uint16 fat_file_flush(FAT_FILE* handle)
+uint16 fat_file_flush(SFatFile* handle)
 {
 #if defined(FAT_READ_ONLY)
 	return FAT_FEATURE_NOT_SUPPORTED;
@@ -1905,7 +1905,7 @@ uint16 fat_file_flush(FAT_FILE* handle)
 /*
 // closes an open file
 */
-uint16 fat_file_close(FAT_FILE* handle)
+uint16 fat_file_close(SFatFile* handle)
 {
 	uint16		uiResult;
 	FAT_ENTRY	fat_entry;
