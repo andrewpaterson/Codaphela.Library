@@ -31,16 +31,11 @@
 #include "FatInternals.h"
 
 
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 #define FAT_SET_LOADED_SECTOR(volume, sector)		fat_shared_buffer_sector = (sector)
-#elif defined(FAT_ALLOCATE_VOLUME_BUFFER)
-#define FAT_SET_LOADED_SECTOR(volume, sector)		volume->sector_buffer_sector = (sector)
-#else
-#define FAT_SET_LOADED_SECTOR(volume, sector)	
-#endif
 
 
 uint16 fat_file_update_sequential_cluster_count(FAT_FILE* file);
+
 
 uint16 fat_file_update_sequential_cluster_count(FAT_FILE* handle)
 {
@@ -81,17 +76,13 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 {
 	uint16 ret;
 	FAT_DIRECTORY_ENTRY file_entry;
-	/*
+
 	// use the internal buffer
-	*/
-#if defined(FAT_ALLOCATE_FILE_BUFFERS)
 	if (!(access_flags & FAT_FILE_FLAG_NO_BUFFERING))
 	{
 		handle->buffer = handle->buffer_internal;
 	}
-#else
-	handle->buffer = 0;
-#endif
+
 	/*
 	// check that the user supplied a filename
 	*/
@@ -321,13 +312,8 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 		*/
 		if (entry->raw.ENTRY.STD.first_cluster_lo != 0x0 || entry->raw.ENTRY.STD.first_cluster_hi != 0x0)
 		{
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-			uint8* buffer = file->volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 			uint8* buffer = fat_shared_buffer;
-#else
-			ALIGN16 uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 			/*
 			// update the entry to point to cluster 0
 			*/
@@ -460,21 +446,17 @@ uint32 fat_file_get_unique_id(FAT_FILE* file)
 */
 uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
 	uint16					ret;
 	uint32					first_cluster;
 	FAT_DIRECTORY_ENTRY		entry;
 	uint8					buffer[MAX_SECTOR_LENGTH];
 	bool					bSuccess;
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
-	char path_part[256];
-	char* name_part;
-	uint8 checksum;
-	FAT_FILESYSTEM_QUERY query;
-#endif
+	char					path_part[256];
+	char*					name_part;
+	uint8					checksum;
+	FAT_FILESYSTEM_QUERY	query;
+
 
 	/*
 	// get the entry for the file
@@ -490,14 +472,16 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 		/*
 		// compute the checksum for the file
 		*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 		checksum = fat_long_entry_checksum((uint8*)entry.raw.ENTRY.STD.name);
-#endif
+
 		/*
 		// make sure we're not trying to delete a directory
 		*/
 		if (entry.attributes & FAT_ATTR_DIRECTORY)
+		{
 			return FAT_NOT_A_FILE;
+		}
+
 		/*
 		// find the entry's first cluster address
 		*/
@@ -532,11 +516,11 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 		}
 	}
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	/*
 	// parse the filename
 	*/
 	fat_parse_path(filename, path_part, &name_part);
+
 	/*
 	// get the 1st LFN entry of the parent directory
 	*/
@@ -576,13 +560,13 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 		*/
 		fat_find_next_entry(volume, 0, &query);
 	}
-#endif
+
 	/*
 	// return success code
 	*/
 	return FAT_SUCCESS;
-#endif
 }
+
 
 /*
 // renames a file
@@ -600,22 +584,12 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 	FAT_DIRECTORY_ENTRY		new_entry;
 	bool					bSuccess;
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	uint8					checksum = 0;
 	char					original_parent[256];
-#else
-	char					original_parent[13];
-#endif
 
 	char*					new_filename_part;
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = file->volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8* buffer = fat_shared_buffer;
-#else
-	ALIGN16 uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
 
 	/*
 	// parse paths
@@ -640,9 +614,8 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 		/*
 		// compute the checksum for the file
 		*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.ENTRY.STD.name);
-#endif
+
 		/*
 		// get the cluster # for the entry
 		*/
@@ -712,7 +685,6 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 		// release lock on the buffer
 		*/
 	}
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	{
 		FAT_FILESYSTEM_QUERY query;
 		/*
@@ -753,7 +725,6 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 			fat_find_next_entry(volume, 0, &query);
 		}
 	}
-#endif
 
 	return FAT_SUCCESS;
 #endif
@@ -771,13 +742,8 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 	uint32	new_cluster;
 	uint32	no_of_clusters_needed;
 	bool	bSuccess;
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8*	buffer = file->volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8*	buffer = fat_shared_buffer;
-#else
-	ALIGN16 uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// check that this is a valid handle
 	*/
@@ -1915,13 +1881,8 @@ uint16 fat_file_flush(FAT_FILE* handle)
 	uint16	ret;
 	uint32	sector_address = 0;
 	bool	bSuccess;
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8*	buffer = handle->volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8*	buffer = fat_shared_buffer;
-#else
-	ALIGN16 uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// check that this is a valid handle
 	*/

@@ -210,21 +210,21 @@ typedef struct FAT_BPB
 
 typedef struct FAT_QUERY_STATE_INTERNAL
 {
-	uint8 Attributes;
-	uint16 current_sector;
-	uint32 current_cluster;
-	FAT_RAW_DIRECTORY_ENTRY* current_entry_raw;
-	uint8* buffer;
+	uint8						Attributes;
+	uint16						current_sector;
+	uint32						current_cluster;
+	FAT_RAW_DIRECTORY_ENTRY*	current_entry_raw;
+	uint8*						buffer;
 
-	FAT_RAW_DIRECTORY_ENTRY* first_entry_raw;
+	FAT_RAW_DIRECTORY_ENTRY*	first_entry_raw;
+
 	/*
 	// LFN support members
 	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
-	uint16 long_filename[256];
-	uint8 lfn_sequence;
-	uint8 lfn_checksum;
-#endif
+	uint16						long_filename[256];
+	uint8						lfn_sequence;
+	uint8						lfn_checksum;
+
 } FAT_QUERY_STATE_INTERNAL;
 
 
@@ -268,9 +268,7 @@ void fat_parse_path(char* path, char* path_part, char** filename_part);
 uint32 fat_allocate_data_cluster_ex(FAT_VOLUME* volume, uint32 count, char zero, uint32 page_size, uint16* result);
 #endif
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 char fat_compare_long_name(uint16* name1, uint16* name2);
 char get_long_name_for_entry(uint16* dst, uint8* src);
-#endif
 
 #endif

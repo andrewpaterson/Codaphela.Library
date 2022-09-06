@@ -41,105 +41,31 @@
   // compile options
   // ################################# */
 
-  /*
-  // uncomment this line to compile the library without long filenames support
-  */
-  //#define FAT_DISABLE_LONG_FILENAMES
-
-  /*
   // if this option is not specified the library will only maintain 1 copy of
   // the FAT table, otherwise it will maintain all the tables in the volume
   // (usually two)
-  */
+
   /* #define FAT_MAINTAIN_TWO_FAT_TABLES */
 
-  /*
   // If this option is defined the library will use the C time() function
   // to obtain the date/time used for timestamps, otherwise the application needs to
   // provide a function to get the time and register it with the library using the
   // fat_register_system_time_function function. If no such function is registered
   // the library will use 8/2/1985 @ 12:05 PM for all timestamps.
-  */
 #define FAT_USE_SYSTEM_TIME
 
-  /*
+
   // Defines the maximun sector size (in bytes) that this library should
   // support. An attempt to mount a volume with a sector size larger than this
   // value will fail.
-  */
 #define MAX_SECTOR_LENGTH				0x200
+  
 
-  /*
-  // Defines that fat_get_filesystem_interface should be included. This function
-  // initializes a FILESYSTEM structure with pointers to all the library functions
-  // and is used by smlib to access the filesystem. If you're not using smlib you
-  // can comment this out to save a few bytes.
-  */
-#define FAT_FILESYSTEM_INTERFACE
-
-  /*
-  // These definions define whether a buffer of size MAX_SECTOR_LENGTH should be allocated
-  // for use by library functions. If none of these options is defined the buffers will be
-  // allocated from the stack as needed.
-  //
-  // FAT_ALLOCATE_VOLUME_BUFFER defines that one such buffer should be allocated for each
-  //	volume (as a member of the VOLUME_INFO structure).
-  //
-  // FAT_ALLOCATE_SHARED_BUFFER defines that the buffer should be allocated globally and
-  //	shared by all volumes.
-  //
-  // FAT_ALLOCATE_DYNAMIC_BUFFERS defines that the buffers should be allocated from the
-  //	heap as needed. This gives the best performance on multi-threaded systems when multiple
-  //	access are conducted concurrently on the same volume but it introduces the possibility
-  //	of an operation failing for lack of memory. This option also has the advantage of
-  //	only allocating the memory needed to store a single sector for the mounted device
-  //	so it makes MAX_SECTOR_LENGTH meaningless.
-  //
-  // For single-threaded systems FAT_ALLOCATE_SHARED_BUFFER is always the best choice.
-  //
-  // For multi-threaded systems FAT_ALLOCATE_VOLUME_BUFFER will improve performance when
-  // accessing more that one volume at the expense of MAX_SECTOR_LENGTH bytes for each
-  // volume mounted and commenting all of these out or selecting FAT_ALLOCATE_DYNAMIC_BUFFERS
-  // will increase performance when accessing the same volume from more than one thread
-  // concurrently at the expense of MAX_SECTOR_LENGTH bytes for each concurrent access -1.
-  //
-  // On some situations not defining any of these will cause the cost of an operation to
-  // be MAX_SECTOR_LENGTH * 2 bytes allocated from stack.
-  */
-  /*#define FAT_ALLOCATE_VOLUME_BUFFER*/
-#define FAT_ALLOCATE_SHARED_BUFFER
-/*#define FAT_ALLOCATE_DYNAMIC_BUFFERS*/	/* NOT SUPPORTED YET!!!! */
-
-/*
 // Defines that the fat_format_volume function should be included in the library.
 // If you don't need format support you can save a few lines of code by commenting
 // this out.
-*/
 #define FAT_FORMAT_UTILITY
 
-/*
-// Defines that file buffers should be allocated with the file handle.
-// This only means that the file handle structure (FAT_FILE) will include the
-// buffer, it doesn't actually means that this library will do the allocation as
-// the file handle should be allocated by the user. If this option is defined
-// and you open the file with the FAT_FILE_FLAG_NO_BUFFERING a buffer would still
-// be allocated as part of the file handle and it'll be wasted.
-//
-// If this option is not specified the user must call fat_file_set_buffer to
-// set a buffer before calling any of the file IO functions (fat_file_read, fat_file_write,
-// fat_file_flush, or fat_file_close).
-//
-// If this library is used through smlib and this option is not specified then
-// smlib will allocate the file buffers from the heap unless SM_FILE_FLAG_NO_BUFFERING
-// is specified.
-*/
- #define FAT_ALLOCATE_FILE_BUFFERS
-
-/*
-// if this option is specified this library will be compiled only with the functions
-// needed for read access.
-*/
-/* #define FAT_READ_ONLY */
 
 /*
 // this is the interval in sectors written at which an
@@ -156,7 +82,7 @@
 /*
 // FAT file system types
 */
-#define FAT_FS_TYPE_UNSPECIFIED			0x0		/* used for formatting */
+#define FAT_FS_TYPE_UNSPECIFIED			0x0		// used for formatting
 #define FAT_FS_TYPE_FAT12				0x1
 #define FAT_FS_TYPE_FAT16				0x2
 #define FAT_FS_TYPE_FAT32				0x3
@@ -241,36 +167,20 @@
 #define FAT_AWAITING_DATA						( 0x20 + 0x21 )
 #define FAT_BUFFER_TOO_BIG						( 0x20 + 0x22 )
 
-/*
 // these are the bits set on the reserved fields of a directory
 // entry to indicate that a SFN entry is actually a LFN entry with
 // a filename conforming to the 8.3 convention but with a lowercase
 // base name or extension (or both). This library will display these
 // entries correctly, but for compatibility reasons when creating
 // entries an LFN entry will be created for this type of files.
-*/
 #define FAT_LOWERCASE_EXTENSION			0x10
 #define FAT_LOWERCASE_BASENAME			0x8
 
-/*
 // misc
-*/
 #define FAT_MAX_PATH					260
 #define FAT_FIRST_LFN_ENTRY				0x40
-#if defined(FAT_DISABLE_LONG_FILENAMES)
-#define FAT_MAX_FILENAME				12
-#else
 #define FAT_MAX_FILENAME				255
-#endif
 
-/*
-// make sure that FAT_ALLOCATE_VOLUME_BUFFER and FAT_ALLOCATE_SHARED_BUFFER
-// are not both defined
-*/
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER) && defined(FAT_ALLOCATE_SHARED_BUFFER)
-#line 99
-#error FAT_ALLOCATE_VOLUME_BUFFER and FAT_ALLOCATE_SHARED_BUFFER cannot be defined at once.
-#endif
 
 /*!
  * <summary>Function pointer to get the system time.</summary>
@@ -286,29 +196,25 @@ typedef time_t(*FAT_GET_SYSTEM_TIME)(void);
 */
 typedef struct FAT_VOLUME
 {
-	uint32 id;
-	uint32 fat_size;
-	uint32 root_cluster;
-	uint32 first_data_sector;
-	uint32 no_of_sectors;
-	uint32 no_of_data_sectors;
-	uint32 no_of_clusters;
-	uint32 no_of_reserved_sectors;
-	uint32 next_free_cluster;
-	uint32 total_free_clusters;
-	uint32 fsinfo_sector;
-	uint16 root_directory_sectors;
-	uint16 no_of_bytes_per_serctor;
-	uint16 no_of_sectors_per_cluster;
-	char use_long_filenames;
-	uint8 fs_type;
-	uint8 no_of_fat_tables;
-	char label[12];
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	/* ALIGN16 8*/ uint8 sector_buffer[MAX_SECTOR_LENGTH];
-	uint32 sector_buffer_sector;
-#endif
-	CFileDrive* device;
+	uint32			id;
+	uint32			fat_size;
+	uint32			root_cluster;
+	uint32			first_data_sector;
+	uint32			no_of_sectors;
+	uint32			no_of_data_sectors;
+	uint32			no_of_clusters;
+	uint32			no_of_reserved_sectors;
+	uint32			next_free_cluster;
+	uint32			total_free_clusters;
+	uint32			fsinfo_sector;
+	uint16			root_directory_sectors;
+	uint16			no_of_bytes_per_serctor;
+	uint16			no_of_sectors_per_cluster;
+	char			use_long_filenames;
+	uint8			fs_type;
+	uint8			no_of_fat_tables;
+	char			label[12];
+	CFileDrive*		device;
 }
 FAT_VOLUME;
 
@@ -445,11 +351,9 @@ typedef struct FAT_QUERY_STATE
 	/*
 	// LFN support members
 	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	uint16						long_filename[256];
 	uint8						lfn_sequence;
 	uint8						lfn_checksum;
-#endif
 	/*
 	// buffer (MUST ALWAYS BE LAST!!!)
 	*/
@@ -515,9 +419,7 @@ typedef struct FAT_FILE
 	uint8					access_flags;
 	FAT_OP_STATE			op_state;
 	uint8*					buffer;
-#if defined(FAT_ALLOCATE_FILE_BUFFERS)
-	uint8 buffer_internal[MAX_SECTOR_LENGTH];
-#endif
+	uint8					buffer_internal[MAX_SECTOR_LENGTH];
 } FAT_FILE;
 
 /*!
@@ -533,10 +435,9 @@ FAT_FILESYSTEM_QUERY;
 /*
 // declare shared buffer
 */
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 extern uint8 fat_shared_buffer[MAX_SECTOR_LENGTH];
 extern uint32 fat_shared_buffer_sector;
-#endif
+
 
 #if !defined(FAT_USE_SYSTEM_TIME)
 /*!
@@ -569,7 +470,7 @@ uint16 fat_mount_volume(FAT_VOLUME* volume, CFileDrive* device);
  * </summary>
  * <param name="volume">The handle of the volume to dismount.</param>
  */
-uint16 fat_dismount_volume(FAT_VOLUME* volume);
+uint16 fat_unmount_volume(FAT_VOLUME* volume);
 
 
 /**
