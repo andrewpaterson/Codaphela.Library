@@ -255,8 +255,8 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT
 	/*
 	// read the the cluster number
 	*/
-	((uint16*)&handle->current_clus_addr)[INT32_WORD0] = entry->raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&handle->current_clus_addr)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+	((uint16*)&handle->current_clus_addr)[INT32_WORD0] = entry->raw.ENTRY.sFatRawCommon.first_cluster_lo;
+	((uint16*)&handle->current_clus_addr)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry->raw.ENTRY.sFatRawCommon.first_cluster_hi : 0;
 
 	if (access_flags & FAT_FILE_ACCESS_APPEND)
 	{
@@ -282,16 +282,16 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, FAT
 		// if the file is not already empty then
 		// we'll empty it
 		*/
-		if (entry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
+		if (entry->raw.ENTRY.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.ENTRY.sFatRawCommon.first_cluster_hi != 0x0)
 		{
 			uint8* buffer = fat_shared_buffer;
 
 			/*
 			// update the entry to point to cluster 0
 			*/
-			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
-			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
-			entry->raw.uEntry.sFatRawCommon.size = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_lo = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.first_cluster_hi = 0x0;
+			entry->raw.ENTRY.sFatRawCommon.size = 0x0;
 			handle->directory_entry = *entry;
 			handle->current_size = entry->size;
 			/*
@@ -389,15 +389,15 @@ uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
 */
 uint32 fat_file_get_unique_id(FAT_FILE* file)
 {
-	/*return file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo
-		& (file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi << 16); */
+	/*return file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo
+		& (file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi << 16); */
 
 	uint32 id;
-	((uint16*)&id)[INT32_WORD0] = file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+	((uint16*)&id)[INT32_WORD0] = file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
 
 	if (file->volume->fs_type == FAT_FS_TYPE_FAT32)
 	{
-		((uint16*)&id)[INT32_WORD1] = file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
+		((uint16*)&id)[INT32_WORD1] = file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi;
 	}
 	else
 	{
@@ -438,7 +438,7 @@ uint16 fat_file_delete(SFatVolume* volume, char* filename)
 		/*
 		// compute the checksum for the file
 		*/
-		checksum = fat_long_entry_checksum((uint8*)entry.raw.uEntry.sFatRawCommon.name);
+		checksum = fat_long_entry_checksum((uint8*)entry.raw.ENTRY.sFatRawCommon.name);
 
 		/*
 		// make sure we're not trying to delete a directory
@@ -451,8 +451,8 @@ uint16 fat_file_delete(SFatVolume* volume, char* filename)
 		/*
 		// find the entry's first cluster address
 		*/
-		((uint16*)&first_cluster)[INT32_WORD0] = entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&first_cluster)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+		((uint16*)&first_cluster)[INT32_WORD0] = entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&first_cluster)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry.raw.ENTRY.sFatRawCommon.first_cluster_hi : 0;
 		/*
 		// free the file's cluster change
 		*/
@@ -465,7 +465,7 @@ uint16 fat_file_delete(SFatVolume* volume, char* filename)
 		/*
 		// mark the entry as deleted
 		*/
-		entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
+		entry.raw.ENTRY.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
 		bSuccess = volume->device->Read(entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
@@ -488,23 +488,22 @@ uint16 fat_file_delete(SFatVolume* volume, char* filename)
 	fat_parse_path(filename, path_part, &name_part);
 
 	/*
-	// get the 1st sFatRawLongFileName entry of the parent directory
+	// get the 1st LFN entry of the parent directory
 	*/
 	uiResult = fat_find_first_entry(volume, path_part, FAT_ATTR_LONG_NAME, 0, &query);
 	if (uiResult != FAT_SUCCESS)
-	{
 		return uiResult;
-	}
-
+	/*
 	// loop through each entry.
-	while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
+	*/
+	while (*query.current_entry.raw.ENTRY.sFatRawCommon.name != 0)
 	{
-		if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
+		if (query.current_entry.raw.ENTRY.LFN.lfn_checksum == checksum)
 		{
 			/*
 			// mark the entry as deleted
 			*/
-			query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
+			query.current_entry.raw.ENTRY.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
 			bSuccess = volume->device->Read(query.current_entry.sector_addr, buffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
@@ -523,7 +522,7 @@ uint16 fat_file_delete(SFatVolume* volume, char* filename)
 			}
 		}
 		/*
-		// get the next sFatRawLongFileName entry
+		// get the next LFN entry
 		*/
 		fat_find_next_entry(volume, 0, &query);
 	}
@@ -576,13 +575,13 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 		/*
 		// compute the checksum for the file
 		*/
-		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.uEntry.sFatRawCommon.name);
+		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.ENTRY.sFatRawCommon.name);
 
 		/*
 		// get the cluster # for the entry
 		*/
-		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
+		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi;
 		/*
 		// get the new parent entry
 		*/
@@ -598,17 +597,17 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 		/*
 		// copy all info except name from the old entry to the new one
 		*/
-		new_entry.raw.uEntry.sFatRawCommon.access_date = original_entry.raw.uEntry.sFatRawCommon.access_date;
-		new_entry.raw.uEntry.sFatRawCommon.attributes = original_entry.raw.uEntry.sFatRawCommon.attributes;
-		new_entry.raw.uEntry.sFatRawCommon.create_date = original_entry.raw.uEntry.sFatRawCommon.create_date;
-		new_entry.raw.uEntry.sFatRawCommon.create_time = original_entry.raw.uEntry.sFatRawCommon.create_time;
-		new_entry.raw.uEntry.sFatRawCommon.create_time_tenth = original_entry.raw.uEntry.sFatRawCommon.create_time_tenth;
-		new_entry.raw.uEntry.sFatRawCommon.first_cluster_hi = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-		new_entry.raw.uEntry.sFatRawCommon.first_cluster_lo = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		new_entry.raw.uEntry.sFatRawCommon.modify_date = original_entry.raw.uEntry.sFatRawCommon.modify_date;
-		new_entry.raw.uEntry.sFatRawCommon.modify_time = original_entry.raw.uEntry.sFatRawCommon.modify_time;
-		new_entry.raw.uEntry.sFatRawCommon.reserved = original_entry.raw.uEntry.sFatRawCommon.reserved;
-		new_entry.raw.uEntry.sFatRawCommon.size = original_entry.raw.uEntry.sFatRawCommon.size;
+		new_entry.raw.ENTRY.sFatRawCommon.access_date = original_entry.raw.ENTRY.sFatRawCommon.access_date;
+		new_entry.raw.ENTRY.sFatRawCommon.attributes = original_entry.raw.ENTRY.sFatRawCommon.attributes;
+		new_entry.raw.ENTRY.sFatRawCommon.create_date = original_entry.raw.ENTRY.sFatRawCommon.create_date;
+		new_entry.raw.ENTRY.sFatRawCommon.create_time = original_entry.raw.ENTRY.sFatRawCommon.create_time;
+		new_entry.raw.ENTRY.sFatRawCommon.create_time_tenth = original_entry.raw.ENTRY.sFatRawCommon.create_time_tenth;
+		new_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi;
+		new_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo = original_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+		new_entry.raw.ENTRY.sFatRawCommon.modify_date = original_entry.raw.ENTRY.sFatRawCommon.modify_date;
+		new_entry.raw.ENTRY.sFatRawCommon.modify_time = original_entry.raw.ENTRY.sFatRawCommon.modify_time;
+		new_entry.raw.ENTRY.sFatRawCommon.reserved = original_entry.raw.ENTRY.sFatRawCommon.reserved;
+		new_entry.raw.ENTRY.sFatRawCommon.size = original_entry.raw.ENTRY.sFatRawCommon.size;
 		/*
 		// write modified entry to drive
 		*/
@@ -629,7 +628,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 		/*
 		// mark the original entry as deleted.
 		*/
-		*original_entry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
+		*original_entry.raw.ENTRY.sFatRawCommon.name = FAT_DELETED_ENTRY;
 		bSuccess = volume->device->Read(original_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
@@ -650,7 +649,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 	{
 		FAT_FILESYSTEM_QUERY query;
 		/*
-		// get the 1st sFatRawLongFileName entry of the parent directory
+		// get the 1st LFN entry of the parent directory
 		*/
 		uiResult = fat_find_first_entry(volume, original_parent, FAT_ATTR_LONG_NAME, 0, &query);
 		if (uiResult != FAT_SUCCESS)
@@ -658,15 +657,15 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 		/*
 		// loop through each entry.
 		*/
-		while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
+		while (*query.current_entry.raw.ENTRY.sFatRawCommon.name != 0)
 		{
-			if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
+			if (query.current_entry.raw.ENTRY.LFN.lfn_checksum == checksum)
 			{
 				/*
 				// mark the entry as deleted
 				*/
 				FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
-				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
+				query.current_entry.raw.ENTRY.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 				bSuccess = volume->device->Read(query.current_entry.sector_addr, buffer);
 				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 				if (uiResult != STORAGE_SUCCESS)
@@ -682,7 +681,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 				}
 			}
 			/*
-			// get the next sFatRawLongFileName entry
+			// get the next LFN entry
 			*/
 			fat_find_next_entry(volume, 0, &query);
 		}
@@ -839,14 +838,14 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 	// if this is the 1st cluster cluster allocated
 	// to the file then we must modify the file's entry
 	*/
-	if (!file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo && !file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi)
+	if (!file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo && !file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi)
 	{
 		/*
 		// modify the file entry to point to the
 		// new cluster
 		*/
-		file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(new_cluster);
-		file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
+		file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo = LO16(new_cluster);
+		file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
 		/*
 		// mark the cached sector as unknown
 		*/
@@ -1011,15 +1010,19 @@ uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
 	old_cluster = file->current_clus_idx;
 	file->current_clus_idx = 0;
 	cluster_count = 1;
-
+	/*
 	// calculate the count of sectors being used by the file up to the desired position
+	*/
 	sector_count = (new_pos + file->volume->no_of_bytes_per_serctor - 1) / file->volume->no_of_bytes_per_serctor;
-
+	/*
 	// set the 1st cluster as the current cluster, we'll seek from there
-	((uint16*)&file->current_clus_addr)[INT32_WORD0] = file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&file->current_clus_addr)[INT32_WORD1] = (file->volume->fs_type == FAT_FS_TYPE_FAT32) ? file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
-
+	*/
+	((uint16*)&file->current_clus_addr)[INT32_WORD0] = file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_lo;
+	((uint16*)&file->current_clus_addr)[INT32_WORD1] =
+		(file->volume->fs_type == FAT_FS_TYPE_FAT32) ? file->directory_entry.raw.ENTRY.sFatRawCommon.first_cluster_hi : 0;
+	/*
 	// if the file occupies more than one cluster
+	*/
 	if (sector_count > file->volume->no_of_sectors_per_cluster)
 	{
 		/*
@@ -1830,10 +1833,10 @@ uint16 fat_file_flush(FAT_FILE* handle)
 		}
 
 		// update the file size on the entry
-		handle->directory_entry.raw.uEntry.sFatRawCommon.size = handle->current_size;
-		handle->directory_entry.raw.uEntry.sFatRawCommon.modify_date = rtc_get_fat_date();
-		handle->directory_entry.raw.uEntry.sFatRawCommon.modify_time = rtc_get_fat_time();
-		handle->directory_entry.raw.uEntry.sFatRawCommon.access_date = handle->directory_entry.raw.uEntry.sFatRawCommon.modify_date;
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.size = handle->current_size;
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.modify_date = rtc_get_fat_date();
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.modify_time = rtc_get_fat_time();
+		handle->directory_entry.raw.ENTRY.sFatRawCommon.access_date = handle->directory_entry.raw.ENTRY.sFatRawCommon.modify_date;
 		/*
 		// try load the sector that contains the entry
 		*/

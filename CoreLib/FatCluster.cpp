@@ -1807,28 +1807,28 @@ static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirect
 	// the dot entry
 	*/
 	memset(buffer, 0, volume->no_of_bytes_per_serctor);
-	entries->uEntry.sFatRawCommon.name[0x0] = '.';
-	entries->uEntry.sFatRawCommon.name[0x1] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x2] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x3] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x4] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x5] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x6] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x7] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x8] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x9] = ' ';
-	entries->uEntry.sFatRawCommon.name[0xA] = ' ';
-	entries->uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
-	entries->uEntry.sFatRawCommon.size = 0x0;
-	entries->uEntry.sFatRawCommon.reserved = 0;
-	entries->uEntry.sFatRawCommon.first_cluster_lo = LO16(cluster);
-	entries->uEntry.sFatRawCommon.first_cluster_hi = HI16(cluster);
-	entries->uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	entries->uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
-	entries->uEntry.sFatRawCommon.modify_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.modify_time = entries->uEntry.sFatRawCommon.create_time;
-	entries->uEntry.sFatRawCommon.access_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.create_time_tenth = 0xc6;
+	entries->ENTRY.sFatRawCommon.name[0x0] = '.';
+	entries->ENTRY.sFatRawCommon.name[0x1] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x2] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x3] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x4] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x5] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x6] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x7] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x8] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x9] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0xA] = ' ';
+	entries->ENTRY.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
+	entries->ENTRY.sFatRawCommon.size = 0x0;
+	entries->ENTRY.sFatRawCommon.reserved = 0;
+	entries->ENTRY.sFatRawCommon.first_cluster_lo = LO16(cluster);
+	entries->ENTRY.sFatRawCommon.first_cluster_hi = HI16(cluster);
+	entries->ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	entries->ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	entries->ENTRY.sFatRawCommon.modify_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.modify_time = entries->ENTRY.sFatRawCommon.create_time;
+	entries->ENTRY.sFatRawCommon.access_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.create_time_tenth = 0xc6;
 	/*
 	// write the entry to the buffer or move to the next entry
 	// as required by target platform
@@ -1838,28 +1838,28 @@ static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirect
 	/*
 	// initialize the dot dot entry
 	*/
-	entries->uEntry.sFatRawCommon.name[0x0] = '.';
-	entries->uEntry.sFatRawCommon.name[0x1] = '.';
-	entries->uEntry.sFatRawCommon.name[0x2] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x3] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x4] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x5] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x6] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x7] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x8] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x9] = ' ';
-	entries->uEntry.sFatRawCommon.name[0xA] = ' ';
-	entries->uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
-	entries->uEntry.sFatRawCommon.size = 0x0;
-	entries->uEntry.sFatRawCommon.reserved = 0;
-	entries->uEntry.sFatRawCommon.first_cluster_lo = parent->uEntry.sFatRawCommon.first_cluster_lo;
-	entries->uEntry.sFatRawCommon.first_cluster_hi = parent->uEntry.sFatRawCommon.first_cluster_hi;
-	entries->uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	entries->uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
-	entries->uEntry.sFatRawCommon.modify_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.modify_time = entries->uEntry.sFatRawCommon.create_time;
-	entries->uEntry.sFatRawCommon.access_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.create_time_tenth = 0xc6;
+	entries->ENTRY.sFatRawCommon.name[0x0] = '.';
+	entries->ENTRY.sFatRawCommon.name[0x1] = '.';
+	entries->ENTRY.sFatRawCommon.name[0x2] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x3] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x4] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x5] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x6] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x7] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x8] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0x9] = ' ';
+	entries->ENTRY.sFatRawCommon.name[0xA] = ' ';
+	entries->ENTRY.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
+	entries->ENTRY.sFatRawCommon.size = 0x0;
+	entries->ENTRY.sFatRawCommon.reserved = 0;
+	entries->ENTRY.sFatRawCommon.first_cluster_lo = parent->ENTRY.sFatRawCommon.first_cluster_lo;
+	entries->ENTRY.sFatRawCommon.first_cluster_hi = parent->ENTRY.sFatRawCommon.first_cluster_hi;
+	entries->ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	entries->ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	entries->ENTRY.sFatRawCommon.modify_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.modify_time = entries->ENTRY.sFatRawCommon.create_time;
+	entries->ENTRY.sFatRawCommon.access_date = entries->ENTRY.sFatRawCommon.create_date;
+	entries->ENTRY.sFatRawCommon.create_time_tenth = 0xc6;
 
 	// when the parent is the root directory the dotdot entry always points
 	// to cluster 0, even in FAT32 when the root directory is not actually on
@@ -1868,26 +1868,28 @@ static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirect
 	if (volume->fs_type == FAT_FS_TYPE_FAT32)
 	{
 		uint32 parent_cluster;
-		((uint16*)&parent_cluster)[INT32_WORD0] = parent->uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&parent_cluster)[INT32_WORD1] = parent->uEntry.sFatRawCommon.first_cluster_hi;
+		((uint16*)&parent_cluster)[INT32_WORD0] = parent->ENTRY.sFatRawCommon.first_cluster_lo;
+		((uint16*)&parent_cluster)[INT32_WORD1] = parent->ENTRY.sFatRawCommon.first_cluster_hi;
 
 		if (volume->root_cluster == parent_cluster)
 		{
-			entries->uEntry.sFatRawCommon.first_cluster_lo = 0;
-			entries->uEntry.sFatRawCommon.first_cluster_hi = 0;
+			entries->ENTRY.sFatRawCommon.first_cluster_lo = 0;
+			entries->ENTRY.sFatRawCommon.first_cluster_hi = 0;
 		}
 	}
-
+	/*
 	// write the 1st sector of the folder
+	*/
 	current_sector = FIRST_SECTOR_OF_CLUSTER(volume, cluster);
 	bSuccess = volume->device->Write(current_sector++, buffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_WRITE_MEDIA;
 	}
-
+	/*
 	// clear the . and .. entries from the buffer and
 	// initialize the rest of the sectors of this cluster
+	*/
 	memset(buffer, 0, sizeof(SFatRawDirectoryEntry) * 2);
 	counter = volume->no_of_sectors_per_cluster - 1;
 	while (counter--)
@@ -1898,8 +1900,9 @@ static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirect
 			return FAT_CANNOT_WRITE_MEDIA;
 		}
 	}
-
+	/*
 	// return success code
+	*/
 	return FAT_SUCCESS;
 }
 
