@@ -182,7 +182,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 
 	FAT_BPB* bpb;
 	FAT_FSINFO* fsinfo;
-	FAT_RAW_DIRECTORY_ENTRY* entry;
+	SFatRawDirectoryEntry* entry;
 
 	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
 
@@ -610,35 +610,33 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 
 		}
 	}
-	/*
+
 	// initialize the volume label entry
-	*/
-	entry = (FAT_RAW_DIRECTORY_ENTRY*)buffer;
-	entry->ENTRY.STD.attributes = FAT_ATTR_VOLUME_ID;
-	entry->ENTRY.STD.first_cluster_hi = 0;
-	entry->ENTRY.STD.first_cluster_lo = 0;
-	entry->ENTRY.STD.reserved = 0;
-	entry->ENTRY.STD.size = 0;
-	entry->ENTRY.STD.create_date = rtc_get_fat_date();
-	entry->ENTRY.STD.create_time = rtc_get_fat_time();
-	entry->ENTRY.STD.modify_date = entry->ENTRY.STD.create_date;
-	entry->ENTRY.STD.modify_time = entry->ENTRY.STD.create_time;
-	entry->ENTRY.STD.access_date = entry->ENTRY.STD.create_date;
-	entry->ENTRY.STD.create_time_tenth = 0;
-	/*
+	entry = (SFatRawDirectoryEntry*)buffer;
+	entry->ENTRY.sFatRawCommon.attributes = FAT_ATTR_VOLUME_ID;
+	entry->ENTRY.sFatRawCommon.first_cluster_hi = 0;
+	entry->ENTRY.sFatRawCommon.first_cluster_lo = 0;
+	entry->ENTRY.sFatRawCommon.reserved = 0;
+	entry->ENTRY.sFatRawCommon.size = 0;
+	entry->ENTRY.sFatRawCommon.create_date = rtc_get_fat_date();
+	entry->ENTRY.sFatRawCommon.create_time = rtc_get_fat_time();
+	entry->ENTRY.sFatRawCommon.modify_date = entry->ENTRY.sFatRawCommon.create_date;
+	entry->ENTRY.sFatRawCommon.modify_time = entry->ENTRY.sFatRawCommon.create_time;
+	entry->ENTRY.sFatRawCommon.access_date = entry->ENTRY.sFatRawCommon.create_date;
+	entry->ENTRY.sFatRawCommon.create_time_tenth = 0;
+
 	// set the volume label
-	*/
 	if ((c = strlen(volume_label)))
 	{
 		for (i = 0; i < 11; i++)
 		{
 			if (i < c)
 			{
-				entry->ENTRY.STD.name[i] = (volume_label[i]);
+				entry->ENTRY.sFatRawCommon.name[i] = (volume_label[i]);
 			}
 			else
 			{
-				entry->ENTRY.STD.name[i] = 0x20;
+				entry->ENTRY.sFatRawCommon.name[i] = 0x20;
 			}
 		}
 	}
