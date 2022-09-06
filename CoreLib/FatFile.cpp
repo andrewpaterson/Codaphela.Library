@@ -111,7 +111,6 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 		// if the create access flag was set then
 		// we create the file
 		*/
-#if !defined(FAT_READ_ONLY)
 		if (access_flags & FAT_FILE_ACCESS_CREATE)
 		{
 			/*
@@ -197,26 +196,22 @@ uint16 fat_file_open(FAT_VOLUME* volume, char* filename, uint8 access_flags, FAT
 				return ret;
 
 		}
-		/*
 		// if the create flag is not set then return the
 		// file not found error code
-		*/
 		else
-#endif
 		{
 			return FAT_FILE_NOT_FOUND;
 		}
 	}
 
-	/*
 	// open the file
-	*/
 	ret = fat_open_file_by_entry(volume, &file_entry, handle, access_flags);
 	if (ret != FAT_SUCCESS)
+	{
 		return ret;
-	/*
+	}
+
 	// if the file has no clusters allocated then allocate one
-	*/
 	if (handle->access_flags & FAT_FILE_ACCESS_WRITE)
 	{
 		/*
@@ -280,12 +275,6 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 	((uint16*)&handle->current_clus_addr)[INT32_WORD0] = entry->raw.ENTRY.STD.first_cluster_lo;
 	((uint16*)&handle->current_clus_addr)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry->raw.ENTRY.STD.first_cluster_hi : 0;
 
-#if defined(FAT_READ_ONLY)
-	if (access_flags & (FAT_FILE_ACCESS_APPEND | FAT_FILE_ACCESS_OVERWRITE))
-	{
-		return FAT_FEATURE_NOT_SUPPORTED;
-	}
-#else
 	if (access_flags & FAT_FILE_ACCESS_APPEND)
 	{
 		/*
@@ -360,10 +349,9 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 			/* if (size > 0) */
 			fat_free_cluster_chain(volume, handle->current_clus_addr);
 		}
-		/*
+
 		// reset the file handle to reflect an
 		// empty file
-		*/
 		handle->current_size = 0x0;
 		handle->current_sector_idx = 0x0;
 		handle->current_clus_addr = 0x0;
@@ -372,13 +360,10 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 		handle->no_of_clusters_after_pos = 0;
 	}
 	else
-#endif
 	{
-		/*
 		// if no append or overwrite flags are set then
 		// simply set the handle to point to the beggining
 		// of the 1st cluster
-		*/
 		handle->current_sector_idx = 0x0;
 		handle->buffer_head = handle->buffer;
 	}
@@ -386,9 +371,7 @@ uint16 fat_open_file_by_entry(FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY* entry, FA
 }
 
 
-/*
 // sets the buffer of the file
-*/
 uint16 fat_file_set_buffer(FAT_FILE* file, uint8* buffer)
 {
 	if (file->buffer_head != file->buffer)
@@ -568,14 +551,9 @@ uint16 fat_file_delete(FAT_VOLUME* volume, char* filename)
 }
 
 
-/*
 // renames a file
-*/
 uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_filename)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
 	uint16					ret;
 	uint32					entry_cluster;
 	char					new_parent[256];
@@ -727,7 +705,6 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 	}
 
 	return FAT_SUCCESS;
-#endif
 }
 
 /*
@@ -735,9 +712,6 @@ uint16 fat_file_rename(FAT_VOLUME* volume, char* original_filename, char* new_fi
 */
 uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
 	uint16	ret;
 	uint32	new_cluster;
 	uint32	no_of_clusters_needed;
@@ -923,37 +897,10 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 			return ret;
 		}
 	}
-	/*
 	// if there are clusters allocated to the file update the last FAT entry
 	// of the file to point to the newly allocated cluster(s)
-	*/
 	else
 	{
-
-		/*
-		uint32 last_cluster;
-		uint32 cluster_number;
-		//
-		// calculate the last cluster number (it's zero based index)
-		//
-		cluster_number = (file->current_size + file->volume->no_of_bytes_per_serctor - 1) / file->volume->no_of_bytes_per_serctor;
-		cluster_number = cluster_number / file->volume->no_of_sectors_per_cluster; // round down
-		//
-		// set last_cluster to the 1st cluster of the file
-		//
-		((uint16*) &last_cluster)[INT32_WORD0] = file->directory_entry.raw.first_cluster_lo;
-		((uint16*) &last_cluster)[INT32_WORD1] = (file->volume->fs_type == FAT_FS_TYPE_FAT32) ? file->directory_entry.raw.first_cluster_hi : 0;
-		//
-		// if the file has more than 1 cluster follow the change to
-		// the last cluster and store it's value on last_cluster
-		//
-		if (cluster_number)
-		{
-			if (!fat_increase_cluster_address(file->volume, last_cluster, cluster_number - 1, &last_cluster))
-				return FAT_CORRUPTED_FILE;
-		}
-		*/
-
 		uint32 last_cluster;
 
 		if (file->no_of_clusters_after_pos)
@@ -1003,7 +950,6 @@ uint16 fat_file_alloc(FAT_FILE* file, uint32 bytes)
 	// return success code
 	*/
 	return FAT_SUCCESS;
-#endif
 }
 
 /*
@@ -1164,42 +1110,14 @@ uint16 fat_file_seek(FAT_FILE* file, uint32 offset, char mode)
 	return FAT_SUCCESS;
 }
 
-/*
-// writes a file synchronously
-*/
+
 uint16 fat_file_write(FAT_FILE* handle, uint8* buffer, uint32 length)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
 	return fat_file_write_internal(handle, buffer, length, 0, 0, 0);
-#endif
 }
 
-/*
-// writes a file asynchronously
-*/
-uint16 fat_file_write_async(FAT_FILE* handle, uint8* buffer, uint32 length, uint16* result, FAT_ASYNC_CALLBACK* callback, void* callback_context)
-{
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
-	/*
-	// make sure the user supplied a state pointer
-	*/
-	if (!result)
-		return FAT_INVALID_PARAMETERS;
-	/*
-	// call internal write function
-	*/
-	return fat_file_write_internal(handle, buffer, length, result, callback, callback_context);
-#endif
-}
 
-/*
 // writes to a file
-*/
-#if !defined(FAT_READ_ONLY)
 uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
 	uint32 ret;
@@ -1217,26 +1135,36 @@ uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uin
 	// make sure length is not larger than 16-bit
 	*/
 	if (length > 0xFFFF)
+	{
 		return FAT_BUFFER_TOO_BIG;
-	/*
+	}
+
 	// if there's no clusters allocated to this file allocate
 	// enough clusters for this request
-	*/
 	ret = fat_file_alloc(handle, length);
 	if (ret != FAT_SUCCESS)
+	{
 		return ret;
+	}
+
 	/*
 	// make sure that either a buffer is set or the file has been opened in
 	// unbuffered mode.
 	*/
 	if (!handle->buffer && !(handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	{
 		return FAT_FILE_BUFFER_NOT_SET;
+	}
+
 	/*
 	// check that another operation is not using the
 	// handle at this time
 	*/
 	if (handle->busy)
+	{
 		return FAT_FILE_HANDLE_IN_USE;
+	}
+
 	/*
 	// mark the handle as in use
 	*/
@@ -1316,13 +1244,8 @@ uint16 fat_file_write_internal(FAT_FILE* handle, uint8* buff, uint32 length, uin
 		return internal_async_state;
 	}
 }
-#endif
 
 
-/*
-// asynchronous write callback
-*/
-#if !defined(FAT_READ_ONLY)
 void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
 {
 	uint16	ret;
@@ -1491,44 +1414,19 @@ void fat_file_write_callback(FAT_FILE* handle, uint16* async_state_in)
 	// invoke callback function
 	*/
 	if (handle->op_state.callback)
+	{
 		handle->op_state.callback(handle->op_state.callback_context, async_state);
-	/*
-	// leave
-	*/
+	}
 	return;
 }
-#endif
 
 
-/*
-// reads from a file synchronously
-*/
 uint16 fat_file_read(FAT_FILE* hdl, uint8* buffer, uint32 length, uint32* bytes_read)
 {
 	return fat_file_read_internal(hdl, buffer, length, bytes_read, 0, 0, 0);
 }
 
 
-/*
-// reads data from a file asynchronously
-*/
-uint16 fat_file_read_async(FAT_FILE* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
-{
-	/*
-	// make sure the user supplied a state pointer
-	*/
-	if (!state)
-		return FAT_INVALID_PARAMETERS;
-	/*
-	// call internal read function
-	*/
-	return fat_file_read_internal(handle, buff, length, bytes_read, state, callback, callback_context);
-}
-
-
-/*
-// reads from a file synchronously or asynchronously
-*/
 uint16 fat_file_read_internal(FAT_FILE* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
 	/*uint32 ret;*/
@@ -2030,21 +1928,21 @@ uint16 fat_file_flush(FAT_FILE* handle)
 */
 uint16 fat_file_close(FAT_FILE* handle)
 {
-	uint16 ret;
-	FAT_ENTRY fat_entry;
-	/*
+	uint16		ret;
+	FAT_ENTRY	fat_entry;
+
 	// check that this is a valid handle
-	*/
 	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
+	{
 		return FAT_INVALID_HANDLE;
-	/*
+	}
+
 	// flush the file buffers
-	*/
-#if !defined(FAT_READ_ONLY)
 	ret = fat_file_flush(handle);
 	if (ret != FAT_SUCCESS)
+	{
 		return ret;
-
+	}
 
 	if (handle->access_flags & FAT_FILE_ACCESS_WRITE)
 	{
@@ -2075,13 +1973,17 @@ uint16 fat_file_close(FAT_FILE* handle)
 		*/
 		ret = fat_get_cluster_entry(handle->volume, handle->current_clus_addr, &fat_entry);
 		if (ret != FAT_SUCCESS)
+		{
 			return ret;
+		}
 
 		if (!fat_is_eof_entry(handle->volume, fat_entry))
 		{
 			ret = fat_free_cluster_chain(handle->volume, fat_entry);
 			if (ret != FAT_SUCCESS)
+			{
 				return ret;
+			}
 
 			switch (handle->volume->fs_type)
 			{
@@ -2091,10 +1993,12 @@ uint16 fat_file_close(FAT_FILE* handle)
 			}
 			ret = fat_set_cluster_entry(handle->volume, handle->current_clus_addr, fat_entry);
 			if (ret != FAT_SUCCESS)
+			{
 				return ret;
+			}
 		}
 	}
-#endif
+
 	/*
 	// invalidate the file handle
 	*/
@@ -2104,3 +2008,4 @@ uint16 fat_file_close(FAT_FILE* handle)
 	*/
 	return FAT_SUCCESS;
 }
+

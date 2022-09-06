@@ -400,7 +400,6 @@ uint16 fat_unmount_volume(FAT_VOLUME* volume)
 	/*
 	// if this is a FAT32 volume we'll update the fsinfo structure
 	*/
-#if !defined(FAT_READ_ONLY)
 	if (volume->fs_type == FAT_FS_TYPE_FAT32 && volume->fsinfo_sector != 0xFFFFFFFF)
 	{
 		bool			bSuccess;
@@ -455,11 +454,6 @@ uint16 fat_unmount_volume(FAT_VOLUME* volume)
 			}
 		}
 	}
-#endif
-
-	/*
-	// return success code
-	*/
 	return FAT_SUCCESS;
 }
 
@@ -715,14 +709,10 @@ void fat_fill_directory_entry_from_raw(
 	entry->raw = *raw_entry;
 }
 
-/*
+
 // creates a directory
-*/
 uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
 	uint16 ret;
 	FAT_DIRECTORY_ENTRY entry;
 	/*
@@ -819,12 +809,10 @@ uint16 fat_create_directory(FAT_VOLUME* volume, char* directory)
 	// directory with that name already exists.
 	*/
 	return FAT_FILENAME_ALREADY_EXISTS;
-#endif
 }
 
-/*
+
 // gets a FAT_DIRECTORY_ENTRY by it's full path
-*/
 uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* entry)
 {
 	uint16 ret;
@@ -1483,10 +1471,7 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 /*
 // creates a FAT directory entry
 */
-#if !defined(FAT_READ_ONLY)
-uint16 fat_create_directory_entry(
-	FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent,
-	char* name, uint8 attribs, uint32 entry_cluster, FAT_DIRECTORY_ENTRY* new_entry)
+uint16 fat_create_directory_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, char* name, uint8 attribs, uint32 entry_cluster, FAT_DIRECTORY_ENTRY* new_entry)
 {
 	uint16							ret;
 	int16							char_index;
@@ -1558,11 +1543,10 @@ uint16 fat_create_directory_entry(
 			}
 		}
 	}
-	/*
+
 	// initialize the raw entry
 	// todo: check if no other functions are initializing
 	// new_entry and initialize the whole thing
-	*/
 	memset(&new_entry->raw, 0, sizeof(new_entry->raw));
 	/*
 	// attempt to format the filename provided
@@ -2092,12 +2076,10 @@ uint16 fat_create_directory_entry(
 		FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
 	} while (1);
 }
-#endif
 
-/*
+
 // converts a 8.3 filename from the internal
 // filesystem format to the user friendly convention
-*/
 void fat_get_short_name_from_entry(uint8* dest, const uint8* src)
 {
 	/*
@@ -2492,7 +2474,6 @@ int indexof(char chr, char* str, int index)
 }
 
 
-#if !defined(FAT_READ_ONLY)
 uint16 rtc_get_fat_date()
 {
 #if defined(FAT_USE_SYSTEM_TIME)
@@ -2514,9 +2495,8 @@ uint16 rtc_get_fat_date()
 	}
 #endif
 }
-#endif
 
-#if !defined(FAT_READ_ONLY)
+
 uint16 rtc_get_fat_time()
 {
 #if defined(FAT_USE_SYSTEM_TIME)
@@ -2540,10 +2520,10 @@ uint16 rtc_get_fat_time()
 	}
 #endif
 }
-#endif
 
-time_t fat_decode_date_time(uint16 date, uint16 time) {
-	/*
+
+time_t fat_decode_date_time(uint16 date, uint16 time) 
+{
 	//YYYYYYYMMMMDDDDD
 	//0000000000011111
 	//0000000111100000
@@ -2554,7 +2534,7 @@ time_t fat_decode_date_time(uint16 date, uint16 time) {
 	//1111100000000000
 	//struct tm datetime;
 	//time_t now;
-	*/
+
 	struct tm tm;
 	tm.tm_year = ((date) >> 9) + 80;
 	tm.tm_mon = (((date) & 0x1E0) >> 5) - 1;
@@ -2565,12 +2545,11 @@ time_t fat_decode_date_time(uint16 date, uint16 time) {
 	return mktime(&tm);
 }
 
-/*
+
 // treams leading and trailing spaces. If the result
 // exceeds the max length the destination will be set
 // to an empty string
 // todo: clean it up a bit
-*/
 void strtrim(char* dest, char* src, size_t max) {
 
 	uint32 max_length;
