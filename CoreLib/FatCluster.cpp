@@ -63,49 +63,38 @@ static uint16 fat_zero_cluster(FAT_VOLUME* volume, uint32 cluster, uint8* buffer
 static bool fat_write_fat_sector(FAT_VOLUME * volume, uint32 sector_address, uint8 * buffer);
 
 
-/*
 // allocates a cluster for a directory - finds a free cluster, initializes it as
 // required by a directory, marks it's FAT entry as EOC and returns the cluster address
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-*/
-#if !defined(FAT_READ_ONLY)
 uint32 fat_allocate_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint16* result)
 {
 	return fat_allocate_cluster(volume, parent, 1, 1, 1, result);
 }
-#endif
 
 
-/*
 // allocates the requested number of clusters - finds the free clusters, initializes it to zeroes,
 // links them as a cluster chain (marking the last one as EOC) and returns the cluster number for
 // the 1st cluster in the chain
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-*/
-#if !defined(FAT_READ_ONLY)
 uint32 fat_allocate_data_cluster(FAT_VOLUME* volume, uint32 count, char zero, uint16* result)
 {
 	return fat_allocate_cluster(volume, 0, count, zero, 1, result);
 }
-#endif
 
 
 #if defined(FAT_OPTIMIZE_FOR_FLASH)
-#if !defined(FAT_READ_ONLY)
 uint32 fat_allocate_data_cluster_ex(FAT_VOLUME* volume, uint32 count, char zero, uint32 page_size, uint16* result)
 {
 	return fat_allocate_cluster(volume, 0, count, zero, page_size, result);
 }
 #endif
-#endif
 
-/*
+
 // calculate the gcd of 2 32 bit integers
-*/
 #if defined(FAT_OPTIMIZE_FOR_FLASH)
 /*
 static uint32 fat_gcd(uint32 a, uint32 b)
@@ -126,13 +115,11 @@ static uint32 fat_gcd(uint32 a, uint32 b)
 */
 #endif
 
-/*
+
 // performs the work for fat_allocate_data_cluster and fat_allocate_directory_cluster
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-*/
-#if !defined(FAT_READ_ONLY)
 static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 count, char zero, uint32 page_size, uint16* result)
 {
 	bool		bSuccess;
@@ -151,10 +138,10 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 	char		wrapped_around = 0;
 
 #if defined(FAT_OPTIMIZE_FOR_FLASH)
-	uint16 step = 1;
+	uint16		step = 1;
 #endif
 
-	uint8* buffer = fat_shared_buffer;
+	uint8*		buffer = fat_shared_buffer;
 
 	/*
 	// the zero and parent parameters should only be set when
@@ -1045,12 +1032,9 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 		}
 	}
 }
-#endif
 
-/*
+
 // marks all the clusters in the cluster chain as free
-*/
-#if !defined(FAT_READ_ONLY)
 uint16 fat_free_cluster_chain(FAT_VOLUME* volume, uint32 cluster)
 {
 	bool	bSuccess;
@@ -1304,7 +1288,7 @@ uint16 fat_free_cluster_chain(FAT_VOLUME* volume, uint32 cluster)
 		}
 	}
 }
-#endif
+
 
 /*
 // gets the FAT structure for a given cluster number
@@ -1446,43 +1430,34 @@ uint16 fat_get_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY* fat_
 	return FAT_SUCCESS;
 }
 
-/*
+
 // updates the FAT entry for a given cluster
-*/
-#if !defined(FAT_READ_ONLY)
 uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
 	uint32	entry_sector;
 	uint32	entry_offset;
+	uint8*	buffer = fat_shared_buffer;
 
-
-	uint8* buffer = fat_shared_buffer;
-
-	/*
 	// get the offset of the entry in the FAT table for the requested cluster
-	*/
 	switch (volume->fs_type)
 	{
 		case FAT_FS_TYPE_FAT12: fat_offset = cluster + (cluster >> 1); break;
 		case FAT_FS_TYPE_FAT16: fat_offset = cluster * ((uint32)2); break;
 		case FAT_FS_TYPE_FAT32: fat_offset = cluster * ((uint32)4); break;
 	}
-	/*
+
 	// get the address of the sector that contains the FAT entry
 	// and the offset of the FAT entry within that sector
-	*/
 	entry_sector = volume->no_of_reserved_sectors + (fat_offset / volume->no_of_bytes_per_serctor);
 	entry_offset = fat_offset % volume->no_of_bytes_per_serctor;
-	/*
+
 	// acquire lock on buffer
-	*/
 	FAT_ACQUIRE_WRITE_ACCESS();
 	FAT_LOCK_BUFFER();
-	/*
+
 	// read sector into buffer
-	*/
 	if (!FAT_IS_LOADED_SECTOR(entry_sector))
 	{
 		bSuccess = volume->device->Read(entry_sector, buffer);
@@ -1495,16 +1470,13 @@ uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_e
 		}
 		FAT_SET_LOADED_SECTOR(entry_sector);
 	}
-	/*
+
 	// set the FAT entry
-	*/
 	switch (volume->fs_type)
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
-			/*
 			// write the 1st byte
-			*/
 			if (cluster & 0x1)
 			{
 				fat_entry <<= 4;									/* odd entries occupy the upper 12 bits so we must shift */
@@ -1515,10 +1487,9 @@ uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_e
 			{
 				buffer[entry_offset] = LO8((uint16)fat_entry);	/* just copy the 1st byte */
 			}
-			/*
+
 			// if the FAT entry spans a sector boundary flush the currently
 			// loaded sector to the drive and load the next one.
-			*/
 			if (entry_offset == volume->no_of_bytes_per_serctor - 1)
 			{
 				/*
@@ -1610,15 +1581,12 @@ uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_e
 	FAT_RELINQUISH_WRITE_ACCESS();
 	return FAT_SUCCESS;
 }
-#endif
 
-/*
+
 // increase a cluster address by the amount of clusters indicated by count. This function will
 // follow the FAT entry chain to fat the count-th cluster allocated to a file relative from the
 // current_cluster cluster
-*/
-char fat_increase_cluster_address(
-	FAT_VOLUME* volume, uint32 cluster, uint16 count, uint32* value)
+char fat_increase_cluster_address(FAT_VOLUME* volume, uint32 cluster, uint16 count, uint32* value)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1819,12 +1787,8 @@ char fat_is_eof_entry(FAT_VOLUME* volume, FAT_ENTRY fat)
 }
 
 
-/*
 // initializes a directory cluster
-*/
-#if !defined(FAT_READ_ONLY)
-static uint16 fat_initialize_directory_cluster(
-	FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 cluster, uint8* buffer)
+static uint16 fat_initialize_directory_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* parent, uint32 cluster, uint8* buffer)
 {
 	bool						bSuccess;
 	uint16						counter;
@@ -1942,12 +1906,9 @@ static uint16 fat_initialize_directory_cluster(
 	*/
 	return FAT_SUCCESS;
 }
-#endif
 
-/*
+
 // sets all sectors in a cluster to zeroes
-*/
-#if !defined(FAT_READ_ONLY)
 static uint16 fat_zero_cluster(FAT_VOLUME* volume, uint32 cluster, uint8* buffer)
 {
 	bool	bSuccess;
@@ -1981,7 +1942,7 @@ static uint16 fat_zero_cluster(FAT_VOLUME* volume, uint32 cluster, uint8* buffer
 	*/
 	return FAT_SUCCESS;
 }
-#endif
+
 
 
 /*
