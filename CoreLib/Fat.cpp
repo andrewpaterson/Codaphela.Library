@@ -26,13 +26,8 @@
  /*
  // macros for setting the cached sector
  */
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 #define FAT_SET_LOADED_SECTOR(volume, sector)		fat_shared_buffer_sector = (sector)
-#elif defined(FAT_ALLOCATE_VOLUME_BUFFER)
-#define FAT_SET_LOADED_SECTOR(volume, sector)		volume->sector_buffer_sector = (sector)
-#else
-#define FAT_SET_LOADED_SECTOR(volume, sector)	
-#endif
+
 
  /*
  // function pointer for rtc access routing
@@ -60,20 +55,18 @@ static TIMEKEEPER timekeeper;
 /*
 // shared buffer definition
 */
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 uint8 fat_shared_buffer[MAX_SECTOR_LENGTH];
 uint32 fat_shared_buffer_sector;
-#endif
+
 
 /*
 // initialize fat driver
 */
 void fat_init()
 {
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 	fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
-#endif
 }
+
 
 /*
 // mounts a FAT volume
@@ -87,13 +80,7 @@ uint16 fat_mount_volume(FAT_VOLUME* volume, CFileDrive* device)
 	char					partitions_tried = 0;
 	char					label[12];
 	uint32					fsinfo_sector;
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8*					buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
 
 	/*
 	// set the null terminator.
@@ -408,7 +395,7 @@ retry:
 /*
 // dismounts a FAT volume
 */
-uint16 fat_dismount_volume(FAT_VOLUME* volume)
+uint16 fat_unmount_volume(FAT_VOLUME* volume)
 {
 	/*
 	// if this is a FAT32 volume we'll update the fsinfo structure
@@ -419,13 +406,8 @@ uint16 fat_dismount_volume(FAT_VOLUME* volume)
 		bool			bSuccess;
 		FAT_FSINFO*		fsinfo;
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-		uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 		uint8* buffer = fat_shared_buffer;
-#else
-		/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 		/*
 		// mark the loaded sector as unknown
 		*/
@@ -507,17 +489,15 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 	uint16 ret;
 	FAT_DIRECTORY_ENTRY parent_entry;
 	FAT_FILESYSTEM_QUERY_INNER* query = (FAT_FILESYSTEM_QUERY_INNER*)q;
-	/*
+
 	// make sure the query has a buffer
-	*/
 	if (!q->state.buffer)
 	{
 		q->state.buffer = q->state.buff;
 	}
-	/*
+
 	// if the path starts with a backlash then advance to
 	// the next character
-	*/
 	if (parent_path)
 	{
 		if (*parent_path == '\\')
@@ -526,73 +506,53 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 		}
 	}
 
-	/*
 	// if a parent was specified...
-	*/
 	if (parent_path != NULL)
 	{
-		/*
 		// try to get the entry for the parent
-		*/
 		ret = fat_get_file_entry(volume, parent_path, &parent_entry);
-		/*
+
 		// if we were unable to get the parent entry
 		// then return the error that we received from
 		// fat_get_file_entry
-		*/
 		if (ret != FAT_SUCCESS)
 		{
 			return ret;
 		}
 
-		/*
 		// try to get the 1st entry of the
 		// query results
-		*/
 		ret = fat_query_first_entry(volume, &parent_entry.raw, attributes, &query->state, 0);
 	}
-	/*
 	// if the parent was not supplied then we
 	// submit the query without it
-	*/
 	else
 	{
 		ret = fat_query_first_entry(volume, 0, attributes, &query->state, 0);
 	}
-	/*
+
 	// if we cant get the 1st entry then return the
 	// error that we received from fat_Query_First_entry
-	*/
 	if (ret != FAT_SUCCESS)
 	{
 		return ret;
 	}
 
-	/*
 	// if there are no more entries
-	*/
-	if (query->state.current_entry_raw == 0) {
-		/*
-		// set the filename of the current entry
-		// to 0
-		*/
+	if (query->state.current_entry_raw == 0) 
+	{
 		*query->current_entry.name = 0;
-		/*
-		// return success
-		*/
 		return FAT_SUCCESS;
 	}
-	/*
+
 	// fill the current entry structure with data from
 	// the current raw entry of the query
-	*/
-	fat_fill_directory_entry_from_raw(		&query->current_entry, query->state.current_entry_raw);
-	/*
+	fat_fill_directory_entry_from_raw(&query->current_entry, query->state.current_entry_raw);
+
 	// calculate the sector address of the entry - if
 	// query->CurrentCluster equals zero then this is the root
 	// directory of a FAT12/FAT16 volume and the calculation is
 	// different
-	*/
 	if (query->state.current_cluster == 0x0) 
 	{
 		query->current_entry.sector_addr = volume->no_of_reserved_sectors + 
@@ -604,20 +564,14 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 		query->current_entry.sector_addr = FIRST_SECTOR_OF_CLUSTER(volume, query->state.current_cluster) + query->state.current_sector;
 	}
 
-	/*
 	// calculate the offset of the entry within it's sector
-	*/
 	query->current_entry.sector_offset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.buffer);
-	/*
 	// store a copy of the original FAT directory entry
 	// within the FAT_DIRECTORY_ENTRY structure that is returned
 	// to users
-	*/
 	query->current_entry.raw = *query->state.current_entry_raw;
-	/*
+
 	// if long filenames are enabled copy the filename to the entry
-	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	if (*query->current_entry.name != 0)
 	{
 		if (*query->state.long_filename != 0)
@@ -632,7 +586,6 @@ uint16 fat_find_first_entry(FAT_VOLUME* volume, char* parent_path, uint8 attribu
 			}
 		}
 	}
-#endif
 
 
 	/*
@@ -715,7 +668,6 @@ uint16 fat_find_next_entry(	FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry,
 	*/
 	query->current_entry.raw = *query->state.current_entry_raw;
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	if (*query->current_entry.name != 0)
 	{
 		if (*query->state.long_filename != 0)
@@ -728,9 +680,11 @@ uint16 fat_find_next_entry(	FAT_VOLUME* volume, FAT_DIRECTORY_ENTRY** dir_entry,
 			}
 		}
 	}
-#endif
+
 	if (dir_entry)
+	{
 		*dir_entry = &query->current_entry;
+	}
 	/*
 	// return success code
 	*/
@@ -881,25 +835,12 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 	FAT_QUERY_STATE_INTERNAL query;
 	/* FAT_QUERY_STATE query; */
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	char using_lfn;
 	/* char using_lfn_and_short; */
 	uint16 target_file_long[FAT_MAX_PATH + 1];	/* stores the utf16 long filename */
 	uint8 current_level[FAT_MAX_PATH + 1];
-#else
-	uint8 current_level[13];
-	/* uint8 target_file[13]; */
-#endif
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	query.buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	query.buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-	query.buffer = buffer;
-#endif
-
 
 	/*
 	// if the path starts with a backlash then advance to
@@ -999,16 +940,11 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 		ret = 0;
 		while (*path != 0x0 && *path != '\\')
 		{
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 			if (ret++ > FAT_MAX_PATH)
 			{
 				return FAT_INVALID_FILENAME;
 			}
-#else
-			if (++ret > 12)
-				return FAT_INVALID_FILENAME;
-#endif
-			* pLevel++ = *path++;
+			*pLevel++ = *path++;
 		}
 		*pLevel = 0x0;
 		/*
@@ -1041,7 +977,6 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 		/*
 		// get an LFN version of the filename
 		*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 		using_lfn = 0;
 		/*/using_lfn_and_short = 0;*/
 		/*
@@ -1064,20 +999,7 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 		{
 			match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
 		}
-#else
-		/*
-		// format the current level filename to the 8.3 format
-		// if this is an invalid filename return error
-		*/
-		if (get_short_name_for_entry(target_file, current_level, 0) == FAT_INVALID_FILENAME)
-		{
-			return FAT_INVALID_FILENAME;
-		}
-		/*
-		// match the filename against the current entry
-		*/
-		match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
-#endif
+
 		/*
 		// if the file doesn't match then get the
 		// next file
@@ -1109,7 +1031,6 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			/*
 			// match the filename against the next entry
 			*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 			if (using_lfn)
 			{
 				match = fat_compare_long_name(target_file_long, query.long_filename)
@@ -1119,9 +1040,6 @@ uint16 fat_get_file_entry(FAT_VOLUME* volume, char* path, FAT_DIRECTORY_ENTRY* e
 			{
 				match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
 			}
-#else
-			match = fat_compare_short_name(target_file, query.current_entry_raw->ENTRY.STD.name);
-#endif
 		}
 		/*
 		// set the current entry to the entry
@@ -1187,13 +1105,11 @@ uint16 fat_query_first_entry(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* direct
 {
 	bool	bSuccess;
 	uint32	first_sector;
-	/* char pass; */
+
 	/*
 	// make sure the long filename is set to an empty string
 	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	query->long_filename[0] = 0;
-#endif
 	/*
 	// if the directory entry has the cluster # set to
 	// zero it is the root directory so we need to
@@ -1423,7 +1339,6 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 		*/
 		if (query->current_entry_raw->ENTRY.STD.attributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(query->current_entry_raw))
 		{
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 			/*
 			// if this enntry is marked as the 1st LFN entry
 			*/
@@ -1478,7 +1393,7 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 			{
 				query->lfn_checksum = 0;
 			}
-#endif
+
 			/*
 			// make sure we never return this entry
 			*/
@@ -1507,7 +1422,6 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 	// to make sure that the long filename that we've associated
 	// with it belongs to it. If it doesn't clear it.
 	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	if (*query->current_entry_raw->ENTRY.STD.name != 0x0)
 	{
 		if (query->lfn_checksum != fat_long_entry_checksum((uint8*)query->current_entry_raw->ENTRY.STD.name))
@@ -1559,7 +1473,7 @@ uint16 fat_query_next_entry(FAT_VOLUME* volume, FAT_QUERY_STATE* query, char buf
 		}
 		query->long_filename[i] = 0x0;
 	}
-#endif
+
 	/*
 	// return success
 	*/
@@ -1585,24 +1499,17 @@ uint16 fat_create_directory_entry(
 	FAT_ENTRY						last_fat;
 	FAT_RAW_DIRECTORY_ENTRY*		parent_entry;
 
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	int								no_of_lfn_entries_needed = 0;
 	int								no_of_lfn_entries_found;
 	char							lfn_checksum;
-#endif
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8* buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
 
 	/*
 	// get the length of the filename
 	*/
 	ret = (uint16)strlen(name);
+
 	/*
 	// check that the character is a valid 8.3 filename, the
 	// file is invalid if:
@@ -1611,29 +1518,11 @@ uint16 fat_create_directory_entry(
 	//	- extension part is more than 3 (ret - char_index > 4)
 	//	- it has more than one dot (indexof('.', name, char_index + 1) >= 0)
 	*/
-#if defined(FAT_DISABLE_LONG_FILENAMES)
-	char_index = indexof('.', name, 0x0);
-	if (char_index < 0 && ret > 8)
-	{
-		return FAT_FILENAME_TOO_LONG;
-	}
-	if (char_index >= 0)
-	{
-		if (char_index > 8 || (ret - char_index) > 4)
-		{
-			return FAT_FILENAME_TOO_LONG;
-		}
-		if (indexof('.', name, char_index + 1) >= 0)
-		{
-			return FAT_INVALID_FILENAME;
-		}
-	}
-#else
 	if (ret > 255)
 	{
 		return FAT_FILENAME_TOO_LONG;
 	}
-#endif
+
 	/*
 	// all names are also invalid if they start or end with
 	// a dot
@@ -1651,17 +1540,11 @@ uint16 fat_create_directory_entry(
 		// if the character is less than 0x20 with the
 		// exception of 0x5 then the filename is illegal
 		*/
-#if defined(FAT_DISABLE_LONG_FILENAMES)
-		if (name[char_index] < 0x20)
-		{
-			return FAT_ILLEGAL_FILENAME;
-		}
-#else
 		if (name[char_index] < 0x1F)
 		{
 			return FAT_ILLEGAL_FILENAME;
 		}
-#endif
+
 		/*
 		// compare the character with a table of illegal
 		// characters, if a match is found then the filename
@@ -1699,7 +1582,6 @@ uint16 fat_create_directory_entry(
 	// if this is going to be an lfn entry we need to make
 	// sure that the short filename is available
 	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	if (ret == FAT_LFN_GENERATED)
 	{
 		FAT_QUERY_STATE query;
@@ -1773,7 +1655,7 @@ uint16 fat_create_directory_entry(
 		no_of_lfn_entries_needed = ((strlen(name) + 12) / 13) + 1;
 		no_of_lfn_entries_found = 0;
 	}
-#endif
+
 	/*
 	// if the new entry is a directory and no cluster was supplied
 	// by the calling function then allocate a new cluster
@@ -1906,11 +1788,7 @@ uint16 fat_create_directory_entry(
 				// make sure we don't exceed the limit of 0xFFFF entries
 				// per directory
 				*/
-#if defined(FAT_DISABLE_LONG_FILENAMES)
-				if (entries_count == 0xFFFF)
-#else
 				if ((entries_count + no_of_lfn_entries_needed) == 0xFFFF)
-#endif
 				{
 					return FAT_DIRECTORY_LIMIT_EXCEEDED;
 				}
@@ -1923,24 +1801,6 @@ uint16 fat_create_directory_entry(
 				*/
 				if (IS_FREE_DIRECTORY_ENTRY(parent_entry))
 				{
-#if defined(FAT_DISABLE_LONG_FILENAMES)
-					/*
-					// update the FAT entry with the data from
-					// the newly created entry
-					*/
-					* parent_entry = new_entry->raw;
-					new_entry->sector_addr = sector;
-					new_entry->sector_offset = (uintptr_t)parent_entry - (uintptr_t)buffer;
-					bSuccess = volume->device->Write(sector, buffer)
-					if (!bSuccess)
-					{
-						return FAT_CANNOT_WRITE_MEDIA;
-					}
-					/*
-					// store the sector and offset of the entry and go
-					*/
-					return FAT_SUCCESS;
-#else
 					/*
 					// we've found a free entry
 					*/
@@ -2165,14 +2025,12 @@ uint16 fat_create_directory_entry(
 						*/
 						return FAT_SUCCESS;
 					}
-#endif
 				}
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 				else
 				{
 					no_of_lfn_entries_found = 0;
 				}
-#endif
+
 				/*
 				// move the parent entry pointer to
 				// the next entry in the sector
@@ -2315,7 +2173,6 @@ void fat_get_short_name_from_entry(uint8* dest, const uint8* src)
 /*
 // converts the filename to it's Unicode UTF16 representation
 */
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 char get_long_name_for_entry(uint16* dst, uint8* src)
 {
 	register int i;
@@ -2331,7 +2188,6 @@ char get_long_name_for_entry(uint16* dst, uint8* src)
 	*/
 	return FAT_SUCCESS;
 }
-#endif
 
 
 /*
@@ -2347,7 +2203,6 @@ char fat_compare_short_name(uint8* name1, uint8* name2)
 /*
 // performs an ASCII comparison on two UTF16 strings
 */
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 char fat_compare_long_name(uint16* name1, uint16* name2)
 {
 	register short i;
@@ -2360,7 +2215,7 @@ char fat_compare_long_name(uint16* name1, uint16* name2)
 	}
 	return 1;
 }
-#endif
+
 
 /*
 // converts an 8.3 filename to the format required
@@ -2374,11 +2229,11 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled)
 	uint16 dot_index;
 	uint16 length;
 	uint16 i;
+
 	/*
 	// check that the name is actually a long filename
 	// before processing it as such
 	*/
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 	if (!lfn_disabled)
 	{
 		uint8 c;
@@ -2495,7 +2350,7 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled)
 			return FAT_LFN_GENERATED;
 		}
 	}
-#endif
+
 	/*
 	// trim-off spaces - if the result is
 	// greater than 12 it will return an empty
@@ -2603,10 +2458,10 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled)
 	return has_uppercase ? FAT_INVALID_FILENAME : FAT_SUCCESS;
 }
 
+
 /*
 // computes the short filename checksum
 */
-#if !defined(FAT_DISABLE_LONG_FILENAMES)
 uint8 fat_long_entry_checksum(uint8* filename)
 {
 	uint16 len;
@@ -2617,7 +2472,7 @@ uint8 fat_long_entry_checksum(uint8* filename)
 	}
 	return sum;
 }
-#endif
+
 
 int indexof(char chr, char* str, int index)
 {
@@ -2627,12 +2482,15 @@ int indexof(char chr, char* str, int index)
 	do
 	{
 		if (str[i] == chr)
+		{
 			return i;
+		}
 		i++;
 	} while (str[i]);
 
 	return -1;
 }
+
 
 #if !defined(FAT_READ_ONLY)
 uint16 rtc_get_fat_date()

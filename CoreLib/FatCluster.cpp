@@ -26,22 +26,8 @@
 #define FAT_ALLOCATE_SEQUENTIAL_CLUSTERS
 
 
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 #define FAT_IS_LOADED_SECTOR(sector)		(fat_shared_buffer_sector != 0xFFFFFFFF && fat_shared_buffer_sector == (sector))
-#elif defined(FAT_ALLOCATE_VOLUME_BUFFER)
-#define FAT_IS_LOADED_SECTOR(sector)		(volume->sector_buffer_sector != 0xFFFFFFFF && volume->sector_buffer_sector == (sector))
-#else
-#define FAT_IS_LOADED_SECTOR(sector)		(0)
-#endif
-
-
-#if defined(FAT_ALLOCATE_SHARED_BUFFER)
 #define FAT_SET_LOADED_SECTOR(sector)		fat_shared_buffer_sector = (sector)
-#elif defined(FAT_ALLOCATE_VOLUME_BUFFER)
-#define FAT_SET_LOADED_SECTOR(sector)		volume->sector_buffer_sector = (sector)
-#else
-#define FAT_SET_LOADED_SECTOR(sector)	
-#endif
 
 
  /*
@@ -168,13 +154,8 @@ static uint32 fat_allocate_cluster(FAT_VOLUME* volume, FAT_RAW_DIRECTORY_ENTRY* 
 	uint16 step = 1;
 #endif
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8* buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// the zero and parent parameters should only be set when
 	// allocating only 1 cluster. Also this function should never
@@ -1080,13 +1061,8 @@ uint16 fat_free_cluster_chain(FAT_VOLUME* volume, uint32 cluster)
 	char	is_odd_cluster = 0;		/* indicates that the entry being processed is an odd cluster address (FAT12 only) */
 	char	op_in_progress = 0;	/* indicates that a multi-step operation is in progress (FAT12 only) */
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8* buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// get the offset of the cluster entry within the FAT table,
 	// the sector of the FAT table that contains the entry and the offset
@@ -1340,13 +1316,8 @@ uint16 fat_get_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY* fat_
 	uint32	entry_sector;
 	uint32	entry_offset;	/* todo: 16 bits should suffice for this value */
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8* buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// get the offset of the entry within the FAT table
 	// for the requested cluster
@@ -1486,13 +1457,9 @@ uint16 fat_set_cluster_entry(FAT_VOLUME* volume, uint32 cluster, FAT_ENTRY fat_e
 	uint32	entry_sector;
 	uint32	entry_offset;
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
+
 	uint8* buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// get the offset of the entry in the FAT table for the requested cluster
 	*/
@@ -1661,13 +1628,8 @@ char fat_increase_cluster_address(
 	char	is_odd_cluster = 0;
 	char	op_in_progress = 0;
 
-#if defined(FAT_ALLOCATE_VOLUME_BUFFER)
-	uint8* buffer = volume->sector_buffer;
-#elif defined(FAT_ALLOCATE_SHARED_BUFFER)
 	uint8* buffer = fat_shared_buffer;
-#else
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
-#endif
+
 	/*
 	// if the count is zero we just return the same
 	// cluster that we received
