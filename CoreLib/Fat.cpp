@@ -389,9 +389,7 @@ retry:
 }
 
 
-/*
-// dismounts a FAT volume
-*/
+// unmounts a FAT volume
 uint16 fat_unmount_volume(SFatVolume* volume)
 {
 	/*

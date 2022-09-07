@@ -61,12 +61,6 @@
 #define MAX_SECTOR_LENGTH				0x200
   
 
-// Defines that the fat_format_volume function should be included in the library.
-// If you don't need format support you can save a few lines of code by commenting
-// this out.
-#define FAT_FORMAT_UTILITY
-
-
 // this is the interval in sectors written at which an
 // open file will be flushed 0x800 = 1 MiB with 512 bytes
 // sectors
@@ -559,6 +553,10 @@ uint16 fat_file_flush
 (
 	SFatFile* file
 );
+
+
+uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_sectors_per_cluster, CFileDrive* device);
+
 
 /**
  * <summary>
