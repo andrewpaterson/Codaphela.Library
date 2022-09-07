@@ -370,62 +370,48 @@ void fat_init(void);
 
 
  // Mounts a FAT volume.
- // </summary>
  // <param name="volume">A pointer to a volume handle structure (SFatVolume).</param>
  // <param name="device">A pointer to the storage device driver STORAGE_DEVICE structure.</param>
  // <returns>One of the return codes defined in fat.h.</returns>
 uint16 fat_mount_volume(SFatVolume* volume, CFileDrive* device);
 
 
-/**
- * <summary>
- * Dismounts a FAT volume.
- * </summary>
- * <param name="volume">The handle of the volume to dismount.</param>
- */
-uint16 fat_unmount_volume(SFatVolume* volume);
+ // Unmounts a FAT volume.
+ // <param name="volume">The handle of the volume to dismount.</param>
+ int16 fat_unmount_volume(SFatVolume* volume);
 
 
-/**
- * <summary>Gets the sector size of a volume in bytes.</summary>
- * <param name="volume">A pointer to the volume handle.</param>
- */
+// Gets the sector size of a volume in bytes.
+// <param name="volume">A pointer to the volume handle.</param>
 uint16 fat_get_sector_size(SFatVolume* volume);
 
 
-/**
- * <summary>
- * Gets the directory entry of a file. This function should be used
- * to get information about a file such as file size, timestamps, and
- * attributes.
- * </summary>
- * <param name="volume">The handle of the volume containing the file.</param>
- * <param name="path">The path of the file within the volume.</param>
- * <param name="entry">A pointer to a SFatDirectoryEntry structure where the
- * details about the file will be stored.
- * </param>
- * <returns>
- * If successful it will return FAT_SUCCESS, otherwise it will return one of the
- * result codes defined in fat.h
- * </result>
- */
+ // Gets the directory entry of a file. This function should be used
+ // to get information about a file such as file size, timestamps, and
+ // attributes.
+
+ // <param name="volume">The handle of the volume containing the file.</param>
+ // <param name="path">The path of the file within the volume.</param>
+ // <param name="entry">A pointer to a SFatDirectoryEntry structure where the
+ // details about the file will be stored.
+ // </param>
+
+ // If successful it will return FAT_SUCCESS, otherwise it will return one of the
+ // error codes.
 uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* entry);
 
 
-/**
- * <summary>
- * Finds the first entry in a directory.
- * </summary>
- * <param name="volume">A pointer to the volume handle (SFatVolume).</param>
- * <param name="path">The path of the directory to query.</param>
- * <param name="attributes">An ORed list of file attributes to filter the query.</param>
- * <param name="dir_entry">
- * A pointer-to-pointer to a SFatDirectoryEntry structure.
- * When this function returns the pointer will be set to to point to the directory entry.
- * </param>
- * <param name="query">A pointer to a SFatFileSystemQuery that will be initialized as the query handle.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
+ //* Finds the first entry in a directory.
+
+ //* <param name="volume">A pointer to the volume handle (SFatVolume).</param>
+ //* <param name="path">The path of the directory to query.</param>
+ //* <param name="attributes">An ORed list of file attributes to filter the query.</param>
+ //* <param name="dir_entry">
+ //* A pointer-to-pointer to a SFatDirectoryEntry structure.
+ //* When this function returns the pointer will be set to to point to the directory entry.
+ //* </param>
+ //* <param name="query">A pointer to a SFatFileSystemQuery that will be initialized as the query handle.</param>
+ //* <returns>One of the return codes defined in fat.h.</returns>
 uint16 fat_find_first_entry(SFatVolume* volume, char* path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
 
 
