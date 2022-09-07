@@ -78,6 +78,7 @@ public:
 	void		Shuffle(CRandom* pcRandom = NULL);
 	BOOL		Split(char* szString, char cSplitter);
 	void		Finalise(void);
+	void		Print(CChars* psz);
 	void		Dump(void);
 };
 
