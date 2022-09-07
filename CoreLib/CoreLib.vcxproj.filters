@@ -531,6 +531,12 @@
     <ClCompile Include="FatFile.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
+    <ClCompile Include="FatVolume.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
+    <ClCompile Include="FatSharedBuffer.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">
@@ -888,6 +894,12 @@
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
     <ClInclude Include="FatCommon.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FatVolume.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FatSharedBuffer.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
   </ItemGroup>
