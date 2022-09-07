@@ -207,16 +207,6 @@ struct SFatVolume
 typedef void (*STORAGE_CALLBACK)(void* context, uint16* result);
 
 
- //* This structure holds the callback function pointer and
- //* the callback context and is passed by the file system driver
- //* as a parameter to the driver's asynchronous IO functions.
-struct SStorageCallbackInfo
-{
-	STORAGE_CALLBACK	Callback;
-	void*				Context;
-};
-
-
 // fat 32-byte directory entry structure
 #pragma pack(push, 1)
 struct SFatRawDirectoryEntry
@@ -291,40 +281,24 @@ struct SFatQueryState
 };
 
 
-// Callback function for asynchronous IO.
-typedef void FAT_ASYNC_CALLBACK(void* context, uint16* state);
-
-
-// Callback function for asynchronous STREAMING IO.
-typedef void FAT_STREAM_CALLBACK(void* context, uint16* state, uint8** buffer, uint16* response);
-
-
 // holds the state of a read or write operation
 struct SFatOperationState
 {
 	uint32					pos;
 	uint16					bytes_remaining;
 	uint32					sector_addr;
-	uint16*					async_state;
 	uint32*					bytes_read;
 	uint16					length;
 	uint16					storage_state;
 	uint8*					end_of_buffer;
 	uint8*					buffer;
 	uint8					internal_state;
-
-	SStorageCallbackInfo	storage_callback_info;
-	FAT_ASYNC_CALLBACK*		callback;
-	void*					callback_context;
 };
 
-/*!
- * <summary>
- * This is the file handle structure. All the fields in this structure
- * are reserved for internal use and should not be accessed directly by the
- * developer.
- * </summary>
- */
+
+ // This is the file handle structure. All the fields in this structure
+ // are reserved for internal use and should not be accessed directly by the
+ // developer.
 struct SFatFile
 {
 	SFatVolume*				volume;
