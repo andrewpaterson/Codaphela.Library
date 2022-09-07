@@ -790,22 +790,34 @@ void CArrayChars::Finalise(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::Dump(void)
+void CArrayChars::Print(CChars* pszDest)
 {
 	int			i;
 	CChars*		psz;
-	CChars		sz;
 
-	sz.Init();
 	for (i = 0; i < mcArray.NumElements(); i++)
 	{
 		psz = mcArray.Get(i);
-		sz.Append(psz);
-		sz.AppendNewLine();
+		pszDest->Append(psz);
+		pszDest->AppendNewLine();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayChars::Dump(void)
+{
+	CChars		sz;
+
+	sz.Init();
+	Print(&sz);
 	sz.Dump();
 	sz.Kill();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
