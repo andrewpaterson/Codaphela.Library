@@ -124,13 +124,13 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 {
 	bool		bSuccess;
 	uint32		entry_sector;			/* the address of the cached sector */
-	uint32		current_sector;		/* address of the sector loaded in memory */
+	uint32		current_sector;			/* address of the sector loaded in memory */
 	uint32		cluster;				/* cluster number */
-	uint32		entry_offset = 0;			/* offset of fat entry within it's sector */
-	char		entries_updated;			/* indicates that the cached sector is dirty */
+	uint32		entry_offset = 0;		/* offset of fat entry within it's sector */
+	char		entries_updated;		/* indicates that the cached sector is dirty */
 	char		next_sector_loaded = 0;	/* indicates that the next sector has been loaded */
 	FAT_ENTRY	last_fat_entry = 0;		/* stores the value of the last cluster found or EOC if no clusters found yet */
-	FAT_ENTRY	fat_entry;			/* temp value to store cluster numbers read from FAT table */
+	FAT_ENTRY	fat_entry;				/* temp value to store cluster numbers read from FAT table */
 	uint32		first_cluster;
 	uint32		last_entry_sector = 0;
 	uint32		last_entry_offset = 0;
@@ -143,13 +143,11 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 
 	uint8*		buffer = fat_shared_buffer;
 
-	/*
 	// the zero and parent parameters should only be set when
 	// allocating only 1 cluster. Also this function should never
 	// be called with count = 0 as it won't return a cluster # which
 	// will cause undefined behaviour so the caller needs to make sure
 	// that it's requesting at least 1 cluster.
-	*/
 	if (count > 1 && (parent != 0 || zero != 0))
 	{
 		return FAT_UNKNOWN_ERROR;
@@ -160,18 +158,13 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 		return FAT_UNKNOWN_ERROR;
 	}
 
-	/*
-	// init values
-	*/
 	fat_entry = 0;
 	entries_updated = 0;
 	*result = FAT_SUCCESS;
 	cluster = 0x2;
 	first_cluster = 0;
 
-	/*
 	// if we got a hint of the 1st free cluster then take it
-	*/
 	if (volume->next_free_cluster != 0xFFFFFFFF)
 	{
 		if (volume->next_free_cluster <= volume->no_of_clusters + 1)
@@ -180,9 +173,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 		}
 	}
 
-	/*
 	// find the step between clusters allocated on page boundaries
-	*/
 #if defined(FAT_OPTIMIZE_FOR_FLASH)
 	if (volume->no_of_sectors_per_cluster < page_size)
 	{

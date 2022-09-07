@@ -240,7 +240,8 @@ struct SFatRawDirectoryEntry
 			uint16 first_cluster_lo;
 			uint32 size;
 		} sFatRawCommon;
-		struct LFN
+
+		struct SFatRawLongFileName
 		{
 			uint8 lfn_sequence;
 			uint8 lfn_chars_1[10];
@@ -250,7 +251,7 @@ struct SFatRawDirectoryEntry
 			uint8 lfn_chars_2[12];
 			uint16 lfn_first_cluster;
 			uint8 lfn_chars_3[4];
-		} LFN;
+		} sFatRawLongFileName;
 	} ENTRY;
 };
 #pragma pack(pop)
