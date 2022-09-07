@@ -24,29 +24,21 @@
 #include "FatInternals.h"
 
 
-#if defined(FAT_FORMAT_UTILITY)
-
- /*
  // structure of the disk size to sectors per
  // cluster lookup table
- */
-typedef struct DSKSZTOSECPERCLUS
+struct SDiskSizeToSectorsPerCluster
 {
-	uint32 DiskSize;
-	uint8 SecPerClusVal;
-}
-DSKSZTOSECPERCLUS;
+	uint32	DiskSize;
+	uint8	SecPerClusVal;
+};
 
-/*
+
 // prototypes
-*/
 static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forced_fs_type);
 
-/*
+
 // this is the table for FAT12 drives.
-*/
-#if !defined(FAT_READ_ONLY)
-static const DSKSZTOSECPERCLUS DskTableFAT12[] =
+static const SDiskSizeToSectorsPerCluster DskTableFAT12[] =
 {
 	{ 8200, 2 },  		/* disks up to 4 MB, 1k cluster */
 	{ 16368, 4 },		/* disks up to 8 MB, 2k cluster */
@@ -57,7 +49,7 @@ static const DSKSZTOSECPERCLUS DskTableFAT12[] =
 	{ 261408, 64 },		/* disks up to 128 MB, 32k cluster */
 	{ 0xFFFFFFFF, 0 }	/* any disk greater than 2GB, 0 value for SecPerClusVal trips an error */
 };
-#endif
+
 
 /*
  * This is the table for FAT16 drives. NOTE that this table includes
@@ -71,8 +63,7 @@ static const DSKSZTOSECPERCLUS DskTableFAT12[] =
  * being different may require the first table entries DiskSize value
  * to be changed otherwise the cluster count may be to low for FAT16.
  */
-#if !defined(FAT_READ_ONLY)
-static const DSKSZTOSECPERCLUS DskTableFAT16[] =
+static const SDiskSizeToSectorsPerCluster DskTableFAT16[] =
 {
    { 8400, 0 }, 		/* disks up to 4.1 MB, the 0 value for SecPerClusVal trips an error */
    { 32680, 2 },  		/* disks up to 16 MB, 1k cluster */
@@ -84,7 +75,7 @@ static const DSKSZTOSECPERCLUS DskTableFAT16[] =
    { 4194304, 64 },		/* disks up to 2 GB, 32k cluster */
    { 0xFFFFFFFF, 0 }	/* any disk greater than 2GB, 0 value for SecPerClusVal trips an error */
 };
-#endif
+
 
 /*
  * This is the table for FAT32 drives. NOTE that this table includes
@@ -98,8 +89,7 @@ static const DSKSZTOSECPERCLUS DskTableFAT16[] =
  * table entries DiskSize value to be changed otherwise the cluster count
  * may be to low for FAT32.
  */
-#if !defined(FAT_READ_ONLY)
-static const DSKSZTOSECPERCLUS DskTableFAT32[] =
+static const SDiskSizeToSectorsPerCluster DskTableFAT32[] =
 {
 	{ 66600, 0 },		/* disks up to 32.5 MB, the 0 value for SecPerClusVal trips an error */
 	{ 532480, 1 },		/* disks up to 260 MB, .5k cluster */
@@ -108,12 +98,9 @@ static const DSKSZTOSECPERCLUS DskTableFAT32[] =
 	{ 67108864, 32 },	/* disks up to 32 GB, 16k cluster */
 	{ 0xFFFFFFFF, 64 }	/* disks greater than 32GB, 32k cluster */
 };
-#endif
 
-/*
+
 // find the best cluster size of given file system and # of 512 bytes sectors
-*/
-#if !defined(FAT_READ_ONLY)
 static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forced_fs_type)
 {
 	uint8 i;
@@ -151,53 +138,44 @@ static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forc
 	}
 	return 0;
 }
-#endif
 
-/*
+
 // format volume
-*/
 uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_sectors_per_cluster, CFileDrive* device)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
-	bool		bSuccess;
-	uint32		i;
-	uint32		c;
-	uint32		total_sectors;
-	uint32		root_dir_sectors;
-	uint32		fatsz = 0;
+	bool					bSuccess;
+	uint32					i;
+	uint32					c;
+	uint32					total_sectors;
+	uint32					root_dir_sectors;
+	uint32					fatsz = 0;
 
-	uint32		backup_boot_sector;
-	uint32		fsinfo_sector;
-	uint32		no_of_root_entries;
-	uint32		no_of_bytes_per_sector;
-	uint32		no_of_reserved_sectors;
-	uint32		root_cluster;
-	uint32		no_of_clusters;
-	uint32		no_of_fat_tables;
-	uint8		media_type;
-	uint32		root_entry_sector;
-	uint32		root_entry_offset = 0;
+	uint32					backup_boot_sector;
+	uint32					fsinfo_sector;
+	uint32					no_of_root_entries;
+	uint32					no_of_bytes_per_sector;
+	uint32					no_of_reserved_sectors;
+	uint32					root_cluster;
+	uint32					no_of_clusters;
+	uint32					no_of_fat_tables;
+	uint8					media_type;
+	uint32					root_entry_sector;
+	uint32					root_entry_offset = 0;
 
-	FAT_BPB* bpb;
-	FAT_FSINFO* fsinfo;
-	SFatRawDirectoryEntry* entry;
+	FAT_BPB*				bpb;
+	FAT_FSINFO*				fsinfo;
+	SFatRawDirectoryEntry*	entry;
 
-	/* ALIGN16 8*/ uint8 buffer[MAX_SECTOR_LENGTH];
+	uint8					buffer[MAX_SECTOR_LENGTH];
 
-	/*
 	// todo: check for illegal characters in volume label
-	*/
 	if (strlen(volume_label) > 11)
 	{
 		return FAT_INVALID_VOLUME_LABEL;
 	}
 
-	/*
 	// get the total capacity of the storage
 	// device in bytes
-	*/
 	media_type = 0xF8;
 	fsinfo_sector = 1;
 	no_of_fat_tables = 2;
@@ -205,22 +183,20 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	root_cluster = 2;
 	total_sectors = (uint32)device->GetTotalSectors();
 	no_of_bytes_per_sector = device->GetSectorSize();
-	/*
+
 	// if the user didn't specify a file system type find the
 	// most appropriate one
-	*/
 	if (fs_type == FAT_FS_TYPE_UNSPECIFIED)
 	{
-		/*
 		// if the user specifies a cluster size he/she must also
 		// specify a file system type. Also we can only calculate cluster
 		// size for drives with a 512 bytes sector
-		*/
 		if (no_of_sectors_per_cluster || no_of_bytes_per_sector != 0x200)
+		{
 			return FAT_INVALID_FORMAT_PARAMETERS;
-		/*
+		}
+
 		// first try FAT12
-		*/
 		no_of_sectors_per_cluster = fat_get_cluster_size(FAT_FS_TYPE_FAT12, total_sectors, 0);
 
 		if (no_of_sectors_per_cluster)
@@ -229,9 +205,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		}
 		else
 		{
-			/*
 			// try FAT16
-			*/
 			no_of_sectors_per_cluster = fat_get_cluster_size(FAT_FS_TYPE_FAT16, total_sectors, 0);
 
 			if (no_of_sectors_per_cluster)
@@ -240,9 +214,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 			}
 			else
 			{
-				/*
 				// try FAT32
-				*/
 				no_of_sectors_per_cluster = fat_get_cluster_size(FAT_FS_TYPE_FAT32, total_sectors, 0);
 
 				if (no_of_sectors_per_cluster)
@@ -252,111 +224,117 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 			}
 		}
 	}
-	/*
+
 	// if we don't have a valid fs type return error
-	*/
 	if (fs_type < FAT_FS_TYPE_FAT12 || fs_type > FAT_FS_TYPE_FAT32)
+	{
 		return FAT_INVALID_FORMAT_PARAMETERS;
-	/*
+	}
+
 	// if we don't have a cluster size try to get one
-	*/
 	if (!no_of_sectors_per_cluster)
 	{
-		/*
 		// if sector size is not 512 bytes user must specify cluster size
-		*/
 		if (no_of_sectors_per_cluster || no_of_bytes_per_sector != 0x200)
+		{
 			return FAT_INVALID_FORMAT_PARAMETERS;
+		}
 		no_of_sectors_per_cluster = fat_get_cluster_size(fs_type, total_sectors, 1);
 	}
-	/*
+
 	// if we still don't have it return error
-	*/
 	if (!no_of_sectors_per_cluster)
+	{
 		return FAT_INVALID_FORMAT_PARAMETERS;
-	/*
+	}
+
 	// calculate no of root entries and reserved sectors
-	*/
 	no_of_root_entries = (fs_type == FAT_FS_TYPE_FAT32) ? 0 : 512;
 	no_of_reserved_sectors = (fs_type == FAT_FS_TYPE_FAT32) ? 32 : 1;
-	/*
+
 	// calculate the count of clusters on the volume without accounting
 	// for the space that will be used by the FAT tables
-	*/
 	root_dir_sectors = ((no_of_root_entries * 32) + (no_of_bytes_per_sector - 1)) / no_of_bytes_per_sector;
 	no_of_clusters = (total_sectors - no_of_reserved_sectors - root_dir_sectors) / no_of_sectors_per_cluster; /*rounds down*/
-	/*
+
 	// calculate the FAT table size (ignoring the fact that it won't fit
 	// since we're allocating all disk space to clusters
-	*/
 	while (1)
 	{
 		switch (fs_type)
 		{
 		case FAT_FS_TYPE_FAT12:
 		{
-			fatsz = (((no_of_clusters + 2) + ((no_of_clusters + 2) >> 1)) +
-				no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
+			fatsz = (((no_of_clusters + 2) + ((no_of_clusters + 2) >> 1)) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
 			break;
 		}
 		case FAT_FS_TYPE_FAT16:
 		{
-			fatsz = (((no_of_clusters + 2) * 2) +
-				no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
+			fatsz = (((no_of_clusters + 2) * 2) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
 			break;
 		}
 		case FAT_FS_TYPE_FAT32:
 		{
-			fatsz = (((no_of_clusters + 2) * 4) +
-				no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
+			fatsz = (((no_of_clusters + 2) * 4) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
 			break;
 		}
 		}
-		/*
+
 		// if the FAT table fits then we're done
-		*/
 		if (no_of_reserved_sectors + (fatsz * no_of_fat_tables) + (no_of_clusters * no_of_sectors_per_cluster) <= total_sectors)
+		{
 			break;
-		/*
-		// decrease the cluster count
-		*/
+		}
+
 		no_of_clusters--;
 	}
-	/*
+
 	// check that the filesystem type/cluster size supplied is correct.
-	*/
 	switch (fs_type)
 	{
-	case FAT_FS_TYPE_FAT12:
-		if (no_of_clusters > 4084)
-			return FAT_INVALID_FORMAT_PARAMETERS;
-		break;
-	case FAT_FS_TYPE_FAT16:
-		if (no_of_clusters > 65524 || no_of_clusters < 4085)
-			return FAT_INVALID_FORMAT_PARAMETERS;
-		break;
-	case FAT_FS_TYPE_FAT32:
-		if (no_of_clusters < 65525)
-			return FAT_INVALID_FORMAT_PARAMETERS;
-		break;
+		case FAT_FS_TYPE_FAT12:
+			if (no_of_clusters > 4084)
+			{
+				return FAT_INVALID_FORMAT_PARAMETERS;
+			}
+			break;
+
+		case FAT_FS_TYPE_FAT16:
+			if (no_of_clusters > 65524 || no_of_clusters < 4085)
+			{
+				return FAT_INVALID_FORMAT_PARAMETERS;
+			}
+			break;
+
+		case FAT_FS_TYPE_FAT32:
+			if (no_of_clusters < 65525)
+			{
+				return FAT_INVALID_FORMAT_PARAMETERS;
+			}
+			break;
 	}
+
 	root_cluster = 3; /* no_of_clusters - 100; */
-	/*
+
 	// calculate the offset of the cluster's FAT entry within it's sector
 	// note: when we hit get past the end of the current sector entry_offset
 	// will roll back to zero (or possibly 1 for FAT12)
-	*/
 	switch (fs_type)
 	{
-	case FAT_FS_TYPE_FAT12: root_entry_offset = root_cluster + (root_cluster >> 1); break;
-	case FAT_FS_TYPE_FAT16: root_entry_offset = root_cluster * ((uint32)2); break;
-	case FAT_FS_TYPE_FAT32: root_entry_offset = root_cluster * ((uint32)4); break;
+		case FAT_FS_TYPE_FAT12: root_entry_offset = root_cluster + (root_cluster >> 1); 
+			break;
+
+		case FAT_FS_TYPE_FAT16: root_entry_offset = root_cluster * ((uint32)2); 
+			break;
+
+		case FAT_FS_TYPE_FAT32: root_entry_offset = root_cluster * ((uint32)4); 
+			break;
 	}
+
 	root_entry_sector = (root_entry_offset / no_of_bytes_per_sector);
 	root_entry_offset = (root_entry_offset % no_of_bytes_per_sector) / 4;
-	/*
+
 	// set common Bios Parameter Block (BPB) fields.
-	*/
 	bpb = (FAT_BPB*)buffer;
 
 	memcpy(bpb->BS_OEMName, "FAT32LIB", 8);
@@ -414,18 +392,16 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	}
 	else
 	{
-		/*
 		// set FAT12/FAT16 specific fields
-		*/
 		bpb->BPB_EX.FAT16.BS_DrvNum = 0;
 		bpb->BPB_EX.FAT16.BS_Reserved1 = 0;
 		bpb->BPB_EX.FAT16.BS_BootSig = 0x29;
 		time((time_t*)&bpb->BPB_EX.FAT16.BS_VolID);
 		memcpy(bpb->BPB_EX.FAT16.BS_VolLab, "NO NAME    ", 11);
 		memcpy(bpb->BPB_EX.FAT16.BS_FilSysType, "FAT     ", 8);
-		/*
+
 		// set the volume label
-		*/
+
 		if ((c = strlen(volume_label)))
 		{
 			for (i = 0; i < 11; i++)
@@ -442,40 +418,30 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		}
 	}
 
-	/*
 	// set the boot sector signature
-	*/
 	buffer[510] = 0x55;
 	buffer[511] = 0xAA;
 	bpb = 0;
 
-	/*
 	// write boot sector to sector 0
-	*/
 	bSuccess = device->Write(0x0, buffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_WRITE_MEDIA;
 	}
 
-	/*
 	// if this is a FAT32 volume write a backup of boot sector
 	// and FSInfo structure
-	*/
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
-		/*
 		// write a copy of the boot sector to sector # BPB_BkBootSec
-		*/
 		bSuccess = device->Write(backup_boot_sector, buffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
 		}
 
-		/*
 		// initialize the FSInfo structure
-		*/
 		fsinfo = (FAT_FSINFO*)buffer;
 		fsinfo->LeadSig = 0x41615252;
 		fsinfo->StructSig = 0x61417272;
@@ -485,9 +451,8 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		memset(fsinfo->Reserved1, 0, 480);
 		memset(fsinfo->Reserved2, 0, 12);
 		fsinfo = 0;
-		/*
+
 		// write the FSInfo structor to sector # BPB_FSInfo
-		*/
 		bSuccess = device->Write(fsinfo_sector, buffer);
 		if (!bSuccess)
 		{
@@ -495,40 +460,32 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		}
 	}
 
-
-
 	for (c = 0; c < no_of_fat_tables; c++)
 	{
-		/*
 		// zero out the FAT table and set the entries for clusters 0 and 1
 		// start by zeroing the whole buffer
-		*/
 		memset(buffer, 0, MAX_SECTOR_LENGTH);
-		/*
+
 		// loop through each sector on the fat
-		*/
 		for (i = 0; i < fatsz; i++)
 		{
 			if (!i)
 			{
-				/*
 				// if this is the 1st sector of the FAT set the values for
 				// clusters 0 and 1
-				*/
 				if (fs_type == FAT_FS_TYPE_FAT12)
 				{
 					uint16 value;
 
 					/* even */
-
-					value = 0xFF8;										/* the value to be written */
+					value = 0xFF8;									/* the value to be written */
 					*((uint16*)&buffer[0]) &= 0xF000;				/* clear bits for entry */
 					*((uint16*)&buffer[0]) |= (value & 0x0FFF);		/* set bits for entry */
-					/*
+
+
 					// odd - we need to write this one 1 byte at a time since
 					// unaligned word access is inefficient and may cause a fatal
 					// exception on some platforms.
-					*/
 					value = FAT12_EOC;							/* the value to be written */
 					value <<= 4;								/* an odd entry occupies the upper 12-bits of the word */
 
@@ -536,7 +493,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 					buffer[1 + 0] |= LO8(value);				/* set entry bits on 1st byte */
 
 					buffer[1 + 1] = 0x00;						/* clear the 2nd byte */
-					buffer[1 + 1] = HI8(value);				/* set the 2nd byte */
+					buffer[1 + 1] = HI8(value);					/* set the 2nd byte */
 
 				}
 				else if (fs_type == FAT_FS_TYPE_FAT16)
@@ -555,9 +512,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 				((uint32*)buffer)[root_entry_offset] = FAT32_EOC;
 			}
 
-			/*
 			// write the sector to all the FAT tables
-			*/
 			bSuccess = device->Write(no_of_reserved_sectors + i + (c * fatsz), buffer);
 			if (!bSuccess)
 			{
@@ -570,7 +525,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 			}
 		}
 	}
-	/*
+
 	// zero the root directory (or it's 1st cluster in the case of FAT32
 	// note: since cluster #2 is located where the root directory would be on
 	// a FAT12/FAT16 volume we can use the same code for both, only far
@@ -586,7 +541,6 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	//
 	// so the address for the root directory is the same on FAT32 and on FAT12/16 as long as we're
 	// using cluster #2
-	*/
 	memset(buffer, 0, MAX_SECTOR_LENGTH);
 	c = (fs_type == FAT_FS_TYPE_FAT32) ? no_of_sectors_per_cluster : root_dir_sectors;
 	for (i = 1; i < c; i++)
@@ -664,8 +618,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	// return success
 	*/
 	return FAT_SUCCESS;
-#endif
 }
 
-#endif /* FAT_FORMAT_UTILITY */
+
 
