@@ -212,9 +212,7 @@ typedef void (*STORAGE_CALLBACK)(void* context, uint16* result);
  //* as a parameter to the driver's asynchronous IO functions.
 struct SStorageCallbackInfo
 {
-	 //* <summary>The callback function for an asynchronous IO function.</summary>
 	STORAGE_CALLBACK	Callback;
-	 //* <summary>The callback context for an asynchronous IO function.</summary>
 	void*				Context;
 };
 
@@ -260,48 +258,19 @@ struct SFatRawDirectoryEntry
 // Stores information about directory entries.
 struct SFatDirectoryEntry
 {
-	/*!
-	 * <summary>The name of the file.</summary>
-	 */
-	uint8 name[FAT_MAX_FILENAME + 1];
-	/*!
-	 * <summary>The list of file attributes ORed together.</summary>
-	*/
-	uint8 attributes;
-	/*!
-	 * <summary>The creation timestamp of the file.</summary>
-	*/
-	time_t create_time;
-	/*!
-	 * <summary>The modification timestamp of the file.</summary>
-	 */
-	time_t modify_time;
-	/*!
-	 * <summary>The access timestamp of the file.</summary>
-	*/
-	time_t access_time;
-	/*!
-	 * <summary>The size of the file.</summary>
-	*/
-	uint32 size;
-	/*!
-	 * <summary>Reserved for internal use.</summary>
-	*/
-	uint32 sector_addr;
-	/*!
-	 * <summary>Reserved for internal use.</summary>
-	*/
-	uint16 sector_offset;
-	/*!
-	 * <summary>Reserved for internal use.</summary>
-	*/
-	SFatRawDirectoryEntry raw;
+	uint8					name[FAT_MAX_FILENAME + 1];
+	uint8					attributes;
+	time_t					create_time;
+	time_t					modify_time;
+	time_t					access_time;
+	uint32					size;
+	uint32					sector_addr;
+	uint16					sector_offset;
+	SFatRawDirectoryEntry	raw;
 };
 
 
-/*
 // Holds the internal state of a directory query.
-*/
 struct SFatQueryState
 {
 	uint8						Attributes;
@@ -311,34 +280,27 @@ struct SFatQueryState
 	uint8*						buffer;
 
 	SFatRawDirectoryEntry*		first_entry_raw;
-	/*
+
 	// LFN support members
-	*/
 	uint16						long_filename[256];
 	uint8						lfn_sequence;
 	uint8						lfn_checksum;
-	/*
+
 	// buffer (MUST ALWAYS BE LAST!!!)
-	*/
 	uint8						buff[MAX_SECTOR_LENGTH];
 };
 
 
-/*!
- * <summary>Callback function for asynchronous IO.</summary>
-*/
+// Callback function for asynchronous IO.
 typedef void FAT_ASYNC_CALLBACK(void* context, uint16* state);
 
 
-/*!
- * <summary>Callback function for asynchronous STREAMING IO.</summary>
- */
+// Callback function for asynchronous STREAMING IO.
 typedef void FAT_STREAM_CALLBACK(void* context, uint16* state, uint8** buffer, uint16* response);
 
-/*
- * holds the state of a read or write operation
- */
-typedef struct FAT_OP_STATE
+
+// holds the state of a read or write operation
+struct SFatOperationState
 {
 	uint32					pos;
 	uint16					bytes_remaining;
@@ -354,8 +316,7 @@ typedef struct FAT_OP_STATE
 	SStorageCallbackInfo	storage_callback_info;
 	FAT_ASYNC_CALLBACK*		callback;
 	void*					callback_context;
-}
-FAT_OP_STATE;
+};
 
 /*!
  * <summary>
@@ -379,7 +340,7 @@ struct SFatFile
 	char					busy;
 	uint8					magic;
 	uint8					access_flags;
-	FAT_OP_STATE			op_state;
+	SFatOperationState			op_state;
 	uint8*					buffer;
 	uint8					buffer_internal[MAX_SECTOR_LENGTH];
 };
@@ -399,27 +360,20 @@ extern uint32 fat_shared_buffer_sector;
 
 
 #if !defined(FAT_USE_SYSTEM_TIME)
-/*!
-// <summary>Registers the function that gets the system time.</summary>
-*/
+// Registers the function that gets the system time.
 void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 #endif
 
 
-/*!
- * <summary>Initializes the FAT library.</summary>
- */
+//  Initializes the FAT library.</summary>
 void fat_init(void);
 
 
-/*!
- * <summary>
- * Mounts a FAT volume.
- * </summary>
- * <param name="volume">A pointer to a volume handle structure (SFatVolume).</param>
- * <param name="device">A pointer to the storage device driver STORAGE_DEVICE structure.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
- */
+ // Mounts a FAT volume.
+ // </summary>
+ // <param name="volume">A pointer to a volume handle structure (SFatVolume).</param>
+ // <param name="device">A pointer to the storage device driver STORAGE_DEVICE structure.</param>
+ // <returns>One of the return codes defined in fat.h.</returns>
 uint16 fat_mount_volume(SFatVolume* volume, CFileDrive* device);
 
 
