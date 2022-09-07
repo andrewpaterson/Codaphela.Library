@@ -230,9 +230,6 @@ uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry*
 uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
 uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
 uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
-void fat_file_read_callback(SFatFile* handle, uint16* async_state);
-void fat_file_write_callback(SFatFile* handle, uint16* async_state);
-
 
 int indexof(char chr, char* str, int index);
 

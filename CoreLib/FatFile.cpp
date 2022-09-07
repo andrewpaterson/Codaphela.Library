@@ -301,17 +301,10 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 				handle->magic = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			/*
 			// copy the modified file entry to the sector buffer
-			*/
-#if defined(NO_STRUCT_PACKING) || defined(BIG_ENDIAN)
-			fat_write_raw_directory_entry(&entry->raw, buffer + entry->sector_offset);
-#else
 			memcpy(buffer + entry->sector_offset, &entry->raw, sizeof(SFatRawDirectoryEntry));
-#endif
-			/*
+
 			// write the modified entry to the media
-			*/
 			bSuccess = volume->device->Write(entry->sector_addr, buffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
@@ -846,18 +839,11 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 			file->busy = 0;
 			return uiResult;
 		}
-		/*
 		// copy the modified file entry to the
 		// sector buffer
-		*/
-#if defined(NO_STRUCT_PACKING) || defined(BIG_ENDIAN)
-		fat_write_raw_directory_entry(&file->directory_entry.raw, buffer + file->directory_entry.sector_offset);
-#else
 		memcpy(buffer + file->directory_entry.sector_offset, &file->directory_entry.raw, sizeof(SFatRawDirectoryEntry));
-#endif
-		/*
+
 		// write the modified entry to the media
-		*/
 		bSuccess = file->volume->device->Write(file->directory_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
@@ -1080,8 +1066,132 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 }
 
 
-// writes to a file
-uint16 fat_file_write_internal(SFatFile* handle, uint8* buff, uint32 length, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
+void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
+{
+	uint16	uiResult;
+	uint16* state;
+	bool	bSuccess;
+
+	state = async_state_in;
+
+	// loop while there are bytes to be read
+	while (handle->op_state.bytes_remaining)
+	{
+		/*
+		// if we've reached the end of the current
+		// sector then we must flush it
+		*/
+		if (handle->buffer_head == handle->op_state.end_of_buffer)
+		{
+			/*
+			// update the sector head
+			*/
+			if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+			{
+				handle->buffer = handle->buffer_head;
+				handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+			}
+			else
+			{
+				handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+				handle->buffer_head = handle->buffer;
+			}
+			/*
+			// write the cached sector to media
+			*/
+			bSuccess = handle->volume->device->Write(handle->op_state.sector_addr, handle->buffer);
+			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
+
+			/*
+			// if we were unable to read the sector
+			// then throw an error
+			*/
+			if (uiResult != STORAGE_SUCCESS)
+			{
+				*state = FAT_CANNOT_WRITE_MEDIA;
+				handle->busy = 0;
+				return;
+			}
+			/*
+			// if this sector is the last of the current cluster then
+			// locate the next cluster and continue writing
+			*/
+			if (handle->current_sector_idx == handle->volume->no_of_sectors_per_cluster - 1)
+			{
+				uiResult = fat_get_cluster_entry(handle->volume,
+					handle->current_clus_addr, &handle->current_clus_addr);
+				if (uiResult != STORAGE_SUCCESS)
+				{
+					*state = FAT_CANNOT_WRITE_MEDIA;
+					handle->busy = 0;
+					return;
+				}
+				/*
+				// reset the current sector and increase the cluster index
+				*/
+				handle->current_sector_idx = 0x0;
+				handle->current_clus_idx++;
+				handle->no_of_clusters_after_pos--;
+				/*
+				// calculate the sector address
+				*/
+				handle->op_state.sector_addr =
+					FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+			}
+			/*
+			// if there are more sectors in the
+			// current cluster then simply increase
+			// the current sector counter and address
+			*/
+			else
+			{
+				handle->current_sector_idx++;
+				handle->op_state.sector_addr++;
+			}
+			/*
+			// if we've reached a flush boundry then flush the file
+			*/
+			/*if (!(handle->op_state.pos % (handle->volume->no_of_bytes_per_serctor * FAT_FLUSH_INTERVAL)))
+			{
+				fat_file_flush(handle);
+			}*/
+		}
+		if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+		{
+			handle->buffer_head = handle->op_state.end_of_buffer;
+			handle->op_state.pos += handle->volume->no_of_bytes_per_serctor;
+
+			if (handle->op_state.pos >= handle->current_size)
+			{
+				handle->current_size = handle->op_state.pos;
+			}
+			handle->op_state.bytes_remaining -= handle->volume->no_of_bytes_per_serctor;
+		}
+		else
+		{
+			/*
+			// write the next byte to the handle cache
+			*/
+			*handle->buffer_head++ = *handle->op_state.buffer++;
+			/*
+			// update the file size only if we're writting past
+			// the end of the file
+			*/
+			if (handle->op_state.pos++ >= handle->current_size)
+			{
+				handle->current_size++;
+			}
+			handle->op_state.bytes_remaining--;
+		}
+	}
+
+	*state = FAT_SUCCESS;
+	handle->busy = 0;
+	return;
+}
+
+
+uint16 fat_file_write(SFatFile* handle, uint8* buff, uint32 length)
 {
 	uint32 uiResult;
 	/*
@@ -1173,330 +1283,22 @@ uint16 fat_file_write_internal(SFatFile* handle, uint8* buff, uint32 length, uin
 		FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
 
 
-	handle->op_state.callback = callback;
-	handle->op_state.callback_context = callback_context;
-	handle->op_state.storage_callback_info.Callback = (STORAGE_CALLBACK)&fat_file_write_callback;
-	handle->op_state.storage_callback_info.Context = handle;
-	handle->op_state.async_state = async_state;
 	handle->op_state.internal_state = 0x0;
 	handle->op_state.length = (uint16)length;
 	handle->op_state.buffer = buff;
-	/*
-	// call the callback routine which actually does
-	// the initial work and all succeeding callbacks
-	*/
-	if (async_state)
-	{
-		/*
-		// set result code to op in progress
-		*/
-		*async_state = FAT_OP_IN_PROGRESS;
-		/*
-		// invoke internal write function
-		*/
-		fat_file_write_callback(handle, async_state);
-		/*
-		// return op in progress code
-		*/
-		return FAT_OP_IN_PROGRESS;
-	}
-	else
-	{
-		uint16 internal_async_state;
-		fat_file_write_callback(handle, &internal_async_state);
-		return internal_async_state;
-	}
+
+	uint16 internal_state;
+	fat_file_write_callback(handle, &internal_state);
+	return internal_state;
 }
 
 
-void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
-{
-	uint16	uiResult;
-	uint16* async_state;
-	bool	bSuccess;
-
-	if (handle->op_state.async_state)
-	{
-		async_state = handle->op_state.async_state;
-	}
-	else
-	{
-		async_state = async_state_in;
-	}
-
-	/*
-	// loop while there are bytes to be
-	// read
-	*/
-	while (handle->op_state.bytes_remaining)
-	{
-		/*
-		// if we've reached the end of the current
-		// sector then we must flush it
-		*/
-		if (handle->buffer_head == handle->op_state.end_of_buffer)
-		{
-			/*
-			// update the sector head
-			*/
-			if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
-			{
-				handle->buffer = handle->buffer_head;
-				handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
-			}
-			else
-			{
-				handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
-				handle->buffer_head = handle->buffer;
-			}
-			/*
-			// write the cached sector to media
-			*/
-			bSuccess = handle->volume->device->Write(handle->op_state.sector_addr, handle->buffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-
-			/*
-			// if we were unable to read the sector
-			// then throw an error
-			*/
-			if (uiResult != STORAGE_SUCCESS)
-			{
-				/*
-				// set result code
-				*/
-				*async_state = FAT_CANNOT_WRITE_MEDIA;
-				/*
-				// mark the file handle as no longer in use
-				*/
-				handle->busy = 0;
-				/*
-				// invoke callback function
-				*/
-				if (handle->op_state.callback)
-					handle->op_state.callback(handle->op_state.callback_context, async_state);
-				/*
-				// leave
-				*/
-				return;
-			}
-			/*
-			// if this sector is the last of the current cluster then
-			// locate the next cluster and continue writing
-			*/
-			if (handle->current_sector_idx == handle->volume->no_of_sectors_per_cluster - 1)
-			{
-				uiResult = fat_get_cluster_entry(handle->volume,
-					handle->current_clus_addr, &handle->current_clus_addr);
-				if (uiResult != STORAGE_SUCCESS)
-				{
-					/*
-					// set result code
-					*/
-					*async_state = FAT_CANNOT_WRITE_MEDIA;
-					/*
-					// mark the file handle as no longer in use
-					*/
-					handle->busy = 0;
-					/*
-					// invoke callback function
-					*/
-					if (handle->op_state.callback)
-						handle->op_state.callback(handle->op_state.callback_context, async_state);
-					/*
-					// leave
-					*/
-					return;
-				}
-				/*
-				// reset the current sector and increase the cluster index
-				*/
-				handle->current_sector_idx = 0x0;
-				handle->current_clus_idx++;
-				handle->no_of_clusters_after_pos--;
-				/*
-				// calculate the sector address
-				*/
-				handle->op_state.sector_addr =
-					FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
-			}
-			/*
-			// if there are more sectors in the
-			// current cluster then simply increase
-			// the current sector counter and address
-			*/
-			else
-			{
-				handle->current_sector_idx++;
-				handle->op_state.sector_addr++;
-			}
-			/*
-			// if we've reached a flush boundry then flush the file
-			*/
-			/*if (!(handle->op_state.pos % (handle->volume->no_of_bytes_per_serctor * FAT_FLUSH_INTERVAL)))
-			{
-				fat_file_flush(handle);
-			}*/
-		}
-		if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
-		{
-			handle->buffer_head = handle->op_state.end_of_buffer;
-			handle->op_state.pos += handle->volume->no_of_bytes_per_serctor;
-
-			if (handle->op_state.pos >= handle->current_size)
-			{
-				handle->current_size = handle->op_state.pos;
-			}
-			handle->op_state.bytes_remaining -= handle->volume->no_of_bytes_per_serctor;
-		}
-		else
-		{
-			/*
-			// write the next byte to the handle cache
-			*/
-			*handle->buffer_head++ = *handle->op_state.buffer++;
-			/*
-			// update the file size only if we're writting past
-			// the end of the file
-			*/
-			if (handle->op_state.pos++ >= handle->current_size)
-			{
-				handle->current_size++;
-			}
-			handle->op_state.bytes_remaining--;
-		}
-	}
-	/*
-	// return success
-	*/
-	*async_state = FAT_SUCCESS;
-	/*
-	// mark the file handle as no longer in use
-	*/
-	handle->busy = 0;
-	/*
-	// invoke callback function
-	*/
-	if (handle->op_state.callback)
-	{
-		handle->op_state.callback(handle->op_state.callback_context, async_state);
-	}
-	return;
-}
-
-
-uint16 fat_file_write(SFatFile* handle, uint8* buffer, uint32 length)
-{
-	return fat_file_write_internal(handle, buffer, length, 0, 0, 0);
-}
-
-
-uint16 fat_file_read_internal(SFatFile* handle, uint8* buff, uint32 length, uint32* bytes_read, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
-{
-	// check that this is a valid handle
-	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
-	{
-		return FAT_INVALID_HANDLE;
-	}
-	/*
-	// make sure that either a buffer is set or the file has been
-	// opened in unbuffered mode
-	*/
-	if (!handle->buffer && !(handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
-	{
-		return FAT_FILE_BUFFER_NOT_SET;
-	}
-	/*
-	// make sure length is not larger than 16-bit
-	*/
-	if (length > 0xFFFF)
-		return FAT_BUFFER_TOO_BIG;
-	/*
-	// check that another operation is not using the
-	// handle at this time
-	*/
-	if (handle->busy)
-		return FAT_FILE_HANDLE_IN_USE;
-	/*
-	// mark the handle as in use
-	*/
-	handle->busy = 1;
-	/*
-	// calculate current pos
-	*/
-	handle->op_state.pos = handle->current_clus_idx * handle->volume->no_of_sectors_per_cluster * handle->volume->no_of_bytes_per_serctor;
-	handle->op_state.pos += (handle->current_sector_idx) * handle->volume->no_of_bytes_per_serctor;
-	handle->op_state.pos += (uintptr_t)(handle->buffer_head - handle->buffer);
-	/*
-	// calculate the address of the current
-	// sector and the address of the end of the buffer
-	*/
-	handle->op_state.sector_addr = handle->current_sector_idx + FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
-	handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
-	/*
-	// if the file is opened in unbuffered mode make sure that
-	// we're reading a multiple of the sector size and set the buffer
-	// to the one supplied by the user in this call
-	*/
-	if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
-	{
-		if (length % handle->volume->no_of_bytes_per_serctor)
-		{
-			return FAT_MISALIGNED_IO;
-		}
-		handle->buffer = buff;
-		handle->op_state.end_of_buffer = handle->buffer_head = buff;
-	}
-	/*
-	// set the async op context
-	*/
-	handle->op_state.bytes_remaining = (uint16)length;
-	handle->op_state.callback = callback;
-	handle->op_state.callback_context = callback_context;
-	handle->op_state.storage_callback_info.Callback = (STORAGE_CALLBACK)&fat_file_read_callback;
-	handle->op_state.storage_callback_info.Context = handle;
-	handle->op_state.async_state = async_state;
-	handle->op_state.internal_state = 0x0;
-	handle->op_state.length = (uint16)length;
-	handle->op_state.buffer = buff;
-	handle->op_state.bytes_read = bytes_read;
-	/*
-	// call the callback routine which actually does
-	// the initial work and all succeeding callbacks
-	*/
-	if (async_state)
-	{
-		/*
-		// set async state to op in progress.
-		*/
-		*async_state = FAT_OP_IN_PROGRESS;
-		/*
-		// begin read
-		*/
-		fat_file_read_callback(handle, async_state);
-		/*
-		// return the value returned by the callback
-		// routine
-		*/
-		return FAT_OP_IN_PROGRESS;
-	}
-	else
-	{
-		uint16 internal_async_state;
-		fat_file_read_callback(handle, &internal_async_state);
-		return internal_async_state;
-	}
-}
-
-/*
-// asynchronous write callback
-*/
-void fat_file_read_callback(SFatFile* handle, uint16* async_state)
+void fat_file_read_callback(SFatFile* handle, uint16* state)
 {
 	uint16	uiResult;
 	bool	bSuccess;
-	/*
+
 	// reset the # of bytes read
-	*/
 	if (handle->op_state.bytes_read)
 	{
 		*handle->op_state.bytes_read = 0;
@@ -1515,19 +1317,8 @@ void fat_file_read_callback(SFatFile* handle, uint16* async_state)
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			*async_state = FAT_CANNOT_READ_MEDIA;
-			/*
-			// mark the file handle as no longer in use
-			*/
+			*state = FAT_CANNOT_READ_MEDIA;
 			handle->busy = 0;
-			/*
-			// invoke callback function
-			*/
-			if (handle->op_state.callback)
-				handle->op_state.callback(handle->op_state.callback_context, async_state);
-			/*
-			// leave
-			*/
 			return;
 		}
 		/*
@@ -1601,19 +1392,8 @@ void fat_file_read_callback(SFatFile* handle, uint16* async_state)
 				*/
 				if (!fat_increase_cluster_address(handle->volume, handle->current_clus_addr, 1, &handle->current_clus_addr))
 				{
-					*async_state = FAT_CORRUPTED_FILE;
-					/*
-					// mark the file handle as no longer in use
-					*/
+					*state = FAT_CORRUPTED_FILE;
 					handle->busy = 0;
-					/*
-					// invoke callback function
-					*/
-					if (handle->op_state.callback)
-						handle->op_state.callback(handle->op_state.callback_context, async_state);
-					/*
-					// leave
-					*/
 					return;
 				}
 				/*
@@ -1642,22 +1422,8 @@ void fat_file_read_callback(SFatFile* handle, uint16* async_state)
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
-				/*
-				// set the error code
-				*/
-				*async_state = FAT_CANNOT_READ_MEDIA;
-				/*
-				// mark the file handle as no longer in use
-				*/
+				*state = FAT_CANNOT_READ_MEDIA;
 				handle->busy = 0;
-				/*
-				// invoke callback function
-				*/
-				if (handle->op_state.callback)
-					handle->op_state.callback(handle->op_state.callback_context, async_state);
-				/*
-				// leave
-				*/
 				return;
 			}
 		}
@@ -1712,37 +1478,86 @@ void fat_file_read_callback(SFatFile* handle, uint16* async_state)
 	/*
 	// set the return code
 	*/
-	*async_state = FAT_SUCCESS;
-	/*
-	// mark file handle as no longer in use
-	*/
+	*state = FAT_SUCCESS;
 	handle->busy = 0;
-	/*
-	// invoke callback function
-	*/
-	if (handle->op_state.callback)
-		handle->op_state.callback(handle->op_state.callback_context, async_state);
-	/*
-	// leave
-	*/
 	return;
 }
 
 
-uint16 fat_file_read(SFatFile* hdl, uint8* buffer, uint32 length, uint32* bytes_read)
+uint16 fat_file_read(SFatFile* handle, uint8* buff, uint32 length, uint32* bytes_read)
 {
-	return fat_file_read_internal(hdl, buffer, length, bytes_read, 0, 0, 0);
+	// check that this is a valid handle
+	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
+	{
+		return FAT_INVALID_HANDLE;
+	}
+	/*
+	// make sure that either a buffer is set or the file has been
+	// opened in unbuffered mode
+	*/
+	if (!handle->buffer && !(handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	{
+		return FAT_FILE_BUFFER_NOT_SET;
+	}
+	/*
+	// make sure length is not larger than 16-bit
+	*/
+	if (length > 0xFFFF)
+		return FAT_BUFFER_TOO_BIG;
+	/*
+	// check that another operation is not using the
+	// handle at this time
+	*/
+	if (handle->busy)
+		return FAT_FILE_HANDLE_IN_USE;
+	/*
+	// mark the handle as in use
+	*/
+	handle->busy = 1;
+	/*
+	// calculate current pos
+	*/
+	handle->op_state.pos = handle->current_clus_idx * handle->volume->no_of_sectors_per_cluster * handle->volume->no_of_bytes_per_serctor;
+	handle->op_state.pos += (handle->current_sector_idx) * handle->volume->no_of_bytes_per_serctor;
+	handle->op_state.pos += (uintptr_t)(handle->buffer_head - handle->buffer);
+	/*
+	// calculate the address of the current
+	// sector and the address of the end of the buffer
+	*/
+	handle->op_state.sector_addr = handle->current_sector_idx + FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+	handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+	/*
+	// if the file is opened in unbuffered mode make sure that
+	// we're reading a multiple of the sector size and set the buffer
+	// to the one supplied by the user in this call
+	*/
+	if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+	{
+		if (length % handle->volume->no_of_bytes_per_serctor)
+		{
+			return FAT_MISALIGNED_IO;
+		}
+		handle->buffer = buff;
+		handle->op_state.end_of_buffer = handle->buffer_head = buff;
+	}
+	/*
+	// set the async op context
+	*/
+	handle->op_state.bytes_remaining = (uint16)length;
+	handle->op_state.internal_state = 0x0;
+	handle->op_state.length = (uint16)length;
+	handle->op_state.buffer = buff;
+	handle->op_state.bytes_read = bytes_read;
+
+	uint16 internal_state;
+	fat_file_read_callback(handle, &internal_state);
+	return internal_state;
 }
 
 
-/*
 // flushes file buffers
-*/
 uint16 fat_file_flush(SFatFile* handle)
 {
-#if defined(FAT_READ_ONLY)
-	return FAT_FEATURE_NOT_SUPPORTED;
-#else
 	uint16	uiResult;
 	uint32	sector_address = 0;
 	bool	bSuccess;
@@ -1836,18 +1651,12 @@ uint16 fat_file_flush(SFatFile* handle)
 			handle->busy = 0;
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		/*
+
 		// copy the modified file entry to the
 		// sector buffer
-		*/
-#if defined(NO_STRUCT_PACKING) || defined(BIG_ENDIAN)
-		fat_write_raw_directory_entry(&handle->directory_entry.raw, buffer + handle->directory_entry.sector_offset);
-#else
 		memcpy(buffer + handle->directory_entry.sector_offset, &handle->directory_entry.raw, sizeof(SFatRawDirectoryEntry));
-#endif
-		/*
+
 		// write the modified entry to the media
-		*/
 		bSuccess = handle->volume->device->Write(handle->directory_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
@@ -1886,12 +1695,10 @@ uint16 fat_file_flush(SFatFile* handle)
 	// return success code
 	*/
 	return FAT_SUCCESS;
-#endif
 }
 
-/*
+
 // closes an open file
-*/
 uint16 fat_file_close(SFatFile* handle)
 {
 	uint16		uiResult;
