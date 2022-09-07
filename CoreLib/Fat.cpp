@@ -24,9 +24,7 @@
 #include "Fat.h"
 #include "FatInternals.h"
 
- // macros for setting the cached sector
- #define FAT_SET_LOADED_SECTOR(volume, sector)		fat_shared_buffer_sector = (sector)
-
+ 
 
  // function pointer for rtc access routing
  #if !defined(FAT_USE_SYSTEM_TIME)
@@ -49,408 +47,13 @@ static TIMEKEEPER timekeeper;
 //		that way.
 */
 
-/*
-// shared buffer definition
-*/
-uint8 fat_shared_buffer[MAX_SECTOR_LENGTH];
-uint32 fat_shared_buffer_sector;
 
-
-/*
 // initialize fat driver
-*/
 void fat_init()
 {
 	fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
 }
 
-
-/*
-// mounts a FAT volume
-*/
-uint16 fat_mount_volume(SFatVolume* volume, CFileDrive* device)
-{
-	bool					bSuccess;
-	FAT_BPB*				bpb;
-	uint32					hidden_sectors = 0;
-	FAT_PARTITION_ENTRY*	partition_entry;
-	char					partitions_tried = 0;
-	char					label[12];
-	uint32					fsinfo_sector;
-	uint8*					buffer = fat_shared_buffer;
-
-	/*
-	// set the null terminator.
-	*/
-	label[11] = 0;
-
-	/*
-	// save the storage device handle
-	*/
-	volume->device = device;
-
-	/*
-	// mark the loaded sector as unknown
-	*/
-	FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
-	/*
-	// retrieve the boot sector (sector 0) from the storage device
-	*/
-	bSuccess = volume->device->Read(0x0, buffer);
-	if (!bSuccess)
-	{
-		return FAT_CANNOT_READ_MEDIA;
-	}
-	/*
-	// set the partition entry pointer
-	*/
-	partition_entry = (FAT_PARTITION_ENTRY*)(buffer + 0x1BE);
-retry:
-	/*
-	// if we've already tried to mount the volume as partitionless
-	// try to mount the next partition
-	*/
-	if (partitions_tried)
-	{
-		/*
-		// if we've already tried all 4 partitions then we're
-		// out of luck
-		*/
-		if (partitions_tried > 4)
-		{
-			return FAT_INVALID_FAT_VOLUME;
-		}
-		/*
-		// if we've tried to mount a partition volume (not the unpartioned one)
-		// then we must reload sector 0 (MBR)
-		*/
-		if (partitions_tried > 1)
-		{
-			/*
-			// retrieve the boot sector (sector 0) from the storage device
-			*/
-			bSuccess = volume->device->Read(0x0, buffer);
-			if (!bSuccess)
-			{
-				return FAT_CANNOT_READ_MEDIA;
-			}
-			/*
-			// move to the next partition entry
-			*/
-			partition_entry++;
-		}
-		/*
-		// remember how many sectors before this partition
-		*/
-		hidden_sectors = partition_entry->lba_first_sector;
-		/*
-		// if the partition is marked as inactive move on
-		*/
-		/*
-		if (!partition_entry->status)
-		{
-			partitions_tried++;
-			goto retry;
-		}
-		*/
-		/*
-		// make sure the partition doesn't exceeds the physical boundries
-		// of the device
-		*/
-		if (partition_entry->lba_first_sector +
-			partition_entry->total_sectors > volume->device->GetTotalSectors())
-		{
-			partitions_tried++;
-			goto retry;
-		}
-		/*
-		// retrieve the 1st sector of partition
-		*/
-		bSuccess = volume->device->Read(partition_entry->lba_first_sector, buffer);
-		if (!bSuccess)
-		{
-			return FAT_CANNOT_READ_MEDIA;
-		}
-	}
-	/*
-	// set our pointer to the BPB
-	*/
-	bpb = (FAT_BPB*)buffer;
-	/*
-	// if the sector size is larger than what this build
-	// allows do not mount the volume
-	*/
-	if (bpb->BPB_BytsPerSec > MAX_SECTOR_LENGTH)
-	{
-		return FAT_SECTOR_SIZE_NOT_SUPPORTED;
-	}
-	/*
-	// make sure BPB_BytsPerSec and BPB_SecPerClus are
-	// valid before we divide by them
-	*/
-	if (!bpb->BPB_BytsPerSec || !bpb->BPB_SecPerClus)
-	{
-		partitions_tried++;
-		goto retry;
-	}
-	/*
-	// make sure that SecPerClus is a power of two
-	*/
-	uint16 uiResult = bpb->BPB_SecPerClus;
-	while (uiResult != 0x1)
-	{
-		if (uiResult & 0x1)
-		{
-			partitions_tried++;
-			goto retry;
-		}
-		uiResult >>= 1;
-	}
-
-	/*
-	// get all the info we need from BPB
-	*/
-	volume->root_directory_sectors = ((bpb->BPB_RootEntCnt * 32) + (bpb->BPB_BytsPerSec - 1)) / bpb->BPB_BytsPerSec;
-	volume->fat_size = (bpb->BPB_FATSz16) ? bpb->BPB_FATSz16 : bpb->BPB_EX.FAT32.BPB_FATSz32;
-	volume->no_of_sectors = (bpb->BPB_TotSec16) ? bpb->BPB_TotSec16 : bpb->BPB_TotSec32;
-	volume->no_of_data_sectors = volume->no_of_sectors - (bpb->BPB_RsvdSecCnt + (bpb->BPB_NumFATs * volume->fat_size) + volume->root_directory_sectors);
-	volume->no_of_clusters = volume->no_of_data_sectors / bpb->BPB_SecPerClus;
-	volume->first_data_sector = bpb->BPB_RsvdSecCnt + hidden_sectors + (bpb->BPB_NumFATs * volume->fat_size) + volume->root_directory_sectors;
-	volume->no_of_reserved_sectors = bpb->BPB_RsvdSecCnt + hidden_sectors;
-	volume->no_of_bytes_per_serctor = bpb->BPB_BytsPerSec;
-	volume->no_of_sectors_per_cluster = bpb->BPB_SecPerClus;
-	volume->no_of_fat_tables = bpb->BPB_NumFATs;
-	fsinfo_sector = bpb->BPB_EX.FAT32.BPB_FSInfo;
-	/*
-	// determine the FAT file system type
-	*/
-	volume->fs_type = (volume->no_of_clusters < 4085) ? FAT_FS_TYPE_FAT12 :
-		(volume->no_of_clusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
-	/*
-	// sanity check that the FAT table is big enough
-	*/
-	switch (volume->fs_type)
-	{
-	case FAT_FS_TYPE_FAT12:
-		if (volume->fat_size <
-			(((volume->no_of_clusters + (volume->no_of_clusters >> 1)) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
-		{
-			partitions_tried++;
-			goto retry;
-		}
-		break;
-	case FAT_FS_TYPE_FAT16:
-		if (volume->fat_size <
-			(((volume->no_of_clusters * 2) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
-		{
-			partitions_tried++;
-			goto retry;
-		}
-		break;
-	case FAT_FS_TYPE_FAT32:
-		if (volume->fat_size <
-			(((volume->no_of_clusters * 4) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
-		{
-			partitions_tried++;
-			goto retry;
-		}
-		break;
-	}
-	/*
-	// read the volume label from the boot sector
-	*/
-	if (volume->fs_type == FAT_FS_TYPE_FAT16)
-	{
-		volume->id = bpb->BPB_EX.FAT16.BS_VolID;
-		memcpy(label, bpb->BPB_EX.FAT16.BS_VolLab, 11);
-		strtrim(volume->label, label, 11);
-	}
-	else
-	{
-		volume->id = bpb->BPB_EX.FAT32.BS_VolID;
-		memcpy(label, bpb->BPB_EX.FAT32.BS_VolLab, 11);
-		strtrim(volume->label, label, 11);
-	}
-
-	/*
-	// if the volume is FAT32 then copy the root
-	// entry's cluster from the BPB_RootClus field
-	// on the BPB
-	*/
-	if (volume->fs_type == FAT_FS_TYPE_FAT32)
-	{
-		volume->root_cluster = bpb->BPB_EX.FAT32.BPB_RootClus;
-	}
-	else
-	{
-		volume->root_cluster = 0x0;
-	}
-
-	/*
-	// ###############################################
-	// NOTE!!!: bpb is no good from this point on!!!!
-	// ###############################################
-	*/
-
-	/*
-	// check that this is a valid FAT partition by comparing the media
-	// byte in the BPB with the 1st byte of the fat table
-	*/
-	{
-		uint8 media = bpb->BPB_Media;
-		/*
-		// read the 1st sector of the FAT table
-		*/
-		bSuccess = volume->device->Read(volume->no_of_reserved_sectors, buffer);
-		if (!bSuccess)
-		{
-			return FAT_CANNOT_READ_MEDIA;
-		}
-		/*
-		// if the lower byte of the 1st FAT entry is not the same as
-		// BPB_Media then this is not a valid volume
-		*/
-		if (buffer[0] != media)
-		{
-			partitions_tried++;
-			goto retry;
-		}
-	}
-
-	/*
-	// read volume label entry from the root directory (if any)
-	*/
-	{
-
-		FAT_QUERY_STATE_INTERNAL query;
-		query.buffer = buffer;
-		if (fat_query_first_entry(volume, 0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
-		{
-			if (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
-			{
-				strtrim(volume->label, (char*)query.current_entry_raw->uEntry.sFatRawCommon.name, 11);
-			}
-		}
-	}
-	volume->fsinfo_sector = 0xFFFFFFFF;
-
-	/*
-	// if we find a valid fsinfo structure we'll use it
-	*/
-	if (volume->fs_type == FAT_FS_TYPE_FAT32)
-	{
-		FAT_FSINFO* fsinfo;
-
-		/*
-		// read the sector containing the FSInfo structure
-		*/
-		bSuccess = volume->device->Read(hidden_sectors + fsinfo_sector, buffer);
-		if (!bSuccess)
-		{
-			return FAT_CANNOT_READ_MEDIA;
-		}
-		/*
-		// set fsinfo pointer
-		*/
-		fsinfo = (FAT_FSINFO*)buffer;
-		/*
-		// check signatures before using
-		*/
-		if (fsinfo->LeadSig == 0x41615252 && fsinfo->StructSig == 0x61417272 && fsinfo->TrailSig == 0xAA550000)
-		{
-			volume->next_free_cluster = fsinfo->Nxt_Free;
-			/*
-			// if this value is greater than or equal to the # of
-			// clusters in the volume it cannot possible be valid
-			*/
-			if (fsinfo->Free_Count < volume->no_of_clusters)
-			{
-				volume->total_free_clusters = fsinfo->Free_Count;
-			}
-			else
-			{
-				volume->total_free_clusters = volume->no_of_clusters - 1;
-			}
-		}
-		else
-		{
-			volume->next_free_cluster = 0xFFFFFFFF;
-			volume->total_free_clusters = volume->no_of_clusters - 1;
-		}
-		/*
-		// remember fsinfo sector
-		*/
-		volume->fsinfo_sector = hidden_sectors + fsinfo_sector;
-	}
-	/*
-	// return success
-	*/
-	return FAT_SUCCESS;
-}
-
-
-// unmounts a FAT volume
-uint16 fat_unmount_volume(SFatVolume* volume)
-{
-	/*
-	// if this is a FAT32 volume we'll update the fsinfo structure
-	*/
-	if (volume->fs_type == FAT_FS_TYPE_FAT32 && volume->fsinfo_sector != 0xFFFFFFFF)
-	{
-		bool			bSuccess;
-		FAT_FSINFO*		fsinfo;
-
-		uint8* buffer = fat_shared_buffer;
-
-		/*
-		// mark the loaded sector as unknown
-		*/
-		FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
-		/*
-		// read the sector containing the FSInfo structure
-		*/
-		bSuccess = volume->device->Read(volume->fsinfo_sector, buffer);
-		if (!bSuccess)
-		{
-			return FAT_CANNOT_READ_MEDIA;
-		}
-
-		/*
-		// set the pointer to the fsinfo structure
-		*/
-		fsinfo = (FAT_FSINFO*)buffer;
-		/*
-		// check the signatures before writting
-		// note: when you mount a removable device in windows it will channge
-		// these signatures, i guess it feels it cannot be trusted. So we're going
-		// to rebuild them no matter what as they significantly speed up this
-		// implementation. After the volume has been mounted elsewhere Free_Count cannot
-		// be trusted. This implementation doesn't actually use it but if you only
-		// mount the volume with us it will keep it up to date.
-		*/
-		/*if (fsinfo->LeadSig == 0x41615252 && fsinfo->StructSig == 0x61417272 && fsinfo->TrailSig == 0xAA550000)*/
-		{
-			/*
-			// mark all values as unknown
-			*/
-			fsinfo->Nxt_Free = volume->next_free_cluster;
-			fsinfo->Free_Count = volume->total_free_clusters;
-			fsinfo->LeadSig = 0x41615252;
-			fsinfo->StructSig = 0x61417272;
-			fsinfo->TrailSig = 0xAA550000;
-
-			/*
-			// write the fsinfo sector
-			*/
-			bSuccess = volume->device->Write(volume->fsinfo_sector, buffer);
-			if (!bSuccess)
-			{
-				return FAT_CANNOT_READ_MEDIA;
-			}
-		}
-	}
-	return FAT_SUCCESS;
-}
 
 /*
 // gets the sector size of the volume.
@@ -897,7 +500,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	/*
 	// mark the cached sector as unknown
 	*/
-	FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
+	FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
 	/*
 	// for each level on the path....
 	*/
@@ -1699,7 +1302,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 	/*
 	// mark the cached sector as unknown
 	*/
-	FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
+	FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
 	/*
 	// for each cluster allocated to the parent
 	// directory entry
@@ -1957,7 +1560,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 										/*
 										// mark the loaded sector as unknown
 										*/
-										FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
+										FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
 										/*
 										// continue working on the new cluster
 										*/
@@ -2059,7 +1662,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 		/*
 		// mark the loaded sector as unknown
 		*/
-		FAT_SET_LOADED_SECTOR(volume, FAT_UNKNOWN_SECTOR);
+		FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
 	} while (1);
 }
 

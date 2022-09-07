@@ -21,13 +21,13 @@
 #include <string.h>
 #include "Fat.h"
 #include "FatInternals.h"
+#include "FatSharedBuffer.h"
 
 
 #define FAT_ALLOCATE_SEQUENTIAL_CLUSTERS
 
 
 #define FAT_IS_LOADED_SECTOR(sector)		(fat_shared_buffer_sector != 0xFFFFFFFF && fat_shared_buffer_sector == (sector))
-#define FAT_SET_LOADED_SECTOR(sector)		fat_shared_buffer_sector = (sector)
 
 
  /*

@@ -35,6 +35,7 @@
 #include "BaseLib/PrimitiveTypes.h"
 #include "FileDrive.h"
 #include "FatCommon.h"
+#include "FatVolume.h"
 
 
   /* #################################
@@ -54,12 +55,6 @@
   // the library will use 8/2/1985 @ 12:05 PM for all timestamps.
 #define FAT_USE_SYSTEM_TIME
 
-
-  // Defines the maximun sector size (in bytes) that this library should
-  // support. An attempt to mount a volume with a sector size larger than this
-  // value will fail.
-#define MAX_SECTOR_LENGTH				0x200
-  
 
 // this is the interval in sectors written at which an
 // open file will be flushed 0x800 = 1 MiB with 512 bytes
@@ -167,34 +162,7 @@
 //Function pointer to get the system time
 typedef time_t(*FAT_GET_SYSTEM_TIME)(void);
 
-
- // This structure is the volume handle. All the fields in the structure are
- // reserved for internal use and should not be accessed directly by the
- // developer.
-struct SFatVolume
-{
-	uint32			id;
-	uint32			fat_size;
-	uint32			root_cluster;
-	uint32			first_data_sector;
-	uint32			no_of_sectors;
-	uint32			no_of_data_sectors;
-	uint32			no_of_clusters;
-	uint32			no_of_reserved_sectors;
-	uint32			next_free_cluster;
-	uint32			total_free_clusters;
-	uint32			fsinfo_sector;
-	uint16			root_directory_sectors;
-	uint16			no_of_bytes_per_serctor;
-	uint16			no_of_sectors_per_cluster;
-	char			use_long_filenames;
-	uint8			fs_type;
-	uint8			no_of_fat_tables;
-	char			label[12];
-	CFileDrive*		device;
-};
-
-
+ 
  //* This is the callback function for an asynchronous operation.
  //* <param name="context">The context pointer of the asynchronous operation.</param>
  //* <param name="result">A pointer to the result of the asynchronous operation.</param>
@@ -322,11 +290,6 @@ struct SFatFileSystemQuery
 };
 
 
-// declare shared buffer
-extern uint8 fat_shared_buffer[MAX_SECTOR_LENGTH];
-extern uint32 fat_shared_buffer_sector;
-
-
 #if !defined(FAT_USE_SYSTEM_TIME)
 // Registers the function that gets the system time.
 void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
@@ -335,18 +298,6 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 
 //  Initializes the FAT library.</summary>
 void fat_init(void);
-
-
- // Mounts a FAT volume.
- // <param name="volume">A pointer to a volume handle structure (SFatVolume).</param>
- // <param name="device">A pointer to the storage device driver STORAGE_DEVICE structure.</param>
- // <returns>One of the return codes defined in fat.h.</returns>
-uint16 fat_mount_volume(SFatVolume* volume, CFileDrive* device);
-
-
- // Unmounts a FAT volume.
- // <param name="volume">The handle of the volume to dismount.</param>
- uint16 fat_unmount_volume(SFatVolume* volume);
 
 
 // Gets the sector size of a volume in bytes.
