@@ -252,16 +252,12 @@ struct SFatRawDirectoryEntry
 			uint16 lfn_first_cluster;
 			uint8 lfn_chars_3[4];
 		} sFatRawLongFileName;
-	} ENTRY;
+	} uEntry;
 };
 #pragma pack(pop)
 
 
-/*!
- * <summary>
- * Stores information about directory entries.
- * </summary>
-*/
+// Stores information about directory entries.
 struct SFatDirectoryEntry
 {
 	/*!
