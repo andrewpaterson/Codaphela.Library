@@ -230,9 +230,7 @@ uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry*
 uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
 uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
 uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
-uint16 fat_file_read_internal(SFatFile* handle, unsigned char* buff, uint32 length, uint32* bytes_read, uint16* state, FAT_ASYNC_CALLBACK* callback, void* callback_context);
 void fat_file_read_callback(SFatFile* handle, uint16* async_state);
-uint16 fat_file_write_internal(SFatFile* handle, unsigned char* buff, uint32 length, uint16* result, FAT_ASYNC_CALLBACK* callback, void* callback_context);
 void fat_file_write_callback(SFatFile* handle, uint16* async_state);
 
 
@@ -240,8 +238,6 @@ int indexof(char chr, char* str, int index);
 
 void fat_get_short_name_from_entry(uint8* dest, const uint8* src);
 char fat_compare_short_name(uint8* name1, uint8* name2);
-uint8 fat_get_fat32_sec_per_clus(uint32 sector_count);
-uint8 fat_get_fat16_sec_per_clus(uint32 sector_count);
 void fat_fill_directory_entry_from_raw(SFatDirectoryEntry* entry, SFatRawDirectoryEntry* raw_entry);
 uint16 rtc_get_fat_date();
 uint16 rtc_get_fat_time();

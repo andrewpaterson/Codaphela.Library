@@ -378,7 +378,7 @@ uint16 fat_mount_volume(SFatVolume* volume, CFileDrive* device);
 
  // Unmounts a FAT volume.
  // <param name="volume">The handle of the volume to dismount.</param>
- int16 fat_unmount_volume(SFatVolume* volume);
+ uint16 fat_unmount_volume(SFatVolume* volume);
 
 
 // Gets the sector size of a volume in bytes.
@@ -475,7 +475,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
  * <returns>One of the return codes defined in fat.h.</returns>
 */
 uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, SFatFile* file);
-
+uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
 
 /**
  * <summary>
@@ -597,6 +597,7 @@ uint16 fat_file_close
 (
 	SFatFile* handle
 );
+
 
 #endif // __FAT_32_H__
 

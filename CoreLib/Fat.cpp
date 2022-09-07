@@ -832,25 +832,21 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	// the next character
 	*/
 	if (*path == '\\')
+	{
 		path++;
+	}
 
 	if (*path != 0)
 	{
-
-		/*
 		// set current_entry to 0, in this state
 		// it represents the root directory of the
 		// volume
-		*/
 		current_entry = 0;
-
 	}
-	/*
 	// if the caller did not supply a path then the
 	// request is for the root directory, since there's
 	// no physical entry for the root directory we must
 	// create a fake one
-	*/
 	else
 	{
 		/*

@@ -215,23 +215,23 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 	bool	bSuccess;
 	uint16	uiResult;
 
-	/*
 	// set implicit access flags
-	*/
 	access_flags |= FAT_FILE_ACCESS_READ;
 	if (access_flags & (FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_APPEND | FAT_FILE_ACCESS_OVERWRITE))
+	{
 		access_flags |= FAT_FILE_ACCESS_WRITE;
-	/*
+	}
+
 	// if the user is trying to open a directory then
 	// return an error code, otherwise it would corrupt
 	// the volume
-	*/
 	if (entry->attributes & FAT_ATTR_DIRECTORY)
+	{
 		return FAT_NOT_A_FILE;
-	/*
+	}
+
 	// copy the volume handle and the entry's
 	// structure to the file handle
-	*/
 	handle->volume = volume;
 	handle->directory_entry = *entry;
 	handle->current_size = entry->size;
@@ -239,31 +239,28 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 	handle->access_flags = access_flags;
 	handle->magic = FAT_OPEN_HANDLE_MAGIC;
 	handle->busy = 0;
-	/*
+
 	// calculate the # of clusters allocated
-	*/
 	handle->no_of_clusters_after_pos = (entry->size + volume->no_of_bytes_per_serctor - 1) / volume->no_of_bytes_per_serctor;
 	handle->no_of_clusters_after_pos = (handle->no_of_clusters_after_pos + volume->no_of_sectors_per_cluster - 1) / volume->no_of_sectors_per_cluster;
 	if (handle->no_of_clusters_after_pos)
+	{
 		handle->no_of_clusters_after_pos--;
-	/*
+	}
+
 	// set the sector cache as dirty, this will
 	// indicate that the current sector has not yet
 	// been read to other file functions
-	*/
 	handle->buffer_dirty = 1;
-	/*
+
 	// read the the cluster number
-	*/
 	((uint16*)&handle->current_clus_addr)[INT32_WORD0] = entry->raw.uEntry.sFatRawCommon.first_cluster_lo;
 	((uint16*)&handle->current_clus_addr)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? entry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
 
 	if (access_flags & FAT_FILE_ACCESS_APPEND)
 	{
-		/*
 		// if the file is being opened for append access we
 		// seek to the end of the file
-		*/
 		uiResult = fat_file_seek(handle, 0, FAT_SEEK_END);
 		if (uiResult != FAT_SUCCESS)
 		{
@@ -273,15 +270,11 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 	}
 	else if (access_flags & FAT_FILE_ACCESS_OVERWRITE)
 	{
-		/*
 		// if the file is being opened with the OVERWRITE flag we must free all the clusters
 		// currently allocated to the file and update it's directory entry to point to cluster 1
-		*/
-		/* uint32 size = entry->raw.size; */
-		/*
+
 		// if the file is not already empty then
 		// we'll empty it
-		*/
 		if (entry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
 		{
 			uint8* buffer = fat_shared_buffer;
@@ -326,10 +319,8 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 				handle->magic = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
-			/*
+
 			// free the clusters allocated to the file
-			*/
-			/* if (size > 0) */
 			fat_free_cluster_chain(volume, handle->current_clus_addr);
 		}
 
@@ -1089,12 +1080,6 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 }
 
 
-uint16 fat_file_write(SFatFile* handle, uint8* buffer, uint32 length)
-{
-	return fat_file_write_internal(handle, buffer, length, 0, 0, 0);
-}
-
-
 // writes to a file
 uint16 fat_file_write_internal(SFatFile* handle, uint8* buff, uint32 length, uint16* async_state, FAT_ASYNC_CALLBACK* callback, void* callback_context)
 {
@@ -1399,9 +1384,9 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 }
 
 
-uint16 fat_file_read(SFatFile* hdl, uint8* buffer, uint32 length, uint32* bytes_read)
+uint16 fat_file_write(SFatFile* handle, uint8* buffer, uint32 length)
 {
-	return fat_file_read_internal(hdl, buffer, length, bytes_read, 0, 0, 0);
+	return fat_file_write_internal(handle, buffer, length, 0, 0, 0);
 }
 
 
@@ -1742,6 +1727,13 @@ void fat_file_read_callback(SFatFile* handle, uint16* async_state)
 	*/
 	return;
 }
+
+
+uint16 fat_file_read(SFatFile* hdl, uint8* buffer, uint32 length, uint32* bytes_read)
+{
+	return fat_file_read_internal(hdl, buffer, length, bytes_read, 0, 0, 0);
+}
+
 
 /*
 // flushes file buffers
