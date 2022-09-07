@@ -41,60 +41,45 @@
 #define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
 
 
- /*
  // macro for computing the 1st sector of a cluster
- */
 #define FIRST_SECTOR_OF_CLUSTER(volume, cluster) 	\
 	(((cluster - 0x2) * volume->no_of_sectors_per_cluster) + \
 	volume->first_data_sector)
 
 
- /*
  // macro for checking if an entry in the FAT is free
- */
 #define IS_FREE_FAT(volume, fat)	\
 	((volume->fs_type == FAT_FS_TYPE_FAT32) ? !(fat & 0x0FFFFFFF) : \
 	(volume->fs_type == FAT_FS_TYPE_FAT16) ? !(fat & 0xFFFF) : !(fat & 0x0FFF))
 
 
- /*
  // macros for checking if a directory entry is free
  // and if it's the last entry on the directory
- */
-#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->ENTRY.sFatRawCommon.name == 0xE5 || *(entry)->ENTRY.sFatRawCommon.name == 0x0)
-#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->ENTRY.sFatRawCommon.name == 0x0)
+#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0xE5 || *(entry)->uEntry.sFatRawCommon.name == 0x0)
+#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0x0)
 
 
- /*
  // date/time macros
- */
 #define FAT_ENCODE_DATE(month, day, year)			((((uint16)((year) - 1980)) << 9) | ((uint16)(month) << 5) | (uint16)(day))
 #define FAT_DECODE_DATE(date, month, day, year)		(year) = ((date) >> 9) + 1980);(month) = ((date & 0x1E0) >> 5);(day) = (date & 0x1F)
 #define FAT_ENCODE_TIME(hour, minute, second)		(((uint16)(hour) << 11) | ((uint16)(minute) << 5) | ((uint16)(second) >> 1))
 #define FAT_DECODE_TIME(time, hour, minute, second)	(hour) = ((time) >> 11); (minute) = (((time) & 0x7E0) >> 5); (secs) = (((time) & 0x1F) << 1)
 
 
- /*
  // min and max macros
- */
 #define MAX( a, b )					( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
 #define MIN( a, b )					( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
 #define LO8( word )					( ( uint8 ) (word) )
 #define HI8( word )					( ( uint8 ) ( (word) >> 8 ) )
 #define LO16( dword )				( ( uint16 ) (dword) )
 #define HI16( dword )				( ( uint16 ) ( (dword) >> 16 ) )
- /* #define INDEXOF(chr, str, idx)		((int16_t) ((int16_t) strchr(str + idx, chr) - (int16_t)str)) */
 
 
- /*
  // FAT entry data type
- */
 typedef uint32 FAT_ENTRY;
 
 
-/*
 // file system query structure
-*/
 typedef struct _FILESYSTEM_QUERY_INNER {
 	SFatDirectoryEntry current_entry;
 	SFatQueryState state;
