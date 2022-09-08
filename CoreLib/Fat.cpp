@@ -410,7 +410,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	uint8 target_file[13];
 	uint8* pLevel;
 	SFatRawDirectoryEntry* current_entry;
-	FAT_QUERY_STATE_INTERNAL query;
+	SFatQueryStateInternal query;
 	/* SFatQueryState query; */
 
 	char using_lfn;

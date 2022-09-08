@@ -184,29 +184,25 @@ struct SFatBIOSParameterBlock
 #pragma pack(pop)
 
 
-typedef struct FAT_QUERY_STATE_INTERNAL
+struct SFatQueryStateInternal
 {
 	uint8						Attributes;
 	uint16						current_sector;
 	uint32						current_cluster;
-	SFatRawDirectoryEntry*	current_entry_raw;
+	SFatRawDirectoryEntry*		current_entry_raw;
 	uint8*						buffer;
 
-	SFatRawDirectoryEntry*	first_entry_raw;
+	SFatRawDirectoryEntry*		first_entry_raw;
 
-	/*
 	// LFN support members
-	*/
 	uint16						long_filename[256];
 	uint8						lfn_sequence;
 	uint8						lfn_checksum;
 
-} FAT_QUERY_STATE_INTERNAL;
+};
 
 
-/*
 // prototypes
-*/
 uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_entry);
 uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_entry);
 uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster);
