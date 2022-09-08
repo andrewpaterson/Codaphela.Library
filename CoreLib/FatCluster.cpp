@@ -231,13 +231,13 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 			bSuccess = volume->device->Read(entry_sector, buffer);
 			if (!bSuccess)
 			{
-				FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+				fat_shared_buffer_sector = (0xFFFFFFFF);
 				FAT_UNLOCK_BUFFER();
 				FAT_RELINQUISH_WRITE_ACCESS();
 				*result = FAT_CANNOT_READ_MEDIA;
 				return 0;
 			}
-			FAT_SET_LOADED_SECTOR(entry_sector);
+			fat_shared_buffer_sector = (entry_sector);
 		}
 
 		/*
@@ -264,7 +264,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 					bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 					if (!bSuccess)
 					{
-						FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+						fat_shared_buffer_sector = (0xFFFFFFFF);
 						FAT_UNLOCK_BUFFER();
 						FAT_RELINQUISH_WRITE_ACCESS();
 						*result = FAT_CANNOT_READ_MEDIA;
@@ -304,7 +304,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 					bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 					if (!bSuccess)
 					{
-						FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+						fat_shared_buffer_sector = (0xFFFFFFFF);
 						FAT_UNLOCK_BUFFER();
 						FAT_RELINQUISH_WRITE_ACCESS();
 						*result = FAT_CANNOT_READ_MEDIA;
@@ -367,7 +367,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 							bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 							if (!bSuccess)
 							{
-								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+								fat_shared_buffer_sector = (0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
 								*result = FAT_CANNOT_READ_MEDIA;
@@ -384,7 +384,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 						bSuccess = volume->device->Read(entry_sector + 1, buffer);
 						if (!bSuccess)
 						{
-							FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+							fat_shared_buffer_sector = (0xFFFFFFFF);
 							FAT_UNLOCK_BUFFER();
 							FAT_RELINQUISH_WRITE_ACCESS();
 							*result = FAT_CANNOT_READ_MEDIA;
@@ -423,7 +423,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 						bSuccess = volume->device->Read(entry_sector, buffer);
 						if (!bSuccess)
 						{
-							FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+							fat_shared_buffer_sector = (0xFFFFFFFF);
 							FAT_UNLOCK_BUFFER();
 							FAT_RELINQUISH_WRITE_ACCESS();
 							*result = FAT_CANNOT_READ_MEDIA;
@@ -492,7 +492,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 							bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 							if (!bSuccess)
 							{
-								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+								fat_shared_buffer_sector = (0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
 								*result = FAT_CANNOT_WRITE_MEDIA;
@@ -508,7 +508,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 							bSuccess = volume->device->Read(entry_sector + 1, buffer);
 							if (!bSuccess)
 							{
-								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+								fat_shared_buffer_sector = (0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
 								*result = FAT_CANNOT_READ_MEDIA;
@@ -542,7 +542,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 							bSuccess = fat_write_fat_sector(volume, entry_sector + 1, buffer);
 							if (!bSuccess)
 							{
-								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+								fat_shared_buffer_sector = (0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
 								*result = FAT_CANNOT_READ_MEDIA;
@@ -559,7 +559,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 							bSuccess = volume->device->Read(entry_sector, buffer);
 							if (!bSuccess)
 							{
-								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+								fat_shared_buffer_sector = (0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
 								*result = FAT_CANNOT_READ_MEDIA;
@@ -587,7 +587,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 									bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 									if (!bSuccess)
 									{
-										FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+										fat_shared_buffer_sector = (0xFFFFFFFF);
 										FAT_UNLOCK_BUFFER();
 										FAT_RELINQUISH_WRITE_ACCESS();
 										*result = FAT_CANNOT_READ_MEDIA;
@@ -604,7 +604,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(last_entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -699,7 +699,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(last_entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -720,7 +720,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 									bSuccess = fat_write_fat_sector(volume, last_entry_sector, buffer);
 									if (!bSuccess)
 									{
-										FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+										fat_shared_buffer_sector = (0xFFFFFFFF);
 										FAT_UNLOCK_BUFFER();
 										FAT_RELINQUISH_WRITE_ACCESS();
 										*result = FAT_CANNOT_READ_MEDIA;
@@ -737,7 +737,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -770,7 +770,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -786,7 +786,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(last_entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -807,7 +807,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = fat_write_fat_sector(volume, last_entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -819,7 +819,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -852,7 +852,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -868,7 +868,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(last_entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -889,7 +889,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = fat_write_fat_sector(volume, last_entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -902,7 +902,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 								bSuccess = volume->device->Read(entry_sector, buffer);
 								if (!bSuccess)
 								{
-									FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+									fat_shared_buffer_sector = (0xFFFFFFFF);
 									FAT_UNLOCK_BUFFER();
 									FAT_RELINQUISH_WRITE_ACCESS();
 									*result = FAT_CANNOT_READ_MEDIA;
@@ -927,7 +927,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 						bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 						if (!bSuccess)
 						{
-							FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+							fat_shared_buffer_sector = (0xFFFFFFFF);
 							FAT_UNLOCK_BUFFER();
 							FAT_RELINQUISH_WRITE_ACCESS();
 							*result = FAT_CANNOT_READ_MEDIA;
@@ -944,7 +944,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 						uiResult = fat_initialize_directory_cluster(volume, parent, cluster, buffer);
 						if (uiResult != FAT_SUCCESS)
 						{
-							FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+							fat_shared_buffer_sector = (0xFFFFFFFF);
 							FAT_UNLOCK_BUFFER();
 							FAT_RELINQUISH_WRITE_ACCESS();
 							*result = uiResult;
@@ -959,7 +959,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 							uiResult = fat_zero_cluster(volume, cluster, buffer);
 							if (uiResult != FAT_SUCCESS)
 							{
-								FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+								fat_shared_buffer_sector = (0xFFFFFFFF);
 								FAT_UNLOCK_BUFFER();
 								FAT_RELINQUISH_WRITE_ACCESS();
 								*result = uiResult;
@@ -1013,7 +1013,7 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 			bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 			if (!bSuccess)
 			{
-				FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+				fat_shared_buffer_sector = (0xFFFFFFFF);
 				FAT_UNLOCK_BUFFER();
 				FAT_RELINQUISH_WRITE_ACCESS();
 				*result = FAT_CANNOT_READ_MEDIA;
@@ -1064,12 +1064,12 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 			bSuccess = volume->device->Read(entry_sector, buffer);
 			if (!bSuccess)
 			{
-				FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+				fat_shared_buffer_sector = (0xFFFFFFFF);
 				FAT_UNLOCK_BUFFER();
 				FAT_RELINQUISH_WRITE_ACCESS();
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			FAT_SET_LOADED_SECTOR(entry_sector);
+			fat_shared_buffer_sector = (entry_sector);
 		}
 		/*
 		// store the address of the sector that's (will be) loaded in memory
@@ -1143,7 +1143,7 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 						bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 						if (!bSuccess)
 						{
-							FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+							fat_shared_buffer_sector = (0xFFFFFFFF);
 							FAT_UNLOCK_BUFFER();
 							FAT_RELINQUISH_WRITE_ACCESS();
 							return FAT_CANNOT_READ_MEDIA;
@@ -1249,7 +1249,7 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 				bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 				if (!bSuccess)
 				{
-					FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+					fat_shared_buffer_sector = (0xFFFFFFFF);
 					FAT_UNLOCK_BUFFER();
 					FAT_RELINQUISH_WRITE_ACCESS();
 					return FAT_CANNOT_READ_MEDIA;
@@ -1272,7 +1272,7 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 		bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 		if (!bSuccess)
 		{
-			FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+			fat_shared_buffer_sector = (0xFFFFFFFF);
 			FAT_UNLOCK_BUFFER();
 			FAT_RELINQUISH_WRITE_ACCESS();
 			return FAT_CANNOT_READ_MEDIA;
@@ -1322,12 +1322,12 @@ uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_
 		bSuccess = volume->device->Read(entry_sector, buffer);
 		if (!bSuccess)
 		{
-			FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+			fat_shared_buffer_sector = (0xFFFFFFFF);
 			FAT_UNLOCK_BUFFER();
 			FAT_RELINQUISH_READ_ACCESS();
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		FAT_SET_LOADED_SECTOR(entry_sector);
+		fat_shared_buffer_sector = (entry_sector);
 	}
 
 	/*
@@ -1359,12 +1359,12 @@ uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_
 				bSuccess = volume->device->Read(entry_sector + 1, buffer);
 				if (!bSuccess)
 				{
-					FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+					fat_shared_buffer_sector = (0xFFFFFFFF);
 					FAT_UNLOCK_BUFFER();
 					FAT_RELINQUISH_READ_ACCESS();
 					return FAT_CANNOT_READ_MEDIA;
 				}
-				FAT_SET_LOADED_SECTOR(entry_sector + 1);
+				fat_shared_buffer_sector = (entry_sector + 1);
 				/*
 				// the 2nd byte is now the 1st byte in the buffer
 				*/
@@ -1454,12 +1454,12 @@ uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_e
 		bSuccess = volume->device->Read(entry_sector, buffer);
 		if (!bSuccess)
 		{
-			FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+			fat_shared_buffer_sector = (0xFFFFFFFF);
 			FAT_UNLOCK_BUFFER();
 			FAT_RELINQUISH_WRITE_ACCESS();
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		FAT_SET_LOADED_SECTOR(entry_sector);
+		fat_shared_buffer_sector = (entry_sector);
 	}
 
 	// set the FAT entry
@@ -1489,7 +1489,7 @@ uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_e
 				bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 				if (!bSuccess)
 				{
-					FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+					fat_shared_buffer_sector = (0xFFFFFFFF);
 					FAT_UNLOCK_BUFFER();
 					FAT_RELINQUISH_WRITE_ACCESS();
 					return FAT_CANNOT_WRITE_MEDIA;
@@ -1504,12 +1504,12 @@ uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_e
 				bSuccess = volume->device->Read(entry_sector, buffer);
 				if (!bSuccess)
 				{
-					FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+					fat_shared_buffer_sector = (0xFFFFFFFF);
 					FAT_UNLOCK_BUFFER();
 					FAT_RELINQUISH_WRITE_ACCESS();
 					return FAT_CANNOT_READ_MEDIA;
 				}
-				FAT_SET_LOADED_SECTOR(entry_sector);
+				fat_shared_buffer_sector = (entry_sector);
 				/*
 				// the next byte is now loacted at offset 0 on the buffer
 				*/
@@ -1560,7 +1560,7 @@ uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_e
 	bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 	if (!bSuccess)
 	{
-		FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+		fat_shared_buffer_sector = (0xFFFFFFFF);
 		FAT_UNLOCK_BUFFER();
 		FAT_RELINQUISH_WRITE_ACCESS();
 		return FAT_CANNOT_WRITE_MEDIA;
@@ -1623,12 +1623,12 @@ char fat_increase_cluster_address(SFatVolume* volume, uint32 cluster, uint16 cou
 			bSuccess = volume->device->Read(current_sector, buffer);
 			if (!bSuccess)
 			{
-				FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+				fat_shared_buffer_sector = (0xFFFFFFFF);
 				FAT_UNLOCK_BUFFER();
 				FAT_RELINQUISH_READ_ACCESS();
 				return 0;
 			}
-			FAT_SET_LOADED_SECTOR(current_sector);
+			fat_shared_buffer_sector = (current_sector);
 		}
 		/*
 		// free all the fat entries on the current sector
@@ -1792,7 +1792,7 @@ static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirect
 	*/
 	entries = (SFatRawDirectoryEntry*)buffer;
 
-	FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+	fat_shared_buffer_sector = (0xFFFFFFFF);
 
 	// initialize the 1st sector of the directory cluster with
 	// the dot entry
@@ -1904,7 +1904,7 @@ static uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer
 	uint16	counter;
 	uint32	current_sector;
 
-	FAT_SET_LOADED_SECTOR(0xFFFFFFFF);
+	fat_shared_buffer_sector = (0xFFFFFFFF);
 	/*
 	// set all the bytes in the buffer to zero
 	*/

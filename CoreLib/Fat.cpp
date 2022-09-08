@@ -56,14 +56,6 @@ void fat_init()
 
 
 /*
-// gets the sector size of the volume.
-*/
-uint16 fat_get_sector_size(SFatVolume* volume)
-{
-	return volume->no_of_bytes_per_serctor;
-}
-
-/*
 // registers the function that gets the system time
 */
 #if !defined(FAT_USE_SYSTEM_TIME)
@@ -148,7 +140,7 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 	if (query->state.current_cluster == 0x0) 
 	{
 		query->current_entry.sector_addr = volume->no_of_reserved_sectors + 
-											(volume->no_of_fat_tables * volume->fat_size) +
+											(volume->no_of_fat_tables * volume->uiFatSize) +
 											query->state.current_sector;
 	}
 	else
@@ -242,7 +234,7 @@ uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, 
 	if (query->state.current_cluster == 0x0)
 	{
 		query->current_entry.sector_addr = volume->no_of_reserved_sectors + 
-											(volume->no_of_fat_tables * volume->fat_size) +
+											(volume->no_of_fat_tables * volume->uiFatSize) +
 											query->state.current_sector;
 	}
 	else
@@ -500,7 +492,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	/*
 	// mark the cached sector as unknown
 	*/
-	FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+	fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 	/*
 	// for each level on the path....
 	*/
@@ -652,7 +644,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	if (query.current_cluster == 0x0)
 	{
 		entry->sector_addr =
-			volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->fat_size) +
+			volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->uiFatSize) +
 			query.current_sector;
 	}
 	else
@@ -721,7 +713,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 		else
 		{
 			query->current_cluster = 0x0;
-			first_sector = volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->fat_size);
+			first_sector = volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->uiFatSize);
 		}
 	}
 	/*
@@ -858,15 +850,11 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 				*/
 				else
 				{
-					/*
-					// increase the current sector #
-					*/
 					query->current_sector++;
-					/*
+
 					// if this is the root directory of a FAT16/FAT12
 					// volume and we have passed it's last sector then
 					// there's no more entries...
-					*/
 					if (query->current_cluster == 0x0)
 					{
 						if (query->current_sector == volume->root_directory_sectors)
@@ -875,7 +863,7 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 							return FAT_SUCCESS;
 						}
 						sector_address =
-							(volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->fat_size)) + query->current_sector;
+							(volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->uiFatSize)) + query->current_sector;
 					}
 					else
 					{
@@ -1295,14 +1283,14 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 		{
 			fat = last_fat = 0x0;
 			first_sector_of_cluster =
-				volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->fat_size);
+				volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->uiFatSize);
 		}
 	}
 
 	/*
 	// mark the cached sector as unknown
 	*/
-	FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+	fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 	/*
 	// for each cluster allocated to the parent
 	// directory entry
@@ -1411,7 +1399,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 									if (last_fat == 0)
 									{
 										first_sector_of_cluster =
-											volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->fat_size);
+											volume->no_of_reserved_sectors + (volume->no_of_fat_tables * volume->uiFatSize);
 									}
 									else
 									{
@@ -1560,7 +1548,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 										/*
 										// mark the loaded sector as unknown
 										*/
-										FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+										fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 										/*
 										// continue working on the new cluster
 										*/
@@ -1662,7 +1650,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 		/*
 		// mark the loaded sector as unknown
 		*/
-		FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 	} while (1);
 }
 

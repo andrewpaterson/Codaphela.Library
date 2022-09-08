@@ -22,9 +22,6 @@
 #include "FatInternals.h"
 
 
-#define FAT_SET_LOADED_SECTOR(sector)		fat_shared_buffer_sector = (sector)
-
-
 uint16 fat_file_update_sequential_cluster_count(SFatFile* file);
 
 
@@ -290,7 +287,7 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 			/*
 			// mark the cached sector as unknown
 			*/
-			FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+			fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
 			/*
 			// read the sector that contains the entry
 			*/
@@ -590,7 +587,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 		/*
 		// write modified entry to drive
 		*/
-		FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 		bSuccess = volume->device->Read(new_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
@@ -643,7 +640,7 @@ uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_fi
 				/*
 				// mark the entry as deleted
 				*/
-				FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+				fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 				bSuccess = volume->device->Read(query.current_entry.sector_addr, buffer);
 				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
@@ -824,7 +821,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 		file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
 
 		// mark the cached sector as unknown
-		FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 
 		// try load the sector that contains the entry
 		bSuccess = file->volume->device->Read(file->directory_entry.sector_addr, buffer);
@@ -1638,7 +1635,7 @@ uint16 fat_file_flush(SFatFile* handle)
 		/*
 		// try load the sector that contains the entry
 		*/
-		FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 
 		bSuccess = handle->volume->device->Read(handle->directory_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
