@@ -27,7 +27,10 @@
 #define FAT_ALLOCATE_SEQUENTIAL_CLUSTERS
 
 
-#define FAT_IS_LOADED_SECTOR(sector)		(fat_shared_buffer_sector != 0xFFFFFFFF && fat_shared_buffer_sector == (sector))
+bool FAT_IS_LOADED_SECTOR(uint32 uiSector)
+{
+	return fat_shared_buffer_sector != 0xFFFFFFFF && (fat_shared_buffer_sector == uiSector);
+}
 
 
  /*
@@ -54,13 +57,10 @@
 #define FAT_RELINQUISH_WRITE_ACCESS()
 
 
- /*
- // prototypes for static functions
- */
-static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result);
-static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer);
-static uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer);
-static bool fat_write_fat_sector(SFatVolume * volume, uint32 sector_address, uint8 * buffer);
+ uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result);
+uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer);
+uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer);
+bool fat_write_fat_sector(SFatVolume * volume, uint32 sector_address, uint8 * buffer);
 
 
 // allocates a cluster for a directory - finds a free cluster, initializes it as
@@ -94,33 +94,11 @@ uint32 fat_allocate_data_cluster_ex(SFatVolume* volume, uint32 count, char zero,
 #endif
 
 
-// calculate the gcd of 2 32 bit integers
-#if defined(FAT_OPTIMIZE_FOR_FLASH)
-/*
-static uint32 fat_gcd(uint32 a, uint32 b)
-{
-	while(a != b)
-	{
-		if (a > b)
-		{
-			a = a - b;
-		}
-		else
-		{
-			b = b - a;
-		}
-	}
-	return a;
-}
-*/
-#endif
-
-
 // performs the work for fat_allocate_data_cluster and fat_allocate_directory_cluster
 //
 // NOTE: this function used the volume/shared buffer (if enabled) so it must not be
 // locked before calling this function
-static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result)
+uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result)
 {
 	bool		bSuccess;
 	uint32		entry_sector;			/* the address of the cached sector */
@@ -1779,7 +1757,7 @@ char fat_is_eof_entry(SFatVolume* volume, FatEntry fat)
 
 
 // initializes a directory cluster
-static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer)
+uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer)
 {
 	bool						bSuccess;
 	uint16						counter;
@@ -1898,7 +1876,7 @@ static uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirect
 
 
 // sets all sectors in a cluster to zeroes
-static uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer)
+uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer)
 {
 	bool	bSuccess;
 	uint16	counter;
@@ -1938,7 +1916,7 @@ static uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer
 // writes a sector of the FAT table to the active table and (if option is enabled)
 // to all other FAT tables
 */
-static bool fat_write_fat_sector(SFatVolume* volume, uint32 sector_address, uint8* buffer)
+bool fat_write_fat_sector(SFatVolume* volume, uint32 sector_address, uint8* buffer)
 {
 	bool bSuccess;
 
