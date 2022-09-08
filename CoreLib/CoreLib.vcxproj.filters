@@ -902,6 +902,9 @@
     <ClInclude Include="FatSharedBuffer.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
+    <ClInclude Include="FatStructure.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl">
