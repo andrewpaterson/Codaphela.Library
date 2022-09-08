@@ -225,7 +225,7 @@ retry:
 	// read mpsVolume label entry from the root directory (if any)
 	{
 
-		FAT_QUERY_STATE_INTERNAL query;
+		SFatQueryStateInternal query;
 		query.buffer = buffer;
 		if (fat_query_first_entry(mpsVolume, 0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
 		{
