@@ -783,64 +783,45 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 
 	do
 	{
-		/*
 		// if the current entry is the last entry of
 		// the sector...
-		*/
 		if (!first_entry)
 		{
 			if (((uintptr_t)query->current_entry_raw - (uintptr_t)query->first_entry_raw) == volume->no_of_bytes_per_serctor - 0x20)
 			{
-				/*
 				// if the current sector is the last of the current cluster then we must find the next
 				// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
 				// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
-				*/
 				if (query->current_cluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == volume->no_of_sectors_per_cluster - 1)
 				{
-					FAT_ENTRY fat;
+					FatEntry fat;
 
-					/*
 					// get the fat structure for the current cluster
 					// and return UNKNOWN_ERROR if the operation fails
-					*/
 					if (fat_get_cluster_entry(volume, query->current_cluster, &fat) != FAT_SUCCESS)
 					{
 						return FAT_UNKNOWN_ERROR;
 					}
 
-					/*
 					// if this is the last cluster of the directory...
-					*/
 					if (fat_is_eof_entry(volume, fat))
 					{
-						/*
 						// set the current entry to 0
-						*/
 						*query->current_entry_raw->uEntry.sFatRawCommon.name = 0;
-						/*
-						// and return success
-						*/
 						return FAT_SUCCESS;
 					}
-					/*
+
 					// set the current cluster to the next
 					// cluster of the directory entry
-					*/
 					query->current_cluster = fat;
-					/*
+
 					// reset the current sector
-					*/
 					query->current_sector = 0x0;
-					/*
+
 					// calculate the address of the next sector
-					*/
-					sector_address =
-						FIRST_SECTOR_OF_CLUSTER(volume, query->current_cluster) + query->current_sector;
+					sector_address = FIRST_SECTOR_OF_CLUSTER(volume, query->current_cluster) + query->current_sector;
 				}
-				/*
 				// if there are more sectors on the current cluster then
-				*/
 				else
 				{
 					query->current_sector++;
@@ -1051,8 +1032,8 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 	uint32							sector;
 	uint32							first_sector_of_cluster = 0;
 	uintptr_t						last_entry_address;
-	FAT_ENTRY						fat;
-	FAT_ENTRY						last_fat;
+	FatEntry						fat;
+	FatEntry						last_fat;
 	SFatRawDirectoryEntry*		parent_entry;
 
 	int								no_of_lfn_entries_needed = 0;
@@ -1525,7 +1506,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 										*/
 										if (fat_is_eof_entry(volume, fat))
 										{
-											FAT_ENTRY newfat = fat_allocate_data_cluster(volume, 1, 1, &uiResult);
+											FatEntry newfat = fat_allocate_data_cluster(volume, 1, 1, &uiResult);
 											if (uiResult != FAT_SUCCESS)
 											{
 												return uiResult;
@@ -1624,7 +1605,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 		*/
 		if (fat_is_eof_entry(volume, fat))
 		{
-			FAT_ENTRY newfat;
+			FatEntry newfat;
 			/*
 			// allocate the cluster
 			*/

@@ -868,7 +868,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 		// set the FAT entry for the last cluster to the beggining of the newly
 		// allocated cluster chain (ie. link them)
 		*/
-		uiResult = fat_set_cluster_entry(file->volume, last_cluster, (FAT_ENTRY)new_cluster);
+		uiResult = fat_set_cluster_entry(file->volume, last_cluster, (FatEntry)new_cluster);
 		if (uiResult != FAT_SUCCESS)
 		{
 			file->busy = 0;
@@ -1691,7 +1691,7 @@ uint16 fat_file_flush(SFatFile* handle)
 uint16 fat_file_close(SFatFile* handle)
 {
 	uint16		uiResult;
-	FAT_ENTRY	fat_entry;
+	FatEntry	fat_entry;
 
 	// check that this is a valid handle
 	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
