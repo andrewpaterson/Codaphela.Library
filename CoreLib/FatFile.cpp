@@ -342,7 +342,7 @@ uint16 fat_file_set_buffer(SFatFile* file, uint8* buffer)
 		uint32	sector_address;
 		bool	bSuccess;
 
-		sector_address = file->current_sector_idx + FIRST_SECTOR_OF_CLUSTER(file->volume, file->current_clus_addr);
+		sector_address = file->current_sector_idx + calculate_first_sector_of_cluster(file->volume, file->current_clus_addr);
 		file->buffer = buffer;
 		file->buffer_head = buffer + (uintptr_t)file->buffer_head;
 		bSuccess = file->volume->device->Read(sector_address, file->buffer);
@@ -759,7 +759,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 				/*
 				// calculate the start and end address the cluster
 				*/
-				start_address = FIRST_SECTOR_OF_CLUSTER(file->volume, current_cluster);
+				start_address = calculate_first_sector_of_cluster(file->volume, current_cluster);
 				end_address = start_address + file->volume->no_of_sectors_per_cluster;
 				/*
 				// find the last sequential sector after this address
@@ -1020,7 +1020,7 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 		file->buffer_head = file->buffer;
 	}
 
-	sector_address = file->current_sector_idx + FIRST_SECTOR_OF_CLUSTER(file->volume, file->current_clus_addr);
+	sector_address = file->current_sector_idx + calculate_first_sector_of_cluster(file->volume, file->current_clus_addr);
 	file->current_clus_idx = cluster_count - 1;
 	/*
 	// load the last sector
@@ -1122,7 +1122,7 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 				// calculate the sector address
 				*/
 				handle->op_state.sector_addr =
-					FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+					calculate_first_sector_of_cluster(handle->volume, handle->current_clus_addr);
 			}
 			/*
 			// if there are more sectors in the
@@ -1266,7 +1266,7 @@ uint16 fat_file_write(SFatFile* handle, uint8* buff, uint32 length)
 	// sector
 	*/
 	handle->op_state.sector_addr = handle->current_sector_idx +
-		FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+		calculate_first_sector_of_cluster(handle->volume, handle->current_clus_addr);
 
 
 	handle->op_state.internal_state = 0x0;
@@ -1386,7 +1386,7 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 				// cluster
 				handle->current_clus_idx++;
 				handle->current_sector_idx = 0x0;
-				handle->op_state.sector_addr = FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+				handle->op_state.sector_addr = calculate_first_sector_of_cluster(handle->volume, handle->current_clus_addr);
 			}
 			else
 			{
@@ -1506,7 +1506,7 @@ uint16 fat_file_read(SFatFile* handle, uint8* buff, uint32 length, uint32* bytes
 	// calculate the address of the current
 	// sector and the address of the end of the buffer
 	*/
-	handle->op_state.sector_addr = handle->current_sector_idx + FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+	handle->op_state.sector_addr = handle->current_sector_idx + calculate_first_sector_of_cluster(handle->volume, handle->current_clus_addr);
 	handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
 	/*
 	// if the file is opened in unbuffered mode make sure that
@@ -1581,7 +1581,7 @@ uint16 fat_file_flush(SFatFile* handle)
 			// sector
 			*/
 			sector_address = handle->current_sector_idx +
-				FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
+				calculate_first_sector_of_cluster(handle->volume, handle->current_clus_addr);
 			/*
 			// if the buffer is only partially filled we need to merge it
 			// with the one on the drive

@@ -138,7 +138,7 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 	}
 	else
 	{
-		query->current_entry.sector_addr = FIRST_SECTOR_OF_CLUSTER(volume, query->state.current_cluster) + query->state.current_sector;
+		query->current_entry.sector_addr = calculate_first_sector_of_cluster(volume, query->state.current_cluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -232,7 +232,7 @@ uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, 
 	}
 	else
 	{
-		query->current_entry.sector_addr = FIRST_SECTOR_OF_CLUSTER(volume, query->state.current_cluster) + query->state.current_sector;
+		query->current_entry.sector_addr = calculate_first_sector_of_cluster(volume, query->state.current_cluster) + query->state.current_sector;
 	}
 	/*
 	// calculate the offset of the entry within it's sector
@@ -384,8 +384,7 @@ uint16 fat_create_directory(SFatVolume* volume, char* directory)
 		/*
 		// try to create the directory entry
 		*/
-		return fat_create_directory_entry(volume,
-			&parent_entry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &entry);
+		return fat_create_directory_entry(volume, &parent_entry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &entry);
 	}
 	/*
 	// if we get here it means that a file or
@@ -643,7 +642,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	else
 	{
 		entry->sector_addr =
-			FIRST_SECTOR_OF_CLUSTER(volume, query.current_cluster) +
+			calculate_first_sector_of_cluster(volume, query.current_cluster) +
 			query.current_sector; /*  + volume->NoOfSectorsPerCluster; */
 	}
 	/*
@@ -701,7 +700,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 		if (volume->fs_type == FAT_FS_TYPE_FAT32)
 		{
 			query->current_cluster = volume->root_cluster;
-			first_sector = FIRST_SECTOR_OF_CLUSTER(volume, query->current_cluster);
+			first_sector = calculate_first_sector_of_cluster(volume, query->current_cluster);
 		}
 		else
 		{
@@ -743,7 +742,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 		// get the 1st sector of the directory entry
 		*/
 		first_sector =
-			FIRST_SECTOR_OF_CLUSTER(volume, query->current_cluster);
+			calculate_first_sector_of_cluster(volume, query->current_cluster);
 	}
 
 	/*
@@ -819,7 +818,7 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 					query->current_sector = 0x0;
 
 					// calculate the address of the next sector
-					sector_address = FIRST_SECTOR_OF_CLUSTER(volume, query->current_cluster) + query->current_sector;
+					sector_address = calculate_first_sector_of_cluster(volume, query->current_cluster) + query->current_sector;
 				}
 				// if there are more sectors on the current cluster then
 				else
@@ -844,7 +843,7 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 						/*
 						// calculate the address of the next sector
 						*/
-						sector_address = FIRST_SECTOR_OF_CLUSTER(volume, query->current_cluster) + query->current_sector;
+						sector_address = calculate_first_sector_of_cluster(volume, query->current_cluster) + query->current_sector;
 					}
 				}
 				/*
@@ -1271,86 +1270,68 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 	*/
 	do
 	{
-		/*
 		// calculate the address of the 1st sector
 		// of the cluster - skip this step if uiResult equals
 		// 1, this means that this is the 1st sector of the
 		// root entry which doesn't start at the beggining
 		// of the cluster
-		*/
 		if (fat != 0x0)
 		{
-			first_sector_of_cluster = FIRST_SECTOR_OF_CLUSTER(volume, fat);
+			first_sector_of_cluster = calculate_first_sector_of_cluster(volume, fat);
 		}
-		/*
+
 		// set the current sector to the first
 		// sector of the cluster
-		*/
 		sector = first_sector_of_cluster;
-		/*
+
 		// calculate the address of the last directory
 		// entry on a sector when the sector is loaded
 		// into sec_buff
-		*/
-		last_entry_address =
-			((uintptr_t)buffer + volume->no_of_bytes_per_serctor) - 0x20;
-		/*
+		last_entry_address = ((uintptr_t)buffer + volume->no_of_bytes_per_serctor) - 0x20;
+
 		// for each sector in the cluster
-		*/
 		while (fat == 0 || sector < (first_sector_of_cluster + volume->no_of_sectors_per_cluster))
 		{
-			/*
 			// read the current sector to RAM
-			*/
 			bool bSuccess;
+
 			bSuccess = volume->device->Read(sector, buffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			/*
+
 			// set the parent entry pointer to the 1st
 			// entry of the current sector
-			*/
 			parent_entry = (SFatRawDirectoryEntry*)buffer;
 
-			/*
+
 			// for each directory entry in the sector...
-			*/
 			while ((uintptr_t)parent_entry <= last_entry_address)
 			{
-				/*
 				// make sure we don't exceed the limit of 0xFFFF entries
 				// per directory
-				*/
 				if ((entries_count + no_of_lfn_entries_needed) == 0xFFFF)
 				{
 					return FAT_DIRECTORY_LIMIT_EXCEEDED;
 				}
-				/*
+
 				// increase the count of directory entries
-				*/
 				entries_count++;
-				/*
+
 				// if the directory entry is free
-				*/
 				if (IS_FREE_DIRECTORY_ENTRY(parent_entry))
 				{
-					/*
 					// we've found a free entry
-					*/
 					no_of_lfn_entries_found++;
-					/*
+
 					// if this is the last directory entry or if we've
 					// found all the entries that we need then let's get
 					// ready to write them
-					*/
 					if (IS_LAST_DIRECTORY_ENTRY(parent_entry) || no_of_lfn_entries_found == no_of_lfn_entries_needed)
 					{
-						/*
 						// if there where any free entries before this
 						// one then we need to rewind a bit
-						*/
 						while (no_of_lfn_entries_found-- > 1)
 						{
 							if ((uintptr_t)parent_entry > (uintptr_t)buffer)
@@ -1359,11 +1340,9 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 							}
 							else
 							{
-								/*
 								// if the last entry is on the same cluster we
 								// can just decrease the sector number, otherwise we
 								// need to get the sector address for the last cluster
-								*/
 								if (sector > first_sector_of_cluster)
 								{
 									sector--;
@@ -1378,15 +1357,13 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 									else
 									{
 										fat = last_fat;
-										first_sector_of_cluster = FIRST_SECTOR_OF_CLUSTER(volume, fat);
+										first_sector_of_cluster = calculate_first_sector_of_cluster(volume, fat);
 									}
 									sector = first_sector_of_cluster + volume->no_of_sectors_per_cluster;
 								}
 
-								/*
 								// read the last sector to the cache, calculate the last
 								// entry address and set our pointer to it
-								*/
 								bSuccess = volume->device->Read(sector, buffer);
 								if (!bSuccess)
 								{
@@ -1396,22 +1373,19 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 								parent_entry = (SFatRawDirectoryEntry*)last_entry_address;
 							}
 						}
-						/*
+
 						// compute the checksum for this entry
-						*/
 						lfn_checksum = fat_long_entry_checksum((uint8*)new_entry->raw.uEntry.sFatRawCommon.name);
-						/*
+
 						// now we can start writting
-						*/
 						no_of_lfn_entries_found = no_of_lfn_entries_needed;
 						while (no_of_lfn_entries_found--)
 						{
 							if (no_of_lfn_entries_found)
 							{
 								uint16 i, c;
-								/*
+
 								// set the required fields for this entry
-								*/
 								parent_entry->uEntry.sFatRawLongFileName.lfn_sequence = (uint8)no_of_lfn_entries_found;
 								parent_entry->uEntry.sFatRawLongFileName.lfn_checksum = lfn_checksum;
 								parent_entry->uEntry.sFatRawCommon.attributes = FAT_ATTR_LONG_NAME;
@@ -1526,7 +1500,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 										/*
 										// continue working on the new cluster
 										*/
-										sector = FIRST_SECTOR_OF_CLUSTER(volume, fat);
+										sector = calculate_first_sector_of_cluster(volume, fat);
 									}
 									/*
 									// load the next sector
@@ -2147,14 +2121,24 @@ void strtrim(char* dest, char* src, size_t max) {
 	*dest = 0x0;
 }
 
+
 void fat_parse_path(char* path, char* path_part, char** filename_part)
 {
 	*filename_part = path + strlen(path);
+
 	while (*--(*filename_part) != '\\' && (*filename_part) != path);
 
 	while (path != *filename_part)
+	{
 		*path_part++ = *path++;
+	}
 	*path_part = 0;
 	(*filename_part)++;
+}
+
+
+uint32 calculate_first_sector_of_cluster(SFatVolume* psVolume, uint32 cluster)
+{
+	return (((cluster - 0x2) * psVolume->no_of_sectors_per_cluster) + psVolume->first_data_sector);
 }
 
