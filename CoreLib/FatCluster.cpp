@@ -33,17 +33,22 @@ bool FAT_IS_LOADED_SECTOR(uint32 uiSector)
 }
 
 
- /*
- // macro for calculating the offset of a cluster entry within the FAT table
- */
-#define FAT_CALCULATE_ENTRY_OFFSET(fs_type, cluster, offset)					\
-	switch (fs_type)															\
-	{																			\
-		case FAT_FS_TYPE_FAT12: offset = cluster + (cluster >> 1); break;		\
-		case FAT_FS_TYPE_FAT16: offset = cluster * (uint32) 2; break;			\
-		case FAT_FS_TYPE_FAT32: offset = cluster * (uint32) 4; break;			\
+uint32 FAT_CALCULATE_ENTRY_OFFSET(uint8 fs_type, uint32 cluster)
+{
+	switch (fs_type)
+	{
+		case FAT_FS_TYPE_FAT12: 
+			return cluster + (cluster >> 1); 
+
+		case FAT_FS_TYPE_FAT16: 
+			return cluster * (uint32)2; 
+
+		case FAT_FS_TYPE_FAT32:
+			return cluster * (uint32)4;
 	}
 
+	return 0xFFFFFFFF;
+}
 
 #define FAT_LOCK_BUFFER()
 
@@ -131,7 +136,7 @@ uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, u
 		return FAT_UNKNOWN_ERROR;
 	}
 
-	if (count != 0)
+	if (count == 0)
 	{
 		return FAT_UNKNOWN_ERROR;
 	}
@@ -179,20 +184,26 @@ uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, u
 	*/
 	switch (volume->fs_type)
 	{
-		case FAT_FS_TYPE_FAT12: last_fat_entry = FAT12_EOC; break;
-		case FAT_FS_TYPE_FAT16: last_fat_entry = FAT16_EOC; break;
-		case FAT_FS_TYPE_FAT32: last_fat_entry = FAT32_EOC; break;
+		case FAT_FS_TYPE_FAT12: 
+			last_fat_entry = FAT12_EOC; 
+			break;
+
+		case FAT_FS_TYPE_FAT16: 
+			last_fat_entry = FAT16_EOC; 
+			break;
+
+		case FAT_FS_TYPE_FAT32: 
+			last_fat_entry = FAT32_EOC; 
+			break;
 	}
-	/*
+
 	// acquire buffer lock
-	*/
 	FAT_ACQUIRE_WRITE_ACCESS();
 	FAT_LOCK_BUFFER();
-	/*
+
 	// calculate the offset of the FAT entry within it's sector
 	// and the sector number
-	*/
-	FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, entry_offset);
+	entry_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 	entry_sector = volume->no_of_reserved_sectors + (entry_offset / volume->no_of_bytes_per_serctor);
 	entry_offset = entry_offset % volume->no_of_bytes_per_serctor;
 	last_entry_sector = entry_sector;
@@ -261,7 +272,7 @@ uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, u
 				/*
 				// calculate the sector for the new cluster
 				*/
-				FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, entry_offset);
+				entry_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 				entry_sector = volume->no_of_reserved_sectors;
 				entry_offset = entry_offset % volume->no_of_bytes_per_serctor;
 				/*
@@ -977,7 +988,7 @@ uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, u
 			// note: when we hit get past the end of the current sector entry_offset
 			// will roll back to zero (or possibly 1 for FAT12)
 			*/
-			FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, entry_offset);
+			entry_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 			entry_sector = volume->no_of_reserved_sectors + (entry_offset / volume->no_of_bytes_per_serctor);
 			entry_offset = entry_offset % volume->no_of_bytes_per_serctor;
 
@@ -1021,7 +1032,7 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 	// the sector of the FAT table that contains the entry and the offset
 	// of the fat entry within the sector
 	*/
-	FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, fat_offset);
+	fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 	entry_sector = volume->no_of_reserved_sectors + (fat_offset / volume->no_of_bytes_per_serctor);
 	entry_offset = fat_offset % volume->no_of_bytes_per_serctor;
 	/*
@@ -1240,7 +1251,7 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 			/*
 			// calculate the location of the next cluster in the chain
 			*/
-			FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, fat_offset);
+			fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 			entry_sector = volume->no_of_reserved_sectors + (fat_offset / volume->no_of_bytes_per_serctor);
 			entry_offset = fat_offset % volume->no_of_bytes_per_serctor;
 		}
@@ -1581,7 +1592,7 @@ char fat_increase_cluster_address(SFatVolume* volume, uint32 cluster, uint16 cou
 	// the sector of the FAT table that contains the entry and the offset
 	// of the fat entry within the sector
 	*/
-	FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, fat_offset);
+	fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 	entry_sector = volume->no_of_reserved_sectors + (fat_offset / volume->no_of_bytes_per_serctor);
 	entry_offset = fat_offset % volume->no_of_bytes_per_serctor;
 	/*
@@ -1732,7 +1743,7 @@ char fat_increase_cluster_address(SFatVolume* volume, uint32 cluster, uint16 cou
 			/*
 			// calculate the location of the next cluster in the chain
 			*/
-			FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster, fat_offset);
+			fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->fs_type, cluster);
 			entry_sector = volume->no_of_reserved_sectors + (fat_offset / volume->no_of_bytes_per_serctor);
 			entry_offset = fat_offset % volume->no_of_bytes_per_serctor;
 		}
