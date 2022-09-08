@@ -1379,31 +1379,27 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 			*/
 			if (handle->current_sector_idx == handle->volume->no_of_sectors_per_cluster - 1)
 			{
-				/*
 				// update the cluster address with the address of the
 				// next cluster
-				*/
 				if (!fat_increase_cluster_address(handle->volume, handle->current_clus_addr, 1, &handle->current_clus_addr))
 				{
 					*state = FAT_CORRUPTED_FILE;
 					handle->busy = 0;
 					return;
 				}
-				/*
+
 				// reset the current sector increase the current cluster
 				// number and calculate the address of the first sector of the
 				// cluster
-				*/
 				handle->current_clus_idx++;
 				handle->current_sector_idx = 0x0;
 				handle->op_state.sector_addr = FIRST_SECTOR_OF_CLUSTER(handle->volume, handle->current_clus_addr);
 			}
 			else
 			{
-				/*
+
 				// if there are more sectors in the current cluster then
 				// simply increase the current sector counter and address
-				*/
 				handle->current_sector_idx++;
 				handle->op_state.sector_addr++;
 			}

@@ -36,7 +36,6 @@ TIMEKEEPER;
 static TIMEKEEPER timekeeper;
 #endif
 
-/*
 // TODO:
 // 1. Optimize fat_file_seek
 //
@@ -45,7 +44,6 @@ static TIMEKEEPER timekeeper;
 //		it's overallocating under some circumstances. The extra clusters get
 //		freed when the file is closed anyways but it'll still be more efficient
 //		that way.
-*/
 
 
 // initialize fat driver
@@ -55,9 +53,7 @@ void fat_init()
 }
 
 
-/*
 // registers the function that gets the system time
-*/
 #if !defined(FAT_USE_SYSTEM_TIME)
 void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time)
 {
@@ -65,9 +61,7 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time)
 }
 #endif
 
-/*
 // finds the first file in a directory
-*/
 uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q) 
 {
 	uint16 uiResult;
