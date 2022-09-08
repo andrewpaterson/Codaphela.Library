@@ -87,93 +87,95 @@ uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, SFa
 	// if the entry was not found...
 	if (*file_entry.name == 0)
 	{
-		/*
 		// if the create access flag was set then
 		// we create the file
-		*/
 		if (access_flags & FAT_FILE_ACCESS_CREATE)
 		{
-			/*
 			// allocate memory for the file path
-			*/
-			size_t path_len;
-			char* filename_scanner;
-			char file_path[FAT_MAX_PATH + 1];
-			SFatDirectoryEntry parent_entry;
-			/*
+			ptrdiff_t			path_len;
+			char*				filename_scanner;
+			char				file_path[FAT_MAX_PATH + 1];
+			SFatDirectoryEntry	parent_entry;
+
 			// get the name of the file path including
 			// the filename
-			*/
 			path_len = strlen(filename);
-			/*
+
 			// set the pointer that will be used to scan
 			// filename to the end of the filename
-			*/
 			filename_scanner = filename + (path_len - 0x1);
-			/*
+
 			// if the filename ends with a backslash then it
 			// is an invalid filename ( it's actually a directory
 			// path )
-			*/
 			if (*filename_scanner == BACKSLASH)
+			{
 				return FAT_INVALID_FILENAME;
-			/*
+			}
+
 			// scan the filename starting at the end until
 			// a backslash is found - when we exit this loop
 			// path_scanner will point to the last character
 			// of the filepath
-			*/
-			while (*(--filename_scanner) != BACKSLASH);
-			/*
+			for (;;)
+			{
+				if (*filename_scanner == BACKSLASH)
+				{
+					break;
+				}
+
+				if (filename_scanner == filename)
+				{
+					return FAT_INVALID_PATH;
+				}
+				filename_scanner--;
+			}
+
 			// calculate the length of the path part of the
 			// filename
-			*/
-			path_len = (size_t)(filename_scanner - filename);
-			/*
+			path_len = filename_scanner - filename;
+
 			// copy the path part of the filename to
 			// the file_path buffer
-			*/
 			memcpy(file_path, filename, path_len);
-			/*
+
 			// set the null terminator of the file_path buffer
-			*/
 			file_path[path_len] = 0x0;
-			/*
+
 			// increase pointer to the beggining of the filename
 			// part of the path
-			*/
 			filename_scanner++;
-			/*
+
 			// try to get the entry for the parent directory
-			*/
 			uiResult = fat_get_file_entry(volume, file_path, &parent_entry);
-			/*
+
 			// if fat_get_file_entry returned an error
 			// then we return the error code to the calling
 			// function
-			*/
 			if (uiResult != FAT_SUCCESS)
+			{
 				return uiResult;
-			/*
+			}
+
 			// if the parent directory does not exists
-			*/
 			if (*parent_entry.name == 0)
+			{
 				return FAT_DIRECTORY_DOES_NOT_EXIST;
-			/*
+			}
+
 			// try to create the directory entry
-			*/
 			uiResult = fat_create_directory_entry(volume, &parent_entry.raw, filename_scanner, 0, 0, &file_entry);
-			/*
+
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
-			*/
 			access_flags = access_flags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
-			/*
+
 			// if we were unable to create the entry for the file
 			// and
-			*/
 			if (uiResult != FAT_SUCCESS)
+			{
 				return uiResult;
+			}
 
 		}
 		// if the create flag is not set then return the
@@ -184,7 +186,6 @@ uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, SFa
 		}
 	}
 
-	// open the file
 	uiResult = fat_open_file_by_entry(volume, &file_entry, handle, access_flags);
 	if (uiResult != FAT_SUCCESS)
 	{
@@ -194,9 +195,6 @@ uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, SFa
 	// if the file has no clusters allocated then allocate one
 	if (handle->access_flags & FAT_FILE_ACCESS_WRITE)
 	{
-		/*
-		// update the count of sequential clusters
-		*/
 		fat_file_update_sequential_cluster_count(handle);
 	}
 	return FAT_SUCCESS;
@@ -677,28 +675,23 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 	bool	bSuccess;
 	uint8*	buffer = fat_shared_buffer;
 
-	/*
 	// check that this is a valid handle
-	*/
 	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
 
-
-	/*
 	// check that another operation is not using the
 	// handle at this time
-	*/
 	if (file->busy)
+	{
 		return FAT_FILE_HANDLE_IN_USE;
-	/*
+	}
+
 	// mark the handle as in use
-	*/
 	file->busy = 1;
-	/*
+
 	// calculate how many clusters we need
-	*/
 	no_of_clusters_needed = (bytes + file->volume->no_of_bytes_per_serctor - 1) / file->volume->no_of_bytes_per_serctor;
 	no_of_clusters_needed = (no_of_clusters_needed + file->volume->no_of_sectors_per_cluster - 1) / file->volume->no_of_sectors_per_cluster;
 	no_of_clusters_needed = (file->no_of_clusters_after_pos > no_of_clusters_needed) ? 0 : (no_of_clusters_needed - file->no_of_clusters_after_pos);
@@ -1187,19 +1180,19 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 uint16 fat_file_write(SFatFile* handle, uint8* buff, uint32 length)
 {
 	uint32 uiResult;
-	/*
+
 	// check that this is a valid handle
-	*/
 	if (handle->magic != FAT_OPEN_HANDLE_MAGIC)
+	{
 		return FAT_INVALID_HANDLE;
-	/*
+	}
 	// check that the file is open for write access
-	*/
 	if (!(handle->access_flags & FAT_FILE_ACCESS_WRITE))
+	{
 		return FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS;
-	/*
+	}
+
 	// make sure length is not larger than 16-bit
-	*/
 	if (length > 0xFFFF)
 	{
 		return FAT_BUFFER_TOO_BIG;
