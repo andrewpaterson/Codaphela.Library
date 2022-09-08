@@ -79,15 +79,6 @@
 typedef uint32 FAT_ENTRY;
 
 
-// file system query structure
-// AP - What's the difference between SFatFileSystemQuery and SFatFileSystemQueryInternal?
-struct SFatFileSystemQueryInternal
-{
-	SFatDirectoryEntry current_entry;
-	SFatQueryState state;
-};
-
-
 // FAT32 FSInfo structure
 #pragma pack(push, 1)
 struct SFatFileSystemInfo
