@@ -3,6 +3,10 @@
 #include "FatVolume.h"
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 uint16 CFatVolume::Mount(CFileDrive* device)
 {
 	bool					bSuccess;
@@ -23,7 +27,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 	mpsVolume->device = device;
 
 	// mark the loaded sector as unknown
-	FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
+	fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
 
 	// retrieve the boot sector (sector 0) from the storage device
 	bSuccess = mpsVolume->device->Read(0x0, buffer);
@@ -120,19 +124,18 @@ retry:
 	// get all the info we need from BPB
 	*/
 	mpsVolume->root_directory_sectors = ((bpb->BPB_RootEntCnt * 32) + (bpb->BPB_BytsPerSec - 1)) / bpb->BPB_BytsPerSec;
-	mpsVolume->fat_size = (bpb->BPB_FATSz16) ? bpb->BPB_FATSz16 : bpb->BPB_EX.FAT32.BPB_FATSz32;
+	mpsVolume->uiFatSize = (bpb->BPB_FATSz16) ? bpb->BPB_FATSz16 : bpb->BPB_EX.FAT32.BPB_FATSz32;
 	mpsVolume->no_of_sectors = (bpb->BPB_TotSec16) ? bpb->BPB_TotSec16 : bpb->BPB_TotSec32;
-	mpsVolume->no_of_data_sectors = mpsVolume->no_of_sectors - (bpb->BPB_RsvdSecCnt + (bpb->BPB_NumFATs * mpsVolume->fat_size) + mpsVolume->root_directory_sectors);
+	mpsVolume->no_of_data_sectors = mpsVolume->no_of_sectors - (bpb->BPB_RsvdSecCnt + (bpb->BPB_NumFATs * mpsVolume->uiFatSize) + mpsVolume->root_directory_sectors);
 	mpsVolume->no_of_clusters = mpsVolume->no_of_data_sectors / bpb->BPB_SecPerClus;
-	mpsVolume->first_data_sector = bpb->BPB_RsvdSecCnt + hidden_sectors + (bpb->BPB_NumFATs * mpsVolume->fat_size) + mpsVolume->root_directory_sectors;
+	mpsVolume->first_data_sector = bpb->BPB_RsvdSecCnt + hidden_sectors + (bpb->BPB_NumFATs * mpsVolume->uiFatSize) + mpsVolume->root_directory_sectors;
 	mpsVolume->no_of_reserved_sectors = bpb->BPB_RsvdSecCnt + hidden_sectors;
 	mpsVolume->no_of_bytes_per_serctor = bpb->BPB_BytsPerSec;
 	mpsVolume->no_of_sectors_per_cluster = bpb->BPB_SecPerClus;
 	mpsVolume->no_of_fat_tables = bpb->BPB_NumFATs;
 	fsinfo_sector = bpb->BPB_EX.FAT32.BPB_FSInfo;
-	/*
+
 	// determine the FAT file system type
-	*/
 	mpsVolume->fs_type = (mpsVolume->no_of_clusters < 4085) ? FAT_FS_TYPE_FAT12 :
 		(mpsVolume->no_of_clusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
 	/*
@@ -141,7 +144,7 @@ retry:
 	switch (mpsVolume->fs_type)
 	{
 	case FAT_FS_TYPE_FAT12:
-		if (mpsVolume->fat_size <
+		if (mpsVolume->uiFatSize <
 			(((mpsVolume->no_of_clusters + (mpsVolume->no_of_clusters >> 1)) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
 		{
 			partitions_tried++;
@@ -149,7 +152,7 @@ retry:
 		}
 		break;
 	case FAT_FS_TYPE_FAT16:
-		if (mpsVolume->fat_size <
+		if (mpsVolume->uiFatSize <
 			(((mpsVolume->no_of_clusters * 2) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
 		{
 			partitions_tried++;
@@ -157,7 +160,7 @@ retry:
 		}
 		break;
 	case FAT_FS_TYPE_FAT32:
-		if (mpsVolume->fat_size <
+		if (mpsVolume->uiFatSize <
 			(((mpsVolume->no_of_clusters * 4) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
 		{
 			partitions_tried++;
@@ -165,27 +168,24 @@ retry:
 		}
 		break;
 	}
-	/*
+
 	// read the mpsVolume label from the boot sector
-	*/
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT16)
 	{
-		mpsVolume->id = bpb->BPB_EX.FAT16.BS_VolID;
+		mpsVolume->uiID = bpb->BPB_EX.FAT16.BS_VolID;
 		memcpy(label, bpb->BPB_EX.FAT16.BS_VolLab, 11);
 		strtrim(mpsVolume->label, label, 11);
 	}
 	else
 	{
-		mpsVolume->id = bpb->BPB_EX.FAT32.BS_VolID;
+		mpsVolume->uiID = bpb->BPB_EX.FAT32.BS_VolID;
 		memcpy(label, bpb->BPB_EX.FAT32.BS_VolLab, 11);
 		strtrim(mpsVolume->label, label, 11);
 	}
 
-	/*
 	// if the mpsVolume is FAT32 then copy the root
 	// entry's cluster from the BPB_RootClus field
 	// on the BPB
-	*/
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT32)
 	{
 		mpsVolume->root_cluster = bpb->BPB_EX.FAT32.BPB_RootClus;
@@ -195,16 +195,12 @@ retry:
 		mpsVolume->root_cluster = 0x0;
 	}
 
-	/*
 	// ###############################################
 	// NOTE!!!: bpb is no good from this point on!!!!
 	// ###############################################
-	*/
 
-	/*
 	// check that this is a valid FAT partition by comparing the media
 	// byte in the BPB with the 1st byte of the fat table
-	*/
 	{
 		uint8 media = bpb->BPB_Media;
 		/*
@@ -226,9 +222,7 @@ retry:
 		}
 	}
 
-	/*
 	// read mpsVolume label entry from the root directory (if any)
-	*/
 	{
 
 		FAT_QUERY_STATE_INTERNAL query;
@@ -298,11 +292,13 @@ retry:
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 uint16 CFatVolume::Unmount(void)
 {
-	/*
-	// if this is a FAT32 mpsVolume we'll update the fsinfo structure
-	*/
+	// if this is a FAT32 volume we'll update the fsinfo structure
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT32 && mpsVolume->fsinfo_sector != 0xFFFFFFFF)
 	{
 		bool			bSuccess;
@@ -311,10 +307,9 @@ uint16 CFatVolume::Unmount(void)
 		uint8* buffer = fat_shared_buffer;
 
 		// mark the loaded sector as unknown
-		FAT_SET_LOADED_SECTOR(FAT_UNKNOWN_SECTOR);
-		/*
+		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
+
 		// read the sector containing the FSInfo structure
-		*/
 		bSuccess = mpsVolume->device->Read(mpsVolume->fsinfo_sector, buffer);
 		if (!bSuccess)
 		{
@@ -357,3 +352,15 @@ uint16 CFatVolume::Unmount(void)
 	}
 	return FAT_SUCCESS;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatVolume::GetSectorSize(void)
+{
+	return mpsVolume->no_of_bytes_per_serctor;
+}
+
