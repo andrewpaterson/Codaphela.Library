@@ -18,12 +18,6 @@
 #define INT32_WORD1		1
 
 
-// FAT file system types
-#define FAT_FS_TYPE_UNSPECIFIED			0x0		// used for formatting
-#define FAT_FS_TYPE_FAT12				0x1
-#define FAT_FS_TYPE_FAT16				0x2
-#define FAT_FS_TYPE_FAT32				0x3
-
 // File Attributes
 #define FAT_ATTR_READ_ONLY				0x1
 #define FAT_ATTR_HIDDEN					0x2
