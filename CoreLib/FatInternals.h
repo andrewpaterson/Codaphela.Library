@@ -129,14 +129,9 @@ typedef struct FAT_PARTITION_ENTRY
 #pragma pack(pop)
 
 
-/*
 // BPB structure ( 224 bits/28 bytes )
-*/
-#if defined(USE_PRAGMA_PACK)
-#pragma pack(1)
-#endif
 #pragma pack(push, 1)
-typedef struct FAT_BPB
+struct SFatBIOSParameterBlock
 {
 	uint8	BS_jmpBoot[3];					/* 0  */
 	char	BS_OEMName[8];					/* 3  */
@@ -154,9 +149,8 @@ typedef struct FAT_BPB
 	uint32	BPB_TotSec32;					/* 32 */
 	union
 	{
-		/* 62 */
-		struct FAT16
-		{ /* fat16 */
+		struct SFat16BPB
+		{
 			uint8	BS_DrvNum;		
 			uint8	BS_Reserved1;	
 			uint8	BS_BootSig;		
@@ -164,14 +158,13 @@ typedef struct FAT_BPB
 			char	BS_VolLab[11];	
 			char	BS_FilSysType[8];
 			char	Pad1[8];
-			/* uint64_t Pad1; */
 			uint32	Pad2;
 			uint8	Pad3;
 			uint8	ExtraPadding[15];
-		} FAT16; /* 39bytes */
+		} sFat16;
 
-		struct FAT32
-		{ /* fat32 - 90 bytes */
+		struct SFat32BPB
+		{
 			uint32	BPB_FATSz32;
 			uint16	BPB_ExtFlags;
 			uint16	BPB_FSVer;
@@ -185,13 +178,11 @@ typedef struct FAT_BPB
 			uint32	BS_VolID;
 			char	BS_VolLab[11];
 			char	BS_FilSysType[8];
-		} FAT32;
-	} BPB_EX;
-} FAT_BPB;
+		} sFat32;
+	} uFatEx;
+};
 #pragma pack(pop)
-#if defined(USE_PRAGMA_PACK)
-#pragma pack()
-#endif
+
 
 typedef struct FAT_QUERY_STATE_INTERNAL
 {

@@ -10,7 +10,7 @@
 uint16 CFatVolume::Mount(CFileDrive* device)
 {
 	bool					bSuccess;
-	FAT_BPB*				bpb;
+	SFatBIOSParameterBlock*				bpb;
 	uint32					hidden_sectors = 0;
 	FAT_PARTITION_ENTRY*	partition_entry;
 	char					partitions_tried = 0;
@@ -88,7 +88,7 @@ retry:
 	/*
 	// set our pointer to the BPB
 	*/
-	bpb = (FAT_BPB*)buffer;
+	bpb = (SFatBIOSParameterBlock*)buffer;
 	/*
 	// if the sector size is larger than what this build
 	// allows do not mount the mpsVolume
@@ -124,7 +124,7 @@ retry:
 	// get all the info we need from BPB
 	*/
 	mpsVolume->root_directory_sectors = ((bpb->BPB_RootEntCnt * 32) + (bpb->BPB_BytsPerSec - 1)) / bpb->BPB_BytsPerSec;
-	mpsVolume->uiFatSize = (bpb->BPB_FATSz16) ? bpb->BPB_FATSz16 : bpb->BPB_EX.FAT32.BPB_FATSz32;
+	mpsVolume->uiFatSize = (bpb->BPB_FATSz16) ? bpb->BPB_FATSz16 : bpb->uFatEx.sFat32.BPB_FATSz32;
 	mpsVolume->no_of_sectors = (bpb->BPB_TotSec16) ? bpb->BPB_TotSec16 : bpb->BPB_TotSec32;
 	mpsVolume->no_of_data_sectors = mpsVolume->no_of_sectors - (bpb->BPB_RsvdSecCnt + (bpb->BPB_NumFATs * mpsVolume->uiFatSize) + mpsVolume->root_directory_sectors);
 	mpsVolume->no_of_clusters = mpsVolume->no_of_data_sectors / bpb->BPB_SecPerClus;
@@ -133,7 +133,7 @@ retry:
 	mpsVolume->no_of_bytes_per_serctor = bpb->BPB_BytsPerSec;
 	mpsVolume->no_of_sectors_per_cluster = bpb->BPB_SecPerClus;
 	mpsVolume->no_of_fat_tables = bpb->BPB_NumFATs;
-	fsinfo_sector = bpb->BPB_EX.FAT32.BPB_FSInfo;
+	fsinfo_sector = bpb->uFatEx.sFat32.BPB_FSInfo;
 
 	// determine the FAT file system type
 	mpsVolume->fs_type = (mpsVolume->no_of_clusters < 4085) ? FAT_FS_TYPE_FAT12 :
@@ -172,14 +172,14 @@ retry:
 	// read the mpsVolume label from the boot sector
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT16)
 	{
-		mpsVolume->uiID = bpb->BPB_EX.FAT16.BS_VolID;
-		memcpy(label, bpb->BPB_EX.FAT16.BS_VolLab, 11);
+		mpsVolume->uiID = bpb->uFatEx.sFat16.BS_VolID;
+		memcpy(label, bpb->uFatEx.sFat16.BS_VolLab, 11);
 		strtrim(mpsVolume->label, label, 11);
 	}
 	else
 	{
-		mpsVolume->uiID = bpb->BPB_EX.FAT32.BS_VolID;
-		memcpy(label, bpb->BPB_EX.FAT32.BS_VolLab, 11);
+		mpsVolume->uiID = bpb->uFatEx.sFat32.BS_VolID;
+		memcpy(label, bpb->uFatEx.sFat32.BS_VolLab, 11);
 		strtrim(mpsVolume->label, label, 11);
 	}
 
@@ -188,7 +188,7 @@ retry:
 	// on the BPB
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT32)
 	{
-		mpsVolume->root_cluster = bpb->BPB_EX.FAT32.BPB_RootClus;
+		mpsVolume->root_cluster = bpb->uFatEx.sFat32.BPB_RootClus;
 	}
 	else
 	{
