@@ -302,6 +302,7 @@
     <ClInclude Include="FatCommon.h" />
     <ClInclude Include="FatInternals.h" />
     <ClInclude Include="FatSharedBuffer.h" />
+    <ClInclude Include="FatStructure.h" />
     <ClInclude Include="FatVolume.h" />
     <ClInclude Include="FileDrive.h" />
     <ClInclude Include="IndexedDataEvictionCallback.h" />

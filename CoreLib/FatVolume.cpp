@@ -1,5 +1,6 @@
 #include <string.h>
 #include "FatInternals.h"
+#include "FatStructure.h"
 #include "FatVolume.h"
 
 

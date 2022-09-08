@@ -23,7 +23,6 @@
 #include <ctype.h>
 #include "Fat.h"
 #include "FatInternals.h"
-
  
 
  // function pointer for rtc access routing
