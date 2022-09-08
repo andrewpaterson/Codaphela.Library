@@ -162,7 +162,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	uint32					root_entry_sector;
 	uint32					root_entry_offset = 0;
 
-	FAT_BPB*				bpb;
+	SFatBIOSParameterBlock*				bpb;
 	FAT_FSINFO*				fsinfo;
 	SFatRawDirectoryEntry*	entry;
 
@@ -335,7 +335,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	root_entry_offset = (root_entry_offset % no_of_bytes_per_sector) / 4;
 
 	// set common Bios Parameter Block (BPB) fields.
-	bpb = (FAT_BPB*)buffer;
+	bpb = (SFatBIOSParameterBlock*)buffer;
 
 	memcpy(bpb->BS_OEMName, "FAT32LIB", 8);
 	bpb->BS_jmpBoot[0] = 0xEB;
@@ -359,19 +359,19 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		/*
 		// set FAT32 specific fields
 		*/
-		bpb->BPB_EX.FAT32.BS_DrvNum = 0;
-		bpb->BPB_EX.FAT32.BS_Reserved1 = 0;
-		bpb->BPB_EX.FAT32.BS_BootSig = 0x29;
-		bpb->BPB_EX.FAT32.BPB_FATSz32 = fatsz;
-		bpb->BPB_EX.FAT32.BPB_ExtFlags = 0;
-		bpb->BPB_EX.FAT32.BPB_FSVer = 0;
-		bpb->BPB_EX.FAT32.BPB_RootClus = root_cluster;
-		bpb->BPB_EX.FAT32.BPB_FSInfo = fsinfo_sector;
-		bpb->BPB_EX.FAT32.BPB_BkBootSec = backup_boot_sector;
-		time((time_t*)&bpb->BPB_EX.FAT32.BS_VolID);
-		memset(bpb->BPB_EX.FAT32.BPB_Reserved, 0, 12);
-		memcpy(bpb->BPB_EX.FAT32.BS_VolLab, "NO NAME    ", 11);
-		memcpy(bpb->BPB_EX.FAT32.BS_FilSysType, "FAT32   ", 8);
+		bpb->uFatEx.sFat32.BS_DrvNum = 0;
+		bpb->uFatEx.sFat32.BS_Reserved1 = 0;
+		bpb->uFatEx.sFat32.BS_BootSig = 0x29;
+		bpb->uFatEx.sFat32.BPB_FATSz32 = fatsz;
+		bpb->uFatEx.sFat32.BPB_ExtFlags = 0;
+		bpb->uFatEx.sFat32.BPB_FSVer = 0;
+		bpb->uFatEx.sFat32.BPB_RootClus = root_cluster;
+		bpb->uFatEx.sFat32.BPB_FSInfo = fsinfo_sector;
+		bpb->uFatEx.sFat32.BPB_BkBootSec = backup_boot_sector;
+		time((time_t*)&bpb->uFatEx.sFat32.BS_VolID);
+		memset(bpb->uFatEx.sFat32.BPB_Reserved, 0, 12);
+		memcpy(bpb->uFatEx.sFat32.BS_VolLab, "NO NAME    ", 11);
+		memcpy(bpb->uFatEx.sFat32.BS_FilSysType, "FAT32   ", 8);
 		/*
 		// set the volume label
 		*/
@@ -381,11 +381,11 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 			{
 				if (i < c)
 				{
-					bpb->BPB_EX.FAT32.BS_VolLab[i] = toupper(volume_label[i]);
+					bpb->uFatEx.sFat32.BS_VolLab[i] = toupper(volume_label[i]);
 				}
 				else
 				{
-					bpb->BPB_EX.FAT32.BS_VolLab[i] = 0x20;
+					bpb->uFatEx.sFat32.BS_VolLab[i] = 0x20;
 				}
 			}
 		}
@@ -393,26 +393,25 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	else
 	{
 		// set FAT12/FAT16 specific fields
-		bpb->BPB_EX.FAT16.BS_DrvNum = 0;
-		bpb->BPB_EX.FAT16.BS_Reserved1 = 0;
-		bpb->BPB_EX.FAT16.BS_BootSig = 0x29;
-		time((time_t*)&bpb->BPB_EX.FAT16.BS_VolID);
-		memcpy(bpb->BPB_EX.FAT16.BS_VolLab, "NO NAME    ", 11);
-		memcpy(bpb->BPB_EX.FAT16.BS_FilSysType, "FAT     ", 8);
+		bpb->uFatEx.sFat16.BS_DrvNum = 0;
+		bpb->uFatEx.sFat16.BS_Reserved1 = 0;
+		bpb->uFatEx.sFat16.BS_BootSig = 0x29;
+		time((time_t*)&bpb->uFatEx.sFat16.BS_VolID);
+		memcpy(bpb->uFatEx.sFat16.BS_VolLab, "NO NAME    ", 11);
+		memcpy(bpb->uFatEx.sFat16.BS_FilSysType, "FAT     ", 8);
 
 		// set the volume label
-
 		if ((c = strlen(volume_label)))
 		{
 			for (i = 0; i < 11; i++)
 			{
 				if (i < c)
 				{
-					bpb->BPB_EX.FAT16.BS_VolLab[i] = toupper(volume_label[i]);
+					bpb->uFatEx.sFat16.BS_VolLab[i] = toupper(volume_label[i]);
 				}
 				else
 				{
-					bpb->BPB_EX.FAT16.BS_VolLab[i] = 0x20;
+					bpb->uFatEx.sFat16.BS_VolLab[i] = 0x20;
 				}
 			}
 		}
