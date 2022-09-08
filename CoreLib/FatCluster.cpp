@@ -129,8 +129,8 @@ static uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* pa
 	uint32		entry_offset = 0;		/* offset of fat entry within it's sector */
 	char		entries_updated;		/* indicates that the cached sector is dirty */
 	char		next_sector_loaded = 0;	/* indicates that the next sector has been loaded */
-	FAT_ENTRY	last_fat_entry = 0;		/* stores the value of the last cluster found or EOC if no clusters found yet */
-	FAT_ENTRY	fat_entry;				/* temp value to store cluster numbers read from FAT table */
+	FatEntry	last_fat_entry = 0;		/* stores the value of the last cluster found or EOC if no clusters found yet */
+	FatEntry	fat_entry;				/* temp value to store cluster numbers read from FAT table */
 	uint32		first_cluster;
 	uint32		last_entry_sector = 0;
 	uint32		last_entry_offset = 0;
@@ -1284,7 +1284,7 @@ uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster)
 /*
 // gets the FAT structure for a given cluster number
 */
-uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_entry)
+uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FatEntry* fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;	/* todo: this one may require 64 bits for large drives? */
@@ -1423,7 +1423,7 @@ uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_
 
 
 // updates the FAT entry for a given cluster
-uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_entry)
+uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FatEntry fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1765,7 +1765,7 @@ char fat_increase_cluster_address(SFatVolume* volume, uint32 cluster, uint16 cou
 // checks if a fat entry represents the
 // last entry of a file
 */
-char fat_is_eof_entry(SFatVolume* volume, FAT_ENTRY fat)
+char fat_is_eof_entry(SFatVolume* volume, FatEntry fat)
 {
 	switch (volume->fs_type)
 	{

@@ -75,99 +75,11 @@
 #define HI16(dword)		((uint16) ((dword) >> 16 ))
 
 
- // FAT entry data type
-typedef uint32 FAT_ENTRY;
-
-
-// FAT32 FSInfo structure
-#pragma pack(push, 1)
-struct SFatFileSystemInfo
-{
-	uint32	TrailSig;
-	uint8	Reserved2[12];
-	uint32	Nxt_Free;
-	uint32	Free_Count;
-	uint32	StructSig;
-	uint8	Reserved1[480];
-	uint32	LeadSig;
-};
-#pragma pack(pop)
-
-
 // table of illegal filename chars.
 static const char ILLEGAL_CHARS[] = {
 	0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
 	0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
 };
-
-
-// MBR partition entry structure
-#pragma pack(push, 1)
-struct SFatPartitionEntry
-{
-	uint8	status;
-	uint8	chs_first_sector[3];
-	uint8	partition_type;
-	uint8	chs_last_sector[3];
-	uint32	lba_first_sector;
-	uint32	total_sectors;
-};
-#pragma pack(pop)
-
-
-// BPB structure ( 224 bits/28 bytes )
-#pragma pack(push, 1)
-struct SFatBIOSParameterBlock
-{
-	uint8	BS_jmpBoot[3];					/* 0  */
-	char	BS_OEMName[8];					/* 3  */
-	uint16	BPB_BytsPerSec;					/* 11 */
-	uint8	BPB_SecPerClus;					/* 13 */
-	uint16	BPB_RsvdSecCnt;					/* 14 */
-	uint8	BPB_NumFATs;					/* 16 */
-	uint16	BPB_RootEntCnt;					/* 17 */
-	uint16	BPB_TotSec16;					/* 19 */
-	uint8	BPB_Media;						/* 21 */
-	uint16	BPB_FATSz16;					/* 22 */
-	uint16	BPB_SecPerTrk;					/* 24 */
-	uint16	BPB_NumHeads;					/* 26 */
-	uint32	BPB_HiddSec;					/* 28 */
-	uint32	BPB_TotSec32;					/* 32 */
-	union
-	{
-		struct SFat16BPB
-		{
-			uint8	BS_DrvNum;		
-			uint8	BS_Reserved1;	
-			uint8	BS_BootSig;		
-			uint32	BS_VolID;		
-			char	BS_VolLab[11];	
-			char	BS_FilSysType[8];
-			char	Pad1[8];
-			uint32	Pad2;
-			uint8	Pad3;
-			uint8	ExtraPadding[15];
-		} sFat16;
-
-		struct SFat32BPB
-		{
-			uint32	BPB_FATSz32;
-			uint16	BPB_ExtFlags;
-			uint16	BPB_FSVer;
-			uint32	BPB_RootClus;
-			uint16	BPB_FSInfo;
-			uint16	BPB_BkBootSec;
-			uint8	BPB_Reserved[12];
-			uint8	BS_DrvNum;
-			uint8	BS_Reserved1;
-			uint8	BS_BootSig;
-			uint32	BS_VolID;
-			char	BS_VolLab[11];
-			char	BS_FilSysType[8];
-		} sFat32;
-	} uFatEx;
-};
-#pragma pack(pop)
 
 
 struct SFatQueryStateInternal
@@ -189,13 +101,13 @@ struct SFatQueryStateInternal
 
 
 // prototypes
-uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY* fat_entry);
-uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FAT_ENTRY fat_entry);
+uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FatEntry* fat_entry);
+uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FatEntry fat_entry);
 uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster);
 uint32 fat_allocate_data_cluster(SFatVolume* volume, uint32 count, char zero, uint16* result);
 uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* entry);
 char fat_increase_cluster_address(SFatVolume* volume, uint32 current_cluster, uint16 count, uint32* value);
-char fat_is_eof_entry(SFatVolume* volume, FAT_ENTRY fat);
+char fat_is_eof_entry(SFatVolume* volume, FatEntry fat);
 
 uint8 fat_long_entry_checksum(uint8* filename);
 uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
