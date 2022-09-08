@@ -72,7 +72,7 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 {
 	uint16 uiResult;
 	SFatDirectoryEntry parent_entry;
-	FAT_FILESYSTEM_QUERY_INNER* query = (FAT_FILESYSTEM_QUERY_INNER*)q;
+	SFatFileSystemQueryInternal* query = (SFatFileSystemQueryInternal*)q;
 
 	// make sure the query has a buffer
 	if (!q->state.buffer)
@@ -193,7 +193,7 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q) 
 {
 	uint16 uiResult;
-	FAT_FILESYSTEM_QUERY_INNER* query = (FAT_FILESYSTEM_QUERY_INNER*)q;
+	SFatFileSystemQueryInternal* query = (SFatFileSystemQueryInternal*)q;
 
 	/*
 	// try to get the next entry of the query
@@ -2018,9 +2018,7 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled)
 }
 
 
-/*
 // computes the short filename checksum
-*/
 uint8 fat_long_entry_checksum(uint8* filename)
 {
 	uint16 len;
