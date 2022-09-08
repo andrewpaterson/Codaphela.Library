@@ -168,6 +168,10 @@ void fat_init(void);
 uint16 fat_get_sector_size(SFatVolume* volume);
 
 
+// macro for computing the 1st sector of a cluster
+uint32 calculate_first_sector_of_cluster(SFatVolume* psVolume, uint32 cluster);
+
+
  // Gets the directory entry of a file. This function should be used
  // to get information about a file such as file size, timestamps, and
  // attributes.

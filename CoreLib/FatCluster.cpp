@@ -166,12 +166,12 @@ uint32 fat_allocate_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, u
 		/*
 		// find the 1st cluster that starts on a page boundary
 		*/
-		sector = FIRST_SECTOR_OF_CLUSTER(volume, cluster);
+		sector = calculate_first_sector_of_cluster(volume, cluster);
 		while (sector % page_size && step_count < step)
 		{
 			cluster++;
 			step_count++;
-			sector = FIRST_SECTOR_OF_CLUSTER(volume, cluster);
+			sector = calculate_first_sector_of_cluster(volume, cluster);
 		}
 	}
 #endif
@@ -1859,7 +1859,7 @@ uint16 fat_initialize_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntr
 	/*
 	// write the 1st sector of the folder
 	*/
-	current_sector = FIRST_SECTOR_OF_CLUSTER(volume, cluster);
+	current_sector = calculate_first_sector_of_cluster(volume, cluster);
 	bSuccess = volume->device->Write(current_sector++, buffer);
 	if (!bSuccess)
 	{
@@ -1902,7 +1902,7 @@ uint16 fat_zero_cluster(SFatVolume* volume, uint32 cluster, uint8* buffer)
 	// calculate the address of the 1st sector
 	// of the cluster
 	*/
-	current_sector = FIRST_SECTOR_OF_CLUSTER(volume, cluster);
+	current_sector = calculate_first_sector_of_cluster(volume, cluster);
 	counter = volume->no_of_sectors_per_cluster;
 	/*
 	// write the zeroed buffer to every sector in the cluster

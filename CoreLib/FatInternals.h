@@ -41,12 +41,6 @@
 #define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
 
 
- // macro for computing the 1st sector of a cluster
-#define FIRST_SECTOR_OF_CLUSTER(volume, cluster) 	\
-	(((cluster - 0x2) * volume->no_of_sectors_per_cluster) + \
-	volume->first_data_sector)
-
-
  // macro for checking if an entry in the FAT is free
 #define IS_FREE_FAT(volume, fat)	\
 	((volume->fs_type == FAT_FS_TYPE_FAT32) ? !(fat & 0x0FFFFFFF) : \
