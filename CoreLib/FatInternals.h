@@ -67,12 +67,12 @@
 
 
  // min and max macros
-#define MAX( a, b )					( ( ( a ) > ( b ) ) ? ( a ) : ( b ) )
-#define MIN( a, b )					( ( ( a ) < ( b ) ) ? ( a ) : ( b ) )
-#define LO8( word )					( ( uint8 ) (word) )
-#define HI8( word )					( ( uint8 ) ( (word) >> 8 ) )
-#define LO16( dword )				( ( uint16 ) (dword) )
-#define HI16( dword )				( ( uint16 ) ( (dword) >> 16 ) )
+#define MAX(a, b)		(( ( a ) > ( b ) ) ? ( a ) : ( b ) )
+#define MIN(a, b)		(( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+#define LO8(word)		((uint8) (word))
+#define HI8(word)		((uint8) ((word) >> 8 ))
+#define LO16(dword)		((uint16) (dword))
+#define HI16(dword)		((uint16) ((dword) >> 16 ))
 
 
  // FAT entry data type
@@ -80,42 +80,37 @@ typedef uint32 FAT_ENTRY;
 
 
 // file system query structure
-typedef struct _FILESYSTEM_QUERY_INNER {
+// AP - What's the difference between SFatFileSystemQuery and SFatFileSystemQueryInternal?
+struct SFatFileSystemQueryInternal
+{
 	SFatDirectoryEntry current_entry;
 	SFatQueryState state;
-}
-FAT_FILESYSTEM_QUERY_INNER;
+};
 
 
-/*
 // FAT32 FSInfo structure
-*/
 #pragma pack(push, 1)
-typedef struct FAT_FSINFO 
+struct SFatFileSystemInfo
 {
-	uint32 TrailSig;
-	uint8 Reserved2[12];
-	uint32 Nxt_Free;
-	uint32 Free_Count;
-	uint32 StructSig;
-	uint8 Reserved1[480];
-	uint32 LeadSig;
-} FAT_FSINFO;
+	uint32	TrailSig;
+	uint8	Reserved2[12];
+	uint32	Nxt_Free;
+	uint32	Free_Count;
+	uint32	StructSig;
+	uint8	Reserved1[480];
+	uint32	LeadSig;
+};
 #pragma pack(pop)
 
 
-/*
 // table of illegal filename chars.
-*/
 static const char ILLEGAL_CHARS[] = {
 	0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
 	0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
 };
 
 
-/*
 // MBR partition entry structure
-*/
 #pragma pack(push, 1)
 typedef struct FAT_PARTITION_ENTRY
 {

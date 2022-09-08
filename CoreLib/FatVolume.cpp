@@ -242,7 +242,7 @@ retry:
 	*/
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT32)
 	{
-		FAT_FSINFO* fsinfo;
+		SFatFileSystemInfo* fsinfo;
 
 		/*
 		// read the sector containing the FSInfo structure
@@ -255,7 +255,7 @@ retry:
 		/*
 		// set fsinfo pointer
 		*/
-		fsinfo = (FAT_FSINFO*)buffer;
+		fsinfo = (SFatFileSystemInfo*)buffer;
 		/*
 		// check signatures before using
 		*/
@@ -302,7 +302,7 @@ uint16 CFatVolume::Unmount(void)
 	if (mpsVolume->fs_type == FAT_FS_TYPE_FAT32 && mpsVolume->fsinfo_sector != 0xFFFFFFFF)
 	{
 		bool			bSuccess;
-		FAT_FSINFO*		fsinfo;
+		SFatFileSystemInfo*		fsinfo;
 
 		uint8* buffer = fat_shared_buffer;
 
@@ -319,7 +319,7 @@ uint16 CFatVolume::Unmount(void)
 		/*
 		// set the pointer to the fsinfo structure
 		*/
-		fsinfo = (FAT_FSINFO*)buffer;
+		fsinfo = (SFatFileSystemInfo*)buffer;
 		/*
 		// check the signatures before writting
 		// note: when you mount a removable device in windows it will channge

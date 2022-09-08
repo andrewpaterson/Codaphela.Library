@@ -163,7 +163,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	uint32					root_entry_offset = 0;
 
 	SFatBIOSParameterBlock*				bpb;
-	FAT_FSINFO*				fsinfo;
+	SFatFileSystemInfo*				fsinfo;
 	SFatRawDirectoryEntry*	entry;
 
 	uint8					buffer[MAX_SECTOR_LENGTH];
@@ -441,7 +441,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		}
 
 		// initialize the FSInfo structure
-		fsinfo = (FAT_FSINFO*)buffer;
+		fsinfo = (SFatFileSystemInfo*)buffer;
 		fsinfo->LeadSig = 0x41615252;
 		fsinfo->StructSig = 0x61417272;
 		fsinfo->Free_Count = no_of_clusters - 1;
