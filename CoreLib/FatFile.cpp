@@ -236,8 +236,8 @@ uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFa
 	handle->busy = 0;
 
 	// calculate the # of clusters allocated
-	handle->no_of_clusters_after_pos = (entry->size + volume->no_of_bytes_per_serctor - 1) / volume->no_of_bytes_per_serctor;
-	handle->no_of_clusters_after_pos = (handle->no_of_clusters_after_pos + volume->no_of_sectors_per_cluster - 1) / volume->no_of_sectors_per_cluster;
+	handle->no_of_clusters_after_pos = (entry->size + volume->uiNoOfBytesPerSector - 1) / volume->uiNoOfBytesPerSector;
+	handle->no_of_clusters_after_pos = (handle->no_of_clusters_after_pos + volume->uiNoOfSectorsPerCluster - 1) / volume->uiNoOfSectorsPerCluster;
 	if (handle->no_of_clusters_after_pos)
 	{
 		handle->no_of_clusters_after_pos--;
@@ -692,8 +692,8 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 	file->busy = 1;
 
 	// calculate how many clusters we need
-	no_of_clusters_needed = (bytes + file->volume->no_of_bytes_per_serctor - 1) / file->volume->no_of_bytes_per_serctor;
-	no_of_clusters_needed = (no_of_clusters_needed + file->volume->no_of_sectors_per_cluster - 1) / file->volume->no_of_sectors_per_cluster;
+	no_of_clusters_needed = (bytes + file->volume->uiNoOfBytesPerSector - 1) / file->volume->uiNoOfBytesPerSector;
+	no_of_clusters_needed = (no_of_clusters_needed + file->volume->uiNoOfSectorsPerCluster - 1) / file->volume->uiNoOfSectorsPerCluster;
 	no_of_clusters_needed = (file->no_of_clusters_after_pos > no_of_clusters_needed) ? 0 : (no_of_clusters_needed - file->no_of_clusters_after_pos);
 	/*
 	// if we already got all the clusters requested then thre's nothing to do
@@ -718,9 +718,9 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 
 			page_size = file->volume->device->GetPageSize();
 
-			if (page_size > file->volume->no_of_sectors_per_cluster)
+			if (page_size > file->volume->uiNoOfSectorsPerCluster)
 			{
-				uint32 clusters_per_page = page_size / file->volume->no_of_sectors_per_cluster;
+				uint32 clusters_per_page = page_size / file->volume->uiNoOfSectorsPerCluster;
 
 				if (no_of_clusters_needed % clusters_per_page)
 				{
@@ -760,7 +760,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 				// calculate the start and end address the cluster
 				*/
 				start_address = calculate_first_sector_of_cluster(file->volume, current_cluster);
-				end_address = start_address + file->volume->no_of_sectors_per_cluster;
+				end_address = start_address + file->volume->uiNoOfSectorsPerCluster;
 				/*
 				// find the last sequential sector after this address
 				*/
@@ -770,7 +770,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 
 					if (next_cluster == (current_cluster + 1))
 					{
-						end_address += file->volume->no_of_sectors_per_cluster;
+						end_address += file->volume->uiNoOfSectorsPerCluster;
 						current_cluster = next_cluster;
 					}
 					else
@@ -927,8 +927,8 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 		new_pos = offset;
 		break;
 	case FAT_SEEK_CURRENT:
-		new_pos = file->current_clus_idx * file->volume->no_of_sectors_per_cluster * file->volume->no_of_bytes_per_serctor;
-		new_pos += file->current_sector_idx * file->volume->no_of_bytes_per_serctor;
+		new_pos = file->current_clus_idx * file->volume->uiNoOfSectorsPerCluster * file->volume->uiNoOfBytesPerSector;
+		new_pos += file->current_sector_idx * file->volume->uiNoOfBytesPerSector;
 		new_pos += (uint32)(file->buffer_head - file->buffer);
 		new_pos += offset;
 		break;
@@ -958,7 +958,7 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 	*/
 	if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (new_pos % file->volume->no_of_bytes_per_serctor)
+		if (new_pos % file->volume->uiNoOfBytesPerSector)
 		{
 			file->busy = 0;
 			return FAT_MISALIGNED_IO;
@@ -971,7 +971,7 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 	/*
 	// calculate the count of sectors being used by the file up to the desired position
 	*/
-	sector_count = (new_pos + file->volume->no_of_bytes_per_serctor - 1) / file->volume->no_of_bytes_per_serctor;
+	sector_count = (new_pos + file->volume->uiNoOfBytesPerSector - 1) / file->volume->uiNoOfBytesPerSector;
 	/*
 	// set the 1st cluster as the current cluster, we'll seek from there
 	*/
@@ -981,13 +981,13 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 	/*
 	// if the file occupies more than one cluster
 	*/
-	if (sector_count > file->volume->no_of_sectors_per_cluster)
+	if (sector_count > file->volume->uiNoOfSectorsPerCluster)
 	{
 		/*
 		// calculate the count of clusters occupied by the file and
 		// update the ClustersAllocated value of the file
 		*/
-		cluster_count = (sector_count + file->volume->no_of_sectors_per_cluster - 1) / file->volume->no_of_sectors_per_cluster;
+		cluster_count = (sector_count + file->volume->uiNoOfSectorsPerCluster - 1) / file->volume->uiNoOfSectorsPerCluster;
 		/*
 		// set the file handle to point to the last cluster. if the file doesn't have
 		// that many clusters allocated this function will return 0. if that ever happens it means
@@ -1006,12 +1006,12 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 	*/
 	if (new_pos)
 	{
-		file->current_sector_idx = (((new_pos + file->volume->no_of_bytes_per_serctor - 1) / file->volume->no_of_bytes_per_serctor) - 1) % file->volume->no_of_sectors_per_cluster;
-		file->buffer_head = (uint8*)((uintptr_t)file->buffer) + (new_pos % file->volume->no_of_bytes_per_serctor);
+		file->current_sector_idx = (((new_pos + file->volume->uiNoOfBytesPerSector - 1) / file->volume->uiNoOfBytesPerSector) - 1) % file->volume->uiNoOfSectorsPerCluster;
+		file->buffer_head = (uint8*)((uintptr_t)file->buffer) + (new_pos % file->volume->uiNoOfBytesPerSector);
 
-		if (new_pos % file->volume->no_of_bytes_per_serctor == 0)
+		if (new_pos % file->volume->uiNoOfBytesPerSector == 0)
 		{
-			file->buffer_head = (uint8*)((uintptr_t)file->buffer) + file->volume->no_of_bytes_per_serctor;
+			file->buffer_head = (uint8*)((uintptr_t)file->buffer) + file->volume->uiNoOfBytesPerSector;
 		}
 	}
 	else
@@ -1075,11 +1075,11 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 			if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 			{
 				handle->buffer = handle->buffer_head;
-				handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+				handle->op_state.end_of_buffer = handle->buffer + handle->volume->uiNoOfBytesPerSector;
 			}
 			else
 			{
-				handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+				handle->op_state.end_of_buffer = handle->buffer + handle->volume->uiNoOfBytesPerSector;
 				handle->buffer_head = handle->buffer;
 			}
 			/*
@@ -1102,7 +1102,7 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 			// if this sector is the last of the current cluster then
 			// locate the next cluster and continue writing
 			*/
-			if (handle->current_sector_idx == handle->volume->no_of_sectors_per_cluster - 1)
+			if (handle->current_sector_idx == handle->volume->uiNoOfSectorsPerCluster - 1)
 			{
 				uiResult = fat_get_cluster_entry(handle->volume,
 					handle->current_clus_addr, &handle->current_clus_addr);
@@ -1137,7 +1137,7 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 			/*
 			// if we've reached a flush boundry then flush the file
 			*/
-			/*if (!(handle->op_state.pos % (handle->volume->no_of_bytes_per_serctor * FAT_FLUSH_INTERVAL)))
+			/*if (!(handle->op_state.pos % (handle->volume->uiNoOfBytesPerSector * FAT_FLUSH_INTERVAL)))
 			{
 				fat_file_flush(handle);
 			}*/
@@ -1145,13 +1145,13 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 		if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 		{
 			handle->buffer_head = handle->op_state.end_of_buffer;
-			handle->op_state.pos += handle->volume->no_of_bytes_per_serctor;
+			handle->op_state.pos += handle->volume->uiNoOfBytesPerSector;
 
 			if (handle->op_state.pos >= handle->current_size)
 			{
 				handle->current_size = handle->op_state.pos;
 			}
-			handle->op_state.bytes_remaining -= handle->volume->no_of_bytes_per_serctor;
+			handle->op_state.bytes_remaining -= handle->volume->uiNoOfBytesPerSector;
 		}
 		else
 		{
@@ -1231,8 +1231,8 @@ uint16 fat_file_write(SFatFile* handle, uint8* buff, uint32 length)
 	/*
 	// calculate current pos
 	*/
-	handle->op_state.pos = handle->current_clus_idx * handle->volume->no_of_sectors_per_cluster * handle->volume->no_of_bytes_per_serctor;
-	handle->op_state.pos += (handle->current_sector_idx) * handle->volume->no_of_bytes_per_serctor;
+	handle->op_state.pos = handle->current_clus_idx * handle->volume->uiNoOfSectorsPerCluster * handle->volume->uiNoOfBytesPerSector;
+	handle->op_state.pos += (handle->current_sector_idx) * handle->volume->uiNoOfBytesPerSector;
 	handle->op_state.pos += (uintptr_t)(handle->buffer_head - handle->buffer);
 	/*
 	// if the file is opened in unbuffered mode make sure that
@@ -1240,7 +1240,7 @@ uint16 fat_file_write(SFatFile* handle, uint8* buff, uint32 length)
 	*/
 	if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (length % handle->volume->no_of_bytes_per_serctor)
+		if (length % handle->volume->uiNoOfBytesPerSector)
 		{
 			handle->busy = 0;
 			return FAT_MISALIGNED_IO;
@@ -1254,7 +1254,7 @@ uint16 fat_file_write(SFatFile* handle, uint8* buff, uint32 length)
 		// calculate the address of the end of
 		// the current sector
 		*/
-		handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+		handle->op_state.end_of_buffer = handle->buffer + handle->volume->uiNoOfBytesPerSector;
 	}
 	/*
 	// copy the length of the buffer to be writen
@@ -1317,13 +1317,13 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 		*/
 		if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 		{
-			handle->op_state.bytes_remaining -= handle->volume->no_of_bytes_per_serctor;
-			handle->buffer_head += handle->volume->no_of_bytes_per_serctor;
+			handle->op_state.bytes_remaining -= handle->volume->uiNoOfBytesPerSector;
+			handle->buffer_head += handle->volume->uiNoOfBytesPerSector;
 			handle->op_state.end_of_buffer = handle->buffer_head;
 			if (handle->op_state.bytes_read)
-				*handle->op_state.bytes_read += handle->volume->no_of_bytes_per_serctor;
+				*handle->op_state.bytes_read += handle->volume->uiNoOfBytesPerSector;
 
-			handle->op_state.pos += handle->volume->no_of_bytes_per_serctor;
+			handle->op_state.pos += handle->volume->uiNoOfBytesPerSector;
 
 			if (handle->op_state.pos >= handle->current_size)
 			{
@@ -1360,7 +1360,7 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 			if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 			{
 				handle->buffer = handle->buffer_head;
-				handle->op_state.end_of_buffer = handle->buffer_head + handle->volume->no_of_bytes_per_serctor;
+				handle->op_state.end_of_buffer = handle->buffer_head + handle->volume->uiNoOfBytesPerSector;
 			}
 			else
 			{
@@ -1370,7 +1370,7 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 			// if this sector is the last of the current cluster
 			// we must find the next cluster
 			*/
-			if (handle->current_sector_idx == handle->volume->no_of_sectors_per_cluster - 1)
+			if (handle->current_sector_idx == handle->volume->uiNoOfSectorsPerCluster - 1)
 			{
 				// update the cluster address with the address of the
 				// next cluster
@@ -1416,11 +1416,11 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 		if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 		{
 			handle->buffer_head = handle->op_state.end_of_buffer;
-			handle->op_state.bytes_remaining -= handle->volume->no_of_bytes_per_serctor;
+			handle->op_state.bytes_remaining -= handle->volume->uiNoOfBytesPerSector;
 			if (handle->op_state.bytes_read)
-				(*handle->op_state.bytes_read) += handle->volume->no_of_bytes_per_serctor;
+				(*handle->op_state.bytes_read) += handle->volume->uiNoOfBytesPerSector;
 
-			handle->op_state.pos += handle->volume->no_of_bytes_per_serctor;
+			handle->op_state.pos += handle->volume->uiNoOfBytesPerSector;
 
 			if (handle->op_state.pos >= handle->current_size)
 			{
@@ -1499,15 +1499,15 @@ uint16 fat_file_read(SFatFile* handle, uint8* buff, uint32 length, uint32* bytes
 	/*
 	// calculate current pos
 	*/
-	handle->op_state.pos = handle->current_clus_idx * handle->volume->no_of_sectors_per_cluster * handle->volume->no_of_bytes_per_serctor;
-	handle->op_state.pos += (handle->current_sector_idx) * handle->volume->no_of_bytes_per_serctor;
+	handle->op_state.pos = handle->current_clus_idx * handle->volume->uiNoOfSectorsPerCluster * handle->volume->uiNoOfBytesPerSector;
+	handle->op_state.pos += (handle->current_sector_idx) * handle->volume->uiNoOfBytesPerSector;
 	handle->op_state.pos += (uintptr_t)(handle->buffer_head - handle->buffer);
 	/*
 	// calculate the address of the current
 	// sector and the address of the end of the buffer
 	*/
 	handle->op_state.sector_addr = handle->current_sector_idx + calculate_first_sector_of_cluster(handle->volume, handle->current_clus_addr);
-	handle->op_state.end_of_buffer = handle->buffer + handle->volume->no_of_bytes_per_serctor;
+	handle->op_state.end_of_buffer = handle->buffer + handle->volume->uiNoOfBytesPerSector;
 	/*
 	// if the file is opened in unbuffered mode make sure that
 	// we're reading a multiple of the sector size and set the buffer
@@ -1515,7 +1515,7 @@ uint16 fat_file_read(SFatFile* handle, uint8* buff, uint32 length, uint32* bytes
 	*/
 	if (handle->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (length % handle->volume->no_of_bytes_per_serctor)
+		if (length % handle->volume->uiNoOfBytesPerSector)
 		{
 			return FAT_MISALIGNED_IO;
 		}
@@ -1586,7 +1586,7 @@ uint16 fat_file_flush(SFatFile* handle)
 			// if the buffer is only partially filled we need to merge it
 			// with the one on the drive
 			*/
-			if (handle->buffer_head <= handle->buffer + handle->volume->no_of_bytes_per_serctor)
+			if (handle->buffer_head <= handle->buffer + handle->volume->uiNoOfBytesPerSector)
 			{
 				uint16 i;
 				uint8 buff[MAX_SECTOR_LENGTH];
@@ -1599,7 +1599,7 @@ uint16 fat_file_flush(SFatFile* handle)
 				}
 
 				for (i = (uint16)(handle->buffer_head -
-					handle->buffer); i < handle->volume->no_of_bytes_per_serctor; i++)
+					handle->buffer); i < handle->volume->uiNoOfBytesPerSector; i++)
 				{
 					handle->buffer[i] = buff[i];
 				}

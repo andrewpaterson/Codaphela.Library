@@ -141,7 +141,7 @@ static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forc
 
 
 // format volume
-uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_sectors_per_cluster, CFileDrive* device)
+uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
 {
 	bool					bSuccess;
 	uint32					i;
@@ -154,10 +154,10 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	uint32					fsinfo_sector;
 	uint32					no_of_root_entries;
 	uint32					no_of_bytes_per_sector;
-	uint32					no_of_reserved_sectors;
+	uint32					uiNoOfReservedSectors;
 	uint32					root_cluster;
-	uint32					no_of_clusters;
-	uint32					no_of_fat_tables;
+	uint32					uiNoOfClusters;
+	uint32					uiNoOfFatTables;
 	uint8					media_type;
 	uint32					root_entry_sector;
 	uint32					root_entry_offset = 0;
@@ -178,7 +178,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	// device in bytes
 	media_type = 0xF8;
 	fsinfo_sector = 1;
-	no_of_fat_tables = 2;
+	uiNoOfFatTables = 2;
 	backup_boot_sector = 6;
 	root_cluster = 2;
 	total_sectors = (uint32)device->GetTotalSectors();
@@ -191,33 +191,33 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		// if the user specifies a cluster size he/she must also
 		// specify a file system type. Also we can only calculate cluster
 		// size for drives with a 512 bytes sector
-		if (no_of_sectors_per_cluster || no_of_bytes_per_sector != 0x200)
+		if (uiNoOfSectorsPerCluster || no_of_bytes_per_sector != 0x200)
 		{
 			return FAT_INVALID_FORMAT_PARAMETERS;
 		}
 
 		// first try FAT12
-		no_of_sectors_per_cluster = fat_get_cluster_size(FAT_FS_TYPE_FAT12, total_sectors, 0);
+		uiNoOfSectorsPerCluster = fat_get_cluster_size(FAT_FS_TYPE_FAT12, total_sectors, 0);
 
-		if (no_of_sectors_per_cluster)
+		if (uiNoOfSectorsPerCluster)
 		{
 			fs_type = FAT_FS_TYPE_FAT12;
 		}
 		else
 		{
 			// try FAT16
-			no_of_sectors_per_cluster = fat_get_cluster_size(FAT_FS_TYPE_FAT16, total_sectors, 0);
+			uiNoOfSectorsPerCluster = fat_get_cluster_size(FAT_FS_TYPE_FAT16, total_sectors, 0);
 
-			if (no_of_sectors_per_cluster)
+			if (uiNoOfSectorsPerCluster)
 			{
 				fs_type = FAT_FS_TYPE_FAT16;
 			}
 			else
 			{
 				// try FAT32
-				no_of_sectors_per_cluster = fat_get_cluster_size(FAT_FS_TYPE_FAT32, total_sectors, 0);
+				uiNoOfSectorsPerCluster = fat_get_cluster_size(FAT_FS_TYPE_FAT32, total_sectors, 0);
 
-				if (no_of_sectors_per_cluster)
+				if (uiNoOfSectorsPerCluster)
 				{
 					fs_type = FAT_FS_TYPE_FAT32;
 				}
@@ -232,30 +232,30 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	}
 
 	// if we don't have a cluster size try to get one
-	if (!no_of_sectors_per_cluster)
+	if (!uiNoOfSectorsPerCluster)
 	{
 		// if sector size is not 512 bytes user must specify cluster size
-		if (no_of_sectors_per_cluster || no_of_bytes_per_sector != 0x200)
+		if (uiNoOfSectorsPerCluster || no_of_bytes_per_sector != 0x200)
 		{
 			return FAT_INVALID_FORMAT_PARAMETERS;
 		}
-		no_of_sectors_per_cluster = fat_get_cluster_size(fs_type, total_sectors, 1);
+		uiNoOfSectorsPerCluster = fat_get_cluster_size(fs_type, total_sectors, 1);
 	}
 
 	// if we still don't have it return error
-	if (!no_of_sectors_per_cluster)
+	if (!uiNoOfSectorsPerCluster)
 	{
 		return FAT_INVALID_FORMAT_PARAMETERS;
 	}
 
 	// calculate no of root entries and reserved sectors
 	no_of_root_entries = (fs_type == FAT_FS_TYPE_FAT32) ? 0 : 512;
-	no_of_reserved_sectors = (fs_type == FAT_FS_TYPE_FAT32) ? 32 : 1;
+	uiNoOfReservedSectors = (fs_type == FAT_FS_TYPE_FAT32) ? 32 : 1;
 
 	// calculate the count of clusters on the volume without accounting
 	// for the space that will be used by the FAT tables
 	root_dir_sectors = ((no_of_root_entries * 32) + (no_of_bytes_per_sector - 1)) / no_of_bytes_per_sector;
-	no_of_clusters = (total_sectors - no_of_reserved_sectors - root_dir_sectors) / no_of_sectors_per_cluster; /*rounds down*/
+	uiNoOfClusters = (total_sectors - uiNoOfReservedSectors - root_dir_sectors) / uiNoOfSectorsPerCluster; /*rounds down*/
 
 	// calculate the FAT table size (ignoring the fact that it won't fit
 	// since we're allocating all disk space to clusters
@@ -265,56 +265,56 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		{
 		case FAT_FS_TYPE_FAT12:
 		{
-			fatsz = (((no_of_clusters + 2) + ((no_of_clusters + 2) >> 1)) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
+			fatsz = (((uiNoOfClusters + 2) + ((uiNoOfClusters + 2) >> 1)) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
 			break;
 		}
 		case FAT_FS_TYPE_FAT16:
 		{
-			fatsz = (((no_of_clusters + 2) * 2) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
+			fatsz = (((uiNoOfClusters + 2) * 2) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
 			break;
 		}
 		case FAT_FS_TYPE_FAT32:
 		{
-			fatsz = (((no_of_clusters + 2) * 4) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
+			fatsz = (((uiNoOfClusters + 2) * 4) + no_of_bytes_per_sector - 1) / no_of_bytes_per_sector;
 			break;
 		}
 		}
 
 		// if the FAT table fits then we're done
-		if (no_of_reserved_sectors + (fatsz * no_of_fat_tables) + (no_of_clusters * no_of_sectors_per_cluster) <= total_sectors)
+		if (uiNoOfReservedSectors + (fatsz * uiNoOfFatTables) + (uiNoOfClusters * uiNoOfSectorsPerCluster) <= total_sectors)
 		{
 			break;
 		}
 
-		no_of_clusters--;
+		uiNoOfClusters--;
 	}
 
 	// check that the filesystem type/cluster size supplied is correct.
 	switch (fs_type)
 	{
 		case FAT_FS_TYPE_FAT12:
-			if (no_of_clusters > 4084)
+			if (uiNoOfClusters > 4084)
 			{
 				return FAT_INVALID_FORMAT_PARAMETERS;
 			}
 			break;
 
 		case FAT_FS_TYPE_FAT16:
-			if (no_of_clusters > 65524 || no_of_clusters < 4085)
+			if (uiNoOfClusters > 65524 || uiNoOfClusters < 4085)
 			{
 				return FAT_INVALID_FORMAT_PARAMETERS;
 			}
 			break;
 
 		case FAT_FS_TYPE_FAT32:
-			if (no_of_clusters < 65525)
+			if (uiNoOfClusters < 65525)
 			{
 				return FAT_INVALID_FORMAT_PARAMETERS;
 			}
 			break;
 	}
 
-	root_cluster = 3; /* no_of_clusters - 100; */
+	root_cluster = 3; /* uiNoOfClusters - 100; */
 
 	// calculate the offset of the cluster's FAT entry within it's sector
 	// note: when we hit get past the end of the current sector entry_offset
@@ -345,11 +345,11 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	bpb->BPB_HiddSec = 0x0;
 	bpb->BPB_SecPerTrk = 0;
 	bpb->BPB_Media = media_type;
-	bpb->BPB_NumFATs = no_of_fat_tables;
+	bpb->BPB_NumFATs = uiNoOfFatTables;
 	bpb->BPB_BytsPerSec = no_of_bytes_per_sector;
 	bpb->BPB_RootEntCnt = no_of_root_entries;
-	bpb->BPB_RsvdSecCnt = no_of_reserved_sectors;
-	bpb->BPB_SecPerClus = no_of_sectors_per_cluster;
+	bpb->BPB_RsvdSecCnt = uiNoOfReservedSectors;
+	bpb->BPB_SecPerClus = uiNoOfSectorsPerCluster;
 	bpb->BPB_TotSec16 = (fs_type == FAT_FS_TYPE_FAT32 || total_sectors > 0xFFFF) ? 0 : total_sectors;
 	bpb->BPB_TotSec32 = (fs_type == FAT_FS_TYPE_FAT32 || total_sectors > 0xFFFF) ? total_sectors : 0;
 	bpb->BPB_FATSz16 = (fs_type == FAT_FS_TYPE_FAT32) ? 0 : fatsz;
@@ -444,7 +444,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		fsinfo = (SFatFileSystemInfo*)buffer;
 		fsinfo->LeadSig = 0x41615252;
 		fsinfo->StructSig = 0x61417272;
-		fsinfo->Free_Count = no_of_clusters - 1;
+		fsinfo->Free_Count = uiNoOfClusters - 1;
 		fsinfo->Nxt_Free = 3;
 		fsinfo->TrailSig = 0xAA550000;
 		memset(fsinfo->Reserved1, 0, 480);
@@ -459,7 +459,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		}
 	}
 
-	for (c = 0; c < no_of_fat_tables; c++)
+	for (c = 0; c < uiNoOfFatTables; c++)
 	{
 		// zero out the FAT table and set the entries for clusters 0 and 1
 		// start by zeroing the whole buffer
@@ -512,7 +512,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 			}
 
 			// write the sector to all the FAT tables
-			bSuccess = device->Write(no_of_reserved_sectors + i + (c * fatsz), buffer);
+			bSuccess = device->Write(uiNoOfReservedSectors + i + (c * fatsz), buffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -532,21 +532,21 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	//
 	// this is the formula to get the 1st sector of a cluster:
 	//
-	// ((root_cluster - 2) * no_of_sectors_per_cluster) + no_of_reserved_sectors + (no_of_fat_tables * fatsz) + root_dir_sectors;
+	// ((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors;
 	//
 	// since we're using cluster 2 as the root cluster and root_dir_sectors == 0 for FAT32 this is equal to:
 	//
-	// no_of_reserved_sectors + (no_of_fat_tables * fatsz)
+	// uiNoOfReservedSectors + (uiNoOfFatTables * fatsz)
 	//
 	// so the address for the root directory is the same on FAT32 and on FAT12/16 as long as we're
 	// using cluster #2
 	memset(buffer, 0, MAX_SECTOR_LENGTH);
-	c = (fs_type == FAT_FS_TYPE_FAT32) ? no_of_sectors_per_cluster : root_dir_sectors;
+	c = (fs_type == FAT_FS_TYPE_FAT32) ? uiNoOfSectorsPerCluster : root_dir_sectors;
 	for (i = 1; i < c; i++)
 	{
 		if (fs_type == FAT_FS_TYPE_FAT32)
 		{
-			uint32 root_sector = ((root_cluster - 2) * no_of_sectors_per_cluster) + no_of_reserved_sectors + (no_of_fat_tables * fatsz) + root_dir_sectors;
+			uint32 root_sector = ((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors;
 			bSuccess = device->Write(root_sector, buffer);
 			if (!bSuccess)
 			{
@@ -555,7 +555,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 		}
 		else
 		{
-			bSuccess = device->Write(no_of_reserved_sectors + (no_of_fat_tables * fatsz) + i, buffer);
+			bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + i, buffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -599,7 +599,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	*/
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
-		bSuccess = device->Write(((root_cluster - 2) * no_of_sectors_per_cluster) + no_of_reserved_sectors + (no_of_fat_tables * fatsz) + root_dir_sectors, buffer);
+		bSuccess = device->Write(((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors, buffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -607,7 +607,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_s
 	}
 	else
 	{
-		bSuccess = device->Write(no_of_reserved_sectors + (no_of_fat_tables * fatsz), buffer);
+		bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * fatsz), buffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;

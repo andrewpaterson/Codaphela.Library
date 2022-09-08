@@ -4,27 +4,36 @@
 #include "FatSharedBuffer.h"
 
 
+enum EFatFileSystemType
+{
+	FAT_FS_TYPE_UNSPECIFIED,
+	FAT_FS_TYPE_FAT12,
+	FAT_FS_TYPE_FAT16,		
+	FAT_FS_TYPE_FAT32		
+};
+
+
 struct SFatVolume
 {
-	uint32			uiID;
-	uint32			uiFatSize;
-	uint32			root_cluster;
-	uint32			first_data_sector;
-	uint32			no_of_sectors;
-	uint32			no_of_data_sectors;
-	uint32			no_of_clusters;
-	uint32			no_of_reserved_sectors;
-	uint32			next_free_cluster;
-	uint32			total_free_clusters;
-	uint32			fsinfo_sector;
-	uint16			root_directory_sectors;
-	uint16			no_of_bytes_per_serctor;
-	uint16			no_of_sectors_per_cluster;
-	bool			bUseLongFilenames;
-	uint8			fs_type;
-	uint8			no_of_fat_tables;
-	char			label[12];
-	CFileDrive*		device;
+	uint32				uiID;
+	uint32				uiFatSize;
+	uint32				uiRootCluster;
+	uint32				uiFirstDataSector;
+	uint32				uiNoOfSectors;
+	uint32				uiNoOfDataSectors;
+	uint32				uiNoOfClusters;
+	uint32				uiNoOfReservedSectors;
+	uint32				uiNextFreeCluster;
+	uint32				uiTotalFreeClusters;
+	uint32				uiFsinfoSector;
+	uint16				uiRootDirectorySectors;
+	uint16				uiNoOfBytesPerSector;
+	uint16				uiNoOfSectorsPerCluster;
+	bool				bUseLongFilenames;
+	EFatFileSystemType	eFileSystem;
+	uint8				uiNoOfFatTables;
+	char				szLabel[12];
+	CFileDrive*			mpcDevice;
 };
 
 
@@ -35,10 +44,35 @@ public:
 	SFatVolume*		mpsVolume;
 
 public:
-	uint16	Mount(CFileDrive* device);
-	uint16	Unmount(void);
+	uint16				Mount(CFileDrive* device);
+	uint16				Unmount(void);
 
-	uint16 GetSectorSize(void);
+	bool				Read(uint64 uiSector, void* pvData);
+	bool				Write(uint64 uiSector, void* pvData);
+
+	uint16				GetSectorSize(void);
+
+	bool				HasNextFreeCluser(void);
+	bool				IsFreeFat(uint32 uifat);
+
+	uint32				GetID(void);
+	uint32				GetFatSize(void);
+	uint32				GetRootCluster(void);
+	uint32				GetFirstDataSector(void);
+	uint32				GetNoOfSectors(void);
+	uint32				GetNoOfDataSectors(void);
+	uint32				GetNoOfClusters(void);
+	uint32				GetNoOfReservedSectors(void);
+	uint32				GetNextFreeCluster(void);
+	uint32				GetTotalFreeClusters(void);
+	uint32				GetFsinfoSector(void);
+	uint16				GetRootDirectorySectors(void);
+	uint16				GetNoOfBytesPerSector(void);
+	uint16				GetNoOfSectorsPerCluster(void);
+	bool				IsUseLongFilenames(void);
+	EFatFileSystemType	GetFileSystemType(void);
+	uint8				GetNoOfFatTables(void);
+	char*				GetLabel(void);
 };
 
 

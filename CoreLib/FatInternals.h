@@ -41,12 +41,6 @@
 #define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
 
 
- // macro for checking if an entry in the FAT is free
-#define IS_FREE_FAT(volume, fat)	\
-	((volume->fs_type == FAT_FS_TYPE_FAT32) ? !(fat & 0x0FFFFFFF) : \
-	(volume->fs_type == FAT_FS_TYPE_FAT16) ? !(fat & 0xFFFF) : !(fat & 0x0FFF))
-
-
  // macros for checking if a directory entry is free
  // and if it's the last entry on the directory
 #define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0xE5 || *(entry)->uEntry.sFatRawCommon.name == 0x0)

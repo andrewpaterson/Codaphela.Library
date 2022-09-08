@@ -126,7 +126,7 @@ struct SFatOperationState
  // developer.
 struct SFatFile
 {
-	SFatVolume*				volume;
+	CFatVolume*				volume;
 	SFatDirectoryEntry		directory_entry;
 	uint32					current_size;
 	uint32					current_clus_addr;
@@ -165,11 +165,11 @@ void fat_init(void);
 
 // Gets the sector size of a volume in bytes.
 // <param name="volume">A pointer to the volume handle.</param>
-uint16 fat_get_sector_size(SFatVolume* volume);
+uint16 fat_get_sector_size(CFatVolume* volume);
 
 
 // macro for computing the 1st sector of a cluster
-uint32 calculate_first_sector_of_cluster(SFatVolume* psVolume, uint32 cluster);
+uint32 calculate_first_sector_of_cluster(CFatVolume* psVolume, uint32 cluster);
 
 
  // Gets the directory entry of a file. This function should be used
@@ -184,12 +184,12 @@ uint32 calculate_first_sector_of_cluster(SFatVolume* psVolume, uint32 cluster);
 
  // If successful it will return FAT_SUCCESS, otherwise it will return one of the
  // error codes.
-uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* entry);
+uint16 fat_get_file_entry(CFatVolume* volume, char* path, SFatDirectoryEntry* entry);
 
 
  //* Finds the first entry in a directory.
 
- //* <param name="volume">A pointer to the volume handle (SFatVolume).</param>
+ //* <param name="volume">A pointer to the volume handle (CFatVolume).</param>
  //* <param name="path">The path of the directory to query.</param>
  //* <param name="attributes">An ORed list of file attributes to filter the query.</param>
  //* <param name="dir_entry">
@@ -198,14 +198,14 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
  //* </param>
  //* <param name="query">A pointer to a SFatFileSystemQuery that will be initialized as the query handle.</param>
  //* <returns>One of the return codes defined in fat.h.</returns>
-uint16 fat_find_first_entry(SFatVolume* volume, char* path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
+uint16 fat_find_first_entry(CFatVolume* volume, char* path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
 
 
 /**
  * <summary>
  * Finds the next entry in a directory.
  * </summary>
- * <param name="volume">A pointer to the volume handle (SFatVolume).</param>
+ * <param name="volume">A pointer to the volume handle (CFatVolume).</param>
  * <param name="dir_entry">
  * A pointer-to-pointer to a SFatDirectoryEntry structure.
  * When this function returns the pointer will be set to point the the directory entry.
@@ -213,55 +213,55 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* path, uint8 attributes, SF
  * <param name="query">The file system query object.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_find_next_entry(SFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
+uint16 fat_find_next_entry(CFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
 
 
 /**
  * <summary>
  * Creates a new directory on the volume.
  * </summary>
- * <param name="volume">A pointer to the volume handle (SFatVolume).</param>
+ * <param name="volume">A pointer to the volume handle (CFatVolume).</param>
  * <param name="filename">The full path to the new directory.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_create_directory(SFatVolume* volume, char* filename);
+uint16 fat_create_directory(CFatVolume* volume, char* filename);
 
 
 /**
  * <summary>
  * Deletes a file.
  * </summary>
- * <param name="volume">A pointer to the volume handle (SFatVolume structure).</param>
+ * <param name="volume">A pointer to the volume handle (CFatVolume structure).</param>
  * <param name="filename">The full path and filename of the file to delete.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_file_delete(SFatVolume* volume, char* filename);
+uint16 fat_file_delete(CFatVolume* volume, char* filename);
 
 
 /**
  * <summary>
  * Renames a file.
  * </summary>
- * <param name="volume">A pointer to the volume handle (SFatVolume structure).</param>
+ * <param name="volume">A pointer to the volume handle (CFatVolume structure).</param>
  * <param name="original_filename">The full path and original filename of the file to be renamed.</param>
  * <param name="new_filename">The full path and new filename for the file.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_file_rename(SFatVolume* volume, char* original_filename, char* new_filename);
+uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_filename);
 
 
 /**
  * <summary>
  * Opens or create a file.
  * </summary>
- * <param name="volume">A pointer to the volume handle (SFatVolume structure).</param>
+ * <param name="volume">A pointer to the volume handle (CFatVolume structure).</param>
  * <param name="filename">The full path and filename of the file to open.</param>
  * <param name="access_flags">An ORed list of one or more of the access flags defined in fat.h</param>
  * <param name="file">A pointer to a file handle SFatFile structure.</param>
  * <returns>One of the return codes defined in fat.h.</returns>
 */
-uint16 fat_file_open(SFatVolume* volume, char* filename, uint8 access_flags, SFatFile* file);
-uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
+uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFatFile* file);
+uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
 
 /**
  * <summary>
@@ -373,7 +373,7 @@ uint16 fat_file_flush
 );
 
 
-uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 no_of_sectors_per_cluster, CFileDrive* device);
+uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);
 
 
 /**
