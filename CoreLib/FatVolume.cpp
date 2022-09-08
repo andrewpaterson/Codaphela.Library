@@ -12,7 +12,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 	bool					bSuccess;
 	SFatBIOSParameterBlock*				bpb;
 	uint32					hidden_sectors = 0;
-	FAT_PARTITION_ENTRY*	partition_entry;
+	SFatPartitionEntry*	partition_entry;
 	char					partitions_tried = 0;
 	char					label[12];
 	uint32					fsinfo_sector;
@@ -37,7 +37,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 	}
 
 	// set the partition entry pointer
-	partition_entry = (FAT_PARTITION_ENTRY*)(buffer + 0x1BE);
+	partition_entry = (SFatPartitionEntry*)(buffer + 0x1BE);
 
 retry:
 	// if we've already tried to mount the mpsVolume as partitionless

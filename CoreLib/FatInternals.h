@@ -112,15 +112,15 @@ static const char ILLEGAL_CHARS[] = {
 
 // MBR partition entry structure
 #pragma pack(push, 1)
-typedef struct FAT_PARTITION_ENTRY
+struct SFatPartitionEntry
 {
-	uint8 status;
-	uint8 chs_first_sector[3];
-	uint8 partition_type;
-	uint8 chs_last_sector[3];
-	uint32 lba_first_sector;
-	uint32 total_sectors;
-} FAT_PARTITION_ENTRY;
+	uint8	status;
+	uint8	chs_first_sector[3];
+	uint8	partition_type;
+	uint8	chs_last_sector[3];
+	uint32	lba_first_sector;
+	uint32	total_sectors;
+};
 #pragma pack(pop)
 
 
