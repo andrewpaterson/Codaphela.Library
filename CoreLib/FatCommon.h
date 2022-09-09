@@ -1,5 +1,7 @@
 #ifndef __FAT_COMMON_H__
 #define __FAT_COMMON_H__
+#include <time.h>
+#include "FatStructure.h"
 
 
 // Defines the maximun sector size (in bytes) that this library should
@@ -106,6 +108,90 @@
 #define FAT_MAX_PATH					260
 #define FAT_FIRST_LFN_ENTRY				0x40
 #define FAT_MAX_FILENAME				255
+
+
+// Stores information about directory entries.
+struct SFatDirectoryEntry
+{
+	uint8					name[FAT_MAX_FILENAME + 1];
+	uint8					attributes;
+	time_t					create_time;
+	time_t					modify_time;
+	time_t					access_time;
+	uint32					size;
+	uint32					sector_addr;
+	uint16					sector_offset;
+	SFatRawDirectoryEntry	raw;
+};
+
+
+// Holds the internal state of a directory query.
+struct SFatQueryState
+{
+	uint8						Attributes;
+	uint16						current_sector;
+	uint32						current_cluster;
+	SFatRawDirectoryEntry* current_entry_raw;
+	uint8* buffer;
+
+	SFatRawDirectoryEntry* first_entry_raw;
+
+	// LFN support members
+	uint16						long_filename[256];
+	uint8						lfn_sequence;
+	uint8						lfn_checksum;
+
+	// buffer (MUST ALWAYS BE LAST!!!)
+	uint8						buff[MAX_SECTOR_LENGTH];
+};
+
+
+// holds the state of a read or write operation
+struct SFatOperationState
+{
+	uint32					pos;
+	uint16					bytes_remaining;
+	uint32					sector_addr;
+	uint32* bytes_read;
+	uint16					length;
+	uint16					storage_state;
+	uint8* end_of_buffer;
+	uint8* buffer;
+	uint8					internal_state;
+};
+
+
+// This is the file handle structure. All the fields in this structure
+// are reserved for internal use and should not be accessed directly by the
+// developer.
+class CFatVolume;
+struct SFatFile
+{
+	CFatVolume* volume;
+	SFatDirectoryEntry		directory_entry;
+	uint32					current_size;
+	uint32					current_clus_addr;
+	uint32					current_clus_idx;
+	uint32					current_sector_idx;
+	uint32					no_of_clusters_after_pos;
+	uint16					no_of_sequential_clusters;
+	uint8* buffer_head;
+	char					buffer_dirty;
+	char					busy;
+	uint8					magic;
+	uint8					access_flags;
+	SFatOperationState		op_state;
+	uint8* buffer;
+	uint8					buffer_internal[MAX_SECTOR_LENGTH];
+};
+
+
+// Holds the state of a directory query.
+struct SFatFileSystemQuery
+{
+	SFatDirectoryEntry current_entry;
+	SFatQueryState state;
+};
 
 
 #endif // ! __FAT_COMMON_H__

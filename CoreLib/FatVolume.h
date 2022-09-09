@@ -2,6 +2,7 @@
 #define __FAT_VOLUME_H__
 #include "FileDrive.h"
 #include "FatStructure.h"
+#include "FatCommon.h"
 #include "FatSharedBuffer.h"
 
 
@@ -97,6 +98,17 @@ public:
 	uint16				FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer);
 	uint16				FatZeroCluster(CFatVolume* volume, uint32 cluster, uint8* buffer);
 	bool				FatWriteFatSector(CFatVolume* volume, uint32 sector_address, uint8* buffer);
+
+	uint16				FatFindFirstEntry(CFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
+	uint16				FatFindNextEntry(CFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
+	void				FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* entry, SFatRawDirectoryEntry* raw_entry);
+	uint16				FatCreateDirectory(CFatVolume* volume, char* directory);
+	uint16				FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectoryEntry* entry);
+	uint16				FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
+	uint16				FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry);
+	uint16				FatQueryNextEntry(CFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
+
+	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);
 };
 
 
