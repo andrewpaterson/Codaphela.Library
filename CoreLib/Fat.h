@@ -77,10 +77,6 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 void fat_init(void);
 
 
-// macro for computing the 1st sector of a cluster
-uint32 calculate_first_sector_of_cluster(CFatVolume* psVolume, uint32 cluster);
-
-
 /**
  * <summary>
  * Deletes a file.

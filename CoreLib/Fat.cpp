@@ -521,8 +521,4 @@ void fat_parse_path(char* path, char* path_part, char** filename_part)
 }
 
 
-uint32 calculate_first_sector_of_cluster(CFatVolume* psVolume, uint32 cluster)
-{
-	return (((cluster - 0x2) * psVolume->GetNoOfSectorsPerCluster()) + psVolume->GetFirstDataSector());
-}
 

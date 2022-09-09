@@ -2,6 +2,12 @@
 #define __FAT_STRUCTURE_H__
 
 
+// misc
+#define FAT_MAX_PATH					260
+#define FAT_FIRST_LFN_ENTRY				0x40
+#define FAT_MAX_FILENAME				255
+
+
 // fat 32-byte directory entry structure
 #pragma pack(push, 1)
 struct SFatRawDirectoryEntry
@@ -126,6 +132,21 @@ struct SFatBIOSParameterBlock
 	} uFatEx;
 };
 #pragma pack(pop)
+
+
+// Stores information about directory entries.
+struct SFatDirectoryEntry
+{
+	uint8					name[FAT_MAX_FILENAME + 1];
+	uint8					attributes;
+	time_t					create_time;
+	time_t					modify_time;
+	time_t					access_time;
+	uint32					size;
+	uint32					sector_addr;
+	uint16					sector_offset;
+	SFatRawDirectoryEntry	raw;
+};
 
 
 #endif // !__FAT_STRUCTURE_H__

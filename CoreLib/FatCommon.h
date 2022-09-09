@@ -104,26 +104,6 @@
 #define FAT_LOWERCASE_BASENAME			0x8
 
 
-// misc
-#define FAT_MAX_PATH					260
-#define FAT_FIRST_LFN_ENTRY				0x40
-#define FAT_MAX_FILENAME				255
-
-
-// Stores information about directory entries.
-struct SFatDirectoryEntry
-{
-	uint8					name[FAT_MAX_FILENAME + 1];
-	uint8					attributes;
-	time_t					create_time;
-	time_t					modify_time;
-	time_t					access_time;
-	uint32					size;
-	uint32					sector_addr;
-	uint16					sector_offset;
-	SFatRawDirectoryEntry	raw;
-};
-
 
 // Holds the internal state of a directory query.
 struct SFatQueryState
@@ -167,7 +147,7 @@ struct SFatOperationState
 class CFatVolume;
 struct SFatFile
 {
-	CFatVolume* volume;
+	CFatVolume*				volume;
 	SFatDirectoryEntry		directory_entry;
 	uint32					current_size;
 	uint32					current_clus_addr;
