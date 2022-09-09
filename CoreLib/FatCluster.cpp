@@ -24,16 +24,13 @@
 #include "FatSharedBuffer.h"
 
 
-#define FAT_ALLOCATE_SEQUENTIAL_CLUSTERS
-
-
-bool FAT_IS_LOADED_SECTOR(uint32 uiSector)
+bool IsFatSectorLoaded(uint32 uiSector)
 {
 	return fat_shared_buffer_sector != 0xFFFFFFFF && (fat_shared_buffer_sector == uiSector);
 }
 
 
-uint32 FAT_CALCULATE_ENTRY_OFFSET(uint8 fs_type, uint32 cluster)
+uint32 CalculateFatEntryOffset(uint8 fs_type, uint32 cluster)
 {
 	switch (fs_type)
 	{
@@ -185,7 +182,7 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 
 	// calculate the offset of the FAT entry within it's sector
 	// and the sector number
-	entry_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+	entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 	entry_sector = volume->GetNoOfReservedSectors() + (entry_offset / volume->GetNoOfBytesPerSector());
 	entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
 	last_entry_sector = entry_sector;
@@ -197,7 +194,7 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 		/*
 		// read sector into sector cache
 		*/
-		if (!FAT_IS_LOADED_SECTOR(entry_sector))
+		if (!IsFatSectorLoaded(entry_sector))
 		{
 			bSuccess = volume->Read(entry_sector, buffer);
 			if (!bSuccess)
@@ -250,7 +247,7 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 				/*
 				// calculate the sector for the new cluster
 				*/
-				entry_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+				entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 				entry_sector = volume->GetNoOfReservedSectors();
 				entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
 				/*
@@ -826,7 +823,7 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 			// note: when we hit get past the end of the current sector entry_offset
 			// will roll back to zero (or possibly 1 for FAT12)
 			*/
-			entry_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+			entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 			entry_sector = volume->GetNoOfReservedSectors() + (entry_offset / volume->GetNoOfBytesPerSector());
 			entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
 
@@ -865,7 +862,7 @@ uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster)
 	// get the offset of the cluster entry within the FAT table,
 	// the sector of the FAT table that contains the entry and the offset
 	// of the fat entry within the sector
-	fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+	fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 	entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
 	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
 
@@ -875,7 +872,7 @@ uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster)
 		/*
 		// load sector to memory
 		*/
-		if (!FAT_IS_LOADED_SECTOR(entry_sector))
+		if (!IsFatSectorLoaded(entry_sector))
 		{
 			bSuccess = volume->Read(entry_sector, buffer);
 			if (!bSuccess)
@@ -1035,7 +1032,7 @@ uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster)
 			}
 
 			// calculate the location of the next cluster in the chain
-			fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+			fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 			entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
 			entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
 		}
@@ -1084,7 +1081,7 @@ uint16 fat_get_cluster_entry(CFatVolume* volume, uint32 cluster, FatEntry* fat_e
 	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
 
 	// load sector into the buffer
-	if (!FAT_IS_LOADED_SECTOR(entry_sector))
+	if (!IsFatSectorLoaded(entry_sector))
 	{
 		bSuccess = volume->Read(entry_sector, buffer);
 		if (!bSuccess)
@@ -1198,7 +1195,7 @@ uint16 fat_set_cluster_entry(CFatVolume* volume, uint32 cluster, FatEntry fat_en
 
 
 	// read sector into buffer
-	if (!FAT_IS_LOADED_SECTOR(entry_sector))
+	if (!IsFatSectorLoaded(entry_sector))
 	{
 		bSuccess = volume->Read(entry_sector, buffer);
 		if (!bSuccess)
@@ -1329,7 +1326,7 @@ char fat_increase_cluster_address(CFatVolume* volume, uint32 cluster, uint16 cou
 	// the sector of the FAT table that contains the entry and the offset
 	// of the fat entry within the sector
 	*/
-	fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+	fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 	entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
 	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
 
@@ -1338,7 +1335,7 @@ char fat_increase_cluster_address(CFatVolume* volume, uint32 cluster, uint16 cou
 		current_sector = entry_sector;
 
 		// read sector into hte buffer
-		if (!FAT_IS_LOADED_SECTOR(current_sector))
+		if (!IsFatSectorLoaded(current_sector))
 		{
 			bSuccess = volume->Read(current_sector, buffer);
 			if (!bSuccess)
@@ -1447,7 +1444,7 @@ char fat_increase_cluster_address(CFatVolume* volume, uint32 cluster, uint16 cou
 			}
 
 			// calculate the location of the next cluster in the chain
-			fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
+			fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 			entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
 			entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
 		}
