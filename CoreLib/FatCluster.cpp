@@ -158,13 +158,11 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 		}
 	}
 #endif
-	/*
+
 	// remember the 1st cluster of our search
-	*/
 	start_cluster = cluster;
-	/*
+
 	// set the last_fat_entry value to the eof marker
-	*/
 	switch (volume->GetFileSystemType())
 	{
 		case FAT_FS_TYPE_FAT12: 
@@ -186,14 +184,11 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 	entry_sector = volume->GetNoOfReservedSectors() + (entry_offset / volume->GetNoOfBytesPerSector());
 	entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
 	last_entry_sector = entry_sector;
-	/*
+
 	// for each sector of the FAT
-	*/
-	while (1)
+	for (;;)
 	{
-		/*
 		// read sector into sector cache
-		*/
 		if (!IsFatSectorLoaded(entry_sector))
 		{
 			bSuccess = volume->Read(entry_sector, buffer);
@@ -206,27 +201,19 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 			fat_shared_buffer_sector = (entry_sector);
 		}
 
-		/*
 		// save the current sector number
-		*/
 		current_sector = entry_sector;
-		/*
+
 		// for every FAT entry in the sector...
-		*/
 		do
 		{
-			/*
 			// if we've reached the last cluster on the drive return insufficient
 			// disk space error code.
-			*/
 			if ((cluster > volume->GetNoOfClusters() + 1) && start_cluster > 2 && !wrapped_around)
 			{
 				if (entries_updated)
 				{
-					/*
 					// if the buffer is dirty flush the changes
-					*/
-
 					bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
 					if (!bSuccess)
 					{
@@ -234,25 +221,21 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 						*result = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
-					/*
+
 					// mark the buffer as clean
-					*/
 					entries_updated = 0;
 				}
-				/*
+
 				// reset the cluster # to 2
-				*/
 				cluster = 2;
 				wrapped_around = 1;
-				/*
+
 				// calculate the sector for the new cluster
-				*/
 				entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 				entry_sector = volume->GetNoOfReservedSectors();
 				entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
-				/*
+
 				// break from this loop so that sector gets loaded
-				*/
 				break;
 
 			}
@@ -292,27 +275,21 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 			{
 				case FAT_FS_TYPE_FAT12:
 				{
-					/*
 					// clear fat_entry to make sure that the upper 16
 					// bits are not set.
-					*/
 					fat_entry = 0;
-					/*
+
 					// read the 1st byte
-					*/
 					((uint8*)&fat_entry)[INT32_BYTE0] = buffer[entry_offset];
-					/*
+
 					// load the next sector (if necessary) and set the offset
 					// for the next byte in the buffer
-					*/
 					if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
 					{
 						if (entries_updated)
 						{
-							/*
 							// if the buffer is dirty flush it before we use it to load
 							// the next sector
-							*/
 							bSuccess = fat_write_fat_sector(volume, entry_sector, buffer);
 							if (!bSuccess)
 							{
@@ -320,14 +297,12 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 								*result = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
-							/*
+
 							// mark the buffer as clean
-							*/
 							entries_updated = 0;
 						}
-						/*
+
 						// load the next sector into the buffer
-						*/
 						bSuccess = volume->Read(entry_sector + 1, buffer);
 						if (!bSuccess)
 						{
@@ -356,10 +331,9 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 					{
 						fat_entry &= 0xFFF;
 					}
-					/*
+
 					// if we had to load the next sector into the cache we need
 					// to reload the current sector before continuing
-					*/
 					if (next_sector_loaded)
 					{
 						bSuccess = volume->Read(entry_sector, buffer);
@@ -710,9 +684,8 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 
 								// mark buffer as clean
 								entries_updated = 0;
-								/*
+
 								// load last_entry sector
-								*/
 								bSuccess = volume->Read(last_entry_sector, buffer);
 								if (!bSuccess)
 								{
@@ -766,10 +739,9 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 							return 0;
 						}
 					}
-					/*
+
 					// if we're allocating a cluster for a
 					// directory then initialize it properly
-					*/
 					if (parent)
 					{
 						uint16 uiResult;
@@ -818,20 +790,17 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 #else
 			cluster++;
 #endif
-			/*
 			// calculate the offset of the cluster's FAT entry within it's sector
 			// note: when we hit get past the end of the current sector entry_offset
 			// will roll back to zero (or possibly 1 for FAT12)
-			*/
 			entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
 			entry_sector = volume->GetNoOfReservedSectors() + (entry_offset / volume->GetNoOfBytesPerSector());
 			entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
 
 		} while (current_sector == entry_sector);
-		/*
+
 		// if any changes where made to the fat entry currently cached sector
 		// flush the changes to the drive before moving to next sector
-		*/
 		if (entries_updated)
 		{
 			bSuccess = fat_write_fat_sector(volume, current_sector, buffer);
@@ -869,9 +838,7 @@ uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster)
 	// loop until we reach the EOC cluster or an error occurs.
 	while (1)
 	{
-		/*
 		// load sector to memory
-		*/
 		if (!IsFatSectorLoaded(entry_sector))
 		{
 			bSuccess = volume->Read(entry_sector, buffer);
