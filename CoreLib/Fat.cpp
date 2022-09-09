@@ -787,13 +787,13 @@ uint16 fat_query_next_entry(CFatVolume* volume, SFatQueryState* query, char buff
 
 					// get the fat structure for the current cluster
 					// and return UNKNOWN_ERROR if the operation fails
-					if (fat_get_cluster_entry(volume, query->current_cluster, &fat) != FAT_SUCCESS)
+					if (volume->FatGetClusterEntry(volume, query->current_cluster, &fat) != FAT_SUCCESS)
 					{
 						return FAT_UNKNOWN_ERROR;
 					}
 
 					// if this is the last cluster of the directory...
-					if (fat_is_eof_entry(volume, fat))
+					if (volume->FatIsEOFEntry(volume, fat))
 					{
 						// set the current entry to 0
 						*query->current_entry_raw->uEntry.sFatRawCommon.name = 0;
@@ -1187,7 +1187,7 @@ uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* par
 	*/
 	if (entry_cluster == 0 && (attribs & FAT_ATTR_DIRECTORY))
 	{
-		entry_cluster = fat_allocate_directory_cluster(volume, parent, &uiResult);
+		entry_cluster = volume->FatAllocateDirectoryCluster(volume, parent, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
@@ -1459,7 +1459,7 @@ uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* par
 										// we can update it bellow if it's the eof cluster
 										*/
 										last_fat = fat;
-										uiResult = fat_get_cluster_entry(volume, fat, &fat);
+										uiResult = volume->FatGetClusterEntry(volume, fat, &fat);
 										if (uiResult != FAT_SUCCESS)
 										{
 											return uiResult;
@@ -1468,15 +1468,15 @@ uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* par
 										// if this is the end of the FAT chain allocate
 										// a new cluster to this folder and continue
 										*/
-										if (fat_is_eof_entry(volume, fat))
+										if (volume->FatIsEOFEntry(volume, fat))
 										{
-											FatEntry newfat = fat_allocate_data_cluster(volume, 1, 1, &uiResult);
+											FatEntry newfat = volume->FatAllocateDataCluster(volume, 1, 1, &uiResult);
 											if (uiResult != FAT_SUCCESS)
 											{
 												return uiResult;
 											}
 
-											uiResult = fat_set_cluster_entry(volume, last_fat, newfat);
+											uiResult = volume->FatSetClusterEntry(volume, last_fat, newfat);
 											if (uiResult != FAT_SUCCESS)
 											{
 												return uiResult;
@@ -1560,26 +1560,26 @@ uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* par
 		// case we need to rewind to write lfn entries
 		*/
 		last_fat = fat;
-		uiResult = fat_get_cluster_entry(volume, fat, &fat);
+		uiResult = volume->FatGetClusterEntry(volume, fat, &fat);
 		if (uiResult != FAT_SUCCESS)
 			return uiResult;
 		/*
 		// if this is the end of the FAT chain allocate
 		// a new cluster to this folder and continue
 		*/
-		if (fat_is_eof_entry(volume, fat))
+		if (volume->FatIsEOFEntry(volume, fat))
 		{
 			FatEntry newfat;
 			/*
 			// allocate the cluster
 			*/
-			newfat = fat_allocate_data_cluster(volume, 1, 1, &uiResult);
+			newfat = volume->FatAllocateDataCluster(volume, 1, 1, &uiResult);
 			if (uiResult != FAT_SUCCESS)
 				return uiResult;
 			/*
 			// link it to the cluster chain
 			*/
-			uiResult = fat_set_cluster_entry(volume, last_fat, newfat);
+			uiResult = volume->FatSetClusterEntry(volume, last_fat, newfat);
 			if (uiResult != FAT_SUCCESS)
 				return uiResult;
 			fat = newfat;

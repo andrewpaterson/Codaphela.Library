@@ -1,6 +1,7 @@
 #ifndef __FAT_VOLUME_H__
 #define __FAT_VOLUME_H__
 #include "FileDrive.h"
+#include "FatStructure.h"
 #include "FatSharedBuffer.h"
 
 
@@ -60,6 +61,10 @@ public:
 	void				SetNextFreeCluster(uint32 uiCluster);
 	void				SetTotalFreeClusters(uint32 uiTotalFreeClusters);
 
+	bool				IsFatSectorLoaded(uint32 uiSector);
+	uint32				CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, uint32 cluster);
+
+
 	uint32				GetID(void);
 	uint32				GetFatSize(void);
 	uint32				GetRootCluster(void);
@@ -78,6 +83,20 @@ public:
 	EFatFileSystemType	GetFileSystemType(void);
 	uint8				GetNoOfFatTables(void);
 	char*				GetLabel(void);
+
+public:
+	uint32				FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result);
+	uint32				FatAllocateDirectoryCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result);
+	uint32				FatAllocateDataCluster(CFatVolume* volume, uint32 count, char zero, uint16* result);
+	uint32				FatAllocateDataClusterEx(CFatVolume* volume, uint32 count, char zero, uint32 page_size, uint16* result);
+	uint16				FatFreeClusterChain(CFatVolume* volume, uint32 cluster);
+	uint16				FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEntry* fat_entry);
+	uint16				FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEntry fat_entry);
+	char				FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, uint16 count, uint32* value);
+	bool				FatIsEOFEntry(CFatVolume* volume, FatEntry fat);
+	uint16				FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer);
+	uint16				FatZeroCluster(CFatVolume* volume, uint32 cluster, uint8* buffer);
+	bool				FatWriteFatSector(CFatVolume* volume, uint32 sector_address, uint8* buffer);
 };
 
 

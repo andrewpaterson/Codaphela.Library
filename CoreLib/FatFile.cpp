@@ -35,9 +35,9 @@ uint16 fat_file_update_sequential_cluster_count(SFatFile* handle)
 	handle->no_of_sequential_clusters = 0;
 	current_cluster = handle->current_clus_addr;
 
-	while (!fat_is_eof_entry(handle->volume, current_cluster))
+	while (!handle->volume->FatIsEOFEntry(handle->volume, current_cluster))
 	{
-		fat_get_cluster_entry(handle->volume, current_cluster, &next_cluster);
+		handle->volume->FatGetClusterEntry(handle->volume, current_cluster, &next_cluster);
 
 		if (next_cluster == (current_cluster + 1))
 		{
@@ -309,7 +309,7 @@ uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFa
 			}
 
 			// free the clusters allocated to the file
-			fat_free_cluster_chain(volume, handle->current_clus_addr);
+			volume->FatFreeClusterChain(volume, handle->current_clus_addr);
 		}
 
 		// reset the file handle to reflect an
@@ -403,15 +403,14 @@ uint16 fat_file_delete(CFatVolume* volume, char* filename)
 	SFatFileSystemQuery	query;
 
 
-	/*
 	// get the entry for the file
-	*/
 	uiResult = fat_get_file_entry(volume, filename, &entry);
 	if (uiResult != FAT_SUCCESS)
+	{
 		return uiResult;
-	/*
+	}
+
 	// if the entry is located go ahead and delete it.
-	*/
 	if (entry.name != 0)
 	{
 		/*
@@ -435,7 +434,7 @@ uint16 fat_file_delete(CFatVolume* volume, char* filename)
 		*/
 		if (first_cluster)
 		{
-			uiResult = fat_free_cluster_chain(volume, first_cluster);
+			uiResult = volume->FatFreeClusterChain(volume, first_cluster);
 			if (uiResult != FAT_SUCCESS)
 				return uiResult;
 		}
@@ -706,103 +705,92 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 	/*
 	// allocate a new cluster
 	*/
-#if defined(FAT_OPTIMIZE_FOR_FLASH)
+	if (file->access_flags & FAT_FILE_FLAG_OPTIMIZE_FOR_FLASH)
 	{
-		if (file->access_flags & FAT_FILE_FLAG_OPTIMIZE_FOR_FLASH)
+		uint32 current_cluster;
+		uint32 next_cluster;
+		uint32 page_size;
+		uint32 start_address;
+		uint32 end_address;
+
+		page_size = file->volume->GetPageSize();
+
+		if (page_size > file->volume->GetNoOfSectorsPerCluster())
 		{
-			uint32 current_cluster;
-			uint32 next_cluster;
-			uint32 page_size;
-			uint32 start_address;
-			uint32 end_address;
+			uint32 clusters_per_page = page_size / file->volume->GetNoOfSectorsPerCluster();
 
-			page_size = file->volume->GetPageSize();
-
-			if (page_size > file->volume->GetNoOfSectorsPerCluster())
+			if (no_of_clusters_needed % clusters_per_page)
 			{
-				uint32 clusters_per_page = page_size / file->volume->GetNoOfSectorsPerCluster();
-
-				if (no_of_clusters_needed % clusters_per_page)
-				{
-					no_of_clusters_needed += clusters_per_page - (no_of_clusters_needed % clusters_per_page);
-				}
-
-				if ((no_of_clusters_needed % clusters_per_page) != 0)
-				{
-					return FAT_UNKNOWN_ERROR;
-				}
-
-				new_cluster = fat_allocate_data_cluster_ex(file->volume, no_of_clusters_needed, 0, page_size, &uiResult);
-				if (uiResult != FAT_SUCCESS)
-				{
-					file->busy = 0;
-					return uiResult;
-				}
+				no_of_clusters_needed += clusters_per_page - (no_of_clusters_needed % clusters_per_page);
 			}
-			else
+
+			if ((no_of_clusters_needed % clusters_per_page) != 0)
 			{
-				new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 1, &uiResult);
-				if (uiResult != FAT_SUCCESS)
-				{
-					file->busy = 0;
-					return uiResult;
-				}
+				return FAT_UNKNOWN_ERROR;
 			}
-			/*
-			// find out how many clusters are allocated sequentially
-			// to this file following the current cursor location
-			*/
-			current_cluster = new_cluster;
 
-			while (!fat_is_eof_entry(file->volume, current_cluster))
-			{
-				/*
-				// calculate the start and end address the cluster
-				*/
-				start_address = calculate_first_sector_of_cluster(file->volume, current_cluster);
-				end_address = start_address + file->volume->GetNoOfSectorsPerCluster();
-				/*
-				// find the last sequential sector after this address
-				*/
-				while (!fat_is_eof_entry(file->volume, current_cluster))
-				{
-					fat_get_cluster_entry(file->volume, current_cluster, &next_cluster);
-
-					if (next_cluster == (current_cluster + 1))
-					{
-						end_address += file->volume->GetNoOfSectorsPerCluster();
-						current_cluster = next_cluster;
-					}
-					else
-					{
-						current_cluster = next_cluster;
-						break;
-					}
-				}
-				/*
-				// pre-erase the clusters
-				*/
-				file->volume->Erase(start_address, end_address - 1);
-			}
-		}
-		else
-		{
-			new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 0, &uiResult);
+			new_cluster = file->volume->FatAllocateDataClusterEx(file->volume, no_of_clusters_needed, 0, page_size, &uiResult);
 			if (uiResult != FAT_SUCCESS)
 			{
 				file->busy = 0;
 				return uiResult;
 			}
 		}
+		else
+		{
+			new_cluster = file->volume->FatAllocateDataCluster(file->volume, no_of_clusters_needed, 1, &uiResult);
+			if (uiResult != FAT_SUCCESS)
+			{
+				file->busy = 0;
+				return uiResult;
+			}
+		}
+		/*
+		// find out how many clusters are allocated sequentially
+		// to this file following the current cursor location
+		*/
+		current_cluster = new_cluster;
+
+		while (!file->volume->FatIsEOFEntry(file->volume, current_cluster))
+		{
+			/*
+			// calculate the start and end address the cluster
+			*/
+			start_address = calculate_first_sector_of_cluster(file->volume, current_cluster);
+			end_address = start_address + file->volume->GetNoOfSectorsPerCluster();
+			/*
+			// find the last sequential sector after this address
+			*/
+			while (!file->volume->FatIsEOFEntry(file->volume, current_cluster))
+			{
+				file->volume->FatGetClusterEntry(file->volume, current_cluster, &next_cluster);
+
+				if (next_cluster == (current_cluster + 1))
+				{
+					end_address += file->volume->GetNoOfSectorsPerCluster();
+					current_cluster = next_cluster;
+				}
+				else
+				{
+					current_cluster = next_cluster;
+					break;
+				}
+			}
+			/*
+			// pre-erase the clusters
+			*/
+			file->volume->Erase(start_address, end_address - 1);
+		}
 	}
-#else
-	new_cluster = fat_allocate_data_cluster(file->volume, no_of_clusters_needed, 0, &uiResult);
-	if (uiResult != FAT_SUCCESS)
+	else
 	{
-		file->busy = 0;
-		return uiResult;
+		new_cluster = file->volume->FatAllocateDataCluster(file->volume, no_of_clusters_needed, 0, &uiResult);
+		if (uiResult != FAT_SUCCESS)
+		{
+			file->busy = 0;
+			return uiResult;
+		}
 	}
-#endif
 
 	// if this is the 1st cluster cluster allocated
 	// to the file then we must modify the file's entry
@@ -846,7 +834,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 
 		if (file->no_of_clusters_after_pos)
 		{
-			if (!fat_increase_cluster_address(file->volume, file->current_clus_addr, file->no_of_clusters_after_pos, &last_cluster))
+			if (!file->volume->FatIncreaseClusterAddress(file->volume, file->current_clus_addr, file->no_of_clusters_after_pos, &last_cluster))
 			{
 				file->busy = 0;
 				return FAT_CORRUPTED_FILE;
@@ -861,7 +849,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 		// set the FAT entry for the last cluster to the beggining of the newly
 		// allocated cluster chain (ie. link them)
 		*/
-		uiResult = fat_set_cluster_entry(file->volume, last_cluster, (FatEntry)new_cluster);
+		uiResult = file->volume->FatSetClusterEntry(file->volume, last_cluster, (FatEntry)new_cluster);
 		if (uiResult != FAT_SUCCESS)
 		{
 			file->busy = 0;
@@ -993,8 +981,7 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 		// that many clusters allocated this function will return 0. if that ever happens it means
 		// that the file is corrupted
 		*/
-		if (!fat_increase_cluster_address(
-			file->volume, file->current_clus_addr, (cluster_count - 1), &file->current_clus_addr))
+		if (!file->volume->FatIncreaseClusterAddress(file->volume, file->current_clus_addr, (cluster_count - 1), &file->current_clus_addr))
 		{
 			file->busy = 0;
 			return FAT_CORRUPTED_FILE;
@@ -1104,8 +1091,7 @@ void fat_file_write_callback(SFatFile* handle, uint16* async_state_in)
 			*/
 			if (handle->current_sector_idx == handle->volume->GetNoOfSectorsPerCluster() - 1)
 			{
-				uiResult = fat_get_cluster_entry(handle->volume,
-					handle->current_clus_addr, &handle->current_clus_addr);
+				uiResult = handle->volume->FatGetClusterEntry(handle->volume, handle->current_clus_addr, &handle->current_clus_addr);
 				if (uiResult != STORAGE_SUCCESS)
 				{
 					*state = FAT_CANNOT_WRITE_MEDIA;
@@ -1374,7 +1360,7 @@ void fat_file_read_callback(SFatFile* handle, uint16* state)
 			{
 				// update the cluster address with the address of the
 				// next cluster
-				if (!fat_increase_cluster_address(handle->volume, handle->current_clus_addr, 1, &handle->current_clus_addr))
+				if (!handle->volume->FatIncreaseClusterAddress(handle->volume, handle->current_clus_addr, 1, &handle->current_clus_addr))
 				{
 					*state = FAT_CORRUPTED_FILE;
 					handle->busy = 0;
@@ -1726,15 +1712,15 @@ uint16 fat_file_close(SFatFile* handle)
 		/*
 		// free unused clusters
 		*/
-		uiResult = fat_get_cluster_entry(handle->volume, handle->current_clus_addr, &fat_entry);
+		uiResult = handle->volume->FatGetClusterEntry(handle->volume, handle->current_clus_addr, &fat_entry);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
 		}
 
-		if (!fat_is_eof_entry(handle->volume, fat_entry))
+		if (!handle->volume->FatIsEOFEntry(handle->volume, fat_entry))
 		{
-			uiResult = fat_free_cluster_chain(handle->volume, fat_entry);
+			uiResult = handle->volume->FatFreeClusterChain(handle->volume, fat_entry);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;
@@ -1746,7 +1732,7 @@ uint16 fat_file_close(SFatFile* handle)
 			case FAT_FS_TYPE_FAT16: fat_entry = FAT16_EOC; break;
 			case FAT_FS_TYPE_FAT32: fat_entry = FAT32_EOC; break;
 			}
-			uiResult = fat_set_cluster_entry(handle->volume, handle->current_clus_addr, fat_entry);
+			uiResult = handle->volume->FatSetClusterEntry(handle->volume, handle->current_clus_addr, fat_entry);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;

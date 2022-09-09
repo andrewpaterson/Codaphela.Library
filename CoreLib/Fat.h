@@ -57,9 +57,6 @@
 #define FAT_USE_SYSTEM_TIME
 
 
-#define FAT_OPTIMIZE_FOR_FLASH
-
-
 // this is the interval in sectors written at which an
 // open file will be flushed 0x800 = 1 MiB with 512 bytes
 // sectors
