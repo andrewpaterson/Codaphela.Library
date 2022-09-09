@@ -89,19 +89,13 @@ struct SFatQueryStateInternal
 
 
 // prototypes
-uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* entry);
-
 uint8 fat_long_entry_checksum(uint8* filename);
 uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
-uint16 fat_query_first_entry(CFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
-uint16 fat_query_next_entry(CFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
 uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
 
 int indexof(char chr, char* str, int index);
 
-void fat_get_short_name_from_entry(uint8* dest, const uint8* src);
 char fat_compare_short_name(uint8* name1, uint8* name2);
-void fat_fill_directory_entry_from_raw(SFatDirectoryEntry* entry, SFatRawDirectoryEntry* raw_entry);
 uint16 rtc_get_fat_date();
 uint16 rtc_get_fat_time();
 time_t fat_decode_date_time(uint16 date, uint16 time);

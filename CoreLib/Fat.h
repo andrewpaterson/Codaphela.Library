@@ -67,89 +67,6 @@
 typedef time_t(*FAT_GET_SYSTEM_TIME)(void);
 
 
-// Stores information about directory entries.
-struct SFatDirectoryEntry
-{
-	uint8					name[FAT_MAX_FILENAME + 1];
-	uint8					attributes;
-	time_t					create_time;
-	time_t					modify_time;
-	time_t					access_time;
-	uint32					size;
-	uint32					sector_addr;
-	uint16					sector_offset;
-	SFatRawDirectoryEntry	raw;
-};
-
-
-// Holds the internal state of a directory query.
-struct SFatQueryState
-{
-	uint8						Attributes;
-	uint16						current_sector;
-	uint32						current_cluster;
-	SFatRawDirectoryEntry*		current_entry_raw;
-	uint8*						buffer;
-
-	SFatRawDirectoryEntry*		first_entry_raw;
-
-	// LFN support members
-	uint16						long_filename[256];
-	uint8						lfn_sequence;
-	uint8						lfn_checksum;
-
-	// buffer (MUST ALWAYS BE LAST!!!)
-	uint8						buff[MAX_SECTOR_LENGTH];
-};
-
-
-// holds the state of a read or write operation
-struct SFatOperationState
-{
-	uint32					pos;
-	uint16					bytes_remaining;
-	uint32					sector_addr;
-	uint32*					bytes_read;
-	uint16					length;
-	uint16					storage_state;
-	uint8*					end_of_buffer;
-	uint8*					buffer;
-	uint8					internal_state;
-};
-
-
- // This is the file handle structure. All the fields in this structure
- // are reserved for internal use and should not be accessed directly by the
- // developer.
-struct SFatFile
-{
-	CFatVolume*				volume;
-	SFatDirectoryEntry		directory_entry;
-	uint32					current_size;
-	uint32					current_clus_addr;
-	uint32					current_clus_idx;
-	uint32					current_sector_idx;
-	uint32					no_of_clusters_after_pos;
-	uint16					no_of_sequential_clusters;
-	uint8*					buffer_head;
-	char					buffer_dirty;
-	char					busy;
-	uint8					magic;
-	uint8					access_flags;
-	SFatOperationState		op_state;
-	uint8*					buffer;
-	uint8					buffer_internal[MAX_SECTOR_LENGTH];
-};
-
-
-// Holds the state of a directory query.
-struct SFatFileSystemQuery
-{
-	SFatDirectoryEntry current_entry;
-	SFatQueryState state;
-};
-
-
 #if !defined(FAT_USE_SYSTEM_TIME)
 // Registers the function that gets the system time.
 void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
@@ -160,68 +77,8 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 void fat_init(void);
 
 
-// Gets the sector size of a volume in bytes.
-// <param name="volume">A pointer to the volume handle.</param>
-uint16 fat_get_sector_size(CFatVolume* volume);
-
-
 // macro for computing the 1st sector of a cluster
 uint32 calculate_first_sector_of_cluster(CFatVolume* psVolume, uint32 cluster);
-
-
- // Gets the directory entry of a file. This function should be used
- // to get information about a file such as file size, timestamps, and
- // attributes.
-
- // <param name="volume">The handle of the volume containing the file.</param>
- // <param name="path">The path of the file within the volume.</param>
- // <param name="entry">A pointer to a SFatDirectoryEntry structure where the
- // details about the file will be stored.
- // </param>
-
- // If successful it will return FAT_SUCCESS, otherwise it will return one of the
- // error codes.
-uint16 fat_get_file_entry(CFatVolume* volume, char* path, SFatDirectoryEntry* entry);
-
-
- //* Finds the first entry in a directory.
-
- //* <param name="volume">A pointer to the volume handle (CFatVolume).</param>
- //* <param name="path">The path of the directory to query.</param>
- //* <param name="attributes">An ORed list of file attributes to filter the query.</param>
- //* <param name="dir_entry">
- //* A pointer-to-pointer to a SFatDirectoryEntry structure.
- //* When this function returns the pointer will be set to to point to the directory entry.
- //* </param>
- //* <param name="query">A pointer to a SFatFileSystemQuery that will be initialized as the query handle.</param>
- //* <returns>One of the return codes defined in fat.h.</returns>
-uint16 fat_find_first_entry(CFatVolume* volume, char* path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
-
-
-/**
- * <summary>
- * Finds the next entry in a directory.
- * </summary>
- * <param name="volume">A pointer to the volume handle (CFatVolume).</param>
- * <param name="dir_entry">
- * A pointer-to-pointer to a SFatDirectoryEntry structure.
- * When this function returns the pointer will be set to point the the directory entry.
- * </param>
- * <param name="query">The file system query object.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_find_next_entry(CFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* query);
-
-
-/**
- * <summary>
- * Creates a new directory on the volume.
- * </summary>
- * <param name="volume">A pointer to the volume handle (CFatVolume).</param>
- * <param name="filename">The full path to the new directory.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_create_directory(CFatVolume* volume, char* filename);
 
 
 /**

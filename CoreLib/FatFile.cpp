@@ -75,10 +75,10 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 	}
 
 	// get the file entry
-	uiResult = fat_get_file_entry(volume, filename, &file_entry);
+	uiResult = volume->FatGetFileEntry(volume, filename, &file_entry);
 
 	// if we could not get the file entry then return
-	// the error that we received from fat_get_file_entry
+	// the error that we received from FatGetFileEntry
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
@@ -147,9 +147,9 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 			filename_scanner++;
 
 			// try to get the entry for the parent directory
-			uiResult = fat_get_file_entry(volume, file_path, &parent_entry);
+			uiResult = volume->FatGetFileEntry(volume, file_path, &parent_entry);
 
-			// if fat_get_file_entry returned an error
+			// if FatGetFileEntry returned an error
 			// then we return the error code to the calling
 			// function
 			if (uiResult != FAT_SUCCESS)
@@ -164,7 +164,7 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 			}
 
 			// try to create the directory entry
-			uiResult = fat_create_directory_entry(volume, &parent_entry.raw, filename_scanner, 0, 0, &file_entry);
+			uiResult = volume->FatCreateDirectoryEntry(volume, &parent_entry.raw, filename_scanner, 0, 0, &file_entry);
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
@@ -404,7 +404,7 @@ uint16 fat_file_delete(CFatVolume* volume, char* filename)
 
 
 	// get the entry for the file
-	uiResult = fat_get_file_entry(volume, filename, &entry);
+	uiResult = volume->FatGetFileEntry(volume, filename, &entry);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
@@ -462,7 +462,7 @@ uint16 fat_file_delete(CFatVolume* volume, char* filename)
 	fat_parse_path(filename, path_part, &name_part);
 
 	// get the 1st LFN entry of the parent directory
-	uiResult = fat_find_first_entry(volume, path_part, FAT_ATTR_LONG_NAME, 0, &query);
+	uiResult = volume->FatFindFirstEntry(volume, path_part, FAT_ATTR_LONG_NAME, 0, &query);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
@@ -497,7 +497,7 @@ uint16 fat_file_delete(CFatVolume* volume, char* filename)
 		/*
 		// get the next LFN entry
 		*/
-		fat_find_next_entry(volume, 0, &query);
+		volume->FatFindNextEntry(volume, 0, &query);
 	}
 
 	/*
@@ -517,59 +517,51 @@ uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_fi
 	SFatDirectoryEntry		original_entry;
 	SFatDirectoryEntry		new_entry;
 	bool					bSuccess;
-
 	uint8					checksum = 0;
 	char					original_parent[256];
-
 	char*					new_filename_part;
+	uint8*					buffer = fat_shared_buffer;
 
-	uint8* buffer = fat_shared_buffer;
-
-	/*
 	// parse paths
-	*/
 	fat_parse_path(original_filename, original_parent, &original_filename_part);
 	fat_parse_path(new_filename, new_parent, &new_filename_part);
-	/*
-	// try to get the new entry to see if it exists.
-	*/
-	fat_get_file_entry(volume, new_filename, &new_entry);
-	if (*new_entry.name != 0)
-		return FAT_FILENAME_ALREADY_EXISTS;
 
-	/*
+	// try to get the new entry to see if it exists.
+	volume->FatGetFileEntry(volume, new_filename, &new_entry);
+	if (*new_entry.name != 0)
+	{
+		return FAT_FILENAME_ALREADY_EXISTS;
+	}
+
 	// get the directory entry
-	*/
-	fat_get_file_entry(volume, original_filename, &original_entry);
+	volume->FatGetFileEntry(volume, original_filename, &original_entry);
 
 	if (*original_entry.name != 0)
 	{
 		SFatDirectoryEntry parent;
-		/*
+		
 		// compute the checksum for the file
-		*/
 		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.uEntry.sFatRawCommon.name);
 
-		/*
 		// get the cluster # for the entry
-		*/
 		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
 		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-		/*
+
 		// get the new parent entry
-		*/
-		uiResult = fat_get_file_entry(volume, new_parent, &parent);
+		uiResult = volume->FatGetFileEntry(volume, new_parent, &parent);
 		if (uiResult != FAT_SUCCESS)
+		{
 			return uiResult;
-		/*
+		}
+
 		// create the new entry in the parent folder
-		*/
-		uiResult = fat_create_directory_entry(volume, &parent.raw, new_filename_part, original_entry.attributes, entry_cluster, &new_entry);
+		uiResult = volume->FatCreateDirectoryEntry(volume, &parent.raw, new_filename_part, original_entry.attributes, entry_cluster, &new_entry);
 		if (uiResult != FAT_SUCCESS)
+		{
 			return uiResult;
-		/*
+		}
+
 		// copy all info except name from the old entry to the new one
-		*/
 		new_entry.raw.uEntry.sFatRawCommon.access_date = original_entry.raw.uEntry.sFatRawCommon.access_date;
 		new_entry.raw.uEntry.sFatRawCommon.attributes = original_entry.raw.uEntry.sFatRawCommon.attributes;
 		new_entry.raw.uEntry.sFatRawCommon.create_date = original_entry.raw.uEntry.sFatRawCommon.create_date;
@@ -581,9 +573,8 @@ uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_fi
 		new_entry.raw.uEntry.sFatRawCommon.modify_time = original_entry.raw.uEntry.sFatRawCommon.modify_time;
 		new_entry.raw.uEntry.sFatRawCommon.reserved = original_entry.raw.uEntry.sFatRawCommon.reserved;
 		new_entry.raw.uEntry.sFatRawCommon.size = original_entry.raw.uEntry.sFatRawCommon.size;
-		/*
+
 		// write modified entry to drive
-		*/
 		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 		bSuccess = volume->Read(new_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
@@ -598,9 +589,8 @@ uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_fi
 		{
 			return uiResult;
 		}
-		/*
+
 		// mark the original entry as deleted.
-		*/
 		*original_entry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
 		bSuccess = volume->Read(original_entry.sector_addr, buffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
@@ -615,28 +605,23 @@ uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_fi
 		{
 			return uiResult;
 		}
-		/*
-		// release lock on the buffer
-		*/
 	}
 	{
 		SFatFileSystemQuery query;
-		/*
+
 		// get the 1st LFN entry of the parent directory
-		*/
-		uiResult = fat_find_first_entry(volume, original_parent, FAT_ATTR_LONG_NAME, 0, &query);
+		uiResult = volume->FatFindFirstEntry(volume, original_parent, FAT_ATTR_LONG_NAME, 0, &query);
 		if (uiResult != FAT_SUCCESS)
+		{
 			return uiResult;
-		/*
+		}
+
 		// loop through each entry.
-		*/
 		while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
 		{
 			if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
 			{
-				/*
 				// mark the entry as deleted
-				*/
 				fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 				bSuccess = volume->Read(query.current_entry.sector_addr, buffer);
@@ -653,19 +638,15 @@ uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_fi
 					return uiResult;
 				}
 			}
-			/*
 			// get the next LFN entry
-			*/
-			fat_find_next_entry(volume, 0, &query);
+			volume->FatFindNextEntry(volume, 0, &query);
 		}
 	}
 
 	return FAT_SUCCESS;
 }
 
-/*
 // pre-allocates disk space for a file
-*/
 uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 {
 	uint16	uiResult;
@@ -694,17 +675,15 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 	no_of_clusters_needed = (bytes + file->volume->GetNoOfBytesPerSector() - 1) / file->volume->GetNoOfBytesPerSector();
 	no_of_clusters_needed = (no_of_clusters_needed + file->volume->GetNoOfSectorsPerCluster() - 1) / file->volume->GetNoOfSectorsPerCluster();
 	no_of_clusters_needed = (file->no_of_clusters_after_pos > no_of_clusters_needed) ? 0 : (no_of_clusters_needed - file->no_of_clusters_after_pos);
-	/*
+
 	// if we already got all the clusters requested then thre's nothing to do
-	*/
 	if (no_of_clusters_needed == 0)
 	{
 		file->busy = 0;
 		return FAT_SUCCESS;
 	}
-	/*
+
 	// allocate a new cluster
-	*/
 	if (file->access_flags & FAT_FILE_FLAG_OPTIMIZE_FOR_FLASH)
 	{
 		uint32 current_cluster;
@@ -745,22 +724,18 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 				return uiResult;
 			}
 		}
-		/*
+
 		// find out how many clusters are allocated sequentially
 		// to this file following the current cursor location
-		*/
 		current_cluster = new_cluster;
 
 		while (!file->volume->FatIsEOFEntry(file->volume, current_cluster))
 		{
-			/*
 			// calculate the start and end address the cluster
-			*/
 			start_address = calculate_first_sector_of_cluster(file->volume, current_cluster);
 			end_address = start_address + file->volume->GetNoOfSectorsPerCluster();
-			/*
+
 			// find the last sequential sector after this address
-			*/
 			while (!file->volume->FatIsEOFEntry(file->volume, current_cluster))
 			{
 				file->volume->FatGetClusterEntry(file->volume, current_cluster, &next_cluster);
@@ -776,9 +751,8 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 					break;
 				}
 			}
-			/*
+
 			// pre-erase the clusters
-			*/
 			file->volume->Erase(start_address, end_address - 1);
 		}
 	}
@@ -881,9 +855,7 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 	return FAT_SUCCESS;
 }
 
-/*
 // moves the file cursor to the specified offset
-*/
 uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 {
 	uint32	new_pos;
