@@ -220,7 +220,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 
 		SFatQueryStateInternal query;
 		query.buffer = buffer;
-		if (FatQueryFirstEntry(this, 0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
+		if (FatQueryFirstEntry(0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
 		{
 			if (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
 			{
@@ -472,9 +472,9 @@ uint32 CFatVolume::CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDirectoryCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result)
+uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, uint16* result)
 {
-	return FatAllocateCluster(volume, parent, 1, 1, 1, result);
+	return FatAllocateCluster(parent, 1, 1, 1, result);
 }
 
 
@@ -488,9 +488,9 @@ uint32 CFatVolume::FatAllocateDirectoryCluster(CFatVolume* volume, SFatRawDirect
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataCluster(CFatVolume* volume, uint32 count, char zero, uint16* result)
+uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, uint16* result)
 {
-	return FatAllocateCluster(volume, 0, count, zero, 1, result);
+	return FatAllocateCluster(0, count, zero, 1, result);
 }
 
 
@@ -498,9 +498,9 @@ uint32 CFatVolume::FatAllocateDataCluster(CFatVolume* volume, uint32 count, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataClusterEx(CFatVolume* volume, uint32 count, char zero, uint32 page_size, uint16* result)
+uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, uint16* result)
 {
-	return FatAllocateCluster(volume, 0, count, zero, page_size, result);
+	return FatAllocateCluster(0, count, zero, page_size, result);
 }
 
 
@@ -512,7 +512,7 @@ uint32 CFatVolume::FatAllocateDataClusterEx(CFatVolume* volume, uint32 count, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result)
+uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result)
 {
 	bool		bSuccess;
 	uint32		entry_sector;			/* the address of the cached sector */
@@ -554,26 +554,26 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 	first_cluster = 0;
 
 	// if we got a hint of the 1st free cluster then take it
-	if (volume->HasNextFreeCluser())
+	if (HasNextFreeCluser())
 	{
-		cluster = volume->GetNextFreeCluster();
+		cluster = GetNextFreeCluster();
 	}
 
 	// find the step between clusters allocated on page boundaries
-	if (volume->GetNoOfSectorsPerCluster() < page_size)
+	if (GetNoOfSectorsPerCluster() < page_size)
 	{
 		uint32 sector;
 		uint16 step_count = 0;
-		step = (uint16)(page_size / volume->GetNoOfSectorsPerCluster());
+		step = (uint16)(page_size / GetNoOfSectorsPerCluster());
 		/*
 		// find the 1st cluster that starts on a page boundary
 		*/
-		sector = calculate_first_sector_of_cluster(volume, cluster);
+		sector = CalculateFirstSectorOfCluster(cluster);
 		while (sector % page_size && step_count < step)
 		{
 			cluster++;
 			step_count++;
-			sector = calculate_first_sector_of_cluster(volume, cluster);
+			sector = CalculateFirstSectorOfCluster(cluster);
 		}
 	}
 
@@ -581,7 +581,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 	start_cluster = cluster;
 
 	// set the last_fat_entry value to the eof marker
-	switch (volume->GetFileSystemType())
+	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
 		last_fat_entry = FAT12_EOC;
@@ -598,9 +598,9 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 
 	// calculate the offset of the FAT entry within it's sector
 	// and the sector number
-	entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-	entry_sector = volume->GetNoOfReservedSectors() + (entry_offset / volume->GetNoOfBytesPerSector());
-	entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
+	entry_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+	entry_sector = GetNoOfReservedSectors() + (entry_offset / GetNoOfBytesPerSector());
+	entry_offset = entry_offset % GetNoOfBytesPerSector();
 	last_entry_sector = entry_sector;
 
 	// for each sector of the FAT
@@ -609,7 +609,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 		// read sector into sector cache
 		if (!IsFatSectorLoaded(entry_sector))
 		{
-			bSuccess = volume->Read(entry_sector, buffer);
+			bSuccess = Read(entry_sector, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -627,12 +627,12 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 		{
 			// if we've reached the last cluster on the drive return insufficient
 			// disk space error code.
-			if ((cluster > volume->GetNoOfClusters() + 1) && start_cluster > 2 && !wrapped_around)
+			if ((cluster > GetNoOfClusters() + 1) && start_cluster > 2 && !wrapped_around)
 			{
 				if (entries_updated)
 				{
 					// if the buffer is dirty flush the changes
-					bSuccess = FatWriteFatSector(volume, current_sector, buffer);
+					bSuccess = FatWriteFatSector(current_sector, buffer);
 					if (!bSuccess)
 					{
 						fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -649,22 +649,22 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 				wrapped_around = 1;
 
 				// calculate the sector for the new cluster
-				entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-				entry_sector = volume->GetNoOfReservedSectors();
-				entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
+				entry_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+				entry_sector = GetNoOfReservedSectors();
+				entry_offset = entry_offset % GetNoOfBytesPerSector();
 
 				// break from this loop so that sector gets loaded
 				break;
 
 			}
-			else if ((cluster > volume->GetNoOfClusters() + 1) || (wrapped_around && cluster >= start_cluster))
+			else if ((cluster > GetNoOfClusters() + 1) || (wrapped_around && cluster >= start_cluster))
 			{
 				if (entries_updated)
 				{
 					// if the buffer is dirty flush the changes, otherwise when we try
 					// to free the cluster chain it would run into free clusters before
 					// the EOC resulting in lost chains (or a hang in a debug build).
-					bSuccess = FatWriteFatSector(volume, current_sector, buffer);
+					bSuccess = FatWriteFatSector(current_sector, buffer);
 					if (!bSuccess)
 					{
 						fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -674,13 +674,13 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 				}
 
 				// free any clusters that we've allocated so far
-				if (!FatIsEOFEntry(volume, last_fat_entry))
+				if (!FatIsEOFEntry(last_fat_entry))
 				{
 					// even if this returns error we cannot do anything with
 					// it as we're already returning an error code so we can only
 					// hope that the clusters get freed.
 					uint16 uiResult;
-					uiResult = FatFreeClusterChain(volume, last_fat_entry);
+					uiResult = FatFreeClusterChain(last_fat_entry);
 				}
 
 				// return insufficient disk space error
@@ -689,7 +689,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 			}
 
 			// copy the next FAT entry to the fat_entry variable
-			switch (volume->GetFileSystemType())
+			switch (GetFileSystemType())
 			{
 			case FAT_FS_TYPE_FAT12:
 			{
@@ -702,13 +702,13 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 
 				// load the next sector (if necessary) and set the offset
 				// for the next byte in the buffer
-				if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
+				if (entry_offset == GetNoOfBytesPerSector() - 1)
 				{
 					if (entries_updated)
 					{
 						// if the buffer is dirty flush it before we use it to load
 						// the next sector
-						bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+						bSuccess = FatWriteFatSector(entry_sector, buffer);
 						if (!bSuccess)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -721,7 +721,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 					}
 
 					// load the next sector into the buffer
-					bSuccess = volume->Read(entry_sector + 1, buffer);
+					bSuccess = Read(entry_sector + 1, buffer);
 					if (!bSuccess)
 					{
 						fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -754,7 +754,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 				// to reload the current sector before continuing
 				if (next_sector_loaded)
 				{
-					bSuccess = volume->Read(entry_sector, buffer);
+					bSuccess = Read(entry_sector, buffer);
 					if (!bSuccess)
 					{
 						fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -778,12 +778,12 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 			}
 
 			// if the current FAT is free
-			if (volume->IsFreeFat(fat_entry))
+			if (IsFreeFat(fat_entry))
 			{
 				// maintain the count of free cluster and the next
 				// cluster that may be free
-				volume->SetNextFreeCluster(cluster + 1);
-				volume->SetTotalFreeClusters(volume->GetTotalFreeClusters() - 1);
+				SetNextFreeCluster(cluster + 1);
+				SetTotalFreeClusters(GetTotalFreeClusters() - 1);
 
 				// if this is the 1st cluster found remember it
 				if (!first_cluster)
@@ -793,7 +793,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 
 				// mark the FAT as the the new 1st link of the cluster chain
 				// (or the end of the chain if we're only allocating 1 cluster)
-				switch (volume->GetFileSystemType())
+				switch (GetFileSystemType())
 				{
 				case FAT_FS_TYPE_FAT12:
 				{
@@ -810,10 +810,10 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 
 					// if the FAT entry spans a sector boundary flush the currently
 					// loaded sector to the drive and load the next one.
-					if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
+					if (entry_offset == GetNoOfBytesPerSector() - 1)
 					{
 						// flush the updated sector to the drive
-						bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+						bSuccess = FatWriteFatSector(entry_sector, buffer);
 						if (!bSuccess)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -825,7 +825,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						entries_updated = 0;
 
 						// load the next sector
-						bSuccess = volume->Read(entry_sector + 1, buffer);
+						bSuccess = Read(entry_sector + 1, buffer);
 						if (!bSuccess)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -852,7 +852,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 					if (next_sector_loaded)
 					{
 						// flush buffer to disk
-						bSuccess = FatWriteFatSector(volume, entry_sector + 1, buffer);
+						bSuccess = FatWriteFatSector(entry_sector + 1, buffer);
 						if (!bSuccess)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -865,7 +865,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						next_sector_loaded = 0;
 
 						// reload the current sector
-						bSuccess = volume->Read(entry_sector, buffer);
+						bSuccess = Read(entry_sector, buffer);
 						if (!bSuccess)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -888,7 +888,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							if (entries_updated)
 							{
 								// flush buffer to disk
-								bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+								bSuccess = FatWriteFatSector(entry_sector, buffer);
 								if (!bSuccess)
 								{
 									fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -901,7 +901,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							}
 
 							// load last_entry sector
-							bSuccess = volume->Read(last_entry_sector, buffer);
+							bSuccess = Read(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -923,10 +923,10 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 
 						// if the FAT entry spans a sector boundary flush the currently
 						// loaded sector to the drive and load the next one.
-						if (last_entry_offset == volume->GetNoOfBytesPerSector() - 1)
+						if (last_entry_offset == GetNoOfBytesPerSector() - 1)
 						{
 							// flush the updated sector to the drive
-							bSuccess = FatWriteFatSector(volume, last_entry_sector, buffer);
+							bSuccess = FatWriteFatSector(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								*result = FAT_CANNOT_WRITE_MEDIA;
@@ -937,7 +937,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							entries_updated = 0;
 
 							// load the next sector
-							bSuccess = volume->Read(last_entry_sector + 1, buffer);
+							bSuccess = Read(last_entry_sector + 1, buffer);
 							if (!bSuccess)
 							{
 								*result = FAT_CANNOT_READ_MEDIA;
@@ -963,7 +963,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						if (next_sector_loaded)
 						{
 							// flush buffer to disk
-							bSuccess = FatWriteFatSector(volume, last_entry_sector + 1, buffer);
+							bSuccess = FatWriteFatSector(last_entry_sector + 1, buffer);
 							if (!bSuccess)
 							{
 								*result = FAT_CANNOT_READ_MEDIA;
@@ -975,7 +975,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							next_sector_loaded = 0;
 
 							// reload the last entry sector
-							bSuccess = volume->Read(last_entry_sector, buffer);
+							bSuccess = Read(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -992,7 +992,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							if (entries_updated)
 							{
 								// flush buffer to disk
-								bSuccess = FatWriteFatSector(volume, last_entry_sector, buffer);
+								bSuccess = FatWriteFatSector(last_entry_sector, buffer);
 								if (!bSuccess)
 								{
 									fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1006,7 +1006,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							/*
 							// reload current sector
 							*/
-							bSuccess = volume->Read(entry_sector, buffer);
+							bSuccess = Read(entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1031,7 +1031,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						if (last_entry_sector != entry_sector)
 						{
 							// flush buffer to disk
-							bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+							bSuccess = FatWriteFatSector(entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1042,7 +1042,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							entries_updated = 0;
 
 							// load last_entry sector
-							bSuccess = volume->Read(last_entry_sector, buffer);
+							bSuccess = Read(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1057,7 +1057,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						if (last_entry_sector != entry_sector)
 						{
 							// flush buffer to disk
-							bSuccess = FatWriteFatSector(volume, last_entry_sector, buffer);
+							bSuccess = FatWriteFatSector(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1066,7 +1066,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							}
 
 							// reload current sector
-							bSuccess = volume->Read(entry_sector, buffer);
+							bSuccess = Read(entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1092,7 +1092,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						if (last_entry_sector != entry_sector)
 						{
 							// flush buffer to disk
-							bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+							bSuccess = FatWriteFatSector(entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1104,7 +1104,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							entries_updated = 0;
 
 							// load last_entry sector
-							bSuccess = volume->Read(last_entry_sector, buffer);
+							bSuccess = Read(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1120,7 +1120,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						if (last_entry_sector != entry_sector)
 						{
 							// flush buffer to disk
-							bSuccess = FatWriteFatSector(volume, last_entry_sector, buffer);
+							bSuccess = FatWriteFatSector(last_entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1129,7 +1129,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 							}
 
 							// reload current sector
-							bSuccess = volume->Read(entry_sector, buffer);
+							bSuccess = Read(entry_sector, buffer);
 							if (!bSuccess)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1149,7 +1149,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 					if (entries_updated)
 					{
 						// flush buffer to disk
-						bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+						bSuccess = FatWriteFatSector(entry_sector, buffer);
 						if (!bSuccess)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1163,7 +1163,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 					if (parent)
 					{
 						uint16 uiResult;
-						uiResult = FatInitializeDirectoryCluster(volume, parent, cluster, buffer);
+						uiResult = FatInitializeDirectoryCluster(parent, cluster, buffer);
 						if (uiResult != FAT_SUCCESS)
 						{
 							fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1176,7 +1176,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 						if (zero)
 						{
 							uint16 uiResult;
-							uiResult = FatZeroCluster(volume, cluster, buffer);
+							uiResult = FatZeroCluster(cluster, buffer);
 							if (uiResult != FAT_SUCCESS)
 							{
 								fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1208,9 +1208,9 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 			// calculate the offset of the cluster's FAT entry within it's sector
 			// note: when we hit get past the end of the current sector entry_offset
 			// will roll back to zero (or possibly 1 for FAT12)
-			entry_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-			entry_sector = volume->GetNoOfReservedSectors() + (entry_offset / volume->GetNoOfBytesPerSector());
-			entry_offset = entry_offset % volume->GetNoOfBytesPerSector();
+			entry_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+			entry_sector = GetNoOfReservedSectors() + (entry_offset / GetNoOfBytesPerSector());
+			entry_offset = entry_offset % GetNoOfBytesPerSector();
 
 		} while (current_sector == entry_sector);
 
@@ -1218,7 +1218,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 		// flush the changes to the drive before moving to next sector
 		if (entries_updated)
 		{
-			bSuccess = FatWriteFatSector(volume, current_sector, buffer);
+			bSuccess = FatWriteFatSector(current_sector, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1236,7 +1236,7 @@ uint32 CFatVolume::FatAllocateCluster(CFatVolume* volume, SFatRawDirectoryEntry*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
+uint16 CFatVolume::FatFreeClusterChain(uint32 cluster)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;			/* the offset of the cluster entry within the FAT table */
@@ -1250,9 +1250,9 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 	// get the offset of the cluster entry within the FAT table,
 	// the sector of the FAT table that contains the entry and the offset
 	// of the fat entry within the sector
-	fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-	entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
-	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
+	fat_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+	entry_sector = GetNoOfReservedSectors() + (fat_offset / GetNoOfBytesPerSector());
+	entry_offset = fat_offset % GetNoOfBytesPerSector();
 
 	// loop until we reach the EOC cluster or an error occurs.
 	while (1)
@@ -1260,7 +1260,7 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 		// load sector to memory
 		if (!IsFatSectorLoaded(entry_sector))
 		{
-			bSuccess = volume->Read(entry_sector, buffer);
+			bSuccess = Read(entry_sector, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1284,7 +1284,7 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 				return FAT_INVALID_CLUSTER;
 			}
 			// read the cluster entry and mark it as free
-			switch (volume->GetFileSystemType())
+			switch (GetFileSystemType())
 			{
 			case FAT_FS_TYPE_FAT12:
 			{
@@ -1315,12 +1315,12 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 					}
 				}
 
-				if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
+				if (entry_offset == GetNoOfBytesPerSector() - 1)
 				{
 					/*
 					// flush current sector to drive
 					*/
-					bSuccess = FatWriteFatSector(volume, current_sector, buffer);
+					bSuccess = FatWriteFatSector(current_sector, buffer);
 					if (!bSuccess)
 					{
 						fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1402,12 +1402,12 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 			}
 
 			// increase the count of free clusters
-			volume->SetTotalFreeClusters(volume->GetTotalFreeClusters() + 1);
+			SetTotalFreeClusters(GetTotalFreeClusters() + 1);
 
 			// if it's the EOF marker we're done, flush the buffer and go
-			if (FatIsEOFEntry(volume, cluster))
+			if (FatIsEOFEntry(cluster))
 			{
-				bSuccess = FatWriteFatSector(volume, current_sector, buffer);
+				bSuccess = FatWriteFatSector(current_sector, buffer);
 				if (!bSuccess)
 				{
 					fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1418,13 +1418,13 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 			}
 
 			// calculate the location of the next cluster in the chain
-			fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-			entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
-			entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
+			fat_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+			entry_sector = GetNoOfReservedSectors() + (fat_offset / GetNoOfBytesPerSector());
+			entry_offset = fat_offset % GetNoOfBytesPerSector();
 		}
 
 		// flush FAT table changes
-		bSuccess = FatWriteFatSector(volume, current_sector, buffer);
+		bSuccess = FatWriteFatSector(current_sector, buffer);
 		if (!bSuccess)
 		{
 			fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1439,7 +1439,7 @@ uint16 CFatVolume::FatFreeClusterChain(CFatVolume* volume, uint32 cluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEntry* fat_entry)
+uint16 CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;		/* todo: this one may require 64 bits for large drives? */
@@ -1450,7 +1450,7 @@ uint16 CFatVolume::FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 	// get the offset of the entry within the FAT table
 	// for the requested cluster
-	switch (volume->GetFileSystemType())
+	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
 		fat_offset = cluster + (cluster >> 1);
@@ -1467,13 +1467,13 @@ uint16 CFatVolume::FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 	// get the address of the sector that contains the FAT entry and
 	// the offset of the FAT entry within that sector
-	entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
-	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
+	entry_sector = GetNoOfReservedSectors() + (fat_offset / GetNoOfBytesPerSector());
+	entry_offset = fat_offset % GetNoOfBytesPerSector();
 
 	// load sector into the buffer
 	if (!IsFatSectorLoaded(entry_sector))
 	{
-		bSuccess = volume->Read(entry_sector, buffer);
+		bSuccess = Read(entry_sector, buffer);
 		if (!bSuccess)
 		{
 			fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1484,7 +1484,7 @@ uint16 CFatVolume::FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 	// set the user supplied buffer with the
 	// value of the FAT entry
-	switch (volume->GetFileSystemType())
+	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
 	{
@@ -1497,10 +1497,10 @@ uint16 CFatVolume::FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 		// load the next sector (if necessary) and set the offset
 		// for the next byte in the buffer
-		if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
+		if (entry_offset == GetNoOfBytesPerSector() - 1)
 		{
 			// load the next sector into the buffer
-			bSuccess = volume->Read(entry_sector + 1, buffer);
+			bSuccess = Read(entry_sector + 1, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1558,7 +1558,7 @@ uint16 CFatVolume::FatGetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEntry fat_entry)
+uint16 CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1567,7 +1567,7 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 	uint8* buffer = fat_shared_buffer;
 
 	// get the offset of the entry in the FAT table for the requested cluster
-	switch (volume->GetFileSystemType())
+	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
 		fat_offset = cluster + (cluster >> 1);
@@ -1584,14 +1584,14 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 	// get the address of the sector that contains the FAT entry
 	// and the offset of the FAT entry within that sector
-	entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
-	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
+	entry_sector = GetNoOfReservedSectors() + (fat_offset / GetNoOfBytesPerSector());
+	entry_offset = fat_offset % GetNoOfBytesPerSector();
 
 
 	// read sector into buffer
 	if (!IsFatSectorLoaded(entry_sector))
 	{
-		bSuccess = volume->Read(entry_sector, buffer);
+		bSuccess = Read(entry_sector, buffer);
 		if (!bSuccess)
 		{
 			fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1601,7 +1601,7 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 	}
 
 	// set the FAT entry
-	switch (volume->GetFileSystemType())
+	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
 	{
@@ -1619,10 +1619,10 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 		// if the FAT entry spans a sector boundary flush the currently
 		// loaded sector to the drive and load the next one.
-		if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
+		if (entry_offset == GetNoOfBytesPerSector() - 1)
 		{
 			// flush the updated sector to the drive
-			bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+			bSuccess = FatWriteFatSector(entry_sector, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1633,7 +1633,7 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 			entry_sector++;
 
 			// load the next sector
-			bSuccess = volume->Read(entry_sector, buffer);
+			bSuccess = Read(entry_sector, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = (0xFFFFFFFF);
@@ -1680,7 +1680,7 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 
 	// write the updated sector to the
 	// storage device
-	bSuccess = FatWriteFatSector(volume, entry_sector, buffer);
+	bSuccess = FatWriteFatSector(entry_sector, buffer);
 	if (!bSuccess)
 	{
 		fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1698,7 +1698,7 @@ uint16 CFatVolume::FatSetClusterEntry(CFatVolume* volume, uint32 cluster, FatEnt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, uint16 count, uint32* value)
+char CFatVolume::FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1721,9 +1721,9 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 	// get the offset of the cluster entry within the FAT table,
 	// the sector of the FAT table that contains the entry and the offset
 	// of the fat entry within the sector
-	fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-	entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
-	entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
+	fat_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+	entry_sector = GetNoOfReservedSectors() + (fat_offset / GetNoOfBytesPerSector());
+	entry_offset = fat_offset % GetNoOfBytesPerSector();
 
 	while (1)
 	{
@@ -1732,7 +1732,7 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 		// read sector into hte buffer
 		if (!IsFatSectorLoaded(current_sector))
 		{
-			bSuccess = volume->Read(current_sector, buffer);
+			bSuccess = Read(current_sector, buffer);
 			if (!bSuccess)
 			{
 				fat_shared_buffer_sector = 0xFFFFFFFF;
@@ -1751,7 +1751,7 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 			}
 
 			// read the cluster entry and mark it as free
-			switch (volume->GetFileSystemType())
+			switch (GetFileSystemType())
 			{
 			case FAT_FS_TYPE_FAT12:
 			{
@@ -1768,7 +1768,7 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 					((uint8*)&cluster)[0] = buffer[entry_offset];
 				}
 
-				if (entry_offset == volume->GetNoOfBytesPerSector() - 1)
+				if (entry_offset == GetNoOfBytesPerSector() - 1)
 				{
 					// if the entry spans a sector boundary set op_in_progress to 1
 					// so that we don't read the 1st byte again when we come back.
@@ -1824,7 +1824,7 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 			// if the last cluster marks the end of the chian we return
 			// false as we cannot increase the address by the # of clusters
 			// requested by the caller
-			if (FatIsEOFEntry(volume, cluster))
+			if (FatIsEOFEntry(cluster))
 			{
 				return 0;
 			}
@@ -1839,9 +1839,9 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 			}
 
 			// calculate the location of the next cluster in the chain
-			fat_offset = CalculateFatEntryOffset(volume->GetFileSystemType(), cluster);
-			entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
-			entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
+			fat_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
+			entry_sector = GetNoOfReservedSectors() + (fat_offset / GetNoOfBytesPerSector());
+			entry_offset = fat_offset % GetNoOfBytesPerSector();
 		}
 	}
 }
@@ -1853,9 +1853,9 @@ char CFatVolume::FatIncreaseClusterAddress(CFatVolume* volume, uint32 cluster, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::FatIsEOFEntry(CFatVolume* volume, FatEntry fat)
+bool CFatVolume::FatIsEOFEntry(FatEntry fat)
 {
-	switch (volume->GetFileSystemType())
+	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
 		return fat >= 0x0FF8;
@@ -1876,7 +1876,7 @@ bool CFatVolume::FatIsEOFEntry(CFatVolume* volume, FatEntry fat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer)
+uint16 CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer)
 {
 	bool						bSuccess;
 	uint16						counter;
@@ -1892,7 +1892,7 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDire
 
 	// initialize the 1st sector of the directory cluster with
 	// the dot entry
-	memset(buffer, 0, volume->GetNoOfBytesPerSector());
+	memset(buffer, 0, GetNoOfBytesPerSector());
 	entries->uEntry.sFatRawCommon.name[0x0] = '.';
 	entries->uEntry.sFatRawCommon.name[0x1] = ' ';
 	entries->uEntry.sFatRawCommon.name[0x2] = ' ';
@@ -1948,13 +1948,13 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDire
 	// to cluster 0, even in FAT32 when the root directory is not actually on
 	// cluster 0 so we need to check if the parent is the root directory and
 	// in that case set the 1st cluster to 0
-	if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
+	if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 	{
 		uint32 parent_cluster;
 		((uint16*)&parent_cluster)[INT32_WORD0] = parent->uEntry.sFatRawCommon.first_cluster_lo;
 		((uint16*)&parent_cluster)[INT32_WORD1] = parent->uEntry.sFatRawCommon.first_cluster_hi;
 
-		if (volume->GetRootCluster() == parent_cluster)
+		if (GetRootCluster() == parent_cluster)
 		{
 			entries->uEntry.sFatRawCommon.first_cluster_lo = 0;
 			entries->uEntry.sFatRawCommon.first_cluster_hi = 0;
@@ -1963,8 +1963,8 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDire
 	/*
 	// write the 1st sector of the folder
 	*/
-	current_sector = calculate_first_sector_of_cluster(volume, cluster);
-	bSuccess = volume->Write(current_sector++, buffer);
+	current_sector = CalculateFirstSectorOfCluster(cluster);
+	bSuccess = Write(current_sector++, buffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_WRITE_MEDIA;
@@ -1973,10 +1973,10 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDire
 	// clear the . and .. entries from the buffer and
 	// initialize the rest of the sectors of this cluster
 	memset(buffer, 0, sizeof(SFatRawDirectoryEntry) * 2);
-	counter = volume->GetNoOfSectorsPerCluster() - 1;
+	counter = GetNoOfSectorsPerCluster() - 1;
 	while (counter--)
 	{
-		bSuccess = volume->Write(current_sector++, buffer);
+		bSuccess = Write(current_sector++, buffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -1992,7 +1992,7 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(CFatVolume* volume, SFatRawDire
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatZeroCluster(CFatVolume* volume, uint32 cluster, uint8* buffer)
+uint16 CFatVolume::FatZeroCluster(uint32 cluster, uint8* buffer)
 {
 	bool	bSuccess;
 	uint16	counter;
@@ -2001,17 +2001,17 @@ uint16 CFatVolume::FatZeroCluster(CFatVolume* volume, uint32 cluster, uint8* buf
 	fat_shared_buffer_sector = 0xFFFFFFFF;
 
 	// set all the bytes in the buffer to zero
-	memset(buffer, 0, volume->GetNoOfBytesPerSector());
+	memset(buffer, 0, GetNoOfBytesPerSector());
 
 	// calculate the address of the 1st sector
 	// of the cluster
-	current_sector = calculate_first_sector_of_cluster(volume, cluster);
-	counter = volume->GetNoOfSectorsPerCluster();
+	current_sector = CalculateFirstSectorOfCluster(cluster);
+	counter = GetNoOfSectorsPerCluster();
 
 	// write the zeroed buffer to every sector in the cluster
 	while (counter--)
 	{
-		bSuccess = volume->Write(current_sector++, buffer);
+		bSuccess = Write(current_sector++, buffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -2029,14 +2029,14 @@ uint16 CFatVolume::FatZeroCluster(CFatVolume* volume, uint32 cluster, uint8* buf
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::FatWriteFatSector(CFatVolume* volume, uint32 sector_address, uint8* buffer)
+bool CFatVolume::FatWriteFatSector(uint32 sector_address, uint8* buffer)
 {
 	bool bSuccess;
 
 	/*
 	// write the sector in the active FAT table
 	*/
-	bSuccess = volume->Write(sector_address, buffer);
+	bSuccess = Write(sector_address, buffer);
 	if (!bSuccess)
 	{
 		return false;
@@ -2045,12 +2045,12 @@ bool CFatVolume::FatWriteFatSector(CFatVolume* volume, uint32 sector_address, ui
 	// if we got more than one FAT table update the others as well
 	*/
 #if defined(FAT_MAINTAIN_TWO_FAT_TABLES)
-	if (volume->uiNoOfFatTables > 1)
+	if (uiNoOfFatTables > 1)
 	{
 		int i;
-		for (i = 1; i < volume->uiNoOfFatTables; i++)
+		for (i = 1; i < uiNoOfFatTables; i++)
 		{
-			bSuccess = volume->device->Write(sector_address + (volume->fat_size * i), buffer);
+			bSuccess = device->Write(sector_address + (fat_size * i), buffer);
 			if (!bSuccess)
 			{
 				return false;
@@ -2087,7 +2087,7 @@ bool CFatVolume::FatWriteFatSector(CFatVolume* volume, uint32 sector_address, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatFindFirstEntry(CFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
+uint16 CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
 {
 	uint16					uiResult;
 	SFatDirectoryEntry		parent_entry;
@@ -2113,7 +2113,7 @@ uint16 CFatVolume::FatFindFirstEntry(CFatVolume* volume, char* parent_path, uint
 	if (parent_path != NULL)
 	{
 		// try to get the entry for the parent
-		uiResult = FatGetFileEntry(volume, parent_path, &parent_entry);
+		uiResult = FatGetFileEntry(parent_path, &parent_entry);
 
 		// if we were unable to get the parent entry
 		// then return the error that we received from
@@ -2125,13 +2125,13 @@ uint16 CFatVolume::FatFindFirstEntry(CFatVolume* volume, char* parent_path, uint
 
 		// try to get the 1st entry of the
 		// query results
-		uiResult = FatQueryFirstEntry(volume, &parent_entry.raw, attributes, &query->state, 0);
+		uiResult = FatQueryFirstEntry(&parent_entry.raw, attributes, &query->state, 0);
 	}
 	// if the parent was not supplied then we
 	// submit the query without it
 	else
 	{
-		uiResult = FatQueryFirstEntry(volume, 0, attributes, &query->state, 0);
+		uiResult = FatQueryFirstEntry(0, attributes, &query->state, 0);
 	}
 
 	// if we cant get the 1st entry then return the
@@ -2158,13 +2158,13 @@ uint16 CFatVolume::FatFindFirstEntry(CFatVolume* volume, char* parent_path, uint
 	// different
 	if (query->state.current_cluster == 0x0)
 	{
-		query->current_entry.sector_addr = volume->GetNoOfReservedSectors() +
-			(volume->GetNoOfFatTables() * volume->GetFatSize()) +
+		query->current_entry.sector_addr = GetNoOfReservedSectors() +
+			(GetNoOfFatTables() * GetFatSize()) +
 			query->state.current_sector;
 	}
 	else
 	{
-		query->current_entry.sector_addr = calculate_first_sector_of_cluster(volume, query->state.current_cluster) + query->state.current_sector;
+		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.current_cluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -2206,13 +2206,13 @@ uint16 CFatVolume::FatFindFirstEntry(CFatVolume* volume, char* parent_path, uint
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatFindNextEntry(CFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
+uint16 CFatVolume::FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
 {
 	uint16					uiResult;
 	SFatFileSystemQuery* query = q;
 
 	// try to get the next entry of the query
-	uiResult = FatQueryNextEntry(volume, &query->state, 0, 0);
+	uiResult = FatQueryNextEntry(&query->state, 0, 0);
 
 	// if we received an error from FatQueryNextEntry
 	// then we return the error code to the calling function
@@ -2239,11 +2239,11 @@ uint16 CFatVolume::FatFindNextEntry(CFatVolume* volume, SFatDirectoryEntry** dir
 	// different
 	if (query->state.current_cluster == 0x0)
 	{
-		query->current_entry.sector_addr = volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize()) + query->state.current_sector;
+		query->current_entry.sector_addr = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query->state.current_sector;
 	}
 	else
 	{
-		query->current_entry.sector_addr = calculate_first_sector_of_cluster(volume, query->state.current_cluster) + query->state.current_sector;
+		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.current_cluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -2304,7 +2304,7 @@ void CFatVolume::FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* entry, SFatRaw
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatCreateDirectory(CFatVolume* volume, char* directory)
+uint16 CFatVolume::FatCreateDirectory(char* directory)
 {
 	uint16				uiResult;
 	SFatDirectoryEntry	entry;
@@ -2316,7 +2316,7 @@ uint16 CFatVolume::FatCreateDirectory(CFatVolume* volume, char* directory)
 	}
 
 	// try get the file entry
-	uiResult = FatGetFileEntry(volume, directory, &entry);
+	uiResult = FatGetFileEntry(directory, &entry);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
@@ -2370,7 +2370,7 @@ uint16 CFatVolume::FatCreateDirectory(CFatVolume* volume, char* directory)
 		path_scanner++;
 
 		// try to get the entry for the parent directory
-		uiResult = FatGetFileEntry(volume, file_path, &parent_entry);
+		uiResult = FatGetFileEntry(file_path, &parent_entry);
 
 		// if FatGetFileEntry returned an error
 		// then we return the error code to the calling
@@ -2387,7 +2387,7 @@ uint16 CFatVolume::FatCreateDirectory(CFatVolume* volume, char* directory)
 		}
 
 		// try to create the directory entry
-		return FatCreateDirectoryEntry(volume, &parent_entry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &entry);
+		return FatCreateDirectoryEntry(&parent_entry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &entry);
 	}
 
 	// if we get here it means that a file or
@@ -2401,7 +2401,7 @@ uint16 CFatVolume::FatCreateDirectory(CFatVolume* volume, char* directory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectoryEntry* entry)
+uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 {
 	uint16					uiResult;
 	char					match;
@@ -2451,13 +2451,13 @@ uint16 CFatVolume::FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectory
 		entry->sector_offset = 0x0;
 
 		// set the location of the root directory
-		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
+		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
 			// if this is a FAT32 volume then the root
 			// directory is located on the data section just like
 			// any other directory
-			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(volume->GetRootCluster());
-			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(volume->GetRootCluster());
+			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(GetRootCluster());
+			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(GetRootCluster());
 		}
 		else
 		{
@@ -2501,7 +2501,7 @@ uint16 CFatVolume::FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectory
 		*pLevel = 0x0;
 
 		// try to find the first entry
-		uiResult = FatQueryFirstEntry(volume, current_entry, 0, (SFatQueryState*)&query, 1);
+		uiResult = FatQueryFirstEntry(current_entry, 0, (SFatQueryState*)&query, 1);
 
 		// if we could not find the entry then
 		// return an error code
@@ -2546,7 +2546,7 @@ uint16 CFatVolume::FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectory
 		while (!match)
 		{
 			//  try to get the next file
-			uiResult = FatQueryNextEntry(volume, (SFatQueryState*)&query, 1, 0);
+			uiResult = FatQueryNextEntry((SFatQueryState*)&query, 1, 0);
 
 			// if we received an error message then return
 			// it to the calling function
@@ -2598,11 +2598,11 @@ uint16 CFatVolume::FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectory
 	// different
 	if (query.current_cluster == 0x0)
 	{
-		entry->sector_addr = volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize()) + query.current_sector;
+		entry->sector_addr = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query.current_sector;
 	}
 	else
 	{
-		entry->sector_addr = calculate_first_sector_of_cluster(volume, query.current_cluster) + query.current_sector;
+		entry->sector_addr = CalculateFirstSectorOfCluster(query.current_cluster) + query.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -2622,7 +2622,7 @@ uint16 CFatVolume::FatGetFileEntry(CFatVolume* volume, char* path, SFatDirectory
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
+uint16 CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
 {
 	bool	bSuccess;
 	uint32	first_sector;
@@ -2646,15 +2646,15 @@ uint16 CFatVolume::FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry*
 	if (directory == 0)
 	{
 		// calculate the cluster # from the
-		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
+		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			query->current_cluster = volume->GetRootCluster();
-			first_sector = calculate_first_sector_of_cluster(volume, query->current_cluster);
+			query->current_cluster = GetRootCluster();
+			first_sector = CalculateFirstSectorOfCluster(query->current_cluster);
 		}
 		else
 		{
 			query->current_cluster = 0x0;
-			first_sector = volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize());
+			first_sector = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
 		}
 	}
 	// if a directory entry was provided
@@ -2674,7 +2674,7 @@ uint16 CFatVolume::FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry*
 
 		// read the upper word of the cluster address
 		// only if this is a FAT32 volume
-		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
+		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
 			((uint8*)&query->current_cluster)[INT32_BYTE2] = LO8(directory->uEntry.sFatRawCommon.first_cluster_hi);
 			((uint8*)&query->current_cluster)[INT32_BYTE3] = HI8(directory->uEntry.sFatRawCommon.first_cluster_hi);
@@ -2685,12 +2685,12 @@ uint16 CFatVolume::FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry*
 		}
 
 		// get the 1st sector of the directory entry
-		first_sector = calculate_first_sector_of_cluster(volume, query->current_cluster);
+		first_sector = CalculateFirstSectorOfCluster(query->current_cluster);
 	}
 
 	// read the sector into the query
 	// state buffer
-	bSuccess = volume->Read(first_sector, query->buffer);
+	bSuccess = Read(first_sector, query->buffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_READ_MEDIA;
@@ -2706,7 +2706,7 @@ uint16 CFatVolume::FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry*
 	query->current_entry_raw = (SFatRawDirectoryEntry*)query->buffer;
 
 	// find the 1st entry and return it's result code
-	return FatQueryNextEntry(volume, query, buffer_locked, 1);
+	return FatQueryNextEntry(query, buffer_locked, 1);
 }
 
 
@@ -2715,7 +2715,7 @@ uint16 CFatVolume::FatQueryFirstEntry(CFatVolume* volume, SFatRawDirectoryEntry*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatQueryNextEntry(CFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry)
+uint16 CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry)
 {
 	char	pass;
 	bool	bSuccess;
@@ -2727,24 +2727,24 @@ uint16 CFatVolume::FatQueryNextEntry(CFatVolume* volume, SFatQueryState* query, 
 		// the sector...
 		if (!first_entry)
 		{
-			if (((uintptr_t)query->current_entry_raw - (uintptr_t)query->first_entry_raw) == volume->GetNoOfBytesPerSector() - 0x20)
+			if (((uintptr_t)query->current_entry_raw - (uintptr_t)query->first_entry_raw) == GetNoOfBytesPerSector() - 0x20)
 			{
 				// if the current sector is the last of the current cluster then we must find the next
 				// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
 				// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
-				if (query->current_cluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == volume->GetNoOfSectorsPerCluster() - 1)
+				if (query->current_cluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == GetNoOfSectorsPerCluster() - 1)
 				{
 					FatEntry fat;
 
 					// get the fat structure for the current cluster
 					// and return UNKNOWN_ERROR if the operation fails
-					if (volume->FatGetClusterEntry(volume, query->current_cluster, &fat) != FAT_SUCCESS)
+					if (FatGetClusterEntry(query->current_cluster, &fat) != FAT_SUCCESS)
 					{
 						return FAT_UNKNOWN_ERROR;
 					}
 
 					// if this is the last cluster of the directory...
-					if (volume->FatIsEOFEntry(volume, fat))
+					if (FatIsEOFEntry(fat))
 					{
 						// set the current entry to 0
 						*query->current_entry_raw->uEntry.sFatRawCommon.name = 0;
@@ -2759,7 +2759,7 @@ uint16 CFatVolume::FatQueryNextEntry(CFatVolume* volume, SFatQueryState* query, 
 					query->current_sector = 0x0;
 
 					// calculate the address of the next sector
-					sector_address = calculate_first_sector_of_cluster(volume, query->current_cluster) + query->current_sector;
+					sector_address = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
 				}
 				// if there are more sectors on the current cluster then
 				else
@@ -2771,23 +2771,23 @@ uint16 CFatVolume::FatQueryNextEntry(CFatVolume* volume, SFatQueryState* query, 
 					// there's no more entries...
 					if (query->current_cluster == 0x0)
 					{
-						if (query->current_sector == volume->GetRootDirectorySectors())
+						if (query->current_sector == GetRootDirectorySectors())
 						{
 							*query->current_entry_raw->uEntry.sFatRawCommon.name = 0;
 							return FAT_SUCCESS;
 						}
 						sector_address =
-							(volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize())) + query->current_sector;
+							(GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + query->current_sector;
 					}
 					else
 					{
 						// calculate the address of the next sector
-						sector_address = calculate_first_sector_of_cluster(volume, query->current_cluster) + query->current_sector;
+						sector_address = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
 					}
 				}
 
 				// read the next sector into the query buffer
-				bSuccess = volume->Read(sector_address, query->buffer);
+				bSuccess = Read(sector_address, query->buffer);
 				if (!bSuccess)
 				{
 					return FAT_CANNOT_READ_MEDIA;
@@ -2946,7 +2946,7 @@ uint16 CFatVolume::FatQueryNextEntry(CFatVolume* volume, SFatQueryState* query, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
+uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
 {
 	uint16							uiResult;
 	int16							char_index;
@@ -3042,7 +3042,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 
 			memset(&query, 0, sizeof(query));
 			query.buffer = query.buff;
-			uiResult = FatQueryFirstEntry(volume, parent, 0, &query, 0);
+			uiResult = FatQueryFirstEntry(parent, 0, &query, 0);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;
@@ -3073,7 +3073,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 					is_valid_entry = 0;
 					break;
 				}
-				uiResult = FatQueryNextEntry(volume, &query, 0, 0);
+				uiResult = FatQueryNextEntry(&query, 0, 0);
 				if (uiResult != FAT_SUCCESS)
 				{
 					return uiResult;
@@ -3113,7 +3113,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 	// by the calling function then allocate a new cluster
 	if (entry_cluster == 0 && (attribs & FAT_ATTR_DIRECTORY))
 	{
-		entry_cluster = volume->FatAllocateDirectoryCluster(volume, parent, &uiResult);
+		entry_cluster = FatAllocateDirectoryCluster(parent, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
@@ -3151,22 +3151,22 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 		// and read the high word of the 1st cluster address
 		// ONLY if the file system type is FAT32
 		((uint16*)&fat)[INT32_WORD0] = parent->uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&fat)[INT32_WORD1] = (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? parent->uEntry.sFatRawCommon.first_cluster_hi : 0x0;
+		((uint16*)&fat)[INT32_WORD1] = (GetFileSystemType() == FAT_FS_TYPE_FAT32) ? parent->uEntry.sFatRawCommon.first_cluster_hi : 0x0;
 	}
 	// if no parent was specified then we create
 	// the fake fat entry from the root directory's
 	// cluster address found on the volume structure
 	else
 	{
-		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
+		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			fat = volume->GetRootCluster();
+			fat = GetRootCluster();
 		}
 		else
 		{
 			fat = last_fat = 0x0;
 			first_sector_of_cluster =
-				volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize());
+				GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
 		}
 	}
 
@@ -3184,7 +3184,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 		// of the cluster
 		if (fat != 0x0)
 		{
-			first_sector_of_cluster = calculate_first_sector_of_cluster(volume, fat);
+			first_sector_of_cluster = CalculateFirstSectorOfCluster(fat);
 		}
 
 		// set the current sector to the first
@@ -3194,15 +3194,15 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 		// calculate the address of the last directory
 		// entry on a sector when the sector is loaded
 		// into sec_buff
-		last_entry_address = ((uintptr_t)buffer + volume->GetNoOfBytesPerSector()) - 0x20;
+		last_entry_address = ((uintptr_t)buffer + GetNoOfBytesPerSector()) - 0x20;
 
 		// for each sector in the cluster
-		while (fat == 0 || sector < (first_sector_of_cluster + volume->GetNoOfSectorsPerCluster()))
+		while (fat == 0 || sector < (first_sector_of_cluster + GetNoOfSectorsPerCluster()))
 		{
 			// read the current sector to RAM
 			bool bSuccess;
 
-			bSuccess = volume->Read(sector, buffer);
+			bSuccess = Read(sector, buffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -3259,24 +3259,24 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 									if (last_fat == 0)
 									{
 										first_sector_of_cluster =
-											volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize());
+											GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
 									}
 									else
 									{
 										fat = last_fat;
-										first_sector_of_cluster = calculate_first_sector_of_cluster(volume, fat);
+										first_sector_of_cluster = CalculateFirstSectorOfCluster(fat);
 									}
-									sector = first_sector_of_cluster + volume->GetNoOfSectorsPerCluster();
+									sector = first_sector_of_cluster + GetNoOfSectorsPerCluster();
 								}
 
 								// read the last sector to the cache, calculate the last
 								// entry address and set our pointer to it
-								bSuccess = volume->Read(sector, buffer);
+								bSuccess = Read(sector, buffer);
 								if (!bSuccess)
 								{
 									return FAT_CANNOT_READ_MEDIA;
 								}
-								last_entry_address = ((uintptr_t)buffer + volume->GetNoOfBytesPerSector()) - 0x20;
+								last_entry_address = ((uintptr_t)buffer + GetNoOfBytesPerSector()) - 0x20;
 								parent_entry = (SFatRawDirectoryEntry*)last_entry_address;
 							}
 						}
@@ -3344,20 +3344,20 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 								{
 									// flush this sector to the storage device and
 									// load the next sector
-									bSuccess = volume->Write(sector, buffer);
+									bSuccess = Write(sector, buffer);
 									if (!bSuccess)
 									{
 										return FAT_CANNOT_WRITE_MEDIA;
 									}
 
-									if (fat == 0 || sector < first_sector_of_cluster + volume->GetNoOfSectorsPerCluster() - 1)
+									if (fat == 0 || sector < first_sector_of_cluster + GetNoOfSectorsPerCluster() - 1)
 									{
 										sector++;
 										// make sure that we don't overflow the root directory
 										// on FAT12/16 volumes
 										if (!fat)
 										{
-											if (sector > first_sector_of_cluster + volume->GetRootDirectorySectors())
+											if (sector > first_sector_of_cluster + GetRootDirectorySectors())
 											{
 												return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
 											}
@@ -3368,7 +3368,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 										// get the next cluster, we'll remember the last one so
 										// we can update it bellow if it's the eof cluster
 										last_fat = fat;
-										uiResult = volume->FatGetClusterEntry(volume, fat, &fat);
+										uiResult = FatGetClusterEntry(fat, &fat);
 										if (uiResult != FAT_SUCCESS)
 										{
 											return uiResult;
@@ -3376,15 +3376,15 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 
 										// if this is the end of the FAT chain allocate
 										// a new cluster to this folder and continue
-										if (volume->FatIsEOFEntry(volume, fat))
+										if (FatIsEOFEntry(fat))
 										{
-											FatEntry newfat = volume->FatAllocateDataCluster(volume, 1, 1, &uiResult);
+											FatEntry newfat = FatAllocateDataCluster(1, 1, &uiResult);
 											if (uiResult != FAT_SUCCESS)
 											{
 												return uiResult;
 											}
 
-											uiResult = volume->FatSetClusterEntry(volume, last_fat, newfat);
+											uiResult = FatSetClusterEntry(last_fat, newfat);
 											if (uiResult != FAT_SUCCESS)
 											{
 												return uiResult;
@@ -3395,11 +3395,11 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 										fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 
 										// continue working on the new cluster
-										sector = calculate_first_sector_of_cluster(volume, fat);
+										sector = CalculateFirstSectorOfCluster(fat);
 									}
 
 									// load the next sector
-									bSuccess = volume->Read(sector, buffer);
+									bSuccess = Read(sector, buffer);
 									if (!bSuccess)
 									{
 										return FAT_CANNOT_READ_MEDIA;
@@ -3415,7 +3415,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 
 						// flush this sector to the storage device and
 						// load the next sector
-						bSuccess = volume->Write(sector, buffer);
+						bSuccess = Write(sector, buffer);
 						if (!bSuccess)
 						{
 							return FAT_CANNOT_WRITE_MEDIA;
@@ -3444,7 +3444,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 			// on FAT12/16 volumes
 			if (!fat)
 			{
-				if (sector > first_sector_of_cluster + volume->GetRootDirectorySectors())
+				if (sector > first_sector_of_cluster + GetRootDirectorySectors())
 				{
 					return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
 				}
@@ -3454,7 +3454,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 		// get the next cluster, we'll remember the last one in
 		// case we need to rewind to write lfn entries
 		last_fat = fat;
-		uiResult = volume->FatGetClusterEntry(volume, fat, &fat);
+		uiResult = FatGetClusterEntry(fat, &fat);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
@@ -3462,19 +3462,19 @@ uint16 CFatVolume::FatCreateDirectoryEntry(CFatVolume* volume, SFatRawDirectoryE
 
 		// if this is the end of the FAT chain allocate
 		// a new cluster to this folder and continue
-		if (volume->FatIsEOFEntry(volume, fat))
+		if (FatIsEOFEntry(fat))
 		{
 			FatEntry newfat;
 
 			// allocate the cluster
-			newfat = volume->FatAllocateDataCluster(volume, 1, 1, &uiResult);
+			newfat = FatAllocateDataCluster(1, 1, &uiResult);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;
 			}
 
 			// link it to the cluster chain
-			uiResult = volume->FatSetClusterEntry(volume, last_fat, newfat);
+			uiResult = FatSetClusterEntry(last_fat, newfat);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;
@@ -3586,6 +3586,16 @@ void CFatVolume::FatGetShortNameFromEntry(uint8* dest, const uint8* src)
 		}
 	}
 	*dest = 0x0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 cluster)
+{
+	return (((cluster - 0x2) * GetNoOfSectorsPerCluster()) + GetFirstDataSector());
 }
 
 

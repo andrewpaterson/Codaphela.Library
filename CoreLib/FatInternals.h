@@ -19,7 +19,8 @@
 
 #ifndef __FAT_INTERNALS_H__
 #define __FAT_INTERNALS_H__
-#include "Fat.h"
+#include "BaseLib/PrimitiveTypes.h"
+#include "FatStructure.h"
 
 
 #define FAT12_EOC						( 0x0FFF )
@@ -89,6 +90,8 @@ struct SFatQueryStateInternal
 
 
 // prototypes
+class CFatVolume;
+struct SFatFile;
 uint8 fat_long_entry_checksum(uint8* filename);
 uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
 uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
