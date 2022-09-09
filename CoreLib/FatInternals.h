@@ -89,20 +89,20 @@ struct SFatQueryStateInternal
 
 
 // prototypes
-uint16 fat_get_cluster_entry(SFatVolume* volume, uint32 cluster, FatEntry* fat_entry);
-uint16 fat_set_cluster_entry(SFatVolume* volume, uint32 cluster, FatEntry fat_entry);
-uint16 fat_free_cluster_chain(SFatVolume* volume, uint32 cluster);
-uint32 fat_allocate_data_cluster(SFatVolume* volume, uint32 count, char zero, uint16* result);
-uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* entry);
-char fat_increase_cluster_address(SFatVolume* volume, uint32 current_cluster, uint16 count, uint32* value);
-char fat_is_eof_entry(SFatVolume* volume, FatEntry fat);
+uint16 fat_get_cluster_entry(CFatVolume* volume, uint32 cluster, FatEntry* fat_entry);
+uint16 fat_set_cluster_entry(CFatVolume* volume, uint32 cluster, FatEntry fat_entry);
+uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster);
+uint32 fat_allocate_data_cluster(CFatVolume* volume, uint32 count, char zero, uint16* result);
+uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* entry);
+char fat_increase_cluster_address(CFatVolume* volume, uint32 current_cluster, uint16 count, uint32* value);
+char fat_is_eof_entry(CFatVolume* volume, FatEntry fat);
 
 uint8 fat_long_entry_checksum(uint8* filename);
 uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
-uint32 fat_allocate_directory_cluster(SFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result);
-uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
-uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
-uint16 fat_open_file_by_entry(SFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
+uint32 fat_allocate_directory_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, uint16* result);
+uint16 fat_query_first_entry(CFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
+uint16 fat_query_next_entry(CFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry);
+uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
 
 int indexof(char chr, char* str, int index);
 
@@ -116,7 +116,7 @@ void strtrim(char* dest, char* src, size_t max);
 void fat_parse_path(char* path, char* path_part, char** filename_part);
 
 #if defined(FAT_OPTIMIZE_FOR_FLASH)
-uint32 fat_allocate_data_cluster_ex(SFatVolume* volume, uint32 count, char zero, uint32 page_size, uint16* result);
+uint32 fat_allocate_data_cluster_ex(CFatVolume* volume, uint32 count, char zero, uint32 page_size, uint16* result);
 #endif
 
 char fat_compare_long_name(uint16* name1, uint16* name2);

@@ -49,11 +49,16 @@ public:
 
 	bool				Read(uint64 uiSector, void* pvData);
 	bool				Write(uint64 uiSector, void* pvData);
+	bool				Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive);
 
 	uint16				GetSectorSize(void);
+	uint32				GetPageSize(void);
 
 	bool				HasNextFreeCluser(void);
 	bool				IsFreeFat(uint32 uifat);
+
+	void				SetNextFreeCluster(uint32 uiCluster);
+	void				SetTotalFreeClusters(uint32 uiTotalFreeClusters);
 
 	uint32				GetID(void);
 	uint32				GetFatSize(void);

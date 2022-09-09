@@ -13,7 +13,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 	bool					bSuccess;
 	SFatBIOSParameterBlock*				bpb;
 	uint32					hidden_sectors = 0;
-	SFatPartitionEntry*	partition_entry;
+	SFatPartitionEntry*		partition_entry;
 	char					partitions_tried = 0;
 	char					label[12];
 	uint32					fsinfo_sector;
@@ -222,7 +222,7 @@ retry:
 
 		SFatQueryStateInternal query;
 		query.buffer = buffer;
-		if (fat_query_first_entry(mpsVolume, 0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
+		if (fat_query_first_entry(this, 0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
 		{
 			if (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
 			{
@@ -373,9 +373,29 @@ bool CFatVolume::Write(uint64 uiSector, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFatVolume::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
+{
+	return mpsVolume->mpcDevice->Erase(uiStartSector, uiStopSectorInclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 uint16 CFatVolume::GetSectorSize(void)
 {
 	return mpsVolume->uiNoOfBytesPerSector;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::GetPageSize(void)
+{
+	return mpsVolume->mpcDevice->GetPageSize();
 }
 
 
@@ -396,9 +416,33 @@ bool CFatVolume::HasNextFreeCluser(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CFatVolume::IsFreeFat(uint32 uifat)
 {
 	return ((GetFileSystemType() == FAT_FS_TYPE_FAT32) ? !(uifat & 0x0FFFFFFF) : (GetFileSystemType() == FAT_FS_TYPE_FAT16) ? !(uifat & 0xFFFF) : !(uifat & 0x0FFF));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::SetNextFreeCluster(uint32 uiCluster)
+{
+	mpsVolume->uiNextFreeCluster = uiCluster;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::SetTotalFreeClusters(uint32 uiTotalFreeClusters)
+{
+	mpsVolume->uiTotalFreeClusters = uiTotalFreeClusters;
 }
 
 
