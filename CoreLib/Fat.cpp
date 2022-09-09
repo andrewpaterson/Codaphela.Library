@@ -61,7 +61,7 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time)
 #endif
 
 // finds the first file in a directory
-uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
+uint16 fat_find_first_entry(CFatVolume* volume, char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
 {
 	uint16					uiResult;
 	SFatDirectoryEntry		parent_entry;
@@ -132,8 +132,8 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 	// different
 	if (query->state.current_cluster == 0x0) 
 	{
-		query->current_entry.sector_addr = volume->uiNoOfReservedSectors + 
-											(volume->uiNoOfFatTables * volume->uiFatSize) +
+		query->current_entry.sector_addr = volume->GetNoOfReservedSectors() + 
+											(volume->GetNoOfFatTables() * volume->GetFatSize()) +
 											query->state.current_sector;
 	}
 	else
@@ -183,7 +183,7 @@ uint16 fat_find_first_entry(SFatVolume* volume, char* parent_path, uint8 attribu
 /*
 // finds the next file in the directory
 */
-uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q) 
+uint16 fat_find_next_entry(	CFatVolume* volume, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q) 
 {
 	uint16					uiResult;
 	SFatFileSystemQuery*	query = q;
@@ -226,8 +226,8 @@ uint16 fat_find_next_entry(	SFatVolume* volume, SFatDirectoryEntry** dir_entry, 
 	*/
 	if (query->state.current_cluster == 0x0)
 	{
-		query->current_entry.sector_addr = volume->uiNoOfReservedSectors + 
-											(volume->uiNoOfFatTables * volume->uiFatSize) +
+		query->current_entry.sector_addr = volume->GetNoOfReservedSectors() + 
+											(volume->GetNoOfFatTables() * volume->GetFatSize()) +
 											query->state.current_sector;
 	}
 	else
@@ -294,7 +294,7 @@ void fat_fill_directory_entry_from_raw(
 
 
 // creates a directory
-uint16 fat_create_directory(SFatVolume* volume, char* directory)
+uint16 fat_create_directory(CFatVolume* volume, char* directory)
 {
 	uint16 uiResult;
 	SFatDirectoryEntry entry;
@@ -395,7 +395,7 @@ uint16 fat_create_directory(SFatVolume* volume, char* directory)
 
 
 // gets a SFatDirectoryEntry by it's full path
-uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* entry)
+uint16 fat_get_file_entry(CFatVolume* volume, char* path, SFatDirectoryEntry* entry)
 {
 	uint16 uiResult;
 	char match;
@@ -434,45 +434,35 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	// create a fake one
 	else
 	{
-		/*
 		// copy the file name to the entry and the raw
 		// entry in their respective formats
-		*/
 		strcpy((char*)entry->name, "ROOT");
 		get_short_name_for_entry(entry->raw.uEntry.sFatRawCommon.name, entry->name, 1);
-		/*
+
 		// set the general fields of the entry
-		*/
 		entry->attributes = entry->raw.uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
 		entry->size = entry->raw.uEntry.sFatRawCommon.size = 0x0;
-		/*
+
 		// since the entry does not physically exist the
 		// address fields are set to zero as well
-		*/
 		entry->sector_addr = 0x0;
 		entry->sector_offset = 0x0;
 
-		/*
 		// set the location of the root directory
-		*/
-		if (volume->fs_type == FAT_FS_TYPE_FAT32)
+		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			/*
 			// if this is a FAT32 volume then the root
 			// directory is located on the data section just like
 			// any other directory
-			*/
-			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(volume->root_cluster);
-			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(volume->root_cluster);
+			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(volume->GetRootCluster());
+			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(volume->GetRootCluster());
 		}
 		else
 		{
-			/*
 			// if the volume is FAT12/16 we set the cluster
 			// address to zero and when time comes to get the
 			// directory we'll calculate the address right after
 			// the end of the FATs
-			*/
 			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
 			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
 		}
@@ -636,7 +626,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 	if (query.current_cluster == 0x0)
 	{
 		entry->sector_addr =
-			volume->uiNoOfReservedSectors + (volume->uiNoOfFatTables * volume->uiFatSize) +
+			volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize()) +
 			query.current_sector;
 	}
 	else
@@ -667,7 +657,7 @@ uint16 fat_get_file_entry(SFatVolume* volume, char* path, SFatDirectoryEntry* en
 // initializes a query of a set of directory
 // entries
 */
-uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
+uint16 fat_query_first_entry(CFatVolume* volume, SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
 {
 	bool	bSuccess;
 	uint32	first_sector;
@@ -697,15 +687,15 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 		/*
 		// calculate the cluster # from the
 		*/
-		if (volume->fs_type == FAT_FS_TYPE_FAT32)
+		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			query->current_cluster = volume->root_cluster;
+			query->current_cluster = volume->GetRootCluster();
 			first_sector = calculate_first_sector_of_cluster(volume, query->current_cluster);
 		}
 		else
 		{
 			query->current_cluster = 0x0;
-			first_sector = volume->uiNoOfReservedSectors + (volume->uiNoOfFatTables * volume->uiFatSize);
+			first_sector = volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize());
 		}
 	}
 	/*
@@ -729,7 +719,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 		// read the upper word of the cluster address
 		// only if this is a FAT32 volume
 		*/
-		if (volume->fs_type == FAT_FS_TYPE_FAT32)
+		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
 			((uint8*)&query->current_cluster)[INT32_BYTE2] = LO8(directory->uEntry.sFatRawCommon.first_cluster_hi);
 			((uint8*)&query->current_cluster)[INT32_BYTE3] = HI8(directory->uEntry.sFatRawCommon.first_cluster_hi);
@@ -749,7 +739,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 	// read the sector into the query
 	// state buffer
 	*/
-	bSuccess = volume->device->Read(first_sector, query->buffer);
+	bSuccess = volume->Read(first_sector, query->buffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_READ_MEDIA;
@@ -774,7 +764,7 @@ uint16 fat_query_first_entry(SFatVolume* volume, SFatRawDirectoryEntry* director
 /*
 // moves a query to the next entry
 */
-uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry)
+uint16 fat_query_next_entry(CFatVolume* volume, SFatQueryState* query, char buffer_locked, char first_entry)
 {
 	char	pass;
 	bool	bSuccess;
@@ -786,12 +776,12 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 		// the sector...
 		if (!first_entry)
 		{
-			if (((uintptr_t)query->current_entry_raw - (uintptr_t)query->first_entry_raw) == volume->uiNoOfBytesPerSector - 0x20)
+			if (((uintptr_t)query->current_entry_raw - (uintptr_t)query->first_entry_raw) == volume->GetNoOfBytesPerSector() - 0x20)
 			{
 				// if the current sector is the last of the current cluster then we must find the next
 				// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
 				// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
-				if (query->current_cluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == volume->uiNoOfSectorsPerCluster - 1)
+				if (query->current_cluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == volume->GetNoOfSectorsPerCluster() - 1)
 				{
 					FatEntry fat;
 
@@ -830,13 +820,13 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 					// there's no more entries...
 					if (query->current_cluster == 0x0)
 					{
-						if (query->current_sector == volume->uiRootDirectorySectors)
+						if (query->current_sector == volume->GetRootDirectorySectors())
 						{
 							*query->current_entry_raw->uEntry.sFatRawCommon.name = 0;
 							return FAT_SUCCESS;
 						}
 						sector_address =
-							(volume->uiNoOfReservedSectors + (volume->uiNoOfFatTables * volume->uiFatSize)) + query->current_sector;
+							(volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize())) + query->current_sector;
 					}
 					else
 					{
@@ -849,7 +839,7 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 				/*
 				// read the next sector into the query buffer
 				*/
-				bSuccess = volume->device->Read(sector_address, query->buffer);
+				bSuccess = volume->Read(sector_address, query->buffer);
 				if (!bSuccess)
 				{
 					return FAT_CANNOT_READ_MEDIA;
@@ -1022,7 +1012,7 @@ uint16 fat_query_next_entry(SFatVolume* volume, SFatQueryState* query, char buff
 }
 
 // creates a FAT directory entry
-uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
+uint16 fat_create_directory_entry(CFatVolume* volume, SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
 {
 	uint16							uiResult;
 	int16							char_index;
@@ -1239,7 +1229,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 		// ONLY if the file system type is FAT32
 		*/
 		((uint16*)&fat)[INT32_WORD0] = parent->uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&fat)[INT32_WORD1] = (volume->fs_type == FAT_FS_TYPE_FAT32) ? parent->uEntry.sFatRawCommon.first_cluster_hi : 0x0;
+		((uint16*)&fat)[INT32_WORD1] = (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? parent->uEntry.sFatRawCommon.first_cluster_hi : 0x0;
 	}
 	/*
 	// if no parent was specified then we create
@@ -1248,15 +1238,15 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 	*/
 	else
 	{
-		if (volume->fs_type == FAT_FS_TYPE_FAT32)
+		if (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			fat = volume->root_cluster;
+			fat = volume->GetRootCluster();
 		}
 		else
 		{
 			fat = last_fat = 0x0;
 			first_sector_of_cluster =
-				volume->uiNoOfReservedSectors + (volume->uiNoOfFatTables * volume->uiFatSize);
+				volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize());
 		}
 	}
 
@@ -1287,15 +1277,15 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 		// calculate the address of the last directory
 		// entry on a sector when the sector is loaded
 		// into sec_buff
-		last_entry_address = ((uintptr_t)buffer + volume->uiNoOfBytesPerSector) - 0x20;
+		last_entry_address = ((uintptr_t)buffer + volume->GetNoOfBytesPerSector()) - 0x20;
 
 		// for each sector in the cluster
-		while (fat == 0 || sector < (first_sector_of_cluster + volume->uiNoOfSectorsPerCluster))
+		while (fat == 0 || sector < (first_sector_of_cluster + volume->GetNoOfSectorsPerCluster()))
 		{
 			// read the current sector to RAM
 			bool bSuccess;
 
-			bSuccess = volume->device->Read(sector, buffer);
+			bSuccess = volume->Read(sector, buffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -1352,24 +1342,24 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 									if (last_fat == 0)
 									{
 										first_sector_of_cluster =
-											volume->uiNoOfReservedSectors + (volume->uiNoOfFatTables * volume->uiFatSize);
+											volume->GetNoOfReservedSectors() + (volume->GetNoOfFatTables() * volume->GetFatSize());
 									}
 									else
 									{
 										fat = last_fat;
 										first_sector_of_cluster = calculate_first_sector_of_cluster(volume, fat);
 									}
-									sector = first_sector_of_cluster + volume->uiNoOfSectorsPerCluster;
+									sector = first_sector_of_cluster + volume->GetNoOfSectorsPerCluster();
 								}
 
 								// read the last sector to the cache, calculate the last
 								// entry address and set our pointer to it
-								bSuccess = volume->device->Read(sector, buffer);
+								bSuccess = volume->Read(sector, buffer);
 								if (!bSuccess)
 								{
 									return FAT_CANNOT_READ_MEDIA;
 								}
-								last_entry_address = ((uintptr_t)buffer + volume->uiNoOfBytesPerSector) - 0x20;
+								last_entry_address = ((uintptr_t)buffer + volume->GetNoOfBytesPerSector()) - 0x20;
 								parent_entry = (SFatRawDirectoryEntry*)last_entry_address;
 							}
 						}
@@ -1441,13 +1431,13 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 									// flush this sector to the storage device and
 									// load the next sector
 									*/
-									bSuccess = volume->device->Write(sector, buffer);
+									bSuccess = volume->Write(sector, buffer);
 									if (!bSuccess)
 									{
 										return FAT_CANNOT_WRITE_MEDIA;
 									}
 
-									if (fat == 0 || sector < first_sector_of_cluster + volume->uiNoOfSectorsPerCluster - 1)
+									if (fat == 0 || sector < first_sector_of_cluster + volume->GetNoOfSectorsPerCluster() - 1)
 									{
 										sector++;
 										/*
@@ -1456,7 +1446,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 										*/
 										if (!fat)
 										{
-											if (sector > first_sector_of_cluster + volume->uiRootDirectorySectors)
+											if (sector > first_sector_of_cluster + volume->GetRootDirectorySectors())
 											{
 												return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
 											}
@@ -1505,7 +1495,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 									/*
 									// load the next sector
 									*/
-									bSuccess = volume->device->Read(sector, buffer);
+									bSuccess = volume->Read(sector, buffer);
 									if (!bSuccess)
 									{
 										return FAT_CANNOT_READ_MEDIA;
@@ -1522,7 +1512,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 						// flush this sector to the storage device and
 						// load the next sector
 						*/
-						bSuccess = volume->device->Write(sector, buffer);
+						bSuccess = volume->Write(sector, buffer);
 						if (!bSuccess)
 						{
 							return FAT_CANNOT_WRITE_MEDIA;
@@ -1558,7 +1548,7 @@ uint16 fat_create_directory_entry(SFatVolume* volume, SFatRawDirectoryEntry* par
 			*/
 			if (!fat)
 			{
-				if (sector > first_sector_of_cluster + volume->uiRootDirectorySectors)
+				if (sector > first_sector_of_cluster + volume->GetRootDirectorySectors())
 				{
 					return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
 				}
@@ -2137,8 +2127,8 @@ void fat_parse_path(char* path, char* path_part, char** filename_part)
 }
 
 
-uint32 calculate_first_sector_of_cluster(SFatVolume* psVolume, uint32 cluster)
+uint32 calculate_first_sector_of_cluster(CFatVolume* psVolume, uint32 cluster)
 {
-	return (((cluster - 0x2) * psVolume->uiNoOfSectorsPerCluster) + psVolume->uiFirstDataSector);
+	return (((cluster - 0x2) * psVolume->GetNoOfSectorsPerCluster()) + psVolume->GetFirstDataSector());
 }
 

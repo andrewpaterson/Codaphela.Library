@@ -393,8 +393,8 @@ uint32 fat_allocate_cluster(CFatVolume* volume, SFatRawDirectoryEntry* parent, u
 			{
 				// maintain the count of free cluster and the next
 				// cluster that may be free
-				volume->next_free_cluster = cluster + 1;
-				volume->total_free_clusters--;
+				volume->SetNextFreeCluster(cluster + 1);
+				volume->SetTotalFreeClusters(volume->GetTotalFreeClusters() - 1);
 
 				// if this is the 1st cluster found remember it
 				if (!first_cluster)
@@ -1019,7 +1019,7 @@ uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster)
 			}
 
 			// increase the count of free clusters
-			volume->total_free_clusters++;
+			volume->SetTotalFreeClusters(volume->GetTotalFreeClusters() + 1);
 
 			// if it's the EOF marker we're done, flush the buffer and go
 			if (fat_is_eof_entry(volume, cluster))
@@ -1035,7 +1035,7 @@ uint16 fat_free_cluster_chain(CFatVolume* volume, uint32 cluster)
 			}
 
 			// calculate the location of the next cluster in the chain
-			fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType, cluster);
+			fat_offset = FAT_CALCULATE_ENTRY_OFFSET(volume->GetFileSystemType(), cluster);
 			entry_sector = volume->GetNoOfReservedSectors() + (fat_offset / volume->GetNoOfBytesPerSector());
 			entry_offset = fat_offset % volume->GetNoOfBytesPerSector();
 		}
