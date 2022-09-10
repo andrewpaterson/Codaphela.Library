@@ -95,7 +95,7 @@ public:
 	void 	SetAlignment(int iAlignment);
 	void 	SetHorizontalAlignment(int iAlignment);  //Left/Right alignment.
 	void 	SetVerticalAlignment(int iAlignment);  //Top/Bottom alignment.
-	BOOL	IsImageEmpty(void);
+	bool	IsImageEmpty(void);
 
 	//All the methods below are relative.  Add X,Y to the return to get a meaningful destination position.
 	int		GetFullWidth(void);

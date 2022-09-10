@@ -55,7 +55,7 @@ void CCornerEdgesMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::Init(void)
 {
-	CMeshDetail::Init(TRUE);
+	CMeshDetail::Init(true);
 
 	mcCorners.Init();
 	mcEdges.Init();  //This assumes a closed surface.
@@ -272,7 +272,7 @@ CMeshFace* CMeshConnectivity::GetFace(int iElementNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConnectivity::Load(CFileReader* pcFile)
+bool CMeshConnectivity::Load(CFileReader* pcFile)
 {
 	int				i;
 	CMeshCorner*	pcCorner;
@@ -282,7 +282,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 	if (mcCorners.ReadAllocatorAndHeader(pcFile))
 	{
 		gcUserError.Set("Could not read corners.");
-		return FALSE;
+		return false;
 	}
 
 	//Read in each corner... they contain arrays themselves.
@@ -292,7 +292,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 		if (!pcCorner->Load(pcFile))
 		{
 			gcUserError.Set("Could not read corner.");
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -300,7 +300,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 	if (mcEdges.Read(pcFile))
 	{
 		gcUserError.Set("Could not read edges array.");
-		return FALSE;
+		return false;
 	}
 
 
@@ -308,10 +308,10 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 	if (mcFaces.Read(pcFile))
 	{
 		gcUserError.Set("Could not read faces array.");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -319,7 +319,7 @@ BOOL CMeshConnectivity::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConnectivity::Save(CFileWriter* pcFile)
+bool CMeshConnectivity::Save(CFileWriter* pcFile)
 {
 	int				i;
 	CMeshCorner*	pcCorner;
@@ -334,13 +334,13 @@ BOOL CMeshConnectivity::Save(CFileWriter* pcFile)
 		if (!pcCorner->Save(pcFile))
 		{
 			gcUserError.Set("Could not read corner.");
-			return FALSE;
+			return false;
 		}
 	}
 
 	ReturnOnFalse(mcEdges.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 

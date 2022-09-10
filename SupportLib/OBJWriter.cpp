@@ -97,7 +97,7 @@ void AddOBJVertices(CMesh* pcMesh, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
+bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 {
 	int			i;
 	SFloat3*	psNormal;
@@ -124,9 +124,9 @@ BOOL AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 		psz->Append(pcNormals->mcNormals.NumElements());
 		psz->Append(" vertex normals\n");
 		psz->AppendNewLine();
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -134,7 +134,7 @@ BOOL AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
+bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
 {
 	int				i;
 	SFloat2*		psUV;
@@ -161,9 +161,9 @@ BOOL AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
 		psz->Append(pcUVLayer->mcUVs.NumElements());
 		psz->Append(" texture coords\n");
 		psz->AppendNewLine();
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -171,7 +171,7 @@ BOOL AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AddOBJFaces(CMesh* pcMesh, CChars* psz, BOOL bTextureCoords, BOOL bVertexNormals)
+void AddOBJFaces(CMesh* pcMesh, CChars* psz, bool bTextureCoords, bool bVertexNormals)
 {
 	int					i;
 	int					iNumFaces;
@@ -231,11 +231,11 @@ void AddOBJFaces(CMesh* pcMesh, CChars* psz, BOOL bTextureCoords, BOOL bVertexNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SaveOBJ(CMesh *pcMesh, char* szFileName)
+bool SaveOBJ(CMesh *pcMesh, char* szFileName)
 {
 	CTextFile cTextFile;
-	BOOL bTextureCoords;
-	BOOL bVertexNormals;
+	bool bTextureCoords;
+	bool bVertexNormals;
 
 	cTextFile.Init();
 
@@ -248,6 +248,6 @@ BOOL SaveOBJ(CMesh *pcMesh, char* szFileName)
 	
 	cTextFile.Write(szFileName);
 	cTextFile.Kill();
-	return FALSE;
+	return false;
 }
 

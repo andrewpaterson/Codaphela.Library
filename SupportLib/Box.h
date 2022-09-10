@@ -38,7 +38,7 @@ public:
 
 	void	Init(SFloat3* psCenter, SFloat3* psLongAxis, SFloat3* psMiddleAxis, SFloat3* psShortAxis);
 	void 	SetFromPointsAxisAligned(SFloat3* psPoints, int iStride, int iNumPoints);
-	BOOL	SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoints, BOOL bPointsExtreme = FALSE);
+	bool	SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoints, bool bPointsExtreme = false);
 	float	Volume(void);
 	void	Find8Box(int* piLongCount, int* piMiddleCount, int* piShortCount);
 	float	PrivateVolumeOfCubesContaining(float ix, float iy, float iz);

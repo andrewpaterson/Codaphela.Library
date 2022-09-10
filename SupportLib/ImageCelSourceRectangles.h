@@ -33,7 +33,7 @@ protected:
 	CArrayRectangle mcRectangles;
 
 public:
-	void Init(CArrayRectangle* pcRectangles = NULL, SImageColour* psTransparentColour = NULL, BOOL bIgnoreEmpty = TRUE, BOOL bCropTransparentBorders = TRUE);
+	void Init(CArrayRectangle* pcRectangles = NULL, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void AddRectangle(CRectangle* pcRect);
 	void Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask);
 	void Kill(void);

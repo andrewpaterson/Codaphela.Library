@@ -53,8 +53,8 @@ public:
 	void 		Init(void);
 	void 		ReInit(void);
 	void 		Kill(void);
-	BOOL		Load(CFileReader* pcFile);
-	BOOL		Save(CFileWriter* pcFile);
+	bool		Load(CFileReader* pcFile);
+	bool		Save(CFileWriter* pcFile);
 
 	void		GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
 	void		AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn);

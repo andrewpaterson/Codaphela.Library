@@ -73,8 +73,8 @@ public:
 
 	void Init(void);
 	void Kill(void);
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
+	bool Save(CFileWriter* pcFile);
+	bool Load(CFileReader* pcFile);
 };
 
 

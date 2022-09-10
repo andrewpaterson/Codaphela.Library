@@ -65,10 +65,10 @@ public:
 	void					Free(void);
 
 	void					BeginChange(void);
-	void 					AddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, BOOL bReverse = FALSE);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, BOOL bReverse = FALSE);
+	void 					AddChannel(int iChannel, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, bool bReverse = false);
 	void					AddChannels(CImageChannelsSource* pcSource);
 	void 					AddChannels(CArrayChannel* pasChannels);
 	void 					AddChannels(CImage* pcSourceChannels);
@@ -79,11 +79,11 @@ public:
 	int						GetWidth(void);
 	void 					ByteAlignChannels(void);
 	void					RenameChannel(int iOldName, int iNewName);
-	BOOL 					EndChange(void);
-	BOOL					IsChanging(void);
+	bool 					EndChange(void);
+	bool					IsChanging(void);
 
-	BOOL					Load(CObjectReader* pcFile);
-	BOOL					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile);
 	void					Copy(CImage* pcSource);
 	void					Clear(void);
 
@@ -92,8 +92,8 @@ public:
 	int						GetByteSize(void);
 	CChannels*				GetChannels(void);
 	
-	BOOL					IsSameFormat(CImage* psOther);
-	BOOL					IsValid(int x, int y);
+	bool					IsSameFormat(CImage* psOther);
+	bool					IsValid(int x, int y);
 	CChannel*				GetChannel(int iChannel);
 	int						GetChannelsCount(void);
 	void					GetAllChannels(CArrayInt* paiChannels);
@@ -102,8 +102,8 @@ public:
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
 	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
 
-	BOOL					HasChannel(int iChannel);
-	BOOL					HasChannels(int iFirst, ...);
+	bool					HasChannel(int iChannel);
+	bool					HasChannels(int iFirst, ...);
 };
 
 

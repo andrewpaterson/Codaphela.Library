@@ -168,7 +168,7 @@ void AssignBumpMapFromNormals(CImage* pcImage, SFloat3* pasNormals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ConvertHeightMapTo(BOOL bNormalMap, BOOL bUVMapMap, CImage* pcImageDest, CImage* pcImageSource, EChannel eHeightChannel)
+void ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, CImage* pcImageDest, CImage* pcImageSource, EChannel eHeightChannel)
 {
 	int			iNumNormals;
 	SFloat3*	pasNormals;
@@ -249,7 +249,7 @@ void CImageHeightToNormals::Init(EChannel eHeightChannel)
 //////////////////////////////////////////////////////////////////////////
 void CImageHeightToNormals::Modify(CImage* pcImage)
 {
-	ConvertHeightMapTo(TRUE, FALSE, pcImage, pcImage, meHeightChannel);
+	ConvertHeightMapTo(true, false, pcImage, pcImage, meHeightChannel);
 }
 
 
@@ -279,7 +279,7 @@ void CImageHeightToBumpUVs::Init(EChannel eHeightChannel)
 //////////////////////////////////////////////////////////////////////////
 void CImageHeightToBumpUVs::Modify(CImage* pcImage)
 {
-	ConvertHeightMapTo(FALSE, TRUE, pcImage, pcImage, meHeightChannel);
+	ConvertHeightMapTo(false, true, pcImage, pcImage, meHeightChannel);
 }
 
 

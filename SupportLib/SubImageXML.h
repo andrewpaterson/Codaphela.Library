@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CSubImageXML
 {
 public:
-	BOOL Import(CMarkupTag* pcTag, CSubImage* pcSubImage);
+	bool Import(CMarkupTag* pcTag, CSubImage* pcSubImage);
 };
 
 

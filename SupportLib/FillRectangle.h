@@ -33,7 +33,7 @@ public:
 	short		miMask;
 
 	void		Init(short iMask, int iLeft, int iTop, int iRight, int iBottom);
-	BOOL		IsFillRectangular(void);
+	bool		IsFillRectangular(void);
 };
 
 

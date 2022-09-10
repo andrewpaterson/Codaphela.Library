@@ -69,7 +69,7 @@ public:
 	void Kill(void);
 			
 	SWinFontInstance*	Create(char* szName, int iHeight, int iWidth, int iWeight);
-	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, BOOL bSingleLine, RECT* psRect);
+	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, bool bSingleLine, RECT* psRect);
 	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int x, int y);
 			
 	Ptr<CFont>			GenerateFont(SWinFontInstance* pcWinFont, char* szFontName);

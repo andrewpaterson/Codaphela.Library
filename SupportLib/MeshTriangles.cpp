@@ -53,11 +53,11 @@ void CMeshTriangles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshTriangles::Load(CFileReader* pcFile)
+bool CMeshTriangles::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcTriangles.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -65,11 +65,11 @@ BOOL CMeshTriangles::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshTriangles::Save(CFileWriter* pcFile)
+bool CMeshTriangles::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcTriangles.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 

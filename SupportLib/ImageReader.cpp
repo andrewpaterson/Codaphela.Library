@@ -41,13 +41,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //= Parameters   : pcImage   - the descriptor to load the image into
 //=                szFilename      - the path of the image file to load from
 //= 
-//= Returns      : TRUE if successful, FALSE otherwise
+//= Returns      : true if successful, false otherwise
 //=
 //= Description  : Loads BMP, EMF, JPG, ICO, WMF, GIF files into a texture descriptor
 //=                by leveraging the power of Windows IPicture routines and OLE
 //=
 //====================================================================================
-BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)	
+bool LoadPictureIPicture(CImage *pcImage, char *szFilename)	
 {
 	HDC			hdcTemp;												// The DC To Hold Our Bitmap
 	HBITMAP		hbmpTemp;												// Holds The Bitmap Temporarily
@@ -69,13 +69,13 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	
 	if(FAILED(hr))	
 	{
-		return FALSE;													
+		return false;													
 	}
 	hdcTemp = CreateCompatibleDC(GetDC(0));								
 	if(!hdcTemp)														
 	{
 		pPicture->Release();											
-		return FALSE;													
+		return false;													
 	}
 	
 	//----------------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	{
 		DeleteDC(hdcTemp);												// Delete The Device Context
 		pPicture->Release();											// Decrements IPicture Reference Count
-		return FALSE;													// Return False (Failure)
+		return false;													// Return False (Failure)
 	}
 
 	SelectObject(hdcTemp, hbmpTemp);									// Select Handle To Our Temp DC And Our Temp Bitmap Object
@@ -122,12 +122,12 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	//----------------------------------------------------------------------------------------
 	int							x, y;
 	unsigned int				iAlpha;
-	BOOL						bNonZeroAlpha;
+	bool						bNonZeroAlpha;
 	CImage						cImageImport;
 	int							i;
 	CImageCopier				cCopier;
 
-	bNonZeroAlpha = FALSE;
+	bNonZeroAlpha = false;
 	for (y = 0; y < lHeightPixels; y++)
 	{
 		for (x = 0; x < lWidthPixels; x++)
@@ -136,7 +136,7 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 			iAlpha = iPixel & 0xff000000;
 			if (iAlpha != 0)
 			{
-				bNonZeroAlpha = TRUE;
+				bNonZeroAlpha = true;
 				break;
 			}
 		}
@@ -180,7 +180,7 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	
 	pPicture->Release();												// Decrements IPicture Reference Count
 	
-	return TRUE;														// Return True (All Good)
+	return true;														// Return True (All Good)
 }
 
 
@@ -188,7 +188,7 @@ BOOL LoadPictureIPicture(CImage *pcImage, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ReadImage(CImage* pcImage, char* szFilename, EImageType eType)
+bool ReadImage(CImage* pcImage, char* szFilename, EImageType eType)
 {
 	if (eType == IT_Unknown)
 	{
@@ -215,6 +215,6 @@ BOOL ReadImage(CImage* pcImage, char* szFilename, EImageType eType)
 		case IT_RAW:
 			return (LoadRAW(pcImage, szFilename)); // special case assuming an initialised image.
 	}
-	return FALSE;
+	return false;
 }
 

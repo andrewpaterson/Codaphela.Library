@@ -94,10 +94,10 @@ void CImageCelTransparent::GetAllChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelTransparent::MustFixDrawOpacity(void)
+bool CImageCelTransparent::MustFixDrawOpacity(void)
 {
 	//If we have a transparent colour then always fix the opacity.
-	return TRUE;
+	return true;
 }
 
 

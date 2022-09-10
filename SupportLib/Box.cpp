@@ -216,7 +216,7 @@ void CopyPoints(CArrayBlock* pasPositions, SFloat3* psPoints, int iStride, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBox::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoints, BOOL bPointsExtreme)
+bool CBox::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoints, bool bPointsExtreme)
 {
 	CConvexHull				cConvexHull;
 	CConvexHullGenerator	cGenerator;
@@ -240,7 +240,7 @@ BOOL CBox::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoi
 	if (iNumPoints < 200)
 	{
 		//Don't bother generating a hull off this if there are only a few points.
-		bPointsExtreme = TRUE;
+		bPointsExtreme = true;
 	}
 
 	if (!bPointsExtreme)
@@ -354,7 +354,7 @@ BOOL CBox::SetFromPointsUsingBestFit(SFloat3* psPoints, int iStride, int iNumPoi
 	{
 		cConvexHull.Kill();
 	}
-	return TRUE;
+	return true;
 }
 
 

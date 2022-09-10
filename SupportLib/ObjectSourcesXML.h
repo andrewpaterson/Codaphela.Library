@@ -34,11 +34,11 @@ class CObjectSourcesXML
 public:
 	CTileWorld*		mpcWorld;
 
-	BOOL	Import(CTileWorld* pcWorld, CMarkupTag* pcTag);
-	BOOL	ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag);
-	BOOL	ImportImages(CTileType* pcType, CMarkupTag* pcTag);
-	BOOL	ImportImage(CTileType* pcType, CMarkupTag* pcTag);
-	BOOL	ImportBooleans(CTileType* pcType, CMarkupTag* pcTag);
+	bool	Import(CTileWorld* pcWorld, CMarkupTag* pcTag);
+	bool	ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag);
+	bool	ImportImages(CTileType* pcType, CMarkupTag* pcTag);
+	bool	ImportImage(CTileType* pcType, CMarkupTag* pcTag);
+	bool	ImportBooleans(CTileType* pcType, CMarkupTag* pcTag);
 };
 
 

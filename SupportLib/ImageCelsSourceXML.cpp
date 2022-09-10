@@ -36,11 +36,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelsSourceXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
+bool CImageCelsSourceXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcBrushSourceTag;
-	BOOL			bResult;
+	bool			bResult;
 
 	mpcWorld = pcWorld;
 
@@ -50,11 +50,11 @@ BOOL CImageCelsSourceXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* s
 		bResult = ImportCelSource(pcBrushSourceTag, szTexturePath);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 		pcBrushSourceTag = pcTag->GetNextTag(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -62,19 +62,19 @@ BOOL CImageCelsSourceXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath)
+bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath)
 {
 	CMarkupTag*			pcFileName;
 	CChars				szFileName;
 	CChars				szShortFileName;
-	BOOL				bResult;
+	bool				bResult;
 	CMarkupTag*			pcCels;
 	CFileUtil			cFileUtil;
 
 	pcFileName = CMarkupTextParser::GetTag(pcBrushSourceTag, "FileName");
 	if (!pcFileName)
 	{
-		return FALSE;
+		return false;
 	}
 
 	szShortFileName.Init();
@@ -83,14 +83,14 @@ BOOL CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 	{
 		szShortFileName.Kill();
 		CMarkupTextParser::LogErrorTagWasEmpty(pcBrushSourceTag);
-		return FALSE;
+		return false;
 	}
 	
 	pcCels = CMarkupTextParser::GetTag(pcBrushSourceTag, "Cels");
 	if (!pcCels)
 	{
 		szShortFileName.Kill();
-		return FALSE;
+		return false;
 	}
 
 	szFileName.Init(szTexturePath);
@@ -105,14 +105,14 @@ BOOL CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
+bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 {
 	STagIterator				sIter;
 	CSubImageXML				cSubImageXML;
 	CMarkupTag*					pcCelTag;
 	CArraySubImage				acSubImages;
 	CSubImage*					pcSubImage;
-	BOOL						bResult;
+	bool						bResult;
 	CImageCelSourceSubImages	cSubImagesSource;
 	CImageCelsSource			cCelsSource;
 	CChars						szGroupName;
@@ -129,7 +129,7 @@ BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 		if (!bResult)
 		{
 			acSubImages.Kill();
-			return FALSE;
+			return false;
 		}
 		pcCelTag = pcCelsTag->GetNextTag(&sIter);
 	}
@@ -153,6 +153,6 @@ BOOL CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 	cSubImagesSource.Kill();
 	cCelsSource.Kill();
 	acSubImages.Kill();
-	return TRUE;
+	return true;
 }
 

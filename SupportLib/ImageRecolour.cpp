@@ -37,11 +37,11 @@ void CImageRecolour::Init(CImageColour* pcOldColour, CImageColour* pcNewColour, 
 	if (pcRectangle)
 	{
 		mcRectangle = *pcRectangle;
-		mbWholeImage = FALSE;
+		mbWholeImage = false;
 	}
 	else
 	{
-		mbWholeImage = TRUE;
+		mbWholeImage = true;
 	}
 
 

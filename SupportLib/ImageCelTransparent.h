@@ -41,7 +41,7 @@ public:
 	void	CropTransparentBorders(void);
 
 	void	GetAllChannels(CArrayChannel* pasChannels);
-	BOOL	MustFixDrawOpacity(void);
+	bool	MustFixDrawOpacity(void);
 	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 };
 

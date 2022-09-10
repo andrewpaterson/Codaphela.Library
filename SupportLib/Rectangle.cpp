@@ -243,7 +243,7 @@ void CRectangle::GrowToContain(int iXPos, int iYPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangle::IsValid(void)
+bool CRectangle::IsValid(void)
 {
 	return (miLeft <= miRight) && (miTop <= miBottom);
 }
@@ -253,7 +253,7 @@ BOOL CRectangle::IsValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangle::IsIn(int x, int y)
+bool CRectangle::IsIn(int x, int y)
 {
 	return (((x >= miLeft) && (x <= miRight)) && ((y >= miTop) && (y <= miBottom)));
 }
@@ -263,7 +263,7 @@ BOOL CRectangle::IsIn(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangle::IsIn(int iLeft, int iTop, int iRight, int iBottom)
+bool CRectangle::IsIn(int iLeft, int iTop, int iRight, int iBottom)
 {
 	return (IsIn(iLeft, iTop) && IsIn(iRight, iBottom));
 }

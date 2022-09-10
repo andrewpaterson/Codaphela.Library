@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
+bool CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
 {
 	CMarkupTag*		pcOffsetTopLeft;
 	CMarkupTag*		pcX;
@@ -41,7 +41,7 @@ BOOL CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
 	CMarkupTag*		pcSourceRectangle;
 	CMarkupTag*		pcWidth;
 	CMarkupTag*		pcHeight;
-	BOOL			bResult;
+	bool			bResult;
 	int 			iLeft; 
 	int 			iTop; 
 	int 			iRight; 
@@ -55,31 +55,31 @@ BOOL CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
 	pcOffsetTopLeft = CMarkupTextParser::GetTag(pcTag, "OffsetTopLeft");
 	if (!pcOffsetTopLeft)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcOffsetBottomRight = CMarkupTextParser::GetTag(pcTag, "OffsetBottomRight");
 	if (!pcOffsetTopLeft)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcHorizontalAlignment = CMarkupTextParser::GetTag(pcTag, "HorizontalAlignment");
 	if (!pcHorizontalAlignment)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcVerticalAlignment = CMarkupTextParser::GetTag(pcTag, "VerticalAlignment");
 	if (!pcVerticalAlignment)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcSourceRectangle = CMarkupTextParser::GetTag(pcTag, "SourceRectangle");
 	if (!pcSourceRectangle)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iAlignment = SUB_IMAGE_ALIGNMENT_CENTER_HORIZONTAL | SUB_IMAGE_ALIGNMENT_CENTER_VERTICAL;
@@ -87,94 +87,94 @@ BOOL CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
 	pcX = CMarkupTextParser::GetTag(pcOffsetTopLeft, "X");
 	if (!pcX)
 	{
-		return FALSE;
+		return false;
 	}
 	pcY = CMarkupTextParser::GetTag(pcOffsetTopLeft, "Y");
 	if (!pcY)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = CMarkupTextParser::ReadInteger(pcX, &iLeftOffset);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = CMarkupTextParser::ReadInteger(pcY, &iTopOffset);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcX = CMarkupTextParser::GetTag(pcOffsetBottomRight, "X");
 	if (!pcX )
 	{
-		return FALSE;
+		return false;
 	}
 	pcY = CMarkupTextParser::GetTag(pcOffsetBottomRight, "Y");
 	if (!pcY)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = CMarkupTextParser::ReadInteger(pcX, &iRightOffset);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = CMarkupTextParser::ReadInteger(pcY, &iBottomOffset);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcX = CMarkupTextParser::GetTag(pcSourceRectangle, "X");
 	if (!pcX )
 	{
-		return FALSE;
+		return false;
 	}
 	pcY = CMarkupTextParser::GetTag(pcSourceRectangle, "Y");
 	if (!pcY)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = CMarkupTextParser::ReadInteger(pcX, &iLeft);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = CMarkupTextParser::ReadInteger(pcY, &iTop);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcWidth = CMarkupTextParser::GetTag(pcSourceRectangle, "Width");
 	if (!pcWidth)
 	{
-		return FALSE;
+		return false;
 	}
 	pcHeight = CMarkupTextParser::GetTag(pcSourceRectangle, "Height");
 	if (!pcHeight)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = CMarkupTextParser::ReadInteger(pcWidth, &iRight);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = CMarkupTextParser::ReadInteger(pcHeight, &iBottom);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iRight += iLeft;
 	iBottom += iTop;
 	pcSubImage->Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
-	return TRUE;
+	return true;
 }
 

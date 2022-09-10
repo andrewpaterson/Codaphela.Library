@@ -85,7 +85,7 @@ int CExtremeTriangle::FindFurthestPoint(SFloat3* psPoints, int iStride)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExtremeTriangle::NotContains(SFloat3* psPosition)
+bool CExtremeTriangle::NotContains(SFloat3* psPosition)
 {
 	return Float3Dot(mpsNormal, psPosition) > d;
 }
@@ -132,7 +132,7 @@ void CConvexHullGenerator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papcTriangles, int iMaxXIndex, int iMinXIndex, int iFarIndex)
+bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papcTriangles, int iMaxXIndex, int iMinXIndex, int iFarIndex)
 {
 	CHalfSpaceHelper			cHalfSpace;
 	int							i;
@@ -164,7 +164,7 @@ BOOL CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 			else
 			{
 				gcUserError.Set("No triangle contained point");
-				return FALSE;
+				return false;
 			}
 		}
 	}
@@ -172,7 +172,7 @@ BOOL CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 	//These triangles ARE sorted at this point.
 	papcTriangles->Add(&pcTriangleUp);
 	papcTriangles->Add(&pcTriangleDown);
-	return TRUE;
+	return true;
 }
 
 
@@ -199,7 +199,7 @@ void CConvexHullGenerator::AddPointsFromTriangles(CExtremeTriangle* pcTriangle, 
 				psPosition = GetPosition(mpsPoints, iStride, iIndex);
 				if (pcTriangle->NotContains(psPosition))
 				{
-					pcTriangle->maiVisible.InsertIntoSorted(iIndex, TRUE);
+					pcTriangle->maiVisible.InsertIntoSorted(iIndex, true);
 				}
 			}
 		}
@@ -211,7 +211,7 @@ void CConvexHullGenerator::AddPointsFromTriangles(CExtremeTriangle* pcTriangle, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::Generate(void)
+bool CConvexHullGenerator::Generate(void)
 {
 	int							iMaxXIndex;
 	int							iMinXIndex;
@@ -242,7 +242,7 @@ BOOL CConvexHullGenerator::Generate(void)
 	if (iFarIndex == -1)
 	{
 		gcUserError.Set("Could not find a third point generating Convex Hull.");
-		return FALSE;
+		return false;
 	}
 
 	apcTriangles.Init();
@@ -250,7 +250,7 @@ BOOL CConvexHullGenerator::Generate(void)
 	if (!FindFirstPairTriangles(&apcTriangles, iMaxXIndex, iMinXIndex, iFarIndex))
 	{
 		gcUserError.Set("Could not find the first triangle pair generating Convex Hull.");
-		return FALSE;
+		return false;
 	}
 
 	cDeleted.Init();
@@ -273,7 +273,7 @@ BOOL CConvexHullGenerator::Generate(void)
 		if (iFarIndex == -1)
 		{
 			gcUserError.Set("Could not find furthest point!");
-			return FALSE;
+			return false;
 		}
 
 		cDeleted.FakeSetUsedElements(0);  //It's sort of safe to do this.
@@ -340,7 +340,7 @@ BOOL CConvexHullGenerator::Generate(void)
 		cTextFile.Kill();
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -472,14 +472,14 @@ CFreeList* CConvexHullGenerator::GetNormals(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSelected, CArrayExtremeTrianglePtr* papcTriangles, CArrayExtremeTrianglePtr* papcTemp)
+bool CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSelected, CArrayExtremeTrianglePtr* papcTriangles, CArrayExtremeTrianglePtr* papcTemp)
 {
 	int							iIndex;
 	int							i;
 	int							j;
 	CExtremeTriangle*			pcTriangle1;
 	CExtremeTriangle*			pcTriangle2;
-	BOOL						bResult;
+	bool						bResult;
 	CArrayExtremeTrianglePtr	cTemp;
 
 	papcTemp->FakeSetUsedElements(0);
@@ -504,10 +504,10 @@ BOOL CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 		}
 	}
 
-	bResult = FALSE;
+	bResult = false;
 	if (papcTriangles->NumElements() > 0)
 	{
-		bResult = TRUE;
+		bResult = true;
 	}
 
 	memcpy(&cTemp, papcTemp, sizeof(CArrayExtremeTrianglePtr));
@@ -521,7 +521,7 @@ BOOL CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSele
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::Contained(SFloat3* psPosition)
+bool CConvexHullGenerator::Contained(SFloat3* psPosition)
 {
 	SFreeListIterator	sIter;
 	CTriangle*			pcTriangle;
@@ -531,18 +531,18 @@ BOOL CConvexHullGenerator::Contained(SFloat3* psPosition)
 	{
 		if (!pcTriangle->Contains(psPosition))
 		{
-			return FALSE;
+			return false;
 		}
 		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::NotContained(SFloat3* psPosition)
+bool CConvexHullGenerator::NotContained(SFloat3* psPosition)
 {
 	SFreeListIterator	sIter;
 	CTriangle*			pcTriangle;
@@ -552,11 +552,11 @@ BOOL CConvexHullGenerator::NotContained(SFloat3* psPosition)
 	{
 		if (pcTriangle->NotContains(psPosition))
 		{
-			return TRUE;
+			return true;
 		}
 		pcTriangle = (CExtremeTriangle*)mcTriangles.Iterate(&sIter);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -567,7 +567,7 @@ BOOL CConvexHullGenerator::NotContained(SFloat3* psPosition)
 void CConvexHullGenerator::FindEdges(SConvexHullHoleEdge* psEdges, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles)
 {
 	int							iIndex[3];
-	BOOL						bAnyHasEdge;
+	bool						bAnyHasEdge;
 
 	iIndex[0] = GetIndex(mpsPoints, iStride, pcTriangleWithEdges->mpsPosition);
 	iIndex[1] = GetIndex(mpsPoints, iStride, pcTriangleWithEdges->mpsPosition1);
@@ -605,7 +605,7 @@ void CConvexHullGenerator::FindEdges(SConvexHullHoleEdge* psEdges, CExtremeTrian
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles)
+bool CConvexHullGenerator::TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles)
 {
 	int							i;
 	CExtremeTriangle*			pcTriangle;
@@ -617,11 +617,11 @@ BOOL CConvexHullGenerator::TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTri
 		{
 			if (TriangleHasEdge(iEdge1, iEdge2, pcTriangle))
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -629,7 +629,7 @@ BOOL CConvexHullGenerator::TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTri
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangle)
+bool CConvexHullGenerator::TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangle)
 {
 	int		iOther[3];
 
@@ -641,9 +641,9 @@ BOOL CConvexHullGenerator::TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTrian
 		((iEdge1 == iOther[1]) && (iEdge2 == iOther[2]) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[1]))) ||
 		((iEdge1 == iOther[0]) && (iEdge2 == iOther[2]) || ((iEdge1 == iOther[2]) && (iEdge2 == iOther[0]))))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -651,7 +651,7 @@ BOOL CConvexHullGenerator::TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTrian
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullGenerator::TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtremeTriangle* pcTriangle2)
+bool CConvexHullGenerator::TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtremeTriangle* pcTriangle2)
 {
 	int							iIndex[3];
 
@@ -661,17 +661,17 @@ BOOL CConvexHullGenerator::TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtr
 
 	if (TriangleHasEdge(iIndex[0], iIndex[1], pcTriangle2))
 	{
-		return TRUE;
+		return true;
 	}
 	if (TriangleHasEdge(iIndex[1], iIndex[2], pcTriangle2))
 	{
-		return TRUE;
+		return true;
 	}
 	if (TriangleHasEdge(iIndex[2], iIndex[0], pcTriangle2))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -961,7 +961,7 @@ void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStri
 			iIndex = GetIndex(psPoints, iStride, psPosition);
 			if (iIndex != -1)
 			{
-				paiIndices->InsertIntoSorted(iIndex, TRUE);
+				paiIndices->InsertIntoSorted(iIndex, true);
 			}
 		}
 	}

@@ -46,7 +46,7 @@ public:
 	void Modify(CImage* pcImage);
 
 private:
-	BOOL AreChannelsSame(CImage* pcIMage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3);
+	bool AreChannelsSame(CImage* pcIMage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3);
 };
 
 

@@ -33,7 +33,7 @@ class CPixelOpacityBase : public CUnknown
 CONSTRUCTABLE(CPixelOpacityBase);
 public:
 	virtual void Kill(void);
-	virtual BOOL IsTransparent(int x, int y) =0;
+	virtual bool IsTransparent(int x, int y) =0;
 };
 
 
@@ -42,13 +42,13 @@ class CPixelOpacityChannel : public CPixelOpacityBase
 CONSTRUCTABLE(CPixelOpacityChannel);
 protected:
 	CImageAccessor*		mpcOpacityChannel;
-	BOOL				mbHasOpacity;
+	bool				mbHasOpacity;
 
 public:
 	void	Init(CImage* pcImage);
 	void	Kill(void);
 
-	BOOL	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y);
 };
 
 
@@ -63,7 +63,7 @@ public:
 	void	Init(CImage* pcImage, SImageColour* psTransparentColour);
 	void	Kill(void);
 
-	BOOL	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y);
 };
 
 
@@ -78,7 +78,7 @@ public:
 	void	Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask);
 	void	Kill(void);
 
-	BOOL	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y);
 };
 
 
@@ -93,7 +93,7 @@ public:
 	void	Init(CImage* pcImage, SImageColour* psTransparentColour, CImage* pcMaskImage, short iMask);
 	void	Kill(void);
 
-	BOOL	IsTransparent(int x, int y);
+	bool	IsTransparent(int x, int y);
 };
 
 

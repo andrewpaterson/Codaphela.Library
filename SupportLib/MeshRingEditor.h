@@ -38,13 +38,13 @@ public:
 	float		mfLength;
 	int			miWedgeSegments;
 	int			miRingSegments;
-	BOOL		mbFlipFaces;
+	bool		mbFlipFaces;
 	int			miFaceName;
 	int			miZI;
 	int			miZE;
 
 	void	Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRadius, float fBottomRadius, float fLength, int iWedgeSegments, int iRingSegments);
-	void	SetFlipFaces(BOOL bFlipFaces);
+	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
 	void	SetZOffsets(int iZStartOffset, int iZEndOffset);
 	void	Kill(void);
@@ -54,7 +54,7 @@ public:
 
 	void	Apply(CMeshEditor* pcMeshEditor);
 	void	GenerateRing(CMeshEditor* pcMeshEditor);
-	void	AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, BOOL bFlipFaces);
+	void	AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, bool bFlipFaces);
 };
 
 

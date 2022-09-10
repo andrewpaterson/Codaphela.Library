@@ -74,7 +74,7 @@ void SMeshFaceType::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SMeshFaceType::Equals(SMeshFaceType* psOther)
+bool SMeshFaceType::Equals(SMeshFaceType* psOther)
 {
 	return (iFlags1 == psOther->iFlags1) && (iFlags2 == psOther->iFlags2);
 }
@@ -84,11 +84,11 @@ BOOL SMeshFaceType::Equals(SMeshFaceType* psOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SMeshFaceType::Load(CFileReader* pcFile)
+bool SMeshFaceType::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadBits(&iFlags1, sizeof(unsigned int)));
 	ReturnOnFalse(pcFile->ReadBits(&iFlags2, sizeof(unsigned int)));
-	return TRUE;
+	return true;
 }
 
 
@@ -96,11 +96,11 @@ BOOL SMeshFaceType::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SMeshFaceType::Save(CFileWriter* pcFile)
+bool SMeshFaceType::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteBits(&iFlags1, sizeof(unsigned int)));
 	ReturnOnFalse(pcFile->WriteBits(&iFlags2, sizeof(unsigned int)));
-	return TRUE;
+	return true;
 }
 
 
@@ -108,8 +108,8 @@ BOOL SMeshFaceType::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SMeshFaceType::IsNormal(void) { return FixBool(iFlags1 & MESH_FACE_NORMAL_FLAG1); }
-BOOL SMeshFaceType::IsColour(void) { return FixBool(iFlags1 & MESH_FACE_COLOUR_FLAG1); }
+bool SMeshFaceType::IsNormal(void) { return FixBool(iFlags1 & MESH_FACE_NORMAL_FLAG1); }
+bool SMeshFaceType::IsColour(void) { return FixBool(iFlags1 & MESH_FACE_COLOUR_FLAG1); }
 int SMeshFaceType::GetUVs(void) { return (iFlags1 & MESH_FACE_UV_MASK1) >> MESH_FACE_UV_SHIFT; }
 int SMeshFaceType::GetMatricies(void) { return (iFlags1 & MESH_FACE_MATRIX_MASK1) >> MESH_FACE_MATRIX_SHIFT; }
 
@@ -159,12 +159,12 @@ void CMeshFaceTypes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshFaceTypes::Load(CFileReader* pcFile)
+bool CMeshFaceTypes::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
 	ReturnOnFalse(mcUniqueTypes.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -172,12 +172,12 @@ BOOL CMeshFaceTypes::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshFaceTypes::Save(CFileWriter* pcFile)
+bool CMeshFaceTypes::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
 	ReturnOnFalse(mcUniqueTypes.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -410,7 +410,7 @@ void CMeshFaceTypes::GenerateUniques(void)
 	for (i = 0; i < iNumFaces; i++)
 	{
 		psType = mcFaces.Get(i);
-		mcUniqueTypes.InsertIntoSorted(&CompareMeshFaceTypes, psType, TRUE);
+		mcUniqueTypes.InsertIntoSorted(&CompareMeshFaceTypes, psType, true);
 	}
 }
 

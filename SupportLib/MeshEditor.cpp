@@ -61,12 +61,12 @@ void CMeshEditor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshEditor::Save(CFileWriter* pcFile)
+bool CMeshEditor::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcSelections.Save(pcFile));
 	ReturnOnFalse(mcEdgeVisibility.Save(pcFile));
 	ReturnOnFalse(mcPolygons.Save(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -74,12 +74,12 @@ BOOL CMeshEditor::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshEditor::Load(CFileReader* pcFile)
+bool CMeshEditor::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcSelections.Load(pcFile));
 	ReturnOnFalse(mcEdgeVisibility.Load(pcFile));
 	ReturnOnFalse(mcPolygons.Load(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -214,7 +214,7 @@ void CMeshEditor::AddCorner(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31)
+CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31)
 {
 	CMFRet		rFace;
 	CMeshFace*	pcFace;
@@ -236,7 +236,7 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31, BOOL bFlipFaces)
+CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31, bool bFlipFaces)
 {
 	CMFRet	rFace;
 
@@ -257,24 +257,24 @@ CMFRet CMeshEditor::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditor::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName, BOOL bFlipFaces)
+CMFRet CMeshEditor::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName, bool bFlipFaces)
 {
 	CMFRet	rFace1;
 	CMFRet	rFace2;
 
 	if (!bFlipFaces)
 	{
-		rFace1 = AddFace(iCorner1, iCorner2, iCorner4, iName, TRUE, FALSE, TRUE);
+		rFace1 = AddFace(iCorner1, iCorner2, iCorner4, iName, true, false, true);
 		rFace1.Repack(0, 1, 3);
-		rFace2 = AddFace(iCorner2, iCorner3, iCorner4, iName, TRUE, TRUE, FALSE);
+		rFace2 = AddFace(iCorner2, iCorner3, iCorner4, iName, true, true, false);
 		rFace2.Repack(1, 2, 3);
 		rFace1.Pack2(rFace2);
 	}
 	else
 	{
-		rFace1 = AddFace(iCorner1, iCorner4, iCorner2, iName, TRUE, FALSE, TRUE);
+		rFace1 = AddFace(iCorner1, iCorner4, iCorner2, iName, true, false, true);
 		rFace1.Repack(0, 3, 1);
-		rFace2 = AddFace(iCorner2, iCorner4, iCorner3, iName, FALSE, TRUE, TRUE);
+		rFace2 = AddFace(iCorner2, iCorner4, iCorner3, iName, false, true, true);
 		rFace1.Repack(1, 3, 2);
 		rFace1.Pack2(rFace2);
 	}
@@ -286,7 +286,7 @@ CMFRet CMeshEditor::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, BOOL bFlipFaces)
+CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces)
 {
 	CMFRet	r;
 
@@ -297,7 +297,7 @@ CMFRet CMeshEditor::AddPolygon(CArrayInt* paiCorners, int iName, BOOL bFlipFaces
 	}
 	else if (paiCorners->NumElements() == 3)
 	{
-		return AddFace(paiCorners->GetValue(0), paiCorners->GetValue(1), paiCorners->GetValue(2), iName, TRUE, TRUE, TRUE, bFlipFaces);
+		return AddFace(paiCorners->GetValue(0), paiCorners->GetValue(1), paiCorners->GetValue(2), iName, true, true, true, bFlipFaces);
 	}
 	else if (paiCorners->NumElements() == 4)
 	{

@@ -46,7 +46,7 @@ void CRelativeSphereVolume::Init(float fVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRelativeSphereVolume::IsAllGreaterThan(void)
+bool CRelativeSphereVolume::IsAllGreaterThan(void)
 {
 	int		i;
 
@@ -54,10 +54,10 @@ BOOL CRelativeSphereVolume::IsAllGreaterThan(void)
 	{
 		if (!((eRelative[i] == RSV_GreaterThan) || (eRelative[i] == RSV_Unknown)))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -65,7 +65,7 @@ BOOL CRelativeSphereVolume::IsAllGreaterThan(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRelativeSphereVolume::IsAllEqual(void)
+bool CRelativeSphereVolume::IsAllEqual(void)
 {
 	int		i;
 
@@ -73,10 +73,10 @@ BOOL CRelativeSphereVolume::IsAllEqual(void)
 	{
 		if (!(eRelative[i] == RSV_Equal))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -84,7 +84,7 @@ BOOL CRelativeSphereVolume::IsAllEqual(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
+bool CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 {
 	int		i;
 	int		iCount;
@@ -102,7 +102,7 @@ BOOL CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 			}
 			if (eRelative[i] == RSV_LessThan)
 			{
-				return FALSE;
+				return false;
 			}
 			iTotal++;
 		}
@@ -113,9 +113,9 @@ BOOL CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 	}
 	if (iCount >= iNumGreaterThan)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -123,7 +123,7 @@ BOOL CRelativeSphereVolume::IsGreaterThanOrEqual(int iNumGreaterThan)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRelativeSphereVolume::IsEqual(int iNumEqual)
+bool CRelativeSphereVolume::IsEqual(int iNumEqual)
 {
 	int		i;
 	int		iCount;
@@ -141,7 +141,7 @@ BOOL CRelativeSphereVolume::IsEqual(int iNumEqual)
 			}
 			if (eRelative[i] == RSV_LessThan)
 			{
-				return FALSE;
+				return false;
 			}
 			iTotal++;
 		}
@@ -152,9 +152,9 @@ BOOL CRelativeSphereVolume::IsEqual(int iNumEqual)
 	}
 	if (iCount >= iNumEqual)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -183,11 +183,11 @@ void CMeshLeaf::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshLeaf::Save(CFileWriter* pcFile)
+bool CMeshLeaf::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcSphere.Save(pcFile));
 	ReturnOnFalse(maiTriangles.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -195,11 +195,11 @@ BOOL CMeshLeaf::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshLeaf::Load(CFileReader* pcFile)
+bool CMeshLeaf::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcSphere.Load(pcFile));
 	ReturnOnFalse(maiTriangles.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -236,7 +236,7 @@ void CMeshLeaves::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshLeaves::Save(CFileWriter* pcFile)
+bool CMeshLeaves::Save(CFileWriter* pcFile)
 {
 	int			i;
 	CMeshLeaf*	pcLeaf;
@@ -248,7 +248,7 @@ BOOL CMeshLeaves::Save(CFileWriter* pcFile)
 		pcLeaf = mcLeaves.Get(i);
 		ReturnOnFalse(pcLeaf->Save(pcFile));
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -256,7 +256,7 @@ BOOL CMeshLeaves::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshLeaves::Load(CFileReader* pcFile)
+bool CMeshLeaves::Load(CFileReader* pcFile)
 {
 	int			i;
 	CMeshLeaf*	pcLeaf;
@@ -268,7 +268,7 @@ BOOL CMeshLeaves::Load(CFileReader* pcFile)
 		pcLeaf = mcLeaves.Get(i);
 		ReturnOnFalse(pcLeaf->Load(pcFile));
 	}
-	return TRUE;
+	return true;
 }
 
 

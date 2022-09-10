@@ -52,7 +52,7 @@ void CScene::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CScene::Load(CFileReader* pcChunkFile)
+bool CScene::Load(CFileReader* pcChunkFile)
 {
 	return Touch();
 }
@@ -62,7 +62,7 @@ BOOL CScene::Load(CFileReader* pcChunkFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CScene::Touch(void)
+bool CScene::Touch(void)
 {
 	//int					i;
 	//CMesh*				pcMesh;
@@ -70,7 +70,7 @@ BOOL CScene::Touch(void)
 	//CImageRGBToGrey		cImageRGBToGrey;
 	//CMaterial*			pcMaterial;
 	//CMaterialHelper		cMaterialHelper;
-	//BOOL				bResult;
+	//bool				bResult;
 	//CImageResampler		cImageResampler;
 	//
 	////First do the images... this is important.
@@ -97,7 +97,7 @@ BOOL CScene::Touch(void)
 	//	cMaterialHelper.Kill();
 	//}
 
-	//bResult = TRUE;
+	//bResult = true;
 	//for (i = 0; i < mcMeshTracker.Num(); i++)
 	//{
 	//	pcMesh = mcMeshTracker.Get(i);
@@ -105,5 +105,5 @@ BOOL CScene::Touch(void)
 	//	bResult &= pcMesh->Touch();
 	//}
 	//return bResult;
-	return FALSE;
+	return false;
 }

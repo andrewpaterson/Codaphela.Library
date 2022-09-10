@@ -66,7 +66,7 @@ void CRectangleBestPacker::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
+bool CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 {
 	CPackSourceRectangle*	psPacked;
 
@@ -75,12 +75,12 @@ BOOL CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 		psPacked = masSourceRectangles.Add();
 		psPacked->Init(pcRect, pvUserData);
 		miSourceArea += pcRect->GetArea();
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		//Don't feed the packer empty rectangles.
-		return FALSE;
+		return false;
 	}
 }
 
@@ -89,7 +89,7 @@ BOOL CRectangleBestPacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangleBestPacker::AddRectangle(CSubImage* pcSubImage)
+bool CRectangleBestPacker::AddRectangle(CSubImage* pcSubImage)
 {
 	return AddRectangle(&pcSubImage->mcImageRect, pcSubImage);
 }
@@ -99,7 +99,7 @@ BOOL CRectangleBestPacker::AddRectangle(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangleBestPacker::AddRectangle(CImageCel* pcImageCel)
+bool CRectangleBestPacker::AddRectangle(CImageCel* pcImageCel)
 {
 	return AddRectangle(&pcImageCel->GetSubImage()->mcImageRect, pcImageCel);
 }

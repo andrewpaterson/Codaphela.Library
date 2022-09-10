@@ -55,11 +55,11 @@ void CMeshFace::Init(int iCorner1, int iCorner2, int iCorner3)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshFace::Save(CFileWriter* pcFile)
+bool CMeshFace::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteIntArray(asCorner, NUM_FACE_CORNERS));
 	ReturnOnFalse(pcFile->WriteIntArray(asEdge, NUM_FACE_EDGES));
-	return TRUE;
+	return true;
 }
 
 
@@ -67,11 +67,11 @@ BOOL CMeshFace::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshFace::Load(CFileReader* pcFile)
+bool CMeshFace::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadIntArray(asCorner, NUM_FACE_CORNERS));
 	ReturnOnFalse(pcFile->ReadIntArray(asEdge, NUM_FACE_EDGES));
-	return TRUE;
+	return true;
 }
 
 

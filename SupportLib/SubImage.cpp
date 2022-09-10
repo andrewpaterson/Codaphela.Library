@@ -264,13 +264,13 @@ int CSubImage::GetFullBottom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSubImage::IsImageEmpty(void)
+bool CSubImage::IsImageEmpty(void)
 {
 	if (GetImageWidth() != 0)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 

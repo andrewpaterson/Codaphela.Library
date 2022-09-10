@@ -84,7 +84,7 @@ void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth)
 	miWidth = 0;
 	miHeight = 0;
 	miArea = 0;
-	mbValid = FALSE;
+	mbValid = false;
 	miMaxWidth = iMaxWidth;
 	macRectangles.Init();
 	AddRectanglesFromPacker();
@@ -149,7 +149,7 @@ void CPackAttempt::Pack(void)
 		pcLine->Init(this);
 		if (!pcLine->Pack())
 		{
-			mbValid = FALSE;
+			mbValid = false;
 			break;
 		}
 	}
@@ -194,7 +194,7 @@ void CPackAttempt::Done(void)
 	miHeight -= mpcRectanglePacker->GetInnerEdgeWidth();
 
 	miArea = miHeight * miWidth;
-	mbValid = TRUE;
+	mbValid = true;
 }
 
 
@@ -223,7 +223,7 @@ void CPackAttempt::RemoveLastRectangle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest)
+bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest)
 {
 	int						i;
 	CPackRectangleAttempt*	pcRect;
@@ -235,11 +235,11 @@ BOOL CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, C
 			(pcBounds->GetHeight() >= pcRect->mpcPackedRectangle->miHeight))
 		{
 			pcDest->Init(pcRect->mpcPackedRectangle);
-			macRectangles.RemoveAt(i, TRUE);
-			return TRUE;
+			macRectangles.RemoveAt(i, true);
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

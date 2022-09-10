@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceSingle::Init(int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, SImageColour* psTransparentColour, BOOL bIgnoreEmpty, BOOL bCropTransparentBorders)
+void CImageCelSourceSingle::Init(int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	miLeftOffset = iLeftOffset;

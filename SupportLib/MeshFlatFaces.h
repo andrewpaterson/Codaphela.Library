@@ -33,8 +33,8 @@ CONSTRUCTABLE(CMeshFlatFaces);
 public:
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 
 	void	GenerateNormals(CMesh* pcMesh);
 	void	Apply(CMeshEditor* pcMeshEditor);

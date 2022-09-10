@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL WriteMesh(CMesh* pcMesh, char* szFileName, EMeshType eType)
+bool WriteMesh(CMesh* pcMesh, char* szFileName, EMeshType eType)
 {
 	if (eType == MT_Unknown)
 	{
@@ -42,6 +42,6 @@ BOOL WriteMesh(CMesh* pcMesh, char* szFileName, EMeshType eType)
 	case MT_OBJ:
 		return (SaveOBJ(pcMesh, szFileName));
 	}
-	return FALSE;
+	return false;
 }
 

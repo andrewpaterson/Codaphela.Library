@@ -49,7 +49,7 @@ void CRectanglePow2Packer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectanglePow2Packer::AddRectangle(CRectangle* pcRect, void* pvUserData)
+bool CRectanglePow2Packer::AddRectangle(CRectangle* pcRect, void* pvUserData)
 {
 	return mcPacker.AddRectangle(pcRect, pvUserData);
 }
@@ -59,7 +59,7 @@ BOOL CRectanglePow2Packer::AddRectangle(CRectangle* pcRect, void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectanglePow2Packer::AddRectangle(CSubImage* pcSubImage)
+bool CRectanglePow2Packer::AddRectangle(CSubImage* pcSubImage)
 {
 	return mcPacker.AddRectangle(pcSubImage);
 }
@@ -69,7 +69,7 @@ BOOL CRectanglePow2Packer::AddRectangle(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectanglePow2Packer::AddRectangle(CImageCel* pcImageCel)
+bool CRectanglePow2Packer::AddRectangle(CImageCel* pcImageCel)
 {
 	return mcPacker.AddRectangle(pcImageCel);
 }

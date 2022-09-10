@@ -51,9 +51,9 @@ void CImageSourceDiskFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageSourceDiskFile::LoadImage(void)
+bool CImageSourceDiskFile::LoadImage(void)
 {
-	BOOL		bResult;
+	bool		bResult;
 	CImage*		pcImage;
 		
 	mpcImage = Allocate(mszFileName.Text());
@@ -62,8 +62,8 @@ BOOL CImageSourceDiskFile::LoadImage(void)
 	if (!bResult)
 	{
 		mpcImage->Kill();
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 

@@ -23,7 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJ_READER_H__
 #define __OBJ_READER_H__
-#include "BaseLib/Bool.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "MeshEditorWrapper.h"
@@ -47,8 +46,8 @@ class CMeshEditor;
 class CTextParser;
 
 
-BOOL LoadOBJ(CMesh* pcMesh, char* szFileName);
-BOOL LoadOBJ(CMeshEditor* pcMesh, char* szFileName);
+bool LoadOBJ(CMesh* pcMesh, char* szFileName);
+bool LoadOBJ(CMeshEditor* pcMesh, char* szFileName);
 
 
 class CObjReader
@@ -63,18 +62,18 @@ public:
 	void Init(CMeshEditor* pcEditor, char *szFileName);
 	void Kill(void);
 
-	BOOL Read(void);
-	BOOL ReadPosition(void);
-	BOOL ReadNormal(void);
-	BOOL ReadUVCoord(void);
-	BOOL ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNormals, int iNumUVs);
-	BOOL ReadPosition(CTextParser* pcTextParser);
-	BOOL ReadUVCoord(CTextParser* pcTextParser);
-	BOOL ReadNormal(CTextParser* pcTextParser);
-	BOOL ReadObjectName(CTextParser* pcTextParser);
-	BOOL ReadMaterialLibrary(CTextParser* pcTextParser);
-	BOOL ReadMaterial(CTextParser* pcTextParser);
-	BOOL ReadSmoothingGroup(CTextParser* pcTextParser);
+	bool Read(void);
+	bool ReadPosition(void);
+	bool ReadNormal(void);
+	bool ReadUVCoord(void);
+	bool ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNormals, int iNumUVs);
+	bool ReadPosition(CTextParser* pcTextParser);
+	bool ReadUVCoord(CTextParser* pcTextParser);
+	bool ReadNormal(CTextParser* pcTextParser);
+	bool ReadObjectName(CTextParser* pcTextParser);
+	bool ReadMaterialLibrary(CTextParser* pcTextParser);
+	bool ReadMaterial(CTextParser* pcTextParser);
+	bool ReadSmoothingGroup(CTextParser* pcTextParser);
 };
 
 

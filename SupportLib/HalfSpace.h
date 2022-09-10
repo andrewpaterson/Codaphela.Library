@@ -34,10 +34,10 @@ public:
 	void 	Set2(SFloat3* psPosition1, SFloat3* psVector1, SFloat3* psVector2);
 	void	Set(SFloat3* psPosition1, SFloat3* psNormal);
 	void 	SetZPlane(SFloat3* v1, SFloat3* v2);  //plane is perpendicular to z-axis.
-	BOOL 	Contains(SFloat3* psPosition);
-	BOOL	NotContains(SFloat3* psPosition);
-	BOOL	On(SFloat3* psPosition);
-	BOOL	Parallel(CHalfSpace* psOther);
+	bool 	Contains(SFloat3* psPosition);
+	bool	NotContains(SFloat3* psPosition);
+	bool	On(SFloat3* psPosition);
+	bool	Parallel(CHalfSpace* psOther);
 	int		FindFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints);
 	int		FindUnsignedFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints);
 	int		FindFurthestPoint(SFloat3* psPoints, int iStride, int* aiIndices, int iNumIndices);

@@ -86,15 +86,15 @@ void CPlane::Set(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPlane::Coplanar(CPlane* psOther)
+bool CPlane::Coplanar(CPlane* psOther)
 {
 	if (Parallel(psOther))
 	{
 		if (On(psOther->mpsPosition))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 

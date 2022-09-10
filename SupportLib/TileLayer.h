@@ -37,7 +37,7 @@ public:
 	CArrayUnknown	macTiles;
 	CChars			mszname;
 	CTileMap*		mpcTileMap;
-	BOOL			mbVisible;
+	bool			mbVisible;
 	CTileType*		mpcTileType;
 
 	void Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType);

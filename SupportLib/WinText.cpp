@@ -152,7 +152,7 @@ SWinFontInstance* CWinText::Create(char* szName, int iHeight, int iWidth, int iW
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, BOOL bSingleLine, RECT* psRect)
+void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, bool bSingleLine, RECT* psRect)
 {
 	int	iLen;
 	int	iFormat;
@@ -180,7 +180,7 @@ void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int i
 void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int x, int y)
 {
 	int		iLen;
-	BOOL	bReturn;
+	bool	bReturn;
 
 	iLen = (int)strlen(szString);
 

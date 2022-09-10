@@ -55,16 +55,16 @@ SChannel CChannelRGB::GetChannel(int iIndex)
 	switch(iIndex)
 	{
 	case 0:
-		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, false);
 		break;
 	case 1:
-		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, false);
 		break;
 	case 2:
-		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, false);
 		break;
 	default:
-		sChannel.Init(CHANNEL_ZERO, PT_Undefined, FALSE);
+		sChannel.Init(CHANNEL_ZERO, PT_Undefined, false);
 	}
 	return sChannel;
 }
@@ -102,19 +102,19 @@ SChannel CChannelRGBA::GetChannel(int iIndex)
 	switch(iIndex)
 	{
 	case 0:
-		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, false);
 		break;
 	case 1:
-		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, false);
 		break;
 	case 2:
-		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, false);
 		break;
 	case 3:
-		sChannel.Init(IMAGE_OPACITY, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_OPACITY, PT_uint8, false);
 		break;
 	default:
-		sChannel.Init(CHANNEL_ZERO, PT_Undefined, FALSE);
+		sChannel.Init(CHANNEL_ZERO, PT_Undefined, false);
 	}
 	return sChannel;
 }
@@ -154,19 +154,19 @@ SChannel CChannelRGBX::GetChannel(int iIndex)
 	switch(iIndex)
 	{
 	case 0:
-		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_RED, PT_uint8, false);
 		break;
 	case 1:
-		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_GREEN, PT_uint8, false);
 		break;
 	case 2:
-		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_DIFFUSE_BLUE, PT_uint8, false);
 		break;
 	case 3:
-		sChannel.Init(IMAGE_IGNORED, PT_uint8, FALSE);
+		sChannel.Init(IMAGE_IGNORED, PT_uint8, false);
 		break;
 	default:
-		sChannel.Init(CHANNEL_ZERO, PT_Undefined, FALSE);
+		sChannel.Init(CHANNEL_ZERO, PT_Undefined, false);
 	}
 	return sChannel;
 }

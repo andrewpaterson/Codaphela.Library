@@ -33,7 +33,7 @@ void CLight::Init(void)
 	msColour.Init(0, 0, 0, 0);
 	meDecay = LDT_None;
 	mfDecayStart = 0.0f;
-	mbCastShadows = FALSE;
+	mbCastShadows = false;
 	mfIntensity = 0.0f;
 }
 
@@ -42,7 +42,7 @@ void CLight::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, BOOL bCastShadows, float fIntensity)
+void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, bool bCastShadows, float fIntensity)
 {
 	msColour = sColour;
 	meDecay = eDecay;
@@ -76,7 +76,7 @@ void CLight::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLight::Load(CObjectReader* pcFile)
+bool CLight::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
 	ReturnOnFalse(msColour.Load(pcFile));
@@ -84,7 +84,7 @@ BOOL CLight::Load(CObjectReader* pcFile)
 	ReturnOnFalse(pcFile->ReadFloat(&mfDecayStart));
 	ReturnOnFalse(pcFile->ReadBool(&mbCastShadows));
 	ReturnOnFalse(pcFile->ReadFloat(&mfIntensity));
-	return TRUE;
+	return true;
 }
 
 
@@ -92,7 +92,7 @@ BOOL CLight::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLight::Save(CObjectWriter* pcFile)
+bool CLight::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(meType));
 	ReturnOnFalse(msColour.Save(pcFile));
@@ -100,7 +100,7 @@ BOOL CLight::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteFloat(mfDecayStart));
 	ReturnOnFalse(pcFile->WriteBool(mbCastShadows));
 	ReturnOnFalse(pcFile->WriteFloat(mfIntensity));
-	return TRUE;
+	return true;
 }
 
 

@@ -29,7 +29,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 void CPolygon::Init(void)
 {
 	mapsPositions.Init(sizeof(SFloat3*));
-	mbConvex = TRUE;
+	mbConvex = true;
 	mpsNormal = NULL;
 }
 
@@ -75,7 +75,7 @@ void CPolygon::Set(void)
 
 		if (mapsPositions.NumElements() == 3)
 		{
-			mbConvex = TRUE;
+			mbConvex = true;
 		}
 	}
 }
@@ -85,7 +85,7 @@ void CPolygon::Set(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygon::AddPosition(SFloat3* psPosition)
+bool CPolygon::AddPosition(SFloat3* psPosition)
 {
 	if (mapsPositions.NumElements() < 3)
 	{
@@ -99,7 +99,7 @@ BOOL CPolygon::AddPosition(SFloat3* psPosition)
 		{
 			Set();
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -108,9 +108,9 @@ BOOL CPolygon::AddPosition(SFloat3* psPosition)
 		{
 			mapsPositions.Add(&psPosition);
 			PrivateCalculateConvexity();
-			return TRUE;	
+			return true;	
 		}
-		return FALSE;
+		return false;
 	}
 }
 
@@ -119,7 +119,7 @@ BOOL CPolygon::AddPosition(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygon::AddPositions(SFloat3* psPos1, SFloat3* psPos2, SFloat3* psPos3)
+bool CPolygon::AddPositions(SFloat3* psPos1, SFloat3* psPos2, SFloat3* psPos3)
 {
 	ReturnOnFalse(AddPosition(psPos1));
 	ReturnOnFalse(AddPosition(psPos2));
@@ -135,7 +135,7 @@ void CPolygon::PrivateCalculateConvexity(void)
 {
 	//Test the convexity of only the last point...
 	
-	mbConvex = TRUE;
+	mbConvex = true;
 }
 
 
@@ -147,7 +147,7 @@ void CPolygon::CalculateConvexity(void)
 {
 	//Test the convexity of all points...
 
-	mbConvex = TRUE;
+	mbConvex = true;
 }
 
 
@@ -155,12 +155,12 @@ void CPolygon::CalculateConvexity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygon::AddTriangle(CTriangle* pcTriangle)
+bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 {
 	SFloat3**	ppsPositions;
 	int			i;
 	SFloat3*	psPosition;
-	BOOL		bResult;
+	bool		bResult;
 
 	if (mapsPositions.NumElements() == 0)
 	{
@@ -173,17 +173,17 @@ BOOL CPolygon::AddTriangle(CTriangle* pcTriangle)
 		ppsPositions[2] = pcTriangle->mpsPosition2;
 		mpsPosition = pcTriangle->mpsPosition;
 		d = pcTriangle->d;
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		bResult = TRUE;
+		bResult = true;
 		for (i = 0; i < 3; i++)
 		{
 			psPosition = pcTriangle->GetPoint(i);
 			if (!UnionPosition(psPosition))
 			{
-				bResult = FALSE;
+				bResult = false;
 			}
 		}
 		return bResult;
@@ -195,7 +195,7 @@ BOOL CPolygon::AddTriangle(CTriangle* pcTriangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygon::HasPositionPtr(SFloat3* psPosition)
+bool CPolygon::HasPositionPtr(SFloat3* psPosition)
 {
 	int			i;
 	SFloat3*	psOther;
@@ -205,10 +205,10 @@ BOOL CPolygon::HasPositionPtr(SFloat3* psPosition)
 		psOther = *((SFloat3**)mapsPositions.Get(i));
 		if (psOther == psPosition)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -216,7 +216,7 @@ BOOL CPolygon::HasPositionPtr(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygon::UnionPosition(SFloat3* psPosition)
+bool CPolygon::UnionPosition(SFloat3* psPosition)
 {
 	CArrayInt	cIndices;
 	int			iInsertionIndex;
@@ -231,7 +231,7 @@ BOOL CPolygon::UnionPosition(SFloat3* psPosition)
 			{
 				if (HasPositionPtr(psPosition))
 				{
-					return TRUE;
+					return true;
 				}
 
 				cIndices.Init();
@@ -239,7 +239,7 @@ BOOL CPolygon::UnionPosition(SFloat3* psPosition)
 				if (cIndices.NumElements() == 0)
 				{
 					//Something went wrong.
-					return FALSE;
+					return false;
 				}
 
 				iInsertionIndex = cIndices.GetValue(1);  //End index of the first visible line.
@@ -257,11 +257,11 @@ BOOL CPolygon::UnionPosition(SFloat3* psPosition)
 				mapsPositions.InsertAt(&psPosition, iInsertionIndex);
 				cIndices.Kill();
 			}
-			return TRUE;
+			return true;
 		}
-		return FALSE;
+		return false;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -269,7 +269,7 @@ BOOL CPolygon::UnionPosition(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygon::Contains(SFloat3* psPosition)
+bool CPolygon::Contains(SFloat3* psPosition)
 {
 	int			i;
 	SFloat3*	psStart;
@@ -294,12 +294,12 @@ BOOL CPolygon::Contains(SFloat3* psPosition)
 			cHalfSpace.Set2(psStart, (SFloat3*)mpsNormal, (SFloat3*)&sVector);
 			if (!cHalfSpace.Contains(psPosition))
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

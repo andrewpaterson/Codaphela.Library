@@ -87,7 +87,7 @@ void CMaterialHelper::Touch(void)
 	//	pcImage = pcImageTracker->GetWithID(mpcMaterial->msBump.iImageID);
 	//	if (pcImage->HasChannel(IMAGE_DIFFUSE_GREY))
 	//	{
-	//		ConvertHeightMapTo(TRUE, FALSE, pcImage, pcImage, IMAGE_DIFFUSE_GREY);
+	//		ConvertHeightMapTo(true, false, pcImage, pcImage, IMAGE_DIFFUSE_GREY);
 	//	}
 	//}
 }

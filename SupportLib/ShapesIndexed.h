@@ -42,9 +42,9 @@ public:
 	float	mfRadius;
 
 	void 	Init(void);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
-	BOOL	Shape(CSphere* pcShape, SFloat3* psVertexArray);
+	bool	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
+	bool	Shape(CSphere* pcShape, SFloat3* psVertexArray);
 };
 
 
@@ -56,9 +56,9 @@ public:
 
 	void	Init(void);
 	void 	Init(int p1, int p2, int p3, int n);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
-	BOOL	Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray);
+	bool	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
+	bool	Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray);
 };
 
 
@@ -77,8 +77,8 @@ public:
 
 	void 	Init(void);
 	void 	Init(int iCenterIndex, int iLongAxisIndex, float fLongAxisLength, int iMiddleAxisIndex, float fMiddleAxisLength, int iShortAxisIndex, float fShortAxisLength);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 };
 
 
@@ -87,12 +87,12 @@ class CPolygonIndexed : public CShapeIndexed
 public:
 	CArrayIntMinimal		maiPositions;  //It's assumed all these points are in a plane.
 	int					miNormalIndex;
-	BOOL				mbConvex;
+	bool				mbConvex;
 
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 };
 
 
@@ -107,8 +107,8 @@ public:
 	void 	Init(void);
 	void	Init(int iNumPolygons);
 	void 	Kill(void);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 };
 
 

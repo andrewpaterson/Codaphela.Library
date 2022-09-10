@@ -59,9 +59,9 @@ public:
 	void	SetSize(int iWidth, int iHeight);
 	void	SetPos(int x, int y);
 	void	GrowToContain(int iXPos, int iYPos);
-	BOOL	IsValid(void);
-	BOOL	IsIn(int x, int y);
-	BOOL	IsIn(int iLeft, int iTop, int iRight, int iBottom);
+	bool	IsValid(void);
+	bool	IsIn(int x, int y);
+	bool	IsIn(int iLeft, int iTop, int iRight, int iBottom);
 	SFloat2	GetUVCoordinatesTopLeft(int iTextureXSize, int iTextureYSize);
 	SFloat2	GetUVCoordinatesBottomRight(int iTextureXSize, int iTextureYSize);
 };

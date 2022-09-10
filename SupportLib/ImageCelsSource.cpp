@@ -64,7 +64,7 @@ CImageCelSource* CImageSourceWithCelSources::GetCelsSource(void) { return mpcCel
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::Init(BOOL bPackOnLoad)
+void CImageCelsSource::Init(bool bPackOnLoad)
 {
 	mbPackOnLoad = bPackOnLoad;
 
@@ -171,7 +171,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 	}
 
 	cFileNames.Init();
-	cFileUtil.FindFilesWithNameContaining(szPathName, szFileNameContains, &cFileNames, FALSE);
+	cFileUtil.FindFilesWithNameContaining(szPathName, szFileNameContains, &cFileNames, false);
 
 	for (i = 0; i < cFileNames.NumElements(); i++)
 	{
@@ -230,11 +230,11 @@ void CImageCelsSource::AddModifier(CImageModifier* pcModifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelsSource::Load(void)
+bool CImageCelsSource::Load(void)
 {
 	SSetIterator				sIter;
 	CImageSourceWithCelSources*	pcImageSourceWithCelSources;
-	BOOL						bResult;
+	bool						bResult;
 	Ptr<CImage>					pcMask;
 	CImageSource*				pcImageSource;
 	CImageCelSource*			pcCelsSource;
@@ -251,7 +251,7 @@ BOOL CImageCelsSource::Load(void)
 		bResult = pcImageSource->LoadImage();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 
 		mcModifiers.SetImage((CImage*)pcImageSource->GetImage().Object());  //Not sure if this is a hack or not.
@@ -283,7 +283,7 @@ BOOL CImageCelsSource::Load(void)
 
 	PopulateImageArray();
 
-	return TRUE;
+	return true;
 }
 
 

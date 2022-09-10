@@ -35,8 +35,8 @@ public:
 	void	Init(CMesh* pcMesh);
 	void	Kill(void);
 
-	BOOL	Index(void);
-	BOOL	Vertex(void);
+	bool	Index(void);
+	bool	Vertex(void);
 
 private:
 	int		GetIndexSize(SMeshFaceType* psFaceType);

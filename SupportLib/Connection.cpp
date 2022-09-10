@@ -31,9 +31,9 @@ void CConnection::Init(void)
 {
 	msWorldMatrix.Init();
 	msLocalMatrix.Init();
-	mbSelected = FALSE;
-	mbTopLevel = FALSE;
-	mbParity = FALSE;
+	mbSelected = false;
+	mbTopLevel = false;
+	mbParity = false;
 }
 
 
@@ -61,26 +61,35 @@ void CConnection::Class(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CConnection::Load(CObjectReader* pcFile)
+bool CConnection::Load(CObjectReader* pcFile)
 {
 	//Read in the matrix.
 	if (!msWorldMatrix.Load(pcFile))
 	{
 		gcUserError.Set("Could not read connection world matrix.");
-		return FALSE;
+		return false;
 	}
 
 	//Read in the matrix.
 	if (!msLocalMatrix.Load(pcFile))
 	{
 		gcUserError.Set("Could not read connection local matrix.");
-		return FALSE;
+		return false;
 	}	
 	
-	ReturnOnFalse(pcFile->ReadInt(&mbSelected));
-	ReturnOnFalse(pcFile->ReadInt(&mbTopLevel));
-	ReturnOnFalse(pcFile->ReadInt(&mbParity));
-	return TRUE;
+	if (!pcFile->ReadBool(&mbSelected))
+	{
+		return false;
+	}
+	if (!pcFile->ReadBool(&mbTopLevel))
+	{
+		return false;
+	}
+	if (!pcFile->ReadBool(&mbParity))
+	{
+		return false;;
+	}
+	return true;
 }
 
 
@@ -88,25 +97,25 @@ BOOL CConnection::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CConnection::Save(CObjectWriter* pcFile)
+bool CConnection::Save(CObjectWriter* pcFile)
 {
 	//Write out the actual matrix.
 	if (!msWorldMatrix.Save(pcFile))
 	{
 		gcUserError.Set("Could not write connection world matrix.");
-		return FALSE;
+		return false;
 	}
 
 	if (!msLocalMatrix.Save(pcFile))
 	{
 		gcUserError.Set("Could not write connection local matrix.");
-		return FALSE;
+		return false;
 	}
 
 	ReturnOnFalse(pcFile->WriteInt(mbSelected));
 	ReturnOnFalse(pcFile->WriteInt(mbTopLevel));
 	ReturnOnFalse(pcFile->WriteInt(mbParity));
-	return TRUE;
+	return true;
 }
 
 

@@ -39,9 +39,9 @@ struct SImageColour
 
 	void Zero(void);
 	void Full(void);
-	BOOL IsZero(int iDataSize);
-	BOOL Equals(SImageColour* psColour, int iDataSize);
-	BOOL Equals(void* pvColour, int iDataSize);
+	bool IsZero(int iDataSize);
+	bool Equals(SImageColour* psColour, int iDataSize);
+	bool Equals(void* pvColour, int iDataSize);
 };
 
 
@@ -71,8 +71,8 @@ public:
 	float	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 
@@ -91,8 +91,8 @@ public:
 	float	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 	
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 
@@ -107,8 +107,8 @@ public:
 	float	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 
@@ -123,8 +123,8 @@ public:
 	float	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 
@@ -141,8 +141,8 @@ public:
 	float	GetValue(EChannel eChannel);
 	void	GetChannels(CArrayInt* pai);
 
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 

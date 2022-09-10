@@ -57,15 +57,15 @@ void CImageCelGroup::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelGroup::Load(CObjectReader* pcFile)
+bool CImageCelGroup::Load(CObjectReader* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
-BOOL CImageCelGroup::Save(CObjectWriter* pcFile)
+bool CImageCelGroup::Save(CObjectWriter* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 

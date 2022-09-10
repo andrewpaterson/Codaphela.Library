@@ -44,8 +44,8 @@ public:
 	void 	Free(void);
 	void	Class(void);
 
-	BOOL	Load(CObjectReader* pcFile);
-	BOOL	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 	void	Copy(CCamera* pcCamera);
 };
 

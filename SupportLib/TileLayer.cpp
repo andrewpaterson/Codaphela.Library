@@ -37,10 +37,10 @@ void CTileLayer::Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType)
 	int			iSize;
 
 	macTiles.Init();
-	macTiles.KillElements(FALSE);
+	macTiles.KillElements(false);
 	mszname.Init(szName);
 	mpcTileMap = pcTileMap;
-	mbVisible = TRUE;
+	mbVisible = true;
 	mpcTileType = pcTileType;
 
 	pcNull = mpcTileType->GetNull();

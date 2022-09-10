@@ -33,9 +33,9 @@ class CImageCelsSourceXML
 public:
 	CTileWorld*		mpcWorld;
 
-	BOOL Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath);
-	BOOL ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath);
-	BOOL ImportCels(CMarkupTag* pcCelsTag, char* szFileName);
+	bool Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath);
+	bool ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath);
+	bool ImportCels(CMarkupTag* pcCelsTag, char* szFileName);
 };
 
 

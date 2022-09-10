@@ -45,8 +45,8 @@ public:
 
 	void 	Init(CMesh* pcMesh);
 	void 	Kill(void);
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 
 	void	Touch(void);
 	void	Collapse(void);
@@ -68,10 +68,10 @@ public:
 	void 	AddCorner(float x, float y, float z);
 	void	AddCorner(SFloat3* psPosition);
 
-	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName = 0, BOOL bEdge12 = TRUE, BOOL bEdge23 = TRUE, BOOL bEdge31 = TRUE);
-	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31, BOOL bFlipFaces);
-	CMFRet	AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName = 0, BOOL bFlipFaces = FALSE);  //Corners clock-wise.
-	CMFRet	AddPolygon(CArrayInt* paiCorners, int iName = 0, BOOL bFlipFaces = FALSE);  //Corners clock-wise.
+	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName = 0, bool bEdge12 = true, bool bEdge23 = true, bool bEdge31 = true);
+	CMFRet	AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31, bool bFlipFaces);
+	CMFRet	AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName = 0, bool bFlipFaces = false);  //Corners clock-wise.
+	CMFRet	AddPolygon(CArrayInt* paiCorners, int iName = 0, bool bFlipFaces = false);  //Corners clock-wise.
 
 	void	RemoveFace(int iFace);
 	void	RemoveFaces(CArrayInt* paiFaces);

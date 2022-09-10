@@ -38,7 +38,7 @@ public:
 	CArrayPackedLine			macLines;
 	CArrayPackRectangleAttempt	macRectangles;
 	CRectangleBestPacker*		mpcRectanglePacker;
-	BOOL						mbValid;
+	bool						mbValid;
 
 	void 					Init(CRectangleBestPacker* pcRectanglePacker, int MaxWidth);
 	void 					Kill(void);
@@ -48,7 +48,7 @@ public:
 	void 					Done(void);
 	CPackRectangleAttempt*	GetLastRectangle(void);
 	void					RemoveLastRectangle(void);
-	BOOL					GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest);
+	bool					GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest);
 	int						GetWastedArea(void);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt2					GetPackedImageSize(void);

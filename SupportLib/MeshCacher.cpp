@@ -99,7 +99,7 @@ int CMeshCacher::GetIndexSize(SMeshFaceType* psFaceType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCacher::Index(void)
+bool CMeshCacher::Index(void)
 {
 	int					iUniqueFaceTypes;
 	int					i;
@@ -133,7 +133,7 @@ BOOL CMeshCacher::Index(void)
 		if (!pvIndices)
 		{
 			aiFaces.Kill();
-			return FALSE;
+			return false;
 		}
 
 		iOffset = 0;
@@ -185,7 +185,7 @@ BOOL CMeshCacher::Index(void)
 		aiFaces.Kill();
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -194,7 +194,7 @@ BOOL CMeshCacher::Index(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCacher::Vertex(void)
+bool CMeshCacher::Vertex(void)
 {
 	int						i;
 	CMeshTypeIndices*		pcTypeIndices;
@@ -226,7 +226,7 @@ BOOL CMeshCacher::Vertex(void)
 		PopulateSkin(pcVertexArray, pcTypeIndices);
 	}
 
-	return TRUE;
+	return true;
 }
 
 

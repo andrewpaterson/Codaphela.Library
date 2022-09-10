@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceGrid::Init(CImageDividerNumbers* pcNumbers, SImageColour* psTransparentColour, BOOL bIgnoreEmpty, BOOL bCropTransparentBorders)
+void CImageCelSourceGrid::Init(CImageDividerNumbers* pcNumbers, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	memcpy(&mcNumbers, pcNumbers, sizeof(CImageDividerNumbers));

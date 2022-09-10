@@ -37,16 +37,16 @@ CONSTRUCTABLE(CConnection);
 public:
 	SFloat4x4			msWorldMatrix;
 	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.
-	BOOL				mbSelected;
-	BOOL				mbTopLevel;
-	BOOL				mbParity;
+	bool				mbSelected;
+	bool				mbTopLevel;
+	bool				mbParity;
 
 	void 	Init(void);
 	void 	Free(void);
 	void	Class(void);
 
-	BOOL	Load(CObjectReader* pcFile);
-	BOOL	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 	void	Copy(CConnection* pcConnection);
 };
 

@@ -36,7 +36,7 @@ Ptr<CFont> CFont::Init(char* szName, int iSpaceWidth, int iAscent, int iDescent)
 	pcImage = NULL;
 	miAverageWidth = 0;
 	miHeight = iAscent + iDescent;
-	mbFixedWidh = FALSE;
+	mbFixedWidh = false;
 	miSpace = iSpaceWidth;
 	miAscent = iAscent;
 	miDescent = iDescent;
@@ -71,9 +71,9 @@ void CFont::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFont::Save(CObjectWriter* pcFile)
+bool CFont::Save(CObjectWriter* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -81,9 +81,9 @@ BOOL CFont::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFont::Load(CObjectReader* pcFile)
+bool CFont::Load(CObjectReader* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -101,7 +101,7 @@ void CFont::Done(void)
 
 	iTotalWidth = 0;
 	iWidth = 0;
-	mbFixedWidh = TRUE;
+	mbFixedWidh = true;
 	for (i = 0; i < macGlyphs.NumElements(); i++)
 	{
 		pcGlyph = macGlyphs.Get(i);
@@ -110,7 +110,7 @@ void CFont::Done(void)
 		iTotalWidth += pcGlyph->GetFullWidth();
 		if ((iLastWidth != iWidth) && (i > 1))
 		{
-			mbFixedWidh = FALSE;
+			mbFixedWidh = false;
 		}
 		pcGlyph->GetSubImage()->SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
 		pcGlyph->GetSubImage()->msAlignment.y = -miAscent;
@@ -123,7 +123,7 @@ void CFont::Done(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFont::Is(char* szName)
+bool CFont::Is(char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -177,14 +177,14 @@ int CFont::Height(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFont::IsWhiteSpace(char c)
+bool CFont::IsWhiteSpace(char c)
 {
 	//  c <=  to include the space.
 	if ((c <= FIRST_LETTER) || (c >= (FIRST_LETTER + macGlyphs.NumElements())))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

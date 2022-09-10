@@ -86,7 +86,7 @@ void CMesh::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Load(CObjectReader* pcFile)
+bool CMesh::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(mcPositions.Load(pcFile));
 	ReturnOnFalse(mcConnectivity.Load(pcFile));
@@ -97,7 +97,7 @@ BOOL CMesh::Load(CObjectReader* pcFile)
 	ReturnOnFalse(mcColours.Load(pcFile));
 	ReturnOnFalse(mcFaceTypes.Load(pcFile));
 	ReturnOnFalse(mcCache.Load(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -105,7 +105,7 @@ BOOL CMesh::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Save(CObjectWriter* pcFile)
+bool CMesh::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(mcPositions.Save(pcFile));
 	ReturnOnFalse(mcConnectivity.Save(pcFile));
@@ -116,7 +116,7 @@ BOOL CMesh::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(mcColours.Save(pcFile));
 	ReturnOnFalse(mcFaceTypes.Save(pcFile));
 	ReturnOnFalse(mcCache.Save(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -136,7 +136,7 @@ void CMesh::Copy(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMesh::Touch(void)
+bool CMesh::Touch(void)
 {
 	mcSkin.Touch();
 

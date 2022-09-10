@@ -50,9 +50,9 @@ void CMeshFlatFaces::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshFlatFaces::Load(CFileReader* pcFile)
+bool CMeshFlatFaces::Load(CFileReader* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -60,9 +60,9 @@ BOOL CMeshFlatFaces::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshFlatFaces::Save(CFileWriter* pcFile)
+bool CMeshFlatFaces::Save(CFileWriter* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 

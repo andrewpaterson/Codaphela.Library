@@ -35,12 +35,12 @@ protected:
 
 public:
 	void 	Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, CFillRectangle* pcRect);
-	void 	Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, short iMask, BOOL bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
 
 	void	CropTransparentBorders(void);
 
 	void	GetAllChannels(CArrayChannel* pasChannels);
-	BOOL	MustFixDrawOpacity(void);
+	bool	MustFixDrawOpacity(void);
 	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 };
 

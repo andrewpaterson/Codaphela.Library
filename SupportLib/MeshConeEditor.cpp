@@ -123,7 +123,7 @@ void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 	mcRing.SetFaceName(2);
 
 	mcBottomDisc.Init(&msZDirection, &msStart, 0.0f, mfBottomRadius, miWedgeSegments, miBottomCircleSegments);
-	mcBottomDisc.SetFlipFaces(TRUE);
+	mcBottomDisc.SetFlipFaces(true);
 	mcBottomDisc.SetFaceName(3);
 	
 	ReInitConnectivity(pcMeshEditor);
@@ -142,12 +142,12 @@ void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 		mcRing.GenerateRing(pcMeshEditor);
 		iLastRing = pcMeshEditor->NumCorners() - miWedgeSegments;
 
-		mcRing.AddZStrip(pcMeshEditor, iLastRing, iLastTop, TRUE);
-		mcRing.AddZStrip(pcMeshEditor, iLastBottom, iFirstRing, TRUE);
+		mcRing.AddZStrip(pcMeshEditor, iLastRing, iLastTop, true);
+		mcRing.AddZStrip(pcMeshEditor, iLastBottom, iFirstRing, true);
 	}
 	else
 	{
-		mcRing.AddZStrip(pcMeshEditor, iLastBottom, iLastTop, TRUE);
+		mcRing.AddZStrip(pcMeshEditor, iLastBottom, iLastTop, true);
 	}
 
 	mcTopDisc.Kill();

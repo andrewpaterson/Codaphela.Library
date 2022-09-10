@@ -50,7 +50,7 @@ void CTileWorld::Init(void)
 
 	pcBooleanType = AddType("Boolean");
 	pcNullBooleanTile = UMalloc(CTileBoolean);
-	pcNullBooleanTile->Init(FALSE, pcBooleanType, "NULL");
+	pcNullBooleanTile->Init(false, pcBooleanType, "NULL");
 	pcBooleanType->AddTile(pcNullBooleanTile);
 	
 }

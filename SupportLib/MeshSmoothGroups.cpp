@@ -55,10 +55,10 @@ void CMeshSmoothGroups::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSmoothGroups::Load(CFileReader* pcFile)
+bool CMeshSmoothGroups::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcSmoothingGroups.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -66,7 +66,7 @@ BOOL CMeshSmoothGroups::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSmoothGroups::Save(CFileWriter* pcFile)
+bool CMeshSmoothGroups::Save(CFileWriter* pcFile)
 {
 	return mcSmoothingGroups.Write(pcFile);
 }
@@ -226,7 +226,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	CMeshFace*			psFaces;
 	CMeshFace*			psFace;
 	int					iPosition;
-	BOOL				bSmoothingOverlap;
+	bool				bSmoothingOverlap;
 	int*				piSmoothing;
 	int					iSmoothing;
 	int					iNewNormalIndex;
@@ -268,7 +268,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 			//Ignore faces with zero smoothing groups
 			if (iSmoothing != 0)
 			{
-				bSmoothingOverlap = FALSE;
+				bSmoothingOverlap = false;
 
 				for (k = 0; k < iNumNormals; k++)
 				{
@@ -276,7 +276,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 					if (dwSmooth[k] & iSmoothing)
 					{
 						dwSmooth[k] |= iSmoothing;
-						bSmoothingOverlap = TRUE;
+						bSmoothingOverlap = true;
 						break;
 					}
 				}
@@ -423,7 +423,7 @@ void CMeshSmoothGroups::AddFace(int iCorner1, int iCorner2, int iCorner3)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::RemoveFace(int iFace)
 {
-	mcSmoothingGroups.RemoveAt(iFace, TRUE);
+	mcSmoothingGroups.RemoveAt(iFace, true);
 }
 
 

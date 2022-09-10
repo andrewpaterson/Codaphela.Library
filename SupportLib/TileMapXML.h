@@ -39,17 +39,17 @@ public:
 	void Init(char* szMapName, char* szTexturePath);
 	void Kill(void);
 
-	BOOL Import(CTileWorld* pcTileWorld);
+	bool Import(CTileWorld* pcTileWorld);
 
 private:
-	BOOL ImportBrushSources(CMarkupTag* pcTag);
-	BOOL ImportObjectSources(CMarkupTag* pcTag);
-	BOOL ImportMaps(CMarkupTag* pcTag);
-	BOOL ImportMap(CMarkupTag* pcTag);
-	BOOL ImportMap2(CMarkupTag* pcTag, CTileMap* pcMap);
-	BOOL ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap);
-	BOOL ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap);
-	BOOL ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer);
+	bool ImportBrushSources(CMarkupTag* pcTag);
+	bool ImportObjectSources(CMarkupTag* pcTag);
+	bool ImportMaps(CMarkupTag* pcTag);
+	bool ImportMap(CMarkupTag* pcTag);
+	bool ImportMap2(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer);
 };
 
 

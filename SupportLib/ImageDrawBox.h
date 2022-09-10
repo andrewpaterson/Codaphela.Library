@@ -32,11 +32,11 @@ class CImageDrawBox : public CImageModifier
 CONSTRUCTABLE(CImageDrawBox);
 public:
 	CRectangle		mcRectangle;
-	BOOL			mbWholeImage;
+	bool			mbWholeImage;
 	CImageColour*	mpcColour;
-	BOOL			mbFilled;
+	bool			mbFilled;
 
-	void Init(CRectangle* pcRectangle, CImageColour* pcColour, BOOL bFilled = TRUE);
+	void Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
 	void Kill(void);
 	void Modify(CImage* pcImage);
 };

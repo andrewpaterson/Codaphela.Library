@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshPositions::Init(void)
 {
-	CMeshDetail::Init(TRUE);
+	CMeshDetail::Init(true);
 	mcPositions.Init();
 }
 
@@ -61,11 +61,11 @@ void CMeshPositions::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPositions::Load(CFileReader* pcFile)
+bool CMeshPositions::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcPositions.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -73,7 +73,7 @@ BOOL CMeshPositions::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPositions::Save(CFileWriter* pcFile)
+bool CMeshPositions::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcPositions.Write(pcFile);

@@ -70,7 +70,7 @@ void CPixelOpacityChannel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPixelOpacityChannel::IsTransparent(int x, int y)
+bool CPixelOpacityChannel::IsTransparent(int x, int y)
 {
 	SImageColour*	psAlpha;
 
@@ -80,7 +80,7 @@ BOOL CPixelOpacityChannel::IsTransparent(int x, int y)
 
 		return psAlpha->IsZero(mpcOpacityChannel->GetBufferSize());
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -113,16 +113,16 @@ void CPixelOpacityTransparentColour::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPixelOpacityTransparentColour::IsTransparent(int x, int y)
+bool CPixelOpacityTransparentColour::IsTransparent(int x, int y)
 {
 	SImageColour*	psColour;
-	BOOL			bResult;
+	bool			bResult;
 
 	psColour = (SImageColour*)mpcAllChannels->Get(x, y);
 	bResult = psColour->Equals(&msTransparentColour, mpcAllChannels->GetBufferSize());
 	if (bResult)
 	{
-		return TRUE;
+		return true;
 	}
 	return CPixelOpacityChannel::IsTransparent(x, y);
 }
@@ -155,7 +155,7 @@ void CPixelOpacityMask::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPixelOpacityMask::IsTransparent(int x, int y)
+bool CPixelOpacityMask::IsTransparent(int x, int y)
 {
 	short		iMask;
 
@@ -163,7 +163,7 @@ BOOL CPixelOpacityMask::IsTransparent(int x, int y)
 
 	if (iMask != miMask)
 	{
-		return TRUE;
+		return true;
 	}
 	return CPixelOpacityChannel::IsTransparent(x, y);
 }
@@ -197,17 +197,17 @@ void CPixelOpacityMaskTransparentColour::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPixelOpacityMaskTransparentColour::IsTransparent(int x, int y)
+bool CPixelOpacityMaskTransparentColour::IsTransparent(int x, int y)
 {
 	SImageColour*	psColour;
-	BOOL			bResult;
+	bool			bResult;
 
 	psColour = (SImageColour*)mpcAllChannels->Get(x, y);
 	bResult = psColour->Equals(&msTransparentColour, mpcAllChannels->GetBufferSize());
 
 	if (bResult)
 	{
-		return TRUE;
+		return true;
 	}
 	return CPixelOpacityMask::IsTransparent(x, y);
 }

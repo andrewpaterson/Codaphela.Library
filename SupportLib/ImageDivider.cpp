@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::Init(CImage* pcImage, SImageColour* psTransparentColour, BOOL bIgnoreEmpty, BOOL bCropTransparentBorders)
+void CImageDivider::Init(CImage* pcImage, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageAccessor*		pcAccessor;
 	int					iDataSize;
@@ -50,11 +50,11 @@ void CImageDivider::Init(CImage* pcImage, SImageColour* psTransparentColour, BOO
 
 		msTransparentColour.Zero();
 		memcpy_fast(&msTransparentColour, psTransparentColour, iDataSize);
-		mbUseTransparentColour = TRUE;
+		mbUseTransparentColour = true;
 	}
 	else
 	{
-		mbUseTransparentColour = FALSE;
+		mbUseTransparentColour = false;
 	}
 	mcDestImageCels.Init();
 }
@@ -83,7 +83,7 @@ void CImageDivider::GenerateFromBorder(CImage* pcFillMask)
 	CImageFiller			cFiller;
 	CImage					cFillMask;
 	CFillRectangle			cFillBounds;
-	BOOL					bResult;
+	bool					bResult;
 	short					iMask;
 
 	pcImageAccessor = CImageAccessorCreator::Create(mpcImage, mpcImage);
@@ -245,7 +245,7 @@ void CImageDivider::CopyCellsTo(CArrayCommonUnknown* pcImageCels)
 	pcImageCels->AddAll(&mcDestImageCels);
 
 	//Don't kill the image cels when the divider is destroyed.  They're held in another list now.
-	mcDestImageCels.KillElements(FALSE);
+	mcDestImageCels.KillElements(false);
 }
 
 

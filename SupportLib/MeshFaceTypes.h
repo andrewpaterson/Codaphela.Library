@@ -43,14 +43,14 @@ struct SMeshFaceType
 	unsigned int	iFlags2;
 
 	void	Clear(void);
-	BOOL	IsNormal(void);
-	BOOL	IsColour(void);
+	bool	IsNormal(void);
+	bool	IsColour(void);
 	int		GetUVs(void);
 	int		GetMatricies(void);
 	int		GetMaterial(void);
-	BOOL	Equals(SMeshFaceType* psOther);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Equals(SMeshFaceType* psOther);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 
@@ -78,8 +78,8 @@ public:
 
 	void	Init(void);
 	void	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 	void	Touch(CMesh* pcMesh);
 
 	void	ClearFaceTypes(int iNumFaces);

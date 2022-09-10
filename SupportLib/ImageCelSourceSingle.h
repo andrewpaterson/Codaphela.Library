@@ -35,7 +35,7 @@ protected:
 	int miBottomOffset;
 
 public:
-	void Init(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0, SImageColour* psTransparentColour = NULL, BOOL bIgnoreEmpty = TRUE, BOOL bCropTransparentBorders = TRUE);
+	void Init(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask);
 	void Kill(void);
 };

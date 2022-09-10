@@ -39,13 +39,13 @@ class CMeshDetail : public CUnknown
 {
 CONSTRUCTABLE(CMeshDetail);
 public:
-	BOOL	mbInUse;
+	bool	mbInUse;
 
-	void	Init(BOOL bInUse = FALSE);
-	BOOL	InUse(void);
+	void	Init(bool bInUse = false);
+	bool	InUse(void);
 
-	BOOL	LoadMeshDetail(CFileReader* pcFile);
-	BOOL	SaveMeshDetail(CFileWriter* pcFile);
+	bool	LoadMeshDetail(CFileReader* pcFile);
+	bool	SaveMeshDetail(CFileWriter* pcFile);
 };
 
 

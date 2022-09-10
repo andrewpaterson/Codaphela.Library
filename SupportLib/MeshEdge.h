@@ -34,9 +34,9 @@ public:
 	int		aiFace[MAX_EDGE_FACES];			//Faces on this edge.  A Maximum of two is assumed.  Unused indices are set to -1.
 
 	void	Init(void);
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
-	BOOL	AddFace(int iFaceNum);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
+	bool	AddFace(int iFaceNum);
 };
 
 

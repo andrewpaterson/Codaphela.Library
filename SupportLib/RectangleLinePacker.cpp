@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangleLinePacker::Init(BOOL bLeftToRight, BOOL bPow2, int iOutsideEdgeWidth, int iInnerEdgeWidth)
+void CRectangleLinePacker::Init(bool bLeftToRight, bool bPow2, int iOutsideEdgeWidth, int iInnerEdgeWidth)
 {
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
@@ -79,7 +79,7 @@ void CRectangleLinePacker::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangleLinePacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
+bool CRectangleLinePacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 {
 	CPackedRectangle*	psPacked;
 
@@ -87,12 +87,12 @@ BOOL CRectangleLinePacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 	{
 		psPacked = macRectangles.Add();
 		psPacked->Init(pcRect, pvUserData);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		//Don't feed the packer empty rectangles.
-		return FALSE;
+		return false;
 	}
 }
 
@@ -101,7 +101,7 @@ BOOL CRectangleLinePacker::AddRectangle(CRectangle* pcRect, void* pvUserData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangleLinePacker::AddRectangle(CSubImage* pcSubImage)
+bool CRectangleLinePacker::AddRectangle(CSubImage* pcSubImage)
 {
 	return AddRectangle(&pcSubImage->mcImageRect, pcSubImage);
 }
@@ -111,7 +111,7 @@ BOOL CRectangleLinePacker::AddRectangle(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRectangleLinePacker::AddRectangle(CImageCel* pcImageCel)
+bool CRectangleLinePacker::AddRectangle(CImageCel* pcImageCel)
 {
 	return AddRectangle(&pcImageCel->GetSubImage()->mcImageRect, pcImageCel);
 }
@@ -238,6 +238,6 @@ int CRectangleLinePacker::PackTopToBottom(void)
 CArrayPackedRectangle* CRectangleLinePacker::GetRectangles(void) {return &macRectangles;}
 int CRectangleLinePacker::GetOutsideEdgeWidth(void) {return miOutsideEdgeWidth;}
 int CRectangleLinePacker::GetInnerEdgeWidth(void) {return miInnerEdgeWidth;}
-BOOL CRectangleLinePacker::IsLeftToRight(void) {return mbLeftToRight;}
+bool CRectangleLinePacker::IsLeftToRight(void) {return mbLeftToRight;}
 SInt2 CRectangleLinePacker::GetSize(void) {return miSize;}
-BOOL CRectangleLinePacker::IsPow2(void) {return mbPow2;}
+bool CRectangleLinePacker::IsPow2(void) {return mbPow2;}

@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshDetail::Init(BOOL bInUse)
+void CMeshDetail::Init(bool bInUse)
 {
 	mbInUse = bInUse;
 }
@@ -38,7 +38,7 @@ void CMeshDetail::Init(BOOL bInUse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshDetail::InUse(void)
+bool CMeshDetail::InUse(void)
 {
 	return mbInUse;
 }
@@ -48,7 +48,7 @@ BOOL CMeshDetail::InUse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshDetail::LoadMeshDetail(CFileReader* pcFile)
+bool CMeshDetail::LoadMeshDetail(CFileReader* pcFile)
 {
 	return pcFile->ReadBool(&mbInUse) == TRITRUE;
 }
@@ -58,7 +58,7 @@ BOOL CMeshDetail::LoadMeshDetail(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshDetail::SaveMeshDetail(CFileWriter* pcFile)
+bool CMeshDetail::SaveMeshDetail(CFileWriter* pcFile)
 {
 	return pcFile->WriteBool(mbInUse);
 }

@@ -69,11 +69,11 @@ void CCamera::Class(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCamera::Load(CObjectReader* pcFile)
+bool CCamera::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt((int*)&meCameraType));
 	ReturnOnFalse(pcFile->ReadFloat(&mfFOV));
-	return TRUE;
+	return true;
 }
 
 
@@ -81,11 +81,11 @@ BOOL CCamera::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCamera::Save(CObjectWriter* pcFile)
+bool CCamera::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(meCameraType));
 	ReturnOnFalse(pcFile->WriteFloat(mfFOV));
-	return TRUE;
+	return true;
 }
 
 

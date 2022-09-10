@@ -38,10 +38,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LoadOBJ(CMesh *pcMesh, char *szFileName)
+bool LoadOBJ(CMesh *pcMesh, char *szFileName)
 {
 	CObjReader	cReader;
-	BOOL		bResult;
+	bool		bResult;
 
 	cReader.Init(pcMesh, szFileName);
 	bResult = cReader.Read();
@@ -92,7 +92,7 @@ void CObjReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::Read(void)
+bool CObjReader::Read(void)
 {
 	CTextParser 		cTextParser;
 	CTextFile			cTextFile;
@@ -118,7 +118,7 @@ BOOL CObjReader::Read(void)
 	{
 		cTypes.Kill();
 		cTextFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	cTextFile.PassifyNewlines();
@@ -176,7 +176,7 @@ BOOL CObjReader::Read(void)
 	cTypes.Kill();
 	cTextFile.Kill();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -184,7 +184,7 @@ BOOL CObjReader::Read(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadPosition(CTextParser* pcTextParser)
+bool CObjReader::ReadPosition(CTextParser* pcTextParser)
 {
 	float				x, y, z;
 
@@ -193,7 +193,7 @@ BOOL CObjReader::ReadPosition(CTextParser* pcTextParser)
 	pcTextParser->GetFloat(&z);
 	mcWrapper.AddCorner(x, y, z);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -201,17 +201,17 @@ BOOL CObjReader::ReadPosition(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadNormal(CTextParser* pcTextParser)
+bool CObjReader::ReadNormal(CTextParser* pcTextParser)
 {
 	float				x, y, z;
 
 	pcTextParser->GetFloat(&x);
 	pcTextParser->GetFloat(&y);
 	pcTextParser->GetFloat(&z);
-	mcWrapper.SetNormalsInUse(TRUE);
+	mcWrapper.SetNormalsInUse(true);
 	mcWrapper.AddNormal(x, y, z);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -219,16 +219,16 @@ BOOL CObjReader::ReadNormal(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadUVCoord(CTextParser* pcTextParser)
+bool CObjReader::ReadUVCoord(CTextParser* pcTextParser)
 {
 	float				u, v;
 
 	pcTextParser->GetFloat(&u);
 	pcTextParser->GetFloat(&v);
-	mcWrapper.SetUVsInUse(TRUE);
+	mcWrapper.SetUVsInUse(true);
 	mcWrapper.AddUV(u, v);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -236,7 +236,7 @@ BOOL CObjReader::ReadUVCoord(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNormals, int iNumUVs)
+bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNormals, int iNumUVs)
 {
 	TRISTATE				tResult;
 	CArrayMeshCornerBuilder	asCorners;
@@ -247,14 +247,14 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 	CArrayInt				aiCorners;
 	int						i;
 	int						iNumFaces;
-	BOOL					bNormals;
-	BOOL					bUVS;
+	bool					bNormals;
+	bool					bUVS;
 	SMeshNormalFace*		psFaceNormal;
 	CMFRet					r;
 	int						aiCornerIndices[6];
 
 	asCorners.Init();
-	while (TRUE)
+	while (true)
 	{
 		tResult = pcTextParser->GetInteger(&iCorner);
 		if (tResult != TRITRUE)
@@ -265,31 +265,31 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 		psCorner->Init(iCorner);
 
 		//No skipping whitespace because // is whitespace.
-		tResult = pcTextParser->GetExactCharacter('/', FALSE);
+		tResult = pcTextParser->GetExactCharacter('/', false);
 		if (tResult == TRITRUE)
 		{
 			tResult = pcTextParser->GetInteger(&iUV);
 			if (tResult == TRITRUE)
 			{
-				psCorner->bUVCoord = TRUE;
+				psCorner->bUVCoord = true;
 				psCorner->iUVCoord = iUV;
 			}
 
-			tResult = pcTextParser->GetExactCharacter('/', FALSE);
+			tResult = pcTextParser->GetExactCharacter('/', false);
 			if (tResult == TRITRUE)
 			{
 				tResult = pcTextParser->GetInteger(&iNormal);
 				if (tResult == TRITRUE)
 				{
-					psCorner->bNormal = TRUE;
+					psCorner->bNormal = true;
 					psCorner->iNormal = iNormal;
 				}
 			}
 		}
 	}
 
-	bNormals = TRUE;
-	bUVS = TRUE;
+	bNormals = true;
+	bUVS = true;
 
 	aiCorners.Init();
 	aiCorners.Resize(asCorners.NumElements());
@@ -305,11 +305,11 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 
 		if (!psCorner->bNormal)
 		{
-			bNormals = FALSE;
+			bNormals = false;
 		}
 		if (!psCorner->bUVCoord)
 		{
-			bUVS = FALSE;
+			bUVS = false;
 		}
 	}
 
@@ -349,7 +349,7 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 
 	aiCorners.Kill();
 	asCorners.Kill();
-	return TRUE;
+	return true;
 };
 
 
@@ -357,9 +357,9 @@ BOOL CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadObjectName(CTextParser* pcTextParser)
+bool CObjReader::ReadObjectName(CTextParser* pcTextParser)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -367,11 +367,11 @@ BOOL CObjReader::ReadObjectName(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadMaterialLibrary(CTextParser* pcTextParser)
+bool CObjReader::ReadMaterialLibrary(CTextParser* pcTextParser)
 {
 	pcTextParser->SkipWhiteSpace();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -379,9 +379,9 @@ BOOL CObjReader::ReadMaterialLibrary(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadMaterial(CTextParser* pcTextParser)
+bool CObjReader::ReadMaterial(CTextParser* pcTextParser)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -389,8 +389,8 @@ BOOL CObjReader::ReadMaterial(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjReader::ReadSmoothingGroup(CTextParser* pcTextParser)
+bool CObjReader::ReadSmoothingGroup(CTextParser* pcTextParser)
 {
-	return TRUE;
+	return true;
 }
 

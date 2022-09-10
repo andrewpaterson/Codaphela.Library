@@ -41,7 +41,7 @@ public:
 	void 	Copy(CSphere* source);
 	float 	IntersectSphereVolume(CSphere* pcOther);
 	float 	Volume(void);
-	BOOL	Contains(CTriangle* pcTriangle);
+	bool	Contains(CTriangle* pcTriangle);
 };
 
 

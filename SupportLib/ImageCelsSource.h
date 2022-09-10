@@ -55,7 +55,7 @@ class CImageCelsSource : public CUnknown
 {
 CONSTRUCTABLE(CImageCelsSource);
 protected:
-	BOOL								mbPackOnLoad;	//This will crop transparent edges as the image is loaded to save memory.
+	bool								mbPackOnLoad;	//This will crop transparent edges as the image is loaded to save memory.
 														//Also cropped images don't need the mask image.
 	//Input
 	CArrayImageSourceWithCelSources		macImageSources;
@@ -68,7 +68,7 @@ protected:
 	CArray<CImage>						macImages;
 
 public:
-	void 				Init(BOOL bPackOnLoad = FALSE);
+	void 				Init(bool bPackOnLoad = false);
 	void 				Kill(void);
 
 	void				AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
@@ -78,7 +78,7 @@ public:
 
 	void				AddModifier(CImageModifier* pcModifier);
 
-	BOOL				Load(void);
+	bool				Load(void);
 
 	Ptr<CArray<CImage>>	GetImages(void);
 	CArrayUnknown*		GetCels(void);

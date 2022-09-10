@@ -50,10 +50,10 @@ public:
 	int						iNewIndex;
 
 	void					Init(float fVolume);
-	BOOL					IsAllGreaterThan(void);
-	BOOL					IsAllEqual(void);
-	BOOL					IsGreaterThanOrEqual(int iNumGreaterThan);
-	BOOL					IsEqual(int iNumEqual);
+	bool					IsAllGreaterThan(void);
+	bool					IsAllEqual(void);
+	bool					IsGreaterThanOrEqual(int iNumGreaterThan);
+	bool					IsEqual(int iNumEqual);
 };
 
 
@@ -65,8 +65,8 @@ public:
 
 	void	Init(void);
 	void	Kill(void);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 };
 
 
@@ -92,8 +92,8 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 
 	void	GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions* pcPositions, CMeshTriangles* pcTriangles);
 	void	SetSphereFromTriangle(STriangleSphere* psSphere, CTriangleIndexed* pcTriangleIndexed, CMeshPositions* pcPositions);

@@ -76,10 +76,10 @@ void CMeshSkinVert::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSkinVert::Load(CFileReader* pcFile)
+bool CMeshSkinVert::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcWeights.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -87,7 +87,7 @@ BOOL CMeshSkinVert::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSkinVert::Save(CFileWriter* pcFile)
+bool CMeshSkinVert::Save(CFileWriter* pcFile)
 {
 	return mcWeights.Write(pcFile);
 }
@@ -174,7 +174,7 @@ void CMeshSkin::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSkin::Load(CFileReader* pcFile)
+bool CMeshSkin::Load(CFileReader* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
 	int				i;
@@ -191,7 +191,7 @@ BOOL CMeshSkin::Load(CFileReader* pcFile)
 	}
 
 	ReturnOnFalse(mcInverseSkinMatricies.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -199,7 +199,7 @@ BOOL CMeshSkin::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSkin::Save(CFileWriter* pcFile)
+bool CMeshSkin::Save(CFileWriter* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
 	int				i;
@@ -214,7 +214,7 @@ BOOL CMeshSkin::Save(CFileWriter* pcFile)
 	}
 
 	ReturnOnFalse(mcInverseSkinMatricies.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
