@@ -154,7 +154,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 	uint32					fatsz = 0;
 
 	uint32					backup_boot_sector;
-	uint32					fsinfo_sector;
+	uint32					uiFileSystemInfoSector;
 	uint32					no_of_root_entries;
 	uint32					no_of_bytes_per_sector;
 	uint32					uiNoOfReservedSectors;
@@ -166,7 +166,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 	uint32					root_entry_offset = 0;
 
 	SFatBIOSParameterBlock*				bpb;
-	SFatFileSystemInfo*				fsinfo;
+	SFatFileSystemInfo*				psFileSystemInfo;
 	SFatRawDirectoryEntry*	entry;
 
 	uint8					uiBuffer[MAX_SECTOR_LENGTH];
@@ -180,7 +180,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 	// get the total capacity of the storage
 	// device in bytes
 	media_type = 0xF8;
-	fsinfo_sector = 1;
+	uiFileSystemInfoSector = 1;
 	uiNoOfFatTables = 2;
 	backup_boot_sector = 6;
 	root_cluster = 2;
@@ -367,7 +367,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 		bpb->uFatEx.sFat32.BPB_ExtFlags = 0;
 		bpb->uFatEx.sFat32.BPB_FSVer = 0;
 		bpb->uFatEx.sFat32.BPB_RootClus = root_cluster;
-		bpb->uFatEx.sFat32.BPB_FSInfo = fsinfo_sector;
+		bpb->uFatEx.sFat32.BPB_FSInfo = uiFileSystemInfoSector;
 		bpb->uFatEx.sFat32.BPB_BkBootSec = backup_boot_sector;
 		time((time_t*)&bpb->uFatEx.sFat32.BS_VolID);
 		memset(bpb->uFatEx.sFat32.BPB_Reserved, 0, 12);
@@ -441,18 +441,18 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 		}
 
 		// initialize the FSInfo structure
-		fsinfo = (SFatFileSystemInfo*)uiBuffer;
-		fsinfo->LeadSig = 0x41615252;
-		fsinfo->StructSig = 0x61417272;
-		fsinfo->Free_Count = uiNoOfClusters - 1;
-		fsinfo->Nxt_Free = 3;
-		fsinfo->TrailSig = 0xAA550000;
-		memset(fsinfo->Reserved1, 0, 480);
-		memset(fsinfo->Reserved2, 0, 12);
-		fsinfo = 0;
+		psFileSystemInfo = (SFatFileSystemInfo*)uiBuffer;
+		psFileSystemInfo->LeadSig = 0x41615252;
+		psFileSystemInfo->StructSig = 0x61417272;
+		psFileSystemInfo->Free_Count = uiNoOfClusters - 1;
+		psFileSystemInfo->Nxt_Free = 3;
+		psFileSystemInfo->TrailSig = 0xAA550000;
+		memset(psFileSystemInfo->Reserved1, 0, 480);
+		memset(psFileSystemInfo->Reserved2, 0, 12);
+		psFileSystemInfo = 0;
 
 		// write the FSInfo structor to sector # BPB_FSInfo
-		bSuccess = device->Write(fsinfo_sector, uiBuffer);
+		bSuccess = device->Write(uiFileSystemInfoSector, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;

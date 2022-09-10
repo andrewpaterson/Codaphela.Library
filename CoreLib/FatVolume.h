@@ -16,7 +16,7 @@ struct SFatVolume
 	uint32				uiNoOfReservedSectors;
 	uint32				uiNextFreeCluster;
 	uint32				uiTotalFreeClusters;
-	uint32				uiFsinfoSector;
+	uint32				uiFileSystemInfoSector;
 	uint16				uiRootDirectorySectors;
 	uint16				uiNoOfBytesPerSector;
 	uint16				uiNoOfSectorsPerCluster;
@@ -31,7 +31,6 @@ class CFatVolume
 {
 public:
 	SFatVolume		msVolume;
-	SFatVolume*		mpsVolume;
 	CFileDrive*		mpcDevice;
 
 	uint8			mauiFatSharedBuffer[MAX_SECTOR_LENGTH];
