@@ -1,7 +1,6 @@
 #ifndef __FAT_VOLUME_H__
 #define __FAT_VOLUME_H__
 #include "FileDrive.h"
-#include "FatStructure.h"
 #include "FatCommon.h"
 
 

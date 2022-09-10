@@ -1,6 +1,5 @@
 #ifndef __FAT_FILE_H__
 #define __FAT_FILE_H__
-#include "BaseLib/PrimitiveTypes.h"
 #include "FatCommon.h"
 
 

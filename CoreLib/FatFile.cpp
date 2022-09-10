@@ -18,7 +18,6 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "FatInternals.h"
 #include "FatVolume.h"
 #include "FatTime.h"
 #include "FatFile.h"

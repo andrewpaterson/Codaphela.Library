@@ -1,9 +1,6 @@
 #include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "FatInternals.h"
-#include "FatStructure.h"
 #include "FatTime.h"
 #include "FatVolume.h"
 

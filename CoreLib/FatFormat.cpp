@@ -19,11 +19,8 @@
 
 #include <ctype.h>
 #include <string.h>
-#include <time.h>
-#include "FatInternals.h"
-#include "FatCommon.h"
+#include "FileDrive.h"
 #include "FatFile.h"
-#include "FatStructure.h"
 #include "FatTime.h"
 #include "FatFormat.h"
 
