@@ -522,9 +522,6 @@
     <ClCompile Include="Fat.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
-    <ClCompile Include="FatCluster.cpp">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClCompile>
     <ClCompile Include="FatFormat.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
@@ -903,6 +900,9 @@
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
     <ClInclude Include="FatStructure.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FatFile.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
   </ItemGroup>

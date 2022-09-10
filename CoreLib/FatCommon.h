@@ -111,10 +111,10 @@ struct SFatQueryState
 	uint8						Attributes;
 	uint16						current_sector;
 	uint32						current_cluster;
-	SFatRawDirectoryEntry* current_entry_raw;
-	uint8* buffer;
+	SFatRawDirectoryEntry*		current_entry_raw;
+	uint8*						uiBuffer;
 
-	SFatRawDirectoryEntry* first_entry_raw;
+	SFatRawDirectoryEntry*		first_entry_raw;
 
 	// LFN support members
 	uint16						long_filename[256];
@@ -132,45 +132,20 @@ struct SFatOperationState
 	uint32					pos;
 	uint16					bytes_remaining;
 	uint32					sector_addr;
-	uint32* bytes_read;
+	uint32*					bytes_read;
 	uint16					length;
 	uint16					storage_state;
-	uint8* end_of_buffer;
-	uint8* buffer;
+	uint8*					end_of_buffer;
+	uint8*					uiBuffer;
 	uint8					internal_state;
-};
-
-
-// This is the file handle structure. All the fields in this structure
-// are reserved for internal use and should not be accessed directly by the
-// developer.
-class CFatVolume;
-struct SFatFile
-{
-	CFatVolume*				volume;
-	SFatDirectoryEntry		directory_entry;
-	uint32					current_size;
-	uint32					current_clus_addr;
-	uint32					current_clus_idx;
-	uint32					current_sector_idx;
-	uint32					no_of_clusters_after_pos;
-	uint16					no_of_sequential_clusters;
-	uint8* buffer_head;
-	char					buffer_dirty;
-	char					busy;
-	uint8					magic;
-	uint8					access_flags;
-	SFatOperationState		op_state;
-	uint8* buffer;
-	uint8					buffer_internal[MAX_SECTOR_LENGTH];
 };
 
 
 // Holds the state of a directory query.
 struct SFatFileSystemQuery
 {
-	SFatDirectoryEntry current_entry;
-	SFatQueryState state;
+	SFatDirectoryEntry	current_entry;
+	SFatQueryState		state;
 };
 
 

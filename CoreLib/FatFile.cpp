@@ -23,30 +23,41 @@
 
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatFile::Init(CFatVolume* pcVolume)
+{
+	memset(&msFile, 0, sizeof(SFatFile));
+	mpcVolume = pcVolume;
+	msFile.uiBuffer = msFile.auiBufferInternal;
+}
 
 
-uint16 fat_file_update_sequential_cluster_count(SFatFile* file);
-
-
-uint16 fat_file_update_sequential_cluster_count(SFatFile* file)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileUpdateSequentialClusterCount(CFatFile* file)
 {
 	uint32 current_cluster;
 	uint32 next_cluster;
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
-	file->no_of_sequential_clusters = 0;
-	current_cluster = file->current_clus_addr;
+	file->msFile.uiNoOfSequentialClusters = 0;
+	current_cluster = file->msFile.uiCurrentClusterAddress;
 
-	while (!file->volume->FatIsEOFEntry(current_cluster))
+	while (!file->mpcVolume->FatIsEOFEntry(current_cluster))
 	{
-		file->volume->FatGetClusterEntry(current_cluster, &next_cluster);
+		file->mpcVolume->FatGetClusterEntry(current_cluster, &next_cluster);
 
 		if (next_cluster == (current_cluster + 1))
 		{
-			file->no_of_sequential_clusters++;
+			file->msFile.uiNoOfSequentialClusters++;
 			current_cluster = next_cluster;
-			if (file->no_of_sequential_clusters == 0xFFFF)
+			if (file->msFile.uiNoOfSequentialClusters == 0xFFFF)
 			{
 				break;
 			}
@@ -61,15 +72,19 @@ uint16 fat_file_update_sequential_cluster_count(SFatFile* file)
 
 
 // opens a file
-uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFatFile* file)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags, CFatFile* file)
 {
 	uint16					uiResult;
 	SFatDirectoryEntry		file_entry;
 
-	// use the internal buffer
-	if (!(access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	// use the internal uiBuffer
+	if (!(uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING))
 	{
-		file->buffer = file->buffer_internal;
+		file->msFile.uiBuffer = file->msFile.auiBufferInternal;
 	}
 
 	// check that the user supplied a filename
@@ -93,7 +108,7 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 	{
 		// if the create access flag was set then
 		// we create the file
-		if (access_flags & FAT_FILE_ACCESS_CREATE)
+		if (uiAccessFlags & FAT_FILE_ACCESS_CREATE)
 		{
 			// allocate memory for the file path
 			ptrdiff_t			path_len;
@@ -140,10 +155,10 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 			path_len = filename_scanner - filename;
 
 			// copy the path part of the filename to
-			// the file_path buffer
+			// the file_path uiBuffer
 			memcpy(file_path, filename, path_len);
 
-			// set the null terminator of the file_path buffer
+			// set the null terminator of the file_path uiBuffer
 			file_path[path_len] = 0x0;
 
 			// increase pointer to the beggining of the filename
@@ -172,7 +187,7 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
-			access_flags = access_flags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
+			uiAccessFlags = uiAccessFlags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
 
 			// if we were unable to create the entry for the file
 			// and
@@ -190,35 +205,47 @@ uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFa
 		}
 	}
 
-	uiResult = fat_open_file_by_entry(volume, &file_entry, file, access_flags);
+	uiResult = FatOpenFileByEntry(volume, &file_entry, file, uiAccessFlags);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
 	}
 
 	// if the file has no clusters allocated then allocate one
-	if (file->access_flags & FAT_FILE_ACCESS_WRITE)
+	if (file->msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
-		fat_file_update_sequential_cluster_count(file);
+		FatFileUpdateSequentialClusterCount(file);
 	}
 	return FAT_SUCCESS;
 }
 
 
-/*
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatFile::SetVolume(CFatVolume* pcVolume)
+{
+	mpcVolume = pcVolume;
+}
+
+
 // opens a file given a pointer to it's
 // directory entry
-*/
-uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* file, uint8 access_flags)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, CFatFile* file, uint8 uiAccessFlags)
 {
 	bool	bSuccess;
 	uint16	uiResult;
 
 	// set implicit access flags
-	access_flags |= FAT_FILE_ACCESS_READ;
-	if (access_flags & (FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_APPEND | FAT_FILE_ACCESS_OVERWRITE))
+	uiAccessFlags |= FAT_FILE_ACCESS_READ;
+	if (uiAccessFlags & (FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_APPEND | FAT_FILE_ACCESS_OVERWRITE))
 	{
-		access_flags |= FAT_FILE_ACCESS_WRITE;
+		uiAccessFlags |= FAT_FILE_ACCESS_WRITE;
 	}
 
 	// if the user is trying to open a directory then
@@ -231,43 +258,43 @@ uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFa
 
 	// copy the volume file and the entry's
 	// structure to the file file
-	file->volume = volume;
-	file->directory_entry = *entry;
-	file->current_size = entry->size;
-	file->current_clus_idx = 0;
-	file->access_flags = access_flags;
-	file->magic = FAT_OPEN_HANDLE_MAGIC;
-	file->busy = 0;
+	file->SetVolume(volume);
+	file->msFile.sDirectoryEntry = *entry;
+	file->msFile.uiCurrentSize = entry->size;
+	file->msFile.uiCurrentClusterIdx = 0;
+	file->msFile.uiAccessFlags = uiAccessFlags;
+	file->msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
+	file->msFile.bBusy = 0;
 
 	// calculate the # of clusters allocated
-	file->no_of_clusters_after_pos = (entry->size + volume->GetNoOfBytesPerSector() - 1) / volume->GetNoOfBytesPerSector();
-	file->no_of_clusters_after_pos = (file->no_of_clusters_after_pos + volume->GetNoOfSectorsPerCluster() - 1) / volume->GetNoOfSectorsPerCluster();
-	if (file->no_of_clusters_after_pos)
+	file->msFile.uiNoOfClustersAfterPos = (entry->size + volume->GetNoOfBytesPerSector() - 1) / volume->GetNoOfBytesPerSector();
+	file->msFile.uiNoOfClustersAfterPos = (file->msFile.uiNoOfClustersAfterPos + volume->GetNoOfSectorsPerCluster() - 1) / volume->GetNoOfSectorsPerCluster();
+	if (file->msFile.uiNoOfClustersAfterPos)
 	{
-		file->no_of_clusters_after_pos--;
+		file->msFile.uiNoOfClustersAfterPos--;
 	}
 
 	// set the sector cache as dirty, this will
 	// indicate that the current sector has not yet
 	// been read to other file functions
-	file->buffer_dirty = 1;
+	file->msFile.bBufferDirty = 1;
 
 	// read the the cluster number
-	((uint16*)&file->current_clus_addr)[INT32_WORD0] = entry->raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&file->current_clus_addr)[INT32_WORD1] = (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? entry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+	((uint16*)&file->msFile.uiCurrentClusterAddress)[INT32_WORD0] = entry->raw.uEntry.sFatRawCommon.first_cluster_lo;
+	((uint16*)&file->msFile.uiCurrentClusterAddress)[INT32_WORD1] = (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? entry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
 
-	if (access_flags & FAT_FILE_ACCESS_APPEND)
+	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
 		// if the file is being opened for append access we
 		// seek to the end of the file
-		uiResult = fat_file_seek(file, 0, FAT_SEEK_END);
+		uiResult = FatFileSeek(file, 0, FAT_SEEK_END);
 		if (uiResult != FAT_SUCCESS)
 		{
-			file->magic = 0;
+			file->msFile.uiMagic = 0;
 			return uiResult;
 		}
 	}
-	else if (access_flags & FAT_FILE_ACCESS_OVERWRITE)
+	else if (uiAccessFlags & FAT_FILE_ACCESS_OVERWRITE)
 	{
 		// if the file is being opened with the OVERWRITE flag we must free all the clusters
 		// currently allocated to the file and update it's directory entry to point to cluster 1
@@ -276,111 +303,111 @@ uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFa
 		// we'll empty it
 		if (entry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
 		{
-			uint8* buffer = fat_shared_buffer;
+			uint8* uiBuffer = fat_shared_buffer;
 
-			/*
 			// update the entry to point to cluster 0
-			*/
 			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
 			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
 			entry->raw.uEntry.sFatRawCommon.size = 0x0;
-			file->directory_entry = *entry;
-			file->current_size = entry->size;
-			/*
+			file->msFile.sDirectoryEntry = *entry;
+			file->msFile.uiCurrentSize = entry->size;
+
 			// mark the cached sector as unknown
-			*/
 			fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
-			/*
+
 			// read the sector that contains the entry
-			*/
-			bSuccess = volume->Read(entry->sector_addr, buffer);
+			bSuccess = volume->Read(entry->sector_addr, uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
-				file->magic = 0;
+				file->msFile.uiMagic = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			// copy the modified file entry to the sector buffer
-			memcpy(buffer + entry->sector_offset, &entry->raw, sizeof(SFatRawDirectoryEntry));
+			// copy the modified file entry to the sector uiBuffer
+			memcpy(uiBuffer + entry->sector_offset, &entry->raw, sizeof(SFatRawDirectoryEntry));
 
 			// write the modified entry to the media
-			bSuccess = volume->Write(entry->sector_addr, buffer);
+			bSuccess = volume->Write(entry->sector_addr, uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
-				file->magic = 0;
+				file->msFile.uiMagic = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
 
 			// free the clusters allocated to the file
-			volume->FatFreeClusterChain(file->current_clus_addr);
+			volume->FatFreeClusterChain(file->msFile.uiCurrentClusterAddress);
 		}
 
 		// reset the file file to reflect an
 		// empty file
-		file->current_size = 0x0;
-		file->current_sector_idx = 0x0;
-		file->current_clus_addr = 0x0;
-		file->current_clus_idx = 0;
-		file->buffer_head = file->buffer;
-		file->no_of_clusters_after_pos = 0;
+		file->msFile.uiCurrentSize = 0x0;
+		file->msFile.uiCurrentSectorIdx = 0x0;
+		file->msFile.uiCurrentClusterAddress = 0x0;
+		file->msFile.uiCurrentClusterIdx = 0;
+		file->msFile.pvBufferHead = file->msFile.uiBuffer;
+		file->msFile.uiNoOfClustersAfterPos = 0;
 	}
 	else
 	{
 		// if no append or overwrite flags are set then
 		// simply set the file to point to the beggining
 		// of the 1st cluster
-		file->current_sector_idx = 0x0;
-		file->buffer_head = file->buffer;
+		file->msFile.uiCurrentSectorIdx = 0x0;
+		file->msFile.pvBufferHead = file->msFile.uiBuffer;
 	}
 	return FAT_SUCCESS;
 }
 
 
 // sets the buffer of the file
-uint16 fat_file_set_buffer(SFatFile* file, uint8* buffer)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileSetBuffer(CFatFile* file, uint8* uiBuffer)
 {
-	if (file->buffer_head != file->buffer)
+	if (file->GetBufferHead() != file->GetBuffer())
 	{
 		uint16	uiResult;
 		uint32	sector_address;
 		bool	bSuccess;
 
-		sector_address = file->current_sector_idx + file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
-		file->buffer = buffer;
-		file->buffer_head = buffer + (uintptr_t)file->buffer_head;
-		bSuccess = file->volume->Read(sector_address, file->buffer);
+		sector_address = file->msFile.uiCurrentSectorIdx + file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
+		file->msFile.uiBuffer = uiBuffer;
+		file->msFile.pvBufferHead = uiBuffer + (uintptr_t)file->msFile.pvBufferHead;
+		bSuccess = file->mpcVolume->Read(sector_address, file->msFile.uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		file->buffer_dirty = 0;
+		file->msFile.bBufferDirty = 0;
 	}
 	else
 	{
-		file->buffer = buffer;
-		file->buffer_head = buffer;
+		file->msFile.uiBuffer = uiBuffer;
+		file->msFile.pvBufferHead = uiBuffer;
 	}
 
 	return FAT_SUCCESS;
 }
 
-/*
 // gets a unique identifier of the file (ie. first cluster)
-*/
-uint32 fat_file_get_unique_id(SFatFile* file)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatFile::FatFileGetUniqueId(CFatFile* file)
 {
-	/*return file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo
-		& (file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi << 16); */
-
 	uint32 id;
-	((uint16*)&id)[INT32_WORD0] = file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
 
-	if (file->volume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
+	((uint16*)&id)[INT32_WORD0] = file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+
+	if (file->mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
 	{
-		((uint16*)&id)[INT32_WORD1] = file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
+		((uint16*)&id)[INT32_WORD1] = file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi;
 	}
 	else
 	{
@@ -390,305 +417,50 @@ uint32 fat_file_get_unique_id(SFatFile* file)
 	return id;
 }
 
-/*
-// Deletes a file.
-*/
-uint16 fat_file_delete(CFatVolume* volume, char* filename)
-{
-	uint16					uiResult;
-	uint32					first_cluster;
-	SFatDirectoryEntry		entry;
-	uint8					buffer[MAX_SECTOR_LENGTH];
-	bool					bSuccess;
-
-	char					path_part[256];
-	char*					name_part;
-	uint8					checksum;
-	SFatFileSystemQuery	query;
-
-
-	// get the entry for the file
-	uiResult = volume->FatGetFileEntry(filename, &entry);
-	if (uiResult != FAT_SUCCESS)
-	{
-		return uiResult;
-	}
-
-	// if the entry is located go ahead and delete it.
-	if (entry.name != 0)
-	{
-		/*
-		// compute the checksum for the file
-		*/
-		checksum = fat_long_entry_checksum((uint8*)entry.raw.uEntry.sFatRawCommon.name);
-
-		/*
-		// make sure we're not trying to delete a directory
-		*/
-		if (entry.attributes & FAT_ATTR_DIRECTORY)
-		{
-			return FAT_NOT_A_FILE;
-		}
-
-		// find the entry's first cluster address
-		((uint16*)&first_cluster)[INT32_WORD0] = entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&first_cluster)[INT32_WORD1] = (volume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? entry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
-		/*
-		// free the file's cluster change
-		*/
-		if (first_cluster)
-		{
-			uiResult = volume->FatFreeClusterChain(first_cluster);
-			if (uiResult != FAT_SUCCESS)
-				return uiResult;
-		}
-		/*
-		// mark the entry as deleted
-		*/
-		entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
-
-		bSuccess = volume->Read(entry.sector_addr, buffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-			return uiResult;
-
-		memcpy(buffer + entry.sector_offset, &entry.raw, sizeof(entry.raw));
-
-		bSuccess = volume->Write(entry.sector_addr, buffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-		{
-			return uiResult;
-		}
-	}
-
-	// parse the filename
-	fat_parse_path(filename, path_part, &name_part);
-
-	// get the 1st LFN entry of the parent directory
-	uiResult = volume->FatFindFirstEntry(path_part, FAT_ATTR_LONG_NAME, 0, &query);
-	if (uiResult != FAT_SUCCESS)
-	{
-		return uiResult;
-	}
-
-	// loop through each entry.
-	while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
-	{
-		if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
-		{
-			/*
-			// mark the entry as deleted
-			*/
-			query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
-
-			bSuccess = volume->Read(query.current_entry.sector_addr, buffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
-			{
-				return uiResult;
-			}
-
-			memcpy(buffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(entry.raw));
-
-			bSuccess = volume->Write(query.current_entry.sector_addr, buffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
-			{
-				return uiResult;
-			}
-		}
-		/*
-		// get the next LFN entry
-		*/
-		volume->FatFindNextEntry(0, &query);
-	}
-
-	/*
-	// return success code
-	*/
-	return FAT_SUCCESS;
-}
-
-
-// renames a file
-uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_filename)
-{
-	uint16					uiResult;
-	uint32					entry_cluster;
-	char					new_parent[256];
-	char*					original_filename_part;
-	SFatDirectoryEntry		original_entry;
-	SFatDirectoryEntry		new_entry;
-	bool					bSuccess;
-	uint8					checksum = 0;
-	char					original_parent[256];
-	char*					new_filename_part;
-	uint8*					buffer = fat_shared_buffer;
-
-	// parse paths
-	fat_parse_path(original_filename, original_parent, &original_filename_part);
-	fat_parse_path(new_filename, new_parent, &new_filename_part);
-
-	// try to get the new entry to see if it exists.
-	volume->FatGetFileEntry(new_filename, &new_entry);
-	if (*new_entry.name != 0)
-	{
-		return FAT_FILENAME_ALREADY_EXISTS;
-	}
-
-	// get the directory entry
-	volume->FatGetFileEntry(original_filename, &original_entry);
-
-	if (*original_entry.name != 0)
-	{
-		SFatDirectoryEntry parent;
-		
-		// compute the checksum for the file
-		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.uEntry.sFatRawCommon.name);
-
-		// get the cluster # for the entry
-		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-
-		// get the new parent entry
-		uiResult = volume->FatGetFileEntry(new_parent, &parent);
-		if (uiResult != FAT_SUCCESS)
-		{
-			return uiResult;
-		}
-
-		// create the new entry in the parent folder
-		uiResult = volume->FatCreateDirectoryEntry(&parent.raw, new_filename_part, original_entry.attributes, entry_cluster, &new_entry);
-		if (uiResult != FAT_SUCCESS)
-		{
-			return uiResult;
-		}
-
-		// copy all info except name from the old entry to the new one
-		new_entry.raw.uEntry.sFatRawCommon.access_date = original_entry.raw.uEntry.sFatRawCommon.access_date;
-		new_entry.raw.uEntry.sFatRawCommon.attributes = original_entry.raw.uEntry.sFatRawCommon.attributes;
-		new_entry.raw.uEntry.sFatRawCommon.create_date = original_entry.raw.uEntry.sFatRawCommon.create_date;
-		new_entry.raw.uEntry.sFatRawCommon.create_time = original_entry.raw.uEntry.sFatRawCommon.create_time;
-		new_entry.raw.uEntry.sFatRawCommon.create_time_tenth = original_entry.raw.uEntry.sFatRawCommon.create_time_tenth;
-		new_entry.raw.uEntry.sFatRawCommon.first_cluster_hi = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-		new_entry.raw.uEntry.sFatRawCommon.first_cluster_lo = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		new_entry.raw.uEntry.sFatRawCommon.modify_date = original_entry.raw.uEntry.sFatRawCommon.modify_date;
-		new_entry.raw.uEntry.sFatRawCommon.modify_time = original_entry.raw.uEntry.sFatRawCommon.modify_time;
-		new_entry.raw.uEntry.sFatRawCommon.reserved = original_entry.raw.uEntry.sFatRawCommon.reserved;
-		new_entry.raw.uEntry.sFatRawCommon.size = original_entry.raw.uEntry.sFatRawCommon.size;
-
-		// write modified entry to drive
-		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
-		bSuccess = volume->Read(new_entry.sector_addr, buffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-		{
-			return uiResult;
-		}
-		memcpy(buffer + new_entry.sector_offset, &new_entry.raw, sizeof(new_entry.raw));
-		bSuccess = volume->Write(new_entry.sector_addr, buffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-		{
-			return uiResult;
-		}
-
-		// mark the original entry as deleted.
-		*original_entry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
-		bSuccess = volume->Read(original_entry.sector_addr, buffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-		{
-			return uiResult;
-		}
-		memcpy(buffer + original_entry.sector_offset, &original_entry.raw, sizeof(original_entry.raw));
-		bSuccess = volume->Write(original_entry.sector_addr, buffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-		{
-			return uiResult;
-		}
-	}
-	{
-		SFatFileSystemQuery query;
-
-		// get the 1st LFN entry of the parent directory
-		uiResult = volume->FatFindFirstEntry(original_parent, FAT_ATTR_LONG_NAME, 0, &query);
-		if (uiResult != FAT_SUCCESS)
-		{
-			return uiResult;
-		}
-
-		// loop through each entry.
-		while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
-		{
-			if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
-			{
-				// mark the entry as deleted
-				fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
-				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
-				bSuccess = volume->Read(query.current_entry.sector_addr, buffer);
-				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (uiResult != STORAGE_SUCCESS)
-				{
-					return uiResult;
-				}
-				memcpy(buffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(query.current_entry.raw));
-				bSuccess = volume->Write(query.current_entry.sector_addr, buffer);
-				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (uiResult != STORAGE_SUCCESS)
-				{
-					return uiResult;
-				}
-			}
-			// get the next LFN entry
-			volume->FatFindNextEntry(0, &query);
-		}
-	}
-
-	return FAT_SUCCESS;
-}
 
 // pre-allocates disk space for a file
-uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileAllocate(CFatFile* file, uint32 bytes)
 {
 	uint16	uiResult;
 	uint32	new_cluster;
 	uint32	no_of_clusters_needed;
 	bool	bSuccess;
-	uint8*	buffer = fat_shared_buffer;
+	uint8*	uiBuffer = fat_shared_buffer;
 
 	// check that this is a valid file
-	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
+	if (file->msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
 
 	// check that another operation is not using the
 	// file at this time
-	if (file->busy)
+	if (file->msFile.bBusy)
 	{
 		return FAT_FILE_HANDLE_IN_USE;
 	}
 
 	// mark the file as in use
-	file->busy = 1;
+	file->msFile.bBusy = 1;
 
 	// calculate how many clusters we need
-	no_of_clusters_needed = (bytes + file->volume->GetNoOfBytesPerSector() - 1) / file->volume->GetNoOfBytesPerSector();
-	no_of_clusters_needed = (no_of_clusters_needed + file->volume->GetNoOfSectorsPerCluster() - 1) / file->volume->GetNoOfSectorsPerCluster();
-	no_of_clusters_needed = (file->no_of_clusters_after_pos > no_of_clusters_needed) ? 0 : (no_of_clusters_needed - file->no_of_clusters_after_pos);
+	no_of_clusters_needed = (bytes + file->mpcVolume->GetNoOfBytesPerSector() - 1) / file->mpcVolume->GetNoOfBytesPerSector();
+	no_of_clusters_needed = (no_of_clusters_needed + file->mpcVolume->GetNoOfSectorsPerCluster() - 1) / file->mpcVolume->GetNoOfSectorsPerCluster();
+	no_of_clusters_needed = (file->msFile.uiNoOfClustersAfterPos > no_of_clusters_needed) ? 0 : (no_of_clusters_needed - file->msFile.uiNoOfClustersAfterPos);
 
 	// if we already got all the clusters requested then thre's nothing to do
 	if (no_of_clusters_needed == 0)
 	{
-		file->busy = 0;
+		file->msFile.bBusy = 0;
 		return FAT_SUCCESS;
 	}
 
 	// allocate a new cluster
-	if (file->access_flags & FAT_FILE_FLAG_OPTIMIZE_FOR_FLASH)
+	if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_OPTIMIZE_FOR_FLASH)
 	{
 		uint32 current_cluster;
 		uint32 next_cluster;
@@ -696,11 +468,11 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 		uint32 start_address;
 		uint32 end_address;
 
-		page_size = file->volume->GetPageSize();
+		page_size = file->mpcVolume->GetPageSize();
 
-		if (page_size > file->volume->GetNoOfSectorsPerCluster())
+		if (page_size > file->mpcVolume->GetNoOfSectorsPerCluster())
 		{
-			uint32 clusters_per_page = page_size / file->volume->GetNoOfSectorsPerCluster();
+			uint32 clusters_per_page = page_size / file->mpcVolume->GetNoOfSectorsPerCluster();
 
 			if (no_of_clusters_needed % clusters_per_page)
 			{
@@ -712,19 +484,19 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 				return FAT_UNKNOWN_ERROR;
 			}
 
-			new_cluster = file->volume->FatAllocateDataClusterEx(no_of_clusters_needed, 0, page_size, &uiResult);
+			new_cluster = file->mpcVolume->FatAllocateDataClusterEx(no_of_clusters_needed, 0, page_size, &uiResult);
 			if (uiResult != FAT_SUCCESS)
 			{
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return uiResult;
 			}
 		}
 		else
 		{
-			new_cluster = file->volume->FatAllocateDataCluster(no_of_clusters_needed, 1, &uiResult);
+			new_cluster = file->mpcVolume->FatAllocateDataCluster(no_of_clusters_needed, 1, &uiResult);
 			if (uiResult != FAT_SUCCESS)
 			{
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return uiResult;
 			}
 		}
@@ -733,20 +505,20 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 		// to this file following the current cursor location
 		current_cluster = new_cluster;
 
-		while (!file->volume->FatIsEOFEntry(current_cluster))
+		while (!file->mpcVolume->FatIsEOFEntry(current_cluster))
 		{
 			// calculate the start and end address the cluster
-			start_address = file->volume->CalculateFirstSectorOfCluster(current_cluster);
-			end_address = start_address + file->volume->GetNoOfSectorsPerCluster();
+			start_address = file->mpcVolume->CalculateFirstSectorOfCluster(current_cluster);
+			end_address = start_address + file->mpcVolume->GetNoOfSectorsPerCluster();
 
 			// find the last sequential sector after this address
-			while (!file->volume->FatIsEOFEntry(current_cluster))
+			while (!file->mpcVolume->FatIsEOFEntry(current_cluster))
 			{
-				file->volume->FatGetClusterEntry(current_cluster, &next_cluster);
+				file->mpcVolume->FatGetClusterEntry(current_cluster, &next_cluster);
 
 				if (next_cluster == (current_cluster + 1))
 				{
-					end_address += file->volume->GetNoOfSectorsPerCluster();
+					end_address += file->mpcVolume->GetNoOfSectorsPerCluster();
 					current_cluster = next_cluster;
 				}
 				else
@@ -757,50 +529,50 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 			}
 
 			// pre-erase the clusters
-			file->volume->Erase(start_address, end_address - 1);
+			file->mpcVolume->Erase(start_address, end_address - 1);
 		}
 	}
 	else
 	{
-		new_cluster = file->volume->FatAllocateDataCluster(no_of_clusters_needed, 0, &uiResult);
+		new_cluster = file->mpcVolume->FatAllocateDataCluster(no_of_clusters_needed, 0, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return uiResult;
 		}
 	}
 
 	// if this is the 1st cluster cluster allocated
 	// to the file then we must modify the file's entry
-	if (!file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo && !file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi)
+	if (!file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo && !file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi)
 	{
 		// modify the file entry to point to the
 		// new cluster
-		file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(new_cluster);
-		file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
+		file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(new_cluster);
+		file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
 
 		// mark the cached sector as unknown
 		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 
 		// try load the sector that contains the entry
-		bSuccess = file->volume->Read(file->directory_entry.sector_addr, buffer);
+		bSuccess = file->mpcVolume->Read(file->msFile.sDirectoryEntry.sector_addr, uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return uiResult;
 		}
 
 		// copy the modified file entry to the
-		// sector buffer
-		memcpy(buffer + file->directory_entry.sector_offset, &file->directory_entry.raw, sizeof(SFatRawDirectoryEntry));
+		// sector uiBuffer
+		memcpy(uiBuffer + file->msFile.sDirectoryEntry.sector_offset, &file->msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
-		bSuccess = file->volume->Write(file->directory_entry.sector_addr, buffer);
+		bSuccess = file->mpcVolume->Write(file->msFile.sDirectoryEntry.sector_addr, uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return uiResult;
 		}
 	}
@@ -810,57 +582,55 @@ uint16 fat_file_alloc(SFatFile* file, uint32 bytes)
 	{
 		uint32 last_cluster;
 
-		if (file->no_of_clusters_after_pos)
+		if (file->msFile.uiNoOfClustersAfterPos)
 		{
-			if (!file->volume->FatIncreaseClusterAddress(file->current_clus_addr, file->no_of_clusters_after_pos, &last_cluster))
+			if (!file->mpcVolume->FatIncreaseClusterAddress(file->msFile.uiCurrentClusterAddress, file->msFile.uiNoOfClustersAfterPos, &last_cluster))
 			{
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return FAT_CORRUPTED_FILE;
 			}
 		}
 		else
 		{
-			last_cluster = file->current_clus_addr;
+			last_cluster = file->msFile.uiCurrentClusterAddress;
 		}
 
-		/*
 		// set the FAT entry for the last cluster to the beggining of the newly
 		// allocated cluster chain (ie. link them)
-		*/
-		uiResult = file->volume->FatSetClusterEntry(last_cluster, (FatEntry)new_cluster);
+		uiResult = file->mpcVolume->FatSetClusterEntry(last_cluster, (FatEntry)new_cluster);
 		if (uiResult != FAT_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return uiResult;
 		}
 	}
-	/*
+
 	// update the file to point to the
 	// new cluster
-	*/
-	if (!file->current_clus_addr)
+	if (!file->msFile.uiCurrentClusterAddress)
 	{
-		file->current_clus_addr = new_cluster;
-		file->no_of_clusters_after_pos = no_of_clusters_needed - 1;
+		file->msFile.uiCurrentClusterAddress = new_cluster;
+		file->msFile.uiNoOfClustersAfterPos = no_of_clusters_needed - 1;
 	}
 	else
 	{
-		file->no_of_clusters_after_pos += no_of_clusters_needed;
+		file->msFile.uiNoOfClustersAfterPos += no_of_clusters_needed;
 	}
-	/*
-	// update the count of sequential clusters
-	*/
-	fat_file_update_sequential_cluster_count(file);
 
-	file->busy = 0;
-	/*
-	// return success code
-	*/
+	// update the count of sequential clusters
+	FatFileUpdateSequentialClusterCount(file);
+
+	file->msFile.bBusy = 0;
 	return FAT_SUCCESS;
 }
 
+
 // moves the file cursor to the specified offset
-uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileSeek(CFatFile* file, uint32 offset, char mode)
 {
 	uint32	new_pos;
 	uint32	sector_count;
@@ -869,153 +639,149 @@ uint16 fat_file_seek(SFatFile* file, uint32 offset, char mode)
 	uint32	sector_address;
 	uint16	uiResult;
 	bool	bSuccess;
-	/*
+
 	// check that this is a valid file
-	*/
-	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
+	if (file->msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
+	{
 		return FAT_INVALID_HANDLE;
-	/*
+	}
+
 	// check that another operation is not using the
 	// file at this time
-	*/
-	if (file->busy)
+	if (file->msFile.bBusy)
+	{
 		return FAT_FILE_HANDLE_IN_USE;
-	/*
+	}
+
 	// mark the file as in use
-	*/
-	file->busy = 1;
+	file->msFile.bBusy = 1;
 
 	switch (mode)
 	{
-	case FAT_SEEK_START:
-		new_pos = offset;
-		break;
-	case FAT_SEEK_CURRENT:
-		new_pos = file->current_clus_idx * file->volume->GetNoOfSectorsPerCluster() * file->volume->GetNoOfBytesPerSector();
-		new_pos += file->current_sector_idx * file->volume->GetNoOfBytesPerSector();
-		new_pos += (uint32)(file->buffer_head - file->buffer);
-		new_pos += offset;
-		break;
-	case FAT_SEEK_END:
-		new_pos = file->current_size;
-		if (offset)
-		{
-			file->busy = 0;
+		case FAT_SEEK_START:
+			new_pos = offset;
+			break;
+
+		case FAT_SEEK_CURRENT:
+			new_pos = file->msFile.uiCurrentClusterIdx * file->mpcVolume->GetNoOfSectorsPerCluster() * file->mpcVolume->GetNoOfBytesPerSector();
+			new_pos += file->msFile.uiCurrentSectorIdx * file->mpcVolume->GetNoOfBytesPerSector();
+			new_pos += (uint32)(file->msFile.pvBufferHead - file->msFile.uiBuffer);
+			new_pos += offset;
+			break;
+
+		case FAT_SEEK_END:
+			new_pos = file->msFile.uiCurrentSize;
+			if (offset)
+			{
+				file->msFile.bBusy = 0;
+				return FAT_SEEK_FAILED;
+			}
+			break;
+
+		default:
+			file->msFile.bBusy = 0;
 			return FAT_SEEK_FAILED;
-		}
-		break;
-	default:
-		file->busy = 0;
-		return FAT_SEEK_FAILED;
 	}
-	/*
+
 	// if the seek goes out of bounds return error
-	*/
-	if (new_pos > file->current_size)
+	if (new_pos > file->msFile.uiCurrentSize)
 	{
-		file->busy = 0;
+		file->msFile.bBusy = 0;
 		return FAT_SEEK_FAILED;
 	}
-	/*
+
 	// if the file is open in unbuffered mode make sure that
 	// we're seeking to a sector boundry
-	*/
-	if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+	if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (new_pos % file->volume->GetNoOfBytesPerSector())
+		if (new_pos % file->mpcVolume->GetNoOfBytesPerSector())
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_MISALIGNED_IO;
 		}
 	}
 
-	old_cluster = file->current_clus_idx;
-	file->current_clus_idx = 0;
+	old_cluster = file->msFile.uiCurrentClusterIdx;
+	file->msFile.uiCurrentClusterIdx = 0;
 	cluster_count = 1;
-	/*
+
 	// calculate the count of sectors being used by the file up to the desired position
-	*/
-	sector_count = (new_pos + file->volume->GetNoOfBytesPerSector() - 1) / file->volume->GetNoOfBytesPerSector();
-	/*
+	sector_count = (new_pos + file->mpcVolume->GetNoOfBytesPerSector() - 1) / file->mpcVolume->GetNoOfBytesPerSector();
+
 	// set the 1st cluster as the current cluster, we'll seek from there
-	*/
-	((uint16*)&file->current_clus_addr)[INT32_WORD0] = file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&file->current_clus_addr)[INT32_WORD1] =
-		(file->volume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? file->directory_entry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
-	/*
+	((uint16*)&file->msFile.uiCurrentClusterAddress)[INT32_WORD0] = file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+	((uint16*)&file->msFile.uiCurrentClusterAddress)[INT32_WORD1] = (file->mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+
 	// if the file occupies more than one cluster
-	*/
-	if (sector_count > file->volume->GetNoOfSectorsPerCluster())
+	if (sector_count > file->mpcVolume->GetNoOfSectorsPerCluster())
 	{
-		/*
 		// calculate the count of clusters occupied by the file and
 		// update the ClustersAllocated value of the file
-		*/
-		cluster_count = (sector_count + file->volume->GetNoOfSectorsPerCluster() - 1) / file->volume->GetNoOfSectorsPerCluster();
-		/*
+		cluster_count = (sector_count + file->mpcVolume->GetNoOfSectorsPerCluster() - 1) / file->mpcVolume->GetNoOfSectorsPerCluster();
+
 		// set the file file to point to the last cluster. if the file doesn't have
 		// that many clusters allocated this function will return 0. if that ever happens it means
 		// that the file is corrupted
-		*/
-		if (!file->volume->FatIncreaseClusterAddress(file->current_clus_addr, (cluster_count - 1), &file->current_clus_addr))
+		if (!file->mpcVolume->FatIncreaseClusterAddress(file->msFile.uiCurrentClusterAddress, (cluster_count - 1), &file->msFile.uiCurrentClusterAddress))
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_CORRUPTED_FILE;
 		}
 	}
-	/*
-	// calculate the last sector of the file and set the buffer
+
+	// calculate the last sector of the file and set the uiBuffer
 	// head to point to the byte after the last one
-	*/
 	if (new_pos)
 	{
-		file->current_sector_idx = (((new_pos + file->volume->GetNoOfBytesPerSector() - 1) / file->volume->GetNoOfBytesPerSector()) - 1) % file->volume->GetNoOfSectorsPerCluster();
-		file->buffer_head = (uint8*)((uintptr_t)file->buffer) + (new_pos % file->volume->GetNoOfBytesPerSector());
+		file->msFile.uiCurrentSectorIdx = (((new_pos + file->mpcVolume->GetNoOfBytesPerSector() - 1) / file->mpcVolume->GetNoOfBytesPerSector()) - 1) % file->mpcVolume->GetNoOfSectorsPerCluster();
+		file->msFile.pvBufferHead = (uint8*)((uintptr_t)file->msFile.uiBuffer) + (new_pos % file->mpcVolume->GetNoOfBytesPerSector());
 
-		if (new_pos % file->volume->GetNoOfBytesPerSector() == 0)
+		if (new_pos % file->mpcVolume->GetNoOfBytesPerSector() == 0)
 		{
-			file->buffer_head = (uint8*)((uintptr_t)file->buffer) + file->volume->GetNoOfBytesPerSector();
+			file->msFile.pvBufferHead = (uint8*)((uintptr_t)file->msFile.uiBuffer) + file->mpcVolume->GetNoOfBytesPerSector();
 		}
 	}
 	else
 	{
-		file->current_sector_idx = 0;
-		file->buffer_head = file->buffer;
+		file->msFile.uiCurrentSectorIdx = 0;
+		file->msFile.pvBufferHead = file->msFile.uiBuffer;
 	}
 
-	sector_address = file->current_sector_idx + file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
-	file->current_clus_idx = cluster_count - 1;
-	/*
+	sector_address = file->msFile.uiCurrentSectorIdx + file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
+	file->msFile.uiCurrentClusterIdx = cluster_count - 1;
+
 	// load the last sector
-	*/
-	if (file->buffer)
+	if (file->msFile.uiBuffer)
 	{
-		bSuccess = file->volume->Read(sector_address, file->buffer);
+		bSuccess = file->mpcVolume->Read(sector_address, file->msFile.uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		file->buffer_dirty = 0;
+		file->msFile.bBufferDirty = 0;
 	}
-	/*
+
 	// maintain the count of allocated clusters
-	*/
-	if (old_cluster < file->current_clus_idx)
+	if (old_cluster < file->msFile.uiCurrentClusterIdx)
 	{
-		file->no_of_clusters_after_pos -= (file->current_clus_idx - old_cluster);
+		file->msFile.uiNoOfClustersAfterPos -= (file->msFile.uiCurrentClusterIdx - old_cluster);
 	}
-	else if (old_cluster > file->current_clus_idx)
+	else if (old_cluster > file->msFile.uiCurrentClusterIdx)
 	{
-		file->no_of_clusters_after_pos += (old_cluster - file->current_clus_idx);
+		file->msFile.uiNoOfClustersAfterPos += (old_cluster - file->msFile.uiCurrentClusterIdx);
 	}
-	file->busy = 0;
+	file->msFile.bBusy = 0;
 	return FAT_SUCCESS;
 }
 
 
-void fat_file_write_callback(SFatFile* file, uint16* async_state_in)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatFile::FatFileWriteCallback(CFatFile* file, uint16* async_state_in)
 {
 	uint16	uiResult;
 	uint16* state;
@@ -1024,132 +790,109 @@ void fat_file_write_callback(SFatFile* file, uint16* async_state_in)
 	state = async_state_in;
 
 	// loop while there are bytes to be read
-	while (file->op_state.bytes_remaining)
+	while (file->msFile.sOperationState.bytes_remaining)
 	{
-		/*
 		// if we've reached the end of the current
 		// sector then we must flush it
-		*/
-		if (file->buffer_head == file->op_state.end_of_buffer)
+		if (file->msFile.pvBufferHead == file->msFile.sOperationState.end_of_buffer)
 		{
-			/*
 			// update the sector head
-			*/
-			if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+			if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 			{
-				file->buffer = file->buffer_head;
-				file->op_state.end_of_buffer = file->buffer + file->volume->GetNoOfBytesPerSector();
+				file->msFile.uiBuffer = file->msFile.pvBufferHead;
+				file->msFile.sOperationState.end_of_buffer = file->msFile.uiBuffer + file->mpcVolume->GetNoOfBytesPerSector();
 			}
 			else
 			{
-				file->op_state.end_of_buffer = file->buffer + file->volume->GetNoOfBytesPerSector();
-				file->buffer_head = file->buffer;
+				file->msFile.sOperationState.end_of_buffer = file->msFile.uiBuffer + file->mpcVolume->GetNoOfBytesPerSector();
+				file->msFile.pvBufferHead = file->msFile.uiBuffer;
 			}
-			/*
 			// write the cached sector to media
-			*/
-			bSuccess = file->volume->Write(file->op_state.sector_addr, file->buffer);
+			bSuccess = file->mpcVolume->Write(file->msFile.sOperationState.sector_addr, file->msFile.uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 
-			/*
 			// if we were unable to read the sector
 			// then throw an error
-			*/
 			if (uiResult != STORAGE_SUCCESS)
 			{
 				*state = FAT_CANNOT_WRITE_MEDIA;
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return;
 			}
-			/*
 			// if this sector is the last of the current cluster then
 			// locate the next cluster and continue writing
-			*/
-			if (file->current_sector_idx == file->volume->GetNoOfSectorsPerCluster() - 1)
+			if (file->msFile.uiCurrentSectorIdx == file->mpcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
-				uiResult = file->volume->FatGetClusterEntry(file->current_clus_addr, &file->current_clus_addr);
+				uiResult = file->mpcVolume->FatGetClusterEntry(file->msFile.uiCurrentClusterAddress, &file->msFile.uiCurrentClusterAddress);
 				if (uiResult != STORAGE_SUCCESS)
 				{
 					*state = FAT_CANNOT_WRITE_MEDIA;
-					file->busy = 0;
+					file->msFile.bBusy = 0;
 					return;
 				}
-				/*
 				// reset the current sector and increase the cluster index
-				*/
-				file->current_sector_idx = 0x0;
-				file->current_clus_idx++;
-				file->no_of_clusters_after_pos--;
-				/*
+				file->msFile.uiCurrentSectorIdx = 0x0;
+				file->msFile.uiCurrentClusterIdx++;
+				file->msFile.uiNoOfClustersAfterPos--;
 				// calculate the sector address
-				*/
-				file->op_state.sector_addr =
-					file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
+				file->msFile.sOperationState.sector_addr = file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
 			}
-			/*
 			// if there are more sectors in the
 			// current cluster then simply increase
 			// the current sector counter and address
-			*/
 			else
 			{
-				file->current_sector_idx++;
-				file->op_state.sector_addr++;
+				file->msFile.uiCurrentSectorIdx++;
+				file->msFile.sOperationState.sector_addr++;
 			}
-			/*
-			// if we've reached a flush boundry then flush the file
-			*/
-			/*if (!(file->op_state.pos % (file->volume->GetNoOfBytesPerSector() * FAT_FLUSH_INTERVAL)))
-			{
-				fat_file_flush(file);
-			}*/
 		}
-		if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+		if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 		{
-			file->buffer_head = file->op_state.end_of_buffer;
-			file->op_state.pos += file->volume->GetNoOfBytesPerSector();
+			file->msFile.pvBufferHead = file->msFile.sOperationState.end_of_buffer;
+			file->msFile.sOperationState.pos += file->mpcVolume->GetNoOfBytesPerSector();
 
-			if (file->op_state.pos >= file->current_size)
+			if (file->msFile.sOperationState.pos >= file->msFile.uiCurrentSize)
 			{
-				file->current_size = file->op_state.pos;
+				file->msFile.uiCurrentSize = file->msFile.sOperationState.pos;
 			}
-			file->op_state.bytes_remaining -= file->volume->GetNoOfBytesPerSector();
+			file->msFile.sOperationState.bytes_remaining -= file->mpcVolume->GetNoOfBytesPerSector();
 		}
 		else
 		{
-			/*
 			// write the next byte to the file cache
-			*/
-			*file->buffer_head++ = *file->op_state.buffer++;
-			/*
+			*file->msFile.pvBufferHead++ = *file->msFile.sOperationState.uiBuffer++;
+
 			// update the file size only if we're writting past
 			// the end of the file
-			*/
-			if (file->op_state.pos++ >= file->current_size)
+			if (file->msFile.sOperationState.pos++ >= file->msFile.uiCurrentSize)
 			{
-				file->current_size++;
+				file->msFile.uiCurrentSize++;
 			}
-			file->op_state.bytes_remaining--;
+			file->msFile.sOperationState.bytes_remaining--;
 		}
 	}
 
 	*state = FAT_SUCCESS;
-	file->busy = 0;
+	file->msFile.bBusy = 0;
 	return;
 }
 
 
-uint16 fat_file_write(SFatFile* file, uint8* buff, uint32 length)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileWrite(CFatFile* file, uint8* buff, uint32 length)
 {
 	uint32 uiResult;
 
 	// check that this is a valid file
-	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
+	if (file->msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
 	// check that the file is open for write access
-	if (!(file->access_flags & FAT_FILE_ACCESS_WRITE))
+	if (!(file->msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE))
 	{
 		return FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS;
 	}
@@ -1162,552 +905,528 @@ uint16 fat_file_write(SFatFile* file, uint8* buff, uint32 length)
 
 	// if there's no clusters allocated to this file allocate
 	// enough clusters for this request
-	uiResult = fat_file_alloc(file, length);
+	uiResult = FatFileAllocate(file, length);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
 	}
 
-	/*
-	// make sure that either a buffer is set or the file has been opened in
+	// make sure that either a uiBuffer is set or the file has been opened in
 	// unbuffered mode.
-	*/
-	if (!file->buffer && !(file->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	if (!file->msFile.uiBuffer && !(file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING))
 	{
 		return FAT_FILE_BUFFER_NOT_SET;
 	}
 
-	/*
 	// check that another operation is not using the
 	// file at this time
-	*/
-	if (file->busy)
+	if (file->msFile.bBusy)
 	{
 		return FAT_FILE_HANDLE_IN_USE;
 	}
 
-	/*
 	// mark the file as in use
-	*/
-	file->busy = 1;
-	/*
+	file->msFile.bBusy = 1;
+
 	// calculate current pos
-	*/
-	file->op_state.pos = file->current_clus_idx * file->volume->GetNoOfSectorsPerCluster() * file->volume->GetNoOfBytesPerSector();
-	file->op_state.pos += (file->current_sector_idx) * file->volume->GetNoOfBytesPerSector();
-	file->op_state.pos += (uintptr_t)(file->buffer_head - file->buffer);
-	/*
+	file->msFile.sOperationState.pos = file->msFile.uiCurrentClusterIdx * file->mpcVolume->GetNoOfSectorsPerCluster() * file->mpcVolume->GetNoOfBytesPerSector();
+	file->msFile.sOperationState.pos += (file->msFile.uiCurrentSectorIdx) * file->mpcVolume->GetNoOfBytesPerSector();
+	file->msFile.sOperationState.pos += (uintptr_t)(file->msFile.pvBufferHead - file->msFile.uiBuffer);
+
 	// if the file is opened in unbuffered mode make sure that
 	// we're reading a multiple of the sector size
-	*/
-	if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+	if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (length % file->volume->GetNoOfBytesPerSector())
+		if (length % file->mpcVolume->GetNoOfBytesPerSector())
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_MISALIGNED_IO;
 		}
-		file->buffer = buff;
-		file->op_state.end_of_buffer = file->buffer_head = buff;
+		file->msFile.uiBuffer = buff;
+		file->msFile.sOperationState.end_of_buffer = file->msFile.pvBufferHead = buff;
 	}
 	else
 	{
-		/*
 		// calculate the address of the end of
 		// the current sector
-		*/
-		file->op_state.end_of_buffer = file->buffer + file->volume->GetNoOfBytesPerSector();
+		file->msFile.sOperationState.end_of_buffer = file->msFile.uiBuffer + file->mpcVolume->GetNoOfBytesPerSector();
 	}
-	/*
-	// copy the length of the buffer to be writen
+
+	// copy the length of the uiBuffer to be writen
 	// into the counter
-	*/
-	file->op_state.bytes_remaining = (uint16)length;
-	/*
-	// calculate the address of the current
-	// sector
-	*/
-	file->op_state.sector_addr = file->current_sector_idx +
-		file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
+	file->msFile.sOperationState.bytes_remaining = (uint16)length;
+
+	// calculate the address of the current sector
+	file->msFile.sOperationState.sector_addr = file->msFile.uiCurrentSectorIdx + file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
 
 
-	file->op_state.internal_state = 0x0;
-	file->op_state.length = (uint16)length;
-	file->op_state.buffer = buff;
+	file->msFile.sOperationState.internal_state = 0x0;
+	file->msFile.sOperationState.length = (uint16)length;
+	file->msFile.sOperationState.uiBuffer = buff;
 
 	uint16 internal_state;
-	fat_file_write_callback(file, &internal_state);
+	FatFileWriteCallback(file, &internal_state);
 	return internal_state;
 }
 
 
-void fat_file_read_callback(SFatFile* file, uint16* state)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatFile::FatFileReadCallback(CFatFile* file, uint16* state)
 {
 	uint16	uiResult;
 	bool	bSuccess;
 
 	// reset the # of bytes read
-	if (file->op_state.bytes_read)
+	if (file->msFile.sOperationState.bytes_read)
 	{
-		*file->op_state.bytes_read = 0;
+		*file->msFile.sOperationState.bytes_read = 0;
 	}
 
-
-	/*
 	// if the sector cache is invalid
-	*/
-	if (file->buffer_dirty)
+	if (file->msFile.bBufferDirty)
 	{
-		/*
 		// read the current sector synchronously
-		*/
-		bSuccess = file->volume->Read(file->op_state.sector_addr, file->buffer);
+		bSuccess = file->mpcVolume->Read(file->msFile.sOperationState.sector_addr, file->msFile.uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
 			*state = FAT_CANNOT_READ_MEDIA;
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return;
 		}
-		/*
 		// mark the cache as clean
-		*/
-		file->buffer_dirty = 0;
-		/*
+		file->msFile.bBufferDirty = 0;
+
 		// if the file is unbuffered decrease the count of bytes remaining
-		// by one sector and set the buffer head to the end of the buffer
-		*/
-		if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+		// by one sector and set the uiBuffer head to the end of the uiBuffer
+		if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 		{
-			file->op_state.bytes_remaining -= file->volume->GetNoOfBytesPerSector();
-			file->buffer_head += file->volume->GetNoOfBytesPerSector();
-			file->op_state.end_of_buffer = file->buffer_head;
-			if (file->op_state.bytes_read)
-				*file->op_state.bytes_read += file->volume->GetNoOfBytesPerSector();
-
-			file->op_state.pos += file->volume->GetNoOfBytesPerSector();
-
-			if (file->op_state.pos >= file->current_size)
+			file->msFile.sOperationState.bytes_remaining -= file->mpcVolume->GetNoOfBytesPerSector();
+			file->msFile.pvBufferHead += file->mpcVolume->GetNoOfBytesPerSector();
+			file->msFile.sOperationState.end_of_buffer = file->msFile.pvBufferHead;
+			if (file->msFile.sOperationState.bytes_read)
 			{
-				if (file->op_state.bytes_read)
+				*file->msFile.sOperationState.bytes_read += file->mpcVolume->GetNoOfBytesPerSector();
+			}
+
+			file->msFile.sOperationState.pos += file->mpcVolume->GetNoOfBytesPerSector();
+
+			if (file->msFile.sOperationState.pos >= file->msFile.uiCurrentSize)
+			{
+				if (file->msFile.sOperationState.bytes_read)
 				{
-					*file->op_state.bytes_read -= file->op_state.pos - file->current_size;
+					*file->msFile.sOperationState.bytes_read -= file->msFile.sOperationState.pos - file->msFile.uiCurrentSize;
 				}
-				file->op_state.bytes_remaining = 0;
+				file->msFile.sOperationState.bytes_remaining = 0;
 			}
 		}
 	}
-	/*
+
 	// make sure that we haven't reaced the end of the file
-	*/
-	if (file->op_state.pos >= file->current_size)
-		file->op_state.bytes_remaining = 0;
-	/*
+	if (file->msFile.sOperationState.pos >= file->msFile.uiCurrentSize)
+	{
+		file->msFile.sOperationState.bytes_remaining = 0;
+	}
+
 	// loop while there are bytes to be
 	// read
-	*/
-	while (file->op_state.bytes_remaining)
+	while (file->msFile.sOperationState.bytes_remaining)
 	{
-		/*
 		// if we've reached the end of the current
 		// sector then we must load the next...
-		*/
-		if (file->buffer_head == file->op_state.end_of_buffer)
+		if (file->msFile.pvBufferHead == file->msFile.sOperationState.end_of_buffer)
 		{
-			/*
-			// if the file is unbuffered change the buffer to the
-			// new position of the buffer head. otherwise reset the position
-			// of the position of the buffer head
-			*/
-			if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+			// if the file is unbuffered change the uiBuffer to the
+			// new position of the uiBuffer head. otherwise reset the position
+			// of the position of the uiBuffer head
+			if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 			{
-				file->buffer = file->buffer_head;
-				file->op_state.end_of_buffer = file->buffer_head + file->volume->GetNoOfBytesPerSector();
+				file->msFile.uiBuffer = file->msFile.pvBufferHead;
+				file->msFile.sOperationState.end_of_buffer = file->msFile.pvBufferHead + file->mpcVolume->GetNoOfBytesPerSector();
 			}
 			else
 			{
-				file->buffer_head = file->buffer;
+				file->msFile.pvBufferHead = file->msFile.uiBuffer;
 			}
-			/*
+
 			// if this sector is the last of the current cluster
 			// we must find the next cluster
-			*/
-			if (file->current_sector_idx == file->volume->GetNoOfSectorsPerCluster() - 1)
+			if (file->msFile.uiCurrentSectorIdx == file->mpcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
 				// update the cluster address with the address of the
 				// next cluster
-				if (!file->volume->FatIncreaseClusterAddress(file->current_clus_addr, 1, &file->current_clus_addr))
+				if (!file->mpcVolume->FatIncreaseClusterAddress(file->msFile.uiCurrentClusterAddress, 1, &file->msFile.uiCurrentClusterAddress))
 				{
 					*state = FAT_CORRUPTED_FILE;
-					file->busy = 0;
+					file->msFile.bBusy = 0;
 					return;
 				}
 
 				// reset the current sector increase the current cluster
 				// number and calculate the address of the first sector of the
 				// cluster
-				file->current_clus_idx++;
-				file->current_sector_idx = 0x0;
-				file->op_state.sector_addr = file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
+				file->msFile.uiCurrentClusterIdx++;
+				file->msFile.uiCurrentSectorIdx = 0x0;
+				file->msFile.sOperationState.sector_addr = file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
 			}
 			else
 			{
 
 				// if there are more sectors in the current cluster then
 				// simply increase the current sector counter and address
-				file->current_sector_idx++;
-				file->op_state.sector_addr++;
+				file->msFile.uiCurrentSectorIdx++;
+				file->msFile.sOperationState.sector_addr++;
 			}
 
-			/*
 			// read the next sector into the cache
-			*/
-			bSuccess = file->volume->Read(file->op_state.sector_addr, file->buffer);
+			bSuccess = file->mpcVolume->Read(file->msFile.sOperationState.sector_addr, file->msFile.uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
 				*state = FAT_CANNOT_READ_MEDIA;
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return;
 			}
 		}
-		/*
+
 		// update the count of bytes read/remaining and if the file
-		// is buffered copy data to file buffer
-		*/
-		if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+		// is buffered copy data to file uiBuffer
+		if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 		{
-			file->buffer_head = file->op_state.end_of_buffer;
-			file->op_state.bytes_remaining -= file->volume->GetNoOfBytesPerSector();
-			if (file->op_state.bytes_read)
-				(*file->op_state.bytes_read) += file->volume->GetNoOfBytesPerSector();
-
-			file->op_state.pos += file->volume->GetNoOfBytesPerSector();
-
-			if (file->op_state.pos >= file->current_size)
+			file->msFile.pvBufferHead = file->msFile.sOperationState.end_of_buffer;
+			file->msFile.sOperationState.bytes_remaining -= file->mpcVolume->GetNoOfBytesPerSector();
+			if (file->msFile.sOperationState.bytes_read)
 			{
-				if (file->op_state.bytes_read)
+				(*file->msFile.sOperationState.bytes_read) += file->mpcVolume->GetNoOfBytesPerSector();
+			}
+
+			file->msFile.sOperationState.pos += file->mpcVolume->GetNoOfBytesPerSector();
+
+			if (file->msFile.sOperationState.pos >= file->msFile.uiCurrentSize)
+			{
+				if (file->msFile.sOperationState.bytes_read)
 				{
-					*file->op_state.bytes_read -= (file->op_state.pos - file->current_size);
+					*file->msFile.sOperationState.bytes_read -= (file->msFile.sOperationState.pos - file->msFile.uiCurrentSize);
 				}
-				file->op_state.bytes_remaining = 0;
+				file->msFile.sOperationState.bytes_remaining = 0;
 			}
 		}
 		else
 		{
-			/*
-			// copy the next byte to the buffer
-			*/
-			*file->op_state.buffer++ = *file->buffer_head++;
-			/*
+			// copy the next byte to the uiBuffer
+			*file->msFile.sOperationState.uiBuffer++ = *file->msFile.pvBufferHead++;
+
 			// update the  count of bytes read
-			*/
-			if (file->op_state.bytes_read)
-				(*file->op_state.bytes_read)++;
-			/*
+			if (file->msFile.sOperationState.bytes_read)
+			{
+				(*file->msFile.sOperationState.bytes_read)++;
+			}
+
 			// decrease the count of remaining bytes
-			*/
-			file->op_state.bytes_remaining--;
-			/*
+			file->msFile.sOperationState.bytes_remaining--;
+
 			// increase the file pointer
-			*/
-			file->op_state.pos++;
-			/*
+			file->msFile.sOperationState.pos++;
+
 			// check if we've reached the end of the file
-			*/
-			if (file->op_state.pos >= file->current_size)
-				file->op_state.bytes_remaining = 0;
+			if (file->msFile.sOperationState.pos >= file->msFile.uiCurrentSize)
+			{
+				file->msFile.sOperationState.bytes_remaining = 0;
+			}
 		}
 	}
-	/*
-	// set the return code
-	*/
+
 	*state = FAT_SUCCESS;
-	file->busy = 0;
+	file->msFile.bBusy = 0;
 	return;
 }
 
 
-uint16 fat_file_read(SFatFile* file, uint8* buff, uint32 length, uint32* bytes_read)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileRead(CFatFile* file, uint8* buff, uint32 length, uint32* bytes_read)
 {
 	// check that this is a valid file
-	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
+	if (file->msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
-	/*
-	// make sure that either a buffer is set or the file has been
+
+	// make sure that either a uiBuffer is set or the file has been
 	// opened in unbuffered mode
-	*/
-	if (!file->buffer && !(file->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+	if (!file->msFile.uiBuffer && !(file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING))
 	{
 		return FAT_FILE_BUFFER_NOT_SET;
 	}
-	/*
+
 	// make sure length is not larger than 16-bit
-	*/
 	if (length > 0xFFFF)
+	{
 		return FAT_BUFFER_TOO_BIG;
-	/*
+	}
+
 	// check that another operation is not using the
 	// file at this time
-	*/
-	if (file->busy)
-		return FAT_FILE_HANDLE_IN_USE;
-	/*
-	// mark the file as in use
-	*/
-	file->busy = 1;
-	/*
-	// calculate current pos
-	*/
-	file->op_state.pos = file->current_clus_idx * file->volume->GetNoOfSectorsPerCluster() * file->volume->GetNoOfBytesPerSector();
-	file->op_state.pos += (file->current_sector_idx) * file->volume->GetNoOfBytesPerSector();
-	file->op_state.pos += (uintptr_t)(file->buffer_head - file->buffer);
-	/*
-	// calculate the address of the current
-	// sector and the address of the end of the buffer
-	*/
-	file->op_state.sector_addr = file->current_sector_idx + file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
-	file->op_state.end_of_buffer = file->buffer + file->volume->GetNoOfBytesPerSector();
-	/*
-	// if the file is opened in unbuffered mode make sure that
-	// we're reading a multiple of the sector size and set the buffer
-	// to the one supplied by the user in this call
-	*/
-	if (file->access_flags & FAT_FILE_FLAG_NO_BUFFERING)
+	if (file->msFile.bBusy)
 	{
-		if (length % file->volume->GetNoOfBytesPerSector())
+		return FAT_FILE_HANDLE_IN_USE;
+	}
+
+	// mark the file as in use
+	file->msFile.bBusy = 1;
+
+	// calculate current pos
+	file->msFile.sOperationState.pos = file->msFile.uiCurrentClusterIdx * file->mpcVolume->GetNoOfSectorsPerCluster() * file->mpcVolume->GetNoOfBytesPerSector();
+	file->msFile.sOperationState.pos += (file->msFile.uiCurrentSectorIdx) * file->mpcVolume->GetNoOfBytesPerSector();
+	file->msFile.sOperationState.pos += (uintptr_t)(file->msFile.pvBufferHead - file->msFile.uiBuffer);
+
+	// calculate the address of the current
+	// sector and the address of the end of the uiBuffer
+	file->msFile.sOperationState.sector_addr = file->msFile.uiCurrentSectorIdx + file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
+	file->msFile.sOperationState.end_of_buffer = file->msFile.uiBuffer + file->mpcVolume->GetNoOfBytesPerSector();
+
+	// if the file is opened in unbuffered mode make sure that
+	// we're reading a multiple of the sector size and set the uiBuffer
+	// to the one supplied by the user in this call
+	if (file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
+	{
+		if (length % file->mpcVolume->GetNoOfBytesPerSector())
 		{
 			return FAT_MISALIGNED_IO;
 		}
-		file->buffer = buff;
-		file->op_state.end_of_buffer = file->buffer_head = buff;
+		file->msFile.uiBuffer = buff;
+		file->msFile.sOperationState.end_of_buffer = file->msFile.pvBufferHead = buff;
 	}
-	/*
+
 	// set the async op context
-	*/
-	file->op_state.bytes_remaining = (uint16)length;
-	file->op_state.internal_state = 0x0;
-	file->op_state.length = (uint16)length;
-	file->op_state.buffer = buff;
-	file->op_state.bytes_read = bytes_read;
+	file->msFile.sOperationState.bytes_remaining = (uint16)length;
+	file->msFile.sOperationState.internal_state = 0x0;
+	file->msFile.sOperationState.length = (uint16)length;
+	file->msFile.sOperationState.uiBuffer = buff;
+	file->msFile.sOperationState.bytes_read = bytes_read;
 
 	uint16 internal_state;
-	fat_file_read_callback(file, &internal_state);
+	FatFileReadCallback(file, &internal_state);
 	return internal_state;
 }
 
 
 // flushes file buffers
-uint16 fat_file_flush(SFatFile* file)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileFlush(CFatFile* file)
 {
 	uint16	uiResult;
 	uint32	sector_address = 0;
 	bool	bSuccess;
-	uint8*	buffer = fat_shared_buffer;
+	uint8*	uiBuffer = fat_shared_buffer;
 
-	/*
 	// check that this is a valid file
-	*/
-	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
-		return FAT_INVALID_HANDLE;
-	/*
-	// make sure that either a buffer has been set or the file was
-	// opened in unbuffered mode
-	*/
-	if (!file->buffer && !(file->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
-		return FAT_FILE_BUFFER_NOT_SET;
-	/*
-	// check that we got write access
-	*/
-	if (file->access_flags & FAT_FILE_ACCESS_WRITE)
+	if (file->msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
-		/*
+		return FAT_INVALID_HANDLE;
+	}
+
+	// make sure that either a uiBuffer has been set or the file was
+	// opened in unbuffered mode
+	if (!file->msFile.uiBuffer && !(file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING))
+	{
+		return FAT_FILE_BUFFER_NOT_SET;
+	}
+
+	// check that we got write access
+	if (file->msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
+	{
 		// check that another operation is not using the
 		// file at this time
-		*/
-		if (file->busy)
-			return FAT_FILE_HANDLE_IN_USE;
-		/*
-		// mark the file as in use
-		*/
-		file->busy = 1;
-		/*
-		// if the file is buffered then flush the buffer
-		*/
-		if (!(file->access_flags & FAT_FILE_FLAG_NO_BUFFERING))
+		if (file->msFile.bBusy)
 		{
-			/*
+			return FAT_FILE_HANDLE_IN_USE;
+		}
+
+		// mark the file as in use
+		file->msFile.bBusy = 1;
+
+		// if the file is buffered then flush the uiBuffer
+		if (!(file->msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING))
+		{
 			// calculate the address of the current
 			// sector
-			*/
-			sector_address = file->current_sector_idx + file->volume->CalculateFirstSectorOfCluster(file->current_clus_addr);
-			/*
-			// if the buffer is only partially filled we need to merge it
+			sector_address = file->msFile.uiCurrentSectorIdx + file->mpcVolume->CalculateFirstSectorOfCluster(file->msFile.uiCurrentClusterAddress);
+
+			// if the uiBuffer is only partially filled we need to merge it
 			// with the one on the drive
-			*/
-			if (file->buffer_head <= file->buffer + file->volume->GetNoOfBytesPerSector())
+			if (file->msFile.pvBufferHead <= file->msFile.uiBuffer + file->mpcVolume->GetNoOfBytesPerSector())
 			{
 				uint16 i;
 				uint8 buff[MAX_SECTOR_LENGTH];
-				bSuccess = file->volume->Read(sector_address, buff);
+				bSuccess = file->mpcVolume->Read(sector_address, buff);
 				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 				if (uiResult != STORAGE_SUCCESS)
 				{
-					file->busy = 0;
+					file->msFile.bBusy = 0;
 					return uiResult;
 				}
 
-				for (i = (uint16)(file->buffer_head -
-					file->buffer); i < file->volume->GetNoOfBytesPerSector(); i++)
+				for (i = (uint16)(file->msFile.pvBufferHead -
+					file->msFile.uiBuffer); i < file->mpcVolume->GetNoOfBytesPerSector(); i++)
 				{
-					file->buffer[i] = buff[i];
+					file->msFile.uiBuffer[i] = buff[i];
 				}
 			}
-			/*
+
 			// write the cached sector to media
-			*/
-			bSuccess = file->volume->Write(sector_address, file->buffer);
+			bSuccess = file->mpcVolume->Write(sector_address, file->msFile.uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
 		}
 
 		// update the file size on the entry
-		file->directory_entry.raw.uEntry.sFatRawCommon.size = file->current_size;
-		file->directory_entry.raw.uEntry.sFatRawCommon.modify_date = rtc_get_fat_date();
-		file->directory_entry.raw.uEntry.sFatRawCommon.modify_time = rtc_get_fat_time();
-		file->directory_entry.raw.uEntry.sFatRawCommon.access_date = file->directory_entry.raw.uEntry.sFatRawCommon.modify_date;
-		/*
+		file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.size = file->msFile.uiCurrentSize;
+		file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date = rtc_get_fat_date();
+		file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_time = rtc_get_fat_time();
+		file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.access_date = file->msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date;
+
 		// try load the sector that contains the entry
-		*/
 		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
 
-		bSuccess = file->volume->Read(file->directory_entry.sector_addr, buffer);
+		bSuccess = file->mpcVolume->Read(file->msFile.sDirectoryEntry.sector_addr, uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
 		// copy the modified file entry to the
-		// sector buffer
-		memcpy(buffer + file->directory_entry.sector_offset, &file->directory_entry.raw, sizeof(SFatRawDirectoryEntry));
+		// sector uiBuffer
+		memcpy(uiBuffer + file->msFile.sDirectoryEntry.sector_offset, &file->msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
-		bSuccess = file->volume->Write(file->directory_entry.sector_addr, buffer);
+		bSuccess = file->mpcVolume->Write(file->msFile.sDirectoryEntry.sector_addr, uiBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
-			file->busy = 0;
+			file->msFile.bBusy = 0;
 			return FAT_CANNOT_WRITE_MEDIA;
 		}
-		/*
+
 		// some cards seem not to update the sector correctly if it
 		// is the first sector on the page and is the only sector written
 		// to so for now until we figure this out we'll write the next
 		// sector too TODO: implement this on driver!!
-		*/
 		{
-			bSuccess = file->volume->Read(file->directory_entry.sector_addr + 1, buffer);
+			bSuccess = file->mpcVolume->Read(file->msFile.sDirectoryEntry.sector_addr + 1, uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			bSuccess = file->volume->Write(file->directory_entry.sector_addr + 1, buffer);
+			bSuccess = file->mpcVolume->Write(file->msFile.sDirectoryEntry.sector_addr + 1, uiBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
-				file->busy = 0;
+				file->msFile.bBusy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
 		}
-		/*
-		// mark the file file as not busy
-		*/
-		file->busy = 0;
+
+		// mark the file file as not bBusy
+		file->msFile.bBusy = 0;
 	}
-	/*
-	// return success code
-	*/
 	return FAT_SUCCESS;
 }
 
 
 // closes an open file
-uint16 fat_file_close(SFatFile* file)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatFile::FatFileClose(CFatFile* file)
 {
 	uint16		uiResult;
 	FatEntry	fat_entry;
 
 	// check that this is a valid file
-	if (file->magic != FAT_OPEN_HANDLE_MAGIC)
+	if (file->msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
 
 	// flush the file buffers
-	uiResult = fat_file_flush(file);
+	uiResult = FatFileFlush(file);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
 	}
 
-	if (file->access_flags & FAT_FILE_ACCESS_WRITE)
+	if (file->msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
-		/*
 		// clear the no buffering attribute so we can seek to a misaligned
 		// position (since we want the very end of the last written, not the
 		// beginning of the next one.)
-		*/
-		file->access_flags &= (FAT_FILE_FLAG_NO_BUFFERING ^ 0xFF);
-		/*
+		file->msFile.uiAccessFlags &= (FAT_FILE_FLAG_NO_BUFFERING ^ 0xFF);
+
 		// seek to the end of the file
-		*/
-		uiResult = fat_file_seek(file, file->current_size - 1, FAT_SEEK_START);
-		if (uiResult != FAT_SUCCESS)
-			return uiResult;
-		/*
-		// check that another operation is not using the
-		// file at this time
-		*/
-		if (file->busy)
-			return FAT_FILE_HANDLE_IN_USE;
-		/*
-		// mark the file as in use
-		*/
-		file->busy = 1;
-		/*
-		// free unused clusters
-		*/
-		uiResult = file->volume->FatGetClusterEntry(file->current_clus_addr, &fat_entry);
+		uiResult = FatFileSeek(file, file->msFile.uiCurrentSize - 1, FAT_SEEK_START);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
 		}
 
-		if (!file->volume->FatIsEOFEntry(fat_entry))
+		// check that another operation is not using the
+		// file at this time
+		if (file->msFile.bBusy)
 		{
-			uiResult = file->volume->FatFreeClusterChain(fat_entry);
+			return FAT_FILE_HANDLE_IN_USE;
+		}
+
+		// mark the file as in use
+		file->msFile.bBusy = 1;
+
+		// free unused clusters
+		uiResult = file->mpcVolume->FatGetClusterEntry(file->msFile.uiCurrentClusterAddress, &fat_entry);
+		if (uiResult != FAT_SUCCESS)
+		{
+			return uiResult;
+		}
+
+		if (!file->mpcVolume->FatIsEOFEntry(fat_entry))
+		{
+			uiResult = file->mpcVolume->FatFreeClusterChain(fat_entry);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;
 			}
 
-			switch (file->volume->GetFileSystemType())
+			switch (file->mpcVolume->GetFileSystemType())
 			{
-			case FAT_FS_TYPE_FAT12: fat_entry = FAT12_EOC; break;
-			case FAT_FS_TYPE_FAT16: fat_entry = FAT16_EOC; break;
-			case FAT_FS_TYPE_FAT32: fat_entry = FAT32_EOC; break;
+				case FAT_FS_TYPE_FAT12: 
+					fat_entry = FAT12_EOC; 
+					break;
+
+				case FAT_FS_TYPE_FAT16: 
+					fat_entry = FAT16_EOC; 
+					break;
+
+				case FAT_FS_TYPE_FAT32: 
+					fat_entry = FAT32_EOC; 
+					break;
 			}
-			uiResult = file->volume->FatSetClusterEntry(file->current_clus_addr, fat_entry);
+			uiResult = file->mpcVolume->FatSetClusterEntry(file->msFile.uiCurrentClusterAddress, fat_entry);
 			if (uiResult != FAT_SUCCESS)
 			{
 				return uiResult;
@@ -1715,13 +1434,27 @@ uint16 fat_file_close(SFatFile* file)
 		}
 	}
 
-	/*
 	// invalidate the file file
-	*/
-	file->magic = 0;
-	/*
-	// return success
-	*/
+	file->msFile.uiMagic = 0;
 	return FAT_SUCCESS;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatFile::GetCurrentSize(void) { return msFile.uiCurrentSize;  }
+uint32 CFatFile::GetCurrentClusterAddress(void) { return msFile.uiCurrentClusterAddress; }
+uint32 CFatFile::GetCurrentClusterIdx(void) { return msFile.uiCurrentClusterIdx; }
+uint32 CFatFile::GetCurrentSectorIdx(void) { return msFile.uiCurrentSectorIdx; }
+uint32 CFatFile::GetNoOfClustersAfterPos(void) { return msFile.uiNoOfClustersAfterPos; }
+uint16 CFatFile::GetNoOfSequentialClusters(void) { return msFile.uiNoOfSequentialClusters; }
+uint8* CFatFile::GetBufferHead(void) { return msFile.pvBufferHead; }
+bool CFatFile::IsBufferDirty(void) { return msFile.bBufferDirty; }
+bool CFatFile::IsBusy(void) { return msFile.bBusy; }
+uint8 CFatFile::GetMagic(void) { return msFile.uiMagic; }
+uint8 CFatFile::GetAccessFlags(void) { return msFile.uiAccessFlags; }
+uint8* CFatFile::GetBuffer(void) { return msFile.uiBuffer; }
 

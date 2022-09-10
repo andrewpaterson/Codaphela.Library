@@ -36,9 +36,9 @@ static TIMEKEEPER timekeeper;
 #endif
 
 // TODO:
-// 1. Optimize fat_file_seek
+// 1. Optimize FatFileSeek
 //
-// 2. Update fat_file_alloc to allocated clusters based on the # of bytes
+// 2. Update FatFileAllocate to allocated clusters based on the # of bytes
 //		needed and not the clusters needed to allocate those bytes. Right now
 //		it's overallocating under some circumstances. The extra clusters get
 //		freed when the file is closed anyways but it'll still be more efficient
@@ -278,7 +278,7 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled)
 		return FAT_INVALID_FILENAME;
 	/*
 	// copy the 1st part of the filename to the
-	// destination buffer
+	// destination bBuffer
 	*/
 	for (i = 0x0; i < 0x8; i++)
 	{
@@ -327,7 +327,7 @@ uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled)
 	{
 		/*
 		// copy the extension characters to the
-		// destination buffer
+		// destination bBuffer
 		*/
 		for (i = dot_index; i < dot_index + 0x3; i++)
 		{
@@ -488,7 +488,7 @@ void strtrim(char* dest, char* src, size_t max) {
 
 	/*
 	// copy the non-space characters to the
-	// destination buffer
+	// destination uiBuffer
 	*/
 	for (i = lead_spaces; i <= last_char; i++)
 	{
@@ -506,7 +506,7 @@ void strtrim(char* dest, char* src, size_t max) {
 }
 
 
-void fat_parse_path(char* path, char* path_part, char** filename_part)
+void FatParsePath(char* path, char* path_part, char** filename_part)
 {
 	*filename_part = path + strlen(path);
 

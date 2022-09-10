@@ -66,9 +66,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 /* Data structure for MD5 (Message-Digest) computation */
 struct SMD5Context
 {
-	unsigned long int i[2];	 /* number of _bits_ handled mod 2^64 */
+	unsigned long int i[2];		/* number of _bits_ handled mod 2^64 */
 	unsigned long int buf[4];	/* scratch buffer */
-	unsigned char in[64];	/* input buffer */
+	unsigned char in[64];		/* input buffer */
 	unsigned char digest[16];	/* actual digest after MD5Final call */
 };
 

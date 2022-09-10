@@ -166,7 +166,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	SFatFileSystemInfo*				fsinfo;
 	SFatRawDirectoryEntry*	entry;
 
-	uint8					buffer[MAX_SECTOR_LENGTH];
+	uint8					uiBuffer[MAX_SECTOR_LENGTH];
 
 	// todo: check for illegal characters in volume label
 	if (strlen(volume_label) > 11)
@@ -335,7 +335,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	root_entry_offset = (root_entry_offset % no_of_bytes_per_sector) / 4;
 
 	// set common Bios Parameter Block (BPB) fields.
-	bpb = (SFatBIOSParameterBlock*)buffer;
+	bpb = (SFatBIOSParameterBlock*)uiBuffer;
 
 	memcpy(bpb->BS_OEMName, "FAT32LIB", 8);
 	bpb->BS_jmpBoot[0] = 0xEB;
@@ -418,12 +418,12 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	}
 
 	// set the boot sector signature
-	buffer[510] = 0x55;
-	buffer[511] = 0xAA;
+	uiBuffer[510] = 0x55;
+	uiBuffer[511] = 0xAA;
 	bpb = 0;
 
 	// write boot sector to sector 0
-	bSuccess = device->Write(0x0, buffer);
+	bSuccess = device->Write(0x0, uiBuffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_WRITE_MEDIA;
@@ -434,14 +434,14 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
 		// write a copy of the boot sector to sector # BPB_BkBootSec
-		bSuccess = device->Write(backup_boot_sector, buffer);
+		bSuccess = device->Write(backup_boot_sector, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
 		}
 
 		// initialize the FSInfo structure
-		fsinfo = (SFatFileSystemInfo*)buffer;
+		fsinfo = (SFatFileSystemInfo*)uiBuffer;
 		fsinfo->LeadSig = 0x41615252;
 		fsinfo->StructSig = 0x61417272;
 		fsinfo->Free_Count = uiNoOfClusters - 1;
@@ -452,7 +452,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 		fsinfo = 0;
 
 		// write the FSInfo structor to sector # BPB_FSInfo
-		bSuccess = device->Write(fsinfo_sector, buffer);
+		bSuccess = device->Write(fsinfo_sector, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
@@ -462,8 +462,8 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	for (c = 0; c < uiNoOfFatTables; c++)
 	{
 		// zero out the FAT table and set the entries for clusters 0 and 1
-		// start by zeroing the whole buffer
-		memset(buffer, 0, MAX_SECTOR_LENGTH);
+		// start by zeroing the whole uiBuffer
+		memset(uiBuffer, 0, MAX_SECTOR_LENGTH);
 
 		// loop through each sector on the fat
 		for (i = 0; i < fatsz; i++)
@@ -478,8 +478,8 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 
 					/* even */
 					value = 0xFF8;									/* the value to be written */
-					*((uint16*)&buffer[0]) &= 0xF000;				/* clear bits for entry */
-					*((uint16*)&buffer[0]) |= (value & 0x0FFF);		/* set bits for entry */
+					*((uint16*)&uiBuffer[0]) &= 0xF000;				/* clear bits for entry */
+					*((uint16*)&uiBuffer[0]) |= (value & 0x0FFF);		/* set bits for entry */
 
 
 					// odd - we need to write this one 1 byte at a time since
@@ -488,31 +488,31 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 					value = FAT12_EOC;							/* the value to be written */
 					value <<= 4;								/* an odd entry occupies the upper 12-bits of the word */
 
-					buffer[1 + 0] &= 0x0F;						/* clear entry bits on 1st byte */
-					buffer[1 + 0] |= LO8(value);				/* set entry bits on 1st byte */
+					uiBuffer[1 + 0] &= 0x0F;						/* clear entry bits on 1st byte */
+					uiBuffer[1 + 0] |= LO8(value);				/* set entry bits on 1st byte */
 
-					buffer[1 + 1] = 0x00;						/* clear the 2nd byte */
-					buffer[1 + 1] = HI8(value);					/* set the 2nd byte */
+					uiBuffer[1 + 1] = 0x00;						/* clear the 2nd byte */
+					uiBuffer[1 + 1] = HI8(value);					/* set the 2nd byte */
 
 				}
 				else if (fs_type == FAT_FS_TYPE_FAT16)
 				{
-					((uint16*)buffer)[0] = (FAT16_EOC & 0xFF00) | media_type;
-					((uint16*)buffer)[1] = FAT16_EOC;
+					((uint16*)uiBuffer)[0] = (FAT16_EOC & 0xFF00) | media_type;
+					((uint16*)uiBuffer)[1] = FAT16_EOC;
 				}
 				else
 				{
-					((uint32*)buffer)[0] = (FAT32_EOC & 0x0FFFFF00) | media_type;
-					((uint32*)buffer)[1] = FAT32_EOC;
+					((uint32*)uiBuffer)[0] = (FAT32_EOC & 0x0FFFFF00) | media_type;
+					((uint32*)uiBuffer)[1] = FAT32_EOC;
 				}
 			}
 			if (i == root_entry_sector && fs_type == FAT_FS_TYPE_FAT32)
 			{
-				((uint32*)buffer)[root_entry_offset] = FAT32_EOC;
+				((uint32*)uiBuffer)[root_entry_offset] = FAT32_EOC;
 			}
 
 			// write the sector to all the FAT tables
-			bSuccess = device->Write(uiNoOfReservedSectors + i + (c * fatsz), buffer);
+			bSuccess = device->Write(uiNoOfReservedSectors + i + (c * fatsz), uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -520,7 +520,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 
 			if (i == 0 || i == root_entry_sector)
 			{
-				memset(buffer, 0, MAX_SECTOR_LENGTH);
+				memset(uiBuffer, 0, MAX_SECTOR_LENGTH);
 			}
 		}
 	}
@@ -540,14 +540,14 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	//
 	// so the address for the root directory is the same on FAT32 and on FAT12/16 as long as we're
 	// using cluster #2
-	memset(buffer, 0, MAX_SECTOR_LENGTH);
+	memset(uiBuffer, 0, MAX_SECTOR_LENGTH);
 	c = (fs_type == FAT_FS_TYPE_FAT32) ? uiNoOfSectorsPerCluster : root_dir_sectors;
 	for (i = 1; i < c; i++)
 	{
 		if (fs_type == FAT_FS_TYPE_FAT32)
 		{
 			uint32 root_sector = ((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors;
-			bSuccess = device->Write(root_sector, buffer);
+			bSuccess = device->Write(root_sector, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -555,7 +555,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 		}
 		else
 		{
-			bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + i, buffer);
+			bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + i, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -565,7 +565,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	}
 
 	// initialize the volume label entry
-	entry = (SFatRawDirectoryEntry*)buffer;
+	entry = (SFatRawDirectoryEntry*)uiBuffer;
 	entry->uEntry.sFatRawCommon.attributes = FAT_ATTR_VOLUME_ID;
 	entry->uEntry.sFatRawCommon.first_cluster_hi = 0;
 	entry->uEntry.sFatRawCommon.first_cluster_lo = 0;
@@ -599,7 +599,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	*/
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
-		bSuccess = device->Write(((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors, buffer);
+		bSuccess = device->Write(((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -607,7 +607,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	}
 	else
 	{
-		bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * fatsz), buffer);
+		bSuccess = device->Write(uiNoOfReservedSectors + (uiNoOfFatTables * fatsz), uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;

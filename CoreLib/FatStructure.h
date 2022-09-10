@@ -2,10 +2,13 @@
 #define __FAT_STRUCTURE_H__
 
 
-// misc
 #define FAT_MAX_PATH					260
 #define FAT_FIRST_LFN_ENTRY				0x40
 #define FAT_MAX_FILENAME				255
+
+
+// FAT entry data type
+typedef uint32 FatEntry;
 
 
 // fat 32-byte directory entry structure
@@ -44,10 +47,6 @@ struct SFatRawDirectoryEntry
 	} uEntry;
 };
 #pragma pack(pop)
-
-
-// FAT entry data type
-typedef uint32 FatEntry;
 
 
 // FAT32 FSInfo structure

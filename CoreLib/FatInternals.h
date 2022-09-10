@@ -77,7 +77,7 @@ struct SFatQueryStateInternal
 	uint16						current_sector;
 	uint32						current_cluster;
 	SFatRawDirectoryEntry*		current_entry_raw;
-	uint8*						buffer;
+	uint8*						uiBuffer;
 
 	SFatRawDirectoryEntry*		first_entry_raw;
 
@@ -94,7 +94,7 @@ class CFatVolume;
 struct SFatFile;
 uint8 fat_long_entry_checksum(uint8* filename);
 uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
-uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
+uint16 FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 uiAccessFlags);
 
 int indexof(char chr, char* str, int index);
 
@@ -103,7 +103,7 @@ uint16 rtc_get_fat_date();
 uint16 rtc_get_fat_time();
 time_t fat_decode_date_time(uint16 date, uint16 time);
 void strtrim(char* dest, char* src, size_t max);
-void fat_parse_path(char* path, char* path_part, char** filename_part);
+void FatParsePath(char* path, char* path_part, char** filename_part);
 
 char fat_compare_long_name(uint16* name1, uint16* name2);
 char get_long_name_for_entry(uint16* dst, uint8* src);
