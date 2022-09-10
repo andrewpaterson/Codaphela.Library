@@ -66,7 +66,7 @@ CInputCategoryGeneric* CInputCategory::AddGeneric(char* szAction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputCategory::ContainsGeneric(CInputCategoryGeneric* pcGeneric)
+bool CInputCategory::ContainsGeneric(CInputCategoryGeneric* pcGeneric)
 {
 	return mlcGenerics.Contains(pcGeneric);
 }
@@ -76,7 +76,7 @@ BOOL CInputCategory::ContainsGeneric(CInputCategoryGeneric* pcGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputCategory::ContainsGeneric(char* szGeneric)
+bool CInputCategory::ContainsGeneric(char* szGeneric)
 {
 	CInputCategoryGeneric*	pcGeneric;
 
@@ -111,7 +111,7 @@ CInputCategoryGeneric* CInputCategory::GetGeneric(char* szGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDevice* CInputCategory::GetFirstDevice(BOOL bPhysical)
+CInputDevice* CInputCategory::GetFirstDevice(bool bPhysical)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
@@ -121,7 +121,7 @@ CInputDevice* CInputCategory::GetFirstDevice(BOOL bPhysical)
 	{
 		if (pcDevice->GetDesc()->GetCategory() == this)
 		{
-			if (((pcDevice->GetDesc()->IsPhysical()) && (bPhysical == TRUE)) || bPhysical == FALSE)
+			if (((pcDevice->GetDesc()->IsPhysical()) && (bPhysical == true)) || bPhysical == false)
 			{
 				return pcDevice;
 			}
@@ -136,7 +136,7 @@ CInputDevice* CInputCategory::GetFirstDevice(BOOL bPhysical)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, BOOL bPhysical)
+void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical)
 {
 	CInputDevice*	pcDevice;
 	SSetIterator	sIter;
@@ -146,7 +146,7 @@ void CInputCategory::GetDevices(CArrayInputDevicePtr* pcDevices, BOOL bPhysical)
 	{
 		if (pcDevice->GetDesc()->GetCategory() == this)
 		{
-			if (((pcDevice->GetDesc()->IsPhysical()) && (bPhysical == TRUE)) || bPhysical == FALSE)
+			if (((pcDevice->GetDesc()->IsPhysical()) && (bPhysical == true)) || bPhysical == false)
 			{
 				pcDevices->Add(&pcDevice);
 			}
@@ -180,7 +180,7 @@ CInputDevices* CInputCategory::GetInputDevices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputCategory::Is(char* szName)
+bool CInputCategory::Is(char* szName)
 {
 	return mszCategory.Equals(szName);
 }

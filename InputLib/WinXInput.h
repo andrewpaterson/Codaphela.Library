@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CXInputDetail : public CNativeDetail
 {
 public:
-	BOOL			bConnected;
+	bool			bConnected;
 
 	unsigned char	ucType;
 	unsigned char	ucSubType;

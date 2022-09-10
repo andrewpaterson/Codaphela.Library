@@ -111,7 +111,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 
 	if (macHistory.NumElements() == MAX_INPUT_HISTORY_EVENTS)
 	{
-		macHistory.RemoveAt(0, TRUE);
+		macHistory.RemoveAt(0, true);
 	}
 
 	psHistory = macHistory.Add();
@@ -122,8 +122,8 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 
 	sMatch.iIndex = MAX_INT;
 	sMatch.iLength = 0;
-	sMatch.bTotalMatch = FALSE;
-	sMatch.bPotentialMatch = FALSE;
+	sMatch.bTotalMatch = false;
+	sMatch.bPotentialMatch = false;
 	iLowestIndex = MAX_INT;
 	pcChord = mlcChords.StartIteration(&sIter);
 	while (pcChord)
@@ -141,7 +141,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 			if (sResult.iLength > sMatch.iLength)
 			{
 				sMatch.iIndex = sResult.iIndex;
-				sMatch.bPotentialMatch = TRUE;
+				sMatch.bPotentialMatch = true;
 				sMatch.iLength = sResult.iLength;
 			}
 			else if (sResult.iLength == sMatch.iLength)
@@ -149,7 +149,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 				if (sResult.iIndex < sMatch.iIndex)
 				{
 					sMatch.iIndex = sResult.iIndex;
-					sMatch.bPotentialMatch = TRUE;
+					sMatch.bPotentialMatch = true;
 					sMatch.iLength = sResult.iLength;
 				}
 			}
@@ -165,7 +165,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 			sChordInputEvent.pcValue = (CInputDeviceValue*)pvContext;
 			sChordInputEvent.pcChord = pcChord;
 			pcChord->Call(&sChordInputEvent);
-			sMatch.bTotalMatch = TRUE;
+			sMatch.bTotalMatch = true;
 		}
 		pcChord = mlcChords.Iterate(&sIter);
 	}
@@ -174,11 +174,11 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	{
 		if (sMatch.bTotalMatch)
 		{
-			macHistory.RemoveRange(0, sMatch.iIndex + sMatch.iLength, TRUE);
+			macHistory.RemoveRange(0, sMatch.iIndex + sMatch.iLength, true);
 		}
 		else
 		{
-			macHistory.RemoveRange(0, iLowestIndex, TRUE);
+			macHistory.RemoveRange(0, iLowestIndex, true);
 		}
 	}
 	else

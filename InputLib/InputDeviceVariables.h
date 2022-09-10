@@ -31,7 +31,7 @@ class CInputDeviceVariables
 public:
 	CSetInputDeviceVariable		mlcVariables;
 	CInputChords*				mpcChords;
-	BOOL						mbChordThisFrame;
+	bool						mbChordThisFrame;
 
 	void 						Init(void);
 	void 						Kill(void);
@@ -48,9 +48,9 @@ public:
 	void						VariableAction(CInputChord* pcChord);
 	void						VariableAction(CInputDeviceVariable* pcVariable, CInputChord* pcChord, CArrayInputDeviceVariableValuePtr* papcVariableValues);
 	void						MatchVariableValue(CInputDeviceVariableValue* pcValue);
-	BOOL						UpdateChordVariableValues(CArrayInputDeviceVariableValuePtr* papcVariableValues);
-	BOOL						UpdateNonChordVariableValues(void);
-	BOOL						UpdateNonChordVariableValues(CInputDeviceVariable* pcVariable);
+	bool						UpdateChordVariableValues(CArrayInputDeviceVariableValuePtr* papcVariableValues);
+	bool						UpdateNonChordVariableValues(void);
+	bool						UpdateNonChordVariableValues(CInputDeviceVariable* pcVariable);
 };
 
 

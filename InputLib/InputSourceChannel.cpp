@@ -51,10 +51,10 @@ void CInputSouceChannel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSouceChannel::Compare(void* pvData)
+bool CInputSouceChannel::Compare(void* pvData)
 {
 	CChannel*			pcChannel;
-	BOOL				bResult;
+	bool				bResult;
 	char				sValue[8];
 	EPrimitiveType		eOperatorType;
 
@@ -89,13 +89,13 @@ BOOL CInputSouceChannel::Compare(void* pvData)
 			gcOperators.mcNotEqual.Do(&bResult, eOperatorType, sValue, eOperatorType, mTest);
 			return bResult;
 		case ISCC_AlwaysValid:
-			return TRUE;
+			return true;
 		}
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

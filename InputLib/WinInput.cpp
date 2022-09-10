@@ -29,8 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CWinInput::Init(void)
 {
-	mbNotInitialised = FALSE;
-	mbUsable = FALSE;
+	mbNotInitialised = false;
+	mbUsable = false;
 }
 
 
@@ -38,10 +38,10 @@ void CWinInput::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinInput::Init(HWND hWnd, BOOL bExclusive)
+void CWinInput::Init(HWND hWnd, bool bExclusive)
 {
-	mbNotInitialised = FALSE;
-	mbUsable = TRUE;
+	mbNotInitialised = false;
+	mbUsable = true;
 	mhWnd = hWnd;
 	mbExclusive = bExclusive;
 	mcRaw.Init(this);
@@ -56,7 +56,7 @@ void CWinInput::Init(HWND hWnd, BOOL bExclusive)
 //////////////////////////////////////////////////////////////////////////
 void CWinInput::Kill(void)
 {
-	if ((mbNotInitialised == FALSE) && (mbUsable == TRUE))
+	if ((mbNotInitialised == false) && (mbUsable == true))
 	{
 		mcXInput.Kill();
 		mcJoystick.Kill();
@@ -83,7 +83,7 @@ void CWinInput::AddDevicesTo(CInputDevices* pcDevices)
 //////////////////////////////////////////////////////////////////////////
 void CWinInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
 {
-	if ((mbNotInitialised == FALSE) && (mbUsable == TRUE))
+	if ((mbNotInitialised == false) && (mbUsable == true))
 	{
 		mcRaw.Update(pcDevices, uiSequence);
 		mcJoystick.Update(pcDevices, uiSequence);
@@ -96,6 +96,6 @@ CDirectInput* CWinInput::GetJoystick(void) { return &mcJoystick; }
 CWinRawInput* CWinInput::GetRaw(void) { return &mcRaw; }
 CWinXInput* CWinInput::GetXInput(void) { return &mcXInput; }
 HWND CWinInput::GetHWnd(void) { return mhWnd; }
-BOOL CWinInput::IsExclusive(void) { return mbExclusive; }
-BOOL CWinInput::IsNotInitialised(void) { return mbNotInitialised; }
-BOOL CWinInput::IsUsable(void) { return mbUsable; }
+bool CWinInput::IsExclusive(void) { return mbExclusive; }
+bool CWinInput::IsNotInitialised(void) { return mbNotInitialised; }
+bool CWinInput::IsUsable(void) { return mbUsable; }

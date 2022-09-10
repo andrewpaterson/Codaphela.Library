@@ -50,7 +50,7 @@ void CInputDeviceState::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceState::Rest(CInputDevice* pcDevice)
+bool CInputDeviceState::Rest(CInputDevice* pcDevice)
 {
 	int					i;
 	CInputSourceDesc*	pcSourceDesc;
@@ -80,13 +80,13 @@ BOOL CInputDeviceState::Rest(CInputDevice* pcDevice)
 
 		if (pcSourceDesc->GetStateIndex() != i)
 		{
-			return FALSE;
+			return false;
 		}
 
 		pcSourceDesc = pcDevice->GetDesc()->IterateInputs(&sIter);
 		i++;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -94,7 +94,7 @@ BOOL CInputDeviceState::Rest(CInputDevice* pcDevice)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceState::GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue)
+bool CInputDeviceState::GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue)
 {
 	SInputSourceState*	psSourceState;
 
@@ -106,11 +106,11 @@ BOOL CInputDeviceState::GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue)
 			if (psSourceState->iFlags & SOURCE_STATE_VALID)
 			{
 				*pfValue = psSourceState->fValue;
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -118,7 +118,7 @@ BOOL CInputDeviceState::GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceState::SetValue(CInputSourceDesc* pcSourceDesc, float fValue)
+bool CInputDeviceState::SetValue(CInputSourceDesc* pcSourceDesc, float fValue)
 {
 	SInputSourceState*	psSourceState;
 
@@ -130,7 +130,7 @@ BOOL CInputDeviceState::SetValue(CInputSourceDesc* pcSourceDesc, float fValue)
 			return SetValue(psSourceState, fValue);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -138,18 +138,18 @@ BOOL CInputDeviceState::SetValue(CInputSourceDesc* pcSourceDesc, float fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceState::SetValue(SInputSourceState* psSourceState, float fValue)
+bool CInputDeviceState::SetValue(SInputSourceState* psSourceState, float fValue)
 {
 	if (psSourceState->fValue != fValue)
 	{
 		psSourceState->fValue = fValue;
 		psSourceState->iFlags |= SOURCE_STATE_VALID;
 		psSourceState->iFlags |= SOURCE_STATE_EMITTED_EVENT;  //This is a small cheat.  Keep an eye on it.
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -180,7 +180,7 @@ void CInputDeviceState::UpdateRestEvents(CInputDeviceValues* pcEvents, unsigned 
 	int					i;
 	SInputSourceState*	psState;
 	CInputSourceDesc*	pcSourceDesc;
-	BOOL				bNewValue;
+	bool				bNewValue;
 	float				fValue;
 
 	for (i = 0; i < macSourceStates.NumElements(); i++)
@@ -195,7 +195,7 @@ void CInputDeviceState::UpdateRestEvents(CInputDeviceValues* pcEvents, unsigned 
 				bNewValue = SetValue(psState, fValue);
 				if (bNewValue)
 				{
-					pcEvents->Add(mpcDevice, pcSourceDesc, fValue, uiSequence, TRUE, 0);
+					pcEvents->Add(mpcDevice, pcSourceDesc, fValue, uiSequence, true, 0);
 				}
 			}
 		}

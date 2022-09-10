@@ -88,7 +88,7 @@ public:
 	void 					Kill(void);
 	void 					SetStateDetail(float fMaxValue, float fMinValue);
 	void 					SetDeltaDetail(float fSensitivity, float fOffset);
-	BOOL 					Process(void* pvData, float* pfValue);
+	bool 					Process(void* pvData, float* pfValue);
 	CInputSouceChannel*		AddChannel(int iChannel, EInputSourceChannelComparator eCompare, void* pvTest);
 	void 					CopyChannels(CInputSourceValue* pcInputSourceValue);
 	CInputSouceChannel*		StartChannelsIteration(SSetIterator* psIter);

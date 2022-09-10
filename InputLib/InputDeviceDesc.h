@@ -49,16 +49,16 @@ protected:
 	CSetInputDeviceVariableDesc			mlcVariables;
 	CArrayInputVirtualDeviceSwitch		macSwitches;
 	CArrayInputDevicePtr				mapcDevices;
-	BOOL								mbPhysical;
+	bool								mbPhysical;
 	CInputChordDescs					mcVariableChordDescs;
 
 public:
-	void 						Init(char* szID, char* szFriendlyName, CInputCategory* pcCategory, BOOL bPhysical);
+	void 						Init(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
 	void 						Kill(void);
 	CInputDevices*				GetInputDevices(void);
 	void						Copy(CInputDeviceDesc* pcSourceDesc);
-	BOOL 						Is(char* szID);
-	BOOL						HasTag(char* szTagName);
+	bool 						Is(char* szID);
+	bool						HasTag(char* szTagName);
 	CInputSourceDesc*			AddStateInput(char* szFriendlyName);
 	CInputSourceDesc*			AddDeltaInput(char* szFriendlyName);
 	CInputSourceDesc*			AddInput(EInputSourceType eType, char* szFriendlyName);
@@ -66,7 +66,7 @@ public:
 	void						CopyVariables(CInputDeviceCopyContext* pcContext);
 	void						SetDataFormat(CInputDataFormat* pcDataFormat);
 	void						SetComment(char* szComment);
-	BOOL						RenameSource(char* szOldName, char* szNewName);
+	bool						RenameSource(char* szOldName, char* szNewName);
 	CInputDeviceVariableDesc*	GetVariable(char* szName);
 	CInputDeviceVariableDesc*	AddVariable(char* szName);
 	CInputSourceDesc*			GetSource(char* szFriendlyName);
@@ -86,7 +86,7 @@ public:
 	int							NumInputs(void);
 	CInputDataFormat*			GetDataFormat(void);
 	CInputChordDescs*			GetVariableChordDescs(void);
-	BOOL						IsPhysical(void);
+	bool						IsPhysical(void);
 	char*						GetID(void);
 	char*						GetFriendlyName(void);
 	void						Dump(void);

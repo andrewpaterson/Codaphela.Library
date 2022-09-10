@@ -37,12 +37,12 @@ public:
 	CWinRawInput	mcRaw;
 	CWinXInput		mcXInput;
 	HWND			mhWnd;
-	BOOL			mbExclusive;
-	BOOL			mbNotInitialised;
-	BOOL			mbUsable;
+	bool			mbExclusive;
+	bool			mbNotInitialised;
+	bool			mbUsable;
 
 	void Init(void);
-	void Init(HWND hWnd, BOOL bExclusive);
+	void Init(HWND hWnd, bool bExclusive);
 	void Kill(void);
 	void AddDevicesTo(CInputDevices* pcDevices);
 	void Update(CInputDevices* pcDevices, unsigned int uiSequence);
@@ -51,9 +51,9 @@ public:
 	CWinRawInput*	GetRaw(void);
 	CWinXInput*		GetXInput(void);
 	HWND			GetHWnd(void);
-	BOOL			IsExclusive(void);
-	BOOL			IsNotInitialised(void);
-	BOOL			IsUsable(void);
+	bool			IsExclusive(void);
+	bool			IsNotInitialised(void);
+	bool			IsUsable(void);
 };
 
 

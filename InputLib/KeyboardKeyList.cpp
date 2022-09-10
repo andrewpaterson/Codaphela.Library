@@ -180,7 +180,7 @@ void CKeyboardKeyList::Next(void)
 
 	if (miCurrent < maszKeys.NumElements())
 	{
-		mbFirst = TRUE;
+		mbFirst = true;
 		miCurrent++;
 		psWinKey = masKeys.Add();
 		memset(psWinKey, 0, sizeof(SWinKey));
@@ -199,7 +199,7 @@ void CKeyboardKeyList::Key(unsigned int uiVkey, unsigned int uiFlags)
 	szEvent.Init();
 	if (mbFirst)
 	{
-		mbFirst = FALSE;
+		mbFirst = false;
 		Pressed(uiVkey, uiFlags);
 		szEvent.Append("Pressed: ");
 		szEvent.Append(GetCurrent());

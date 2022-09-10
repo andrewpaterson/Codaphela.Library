@@ -35,7 +35,7 @@ void CInputDataFormat::Init(void)
 	mcExternalChannels.BeginChange();
 	mcExternalChannels.SetData((void*)1);
 	mcChannelNames.Init();
-	mbCommon = FALSE;
+	mbCommon = false;
 	mszCommonName._Init();
 }
 
@@ -50,7 +50,7 @@ void CInputDataFormat::Init(char* szCommonName)
 	mcExternalChannels.BeginChange();
 	mcExternalChannels.SetData((void*)1);
 	mcChannelNames.Init();
-	mbCommon = TRUE;
+	mbCommon = true;
 	mszCommonName.Init(szCommonName);
 }
 
@@ -171,13 +171,13 @@ void CInputDataFormat::GetAsNative(void* pvDest, int iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDataFormat::IsCommonName(char* szName)
+bool CInputDataFormat::IsCommonName(char* szName)
 {
 	if (mbCommon)
 	{
 		return mszCommonName.Equals(szName);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -185,5 +185,5 @@ BOOL CInputDataFormat::IsCommonName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDataFormat::IsCommon(void) { return mbCommon; }
+bool CInputDataFormat::IsCommon(void) { return mbCommon; }
 char* CInputDataFormat::GetCommonName(void) { return mszCommonName.Text(); }

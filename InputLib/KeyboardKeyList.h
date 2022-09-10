@@ -41,7 +41,7 @@ public:
 	CArrayChars		maszKeys;
 	CArrayWinKey	masKeys;
 	int				miCurrent;
-	BOOL			mbFirst;
+	bool			mbFirst;
 
 	void	Init(void);
 	void	Kill(void);

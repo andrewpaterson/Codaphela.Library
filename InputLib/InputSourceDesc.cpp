@@ -37,8 +37,8 @@ void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eTy
 	mlcValues.Init();
 	mapcGenerics.Init();
 	mfRestValue = 0.0f;
-	mbHasRestValue = FALSE;
-	mbEmitRestEvent = FALSE;
+	mbHasRestValue = false;
+	mbEmitRestEvent = false;
 	mpcDeviceDesc = pcDeviceDesc;
 	miStateIndex = iStateIndex;
 }
@@ -65,8 +65,8 @@ void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputD
 {
 	CInputSourceValue*	pcSourceValue;
 	float				fValue;
-	BOOL				bValid;
-	BOOL				bNewValue;
+	bool				bValid;
+	bool				bNewValue;
 	SSetIterator		sIter;
 
 	pcSourceValue = mlcValues.StartIteration(&sIter);
@@ -78,7 +78,7 @@ void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputD
 			bNewValue = pcState->SetValue(this, fValue);
 			if (bNewValue)
 			{
-				pcEvents->Add(pcState->mpcDevice, this, fValue, uiSequence, FALSE, pcSourceValue->GetOrder());
+				pcEvents->Add(pcState->mpcDevice, this, fValue, uiSequence, false, pcSourceValue->GetOrder());
 			}
 		}
 		pcSourceValue = mlcValues.Iterate(&sIter);
@@ -166,7 +166,7 @@ void CInputSourceDesc::CopyActions(CInputSourceDesc* pcInputSourceDesc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSourceDesc::SetRest(float fRestValue, BOOL bEmitRestEvent, BOOL bHasRestValue)
+void CInputSourceDesc::SetRest(float fRestValue, bool bEmitRestEvent, bool bHasRestValue)
 {
 	mbHasRestValue = bHasRestValue;
 	mfRestValue = fRestValue;
@@ -178,7 +178,7 @@ void CInputSourceDesc::SetRest(float fRestValue, BOOL bEmitRestEvent, BOOL bHasR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceDesc::Is(char* szFriendlyName)
+bool CInputSourceDesc::Is(char* szFriendlyName)
 {
 	return mszFriendlyName.Equals(szFriendlyName);
 }
@@ -190,13 +190,13 @@ BOOL CInputSourceDesc::Is(char* szFriendlyName)
 CInputSourceValue* CInputSourceDesc::StartValuesIteration(SSetIterator* psIter) { return mlcValues.StartIteration(psIter); }
 CInputSourceValue* CInputSourceDesc::IterateValues(SSetIterator* psIter) { return mlcValues.Iterate(psIter); }
 float CInputSourceDesc::GetRestValue(void) { return mfRestValue; }
-BOOL CInputSourceDesc::HasRestValue(void) { return mbHasRestValue; }
+bool CInputSourceDesc::HasRestValue(void) { return mbHasRestValue; }
 CInputDeviceDesc* CInputSourceDesc::GetDeviceDesc(void) { return mpcDeviceDesc; }
 CArrayInputCategoryGenericPtr* CInputSourceDesc::GetGenerics(void) { return &mapcGenerics; }
 EInputSourceType CInputSourceDesc::GetType(void) { return meType; }
 int CInputSourceDesc::GetStateIndex(void) { return miStateIndex; }
 char* CInputSourceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }
-BOOL CInputSourceDesc::GetEmitRestEvent(void) { return mbEmitRestEvent; }
+bool CInputSourceDesc::GetEmitRestEvent(void) { return mbEmitRestEvent; }
 void CInputSourceDesc::SetFriendlyName(char* szFriendlyName) { mszFriendlyName.Set(szFriendlyName); }
 
 //////////////////////////////////////////////////////////////////////////

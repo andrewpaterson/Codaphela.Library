@@ -37,20 +37,20 @@ protected:
 	CChars											mszName;
 	CInputDeviceVariableDesc*						mpcVariableDesc;
 	CArrayInputDeviceVariableValueConditionDesc		mapcConditions;
-	BOOL											mbInitial;
+	bool											mbInitial;
 
 public:
 	void 											Init(char* szName, CInputDeviceVariableDesc* pcVariableDesc);
 	void 											Kill(void);
 	void 											Copy(CInputDeviceVariableValueDesc* pcSource, CInputDeviceCopyContext* pcContext);
-	BOOL 											Equals(char* szName);
+	bool 											Equals(char* szName);
 	void 											AddCondition(CInputChordDesc* pcChordDesc);
 	void 											AddCondition(CInputDeviceVariableValueDesc* pcVariableValueDesc);
 	char*											GetName(void);
-	BOOL											IsInitial(void);
+	bool											IsInitial(void);
 	CArrayInputDeviceVariableValueConditionDesc*	GetConditions(void);
 	CInputDeviceVariableDesc*						GetVariableDesc(void);
-	void											SetInitial(BOOL bInitial);
+	void											SetInitial(bool bInitial);
 };
 
 

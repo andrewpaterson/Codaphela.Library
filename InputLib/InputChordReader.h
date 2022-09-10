@@ -40,8 +40,8 @@ public:
 
 	void Init(CMarkupTag* pcParentTag, CInputChordDescs* pcInputChords, char* szActionName, CInputDeviceDesc* pcDeviceDesc);
 	void Kill(void);
-	BOOL Read(void);
-	BOOL ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChord, BOOL bActive);
+	bool Read(void);
+	bool ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChord, bool bActive);
 };
 
 

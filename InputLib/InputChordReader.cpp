@@ -57,7 +57,7 @@ void CInputChordReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputChordReader::Read(void)
+bool CInputChordReader::Read(void)
 {
 	CMarkupTag*			pcActiveTag;
 	CMarkupTag*			pcInactiveTag;
@@ -65,7 +65,7 @@ BOOL CInputChordReader::Read(void)
 	CMarkupTag*			pcOrderedTag;
 	int					iCount;
 	CInputChordDesc*	pcChordDesc;
-	BOOL				bResult;
+	bool				bResult;
 
 	iCount = 0;
 	
@@ -95,7 +95,7 @@ BOOL CInputChordReader::Read(void)
 
 	if (iCount == 0)
 	{
-		return TRUE;
+		return true;
 	}
 	else if (iCount == 1)
 	{
@@ -103,33 +103,33 @@ BOOL CInputChordReader::Read(void)
 		pcChordDesc = mpcReadChordDesc;
 		if (pcActiveTag)
 		{
-			bResult = ReadActive(pcActiveTag, mpcReadChordDesc, TRUE);
+			bResult = ReadActive(pcActiveTag, mpcReadChordDesc, true);
 			return bResult;
 		}
 		else if (pcInactiveTag)
 		{
-			bResult = ReadActive(pcInactiveTag, mpcReadChordDesc, FALSE);
+			bResult = ReadActive(pcInactiveTag, mpcReadChordDesc, false);
 			return bResult;
 		}
 		else if (pcGroupTag)
 		{
 			pcChordDesc->Kill();
 			gcLogger.Error("Chord group tag reader not implmented");
-			return FALSE;
+			return false;
 		}
 		else if (pcOrderedTag)
 		{
 			pcChordDesc->Kill();
 			gcLogger.Error("Chord ordered tag reader not implmented");
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		gcLogger.Error("More than one chord tags found");
-		return FALSE;
+		return false;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -137,7 +137,7 @@ BOOL CInputChordReader::Read(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDesc, BOOL bActive)
+bool CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDesc, bool bActive)
 {
 	char* 						szGeneric;
 	char* 						szFriendly;
@@ -150,13 +150,13 @@ BOOL CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDe
 	if (!szGeneric && !szFriendly)
 	{
 		gcLogger.Error("No evaluator attribute");
-		return FALSE;
+		return false;
 	}
 
 	if (szGeneric && szFriendly)
 	{
 		gcLogger.Error("More than one evaluator attribute");
-		return FALSE;
+		return false;
 	}
 
 	if (szGeneric)
@@ -165,7 +165,7 @@ BOOL CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDe
 		if (!pcGeneric)
 		{
 			gcLogger.Error2("Generic action [", szGeneric, "] not found for category [", mpcDeviceDesc->GetCategory()->GetCategoryName(), "]", NULL);
-			return FALSE;
+			return false;
 		}
 
 		if (bActive)
@@ -176,7 +176,7 @@ BOOL CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDe
 		{
 			pcChordDesc->AsInactive(pcGeneric);
 		}
-		return TRUE;
+		return true;
 	}
 	else if (szFriendly)
 	{
@@ -184,7 +184,7 @@ BOOL CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDe
 		if (!pcSource)
 		{
 			gcLogger.Error2("Could not find a source named '", szFriendly, "' on device '", mpcDeviceDesc->GetFriendlyName(), "'", NULL);
-			return FALSE;
+			return false;
 		}
 
 		if (bActive)
@@ -195,9 +195,9 @@ BOOL CInputChordReader::ReadActive(CMarkupTag* pcTag, CInputChordDesc* pcChordDe
 		{
 			pcChordDesc->AsInactive(pcSource, -1);
 		}
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 

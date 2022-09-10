@@ -36,7 +36,7 @@ public:
 	void Init(char* szName);
 	void Kill(void);
 
-	BOOL Is(char* szName);
+	bool Is(char* szName);
 };
 
 

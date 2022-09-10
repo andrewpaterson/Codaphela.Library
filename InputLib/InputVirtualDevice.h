@@ -47,8 +47,8 @@ protected:
 	CListenerCall					mcListeners;
 	CInputChords					mcChords;
 	CArrayInputDevicePtr			mapcDevices;
-	BOOL							mbEnabled;
-	BOOL							mbUnstoppable;
+	bool							mbEnabled;
+	bool							mbUnstoppable;
 
 public:
 	void 						Init(char* szName);
@@ -61,14 +61,14 @@ public:
 	void 						SortEvents(void);
 	void						ToStringEvents(CChars* psz);
 
-	BOOL 						AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
-	BOOL						AddSource(CInputDevice* pcDevice, char* szFriendlyName);
-	BOOL						AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...);
+	bool 						AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource);
+	bool						AddSource(CInputDevice* pcDevice, char* szFriendlyName);
+	bool						AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...);
 	void 						DoneAddingSources(void);
 	void 						ClearSources(void);
 
-	BOOL 						ContainsHistorySource(SInputDeviceValueSource* psSource);
-	BOOL						ContainsSource(SInputDeviceValueSource* psSource, CSetInputVirtualDeviceSource* pcSetSources);
+	bool 						ContainsHistorySource(SInputDeviceValueSource* psSource);
+	bool						ContainsSource(SInputDeviceValueSource* psSource, CSetInputVirtualDeviceSource* pcSetSources);
 	CInputVirtualDeviceSource*	StartHistorySourcesIteration(SSetIterator* psIter);
 	CInputVirtualDeviceSource*	IterateHistorySources(SSetIterator* psIter);
 
@@ -76,7 +76,7 @@ public:
 	void 						AddCommonalityIfShared(CInputVirtualDevice* pcOtherVirtual);
 	void 						SortCommonality(void);
 
-	void						Enable(BOOL bDisableCommon = TRUE);
+	void						Enable(bool bDisableCommon = true);
 	void						Disable(void);
 	void						Unstoppable(void);
 
@@ -91,7 +91,7 @@ public:
 	void						AddInactiveAction(CAction* pcAction, CInputCategoryGeneric* pcGeneric);
 	void						AddActiveAction(CAction* pcAction, CInputVirtualDeviceSource* pcSource);
 	void						AddInactiveAction(CAction* pcAction, CInputVirtualDeviceSource* pcSource);
-	void						AddSingleAction(CAction* pcAction, CInputSourceEvaluator* pcEvaluator, BOOL bActive);
+	void						AddSingleAction(CAction* pcAction, CInputSourceEvaluator* pcEvaluator, bool bActive);
 	void						AddOrderedAction(CAction* pcAction, char* szFriendlyName, ...);
 	CInputChord*				AddChordAction(CAction* pcAction, CInputChordDesc* pcChordDesc = NULL);
 	void						AddRangeAction(CAction* pcAction, char* szFriendlyName);

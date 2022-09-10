@@ -43,11 +43,11 @@ public:
 	CChars							mszDirectory;
 	CSetInputVirtualDevice			mlcVirtuals;
 	CSetInputVirtualDeviceDesc		mlcVirtualsDescs;
-	BOOL							mbCommonalityDirty;
+	bool							mbCommonalityDirty;
 	CInputActions*					mpcInputActions;
 
 	void						Init(CInputActions* pcInputActions);
-	BOOL						Read(char* szDirectory);
+	bool						Read(char* szDirectory);
 	void						Kill(void);
 
 	CInputDeviceDesc*			CreateDeviceDescription(void);
@@ -57,7 +57,7 @@ public:
 	CInputCategory*				AddCategory(char* szName);
 	CInputCategory*				GetCategory(char* szName);
 
-	CInputDeviceDesc*			CreateDescription(char* szID, char* szFriendlyName, CInputCategory* pcCategory, BOOL bPhysical);
+	CInputDeviceDesc*			CreateDescription(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical);
 	CInputDeviceDesc*			GetDescription(char* szID);
 	CInputDeviceDesc*			GetDescriptionForVirtualDesc(CInputVirtualDeviceDesc* pcVirtualDesc);
 
@@ -70,11 +70,11 @@ public:
 
 	CInputVirtualDevice*		CreateVirtualDevice(char* szName);
 	CInputVirtualDevice*		CreateVirtualDevice(CInputVirtualDeviceDesc* pcVirtualDesc);  //pcVirtualDesc may not be device agnostic.
-	BOOL						CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCreatedVirtualVevices, CInputVirtualDeviceDesc* pcVirtualDesc);  //pcVirtualDesc must be device agnostic.
-	BOOL						AddChords(CInputVirtualDevice* pcVirtual, CInputVirtualDeviceDesc* pcVirtualDesc, CInputDevice* pcDevice);
-	BOOL						AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* pcChordDescs, CInputDevice* pcDevice);
+	bool						CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCreatedVirtualVevices, CInputVirtualDeviceDesc* pcVirtualDesc);  //pcVirtualDesc must be device agnostic.
+	bool						AddChords(CInputVirtualDevice* pcVirtual, CInputVirtualDeviceDesc* pcVirtualDesc, CInputDevice* pcDevice);
+	bool						AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* pcChordDescs, CInputDevice* pcDevice);
 
-	CInputVirtualDeviceDesc*	CreateVirtualDeviceDescription(char* szName, BOOL bDeviceAgnostic);
+	CInputVirtualDeviceDesc*	CreateVirtualDeviceDescription(char* szName, bool bDeviceAgnostic);
 
 	void						UpdateCommonality(void);
 	void						DirtyCommonality(void);
@@ -83,13 +83,13 @@ public:
 	void						UpdateVirtualDevicesEvents(void);
 
 	CInputVirtualDevice*		GetFirstKeyboard(void);
-	CInputVirtualDevice*		GetFirstVirtualDeviceInCategoryKeyboard(char* szCategory, BOOL bPhysical = TRUE);
+	CInputVirtualDevice*		GetFirstVirtualDeviceInCategoryKeyboard(char* szCategory, bool bPhysical = true);
 
 private:
-	BOOL RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputChords* pcChords, CInputDevice* pcDevice);
-	BOOL AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputSourceEvaluator* pcEvaluator, CInputDevice* pcDevice);
-	BOOL AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, CGroupInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice);
-	BOOL AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, COrderedInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice);
+	bool RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputChords* pcChords, CInputDevice* pcDevice);
+	bool AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputSourceEvaluator* pcEvaluator, CInputDevice* pcDevice);
+	bool AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, CGroupInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice);
+	bool AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, COrderedInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice);
 };
 
 

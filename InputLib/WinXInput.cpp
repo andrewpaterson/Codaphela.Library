@@ -81,7 +81,7 @@ void CXInputDetail::Disconnect(void)
 	{
 		szID.Kill();
 		memset(this, 0, sizeof(CXInputDetail));
-		bConnected = FALSE;
+		bConnected = false;
 	}
 }
 
@@ -114,7 +114,7 @@ void CXInputDetail::Dump(void)
 void CWinXInput::Init(CWinInput* pcWinInput)
 {
 	mpcWinInput = pcWinInput;
-//	XInputEnable(TRUE);
+//	XInputEnable(true);
 	ResetDetails();
 
 	DumpDetails();
@@ -127,7 +127,7 @@ void CWinXInput::Init(CWinInput* pcWinInput)
 //////////////////////////////////////////////////////////////////////////
 void CWinXInput::Kill(void)
 {
-//	XInputEnable(FALSE);
+//	XInputEnable(false);
 }
 
 
@@ -148,7 +148,7 @@ void CWinXInput::ResetDetails(void)
 		memset(&masXInputDetail[i], 0, sizeof(CXInputDetail));
 		if (dwResult == ERROR_SUCCESS)
 		{
-			masXInputDetail[i].bConnected = TRUE;
+			masXInputDetail[i].bConnected = true;
 
 			XInputGetCapabilities(i, XINPUT_FLAG_GAMEPAD, &sXCaps);
 			
@@ -156,7 +156,7 @@ void CWinXInput::ResetDetails(void)
 		}
 		else
 		{
-			masXInputDetail[i].bConnected = FALSE;
+			masXInputDetail[i].bConnected = false;
 		}
 		masXInputDetail[i].SetUniqueID(-1);
 	}
@@ -227,7 +227,7 @@ void CWinXInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
 	//	dwResult = XInputGetState(i, &sXState);
 	//	if ( dwResult == ERROR_SUCCESS )
 	//	{
-	//		masXInputDetail[i].bConnected = TRUE;
+	//		masXInputDetail[i].bConnected = true;
 	//	}
 	//	else
 	//	{

@@ -42,7 +42,7 @@ void CDirectInputDetail::Init(GUID guidInstance, GUID guidProduct, char* szInsta
 	this->szProductName.Init(szProductName);
 	this->wUsage = wUsage;
 	this->wUsagePage = wUsagePage;
-	bXInput = FALSE;
+	bXInput = false;
 	lpDIDevice = NULL;
 
 	szID.Init();
@@ -157,7 +157,7 @@ void CDirectInput::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FAR PASCAL EnumGameControllerDevices(LPCDIDEVICEINSTANCE pcdiDeviceInstance, LPVOID pVoid)
+int FAR PASCAL EnumGameControllerDevices(LPCDIDEVICEINSTANCE pcdiDeviceInstance, LPVOID pVoid)
 {
 	CDirectInput*	pcThis;
 
@@ -182,7 +182,7 @@ void CDirectInput::CreateDevices(void)
 		psJoystickDetail = masDIJoystickDetail.Get(i);
 		if (!IsXInputDevice(psJoystickDetail))
 		{
-			psJoystickDetail->bXInput = FALSE;
+			psJoystickDetail->bXInput = false;
 			hResult = mpDInput->CreateDevice(psJoystickDetail->guidInstance, &psJoystickDetail->lpDIDevice, NULL);
 			psJoystickDetail->lpDIDevice->SetDataFormat(&c_dfDIJoystick2);
 			if (mpcWinInput->mbExclusive)
@@ -197,7 +197,7 @@ void CDirectInput::CreateDevices(void)
 		}
 		else
 		{
-			psJoystickDetail->bXInput = TRUE;
+			psJoystickDetail->bXInput = true;
 			psJoystickDetail->lpDIDevice = NULL;
 		}
 	}
@@ -580,7 +580,7 @@ void CDirectInput::DumpDetaills(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDirectInput::IsXInputDevice(CDirectInputDetail* psDetail)
+bool CDirectInput::IsXInputDevice(CDirectInputDetail* psDetail)
 {
 	CRawInputDeviceDetail*	psRawDetail;
 
@@ -589,8 +589,8 @@ BOOL CDirectInput::IsXInputDevice(CDirectInputDetail* psDetail)
 	{
 		if (psRawDetail->szAdditional.Contains("IG_"))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }

@@ -33,7 +33,7 @@ void CInputDeviceVariableValueDesc::Init(char* szName, CInputDeviceVariableDesc*
 	mszName.Init(szName);
 	mpcVariableDesc = pcVariableDesc;
 	mapcConditions.Init();
-	mbInitial = FALSE;
+	mbInitial = false;
 }
 
 
@@ -82,7 +82,7 @@ void CInputDeviceVariableValueDesc::Copy(CInputDeviceVariableValueDesc* pcSource
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariableValueDesc::Equals(char* szName)
+bool CInputDeviceVariableValueDesc::Equals(char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -128,7 +128,7 @@ char* CInputDeviceVariableValueDesc::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariableValueDesc::IsInitial(void)
+bool CInputDeviceVariableValueDesc::IsInitial(void)
 {
 	return mbInitial;
 }
@@ -140,5 +140,5 @@ BOOL CInputDeviceVariableValueDesc::IsInitial(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayInputDeviceVariableValueConditionDesc* CInputDeviceVariableValueDesc::GetConditions(void) { return &mapcConditions; }
 CInputDeviceVariableDesc* CInputDeviceVariableValueDesc::GetVariableDesc(void) { return mpcVariableDesc; }
-void CInputDeviceVariableValueDesc::SetInitial(BOOL bInitial) { mbInitial = bInitial; }
+void CInputDeviceVariableValueDesc::SetInitial(bool bInitial) { mbInitial = bInitial; }
 

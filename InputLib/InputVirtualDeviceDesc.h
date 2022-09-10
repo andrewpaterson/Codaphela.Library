@@ -37,24 +37,24 @@ CONSTRUCTABLE(CInputVirtualDeviceDesc);
 protected:
 	CInputChordDescs			mcChordDescs;
 	CChars						mszName;
-	BOOL						mbDeviceAgnostic;
+	bool						mbDeviceAgnostic;
 	CSetInputVirtualSourceDesc	mlcInputSourceDescs;
 
 public:
-	void 						Init(char* szName, BOOL bDeviceAgnostic);
+	void 						Init(char* szName, bool bDeviceAgnostic);
 	void 						Kill(void);
 
-	BOOL						AddSource(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
-	BOOL 						AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, char* szFriendlyName);
-	BOOL 						AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...);
+	bool						AddSource(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
+	bool 						AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, char* szFriendlyName);
+	bool 						AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...);
 	CInputVirtualSourceDesc*	GetSource(char* szName, int iDescID);
 	CInputVirtualSourceDesc*	GetSource(CInputSourceDesc* pcSourceDesc, int iDescID);
-	BOOL						AddChord(char* szActionName, int iDescID, char* szFriendlyName);
-	BOOL						AddOrderedAction(char* szActionName, int iDescID, char* szFriendlyName, ...);
+	bool						AddChord(char* szActionName, int iDescID, char* szFriendlyName);
+	bool						AddOrderedAction(char* szActionName, int iDescID, char* szFriendlyName, ...);
 
 	CInputVirtualSourceDesc* 	StartInputSourceDescsIteration(SSetIterator* psIter);
 	CInputVirtualSourceDesc* 	IterateInputSourceDescs(SSetIterator* psIter);
-	BOOL						IsDeviceAgnostic(void);
+	bool						IsDeviceAgnostic(void);
 	char*						GetName(void);
 	CInputChordDescs*			GetChordDescs(void);
 };

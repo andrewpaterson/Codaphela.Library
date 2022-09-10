@@ -42,8 +42,8 @@ void CInputVirtualDevice::Init(char* szName)
 	mapcInputValues.Init();
 	mcChords.Init();
 	mapcDevices.Init();
-	mbEnabled = FALSE;
-	mbUnstoppable = FALSE;
+	mbEnabled = false;
+	mbUnstoppable = false;
 }
 
 
@@ -154,7 +154,7 @@ void CInputVirtualDevice::SortEvents(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDevice::ContainsHistorySource(SInputDeviceValueSource* psSource)
+bool CInputVirtualDevice::ContainsHistorySource(SInputDeviceValueSource* psSource)
 {
 	return ContainsSource(psSource, &mlcHistorySources);
 }
@@ -164,7 +164,7 @@ BOOL CInputVirtualDevice::ContainsHistorySource(SInputDeviceValueSource* psSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDevice::ContainsSource(SInputDeviceValueSource* psSource, CSetInputVirtualDeviceSource* pcSetSources)
+bool CInputVirtualDevice::ContainsSource(SInputDeviceValueSource* psSource, CSetInputVirtualDeviceSource* pcSetSources)
 {
 	CInputVirtualDeviceSource*	pcTestDesc;
 	SSetIterator				sIter;
@@ -174,11 +174,11 @@ BOOL CInputVirtualDevice::ContainsSource(SInputDeviceValueSource* psSource, CSet
 	{
 		if (pcTestDesc->Equals(psSource))
 		{
-			return TRUE;
+			return true;
 		}
 		pcTestDesc = pcSetSources->Iterate(&sIter);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -236,14 +236,14 @@ void CInputVirtualDevice::AddCommonalityIfShared(CInputVirtualDevice* pcOtherVir
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDevice::AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource)
+bool CInputVirtualDevice::AddSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource)
 {
 	CInputVirtualDeviceSource*	pcVirtualSource;
 	CInputDevices*				pcInputDevices;
 
 	if ((!pcSource) || (!pcDevice))
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcVirtualSource = mlcHistorySources.Add();
@@ -251,7 +251,7 @@ BOOL CInputVirtualDevice::AddSource(CInputDevice* pcDevice, CInputSourceDesc* pc
 	pcInputDevices = GetInputDevices();
 	pcInputDevices->DirtyCommonality();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -259,7 +259,7 @@ BOOL CInputVirtualDevice::AddSource(CInputDevice* pcDevice, CInputSourceDesc* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDevice::AddSource(CInputDevice* pcDevice, char* szFriendlyName)
+bool CInputVirtualDevice::AddSource(CInputDevice* pcDevice, char* szFriendlyName)
 {
 	return AddSource(pcDevice, pcDevice->GetSource(szFriendlyName));
 }
@@ -269,12 +269,12 @@ BOOL CInputVirtualDevice::AddSource(CInputDevice* pcDevice, char* szFriendlyName
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...)
+bool CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...)
 {
 	va_list						vaMarker;
 	char*						pc;
 	int							iCount;
-	BOOL						bResult;
+	bool						bResult;
 
 	iCount = 0;
 	pc = szFriendlyName;
@@ -285,7 +285,7 @@ BOOL CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyNam
 		if (!bResult)
 		{
 			va_end(vaMarker);
-			return FALSE;
+			return false;
 		}
 
 		iCount++;
@@ -294,7 +294,7 @@ BOOL CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyNam
 	DoneAddingSources();
 	GetInputDevices()->UpdateCommonality();
 	va_end(vaMarker);
-	return TRUE;
+	return true;
 }
 
 
@@ -351,13 +351,13 @@ CInputDevices* CInputVirtualDevice::GetInputDevices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::Enable(BOOL bDisableCommon)
+void CInputVirtualDevice::Enable(bool bDisableCommon)
 {
 	if (bDisableCommon)
 	{
 		mcCommonality.Disable();
 	}
-	mbEnabled = TRUE;
+	mbEnabled = true;
 }
 
 
@@ -369,7 +369,7 @@ void CInputVirtualDevice::Disable(void)
 {
 	if (!mbUnstoppable)
 	{
-		mbEnabled = FALSE;
+		mbEnabled = false;
 	}
 }
 
@@ -380,8 +380,8 @@ void CInputVirtualDevice::Disable(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputVirtualDevice::Unstoppable(void)
 {
-	mbUnstoppable = TRUE;
-	mbEnabled = TRUE;
+	mbUnstoppable = true;
+	mbEnabled = true;
 }
 
 
@@ -459,7 +459,7 @@ void CInputVirtualDevice::AddActiveAction(CAction* pcAction, CInputVirtualDevice
 
 	pcEvaluator = mcChords.AddEvaluator();
 	pcEvaluator->SetSpecificSource(pcSource, ICT_Toggle);
-	AddSingleAction(pcAction, pcEvaluator, TRUE);
+	AddSingleAction(pcAction, pcEvaluator, true);
 }
 
 
@@ -473,7 +473,7 @@ void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, CInputVirtualDevi
 
 	pcEvaluator = mcChords.AddEvaluator();
 	pcEvaluator->SetSpecificSource(pcSource, ICT_Toggle);
-	AddSingleAction(pcAction, pcEvaluator, FALSE);
+	AddSingleAction(pcAction, pcEvaluator, false);
 }
 
 
@@ -514,7 +514,7 @@ void CInputVirtualDevice::AddActiveAction(CAction* pcAction, CInputCategoryGener
 	
 	pcEvaluator = mcChords.AddEvaluator();
 	pcEvaluator->SetGenericSource(pcGeneric, ICT_Toggle);
-	AddSingleAction(pcAction, pcEvaluator, TRUE);
+	AddSingleAction(pcAction, pcEvaluator, true);
 }
 
 
@@ -528,7 +528,7 @@ void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, CInputCategoryGen
 
 	pcEvaluator = mcChords.AddEvaluator();
 	pcEvaluator->SetGenericSource(pcGeneric, ICT_Toggle);
-	AddSingleAction(pcAction, pcEvaluator, FALSE);
+	AddSingleAction(pcAction, pcEvaluator, false);
 }
 
 
@@ -536,7 +536,7 @@ void CInputVirtualDevice::AddInactiveAction(CAction* pcAction, CInputCategoryGen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDevice::AddSingleAction(CAction* pcAction, CInputSourceEvaluator* pcEvaluator, BOOL bActive)
+void CInputVirtualDevice::AddSingleAction(CAction* pcAction, CInputSourceEvaluator* pcEvaluator, bool bActive)
 {
 	CInputChord*				pcChord;
 
@@ -624,7 +624,7 @@ void CInputVirtualDevice::AddRangeAction(CAction* pcAction, CInputVirtualDeviceS
 
 	pcEvaluator = mcChords.AddEvaluator();
 	pcEvaluator->SetSpecificSource(pcSource, ICT_Range);
-	AddSingleAction(pcAction, pcEvaluator, TRUE);
+	AddSingleAction(pcAction, pcEvaluator, true);
 }
 
 

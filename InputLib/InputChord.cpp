@@ -36,14 +36,14 @@ int MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayIn
 	int								j;
 	CActionInputChordCriteria*		psChordCriteria;
 	int								iCount;
-	BOOL							abMatched[MAX_GROUP_SIZE];
+	bool							abMatched[MAX_GROUP_SIZE];
 	float							fValue;
-	BOOL							bMatch;
-	BOOL							bAnyMatch;
+	bool							bMatch;
+	bool							bAnyMatch;
 	int								iEnd;
-	BOOL							bResult;
+	bool							bResult;
 
-	memset(abMatched, 0, MAX_GROUP_SIZE * sizeof(BOOL));
+	memset(abMatched, 0, MAX_GROUP_SIZE * sizeof(bool));
 	iCount = 0;
 	iEnd = pasChordCriteria->NumElements() + iStartPos;
 	if (iEnd > pcHistory->NumElements())
@@ -55,7 +55,7 @@ int MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayIn
 	{
 		psHistory = pcHistory->Get(i);
 
-		bAnyMatch = FALSE;
+		bAnyMatch = false;
 		for (j = 0; j < pasChordCriteria->NumElements(); j++)
 		{
 			if (!abMatched[j])
@@ -73,9 +73,9 @@ int MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayIn
 								((psChordCriteria->eAction == BAA_Inactive) && (fValue == 0.0f)))));
 					if (bResult)
 					{
-						abMatched[j] = TRUE;
+						abMatched[j] = true;
 						iCount++;
-						bAnyMatch = TRUE;
+						bAnyMatch = true;
 						break;
 					}
 				}
@@ -459,7 +459,7 @@ SMatchResult CInputChord::Match(CArrayInputDeviceTimeValue* pcHistory)
 int CInputChord::FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, int iStartPos)
 {
 	int						i;
-	BOOL					bMatch;
+	bool					bMatch;
 	//int						iLess;
 
 	//iLess = masStartDeviceValue.NumElements();

@@ -100,16 +100,16 @@ void CInputDeviceVariableCondition::SetChordCondition(CInputChord* pcChord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariableCondition::ContainsChord(CInputChord* pcChord)
+bool CInputDeviceVariableCondition::ContainsChord(CInputChord* pcChord)
 {
 	if (pcChord)
 	{
 		if (mpcChord == pcChord)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -117,7 +117,7 @@ BOOL CInputDeviceVariableCondition::ContainsChord(CInputChord* pcChord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
+bool CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
 {
 	int							i;
 	CInputDeviceVariableValue*	pcConditionValue;
@@ -129,14 +129,14 @@ BOOL CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
 			pcConditionValue = *mapConditions.Get(i);
 			if (pcConditionValue->GetCurrentVariableValue() != pcConditionValue)
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;		
+		return true;		
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -145,7 +145,7 @@ BOOL CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariableCondition::MatchNonChordCondition(void)
+bool CInputDeviceVariableCondition::MatchNonChordCondition(void)
 {
 	int							i;
 	CInputDeviceVariableValue*	pcConditionValue;
@@ -157,14 +157,14 @@ BOOL CInputDeviceVariableCondition::MatchNonChordCondition(void)
 			pcConditionValue = *mapConditions.Get(i);
 			if (pcConditionValue->GetCurrentVariableValue() != pcConditionValue)
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
