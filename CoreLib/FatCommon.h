@@ -1,7 +1,153 @@
 #ifndef __FAT_COMMON_H__
 #define __FAT_COMMON_H__
 #include <time.h>
-#include "FatStructure.h"
+#include "BaseLib/PrimitiveTypes.h"
+
+
+#define FAT_MAX_PATH					260
+#define FAT_FIRST_LFN_ENTRY				0x40
+#define FAT_MAX_FILENAME				255
+
+
+// FAT entry data type
+typedef uint32 FatEntry;
+
+
+// fat 32-byte directory entry structure
+#pragma pack(push, 1)
+struct SFatRawDirectoryEntry
+{
+	union
+	{
+		struct SFatRawCommon
+		{
+			uint8 name[11];
+			uint8 attributes;
+			uint8 reserved;
+			uint8 create_time_tenth;
+			uint16 create_time;
+			uint16 create_date;
+			uint16 access_date;
+			uint16 first_cluster_hi;
+			uint16 modify_time;
+			uint16 modify_date;
+			uint16 first_cluster_lo;
+			uint32 size;
+		} sFatRawCommon;
+
+		struct SFatRawLongFileName
+		{
+			uint8 lfn_sequence;
+			uint8 lfn_chars_1[10];
+			uint8 lfn_attributes;
+			uint8 lfn_type;
+			uint8 lfn_checksum;
+			uint8 lfn_chars_2[12];
+			uint16 lfn_first_cluster;
+			uint8 lfn_chars_3[4];
+		} sFatRawLongFileName;
+	} uEntry;
+};
+#pragma pack(pop)
+
+
+// FAT32 FSInfo structure
+#pragma pack(push, 1)
+struct SFatFileSystemInfo
+{
+	uint32	TrailSig;
+	uint8	Reserved2[12];
+	uint32	Nxt_Free;
+	uint32	Free_Count;
+	uint32	StructSig;
+	uint8	Reserved1[480];
+	uint32	LeadSig;
+};
+#pragma pack(pop)
+
+
+// MBR partition entry structure
+#pragma pack(push, 1)
+struct SFatPartitionEntry
+{
+	uint8	status;
+	uint8	chs_first_sector[3];
+	uint8	partition_type;
+	uint8	chs_last_sector[3];
+	uint32	lba_first_sector;
+	uint32	total_sectors;
+};
+#pragma pack(pop)
+
+
+// BPB structure ( 224 bits/28 bytes )
+#pragma pack(push, 1)
+struct SFatBIOSParameterBlock
+{
+	uint8	BS_jmpBoot[3];					/* 0  */
+	char	BS_OEMName[8];					/* 3  */
+	uint16	BPB_BytsPerSec;					/* 11 */
+	uint8	BPB_SecPerClus;					/* 13 */
+	uint16	BPB_RsvdSecCnt;					/* 14 */
+	uint8	BPB_NumFATs;					/* 16 */
+	uint16	BPB_RootEntCnt;					/* 17 */
+	uint16	BPB_TotSec16;					/* 19 */
+	uint8	BPB_Media;						/* 21 */
+	uint16	BPB_FATSz16;					/* 22 */
+	uint16	BPB_SecPerTrk;					/* 24 */
+	uint16	BPB_NumHeads;					/* 26 */
+	uint32	BPB_HiddSec;					/* 28 */
+	uint32	BPB_TotSec32;					/* 32 */
+	union
+	{
+		struct SFat16BPB
+		{
+			uint8	BS_DrvNum;
+			uint8	BS_Reserved1;
+			uint8	BS_BootSig;
+			uint32	BS_VolID;
+			char	BS_VolLab[11];
+			char	BS_FilSysType[8];
+			char	Pad1[8];
+			uint32	Pad2;
+			uint8	Pad3;
+			uint8	ExtraPadding[15];
+		} sFat16;
+
+		struct SFat32BPB
+		{
+			uint32	BPB_FATSz32;
+			uint16	BPB_ExtFlags;
+			uint16	BPB_FSVer;
+			uint32	BPB_RootClus;
+			uint16	BPB_FSInfo;
+			uint16	BPB_BkBootSec;
+			uint8	BPB_Reserved[12];
+			uint8	BS_DrvNum;
+			uint8	BS_Reserved1;
+			uint8	BS_BootSig;
+			uint32	BS_VolID;
+			char	BS_VolLab[11];
+			char	BS_FilSysType[8];
+		} sFat32;
+	} uFatEx;
+};
+#pragma pack(pop)
+
+
+// Stores information about directory entries.
+struct SFatDirectoryEntry
+{
+	uint8					name[FAT_MAX_FILENAME + 1];
+	uint8					attributes;
+	time_t					create_time;
+	time_t					modify_time;
+	time_t					access_time;
+	uint32					size;
+	uint32					sector_addr;
+	uint16					sector_offset;
+	SFatRawDirectoryEntry	raw;
+};
 
 
 // Defines the maximun sector size (in bytes) that this library should
@@ -101,7 +247,7 @@
 // entries correctly, but for compatibility reasons when creating
 // entries an LFN entry will be created for this type of files.
 #define FAT_LOWERCASE_EXTENSION			0x10
-#define FAT_LOWERCASE_BASENAME			0x8
+#define FAT_LOWERCASE_BASENAME			0x08
 
 
 
@@ -155,6 +301,65 @@ enum EFatFileSystemType
 	FAT_FS_TYPE_FAT12,
 	FAT_FS_TYPE_FAT16,
 	FAT_FS_TYPE_FAT32
+};
+
+
+#define FAT12_EOC						( 0x0FFF )
+#define FAT16_EOC						( 0xFFFF )
+#define FAT32_EOC						( 0x0FFFFFFF )
+#define FAT12_BAD_CLUSTER				( 0x0FF7 )
+#define FAT16_BAD_CLUSTER				( 0xFFF7 )
+#define FAT32_BAD_CLUSTER				( 0x0FFFFFF7 )
+#define FAT16_CLEAN_SHUTDOWN			( 0x8000 )
+#define FAT32_CLEAN_SHUTDOWN			( 0x08000000 )
+#define FAT16_HARD_ERROR				( 0x4000 )
+#define FAT32_HARD_ERROR				( 0x04000000 )
+#define FAT32_CUTOVER					( 1024 )
+#define FREE_FAT						( 0x0000 )
+#define ILLEGAL_CHARS_COUNT 			( 0x10 )
+#define BACKSLASH						( 0x5C )
+#define FAT_OPEN_HANDLE_MAGIC			( 0x4B )
+#define FAT_DELETED_ENTRY				( 0xE5 )
+#define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
+
+
+// macros for checking if a directory entry is free
+// and if it's the last entry on the directory
+#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0xE5 || *(entry)->uEntry.sFatRawCommon.name == 0x0)
+#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0x0)
+
+
+ // min and max macros
+#define MAX(a, b)		(( ( a ) > ( b ) ) ? ( a ) : ( b ) )
+#define MIN(a, b)		(( ( a ) < ( b ) ) ? ( a ) : ( b ) )
+#define LO8(word)		((uint8) (word))
+#define HI8(word)		((uint8) ((word) >> 8 ))
+#define LO16(dword)		((uint16) (dword))
+#define HI16(dword)		((uint16) ((dword) >> 16 ))
+
+
+// table of illegal filename chars.
+static const char ILLEGAL_CHARS[] = {
+	0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
+	0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
+};
+
+
+struct SFatQueryStateInternal
+{
+	uint8						Attributes;
+	uint16						current_sector;
+	uint32						current_cluster;
+	SFatRawDirectoryEntry* current_entry_raw;
+	uint8* uiBuffer;
+
+	SFatRawDirectoryEntry* first_entry_raw;
+
+	// LFN support members
+	uint16						long_filename[256];
+	uint8						lfn_sequence;
+	uint8						lfn_checksum;
+
 };
 
 
