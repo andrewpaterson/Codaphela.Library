@@ -90,7 +90,9 @@ char* CPPText::Print(CChars* psz)
 	}
 	else
 	{
-		for (i = 0; i < mcText.miLen; i++)
+		c = mcText.msz[0];
+		psz->Append(c);
+		for (i = 1; i < mcText.miLen -1; i++)
 		{
 			c = mcText.msz[i];
 			bResult = GetEscapeString(c, szDest);
@@ -103,6 +105,8 @@ char* CPPText::Print(CChars* psz)
 				psz->Append(c);
 			}
 		}
+		c = mcText.msz[mcText.miLen - 1];
+		psz->Append(c);
 	}
 	return psz->Text();
 }
