@@ -22,9 +22,10 @@
 #include <time.h>
 #include "FatInternals.h"
 #include "FatCommon.h"
-#include "FatFormat.h"
 #include "FatFile.h"
 #include "FatStructure.h"
+#include "FatTime.h"
+#include "FatFormat.h"
 
 
  // structure of the disk size to sectors per
@@ -34,10 +35,6 @@ struct SDiskSizeToSectorsPerCluster
 	uint32	DiskSize;
 	uint8	SecPerClusVal;
 };
-
-
-// prototypes
-static uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char forced_fs_type);
 
 
 // this is the table for FAT12 drives.
@@ -54,18 +51,16 @@ static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat12[] =
 };
 
 
-/*
- * This is the table for FAT16 drives. NOTE that this table includes
- * entries for disk sizes larger than 512 MB even though typically
- * only the entries for disks < 512 MB in size are used.
- * The way this table is accessed is to look for the first entry
- * in the table for which the disk size is less than or equal
- * to the DiskSize field in that table entry.  For this table to
- * work properly BPB_RsvdSecCnt must be 1, BPB_NumFATs
- * must be 2, and BPB_RootEntCnt must be 512. Any of these values
- * being different may require the first table entries DiskSize value
- * to be changed otherwise the cluster count may be to low for FAT16.
- */
+//* This is the table for FAT16 drives. NOTE that this table includes
+//* entries for disk sizes larger than 512 MB even though typically
+//* only the entries for disks < 512 MB in size are used.
+//* The way this table is accessed is to look for the first entry
+//* in the table for which the disk size is less than or equal
+//* to the DiskSize field in that table entry.  For this table to
+//* work properly BPB_RsvdSecCnt must be 1, BPB_NumFATs
+//* must be 2, and BPB_RootEntCnt must be 512. Any of these values
+//* being different may require the first table entries DiskSize value
+//* to be changed otherwise the cluster count may be to low for FAT16.
 static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
 {
    { 8400, 0 }, 		/* disks up to 4.1 MB, the 0 value for SecPerClusVal trips an error */
@@ -80,18 +75,17 @@ static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
 };
 
 
-/*
- * This is the table for FAT32 drives. NOTE that this table includes
- * entries for disk sizes smaller than 512 MB even though typically
- * only the entries for disks >= 512 MB in size are used.
- * The way this table is accessed is to look for the first entry
- * in the table for which the disk size is less than or equal
- * to the DiskSize field in that table entry. For this table to
- * work properly BPB_RsvdSecCnt must be 32, and BPB_NumFATs
- * must be 2. Any of these values being different may require the first
- * table entries DiskSize value to be changed otherwise the cluster count
- * may be to low for FAT32.
- */
+// This is the table for FAT32 drives. NOTE that this table includes
+// entries for disk sizes smaller than 512 MB even though typically
+// only the entries for disks >= 512 MB in size are used.
+// The way this table is accessed is to look for the first entry
+// in the table for which the disk size is less than or equal
+// to the DiskSize field in that table entry. For this table to
+// work properly BPB_RsvdSecCnt must be 32, and BPB_NumFATs
+// must be 2. Any of these values being different may require the first
+// table entries DiskSize value to be changed otherwise the cluster count
+// may be to low for FAT32.
+ 
 
 static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat32[] =
 {
@@ -105,7 +99,11 @@ static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat32[] =
 
 
 // find the best cluster size of given file system and # of 512 bytes sectors
-static uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char forced_fs_type)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char forced_fs_type)
 {
 	uint8 i;
 	switch (fs_type)
@@ -145,6 +143,10 @@ static uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char f
 
 
 // format volume
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
 {
 	bool					bSuccess;
@@ -360,9 +362,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
-		/*
 		// set FAT32 specific fields
-		*/
 		bpb->uFatEx.sFat32.BS_DrvNum = 0;
 		bpb->uFatEx.sFat32.BS_Reserved1 = 0;
 		bpb->uFatEx.sFat32.BS_BootSig = 0x29;
@@ -376,9 +376,8 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 		memset(bpb->uFatEx.sFat32.BPB_Reserved, 0, 12);
 		memcpy(bpb->uFatEx.sFat32.BS_VolLab, "NO NAME    ", 11);
 		memcpy(bpb->uFatEx.sFat32.BS_FilSysType, "FAT32   ", 8);
-		/*
+
 		// set the volume label
-		*/
 		if ((c = strlen(volume_label)))
 		{
 			for (i = 0; i < 11; i++)
@@ -483,7 +482,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 					/* even */
 					value = 0xFF8;									/* the value to be written */
 					*((uint16*)&uiBuffer[0]) &= 0xF000;				/* clear bits for entry */
-					*((uint16*)&uiBuffer[0]) |= (value & 0x0FFF);		/* set bits for entry */
+					*((uint16*)&uiBuffer[0]) |= (value & 0x0FFF);	/* set bits for entry */
 
 
 					// odd - we need to write this one 1 byte at a time since
@@ -492,11 +491,11 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 					value = FAT12_EOC;							/* the value to be written */
 					value <<= 4;								/* an odd entry occupies the upper 12-bits of the word */
 
-					uiBuffer[1 + 0] &= 0x0F;						/* clear entry bits on 1st byte */
+					uiBuffer[1 + 0] &= 0x0F;					/* clear entry bits on 1st byte */
 					uiBuffer[1 + 0] |= LO8(value);				/* set entry bits on 1st byte */
 
 					uiBuffer[1 + 1] = 0x00;						/* clear the 2nd byte */
-					uiBuffer[1 + 1] = HI8(value);					/* set the 2nd byte */
+					uiBuffer[1 + 1] = HI8(value);				/* set the 2nd byte */
 
 				}
 				else if (fs_type == FAT_FS_TYPE_FAT16)
@@ -575,8 +574,8 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 	entry->uEntry.sFatRawCommon.first_cluster_lo = 0;
 	entry->uEntry.sFatRawCommon.reserved = 0;
 	entry->uEntry.sFatRawCommon.size = 0;
-	entry->uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	entry->uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
+	entry->uEntry.sFatRawCommon.create_date = GetSystemClockDate();
+	entry->uEntry.sFatRawCommon.create_time = GetSystemClockTime();
 	entry->uEntry.sFatRawCommon.modify_date = entry->uEntry.sFatRawCommon.create_date;
 	entry->uEntry.sFatRawCommon.modify_time = entry->uEntry.sFatRawCommon.create_time;
 	entry->uEntry.sFatRawCommon.access_date = entry->uEntry.sFatRawCommon.create_date;
@@ -598,9 +597,7 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 		}
 	}
 
-	/*
 	// write the volume label entry to the root dir
-	*/
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
 		bSuccess = device->Write(((root_cluster - 2) * uiNoOfSectorsPerCluster) + uiNoOfReservedSectors + (uiNoOfFatTables * fatsz) + root_dir_sectors, uiBuffer);
@@ -617,9 +614,6 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 			return FAT_CANNOT_WRITE_MEDIA;
 		}
 	}
-	/*
-	// return success
-	*/
 	return FAT_SUCCESS;
 }
 

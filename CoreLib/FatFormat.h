@@ -3,7 +3,7 @@
 #include <time.h>
 #include "BaseLib/PrimitiveTypes.h"
 #include "FileDrive.h"
-#include "FatVolume.h"
+#include "FatCommon.h"
 
 
 uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);

@@ -48,13 +48,6 @@
 #define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0x0)
 
 
- // date/time macros
-#define FAT_ENCODE_DATE(month, day, year)			((((uint16)((year) - 1980)) << 9) | ((uint16)(month) << 5) | (uint16)(day))
-#define FAT_DECODE_DATE(date, month, day, year)		(year) = ((date) >> 9) + 1980);(month) = ((date & 0x1E0) >> 5);(day) = (date & 0x1F)
-#define FAT_ENCODE_TIME(hour, minute, second)		(((uint16)(hour) << 11) | ((uint16)(minute) << 5) | ((uint16)(second) >> 1))
-#define FAT_DECODE_TIME(time, hour, minute, second)	(hour) = ((time) >> 11); (minute) = (((time) & 0x7E0) >> 5); (secs) = (((time) & 0x1F) << 1)
-
-
  // min and max macros
 #define MAX(a, b)		(( ( a ) > ( b ) ) ? ( a ) : ( b ) )
 #define MIN(a, b)		(( ( a ) < ( b ) ) ? ( a ) : ( b ) )
@@ -88,25 +81,6 @@ struct SFatQueryStateInternal
 
 };
 
-
-// prototypes
-class CFatVolume;
-struct SFatFile;
-uint8 FatLongEntryChecksum(uint8* filename);
-uint16 GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
-uint16 FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 uiAccessFlags);
-
-int FatIndexOf(char chr, char* str, int index);
-
-char FatCompareShortName(uint8* name1, uint8* name2);
-uint16 rtc_get_fat_date();
-uint16 rtc_get_fat_time();
-time_t fat_decode_date_time(uint16 date, uint16 time);
-void TrimPath(char* dest, char* src, size_t max);
-void FatParsePath(char* path, char* path_part, char** filename_part);
-
-char FatCompareLongName(uint16* name1, uint16* name2);
-char GetLongNameForEntry(uint16* dst, uint8* src);
 
 #endif // __FAT_INTERNALS_H__
 

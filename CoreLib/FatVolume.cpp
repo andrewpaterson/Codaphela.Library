@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "FatInternals.h"
 #include "FatStructure.h"
+#include "FatTime.h"
 #include "FatVolume.h"
 
 
@@ -30,13 +31,13 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 	label[11] = 0;
 
 	// save the storage device handle
-	mpsVolume->mpcDevice = device;
+	mpcDevice = device;
 
 	// mark the loaded sector as unknown
 	SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 	// retrieve the boot sector (sector 0) from the storage device
-	bSuccess = mpsVolume->mpcDevice->Read(0x0, uiBuffer);
+	bSuccess = mpcDevice->Read(0x0, uiBuffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_READ_MEDIA;
@@ -63,7 +64,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 			if (partitions_tried > 1)
 			{
 				// retrieve the boot sector (sector 0) from the storage device
-				bSuccess = mpsVolume->mpcDevice->Read(0x0, uiBuffer);
+				bSuccess = mpcDevice->Read(0x0, uiBuffer);
 				if (!bSuccess)
 				{
 					return FAT_CANNOT_READ_MEDIA;
@@ -78,14 +79,14 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 
 			// make sure the partition doesn't exceeds the physical boundries
 			// of the device
-			if (partition_entry->lba_first_sector + partition_entry->total_sectors > mpsVolume->mpcDevice->GetTotalSectors())
+			if (partition_entry->lba_first_sector + partition_entry->total_sectors > mpcDevice->GetTotalSectors())
 			{
 				partitions_tried++;
 				continue;
 			}
 
 			// retrieve the 1st sector of partition
-			bSuccess = mpsVolume->mpcDevice->Read(partition_entry->lba_first_sector, uiBuffer);
+			bSuccess = mpcDevice->Read(partition_entry->lba_first_sector, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -200,7 +201,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 			uint8 media = bpb->BPB_Media;
 
 			// read the 1st sector of the FAT table
-			bSuccess = mpsVolume->mpcDevice->Read(mpsVolume->uiNoOfReservedSectors, uiBuffer);
+			bSuccess = mpcDevice->Read(mpsVolume->uiNoOfReservedSectors, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -240,7 +241,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 
 
 		// read the sector containing the FSInfo structure
-		bSuccess = mpsVolume->mpcDevice->Read(hidden_sectors + fsinfo_sector, uiBuffer);
+		bSuccess = mpcDevice->Read(hidden_sectors + fsinfo_sector, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
@@ -297,7 +298,7 @@ uint16 CFatVolume::Unmount(void)
 		SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 		// read the sector containing the FSInfo structure
-		bSuccess = mpsVolume->mpcDevice->Read(GetFsinfoSector(), uiBuffer);
+		bSuccess = mpcDevice->Read(GetFsinfoSector(), uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
@@ -325,7 +326,7 @@ uint16 CFatVolume::Unmount(void)
 			fsinfo->TrailSig = 0xAA550000;
 
 			// write the fsinfo sector
-			bSuccess = mpsVolume->mpcDevice->Write(GetFsinfoSector(), uiBuffer);
+			bSuccess = mpcDevice->Write(GetFsinfoSector(), uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -342,7 +343,7 @@ uint16 CFatVolume::Unmount(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::Read(uint64 uiSector, void* pvData)
 {
-	return mpsVolume->mpcDevice->Read(uiSector, pvData);
+	return mpcDevice->Read(uiSector, pvData);
 }
 
 
@@ -352,7 +353,7 @@ bool CFatVolume::Read(uint64 uiSector, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::Write(uint64 uiSector, void* pvData)
 {
-	return mpsVolume->mpcDevice->Write(uiSector, pvData);
+	return mpcDevice->Write(uiSector, pvData);
 }
 
 
@@ -362,7 +363,7 @@ bool CFatVolume::Write(uint64 uiSector, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 {
-	return mpsVolume->mpcDevice->Erase(uiStartSector, uiStopSectorInclusive);
+	return mpcDevice->Erase(uiStartSector, uiStopSectorInclusive);
 }
 
 
@@ -382,7 +383,7 @@ uint16 CFatVolume::GetSectorSize(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetPageSize(void)
 {
-	return mpsVolume->mpcDevice->GetPageSize();
+	return mpcDevice->GetPageSize();
 }
 
 
@@ -1921,8 +1922,8 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, 
 	entries->uEntry.sFatRawCommon.reserved = 0;
 	entries->uEntry.sFatRawCommon.first_cluster_lo = LO16(cluster);
 	entries->uEntry.sFatRawCommon.first_cluster_hi = HI16(cluster);
-	entries->uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	entries->uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
+	entries->uEntry.sFatRawCommon.create_date = GetSystemClockDate();
+	entries->uEntry.sFatRawCommon.create_time = GetSystemClockTime();
 	entries->uEntry.sFatRawCommon.modify_date = entries->uEntry.sFatRawCommon.create_date;
 	entries->uEntry.sFatRawCommon.modify_time = entries->uEntry.sFatRawCommon.create_time;
 	entries->uEntry.sFatRawCommon.access_date = entries->uEntry.sFatRawCommon.create_date;
@@ -1949,8 +1950,8 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, 
 	entries->uEntry.sFatRawCommon.reserved = 0;
 	entries->uEntry.sFatRawCommon.first_cluster_lo = parent->uEntry.sFatRawCommon.first_cluster_lo;
 	entries->uEntry.sFatRawCommon.first_cluster_hi = parent->uEntry.sFatRawCommon.first_cluster_hi;
-	entries->uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	entries->uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
+	entries->uEntry.sFatRawCommon.create_date = GetSystemClockDate();
+	entries->uEntry.sFatRawCommon.create_time = GetSystemClockTime();
 	entries->uEntry.sFatRawCommon.modify_date = entries->uEntry.sFatRawCommon.create_date;
 	entries->uEntry.sFatRawCommon.modify_time = entries->uEntry.sFatRawCommon.create_time;
 	entries->uEntry.sFatRawCommon.access_date = entries->uEntry.sFatRawCommon.create_date;
@@ -2304,9 +2305,9 @@ void CFatVolume::FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* entry, SFatRaw
 	// to the public one
 	entry->attributes = raw_entry->uEntry.sFatRawCommon.attributes;
 	entry->size = raw_entry->uEntry.sFatRawCommon.size;
-	entry->create_time = fat_decode_date_time(raw_entry->uEntry.sFatRawCommon.create_date, raw_entry->uEntry.sFatRawCommon.create_time);
-	entry->modify_time = fat_decode_date_time(raw_entry->uEntry.sFatRawCommon.modify_date, raw_entry->uEntry.sFatRawCommon.modify_time);
-	entry->access_time = fat_decode_date_time(raw_entry->uEntry.sFatRawCommon.access_date, 0);
+	entry->create_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.create_date, raw_entry->uEntry.sFatRawCommon.create_time);
+	entry->modify_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.modify_date, raw_entry->uEntry.sFatRawCommon.modify_time);
+	entry->access_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.access_date, 0);
 	entry->raw = *raw_entry;
 }
 
@@ -2600,9 +2601,9 @@ uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 	// to the public one
 	entry->attributes = query.current_entry_raw->uEntry.sFatRawCommon.attributes;
 	entry->size = query.current_entry_raw->uEntry.sFatRawCommon.size;
-	entry->create_time = fat_decode_date_time(query.current_entry_raw->uEntry.sFatRawCommon.create_date, query.current_entry_raw->uEntry.sFatRawCommon.create_time);
-	entry->modify_time = fat_decode_date_time(query.current_entry_raw->uEntry.sFatRawCommon.modify_date, query.current_entry_raw->uEntry.sFatRawCommon.modify_time);
-	entry->access_time = fat_decode_date_time(query.current_entry_raw->uEntry.sFatRawCommon.access_date, 0);
+	entry->create_time = FatDecodeDateTime(query.current_entry_raw->uEntry.sFatRawCommon.create_date, query.current_entry_raw->uEntry.sFatRawCommon.create_time);
+	entry->modify_time = FatDecodeDateTime(query.current_entry_raw->uEntry.sFatRawCommon.modify_date, query.current_entry_raw->uEntry.sFatRawCommon.modify_time);
+	entry->access_time = FatDecodeDateTime(query.current_entry_raw->uEntry.sFatRawCommon.access_date, 0);
 
 	// calculate the sector address of the entry - if
 	// query->CurrentCluster equals zero then this is the root
@@ -3142,14 +3143,14 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	new_entry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(entry_cluster);
 	new_entry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(entry_cluster);
 	new_entry->raw.uEntry.sFatRawCommon.create_time_tenth = 0x0;
-	new_entry->raw.uEntry.sFatRawCommon.create_date = rtc_get_fat_date();
-	new_entry->raw.uEntry.sFatRawCommon.create_time = rtc_get_fat_time();
+	new_entry->raw.uEntry.sFatRawCommon.create_date = GetSystemClockDate();
+	new_entry->raw.uEntry.sFatRawCommon.create_time = GetSystemClockTime();
 	new_entry->raw.uEntry.sFatRawCommon.modify_date = new_entry->raw.uEntry.sFatRawCommon.create_date;
 	new_entry->raw.uEntry.sFatRawCommon.modify_time = new_entry->raw.uEntry.sFatRawCommon.create_time;
 	new_entry->raw.uEntry.sFatRawCommon.access_date = new_entry->raw.uEntry.sFatRawCommon.create_date;
-	new_entry->create_time = fat_decode_date_time(new_entry->raw.uEntry.sFatRawCommon.create_date, new_entry->raw.uEntry.sFatRawCommon.create_time);
-	new_entry->modify_time = fat_decode_date_time(new_entry->raw.uEntry.sFatRawCommon.modify_date, new_entry->raw.uEntry.sFatRawCommon.modify_time);
-	new_entry->access_time = fat_decode_date_time(new_entry->raw.uEntry.sFatRawCommon.access_date, 0);
+	new_entry->create_time = FatDecodeDateTime(new_entry->raw.uEntry.sFatRawCommon.create_date, new_entry->raw.uEntry.sFatRawCommon.create_time);
+	new_entry->modify_time = FatDecodeDateTime(new_entry->raw.uEntry.sFatRawCommon.modify_date, new_entry->raw.uEntry.sFatRawCommon.modify_time);
+	new_entry->access_time = FatDecodeDateTime(new_entry->raw.uEntry.sFatRawCommon.access_date, 0);
 
 	// there's no fat entry that points to the 1st cluster of
 	// a directory's cluster chain but we'll create a
