@@ -18,8 +18,9 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include "Fat.h"
 #include "FatInternals.h"
+#include "FatVolume.h"
+#include "FatFile.h"
 
 
 //////////////////////////////////////////////////////////////////////////
