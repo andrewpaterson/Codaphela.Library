@@ -92,21 +92,21 @@ struct SFatQueryStateInternal
 // prototypes
 class CFatVolume;
 struct SFatFile;
-uint8 fat_long_entry_checksum(uint8* filename);
-uint16 get_short_name_for_entry(uint8* dest, uint8* src, char lfn_disabled);
+uint8 FatLongEntryChecksum(uint8* filename);
+uint16 GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
 uint16 FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 uiAccessFlags);
 
-int indexof(char chr, char* str, int index);
+int FatIndexOf(char chr, char* str, int index);
 
-char fat_compare_short_name(uint8* name1, uint8* name2);
+char FatCompareShortName(uint8* name1, uint8* name2);
 uint16 rtc_get_fat_date();
 uint16 rtc_get_fat_time();
 time_t fat_decode_date_time(uint16 date, uint16 time);
-void strtrim(char* dest, char* src, size_t max);
+void TrimPath(char* dest, char* src, size_t max);
 void FatParsePath(char* path, char* path_part, char** filename_part);
 
-char fat_compare_long_name(uint16* name1, uint16* name2);
-char get_long_name_for_entry(uint16* dst, uint8* src);
+char FatCompareLongName(uint16* name1, uint16* name2);
+char GetLongNameForEntry(uint16* dst, uint8* src);
 
 #endif // __FAT_INTERNALS_H__
 

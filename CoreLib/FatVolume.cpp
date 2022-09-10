@@ -169,13 +169,13 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 		{
 			mpsVolume->uiID = bpb->uFatEx.sFat16.BS_VolID;
 			memcpy(label, bpb->uFatEx.sFat16.BS_VolLab, 11);
-			strtrim(mpsVolume->szLabel, label, 11);
+			TrimPath(mpsVolume->szLabel, label, 11);
 		}
 		else
 		{
 			mpsVolume->uiID = bpb->uFatEx.sFat32.BS_VolID;
 			memcpy(label, bpb->uFatEx.sFat32.BS_VolLab, 11);
-			strtrim(mpsVolume->szLabel, label, 11);
+			TrimPath(mpsVolume->szLabel, label, 11);
 		}
 
 		// if the mpsVolume is FAT32 then copy the root
@@ -226,7 +226,7 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 		{
 			if (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
 			{
-				strtrim(mpsVolume->szLabel, (char*)query.current_entry_raw->uEntry.sFatRawCommon.name, 11);
+				TrimPath(mpsVolume->szLabel, (char*)query.current_entry_raw->uEntry.sFatRawCommon.name, 11);
 			}
 		}
 	}
@@ -2451,7 +2451,7 @@ uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 		// copy the file name to the entry and the raw
 		// entry in their respective formats
 		strcpy((char*)entry->name, "ROOT");
-		get_short_name_for_entry(entry->raw.uEntry.sFatRawCommon.name, entry->name, 1);
+		GetShortNameForEntry(entry->raw.uEntry.sFatRawCommon.name, entry->name, 1);
 
 		// set the general fields of the entry
 		entry->attributes = entry->raw.uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
@@ -2538,19 +2538,19 @@ uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 		// if this is an invalid 8.3 filename try to get the LFN
 		// once we get a valid filename (either short or LFN) compare
 		// it to the one on the current query entry
-		if (get_short_name_for_entry(target_file, current_level, 1) == FAT_INVALID_FILENAME)
+		if (GetShortNameForEntry(target_file, current_level, 1) == FAT_INVALID_FILENAME)
 		{
-			if (get_long_name_for_entry(target_file_long, current_level) == FAT_INVALID_FILENAME)
+			if (GetLongNameForEntry(target_file_long, current_level) == FAT_INVALID_FILENAME)
 			{
 				return FAT_INVALID_FILENAME;
 			}
 			using_lfn = 1;
-			match = fat_compare_long_name(target_file_long, query.long_filename)
-				|| fat_compare_short_name(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
+			match = FatCompareLongName(target_file_long, query.long_filename)
+				|| FatCompareShortName(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
 		}
 		else
 		{
-			match = fat_compare_short_name(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
+			match = FatCompareShortName(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
 		}
 
 		// if the file doesn't match then get the
@@ -2579,11 +2579,11 @@ uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 			// match the filename against the next entry
 			if (using_lfn)
 			{
-				match = fat_compare_long_name(target_file_long, query.long_filename) || fat_compare_short_name(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
+				match = FatCompareLongName(target_file_long, query.long_filename) || FatCompareShortName(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
 			}
 			else
 			{
-				match = fat_compare_short_name(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
+				match = FatCompareShortName(target_file, query.current_entry_raw->uEntry.sFatRawCommon.name);
 			}
 		}
 
@@ -2901,7 +2901,7 @@ uint16 CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, 
 	// with it belongs to it. If it doesn't clear it.
 	if (*query->current_entry_raw->uEntry.sFatRawCommon.name != 0x0)
 	{
-		if (query->lfn_checksum != fat_long_entry_checksum((uint8*)query->current_entry_raw->uEntry.sFatRawCommon.name))
+		if (query->lfn_checksum != FatLongEntryChecksum((uint8*)query->current_entry_raw->uEntry.sFatRawCommon.name))
 		{
 			query->long_filename[0] = 0x0;
 		}
@@ -2985,7 +2985,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	//
 	//	- name part is more than 8 chars (char_index > 8)
 	//	- extension part is more than 3 (uiResult - char_index > 4)
-	//	- it has more than one dot (indexof('.', name, char_index + 1) >= 0)
+	//	- it has more than one dot (FatIndexOf('.', name, char_index + 1) >= 0)
 	if (uiResult > 255)
 	{
 		return FAT_FILENAME_TOO_LONG;
@@ -2993,7 +2993,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 
 	// all names are also invalid if they start or end with
 	// a dot
-	char_index = indexof('.', name, 0x0);
+	char_index = FatIndexOf('.', name, 0x0);
 
 	if (char_index == 0 || char_index == (uiResult - 1))
 	{
@@ -3029,7 +3029,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	// attempt to format the filename provided
 	// to the format required by the directory entry
 	// and copy it to it's field
-	uiResult = get_short_name_for_entry(new_entry->raw.uEntry.sFatRawCommon.name, (uint8*)name, 0);
+	uiResult = GetShortNameForEntry(new_entry->raw.uEntry.sFatRawCommon.name, (uint8*)name, 0);
 
 	// if the above operation failed then the filename
 	// is invalid
@@ -3294,7 +3294,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 						}
 
 						// compute the checksum for this entry
-						lfn_checksum = fat_long_entry_checksum((uint8*)new_entry->raw.uEntry.sFatRawCommon.name);
+						lfn_checksum = FatLongEntryChecksum((uint8*)new_entry->raw.uEntry.sFatRawCommon.name);
 
 						// now we can start writting
 						no_of_lfn_entries_found = no_of_lfn_entries_needed;
@@ -3530,7 +3530,7 @@ uint16 CFatVolume::FatFileDelete(char* filename)
 	if (entry.name != 0)
 	{
 		// compute the checksum for the file
-		checksum = fat_long_entry_checksum((uint8*)entry.raw.uEntry.sFatRawCommon.name);
+		checksum = FatLongEntryChecksum((uint8*)entry.raw.uEntry.sFatRawCommon.name);
 
 		// make sure we're not trying to delete a directory
 		if (entry.attributes & FAT_ATTR_DIRECTORY)
@@ -3649,7 +3649,7 @@ uint16 CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		SFatDirectoryEntry parent;
 
 		// compute the checksum for the file
-		checksum = fat_long_entry_checksum((uint8*)original_entry.raw.uEntry.sFatRawCommon.name);
+		checksum = FatLongEntryChecksum((uint8*)original_entry.raw.uEntry.sFatRawCommon.name);
 
 		// get the cluster # for the entry
 		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
@@ -3865,6 +3865,410 @@ void CFatVolume::FatGetShortNameFromEntry(uint8* dest, const uint8* src)
 uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 cluster)
 {
 	return (((cluster - 0x2) * GetNoOfSectorsPerCluster()) + GetFirstDataSector());
+}
+
+
+
+
+// treams leading and trailing spaces. If the result
+// exceeds the max length the destination will be set
+// to an empty string
+// todo: clean it up a bit
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::TrimPath(char* dest, char* src, size_t max)
+{
+	uint32 max_length;
+	uint32 lead_spaces = 0x0;
+	uint32 last_char = 0x0;
+	uint32 i;
+	char* dst = dest;
+
+	max_length = strlen(src);
+
+	// count the lead spaces
+	for (i = 0; i < max_length && src[i] == 0x20; i++)
+	{
+		lead_spaces++;
+	}
+
+	// if the whole string is full of spaces
+	// return an empty string
+	if (max_length == lead_spaces) 
+	{
+		*dest = 0x0;
+		return;
+	}
+
+	// calculate the index of the last non-space character
+	for (last_char = max_length - 1; last_char > 0 && (src[last_char] == 0x20); last_char--);
+
+	// copy the non-space characters to the
+	// destination uiBuffer
+	for (i = lead_spaces; i <= last_char; i++)
+	{
+		*dest++ = src[i];
+		if (!max--)
+		{
+			*dst = 0x0;
+			return;
+		}
+	}
+
+	// set the null terminator
+	*dest = 0x0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::FatParsePath(char* path, char* path_part, char** filename_part)
+{
+	*filename_part = path + strlen(path);
+
+	while (*--(*filename_part) != '\\' && (*filename_part) != path);
+
+	while (path != *filename_part)
+	{
+		*path_part++ = *path++;
+	}
+	*path_part = 0;
+	(*filename_part)++;
+}
+
+
+// converts the filename to it's Unicode UTF16 representation
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char CFatVolume::GetLongNameForEntry(uint16* dst, uint8* src)
+{
+	register int i;
+	for (i = 0; i < (int)strlen((char*)src); i++)
+	{
+		dst[i] = (uint16)src[i];
+	}
+	dst[i] = 0x0;
+
+	// todo: check that this is a valid filename
+	// and that it only uses ASCII chars since we don't
+	// support unicode at this time
+	return FAT_SUCCESS;
+}
+
+
+// compares two short names after they
+// have been formatted by GetShortNameForEntry
+// returns 1 if both name are equal and 0 otherwise
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char CFatVolume::FatCompareShortName(uint8* name1, uint8* name2)
+{
+	return memcmp(name1, name2, 11) == 0;
+}
+
+
+// performs an ASCII comparison on two UTF16 strings
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char CFatVolume::FatCompareLongName(uint16* name1, uint16* name2)
+{
+	register short i;
+	for (i = 0; i < 256; i++)
+	{
+		if (toupper((char)name1[i]) != toupper((char)name2[i]))
+		{
+			return 0;
+		}
+
+		if ((char)name1[i] == 0x0)
+		{
+			return 1;
+		}
+	}
+	return 1;
+}
+
+
+// converts an 8.3 filename to the format required
+// by the FAT directory entry structure
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatVolume::GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled)
+{
+
+	char		tmp[13];
+	char		has_uppercase = 0;
+	uint16		dot_index;
+	uint16		length;
+	uint16		i;
+
+	// check that the name is actually a long filename
+	// before processing it as such
+	if (!lfn_disabled)
+	{
+		uint8	c;
+		char	is_lfn = 0;
+
+		length = (uint16)strlen((char*)src);
+		dot_index = FatIndexOf('.', (char*)src, 0x0);
+
+		// if the file hs no extension and is longer than 8 chars
+		// or if the name part has more than 8 chars or the extension more than 8
+		// or if it has more than one dot then we need to handle it as a lfn
+		if (dot_index < 0 && length > 8) is_lfn = 1;
+		if (dot_index >= 0)
+		{
+			if (dot_index > 7 || (length - dot_index) > 4)
+			{
+				is_lfn = 1;
+			}
+			if (dot_index >= 0) if (FatIndexOf('.', (char*)src, 1) >= 0)
+			{
+				is_lfn = 1;
+			}
+		}
+		else
+		{
+			if (length > 8) is_lfn = 1;
+		}
+
+		// if it has spaces or lowercase letters we must also
+		// handle it as a long filename
+		if (!is_lfn)
+		{
+			for (i = 0; i < length; i++)
+			{
+				if (src[i] == 0x20 || src[i] != toupper(src[i]))
+				{
+					is_lfn = 1;
+					break;
+				}
+			}
+		}
+		if (is_lfn)
+		{
+			// first we find the location of the LAST dot
+			dot_index = length;
+			for (i = length - 1; i; i--)
+			{
+				if (src[i] == '.')
+				{
+					dot_index = i;
+					break;
+				}
+			}
+
+			// now we copy the first 8 chars of the filename
+			// excluding dots and spaces and we pad it with
+			// spaces
+			c = 0;
+			for (i = 0; i < 8; i++)
+			{
+				while (c < dot_index)
+				{
+					if (src[c] == 0x20 || src[c] == '.')
+					{
+						c++;
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (c < dot_index)
+				{
+					tmp[i] = toupper(src[c++]);
+				}
+				else
+				{
+					tmp[i] = 0x20;
+				}
+			}
+
+			// do the same for the extension
+			c = dot_index + 1;
+			for (i = 8; i < 11; i++)
+			{
+				while (c < length)
+				{
+					if (src[c] == 0x20 || src[c] == '.')
+					{
+						c++;
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (c < length)
+				{
+					tmp[i] = toupper(src[c++]);
+				}
+				else
+				{
+					tmp[i] = 0x20;
+				}
+			}
+
+			// now we copy it to the callers buffer and we're done
+			for (i = 0; i < 11; i++)
+			{
+				*dest++ = tmp[i];
+			}
+
+			// return special code so the caller knows
+			// to store the long name
+			return FAT_LFN_GENERATED;
+		}
+	}
+
+	// trim-off spaces - if the result is
+	// greater than 12 it will return an empty
+	// string
+	TrimPath(tmp, (char*)src, 12);
+
+	// if the name length was invalid return
+	// error code
+	if (*tmp == 0 || strlen(tmp) > 12)
+	{
+		return FAT_INVALID_FILENAME;
+	}
+
+	// find the location of the dot
+	dot_index = (uintptr_t)strchr(tmp, (int)'.');
+
+	// strchr gave us the address of the dot, we now
+	// convert it to a 1-based index
+	if (dot_index)
+	{
+		dot_index -= (uintptr_t)tmp - 0x1;
+	}
+
+	// get the length of the input string
+	length = (uint16)strlen(tmp);
+
+	// check that this is a valid 8.3 filename
+	if ((length > 0x9 &&
+		(dot_index == 0x0 || (dot_index) > 0x9)) ||
+		(dot_index > 0x0 && (length - dot_index) > 0x5))
+	{
+		return FAT_INVALID_FILENAME;
+	}
+	
+	// copy the 1st part of the filename to the
+	// destination bBuffer
+	for (i = 0x0; i < 0x8; i++)
+	{
+		if (dot_index == 0x0)
+		{
+			if (i < length)
+			{
+				if (lfn_disabled && (tmp[i] != toupper(tmp[i])))
+					has_uppercase = 1;
+
+				*dest++ = toupper(tmp[i]);
+			}
+			else
+			{
+				*dest++ = 0x20;
+			}
+		}
+		else
+		{
+			if (i < dot_index - 0x1)
+			{
+				if (lfn_disabled && (tmp[i] != toupper(tmp[i])))
+					has_uppercase = 1;
+
+				*dest++ = toupper(tmp[i]);
+			}
+			else
+			{
+				*dest++ = 0x20;
+			}
+		}
+	}
+
+	// if there's not extension fill the extension
+	// characters with spaces
+	if (dot_index == 0x0)
+	{
+		for (i = 0x0; i < 0x3; i++)
+			*dest++ = 0x20;
+	}
+	// if there is an extension...
+	else
+	{
+		// copy the extension characters to the
+		// destination bBuffer
+		for (i = dot_index; i < dot_index + 0x3; i++)
+		{
+			if (i < length)
+			{
+				if (lfn_disabled && (tmp[i] != toupper(tmp[i])))
+					has_uppercase = 1;
+				*dest++ = toupper(tmp[i]);
+			}
+			else
+			{
+				*dest++ = 0x20;
+			}
+		}
+	}
+
+	return has_uppercase ? FAT_INVALID_FILENAME : FAT_SUCCESS;
+}
+
+
+// computes the short filename checksum
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CFatVolume::FatLongEntryChecksum(uint8* filename)
+{
+	uint16	len;
+	uint8	sum = 0;
+
+	for (len = 11; len != 0; len--)
+	{
+		sum = ((sum & 1) ? 0x80 : 0) + (sum >> 1) + *filename++;
+	}
+	return sum;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int CFatVolume::FatIndexOf(char chr, char* str, int index)
+{
+	int i = 0;
+
+	str = str + index;
+	do
+	{
+		if (str[i] == chr)
+		{
+			return i;
+		}
+		i++;
+	} while (str[i]);
+
+	return -1;
 }
 
 
