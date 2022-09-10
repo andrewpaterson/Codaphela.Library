@@ -51,7 +51,7 @@ void CTileType::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTileType::Is(char* szName)
+bool CTileType::Is(char* szName)
 {
 	return mszTypeName.Equals(szName);
 }

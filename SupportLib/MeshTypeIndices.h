@@ -42,7 +42,7 @@ public:
 	void	Init(CMeshVertexArray* pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
 	void	Kill(void);
 
-	BOOL	Generate(CArrayInt* paiFaces, void* pavFaceIndices);
+	bool	Generate(CArrayInt* paiFaces, void* pavFaceIndices);
 	void	SetVertIndex(int* piVertIndex, void* pvFaceVertIndex);
 	int		FindExisingVert(int* piFaceVertIndex);
 

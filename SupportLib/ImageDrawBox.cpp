@@ -29,18 +29,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, BOOL bFilled)
+void CImageDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled)
 {
 	mpcColour = pcColour;
 	mbFilled = bFilled;
 	if (pcRectangle)
 	{
 		mcRectangle = *pcRectangle;
-		mbWholeImage = FALSE;
+		mbWholeImage = false;
 	}
 	else
 	{
-		mbWholeImage = TRUE;
+		mbWholeImage = true;
 	}
 }
 

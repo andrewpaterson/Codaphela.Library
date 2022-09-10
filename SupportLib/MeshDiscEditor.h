@@ -37,11 +37,11 @@ public:
 	float		mfOuterRadius;
 	int			miWedgeSegments;
 	int			miCircleSegments;
-	BOOL		mbFlipFaces;
+	bool		mbFlipFaces;
 	int			miFaceName;
 
 	void	Init(SFloat3* psZDirection, SFloat3* psStart, float fInnerRadius, float fOuterRadius, int iWedgeSegments, int iCircleSegments);
-	void	SetFlipFaces(BOOL bFlipFaces);
+	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
 	void	Kill(void);
 

@@ -40,8 +40,8 @@ public:
 	void					Init(CPackAttempt* pcPackAttempt);
 	void					Kill(void);
 
-	BOOL					Pack(void);
-	BOOL					RecursePack(CRectangle* pcBounds);
+	bool					Pack(void);
+	bool					RecursePack(CRectangle* pcBounds);
 	void					Done(void);
 	CPackRectangleAttempt*	Get(void* pvUserData);
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);

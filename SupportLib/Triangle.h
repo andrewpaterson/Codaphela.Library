@@ -35,8 +35,8 @@ public:
 	void 		Set(float x1, float y1, float z1, float x2, float y2, float z2, float x3, float y3, float z3);
 	void 		Set(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3);
 	SFloat3*	GetPoint(int iPoint);
-	BOOL		HasPositionPtr(SFloat3* psPosition);
-	BOOL		IsDegenerate(void);
+	bool		HasPositionPtr(SFloat3* psPosition);
+	bool		IsDegenerate(void);
 	int			IsSliver(float fAngleSliver, SFloat3** pps0, SFloat3** pps1, SFloat3** pps2);
 	void		GetEdgeDirections(SFloat3* psEdge1, SFloat3* psEdge2, SFloat3* psEdge3);
 	void		GetAngles(float* psAngle1, float* psAngle2, float* psAngle3);

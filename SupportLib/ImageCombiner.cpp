@@ -39,7 +39,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, BOOL bKillDestCels)
+void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels)
 {
 	meSize = eSize;
 	msSize.Init(iWidth, iHeight);
@@ -47,7 +47,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 	mpcDestImage = NULL;
 	meChannels = eChannels;
 	mcSourceCels.Init();
-	mcSourceCels.KillElements(FALSE);
+	mcSourceCels.KillElements(false);
 	mcDestCels.Init();
 	mcDestCels.KillElements(bKillDestCels);
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
@@ -60,7 +60,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, BOOL bKillDestCels)
+void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels)
 {
 	Init(eLayout, -1, -1, eSize, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth, bKillDestCels);
 }
@@ -70,7 +70,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, BOOL bKillDestCels)
+void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels)
 {
 	Init(eLayout, iWidth, iHeight, ICS_UserSpecified, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth, bKillDestCels);
 }
@@ -103,7 +103,7 @@ Ptr<CImage> CImageCombiner::Combine(void)
 		mpcDestImage = InitiailiseDestImage(sTextureSize);
 		if (mpcDestImage.IsNull())
 		{
-			return FALSE;
+			return false;
 		}
 
 		Draw(&acPackedRects);
@@ -155,7 +155,7 @@ void CImageCombiner::AddChannel(EChannel eChannel, EPrimitiveType eType)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
 {
-	BOOL			bResult; 
+	bool			bResult; 
 	Ptr<CImage>		pcImage;
 
 	pcImage = OMalloc<CImage>();
@@ -338,19 +338,19 @@ SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 	SSetIterator			sIter;
 	CImageCel*				pcCel;
 	SInt2					sTextureSize;
-	BOOL					bResult;
-	BOOL					bNonEmpty;
+	bool					bResult;
+	bool					bNonEmpty;
 
 	pcPacker = GetPacker();
 
 	pcCel = (CImageCel*)mcSourceCels.StartIteration(&sIter);
-	bNonEmpty = FALSE;
+	bNonEmpty = false;
 	while (pcCel)
 	{
 		if (!pcCel->GetSubImage()->IsImageEmpty())
 		{
 			bResult = pcPacker->AddRectangle(pcCel);
-			bNonEmpty = TRUE;
+			bNonEmpty = true;
 		}
 		pcCel = (CImageCel*)mcSourceCels.Iterate(&sIter);
 	}
@@ -437,7 +437,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	CArrayInt				aiDestChannels;
 	CArrayInt				aiSourceChannels;
 	CArrayInt				aiIntersectChannels;
-	BOOL					bDestHasOpacity;
+	bool					bDestHasOpacity;
 	CChannel*				pcOpacityChannel;
 	CImageAccessor*			pcDestOpacity;
 	int						iDestTop;
@@ -450,11 +450,11 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 
 	mpcDestImage->Clear();
 
-	bDestHasOpacity = FALSE;
+	bDestHasOpacity = false;
 	pcOpacityChannel = mpcDestImage->GetChannel(IMAGE_OPACITY);
 	if (pcOpacityChannel)
 	{
-		bDestHasOpacity = TRUE;
+		bDestHasOpacity = true;
 		pcDestOpacity = CImageAccessorCreator::Create(&mpcDestImage, pcOpacityChannel->eType, IMAGE_OPACITY, CHANNEL_ZERO);
 	}
 	else

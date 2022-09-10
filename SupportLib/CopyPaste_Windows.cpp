@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 CChars	gszCopyPasteBuffer;
-BOOL	gbCopyPasteInitialised = FALSE;
+bool	gbCopyPasteInitialised = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ void CCopyPaste::Init(void)
 	{
 		//Remember these globals are a hack.
 		gszCopyPasteBuffer.Init();
-		gbCopyPasteInitialised = TRUE;
+		gbCopyPasteInitialised = true;
 	}
 }
 

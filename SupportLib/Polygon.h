@@ -27,23 +27,23 @@ class CTriangle;
 class CPolygon : public CPlane
 {
 public:
-	BOOL			mbConvex;
+	bool			mbConvex;
 	CArrayBlock		mapsPositions;  //Array of SFloat3* (not an array of SFloat3).
 
 	void Init(void);
 	void Init(SFloat3* psNormal);
 	void Kill(void);
 	void Set(void);
-	BOOL AddPosition(SFloat3* psPosition);
-	BOOL AddPositions(SFloat3* psPos1, SFloat3* psPos2, SFloat3* psPos3);
-	BOOL AddTriangle(CTriangle* pcTriangle);
-	BOOL UnionPosition(SFloat3* psPosition);
-	BOOL In(SFloat3* psPosition);
+	bool AddPosition(SFloat3* psPosition);
+	bool AddPositions(SFloat3* psPos1, SFloat3* psPos2, SFloat3* psPos3);
+	bool AddTriangle(CTriangle* pcTriangle);
+	bool UnionPosition(SFloat3* psPosition);
+	bool In(SFloat3* psPosition);
 	void PrivateCalculateConvexity(void);
 	void CalculateConvexity(void);
-	BOOL Contains(SFloat3* psPosition);
+	bool Contains(SFloat3* psPosition);
 	void FindIndicesOfVisibleHalfSpaces(SFloat3* psPosition, CArrayInt* pcVisibleIndices);
-	BOOL HasPositionPtr(SFloat3* psPosition);
+	bool HasPositionPtr(SFloat3* psPosition);
 };
 
 

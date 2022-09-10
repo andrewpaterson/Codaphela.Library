@@ -34,15 +34,15 @@ CONSTRUCTABLE(CImageDivider);
 protected:
 	CImage*			mpcImage;
 
-	BOOL			mbIgnoreEmpty;
+	bool			mbIgnoreEmpty;
 	SImageColour	msTransparentColour;
-	BOOL			mbUseTransparentColour;
-	BOOL			mbCropTransparentBorders;
+	bool			mbUseTransparentColour;
+	bool			mbCropTransparentBorders;
 
 	CArrayUnknown	mcDestImageCels;
 
 public:
-	void 			Init(CImage* pcImage, SImageColour* psTransparentColour = NULL, BOOL bIgnoreEmpty = TRUE, BOOL bCropTransparentBorders = TRUE);
+	void 			Init(CImage* pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void 			Kill(void);
 
 	void 			GenerateFromBorder(CImage* pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.

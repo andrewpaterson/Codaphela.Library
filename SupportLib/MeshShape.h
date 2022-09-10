@@ -43,8 +43,8 @@ public:
 	void 	Init(CMesh* pcMesh);
 	void 	Kill(void);
 
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 };
 
 

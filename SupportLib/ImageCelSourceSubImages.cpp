@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceSubImages::Init(CArraySubImage* pacSubImages, SImageColour* psTransparentColour, BOOL bIgnoreEmpty, BOOL bCropTransparentBorders)
+void CImageCelSourceSubImages::Init(CArraySubImage* pacSubImages, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 	if (pacSubImages)

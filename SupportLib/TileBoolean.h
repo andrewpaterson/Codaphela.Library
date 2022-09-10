@@ -30,9 +30,9 @@ class CTileBoolean : public CTile
 {
 CONSTRUCTABLE(CTileBoolean);
 public:
-	BOOL	mbValue;
+	bool	mbValue;
 
-	void Init(BOOL bValue, CTileType* pcType, char* szName);
+	void Init(bool bValue, CTileType* pcType, char* szName);
 	void Kill(void);
 };
 

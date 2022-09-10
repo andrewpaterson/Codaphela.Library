@@ -132,13 +132,13 @@ void CImageAccessor::Get(int x, int y, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageAccessor::IsValid(int x, int y)
+bool CImageAccessor::IsValid(int x, int y)
 {
 	if (x >= 0 && y >= 0 && x < miWidth && y < mpcImage->miHeight)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -146,12 +146,12 @@ BOOL CImageAccessor::IsValid(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
+bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 {
 	int						i;
 	float					fValue;
 	SImageColour			sTemp;
-	BOOL					bValid;
+	bool					bValid;
 	void*					pvData;
 	CChannelAccessor*		pcAccessor;
 	int						iSize;
@@ -161,15 +161,15 @@ BOOL CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 	{
 		//The colour representation is too big to fit.
 		psDest->Zero();
-		return FALSE;
+		return false;
 	}
 
-	bValid = TRUE;
+	bValid = true;
 	pvData = psDest;
 
 	if (mpcAccessor->GetByteSize() == -1)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pacAccessors = mpcAccessor->GetAccessors();
@@ -192,7 +192,7 @@ BOOL CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 		{
 			//There are more channels in the accessor than are provided by the colour.
 			//The destination will not be usable.
-			bValid = FALSE;
+			bValid = false;
 		}
 		pvData = (void*)(size_t)(((int)(size_t)pvData) + iSize);
 	}
@@ -204,7 +204,7 @@ BOOL CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageAccessor::IsEmpty(void)
+bool CImageAccessor::IsEmpty(void)
 {
 	return mpcAccessor->GetAccessors()->NumElements()== 0;
 }

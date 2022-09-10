@@ -65,13 +65,13 @@ void CLineSegment::Set(float x1, float y1, float z1, float x2, float y2, float z
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLineSegment::Save(CFileWriter* pcFile)
+bool CLineSegment::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(msStart.Save(pcFile));
 	ReturnOnFalse(msDirection.Save(pcFile));
 	ReturnOnFalse(pcFile->WriteFloat(mfLength));
 	ReturnOnFalse(msEnd.Save(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -79,13 +79,13 @@ BOOL CLineSegment::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLineSegment::Load(CFileReader* pcFile)
+bool CLineSegment::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(msStart.Load(pcFile));
 	ReturnOnFalse(msDirection.Load(pcFile));
 	ReturnOnFalse(pcFile->ReadFloat(&mfLength));
 	ReturnOnFalse(msEnd.Load(pcFile));
-	return TRUE;
+	return true;
 
 }
 

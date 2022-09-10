@@ -84,7 +84,7 @@ void CPackedLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackedLine::Pack(void)
+bool CPackedLine::Pack(void)
 {
 	CPackRectangleAttempt*	pcUnusedRect;
 	CRectangle				cBounds;
@@ -100,23 +100,23 @@ BOOL CPackedLine::Pack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackedLine::RecursePack(CRectangle* pcBounds)
+bool CPackedLine::RecursePack(CRectangle* pcBounds)
 {
 	CRectangle				cBoundsRight;
 	CRectangle				cBoundsBelow;
-	BOOL					bAnyFit;
+	bool					bAnyFit;
 	CPackRectangleAttempt	cFits;
 	CPackRectangleAttempt*	pcUsedRect;
 	
 	if (!pcBounds->IsValid())
 	{
-		return FALSE;
+		return false;
 	}
 
 	bAnyFit = mpcPackAttempt->GetLargestRectangleFittingAndRemoveIt(pcBounds, &cFits);
 	if (!bAnyFit)
 	{
-		return FALSE;
+		return false;
 	}
 	
 	pcUsedRect = macRectangles.Add(&cFits);
@@ -134,7 +134,7 @@ BOOL CPackedLine::RecursePack(CRectangle* pcBounds)
 
 	RecursePack(&cBoundsBelow);
 	RecursePack(&cBoundsRight);
-	return TRUE;
+	return true;
 }
 
 

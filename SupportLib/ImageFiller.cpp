@@ -64,7 +64,7 @@ void CImageFiller::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMask)
+bool CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMask)
 {
 	SImageFill		sImageFill;
 
@@ -74,7 +74,7 @@ BOOL CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMas
 
 	if (!Push(x, y, FILL_NONE))
 	{
-		return FALSE;
+		return false;
 	}
 
 	while (mcStack.NumElements() != 0)
@@ -98,7 +98,7 @@ BOOL CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMas
 			Push(sImageFill.x, sImageFill.y-1, FILL_DOWN);
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -106,7 +106,7 @@ BOOL CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMas
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageFiller::Push(int x, int y, int iRemove)
+bool CImageFiller::Push(int x, int y, int iRemove)
 {
 	SImageColour*	psColour;
 	SImageFill*		psImageFill;
@@ -114,30 +114,30 @@ BOOL CImageFiller::Push(int x, int y, int iRemove)
 
 	if ((x < 0) || (x >= mpcSourceAccessor->GetWidth()) || (y < 0) || (y >= mpcSourceAccessor->GetImage()->GetHeight()))
 	{
-		return FALSE;
+		return false;
 	}
 
 	iTested = *((short*)mpcDestMaskAccessor->Get(x, y));
 
 	if (iTested != 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	psColour = (SImageColour*)mpcSourceAccessor->Get(x, y);
 	if (psColour->Equals(mpvBorderColour, mpcSourceAccessor->GetBufferSize()))
 	{
-		return FALSE;
+		return false;
 	}
 
 	psImageFill = mcStack.Push();
 	psImageFill->iFill = FILL_ALL;
-	SetFlag(&psImageFill->iFill, iRemove, FALSE);
+	SetFlag(&psImageFill->iFill, iRemove, false);
 	psImageFill->x = x;
 	psImageFill->y = y;
 	mpcDestMaskAccessor->Set(x, y, &miMask);
 	mpcDestSubImage->GrowToContain(x, y);
 	mpcDestSubImage->miFilled++;
-	return TRUE;
+	return true;
 }
 

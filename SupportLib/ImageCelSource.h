@@ -33,14 +33,14 @@ class CImageCelSource : public CUnknown
 {
 CONSTRUCTABLE(CImageCelSource);
 protected:
-	BOOL			mbIgnoreEmpty;
+	bool			mbIgnoreEmpty;
 	SImageColour*	mpsTransparentColour;
-	BOOL			mbCropTransparentBorders;
+	bool			mbCropTransparentBorders;
 
 public:
-	void			Init(SImageColour* psTransparentColour, BOOL bIgnoreEmpty, BOOL bCropTransparentBorders);
+	void			Init(SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders);
 	virtual void	Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask) =0;
-	virtual BOOL	NeedsMask(void);
+	virtual bool	NeedsMask(void);
 	void			Kill(void);
 };
 

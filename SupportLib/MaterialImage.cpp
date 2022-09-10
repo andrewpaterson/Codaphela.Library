@@ -48,7 +48,7 @@ void CMaterialImage::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterialImage::Save(CFileWriter* pcFile)
+bool CMaterialImage::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(iImageID));
 	ReturnOnFalse(pcFile->WriteInt(eAddressU));
@@ -57,7 +57,7 @@ BOOL CMaterialImage::Save(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteInt(eMinFilter));
 	ReturnOnFalse(pcFile->WriteInt(eMipFilter));
 	ReturnOnFalse(pcFile->WriteInt(eUVSource));
-	return TRUE;
+	return true;
 }
 
 
@@ -65,7 +65,7 @@ BOOL CMaterialImage::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterialImage::Load(CFileReader* pcFile)
+bool CMaterialImage::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&iImageID));
 	ReturnOnFalse(pcFile->ReadInt((int*)&eAddressU));
@@ -74,6 +74,6 @@ BOOL CMaterialImage::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadInt((int*)&eMinFilter));
 	ReturnOnFalse(pcFile->ReadInt((int*)&eMipFilter));
 	ReturnOnFalse(pcFile->ReadInt((int*)&eUVSource));
-	return TRUE;
+	return true;
 }
 

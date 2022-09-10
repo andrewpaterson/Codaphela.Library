@@ -37,8 +37,8 @@ public:
 	void 	Init(void);
 	void 	Kill(void);
 	void 	ReInit(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 
 	void	AddPosition(float x, float y, float z);
 	void	AddPosition(SFloat3* psPosition);

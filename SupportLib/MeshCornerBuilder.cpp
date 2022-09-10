@@ -32,8 +32,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void CMeshCornerBuilder::Init(int iCorner)
 {
 	iVertex = iCorner;
-	bUVCoord = FALSE;
-	bNormal = FALSE;
+	bUVCoord = false;
+	bNormal = false;
 	iNormal = 0;
 	iUVCoord = 0;
 }

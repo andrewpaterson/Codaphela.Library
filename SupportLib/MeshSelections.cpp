@@ -67,12 +67,12 @@ void CMeshSelections::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSelections::Load(CFileReader* pcFile)
+bool CMeshSelections::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcVerts.Read(pcFile));
 	ReturnOnFalse(mcEdges.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -80,12 +80,12 @@ BOOL CMeshSelections::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSelections::Save(CFileWriter* pcFile)
+bool CMeshSelections::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcVerts.Write(pcFile));
 	ReturnOnFalse(mcEdges.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -93,11 +93,11 @@ BOOL CMeshSelections::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshSelections::GetNumberOfSelectedFaces(BOOL bSelected)
+int CMeshSelections::GetNumberOfSelectedFaces(bool bSelected)
 {
 	int		i;
 	int		iCount;
-	BOOL	bCurrent;
+	bool	bCurrent;
 
 	iCount = 0;
 	for (i = 0; i < mcFaces.NumElements(); i++)
@@ -116,7 +116,7 @@ int CMeshSelections::GetNumberOfSelectedFaces(BOOL bSelected)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelections::SetFaceSelectionTo(BOOL bSelected)
+void CMeshSelections::SetFaceSelectionTo(bool bSelected)
 {
 	int		i;
 
@@ -133,7 +133,7 @@ void CMeshSelections::SetFaceSelectionTo(BOOL bSelected)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::ClearFaceSelection(void)
 {
-	SetFaceSelectionTo(FALSE);
+	SetFaceSelectionTo(false);
 }
 
 
@@ -141,11 +141,11 @@ void CMeshSelections::ClearFaceSelection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshSelections::GetNumberOfSelectedCorners(BOOL bSelected)
+int CMeshSelections::GetNumberOfSelectedCorners(bool bSelected)
 {
 	int		i;
 	int		iCount;
-	BOOL	bCurrent;
+	bool	bCurrent;
 
 	iCount = 0;
 	for (i = 0; i < mcVerts.NumElements(); i++)
@@ -164,7 +164,7 @@ int CMeshSelections::GetNumberOfSelectedCorners(BOOL bSelected)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelections::SetCornerSelectionTo(BOOL bSelected)
+void CMeshSelections::SetCornerSelectionTo(bool bSelected)
 {
 	int			i;
 
@@ -181,7 +181,7 @@ void CMeshSelections::SetCornerSelectionTo(BOOL bSelected)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::ClearCornerSelection(void)
 {
-	SetCornerSelectionTo(FALSE);
+	SetCornerSelectionTo(false);
 }
 
 
@@ -189,11 +189,11 @@ void CMeshSelections::ClearCornerSelection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshSelections::GetNumberOfSelectedEdges(BOOL bSelected)
+int CMeshSelections::GetNumberOfSelectedEdges(bool bSelected)
 {
 	int		i;
 	int		iCount;
-	BOOL	bCurrent;
+	bool	bCurrent;
 
 	iCount = 0;
 	for (i = 0; i < mcEdges.NumElements(); i++)
@@ -212,7 +212,7 @@ int CMeshSelections::GetNumberOfSelectedEdges(BOOL bSelected)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelections::SetEdgeSelectionTo(BOOL bSelected)
+void CMeshSelections::SetEdgeSelectionTo(bool bSelected)
 {
 	int			i;
 
@@ -229,7 +229,7 @@ void CMeshSelections::SetEdgeSelectionTo(BOOL bSelected)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::ClearEdgeSelection(void)
 {
-	SetEdgeSelectionTo(FALSE);
+	SetEdgeSelectionTo(false);
 }
 
 
@@ -239,7 +239,7 @@ void CMeshSelections::ClearEdgeSelection(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::AddCorner(void)
 {
-	mcVerts.Add(FALSE);
+	mcVerts.Add(false);
 }
 
 
@@ -252,11 +252,11 @@ void CMeshSelections::AddFace(int iNewEdges)
 {
 	int		i;
 
-	mcFaces.Add(FALSE);
+	mcFaces.Add(false);
 
 	for (i = 0; i < iNewEdges; i++)
 	{
-		mcEdges.Add(FALSE);
+		mcEdges.Add(false);
 	}
 }
 

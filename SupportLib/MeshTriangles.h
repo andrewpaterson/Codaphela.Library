@@ -40,8 +40,8 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 
 	void	GenerateTriangles(CMeshConnectivity* pcConn, CMeshNormals* pcNormals);
 };

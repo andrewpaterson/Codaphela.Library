@@ -37,8 +37,8 @@ public:
 	void Set(void);
 	void Copy(CLineSegment* source);
 
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
+	bool Save(CFileWriter* pcFile);
+	bool Load(CFileReader* pcFile);
 };
 
 

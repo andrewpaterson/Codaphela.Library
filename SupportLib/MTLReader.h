@@ -23,7 +23,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MTL_READER_H__
 #define __MTL_READER_H__
-#include "BaseLib/Bool.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "MeshEditorWrapper.h"
@@ -63,7 +62,7 @@ public:
 	void Init(CMaterial* pcMaterial, char *szFileName);
 	void Kill(void);
 
-	BOOL Read(void);
+	bool Read(void);
 };
 
 

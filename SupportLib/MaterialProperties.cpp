@@ -36,7 +36,7 @@ void CMaterialProperties::Init(void)
 	sSpecularColour.Zero();
 	fShininessPower = 0.0f;
 	fShininessBase = 0.0f;
-	bLit = FALSE;
+	bLit = false;
 	meOpacity = MO_Opaque;
 }
 
@@ -54,7 +54,7 @@ void CMaterialProperties::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterialProperties::Save(CFileWriter* pcFile)
+bool CMaterialProperties::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(sDiffuseColour.Save(pcFile));
 	ReturnOnFalse(sAmbientColour.Save(pcFile));
@@ -64,7 +64,7 @@ BOOL CMaterialProperties::Save(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteFloat(fShininessBase));
 	ReturnOnFalse(pcFile->WriteBool(bLit));
 	ReturnOnFalse(pcFile->WriteInt(meOpacity));
-	return TRUE;
+	return true;
 }
 
 
@@ -72,7 +72,7 @@ BOOL CMaterialProperties::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterialProperties::Load(CFileReader* pcFile)
+bool CMaterialProperties::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(sDiffuseColour.Load(pcFile));
 	ReturnOnFalse(sAmbientColour.Load(pcFile));
@@ -82,5 +82,5 @@ BOOL CMaterialProperties::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadFloat(&fShininessBase));
 	ReturnOnFalse(pcFile->ReadBool(&bLit));
 	ReturnOnFalse(pcFile->ReadInt((int*)&meOpacity));
-	return TRUE;
+	return true;
 }

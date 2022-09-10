@@ -38,7 +38,7 @@ void CHalfSpace::Init(SFloat3* psNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHalfSpace::Contains(SFloat3* psPosition)
+bool CHalfSpace::Contains(SFloat3* psPosition)
 {
 	return FloatLessThan(Float3Dot(mpsNormal, psPosition), d);
 }
@@ -48,7 +48,7 @@ BOOL CHalfSpace::Contains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHalfSpace::NotContains(SFloat3* psPosition)
+bool CHalfSpace::NotContains(SFloat3* psPosition)
 {
 	return FloatGreaterThan(Float3Dot(mpsNormal, psPosition), d);
 }
@@ -58,7 +58,7 @@ BOOL CHalfSpace::NotContains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHalfSpace::On(SFloat3* psPosition)
+bool CHalfSpace::On(SFloat3* psPosition)
 {
 	return FloatEqual(Float3Dot(mpsNormal, psPosition), d);
 }
@@ -213,7 +213,7 @@ int CHalfSpace::FindFurthestPoint(SFloat3* psPoints, int iStride, int* aiIndices
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHalfSpace::Parallel(CHalfSpace* psOther)
+bool CHalfSpace::Parallel(CHalfSpace* psOther)
 {
 	return FloatGreaterThanOrEqual(Float3Dot(psOther->mpsNormal, mpsNormal), 1.0f);
 }

@@ -39,7 +39,7 @@ void CImageCelMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, CFillRectan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask, BOOL bFilled, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
 {
 	CImageCel::Init(pcSourceImage, iLeft, iTop, iRight, iBottom);
 	mpcMaskImage = pcMaskImage;
@@ -108,14 +108,14 @@ void CImageCelMask::GetAllChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelMask::MustFixDrawOpacity(void)
+bool CImageCelMask::MustFixDrawOpacity(void)
 {
 	if (mbFilled && mpcSourceImage->HasChannel(IMAGE_OPACITY))
 	{
 		//If we already have an opacity channel and then border was full rectangular then it has been used correctly
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 

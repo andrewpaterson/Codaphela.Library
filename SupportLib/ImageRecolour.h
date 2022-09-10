@@ -33,7 +33,7 @@ class CImageRecolour : public CImageModifier
 CONSTRUCTABLE(CImageRecolour);
 public:
 	CRectangle		mcRectangle;
-	BOOL			mbWholeImage;
+	bool			mbWholeImage;
 	CArrayUnknown	macOldColour;
 	CArrayUnknown	macNewColour;
 

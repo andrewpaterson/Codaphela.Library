@@ -39,9 +39,9 @@ public:
 
 	virtual void	Pack(void) =0;
 
-	virtual BOOL	AddRectangle(CRectangle* pcRect, void* pvUserData) =0;
-	virtual BOOL	AddRectangle(CSubImage* pcSubImage) =0;
-	virtual BOOL	AddRectangle(CImageCel* pcImageCel) =0;
+	virtual bool	AddRectangle(CRectangle* pcRect, void* pvUserData) =0;
+	virtual bool	AddRectangle(CSubImage* pcSubImage) =0;
+	virtual bool	AddRectangle(CImageCel* pcImageCel) =0;
 
 	virtual void	GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles) =0;
 	virtual SInt2	GetPackedImageSize(void) =0;

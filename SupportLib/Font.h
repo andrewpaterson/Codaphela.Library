@@ -42,7 +42,7 @@ protected:
 	Ptr<CImage>		pcImage;
 	int				miAverageWidth;
 	int				miHeight;
-	BOOL			mbFixedWidh;
+	bool			mbFixedWidh;
 	int				miSpace;
 	CArrayGlyph		macGlyphs;
 	int				miAscent;
@@ -53,14 +53,14 @@ public:
 	void		Class(void);
 	void 		Free(void);
 
-	BOOL		Save(CObjectWriter* pcFile);
-	BOOL		Load(CObjectReader* pcFile);
+	bool		Save(CObjectWriter* pcFile);
+	bool		Load(CObjectReader* pcFile);
 
 	void 		Done(void);
-	BOOL		Is(char* szName);
+	bool		Is(char* szName);
 	int 		Width(char* szText);
 	int			Height(void);
-	BOOL		IsWhiteSpace(char c);
+	bool		IsWhiteSpace(char c);
 	CGlyph*		GetGlyph(char c);
 	CGlyph*		AddGlyph(CImageCel* pcCel, int iStep);
 	Ptr<CImage>	GetImage(void);

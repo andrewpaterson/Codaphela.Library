@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define PICTURELOADER_MAX_TEXTURE_DIMENSION				(8192)
 
 
-BOOL ReadImage(CImage* psImage, char* szFilename, EImageType eType = IT_Unknown);
+bool ReadImage(CImage* psImage, char* szFilename, EImageType eType = IT_Unknown);
 
 
 #endif // !__IMAGE_READER_H__

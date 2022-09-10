@@ -31,8 +31,8 @@ class CMeshCornerBuilder
 public:
 	int		iVertex;
 
-	BOOL	bUVCoord;
-	BOOL	bNormal;
+	bool	bUVCoord;
+	bool	bNormal;
 
 	int		iUVCoord;
 	int		iNormal;

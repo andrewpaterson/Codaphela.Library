@@ -37,10 +37,10 @@ using namespace Gdiplus;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL GetEncoderClsid(EImageType eImageType, CLSID* psID)
+bool GetEncoderClsid(EImageType eImageType, CLSID* psID)
 {
 	OLECHAR				szID[MAX_PATH];
-	BOOL				bFound;
+	bool				bFound;
 	UINT 				num;    // number of image encoders
 	UINT 				size;   // size, in bytes, of the image encoder array
 	ImageCodecInfo*		pImageCodecInfo;
@@ -83,13 +83,13 @@ BOOL GetEncoderClsid(EImageType eImageType, CLSID* psID)
 
 	// Display the graphics file format (MimeType)
 	// for each ImageCodecInfo object.
-	bFound = FALSE;
+	bFound = false;
 	for(UINT j = 0; j < num; ++j)
 	{ 
 		if (_wcsicmp(szID, pImageCodecInfo[j].MimeType) == 0)
 		{
 			memcpy(psID, &pImageCodecInfo[j].Clsid, sizeof(CLSID));
-			bFound = TRUE;
+			bFound = true;
 			break;
 		}
 	}
@@ -170,7 +170,7 @@ Shutdown:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eType)
+bool WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eType)
 {
 	if (eType == IT_Unknown)
 	{
@@ -189,12 +189,12 @@ BOOL WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eType)
 	case IT_TGA:
 	case IT_PNG:
 		WriteGDIPlusImage(pcImage, szFileName, eType);
-		return TRUE;
+		return true;
 	case IT_RAD:
 		return (SaveRAD(pcImage, szFileName));
 	case IT_RAW:
 		return (SaveRAW(pcImage, szFileName));
 	}
-	return FALSE;
+	return false;
 }
 

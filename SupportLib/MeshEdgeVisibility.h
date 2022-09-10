@@ -40,8 +40,8 @@ public:
 	void 	Init(void);
 	void	ReInit(void);
 	void 	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 
 	void	AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
 	char	GetEdge(int iEdge);

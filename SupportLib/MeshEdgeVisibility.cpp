@@ -61,10 +61,10 @@ void CMeshEdgeVisibility::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshEdgeVisibility::Load(CFileReader* pcFile)
+bool CMeshEdgeVisibility::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcEdges.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -72,7 +72,7 @@ BOOL CMeshEdgeVisibility::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshEdgeVisibility::Save(CFileWriter* pcFile)
+bool CMeshEdgeVisibility::Save(CFileWriter* pcFile)
 {
 	return mcEdges.Write(pcFile);
 }

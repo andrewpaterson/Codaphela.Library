@@ -34,7 +34,7 @@ public:
 	void Init(CImage* pcImage);
 	void Kill(void);
 
-	BOOL LoadImage(void);
+	bool LoadImage(void);
 };
 
 

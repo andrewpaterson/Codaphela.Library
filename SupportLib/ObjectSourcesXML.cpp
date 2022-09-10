@@ -32,11 +32,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourcesXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*		pcObjectClass;
 	STagIterator	sIter;
-	BOOL			bResult;
+	bool			bResult;
 	
 	mpcWorld = pcWorld;
 	pcObjectClass = pcTag->GetTag("ObjectClass", &sIter);
@@ -45,12 +45,12 @@ BOOL CObjectSourcesXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag)
 		bResult = ImportObjectClass(pcWorld, pcObjectClass);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 
 		pcObjectClass = pcTag->GetNextTag(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -58,19 +58,19 @@ BOOL CObjectSourcesXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*	pcClass;
 	CMarkupTag*	pcFields;
 	CMarkupTag*	pcObjects;
 	CChars		szClass;
 	CTileType*	pcType;
-	BOOL		bResult;
+	bool		bResult;
 
 	pcClass = CMarkupTextParser::GetTag(pcTag, "Class");
 	if (!pcClass)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcFields = CMarkupTextParser::GetTag(pcTag, "Fields");
@@ -78,13 +78,13 @@ BOOL CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag
 	pcObjects = CMarkupTextParser::GetTag(pcTag, "Objects");
 	if (!pcClass)
 	{
-		return FALSE;
+		return false;
 	}
 
 	szClass.Init();
 	pcClass->GetText(&szClass);
 
-	bResult = FALSE;
+	bResult = false;
 	if (szClass.EqualsIgnoreCase("Image"))
 	{
 		pcType = pcWorld->GetType("Image");
@@ -102,9 +102,9 @@ BOOL CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag
 
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -112,11 +112,11 @@ BOOL CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcObject;
-	BOOL			bResult;
+	bool			bResult;
 
 	pcObject = pcTag->GetTag("Object", &sIter);
 	while (pcObject)
@@ -124,11 +124,11 @@ BOOL CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
 		bResult = ImportImage(pcType, pcObject);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 		pcObject = pcTag->GetNextTag(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -136,7 +136,7 @@ BOOL CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 {
 	CMarkupTag*					pcName;
 	CMarkupTag*					pcCelIndex;
@@ -154,22 +154,22 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 	pcName = CMarkupTextParser::GetTag(pcTag, "Name");
 	if (!pcName)
 	{
-		return FALSE;
+		return false;
 	}
 	pcCelIndex = CMarkupTextParser::GetTag(pcTag, "CelIndex");
 	if (!pcCelIndex)
 	{
-		return FALSE;
+		return false;
 	}
 	pcBrushID = CMarkupTextParser::GetTag(pcTag, "BrushID");
 	if (!pcBrushID)
 	{
-		return FALSE;
+		return false;
 	}
 	pcSourceName = CMarkupTextParser::GetTag(pcTag, "SourceName");
 	if (!pcSourceName)
 	{
-		return FALSE;
+		return false;
 	}
 	pcProperties = CMarkupTextParser::GetTag(pcTag, "Properties");
 
@@ -178,12 +178,12 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 	if (!CMarkupTextParser::ReadInteger(pcCelIndex, &iCelIndex))
 	{
 		szName.Kill();
-		return FALSE;
+		return false;
 	}
 	if (!CMarkupTextParser::ReadInteger(pcBrushID, &iBrushID))
 	{
 		szName.Kill();
-		return FALSE;
+		return false;
 	}
 	szSourceName.Init();
 	pcSourceName->GetText(&szSourceName);
@@ -192,7 +192,7 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 		CMarkupTextParser::LogErrorTagWasEmpty(pcSourceName);
 		szName.Kill();
 		szSourceName.Kill();
-		return FALSE;
+		return false;
 	}
 
 
@@ -202,7 +202,7 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 		szName.Kill();
 		szSourceName.Kill();
 		gcLogger.Error("Couldn't find Cel Group.");
-		return FALSE;
+		return false;
 	}
 
 	pcCel = pcGroup->GetCel(iCelIndex);
@@ -211,14 +211,14 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 		szName.Kill();
 		szSourceName.Kill();
 		gcLogger.Error("Couldn't find Cel.");
-		return FALSE;
+		return false;
 	}
 
 	pcTile = UMalloc(CTileImageCel);
 	pcTile->Init(pcCel, pcType, szName.Text());
 	pcType->AddTile(pcTile);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -226,7 +226,7 @@ BOOL CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourcesXML::ImportBooleans(CTileType* pcType, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportBooleans(CTileType* pcType, CMarkupTag* pcTag)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcObject;
@@ -236,6 +236,6 @@ BOOL CObjectSourcesXML::ImportBooleans(CTileType* pcType, CMarkupTag* pcTag)
 	{
 		pcObject = pcTag->GetNextTag(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 

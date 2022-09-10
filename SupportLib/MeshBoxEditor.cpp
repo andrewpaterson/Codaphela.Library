@@ -161,7 +161,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 	//Top
 	iFirstTop = 0;
 	cPlaneEditor.Init(&msXDirection, &msYDirection, &msStart, miXSegments, miYSegments);
-	cPlaneEditor.SetFlipFaces(TRUE);
+	cPlaneEditor.SetFlipFaces(true);
 	cPlaneEditor.SetFaceName(iNameTop);
 	cPlaneEditor.GeneratePlane(pcMeshEditor);
 	cPlaneEditor.Kill();
@@ -194,7 +194,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		cPlaneEditor.Init(&msXDirection, &msZDirection, &sRight, miXSegments, miZSegments);
 		cPlaneEditor.SetFaceName(iNameRight);
 		cPlaneEditor.SetYOffsets(1, 1);
-		cPlaneEditor.SetFlipFaces(TRUE);
+		cPlaneEditor.SetFlipFaces(true);
 		cPlaneEditor.GeneratePlane(pcMeshEditor);
 		cPlaneEditor.Kill();
 	}
@@ -204,7 +204,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		iFirstFront = pcMeshEditor->NumCorners();
 		cPlaneEditor.Init(&msYDirection, &msZDirection, &msStart, miYSegments, miZSegments);
 		cPlaneEditor.SetFaceName(iNameFront);
-		cPlaneEditor.SetFlipFaces(TRUE);
+		cPlaneEditor.SetFlipFaces(true);
 		cPlaneEditor.SetYOffsets(1, 1);
 		cPlaneEditor.SetXOffsets(1, 1);
 		cPlaneEditor.GeneratePlane(pcMeshEditor);
@@ -229,8 +229,8 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		iIndex7 = iFirstLeft + ((miXSegments+1) * (miZSegments-2));
 		iIndex10 = iFirstRight + ((miXSegments+1) * (miZSegments-2));
 
-		AddXStrip(pcMeshEditor, iFirstTop, iFirstLeft, iFirstBottom, iIndex7, FALSE, iNameLeft);
-		AddXStrip(pcMeshEditor, iIndex1, iFirstRight, iIndex2, iIndex10, TRUE, iNameRight);
+		AddXStrip(pcMeshEditor, iFirstTop, iFirstLeft, iFirstBottom, iIndex7, false, iNameLeft);
+		AddXStrip(pcMeshEditor, iIndex1, iFirstRight, iIndex2, iIndex10, true, iNameRight);
 	}
 	iIndex3 = iFirstTop + miXSegments;
 	iIndex4 = iFirstBottom + miXSegments;
@@ -241,32 +241,32 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		iIndex8 = iFirstFront + ((miYSegments-1) * (miZSegments-2));
 		iIndex11 = iFirstBack + ((miYSegments-1) * (miZSegments-2));
 
-		AddYStrip(pcMeshEditor, iFirstTop, iFirstFront, iFirstBottom, iIndex8, FALSE, iNameFront);
-		AddYStrip(pcMeshEditor, iIndex3, iFirstBack, iIndex4, iIndex11, TRUE, iNameBack);
+		AddYStrip(pcMeshEditor, iFirstTop, iFirstFront, iFirstBottom, iIndex8, false, iNameFront);
+		AddYStrip(pcMeshEditor, iIndex3, iFirstBack, iIndex4, iIndex11, true, iNameBack);
 
 		iIndex9 = iFirstFront + miYSegments-2;
 		iIndex12 = iFirstBack + miYSegments-2;
 
-		AddZStrip(pcMeshEditor, iFirstLeft, iFirstFront, iFirstRight, iIndex9, FALSE, iNameFront);
-		AddZStrip(pcMeshEditor, iIndex5, iFirstBack, iIndex6, iIndex12, TRUE, iNameBack);
+		AddZStrip(pcMeshEditor, iFirstLeft, iFirstFront, iFirstRight, iIndex9, false, iNameFront);
+		AddZStrip(pcMeshEditor, iIndex5, iFirstBack, iIndex6, iIndex12, true, iNameBack);
 
 		pcMeshEditor->AddQuad(iFirstTop, iFirstLeft, iFirstFront, iFirstTop + miXSegments+1, iNameFront);
 		pcMeshEditor->AddQuad(iFirstRight, iIndex1, iFirstTop + (miXSegments+1) * (miYSegments-1), iFirstFront + miYSegments-2, iNameFront);
 		pcMeshEditor->AddQuad(iIndex7, iFirstBottom, iFirstBottom + miXSegments+1, iIndex8, iNameFront);
 		pcMeshEditor->AddQuad(iIndex2, iIndex10, iFirstFront + ((miYSegments-1) * (miZSegments-1))-1, iFirstBottom + ((miXSegments+1) * (miYSegments-1)), iNameFront);
 
-		pcMeshEditor->AddQuad(iFirstTop + miXSegments, iFirstLeft + miXSegments, iFirstBack, iFirstTop + miXSegments+1 + miXSegments, iNameBack, TRUE);
-		pcMeshEditor->AddQuad(iFirstRight + miXSegments, iIndex1 + miXSegments, iFirstTop + (miXSegments+1) * (miYSegments-1) + miXSegments, iFirstBack + miYSegments-2, iNameBack, TRUE);
-		pcMeshEditor->AddQuad(iIndex7 + miXSegments, iFirstBottom + miXSegments, iFirstBottom + miXSegments+1 + miXSegments, iIndex11, iNameBack, TRUE);
-		pcMeshEditor->AddQuad(iIndex2 + miXSegments, iIndex10 + miXSegments, iFirstBack + ((miYSegments-1) * (miZSegments-1))-1, iFirstBottom + ((miXSegments+1) * (miYSegments-1)) + miXSegments, iNameBack, TRUE);
+		pcMeshEditor->AddQuad(iFirstTop + miXSegments, iFirstLeft + miXSegments, iFirstBack, iFirstTop + miXSegments+1 + miXSegments, iNameBack, true);
+		pcMeshEditor->AddQuad(iFirstRight + miXSegments, iIndex1 + miXSegments, iFirstTop + (miXSegments+1) * (miYSegments-1) + miXSegments, iFirstBack + miYSegments-2, iNameBack, true);
+		pcMeshEditor->AddQuad(iIndex7 + miXSegments, iFirstBottom + miXSegments, iFirstBottom + miXSegments+1 + miXSegments, iIndex11, iNameBack, true);
+		pcMeshEditor->AddQuad(iIndex2 + miXSegments, iIndex10 + miXSegments, iFirstBack + ((miYSegments-1) * (miZSegments-1))-1, iFirstBottom + ((miXSegments+1) * (miYSegments-1)) + miXSegments, iNameBack, true);
 	}
 	if ((miZSegments > 1) && (miYSegments == 1))
 	{
 		iIndex5 = iFirstLeft + miXSegments;
 		iIndex6 = iFirstRight + miXSegments;
 
-		AddZStrip(pcMeshEditor, iFirstLeft, iFirstRight, FALSE, iNameFront);
-		AddZStrip(pcMeshEditor, iIndex5, iIndex6, TRUE, iNameBack);
+		AddZStrip(pcMeshEditor, iFirstLeft, iFirstRight, false, iNameFront);
+		AddZStrip(pcMeshEditor, iIndex5, iIndex6, true, iNameBack);
 
 		iIndex7 = iFirstLeft + ((miXSegments+1) * (miZSegments-2));
 		iIndex10 = iFirstRight + ((miXSegments+1) * (miZSegments-2));
@@ -274,16 +274,16 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 		pcMeshEditor->AddQuad(iFirstLeft, iFirstRight, iFirstTop + miXSegments+1, iFirstTop, iNameFront);
 		pcMeshEditor->AddQuad(iFirstBottom, iFirstBottom + miXSegments+1, iIndex10, iIndex7, iNameFront);
 
-		pcMeshEditor->AddQuad(iFirstLeft + miXSegments, iFirstRight + miXSegments, iFirstTop + miXSegments+1 + miXSegments, iFirstTop + miXSegments, iNameBack, TRUE);
-		pcMeshEditor->AddQuad(iFirstBottom + miXSegments, iFirstBottom + miXSegments+1 + miXSegments, iIndex10 + miXSegments, iIndex7 + miXSegments, iNameBack, TRUE);
+		pcMeshEditor->AddQuad(iFirstLeft + miXSegments, iFirstRight + miXSegments, iFirstTop + miXSegments+1 + miXSegments, iFirstTop + miXSegments, iNameBack, true);
+		pcMeshEditor->AddQuad(iFirstBottom + miXSegments, iFirstBottom + miXSegments+1 + miXSegments, iIndex10 + miXSegments, iIndex7 + miXSegments, iNameBack, true);
 	}
 	if (miZSegments == 1)
 	{
-		AddYStrip(pcMeshEditor, iFirstTop, iFirstBottom, TRUE, iNameFront);
-		AddYStrip(pcMeshEditor, iIndex3, iIndex4, FALSE, iNameBack);
+		AddYStrip(pcMeshEditor, iFirstTop, iFirstBottom, true, iNameFront);
+		AddYStrip(pcMeshEditor, iIndex3, iIndex4, false, iNameBack);
 
-		AddXStrip(pcMeshEditor, iFirstTop, iFirstBottom, FALSE, iNameLeft);
-		AddXStrip(pcMeshEditor, iIndex1, iIndex2, TRUE, iNameRight);
+		AddXStrip(pcMeshEditor, iFirstTop, iFirstBottom, false, iNameLeft);
+		AddXStrip(pcMeshEditor, iIndex1, iIndex2, true, iNameRight);
 	}
 }
 
@@ -292,7 +292,7 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, BOOL bFlipFaces, int iName)
+void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName)
 {
 	int	i;
 
@@ -312,7 +312,7 @@ void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, BOOL bFlipFaces, int iName)
+void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName)
 {
 	int	i;
 
@@ -327,7 +327,7 @@ void CMeshBoxEditor::AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, BOOL bFlipFaces, int iName)
+void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName)
 {
 	int	i;
 
@@ -347,7 +347,7 @@ void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, BOOL bFlipFaces, int iName)
+void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName)
 {
 	int	i;
 
@@ -362,7 +362,7 @@ void CMeshBoxEditor::AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, BOOL bFlipFaces, int iName)
+void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName)
 {
 	int	i;
 
@@ -382,7 +382,7 @@ void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, BOOL bFlipFaces, int iName)
+void CMeshBoxEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName)
 {
 	int	i;
 

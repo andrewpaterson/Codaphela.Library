@@ -40,10 +40,10 @@ protected:
 public:
 	void 					Init(SMeshFaceType sFaceType);
 	void 					Kill(void);
-	BOOL					Save(CFileWriter* pcFile);
-	BOOL					Load(CFileReader* pcFile);
+	bool					Save(CFileWriter* pcFile);
+	bool					Load(CFileReader* pcFile);
 
-	BOOL					Is(SMeshFaceType* psFaceType);
+	bool					Is(SMeshFaceType* psFaceType);
 	CArrayMeshFaceIndex*	GetFaceIndicies(void);
 	CVertexArray*			GetVertexArray(void);
 	SMeshFaceType*			GetFaceType(void);

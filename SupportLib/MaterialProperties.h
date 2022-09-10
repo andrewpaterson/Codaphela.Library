@@ -45,13 +45,13 @@ public:
 	CImageColourARGB	sSpecularColour;
 	float				fShininessPower;
 	float				fShininessBase;
-	BOOL				bLit;
+	bool				bLit;
 	EMaterialOpacity	meOpacity;
 
 	void Init(void);
 	void Kill(void);
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
+	bool Save(CFileWriter* pcFile);
+	bool Load(CFileReader* pcFile);
 };
 
 

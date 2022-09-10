@@ -49,9 +49,9 @@ public:
 	void						Pack(void);
 	void						Dump(void);
 
-	BOOL						AddRectangle(CRectangle* pcRect, void* pvUserData);
-	BOOL						AddRectangle(CSubImage* pcSubImage);
-	BOOL						AddRectangle(CImageCel* pcImageCel);
+	bool						AddRectangle(CRectangle* pcRect, void* pvUserData);
+	bool						AddRectangle(CSubImage* pcSubImage);
+	bool						AddRectangle(CImageCel* pcImageCel);
 
 	void						AddAttempt(int iMaxWidth);
 	void						AddHorizontalAttempt(void);

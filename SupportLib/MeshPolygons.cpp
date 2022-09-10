@@ -50,10 +50,10 @@ void CMeshPolygon::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPolygon::Save(CFileWriter* pcFile)
+bool CMeshPolygon::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(maiFaces.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -61,7 +61,7 @@ BOOL CMeshPolygon::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPolygon::Load(CFileReader* pcFile)
+bool CMeshPolygon::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(maiFaces.Read(pcFile));
 	return TRITRUE;
@@ -105,7 +105,7 @@ void CMeshPolygons::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPolygons::Save(CFileWriter* pcFile)
+bool CMeshPolygons::Save(CFileWriter* pcFile)
 {
 	int				i;
 	CMeshPolygon*	psPolygon;
@@ -119,7 +119,7 @@ BOOL CMeshPolygons::Save(CFileWriter* pcFile)
 	}
 
 	ReturnOnFalse(maiFacesToPolygons.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -127,7 +127,7 @@ BOOL CMeshPolygons::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPolygons::Load(CFileReader* pcFile)
+bool CMeshPolygons::Load(CFileReader* pcFile)
 {
 	int				i;
 	CMeshPolygon*	psPolygon;
@@ -141,7 +141,7 @@ BOOL CMeshPolygons::Load(CFileReader* pcFile)
 	}
 
 	ReturnOnFalse(maiFacesToPolygons.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -224,7 +224,7 @@ int CMeshPolygons::GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshPolygon* psPolygon, int* aiStack, int* aiTouched)
+bool CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshPolygon* psPolygon, int* aiStack, int* aiTouched)
 {
 	int				iNumFaces;
 	int				iFaceIndex;
@@ -289,11 +289,11 @@ BOOL CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshP
 	{
 		if (aiTouched[i] != 1)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -301,13 +301,13 @@ BOOL CMeshPolygons::PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshPolygons::IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon)
+bool CMeshPolygons::IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon)
 {
 	CMeshPolygon*	psPolygon;
 	int				iNumFaces;
 	int*			aiStack;
 	int*			aiTouched;
-	BOOL			bResult;
+	bool			bResult;
 
 	psPolygon = mcPolygons.SafeGet(iPolygon);
 	if (psPolygon)
@@ -315,7 +315,7 @@ BOOL CMeshPolygons::IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon)
 		iNumFaces = psPolygon->maiFaces.NumElements();
 		if (iNumFaces == 0)
 		{
-			return FALSE;
+			return false;
 		}
 		aiStack = (int*)malloc(iNumFaces*sizeof(int)*2);
 		aiTouched = (int*)RemapSinglePointer(aiStack, iNumFaces*sizeof(int));
@@ -326,7 +326,7 @@ BOOL CMeshPolygons::IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon)
 
 		return bResult;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -432,27 +432,27 @@ void CMeshPolygons::GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31)
+void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, bool bEdge12, bool bEdge23, bool bEdge31)
 {
 	SAdjFaces		sAdjFaces;
 	int				aiPolygon[NUM_FACE_EDGES];
 	CMeshPolygon*	pcPolygon;
-	BOOL			bPartOfExisting;
-	BOOL			bCrush2;
-	BOOL			bCrush3;
+	bool			bPartOfExisting;
+	bool			bCrush2;
+	bool			bCrush3;
 
 	maiFacesToPolygons.Add(-1);
 
 	aiPolygon[0] = -1;
 	aiPolygon[1] = -1;
 	aiPolygon[2] = -1;
-	bPartOfExisting = FALSE;
-	bCrush2 = FALSE;
-	bCrush3 = FALSE;
+	bPartOfExisting = false;
+	bCrush2 = false;
+	bCrush3 = false;
 
 	sAdjFaces = pcConn->GetAdjacentFaces(iFace);
 
-	if (bEdge12 == FALSE)
+	if (bEdge12 == false)
 	{
 		if (sAdjFaces.aiFace[0] != -1)
 		{
@@ -460,11 +460,11 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 			pcPolygon = mcPolygons.Get(aiPolygon[0]);
 			pcPolygon->maiFaces.Add(iFace);
 			maiFacesToPolygons.SetValue(iFace, aiPolygon[0]);
-			bPartOfExisting = TRUE;
+			bPartOfExisting = true;
 		}
 	}
 
-	if (bEdge23 == FALSE)
+	if (bEdge23 == false)
 	{
 		if (sAdjFaces.aiFace[1] != -1)
 		{
@@ -474,19 +474,19 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 			{
 				if (bPartOfExisting)
 				{
-					bCrush2 = TRUE;
+					bCrush2 = true;
 				}
 				else
 				{
 					maiFacesToPolygons.SetValue(iFace, aiPolygon[1]);
 					pcPolygon->maiFaces.Add(iFace);
-					bPartOfExisting = TRUE;
+					bPartOfExisting = true;
 				}
 			}
 		}
 	}
 
-	if (bEdge31 == FALSE)
+	if (bEdge31 == false)
 	{
 		if (sAdjFaces.aiFace[2] != -1)
 		{
@@ -496,13 +496,13 @@ void CMeshPolygons::AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnec
 			{
 				if (bPartOfExisting)
 				{
-					bCrush3 = TRUE;
+					bCrush3 = true;
 				}
 				else
 				{
 					maiFacesToPolygons.SetValue(iFace, aiPolygon[2]);
 					pcPolygon->maiFaces.Add(iFace);
-					bPartOfExisting = TRUE;
+					bPartOfExisting = true;
 				}
 			}
 		}
@@ -679,7 +679,7 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 
 	pcSourcePolygon->Kill();
 
-	mcPolygons.RemoveAt(iSource, FALSE);
+	mcPolygons.RemoveAt(iSource, false);
 
 	if (iLastPolygon != iSource)
 	{

@@ -48,9 +48,9 @@ public:
 	CFakeTracker		mcInstanceTracker;
 
 	void Init(void);
-	BOOL Load(CFileReader* pcChunkFile);
+	bool Load(CFileReader* pcChunkFile);
 	void Kill(void);
-	BOOL Touch(void);
+	bool Touch(void);
 };
 
 

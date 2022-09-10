@@ -33,19 +33,19 @@ protected:
 	CArrayPackedRectangle	macRectangles;
 	int						miOutsideEdgeWidth;
 	int						miInnerEdgeWidth;
-	BOOL					mbLeftToRight;
+	bool					mbLeftToRight;
 	SInt2					miSize;
-	BOOL					mbPow2;
+	bool					mbPow2;
 
 public:
-	void					Init(BOOL bLeftToRight = TRUE, BOOL bPow2 = FALSE, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);
+	void					Init(bool bLeftToRight = true, bool bPow2 = false, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);
 	void					Kill(void);
 
 	void					Pack(void);
 
-	BOOL					AddRectangle(CRectangle* pcRect, void* pvUserData);
-	BOOL					AddRectangle(CSubImage* pcSubImage);
-	BOOL					AddRectangle(CImageCel* pcImageCel);
+	bool					AddRectangle(CRectangle* pcRect, void* pvUserData);
+	bool					AddRectangle(CSubImage* pcSubImage);
+	bool					AddRectangle(CImageCel* pcImageCel);
 
 	void					GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles);
 	SInt2					GetPackedImageSize(void);
@@ -58,9 +58,9 @@ public:
 	CArrayPackedRectangle*	GetRectangles(void);
 	int						GetOutsideEdgeWidth(void);
 	int						GetInnerEdgeWidth(void);
-	BOOL					IsLeftToRight(void);
+	bool					IsLeftToRight(void);
 	SInt2					GetSize(void);
-	BOOL					IsPow2(void);
+	bool					IsPow2(void);
 };
 
 

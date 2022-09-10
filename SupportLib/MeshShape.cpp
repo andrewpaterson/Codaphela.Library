@@ -58,13 +58,13 @@ void CMeshShape::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshShape::Load(CFileReader* pcFile)
+bool CMeshShape::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcTriangles.Load(pcFile));
 	ReturnOnFalse(mcLeaves.Load(pcFile));
 	ReturnOnFalse(mcBoundingBox.Load(pcFile));
 	ReturnOnFalse(mcHull.Load(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -72,12 +72,12 @@ BOOL CMeshShape::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshShape::Save(CFileWriter* pcFile)
+bool CMeshShape::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcTriangles.Save(pcFile));
 	ReturnOnFalse(mcLeaves.Save(pcFile));
 	ReturnOnFalse(mcBoundingBox.Save(pcFile));
 	ReturnOnFalse(mcHull.Save(pcFile));
-	return TRUE;
+	return true;
 }
 

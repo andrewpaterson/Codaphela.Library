@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 extern CChars	gszCopyPasteBuffer;
-extern BOOL		gbCopyPasteInitialised;
+extern bool		gbCopyPasteInitialised;
 
 
 class CCopyPaste

@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
+bool AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 {
 	CEnumeratorVoid	cChannels;
 	CEnumeratorVoid	cTypes;
@@ -44,7 +44,7 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 
 	if (!pcTextParser->GetExactCharacter('{'))
 	{ 
-		return FALSE;
+		return false;
 	}
 
 	cChannels.Init();
@@ -85,7 +85,7 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 		{
 			cTypes.Kill();
 			cChannels.Kill();
-			return FALSE;
+			return false;
 		}
 
 		//Get the channel;
@@ -94,7 +94,7 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 		{
 			cTypes.Kill();
 			cChannels.Kill();
-			return FALSE;
+			return false;
 		}
 
 		pcImport->AddChannel(iChannel, (EPrimitiveType)iType);
@@ -105,7 +105,7 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 
 	cTypes.Kill();
 	cChannels.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -113,7 +113,7 @@ BOOL AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileName)
+bool SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileName)
 {
 	int				iWidth;
 	int				iHeight;
@@ -152,7 +152,7 @@ BOOL SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileN
 
 	ReturnOnErrorAndFalse(pcTextParser->GetExactCharacter('}'));
 	pcTextParser->GetExactCharacter(';');
-	return TRUE;
+	return true;
 }
 
 
@@ -160,7 +160,7 @@ BOOL SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LoadRAD(CImage *pcImage, char *szFileName)
+bool LoadRAD(CImage *pcImage, char *szFileName)
 {
 	CTextParser 	cTextParser;
 	CTextFile		cTextFile;
@@ -177,7 +177,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 	if (!cTextFile.Read(szFileName))
 	{
 		cTextFile.Kill();
-		return FALSE;
+		return false;
 	}
 	cTextFile.PassifyNewlines();
 	cTextParser.Init(cTextFile.Text(), cTextFile.Length());
@@ -187,7 +187,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 	{
 		cTextFile.Kill();
 		cTextParser.Kill();
-		return FALSE;
+		return false;
 	}
 
 	pcImage->Init();
@@ -203,7 +203,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 		szRawFilename.Kill();
 		cTextFile.Kill();
 		cTextParser.Kill();
-		return FALSE;
+		return false;
 	}
 
 	pcImage->EndChange();
@@ -214,7 +214,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 		szRawFilename.Kill();
 		cTextFile.Kill();
 		cTextParser.Kill();
-		return FALSE;
+		return false;
 	}
 
 	//Finished parsing the rad file 
@@ -229,7 +229,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 	{
 		pcImage->Kill();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (sFile.GetFileSize() != iImageSize)
@@ -237,7 +237,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 		pcImage->Kill();
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (pcImage->GetChannels()->GetByteSize() != iImageSize)
@@ -245,7 +245,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 		pcImage->Kill();
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	sFile.Read(pcImage->GetChannels()->GetData(), iImageSize, 1);
@@ -254,7 +254,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 	sFile.Close();
 	sFile.Kill();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -262,7 +262,7 @@ BOOL LoadRAD(CImage *pcImage, char *szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LoadRAW(CImage *pcImage, char *szFileName)
+bool LoadRAW(CImage *pcImage, char *szFileName)
 {
 	CFileBasic	sFile;
 	int			iImageSize;
@@ -272,7 +272,7 @@ BOOL LoadRAW(CImage *pcImage, char *szFileName)
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	iImageSize = pcImage->GetByteSize();
@@ -281,14 +281,14 @@ BOOL LoadRAW(CImage *pcImage, char *szFileName)
 	{
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (pcImage->mcChannels.GetByteSize() != iImageSize)
 	{
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	iResult = sFile.Read(pcImage->mcChannels.GetData(), iImageSize, 1);

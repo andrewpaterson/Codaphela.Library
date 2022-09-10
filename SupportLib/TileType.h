@@ -38,7 +38,7 @@ public:
 
 	void 	Init(char* szTypeName);
 	void 	Kill(void);
-	BOOL 	Is(char* szName);
+	bool 	Is(char* szName);
 	CTile*	GetNull(void);
 	void	AddTile(CTile* pcTile);
 	CTile*	Get(int iIndex);

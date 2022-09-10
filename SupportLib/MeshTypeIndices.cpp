@@ -93,7 +93,7 @@ void CMeshTypeIndices::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
+bool CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 {
 	int						i;
 	int						iNumFaces;
@@ -133,7 +133,7 @@ BOOL CMeshTypeIndices::Generate(CArrayInt* paiFaces, void* pavFaceIndices)
 	}
 
 	maVerts.Finalise();
-	return TRUE;
+	return true;
 }
 
 

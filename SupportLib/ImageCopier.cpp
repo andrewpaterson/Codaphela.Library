@@ -50,7 +50,7 @@ void CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	//Just because it's easier not to have mpcSourceAccessor->mpcImage etc... all over the place.
 	mpcSource = pcSource;
 	mpcDest = pcDest;
-	mbKillAccessors = TRUE;
+	mbKillAccessors = true;
 }
 
 
@@ -64,7 +64,7 @@ void CImageCopier::Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDest
 	mpcDestAccessor = pcDestAccessor;
 	mpcSource = pcSourceAccessor->GetImage();
 	mpcDest = pcDestAccessor->GetImage();
-	mbKillAccessors = FALSE;
+	mbKillAccessors = false;
 }
 
 

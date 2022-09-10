@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SaveRAD(Ptr<CImage> pcImage, char *szPathName)
+bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 {
 	CTextFile	cTextFile;
 	CChars*		szText;
@@ -42,7 +42,7 @@ BOOL SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 	char*		szTypeName;
 	CChars		szRawName;
 	CFileUtil	cFileUtil;
-	BOOL		bResult;
+	bool		bResult;
 
 	cTextFile.Init();
 	szText = &cTextFile.mcText;
@@ -113,10 +113,10 @@ BOOL SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SaveRAW(Ptr<CImage> pcImage, char* szFileName)
+bool SaveRAW(Ptr<CImage> pcImage, char* szFileName)
 {
 	CNaiveFile	cNaiveFile;
-	BOOL		bResult;
+	bool		bResult;
 
 	cNaiveFile.Init();
 	cNaiveFile.Set(pcImage->GetData(), pcImage->GetByteSize());

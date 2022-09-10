@@ -52,12 +52,12 @@ void CMeshVertexArray::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshVertexArray::Load(CFileReader* pcFile)
+bool CMeshVertexArray::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(msFaceType.Load(pcFile));
 	ReturnOnFalse(mcVertexArray.Load(pcFile));
 	ReturnOnFalse(mcFaceIndicies.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -65,12 +65,12 @@ BOOL CMeshVertexArray::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshVertexArray::Save(CFileWriter* pcFile)
+bool CMeshVertexArray::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(msFaceType.Save(pcFile));
 	ReturnOnFalse(mcVertexArray.Save(pcFile));
 	ReturnOnFalse(mcFaceIndicies.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -80,8 +80,8 @@ BOOL CMeshVertexArray::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshVertexArray::Change(void)
 {
-	BOOL				bNormal;
-	BOOL				bColour; 
+	bool				bNormal;
+	bool				bColour; 
 	int					iNumberOfTextures;
 	int					iNumberOfMatrices;
 	int					i;
@@ -123,7 +123,7 @@ void CMeshVertexArray::Change(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshVertexArray::Is(SMeshFaceType* psFaceType) { return msFaceType.Equals(psFaceType); }
+bool CMeshVertexArray::Is(SMeshFaceType* psFaceType) { return msFaceType.Equals(psFaceType); }
 CArrayMeshFaceIndex* CMeshVertexArray::GetFaceIndicies(void) { return &mcFaceIndicies; }
 CVertexArray* CMeshVertexArray::GetVertexArray(void) { return &mcVertexArray; }
 SMeshFaceType* CMeshVertexArray::GetFaceType(void) { return &msFaceType; }

@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceBorders::Init(SImageColour* psTransparentColour, BOOL bIgnoreEmpty, BOOL bCropTransparentBorders)
+void CImageCelSourceBorders::Init(SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageCelSource::Init(psTransparentColour, bIgnoreEmpty, bCropTransparentBorders);
 }
@@ -63,8 +63,8 @@ void CImageCelSourceBorders::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelSourceBorders::NeedsMask(void)
+bool CImageCelSourceBorders::NeedsMask(void)
 {
-	return TRUE;
+	return true;
 }
 

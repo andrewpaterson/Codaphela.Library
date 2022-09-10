@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileBoolean::Init(BOOL bValue, CTileType* pcType, char* szName)
+void CTileBoolean::Init(bool bValue, CTileType* pcType, char* szName)
 {
 	CTile::Init(pcType, szName);
 	mbValue = bValue;

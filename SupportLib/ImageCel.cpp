@@ -165,7 +165,7 @@ void CImageCel::CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2)
+bool CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2)
 {
 	int		y;
 
@@ -173,10 +173,10 @@ BOOL CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1,
 	{
 		if (!pcOpacity->IsTransparent(x, y))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -184,7 +184,7 @@ BOOL CImageCel::IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2)
+bool CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2)
 {
 	int		x;
 
@@ -192,10 +192,10 @@ BOOL CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, in
 	{
 		if (!pcOpacity->IsTransparent(x, y))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -213,14 +213,14 @@ void CImageCel::GetAllChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCel::MustFixDrawOpacity(void)
+bool CImageCel::MustFixDrawOpacity(void)
 {
 	if (mpcSourceImage->HasChannel(IMAGE_OPACITY))
 	{
 		//If we already have an opacity channel then it has been used correctly
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 

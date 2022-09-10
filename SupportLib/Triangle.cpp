@@ -96,21 +96,21 @@ SFloat3* CTriangle::GetPoint(int iPoint)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTriangle::HasPositionPtr(SFloat3* psPosition)
+bool CTriangle::HasPositionPtr(SFloat3* psPosition)
 {
 	if (mpsPosition == psPosition)
 	{
-		return TRUE;
+		return true;
 	}
 	if (mpsPosition1 == psPosition)
 	{
-		return TRUE;
+		return true;
 	}
 	if (mpsPosition2 == psPosition)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -132,18 +132,18 @@ void CTriangle::Center(SFloat3* psCenter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTriangle::IsDegenerate(void)
+bool CTriangle::IsDegenerate(void)
 {
 	if ((mpsPosition == mpsPosition1) || (mpsPosition == mpsPosition2) || (mpsPosition1 == mpsPosition2))
 	{
-		return TRUE;
+		return true;
 	}
 	
 	if ((mpsPosition->CloselyEqual(mpsPosition1) || mpsPosition->CloselyEqual(mpsPosition2) || mpsPosition1->CloselyEqual(mpsPosition2)))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

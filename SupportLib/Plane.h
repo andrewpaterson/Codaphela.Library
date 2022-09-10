@@ -38,7 +38,7 @@ public:
 	void Set(SFloat3* psPoint, SFloat3* psNormal);
 	void Set(void);
 	void Copy(CPlane* psSource);
-	BOOL Coplanar(CPlane* psOther);
+	bool Coplanar(CPlane* psOther);
 };
 
 

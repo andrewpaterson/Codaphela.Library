@@ -209,7 +209,7 @@ float CSphere::IntersectSphereVolume(CSphere* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSphere::Contains(CTriangle* pcTriangle)
+bool CSphere::Contains(CTriangle* pcTriangle)
 {
 	float		fRadiusSq;
 	int			i;
@@ -222,9 +222,9 @@ BOOL CSphere::Contains(CTriangle* pcTriangle)
 		sVec = *mpsPosition - *pcTriangle->GetPoint(i);
 		if (sVec.SquareMagnitude() > fRadiusSq)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 

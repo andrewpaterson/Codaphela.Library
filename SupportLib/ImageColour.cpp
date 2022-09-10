@@ -56,7 +56,7 @@ void SImageColour::Zero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SImageColour::IsZero(int iDataSize)
+bool SImageColour::IsZero(int iDataSize)
 {
 	if (iDataSize == 1)
 	{
@@ -72,7 +72,7 @@ BOOL SImageColour::IsZero(int iDataSize)
 		{
 			return c[2] == 0;
 		}
-		return FALSE;
+		return false;
 	}
 	if (iDataSize > 8)
 	{
@@ -82,10 +82,10 @@ BOOL SImageColour::IsZero(int iDataSize)
 		{
 			if (c[i] != 0)
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
 	if (iDataSize == 4)
 	{
@@ -97,7 +97,7 @@ BOOL SImageColour::IsZero(int iDataSize)
 		{
 			return c[4] == 0;
 		}
-		return FALSE;
+		return false;
 	}
 	if (iDataSize == 6)
 	{
@@ -105,7 +105,7 @@ BOOL SImageColour::IsZero(int iDataSize)
 		{
 			return *(short*)(&c[4]) == 0;
 		}
-		return FALSE;
+		return false;
 	}
 	if (iDataSize == 7)
 	{
@@ -116,7 +116,7 @@ BOOL SImageColour::IsZero(int iDataSize)
 				return c[6] == 0;
 			}
 		}
-		return FALSE;
+		return false;
 
 	}
 	if (iDataSize == 8)
@@ -125,9 +125,9 @@ BOOL SImageColour::IsZero(int iDataSize)
 		{
 			return *(int*)(&c[4]) == 0;
 		}
-		return FALSE;
+		return false;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -135,7 +135,7 @@ BOOL SImageColour::IsZero(int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SImageColour::Equals(SImageColour* psColour, int iDataSize)
+bool SImageColour::Equals(SImageColour* psColour, int iDataSize)
 {
 	return ga_memcmp_fast[iDataSize](this, psColour) == 0;
 }
@@ -146,7 +146,7 @@ BOOL SImageColour::Equals(SImageColour* psColour, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SImageColour::Equals(void* pvColour, int iDataSize)
+bool SImageColour::Equals(void* pvColour, int iDataSize)
 {
 	return ga_memcmp_fast[iDataSize](this, pvColour) == 0;
 }
@@ -221,12 +221,12 @@ void CImageColourRGB::GetChannels(CArrayInt* pai)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourRGB::Save(CFileWriter* pcFile)
+bool CImageColourRGB::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteFloat(r));
 	ReturnOnFalse(pcFile->WriteFloat(g));
 	ReturnOnFalse(pcFile->WriteFloat(b));
-	return TRUE;
+	return true;
 }
 
 
@@ -234,12 +234,12 @@ BOOL CImageColourRGB::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourRGB::Load(CFileReader* pcFile)
+bool CImageColourRGB::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadFloat(&r));
 	ReturnOnFalse(pcFile->ReadFloat(&g));
 	ReturnOnFalse(pcFile->ReadFloat(&b));
-	return TRUE;}
+	return true;}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -308,13 +308,13 @@ void CImageColourARGB::GetChannels(CArrayInt* pai)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourARGB::Save(CFileWriter* pcFile)
+bool CImageColourARGB::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteFloat(a));
 	ReturnOnFalse(pcFile->WriteFloat(r));
 	ReturnOnFalse(pcFile->WriteFloat(g));
 	ReturnOnFalse(pcFile->WriteFloat(b));
-	return TRUE;
+	return true;
 }
 
 
@@ -322,13 +322,13 @@ BOOL CImageColourARGB::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourARGB::Load(CFileReader* pcFile)
+bool CImageColourARGB::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadFloat(&a));
 	ReturnOnFalse(pcFile->ReadFloat(&r));
 	ReturnOnFalse(pcFile->ReadFloat(&g));
 	ReturnOnFalse(pcFile->ReadFloat(&b));
-	return TRUE;
+	return true;
 }
 
 
@@ -370,10 +370,10 @@ void CImageColourOpacity::GetChannels(CArrayInt* pai)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourOpacity::Save(CFileWriter* pcFile)
+bool CImageColourOpacity::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteFloat(a));
-	return TRUE;
+	return true;
 }
 
 
@@ -381,10 +381,10 @@ BOOL CImageColourOpacity::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourOpacity::Load(CFileReader* pcFile)
+bool CImageColourOpacity::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadFloat(&a));
-	return TRUE;
+	return true;
 }
 
 
@@ -426,10 +426,10 @@ void CImageColourSpecular::GetChannels(CArrayInt* pai)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourSpecular::Save(CFileWriter* pcFile)
+bool CImageColourSpecular::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteFloat(s));
-	return TRUE;
+	return true;
 }
 
 
@@ -437,10 +437,10 @@ BOOL CImageColourSpecular::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourSpecular::Load(CFileReader* pcFile)
+bool CImageColourSpecular::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadFloat(&s));
-	return TRUE;
+	return true;
 }
 
 
@@ -494,12 +494,12 @@ void CImageColourNormal::GetChannels(CArrayInt* pai)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourNormal::Save(CFileWriter* pcFile)
+bool CImageColourNormal::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteFloat(x));
 	ReturnOnFalse(pcFile->WriteFloat(y));
 	ReturnOnFalse(pcFile->WriteFloat(z));
-	return TRUE;
+	return true;
 }
 
 
@@ -507,12 +507,12 @@ BOOL CImageColourNormal::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageColourNormal::Load(CFileReader* pcFile)
+bool CImageColourNormal::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadFloat(&x));
 	ReturnOnFalse(pcFile->ReadFloat(&y));
 	ReturnOnFalse(pcFile->ReadFloat(&z));
-	return TRUE;
+	return true;
 }
 
 

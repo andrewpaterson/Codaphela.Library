@@ -52,12 +52,12 @@ public:
 	virtual void		SyncDataCache(void);
 
 	void				Get(int x, int y, void* pvDest);
-	BOOL				IsValid(int x, int y);
+	bool				IsValid(int x, int y);
 	void*				SafeGet(int x, int y);
 	void				SafeSet(int x, int y, void* pvData);
 
-	BOOL				MakeColour(SImageColour* psDest, CImageColour* pcColour);
-	BOOL				IsEmpty(void);
+	bool				MakeColour(SImageColour* psDest, CImageColour* pcColour);
+	bool				IsEmpty(void);
 	EPrimitiveType		GetType(void);
 
 	int					GetBitSize(void);

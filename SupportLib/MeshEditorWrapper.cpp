@@ -81,7 +81,7 @@ void CMeshEditorWrapper::ReInitConnectivity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::SetUVsInUse(BOOL bInUse)
+void CMeshEditorWrapper::SetUVsInUse(bool bInUse)
 {
 	mpcMesh->mcUVs.mbInUse = bInUse;
 }
@@ -91,7 +91,7 @@ void CMeshEditorWrapper::SetUVsInUse(BOOL bInUse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::SetNormalsInUse(BOOL bInUse)
+void CMeshEditorWrapper::SetNormalsInUse(bool bInUse)
 {
 	mpcMesh->mcNormals.mbInUse = bInUse;
 }
@@ -101,9 +101,9 @@ void CMeshEditorWrapper::SetNormalsInUse(BOOL bInUse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31)
+CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31)
 {
-	return AddFace(iCorner1, iCorner2, iCorner3, iName, bEdge12, bEdge23, bEdge31, FALSE);
+	return AddFace(iCorner1, iCorner2, iCorner3, iName, bEdge12, bEdge23, bEdge31, false);
 }
 
 
@@ -111,7 +111,7 @@ CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31, BOOL bFlipFaces)
+CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int iName, bool bEdge12, bool bEdge23, bool bEdge31, bool bFlipFaces)
 {
 	CMFRet	rFace;
 
@@ -139,7 +139,7 @@ CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName, BOOL bFlipFaces)
+CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iName, bool bFlipFaces)
 {
 	CMFRet	rQuad;
 
@@ -169,7 +169,7 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, BOOL bFlipFaces)
+CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces)
 {
 	if (mpcEditor)
 	{

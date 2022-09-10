@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 * file, and the other where we are given an open file (possibly with
 * some or all of the magic bytes read - see comments above).
 */
-BOOL LoadPNG(CImage* pcImage, char *file_name)
+bool LoadPNG(CImage* pcImage, char *file_name)
 {
 	png_structp			png_ptr;
 	png_infop			info_ptr;
@@ -43,19 +43,19 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	int					i;
 	CImage				cImageImport;
 	EPrimitiveType		eSourceType;
-	BOOL				bReverse;
+	bool				bReverse;
 	CImageCopier		cCopier;
 
 	if ((fp = fopen(file_name, "rb")) == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (!png_ptr)
 	{
 		fclose(fp);
-		return FALSE;
+		return false;
 	}
 
 	/* Allocate/initialize the memory for image information.  REQUIRED. */
@@ -64,7 +64,7 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	{
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, png_infopp_NULL, png_infopp_NULL);
-		return FALSE;
+		return false;
 	}
 
 	/* Set error handling if you are using the setjmp/longjmp method (this is
@@ -78,7 +78,7 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 		png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
 		fclose(fp);
 		/* If we get here, we had a problem reading the file */
-		return FALSE;
+		return false;
 	}
 
 	/* Set up the input control if you are using standard C streams */
@@ -109,24 +109,24 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	if ((iWidth == 0) || (iHeight == 0))
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-		return FALSE;
+		return false;
 	}
 
-	bReverse = FALSE;
+	bReverse = false;
 	if (info_ptr->bit_depth == 1)
 	{
 		eSourceType = PT_bit;
-		bReverse = TRUE;  //Eh.  This seems to be the standard though.
+		bReverse = true;  //Eh.  This seems to be the standard though.
 	}
 	else if (info_ptr->bit_depth == 2)
 	{
 		eSourceType = PT_crumb;
-		//bReverse = TRUE;
+		//bReverse = true;
 	}
 	else if (info_ptr->bit_depth == 4)
 	{
 		eSourceType = PT_nybble;
-		//bReverse = TRUE;
+		//bReverse = true;
 	}
 	else if (info_ptr->bit_depth == 8)
 	{
@@ -135,7 +135,7 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 	else if (info_ptr->bit_depth == 16)
 	{
 		eSourceType = PT_uint16;
-		bReverse = TRUE;
+		bReverse = true;
 	}
 
 	pcImage->Init();
@@ -196,6 +196,6 @@ BOOL LoadPNG(CImage* pcImage, char *file_name)
 
 	/* clean up after the read, and free any memory allocated - REQUIRED */
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-	return TRUE;
+	return true;
 }
 

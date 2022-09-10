@@ -50,9 +50,9 @@ void CMeshSmoothFaces::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSmoothFaces::Load(CFileReader* pcFile)
+bool CMeshSmoothFaces::Load(CFileReader* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -60,9 +60,9 @@ BOOL CMeshSmoothFaces::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSmoothFaces::Save(CFileWriter* pcFile)
+bool CMeshSmoothFaces::Save(CFileWriter* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 

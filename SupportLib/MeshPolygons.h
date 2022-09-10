@@ -38,8 +38,8 @@ public:
 public:
 	void 		Init(int iName);
 	void 		Kill(void);
-	BOOL	 	Save(CFileWriter* pcFile);
-	BOOL	 	Load(CFileReader* pcFile);
+	bool	 	Save(CFileWriter* pcFile);
+	bool	 	Load(CFileReader* pcFile);
 };
 
 typedef CArrayTemplate<CMeshPolygon> CArrayMeshPolygon;
@@ -60,18 +60,18 @@ public:
 	void 			Init(void);
 	void 			Kill(void);
 	void			ReInit(void);
-	BOOL	 		Save(CFileWriter* pcFile);
-	BOOL	 		Load(CFileReader* pcFile);
+	bool	 		Save(CFileWriter* pcFile);
+	bool	 		Load(CFileReader* pcFile);
 	CMeshPolygon*	Get(int iPolygonNum);
 	CMeshPolygon*	Add(int iName);
 	CMeshPolygon*	GrowToNumPolygons(int iNumPolygons, int iName);
 	int				GetFirstFaceNotInPolygon(CMeshConnectivity* pcConn, int iStartFaceIndex);
-	BOOL			PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshPolygon* psPolygon, int* aiStack, int* aiTouched);
-	BOOL			IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon);
+	bool			PrivateIsPolygonContiguous(CMeshConnectivity* pcConn, CMeshPolygon* psPolygon, int* aiStack, int* aiTouched);
+	bool			IsPolygonContiguous(CMeshConnectivity* pcConn, int iPolygon);
 	CMeshPolygon*	GetPolygonForFace(int iFaceNum);
 	void			GeneratePolygonsFromEdgeSelection(CMeshConnectivity* pcConn, CMeshEdgeVisibility* pcEdges);
 	void			GeneratePolygonFromEdgeSelection(CMeshConnectivity* pcConn, int iFaceIndex, CMeshEdgeVisibility* pcEdges);
-	void			AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, BOOL bEdge12, BOOL bEdge23, BOOL bEdge31);
+	void			AddFace(CMeshFace* pcFace, int iFace, int iName, CMeshConnectivity* pcConn, bool bEdge12, bool bEdge23, bool bEdge31);
 	int				NumUniqueNames(void);
 	void			GetUniqueNames(CArrayInt* paiNames);
 	void			GetNormals(CArrayFloat3* pasNormals, CMeshNormals* pcNormals);

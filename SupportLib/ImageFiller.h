@@ -62,8 +62,8 @@ public:
 	void Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* pcDestImage);
 	void Kill(void);
 	
-	BOOL Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMask);
-	BOOL Push(int x, int y, int iRemove);
+	bool Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMask);
+	bool Push(int x, int y, int iRemove);
 };
 
 

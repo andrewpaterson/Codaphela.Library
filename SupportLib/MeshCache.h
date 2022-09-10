@@ -35,9 +35,9 @@ public:
 
 	void 				Init(void);
 	void 				Kill(void);
-	BOOL				Load(CFileReader* pcFile);
-	BOOL				Save(CFileWriter* pcFile);
-	BOOL				Touch(CMesh* pcMesh);
+	bool				Load(CFileReader* pcFile);
+	bool				Save(CFileWriter* pcFile);
+	bool				Touch(CMesh* pcMesh);
 	CMeshVertexArray*	AddVertexArray(SMeshFaceType sMeshFaceType);
 	CMeshVertexArray*	GetVertexArray(SMeshFaceType sMeshFaceType);
 	CMeshVertexArray*	GetVertexArray(int iIndex);

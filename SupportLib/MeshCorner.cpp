@@ -51,11 +51,11 @@ void CMeshCorner::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCorner::Save(CFileWriter* pcFile)
+bool CMeshCorner::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(aiEdge.Write(pcFile));
 	ReturnOnFalse(aiFace.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -63,10 +63,10 @@ BOOL CMeshCorner::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCorner::Load(CFileReader* pcFile)
+bool CMeshCorner::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(aiEdge.Read(pcFile));
 	ReturnOnFalse(aiFace.Read(pcFile));
-	return TRUE;
+	return true;
 }
 

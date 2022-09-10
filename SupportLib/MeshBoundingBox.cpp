@@ -52,7 +52,7 @@ void CMeshBoundingBox::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshBoundingBox::Load(CFileReader* pcFile)
+bool CMeshBoundingBox::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	return mcBox.Load(pcFile);
@@ -63,7 +63,7 @@ BOOL CMeshBoundingBox::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshBoundingBox::Save(CFileWriter* pcFile)
+bool CMeshBoundingBox::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcBox.Save(pcFile);
@@ -98,7 +98,7 @@ void CMeshBoundingBox::GenerateBoundingBox(CMeshPositions* pcPositions, CMeshNor
 	psCenter->Init(0,0,0);
 	cBox.Init(psCenter, psXAxis, psYAxis, psZAxis);
 
-	cBox.SetFromPointsUsingBestFit(psPoints, sizeof(SFloat3), pcPositions->mcPositions.NumElements(), FALSE);
+	cBox.SetFromPointsUsingBestFit(psPoints, sizeof(SFloat3), pcPositions->mcPositions.NumElements(), false);
 
 	mcBox.Init(iCenterIndex, iLongAxisIndex, cBox.mfLongLength, iLongAxisIndex+1, cBox.mfMiddleLength, iLongAxisIndex+2, cBox.mfShortLength);
 }

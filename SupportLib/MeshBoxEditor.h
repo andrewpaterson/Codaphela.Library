@@ -47,12 +47,12 @@ public:
 	int		ExpectedFaceChunkSize(void);
 	int		ExpectedCornerChunkSize(void);
 
-	void	AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, BOOL bFlipFaces, int iName);
-	void	AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, BOOL bFlipFaces, int iName);
-	void	AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, BOOL bFlipFaces, int iName);
-	void	AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, BOOL bFlipFaces, int iName);
-	void	AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, BOOL bFlipFaces, int iName);
-	void	AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, BOOL bFlipFaces, int iName);
+	void	AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName);
+	void	AddXStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName);
+	void	AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName);
+	void	AddYStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName);
+	void	AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex2, int iIndex3, int iIndex4, bool bFlipFaces, int iName);
+	void	AddZStrip(CMeshEditor* pcMeshEditor, int iIndex1, int iIndex3, bool bFlipFaces, int iName);
 };
 
 

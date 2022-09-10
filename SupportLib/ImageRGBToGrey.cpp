@@ -52,7 +52,7 @@ void CImageRGBToGrey::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageRGBToGrey::Modify(CImage* pcImage)
 {
-	BOOL				bDiffuseChannelsSame;
+	bool				bDiffuseChannelsSame;
 	ERGBToGreyStyle		eStyle;
 
 	//This will preserve opacity.
@@ -87,7 +87,7 @@ void CImageRGBToGrey::Modify(CImage* pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3)
+bool CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3)
 {
 	int						x;
 	int						y;
@@ -106,7 +106,7 @@ BOOL CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 	pcAccessor3 = CImageAccessorCreator::Create(pcImage, eChannel3, CHANNEL_ZERO);
 	if ((pcAccessor1->GetBitSize() != pcAccessor2->GetBitSize()) && (pcAccessor1->GetBitSize() != pcAccessor3->GetBitSize()))
 	{
-		return FALSE;
+		return false;
 	}
 
 	iSize = pcAccessor1->GetByteSize();
@@ -126,13 +126,13 @@ BOOL CImageRGBToGrey::AreChannelsSame(CImage* pcImage, EChannel eChannel1, EChan
 				pcAccessor1->Kill();
 				pcAccessor2->Kill();
 				pcAccessor3->Kill();
-				return FALSE;
+				return false;
 			}
 		}
 	}
 	pcAccessor1->Kill();
 	pcAccessor2->Kill();
 	pcAccessor3->Kill();
-	return TRUE;
+	return true;
 }
 

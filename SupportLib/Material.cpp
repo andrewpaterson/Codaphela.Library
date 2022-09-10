@@ -86,7 +86,7 @@ void CMaterial::Copy(CMaterial* pcMaterial)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterial::Load(CObjectReader* pcFile)
+bool CMaterial::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(msProperties.Load(pcFile));
 	ReturnOnFalse(msDiffuse.Load(pcFile));
@@ -98,7 +98,7 @@ BOOL CMaterial::Load(CObjectReader* pcFile)
 	ReturnOnFalse(msDetail.Load(pcFile));
 	ReturnOnFalse(msDecal.Load(pcFile));
 	ReturnOnFalse(msReflection.Load(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -106,7 +106,7 @@ BOOL CMaterial::Load(CObjectReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMaterial::Save(CObjectWriter* pcFile)
+bool CMaterial::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(msProperties.Save(pcFile));
 	ReturnOnFalse(msDiffuse.Save(pcFile));
@@ -118,7 +118,7 @@ BOOL CMaterial::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(msDetail.Save(pcFile));
 	ReturnOnFalse(msDecal.Save(pcFile));
 	ReturnOnFalse(msReflection.Save(pcFile));
-	return TRUE;
+	return true;
 }
 
 

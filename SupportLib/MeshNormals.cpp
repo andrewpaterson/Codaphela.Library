@@ -67,12 +67,12 @@ void CMeshNormals::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshNormals::Load(CFileReader* pcFile)
+bool CMeshNormals::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcNormals.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -80,12 +80,12 @@ BOOL CMeshNormals::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshNormals::Save(CFileWriter* pcFile)
+bool CMeshNormals::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcNormals.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 

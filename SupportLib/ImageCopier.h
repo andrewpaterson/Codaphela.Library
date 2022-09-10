@@ -42,7 +42,7 @@ public:
 	Ptr<CImage>			mpcDest;
 	CImageAccessor*		mpcSourceAccessor;
 	CImageAccessor*		mpcDestAccessor;
-	BOOL				mbKillAccessors;
+	bool				mbKillAccessors;
 
 	void Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);

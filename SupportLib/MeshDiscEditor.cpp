@@ -42,7 +42,7 @@ void CMeshDiscEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fInner
 	miCircleSegments = iCircleSegments;
 	mfOuterRadius = fOuterRadius;
 	mfInnerRadius = fInnerRadius;
-	mbFlipFaces = FALSE;
+	mbFlipFaces = false;
 	miFaceName = 0;
 }
 
@@ -51,7 +51,7 @@ void CMeshDiscEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fInner
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshDiscEditor::SetFlipFaces(BOOL bFlipFaces)
+void CMeshDiscEditor::SetFlipFaces(bool bFlipFaces)
 {
 	mbFlipFaces = bFlipFaces;
 }
@@ -152,9 +152,9 @@ void CMeshDiscEditor::GenerateDisc(CMeshEditor* pcMeshEditor)
 
 	for (i = 0; i < miWedgeSegments-1; i++)
 	{
-		pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + i+2, miFaceName, TRUE, TRUE, TRUE, mbFlipFaces);
+		pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + i+2, miFaceName, true, true, true, mbFlipFaces);
 	}
-	pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + 1, miFaceName, TRUE, TRUE, TRUE, mbFlipFaces);
+	pcMeshEditor->AddFace(iStartPosition + 0, iStartPosition + i+1, iStartPosition + 1, miFaceName, true, true, true, mbFlipFaces);
 
 	for (j = 0; j < miCircleSegments-1; j++)
 	{

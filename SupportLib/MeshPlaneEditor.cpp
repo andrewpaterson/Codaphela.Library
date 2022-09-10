@@ -43,7 +43,7 @@ void CMeshPlaneEditor::Init(SFloat3* psXDirection, SFloat3* psYDirection, SFloat
 	miXE = 0;
 	miYI = 0;
 	miYE = 0;
-	mbFlipFaces = FALSE;
+	mbFlipFaces = false;
 	miFaceName = 0;
 }
 
@@ -73,7 +73,7 @@ void CMeshPlaneEditor::SetYOffsets(int iYStartOffset, int iYEndOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPlaneEditor::SetFlipFaces(BOOL bFlipFaces)
+void CMeshPlaneEditor::SetFlipFaces(bool bFlipFaces)
 {
 	mbFlipFaces = bFlipFaces;
 }

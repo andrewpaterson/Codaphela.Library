@@ -34,7 +34,7 @@ public:
 	void	Init(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3, SFloat3* psNormal);
 	void	Kill(void);
 	int		FindFurthestPoint(SFloat3* psPoints, int iStride);
-	BOOL	NotContains(SFloat3* psPosition);
+	bool	NotContains(SFloat3* psPosition);
 };
 
 
@@ -62,19 +62,19 @@ public:
 
 	void 					Init(SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName = NULL);
 	void 					Kill(void);
-	BOOL					Generate(void);
+	bool					Generate(void);
 	int						FindMaxX(float* px);
 	int						FindMinX(float* px);
 	int						FindFurthestPoint(int iMaxXIndex, int iMinXIndex);
 	CExtremeTriangle*		AddTriangle(SFloat3* psPoint1, SFloat3* psPoint2, SFloat3* psPoint3);
 	void					FindEdges(SConvexHullHoleEdge* psEdges, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles);
-	BOOL					TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles);
-	BOOL					TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangle);
-	BOOL					TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtremeTriangle* pcTriangle2);
-	BOOL					Contained(SFloat3* psPosition);
-	BOOL					NotContained(SFloat3* psPosition);
-	BOOL					RemoveDiscontiguousTriangles(CExtremeTriangle* pcSelected, CArrayExtremeTrianglePtr* papcTriangles, CArrayExtremeTrianglePtr* papcTemp);
-	BOOL					FindFirstPairTriangles(CArrayExtremeTrianglePtr* apcTriangles, int iMaxXIndex, int iMinXIndex, int iFarIndex);
+	bool					TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles);
+	bool					TriangleHasEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangle);
+	bool					TriangleAdjacent(CExtremeTriangle* pcTriangle1, CExtremeTriangle* pcTriangle2);
+	bool					Contained(SFloat3* psPosition);
+	bool					NotContained(SFloat3* psPosition);
+	bool					RemoveDiscontiguousTriangles(CExtremeTriangle* pcSelected, CArrayExtremeTrianglePtr* papcTriangles, CArrayExtremeTrianglePtr* papcTemp);
+	bool					FindFirstPairTriangles(CArrayExtremeTrianglePtr* apcTriangles, int iMaxXIndex, int iMinXIndex, int iFarIndex);
 	void					AddPointsFromTriangles(CExtremeTriangle* pcTriangle, CArrayExtremeTrianglePtr* papcTriangles, int iDontAdd);
 	CExtremeTriangle*		FindAdjacentTriangle(CExtremeTriangle* pcTriangle, int iPositionIndex0, int iPositionIndex1);
 	void					RemoveSlivers(void);

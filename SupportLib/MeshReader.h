@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 
-BOOL ReadMesh(CMesh* pcMesh, char* szFilename, EMeshType eType = MT_Unknown);
+bool ReadMesh(CMesh* pcMesh, char* szFilename, EMeshType eType = MT_Unknown);
 
 
 #endif // !__MESH_READER_H__

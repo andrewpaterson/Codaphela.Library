@@ -51,7 +51,7 @@ void CMeshCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCache::Load(CFileReader* pcFile)
+bool CMeshCache::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	return mcMeshVerticesArrays.Load(pcFile);
@@ -62,7 +62,7 @@ BOOL CMeshCache::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCache::Save(CFileWriter* pcFile)
+bool CMeshCache::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcMeshVerticesArrays.Save(pcFile);
@@ -73,10 +73,10 @@ BOOL CMeshCache::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshCache::Touch(CMesh* pcMesh)
+bool CMeshCache::Touch(CMesh* pcMesh)
 {
 	CMeshCacher	cCacher;
-	BOOL		bResult;
+	bool		bResult;
 
 	cCacher.Init(pcMesh);
 

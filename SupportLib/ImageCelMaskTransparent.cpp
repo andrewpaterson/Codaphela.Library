@@ -39,7 +39,7 @@ void CImageCelMaskTransparent::Init(CImage* pcSourceImage, SImageColour* psTrans
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMaskTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, short iMask, BOOL bFilled, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelMaskTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
 {
 	CImageCelMask::Init(pcSourceImage, pcMaskImage, iMask, bFilled, iLeft, iTop, iRight, iBottom);
 	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));
@@ -87,10 +87,10 @@ void CImageCelMaskTransparent::GetAllChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CImageCelMaskTransparent::MustFixDrawOpacity(void)
+bool CImageCelMaskTransparent::MustFixDrawOpacity(void)
 {
 	//If we have a transparent colour then always fix the opacity.
-	return TRUE;
+	return true;
 }
 
 

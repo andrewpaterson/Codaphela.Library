@@ -59,7 +59,7 @@ struct STGAImageHeader
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
+bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 {
 	STGAImageHeader 		sTGAImageHeader;
 	STGAFileHeader  		sTGAFileHeader;				// Used To Store Our File Header
@@ -83,7 +83,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	//----------------------------------------------------------------------
@@ -123,7 +123,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	{
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	switch (iBitsPerPixel)
@@ -140,7 +140,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	default:
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	iBytesPerPixel = (iBitsPerPixel / 8);				  // Calculate The BYTES Per Pixel
@@ -154,7 +154,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 		free(pvMem);
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;	
+		return false;	
 	}
 	sFile.Close();
 	sFile.Kill();
@@ -196,7 +196,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	cImageImport.Kill();
 
 	free(pvMem);
-	return TRUE;
+	return true;
 }
 
 
@@ -204,7 +204,7 @@ BOOL LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LoadTGA(CImage* pcImage, char* szFilename)
+bool LoadTGA(CImage* pcImage, char* szFilename)
 {
 	static char uTGAcompare[12] = {0,0, 2,0,0,0,0,0,0,0,0,0}; // Uncompressed True Colour TGA Header
 	//static char cTGAcompare[12] = {0,0,10,0,0,0,0,0,0,0,0,0}; // Compressed True Colour TGA Header
@@ -220,7 +220,7 @@ BOOL LoadTGA(CImage* pcImage, char* szFilename)
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	//----------------------------------------------------------------------
@@ -230,7 +230,7 @@ BOOL LoadTGA(CImage* pcImage, char* szFilename)
 	{
 		sFile.Close();
 		sFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	sFile.Close();
@@ -254,6 +254,6 @@ BOOL LoadTGA(CImage* pcImage, char* szFilename)
 	//----------------------------------------------------------------------
 	// if no header is matched, this is not a supported TGA format.
 	//----------------------------------------------------------------------
-	return FALSE;
+	return false;
 }
 

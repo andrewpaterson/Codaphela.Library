@@ -50,16 +50,16 @@ public:
 	CImageColourARGB	msColour;
 	ELightDecayType		meDecay;
 	float				mfDecayStart;
-	BOOL				mbCastShadows;
+	bool				mbCastShadows;
 	float				mfIntensity;
 
 	void 	Init(void);
-	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, BOOL bCastShadows, float fIntensity);
+	void 	Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, bool bCastShadows, float fIntensity);
 	void	Free(void);
 	void	Class(void);
 
-	BOOL	Load(CObjectReader* pcFile);
-	BOOL	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 	void	Copy(CLight* pcLight);
 };
 

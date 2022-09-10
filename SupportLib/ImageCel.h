@@ -53,11 +53,11 @@ public:
 	//Remove these from CImageCel, create a new class CDividerCel and put them there.
 	virtual	void	CropTransparentBorders(void);
 	void			CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity);
-	BOOL			IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2); //X/Y in Source space
-	BOOL			IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2);  //X/Y in Source space
+	bool			IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2); //X/Y in Source space
+	bool			IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2);  //X/Y in Source space
 
 	virtual	void	GetAllChannels(CArrayChannel* pasChannels);
-	virtual	BOOL	MustFixDrawOpacity(void);
+	virtual	bool	MustFixDrawOpacity(void);
 	virtual	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 	void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 	CSubImage*		GetSubImage(void);

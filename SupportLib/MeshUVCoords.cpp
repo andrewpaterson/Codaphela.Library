@@ -71,11 +71,11 @@ int CMeshUVLayer::AddFace(int iUV1, int iUV2, int iUV3)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshUVLayer::Load(CFileReader* pcFile)
+bool CMeshUVLayer::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(mcUVs.Read(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -83,11 +83,11 @@ BOOL CMeshUVLayer::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshUVLayer::Save(CFileWriter* pcFile)
+bool CMeshUVLayer::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(mcUVs.Write(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -136,7 +136,7 @@ void CMeshUVCoords::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshUVCoords::Load(CFileReader* pcFile)
+bool CMeshUVCoords::Load(CFileReader* pcFile)
 {
 	CMeshUVLayer*	pcLayer;
 	int				i;
@@ -154,7 +154,7 @@ BOOL CMeshUVCoords::Load(CFileReader* pcFile)
 		pcLayer = mcLayers.Get(i);
 		ReturnOnFalse(pcLayer->Load(pcFile));
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -162,7 +162,7 @@ BOOL CMeshUVCoords::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshUVCoords::Save(CFileWriter* pcFile)
+bool CMeshUVCoords::Save(CFileWriter* pcFile)
 {
 	CMeshUVLayer*	pcUVLayer;
 	int				i;
@@ -175,7 +175,7 @@ BOOL CMeshUVCoords::Save(CFileWriter* pcFile)
 		pcUVLayer = mcLayers.Get(i);
 		ReturnOnFalse(pcUVLayer->Save(pcFile));
 	}
-	return TRUE;
+	return true;
 }
 
 

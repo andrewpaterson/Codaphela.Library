@@ -40,7 +40,7 @@ void CMeshRingEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRa
 	mfLength = fLength;
 	miWedgeSegments = iWedgeSegments;
 	miRingSegments = iRingSegments;
-	mbFlipFaces = FALSE;
+	mbFlipFaces = false;
 	miFaceName = 0;
 	miZI = 0;
 	miZE = 0;
@@ -51,7 +51,7 @@ void CMeshRingEditor::Init(SFloat3* psZDirection, SFloat3* psStart, float fTopRa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshRingEditor::SetFlipFaces(BOOL bFlipFaces)
+void CMeshRingEditor::SetFlipFaces(bool bFlipFaces)
 {
 	mbFlipFaces = bFlipFaces;
 }
@@ -180,7 +180,7 @@ void CMeshRingEditor::GenerateRing(CMeshEditor* pcMeshEditor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshRingEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, BOOL bFlipFaces)
+void CMeshRingEditor::AddZStrip(CMeshEditor* pcMeshEditor, int iStartPosition1, int iStartPosition2, bool bFlipFaces)
 {
 	int		i;
 

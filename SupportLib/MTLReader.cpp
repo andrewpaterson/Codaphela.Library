@@ -56,7 +56,7 @@ void CMTLReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMTLReader::Read(void)
+bool CMTLReader::Read(void)
 {
 //	CTextParser 		cTextParser;
 	CTextFile			cTextFile;
@@ -93,12 +93,12 @@ BOOL CMTLReader::Read(void)
 	{
 		cTypes.Kill();
 		cTextFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	cTextFile.PassifyNewlines();
 	cLines.Fake();
 	cTextFile.mcText.SplitLines(&cLines);
 
-	return TRUE;
+	return true;
 }

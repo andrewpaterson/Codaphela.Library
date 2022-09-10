@@ -44,7 +44,7 @@ public:
 					void			Kill(void);
 
 					Ptr<CImage>		Allocate(char* szName);
-	virtual			BOOL			LoadImage(void) =0;
+	virtual			bool			LoadImage(void) =0;
 					Ptr<CImage>		GetImage(void);
 					void			SetImage(Ptr<CImage> pcImage);
 };

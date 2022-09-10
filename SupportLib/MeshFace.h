@@ -32,8 +32,8 @@ public:
 
 	void 	Init(void);
 	void 	Init(int iCorner1, int iCorner2, int iCorner3);
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 	int		GetOffsetForCorner(int iCornerNum);
 };
 

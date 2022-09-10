@@ -34,17 +34,17 @@ CONSTRUCTABLE(CImageCelMask);
 protected:
 	CImage*		mpcMaskImage;  //Which pixels in the sub image belong to this cel using the mask value.
 	short		miMask;
-	BOOL		mbFilled;
+	bool		mbFilled;
 
 public:
 	void 	Init(CImage* pcSourceImage, CImage* pcMaskImage, CFillRectangle* pcRect);
-	void 	Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask, BOOL bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
 	void	Kill(void);
 
 	void	CropTransparentBorders(void);
 
 	void	GetAllChannels(CArrayChannel* pasChannels);
-	BOOL	MustFixDrawOpacity(void);
+	bool	MustFixDrawOpacity(void);
 	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 	short	GetMask(void);
 };

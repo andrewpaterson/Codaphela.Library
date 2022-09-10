@@ -39,11 +39,11 @@ void CSphereIndexed::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSphereIndexed::Save(CFileWriter* pcFile)
+bool CSphereIndexed::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(miPosition));
 	ReturnOnFalse(pcFile->WriteFloat(mfRadius));
-	return TRUE;
+	return true;
 }
 
 
@@ -51,7 +51,7 @@ BOOL CSphereIndexed::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSphereIndexed::Load(CFileReader* pcFile)
+bool CSphereIndexed::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&miPosition));
 	ReturnOnFalse(pcFile->ReadFloat(&mfRadius));
@@ -63,19 +63,19 @@ BOOL CSphereIndexed::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSphereIndexed::Shape(CSphere* pcShape, SFloat3* psVertexArray)
+bool CSphereIndexed::Shape(CSphere* pcShape, SFloat3* psVertexArray)
 {
 	if (miPosition != -1)
 	{
 		pcShape->Init(&psVertexArray[miPosition]);
 		pcShape->mfRadius = mfRadius;
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		pcShape->mpsPosition = NULL;
 		pcShape->mfRadius = 0.0f;
-		return FALSE;
+		return false;
 	}
 }
 
@@ -110,11 +110,11 @@ void CTriangleIndexed::Init(int p1, int p2, int p3, int n)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTriangleIndexed::Save(CFileWriter* pcFile)
+bool CTriangleIndexed::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteIntArray(maiPositions, 3));
 	ReturnOnFalse(pcFile->WriteInt(miNormalIndex));
-	return TRUE;
+	return true;
 }
 
 
@@ -122,7 +122,7 @@ BOOL CTriangleIndexed::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTriangleIndexed::Load(CFileReader* pcFile)
+bool CTriangleIndexed::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadIntArray(maiPositions, 3));
 	ReturnOnFalse(pcFile->ReadInt(&miNormalIndex));
@@ -134,7 +134,7 @@ BOOL CTriangleIndexed::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTriangleIndexed::Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray)
+bool CTriangleIndexed::Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray)
 {
 	SFloat3*	psNormal;
 
@@ -150,7 +150,7 @@ BOOL CTriangleIndexed::Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3
 		}
 		pcShape->Init(&psVertexArray[maiPositions[0]], &psVertexArray[maiPositions[1]], &psVertexArray[maiPositions[2]], psNormal);
 		pcShape->Set();
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -158,7 +158,7 @@ BOOL CTriangleIndexed::Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3
 		pcShape->mpsPosition1 = NULL;
 		pcShape->mpsPosition2 = NULL;
 		pcShape->mpsNormal = NULL;
-		return FALSE;
+		return false;
 	}
 }
 
@@ -194,7 +194,7 @@ void CBoxIndexed::Init(int iCenterIndex, int iLongAxisIndex, float fLongAxisLeng
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBoxIndexed::Save(CFileWriter* pcFile)
+bool CBoxIndexed::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(miCenterIndex));
 	ReturnOnFalse(pcFile->WriteInt(miLongAxisIndex));
@@ -203,7 +203,7 @@ BOOL CBoxIndexed::Save(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteFloat(mfLongAxisLength));
 	ReturnOnFalse(pcFile->WriteFloat(mfMiddleAxisLength));
 	ReturnOnFalse(pcFile->WriteFloat(mfShortAxisLength));
-	return TRUE;
+	return true;
 }
 
 
@@ -211,7 +211,7 @@ BOOL CBoxIndexed::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBoxIndexed::Load(CFileReader* pcFile)
+bool CBoxIndexed::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&miCenterIndex));
 	ReturnOnFalse(pcFile->ReadInt(&miLongAxisIndex));
@@ -231,7 +231,7 @@ BOOL CBoxIndexed::Load(CFileReader* pcFile)
 void CPolygonIndexed::Init(void)
 {
 	maiPositions.Init();
-	mbConvex = TRUE;
+	mbConvex = true;
 }
 
 
@@ -249,10 +249,9 @@ void CPolygonIndexed::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygonIndexed::Save(CFileWriter* pcFile)
+bool CPolygonIndexed::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(maiPositions.Write(pcFile));
-	return TRUE;
+	return maiPositions.Write(pcFile);
 }
 
 
@@ -260,10 +259,9 @@ BOOL CPolygonIndexed::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPolygonIndexed::Load(CFileReader* pcFile)
+bool CPolygonIndexed::Load(CFileReader* pcFile)
 {
-	ReturnErrorOnFalse(maiPositions.Read(pcFile));
-	return TRITRUE;
+	return maiPositions.Read(pcFile);
 }
 
 
@@ -320,7 +318,7 @@ void CConvexHullIndexed::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullIndexed::Save(CFileWriter* pcFile)
+bool CConvexHullIndexed::Save(CFileWriter* pcFile)
 {
 	CPolygonIndexed*	pcPolygon;
 	int					i;
@@ -333,7 +331,7 @@ BOOL CConvexHullIndexed::Save(CFileWriter* pcFile)
 		ReturnOnFalse(pcPolygon->Save(pcFile));
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -341,7 +339,7 @@ BOOL CConvexHullIndexed::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConvexHullIndexed::Load(CFileReader* pcFile)
+bool CConvexHullIndexed::Load(CFileReader* pcFile)
 {
 	CPolygonIndexed*	pcPolygon;
 	int					i;
@@ -354,6 +352,6 @@ BOOL CConvexHullIndexed::Load(CFileReader* pcFile)
 		ReturnOnFalse(pcPolygon->Load(pcFile));
 	}
 
-	return TRUE;
+	return true;
 }
 

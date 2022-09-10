@@ -40,13 +40,13 @@ public:
 	int			miXE;
 	int			miYI;
 	int			miYE;
-	BOOL		mbFlipFaces;
+	bool		mbFlipFaces;
 	int			miFaceName;
 
 	void	Init(SFloat3* psXDirection, SFloat3* psYDirection, SFloat3* psStart, int iXSegments, int iYSegments);
 	void	SetXOffsets(int iXStartOffset, int iXEndOffset);
 	void	SetYOffsets(int iYStartOffset, int iYEndOffset);
-	void	SetFlipFaces(BOOL bFlipFaces);
+	void	SetFlipFaces(bool bFlipFaces);
 	void	SetFaceName(int iFaceName);
 	void	Kill(void);
 

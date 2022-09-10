@@ -38,17 +38,17 @@ public:
 	void 	Init(void);
 	void 	ReInit(void);
 	void 	Kill(void);
-	BOOL	Load(CFileReader* pcFile);
-	BOOL	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
 
-	int		GetNumberOfSelectedFaces(BOOL bSelected);
-	void	SetFaceSelectionTo(BOOL bSelected);
+	int		GetNumberOfSelectedFaces(bool bSelected);
+	void	SetFaceSelectionTo(bool bSelected);
 	void	ClearFaceSelection(void);
-	int		GetNumberOfSelectedEdges(BOOL bSelected);
-	void	SetEdgeSelectionTo(BOOL bSelected);
+	int		GetNumberOfSelectedEdges(bool bSelected);
+	void	SetEdgeSelectionTo(bool bSelected);
 	void	ClearEdgeSelection(void);
-	int		GetNumberOfSelectedCorners(BOOL bSelected);
-	void	SetCornerSelectionTo(BOOL bSelected);
+	int		GetNumberOfSelectedCorners(bool bSelected);
+	void	SetCornerSelectionTo(bool bSelected);
 	void	ClearCornerSelection(void);
 
 	void	AddCorner(void);
