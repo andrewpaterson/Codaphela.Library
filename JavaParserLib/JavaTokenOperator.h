@@ -82,8 +82,8 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
-	BOOL	IsOperator(void);
-	BOOL	Is(EJavaTokenOperator eOperator);
+	bool	IsOperator(void);
+	bool	Is(EJavaTokenOperator eOperator);
 };
 
 
@@ -99,7 +99,7 @@ public:
 	void 				Kill(void);
 	EJavaTokenOperatorType	GetType(void);
 	char*				GetName(void);
-	BOOL				Is(EJavaTokenOperator eOperator);
+	bool				Is(EJavaTokenOperator eOperator);
 };
 
 

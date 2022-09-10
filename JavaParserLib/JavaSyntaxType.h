@@ -18,7 +18,7 @@ public:
 	void					TypePrint(CChars* pszDest, int iDepth) override;
 	void					PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL					IsType(void) override;
+	bool					IsType(void) override;
 	void					SetGeneric(CJavaSyntaxGeneric* pcGeneric);
 	CJavaSyntaxGeneric*		GetGeneric(void);
 };

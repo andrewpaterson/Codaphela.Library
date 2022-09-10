@@ -45,7 +45,7 @@ void CJavaTokenFloat::Print(CChars* pszDest)
 {
 	if (meType == JFT_float32)
 	{
-		pszDest->Append((float32)mfValue, -1, TRUE);
+		pszDest->Append((float32)mfValue, -1, true);
 	}
 	else if (meType == JFT_float64)
 	{
@@ -83,7 +83,7 @@ char* CJavaTokenFloat::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenFloat::Is(float32 fValue)
+bool CJavaTokenFloat::Is(float32 fValue)
 {
 	if (meType == JFT_float32)
 	{
@@ -91,7 +91,7 @@ BOOL CJavaTokenFloat::Is(float32 fValue)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -100,7 +100,7 @@ BOOL CJavaTokenFloat::Is(float32 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenFloat::Is(float64 fValue)
+bool CJavaTokenFloat::Is(float64 fValue)
 {
 	if (meType == JFT_float64)
 	{
@@ -108,7 +108,7 @@ BOOL CJavaTokenFloat::Is(float64 fValue)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -117,5 +117,5 @@ BOOL CJavaTokenFloat::Is(float64 fValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenFloat::IsFloat(void) { return TRUE; }
+bool CJavaTokenFloat::IsFloat(void) { return true; }
 

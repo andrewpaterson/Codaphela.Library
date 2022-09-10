@@ -46,9 +46,9 @@ void CJavaModifiers::Set(EJavaModifier eModifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaModifiers::IsPackageModifier(void)
+bool CJavaModifiers::IsPackageModifier(void)
 {
-	return !(FixBool(JM_public | JM_private | JM_protected) & muiModifiers);
+	return !(FixBool((JM_public | JM_private | JM_protected) & muiModifiers));
 }
 
 
@@ -56,7 +56,7 @@ BOOL CJavaModifiers::IsPackageModifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaModifiers::IsValid(void)
+bool CJavaModifiers::IsValid(void)
 {
 	int iCount;
 
@@ -75,22 +75,22 @@ BOOL CJavaModifiers::IsValid(void)
 	}
 	if (iCount > 1)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (IsAbstract())
 	{
 		if (IsStatic())
 		{
-			return FALSE;
+			return false;
 		}
 		if (IsFinal())
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -140,12 +140,12 @@ void CJavaModifiers::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaModifiers::IsNone(void) { return muiModifiers == JM_none; }
-BOOL CJavaModifiers::IsPublic(void) { return FixBool(muiModifiers & JM_public); }
-BOOL CJavaModifiers::IsProtected(void) { return FixBool(muiModifiers & JM_protected); }
-BOOL CJavaModifiers::IsPrivate(void) { return FixBool(muiModifiers & JM_private); }
-BOOL CJavaModifiers::IsStatic(void) { return FixBool(muiModifiers & JM_static); }
-BOOL CJavaModifiers::IsAbstract(void) { return FixBool(muiModifiers & JM_abstract); }
-BOOL CJavaModifiers::IsFinal(void) { return FixBool(muiModifiers & JM_final); }
-BOOL CJavaModifiers::IsStrictfp(void) { return FixBool(muiModifiers & JM_strictfp); }
+bool CJavaModifiers::IsNone(void) { return muiModifiers == JM_none; }
+bool CJavaModifiers::IsPublic(void) { return FixBool(muiModifiers & JM_public); }
+bool CJavaModifiers::IsProtected(void) { return FixBool(muiModifiers & JM_protected); }
+bool CJavaModifiers::IsPrivate(void) { return FixBool(muiModifiers & JM_private); }
+bool CJavaModifiers::IsStatic(void) { return FixBool(muiModifiers & JM_static); }
+bool CJavaModifiers::IsAbstract(void) { return FixBool(muiModifiers & JM_abstract); }
+bool CJavaModifiers::IsFinal(void) { return FixBool(muiModifiers & JM_final); }
+bool CJavaModifiers::IsStrictfp(void) { return FixBool(muiModifiers & JM_strictfp); }
 

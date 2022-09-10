@@ -21,9 +21,9 @@ public:
 	void								TypePrint(CChars* pszDest, int iDepth) override;
 	void								PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL								IsVariableInitialiser(void) override;
-	BOOL								IsArrayExpression(void);
-	BOOL								IsSingleExpression(void);
+	bool								IsVariableInitialiser(void) override;
+	bool								IsArrayExpression(void);
+	bool								IsSingleExpression(void);
 
 	void								SetArrayValueExpression(CJavaSyntaxArrayValueExpression* pcArrayValueExpression);
 	void								SetSingleValueExpression(CJavaSyntaxValueExpression* pValueExpression);

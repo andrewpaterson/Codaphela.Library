@@ -45,9 +45,9 @@ void CJavaSyntaxStatement::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxStatement::IsStatement(void)
+bool CJavaSyntaxStatement::IsStatement(void)
 {
-	return TRUE;
+	return true;
 }
 
 

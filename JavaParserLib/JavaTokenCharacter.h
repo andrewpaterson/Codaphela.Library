@@ -27,11 +27,11 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void);
-	BOOL	Is(char8 c);
-	BOOL	Is(char16 c);
+	bool	Is(char8 c);
+	bool	Is(char16 c);
 
 	void	Print(CChars* pszDest);
-	BOOL	IsCharacter(void);
+	bool	IsCharacter(void);
 };
 
 

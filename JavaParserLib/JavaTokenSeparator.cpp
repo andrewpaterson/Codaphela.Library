@@ -37,7 +37,7 @@ void CJavaTokenSeparator::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenSeparator::Is(EJavaTokenSeparator eSeparator)
+bool CJavaTokenSeparator::Is(EJavaTokenSeparator eSeparator)
 {
 	return mpcSeparator->Get() == eSeparator;
 }
@@ -48,7 +48,7 @@ BOOL CJavaTokenSeparator::Is(EJavaTokenSeparator eSeparator)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenSeparator::GetType(void) { return "Separator"; }
-BOOL CJavaTokenSeparator::IsSeparator(void) { return TRUE; }
+bool CJavaTokenSeparator::IsSeparator(void) { return true; }
 
 
 //////////////////////////////////////////////////////////////////////////

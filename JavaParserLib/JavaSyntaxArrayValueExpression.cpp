@@ -55,9 +55,9 @@ void CJavaSyntaxArrayValueExpression::PrettyPrint(CChars* pszDest, int iBlockDep
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxArrayValueExpression::IsArrayValueExpression(void)
+bool CJavaSyntaxArrayValueExpression::IsArrayValueExpression(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -65,8 +65,8 @@ BOOL CJavaSyntaxArrayValueExpression::IsArrayValueExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxArrayValueExpression::IsCompoundStatement(void)
+bool CJavaSyntaxArrayValueExpression::IsCompoundStatement(void)
 {
-	return FALSE;
+	return false;
 }
 

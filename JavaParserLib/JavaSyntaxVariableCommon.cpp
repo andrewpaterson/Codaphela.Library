@@ -46,8 +46,8 @@ void CJavaSyntaxVariableCommon::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableCommon::IsVariableCommon(void)
+bool CJavaSyntaxVariableCommon::IsVariableCommon(void)
 {
-	return TRUE;
+	return true;
 }
 

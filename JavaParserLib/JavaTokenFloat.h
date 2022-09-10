@@ -27,11 +27,11 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void);
-	BOOL	Is(float32 fValue);
-	BOOL	Is(float64 fValue);
+	bool	Is(float32 fValue);
+	bool	Is(float64 fValue);
 
 	void	Print(CChars* pszDest);
-	BOOL	IsFloat(void);
+	bool	IsFloat(void);
 };
 
 

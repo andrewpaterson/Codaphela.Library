@@ -16,8 +16,8 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
-	BOOL	IsArrayValueExpression(void) override;
-	BOOL	IsCompoundStatement(void) override;
+	bool	IsArrayValueExpression(void) override;
+	bool	IsCompoundStatement(void) override;
 };
 
 

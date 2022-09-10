@@ -27,11 +27,11 @@ public:
 	void 	Kill(void);
 
 	char*	GetType(void);
-	BOOL	Is(int32 i);
-	BOOL	Is(int64 lli);
+	bool	Is(int32 i);
+	bool	Is(int64 lli);
 
 	void	Print(CChars* pszDest);
-	BOOL	IsInteger(void);
+	bool	IsInteger(void);
 };
 
 

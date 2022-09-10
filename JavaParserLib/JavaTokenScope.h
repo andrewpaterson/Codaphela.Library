@@ -26,11 +26,11 @@ public:
 	void 	Init(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric);
 	void 	Kill(void);
 
-	BOOL	IsScope(void);
+	bool	IsScope(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	Is(EJavaTokenScope eGeneric);
+	bool	Is(EJavaTokenScope eGeneric);
 };
 
 

@@ -59,7 +59,7 @@ void CJavaSyntaxVariableInitialiser::PrettyPrint(CChars* pszDest, int iBlockDept
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableInitialiser::IsArrayExpression(void)
+bool CJavaSyntaxVariableInitialiser::IsArrayExpression(void)
 {
 	return (mpcArrayValueExpression != NULL) && (mpcSingleValueExpression == NULL);
 }
@@ -69,7 +69,7 @@ BOOL CJavaSyntaxVariableInitialiser::IsArrayExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableInitialiser::IsSingleExpression(void)
+bool CJavaSyntaxVariableInitialiser::IsSingleExpression(void)
 {
 	return (mpcArrayValueExpression == NULL) && (mpcSingleValueExpression != NULL);
 }
@@ -79,7 +79,7 @@ BOOL CJavaSyntaxVariableInitialiser::IsSingleExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableInitialiser::IsVariableInitialiser(void) { return TRUE; }
+bool CJavaSyntaxVariableInitialiser::IsVariableInitialiser(void) { return true; }
 void CJavaSyntaxVariableInitialiser::SetArrayValueExpression(CJavaSyntaxArrayValueExpression* pcArrayValueExpression) { mpcArrayValueExpression = pcArrayValueExpression; }
 void CJavaSyntaxVariableInitialiser::SetSingleValueExpression(CJavaSyntaxValueExpression* pValueExpression) { mpcSingleValueExpression = pValueExpression; }
 CJavaSyntaxArrayValueExpression* CJavaSyntaxVariableInitialiser::GetArrayValueExpression(void) { return mpcArrayValueExpression; }

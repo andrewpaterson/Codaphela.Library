@@ -36,8 +36,8 @@ void CJavaSyntaxError::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxError::IsError(void)
+bool CJavaSyntaxError::IsError(void)
 {
-	return TRUE;
+	return true;
 }
 

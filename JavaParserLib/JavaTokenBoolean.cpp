@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaTokenBoolean::Init(STextPosition* psPosition, BOOL bValue)
+void CJavaTokenBoolean::Init(STextPosition* psPosition, bool bValue)
 {
 	CJavaTokenLiteral::Init(psPosition, JLT_Boolean);
 	mbValue = bValue;
@@ -19,7 +19,7 @@ void CJavaTokenBoolean::Init(STextPosition* psPosition, BOOL bValue)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenBoolean::Kill(void)
 {
-	mbValue = FALSE;
+	mbValue = false;
 	CJavaTokenLiteral::Kill();
 }
 
@@ -28,7 +28,7 @@ void CJavaTokenBoolean::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenBoolean::Is(BOOL b)
+bool CJavaTokenBoolean::Is(bool b)
 {
 	return FixBool(mbValue) == FixBool(b);
 }
@@ -55,6 +55,6 @@ void CJavaTokenBoolean::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenBoolean::IsBoolean(void) { return TRUE; }
+bool CJavaTokenBoolean::IsBoolean(void) { return true; }
 char* CJavaTokenBoolean::GetType(void) { return "Literal (bool)"; }
 

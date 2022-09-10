@@ -64,5 +64,5 @@ void CJavaSyntaxTypeCommon::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxTypeCommon::SetName(CJavaTokenIdentifier* pcName) { mpcName = pcName; }
 CJavaTokenIdentifier* CJavaSyntaxTypeCommon::GetName(void) { return mpcName; }
-BOOL CJavaSyntaxTypeCommon::IsTypeCommon(void) { return TRUE; }
+bool CJavaSyntaxTypeCommon::IsTypeCommon(void) { return true; }
 

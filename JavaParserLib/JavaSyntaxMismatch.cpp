@@ -36,8 +36,8 @@ void CJavaSyntaxMismatch::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxMismatch::IsMismatch(void)
+bool CJavaSyntaxMismatch::IsMismatch(void)
 {
-	return TRUE;
+	return true;
 }
 

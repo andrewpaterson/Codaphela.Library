@@ -55,9 +55,9 @@ void CJavaSyntaxOperator::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxOperator::IsOperator(void)
+bool CJavaSyntaxOperator::IsOperator(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -65,9 +65,9 @@ BOOL CJavaSyntaxOperator::IsOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxOperator::IsCompoundStatement(void)
+bool CJavaSyntaxOperator::IsCompoundStatement(void)
 {
-	return FALSE;
+	return false;
 }
 
 

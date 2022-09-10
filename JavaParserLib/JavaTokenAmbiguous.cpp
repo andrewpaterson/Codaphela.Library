@@ -27,7 +27,7 @@ void CCJavaTokenAmbiguous::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCJavaTokenAmbiguous::Is(ECJavaTokenAmbiguous eAmbiguous)
+bool CCJavaTokenAmbiguous::Is(ECJavaTokenAmbiguous eAmbiguous)
 {
 	return mpcDefinition->Get() == eAmbiguous;
 }
@@ -37,9 +37,9 @@ BOOL CCJavaTokenAmbiguous::Is(ECJavaTokenAmbiguous eAmbiguous)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCJavaTokenAmbiguous::IsAmbiguous(void) 
+bool CCJavaTokenAmbiguous::IsAmbiguous(void) 
 { 
-	return TRUE; 
+	return true; 
 }
 
 

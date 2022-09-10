@@ -8,7 +8,7 @@ class CJavaSyntaxExtent : public CJavaSyntaxTypeCommon
 {
 CONSTRUCTABLE(CJavaSyntaxExtent);
 protected:
-	BOOL				mbWildCard;
+	bool				mbWildCard;
 	CJavaSyntaxType*	mpcExtends;
 
 public:
@@ -19,10 +19,10 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsExtent(void) override;
-	void	SetWildCard(BOOL bWildCard);
+	bool	IsExtent(void) override;
+	void	SetWildCard(bool bWildCard);
 	void	SetExtends(CJavaSyntaxType* pcExtends);
-	BOOL	IsWildCard(void);
+	bool	IsWildCard(void);
 };
 
 

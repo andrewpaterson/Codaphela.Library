@@ -34,8 +34,8 @@ public:
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	IsSeparator(void);
-	BOOL	Is(EJavaTokenSeparator eSeparator);
+	bool	IsSeparator(void);
+	bool	Is(EJavaTokenSeparator eSeparator);
 };
 
 

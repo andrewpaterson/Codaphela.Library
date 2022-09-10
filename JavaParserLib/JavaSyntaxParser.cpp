@@ -81,7 +81,7 @@ char* CJavaSyntaxParser::GetFilename(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::Parse(void)
+bool CJavaSyntaxParser::Parse(void)
 {
 	CJavaSyntaxFile*		pcFile;
 	CJavaSyntaxPackage*		pcPackage;
@@ -106,13 +106,13 @@ BOOL CJavaSyntaxParser::Parse(void)
 				if (!pcFile->SetPackage(pcPackage))
 				{
 					mpcLogger->Error(EXPECTED_CLASS_OR_INTERFACE);
-					return FALSE;
+					return false;
 				}
 				continue;
 			}
 			else if (pcPackage->IsError())
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcImport = ParseImport(pcFile);
@@ -123,7 +123,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 			}
 			else if (pcImport->IsError())
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcClass = ParseClass(pcFile);
@@ -133,7 +133,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 			}
 			else if (pcClass->IsError())
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcEnum = ParseEnum(pcFile);
@@ -143,7 +143,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 			}
 			else if (pcEnum->IsError())
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcInterface = ParseInterface(pcFile);
@@ -153,7 +153,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 			}
 			else if (pcInterface->IsError())
 			{
-				return FALSE;
+				return false;
 			}
 
 			break;
@@ -168,7 +168,7 @@ BOOL CJavaSyntaxParser::Parse(void)
 	{
 		mpcLogger->Info2("Syntax parsing file [", mszFilename.Text(), "] failed with [", IntToString(miErrors), "].", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -176,14 +176,14 @@ BOOL CJavaSyntaxParser::Parse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::Parse(BOOL bFailOnError)
+bool CJavaSyntaxParser::Parse(bool bFailOnError)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = Parse();
 	if (bResult == TRITRUE)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -197,7 +197,7 @@ BOOL CJavaSyntaxParser::Parse(BOOL bFailOnError)
 //		mcParser.PrintPosition(&szError);
 		szError.DumpKill();
 
-		return FALSE;
+		return false;
 	}
 }
 
@@ -226,7 +226,7 @@ void CJavaSyntaxParser::TypePrint(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::Dump(BOOL bIncludeType)
+void CJavaSyntaxParser::Dump(bool bIncludeType)
 {
 	CChars	szDest;
 
@@ -249,7 +249,7 @@ void CJavaSyntaxParser::Dump(BOOL bIncludeType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword)
+bool CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword)
 {
 	CJavaTokenKeyword* pcKeyword;
 	
@@ -258,7 +258,7 @@ BOOL CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeywor
 		pcKeyword = (CJavaTokenKeyword*)pcToken;
 		return pcKeyword->Is(eKeyword);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -266,7 +266,7 @@ BOOL CJavaSyntaxParser::IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeywor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator)
+bool CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator)
 {
 	CJavaTokenSeparator* pcSeparator;
 	
@@ -275,7 +275,7 @@ BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSe
 		pcSeparator = (CJavaTokenSeparator*)pcToken;
 		return pcSeparator->Is(eSeparator);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -283,7 +283,7 @@ BOOL CJavaSyntaxParser::IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric)
+bool CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric)
 {
 	CJavaTokenScope* pcGeneric;
 
@@ -292,7 +292,7 @@ BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric)
 		pcGeneric = (CJavaTokenScope*)pcToken;
 		return pcGeneric->Is(eGeneric);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -300,7 +300,7 @@ BOOL CJavaSyntaxParser::IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous)
+bool CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous)
 {
 	CCJavaTokenAmbiguous* pcAmbiguous;
 
@@ -309,7 +309,7 @@ BOOL CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eA
 		pcAmbiguous = (CCJavaTokenAmbiguous*)pcToken;
 		return pcAmbiguous->Is(eAmbiguous);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -317,7 +317,7 @@ BOOL CJavaSyntaxParser::IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eA
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator)
+bool CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator)
 {
 	CJavaTokenOperator* pcOperator;
 
@@ -326,7 +326,7 @@ BOOL CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOper
 		pcOperator = (CJavaTokenOperator*)pcToken;
 		return pcOperator->Is(eOperator);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -334,7 +334,7 @@ BOOL CJavaSyntaxParser::IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOper
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType)
+bool CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType)
 {
 	CJavaTokenLiteral* pcLiteral;
 
@@ -343,7 +343,7 @@ BOOL CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLi
 		pcLiteral = (CJavaTokenLiteral*)pcToken;
 		return pcLiteral->IsLiteralType(eLiteralType);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -351,7 +351,7 @@ BOOL CJavaSyntaxParser::IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::IsIdentifier(CJavaToken* pcToken)
+bool CJavaSyntaxParser::IsIdentifier(CJavaToken* pcToken)
 {
 	return (pcToken && pcToken->IsIdentifier());
 }
@@ -374,7 +374,7 @@ void CJavaSyntaxParser::Next(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::HasNext(void)
+bool CJavaSyntaxParser::HasNext(void)
 {
 	return mpcCurrentToken != NULL;
 }
@@ -469,7 +469,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(CJavaSyntax* pcParent)
 
 		if (GetKeyword(JK_static))
 		{
-			pcImport->SetStatic(TRUE);
+			pcImport->SetStatic(true);
 		}
 
 		iIdentifierCount = 0;
@@ -477,7 +477,7 @@ CJavaSyntaxImport* CJavaSyntaxParser::ParseImport(CJavaSyntax* pcParent)
 		{
 			if ((iIdentifierCount > 0) && GetAmbiguous(JA_Asterisk, &pcAmbiguousAsterisk))
 			{
-				pcImport->SetWild(TRUE);
+				pcImport->SetWild(true);
 				if (GetSeparator(JS_Semicolon))
 				{
 					pcScopeAsterisk = CreateScope(pcAmbiguousAsterisk->GetPosition(), JG_Asterisk);
@@ -595,8 +595,8 @@ CJavaSyntaxClass* CJavaSyntaxParser::ParseClass(CJavaSyntax* pcParent)
 CJavaSyntaxClassBlock* CJavaSyntaxParser::ParseClassBlock(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxClassBlock*	pcBlock;
-	BOOL					bOpen;
-	BOOL					bClose;
+	bool					bOpen;
+	bool					bClose;
 	CJavaSyntaxStatement*	pcStatement;
 
 	PushPosition();
@@ -1004,8 +1004,8 @@ CJavaSyntaxValueExpression* CJavaSyntaxParser::ParseExpression(CJavaSyntax* pcPa
 //////////////////////////////////////////////////////////////////////////
 CJavaSyntaxParentheses* CJavaSyntaxParser::ParseParentheses(CJavaSyntax* pcParent)
 {
-	BOOL							bOpen;
-	BOOL							bClose;
+	bool							bOpen;
+	bool							bClose;
 	CJavaSyntaxParentheses*			pcParentheses;
 	CJavaSyntaxExpressionCommon*	pcExpression;
 
@@ -1150,7 +1150,7 @@ CJavaSyntaxArrayValueExpression* CJavaSyntaxParser::ParseArrayExpression(CJavaSy
 //////////////////////////////////////////////////////////////////////////
 CJavaModifiers CJavaSyntaxParser::ParseModifiers(uint8 uiAllowedModifiers)
 {
-	BOOL			bResult;
+	bool			bResult;
 	CJavaModifiers	cModifiers;
 
 	cModifiers.Init();
@@ -1240,7 +1240,7 @@ CJavaModifiers CJavaSyntaxParser::ParseModifiers(uint8 uiAllowedModifiers)
 CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxEnum*	pcEnum;
-	BOOL				bPublic;
+	bool				bPublic;
 
 	PushPosition();
 
@@ -1272,8 +1272,8 @@ CJavaSyntaxEnum* CJavaSyntaxParser::ParseEnum(CJavaSyntax* pcParent)
 CJavaSyntaxInterface* CJavaSyntaxParser::ParseInterface(CJavaSyntax* pcParent)
 {
 	CJavaSyntaxInterface*	pcInterface;
-	BOOL					bPublic;
-	BOOL					bAbstract;
+	bool					bPublic;
+	bool					bAbstract;
 
 	PushPosition();
 
@@ -1415,19 +1415,19 @@ CJavaSyntaxExtent* CJavaSyntaxParser::ParseExtent(CJavaSyntax* pcParent)
 {
 	CCJavaTokenAmbiguous*	pcAmbiguousQuestionMark;
 	CJavaTokenIdentifier*	pcIdentifier;
-	BOOL					bQuestionMark;
+	bool					bQuestionMark;
 	CJavaSyntaxExtent*		pcExtent;
 	CJavaTokenScope*		pcScopeQuestionMark;
-	BOOL					bExtends;
+	bool					bExtends;
 	CJavaSyntaxType*		pcType;
 
 	PushPosition();
-	bQuestionMark = FALSE;
+	bQuestionMark = false;
 	pcIdentifier = NULL;
 
 	if (GetAmbiguous(JA_QuestionMark, &pcAmbiguousQuestionMark))
 	{
-		bQuestionMark = TRUE;
+		bQuestionMark = true;
 	}
 	else
 	{
@@ -1444,7 +1444,7 @@ CJavaSyntaxExtent* CJavaSyntaxParser::ParseExtent(CJavaSyntax* pcParent)
 	if (bQuestionMark && !bExtends)
 	{
 		pcExtent = mpcSyntaxes->CreateExtent(&mcSyntaxTree, pcParent);
-		pcExtent->SetWildCard(TRUE);
+		pcExtent->SetWildCard(true);
 
 		pcScopeQuestionMark = CreateScope(pcAmbiguousQuestionMark->GetPosition(), JG_QuestionMark);
 		ReplaceAmbiguous(pcAmbiguousQuestionMark, pcScopeQuestionMark);
@@ -1460,7 +1460,7 @@ CJavaSyntaxExtent* CJavaSyntaxParser::ParseExtent(CJavaSyntax* pcParent)
 	pcExtent = mpcSyntaxes->CreateExtent(&mcSyntaxTree, pcParent);
 	if (bQuestionMark)
 	{
-		pcExtent->SetWildCard(TRUE);
+		pcExtent->SetWildCard(true);
 
 		pcScopeQuestionMark = CreateScope(pcAmbiguousQuestionMark->GetPosition(), JG_QuestionMark);
 		ReplaceAmbiguous(pcAmbiguousQuestionMark, pcScopeQuestionMark);
@@ -1528,16 +1528,16 @@ CJavaSyntaxTypeCommon* CJavaSyntaxParser::ParseTypeCommon(CJavaSyntax* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetKeyword(EJavaTokenKeyword eKeyword)
+bool CJavaSyntaxParser::GetKeyword(EJavaTokenKeyword eKeyword)
 {
 	if (IsKeyword(mpcCurrentToken, eKeyword))
 	{
 		Next();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1619,16 +1619,16 @@ CJavaTokenLiteral* CJavaSyntaxParser::GetLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetSeparator(EJavaTokenSeparator eSeparator)
+bool CJavaSyntaxParser::GetSeparator(EJavaTokenSeparator eSeparator)
 {
 	if (IsSeparator(mpcCurrentToken, eSeparator))
 	{
 		Next();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1658,16 +1658,16 @@ CJavaTokenIdentifier* CJavaSyntaxParser::GetIdentifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetScope(EJavaTokenScope eGeneric)
+bool CJavaSyntaxParser::GetScope(EJavaTokenScope eGeneric)
 {
 	if (IsScope(mpcCurrentToken, eGeneric))
 	{
 		Next();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1676,17 +1676,17 @@ BOOL CJavaSyntaxParser::GetScope(EJavaTokenScope eGeneric)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous)
+bool CJavaSyntaxParser::GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous)
 {
 	if (IsAmbiguous(mpcCurrentToken, eAmbiguous))
 	{
 		SafeAssign(ppcAmbiguous, (CCJavaTokenAmbiguous*)mpcCurrentToken);
 		Next();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1695,16 +1695,16 @@ BOOL CJavaSyntaxParser::GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaToke
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::GetOperator(EJavaTokenOperator eOperator)
+bool CJavaSyntaxParser::GetOperator(EJavaTokenOperator eOperator)
 {
 	if (IsOperator(mpcCurrentToken, eOperator))
 	{
 		Next();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1814,7 +1814,7 @@ void CJavaSyntaxParser::PassPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement)
+bool CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement)
 {
 	CJavaToken*		pcCurrent;
 	CJavaToken*		pcPrevious;
@@ -1830,12 +1830,12 @@ BOOL CJavaSyntaxParser::ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcRep
 				pcPrevious->SetNext(pcReplacement);
 			}
 			pcReplacement->SetNext(pcCurrent->GetNext());
-			return TRUE;
+			return true;
 		}
 		pcPrevious = pcCurrent;
 		pcCurrent = pcCurrent->GetNext();
 	}
-	return FALSE;
+	return false;
 }
 
 

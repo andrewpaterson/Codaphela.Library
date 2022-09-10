@@ -26,13 +26,13 @@ public:
 
 	void					SetLiteral(CJavaTokenLiteral* pcLiteral);
 
-	BOOL					IsLiteral(void) override;
-	BOOL					IsCharacter(void);
-	BOOL					IsBoolean(void);
-	BOOL					IsString(void);
-	BOOL					IsInteger(void);
-	BOOL					IsFloat(void);
-	BOOL					IsNull(void);
+	bool					IsLiteral(void) override;
+	bool					IsCharacter(void);
+	bool					IsBoolean(void);
+	bool					IsString(void);
+	bool					IsInteger(void);
+	bool					IsFloat(void);
+	bool					IsNull(void);
 
 	CJavaTokenCharacter*	GetCharacter(void);
 	CJavaTokenBoolean*		GetBoolean(void);
@@ -41,7 +41,7 @@ public:
 	CJavaTokenFloat*		GetFloat(void);
 	CJavaTokenNull*			GetNull(void);
 
-	BOOL					IsCompoundStatement(void) override;
+	bool					IsCompoundStatement(void) override;
 };
 
 

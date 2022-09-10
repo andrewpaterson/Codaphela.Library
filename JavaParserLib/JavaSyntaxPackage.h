@@ -21,7 +21,7 @@ public:
 
 	void				AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
 
-	BOOL				IsPackage(void) override;
+	bool				IsPackage(void) override;
 
 	CIdentifierArray*	GetIdentifiers(void);
 };

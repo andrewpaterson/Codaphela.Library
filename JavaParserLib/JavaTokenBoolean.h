@@ -8,17 +8,17 @@ class CJavaTokenBoolean : public CJavaTokenLiteral
 {
 CONSTRUCTABLE(CJavaTokenBoolean);
 protected:
-	BOOL	mbValue;
+	bool	mbValue;
 
 public:
-	void 	Init(STextPosition* psPosition, BOOL bValue);
+	void 	Init(STextPosition* psPosition, bool bValue);
 	void 	Kill(void);
 
 	char*	GetType(void);
-	BOOL	Is(BOOL b);
+	bool	Is(bool b);
 
 	void	Print(CChars* pszDest);
-	BOOL	IsBoolean(void);
+	bool	IsBoolean(void);
 };
 
 

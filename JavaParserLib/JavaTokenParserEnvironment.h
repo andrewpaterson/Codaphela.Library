@@ -14,11 +14,11 @@ protected:
 	CMemoryFile				mcMemoryLog;
 
 public:
-	void				Init(char* szFilename, char* szText, BOOL bBreakOnError);
-	void				Init(char* szFilename, char* szText, int iTextLen, BOOL bBreakOnError);
+	void				Init(char* szFilename, char* szText, bool bBreakOnError);
+	void				Init(char* szFilename, char* szText, int iTextLen, bool bBreakOnError);
 	void				Kill(void);
 	
-	BOOL				Parse(BOOL bFailOnError = TRUE);
+	bool				Parse(bool bFailOnError = true);
 	CJavaTokenParser*	GetParser(void);
 	char*				GetOutput(int* piLength = NULL);
 	char*				GetOutput(CChars* pszDest);

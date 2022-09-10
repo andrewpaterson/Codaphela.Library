@@ -139,9 +139,9 @@ void CJavaSyntaxVariableDeclaration::PrettyPrint(CChars* pszDest, int iBlockDept
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableDeclaration::IsVariableDeclaration(void)
+bool CJavaSyntaxVariableDeclaration::IsVariableDeclaration(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -149,9 +149,9 @@ BOOL CJavaSyntaxVariableDeclaration::IsVariableDeclaration(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableDeclaration::IsCompoundStatement(void)
+bool CJavaSyntaxVariableDeclaration::IsCompoundStatement(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -229,7 +229,7 @@ void CJavaSyntaxVariableDeclaration::SetArrayDimension(int iArrayDimension)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableDeclaration::IsPrimitiveType(void)
+bool CJavaSyntaxVariableDeclaration::IsPrimitiveType(void)
 {
 	return ((mpcPrimitiveType != NULL) && (mapcType.NumElements() == 0));
 }
@@ -239,7 +239,7 @@ BOOL CJavaSyntaxVariableDeclaration::IsPrimitiveType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableDeclaration::IsReferenceType(void)
+bool CJavaSyntaxVariableDeclaration::IsReferenceType(void)
 {
 	return (mapcType.NumElements() > 0) && (mpcPrimitiveType == NULL);
 }
@@ -249,7 +249,7 @@ BOOL CJavaSyntaxVariableDeclaration::IsReferenceType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxVariableDeclaration::IsGeneric(void)
+bool CJavaSyntaxVariableDeclaration::IsGeneric(void)
 {
 	return IsReferenceType() && (mpcGeneric != NULL);
 }

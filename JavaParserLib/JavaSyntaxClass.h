@@ -20,8 +20,8 @@ public:
 	char*					GetType(void) override;
 	void					TypePrint(CChars* pszDest, int iDepth) override;
 	void					PrettyPrint(CChars* pszDest, int iBlockDepth) override;
-	BOOL					IsClass(void) override;
-	BOOL					IsCompoundStatement(void);
+	bool					IsClass(void) override;
+	bool					IsCompoundStatement(void);
 
 	void					SetSyntaxType(CJavaSyntaxType* pcType);
 	void					SetBlock(CJavaSyntaxClassBlock* pcBlock);

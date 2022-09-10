@@ -55,15 +55,15 @@ public:
 	void				Init(CJavaSyntaxMemory* pcSyntaxes, CJavaTokenParser* pcTokenParser);
 	void 				Kill(void);
 
-	BOOL				Parse(void);
-	BOOL				Parse(BOOL bFailOnError);
+	bool				Parse(void);
+	bool				Parse(bool bFailOnError);
 
 	CJavaSyntaxFile*	GetSyntaxFile(void);
 	char*				GetFilename(void);
 
 	char*				PrettyPrint(CChars* pszDest);
 	void				TypePrint(CChars* pszDest);
-	void				Dump(BOOL bIncludeType = FALSE);
+	void				Dump(bool bIncludeType = false);
 
 protected:
 	void	PushPosition(void);
@@ -98,31 +98,31 @@ protected:
 	CJavaModifiers			ParseModifiers(uint8 uiAllowedModifiers);
 	int						ParseArrayDeclaration(void);
 
-	BOOL					GetKeyword(EJavaTokenKeyword eKeyword);
-	BOOL					GetSeparator(EJavaTokenSeparator eSeparator);
+	bool					GetKeyword(EJavaTokenKeyword eKeyword);
+	bool					GetSeparator(EJavaTokenSeparator eSeparator);
 	CJavaTokenIdentifier*	GetIdentifier(void);
-	BOOL					GetScope(EJavaTokenScope eGeneric);
-	BOOL					GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
-	BOOL					GetOperator(EJavaTokenOperator eOperator);
+	bool					GetScope(EJavaTokenScope eGeneric);
+	bool					GetAmbiguous(ECJavaTokenAmbiguous eAmbiguous, CCJavaTokenAmbiguous** ppcAmbiguous = NULL);
+	bool					GetOperator(EJavaTokenOperator eOperator);
 	CJavaTokenKeyword*		GetModifierKeyword(void);
 	CJavaTokenKeyword*		GetPrimitveKeyword(void);
 	CJavaTokenLiteral*		GetLiteral(void);
 	CJavaTokenOperator*		GetPrefixOperator(void);
 	CJavaTokenOperator*		GetOperator(void);
 
-	BOOL					IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
-	BOOL					IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);
-	BOOL					IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric);
-	BOOL					IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous);
-	BOOL					IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator);
-	BOOL					IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType);
-	BOOL					IsIdentifier(CJavaToken* pcToken);
+	bool					IsKeyword(CJavaToken* pcToken, EJavaTokenKeyword eKeyword);
+	bool					IsSeparator(CJavaToken* pcToken, EJavaTokenSeparator eSeparator);
+	bool					IsScope(CJavaToken* pcToken, EJavaTokenScope eGeneric);
+	bool					IsAmbiguous(CJavaToken* pcToken, ECJavaTokenAmbiguous eAmbiguous);
+	bool					IsOperator(CJavaToken* pcToken, EJavaTokenOperator eOperator);
+	bool					IsLiteral(CJavaToken* pcToken, EJavaTokenLiteralType eLiteralType);
+	bool					IsIdentifier(CJavaToken* pcToken);
 
 	void					Next(void);
-	BOOL					HasNext(void);
+	bool					HasNext(void);
 	void					SkipComments(void);
 
-	BOOL					ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
+	bool					ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
 	CJavaTokenScope*		CreateScope(STextPosition* psPosition, EJavaTokenScope eScope);
 	void					PrivateError(char* szError);
 

@@ -15,7 +15,7 @@ public:
 	void 					Kill(void);
 
 	char*					GetType(void) override;
-	BOOL					IsTypeCommon(void);
+	bool					IsTypeCommon(void);
 
 	void					TypePrint(CChars* pszDest, int iDepth) override;
 	void					PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;

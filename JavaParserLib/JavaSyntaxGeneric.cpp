@@ -81,7 +81,7 @@ void CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxGeneric::IsGeneric(void) { return TRUE; }
+bool CJavaSyntaxGeneric::IsGeneric(void) { return true; }
 void CJavaSyntaxGeneric::AddType(CJavaSyntaxTypeCommon* pcType) { mapcGenerics.Add(pcType); }
 CTypeCommonArray* CJavaSyntaxGeneric::GetGenerics(void) { return &mapcGenerics; }
 

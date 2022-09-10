@@ -19,7 +19,7 @@ public:
 	void				TypePrint(CChars* pszDest, int iDepth) override;
 	void				PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL				IsGeneric(void) override;
+	bool				IsGeneric(void) override;
 
 	void				AddType(CJavaSyntaxTypeCommon* pcType);
 	CTypeCommonArray*	GetGenerics(void);

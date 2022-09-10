@@ -27,7 +27,7 @@ public:
 	void				TypePrint(CChars* pszDest, int iDepth) override;
 	void				PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
-	BOOL				IsClassBlock(void) override;
+	bool				IsClassBlock(void) override;
 
 	void				AddStatement(CJavaSyntaxStatement* pcStatement);
 

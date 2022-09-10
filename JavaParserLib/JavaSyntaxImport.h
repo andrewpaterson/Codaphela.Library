@@ -10,8 +10,8 @@ class CJavaSyntaxImport : public CJavaSyntax
 CONSTRUCTABLE(CJavaSyntaxImport);
 protected:
 	CIdentifierArray	mapcIdentifiers;
-	BOOL									mbStatic;
-	BOOL									mbWild;
+	bool									mbStatic;
+	bool									mbWild;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -22,10 +22,10 @@ public:
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0);
 
 	void	AddIdentifier(CJavaTokenIdentifier* pcIdentifier);
-	void	SetStatic(BOOL bStatic);
-	void	SetWild(BOOL bWild);
+	void	SetStatic(bool bStatic);
+	void	SetWild(bool bWild);
 
-	BOOL	IsImport(void) override;
+	bool	IsImport(void) override;
 };
 
 

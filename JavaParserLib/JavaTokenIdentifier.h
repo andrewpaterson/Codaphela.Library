@@ -19,8 +19,8 @@ public:
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	IsIdentifier(void);
-	BOOL	Is(char* szIdentifier);
+	bool	IsIdentifier(void);
+	bool	Is(char* szIdentifier);
 	char*	GetIdentifer(void);
 };
 

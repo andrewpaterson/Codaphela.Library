@@ -56,9 +56,9 @@ void CJavaSyntaxEnum::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxEnum::IsEnum(void)
+bool CJavaSyntaxEnum::IsEnum(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -67,7 +67,7 @@ BOOL CJavaSyntaxEnum::IsEnum(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxEnum::IsCompoundStatement(void)
+bool CJavaSyntaxEnum::IsCompoundStatement(void)
 {
-	return TRUE;
+	return true;
 }

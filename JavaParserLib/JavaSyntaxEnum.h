@@ -16,8 +16,8 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
-	BOOL	IsEnum(void) override;
-	BOOL	IsCompoundStatement(void);
+	bool	IsEnum(void) override;
+	bool	IsCompoundStatement(void);
 };
 
 
