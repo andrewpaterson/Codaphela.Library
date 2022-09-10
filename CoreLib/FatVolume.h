@@ -3,7 +3,6 @@
 #include "FileDrive.h"
 #include "FatStructure.h"
 #include "FatCommon.h"
-#include "FatSharedBuffer.h"
 
 
 enum EFatFileSystemType
@@ -45,6 +44,9 @@ public:
 	SFatVolume		msVolume;
 	SFatVolume*		mpsVolume;
 
+	uint8			mauiFatSharedBuffer[MAX_SECTOR_LENGTH];
+	uint32			muiFatSharedBufferSector;
+
 public:
 	uint16				Mount(CFileDrive* device);
 	uint16				Unmount(void);
@@ -64,6 +66,7 @@ public:
 
 	void				SetNextFreeCluster(uint32 uiCluster);
 	void				SetTotalFreeClusters(uint32 uiTotalFreeClusters);
+	void				SetFatSharedBufferSector(uint32 uiSector);
 
 	bool				IsFatSectorLoaded(uint32 uiSector);
 	uint32				CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, uint32 cluster);
@@ -87,6 +90,8 @@ public:
 	EFatFileSystemType	GetFileSystemType(void);
 	uint8				GetNoOfFatTables(void);
 	char*				GetLabel(void);
+	uint8*				GetFatSharedBuffer(void);
+	uint32				GetFatSharedBufferSector(void);
 
 public:
 	uint32				FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result);

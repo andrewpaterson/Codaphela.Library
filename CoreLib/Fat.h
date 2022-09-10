@@ -74,10 +74,6 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 #endif
 
 
-//  Initializes the FAT library.</summary>
-void fat_init(void);
-
-
 /**
  * <summary>
  * Allocates disk space to an open file.

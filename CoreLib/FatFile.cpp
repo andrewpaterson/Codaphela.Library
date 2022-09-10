@@ -302,7 +302,7 @@ uint16 CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entr
 		// we'll empty it
 		if (entry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
 		{
-			uint8* uiBuffer = fat_shared_buffer;
+			uint8* uiBuffer = mpcVolume->GetFatSharedBuffer();
 
 			// update the entry to point to cluster 0
 			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
@@ -312,7 +312,7 @@ uint16 CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entr
 			msFile.uiCurrentSize = entry->size;
 
 			// mark the cached sector as unknown
-			fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
+			mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 			// read the sector that contains the entry
 			bSuccess = volume->Read(entry->sector_addr, uiBuffer);
@@ -428,7 +428,7 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 	uint32	new_cluster;
 	uint32	no_of_clusters_needed;
 	bool	bSuccess;
-	uint8*	uiBuffer = fat_shared_buffer;
+	uint8*	pvBuffer = mpcVolume->GetFatSharedBuffer();
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -551,10 +551,10 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
 
 		// mark the cached sector as unknown
-		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
+		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 		// try load the sector that contains the entry
-		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, uiBuffer);
+		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, pvBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
@@ -564,10 +564,10 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 
 		// copy the modified file entry to the
 		// sector uiBuffer
-		memcpy(uiBuffer + msFile.sDirectoryEntry.sector_offset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		memcpy(pvBuffer + msFile.sDirectoryEntry.sector_offset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
-		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, uiBuffer);
+		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, pvBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
@@ -1225,7 +1225,7 @@ uint16 CFatFile::FatFileFlush(void)
 	uint16	uiResult;
 	uint32	sector_address = 0;
 	bool	bSuccess;
-	uint8*	uiBuffer = fat_shared_buffer;
+	uint8*	pvBuffer = mpcVolume->GetFatSharedBuffer();
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -1298,9 +1298,9 @@ uint16 CFatFile::FatFileFlush(void)
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.access_date = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date;
 
 		// try load the sector that contains the entry
-		fat_shared_buffer_sector = (FAT_UNKNOWN_SECTOR);
+		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
-		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, uiBuffer);
+		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, pvBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
@@ -1310,10 +1310,10 @@ uint16 CFatFile::FatFileFlush(void)
 
 		// copy the modified file entry to the
 		// sector uiBuffer
-		memcpy(uiBuffer + msFile.sDirectoryEntry.sector_offset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		memcpy(pvBuffer + msFile.sDirectoryEntry.sector_offset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
-		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, uiBuffer);
+		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, pvBuffer);
 		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 		if (uiResult != STORAGE_SUCCESS)
 		{
@@ -1326,14 +1326,14 @@ uint16 CFatFile::FatFileFlush(void)
 		// to so for now until we figure this out we'll write the next
 		// sector too TODO: implement this on driver!!
 		{
-			bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr + 1, uiBuffer);
+			bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr + 1, pvBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr + 1, uiBuffer);
+			bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr + 1, pvBuffer);
 			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
 			if (uiResult != STORAGE_SUCCESS)
 			{
