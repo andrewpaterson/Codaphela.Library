@@ -40,25 +40,25 @@ public:
 	CAbstractFile*		mpcFile;
 
 	SMD5Context			msMD5Context;
-	BOOL				mbResetMD5OnSeek;
-	BOOL				mbResetMD5OnOperationChange;
-	BOOL				mbHashing;
+	bool				mbResetMD5OnSeek;
+	bool				mbResetMD5OnOperationChange;
+	bool				mbHashing;
 	ELastMD5Operation	meLastOp;
 
 	void		Init(CAbstractFile*	pcFile);  //Don't pass through a file type of hash file again unless you enjoy being stupid.
 	void		Kill(void);
 
-	BOOL		Open(EFileMode eFileMode);
-	BOOL		Close(void);
+	bool		Open(EFileMode eFileMode);
+	bool		Close(void);
 	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		IsOpen(void);
+	bool		IsOpen(void);
 	filePos		Size(void);
-	BOOL		Truncate(filePos iSize);
-	BOOL		Flush(void);
-	BOOL		Delete(void);
+	bool		Truncate(filePos iSize);
+	bool		Flush(void);
+	bool		Delete(void);
 	char*		GetFilename(void);
 
 	void		StopHashing(void);

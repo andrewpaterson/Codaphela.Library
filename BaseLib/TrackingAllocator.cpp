@@ -72,9 +72,9 @@ void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTrackingAllocator::Free(void* pv)
+bool CTrackingAllocator::Free(void* pv)
 {
-	BOOL	bFreed;
+	bool	bFreed;
 
 	bFreed = mpcAlloc->Free(pv);
 	if (bFreed)
@@ -109,7 +109,7 @@ unsigned int CTrackingAllocator::ClassSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTrackingAllocator::IsLocal(void)
+bool CTrackingAllocator::IsLocal(void)
 {
 	return mpcAlloc->IsLocal();
 }

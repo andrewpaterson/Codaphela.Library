@@ -42,15 +42,15 @@ private:
 
 	unsigned int				muiAllocCount;
 	unsigned int				muiBreakAlloc;
-	BOOL						mbBreakOnAlloc;
+	bool						mbBreakOnAlloc;
 
 public:
 	void					Init(void);
-	void					Init(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
+	void					Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void					Kill(void);
 	void*					Add(unsigned int iSize);
 	void*					Add(unsigned int iSize, int iAlignment, int iOffset = 0);
-	BOOL					Remove(void* pv);
+	bool					Remove(void* pv);
 	int						RemoveMultiple(CArrayVoidPtr* pav);
 	unsigned int			GetSize(void* pv);
 	CFreeList*				GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
@@ -80,10 +80,10 @@ protected:
 private:
 	CFreeList*				GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
-	BOOL					DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc);
+	bool					DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
 	void*					AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
-	BOOL					DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc);
+	bool					DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc);
 	void					CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
 };
 

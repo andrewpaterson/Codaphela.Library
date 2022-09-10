@@ -33,15 +33,15 @@ private:
 	unsigned int				muiFreeListSizeLimit;
 
 public:
-	void Init(int iHeaderSize, BOOL bDefaultFreeListParams = TRUE);
+	void Init(int iHeaderSize, bool bDefaultFreeListParams = true);
 	void Kill(void);
 
 	void					AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
 	void					AddParamBlock(SMemoryFreeListParams* psParam);
 
 	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
-	BOOL					Read(CFileReader* pcFileReader);
-	BOOL					Write(CFileWriter* pcFileWriter);
+	bool					Read(CFileReader* pcFileReader);
+	bool					Write(CFileWriter* pcFileWriter);
 	void					SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
 	SMemoryFreeListParams*	GetFreeListParamsForSize(size_t iElementSize);
 	unsigned int			GetFreeListSizeLimit(void);

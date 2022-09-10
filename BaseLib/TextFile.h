@@ -39,9 +39,9 @@ public:
 	void		Kill(void);
 	void		KillExceptBuffer(void);
 
-	BOOL		Read(char* szFilename);
-	BOOL		Read(CAbstractFile* pcAbstractFile);
-	BOOL		Write(char* szFilename);
+	bool		Read(char* szFilename);
+	bool		Read(CAbstractFile* pcAbstractFile);
+	bool		Write(char* szFilename);
 
 	char*		Text(void);
 	char*		Text(int iOffset);

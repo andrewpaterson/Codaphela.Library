@@ -29,7 +29,7 @@ struct SSPNode
 {
 public:
 	size_t			iSize;
-	BOOL			bUsed;
+	bool			bUsed;
 };
 
 

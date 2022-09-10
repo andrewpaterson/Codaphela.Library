@@ -39,7 +39,7 @@ public:
 
 	void*	Allocate(size_t uiDataSize);
 
-	BOOL	CanCache(size_t uiDataSize);
+	bool	CanCache(size_t uiDataSize);
 
 	void*	StartIteration(void);
 	void*	Iterate(void* psCurrent);
@@ -51,7 +51,7 @@ public:
 
 protected:
 	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
-	BOOL	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
+	bool	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*	PostAllocate(CMemoryCacheAllocation* pcPreAllocated);
 };
 

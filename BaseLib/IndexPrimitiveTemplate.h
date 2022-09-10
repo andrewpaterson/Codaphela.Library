@@ -7,14 +7,14 @@ template<class M, class D>
 class CIndexPrimitiveTemplate : public CIndexPrimitiveBlock<M>
 {
 public:
-	BOOL	Get(M sData, D** ppsData);
+	bool	Get(M sData, D** ppsData);
 	D*		Get(M sData);
 
 	D*		Put(M sData);
-	BOOL	Put(M sData, D* psData);
+	bool	Put(M sData, D* psData);
 
-	BOOL	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey);
-	BOOL	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey);
+	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey);
+	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey);
 };
 
 
@@ -23,7 +23,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexPrimitiveTemplate<M, D>::Get(M sData, D** ppsData)
+bool CIndexPrimitiveTemplate<M, D>::Get(M sData, D** ppsData)
 {
 	return CIndexPrimitiveBlock<M>::Get(sData, ppsData, NULL);
 }
@@ -56,7 +56,7 @@ D* CIndexPrimitiveTemplate<M, D>::Put(M sData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexPrimitiveTemplate<M, D>::Put(M sData, D* psData)
+bool CIndexPrimitiveTemplate<M, D>::Put(M sData, D* psData)
 {
 	return CIndexPrimitiveBlock<M>::Put(sData, psData, sizeof(D));
 }
@@ -67,7 +67,7 @@ BOOL CIndexPrimitiveTemplate<M, D>::Put(M sData, D* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexPrimitiveTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey)
+bool CIndexPrimitiveTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey)
 {
 	return CIndexPrimitiveBlock<M>::StartIteration(psIterator, (void**)ppsData, NULL, psDestKey);
 }
@@ -78,7 +78,7 @@ BOOL CIndexPrimitiveTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterato
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexPrimitiveTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey)
+bool CIndexPrimitiveTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppsData, M* psDestKey)
 {
 	return CIndexPrimitiveBlock<M>::Iterate(psIterator, (void**)ppsData, NULL, psDestKey);
 }

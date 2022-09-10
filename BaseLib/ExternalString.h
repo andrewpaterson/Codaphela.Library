@@ -20,7 +20,6 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __EXTERNAL_STRING_H__
 #define __EXTERNAL_STRING_H__
-#include "Bool.h"
 
 
 class CExternalString
@@ -35,8 +34,8 @@ public:
 	void	Clear(void);
 	char*	EndInclusive(void);
 	void	Dump(void);
-	BOOL	Equals(CExternalString* pcOther);
-	BOOL	Equals(char* sz);
+	bool	Equals(CExternalString* pcOther);
+	bool	Equals(char* sz);
 };
 
 

@@ -43,19 +43,19 @@ public:
 	void 		Init(SDouble3* psX, SDouble3* psY, SDouble3* psZ, SDouble3* psPos);
 	void		Zero(void);
 
-	BOOL 		Save(CFileWriter* pcFile);
-	BOOL 		Load(CFileReader* pcFile);
+	bool 		Save(CFileWriter* pcFile);
+	bool 		Load(CFileReader* pcFile);
 
 	void 		Fix(void);
 	void		Identity(void);
-	BOOL 		Inverse(SDouble4x4* psOut, double* pfDeterminant);
+	bool 		Inverse(SDouble4x4* psOut, double* pfDeterminant);
 	void 		Adjoint(SDouble4x4* psOut);
 	double		Determinant(void);
 	SDouble3*	At(void);
 	SDouble3*	Up(void);
 	SDouble3*	Across(void);
 	SDouble3*	Pos(void);
-	void		Print(CChars* psz, BOOL bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
+	void		Print(CChars* psz, bool bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
 	void 		Dump(void);
 };
 
@@ -70,10 +70,10 @@ void		Double4x4RotationY(SDouble4x4* psOut, double fRad);
 void		Double4x4RotationZ(SDouble4x4* psOut, double fRad);
 void		Double4x4RotationVector(SDouble4x4* psOut, SDouble3* psV, double fRad);
 void		Double4x4Translation(SDouble4x4* psOut, double x, double y, double z);
-BOOL		Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn);
+bool		Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn);
 SDouble4x4* Double4x4LookAtRH(SDouble4x4* psOut, const SDouble3* psEye, const SDouble3* psAt, const SDouble3* psUp);
 SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fAspect, double fZNear, double fZFar);
-BOOL		Double4x4Equals(SDouble4x4* ps1, SDouble4x4* ps2);
+bool		Double4x4Equals(SDouble4x4* ps1, SDouble4x4* ps2);
 
 
 #endif // !__DOUBLE_4_X_4_H__

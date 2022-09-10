@@ -9,10 +9,10 @@ class CLogToMemory
 private:
 	CMemoryFile	mcMemoryFile;
 	SLogConfig	msSilentConfig;
-	BOOL		mbSetSilent;
+	bool		mbSetSilent;
 
 public:
-	void Start(BOOL bSetSilent);
+	void Start(bool bSetSilent);
 	void Stop(char* szOutput, size_t uiOutputSize);
 };
 

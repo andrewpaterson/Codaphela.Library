@@ -34,9 +34,9 @@ public:
 	D*		Get(const char* szKey);
 
 	D*		Put(char* szKey);
-	BOOL	Put(char* szKey, D* psData);
+	bool	Put(char* szKey, D* psData);
 	D*		Put(const char* szKey);
-	BOOL	Put(const char* szKey, D* psData);
+	bool	Put(const char* szKey, D* psData);
 };
 
 
@@ -78,7 +78,7 @@ D* CMapStringTemplate<D>::Put(char* szKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CMapStringTemplate<D>::Put(char* szKey, D* psData)
+bool CMapStringTemplate<D>::Put(char* szKey, D* psData)
 {
 	return CMapStringBlock::Put(szKey, psData, sizeof(D));
 }
@@ -100,7 +100,7 @@ D* CMapStringTemplate<D>::Put(const char* szKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CMapStringTemplate<D>::Put(const char* szKey, D* psData)
+bool CMapStringTemplate<D>::Put(const char* szKey, D* psData)
 {
 	return CMapStringBlock::Put(szKey, psData, sizeof(D));
 }

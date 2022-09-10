@@ -26,7 +26,7 @@ void CMemoryQueue::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize)
+bool CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize)
 {
 	SMemoryCacheDescriptor* psNext;
 
@@ -35,13 +35,13 @@ BOOL CMemoryQueue::FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size
 	{
 		if (Overlaps(pvCacheBasedNew, uiNewSize, psNext))
 		{
-			return TRUE;
+			return true;
 		}
 
 		psNext = GetNext(psNext);
 		if (IsFirst(psNext))
 		{
-			return FALSE;
+			return false;
 		}
 	}
 }
@@ -56,7 +56,7 @@ void* CMemoryQueue::Push(size_t uiDataSize)
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	size_t						uiRemainingAfterLast;
 	size_t						uiTotalSize;
-	BOOL						bOverlaps;
+	bool						bOverlaps;
 	SMemoryCacheDescriptor*		psCacheBasedTail;
 
 	uiTotalSize = uiDataSize + miDescriptorSize;
@@ -123,7 +123,7 @@ void* CMemoryQueue::Peek(size_t* puiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryQueue::Drop(void* pvCacheBasedHead)
+bool CMemoryQueue::Drop(void* pvCacheBasedHead)
 {
 	SMemoryCacheDescriptor*		psDescriptor;
 
@@ -131,11 +131,11 @@ BOOL CMemoryQueue::Drop(void* pvCacheBasedHead)
 	if (IsFirst(psDescriptor))
 	{
 		Deallocate(psDescriptor);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -144,7 +144,7 @@ BOOL CMemoryQueue::Drop(void* pvCacheBasedHead)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryQueue::Pop(void)
+bool CMemoryQueue::Pop(void)
 {
 	size_t	uiDataSize;
 	void*	pvData;
@@ -152,7 +152,7 @@ BOOL CMemoryQueue::Pop(void)
 	pvData = Peek(&uiDataSize);
 	if (!pvData)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return Drop(pvData);

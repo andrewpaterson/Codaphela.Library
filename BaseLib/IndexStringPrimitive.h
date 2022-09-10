@@ -11,14 +11,14 @@ public:
 	D		Get(char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
 	D		Get(const char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
 
-	BOOL	HasKey(char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
-	BOOL	HasKey(const char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
+	bool	HasKey(char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
+	bool	HasKey(const char* szKey, D sNullValue = -1, char* szLastCharInclusive = NULL);
 
-	BOOL	Put(char* szKey, D sData, char* szLastCharInclusive = NULL);
-	BOOL	Put(const char* szKey, D sData, const char* szLastCharInclusive = NULL);
+	bool	Put(char* szKey, D sData, char* szLastCharInclusive = NULL);
+	bool	Put(const char* szKey, D sData, const char* szLastCharInclusive = NULL);
 
-	BOOL	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
-	BOOL	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
 };
 
 
@@ -70,7 +70,7 @@ D CIndexStringPrimitive<D>::Get(const char* szKey, D sNullValue, char* szLastCha
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringPrimitive<D>::HasKey(char* szKey, D sNullValue, char* szLastCharInclusive)
+bool CIndexStringPrimitive<D>::HasKey(char* szKey, D sNullValue, char* szLastCharInclusive)
 {
 
 	return CIndexStringTemplate<D>::HasKey(szKey, szLastCharInclusive);
@@ -82,7 +82,7 @@ BOOL CIndexStringPrimitive<D>::HasKey(char* szKey, D sNullValue, char* szLastCha
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringPrimitive<D>::HasKey(const char* szKey, D sNullValue, char* szLastCharInclusive)
+bool CIndexStringPrimitive<D>::HasKey(const char* szKey, D sNullValue, char* szLastCharInclusive)
 {
 	return CIndexStringTemplate<D>::Get(szKey, szLastCharInclusive);
 }
@@ -93,7 +93,7 @@ BOOL CIndexStringPrimitive<D>::HasKey(const char* szKey, D sNullValue, char* szL
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringPrimitive<D>::Put(char* szKey, D sData, char* szLastCharInclusive)
+bool CIndexStringPrimitive<D>::Put(char* szKey, D sData, char* szLastCharInclusive)
 {
 	return CIndexStringTemplate<D>::Put(szKey, &sData, szLastCharInclusive);
 }
@@ -104,7 +104,7 @@ BOOL CIndexStringPrimitive<D>::Put(char* szKey, D sData, char* szLastCharInclusi
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringPrimitive<D>::Put(const char* szKey, D sData, const char* szLastCharInclusive)
+bool CIndexStringPrimitive<D>::Put(const char* szKey, D sData, const char* szLastCharInclusive)
 {
 	return CIndexStringTemplate<D>::Put(szKey, &sData, szLastCharInclusive);
 }
@@ -115,10 +115,10 @@ BOOL CIndexStringPrimitive<D>::Put(const char* szKey, D sData, const char* szLas
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+bool CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
 {
 	D*		pvResult;
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = CIndexBlock::StartIteration(psIterator, (void**)&pvResult, NULL, pvDestKey, puiKeySize, uiMaxKeySize);
 	if (bResult)
@@ -134,10 +134,10 @@ BOOL CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* ps
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringPrimitive<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+bool CIndexStringPrimitive<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
 {
 	D*		pvResult;
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = CIndexBlock::Iterate(psIterator, (void**)&pvResult, NULL, pvDestKey, puiKeySize, uiMaxKeySize);
 	if (bResult)

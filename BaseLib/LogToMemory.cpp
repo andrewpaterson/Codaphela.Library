@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogToMemory::Start(BOOL bSetSilent)
+void CLogToMemory::Start(bool bSetSilent)
 {
 	mcMemoryFile.Init();
 	gcLogger.AddOutput(&mcMemoryFile);

@@ -26,35 +26,35 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "AbstractFile.h"
 
 
-#define CheckWrite(pvData, iSize)	if (Write(pvData, iSize, 1) != 1) { return FALSE; }
+#define CheckWrite(pvData, iSize)	if (Write(pvData, iSize, 1) != 1) { return false; }
 
 
 class CFileWriter
 {
 public:
 	//General
-						BOOL	WriteData(void* pvData, filePos iDataSize);
+						bool	WriteData(void* pvData, filePos iDataSize);
 
 	//Strings.
-						BOOL	WriteString(const char* szString);
+						bool	WriteString(const char* szString);
 
 	//Helpers.		
-						BOOL	WriteInt(int8 i);
-						BOOL	WriteInt(uint8 i);
-						BOOL	WriteInt(int16 i);
-						BOOL	WriteInt(uint16 i);
-						BOOL	WriteInt(int32 i);
-						BOOL	WriteInt(uint32 i);
-						BOOL	WriteInt(int64 i);
-						BOOL	WriteInt(uint64 i);
-						BOOL	WriteFloat(float32 f);
-						BOOL	WriteFloat(float64 f);
-						BOOL	WriteChar(char8 c);
-						BOOL	WriteChar(char16 c);
-						BOOL	WriteBool(BOOL b);
-						BOOL	WriteBits(void* pvData, int iBitLength);
+						bool	WriteInt(int8 i);
+						bool	WriteInt(uint8 i);
+						bool	WriteInt(int16 i);
+						bool	WriteInt(uint16 i);
+						bool	WriteInt(int32 i);
+						bool	WriteInt(uint32 i);
+						bool	WriteInt(int64 i);
+						bool	WriteInt(uint64 i);
+						bool	WriteFloat(float32 f);
+						bool	WriteFloat(float64 f);
+						bool	WriteChar(char8 c);
+						bool	WriteChar(char16 c);
+						bool	WriteBool(bool b);
+						bool	WriteBits(void* pvData, int iBitLength);
 
-						BOOL	WriteIntArray(int* pai, int iLength);
+						bool	WriteIntArray(int* pai, int iLength);
 
 protected:
 	virtual				filePos	Write(const void* pvSource, filePos iSize, filePos iCount) =0;

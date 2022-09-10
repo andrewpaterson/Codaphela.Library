@@ -24,7 +24,7 @@ void CIndexTreeConfig::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeConfig::Init(CFileReader* pcFileReader)
+bool CIndexTreeConfig::Init(CFileReader* pcFileReader)
 {
 	
 	return Read(pcFileReader);
@@ -88,7 +88,7 @@ EIndexKeyReverse CIndexTreeConfig::ReadKeyReverse(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeConfig::WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse)
+bool CIndexTreeConfig::WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse)
 {
 	if (eKeyReverse == IKR_Yes)
 	{
@@ -101,7 +101,7 @@ BOOL CIndexTreeConfig::WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyRever
 	else
 	{
 		pcFileWriter->WriteString("IKR_Unknown");
-		return FALSE;
+		return false;
 	}
 }
 
@@ -123,7 +123,7 @@ CIndexTreeDataOrderer* CIndexTreeConfig::ReadDataOrderer(CFileReader* pcFileRead
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
+bool CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	return gcDataOrderers.Write(pcFileWriter, pcDataOrderer);
 }
@@ -133,9 +133,9 @@ BOOL CIndexTreeConfig::WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
+bool CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mcMalloc.GetLife());
 	ReturnOnFalse(bResult);
@@ -154,7 +154,7 @@ BOOL CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
+bool CIndexTreeConfig::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
@@ -163,20 +163,20 @@ BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
 	int									iMaxDataSize;
 	int									iMaxKeySize;
 	CIndexTreeDataOrderer*				pcDataOrderer;
-	BOOL								bResult;
+	bool								bResult;
 	CLifeInit<CMallocator>				cMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	eKeyReverse = ReadKeyReverse(pcFileReader);
 	if (eKeyReverse == IKR_Unknown)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = pcFileReader->ReadInt(&iMaxDataSize);
@@ -188,9 +188,9 @@ BOOL CIndexTreeConfig::Read(CFileReader* pcFileReader)
 	pcDataOrderer = ReadDataOrderer(pcFileReader);
 
 	cMalloc.Init(pcMalloc, pcMalloc->IsLocal(), pcMalloc->IsLocal());
-	cDataOrderer.Init(pcDataOrderer, TRUE, TRUE);
+	cDataOrderer.Init(pcDataOrderer, true, true);
 	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer);
-	return TRUE;
+	return true;
 }
 
 

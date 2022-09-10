@@ -60,7 +60,7 @@ void* CFreeListAllocator::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeListAllocator::Free(void* pv)
+bool CFreeListAllocator::Free(void* pv)
 {
 	return mcFreeList.Remove(pv);
 }
@@ -106,7 +106,7 @@ CFreeList* CFreeListAllocator::GetFreeList(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
+bool CFreeListAllocator::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
@@ -114,11 +114,11 @@ BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 
 	if (!pcFileReader->ReadData(&sParams, sizeof(SFreeListParams)))
 	{
-		return FALSE;
+		return false;
 	}
 
 	mcFreeList.Init(sParams.iElementSize, sParams.iAlignment, sParams.iOffset);
-	return TRUE;
+	return true;
 }
 
 
@@ -126,7 +126,7 @@ BOOL CFreeListAllocator::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeListAllocator::Write(CFileWriter* pcFileWriter)
+bool CFreeListAllocator::Write(CFileWriter* pcFileWriter)
 {
 	SFreeListParams	sParams;
 
@@ -134,9 +134,9 @@ BOOL CFreeListAllocator::Write(CFileWriter* pcFileWriter)
 	
 	if (!pcFileWriter->WriteData(&sParams, sizeof(SFreeListParams)))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 

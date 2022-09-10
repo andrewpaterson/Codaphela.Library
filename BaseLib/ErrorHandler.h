@@ -33,14 +33,14 @@ class CUserError
 {
 private:
 	char mszUserError[MAX_USER_ERROR_CHARS];
-	BOOL mbUserError;
+	bool mbUserError;
 
 public:
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL 	Set(const char* szError);
-	BOOL 	Set2(const char* szError, ...);
-	BOOL 	Set(CChars* pszError, BOOL bKillErrorString = TRUE);
+	bool 	Set(const char* szError);
+	bool 	Set2(const char* szError, ...);
+	bool 	Set(CChars* pszError, bool bKillErrorString = true);
 	char*	Get(void);
 };
 

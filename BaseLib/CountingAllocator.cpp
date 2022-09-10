@@ -157,7 +157,7 @@ void* CCountingAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCountingAllocator::Free(void* pv)
+bool CCountingAllocator::Free(void* pv)
 {
 	SCountingMemoryAllocation*	ps;
 	size_t						tOffset;
@@ -180,7 +180,7 @@ BOOL CCountingAllocator::Free(void* pv)
 			return mpcAlloc->Free(pv);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -208,7 +208,7 @@ unsigned int CCountingAllocator::ClassSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCountingAllocator::IsLocal(void)
+bool CCountingAllocator::IsLocal(void)
 {
 	return mpcAlloc->IsLocal();
 }

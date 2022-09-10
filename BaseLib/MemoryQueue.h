@@ -13,14 +13,14 @@ public:
 
 	void*	Push(size_t uiDataSize);
 	void*	Peek(size_t* puiDataSize);
-	BOOL	Drop(void* pvHead);
-	BOOL	Pop(void);
+	bool	Drop(void* pvHead);
+	bool	Pop(void);
 
 	void*	GetFirst(void);
 	void*	GetLast(void);
 
 protected:
-	BOOL	FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize);
+	bool	FindOverlapping(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize);
 };
 
 

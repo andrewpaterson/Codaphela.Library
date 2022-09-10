@@ -317,7 +317,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	int				iCharSize;
 	int				iStart;
 	int				iEnd;
-	BOOL			bFound;
+	bool			bFound;
 	unsigned char	c;
 
 	iIntSize = iArraySize / 32;
@@ -337,13 +337,13 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	iStart = i * 4;
 	iEnd = iIntSize * 4 + iCharSize;
 
-	bFound = FALSE;
+	bFound = false;
 	for (i = iStart; i < iEnd; i++)
 	{
 		c = ((char*)pvArray)[i];
 		if (c != (unsigned char)0x00)
 		{
-			bFound = TRUE;
+			bFound = true;
 			break;
 		}
 	}
@@ -414,7 +414,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	int				iCharSize;
 	int				iStart;
 	int				iEnd;
-	BOOL			bFound;
+	bool			bFound;
 	unsigned char	c;
 
 	iIntSize = iArraySize / 32;
@@ -433,13 +433,13 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	iStart = i * 4;
 	iEnd = iIntSize * 4 + iCharSize;
 
-	bFound = FALSE;
+	bFound = false;
 	for (i = iStart; i < iEnd; i++)
 	{
 		c = ((char*)pvArray)[i];
 		if (c != (unsigned char)0xff)
 		{
-			bFound = TRUE;
+			bFound = true;
 			break;
 		}
 	}
@@ -543,7 +543,7 @@ int FindLastSetBit(void* pvArray, int iArraySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int FixBool(void* pv)
+bool FixBool(void* pv)
 {
 	return FixBool((int)(size_t) pv);
 }
@@ -553,12 +553,12 @@ int FixBool(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FixBool(int i)
+bool FixBool(int i)
 {
 	if (i)
-		return TRUE;
+		return true;
 	else
-		return FALSE;
+		return false;
 }
 
 

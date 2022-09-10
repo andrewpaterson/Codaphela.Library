@@ -160,7 +160,7 @@ SDouble2 operator * (double f, const SDouble2& v)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble2::operator == (const SDouble2& v) const
+bool SDouble2::operator == (const SDouble2& v) const
 {
 	return x == v.x && y == v.y;
 }
@@ -169,7 +169,7 @@ BOOL SDouble2::operator == (const SDouble2& v) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble2::operator != (const SDouble2& v) const
+bool SDouble2::operator != (const SDouble2& v) const
 {
 	return x != v.x || y != v.y;
 }
@@ -214,9 +214,9 @@ void SDouble2::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble2::Save(CFileWriter* pcFile)
+bool SDouble2::Save(CFileWriter* pcFile)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = pcFile->WriteFloat(x);
 	bResult &= pcFile->WriteFloat(y);
@@ -228,9 +228,9 @@ BOOL SDouble2::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble2::Load(CFileReader* pcFile)
+bool SDouble2::Load(CFileReader* pcFile)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = pcFile->ReadFloat(&x);
 	bResult &= pcFile->ReadFloat(&y);

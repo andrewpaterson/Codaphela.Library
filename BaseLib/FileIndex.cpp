@@ -39,7 +39,7 @@ void CFilePosIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFilePosIndex::HasFile(void)
+bool CFilePosIndex::HasFile(void)
 {
 	return miFile != -1;
 }
@@ -127,7 +127,7 @@ void CFileDataIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileDataIndex::HasFile(void)
+bool CFileDataIndex::HasFile(void)
 {
 	return miFile != -1;
 }
@@ -159,7 +159,7 @@ void CFileDataIndex::SetIndex(CFileDataIndex* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileDataIndex::Equals(CFileDataIndex* pcOther)
+bool CFileDataIndex::Equals(CFileDataIndex* pcOther)
 {
 	return pcOther->miFile == miFile && pcOther->muiIndex == muiIndex;
 }

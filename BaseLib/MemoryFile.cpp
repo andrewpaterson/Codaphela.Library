@@ -52,10 +52,10 @@ void CMemoryFile::Init(void* pvInitialMem, int iInitialLength)
 {
 	CAbstractFile::Init();
 	mcArray.Init();
-	mbOpen = FALSE;
+	mbOpen = false;
 	mpvInitialMem = pvInitialMem;
 	miInitialLength = iInitialLength;
-	mbFakeArray = FALSE;
+	mbFakeArray = false;
 }
 
 
@@ -65,7 +65,7 @@ void CMemoryFile::Init(void* pvInitialMem, int iInitialLength)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryFile::Kill(void)
 {
-	mbOpen = FALSE;
+	mbOpen = false;
 	if (!mbFakeArray)
 	{
 		mcArray.Kill();
@@ -77,11 +77,11 @@ void CMemoryFile::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Open(EFileMode eFileMode)
+bool CMemoryFile::Open(EFileMode eFileMode)
 {
 	if (IsFileModeWritable(eFileMode))
 	{
-		mbFakeArray = FALSE;
+		mbFakeArray = false;
 		miFlags = MEMORY_FILE_READ_FLAG | MEMORY_FILE_WRITE_FLAG;
 		if (miInitialLength != 0)
 		{
@@ -96,7 +96,7 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 		miFlags = MEMORY_FILE_READ_FLAG;
 		if (miInitialLength != 0)
 		{
-			mbFakeArray = TRUE;
+			mbFakeArray = true;
 			mcArray.ReInit();
 			mcArray.Fake((char*)mpvInitialMem, miInitialLength);
 		}
@@ -104,10 +104,10 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
-	mbOpen = TRUE;
-	return TRUE;
+	mbOpen = true;
+	return true;
 }
 
 
@@ -115,21 +115,21 @@ BOOL CMemoryFile::Open(EFileMode eFileMode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Close(void)
+bool CMemoryFile::Close(void)
 {
 	if (mbOpen)
 	{
-		mbOpen = FALSE;
+		mbOpen = false;
 		if (miFlags & MEMORY_FILE_WRITE_FLAG)
 		{
-			return TRUE;
+			return true;
 		}
 		if (miFlags & MEMORY_FILE_READ_FLAG)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -183,7 +183,7 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (iSeekOrigin == EFSO_SET)
 	{
@@ -215,7 +215,7 @@ BOOL CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 	{
 		miFlags &= ~MEMORY_FILE_EOF_FLAG;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -272,7 +272,7 @@ filePos CMemoryFile::Tell(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryFile::IsOpen(void)
+bool CMemoryFile::IsOpen(void)
 {
 	return mbOpen;
 }
@@ -292,7 +292,7 @@ filePos CMemoryFile::Size(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Truncate(filePos iSize)
+bool CMemoryFile::Truncate(filePos iSize)
 {
 	return mcArray.SetUsedElements((size_t)iSize);
 }
@@ -302,9 +302,9 @@ BOOL CMemoryFile::Truncate(filePos iSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Flush(void)
+bool CMemoryFile::Flush(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -312,15 +312,15 @@ BOOL CMemoryFile::Flush(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFile::Delete(void)
+bool CMemoryFile::Delete(void)
 {
 	if (IsOpen())
 	{
-		return FALSE;
+		return false;
 	}
 
 	mcArray.ReInit();
-	return TRUE;
+	return true;
 }
 
 
@@ -384,7 +384,7 @@ CMemoryFile* MemoryFile(void)
 
 	pcMemoryFile = NewMalloc<CMemoryFile>();
 	pcMemoryFile->Init();
-	pcMemoryFile->mbBasicFileMustFree = TRUE;
+	pcMemoryFile->mbBasicFileMustFree = true;
 	return pcMemoryFile;
 }
 
@@ -399,7 +399,7 @@ CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength)
 
 	pcMemoryFile = NewMalloc<CMemoryFile>();
 	pcMemoryFile->Init(pvInitialMem, iInitialLength);
-	pcMemoryFile->mbBasicFileMustFree = TRUE;
+	pcMemoryFile->mbBasicFileMustFree = true;
 	return pcMemoryFile;
 }
 

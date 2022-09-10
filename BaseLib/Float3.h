@@ -56,15 +56,15 @@ public:
 
 	friend SFloat3 operator * (float, const SFloat3&);
 
-	BOOL operator == (const SFloat3&) const;
-	BOOL operator != (const SFloat3&) const;
+	bool operator == (const SFloat3&) const;
+	bool operator != (const SFloat3&) const;
 
 	void 	Init(float x, float y, float z);
 	void 	Init(const SFloat3& v);
 	void 	Zero(void);
 
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 
 	void 	Fix(void);
 	void 	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
@@ -75,8 +75,8 @@ public:
 	float 	Magnitude(void);
 	float 	SquareMagnitude(void);
 	void 	Normalize(void);
-	BOOL 	CloselyEqual(SFloat3* ps);
-	BOOL 	CloselyEqual(SFloat3* ps, float fTolerance);
+	bool 	CloselyEqual(SFloat3* ps);
+	bool 	CloselyEqual(SFloat3* ps, float fTolerance);
 	void 	Copy(const SFloat4* ps);
 	void 	Copy(const SFloat3* ps);
 	void 	Copy(const SFloat2* ps);

@@ -9,7 +9,7 @@
 
 
 CDatasIO	gcDataTypesIO;
-BOOL		gbDataTypesIO = FALSE;
+bool		gbDataTypesIO = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -26,7 +26,7 @@ void DataIOInit(void)
 	TypesValidate();
 
 	gcDataTypesIO.Init();
-	gbDataTypesIO = TRUE;
+	gbDataTypesIO = true;
 
 	gcDataTypesIO.Add<SIOInt8>(gcTypeNames.GetPrettyName(PT_int8));
 	gcDataTypesIO.Add<SIOInt16>(gcTypeNames.GetPrettyName(PT_int16));
@@ -77,7 +77,7 @@ void DataIOKill(void)
 	}
 
 	gcDataTypesIO.Kill();
-	gbDataTypesIO = FALSE;
+	gbDataTypesIO = false;
 }
 
 
@@ -85,16 +85,16 @@ void DataIOKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DataIOValidate(void)
+bool DataIOValidate(void)
 {
 	if (!gbDataTypesIO)
 	{
 		gcLogger.Error("Global Data Types IO has not been initialised.  DataIOInit.");
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 

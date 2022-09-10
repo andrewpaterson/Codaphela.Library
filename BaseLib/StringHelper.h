@@ -35,7 +35,7 @@ int			MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2);
 void		MemSwp(const void* pv1, const void* pv2, size_t uiLength);
 char*		StrRev(char* szString);
 char*		StrRev(char* szString, int iLength);
-const char*	FindChar(const char* szString, char c, BOOL bReverse = FALSE);
+const char*	FindChar(const char* szString, char c, bool bReverse = false);
 char*		StrCpySafe(char* szDest, const char* szSource, int iDestLength, int* piSourceLength = NULL);
 char*		StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive);
 void		ToLower(char* szString);
@@ -59,7 +59,7 @@ char*		FlagsToString(char* szDest, int iDestLength, char iFlags);
 char*		CharToString(char* szDest, int iDestLength, char c);
 char*		CharToString(char* szDest, int iDestLength, unsigned char c);
 char*		CharToString(char* szDest, int iDestLength, char16 c);
-char*		BoolToString(char* szDest, int iDestLength, BOOL b);
+char*		BoolToString(char* szDest, int iDestLength, bool b);
 
 extern char gszDigits[17];
 extern char	gszEmptyString[4];

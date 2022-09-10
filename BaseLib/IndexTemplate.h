@@ -6,20 +6,20 @@
 template<class M, class D>
 class CIndexTemplate : public CIndexBlock
 {
-	BOOL	Get(M* pvKey, D** ppvData);
+	bool	Get(M* pvKey, D** ppvData);
 	D*		Get(M* pvKey);
 
 	D*		Put(M* pvKey);
-	BOOL	Put(M* pvKey, void* pvData);
+	bool	Put(M* pvKey, void* pvData);
 
-	BOOL	Remove(M* pvKey);
+	bool	Remove(M* pvKey);
 
 	size_t	DataSize(M* pvKey);
 
-	BOOL	HasKey(M* pvKey);
+	bool	HasKey(M* pvKey);
 
-	BOOL	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey);
-	BOOL	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey);
+	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey);
+	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey);
 };
 
 
@@ -28,7 +28,7 @@ class CIndexTemplate : public CIndexBlock
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexTemplate<M, D>::Get(M* pvKey, D** ppvData)
+bool CIndexTemplate<M, D>::Get(M* pvKey, D** ppvData)
 {
 	int iDataSize;
 
@@ -63,7 +63,7 @@ D* CIndexTemplate<M, D>::Put(M* pvKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexTemplate<M, D>::Put(M* pvKey, void* pvData)
+bool CIndexTemplate<M, D>::Put(M* pvKey, void* pvData)
 {
 	return CIndexBlock::Put(pvKey, sizeof(M), sizeof(D));
 }
@@ -74,7 +74,7 @@ BOOL CIndexTemplate<M, D>::Put(M* pvKey, void* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexTemplate<M, D>::Remove(M* pvKey)
+bool CIndexTemplate<M, D>::Remove(M* pvKey)
 {
 	return CIndexBlock::Remove(pvKey, sizeof(M));
 }
@@ -96,7 +96,7 @@ size_t CIndexTemplate<M, D>::DataSize(M* pvKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexTemplate<M, D>::HasKey(M* pvKey)
+bool CIndexTemplate<M, D>::HasKey(M* pvKey)
 {
 	return CIndexBlock::HasKey(pvKey, sizeof(M));
 }
@@ -106,7 +106,7 @@ BOOL CIndexTemplate<M, D>::HasKey(M* pvKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
+bool CIndexTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
 {
 	return CIndexBlock::StartIteration(psIterator, ppvData, NULL, pvDestKey);
 }
@@ -117,7 +117,7 @@ BOOL CIndexTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIter
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CIndexTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
+bool CIndexTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
 {
 	return CIndexBlock:Iterate(psIterator, ppvData, pvDestKey);
 }

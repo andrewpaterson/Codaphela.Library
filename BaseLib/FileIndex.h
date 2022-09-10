@@ -16,7 +16,7 @@ public:
 	void			Init(int iFile, filePos ulliFilePos);
 	void			Kill(void);
 
-	BOOL			HasFile(void);
+	bool			HasFile(void);
 	void			SetIndex(int iFile, filePos ulliFilePos);
 
 	CFileDataIndex	ToFileDataIndex(unsigned int muiDataSize);
@@ -35,11 +35,11 @@ public:
 	void			Init(int iFile, unsigned int uiIndex);
 	void			Kill(void);
 
-	BOOL			HasFile(void);
+	bool			HasFile(void);
 	void			SetIndex(int iFile, unsigned int uiIndex);
 	void			SetIndex(CFileDataIndex* pcSource);
 
-	BOOL			Equals(CFileDataIndex* pcOther);
+	bool			Equals(CFileDataIndex* pcOther);
 
 	CFilePosIndex	ToFilePosIndex(unsigned int muiDataSize);
 };

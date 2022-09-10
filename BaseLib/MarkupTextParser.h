@@ -29,10 +29,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMarkupTextParser
 {
 public:
-	static CMarkupTag* GetTag(CMarkupTag* pcParentTag, char* szTagName, BOOL bLogErrors = TRUE);
-	static BOOL 		ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, BOOL bLogErrors = TRUE);
-	static BOOL 		ReadInteger(CMarkupTag* pcIntTag, int* pcInt, BOOL bLogErrors = TRUE);
-	static BOOL 		ReadBool(CMarkupTag* pcIntTag, BOOL* pcBool, BOOL bLogErrors = TRUE);
+	static CMarkupTag* GetTag(CMarkupTag* pcParentTag, char* szTagName, bool bLogErrors = true);
+	static bool 		ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool bLogErrors = true);
+	static bool 		ReadInteger(CMarkupTag* pcIntTag, int* pcInt, bool bLogErrors = true);
+	static bool 		ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogErrors = true);
 
 	static void 		LogError(CMarkupTag* pcTag, char* szError);
 	static void 		LogErrorTagNotFound(CMarkupTag* pcParentTag, char* szExpectedTag);

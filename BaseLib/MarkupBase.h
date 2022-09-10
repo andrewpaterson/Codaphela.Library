@@ -52,18 +52,18 @@ public:
 public:
 			void 	Init(EMarkupType eType, CMarkupTag* pcParent);
 
-			BOOL 	IsTag(void);
-			BOOL 	IsText(void);
-			BOOL	IsRefDoc(void);
-			BOOL	IsRefText(void);
-			BOOL	IsNamedRef(void);
+			bool 	IsTag(void);
+			bool 	IsText(void);
+			bool	IsRefDoc(void);
+			bool	IsRefText(void);
+			bool	IsNamedRef(void);
 
 			int		GetLine(void);
 			int		GetColumn(void);
 			void	SetLineAndColumn(int iLine, int iColumn);
 
 			void	ReplaceIllegalChars(CChars* pszMutableSource);
-			int		Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine);
+			int		Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, bool bAllowSameLine);
 
 	virtual int		Print(CChars* psz, int iDepth, int iLine) =0;
 };

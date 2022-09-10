@@ -4,12 +4,12 @@
 
 
 extern CDatasIO		gcDataTypesIO;
-extern BOOL			gbDataTypesIO;
+extern bool			gbDataTypesIO;
 
 
 void DataIOInit(void);
 void DataIOKill(void);
-BOOL DataIOValidate(void);
+bool DataIOValidate(void);
 
 
 #endif // !__GLOBAL_DATA_TYPES_IO_H__

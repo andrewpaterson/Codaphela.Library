@@ -9,7 +9,7 @@
 void CDebugOutputFile::Init(void)
 {
 	miPos = 0;
-	mbOpen = FALSE;
+	mbOpen = false;
 }
 
 
@@ -20,7 +20,7 @@ void CDebugOutputFile::Init(void)
 void CDebugOutputFile::Kill(void)
 {
 	miPos = 0;
-	mbOpen = FALSE;
+	mbOpen = false;
 }
 
 
@@ -28,10 +28,10 @@ void CDebugOutputFile::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::Open(EFileMode eFileMode)
+bool CDebugOutputFile::Open(EFileMode eFileMode)
 {
-	mbOpen = TRUE;
-	return TRUE;
+	mbOpen = true;
+	return true;
 }
 
 
@@ -39,10 +39,10 @@ BOOL CDebugOutputFile::Open(EFileMode eFileMode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::Close(void)
+bool CDebugOutputFile::Close(void)
 {
-	mbOpen = FALSE;
-	return TRUE;
+	mbOpen = false;
+	return true;
 }
 
 
@@ -60,16 +60,16 @@ filePos CDebugOutputFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CDebugOutputFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (iSeekOrigin == EFSO_END)
 	{
 		if (iOffset == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -101,7 +101,7 @@ filePos CDebugOutputFile::Tell(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::IsOpen(void)
+bool CDebugOutputFile::IsOpen(void)
 {
 	return mbOpen;
 }
@@ -121,9 +121,9 @@ filePos CDebugOutputFile::Size(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::Truncate(filePos iSize)
+bool CDebugOutputFile::Truncate(filePos iSize)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -131,9 +131,9 @@ BOOL CDebugOutputFile::Truncate(filePos iSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::Flush(void)
+bool CDebugOutputFile::Flush(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -141,9 +141,9 @@ BOOL CDebugOutputFile::Flush(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDebugOutputFile::Delete(void)
+bool CDebugOutputFile::Delete(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -167,7 +167,7 @@ CDebugOutputFile* DebugOutputFile(void)
 
 	pcDebugOutputFile = NewMalloc<CDebugOutputFile>();
 	pcDebugOutputFile->Init();
-	pcDebugOutputFile->mbBasicFileMustFree = TRUE;
+	pcDebugOutputFile->mbBasicFileMustFree = true;
 	return pcDebugOutputFile;
 }
 

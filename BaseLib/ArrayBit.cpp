@@ -132,7 +132,7 @@ void CArrayBit::GrowBy(int iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBit::Get(int iBit)
+bool CArrayBit::Get(int iBit)
 {
 	return GetBit(iBit, GetData());
 }
@@ -142,7 +142,7 @@ BOOL CArrayBit::Get(int iBit)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Set(int iBit, BOOL bBit)
+void CArrayBit::Set(int iBit, bool bBit)
 {
 	SetBit(iBit, GetData(), bBit);
 }
@@ -152,7 +152,7 @@ void CArrayBit::Set(int iBit, BOOL bBit)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Add(BOOL bBit)
+void CArrayBit::Add(bool bBit)
 {
 	GrowBy(1);
 	Set(miNumBits-1, bBit);
@@ -197,25 +197,25 @@ void CArrayBit::Add(void* pvSource, int iSourceOffset, int iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBit::Read(CFileReader* pcFileReader)
+bool CArrayBit::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
 	int				iNumBits;
-	BOOL			bResult;
+	bool			bResult;
 	CMallocator*	pcMalloc;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	Init(pcMalloc);
 	bResult = pcFileReader->ReadInt(&iNumBits);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	GrowBy(iNumBits);
@@ -227,20 +227,20 @@ BOOL CArrayBit::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBit::Write(CFileWriter* pcFileWriter)
+bool CArrayBit::Write(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = pcFileWriter->WriteInt(miNumBits);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return pcFileWriter->WriteBits(GetData(), ByteSize(miNumBits));
@@ -261,7 +261,7 @@ int CArrayBit::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBit::IsLarge(void)
+bool CArrayBit::IsLarge(void)
 {
 	return miNumBits > sizeof(unsigned int)*3*8;
 }

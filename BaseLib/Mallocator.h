@@ -21,10 +21,10 @@ public:
 	virtual void*		Malloc(size_t tSize) =0;
 	virtual void*		Malloc(size_t tSize, char(** pacDebugName)[4]);
 	virtual void*		Realloc(void* pv, size_t tSize) =0;
-	virtual BOOL		Free(void* pv) =0;
+	virtual bool		Free(void* pv) =0;
 	virtual int			FreeMultiple(CArrayVoidPtr* pav);
 
-	virtual BOOL		IsLocal(void) =0;
+	virtual bool		IsLocal(void) =0;
 
 	virtual size_t		SizeOffset(void) =0;
 

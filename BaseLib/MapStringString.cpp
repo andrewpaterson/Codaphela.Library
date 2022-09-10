@@ -27,14 +27,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapStringString::Put(char* szKey, char* szValue)
+bool CMapStringString::Put(char* szKey, char* szValue)
 {
 	int		iStrLen;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (szValue == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iStrLen = strlen(szValue);
@@ -64,7 +64,7 @@ void CMapStringString::Dump(void)
 	char*			szValue;
 	int				iKeySize;
 	int				iValueSize;
-	BOOL			bHasNext;
+	bool			bHasNext;
 	CChars			sz;
 	size_t			uiCount;
 

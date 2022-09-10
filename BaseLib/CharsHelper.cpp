@@ -61,7 +61,7 @@ void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
 //////////////////////////////////////////////////////////////////////////
 void CCharsHelper::GenerateBitStream(unsigned char* ucBytes, int iByteCount)
 {
-	BOOL	b;
+	bool	b;
 	CChars	sz;
 
 	sz.Init();

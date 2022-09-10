@@ -16,8 +16,8 @@ public:
 	void*	Realloc(void* pv, size_t iMemSize);
 	void	Free(void* pv);
 
-	BOOL	IsMallocInitialised(void);
-	BOOL	IsMalloc(CMallocator* pcMalloc);
+	bool	IsMallocInitialised(void);
+	bool	IsMalloc(CMallocator* pcMalloc);
 };
 
 

@@ -9,7 +9,7 @@
 void CIndexTreeIterator::Init(int iType)
 {
 	miType = iType;
-	mbStarted = FALSE;
+	mbStarted = false;
 	Clear();
 }
 
@@ -21,7 +21,7 @@ void CIndexTreeIterator::Init(int iType)
 void CIndexTreeIterator::Kill(void)
 {
 	miType = 0;
-	mbStarted = FALSE;
+	mbStarted = false;
 	Clear();
 }
 

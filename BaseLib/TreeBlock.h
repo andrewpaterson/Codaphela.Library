@@ -50,14 +50,14 @@ public:
 	void*	InsertOnAcross(void* psPos, int iDataSize);
 
 	void	Detach(void* psNodeData);
-	BOOL	RemoveLeaf(void* psNodeData);
+	bool	RemoveLeaf(void* psNodeData);
 	int		RemoveBranch(void* psNodeData);
 	void	Remove(void* psNodeData);
 
 	int		ByteSize(void);
 	
-	BOOL	WriteTreeUnknown(CFileWriter* pcFileWriter);
-	BOOL	ReadTreeUnknown(CFileReader* pcFileReader);
+	bool	WriteTreeUnknown(CFileWriter* pcFileWriter);
+	bool	ReadTreeUnknown(CFileReader* pcFileReader);
 
 protected:
 	void	FreeDetached(void* psNodeData);

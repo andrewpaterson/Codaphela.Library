@@ -74,7 +74,7 @@ int CMarkupText::Print(CChars* psz, int iDepth, int iLine)
 	CChars	szText;
 
 	szText.Init(mszText);
-	iLine = CMarkupBase::Print(psz, &szText, iDepth, iLine, FALSE);
+	iLine = CMarkupBase::Print(psz, &szText, iDepth, iLine, false);
 	szText.Kill();
 	return iLine;
 }

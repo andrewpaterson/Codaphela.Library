@@ -59,23 +59,23 @@ public:
 	M*		InsertBlockAfterEnd(M* paElements, int iLength);
 	M*		InsertBlockAt(M* paElements, int iLength, int iIndex);
 	M*		InsertBlockBeforeStart(M* paElements, int iLength);
-	int		InsertIntoSorted(DataCompare fCompare, M* pvData, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting);
 	M*		InsertNumAt(int iNumElements, int iIndex);
 
-	BOOL	Pop(M* pvData);
-	BOOL	Pop(void);
+	bool	Pop(M* pvData);
+	bool	Pop(void);
 	void 	Push(M* pvData);
 	M*		Push(void);
 	M*		PushCopy(void);
 
-	BOOL	Contains(M* pData);
-	BOOL	Equals(CArrayTemplate<M>* pcTemplateArray);
+	bool	Contains(M* pData);
+	bool	Equals(CArrayTemplate<M>* pcTemplateArray);
 	int 	Find(M* pData);
-	BOOL	FindInSorted(M* pData, DataCompare fCompare, int* piIndex);
+	bool	FindInSorted(M* pData, DataCompare fCompare, int* piIndex);
 	int 	FindWithKey(M* pData, int iKeyOffset, int iKeySize);
 
 	void	Set(int iIndex, M* pvData);
-	BOOL	SafeSet(int iIndex, M* pvData);
+	bool	SafeSet(int iIndex, M* pvData);
 };
 
 
@@ -139,7 +139,7 @@ M* CArrayTemplate<M>::SafeGet(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
+bool CArrayTemplate<M>::SafeSet(int iIndex, M* pvData)
 {
 	return CArrayBlock::SafeSet(iIndex, pvData);
 }
@@ -260,7 +260,7 @@ M* CArrayTemplate<M>::PushCopy(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplate<M>::Pop(M* pvData)
+bool CArrayTemplate<M>::Pop(M* pvData)
 {
 	return CArrayBlock::Pop(pvData);
 }
@@ -271,7 +271,7 @@ BOOL CArrayTemplate<M>::Pop(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplate<M>::Pop(void)
+bool CArrayTemplate<M>::Pop(void)
 {
 	return CArrayBlock::Pop();
 }
@@ -315,7 +315,7 @@ int CArrayTemplate<M>::Find(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplate<M>::Contains(M* pData)
+bool CArrayTemplate<M>::Contains(M* pData)
 {
 	return CArrayBlock::Contains(pData);
 }
@@ -348,7 +348,7 @@ int CArrayTemplate<M>::FindWithKey(M* pData, int iKeyOffset, int iKeySize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcTemplateArray)
+bool CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcTemplateArray)
 {
 	return CArrayBlock::Equals(pcTemplateArray);
 }
@@ -359,7 +359,7 @@ BOOL CArrayTemplate<M>::Equals(CArrayTemplate<M>* pcTemplateArray)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplate<M>::InsertIntoSorted(DataCompare fCompare, M* pvData, BOOL bOverwriteExisting)
+int CArrayTemplate<M>::InsertIntoSorted(DataCompare fCompare, M* pvData, bool bOverwriteExisting)
 {
 	return CArrayBlock::InsertIntoSorted(fCompare, pvData, bOverwriteExisting);
 }
@@ -370,7 +370,7 @@ int CArrayTemplate<M>::InsertIntoSorted(DataCompare fCompare, M* pvData, BOOL bO
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplate<M>::FindInSorted(M* pData, DataCompare fCompare, int* piIndex)
+bool CArrayTemplate<M>::FindInSorted(M* pData, DataCompare fCompare, int* piIndex)
 {
 	return CArrayBlock::FindInSorted(pData, fCompare, piIndex);
 }

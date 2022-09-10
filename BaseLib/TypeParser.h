@@ -37,11 +37,11 @@ class CTypeParser
 {
 public:
 	CTextParser*	mpcParser;
-	BOOL			mbFreeParser;
+	bool			mbFreeParser;
 
-	BOOL 		Init(char* szText, int iTextLen);
-	BOOL 		Init(char* szText);
-	BOOL 		Init(CChars* szText);
+	bool 		Init(char* szText, int iTextLen);
+	bool 		Init(char* szText);
+	bool 		Init(CChars* szText);
 	void 		AllocateParser(void);
 	void 		Init(CTextParser* pcParser);
 	void 		Kill(void);
@@ -66,7 +66,7 @@ public:
 	TRISTATE	ParseInt2(SInt2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseInt3(SInt3* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseInt4(SInt4* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
-	TRISTATE	ParseBool(BOOL* pDest);
+	TRISTATE	ParseBool(bool* pDest);
 
 	TRISTATE	ParseString(CChars* pDest);  
 	TRISTATE	ParseNumber(CNumber* pDest);	

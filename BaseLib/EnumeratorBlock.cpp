@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorBlock::AddGetNode(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace, SENode** pcThisNode)
+int CEnumeratorBlock::AddGetNode(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace, SENode** pcThisNode)
 {
 	int			iID;
 	SENode*		psNode;
@@ -55,7 +55,7 @@ int CEnumeratorBlock::AddGetNode(char* szName, void* pvData, int iDataSize, int 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorBlock::Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace)
+int CEnumeratorBlock::Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace)
 {
 	return AddGetNode(szName, pvData, iDataSize, iKeySize, iNum, bReplace, NULL);
 }
@@ -79,7 +79,7 @@ void* CEnumeratorBlock::Add(char* szName, int iDataSize, int iNum)
 {
 	SENode*		psNode;
 
-	AddGetNode(szName, NULL, iDataSize, 0, iNum, TRUE, &psNode);
+	AddGetNode(szName, NULL, iDataSize, 0, iNum, true, &psNode);
 	return psNode->pvData;
 }
 

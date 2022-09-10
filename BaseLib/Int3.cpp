@@ -54,7 +54,7 @@ void SInt3::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SInt3::operator == (const SInt3& v) const
+bool SInt3::operator == (const SInt3& v) const
 {
 	return x == v.x && y == v.y && z == v.z;
 }
@@ -110,12 +110,12 @@ SInt3& SInt3::operator -= (const SInt3& v)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SInt3::Save(CFileWriter* pcFile)
+bool SInt3::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(x));
 	ReturnOnFalse(pcFile->WriteInt(y));
 	ReturnOnFalse(pcFile->WriteInt(z));
-	return TRUE;
+	return true;
 }
 
 
@@ -123,11 +123,11 @@ BOOL SInt3::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SInt3::Load(CFileReader* pcFile)
+bool SInt3::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&x));
 	ReturnOnFalse(pcFile->ReadInt(&y));
 	ReturnOnFalse(pcFile->ReadInt(&z));
-	return TRUE;
+	return true;
 }
 

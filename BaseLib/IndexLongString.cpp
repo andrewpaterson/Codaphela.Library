@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexLongString::Get(int64 lli, char** pszData, int* piLength)
+bool CIndexLongString::Get(int64 lli, char** pszData, int* piLength)
 {
 	return CIndexPrimitiveBlock<int64>::Get(lli, (void**)pszData, piLength);
 }
@@ -25,7 +25,7 @@ char* CIndexLongString::Get(int64 lli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexLongString::Put(int64 lli, char* szData, char* szLastCharInclusive)
+bool CIndexLongString::Put(int64 lli, char* szData, char* szLastCharInclusive)
 {
 	return CIndexPrimitiveBlock<int64>::Put(lli, szData, StrLen(szLastCharInclusive));
 }
@@ -35,7 +35,7 @@ BOOL CIndexLongString::Put(int64 lli, char* szData, char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexLongString::Put(int64 lli, const char* szData, const char* szLastCharInclusive)
+bool CIndexLongString::Put(int64 lli, const char* szData, const char* szLastCharInclusive)
 {
 	return CIndexPrimitiveBlock<int64>::Put(lli, (void*)szData, StrLen(szLastCharInclusive));
 }

@@ -37,11 +37,11 @@ public:
 	D*		Get(M* psKey);
 
 	D*		Put(M* psKey);
-	BOOL	Put(M* psKey, D* psData);
+	bool	Put(M* psKey, D* psData);
 
-	BOOL	HasKey(M* psKey);
+	bool	HasKey(M* psKey);
 
-	BOOL	Remove(M* psKey);
+	bool	Remove(M* psKey);
 };
 
 
@@ -75,7 +75,7 @@ D* CMapTemplate<M, D>::Put(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapTemplate<M, D>::Put(M* psKey, D* psData)
+bool CMapTemplate<M, D>::Put(M* psKey, D* psData)
 {
 	return CMapBlock::Put(psKey, sizeof(M), psData, sizeof(D));
 }
@@ -86,7 +86,7 @@ BOOL CMapTemplate<M, D>::Put(M* psKey, D* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapTemplate<M, D>::HasKey(M* psKey)
+bool CMapTemplate<M, D>::HasKey(M* psKey)
 {
 	return CMapBlock::HasKey(psKey, sizeof(M));
 }
@@ -97,7 +97,7 @@ BOOL CMapTemplate<M, D>::HasKey(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapTemplate<M, D>::Remove(M* psKey)
+bool CMapTemplate<M, D>::Remove(M* psKey)
 {
 	return CMapBlock::Remove(psKey, sizeof(M));
 }

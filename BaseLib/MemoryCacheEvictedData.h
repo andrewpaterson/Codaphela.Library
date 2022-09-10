@@ -14,7 +14,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	BOOL	CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor);
+	bool	CacheDataEvicted(void* pvData, SMemoryCacheDescriptor* psDescriptor);
 
 	int		NumElements(void);
 	void*	Get(int iIndex, size_t* puiDataSize = NULL);

@@ -44,12 +44,12 @@ public:
 	int 	Find(M iValue);
 	int 	AddIfUnique(M iValue);
 	void	Swap(int iIndex1, int iIndex2);
-	void	InsertIntoSorted(M iElement, BOOL bOverwriteExisting);
-	BOOL	RemoveFromSorted(M iElement);
-	BOOL	RemoveDuplicatesFromSorted(void);
+	void	InsertIntoSorted(M iElement, bool bOverwriteExisting);
+	bool	RemoveFromSorted(M iElement);
+	bool	RemoveDuplicatesFromSorted(void);
 	void	MakeUnique(void);
 	void	Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2);
-	BOOL	IsSorted(void);
+	bool	IsSorted(void);
 	int		FindFinalContiguousInSorted(void);
 	M		Pop(void);
 	void 	Push(M iElement);
@@ -289,10 +289,10 @@ void CArrayTemplatePrimitive<M>::Swap(int iIndex1, int iIndex2)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, BOOL bOverwriteExisting)
+void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, bool bOverwriteExisting)
 {
 	int		iPos;
-	BOOL	bExists;
+	bool	bExists;
 
 	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (iPos < this->miUsedElements)
@@ -325,18 +325,18 @@ void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, BOOL bOverwriteExi
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
+bool CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 {
 	int		iPos;
-	BOOL	bExists;
+	bool	bExists;
 
 	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (bExists)
 	{
-		this->RemoveAt(iPos, TRUE);
-		return TRUE;
+		this->RemoveAt(iPos, true);
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -345,15 +345,15 @@ BOOL CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
+bool CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
 {
 	int		i;
 	M		iValue;
 	M		iCurrent;
-	BOOL	bAnyRemoved;
+	bool	bAnyRemoved;
 	int     iWrite;
 
-	bAnyRemoved = FALSE;
+	bAnyRemoved = false;
     if (this->miUsedElements > 0)
     {
         iCurrent = GetValue(0);
@@ -369,7 +369,7 @@ BOOL CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
             }
             else
             {
-                bAnyRemoved = TRUE;
+                bAnyRemoved = true;
             }
         }
 
@@ -430,7 +430,7 @@ void CArrayTemplatePrimitive<M>::Intersect(CArrayTemplatePrimitive<M>* pcArray1,
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplatePrimitive<M>::IsSorted(void)
+bool CArrayTemplatePrimitive<M>::IsSorted(void)
 {
 	int		i;
 	M		iValue;
@@ -447,16 +447,16 @@ BOOL CArrayTemplatePrimitive<M>::IsSorted(void)
 			{
 				if (iValue < iLast)
 				{
-					return FALSE;
+					return false;
 				}
 			}
 			iLast = iValue;
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 

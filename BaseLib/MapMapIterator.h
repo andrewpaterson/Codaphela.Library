@@ -8,7 +8,7 @@ class CMapMapIterator : public CMapIterator
 {
 protected:
 	CMapBlock*		mpcMap;
-	BOOL			mbStarted;
+	bool			mbStarted;
 	SMapIterator	msIter;
 
 public:

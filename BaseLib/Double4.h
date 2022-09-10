@@ -55,14 +55,14 @@ public:
 
 	friend SDouble4 operator * (double, const SDouble4&);
 
-	BOOL operator == (const SDouble4&) const;
-	BOOL operator != (const SDouble4&) const;	
+	bool operator == (const SDouble4&) const;
+	bool operator != (const SDouble4&) const;	
 
 	void 	Init(double x, double y, double z, double w);
 	void 	Zero(void);
 
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 	
 	void 	Fix(void);
 	int		WholeNumbers(void);

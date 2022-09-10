@@ -30,11 +30,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CIndexLongString : public CIndexPrimitiveBlock<int64>
 {
 public:
-	BOOL	Get(int64 lli, char** pszData, int* piLength);
+	bool	Get(int64 lli, char** pszData, int* piLength);
 	char*	Get(int64 lli);
 
-	BOOL	Put(int64 lli, char* szData, char* szLastCharInclusive = NULL);
-	BOOL	Put(int64 lli, const char* szData, const char* szLastCharInclusive = NULL);
+	bool	Put(int64 lli, char* szData, char* szLastCharInclusive = NULL);
+	bool	Put(int64 lli, const char* szData, const char* szLastCharInclusive = NULL);
 };
 
 

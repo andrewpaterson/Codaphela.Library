@@ -46,7 +46,7 @@ char* IntToFlags(int iInt);
 char* ShortToFlags(int siShort);
 char* StringToString(char* sz);
 char* StringToString(char* szStart, char* szLastCharInclusive);
-char* BoolToString(BOOL b);
+char* BoolToString(bool b);
 
 extern char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
 extern int  giLogToStringCount;

@@ -38,7 +38,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 CTypeNames	gcTypeNames;
-BOOL		gbTypeNames = FALSE;
+bool		gbTypeNames = false;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -52,7 +52,7 @@ void CTypeNames::AddType(EPrimitiveType eType, int iSize, const char* szPrettyNa
 	int			iPrimitiveNameLen;
 	int			iLen;
 
-	psTypeName = (STypeName*)masTypeNames.GrowToAtLeastNumElements(((int)eType)+1, TRUE, 0);
+	psTypeName = (STypeName*)masTypeNames.GrowToAtLeastNumElements(((int)eType)+1, true, 0);
 
 	psTypeName->eType = eType;
 	if (iSize & SIZE_IN_BITS)
@@ -128,7 +128,7 @@ void CTypeNames::Init(void)
 	AddType(PT_nybble,		NYBBLE_SIZE,		"Nybble",		"",					"PT_nybble");
 	AddType(PT_nickle,		NICKLE_SIZE,		"Nickle",		"",					"PT_nickle");
 	AddType(PT_sixbits,		SIXBITS_SIZE,		"Sixbits",		"",					"PT_sixbits");
-	AddType(PT_bool,		BOOL_BYTE_SIZE,		"Bool",			"BOOL",				"PT_bool");
+	AddType(PT_bool,		BOOL_BYTE_SIZE,		"Bool",			"bool",				"PT_bool");
 	AddType(PT_Pointer,		sizeof(void*),		"VoidPointer",	"void*",			"PT_Pointer");
 	AddType(PT_void,		VOID_BYTE_SIZE,		"Void",			"void",				"PT_void");
 	AddType(PT_Data,		BYTE_BYTE_SIZE,		"Data",			"",					"PT_Data");
@@ -316,7 +316,7 @@ void TypesInit(void)
 	}
 
 	gcTypeNames.Init();
-	gbTypeNames = TRUE;
+	gbTypeNames = true;
 }
 
 
@@ -332,7 +332,7 @@ void TypesKill(void)
 	}
 
 	gcTypeNames.Kill();
-	gbTypeNames = FALSE;
+	gbTypeNames = false;
 }
 
 
@@ -340,16 +340,16 @@ void TypesKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL TypesValidate(void)
+bool TypesValidate(void)
 {
 	if (!gbTypeNames)
 	{
 		gcLogger.Error("Types has not been initialised.  Call TypesInit().");
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 

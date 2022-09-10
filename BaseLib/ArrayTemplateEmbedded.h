@@ -69,19 +69,19 @@ public:
 	int		Resize(int iNumElements);
 	M* 		InsertAt(int iIndex);
 	M*		InsertAt(M* pData, int iIndex);
-	BOOL	IsEmpty(void);
-	BOOL	IsNotEmpty(void);
-	BOOL	IsEmbedded(void);
-	BOOL	IsArray(void);
+	bool	IsEmpty(void);
+	bool	IsNotEmpty(void);
+	bool	IsEmbedded(void);
+	bool	IsArray(void);
 	int		NumElements(void);
-	BOOL	Remove(M* pvElement, int bPreserveOrder = TRUE);
-	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
+	bool	Remove(M* pvElement, int bPreserveOrder = true);
+	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
 	M*		SafeGet(int iIndex);
 	void	Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded);
-	BOOL	TestInternalConsistency(void);
+	bool	TestInternalConsistency(void);
 	void 	Zero(void);
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 
@@ -128,7 +128,7 @@ void CArrayTemplateEmbedded<M, I>::ReInit(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::IsEmbedded(void)
+bool CArrayTemplateEmbedded<M, I>::IsEmbedded(void)
 {
 	return miUsedElements <= I;
 }
@@ -139,7 +139,7 @@ BOOL CArrayTemplateEmbedded<M, I>::IsEmbedded(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::IsArray(void)
+bool CArrayTemplateEmbedded<M, I>::IsArray(void)
 {
 	return miUsedElements > I;
 }
@@ -502,7 +502,7 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pData, int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::IsEmpty(void)
+bool CArrayTemplateEmbedded<M, I>::IsEmpty(void)
 {
 	return miUsedElements == 0;
 }
@@ -513,7 +513,7 @@ BOOL CArrayTemplateEmbedded<M, I>::IsEmpty(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::IsNotEmpty(void)
+bool CArrayTemplateEmbedded<M, I>::IsNotEmpty(void)
 {
 	return miUsedElements != 0;
 }
@@ -535,7 +535,7 @@ int CArrayTemplateEmbedded<M, I>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
+bool CArrayTemplateEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 {
 	int		iIndex;
 
@@ -543,11 +543,11 @@ BOOL CArrayTemplateEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 	if (iIndex != -1)
 	{
 		RemoveAt(iIndex, bPreserveOrder);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -624,23 +624,23 @@ void CArrayTemplateEmbedded<M, I>::Copy(CArrayTemplateEmbedded<M, I>* pcArrayTem
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::TestInternalConsistency(void)
+bool CArrayTemplateEmbedded<M, I>::TestInternalConsistency(void)
 {
 	if (IsEmbedded())
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		if (miUsedElements != mcArray.NumElements())
 		{
-			return FALSE;
+			return false;
 		}
 		if (sizeof(M) != mcArray.ElementSize())
 		{
-			return FALSE;
+			return false;
 		}
-		return TRUE;
+		return true;
 	}
 }
 
@@ -671,9 +671,9 @@ void CArrayTemplateEmbedded<M, I>::Zero(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::Write(CFileWriter* pcFileWriter)
+bool CArrayTemplateEmbedded<M, I>::Write(CFileWriter* pcFileWriter)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -682,9 +682,9 @@ BOOL CArrayTemplateEmbedded<M, I>::Write(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-BOOL CArrayTemplateEmbedded<M, I>::Read(CFileReader* pcFileReader)
+bool CArrayTemplateEmbedded<M, I>::Read(CFileReader* pcFileReader)
 {
-	return FALSE;
+	return false;
 }
 
 

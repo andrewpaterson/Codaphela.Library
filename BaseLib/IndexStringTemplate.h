@@ -11,9 +11,9 @@ public:
 	D*		Get(const char* szKey, char* szLastCharInclusive = NULL);
 
 	D*		Put(char* szKey, char* szLastCharInclusive = NULL);
-	BOOL	Put(char* szKey, D* psData, char* szLastCharInclusive = NULL);
+	bool	Put(char* szKey, D* psData, char* szLastCharInclusive = NULL);
 	D*		Put(const char* szKey, const char* szLastCharInclusive = NULL);
-	BOOL	Put(const char* szKey, D* psData, const char* szLastCharInclusive = NULL);
+	bool	Put(const char* szKey, D* psData, const char* szLastCharInclusive = NULL);
 };
 
 
@@ -55,7 +55,7 @@ D* CIndexStringTemplate<D>::Put(char* szKey, char* szLastCharInclusive)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringTemplate<D>::Put(char* szKey, D* psData, char* szLastCharInclusive)
+bool CIndexStringTemplate<D>::Put(char* szKey, D* psData, char* szLastCharInclusive)
 {
 	return CIndexStringBlock::Put(szKey, psData, sizeof(D), szLastCharInclusive);
 }
@@ -77,7 +77,7 @@ D* CIndexStringTemplate<D>::Put(const char* szKey, const char* szLastCharInclusi
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CIndexStringTemplate<D>::Put(const char* szKey, D* psData, const char* szLastCharInclusive)
+bool CIndexStringTemplate<D>::Put(const char* szKey, D* psData, const char* szLastCharInclusive)
 {
 	return CIndexStringBlock::Put(szKey, psData, sizeof(D), szLastCharInclusive);
 }

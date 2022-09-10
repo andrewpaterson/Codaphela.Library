@@ -13,21 +13,21 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	BOOL					Add(CIndexTreeDataOrderer* pcMalloc);
+	bool					Add(CIndexTreeDataOrderer* pcMalloc);
 
 	CIndexTreeDataOrderer*	Read(CFileReader* pcFileReader);
-	BOOL					Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer);
+	bool					Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer);
 };
 
 
 void DataOrderersInit(void);
 void DataOrderersInit(CConstructors* pcConstructors, CDataOrderers* pcDataOrderers);
 void DataOrderersKill(void);
-BOOL DataOrderersValidate(void);
+bool DataOrderersValidate(void);
 
 
 extern CDataOrderers	gcDataOrderers;
-extern BOOL				gbDataOrderers;
+extern bool				gbDataOrderers;
 
 
 #endif // !__ACCESS_DATA_ORDERERS_H__

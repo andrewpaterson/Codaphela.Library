@@ -25,7 +25,7 @@ int CMallocator::FreeMultiple(CArrayVoidPtr* pav)
 	int		iNumElements;
 	int		i;
 	void*	pv;
-	BOOL	bFreed;
+	bool	bFreed;
 
 	pav->QuickSort();
 	iNumElements = pav->NumElements();

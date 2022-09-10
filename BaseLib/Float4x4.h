@@ -43,19 +43,19 @@ public:
 	void 		Init(SFloat3* psX, SFloat3* psY, SFloat3* psZ, SFloat3* psPos);
 	void		Zero(void);
 
-	BOOL 		Save(CFileWriter* pcFile);
-	BOOL 		Load(CFileReader* pcFile);
+	bool 		Save(CFileWriter* pcFile);
+	bool 		Load(CFileReader* pcFile);
 
 	void 		Fix(void);
 	void		Identity(void);
-	BOOL 		Inverse(SFloat4x4* psOut, float* pfDeterminant);
+	bool 		Inverse(SFloat4x4* psOut, float* pfDeterminant);
 	void 		Adjoint(SFloat4x4* psOut);
 	float		Determinant(void);
 	SFloat3*	At(void);
 	SFloat3*	Up(void);
 	SFloat3*	Across(void);
 	SFloat3*	Pos(void);
-	void		Print(CChars* psz, BOOL bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
+	void		Print(CChars* psz, bool bOneLine, int iWholeNumbers = -1, int iDecimals = 2);
 	void 		Dump(void);
 };
 
@@ -70,10 +70,10 @@ void		Float4x4RotationY(SFloat4x4* psOut, float fRad);
 void		Float4x4RotationZ(SFloat4x4* psOut, float fRad);
 void		Float4x4RotationVector(SFloat4x4* psOut, SFloat3* psV, float fRad);
 void		Float4x4Translation(SFloat4x4* psOut, float x, float y, float z);
-BOOL		Float4x4Inverse(SFloat4x4* psOut, float* pfDeterminant, SFloat4x4* psIn);
+bool		Float4x4Inverse(SFloat4x4* psOut, float* pfDeterminant, SFloat4x4* psIn);
 SFloat4x4* 	Float4x4LookAtRH(SFloat4x4* psOut, const SFloat3* psEye, const SFloat3* psAt, const SFloat3* psUp);
 SFloat4x4* 	Float4x4PerspectiveFovRH(SFloat4x4* psOut, float fFovY, float fAspect, float fZNear, float fZFar);
-BOOL		Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2);
+bool		Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2);
 
 
 #endif // !__FLOAT_4_X_4_H__

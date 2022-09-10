@@ -33,7 +33,7 @@ void CPackFileNode::Init(void)
 {
 	muiFilePos = 0;
 	muiSize = 0;
-	mbNameWritten = FALSE;
+	mbNameWritten = false;
 }
 
 
@@ -50,12 +50,12 @@ void CPackFileNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFileNode::Load(CFileReader* pcReader)
+bool CPackFileNode::Load(CFileReader* pcReader)
 {
 	ReturnOnFalse(pcReader->ReadInt(&muiFilePos));
 	ReturnOnFalse(pcReader->ReadInt(&muiSize));
-	mbNameWritten = TRUE;  //If we loaded it the name has to have been written.
-	return TRUE;
+	mbNameWritten = true;  //If we loaded it the name has to have been written.
+	return true;
 }
 
 
@@ -63,12 +63,12 @@ BOOL CPackFileNode::Load(CFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFileNode::Save(CFileWriter* pcWriter)
+bool CPackFileNode::Save(CFileWriter* pcWriter)
 {
 	ReturnOnFalse(pcWriter->WriteInt(muiFilePos));
 	ReturnOnFalse(pcWriter->WriteInt(muiSize));
-	mbNameWritten = TRUE;
-	return TRUE;
+	mbNameWritten = true;
+	return true;
 }
 
 
@@ -96,7 +96,7 @@ filePos CPackFileNode::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFileNode::IsNameWritten(void)
+bool CPackFileNode::IsNameWritten(void)
 {
 	return mbNameWritten;
 }
@@ -106,7 +106,7 @@ BOOL CPackFileNode::IsNameWritten(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFileNode::IsInitialised(void)
+bool CPackFileNode::IsInitialised(void)
 {
 	return muiFilePos != 0;
 }

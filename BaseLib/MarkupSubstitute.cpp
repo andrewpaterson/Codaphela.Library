@@ -60,14 +60,14 @@ void CMarkupSubstitute::AddRef(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupSubstitute::RemoveRef(void)
+bool CMarkupSubstitute::RemoveRef(void)
 {
 	miReferences--;
 	if (miReferences <= 0)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -77,7 +77,7 @@ BOOL CMarkupSubstitute::RemoveRef(void)
 //////////////////////////////////////////////////////////////////////////
 void CMarkupSubstitute::RemoveAndKill(void)
 {
-	BOOL	bMustKill;
+	bool	bMustKill;
 
 	bMustKill = RemoveRef();
 	if (bMustKill)
@@ -91,7 +91,7 @@ void CMarkupSubstitute::RemoveAndKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupSubstitute::Is(char* szName)
+bool CMarkupSubstitute::Is(char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -101,7 +101,7 @@ BOOL CMarkupSubstitute::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupSubstitute::IsText(void)
+bool CMarkupSubstitute::IsText(void)
 {
 	return meType == MST_Text;
 }
@@ -111,7 +111,7 @@ BOOL CMarkupSubstitute::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupSubstitute::IsDoc(void)
+bool CMarkupSubstitute::IsDoc(void)
 {
 	return meType == MST_Doc;
 }

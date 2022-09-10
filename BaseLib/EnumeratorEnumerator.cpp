@@ -88,7 +88,7 @@ int CEnumeratorEnumerator::AddType(char* szType)
 	if (iID == -1)
 	{
 		cVoidEnumerator.Init();
-		return  __CEnumeratorEnumerator::Add(szType, &cVoidEnumerator, 0, -1, FALSE);
+		return  __CEnumeratorEnumerator::Add(szType, &cVoidEnumerator, 0, -1, false);
 	}
 	return iID;
 }
@@ -107,7 +107,7 @@ int CEnumeratorEnumerator::AddType(char* szType, int iTypeLen)
 	if (iID == -1)
 	{
 		cVoidEnumerator.Init();
-		return  __CEnumeratorEnumerator::Add(szType, iTypeLen, &cVoidEnumerator, 0, -1, FALSE);
+		return  __CEnumeratorEnumerator::Add(szType, iTypeLen, &cVoidEnumerator, 0, -1, false);
 	}
 	return iID;
 }

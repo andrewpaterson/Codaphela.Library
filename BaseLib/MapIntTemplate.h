@@ -30,8 +30,8 @@ template<class D>
 class CMapIntTemplate : public CMapPrimitiveTemplate<int, D>
 {
 public:
-	void	Init(BOOL bOverwrite = TRUE);
-	void	Init(CMallocator* pcMalloc, BOOL bOverwrite = TRUE);
+	void	Init(bool bOverwrite = true);
+	void	Init(CMallocator* pcMalloc, bool bOverwrite = true);
 };
 
 
@@ -40,7 +40,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(BOOL bOverwrite)
+void CMapIntTemplate<D>::Init(bool bOverwrite)
 {
 	Init(&gcSystemAllocator, bOverwrite);
 }
@@ -51,7 +51,7 @@ void CMapIntTemplate<D>::Init(BOOL bOverwrite)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
 	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };

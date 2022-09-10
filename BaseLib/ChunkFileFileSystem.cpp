@@ -9,7 +9,7 @@ void SChunkFilenameIterator::Init(void)
 {
 	szFullName.Init();
 	aiIndex.Init();
-	bDone = FALSE;
+	bDone = false;
 	szValue.Init();
 }
 
@@ -87,7 +87,7 @@ int CChunkFileFileSystem::FindChunkNamesMatching(CArrayChars* paszOpenChunkNames
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteUnmatchedChunkEnds(int iMatchingOpen)
+bool CChunkFileFileSystem::WriteUnmatchedChunkEnds(int iMatchingOpen)
 {
 	int			i;
 	CChars*		pszOpenName;
@@ -97,7 +97,7 @@ BOOL CChunkFileFileSystem::WriteUnmatchedChunkEnds(int iMatchingOpen)
 		pszOpenName = maszOpenChunkNames.Get(i);
 		ReturnOnFalse(WriteChunkEnd(pszOpenName->Text()));
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -105,7 +105,7 @@ BOOL CChunkFileFileSystem::WriteUnmatchedChunkEnds(int iMatchingOpen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames)
+bool CChunkFileFileSystem::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames)
 {
 	int			i;
 	CChars*		pszOpenName;
@@ -115,7 +115,7 @@ BOOL CChunkFileFileSystem::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChar
 		pszOpenName = paszChunkNames->Get(i);
 		ReturnOnFalse(WriteChunkBegin());
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -123,7 +123,7 @@ BOOL CChunkFileFileSystem::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteChunkBegin(char* szChunkName)
+bool CChunkFileFileSystem::WriteChunkBegin(char* szChunkName)
 {
 	CArrayChars	aszChunkNames;
 	int				iMatchingOpen;
@@ -151,11 +151,11 @@ BOOL CChunkFileFileSystem::WriteChunkBegin(char* szChunkName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteChunkEnd(void)
+bool CChunkFileFileSystem::WriteChunkEnd(void)
 {
 	WriteChunkEnd(mszLastChunkName.Text());
 	mszLastChunkName.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -163,7 +163,7 @@ BOOL CChunkFileFileSystem::WriteChunkEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::ReadOpen(void)
+bool CChunkFileFileSystem::ReadOpen(void)
 {
 	return mpcChunkFile->ReadOpen();
 }
@@ -173,7 +173,7 @@ BOOL CChunkFileFileSystem::ReadOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::ReadClose(void)
+bool CChunkFileFileSystem::ReadClose(void)
 {
 	return mpcChunkFile->ReadClose();
 }
@@ -183,7 +183,7 @@ BOOL CChunkFileFileSystem::ReadClose(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteOpen(void)
+bool CChunkFileFileSystem::WriteOpen(void)
 {
 	return mpcChunkFile->WriteOpen();
 }
@@ -193,7 +193,7 @@ BOOL CChunkFileFileSystem::WriteOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteOpen(int iUserID)
+bool CChunkFileFileSystem::WriteOpen(int iUserID)
 {
 	return mpcChunkFile->WriteOpen(iUserID);
 }
@@ -203,9 +203,9 @@ BOOL CChunkFileFileSystem::WriteOpen(int iUserID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteClose(void)
+bool CChunkFileFileSystem::WriteClose(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = WriteUnmatchedChunkEnds(0);
 	bResult &= mpcChunkFile->WriteClose();
@@ -217,7 +217,7 @@ BOOL CChunkFileFileSystem::WriteClose(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteChunkBegin(void)
+bool CChunkFileFileSystem::WriteChunkBegin(void)
 {
 	return mpcChunkFile->WriteChunkBegin();
 }
@@ -227,7 +227,7 @@ BOOL CChunkFileFileSystem::WriteChunkBegin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::WriteChunkEnd(char* szChunkName)
+bool CChunkFileFileSystem::WriteChunkEnd(char* szChunkName)
 {
 	return mpcChunkFile->WriteChunkEnd(szChunkName);
 }
@@ -237,19 +237,19 @@ BOOL CChunkFileFileSystem::WriteChunkEnd(char* szChunkName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
+bool CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 {
 	CArrayChars	aszChunkNames;
 	int				iDepth;
 	CChars*			pszName;
 	int				iIndex;
-	BOOL*			abFoundFirst;
+	bool*			abFoundFirst;
 	int				iLength;
-	BOOL			bResult;
+	bool			bResult;
 
 	if (!szChunkName)
 	{
-		return FALSE;
+		return false;
 	}
 
 	aszChunkNames.Init();
@@ -259,11 +259,11 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 	if (iLength == 0)
 	{
 		aszChunkNames.Kill();
-		return FALSE;
+		return false;
 	}
 
-	abFoundFirst = (BOOL*)malloc(sizeof(BOOL) * iLength);
-	memset_fast(abFoundFirst, 0, sizeof(BOOL) * iLength);
+	abFoundFirst = (bool*)malloc(sizeof(bool) * iLength);
+	memset_fast(abFoundFirst, 0, sizeof(bool) * iLength);
 
 	for (iDepth = 0;;)
 	{
@@ -271,7 +271,7 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 		if (!abFoundFirst[iDepth])
 		{
 			iIndex = mpcChunkFile->FindFirstChunkWithName(pszName->Text());
-			abFoundFirst[iDepth] = TRUE;
+			abFoundFirst[iDepth] = true;
 		}
 		else
 		{
@@ -280,7 +280,7 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 
 		if (iIndex == -1)
 		{
-			abFoundFirst[iDepth] = FALSE;
+			abFoundFirst[iDepth] = false;
 			iDepth--;
 
 			if (iDepth == -1)
@@ -288,7 +288,7 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 				ReadChunkEnd();
 				aszChunkNames.Kill();
 				free(abFoundFirst);
-				return FALSE;
+				return false;
 			}
 			mpcChunkFile->ReadChunkEnd();
 		}
@@ -299,7 +299,7 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 			{
 				aszChunkNames.Kill();
 				free(abFoundFirst);
-				return TRUE;
+				return true;
 			}
 			iDepth++;
 		}
@@ -316,7 +316,7 @@ BOOL CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::ReadChunkEnd(void)
+bool CChunkFileFileSystem::ReadChunkEnd(void)
 {
 	return mpcChunkFile->ReadChunkEndAll();
 }
@@ -377,7 +377,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 		if (psIter->aiIndex.NumElements() == 0)
 		{
 			psIter->szFullName.Clear();
-			psIter->bDone = TRUE;
+			psIter->bDone = true;
 			return NULL;
 		}
 
@@ -392,7 +392,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 	szName = mpcChunkFile->GetTailChunkNameForIndex(*piIndex);
 	if (szName == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	psIter->szFullName.Append('/');
@@ -408,7 +408,7 @@ char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFileSystem::StopIteration(SChunkFilenameIterator* psIter)
+bool CChunkFileFileSystem::StopIteration(SChunkFilenameIterator* psIter)
 {
 	psIter->Kill();
 

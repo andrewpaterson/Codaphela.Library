@@ -67,14 +67,14 @@ float maxf(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FloatEqual(float f1, float f2, float fTolerance)
+bool FloatEqual(float f1, float f2, float fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -82,7 +82,7 @@ BOOL FloatEqual(float f1, float f2, float fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FloatEqual(float f1, float f2)
+bool FloatEqual(float f1, float f2)
 {
 	return FloatEqual(f1, f2, SMALL_NUMBER);
 }
@@ -92,14 +92,14 @@ BOOL FloatEqual(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FloatGreaterThanOrEqual(float f1, float f2)
+bool FloatGreaterThanOrEqual(float f1, float f2)
 {
 	//f1 >= f2
 	if (f2 - SMALL_NUMBER > f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -107,14 +107,14 @@ BOOL FloatGreaterThanOrEqual(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FloatLessThanOrEqual(float f1, float f2)
+bool FloatLessThanOrEqual(float f1, float f2)
 {
 	//f1 <= f2
 	if (f2 + SMALL_NUMBER < f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -122,14 +122,14 @@ BOOL FloatLessThanOrEqual(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FloatGreaterThan(float f1, float f2)
+bool FloatGreaterThan(float f1, float f2)
 {
 	//f1 > f2
 	if (f2 + SMALL_NUMBER >= f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -137,14 +137,14 @@ BOOL FloatGreaterThan(float f1, float f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL FloatLessThan(float f1, float f2)
+bool FloatLessThan(float f1, float f2)
 {
 	//f1 < f2
 	if (f2 - SMALL_NUMBER <= f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -330,7 +330,7 @@ double sq(double f)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DoubleEqual(double f1, double f2)
+bool DoubleEqual(double f1, double f2)
 {
 	return DoubleEqual(f1, f2, SMALL_NUMBER);
 }
@@ -340,14 +340,14 @@ BOOL DoubleEqual(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DoubleEqual(double f1, double f2, double fTolerance)
+bool DoubleEqual(double f1, double f2, double fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -355,7 +355,7 @@ BOOL DoubleEqual(double f1, double f2, double fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LongDoubleEqual(long double f1, long double f2)
+bool LongDoubleEqual(long double f1, long double f2)
 {
 	return LongDoubleEqual(f1, f2, SMALL_NUMBER);
 }
@@ -365,14 +365,14 @@ BOOL LongDoubleEqual(long double f1, long double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL LongDoubleEqual(long double f1, long double f2, long double fTolerance)
+bool LongDoubleEqual(long double f1, long double f2, long double fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -380,14 +380,14 @@ BOOL LongDoubleEqual(long double f1, long double f2, long double fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DoubleGreaterThanOrEqual(double f1, double f2)
+bool DoubleGreaterThanOrEqual(double f1, double f2)
 {
 	//f1 >= f2
 	if (f2 - SMALL_NUMBER > f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -395,14 +395,14 @@ BOOL DoubleGreaterThanOrEqual(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DoubleLessThanOrEqual(double f1, double f2)
+bool DoubleLessThanOrEqual(double f1, double f2)
 {
 	//f1 <= f2
 	if (f2 + SMALL_NUMBER < f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -410,14 +410,14 @@ BOOL DoubleLessThanOrEqual(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DoubleGreaterThan(double f1, double f2)
+bool DoubleGreaterThan(double f1, double f2)
 {
 	//f1 > f2
 	if (f2 + SMALL_NUMBER >= f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -425,14 +425,14 @@ BOOL DoubleGreaterThan(double f1, double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DoubleLessThan(double f1, double f2)
+bool DoubleLessThan(double f1, double f2)
 {
 	//f1 < f2
 	if (f2 - SMALL_NUMBER <= f1)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -635,7 +635,7 @@ float NotANumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL IsNotANumber(float* pf)
+bool IsNotANumber(float* pf)
 {
 	return *((int*)((void*)pf)) == 0xffffffff;
 }

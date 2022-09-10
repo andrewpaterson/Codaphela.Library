@@ -14,10 +14,10 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	BOOL			Add(CMallocator* pcMalloc);
+	bool			Add(CMallocator* pcMalloc);
 
 	CMallocator*	Read(CFileReader* pcFileReader);
-	BOOL			Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc);
+	bool			Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc);
 };
 
 

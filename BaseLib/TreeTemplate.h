@@ -114,17 +114,17 @@ public:
 	M*		InsertOnAcross(M* psPos, M* psNewData);
 
 	void	Detach(M* psNodeData);
-	void	Detach(STNode* psNodeHeader, BOOL bDetachChildren = FALSE);
+	void	Detach(STNode* psNodeHeader, bool bDetachChildren = false);
 	M*		AllocateDetached(void);
 	void	FreeDetached(M* psNodeData);
 	void	DetachTree(CTreeTemplate<M>* pcDestTree, M* psNodeData);
 
-	BOOL	RemoveLeaf(M* psNodeData);
+	bool	RemoveLeaf(M* psNodeData);
 	int		RemoveBranch(M* psNodeData);
 	void	Remove(M* psNodeData);
 
-	BOOL	WriteTreeTemplate(CFileWriter* pcFileWriter);
-	BOOL	ReadTreeTemplate(CFileReader* pcFileReader);
+	bool	WriteTreeTemplate(CFileWriter* pcFileWriter);
+	bool	ReadTreeTemplate(CFileReader* pcFileReader);
 
 protected:
 	void*	Malloc(size_t tSize);
@@ -1089,7 +1089,7 @@ M* CTreeTemplate<M>::AllocateDetached(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CTreeTemplate<M>::Detach(STNode* psNodeHeader, BOOL bDetachChildren)
+void CTreeTemplate<M>::Detach(STNode* psNodeHeader, bool bDetachChildren)
 {
 	STNode*		psNodeLeft;
 	STNode*		psNodeUp;
@@ -1180,7 +1180,7 @@ void CTreeTemplate<M>::Detach(M* psNodeData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CTreeTemplate<M>::RemoveLeaf(M* psNodeData)
+bool CTreeTemplate<M>::RemoveLeaf(M* psNodeData)
 {
 	STNode*		psNodeHeader;
 
@@ -1188,11 +1188,11 @@ BOOL CTreeTemplate<M>::RemoveLeaf(M* psNodeData)
 	if ((psNodeData == NULL) || (psNodeHeader->psUp))
 	{
 		//This wasn't a leaf so we can't detach it.
-		return FALSE;
+		return false;
 	}
 	Detach(psNodeHeader);
 	Free(psNodeHeader);
-	return TRUE;
+	return true;
 }
 
 
@@ -1239,7 +1239,7 @@ void CTreeTemplate<M>::DetachTree(CTreeTemplate<M>* pcDestTree, M* psNodeData)
 	STNode*		psNodeHeader;
 
 	psNodeHeader = DataGetHeader<STNode, M>(psNodeData);
-	Detach(psNodeHeader, TRUE);
+	Detach(psNodeHeader, true);
 
 	//Initialise the destination tree.
 	pcDestTree->mpsRoot = psNodeHeader;
@@ -1303,7 +1303,7 @@ STNode* CTreeTemplate<M>::PrivateFindLeftChild(STNode* psNodeHeader)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
+bool CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 {
 	M*		pvData;
 	int		iElementSize;
@@ -1313,12 +1313,12 @@ BOOL CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 	iElementSize = sizeof(M);
 	if (!pcFileWriter->WriteData(&iElementSize, sizeof(int))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	if (!pcFileWriter->WriteData(this, sizeof(CTreeTemplate<M>))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	if (NumElements() != 0)
@@ -1329,29 +1329,29 @@ BOOL CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 			iPathSize = GetPathTo(aiPath, pvData);
 			if (iPathSize >= 1024)
 			{
-				return FALSE; 
+				return false; 
 			}
 			if (!pcFileWriter->WriteData(&iPathSize, sizeof(int))) 
 			{ 
-				return FALSE; 
+				return false; 
 			}
 
 			if (iPathSize != 0)
 			{
 				if (!pcFileWriter->WriteData(aiPath, sizeof(int) * iPathSize)) 
 				{ 
-					return FALSE; 
+					return false; 
 				}
 			}
 			if (!pcFileWriter->WriteData(pvData, sizeof(M)))
 			{ 
-				return FALSE; 
+				return false; 
 			}
 
 			pvData = TraverseFrom(pvData);
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1360,7 +1360,7 @@ BOOL CTreeTemplate<M>::WriteTreeTemplate(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
+bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 {
 	M*			pvData[2];
 	int			iElementSize;
@@ -1373,17 +1373,17 @@ BOOL CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 
 	if (!pcFileReader->ReadData(&iElementSize, sizeof(int))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	if (iElementSize != sizeof(M))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!pcFileReader->ReadData(this, sizeof(CTreeTemplate<M>))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	iNumElements = NumElements();
@@ -1395,27 +1395,27 @@ BOOL CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 	{
 		if (!pcFileReader->ReadData(&iPathSize[iPathNum], sizeof(int))) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 
 		if (iPathSize[iPathNum] != 0)
 		{
 			if (!pcFileReader->ReadData(aiPath[iPathNum], sizeof(int) * iPathSize[iPathNum])) 
 			{ 
-				return FALSE; 
+				return false; 
 			}
 		}
 		pvData[iPathNum] = InsertOnPath(aiPath[iPathNum], iPathSize[iPathNum], aiPath[iOldPath], iPathSize[iOldPath], pvData[iOldPath]);
 		if (!pcFileReader->ReadData(pvData[iPathNum], sizeof(M))) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 
 		iOldPath = iPathNum;
 		iPathNum++;
 		iPathNum = iPathNum % 2;
 	}
-	return TRUE;
+	return true;
 }
 
 

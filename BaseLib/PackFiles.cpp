@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Init(CAbstractFile* pcFile, EPackFileMode eMode)
+bool CPackFiles::Init(CAbstractFile* pcFile, EPackFileMode eMode)
 {
 	mcFile.Init(pcFile);
 	meMode = eMode;
@@ -54,7 +54,7 @@ BOOL CPackFiles::Init(CAbstractFile* pcFile, EPackFileMode eMode)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -83,7 +83,7 @@ void CPackFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::IsWriteMode(void)
+bool CPackFiles::IsWriteMode(void)
 {
 	return meMode == PFM_Write;
 }
@@ -93,7 +93,7 @@ BOOL CPackFiles::IsWriteMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::IsReadMode(void)
+bool CPackFiles::IsReadMode(void)
 {
 	return meMode == PFM_Read;
 }
@@ -103,7 +103,7 @@ BOOL CPackFiles::IsReadMode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
+bool CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 {
 	filePos		iReadPos;
 
@@ -123,7 +123,7 @@ BOOL CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 
 	mpsLastAccessed = psPackFile;
 	miPosition = iReadPos;
-	return TRUE;
+	return true;
 };
 
 
@@ -190,7 +190,7 @@ filePos CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin)
+bool CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin)
 {
 	filePos	iAbsoluteOffset;
 
@@ -208,7 +208,7 @@ BOOL CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSe
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (iAbsoluteOffset < psPackFile->FilePos())
@@ -217,12 +217,12 @@ BOOL CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSe
 	}
 	else if (iAbsoluteOffset >= psPackFile->FilePos() + psPackFile->Size())
 	{
-		return FALSE;
+		return false;
 	}
 
 	mcFile.Seek(iAbsoluteOffset, EFSO_SET);
 	miPosition = iAbsoluteOffset;
-	return TRUE;
+	return true;
 }
 
 
@@ -230,7 +230,7 @@ BOOL CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	//Can only seek in read mode.
 	if (meMode == PFM_Read)
@@ -243,14 +243,14 @@ BOOL CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigi
 		{
 			if (!ChangeReadFiles(psPackFile))
 			{
-				return FALSE;
+				return false;
 			}
 			return PrivateSeek(psPackFile, iOffset, iSeekOrigin);
 		}
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -318,16 +318,16 @@ filePos CPackFiles::Tell(CPackFileNode* psPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Flush(void)
+bool CPackFiles::Flush(void)
 {
 	if (meMode == PFM_Write)
 	{
 		mcFile.Flush();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -340,7 +340,7 @@ CPackFile* CPackFiles::WriteOpen(char* szFilename)
 {
 	CFileNodePackFileNode*	pcFileNode;
 	CPackFile*				pcFile;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (mpsLastAccessed != NULL)
 	{
@@ -384,7 +384,7 @@ CPackFile* CPackFiles::ReadOpen(char* szFilename)
 {
 	CFileNodePackFileNode*	pcFileNode;
 	CPackFile*				pcFile;
-	BOOL					bResult;
+	bool					bResult;
 	filePos					iPosition;
 
 	if (meMode == PFM_Read)
@@ -427,14 +427,14 @@ CPackFile* CPackFiles::ReadOpen(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Close(CPackFile* pcPackFile)
+bool CPackFiles::Close(CPackFile* pcPackFile)
 {
 	if (meMode == PFM_Write)
 	{
 		mcFile.Flush();
 	}
 	mpsLastAccessed = NULL;
-	return TRUE;
+	return true;
 }
 
 
@@ -442,19 +442,19 @@ BOOL CPackFiles::Close(CPackFile* pcPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
+bool CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
 {
 	CPackFile*		pcPackFile;
 	CFileCopier		cCopier;
-	BOOL			bResult;
+	bool			bResult;
 	
 	pcPackFile = WriteOpen(szFilename);
 	if (!pcPackFile)
 	{
-		return FALSE;
+		return false;
 	}
 
-	pcPackFile->mbBasicFileMustFree = FALSE;
+	pcPackFile->mbBasicFileMustFree = false;
 	bResult = cCopier.Copy(pcFile, pcPackFile);
 	pcPackFile->Close();
 	pcPackFile->Kill();
@@ -467,7 +467,7 @@ BOOL CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
+bool CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 {
 	CFileUtil		cFileUtil;
 	CArrayChars	aszFilenames;
@@ -476,16 +476,16 @@ BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 	CDiskFile		cDiskFile;
 	CChars			szName;
 	CChars			szNameDirectory;
-	BOOL			bResult;
-	BOOL			bAnyFiles;
+	bool			bResult;
+	bool			bAnyFiles;
 
 	aszFilenames.Init();
-	bAnyFiles = cFileUtil.FindAllFiles(szDirectory, &aszFilenames, TRUE, FALSE);
+	bAnyFiles = cFileUtil.FindAllFiles(szDirectory, &aszFilenames, true, false);
 
 	if (!bAnyFiles)
 	{
 		aszFilenames.Kill();
-		return FALSE;
+		return false;
 	}
 
 	szNameDirectory.Init(szDirectory);
@@ -508,13 +508,13 @@ BOOL CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 		{
 			szNameDirectory.Kill();
 			aszFilenames.Kill();
-			return FALSE;
+			return false;
 		}
 	}
 
 	szNameDirectory.Kill();
 	aszFilenames.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -542,7 +542,7 @@ CFileNodePackFileNode* CPackFiles::AddFile(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::BeginRead(void)
+bool CPackFiles::BeginRead(void)
 {
 	maReads.Init();
 
@@ -551,7 +551,7 @@ BOOL CPackFiles::BeginRead(void)
 	ReturnOnFalse(ReadHeader());
 	ReturnOnFalse(ReadNodes());
 	
-	return TRUE;
+	return true;
 }
 
 
@@ -559,7 +559,7 @@ BOOL CPackFiles::BeginRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::BeginWrite(void)
+bool CPackFiles::BeginWrite(void)
 {
 	ReturnOnFalse(mcFile.Open(EFM_ReadWrite_Create));
 
@@ -568,7 +568,7 @@ BOOL CPackFiles::BeginWrite(void)
 		ReturnOnFalse(ReadHeader());
 		ReturnOnFalse(ReadNodes());
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -581,7 +581,7 @@ BOOL CPackFiles::BeginWrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::EndRead(void)
+bool CPackFiles::EndRead(void)
 {
 	maReads.Kill();
 	return mcFile.Close();
@@ -592,7 +592,7 @@ BOOL CPackFiles::EndRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::EndWrite(void)
+bool CPackFiles::EndWrite(void)
 {
 	ReturnOnFalse(WriteNodes());
 	return mcFile.Close();
@@ -613,7 +613,7 @@ const char* CPackFiles::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::WriteHeader(void)
+bool CPackFiles::WriteHeader(void)
 {
 	CFileHeader	cFileHeader;
 
@@ -622,7 +622,7 @@ BOOL CPackFiles::WriteHeader(void)
 
 	miPosition = mcFile.GetFilePos();
 	miNextNodesPtr = miPosition - sizeof(filePos);
-	return TRUE;
+	return true;
 }
 
 
@@ -630,7 +630,7 @@ BOOL CPackFiles::WriteHeader(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::ReadHeader(void)
+bool CPackFiles::ReadHeader(void)
 {
 	CFileHeader	cFileHeader;
 
@@ -640,7 +640,7 @@ BOOL CPackFiles::ReadHeader(void)
 	miPosition = mcFile.GetFilePos();
 	miNextNodesPtr = miPosition - sizeof(filePos);
 	
-	return TRUE;
+	return true;
 }
 
 
@@ -648,12 +648,12 @@ BOOL CPackFiles::ReadHeader(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::ReadNodes(void)
+bool CPackFiles::ReadNodes(void)
 {
 	filePos		iPosition;
 	int			i;
 	int			iNumFiles;
-	BOOL		bResult;
+	bool		bResult;
 
 	iPosition = miPosition;
 	if (miNodes != 0)
@@ -680,11 +680,11 @@ BOOL CPackFiles::ReadNodes(void)
 		}
 		mcFile.Seek(iPosition);
 		miPosition = iPosition;
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -693,7 +693,7 @@ BOOL CPackFiles::ReadNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::ReadNode(void)
+bool CPackFiles::ReadNode(void)
 {
 	CChars			sz;
 	CFileNodePackFileNode*	pcNode;
@@ -702,7 +702,7 @@ BOOL CPackFiles::ReadNode(void)
 	if (!sz.ReadString(&mcFile))
 	{
 		sz.Kill();
-		return FALSE;
+		return false;
 	}
 
 	pcNode = AddFile(sz.Text());
@@ -710,13 +710,13 @@ BOOL CPackFiles::ReadNode(void)
 
 	if (!((pcNode) && (pcNode->IsFile())))
 	{
-		return FALSE;
+		return false;
 	}
 
 	ReturnOnFalse(pcNode->File()->Load(&mcFile));
 
 	miPosition = mcFile.GetFilePos();
-	return TRUE;
+	return true;
 }
 
 
@@ -724,14 +724,14 @@ BOOL CPackFiles::ReadNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::WriteNodes(void)
+bool CPackFiles::WriteNodes(void)
 {
 	filePos	iPosition;
 	int		iNumFiles;
 
 	if (miNextNodesPtr == 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iPosition = mcFile.GetFileSize();
@@ -799,10 +799,10 @@ int CPackFiles::RecurseGetNumUnwrittenNames(CFileNodePackFileNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::WriteUnwrittenNames(void)
+bool CPackFiles::WriteUnwrittenNames(void)
 {
 	CChars	szPath;
-	BOOL	bResult;
+	bool	bResult;
 
 	szPath.Init();
 	bResult = RecurseWriteUnwrittenNames(mcNames.GetRoot(), &szPath);
@@ -815,11 +815,11 @@ BOOL CPackFiles::WriteUnwrittenNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChars* pszPath)
+bool CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChars* pszPath)
 {
 	CFileNodePackFileNode*	pcChild;
 	int				i;
-	BOOL			bResult;
+	bool			bResult;
 	int				iPathLength;
 	CChars			szPath;
 
@@ -836,10 +836,10 @@ BOOL CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChar
 
 			if (!bResult)
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
 	else if (pcNode->IsFile())
 	{
@@ -850,11 +850,11 @@ BOOL CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChar
 			szPath.Kill();
 			return pcNode->File()->Save(&mcFile);
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -863,7 +863,7 @@ BOOL CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::Unpack(char* szDestination)
+bool CPackFiles::Unpack(char* szDestination)
 {
 	FixParents();
 	return RecurseUnpack(mcNames.GetRoot(), szDestination);
@@ -875,13 +875,13 @@ BOOL CPackFiles::Unpack(char* szDestination)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination)
+bool CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination)
 {
 	CChars					szFilename;
 	CFileNodePackFileNode*	pcChild;
 	int						i;
 	CPackFileNode*			pcFile;
-	BOOL					bResult;
+	bool					bResult;
 	CPackFile*				pcPackFile;
 	CFileCopier				cCopier;
 	CDiskFile				cDiskFile;
@@ -889,7 +889,7 @@ BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestinatio
 
 	if (pcNode->IsDirectory())
 	{
-		bResult = TRUE;
+		bResult = true;
 		for (i = 0; i < pcNode->Directory()->maNodeFiles.NumElements(); i++)
 		{
 			pcChild = (CFileNodePackFileNode*)pcNode->Directory()->maNodeFiles.Get(i);
@@ -910,7 +910,7 @@ BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestinatio
 		if (!pcPackFile)
 		{
 			szFilename.Kill();
-			return FALSE;
+			return false;
 		}
 
 		cDiskFile.Init(szFilename.Text());
@@ -924,7 +924,7 @@ BOOL CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestinatio
 		szFilename.Kill();
 		return bResult;
 	}
-	return FALSE;
+	return false;
 }
 
 

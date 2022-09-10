@@ -41,9 +41,9 @@ public:
 	void 				Init(char cSeparator);
 	void 				Kill(void);
 
-	BOOL 				ReadLine(void);
-	BOOL				ReadLine(char* szString, int iMaxLength);
-	BOOL 				ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow);
+	bool 				ReadLine(void);
+	bool				ReadLine(char* szString, int iMaxLength);
+	bool 				ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow);
 	SCSVRowImmutable*	AllocateRow(char* szText);
 	void				FreeRow(SCSVRowImmutable* psCSVRow);
 	void 				ReadAllLines(void);

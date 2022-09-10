@@ -55,7 +55,7 @@ int CompareFreeListParam(const void* arg1, const void* arg2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryFreeListParams::Init(int iHeaderSize, BOOL bDefaultFreeListParams)
+void CMemoryFreeListParams::Init(int iHeaderSize, bool bDefaultFreeListParams)
 {
 	miHeaderSize = iHeaderSize;
 	if (bDefaultFreeListParams)
@@ -197,7 +197,7 @@ void CMemoryFreeListParams::SetFreeListSizeLimit(unsigned int uiFreeListSizeLimi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFreeListParams::Read(CFileReader* pcFileReader)
+bool CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 {
 	SMemoryFreeListParams	sBlockParams;
 	int						i;
@@ -208,25 +208,25 @@ BOOL CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 
 	if (!pcFileReader->ReadInt(&iHeaderSize))
 	{
-		return FALSE;
+		return false;
 	}
 	if (!pcFileReader->ReadInt((int*)&uiFreeListSizeLimit))
 	{
-		return FALSE;
+		return false;
 	}
 	if (!pcFileReader->ReadInt(&iFreeListParams))
 	{
-		return FALSE;
+		return false;
 	}
 
 
-	Init(iHeaderSize, FALSE);
+	Init(iHeaderSize, false);
 
 	for (i = 0; i < iFreeListParams; i++)
 	{
 		if (!pcFileReader->ReadData(&sBlockParams, sizeof(SMemoryFreeListParams)))
 		{
-			return FALSE;
+			return false;
 		}
 
 		AddParamBlock(&sBlockParams);
@@ -234,7 +234,7 @@ BOOL CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 
 	SetFreeListSizeLimit(uiFreeListSizeLimit);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -242,22 +242,22 @@ BOOL CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
+bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 {
 	SMemoryFreeListParams*	psBlockParams;
 	int						i;
 
 	if (!pcFileWriter->WriteInt(miHeaderSize))
 	{
-		return FALSE;
+		return false;
 	}
 	if (!pcFileWriter->WriteInt(muiFreeListSizeLimit))
 	{
-		return FALSE;
+		return false;
 	}
 	if (!pcFileWriter->WriteInt(mcParams.NumElements()))
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (i = 0; i < mcParams.NumElements(); i++)
@@ -265,11 +265,11 @@ BOOL CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 		psBlockParams = GetFreeListParams(i);
 		if (!pcFileWriter->WriteData(psBlockParams, sizeof(SMemoryFreeListParams)))
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 

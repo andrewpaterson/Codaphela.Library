@@ -15,7 +15,7 @@ public:
 	void	Init(int x, int y, int z);
 	void	Zero(void);
 
-	BOOL operator == (const SInt3&) const;
+	bool operator == (const SInt3&) const;
 
 	SInt3 operator + (const SInt3&) const;
 	SInt3 operator - (const SInt3&) const;
@@ -23,8 +23,8 @@ public:
 	SInt3& operator += (const SInt3&);
 	SInt3& operator -= (const SInt3&);
 
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 };
 
 

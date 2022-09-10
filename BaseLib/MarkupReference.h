@@ -53,7 +53,7 @@ public:
 	void 	Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
 	void 	Kill(void);
 
-	BOOL		Is(char* szName);
+	bool		Is(char* szName);
 	CMarkupTag*	GetRootTag(void);
 	int			Print(CChars* psz, int iDepth, int iLine);
 };

@@ -15,7 +15,7 @@ void CIndexTreeMemoryConfig::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyRever
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryConfig::Init(CFileReader* pcFileReader)
+bool CIndexTreeMemoryConfig::Init(CFileReader* pcFileReader)
 {
 	return CIndexTreeConfig::Init(pcFileReader);
 }
@@ -34,7 +34,7 @@ void CIndexTreeMemoryConfig::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryConfig::Write(CFileWriter* pcFileWriter)
+bool CIndexTreeMemoryConfig::Write(CFileWriter* pcFileWriter)
 {
 	return CIndexTreeConfig::Write(pcFileWriter);
 }
@@ -44,7 +44,7 @@ BOOL CIndexTreeMemoryConfig::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryConfig::Read(CFileReader* pcFileReader)
+bool CIndexTreeMemoryConfig::Read(CFileReader* pcFileReader)
 {
 	return CIndexTreeConfig::Read(pcFileReader);
 }

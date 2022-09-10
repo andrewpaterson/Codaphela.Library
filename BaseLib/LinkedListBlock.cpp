@@ -177,20 +177,20 @@ void CLinkedListBlock::InsertDetachedAfterTail(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
+bool CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = WriteData(pcFileWriter);
@@ -202,7 +202,7 @@ BOOL CLinkedListBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
+bool CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 {
 	SLinkedListBlockDesc	sHeader;
 	int						iNumElements;
@@ -212,10 +212,10 @@ BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 
 	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListBlockDesc)))
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -223,7 +223,7 @@ BOOL CLinkedListBlock::WriteHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
+bool CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 {
 	void*	pvData;
 	int		iSize;
@@ -234,16 +234,16 @@ BOOL CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 		iSize = GetNodeSize(pvData);
 		if (!pcFileWriter->WriteInt(iSize))
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileWriter->WriteData(pvData, iSize))
 		{
-			return FALSE;
+			return false;
 		}
 
 		pvData = GetNext(pvData);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -251,24 +251,24 @@ BOOL CLinkedListBlock::WriteData(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
+bool CLinkedListBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
 	int				iNumElements;
-	BOOL			bResult;
+	bool			bResult;
 	CMallocator*	pcMalloc;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = ReadHeader(pcFileReader, pcMalloc, &iNumElements);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = ReadData(pcFileReader, iNumElements);
@@ -280,23 +280,23 @@ BOOL CLinkedListBlock::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+bool CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
 {
 	SLinkedListBlockDesc	sDesc;
 
 	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListBlockDesc)))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (sizeof(SLLBlockNode) != sDesc.uiNodeSize)
 	{
-		return FALSE;
+		return false;
 	}
 
 	Init(pcMalloc);
 	*piNumElements = sDesc.iNumElements;
-	return TRUE;
+	return true;
 }
 
 
@@ -304,7 +304,7 @@ BOOL CLinkedListBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMall
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedListBlock::ReadData(CFileReader* pcFileReader, int iNumElements)
+bool CLinkedListBlock::ReadData(CFileReader* pcFileReader, int iNumElements)
 {
 	int		i;
 	void*	pvData;
@@ -314,15 +314,15 @@ BOOL CLinkedListBlock::ReadData(CFileReader* pcFileReader, int iNumElements)
 	{
 		if (!pcFileReader->ReadInt(&iSize))
 		{
-			return FALSE;
+			return false;
 		}
 
 		pvData = InsertAfterTail(iSize);
 		if (!pcFileReader->ReadData(pvData, iSize))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 

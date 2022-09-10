@@ -19,8 +19,8 @@ public:
 	void	Kill(void);
 
 	int		NumElements(void);
-	BOOL	IsEmpty(void);
-	BOOL	IsNotEmpty(void);
+	bool	IsEmpty(void);
+	bool	IsNotEmpty(void);
 	int 	ElementSize(void);
 	int		NumBlocks(void);
 	int		NumElementsFromFreeList(void);
@@ -37,21 +37,21 @@ public:
 	void* 	InsertAt(int iIndex);
 	void* 	InsertAt(void* pvData, int iIndex);
 
-	BOOL	Pop(void* pvData);
-	BOOL	Pop(void);
+	bool	Pop(void* pvData);
+	bool	Pop(void);
 	void* 	Push(void* pvElement);
 	void*	Push(void);
 
 	void	Reverse(void);
 
-	BOOL	Contains(void* pData);
+	bool	Contains(void* pData);
 
-	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
-	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
+	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
+	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
 	void 	RemoveTail(void);
 
-	BOOL	Set(int iIndex, void* pvData);
-	BOOL	SafeSet(int iIndex, void* pvData);
+	bool	Set(int iIndex, void* pvData);
+	bool	SafeSet(int iIndex, void* pvData);
 	void	Swap(int iIndex1, int iIndex2);
 
 protected:

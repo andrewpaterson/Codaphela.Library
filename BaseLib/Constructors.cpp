@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CConstructors::Init(void)
 {
-	mcConstructors.Init(32);
+	mcConstructors.Init();
 }
 
 
@@ -88,13 +88,13 @@ int CConstructors::NumConstructors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConstructors::ValidateMemoryInitialised(void)
+bool CConstructors::ValidateMemoryInitialised(void)
 {
 	if (!mcConstructors.IsMallocInitialised())
 	{
 		return gcLogger.Error2(__METHOD__, " Constructor's Malloc is not initialised.  Call MemoryInit()", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -102,9 +102,9 @@ BOOL CConstructors::ValidateMemoryInitialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConstructors::ValidateNotAdded(const char* szClassName)
+bool CConstructors::ValidateNotAdded(const char* szClassName)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcConstructors.HasKey(szClassName);
 	if (bResult)
@@ -113,7 +113,7 @@ BOOL CConstructors::ValidateNotAdded(const char* szClassName)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -122,7 +122,7 @@ BOOL CConstructors::ValidateNotAdded(const char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConstructors::Contains(const char* szName)
+bool CConstructors::Contains(const char* szName)
 {
 	void*	pcConstructor;
 	int		iSize;

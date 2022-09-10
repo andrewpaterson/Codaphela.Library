@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __PRIMITIVE_TYPES_H__
 #define __PRIMITIVE_TYPES_H__
-#include "Bool.h"
 
 
 typedef signed char				int8;

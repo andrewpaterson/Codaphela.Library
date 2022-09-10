@@ -30,7 +30,7 @@ void CMemoryCacheAllocation::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCacheAllocation::HasOverlaps(void)
+bool CMemoryCacheAllocation::HasOverlaps(void)
 {
 	return mapEvictedCacheDescriptors.IsNotEmpty();
 }

@@ -94,9 +94,9 @@ void SDouble4x4::Fix(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble4x4::Save(CFileWriter* pcFile)
+bool SDouble4x4::Save(CFileWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = x.Save(pcFile);
 	bResult |= y.Save(pcFile);
@@ -110,9 +110,9 @@ BOOL SDouble4x4::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble4x4::Load(CFileReader* pcFile)
+bool SDouble4x4::Load(CFileReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = x.Load(pcFile);
 	bResult |= y.Load(pcFile);
@@ -126,7 +126,7 @@ BOOL SDouble4x4::Load(CFileReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDouble4x4::Print(CChars* psz, BOOL bOneLine, int iWholeNumbers, int iDecimals)
+void SDouble4x4::Print(CChars* psz, bool bOneLine, int iWholeNumbers, int iDecimals)
 {
 	int	i[4];
 
@@ -164,7 +164,7 @@ void SDouble4x4::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	Print(&sz, FALSE);
+	Print(&sz, false);
 	sz.Dump();
 	sz.Kill();
 }
@@ -174,7 +174,7 @@ void SDouble4x4::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble4x4::Inverse(SDouble4x4* psOut, double* pfDeterminant)
+bool SDouble4x4::Inverse(SDouble4x4* psOut, double* pfDeterminant)
 {
 	double		fDet;
 	double		fDetInv;
@@ -191,7 +191,7 @@ BOOL SDouble4x4::Inverse(SDouble4x4* psOut, double* pfDeterminant)
 
 	if (fabs(fDet) < SMALL_NUMBER)
 	{
-		return FALSE;
+		return false;
 	}
 
 	/* scale the adjoint matrix to get the inverse */
@@ -203,7 +203,7 @@ BOOL SDouble4x4::Inverse(SDouble4x4* psOut, double* pfDeterminant)
 
 	*psOut = sOut;
 	SafeAssign(pfDeterminant, fDet);
-	return TRUE;
+	return true;
 }
 
 
@@ -449,7 +449,7 @@ void Double4x4Translation(SDouble4x4* psOut, double x, double y, double z)
 }
 
 
-BOOL Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn)
+bool Double4x4Inverse(SDouble4x4* psOut, double* pfDeterminant, SDouble4x4* psIn)
 {
 	return psIn->Inverse(psOut, pfDeterminant);
 }
@@ -547,7 +547,7 @@ SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fA
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL Double4x4Equals(SDouble4x4* ps1, SDouble4x4* ps2)
+bool Double4x4Equals(SDouble4x4* ps1, SDouble4x4* ps2)
 {
 	return memcmp(ps1, ps2, sizeof(SDouble4x4)) == 0;
 }

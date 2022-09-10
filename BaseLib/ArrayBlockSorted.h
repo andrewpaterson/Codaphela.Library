@@ -27,7 +27,7 @@ protected:
 
 	int					miElementSize;
 	int					miHoldingBufferSize;
-	BOOL				mbOverwrite;
+	bool				mbOverwrite;
 
 public:
 	void			_Init(void);
@@ -36,13 +36,13 @@ public:
 	void			Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);
 	void			Kill(void);
 
-	BOOL			Add(void* pv);
+	bool			Add(void* pv);
 
 	void*			Get(void* pv);
 
-	BOOL			Contains(void* pv);
+	bool			Contains(void* pv);
 
-	BOOL			Remove(void* pv);
+	bool			Remove(void* pv);
 
 	void*			StartIteration(SArraySortedIterator* psIter);
 	void*			Iterate(SArraySortedIterator* psIter);
@@ -50,12 +50,12 @@ public:
 
 	size_t			ByteSize(void);
 
-	BOOL			WriteHeader(CFileWriter* pcFileWriter);
-	BOOL			Write(CFileWriter* pcFileWriter);
-	BOOL			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare);
-	BOOL			Read(CFileReader* pcFileReader, DataCompare fCompare);
+	bool			WriteHeader(CFileWriter* pcFileWriter);
+	bool			Write(CFileWriter* pcFileWriter);
+	bool			ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare);
+	bool			Read(CFileReader* pcFileReader, DataCompare fCompare);
 
-	void			SetOverwrite(BOOL bOverwrite);
+	void			SetOverwrite(bool bOverwrite);
 
 	int				NumElements(void);
 	int				GetSortedSize(void);
@@ -70,7 +70,7 @@ public:
 	void			Dump(void);
 
 protected:
-	BOOL			AddIntoHoldingArrays(void* pv, BOOL* pbUpdateSortedArray);
+	bool			AddIntoHoldingArrays(void* pv, bool* pbUpdateSortedArray);
 	void			ClearHoldingArrays(void);
 	void			MergeHoldingArrays(CArrayBlock* paMergedArray);
 	void			SortMerge(CArrayBlock* paMergedArray);
@@ -78,10 +78,10 @@ protected:
 	int*			CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
 	void*			FindInHoldingArrays(void* pv);
 	void*			FindInSortedArray(void* pv);
-	BOOL			RemoveFromHoldingArrays(void* pv);
-	BOOL			RemoveFromSortedArray(void* pv);
+	bool			RemoveFromHoldingArrays(void* pv);
+	bool			RemoveFromSortedArray(void* pv);
 	CArrayBlock*	GetArrayBlock(int iIndex);
-	BOOL			InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv);
+	bool			InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv);
 };
 
 

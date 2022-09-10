@@ -596,7 +596,7 @@ int64 CMapAccess::GetKeyLong(void* pvKey, int iKeySize, int64 lliNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::HasLong(int64 lliKey)
+bool CMapAccess::HasLong(int64 lliKey)
 {
 	return Has(&lliKey, sizeof(int64));
 }
@@ -606,7 +606,7 @@ BOOL CMapAccess::HasLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::HasInt(int iKey)
+bool CMapAccess::HasInt(int iKey)
 {
 	return Has(&iKey, sizeof(int));
 }
@@ -616,7 +616,7 @@ BOOL CMapAccess::HasInt(int iKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::HasString(char* pszKey)
+bool CMapAccess::HasString(char* pszKey)
 {
 	return Has(pszKey, StrKeySize(pszKey));
 }
@@ -626,7 +626,7 @@ BOOL CMapAccess::HasString(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::HasKey(void* pvKey, int iKeySize)
+bool CMapAccess::HasKey(void* pvKey, int iKeySize)
 {
 	return Has(pvKey, iKeySize);
 }
@@ -636,7 +636,7 @@ BOOL CMapAccess::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::DeleteLong(int64 lliKey)
+bool CMapAccess::DeleteLong(int64 lliKey)
 {
 	return Remove(&lliKey, sizeof(int64));
 }
@@ -646,7 +646,7 @@ BOOL CMapAccess::DeleteLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::DeleteInt(int iKey)
+bool CMapAccess::DeleteInt(int iKey)
 {
 	return Remove(&iKey, sizeof(int));
 }
@@ -656,7 +656,7 @@ BOOL CMapAccess::DeleteInt(int iKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::DeleteString(char* pszKey)
+bool CMapAccess::DeleteString(char* pszKey)
 {
 	return Remove(pszKey, StrKeySize(pszKey));
 }
@@ -666,7 +666,7 @@ BOOL CMapAccess::DeleteString(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapAccess::DeleteKey(void* pvKey, int iKeySize)
+bool CMapAccess::DeleteKey(void* pvKey, int iKeySize)
 {
 	return Remove(pvKey, iKeySize);
 }

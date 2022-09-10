@@ -53,14 +53,14 @@ void CPackFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Open(EFileMode eFileMode)
+bool CPackFile::Open(EFileMode eFileMode)
 {
 	if (eFileMode == EFM_Write_Create)
 	{
 		if (mpcPackFiles->IsWriteMode())
 		{
 			meMode = EFM_Write_Create;
-			return TRUE;
+			return true;
 		}
 	}
 	else if (eFileMode == EFM_Read)
@@ -68,10 +68,10 @@ BOOL CPackFile::Open(EFileMode eFileMode)
 		if (mpcPackFiles->IsReadMode())
 		{
 			meMode = EFM_Read;
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -79,7 +79,7 @@ BOOL CPackFile::Open(EFileMode eFileMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Close(void)
+bool CPackFile::Close(void)
 {
 	if (meMode != EFM_Unknown)
 	{
@@ -88,7 +88,7 @@ BOOL CPackFile::Close(void)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -111,13 +111,13 @@ filePos CPackFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CPackFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (meMode != EFM_Unknown)
 	{
 		return mpcPackFiles->Seek(mpsPackFileNode, iOffset, iSeekOrigin);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -153,7 +153,7 @@ filePos CPackFile::Tell(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::IsOpen(void)
+bool CPackFile::IsOpen(void)
 {
 	return meMode != EFM_Unknown;
 }
@@ -173,7 +173,7 @@ filePos CPackFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Truncate(filePos iSize)
+bool CPackFile::Truncate(filePos iSize)
 {
 	return gcLogger.Error2(__METHOD__, " Cannot truncate Pack Files.", NULL);
 }
@@ -183,13 +183,13 @@ BOOL CPackFile::Truncate(filePos iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Flush(void)
+bool CPackFile::Flush(void)
 {
 	if (meMode == EFM_Write_Create)
 	{
 		return mpcPackFiles->Flush();
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -197,15 +197,15 @@ BOOL CPackFile::Flush(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFile::Delete(void)
+bool CPackFile::Delete(void)
 {
 	if (IsOpen())
 	{
-		return FALSE;
+		return false;
 	}
 
 	//return mpcPackFiles->Remove(this);
-	return FALSE;
+	return false;
 }
 
 
@@ -230,7 +230,7 @@ CPackFile* PackFile(CPackFiles* pcPackFiles, CPackFileNode* psPackFile)
 
 	pcPackFile = NewMalloc<CPackFile>();
 	pcPackFile->Init(pcPackFiles, psPackFile);
-	pcPackFile->mbBasicFileMustFree = TRUE;
+	pcPackFile->mbBasicFileMustFree = true;
 	return pcPackFile;
 }
 

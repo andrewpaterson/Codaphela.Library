@@ -17,7 +17,7 @@ public:
 	void	Init(CIndexTreeMemory* pcIndexTree);
 	void	Kill(void);
 
-	BOOL	Iterate(void);
+	bool	Iterate(void);
 };
 
 

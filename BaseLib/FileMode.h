@@ -50,10 +50,10 @@ enum EFileSeekOrigin
 };
 
 
-BOOL IsFileModeWritable(EFileMode eFileMode);
-BOOL IsFileModeReadable(EFileMode eFileMode);
-BOOL IsFileModeReadOnly(EFileMode eFileMode);
-BOOL IsFileModeCreate(EFileMode eFileMode);
+bool IsFileModeWritable(EFileMode eFileMode);
+bool IsFileModeReadable(EFileMode eFileMode);
+bool IsFileModeReadOnly(EFileMode eFileMode);
+bool IsFileModeCreate(EFileMode eFileMode);
 
 
 #endif // !__FILE_MODE_H__

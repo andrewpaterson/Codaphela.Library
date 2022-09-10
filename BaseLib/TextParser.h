@@ -93,29 +93,29 @@ public:
 	int					miTextLen;
 	char*				mszParserPos;
 	char*				mszEndOfText;  //Is inclusive (ie: mszEndOfText == the last character in the parser).
-	BOOL				mbCaseSensitive;
-	BOOL				mbOutsideText;
+	bool				mbCaseSensitive;
+	bool				mbOutsideText;
 	CArrayTextPosition	masPositions;
 	int					miLine;
 	int					miColumn;
-	BOOL				mbAnnotated;
+	bool				mbAnnotated;
 	ETextParseError		meError;
 
-	BOOL 			Init(char* szText, int iTextLen);
-	BOOL 			Init(char* szText);
-	BOOL 			Init(CChars* szText);
+	bool 			Init(char* szText, int iTextLen);
+	bool 			Init(char* szText);
+	bool 			Init(CChars* szText);
 	void			Init(void);
 	void 			Kill(void);
-	BOOL			IsEmpty(void);
+	bool			IsEmpty(void);
 
 	//These functions do not set errors...
 	void 			StepRight(void);
 	void 			StepLeft(void);
 	void			TestEnd(void);
-	void 			SkipWhiteSpace(BOOL bSkipComments = TRUE);
-	BOOL 			SkipCStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
+	void 			SkipWhiteSpace(bool bSkipComments = true);
+	bool 			SkipCStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
 	void			SkipLeftCStyleComment(void);
-	BOOL  			SkipCPPStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
+	bool  			SkipCPPStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
 	void			SkipNewLine(void);
 	void			Restart(void);
 	void			SaveState(SParseState* psTextPosition);
@@ -123,7 +123,7 @@ public:
 	void			PushPosition(void);
 	void			PopPosition(void);
 	void			PassPosition(void);
-	BOOL			IsWhiteSpace(char cCurrent);
+	bool			IsWhiteSpace(char cCurrent);
 	void			PassPositions(int iNum);
 	void			PopPositions(int iNum);
 	void			LastPosition(void);
@@ -136,37 +136,37 @@ public:
 	int				RemainingLength(void);
 	int				UsedLength(void);
 
-	TRISTATE 		GetExactCharacter(char c, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE 		GetExactCaseInsensitiveCharacter(char c, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetIdentifierCharacter(char* pc, BOOL bFirst);
-	TRISTATE		GetEnumeratedCharacter(char* szCharacters, char* c, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE 		GetExactCharacter(char c, bool bSkipWhiteSpace = true);
+	TRISTATE 		GetExactCaseInsensitiveCharacter(char c, bool bSkipWhiteSpace = true);
+	TRISTATE		GetIdentifierCharacter(char* pc, bool bFirst);
+	TRISTATE		GetEnumeratedCharacter(char* szCharacters, char* c, bool bSkipWhiteSpace = true);
 	TRISTATE		GetCharacter(char* pc);
 	TRISTATE		GetEscapeCode(char* c);
 
-	TRISTATE		GetExactIdentifier(char* szIdentifier, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetIdentifier(char* szIdentifier, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE		GetExactIdentifier(char* szIdentifier, bool bSkipWhiteSpace = true);
+	TRISTATE		GetIdentifier(char* szIdentifier, int* piLength = NULL, bool bPassOnTest = false, bool bSkipWhiteSpace = true);
 	TRISTATE		GetString(char* szString, int* piLength = NULL);  //Quotes not included.
-	TRISTATE		GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength = NULL, BOOL bPassOnTest = FALSE, BOOL bSkipWhiteSpace = TRUE, BOOL bAllowEscapeCharacters = TRUE);  //'Quotes' not included.
-	TRISTATE		GetExactCharacterSequence(char* szSequence, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetCharacterSequence(char* szSequence, int* piLength = NULL, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetComment(char* szComment, int* piLength, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE		GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, int* piLength = NULL, bool bPassOnTest = false, bool bSkipWhiteSpace = true, bool bAllowEscapeCharacters = true);  //'Quotes' not included.
+	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhiteSpace = true);
+	TRISTATE		GetCharacterSequence(char* szSequence, int* piLength = NULL, bool bSkipWhiteSpace = true);
+	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhiteSpace = true);
+	TRISTATE		GetComment(char* szComment, int* piLength, bool bSkipWhiteSpace = true);
 
 	TRISTATE		GetDigit(int* pi, int iBase = 10);
 	TRISTATE		GetSign(int* pi);
-	TRISTATE		GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, BOOL bSkipWhiteSpace = TRUE, BOOL bTestSign = TRUE, int iBase = 10, int iAllowedSeparator = NUMBER_SEPARATOR_NONE);
-	TRISTATE		GetInteger(unsigned long long int* pulli, int* piSign, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetInteger(int* pi, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetHexadecimal(unsigned long long int* pulli, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
+	TRISTATE		GetDigits(unsigned long long int* pulli, int* piSign, int* iNumDigits, bool bSkipWhiteSpace = true, bool bTestSign = true, int iBase = 10, int iAllowedSeparator = NUMBER_SEPARATOR_NONE);
+	TRISTATE		GetInteger(unsigned long long int* pulli, int* piSign, int* iNumDigits = NULL, bool bSkipWhiteSpace = true);
+	TRISTATE		GetInteger(int* pi, int* iNumDigits = NULL, bool bSkipWhiteSpace = true);
+	TRISTATE		GetHexadecimal(unsigned long long int* pulli, int* iNumDigits = NULL, bool bSkipWhiteSpace = true);
 	TRISTATE		GetHexadecimalPart(unsigned long long int* pulli, int* piNumDigits, int iMaxDigits = 16);
-	TRISTATE		GetOctal(unsigned long long int* pulli, int* iNumDigits = NULL, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetFloat(float* pf, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetFloat(double* pf, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetNumber(CNumber* pcNumber, BOOL bSkipWhiteSpace = TRUE);
-	TRISTATE		GetIntegerLiteral(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, BOOL bSkipWhiteSpace);
-	TRISTATE		GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth, BOOL bSkipWhiteSpace);
-	TRISTATE		GetStringLiteral(void* szDest, size_t uiDestByteLength, BOOL bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, BOOL bSkipWhiteSpace);
-	TRISTATE		GetFloatLiteral(long double* pldf , int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, BOOL bSkipWhiteSpace);
+	TRISTATE		GetOctal(unsigned long long int* pulli, int* iNumDigits = NULL, bool bSkipWhiteSpace = true);
+	TRISTATE		GetFloat(float* pf, bool bSkipWhiteSpace = true);
+	TRISTATE		GetFloat(double* pf, bool bSkipWhiteSpace = true);
+	TRISTATE		GetNumber(CNumber* pcNumber, bool bSkipWhiteSpace = true);
+	TRISTATE		GetIntegerLiteral(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, bool bSkipWhiteSpace);
+	TRISTATE		GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth, bool bSkipWhiteSpace);
+	TRISTATE		GetStringLiteral(void* szDest, size_t uiDestByteLength, bool bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, bool bSkipWhiteSpace);
+	TRISTATE		GetFloatLiteral(long double* pldf , int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, bool bSkipWhiteSpace);
 
 	//Non linear functions.
 	TRISTATE		FindExactIdentifier(char* szIdentifier);
@@ -192,21 +192,21 @@ public:
 	void			PrintPositionSingleLineParser(CChars* pszDest);
 	void			PrintPositionMultilineParser(CChars* pszDest);
 
-	BOOL			IsOutside(void);
+	bool			IsOutside(void);
 
 	void			Dump(void);
 
-	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace = TRUE);
-	template<class M>	TRISTATE	GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace = TRUE);
+	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, bool bSkipWhiteSpace = true);
+	template<class M>	TRISTATE	GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, bool bSkipWhiteSpace = true);
 
 protected:
 	TRISTATE	GetComment(char* szComment, int* piLength, char* szBegin, char* szEnd);
 	TRISTATE	GetSingleInteger(char cCurrent, unsigned long long int* pulli, int* piBase, int* piNumDigits);
 	int			GetDigit(char cCurrent, int iBase);
-	BOOL		IsDigit(char cCurrent, int iBase);
+	bool		IsDigit(char cCurrent, int iBase);
 	TRISTATE	GetIntegerSuffix(int* piSuffix, int iAllowedSuffix);
 	TRISTATE	GetIntegerSeparator(int iAllowedSeparator);
-	TRISTATE	GetCharacterLiteral(unsigned short* pc, BOOL bAllowUTF16, int* piCharacterWidth);
+	TRISTATE	GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth);
 	int			ChangeWidth(int iWidth, int iOldWidth, void* szDest, size_t uiDestByteLength, int iLength);
 	TRISTATE	GetFloatSuffix(int* piSuffix, int iAllowedSuffix);
 	long double	MakeLongDouble(int iBase, unsigned long long int ulliWholeNumber, unsigned long long int ulliDecimalNumber, int iNumDecimalDigits, long long int lliExponentNumber);
@@ -222,7 +222,7 @@ TRISTATE ParseFloat(double* pf, char* szText);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace)
+TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, bool bSkipWhiteSpace)
 {
 	char* szName;
 	SEnumeratorIterator		sIterator;
@@ -230,7 +230,7 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 	TRISTATE				tReturn;
 	int						iLongestLength;
 	int						iLength;
-	BOOL					bFound;
+	bool					bFound;
 	STextPosition			sStartPosition;
 	STextPosition			sFoundPosition;
 
@@ -241,11 +241,11 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 	}
 
 	iLongestLength = -1;
-	bFound = FALSE;
+	bFound = false;
 	pcEnumerator->StartIteration(&sIterator, &szName, &iID, NULL);
 	while (sIterator.bValid)
 	{
-		tReturn = GetExactIdentifier(szName, FALSE);
+		tReturn = GetExactIdentifier(szName, false);
 		if (tReturn == TRITRUE)
 		{
 			iLength = strlen(szName);
@@ -253,7 +253,7 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 			{
 				iLongestLength = iLength;
 				*piID = iID;
-				bFound = TRUE;
+				bFound = true;
 				GetPosition(&sFoundPosition);
 			}
 			SetPosition(&sStartPosition);
@@ -284,7 +284,7 @@ TRISTATE CTextParser::GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumer
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, BOOL bSkipWhiteSpace)
+TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, int* piID, bool bSkipWhiteSpace)
 {
 	char*					szName;
 	SEnumeratorIterator		sIterator;
@@ -292,7 +292,7 @@ TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerat
 	TRISTATE				tReturn;
 	int						iLongestLength;
 	int						iLength;
-	BOOL					bFound;
+	bool					bFound;
 	STextPosition			sStartPosition;
 	STextPosition			sFoundPosition;
 
@@ -303,11 +303,11 @@ TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerat
 	}
 
 	iLongestLength = -1;
-	bFound = FALSE;
+	bFound = false;
 	pcEnumerator->StartIteration(&sIterator, &szName, &iID, NULL);
 	while(sIterator.bValid)
 	{
-		tReturn = GetExactCharacterSequence(szName, FALSE);
+		tReturn = GetExactCharacterSequence(szName, false);
 		if (tReturn == TRITRUE)
 		{
 			iLength = strlen(szName);
@@ -315,7 +315,7 @@ TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerat
 			{
 				iLongestLength = iLength;
 				*piID = iID;
-				bFound = TRUE;
+				bFound = true;
 				GetPosition(&sFoundPosition);
 			}
 			SetPosition(&sStartPosition);

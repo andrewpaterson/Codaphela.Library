@@ -167,21 +167,21 @@ void CCSVFileImmutable::FreeRow(SCSVRowImmutable* psCSVRow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCSVFileImmutable::ReadLine(void)
+bool CCSVFileImmutable::ReadLine(void)
 {
 	SCSVRowImmutable*	psCSVRow;
-	BOOL				bResult;
+	bool				bResult;
 	filePos				iFilePos;
 
 	iFilePos = mcFile.GetFilePos();
 	bResult = ReadLine(-1, &psCSVRow);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	mapsCSVRows.Add(psCSVRow, (int)iFilePos);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -189,7 +189,7 @@ BOOL CCSVFileImmutable::ReadLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCSVFileImmutable::ReadLine(char* szString, int iMaxLength)
+bool CCSVFileImmutable::ReadLine(char* szString, int iMaxLength)
 {
 	return CCSVFile::ReadLine(szString, iMaxLength);
 }
@@ -199,9 +199,9 @@ BOOL CCSVFileImmutable::ReadLine(char* szString, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCSVFileImmutable::ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow)
+bool CCSVFileImmutable::ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow)
 {
-	BOOL	bResult;
+	bool	bResult;
 	char		szBuffer[1024*128];
 
 	if (iFileOffset != -1)
@@ -213,9 +213,9 @@ BOOL CCSVFileImmutable::ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow)
 	if (bResult)
 	{
 		*ppsCSVRow = AllocateRow(szBuffer);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -225,7 +225,7 @@ BOOL CCSVFileImmutable::ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow)
 //////////////////////////////////////////////////////////////////////////
 void CCSVFileImmutable::ReadAllLines(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 	int		iRow = 0;
 
 	do

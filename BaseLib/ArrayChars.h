@@ -32,7 +32,7 @@ class CArrayChars
 {
 public:
 	__CArrayChars	mcArray;
-	BOOL			mbFaked;
+	bool			mbFaked;
 
 	void 		_Init(void);
 	void 		Init(void);
@@ -58,7 +58,7 @@ public:
 	void 		Remove(CChars* pcChars);
 	void 		Remove(char* szString);
 	void 		Remove(int iIndex);
-	BOOL		RemoveTail(void);
+	bool		RemoveTail(void);
 	CChars* 	Get(int iIndex);
 	CChars* 	Tail(void);
 	char*		GetText(int iIndex);
@@ -66,17 +66,17 @@ public:
 	int			GetIndex(char* szStart);
 	int			GetIndex(CChars* psz);
 	int			GetSubStringIndex(char* szStart);
-	int			FindInSorted(char* szString, BOOL bCaseSensitive = TRUE);
-	int			FindInSorted(CChars* szString, BOOL bCaseSensitive = TRUE);
+	int			FindInSorted(char* szString, bool bCaseSensitive = true);
+	int			FindInSorted(CChars* szString, bool bCaseSensitive = true);
 	void		Copy(CArrayChars* pcSource);
-	BOOL		Equals(CArrayChars* pcOther);
-	BOOL		Contains(char* szText);
-	BOOL		Contains(CChars* psz);
-	BOOL		ContainsSubString(char* szText);
-	void		QuickSort(BOOL bCaseSensitive = TRUE);
-	void		BubbleSort(BOOL bCaseSensitive = TRUE);
+	bool		Equals(CArrayChars* pcOther);
+	bool		Contains(char* szText);
+	bool		Contains(CChars* psz);
+	bool		ContainsSubString(char* szText);
+	void		QuickSort(bool bCaseSensitive = true);
+	void		BubbleSort(bool bCaseSensitive = true);
 	void		Shuffle(CRandom* pcRandom = NULL);
-	BOOL		Split(char* szString, char cSplitter);
+	bool		Split(char* szString, char cSplitter);
 	void		Finalise(void);
 	void		Print(CChars* psz);
 	void		Dump(void);

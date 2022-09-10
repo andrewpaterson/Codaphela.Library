@@ -191,7 +191,7 @@ SFloat3 operator * (float f, const SFloat3& v)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat3::operator == (const SFloat3& v) const
+bool SFloat3::operator == (const SFloat3& v) const
 {
 	return x == v.x && y == v.y && z == v.z;
 }
@@ -200,7 +200,7 @@ BOOL SFloat3::operator == (const SFloat3& v) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat3::operator != (const SFloat3& v) const
+bool SFloat3::operator != (const SFloat3& v) const
 {
 	return x != v.x || y != v.y || z != v.z;
 }
@@ -299,16 +299,16 @@ void SFloat3::Normalize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat3::CloselyEqual(SFloat3* ps)
+bool SFloat3::CloselyEqual(SFloat3* ps)
 {
 
 	if ((FloatEqual(x, ps->x)) &&
 		(FloatEqual(y, ps->y)) &&
 		(FloatEqual(z, ps->z)))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -316,16 +316,16 @@ BOOL SFloat3::CloselyEqual(SFloat3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat3::CloselyEqual(SFloat3* ps, float fTolerance)
+bool SFloat3::CloselyEqual(SFloat3* ps, float fTolerance)
 {
 
 	if ((FloatEqual(x, ps->x, fTolerance)) &&
 		(FloatEqual(y, ps->y, fTolerance)) &&
 		(FloatEqual(z, ps->z, fTolerance)))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -371,9 +371,9 @@ void SFloat3::Copy(const SFloat2* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat3::Save(CFileWriter* pcFile)
+bool SFloat3::Save(CFileWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = pcFile->WriteFloat(x);
 	bResult &= pcFile->WriteFloat(y);
@@ -386,9 +386,9 @@ BOOL SFloat3::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat3::Load(CFileReader* pcFile)
+bool SFloat3::Load(CFileReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = pcFile->ReadFloat(&x);
 	bResult &= pcFile->ReadFloat(&y);

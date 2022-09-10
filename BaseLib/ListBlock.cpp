@@ -77,7 +77,7 @@ int CListBlock::NumElementsFromFreeList(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::IsEmpty(void)
+bool CListBlock::IsEmpty(void)
 {
 	return mapIndices.IsEmpty();
 }
@@ -87,7 +87,7 @@ BOOL CListBlock::IsEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::IsNotEmpty(void)
+bool CListBlock::IsNotEmpty(void)
 {
 	return mapIndices.IsNotEmpty();
 }
@@ -236,7 +236,7 @@ void* CListBlock::InsertAt(void* pvData, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::Pop(void* pvData)
+bool CListBlock::Pop(void* pvData)
 {
 	void* pv;
 
@@ -245,11 +245,11 @@ BOOL CListBlock::Pop(void* pvData)
 	{
 		memcpy(pvData, pv, mcFreeList.GetElementSize());
 		mcFreeList.Remove(pv);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -258,7 +258,7 @@ BOOL CListBlock::Pop(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::Pop(void)
+bool CListBlock::Pop(void)
 {
 	void* pv;
 
@@ -266,11 +266,11 @@ BOOL CListBlock::Pop(void)
 	if (pv != NULL)
 	{
 		mcFreeList.Remove(pv);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -317,15 +317,15 @@ void CListBlock::Reverse(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::Contains(void* pData)
+bool CListBlock::Contains(void* pData)
 {
 	if (GetIndex(pData) != -1)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -337,7 +337,7 @@ BOOL CListBlock::Contains(void* pData)
 void CListBlock::RemoveAt(int iIndex, int bPreserveOrder)
 {
 	void* pv;
-	BOOL bResult;
+	bool bResult;
 
 	bResult = mapIndices.Get(iIndex, &pv);
 	if (bResult)
@@ -352,7 +352,7 @@ void CListBlock::RemoveAt(int iIndex, int bPreserveOrder)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder)
+void CListBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder)
 {
 	int		i;
 	void*	pv;
@@ -381,20 +381,20 @@ void CListBlock::RemoveTail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::Set(int iIndex, void* pvData)
+bool CListBlock::Set(int iIndex, void* pvData)
 {
 	void*	pv;
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mapIndices.Get(iIndex, &pv);
 	if (bResult)
 	{
 		memcpy(pv, pvData, mcFreeList.GetElementSize());
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -403,7 +403,7 @@ BOOL CListBlock::Set(int iIndex, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CListBlock::SafeSet(int iIndex, void* pvData)
+bool CListBlock::SafeSet(int iIndex, void* pvData)
 {
 	return Set(iIndex, pvData);
 }

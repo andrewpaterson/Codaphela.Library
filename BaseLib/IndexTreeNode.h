@@ -48,8 +48,8 @@ public:
 	uint16				GetDataSize(void);
 	CIndexTreeDataNode* GetNodeData(void);
 	void*				GetDataPtr(void);
-	BOOL				HasData(void);
-	void				SetData(BOOL bHasData);
+	bool				HasData(void);
+	void				SetData(bool bHasData);
 
 	void*				GetNodesMemory(void);
 
@@ -63,25 +63,25 @@ public:
 	int					NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex);
 	int					GetAdditionalIndexes(unsigned char uiIndex);
 
-	BOOL				IsEmpty(void);
-	BOOL				IsDirty(void);
-	BOOL				IsPathDirty(void);
-	BOOL				IsDeleted(void);
-	BOOL				IsPathDeleted(void);
-	BOOL				IsMagic(void);
+	bool				IsEmpty(void);
+	bool				IsDirty(void);
+	bool				IsPathDirty(void);
+	bool				IsDeleted(void);
+	bool				IsPathDeleted(void);
+	bool				IsMagic(void);
 
-	BOOL				HasFlags(unsigned char sFlags);
+	bool				HasFlags(unsigned char sFlags);
 	void				ClearFlags(unsigned char sFlags);
 	unsigned char		GetFirstIndex(void);
 	unsigned char		GetLastIndex(void);
-	BOOL				HasNodes(void);
+	bool				HasNodes(void);
 	unsigned char		NumAllocatedNodes(void);
-	BOOL				ContainsIndex(unsigned char uiIndex);
-	void				SetNodesEmpty(BOOL bEmpty);
-	void				SetDirtyNode(BOOL bDirty);
-	void				SetDeletedNode(BOOL bDirty);
-	void				SetDirtyPath(BOOL bDirty);
-	void				SetDeletedPath(BOOL bDirty);
+	bool				ContainsIndex(unsigned char uiIndex);
+	void				SetNodesEmpty(bool bEmpty);
+	void				SetDirtyNode(bool bDirty);
+	void				SetDeletedNode(bool bDirty);
+	void				SetDirtyPath(bool bDirty);
+	void				SetDeletedPath(bool bDirty);
 
 	void				Contain(unsigned char uiIndex, int iClearValue);
 	void				ClearOnlyNode(unsigned char uiIndex, int iClearValue);
@@ -93,7 +93,7 @@ public:
 	size_t				SizeofNode(void);  //Remove this.
 	size_t				SizeofNodePtr(void);
 
-	void				Print(CChars* psz, BOOL bHex);
+	void				Print(CChars* psz, bool bHex);
 	char*				GetFlagsString(CChars* psz);
 
 	size_t				CalculateRequiredNodeSizeForIndex(unsigned char uiIndex);

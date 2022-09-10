@@ -19,9 +19,9 @@ public:
 	void Init(CMallocator *pcMalloc);
 	void Kill(void);
 
-	BOOL WriteHeader(CFileWriter *pcFileWriter);
-	BOOL WriteAllocatorAndHeader(CFileWriter *pcFileWriter);
-	BOOL ReadAllocator(CFileReader* pcFileReader);
+	bool WriteHeader(CFileWriter *pcFileWriter);
+	bool WriteAllocatorAndHeader(CFileWriter *pcFileWriter);
+	bool ReadAllocator(CFileReader* pcFileReader);
 };
 
 

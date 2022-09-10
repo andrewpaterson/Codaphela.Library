@@ -8,13 +8,13 @@
 
 extern CMallocators				gcMallocators;
 extern CConstructors			gcConstructors;
-extern BOOL						gbMemory;
+extern bool						gbMemory;
 
 
 void MemoryInit(void);
-void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
+void MemoryInit(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 void MemoryKill(void);
-BOOL MemoryValidate(void);
+bool MemoryValidate(void);
 
 
 #endif // !__GLOBAL_MEMORY_H__

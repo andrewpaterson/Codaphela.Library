@@ -37,22 +37,22 @@ public:
 	void		Init(CAbstractFile*	pcFile);
 	void		Kill(void);
 
-	BOOL		Open(EFileMode eMode);
-	BOOL 		Close();
+	bool		Open(EFileMode eMode);
+	bool 		Close();
 
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
-	BOOL		Seek(filePos iOffset);
+	bool		Seek(filePos iOffset, EFileSeekOrigin eOrigin);
+	bool		Seek(filePos iOffset);
 
-	BOOL		Flush(void);
+	bool		Flush(void);
 
-	BOOL		Delete(void);
+	bool		Delete(void);
 
-	BOOL		IsOpen(void);
+	bool		IsOpen(void);
 	filePos		GetFileLength(void);
 	filePos		GetFilePos(void);
 	filePos		GetFileSize(void);  //Same as GetFileLength.
 
-	BOOL		Truncate(filePos iSize);
+	bool		Truncate(filePos iSize);
 
 	char*		GetFilename(void);
 

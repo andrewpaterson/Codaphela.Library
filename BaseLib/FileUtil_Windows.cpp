@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::MakeDir(const char* szPathName)
+bool CFileUtil::MakeDir(const char* szPathName)
 {
 	return CreateDirectory(szPathName, NULL);
 }
@@ -43,16 +43,16 @@ BOOL CFileUtil::MakeDir(const char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RemoveDir(const char* szPathName)
+bool CFileUtil::RemoveDir(const char* szPathName)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
 	CChars				szTemp;
 	HANDLE				hFindHandle;
-	BOOL				bContinue;
-	BOOL				bValid;
+	bool				bContinue;
+	bool				bValid;
 	CChars				szDirectory;
-	BOOL				bDeleted;
+	bool				bDeleted;
 
 	if (IsRootDirectory(szPathName))
 	{
@@ -67,10 +67,10 @@ BOOL CFileUtil::RemoveDir(const char* szPathName)
 
 	hFindHandle = FindFirstFile(szFindName.Text(), &sFindData);
 	bContinue = (hFindHandle != INVALID_HANDLE_VALUE);
-	bDeleted = TRUE;
+	bDeleted = true;
 	while (bContinue)
 	{
-		bValid = TRUE;
+		bValid = true;
 		if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
 			if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
@@ -85,7 +85,7 @@ BOOL CFileUtil::RemoveDir(const char* szPathName)
 		{
 			szTemp.Init(szPathName);
 			AppendToPath(&szTemp, sFindData.cFileName);
-			bDeleted &= DeleteFile(szTemp.Text());
+			bDeleted &= (bool)DeleteFile(szTemp.Text());
 			szTemp.Kill();
 		}
 		bContinue = FindNextFile(hFindHandle, &sFindData);
@@ -103,15 +103,15 @@ BOOL CFileUtil::RemoveDir(const char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
+bool CFileUtil::CopyDir(const char* szSource, const char* szDest)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
 	CChars				szSourceTemp;
 	CChars				szDestTemp;
 	HANDLE				hFindHandle;
-	BOOL				bContinue;
-	BOOL				bValid;
+	bool				bContinue;
+	bool				bValid;
 	CChars				szSourceDirectory;
 	CChars				szDestDirectory;
 
@@ -127,7 +127,7 @@ BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 	bContinue = (hFindHandle != INVALID_HANDLE_VALUE);
 	while (bContinue)
 	{
-		bValid = TRUE;
+		bValid = true;
 		if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 		{
 			if (!((StringCompare(sFindData.cFileName, ".") == 0) || (StringCompare(sFindData.cFileName, "..") == 0)))
@@ -165,7 +165,7 @@ BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 	szSourceDirectory.Kill();
 	szDestDirectory.Kill();
 	szFindName.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -173,7 +173,7 @@ BOOL CFileUtil::CopyDir(const char* szSource, const char* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Touch(const char* szFilename)
+bool CFileUtil::Touch(const char* szFilename)
 {
 	HANDLE	h;
 
@@ -181,9 +181,9 @@ BOOL CFileUtil::Touch(const char* szFilename)
 	if (h != INVALID_HANDLE_VALUE)
 	{
 		CloseHandle(h);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -191,7 +191,7 @@ BOOL CFileUtil::Touch(const char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Delete(const char* szFilename)
+bool CFileUtil::Delete(const char* szFilename)
 {
 	if (Exists(szFilename))
 	{
@@ -199,7 +199,7 @@ BOOL CFileUtil::Delete(const char* szFilename)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -207,7 +207,7 @@ BOOL CFileUtil::Delete(const char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Exists(const char* szFilename)
+bool CFileUtil::Exists(const char* szFilename)
 {
 	return PathFileExists(szFilename);
 }
@@ -238,7 +238,7 @@ filePos CFileUtil::Size(const char*szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::IsAbsolutePath(const char* szPathName)
+bool CFileUtil::IsAbsolutePath(const char* szPathName)
 {
 	const char*	szPos;
 	char		cDrive;
@@ -246,18 +246,18 @@ BOOL CFileUtil::IsAbsolutePath(const char* szPathName)
 	szPos = FindChar(szPathName, FILE_SEPARATOR[0]);
 	if (szPos == szPathName)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		cDrive = GetDriveLetter(szPathName);
 		if (cDrive != '\0')
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 }
@@ -317,15 +317,15 @@ void CFileUtil::CurrentDirectory(CChars* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInName, const char*szExtension, CArrayChars* paszFiles, BOOL bHidden)
+bool CFileUtil::FindFiles(const char*szInDirectory, bool bDirs, const char*szInName, const char*szExtension, CArrayChars* paszFiles, bool bHidden)
 {
 	WIN32_FIND_DATA		sFindData;
 	CChars				szFindName;
 	CChars				szTemp;
 	HANDLE				hFindHandle;
-	BOOL				bContinue;
+	bool				bContinue;
 	int					iFileExtension;
-	BOOL				bValid;
+	bool				bValid;
 	CChars				szFake;
 	CChars				szDirectory;
 
@@ -341,14 +341,14 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 	{
 		szDirectory.Kill();
 		szFindName.Kill();
-		return FALSE;
+		return false;
 	}
 
 	while (bContinue)
 	{
 		if (!(sFindData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) || bHidden)
 		{
-			bValid = TRUE;
+			bValid = true;
 			if (sFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				if (bDirs)
@@ -359,14 +359,14 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 						RemoveExtension(&szTemp);
 						if (!szTemp.ContainsIgnoreCase(szInName))
 						{
-							bValid = FALSE;
+							bValid = false;
 						}
 						szTemp.Kill();
 					}
 				}
 				else
 				{
-					bValid = FALSE;
+					bValid = false;
 				}
 			}
 			else
@@ -381,7 +381,7 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 						{
 							if (!(szFake.SubStringEquals(iFileExtension+1, szExtension)))
 							{
-								bValid = FALSE;
+								bValid = false;
 							}
 						}
 						else
@@ -391,7 +391,7 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 							if (szExtension[0] != 0)
 							{
 								//Then this file is not valid.
-								bValid = FALSE;
+								bValid = false;
 							}
 						}
 					}
@@ -401,20 +401,20 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 						RemoveExtension(&szTemp);
 						if (!szTemp.ContainsIgnoreCase(szInName))
 						{
-							bValid = FALSE;
+							bValid = false;
 						}
 						szTemp.Kill();
 					}
 				}
 				else
 				{
-					bValid = FALSE;
+					bValid = false;
 				}
 			}
 		}
 		else
 		{
-			bValid = FALSE;
+			bValid = false;
 		}
 
 		if (bValid)
@@ -434,7 +434,7 @@ BOOL CFileUtil::FindFiles(const char*szInDirectory, BOOL bDirs, const char*szInN
 
 	szDirectory.Kill();
 	szFindName.Kill();
-	return TRUE;
+	return true;
 }
 
 

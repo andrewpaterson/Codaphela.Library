@@ -44,7 +44,7 @@ struct SAlignedFreeListDesc : SFreeListDesc
 
 struct SMemoryIterator
 {
-	BOOL				bInFreeLists;
+	bool				bInFreeLists;
 
 	SFreeListIterator	sFreeListIterator;
 	CFreeList*			pcFreeList;
@@ -56,7 +56,7 @@ struct SMemoryIterator
 //Memory Iterator result.
 struct SMemory
 {
-	BOOL			bValid;
+	bool			bValid;
 	void*			pvMem;
 	unsigned int	uiAllocCount;
 	unsigned int	uiSize;

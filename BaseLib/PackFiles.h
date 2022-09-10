@@ -49,17 +49,17 @@ protected:
 	CPackFileReadArray			maReads;
 
 public:
-	BOOL					Init(CAbstractFile* pcFile, EPackFileMode eMode);
+	bool					Init(CAbstractFile* pcFile, EPackFileMode eMode);
 	void					Kill(void);
 
-	BOOL					IsWriteMode(void);
-	BOOL					IsReadMode(void);
+	bool					IsWriteMode(void);
+	bool					IsReadMode(void);
 
 	CPackFile*				WriteOpen(char* szFilename);
 	CPackFile*				ReadOpen(char* szFilename);
 
-	BOOL					AddFile(CAbstractFile* pcFile, char* szFilename);
-	BOOL					AddDirectory(char* szDirectory, char* szPackDirectory = NULL);
+	bool					AddFile(CAbstractFile* pcFile, char* szFilename);
+	bool					AddDirectory(char* szDirectory, char* szPackDirectory = NULL);
 
 	CFileNodePackFileNode*	StartIteration(CPackFileIterator* psIter);
 	CFileNodePackFileNode*	Iterate(CPackFileIterator* psIter);
@@ -68,36 +68,36 @@ public:
 	void					GetFiles(CArrayPackFileNodePtrs* pcPackFiles);
 	CFileNodePackFileNode*	GetNode(char* szFullName);
 
-	BOOL					Unpack(char* szDirectory);
+	bool					Unpack(char* szDirectory);
 	void					FixParents(void);
 	char*					GetFilename(void);
 
 protected:
-	BOOL					BeginRead(void);
-	BOOL					BeginWrite(void);
-	BOOL					EndRead(void);
-	BOOL					EndWrite(void);
-	BOOL					Close(CPackFile* pcPackFile);
+	bool					BeginRead(void);
+	bool					BeginWrite(void);
+	bool					EndRead(void);
+	bool					EndWrite(void);
+	bool					Close(CPackFile* pcPackFile);
 	filePos					Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL					Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool					Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos					Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos					Tell(CPackFileNode* psPackFile);
-	BOOL					Flush(void);
+	bool					Flush(void);
 	CFileNodePackFileNode*	AddFile(char* szFullName);
 	filePos					PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL					PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);
-	BOOL					ChangeReadFiles(CPackFileNode* psPackFile);
+	bool					PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin);
+	bool					ChangeReadFiles(CPackFileNode* psPackFile);
 	const char*				ClassName(void);
-	BOOL					WriteHeader(void);
-	BOOL					ReadHeader(void);
-	BOOL					ReadNodes(void);
-	BOOL					ReadNode(void);
-	BOOL					WriteNodes(void);
+	bool					WriteHeader(void);
+	bool					ReadHeader(void);
+	bool					ReadNodes(void);
+	bool					ReadNode(void);
+	bool					WriteNodes(void);
 	int						GetNumUnwrittenNames(void);
 	int						RecurseGetNumUnwrittenNames(CFileNodePackFileNode*	pcNode);
-	BOOL					WriteUnwrittenNames(void);
-	BOOL					RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChars* pszPath);
-	BOOL					RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination);
+	bool					WriteUnwrittenNames(void);
+	bool					RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChars* pszPath);
+	bool					RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestination);
 };
 
 

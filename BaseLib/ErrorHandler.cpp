@@ -35,7 +35,7 @@ CUserError	gcUserError;
 //////////////////////////////////////////////////////////////////////////
 void CUserError::Init(void)
 {
-	mbUserError = FALSE;
+	mbUserError = false;
 	mszUserError[0] = 0;
 }
 
@@ -50,7 +50,7 @@ void CUserError::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CUserError::Set(const char* szError)
+bool CUserError::Set(const char* szError)
 {
 	gcLogger.Add("FATAL ERROR: ");
 	gcLogger.Add(szError);
@@ -58,10 +58,10 @@ BOOL CUserError::Set(const char* szError)
 	if (!mbUserError)
 	{
 		strcpy(mszUserError, szError);
-		mbUserError = TRUE;
+		mbUserError = true;
 		gcLogger.Break();
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -86,7 +86,7 @@ char* CUserError::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUserError::Set2(const char* szText, ...)
+bool CUserError::Set2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -119,20 +119,20 @@ BOOL CUserError::Set2(const char* szText, ...)
 	{
 		Set("");
 	}
-	return FALSE;
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUserError::Set(CChars* pszError, BOOL bKillErrorString)
+bool CUserError::Set(CChars* pszError, bool bKillErrorString)
 {
 	Set(pszError->Text());
 	if (bKillErrorString)
 	{
 		pszError->Kill();
 	}
-	return FALSE;
+	return false;
 }
 

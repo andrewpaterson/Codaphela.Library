@@ -23,7 +23,7 @@ along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Assert.h"
 
 
-BOOL PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile);
+bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile);
 
 #define AssertFilePath(e, a)			Validate(PrivateAssertFilePath(e, a, __LINE__, __FILE__))
 

@@ -150,10 +150,10 @@ void CCSVFileEditable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCSVFileEditable::ReadLine(void)
+bool CCSVFileEditable::ReadLine(void)
 {
 	SCSVRowEditable*	psCSVRow;
-	BOOL				bResult;
+	bool				bResult;
 
 	psCSVRow = masCSVRows.Add();
 	psCSVRow->Init();
@@ -163,9 +163,9 @@ BOOL CCSVFileEditable::ReadLine(void)
 	{
 		psCSVRow->Kill();
 		masCSVRows.RemoveTail();
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -173,7 +173,7 @@ BOOL CCSVFileEditable::ReadLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCSVFileEditable::ReadLine(CChars* szString)
+bool CCSVFileEditable::ReadLine(CChars* szString)
 {
 	return CCSVFile::ReadLine(szString);
 }
@@ -183,10 +183,10 @@ BOOL CCSVFileEditable::ReadLine(CChars* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCSVFileEditable::ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow)
+bool CCSVFileEditable::ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow)
 {
 	CChars	cString;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (iFileOffset != -1)
 	{
@@ -199,10 +199,10 @@ BOOL CCSVFileEditable::ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow)
 	{
 		cString.Split(&psCSVRow->aszData, mcSeparator);
 		cString.Kill();
-		return TRUE;
+		return true;
 	}
 	cString.Kill();
-	return FALSE;
+	return false;
 }
 
 
@@ -212,7 +212,7 @@ BOOL CCSVFileEditable::ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow)
 //////////////////////////////////////////////////////////////////////////
 void CCSVFileEditable::ReadAllLines(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	do
 	{

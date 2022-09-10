@@ -47,9 +47,9 @@ public:
 
 	CMarkupTag*		GetRootTag(void);
 	CMarkupTag*		SetRootTag(char* szTagName);
-	BOOL			Is(char* szName);
+	bool			Is(char* szName);
 	void			AddReference(CMarkupReference* pcRef);
-	BOOL			FixReferences(void);
+	bool			FixReferences(void);
 
 	void			AddSubstitute(CMarkupSubstitute* pcSubstitute);
 

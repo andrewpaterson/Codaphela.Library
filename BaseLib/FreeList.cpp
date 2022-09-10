@@ -173,7 +173,7 @@ void* CFreeList::Add(SFNode** ppsNode)
 
 		if (iPosition == -1)
 		{
-			psNode->bFull = TRUE;
+			psNode->bFull = true;
 			if (mcList.GetNext(psNode) == NULL)
 			{
 				pvTemp = AllocateNewSetFirst();
@@ -215,13 +215,13 @@ void* CFreeList::Add(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeList::Remove(void* pvData)
+bool CFreeList::Remove(void* pvData)
 {
 	SFNode*		psNode;
 
 	if (!pvData)
 	{
-		return FALSE;
+		return false;
 	}
 
 	//Find the chunk in which the element is within this free list.
@@ -231,11 +231,11 @@ BOOL CFreeList::Remove(void* pvData)
 	if (psNode)
 	{
 		RemoveExisiting(psNode, pvData);
-		return TRUE;
+		return true;
 	}
 
 	//Could not find the chunk so could not remove the element.
-	return FALSE;
+	return false;
 }
 
 
@@ -243,16 +243,16 @@ BOOL CFreeList::Remove(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeList::Remove(SFNode* psNode, void* pvData)
+bool CFreeList::Remove(SFNode* psNode, void* pvData)
 {
 	if (psNode && pvData)
 	{
 		RemoveExisiting(psNode, pvData);
-		return TRUE;
+		return true;
 	}
 
 	//Could not find the chunk so could not remove the element.
-	return FALSE;
+	return false;
 }
 
 
@@ -445,18 +445,18 @@ SFNode* CFreeList::GetNode(int iNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeList::IsElementInNodeAllocated(SFNode* psNode, int iPosition)
+bool CFreeList::IsElementInNodeAllocated(SFNode* psNode, int iPosition)
 {
 	void*	pvBitArray;
-	BOOL	bAllocated;
+	bool	bAllocated;
 
 	pvBitArray = GetBitArray(psNode);
 	bAllocated = GetBit(iPosition, pvBitArray);
 	if (bAllocated)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -544,7 +544,7 @@ void* CFreeList::AllocateExisting(SFNode*	psNode, int iPosition)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeList::RemoveExisiting(SFNode* psNode, int iPosition)
+bool CFreeList::RemoveExisiting(SFNode* psNode, int iPosition)
 {
 	void*		pvBitArray;
 
@@ -553,7 +553,7 @@ BOOL CFreeList::RemoveExisiting(SFNode* psNode, int iPosition)
 
 	//Mark this element as no longer in use.
 	SetBit(iPosition, pvBitArray, 0);
-	psNode->bFull = FALSE;
+	psNode->bFull = false;
 	mpsNotFull = psNode;
 
 	//Check if any elements are still allocated in this chunk.
@@ -563,11 +563,11 @@ BOOL CFreeList::RemoveExisiting(SFNode* psNode, int iPosition)
 		Deallocate(psNode);
 
 		//Return true specifying that the chunk has been deallocated.
-		return TRUE;
+		return true;
 	}
 
 	//Return false specifying that the chunk contains elements and has not been deallocated.
-	return FALSE;
+	return false;
 }
 
 
@@ -759,7 +759,7 @@ void CFreeList::FindPrevAllocatedElement(SFreeListIterator* psIterator)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SFNode* CFreeList::FindNode(void* pvData, BOOL bIsAllocated)
+SFNode* CFreeList::FindNode(void* pvData, bool bIsAllocated)
 {
 	int				iDataPos;
 	int				iNodeStart;
@@ -833,16 +833,16 @@ void CFreeList::SetAdditionalSize(int iSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeList::Contains(void* pvData, BOOL bIsAllocated)
+bool CFreeList::Contains(void* pvData, bool bIsAllocated)
 {
 	SFNode*		psNode;
 
 	psNode = FindNode(pvData, bIsAllocated);
 	if (psNode)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -870,7 +870,7 @@ int CFreeList::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFreeList::HasElements(void)
+bool CFreeList::HasElements(void)
 {
 	SFNode*		psNode;
 	int			iCount;
@@ -881,11 +881,11 @@ BOOL CFreeList::HasElements(void)
 	{
 		if (NumNodeElements(psNode) > 0)
 		{
-			return TRUE;
+			return true;
 		}
 		psNode = (SFNode*)mcList.GetNext(psNode);
 	}
-	return FALSE;
+	return false;
 }
 
 

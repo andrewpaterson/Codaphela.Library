@@ -30,23 +30,23 @@ class CDebugOutputFile : public CAbstractFile
 {
 protected:
 	filePos		miPos;
-	BOOL		mbOpen;
+	bool		mbOpen;
 
 public:
 	void		Init(void);
 	void		Kill(void);
 
-	BOOL		Open(EFileMode eFileMode);
-	BOOL		Close(void);
+	bool		Open(EFileMode eFileMode);
+	bool		Close(void);
 	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		IsOpen(void);
+	bool		IsOpen(void);
 	filePos		Size(void);
-	BOOL		Truncate(filePos iSize);
-	BOOL		Flush(void);
-	BOOL		Delete(void);
+	bool		Truncate(filePos iSize);
+	bool		Flush(void);
+	bool		Delete(void);
 	char*		GetFilename(void);
 };
 

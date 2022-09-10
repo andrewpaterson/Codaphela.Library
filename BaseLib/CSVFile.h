@@ -43,8 +43,8 @@ public:
 	void 	Open(CAbstractFile* pcFile);
 	void 	Close(void);
 
-	BOOL	ReadLine(CChars* szString);
-	BOOL	ReadLine(char* szString, int iMaxLength);
+	bool	ReadLine(CChars* szString);
+	bool	ReadLine(char* szString, int iMaxLength);
 
 protected:
 	int		ReadLine(char* snz);

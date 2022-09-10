@@ -38,21 +38,21 @@ public:
 	void		Init(CChars szFilename);
 	void		Kill(void);
 
-	BOOL		Open(EFileMode eMode);
-	BOOL		Close(void);
+	bool		Open(EFileMode eMode);
+	bool		Close(void);
 	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		IsOpen(void);
+	bool		IsOpen(void);
 	filePos		Size(void);
-	BOOL		Truncate(filePos iSize);
-	BOOL		Flush(void);
-	BOOL		Delete(void);
+	bool		Truncate(filePos iSize);
+	bool		Flush(void);
+	bool		Delete(void);
 	char*		GetFilename(void);
 
 	void		SetFile(void* pvFile, size_t uiSize);
-	BOOL		IsFile(void* pvFile, size_t uiSize);
+	bool		IsFile(void* pvFile, size_t uiSize);
 	void*		GetFile(void);
 };
 

@@ -76,7 +76,7 @@ void CIndexTreeNodeMemory::ClearIndex(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeMemory::ClearAndUncontain(unsigned char uiIndex)
+bool CIndexTreeNodeMemory::ClearAndUncontain(unsigned char uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -89,7 +89,7 @@ BOOL CIndexTreeNodeMemory::ClearAndUncontain(unsigned char uiIndex)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -230,37 +230,37 @@ unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
+bool CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
 {
 	unsigned char	uiNextFirstIndex;
 
 	if ((uiIndex != muiFirstIndex) && (uiIndex != muiLastIndex))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (muiFirstIndex == muiLastIndex)
 	{
-		SetNodesEmpty(TRUE);
+		SetNodesEmpty(true);
 		muiFirstIndex = 0;
 		muiLastIndex = 0;
-		return TRUE;
+		return true;
 	}
 
 	if (uiIndex == muiFirstIndex)
 	{
 		uiNextFirstIndex = FindNextFirstIndex();
 		MoveNodesLeft(uiNextFirstIndex);
-		return TRUE;
+		return true;
 	}
 	
 	if (uiIndex == muiLastIndex)
 	{
 		muiLastIndex = FindPrevLastIndex();
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -333,11 +333,11 @@ int CIndexTreeNodeMemory::NumValidIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
+bool CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 {
 	int		iCount;
-	BOOL	bCountEmpty;
-	BOOL	bNodesEmpty;
+	bool	bCountEmpty;
+	bool	bNodesEmpty;
 
 	iCount = NumValidIndexes();
 
@@ -345,7 +345,7 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 	bNodesEmpty = !HasNodes();
 	if (bNodesEmpty == bCountEmpty)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -357,7 +357,7 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 		{
 			gcLogger.Error2(__METHOD__, " Child nodes marked as not empty but none are allocated.", NULL);
 		}
-		return FALSE;
+		return false;
 	}
 }
 
@@ -366,7 +366,7 @@ BOOL CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Print(CChars* psz, BOOL bHex)
+void CIndexTreeNodeMemory::Print(CChars* psz, bool bHex)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
@@ -407,7 +407,7 @@ void CIndexTreeNodeMemory::Dump(void)
 
 	sz.Init();
 
-	Print(&sz, FALSE);
+	Print(&sz, false);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

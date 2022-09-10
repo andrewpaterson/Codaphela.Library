@@ -17,7 +17,7 @@ public:
 	void	Init(const SInt2& v);
 	void	Zero(void);
 
-	BOOL operator == (const SInt2&) const;
+	bool operator == (const SInt2&) const;
 
 	SInt2 operator + (const SInt2&) const;
 	SInt2 operator - (const SInt2&) const;
@@ -25,8 +25,8 @@ public:
 	SInt2& operator += (const SInt2&);
 	SInt2& operator -= (const SInt2&);
 
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 };
 
 

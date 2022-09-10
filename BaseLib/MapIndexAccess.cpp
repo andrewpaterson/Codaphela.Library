@@ -17,7 +17,7 @@ void CMapIndexAccess::Init(CMapBlock* pcMap)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Kill(void)
+bool CMapIndexAccess::Kill(void)
 {
 	mpcMap = NULL;
 	return CIndexAccess::Kill();
@@ -28,9 +28,9 @@ BOOL CMapIndexAccess::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Flush(void)
+bool CMapIndexAccess::Flush(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -48,9 +48,9 @@ int64 CMapIndexAccess::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::ValidateIndex(void)
+bool CMapIndexAccess::ValidateIndex(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -68,7 +68,7 @@ void CMapIndexAccess::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+bool CMapIndexAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	return mpcMap->Put(pvKey, iKeySize, pvData, iDataSize);
 }
@@ -78,10 +78,10 @@ BOOL CMapIndexAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataS
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CMapIndexAccess::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	void*			pvData;
-	BOOL			bResult;
+	bool			bResult;
 	unsigned int	uiDataSize;
 
 	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (int*)&uiDataSize);
@@ -108,7 +108,7 @@ int CMapIndexAccess::DataSize(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Remove(void* pvKey, int iKeySize)
+bool CMapIndexAccess::Remove(void* pvKey, int iKeySize)
 {
 	return mpcMap->Remove(pvKey, iKeySize);
 }
@@ -118,7 +118,7 @@ BOOL CMapIndexAccess::Remove(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Has(void* pvKey, int iKeySize)
+bool CMapIndexAccess::Has(void* pvKey, int iKeySize)
 {
 	return mpcMap->HasKey(pvKey, iKeySize);
 }
@@ -128,13 +128,13 @@ BOOL CMapIndexAccess::Has(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Flush(void* pvKey, int iKeySize)
+bool CMapIndexAccess::Flush(void* pvKey, int iKeySize)
 {
 	if (Has(pvKey, iKeySize))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -142,9 +142,9 @@ BOOL CMapIndexAccess::Flush(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapIndexAccess::Evict(void* pvKey, int iKeySize)
+bool CMapIndexAccess::Evict(void* pvKey, int iKeySize)
 {
-	return FALSE;
+	return false;
 }
 
 

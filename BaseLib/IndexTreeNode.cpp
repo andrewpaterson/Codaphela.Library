@@ -21,7 +21,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 
 	if (uiDataSize != 0)
 	{
-		SetData(TRUE);
+		SetData(true);
 		GetNodeData()->Init(uiDataSize);
 	}
 	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
@@ -42,7 +42,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 	muiLastIndex = 0;
 	msFlags = 0;
 	muiIndexInParent = uiIndexInParent;
-	SetNodesEmpty(TRUE);
+	SetNodesEmpty(true);
 }
 
 
@@ -273,7 +273,7 @@ void CIndexTreeNode::Contain(unsigned char uiIndex, int iClearValue)
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 	if (!HasNodes())
 	{
-		SetNodesEmpty(FALSE);
+		SetNodesEmpty(false);
 		ClearOnlyNode(uiIndex, iClearValue);
 		return;
 	}
@@ -427,11 +427,11 @@ int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsEmpty(void)
+bool CIndexTreeNode::IsEmpty(void)
 {
 	if (HasData())
 	{
-		return FALSE;
+		return false;
 	}
 
 	return !HasNodes();
@@ -442,7 +442,7 @@ BOOL CIndexTreeNode::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsDirty(void)
+bool CIndexTreeNode::IsDirty(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY_NODE);
 }
@@ -452,7 +452,7 @@ BOOL CIndexTreeNode::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsPathDirty(void)
+bool CIndexTreeNode::IsPathDirty(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DIRTY_PATH);
 }
@@ -462,7 +462,7 @@ BOOL CIndexTreeNode::IsPathDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsDeleted(void)
+bool CIndexTreeNode::IsDeleted(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_NODE);
 }
@@ -472,7 +472,7 @@ BOOL CIndexTreeNode::IsDeleted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsPathDeleted(void)
+bool CIndexTreeNode::IsPathDeleted(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DELETED_PATH);
 }
@@ -482,7 +482,7 @@ BOOL CIndexTreeNode::IsPathDeleted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::IsMagic(void)
+bool CIndexTreeNode::IsMagic(void)
 {
 	return muiMagic == INDEX_TREE_NODE_MAGIC;
 }
@@ -492,7 +492,7 @@ BOOL CIndexTreeNode::IsMagic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::HasFlags(unsigned char sFlags)
+bool CIndexTreeNode::HasFlags(unsigned char sFlags)
 {
 	//True if any flag matches (including all flags matching).
 	return FixBool(msFlags & sFlags);
@@ -505,7 +505,7 @@ BOOL CIndexTreeNode::HasFlags(unsigned char sFlags)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::ClearFlags(unsigned char sFlags)
 {
-	SetFlag(&msFlags, sFlags, FALSE);
+	SetFlag(&msFlags, sFlags, false);
 }
 
 
@@ -533,7 +533,7 @@ unsigned char CIndexTreeNode::GetLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::HasNodes(void)
+bool CIndexTreeNode::HasNodes(void)
 {
 	return !FixBool(msFlags & INDEX_TREE_NODE_FLAG_NODES_EMPTY);
 }
@@ -543,7 +543,7 @@ BOOL CIndexTreeNode::HasNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::HasData(void)
+bool CIndexTreeNode::HasData(void)
 {
 	return FixBool(msFlags & INDEX_TREE_NODE_FLAG_DATA);
 }
@@ -553,7 +553,7 @@ BOOL CIndexTreeNode::HasData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetData(BOOL bHasData)
+void CIndexTreeNode::SetData(bool bHasData)
 {
 	return SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DATA, bHasData);
 }
@@ -573,20 +573,20 @@ unsigned char CIndexTreeNode::NumAllocatedNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
+bool CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 {
 	if (!HasNodes())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if ((uiIndex >= muiFirstIndex) && (uiIndex <= muiLastIndex))
 	{
-		return TRUE;
+		return true;
 	}	
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -595,7 +595,7 @@ BOOL CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetNodesEmpty(BOOL bEmpty)
+void CIndexTreeNode::SetNodesEmpty(bool bEmpty)
 {
 	//If the value is true then OR it with dest.
 	if (bEmpty)
@@ -614,7 +614,7 @@ void CIndexTreeNode::SetNodesEmpty(BOOL bEmpty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetDirtyNode(BOOL bDirty)
+void CIndexTreeNode::SetDirtyNode(bool bDirty)
 {
 	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, bDirty);
 }
@@ -624,7 +624,7 @@ void CIndexTreeNode::SetDirtyNode(BOOL bDirty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetDeletedNode(BOOL bDeleted)
+void CIndexTreeNode::SetDeletedNode(bool bDeleted)
 {
 	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, bDeleted);
 }
@@ -634,7 +634,7 @@ void CIndexTreeNode::SetDeletedNode(BOOL bDeleted)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetDirtyPath(BOOL bDirty)
+void CIndexTreeNode::SetDirtyPath(bool bDirty)
 {
 	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, bDirty);
 }
@@ -644,7 +644,7 @@ void CIndexTreeNode::SetDirtyPath(BOOL bDirty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetDeletedPath(BOOL bDeleted)
+void CIndexTreeNode::SetDeletedPath(bool bDeleted)
 {
 	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, bDeleted);
 }
@@ -685,7 +685,7 @@ void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
 	void*				apcChildren;
 	int					iDataSizeDiff;
 	void*				apcMovedChildren;
-	BOOL				bHasData;
+	bool				bHasData;
 	int					iOldDataSize;
 
 	bHasData = HasData();
@@ -718,7 +718,7 @@ void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
 				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
 				memmove(apcMovedChildren, apcChildren, tIndexSize);
 			}
-			SetData(TRUE);
+			SetData(true);
 			GetNodeData()->Init(uiSize);
 		}
 	}
@@ -737,7 +737,7 @@ void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
 				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
 				memmove(apcMovedChildren, apcChildren, tIndexSize);
 			}
-			SetData(FALSE);
+			SetData(false);
 		}
 		else
 		{
@@ -752,7 +752,7 @@ void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Print(CChars* psz, BOOL bHex)
+void CIndexTreeNode::Print(CChars* psz, bool bHex)
 {
 	if (IsEmpty())
 	{
@@ -789,7 +789,7 @@ void CIndexTreeNode::Print(CChars* psz, BOOL bHex)
 //////////////////////////////////////////////////////////////////////////
 char* CIndexTreeNode::GetFlagsString(CChars* psz)
 {
-	BOOL	bAppendComma;
+	bool	bAppendComma;
 
 	bAppendComma = psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, "DIRTY_NODE");
 	bAppendComma |= psz->AppendFlag(msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, "DIRTY_PATH", bAppendComma);

@@ -159,7 +159,7 @@ SFloat2 operator * (float f, const SFloat2& v)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat2::operator == (const SFloat2& v) const
+bool SFloat2::operator == (const SFloat2& v) const
 {
 	return x == v.x && y == v.y;
 }
@@ -168,7 +168,7 @@ BOOL SFloat2::operator == (const SFloat2& v) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat2::operator != (const SFloat2& v) const
+bool SFloat2::operator != (const SFloat2& v) const
 {
 	return x != v.x || y != v.y;
 }
@@ -213,9 +213,9 @@ void SFloat2::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat2::Save(CFileWriter* pcFile)
+bool SFloat2::Save(CFileWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = pcFile->WriteFloat(x);
 	bResult &= pcFile->WriteFloat(y);
@@ -227,9 +227,9 @@ BOOL SFloat2::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat2::Load(CFileReader* pcFile)
+bool SFloat2::Load(CFileReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = pcFile->ReadFloat(&x);
 	bResult &= pcFile->ReadFloat(&y);

@@ -38,7 +38,7 @@ void CMarkupBase::Init(EMarkupType eType, CMarkupTag* pcParent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupBase::IsTag(void)
+bool CMarkupBase::IsTag(void)
 {
 	return meType == MUT_Tag;
 }
@@ -48,7 +48,7 @@ BOOL CMarkupBase::IsTag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupBase::IsText(void)
+bool CMarkupBase::IsText(void)
 {
 	return meType == MUT_Text;
 }
@@ -58,7 +58,7 @@ BOOL CMarkupBase::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupBase::IsRefDoc(void)
+bool CMarkupBase::IsRefDoc(void)
 {
 	return meType == MUT_RefDoc;
 }
@@ -68,7 +68,7 @@ BOOL CMarkupBase::IsRefDoc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupBase::IsRefText(void)
+bool CMarkupBase::IsRefText(void)
 {
 	return meType == MUT_RefText;
 }
@@ -78,7 +78,7 @@ BOOL CMarkupBase::IsRefText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupBase::IsNamedRef(void)
+bool CMarkupBase::IsNamedRef(void)
 {
 	return meType == MUT_NamedRef;
 }
@@ -119,7 +119,7 @@ void CMarkupBase::SetLineAndColumn(int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, BOOL bAllowSameLine)
+int CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, bool bAllowSameLine)
 {
 	int				iNewLines;
 	CChars			szPadding;
@@ -137,7 +137,7 @@ int CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, in
 		szPadding.Init();
 		szPadding.Append(' ', iDepth*2);
 		pszMutableSource->PassifyNewlines();
-		pszMutableSource->StripWhiteSpace(TRUE);
+		pszMutableSource->StripWhiteSpace(true);
 		iNewLines = pszMutableSource->CountNewLines();
 		pszMutableSource->Insert(0, &szPadding);
 		szPadding.Insert(0, '\n');

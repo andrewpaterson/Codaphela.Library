@@ -28,16 +28,16 @@ void* CSystemAllocator::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSystemAllocator::Free(void* pv)
+bool CSystemAllocator::Free(void* pv)
 {
 	if (pv)
 	{
 		free(pv);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -64,9 +64,9 @@ void* CSystemAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSystemAllocator::IsLocal(void)
+bool CSystemAllocator::IsLocal(void)
 {
-	return FALSE;
+	return false;
 }
 
 

@@ -56,12 +56,12 @@ public:
 	int		GetDayInMonth(void);
 	int		GetDayInYear(void);
 	int		CompareTo(CDate* pcRight);
-	BOOL	Equals(CDate* pcRight);
-	BOOL	After(CDate* pcRight);
-	BOOL	Before(CDate* pcRight);
+	bool	Equals(CDate* pcRight);
+	bool	After(CDate* pcRight);
+	bool	Before(CDate* pcRight);
 
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 };
 
 

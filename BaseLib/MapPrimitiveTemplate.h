@@ -29,13 +29,13 @@ template<class M, class D>
 class CMapPrimitiveTemplate : public CMapTemplate<M , D>
 {
 public:
-	void	Init(BOOL bOverwrite);
-	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
+	void	Init(bool bOverwrite);
+	void	Init(CMallocator* pcMalloc, bool bOverwrite);
 	D*		Get(M iKey);
 	D*		Put(M iKey);
-	BOOL	Put(M iKey, D* psData);
-	BOOL	HasKey(M iKey);
-	BOOL	Remove(M iKey);
+	bool	Put(M iKey, D* psData);
+	bool	HasKey(M iKey);
+	bool	Remove(M iKey);
 };
 
 
@@ -44,7 +44,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-void CMapPrimitiveTemplate<M, D>::Init(BOOL bOverwrite)
+void CMapPrimitiveTemplate<M, D>::Init(bool bOverwrite)
 {
 	Init(&gcSystemAllocator, bOverwrite);
 }
@@ -55,7 +55,7 @@ void CMapPrimitiveTemplate<M, D>::Init(BOOL bOverwrite)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-void CMapPrimitiveTemplate<M, D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+void CMapPrimitiveTemplate<M, D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
 	CMapTemplate<M, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
@@ -88,7 +88,7 @@ D* CMapPrimitiveTemplate<M, D>::Put(M iKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
+bool CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
 {
 	return CMapTemplate<M, D>::Put(&iKey, psData);
 }
@@ -99,7 +99,7 @@ BOOL CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapPrimitiveTemplate<M, D>::HasKey(M iKey)
+bool CMapPrimitiveTemplate<M, D>::HasKey(M iKey)
 {
 	return CMapTemplate<M, D>::HasKey(&iKey);
 }
@@ -110,7 +110,7 @@ BOOL CMapPrimitiveTemplate<M, D>::HasKey(M iKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-BOOL CMapPrimitiveTemplate<M, D>::Remove(M iKey)
+bool CMapPrimitiveTemplate<M, D>::Remove(M iKey)
 {
 	return CMapTemplate<M, D>::Remove(&iKey);
 }

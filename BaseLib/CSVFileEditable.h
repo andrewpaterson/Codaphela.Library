@@ -55,9 +55,9 @@ public:
 	void 				Init(char cSeparator);
 	void 				Kill(void);
 
-	BOOL 				ReadLine(void);
-	BOOL				ReadLine(CChars* szString);
-	BOOL 				ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow);
+	bool 				ReadLine(void);
+	bool				ReadLine(CChars* szString);
+	bool 				ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow);
 	void 				ReadAllLines(void);
 	void 				Dump(void);
 	int					NumRows(void);

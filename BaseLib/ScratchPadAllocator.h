@@ -18,14 +18,14 @@ public:
 
 	void*			Malloc(size_t tSize);
 	void*			Realloc(void* pv, size_t tSize);
-	BOOL			Free(void* pv);
+	bool			Free(void* pv);
 
 	CScratchPad*	GetScratchPad(void);
 
 	const char*		GetName(void);
 
-	BOOL			Read(CFileReader* pcFileReader);
-	BOOL			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader);
+	bool			Write(CFileWriter* pcFileWriter);
 
 	size_t			SizeOffset(void);
 

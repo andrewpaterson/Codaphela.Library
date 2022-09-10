@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CAbstractFile::Init(void)
 {
-	mbBasicFileMustFree = FALSE;
+	mbBasicFileMustFree = false;
 }
 
 
@@ -39,6 +39,6 @@ void CAbstractFile::Init(void)
 //////////////////////////////////////////////////////////////////////////
 char* CAbstractFile::GetFilename(void)
 {
-	return FALSE;
+	return false;
 }
 

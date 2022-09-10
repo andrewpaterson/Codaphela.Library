@@ -44,11 +44,11 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
 	unsigned char*	pui;
 	INTEGER			iMantissa;
-	BOOL			bNegative;
+	bool			bNegative;
 	int				iExponent;
 	INTEGER			iValue;
 	CNumber*		pcResult;
@@ -60,7 +60,7 @@ char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecim
 	int				iLeftMost;
 	CChars			sz;
 	int				iFractionalPart;
-	BOOL			bNumeric;
+	bool			bNumeric;
 	int				iSignificantDigits;
 	int				iIndex;
 	int				iLength;
@@ -196,11 +196,11 @@ char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecim
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
 	unsigned char*	pui;
 	INTEGER			iMantissa;
-	BOOL			bNegative;
+	bool			bNegative;
 	int				iExponent;
 	INTEGER			iValue;
 	CNumber*		pcResult;
@@ -212,7 +212,7 @@ char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDe
 	int				iLeftMost;
 	CChars			sz;
 	int				iFractionalPart;
-	BOOL			bNumeric;
+	bool			bNumeric;
 	int				iSignificantDigits;
 	int				iIndex;
 	int				iLength;
@@ -333,11 +333,11 @@ char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDe
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, BOOL bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {	
 	unsigned char*	pui;
 	INTEGER			iMantissa;
-	BOOL			bNegative;
+	bool			bNegative;
 	int				iExponent;
 
 	pui = (unsigned char*)&f;
@@ -382,7 +382,7 @@ char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, B
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BOOL bAppendType)
+char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, bool bAppendType)
 {
 	return NumberToString<float, int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "f", 0x80000000, 0x7fffff, 0x800000, 0x7f800000, 23, 255, 127, 9);
 }
@@ -392,7 +392,7 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, BO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals, BOOL bAppendType)
+char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals, bool bAppendType)
 {
 	return NumberToString<double, long long int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0xfffffffffffff, 0x10000000000000, 0x7ff0000000000000, 52, 0x7ff, 1023, 17);
 }

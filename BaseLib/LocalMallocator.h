@@ -8,10 +8,10 @@ class CLocalMallocator : public CMallocator
 public:
 	virtual void		Kill(void) =0;
 
-			BOOL		IsLocal(void);
+			bool		IsLocal(void);
 
-	virtual BOOL		Read(CFileReader* pcFileReader) =0;
-	virtual BOOL		Write(CFileWriter* pcFileWriter) =0;
+	virtual bool		Read(CFileReader* pcFileReader) =0;
+	virtual bool		Write(CFileWriter* pcFileWriter) =0;
 
 			const char*	ShortName(void);
 };

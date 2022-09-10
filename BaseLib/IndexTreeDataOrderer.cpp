@@ -56,7 +56,7 @@ void CIndexTreeDataOrderer::New(CIndexTreeDataNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
+bool CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
 {
 	SLLNode*			psNode;
 
@@ -69,7 +69,7 @@ BOOL CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, char* pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
+bool CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
 {
 	SLLNode*	psNode;
 
@@ -82,7 +82,7 @@ BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey,
 	else
 	{
 		SafeAssign(piDataSize, 0);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -91,7 +91,7 @@ BOOL CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
+bool CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
 {
 	CIndexTreeDataNode* pcDataNode;
 	CIndexTreeNode*		pcNode;
@@ -109,13 +109,13 @@ BOOL CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psI
 
 		iDataSize = mpcIndexTree->GetNodeData(pcNode, pvDestData, iDestDataSize);
 		SafeAssign(piDataSize, iDataSize);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		psIter->pcNode = NULL;
 		SafeAssign(piDataSize, 0);
-		return FALSE;
+		return false;
 	}
 }
 

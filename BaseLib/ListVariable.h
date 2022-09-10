@@ -50,18 +50,18 @@ public:
 	void	Kill(void);
 	void*	Add(size_t iElementSize);
 	void*	Add(void* pvElement, size_t iElementSize);
-	BOOL	Get(int iIndex, void** pvData);
+	bool	Get(int iIndex, void** pvData);
 	void*	Get(int iIndex);
 	void*	Get(int iIndex, size_t* puiElementSize);
 	void	Set(int iIndex, void* pvData, int iElementSize);
 	void*	Resize(int iIndex, int iElementSize = 0);
-	void	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
+	void	RemoveAt(int iIndex, int bPreserveOrder = true);
 	int		IndexOf(void* pvElement);
-	BOOL	Remove(void* pvElement);
+	bool	Remove(void* pvElement);
 	int		NumElements(void);
-	BOOL	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
+	bool	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
 	void*	InsertAt(int iIndex, int iElementSize);
-	int		InsertIntoSorted(DataCompare fCompare, void* pvElement, BOOL bOverwriteExisting, int iElementSize);
+	int		InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, int iElementSize);
 	int		GetSize(int iIndex);
 
 private:

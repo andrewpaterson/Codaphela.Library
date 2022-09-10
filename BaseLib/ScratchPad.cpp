@@ -68,7 +68,7 @@ void* CScratchPad::Add(size_t tSize)
 
 	psNode = (SSPNode*)mcScratchPad.Add(tSize + sizeof(SSPNode));
 	psNode->iSize = tSize;
-	psNode->bUsed = TRUE;
+	psNode->bUsed = true;
 	pvData = HeaderGetData<SSPNode, void>(psNode);
 	return pvData;
 }

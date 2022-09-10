@@ -11,11 +11,11 @@ public:
 
 	void*		Malloc(size_t tSize);
 	void*		Realloc(void* pv, size_t iMemSize);
-	BOOL		Free(void* pv);
+	bool		Free(void* pv);
 
 	const char*	GetName(void);
 
-	BOOL		IsLocal(void);
+	bool		IsLocal(void);
 	size_t		SizeOffset(void);
 
 	const char*	ShortName(void);

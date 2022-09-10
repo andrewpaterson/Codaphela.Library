@@ -47,10 +47,10 @@ public:
 
 	void		Add(const char* szText);
 	void		Add(const char* szErrorLevel, const char* szText);
-	BOOL		Error(const char* szText);
-	BOOL		Error2(const char* szText, ...);
-	BOOL		Warning(const char* szText);
-	BOOL		Warning2(const char* szText, ...);
+	bool		Error(const char* szText);
+	bool		Error2(const char* szText, ...);
+	bool		Warning(const char* szText);
+	bool		Warning2(const char* szText, ...);
 	void		Info(const char* szText);
 	void		Info2(const char* szText, ...);
 	void		Debug(const char* szText);
@@ -58,9 +58,9 @@ public:
 
 	void		Disable(void);
 	void		Enable(void);
-	void		SetBreakOnError(BOOL bBreakOnError);
-	void		SetBreakOnWarning(BOOL bBreakOnWarning);
-	SLogConfig	SetSilent(BOOL bBreakOnError = FALSE);
+	void		SetBreakOnError(bool bBreakOnError);
+	void		SetBreakOnWarning(bool bBreakOnWarning);
+	SLogConfig	SetSilent(bool bBreakOnError = false);
 	void		SetConfig(SLogConfig* psConfig);
 	void		GetConfig(SLogConfig* psConfig);
 

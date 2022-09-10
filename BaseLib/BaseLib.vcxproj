@@ -424,7 +424,6 @@
     <ClInclude Include="FastMemset.h" />
     <ClInclude Include="PointerFunctions.h" />
     <ClInclude Include="PointerRemapper.h" />
-    <ClInclude Include="Bool.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="TypeConverter.h" />
     <ClInclude Include="TypeNames.h" />

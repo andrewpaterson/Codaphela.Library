@@ -70,7 +70,7 @@ public:
 
 	void		RemoveTail(void);
 	void		Remove(void* pvData);
-	BOOL		SafeRemove(void* pvData);
+	bool		SafeRemove(void* pvData);
 
 	void		MoveToHead(void* pvData);
 	void		MoveToTTail(void* pvData);
@@ -88,7 +88,7 @@ public:
 
 	void*		Get(int iNum);
 	int			IndexOf(void* pvData);
-	BOOL		IsInList(void* pvData);
+	bool		IsInList(void* pvData);
 
 	void		BubbleSort(DataCompare fCompare);
 	void		InsertDetachedIntoSorted(DataCompare fCompare, void* pvData);

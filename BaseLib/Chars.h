@@ -57,7 +57,7 @@ public:
 	CChars* InitList(const char* szFirst, ...);
 	CChars* InitList(CChars* szFirst, ...);
 	CChars* InitLength(int iLength);
-	BOOL	InitData2(const char* szData, int iDataLength);
+	bool	InitData2(const char* szData, int iDataLength);
 	void	Kill(void);
 	void	DumpKill(void);
 	void	Fake(const char* sz);
@@ -77,8 +77,8 @@ public:
 	CChars* Append(int i);
 	CChars* Append(int i, int iBase);
 	void	Append(unsigned int ui);
-	void	Append(float f, int iMaxDecimals = -1, BOOL bAppendF = FALSE);
-	void	Append(double d, int iMaxDecimals = -1, BOOL bAppendD = FALSE);
+	void	Append(float f, int iMaxDecimals = -1, bool bAppendF = false);
+	void	Append(double d, int iMaxDecimals = -1, bool bAppendD = false);
 	void	Append(long long int lli);
 	void	Append(unsigned long long int ulli);
 	CChars*	Append(CExternalString* pcString);
@@ -93,20 +93,20 @@ public:
 	void	AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive);
 	void	AppendSubString(const char* sz, int iStartInclusive, int iEndExclusive);
 	void	AppendSubString(const char* szStartInclusive, const char* szEndExclusive);
-	void	AppendBool(BOOL bValue);
-	void	AppendBool(BOOL bValue, const char* szTrue, const char* szFalse);
+	void	AppendBool(bool bValue);
+	void	AppendBool(bool bValue, const char* szTrue, const char* szFalse);
 	CChars* AppendData(const char* szData, size_t iMaxLength);
 	CChars* AppendData(const char* szData, size_t iDataLength, size_t iMaxLength);
-	BOOL	AppendData2(const char* szData, size_t iDataLength);
+	bool	AppendData2(const char* szData, size_t iDataLength);
 	void	AppendPointer(void* pv);
-	BOOL	AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, BOOL bAppendComma = FALSE);
+	bool	AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, bool bAppendComma = false);
 	void	Insert(int iPos, char c);
 	void	Insert(int iPos, const char* szString);
 	void	Insert(int iPos, CChars* pszString);
 	void	Minimize(void);
 	char*	Text(void);
 	char*	Text(int iIndex);
-	BOOL	Empty(void);
+	bool	Empty(void);
 	void	LeftAlign(CChars sz, char cPadCharacter, unsigned int iWidth);
 	void	LeftAlign(const char* sz, char cPadCharacter, unsigned int iWidth);
 	void	RightAlign(CChars sz, char cPadCharacter, unsigned int iWidth);
@@ -120,22 +120,22 @@ public:
 	void	RemoveCharacter(int iPos);
 	void	Split(CArrayChars* aszDest, char cSplitter);
 	void	SplitLines(CArrayChars* aszDest);
-	BOOL	Equals(const char* szString);
-	BOOL	Equals(CChars szString);
-	BOOL	Equals(const char* szString, int iLen);
-	BOOL	Equals(CChars* pszString);
-	BOOL	EqualsIgnoreCase(const char* szString);
-	BOOL	EqualsIgnoreCase(CChars szString);
-	BOOL	Contains(const char* szString);
-	BOOL	ContainsIgnoreCase(const char* szString);
-	BOOL	EndsWith(const char* szString);
-	BOOL	EndsWithIgnoreCase(const char* szString);
-	BOOL	EndsWith(char c);
-	BOOL	StartsWith(const char* szString);
-	BOOL	StartsWithIgnoreCase(const char* szString);
+	bool	Equals(const char* szString);
+	bool	Equals(CChars szString);
+	bool	Equals(const char* szString, int iLen);
+	bool	Equals(CChars* pszString);
+	bool	EqualsIgnoreCase(const char* szString);
+	bool	EqualsIgnoreCase(CChars szString);
+	bool	Contains(const char* szString);
+	bool	ContainsIgnoreCase(const char* szString);
+	bool	EndsWith(const char* szString);
+	bool	EndsWithIgnoreCase(const char* szString);
+	bool	EndsWith(char c);
+	bool	StartsWith(const char* szString);
+	bool	StartsWithIgnoreCase(const char* szString);
 	int		Occurrences(const char* szString);
-	BOOL	SubStringEquals(int iStart, const char* szString);
-	BOOL	SubStringEqualsIgnoreCase(int iStart, const char* szString);
+	bool	SubStringEquals(int iStart, const char* szString);
+	bool	SubStringEqualsIgnoreCase(int iStart, const char* szString);
 	int		FindFromEnd(const char* szString);
 	int		FindFromEnd(int iPos, const char* szString);
 	int		FindFromEnd(char c);
@@ -148,10 +148,10 @@ public:
 	char	GetChar(int iIndex);
 	void	SetChar(int iPos, char c);
 	void	Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CChars szOldString);
-	BOOL	IsWhiteSpace(int iPos, BOOL bIncludeNewLines);
-	BOOL	IsWhiteSpace(void);
+	bool	IsWhiteSpace(int iPos, bool bIncludeNewLines);
+	bool	IsWhiteSpace(void);
 	void	SetLength(int iLength);
-	int		StripWhiteSpace(BOOL bIncludeNewLines = FALSE);
+	int		StripWhiteSpace(bool bIncludeNewLines = false);
 	int		Compare(CChars* szOther);
 	int		Compare(const char* szOther);
 	int		CompareIgnoreCase(CChars* szOther);
@@ -166,9 +166,9 @@ public:
 	void	LowerCase(void);
 	void	UpperCase(void);
 
-	BOOL	WriteString(CFileWriter* pcWriter);
-	BOOL	ReadString(CFileReader* pcReader);
-	BOOL	ReadChars(CFileReader* pcReader);  //Call this if the string was saved from a char*
+	bool	WriteString(CFileWriter* pcWriter);
+	bool	ReadString(CFileReader* pcReader);
+	bool	ReadChars(CFileReader* pcReader);  //Call this if the string was saved from a char*
 
 	char*	CopyIntoBuffer(char* szDest, int iDestLength);
 
@@ -185,13 +185,13 @@ protected:
 	int		ReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference);
 	int		ReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference);
 	int		ReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference);
-	int		FindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines);
-	int		FindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines);
+	int		FindEndOfLeadingWhiteSpace(bool bIncludeNewLines);
+	int		FindStartOfTrailingWhiteSpace(bool bIncludeNewLines);
 	void	SetNonNull(const char* sz, int iLen);
 	void	SetEmpty(void);
 	void	CleanIfEmpty(void);
 	void	InitEmpty(void);
-	BOOL	IsFakeEmpty(void);
+	bool	IsFakeEmpty(void);
 	void	Unfake(void);
 	void	UnfakeIfFakeEmpty(void);
 };

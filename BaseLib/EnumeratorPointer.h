@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CEnumeratorPointer : public __CEnumeratorTemplate<void>
 {
 public:
-	int Add(char* szName, void* pvData, int iKeySize, int iNum, BOOL bReplace = TRUE);
+	int Add(char* szName, void* pvData, int iKeySize, int iNum, bool bReplace = true);
 };
 
 

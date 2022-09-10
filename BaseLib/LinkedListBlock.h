@@ -46,8 +46,8 @@ public:
 
 	int				ByteSize(void);
 
-	BOOL			Write(CFileWriter* pcFileWriter);
-	BOOL			Read(CFileReader* pcFileReader);
+	bool			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader);
 
 	void			InsertDetachedAfterTail(void* pvData);
 
@@ -56,10 +56,10 @@ protected:
 	SLLBlockNode*	AllocateDetached(unsigned int uiDataSize);
 	SLLBlockNode*	DataGetNode(void *pvData);
 
-	BOOL			WriteHeader(CFileWriter* pcFileWriter);
-	BOOL			WriteData(CFileWriter* pcFileWriter);
-	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
-	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
+	bool			WriteHeader(CFileWriter* pcFileWriter);
+	bool			WriteData(CFileWriter* pcFileWriter);
+	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
+	bool			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 
 

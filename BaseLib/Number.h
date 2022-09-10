@@ -123,15 +123,15 @@ public:
 	int			GetDecimals(void);
 	int			GetWholeNumbers(void);
 	int			GetDigitsBetween(void);
-	BOOL		IsNAN(void);
-	BOOL		IsUnderflow(void);
-	BOOL		IsOverflow(void);
-	BOOL		IsNegative(void);
-	BOOL		IsPositive(void);
-	BOOL		IsPositiveOrZero(void);
-	BOOL		IsClean(void);
-	BOOL		IsDivisionByZero(void);
-	BOOL		IsError(void);
+	bool		IsNAN(void);
+	bool		IsUnderflow(void);
+	bool		IsOverflow(void);
+	bool		IsNegative(void);
+	bool		IsPositive(void);
+	bool		IsPositiveOrZero(void);
+	bool		IsClean(void);
+	bool		IsDivisionByZero(void);
+	bool		IsError(void);
 	void		AddBinaryOne(int iBinaryExponent);
 	void		SetDigit(int iDigit, char cValue);
 	void		SetDigitUnsafe(int iDigit, char cValue);
@@ -144,30 +144,30 @@ public:
 	void		RoundSignificant(int iSignificantDigits);
 	void		PrivateZeroDigits(int iFirst, int iLast);
 	void		PrivateZeroEnds(void);
-	BOOL		IsInteger(void);
-	BOOL		DigitsEqual(CNumber* pcTest, int iFirstDigit, int iLastDigit);
+	bool		IsInteger(void);
+	bool		DigitsEqual(CNumber* pcTest, int iFirstDigit, int iLastDigit);
 
 	//Logical
-	BOOL		Equals(CNumber* pcNumber);
-	BOOL		GreaterThan(CNumber* pcNumber);
-	BOOL		LessThan(CNumber* pcNumber);
-	BOOL		GreaterThanOrEquals(CNumber* pcNumber);
-	BOOL		LessThanOrEquals(CNumber* pcNumber);
-	BOOL		IsZero(void);
-	BOOL		IsOdd(void);
-	BOOL		IsEven(void);
+	bool		Equals(CNumber* pcNumber);
+	bool		GreaterThan(CNumber* pcNumber);
+	bool		LessThan(CNumber* pcNumber);
+	bool		GreaterThanOrEquals(CNumber* pcNumber);
+	bool		LessThanOrEquals(CNumber* pcNumber);
+	bool		IsZero(void);
+	bool		IsOdd(void);
+	bool		IsEven(void);
 
 	//Private Math
 	void		PrivateAdd(CNumber* pcNumber);
 	void		PrivateSubtract(CNumber* pcNumber);
-	BOOL		PrivateGreaterThan(CNumber* pcNumber);
-	BOOL		PrivateGreaterThanOrEquals(CNumber* pcNumber);
-	char		PrivateDivide(CNumber* pcDivisor, BOOL* pbExact);
+	bool		PrivateGreaterThan(CNumber* pcNumber);
+	bool		PrivateGreaterThanOrEquals(CNumber* pcNumber);
+	char		PrivateDivide(CNumber* pcDivisor, bool* pbExact);
 	void		PrivateUnderflow(CNumber* pcNumber);
-	BOOL		PrivateNAN(CNumber* pcNumber);
-	BOOL		PrivateOverflow(CNumber* pcNumber);
-	BOOL		PrivateDivisionByZero(CNumber* pcNumber);
-	BOOL		PrivateError(CNumber* pcNumber);
+	bool		PrivateNAN(CNumber* pcNumber);
+	bool		PrivateOverflow(CNumber* pcNumber);
+	bool		PrivateDivisionByZero(CNumber* pcNumber);
+	bool		PrivateError(CNumber* pcNumber);
 	void		PrivateIntegerRoot(CNumber* pcRoot);
 	void		PrivateIntegerExponent(CNumber* pcExponent);  //The number returned is not this.
 	void		PrivateIntegerExponent(int iExponent);
@@ -175,7 +175,7 @@ public:
 	void		PrivateInit(void);
 	void		PrivateInit(int16 cWholeNumbers, int16 cMaxDecimals);
 	void		PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	BOOL		PrivateEquals(CNumber* pcNumber, int16 iDecimals);
+	bool		PrivateEquals(CNumber* pcNumber, int16 iDecimals);
 	int			PrivateGetIndex(int iDigit);
 
 	//Mathematical
@@ -234,9 +234,9 @@ public:
 	char		GetDigitUnsafe(int iDigit);  //zero returns '.' or '\0'.
 	char		SafeGetDigit(int iDigit);
 	void		Print(CChars* pcChars);
-	BOOL		PrintFloating(CChars* pcChars);
+	bool		PrintFloating(CChars* pcChars);
 	void		Dump(void);
-	void		Dump(BOOL bNewLine);
+	void		Dump(bool bNewLine);
 };
 
 

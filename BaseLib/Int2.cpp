@@ -38,7 +38,7 @@ SInt2::SInt2(int fx, int fy)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SInt2::operator == (const SInt2& v) const
+bool SInt2::operator == (const SInt2& v) const
 {
 	return x == v.x && y == v.y;
 }
@@ -125,11 +125,11 @@ void SInt2::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SInt2::Save(CFileWriter* pcFile)
+bool SInt2::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteInt(x));
 	ReturnOnFalse(pcFile->WriteInt(y));
-	return TRUE;
+	return true;
 }
 
 
@@ -137,10 +137,10 @@ BOOL SInt2::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SInt2::Load(CFileReader* pcFile)
+bool SInt2::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadInt(&x));
 	ReturnOnFalse(pcFile->ReadInt(&y));
-	return TRUE;
+	return true;
 }
 

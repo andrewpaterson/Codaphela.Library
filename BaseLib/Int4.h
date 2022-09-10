@@ -13,8 +13,8 @@ public:
 	void	Init(int x, int y, int z, int w);
 	void	Zero(void);
 
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 };
 
 

@@ -34,11 +34,11 @@ protected:
 	int								miMaxKeySize;
 
 public:
-			BOOL					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-	virtual BOOL					Kill(void);
+			bool					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	virtual bool					Kill(void);
 
-	virtual BOOL					Remove(void* pvKey, int iKeySize) =0;
-	virtual BOOL					HasKey(void* pvKey, int iKeySize) =0;
+	virtual bool					Remove(void* pvKey, int iKeySize) =0;
+	virtual bool					HasKey(void* pvKey, int iKeySize) =0;
 
 			size_t					SizeofNode(void);
 			size_t					SizeofDataNode(void);
@@ -59,7 +59,7 @@ protected:
 			void*					Realloc(void* pv, size_t tSize);
 			void					Free(void* pv);
 
-			BOOL					ValidatePut(int iKeySize, size_t iDataSize);
+			bool					ValidatePut(int iKeySize, size_t iDataSize);
 
 			void					InsertReorderData(CIndexTreeNode* pcNode);
 			void					GetReorderData(CIndexTreeNode* pcNode);
@@ -69,8 +69,8 @@ protected:
 
 			void					FreeNode(CIndexTreeNode* pcNode);
 
-			BOOL					StartKey(int* pi, int iKeySize);
-			BOOL					LoopKey(int* pi, int iKeySize);
+			bool					StartKey(int* pi, int iKeySize);
+			bool					LoopKey(int* pi, int iKeySize);
 
 			CIndexTreeNode*			GetNodeForDataNode(CIndexTreeDataNode* pcDataNode);
 			CIndexTreeNode*			GetNodeForData(void* pvData);

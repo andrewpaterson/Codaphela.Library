@@ -240,7 +240,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	int		i;
 	char	c;
 	int		iPos;
-	BOOL	bAnyDigits;
+	bool	bAnyDigits;
 	int		iNonZero;
 
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
@@ -255,7 +255,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	}
 
 	iPos = 0;
-	bAnyDigits = FALSE;
+	bAnyDigits = false;
 	iNonZero = -1;
 	iDecimalPoint = 0;
 	iSign = 1;
@@ -264,7 +264,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 		c = szNumber[i];
 		if ((c >= ZERO) && (c <= NINE))
 		{
-			bAnyDigits = TRUE;
+			bAnyDigits = true;
 			if ((c != ZERO) && (iNonZero == -1))
 			{
 				iNonZero = iPos;
@@ -283,7 +283,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 			{
 				cDigits[iPos] = 0;
 				iPos++;
-				bAnyDigits = TRUE;
+				bAnyDigits = true;
 			}
 			iDecimalPoint = iPos;
 		}
@@ -674,7 +674,7 @@ int	CNumber::GetSign(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsZero(void)
+bool CNumber::IsZero(void)
 {
 	int	iLast;
 	int iFirst;
@@ -684,9 +684,9 @@ BOOL CNumber::IsZero(void)
 
 	if ((iFirst == 1) && (iLast == 1) && (GetDigitUnsafe(1) == 0))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -694,24 +694,24 @@ BOOL CNumber::IsZero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsOdd(void)
+bool CNumber::IsOdd(void)
 {
 	int		iLast;
 	char	cDigit;
 
 	if (IsError())
 	{
-		return FALSE;
+		return false;
 	}
 
 	iLast = GetLastNonZeroDigit();
 	if (iLast > 1)
 	{
-		return FALSE;
+		return false;
 	}
 	if (iLast <= -1)
 	{
-		return FALSE;
+		return false;
 	}
 	cDigit = GetDigitUnsafe(1);
 	return (cDigit % 2) == 1;
@@ -722,24 +722,24 @@ BOOL CNumber::IsOdd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsEven(void)
+bool CNumber::IsEven(void)
 {
 	int		iLast;
 	char	cDigit;
 
 	if (IsError())
 	{
-		return FALSE;
+		return false;
 	}
 
 	iLast = GetLastNonZeroDigit();
 	if (iLast > 1)
 	{
-		return TRUE;
+		return true;
 	}
 	if (iLast <= -1)
 	{
-		return FALSE;
+		return false;
 	}
 	cDigit = GetDigitUnsafe(1);
 	return (cDigit % 2) == 0;
@@ -750,7 +750,7 @@ BOOL CNumber::IsEven(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsDivisionByZero(void)
+bool CNumber::IsDivisionByZero(void)
 {
 	return mcFlags & NUMBER_FLAGS_DIVISION_BY_ZERO;
 }
@@ -760,21 +760,21 @@ BOOL CNumber::IsDivisionByZero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsError(void)
+bool CNumber::IsError(void)
 {
 	if (IsOverflow())
 	{
-		return TRUE;
+		return true;
 	}
 	if (IsNAN())
 	{
-		return TRUE;
+		return true;
 	}
 	if (IsDivisionByZero())
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -848,13 +848,13 @@ void CNumber::CleanLeft(void)
 	char	c;
 	int		iFirst;
 	int		iLast;
-	BOOL	bAnyNonZero;
+	bool	bAnyNonZero;
 	int		iFirstDiscovered;
 
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
 
-	bAnyNonZero = FALSE;
+	bAnyNonZero = false;
 	for (i = iFirst; i >= iLast; i--)
 	{
 		if (i != 0)
@@ -862,7 +862,7 @@ void CNumber::CleanLeft(void)
 			c = GetDigitUnsafe(i);
 			if ((c != 0) && (!bAnyNonZero))
 			{
-				bAnyNonZero = TRUE;
+				bAnyNonZero = true;
 				iFirstDiscovered = i;
 				break;
 			}
@@ -895,13 +895,13 @@ void CNumber::CleanRight(void)
 	char	c;
 	int		iFirst;
 	int		iLast;
-	BOOL	bAnyNonZero;
+	bool	bAnyNonZero;
 	int		iLastDiscovered;
 
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
 
-	bAnyNonZero = FALSE;
+	bAnyNonZero = false;
 	for (i = iLast; i <= iFirst; i++)
 	{
 		if (i != 0)
@@ -909,7 +909,7 @@ void CNumber::CleanRight(void)
 			c = GetDigitUnsafe(i);
 			if ((c != 0) && (!bAnyNonZero))
 			{
-				bAnyNonZero = TRUE;
+				bAnyNonZero = true;
 				iLastDiscovered = i;
 				break;
 			}
@@ -1074,16 +1074,16 @@ void CNumber::PrivateZeroEnds(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsInteger(void)
+bool CNumber::IsInteger(void)
 {
 	int		iLast;
 
 	iLast = GetLastNonZeroDigit();
 	if (iLast > 0)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1091,7 +1091,7 @@ BOOL CNumber::IsInteger(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::DigitsEqual(CNumber* pcTest, int iFirstDigit, int iLastDigit)
+bool CNumber::DigitsEqual(CNumber* pcTest, int iFirstDigit, int iLastDigit)
 {
 	int iResult;
 
@@ -1266,10 +1266,10 @@ CNumber* CNumber::TruncateHigh(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsClean(void)
+bool CNumber::IsClean(void)
 {
 	CNumber*	pcTest;
-	BOOL		bResult;
+	bool		bResult;
 
 	pcTest = gcNumberControl.Add(mcMaxWholeNumbers, mcMaxDecimals);
 	pcTest->Init(this, mcMaxWholeNumbers, mcMaxDecimals);
@@ -1320,7 +1320,7 @@ int CNumber::GetDigitsBetween(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsNAN(void)
+bool CNumber::IsNAN(void)
 {
 	return mcFlags & NUMBER_FLAGS_NAN;
 }
@@ -1330,7 +1330,7 @@ BOOL CNumber::IsNAN(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsUnderflow(void)
+bool CNumber::IsUnderflow(void)
 {
 	return mcFlags & NUMBER_FLAGS_UNDERFLOW;
 }
@@ -1340,7 +1340,7 @@ BOOL CNumber::IsUnderflow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsOverflow(void)
+bool CNumber::IsOverflow(void)
 {
 	return mcFlags & NUMBER_FLAGS_OVERFLOW;
 }
@@ -1350,7 +1350,7 @@ BOOL CNumber::IsOverflow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsNegative(void)
+bool CNumber::IsNegative(void)
 {
 	return FixBool(mcFlags & NUMBER_FLAGS_NEGATIVE);
 }
@@ -1360,7 +1360,7 @@ BOOL CNumber::IsNegative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsPositive(void)
+bool CNumber::IsPositive(void)
 {
 	return !IsNegative() && !IsZero();
 }
@@ -1370,7 +1370,7 @@ BOOL CNumber::IsPositive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::IsPositiveOrZero(void)
+bool CNumber::IsPositiveOrZero(void)
 {
 	return !IsNegative();
 }
@@ -1380,7 +1380,7 @@ BOOL CNumber::IsPositiveOrZero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
+bool CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 {
 	int		iThisLastDigit;
 	int		iOtherLastDigit;
@@ -1390,7 +1390,7 @@ BOOL CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 
 	if (IsError())
 	{
-		return FALSE;
+		return false;
 	}
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
@@ -1401,7 +1401,7 @@ BOOL CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 
 	if (IsNegative() != pcNumber->IsNegative())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (iThisLastDigit < -iDecimals)
@@ -1415,7 +1415,7 @@ BOOL CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 
 	if ((iThisFirstDigit != iOtherFirstDigit) || (iThisLastDigit != iOtherLastDigit))
 	{
-		return FALSE;
+		return false;
 	}
 
 	iResult = memcmp(DigitToArray(iThisFirstDigit), pcNumber->DigitToArray(iOtherFirstDigit), GetDigitsBetween(iThisFirstDigit, iThisLastDigit));
@@ -1427,7 +1427,7 @@ BOOL CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::Equals(CNumber* pcNumber)
+bool CNumber::Equals(CNumber* pcNumber)
 {
 	return PrivateEquals(pcNumber, mcMaxDecimals);
 }
@@ -1437,12 +1437,12 @@ BOOL CNumber::Equals(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::GreaterThan(CNumber* pcNumber)
+bool CNumber::GreaterThan(CNumber* pcNumber)
 {
-	BOOL	bThisNegative;
-	BOOL	bOtherNegative;
-	BOOL	bThisZero;
-	BOOL	bOtherZero;
+	bool	bThisNegative;
+	bool	bOtherNegative;
+	bool	bThisZero;
+	bool	bOtherZero;
 
 	bThisNegative = IsNegative();
 	bOtherNegative = pcNumber->IsNegative();
@@ -1453,22 +1453,22 @@ BOOL CNumber::GreaterThan(CNumber* pcNumber)
 	{
 		if (bOtherZero)
 		{
-			return FALSE;
+			return false;
 		}
 		else if (bOtherNegative)
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (bThisNegative)
 	{
 		if (bOtherZero)
 		{
-			return FALSE;
+			return false;
 		}
 		else if (bOtherNegative)
 		{
@@ -1476,18 +1476,18 @@ BOOL CNumber::GreaterThan(CNumber* pcNumber)
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		if (bOtherZero)
 		{
-			return TRUE;
+			return true;
 		}
 		else if (bOtherNegative)
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
@@ -1501,12 +1501,12 @@ BOOL CNumber::GreaterThan(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::GreaterThanOrEquals(CNumber* pcNumber)
+bool CNumber::GreaterThanOrEquals(CNumber* pcNumber)
 {
-	BOOL	bThisNegative;
-	BOOL	bOtherNegative;
-	BOOL	bThisZero;
-	BOOL	bOtherZero;
+	bool	bThisNegative;
+	bool	bOtherNegative;
+	bool	bThisZero;
+	bool	bOtherZero;
 
 	bThisNegative = IsNegative();
 	bOtherNegative = pcNumber->IsNegative();
@@ -1517,22 +1517,22 @@ BOOL CNumber::GreaterThanOrEquals(CNumber* pcNumber)
 	{
 		if (bOtherZero)
 		{
-			return TRUE;
+			return true;
 		}
 		else if (bOtherNegative)
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (bThisNegative)
 	{
 		if (bOtherZero)
 		{
-			return FALSE;
+			return false;
 		}
 		else if (bOtherNegative)
 		{
@@ -1540,18 +1540,18 @@ BOOL CNumber::GreaterThanOrEquals(CNumber* pcNumber)
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		if (bOtherZero)
 		{
-			return TRUE;
+			return true;
 		}
 		else if (bOtherNegative)
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
@@ -1565,7 +1565,7 @@ BOOL CNumber::GreaterThanOrEquals(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::LessThan(CNumber* pcNumber)
+bool CNumber::LessThan(CNumber* pcNumber)
 {
 	return !GreaterThanOrEquals(pcNumber);
 }
@@ -1575,7 +1575,7 @@ BOOL CNumber::LessThan(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::LessThanOrEquals(CNumber* pcNumber)
+bool CNumber::LessThanOrEquals(CNumber* pcNumber)
 {
 	return !GreaterThan(pcNumber);
 }
@@ -1585,14 +1585,14 @@ BOOL CNumber::LessThanOrEquals(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateGreaterThan(CNumber* pcNumber)
+bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 {
 	int		iThisLastDigit;
 	int		iOtherLastDigit;
 	int		iThisFirstDigit;
 	int		iOtherFirstDigit;
 	int		iLast;
-	BOOL	bResult;
+	int		iResult;
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iThisLastDigit = GetLastNonZeroDigit();
@@ -1608,29 +1608,29 @@ BOOL CNumber::PrivateGreaterThan(CNumber* pcNumber)
 
 	if (iThisFirstDigit > iOtherFirstDigit)
 	{
-		return TRUE;
+		return true;
 	}
 	else if (iOtherFirstDigit > iThisFirstDigit)
 	{
-		return FALSE;
+		return false;
 	}
 
-	bResult = memcmp(DigitToArray(iThisFirstDigit), pcNumber->DigitToArray(iThisFirstDigit), GetDigitsBetween(iThisFirstDigit, iThisLastDigit));
-	if (bResult > 0)
+	iResult = memcmp(DigitToArray(iThisFirstDigit), pcNumber->DigitToArray(iThisFirstDigit), GetDigitsBetween(iThisFirstDigit, iThisLastDigit));
+	if (iResult > 0)
 	{
-		return TRUE;
+		return true;
 	}
-	else if (bResult < 0)
+	else if (iResult < 0)
 	{
-		return FALSE;
+		return false;
 	}
 	else if (iThisLastDigit < iOtherLastDigit)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1639,14 +1639,14 @@ BOOL CNumber::PrivateGreaterThan(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
+bool CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 {
 	int		iThisLastDigit;
 	int		iOtherLastDigit;
 	int		iThisFirstDigit;
 	int		iOtherFirstDigit;
 	int		iLast;
-	BOOL	bResult;
+	int		iResult;
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iThisLastDigit = GetLastNonZeroDigit();
@@ -1662,29 +1662,29 @@ BOOL CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 
 	if (iThisFirstDigit > iOtherFirstDigit)
 	{
-		return TRUE;
+		return true;
 	}
 	else if (iOtherFirstDigit > iThisFirstDigit)
 	{
-		return FALSE;
+		return false;
 	}
 
-	bResult = memcmp(DigitToArray(iThisFirstDigit), pcNumber->DigitToArray(iThisFirstDigit), GetDigitsBetween(iThisFirstDigit, iThisLastDigit));
-	if (bResult > 0)
+	iResult = memcmp(DigitToArray(iThisFirstDigit), pcNumber->DigitToArray(iThisFirstDigit), GetDigitsBetween(iThisFirstDigit, iThisLastDigit));
+	if (iResult > 0)
 	{
-		return TRUE;
+		return true;
 	}
-	else if (bResult < 0)
+	else if (iResult < 0)
 	{
-		return FALSE;
+		return false;
 	}
 	else if (iThisLastDigit > iOtherLastDigit)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -1695,8 +1695,8 @@ BOOL CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Add(CNumber* pcNumber)
 {
-	BOOL		bThisNegative;
-	BOOL		bOtherNegative;
+	bool		bThisNegative;
+	bool		bOtherNegative;
 	CNumber*	pcTemp;
 
 	bThisNegative = IsNegative();
@@ -1753,8 +1753,8 @@ CNumber* CNumber::Add(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 CNumber* CNumber::Subtract(CNumber* pcNumber)
 {
-	BOOL		bThisNegative;
-	BOOL		bOtherNegative;
+	bool		bThisNegative;
+	bool		bOtherNegative;
 	CNumber*	pcTemp;
 
 	bThisNegative = IsNegative();
@@ -1810,22 +1810,22 @@ CNumber* CNumber::Subtract(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateError(CNumber* pcNumber)
+bool CNumber::PrivateError(CNumber* pcNumber)
 {
 	if (PrivateNAN(pcNumber))
 	{
-		return TRUE;
+		return true;
 	}
 	if (PrivateOverflow(pcNumber))
 	{
-		return TRUE;
+		return true;
 	}
 	if (PrivateDivisionByZero(pcNumber))
 	{
-		return TRUE;
+		return true;
 	}
 	PrivateUnderflow(pcNumber);
-	return FALSE;
+	return false;
 }
 
 
@@ -2227,7 +2227,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 	CNumber*	pcQuotient;
 	int			iDividendDigit;
 	int			iQuotientDigit;
-	BOOL		bExact;
+	bool		bExact;
 	int			iLastDigit;
 	int			iLastDivisorDigit;
 	int			iDecimals;
@@ -2309,7 +2309,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CNumber::PrivateDivide(CNumber* pcDivisor, BOOL* pbExact)
+char CNumber::PrivateDivide(CNumber* pcDivisor, bool* pbExact)
 {
 	char	cDigit;
 
@@ -2322,12 +2322,12 @@ char CNumber::PrivateDivide(CNumber* pcDivisor, BOOL* pbExact)
 		{
 			if (IsZero())
 			{
-				*pbExact = TRUE;
+				*pbExact = true;
 				return cDigit;
 			}
 			else
 			{
-				*pbExact = FALSE;
+				*pbExact = false;
 				return cDigit;
 			}
 		}
@@ -2355,18 +2355,18 @@ void CNumber::PrivateUnderflow(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateNAN(CNumber* pcNumber)
+bool CNumber::PrivateNAN(CNumber* pcNumber)
 {
 	if (pcNumber->IsNAN())
 	{
 		NotANumber();
-		return TRUE;
+		return true;
 	}
 	else if (IsNAN())
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -2374,18 +2374,18 @@ BOOL CNumber::PrivateNAN(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateDivisionByZero(CNumber* pcNumber)
+bool CNumber::PrivateDivisionByZero(CNumber* pcNumber)
 {
 	if (pcNumber->IsDivisionByZero())
 	{
 		DivisionByZero();
-		return TRUE;
+		return true;
 	}
 	else if (IsDivisionByZero())
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -2393,7 +2393,7 @@ BOOL CNumber::PrivateDivisionByZero(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrivateOverflow(CNumber* pcNumber)
+bool CNumber::PrivateOverflow(CNumber* pcNumber)
 {
 	if (pcNumber->IsOverflow() && IsOverflow())
 	{
@@ -2401,18 +2401,18 @@ BOOL CNumber::PrivateOverflow(CNumber* pcNumber)
 		{
 			NotANumber();
 		}
-		return TRUE;
+		return true;
 	}
 	else if (pcNumber->IsOverflow())
 	{
 		Overflow(pcNumber->GetSign());
-		return TRUE;
+		return true;
 	}
 	else if (IsOverflow())
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -2818,8 +2818,8 @@ CNumber* CNumber::LogicalNot(void)
 CNumber* CNumber::LogicalOr(CNumber* pcRight)
 {
 	CNumber*	pcZero;
-	BOOL		bLeftZero;
-	BOOL		bRightZero;
+	bool		bLeftZero;
+	bool		bRightZero;
 
 	pcZero = gcNumberControl.Add(mcMaxWholeNumbers, mcMaxDecimals);
 	bLeftZero = Equals(pcZero->Zero());
@@ -2844,8 +2844,8 @@ CNumber* CNumber::LogicalOr(CNumber* pcRight)
 CNumber* CNumber::LogicalAnd(CNumber* pcRight)
 {
 	CNumber*	pcZero;
-	BOOL		bLeftZero;
-	BOOL		bRightZero;
+	bool		bLeftZero;
+	bool		bRightZero;
 
 	pcZero = gcNumberControl.Add(mcMaxWholeNumbers, mcMaxDecimals);
 	bLeftZero = Equals(pcZero->Zero());
@@ -3542,7 +3542,7 @@ void CNumber::SetDigit(int iDigit, char cValue)
 	int		iFirstDigit;
 	int		iLastDigit;
 	char*	pcValue;
-	BOOL	bWasZero;
+	bool	bWasZero;
 
 	if (iDigit > mcMaxWholeNumbers)
 	{
@@ -3642,7 +3642,7 @@ char* CNumber::DigitToArray(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNumber::PrintFloating(CChars* pcChars)
+bool CNumber::PrintFloating(CChars* pcChars)
 {
 	int		iFirstDigit;
 	int		iLastDigit;
@@ -3654,12 +3654,12 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	if (IsNAN())
 	{
 		pcChars->Append(NUMBER_NOT_A_NUMBER);
-		return FALSE;
+		return false;
 	}
 	if (IsDivisionByZero())
 	{
 		pcChars->Append(NUMBER_NOT_A_NUMBER);
-		return FALSE;
+		return false;
 	}
 
 	if (IsNegative())
@@ -3670,7 +3670,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	if (IsOverflow())
 	{
 		pcChars->Append(NUMBER_INFINITE_STRING);
-		return FALSE;
+		return false;
 	}
 
 	iFirstDigit = GetFirstNonZeroDigit();
@@ -3759,7 +3759,7 @@ BOOL CNumber::PrintFloating(CChars* pcChars)
 	{
 		pcChars->Append(" (Unclean!)");
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -3847,7 +3847,7 @@ void CNumber::Print(CChars* pcChars)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::Dump(void)
 {
-	Dump(TRUE);
+	Dump(true);
 }
 
 
@@ -3855,7 +3855,7 @@ void CNumber::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::Dump(BOOL bNewLine)
+void CNumber::Dump(bool bNewLine)
 {
 	CChars		sz;
 

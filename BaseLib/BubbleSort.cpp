@@ -11,17 +11,17 @@ void BubbleSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumEl
 {
 	int		iIndex;
 	int		iResult;
-	BOOL	bSwapped;
+	bool	bSwapped;
 	int		iNumDone;
 	void*	pvLeft;
 	void*	pvRight;
 
-	bSwapped = TRUE;
+	bSwapped = true;
 	iNumDone = 0;
 	while (bSwapped)
 	{
 		iIndex = 0;
-		bSwapped = FALSE;
+		bSwapped = false;
 
 		while ((iIndex + 1) < (iNumElements - iNumDone))
 		{
@@ -31,7 +31,7 @@ void BubbleSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumEl
 			if (iResult > 0)
 			{
 				MemSwp(pvLeft, pvRight, uiStride);
-				bSwapped = TRUE;
+				bSwapped = true;
 			}
 			iIndex++;
 		}

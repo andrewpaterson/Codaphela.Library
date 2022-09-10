@@ -57,14 +57,14 @@ public:
 
 	friend SDouble3 operator * (double, const SDouble3&);
 
-	BOOL operator == (const SDouble3&) const;
-	BOOL operator != (const SDouble3&) const;
+	bool operator == (const SDouble3&) const;
+	bool operator != (const SDouble3&) const;
 
 	void 	Init(double x, double y, double z);
 	void 	Zero(void);
 
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 
 	void 	Fix(void);
 	void 	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);
@@ -75,8 +75,8 @@ public:
 	double 	Magnitude(void);
 	double 	SquareMagnitude(void);
 	void 	Normalize(void);
-	BOOL 	CloselyEqual(SDouble3* ps);
-	BOOL 	CloselyEqual(SDouble3* ps, double fTolerance);
+	bool 	CloselyEqual(SDouble3* ps);
+	bool 	CloselyEqual(SDouble3* ps, double fTolerance);
 	void 	Copy(const SDouble4* ps);
 	void 	Copy(const SDouble3* ps);
 	void 	Copy(const SDouble2* ps);

@@ -9,7 +9,7 @@ protected:
 	char			macKey[MAX_KEY_SIZE];
 	char			macData[MAX_DATA_SIZE];
 	int				miType;
-	BOOL			mbStarted;
+	bool			mbStarted;
 	int				miKeySize;
 	size_t			miDataSize;
 
@@ -22,7 +22,7 @@ public:
 			size_t	GetKeySize(void);
 			char*	GetKey(void);
 
-	virtual BOOL	Iterate(void) =0;
+	virtual bool	Iterate(void) =0;
 
 protected:
 			void	Clear(void);

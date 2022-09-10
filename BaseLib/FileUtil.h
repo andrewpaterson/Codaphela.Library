@@ -36,23 +36,23 @@ class CFileUtil
 {
 public:
 	//Disk methods.
-	BOOL    MakeDir(const char* szPathName);
-	BOOL    RemoveDir(const char* szPathName);
-	BOOL    CopyDir(const char* szSource, const char* szDest);
-	BOOL    Touch(const char* szFilename);
-	BOOL    TouchDir(const char* szFilename, BOOL bLastIsFilename = FALSE);  //MakeDir -P
-	BOOL    Delete(const char* szFilename);
-	BOOL    Exists(const char* szFilename);
-	BOOL    Compare(const char* szFilename1, const char* szFilename2);
-	BOOL	CompareSize(const char* szFilename1, const char* szFilename2);
+	bool    MakeDir(const char* szPathName);
+	bool    RemoveDir(const char* szPathName);
+	bool    CopyDir(const char* szSource, const char* szDest);
+	bool    Touch(const char* szFilename);
+	bool    TouchDir(const char* szFilename, bool bLastIsFilename = false);  //MakeDir -P
+	bool    Delete(const char* szFilename);
+	bool    Exists(const char* szFilename);
+	bool    Compare(const char* szFilename1, const char* szFilename2);
+	bool	CompareSize(const char* szFilename1, const char* szFilename2);
 
-	BOOL    Copy(const char* szSource, const char* szDest);
+	bool    Copy(const char* szSource, const char* szDest);
 	filePos Size(const char* szFilename);
-	BOOL    MakeDirs(BOOL bRemoveFirst, const char* szPathName, ...);
-	BOOL    RemoveDirs(const char* szPathName, ...);
+	bool    MakeDirs(bool bRemoveFirst, const char* szPathName, ...);
+	bool    RemoveDirs(const char* szPathName, ...);
 
 	//Path name methods
-	BOOL	IsAbsolutePath(const char* szPathName);
+	bool	IsAbsolutePath(const char* szPathName);
 	void	FullPath(CChars* szPathName);
 	char	GetDriveLetter(const char* szPathName);
 	void	CollapsePath(CChars* szPathName);
@@ -66,24 +66,24 @@ public:
 	void    PrependToPath(CChars* szPathName, const char* szItem);
 	void    RemoveLastFromPath(CChars* szPathName);
 	void	RemovePath(CChars* szPathName);
-	BOOL	IsExtension(const char* szFilename, const char* szExtension);
-	BOOL	IsRootDirectory(const char* szPathName);
+	bool	IsExtension(const char* szFilename, const char* szExtension);
+	bool	IsRootDirectory(const char* szPathName);
 
 	//Finder methods
-	void	FindFilesWithNameContaining(const char* szPathName, const char* szFilename, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden= TRUE);
-	void	FindFilesWithExtension(const char* szPathName, const char* szExtension, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden = TRUE);
-	void	FindAllDirectories(const char* szPathName, CArrayChars* paszFiles, BOOL bHidden = TRUE);
-	BOOL	FindAllFiles(const char* szPathName, CArrayChars* paszFiles, BOOL bIncludeSubDirs = FALSE, BOOL bHidden = TRUE);
+	void	FindFilesWithNameContaining(const char* szPathName, const char* szFilename, CArrayChars* paszFiles, bool bIncludeSubDirs = false, bool bHidden= true);
+	void	FindFilesWithExtension(const char* szPathName, const char* szExtension, CArrayChars* paszFiles, bool bIncludeSubDirs = false, bool bHidden = true);
+	void	FindAllDirectories(const char* szPathName, CArrayChars* paszFiles, bool bHidden = true);
+	bool	FindAllFiles(const char* szPathName, CArrayChars* paszFiles, bool bIncludeSubDirs = false, bool bHidden = true);
 
 	//Miscellaneous methods.  I'm not sure what class this belongs in.
 	void	MakeNameFromDirectory(CChars* pszName, CChars* pszFilename, CChars* pszDirectory);
 	void	FixSeparators(CChars* szPathName);
 
 private:
-	BOOL    RecurseRemoveDir(const char* szPathName);
-	BOOL	FindFiles(const char* szPathName, BOOL bDirectories, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
-	BOOL	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden);
-	BOOL	Compare(const char* szFilename1, const char* szFilename2, BOOL bSizeOnly);
+	bool    RecurseRemoveDir(const char* szPathName);
+	bool	FindFiles(const char* szPathName, bool bDirectories, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
+	bool	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
+	bool	Compare(const char* szFilename1, const char* szFilename2, bool bSizeOnly);
 
 	int		FindFirstSeparator(const char* szString);
 	int		FindLastSeparator(const char* szPathName);

@@ -16,7 +16,7 @@ void CMemoryAllocator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+void CMemoryAllocator::Init(int iDefaultAlignment, bool bDefaultFreeListParams)
 {
 	mcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
 }
@@ -78,7 +78,7 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryAllocator::Free(void* pv)
+bool CMemoryAllocator::Free(void* pv)
 {
 	return mcMemory.Remove(pv);
 }
@@ -108,17 +108,17 @@ const char* CMemoryAllocator::GetName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryAllocator::Read(CFileReader* pcFileReader)
+bool CMemoryAllocator::Read(CFileReader* pcFileReader)
 {
 	int						iDefaultAlignment;
 	CMemoryFreeListParams*	pcParams;
 
 	if (!pcFileReader->ReadInt(&iDefaultAlignment))
 	{
-		return FALSE;
+		return false;
 	}
 
-	mcMemory.Init(iDefaultAlignment, FALSE);
+	mcMemory.Init(iDefaultAlignment, false);
 	pcParams = mcMemory.GetFreeListParams();
 
 	return pcParams->Read(pcFileReader);
@@ -129,13 +129,13 @@ BOOL CMemoryAllocator::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryAllocator::Write(CFileWriter* pcFileWriter)
+bool CMemoryAllocator::Write(CFileWriter* pcFileWriter)
 {
 	CMemoryFreeListParams*	pcParams;
 
 	if (!pcFileWriter->WriteInt(mcMemory.GetDefaultAlignment()))
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcParams = mcMemory.GetFreeListParams();
@@ -178,7 +178,7 @@ CLifeInit<CMallocator> CMemoryAllocator::Create(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CMallocator> CMemoryAllocator::Create(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+CLifeInit<CMallocator> CMemoryAllocator::Create(int iDefaultAlignment, bool bDefaultFreeListParams)
 {
 	return LifeAlloc<CMemoryAllocator, CMallocator>(iDefaultAlignment, bDefaultFreeListParams);
 }

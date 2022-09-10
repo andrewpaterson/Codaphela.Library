@@ -56,15 +56,15 @@ public:
 
 	friend SFloat2 operator * (float, const SFloat2&);
 
-	BOOL operator == (const SFloat2&) const;
-	BOOL operator != (const SFloat2&) const;
+	bool operator == (const SFloat2&) const;
+	bool operator != (const SFloat2&) const;
 
 	void	Init(float x, float y);
 	void	Init(int x, int y);
 	void	Zero(void);
 
-	BOOL	Save(CFileWriter* pcFile);
-	BOOL	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFile);
+	bool	Load(CFileReader* pcFile);
 
 	void	Fix(void);
 	void	Dump(void);

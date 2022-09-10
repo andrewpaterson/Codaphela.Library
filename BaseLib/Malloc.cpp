@@ -61,7 +61,7 @@ void* CMalloc::Realloc(void* pv, size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMalloc::IsMallocInitialised(void)
+bool CMalloc::IsMallocInitialised(void)
 {
 	return FixBool(mpcMalloc);
 }
@@ -71,7 +71,7 @@ BOOL CMalloc::IsMallocInitialised(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMalloc::IsMalloc(CMallocator* pcMalloc)
+bool CMalloc::IsMalloc(CMallocator* pcMalloc)
 {
 	return mpcMalloc == pcMalloc;
 }

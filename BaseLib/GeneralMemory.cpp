@@ -39,7 +39,7 @@ void CGeneralMemory::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+void CGeneralMemory::Init(int iDefaultAlignment, bool bDefaultFreeListParams)
 {
 	mcFreeLists.Init();
 	mcLargeList.Init();
@@ -47,7 +47,7 @@ void CGeneralMemory::Init(int iDefaultAlignment, BOOL bDefaultFreeListParams)
  	mcOrder.Init();
 	muiAllocCount = 0;
 	muiBreakAlloc = 0;
-	mbBreakOnAlloc = FALSE;
+	mbBreakOnAlloc = false;
 
 	mcFreeListParams.Init(sizeof(SGeneralMemoryAllocation), bDefaultFreeListParams);
 }
@@ -90,7 +90,7 @@ void* CGeneralMemory::Add(unsigned int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGeneralMemory::Remove(void* pv)
+bool CGeneralMemory::Remove(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
@@ -135,7 +135,7 @@ int CGeneralMemory::RemoveMultiple(CArrayVoidPtr* pav)
 	SFNode*						psNode;
 	int							iNumElements;
 	int							iRemoved;
-	BOOL						bResult;
+	bool						bResult;
 	
 	pav->QuickSort();
 
@@ -409,14 +409,14 @@ void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
+bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
 {
 	SFNode*			psFreeListNode;
-	BOOL			bFreed;
+	bool			bFreed;
 
 	if (!psAlloc)
 	{
-		return FALSE;
+		return false;
 	}
 
 	psFreeListNode = psAlloc->psFreeListNode;
@@ -445,7 +445,7 @@ BOOL CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 //////////////////////////////////////////////////////////////////////////
 void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 {
-	BOOL					bResult;
+	bool					bResult;
 	SAlignedFreeListDesc	sDesc;
 	int						iIndex;
 	int						iStride;
@@ -483,16 +483,16 @@ void* CGeneralMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
+bool CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
 {
 	if (psAlloc)
 	{
 		mcLargeList.Remove(psAlloc);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 }
@@ -505,7 +505,7 @@ BOOL CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
 CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
 	SAlignedFreeListDesc	sDesc;
-	BOOL					bResult;
+	bool					bResult;
 	int						iIndex;
 	SAlignedFreeListDesc*	psDesc;
 	SMemoryFreeListParams*	psParams;
@@ -542,7 +542,7 @@ CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize)
 CFreeList* CGeneralMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
 {
 	SAlignedFreeListDesc	sDesc;
-	BOOL					bResult;
+	bool					bResult;
 	int						iIndex;
 	SAlignedFreeListDesc*	psDesc;
 	CFreeList*				pcList;
@@ -594,7 +594,7 @@ void CGeneralMemory::SetDebugName(void* pv, char (*pszDebug)[4])
 //////////////////////////////////////////////////////////////////////////
 void CGeneralMemory::BreakOnAdd(unsigned int uiAllocCount)
 {
-	mbBreakOnAlloc = TRUE;
+	mbBreakOnAlloc = true;
 	muiBreakAlloc = uiAllocCount;
 }
 
@@ -663,7 +663,7 @@ SMemory CGeneralMemory::StartIteration(SMemoryIterator* psIterator)
 	
 	if (psIterator->pcFreeList != NULL)
 	{
-		psIterator->bInFreeLists = TRUE;
+		psIterator->bInFreeLists = true;
 		psIterator->pvLarge = NULL;
 
 		pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
@@ -679,7 +679,7 @@ SMemory CGeneralMemory::StartIteration(SMemoryIterator* psIterator)
 	}
 	else if (pvLargeHead != NULL)
 	{
-		psIterator->bInFreeLists = FALSE;
+		psIterator->bInFreeLists = false;
 		psIterator->pcFreeList = NULL;
 
 		psIterator->pvLarge = pvLargeHead;
@@ -714,7 +714,7 @@ SMemory CGeneralMemory::Iterate(SMemoryIterator* psIterator)
 				pv = mcLargeList.GetHead();
 				if (pv != NULL)
 				{
-					psIterator->bInFreeLists = FALSE;
+					psIterator->bInFreeLists = false;
 					psIterator->pcFreeList = NULL;
 
 					psIterator->pvLarge = pv;

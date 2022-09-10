@@ -13,9 +13,9 @@ void CChunkFileFile::Init(CChunkFile* pcChunkFile)
 	mpcChunkFile = pcChunkFile;
 	miChunkStart = 0;
 	miChunkSize = 0;
-	mbEndOfFile = TRUE;
-	mbWriteMode = FALSE;
-	mbReadMode = FALSE;
+	mbEndOfFile = true;
+	mbWriteMode = false;
+	mbReadMode = false;
 }
 
 
@@ -33,26 +33,26 @@ void CChunkFileFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Open(EFileMode eMode)
+bool CChunkFileFile::Open(EFileMode eMode)
 {
 	if (eMode == EFM_Read)
 	{
 		miChunkSize = mpcChunkFile->ChunkSize();
 		miChunkStart = mpcChunkFile->ChunkStart();
-		mbEndOfFile = TRUE;
-		mbReadMode = TRUE;
-		return TRUE;
+		mbEndOfFile = true;
+		mbReadMode = true;
+		return true;
 	}
 	else if (eMode == EFM_Write_Create)
 	{
 		miChunkSize = -1;
 		miChunkStart = mpcChunkFile->ChunkStart();
-		mbEndOfFile = FALSE;
-		mbWriteMode = TRUE;
-		return TRUE;
+		mbEndOfFile = false;
+		mbWriteMode = true;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -60,14 +60,14 @@ BOOL CChunkFileFile::Open(EFileMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Close(void)
+bool CChunkFileFile::Close(void)
 {
 	miChunkStart = 0;
 	miChunkSize = 0;
-	mbEndOfFile = TRUE;
-	mbWriteMode = FALSE;
-	mbReadMode = FALSE;
-	return TRUE;
+	mbEndOfFile = true;
+	mbWriteMode = false;
+	mbReadMode = false;
+	return true;
 }
 
 
@@ -96,7 +96,7 @@ filePos CChunkFileFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	else
 	{
 		iCount = iRemain / iSize;
-		mbEndOfFile = TRUE;
+		mbEndOfFile = true;
 		return mpcChunkFile->Read(pvBuffer, iSize, iCount);
 	}
 }
@@ -106,7 +106,7 @@ filePos CChunkFileFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (mbReadMode)
 	{
@@ -119,17 +119,17 @@ BOOL CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 			if (iOffset > miChunkSize)
 			{
 				iOffset = miChunkSize;
-				mbEndOfFile = TRUE;
+				mbEndOfFile = true;
 			}
 			else
 			{
-				mbEndOfFile = FALSE;
+				mbEndOfFile = false;
 			}
 
 			return mpcChunkFile->Seek(miChunkStart + iOffset, EFSO_SET);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -141,7 +141,7 @@ filePos CChunkFileFile::Write(const void* pvBuffer, filePos iSize, filePos iCoun
 {
 	if (!mbWriteMode)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return mpcChunkFile->Write(pvBuffer, iSize, iCount);
@@ -174,7 +174,7 @@ filePos CChunkFileFile::Tell(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::IsOpen(void)
+bool CChunkFileFile::IsOpen(void)
 {
 	return mbReadMode || mbWriteMode;
 }
@@ -201,7 +201,7 @@ filePos CChunkFileFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Truncate(filePos iSize)
+bool CChunkFileFile::Truncate(filePos iSize)
 {
 	return gcLogger.Error2(__METHOD__, " Cannot truncate Chunk Files.", NULL);
 }
@@ -211,9 +211,9 @@ BOOL CChunkFileFile::Truncate(filePos iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Flush(void)
+bool CChunkFileFile::Flush(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -221,9 +221,9 @@ BOOL CChunkFileFile::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileFile::Delete(void)
+bool CChunkFileFile::Delete(void)
 {
-	return FALSE;
+	return false;
 }
 
 
