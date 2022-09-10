@@ -53,6 +53,9 @@ public:
 	bool				Write(uint64 uiSector, void* pvData);
 	bool				Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive);
 
+	uint16				FatFileDelete(char* filename);
+	uint16				FatFileRename(char* original_filename, char* new_filename);
+
 	uint16				GetSectorSize(void);
 	uint32				GetPageSize(void);
 
@@ -95,9 +98,9 @@ public:
 	uint16				FatSetClusterEntry(uint32 cluster, FatEntry fat_entry);
 	char				FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
 	bool				FatIsEOFEntry(FatEntry fat);
-	uint16				FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* buffer);
-	uint16				FatZeroCluster(uint32 cluster, uint8* buffer);
-	bool				FatWriteFatSector(uint32 sector_address, uint8* buffer);
+	uint16				FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer);
+	uint16				FatZeroCluster(uint32 cluster, uint8* uiBuffer);
+	bool				FatWriteFatSector(uint32 sector_address, uint8* uiBuffer);
 
 	uint16				FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
 	uint16				FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);

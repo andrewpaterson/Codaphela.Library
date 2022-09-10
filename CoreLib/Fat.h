@@ -36,6 +36,7 @@
 #include "FileDrive.h"
 #include "FatCommon.h"
 #include "FatVolume.h"
+#include "FatFile.h"
 #include "FatStructure.h"
 
 
@@ -79,59 +80,6 @@ void fat_init(void);
 
 /**
  * <summary>
- * Deletes a file.
- * </summary>
- * <param name="volume">A pointer to the volume handle (CFatVolume structure).</param>
- * <param name="filename">The full path and filename of the file to delete.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_file_delete(CFatVolume* volume, char* filename);
-
-
-/**
- * <summary>
- * Renames a file.
- * </summary>
- * <param name="volume">A pointer to the volume handle (CFatVolume structure).</param>
- * <param name="original_filename">The full path and original filename of the file to be renamed.</param>
- * <param name="new_filename">The full path and new filename for the file.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_file_rename(CFatVolume* volume, char* original_filename, char* new_filename);
-
-
-/**
- * <summary>
- * Opens or create a file.
- * </summary>
- * <param name="volume">A pointer to the volume handle (CFatVolume structure).</param>
- * <param name="filename">The full path and filename of the file to open.</param>
- * <param name="access_flags">An ORed list of one or more of the access flags defined in fat.h</param>
- * <param name="file">A pointer to a file handle SFatFile structure.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_file_open(CFatVolume* volume, char* filename, uint8 access_flags, SFatFile* file);
-uint16 fat_open_file_by_entry(CFatVolume* volume, SFatDirectoryEntry* entry, SFatFile* handle, uint8 access_flags);
-
-/**
- * <summary>
- * Sets an external buffer for this file handle.
- * </summary>
-*/
-uint16 fat_file_set_buffer(SFatFile* file, uint8* buffer);
-
-
-/**
- * <summary>
- * Gets the unique identifier of the file.
- * </summary>
- * <param name="file">An open file handle.</param>
- */
-uint32 fat_file_get_unique_id(SFatFile* file);
-
-
-/**
- * <summary>
  * Allocates disk space to an open file.
  * </summary>
  * <param name="file">A pointer to a file handle SFatFile structure.</param>
@@ -148,95 +96,10 @@ uint32 fat_file_get_unique_id(SFatFile* file);
  * All disk allocations are done in multiples of the cluster size.
  * </remarks>
 */
-uint16 fat_file_alloc
-(
-	SFatFile* file,
-	uint32 bytes
-);
-
-
-/**
- * <summary>
- * Moves the file cursor to a new position within the file.
- * </summary>
- * <param name="file">A pointer to the file handle SFatFile structure.</param>
- * <param name="offset">The offset of the new cursor position relative to the position specified by the mode param.</param>
- * <param name="mode">One of the supported seek modes: FAT_SEEK_START, FAT_SEEK_CURRENT, or FAT_SEEK_END.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
- * <remarks>
- * If FAT_SEEK_END is specified the offset must be 0 or the function will fail.
- * </remarks>
-*/
-uint16 fat_file_seek
-(
-	SFatFile* file,
-	uint32 offset,
-	char mode
-);
-
-
-/**
- * <summary>
- * Writes the specified number of bytes to the current position on an opened file.
- * </summary>
- * <param name="file">A pointer to a file handle SFatFile structure.</param>
- * <param name="buffer">A buffer containing the bytes to be written.</param>
- * <param name="length">The amount of bytes to write.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_file_write
-(
-	SFatFile* file,
-	uint8* buffer,
-	uint32 length
-);
-
-
-/**
- * <summary>
- * Reads the specified number of bytes from the current position on an opened file.
- * </summary>
- * <param name="handle">A pointer to a file handle SFatFile structure.</param>
- * <param name="buffer">A buffer where the bytes will be copied to.</param>
- * <param name="length">The amount of bytes to read.</param>
- * <param name="bytes_read">A pointer to a 32 bit integer where the amount of bytes read will be written to.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_file_read
-(
-	SFatFile* handle,
-	uint8* buffer,
-	uint32 length,
-	uint32* bytes_read
-);
-
-
-/**
- * <summary>
- * Flushes file buffers and updates directory entry.
- * </summary>
- * <param name="file">A pointer to the file handle (SFatFile) structure.</param>
-*/
-uint16 fat_file_flush
-(
-	SFatFile* file
-);
+uint16 FatFileAllocate(SFatFile*	file, uint32		bytes);
 
 
 uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);
-
-
-/**
- * <summary>
- * Closes an open file.
- * </summary>
- * <param name="handle">A pointer to the file handle SFatFile structure.</param>
- * <returns>One of the return codes defined in fat.h.</returns>
-*/
-uint16 fat_file_close
-(
-	SFatFile* handle
-);
 
 
 #endif // __FAT_32_H__

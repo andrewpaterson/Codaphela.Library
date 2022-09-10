@@ -184,7 +184,6 @@
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="Fat.cpp" />
-    <ClCompile Include="FatCluster.cpp" />
     <ClCompile Include="FatFile.cpp" />
     <ClCompile Include="FatFormat.cpp" />
     <ClCompile Include="FatSharedBuffer.cpp" />
@@ -300,6 +299,7 @@
     <ClInclude Include="DataConnection.h" />
     <ClInclude Include="Fat.h" />
     <ClInclude Include="FatCommon.h" />
+    <ClInclude Include="FatFile.h" />
     <ClInclude Include="FatInternals.h" />
     <ClInclude Include="FatSharedBuffer.h" />
     <ClInclude Include="FatStructure.h" />

@@ -4,7 +4,7 @@
 #include "FatCommon.h"
 
 
-// declare shared buffer
+// declare shared uiBuffer
 extern uint8 fat_shared_buffer[MAX_SECTOR_LENGTH];
 extern uint32 fat_shared_buffer_sector;
 
