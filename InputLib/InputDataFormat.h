@@ -35,7 +35,7 @@ CONSTRUCTABLE(CInputDataFormat);
 protected:
 	CChannels			mcExternalChannels;
 	CArrayChars		mcChannelNames;
-	BOOL				mbCommon;
+	bool				mbCommon;
 	CChars				mszCommonName;
 
 public:
@@ -51,8 +51,8 @@ public:
 	float		GetCastToFloat(int iIndex, void* pvData);
 	void		GetAsNative(void* pvDest, int iIndex, void* pvData);
 
-	BOOL		IsCommon(void);
-	BOOL		IsCommonName(char* szName);
+	bool		IsCommon(void);
+	bool		IsCommonName(char* szName);
 	char*		GetCommonName(void);
 };
 

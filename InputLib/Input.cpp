@@ -55,7 +55,7 @@ void CInput::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInput::Read(char* szDirectory)
+bool CInput::Read(char* szDirectory)
 {
 	if (!szDirectory)
 	{
@@ -81,7 +81,7 @@ void CInput::AddProgramInput(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInput::AddWinInput(HWND hWnd, BOOL bExclusive)
+void CInput::AddWinInput(HWND hWnd, bool bExclusive)
 {
 	mcWinInput.Init(hWnd, bExclusive);
 	mcWinInput.AddDevicesTo(&mcDevices);

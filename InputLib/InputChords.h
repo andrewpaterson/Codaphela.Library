@@ -42,8 +42,8 @@ struct SMatchingAction
 {
 	int				iIndex;
 	int				iLength;
-	BOOL			bPotentialMatch;
-	BOOL			bTotalMatch;
+	bool			bPotentialMatch;
+	bool			bTotalMatch;
 
 };
 

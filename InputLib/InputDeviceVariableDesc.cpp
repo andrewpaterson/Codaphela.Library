@@ -53,7 +53,7 @@ void CInputDeviceVariableDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariableDesc::Equals(char* szName)
+bool CInputDeviceVariableDesc::Equals(char* szName)
 {
 	return mszName.Equals(szName);
 }

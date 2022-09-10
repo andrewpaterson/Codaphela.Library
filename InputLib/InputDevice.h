@@ -40,7 +40,7 @@ protected:
 	CInputDeviceDesc*			mpcDesc;
 	CChars						mszFriendlyName;
 	CInputDeviceState			mcState;
-	BOOL						mbResting;
+	bool						mbResting;
 	CInputDeviceValues			mcInputValues;
 	CInputDeviceVariables		mcVariables;
 	int							miDeviceID;  //Unique across all devices in the system.  Matches the CInputDevice to it's OS specific detail.  Eg: CRawInputDeviceDetail.
@@ -63,7 +63,7 @@ public:
 	CInputSourceDesc*			GetSource(char* szFriendlyName);
 	CInputVirtualDevice*		GetDefaultVirtualDevice(void);
 	CInputVirtualDevice*		CreateDefaultVirtualDeviceFromThis(char* szName = NULL);
-	BOOL						SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual);
+	bool						SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual);
 	CInputDeviceVariableValue*	GetValueForDesc(CInputDeviceVariableValueDesc* pcValueDesc);
 	CInputChord*				GetChordForDesc(CInputChordDesc* pcChordDesc);
 	CInputVirtualDevice*		GetVariableVirtualDevice(CInputActions* pcInputActions);

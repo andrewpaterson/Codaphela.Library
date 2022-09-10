@@ -41,9 +41,9 @@ public:
 	void AddValueCondition(CInputDeviceVariableValue* pcValue);
 	void SetChordCondition(CInputChord* pcChord);
 	void ToString(CChars* psz);
-	BOOL ContainsChord(CInputChord* pcChord);
-	BOOL MatchCondition(CInputChord* pcChord);
-	BOOL MatchNonChordCondition(void);
+	bool ContainsChord(CInputChord* pcChord);
+	bool MatchCondition(CInputChord* pcChord);
+	bool MatchNonChordCondition(void);
 };
 
 

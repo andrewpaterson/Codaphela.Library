@@ -52,9 +52,9 @@ class CInputDeviceValue : public SInputDeviceValue
 public:
 	unsigned int	uiSequence;
 	int				iOrder;
-	BOOL			bRestEmitted;
+	bool			bRestEmitted;
 
-	void Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, BOOL bRestEmitted, int iOrder);
+	void Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, bool bRestEmitted, int iOrder);
 };
 
 
@@ -73,7 +73,7 @@ public:
 
 	void				Init(void);
 	void				Kill(void);
-	void				Add(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, BOOL bRestEmitted, int iOrder);
+	void				Add(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, bool bRestEmitted, int iOrder);
 	void				Clear(void);
 	void				Sort(void);
 	CInputDeviceValue*	StartIteration(void);

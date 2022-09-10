@@ -43,12 +43,12 @@ public:
 	void 							Kill(void);
 	void 							AddValueCondition(CInputDeviceVariableValue* pcValue);
 	void 							SetChordCondition(CInputChord* pcChord);
-	BOOL 							Equals(char* szName);
-	BOOL 							ContainsChord(CInputChord* pcChord);
-	BOOL 							MakeCurrent(void);
+	bool 							Equals(char* szName);
+	bool 							ContainsChord(CInputChord* pcChord);
+	bool 							MakeCurrent(void);
 	void 							ToString(CChars* psz);
-	BOOL 							MatchCondition(CInputChord* pcChord);
-	BOOL 							MatchNonChordCondition(void);
+	bool 							MatchCondition(CInputChord* pcChord);
+	bool 							MatchNonChordCondition(void);
 	CInputDeviceVariableValueDesc*	GetDesc(void);
 	CInputDeviceVariableValue*		GetCurrentVariableValue(void);
 };

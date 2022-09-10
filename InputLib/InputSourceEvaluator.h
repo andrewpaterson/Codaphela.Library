@@ -94,11 +94,11 @@ public:
 	void							SetSpecificSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource, EInputChordType eType);
 	void							SetGenericSource(CInputCategoryGeneric* pcGeneric, EInputChordType eType);
 	void							SetAnyToggleSource(void);
-	BOOL							Evaluate(SInputDeviceValue* psEvent, float* pfValue);
-	BOOL							EvaluateSpecificSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigSpecificSource* psConfig);
-	BOOL							EvaluateGenericSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigGenericSource* psConfig);
-	BOOL							EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig);
-	BOOL							EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent);
+	bool							Evaluate(SInputDeviceValue* psEvent, float* pfValue);
+	bool							EvaluateSpecificSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigSpecificSource* psConfig);
+	bool							EvaluateGenericSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigGenericSource* psConfig);
+	bool							EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig);
+	bool							EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent);
 
 	EInputEvaluatorType				GetEvaluatorType(void);
 	EInputChordType					GetChordType(void);

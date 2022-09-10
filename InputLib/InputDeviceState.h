@@ -53,10 +53,10 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL 	Rest(CInputDevice* pcDevice);
-	BOOL	GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue);
-	BOOL	SetValue(CInputSourceDesc* pcSourceDesc, float fValue);
-	BOOL	SetValue(SInputSourceState* psSourceState, float fValue);
+	bool 	Rest(CInputDevice* pcDevice);
+	bool	GetValue(CInputSourceDesc* pcSourceDesc, float* pfValue);
+	bool	SetValue(CInputSourceDesc* pcSourceDesc, float fValue);
+	bool	SetValue(SInputSourceState* psSourceState, float fValue);
 	void	ClearFlags(void);
 	void	UpdateRestEvents(CInputDeviceValues* pcEvents, unsigned int uiSequence);
 };

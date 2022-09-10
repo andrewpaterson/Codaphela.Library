@@ -36,7 +36,7 @@ void CInputDevice::Init(CInputDeviceDesc* pcDesc, int iDeviceID, EInputDevice iD
 	mcState.Init();
 	miDeviceID = iDeviceID;
 	meDescriptionID = iDescriptionID;
-	mbResting = TRUE;
+	mbResting = true;
 	mcInputValues.Init();
 	mcVariables.Init();
 	mpcDefaultVirtual = CreateDefaultVirtualDeviceFromThis();
@@ -225,7 +225,7 @@ CInputVirtualDevice* CInputDevice::CreateDefaultVirtualDeviceFromThis(char* szNa
 //{
 //	CInputDevices*					pcInputDevices;
 //	CArrayInputDeviceVirtualDevice	asCreatedVirtualDevices;
-//	BOOL							bLegit;
+//	bool							bLegit;
 //	int								i;
 //	SInputDeviceVirtualDevicePair*	psPair;
 //
@@ -308,16 +308,16 @@ CInputSourceDesc* CInputDevice::GetSource(char* szFriendlyName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevice::SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual)
+bool CInputDevice::SetDefaultVirtualDevice(CInputVirtualDevice* pcVirtual)
 {
 	if (!mpcDefaultVirtual)
 	{
 		mpcDefaultVirtual = pcVirtual;
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

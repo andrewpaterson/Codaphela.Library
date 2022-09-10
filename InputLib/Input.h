@@ -45,9 +45,9 @@ protected:
 public:
 	void 				Init(void);
 	void 				Kill(void);
-	BOOL 				Read(char* szDirectory = NULL);
+	bool 				Read(char* szDirectory = NULL);
 	void 				AddProgramInput(void);
-	void 				AddWinInput(HWND hWnd, BOOL bExclusive);
+	void 				AddWinInput(HWND hWnd, bool bExclusive);
 
 	void 				Update(void);
 	void 				Step(void);

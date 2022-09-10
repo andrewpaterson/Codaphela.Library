@@ -48,13 +48,13 @@ void CInputVirtualDeviceSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceSource::Equals(SInputDeviceValueSource* psOther)
+bool CInputVirtualDeviceSource::Equals(SInputDeviceValueSource* psOther)
 {
 	if ((msSource.pcDevice == psOther->pcDevice) && (msSource.pcSource == psOther->pcSource))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

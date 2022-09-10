@@ -106,10 +106,10 @@ void CInputSourceValue::SetDeltaDetail(float fSensitivity, float fOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceValue::Process(void* pvData, float* pfValue)
+bool CInputSourceValue::Process(void* pvData, float* pfValue)
 {
 	CInputSouceChannel*		pcSourceChannel;
-	BOOL					bResult;
+	bool					bResult;
 	float					f;
 	SSetIterator			sIter;
 
@@ -119,7 +119,7 @@ BOOL CInputSourceValue::Process(void* pvData, float* pfValue)
 		bResult = pcSourceChannel->Compare(pvData);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 		pcSourceChannel = mlcChannels.Iterate(&sIter);
 	}
@@ -141,7 +141,7 @@ BOOL CInputSourceValue::Process(void* pvData, float* pfValue)
 			*pfValue = (f - muDetail.sDelta.fOffset) * muDetail.sDelta.fSensitivity;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

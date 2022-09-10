@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputVirtualDeviceDesc::Init(char* szName, BOOL bDeviceAgnostic)
+void CInputVirtualDeviceDesc::Init(char* szName, bool bDeviceAgnostic)
 {
 	mlcInputSourceDescs.Init();
 	mcChordDescs.Init();
@@ -55,7 +55,7 @@ void CInputVirtualDeviceDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceDesc::AddSource(CInputSourceDesc* pcSourceDesc, int iDescriptionID)
+bool CInputVirtualDeviceDesc::AddSource(CInputSourceDesc* pcSourceDesc, int iDescriptionID)
 {
 	CInputVirtualSourceDesc*	pcVirtualSourceDesc;
 
@@ -63,17 +63,17 @@ BOOL CInputVirtualDeviceDesc::AddSource(CInputSourceDesc* pcSourceDesc, int iDes
 	{
 		pcVirtualSourceDesc = mlcInputSourceDescs.Add();
 		pcVirtualSourceDesc->Init(this, pcSourceDesc, -1);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		if (iDescriptionID < 0)
 		{
-			return FALSE;
+			return false;
 		}
 		pcVirtualSourceDesc = mlcInputSourceDescs.Add();
 		pcVirtualSourceDesc->Init(this, pcSourceDesc, iDescriptionID);
-		return TRUE;
+		return true;
 	}
 }
 
@@ -82,10 +82,10 @@ BOOL CInputVirtualDeviceDesc::AddSource(CInputSourceDesc* pcSourceDesc, int iDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, char* szFriendlyName)
+bool CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDescriptionID, char* szFriendlyName)
 {
 	CInputSourceDesc*			pcSourceDesc;
-	BOOL						bResult;
+	bool						bResult;
 
 	pcSourceDesc = pcDeviceDesc->GetSource(szFriendlyName);
 	if (pcSourceDesc)
@@ -93,7 +93,7 @@ BOOL CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDes
 		bResult = AddSource(pcSourceDesc, iDescriptionID);
 		return bResult;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -101,12 +101,12 @@ BOOL CInputVirtualDeviceDesc::AddSource(CInputDeviceDesc* pcDeviceDesc, int iDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...)
+bool CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, char* szFriendlyName, ...)
 {
 	va_list				vaMarker;
 	char*				pc;
 	int					iCount;
-	BOOL				bResult;
+	bool				bResult;
 	CInputDeviceDesc*	pcDeviceDesc;
 
 	iCount = 0;
@@ -120,14 +120,14 @@ BOOL CInputVirtualDeviceDesc::AddSources(CInputDevice* pcDevice, char* szFriendl
 		if (!bResult)
 		{
 			va_end(vaMarker);
-			return FALSE;
+			return false;
 		}
 
 		iCount++;
 		pc = va_arg(vaMarker, char*);
 	}
 	va_end(vaMarker);
-	return TRUE;
+	return true;
 }
 
 
@@ -191,7 +191,7 @@ CInputVirtualSourceDesc* CInputVirtualDeviceDesc::GetSource(CInputSourceDesc* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceDesc::AddChord(char* szActionName, int iDescID, char* szFriendlyName)
+bool CInputVirtualDeviceDesc::AddChord(char* szActionName, int iDescID, char* szFriendlyName)
 {
 	CInputVirtualSourceDesc*	pcSource;
 	CInputChordDesc*			pcChord;
@@ -199,12 +199,12 @@ BOOL CInputVirtualDeviceDesc::AddChord(char* szActionName, int iDescID, char* sz
 	pcSource = GetSource(szFriendlyName, iDescID);
 	if (pcSource == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcChord = mcChordDescs.AddChordDesc(szActionName);
 	pcChord->AsActive(pcSource->GetSourceDesc(), pcSource->GetDescriptionID());
-	return TRUE;
+	return true;
 }
 
 
@@ -212,7 +212,7 @@ BOOL CInputVirtualDeviceDesc::AddChord(char* szActionName, int iDescID, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, char* szFriendlyName, ...)
+bool CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, char* szFriendlyName, ...)
 {
 	va_list						vaMarker;
 	char*						pc;
@@ -220,12 +220,12 @@ BOOL CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 	CInputChordDesc*			pcChord;
 	CInputVirtualSourceDesc*	pcSource;
 	CInputChordCollectiveDesc*	pcOrdered;
-	BOOL						bResult;
+	bool						bResult;
 
 	pcChord = mcChordDescs.AddChordDesc(szActionName);
 	pcOrdered = pcChord->AsOrdered();
 
-	bResult = TRUE;
+	bResult = true;
 	iCount = 0;
 	pc = szFriendlyName;
 	va_start(vaMarker, szFriendlyName);
@@ -235,7 +235,7 @@ BOOL CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 		if (pcSource == NULL)
 		{
 			va_end(vaMarker);
-			return FALSE;
+			return false;
 		}
 		pcOrdered->AddActive(pcSource->GetSourceDesc(), pcSource->GetDescriptionID());
 		pcOrdered->AddInactive(pcSource->GetSourceDesc(), pcSource->GetDescriptionID());
@@ -246,7 +246,7 @@ BOOL CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 
 	pcOrdered->RemoveLast();
 	va_end(vaMarker);
-	return TRUE;
+	return true;
 }
 
 
@@ -254,7 +254,7 @@ BOOL CInputVirtualDeviceDesc::AddOrderedAction(char* szActionName, int iDescID, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputVirtualDeviceDesc::IsDeviceAgnostic(void) { return mbDeviceAgnostic; }
+bool CInputVirtualDeviceDesc::IsDeviceAgnostic(void) { return mbDeviceAgnostic; }
 char* CInputVirtualDeviceDesc::GetName(void) { return mszName.Text(); }
 CInputVirtualSourceDesc* CInputVirtualDeviceDesc::StartInputSourceDescsIteration(SSetIterator* psIter) { return mlcInputSourceDescs.StartIteration(psIter); }
 CInputVirtualSourceDesc* CInputVirtualDeviceDesc::IterateInputSourceDescs(SSetIterator* psIter) { return mlcInputSourceDescs.Iterate(psIter); }

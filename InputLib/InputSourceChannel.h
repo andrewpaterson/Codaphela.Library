@@ -51,7 +51,7 @@ protected:
 public:
 	void 							Init(CInputSourceValue* pcSourceValue, int iChannel, EInputSourceChannelComparator eCompare, char* pTest);
 	void 							Kill(void);
-	BOOL 							Compare(void* pvData);
+	bool 							Compare(void* pvData);
 	void 							ToString(CChars* psz);
 	int								GetChannel(void);
 	EInputSourceChannelComparator	GetCompare(void);

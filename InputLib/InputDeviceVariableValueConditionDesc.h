@@ -35,8 +35,8 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	virtual BOOL IsChord(void) =0;
-	virtual BOOL IsVariable(void) =0;
+	virtual bool IsChord(void) =0;
+	virtual bool IsVariable(void) =0;
 };
 
 
@@ -50,8 +50,8 @@ public:
 	void Init(CInputChordDesc* pcChordDesc);
 	void Kill(void);
 
-	BOOL IsChord(void);
-	BOOL IsVariable(void);
+	bool IsChord(void);
+	bool IsVariable(void);
 };
 
 
@@ -65,8 +65,8 @@ public:
 	void Init(CInputDeviceVariableValueDesc* pcVariableValueDesc);
 	void Kill(void);
 
-	BOOL IsChord(void);
-	BOOL IsVariable(void);
+	bool IsChord(void);
+	bool IsVariable(void);
 };
 
 

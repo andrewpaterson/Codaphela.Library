@@ -44,14 +44,14 @@ public:
 	void 					Init(char* szCategory, CInputDevices* pcInputDevices);
 	void 					Kill(void);
 	CInputCategoryGeneric*	AddGeneric(char* szGeneric);
-	BOOL 					ContainsGeneric(CInputCategoryGeneric* pcGeneric);
-	BOOL					ContainsGeneric(char* szGeneric);
-	CInputDevice*			GetFirstDevice(BOOL bPhysical = TRUE);
-	void					GetDevices(CArrayInputDevicePtr* pcDevices, BOOL bPhysical = TRUE);
+	bool 					ContainsGeneric(CInputCategoryGeneric* pcGeneric);
+	bool					ContainsGeneric(char* szGeneric);
+	CInputDevice*			GetFirstDevice(bool bPhysical = true);
+	void					GetDevices(CArrayInputDevicePtr* pcDevices, bool bPhysical = true);
 	CInputCategoryGeneric*	GetGeneric(char* szGeneric);
 	char*					GetCategoryName(void);
 	CInputDevices*			GetInputDevices(void);
-	BOOL					Is(char* szName);
+	bool					Is(char* szName);
 };
 
 

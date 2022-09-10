@@ -49,7 +49,7 @@ protected:
 public:
 	void 						Init(CInputDevice* pcSourceDevice, CInputSourceDesc* pcSourceDesc);
 	void 						Kill(void);
-	BOOL 						Equals(SInputDeviceValueSource* psOther);
+	bool 						Equals(SInputDeviceValueSource* psOther);
 	CInputSourceDesc*			GetSourceDesc(void);
 	SInputDeviceValueSource*	GetSource(void);
 	CInputDevice* 				GetSourceDevice(void);

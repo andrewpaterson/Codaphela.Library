@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceDesc::Init(char* szID, char* szFriendlyName, CInputCategory* pcCategory, BOOL bPhysical)
+void CInputDeviceDesc::Init(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical)
 {
 	mszID.Init(szID);
 	mszFriendlyName.Init(szFriendlyName);
@@ -82,7 +82,7 @@ CInputDevices* CInputDeviceDesc::GetInputDevices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceDesc::Is(char* szID)
+bool CInputDeviceDesc::Is(char* szID)
 {
 	return mszID.Equals(szID);
 }
@@ -92,9 +92,9 @@ BOOL CInputDeviceDesc::Is(char* szID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceDesc::HasTag(char* szTagName)
+bool CInputDeviceDesc::HasTag(char* szTagName)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -156,7 +156,7 @@ void CInputDeviceDesc::SetComment(char* szComment)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceDesc::RenameSource(char* szOldName, char* szNewName)
+bool CInputDeviceDesc::RenameSource(char* szOldName, char* szNewName)
 {
 	CInputSourceDesc*	pcSource;
 	SSetIterator		sIter;
@@ -167,11 +167,11 @@ BOOL CInputDeviceDesc::RenameSource(char* szOldName, char* szNewName)
 		if (pcSource->Is(szOldName))
 		{
 			pcSource->SetFriendlyName(szNewName);
-			return TRUE;
+			return true;
 		}
 		pcSource = mlcInputs.Iterate(&sIter);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -390,7 +390,7 @@ void CInputDeviceDesc::RemoveDevice(CInputDevice* pcDevice)
 	int		iIndex;
 
 	iIndex = mapcDevices.Find(&pcDevice);
-	mapcDevices.RemoveAt(iIndex, FALSE);
+	mapcDevices.RemoveAt(iIndex, false);
 }
 
 
@@ -448,7 +448,7 @@ CInputVirtualDeviceDesc* CInputDeviceDesc::CreateDefaultVirtualDesc(void)
 
 	szTemp.Init(mszFriendlyName.Text());
 	szTemp.Append(" Default");
-	pcVirtualDesc = pcInputDevices->CreateVirtualDeviceDescription(szTemp.Text(), TRUE);
+	pcVirtualDesc = pcInputDevices->CreateVirtualDeviceDescription(szTemp.Text(), true);
 	szTemp.Kill();
 
 	pcSourceDesc = mlcInputs.StartIteration(&sIter);
@@ -541,7 +541,7 @@ CInputSourceDesc* CInputDeviceDesc::IterateInputs(SSetIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 int CInputDeviceDesc::NumInputs(void) { return mlcInputs.NumElements(); }
 CInputDataFormat* CInputDeviceDesc::GetDataFormat(void) { return mpcDataFormat; }
-BOOL CInputDeviceDesc::IsPhysical(void) { return mbPhysical; }
+bool CInputDeviceDesc::IsPhysical(void) { return mbPhysical; }
 CInputChordDescs* CInputDeviceDesc::GetVariableChordDescs(void) { return &mcVariableChordDescs; }
 char* CInputDeviceDesc::GetID(void) { return mszID.Text(); }
 char* CInputDeviceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }

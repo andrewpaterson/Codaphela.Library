@@ -42,8 +42,8 @@ protected:
 	CSetInputSourceValue			mlcValues;
 	CInputDeviceDesc*				mpcDeviceDesc;
 	float							mfRestValue;
-	BOOL							mbEmitRestEvent;
-	BOOL							mbHasRestValue;
+	bool							mbEmitRestEvent;
+	bool							mbHasRestValue;
 	int								miStateIndex;
 	CArrayInputCategoryGenericPtr	mapcGenerics;
 
@@ -55,19 +55,19 @@ public:
 	CInputSourceValue*				AddValue(float fValueNumber);
 	void							CopyValues(CInputSourceDesc* pcInputSourceDesc);
 	void							CopyActions(CInputSourceDesc* pcInputSourceDesc);
-	void							SetRest(float fRestValue, BOOL bEmitRestEvent, BOOL bHasRestValue);
-	BOOL							Is(char* szFriendlyName);
+	void							SetRest(float fRestValue, bool bEmitRestEvent, bool bHasRestValue);
+	bool							Is(char* szFriendlyName);
 	CInputSourceValue*				StartValuesIteration(SSetIterator* psIter);
 	CInputSourceValue*				IterateValues(SSetIterator* psIter);
 	float							GetRestValue(void);
-	BOOL							HasRestValue(void);
+	bool							HasRestValue(void);
 	CInputDeviceDesc*				GetDeviceDesc(void);
 	CArrayInputCategoryGenericPtr*	GetGenerics(void);
 	EInputSourceType				GetType(void);
 	int								GetStateIndex(void);
 	char*							GetFriendlyName(void);
 	void							SetFriendlyName(char* szFriendlyName);
-	BOOL							GetEmitRestEvent(void);
+	bool							GetEmitRestEvent(void);
 	void							ToString(CChars* psz);
 };
 

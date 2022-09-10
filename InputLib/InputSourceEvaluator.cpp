@@ -132,7 +132,7 @@ void CInputSourceEvaluator::SetAnyToggleSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceEvaluator::Evaluate(SInputDeviceValue* psEvent, float* pfValue)
+bool CInputSourceEvaluator::Evaluate(SInputDeviceValue* psEvent, float* pfValue)
 {
 	if (meEvaluatorType == IET_SpecificSource)
 	{
@@ -146,7 +146,7 @@ BOOL CInputSourceEvaluator::Evaluate(SInputDeviceValue* psEvent, float* pfValue)
 	{
 		return EvaluateAnyToggleSource(pfValue, psEvent, &muConfig.sDeviceAny);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -154,13 +154,13 @@ BOOL CInputSourceEvaluator::Evaluate(SInputDeviceValue* psEvent, float* pfValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceEvaluator::EvaluateSpecificSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigSpecificSource* psConfig)
+bool CInputSourceEvaluator::EvaluateSpecificSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigSpecificSource* psConfig)
 {
 	if ((psEvent->pcDevice == psConfig->pcDevice) && (psEvent->pcSource == psConfig->pcSource))
 	{
 		return EvaluateMatching(pfValue, psEvent);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -168,13 +168,13 @@ BOOL CInputSourceEvaluator::EvaluateSpecificSource(float* pfValue, SInputDeviceV
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceEvaluator::EvaluateGenericSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigGenericSource* psConfig)
+bool CInputSourceEvaluator::EvaluateGenericSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigGenericSource* psConfig)
 {
 	if (psEvent->pcSource->GetGenerics()->Contains(&psConfig->pcGeneric))
 	{
 		return EvaluateMatching(pfValue, psEvent);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -182,13 +182,13 @@ BOOL CInputSourceEvaluator::EvaluateGenericSource(float* pfValue, SInputDeviceVa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceEvaluator::EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig)
+bool CInputSourceEvaluator::EvaluateAnyToggleSource(float* pfValue, SInputDeviceValue* psEvent, SInputConfigAnyToggleSource* psConfig)
 {
 	if (meChordType == ICT_Toggle)
 	{
 		return EvaluateMatching(pfValue, psEvent);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -196,7 +196,7 @@ BOOL CInputSourceEvaluator::EvaluateAnyToggleSource(float* pfValue, SInputDevice
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent)
+bool CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* psEvent)
 {
 	float	fValue;
 
@@ -212,7 +212,7 @@ BOOL CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* 
 			{
 				*pfValue = 0.0f;
 			}
-			return TRUE;
+			return true;
 		}
 		else if (meChordType == ICT_Range)
 		{
@@ -224,11 +224,11 @@ BOOL CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* 
 			{
 				*pfValue = 0.0f;
 			}
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (psEvent->pcSource->GetType() == ISET_Delta)
@@ -247,7 +247,7 @@ BOOL CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* 
 			{
 				*pfValue = 0.0f;
 			}
-			return TRUE;
+			return true;
 		}
 		else if (meChordType == ICT_Range)
 		{
@@ -259,14 +259,14 @@ BOOL CInputSourceEvaluator::EvaluateMatching(float* pfValue, SInputDeviceValue* 
 			{
 				*pfValue = 0.0f;
 			}
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

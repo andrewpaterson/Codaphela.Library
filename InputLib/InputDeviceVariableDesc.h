@@ -42,7 +42,7 @@ public:
 	void 							Kill(void);
 	void							Copy(CInputDeviceVariableDesc* pcSourceDesc, CInputDeviceCopyContext* pcContext);
 
-	BOOL 							Equals(char* szName);
+	bool 							Equals(char* szName);
 	CInputDeviceVariableValueDesc*	AddValue(char* szName);
 	CInputDeviceVariableValueDesc*	GetValue(char* szName);
 

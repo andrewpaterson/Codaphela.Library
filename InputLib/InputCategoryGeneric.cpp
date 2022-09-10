@@ -48,7 +48,7 @@ void CInputCategoryGeneric::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputCategoryGeneric::Is(char* szName)
+bool CInputCategoryGeneric::Is(char* szName)
 {
 	return mszName.Equals(szName);
 }

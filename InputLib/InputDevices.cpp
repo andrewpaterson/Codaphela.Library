@@ -39,7 +39,7 @@ void CInputDevices::Init(CInputActions* pcInputActions)
 	mcDataFormats.Init();
 	mlcVirtualsDescs.Init();
 	mlcVirtuals.Init();
-	mbCommonalityDirty = FALSE;
+	mbCommonalityDirty = false;
 }
 
 
@@ -47,10 +47,10 @@ void CInputDevices::Init(CInputActions* pcInputActions)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::Read(char* szDirectory)
+bool CInputDevices::Read(char* szDirectory)
 {
 	CInputDevicesReader	cReader;
-	BOOL				bResult;
+	bool				bResult;
 
 	cReader.Init(this, szDirectory);
 	bResult = cReader.ReadInputDevicesXML();
@@ -140,7 +140,7 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputSourceEvaluator* pcEvaluator, CInputDevice* pcDevice)
+bool CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputSourceEvaluator* pcEvaluator, CInputDevice* pcDevice)
 {
 	
 	switch (((CInputChordActiveDesc*)pcChordCriteriaDesc)->meActiveType)
@@ -151,19 +151,19 @@ BOOL CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCr
 			pcDevice = GetDeviceForSourceDesc(pcChordCriteriaDesc->GetSourceDesc(), pcChordCriteriaDesc->GetDescriptionID());
 			if (!pcDevice)
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		pcEvaluator->SetSpecificSource(pcDevice, pcChordCriteriaDesc->GetSourceDesc(), pcChordCriteriaDesc->meChordType);
-		return TRUE;
+		return true;
 	case ICCDAT_GenericSource:
 		pcEvaluator->SetGenericSource(pcChordCriteriaDesc->mpcGeneric, pcChordCriteriaDesc->meChordType);
-		return TRUE;
+		return true;
 	case ICCDAT_AnyToggleSource:
 		pcEvaluator->SetAnyToggleSource();
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 };
 
 
@@ -171,12 +171,12 @@ BOOL CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, CGroupInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
+bool CInputDevices::AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, CGroupInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
 {
 	int							i;
 	UInputChordCriteria*		puChordCriteria;
 	CInputChordCriteriaDesc*	pcCurrentChordDesc;
-	BOOL						bResult;
+	bool						bResult;
 
 	for (i = 0; i < pcChordCriteriaDesc->macCriteria.NumElements(); i++)
 	{
@@ -185,10 +185,10 @@ BOOL CInputDevices::AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaD
 		bResult = RecurseAddCriteria(pcCurrentChordDesc, puChordCriteria, pcChords, pcDevice);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -196,12 +196,12 @@ BOOL CInputDevices::AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, COrderedInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
+bool CInputDevices::AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, COrderedInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
 {
 	int							i;
 	UInputChordCriteria*		puChordCriteria;
 	CInputChordCriteriaDesc*	pcCurrentChordDesc;
-	BOOL						bResult;
+	bool						bResult;
 
 	for (i = 0; i < pcChordCriteriaDesc->macCriteria.NumElements(); i++)
 	{
@@ -210,10 +210,10 @@ BOOL CInputDevices::AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteri
 		bResult = RecurseAddCriteria(pcCurrentChordDesc, puChordCriteria, pcChords, pcDevice);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -221,7 +221,7 @@ BOOL CInputDevices::AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteri
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
+bool CInputDevices::RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaDesc, UInputChordCriteria* puChordCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
 {
 	CInputSourceEvaluator*	pcEvaluator;
 
@@ -242,7 +242,7 @@ BOOL CInputDevices::RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaD
 		puChordCriteria->cOrdered.Init();
 		return AddOrderedCriteria((CInputChordCollectiveDesc*)pcChordCriteriaDesc, (COrderedInputChordCriteria*)&puChordCriteria->cOrdered, pcChords, pcDevice);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -250,7 +250,7 @@ BOOL CInputDevices::RecurseAddCriteria(CInputChordCriteriaDesc* pcChordCriteriaD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputVirtualDeviceDesc* pcVirtualDesc, CInputDevice* pcDevice)
+bool CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputVirtualDeviceDesc* pcVirtualDesc, CInputDevice* pcDevice)
 {
 	return AddChords(pcVirtual, pcVirtualDesc->GetChordDescs(), pcDevice);
 }
@@ -260,16 +260,16 @@ BOOL CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputVirtualDevic
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* pcChordDescs, CInputDevice* pcDevice)
+bool CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* pcChordDescs, CInputDevice* pcDevice)
 {
 	SSetIterator		sIter;
 	CInputChordDesc*	pcChordDesc;
 	CAction*			pcAction;
-	BOOL				bResult;
-	BOOL				bResult2;
+	bool				bResult;
+	bool				bResult2;
 	CInputChord*		pcChord;
 
-	bResult = TRUE;
+	bResult = true;
 	pcChordDesc = pcChordDescs->StartChordDescsIteration(&sIter);
 	while (pcChordDesc)
 	{
@@ -283,7 +283,7 @@ BOOL CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* 
 				pcChord->Done();
 				if (!bResult2)
 				{
-					bResult = FALSE;
+					bResult = false;
 				}
 			}
 
@@ -291,7 +291,7 @@ BOOL CInputDevices::AddChords(CInputVirtualDevice* pcVirtual, CInputChordDescs* 
 		}
 		else
 		{
-			bResult = FALSE;
+			bResult = false;
 		}
 	}
 	return bResult;
@@ -308,7 +308,7 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(CInputVirtualDeviceDesc*
 	SSetIterator				sIter;
 	CInputVirtualSourceDesc*	pcVirtualSourceDesc;
 	CInputDevice*				pcDevice;
-	BOOL						bResult;
+	bool						bResult;
 
 	if (!pcVirtualDesc->IsDeviceAgnostic())
 	{
@@ -357,7 +357,7 @@ CInputVirtualDevice* CInputDevices::CreateVirtualDevice(CInputVirtualDeviceDesc*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCreatedVirtualVevices, CInputVirtualDeviceDesc* pcVirtualDesc)
+bool CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCreatedVirtualVevices, CInputVirtualDeviceDesc* pcVirtualDesc)
 {
 	CInputVirtualDevice*			pcVirtual;
 	SSetIterator					sIter;
@@ -367,7 +367,7 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 	int								i;
 	CInputDeviceDesc*				pcDeviceDesc;
 	SInputDeviceVirtualDevicePair*	psPair;
-	BOOL							bResult;
+	bool							bResult;
 
 	if (pcVirtualDesc->IsDeviceAgnostic())
 	{
@@ -377,7 +377,7 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 		pcDeviceDesc = GetDescriptionForVirtualDesc(pcVirtualDesc);
 		if (!pcDeviceDesc)
 		{
-			return FALSE;
+			return false;
 		}
 
 		apDevices.Init();
@@ -386,7 +386,7 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 		if (apDevices.NumElements() == 0)
 		{
 			apDevices.Kill();
-			return FALSE;
+			return false;
 		}
 
 		for (i = 0; i < apDevices.NumElements(); i++)
@@ -404,7 +404,7 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 			bResult = AddChords(pcVirtual, pcVirtualDesc, pcDevice);
 			if (!bResult)
 			{
-				return FALSE;
+				return false;
 			}
 
 			psPair = pacCreatedVirtualVevices->Add();
@@ -414,11 +414,11 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 		UpdateCommonality();
 
 		apDevices.Kill();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -427,7 +427,7 @@ BOOL CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceDesc* CInputDevices::CreateVirtualDeviceDescription(char* szName, BOOL bDeviceAgnostic)
+CInputVirtualDeviceDesc* CInputDevices::CreateVirtualDeviceDescription(char* szName, bool bDeviceAgnostic)
 {
 	CInputVirtualDeviceDesc*	pcVirtualDesc;
 
@@ -604,7 +604,7 @@ CInputDevice* CInputDevices::GetDeviceForSourceDesc(CInputSourceDesc* pcSourceDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceDesc* CInputDevices::CreateDescription(char* szID, char* szFriendlyName, CInputCategory* pcCategory, BOOL bPhysical)
+CInputDeviceDesc* CInputDevices::CreateDescription(char* szID, char* szFriendlyName, CInputCategory* pcCategory, bool bPhysical)
 {
 	CInputDeviceDesc*	pcDesc;
 
@@ -671,7 +671,7 @@ void CInputDevices::UpdateCommonality(void)
 		pcVirtual->SortCommonality();
 		pcVirtual = mlcVirtuals.Iterate(&sIter);
 	}
-	mbCommonalityDirty = FALSE;
+	mbCommonalityDirty = false;
 }
 
 
@@ -699,7 +699,7 @@ void CInputDevices::DumpDevicesToFile(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputDevices::DirtyCommonality(void)
 {
-	mbCommonalityDirty = TRUE;
+	mbCommonalityDirty = true;
 }
 
 
@@ -738,7 +738,7 @@ CInputVirtualDevice* CInputDevices::GetFirstKeyboard(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDevice* CInputDevices::GetFirstVirtualDeviceInCategoryKeyboard(char* szCategory, BOOL bPhysical)
+CInputVirtualDevice* CInputDevices::GetFirstVirtualDeviceInCategoryKeyboard(char* szCategory, bool bPhysical)
 {
 	//This method only exists to show how to get a usuable device.
 

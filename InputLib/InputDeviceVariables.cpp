@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CInputDeviceVariables::Init(void)
 {
 	mpcChords = NULL;
-	mbChordThisFrame = FALSE;
+	mbChordThisFrame = false;
 	mlcVariables.Init();
 }
 
@@ -63,7 +63,7 @@ void CInputDeviceVariables::SetChords(CInputChords* pcChords)
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceVariables::ClearEvents(void)
 {
-	mbChordThisFrame = FALSE;
+	mbChordThisFrame = false;
 }
 
 
@@ -217,7 +217,7 @@ void CInputDeviceVariables::VariableAction(CInputChord* pcChord)
 	SSetIterator						sIter;
 	CInputDeviceVariable*				pcVariable;
 	CArrayInputDeviceVariableValuePtr	apcVariableValues;
-	BOOL								bAnyChange;
+	bool								bAnyChange;
 
 	if (mbChordThisFrame)
 	{
@@ -237,7 +237,7 @@ void CInputDeviceVariables::VariableAction(CInputChord* pcChord)
 
 	if (bAnyChange)
 	{
-		mbChordThisFrame = TRUE;
+		mbChordThisFrame = true;
 	}
 
 	while (bAnyChange)
@@ -255,7 +255,7 @@ void CInputDeviceVariables::VariableAction(CInputDeviceVariable* pcVariable, CIn
 {
 	SSetIterator				sIter;
 	CInputDeviceVariableValue*	pcValue;
-	BOOL						bResult;
+	bool						bResult;
 
 	pcValue = pcVariable->StartValuesIteration(&sIter);
 	while (pcValue)
@@ -274,21 +274,21 @@ void CInputDeviceVariables::VariableAction(CInputDeviceVariable* pcVariable, CIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariables::UpdateChordVariableValues(CArrayInputDeviceVariableValuePtr* papcVariableValues)
+bool CInputDeviceVariables::UpdateChordVariableValues(CArrayInputDeviceVariableValuePtr* papcVariableValues)
 {
 	int							i;
 	CInputDeviceVariableValue*	pcValue;
-	BOOL						bAnyChange;
-	BOOL						bResult;
+	bool						bAnyChange;
+	bool						bResult;
 
-	bAnyChange = FALSE;
+	bAnyChange = false;
 	for (i = 0; i < papcVariableValues->NumElements(); i++)
 	{
 		pcValue = *papcVariableValues->Get(i);
 		bResult = pcValue->MakeCurrent();
 		if (bResult)
 		{
-			bAnyChange = TRUE;
+			bAnyChange = true;
 		}
 	}
 	return bAnyChange;
@@ -299,21 +299,21 @@ BOOL CInputDeviceVariables::UpdateChordVariableValues(CArrayInputDeviceVariableV
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariables::UpdateNonChordVariableValues(void)
+bool CInputDeviceVariables::UpdateNonChordVariableValues(void)
 {
 	SSetIterator			sIter;
 	CInputDeviceVariable*	pcVariable;
-	BOOL					bResult;
-	BOOL					bAnyChange;
+	bool					bResult;
+	bool					bAnyChange;
 
-	bAnyChange = FALSE;
+	bAnyChange = false;
 	pcVariable = mlcVariables.StartIteration(&sIter);
 	while (pcVariable)
 	{
 		bResult = UpdateNonChordVariableValues(pcVariable);
 		if (bResult)
 		{
-			bAnyChange = TRUE;
+			bAnyChange = true;
 		}
 		pcVariable = mlcVariables.Iterate(&sIter);
 	}
@@ -325,14 +325,14 @@ BOOL CInputDeviceVariables::UpdateNonChordVariableValues(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInputDeviceVariables::UpdateNonChordVariableValues(CInputDeviceVariable* pcVariable)
+bool CInputDeviceVariables::UpdateNonChordVariableValues(CInputDeviceVariable* pcVariable)
 {
 	SSetIterator				sIter;
 	CInputDeviceVariableValue*	pcValue;
-	BOOL						bResult;
-	BOOL						bAnyChange;
+	bool						bResult;
+	bool						bAnyChange;
 
-	bAnyChange = FALSE;
+	bAnyChange = false;
 	pcValue = pcVariable->StartValuesIteration(&sIter);
 	while (pcValue)
 	{
@@ -342,7 +342,7 @@ BOOL CInputDeviceVariables::UpdateNonChordVariableValues(CInputDeviceVariable* p
 			bResult = pcValue->MakeCurrent();
 			if (bResult)
 			{
-				bAnyChange = TRUE;
+				bAnyChange = true;
 			}
 		}
 		pcValue = pcVariable->IterateValues(&sIter);

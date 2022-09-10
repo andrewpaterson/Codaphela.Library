@@ -114,7 +114,7 @@ CInputDeviceDesc* CProgramInput::CreateStandardDesc(CInputDevices* pcDevices, CP
 	CInputSourceDesc*			pcSourceDesc;
 	CInputSourceValue*			pcSourceValue;
 
-	pcDesc = pcDevices->CreateDescription(pcDetail->mszID.Text(), pcDetail->GetFriendlyName(), mpcCategory, FALSE);
+	pcDesc = pcDevices->CreateDescription(pcDetail->mszID.Text(), pcDetail->GetFriendlyName(), mpcCategory, false);
 	pcDesc->SetDataFormat(mpcFormat);
 
 	for (i = 0; i < pcDetail->macSources.NumElements(); i++)
@@ -124,7 +124,7 @@ CInputDeviceDesc* CProgramInput::CreateStandardDesc(CInputDevices* pcDevices, CP
 		pcSourceValue = pcSourceDesc->AddValue(1);
 		pcSourceValue->AddChannel(0, ISCC_Equals, &pcValue->miName);
 		pcSourceValue->SetStateDetail(1.0f, 0.0f);
-		pcSourceDesc->SetRest(0.0f, FALSE, TRUE);
+		pcSourceDesc->SetRest(0.0f, false, true);
 	}
 
 	return pcDesc;

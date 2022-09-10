@@ -42,7 +42,7 @@ public:
 	WORD    				wUsagePage;
 	WORD    				wUsage;
 	LPDIRECTINPUTDEVICE8	lpDIDevice;
-	BOOL					bXInput;
+	bool					bXInput;
 	CChars					szID;
 	
 	void Init(GUID guidInstance, GUID guidProduct, char* szInstanceName,  char* szProductName, GUID guidFFDriver, WORD wUsagePage, WORD wUsage);
@@ -71,7 +71,7 @@ public:
 	void 				CreateDevices(void);
 	void 				ReleaseDevices(void);
 	void 				AddDetails(DIDEVICEINSTANCE* pcdiDeviceInstance);
-	BOOL 				IsXInputDevice(CDirectInputDetail* psDetail);
+	bool 				IsXInputDevice(CDirectInputDetail* psDetail);
 	void 				AddDevicesTo(CInputDevices* pcDevices);
 	CInputDeviceDesc*	AddStandardJoystick(CInputDevices* pcDevices, int iAxes, int iButtons, int iPOVs);
 	void 				Update(CInputDevices* pcDevices, unsigned int uiSequence);
