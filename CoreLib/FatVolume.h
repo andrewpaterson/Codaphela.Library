@@ -5,15 +5,6 @@
 #include "FatCommon.h"
 
 
-enum EFatFileSystemType
-{
-	FAT_FS_TYPE_UNSPECIFIED,
-	FAT_FS_TYPE_FAT12,
-	FAT_FS_TYPE_FAT16,		
-	FAT_FS_TYPE_FAT32		
-};
-
-
 struct SFatVolume
 {
 	uint32				uiID;
@@ -34,7 +25,6 @@ struct SFatVolume
 	EFatFileSystemType	eFileSystem;
 	uint8				uiNoOfFatTables;
 	char				szLabel[12];
-	CFileDrive*			mpcDevice;
 };
 
 
@@ -43,6 +33,7 @@ class CFatVolume
 public:
 	SFatVolume		msVolume;
 	SFatVolume*		mpsVolume;
+	CFileDrive*		mpcDevice;
 
 	uint8			mauiFatSharedBuffer[MAX_SECTOR_LENGTH];
 	uint32			muiFatSharedBufferSector;

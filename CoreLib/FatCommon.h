@@ -149,5 +149,14 @@ struct SFatFileSystemQuery
 };
 
 
+enum EFatFileSystemType
+{
+	FAT_FS_TYPE_UNSPECIFIED,
+	FAT_FS_TYPE_FAT12,
+	FAT_FS_TYPE_FAT16,
+	FAT_FS_TYPE_FAT32
+};
+
+
 #endif // ! __FAT_COMMON_H__
 

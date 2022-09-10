@@ -20,6 +20,7 @@
 #include <string.h>
 #include "FatInternals.h"
 #include "FatVolume.h"
+#include "FatTime.h"
 #include "FatFile.h"
 
 
@@ -1294,8 +1295,8 @@ uint16 CFatFile::FatFileFlush(void)
 
 		// update the file size on the entry
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.size = msFile.uiCurrentSize;
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date = rtc_get_fat_date();
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_time = rtc_get_fat_time();
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date = GetSystemClockDate();
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_time = GetSystemClockTime();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.access_date = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date;
 
 		// try load the sector that contains the entry
