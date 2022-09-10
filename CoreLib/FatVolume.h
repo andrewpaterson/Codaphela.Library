@@ -118,6 +118,16 @@ public:
 
 	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);
 	uint32				CalculateFirstSectorOfCluster(uint32 cluster);
+
+protected:
+	void				TrimPath(char* dest, char* src, size_t max);
+	void				FatParsePath(char* path, char* path_part, char** filename_part);
+	char				GetLongNameForEntry(uint16* dst, uint8* src);
+	char				FatCompareShortName(uint8* name1, uint8* name2);
+	char				FatCompareLongName(uint16* name1, uint16* name2);
+	uint16				GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
+	uint8				FatLongEntryChecksum(uint8* filename);
+	int					FatIndexOf(char chr, char* str, int index);
 };
 
 
