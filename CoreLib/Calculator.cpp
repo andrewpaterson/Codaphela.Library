@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Init(void)
 {
-	Init(TRUE);
+	Init(true);
 }
 
 
@@ -39,7 +39,7 @@ void CCalculator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Init(BOOL bUseUserError)
+void CCalculator::Init(bool bUseUserError)
 {
 	mszOperators.Init();
 	mszOperators.Add("++");
@@ -114,7 +114,7 @@ CNumber CCalculator::Eval(char* szText)
 {
 	CCalcExpression*	pcExpression;
 	CNumber				cAnswer;
-	BOOL				bResult;
+	bool				bResult;
 	CChars				sz;
 
 	mszError.Reinit();
@@ -150,17 +150,17 @@ CNumber CCalculator::Eval(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
+bool CCalculator::Expression(CCalcExpression** ppcExpression)
 {
-	BOOL					bOperator;
-	BOOL					bOperand;
-	BOOL					bFirst;
+	bool					bOperator;
+	bool					bOperand;
+	bool					bFirst;
 	CArrayIntAndPointer		cArray;
 	CCalcOperator*			pcOperator;
 	CCalcExpression*		pcOperand;
 
 	cArray.Init();
-	bFirst = TRUE;
+	bFirst = true;
 	for (;;)
 	{
 		for (;;)
@@ -177,7 +177,7 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 		if (HasError())
 		{
 			cArray.Kill();
-			return FALSE;
+			return false;
 		}
 
 		if (!bOperand && !bOperator)
@@ -185,7 +185,7 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 			if (bFirst)
 			{
 				cArray.Kill();
-				return FALSE;
+				return false;
 			}
 			else
 			{
@@ -195,16 +195,16 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 
 				if (*ppcExpression == NULL)
 				{
-					return FALSE;
+					return false;
 				}
 				else
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
 		cArray.Add(pcOperand, 0);
-		bFirst = FALSE;
+		bFirst = false;
 	}
 }
 
@@ -213,9 +213,9 @@ BOOL CCalculator::Expression(CCalcExpression** ppcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::Operand(CCalcExpression** ppcExpression)
+bool CCalculator::Operand(CCalcExpression** ppcExpression)
 {
-	BOOL					bReturn;
+	bool					bReturn;
 	CCalcParentheses*		pcParentheses;
 	CCalcConstExpression*	pcConst;
 
@@ -223,25 +223,25 @@ BOOL CCalculator::Operand(CCalcExpression** ppcExpression)
 	if (bReturn)
 	{
 		*ppcExpression = pcParentheses;
-		return TRUE;
+		return true;
 	}
 
 	bReturn = Value(&pcConst);
 	if (bReturn)
 	{
 		*ppcExpression = pcConst;
-		return TRUE;
+		return true;
 	}
 
 	bReturn = Identifier(&pcConst);
 	if (bReturn)
 	{
 		*ppcExpression = pcConst;
-		return TRUE;
+		return true;
 	}
 
 	*ppcExpression = NULL;
-	return FALSE;
+	return false;
 }
 
 
@@ -249,7 +249,7 @@ BOOL CCalculator::Operand(CCalcExpression** ppcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::Identifier(CCalcConstExpression** ppcConst)
+bool CCalculator::Identifier(CCalcConstExpression** ppcConst)
 {
 	TRISTATE				tResult;
 	CNumber					cNumber;
@@ -264,11 +264,11 @@ BOOL CCalculator::Identifier(CCalcConstExpression** ppcConst)
 		SafeFree(sz);
 		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(cNumber.Zero());
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -277,7 +277,7 @@ BOOL CCalculator::Identifier(CCalcConstExpression** ppcConst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::Value(CCalcConstExpression** ppcConst)
+bool CCalculator::Value(CCalcConstExpression** ppcConst)
 {
 	TRISTATE				tResult;
 	CNumber					cNumber;
@@ -288,23 +288,23 @@ BOOL CCalculator::Value(CCalcConstExpression** ppcConst)
 	{
 		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(cNumber.Init((int)ulli));
-		return TRUE;
+		return true;
 	}
 
 	tResult = mcParser.GetNumber(&cNumber);
 	if (tResult == TRITRUE)
 	{
-		tResult = mcParser.GetExactCharacter('L', FALSE);
-		if (tResult == FALSE)
+		tResult = mcParser.GetExactCharacter('L', false);
+		if (tResult == false)
 		{
-			tResult = mcParser.GetExactCharacter('l', FALSE);
+			tResult = mcParser.GetExactCharacter('l', false);
 		}
 		*ppcConst = NewMalloc<CCalcConstExpression>();
 		(*ppcConst)->SetValue(&cNumber);
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -312,7 +312,7 @@ BOOL CCalculator::Value(CCalcConstExpression** ppcConst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::Operator(CCalcOperator** pcOperator)
+bool CCalculator::Operator(CCalcOperator** pcOperator)
 {
 	TRISTATE		tResult;
 	int				i;
@@ -331,21 +331,21 @@ BOOL CCalculator::Operator(CCalcOperator** pcOperator)
 			mcParser.PassPosition();
 			*pcOperator = NewMalloc<CCalcOperator>();
 			(*pcOperator)->Set(eOp);
-			return TRUE;
+			return true;
 		}
 		else if (tResult == TRIERROR)
 		{
 			eOp = CO_invalid;
 			mcParser.PopPosition();
 			*pcOperator = NULL;
-			return FALSE;
+			return false;
 		}
 	}
 
 	eOp = CO_invalid;
 	mcParser.PopPosition();
 	*pcOperator = NULL;
-	return FALSE;
+	return false;
 }
 
 
@@ -353,10 +353,10 @@ BOOL CCalculator::Operator(CCalcOperator** pcOperator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
+bool CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 {
 	TRISTATE			tResult;
-	BOOL				bReturn;
+	bool				bReturn;
 	CCalcExpression*	pcExpression;
 
 	mcParser.PushPosition();
@@ -369,7 +369,7 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 			mcParser.PassPosition();
 			*ppcParentheses = NewMalloc<CCalcParentheses>();
 			(*ppcParentheses)->SetExpression(NULL);
-			return TRUE;
+			return true;
 		}
 		else
 		{
@@ -382,20 +382,20 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 					mcParser.PassPosition();
 					*ppcParentheses = NewMalloc<CCalcParentheses>();
 					(*ppcParentheses)->SetExpression(pcExpression);
-					return TRUE;
+					return true;
 				}
 			}
 			SafeKill(pcExpression);
 			mcParser.PopPosition();
 			*ppcParentheses = NULL;
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		mcParser.PopPosition();
 		*ppcParentheses = NULL;
-		return FALSE;
+		return false;
 	}
 }
 
@@ -404,7 +404,7 @@ BOOL CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray)
+bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray)
 {
 	int						iIndex;
 	CCalcOperator*			pcOperator;
@@ -418,7 +418,7 @@ BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 	CCalcExpression*		pcOperandRight;
 	int						iOldUsedElements;
 	CChars					szStart;
-	BOOL					bUnary;
+	bool					bUnary;
 
 	szStart.Init();
 	Print(&szStart, pcArray);
@@ -442,16 +442,16 @@ BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 		if (pcOperator->IsAmbiguous())
 		{
 			pcObject = (CCalcObject*)pcArray->SafeGetPtr(iIndex - 1);
-			bUnary = FALSE;
+			bUnary = false;
 			if (pcObject == NULL)
 			{
-				bUnary = TRUE;
+				bUnary = true;
 			}
 			else
 			{
 				if (pcObject->IsOperator())
 				{
-					bUnary = TRUE;
+					bUnary = true;
 				}
 			}
 			ResolveAmbiguity(pcOperator, bUnary);
@@ -522,7 +522,7 @@ BOOL CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 	}
 	*ppcExpression = (CCalcExpression*)pcArray->GetPtr(0);
 	szStart.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -563,7 +563,7 @@ int CCalculator::GetMinPrecedence(CArrayIntAndPointer* pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary)
+void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, bool bIsUnary)
 {
 	if (bIsUnary)
 	{
@@ -594,7 +594,7 @@ void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight)
+bool CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight)
 {
 	CChars	szCurrent;
 	CChars	sz;
@@ -607,7 +607,7 @@ BOOL CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* pcArray, CCalc
 	szCurrent.Kill();
 	pszStart->Kill();
 	*ppcExpression = NULL;
-	return FALSE;
+	return false;
 }
 
 
@@ -629,7 +629,7 @@ void CCalculator::SetError(char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalculator::HasError(void)
+bool CCalculator::HasError(void)
 {
 	return !mszError.Empty();
 }

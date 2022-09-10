@@ -25,11 +25,11 @@ public:
 	CFileDataIndex*			GetFileIndex(void);
 
 	CIndexTreeChildNode*	Get(unsigned char uiIndex);
-	BOOL					SetFile(unsigned char uiIndex, CFileDataIndex cFileNode);
-	BOOL					SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
+	bool					SetFile(unsigned char uiIndex, CFileDataIndex cFileNode);
+	bool					SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pcNode);
 
-	BOOL					ClearIndex(unsigned char uiIndex);
-	BOOL					ClearIndexAndUncontain(unsigned char uiIndex);
+	bool					ClearIndex(unsigned char uiIndex);
+	bool					ClearIndexAndUncontain(unsigned char uiIndex);
 
 	CIndexTreeChildNode*	GetNode(int i);
 	CIndexTreeChildNode*	GetNodes(void);
@@ -49,20 +49,20 @@ public:
 	size_t					CalculateFileSize(CIndexTreeFileDataCallback* pcCallback);
 	int						WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
-	BOOL					HasFile(void);
-	BOOL					HasOnlyFileNodes(void);
-	BOOL					HasChildWithFlags(unsigned char uiFlags);
-	BOOL					ConvertToFileNode(CIndexTreeNodeFile* pcNode);
+	bool					HasFile(void);
+	bool					HasOnlyFileNodes(void);
+	bool					HasChildWithFlags(unsigned char uiFlags);
+	bool					ConvertToFileNode(CIndexTreeNodeFile* pcNode);
 
 	CIndexTreeNodeFile*		GetValidMemoryNode(int iIndex);
 
-	BOOL					ValidateNodesEmpty(void);
-	BOOL					ValidateParent(void);
-	void					Print(CChars* psz, BOOL bHex);
+	bool					ValidateNodesEmpty(void);
+	bool					ValidateParent(void);
+	void					Print(CChars* psz, bool bHex);
 	void					Dump(void);
 
 protected:
-	BOOL					Uncontain(unsigned char uiIndex);
+	bool					Uncontain(unsigned char uiIndex);
 };
 
 

@@ -38,34 +38,34 @@ private:
 	CDurableSet		mcDurableSet;
 	CChars			mszDirectory;
 	CChars			mszRewriteDirectory;
-	BOOL			mbDurable;
+	bool			mbDurable;
 	CDurableFile	mcFileList;
 	CMapStringInt	mcNameMap;
 
 public:
-	BOOL			Init(char* szDirectory);
-	BOOL			Init(char* szDirectory, char* szRewriteDirectory, char* szFileListWrite = NULL, char* szFileListRewrite = NULL, char* szMarkWrite = NULL, char* szMarkRewrite = NULL);
+	bool			Init(char* szDirectory);
+	bool			Init(char* szDirectory, char* szRewriteDirectory, char* szFileListWrite = NULL, char* szFileListRewrite = NULL, char* szMarkWrite = NULL, char* szMarkRewrite = NULL);
 	void			Kill(void);
 
-	BOOL			Begin(void);
-	BOOL			Begin(CDurableFile* pcFirst, ...);
-	BOOL			End(void);
-	BOOL			Recover(void);
-	BOOL			Recover(CDurableFile* pcFirst, ...);
-	BOOL			Check(BOOL bThorough, BOOL bLogError);
+	bool			Begin(void);
+	bool			Begin(CDurableFile* pcFirst, ...);
+	bool			End(void);
+	bool			Recover(void);
+	bool			Recover(CDurableFile* pcFirst, ...);
+	bool			Check(bool bThorough, bool bLogError);
 
-	BOOL			AddFile(CDurableFile* pcFile);
+	bool			AddFile(CDurableFile* pcFile);
 	int				NumFiles(void);
 	CDurableFile*	GetFile(int iIndex);
 
-	BOOL			IsBegun(void);
+	bool			IsBegun(void);
 	char*			GetDirectory(void);
 	char*			GetRewriteDirectory(void);
-	BOOL			IsDurable(void);
+	bool			IsDurable(void);
 	CDurableSet*	GetDurableSet(void);
 
-	BOOL			ReadControlledFileList(CDurableFile* pcFile);
-	BOOL			WriteControlledFileList(CDurableFile* pcFile);
+	bool			ReadControlledFileList(CDurableFile* pcFile);
+	bool			WriteControlledFileList(CDurableFile* pcFile);
 };
 
 

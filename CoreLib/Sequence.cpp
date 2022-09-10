@@ -7,14 +7,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
+bool CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 {
 	CIndexTreeHelper	cHelper;
-	BOOL				bResult;
+	bool				bResult;
 
 	cConfig.ConfigureLife(&mcConfig, &mpcConfig);
 
-	cHelper.Init(mpcConfig->Getdirectory(), "Primary", "Backup", FALSE);
+	cHelper.Init(mpcConfig->Getdirectory(), "Primary", "Backup", false);
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 
 	mcFile.Init(&mcFileController, "Sequence.DAT", "_Sequence.DAT");
@@ -23,7 +23,7 @@ BOOL CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 	moiNext = ReadIndex();
 	bResult &= mcFileController.End();
 
-	cHelper.Kill(FALSE);
+	cHelper.Kill(false);
 
 	if (moiNext == INVALID_O_INDEX || !bResult)
 	{
@@ -31,7 +31,7 @@ BOOL CSequence::Init(CLifeInit<CSequenceConfig> cConfig)
 		return gcLogger.Error2(__METHOD__, " Could not read Sequence file.", NULL);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -54,7 +54,7 @@ void CSequence::Kill(void)
 OIndex CSequence::GetNext(void)
 {
 	OIndex	uiNext;
-	BOOL	bResult;
+	bool	bResult;
 
 	uiNext = moiNext;
 
@@ -88,7 +88,7 @@ OIndex CSequence::PeekNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSequence::WriteIndex(OIndex oi)
+bool CSequence::WriteIndex(OIndex oi)
 {
 	return mcFile.WriteInt(moiNext);
 }
@@ -101,7 +101,7 @@ BOOL CSequence::WriteIndex(OIndex oi)
 OIndex CSequence::ReadIndex(void)
 {
 	OIndex	oi;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (mcFile.Exists())
 	{

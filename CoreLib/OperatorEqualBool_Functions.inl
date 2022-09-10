@@ -1,2 +1,2 @@
-void EqualBoolBool(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(BOOL*)pvLeft == *(BOOL*)pvRight); }
+void EqualBoolBool(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(bool*)pvLeft == *(bool*)pvRight); }
 

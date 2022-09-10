@@ -199,9 +199,9 @@ void CCalcOperator::Evaluate(CNumber* pcAnswer, CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcOperator::IsExpression(void)
+bool CCalcOperator::IsExpression(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -209,9 +209,9 @@ BOOL CCalcOperator::IsExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcOperator::IsOperator(void)
+bool CCalcOperator::IsOperator(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -219,7 +219,7 @@ BOOL CCalcOperator::IsOperator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcOperator::IsBinary(void)
+bool CCalcOperator::IsBinary(void)
 {
 	switch (meOp)
 	{
@@ -241,9 +241,9 @@ BOOL CCalcOperator::IsBinary(void)
 	case CO_BitwiseAnd:
 	case CO_BitwiseOr:
 	case CO_BitwiseXor:
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -251,7 +251,7 @@ BOOL CCalcOperator::IsBinary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcOperator::IsUnary(void)
+bool CCalcOperator::IsUnary(void)
 {
 	switch (meOp)
 	{
@@ -261,9 +261,9 @@ BOOL CCalcOperator::IsUnary(void)
 	case CO_BitwiseNot:
 	case CO_UnaryAdd:
 	case CO_UnarySubtract:
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -271,7 +271,7 @@ BOOL CCalcOperator::IsUnary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcOperator::IsAmbiguous(void)
+bool CCalcOperator::IsAmbiguous(void)
 {
 	switch (meOp)
 	{
@@ -279,9 +279,9 @@ BOOL CCalcOperator::IsAmbiguous(void)
 	case CO_Subtract:
 	case CO_UnaryAdd:
 	case CO_UnarySubtract:
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

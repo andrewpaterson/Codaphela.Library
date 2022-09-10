@@ -41,7 +41,7 @@ public:
 };
 
 
-BOOL SocketsInit(void);
+bool SocketsInit(void);
 void SocketsKill(void);
 
 

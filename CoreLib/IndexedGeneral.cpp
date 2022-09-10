@@ -32,7 +32,7 @@ char* IndexToString(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL IsValidIndex(OIndex oi)
+bool IsValidIndex(OIndex oi)
 {
 	return oi != INVALID_O_INDEX && oi != NULL_O_INDEX;
 }

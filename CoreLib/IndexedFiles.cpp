@@ -60,7 +60,7 @@ void CIndexedFiles::Init(CDurableFileController* pcDurableFileControl, char* szS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Kill(void)
+bool CIndexedFiles::Kill(void)
 {
 	int				i; 
 	CIndexedFile*	pcIndexedFile;
@@ -80,7 +80,7 @@ BOOL CIndexedFiles::Kill(void)
 	mcFileDescriptors.Kill();
 	mszSubDirectory.Kill();
 	mszDataExtension.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -88,10 +88,10 @@ BOOL CIndexedFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
+bool CIndexedFiles::ReadIndexedFileDescriptors(void)
 {
 	filePos						iFileSize;
-	BOOL						bResult;
+	bool						bResult;
 	int							i;
 	filePos						iNumFiles;
 	SIndexedFileDescriptor*		pasFileDescriptors;
@@ -104,13 +104,13 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	if (!mpcDurableFileControl->IsBegun())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot read descriptors if the Durable Controller is not begun.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (mcFiles.NumElements() != 0)
 	{
 		//Don't read.  Should probably throw an error.
-		return FALSE;
+		return false;
 	}
 
 	iFileSize = mcFileDescriptors.Size();
@@ -124,7 +124,7 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	iRemainder = iFileSize % (sizeof(SIndexedFileDescriptor));
 	if (iRemainder != 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pasFileDescriptors = (SIndexedFileDescriptor*)malloc((int)iFileSize);
@@ -134,10 +134,10 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 	if (iRead != iNumFiles)
 	{
 		SafeFree(pasFileDescriptors);
-		return FALSE;
+		return false;
 	}
 
-	bResult = TRUE;
+	bResult = true;
 	for (i = 0; i < iNumFiles; i++)
 	{
 		bResult &= DataFilename(szDataFilename, szDataRewriteName, pasFileDescriptors[i].iDataSize, pasFileDescriptors[i].iFileNum);
@@ -156,18 +156,18 @@ BOOL CIndexedFiles::ReadIndexedFileDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
+bool CIndexedFiles::WriteIndexedFileDescriptors(void)
 {
 	int							i;
 	CIndexedFile*				pcIndexedFile;
 	SIndexedFileDescriptor*		psFileDescriptor;
 	void*						pvFileDescriptors;
-	BOOL						bResult;
+	bool						bResult;
 	filePos						iResult;
 
 	pvFileDescriptors = malloc(mcFiles.NumElements() * sizeof(SIndexedFileDescriptor));
 
-	bResult = TRUE;
+	bResult = true;
 	for (i = 0; i < mcFiles.NumElements(); i++)
 	{
 		pcIndexedFile = mcFiles.Get(i);
@@ -188,7 +188,7 @@ BOOL CIndexedFiles::WriteIndexedFileDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::DataFilename(char* szFile1, char* szFile2, int iDataSize, int iFileNum)
+bool CIndexedFiles::DataFilename(char* szFile1, char* szFile2, int iDataSize, int iFileNum)
 {
 	CChars		szFilename;
 	CChars		szRewriteName;
@@ -220,13 +220,13 @@ BOOL CIndexedFiles::DataFilename(char* szFile1, char* szFile2, int iDataSize, in
 		szFilename.Kill();
 		strcpy(szFile2, szRewriteName.Text());
 		szRewriteName.Kill();
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		szFilename.Kill();
 		szRewriteName.Kill();
-		return FALSE;
+		return false;
 	}
 }
 
@@ -242,7 +242,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(unsigned int uiDataSize)
 	int				iNumFilesWithSize;
 	char			szFilename[MAX_DIRECTORY_LENGTH];
 	char			szRewriteName[MAX_DIRECTORY_LENGTH];
-	BOOL			bResult;
+	bool			bResult;
 	int				iNumFiles;
 
 	iNumFilesWithSize = 0;
@@ -522,10 +522,10 @@ CFileDataIndex CIndexedFiles::WriteNew(void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize)
+bool CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
-	BOOL			bResult;
+	bool			bResult;
 
 	pcIndexedFile = GetFile(pcDataIndex->miFile);
 	if (pcIndexedFile)
@@ -539,7 +539,7 @@ BOOL CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, uns
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -548,14 +548,14 @@ BOOL CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Read(CFileDataIndex* pcDataIndex, void* pvData)
+bool CIndexedFiles::Read(CFileDataIndex* pcDataIndex, void* pvData)
 {
 	CIndexedFile*	pcIndexedFile;
 
 	pcIndexedFile = GetFile(pcDataIndex->miFile);
 	if (!pcIndexedFile)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return pcIndexedFile->Read(pcDataIndex->muiIndex, pvData);
@@ -566,7 +566,7 @@ BOOL CIndexedFiles::Read(CFileDataIndex* pcDataIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::Delete(CFileDataIndex* pcDataIndex)
+bool CIndexedFiles::Delete(CFileDataIndex* pcDataIndex)
 {
 	CIndexedFile*	pcIndexedFile;
 	int				iResult;
@@ -574,7 +574,7 @@ BOOL CIndexedFiles::Delete(CFileDataIndex* pcDataIndex)
 	pcIndexedFile = GetFile(pcDataIndex->miFile);
 	if (!pcIndexedFile)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iResult = pcIndexedFile->Delete(pcDataIndex->muiIndex);
@@ -586,7 +586,7 @@ BOOL CIndexedFiles::Delete(CFileDataIndex* pcDataIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedFiles::IsDurable(void)
+bool CIndexedFiles::IsDurable(void)
 {
 	return mpcDurableFileControl->IsDurable();
 }

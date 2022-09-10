@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListenSocket::Init(int iPort)
+bool CListenSocket::Init(int iPort)
 {
 	int			iResult;
 	addrinfo*	psResult;
@@ -40,7 +40,7 @@ BOOL CListenSocket::Init(int iPort)
 
 	mListenSocket = INVALID_SOCKET;
 	mSocket = INVALID_SOCKET;
-	mbListening = FALSE;
+	mbListening = false;
 
 	memset(&psHints, 0, sizeof(psHints));
 	psHints.ai_family = AF_INET;
@@ -54,7 +54,7 @@ BOOL CListenSocket::Init(int iPort)
 	if (iResult != 0) 
 	{
 		gcLogger.Error("getaddrinfo failed with error");
-		return FALSE;
+		return false;
 	}
 
 	// Create a SOCKET for connecting to server
@@ -63,7 +63,7 @@ BOOL CListenSocket::Init(int iPort)
 	{
 		gcLogger.Error("socket failed with error");
 		freeaddrinfo(psResult);
-		return FALSE;
+		return false;
 	}
 
 	// Setup the TCP listening socket
@@ -73,11 +73,11 @@ BOOL CListenSocket::Init(int iPort)
 		gcLogger.Error("bind failed with error");
 		freeaddrinfo(psResult);
 		closesocket(mListenSocket);
-		return FALSE;
+		return false;
 	}
 
 	freeaddrinfo(psResult);
-	return TRUE;
+	return true;
 }
 
 
@@ -100,7 +100,7 @@ void CListenSocket::Kill(void)
 		if (mbListening)
 		{
 			iResult = shutdown(mSocket, SD_SEND);
-			mbListening = FALSE;
+			mbListening = false;
 		}
 		closesocket(mSocket);
 		mSocket = INVALID_SOCKET;
@@ -114,7 +114,7 @@ void CListenSocket::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListenSocket::Listen(void)
+bool CListenSocket::Listen(void)
 {
 	int		iResult;
 
@@ -123,7 +123,7 @@ BOOL CListenSocket::Listen(void)
 	{
 		gcLogger.Error("listen failed with error");
 		closesocket(mListenSocket);
-		return FALSE;
+		return false;
 	}
 
 	// Accept a client socket
@@ -132,14 +132,14 @@ BOOL CListenSocket::Listen(void)
 	{
 		gcLogger.Error("accept failed with error");
 		closesocket(mListenSocket);
-		return FALSE;
+		return false;
 	}
 
 	// No longer need server socket
 	closesocket(mListenSocket);
 	mListenSocket = INVALID_SOCKET;
-	mbListening = TRUE;
+	mbListening = true;
 
-	return TRUE;
+	return true;
 }
 

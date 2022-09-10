@@ -1,1 +1,1 @@
-void NotEqualBoolBool(BOOL* pvDest, void* pvLeft, void* pvRight) { *pvDest = (BOOL)(*(BOOL*)pvLeft != *(BOOL*)pvRight); }
+void NotEqualBoolBool(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(bool*)pvLeft != *(bool*)pvRight); }

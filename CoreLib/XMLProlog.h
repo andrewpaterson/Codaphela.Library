@@ -1,6 +1,5 @@
 #ifndef __XML_PROLOG_H__
 #define __XML_PROLOG_H__
-#include "BaseLib/Bool.h"
 #include "CharEncoding.h"
 
 
@@ -8,7 +7,7 @@ class CXMLProlog
 {
 protected:
 	ECharEncoding	meEncoding;
-	BOOL			mbStandalone;
+	bool			mbStandalone;
 	float			mfVersion;
 
 public:
@@ -16,7 +15,7 @@ public:
 	void	Kill(void);
 
 	void	SetEncoding(ECharEncoding eEncoding);
-	void	SetStandalone(BOOL bStandalone);
+	void	SetStandalone(bool bStandalone);
 	void	SetVersion(float fVersion);
 };
 

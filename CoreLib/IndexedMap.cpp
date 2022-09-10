@@ -24,7 +24,7 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSub
 
 	pcDurableFileControl->Begin();
 
-	InitIndices(pcDurableFileControl, TRUE);
+	InitIndices(pcDurableFileControl, true);
 	mcData.Init(pcDurableFileControl, szSubDirectory, "DAT", "Files.IDX", "_Files.IDX", iDataCacheSize, eWriteThrough, this);
 
 	pcDurableFileControl->End();
@@ -35,31 +35,31 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSub
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::Kill(void)
+bool CIndexedMap::Kill(void)
 {
 	if (!mcData.IsFlushed())
 	{
-		return FALSE;
+		return false;
 	}
 	if (!mbDescriptorsWritten)
 	{
-		return FALSE;
+		return false;
 	}
 
 	mcData.Kill();
 
 	mcDescriptorsFile.Kill();
 	mcDescriptors.Kill();
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting)
+void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, bool bDirtyTesting)
 {
-	mbDescriptorsWritten = TRUE;
+	mbDescriptorsWritten = true;
 	mcDescriptorsFile.Init(pcDurableFileControl, "Descriptors.IDX", "_Descriptors.IDX");
 
 	if (mcDescriptorsFile.Exists())
@@ -69,7 +69,7 @@ void CIndexedMap::InitIndices(CDurableFileController* pcDurableFileControl, BOOL
 	}
 	else
 	{
-		mcDescriptors.Init(TRUE);
+		mcDescriptors.Init(true);
 	}
 }
 
@@ -83,7 +83,7 @@ void CIndexedMap::NullCachedDescriptors(void)
 	SMapIterator			sIter;
 	OIndex*					poi;
 	CIndexedDataDescriptor*	pcDescriptor;
-	BOOL					bExists;
+	bool					bExists;
 	
 	bExists = mcDescriptors.StartIteration(&sIter, (void**)&poi, NULL, (void**)&pcDescriptor, NULL);
 	while (bExists)
@@ -98,7 +98,7 @@ void CIndexedMap::NullCachedDescriptors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
+bool CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
 	if (mpcIndexedDataEvictionCallback)
 	{
@@ -106,7 +106,7 @@ BOOL CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDat
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -115,7 +115,7 @@ BOOL CIndexedMap::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
+bool CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction)
 {
 	CIndexedDataDescriptor* pcResult;
 
@@ -126,11 +126,11 @@ BOOL CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 		{
 			memcpy_fast(pcDescriptor, pcResult, sizeof(CIndexedDataDescriptor));
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -139,15 +139,15 @@ BOOL CIndexedMap::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
+bool CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction)
 {
 	CIndexedDataDescriptor* pcExistingDescriptor;
-	BOOL					bUpdated;
+	bool					bUpdated;
 
 	pcExistingDescriptor = mcDescriptors.Get(oi);
 	if (!pcExistingDescriptor)
 	{
-		mbDescriptorsWritten = FALSE;
+		mbDescriptorsWritten = false;
 		return mcDescriptors.Put(oi, pcDescriptor);
 	}
 	else
@@ -155,9 +155,9 @@ BOOL CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 		bUpdated = pcExistingDescriptor->Update(pcDescriptor);
 		if (bUpdated)
 		{
-			mbDescriptorsWritten = FALSE;
+			mbDescriptorsWritten = false;
 		}
-		return TRUE;
+		return true;
 	}
 }
 
@@ -166,7 +166,7 @@ BOOL CIndexedMap::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
+bool CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
 	CIndexedDataDescriptor* pcDescriptor;
 
@@ -174,9 +174,9 @@ BOOL CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int u
 	if (pcDescriptor)
 	{
 		pcDescriptor->Cache(pvCache, uiDataSize);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -184,9 +184,9 @@ BOOL CIndexedMap::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::RemoveDescriptor(OIndex oi)
+bool CIndexedMap::RemoveDescriptor(OIndex oi)
 {
-	mbDescriptorsWritten = FALSE;
+	mbDescriptorsWritten = false;
 	return mcDescriptors.Remove(oi);
 }
 
@@ -195,15 +195,15 @@ BOOL CIndexedMap::RemoveDescriptor(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::Flush(BOOL bClearCache)
+bool CIndexedMap::Flush(bool bClearCache)
 {
-	BOOL		bResult;
+	bool		bResult;
 
 	bResult = mcData.Flush(bClearCache);
 	if (!mbDescriptorsWritten)
 	{
 		bResult &= mcDescriptors.Write(&mcDescriptorsFile);
-		mbDescriptorsWritten = TRUE;
+		mbDescriptorsWritten = true;
 	}
 	return bResult;
 }
@@ -233,7 +233,7 @@ int64 CIndexedMap::NumIndicesCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::IsDirty(OIndex oi)
+bool CIndexedMap::IsDirty(OIndex oi)
 {
 	CIndexedDataDescriptor*		pcKeyDescriptor;
 	SIndexedCacheDescriptor*	psDataDescriptor;
@@ -246,11 +246,11 @@ BOOL CIndexedMap::IsDirty(OIndex oi)
 			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(pcKeyDescriptor->GetCache(), -(ptrdiff_t)sizeof(SIndexedCacheDescriptor));
 			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -258,9 +258,9 @@ BOOL CIndexedMap::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+bool CIndexedMap::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -268,7 +268,7 @@ BOOL CIndexedMap::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedMap::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+bool CIndexedMap::TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return GetDescriptor(oi, pcDescriptor);
 }

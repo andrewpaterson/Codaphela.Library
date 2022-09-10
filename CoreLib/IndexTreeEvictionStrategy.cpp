@@ -45,7 +45,7 @@ CIndexTreeDataOrderer* CIndexTreeEvictionStrategy::GetDataOrderer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictionStrategy::EvictNode(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeEvictionStrategy::EvictNode(CIndexTreeNodeFile* pcNode)
 {
 	return mpcIndexTree->EvictNode(pcNode);
 }

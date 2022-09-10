@@ -31,8 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 enum EShowType
 {
-	ST_Shown = TRUE,
-	ST_Hidden = FALSE
+	ST_Shown = true,
+	ST_Hidden = false
 };
 
 
@@ -43,7 +43,7 @@ enum EKeyType
 };
 
 
-typedef void (*ActivateFunc)(BOOL bActive);
+typedef void (*ActivateFunc)(bool bActive);
 typedef void (*ShowFunc)(EShowType eType);
 typedef void (*DestroyFunc)(void);
 typedef void (*SetCursorFunc)(void);
@@ -71,18 +71,18 @@ public:
 	SizeFunc		mSizeFunc;
 	RawInputFunc	mRawInputFunc;
 	void*			mpvRawInputObject;
-	BOOL			mbActive;
+	bool			mbActive;
 	LONG			clientAreaLeftOffset;
 	LONG			clientAreaTopOffset;
 	LONG			clientAreaRightOffset;
 	LONG			clientAreaBottomOffset;
 	CChars			className;
 	HCURSOR			hCursor;
-	BOOL			mbLoop;
+	bool			mbLoop;
 
 	void		Init(HINSTANCE hInst, MainFunc Main, ActivateFunc Activate, ShowFunc Show, DestroyFunc Destroy, SetCursorFunc SetCursor, KeyFunc Key, SetFocusFunc SetFocus, ChangingFunc changing,	SizeFunc size, RawInputFunc rawInput, void* pvRawInputObject);
-	BOOL		CreateFullScreenWindow(int nCmdShow, char* szName);
-	BOOL		CreateWindowedWindow(int nCmdShow, char* Name, int xp, int yp, int xs, int ys);
+	bool		CreateFullScreenWindow(int nCmdShow, char* szName);
+	bool		CreateWindowedWindow(int nCmdShow, char* Name, int xp, int yp, int xs, int ys);
 	int			WinLoop(void);
 	void		Destroy(void);
 

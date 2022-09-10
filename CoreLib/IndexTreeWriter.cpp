@@ -9,13 +9,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirectory)
+bool CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirectory)
 {
 	CDurableFileController	cController;
 	CIndexTreeFile			cIndexTreeFile;
 	CIndexTreeHelper		cHelper;
 
-	cHelper.Init(szDirectory, NULL, NULL, FALSE);
+	cHelper.Init(szDirectory, NULL, NULL, false);
 	ReturnOnFalse(cController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory()));
 	ReturnOnFalse(cController.Begin());
 
@@ -27,8 +27,8 @@ BOOL CIndexTreeWriter::Write(CIndexTreeMemory* pcIndexTreeMemory, char* szDirect
 	ReturnOnFalse(cController.End());
 	cController.Kill();
 	cIndexTreeFile.Kill();
-	cHelper.Kill(TRUE);
-	return TRUE;
+	cHelper.Kill(true);
+	return true;
 }
 
 
@@ -90,12 +90,12 @@ void CIndexTreeWriter::RecurseAllocate(CIndexTreeNodeMemory* pcMemoryNode, CInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
+bool CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode)
 {
 	int						i;
 	CIndexTreeChildNode*	pcFileChild;
 	CIndexTreeNodeFile*		pcMemoryChild;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeChildNode*	apcChildren;
 	int						iNumNodes;
 
@@ -115,7 +115,7 @@ BOOL CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFi
 					bResult = RecurseWrite(pcFileTree, pcMemoryChild);
 					if (!bResult)
 					{
-						return FALSE;
+						return false;
 					}
 				}
 				else if (pcFileChild->IsFile())
@@ -129,8 +129,8 @@ BOOL CIndexTreeWriter::RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFi
 	bResult = pcFileTree->Write(pcFileNode);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 

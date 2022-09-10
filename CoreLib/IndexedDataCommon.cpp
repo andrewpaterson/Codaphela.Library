@@ -17,17 +17,17 @@ void CIndexedDataCommon::Init(CIndexedDataEvictionCallback* pcIndexedDataEvictio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, size_t uiDataSize)
+bool CIndexedDataCommon::Add(OIndex oi, void* pvData, size_t uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!IsValidIndex(oi))
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].", NULL);
 	}
 
-	bResult = GetDescriptor(oi, &cDescriptor, TRUE);
+	bResult = GetDescriptor(oi, &cDescriptor, true);
 	if (bResult)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Add Index [", IndexToString(oi), "].  It already exists.", NULL);
@@ -42,10 +42,10 @@ BOOL CIndexedDataCommon::Add(OIndex oi, void* pvData, size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData)
+bool CIndexedDataCommon::Set(OIndex oi, void* pvData)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!IsValidIndex(oi))
 	{
@@ -68,10 +68,10 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, size_t uiDataSize)
+bool CIndexedDataCommon::Set(OIndex oi, void* pvData, size_t uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!IsValidIndex(oi))
 	{
@@ -94,9 +94,9 @@ BOOL CIndexedDataCommon::Set(OIndex oi, void* pvData, size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, size_t uiDataSize)
+bool CIndexedDataCommon::Put(OIndex oi, void* pvData, size_t uiDataSize)
 {
-	BOOL					bExists;
+	bool					bExists;
 	CIndexedDataDescriptor	cDescriptor;
 
 	if (!IsValidIndex(oi))
@@ -122,7 +122,7 @@ BOOL CIndexedDataCommon::Put(OIndex oi, void* pvData, size_t uiDataSize)
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataCommon::Size(OIndex oi)
 {
-	BOOL						bResult;
+	bool						bResult;
 	CIndexedDataDescriptor		cDescriptor;
 
 	if (!IsValidIndex(oi))
@@ -143,10 +143,10 @@ unsigned int CIndexedDataCommon::Size(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
+bool CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!IsValidIndex(oi))
 	{
@@ -156,7 +156,7 @@ BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
 	bResult = GetDescriptor(oi, &cDescriptor);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = mcData.GetData(oi, &cDescriptor, pvData, uiMaxSize);
@@ -168,10 +168,10 @@ BOOL CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
+bool CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!IsValidIndex(oi))
 	{
@@ -183,7 +183,7 @@ BOOL CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_
 	if (!bResult)
 	{
 		SafeAssign(puiDataSize, 0);
-		return FALSE;
+		return false;
 	}
 
 	return GetData(oi, &cDescriptor, puiDataSize, pvData, uiMaxSize);
@@ -195,9 +195,9 @@ BOOL CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
+bool CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
 {
-	BOOL	bResult;
+	bool	bResult;
 	size_t	uiDataSize;
 
 	uiDataSize = pcDescriptor->GetDataSize();
@@ -208,16 +208,16 @@ BOOL CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 		bResult = mcData.GetData(oi, pcDescriptor, pvData, uiMaxSize);
 		if (bResult)
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -226,10 +226,10 @@ BOOL CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Contains(OIndex oi)
+bool CIndexedDataCommon::Contains(OIndex oi)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	bResult = GetDescriptor(oi, &cDescriptor);
 	return bResult;
@@ -250,10 +250,10 @@ int64 CIndexedDataCommon::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataCommon::Remove(OIndex oi)
+bool CIndexedDataCommon::Remove(OIndex oi)
 {
 	CIndexedDataDescriptor	cDescriptor;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!IsValidIndex(oi))
 	{
@@ -268,9 +268,9 @@ BOOL CIndexedDataCommon::Remove(OIndex oi)
 			mcData.InvalidateData(&cDescriptor);
 		}
 		RemoveDescriptor(oi);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -329,7 +329,7 @@ int64 CIndexedDataCommon::NumDatas(size_t uiDataSize)
 //
 //////////////////////////////////////////////////////////////////////////
 unsigned int CIndexedDataCommon::TestGetCachedObjectSize(OIndex oi) { return  mcData.TestGetCachedObjectSize(oi); }
-BOOL CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching();  }
-BOOL CIndexedDataCommon::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
-BOOL CIndexedDataCommon::IsFlushed(void) { return mcData.IsFlushed(); }
+bool CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching();  }
+bool CIndexedDataCommon::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
+bool CIndexedDataCommon::IsFlushed(void) { return mcData.IsFlushed(); }
 

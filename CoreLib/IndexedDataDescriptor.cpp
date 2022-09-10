@@ -147,7 +147,7 @@ void CIndexedDataDescriptor::ClearCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataDescriptor::HasFile(void)
+bool CIndexedDataDescriptor::HasFile(void)
 {
 	return msFileDescriptor.mcFileIndex.HasFile();
 }
@@ -157,7 +157,7 @@ BOOL CIndexedDataDescriptor::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataDescriptor::IsCached(void)
+bool CIndexedDataDescriptor::IsCached(void)
 {
 	return FixBool(mpvCache);
 }
@@ -187,25 +187,25 @@ void CIndexedDataDescriptor::SetIndexes(int iFileIndex, filePos iIndexInFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
+bool CIndexedDataDescriptor::Update(CIndexedDataDescriptor* pcNew)
 {
-	BOOL	bUpdated;
+	bool	bUpdated;
 
-	bUpdated = FALSE;
+	bUpdated = false;
 	if (pcNew->msFileDescriptor.mcFileIndex.miFile != msFileDescriptor.mcFileIndex.miFile)
 	{
 		msFileDescriptor.mcFileIndex.miFile = pcNew->msFileDescriptor.mcFileIndex.miFile;
-		bUpdated = TRUE;
+		bUpdated = true;
 	}
 	if (pcNew->msFileDescriptor.mcFileIndex.mulliFilePos != msFileDescriptor.mcFileIndex.mulliFilePos)
 	{
 		msFileDescriptor.mcFileIndex.mulliFilePos = pcNew->msFileDescriptor.mcFileIndex.mulliFilePos;
-		bUpdated = TRUE;
+		bUpdated = true;
 	}
 	if (pcNew->msFileDescriptor.muiDataSize != msFileDescriptor.muiDataSize)
 	{
 		msFileDescriptor.muiDataSize = pcNew->msFileDescriptor.muiDataSize;
-		bUpdated = TRUE;
+		bUpdated = true;
 	}
 
 	mpvCache = pcNew->GetCache();

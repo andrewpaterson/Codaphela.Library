@@ -9,24 +9,24 @@ protected:
 	CIndexedData*	mpcIndexData;
 
 public:
-	BOOL				Init(CIndexedData* pcIndexData);
-	BOOL				Kill(void);
-	BOOL				Flush(void);
+	bool				Init(CIndexedData* pcIndexData);
+	bool				Kill(void);
+	bool				Flush(void);
 	int64				NumElements(void);
-	BOOL				ValidateIndex(void);
+	bool				ValidateIndex(void);
 	void				Dump(void);
 
 	CIndexTreeIterator* CreateIterator(void);
 	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
-	BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
-	BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize);
+	bool	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
+	bool	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize);
 	int		DataSize(void* pvKey, int iKeySize);
-	BOOL	Remove(void* pvKey, int iKeySize);
-	BOOL	Has(void* pvKey, int iKeySize);
-	BOOL	Flush(void* pvKey, int iKeySize);
-	BOOL	Evict(void* pvKey, int iKeySize);
+	bool	Remove(void* pvKey, int iKeySize);
+	bool	Has(void* pvKey, int iKeySize);
+	bool	Flush(void* pvKey, int iKeySize);
+	bool	Evict(void* pvKey, int iKeySize);
 };
 
 

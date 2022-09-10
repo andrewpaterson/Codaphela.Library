@@ -38,8 +38,8 @@ public:
 	void 	Kill(void);
 	char*	Get(char* szProperty);
 	void	Set(char* szProperty, char* szValue);
-	BOOL	Read(void);
-	BOOL	Write(void);
+	bool	Read(void);
+	bool	Write(void);
 	int		NumProperties(void);
 	void	Print(CChars* pszDest);
 	void	Dump(void);

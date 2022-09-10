@@ -16,9 +16,9 @@ void CIndexTreeEvictionCallbackWrapper::Init(CIndexTreeEvictionCallback* pcCallb
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictionCallbackWrapper::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CIndexTreeEvictionCallbackWrapper::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
-	BOOL	bResult;
+	bool	bResult;
 	
 	bResult = mpcCallback1->IndexTreeNodeEvicted(pvKey, iKeySize, pvData, iDataSize);
 	bResult &= mpcCallback2->IndexTreeNodeEvicted(pvKey, iKeySize, pvData, iDataSize);

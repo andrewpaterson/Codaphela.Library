@@ -67,11 +67,11 @@ public:
 	void	Set(ECalcOperator eOp);
 	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
 	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
-	BOOL	IsExpression(void);
-	BOOL	IsOperator(void);
-	BOOL	IsUnary(void);
-	BOOL	IsBinary(void);
-	BOOL	IsAmbiguous(void);
+	bool	IsExpression(void);
+	bool	IsOperator(void);
+	bool	IsUnary(void);
+	bool	IsBinary(void);
+	bool	IsAmbiguous(void);
 	void	Print(CChars* psz);
 };
 

@@ -38,7 +38,7 @@ void CDurableSet::Init(char* szMarkStartFile, char* szMarkRewriteFile)
 	mapcFiles.Init();
 	mszMarkStart.Init(szMarkStartFile);
 	mszMarkRewrite.Init(szMarkRewriteFile);
-	mbBegun = FALSE;
+	mbBegun = false;
 }
 
 
@@ -58,11 +58,11 @@ void CDurableSet::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::Recover(void)
+bool CDurableSet::Recover(void)
 {
 	CFileUtil	cFileUtil;
-	BOOL		bMarkStart;
-	BOOL		bMarkRewrite;
+	bool		bMarkStart;
+	bool		bMarkRewrite;
 
 	//This assumes begin has NOT been called.
 	if (mbBegun)
@@ -76,7 +76,7 @@ BOOL CDurableSet::Recover(void)
 	//If neither then in theory everything is okay.
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
-		return CheckFilesIdentical(TRUE, TRUE);
+		return CheckFilesIdentical(true, true);
 	}
 	else 
 
@@ -89,7 +89,7 @@ BOOL CDurableSet::Recover(void)
 			return gcLogger.Error2(__METHOD__, " Copying primary files to backup failed.", NULL);
 		}
 		MarkFinish();
-		return TRUE;
+		return true;
 	}
 	else
 
@@ -102,7 +102,7 @@ BOOL CDurableSet::Recover(void)
 			return gcLogger.Error2(__METHOD__, " Copying backup files to primary failed.", NULL);
 		}
 		MarkFinish();
-		return TRUE;
+		return true;
 	}
 	else
 
@@ -111,7 +111,7 @@ BOOL CDurableSet::Recover(void)
 	{
 		return gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -119,20 +119,20 @@ BOOL CDurableSet::Recover(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::Begin(void)
+bool CDurableSet::Begin(void)
 {
 	if (mbBegun)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot begin.  Already begun.", NULL);
 	}
 
-	if (CheckWriteStatus(TRUE))
+	if (CheckWriteStatus(true))
 	{
-		mbBegun = TRUE;
+		mbBegun = true;
 	}
 	else
 	{
-		mbBegun = FALSE;
+		mbBegun = false;
 	}
 	return mbBegun;
 }
@@ -142,18 +142,18 @@ BOOL CDurableSet::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::End(void)
+bool CDurableSet::End(void)
 {
 	int				i;
 	CDurableFile*	pcDurable;
-	BOOL			bResult;
+	bool			bResult;
 
 	if (!mbBegun)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot end.  Not begun.", NULL);
 	}
 
-	bResult = TRUE;
+	bResult = true;
 	MarkStart();
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
@@ -162,7 +162,7 @@ BOOL CDurableSet::End(void)
 	}
 	ReturnOnFalse(bResult);
 
-	bResult = TRUE;
+	bResult = true;
 	MarkRewrite();
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
@@ -172,10 +172,10 @@ BOOL CDurableSet::End(void)
 	ReturnOnFalse(bResult);
 
 	MarkFinish();
-	mbBegun = FALSE;
+	mbBegun = false;
 
 	mapcFiles.ReInit();
-	return TRUE;
+	return true;
 }
 
 
@@ -183,11 +183,11 @@ BOOL CDurableSet::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::Check(BOOL bThorough, BOOL bLogError)
+bool CDurableSet::Check(bool bThorough, bool bLogError)
 {
 	CFileUtil	cFileUtil;
-	BOOL		bMarkStart;
-	BOOL		bMarkRewrite;
+	bool		bMarkStart;
+	bool		bMarkRewrite;
 
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
 	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
@@ -205,11 +205,11 @@ BOOL CDurableSet::Check(BOOL bThorough, BOOL bLogError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::CheckWriteStatus(BOOL bLogError)
+bool CDurableSet::CheckWriteStatus(bool bLogError)
 {
 	CFileUtil	cFileUtil;
-	BOOL		bMarkStart;
-	BOOL		bMarkRewrite;
+	bool		bMarkStart;
+	bool		bMarkRewrite;
 
 	bMarkStart = cFileUtil.Exists(mszMarkStart.Text());
 	bMarkRewrite = cFileUtil.Exists(mszMarkRewrite.Text());
@@ -221,11 +221,11 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bLogError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLogError)
+bool CDurableSet::CheckWriteStatus(bool bMarkStart, bool bMarkRewrite, bool bLogError)
 {
 	if ((!bMarkStart) && (!bMarkRewrite))
 	{
-		return TRUE;
+		return true;
 	}
 	else if ((bMarkStart) && (bMarkRewrite))
 	{
@@ -233,7 +233,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 		{
 			return gcLogger.Error2(__METHOD__, " Primary files were written but re-write failed.", NULL);
 		}
-		return FALSE;
+		return false;
 	}
 	else
 
@@ -243,7 +243,7 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 		{
 			return gcLogger.Error2(__METHOD__, " Primary files were not written.", NULL);
 		}
-		return FALSE;
+		return false;
 	}
 	else
 	if (bMarkRewrite)
@@ -252,9 +252,9 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 		{
 			return gcLogger.Error2(__METHOD__, " Rewrite has occurred without write.", NULL);
 		}
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -262,20 +262,20 @@ BOOL CDurableSet::CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLog
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::Add(CDurableFile* pcFile)
+bool CDurableSet::Add(CDurableFile* pcFile)
 {
 	int		iIndex;
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mapcFiles.FindInSorted(&pcFile, ComparePtrPtr, &iIndex);
 	if (!bResult)
 	{
 		mapcFiles.InsertAt(&pcFile, iIndex);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -344,11 +344,11 @@ void CDurableSet::MarkFinish(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::CheckFilesIdentical(BOOL bThorough, BOOL bLogError)
+bool CDurableSet::CheckFilesIdentical(bool bThorough, bool bLogError)
 {
 	int				i;
 	CDurableFile*	pcDurable;
-	BOOL			bResult;
+	bool			bResult;
 
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
@@ -356,10 +356,10 @@ BOOL CDurableSet::CheckFilesIdentical(BOOL bThorough, BOOL bLogError)
 		bResult = pcDurable->CheckIdentical(bThorough, bLogError);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -367,11 +367,11 @@ BOOL CDurableSet::CheckFilesIdentical(BOOL bThorough, BOOL bLogError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::CopyBackupToPrimary(void)
+bool CDurableSet::CopyBackupToPrimary(void)
 {
 	int				i;
 	CDurableFile*	pcDurable;
-	BOOL			bResult;
+	bool			bResult;
 
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
@@ -379,10 +379,10 @@ BOOL CDurableSet::CopyBackupToPrimary(void)
 		bResult = pcDurable->CopyBackupToPrimary();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -390,11 +390,11 @@ BOOL CDurableSet::CopyBackupToPrimary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::CopyPrimaryToBackup(void)
+bool CDurableSet::CopyPrimaryToBackup(void)
 {
 	int				i;
 	CDurableFile*	pcDurable;
-	BOOL			bResult;
+	bool			bResult;
 
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
@@ -402,10 +402,10 @@ BOOL CDurableSet::CopyPrimaryToBackup(void)
 		bResult = pcDurable->CopyPrimaryToBackup();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -413,7 +413,7 @@ BOOL CDurableSet::CopyPrimaryToBackup(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDurableSet::HasBegun(void)
+bool CDurableSet::HasBegun(void)
 {
 	return mbBegun;
 }

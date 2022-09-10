@@ -62,7 +62,7 @@ public:
 	int							GetIndexCacheDescritorSize(void);
 	size_t						GetCacheSize(void);
 	size_t						GetAllocatedSize(void);
-	BOOL						CanCache(unsigned int uiDataSize);
+	bool						CanCache(unsigned int uiDataSize);
 
 	void*						TestGetDescriptor(OIndex oi);
 	void						Dump(void);

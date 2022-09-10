@@ -15,7 +15,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, int iMaxDataSize, int iMaxKeySize)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, int iMaxDataSize, int iMaxKeySize)
 {
 	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, LifeLocal<CMallocator>(&gcSystemAllocator), IWT_Yes, IKR_No, iMaxDataSize, iMaxKeySize);
 }
@@ -25,7 +25,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
@@ -35,7 +35,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer);
 }
@@ -45,7 +45,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, szSubDirectory, &gcIndexTreeFileDefaultCallback, cMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
@@ -55,7 +55,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
@@ -65,7 +65,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, cMalloc, eWriteThrough, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer);
 }
@@ -74,7 +74,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize)
 {
 	return Init(pcDurableFileControl, szSubDirectory, pcWriterCallback, cMalloc, eWriteThrough, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>());
 }
@@ -84,9 +84,9 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!pcDurableFileControl->IsBegun())
 	{
@@ -106,15 +106,15 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 	bResult = mcIndexFiles.ReadIndexedFileDescriptors();
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = InitRoot(szSubDirectory);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -122,7 +122,7 @@ BOOL CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Kill(void)
+bool CIndexTreeFile::Kill(void)
 {
 	if (mpcDurableFileControl->IsBegun())
 	{
@@ -187,15 +187,15 @@ void CIndexTreeFile::RecurseKill(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::InitRoot(char* szSubDirectory)
+bool CIndexTreeFile::InitRoot(char* szSubDirectory)
 {
-	BOOL				bRootIndexExists;
+	bool				bRootIndexExists;
 	CFileDataIndex		cRootDataIndex;
 	CIndexedFile*		pcRootIndexFile;
 	CStackMemory<>		cTemp;
 	int					iFileSize;
 	void*				pvBuffer;
-	BOOL				bResult;
+	bool				bResult;
 	CFilePathBuilder	cWrite;
 	CFilePathBuilder	cRewrite;
 
@@ -231,7 +231,7 @@ BOOL CIndexTreeFile::InitRoot(char* szSubDirectory)
 		mpcRoot->InitFromBuffer(pvBuffer, iFileSize, mpcDataCallback);
 		cTemp.Kill();
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -275,7 +275,7 @@ CFileDataIndex CIndexTreeFile::ReadRootFileIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::WriteRootFileIndex(CFileDataIndex* pcRootIndex)
+bool CIndexTreeFile::WriteRootFileIndex(CFileDataIndex* pcRootIndex)
 {
 	filePos	ulliWritten;
 
@@ -445,7 +445,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetNode(void* pvKey, int iKeySize)
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
 	int						i;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -478,7 +478,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetMemoryNode(void* pvKey, int iKeySize)
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
 	int						i;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -505,7 +505,7 @@ CIndexTreeNodeFile* CIndexTreeFile::GetMemoryNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c, BOOL bReadNode)
+CIndexTreeNodeFile* CIndexTreeFile::ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c, bool bReadNode)
 {
 	if (bReadNode)
 	{
@@ -605,7 +605,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReadMemoryNode(CIndexTreeNodeFile* pcParent,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::HasMemoryNodes(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::HasMemoryNodes(CIndexTreeNodeFile* pcNode)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
@@ -615,10 +615,10 @@ BOOL CIndexTreeFile::HasMemoryNodes(CIndexTreeNodeFile* pcNode)
 		pcChild = ReadMemoryNode(pcNode, i);
 		if (pcChild != NULL)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -626,7 +626,7 @@ BOOL CIndexTreeFile::HasMemoryNodes(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeFile* pcNode;
 	uint16				uiDataSize;
@@ -634,7 +634,7 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piData
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -649,11 +649,11 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piData
 			{
 				mpcDiagnosticCallback->Get(pvKey, iKeySize, pvData, uiDataSize);
 			}
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 }
@@ -663,12 +663,12 @@ BOOL CIndexTreeFile::Get(void* pvKey, int iKeySize, void* pvData, size_t* piData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
-	BOOL					bResult;
+	bool					bResult;
 	uint16			uiDataSize;
-	BOOL					bNewNode;
+	bool					bNewNode;
 
 	ReturnNullOnFalse(ValidatePut(iKeySize, iDataSize));
 
@@ -676,16 +676,16 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 
 	pcCurrent = AllocateKey(pvKey, iKeySize);
 
-	bNewNode = FALSE;
+	bNewNode = false;
 	if (!HasData(pcCurrent))
 	{
-		bNewNode = TRUE;
+		bNewNode = true;
 	}
 
 	pcCurrent = SetNodeData(pcCurrent, pvData, uiDataSize);
 	if (pcCurrent == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (meWriteThrough == IWT_Yes)
@@ -697,13 +697,13 @@ BOOL CIndexTreeFile::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 		bResult = DirtySetPaths(pcCurrent);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to put data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (bNewNode)
@@ -728,7 +728,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
-	BOOL					bExecute;
+	bool					bExecute;
 	int						i;
 
 	pcCurrent = mpcRoot;
@@ -772,7 +772,7 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeData(CIndexTreeNodeFile* pcCurrent, v
 		return NULL;
 	}
 
-	pcReallocatedCurrent->SetDirtyNode(TRUE);
+	pcReallocatedCurrent->SetDirtyNode(true);
 
 	return pcReallocatedCurrent;
 }
@@ -782,7 +782,7 @@ CIndexTreeNodeFile* CIndexTreeFile::SetNodeData(CIndexTreeNodeFile* pcCurrent, v
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
+bool CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 {
 	if (meWriteThrough == IWT_Yes)
 	{
@@ -794,18 +794,18 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to set dirty path with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (pcCurrent->IsDirty())
 	{
 		while ((pcCurrent) && (!pcCurrent->IsPathDirty()))
 		{
-			pcCurrent->SetDirtyPath(TRUE);
+			pcCurrent->SetDirtyPath(true);
 			pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -813,7 +813,7 @@ BOOL CIndexTreeFile::SetDirtyPath(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
+bool CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
 {
 	if (meWriteThrough == IWT_Yes)
 	{
@@ -825,7 +825,7 @@ BOOL CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
 	else 
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (pcCurrent->IsDeleted())
@@ -835,10 +835,10 @@ BOOL CIndexTreeFile::SetDeletedPath(CIndexTreeNodeFile* pcCurrent)
 
 	while ((pcCurrent) && (!pcCurrent->IsPathDeleted()))
 	{
-		pcCurrent->SetDeletedPath(TRUE);
+		pcCurrent->SetDeletedPath(true);
 		pcCurrent = (CIndexTreeNodeFile*)pcCurrent->GetParent();
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -862,7 +862,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForContainIndex(CIndexTreeNode
 	pcNode = (CIndexTreeNodeFile*)Realloc(pcNode, tNewNodeSize);
 
 	pcNode->Contain(uiIndex, INDEX_TREE_FILE_NODE_UNALLOCATED);
-	//pcNode->SetDirtyNode(TRUE);
+	//pcNode->SetDirtyNode(true);
 
 	RemapNodePointers(pcOldNode, pcNode);
 	return pcNode;
@@ -954,7 +954,7 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateChildNode(CIndexTreeNodeFile* pcPare
 	CIndexTreeNodeFile*		pcNewFileNode;
 	CIndexTreeChildNode*	pcChildNodeOnParent;
 	CIndexTreeNodeFile*		pcReallocedParent;
-	BOOL					bDirty;
+	bool					bDirty;
 
 	pcChildNodeOnParent = pcParent->Get(uiIndexInParent);
 	if (pcChildNodeOnParent == NULL)  //Uncontained, off the left or the right of the parent node's indexes.
@@ -1014,15 +1014,15 @@ CIndexTreeNodeFile* CIndexTreeFile::AllocateChildNode(CIndexTreeNodeFile* pcPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
+bool CIndexTreeFile::Flush(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*	pcNode;
-	BOOL				bResult;
+	bool				bResult;
 
 	pcNode = GetMemoryNode(pvKey, iKeySize);
 	if (!pcNode)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -1036,13 +1036,13 @@ BOOL CIndexTreeFile::Flush(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateKey(char* pszKey)
+bool CIndexTreeFile::ValidateKey(char* pszKey)
 {
 	int iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
-		return FALSE;
+		return false;
 	}
 
 	iKeySize = strlen(pszKey);
@@ -1054,7 +1054,7 @@ BOOL CIndexTreeFile::ValidateKey(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
+bool CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	CIndexTreeNodeFile*		pcDirty;
@@ -1065,19 +1065,19 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcCurrent = GetNode(pvKey, iKeySize);
 	if (pcCurrent == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiOldDataSize == 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	RemoveReorderData(pcCurrent);
@@ -1096,12 +1096,12 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty != NULL)
 		{
-			pcDirty->SetDirtyNode(TRUE);
+			pcDirty->SetDirtyNode(true);
 			return WriteBackPathWriteThrough(pcDirty);
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (meWriteThrough == IWT_No)
@@ -1111,7 +1111,7 @@ BOOL CIndexTreeFile::Remove(void* pvKey, int iKeySize)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to remove data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1125,14 +1125,14 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 	unsigned char			c;
 	CIndexTreeNodeFile*		pcParent;
 	CIndexTreeNodeFile*		pcNode;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (pcCurrent->GetDataSize() == 0)
 	{
-		return FALSE;
+		return false;
 	}
 
-	bResult = TRUE;
+	bResult = true;
 
 	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 	while (pcNode)
@@ -1178,7 +1178,7 @@ CIndexTreeNodeFile* CIndexTreeFile::RemoveWriteThrough(CIndexTreeNodeFile* pcCur
 CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c)
 {
 	CIndexTreeNodeFile*		pcOldNode;
-	BOOL					bResizeNode;
+	bool					bResizeNode;
 	size_t					tNewNodeSize;
 
 	bResizeNode = pcNode->ClearIndexAndUncontain(c);
@@ -1199,16 +1199,16 @@ CIndexTreeNodeFile* CIndexTreeFile::ReallocateNodeForUncontainIndex(CIndexTreeNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
+bool CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 {
 	if (pcCurrent->GetDataSize() == 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (pcCurrent->IsDeleted())
 	{
-		return FALSE;
+		return false;
 	}
 
 	return RemoveSetPaths(pcCurrent);
@@ -1219,20 +1219,20 @@ BOOL CIndexTreeFile::RemoveWaitForFlush(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RemoveSetPaths(CIndexTreeNodeFile* pcCurrent)
+bool CIndexTreeFile::RemoveSetPaths(CIndexTreeNodeFile* pcCurrent)
 {
-	pcCurrent->SetDirtyNode(FALSE);
+	pcCurrent->SetDirtyNode(false);
 	if (!ClearDirtyPath(pcCurrent))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!SetDeletedPath(pcCurrent))
 	{
-		return FALSE;
+		return false;
 	}
-	pcCurrent->SetDeletedNode(TRUE);
-	return TRUE;
+	pcCurrent->SetDeletedNode(true);
+	return true;
 }
 
 
@@ -1240,21 +1240,21 @@ BOOL CIndexTreeFile::RemoveSetPaths(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::DirtySetPaths(CIndexTreeNodeFile* pcCurrent)
+bool CIndexTreeFile::DirtySetPaths(CIndexTreeNodeFile* pcCurrent)
 {
-	pcCurrent->SetDeletedNode(FALSE);
+	pcCurrent->SetDeletedNode(false);
 	if (!ClearDeletedPath(pcCurrent))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!SetDirtyPath(pcCurrent))
 	{
-		return FALSE;
+		return false;
 	}
-	pcCurrent->SetDirtyNode(TRUE);
+	pcCurrent->SetDirtyNode(true);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1262,19 +1262,19 @@ BOOL CIndexTreeFile::DirtySetPaths(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
+bool CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcCurrent = GetMemoryNode(pvKey, iKeySize);
 	if (pcCurrent == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return Evict(pcCurrent);
@@ -1285,15 +1285,15 @@ BOOL CIndexTreeFile::Evict(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	pcNode->ValidateParent();
 	bResult = CanEvict(pcNode);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (meWriteThrough == IWT_No)
@@ -1301,7 +1301,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 		bResult = Flush(&pcNode);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (meWriteThrough == IWT_Yes)
@@ -1310,7 +1310,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 	else 
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to evict data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (pcNode)
@@ -1323,7 +1323,7 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -1332,13 +1332,13 @@ BOOL CIndexTreeFile::Evict(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
+bool CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 {
 	CIndexTreeNodeFile*		pcParent;
 	CIndexTreeNodeFile*		pcNode;
-	BOOL					bOnlyFileNodes;
+	bool					bOnlyFileNodes;
 	int						iCount;
-	BOOL					bResult;
+	bool					bResult;
 
 	pcNode = pcCurrent;
 
@@ -1350,7 +1350,7 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 		bOnlyFileNodes = pcNode->HasOnlyFileNodes();
 		if (!bOnlyFileNodes)
 		{
-			return TRUE;
+			return true;
 		}
 
 		iCount++;
@@ -1365,7 +1365,7 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 
 		pcNode = pcParent;
@@ -1375,7 +1375,7 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 			break;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1383,13 +1383,13 @@ BOOL CIndexTreeFile::EvictNode(CIndexTreeNodeFile* pcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
+bool CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 {
-	BOOL				bResult;
+	bool				bResult;
 	CIndexTreeNodeFile* pcCurrent;
 	CIndexTreeNodeFile* pcDirty;
-	BOOL				bDeleted;
-	BOOL				bDirty;
+	bool				bDeleted;
+	bool				bDirty;
 
 	pcCurrent = *ppcCurrent;
 	if (meWriteThrough == IWT_Yes)
@@ -1402,7 +1402,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	bDeleted = pcCurrent->IsDeleted();
@@ -1419,19 +1419,19 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 		}
 
 		*ppcCurrent = NULL;
-		pcCurrent->SetDeletedNode(FALSE);
+		pcCurrent->SetDeletedNode(false);
 		bResult = ClearDeletedPath(pcCurrent);
 		pcDirty = RemoveWriteThrough(pcCurrent);
 		if (pcDirty != NULL)
 		{
-			pcDirty->SetDirtyNode(TRUE);
+			pcDirty->SetDirtyNode(true);
 			bResult &= SetDirtyPath(pcDirty);
 			bResult &= WriteBackPathCaching(pcDirty);
 			return bResult;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (bDirty)
@@ -1446,7 +1446,7 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -1455,16 +1455,16 @@ BOOL CIndexTreeFile::Flush(CIndexTreeNodeFile** ppcCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::CanEvict(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::CanEvict(CIndexTreeNodeFile* pcNode)
 {
 	if (!pcNode->HasOnlyFileNodes())
 	{
 		gcLogger.Error2(__METHOD__, " Cannot evict node with children.", NULL);
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -1570,20 +1570,20 @@ size_t CIndexTreeFile::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::IsWriteThrough(void)
+bool CIndexTreeFile::IsWriteThrough(void)
 {
 	if (meWriteThrough == IWT_Yes)
 	{
-		return TRUE;
+		return true;
 	}
 	else if (meWriteThrough == IWT_No)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1592,7 +1592,7 @@ BOOL CIndexTreeFile::IsWriteThrough(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::HasDiagnosticCallback(void)
+bool CIndexTreeFile::HasDiagnosticCallback(void)
 {
 	return mpcDiagnosticCallback != NULL;
 }
@@ -1645,9 +1645,9 @@ int CIndexTreeFile::NumMemoryElements(size_t iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Flush(void)
+bool CIndexTreeFile::Flush(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 	
 	if (meWriteThrough == IWT_Yes)
 	{
@@ -1659,7 +1659,7 @@ BOOL CIndexTreeFile::Flush(void)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	bResult = FlushDeleted();
@@ -1673,10 +1673,10 @@ BOOL CIndexTreeFile::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::FlushDirty(void)
+bool CIndexTreeFile::FlushDirty(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseFlushDirty(&cCursor);
@@ -1689,12 +1689,12 @@ BOOL CIndexTreeFile::FlushDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
+bool CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if ((pcNode != NULL) && pcNode->IsPathDirty())
@@ -1709,7 +1709,7 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
@@ -1726,13 +1726,13 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 		if (!bResult)
 		{
 			pcCursor->Pop();
-			return FALSE;
+			return false;
 		}
 
 		pcNode->ClearFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH | INDEX_TREE_NODE_FLAG_DIRTY_NODE);
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -1740,14 +1740,14 @@ BOOL CIndexTreeFile::RecurseFlushDirty(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::FlushDeleted(void)
+bool CIndexTreeFile::FlushDeleted(void)
 {
 	CArrayVoidPtr					apvDeletedNodes;
 	int								i;
 	int								iNumNodes;
 	CIndexTreeNodeFile*				pcNode;
 	CIndexTreeNodeFile*				pcDirty;
-	BOOL							bResult;
+	bool							bResult;
 	CListTemplateMinimal<char>*		paszKeys;
 	int								iKeySize;
 	unsigned char*					pszKey;
@@ -1757,7 +1757,7 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 
 	ClearNodesFlags(&apvDeletedNodes, INDEX_TREE_NODE_FLAG_DELETED_PATH | INDEX_TREE_NODE_FLAG_DELETED_NODE);
 
-	bResult = TRUE;
+	bResult = true;
 	paszKeys = GetNodesKeys(&apvDeletedNodes);
 	iNumNodes = paszKeys->NumElements();
 	for (i = 0; i < iNumNodes; i++)
@@ -1774,12 +1774,12 @@ BOOL CIndexTreeFile::FlushDeleted(void)
 			pcDirty = RemoveWriteThrough(pcNode);
 			if (pcDirty != NULL)
 			{
-				pcDirty->SetDirtyNode(TRUE);
+				pcDirty->SetDirtyNode(true);
 				SetDirtyPath(pcDirty);
 			}
 			else
 			{
-				bResult = FALSE;
+				bResult = false;
 			}
 		}
 		else
@@ -1809,10 +1809,10 @@ void CIndexTreeFile::SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::IsFlushed(void)
+bool CIndexTreeFile::IsFlushed(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	if (meWriteThrough == IWT_No)
 	{
@@ -1824,12 +1824,12 @@ BOOL CIndexTreeFile::IsFlushed(void)
 	}
 	else if (meWriteThrough == IWT_Yes)
 	{
-		return TRUE;
+		return true;
 	}
 	else 
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1838,12 +1838,12 @@ BOOL CIndexTreeFile::IsFlushed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseIsFlushed(CIndexTreeRecursor* pcCursor)
+bool CIndexTreeFile::RecurseIsFlushed(CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 	unsigned char			uiTransientFlags;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
@@ -1852,7 +1852,7 @@ BOOL CIndexTreeFile::RecurseIsFlushed(CIndexTreeRecursor* pcCursor)
 		uiTransientFlags = pcNode->GetTransientFlags();
 		if (pcNode->HasFlags(INDEX_TREE_NODE_TRANSIENT_FLAGS))
 		{
-			return FALSE;
+			return false;
 		}
 
 		if (pcNode->HasNodes())
@@ -1865,13 +1865,13 @@ BOOL CIndexTreeFile::RecurseIsFlushed(CIndexTreeRecursor* pcCursor)
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -1890,11 +1890,11 @@ void CIndexTreeFile::SetWriteThrough(EIndexWriteThrough eWriteThrough)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+bool CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
 	SIndexTreeFileUnsafeIterator	sIter;
 	size_t							iDataSize;
-	BOOL							bResult;
+	bool							bResult;
 
 	memset(psIterator->pvKey, 0, MAX_KEY_SIZE);
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -1921,18 +1921,18 @@ BOOL CIndexTreeFile::StartIteration(SIndexTreeFileIterator* psIterator, void* pv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+bool CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
 	SIndexTreeFileUnsafeIterator	sIter;
 	size_t							iDataSize;
-	BOOL							bResult;
+	bool							bResult;
 
 	sIter.iIndex = psIterator->iIndex;
 	sIter.pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
 
 	if (!sIter.pcNode)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = UnsafeIterate(&sIter, (char*)psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
@@ -1956,7 +1956,7 @@ BOOL CIndexTreeFile::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize)
+bool CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -1969,7 +1969,7 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** pvData, size_t* piDataSize)
+bool CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** pvData, size_t* piDataSize)
 {
 	void*	pvDataTemp;
 	int		iKeySize;
@@ -2000,11 +2000,11 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, cha
 
 		GetReorderData(psIterator->pcNode);
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -2013,7 +2013,7 @@ BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
+bool CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
 	return StartUnsafeIteration(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
@@ -2023,7 +2023,7 @@ BOOL CIndexTreeFile::StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
+bool CIndexTreeFile::UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
 	return UnsafeIterate(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
@@ -2190,7 +2190,7 @@ CIndexTreeNodeFile* CIndexTreeFile::StepNext(SIndexTreeFileIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
+bool CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
 {
 	CIndexTreeNodeFile* pcChildNode;
 	CIndexTreeNodeFile* pcParent;
@@ -2208,7 +2208,7 @@ BOOL CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
 
 			if (HasData(pcChildNode))
 			{
-				return TRUE;
+				return true;
 			}
 			iCount++;
 		}
@@ -2222,7 +2222,7 @@ BOOL CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
 					pcParent = (CIndexTreeNodeFile*)psIterator->pcNode->GetParent();
 					if (pcParent == NULL)
 					{
-						return FALSE;
+						return false;
 					}
 					psIterator->iIndex = psIterator->pcNode->GetIndexInParent();
 					psIterator->pcNode = pcParent;
@@ -2242,9 +2242,9 @@ BOOL CIndexTreeFile::StepNext(SIndexTreeFileUnsafeIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateIndexTree(void)
+bool CIndexTreeFile::ValidateIndexTree(void)
 {
-	return ValidateIndexTree(TRUE);
+	return ValidateIndexTree(true);
 }
 
 
@@ -2252,9 +2252,9 @@ BOOL CIndexTreeFile::ValidateIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateIndexTree(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateIndexTree(bool bReadNodes)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = ValidateMagic(bReadNodes);
 	bResult &= ValidateLimits(bReadNodes);
@@ -2270,10 +2270,10 @@ BOOL CIndexTreeFile::ValidateIndexTree(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateKeys(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateKeys(bool bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateKeys(&cCursor, bReadNodes);
@@ -2288,12 +2288,12 @@ BOOL CIndexTreeFile::ValidateKeys(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+bool CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, bool bReadNodes)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 	CStackMemory<>			cStack;
 	char*					pcKey;
 	int						iKeySize;
@@ -2313,7 +2313,7 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 			else if (meReverseKey == IKR_Unknown)
 			{
 				gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
-				return FALSE;
+				return false;
 			}
 
 
@@ -2335,13 +2335,13 @@ BOOL CIndexTreeFile::RecurseValidateKeys(CIndexTreeRecursor* pcCursor, BOOL bRea
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -2481,10 +2481,10 @@ size_t CIndexTreeFile::RecurseByteSize(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateLimits(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateLimits(bool bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateLimits(&cCursor, bReadNodes);
@@ -2498,13 +2498,13 @@ BOOL CIndexTreeFile::ValidateLimits(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+bool CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor, bool bReadNodes)
 {
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
 	unsigned char			iFirst;
 	unsigned char			iLast;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeChildNode*	pcFirst;
 	CIndexTreeChildNode*	pcLast;
 	CIndexTreeNodeFile*		pcNode;
@@ -2553,13 +2553,13 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor, BOOL bR
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -2567,10 +2567,10 @@ BOOL CIndexTreeFile::RecurseValidateLimits(CIndexTreeRecursor* pcCursor, BOOL bR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateTransientFlags(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateTransientFlags(bool bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateTransientFlags(&cCursor, bReadNodes);
@@ -2584,12 +2584,12 @@ BOOL CIndexTreeFile::ValidateTransientFlags(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+bool CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor, bool bReadNodes)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 	unsigned char			uiTransientFlags;
 	CChars					sz;
 
@@ -2603,7 +2603,7 @@ BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor,
 			pcCursor->GenerateBad();
 			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] has unexpected TRANSIENT_FLAGS [", pcNode->GetFlagsString(&sz),"].", NULL);
 			sz.Kill();
-			return FALSE;
+			return false;
 		}
 
 		if (pcNode->HasNodes())
@@ -2616,13 +2616,13 @@ BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor,
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -2630,10 +2630,10 @@ BOOL CIndexTreeFile::RecurseValidateTransientFlags(CIndexTreeRecursor* pcCursor,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateFileIndexes(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateFileIndexes(bool bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateFileIndexes(&cCursor, bReadNodes);
@@ -2647,12 +2647,12 @@ BOOL CIndexTreeFile::ValidateFileIndexes(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+bool CIndexTreeFile::RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, bool bReadNodes)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -2676,13 +2676,13 @@ BOOL CIndexTreeFile::RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, BO
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -2690,10 +2690,10 @@ BOOL CIndexTreeFile::RecurseValidateFileIndexes(CIndexTreeRecursor* pcCursor, BO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateMagic(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateMagic(bool bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateMagic(&cCursor, bReadNodes);
@@ -2707,12 +2707,12 @@ BOOL CIndexTreeFile::ValidateMagic(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+bool CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor, bool bReadNodes)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -2733,13 +2733,13 @@ BOOL CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor, BOOL bRe
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -2747,9 +2747,9 @@ BOOL CIndexTreeFile::RecurseValidateMagic(CIndexTreeRecursor* pcCursor, BOOL bRe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateParentIndex(void)
+bool CIndexTreeFile::ValidateParentIndex(void)
 {
-	return ValidateParentIndex(TRUE);
+	return ValidateParentIndex(true);
 }
 
 
@@ -2757,10 +2757,10 @@ BOOL CIndexTreeFile::ValidateParentIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateParentIndex(BOOL bReadNodes)
+bool CIndexTreeFile::ValidateParentIndex(bool bReadNodes)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateParentIndex(&cCursor, bReadNodes);
@@ -2774,12 +2774,12 @@ BOOL CIndexTreeFile::ValidateParentIndex(BOOL bReadNodes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BOOL bReadNodes)
+bool CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, bool bReadNodes)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
 	CIndexTreeNodeFile*		pcChild;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeNodeFile*		pcChildsParent;
 	unsigned char			uiIndexInParent;
 	CIndexTreeNodeFile*		pcShouldBeThis;
@@ -2845,7 +2845,7 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BO
 					if (!bResult)
 					{
 						pcCursor->Pop();
-						return FALSE;
+						return false;
 					}
 				}
 			}
@@ -2858,13 +2858,13 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BO
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -2872,24 +2872,24 @@ BOOL CIndexTreeFile::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor, BO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
+bool CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile* pcNode;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (HasData(pcNode))
 	{
 		HasKeyReorderData(pcNode);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -2898,16 +2898,16 @@ BOOL CIndexTreeFile::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::HasData(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::HasData(CIndexTreeNodeFile* pcNode)
 {
 	if (!pcNode->HasData() ||
 		(pcNode->IsDeleted() && !pcNode->IsDirty()))
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -2979,7 +2979,7 @@ int CIndexTreeFile::RecurseCountListSize(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 {
 	int						iWrittenPos;
 	CStackMemory<>			cTemp;
@@ -2996,7 +2996,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	iWrittenPos = pcNode->WriteToBuffer(pvBuffer, iFileSize, mpcDataCallback);
 	if (iWrittenPos <= 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (iWrittenPos != iFileSize)
@@ -3019,7 +3019,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	if (!pcNewIndexFile)
 	{
 		cTemp.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (pcNewIndexFile != pcOldIndexFile)
@@ -3028,7 +3028,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 		if (uiDataIndex == INDEXED_FILE_WRITE_ERROR)
 		{
 			cTemp.Kill();
-			return FALSE;
+			return false;
 		}
 		if (pcOldIndexFile != NULL)
 		{
@@ -3041,7 +3041,7 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 		uiDataIndex = pcNewIndexFile->Write(pcNode->GetFileIndex()->muiIndex, pvBuffer);
 	}
 	cTemp.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -3049,9 +3049,9 @@ BOOL CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 {
-	BOOL				bWrite;
+	bool				bWrite;
 	CIndexTreeNodeFile* pcParent;
 	CFileDataIndex		cOldIndex;
 	CFileDataIndex*		pcNewIndex;
@@ -3061,14 +3061,14 @@ BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 		if (pcNode->IsDirty())
 		{
-			pcNode->SetDirtyNode(FALSE);
+			pcNode->SetDirtyNode(false);
 
 			cOldIndex = *pcNode->GetFileIndex();
 
 			bWrite = Write(pcNode);
 			if (!bWrite)
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcNewIndex = pcNode->GetFileIndex();
@@ -3076,7 +3076,7 @@ BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 			{
 				if (pcParent)
 				{
-					pcParent->SetDirtyNode(TRUE);
+					pcParent->SetDirtyNode(true);
 				}
 			}
 		}
@@ -3087,7 +3087,7 @@ BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 		pcNode = pcParent;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -3095,9 +3095,9 @@ BOOL CIndexTreeFile::WriteBackPathWriteThrough(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 {
-	BOOL				bWrite;
+	bool				bWrite;
 	CIndexTreeNodeFile* pcParent;
 	CFileDataIndex		cOldIndex;
 	CFileDataIndex*		pcNewIndex;
@@ -3107,11 +3107,11 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		pcParent = (CIndexTreeNodeFile*)pcNode->GetParent();
 		if (pcNode->IsDirty())
 		{
-			pcNode->SetDirtyNode(FALSE);
+			pcNode->SetDirtyNode(false);
 
 			if (!pcNode->HasChildWithFlags(INDEX_TREE_NODE_FLAG_DIRTY_PATH))
 			{
-				pcNode->SetDirtyPath(FALSE);
+				pcNode->SetDirtyPath(false);
 			}
 
 			cOldIndex = *pcNode->GetFileIndex();
@@ -3119,7 +3119,7 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 			bWrite = Write(pcNode);
 			if (!bWrite)
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcNewIndex = pcNode->GetFileIndex();
@@ -3127,7 +3127,7 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 			{
 				if (pcParent)
 				{
-					pcParent->SetDirtyNode(TRUE);
+					pcParent->SetDirtyNode(true);
 				}
 			}
 		}
@@ -3138,7 +3138,7 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 		pcNode = pcParent;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -3146,17 +3146,17 @@ BOOL CIndexTreeFile::WriteBackPathCaching(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 {
 	CIndexTreeNodeFile* pcParent;
-	BOOL				bChildWithDirtyPath;
-	BOOL				bDirtyNode;
-	BOOL				bDirtyPath;
+	bool				bChildWithDirtyPath;
+	bool				bDirtyNode;
+	bool				bDirtyPath;
 
 	bDirtyPath = pcNode->IsPathDirty();
 	if (!bDirtyPath)
 	{
-		return TRUE;
+		return true;
 	}
 
 	while (pcNode)
@@ -3167,7 +3167,7 @@ BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 		bDirtyNode = pcNode->IsDirty();
 		if (!bChildWithDirtyPath && !bDirtyNode)
 		{
-			pcNode->SetDirtyPath(FALSE);
+			pcNode->SetDirtyPath(false);
 		}
 		else
 		{
@@ -3176,7 +3176,7 @@ BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 
 		pcNode = pcParent;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -3184,17 +3184,17 @@ BOOL CIndexTreeFile::ClearDirtyPath(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
 {
 	CIndexTreeNodeFile* pcParent;
-	BOOL				bChildWithDeletedPath;
-	BOOL				bDeletedNode;
-	BOOL				bDeletedPath;
+	bool				bChildWithDeletedPath;
+	bool				bDeletedNode;
+	bool				bDeletedPath;
 
 	bDeletedPath = pcNode->IsPathDeleted();
 	if (!bDeletedPath)
 	{
-		return TRUE;
+		return true;
 	}
 
 	while (pcNode)
@@ -3205,7 +3205,7 @@ BOOL CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
 		bDeletedNode = pcNode->IsDeleted();
 		if (!bChildWithDeletedPath && !bDeletedNode)
 		{
-			pcNode->SetDeletedPath(FALSE);
+			pcNode->SetDeletedPath(false);
 		}
 		else
 		{
@@ -3214,7 +3214,7 @@ BOOL CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
 
 		pcNode = pcParent;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -3222,14 +3222,14 @@ BOOL CIndexTreeFile::ClearDeletedPath(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Delete(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeFile::Delete(CIndexTreeNodeFile* pcNode)
 {
 	CFileDataIndex*		pcIndex;
 
 	pcIndex = pcNode->GetFileIndex();
 	if (!pcIndex->HasFile())
 	{
-		return TRUE;
+		return true;
 	}
 	return mcIndexFiles.Delete(pcIndex);
 }
@@ -3252,13 +3252,13 @@ void CIndexTreeFile::GetFiles(CArrayIndexedFilePtr* papc)
 int CIndexTreeFile::NumNodes(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	int					iResult;
 
 	cCursor.Init(mpcRoot);
-	bResult = RecurseNumNodes(&cCursor);
+	iResult = RecurseNumNodes(&cCursor);
 	cCursor.Kill();
 
-	return bResult;
+	return iResult;
 }
 
 
@@ -3301,13 +3301,13 @@ int CIndexTreeFile::RecurseNumNodes(CIndexTreeRecursor* pcCursor)
 int CIndexTreeFile::NumMemoryNodes(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	int					iResult;
 
 	cCursor.Init(mpcRoot);
-	bResult = RecurseNumMemoryNodes(&cCursor);
+	iResult = RecurseNumMemoryNodes(&cCursor);
 	cCursor.Kill();
 
-	return bResult;
+	return iResult;
 }
 
 
@@ -3357,13 +3357,13 @@ CIndexedFiles* CIndexTreeFile::GetIndexFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent)
+bool CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent)
 {
 	CIndexedFile*			pcFile;
 	int						iMaxBufferSize;
 	CStackMemory<>			cTemp;
 	void*					pvBuffer;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeNodeFile*		pcFileNode;
 	int						iFile;
 	unsigned int			uiIndex;
@@ -3379,7 +3379,7 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	if (!bResult)
 	{
 		gcLogger.Error2(__METHOD__, " Could not read tree node in file number [", IntToString(iFile), "] name [", StringToString(pcFile->GetFilename()), "] at index [", IntToString(uiIndex), "].", NULL);
-		return FALSE;
+		return false;
 	}
 		
 	pcFileNode = AllocateNodeFromBuffer(pcFileNodeParent, uiIndexInParent, pvBuffer, iMaxBufferSize);
@@ -3395,11 +3395,11 @@ BOOL CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 			InsertReorderData(pcFileNode);
 		}
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -3413,18 +3413,18 @@ CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsi
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcNewFileNode;
-	BOOL					bDirty;
+	bool					bDirty;
 
 	pcCurrent = pcParent->Get(uiIndexInParent);
 	if ((pcCurrent == NULL) || pcCurrent->IsUnallocated())
 	{
 		pcNewFileNode = AllocateNodeRange(pcParent, uiIndexInParent, uiFirstIndex, uiLastIndex, uiDataSize);
-		pcNewFileNode->SetDirtyNode(TRUE);
+		pcNewFileNode->SetDirtyNode(true);
 
 		bDirty = pcParent->SetMemory(uiIndexInParent, pcNewFileNode);
 		if (bDirty)
 		{
-			pcParent->SetDirtyNode(TRUE);
+			pcParent->SetDirtyNode(true);
 		}
 		return pcNewFileNode;
 	}
@@ -3445,18 +3445,18 @@ CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsi
 	//Used by the IndexTreeWriter.
 	CIndexTreeChildNode*	pcCurrent;
 	CIndexTreeNodeFile*		pcNewFileNode;
-	BOOL					bDirty;
+	bool					bDirty;
 
 	pcCurrent = pcParent->Get(uiIndexInParent);
 	if ((pcCurrent == NULL) || pcCurrent->IsUnallocated())
 	{
 		pcNewFileNode = AllocateNodeSingle(pcParent, uiIndexInParent, uiDataSize);
-		pcNewFileNode->SetDirtyNode(TRUE);
+		pcNewFileNode->SetDirtyNode(true);
 
 		bDirty = pcParent->SetMemory(uiIndexInParent, pcNewFileNode);
 		if (bDirty)
 		{
-			pcParent->SetDirtyNode(TRUE);
+			pcParent->SetDirtyNode(true);
 		}
 		return pcNewFileNode;
 	}
@@ -3472,7 +3472,7 @@ CIndexTreeNodeFile* CIndexTreeFile::ParentPut(CIndexTreeNodeFile* pcParent, unsi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
+bool CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
@@ -3480,7 +3480,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 	CChars					szMemory;
 	CChars					szFile;
 	CChars					szKey;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	pcCurrent = mpcRoot;
 
@@ -3492,7 +3492,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 		szKey.AppendData((char*)pvKey, iKeySize, 80);
 		gcLogger.Error2(__METHOD__, " Key [", szKey.Text(), "] memory indexes do not match file indexes at depth [root]:\n", szMemory.Text(), "\n", szFile.Text(), NULL);
 		szKey.Kill();
-		return FALSE;
+		return false;
 	}
 	szMemory.Kill();
 	szFile.Kill();
@@ -3511,7 +3511,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 				szKey.AppendData((char*)pvKey, iKeySize, 80);
 				gcLogger.Error2(__METHOD__, " Key [", szKey.Text(), "] memory indexes do not match file indexes at depth [", IntToString(i+1) ,"]:\n", szMemory.Text(), "\n", szFile.Text(), NULL);
 				szKey.Kill();
-				return FALSE;
+				return false;
 			}
 			szMemory.Kill();
 			szFile.Kill();
@@ -3521,7 +3521,7 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 		bExecute = LoopKey(&i, iKeySize);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -3529,13 +3529,13 @@ BOOL CIndexTreeFile::ValidateKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed)
+void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	unsigned char			c;
 	int						i;
 	SIndexTreeDebugNode		sDebugNode;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	pcCurrent = mpcRoot;
 
@@ -3586,7 +3586,7 @@ void CIndexTreeFile::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, int uiIndexInParent, BOOL bShowFlags, BOOL bShowSize)
+CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, int uiIndexInParent, bool bShowFlags, bool bShowSize)
 {
 	CIndexTreeNodeFile*		pcCurrent;
 	CIndexTreeChildNode*	pcChild;
@@ -3637,7 +3637,7 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CChars* pszDest, CIndexTreeNodeFil
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeFile::DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent, bool bShowFlags, bool bShowSize)
 {
 	SIndexTreeDebugNode		sDebugNode;
 
@@ -3660,7 +3660,7 @@ void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, 
 	int						iDataSize;
 	CStackMemory<>			cTemp;
 	void*					pvBuffer;
-	BOOL					bResult;
+	bool					bResult;
 
 	pcFile = mcIndexFiles.GetFile(iFile);
 	iDataSize = pcFile->GetDataSize();
@@ -3679,8 +3679,8 @@ void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, 
 void AppendIndexTreeFileNodeDescrition(CChars* psz, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent)
 {
 	char	szArrow[] = " -> ";
-	BOOL	bHasChildren;
-	BOOL	bHasObject;
+	bool	bHasChildren;
+	bool	bHasObject;
 
 	if (uIndexFromParent == -1)
 	{
@@ -3729,7 +3729,7 @@ void AppendIndexTreeFileNodeDescrition(CChars* psz, CIndexTreeNodeFile* pcCurren
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeFile::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, bool bShowFlags, bool bShowSize)
 {
 	CChars	szFile;
 	CChars	szMemory;
@@ -3866,7 +3866,7 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 	int						iDataSize;
 	CStackMemory<>			cTemp;
 	char*					pucMemory;
-	BOOL					bResult;
+	bool					bResult;
 	int						iFile;
 	unsigned int			uiIndex;
 	int						i;
@@ -3918,7 +3918,7 @@ void CIndexTreeFile::Dump(void)
 	CChars				sz;
 
 	sz.Init();
-	Print(&sz, TRUE, TRUE);
+	Print(&sz, true, true);
 	sz.Dump();
 	sz.Kill();
 }
@@ -3928,7 +3928,7 @@ void CIndexTreeFile::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeFile::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
 	CChars				sz;
 
@@ -3953,7 +3953,7 @@ void CIndexTreeFile::Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeFile::PrintChildren(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
 	CIndexTreeRecursor	cCursor;
 
@@ -3970,7 +3970,7 @@ void CIndexTreeFile::PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, bool bShowFlags, bool bShowSize)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						i;
@@ -3979,9 +3979,9 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 	CStackMemory<32>		cStack;
 	char		*			pvKey;
 	CChars					szKey;
-	BOOL					bHasNodes;
-	BOOL					bHasData;
-	BOOL					bHasMemoryNodes;
+	bool					bHasNodes;
+	bool					bHasData;
+	bool					bHasMemoryNodes;
 
 	pcNode = (CIndexTreeNodeFile*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -4001,7 +4001,7 @@ void CIndexTreeFile::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, 
 			pszDest->AppendNewLine(szKey);
 			szKey.Kill();
 
-			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags, bShowSize, FALSE);
+			DebugKey(pszDest, pvKey, iKeySize, true, bShowFlags, bShowSize, false);
 			cStack.Kill();
 		}
 
@@ -4072,7 +4072,7 @@ int CIndexTreeFile::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDes
 	else if (meReverseKey == IKR_Unknown)
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (iKeySize < iDestKeySize)

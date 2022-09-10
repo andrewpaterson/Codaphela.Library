@@ -48,7 +48,7 @@ void COperatorLogicalNot::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorLogicalNot::Do(BOOL* pvDest, BOOL* pvRight)
+void COperatorLogicalNot::Do(bool* pvDest, bool* pvRight)
 {
 	if (pvRight && pvDest)
 	{

@@ -31,8 +31,8 @@ class CCalcExpression : public CCalcObject
 {
 public:
 	virtual CNumber	Evaluate(void) =0;
-			BOOL 	IsExpression(void);
-			BOOL 	IsOperator(void);	
+			bool 	IsExpression(void);
+			bool 	IsOperator(void);	
 };
 
 

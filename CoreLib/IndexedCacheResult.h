@@ -11,7 +11,7 @@ protected:
 public:
 	void	Fail(void);
 	void	Succeed(void* pvCache);
-	BOOL	IsCached(void);
+	bool	IsCached(void);
 	void*	GetCache(void);
 };
 

@@ -6,11 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, BOOL bRemoveWorkingDirectory)
+void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szBackup, bool bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
-	BOOL						bPrimary;
-	BOOL						bBackup;
+	bool						bPrimary;
+	bool						bBackup;
 
 	if (bRemoveWorkingDirectory)
 	{
@@ -43,7 +43,7 @@ void CIndexTreeHelper::Init(char* szWorkingDirectory, char* szPrimary, char* szB
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeHelper::Kill(BOOL bRemoveWorkingDirectory)
+void CIndexTreeHelper::Kill(bool bRemoveWorkingDirectory)
 {
 	CFileUtil					cFileUtil;
 
@@ -89,7 +89,7 @@ char* CIndexTreeHelper::GetBackupDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeHelper::RemoveWorkingDirectory(void)
+bool CIndexTreeHelper::RemoveWorkingDirectory(void)
 {
 	CFileUtil	cFileUtil;
 

@@ -8,7 +8,7 @@
 void CXMLProlog::Init(void)
 {
 	meEncoding = CE_NoSet;
-	mbStandalone = TRUE;
+	mbStandalone = true;
 	mfVersion = -1;
 }
 
@@ -20,7 +20,7 @@ void CXMLProlog::Init(void)
 void CXMLProlog::Kill(void)
 {
 	meEncoding = CE_NoSet;
-	mbStandalone = TRUE;
+	mbStandalone = true;
 	mfVersion = 0;
 }
 
@@ -30,6 +30,6 @@ void CXMLProlog::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 void CXMLProlog::SetEncoding(ECharEncoding eEncoding) { meEncoding = eEncoding; }
-void CXMLProlog::SetStandalone(BOOL bStandalone) { mbStandalone = bStandalone;  }
+void CXMLProlog::SetStandalone(bool bStandalone) { mbStandalone = bStandalone;  }
 void CXMLProlog::SetVersion(float fVersion) { mfVersion = fVersion;  }
 

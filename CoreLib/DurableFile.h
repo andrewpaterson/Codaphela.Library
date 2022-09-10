@@ -59,20 +59,20 @@ private:
 
 	CLogFile					mcLogFile;
 	EFileMode					meOpenMode;
-	BOOL						mbLogFileBegun;
-	BOOL						mbAddedToController;
+	bool						mbLogFileBegun;
+	bool						mbAddedToController;
 
 public:
-	BOOL		Init(CDurableFileController* pcController, char* szFilename, char* szRewriteName);
-	BOOL		Kill(void);
+	bool		Init(CDurableFileController* pcController, char* szFilename, char* szRewriteName);
+	bool		Kill(void);
 	void		InitBasic(void);
 	void		InitError(void);
 
-	BOOL		Commit(void);
-	BOOL		Recommit(void);
+	bool		Commit(void);
+	bool		Recommit(void);
 
-	BOOL		IsDurable(void);
-	BOOL		IsBegun(void);
+	bool		IsDurable(void);
+	bool		IsBegun(void);
 
 	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
@@ -82,24 +82,24 @@ public:
 	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
 
-	BOOL		Create(void);
-	BOOL		Exists(void);
+	bool		Create(void);
+	bool		Exists(void);
 
 	filePos		Tell(void);
 	filePos		Size(void);
-	BOOL		Truncate(filePos iSize);
+	bool		Truncate(filePos iSize);
 
 	int			GetNumWrites(void);
 	void*		GetWriteData(int iWrite);
 	void		AddFile(void);
 
-	BOOL		CheckIdentical(BOOL bThorough, BOOL bLogError);
-	BOOL		Delete(void);
-	BOOL		CopyBackupToPrimary(void);
-	BOOL		CopyPrimaryToBackup(void);
+	bool		CheckIdentical(bool bThorough, bool bLogError);
+	bool		Delete(void);
+	bool		CopyBackupToPrimary(void);
+	bool		CopyPrimaryToBackup(void);
 
-	BOOL		TestGetOpenedSinceBegin(void);
-	BOOL		IsOpen(void);
+	bool		TestGetOpenedSinceBegin(void);
+	bool		IsOpen(void);
 	char*		GetFilename(void);
 	char*		GetRewriteName(void);
 
@@ -107,11 +107,11 @@ public:
 	CFileBasic*	DumpGetPrimaryFile(void);
 
 protected:
-	BOOL		Seek(EFileSeekOrigin eOrigin, filePos iDistance, BOOL bSeekForWrite);
-	BOOL		OpenPrimaryForRead(void);
-	BOOL		OpenPrimaryForWrite(void);
+	bool		Seek(EFileSeekOrigin eOrigin, filePos iDistance, bool bSeekForWrite);
+	bool		OpenPrimaryForRead(void);
+	bool		OpenPrimaryForWrite(void);
 
-	BOOL		OpenPrimaryFile(BOOL bOpenForWrite);
+	bool		OpenPrimaryFile(bool bOpenForWrite);
 };
 
 

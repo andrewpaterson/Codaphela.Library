@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "OperatorNotEqual.h"
 #include "BaseLib/GeometricTypes.h"
 
-void NotEqualInvalid(BOOL* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("NotEqual not defined for types"); }
+void NotEqualInvalid(bool* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("NotEqual not defined for types"); }
 #include "OperatorNotEqualNumber_Functions.inl"
 #include "OperatorNotEqualBool_Functions.inl"
 
@@ -63,7 +63,7 @@ void COperatorNotEqual::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorNotEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
+void COperatorNotEqual::Do(bool* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
 	{

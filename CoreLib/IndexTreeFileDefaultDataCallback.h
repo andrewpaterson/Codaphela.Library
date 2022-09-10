@@ -7,8 +7,8 @@ class CIndexTreeFileDefaultDataCallback : public CIndexTreeFileDataCallback
 {
 public:
 	uint16	IndexTreeDataSize(uint16 uiSourceSize);
-	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
-	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
+	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
+	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
 };
 
 

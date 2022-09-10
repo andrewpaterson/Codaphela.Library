@@ -48,23 +48,23 @@ private:
 	int				miFileNumber;  //There may be more than one file of the same size.
 
 public:
-	BOOL			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, unsigned int uiDataSize, int iFileNum);
+	bool			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, unsigned int uiDataSize, int iFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
-	BOOL			IsFull(void);
+	bool			IsFull(void);
 
 	unsigned int	Write(void* pvData);
-	BOOL			Write(filePos iIndex, void* pvData);
-	BOOL			Write(filePos iIndex, void* pvData, filePos iCount);
+	bool			Write(filePos iIndex, void* pvData);
+	bool			Write(filePos iIndex, void* pvData, filePos iCount);
 
-	BOOL			Read(filePos iIndex, void* pvData);
-	BOOL			Read(filePos iIndex, void* pvData, filePos iCount);
+	bool			Read(filePos iIndex, void* pvData);
+	bool			Read(filePos iIndex, void* pvData, filePos iCount);
 
-	BOOL			Delete(filePos iIndex);
-	BOOL			Delete(filePos iIndex, filePos iCount);
+	bool			Delete(filePos iIndex);
+	bool			Delete(filePos iIndex, filePos iCount);
 
 	int				GetFileIndex(void);
-	BOOL			IsFileIndex(int iFileIndex);
+	bool			IsFileIndex(int iFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
 	char*			GetFilename(void);

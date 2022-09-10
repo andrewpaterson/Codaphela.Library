@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "OperatorGreaterThan.h"
 #include "BaseLib/GeometricTypes.h"
 
-void GreaterThanInvalid(BOOL* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("GreaterThan not defined for types"); }
+void GreaterThanInvalid(bool* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("GreaterThan not defined for types"); }
 #include "OperatorGreaterThan_Functions.inl"
 
 
@@ -61,7 +61,7 @@ void COperatorGreaterThan::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorGreaterThan::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
+void COperatorGreaterThan::Do(bool* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
 	{

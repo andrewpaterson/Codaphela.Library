@@ -38,12 +38,12 @@ class CWinConfig
 public:
 	int			miWidth;
 	int			miHeight;
-	BOOL		mbWindowed;
+	bool		mbWindowed;
 	float		mfAspect;
 	EWinMode	meMode;
 
 	void Init(void);
-	BOOL Read(void);
+	bool Read(void);
 	void Write(void);
 	void Default(void);
 };

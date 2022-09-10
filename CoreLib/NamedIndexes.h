@@ -39,36 +39,36 @@ protected:
 	
 public:
 	void			Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
-	BOOL			Kill(void);
+	bool			Kill(void);
 
-	BOOL			Add(char* szName, OIndex oi);
-	BOOL			Add(CChars* szName, OIndex oi);
-	BOOL			Add(char* szName, int iNameLength, OIndex oi);
+	bool			Add(char* szName, OIndex oi);
+	bool			Add(CChars* szName, OIndex oi);
+	bool			Add(char* szName, int iNameLength, OIndex oi);
 
-	BOOL			Set(char* szName, OIndex oi);
-	BOOL			Set(CChars* szName, OIndex oi);
+	bool			Set(char* szName, OIndex oi);
+	bool			Set(CChars* szName, OIndex oi);
 
-	BOOL			Put(char* szName, OIndex oi);
-	BOOL			Put(CChars* szName, OIndex oi);
+	bool			Put(char* szName, OIndex oi);
+	bool			Put(CChars* szName, OIndex oi);
 
 	OIndex			Get(char* szName);
 	OIndex			Get(CChars* szName);
 
-	BOOL			Remove(char* szName);
-	BOOL			Remove(CChars* szName);
+	bool			Remove(char* szName);
+	bool			Remove(CChars* szName);
 
 	int64			NumElements(void);
 	int64			NumElementsCached(void);
-	BOOL			Flush(void);
+	bool			Flush(void);
 
-	BOOL			StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
-	BOOL			Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	bool			StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	bool			Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
-	BOOL			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	bool			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 	uint16			IndexTreeDataSize(uint16 uiSourceSize);
-	BOOL			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
-	BOOL			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
+	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
+	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
 
 	size_t			GetSystemMemorySize(void);
 	size_t			GetUserMemorySize(void);
@@ -76,9 +76,9 @@ public:
 
 
 	void			DumpIndex(void);
-	BOOL			ValidateIndex(void);
-	BOOL			ValidateConfigInitialised(void);
-	BOOL			ValidateConfigKilled(void);
+	bool			ValidateIndex(void);
+	bool			ValidateConfigInitialised(void);
+	bool			ValidateConfigKilled(void);
 };
 
 

@@ -48,7 +48,7 @@ void COperatorLogicalOr::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorLogicalOr::Do(BOOL* pvDest, BOOL* pvLeft, BOOL* pvRight)
+void COperatorLogicalOr::Do(bool* pvDest, bool* pvLeft, bool* pvRight)
 {
 	if (pvLeft && pvRight && pvDest)
 	{

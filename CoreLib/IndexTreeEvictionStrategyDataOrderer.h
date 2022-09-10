@@ -16,7 +16,7 @@ public:
 
 	void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
 
-	BOOL					Run(CIndexTreeNodeFile* pcDontEvict);
+	bool					Run(CIndexTreeNodeFile* pcDontEvict);
 
 	CIndexTreeDataOrderer*	GetDataOrderer(void);
 };

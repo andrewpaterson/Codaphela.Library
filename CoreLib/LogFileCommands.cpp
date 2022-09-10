@@ -17,7 +17,7 @@ void CLogFileCommand::Init(ELogFileCommand eCommand)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommand::IsWrite(void)
+bool CLogFileCommand::IsWrite(void)
 {
 	return eCommand == LFC_Write;
 }
@@ -27,7 +27,7 @@ BOOL CLogFileCommand::IsWrite(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommand::IsOpen(void)
+bool CLogFileCommand::IsOpen(void)
 {
 	return eCommand == LFC_Open;
 }
@@ -37,7 +37,7 @@ BOOL CLogFileCommand::IsOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommand::IsClose(void)
+bool CLogFileCommand::IsClose(void)
 {
 	return eCommand == LFC_Close;
 }
@@ -47,7 +47,7 @@ BOOL CLogFileCommand::IsClose(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommand::IsDelete(void)
+bool CLogFileCommand::IsDelete(void)
 {
 	return eCommand == LFC_Delete;
 }
@@ -90,9 +90,9 @@ void CLogFileCommandOpen::Init(EFileMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommandOpen::Open(CAbstractFile* pcFile)
+bool CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 {
-	BOOL		bResult;
+	bool		bResult;
 	CFileUtil	cFileUtil;
 	char*		szFilename;
 
@@ -101,7 +101,7 @@ BOOL CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 		szFilename = pcFile->GetFilename();
 		if (szFilename)
 		{
-			cFileUtil.TouchDir(szFilename, TRUE);
+			cFileUtil.TouchDir(szFilename, true);
 		}
 	}
 
@@ -141,7 +141,7 @@ void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, filePos iSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommandWrite::Write(CAbstractFile* pcFile)
+bool CLogFileCommandWrite::Write(CAbstractFile* pcFile)
 {
 	void*		pvData;
 	filePos		iWritten;
@@ -152,11 +152,11 @@ BOOL CLogFileCommandWrite::Write(CAbstractFile* pcFile)
 	iWritten = pcFile->Write(pvData, iSize, 1);
 	if (iWritten != 1)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -186,9 +186,9 @@ void CLogFileCommandClose::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommandClose::Close(CAbstractFile* pcFile)
+bool CLogFileCommandClose::Close(CAbstractFile* pcFile)
 {
-	BOOL bResult;
+	bool bResult;
 
 	//bResult = pcFile->Flush();
 	bResult = pcFile->Close();
@@ -210,9 +210,9 @@ void CLogFileCommandDelete::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogFileCommandDelete::Delete(CAbstractFile* pcFile)
+bool CLogFileCommandDelete::Delete(CAbstractFile* pcFile)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = pcFile->Delete();
 	return bResult;

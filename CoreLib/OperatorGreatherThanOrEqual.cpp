@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "OperatorGreatherThanOrEqual.h"
 #include "BaseLib/GeometricTypes.h"
 
-void GreatherThanOrEqualInvalid(BOOL* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("GreatherThanOrEqual not defined for types"); }
+void GreatherThanOrEqualInvalid(bool* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("GreatherThanOrEqual not defined for types"); }
 #include "OperatorGreatherThanOrEqual_Functions.inl"
 
 
@@ -61,7 +61,7 @@ void COperatorGreatherThanOrEqual::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorGreatherThanOrEqual::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
+void COperatorGreatherThanOrEqual::Do(bool* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
 	{

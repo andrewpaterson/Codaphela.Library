@@ -74,36 +74,36 @@ void CXMLParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLParser::IsAllowedIdentifierChar(BOOL bFirstChar, unsigned char cChar)
+bool CXMLParser::IsAllowedIdentifierChar(bool bFirstChar, unsigned char cChar)
 {
 	if (((cChar >= 'a') && (cChar <= 'z')) || ((cChar >= 'A') && (cChar <= 'Z')))
 	{
-		return TRUE;
+		return true;
 	}
 
 	if ((cChar == ':') || (cChar == '_') || (cChar == 0xf8))
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (((cChar >= 0xc0) && (cChar <= 0xd6)) || ((cChar >= 0xd8) && (cChar <= 0xf6)))
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (!bFirstChar)
 	{
 		if ((cChar >= '0') && (cChar <= '9'))
 		{
-			return TRUE;
+			return true;
 		}
 
 		if ((cChar == '-') || (cChar == '.') || (cChar == 0xb7))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -111,13 +111,13 @@ BOOL CXMLParser::IsAllowedIdentifierChar(BOOL bFirstChar, unsigned char cChar)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLParser::IsAllowedTextChar(unsigned char cChar)
+bool CXMLParser::IsAllowedTextChar(unsigned char cChar)
 {
 	if ((cChar == '&') || (cChar == '>') || (cChar == '<'))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -233,7 +233,7 @@ TRISTATE CXMLParser::ParseVersion(void)
 		return FailAlways(tResult, "version");
 	}
 
-	tResult = mcParser.GetExactCharacter('=', FALSE);
+	tResult = mcParser.GetExactCharacter('=', false);
 	if (NotTrue(tResult))
 	{
 		return FailAlways(tResult, "=");
@@ -321,7 +321,7 @@ TRISTATE CXMLParser::ParseStandalone(void)
 	tResult = mcParser.GetExactIdentifier("standalone");
 	if (tResult == TRIFALSE)
 	{
-		mcProlog.SetStandalone(TRUE);
+		mcProlog.SetStandalone(true);
 		return TRITRUE;
 	}
 	ReturnOnError(tResult);
@@ -337,13 +337,13 @@ TRISTATE CXMLParser::ParseStandalone(void)
 	szStandalone.StripWhiteSpace();
 	if (szStandalone.EqualsIgnoreCase("yes"))
 	{
-		mcProlog.SetStandalone(TRUE);
+		mcProlog.SetStandalone(true);
 		szStandalone.Kill();
 		return TRITRUE;
 	}
 	else if (szStandalone.EqualsIgnoreCase("no"))
 	{
-		mcProlog.SetStandalone(FALSE);
+		mcProlog.SetStandalone(false);
 		szStandalone.Kill();
 		return TRITRUE;
 	}
@@ -453,18 +453,18 @@ TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 	TRISTATE		tDouble;
 	char*			szStart;
 
-	tResult = mcParser.GetExactCharacter('=', FALSE);
+	tResult = mcParser.GetExactCharacter('=', false);
 	if (tResult != TRITRUE)
 	{
 		return FailAlways(tResult, "=");
 	}
 
 	szStart = mcParser.mszParserPos;
-	tSingle = mcParser.GetQuotedCharacterSequence('\'', '\'', NULL, NULL, TRUE, FALSE, FALSE);
+	tSingle = mcParser.GetQuotedCharacterSequence('\'', '\'', NULL, NULL, true, false, false);
 	ReturnOnError(tSingle);
 	if (tSingle == TRIFALSE)
 	{
-		tDouble = mcParser.GetQuotedCharacterSequence('"', '"', NULL, NULL, TRUE, FALSE, FALSE);
+		tDouble = mcParser.GetQuotedCharacterSequence('"', '"', NULL, NULL, true, false, false);
 		if (tDouble != TRITRUE)
 		{
 			return FailAlways(tResult, "'] or [\"");
@@ -480,7 +480,7 @@ TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CXMLParser::ParseStartTagOrEmptyTag(BOOL* pbStart, CChars* pszIdentifier)
+TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifier)
 {
 	TRISTATE	tResult;
 	TRISTATE	tEmpty;
@@ -531,7 +531,7 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(BOOL* pbStart, CChars* pszIdentifie
 		}
 	}
 
-	tEmpty =  mcParser.GetExactCharacter('/', FALSE);
+	tEmpty =  mcParser.GetExactCharacter('/', false);
 	if (tEmpty == TRIERROR)
 	{
 		mcParser.PopPosition();
@@ -539,14 +539,14 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(BOOL* pbStart, CChars* pszIdentifie
 	}
 	else if (tEmpty == TRITRUE)
 	{
-		*pbStart = FALSE;
+		*pbStart = false;
 	}
 	else if (tEmpty == TRIFALSE)
 	{
-		*pbStart = TRUE;
+		*pbStart = true;
 	}
 
-	tClosing =  mcParser.GetExactCharacter('>', FALSE);
+	tClosing =  mcParser.GetExactCharacter('>', false);
 	if (tClosing != TRITRUE)
 	{
 		mcParser.PopPosition();
@@ -684,7 +684,7 @@ TRISTATE CXMLParser::ParseNamedReference(void)
 	iLine = mcParser.Line();
 	iColumn = mcParser.Column();
 
-	tResult = mcParser.GetExactCharacter('&', FALSE);
+	tResult = mcParser.GetExactCharacter('&', false);
 	if (tResult == TRITRUE)
 	{
 		szIdentifier.Init();
@@ -694,7 +694,7 @@ TRISTATE CXMLParser::ParseNamedReference(void)
 			pcNamedRef = mpcCurrent->AppendNamedReference(szIdentifier.Text());
 			pcNamedRef->SetLineAndColumn(mcParser.miLine, mcParser.miColumn);
 			szIdentifier.Kill();
-			tResult = mcParser.GetExactCharacter(';', FALSE);
+			tResult = mcParser.GetExactCharacter(';', false);
 			if (tResult == TRIERROR)
 			{
 				return TRIERROR;
@@ -801,7 +801,7 @@ TRISTATE CXMLParser::ParseComments(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseElement(void)
 {
-	BOOL		bStart;
+	bool		bStart;
 	TRISTATE	tResult;
 	CChars		szIdentifier;
 
@@ -859,7 +859,7 @@ TRISTATE CXMLParser::ParseAttribute(void)
 	CChars		szIdentifier;
 	CChars		szValue;
 	TRISTATE	tResult;
-	BOOL		bResult;
+	bool		bResult;
 
 	szIdentifier.Init();
 	tResult = ParseIdentifier(&szIdentifier);
@@ -1023,7 +1023,7 @@ TRISTATE CXMLParser::ParseTextReplacement(CChars* pszText)
 			}
 		}
 	}
-	tResult = mcParser.GetExactCharacter(';', FALSE);
+	tResult = mcParser.GetExactCharacter(';', false);
 	if (tResult == TRIERROR)
 	{
 		return TRIERROR;
@@ -1145,7 +1145,7 @@ TRISTATE CXMLParser::ParseEntity(void)
 {
 	TRISTATE	tResult;
 	CChars		szEntityName;
-	BOOL		bSystem;
+	bool		bSystem;
 	int			iLength;
 	CChars		szContent;
 
@@ -1172,7 +1172,7 @@ TRISTATE CXMLParser::ParseEntity(void)
 		return TRIERROR;
 	}
 
-	bSystem = FALSE;
+	bSystem = false;
 	tResult = mcParser.GetExactCaseInsensitiveCharacterSequence("SYSTEM");
 	if (tResult == TRIERROR)
 	{
@@ -1181,7 +1181,7 @@ TRISTATE CXMLParser::ParseEntity(void)
 	}
 	else if (tResult == TRITRUE)
 	{
-		bSystem = TRUE;
+		bSystem = true;
 	}
 
 	mcParser.PushPosition();

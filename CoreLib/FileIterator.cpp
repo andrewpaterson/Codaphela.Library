@@ -8,8 +8,8 @@
 void CFileIterator::Init(void)
 {
 	miPackFileIndex = -1;
-	mbMoveOn = TRUE;
-	mbFileSystem = FALSE;
+	mbMoveOn = true;
+	mbFileSystem = false;
 
 	mcCurrent.Init();
 }
@@ -32,7 +32,7 @@ void CFileIterator::Kill(void)
 CFileIteratorReturn* CFileIterator::SetCurrent(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank, char* szOffset)
 {
 	mcCurrent.Kill();
-	mbHasCurrent = TRUE;
+	mbHasCurrent = true;
 	mcCurrent.Init(eType, pcNode, iFileRank);
 	if (szOffset)
 	{
@@ -66,7 +66,7 @@ CFileIteratorReturn* CFileIterator::GetCurrent(void)
 //////////////////////////////////////////////////////////////////////////
 CFileIteratorReturn* CFileIterator::SetCurrent(void)
 {
-	mbHasCurrent = FALSE;
+	mbHasCurrent = false;
 	return NULL;
 }
 

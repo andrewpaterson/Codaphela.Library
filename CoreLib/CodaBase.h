@@ -15,50 +15,50 @@ public:
 	void	Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConfig, CLifeInit<CNamedIndexesConfig> cNamedConfig);
 	void	Kill(void);
 
-	BOOL	Open(void);
-	BOOL	Close(void);
+	bool	Open(void);
+	bool	Close(void);
 
-	BOOL	ValidateConfigInitialised(void);
-	BOOL	ValidateConfigKilled(void);
-	BOOL	ValidateIdentifiers(void);
+	bool	ValidateConfigInitialised(void);
+	bool	ValidateConfigKilled(void);
+	bool	ValidateIdentifiers(void);
 
-	BOOL	Add(OIndex oi, void* pvData, unsigned int uiDataSize);
-	BOOL	Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
-	BOOL	Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
+	bool	Add(OIndex oi, void* pvData, unsigned int uiDataSize);
+	bool	Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
+	bool	Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
 
-	BOOL	Set(OIndex oi, void* pvData);
-	BOOL	Set(OIndex oi, void* pvData, unsigned int uiDataSize);
-	BOOL	Set(char* szName, void* pvData);
-	BOOL	Set(char* szName, void* pvData, unsigned int uiDataSize);
-	BOOL	Set(CChars* szName, void* pvData);
-	BOOL	Set(CChars* szName, void* pvData, unsigned int uiDataSize);
+	bool	Set(OIndex oi, void* pvData);
+	bool	Set(OIndex oi, void* pvData, unsigned int uiDataSize);
+	bool	Set(char* szName, void* pvData);
+	bool	Set(char* szName, void* pvData, unsigned int uiDataSize);
+	bool	Set(CChars* szName, void* pvData);
+	bool	Set(CChars* szName, void* pvData, unsigned int uiDataSize);
 
-	BOOL	Put(OIndex oi, void* pvData, unsigned int uiDataSize);
-	BOOL	Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
-	BOOL	Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
+	bool	Put(OIndex oi, void* pvData, unsigned int uiDataSize);
+	bool	Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize);
+	bool	Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize);
 
-	BOOL	Get(OIndex oi, void* pvData);
-	BOOL	Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
-	BOOL	Get(char* szName, void* pvData);
-	BOOL	Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
-	BOOL	Get(CChars* szName, void* pvData);
-	BOOL	Get(CChars* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
+	bool	Get(OIndex oi, void* pvData);
+	bool	Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
+	bool	Get(char* szName, void* pvData);
+	bool	Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
+	bool	Get(CChars* szName, void* pvData);
+	bool	Get(CChars* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize);
 
-	BOOL	GetName(OIndex oi, CChars* szName);
-	BOOL	GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength);
+	bool	GetName(OIndex oi, CChars* szName);
+	bool	GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength);
 	OIndex	GetIndex(char* szName);
 	OIndex	GetIndex(CChars* szName);
 
-	BOOL	Contains(OIndex oi);
-	BOOL	Contains(char* szName);
-	BOOL	Contains(CChars* szName);
+	bool	Contains(OIndex oi);
+	bool	Contains(char* szName);
+	bool	Contains(CChars* szName);
 
-	BOOL	Remove(OIndex oi);
-	BOOL	Remove(char* szName);
-	BOOL	Remove(CChars* szName);
+	bool	Remove(OIndex oi);
+	bool	Remove(char* szName);
+	bool	Remove(CChars* szName);
 
-	BOOL	Flush(void);
-	BOOL	Flush(BOOL bClearCache);
+	bool	Flush(void);
+	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
 	int64	NumIndicesCached(void);
@@ -72,8 +72,8 @@ public:
 
 	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
 	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	BOOL	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
-	BOOL	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 };
 
 

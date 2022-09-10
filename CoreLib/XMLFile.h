@@ -33,12 +33,12 @@ public:
 			
 	void 	Init(void);
 	void 	Kill(void);
-	BOOL 	Read(char* szFilename, char* szDirectory);
-	BOOL 	Write(char* szFilename, char* szDirectory);
+	bool 	Read(char* szFilename, char* szDirectory);
+	bool 	Write(char* szFilename, char* szDirectory);
 
 private:
-	BOOL	Entities(CXMLParser* pcXMLParser, CChars* pszDirectory);
-	BOOL	Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory);
+	bool	Entities(CXMLParser* pcXMLParser, CChars* pszDirectory);
+	bool	Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory);
 };
 
 

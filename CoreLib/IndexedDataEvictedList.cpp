@@ -27,11 +27,11 @@ void CIndexedDataEvictedList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
+bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
 {
 	mcKeys.Add(oi);
 	mcDatas.Add(pvData, iDataSize);
-	return TRUE;
+	return true;
 }
 
 
