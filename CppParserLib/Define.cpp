@@ -51,7 +51,7 @@ void CDefine::AddArgument(CExternalString* pcName)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::SetVariadic(void)
 {
-	SetFlag(&miFlags, DEFINE_FLAGS_VARIADIC, TRUE);
+	SetFlag(&miFlags, DEFINE_FLAGS_VARIADIC, true);
 }
 
 
@@ -69,7 +69,7 @@ void CDefine::AddReplacmentToken(CPPToken* pcToken)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsBacketed(void)
+bool CDefine::IsBacketed(void)
 {
 	return FixBool(miFlags & DEFINE_FLAGS_BRACKETED);
 }
@@ -79,7 +79,7 @@ BOOL CDefine::IsBacketed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsVariadic(void)
+bool CDefine::IsVariadic(void)
 {
 	return FixBool(miFlags & DEFINE_FLAGS_VARIADIC);
 }
@@ -89,7 +89,7 @@ BOOL CDefine::IsVariadic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsSpecial(void)
+bool CDefine::IsSpecial(void)
 {
 	return FixBool(miFlags & DEFINE_FLAGS_SPECIAL);
 }
@@ -99,7 +99,7 @@ BOOL CDefine::IsSpecial(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDefine::IsInMap(void)
+bool CDefine::IsInMap(void)
 {
 	return FixBool(miFlags & DEFINE_FLAGS_IN_MAP);
 }
@@ -109,7 +109,7 @@ BOOL CDefine::IsInMap(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefine::SetSpecial(BOOL b)
+void CDefine::SetSpecial(bool b)
 {
 	SetFlag(&miFlags, DEFINE_FLAGS_SPECIAL, b);
 }
@@ -119,7 +119,7 @@ void CDefine::SetSpecial(BOOL b)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDefine::SetBracketed(BOOL b)
+void CDefine::SetBracketed(bool b)
 {
 	SetFlag(&miFlags, DEFINE_FLAGS_BRACKETED, b);
 }
@@ -133,11 +133,11 @@ void CDefine::SetDefineMap(CDefineMap* pcDefineMap)
 {
 	if (pcDefineMap)
 	{
-		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, TRUE);
+		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, true);
 	}
 	else
 	{
-		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, FALSE);
+		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, false);
 	}
 	mpcDefineMap = pcDefineMap;
 }
@@ -147,7 +147,7 @@ void CDefine::SetDefineMap(CDefineMap* pcDefineMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDefine::Equals(CDefine* pcOther)
+bool CDefine::Equals(CDefine* pcOther)
 {
 	if (pcOther)
 	{
@@ -155,11 +155,11 @@ BOOL CDefine::Equals(CDefine* pcOther)
 		{
 			if (mcReplacement.Equals(&pcOther->mcReplacement))
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -167,7 +167,7 @@ BOOL CDefine::Equals(CDefine* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDefine::CanProcessArguments(int iNumArguments)
+bool CDefine::CanProcessArguments(int iNumArguments)
 {
 	if (!IsVariadic())
 	{

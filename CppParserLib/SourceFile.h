@@ -31,10 +31,10 @@ class CSourceFile
 protected:
 	CChars				mszContents;
 	CChars				mszFullName;
-	BOOL				mbLoaded;
+	bool				mbLoaded;
 	CPPTokenMemory		mcTokenMemory;
 	CPPBlockSetArray	macBlockSets;
-	BOOL				mbBlockSetsKilled;
+	bool				mbBlockSetsKilled;
 
 public:
 			void				Init(char* pszFullName);
@@ -43,14 +43,14 @@ public:
 			void				KillBlockSets(void);
 			void				Load(void);
 			void				SetContents(const char* sz);
-			BOOL				IsLoaded(void);
-			BOOL				IsNamed(char* szName);
-	virtual BOOL				IsTranslationUnit(void) =0;
-	virtual BOOL				IsHeader(void) =0;
+			bool				IsLoaded(void);
+			bool				IsNamed(char* szName);
+	virtual bool				IsTranslationUnit(void) =0;
+	virtual bool				IsHeader(void) =0;
 			char*				ShortName(void);
 			char*				FullName(void);
-	virtual BOOL				IsPragmaOnced(void) =0;
-	virtual BOOL				IsSystemFile(void) =0;
+	virtual bool				IsPragmaOnced(void) =0;
+	virtual bool				IsSystemFile(void) =0;
 			void				Path(CChars* pszPath);
 			char*				GetContents(void);
 			int					GetContentsLength(void);

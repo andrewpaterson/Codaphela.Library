@@ -41,9 +41,9 @@ public:
 	void			Define(CExternalString* pcName, CDefine* pcSource, CPPTokenMemory* pcTokens);
 	void			Undef(CExternalString* pcName);
 	void			Kill(void);
-	BOOL			IsBacketed(void);
-	BOOL			IsUndeffed(void);
-	BOOL			Equals(CNamedDefine* pcOther);
+	bool			IsBacketed(void);
+	bool			IsUndeffed(void);
+	bool			Equals(CNamedDefine* pcOther);
 	char*			GetName(void);
 	int				GetNameLength(void);
 	CArrayChars*	GetArguments(void);
@@ -58,7 +58,7 @@ typedef CArrayTemplate<CNamedDefine>	__CArrayNamedDefines;
 class CArrayNamedDefines : public __CArrayNamedDefines
 {
 public:
-	BOOL Equals(CArrayNamedDefines* pcDefines);
+	bool Equals(CArrayNamedDefines* pcDefines);
 	void Dump(void);
 };
 

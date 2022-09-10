@@ -25,12 +25,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderFile::Init(char* szFullName, BOOL bSystemFile)
+void CHeaderFile::Init(char* szFullName, bool bSystemFile)
 {
 	CSourceFile::Init(szFullName);
 
 	mbSystemFile = bSystemFile;
-	mbPragmaOnce = FALSE;
+	mbPragmaOnce = false;
 }
 
 
@@ -48,9 +48,9 @@ void CHeaderFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderFile::IsTranslationUnit(void)
+bool CHeaderFile::IsTranslationUnit(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -58,16 +58,16 @@ BOOL CHeaderFile::IsTranslationUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderFile::IsHeader(void)
+bool CHeaderFile::IsHeader(void)
 {
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderFile::IsPragmaOnced(void)
+bool CHeaderFile::IsPragmaOnced(void)
 {
 	return mbPragmaOnce;
 }
@@ -77,7 +77,7 @@ BOOL CHeaderFile::IsPragmaOnced(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderFile::IsSystemFile(void)
+bool CHeaderFile::IsSystemFile(void)
 {
 	return mbSystemFile;
 }
@@ -89,7 +89,7 @@ BOOL CHeaderFile::IsSystemFile(void)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFile::ClearPragmaOnce(void)
 {
-	mbPragmaOnce = FALSE;
+	mbPragmaOnce = false;
 }
 
 
@@ -99,6 +99,6 @@ void CHeaderFile::ClearPragmaOnce(void)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFile::SetPragmaOnce(void)
 {
-	mbPragmaOnce = TRUE;
+	mbPragmaOnce = true;
 }
 

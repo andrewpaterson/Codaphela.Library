@@ -29,7 +29,7 @@ public:
 	char*	mszStartOfText;
 	char*	mszParserPos;
 	char*	mszEndOfText;
-	BOOL	mbEndOfFile;
+	bool	mbEndOfFile;
 	int		miLine;
 	int		miColumn;
 	char*	mszFileName;
@@ -41,15 +41,15 @@ public:
 	void	StepLeft(void);
 	void	SkipWhiteSpace(void);
 	void	TestEnd(void);
-	BOOL	IsWhiteSpace(void);
+	bool	IsWhiteSpace(void);
 	void	SkipCStyleComment(void);
 	void	SkipCPPStyleComment(void);
-	BOOL	IsFirstIdentifier(void);
-	BOOL	IsDigit(void);
+	bool	IsFirstIdentifier(void);
+	bool	IsDigit(void);
 	void	SkipNewLine(void);
 	int		CalculateColumn(void);
 	void	BackupNewLine(void);
-	BOOL	IsNewLine(void);
+	bool	IsNewLine(void);
 	char*	GetPos(void);
 	char*	GetEnd(void);
 	void	Dump(void);

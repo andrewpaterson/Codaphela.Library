@@ -56,9 +56,9 @@ void CPPHashes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPHashes::IsHash(void)
+bool CPPHashes::IsHash(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -94,7 +94,7 @@ void CPPHashes::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPHashes::Equals(CPPToken* pcOther)
+bool CPPHashes::Equals(CPPToken* pcOther)
 {
 	CPPHashes*	pcCast;	
 
@@ -103,10 +103,10 @@ BOOL CPPHashes::Equals(CPPToken* pcOther)
 		pcCast = (CPPHashes*)pcOther;
 		if (miCount == pcCast->miCount)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -114,8 +114,8 @@ BOOL CPPHashes::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPHashes::IsEmpty(void)
+bool CPPHashes::IsEmpty(void)
 {
-	return FALSE;
+	return false;
 }
 

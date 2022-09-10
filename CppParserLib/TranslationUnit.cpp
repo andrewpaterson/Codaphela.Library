@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STULog::Init(BOOL bLogInlucdes, BOOL bLogBlocks)
+void STULog::Init(bool bLogInlucdes, bool bLogBlocks)
 {
 	szIncludesLog.Init();
 	szBlocksLog.Init();
@@ -49,7 +49,7 @@ void STULog::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks)
+void CTranslationUnit::Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes, bool bLogBlocks)
 {
 	CSourceFile::Init(szFullName);
 	mpcLibrary = pcLibrary;
@@ -93,9 +93,9 @@ void CTranslationUnit::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTranslationUnit::IsTranslationUnit(void)
+bool CTranslationUnit::IsTranslationUnit(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -103,9 +103,9 @@ BOOL CTranslationUnit::IsTranslationUnit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTranslationUnit::IsHeader(void)
+bool CTranslationUnit::IsHeader(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -113,16 +113,16 @@ BOOL CTranslationUnit::IsHeader(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTranslationUnit::LogBlocks(void)
+bool CTranslationUnit::LogBlocks(void)
 {
 	if (mpcLogs)
 	{
 		if (mpcLogs->bLogBlocks)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -130,16 +130,16 @@ BOOL CTranslationUnit::LogBlocks(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTranslationUnit::LogInlucdes(void)
+bool CTranslationUnit::LogInlucdes(void)
 {
 	if (mpcLogs)
 	{
 		if (mpcLogs->bLogInlucdes)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -147,9 +147,9 @@ BOOL CTranslationUnit::LogInlucdes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTranslationUnit::IsPragmaOnced(void)
+bool CTranslationUnit::IsPragmaOnced(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -157,9 +157,9 @@ BOOL CTranslationUnit::IsPragmaOnced(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTranslationUnit::IsSystemFile(void)
+bool CTranslationUnit::IsSystemFile(void)
 {
-	return FALSE;
+	return false;
 }
 
 

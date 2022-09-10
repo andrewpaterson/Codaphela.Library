@@ -49,28 +49,28 @@ public:
 	virtual unsigned int	ClassSize(void) =0;
 			char*			ShortFileName(void);
 
-	virtual BOOL			IsDirective(void);
-	virtual BOOL			IsText(void);
-	virtual BOOL			IsWhiteSpace(void);
-	virtual BOOL			IsReplacement(void);
-	virtual BOOL			IsHash(void);
-	virtual BOOL			IsTokenListHolder(void);
-	virtual BOOL			IsLine(void);
-	virtual BOOL			IsTokenReplacementsHolder(void);
-	virtual BOOL			IsFile(void);
-	virtual BOOL			IsBlock(void);
-	virtual BOOL			IsUnknown(void);
-	virtual BOOL			IsEmpty(void) =0;
+	virtual bool			IsDirective(void);
+	virtual bool			IsText(void);
+	virtual bool			IsWhiteSpace(void);
+	virtual bool			IsReplacement(void);
+	virtual bool			IsHash(void);
+	virtual bool			IsTokenListHolder(void);
+	virtual bool			IsLine(void);
+	virtual bool			IsTokenReplacementsHolder(void);
+	virtual bool			IsFile(void);
+	virtual bool			IsBlock(void);
+	virtual bool			IsUnknown(void);
+	virtual bool			IsEmpty(void) =0;
 			void			Set(int iLine, int iColumn);
 	virtual char*			Print(CChars* psz) =0;
 	virtual void			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens) =0;
-	virtual BOOL			Equals(CPPToken* pcOther) =0;
+	virtual bool			Equals(CPPToken* pcOther) =0;
 	virtual void			Use(void);
 			void			Unuse(void);
 
 			int				Line(void);
 			int				Column(void);
-	virtual BOOL			NeedsNewLine(void);
+	virtual bool			NeedsNewLine(void);
 			void			Dump(void);
 };
 

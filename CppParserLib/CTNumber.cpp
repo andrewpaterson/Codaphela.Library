@@ -25,9 +25,9 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTNumber::IsNumber(void)
+bool CCTNumber::IsNumber(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -35,8 +35,8 @@ BOOL CCTNumber::IsNumber(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTNumber::IsSigned(void)
+bool CCTNumber::IsSigned(void)
 {
-	return TRUE;
+	return true;
 }
 

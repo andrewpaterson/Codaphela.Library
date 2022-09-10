@@ -48,9 +48,9 @@ void CPPBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlock::IsBlock(void)
+bool CPPBlock::IsBlock(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -84,16 +84,16 @@ void CPPBlock::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlock::Equals(CPPToken* pcOther)
+bool CPPBlock::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsBlock())
 	{
 		if (CPPTokenListHolder::Equals(pcOther))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

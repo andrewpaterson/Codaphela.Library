@@ -45,18 +45,18 @@ protected:
 	CListLibraries			mcLibraries;
 	int						miNumSystemLibraries;
 	int						miBlockReuse;
-	BOOL					mbDumpLogs;
-	BOOL					mbLogBlocks;
+	bool					mbDumpLogs;
+	bool					mbLogBlocks;
 	CArrayHeaderNameMap		mcHeaderNames;
 	CHeaderFileMap			mcIncludeFiles;
 
 public:
-	void				Init(BOOL bDumpLogs = FALSE, BOOL bLogBlocks = FALSE);
+	void				Init(bool bDumpLogs = false, bool bLogBlocks = false);
 	void				Kill(void);
-	CLibrary*			AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories);
-	void				AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem);
+	CLibrary*			AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories);
+	void				AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem);
 	CLibrary*			GetLibrary(char* szLibrary);
-	BOOL				Process(char* szConfiguration);
+	bool				Process(char* szConfiguration);
 	void				CreatePost(void);
 	void				WritePost(CTranslationUnit* pcTU);
 	void				DumpPost(CTranslationUnit* pcTU);
@@ -66,7 +66,7 @@ public:
 	void				DumpProcessedCPPFileName(CSourceFile* pcFile);
 	int					GetBlockReuse(void);
 
-	void				AddHeaderFiles(char* szDirectoryName, BOOL bIncludeSubDirectories, BOOL bSystem);
+	void				AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem);
 };
 
 

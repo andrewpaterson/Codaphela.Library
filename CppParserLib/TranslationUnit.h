@@ -30,10 +30,10 @@ struct STULog
 {
 	CChars	szBlocksLog;
 	CChars	szIncludesLog;
-	BOOL	bLogBlocks;
-	BOOL	bLogInlucdes;
+	bool	bLogBlocks;
+	bool	bLogInlucdes;
 
-	void Init(BOOL bLogInlucdes, BOOL bLogBlocks);
+	void Init(bool bLogInlucdes, bool bLogBlocks);
 	void Kill(void);
 };
 
@@ -46,14 +46,14 @@ protected:
 	CPPBlock*	mpcProcessed;
 
 public:
-	void			Init(char* szFullName, CLibrary* pcLibrary, BOOL bLogIncludes, BOOL bLogBlocks);
+	void			Init(char* szFullName, CLibrary* pcLibrary, bool bLogIncludes, bool bLogBlocks);
 	void			Kill(void);
-	BOOL			IsTranslationUnit(void);
-	BOOL			IsHeader(void);
-	BOOL			LogBlocks(void);
-	BOOL			LogInlucdes(void);
-	BOOL			IsPragmaOnced(void);
-	BOOL			IsSystemFile(void);
+	bool			IsTranslationUnit(void);
+	bool			IsHeader(void);
+	bool			LogBlocks(void);
+	bool			LogInlucdes(void);
+	bool			IsPragmaOnced(void);
+	bool			IsSystemFile(void);
 	STULog*			GetLogs(void);
 	CLibrary*		GetLibrary(void);
 	CPPTokenList*	GetProcessedTokenList(void);

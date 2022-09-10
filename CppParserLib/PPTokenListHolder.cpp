@@ -48,9 +48,9 @@ void CPPTokenListHolder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenListHolder::IsTokenListHolder(void)
+bool CPPTokenListHolder::IsTokenListHolder(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -127,7 +127,7 @@ void CPPTokenListHolder::SavageDump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenListHolder::Equals(CPPToken* pcOther)
+bool CPPTokenListHolder::Equals(CPPToken* pcOther)
 {
 	CPPTokenListHolder*	pcCast;	
 
@@ -137,7 +137,7 @@ BOOL CPPTokenListHolder::Equals(CPPToken* pcOther)
 
 		return mcTokens.Equals(&pcCast->mcTokens);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -145,7 +145,7 @@ BOOL CPPTokenListHolder::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenListHolder::IsEmpty(void)
+bool CPPTokenListHolder::IsEmpty(void)
 {
 	int			i;
 	CPPToken*	pcToken;
@@ -154,7 +154,7 @@ BOOL CPPTokenListHolder::IsEmpty(void)
 	iNumTokens = mcTokens.NumTokens();
 	if (iNumTokens == 0)
 	{
-		return TRUE;
+		return true;
 	}
 
 	for (i = 0; i < iNumTokens; i++)
@@ -162,10 +162,10 @@ BOOL CPPTokenListHolder::IsEmpty(void)
 		pcToken = Get(i);
 		if (!pcToken->IsEmpty())
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

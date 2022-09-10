@@ -31,7 +31,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes)
 {
 	CPreprocessorLineTokensier	cLinePreprocessor;
 
@@ -44,12 +44,12 @@ void CPreprocessorLineTokensier::Preprocess(CPPTokenList* pcLinesTokens, CPrepro
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorLineTokensier::Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes)
+void CPreprocessorLineTokensier::Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes)
 {
 	mpcParser = pcParser;
 	mpcTokenHolder = pcLinesTokens;
 	mpcTokens = pcTokens;
-	mbOnlyWhiteSpace = TRUE;
+	mbOnlyWhiteSpace = true;
 	mbAllowEscapes = bAllowEscapes;
 	NullAll();
 }
@@ -103,7 +103,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 			{
 				//Was a line continuer.
 				mpcParser->SkipNewLine();
-				mbContainsLineContinuers = TRUE;
+				mbContainsLineContinuers = true;
 			}
 			else
 			{
@@ -243,7 +243,7 @@ void CPreprocessorLineTokensier::Preprocess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorLineTokensier::PossibleComment(void)
+bool CPreprocessorLineTokensier::PossibleComment(void)
 {
 	//If we're in a quote then comments are ignored.
 	if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
@@ -262,7 +262,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 
 				mpcParser->SkipCPPStyleComment();
 				mpcParser->SkipNewLine();
-				return TRUE;
+				return true;
 			}
 			else if ((*mpcParser->GetPos()) == '*')
 			{
@@ -272,7 +272,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				mszWhiteSpaceStart = mpcParser->GetPos();
 				mpcParser->StepRight(2);
 				mpcParser->SkipCStyleComment();
-				return FALSE;
+				return false;
 			}
 			else
 			{
@@ -281,7 +281,7 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				NullAll();
 				mszDecorationStart = mpcParser->GetPos();
 				mpcParser->StepRight();
-				return FALSE;
+				return false;
 			}
 		}
 		else
@@ -293,13 +293,13 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 
 				mpcParser->SkipCPPStyleComment();
 				mpcParser->SkipNewLine();
-				return TRUE;
+				return true;
 			}
 			else if ((*mpcParser->GetPos()) == '*')
 			{
 				mpcParser->StepRight();
 				mpcParser->SkipCStyleComment();
-				return FALSE;
+				return false;
 			}
 			else
 			{
@@ -308,14 +308,14 @@ BOOL CPreprocessorLineTokensier::PossibleComment(void)
 				NullAll();
 				mszDecorationStart = mpcParser->GetPos();
 				mpcParser->StepRight();
-				return FALSE;
+				return false;
 			}
 		}
 	}
 	else
 	{
 		mpcParser->StepRight();
-		return FALSE;
+		return false;
 	}
 }
 
@@ -359,7 +359,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
 
 		mpcTokenHolder->Add(pcHashes);
-		mbOnlyWhiteSpace = FALSE;
+		mbOnlyWhiteSpace = false;
 	}
 }
 
@@ -374,7 +374,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	CChars				sz;
 	CPPTextWithSource*	pcTextWithSource;
 
-	mbOnlyWhiteSpace = FALSE;
+	mbOnlyWhiteSpace = false;
 	if (!mbContainsLineContinuers)
 	{
 		pcText = mpcTokens->AddText();
@@ -427,7 +427,7 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
 		}
-		mbOnlyWhiteSpace = FALSE;
+		mbOnlyWhiteSpace = false;
 	}
 }
 
@@ -461,7 +461,7 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
 		}
-		mbOnlyWhiteSpace = FALSE;
+		mbOnlyWhiteSpace = false;
 	}
 }
 
@@ -479,7 +479,7 @@ void CPreprocessorLineTokensier::NullAll(void)
 	mszSingleQuoteStart = NULL;
 	mszHashStart = NULL;
 	mszNumberStart = NULL;
-	mbContainsLineContinuers = FALSE;
+	mbContainsLineContinuers = false;
 }
 
 
@@ -491,15 +491,15 @@ void CPreprocessorLineTokensier::ReplaceEscapeCodes(CChars* psz, char* szStart, 
 {
 	char*	pc;
 	char	cReturn;
-	BOOL	bEscape;
+	bool	bEscape;
 
 	psz->Append(cQuotes);
-	bEscape = FALSE;
+	bEscape = false;
 	for (pc = szStart; pc < szEnd; pc++)
 	{
 		if ((*pc == '\\') && (!bEscape))
 		{
-			bEscape = TRUE;
+			bEscape = true;
 		}
 		else
 		{
@@ -534,19 +534,19 @@ void CPreprocessorLineTokensier::ReplaceEscapeCodes(CChars* psz, char* szStart, 
 void CPreprocessorLineTokensier::ReplaceLineContinuers(CChars* psz, char* szStart, char* szEnd)
 {
 	char*	pc;
-	BOOL	bEscape;
+	bool	bEscape;
 	char	cLast;
-	BOOL	bSkipped;
+	bool	bSkipped;
 
-	bEscape = FALSE;
-	bSkipped = FALSE;
+	bEscape = false;
+	bSkipped = false;
 	cLast = '\0';
 	for (pc = szStart; pc < szEnd; pc++)
 	{
 		if (*pc == '\\')
 		{
-			bEscape = TRUE;
-			bSkipped = FALSE;
+			bEscape = true;
+			bSkipped = false;
 		}
 		else
 		{
@@ -556,24 +556,24 @@ void CPreprocessorLineTokensier::ReplaceLineContinuers(CChars* psz, char* szStar
 				{
 					if (*pc == cLast)
 					{
-						bEscape = FALSE;
-						bSkipped = FALSE;
+						bEscape = false;
+						bSkipped = false;
 						psz->Append(*pc);
 					}
 					else
 					{
-						bSkipped = TRUE;
+						bSkipped = true;
 					}
 				}
 				else
 				{
-					bEscape = FALSE;
+					bEscape = false;
 					if (!bSkipped)
 					{
 						psz->Append('\\');
 					}
 					psz->Append(*pc);
-					bSkipped = FALSE;
+					bSkipped = false;
 				}
 			}
 			else

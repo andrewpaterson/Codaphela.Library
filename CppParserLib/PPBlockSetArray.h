@@ -31,14 +31,14 @@ typedef CArrayTemplate<CPPBlockSet> __CArrayPPBlockSet;
 class CPPBlockSetArray : public __CArrayPPBlockSet
 {
 protected:
-	BOOL				mbRawProcessed;
+	bool				mbRawProcessed;
 
 public:
 	void 				Init(void);
 	void				Kill(void);
 	void				RawProcessed(void);
-	BOOL				IsRawProcessed(void);
-	CPPBlockSet*		Add(int iLine, BOOL bTextBlocks);
+	bool				IsRawProcessed(void);
+	CPPBlockSet*		Add(int iLine, bool bTextBlocks);
 	void				Print(CChars* psz);
 	void				Dump(void);
 	void				DumpBlockSets(void);

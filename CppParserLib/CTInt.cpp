@@ -30,7 +30,7 @@ void CCTInt::Init(void)
 {
 	meType = CTNT_Int;
 	mcValue = 0;
-	mbSigned = FALSE;
+	mbSigned = false;
 }
 
 
@@ -42,7 +42,7 @@ void CCTInt::Init(unsigned int i)
 {
 	meType = CTNT_Int;
 	mcValue = i;
-	mbSigned = FALSE;
+	mbSigned = false;
 }
 
 
@@ -59,7 +59,7 @@ void CCTInt::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTInt::IsSigned(void)
+bool CCTInt::IsSigned(void)
 {
 	return mbSigned;
 }

@@ -47,9 +47,9 @@ void CPPDirective::Init(EPreprocessorDirective eType, int iLine, int iColumn, ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPDirective::IsDirective(void)
+bool CPPDirective::IsDirective(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -143,7 +143,7 @@ void CPPDirective::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPDirective::Is(EPreprocessorDirective eType)
+bool CPPDirective::Is(EPreprocessorDirective eType)
 {
 	return meType == eType;
 }
@@ -153,7 +153,7 @@ BOOL CPPDirective::Is(EPreprocessorDirective eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPDirective::IsConditional(void)
+bool CPPDirective::IsConditional(void)
 {
 	return meType <= PPD_elif;
 }
@@ -163,13 +163,13 @@ BOOL CPPDirective::IsConditional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPDirective::Equals(CPPToken* pcOther)
+bool CPPDirective::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsLine())
 	{
 		return CPPTokenListHolder::Equals(pcOther);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -177,8 +177,8 @@ BOOL CPPDirective::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPDirective::NeedsNewLine(void)
+bool CPPDirective::NeedsNewLine(void)
 {
-	return TRUE;
+	return true;
 }
 

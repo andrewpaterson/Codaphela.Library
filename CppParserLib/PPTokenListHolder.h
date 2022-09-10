@@ -33,14 +33,14 @@ public:
 	void 				Init(int iLine, int iColumn, char* szFileName);
 	void 				Kill(void);
 	void				Fake(CPPTokenList* pcTokens);
-	BOOL 				IsTokenListHolder(void);
+	bool 				IsTokenListHolder(void);
 	char*				Print(CChars* psz);
 	void 				Copy(CPPTokenListHolder* pcCast, CPPTokenMemory* pcTokens);
 	int	 				TokenLength(void);
 	CPPToken*			Get(int iIndex);
 	void				SavageDump(void);
-	BOOL				Equals(CPPToken* pcOther);
-	BOOL				IsEmpty(void);
+	bool				Equals(CPPToken* pcOther);
+	bool				IsEmpty(void);
 	CPPTokenList*		GetTokenList(void);
 };
 

@@ -75,9 +75,9 @@ char* CPPUnknown::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPUnknown::IsUnknown(void)
+bool CPPUnknown::IsUnknown(void)
 {
-	return TRUE;
+	return true;
 }
 
 

@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 struct SCFileIter
 {
 	CTranslationUnit*	pcLast;
-	BOOL				bValid;
+	bool				bValid;
 };
 
 
@@ -43,17 +43,17 @@ protected:
 	CListConfigs		mcConfigs;
 
 public:
-	void				Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap);
+	void				Init(char* szName, char* szBaseDir, bool bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap);
 	void				Kill(void);
-	CTranslationUnit*	AddTranslationUnit(char* szRelativeNameFile, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
-	void				AddAllTranslationUnitsInBaseDir(BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	CTranslationUnit*	AddTranslationUnit(char* szRelativeNameFile, bool bLogIncludes = false, bool bLogBlocks = false);
+	void				AddAllTranslationUnitsInBaseDir(bool bLogIncludes = false, bool bLogBlocks = false);
 	CHeaderFile*		AddHeaderFile(char* szRelativeNameFile);
 	CConfig*			AddConfiguration(char* szConfig);
 	CConfig*			GetConfig(char* szConfiguration);
 	CTranslationUnit*	GetFirstTranslationUnit(SCFileIter* psIter);
 	CTranslationUnit*	GetNextTranslationUnit(SCFileIter* psIter);
 	char*				GetBaseDir(void);
-	BOOL				IsNamed(char* szName);
+	bool				IsNamed(char* szName);
 	CHeaderFiles*		GetHeaderFiles(void);
 };
 

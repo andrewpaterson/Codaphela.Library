@@ -29,7 +29,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::Init(BOOL bDumpLogs, BOOL bLogBlocks)
+void CProject::Init(bool bDumpLogs, bool bLogBlocks)
 {
 	mcLibraries.Init();
 
@@ -81,7 +81,7 @@ void CProject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories)
+CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir, bool bIncludeSubDirectories)
 {
 	CLibrary*	pcLibrary;
 
@@ -96,7 +96,7 @@ CLibrary* CProject::AddLibrary(char* szName, char* szBaseDir, BOOL bIncludeSubDi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::AddIncludeDirectory(char* szBaseDir, BOOL bIncludeSubDirectories, BOOL bSystem)
+void CProject::AddIncludeDirectory(char* szBaseDir, bool bIncludeSubDirectories, bool bSystem)
 {
 	AddHeaderFiles(szBaseDir, bIncludeSubDirectories, bSystem);
 }
@@ -133,7 +133,7 @@ CLibrary* CProject::GetLibrary(char* szLibrary)
 //						//bResult = cTokeniser.Tokenise(&cPreprocessor.mcPost);
 //						//if (!bResult)
 //						//{
-//						//	bError = TRUE;
+//						//	bError = true;
 //						//	cTokeniser.Kill();
 //						//	cParser.Kill();
 //						//	cPreprocessor.Kill();
@@ -215,18 +215,18 @@ CTranslationUnit* CProject::Iterate(SProcessIter* psIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CProject::Process(char* szConfiguration)
+bool CProject::Process(char* szConfiguration)
 {
 	CTranslationUnit*	pcFile;
 	CConfig*			pcConfig;
-	BOOL				bResult;
+	bool				bResult;
 	CPreprocessor		cPreprocessor;
 	SProcessIter		sPreIter;
-	BOOL				bTotalResult;
+	bool				bTotalResult;
 
 	CreatePost();
 
-	bTotalResult = TRUE;
+	bTotalResult = true;
 	pcFile = Start(&sPreIter, szConfiguration);
 	while (pcFile)
 	{
@@ -365,7 +365,7 @@ int CProject::GetBlockReuse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProject::AddHeaderFiles(char* szDirectoryName, BOOL bIncludeSubDirectories, BOOL bSystem)
+void CProject::AddHeaderFiles(char* szDirectoryName, bool bIncludeSubDirectories, bool bSystem)
 {
 	CHeaderFiles* pcHeaderNameMap;
 

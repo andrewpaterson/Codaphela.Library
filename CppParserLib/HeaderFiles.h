@@ -35,14 +35,14 @@ protected:
 	CHeaderFileMap*		mpcFileMap;  //Relative names
 	CHeaderFilePtrMap	mcFileNames;
 	CChars				mszBaseDirectory;
-	BOOL				mbSystem;
+	bool				mbSystem;
 
 public:
-	BOOL			Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem);
+	bool			Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool bIncludeSubDirectories, bool bSystem);
 	void			Kill(void);
 
 	CHeaderFile*	AddFile(char* szRelativeFileName);
-	void			AddFiles(BOOL bIncludeSubDirectories);
+	void			AddFiles(bool bIncludeSubDirectories);
 
 	CHeaderFile*	GetFile(char* szRelativeFileName);
 	

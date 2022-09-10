@@ -30,7 +30,7 @@ void CCTShort::Init(void)
 {
 	meType = CTNT_Short;
 	mcValue = 0;
-	mbSigned = TRUE;
+	mbSigned = true;
 }
 
 
@@ -42,7 +42,7 @@ void CCTShort::Init(unsigned short int s)
 {
 	meType = CTNT_Short;
 	mcValue = s;
-	mbSigned = TRUE;
+	mbSigned = true;
 }
 
 
@@ -59,7 +59,7 @@ void CCTShort::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTShort::IsSigned(void)
+bool CCTShort::IsSigned(void)
 {
 	return mbSigned;
 }

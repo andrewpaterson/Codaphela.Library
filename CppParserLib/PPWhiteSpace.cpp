@@ -54,9 +54,9 @@ char* CPPWhiteSpace::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPWhiteSpace::IsWhiteSpace(void)
+bool CPPWhiteSpace::IsWhiteSpace(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -80,13 +80,13 @@ void CPPWhiteSpace::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPWhiteSpace::Equals(CPPToken* pcOther)
+bool CPPWhiteSpace::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsWhiteSpace())
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -94,8 +94,8 @@ BOOL CPPWhiteSpace::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPWhiteSpace::IsEmpty(void)
+bool CPPWhiteSpace::IsEmpty(void)
 {
-	return TRUE;
+	return true;
 }
 

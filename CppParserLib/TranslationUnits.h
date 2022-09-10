@@ -38,8 +38,8 @@ public:
 	void 				Init(CLibrary* pcLibrary);
 	void 				Kill(void);
 
-	void				AddAllFiles(CChars* pszBaseDir, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
-	CTranslationUnit*	AddFile(char* szRelativeFileName, BOOL bLogIncludes = FALSE, BOOL bLogBlocks = FALSE);
+	void				AddAllFiles(CChars* pszBaseDir, bool bLogIncludes = false, bool bLogBlocks = false);
+	CTranslationUnit*	AddFile(char* szRelativeFileName, bool bLogIncludes = false, bool bLogBlocks = false);
 	CTranslationUnit*	GetFirst(void);
 	CTranslationUnit*	GetNext(CTranslationUnit* pcCurrent);
 };

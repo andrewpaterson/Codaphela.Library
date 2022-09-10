@@ -91,9 +91,9 @@ void CPPTextWithSource::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTextWithSource::HasSource(void)
+bool CPPTextWithSource::HasSource(void)
 {
-	return TRUE;
+	return true;
 }
 
 

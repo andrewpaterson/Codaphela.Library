@@ -57,9 +57,9 @@ void CCTString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTString::IsString(void)
+bool CCTString::IsString(void)
 {
-	return TRUE;
+	return true;
 }
 
 

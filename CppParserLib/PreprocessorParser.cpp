@@ -271,11 +271,11 @@ void CPreprocessorParser::TestEnd(void)
 {
 	if (mszParserPos <= mszEndOfText)
 	{
-		mbEndOfFile = FALSE;
+		mbEndOfFile = false;
 	}
 	else
 	{
-		mbEndOfFile = TRUE;
+		mbEndOfFile = true;
 	}
 }
 
@@ -284,7 +284,7 @@ void CPreprocessorParser::TestEnd(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorParser::IsWhiteSpace(void)
+bool CPreprocessorParser::IsWhiteSpace(void)
 {
 	char c;
 	c = *mszParserPos;
@@ -296,26 +296,26 @@ BOOL CPreprocessorParser::IsWhiteSpace(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorParser::IsFirstIdentifier(void)
+bool CPreprocessorParser::IsFirstIdentifier(void)
 {
 	char c;
 
 	c = *mszParserPos;
 	if ((c >= 'A') && (c <= 'Z'))
 	{
-		return TRUE;
+		return true;
 	}
 
 	if ((c >= 'a') && (c <= 'z'))
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (c == '_')
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -323,14 +323,14 @@ BOOL CPreprocessorParser::IsFirstIdentifier(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorParser::IsDigit(void)
+bool CPreprocessorParser::IsDigit(void)
 {
 	if (((*mszParserPos) >= '0') && ((*mszParserPos) <= '9'))
 	{
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -375,16 +375,16 @@ int CPreprocessorParser::CalculateColumn(void)
 {
 	char*	sz;
 	int		iCount;
-	BOOL	bAny;
+	bool	bAny;
 
 	iCount = 0;
 	sz = mszParserPos;
-	bAny = FALSE;
+	bAny = false;
 	while ((*sz != '\r') && (*sz != '\n') && (sz != mszStartOfText))
 	{
 		sz--;
 		iCount++;
-		bAny = TRUE;
+		bAny = true;
 	}
 
 	if (bAny)
@@ -428,13 +428,13 @@ void CPreprocessorParser::BackupNewLine(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorParser::IsNewLine(void)
+bool CPreprocessorParser::IsNewLine(void)
 {
 	if (((*mszParserPos) == '\n') || ((*mszParserPos) == '\r'))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

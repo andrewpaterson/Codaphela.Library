@@ -40,20 +40,20 @@ protected:
 	char*					mszSingleQuoteStart;
 	char*					mszHashStart;
 	char*					mszNumberStart;
-	BOOL					mbOnlyWhiteSpace;
+	bool					mbOnlyWhiteSpace;
 	CPreprocessorParser*	mpcParser;
 	CPPTokenMemory*			mpcTokens;
-	BOOL					mbContainsLineContinuers;
-	BOOL					mbAllowEscapes;
+	bool					mbContainsLineContinuers;
+	bool					mbAllowEscapes;
 
 public:
-	static void		Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes);
+	static void		Preprocess(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes);
 
 public:
-	void		Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, BOOL bAllowEscapes);
+	void		Init(CPPTokenList* pcLinesTokens, CPreprocessorParser* pcParser, CPPTokenMemory* pcTokens, bool bAllowEscapes);
 	void		Kill(void);
 	void		Preprocess(void);
-	BOOL		PossibleComment(void);
+	bool		PossibleComment(void);
 	void		AddRelevantToken(void);
 	CPPText* 	AddText(EPreprocessorText eType, char* szStart, char* szEndExclusive);
 	void		AddDoubleQuotedToken(void);

@@ -36,9 +36,9 @@ enum EConditionalType
 
 struct SDefineConditional
 {
-	BOOL				bEvaluated;  //If this is false then any 'real' text is being ignored preprocessor macros are still considered.
+	bool				bEvaluated;  //If this is false then any 'real' text is being ignored preprocessor macros are still considered.
 	EConditionalType	eType;  //For error checking.
-	BOOL				bElseIfPassed;  //When an else (or if) evaluates to true then no more should be tested.
+	bool				bElseIfPassed;  //When an else (or if) evaluates to true then no more should be tested.
 };
 
 typedef CArrayTemplate<SDefineConditional> CArrayConditionals;
@@ -48,21 +48,21 @@ class CConditionalStack
 {
 public:
 	CArrayConditionals	mcStack;
-	BOOL				mbParsing;
+	bool				mbParsing;
 
 	void Init(void);
 	void Kill(void);
 
-	BOOL IsParsing(void);
+	bool IsParsing(void);
 	void CalculateIsParsing(void);
-	void PushIfNotDefined(BOOL bEvaluated);  //bEvaluated is the the value that the macro conditional evaluated too.
-	void PushIfDefined(BOOL bEvaluated);
+	void PushIfNotDefined(bool bEvaluated);  //bEvaluated is the the value that the macro conditional evaluated too.
+	void PushIfDefined(bool bEvaluated);
 	void SwapForElse(void);
-	void SwapForElseIf(BOOL bEvaluated);  //The else portion of bEvaluated will be calculated, don't include it in bEvaluated.
-	void PushIf(BOOL bEvaluated);
+	void SwapForElseIf(bool bEvaluated);  //The else portion of bEvaluated will be calculated, don't include it in bEvaluated.
+	void PushIf(bool bEvaluated);
 	void PopEndIf(void);
 
-	void Push(EConditionalType eType, BOOL bEvaluated, BOOL bElseIfPassed);
+	void Push(EConditionalType eType, bool bEvaluated, bool bElseIfPassed);
 };
 
 

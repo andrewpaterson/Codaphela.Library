@@ -28,7 +28,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 void CConditionalStack::Init(void)
 {
 	mcStack.Init();
-	mbParsing = TRUE;
+	mbParsing = true;
 }
 
 
@@ -46,7 +46,7 @@ void CConditionalStack::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CConditionalStack::IsParsing(void)
+bool CConditionalStack::IsParsing(void)
 {
 	return mbParsing;
 }
@@ -61,7 +61,7 @@ void CConditionalStack::CalculateIsParsing(void)
 	int						i;
 	SDefineConditional*		psConditional;
 
-	mbParsing = TRUE;
+	mbParsing = true;
 	for (i = 0; i < mcStack.NumElements(); i++)
 	{
 		psConditional = mcStack.Get(i);
@@ -74,7 +74,7 @@ void CConditionalStack::CalculateIsParsing(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConditionalStack::PushIfNotDefined(BOOL bEvaluated)
+void CConditionalStack::PushIfNotDefined(bool bEvaluated)
 {
 	Push(CT_IfNotDefined, bEvaluated, bEvaluated);
 }
@@ -84,7 +84,7 @@ void CConditionalStack::PushIfNotDefined(BOOL bEvaluated)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConditionalStack::PushIfDefined(BOOL bEvaluated)
+void CConditionalStack::PushIfDefined(bool bEvaluated)
 {
 	Push(CT_IfDefined, bEvaluated, bEvaluated);
 }
@@ -103,7 +103,7 @@ void CConditionalStack::SwapForElse(void)
 	{
 		if (psConditional->bElseIfPassed)
 		{
-			psConditional->bEvaluated = FALSE;
+			psConditional->bEvaluated = false;
 		}
 		else
 		{
@@ -111,7 +111,7 @@ void CConditionalStack::SwapForElse(void)
 			psConditional->eType = CT_Else;
 
 			if (psConditional->bEvaluated)
-				psConditional->bElseIfPassed = TRUE;
+				psConditional->bElseIfPassed = true;
 		}
 	}
 
@@ -123,7 +123,7 @@ void CConditionalStack::SwapForElse(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConditionalStack::SwapForElseIf(BOOL bEvaluated)
+void CConditionalStack::SwapForElseIf(bool bEvaluated)
 {
 	SDefineConditional*		psConditional;
 
@@ -132,7 +132,7 @@ void CConditionalStack::SwapForElseIf(BOOL bEvaluated)
 	{
 		if (psConditional->bElseIfPassed)
 		{
-			psConditional->bEvaluated = FALSE;
+			psConditional->bEvaluated = false;
 		}
 		else
 		{
@@ -140,7 +140,7 @@ void CConditionalStack::SwapForElseIf(BOOL bEvaluated)
 			psConditional->eType = CT_ElseIf;
 
 			if (psConditional->bEvaluated)
-				psConditional->bElseIfPassed = TRUE;
+				psConditional->bElseIfPassed = true;
 		}
 	}
 
@@ -152,7 +152,7 @@ void CConditionalStack::SwapForElseIf(BOOL bEvaluated)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConditionalStack::PushIf(BOOL bEvaluated)
+void CConditionalStack::PushIf(bool bEvaluated)
 {
 	Push(CT_If, bEvaluated, bEvaluated);
 }
@@ -177,7 +177,7 @@ void CConditionalStack::PopEndIf(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConditionalStack::Push(EConditionalType eType, BOOL bEvaluated, BOOL bElseIfPassed)
+void CConditionalStack::Push(EConditionalType eType, bool bEvaluated, bool bElseIfPassed)
 {
 	SDefineConditional*		psConditional;
 

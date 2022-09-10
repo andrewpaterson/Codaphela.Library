@@ -46,9 +46,9 @@ void CPPLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPLine::IsLine(void)
+bool CPPLine::IsLine(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -82,13 +82,13 @@ void CPPLine::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPLine::Equals(CPPToken* pcOther)
+bool CPPLine::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsLine())
 	{
 		return CPPTokenListHolder::Equals(pcOther);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -96,8 +96,8 @@ BOOL CPPLine::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPLine::NeedsNewLine(void)
+bool CPPLine::NeedsNewLine(void)
 {
-	return TRUE;
+	return true;
 }
 

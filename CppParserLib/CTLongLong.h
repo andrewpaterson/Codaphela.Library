@@ -27,13 +27,13 @@ class CCTLongLong : public CCTNumber
 {
 public:
 	unsigned long long int	mcValue;
-	BOOL					mbSigned;
+	bool					mbSigned;
 
 	CPP_TOKEN_CONSTRUCT(CCTLongLong);
 	void Init(void);
 	void Init(unsigned long long int ulli);
 	void Kill(void);
-	BOOL IsSigned(void);
+	bool IsSigned(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 

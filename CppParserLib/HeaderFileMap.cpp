@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CHeaderFileMap::Init(void)
 {
-	mcFileMap.Init(TRUE, FALSE);
+	mcFileMap.Init(true, false);
 	mcFileList.Init();
 }
 
@@ -63,11 +63,11 @@ void CHeaderFileMap::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, BOOL bSystem)
+CHeaderFile* CHeaderFileMap::AddFile(char* szAbsoluteFileName, bool bSystem)
 {
 	CHeaderFile**		ppcHeader;
 	CHeaderFile*		pcHeader;
-	BOOL				bResult;
+	bool				bResult;
 	
 	ppcHeader = mcFileMap.Get(szAbsoluteFileName);
 	if (!ppcHeader)
@@ -123,7 +123,7 @@ CHeaderFile* CHeaderFileMap::GetFile(char* szAbsoluteFileName)
 CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 {
 	CHeaderFile**	ppcHeader;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = mcFileMap.StartIteration(psIter, NULL, NULL, (void**)&ppcHeader, NULL);
 	if (bResult && ppcHeader != NULL)
@@ -144,7 +144,7 @@ CHeaderFile* CHeaderFileMap::StartIteration(SMapIterator* psIter)
 CHeaderFile* CHeaderFileMap::Iterate(SMapIterator* psIter)
 {
 	CHeaderFile**	ppcHeader;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = mcFileMap.Iterate(psIter, NULL, NULL, (void**)&ppcHeader, NULL);
 	if (bResult && ppcHeader != NULL)

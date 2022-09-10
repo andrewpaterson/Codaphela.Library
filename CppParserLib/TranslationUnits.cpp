@@ -58,7 +58,7 @@ void CTranslationUnits::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, BOOL bLogInlucdes, BOOL bLogBlocks)
+void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes, bool bLogBlocks)
 {
 	CChars			szTemp;
 	CArrayChars		aszTemp;
@@ -107,7 +107,7 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, BOOL bLogInlucdes, BOOL 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTranslationUnit* CTranslationUnits::AddFile(char* szRelativeFileName, BOOL bLogIncludes, BOOL bLogBlocks)
+CTranslationUnit* CTranslationUnits::AddFile(char* szRelativeFileName, bool bLogIncludes, bool bLogBlocks)
 {
 	CChars				szTemp;
 	CTranslationUnit*	pcTranslationUnit;

@@ -33,7 +33,7 @@ public:
 	void	Kill(void);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	char*	Print(CChars* psz);
-	BOOL	IsUnknown(void);
+	bool	IsUnknown(void);
 };
 
 

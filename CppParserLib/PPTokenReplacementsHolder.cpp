@@ -58,13 +58,13 @@ void CPPTokenReplacementsHolder::Copy(CPPToken* pcSource, CPPTokenMemory* pcToke
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenReplacementsHolder::Equals(CPPToken* pcOther)
+bool CPPTokenReplacementsHolder::Equals(CPPToken* pcOther)
 {
 	if (pcOther->IsTokenReplacementsHolder())
 	{
 		return CPPTokenListHolder::Equals(pcOther);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -72,8 +72,8 @@ BOOL CPPTokenReplacementsHolder::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenReplacementsHolder::IsHolder2(void)
+bool CPPTokenReplacementsHolder::IsHolder2(void)
 {
-	return TRUE;
+	return true;
 }
 

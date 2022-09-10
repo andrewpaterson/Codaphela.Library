@@ -32,7 +32,7 @@ public:
 	void Init(void);
 	void Init(char c);
 	void Kill(void);
-	BOOL IsChar(void);
+	bool IsChar(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 

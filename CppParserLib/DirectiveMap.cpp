@@ -44,7 +44,7 @@ void CDirectiveMap::Kill(void)
 	CPreprocessorDirective*				pcDirective;
 	SIndexTreeMemoryUnsafeIterator		sIter;
 	int64								lli;
-	BOOL								bHasNext;
+	bool								bHasNext;
 
 	bHasNext = mcIDToDirectiveIndex.StartIteration(&sIter, &pcDirective, &lli);
 	while (bHasNext)
@@ -67,7 +67,7 @@ CPreprocessorDirective* CDirectiveMap::AddDirective(CExternalString* pcName, EPr
 	CPreprocessorDirective		cDirective;
 	CPreprocessorDirective*		pcDirective;
 	int64						lliID;
-	BOOL						bResult;
+	bool						bResult;
 
 	lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
 	if (lliID != -1)
@@ -112,7 +112,7 @@ CPreprocessorDirective* CDirectiveMap::AddDirective(char* szName, EPreprocessorD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPreprocessorDirective* CDirectiveMap::GetDirective(CExternalString* pcName, BOOL bExact)
+CPreprocessorDirective* CDirectiveMap::GetDirective(CExternalString* pcName, bool bExact)
 {
 	SASCIINameIndex* psNameIndex;
 	CPreprocessorDirective* pcDirective;
@@ -134,7 +134,7 @@ CPreprocessorDirective* CDirectiveMap::GetDirective(CExternalString* pcName, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPreprocessorDirective* CDirectiveMap::GetDirective(CChars* pszName, BOOL bExact)
+CPreprocessorDirective* CDirectiveMap::GetDirective(CChars* pszName, bool bExact)
 {
 	CExternalString	cExternalString;
 
@@ -147,7 +147,7 @@ CPreprocessorDirective* CDirectiveMap::GetDirective(CChars* pszName, BOOL bExact
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPreprocessorDirective* CDirectiveMap::GetDirective(char* szName, BOOL bExact)
+CPreprocessorDirective* CDirectiveMap::GetDirective(char* szName, bool bExact)
 {
 	CExternalString	cExternalString;
 	int				iLen;
@@ -167,7 +167,7 @@ void CDirectiveMap::RemoveDirective(CExternalString* pcName)
 	SASCIINameIndex* psNameIndex;
 	CPreprocessorDirective* pcDirective;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
 	if (psNameIndex)
 	{
 		pcDirective = mcIDToDirectiveIndex.Get(psNameIndex->mlliID);

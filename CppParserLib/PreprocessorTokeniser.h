@@ -42,8 +42,8 @@ public:
 	void 					Init(char* szFileName);
 	void 					Kill(void);
 
-	BOOL					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength);
-	BOOL					TokeniseIntoList(CPPTokenList* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex);
+	bool					TokeniseIntoBlockSets(CPPBlockSetArray* pacBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength);
+	bool					TokeniseIntoList(CPPTokenList* pcTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex);
 	void					TokeniseDefine(CPPTokenList* pcHolder, char* sz, CPPTokenMemory* pcTokens);
 	EPreprocessorDirective	GetDirective(void);
 	CPPDirective*			TokeniseDirective(CPPTokenMemory* pcTokens, EPreprocessorDirective eDirective, int iBlock, int iIndex);
