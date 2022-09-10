@@ -113,7 +113,7 @@ void CJavaTokenString::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenString::Is(char* szString)
+bool CJavaTokenString::Is(char* szString)
 {
 	if (meType == JST_string8)
 	{
@@ -121,7 +121,7 @@ BOOL CJavaTokenString::Is(char* szString)
 
 		if (miLength != iLength)
 		{
-			return FALSE;
+			return false;
 		}
 		else
 		{
@@ -130,7 +130,7 @@ BOOL CJavaTokenString::Is(char* szString)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -139,5 +139,5 @@ BOOL CJavaTokenString::Is(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenString::IsString(void) { return TRUE; }
+bool CJavaTokenString::IsString(void) { return true; }
 

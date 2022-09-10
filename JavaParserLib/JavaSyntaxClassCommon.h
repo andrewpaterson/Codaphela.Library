@@ -35,7 +35,7 @@ public:
 	void				TypePrint(CChars* pszDest, int iDepth) override;
 	void				PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
-	BOOL				IsClassCommon(void) override;
+	bool				IsClassCommon(void) override;
 
 	CJavaModifiers*		GetModifiers(void);
 	void				SetModifiers(CJavaModifiers cModifiers);

@@ -72,9 +72,9 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
-	BOOL	IsKeyword(void);
+	bool	IsKeyword(void);
 
-	BOOL	Is(EJavaTokenKeyword eKeyword);
+	bool	Is(EJavaTokenKeyword eKeyword);
 };
 
 

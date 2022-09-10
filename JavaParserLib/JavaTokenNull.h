@@ -12,7 +12,7 @@ public:
 	void 	Kill(void);
 
 	void	Print(CChars* pszDest);
-	BOOL	IsNull(void);
+	bool	IsNull(void);
 };
 
 

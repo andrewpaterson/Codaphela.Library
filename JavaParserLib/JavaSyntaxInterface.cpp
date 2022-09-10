@@ -56,9 +56,9 @@ void CJavaSyntaxInterface::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxInterface::IsInterface(void)
+bool CJavaSyntaxInterface::IsInterface(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -66,9 +66,9 @@ BOOL CJavaSyntaxInterface::IsInterface(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxInterface::IsCompoundStatement(void)
+bool CJavaSyntaxInterface::IsCompoundStatement(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -76,7 +76,7 @@ BOOL CJavaSyntaxInterface::IsCompoundStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxInterface::SetAbstract(BOOL bAbstract) { mbAbstract = bAbstract; }
-void CJavaSyntaxInterface::SetFinal(BOOL bFinal) { mbFinal = bFinal; }
+void CJavaSyntaxInterface::SetAbstract(bool bAbstract) { mbAbstract = bAbstract; }
+void CJavaSyntaxInterface::SetFinal(bool bFinal) { mbFinal = bFinal; }
 void CJavaSyntaxInterface::SetSyntaxType(CJavaSyntaxType* pcType) { mpcType = pcType; }
 

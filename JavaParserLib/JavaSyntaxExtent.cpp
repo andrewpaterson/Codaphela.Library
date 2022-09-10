@@ -11,7 +11,7 @@ void CJavaSyntaxExtent::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 	CJavaSyntaxTypeCommon::Init(pcTree, pcParent);
 
 	mpcName = NULL;
-	mbWildCard = FALSE;
+	mbWildCard = false;
 	mpcExtends = NULL;
 }
 
@@ -23,7 +23,7 @@ void CJavaSyntaxExtent::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 void CJavaSyntaxExtent::Kill(void)
 {
 	mpcName = NULL;
-	mbWildCard = FALSE;
+	mbWildCard = false;
 	mpcExtends = NULL;
 
 	CJavaSyntaxTypeCommon::Kill();
@@ -88,8 +88,8 @@ void CJavaSyntaxExtent::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxExtent::IsExtent(void) { return TRUE; }
+bool CJavaSyntaxExtent::IsExtent(void) { return true; }
 void CJavaSyntaxExtent::SetExtends(CJavaSyntaxType* pcExtends) { mpcExtends = pcExtends; }
-void CJavaSyntaxExtent::SetWildCard(BOOL bWildCard) { mbWildCard = bWildCard; }
-BOOL CJavaSyntaxExtent::IsWildCard(void) { return mbWildCard; }
+void CJavaSyntaxExtent::SetWildCard(bool bWildCard) { mbWildCard = bWildCard; }
+bool CJavaSyntaxExtent::IsWildCard(void) { return mbWildCard; }
 

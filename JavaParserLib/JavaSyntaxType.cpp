@@ -72,9 +72,9 @@ void CJavaSyntaxType::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxType::IsType(void)
+bool CJavaSyntaxType::IsType(void)
 {
-	return TRUE;
+	return true;
 }
 
 

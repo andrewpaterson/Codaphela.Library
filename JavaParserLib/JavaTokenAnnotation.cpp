@@ -40,13 +40,13 @@ void CJavaTokenAnnotation::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenAnnotation::Is(char* szAnnotation)
+bool CJavaTokenAnnotation::Is(char* szAnnotation)
 {
 	int	iLength = StrLen(szAnnotation);
 
 	if (miLength != iLength)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -60,5 +60,5 @@ BOOL CJavaTokenAnnotation::Is(char* szAnnotation)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenAnnotation::GetType(void) { return "Annotation"; }
-BOOL CJavaTokenAnnotation::IsAnnotation(void) { return TRUE; }
+bool CJavaTokenAnnotation::IsAnnotation(void) { return true; }
 

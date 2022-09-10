@@ -81,9 +81,9 @@ void CJavaSyntaxPackage::AddIdentifier(CJavaTokenIdentifier* pcIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxPackage::IsPackage(void)
+bool CJavaSyntaxPackage::IsPackage(void)
 {
-	return TRUE;
+	return true;
 }
 
 

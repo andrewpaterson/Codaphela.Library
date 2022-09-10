@@ -16,7 +16,7 @@ public:
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 
-	BOOL	IsExpressionCommon(void) override;
+	bool	IsExpressionCommon(void) override;
 };
 
 

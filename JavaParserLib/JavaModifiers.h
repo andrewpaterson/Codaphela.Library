@@ -29,17 +29,17 @@ public:
 
 	void Set(EJavaModifier eModifier);
 
-	BOOL IsNone(void);
-	BOOL IsPublic(void);
-	BOOL IsProtected(void);
-	BOOL IsPrivate(void);
-	BOOL IsStatic(void);
-	BOOL IsAbstract(void);
-	BOOL IsFinal(void);
-	BOOL IsStrictfp(void);
+	bool IsNone(void);
+	bool IsPublic(void);
+	bool IsProtected(void);
+	bool IsPrivate(void);
+	bool IsStatic(void);
+	bool IsAbstract(void);
+	bool IsFinal(void);
+	bool IsStrictfp(void);
 
-	BOOL IsPackageModifier(void);
-	BOOL IsValid(void);
+	bool IsPackageModifier(void);
+	bool IsValid(void);
 
 	void Print(CChars* pszDest);
 };

@@ -26,11 +26,11 @@ public:
 	void 	Init(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcDefinition);
 	void 	Kill(void);
 
-	BOOL	IsAmbiguous(void);
+	bool	IsAmbiguous(void);
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	Is(ECJavaTokenAmbiguous eAmbiguous);
+	bool	Is(ECJavaTokenAmbiguous eAmbiguous);
 };
 
 

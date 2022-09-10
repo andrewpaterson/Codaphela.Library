@@ -48,13 +48,13 @@ STextPosition* CJavaToken::GetPosition(void)
 //
 //////////////////////////////////////////////////////////////////////////
 CJavaToken* CJavaToken::GetNext(void) {	return mpcNext; }
-BOOL CJavaToken::IsSeparator(void) { return FALSE; }
-BOOL CJavaToken::IsComment(void) { return FALSE; }
-BOOL CJavaToken::IsKeyword(void) { return FALSE; }
-BOOL CJavaToken::IsIdentifier(void) { return FALSE; }
-BOOL CJavaToken::IsScope(void) { return FALSE; }
-BOOL CJavaToken::IsAmbiguous(void) { return FALSE; }
-BOOL CJavaToken::IsOperator(void) { return FALSE; }
-BOOL CJavaToken::IsLiteral(void) { return FALSE; }
-BOOL CJavaToken::IsAnnotation(void) { return FALSE; }
+bool CJavaToken::IsSeparator(void) { return false; }
+bool CJavaToken::IsComment(void) { return false; }
+bool CJavaToken::IsKeyword(void) { return false; }
+bool CJavaToken::IsIdentifier(void) { return false; }
+bool CJavaToken::IsScope(void) { return false; }
+bool CJavaToken::IsAmbiguous(void) { return false; }
+bool CJavaToken::IsOperator(void) { return false; }
+bool CJavaToken::IsLiteral(void) { return false; }
+bool CJavaToken::IsAnnotation(void) { return false; }
 

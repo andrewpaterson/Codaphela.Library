@@ -37,7 +37,7 @@ void CJavaTokenScope::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenScope::Is(EJavaTokenScope eGeneric)
+bool CJavaTokenScope::Is(EJavaTokenScope eGeneric)
 {
 	return mpcScope->Get() == eGeneric;
 }
@@ -48,7 +48,7 @@ BOOL CJavaTokenScope::Is(EJavaTokenScope eGeneric)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenScope::GetType(void) { return "Generic"; }
-BOOL CJavaTokenScope::IsScope(void) { return TRUE; }
+bool CJavaTokenScope::IsScope(void) { return true; }
 
 
 //////////////////////////////////////////////////////////////////////////

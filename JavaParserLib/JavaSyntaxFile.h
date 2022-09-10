@@ -26,11 +26,11 @@ public:
 	void					TypePrint(CChars* pszDest, int iDepth) override;
 	void					PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
-	BOOL					IsFile(void) override;
+	bool					IsFile(void) override;
 
 	void					SetFileName(char* szFileName);
 
-	BOOL					SetPackage(CJavaSyntaxPackage* pcPackage);
+	bool					SetPackage(CJavaSyntaxPackage* pcPackage);
 	void					AddImport(CJavaSyntaxImport* pcImport);
 	void					AddClass(CJavaSyntaxClassCommon* pcClassCommon);
 

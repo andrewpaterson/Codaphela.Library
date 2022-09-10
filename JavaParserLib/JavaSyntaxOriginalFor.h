@@ -15,7 +15,7 @@ public:
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 
-	BOOL	IsOriginalFor(void) override;
+	bool	IsOriginalFor(void) override;
 };
 
 

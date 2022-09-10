@@ -38,8 +38,8 @@ void CJavaTokenOperator::Print(CChars* pszDest)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenOperator::GetType(void) { return "Operator"; }
-BOOL CJavaTokenOperator::IsOperator(void) { return TRUE; }
-BOOL CJavaTokenOperator::Is(EJavaTokenOperator eOperator) { return mpcOperator->Is(eOperator); }
+bool CJavaTokenOperator::IsOperator(void) { return true; }
+bool CJavaTokenOperator::Is(EJavaTokenOperator eOperator) { return mpcOperator->Is(eOperator); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -81,5 +81,5 @@ char* CJavaTokenOperatorDefinition::GetName(void)
 //
 //////////////////////////////////////////////////////////////////////////
 EJavaTokenOperatorType CJavaTokenOperatorDefinition::GetType(void) { return meType; }
-BOOL CJavaTokenOperatorDefinition::Is(EJavaTokenOperator eOperator) { return meOperator == eOperator; }
+bool CJavaTokenOperatorDefinition::Is(EJavaTokenOperator eOperator) { return meOperator == eOperator; }
 

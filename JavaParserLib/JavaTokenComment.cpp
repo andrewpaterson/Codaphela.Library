@@ -54,13 +54,13 @@ void CJavaTokenComment::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenComment::Is(char* szComment)
+bool CJavaTokenComment::Is(char* szComment)
 {
 	int	iLength = StrLen(szComment);
 
 	if (miLength != iLength)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -84,5 +84,5 @@ void CJavaTokenComment::GetComment(CChars* psz)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenComment::GetType(void) {	return "Comment"; }
-BOOL CJavaTokenComment::IsComment(void) { return TRUE; }
+bool CJavaTokenComment::IsComment(void) { return true; }
 

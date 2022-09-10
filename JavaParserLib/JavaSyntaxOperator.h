@@ -18,8 +18,8 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsOperator(void) override;
-	BOOL	IsCompoundStatement(void) override;
+	bool	IsOperator(void) override;
+	bool	IsCompoundStatement(void) override;
 
 	void	SetOperator(CJavaTokenOperator* pcTokenOperator);
 };

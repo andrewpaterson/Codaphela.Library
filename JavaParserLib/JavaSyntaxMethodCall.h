@@ -16,8 +16,8 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL	IsMethodCall(void) override;
-	BOOL	IsCompoundStatement(void) override;
+	bool	IsMethodCall(void) override;
+	bool	IsCompoundStatement(void) override;
 };
 
 

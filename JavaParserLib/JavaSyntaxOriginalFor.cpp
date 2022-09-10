@@ -46,8 +46,8 @@ void CJavaSyntaxOriginalFor::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxOriginalFor::IsOriginalFor(void)
+bool CJavaSyntaxOriginalFor::IsOriginalFor(void)
 {
-	return TRUE;
+	return true;
 }
 

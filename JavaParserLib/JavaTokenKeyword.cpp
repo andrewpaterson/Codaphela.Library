@@ -37,7 +37,7 @@ void CJavaTokenKeyword::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenKeyword::Is(EJavaTokenKeyword eKeyword)
+bool CJavaTokenKeyword::Is(EJavaTokenKeyword eKeyword)
 {
 	return mpcKeyword->Get() == eKeyword;
 }
@@ -48,7 +48,7 @@ BOOL CJavaTokenKeyword::Is(EJavaTokenKeyword eKeyword)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenKeyword::GetType(void) {	return "Keyword"; }
-BOOL CJavaTokenKeyword::IsKeyword(void) { return TRUE; }
+bool CJavaTokenKeyword::IsKeyword(void) { return true; }
 
 
 //////////////////////////////////////////////////////////////////////////

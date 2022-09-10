@@ -61,9 +61,9 @@ void CJavaSyntaxClassCommon::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxClassCommon::IsClassCommon(void)
+bool CJavaSyntaxClassCommon::IsClassCommon(void)
 {
-	return TRUE;
+	return true;
 }
 
 

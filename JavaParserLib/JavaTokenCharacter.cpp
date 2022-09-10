@@ -63,7 +63,7 @@ char* CJavaTokenCharacter::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenCharacter::Is(char8 c)
+bool CJavaTokenCharacter::Is(char8 c)
 {
 	if (meType == JCT_char8)
 	{
@@ -71,7 +71,7 @@ BOOL CJavaTokenCharacter::Is(char8 c)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -80,7 +80,7 @@ BOOL CJavaTokenCharacter::Is(char8 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenCharacter::Is(char16 c)
+bool CJavaTokenCharacter::Is(char16 c)
 {
 	if (meType == JCT_char16)
 	{
@@ -88,7 +88,7 @@ BOOL CJavaTokenCharacter::Is(char16 c)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -118,9 +118,9 @@ void CJavaTokenCharacter::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenCharacter::IsCharacter(void)
+bool CJavaTokenCharacter::IsCharacter(void)
 {
-	return TRUE;
+	return true;
 }
 
 

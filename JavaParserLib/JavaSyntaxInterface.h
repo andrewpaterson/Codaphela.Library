@@ -10,8 +10,8 @@ class CJavaSyntaxInterface : public CJavaSyntaxClassCommon
 CONSTRUCTABLE(CJavaSyntaxInterface);
 protected:
 	CJavaSyntaxType*	mpcType;
-	BOOL				mbAbstract;
-	BOOL				mbFinal;
+	bool				mbAbstract;
+	bool				mbFinal;
 
 public:
 	void 	Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent);
@@ -21,12 +21,12 @@ public:
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth) override;
 
-	BOOL	IsInterface(void) override;
-	BOOL	IsCompoundStatement(void);
+	bool	IsInterface(void) override;
+	bool	IsCompoundStatement(void);
 
 	void	SetSyntaxType(CJavaSyntaxType* pcType);
-	void	SetAbstract(BOOL bAbstract);
-	void	SetFinal(BOOL bFinal);
+	void	SetAbstract(bool bAbstract);
+	void	SetFinal(bool bFinal);
 };
 
 

@@ -9,8 +9,8 @@ void CJavaSyntaxImport::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 {
 	CJavaSyntax::Init(pcTree, pcParent);
 	mapcIdentifiers.Init();
-	mbStatic = FALSE;
-	mbWild = FALSE;
+	mbStatic = false;
+	mbWild = false;
 }
 
 
@@ -20,8 +20,8 @@ void CJavaSyntaxImport::Init(CJavaSyntaxTree* pcTree, CJavaSyntax* pcParent)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxImport::Kill(void)
 {
-	mbStatic = FALSE;
-	mbWild = FALSE;
+	mbStatic = false;
+	mbWild = false;
 	mapcIdentifiers.Kill();
 	CJavaSyntax::Kill();
 }
@@ -73,7 +73,7 @@ void CJavaSyntaxImport::AddIdentifier(CJavaTokenIdentifier* pcIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxImport::SetStatic(BOOL bStatic)
+void CJavaSyntaxImport::SetStatic(bool bStatic)
 {
 	mbStatic = bStatic;
 }
@@ -83,7 +83,7 @@ void CJavaSyntaxImport::SetStatic(BOOL bStatic)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxImport::SetWild(BOOL bWild)
+void CJavaSyntaxImport::SetWild(bool bWild)
 {
 	mbWild = bWild;
 }
@@ -93,8 +93,8 @@ void CJavaSyntaxImport::SetWild(BOOL bWild)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxImport::IsImport(void)
+bool CJavaSyntaxImport::IsImport(void)
 {
-	return TRUE;
+	return true;
 }
 

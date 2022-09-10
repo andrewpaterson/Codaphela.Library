@@ -240,7 +240,7 @@ CJavaTokenNull* CJavaTokenMemory::CreateNull(STextPosition* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenBoolean* CJavaTokenMemory::CreateBoolean(STextPosition* psPosition, BOOL bValue)
+CJavaTokenBoolean* CJavaTokenMemory::CreateBoolean(STextPosition* psPosition, bool bValue)
 {
 	CJavaTokenBoolean* pcToken;
 

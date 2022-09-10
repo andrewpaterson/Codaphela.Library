@@ -14,7 +14,7 @@ public:
 	char*	GetType(void) override;
 	void	TypePrint(CChars* pszDest, int iDepth) override;
 	void	PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
-	BOOL	IsMismatch(void) override;
+	bool	IsMismatch(void) override;
 };
 
 

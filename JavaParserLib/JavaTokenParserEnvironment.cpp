@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokenParserEnvironment::Init(char* szFilename, char* szText, BOOL bBreakOnError)
+void CTokenParserEnvironment::Init(char* szFilename, char* szText, bool bBreakOnError)
 {
 	int		iTextLen;
 
@@ -19,7 +19,7 @@ void CTokenParserEnvironment::Init(char* szFilename, char* szText, BOOL bBreakOn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen, BOOL bBreakOnError)
+void CTokenParserEnvironment::Init(char* szFilename, char* szText, int iTextLen, bool bBreakOnError)
 {
 	mcLogger.Init(NULL);
 	mcLogger.SetSilent(bBreakOnError);
@@ -52,7 +52,7 @@ void CTokenParserEnvironment::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTokenParserEnvironment::Parse(BOOL bFailOnError)
+bool CTokenParserEnvironment::Parse(bool bFailOnError)
 {
 	return mcTokenParser.Parse(bFailOnError);
 }
@@ -91,7 +91,7 @@ char* CTokenParserEnvironment::GetOutput(CChars* pszDest)
 	iLength = 0;
 	szBuffer = GetOutput(&iLength);
 	pszDest->Init(szBuffer, 0, iLength);
-	pszDest->StripWhiteSpace(TRUE);
+	pszDest->StripWhiteSpace(true);
 	return pszDest->Text();
 }
 

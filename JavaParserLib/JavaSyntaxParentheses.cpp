@@ -57,9 +57,9 @@ void CJavaSyntaxParentheses::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParentheses::IsParentheses(void)
+bool CJavaSyntaxParentheses::IsParentheses(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -67,9 +67,9 @@ BOOL CJavaSyntaxParentheses::IsParentheses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxParentheses::IsCompoundStatement(void)
+bool CJavaSyntaxParentheses::IsCompoundStatement(void)
 {
-	return FALSE;
+	return false;
 }
 
 

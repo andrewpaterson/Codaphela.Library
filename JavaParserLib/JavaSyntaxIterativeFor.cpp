@@ -46,8 +46,8 @@ void CJavaSyntaxIterativeFor::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxIterativeFor::IsIterativeFor(void)
+bool CJavaSyntaxIterativeFor::IsIterativeFor(void)
 {
-	return TRUE;
+	return true;
 }
 

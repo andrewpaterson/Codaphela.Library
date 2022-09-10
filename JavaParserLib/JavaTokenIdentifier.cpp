@@ -39,13 +39,13 @@ void CJavaTokenIdentifier::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenIdentifier::Is(char* szIdentifier)
+bool CJavaTokenIdentifier::Is(char* szIdentifier)
 {
 	int	iLength = StrLen(szIdentifier);
 
 	if (miLength != iLength)
 	{ 
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -59,6 +59,6 @@ BOOL CJavaTokenIdentifier::Is(char* szIdentifier)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenIdentifier::GetType(void) { return "Identifier"; }
-BOOL CJavaTokenIdentifier::IsIdentifier(void) { return TRUE; }
+bool CJavaTokenIdentifier::IsIdentifier(void) { return true; }
 char* CJavaTokenIdentifier::GetIdentifer(void) { return mszIdentifier; }
 

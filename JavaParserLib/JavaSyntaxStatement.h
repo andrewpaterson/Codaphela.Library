@@ -19,8 +19,8 @@ public:
 
 			void				PrintModifiers(CChars* pszDest, CJavaModifiers cModifiers);
 
-			BOOL				IsStatement(void) override;
-	virtual BOOL				IsCompoundStatement(void) =0;
+			bool				IsStatement(void) override;
+	virtual bool				IsCompoundStatement(void) =0;
 };
 
 

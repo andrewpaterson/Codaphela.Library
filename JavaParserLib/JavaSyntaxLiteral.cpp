@@ -61,13 +61,13 @@ void CJavaSyntaxLiteral::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxLiteral::IsLiteral(void) { return TRUE; }
-BOOL CJavaSyntaxLiteral::IsCharacter(void) { return mpcLiteral != NULL && mpcLiteral->IsCharacter(); }
-BOOL CJavaSyntaxLiteral::IsBoolean(void) { return mpcLiteral != NULL && mpcLiteral->IsBoolean(); }
-BOOL CJavaSyntaxLiteral::IsString(void) { return mpcLiteral != NULL && mpcLiteral->IsString(); }
-BOOL CJavaSyntaxLiteral::IsInteger(void) { return mpcLiteral != NULL && mpcLiteral->IsInteger(); }
-BOOL CJavaSyntaxLiteral::IsFloat(void) { return mpcLiteral != NULL && mpcLiteral->IsFloat(); }
-BOOL CJavaSyntaxLiteral::IsNull(void) { return mpcLiteral != NULL && mpcLiteral->IsNull(); }
+bool CJavaSyntaxLiteral::IsLiteral(void) { return true; }
+bool CJavaSyntaxLiteral::IsCharacter(void) { return mpcLiteral != NULL && mpcLiteral->IsCharacter(); }
+bool CJavaSyntaxLiteral::IsBoolean(void) { return mpcLiteral != NULL && mpcLiteral->IsBoolean(); }
+bool CJavaSyntaxLiteral::IsString(void) { return mpcLiteral != NULL && mpcLiteral->IsString(); }
+bool CJavaSyntaxLiteral::IsInteger(void) { return mpcLiteral != NULL && mpcLiteral->IsInteger(); }
+bool CJavaSyntaxLiteral::IsFloat(void) { return mpcLiteral != NULL && mpcLiteral->IsFloat(); }
+bool CJavaSyntaxLiteral::IsNull(void) { return mpcLiteral != NULL && mpcLiteral->IsNull(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,8 +169,8 @@ void CJavaSyntaxLiteral::SetLiteral(CJavaTokenLiteral* pcLiteral)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxLiteral::IsCompoundStatement(void)
+bool CJavaSyntaxLiteral::IsCompoundStatement(void)
 {
-	return FALSE;
+	return false;
 }
 

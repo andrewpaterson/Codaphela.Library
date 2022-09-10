@@ -17,10 +17,10 @@ public:
 
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
-	BOOL	Is(char* szComment);
+	bool	Is(char* szComment);
 	void	GetComment(CChars* psz);
 
-	BOOL	IsComment(void);
+	bool	IsComment(void);
 };
 
 

@@ -124,9 +124,9 @@ void CJavaSyntaxFile::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxFile::IsFile(void)
+bool CJavaSyntaxFile::IsFile(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -134,16 +134,16 @@ BOOL CJavaSyntaxFile::IsFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxFile::SetPackage(CJavaSyntaxPackage* pcPackage)
+bool CJavaSyntaxFile::SetPackage(CJavaSyntaxPackage* pcPackage)
 {
 	if (mpcPackage == NULL)
 	{
 		mpcPackage = pcPackage;
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

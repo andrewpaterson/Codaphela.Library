@@ -44,7 +44,7 @@ public:
 	CJavaTokenScope*		CreateScope(STextPosition* psPosition, CJavaTokenScopeDefinition* pcGeneric);
 	CCJavaTokenAmbiguous*	CreateAmbiguous(STextPosition* psPosition, CCJavaTokenAmbiguousDefinition* pcAmbiguous);
 	CJavaTokenNull*			CreateNull(STextPosition* psPosition);
-	CJavaTokenBoolean*		CreateBoolean(STextPosition* psPosition, BOOL bValue);
+	CJavaTokenBoolean*		CreateBoolean(STextPosition* psPosition, bool bValue);
 	CJavaTokenCharacter*	CreateCharacter(STextPosition* psPosition, char c);
 	CJavaTokenCharacter*	CreateCharacter(STextPosition* psPosition, char16 iChar);
 	CJavaTokenInteger*		CreateInteger(STextPosition* psPosition, int32 iValue);

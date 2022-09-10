@@ -45,8 +45,8 @@ void CJavaSyntaxExpressionCommon::TypePrint(CChars* pszDest, int iDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxExpressionCommon::IsExpressionCommon(void)
+bool CJavaSyntaxExpressionCommon::IsExpressionCommon(void)
 {
-	return TRUE;
+	return true;
 }
 

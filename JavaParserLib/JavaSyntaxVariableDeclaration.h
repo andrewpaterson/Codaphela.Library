@@ -45,8 +45,8 @@ public:
 	void				TypePrint(CChars* pszDest, int iDepth) override;
 	void				PrettyPrint(CChars* pszDest, int iBlockDepth = 0) override;
 
-	BOOL				IsVariableDeclaration(void) override;
-	BOOL				IsCompoundStatement(void);
+	bool				IsVariableDeclaration(void) override;
+	bool				IsCompoundStatement(void);
 
 	void				SetModifiers(CJavaModifiers cModifiers);
 	void				SetPrimitiveType(CJavaTokenKeyword* pcPrimitiveType);
@@ -57,9 +57,9 @@ public:
 
 	void				SetInitialiser(CJavaSyntaxVariableInitialiser* pcInitialiser);
 
-	BOOL				IsPrimitiveType(void);
-	BOOL				IsReferenceType(void);
-	BOOL				IsGeneric(void);
+	bool				IsPrimitiveType(void);
+	bool				IsReferenceType(void);
+	bool				IsGeneric(void);
 	int					GetArrayDepth(void);
 	char*				GetName(void);
 	CJavaModifiers*		GetModifiers(void);

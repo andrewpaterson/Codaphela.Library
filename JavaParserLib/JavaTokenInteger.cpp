@@ -84,7 +84,7 @@ char* CJavaTokenInteger::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenInteger::Is(int64 lli)
+bool CJavaTokenInteger::Is(int64 lli)
 {
 	if (meType == JIT_int64)
 	{
@@ -92,7 +92,7 @@ BOOL CJavaTokenInteger::Is(int64 lli)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -101,7 +101,7 @@ BOOL CJavaTokenInteger::Is(int64 lli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenInteger::Is(int32 i)
+bool CJavaTokenInteger::Is(int32 i)
 {
 	if (meType == JIT_int32)
 	{
@@ -109,7 +109,7 @@ BOOL CJavaTokenInteger::Is(int32 i)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -118,5 +118,5 @@ BOOL CJavaTokenInteger::Is(int32 i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenInteger::IsInteger(void) { return TRUE; }
+bool CJavaTokenInteger::IsInteger(void) { return true; }
 

@@ -35,5 +35,5 @@ void CJavaTokenNull::Print(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenNull::IsNull(void) { return TRUE; }
+bool CJavaTokenNull::IsNull(void) { return true; }
 

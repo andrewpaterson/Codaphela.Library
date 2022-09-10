@@ -93,9 +93,9 @@ void CJavaSyntaxClassBlock::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxClassBlock::IsClassBlock(void)
+bool CJavaSyntaxClassBlock::IsClassBlock(void)
 {
-	return TRUE;
+	return true;
 }
 
 

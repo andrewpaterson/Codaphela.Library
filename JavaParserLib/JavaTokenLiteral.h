@@ -26,15 +26,15 @@ public:
 			void 	Kill(void);
 
 			char*	GetType(void) override;
-			BOOL	IsLiteralType(EJavaTokenLiteralType eType);
+			bool	IsLiteralType(EJavaTokenLiteralType eType);
 
-			BOOL	IsLiteral(void) override;
-	virtual BOOL	IsCharacter(void);
-	virtual BOOL	IsBoolean(void);
-	virtual BOOL	IsString(void);
-	virtual BOOL	IsInteger(void);
-	virtual BOOL	IsFloat(void);
-	virtual BOOL	IsNull(void);
+			bool	IsLiteral(void) override;
+	virtual bool	IsCharacter(void);
+	virtual bool	IsBoolean(void);
+	virtual bool	IsString(void);
+	virtual bool	IsInteger(void);
+	virtual bool	IsFloat(void);
+	virtual bool	IsNull(void);
 };
 
 

@@ -47,7 +47,7 @@ public:
 	void 					Kill(void);
 
 	TRISTATE				Parse(void);
-	BOOL					Parse(BOOL bFailOnError);
+	bool					Parse(bool bFailOnError);
 
 	CJavaToken*				GetFirstToken(void);
 	CLogger*				GetLogger(void);
@@ -59,16 +59,16 @@ public:
 
 	void					PrettyPrint(CChars* pszDest);
 	void					TypePrint(CChars* pszDest);
-	void					Dump(BOOL bIncludeType = FALSE);
+	void					Dump(bool bIncludeType = false);
 
 protected:
 	CJavaToken*		GetLineEndToken(CJavaToken* pcStartToken);
 	void			PrintLine(CChars* pszDest, CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 	int				ChangeDepth(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
-	BOOL			PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight);
-	BOOL			PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLastStartToken);
-	BOOL			IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
-	BOOL			IsAnnotation(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
+	bool			PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight);
+	bool			PrintNewLine(CJavaToken* pcStartToken, CJavaToken* pcLastStartToken);
+	bool			IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
+	bool			IsAnnotation(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 
 	TRISTATE		ParseComment(CJavaToken** ppcCurrent);
 	TRISTATE		ParseKeyword(CJavaToken** ppcCurrent);

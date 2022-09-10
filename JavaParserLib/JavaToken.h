@@ -23,15 +23,15 @@ public:
 			CJavaToken*		GetNext(void);
 			STextPosition*	GetPosition(void);
 
-	virtual BOOL			IsSeparator(void);
-	virtual BOOL			IsComment(void);
-	virtual BOOL			IsKeyword(void);
-	virtual BOOL			IsIdentifier(void);
-	virtual BOOL			IsScope(void);
-	virtual BOOL			IsAmbiguous(void);
-	virtual BOOL			IsOperator(void);
-	virtual BOOL			IsLiteral(void);
-	virtual BOOL			IsAnnotation(void);
+	virtual bool			IsSeparator(void);
+	virtual bool			IsComment(void);
+	virtual bool			IsKeyword(void);
+	virtual bool			IsIdentifier(void);
+	virtual bool			IsScope(void);
+	virtual bool			IsAmbiguous(void);
+	virtual bool			IsOperator(void);
+	virtual bool			IsLiteral(void);
+	virtual bool			IsAnnotation(void);
 };
 
 

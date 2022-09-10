@@ -65,9 +65,9 @@ void CJavaSyntaxClass::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxClass::IsClass(void)
+bool CJavaSyntaxClass::IsClass(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -75,9 +75,9 @@ BOOL CJavaSyntaxClass::IsClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxClass::IsCompoundStatement(void)
+bool CJavaSyntaxClass::IsCompoundStatement(void)
 {
-	return TRUE;
+	return true;
 }
 
 

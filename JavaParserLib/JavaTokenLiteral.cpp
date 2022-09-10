@@ -27,7 +27,7 @@ void CJavaTokenLiteral::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaTokenLiteral::IsLiteralType(EJavaTokenLiteralType eType)
+bool CJavaTokenLiteral::IsLiteralType(EJavaTokenLiteralType eType)
 {
 	return meLiteralType == eType;
 }
@@ -37,11 +37,11 @@ BOOL CJavaTokenLiteral::IsLiteralType(EJavaTokenLiteralType eType)
 //
 //////////////////////////////////////////////////////////////////////////
 char* CJavaTokenLiteral::GetType(void) { return "Literal"; }
-BOOL CJavaTokenLiteral::IsLiteral(void) { return TRUE; }
-BOOL CJavaTokenLiteral::IsCharacter(void) { return FALSE; }
-BOOL CJavaTokenLiteral::IsBoolean(void) { return FALSE; }
-BOOL CJavaTokenLiteral::IsString(void) { return FALSE; }
-BOOL CJavaTokenLiteral::IsInteger(void) { return FALSE; }
-BOOL CJavaTokenLiteral::IsFloat(void) { return FALSE; }
-BOOL CJavaTokenLiteral::IsNull(void) { return FALSE; }
+bool CJavaTokenLiteral::IsLiteral(void) { return true; }
+bool CJavaTokenLiteral::IsCharacter(void) { return false; }
+bool CJavaTokenLiteral::IsBoolean(void) { return false; }
+bool CJavaTokenLiteral::IsString(void) { return false; }
+bool CJavaTokenLiteral::IsInteger(void) { return false; }
+bool CJavaTokenLiteral::IsFloat(void) { return false; }
+bool CJavaTokenLiteral::IsNull(void) { return false; }
 

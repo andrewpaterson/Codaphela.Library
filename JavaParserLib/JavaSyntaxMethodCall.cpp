@@ -55,9 +55,9 @@ void CJavaSyntaxMethodCall::PrettyPrint(CChars* pszDest, int iBlockDepth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxMethodCall::IsMethodCall(void)
+bool CJavaSyntaxMethodCall::IsMethodCall(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -65,7 +65,7 @@ BOOL CJavaSyntaxMethodCall::IsMethodCall(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntaxMethodCall::IsCompoundStatement(void)
+bool CJavaSyntaxMethodCall::IsCompoundStatement(void)
 {
-	return FALSE;
+	return false;
 }

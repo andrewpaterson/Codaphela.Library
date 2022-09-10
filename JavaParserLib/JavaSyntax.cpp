@@ -85,35 +85,35 @@ void CJavaSyntax::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CJavaSyntax::IsFile(void) { return FALSE; }
-BOOL CJavaSyntax::IsImport(void) { return FALSE; }
-BOOL CJavaSyntax::IsPackage(void) { return FALSE; }
-BOOL CJavaSyntax::IsEnum(void) { return FALSE; }
-BOOL CJavaSyntax::IsInterface(void) { return FALSE; }
-BOOL CJavaSyntax::IsClass(void) { return FALSE; }
-BOOL CJavaSyntax::IsType(void) { return FALSE; }
-BOOL CJavaSyntax::IsExtent(void) { return FALSE; }
-BOOL CJavaSyntax::IsGeneric(void) { return FALSE; }
+bool CJavaSyntax::IsFile(void) { return false; }
+bool CJavaSyntax::IsImport(void) { return false; }
+bool CJavaSyntax::IsPackage(void) { return false; }
+bool CJavaSyntax::IsEnum(void) { return false; }
+bool CJavaSyntax::IsInterface(void) { return false; }
+bool CJavaSyntax::IsClass(void) { return false; }
+bool CJavaSyntax::IsType(void) { return false; }
+bool CJavaSyntax::IsExtent(void) { return false; }
+bool CJavaSyntax::IsGeneric(void) { return false; }
 
-BOOL CJavaSyntax::IsClassBlock(void) { return FALSE; }
-BOOL CJavaSyntax::IsOriginalFor(void) { return FALSE; }
-BOOL CJavaSyntax::IsIterativeFor(void) { return FALSE; }
-BOOL CJavaSyntax::IsVariableDeclaration(void) { return FALSE; }
-BOOL CJavaSyntax::IsVariableInitialiser(void) { return FALSE; }
-BOOL CJavaSyntax::IsVoidExpression(void) { return FALSE; }
-BOOL CJavaSyntax::IsValueExpression(void) { return FALSE; }
-BOOL CJavaSyntax::IsArrayValueExpression(void) { return FALSE; }
-BOOL CJavaSyntax::IsMethodCall(void) { return FALSE; }
-BOOL CJavaSyntax::IsParentheses(void) { return FALSE; }
-BOOL CJavaSyntax::IsOperator(void) { return FALSE; }
+bool CJavaSyntax::IsClassBlock(void) { return false; }
+bool CJavaSyntax::IsOriginalFor(void) { return false; }
+bool CJavaSyntax::IsIterativeFor(void) { return false; }
+bool CJavaSyntax::IsVariableDeclaration(void) { return false; }
+bool CJavaSyntax::IsVariableInitialiser(void) { return false; }
+bool CJavaSyntax::IsVoidExpression(void) { return false; }
+bool CJavaSyntax::IsValueExpression(void) { return false; }
+bool CJavaSyntax::IsArrayValueExpression(void) { return false; }
+bool CJavaSyntax::IsMethodCall(void) { return false; }
+bool CJavaSyntax::IsParentheses(void) { return false; }
+bool CJavaSyntax::IsOperator(void) { return false; }
 
-BOOL CJavaSyntax::IsStatement(void) { return FALSE; }
-BOOL CJavaSyntax::IsClassCommon(void) { return FALSE; }
-BOOL CJavaSyntax::IsTypeCommon(void) { return FALSE; }
-BOOL CJavaSyntax::IsVariableCommon(void) { return FALSE; }
-BOOL CJavaSyntax::IsExpressionCommon(void) { return FALSE; }
-BOOL CJavaSyntax::IsLiteral(void) { return FALSE; }
+bool CJavaSyntax::IsStatement(void) { return false; }
+bool CJavaSyntax::IsClassCommon(void) { return false; }
+bool CJavaSyntax::IsTypeCommon(void) { return false; }
+bool CJavaSyntax::IsVariableCommon(void) { return false; }
+bool CJavaSyntax::IsExpressionCommon(void) { return false; }
+bool CJavaSyntax::IsLiteral(void) { return false; }
 
-BOOL CJavaSyntax::IsError(void) { return FALSE; }
-BOOL CJavaSyntax::IsMismatch(void) { return FALSE; }
+bool CJavaSyntax::IsError(void) { return false; }
+bool CJavaSyntax::IsMismatch(void) { return false; }
 

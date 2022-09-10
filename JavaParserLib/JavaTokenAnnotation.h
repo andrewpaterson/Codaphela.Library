@@ -18,8 +18,8 @@ public:
 	void	Print(CChars* pszDest);
 	char*	GetType(void);
 
-	BOOL	IsAnnotation(void);
-	BOOL	Is(char* szAnnotation);
+	bool	IsAnnotation(void);
+	bool	Is(char* szAnnotation);
 };
 
 
