@@ -32,11 +32,11 @@ public:
 	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Init(int iCount, int iLine, int iColumn, char* szFileName);
 	void	Kill(void);
-	BOOL	IsHash(void);
+	bool	IsHash(void);
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	BOOL	Equals(CPPToken* pcOther);
-	BOOL	IsEmpty(void);
+	bool	Equals(CPPToken* pcOther);
+	bool	IsEmpty(void);
 };
 
 

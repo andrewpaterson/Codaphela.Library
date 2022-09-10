@@ -40,9 +40,9 @@ public:
 	CSpecialOperator*		AddSpecialOperator(char* szName, EPreprocessorSpecialOperator eType);
 	void					RemoveSpecialOperator(CExternalString* pcName);
 	void					RemoveSpecialOperator(char* szName);
-	CSpecialOperator*		GetSpecialOperator(CExternalString* pcName, BOOL bExact);
+	CSpecialOperator*		GetSpecialOperator(CExternalString* pcName, bool bExact);
 	CSpecialOperator*		GetSpecialOperator(CChars* pszName);
-	CSpecialOperator*		GetSpecialOperator(char* szName, BOOL bExact);
+	CSpecialOperator*		GetSpecialOperator(char* szName, bool bExact);
 	void					Dump(void);
 	CSpecialOperatorsIndex* GetIDToSpecialOperatorIndex(void);
 };

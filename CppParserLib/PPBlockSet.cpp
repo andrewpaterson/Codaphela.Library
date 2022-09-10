@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPBlockSet::Init(int iLine, int iBlock, BOOL bTextBlocks)
+void CPPBlockSet::Init(int iLine, int iBlock, bool bTextBlocks)
 {
 	mcUnprocessedTokens.Init();
 	mapcBlocks.Init();
@@ -79,7 +79,7 @@ CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 {
 	int			i;
 	CPPBlock* pcBlock;
-	BOOL		bResult;
+	bool		bResult;
 	int			iNumElements;
 
 	iNumElements = mapcBlocks.NumElements();
@@ -100,7 +100,7 @@ CPPBlock* CPPBlockSet::GetMatchingBlock(CPPBlock* pcOtherBlock)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlockSet::IsLastToken(int iToken)
+bool CPPBlockSet::IsLastToken(int iToken)
 {
 	CPPToken*	pcToken;
 	int			i;
@@ -109,7 +109,7 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 	iNumTokens = mcUnprocessedTokens.NumTokens();
 	if (iNumTokens == iToken)
 	{
-		return TRUE;
+		return true;
 	}
 
 	for (i = iNumTokens - 1; i >= iToken; i--)
@@ -117,10 +117,10 @@ BOOL CPPBlockSet::IsLastToken(int iToken)
 		pcToken = mcUnprocessedTokens.Get(i);
 		if (!pcToken->IsEmpty())
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -193,7 +193,7 @@ void CPPBlockSet::DumpBlockSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlockSet::IsDirective(void)
+bool CPPBlockSet::IsDirective(void)
 {
 	return !mbTextBlocks;
 }

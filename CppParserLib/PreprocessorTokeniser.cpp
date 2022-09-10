@@ -64,25 +64,25 @@ void CPreprocessorTokeniser::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength)
+bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBlockSets, CPPTokenMemory* pcTokenMemory, char* szPos, int iLength)
 {
 	char*					szEnd;
 	EPreprocessorDirective	eDirective;
 	CPPBlockSet*			pcBlockSet;
-	BOOL					bNewBlock;
-	BOOL					bLastDirective;
-	BOOL					bDirective;
+	bool					bNewBlock;
+	bool					bLastDirective;
+	bool					bDirective;
 	CPPLine*				pcLine;
 	int						iBlock;
 	CPPDirective*			pcDirective;
 	CPPToken*				pcToken;
 	int						iLine;
 	int						iIndex;
-	BOOL					bMustAdd;
+	bool					bMustAdd;
 
 	if (pacDestBlockSets->IsRawProcessed())
 	{
-		return TRUE;
+		return true;
 	}
 
 	pacDestBlockSets->RawProcessed();
@@ -92,8 +92,8 @@ BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 	szEnd = szPos + iLength-1;
 	mcParser.Init(szPos, szEnd, mcParser.mszFileName);
 
-	bNewBlock = TRUE;
-	bLastDirective = FALSE;
+	bNewBlock = true;
+	bLastDirective = false;
 	iBlock = pacDestBlockSets->NumElements();
 	iIndex = 0;
 
@@ -103,12 +103,12 @@ BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 		mcParser.SkipWhiteSpace();
 		if ((*mcParser.GetPos()) == '#')
 		{
-			bDirective = TRUE;
+			bDirective = true;
 			mcParser.StepRight();
 			eDirective = GetDirective();
 			if (eDirective == PPD_unknown)
 			{
-				return FALSE;
+				return false;
 			}
 			pcLine = NULL;
 			pcDirective = TokeniseDirective(pcTokenMemory, eDirective, iBlock, iIndex);
@@ -121,7 +121,7 @@ BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 			pcToken = pcLine;
 			if (pcLine)
 			{
-				bDirective = FALSE;;
+				bDirective = false;;
 			}
 			else
 			{
@@ -129,17 +129,17 @@ BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 			}
 		}
 
-		bMustAdd = FALSE;
+		bMustAdd = false;
 		if (pcBlockSet)
 		{
 			if ((bDirective && !bLastDirective) || (pcLine && bLastDirective))
 			{
-				bMustAdd = TRUE;
+				bMustAdd = true;
 			}
 		}
 		else if (pcToken)
 		{
-			bMustAdd = TRUE;
+			bMustAdd = true;
 		}
 
 		if (bMustAdd)
@@ -157,7 +157,7 @@ BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 		bLastDirective = bDirective;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -165,7 +165,7 @@ BOOL CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
+bool CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, CPPTokenMemory* pcTokens, char* szPos, int iLength, int iBlock, int iIndex)
 {
 	char*					szEnd;
 	int						iLine;
@@ -186,7 +186,7 @@ BOOL CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, C
 			eDirective = GetDirective();
 			if (eDirective == PPD_unknown)
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcToken = TokeniseDirective(pcTokens, eDirective, iBlock, iIndex+iLine);
@@ -204,7 +204,7 @@ BOOL CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, C
 		//Add Token here.
 		iLine++;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -215,7 +215,7 @@ BOOL CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, C
 void CPreprocessorTokeniser::TokeniseDefine(CPPTokenList* pcHolder, char* sz, CPPTokenMemory* pcTokens)
 {
 	mcParser.Init(sz, NULL, mszFileName);
-	CPreprocessorLineTokensier::Preprocess(pcHolder, &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcHolder, &mcParser, pcTokens, true);
 }
 
 
@@ -235,7 +235,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 	}
 
 	cName.Init(mcParser.GetPos(), mcParser.GetEnd());
-	pcDirective = mcDirectives.GetDirective(&cName, FALSE);
+	pcDirective = mcDirectives.GetDirective(&cName, false);
 	if (pcDirective == NULL)
 	{
 		return PPD_unknown;
@@ -293,7 +293,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokenMemory* pcToken
 	pcDefine = pcTokens->AddDirective();
 	pcDefine->Init(PPD_define, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcDefine->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcDefine->GetTokenList(), &mcParser, pcTokens, true);
 	return pcDefine; 
 }
 
@@ -311,7 +311,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokenMemory* pcTokens
 	pcUndef = pcTokens->AddDirective();
 	pcUndef->Init(PPD_undef, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcUndef->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcUndef->GetTokenList(), &mcParser, pcTokens, true);
 	return pcUndef;
 }
 
@@ -329,7 +329,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokenMemory* pcToke
 	pcInclude = pcTokens->AddInclude();
 	pcInclude->Init(mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcInclude->GetTokenList(), &mcParser, pcTokens, FALSE);
+	CPreprocessorLineTokensier::Preprocess(pcInclude->GetTokenList(), &mcParser, pcTokens, false);
 	return pcInclude;
 }
 
@@ -345,7 +345,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIfndef(CPPTokenMemory* pcToken
 	pcIfNDef = pcTokens->AddConditional();
 	pcIfNDef->Init(PPD_ifndef, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcIfNDef->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcIfNDef->GetTokenList(), &mcParser, pcTokens, true);
 	NextConditional(pcIfNDef);
 	return pcIfNDef;
 }
@@ -362,7 +362,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIfdef(CPPTokenMemory* pcTokens
 	pcIfDef = pcTokens->AddConditional();
 	pcIfDef->Init(PPD_ifdef, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcIfDef->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcIfDef->GetTokenList(), &mcParser, pcTokens, true);
 	NextConditional(pcIfDef);
 	return pcIfDef;
 }
@@ -379,7 +379,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashElse(CPPTokenMemory* pcTokens,
 	pcElse = pcTokens->AddConditional();
 	pcElse->Init(PPD_else, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcElse->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcElse->GetTokenList(), &mcParser, pcTokens, true);
 	NextConditional(pcElse);
 	return pcElse;
 }
@@ -397,7 +397,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashIf(CPPTokenMemory* pcTokens, i
 	pcIf = pcTokens->AddConditional();
 	pcIf->Init(PPD_if, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcIf->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcIf->GetTokenList(), &mcParser, pcTokens, true);
 	NextConditional(pcIf);
 	return pcIf;
 }
@@ -415,7 +415,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashElif(CPPTokenMemory* pcTokens,
 	pcElif = pcTokens->AddConditional();
 	pcElif->Init(PPD_elif, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcElif->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcElif->GetTokenList(), &mcParser, pcTokens, true);
 	NextConditional(pcElif);
 	return pcElif;
 }
@@ -432,7 +432,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashEndif(CPPTokenMemory* pcTokens
 	pcEndif = pcTokens->AddConditional();
 	pcEndif->Init(PPD_endif, iBlock, iIndex, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcEndif->GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(pcEndif->GetTokenList(), &mcParser, pcTokens, true);
 	NextConditional(pcEndif);
 	return pcEndif;
 }
@@ -449,7 +449,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashError(CPPTokenMemory* pcTokens
 	pcError = pcTokens->AddDirective();
 	pcError->Init(PPD_error, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcError->GetTokenList(), &mcParser, pcTokens, FALSE);
+	CPreprocessorLineTokensier::Preprocess(pcError->GetTokenList(), &mcParser, pcTokens, false);
 	return pcError;
 }
 
@@ -465,7 +465,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashPragma(CPPTokenMemory* pcToken
 	pcPragma = pcTokens->AddDirective();
 	pcPragma->Init(PPD_pragma, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
 
-	CPreprocessorLineTokensier::Preprocess(pcPragma->GetTokenList(), &mcParser, pcTokens, FALSE);
+	CPreprocessorLineTokensier::Preprocess(pcPragma->GetTokenList(), &mcParser, pcTokens, false);
 	return pcPragma;
 }
 
@@ -480,7 +480,7 @@ CPPLine* CPreprocessorTokeniser::Line(CPPTokenMemory* pcTokens)
 	CPPLine*	pcLine;
 
 	cLine.Init(mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
-	CPreprocessorLineTokensier::Preprocess(cLine.GetTokenList(), &mcParser, pcTokens, TRUE);
+	CPreprocessorLineTokensier::Preprocess(cLine.GetTokenList(), &mcParser, pcTokens, true);
 	if (cLine.IsEmpty())
 	{
 		cLine.Kill();

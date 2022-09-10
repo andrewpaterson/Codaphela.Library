@@ -17,7 +17,7 @@ public:
 	int64	Add(char* sz, char* szLastCharInclusive = NULL);
 
 	char*	Get(int64 lliID, int* piLength = NULL);
-	int64	Get(char* szText, char* szLastCharInclusive, BOOL bExact);
+	int64	Get(char* szText, char* szLastCharInclusive, bool bExact);
 
 	int		NumElements(void);
 };

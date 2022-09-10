@@ -120,9 +120,9 @@ char* CPPToken::ShortFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsDirective(void)
+bool CPPToken::IsDirective(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -130,9 +130,9 @@ BOOL CPPToken::IsDirective(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsUnknown(void)
+bool CPPToken::IsUnknown(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -140,9 +140,9 @@ BOOL CPPToken::IsUnknown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsText(void)
+bool CPPToken::IsText(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -150,9 +150,9 @@ BOOL CPPToken::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsWhiteSpace(void)
+bool CPPToken::IsWhiteSpace(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -160,9 +160,9 @@ BOOL CPPToken::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsReplacement(void)
+bool CPPToken::IsReplacement(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -170,9 +170,9 @@ BOOL CPPToken::IsReplacement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsHash(void)
+bool CPPToken::IsHash(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -181,9 +181,9 @@ BOOL CPPToken::IsHash(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsTokenReplacementsHolder(void)
+bool CPPToken::IsTokenReplacementsHolder(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -193,9 +193,9 @@ BOOL CPPToken::IsTokenReplacementsHolder(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsLine(void)
+bool CPPToken::IsLine(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -203,9 +203,9 @@ BOOL CPPToken::IsLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsFile(void)
+bool CPPToken::IsFile(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -213,9 +213,9 @@ BOOL CPPToken::IsFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsBlock(void)
+bool CPPToken::IsBlock(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -223,9 +223,9 @@ BOOL CPPToken::IsBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::IsTokenListHolder(void)
+bool CPPToken::IsTokenListHolder(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -267,8 +267,8 @@ void CPPToken::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPToken::NeedsNewLine(void)
+bool CPPToken::NeedsNewLine(void)
 {
-	return FALSE;
+	return false;
 }
 

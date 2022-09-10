@@ -35,7 +35,7 @@ public:
 	void 	Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive);
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	BOOL 	HasSource(void);
+	bool 	HasSource(void);
 	char*	TextStart(void);
 	char*	TextEndInclusive(void);
 };

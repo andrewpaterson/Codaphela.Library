@@ -72,7 +72,7 @@ void CPPTokenList::Add(CPPToken* pcToken)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CPPTokenList::Print(CChars* psz, BOOL bShowFileAndLine)
+char* CPPTokenList::Print(CChars* psz, bool bShowFileAndLine)
 {
 	CPPToken**	ppcToken;
 	CPPToken*	pcToken;
@@ -120,16 +120,16 @@ char* CPPTokenList::Print(CChars* psz, BOOL bShowFileAndLine)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPTokenList::Equals(CPPTokenList* pcOther)
+bool CPPTokenList::Equals(CPPTokenList* pcOther)
 {
 	int					i;
 	CPPToken*			pcThisToken;
 	CPPToken*			pcOtherToken;
-	BOOL				bAnyFailed;
+	bool				bAnyFailed;
 
 	if (mcArray.NumElements() == pcOther->mcArray.NumElements())
 	{
-		bAnyFailed = FALSE;
+		bAnyFailed = false;
 		for (i = 0; i < mcArray.NumElements(); i++)
 		{
 			pcThisToken = *mcArray.Get(i);
@@ -137,16 +137,16 @@ BOOL CPPTokenList::Equals(CPPTokenList* pcOther)
 
 			if (!pcThisToken->Equals(pcOtherToken))
 			{
-				bAnyFailed = TRUE;
+				bAnyFailed = true;
 				break;
 			}
 		}
 		if (!bAnyFailed)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

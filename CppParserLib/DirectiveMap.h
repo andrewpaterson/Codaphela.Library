@@ -21,9 +21,9 @@ public:
 	CPreprocessorDirective*		AddDirective(char* szName, EPreprocessorDirective eDirective);
 	void						RemoveDirective(CExternalString* pcName);
 	void						RemoveDirective(char* szName);
-	CPreprocessorDirective*		GetDirective(CExternalString* pcName, BOOL bExact);
-	CPreprocessorDirective*		GetDirective(CChars* pszName, BOOL bExact);
-	CPreprocessorDirective*		GetDirective(char* szName, BOOL bExact);
+	CPreprocessorDirective*		GetDirective(CExternalString* pcName, bool bExact);
+	CPreprocessorDirective*		GetDirective(CChars* pszName, bool bExact);
+	CPreprocessorDirective*		GetDirective(char* szName, bool bExact);
 	void						Dump(void);
 };
 

@@ -59,8 +59,8 @@ public:
 	}
 
 
-	BOOL IsTrue(void);
-	BOOL IsNotFound(void);
+	bool IsTrue(void);
+	bool IsNotFound(void);
 };
 
 

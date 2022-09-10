@@ -30,19 +30,19 @@ public:
 	int		miArgIndex;
 	int64	mlliDefineID;
 protected:
-	BOOL	mbVariadic;
+	bool	mbVariadic;
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPReplacement);
 	void 	Init(int iLine, int iColumn, char* szFileName);
-	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, BOOL bVariadic);
+	void 	Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, bool bVariadic);
 	void 	Kill(void);
-	BOOL 	IsReplacement(void);
+	bool 	IsReplacement(void);
 	char* 	Print(CChars* psz);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	BOOL	Equals(CPPToken* pcOther);
-	BOOL	IsEmpty(void);
-	BOOL	IsVariadic(void);
+	bool	Equals(CPPToken* pcOther);
+	bool	IsEmpty(void);
+	bool	IsVariadic(void);
 };
 
 

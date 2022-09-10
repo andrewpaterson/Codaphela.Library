@@ -32,9 +32,9 @@ protected:
 public:
 	void		Init(void);
 	void		Kill(void);
-	char*		Print(CChars* psz, BOOL bShowFileAndLine = FALSE);
+	char*		Print(CChars* psz, bool bShowFileAndLine = false);
 	void		Add(CPPToken* ppcToken);
-	BOOL		Equals(CPPTokenList* pcOther);
+	bool		Equals(CPPTokenList* pcOther);
 	void		SavageAppend(CChars* psz, int iDepth);
 	int			NumTokens(void);
 	CPPToken*	Get(int iTokenIndex);

@@ -30,8 +30,8 @@ public:
 	void 	Init(int iLine, int iColumn, char* szFileName);
 	void 	Kill(void);
 	void 	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	BOOL	Equals(CPPToken* pcOther);
-	BOOL	IsHolder2(void);
+	bool	Equals(CPPToken* pcOther);
+	bool	IsHolder2(void);
 };
 
 

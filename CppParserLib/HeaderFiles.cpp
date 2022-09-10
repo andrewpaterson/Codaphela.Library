@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL bIncludeSubDirectories, BOOL bSystem)
+bool CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, bool bIncludeSubDirectories, bool bSystem)
 {
 	CFileUtil cFileUtil;
 
@@ -41,16 +41,16 @@ BOOL CHeaderFiles::Init(char* szBaseDirectory, CHeaderFileMap* pcFileMap, BOOL b
 		sz.Append("] does not exist.");
 		gcUserError.Set(sz.Text());
 		sz.Kill();
-		return FALSE;
+		return false;
 	}
 
 	mszBaseDirectory.Init(szBaseDirectory);
-	mcFileNames.Init(TRUE, FALSE);
+	mcFileNames.Init(true, false);
 	mpcFileMap = pcFileMap;
 	mbSystem = bSystem;
 
 	AddFiles(bIncludeSubDirectories);
-	return TRUE;
+	return true;
 }
 
 
@@ -70,7 +70,7 @@ void CHeaderFiles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHeaderFiles::AddFiles(BOOL bIncludeSubDirectories)
+void CHeaderFiles::AddFiles(bool bIncludeSubDirectories)
 {
 	CChars					szTemp;
 	CArrayChars				aszHeaderExtensions;
@@ -81,7 +81,7 @@ void CHeaderFiles::AddFiles(BOOL bIncludeSubDirectories)
 	int						iBaseDirLen;
 	CArrayChars				aszFileNames;
 	CFileUtil				cFileUtil;
-	BOOL					bIsExtension;
+	bool					bIsExtension;
 	int						iNumFileNames;
 	int						iNumExtensions;
 
@@ -94,7 +94,7 @@ void CHeaderFiles::AddFiles(BOOL bIncludeSubDirectories)
 
 
 	aszFileNames.Init();
-	cFileUtil.FindAllFiles(mszBaseDirectory.Text(), &aszFileNames, bIncludeSubDirectories, FALSE);
+	cFileUtil.FindAllFiles(mszBaseDirectory.Text(), &aszFileNames, bIncludeSubDirectories, false);
 
 	iNumExtensions = aszHeaderExtensions.NumElements();
 	iNumFileNames = aszFileNames.NumElements();
@@ -187,7 +187,7 @@ void CHeaderFiles::Dump(void)
 	CHeaderFile*	pcHeader;
 	CChars			sz;
 	SMapIterator	sIter;
-	BOOL			bResult;
+	bool			bResult;
 	char*			szName;
 
 	sz.Init();

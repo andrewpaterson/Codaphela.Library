@@ -68,9 +68,9 @@ void CCTWideString::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTWideString::IsString(void)
+bool CCTWideString::IsString(void)
 {
-	return TRUE;
+	return true;
 }
 
 

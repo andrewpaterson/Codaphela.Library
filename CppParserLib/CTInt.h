@@ -27,13 +27,13 @@ class CCTInt : public CCTNumber
 {
 public:
 	unsigned int	mcValue;
-	BOOL			mbSigned;
+	bool			mbSigned;
 
 	CPP_TOKEN_CONSTRUCT(CCTInt);
 	void Init(void);
 	void Init(unsigned int i);
 	void Kill(void);
-	BOOL IsSigned(void);
+	bool IsSigned(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 

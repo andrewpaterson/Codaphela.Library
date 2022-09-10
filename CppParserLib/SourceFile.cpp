@@ -34,10 +34,10 @@ void CSourceFile::Init(char* szName)
 {
 	mszContents.Init();
 	mszFullName.Init(szName);
-	mbLoaded = FALSE;
+	mbLoaded = false;
 	mcTokenMemory.Init();
 	macBlockSets.Init();
-	mbBlockSetsKilled = FALSE;
+	mbBlockSetsKilled = false;
 }
 
 
@@ -48,7 +48,7 @@ void CSourceFile::Init(char* szName)
 void CSourceFile::KillBlockSets(void)
 {
 	macBlockSets.Kill();
-	mbBlockSetsKilled = TRUE;
+	mbBlockSetsKilled = true;
 }
 
 
@@ -65,7 +65,7 @@ void CSourceFile::Kill(void)
 	mcTokenMemory.Kill();
 	mszFullName.Kill();
 	mszContents.Kill();
-	mbLoaded = FALSE;
+	mbLoaded = false;
 }
 
 
@@ -79,7 +79,7 @@ void CSourceFile::Load(void)
 
 	if (!mbLoaded)
 	{
-		mbLoaded = TRUE;
+		mbLoaded = true;
 
 		cFile.Init();
 		cFile.Read(mszFullName.Text());
@@ -96,7 +96,7 @@ void CSourceFile::Load(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSourceFile::IsLoaded(void)
+bool CSourceFile::IsLoaded(void)
 {
 	return mbLoaded;
 }
@@ -106,7 +106,7 @@ BOOL CSourceFile::IsLoaded(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSourceFile::IsNamed(char* szName)
+bool CSourceFile::IsNamed(char* szName)
 {
 	return (strcmp(ShortName(), szName) == 0);
 }
@@ -119,7 +119,7 @@ BOOL CSourceFile::IsNamed(char* szName)
 void CSourceFile::SetContents(const char* sz)
 {
 	mszContents.Set(sz);
-	mbLoaded = TRUE;
+	mbLoaded = true;
 }
 
 //////////////////////////////////////////////////////////////////////////

@@ -27,7 +27,7 @@ void CSpecialOperator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSpecialOperator::Equals(CSpecialOperator* pcOther)
+bool CSpecialOperator::Equals(CSpecialOperator* pcOther)
 {
 	if (pcOther)
 	{
@@ -35,7 +35,7 @@ BOOL CSpecialOperator::Equals(CSpecialOperator* pcOther)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

@@ -27,7 +27,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CPPBlockSetArray::Init(void)
 {
-	mbRawProcessed = FALSE;
+	mbRawProcessed = false;
 	__CArrayPPBlockSet::Init();
 }
 
@@ -49,7 +49,7 @@ void CPPBlockSetArray::Kill(void)
 		pcBlockSet->Kill();
 	}
 	__CArrayPPBlockSet::Kill();
-	mbRawProcessed = FALSE;
+	mbRawProcessed = false;
 }
 
 
@@ -59,7 +59,7 @@ void CPPBlockSetArray::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPBlockSetArray::RawProcessed(void)
 {
-	mbRawProcessed = TRUE;
+	mbRawProcessed = true;
 }
 
 
@@ -67,7 +67,7 @@ void CPPBlockSetArray::RawProcessed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPBlockSetArray::IsRawProcessed(void)
+bool CPPBlockSetArray::IsRawProcessed(void)
 {
 	return mbRawProcessed;
 }
@@ -77,7 +77,7 @@ BOOL CPPBlockSetArray::IsRawProcessed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPBlockSet* CPPBlockSetArray::Add(int iLine, BOOL bTextBlocks)
+CPPBlockSet* CPPBlockSetArray::Add(int iLine, bool bTextBlocks)
 {
 	CPPBlockSet* pcBlockSet;
 

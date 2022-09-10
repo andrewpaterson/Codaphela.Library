@@ -52,14 +52,14 @@ public:
 	PP_TOKEN_CONSTRUCT(CPPDirective);
 	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Init(EPreprocessorDirective eType, int iLine, int iColumn, char* szFileName);
-	BOOL	IsDirective(void);
+	bool	IsDirective(void);
 	void	Set(EPreprocessorDirective eType);
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	BOOL	Is(EPreprocessorDirective eType);
-	BOOL	IsConditional(void);
-	BOOL	Equals(CPPToken* pcOther);
-	BOOL	NeedsNewLine(void);
+	bool	Is(EPreprocessorDirective eType);
+	bool	IsConditional(void);
+	bool	Equals(CPPToken* pcOther);
+	bool	NeedsNewLine(void);
 };
 
 

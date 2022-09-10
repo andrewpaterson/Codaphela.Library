@@ -39,7 +39,7 @@ public:
 	void 			Init(void);
 	void 			Kill(void);
 
-	CHeaderFile*	AddFile(char* szAbsoluteFileName, BOOL bSystem);
+	CHeaderFile*	AddFile(char* szAbsoluteFileName, bool bSystem);
 	CHeaderFile*	GetFile(char* szAbsoluteFileName);
 	CHeaderFile*	StartIteration(SMapIterator* psIter);
 	CHeaderFile*	Iterate(SMapIterator* psIter);

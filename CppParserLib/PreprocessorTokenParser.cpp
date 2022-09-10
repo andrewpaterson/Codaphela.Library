@@ -179,13 +179,13 @@ void CPreprocessorTokenParser::MarkUp(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetIdentifier(CExternalString* pcIdentifier)
+bool CPreprocessorTokenParser::GetIdentifier(CExternalString* pcIdentifier)
 {
 	CPPText*	pcText;
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	SkipWhiteSpace();
@@ -198,10 +198,10 @@ BOOL CPreprocessorTokenParser::GetIdentifier(CExternalString* pcIdentifier)
 			pcIdentifier->msz = pcText->mcText.msz;
 			pcIdentifier->miLen = pcText->mcText.miLen;
 			NextToken();
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -209,13 +209,13 @@ BOOL CPreprocessorTokenParser::GetIdentifier(CExternalString* pcIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetNumber(CExternalString* pcIdentifier)
+bool CPreprocessorTokenParser::GetNumber(CExternalString* pcIdentifier)
 {
 	CPPText*	pcText;
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	SkipWhiteSpace();
@@ -228,10 +228,10 @@ BOOL CPreprocessorTokenParser::GetNumber(CExternalString* pcIdentifier)
 			pcIdentifier->msz = pcText->mcText.msz;
 			pcIdentifier->miLen = pcText->mcText.miLen;
 			NextToken();
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -239,13 +239,13 @@ BOOL CPreprocessorTokenParser::GetNumber(CExternalString* pcIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetExactDecorator(char c, BOOL bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetExactDecorator(char c, bool bSkipWhiteSpace)
 {
 	CPPText*	pcText;
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (bSkipWhiteSpace)
@@ -253,7 +253,7 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char c, BOOL bSkipWhiteSpace)
 		SkipWhiteSpace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -266,11 +266,11 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char c, BOOL bSkipWhiteSpace)
 			{
 				//Remember that it's guaranteed that a decorator is one char long.
 				NextToken();
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -278,7 +278,7 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char c, BOOL bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhiteSpace)
 {
 	CPPText*	pcText;
 	int			iExpectedLength;
@@ -289,7 +289,7 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	PushPosition();
@@ -300,7 +300,7 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 		if (mpsCurrent->pcCurrentToken == NULL)
 		{
 			PassPosition();
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -320,7 +320,7 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 					if (pcText->mcText.msz[0] != c)
 					{
 						PopPosition();
-						return FALSE;
+						return false;
 					}
 				}
 				iDone += iTokenLength;
@@ -329,17 +329,17 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 			else
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 		}
 		else
 		{
 			PopPosition();
-			return FALSE;
+			return false;
 		}
 	}
 	PassPosition();
-	return TRUE;
+	return true;
 }
 
 
@@ -347,7 +347,7 @@ BOOL CPreprocessorTokenParser::GetExactDecorator(char* sz, BOOL bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCaseSensitive, BOOL bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCaseSensitive, bool bSkipWhiteSpace)
 {
 	CPPText*	pcText;
 	int			i;
@@ -358,7 +358,7 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	PushPosition();
@@ -369,7 +369,7 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 		if (!mpsCurrent->pcCurrentToken)
 		{
 			PassPosition();
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -382,7 +382,7 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 			if (pcText->mcText.miLen != iLength)
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 
 			if (bCaseSensitive)
@@ -393,7 +393,7 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 					if (pcText->mcText.msz[i] != c)
 					{
 						PopPosition();
-						return FALSE;
+						return false;
 					}
 				}
 			}
@@ -406,18 +406,18 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 					if (c1 != c2)
 					{
 						PopPosition();
-						return FALSE;
+						return false;
 					}
 				}
 			}
 
 			NextToken();
 			PassPosition();
-			return TRUE;
+			return true;
 		}
 	}
 	PopPosition();
-	return FALSE;
+	return false;
 }
 
 
@@ -425,9 +425,9 @@ BOOL CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, BOOL bCase
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClose, CExternalString* pcSequence)
+bool CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClose, CExternalString* pcSequence)
 {
-	BOOL		bResult;
+	bool		bResult;
 	char*		szStart;
 	CPPText*	pcText;
 	int			i;
@@ -456,22 +456,22 @@ BOOL CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClos
 			else
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 
-			bResult = GetExactDecorator(cClose, FALSE);
+			bResult = GetExactDecorator(cClose, false);
 			if (bResult)
 			{
 				pcSequence->msz = szStart;
 				//pcSequence->miLen is co-incidentally correct because the size of the decorator is always 1 and the end not inclusive must be moved on by 1.  Sweet.
 				PassPosition();
-				return TRUE;
+				return true;
 			}
 		}
 	}
 
 	PopPosition();
-	return FALSE;
+	return false;
 }
 
 
@@ -479,13 +479,13 @@ BOOL CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClos
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetStringDoubleQuoted(CExternalString* pcString)
+bool CPreprocessorTokenParser::GetStringDoubleQuoted(CExternalString* pcString)
 {
 	CPPText*	pcText;
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	SkipWhiteSpace();
@@ -497,11 +497,11 @@ BOOL CPreprocessorTokenParser::GetStringDoubleQuoted(CExternalString* pcString)
 			pcString->msz = pcText->mcText.msz+1;
 			pcString->miLen = pcText->mcText.miLen-2;
 			NextToken();
-			return TRUE;
+			return true;
 		}
-		return FALSE;
+		return false;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -510,13 +510,13 @@ BOOL CPreprocessorTokenParser::GetStringDoubleQuoted(CExternalString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, BOOL bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, bool bSkipWhiteSpace)
 {
 	CPPText*	pcText;
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (bSkipWhiteSpace)
@@ -524,7 +524,7 @@ BOOL CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, 
 		SkipWhiteSpace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -536,11 +536,11 @@ BOOL CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, 
 			pcString->msz = pcText->mcText.msz+1;
 			pcString->miLen = pcText->mcText.miLen-2;
 			NextToken();
-			return TRUE;
+			return true;
 		}
-		return FALSE;
+		return false;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -568,14 +568,14 @@ void CPreprocessorTokenParser::SkipWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
+bool CPreprocessorTokenParser::GetFloat(long double* pf)
 {
 	CPPText*				pcText;
 	char					c;
 	uint64	ulliLeft;
 	uint64	ulliRight;
 	int						iSign;
-	BOOL					bResult;
+	bool					bResult;
 	long double				fLeft;
 	long double				fRight;
 	long double				fTemp;
@@ -588,7 +588,7 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (mpsCurrent->pcCurrentToken->IsText())
@@ -607,7 +607,7 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 			else
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 
 			NextToken();
@@ -621,7 +621,7 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 
 		if (bResult)
 		{
-			bResult = GetExactDecorator('.', FALSE);
+			bResult = GetExactDecorator('.', false);
 			if (bResult)
 			{
 				bResult = GetDigits(&ulliRight, &iNumDecimals);
@@ -641,24 +641,24 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 					}
 				}
 				PassPosition();
-				return TRUE;
+				return true;
 			}
 			else
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 		}
 		else
 		{
 			PopPosition();
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		PopPosition();
-		return FALSE;
+		return false;
 	}
 }
 
@@ -667,13 +667,13 @@ BOOL CPreprocessorTokenParser::GetFloat(long double* pf)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, BOOL bTestSign)
+bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhiteSpace, bool bTestSign)
 {	
 	CPPText*				pcText;
 	char					c;
 	uint64	ulli;
 	int						iSign;
-	BOOL					bResult;
+	bool					bResult;
 	int						iNumDecimals;
 
 	PushPosition();
@@ -683,13 +683,13 @@ BOOL CPreprocessorTokenParser::GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, B
 		SkipWhiteSpace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
 	if (!mpsCurrent->pcCurrentToken)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iSign = 1;
@@ -711,7 +711,7 @@ BOOL CPreprocessorTokenParser::GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, B
 				else
 				{
 					PopPosition();
-					return FALSE;
+					return false;
 				}
 
 				NextToken();
@@ -725,29 +725,29 @@ BOOL CPreprocessorTokenParser::GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, B
 
 		if (bResult)
 		{
-			bResult = GetExactDecorator('.', FALSE);
+			bResult = GetExactDecorator('.', false);
 			if (!bResult)
 			{
 				*pulli = ulli;
 				PassPosition();
-				return TRUE;
+				return true;
 			}
 			else
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 		}
 		else
 		{
 			PopPosition();
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		PopPosition();
-		return FALSE;
+		return false;
 	}
 }
 
@@ -756,7 +756,7 @@ BOOL CPreprocessorTokenParser::GetInteger(uint64* pulli, BOOL bSkipWhiteSpace, B
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
+bool CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
 {
 	uint64	ulli;
 	int						i;
@@ -780,10 +780,10 @@ BOOL CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
 			*pulli = ulli;
 			*piNumDecimals = pcText->mcText.miLen;
 			NextToken();
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -791,10 +791,10 @@ BOOL CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
+bool CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 {
 	uint64	iNum;
-	BOOL					bReturn;
+	bool					bReturn;
 	int						i;
 	CPPText*				pcText;
 	int						j;
@@ -803,18 +803,18 @@ BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 	PushPosition();
 	SkipWhiteSpace();
 
-	bReturn = GetExactIdentifier("0", TRUE, FALSE);
+	bReturn = GetExactIdentifier("0", true, false);
 	if (!bReturn)
 	{
 		PopPosition();
-		return FALSE;
+		return false;
 	}
 
-	bReturn = GetExactIdentifier("X", FALSE, FALSE);
+	bReturn = GetExactIdentifier("X", false, false);
 	if (!bReturn)
 	{
 		PopPosition();
-		return FALSE;
+		return false;
 	}
 
 	*pulli = 0;
@@ -827,13 +827,13 @@ BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 			if (i == 0)
 			{
 				PopPosition();
-				return FALSE;
+				return false;
 			}
 			else
 			{
 				*pulli = iNum;
 				PassPosition();
-				return TRUE;
+				return true;
 			}
 		}
 
@@ -862,7 +862,7 @@ BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 					else
 					{
 						PopPosition();
-						return FALSE;
+						return false;
 					}
 				}
 				NextToken();
@@ -872,20 +872,20 @@ BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 				if (i == 0)
 				{
 					PopPosition();
-					return FALSE;
+					return false;
 				}
 				else
 				{
 					*pulli = iNum;
 					PassPosition();
-					return TRUE;
+					return true;
 				}
 			}
 		}
 		else
 		{
 			PopPosition();
-			return FALSE;
+			return false;
 		}
 	}
 }
@@ -895,10 +895,10 @@ BOOL CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
+bool CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 {
 	uint64	iNum;
-	BOOL					bReturn;
+	bool					bReturn;
 	int						i;
 	CExternalString			cString;
 	char					c;
@@ -910,7 +910,7 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 	if (!bReturn)
 	{
 		PopPosition();
-		return FALSE;
+		return false;
 	}
 
 	*pulli = 0;
@@ -920,7 +920,7 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 	if (c != '0')
 	{
 		PopPosition();
-		return FALSE;
+		return false;
 	}
 
 	for (i = 1; i < cString.miLen; i++)
@@ -931,14 +931,14 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 		if (c >= '8')
 		{
 			PopPosition();
-			return FALSE;
+			return false;
 		}
 		iNum += (c - '0');
 	}
 
 	*pulli = iNum;
 	PassPosition();
-	return TRUE;
+	return true;
 }
 
 
@@ -946,7 +946,7 @@ BOOL CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::NextToken(void)
+bool CPreprocessorTokenParser::NextToken(void)
 {
 	CPPTokenListHolder*	pcHolder;
 	int					iIndex;
@@ -965,9 +965,9 @@ BOOL CPreprocessorTokenParser::NextToken(void)
 			AssignCurrent(NULL, -1);
 			MarkUp();
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1071,7 +1071,7 @@ void CPreprocessorTokenParser::AppendRemaining(CChars* psz)
 
 	psMark = macPPHolderMark.Get(0);
 	pcHolder = psMark->pcHolder;
-	AppendRemaining(psz, pcHolder, FALSE);
+	AppendRemaining(psz, pcHolder, false);
 }
 
 
@@ -1079,7 +1079,7 @@ void CPreprocessorTokenParser::AppendRemaining(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* pcHolder, BOOL bAppending)
+bool CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* pcHolder, bool bAppending)
 {
 	int			i;
 	CPPToken*	pcToken;
@@ -1093,14 +1093,14 @@ BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* 
 			pcChild = (CPPTokenListHolder*)pcToken;
 			if (AppendRemaining(psz, pcChild, bAppending))
 			{
-				bAppending = TRUE;
+				bAppending = true;
 			}
 		}
 		else
 		{
 			if (mpsCurrent->pcCurrentToken == pcToken)
 			{
-				bAppending = TRUE;
+				bAppending = true;
 			}
 
 			if (bAppending)
@@ -1117,7 +1117,7 @@ BOOL CPreprocessorTokenParser::AppendRemaining(CChars* psz, CPPTokenListHolder* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::HasToken(void)
+bool CPreprocessorTokenParser::HasToken(void)
 {
 	return mpsCurrent->pcCurrentToken != NULL;
 }
@@ -1127,7 +1127,7 @@ BOOL CPreprocessorTokenParser::HasToken(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::HasTokens(void)
+bool CPreprocessorTokenParser::HasTokens(void)
 {
 	SPPHolderMark*			psMark;
 	CPPTokenListHolder*		pcHolder;
@@ -1152,7 +1152,7 @@ CPPToken* CPreprocessorTokenParser::GetToken(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPreprocessorTokenParser::ToDecortatorString(char* szDest, int iMaxLen, int* piLen)
+bool CPreprocessorTokenParser::ToDecortatorString(char* szDest, int iMaxLen, int* piLen)
 {
 	CPPText*	pcText;
 	int			i;
@@ -1186,10 +1186,10 @@ BOOL CPreprocessorTokenParser::ToDecortatorString(char* szDest, int iMaxLen, int
 
 			PopPosition();
 			*piLen = i+1;
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

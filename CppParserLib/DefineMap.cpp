@@ -44,7 +44,7 @@ void CDefineMap::Kill(void)
 	CDefine*							pcDefine;
 	SIndexTreeMemoryUnsafeIterator		sIter;
 	int64								lli;
-	BOOL								bHasNext;
+	bool								bHasNext;
 
 	bHasNext = mcIDToDefineIndex.StartIteration(&sIter, &pcDefine, &lli);
 	while (bHasNext)
@@ -67,10 +67,10 @@ CDefine* CDefineMap::AddDefine(CExternalString* pcName)
 	CDefine				cDefine;
 	CDefine*			pcDefine;
 	int64				lliID;
-	BOOL				bResult;
+	bool				bResult;
 	SASCIINameIndex*	psNameIndex;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
 	if (psNameIndex == NULL)
 	{
 		lliID = mcNameToIDIndex.Add(pcName->msz, pcName->EndInclusive());
@@ -121,7 +121,7 @@ CDefine* CDefineMap::AddDefine(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(CExternalString* pcName, BOOL bExact)
+CDefine* CDefineMap::GetDefine(CExternalString* pcName, bool bExact)
 {
 	SASCIINameIndex*	psNameIndex;
 	CDefine*			pcDefine;
@@ -148,7 +148,7 @@ CDefine* CDefineMap::GetDefine(CChars* pszName)
 	CExternalString	cExternalString;
 
 	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetDefine(&cExternalString, TRUE);
+	return GetDefine(&cExternalString, true);
 }
 
 
@@ -156,7 +156,7 @@ CDefine* CDefineMap::GetDefine(CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDefine* CDefineMap::GetDefine(char* szName, BOOL bExact)
+CDefine* CDefineMap::GetDefine(char* szName, bool bExact)
 {
 	CExternalString	cExternalString;
 	int				iLen;
@@ -176,7 +176,7 @@ void CDefineMap::RemoveDefine(CExternalString* pcName)
 	SASCIINameIndex*	psNameIndex;
 	CDefine*			pcDefine;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
 	if (psNameIndex)
 	{
 		pcDefine = mcIDToDefineIndex.Get(psNameIndex->mlliID);

@@ -67,9 +67,9 @@ void CPPText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPText::IsText(void)
+bool CPPText::IsText(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -80,7 +80,7 @@ BOOL CPPText::IsText(void)
 char* CPPText::Print(CChars* psz)
 {
 	char	szDest[4];
-	BOOL	bResult;
+	bool	bResult;
 	int		i;
 	char	c;
 
@@ -128,9 +128,9 @@ void CPPText::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPText::HasSource(void)
+bool CPPText::HasSource(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -138,7 +138,7 @@ BOOL CPPText::HasSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPText::Equals(CPPToken* pcOther)
+bool CPPText::Equals(CPPToken* pcOther)
 {
 	CPPText*	pcCast;	
 
@@ -149,11 +149,11 @@ BOOL CPPText::Equals(CPPToken* pcOther)
 		{
 			if (mcText.Equals(&pcCast->mcText))
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -181,9 +181,9 @@ char* CPPText::TextEndInclusive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPText::IsEmpty(void)
+bool CPPText::IsEmpty(void)
 {
-	return FALSE;
+	return false;
 }
 
 

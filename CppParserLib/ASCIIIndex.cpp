@@ -30,7 +30,7 @@ void CASCIIIndex::Kill(void)
 int64 CASCIIIndex::Add(char* sz, char* szLastCharInclusive)
 {
 	int64	lliID;
-	BOOL	bResult;
+	bool	bResult;
 
 	lliID = mcNameToIDIndex.Add(sz, szLastCharInclusive);
 	if (lliID == -1)
@@ -64,7 +64,7 @@ char* CASCIIIndex::Get(int64 lliID, int* piLength)
 {
 	char*	psz;
 	int		iLength;
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcIDToNameIndex.Get(lliID, &psz, &iLength);
 	if (bResult)
@@ -83,7 +83,7 @@ char* CASCIIIndex::Get(int64 lliID, int* piLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int64 CASCIIIndex::Get(char* szText, char* szLastCharInclusive, BOOL bExact)
+int64 CASCIIIndex::Get(char* szText, char* szLastCharInclusive, bool bExact)
 {
 	SASCIINameIndex*	psNameIndex;
 

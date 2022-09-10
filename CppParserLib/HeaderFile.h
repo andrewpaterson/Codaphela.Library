@@ -26,16 +26,16 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CHeaderFile : public CSourceFile
 {
 protected:
-	BOOL	mbSystemFile;
-	BOOL	mbPragmaOnce;
+	bool	mbSystemFile;
+	bool	mbPragmaOnce;
 
 public:
-	void	Init(char* szFullName, BOOL bSystemFile);
+	void	Init(char* szFullName, bool bSystemFile);
 	void	Kill(void);
-	BOOL	IsTranslationUnit(void);
-	BOOL	IsHeader(void);
-	BOOL	IsPragmaOnced(void);
-	BOOL	IsSystemFile(void);
+	bool	IsTranslationUnit(void);
+	bool	IsHeader(void);
+	bool	IsPragmaOnced(void);
+	bool	IsSystemFile(void);
 
 	void	ClearPragmaOnce(void);
 	void	SetPragmaOnce(void);

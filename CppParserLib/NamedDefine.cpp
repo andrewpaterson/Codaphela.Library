@@ -75,7 +75,7 @@ void CNamedDefine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedDefine::IsBacketed(void)
+bool CNamedDefine::IsBacketed(void)
 {
 	return miFlags & NAMED_DEFINE_FLAGS_BRACKETED;
 }
@@ -85,7 +85,7 @@ BOOL CNamedDefine::IsBacketed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedDefine::Equals(CNamedDefine* pcOther)
+bool CNamedDefine::Equals(CNamedDefine* pcOther)
 {
 	if (mszName.Equals(pcOther->mszName))
 	{
@@ -95,12 +95,12 @@ BOOL CNamedDefine::Equals(CNamedDefine* pcOther)
 			{
 				if (maszArguments.Equals(pcOther->GetArguments()))
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -153,7 +153,7 @@ void CNamedDefine::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayNamedDefines::Equals(CArrayNamedDefines* pcDefines)
+bool CArrayNamedDefines::Equals(CArrayNamedDefines* pcDefines)
 {
 	int				i;
 	CNamedDefine*	pcThis;
@@ -161,7 +161,7 @@ BOOL CArrayNamedDefines::Equals(CArrayNamedDefines* pcDefines)
 
 	if (pcDefines->miUsedElements != miUsedElements)
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (i = 0; i < miUsedElements; i++)
@@ -171,10 +171,10 @@ BOOL CArrayNamedDefines::Equals(CArrayNamedDefines* pcDefines)
 
 		if (!pcThis->Equals(pcOther))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -199,7 +199,7 @@ void CArrayNamedDefines::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedDefine::IsUndeffed(void)
+bool CNamedDefine::IsUndeffed(void)
 {
 	return FixBool(miFlags & NAMED_DEFINE_FLAGS_UNDEFFED);
 }

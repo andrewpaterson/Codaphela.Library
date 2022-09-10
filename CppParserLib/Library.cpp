@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLibrary::Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap)
+void CLibrary::Init(char* szName, char* szBaseDir, bool bIncludeSubDirectories, CHeaderFileMap* pcHeaderFileMap)
 {
 	CFileUtil	cFileUtil;
 	CChars		szPath;
@@ -39,7 +39,7 @@ void CLibrary::Init(char* szName, char* szBaseDir, BOOL bIncludeSubDirectories, 
 	szPath.Kill();
 	mcConfigs.Init();
 	mcTranslationUnits.Init(this);
-	mcHeaderNameMap.Init(mszBaseDirectory.Text(), pcHeaderFileMap, bIncludeSubDirectories, FALSE);
+	mcHeaderNameMap.Init(mszBaseDirectory.Text(), pcHeaderFileMap, bIncludeSubDirectories, false);
 }
 
 
@@ -70,7 +70,7 @@ void CLibrary::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTranslationUnit* CLibrary::AddTranslationUnit(char* szRelativeNameFile, BOOL bLogIncludes, BOOL bLogBlocks)
+CTranslationUnit* CLibrary::AddTranslationUnit(char* szRelativeNameFile, bool bLogIncludes, bool bLogBlocks)
 {
 	return mcTranslationUnits.AddFile(szRelativeNameFile, bLogIncludes, bLogBlocks);
 }
@@ -90,7 +90,7 @@ CHeaderFile* CLibrary::AddHeaderFile(char* szRelativeNameFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLibrary::AddAllTranslationUnitsInBaseDir(BOOL bLogInlucdes, BOOL bLogBlocks)
+void CLibrary::AddAllTranslationUnitsInBaseDir(bool bLogInlucdes, bool bLogBlocks)
 {
 	mcTranslationUnits.AddAllFiles(&mszBaseDirectory, bLogInlucdes, bLogBlocks);
 }
@@ -140,11 +140,11 @@ CTranslationUnit* CLibrary::GetFirstTranslationUnit(SCFileIter* psIter)
 	psIter->pcLast = mcTranslationUnits.GetFirst();
 	if (psIter->pcLast)
 	{
-		psIter->bValid = TRUE;
+		psIter->bValid = true;
 	}
 	else
 	{
-		psIter->bValid = FALSE;
+		psIter->bValid = false;
 	}
 	return psIter->pcLast;
 }
@@ -168,7 +168,7 @@ CTranslationUnit* CLibrary::GetNextTranslationUnit(SCFileIter* psIter)
 	}
 	else
 	{
-		psIter->bValid = FALSE;
+		psIter->bValid = false;
 		return NULL;
 	}
 }
@@ -188,7 +188,7 @@ char* CLibrary::GetBaseDir(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLibrary::IsNamed(char* szName)
+bool CLibrary::IsNamed(char* szName)
 {
 	return mszName.Equals(szName);
 }

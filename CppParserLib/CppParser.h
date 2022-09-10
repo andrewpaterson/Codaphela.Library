@@ -49,14 +49,14 @@ public:
 	void 		Init(void);
 	void 		Kill(void);
 	void 		BuildAST(char* szSourze);
-	BOOL		ReservedWord(void);
+	bool		ReservedWord(void);
 	CCPPReturn	ClassDecl(void);
 	CCPPReturn	EnumDecl(void);
 	CCPPReturn	VariablesDecl(void);
 	CCPPReturn	ListDecl(void);
-	CCPPReturn	FunctionParametersDecl(BOOL bLooksLikeConstructor);
-	CCPPReturn	FunctionPointerDecl(BOOL bAllowsName);
-	CCPPReturn	FunctionDecl(BOOL* pbDefn);
+	CCPPReturn	FunctionParametersDecl(bool bLooksLikeConstructor);
+	CCPPReturn	FunctionPointerDecl(bool bAllowsName);
+	CCPPReturn	FunctionDecl(bool* pbDefn);
 	CCPPReturn	FunctionDefn(void);
 	CCPPReturn	SingleVariableDeclaration(void);
 	CCPPReturn	DeclInitialisers(void);
@@ -70,7 +70,7 @@ public:
 	CCPPReturn	ArrayDecl(void);
 	CCPPReturn	Expression(void);
 	CCPPReturn	Expressable(void);
-	CCPPReturn	Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast);
+	CCPPReturn	Operator(ESimpleOperators* peOp, bool bEmptyTypeCast);
 	CCPPReturn	SimpleOperator(ESimpleOperators* peOp);
 	CCPPReturn	Parentheses(void);
 	CCPPReturn	Constant(void);
@@ -83,11 +83,11 @@ public:
 	CCPPReturn	DecimalInteger(void);
 	CCPPReturn	Arguments(void);  // arguments are more properly thought of as the actual values or references assigned to the parameter variables
 	CCPPReturn	Aggregate(int* piExpressions);
-	CCPPReturn	TypeCast(BOOL bEmpty);
+	CCPPReturn	TypeCast(bool bEmpty);
 	CCPPReturn	Pointers(int* piCount);
-	CCPPReturn	PointersOrReference(int* piPointerCount, BOOL* pbReference);
-	CCPPReturn	Type(ESimpleTypes* peSpec, int* piCount, BOOL bAllowDesctructor);
-	CCPPReturn	TypeOrFunctionPointer(BOOL bAllowsName);
+	CCPPReturn	PointersOrReference(int* piPointerCount, bool* pbReference);
+	CCPPReturn	Type(ESimpleTypes* peSpec, int* piCount, bool bAllowDesctructor);
+	CCPPReturn	TypeOrFunctionPointer(bool bAllowsName);
 	CCPPReturn	ClassDefn(void);
 	CCPPReturn	ClassInheritance(void);
 	CCPPReturn	ClassBody(void);
@@ -119,7 +119,7 @@ public:
 	CCPPReturn	EnumSpec(void);
 	CCPPReturn	EnumBody(void);
 	CCPPReturn	EnumValue(void);
-	CCPPReturn	CompoundName(int* piCount, BOOL bAllowDesctructor);
+	CCPPReturn	CompoundName(int* piCount, bool bAllowDesctructor);
 	CCPPReturn	Reference(void);
 	CCPPReturn	ArrayAccess(void);
 	CCPPReturn	TemplateDecl(void);

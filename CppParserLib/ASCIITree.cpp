@@ -20,7 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Log.h"
+#include "BaseLib/Logger.h"
 #include "ASCIINameIndex.h"
 #include "ASCIITree.h"
 
@@ -52,7 +52,7 @@ void CASCIITree::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 {
-	BOOL				bResult;
+	bool				bResult;
 	int					iDataSize;
 	SASCIINameIndex*	psData;
 	int64				lliID;
@@ -72,13 +72,13 @@ int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 		else
 		{
 			gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(mlliID), "].", NULL);
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(mlliID), "].  Key already exists.", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -87,7 +87,7 @@ int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive, BOOL bExact)
+SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive, bool bExact)
 {
 	if (bExact)
 	{
@@ -104,7 +104,7 @@ SASCIINameIndex* CASCIITree::Get(char* szText, char* szLastCharInclusive, BOOL b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CASCIITree::Remove(char* szText, char* szLastCharInclusive)
+bool CASCIITree::Remove(char* szText, char* szLastCharInclusive)
 {
 	return mcIndex.Remove(szText, szLastCharInclusive);
 }
@@ -126,7 +126,7 @@ int CASCIITree::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int64 CASCIITree::StartIteration(SIndexTreeMemoryUnsafeIterator* psIter)
 {
-	BOOL				bResult;
+	bool				bResult;
 	SASCIINameIndex*	psNameIndex;
 
 	bResult = mcIndex.StartIteration(psIter, (void**)&psNameIndex, NULL, NULL, NULL, 0);
@@ -148,7 +148,7 @@ int64 CASCIITree::StartIteration(SIndexTreeMemoryUnsafeIterator* psIter)
 int64 CASCIITree::Iterate(SIndexTreeMemoryUnsafeIterator* psIter)
 {
 	SASCIINameIndex*	psNameIndex;
-	BOOL				bResult;
+	bool				bResult;
 
 	bResult = mcIndex.Iterate(psIter, (void**)&psNameIndex, NULL, NULL, NULL, 0);
 	if (bResult)
@@ -166,7 +166,7 @@ int64 CASCIITree::Iterate(SIndexTreeMemoryUnsafeIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CASCIITree::IsEmpty(void)
+bool CASCIITree::IsEmpty(void)
 {
 	return mcIndex.NumElements() == 0;
 }
@@ -176,7 +176,7 @@ BOOL CASCIITree::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CASCIITree::Contains(char* szText)
+bool CASCIITree::Contains(char* szText)
 {
 	return mcIndex.HasKey(szText);
 }

@@ -31,13 +31,13 @@ class CCPPToken
 public:
 	virtual void Init(void) =0;
 	virtual void Kill(void) =0;
-	virtual BOOL IsReservedWord(void);
-	virtual BOOL IsIdentifier(void);
-	virtual BOOL IsNumber(void);
-	virtual BOOL IsString(void);
-	virtual BOOL IsChar(void);
-	virtual BOOL IsBool(void);
-	virtual BOOL IsHelper(void);
+	virtual bool IsReservedWord(void);
+	virtual bool IsIdentifier(void);
+	virtual bool IsNumber(void);
+	virtual bool IsString(void);
+	virtual bool IsChar(void);
+	virtual bool IsBool(void);
+	virtual bool IsHelper(void);
 	virtual void Append(CChars* psz, CCPPTokeniser* pcTokeniser) =0;
 };
 

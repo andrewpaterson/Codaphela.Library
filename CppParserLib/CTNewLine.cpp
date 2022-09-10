@@ -54,8 +54,8 @@ void CCTNewLine::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTNewLine::IsHelper(void)
+bool CCTNewLine::IsHelper(void)
 {
-	return TRUE;
+	return true;
 }
 

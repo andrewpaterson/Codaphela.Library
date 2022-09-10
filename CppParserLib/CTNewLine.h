@@ -29,7 +29,7 @@ public:
 	CPP_TOKEN_CONSTRUCT(CCTNewLine);
 	void Init(void);
 	void Kill(void);
-	BOOL IsHelper(void);
+	bool IsHelper(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 

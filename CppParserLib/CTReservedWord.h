@@ -32,7 +32,7 @@ public:
 	void Init(void);
 	void Init(int64 iReservedWord);
 	void Kill(void);
-	BOOL IsReservedWord(void);
+	bool IsReservedWord(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);
 };
 

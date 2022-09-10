@@ -36,7 +36,7 @@ void CPPReplacement::Init(int iLine, int iColumn, char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, BOOL bVariadic)
+void CPPReplacement::Init(int64 lliDefineID, int iArgIndex, int iLine, int iColumn, char* szFileName, bool bVariadic)
 {
 	CPPToken::Init(iLine, iColumn, szFileName);
 	miArgIndex = iArgIndex;
@@ -75,9 +75,9 @@ char* CPPReplacement::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPReplacement::IsReplacement(void)
+bool CPPReplacement::IsReplacement(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -101,7 +101,7 @@ void CPPReplacement::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPReplacement::Equals(CPPToken* pcOther)
+bool CPPReplacement::Equals(CPPToken* pcOther)
 {
 	CPPReplacement*	pcCast;	
 
@@ -113,11 +113,11 @@ BOOL CPPReplacement::Equals(CPPToken* pcOther)
 			//I'm assuming it's safe to ignore this until such time as it comes back and bites me.
 			//if (miDefineIndex == pcCast->miDefineIndex)
 			//{
-				return TRUE;
+				return true;
 			//}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -125,9 +125,9 @@ BOOL CPPReplacement::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPReplacement::IsEmpty(void)
+bool CPPReplacement::IsEmpty(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -135,7 +135,7 @@ BOOL CPPReplacement::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPPReplacement::IsVariadic(void)
+bool CPPReplacement::IsVariadic(void)
 {
 	return mbVariadic;
 }

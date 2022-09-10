@@ -56,9 +56,9 @@ void CCTChar::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTChar::IsChar(void)
+bool CCTChar::IsChar(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -69,7 +69,7 @@ BOOL CCTChar::IsChar(void)
 void CCTChar::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 {
 	char	szDest[4];
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = GetEscapeString(mcChar, szDest);
 	if (bResult)

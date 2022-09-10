@@ -55,9 +55,9 @@ void CCTBoolean::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTBoolean::IsBool(void)
+bool CCTBoolean::IsBool(void)
 {
-	return TRUE;
+	return true;
 }
 
 

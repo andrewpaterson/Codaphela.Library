@@ -45,14 +45,14 @@ public:
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, int iLength);
 	void 			Init(EPreprocessorText eType, int iLine, int iColumn, char* szFileName, char* szStart, char* szEndExclusive);
 	void 			Kill(void);
-	BOOL 			IsText(void);
+	bool 			IsText(void);
 	char* 			Print(CChars* psz);
 	void 			Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	virtual BOOL	HasSource(void);
-	BOOL			Equals(CPPToken* pcOther);
+	virtual bool	HasSource(void);
+	bool			Equals(CPPToken* pcOther);
 	virtual	char*	TextStart(void);
 	virtual	char*	TextEndInclusive(void);
-	BOOL			IsEmpty(void);
+	bool			IsEmpty(void);
 	int				Length(void);
 };
 

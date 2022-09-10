@@ -44,7 +44,7 @@ void CSpecialOperatorMap::Kill(void)
 	CSpecialOperator* pcSpecialOperator;
 	SIndexTreeMemoryUnsafeIterator		sIter;
 	int64								lli;
-	BOOL								bHasNext;
+	bool								bHasNext;
 
 	bHasNext = mcIDToSpecialOperatorIndex.StartIteration(&sIter, &pcSpecialOperator, &lli);
 	while (bHasNext)
@@ -68,10 +68,10 @@ CSpecialOperator* CSpecialOperatorMap::AddSpecialOperator(char* szName, EPreproc
 	CSpecialOperator	cSpecialOperator;
 	CSpecialOperator*	pcSpecialOperator;
 	int64				lliID;
-	BOOL				bResult;
+	bool				bResult;
 	SASCIINameIndex*	psNameIndex;
 
-	psNameIndex = mcNameToIDIndex.Get(szName, NULL, TRUE);
+	psNameIndex = mcNameToIDIndex.Get(szName, NULL, true);
 	if (psNameIndex == NULL)
 	{
 		lliID = mcNameToIDIndex.Add(szName);
@@ -106,7 +106,7 @@ CSpecialOperator* CSpecialOperatorMap::AddSpecialOperator(char* szName, EPreproc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CExternalString* pcName, BOOL bExact)
+CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CExternalString* pcName, bool bExact)
 {
 	SASCIINameIndex* psNameIndex;
 	CSpecialOperator* pcSpecialOperator;
@@ -133,7 +133,7 @@ CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CChars* pszName)
 	CExternalString	cExternalString;
 
 	cExternalString.Init(pszName->Text(), pszName->Length());
-	return GetSpecialOperator(&cExternalString, TRUE);
+	return GetSpecialOperator(&cExternalString, true);
 }
 
 
@@ -141,7 +141,7 @@ CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(CChars* pszName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(char* szName, BOOL bExact)
+CSpecialOperator* CSpecialOperatorMap::GetSpecialOperator(char* szName, bool bExact)
 {
 	CExternalString	cExternalString;
 	int				iLen;
@@ -161,7 +161,7 @@ void CSpecialOperatorMap::RemoveSpecialOperator(CExternalString* pcName)
 	SASCIINameIndex* psNameIndex;
 	CSpecialOperator* pcSpecialOperator;
 
-	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), TRUE);
+	psNameIndex = mcNameToIDIndex.Get(pcName->msz, pcName->EndInclusive(), true);
 	if (psNameIndex)
 	{
 		pcSpecialOperator = mcIDToSpecialOperatorIndex.Get(psNameIndex->mlliID);

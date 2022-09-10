@@ -30,7 +30,7 @@ void CCTLongLong::Init(void)
 {
 	meType = CTNT_LongLong;
 	mcValue = 0;
-	mbSigned = TRUE;
+	mbSigned = true;
 }
 
 
@@ -42,7 +42,7 @@ void CCTLongLong::Init(unsigned long long int ulli)
 {
 	meType = CTNT_LongLong;
 	mcValue = ulli;
-	mbSigned = TRUE;
+	mbSigned = true;
 }
 
 
@@ -59,7 +59,7 @@ void CCTLongLong::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCTLongLong::IsSigned(void)
+bool CCTLongLong::IsSigned(void)
 {
 	return mbSigned;
 }

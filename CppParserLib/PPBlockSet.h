@@ -35,18 +35,18 @@ protected:
 	int					miLine;
 	int					miColumn;
 	int					miBlock;
-	BOOL				mbTextBlocks;
+	bool				mbTextBlocks;
 
 	//If TextBlocks then the following are valid.  Otherwise this is a # directive block.
 	CArrayPPBlocks		mapcBlocks;
 
 public:
-	void 				Init(int iLine, int iBlock, BOOL bTextBlocks);
+	void 				Init(int iLine, int iBlock, bool bTextBlocks);
 	void 				Kill(void);
 	CPPBlock*			GetMatchingBlock(CPPBlock* pcOtherBlock);
 	void				AddBlock(CPPBlock* pcBlock);
-	BOOL				IsLastToken(int iToken);
-	BOOL				IsDirective(void);
+	bool				IsLastToken(int iToken);
+	bool				IsDirective(void);
 	CPPTokenList*		GetUnprocssedTokens(void);
 	int					Line(void);
 	int					Column(void);

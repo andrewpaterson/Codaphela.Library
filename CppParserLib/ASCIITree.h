@@ -38,17 +38,17 @@ public:
 
 	int64				Add(char* szText, char* szLastCharInclusive = NULL);
 
-	SASCIINameIndex*	Get(char* szText, char* szLastCharInclusive, BOOL bExact);
+	SASCIINameIndex*	Get(char* szText, char* szLastCharInclusive, bool bExact);
 
-	BOOL				Remove(char* szText, char* szLastCharInclusive = NULL);
+	bool				Remove(char* szText, char* szLastCharInclusive = NULL);
 
 	int					NumElements(void);
 
 	int64				StartIteration(SIndexTreeMemoryUnsafeIterator* psIter);
 	int64				Iterate(SIndexTreeMemoryUnsafeIterator* psIter);
 
-	BOOL				IsEmpty(void);
-	BOOL				Contains(char* szText);
+	bool				IsEmpty(void);
+	bool				Contains(char* szText);
 };
 
 

@@ -426,7 +426,7 @@ CCPPReturn CCPPParser::ClassBody(void)
 	PARSE_PUSH("ClassBody");
 
 	CCPPReturn	cReturn;
-	BOOL		bDefn;
+	bool		bDefn;
 
 	for (;;)
 	{
@@ -506,7 +506,7 @@ CCPPReturn CCPPParser::NamespaceBody(void)
 	PARSE_PUSH("NamespaceBody");
 
 	CCPPReturn	cReturn;
-	BOOL		bDefn;
+	bool		bDefn;
 
 	for (;;)
 	{
@@ -804,7 +804,7 @@ CCPPReturn CCPPParser::EnumDecl(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::FunctionPointerDecl(BOOL bAllowsName)
+CCPPReturn CCPPParser::FunctionPointerDecl(bool bAllowsName)
 {
 	PARSE_PUSH("FunctionPointerDecl");
 
@@ -815,7 +815,7 @@ CCPPReturn CCPPParser::FunctionPointerDecl(BOOL bAllowsName)
 
 	mcParser.PushPosition();
 
-	cReturn = Type(&eSpec, &iPointers, FALSE);
+	cReturn = Type(&eSpec, &iPointers, false);
 	if (cReturn.IsTrue())
 	{
 		tResult = mcParser.GetExactCharacter('(');
@@ -831,7 +831,7 @@ CCPPReturn CCPPParser::FunctionPointerDecl(BOOL bAllowsName)
 				tResult = mcParser.GetExactCharacter(')');
 				if (tResult == TRITRUE)
 				{
-					cReturn = FunctionParametersDecl(FALSE);
+					cReturn = FunctionParametersDecl(false);
 					if (cReturn.IsTrue())
 					{
 						mcParser.PassPosition();
@@ -858,7 +858,7 @@ CCPPReturn CCPPParser::VariablesDecl(void)
 	CCPPReturn			cReturn;
 	TRISTATE			tResult;
 
-	cReturn = FunctionPointerDecl(TRUE);
+	cReturn = FunctionPointerDecl(true);
 	if (cReturn.IsTrue())
 	{
 		tResult = mcParser.GetExactCharacter(';');
@@ -893,7 +893,7 @@ CCPPReturn CCPPParser::ListDecl(void)
 
 	mcParser.PushPosition();
 
-	cReturn = Type(&eSpec, &iPointers, FALSE);
+	cReturn = Type(&eSpec, &iPointers, false);
 	if (cReturn.IsTrue())
 	{
 		for (;;)
@@ -1117,7 +1117,7 @@ CCPPReturn CCPPParser::Name(void)
 	TRISTATE	tReturn;
 	int			iLength;
 	char*		sz;
-	BOOL		bResult;
+	bool		bResult;
 
 	mcParser.PushPosition();
 	bResult = ReservedWord();
@@ -1483,8 +1483,8 @@ CCPPReturn CCPPParser::Constant(void)
 	cReturn = DoubleConst();
 	if (cReturn.IsTrue())
 	{
-		tResult = mcParser.GetExactCharacter('f', FALSE);
-		tResult = mcParser.GetExactCharacter('F', FALSE);
+		tResult = mcParser.GetExactCharacter('f', false);
+		tResult = mcParser.GetExactCharacter('F', false);
 		PARSE_POP(CCPPReturn::True());
 	}
 
@@ -1508,10 +1508,10 @@ CCPPReturn CCPPParser::DoubleConst(void)
 	tResult = mcParser.GetFloat(&f);
 	if (tResult == TRITRUE)
 	{
-		tResult = mcParser.GetExactCaseInsensitiveCharacter('e', FALSE);
+		tResult = mcParser.GetExactCaseInsensitiveCharacter('e', false);
 		if (tResult == TRITRUE)
 		{
-			tResult = mcParser.GetInteger(&iExponent, &iTemp, FALSE);
+			tResult = mcParser.GetInteger(&iExponent, &iTemp, false);
 			if (tResult == TRITRUE)
 			{
 				PARSE_POP(CCPPReturn::True());
@@ -1659,7 +1659,7 @@ CCPPReturn CCPPParser::DecimalInteger(void)
 
 	mcParser.PushPosition();
 
-	tResult  = mcParser.GetDigits(&ulli, &iSign, &iNumDigits, TRUE, FALSE);
+	tResult  = mcParser.GetDigits(&ulli, &iSign, &iNumDigits, true, false);
 	if (tResult == TRITRUE)
 	{
 		//Make sure there are no decimals.
@@ -1733,9 +1733,9 @@ CCPPReturn CCPPParser::IntegerConstType(void)
 
 	TRISTATE tResult;
 	
-	tResult = mcParser.GetExactCaseInsensitiveCharacter('U', FALSE);
-	tResult = mcParser.GetExactCaseInsensitiveCharacter('L', FALSE);
-	tResult = mcParser.GetExactCaseInsensitiveCharacter('L', FALSE);
+	tResult = mcParser.GetExactCaseInsensitiveCharacter('U', false);
+	tResult = mcParser.GetExactCaseInsensitiveCharacter('L', false);
+	tResult = mcParser.GetExactCaseInsensitiveCharacter('L', false);
 
 	PARSE_POP(CCPPReturn::True());
 }
@@ -1799,7 +1799,7 @@ CCPPReturn CCPPParser::Arguments(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::Operator(ESimpleOperators* peOp, BOOL bEmptyTypeCast)
+CCPPReturn CCPPParser::Operator(ESimpleOperators* peOp, bool bEmptyTypeCast)
 {
 	PARSE_PUSH("Operator");
 
@@ -1901,7 +1901,7 @@ CCPPReturn CCPPParser::TemplateParameters(void)
 		for (;;)
 		{
 			//I bet it's possibe to use a function pointer declaration here too...
-			cReturn = Type(&eSimpleType, &iPointerCount, FALSE);
+			cReturn = Type(&eSimpleType, &iPointerCount, false);
 			tResult = mcParser.GetExactCharacter(',');
 			if (tResult != TRITRUE)
 			{
@@ -1930,7 +1930,7 @@ CCPPReturn CCPPParser::TemplateParameters(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::FunctionParametersDecl(BOOL bLooksLikeConstructor)
+CCPPReturn CCPPParser::FunctionParametersDecl(bool bLooksLikeConstructor)
 {
 	PARSE_PUSH("FunctionParametersDecl");
 
@@ -1972,7 +1972,7 @@ CCPPReturn CCPPParser::FunctionParametersDecl(BOOL bLooksLikeConstructor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::FunctionDecl(BOOL* pbDefn)
+CCPPReturn CCPPParser::FunctionDecl(bool* pbDefn)
 {
 	PARSE_PUSH("FunctionDecl");
 
@@ -1982,22 +1982,22 @@ CCPPReturn CCPPParser::FunctionDecl(BOOL* pbDefn)
 	TRISTATE			tResult;
 	ESimpleTypes		eSpec;
 	int					iPointers;
-	BOOL				bLooksLikeConstructor;
+	bool				bLooksLikeConstructor;
 	int					iNameCount;
 
 	mcParser.PushPosition();
 
-	*pbDefn = FALSE;
+	*pbDefn = false;
 
 	//Thankfully it's not possible to return a function pointer declaration.
-	cType = Type(&eSpec, &iPointers, TRUE);
-	cName = CompoundName(&iNameCount, FALSE);
+	cType = Type(&eSpec, &iPointers, true);
+	cName = CompoundName(&iNameCount, false);
 
-	bLooksLikeConstructor = FALSE;
+	bLooksLikeConstructor = false;
 	if (cName.IsNotFound() && cType.IsTrue() && (eSpec == ST_notsimple))
 	{
 		//Remember that in this case the type has swallowed the name
-		bLooksLikeConstructor = TRUE;
+		bLooksLikeConstructor = true;
 	}
 
 	cReturn = FunctionParametersDecl(bLooksLikeConstructor);
@@ -2006,7 +2006,7 @@ CCPPReturn CCPPParser::FunctionDecl(BOOL* pbDefn)
 		tResult = mcParser.GetExactCharacter(';');
 		if (tResult == TRITRUE)
 		{
-			*pbDefn = FALSE;
+			*pbDefn = false;
 			mcParser.PassPosition();
 			PARSE_POP(CCPPReturn::True());
 		}
@@ -2017,7 +2017,7 @@ CCPPReturn CCPPParser::FunctionDecl(BOOL* pbDefn)
 		}
 		else 
 		{
-			*pbDefn = TRUE;
+			*pbDefn = true;
 			mcParser.PassPosition();
 			PARSE_POP(CCPPReturn::True());
 		}
@@ -2179,7 +2179,7 @@ CCPPReturn CCPPParser::SimpleOperator(ESimpleOperators* peOp)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::TypeCast(BOOL bEmpty)
+CCPPReturn CCPPParser::TypeCast(bool bEmpty)
 {
 	PARSE_PUSH("TypeCast");
 
@@ -2193,7 +2193,7 @@ CCPPReturn CCPPParser::TypeCast(BOOL bEmpty)
 	{
 		if (!bEmpty)
 		{
-			cReturn = TypeOrFunctionPointer(FALSE);
+			cReturn = TypeOrFunctionPointer(false);
 			if (cReturn.IsNotFound())
 			{
 				Expected("Type");
@@ -2227,7 +2227,7 @@ CCPPReturn CCPPParser::TypeCast(BOOL bEmpty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::TypeOrFunctionPointer(BOOL bAllowsName)
+CCPPReturn CCPPParser::TypeOrFunctionPointer(bool bAllowsName)
 {
 	PARSE_PUSH("TypeOrFunctionPointer");
 
@@ -2244,7 +2244,7 @@ CCPPReturn CCPPParser::TypeOrFunctionPointer(BOOL bAllowsName)
 		PARSE_POP(CCPPReturn::True());
 	}
 
-	cReturn = Type(&eType, &iPointerCount, FALSE);
+	cReturn = Type(&eType, &iPointerCount, false);
 	if (cReturn.IsTrue())
 	{
 		if (bAllowsName)
@@ -2264,7 +2264,7 @@ CCPPReturn CCPPParser::TypeOrFunctionPointer(BOOL bAllowsName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOOL bAllowDesctructor)
+CCPPReturn CCPPParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, bool bAllowDesctructor)
 {
 	PARSE_PUSH("Type");
 
@@ -2273,7 +2273,7 @@ CCPPReturn CCPPParser::Type(ESimpleTypes* peSimpleType, int* piPointerCount, BOO
 	int					iSimpleTypes;
 	int					iSimpleModifiers;
 	ESimpleModifiers	eSimpleModifier;
-	BOOL				bRef;
+	bool				bRef;
 
 	iSimpleModifiers = 0;
 	for (;;)
@@ -2346,7 +2346,7 @@ CCPPReturn CCPPParser::Pointers(int* piPointerCount)
 		(*piPointerCount)++;
 		for (;;)
 		{
-			tResult = mcParser.GetExactCharacter('*', FALSE);
+			tResult = mcParser.GetExactCharacter('*', false);
 			if (tResult != TRITRUE)
 			{
 				break;
@@ -2370,7 +2370,7 @@ CCPPReturn CCPPParser::Pointers(int* piPointerCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::PointersOrReference(int* piPointerCount, BOOL* pbReference)
+CCPPReturn CCPPParser::PointersOrReference(int* piPointerCount, bool* pbReference)
 {
 	PARSE_PUSH("PointersOrReference");
 
@@ -2379,10 +2379,10 @@ CCPPReturn CCPPParser::PointersOrReference(int* piPointerCount, BOOL* pbReferenc
 
 	tResult = mcParser.GetExactCharacter('&');
 	*piPointerCount = 0;
-	*pbReference = FALSE;
+	*pbReference = false;
 	if (tResult == TRITRUE)
 	{
-		*pbReference = TRUE;
+		*pbReference = true;
 		PARSE_POP(CCPPReturn::True());
 	}
 	else if (tResult == TRIERROR)
@@ -2449,7 +2449,7 @@ CCPPReturn CCPPParser::Parameter(void)
 		PARSE_POP(CCPPReturn::True());
 	}
 
-	cReturn = TypeOrFunctionPointer(TRUE);
+	cReturn = TypeOrFunctionPointer(true);
 	if (cReturn.IsTrue())
 	{
 		tResult = mcParser.GetExactCharacter('=');
@@ -2910,7 +2910,7 @@ CCPPReturn CCPPParser::BlockStatement(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCPPParser::ReservedWord(void)
+bool CCPPParser::ReservedWord(void)
 {
 	TRISTATE		tResult;
 	int				i;
@@ -2922,10 +2922,10 @@ BOOL CCPPParser::ReservedWord(void)
 		tResult = mcParser.GetExactIdentifier(szReservedWord);
 		if (tResult == TRITRUE)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -3075,7 +3075,7 @@ CCPPReturn CCPPParser::EnumValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCPPReturn CCPPParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
+CCPPReturn CCPPParser::CompoundName(int* piNameCount, bool bAllowDesctructor)
 {
 	PARSE_PUSH("CompoundName");
 
@@ -3135,8 +3135,8 @@ CCPPReturn CCPPParser::CompoundName(int* piNameCount, BOOL bAllowDesctructor)
 		tOperator = mcParser.GetExactIdentifier("operator");
 		if (tOperator == TRITRUE)
 		{
-			cReturn = Type(&eCastType, &iPointers, FALSE);
-			cReturn = Operator(&eOp, TRUE);
+			cReturn = Type(&eCastType, &iPointers, false);
+			cReturn = Operator(&eOp, true);
 			if (cReturn.IsNotFound())
 			{
 				Expected("Operator");
@@ -3358,7 +3358,7 @@ CCPPReturn CCPPParser::TypedefDecl(void)
 		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	cReturn = TypeOrFunctionPointer(TRUE);
+	cReturn = TypeOrFunctionPointer(true);
 	if (cReturn.IsNotFound())
 	{
 		Expected("Type");
@@ -3446,7 +3446,7 @@ CCPPReturn CCPPParser::TemplateCompilation(void)
 		PARSE_POP(CCPPReturn::NotFound());
 	}
 
-	cReturn = TypeOrFunctionPointer(TRUE);
+	cReturn = TypeOrFunctionPointer(true);
 	if (cReturn.IsNotFound())
 	{
 		Expected("Type");
@@ -3785,7 +3785,7 @@ CCPPReturn CCPPParser::Using(void)
 	}
 	else if (tResult == TRITRUE)
 	{
-		cReturn = CompoundName(&iCount, FALSE);
+		cReturn = CompoundName(&iCount, false);
 		if (cReturn.IsNotFound())
 		{
 			Expected("Compound Name");
@@ -3796,7 +3796,7 @@ CCPPReturn CCPPParser::Using(void)
 	}
 	else
 	{
-		cReturn = CompoundName(&iCount, FALSE);
+		cReturn = CompoundName(&iCount, false);
 		if (cReturn.IsNotFound())
 		{
 			Expected("Compound Name");

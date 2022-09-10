@@ -110,7 +110,7 @@ void CDefineArguments::Remove(int64 lliDefineID)
 		if (psDefineArg->mlliDefineID == lliDefineID)
 		{
 			psDefineArg->macTokenArguments.Kill();
-			mcDefineToArguments.RemoveAt(i, FALSE);
+			mcDefineToArguments.RemoveAt(i, false);
 			return;
 		}
 	}
