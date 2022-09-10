@@ -12,20 +12,18 @@
 uint16 CFatVolume::Mount(CFileDrive* device)
 {
 	bool					bSuccess;
-	SFatBIOSParameterBlock*				bpb;
-	uint32					hidden_sectors = 0;
-	SFatPartitionEntry*		partition_entry;
-	char					partitions_tried = 0;
-	char					label[12];
-	uint32					fsinfo_sector;
+	SFatBIOSParameterBlock*	psBPB;
+	uint32					uiHiddenSectors = 0;
+	SFatPartitionEntry*		sPartitionEntry;
+	uint8					uiPartitionsTtried = 0;
+	char					szLabel[12];
+	uint32					uiFileSystemInfoSector;
 	uint8*					uiBuffer = mauiFatSharedBuffer;
 
 	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
-	mpsVolume = &msVolume;
-
 	// set the null terminator.
-	label[11] = 0;
+	szLabel[11] = 0;
 
 	// save the storage device handle
 	mpcDevice = device;
@@ -41,24 +39,24 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 	}
 
 	// set the partition entry pointer
-	partition_entry = (SFatPartitionEntry*)(uiBuffer + 0x1BE);
+	sPartitionEntry = (SFatPartitionEntry*)(uiBuffer + 0x1BE);
 
 	for (;;)
 	{
 		// if we've already tried to mount the mpsVolume as partitionless
 		// try to mount the next partition
-		if (partitions_tried)
+		if (uiPartitionsTtried)
 		{
 			// if we've already tried all 4 partitions then we're
 			// out of luck
-			if (partitions_tried > 4)
+			if (uiPartitionsTtried > 4)
 			{
 				return FAT_INVALID_FAT_VOLUME;
 			}
 
 			// if we've tried to mount a partition mpsVolume (not the unpartioned one)
 			// then we must reload sector 0 (MBR)
-			if (partitions_tried > 1)
+			if (uiPartitionsTtried > 1)
 			{
 				// retrieve the boot sector (sector 0) from the storage device
 				bSuccess = mpcDevice->Read(0x0, uiBuffer);
@@ -68,22 +66,22 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 				}
 
 				// move to the next partition entry
-				partition_entry++;
+				sPartitionEntry++;
 			}
 
 			// remember how many sectors before this partition
-			hidden_sectors = partition_entry->lba_first_sector;
+			uiHiddenSectors = sPartitionEntry->lba_first_sector;
 
 			// make sure the partition doesn't exceeds the physical boundries
 			// of the device
-			if (partition_entry->lba_first_sector + partition_entry->total_sectors > mpcDevice->GetTotalSectors())
+			if (sPartitionEntry->lba_first_sector + sPartitionEntry->total_sectors > mpcDevice->GetTotalSectors())
 			{
-				partitions_tried++;
+				uiPartitionsTtried++;
 				continue;
 			}
 
 			// retrieve the 1st sector of partition
-			bSuccess = mpcDevice->Read(partition_entry->lba_first_sector, uiBuffer);
+			bSuccess = mpcDevice->Read(sPartitionEntry->lba_first_sector, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -91,114 +89,114 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 		}
 
 		// set our pointer to the BPB
-		bpb = (SFatBIOSParameterBlock*)uiBuffer;
+		psBPB = (SFatBIOSParameterBlock*)uiBuffer;
 
 		// if the sector size is larger than what this build
 		// allows do not mount the mpsVolume
-		if (bpb->BPB_BytsPerSec > MAX_SECTOR_LENGTH)
+		if (psBPB->BPB_BytsPerSec > MAX_SECTOR_LENGTH)
 		{
 			return FAT_SECTOR_SIZE_NOT_SUPPORTED;
 		}
 
 		// make sure BPB_BytsPerSec and BPB_SecPerClus are
 		// valid before we divide by them
-		if (!bpb->BPB_BytsPerSec || !bpb->BPB_SecPerClus)
+		if (!psBPB->BPB_BytsPerSec || !psBPB->BPB_SecPerClus)
 		{
-			partitions_tried++;
+			uiPartitionsTtried++;
 			continue;
 		}
 
 		// make sure that SecPerClus is a power of two
-		uint16 uiResult = bpb->BPB_SecPerClus;
+		uint16 uiResult = psBPB->BPB_SecPerClus;
 		while (uiResult != 0x1)
 		{
 			if (uiResult & 0x1)
 			{
-				partitions_tried++;
+				uiPartitionsTtried++;
 				continue;
 			}
 			uiResult >>= 1;
 		}
 
 		// get all the info we need from BPB
-		mpsVolume->uiRootDirectorySectors = ((bpb->BPB_RootEntCnt * 32) + (bpb->BPB_BytsPerSec - 1)) / bpb->BPB_BytsPerSec;
-		mpsVolume->uiFatSize = (bpb->BPB_FATSz16) ? bpb->BPB_FATSz16 : bpb->uFatEx.sFat32.BPB_FATSz32;
-		mpsVolume->uiNoOfSectors = (bpb->BPB_TotSec16) ? bpb->BPB_TotSec16 : bpb->BPB_TotSec32;
-		mpsVolume->uiNoOfDataSectors = mpsVolume->uiNoOfSectors - (bpb->BPB_RsvdSecCnt + (bpb->BPB_NumFATs * mpsVolume->uiFatSize) + mpsVolume->uiRootDirectorySectors);
-		mpsVolume->uiNoOfClusters = mpsVolume->uiNoOfDataSectors / bpb->BPB_SecPerClus;
-		mpsVolume->uiFirstDataSector = bpb->BPB_RsvdSecCnt + hidden_sectors + (bpb->BPB_NumFATs * mpsVolume->uiFatSize) + mpsVolume->uiRootDirectorySectors;
-		mpsVolume->uiNoOfReservedSectors = bpb->BPB_RsvdSecCnt + hidden_sectors;
-		mpsVolume->uiNoOfBytesPerSector = bpb->BPB_BytsPerSec;
-		mpsVolume->uiNoOfSectorsPerCluster = bpb->BPB_SecPerClus;
-		mpsVolume->uiNoOfFatTables = bpb->BPB_NumFATs;
-		fsinfo_sector = bpb->uFatEx.sFat32.BPB_FSInfo;
+		msVolume.uiRootDirectorySectors = ((psBPB->BPB_RootEntCnt * 32) + (psBPB->BPB_BytsPerSec - 1)) / psBPB->BPB_BytsPerSec;
+		msVolume.uiFatSize = (psBPB->BPB_FATSz16) ? psBPB->BPB_FATSz16 : psBPB->uFatEx.sFat32.BPB_FATSz32;
+		msVolume.uiNoOfSectors = (psBPB->BPB_TotSec16) ? psBPB->BPB_TotSec16 : psBPB->BPB_TotSec32;
+		msVolume.uiNoOfDataSectors = msVolume.uiNoOfSectors - (psBPB->BPB_RsvdSecCnt + (psBPB->BPB_NumFATs * msVolume.uiFatSize) + msVolume.uiRootDirectorySectors);
+		msVolume.uiNoOfClusters = msVolume.uiNoOfDataSectors / psBPB->BPB_SecPerClus;
+		msVolume.uiFirstDataSector = psBPB->BPB_RsvdSecCnt + uiHiddenSectors + (psBPB->BPB_NumFATs * msVolume.uiFatSize) + msVolume.uiRootDirectorySectors;
+		msVolume.uiNoOfReservedSectors = psBPB->BPB_RsvdSecCnt + uiHiddenSectors;
+		msVolume.uiNoOfBytesPerSector = psBPB->BPB_BytsPerSec;
+		msVolume.uiNoOfSectorsPerCluster = psBPB->BPB_SecPerClus;
+		msVolume.uiNoOfFatTables = psBPB->BPB_NumFATs;
+		uiFileSystemInfoSector = psBPB->uFatEx.sFat32.BPB_FSInfo;
 
 		// determine the FAT file system type
-		mpsVolume->eFileSystem = (mpsVolume->uiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (mpsVolume->uiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
+		msVolume.eFileSystem = (msVolume.uiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (msVolume.uiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
 
 		// sanity check that the FAT table is big enough
-		switch (mpsVolume->eFileSystem)
+		switch (msVolume.eFileSystem)
 		{
 		case FAT_FS_TYPE_FAT12:
-			if (mpsVolume->uiFatSize < (((mpsVolume->uiNoOfClusters + (mpsVolume->uiNoOfClusters >> 1)) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
+			if (msVolume.uiFatSize < (((msVolume.uiNoOfClusters + (msVolume.uiNoOfClusters >> 1)) + psBPB->BPB_BytsPerSec - 1) / psBPB->BPB_BytsPerSec))
 			{
-				partitions_tried++;
+				uiPartitionsTtried++;
 				continue;
 			}
 			break;
 		case FAT_FS_TYPE_FAT16:
-			if (mpsVolume->uiFatSize < (((mpsVolume->uiNoOfClusters * 2) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
+			if (msVolume.uiFatSize < (((msVolume.uiNoOfClusters * 2) + psBPB->BPB_BytsPerSec - 1) / psBPB->BPB_BytsPerSec))
 			{
-				partitions_tried++;
+				uiPartitionsTtried++;
 				continue;
 			}
 			break;
 		case FAT_FS_TYPE_FAT32:
-			if (mpsVolume->uiFatSize < (((mpsVolume->uiNoOfClusters * 4) + bpb->BPB_BytsPerSec - 1) / bpb->BPB_BytsPerSec))
+			if (msVolume.uiFatSize < (((msVolume.uiNoOfClusters * 4) + psBPB->BPB_BytsPerSec - 1) / psBPB->BPB_BytsPerSec))
 			{
-				partitions_tried++;
+				uiPartitionsTtried++;
 				continue;
 			}
 			break;
 		}
 
 		// read the mpsVolume label from the boot sector
-		if (mpsVolume->eFileSystem == FAT_FS_TYPE_FAT16)
+		if (msVolume.eFileSystem == FAT_FS_TYPE_FAT16)
 		{
-			mpsVolume->uiID = bpb->uFatEx.sFat16.BS_VolID;
-			memcpy(label, bpb->uFatEx.sFat16.BS_VolLab, 11);
-			TrimPath(mpsVolume->szLabel, label, 11);
+			msVolume.uiID = psBPB->uFatEx.sFat16.BS_VolID;
+			memcpy(szLabel, psBPB->uFatEx.sFat16.BS_VolLab, 11);
+			TrimPath(msVolume.szLabel, szLabel, 11);
 		}
 		else
 		{
-			mpsVolume->uiID = bpb->uFatEx.sFat32.BS_VolID;
-			memcpy(label, bpb->uFatEx.sFat32.BS_VolLab, 11);
-			TrimPath(mpsVolume->szLabel, label, 11);
+			msVolume.uiID = psBPB->uFatEx.sFat32.BS_VolID;
+			memcpy(szLabel, psBPB->uFatEx.sFat32.BS_VolLab, 11);
+			TrimPath(msVolume.szLabel, szLabel, 11);
 		}
 
 		// if the mpsVolume is FAT32 then copy the root
 		// entry's cluster from the BPB_RootClus field
 		// on the BPB
-		if (mpsVolume->eFileSystem == FAT_FS_TYPE_FAT32)
+		if (msVolume.eFileSystem == FAT_FS_TYPE_FAT32)
 		{
-			mpsVolume->uiRootCluster = bpb->uFatEx.sFat32.BPB_RootClus;
+			msVolume.uiRootCluster = psBPB->uFatEx.sFat32.BPB_RootClus;
 		}
 		else
 		{
-			mpsVolume->uiRootCluster = 0x0;
+			msVolume.uiRootCluster = 0x0;
 		}
 
 		// ###############################################
-		// NOTE!!!: bpb is no good from this point on!!!!
+		// NOTE!!!: psBPB is no good from this point on!!!!
 		// ###############################################
 
-		// check that this is a valid FAT partition by comparing the media
+		// check that this is a valid FAT partition by comparing the uiMedia
 		// byte in the BPB with the 1st byte of the fat table
 		{
-			uint8 media = bpb->BPB_Media;
+			uint8 uiMedia = psBPB->BPB_Media;
 
 			// read the 1st sector of the FAT table
-			bSuccess = mpcDevice->Read(mpsVolume->uiNoOfReservedSectors, uiBuffer);
+			bSuccess = mpcDevice->Read(msVolume.uiNoOfReservedSectors, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -206,9 +204,9 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 
 			// if the lower byte of the 1st FAT entry is not the same as
 			// BPB_Media then this is not a valid mpsVolume
-			if (uiBuffer[0] != media)
+			if (uiBuffer[0] != uiMedia)
 			{
-				partitions_tried++;
+				uiPartitionsTtried++;
 				continue;
 			}
 		}
@@ -224,53 +222,52 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 		{
 			if (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
 			{
-				TrimPath(mpsVolume->szLabel, (char*)query.current_entry_raw->uEntry.sFatRawCommon.name, 11);
+				TrimPath(msVolume.szLabel, (char*)query.current_entry_raw->uEntry.sFatRawCommon.name, 11);
 			}
 		}
 	}
-	mpsVolume->uiFsinfoSector = 0xFFFFFFFF;
+	msVolume.uiFileSystemInfoSector = 0xFFFFFFFF;
 
 
-	// if we find a valid fsinfo structure we'll use it
-	if (mpsVolume->eFileSystem == FAT_FS_TYPE_FAT32)
+	// if we find a valid psFileSystemInfo structure we'll use it
+	if (msVolume.eFileSystem == FAT_FS_TYPE_FAT32)
 	{
-		SFatFileSystemInfo* fsinfo;
-
+		SFatFileSystemInfo* psFileSystemInfo;
 
 		// read the sector containing the FSInfo structure
-		bSuccess = mpcDevice->Read(hidden_sectors + fsinfo_sector, uiBuffer);
+		bSuccess = mpcDevice->Read(uiHiddenSectors + uiFileSystemInfoSector, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
-		// set fsinfo pointer
-		fsinfo = (SFatFileSystemInfo*)uiBuffer;
+		// set psFileSystemInfo pointer
+		psFileSystemInfo = (SFatFileSystemInfo*)uiBuffer;
 
 		// check signatures before using
-		if (fsinfo->LeadSig == 0x41615252 && fsinfo->StructSig == 0x61417272 && fsinfo->TrailSig == 0xAA550000)
+		if (psFileSystemInfo->LeadSig == 0x41615252 && psFileSystemInfo->StructSig == 0x61417272 && psFileSystemInfo->TrailSig == 0xAA550000)
 		{
-			mpsVolume->uiNextFreeCluster = fsinfo->Nxt_Free;
+			msVolume.uiNextFreeCluster = psFileSystemInfo->Nxt_Free;
 
 			// if this value is greater than or equal to the # of
 			// clusters in the mpsVolume it cannot possible be valid
-			if (fsinfo->Free_Count < mpsVolume->uiNoOfClusters)
+			if (psFileSystemInfo->Free_Count < msVolume.uiNoOfClusters)
 			{
-				mpsVolume->uiTotalFreeClusters = fsinfo->Free_Count;
+				msVolume.uiTotalFreeClusters = psFileSystemInfo->Free_Count;
 			}
 			else
 			{
-				mpsVolume->uiTotalFreeClusters = mpsVolume->uiNoOfClusters - 1;
+				msVolume.uiTotalFreeClusters = msVolume.uiNoOfClusters - 1;
 			}
 		}
 		else
 		{
-			mpsVolume->uiNextFreeCluster = 0xFFFFFFFF;
-			mpsVolume->uiTotalFreeClusters = mpsVolume->uiNoOfClusters - 1;
+			msVolume.uiNextFreeCluster = 0xFFFFFFFF;
+			msVolume.uiTotalFreeClusters = msVolume.uiNoOfClusters - 1;
 		}
 
-		// remember fsinfo sector
-		mpsVolume->uiFsinfoSector = hidden_sectors + fsinfo_sector;
+		// remember psFileSystemInfo sector
+		msVolume.uiFileSystemInfoSector = uiHiddenSectors + uiFileSystemInfoSector;
 	}
 
 	return FAT_SUCCESS;
@@ -283,13 +280,12 @@ uint16 CFatVolume::Mount(CFileDrive* device)
 //////////////////////////////////////////////////////////////////////////
 uint16 CFatVolume::Unmount(void)
 {
-	// if this is a FAT32 volume we'll update the fsinfo structure
-	if (mpsVolume->eFileSystem == FAT_FS_TYPE_FAT32 && mpsVolume->uiFsinfoSector != 0xFFFFFFFF)
+	// if this is a FAT32 volume we'll update the psFileSystemInfo structure
+	if (msVolume.eFileSystem == FAT_FS_TYPE_FAT32 && msVolume.uiFileSystemInfoSector != 0xFFFFFFFF)
 	{
 		bool					bSuccess;
-		SFatFileSystemInfo*		fsinfo;
-
-		uint8* uiBuffer = mauiFatSharedBuffer;
+		SFatFileSystemInfo*		psFileSystemInfo;
+		uint8*					uiBuffer = mauiFatSharedBuffer;
 
 		// mark the loaded sector as unknown
 		SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
@@ -302,8 +298,8 @@ uint16 CFatVolume::Unmount(void)
 		}
 
 
-		// set the pointer to the fsinfo structure
-		fsinfo = (SFatFileSystemInfo*)uiBuffer;
+		// set the pointer to the psFileSystemInfo structure
+		psFileSystemInfo = (SFatFileSystemInfo*)uiBuffer;
 
 		// check the signatures before writting
 		// note: when you mount a removable device in windows it will channge
@@ -313,16 +309,16 @@ uint16 CFatVolume::Unmount(void)
 		// be trusted. This implementation doesn't actually use it but if you only
 		// mount the mpsVolume with us it will keep it up to date.
 
-		/*if (fsinfo->LeadSig == 0x41615252 && fsinfo->StructSig == 0x61417272 && fsinfo->TrailSig == 0xAA550000)*/
+		/*if (psFileSystemInfo->LeadSig == 0x41615252 && psFileSystemInfo->StructSig == 0x61417272 && psFileSystemInfo->TrailSig == 0xAA550000)*/
 		{
 			// mark all values as unknown
-			fsinfo->Nxt_Free = GetNextFreeCluster();
-			fsinfo->Free_Count = GetTotalFreeClusters();
-			fsinfo->LeadSig = 0x41615252;
-			fsinfo->StructSig = 0x61417272;
-			fsinfo->TrailSig = 0xAA550000;
+			psFileSystemInfo->Nxt_Free = GetNextFreeCluster();
+			psFileSystemInfo->Free_Count = GetTotalFreeClusters();
+			psFileSystemInfo->LeadSig = 0x41615252;
+			psFileSystemInfo->StructSig = 0x61417272;
+			psFileSystemInfo->TrailSig = 0xAA550000;
 
-			// write the fsinfo sector
+			// write the psFileSystemInfo sector
 			bSuccess = mpcDevice->Write(GetFsinfoSector(), uiBuffer);
 			if (!bSuccess)
 			{
@@ -370,7 +366,7 @@ bool CFatVolume::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 //////////////////////////////////////////////////////////////////////////
 uint16 CFatVolume::GetSectorSize(void)
 {
-	return mpsVolume->uiNoOfBytesPerSector;
+	return msVolume.uiNoOfBytesPerSector;
 }
 
 
@@ -390,9 +386,9 @@ uint32 CFatVolume::GetPageSize(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::HasNextFreeCluser(void)
 {
-	if (mpsVolume->uiNextFreeCluster != 0xFFFFFFFF)
+	if (msVolume.uiNextFreeCluster != 0xFFFFFFFF)
 	{
-		if (mpsVolume->uiNextFreeCluster <= mpsVolume->uiNoOfClusters + 1)
+		if (msVolume.uiNextFreeCluster <= msVolume.uiNoOfClusters + 1)
 		{
 			return true;
 		}
@@ -417,7 +413,7 @@ bool CFatVolume::IsFreeFat(uint32 uifat)
 //////////////////////////////////////////////////////////////////////////
 void CFatVolume::SetNextFreeCluster(uint32 uiCluster)
 {
-	mpsVolume->uiNextFreeCluster = uiCluster;
+	msVolume.uiNextFreeCluster = uiCluster;
 }
 
 
@@ -427,7 +423,7 @@ void CFatVolume::SetNextFreeCluster(uint32 uiCluster)
 //////////////////////////////////////////////////////////////////////////
 void CFatVolume::SetTotalFreeClusters(uint32 uiTotalFreeClusters)
 {
-	mpsVolume->uiTotalFreeClusters = uiTotalFreeClusters;
+	msVolume.uiTotalFreeClusters = uiTotalFreeClusters;
 }
 
 
@@ -4274,24 +4270,24 @@ int CFatVolume::FatIndexOf(char chr, char* str, int index)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetID(void) { return mpsVolume->uiID; }
-uint32 CFatVolume::GetFatSize(void) { return mpsVolume->uiFatSize; }
-uint32 CFatVolume::GetRootCluster(void) { return mpsVolume->uiRootCluster; }
-uint32 CFatVolume::GetFirstDataSector(void) { return mpsVolume->uiFirstDataSector; }
-uint32 CFatVolume::GetNoOfSectors(void) { return mpsVolume->uiNoOfSectors; }
-uint32 CFatVolume::GetNoOfDataSectors(void) { return mpsVolume->uiNoOfDataSectors; }
-uint32 CFatVolume::GetNoOfClusters(void) { return mpsVolume->uiNoOfClusters; }
-uint32 CFatVolume::GetNoOfReservedSectors(void) { return mpsVolume->uiNoOfReservedSectors; }
-uint32 CFatVolume::GetNextFreeCluster(void) { return mpsVolume->uiNextFreeCluster; }
-uint32 CFatVolume::GetTotalFreeClusters(void) { return mpsVolume->uiTotalFreeClusters; }
-uint32 CFatVolume::GetFsinfoSector(void) { return mpsVolume->uiFsinfoSector; }
-uint16 CFatVolume::GetRootDirectorySectors(void) { return mpsVolume->uiRootDirectorySectors; }
-uint16 CFatVolume::GetNoOfBytesPerSector(void) { return mpsVolume->uiNoOfBytesPerSector; }
-uint16 CFatVolume::GetNoOfSectorsPerCluster(void) { return mpsVolume->uiNoOfSectorsPerCluster; }
-bool CFatVolume::IsUseLongFilenames(void) { return mpsVolume->bUseLongFilenames; }
-EFatFileSystemType CFatVolume::GetFileSystemType(void) { return mpsVolume->eFileSystem; }
-uint8 CFatVolume::GetNoOfFatTables(void) { return mpsVolume->uiNoOfFatTables; }
-char* CFatVolume::GetLabel(void) { return mpsVolume->szLabel; }
+uint32 CFatVolume::GetID(void) { return msVolume.uiID; }
+uint32 CFatVolume::GetFatSize(void) { return msVolume.uiFatSize; }
+uint32 CFatVolume::GetRootCluster(void) { return msVolume.uiRootCluster; }
+uint32 CFatVolume::GetFirstDataSector(void) { return msVolume.uiFirstDataSector; }
+uint32 CFatVolume::GetNoOfSectors(void) { return msVolume.uiNoOfSectors; }
+uint32 CFatVolume::GetNoOfDataSectors(void) { return msVolume.uiNoOfDataSectors; }
+uint32 CFatVolume::GetNoOfClusters(void) { return msVolume.uiNoOfClusters; }
+uint32 CFatVolume::GetNoOfReservedSectors(void) { return msVolume.uiNoOfReservedSectors; }
+uint32 CFatVolume::GetNextFreeCluster(void) { return msVolume.uiNextFreeCluster; }
+uint32 CFatVolume::GetTotalFreeClusters(void) { return msVolume.uiTotalFreeClusters; }
+uint32 CFatVolume::GetFsinfoSector(void) { return msVolume.uiFileSystemInfoSector; }
+uint16 CFatVolume::GetRootDirectorySectors(void) { return msVolume.uiRootDirectorySectors; }
+uint16 CFatVolume::GetNoOfBytesPerSector(void) { return msVolume.uiNoOfBytesPerSector; }
+uint16 CFatVolume::GetNoOfSectorsPerCluster(void) { return msVolume.uiNoOfSectorsPerCluster; }
+bool CFatVolume::IsUseLongFilenames(void) { return msVolume.bUseLongFilenames; }
+EFatFileSystemType CFatVolume::GetFileSystemType(void) { return msVolume.eFileSystem; }
+uint8 CFatVolume::GetNoOfFatTables(void) { return msVolume.uiNoOfFatTables; }
+char* CFatVolume::GetLabel(void) { return msVolume.szLabel; }
 uint8* CFatVolume::GetFatSharedBuffer(void) { return mauiFatSharedBuffer; }
 uint32 CFatVolume::GetFatSharedBufferSector(void) { return muiFatSharedBufferSector; }
 
