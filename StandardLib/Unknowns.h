@@ -58,8 +58,8 @@ public:
 
 	template<class M>	void			AddConstructor(void);
 	template<class M>	M*				GetConstructor(void);
-						BOOL			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
-						BOOL			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
+						bool			LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown);
+						bool			SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown);
 
 						//Iterable stuff.
 	template<class M>	M*				StartIteration(SIteratorTemplate<M>* psIter);
@@ -80,7 +80,7 @@ public:
 protected:
 						CUnknown*		AddExisting(CUnknown* pcExisting, char(*pszDebug)[4]);
 						void			DebugName(CUnknown* pcUnknown, char (*pszDebug)[4]);
-						BOOL			IsFreed(CUnknown* pcUnknown);
+						bool			IsFreed(CUnknown* pcUnknown);
 };
 
 

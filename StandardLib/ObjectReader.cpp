@@ -31,11 +31,11 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::Init(CAbstractFile* pcFile, CDependentReadObjects* pcDependents)
+bool CObjectReader::Init(CAbstractFile* pcFile, CDependentReadObjects* pcDependents)
 {
 	mpcDependents = pcDependents;
 	mcFile.Init(pcFile);
-	return TRUE;
+	return true;
 } 
 
 
@@ -56,7 +56,7 @@ void CObjectReader::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjectReader::Read(void)
 {
-	BOOL			bResult;
+	bool			bResult;
 	filePos			iLength;
 	filePos			iStart;
 	int				iExpectedLength;
@@ -148,7 +148,7 @@ if (!result) \
 	object->GetIdentifier(&sz); \
 	gcLogger.Error2(__VA_ARGS__); \
 	sz.Kill(); \
-	return FALSE; \
+	return false; \
 }
 
 
@@ -156,12 +156,12 @@ if (!result) \
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
+bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 {
 	filePos			iStart;
 	int				iExpectedLength;
 	filePos			iLength;
-	BOOL			bResult;
+	bool			bResult;
 	int				iMagic;
 
 	iStart = mcFile.GetFilePos();
@@ -185,7 +185,7 @@ BOOL CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 	bResult = (iLength - iStart) == iExpectedLength;
 	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongLongToString(iExpectedLength), "] but read length [", LongLongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -193,7 +193,7 @@ BOOL CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
+bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 {
 	int		iIgnored;
 
@@ -204,7 +204,7 @@ BOOL CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 
 	if (pcPointerHeader->mcType == OBJECT_POINTER_NULL)
 	{
-		return TRUE;
+		return true;
 	}
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_ID)
 	{
@@ -217,9 +217,9 @@ BOOL CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -227,12 +227,12 @@ BOOL CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadObjectHeader(CObjectHeader* pcObjectHeader)
+bool CObjectReader::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 {
 	pcObjectHeader->Init();
 	ReturnOnFalse(ReadIdentifier(pcObjectHeader));
 	ReturnOnFalse(pcObjectHeader->mszClassName.ReadChars(this));
-	return TRUE;
+	return true;
 }
 
 
@@ -250,10 +250,10 @@ filePos CObjectReader::Read(void* pvDest, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadPointer(CPointer* pObject)
+bool CObjectReader::ReadPointer(CPointer* pObject)
 {
 	CPointerHeader		cHeader;
-	BOOL				bResult;
+	bool				bResult;
 	CEmbeddedObject**	ppcObjectPtr;
 	CObject*			pcEmbedding;
 
@@ -263,7 +263,7 @@ BOOL CObjectReader::ReadPointer(CPointer* pObject)
 	if (!bResult)
 	{
 		cHeader.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
@@ -273,7 +273,7 @@ BOOL CObjectReader::ReadPointer(CPointer* pObject)
 		if (!bResult)
 		{
 			cHeader.Kill();
-			return FALSE;
+			return false;
 		}
 		ppcObjectPtr = pObject->ObjectPtr();
 		pcEmbedding = pObject->Embedding();
@@ -283,7 +283,7 @@ BOOL CObjectReader::ReadPointer(CPointer* pObject)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 
 
@@ -295,10 +295,10 @@ BOOL CObjectReader::ReadPointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
+bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = ReadIdentifier(&cHeader);
 	if (bResult)
@@ -314,12 +314,12 @@ BOOL CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 		}
 		else
 		{
-			return TRUE;
+			return true;
 		}
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 	//cHeader is killed by mpcDependents.
@@ -330,10 +330,10 @@ BOOL CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
+bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining)
 {
 	CPointerHeader	cHeader;
-	BOOL			bResult;
+	bool			bResult;
 	int				iDistToRoot;
 
 	bResult = ReadIdentifier(&cHeader);
@@ -352,16 +352,16 @@ BOOL CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 		}
 		else if (cHeader.mcType == OBJECT_POINTER_NULL)
 		{
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 	//cHeader is killed by mpcDependents.

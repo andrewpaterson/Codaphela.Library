@@ -39,9 +39,9 @@ char* CObjectConverterText::GetFileExtension(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectConverterText::IsFor(CAbstractFile* pcFile)
+bool CObjectConverterText::IsFor(CAbstractFile* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -72,7 +72,7 @@ CBaseObject* CObjectConverterText::Convert(CObjectSource* pcSource, char* szObje
 {
 	CTextFile			cTextFile;
 	Ptr<CString>		pcString;
-	BOOL				bResult;
+	bool				bResult;
 	CObjectSourceText*	pcSourceText;
 
 	pcSourceText = (CObjectSourceText*)pcSource;

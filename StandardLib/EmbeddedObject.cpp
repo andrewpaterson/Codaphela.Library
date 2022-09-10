@@ -40,7 +40,7 @@ void CEmbeddedObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::KillInternal(BOOL bHeapFromChanged)
+void CEmbeddedObject::KillInternal(bool bHeapFromChanged)
 {
 	NotImplemented(__METHOD__);
 }
@@ -79,9 +79,9 @@ OIndex CEmbeddedObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsNamed(void)
+bool CEmbeddedObject::IsNamed(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -108,9 +108,9 @@ void CEmbeddedObject::ClearIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsBaseObject(void)
+bool CEmbeddedObject::IsBaseObject(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -136,7 +136,7 @@ CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsNotEmbedded(void)
+bool CEmbeddedObject::IsNotEmbedded(void)
 {
 	return mpcEmbedded == NULL;
 }
@@ -146,7 +146,7 @@ BOOL CEmbeddedObject::IsNotEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsEmbedded(void)
+bool CEmbeddedObject::IsEmbedded(void)
 {
 	return mpcEmbedded != NULL;
 }
@@ -260,7 +260,7 @@ void CEmbeddedObject::RemoveAllHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
+void CEmbeddedObject::AddHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcEmbedding;
 	int				iDistToRoot;
@@ -315,7 +315,7 @@ void CEmbeddedObject::ValidateInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
+void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;
 	CObjects*		pcObjectsThisIn;
@@ -325,7 +325,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 	PrivateRemoveHeapFrom(pcFromObject);
 
 	pcContainer = GetEmbeddingContainer();
-	pcContainer->TryFree(TRUE, TRUE);
+	pcContainer->TryFree(true, true);
 
 #ifdef _DEBUG
 	if (bValidate)
@@ -343,9 +343,9 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
+bool CEmbeddedObject::PrivateRemoveHeapFrom(CBaseObject* pcFrom)
 {
-	return mapHeapFroms.Remove(&pcFrom, FALSE);
+	return mapHeapFroms.Remove(&pcFrom, false);
 }
 
 
@@ -383,7 +383,7 @@ void CEmbeddedObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFrom
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::HasStackPointers(void)
+bool CEmbeddedObject::HasStackPointers(void)
 {
 	int		iNumStackPointers;
 
@@ -396,7 +396,7 @@ BOOL CEmbeddedObject::HasStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::HasHeapFroms(void)
+bool CEmbeddedObject::HasHeapFroms(void)
 {
 	int		iNumHeapPointers;
 
@@ -547,7 +547,7 @@ int CEmbeddedObject::NumTotalFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
+bool CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 {
 	int					i;
 	int					iNumFroms;
@@ -559,11 +559,11 @@ BOOL CEmbeddedObject::ContainsFrom(CEmbeddedObject* pcBaseObject)
 		pcFrom = *mapHeapFroms.Get(i);
 		if (pcFrom == pcBaseObject)
 		{
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -617,7 +617,7 @@ void CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsInStack(void)
+bool CEmbeddedObject::IsInStack(void)
 {
 	return GetDistToStack() == 0;
 }
@@ -627,7 +627,7 @@ BOOL CEmbeddedObject::IsInStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bFreeIfNoRoot)
+void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, bool bFreeIfNoRoot)
 {
 	CStackPointers*	pcStackPointers;
 	CBaseObject*	pcContainer;
@@ -639,7 +639,7 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, BOOL bFreeIfNo
 		{
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
 			pcContainer = GetEmbeddingContainer();
-			pcContainer->TryFree(bFreeIfNoRoot, FALSE);
+			pcContainer->TryFree(bFreeIfNoRoot, false);
 		}
 	}
 }
@@ -695,7 +695,7 @@ void CEmbeddedObject::RemoveAllStackFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::IsAllocatedInObjects(void)
+bool CEmbeddedObject::IsAllocatedInObjects(void)
 {
 	CObjects*	pcObjects;
 
@@ -730,7 +730,7 @@ CObjects* CEmbeddedObject::GetObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::PrintObject(CChars* psz, BOOL bEmbedded)
+void CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded)
 {
 	int		iDistToRoot;
 	int		iDistToStack;
@@ -786,7 +786,7 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 	CChars	szFromObject;
 	int		iThisDistToRoot;
 	int		iOtherDistToRoot;
-	BOOL	bFromPointsTo;
+	bool	bFromPointsTo;
 
 	iThisDistToRoot = GetDistToRoot();
 	iOtherDistToRoot = pcBaseObject->GetDistToRoot();
@@ -823,7 +823,7 @@ void CEmbeddedObject::ValidatePointerTo(CEmbeddedObject* pcPointedTo)
 {
 	CChars	szObject;
 	CChars	szToObject;
-	BOOL	bToPointsToFrom;
+	bool	bToPointsToFrom;
 
 	bToPointsToFrom = pcPointedTo->ContainsFrom(this);
 	if (!bToPointsToFrom)
@@ -903,7 +903,7 @@ void CEmbeddedObject::GetStackFroms(CArrayTypedPointerPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObject::TestRemoveHeapFrom(CBaseObject* pcFromObject)
+bool CEmbeddedObject::TestRemoveHeapFrom(CBaseObject* pcFromObject)
 {
 	return PrivateRemoveHeapFrom(pcFromObject);
 }

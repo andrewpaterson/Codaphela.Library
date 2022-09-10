@@ -54,12 +54,12 @@ public:
 	void				operator = (CPointer& pcPointer);
 	CEmbeddedObject*	operator -> ();
 	CEmbeddedObject*	operator & ();
-	BOOL				operator ! ();
+	bool				operator ! ();
 
 	void 				SetEmbedding(CObject* pcEmbedding);
 
-	BOOL				IsNotNull(void);
-	BOOL				IsNull(void);
+	bool				IsNotNull(void);
+	bool				IsNull(void);
 
 	CPointer*			This(void);
 	CObject*			Embedding(void);
@@ -69,22 +69,22 @@ public:
 	CBaseObject*		BaseObject(void);
 	int					MorphInto(CEmbeddedObject* pcOld);
 
-	BOOL				IsHollow(void);
-	BOOL				Load(CObjectReader* pcFile);
+	bool				IsHollow(void);
+	bool				Load(CObjectReader* pcFile);
 	int					GetDistToRoot(void);
 	int					GetDistToStack(void);
 	OIndex				GetIndex(void);
 	char*				GetName(void);
-	BOOL				IsNamed(void);
+	bool				IsNamed(void);
 	const char*			ClassName(void);
-	BOOL				IsDirty(void);
-	BOOL				IsEmbeddingAllocatedInObjects(void);
+	bool				IsDirty(void);
+	bool				IsEmbeddingAllocatedInObjects(void);
 	void				Kill(void);
 	void				AssignObject(CEmbeddedObject* pcObject);
 	CEmbeddedObject*	Dereference(void);
 	CEmbeddedObject*	DereferenceArrow(void);
 
-	void				PointTo(CEmbeddedObject* pcObject, BOOL bKillIfNoRoot);
+	void				PointTo(CEmbeddedObject* pcObject, bool bKillIfNoRoot);
 	void				AddHeapFrom(CBaseObject* pcFrom);
 
 	CEmbeddedObject*	Return(void);

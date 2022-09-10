@@ -111,7 +111,7 @@ void CString::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Save(CObjectWriter* pcFile)
+bool CString::Save(CObjectWriter* pcFile)
 {
 	return msz.WriteString(pcFile);
 }
@@ -121,7 +121,7 @@ BOOL CString::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Load(CObjectReader* pcFile)
+bool CString::Load(CObjectReader* pcFile)
 {
 	return msz.ReadString(pcFile);
 }
@@ -133,7 +133,7 @@ BOOL CString::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CString::D(void)
 {
-	SetDirty(TRUE);
+	SetDirty(true);
 }
 
 
@@ -211,7 +211,7 @@ Ptr<CString> CString::AppendSubString(Ptr<CString> pString, int iStartInclusive,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CString> CString::AppendBool(BOOL bValue, Ptr<CString> pTrue, Ptr<CString> pFalse)
+Ptr<CString> CString::AppendBool(bool bValue, Ptr<CString> pTrue, Ptr<CString> pFalse)
 {
 	return AppendBool(bValue, pTrue->Text(), pFalse->Text());
 }
@@ -221,7 +221,7 @@ Ptr<CString> CString::AppendBool(BOOL bValue, Ptr<CString> pTrue, Ptr<CString> p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::AppendFlag(unsigned int msFlags, unsigned int uiFlag, Ptr<CString> pFlagName, BOOL bAppendComma)
+bool CString::AppendFlag(unsigned int msFlags, unsigned int uiFlag, Ptr<CString> pFlagName, bool bAppendComma)
 {
 	return AppendFlag(msFlags, uiFlag, pFlagName->Text(), bAppendComma);
 }
@@ -261,7 +261,7 @@ void CString::Insert(int iPos, Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Equals(Ptr<CString> pString)
+bool CString::Equals(Ptr<CString> pString)
 {
 	return Equals(pString->Text());
 }
@@ -271,7 +271,7 @@ BOOL CString::Equals(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Equals(Ptr<CString> pString, int iLen)
+bool CString::Equals(Ptr<CString> pString, int iLen)
 {
 	return Equals(pString->Text(), iLen);
 }
@@ -281,7 +281,7 @@ BOOL CString::Equals(Ptr<CString> pString, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::EqualsIgnoreCase(Ptr<CString> pString)
+bool CString::EqualsIgnoreCase(Ptr<CString> pString)
 {
 	return EqualsIgnoreCase(pString->Text());
 }
@@ -291,7 +291,7 @@ BOOL CString::EqualsIgnoreCase(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::Contains(Ptr<CString> pString)
+bool CString::Contains(Ptr<CString> pString)
 {
 	return Contains(pString->Text());
 }
@@ -301,7 +301,7 @@ BOOL CString::Contains(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::ContainsIgnoreCase(Ptr<CString> pString)
+bool CString::ContainsIgnoreCase(Ptr<CString> pString)
 {
 	return ContainsIgnoreCase(pString->Text());
 }
@@ -311,7 +311,7 @@ BOOL CString::ContainsIgnoreCase(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::EndsWith(Ptr<CString> pString)
+bool CString::EndsWith(Ptr<CString> pString)
 {
 	return EndsWith(pString->Text());
 }
@@ -321,7 +321,7 @@ BOOL CString::EndsWith(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::EndsWithIgnoreCase(Ptr<CString> pString)
+bool CString::EndsWithIgnoreCase(Ptr<CString> pString)
 {
 	return EndsWithIgnoreCase(pString->Text());
 }
@@ -331,7 +331,7 @@ BOOL CString::EndsWithIgnoreCase(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::StartsWith(Ptr<CString> pString)
+bool CString::StartsWith(Ptr<CString> pString)
 {
 	return StartsWith(pString->Text());
 }
@@ -341,7 +341,7 @@ BOOL CString::StartsWith(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::StartsWithIgnoreCase(Ptr<CString> pString)
+bool CString::StartsWithIgnoreCase(Ptr<CString> pString)
 {
 	return StartsWithIgnoreCase(pString->Text());
 }
@@ -361,7 +361,7 @@ int	 CString::Occurrences(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::SubStringEquals(int iStart, Ptr<CString> pString)
+bool CString::SubStringEquals(int iStart, Ptr<CString> pString)
 {
 	return SubStringEquals(iStart, pString->Text());
 }
@@ -371,7 +371,7 @@ BOOL CString::SubStringEquals(int iStart, Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CString::SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString)
+bool CString::SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString)
 {
 	return SubStringEqualsIgnoreCase(iStart, pString->Text());
 }

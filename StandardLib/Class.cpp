@@ -102,7 +102,7 @@ void CClass::System(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CClass::IsComplete(void)
+bool CClass::IsComplete(void)
 {
 	return muiFlags & CLASS_FLAGS_COMPLETE;
 }
@@ -112,7 +112,7 @@ BOOL CClass::IsComplete(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CClass::IsUnmanaged(void)
+bool CClass::IsUnmanaged(void)
 {
 	return muiFlags & CLASS_FLAGS_UNMANAGED;
 }
@@ -122,7 +122,7 @@ BOOL CClass::IsUnmanaged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CClass::IsPrimitive(void)
+bool CClass::IsPrimitive(void)
 {
 	return muiFlags & CLASS_FLAGS_PRIMITIVE;
 }
@@ -132,7 +132,7 @@ BOOL CClass::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CClass::IsSystem(void)
+bool CClass::IsSystem(void)
 {
 	return muiFlags & CLASS_FLAGS_SYSTEM;
 }

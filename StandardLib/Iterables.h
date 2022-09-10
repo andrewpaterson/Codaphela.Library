@@ -53,8 +53,8 @@ public:
 	void		Init(const char* szName);
 	void		Kill(void);
 	void		Add(CUnknown* pcUnknown);
-	BOOL		Remove(CUnknown* pcUnknown);
-	BOOL		Is(const char* szName);
+	bool		Remove(CUnknown* pcUnknown);
+	bool		Is(const char* szName);
 	template<class M>
 	M*			StartIteration(SIteratorTemplate<M>* psIter);
 	template<class M>
@@ -82,7 +82,7 @@ public:
 	CUnknown*	StartIteration(char* szName, SIteratorUnknown* psIter);
 	CUnknown*	Iterate(SIteratorUnknown* psIter);
 	void		Add(CUnknown* pcUnknown);
-	BOOL		Remove(CUnknown* pcUnknown);
+	bool		Remove(CUnknown* pcUnknown);
 	template<class M>
 	void		RemoveDuringIteration(SIteratorTemplate<M>* psIter);
 };

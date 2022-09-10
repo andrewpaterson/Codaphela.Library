@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDependentWriteObject::Init(CBaseObject* pcObject, BOOL bWritten)
+void CDependentWriteObject::Init(CBaseObject* pcObject, bool bWritten)
 {
 	mpcObject = pcObject;
 	mbWritten = bWritten;

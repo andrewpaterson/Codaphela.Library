@@ -70,7 +70,7 @@ void CDependentReadObject::SetExisting(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentReadObject::IsRead(void)
+bool CDependentReadObject::IsRead(void)
 {
 	return miFlags & DEPENDENT_READ_OBJECT_FLAG_READ;
 }
@@ -80,7 +80,7 @@ BOOL CDependentReadObject::IsRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDependentReadObject::ExistsInObjects(void)
+bool CDependentReadObject::ExistsInObjects(void)
 {
 	return miFlags & DEPENDENT_READ_OBJECT_FLAG_EXISTED;
 }

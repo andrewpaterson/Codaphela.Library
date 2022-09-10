@@ -62,14 +62,14 @@ public:
 	void	AddAccess(CChannelsAccessor* pcChannels);
 
 private:
-	BOOL	CalculateEmpty(void);
-	BOOL	CalculateContiguous(void);
-	BOOL	CalculateSourceTypesSame(void);
-	BOOL	CalculateChannelByteAligned(void);
-	BOOL	CalculateAccessByteAligned(void);
+	bool	CalculateEmpty(void);
+	bool	CalculateContiguous(void);
+	bool	CalculateSourceTypesSame(void);
+	bool	CalculateChannelByteAligned(void);
+	bool	CalculateAccessByteAligned(void);
 	int		CalclulateBitSize(void);
 
-	BOOL	CreateAccessors(void);
+	bool	CreateAccessors(void);
 };
 
 

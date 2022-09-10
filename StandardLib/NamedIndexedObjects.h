@@ -40,12 +40,12 @@ public:
 	CBaseObject*		Get(OIndex oi);
 	CBaseObject*		Get(char* szName);
 	CBaseObject*		Get(char* szObjectName, OIndex oi);
-	BOOL				Has(OIndex oi);
-	BOOL				Has(char* szName);
-	BOOL				AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
-	BOOL				AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
-	BOOL				RemoveIndex(OIndex oi);
-	BOOL				RemoveName(char* szName);
+	bool				Has(OIndex oi);
+	bool				Has(char* szName);
+	bool				AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
+	bool				AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
+	bool				RemoveIndex(OIndex oi);
+	bool				RemoveName(char* szName);
 	OIndex				NumIndexed(void);
 	int					NumNames(void);
 
@@ -54,8 +54,8 @@ public:
 	CBaseObject*		StartIteration(SIndexesIterator* psIter);
 	CBaseObject*		Iterate(SIndexesIterator* psIter);
 
-	BOOL				ValidateNoDirty(void);
-	BOOL				FreeObjects(void);
+	bool				ValidateNoDirty(void);
+	bool				FreeObjects(void);
 };
 
 

@@ -60,9 +60,9 @@ void CUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknown::Iterable(void)
+bool CUnknown::Iterable(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -70,7 +70,7 @@ BOOL CUnknown::Iterable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknown::SaveHeader(CFileWriter* pcFile)
+bool CUnknown::SaveHeader(CFileWriter* pcFile)
 {
 	return pcFile->WriteString(ClassName());
 }
@@ -80,9 +80,9 @@ BOOL CUnknown::SaveHeader(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknown::Save(CFileWriter* pcFile)
+bool CUnknown::Save(CFileWriter* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -90,9 +90,9 @@ BOOL CUnknown::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknown::Load(CFileReader* pcFile)
+bool CUnknown::Load(CFileReader* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -145,9 +145,9 @@ void CUnknown::SetNotInUnknowns(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknown::IsUnknown(void)
+bool CUnknown::IsUnknown(void)
 {
-	return TRUE;
+	return true;
 }
 
 

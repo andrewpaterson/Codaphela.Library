@@ -36,9 +36,9 @@ public:
 	void				Init(char* szDirectory, char* szChunkFilename);
 	void				Kill(void);
 
-	BOOL				Begin(void);
+	bool				Begin(void);
 	CSerialisedObject*  Read(char* szObjectName);
-	BOOL				End(void);
+	bool				End(void);
 };
 
 

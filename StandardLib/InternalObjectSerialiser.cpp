@@ -28,10 +28,10 @@ void CInternalObjectSerialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
+bool CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CObjectWriter		cWriter;
-	BOOL				bResult;
+	bool				bResult;
 	CSerialisedObject*	pcSerialised;
 	CMemoryFile			cMemory;
 	unsigned int		iSize;
@@ -56,7 +56,7 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 	cWriter.Kill();
 	cMemory.Kill();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -64,10 +64,10 @@ BOOL CInternalObjectSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised, unsigned int iSize)
+bool CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised, unsigned int iSize)
 {
 	OIndex	oi;
-	BOOL	bResult;
+	bool	bResult;
 	char*	szName;
 
 	if (pcSerialised->IsNamed())
@@ -83,7 +83,7 @@ BOOL CInternalObjectSerialiser::Put(CSerialisedObject* pcSerialised, unsigned in
 	}
 	else
 	{
-		bResult = FALSE;
+		bResult = false;
 	}
 
 	return bResult;

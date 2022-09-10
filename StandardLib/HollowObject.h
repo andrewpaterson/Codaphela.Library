@@ -31,12 +31,12 @@ public:
 			void				Init(uint16 iNumEmbedded);
 			void				Kill(void) final;
 
-			BOOL				IsHollow(void);
+			bool				IsHollow(void);
 
-			BOOL				Save(CObjectWriter* pcFile) override;
-			BOOL				Load(CObjectReader* pcFile) override;
-			BOOL				IsCollection(void) override;
-			BOOL				IsObject(void) override;
+			bool				Save(CObjectWriter* pcFile) override;
+			bool				Load(CObjectReader* pcFile) override;
+			bool				IsCollection(void) override;
+			bool				IsObject(void) override;
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 			int					NumPointerTos(void);

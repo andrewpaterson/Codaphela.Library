@@ -40,7 +40,7 @@ void CChannels::Init(void)
 	miSize = 0;
 	miByteStride = 0;
 	miBitStride = 0;
-	mbOnlyBasicTypes = TRUE;
+	mbOnlyBasicTypes = true;
 	mabData.Init();
 	mpvUserData = NULL;
 
@@ -183,7 +183,7 @@ void CChannels::SetSize(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel, EPrimitiveType eType, bool bReverse)
 {
 	if (IsChanging())
 	{
@@ -200,7 +200,7 @@ void CChannels::AddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, bool bReverse)
 {
 	if (IsChanging())
 	{
@@ -218,7 +218,7 @@ void CChannels::AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, B
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, bool bReverse)
 {
 	if (IsChanging())
 	{
@@ -237,7 +237,7 @@ void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimiti
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, BOOL bReverse)
+void CChannels::AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, bool bReverse)
 {
 	if (IsChanging())
 	{
@@ -297,7 +297,7 @@ void CChannels::AddChannels(CChannels* pcSourceChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::PrivateAddChannel(int iChannel, EPrimitiveType eType, BOOL bReverse)
+void CChannels::PrivateAddChannel(int iChannel, EPrimitiveType eType, bool bReverse)
 {
 	SChannel*	psChannel;
 
@@ -331,13 +331,13 @@ void CChannels::RemoveChannel(int iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsChannelRemoved(int iChannel)
+bool CChannels::IsChannelRemoved(int iChannel)
 {
 	if (IsChanging())
 	{
 		return (mpsChangingDesc->asRemovedChannels.FindWithIntKey(iChannel, 0) != -1);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -345,13 +345,13 @@ BOOL CChannels::IsChannelRemoved(int iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsChannelAdded(int iChannel)
+bool CChannels::IsChannelAdded(int iChannel)
 {
 	if (IsChanging())
 	{
 		return (mpsChangingDesc->asAddedChannels.FindWithIntKey(iChannel, 0) != -1);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -359,7 +359,7 @@ BOOL CChannels::IsChannelAdded(int iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsChanging(void)
+bool CChannels::IsChanging(void)
 {
 	return (mpsChangingDesc != NULL);
 }
@@ -369,7 +369,7 @@ BOOL CChannels::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::EndChange(void)
+bool CChannels::EndChange(void)
 {
 	int				i;
 	SChannel*		psAddedChannel;
@@ -377,16 +377,16 @@ BOOL CChannels::EndChange(void)
 	CChannel*		psChannel;
 	int				iSize;
 	int				iOffset;
-	BOOL			bAnyAdded;
+	bool			bAnyAdded;
 	int				iOldBitStride;
 	int				iAddedBitStride;
 	int				iOldByteStride;
-	BOOL			bResult;
+	bool			bResult;
 
 	//I don't think this handles the case where the channels have been re-ordered...
 	//Which as there *IS* no way of re-ordering them shouldn't be a problem.
 
-	bResult = TRUE;
+	bResult = true;
 	if (IsChanging())
 	{
 		if (mpvUserData != mpsChangingDesc->pvUserData)
@@ -424,20 +424,20 @@ BOOL CChannels::EndChange(void)
 					{
 						//Deal with bitty removal.
 					}
-					masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), TRUE);
+					masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), true);
 					Recalculate();
 				}
 			}
 
 			//Add
-			bAnyAdded = FALSE;
+			bAnyAdded = false;
 			for (i = 0; i < mpsChangingDesc->asAddedChannels.NumElements(); i++)
 			{
 				psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
 
 				psChannel = masChannelOffsets.Add();
 				psChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);
-				bAnyAdded = TRUE;
+				bAnyAdded = true;
 			}
 
 			if (bAnyAdded)
@@ -476,7 +476,7 @@ BOOL CChannels::EndChange(void)
 			{
 				psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
 				psChannel = GetChannel(psRemovedChannel->iChannel);
-				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), TRUE);
+				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), true);
 			}
 
 			for (i = 0; i < mpsChangingDesc->asAddedChannels.NumElements(); i++)
@@ -519,7 +519,7 @@ void CChannels::Recalculate(void)
 	int			iByteSize;
 
 	miBitStride = 0;
-	mbOnlyBasicTypes = TRUE;
+	mbOnlyBasicTypes = true;
 	for (i = 0; i < masChannelOffsets.NumElements(); i++)
 	{
 		pcChannel = masChannelOffsets.Get(i);
@@ -528,7 +528,7 @@ void CChannels::Recalculate(void)
 		iBitSize = gcTypeNames.GetBitSize(pcChannel->eType);
 		if (iByteSize == 0)
 		{
-			mbOnlyBasicTypes = FALSE;
+			mbOnlyBasicTypes = false;
 		}
 
 		pcChannel->miBitSize = iBitSize;
@@ -554,13 +554,13 @@ void CChannels::Recalculate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::Is8BitAligned(int iBitStart, int iBitLength)
+bool CChannels::Is8BitAligned(int iBitStart, int iBitLength)
 {
 	if ((iBitStart % 8 == 0) && (iBitLength % 8 == 0))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -706,7 +706,7 @@ void CChannels::AllocateData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsUserAllocated(void)
+bool CChannels::IsUserAllocated(void)
 {
 	return (mpvUserData != NULL);
 }
@@ -762,7 +762,7 @@ CChannel* CChannels::GetChannel(int iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::HasChannel(int iChannel)
+bool CChannels::HasChannel(int iChannel)
 {
 	CChannel*	psChannel;
 
@@ -775,13 +775,13 @@ BOOL CChannels::HasChannel(int iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::HasChannel(int iChannel1, int iChannel2)
+bool CChannels::HasChannel(int iChannel1, int iChannel2)
 {
 	if (HasChannel(iChannel1))
 	{
 		return HasChannel(iChannel2);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -791,7 +791,7 @@ BOOL CChannels::HasChannel(int iChannel1, int iChannel2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::HasChannel(int iChannel1, int iChannel2, int iChannel3)
+bool CChannels::HasChannel(int iChannel1, int iChannel2, int iChannel3)
 {
 	if (HasChannel(iChannel1))
 	{
@@ -800,7 +800,7 @@ BOOL CChannels::HasChannel(int iChannel1, int iChannel2, int iChannel3)
 			return HasChannel(iChannel3);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -808,14 +808,14 @@ BOOL CChannels::HasChannel(int iChannel1, int iChannel2, int iChannel3)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::HasChannels(int iFirst, ...)
+bool CChannels::HasChannels(int iFirst, ...)
 {
 	va_list		vaMarker;
 	int			eIC;
-	BOOL		bResult;
+	bool		bResult;
 
 	eIC = iFirst;
-	bResult = TRUE;
+	bResult = true;
 
 	va_start(vaMarker, iFirst);
 	while (eIC != -1)
@@ -833,7 +833,7 @@ BOOL CChannels::HasChannels(int iFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::Load(CFileReader* pcFile)
+bool CChannels::Load(CFileReader* pcFile)
 {
 	mpsChangingDesc = NULL;
 	mpvUserData = NULL;
@@ -844,7 +844,7 @@ BOOL CChannels::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadBool(&mbOnlyBasicTypes));
 	ReturnOnFalse(mabData.Read(pcFile));
 	mpvDataCache = mabData.GetData();
-	return TRUE;
+	return true;
 }
 
 
@@ -852,7 +852,7 @@ BOOL CChannels::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::Save(CFileWriter* pcFile)
+bool CChannels::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(masChannelOffsets.Write(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(miSize));
@@ -860,7 +860,7 @@ BOOL CChannels::Save(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteInt(miBitStride));
 	ReturnOnFalse(pcFile->WriteBool(mbOnlyBasicTypes));
 	ReturnOnFalse(mabData.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -868,7 +868,7 @@ BOOL CChannels::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsSameFormat(CChannels* psOther)
+bool CChannels::IsSameFormat(CChannels* psOther)
 {
 	int				iIndex;
 	CChannel*	psSourceChannel;
@@ -884,12 +884,12 @@ BOOL CChannels::IsSameFormat(CChannels* psOther)
 					(psSourceChannel->iChannel == psThisChannel->iChannel) &&
 					(psSourceChannel->bReverse == psThisChannel->bReverse)))
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -897,11 +897,11 @@ BOOL CChannels::IsSameFormat(CChannels* psOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsIgnored(void)
+bool CChannels::IsIgnored(void)
 {
 	if (IsChanging())
 	{
-		return FALSE;
+		return false;
 	}
 	return miBitStride == 0;
 }
@@ -960,13 +960,13 @@ void CChannels::Copy(CChannels* pcData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsValid(int iPos)
+bool CChannels::IsValid(int iPos)
 {
 	if ((iPos < 0) || (iPos >= miSize))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1155,7 +1155,7 @@ void CChannels::GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannels::IsOnlyBasicTypes(void)
+bool CChannels::IsOnlyBasicTypes(void)
 {
 	return mbOnlyBasicTypes;
 }

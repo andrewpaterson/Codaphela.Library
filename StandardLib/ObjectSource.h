@@ -41,10 +41,10 @@ public:
 			void			Kill(void);
 
 	virtual CBaseObject*	Convert(char* szFullName) =0;
-	virtual BOOL			Contains(char* szFullName) =0;
+	virtual bool			Contains(char* szFullName) =0;
 
-	virtual BOOL			IsNative(void);
-	virtual BOOL			IsMultiSource(void);
+	virtual bool			IsNative(void);
+	virtual bool			IsMultiSource(void);
 
 			CAbstractFile*	GetFile(void);
 

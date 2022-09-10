@@ -34,19 +34,19 @@ protected:
 	CDependentWriteObjects*		mpcDependentObjects;
 
 public:
-	BOOL			Init(CAbstractFile* pcFile, CDependentWriteObjects* pcDependentObjects);
+	bool			Init(CAbstractFile* pcFile, CDependentWriteObjects* pcDependentObjects);
 	void			Kill(void);
 
-	BOOL			Write(CBaseObject* pcThis);
-	BOOL			WriteHeapFroms(CBaseObject* pcThis);
+	bool			Write(CBaseObject* pcThis);
+	bool			WriteHeapFroms(CBaseObject* pcThis);
 
-	BOOL			WritePointer(CPointer& pObject);
-	BOOL			WritePointer(CPointer* pObject);
-	BOOL			WriteDependent(CEmbeddedObject* pcBaseObject);
+	bool			WritePointer(CPointer& pObject);
+	bool			WritePointer(CPointer* pObject);
+	bool			WriteDependent(CEmbeddedObject* pcBaseObject);
 
 protected:
-	BOOL			WriteObjectHeader(CObjectHeader* psHeader);
-	BOOL			WriteIdentifier(CObjectIdentifier* psIdentifier);
+	bool			WriteObjectHeader(CObjectHeader* psHeader);
+	bool			WriteIdentifier(CObjectIdentifier* psIdentifier);
 
 	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
 	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);

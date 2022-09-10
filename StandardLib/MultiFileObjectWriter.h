@@ -36,12 +36,12 @@ public:
 	void	Init(char* szDirectory, char* szBaseName);
 	void	Kill(void);
 
-	BOOL	Begin(void);
-	BOOL	Write(CSerialisedObject* pcSerialised);
-	BOOL	End(void);
+	bool	Begin(void);
+	bool	Write(CSerialisedObject* pcSerialised);
+	bool	End(void);
 
 protected:
-	BOOL	ObjectStartsWithBaseName(char* szObjectName);
+	bool	ObjectStartsWithBaseName(char* szObjectName);
 	void	RemainingName(CChars* pszRemainingName, char* szObjectName);
 };
 

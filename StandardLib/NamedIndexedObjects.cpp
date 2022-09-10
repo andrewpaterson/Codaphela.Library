@@ -76,7 +76,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szName)
 {
 	OIndex					oi;
 	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bExists;
+	bool					bExists;
 
 	cAccess.Init(&mcMemoryNames);
 	bExists = cAccess.GetStringData(szName, &oi);
@@ -130,7 +130,7 @@ CBaseObject* CNamedIndexedObjects::Get(char* szObjectName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::Has(OIndex oi)
+bool CNamedIndexedObjects::Has(OIndex oi)
 {
 	return mcMemoryIndexedObjects.Has(oi);
 }
@@ -140,10 +140,10 @@ BOOL CNamedIndexedObjects::Has(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::Has(char* szName)
+bool CNamedIndexedObjects::Has(char* szName)
 {
 	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bHasObject;
+	bool					bHasObject;
 
 	cAccess.Init(&mcMemoryNames);
 	bHasObject = cAccess.HasString(szName);
@@ -156,9 +156,9 @@ BOOL CNamedIndexedObjects::Has(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
+bool CNamedIndexedObjects::RemoveIndex(OIndex oi)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	if (oi != INVALID_O_INDEX)
 	{
@@ -166,7 +166,7 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 		bResult = mcMemoryIndexedObjects.Remove(oi);
 		return bResult;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -174,10 +174,10 @@ BOOL CNamedIndexedObjects::RemoveIndex(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::RemoveName(char* szName)
+bool CNamedIndexedObjects::RemoveName(char* szName)
 {
 	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bResult;
+	bool					bResult;
 
 	//This only removes the name from the names, it does not free the object pointer to.
 	cAccess.Init(&mcMemoryNames);
@@ -191,11 +191,11 @@ BOOL CNamedIndexedObjects::RemoveName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
+bool CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 {
-	BOOL	bResult;
+	bool	bResult;
 	OIndex	oi;
-	BOOL	bHasObject;
+	bool	bHasObject;
 
 	oi = pvObject->GetIndex();
 	if (!IsValidIndex(oi))
@@ -218,10 +218,10 @@ BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObje
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
+bool CNamedIndexedObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 {
-	BOOL					bResult;
-	BOOL					bHasObject;
+	bool					bResult;
+	bool					bHasObject;
 	OIndex					oi;
 	char*					szName;
 	CIndexTreeMemoryAccess	cAccess;
@@ -254,7 +254,7 @@ BOOL CNamedIndexedObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject*
 	bResult = mcMemoryIndexedObjects.Add(oi, pvObject);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	
 	cAccess.Init(&mcMemoryNames);
@@ -350,14 +350,14 @@ CBaseObject* CNamedIndexedObjects::Iterate(SIndexesIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::ValidateNoDirty(void)
+bool CNamedIndexedObjects::ValidateNoDirty(void)
 {
 	SIndexesIterator	sIter;
 	OIndex				oi;
 	CBaseObject*		pcObject;
-	BOOL				bDirty;
+	bool				bDirty;
 	CChars				szIdentifier;
-	BOOL				bCanFindRoot;
+	bool				bCanFindRoot;
 
 	oi = mcMemoryIndexedObjects.StartIteration(&sIter);
 	while (oi != INVALID_O_INDEX)
@@ -373,7 +373,7 @@ BOOL CNamedIndexedObjects::ValidateNoDirty(void)
 		}
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -381,7 +381,7 @@ BOOL CNamedIndexedObjects::ValidateNoDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedObjects::FreeObjects(void)
+bool CNamedIndexedObjects::FreeObjects(void)
 {
 	SIndexesIterator	sIter;
 	OIndex				oi;
@@ -394,6 +394,6 @@ BOOL CNamedIndexedObjects::FreeObjects(void)
 		pcObject->FreeInternal();
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}
-	return TRUE;
+	return true;
 }
 

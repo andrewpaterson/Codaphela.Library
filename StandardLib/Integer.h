@@ -16,7 +16,7 @@ PRIMITIVE_TYPE_DEFINITION(UInt32, uint32, PT_uint32, WriteInt, ReadInt)
 PRIMITIVE_TYPE_DEFINITION(Int64, int64, PT_int64, WriteInt, ReadInt)
 PRIMITIVE_TYPE_DEFINITION(UInt64, uint64, PT_uint64, WriteInt, ReadInt)
 
-PRIMITIVE_TYPE_DEFINITION(Bool, int32, PT_bool, WriteBool, ReadBool)
+PRIMITIVE_TYPE_DEFINITION(Bool, bool, PT_bool, WriteBool, ReadBool)
 
 
 #endif // !__PRIMITIVE_INTEGER_H__

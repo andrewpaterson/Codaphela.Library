@@ -11,10 +11,10 @@ CONSTRUCTABLE(CExternalObjectReader);
 public:
 			void				Kill(void);
 
-	virtual BOOL				Begin(void);
+	virtual bool				Begin(void);
 	virtual CSerialisedObject*  Read(char* szObjectName) =0;
 	virtual CSerialisedObject*  Read(OIndex oi) =0;
-	virtual BOOL				End(void);
+	virtual bool				End(void);
 
 protected:
 			CSerialisedObject*  ReadSerialised(CFileReader* pcReader);

@@ -43,7 +43,7 @@ void* CChannelsAccessorWorstCase::Get(int iPos)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetAsSub(pcAccessor->meAccessType, pvSource, iSourceBitPos, c);
-		CopyBits(mpvGetBuffer, iDestBitPos, c, 0, pcAccessor->miAccessBitSize, FALSE);
+		CopyBits(mpvGetBuffer, iDestBitPos, c, 0, pcAccessor->miAccessBitSize, false);
 		iDestBitPos += pcAccessor->miAccessBitSize;
 	}
 	return mpvGetBuffer;
@@ -70,7 +70,7 @@ void CChannelsAccessorWorstCase::Set(int iPos, void* pvSource)
 	{
 		pcAccessor = macAccessors.Get(i);
 		c[pcAccessor->miAccessBitSize/8] = 0;
-		CopyBits(c, 0, pvSource, iSourceBitPos, pcAccessor->miAccessBitSize, FALSE);
+		CopyBits(c, 0, pvSource, iSourceBitPos, pcAccessor->miAccessBitSize, false);
 		pcAccessor->SetFromSub(pcAccessor->meAccessType, pvDest, iDestBitPos, c);
 		iSourceBitPos += pcAccessor->miAccessBitSize;
 	}

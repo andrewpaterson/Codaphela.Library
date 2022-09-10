@@ -62,10 +62,10 @@ CBaseObject* CIndexedObjects::Get(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedObjects::Has(OIndex oi)
+bool CIndexedObjects::Has(OIndex oi)
 {
 	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bHasObject;
+	bool					bHasObject;
 
 	cAccess.Init(&mcIndexes);
 	bHasObject = cAccess.HasLong(oi);
@@ -78,10 +78,10 @@ BOOL CIndexedObjects::Has(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
+bool CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 {
 	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bResult;
+	bool					bResult;
 
 	cAccess.Init(&mcIndexes);
 	bResult = cAccess.PutLongPtr(oi, pvMemory);
@@ -94,10 +94,10 @@ BOOL CIndexedObjects::Add(OIndex oi, CBaseObject* pvMemory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedObjects::Remove(OIndex oi)
+bool CIndexedObjects::Remove(OIndex oi)
 {
 	CIndexTreeMemoryAccess	cAccess;
-	BOOL					bResult;
+	bool					bResult;
 
 	cAccess.Init(&mcIndexes);
 	bResult =  cAccess.DeleteLong(oi);
@@ -122,7 +122,7 @@ int CIndexedObjects::NumIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 {
-	BOOL	bResult;
+	bool	bResult;
 	OIndex	oi;
 	int		iKeyLength;
 
@@ -141,7 +141,7 @@ OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 {
-	BOOL	bResult;
+	bool	bResult;
 	OIndex	oi;
 	int		iKeyLength;
 

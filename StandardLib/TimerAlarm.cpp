@@ -25,7 +25,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTimerAlarm::Init(CAction* pcAction, char* szTimerName, int iTime, BOOL bRepeat)
+void CTimerAlarm::Init(CAction* pcAction, char* szTimerName, int iTime, bool bRepeat)
 {
 	mpcAction = pcAction;
 	miTime = iTime;
@@ -44,8 +44,8 @@ void CTimerAlarm::Init(CAction* pcAction, char* szTimerName, int iTime, BOOL bRe
 void CTimerAlarm::Reset(void)
 {
 	miRemainingTime = miTime;
-	mbWaitForFirstUpdate = TRUE;
-	mbRunning = FALSE;
+	mbWaitForFirstUpdate = true;
+	mbRunning = false;
 }
 
 
@@ -65,7 +65,7 @@ void CTimerAlarm::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CTimerAlarm::Start(void)
 {
-	mbRunning = TRUE;
+	mbRunning = true;
 }
 
 
@@ -75,7 +75,7 @@ void CTimerAlarm::Start(void)
 //////////////////////////////////////////////////////////////////////////
 void CTimerAlarm::Stop(void)
 {
-	mbRunning = FALSE;
+	mbRunning = false;
 }
 
 
@@ -96,7 +96,7 @@ float CTimerAlarm::Update(void)
 
 	if (mbWaitForFirstUpdate)
 	{
-		mbWaitForFirstUpdate = FALSE;
+		mbWaitForFirstUpdate = false;
 		return -1.0f;
 	}
 
@@ -110,7 +110,7 @@ float CTimerAlarm::Update(void)
 		}
 		else
 		{
-			mbRunning = FALSE;
+			mbRunning = false;
 		}
 	}
 

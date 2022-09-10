@@ -35,19 +35,19 @@ public:
 
 	void	Add(M* pcUnknown);
 	M*		Add(void);
-	BOOL	AddAll(CArrayCommonUnknown* pcSource);
+	bool	AddAll(CArrayCommonUnknown* pcSource);
 
-	BOOL	Remove(M* pcUnknown);
+	bool	Remove(M* pcUnknown);
 	void	RemoveDuringIteration(SSetIterator* psIter);
 
 	M*		StartIteration(SSetIterator* psIter);
 	M*		Iterate(SSetIterator* psIter);
 
-	BOOL	Contains(M* pcUnknown);
+	bool	Contains(M* pcUnknown);
 
 protected:
-	BOOL	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	BOOL	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	bool	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
+	bool	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
 };
 
 
@@ -59,7 +59,7 @@ template<class M>
 void CSetType<M>::Init(void)
 {
 	CSetUnknown::Init();
-	TypeKnown(TRUE);
+	TypeKnown(true);
 }
 
 
@@ -71,7 +71,7 @@ template<class M>
 void CSetType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
 {
 	CSetUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
-	TypeKnown(TRUE);
+	TypeKnown(true);
 }
 
 
@@ -113,7 +113,7 @@ M* CSetType<M>::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSetType<M>::AddAll(CArrayCommonUnknown* pcSource)
+bool CSetType<M>::AddAll(CArrayCommonUnknown* pcSource)
 {
 	return CArrayCommonUnknown::AddAll(pcSource);
 }
@@ -124,7 +124,7 @@ BOOL CSetType<M>::AddAll(CArrayCommonUnknown* pcSource)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSetType<M>::Remove(M* pcUnknown)
+bool CSetType<M>::Remove(M* pcUnknown)
 {
 	return CSetUnknown::Remove(pcUnknown);
 }
@@ -168,7 +168,7 @@ M* CSetType<M>::Iterate(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSetType<M>::Contains(M* pcUnknown)
+bool CSetType<M>::Contains(M* pcUnknown)
 {
 	return CArrayCommonUnknown::Contains(pcUnknown);
 }
@@ -179,14 +179,14 @@ BOOL CSetType<M>::Contains(M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSetType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
+bool CSetType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	M*	pcUnknown;
 
 	pcUnknown = gcUnknowns.Add<M>();
 	ReturnOnFalse(pcUnknown->Load(pcFile));
 	*ppcUnknown = pcUnknown;
-	return TRUE;
+	return true;
 }
 
 
@@ -195,7 +195,7 @@ BOOL CSetType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSetType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
+bool CSetType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
 	return pcUnknown->Save(pcFile);
 }

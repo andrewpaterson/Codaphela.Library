@@ -35,7 +35,7 @@ public:
 	M*			Add(void);
 	void		Add(CUnknown* pcUnknown);
 
-	BOOL		Remove(CUnknown* pcUnknown);
+	bool		Remove(CUnknown* pcUnknown);
 	void		RemoveDuringIteration(SSetIterator* psIter);
 
 	CUnknown*	StartIteration(SSetIterator* psIter);

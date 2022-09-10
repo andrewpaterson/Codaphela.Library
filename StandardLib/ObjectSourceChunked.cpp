@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename)
+bool CObjectSourceChunked::Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename)
 {
 	CObjectSource::Init(pcConverter, pcFile, szFilename);
 
@@ -46,7 +46,7 @@ void CObjectSourceChunked::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::ReadNames(void)
+bool CObjectSourceChunked::ReadNames(void)
 {
 	SChunkFilenameIterator	sIter;
 	char*					szName;
@@ -63,9 +63,9 @@ BOOL CObjectSourceChunked::ReadNames(void)
 	mcChunkFileFileSystem.StopIteration(&sIter);
 
 
-	mcNames.QuickSort(TRUE);
+	mcNames.QuickSort(true);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -90,11 +90,11 @@ CBaseObject* CObjectSourceChunked::Convert(char* szFullName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::Contains(char* szFullName)
+bool CObjectSourceChunked::Contains(char* szFullName)
 {
 	int		iIndex;
 
-	iIndex = mcNames.FindInSorted(szFullName, FALSE);
+	iIndex = mcNames.FindInSorted(szFullName, false);
 	return iIndex != -1;
 }
 
@@ -123,9 +123,9 @@ int CObjectSourceChunked::NumNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::IsMultiSource(void)
+bool CObjectSourceChunked::IsMultiSource(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -133,9 +133,9 @@ BOOL CObjectSourceChunked::IsMultiSource(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::IsChunked(void)
+bool CObjectSourceChunked::IsChunked(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -143,9 +143,9 @@ BOOL CObjectSourceChunked::IsChunked(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceChunked::IsNative(void)
+bool CObjectSourceChunked::IsNative(void)
 {
-	return TRUE; 
+	return true; 
 }
 
 

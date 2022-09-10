@@ -37,8 +37,8 @@ public:
 	void				Insert(int iIndex, CPointer& pObject);
 	CPointer			Get(int iIndex);
 	void				Set(int iIndex, CPointer& pObject);
-	BOOL				Remove(CPointer& pObject);
-	BOOL				RemoveAt(int iIndex);
+	bool				Remove(CPointer& pObject);
+	bool				RemoveAt(int iIndex);
 
 	template<class M>
 	Ptr<M>				Get(int iIndex);

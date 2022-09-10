@@ -12,7 +12,7 @@ public:
 	void		Init(ptrdiff_t iOffset, CClass* pcContainingClass, char* szName);
 	void		Kill(void);
 
-	BOOL		IsPointer(void);
+	bool		IsPointer(void);
 	uint32		GetSizeOf(void);
 	size_t		GetNameOffset(void);
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);

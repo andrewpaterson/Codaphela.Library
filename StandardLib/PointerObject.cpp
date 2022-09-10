@@ -87,7 +87,7 @@ CPointer::CPointer(CPointer& cPointer)
 
 	LOG_POINTER_DEBUG();
 
-	PointTo(cPointer.mpcObject, FALSE);
+	PointTo(cPointer.mpcObject, false);
 }
 
 
@@ -102,7 +102,7 @@ CPointer::CPointer(CEmbeddedObject* pcObject)
 
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcObject, FALSE);
+	PointTo(pcObject, false);
 }
 
 
@@ -116,7 +116,7 @@ CPointer::~CPointer()
 
 	if (mpcObject)
 	{
-		mpcObject->RemoveStackFromTryKill(this, FALSE);
+		mpcObject->RemoveStackFromTryKill(this, false);
 	}
 }
 
@@ -129,7 +129,7 @@ void CPointer::operator = (CEmbeddedObject* pcObject)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcObject, TRUE);
+	PointTo(pcObject, true);
 }
 
 
@@ -141,7 +141,7 @@ void CPointer::operator = (CPointer& pcPointer)
 {
 	LOG_POINTER_DEBUG();
 
-	PointTo(pcPointer.mpcObject, TRUE);
+	PointTo(pcPointer.mpcObject, true);
 }
 
 
@@ -168,7 +168,7 @@ CEmbeddedObject* CPointer::operator & ()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::operator ! ()
+bool CPointer::operator ! ()
 {
 	return mpcObject == NULL;
 }
@@ -207,7 +207,7 @@ void CPointer::UnsafePointTo(CEmbeddedObject* pcNewObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
+void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 {
 	CEmbeddedObject*	pcOldObject;
 
@@ -227,18 +227,18 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, BOOL bKillIfNoRoot)
 			{
 				if (mpcObject)
 				{
-					mpcObject->AddHeapFrom(mpcEmbedding, FALSE);
-					mpcObject->SetDirty(TRUE);
+					mpcObject->AddHeapFrom(mpcEmbedding, false);
+					mpcObject->SetDirty(true);
 				}
-				pcOldObject->SetDirty(TRUE);
-				pcOldObject->RemoveHeapFrom(mpcEmbedding, TRUE);
+				pcOldObject->SetDirty(true);
+				pcOldObject->RemoveHeapFrom(mpcEmbedding, true);
 			}
 			else if (mpcObject)
 			{
-				mpcObject->AddHeapFrom(mpcEmbedding, TRUE);
-				mpcObject->SetDirty(TRUE);
+				mpcObject->AddHeapFrom(mpcEmbedding, true);
+				mpcObject->SetDirty(true);
 			}
-			mpcEmbedding->SetDirty(TRUE);
+			mpcEmbedding->SetDirty(true);
 		}
 		else
 		{
@@ -279,7 +279,7 @@ CEmbeddedObject* CPointer::Return(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsNotNull(void)
+bool CPointer::IsNotNull(void)
 {
 	return mpcObject != NULL;
 }
@@ -289,7 +289,7 @@ BOOL CPointer::IsNotNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsNull(void)
+bool CPointer::IsNull(void)
 {
 	return mpcObject == NULL;
 }
@@ -415,7 +415,7 @@ int CPointer::MorphInto(CEmbeddedObject* pcNew)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsHollow(void)
+bool CPointer::IsHollow(void)
 {
 	if (mpcObject)
 	{
@@ -423,7 +423,7 @@ BOOL CPointer::IsHollow(void)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -432,7 +432,7 @@ BOOL CPointer::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::Load(CObjectReader* pcFile)
+bool CPointer::Load(CObjectReader* pcFile)
 {
 	if (mpcObject)
 	{
@@ -442,12 +442,12 @@ BOOL CPointer::Load(CObjectReader* pcFile)
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -524,7 +524,7 @@ char* CPointer::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsNamed(void)
+bool CPointer::IsNamed(void)
 {
 	if (mpcObject)
 	{
@@ -532,7 +532,7 @@ BOOL CPointer::IsNamed(void)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -558,7 +558,7 @@ const char* CPointer::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsDirty(void)
+bool CPointer::IsDirty(void)
 {
 	if (mpcObject)
 	{
@@ -566,7 +566,7 @@ BOOL CPointer::IsDirty(void)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -575,7 +575,7 @@ BOOL CPointer::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointer::IsEmbeddingAllocatedInObjects(void)
+bool CPointer::IsEmbeddingAllocatedInObjects(void)
 {
 	if (mpcEmbedding)
 	{
@@ -583,7 +583,7 @@ BOOL CPointer::IsEmbeddingAllocatedInObjects(void)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -624,7 +624,7 @@ void CPointer::AddHeapFrom(CBaseObject* pcFrom)
 {
 	if (mpcObject)
 	{
-		mpcObject->AddHeapFrom(pcFrom, TRUE);
+		mpcObject->AddHeapFrom(pcFrom, true);
 	}
 }
 

@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(void)
 {
-	CArrayCommonUnknown::Init(FALSE, TRUE, FALSE, TRUE, FALSE);
+	CArrayCommonUnknown::Init(false, true, false, true, false);
 }
 
 
@@ -38,7 +38,7 @@ void CSetUnknown::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSetUnknown::Init(int iChunkSize)
 {
-	CArrayCommonUnknown::Init(FALSE, TRUE, FALSE, TRUE, FALSE, iChunkSize);
+	CArrayCommonUnknown::Init(false, true, false, true, false, iChunkSize);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ void CSetUnknown::Add(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSetUnknown::Remove(CUnknown* pcUnknown)
+bool CSetUnknown::Remove(CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Remove(pcUnknown);
 }

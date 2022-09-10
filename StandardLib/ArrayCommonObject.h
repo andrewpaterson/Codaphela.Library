@@ -31,18 +31,18 @@ CONSTRUCTABLE(CArrayCommonObject);
 DESTRUCTABLE(CArrayCommonObject);
 protected:
 	CArrayCommonUnknown		mcArray;
-	BOOL					mbSubRoot;
+	bool					mbSubRoot;
 
 public:
-	Ptr<CArrayCommonObject>	Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder);
+	Ptr<CArrayCommonObject>	Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
 	void					Class(void);
 
-	BOOL					Add(CPointer& pObject);
+	bool					Add(CPointer& pObject);
 	void					AddAll(CArrayCommonObject* pcArray);
 	void					Set(int iIndex, CPointer& pObject);
 
-	BOOL					Remove(CPointer& pObject);
-	BOOL					Remove(CBaseObject* pcObject);
+	bool					Remove(CPointer& pObject);
+	bool					Remove(CBaseObject* pcObject);
 	void					RemoveAll(void);
 	void					Clear(void);
 
@@ -50,26 +50,26 @@ public:
 	int						NonNullElements(void);
 	int						Size(void);
 	int						Length(void);
-	BOOL					IsEmpty(void);
+	bool					IsEmpty(void);
 
 	void					MakeSubRoot(void);
-	BOOL					IsSubRoot(void);
+	bool					IsSubRoot(void);
 	void					SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
 	int						NumPointerTos(void);
 	int						BaseNumPointerTos(void);
 	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-	BOOL					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
+	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void					RemoveAllPointerTosDontKill(void);
 	void					RemoveAllPointerTos(void);
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
-	BOOL					Save(CObjectWriter* pcFile) override;
-	BOOL					Load(CObjectReader* pcFile) override;
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
 	CBaseObject*			UnsafeGet(int iIndex);
-	BOOL					UnsafeRemove(CBaseObject* pcObject);
+	bool					UnsafeRemove(CBaseObject* pcObject);
 	CEmbeddedObject*		GetEmbeddedObject(uint16 iIndex);
 
 	void					BaseValidatePointerTos(void);

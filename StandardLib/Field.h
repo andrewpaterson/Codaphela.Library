@@ -26,12 +26,12 @@ public:
 			CClass*		GetClass(void);
 	virtual	uint32		GetSizeOf(void) =0;
 
-	virtual	BOOL		IsArray(void);
+	virtual	bool		IsArray(void);
 			uint32		GetOffset(void);
-	virtual	BOOL		IsPointer(void);
-	virtual	BOOL		IsPrimitive(void);
-	virtual	BOOL		IsUnmanaged(void);
-	virtual	BOOL		IsEmbeddedObject(void);
+	virtual	bool		IsPointer(void);
+	virtual	bool		IsPrimitive(void);
+	virtual	bool		IsUnmanaged(void);
+	virtual	bool		IsEmbeddedObject(void);
 	virtual	SDataIO*	GetDataIO(void);
 
 protected:

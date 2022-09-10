@@ -24,9 +24,9 @@ void CExternalObjectWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectWriter::Begin(void)
+bool CExternalObjectWriter::Begin(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -34,8 +34,8 @@ BOOL CExternalObjectWriter::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectWriter::End(void)
+bool CExternalObjectWriter::End(void)
 {
-	return TRUE;
+	return true;
 }
 

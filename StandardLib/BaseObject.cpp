@@ -72,7 +72,7 @@ CBaseObject::~CBaseObject()
 void CBaseObject::Allocate(CObjects* pcObjects)
 {
 	mpcObjectsThisIn = pcObjects;
-	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, TRUE);
+	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, true);
 	PreClass();
 	SetDistToStack(UNKNOWN_DIST_TO_STACK);
 }
@@ -88,7 +88,7 @@ void CBaseObject::PreClass(void)
 
 	if (!HasClass())
 	{
-		SetFlag(OBJECT_FLAGS_CALLED_CLASS, TRUE);
+		SetFlag(OBJECT_FLAGS_CALLED_CLASS, true);
 
 		pcClasses = GetClasses();
 		Class(pcClasses);
@@ -215,7 +215,7 @@ void CBaseObject::ContainerPostInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Initialised(void)
 {
-	SetFlag(OBJECT_FLAGS_CALLED_INIT, TRUE);
+	SetFlag(OBJECT_FLAGS_CALLED_INIT, true);
 }
 
 
@@ -225,7 +225,7 @@ void CBaseObject::Initialised(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
-	BOOL		bHeapFromChanged;
+	bool		bHeapFromChanged;
 	CObjects*	pcObjectsThisIn;
 
 	if (IsKilled())
@@ -237,7 +237,7 @@ void CBaseObject::Kill(void)
 
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
-	SetFlag(OBJECT_FLAGS_CALLED_KILL, TRUE);
+	SetFlag(OBJECT_FLAGS_CALLED_KILL, true);
 
 	bHeapFromChanged = HasHeapFroms();
 	KillInternal(bHeapFromChanged);
@@ -255,7 +255,7 @@ void CBaseObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillInternal(BOOL bHeapFromChanged)
+void CBaseObject::KillInternal(bool bHeapFromChanged)
 {
 	ValidateNotEmbedded(__METHOD__);
 
@@ -289,7 +289,7 @@ void CBaseObject::KillInternal(BOOL bHeapFromChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsKilled(void)
+bool CBaseObject::IsKilled(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_KILL);
 }
@@ -299,11 +299,11 @@ BOOL CBaseObject::IsKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::Flush(void)
+bool CBaseObject::Flush(void)
 {
-	BOOL	bResult;
-	BOOL	bCanFindRoot;
-	BOOL	bDirty;
+	bool	bResult;
+	bool	bCanFindRoot;
+	bool	bDirty;
 
 	ValidateNotEmbedded(__METHOD__);
 
@@ -315,15 +315,15 @@ BOOL CBaseObject::Flush(void)
 		if (bCanFindRoot)
 		{
 			bResult = GetObjectsThisIn()->ForceSave(this);
-			SetDirty(FALSE);
+			SetDirty(false);
 			return bResult;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -343,7 +343,7 @@ void CBaseObject::FreeInternal(void)
 
 	FreeIdentifiers();
 
-	SetFlag(OBJECT_FLAGS_FREED, TRUE);
+	SetFlag(OBJECT_FLAGS_FREED, true);
 }
 
 
@@ -392,7 +392,7 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 	{
 		pcParameters->AddTouched(this);
 		SetDistToRoot(CLEARED_DIST_TO_ROOT);
-		SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, TRUE);
+		SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT, true);
 
 		apcFroms.Init();
 		GetHeapFroms(&apcFroms);
@@ -440,7 +440,7 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 		if (!CanFindRootThroughValidPath())
 		{
 			pcParameters->AddTouched(this);
-			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, TRUE);
+			SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
 			SetDistToRoot(CLEARED_DIST_TO_ROOT);
 
 			CollectAndClearPointerTosInvalidDistToRootObjects(pcParameters);
@@ -484,11 +484,11 @@ int CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters*
 
 	if (!(muiFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED))
 	{
-		SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, TRUE);
+		SetFlag(OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED, true);
 		pcParameters->AddTouched(this);
 	}
 
-	SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, TRUE);
+	SetFlag(OBJECT_FLAGS_DIST_FROM_WALKED, true);
 
 	iNumWithStackPointers += CollectDetachedFroms(pcParameters);
 	return iNumWithStackPointers;
@@ -527,7 +527,7 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsDistToRootValid(void)
+bool CBaseObject::IsDistToRootValid(void)
 {
 	int					i;
 	CEmbeddedObject*	pcBaseObject;
@@ -535,7 +535,7 @@ BOOL CBaseObject::IsDistToRootValid(void)
 
 	if (miDistToRoot < ROOT_DIST_TO_ROOT)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iExpectedDistToRoot = miDistToRoot - 1;
@@ -544,10 +544,10 @@ BOOL CBaseObject::IsDistToRootValid(void)
 		pcBaseObject = *mapHeapFroms.Get(i);
 		if (pcBaseObject->GetDistToRoot() == iExpectedDistToRoot)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -555,13 +555,13 @@ BOOL CBaseObject::IsDistToRootValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged)
+void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	BOOL					bHasStackPointers;
-	BOOL					bHasHeapPointers;
-	BOOL					bMustKill;
+	bool					bHasStackPointers;
+	bool					bHasHeapPointers;
+	bool					bMustKill;
 	CDistCalculator			cDistCalculator;
 	CArrayBlockObjectPtr*	papcKilled;
 	
@@ -620,30 +620,30 @@ int CBaseObject::GetFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::CanFindRoot(void)
+bool CBaseObject::CanFindRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
 	CEmbeddedObject*				pcPointedFrom;
-	BOOL							bResult;
+	bool							bResult;
 
 	if (IsRoot())
 	{
-		return TRUE;
+		return true;
 	}
 
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
 
 	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
-		return FALSE;
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
+		return false;
 	}
 
 	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRoot();
 
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
 	return bResult;
 }
 
@@ -652,42 +652,42 @@ BOOL CBaseObject::CanFindRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::CanFindRootThroughValidPath(void)
+bool CBaseObject::CanFindRootThroughValidPath(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
 	CEmbeddedObject*	pcPointedFrom;
-	BOOL				bResult;
+	bool				bResult;
 	int					iFromDistToRoot;
 
 	if (IsRoot())
 	{
-		return TRUE;
+		return true;
 	}
 	if (miDistToRoot < ROOT_DIST_TO_ROOT)
 	{
-		return FALSE;
+		return false;
 	}
 
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, TRUE);
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, true);
 
 	pcPointedFrom = GetClosestFromForCanFindRoot();
 	if (pcPointedFrom == NULL)
 	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
-		return FALSE;
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
+		return false;
 	}
 
 	iFromDistToRoot = pcPointedFrom->GetDistToRoot();
 	if (iFromDistToRoot >= miDistToRoot)
 	{
-		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
-		return FALSE;
+		SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
+		return false;
 	}
 
 	bResult = pcPointedFrom->GetEmbeddingContainer()->CanFindRootThroughValidPath();
 
-	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, FALSE);
+	SetFlag(OBJECT_FLAGS_TESTED_FOR_ROOT, false);
 	return bResult;
 }
 
@@ -733,14 +733,14 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SetDistToRoot(int iDistToRoot)
+bool CBaseObject::SetDistToRoot(int iDistToRoot)
 {
 	if (miDistToRoot != iDistToRoot)
 	{
 		miDistToRoot = iDistToRoot;
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -825,7 +825,7 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 
 	pcParameters->AddTouched(this);
 	SetDistToRoot(iClosestToRoot);
-	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, TRUE);
+	SetFlag(OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT, true);
 
 	UpdateAttachedEmbeddedObjectPointerTosDistToRoot(pcParameters, iClosestToRoot);
 }
@@ -859,7 +859,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, FALSE);
+	SetFlag(OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT | OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED | OBJECT_FLAGS_DIST_FROM_WALKED, false);
 }
 
 
@@ -867,7 +867,7 @@ void CBaseObject::ClearDistTouchedFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::HasDistTouchedFlag(void)
+bool CBaseObject::HasDistTouchedFlag(void)
 {
 	return FixBool(muiFlags & (OBJECT_FLAGS_CLEARED_DIST_TO_ROOT | OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT));
 }
@@ -877,7 +877,7 @@ BOOL CBaseObject::HasDistTouchedFlag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
+bool CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
 {
 	CBaseObject*	pcBaseObject;
 
@@ -888,11 +888,11 @@ BOOL CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
 			pcBaseObject = (CBaseObject*)pcPointedTo;
 			pcBaseObject->PrivateRemoveHeapFrom(this);  //If the object pointed to us is also being killed then we needed remove our from from it.
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -924,9 +924,9 @@ int CBaseObject::SerialisedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsRoot(void)
+bool CBaseObject::IsRoot(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -934,7 +934,7 @@ BOOL CBaseObject::IsRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsNamed(void)
+bool CBaseObject::IsNamed(void)
 {
 	return !mon.Empty();
 }
@@ -966,9 +966,9 @@ char* CBaseObject::GetIdentifier(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsSubRoot(void)
+bool CBaseObject::IsSubRoot(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -976,7 +976,7 @@ BOOL CBaseObject::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsInvalidated(void)
+bool CBaseObject::IsInvalidated(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_INVALIDATED);
 }
@@ -986,7 +986,7 @@ BOOL CBaseObject::IsInvalidated(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsDirty(void)
+bool CBaseObject::IsDirty(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_DIRTY);
 }
@@ -996,7 +996,7 @@ BOOL CBaseObject::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::TestedForRoot(void)
+bool CBaseObject::TestedForRoot(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_TESTED_FOR_ROOT);
 }
@@ -1006,7 +1006,7 @@ BOOL CBaseObject::TestedForRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::TestedForSanity(void)
+bool CBaseObject::TestedForSanity(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY);
 }
@@ -1016,7 +1016,7 @@ BOOL CBaseObject::TestedForSanity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetDirty(BOOL bDirty)
+void CBaseObject::SetDirty(bool bDirty)
 {
 	SetFlag(OBJECT_FLAGS_DIRTY, bDirty);
 }
@@ -1046,7 +1046,7 @@ int CBaseObject::GetDistToStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::InitIdentifiers(const char* szName, OIndex oi)
+bool CBaseObject::InitIdentifiers(const char* szName, OIndex oi)
 {
 	moi = oi;
 	mon.Init(szName);
@@ -1070,9 +1070,9 @@ void CBaseObject::ClearIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsHollow(void)
+bool CBaseObject::IsHollow(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -1106,9 +1106,9 @@ CEmbeddedObject* CBaseObject::TestGetPointerTo(int iToIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
+bool CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -1116,9 +1116,9 @@ BOOL CBaseObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::Save(CObjectWriter* pcFile)
+bool CBaseObject::Save(CObjectWriter* pcFile)
 {
-	return TRUE;
+	return true;
 } 
 
 
@@ -1126,36 +1126,36 @@ BOOL CBaseObject::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveManaged(CObjectWriter* pcFile)
+bool CBaseObject::SaveManaged(CObjectWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = SaveEmbeddedObjectsManaged(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = SavePointers(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = SavePrimitives(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = SaveUnmanaged(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = Save(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1163,9 +1163,9 @@ BOOL CBaseObject::SaveManaged(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
+bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 {
-	BOOL			bResult;
+	bool			bResult;
 	int				i;
 	int				iNumElements;
 	CBaseObject*	pcHeapFrom;
@@ -1189,7 +1189,7 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 		ReturnOnFalse(bResult);
 	}
 	
-	return TRUE;
+	return true;
 }
 
 
@@ -1197,14 +1197,14 @@ BOOL CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
+bool CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CBaseObject*			pcEmbeddedObject;
-	BOOL					bResult;
+	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
@@ -1215,11 +1215,11 @@ BOOL CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 		bResult = pcEmbeddedObject->SaveManaged(pcFile);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1227,14 +1227,14 @@ BOOL CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
+bool CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CBaseObject*			pcEmbeddedObject;
-	BOOL					bResult;
+	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
@@ -1245,11 +1245,11 @@ BOOL CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 		bResult = pcEmbeddedObject->SaveHeapFroms(pcFile);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1257,14 +1257,14 @@ BOOL CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SavePointers(CObjectWriter* pcFile)
+bool CBaseObject::SavePointers(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CPointerField**			ppacPointerFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CPointer*				pcPointer;
-	BOOL					bResult;
+	bool					bResult;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();
@@ -1275,11 +1275,11 @@ BOOL CBaseObject::SavePointers(CObjectWriter* pcFile)
 		bResult = pcFile->WritePointer(pcPointer);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1287,14 +1287,14 @@ BOOL CBaseObject::SavePointers(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SavePrimitives(CObjectWriter* pcFile)
+bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CPrimitiveField**		ppacPrimitiveFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CPrimitiveObject*		pcPrimitive;
-	BOOL					bResult;
+	bool					bResult;
 	CPrimitiveField*		pcPrimitiveField;
 	SDataIO*				psIO;
 	void*					pvPrimitive;
@@ -1312,7 +1312,7 @@ BOOL CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 		ReturnOnFalse(bResult);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1320,14 +1320,14 @@ BOOL CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
+bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 {
 	int						iNumFields;
 	CUnmanagedField**		ppacUnmanagedFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CUnmanagedField*		pcUnmanagedField;
-	BOOL					bResult;
+	bool					bResult;
 	size_t					uiCount;
 	uint32					uiSize;
 	void*					pvUnmanaged;
@@ -1345,11 +1345,11 @@ BOOL CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1357,9 +1357,9 @@ BOOL CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::Load(CObjectReader* pcFile)
+bool CBaseObject::Load(CObjectReader* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -1367,36 +1367,36 @@ BOOL CBaseObject::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
+bool CBaseObject::LoadManaged(CObjectReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = LoadEmbeddedObjectsManaged(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = LoadPointers(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = LoadPrimitives(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = LoadUnmanaged(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = Load(pcFile);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1404,14 +1404,14 @@ BOOL CBaseObject::LoadManaged(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
+bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CBaseObject*			pcEmbeddedObject;
-	BOOL					bResult;
+	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
@@ -1422,11 +1422,11 @@ BOOL CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 		bResult = pcEmbeddedObject->LoadManaged(pcFile);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1434,14 +1434,14 @@ BOOL CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadPointers(CObjectReader* pcFile)
+bool CBaseObject::LoadPointers(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CPointerField**			ppacPointerFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CPointer*				pcPointer;
-	BOOL					bResult;
+	bool					bResult;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();
@@ -1452,11 +1452,11 @@ BOOL CBaseObject::LoadPointers(CObjectReader* pcFile)
 		bResult = pcFile->ReadPointer(pcPointer);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1464,14 +1464,14 @@ BOOL CBaseObject::LoadPointers(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadPrimitives(CObjectReader* pcFile)
+bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CPrimitiveField**		ppacPrimitiveFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CPrimitiveObject*		pcPrimitive;
-	BOOL					bResult;
+	bool					bResult;
 	CPrimitiveField*		pcPrimitiveField;
 	SDataIO*				psIO;
 	void*					pvPrimitive;
@@ -1489,11 +1489,11 @@ BOOL CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1501,14 +1501,14 @@ BOOL CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
+bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CUnmanagedField**		ppacUnmanagedFields;
 	CArrayVoidPtr*			papv;
 	int						i;
 	CUnmanagedField*		pcUnmanagedField;
-	BOOL					bResult;
+	bool					bResult;
 	size_t					uiCount;
 	uint32					uiSize;
 	void*					pvUnmanaged;
@@ -1526,11 +1526,11 @@ BOOL CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1538,9 +1538,9 @@ BOOL CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
+bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 {
-	BOOL				bResult;
+	bool				bResult;
 	int					i;
 	int					iNumElements;
 	CEmbeddedObject*	pcHeapFrom;
@@ -1563,7 +1563,7 @@ BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 		ReturnOnFalse(bResult);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1571,14 +1571,14 @@ BOOL CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
+bool CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
 {
 	int						iNumFields;
 	CEmbeddedObjectField** ppacEmbeddedObjectFields;
 	CArrayVoidPtr* papv;
 	int						i;
 	CBaseObject* pcEmbeddedObject;
-	BOOL					bResult;
+	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
@@ -1589,11 +1589,11 @@ BOOL CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
 		bResult = pcEmbeddedObject->LoadHeapFroms(pcFile);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1611,9 +1611,9 @@ OIndex CBaseObject::GetIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsBaseObject(void)
+bool CBaseObject::IsBaseObject(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -1717,7 +1717,7 @@ CStackPointers* CBaseObject::GetStackPointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsMarkedUnreachable(void)
+bool CBaseObject::IsMarkedUnreachable(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_UNREACHABLE);
 }
@@ -1727,7 +1727,7 @@ BOOL CBaseObject::IsMarkedUnreachable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
+bool CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT);
 }
@@ -1737,7 +1737,7 @@ BOOL CBaseObject::IsUpdateAttachedPointerTosDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::HasClass(void)
+bool CBaseObject::HasClass(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_CLASS);
 }
@@ -1747,7 +1747,7 @@ BOOL CBaseObject::HasClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsInitialised(void)
+bool CBaseObject::IsInitialised(void)
 {
 	return FixBool(muiFlags & OBJECT_FLAGS_CALLED_INIT);
 }
@@ -1988,7 +1988,7 @@ void CBaseObject::ValidateCanFindRoot(void)
 	ValidateNotEmbedded(__METHOD__);
 
 	CChars			sz;
-	BOOL			bCanFindRoot;
+	bool			bCanFindRoot;
 
 	if (miDistToRoot > ROOT_DIST_TO_ROOT)
 	{
@@ -2103,10 +2103,10 @@ void CBaseObject::ValidateFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateAllocation(void)
 {
-	BOOL	bDistToStackZero;
-	BOOL	bAllocateCalled;
-	BOOL	bInObjects;
-	BOOL	bAllSame;
+	bool	bDistToStackZero;
+	bool	bAllocateCalled;
+	bool	bInObjects;
+	bool	bAllSame;
 	CChars	sz;
 
 	bDistToStackZero = GetDistToStack() == 0;
@@ -2263,7 +2263,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 			pcContainer = GetEmbeddingContainer();
 
 			szContainer.Init();
-			pcContainer->PrintObject(&szContainer, FALSE);
+			pcContainer->PrintObject(&szContainer, false);
 
 			szThis.Init();
 			PrintObject(&szThis, IsEmbedded());
@@ -2395,7 +2395,7 @@ char* CBaseObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::IsNamed(const char* szName)
+bool CBaseObject::IsNamed(const char* szName)
 {
 	if (StrEmpty(szName))
 	{
@@ -2403,7 +2403,7 @@ BOOL CBaseObject::IsNamed(const char* szName)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -2412,20 +2412,20 @@ BOOL CBaseObject::IsNamed(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseObject::ClipName(void)
+bool CBaseObject::ClipName(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
-	bResult = TRUE;
+	bResult = true;
 	if (mon.Contains("\\"))
 	{
 		mon.Replace("\\", "/");
-		bResult = FALSE;
+		bResult = false;
 	}
 	if (mon.Length() >= MAX_NAMED_OBJECT_NAME_LENGTH)
 	{
 		mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH - 1);
-		bResult = FALSE;
+		bResult = false;
 	}
 
 	return bResult;

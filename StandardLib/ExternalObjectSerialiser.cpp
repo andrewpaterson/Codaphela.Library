@@ -50,10 +50,10 @@ void CExternalObjectSerialiser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
+bool CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 {
 	CBaseObject*	pcUnwritten;
-	BOOL			bResult;
+	bool			bResult;
 	int				iCount;  //Just for debugging.
 
 	ReturnOnFalse(mpcWriter->Begin());
@@ -68,7 +68,7 @@ BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 			bResult = WriteUnwritten(pcUnwritten);
 			if (!bResult)
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		else
@@ -85,10 +85,10 @@ BOOL CExternalObjectSerialiser::Write(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
+bool CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 {
 	CObjectWriter		cObjectWriter;
-	BOOL				bResult;
+	bool				bResult;
 	CSerialisedObject*	pcSerialised;
 	CChars				szDescription;
 	CMemoryFile			mcMemory;
@@ -114,7 +114,7 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		szDescription.Init();
 		gcLogger.Error2(__METHOD__, " Could not serialise object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
-		return FALSE;
+		return false;
 	}
 
 	pcSerialised = (CSerialisedObject*)mcMemory.GetBufferPointer();
@@ -128,11 +128,11 @@ BOOL CExternalObjectSerialiser::WriteUnwritten(CBaseObject* pcObject)
 		szDescription.Init();
 		gcLogger.Error2(__METHOD__, " Could write object [", pcObject->GetIdentifier(&szDescription), "].", NULL);
 		szDescription.Kill();
-		return FALSE;
+		return false;
 	}
 
 	MarkWritten(pcObject);
-	return TRUE;
+	return true;
 }
 
 

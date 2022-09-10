@@ -8,10 +8,10 @@ class CDependentWriteObject
 {
 public:
 	CBaseObject*	mpcObject;
-	BOOL			mbWritten;
+	bool			mbWritten;
 
 public:
-	void Init(CBaseObject* pcObject, BOOL bWritten);
+	void Init(CBaseObject* pcObject, bool bWritten);
 };
 
 

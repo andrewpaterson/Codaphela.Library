@@ -34,7 +34,7 @@ public:
 	void*	Get(int iPos);
 	void	Set(int iPos, void* pvData);
 
-	BOOL	IsContiguous(void);
+	bool	IsContiguous(void);
 };
 
 

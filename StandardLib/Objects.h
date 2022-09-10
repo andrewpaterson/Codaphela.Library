@@ -60,7 +60,7 @@ class CObjects
 friend class CBaseObject;
 friend class CInternalObjectDeserialiser;
 protected:
-	BOOL					mbInitialised;
+	bool					mbInitialised;
 	CUnknowns*				mpcUnknownsAllocatingFrom;
 
 	CNamedIndexedObjects	mcMemory;			//Objects (BaseObject*) allocated in Unknowns referenced by name and OIndex.  
@@ -82,22 +82,22 @@ public:
 	template<class M>	void					AddConstructor(void);
 	template<class M>	CObjectSource*			AddSource(CAbstractFile* pcFile, char* szFilename);
 
-						BOOL					Flush(void);
-						BOOL					ForceSave(CBaseObject* pcObject);
+						bool					Flush(void);
+						bool					ForceSave(CBaseObject* pcObject);
 
 						CPointer				Get(OIndex oi);
 						CPointer				Get(char* szObjectName);
 	template<class M> 	Ptr<M>					Get(OIndex oi);
 	template<class M>	Ptr<M>					Get(char* szObjectName);
-						BOOL					Contains(char* szObjectName);
-						BOOL					Contains(OIndex oi);
+						bool					Contains(char* szObjectName);
+						bool					Contains(OIndex oi);
 
 	template<class M> 	Ptr<M>					Malloc(void);
 	template<class M>	Ptr<M>					Malloc(char* szObjectName);
 
 						Ptr<CRoot>				Root(void);
 
-						BOOL					Remove(CArrayBlockObjectPtr* papcKilled);
+						bool					Remove(CArrayBlockObjectPtr* papcKilled);
 
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);
@@ -109,13 +109,13 @@ public:
 
 						CSequenceConnection*	GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
-						BOOL					EvictInMemory(void);
+						bool					EvictInMemory(void);
 
 						CBaseObject*			Dehollow(OIndex oi);
 						CBaseObject*			Dehollow(char* szObjectName);
 
-						BOOL					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
-						BOOL					RemoveFromMemory(CBaseObject* pvObject);
+						bool					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
+						bool					RemoveFromMemory(CBaseObject* pvObject);
 
 						CStackPointers*			GetStackPointers(void);
 						CClasses*				GetClasses(void);
@@ -133,10 +133,10 @@ public:
 
 protected:
 						Ptr<CRoot>				GetRoot(void);
-						BOOL					HasRoot(void);
+						bool					HasRoot(void);
 
-						BOOL					AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
-						BOOL					AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
+						bool					AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
+						bool					AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
 	template<class M> 	Ptr<M>					PointTo(M* pcObject);
 	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
 	template<class M>	M*						AllocateUninitialisedByTemplate(void);
@@ -145,8 +145,8 @@ protected:
 	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, int iAdditionalBytes);
 						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, OIndex oi);
 						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi);
-						BOOL					ValidateCanAllocate(const char* szClassName);
-						BOOL					ValidateCanAllocate(void);
+						bool					ValidateCanAllocate(const char* szClassName);
+						bool					ValidateCanAllocate(void);
 						CBaseObject*			GetFromMemory(OIndex oi);
 						CBaseObject*			GetFromMemory(char* szObjectName);
 						CBaseObject*			GetFromMemory(char* szObjectName, OIndex oi);
@@ -159,7 +159,7 @@ protected:
 						void					KillObjects(CArrayBlockObjectPtr* papcObjectPts);
 						void					FreeObject(CBaseObject* pvObject);
 
-						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, BOOL bEmbedded);
+						void					RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcObject, int iLevel, bool bEmbedded);
 						void					ValidateSceneGraph(void);
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
@@ -185,14 +185,14 @@ protected:
 
 
 extern CObjects	gcObjects;
-extern BOOL		gbObjects;
+extern bool		gbObjects;
 
 void ObjectsInit(void);
 void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataConnection* pcDataConnection, CSequenceConnection* pcSequenceConnection);
 void ObjectsKill(void);
-BOOL ObjectsValidate(void);
-BOOL ObjectsFlush(void);
+bool ObjectsValidate(void);
+bool ObjectsFlush(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);
 void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
@@ -206,7 +206,7 @@ template<class SpecificClass>
 SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, int iAdditionalBytes)
 {
 	SpecificClass*	pcObject;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = ValidateCanAllocate();
 	if (!bResult)
@@ -232,7 +232,7 @@ template<class SpecificClass>
 SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, int iAdditionalBytes)
 {
 	SpecificClass*	pcObject;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = ValidateCanAllocate();
 	if (!bResult)
@@ -319,7 +319,7 @@ Ptr<SpecificClass> CObjects::PointToSetDirty(SpecificClass* pcObject)
 	if (pcObject)
 	{
 		pObject.AssignObject(pcObject);
-		pcObject->SetDirty(TRUE);
+		pcObject->SetDirty(true);
 	}
 	return pObject;
 }
@@ -332,7 +332,7 @@ Ptr<SpecificClass> CObjects::PointToSetDirty(SpecificClass* pcObject)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Malloc(void)
 {
-	BOOL			bResult;
+	bool			bResult;
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>();
 	if (pcObject)
 	{
@@ -343,7 +343,7 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 		}
 		else
 		{
-			pcObject->KillInternal(FALSE);
+			pcObject->KillInternal(false);
 			return NULL;
 		}
 	}
@@ -361,7 +361,7 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 template<class SpecificClass>
 Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
 {
-	BOOL			bResult;
+	bool			bResult;
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>(szObjectName);
 	if (pcObject)
 	{
@@ -372,7 +372,7 @@ Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
 		}
 		else
 		{
-			pcObject->KillInternal(FALSE);
+			pcObject->KillInternal(false);
 			return NULL;
 		}
 	}

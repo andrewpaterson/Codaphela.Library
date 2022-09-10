@@ -111,7 +111,7 @@ void CPrimitiveObject::SetDirty(void)
 	pcEmbedding = Embedding();
 	if (pcEmbedding)
 	{
-		pcEmbedding->GetEmbeddingContainer()->SetDirty(TRUE);
+		pcEmbedding->GetEmbeddingContainer()->SetDirty(true);
 	}
 }
 

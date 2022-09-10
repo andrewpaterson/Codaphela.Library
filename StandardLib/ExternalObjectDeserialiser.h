@@ -27,10 +27,10 @@ protected:
 	CObjects*					mpcObjects;
 
 	CNamedIndexedObjects*		mpcMemory;
-	BOOL						mbNamedHollows;
+	bool						mbNamedHollows;
 	
 public:
-	void					Init(CExternalObjectReader* pcReader, BOOL bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
+	void					Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
 	void					Kill(void);
 
 	CBaseObject*			Read(char* szObjectName);
@@ -44,16 +44,16 @@ public:
 
 protected:
 	CBaseObject*			ReadSerialsed(CSerialisedObject* pcSerialised);
-	BOOL					ReadDependentObjects(void);
-	BOOL					ReadUnread(CDependentReadObject* pcDependent);
+	bool					ReadDependentObjects(void);
+	bool					ReadUnread(CDependentReadObject* pcDependent);
 	void					MarkRead(OIndex oi);
-	BOOL					AddHeapFromPointersAndCreateHollowObjects(void);
-	BOOL					AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
-	BOOL					AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override;
-	BOOL					AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot) override;
+	bool					AddHeapFromPointersAndCreateHollowObjects(void);
+	bool					AddHeapFromPointersAndCreateHollowObject(CDependentReadPointer* pcDependentReadPointer);
+	bool					AddDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override;
+	bool					AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot) override;
 
 	CDependentReadObject*	GetUnread(void);
-	BOOL					Mark(OIndex oi);
+	bool					Mark(OIndex oi);
 
 	CDependentReadObject*	GetObject(OIndex oi);
 		

@@ -56,9 +56,9 @@ void CCollection::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCollection::IsCollection(void)
+bool CCollection::IsCollection(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -66,9 +66,9 @@ BOOL CCollection::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCollection::IsObject(void)
+bool CCollection::IsObject(void)
 {
-	return FALSE;
+	return false;
 }
 
 

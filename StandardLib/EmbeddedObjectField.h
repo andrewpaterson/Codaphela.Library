@@ -11,7 +11,7 @@ public:
 	void			Init(CClass* pcFieldClass, uint32 uiOffset, CClass* pcContainingClass, char* szName);
 	void			Kill(void);
 
-	BOOL			IsEmbeddedObject(void);
+	bool			IsEmbeddedObject(void);
 	uint32			GetSizeOf(void);
 	size_t			GetNameOffset(void);
 

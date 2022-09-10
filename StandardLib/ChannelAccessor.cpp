@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, BOOL bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel)
+void CChannelAccessor::Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, bool bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel)
 {
 	miAccessByteSize = iAccessByteSize;
 	miAccessBitSize = iAccessBitSize;
@@ -119,11 +119,11 @@ void CChannelAccessor::GetBits(void* pvBase, int iBitOffset, int iNumBits, void*
 {
 	if (!mbChannelReverse)
 	{
-		CopyBits(pvDest, 0, pvBase, iBitOffset + miChannelBitOffset, iNumBits, TRUE);
+		CopyBits(pvDest, 0, pvBase, iBitOffset + miChannelBitOffset, iNumBits, true);
 	}
 	else
 	{
-		CopyBitsReverseHiLo(pvDest, 0, pvBase, iBitOffset + miChannelBitOffset, iNumBits, TRUE);
+		CopyBitsReverseHiLo(pvDest, 0, pvBase, iBitOffset + miChannelBitOffset, iNumBits, true);
 	}
 }
 
@@ -175,11 +175,11 @@ void CChannelAccessor::SetBits(void* pvBase, int iBitOffset, int iNumBits, void*
 {
 	if (!mbChannelReverse)
 	{
-		CopyBits(pvBase, iBitOffset + miChannelBitOffset, pvSource, 0, iNumBits, FALSE);
+		CopyBits(pvBase, iBitOffset + miChannelBitOffset, pvSource, 0, iNumBits, false);
 	}
 	else
 	{
-		CopyBitsReverseHiLo(pvBase, iBitOffset+ miChannelBitOffset, pvSource, 0, iNumBits, FALSE);
+		CopyBitsReverseHiLo(pvBase, iBitOffset+ miChannelBitOffset, pvSource, 0, iNumBits, false);
 	}
 }
 

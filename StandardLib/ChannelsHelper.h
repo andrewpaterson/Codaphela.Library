@@ -30,9 +30,9 @@ struct SChannel
 {
 	int					iChannel;
 	EPrimitiveType		eType;
-	BOOL				bReverse;
+	bool				bReverse;
 
-	void Init(int iChannel, EPrimitiveType eType, BOOL bReverse);
+	void Init(int iChannel, EPrimitiveType eType, bool bReverse);
 };
 
 

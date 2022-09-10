@@ -56,9 +56,9 @@ void CChannelsAccessor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessor::IsContiguous(void)
+bool CChannelsAccessor::IsContiguous(void)
 {
-	return FALSE;
+	return false;
 }
 
 

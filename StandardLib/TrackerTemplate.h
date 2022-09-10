@@ -33,13 +33,13 @@ template <class T>
 class CTrackerTemplate
 {
 protected:
-	BOOL			mbIndexAndIDSame;
+	bool			mbIndexAndIDSame;
 	CChars			mszClassName;
 	CArrayType<T>	mcArray;
 
 public:
 	void 	Init(void);
-	void 	Init(BOOL bIndexAndIDSame, int iType);
+	void 	Init(bool bIndexAndIDSame, int iType);
 	void 	Kill(void);
 	int		Num(void);
 	T*		Add(void);
@@ -65,7 +65,7 @@ public:
 template <class T>
 void CTrackerTemplate<T>::Init(void)
 {
-	Init(TRUE, -1);
+	Init(true, -1);
 }
 
 
@@ -74,7 +74,7 @@ void CTrackerTemplate<T>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class T>
-void CTrackerTemplate<T>::Init(BOOL bIndexAndIDSame, int iType)
+void CTrackerTemplate<T>::Init(bool bIndexAndIDSame, int iType)
 {
 	T	q;
 
@@ -193,7 +193,7 @@ int CTrackerTemplate<T>::Load(CFileReader* pcSourceFile)
 
 		if (pcHelper->GetID() != iIndex)
 		{
-			mbIndexAndIDSame = FALSE;
+			mbIndexAndIDSame = false;
 		}
 
 		iChunkNum = pcSourceFile->FindNextChunkWithName();

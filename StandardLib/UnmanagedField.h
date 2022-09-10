@@ -17,9 +17,9 @@ public:
 	void		Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size_t uiLength, char* szName);
 	void		Kill(void);
 
-	BOOL		IsArray(void);
+	bool		IsArray(void);
 	size_t		GetLength(void);
-	BOOL		IsUnmanaged(void);
+	bool		IsUnmanaged(void);
 	void*		GetData(CBaseObject* pcFieldContainer);
 	uint32		GetSizeOf(void);
 	size_t		GetNameOffset(void);

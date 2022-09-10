@@ -47,11 +47,11 @@ public:
 	template <class M>
 	void			AddAllowedClass(void);
 	template <class M>
-	BOOL			AddListener(M* pcListener);
+	bool			AddListener(M* pcListener);
 	template <class M>
 	void			CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext);
 	void			CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext);
-	BOOL			RemoveListener(CListener* pcRemoved);
+	bool			RemoveListener(CListener* pcRemoved);
 };
 
 
@@ -75,7 +75,7 @@ void CListenerCall::AddAllowedClass(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CListenerCall::AddListener(M* pcListener)
+bool CListenerCall::AddListener(M* pcListener)
 {
 	CListener*			pcCast;
 	CArrayListenerPtr*	pcArray;
@@ -88,11 +88,11 @@ BOOL CListenerCall::AddListener(M* pcListener)
 	if (pcArray)
 	{
 		pcArray->Add(&pcCast);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

@@ -57,7 +57,7 @@ void CIterableList::Add(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIterableList::Remove(CUnknown* pcUnknown)
+bool CIterableList::Remove(CUnknown* pcUnknown)
 {
 	SFreeListIterator	sIter;
 	CUnknown**			ppcUnknown;
@@ -70,12 +70,12 @@ BOOL CIterableList::Remove(CUnknown* pcUnknown)
 			if (pcUnknown == *ppcUnknown)
 			{
 				mcFreeListPtrs.RemoveDuringIteration(&sIter);
-				return TRUE;
+				return true;
 			}
 			ppcUnknown = (CUnknown**)mcFreeListPtrs.Iterate(&sIter);
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -83,7 +83,7 @@ BOOL CIterableList::Remove(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIterableList::Is(const char* szName)
+bool CIterableList::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -183,7 +183,7 @@ void CIterables::Add(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIterables::Remove(CUnknown* pcUnknown)
+bool CIterables::Remove(CUnknown* pcUnknown)
 {
 	CIterableList*	pcList;
 	const char*		szName;
@@ -196,11 +196,11 @@ BOOL CIterables::Remove(CUnknown* pcUnknown)
 		if (pcList->Is(szName))
 		{
 			pcList->Remove(pcUnknown);
-			return TRUE;
+			return true;
 		}
 		pcList = mcIterableLists.GetNext(pcList);
 	}
-	return FALSE;
+	return false;
 }
 
 

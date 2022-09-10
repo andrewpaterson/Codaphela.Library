@@ -52,19 +52,19 @@ void CObjectIdentifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectIdentifier::IsNamed(void)
+bool CObjectIdentifier::IsNamed(void)
 {
 	if (mcType != OBJECT_POINTER_NAMED)
 	{
-		return FALSE;
+		return false;
 	}
 	
 	if (mszObjectName.Empty())
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -72,19 +72,19 @@ BOOL CObjectIdentifier::IsNamed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectIdentifier::IsIndexed(void)
+bool CObjectIdentifier::IsIndexed(void)
 {
 	if (mcType == OBJECT_POINTER_ID)
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (mcType == OBJECT_POINTER_NAMED && mszObjectName.Empty())
 	{
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 

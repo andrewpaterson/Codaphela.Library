@@ -131,14 +131,14 @@ CUnknown* CUnknowns::Add(const char* szClassName, size_t uiAdditionalSize)
 //////////////////////////////////////////////////////////////////////////
 CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 {
-	BOOL		bResult;
+	bool		bResult;
 	int			iLength;
 	char		sz[256];
 	char*		psz;
 	CUnknown*	pcUnknown;
 
 	bResult = pcFile->ReadStringLength(&iLength);
-	if (bResult != TRUE)
+	if (bResult != true)
 	{
 		return NULL;
 	}
@@ -146,7 +146,7 @@ CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 	if (iLength < 256)
 	{
 		bResult = pcFile->ReadStringChars(sz, iLength);
-		if (bResult != TRUE)
+		if (bResult != true)
 		{
 			return NULL;
 		}
@@ -159,7 +159,7 @@ CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 	{
 		psz = (char*)malloc(iLength+1);
 		bResult = pcFile->ReadStringChars(psz, iLength);
-		if (bResult != TRUE)
+		if (bResult != true)
 		{
 			free(psz);
 			return NULL;
@@ -178,11 +178,11 @@ CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknowns::SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown)
+bool CUnknowns::SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
 	ReturnOnFalse(pcUnknown->SaveHeader(pcFile));
 	ReturnOnFalse(pcUnknown->Save(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -190,18 +190,18 @@ BOOL CUnknowns::SaveUnknown(CFileWriter* pcFile, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknowns::LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown)
+bool CUnknowns::LoadUnknown(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	CUnknown*		pcUnknown;
 
 	pcUnknown = gcUnknowns.AddFromHeader(pcFile);
 	if (!pcUnknown)
 	{
-		return FALSE;
+		return false;
 	}
 	ReturnOnFalse(pcUnknown->Load(pcFile));
 	*ppcUnknown = pcUnknown;
-	return TRUE;
+	return true;
 }
 
 
@@ -370,7 +370,7 @@ void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
+bool CUnknowns::IsFreed(CUnknown* pcUnknown)
 {
 #ifdef _DEBUG
 	SGeneralMemoryAllocation*	psAlloc;
@@ -383,14 +383,14 @@ BOOL CUnknowns::IsFreed(CUnknown* pcUnknown)
 		piMem = &((int*)psAlloc)[i];
 		if (*piMem != 0xefefefef)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 #else // _DEBUG;
 
 	//Actually we don't know.
-	return FALSE;
+	return false;
 #endif // _DEBUG;
 }
 

@@ -1,6 +1,5 @@
 #ifndef __SERIALISED_OBJECT_H__
 #define __SERIALISED_OBJECT_H__
-#include "BaseLib/Bool.h"
 #include "CoreLib/IndexedGeneral.h"
 #include "ObjectFileGeneral.h"
 
@@ -27,9 +26,9 @@ protected:
 	SSerialisedName		msName;
 
 public:
-	BOOL	IsNamed(void);
-	BOOL	IsIndexed(void);
-	BOOL	IsVoid(void);
+	bool	IsNamed(void);
+	bool	IsIndexed(void);
+	bool	IsVoid(void);
 
 	char*	GetName(void);
 	OIndex	GetIndex(void);

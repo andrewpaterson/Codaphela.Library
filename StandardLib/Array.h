@@ -39,8 +39,8 @@ public:
 	Ptr<M>			Get(int iIndex);
 	void			Set(int iIndex, Ptr<M> pObject);
 
-	BOOL			RemoveAt(int iIndex);
-	BOOL			Remove(Ptr<M> pObject);
+	bool			RemoveAt(int iIndex);
+	bool			Remove(Ptr<M> pObject);
 };
 
 
@@ -116,7 +116,7 @@ Ptr<M> CArray<M>::Get(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArray<M>::RemoveAt(int iIndex)
+bool CArray<M>::RemoveAt(int iIndex)
 {
 	return CArrayObject::RemoveAt(iIndex);
 }
@@ -127,7 +127,7 @@ BOOL CArray<M>::RemoveAt(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArray<M>::Remove(Ptr<M> pObject)
+bool CArray<M>::Remove(Ptr<M> pObject)
 {
 	return CArrayObject::Remove(pObject);
 }

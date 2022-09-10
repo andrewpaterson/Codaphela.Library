@@ -69,7 +69,7 @@ void CClasses::AddConstructorAndIO(void)
 {			
 	const char*		szClassName;
 	SDataIO*		psIO;
-	BOOL			bConstructor;
+	bool			bConstructor;
 	CStackMemory<>	cStack;
 	Class*			pcClass;
 
@@ -98,7 +98,7 @@ void CClasses::AddConstructorAndIO(void)
 template<class Class>
 void CClasses::AddSystemClassAndConstructor(void)
 {
-	BOOL			bConstructor;
+	bool			bConstructor;
 	Class*			pvM;
 	CClass*			pcClass;
 	CStackMemory<>	cStack;

@@ -48,9 +48,9 @@ void CObjectSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSource::IsNative(void)
+bool CObjectSource::IsNative(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -58,9 +58,9 @@ BOOL CObjectSource::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSource::IsMultiSource(void)
+bool CObjectSource::IsMultiSource(void)
 {
-	return FALSE;
+	return false;
 }
 
 

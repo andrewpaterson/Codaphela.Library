@@ -26,7 +26,7 @@ void CDistCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBlockObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, BOOL bHeapFromChanged)
+CArrayBlockObjectPtr* CDistCalculator::Calculate(CBaseObject* pcFromChanged, bool bHeapFromChanged)
 {
 	if (bHeapFromChanged)
 	{

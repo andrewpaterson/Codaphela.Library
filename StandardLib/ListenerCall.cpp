@@ -62,13 +62,13 @@ void CListenerCall::AddAllowedClassName(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListenerCall::RemoveListener(CListener* pcRemoved)
+bool CListenerCall::RemoveListener(CListener* pcRemoved)
 {
 	int					i;
 	CArrayListenerPtr*	pcArray;
 	CListener*			pcListener;
 	SMapIterator		sIter;
-	BOOL				bResult;
+	bool				bResult;
 
 	bResult = mcListeners.StartIteration(&sIter, NULL, NULL, (void**)&pcArray, NULL);
 	while (bResult)
@@ -79,12 +79,12 @@ BOOL CListenerCall::RemoveListener(CListener* pcRemoved)
 			if (pcListener == pcRemoved)
 			{
 				pcArray->RemoveAt(i);
-				return TRUE;
+				return true;
 			}
 		}
 		bResult = mcListeners.Iterate(&sIter, NULL, NULL, (void**)&pcArray, NULL);
 	}
-	return FALSE;
+	return false;
 }
 
 

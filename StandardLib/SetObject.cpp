@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 Ptr<CSetObject> CSetObject::Init(void)
 {
 	PreInit();
-	CArrayCommonObject::Init(FALSE, TRUE, FALSE);
+	CArrayCommonObject::Init(false, true, false);
 	PostInit();
 	return Ptr<CSetObject>(this);
 }

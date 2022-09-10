@@ -45,14 +45,14 @@ public:
 						CObject();
 	void				Allocate(CObjects* pcObjects);
 	void				Kill(void) final;
-	BOOL				IsCollection(void) override;
-	BOOL				IsObject(void) override;
+	bool				IsCollection(void) override;
+	bool				IsObject(void) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
 	void				Pointer(CPointer* pcPointer, char* szFieldName);
 	void				Embedded(CBaseObject* pcObject, char* szFieldName);
 
-	BOOL				IsDirty(void);
+	bool				IsDirty(void);
 	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	uint16				GetNumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
@@ -68,7 +68,7 @@ public:
 	int					BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-	BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
+	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
@@ -143,15 +143,15 @@ protected:
 	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
-	BOOL				SetDistToRoot(int iDistToRoot) override;
+	bool				SetDistToRoot(int iDistToRoot) override;
 	void				SetDistToStack(int iDistToStack);
-	BOOL				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
+	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
 	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
-	BOOL				RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex);
+	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex);
 	CPointer*			RecurseGetFieldPointerTo(int iIndex, int* piCount);
 	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
-	BOOL				IsDistToRootValid(void);
+	bool				IsDistToRootValid(void);
 	void				EmbedPointerFields(void);
 	void				EmbedEmbeddedObjectFields(void);
 	void				ClassNotImplemented(void);

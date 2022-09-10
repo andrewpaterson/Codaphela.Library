@@ -32,13 +32,13 @@ protected:
 	int		miFlags;
 
 public:
-	void 			Init(BOOL bKillElements = TRUE, BOOL bOverwriteExisting = TRUE);
+	void 			Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void 			Kill(void);
 
 	virtual int		NumElements(void) =0;
-	BOOL 			IsKillElements(void);
-	BOOL 			IsEmpty(void);
-	BOOL 			IsNotEmpty(void);
+	bool 			IsKillElements(void);
+	bool 			IsEmpty(void);
+	bool 			IsNotEmpty(void);
 
 };
 

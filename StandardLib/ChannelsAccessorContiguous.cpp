@@ -66,7 +66,7 @@ void CChannelsAccessorContiguous::Set(int iPos, void* pvSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorContiguous::IsContiguous(void)
+bool CChannelsAccessorContiguous::IsContiguous(void)
 {
-	return TRUE;
+	return true;
 }

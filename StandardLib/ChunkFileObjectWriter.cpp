@@ -66,7 +66,7 @@ void CChunkFileObjectWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileObjectWriter::Begin(void)
+bool CChunkFileObjectWriter::Begin(void)
 {
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
@@ -105,7 +105,7 @@ BOOL CChunkFileObjectWriter::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileObjectWriter::End(void)
+bool CChunkFileObjectWriter::End(void)
 {
 	mcChunkFileFileSystem.WriteClose();
 	mcChunkFileFileSystem.Kill();
@@ -119,17 +119,17 @@ BOOL CChunkFileObjectWriter::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
+bool CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	CChars	szChunkName;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (pcSerialised->IsNamed())
 	{
 		bResult = ObjectStartsWithBaseName(pcSerialised->GetName());
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 		RemainingName(&szChunkName, pcSerialised->GetName());
 	}
@@ -139,7 +139,7 @@ BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 	ReturnOnFalse(mcChunkFileFileSystem.WriteChunkBegin(szChunkName.Text()));
@@ -147,7 +147,7 @@ BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	ReturnOnFalse(mcChunkFileFileSystem.WriteChunkEnd());
 
 	szChunkName.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -155,7 +155,7 @@ BOOL CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
+bool CChunkFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
 {
 	CChars	szRemainingName;
 

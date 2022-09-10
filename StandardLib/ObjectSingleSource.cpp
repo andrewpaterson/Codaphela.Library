@@ -49,7 +49,7 @@ void CObjectSingleSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSingleSource::Contains(char* szFullName)
+bool CObjectSingleSource::Contains(char* szFullName)
 {
 	return mszObjectName.Equals(szFullName);
 }
