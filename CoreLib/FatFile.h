@@ -38,20 +38,20 @@ public:
 	void					Init(CFatVolume* pcVolume);
 
 public:
-	uint16					FatFileUpdateSequentialClusterCount(CFatFile* file);
-	uint16					FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags, CFatFile* file);
+	uint16					FatFileUpdateSequentialClusterCount(void);
+	uint16					FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags);
 
-	uint16					FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, CFatFile* file, uint8 uiAccessFlags);
-	uint16					FatFileSetBuffer(CFatFile* file, uint8* uiBuffer);
-	uint32					FatFileGetUniqueId(CFatFile* file);
-	uint16					FatFileAllocate(CFatFile* file, uint32 bytes);
-	uint16					FatFileSeek(CFatFile* file, uint32 offset, char mode);
-	void					FatFileWriteCallback(CFatFile* file, uint16* async_state_in);
-	uint16					FatFileWrite(CFatFile* file, uint8* buff, uint32 length);
-	void					FatFileReadCallback(CFatFile* file, uint16* state);
-	uint16					FatFileRead(CFatFile* file, uint8* buff, uint32 length, uint32* bytes_read);
-	uint16					FatFileFlush(CFatFile* file);
-	uint16					FatFileClose(CFatFile* file);
+	uint16					FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	uint16					FatFileSetBuffer(uint8* uiBuffer);
+	uint32					FatFileGetUniqueId(void);
+	uint16					FatFileAllocate(uint32 bytes);
+	uint16					FatFileSeek(uint32 offset, char mode);
+	void					FatFileWriteCallback(uint16* async_state_in);
+	uint16					FatFileWrite(uint8* buff, uint32 length);
+	void					FatFileReadCallback(uint16* state);
+	uint16					FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
+	uint16					FatFileFlush(void);
+	uint16					FatFileClose(void);
 
 	void					SetVolume(CFatVolume* pcVolume);
 
