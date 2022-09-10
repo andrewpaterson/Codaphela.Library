@@ -34,11 +34,11 @@ struct SDiskSizeToSectorsPerCluster
 
 
 // prototypes
-static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forced_fs_type);
+static uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char forced_fs_type);
 
 
 // this is the table for FAT12 drives.
-static const SDiskSizeToSectorsPerCluster DskTableFAT12[] =
+static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat12[] =
 {
 	{ 8200, 2 },  		/* disks up to 4 MB, 1k cluster */
 	{ 16368, 4 },		/* disks up to 8 MB, 2k cluster */
@@ -63,7 +63,7 @@ static const SDiskSizeToSectorsPerCluster DskTableFAT12[] =
  * being different may require the first table entries DiskSize value
  * to be changed otherwise the cluster count may be to low for FAT16.
  */
-static const SDiskSizeToSectorsPerCluster DskTableFAT16[] =
+static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
 {
    { 8400, 0 }, 		/* disks up to 4.1 MB, the 0 value for SecPerClusVal trips an error */
    { 32680, 2 },  		/* disks up to 16 MB, 1k cluster */
@@ -89,7 +89,8 @@ static const SDiskSizeToSectorsPerCluster DskTableFAT16[] =
  * table entries DiskSize value to be changed otherwise the cluster count
  * may be to low for FAT32.
  */
-static const SDiskSizeToSectorsPerCluster DskTableFAT32[] =
+
+static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat32[] =
 {
 	{ 66600, 0 },		/* disks up to 32.5 MB, the 0 value for SecPerClusVal trips an error */
 	{ 532480, 1 },		/* disks up to 260 MB, .5k cluster */
@@ -101,7 +102,7 @@ static const SDiskSizeToSectorsPerCluster DskTableFAT32[] =
 
 
 // find the best cluster size of given file system and # of 512 bytes sectors
-static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forced_fs_type)
+static uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char forced_fs_type)
 {
 	uint8 i;
 	switch (fs_type)
@@ -109,9 +110,9 @@ static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forc
 	case FAT_FS_TYPE_FAT12:
 		for (i = 0; i < forced_fs_type ? 7 : 3; i++)
 		{
-			if (DskTableFAT12[i].DiskSize >= total_sectors)
+			if (gasFatDiskSizeTableFat12[i].DiskSize >= total_sectors)
 			{
-				return DskTableFAT12[i].SecPerClusVal;
+				return gasFatDiskSizeTableFat12[i].SecPerClusVal;
 			}
 		}
 		break;
@@ -119,9 +120,9 @@ static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forc
 	case FAT_FS_TYPE_FAT16:
 		for (i = 0; i < forced_fs_type ? 8 : 5; i++)
 		{
-			if (DskTableFAT16[i].DiskSize >= total_sectors)
+			if (gasFatDiskSizeTableFat16[i].DiskSize >= total_sectors)
 			{
-				return DskTableFAT16[i].SecPerClusVal;
+				return gasFatDiskSizeTableFat16[i].SecPerClusVal;
 			}
 		}
 		break;
@@ -129,9 +130,9 @@ static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forc
 	case FAT_FS_TYPE_FAT32:
 		for (i = 0; i < 6; i++)
 		{
-			if (DskTableFAT32[i].DiskSize >= total_sectors)
+			if (gasFatDiskSizeTableFat32[i].DiskSize >= total_sectors)
 			{
-				return DskTableFAT32[i].SecPerClusVal;
+				return gasFatDiskSizeTableFat32[i].SecPerClusVal;
 			}
 		}
 		break;
@@ -141,7 +142,7 @@ static uint8 fat_get_cluster_size(uint8 fs_type, uint32 total_sectors, char forc
 
 
 // format volume
-uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
+uint16 FatFormat(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
 {
 	bool					bSuccess;
 	uint32					i;
@@ -197,7 +198,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 		}
 
 		// first try FAT12
-		uiNoOfSectorsPerCluster = fat_get_cluster_size(FAT_FS_TYPE_FAT12, total_sectors, 0);
+		uiNoOfSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT12, total_sectors, 0);
 
 		if (uiNoOfSectorsPerCluster)
 		{
@@ -206,7 +207,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 		else
 		{
 			// try FAT16
-			uiNoOfSectorsPerCluster = fat_get_cluster_size(FAT_FS_TYPE_FAT16, total_sectors, 0);
+			uiNoOfSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT16, total_sectors, 0);
 
 			if (uiNoOfSectorsPerCluster)
 			{
@@ -215,7 +216,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 			else
 			{
 				// try FAT32
-				uiNoOfSectorsPerCluster = fat_get_cluster_size(FAT_FS_TYPE_FAT32, total_sectors, 0);
+				uiNoOfSectorsPerCluster = FatCalculateClusterSize(FAT_FS_TYPE_FAT32, total_sectors, 0);
 
 				if (uiNoOfSectorsPerCluster)
 				{
@@ -239,7 +240,7 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 		{
 			return FAT_INVALID_FORMAT_PARAMETERS;
 		}
-		uiNoOfSectorsPerCluster = fat_get_cluster_size(fs_type, total_sectors, 1);
+		uiNoOfSectorsPerCluster = FatCalculateClusterSize(fs_type, total_sectors, 1);
 	}
 
 	// if we still don't have it return error
@@ -618,6 +619,4 @@ uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfS
 	*/
 	return FAT_SUCCESS;
 }
-
-
 
