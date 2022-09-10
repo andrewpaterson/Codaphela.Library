@@ -45,13 +45,6 @@ static TIMEKEEPER timekeeper;
 //		that way.
 
 
-// initialize fat driver
-void fat_init()
-{
-	fat_shared_buffer_sector = FAT_UNKNOWN_SECTOR;
-}
-
-
 // registers the function that gets the system time
 #if !defined(FAT_USE_SYSTEM_TIME)
 void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time)

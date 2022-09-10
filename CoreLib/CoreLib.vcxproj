@@ -186,7 +186,6 @@
     <ClCompile Include="Fat.cpp" />
     <ClCompile Include="FatFile.cpp" />
     <ClCompile Include="FatFormat.cpp" />
-    <ClCompile Include="FatSharedBuffer.cpp" />
     <ClCompile Include="FatVolume.cpp" />
     <ClCompile Include="FileDrive.cpp" />
     <ClCompile Include="FileIterator.cpp" />
@@ -301,7 +300,6 @@
     <ClInclude Include="FatCommon.h" />
     <ClInclude Include="FatFile.h" />
     <ClInclude Include="FatInternals.h" />
-    <ClInclude Include="FatSharedBuffer.h" />
     <ClInclude Include="FatStructure.h" />
     <ClInclude Include="FatVolume.h" />
     <ClInclude Include="FileDrive.h" />
