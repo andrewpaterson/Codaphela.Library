@@ -44,14 +44,14 @@ private:
 	CMapStringUnknownDataFree		mcDataFree;
 
 public:
-	void		Init(BOOL bKillElements = TRUE, BOOL bOverwriteExisting = TRUE);
+	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
-	BOOL		Save(CFileWriter* pcFile);
-	BOOL		Load(CFileReader* pcFile);
+	bool		Save(CFileWriter* pcFile);
+	bool		Load(CFileReader* pcFile);
 
 	template<class M>
 	M*			Put(char* szKey);
-	BOOL		Put(char* szKey, CUnknown* pcValue);
+	bool		Put(char* szKey, CUnknown* pcValue);
 	CUnknown*	Get(char* szKey);
 	int			NumElements(void);
 
@@ -68,7 +68,7 @@ template<class M>
 M* CMapStringUnknown::Put(char* szKey)
 {
 	M*		pv;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (!StrEmpty(szKey))
 	{

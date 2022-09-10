@@ -211,9 +211,9 @@ int CObject::NumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::IsObject(void)
+bool CObject::IsObject(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -221,9 +221,9 @@ BOOL CObject::IsObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::IsCollection(void)
+bool CObject::IsCollection(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -294,12 +294,12 @@ void CObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::SetDistToRoot(int iDistToRoot)
+bool CObject::SetDistToRoot(int iDistToRoot)
 {
 	int				i;
 	int				iNumEmbedded;
 	CBaseObject*	pcEmbedded;
-	BOOL			bAnyChange;
+	bool			bAnyChange;
 
 	bAnyChange = CBaseObject::SetDistToRoot(iDistToRoot);
 
@@ -552,7 +552,7 @@ void CObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
+bool CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
 	int					iNumPointers;
 	int					i;
@@ -568,12 +568,12 @@ BOOL CObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 		{
 			if (pcPointedTo == pcEmbedded)
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -719,7 +719,7 @@ void CObject::RemoveAllPointerTos(void)
 	for (i = 0; i < iNumPointers; i++)
 	{
 		ppPointer = mapPointers.Get(i);
-		(*ppPointer)->PointTo(NULL, TRUE);
+		(*ppPointer)->PointTo(NULL, true);
 	}
 
 	iNumEmbedded = mapEmbedded.NumElements();
@@ -928,14 +928,14 @@ void  CObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::IsDirty(void)
+bool CObject::IsDirty(void)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
 
 	if (muiFlags & OBJECT_FLAGS_DIRTY)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -944,10 +944,10 @@ BOOL CObject::IsDirty(void)
 			pcEmbedded = *mapEmbedded.Get(i);
 			if (pcEmbedded->IsDirty())
 			{
-				return TRUE;
+				return true;
 			}
 		}
-		return FALSE;
+		return false;
 	}
 }
 
@@ -983,7 +983,7 @@ int CObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex)
+bool CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -991,7 +991,7 @@ BOOL CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex)
 
 	if (pcTest == this)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -1005,18 +1005,18 @@ BOOL CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex)
 				pcObject = (CObject*)pcEmbedded;
 				if (pcObject->RecurseGetEmbeddedIndex(pcTest, piIndex))
 				{
-					return TRUE;
+					return true;
 				}
 			}
 			else
 			{
 				if (pcEmbedded == pcTest)
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1137,7 +1137,7 @@ int CObject::GetFieldPointerToIndex(CPointer* pcFieldPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex)
+bool CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex)
 {
 	int				i;
 	CBaseObject*	pcEmbedded;
@@ -1150,7 +1150,7 @@ BOOL CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex)
 
 		if (pcFieldPointer == pcTest)
 		{
-			return TRUE;
+			return true;
 		}
 		(*piIndex)++;
 	}
@@ -1164,11 +1164,11 @@ BOOL CObject::RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex)
 			pcObject = (CObject*)pcEmbedded;
 			if (pcObject->RecurseGetFieldPointerToIndex(pcTest, piIndex))
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1351,7 +1351,7 @@ void CObject::GetStackFroms(CArrayTypedPointerPtr* papcFroms)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObject::IsDistToRootValid(void)
+bool CObject::IsDistToRootValid(void)
 {
 	int				i;
 	int				iNumEmbedded;
@@ -1359,7 +1359,7 @@ BOOL CObject::IsDistToRootValid(void)
 
 	if (CBaseObject::IsDistToRootValid())
 	{
-		return TRUE;
+		return true;
 	}
 
 	iNumEmbedded = mapEmbedded.NumElements();
@@ -1368,10 +1368,10 @@ BOOL CObject::IsDistToRootValid(void)
 		pcEmbedded = *mapEmbedded.Get(i);
 		if (pcEmbedded->IsDistToRootValid())
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

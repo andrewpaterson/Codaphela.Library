@@ -29,16 +29,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CTimerAlarm
 {
 public:
-	BOOL		mbRepeat;
+	bool		mbRepeat;
 	int			miTime;  //How long before the action occurs. All times in milliseconds.
 	int			miRemainingTime;
-	BOOL		mbWaitForFirstUpdate;
-	BOOL		mbRunning;
+	bool		mbWaitForFirstUpdate;
+	bool		mbRunning;
 	int			miId;
 	CChars		mszName;
 	CAction*	mpcAction;
 
-	void	Init(CAction* pcAction, char* szTimerName, int iTime, BOOL bRepeat);
+	void	Init(CAction* pcAction, char* szTimerName, int iTime, bool bRepeat);
 	void	Kill(void);
 	float	Update(void);
 	void	Reset(void);

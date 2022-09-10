@@ -56,12 +56,12 @@ public: \
 		return *this; \
 	} \
 \
-	BOOL Save(CFileWriter* pcFile) \
+	bool Save(CFileWriter* pcFile) \
 	{ \
 		return pcFile-> WRITE_FUNC (mVal); \
 	} \
 \
-	BOOL Load(CFileReader* pcFile) \
+	bool Load(CFileReader* pcFile) \
 	{ \
 		return pcFile-> READ_FUNC (&mVal); \
 	} \

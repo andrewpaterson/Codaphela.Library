@@ -37,18 +37,18 @@ protected:
 	CFileBasic				mcFile;
 	
 public:
-	BOOL			Init(CAbstractFile* pcFile, CDependentReadObjects* pcDependents);
+	bool			Init(CAbstractFile* pcFile, CDependentReadObjects* pcDependents);
 	void			Kill(void);
 
 	CBaseObject*	Read(void);
 
-	BOOL			ReadHeapFroms(CBaseObject* pcThis);
+	bool			ReadHeapFroms(CBaseObject* pcThis);
 
-	BOOL			ReadPointer(CPointer* pObject);
-	BOOL			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
-	BOOL			ReadObjectHeader(CObjectHeader* pcObjectHeader);
-	BOOL			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
-	BOOL			ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
+	bool			ReadPointer(CPointer* pObject);
+	bool			ReadIdentifier(CObjectIdentifier* pcPointerHeader);
+	bool			ReadObjectHeader(CObjectHeader* pcObjectHeader);
+	bool			ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
+	bool			ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* pcContaining);
 
 protected:
 	filePos			Read(void* pvDest, filePos iSize, filePos iCount);

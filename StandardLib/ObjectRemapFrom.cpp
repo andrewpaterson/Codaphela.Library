@@ -13,7 +13,7 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 	int					iNumEmbedded;
 	CEmbeddedObject*	pcEmbeddedNew;
 	int					i;
-	BOOL				bHeapFromChanged;
+	bool				bHeapFromChanged;
 
 	bHeapFromChanged = pcOld->HasHeapFroms();
 	iNumEmbedded = CalculateNumEmbedded(pcOld, pcNew);
@@ -56,7 +56,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 
 		if (pcNew->IsInitialised())
 		{
-			pcNew->AddHeapFrom(pvFrom, FALSE);
+			pcNew->AddHeapFrom(pvFrom, false);
 		}
 		else
 		{

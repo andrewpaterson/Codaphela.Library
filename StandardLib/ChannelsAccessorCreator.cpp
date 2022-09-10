@@ -59,17 +59,17 @@ void CChannelsAccessorCreator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 {
-	BOOL				bContiguous;
-	BOOL				bSourceTypesSame;
-	BOOL				bChannelByteAligned;
-	BOOL				bAccessByteAligned;
+	bool				bContiguous;
+	bool				bSourceTypesSame;
+	bool				bChannelByteAligned;
+	bool				bAccessByteAligned;
 
 	int					iBitSize;
 	int					iByteSize;
 	int					iBufferSize;
 
 	CChannelsAccessor*	pcAccessor;
-	BOOL				bResult;
+	bool				bResult;
 
 	//Must be called before calculations
 	bResult = CreateAccessors();
@@ -181,7 +181,7 @@ CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChanne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorCreator::CreateAccessors(void)
+bool CChannelsAccessorCreator::CreateAccessors(void)
 {
 	int					i;
 	SChannelAccess*		psAccess;
@@ -194,7 +194,7 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 
 	if (CalculateEmpty())
 	{
-		return FALSE;
+		return false;
 	}
 
 	macAccessor.Init();  //Safe to call init again if no elements have been added.
@@ -222,7 +222,7 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 
 		pcAccessor->Init(iByteSize, iBitSize, eAccessType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -230,13 +230,13 @@ BOOL CChannelsAccessorCreator::CreateAccessors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorCreator::CalculateEmpty(void)
+bool CChannelsAccessorCreator::CalculateEmpty(void)
 {
 	if (masAccess.NumElements() == 0)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -244,7 +244,7 @@ BOOL CChannelsAccessorCreator::CalculateEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorCreator::CalculateContiguous(void)
+bool CChannelsAccessorCreator::CalculateContiguous(void)
 {
 	int					i;
 	CChannel*			psChannel;
@@ -264,16 +264,16 @@ BOOL CChannelsAccessorCreator::CalculateContiguous(void)
 
 		if (iIndex != iLastIndex + 1)
 		{
-			return FALSE;
+			return false;
 		}
 
 		if (psChannel->bReverse)
 		{
-			return FALSE;
+			return false;
 		}
 		iLastIndex = iIndex;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -281,7 +281,7 @@ BOOL CChannelsAccessorCreator::CalculateContiguous(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorCreator::CalculateSourceTypesSame(void)
+bool CChannelsAccessorCreator::CalculateSourceTypesSame(void)
 {
 	int					i;
 	CChannelAccessor*	pcAccessor;;
@@ -292,14 +292,14 @@ BOOL CChannelsAccessorCreator::CalculateSourceTypesSame(void)
 
 		if (pcAccessor->meAccessType != pcAccessor->meChannelType)
 		{
-			return FALSE;
+			return false;
 		}
 		if (pcAccessor->mbChannelReverse)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -307,7 +307,7 @@ BOOL CChannelsAccessorCreator::CalculateSourceTypesSame(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorCreator::CalculateChannelByteAligned(void)
+bool CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 {
 	int					i;
 	CChannel*			pcChannel;
@@ -315,7 +315,7 @@ BOOL CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 
 	if (mpcChannels->GetByteStride() == -1)
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (i = 0; i < masAccess.NumElements(); i++)
@@ -325,10 +325,10 @@ BOOL CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 
 		if (pcChannel->miByteSize == -1)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -336,7 +336,7 @@ BOOL CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelsAccessorCreator::CalculateAccessByteAligned(void)
+bool CChannelsAccessorCreator::CalculateAccessByteAligned(void)
 {
 	int					i;
 	CChannelAccessor*	pcAccessor;
@@ -346,10 +346,10 @@ BOOL CChannelsAccessorCreator::CalculateAccessByteAligned(void)
 		pcAccessor = macAccessor.Get(i);
 		if (pcAccessor->miAccessByteSize == -1)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

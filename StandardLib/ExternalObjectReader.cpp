@@ -16,9 +16,9 @@ void CExternalObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectReader::Begin(void)
+bool CExternalObjectReader::Begin(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -26,9 +26,9 @@ BOOL CExternalObjectReader::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalObjectReader::End(void)
+bool CExternalObjectReader::End(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -41,7 +41,7 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 	int					iLength;
 	CSerialisedObject*	pcSerialised;
 	void*				pvOffset;
-	BOOL				bResult;
+	bool				bResult;
 
 	if (!pcReader->ReadInt(&iLength))
 	{

@@ -12,14 +12,14 @@ public:
 	{
 	}
 
-	BOOL Save(CFileWriter* pcFile)
+	bool Save(CFileWriter* pcFile)
 	{
-		return TRUE;
+		return true;
 	}
 
-	BOOL Load(CFileReader* pcFile)
+	bool Load(CFileReader* pcFile)
 	{
-		return TRUE;
+		return true;
 	}
 };
 

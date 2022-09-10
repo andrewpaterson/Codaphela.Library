@@ -12,7 +12,7 @@ class CBaseObject;
 class CDependentReadObject : public CObjectIdentifier
 {
 protected:
-	BOOL	miFlags;
+	int		miFlags;
 
 public:
 	void	Init(CObjectIdentifier* pcObjectPtr);
@@ -22,8 +22,8 @@ public:
 	OIndex	GetOldIndex(void);
 	void	SetRead(void);
 	void	SetExisting(void);
-	BOOL	IsRead(void);
-	BOOL	ExistsInObjects(void);
+	bool	IsRead(void);
+	bool	ExistsInObjects(void);
 };
 
 

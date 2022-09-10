@@ -52,7 +52,7 @@ CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
 	CChars				szDirectory;
 	CChars				szFilename;
 	char				szExtension[4];
-	BOOL				bResult;
+	bool				bResult;
 	int					iFileType;
 
 	szFilename.Kill();

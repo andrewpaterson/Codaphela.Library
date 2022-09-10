@@ -5,22 +5,22 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSerialisedObject::IsNamed(void)
+bool CSerialisedObject::IsNamed(void)
 {
-	BOOL bNamed;
+	bool bNamed;
 
 	bNamed = *((int*)&mszType) == OBJECT_POINTER_NAMED;
 	if (!bNamed)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (msName.miLength == 1)
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -28,24 +28,24 @@ BOOL CSerialisedObject::IsNamed(void)
 ////
 ////
 ////////////////////////////////////////////////////////////////////////////
-BOOL CSerialisedObject::IsIndexed(void)
+bool CSerialisedObject::IsIndexed(void)
 {
-	BOOL bIndexed;
-	BOOL bNamed;
+	bool bIndexed;
+	bool bNamed;
 
 	bIndexed = *((int*)&mszType) == OBJECT_POINTER_ID;
 	if (bIndexed)
 	{
-		return TRUE;
+		return true;
 	}
 
 	bNamed = *((int*)&mszType) == OBJECT_POINTER_NAMED;
 	if (bNamed && msName.miLength == 1)
 	{
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -53,7 +53,7 @@ BOOL CSerialisedObject::IsIndexed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSerialisedObject::IsVoid(void)
+bool CSerialisedObject::IsVoid(void)
 {
 	return *((int*)&mszType) == OBJECT_POINTER_NULL;
 }

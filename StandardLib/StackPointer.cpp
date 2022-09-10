@@ -10,7 +10,7 @@ void CStackPointer::Init(CPointer* pcPointer)
 {
 	mpcPointer = pcPointer;
 	mpcNext = NULL;
-	mbUsed = TRUE;
+	mbUsed = true;
 }
 
 
@@ -22,7 +22,7 @@ void CStackPointer::Kill(void)
 {
 	mpcPointer = NULL;
 	mpcNext = NULL;
-	mbUsed = FALSE;
+	mbUsed = false;
 }
 
 

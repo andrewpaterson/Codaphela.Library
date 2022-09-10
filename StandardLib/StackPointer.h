@@ -2,7 +2,7 @@
 #define __STACK_POINTER_H__
 #include "BaseLib/Define.h"
 
-#error
+
 class CPointer;
 class CStackPointer
 {
@@ -11,7 +11,7 @@ protected:
 	CPointer*			mpcPointer;  //Pointer on the stack
 
 public:
-	BOOL				mbUsed;
+	bool				mbUsed;
 
 public:
 	void			Init(CPointer* pcPointer);

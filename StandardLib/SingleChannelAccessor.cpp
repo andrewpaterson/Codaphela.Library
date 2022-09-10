@@ -69,7 +69,7 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 	int					iIndex;
 	int					iByteSize;
 	int					iBitSize;
-	BOOL				bSub;
+	bool				bSub;
 
 	//Fix the mess that are this function and the one below it.
 	pcChannel = mpcChannels->GetChannel(iChannel);
@@ -88,11 +88,11 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 		if (iByteSize == 0)
 		{
 			iByteSize = -1;
-			bSub = TRUE;
+			bSub = true;
 		}
 		else
 		{
-			bSub = FALSE;
+			bSub = false;
 		}
 
 		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
@@ -124,7 +124,7 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void*
 	int					iIndex;
 	int					iByteSize;
 	int					iBitSize;
-	BOOL				bSub;
+	bool				bSub;
 
 	pcChannel = mpcChannels->GetChannel(iChannel);
 	if (pcChannel)
@@ -142,11 +142,11 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void*
 		if (iByteSize ==0)
 		{
 			iByteSize = -1;
-			bSub = TRUE;
+			bSub = true;
 		}
 		else
 		{
-			bSub = FALSE;
+			bSub = false;
 		}
 
 		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);

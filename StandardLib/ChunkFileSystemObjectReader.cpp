@@ -55,7 +55,7 @@ void CChunkFileSystemObjectReader::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileSystemObjectReader::Begin(void)
+bool CChunkFileSystemObjectReader::Begin(void)
 {
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
@@ -82,11 +82,11 @@ BOOL CChunkFileSystemObjectReader::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChunkFileSystemObjectReader::End(void)
+bool CChunkFileSystemObjectReader::End(void)
 {
 	mcChunkFileFileSystem.ReadClose();
 	mcChunkFileFileSystem.Kill();
-	return TRUE;
+	return true;
 }
 
 

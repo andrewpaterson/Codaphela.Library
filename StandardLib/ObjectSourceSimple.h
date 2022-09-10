@@ -15,9 +15,9 @@ public:
 	void			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
 	void			Kill(void);
 
-	BOOL			IsSimple(void);
-	BOOL			IsNative(void);
-	BOOL			Contains(char* szFullName);
+	bool			IsSimple(void);
+	bool			IsNative(void);
+	bool			Contains(char* szFullName);
 	CBaseObject*	Convert(char* szFullName);
 	CExternalObjectReader*	GetReader(void);
 };

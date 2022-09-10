@@ -16,7 +16,7 @@ public:
 	void				Init(CClass* pcFieldClass, ptrdiff_t iOffset, ptrdiff_t iValueOffset, CClass* pcContainingClass, SDataIO* pcIO, char* szName);
 	void				Kill(void);
 
-	BOOL				IsPrimitive(void);
+	bool				IsPrimitive(void);
 	uint32				GetSizeOf(void);
 	size_t				GetNameOffset(void);
 	SDataIO*			GetDataIO(void);

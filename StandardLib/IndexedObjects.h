@@ -39,9 +39,9 @@ public:
 	void			Init(void);
 	void			Kill(void);
 	CBaseObject*	Get(OIndex oi);
-	BOOL			Has(OIndex oi);
-	BOOL			Add(OIndex oi, CBaseObject* pvMemory);
-	BOOL			Remove(OIndex oi);
+	bool			Has(OIndex oi);
+	bool			Add(OIndex oi, CBaseObject* pvMemory);
+	bool			Remove(OIndex oi);
 	int				NumIndexed(void);
 
 	OIndex			StartIteration(SIndexesIterator* psIterator);

@@ -29,9 +29,9 @@ void CObjectSourceSimple::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceSimple::IsSimple(void)
+bool CObjectSourceSimple::IsSimple(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -39,9 +39,9 @@ BOOL CObjectSourceSimple::IsSimple(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceSimple::IsNative(void)
+bool CObjectSourceSimple::IsNative(void)
 {
-	return TRUE; 
+	return true; 
 }
 
 
@@ -49,7 +49,7 @@ BOOL CObjectSourceSimple::IsNative(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectSourceSimple::Contains(char* szFullName)
+bool CObjectSourceSimple::Contains(char* szFullName)
 {
 	return CObjectSingleSource::Contains(szFullName);
 }

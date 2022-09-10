@@ -37,7 +37,7 @@ void CChannelPadder::Init(CChannels* pcExternal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChannelPadder::OptimalPadding(void)
+bool CChannelPadder::OptimalPadding(void)
 {
 	EPrimitiveType			eType;
 	int						iMaxSize;
@@ -51,7 +51,7 @@ BOOL CChannelPadder::OptimalPadding(void)
 
 	if (!mpcExternal->IsOnlyBasicTypes())
 	{
-		return FALSE;
+		return false;
 	}
 	eType = mpcExternal->GetLargestPrimitiveType();
 	iMaxSize = gcTypeNames.GetByteSize(eType);
@@ -97,6 +97,6 @@ BOOL CChannelPadder::OptimalPadding(void)
 		mpcExternal->SetByteStride(iPos);
 	}
 	mpcExternal->SetBitStrideFromByteStride();
-	return TRUE;
+	return true;
 }
 

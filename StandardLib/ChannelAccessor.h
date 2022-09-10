@@ -34,13 +34,13 @@ public:
 	int					miChannelByteOffset;
 	int					miChannelByteSize;
 	EPrimitiveType		meChannelType;
-	BOOL				mbChannelReverse;
+	bool				mbChannelReverse;
 	int					miChannelBitSize;
 	int					miChannelBitOffset;
 
 	int					miChannel;
 
-	void	Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, BOOL bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel);
+	void	Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, bool bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel);
 	
 	void	GetNative(void* pvBase, void* pvDest); //Not valid if miByteSize or miByteOffset -1
 	void	GetAs(EPrimitiveType eType, void* pvBase, void* pvDest); //Not valid if miByteSize or miByteOffset -1

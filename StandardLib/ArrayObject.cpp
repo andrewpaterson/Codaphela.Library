@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 Ptr<CArrayObject> CArrayObject::Init(void)
 {
-	CArrayCommonObject::Init(FALSE, FALSE, TRUE);
+	CArrayCommonObject::Init(false, false, true);
 	return Ptr<CArrayObject>(this);
 }
 
@@ -105,7 +105,7 @@ void CArrayObject::Set(int iIndex, CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayObject::Remove(CPointer& pObject)
+bool CArrayObject::Remove(CPointer& pObject)
 {
 	return CArrayCommonObject::Remove(pObject);
 }
@@ -115,7 +115,7 @@ BOOL CArrayObject::Remove(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayObject::RemoveAt(int iIndex)
+bool CArrayObject::RemoveAt(int iIndex)
 {
 	CPointer pObject;
 
@@ -124,10 +124,10 @@ BOOL CArrayObject::RemoveAt(int iIndex)
 	{
 		if (mcArray.Remove(iIndex))
 		{
-			pObject->RemoveHeapFrom(this, TRUE);
-			return TRUE;
+			pObject->RemoveHeapFrom(this, true);
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 

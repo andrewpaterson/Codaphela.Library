@@ -28,7 +28,7 @@ void CDependentReadObjects::AddHeapFrom(CEmbeddedObject* pcBaseObject, CBaseObje
 {
 	if (pcContaining)
 	{
-		pcBaseObject->AddHeapFrom(pcContaining, FALSE);
+		pcBaseObject->AddHeapFrom(pcContaining, false);
 	}
 }
 

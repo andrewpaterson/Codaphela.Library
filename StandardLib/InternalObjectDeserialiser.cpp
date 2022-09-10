@@ -43,7 +43,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 	CSerialisedObject*		pcSerialised;
 	unsigned int			uiDataSize;
 	CStackMemory<>			cTemp;
-	BOOL					bExists;
+	bool					bExists;
 	CBaseObject*			pcBaseObject;
 
 	pcSerialised = (CSerialisedObject*)cTemp.Init();
@@ -80,7 +80,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 	CSerialisedObject*	pcSerialised;
 	unsigned int		uiDataSize;
 	CStackMemory<>		cTemp;
-	BOOL				bExists;
+	bool				bExists;
 	CBaseObject*		pcBaseObject;
 
 	pcSerialised = (CSerialisedObject*)cTemp.Init();
@@ -116,7 +116,7 @@ CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSe
 {
 	CObjectReader	cReader;
 	CBaseObject*	pvObject;
-	BOOL			bResult;
+	bool			bResult;
 	CMemoryFile		cMemoryFile;
 
 	cMemoryFile.Init(pcSerialised, iSize);
@@ -213,13 +213,13 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointerToIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
+bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointerToIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
 	CEmbeddedObject*		pcEmbeddedObject;
 	OIndex					oiNew;
 	CBaseObject*			pcHollowObject;
 	CBaseObject*			pcExistingObject;
-	BOOL					bIsNamed;
+	bool					bIsNamed;
 
 	if (!((pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_NAMED) || (pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_ID)))
 	{
@@ -231,7 +231,7 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 	if (pcExistingObject)
 	{
 		AddHeapFrom(pcExistingObject, pcObjectContainingPtrToBeUpdated);
-		return TRUE;
+		return true;
 	}
 
 
@@ -249,7 +249,7 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 
 	if (!pcHollowObject)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcEmbeddedObject = pcHollowObject->GetEmbeddedObject(iEmbeddedIndex);
@@ -257,11 +257,11 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 	{
 		*ppcPtrToBeUpdated = pcEmbeddedObject;
 		AddHeapFrom(pcEmbeddedObject, pcObjectContainingPtrToBeUpdated);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -270,7 +270,7 @@ BOOL CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
+bool CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot)
 {
 	CDependentReadObject	cDependent;
 	CPointer				pExisitingInDatabase;
@@ -284,6 +284,6 @@ BOOL CInternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 
 	cDependent.Kill();
 
-	return TRUE;
+	return true;
 }
 

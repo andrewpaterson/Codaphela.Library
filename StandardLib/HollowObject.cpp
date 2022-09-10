@@ -94,9 +94,9 @@ CBaseObject* CHollowObject::Dehollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::IsHollow(void)
+bool CHollowObject::IsHollow(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -104,9 +104,9 @@ BOOL CHollowObject::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::Save(CObjectWriter* pcFile)
+bool CHollowObject::Save(CObjectWriter* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -114,9 +114,9 @@ BOOL CHollowObject::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::Load(CObjectReader* pcFile)
+bool CHollowObject::Load(CObjectReader* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -124,9 +124,9 @@ BOOL CHollowObject::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::IsCollection(void)
+bool CHollowObject::IsCollection(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -134,9 +134,9 @@ BOOL CHollowObject::IsCollection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowObject::IsObject(void)
+bool CHollowObject::IsObject(void)
 {
-	return FALSE;
+	return false;
 }
 
 

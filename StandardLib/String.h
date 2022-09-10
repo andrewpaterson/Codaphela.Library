@@ -27,8 +27,8 @@ public:
 	void			Class(void);
 	void			Free(void);
 
-	BOOL			Save(CObjectWriter* pcFile) override;
-	BOOL			Load(CObjectReader* pcFile) override;
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	void			D(void);
 
@@ -71,15 +71,15 @@ public:
 	Ptr<CString>	AppendSubString(Ptr<CString> pString, int iLength);
 	Ptr<CString>	AppendSubString(Ptr<CString> pString, int iStartInclusive, int iEndExclusive);
 	Ptr<CString>	AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive) { msz.AppendSubString(sz, iStartInclusive, iEndExclusive); D(); return this; }
-	Ptr<CString>	AppendBool(BOOL bValue) { msz.AppendBool(bValue); D(); return this; }
-	Ptr<CString>	AppendBool(BOOL bValue, const char* szTrue, const char* szFalse) { msz.AppendBool(bValue, szTrue, szFalse); D(); return this; }
-	Ptr<CString>	AppendBool(BOOL bValue, Ptr<CString> pTrue, Ptr<CString> pFalse);
+	Ptr<CString>	AppendBool(bool bValue) { msz.AppendBool(bValue); D(); return this; }
+	Ptr<CString>	AppendBool(bool bValue, const char* szTrue, const char* szFalse) { msz.AppendBool(bValue, szTrue, szFalse); D(); return this; }
+	Ptr<CString>	AppendBool(bool bValue, Ptr<CString> pTrue, Ptr<CString> pFalse);
 	Ptr<CString>	AppendData(const char* szData, size_t iMaxLength) { msz.AppendData(szData, iMaxLength); D(); return this; }
 	Ptr<CString>	AppendData(const char* szData, size_t iDataLength, size_t iMaxLength) { msz.AppendData(szData, iDataLength, iMaxLength); D(); return this; }
 	Ptr<CString>	AppendData2(const char* szData, size_t iDataLength) { msz.AppendData2(szData, iDataLength); D(); return this; }
 	Ptr<CString>	AppendPointer(void* pv) { msz.AppendPointer(pv); D(); return this; }
-	BOOL			AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, BOOL bAppendComma = FALSE) { D(); return msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma); }
-	BOOL			AppendFlag(unsigned int msFlags, unsigned int uiFlag, Ptr<CString> pFlagName, BOOL bAppendComma = FALSE);
+	bool			AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, bool bAppendComma = false) { D(); return msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma); }
+	bool			AppendFlag(unsigned int msFlags, unsigned int uiFlag, Ptr<CString> pFlagName, bool bAppendComma = false);
 	Ptr<CString>	LeftAlign(CChars sz, char cPadCharacter, int iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	LeftAlign(const char* sz, char cPadCharacter, int iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	LeftAlign(Ptr<CString> pString, char cPadCharacter, int iWidth);
@@ -87,7 +87,7 @@ public:
 	Ptr<CString>	RightAlign(const char* sz, char cPadCharacter, int iWidth) { msz.RightAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	RightAlign(Ptr<CString> pString, char cPadCharacter, int iWidth);
 	Ptr<CString>	RightAlign(char cPadCharacter, int iWidth) { msz.RightAlign(cPadCharacter, iWidth); D(); return this; }
-	Ptr<CString>	StripWhiteSpace(BOOL bIncludeNewLines = FALSE) { msz.StripWhiteSpace(bIncludeNewLines); D(); return this; }
+	Ptr<CString>	StripWhiteSpace(bool bIncludeNewLines = false) { msz.StripWhiteSpace(bIncludeNewLines); D(); return this; }
 	Ptr<CString>	Reverse(void) { msz.Reverse(); D(); return this; }
 	Ptr<CString>	Clear(void) { msz.Clear(); D(); return this; }
 	Ptr<CString>	LowerCase(void) { msz.LowerCase(); D(); return this; }
@@ -100,40 +100,40 @@ public:
 	char*			Text(void) { return msz.Text(); }
 	char*			Text(int iIndex) { return msz.Text(iIndex); }
 	CChars*			GetChars(void);
-	BOOL			Empty(void) { return msz.Empty(); }
+	bool			Empty(void) { return msz.Empty(); }
 	void			RemoveLastCharacter(void) { msz.RemoveLastCharacter(); D(); }
 	void			RemoveFromStart(int iNumChars) { msz.RemoveFromStart(iNumChars); D(); }
 	void			RemoveFromEnd(int iNumChars) { msz.RemoveFromEnd(iNumChars); D(); }
 	void			Remove(int iStart, int iEnd) { msz.Remove(iStart, iEnd); D(); }
 	void			RemoveEnd(int iIndex) { msz.RemoveEnd(iIndex); D(); }
 	void			RemoveCharacter(int iPos) { msz.RemoveCharacter(iPos); D(); }
-	BOOL			Equals(const char* szString) { return msz.Equals(szString); }
-	BOOL			Equals(Ptr<CString> pString);
-	BOOL			Equals(CChars szString) { return msz.Equals(szString); }
-	BOOL			Equals(const char* szString, int iLen) { return msz.Equals(szString, iLen); }
-	BOOL			Equals(Ptr<CString> pString, int iLen);
-	BOOL			Equals(CChars* pszString) { return msz.Equals(pszString); }
-	BOOL			EqualsIgnoreCase(const char* szString) { return msz.EqualsIgnoreCase(szString); }
-	BOOL			EqualsIgnoreCase(Ptr<CString> pString);
-	BOOL			EqualsIgnoreCase(CChars szString) { return msz.EqualsIgnoreCase(szString); }
-	BOOL			Contains(const char* szString) { return msz.Contains(szString); }
-	BOOL			Contains(Ptr<CString> pString);
-	BOOL			ContainsIgnoreCase(const char* szString) { return msz.ContainsIgnoreCase(szString); }
-	BOOL			ContainsIgnoreCase(Ptr<CString> pString);
-	BOOL			EndsWith(const char* szString) { return msz.EndsWith(szString); }
-	BOOL			EndsWith(Ptr<CString> pString);
-	BOOL			EndsWithIgnoreCase(const char* szString) { return msz.EndsWithIgnoreCase(szString); }
-	BOOL			EndsWithIgnoreCase(Ptr<CString> pString);
-	BOOL			StartsWith(const char* szString) { return msz.StartsWith(szString); }
-	BOOL			StartsWith(Ptr<CString> pString);
-	BOOL			StartsWithIgnoreCase(const char* szString) { return msz.StartsWithIgnoreCase(szString); }
-	BOOL			StartsWithIgnoreCase(Ptr<CString> pString);
+	bool			Equals(const char* szString) { return msz.Equals(szString); }
+	bool			Equals(Ptr<CString> pString);
+	bool			Equals(CChars szString) { return msz.Equals(szString); }
+	bool			Equals(const char* szString, int iLen) { return msz.Equals(szString, iLen); }
+	bool			Equals(Ptr<CString> pString, int iLen);
+	bool			Equals(CChars* pszString) { return msz.Equals(pszString); }
+	bool			EqualsIgnoreCase(const char* szString) { return msz.EqualsIgnoreCase(szString); }
+	bool			EqualsIgnoreCase(Ptr<CString> pString);
+	bool			EqualsIgnoreCase(CChars szString) { return msz.EqualsIgnoreCase(szString); }
+	bool			Contains(const char* szString) { return msz.Contains(szString); }
+	bool			Contains(Ptr<CString> pString);
+	bool			ContainsIgnoreCase(const char* szString) { return msz.ContainsIgnoreCase(szString); }
+	bool			ContainsIgnoreCase(Ptr<CString> pString);
+	bool			EndsWith(const char* szString) { return msz.EndsWith(szString); }
+	bool			EndsWith(Ptr<CString> pString);
+	bool			EndsWithIgnoreCase(const char* szString) { return msz.EndsWithIgnoreCase(szString); }
+	bool			EndsWithIgnoreCase(Ptr<CString> pString);
+	bool			StartsWith(const char* szString) { return msz.StartsWith(szString); }
+	bool			StartsWith(Ptr<CString> pString);
+	bool			StartsWithIgnoreCase(const char* szString) { return msz.StartsWithIgnoreCase(szString); }
+	bool			StartsWithIgnoreCase(Ptr<CString> pString);
 	int				Occurrences(const char* szString) { return msz.Occurrences(szString); }
 	int				Occurrences(Ptr<CString> pString);
-	BOOL			SubStringEquals(int iStart, const char* szString) { return msz.SubStringEquals(iStart, szString); }
-	BOOL			SubStringEquals(int iStart, Ptr<CString> pString);
-	BOOL			SubStringEqualsIgnoreCase(int iStart, const char* szString) { return msz.SubStringEqualsIgnoreCase(iStart, szString); }
-	BOOL			SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString);
+	bool			SubStringEquals(int iStart, const char* szString) { return msz.SubStringEquals(iStart, szString); }
+	bool			SubStringEquals(int iStart, Ptr<CString> pString);
+	bool			SubStringEqualsIgnoreCase(int iStart, const char* szString) { return msz.SubStringEqualsIgnoreCase(iStart, szString); }
+	bool			SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString);
 	int				FindFromEnd(const char* szString) { return msz.FindFromEnd(szString); }
 	int				FindFromEnd(Ptr<CString> pString);
 	int				FindFromEnd(int iPos, const char* szString) { return msz.FindFromEnd(iPos, szString); }
@@ -150,8 +150,8 @@ public:
 	char			GetChar(int iIndex) { return msz.GetChar(iIndex); }
 	void			SetChar(int iPos, char c) { msz.SetChar(iPos, c); D(); }
 	void			Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CChars szOldString) { msz.Difference(paiNewToOldIndices, paiOldToNewIndices, szOldString); }
-	BOOL			IsWhiteSpace(int iPos, BOOL bIncludeNewLines) { return msz.IsWhiteSpace(iPos, bIncludeNewLines); }
-	BOOL			IsWhiteSpace(void) { return msz.IsWhiteSpace(); }
+	bool			IsWhiteSpace(int iPos, bool bIncludeNewLines) { return msz.IsWhiteSpace(iPos, bIncludeNewLines); }
+	bool			IsWhiteSpace(void) { return msz.IsWhiteSpace(); }
 	void			SetLength(int iLength) { msz.SetLength(iLength); D(); }
 	int				Compare(CChars* szOther) { return msz.Compare(szOther); }
 	int				Compare(const char* szOther) { return msz.Compare(szOther); }

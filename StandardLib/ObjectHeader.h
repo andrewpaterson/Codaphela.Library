@@ -16,8 +16,8 @@ public:
 	void	Init(char* szName);
 	void	Kill(void);
 
-	BOOL	IsNamed(void);
-	BOOL	IsIndexed(void);
+	bool	IsNamed(void);
+	bool	IsIndexed(void);
 
 	char*	GetName(void);
 	OIndex	GetIndex();

@@ -145,7 +145,7 @@ void CDistCalculatorParameters::RemoveExpectedDist(SDistToRoot* psDistToRoot)
 	int	iIndex;
 	
 	iIndex = macExpectedDists.GetIndex(psDistToRoot);
-	macExpectedDists.RemoveAt(iIndex, TRUE);  //Preserving order is (unfortunately) important.
+	macExpectedDists.RemoveAt(iIndex, true);  //Preserving order is (unfortunately) important.
 }
 
 
@@ -197,7 +197,7 @@ void CDistCalculatorParameters::RemoveDetachedFromRoot(CBaseObject** ppcObject)
 	int	iIndex;
 
 	iIndex = mapcDetachedFromRoot.GetIndex(ppcObject);
-	mapcDetachedFromRoot.RemoveAt(iIndex, TRUE);  //Preserving order is (unfortunately) important.
+	mapcDetachedFromRoot.RemoveAt(iIndex, true);  //Preserving order is (unfortunately) important.
 }
 
 
@@ -237,7 +237,7 @@ CBaseObject* CDistCalculatorParameters::GetCompletelyDetached(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CDistCalculatorParameters::RemoveCompletelyDetached(int iIndex)
 {
-	mapcCompletelyDetached.RemoveAt(iIndex, FALSE);
+	mapcCompletelyDetached.RemoveAt(iIndex, false);
 }
 
 
@@ -318,7 +318,7 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayTemplateEmbeddedBa
 	for (i = 0; i < iNum; i++)
 	{
 		pcBaseObject = *pcArray->Get(i);
-		pcBaseObject->PrintObject(psz, FALSE);
+		pcBaseObject->PrintObject(psz, false);
 		
 		if (i != iNum -1)
 		{
@@ -342,7 +342,7 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayBlockObjectPtr* pc
 	for (i = 0; i < iNum; i++)
 	{
 		pcBaseObject = *pcArray->Get(i);
-		pcBaseObject->PrintObject(psz, FALSE);
+		pcBaseObject->PrintObject(psz, false);
 
 		if (i != iNum -1)
 		{
@@ -366,7 +366,7 @@ void CDistCalculatorParameters::PrintArray(CChars* psz, CArrayDistToRoot* pcArra
 	for (i = 0; i < iNum; i++)
 	{
 		psDistToRoot = pcArray->Get(i);
-		psDistToRoot->pcObject->PrintObject(psz, FALSE);
+		psDistToRoot->pcObject->PrintObject(psz, false);
 
 		if (i != iNum -1)
 		{

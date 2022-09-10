@@ -8,9 +8,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::Save(CObjectWriter* pcFile)
+bool CHollowEmbeddedObject::Save(CObjectWriter* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -18,9 +18,9 @@ BOOL CHollowEmbeddedObject::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::Load(CObjectReader* pcFile)
+bool CHollowEmbeddedObject::Load(CObjectReader* pcFile)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -82,9 +82,9 @@ int CHollowEmbeddedObject::GetDistToRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::IsHollow(void)
+bool CHollowEmbeddedObject::IsHollow(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -150,10 +150,10 @@ void CHollowEmbeddedObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::SetDistToRoot(int iDistToRoot)
+bool CHollowEmbeddedObject::SetDistToRoot(int iDistToRoot)
 {
 	NotImplemented(__METHOD__);
-	return FALSE;
+	return false;
 }
 
 
@@ -232,9 +232,9 @@ int CHollowEmbeddedObject::CollectDetachedFroms(CDistCalculatorParameters* pcPar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::IsInitialised(void)
+bool CHollowEmbeddedObject::IsInitialised(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -242,9 +242,9 @@ BOOL CHollowEmbeddedObject::IsInitialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::IsDirty(void)
+bool CHollowEmbeddedObject::IsDirty(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -252,9 +252,9 @@ BOOL CHollowEmbeddedObject::IsDirty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::IsRoot(void)
+bool CHollowEmbeddedObject::IsRoot(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -262,9 +262,9 @@ BOOL CHollowEmbeddedObject::IsRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHollowEmbeddedObject::TestedForRoot(void)
+bool CHollowEmbeddedObject::TestedForRoot(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -272,7 +272,7 @@ BOOL CHollowEmbeddedObject::TestedForRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowEmbeddedObject::SetDirty(BOOL bDirty)
+void CHollowEmbeddedObject::SetDirty(bool bDirty)
 {
 }
 

@@ -33,10 +33,10 @@ public:
 	void	Init(CDataConnection* pcDataConnection);
 	void	Kill(void);
 
-	BOOL	Write(CBaseObject* pcObject);
+	bool	Write(CBaseObject* pcObject);
 
 protected:
-	BOOL	Put(CSerialisedObject* pcSerialised, unsigned int iSize);
+	bool	Put(CSerialisedObject* pcSerialised, unsigned int iSize);
 };
 
 

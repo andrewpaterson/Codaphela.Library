@@ -36,11 +36,11 @@ public:
 			void		SetUnknowns(CUnknowns* pcUnknowns);
 			void 		Kill(void);
 
-	virtual BOOL		IsUnknown(void);
-	virtual BOOL		Iterable(void);
-			BOOL		SaveHeader(CFileWriter* pcFile);
-	virtual BOOL		Save(CFileWriter* pcFile);
-	virtual BOOL		Load(CFileReader* pcFile);
+	virtual bool		IsUnknown(void);
+	virtual bool		Iterable(void);
+			bool		SaveHeader(CFileWriter* pcFile);
+	virtual bool		Save(CFileWriter* pcFile);
+	virtual bool		Load(CFileReader* pcFile);
 	virtual int			Compare(CUnknown* pcRight);
 			CUnknowns*	GetUnknownsThisIn(void);
 			void		SetNotInUnknowns(void);

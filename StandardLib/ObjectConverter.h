@@ -12,7 +12,7 @@ public:
 			void			Kill(void);
 
 	virtual char*			GetFileExtension(void) =0;
-	virtual BOOL			IsFor(CAbstractFile* pcFile) =0;
+	virtual bool			IsFor(CAbstractFile* pcFile) =0;
 	virtual CObjectSource*	CreateSource(CAbstractFile* pcFile, char* szFilename) =0;
 	virtual CBaseObject*	Convert(CObjectSource* pcSource, char* szObjectName) =0;
 };

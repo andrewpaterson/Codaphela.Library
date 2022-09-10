@@ -35,11 +35,11 @@ public:
 	void	Init(CExternalObjectWriter* pcWriter);
 	void	Kill(void);
 
-	BOOL	Write(CBaseObject* pcObject);
+	bool	Write(CBaseObject* pcObject);
 	void	AddDependent(CBaseObject* pcObject);
 
 protected:
-	BOOL	WriteUnwritten(CBaseObject* pcObject);
+	bool	WriteUnwritten(CBaseObject* pcObject);
 	void	MarkWritten(CBaseObject* pcObject);
 };
 

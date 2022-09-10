@@ -40,7 +40,7 @@ public:
 	M*		Insert(int iIndex);
 
 	void	Remove(int iIndex);
-	BOOL	Remove(M* pcUnknown);
+	bool	Remove(M* pcUnknown);
 
 	M*		Get(int iIndex);
 
@@ -49,8 +49,8 @@ public:
 	M*		Iterate(SSetIterator* psIter);
 
 protected:
-	BOOL	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	BOOL	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	bool	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
+	bool	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
 };
 
 
@@ -62,7 +62,7 @@ template<class M>
 void CArrayType<M>::Init(void)
 {
 	CArrayUnknown::Init();
-	TypeKnown(TRUE);
+	TypeKnown(true);
 }
 
 
@@ -148,7 +148,7 @@ void CArrayType<M>::Remove(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayType<M>::Remove(M* pcUnknown)
+bool CArrayType<M>::Remove(M* pcUnknown)
 {
 	return CArrayUnknown::Remove(pcUnknown);
 }
@@ -203,14 +203,14 @@ M* CArrayType<M>::Iterate(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
+bool CArrayType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	M*	pcUnknown;
 
 	pcUnknown = gcUnknowns.Add<M>();
 	ReturnOnFalse(pcUnknown->Load(pcFile));
 	*ppcUnknown = pcUnknown;
-	return TRUE;
+	return true;
 }
 
 
@@ -219,7 +219,7 @@ BOOL CArrayType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
+bool CArrayType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
 	return pcUnknown->Save(pcFile);
 }

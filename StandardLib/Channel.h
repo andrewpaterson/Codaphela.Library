@@ -33,10 +33,10 @@ public:
 	int		miByteOffset;
 	int		miBitOffset;
 
-	void	Init(int iChannel, EPrimitiveType eType, BOOL bReverse);
-	void	Init(int iChannel, EPrimitiveType eType, int iByteSize, int iBitSize, int iByteOffset, int iBitOffset, BOOL bReverse = FALSE);
+	void	Init(int iChannel, EPrimitiveType eType, bool bReverse);
+	void	Init(int iChannel, EPrimitiveType eType, int iByteSize, int iBitSize, int iByteOffset, int iBitOffset, bool bReverse = false);
 
-	BOOL	Is8BitAligned(void);
+	bool	Is8BitAligned(void);
 };
 
 

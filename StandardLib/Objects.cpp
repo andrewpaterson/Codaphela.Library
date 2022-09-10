@@ -36,7 +36,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 CObjects	gcObjects;
-BOOL		gbObjects = FALSE;
+bool		gbObjects = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -120,7 +120,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 ////////////////////////////////////////////////////////////////////////////
 CObjects::CObjects()
 {
-	mbInitialised = FALSE;
+	mbInitialised = false;
 	mpcUnknownsAllocatingFrom = NULL;
 	mpcStackPointers = NULL;
 	mpcDataConnection = NULL;
@@ -144,7 +144,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 	mcSource.Init();
 	mcClasses.Init(this);
 
-	mbInitialised = TRUE;
+	mbInitialised = true;
 }
 
 
@@ -154,7 +154,7 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 //////////////////////////////////////////////////////////////////////////
 void CObjects::Kill(void)
 {
-	mbInitialised = FALSE;
+	mbInitialised = false;
 
 	mcMemory.ValidateNoDirty();
 	mcMemory.FreeObjects();
@@ -269,7 +269,7 @@ void CObjects::DumpGraph(void)
 	pRoot = Get(ROOT_NAME);
 	if (pRoot.IsNotNull())
 	{
-		RecurseDumpGraph(&sz, pRoot.Object(), 0, FALSE);
+		RecurseDumpGraph(&sz, pRoot.Object(), 0, false);
 	}
 
 	sz.Append("------------------------------------------------------------ \n");
@@ -285,7 +285,7 @@ void CObjects::DumpGraph(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		SetFlag(&pcBaseObject->muiFlags, OBJECT_FLAGS_DUMPED, FALSE);
+		SetFlag(&pcBaseObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
 
 		if (pcBaseObject->IsObject())
 		{
@@ -293,7 +293,7 @@ void CObjects::DumpGraph(void)
 			for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
 			{
 				pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
-				SetFlag(&pcEmbeddedObject->muiFlags, OBJECT_FLAGS_DUMPED, FALSE);
+				SetFlag(&pcEmbeddedObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
 			}
 		}
 		pcBaseObject = mcMemory.Iterate(&sIter);
@@ -305,7 +305,7 @@ void CObjects::DumpGraph(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, BOOL bEmbedded)
+void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, bool bEmbedded)
 {
 	CObject*					pcObject;
 	CArrayTemplateEmbeddedObjectPtr		apcTos;
@@ -336,7 +336,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 		psz->AppendNewLine();
 	}
 
-	pcBaseObject->SetFlag(OBJECT_FLAGS_DUMPED, TRUE);
+	pcBaseObject->SetFlag(OBJECT_FLAGS_DUMPED, true);
 
 
 	apcTos.Init();
@@ -344,7 +344,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	for (i = 0; i < apcTos.NumElements(); i++)
 	{
 		pcToObject = *apcTos.Get(i);
-		RecurseDumpGraph(psz, pcToObject, iLevel+1, FALSE);
+		RecurseDumpGraph(psz, pcToObject, iLevel+1, false);
 	}
 
 	if (pcBaseObject->IsObject())
@@ -353,7 +353,7 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 		for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
 		{
 			pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
-			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, TRUE);
+			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, true);
 		}
 	}
 
@@ -390,7 +390,7 @@ void CObjects::ValidateIndexedObjects(void)
 	{
 		if (!(pcBaseObject->muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY))
 		{
-			pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, TRUE);
+			pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, true);
 
 			pcBaseObject->ValidateConsistency();
 		}
@@ -401,7 +401,7 @@ void CObjects::ValidateIndexedObjects(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, FALSE);
+		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, false);
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
 }
@@ -419,7 +419,7 @@ void CObjects::ClearValidationFlags(void)
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, FALSE);
+		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, false);
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
 }
@@ -456,7 +456,7 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 
 	if (!pcBaseObject->TestedForSanity())
 	{
-		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, TRUE);
+		pcBaseObject->SetFlag(OBJECT_FLAGS_TESTED_FOR_SANITY, true);
 
 		pcBaseObject->ValidateConsistency();
 
@@ -478,18 +478,18 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Flush(void)
+bool CObjects::Flush(void)
 {
 	SIndexesIterator	sIter;
 	OIndex				oi;
-	BOOL				bResult;
+	bool				bResult;
 	CBaseObject*		pcBaseObject;
-	BOOL				bCanFindRoot;	
-	BOOL				bDirty;
+	bool				bCanFindRoot;	
+	bool				bDirty;
 
 	if (mpcDataConnection)
 	{
-		bResult = TRUE;
+		bResult = true;
 		oi = StartMemoryIteration(&sIter);
 		while (oi != INVALID_O_INDEX)
 		{
@@ -498,7 +498,7 @@ BOOL CObjects::Flush(void)
 			oi = IterateMemory(&sIter);
 		}
 
-		bResult &= mpcDataConnection->Flush(FALSE);
+		bResult &= mpcDataConnection->Flush(false);
 		return bResult;
 	}
 	else
@@ -513,12 +513,12 @@ BOOL CObjects::Flush(void)
 
 			if (bDirty && bCanFindRoot)
 			{
-				pcBaseObject->SetDirty(FALSE);
+				pcBaseObject->SetDirty(false);
 			}
 			oi = IterateMemory(&sIter);
 		}
 
-		return TRUE;
+		return true;
 	}
 }
 
@@ -527,7 +527,7 @@ BOOL CObjects::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::EvictInMemory(void)
+bool CObjects::EvictInMemory(void)
 {
 	SIndexesIterator		sIter;
 	OIndex					oi;
@@ -563,7 +563,7 @@ BOOL CObjects::EvictInMemory(void)
 	apcBaseObjects.Kill();
 
 	mcMemory.ReInit();
-	return TRUE;
+	return true;
 }
 
 
@@ -618,9 +618,9 @@ void CObjects::KillObjects(CArrayBlockObjectPtr* papcObjectPts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ForceSave(CBaseObject* pcObject)
+bool CObjects::ForceSave(CBaseObject* pcObject)
 {
-	BOOL							bResult;
+	bool							bResult;
 	CInternalObjectSerialiser		cSerialiser;
 	CBaseObject*					pcEmbeddingContainer;
 
@@ -636,7 +636,7 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 		pcObject->GetIdentifier(&sz);
 		gcLogger.Error2(__METHOD__, " Cannot save object [", sz.Text(), "], Objects has data connection [NULL].", NULL);
 		sz.Kill();
-		return FALSE;
+		return false;
 	}
 
 	pcEmbeddingContainer = pcObject->GetEmbeddingContainer();
@@ -653,9 +653,9 @@ BOOL CObjects::ForceSave(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
+bool CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	if (pvObject)
 	{
@@ -672,7 +672,7 @@ BOOL CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -681,9 +681,9 @@ BOOL CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
+bool CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	if (pvObject)
 	{
@@ -701,7 +701,7 @@ BOOL CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -710,10 +710,10 @@ BOOL CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::RemoveFromMemory(CBaseObject* pvObject)
+bool CObjects::RemoveFromMemory(CBaseObject* pvObject)
 {
 	char*	szName;
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcMemory.RemoveIndex(pvObject->GetIndex());
 
@@ -763,7 +763,7 @@ Ptr<CRoot> CObjects::GetRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::HasRoot(void)
+bool CObjects::HasRoot(void)
 {
 	Ptr<CRoot> pRoot = GetRoot();
 	return pRoot.IsNotNull();
@@ -1026,7 +1026,7 @@ CBaseObject* CObjects::Dehollow(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Contains(char* szObjectName)
+bool CObjects::Contains(char* szObjectName)
 {
 	CBaseObject*	pvObject;
 
@@ -1035,7 +1035,7 @@ BOOL CObjects::Contains(char* szObjectName)
 	pvObject = mcMemory.Get(szObjectName);
 	if (pvObject)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -1045,10 +1045,10 @@ BOOL CObjects::Contains(char* szObjectName)
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1056,7 +1056,7 @@ BOOL CObjects::Contains(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Contains(OIndex oi)
+bool CObjects::Contains(OIndex oi)
 {
 	CBaseObject* pvObject;
 
@@ -1065,7 +1065,7 @@ BOOL CObjects::Contains(OIndex oi)
 	pvObject = mcMemory.Get(oi);
 	if (pvObject)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -1075,10 +1075,10 @@ BOOL CObjects::Contains(OIndex oi)
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1086,7 +1086,7 @@ BOOL CObjects::Contains(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
+bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 {
 	int								i;
 	int								iNumElements;
@@ -1098,7 +1098,7 @@ BOOL CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 	iNumElements = papcKilled->NumElements();
 	if (iNumElements == 0)
 	{
-		return TRUE;
+		return true;
 	}
 
 	for (i = 0; i < iNumElements; i++)
@@ -1108,12 +1108,12 @@ BOOL CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 		{
 			pcContainer = pcKilled->GetEmbeddingContainer();
 			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is embedded in object with index [", IndexToString(pcContainer->GetIndex()),"] of class [", pcContainer->ClassName(), "].", NULL);
-			return FALSE;
+			return false;
 		}
 		else if (!pcKilled->IsAllocatedInObjects())
 		{
 			gcLogger.Error2(__METHOD__, " Object of class [", pcKilled->ClassName(), "] is marked for killing but is not allocated in Objects [0x", PointerToString(this),"].", NULL);
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -1126,7 +1126,7 @@ BOOL CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 	KillDontFreeObjects(papcKilled);
 	KillObjects(papcKilled);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1219,21 +1219,21 @@ CSequenceConnection* CObjects::GetIndexGenerator(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ValidateCanAllocate(const char* szClassName)
+bool CObjects::ValidateCanAllocate(const char* szClassName)
 {
 	if (StrEmpty(szClassName))
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate an object of class with empty name.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (!mbInitialised)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object of class [", szClassName, "].  CObjects has not been initialised.", NULL);
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1241,15 +1241,15 @@ BOOL CObjects::ValidateCanAllocate(const char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ValidateCanAllocate(void)
+bool CObjects::ValidateCanAllocate(void)
 {
 	if (!mbInitialised)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object.  CObjects has not been initialised.", NULL);
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1260,7 +1260,7 @@ BOOL CObjects::ValidateCanAllocate(void)
 CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName, OIndex oi)
 {
 	CBaseObject*	pcObject;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = ValidateCanAllocate(szClassName);
 	if (!bResult)
@@ -1285,7 +1285,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi)
 {
 	CBaseObject*	pcObject;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = ValidateCanAllocate(szClassName);
 	if (!bResult)
@@ -1455,7 +1455,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* sz
 {
 	CBaseObject*	pvObject;
 	OIndex			oi;
-	BOOL			bResult;
+	bool			bResult;
 
 	oi = GetIndexGenerator()->GetNext();
 	pvObject = AllocateUninitialisedByClassName(szClassName, oi);
@@ -1481,7 +1481,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* sz
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName)
 {
-	BOOL			bResult;
+	bool			bResult;
 	CBaseObject*	pvObject;
 	OIndex			oi;
 
@@ -1519,7 +1519,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(cha
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pvObject;
 	OIndex			oi;
-	BOOL			bResult;
+	bool			bResult;
 
 	//Only called by the ExternalObjectDeserialiser.  And some tests that should actually be calling an Allocate only and not Replace method.
 
@@ -1578,7 +1578,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(cha
 CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi)
 {
 	CBaseObject*	pvObject;
-	BOOL			bResult;
+	bool			bResult;
 	CHollowObject*	pcHollowObject;
 	CBaseObject*	pcAllocatedObject;
 
@@ -1633,7 +1633,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClass
 CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oi, OIndex* poiExisting)
 {
 	CBaseObject*	pvObject;
-	BOOL			bResult;
+	bool			bResult;
 	CHollowObject*	pcHollowObject;
 	CBaseObject*	pcAllocatedObject;
 
@@ -1693,7 +1693,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
+bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 {
 	CObjectRemapFrom	cRemapper;
 	int					iCount;
@@ -1708,11 +1708,11 @@ BOOL CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 
 		iCount = cRemapper.Remap(pvExisting, pvObject);
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1724,7 +1724,7 @@ BOOL CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
-	BOOL			bResult;
+	bool			bResult;
 
 	//Only called by the InternalObjectDeserialiser.
 
@@ -1761,7 +1761,7 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded)
 CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
-	BOOL			bResult;
+	bool			bResult;
 
 	//Only called by the InternalObjectDeserialiser.
 
@@ -1805,7 +1805,7 @@ CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OInd
 CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, uint16 iNumEmbedded)
 {
 	CHollowObject*	pcHollow;
-	BOOL			bResult;
+	bool			bResult;
 	CBaseObject*	pvExisting;
 	OIndex			oi;
 
@@ -1865,7 +1865,7 @@ void ObjectsInit(CDataConnection* pcDataConnection, CSequenceConnection* pcSeque
 	TransientSequenceInit();
 	gcStackPointers.Init(2048);
 	gcObjects.Init(&gcUnknowns, &gcStackPointers, pcDataConnection, pcSequenceConnection);
-	gbObjects = TRUE;
+	gbObjects = true;
 }
 
 
@@ -1884,7 +1884,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 	TransientSequenceInit();
 	gcStackPointers.Init(2048);
 	gcObjects.Init(pcUnknowns, pcStackPointers, pcDataConnection, pcSequenceConnection);
-	gbObjects = TRUE;
+	gbObjects = true;
 }
 
 
@@ -1905,7 +1905,7 @@ void ObjectsKill(void)
 	TransientSequenceKill();
 	UnknownsKill();
 
-	gbObjects = FALSE;
+	gbObjects = false;
 }
 
 
@@ -1913,16 +1913,16 @@ void ObjectsKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ObjectsValidate(void)
+bool ObjectsValidate(void)
 {
 	if (!gbObjects)
 	{
 		gcLogger.Error("Objects have not been initialised.  Call ObjectsInit().");
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -1931,11 +1931,11 @@ BOOL ObjectsValidate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ObjectsFlush(void)
+bool ObjectsFlush(void)
 {
 	if (!ObjectsValidate())
 	{
-		return FALSE;
+		return false;
 	}
 
 	return gcObjects.Flush();

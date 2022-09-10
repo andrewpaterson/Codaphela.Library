@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CArrayUnknown::Init(void)
 {
-	CArrayCommonUnknown::Init(FALSE, TRUE, FALSE, FALSE, TRUE);
+	CArrayCommonUnknown::Init(false, true, false, false, true);
 }
 
 
@@ -46,7 +46,7 @@ void CArrayUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayUnknown::Add(CUnknown* pcUnknown)
+bool CArrayUnknown::Add(CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Add(pcUnknown);
 }
@@ -56,7 +56,7 @@ BOOL CArrayUnknown::Add(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayUnknown::Insert(int iIndex, CUnknown* pcUnknown)
+bool CArrayUnknown::Insert(int iIndex, CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Insert(iIndex, pcUnknown);
 }
@@ -96,7 +96,7 @@ void CArrayUnknown::Remove(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayUnknown::Remove(CUnknown* pcUnknown)
+bool CArrayUnknown::Remove(CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Remove(pcUnknown);
 }

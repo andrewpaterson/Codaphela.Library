@@ -67,7 +67,7 @@ void CUnmanagedField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnmanagedField::IsArray(void)
+bool CUnmanagedField::IsArray(void)
 {
 	return muiLength > 1;
 }
@@ -97,9 +97,9 @@ uint32 CUnmanagedField::GetSizeOf(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CUnmanagedField::IsUnmanaged(void)
+bool CUnmanagedField::IsUnmanaged(void)
 {
-	return TRUE;
+	return true;
 }
 
 

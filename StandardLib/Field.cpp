@@ -62,9 +62,9 @@ CClass* CField::GetClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CField::IsArray(void)
+bool CField::IsArray(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -82,9 +82,9 @@ uint32 CField::GetOffset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CField::IsPointer(void)
+bool CField::IsPointer(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -92,9 +92,9 @@ BOOL CField::IsPointer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CField::IsPrimitive(void)
+bool CField::IsPrimitive(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -102,9 +102,9 @@ BOOL CField::IsPrimitive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CField::IsUnmanaged(void)
+bool CField::IsUnmanaged(void)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -112,9 +112,9 @@ BOOL CField::IsUnmanaged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CField::IsEmbeddedObject(void)
+bool CField::IsEmbeddedObject(void)
 {
-	return FALSE;
+	return false;
 }
 
 

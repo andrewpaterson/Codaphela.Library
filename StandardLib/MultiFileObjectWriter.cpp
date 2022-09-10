@@ -59,7 +59,7 @@ void CMultiFileObjectWriter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMultiFileObjectWriter::Begin(void)
+bool CMultiFileObjectWriter::Begin(void)
 {
 	return CExternalObjectWriter::Begin();
 }
@@ -69,7 +69,7 @@ BOOL CMultiFileObjectWriter::Begin(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMultiFileObjectWriter::End(void)
+bool CMultiFileObjectWriter::End(void)
 {
 	return CExternalObjectWriter::End();
 }
@@ -79,7 +79,7 @@ BOOL CMultiFileObjectWriter::End(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
+bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	CFileUtil		cFileUtil;
 	CChars			szDirectory;
@@ -100,7 +100,7 @@ BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 
 	//What the actual fuck is going on in this method?
@@ -122,7 +122,7 @@ BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 
 	cFile.Close();
 	cFile.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -130,7 +130,7 @@ BOOL CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMultiFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
+bool CMultiFileObjectWriter::ObjectStartsWithBaseName(char* szObjectName)
 {
 	CChars	szRemainingName;
 

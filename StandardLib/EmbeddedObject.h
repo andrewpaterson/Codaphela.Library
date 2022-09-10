@@ -39,42 +39,42 @@ public:
 								~CEmbeddedObject();
 
 			void				Kill(void);
-	virtual void				KillInternal(BOOL bHeapFromChanged);
+	virtual void				KillInternal(bool bHeapFromChanged);
 
 	virtual void				Evict(void);
 
 	virtual void				FreeInternal(void) =0;
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
-	virtual BOOL				Save(CObjectWriter* pcFile) =0;
-	virtual BOOL				Load(CObjectReader* pcFile) =0;
-	virtual BOOL				IsHollow(void) =0;
+	virtual bool				Save(CObjectWriter* pcFile) =0;
+	virtual bool				Load(CObjectReader* pcFile) =0;
+	virtual bool				IsHollow(void) =0;
 	virtual int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* mpcObject);
-	virtual BOOL				SetDistToRoot(int iDistToRoot) =0;
+	virtual bool				SetDistToRoot(int iDistToRoot) =0;
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
-	virtual BOOL				TestedForRoot(void) =0;
+	virtual bool				TestedForRoot(void) =0;
 	virtual int					GetDistToRoot(void) =0;
 	virtual int					GetDistToStack(void) =0;
 	virtual OIndex				GetIndex(void);
-	virtual BOOL				IsNamed(void);
+	virtual bool				IsNamed(void);
 	virtual char*				GetName(void);
 	virtual void				ClearIdentifiers(void);
-	virtual BOOL				IsDirty(void) =0;
-	virtual void				SetDirty(BOOL bDirty) =0;
-	virtual BOOL				IsBaseObject(void);
+	virtual bool				IsDirty(void) =0;
+	virtual void				SetDirty(bool bDirty) =0;
+	virtual bool				IsBaseObject(void);
 	virtual void				RemovePointerTo(CEmbeddedObject* pcTo) =0;
 			CBaseObject*		GetEmbeddingContainer(void);
-			BOOL				IsEmbedded(void);
-			BOOL				IsNotEmbedded(void);
-	virtual BOOL				IsInitialised(void) =0;
-			BOOL				IsInStack(void);
-	virtual BOOL				IsRoot(void) =0;
+			bool				IsEmbedded(void);
+			bool				IsNotEmbedded(void);
+	virtual bool				IsInitialised(void) =0;
+			bool				IsInStack(void);
+	virtual bool				IsRoot(void) =0;
 	virtual int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	virtual uint16				GetNumEmbedded(void) =0;
 			void				SetEmbedding(CBaseObject* pcEmbedded);
 	virtual CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;
-			BOOL				IsAllocatedInObjects(void);
+			bool				IsAllocatedInObjects(void);
 	virtual void				ValidateConsistency(void) =0;
 			void				ValidateFrom(CBaseObject* pcBaseObject);
 			void				ValidateFroms(void);
@@ -88,40 +88,40 @@ public:
 	virtual void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters) =0;
 
-			BOOL				HasHeapFroms(void);
-			void				AddHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
-			void				RemoveHeapFrom(CBaseObject* pcFromObject, BOOL bValidate);
+			bool				HasHeapFroms(void);
+			void				AddHeapFrom(CBaseObject* pcFromObject, bool bValidate);
+			void				RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate);
 	virtual int					NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(int iFromIndex);
 			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
 
 			void				AddStackFrom(CPointer* pcPointer);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
-			BOOL				HasStackPointers(void);
+			bool				HasStackPointers(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
-			void				RemoveStackFromTryKill(CPointer* pcPointer, BOOL bKillIfNoRoot);
+			void				RemoveStackFromTryKill(CPointer* pcPointer, bool bKillIfNoRoot);
 	virtual int					NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 	virtual CEmbeddedObject*	GetClosestFromToStack(void);
 
 			int					NumTotalFroms(void);
-			BOOL				ContainsFrom(CEmbeddedObject* pcBaseObject);
+			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);
 	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
 
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
-			void				PrintObject(CChars* psz, BOOL bEmbedded = FALSE);
+			void				PrintObject(CChars* psz, bool bEmbedded = false);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				LogExpectedToBeInitialised(char* szMethod);
 			void				ValidateInitialised(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
-			BOOL				TestRemoveHeapFrom(CBaseObject* pcFromObject);
+			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			void				TestRemoveStackFrom(CPointer* pcPointer);
 
 protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
-			BOOL				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
+			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
 	virtual void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;

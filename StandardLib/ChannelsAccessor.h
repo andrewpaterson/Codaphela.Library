@@ -43,7 +43,7 @@ public:
 	virtual void*				Get(int iPos) =0;
 	virtual void				Set(int iPos, void* pvData) =0;
 
-	virtual BOOL				IsContiguous(void);
+	virtual bool				IsContiguous(void);
 
 	EPrimitiveType				GetType(void);
 	int							GetBitSize(void);

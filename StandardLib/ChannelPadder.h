@@ -31,7 +31,7 @@ public:
 	CChannels* mpcExternal;
 
 	void Init(CChannels* pcExternal);
-	BOOL OptimalPadding(void);
+	bool OptimalPadding(void);
 };
 
 

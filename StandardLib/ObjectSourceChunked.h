@@ -16,15 +16,15 @@ protected:
 	CChunkFileObjectReader*		mpcReader;
 
 public:
-	BOOL			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
+	bool			Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
 	void			Kill(void);
 
-	BOOL			ReadNames(void);
-	BOOL			Contains(char* szFullName);
+	bool			ReadNames(void);
+	bool			Contains(char* szFullName);
 	CBaseObject*	Convert(char* szFullName);
-	BOOL			IsChunked(void);
-	BOOL			IsNative(void);
-	BOOL			IsMultiSource(void);
+	bool			IsChunked(void);
+	bool			IsNative(void);
+	bool			IsMultiSource(void);
 
 	char*			GetName(int iIndex);
 	int				NumNames(void);

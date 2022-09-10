@@ -37,11 +37,11 @@ public:
 	template <class M>
 	void 	Init(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
 	void 	Kill(void);
-	BOOL	Is(char* szName);
+	bool	Is(char* szName);
 	void	Call(void *pvContext);
 
 	template <class M>
-	BOOL	AddListener(M* pcListener);
+	bool	AddListener(M* pcListener);
 	char*	GetName(void);
 };
 
@@ -64,7 +64,7 @@ void CAction::Init(char* szName, void(M::*ActionFunc)(CUnknown*, void*))
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CAction::AddListener(M* pcListener)
+bool CAction::AddListener(M* pcListener)
 {
 	return mcFunction.AddListener(pcListener);
 }

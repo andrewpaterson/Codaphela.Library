@@ -64,10 +64,10 @@ public:
 	void				System(void);
 	void				Primitive(void);
 
-	BOOL				IsComplete(void);
-	BOOL				IsUnmanaged(void);
-	BOOL				IsPrimitive(void);
-	BOOL				IsSystem(void);
+	bool				IsComplete(void);
+	bool				IsUnmanaged(void);
+	bool				IsPrimitive(void);
+	bool				IsSystem(void);
 
 	CArrayVoidPtr*		GetPointerFields(void);
 	CArrayVoidPtr*		GetEmbeddedObjectFields(void);

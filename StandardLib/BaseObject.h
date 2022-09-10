@@ -101,31 +101,31 @@ protected:
 	virtual	void				Class(void) =0;
 
 public:
-			BOOL				InitIdentifiers(const char* szName, OIndex oi);
+			bool				InitIdentifiers(const char* szName, OIndex oi);
 			void				Kill(void) override;
 	virtual void				Free(void) =0;
-	virtual BOOL				Flush(void);
+	virtual bool				Flush(void);
 
-			BOOL				Save(CObjectWriter* pcFile) override;
-			BOOL				Load(CObjectReader* pcFile) override;
+			bool				Save(CObjectWriter* pcFile) override;
+			bool				Load(CObjectReader* pcFile) override;
 
 			OIndex				GetIndex(void) override;
 			void				ClearIdentifiers(void) override;
 
-			BOOL				IsRoot(void);
-	virtual BOOL				IsSubRoot(void);
-			BOOL				IsHollow(void);
-	virtual BOOL				IsCollection(void) =0;
-	virtual BOOL				IsObject(void) =0;
-			BOOL				IsNamed(void) override;
-			BOOL				IsInvalidated(void);
-			BOOL				IsDirty(void);
-			BOOL				IsUpdateAttachedPointerTosDistToRoot(void);
-			BOOL				IsInitialised(void);
-			BOOL				HasClass(void);
+			bool				IsRoot(void);
+	virtual bool				IsSubRoot(void);
+			bool				IsHollow(void);
+	virtual bool				IsCollection(void) =0;
+	virtual bool				IsObject(void) =0;
+			bool				IsNamed(void) override;
+			bool				IsInvalidated(void);
+			bool				IsDirty(void);
+			bool				IsUpdateAttachedPointerTosDistToRoot(void);
+			bool				IsInitialised(void);
+			bool				HasClass(void);
 			CClass*				GetClass(void);
-			BOOL				IsKilled(void);
-			BOOL				IsNamed(const char* szName);
+			bool				IsKilled(void);
+			bool				IsNamed(const char* szName);
 
 			char*				GetName(void) override;
 			int					SerialisedSize(void);
@@ -134,37 +134,37 @@ public:
 			uint16				GetNumEmbedded(void);
 
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
-			void				SetDirty(BOOL bDirty);
+			void				SetDirty(bool bDirty);
 			int					GetDistToRoot(void);
 			int					GetDistToStack(void);
-	virtual BOOL				SetDistToRoot(int iDistToRoot) override;
-			BOOL				TestedForRoot(void);
+	virtual bool				SetDistToRoot(int iDistToRoot) override;
+			bool				TestedForRoot(void);
 			void				UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParameters);
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
-	virtual BOOL				IsDistToRootValid(void);
+	virtual bool				IsDistToRootValid(void);
 			int					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
 			int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void				ClearDistTouchedFlags(void);
-			BOOL				HasDistTouchedFlag(void);
+			bool				HasDistTouchedFlag(void);
 
-			BOOL				TestedForSanity(void);
+			bool				TestedForSanity(void);
 			CObjects*			GetObjectsThisIn(void);
 			CClasses*			GetClasses(void);
 			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);
 			CClass*				Class(CClasses* pcClasses);
 
-	virtual BOOL				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
+	virtual bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetPointerTo(int iToIndex);
 			int 				TestGetNumEmbeddedFromFlags(void);
 			void				ClearFlagNumEmbedded(void);
 	virtual void				SetFlag(int iFlag, int iFlagValue);
 			int					GetFlags(void);
-			BOOL				CanFindRoot(void);
-			BOOL				CanFindRootThroughValidPath(void);
+			bool				CanFindRoot(void);
+			bool				CanFindRootThroughValidPath(void);
 
 			void				DumpFroms(void);
 			void				DumpPointerTos(void);
@@ -197,49 +197,49 @@ protected:
 	virtual	void				EmbedFields(void) =0;
 
 			void				FreeInternal(void) override;
-			void				KillInternal(BOOL bHeapFromChanged) override;
-			void				TryFree(BOOL bKillIfNoRoot, BOOL bHeapFromChanged);
+			void				KillInternal(bool bHeapFromChanged) override;
+			void				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
 
 	virtual void				RemoveAllPointerTosDontKill(void) =0;
 	virtual void				RemoveAllPointerTos(void) =0;
 
-			BOOL				SaveManaged(CObjectWriter* pcFile);
-			BOOL				LoadManaged(CObjectReader* pcFile);
+			bool				SaveManaged(CObjectWriter* pcFile);
+			bool				LoadManaged(CObjectReader* pcFile);
 
-			BOOL				SaveHeapFroms(CObjectWriter* pcFile);
-			BOOL				LoadHeapFroms(CObjectReader* pcFile);
+			bool				SaveHeapFroms(CObjectWriter* pcFile);
+			bool				LoadHeapFroms(CObjectReader* pcFile);
 
 	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void) override;
 			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
-			BOOL				RemoveToFrom(CEmbeddedObject* pcPointedTo);
+			bool				RemoveToFrom(CEmbeddedObject* pcPointedTo);
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
 			int					CalculateDistToRootFromPointedFroms(void);
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
-			BOOL				IsBaseObject(void);
+			bool				IsBaseObject(void);
 			uint16				GetNumEmbeddedFromFlags(void);
 			void				SetFlagNumEmbedded(int iNumEmbedded);
-			BOOL				IsMarkedUnreachable(void);
+			bool				IsMarkedUnreachable(void);
 			void				ReplaceOneWithX(char* szDest, char* szMask);
 			void				ContainerPreInit(void);
 			void				ContainerPostInit(void);
 
-			BOOL				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
-			BOOL				SavePointers(CObjectWriter* pcFile);
-			BOOL				SavePrimitives(CObjectWriter* pcFile);
-			BOOL				SaveUnmanaged(CObjectWriter* pcFile);
-			BOOL				SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile);
-			BOOL				LoadEmbeddedObjectsManaged(CObjectReader* pcFile);
-			BOOL				LoadPointers(CObjectReader* pcFile);
-			BOOL				LoadPrimitives(CObjectReader* pcFile);
-			BOOL				LoadUnmanaged(CObjectReader* pcFile);
-			BOOL				LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
+			bool				SaveEmbeddedObjectsManaged(CObjectWriter* pcFile);
+			bool				SavePointers(CObjectWriter* pcFile);
+			bool				SavePrimitives(CObjectWriter* pcFile);
+			bool				SaveUnmanaged(CObjectWriter* pcFile);
+			bool				SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile);
+			bool				LoadEmbeddedObjectsManaged(CObjectReader* pcFile);
+			bool				LoadPointers(CObjectReader* pcFile);
+			bool				LoadPrimitives(CObjectReader* pcFile);
+			bool				LoadUnmanaged(CObjectReader* pcFile);
+			bool				LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile);
 
 	virtual void				BaseValidatePointerTos(void) =0;
 
 private:
-			BOOL				ClipName(void);
+			bool				ClipName(void);
 };
 
 

@@ -28,10 +28,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayCommonObject> CArrayCommonObject::Init(BOOL bUnique, BOOL bIgnoreNull, BOOL bPreserveOrder)
+Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder)
 {
-	mcArray.Init(FALSE, FALSE, bUnique, bIgnoreNull, bPreserveOrder);
-	mbSubRoot = FALSE;
+	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder);
+	mbSubRoot = false;
 	CCollection::Init();
 	return this;
 }
@@ -72,7 +72,7 @@ void CArrayCommonObject::RemoveAll(void)
 		pcObject = UnsafeGet(i);
 		if (pcObject)
 		{
-			pcObject->RemoveHeapFrom(this, FALSE);
+			pcObject->RemoveHeapFrom(this, false);
 		}
 	}
 
@@ -98,18 +98,18 @@ void CArrayCommonObject::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Remove(CBaseObject* pcObject)
+bool CArrayCommonObject::Remove(CBaseObject* pcObject)
 {
 	//This is a test method.
 	if (pcObject)
 	{
 		if (mcArray.Remove(pcObject))
 		{
-			pcObject->RemoveHeapFrom(this, TRUE);
-			return TRUE;
+			pcObject->RemoveHeapFrom(this, true);
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -117,17 +117,17 @@ BOOL CArrayCommonObject::Remove(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::UnsafeRemove(CBaseObject* pcObject)
+bool CArrayCommonObject::UnsafeRemove(CBaseObject* pcObject)
 {
 	//This is a test method.
 	if (pcObject)
 	{
 		if (mcArray.Remove(pcObject))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -144,7 +144,7 @@ void CArrayCommonObject::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Save(CObjectWriter* pcFile)
+bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 {
 	int				i;
 	int				iNumElements;
@@ -160,7 +160,7 @@ BOOL CArrayCommonObject::Save(CObjectWriter* pcFile)
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -168,7 +168,7 @@ BOOL CArrayCommonObject::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Load(CObjectReader* pcFile)
+bool CArrayCommonObject::Load(CObjectReader* pcFile)
 {
 	int					i;
 	int					iFlags;
@@ -187,7 +187,7 @@ BOOL CArrayCommonObject::Load(CObjectReader* pcFile)
 	}
 
 	mcArray.PostLoad(iFlags);
-	return TRUE;
+	return true;
 }
 
 
@@ -195,9 +195,9 @@ BOOL CArrayCommonObject::Load(CObjectReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Add(CPointer& pObject)
+bool CArrayCommonObject::Add(CPointer& pObject)
 {
-	BOOL	bAdded;
+	bool	bAdded;
 
 	bAdded = mcArray.Add(pObject.Object());
 	if (bAdded)
@@ -225,7 +225,7 @@ void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 		mcArray.Add(pcObject);
 		if (pcObject != NULL)
 		{
-			pcObject->AddHeapFrom(this, TRUE);
+			pcObject->AddHeapFrom(this, true);
 		}
 	}
 }
@@ -248,7 +248,7 @@ void CArrayCommonObject::Set(int iIndex, CPointer& pObject)
 	mcArray.Set(iIndex, pObject.Object());
 	if (pcPointedTo)
 	{
-		pcPointedTo->RemoveHeapFrom(this, TRUE);
+		pcPointedTo->RemoveHeapFrom(this, true);
 	}
 
 	pObject.AddHeapFrom(this);
@@ -259,17 +259,17 @@ void CArrayCommonObject::Set(int iIndex, CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::Remove(CPointer& pObject)
+bool CArrayCommonObject::Remove(CPointer& pObject)
 {
 	if (pObject.IsNotNull())
 	{
 		if (mcArray.Remove(pObject.Object()))
 		{
-			pObject->RemoveHeapFrom(this, TRUE);
-			return TRUE;
+			pObject->RemoveHeapFrom(this, true);
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -307,7 +307,7 @@ int CArrayCommonObject::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::IsEmpty(void)
+bool CArrayCommonObject::IsEmpty(void)
 {
 	return NumElements() == 0;
 }
@@ -391,7 +391,7 @@ void CArrayCommonObject::RemoveAllPointerTos(void)
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
 		{
-			pcPointedTo->RemoveHeapFrom(this, TRUE);
+			pcPointedTo->RemoveHeapFrom(this, true);
 			mcArray.UnsafeSet(i, NULL);
 		}
 	}
@@ -434,7 +434,7 @@ void CArrayCommonObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::MakeSubRoot(void)
 {
-	mbSubRoot = TRUE;
+	mbSubRoot = true;
 }
 
 
@@ -442,7 +442,7 @@ void CArrayCommonObject::MakeSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::IsSubRoot(void)
+bool CArrayCommonObject::IsSubRoot(void)
 {
 	return mbSubRoot;
 }
@@ -565,7 +565,7 @@ void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDist
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
+bool CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
 	CEmbeddedObject*	pcPointedTo;
 	int					i;
@@ -577,11 +577,11 @@ BOOL CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 		{
 			if (pcPointedTo == pcEmbedded)
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

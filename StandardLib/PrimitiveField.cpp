@@ -37,9 +37,9 @@ void CPrimitiveField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPrimitiveField::IsPrimitive(void)
+bool CPrimitiveField::IsPrimitive(void)
 {
-	return TRUE;
+	return true;
 }
 
 

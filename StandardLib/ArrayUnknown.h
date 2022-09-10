@@ -32,17 +32,17 @@ public:
 
 	template<class M>
 	M*			Add(void);
-	BOOL		Add(CUnknown* pcUnknown);
+	bool		Add(CUnknown* pcUnknown);
 
 	template<class M>
 	M*			Insert(int iIndex);
-	BOOL		Insert(int iIndex, CUnknown* pcUnknown);
+	bool		Insert(int iIndex, CUnknown* pcUnknown);
 
 	CUnknown*	Get(int iIndex);
 	void		Set(int iIndex, CUnknown* pcUnknown);
 
 	void		Remove(int iIndex);
-	BOOL		Remove(CUnknown* pcUnknown);
+	bool		Remove(CUnknown* pcUnknown);
 };
 
 

@@ -44,13 +44,13 @@ public:
 						void			Free(void);
 
 						void			Add(CPointer& pObject);
-						BOOL			Remove(CPointer& pObject);
-						BOOL			Remove(CBaseObject* pcObject);
+						bool			Remove(CPointer& pObject);
+						bool			Remove(CBaseObject* pcObject);
 						void			RemoveAll(void);
-						BOOL			IsRoot(void);
-						BOOL			IsSubRoot(void);
+						bool			IsRoot(void);
+						bool			IsSubRoot(void);
 
-						BOOL			Load(CObjectReader* pcFile) override;
+						bool			Load(CObjectReader* pcFile) override;
 
 						CPointer		Get(int iIndex);
 	template<class M>	Ptr<M>			Get(int iIndex);
@@ -62,7 +62,7 @@ public:
 						void			CreateSet(void);
 						void			NullifySet(void);
 						CSetObject*		TestGetSet(void);
-						BOOL			IsSetHollow(void);
+						bool			IsSetHollow(void);
 
 						void			Add(CPointer& pO1, CPointer& pO2);
 						void			Add(CPointer& pO1, CPointer& pO2, CPointer& pO3);
@@ -70,7 +70,7 @@ public:
 						void			TouchAll(void);
 						void			KillAll(void);
 protected:
-						void			KillInternal(BOOL bHeapFromChanged) override;
+						void			KillInternal(bool bHeapFromChanged) override;
 };
 
 

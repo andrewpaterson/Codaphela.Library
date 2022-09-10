@@ -32,9 +32,9 @@ public:
 			void Init(char* szBaseName);
 			void Kill(void);
 
-	virtual BOOL Begin(void);
-	virtual BOOL Write(CSerialisedObject* pcSerialised) =0;
-	virtual BOOL End(void);
+	virtual bool Begin(void);
+	virtual bool Write(CSerialisedObject* pcSerialised) =0;
+	virtual bool End(void);
 };
 
 

@@ -50,10 +50,10 @@ void CDependentWriteObjects::Kill(void)
 void CDependentWriteObjects::Add(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
-	BOOL				bExists;
+	bool				bExists;
 	int					iIndex;
 
-	cObject.Init(pcObject, FALSE);
+	cObject.Init(pcObject, false);
 
 	bExists = mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
 	if (!bExists)
@@ -111,12 +111,12 @@ void CDependentWriteObjects::Mark(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
 	int						iIndex;
-	BOOL					bResult;
+	bool					bResult;
 	CDependentWriteObject*	pcDependent;
 
-	cObject.Init(pcObject, TRUE);
+	cObject.Init(pcObject, true);
 	bResult = mcObjects.FindInSorted(&cObject, &CompareDependentWriteObject, &iIndex);
 	pcDependent = mcObjects.Get(iIndex);
-	pcDependent->mbWritten = TRUE;
+	pcDependent->mbWritten = true;
 }
 

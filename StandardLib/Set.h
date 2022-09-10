@@ -32,10 +32,10 @@ CONSTRUCTABLE(CSet);
 public:
 	Ptr<CSet<M>>	Init(void);
 
-	BOOL			Add(Ptr<M> pObject);
+	bool			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcSet);
 	Ptr<M>			Get(int iIndex);
-	BOOL			Remove(Ptr<M> pObject);
+	bool			Remove(Ptr<M> pObject);
 
 	void			RemoveDuringIteration(SSetIterator* psIter);
 
@@ -61,7 +61,7 @@ Ptr<CSet<M>> CSet<M>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSet<M>::Add(Ptr<M> pObject)
+bool CSet<M>::Add(Ptr<M> pObject)
 {
 	return CSetObject::Add(pObject);
 }
@@ -95,7 +95,7 @@ Ptr<M> CSet<M>::Get(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CSet<M>::Remove(Ptr<M> pObject)
+bool CSet<M>::Remove(Ptr<M> pObject)
 {
 	return CSetObject::Remove(pObject);
 }

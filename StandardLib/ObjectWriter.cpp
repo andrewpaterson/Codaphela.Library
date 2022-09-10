@@ -28,12 +28,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::Init(CAbstractFile* pcFile, CDependentWriteObjects* pcDependentObjects)
+bool CObjectWriter::Init(CAbstractFile* pcFile, CDependentWriteObjects* pcDependentObjects)
 {
 	mpcDependentObjects = pcDependentObjects;
 
 	mcFile.Init(pcFile);
-	return TRUE;
+	return true;
 }
 
 
@@ -58,7 +58,7 @@ if (!result) \
 	object->GetIdentifier(&sz); \
 	gcLogger.Error2(__VA_ARGS__); \
 	sz.Kill(); \
-	return FALSE; \
+	return false; \
 }
 
 
@@ -66,9 +66,9 @@ if (!result) \
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::Write(CBaseObject* pcThis)
+bool CObjectWriter::Write(CBaseObject* pcThis)
 {
-	BOOL			bResult;
+	bool			bResult;
 	filePos			iLength;
 	CObjectHeader	sHeader;
 
@@ -97,7 +97,7 @@ BOOL CObjectWriter::Write(CBaseObject* pcThis)
 
 	mcFile.Seek(iLength);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -105,11 +105,11 @@ BOOL CObjectWriter::Write(CBaseObject* pcThis)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
+bool CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 {
 	filePos			iStart;
 	filePos			iLength;
-	BOOL			bResult;
+	bool			bResult;
 
 	iStart = mcFile.GetFilePos();
 
@@ -129,7 +129,7 @@ BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 
 	mcFile.Seek(iLength);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -137,7 +137,7 @@ BOOL CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WritePointer(CPointer& pObject)
+bool CObjectWriter::WritePointer(CPointer& pObject)
 {
 	CEmbeddedObject* pcEmbeddedObject;
 
@@ -150,7 +150,7 @@ BOOL CObjectWriter::WritePointer(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WritePointer(CPointer* pObject)
+bool CObjectWriter::WritePointer(CPointer* pObject)
 {
 	CEmbeddedObject* pcEmbeddedObject;
 
@@ -163,9 +163,9 @@ BOOL CObjectWriter::WritePointer(CPointer* pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
+bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 {
-	BOOL				bResult;
+	bool				bResult;
 	CBaseObject*		pcContainer;
 	uint16				iEmbeddedIndex;
 	uint16				iNumEmbedded;
@@ -262,7 +262,7 @@ void CObjectWriter::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WriteObjectHeader(CObjectHeader* psHeader)
+bool CObjectWriter::WriteObjectHeader(CObjectHeader* psHeader)
 {
 	ReturnOnFalse(WriteIdentifier(psHeader));
 	return WriteString(psHeader->mszClassName.Text());
@@ -273,9 +273,9 @@ BOOL CObjectWriter::WriteObjectHeader(CObjectHeader* psHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
+bool CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = WriteInt(psIdentifier->mcType);
 	ReturnOnFalse(bResult);
@@ -294,7 +294,7 @@ BOOL CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 			ReturnOnFalse(bResult);
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

@@ -27,9 +27,9 @@ void CEmbeddedObjectField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CEmbeddedObjectField::IsEmbeddedObject(void)
+bool CEmbeddedObjectField::IsEmbeddedObject(void)
 {
-	return TRUE;
+	return true;
 }
 
 

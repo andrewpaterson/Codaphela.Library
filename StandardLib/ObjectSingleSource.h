@@ -34,7 +34,7 @@ public:
 	void			Kill(void);
 
 	CBaseObject*	Convert(char* szFullName);
-	BOOL			Contains(char* szFullName);
+	bool			Contains(char* szFullName);
 };
 
 

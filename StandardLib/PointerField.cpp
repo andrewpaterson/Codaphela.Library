@@ -38,9 +38,9 @@ void CPointerField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPointerField::IsPointer(void)
+bool CPointerField::IsPointer(void)
 {
-	return TRUE;
+	return true;
 }
 
 

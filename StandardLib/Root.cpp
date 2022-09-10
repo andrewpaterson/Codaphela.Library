@@ -55,7 +55,7 @@ Ptr<CRoot> CRoot::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::KillInternal(BOOL bHeapFromChanged)
+void CRoot::KillInternal(bool bHeapFromChanged)
 {
 	mpObjects->Kill();
 	CBaseObject::KillInternal(bHeapFromChanged);
@@ -119,7 +119,7 @@ void CRoot::Add(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::Remove(CPointer& pObject)
+bool CRoot::Remove(CPointer& pObject)
 {
 	if (pObject.IsNotNull())
 	{
@@ -127,7 +127,7 @@ BOOL CRoot::Remove(CPointer& pObject)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -136,7 +136,7 @@ BOOL CRoot::Remove(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::Remove(CBaseObject* pcObject)
+bool CRoot::Remove(CBaseObject* pcObject)
 {
 	return mpObjects->Remove(pcObject);
 }
@@ -156,9 +156,9 @@ void CRoot::RemoveAll(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::IsRoot(void)
+bool CRoot::IsRoot(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -166,9 +166,9 @@ BOOL CRoot::IsRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::IsSubRoot(void)
+bool CRoot::IsSubRoot(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -176,11 +176,11 @@ BOOL CRoot::IsSubRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::Load(CObjectReader* pcFile)
+bool CRoot::Load(CObjectReader* pcFile)
 {
 	//This smells.
 	mpcObjectsAllocatingFrom = &gcObjects;
-	return TRUE;
+	return true;
 }
 
 
@@ -252,7 +252,7 @@ CSetObject* CRoot::TestGetSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CRoot::IsSetHollow(void)
+bool CRoot::IsSetHollow(void)
 {
 	return mpObjects.IsHollow();
 }

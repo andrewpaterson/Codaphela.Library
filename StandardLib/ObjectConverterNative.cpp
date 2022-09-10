@@ -44,9 +44,9 @@ char* CObjectConverterNative::GetFileExtension(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectConverterNative::IsFor(CAbstractFile* pcFile)
+bool CObjectConverterNative::IsFor(CAbstractFile* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -58,7 +58,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 {
 	CObjectSourceChunked*	pcSourceChunked;
 	CObjectSourceSimple*	pcSourceSimple;
-	BOOL					bResult;
+	bool					bResult;
 	CFileBasic				cFile;
 	int						c;
 
@@ -122,7 +122,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 		return NULL;
 	}
 
-	cGraphDeserialiser.Init(pcReader, TRUE, &gcObjects, gcObjects.GetMemory());
+	cGraphDeserialiser.Init(pcReader, true, &gcObjects, gcObjects.GetMemory());
 	pvObject = cGraphDeserialiser.Read(szObjectName);
 
 	mcIndexRemap.InsertArrayAfterEnd(cGraphDeserialiser.GetArrayIndexNewOld());
@@ -137,9 +137,9 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CObjectConverterNative::IsNative(void)
+bool CObjectConverterNative::IsNative(void)
 {
-	return TRUE;
+	return true;
 }
 
 

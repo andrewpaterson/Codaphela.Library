@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapCommon::Init(BOOL bKillElements, BOOL bOverwriteExisting)
+void CMapCommon::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	miFlags = 0;
 	SetFlag(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
@@ -47,7 +47,7 @@ void CMapCommon::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapCommon::IsKillElements(void)
+bool CMapCommon::IsKillElements(void)
 {
 	return miFlags & MAP_COMMOM_KILL_ELEMENT;
 }
@@ -57,7 +57,7 @@ BOOL CMapCommon::IsKillElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapCommon::IsEmpty(void)
+bool CMapCommon::IsEmpty(void)
 {
 	return NumElements() == 0;
 }
@@ -67,7 +67,7 @@ BOOL CMapCommon::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapCommon::IsNotEmpty(void)
+bool CMapCommon::IsNotEmpty(void)
 {
 	return NumElements() != 0;
 }
