@@ -498,9 +498,6 @@
     <ClInclude Include="PointerRemapper.h">
       <Filter>Source\Pointer</Filter>
     </ClInclude>
-    <ClInclude Include="Bool.h">
-      <Filter>Source\Define</Filter>
-    </ClInclude>
     <ClInclude Include="Define.h">
       <Filter>Source\Define</Filter>
     </ClInclude>

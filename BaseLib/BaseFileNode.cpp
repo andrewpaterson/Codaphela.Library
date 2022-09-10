@@ -64,7 +64,7 @@ void CBaseFileNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseFileNode::Is(const char* szName)
+bool CBaseFileNode::Is(const char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -74,7 +74,7 @@ BOOL CBaseFileNode::Is(const char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseFileNode::IsDirectory(void)
+bool CBaseFileNode::IsDirectory(void)
 {
 	return meType == FNT_Directory;
 }
@@ -84,7 +84,7 @@ BOOL CBaseFileNode::IsDirectory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseFileNode::IsFile(void)
+bool CBaseFileNode::IsFile(void)
 {
 	return meType == FNT_File;
 }

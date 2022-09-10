@@ -6,13 +6,13 @@
 
 struct SDataTypeIO
 {
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
+	bool Save(CFileWriter* pcFile);
+	bool Load(CFileReader* pcFile);
 };
 
 
-typedef BOOL(SDataTypeIO::* DataIO_FileWriter)(CFileWriter*);
-typedef BOOL(SDataTypeIO::* DataIO_FileReader)(CFileReader*);
+typedef bool(SDataTypeIO::* DataIO_FileWriter)(CFileWriter*);
+typedef bool(SDataTypeIO::* DataIO_FileReader)(CFileReader*);
 
 
 struct SDataIO
@@ -27,12 +27,12 @@ struct SDataIO
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL SaveMultiple(M* psThis, CFileWriter* pcFile, size_t uiCount)
+bool SaveMultiple(M* psThis, CFileWriter* pcFile, size_t uiCount)
 {
 	size_t	i;
-	BOOL	bResult;
+	bool	bResult;
 
-	bResult = TRUE;
+	bResult = true;
 	for (i = 0; i < uiCount; i++)
 	{
 		bResult |= psThis->Save(pcFile);
@@ -47,12 +47,12 @@ BOOL SaveMultiple(M* psThis, CFileWriter* pcFile, size_t uiCount)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL LoadMultiple(M* psThis, CFileReader* pcFile, size_t uiCount)
+bool LoadMultiple(M* psThis, CFileReader* pcFile, size_t uiCount)
 {
 	size_t	i;
-	BOOL	bResult;
+	bool	bResult;
 
-	bResult = TRUE;
+	bResult = true;
 	for (i = 0; i < uiCount; i++)
 	{
 		bResult |= psThis->Load(pcFile);

@@ -15,9 +15,9 @@ void CDateTime::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDateTime::Save(CFileWriter* pcFile)
+bool CDateTime::Save(CFileWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcDate.Save(pcFile);
 	bResult &= pcFile->WriteInt(miNanosecondsInDay);
@@ -29,9 +29,9 @@ BOOL CDateTime::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDateTime::Load(CFileReader* pcFile)
+bool CDateTime::Load(CFileReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcDate.Load(pcFile);
 	bResult &= pcFile->ReadInt(&miNanosecondsInDay);

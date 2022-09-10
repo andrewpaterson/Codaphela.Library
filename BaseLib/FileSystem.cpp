@@ -64,7 +64,7 @@ void CFileSystem::ReadDirectory(void)
 	CChars				szName;
 
 	aszFilenames.Init();
-	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFilenames, TRUE, FALSE);
+	cFileUtil.FindAllFiles(mszDirectory.Text(), &aszFilenames, true, false);
 
 	for (i = 0; i < aszFilenames.NumElements(); i++)
 	{

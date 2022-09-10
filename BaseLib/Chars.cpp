@@ -319,7 +319,7 @@ CChars* CChars::InitList(CChars* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::InitData2(const char* szData, int iDataLength)
+bool CChars::InitData2(const char* szData, int iDataLength)
 {
 	InitEmpty();
 
@@ -684,7 +684,7 @@ void CChars::Append(unsigned int ui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(float f, int iMaxDecimals, BOOL bAppendF)
+void CChars::Append(float f, int iMaxDecimals, bool bAppendF)
 {
 	char sz[32];
 
@@ -698,7 +698,7 @@ void CChars::Append(float f, int iMaxDecimals, BOOL bAppendF)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(double d, int iMaxDecimals, BOOL bAppendD)
+void CChars::Append(double d, int iMaxDecimals, bool bAppendD)
 {
 	char	sz[128];
 
@@ -818,7 +818,7 @@ void CChars::AppendHexLoHi(void* pv, int iNumBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendBool(BOOL bValue)
+void CChars::AppendBool(bool bValue)
 {
 	AppendBool(bValue, "True", "False");
 }
@@ -828,7 +828,7 @@ void CChars::AppendBool(BOOL bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendBool(BOOL bValue, const char* szTrue, const char* szFalse)
+void CChars::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
 {
 	if (bValue)
 	{
@@ -954,13 +954,13 @@ char* CChars::Text(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Empty(void)
+bool CChars::Empty(void)
 {
 	if (Length() == 0)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1295,7 +1295,7 @@ void CChars::RemoveCharacter(int iPos)
 {
 	if ((iPos < Length()) && (iPos >= 0))
 	{
-		mcText.RemoveAt(iPos, TRUE);
+		mcText.RemoveAt(iPos, true);
 		CleanIfEmpty();
 	}
 }
@@ -1347,16 +1347,16 @@ void CChars::SplitLines(CArrayChars* aszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Equals(const char* szString)
+bool CChars::Equals(const char* szString)
 {
 	if (szString)
 	{
 		if (StringCompare(Text(), szString) == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1364,16 +1364,16 @@ BOOL CChars::Equals(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Equals(const char* szString, int iLen)
+bool CChars::Equals(const char* szString, int iLen)
 {
 	if (iLen == Length())
 	{
 		if (memcmp(Text(), szString, iLen) == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1381,7 +1381,7 @@ BOOL CChars::Equals(const char* szString, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Equals(CChars szString)
+bool CChars::Equals(CChars szString)
 {
 	return Equals(szString.Text());
 }
@@ -1391,7 +1391,7 @@ BOOL CChars::Equals(CChars szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Equals(CChars* pszString)
+bool CChars::Equals(CChars* pszString)
 {
 	return Equals(pszString->Text());
 }
@@ -1401,13 +1401,13 @@ BOOL CChars::Equals(CChars* pszString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EqualsIgnoreCase(const char* szString)
+bool CChars::EqualsIgnoreCase(const char* szString)
 {
 	if (StringInsensitiveCompare(Text(), szString) == 0)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1415,7 +1415,7 @@ BOOL CChars::EqualsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EqualsIgnoreCase(CChars szString)
+bool CChars::EqualsIgnoreCase(CChars szString)
 {
 	return EqualsIgnoreCase(szString.Text());
 }
@@ -1425,21 +1425,21 @@ BOOL CChars::EqualsIgnoreCase(CChars szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::Contains(const char* szString)
+bool CChars::Contains(const char* szString)
 {
 	char*	pc;
 
 	if (!szString) 
 	{
-		return FALSE;
+		return false;
 	}
 
 	pc = strstr(Text(), szString);
 	if (pc)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1447,16 +1447,16 @@ BOOL CChars::Contains(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::ContainsIgnoreCase(const char* szString)
+bool CChars::ContainsIgnoreCase(const char* szString)
 {
 	char*	pc;
 
 	pc = StrIStr(Text(), szString);
 	if (pc)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1486,11 +1486,11 @@ int CChars::Occurrences(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::StartsWith(const char* szString)
+bool CChars::StartsWith(const char* szString)
 {
 	if (szString == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return SubStringEquals(0, szString);
@@ -1501,11 +1501,11 @@ BOOL CChars::StartsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::StartsWithIgnoreCase(const char* szString)
+bool CChars::StartsWithIgnoreCase(const char* szString)
 {
 	if (szString == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return SubStringEqualsIgnoreCase(0, szString);
@@ -1516,11 +1516,11 @@ BOOL CChars::StartsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EndsWith(const char* szString)
+bool CChars::EndsWith(const char* szString)
 {
 	if (szString == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return SubStringEquals(Length() - (int)strlen(szString), szString);
@@ -1531,7 +1531,7 @@ BOOL CChars::EndsWith(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EndsWith(char c)
+bool CChars::EndsWith(char c)
 {
 	int		iLength;
 
@@ -1540,21 +1540,21 @@ BOOL CChars::EndsWith(char c)
 	{
 		if (Text()[iLength - 1] == c)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::EndsWithIgnoreCase(const char* szString)
+bool CChars::EndsWithIgnoreCase(const char* szString)
 {
 	if (szString == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return SubStringEqualsIgnoreCase(Length() - (int)strlen(szString), szString);
@@ -1565,7 +1565,7 @@ BOOL CChars::EndsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::SubStringEquals(int iStart, const char* szString)
+bool CChars::SubStringEquals(int iStart, const char* szString)
 {
 	int	i;
 	int	j;
@@ -1574,7 +1574,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 
 	if (iStart < 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iLen = Length();
@@ -1583,7 +1583,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 		iSubLen = strlen(szString);
 		if (iSubLen != 0)
 		{
-			return FALSE;
+			return false;
 		}
 		else
 		{
@@ -1593,7 +1593,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 
 	if (iStart >= iLen)
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (i = iStart, j = 0; i < iLen; i++, j++)
@@ -1602,7 +1602,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 		{
 			if (mcText.GetValue(i) != szString[j])
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		else
@@ -1610,7 +1610,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 			break;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1618,7 +1618,7 @@ BOOL CChars::SubStringEquals(int iStart, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
+bool CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
 {
 	int	i;
 	int	j;
@@ -1628,7 +1628,7 @@ BOOL CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
 
 	if (iStart < 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iLen = Length();
@@ -1640,7 +1640,7 @@ BOOL CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
 			c2 = ToLower(szString[j]);
 			if (c1 != c2)
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		else
@@ -1648,7 +1648,7 @@ BOOL CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
 			break;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1872,7 +1872,7 @@ void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::IsWhiteSpace(int iPos, BOOL bIncludeNewLines)
+bool CChars::IsWhiteSpace(int iPos, bool bIncludeNewLines)
 {
 	char	c;
 
@@ -1885,7 +1885,7 @@ BOOL CChars::IsWhiteSpace(int iPos, BOOL bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::IsWhiteSpace(void)
+bool CChars::IsWhiteSpace(void)
 {
 	int		i;
 	int		iLen;
@@ -1893,12 +1893,12 @@ BOOL CChars::IsWhiteSpace(void)
 	iLen = Length();
 	for (i = 0; i < iLen; i++)
 	{
-		if (!IsWhiteSpace(i, TRUE))
+		if (!IsWhiteSpace(i, true))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1927,7 +1927,7 @@ void CChars::SetLength(int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines)
+int CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
 {
 	int		iLength;
 	int		iStart;
@@ -1948,7 +1948,7 @@ int CChars::FindEndOfLeadingWhiteSpace(BOOL bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines)
+int CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
 {
 	int		iLength;
 	int		iEnd;
@@ -1969,7 +1969,7 @@ int CChars::FindStartOfTrailingWhiteSpace(BOOL bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::StripWhiteSpace(BOOL bIncludeNewLines)
+int CChars::StripWhiteSpace(bool bIncludeNewLines)
 {
 	int		iLength;
 	int		iStart;
@@ -2309,7 +2309,7 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 	int				i;
 	int				iLength;
 	unsigned char	c;
-	BOOL			bLastReadable;
+	bool			bLastReadable;
 	
 	if (iDataLength > iMaxLength)
 	{
@@ -2320,7 +2320,7 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 		iLength = iDataLength;
 	}
 
-	bLastReadable = TRUE;
+	bLastReadable = true;
 	for (i = 0; i < iLength; i++)
 	{
 		if (!bLastReadable)
@@ -2339,7 +2339,7 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 			{
 				Append(" 0x00");
 			}
-			bLastReadable = FALSE;
+			bLastReadable = false;
 		}
 		else if (c == '\n')
 		{
@@ -2351,7 +2351,7 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 			{
 				Append(" 0x0D");
 			}
-			bLastReadable = FALSE;
+			bLastReadable = false;
 		}
 		else if ((c >= 32) && (c <= 126))
 		{
@@ -2359,12 +2359,12 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 			{
 				Append(' ');
 			}
-			bLastReadable = TRUE;
+			bLastReadable = true;
 			Append((char)c);
 		}
 		else
 		{
-			bLastReadable = FALSE;
+			bLastReadable = false;
 			Append(" 0x");
 			AppendHexHiLo(&c, 1);
 		}
@@ -2383,7 +2383,7 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::AppendData2(const char* szData, size_t iDataLength)
+bool CChars::AppendData2(const char* szData, size_t iDataLength)
 {
 	size_t			i;
 	int				iPrintable;
@@ -2393,7 +2393,7 @@ BOOL CChars::AppendData2(const char* szData, size_t iDataLength)
 
 	if ((szData == NULL) || (iDataLength == 0))
 	{
-		return FALSE;
+		return false;
 	}
 
 	iPrintable = StrPrintable(szData, iDataLength);
@@ -2402,7 +2402,7 @@ BOOL CChars::AppendData2(const char* szData, size_t iDataLength)
 	if (fPrintable >= 0.9f)
 	{
 		Append(szData, iDataLength);
-		return FALSE;
+		return false;
 	}
 	else
 	{
@@ -2427,7 +2427,7 @@ BOOL CChars::AppendData2(const char* szData, size_t iDataLength)
 
 		sz.Kill();
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -2446,7 +2446,7 @@ void CChars::AppendPointer(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, BOOL bAppendComma)
+bool CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, bool bAppendComma)
 {
 	if (msFlags & uiFlag)
 	{
@@ -2455,9 +2455,9 @@ BOOL CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* s
 			Append(", ");
 		}
 		Append(szFlagName);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -2581,10 +2581,10 @@ char* CChars::FindLineContaining(char* szPosition, int* piLineNumber)
 void CChars::MakeCPlusPlus(void)
 {
 	int		iIndex;
-	BOOL	bStartOfLine;
+	bool	bStartOfLine;
 	char	c;
 
-	bStartOfLine = TRUE;
+	bStartOfLine = true;
 	iIndex = 0;
 	for (;;)
 	{
@@ -2592,7 +2592,7 @@ void CChars::MakeCPlusPlus(void)
 		{
 			Insert(iIndex, '"');
 			iIndex++;
-			bStartOfLine = FALSE;
+			bStartOfLine = false;
 		}
 
 		if (iIndex >= Length())
@@ -2605,7 +2605,7 @@ void CChars::MakeCPlusPlus(void)
 		{
 			Insert(iIndex, "\\n\"");
 			iIndex += 4;
-			bStartOfLine = TRUE;
+			bStartOfLine = true;
 			if (iIndex >= Length())
 			{
 				RemoveCharacter(iIndex - 1);
@@ -2624,7 +2624,7 @@ void CChars::MakeCPlusPlus(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::WriteString(CFileWriter* pcWriter)
+bool CChars::WriteString(CFileWriter* pcWriter)
 {
 	CArrayChar c;
 
@@ -2644,9 +2644,9 @@ BOOL CChars::WriteString(CFileWriter* pcWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::ReadString(CFileReader* pcReader)
+bool CChars::ReadString(CFileReader* pcReader)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = mcText.Read(pcReader);
 	if (bResult)
@@ -2655,9 +2655,9 @@ BOOL CChars::ReadString(CFileReader* pcReader)
 		{
 			InitEmpty();
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -2665,32 +2665,32 @@ BOOL CChars::ReadString(CFileReader* pcReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::ReadChars(CFileReader* pcReader)
+bool CChars::ReadChars(CFileReader* pcReader)
 {
 	int	iLength;
 
 	if (!pcReader->ReadStringLength(&iLength))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (iLength == 0)
 	{
 		Init();
-		return TRUE;
+		return true;
 	}
 	else if (iLength > 0)
 	{
 		Init('@', iLength-1);
 		if (!pcReader->ReadData(Text(), iLength)) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -2725,7 +2725,7 @@ void CChars::InitEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CChars::IsFakeEmpty(void)
+bool CChars::IsFakeEmpty(void)
 {
 	return mcText.GetData() == gszEmptyString;
 }

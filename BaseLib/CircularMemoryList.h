@@ -39,18 +39,18 @@ public:
 
 	void						Deallocate(void* pvData);
 
-	BOOL						IsEmpty(void);
+	bool						IsEmpty(void);
 	int							NumElements(int iSize);
 	size_t						GetCacheSize(void);
 	size_t						GetAllocatedSize(void);
 
-	BOOL						ValidateCache(void);
+	bool						ValidateCache(void);
 	void						Dump(void);
 
 protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);
 	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psCacheBasedDescriptor);
-	BOOL						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
+	bool						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
 
 	size_t						RemainingAfterTail(void);
 	size_t						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
@@ -76,8 +76,8 @@ protected:
 	SMemoryCacheDescriptor*		MapFromZeroBasedToCacheBased(void* pvCache, SMemoryCacheDescriptor* psZeroBasedDescriptor);
 	SMemoryCacheDescriptor*		MapFromCacheBasedToZeroBased(void* pvCache, SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
-	BOOL						IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor);
-	BOOL						IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	bool						IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	bool						IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 };
 
 

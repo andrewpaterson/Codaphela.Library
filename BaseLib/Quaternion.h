@@ -54,8 +54,8 @@ public:
 
 	friend SQuaternion operator * (float, const SQuaternion&);
 
-	BOOL operator == (const SQuaternion&) const;
-	BOOL operator != (const SQuaternion&) const;
+	bool operator == (const SQuaternion&) const;
+	bool operator != (const SQuaternion&) const;
 };
 
 

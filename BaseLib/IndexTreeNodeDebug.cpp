@@ -27,7 +27,7 @@ void CIndexTreeNodeDebug::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeDebug::GenerateBadNode(CIndexTreeNode* pcCurrent, BOOL bHex)
+void CIndexTreeNodeDebug::GenerateBadNode(CIndexTreeNode* pcCurrent, bool bHex)
 {
 	pcCurrent->Print(&mszBadNode, bHex);
 }
@@ -37,7 +37,7 @@ void CIndexTreeNodeDebug::GenerateBadNode(CIndexTreeNode* pcCurrent, BOOL bHex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeDebug::GenerateBadKey(CArrayChar* acKey)
+bool CIndexTreeNodeDebug::GenerateBadKey(CArrayChar* acKey)
 {
 	int		iKeyLength;
 
@@ -49,7 +49,7 @@ BOOL CIndexTreeNodeDebug::GenerateBadKey(CArrayChar* acKey)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -80,7 +80,7 @@ char* CIndexTreeNodeDebug::GetBadNode(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeDebug::GenerateBad(CIndexTreeNode* pcCurrent, CArrayChar* acKey)
 {
-	BOOL	bHex;
+	bool	bHex;
 
 	bHex = GenerateBadKey(acKey);
 	GenerateBadNode(pcCurrent, bHex);

@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CArrayChars::_Init(void)
 {
 	mcArray._Init();
-	mbFaked = FALSE;
+	mbFaked = false;
 }
 
 
@@ -41,7 +41,7 @@ void CArrayChars::_Init(void)
 void CArrayChars::Init(void)
 {
 	mcArray.Init();
-	mbFaked = FALSE;
+	mbFaked = false;
 }
 
 
@@ -99,7 +99,7 @@ void CArrayChars::Init(CArrayChars* pasz)
 void CArrayChars::Fake(void)
 {
 	mcArray.Init();
-	mbFaked = TRUE;
+	mbFaked = true;
 }
 
 
@@ -341,7 +341,7 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 	CChars*		pcChars2;
 	CChars		szTemp;
 	char		c;
-	BOOL		bResult;
+	bool		bResult;
 	int			iIndex;
 
 	c = szLastCharInclusive[1];
@@ -371,7 +371,7 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 CChars* CArrayChars::InsertIntoSorted(CChars* psz)
 {
 	CChars*		pcChars2;
-	BOOL		bResult;
+	bool		bResult;
 	int			iIndex;
 
 	bResult = mcArray.FindInSorted(psz, CompareChars, &iIndex);
@@ -450,7 +450,7 @@ void CArrayChars::Remove(int iIndex)
 
 	pcChars = mcArray.Get(iIndex);
 	pcChars->Kill();
-	mcArray.RemoveAt(iIndex, TRUE);
+	mcArray.RemoveAt(iIndex, true);
 }
 
 
@@ -597,7 +597,7 @@ int CArrayChars::GetIndex(char* szStart, int iLen)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::FindInSorted(char* szString, BOOL bCaseSensitive)
+int CArrayChars::FindInSorted(char* szString, bool bCaseSensitive)
 {
 	CChars	szFake;
 
@@ -610,11 +610,11 @@ int CArrayChars::FindInSorted(char* szString, BOOL bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::FindInSorted(CChars* szString, BOOL bCaseSensitive)
+int CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
 {
 	DataCompare		fCompare;
 	int				iIndex;
-	BOOL			bResult;
+	bool			bResult;
 
 	if (bCaseSensitive)
 	{
@@ -657,7 +657,7 @@ void CArrayChars::Copy(CArrayChars* pcSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayChars::Equals(CArrayChars* pcOther)
+bool CArrayChars::Equals(CArrayChars* pcOther)
 {
 	int		i;
 	CChars*	pszThis;
@@ -665,7 +665,7 @@ BOOL CArrayChars::Equals(CArrayChars* pcOther)
 
 	if (mcArray.NumElements() != pcOther->mcArray.NumElements())
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (i = 0; i < NumElements(); i++)
@@ -674,10 +674,10 @@ BOOL CArrayChars::Equals(CArrayChars* pcOther)
 		pszOther = pcOther->Get(i);
 		if (!pszThis->Equals(*pszOther))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -685,16 +685,16 @@ BOOL CArrayChars::Equals(CArrayChars* pcOther)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayChars::Contains(char* szText)
+bool CArrayChars::Contains(char* szText)
 {
 	int		iIndex;
 
 	iIndex = GetIndex(szText);
 	if (iIndex != -1)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -702,16 +702,16 @@ BOOL CArrayChars::Contains(char* szText)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayChars::Contains(CChars* psz)
+bool CArrayChars::Contains(CChars* psz)
 {
 	int		iIndex;
 
 	iIndex = GetIndex(psz);
 	if (iIndex != -1)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -719,16 +719,16 @@ BOOL CArrayChars::Contains(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayChars::ContainsSubString(char* szText)
+bool CArrayChars::ContainsSubString(char* szText)
 {
 	int		iIndex;
 
 	iIndex = GetSubStringIndex(szText);
 	if (iIndex != -1)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -736,7 +736,7 @@ BOOL CArrayChars::ContainsSubString(char* szText)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::QuickSort(BOOL bCaseSensitive)
+void CArrayChars::QuickSort(bool bCaseSensitive)
 {
 	if (bCaseSensitive)
 	{
@@ -753,7 +753,7 @@ void CArrayChars::QuickSort(BOOL bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::BubbleSort(BOOL bCaseSensitive)
+void CArrayChars::BubbleSort(bool bCaseSensitive)
 {
 	if (bCaseSensitive)
 	{
@@ -823,7 +823,7 @@ void CArrayChars::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayChars::Split(char* szString, char cSplitter)
+bool CArrayChars::Split(char* szString, char cSplitter)
 {
 	CChars			szTemp;
 
@@ -832,11 +832,11 @@ BOOL CArrayChars::Split(char* szString, char cSplitter)
 	{
 		szTemp.Split(this, cSplitter);
 		szTemp.Kill();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -844,16 +844,16 @@ BOOL CArrayChars::Split(char* szString, char cSplitter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayChars::RemoveTail(void)
+bool CArrayChars::RemoveTail(void)
 {
 	if (NumElements() > 0)
 	{
 		Remove(NumElements()-1);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

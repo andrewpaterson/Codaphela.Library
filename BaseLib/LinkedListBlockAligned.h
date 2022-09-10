@@ -68,13 +68,13 @@ public:
 
 	SLLAlignedNode*	AllocateDetached(unsigned int uiSize, int iAlignment, int iOffset);
 	void			Remove(void* pvData);
-	BOOL			SafeRemove(void* pvData);
+	bool			SafeRemove(void* pvData);
 	void			FreeDetached(void* psNodeData);
 	void			FreeNode(SLLAlignedNode* psNode);
 	void*			Grow(void* pvData, unsigned int uiNewSize);
 
-	BOOL			Write(CFileWriter* pcFileWriter);
-	BOOL			Read(CFileReader* pcFileReader);
+	bool			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader);
 
 	SLLAlignedNode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
 	SLLAlignedNode*	GetNode(void* pvMem);
@@ -84,10 +84,10 @@ public:
 protected:	
 	int				GetNodeSize(void* pvMem);
 
-	BOOL			WriteHeader(CFileWriter* pcFileWriter);
-	BOOL			WriteData(CFileWriter* pcFileWriter);
-	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
-	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
+	bool			WriteHeader(CFileWriter* pcFileWriter);
+	bool			WriteData(CFileWriter* pcFileWriter);
+	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
+	bool			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 
 

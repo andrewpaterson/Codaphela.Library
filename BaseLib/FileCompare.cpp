@@ -27,13 +27,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2)
+bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2)
 {
 	CNaiveFile		cFile1;
 	CNaiveFile		cFile2;
-	BOOL			bExists1;
-	BOOL			bExists2;
-	BOOL			bResult;
+	bool			bExists1;
+	bool			bExists2;
+	bool			bResult;
 
 
 	cFile1.Init();
@@ -43,7 +43,7 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 
 	if (!bExists1 && !bExists2)
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (bExists1 && !bExists2)
@@ -55,7 +55,7 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 		psz2->Append(" does not exist");
 
 		cFile1.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (bExists2 && !bExists1)
@@ -67,7 +67,7 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 		psz1->Append(" does not exist");
 
 		cFile2.Kill();
-		return FALSE;
+		return false;
 	}
 
 	bResult = Compare(szName1, szName2, psz1, psz2, cFile1.Get(), cFile2.Get(), cFile1.Size(), cFile2.Size());
@@ -83,18 +83,18 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCompare::Compare(const char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2)
+bool CFileCompare::Compare(const char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2)
 {
 	CNaiveFile		cFile1;
-	BOOL			bExists1;
-	BOOL			bResult;
+	bool			bExists1;
+	bool			bResult;
 
 	cFile1.Init();
 	bExists1 = cFile1.Read(szName1);
 
 	if (!bExists1 && (pvMemory == NULL))
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (bExists1 && (pvMemory == NULL))
@@ -104,7 +104,7 @@ BOOL CFileCompare::Compare(const char* szName1, void* pvMemory, filePos iLength,
 
 		psz2->Append("Memory is NULL");
 		cFile1.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if ((pvMemory != NULL) && !bExists1)
@@ -113,7 +113,7 @@ BOOL CFileCompare::Compare(const char* szName1, void* pvMemory, filePos iLength,
 		psz1->Append(" does not exist");
 
 		psz2->Append("Memory is NOT NULL");
-		return FALSE;
+		return false;
 	}
 
 	bResult = Compare(szName1, "Memory", psz1, psz2, cFile1.Get(), pvMemory, cFile1.Size(), iLength);
@@ -160,7 +160,7 @@ void CFileCompare::Difference(CChars* psz1, filePos iPosition, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2)
+bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2)
 {
 	int				i;
 	unsigned char*	pcMem1;
@@ -179,13 +179,13 @@ BOOL CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 		psz2->Append(iLength2);
 		psz2->Append("]");
 
-		return FALSE;
+		return false;
 	}
 
 	//Can't compare files that don't exist.
 	if ((iLength1 == 0) && (iLength2 == 0))
 	{
-		return TRUE;
+		return true;
 	}
 
 	pcMem1 = (unsigned char*)pvMem1;

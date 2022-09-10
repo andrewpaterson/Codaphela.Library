@@ -11,7 +11,7 @@ class CChunkStackElement
 public:
 	CChunkHeader			sHeader;
 	filePos					iChunkHeaderPos;
-	BOOL					bContainsChunks;
+	bool					bContainsChunks;
 	CChunkIndex				cChunkIndex;
 	SMD5Context				sMD5Context;
 

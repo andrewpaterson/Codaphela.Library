@@ -44,12 +44,12 @@ public:
 			void Kill(void);
 
 			void AddRef(void);
-			BOOL RemoveRef(void);
+			bool RemoveRef(void);
 	virtual void RemoveAndKill(void);  //Remove a reference and kill the MarkupSubText if the reference count goes to zero.
 
-			BOOL Is(char* szName);
-			BOOL IsText(void);
-			BOOL IsDoc(void);
+			bool Is(char* szName);
+			bool IsText(void);
+			bool IsDoc(void);
 };
 
 

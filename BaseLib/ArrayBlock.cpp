@@ -112,19 +112,19 @@ void* CArrayBlock::SafeGet(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::SafeSet(int iIndex, void* pvData)
+bool CArrayBlock::SafeSet(int iIndex, void* pvData)
 {
 	//Fix for virtual in CArrayTemplate
 	int		iOldLength;
 
 	if (iIndex < 0)
 	{
-		return FALSE;
+		return false;
 	}
 	else if (iIndex < miUsedElements)
 	{
 		Set(iIndex, pvData);
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -132,7 +132,7 @@ BOOL CArrayBlock::SafeSet(int iIndex, void* pvData)
 		SetUsedElements(iIndex+1);
 		memset(Get(iOldLength), 0, (iIndex-iOldLength) * miElementSize);
 		Set(iIndex, pvData);
-		return TRUE;
+		return true;
 	}
 }
 
@@ -159,7 +159,7 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex)
 {
 	//This is only used by CConvexHullGenerator.RemoveDiscontiguousTriangles/
 	//It should be removed.
-	return RemoveAtNoDeallocate(iIndex, FALSE, miElementSize);
+	return RemoveAtNoDeallocate(iIndex, false, miElementSize);
 }
 
 
@@ -167,18 +167,18 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::SetChunkSize(int iChunkSize)
+bool CArrayBlock::SetChunkSize(int iChunkSize)
 {
 	if (iChunkSize < miChunkSize)
 	{
 		if (miChunkSize % iChunkSize == 0)
 		{
 			miChunkSize = iChunkSize;
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else
@@ -186,11 +186,11 @@ BOOL CArrayBlock::SetChunkSize(int iChunkSize)
 		if (iChunkSize % miChunkSize == 0)
 		{
 			miChunkSize = iChunkSize;
-			return TRUE;
+			return true;
 		}
 		else
 		{
-			return FALSE;
+			return false;
 		}
 	}
 }
@@ -355,7 +355,7 @@ void* CArrayBlock::InsertAt(void* pvData, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize)
+void CArrayBlock::PrivateRemoveAt(int iIndex, bool bPreserveOrder, int iDataSize)
 {
 	if ((iIndex < miUsedElements) && (iIndex >= 0))
 	{
@@ -373,7 +373,7 @@ void CArrayBlock::PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize)
+int CArrayBlock::RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iDataSize)
 {
 	void*	pSource;
 	void*	pDest;
@@ -465,7 +465,7 @@ void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, in
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder)
+void CArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder)
 {
 	PrivateRemoveRange(iStartIndex, iEndIndexExclusive, bPreserveOrder, miElementSize);
 }
@@ -475,7 +475,7 @@ void CArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPre
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, BOOL bPreserveOrder)
+void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, bool bPreserveOrder)
 {
 	int		i;
 	int		iIndex;
@@ -545,7 +545,7 @@ void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, B
 		for (i = iNumElementsToDelete-1; i >= 0; i--)
 		{
 			iIndex = paiElementsToDelete[i];
-			RemoveAt(iIndex, FALSE);
+			RemoveAt(iIndex, false);
 		}
 	}
 }
@@ -555,14 +555,14 @@ void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, B
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::RemoveTail(void)
+bool CArrayBlock::RemoveTail(void)
 {
 	if (miUsedElements > 0)
 	{
 		RemoveAt(miUsedElements - 1);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -570,14 +570,14 @@ BOOL CArrayBlock::RemoveTail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::RemoveFirst(void)
+bool CArrayBlock::RemoveFirst(void)
 {
 	if (miUsedElements > 0)
 	{
 		RemoveAt(0);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -699,7 +699,7 @@ void* CArrayBlock::Push(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Pop(void* pvDest)
+bool CArrayBlock::Pop(void* pvDest)
 {
 	void*	pvSource;
 
@@ -708,12 +708,12 @@ BOOL CArrayBlock::Pop(void* pvDest)
 		pvSource = Get(miUsedElements - 1);
 		memcpy(pvDest, pvSource, miElementSize);
 		RemoveAt(miUsedElements - 1);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		memset(pvDest, 0, miElementSize);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -722,7 +722,7 @@ BOOL CArrayBlock::Pop(void* pvDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Pop(void)
+bool CArrayBlock::Pop(void)
 {
 	return RemoveTail();
 }
@@ -732,7 +732,7 @@ BOOL CArrayBlock::Pop(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::PopFirst(void* pvDest)
+bool CArrayBlock::PopFirst(void* pvDest)
 {
 	void* pvSource;
 
@@ -741,12 +741,12 @@ BOOL CArrayBlock::PopFirst(void* pvDest)
 		pvSource = Get(0);
 		memcpy(pvDest, pvSource, miElementSize);
 		RemoveAt(0);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		memset(pvDest, 0, miElementSize);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -755,7 +755,7 @@ BOOL CArrayBlock::PopFirst(void* pvDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::PopFirst(void)
+bool CArrayBlock::PopFirst(void)
 {
 	return RemoveFirst();
 }
@@ -828,7 +828,7 @@ int CArrayBlock::Find(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::Contains(void* pvData)
+bool CArrayBlock::Contains(void* pvData)
 {
 	return Find(pvData) >= 0;
 }
@@ -933,7 +933,7 @@ int CArrayBlock::Resize(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, BOOL bClear, unsigned char iClear)
+void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, bool bClear, unsigned char iClear)
 {
 	int		iOldUsedElements;
 	void*	pvStart;
@@ -977,16 +977,16 @@ int CArrayBlock::AddNum(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Equals(CArrayBlock* pcTemplateArray)
+bool CArrayBlock::Equals(CArrayBlock* pcTemplateArray)
 {
 	if (pcTemplateArray->miUsedElements == miUsedElements)
 	{
 		if (memcmp(pcTemplateArray->mpvArray, mpvArray, ByteSize()) == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1040,10 +1040,10 @@ void CArrayBlock::TimSort(DataCompare fCompare)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, BOOL bOverwriteExisting)
+int CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting)
 {
 	int		iIndex;
-	BOOL	bExists;
+	bool	bExists;
 
 	bExists = FindInSorted(pvData, fCompare, &iIndex);
 	if (iIndex < miUsedElements)
@@ -1076,12 +1076,12 @@ int CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, BOOL bOver
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, int* piIndex)
+bool CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
 		*piIndex = 0;
-		return FALSE;
+		return false;
 	}
 	return BinarySearch(pvData, 0, miUsedElements - 1, fCompare, piIndex);
 }
@@ -1091,7 +1091,7 @@ BOOL CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, int* piIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
+bool CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
@@ -1106,7 +1106,7 @@ BOOL CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare 
 		if (iResultMiddle == 0)
 		{
 			*piIndex = iMiddle;
-			return TRUE;
+			return true;
 		}
 		else if (iResultMiddle < 0)
 		{
@@ -1126,7 +1126,7 @@ BOOL CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare 
 	{
 		*piIndex = iMiddle;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -1157,14 +1157,14 @@ void CArrayBlock::Shuffle(CRandom* pcRandom)
 	int			i;
 	int			iNumElements;
 	CRandom		cRandom;
-	BOOL		bKillRandom;
+	bool		bKillRandom;
 	int			iIndex;
 
-	bKillRandom = FALSE;
+	bKillRandom = false;
 	if (pcRandom == NULL)
 	{
 		cRandom.Init();
-		bKillRandom = TRUE;
+		bKillRandom = true;
 		pcRandom = &cRandom;
 	}
 
@@ -1353,7 +1353,7 @@ int CArrayBlock::AllocatedElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::IsEmpty(void)
+bool CArrayBlock::IsEmpty(void)
 {
 	return miUsedElements == 0;
 }
@@ -1363,7 +1363,7 @@ BOOL CArrayBlock::IsEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::IsNotEmpty(void)
+bool CArrayBlock::IsNotEmpty(void)
 {
 	return miUsedElements != 0;
 }
@@ -1584,7 +1584,7 @@ int CArrayBlock::ChunkSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
+bool CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
 {
 	SArrayTemplateHeader	sHeader;
 
@@ -1594,10 +1594,10 @@ BOOL CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
 
 	if (!pcFileWriter->WriteData(&sHeader, sizeof(SArrayTemplateHeader))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -1605,22 +1605,22 @@ BOOL CArrayBlock::WriteHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
+bool CArrayBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1628,21 +1628,21 @@ BOOL CArrayBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
+bool CArrayBlock::Write(CFileWriter* pcFileWriter)
 {
 	if (!WriteAllocatorAndHeader(pcFileWriter))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (miUsedElements != 0)
 	{
 		if (!pcFileWriter->WriteData(mpvArray, ByteSize())) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1650,13 +1650,13 @@ BOOL CArrayBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
+bool CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 {
 	SArrayTemplateHeader	sHeader;
 
 	if (!pcFileReader->ReadData(&sHeader, sizeof(SArrayTemplateHeader))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	miChunkSize = sHeader.miChunkSize;
@@ -1671,7 +1671,7 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 		SetUsedElements(sHeader.miUsedElements);
 		return mpvArray != NULL;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1679,23 +1679,23 @@ BOOL CArrayBlock::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader)
+bool CArrayBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 {
-	BOOL			bResult;
+	bool			bResult;
 	CMallocator*	pcMalloc;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = ReadHeader(pcFileReader, pcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1703,26 +1703,26 @@ BOOL CArrayBlock::ReadAllocatorAndHeader(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlock::Read(CFileReader* pcFileReader)
+bool CArrayBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = ReadAllocatorAndHeader(pcFileReader);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (miUsedElements != 0)
 	{
 		if (!pcFileReader->ReadData(mpvArray, ByteSize())) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

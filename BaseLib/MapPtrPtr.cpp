@@ -40,7 +40,7 @@ void CMapPtrPtr::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CMapPtrPtr::Init(CMallocator* pcMalloc)
 {
-	CMapBlock::Init(pcMalloc, &ComparePtrPtr, TRUE);
+	CMapBlock::Init(pcMalloc, &ComparePtrPtr, true);
 };
 
 
@@ -65,7 +65,7 @@ void* CMapPtrPtr::Get(void* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapPtrPtr::Put(void* pvKey, void*  psData)
+bool CMapPtrPtr::Put(void* pvKey, void*  psData)
 {
 	return CMapTemplate<void*, void*>::Put(&pvKey, &psData);
 }
@@ -75,7 +75,7 @@ BOOL CMapPtrPtr::Put(void* pvKey, void*  psData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapPtrPtr::Remove(void* pvKey)
+bool CMapPtrPtr::Remove(void* pvKey)
 {
 	return CMapTemplate<void*, void*>::Remove(&pvKey);
 }

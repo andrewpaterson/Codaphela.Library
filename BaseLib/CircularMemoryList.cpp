@@ -490,7 +490,7 @@ int CCircularMemoryList::NumElements(int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCircularMemoryList::IsEmpty(void)
+bool CCircularMemoryList::IsEmpty(void)
 {
 	return mpsDetail == NULL || mpsDetail->mpsTail == NULL;
 }
@@ -650,7 +650,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::InsertNext(SMemoryCacheDescriptor* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize, SMemoryCacheDescriptor* psCacheBasedExisting)
+bool CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize, SMemoryCacheDescriptor* psCacheBasedExisting)
 {
 	size_t	uiNewStart;
 	size_t	uiNewEnd;  //Inclusive
@@ -666,17 +666,17 @@ BOOL CCircularMemoryList::Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size
 
 	if ((uiNewStart <= uiNextStart) && (uiNewEnd >= uiNextStart))
 	{
-		return TRUE;
+		return true;
 	}
 	if ((uiNewStart <= uiNextEnd) && (uiNewEnd >= uiNextEnd))
 	{
-		return TRUE;
+		return true;
 	}
 	if ((uiNewStart >= uiNextStart) && (uiNewStart <= uiNextEnd))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -722,7 +722,7 @@ size_t CCircularMemoryList::RemainingAfter(SMemoryCacheDescriptor* psCacheBasedD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCircularMemoryList::ValidateCache(void)
+bool CCircularMemoryList::ValidateCache(void)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	int							iCount;
@@ -758,7 +758,7 @@ BOOL CCircularMemoryList::ValidateCache(void)
 
 	if (mpsDetail->mpsHead == NULL)
 	{
-		return TRUE;
+		return true;
 	}
 
 	iCount = 0;
@@ -793,7 +793,7 @@ BOOL CCircularMemoryList::ValidateCache(void)
 		psCacheBasedDescriptor = GetNext(psCacheBasedDescriptor);
 	} 
 	while (!IsFirst(psCacheBasedDescriptor));
-	return TRUE;
+	return true;
 }
 
 
@@ -855,7 +855,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::MapFromCacheBasedToZeroBased(void* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCircularMemoryList::IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor)
+bool CCircularMemoryList::IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor)
 {
 	return MapFromZeroBasedToCacheBased(mpsDetail->mpsHead) == psCacheBasedDescriptor;
 }
@@ -865,7 +865,7 @@ BOOL CCircularMemoryList::IsFirst(SMemoryCacheDescriptor* psCacheBasedDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCircularMemoryList::IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor)
+bool CCircularMemoryList::IsLast(SMemoryCacheDescriptor* psCacheBasedDescriptor)
 {
 	return MapFromZeroBasedToCacheBased(mpsDetail->mpsTail) == psCacheBasedDescriptor;
 }

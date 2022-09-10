@@ -34,9 +34,9 @@ public:
 
 	void*	Get(void* pvKey);
 
-	BOOL	Put(void* pvKey, void* psData);
+	bool	Put(void* pvKey, void* psData);
 
-	BOOL	Remove(void* pvKey);
+	bool	Remove(void* pvKey);
 };
 
 

@@ -65,7 +65,7 @@ char* CharToString(char16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* BoolToString(BOOL b)
+char* BoolToString(bool b)
 {
 	int iCount = IncrementLogToStringCount();
 	return BoolToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, b);

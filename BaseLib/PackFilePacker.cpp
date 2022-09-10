@@ -11,13 +11,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
+bool CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
 	CChars		szPackFilename;
 	CFileUtil	cFileUtil;
-	BOOL		bResult;
+	bool		bResult;
 
 	szPackFilename.Init(szDestPakFile);
 	cFileUtil.FullPath(&szPackFilename);
@@ -36,9 +36,9 @@ BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* s
 	if (!bResult)
 	{
 		gcLogger.Error("Failed to pack.");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -46,12 +46,12 @@ BOOL CPackFilePacker::Pack(char* szDestPakFile, char* szSourceDirectory, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, BOOL bRemoveDestDir)
+bool CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, bool bRemoveDestDir)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
 	CFileUtil	cFileUtil;
-	BOOL		bResult;
+	bool		bResult;
 	CChars		szPackFilename;
 
 	szPackFilename.Init(szSourcePakFile);
@@ -73,14 +73,14 @@ BOOL CPackFilePacker::Unpack(char* szSourcePakFile, char* szDestDirectory, BOOL 
 		if (!bResult)
 		{
 			gcLogger.Error2(__METHOD__, " Failed to unpack [", szSourcePakFile, "] into [", StringToString(szDestDirectory), "].", NULL);
-			return FALSE;
+			return false;
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Pak file [", StringToString(szSourcePakFile), "]does not exist.", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -137,7 +137,7 @@ void CPackFilePacker::List(CPackFiles* pcPackFiles, CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
+bool CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
 {
 	CPackFiles	cPackFiles;
 	CDiskFile*	pcDiskFile;
@@ -154,12 +154,12 @@ BOOL CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
 		cPackFiles.Init(pcDiskFile, PFM_Read);
 		List(&cPackFiles, pszDest);
 		cPackFiles.Kill();
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		gcLogger.Error("File does not exist.");
-		return FALSE;
+		return false;
 	}
 }
 
@@ -168,7 +168,7 @@ BOOL CPackFilePacker::List(char* szSourcePakFile, CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PackDirectory(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
+bool PackDirectory(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory)
 {
 	CPackFilePacker	cPacker;
 

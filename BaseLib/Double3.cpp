@@ -183,7 +183,7 @@ SDouble3 operator * (double f, const SDouble3& v)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble3::operator == (const SDouble3& v) const
+bool SDouble3::operator == (const SDouble3& v) const
 {
 	return x == v.x && y == v.y && z == v.z;
 }
@@ -192,7 +192,7 @@ BOOL SDouble3::operator == (const SDouble3& v) const
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble3::operator != (const SDouble3& v) const
+bool SDouble3::operator != (const SDouble3& v) const
 {
 	return x != v.x || y != v.y || z != v.z;
 }
@@ -279,16 +279,16 @@ void SDouble3::Normalize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble3::CloselyEqual(SDouble3* ps)
+bool SDouble3::CloselyEqual(SDouble3* ps)
 {
 
 	if ((DoubleEqual(x, ps->x)) &&
 		(DoubleEqual(y, ps->y)) &&
 		(DoubleEqual(z, ps->z)))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -296,16 +296,16 @@ BOOL SDouble3::CloselyEqual(SDouble3* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble3::CloselyEqual(SDouble3* ps, double fTolerance)
+bool SDouble3::CloselyEqual(SDouble3* ps, double fTolerance)
 {
 
 	if ((DoubleEqual(x, ps->x, fTolerance)) &&
 		(DoubleEqual(y, ps->y, fTolerance)) &&
 		(DoubleEqual(z, ps->z, fTolerance)))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -351,9 +351,9 @@ void SDouble3::Copy(const SDouble2* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble3::Save(CFileWriter* pcFile)
+bool SDouble3::Save(CFileWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = pcFile->WriteFloat(x);
 	bResult &= pcFile->WriteFloat(y);
@@ -366,9 +366,9 @@ BOOL SDouble3::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SDouble3::Load(CFileReader* pcFile)
+bool SDouble3::Load(CFileReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = pcFile->ReadFloat(&x);
 	bResult &= pcFile->ReadFloat(&y);

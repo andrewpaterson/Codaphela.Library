@@ -50,12 +50,12 @@ public:
 	M*				GetPrev(M* pvData);
 
 	void			Remove(M* pvData);
-	BOOL			SafeRemove(M* pvData);
+	bool			SafeRemove(M* pvData);
 
 	int				ByteSize(void);
 
-	BOOL			Write(CFileWriter* pcFileWriter);
-	BOOL			Read(CFileReader* pcFileReader);
+	bool			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader);
 
 	void			InsertDetachedAfterTail(M* pvData);
 
@@ -63,10 +63,10 @@ protected:
 	SLLNode*		AllocateDetached(void);
 	SLLNode*		DataGetNode(M* pvData);
 
-	BOOL			WriteHeader(CFileWriter* pcFileWriter);
-	BOOL			WriteData(CFileWriter* pcFileWriter);
-	BOOL			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
-	BOOL			ReadData(CFileReader* pcFileReader, int iNumElements);
+	bool			WriteHeader(CFileWriter* pcFileWriter);
+	bool			WriteData(CFileWriter* pcFileWriter);
+	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
+	bool			ReadData(CFileReader* pcFileReader, int iNumElements);
 };
 
 
@@ -163,7 +163,7 @@ void CLinkedListTemplate<M>::Remove(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::SafeRemove(M* pvData)
+bool CLinkedListTemplate<M>::SafeRemove(M* pvData)
 {
 	return (M*)CBaseLinkedListBlock::SafeRemove(pvData);
 }
@@ -304,20 +304,20 @@ void CLinkedListTemplate<M>::InsertDetachedAfterTail(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
+bool CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = WriteData(pcFileWriter);
@@ -330,7 +330,7 @@ BOOL CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::WriteHeader(CFileWriter* pcFileWriter)
+bool CLinkedListTemplate<M>::WriteHeader(CFileWriter* pcFileWriter)
 {
 	SLinkedListTemplateDesc	sHeader;
 	int						iNumElements;
@@ -340,10 +340,10 @@ BOOL CLinkedListTemplate<M>::WriteHeader(CFileWriter* pcFileWriter)
 
 	if (!pcFileWriter->WriteData(&sHeader, sizeof(SLinkedListTemplateDesc)))
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -352,7 +352,7 @@ BOOL CLinkedListTemplate<M>::WriteHeader(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::WriteData(CFileWriter* pcFileWriter)
+bool CLinkedListTemplate<M>::WriteData(CFileWriter* pcFileWriter)
 {
 	M*		pvData;
 
@@ -361,12 +361,12 @@ BOOL CLinkedListTemplate<M>::WriteData(CFileWriter* pcFileWriter)
 	{
 		if (!pcFileWriter->WriteData(pvData, muiDataSize))
 		{
-			return FALSE;
+			return false;
 		}
 
 		pvData = GetNext(pvData);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -375,24 +375,24 @@ BOOL CLinkedListTemplate<M>::WriteData(CFileWriter* pcFileWriter)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
+bool CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
 	int				iNumElements;
-	BOOL			bResult;
+	bool			bResult;
 	CMallocator*	pcMalloc;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = ReadHeader(pcFileReader, pcMalloc, &iNumElements);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = ReadData(pcFileReader, iNumElements);
@@ -405,27 +405,27 @@ BOOL CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+bool CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
 {
 	SLinkedListTemplateDesc	sDesc;
 
 	if (!pcFileReader->ReadData(&sDesc, sizeof(SLinkedListTemplateDesc)))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (sizeof(SLLNode) != sDesc.uiNodeSize)
 	{
-		return FALSE;
+		return false;
 	}
 	if (sizeof(M) != sDesc.uiDataSize)
 	{
-		return FALSE;
+		return false;
 	}
 
 	Init(pcMalloc);
 	*piNumElements = sDesc.iNumElements;
-	return TRUE;
+	return true;
 }
 
 
@@ -434,7 +434,7 @@ BOOL CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElements)
+bool CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElements)
 {
 	int				i;
 	M*				pvData;
@@ -444,10 +444,10 @@ BOOL CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElement
 		pvData = InsertAfterTail();
 		if (!pcFileReader->ReadData(pvData, muiDataSize))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

@@ -31,11 +31,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::Save(CFileWriter* pcWriter, const char* szWriterType, const char* szWriterVersion)
+bool CFileHeader::Save(CFileWriter* pcWriter, const char* szWriterType, const char* szWriterVersion)
 {
 	if (!CheckHeaderSize(__METHOD__))
 	{
-		return FALSE;
+		return false;
 	}
 
 	memset(this, 0, sizeof(CFileHeader));
@@ -53,32 +53,32 @@ BOOL CFileHeader::Save(CFileWriter* pcWriter, const char* szWriterType, const ch
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, const char* szExpectedWriterVersion)
+bool CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, const char* szExpectedWriterVersion)
 {
 	if (!CheckHeaderSize(__METHOD__))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!pcReader->ReadData(this, sizeof(CFileHeader)))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read file header of [", szExpectedWriterType, "] for file version [", szExpectedWriterVersion, "].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (!IsWriterVersion(szExpectedWriterVersion))
 	{
 		gcLogger.Error2(__METHOD__, " File version mismatch.  Expected [", szExpectedWriterVersion, "] but read [", mszWriterVersion, "].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (!IsWriterType(szExpectedWriterType))
 	{
 		gcLogger.Error2(__METHOD__, " File type mismatch.  Expected [", szExpectedWriterType, "] but read [", mszWriterType, "].", NULL);
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -116,7 +116,7 @@ BOOL CFileHeader::Load(CFileReader* pcReader, const char* szExpectedWriterType, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsWriterType(const char* szWriterType)
+bool CFileHeader::IsWriterType(const char* szWriterType)
 {
 	return StringCompare(mszWriterType, szWriterType) == 0;
 }
@@ -126,7 +126,7 @@ BOOL CFileHeader::IsWriterType(const char* szWriterType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsEngineVersion(const char* szEngineVersion)
+bool CFileHeader::IsEngineVersion(const char* szEngineVersion)
 {
 	return StringCompare(mszEngineVersion, szEngineVersion) == 0;
 }
@@ -136,7 +136,7 @@ BOOL CFileHeader::IsEngineVersion(const char* szEngineVersion)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::IsWriterVersion(const char* szWriterVersion)
+bool CFileHeader::IsWriterVersion(const char* szWriterVersion)
 {
 	return StringCompare(mszWriterVersion, szWriterVersion) == 0;
 }
@@ -146,7 +146,7 @@ BOOL CFileHeader::IsWriterVersion(const char* szWriterVersion)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileHeader::CheckHeaderSize(const char* szMethod)
+bool CFileHeader::CheckHeaderSize(const char* szMethod)
 {
 	size_t		tFileHeaderSize;
 
@@ -154,8 +154,8 @@ BOOL CFileHeader::CheckHeaderSize(const char* szMethod)
 	if (tFileHeaderSize != FILE_HEADER_SIZE)
 	{
 		gcLogger.Error2(szMethod, " File header memory size [", SizeToString(tFileHeaderSize), "] different to expected size [", IntToString(FILE_HEADER_SIZE), "].", NULL);
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 

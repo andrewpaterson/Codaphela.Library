@@ -186,14 +186,14 @@ void CBaseLinkedListBlock::Remove(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseLinkedListBlock::SafeRemove(void* pvData)
+bool CBaseLinkedListBlock::SafeRemove(void* pvData)
 {
 	if (IsInList(pvData))
 	{
 		Remove(pvData);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -414,7 +414,7 @@ void CBaseLinkedListBlock::InsertDetachedIntoSorted(DataCompare fCompare, void* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CBaseLinkedListBlock::IsInList(void* pvData)
+bool CBaseLinkedListBlock::IsInList(void* pvData)
 {
 	SLLNode* psNode;
 

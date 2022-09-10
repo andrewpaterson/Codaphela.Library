@@ -7,11 +7,11 @@ class CIndexTreeMemoryConfig : public CIndexTreeConfig
 {
 public:
 	void	Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-	BOOL	Init(CFileReader* pcFileReader);
+	bool	Init(CFileReader* pcFileReader);
 	void	Kill(void);
 
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 

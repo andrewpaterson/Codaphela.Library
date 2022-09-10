@@ -47,8 +47,8 @@ public:
 	void	FakeSetUsedElements(int iUsedElements);
 
 	int		NumElements(void);
-	BOOL	IsEmpty(void);
-	BOOL	IsNotEmpty(void);
+	bool	IsEmpty(void);
+	bool	IsNotEmpty(void);
 	int		AllocatedElements(void);
 	int 	ElementSize(void);
 
@@ -77,20 +77,20 @@ public:
 	void*	InsertBlockAfterEnd(void* paElements, int iLength);
 	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
 	void*	InsertBlockBeforeStart(void* paElements, int iLength);
-	int		InsertIntoSorted(DataCompare fCompare, void* pvData, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting);
 	void*	InsertNumAt(int iNumElements, int iIndex);
 	void	InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
-	BOOL	Pop(void* pvDest);
-	BOOL	Pop(void);
+	bool	Pop(void* pvDest);
+	bool	Pop(void);
 	void 	Push(void* pvData);
 	void*	Push(void);
 	void* 	PushCopy(void);
-	BOOL	PopFirst(void* pvData);
-	BOOL	PopFirst(void);
+	bool	PopFirst(void* pvData);
+	bool	PopFirst(void);
 
 	int		AddNum(int iNumElements);
-	void*	GrowToAtLeastNumElements(int iNumElements, BOOL bClear = FALSE, unsigned char  iClear = 0);
+	void*	GrowToAtLeastNumElements(int iNumElements, bool bClear = false, unsigned char  iClear = 0);
 	int		Resize(int iNumElements);
 
 	void	BubbleSort(DataCompare fCompare);
@@ -100,23 +100,23 @@ public:
 	void	Reverse(void);
 	void	Shuffle(CRandom* pcRandom = NULL);
 
-	BOOL	Contains(void* pData);
-	BOOL	Equals(CArrayBlock* pcTemplateArray);
+	bool	Contains(void* pData);
+	bool	Equals(CArrayBlock* pcTemplateArray);
 	int 	Find(void* pData);
-	BOOL	FindInSorted(void* pvData, DataCompare fCompare, int* piIndex);
+	bool	FindInSorted(void* pvData, DataCompare fCompare, int* piIndex);
 	int		FindWithIntKey(int iKey);
 	int		FindWithIntKey(int iKey, int iKeyOffset);
 	int 	FindWithKey(void* pData, int iKeyOffset, int iKeySize);
 
-	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
-	void	RemoveAt(int* paiIndex, int iNumElements, BOOL bPreserveOrder = TRUE);
-	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
-	BOOL 	RemoveTail(void);
-	BOOL	RemoveFirst(void);
+	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
+	void	RemoveAt(int* paiIndex, int iNumElements, bool bPreserveOrder = true);
+	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
+	bool 	RemoveTail(void);
+	bool	RemoveFirst(void);
 	void	RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
 
 	void	Set(int iIndex, void* pvData);
-	BOOL	SafeSet(int iIndex, void* pvData);
+	bool	SafeSet(int iIndex, void* pvData);
 	void	Swap(int iIndex1, int iIndex2);
 	void	Unuse(void);  //Da fuq?
 	void 	Zero(void);
@@ -126,23 +126,23 @@ public:
 	int		SetUsedElements(int iNumElements);
 
 	int		RemoveAtNoDeallocate(int iIndex);
-	BOOL	SetChunkSize(int iChunkSize);
+	bool	SetChunkSize(int iChunkSize);
 
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 
-	BOOL	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
-	BOOL	WriteHeader(CFileWriter* pcFileWriter);
-	BOOL	ReadAllocatorAndHeader(CFileReader* pcFileReader);
-	BOOL	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
+	bool	WriteAllocatorAndHeader(CFileWriter* pcFileWriter);
+	bool	WriteHeader(CFileWriter* pcFileWriter);
+	bool	ReadAllocatorAndHeader(CFileReader* pcFileReader);
+	bool	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
 protected:
-	BOOL	BinarySearch(void* pData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
+	bool	BinarySearch(void* pData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
 	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
 	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
-	void	PrivateRemoveAt(int iIndex, BOOL bPreserveOrder, int iDataSize);
+	void	PrivateRemoveAt(int iIndex, bool bPreserveOrder, int iDataSize);
 	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
-	int		RemoveAtNoDeallocate(int iIndex, BOOL bPreserveOrder, int iDataSize);
+	int		RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iDataSize);
 	void 	SetArraySize(int iNumElements);
 };
 

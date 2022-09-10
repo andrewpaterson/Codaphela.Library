@@ -59,7 +59,7 @@ public:
 	M* 				Set(int iElementPos);
 	M*				Get(int iElementPos);
 	void			Dump(void);
-	void			RecurseDump(int iDepth, SSparseNode* psNode, CChars* psz, BOOL bLeft);
+	void			RecurseDump(int iDepth, SSparseNode* psNode, CChars* psz, bool bLeft);
 	SSparseNode*	TestGetRoot(void);
 
 private:
@@ -476,7 +476,7 @@ void __CArraySparseTemplate<M>::Dump(void)
 	sz.Init();
 	sz.Append(">>>>>>>>>\n");
 
-	RecurseDump(0, mpsRoot, &sz, TRUE);
+	RecurseDump(0, mpsRoot, &sz, true);
 
 	sz.Append("<<<<<<<<<\n");
 	sz.Dump();
@@ -489,7 +489,7 @@ void __CArraySparseTemplate<M>::Dump(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArraySparseTemplate<M>::RecurseDump(int iDepth, SSparseNode* psNode, CChars* psz, BOOL bLeft)
+void __CArraySparseTemplate<M>::RecurseDump(int iDepth, SSparseNode* psNode, CChars* psz, bool bLeft)
 {
 	if (psNode)
 	{
@@ -507,8 +507,8 @@ void __CArraySparseTemplate<M>::RecurseDump(int iDepth, SSparseNode* psNode, CCh
 		psz->Append("): ");
 		psz->Append(psNode->iLeafDepth);
 		psz->Append("\n");
-		RecurseDump(iDepth+1, psNode->psLeft, psz, TRUE);
-		RecurseDump(iDepth+1, psNode->psRight, psz, FALSE);
+		RecurseDump(iDepth+1, psNode->psLeft, psz, true);
+		RecurseDump(iDepth+1, psNode->psRight, psz, false);
 	}
 }
 

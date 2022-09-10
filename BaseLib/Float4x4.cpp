@@ -94,9 +94,9 @@ void SFloat4x4::Fix(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat4x4::Save(CFileWriter* pcFile)
+bool SFloat4x4::Save(CFileWriter* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = x.Save(pcFile);
 	bResult |= y.Save(pcFile);
@@ -110,9 +110,9 @@ BOOL SFloat4x4::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat4x4::Load(CFileReader* pcFile)
+bool SFloat4x4::Load(CFileReader* pcFile)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = x.Load(pcFile);
 	bResult |= y.Load(pcFile);
@@ -126,7 +126,7 @@ BOOL SFloat4x4::Load(CFileReader* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SFloat4x4::Print(CChars* psz, BOOL bOneLine, int iWholeNumbers, int iDecimals)
+void SFloat4x4::Print(CChars* psz, bool bOneLine, int iWholeNumbers, int iDecimals)
 {
 	int	i[4];
 
@@ -164,7 +164,7 @@ void SFloat4x4::Dump(void)
 	CChars	sz;
 
 	sz.Init();
-	Print(&sz, FALSE);
+	Print(&sz, false);
 	sz.Dump();
 	sz.Kill();
 }
@@ -174,7 +174,7 @@ void SFloat4x4::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL SFloat4x4::Inverse(SFloat4x4* psOut, float* pfDeterminant)
+bool SFloat4x4::Inverse(SFloat4x4* psOut, float* pfDeterminant)
 {
 	float		fDet;
 	float		fDetInv;
@@ -191,7 +191,7 @@ BOOL SFloat4x4::Inverse(SFloat4x4* psOut, float* pfDeterminant)
 
 	if (fabs(fDet) < SMALL_NUMBER)
 	{
-		return FALSE;
+		return false;
 	}
 
 	/* scale the adjoint matrix to get the inverse */
@@ -203,7 +203,7 @@ BOOL SFloat4x4::Inverse(SFloat4x4* psOut, float* pfDeterminant)
 
 	*psOut = sOut;
 	SafeAssign(pfDeterminant, fDet);
-	return TRUE;
+	return true;
 }
 
 
@@ -449,7 +449,7 @@ void Float4x4Translation(SFloat4x4* psOut, float x, float y, float z)
 }
 
 
-BOOL Float4x4Inverse(SFloat4x4* psOut, float* pfDeterminant, SFloat4x4* psIn)
+bool Float4x4Inverse(SFloat4x4* psOut, float* pfDeterminant, SFloat4x4* psIn)
 {
 	return psIn->Inverse(psOut, pfDeterminant);
 }
@@ -547,7 +547,7 @@ SFloat4x4* Float4x4PerspectiveFovRH(SFloat4x4* psOut, float fFovY, float fAspect
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2)
+bool Float4x4Equals(SFloat4x4* ps1, SFloat4x4* ps2)
 {
 	return memcmp(ps1, ps2, sizeof(SFloat4x4)) == 0;
 }

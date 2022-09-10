@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorPointer::Add(char* szName, void* pvData, int iKeySize, int iNum, BOOL bReplace)
+int CEnumeratorPointer::Add(char* szName, void* pvData, int iKeySize, int iNum, bool bReplace)
 {
 	return __CEnumeratorTemplate<void>::PrivateAddGetNode(szName, pvData, 0, iKeySize, iNum, bReplace, NULL);
 }

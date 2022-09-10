@@ -34,7 +34,7 @@ struct STagIterator
 {
 	int				iIndex;
 	CMarkupTag*		mpcCurrent;
-	BOOL			bNamed;
+	bool			bNamed;
 };
 
 
@@ -50,7 +50,7 @@ public:
 	void				Init(CMarkupTag* pcParent);
 	void				Init(char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
-	BOOL				IsEmpty(void);
+	bool				IsEmpty(void);
 	char*				GetAttribute(char* szAttribute);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(char* szTagName, int iTagNumber);
@@ -58,8 +58,8 @@ public:
 	CMarkupTag*			GetTagFromIndex(char* szTagName, STagIterator* psIter);
 	CMarkupTag*			GetTagFromIndex(STagIterator* psIter);
 	CMarkupTag*			GetTag(STagIterator* psIter = NULL);
-	BOOL				Is(char* szName);
-	BOOL				GetText(CChars* psz, BOOL bFirstContiguous = TRUE, BOOL bFirstTag = FALSE);
+	bool				Is(char* szName);
+	bool				GetText(CChars* psz, bool bFirstContiguous = true, bool bFirstTag = false);
 	void				SetName(char* szName);
 	char*				GetName(void);
 	CMarkupTag*			AppendTag(void);
@@ -67,9 +67,9 @@ public:
 	CMarkupText*		AppendText(void);
 	CMarkupText*		AppendText(char* szText);
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
-	BOOL				AddAttribute(char* szAttribute, char* szValue);
-	BOOL				ContainsOnlyText(void);
-	BOOL				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
+	bool				AddAttribute(char* szAttribute, char* szValue);
+	bool				ContainsOnlyText(void);
+	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	void				Print(CChars* psz);
 	int					Print(CChars* psz, int iDepth, int iLine);
 	void				Dump(void);

@@ -219,14 +219,14 @@ void CLinkedList::Remove(SLLNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedList::SafeRemove(SLLNode* psNode)
+bool CLinkedList::SafeRemove(SLLNode* psNode)
 {
 	if (IsInList(psNode))
 	{
 		Remove(psNode);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -329,7 +329,7 @@ int CLinkedList::IndexOf(SLLNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CLinkedList::IsInList(SLLNode* psNode)
+bool CLinkedList::IsInList(SLLNode* psNode)
 {
 	int iIndex;
 
@@ -347,7 +347,7 @@ void CLinkedList::BubbleSort(DataCompare fCompare, size_t iOffset)
 	SLLNode*	psCurrent;
 	SLLNode*	psNext;
 	int			iResult;
-	BOOL		bSwapped;
+	bool		bSwapped;
 	void*		pvCurrent;
 	void*		pvNext;
 
@@ -358,12 +358,12 @@ void CLinkedList::BubbleSort(DataCompare fCompare, size_t iOffset)
 		return;
 	}
 
-	bSwapped = TRUE;
+	bSwapped = true;
 	while (bSwapped)
 	{
 		psCurrent = GetHead();
 		psNext = GetNext(psCurrent);
-		bSwapped = FALSE;
+		bSwapped = false;
 
 		while ((psNext) && (psCurrent))
 		{
@@ -373,7 +373,7 @@ void CLinkedList::BubbleSort(DataCompare fCompare, size_t iOffset)
 			if (iResult > 0)
 			{
 				Swap(psCurrent, psNext);
-				bSwapped = TRUE;
+				bSwapped = true;
 			}
 			else
 			{

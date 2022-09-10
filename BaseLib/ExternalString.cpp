@@ -99,21 +99,21 @@ void CExternalString::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalString::Equals(CExternalString* pcOther)
+bool CExternalString::Equals(CExternalString* pcOther)
 {
 	if (pcOther->miLen == miLen)
 	{
 		if (miLen == 0)
 		{
-			return TRUE;
+			return true;
 		}
 
 		if (memcmp(msz, pcOther->msz, miLen) == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -121,7 +121,7 @@ BOOL CExternalString::Equals(CExternalString* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CExternalString::Equals(char* sz)
+bool CExternalString::Equals(char* sz)
 {
 	int iLen;
 
@@ -130,14 +130,14 @@ BOOL CExternalString::Equals(char* sz)
 	{
 		if (miLen == 0)
 		{
-			return TRUE;
+			return true;
 		}
 
 		if (memcmp(msz, sz, miLen) == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 

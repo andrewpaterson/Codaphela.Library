@@ -65,7 +65,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define INT2_BYTE_SIZE		sizeof(SInt2)
 #define INT3_BYTE_SIZE		sizeof(SInt3)
 #define INT4_BYTE_SIZE		sizeof(SInt4)
-#define BOOL_BYTE_SIZE		sizeof(BOOL)
+#define BOOL_BYTE_SIZE		sizeof(bool)
 #define VOID_BYTE_SIZE		0
 #define FLOAT4x4_BYTE_SIZE	sizeof(SFloat4x4)
 #define DOUBLE4x4_BYTE_SIZE	sizeof(SDouble4x4)

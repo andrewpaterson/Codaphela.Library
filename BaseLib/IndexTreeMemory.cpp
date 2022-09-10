@@ -90,7 +90,7 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Kill(void)
+bool CIndexTreeMemory::Kill(void)
 {
 	RecurseKill(mpcRoot);
 	return CIndexTree::Kill();
@@ -182,7 +182,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
 	unsigned char			c;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
@@ -215,7 +215,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
 	unsigned char			c;
-	BOOL					bExecute;
+	bool					bExecute;
 	CIndexTreeNodeMemory*	pcFound;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
@@ -249,7 +249,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
+bool CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	uint16					uiDataSize;
@@ -263,7 +263,7 @@ BOOL CIndexTreeMemory::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::GetLongestPartial(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
+bool CIndexTreeMemory::GetLongestPartial(void* pvKey, int iKeySize, void* pvDestData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	uint16					uiDataSize;
@@ -277,13 +277,13 @@ BOOL CIndexTreeMemory::GetLongestPartial(void* pvKey, int iKeySize, void* pvDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::GetNodeData(CIndexTreeNodeMemory* pcNode, uint16& uiDataSize, size_t* puiDataSize, void* pvDestData, size_t uiMaxDataSize)
+bool CIndexTreeMemory::GetNodeData(CIndexTreeNodeMemory* pcNode, uint16& uiDataSize, size_t* puiDataSize, void* pvDestData, size_t uiMaxDataSize)
 {
 	void* pvData;
 
 	if (pcNode == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (pcNode->HasData())
@@ -299,11 +299,11 @@ BOOL CIndexTreeMemory::GetNodeData(CIndexTreeNodeMemory* pcNode, uint16& uiDataS
 			memcpy(pvDestData, pvData, MinDataSize(uiDataSize, uiMaxDataSize));
 		}
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -316,7 +316,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDat
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	uint16					uiDataSize;
-	BOOL					bNewNode;
+	bool					bNewNode;
 
 	ReturnNullOnFalse(ValidatePut(iKeySize, iDataSize));
 
@@ -324,11 +324,11 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDat
 
 	pcCurrent = GetOrAllocateKey(pvKey, iKeySize);
 
-	bNewNode = FALSE;
+	bNewNode = false;
 	if (!pcCurrent->HasData())
 	{
 		miSize++;
-		bNewNode = TRUE;
+		bNewNode = true;
 	}
 	else
 	{
@@ -362,7 +362,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, int iKeySi
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	unsigned char			c;
-	BOOL					bExecute;
+	bool					bExecute;
 	int						i;
 
 	pcCurrent = mpcRoot;
@@ -573,16 +573,16 @@ CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
+bool CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 {
 	unsigned char			c;
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcCurrent = mpcRoot;
@@ -593,7 +593,7 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
 		{
-			return FALSE;
+			return false;
 		}
 		bExecute = LoopKey(&i, iKeySize);
 	}
@@ -606,19 +606,19 @@ BOOL CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
+bool CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 {
 	unsigned char			c;
 	CIndexTreeNodeMemory*	pcParent;
 	CIndexTreeNodeMemory*	pcNode;
-	BOOL					bResizeNode;
+	bool					bResizeNode;
 	size_t					tNewNodeSize;
 	uint16			uiOldDataSize;
 
 	uiOldDataSize = pcCurrent->GetDataSize();
 	if (uiOldDataSize == 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	RemoveReorderData(pcCurrent);
@@ -666,7 +666,7 @@ BOOL CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	}
 
 	miSize--;
-	return TRUE;
+	return true;
 }
 
 
@@ -711,12 +711,12 @@ void CIndexTreeMemory::RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
+bool CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 {
 	CIndexTreeMemoryConfig				cConfig;
 	CLifeInit<CMallocator>				cMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
-	BOOL								bResult;
+	bool								bResult;
 
 	cMalloc.Init(mpcMalloc, mcMallocLife.MustFree(), mcMallocLife.MustKill());
 	cDataOrderer.Init(mpcDataOrderer, mcDataOrdererLife.MustFree(), mcDataOrdererLife.MustKill());
@@ -731,24 +731,24 @@ BOOL CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
+bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 {
 	SIndexTreeMemoryUnsafeIterator		sIter;
 	void*								pvData;
 	size_t								iDataSize;
 	size_t								iKeySize;
-	BOOL								bResult;
+	bool								bResult;
 	char								acKey[MAX_KEY_SIZE];
 	int									iCount;
 
 	if (!WriteConfig(pcFileWriter))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!pcFileWriter->WriteInt(miSize))
 	{
-		return FALSE;
+		return false;
 	}
 
 	iCount = 0;
@@ -758,19 +758,19 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 		iKeySize = GetKey(pvData, acKey, MAX_KEY_SIZE);
 		if (!pcFileWriter->WriteInt((int)iKeySize))
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileWriter->WriteInt((int)iDataSize))
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileWriter->WriteData(acKey, iKeySize))
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileWriter->WriteData(pvData, iDataSize))
 		{
-			return FALSE;
+			return false;
 		}
 
 		bResult = UnsafeIterate(&sIter, &pvData, &iDataSize);
@@ -784,10 +784,10 @@ BOOL CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader)
+bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader)
 {
 	CIndexTreeMemoryConfig				cConfig;
-	BOOL								bResult;
+	bool								bResult;
 
 	bResult = cConfig.Read(pcFileReader);
 	if (bResult)
@@ -803,7 +803,7 @@ BOOL CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
+bool CIndexTreeMemory::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
@@ -816,40 +816,40 @@ BOOL CIndexTreeMemory::Read(CFileReader* pcFileReader)
 
 	if (!ReadConfig(pcFileReader))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!pcFileReader->ReadInt(&iCount))
 	{
-		return FALSE;
+		return false;
 	}
 
 	for (i = 0; i < iCount; i++)
 	{
 		if (!pcFileReader->ReadInt(&iKeySize))
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileReader->ReadInt(&iDataSize))
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileReader->ReadData(acKey, iKeySize))
 		{
-			return FALSE;
+			return false;
 		}
 		pvData = Put(acKey, iKeySize, NULL, iDataSize);
 		if (!pvData)
 		{
-			return FALSE;
+			return false;
 		}
 		if (!pcFileReader->ReadData(pvData, iDataSize))
 		{
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -947,7 +947,7 @@ int CIndexTreeMemory::GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iD
 	else if (meReverseKey == IKR_Unknown)
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to order key bytes for direction [IKR_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (iKeySize < iDestKeySize)
@@ -1007,11 +1007,11 @@ uint16 CIndexTreeMemory::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	size_t							iDataSize;
-	BOOL							bResult;
+	bool							bResult;
 
 	memset(psIterator->pvKey, 0, MAX_KEY_SIZE);
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -1038,18 +1038,18 @@ BOOL CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
 {
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	size_t							iDataSize;
-	BOOL							bResult;
+	bool							bResult;
 
 	sIter.iIndex = psIterator->iIndex;
 	sIter.pcNode = GetNode(psIterator->pvKey, psIterator->iKeyLength);
 
 	if (!sIter.pcNode)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = UnsafeIterate(&sIter, (char*)psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
@@ -1073,7 +1073,7 @@ BOOL CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize)
+bool CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** ppvData, size_t* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
@@ -1086,7 +1086,7 @@ BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** pvData, size_t* piDataSize)
+bool CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, char* pvKey, int* piKeySize, int iMaxKeySize, void** pvData, size_t* piDataSize)
 {
 	void*	pvDataTemp;
 	int		iKeySize;
@@ -1117,11 +1117,11 @@ BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator,
 
 		GetReorderData(psIterator->pcNode);
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1130,7 +1130,7 @@ BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
+bool CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
 	return StartUnsafeIteration(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
@@ -1140,7 +1140,7 @@ BOOL CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
+bool CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* piDataSize)
 {
 	return UnsafeIterate(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
@@ -1150,7 +1150,7 @@ BOOL CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
+bool CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 {
 	CIndexTreeNodeMemory*	pcChild;
 	void*					pvData;
@@ -1170,7 +1170,7 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 			pvData = pcChild->GetDataPtr();
 			if (pvData != NULL)
 			{
-				return TRUE; 
+				return true; 
 			}
 		}
 		else
@@ -1183,7 +1183,7 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 					pcParent = (CIndexTreeNodeMemory*)psIterator->pcNode->GetParent();
 					if (pcParent == NULL)
 					{
-						return FALSE;
+						return false;
 					}
 					psIterator->iIndex = pcParent->FindIndex(psIterator->pcNode);
 					psIterator->pcNode = pcParent;
@@ -1202,7 +1202,7 @@ BOOL CIndexTreeMemory::StepNext(SIndexTreeMemoryUnsafeIterator* psIterator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::ValidateSize(void)
+bool CIndexTreeMemory::ValidateSize(void)
 {
 	int iSizeFromRecursion;
 
@@ -1210,11 +1210,11 @@ BOOL CIndexTreeMemory::ValidateSize(void)
 
 	if (miSize != iSizeFromRecursion)
 	{
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -1223,9 +1223,9 @@ BOOL CIndexTreeMemory::ValidateSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::ValidateIndexTree(void)
+bool CIndexTreeMemory::ValidateIndexTree(void)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = ValidateLimits();
 	bResult &= ValidateNodeTree();
@@ -1249,7 +1249,7 @@ size_t CIndexTreeMemory::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Print(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeMemory::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
 	CChars				sz;
 
@@ -1279,7 +1279,7 @@ void CIndexTreeMemory::Dump(void)
 	CChars				sz;
 
 	sz.Init();
-	Print(&sz, TRUE, TRUE);
+	Print(&sz, true, true);
 	sz.Dump();
 	sz.Kill();
 }
@@ -1288,7 +1288,7 @@ void CIndexTreeMemory::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeMemory::PrintChildren(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
 	CIndexTreeRecursor	cCursor;
 
@@ -1309,8 +1309,8 @@ void CIndexTreeMemory::PrintChildren(CChars* pszDest, BOOL bShowFlags, BOOL bSho
 void AppendIndexTreeMemoryNodeDescrition(CChars* psz, CIndexTreeNodeMemory* pcCurrent, int uIndexFromParent)
 {
 	char	szArrow[] = " -> ";
-	BOOL	bHasChildren;
-	BOOL	bHasObject;
+	bool	bHasChildren;
+	bool	bHasObject;
 
 	if (uIndexFromParent == -1)
 	{
@@ -1359,7 +1359,7 @@ void AppendIndexTreeMemoryNodeDescrition(CChars* psz, CIndexTreeNodeMemory* pcCu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeMemory* pcCurrent, int uIndexFromParent, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeMemory::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeMemory* pcCurrent, int uIndexFromParent, bool bShowFlags, bool bShowSize)
 {
 	CChars	szMemory;
 	CChars	sz;
@@ -1398,7 +1398,7 @@ void CIndexTreeMemory::DebugNodeChildren(CChars* pszDest, CIndexTreeNodeMemory* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, BOOL bShowFlags, BOOL bShowSize)
+void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor, bool bShowFlags, bool bShowSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	int						i;
@@ -1407,8 +1407,8 @@ void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor
 	CStackMemory<32>		cStack;
 	char*					pvKey;
 	CChars					szKey;
-	BOOL					bHasNodes;
-	BOOL					bHasData;
+	bool					bHasNodes;
+	bool					bHasData;
 	unsigned char			iFirst;
 	unsigned char			iLast;
 
@@ -1429,7 +1429,7 @@ void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor
 			pszDest->AppendNewLine(szKey);
 			szKey.Kill();
 
-			DebugKey(pszDest, pvKey, iKeySize, TRUE, bShowFlags, bShowSize, FALSE);
+			DebugKey(pszDest, pvKey, iKeySize, true, bShowFlags, bShowSize, false);
 			cStack.Kill();
 		}
 
@@ -1454,12 +1454,12 @@ void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL bSkipRoot, BOOL bShowFlags, BOOL bShowSize, BOOL bKeyAlreadyReversed)
+void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	unsigned char			c;
 	int						i;
-	BOOL					bExecute;
+	bool					bExecute;
 
 	pcCurrent = mpcRoot;
 
@@ -1508,7 +1508,7 @@ void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, BOOL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::DebugNode(CChars* pszDest, CIndexTreeNodeMemory* pcParent, int uiIndexInParent, BOOL bShowFlags, BOOL bShowSize)
+CIndexTreeNodeMemory* CIndexTreeMemory::DebugNode(CChars* pszDest, CIndexTreeNodeMemory* pcParent, int uiIndexInParent, bool bShowFlags, bool bShowSize)
 {
 	CIndexTreeNodeMemory* pcChild;
 
@@ -1606,10 +1606,10 @@ size_t CIndexTreeMemory::RecurseByteSize(CIndexTreeNodeMemory* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::ValidateLimits(void)
+bool CIndexTreeMemory::ValidateLimits(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateLimits(&cCursor);
@@ -1623,13 +1623,13 @@ BOOL CIndexTreeMemory::ValidateLimits(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
+bool CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
 	unsigned char			iFirst;
 	unsigned char			iLast;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeNodeMemory*	pcFirst;
 	CIndexTreeNodeMemory*	pcLast;
 	CIndexTreeNodeMemory*	pcNode;
@@ -1648,13 +1648,13 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				{
 					pcCursor->GenerateBad();
 					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain first index [", IntToString(iFirst), "].", NULL);
-					return FALSE;
+					return false;
 				}
 				if (!pcNode->ContainsIndex(iLast))
 				{
 					pcCursor->GenerateBad();
 					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] did not contain last index [", IntToString(iLast), "].", NULL);
-					return FALSE;
+					return false;
 				}
 
 				pcFirst = pcNode->Get(iFirst);
@@ -1662,7 +1662,7 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				{
 					pcCursor->GenerateBad();
 					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] first child [", IntToString(iFirst), "] was NULL.", NULL);
-					return FALSE;
+					return false;
 				}
 
 				pcLast = pcNode->Get(iLast);
@@ -1670,7 +1670,7 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				{
 					pcCursor->GenerateBad();
 					gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] for key [", pcCursor->GetBadKey(), "] last child [", IntToString(iFirst), "] was NULL.", NULL);
-					return FALSE;
+					return false;
 				}
 			}
 
@@ -1682,13 +1682,13 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -1696,10 +1696,10 @@ BOOL CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::ValidateParentIndex(void)
+bool CIndexTreeMemory::ValidateParentIndex(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateParentIndex(&cCursor);
@@ -1713,12 +1713,12 @@ BOOL CIndexTreeMemory::ValidateParentIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
+bool CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeNodeMemory*	pcChildsParent;
 	unsigned char			uiIndexInParent;
 
@@ -1738,7 +1738,7 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 					{
 						pcCursor->GenerateBad();
 						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
-						return FALSE;
+						return false;
 					}
 
 					uiIndexInParent = pcChild->GetIndexInParent();
@@ -1746,7 +1746,7 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 					{
 						pcCursor->GenerateBad();
 						gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] points to the wrong parent node.", NULL);
-						return FALSE;
+						return false;
 					}
 				}
 			}
@@ -1759,14 +1759,14 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -1774,10 +1774,10 @@ BOOL CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::ValidateNodeTree(void)
+bool CIndexTreeMemory::ValidateNodeTree(void)
 {
 	CIndexTreeRecursor	cCursor;
-	BOOL				bResult;
+	bool				bResult;
 
 	cCursor.Init(mpcRoot);
 	bResult = RecurseValidateNodeTree(&cCursor);
@@ -1791,12 +1791,12 @@ BOOL CIndexTreeMemory::ValidateNodeTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
+bool CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
-	BOOL					bResult;
+	bool					bResult;
 	CIndexTreeNodeMemory*	pcBackNode;
 	int						iCount;
 
@@ -1807,7 +1807,7 @@ BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 		{
 			pcCursor->GenerateBad();
 			gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] does not point back into its Index Tree.", NULL);
-			return FALSE;
+			return false;
 		}
 
 		pcBackNode = pcNode;
@@ -1820,7 +1820,7 @@ BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 			{
 				pcCursor->GenerateBad();
 				gcLogger.Error2(__METHOD__, " Node [", pcCursor->GetBadNode(), "] does not point back to its root node.", NULL);
-				return FALSE;
+				return false;
 			}
 		}
 
@@ -1834,14 +1834,14 @@ BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 				if (!bResult)
 				{
 					pcCursor->Pop();
-					return FALSE;
+					return false;
 				}
 			}
 
 		}
 	}
 	pcCursor->Pop();
-	return TRUE;
+	return true;
 }
 
 
@@ -1849,25 +1849,25 @@ BOOL CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
+bool CIndexTreeMemory::HasKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeMemory* pcNode;
 
 	pcNode = GetNode(pvKey, iKeySize);
 	if (pcNode == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (pcNode->HasData())
 	{
 		HasKeyReorderData(pcNode);
 
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

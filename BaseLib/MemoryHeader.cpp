@@ -123,7 +123,7 @@ int CompareFreeListDesc(const void* arg1, const void* arg2)
 //////////////////////////////////////////////////////////////////////////
 void SMemory::Init(void)
 {
-	bValid = FALSE;;
+	bValid = false;;
 	pvMem = NULL;
 	uiAllocCount = 0;
 	uiSize = 0;
@@ -137,7 +137,7 @@ void SMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void SMemory::Set(SGeneralMemoryAllocation* psAllocation)
 {
-	bValid = TRUE;
+	bValid = true;
 	pvMem = RemapSinglePointer(psAllocation, sizeof(SGeneralMemoryAllocation));
 	uiAllocCount = psAllocation->uiAllocCount;
 	uiSize = psAllocation->uiSize;
@@ -150,7 +150,7 @@ void SMemory::Set(SGeneralMemoryAllocation* psAllocation)
 //////////////////////////////////////////////////////////////////////////
 void SMemory::Set(SDataMemoryAllocation* psAllocation)
 {
-	bValid = TRUE;
+	bValid = true;
 	pvMem = RemapSinglePointer(psAllocation, sizeof(SDataMemoryAllocation));
 	uiAllocCount = 0;
 	uiSize = psAllocation->uiSize;

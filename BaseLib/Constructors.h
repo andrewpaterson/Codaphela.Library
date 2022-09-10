@@ -44,12 +44,12 @@ public:
 						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, size_t uiAdditionalSize, char(**pacDebugName)[4] = NULL);
 						int		NumConstructors(void);
 
-						BOOL	Contains(const char* szName);
+						bool	Contains(const char* szName);
 
-						BOOL	ValidateMemoryInitialised(void);
+						bool	ValidateMemoryInitialised(void);
 
 protected:
-						BOOL	ValidateNotAdded(const char* szClassName);
+						bool	ValidateNotAdded(const char* szClassName);
 };
 
 
@@ -128,7 +128,7 @@ M* CConstructors::Add(void)
 	int				iSize;
 	CStackMemory<>	cStack;  //Stop the destructor being called on M so we can't just declare M on the stack.
 	const char*		szClassName;
-	BOOL			bResult;
+	bool			bResult;
 
 	pvM = StackConstruct<M>(&cStack);
 	szClassName = pvM->ClassName();

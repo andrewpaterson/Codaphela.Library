@@ -28,7 +28,7 @@ size_t MinDataSize(size_t uiDataSize, size_t uiMaxDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength)
+bool CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength)
 {
 	if (pvDest)
 	{
@@ -36,15 +36,15 @@ BOOL CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxD
 		if ((iSourceLength < iMaxDestLength) || (iMaxDestLength == 0))
 		{
 			pvDest[iSourceLength] = '\0';
-			return TRUE;
+			return true;
 		}
 		else
 		{
 			pvDest[iMaxDestLength - 1] = '\0';
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

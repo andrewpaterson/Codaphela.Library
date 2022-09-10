@@ -6,18 +6,18 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile)
+bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile)
 {
 	CChars			szWorking;
 	CChars			szExpectedWorking;
 	CFileUtil		cFileUtil;
-	BOOL			bResult;
+	bool			bResult;
 
 	szWorking.Init();
 	cFileUtil.CurrentDirectory(&szWorking);
 	szExpectedWorking.Init(szExpected);
 	cFileUtil.PrependToPath(&szExpectedWorking, szWorking.Text());
-	bResult = PrivateAssertString(szExpectedWorking.Text(), szActual, FALSE, iLine, szFile);
+	bResult = PrivateAssertString(szExpectedWorking.Text(), szActual, false, iLine, szFile);
 	szExpectedWorking.Kill();
 	szWorking.Kill();
 

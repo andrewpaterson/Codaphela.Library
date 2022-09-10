@@ -16,7 +16,7 @@ public:
 	void						Init(int uiSize);
 	void						Kill(void);
 
-	BOOL						HasOverlaps(void);
+	bool						HasOverlaps(void);
 	SMemoryCacheDescriptor*		Get(int iIndex);
 	int							NumElements(void);
 

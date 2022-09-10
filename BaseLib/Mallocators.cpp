@@ -12,8 +12,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CMallocators::Init(void)
 {
-	mmszClasses.Init(TRUE, FALSE);
-	mmShortNames.Init(TRUE, FALSE);
+	mmszClasses.Init(true, false);
+	mmShortNames.Init(true, false);
 
 	Add(&gcNullAllocator);
 	Add(&gcSystemAllocator);
@@ -36,7 +36,7 @@ void CMallocators::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMallocators::Add(CMallocator* pcMalloc)
+bool CMallocators::Add(CMallocator* pcMalloc)
 {
 	char*	sz;
 
@@ -44,12 +44,12 @@ BOOL CMallocators::Add(CMallocator* pcMalloc)
 	if (mmszClasses.Get(sz))
 	{
 		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	mmszClasses.Put(sz, &pcMalloc);
 	mmShortNames.Put((char*)pcMalloc->ShortName(), sz);
-	return TRUE;
+	return true;
 }
 
 
@@ -73,7 +73,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name length.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if ((iLength < 0 || iLength >= 1024))
@@ -84,7 +84,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringChars(szShortName, iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	szClassName =  mmShortNames.Get(szShortName);
@@ -92,14 +92,14 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	{
 		mmShortNames.Dump();
 		gcLogger.Error2(__METHOD__, " Could not find mallocator for short name [", szShortName, "].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	ppcMallocator = mmszClasses.Get(szClassName);
 	if (!ppcMallocator)
 	{
 		gcLogger.Error2(__METHOD__, " Could not find mallocator named [", szClassName, "].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if ((*ppcMallocator)->IsLocal())
@@ -132,25 +132,25 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
+bool CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 {
 	CLocalMallocator*	pcLocal;
 
 	if (!MemoryValidate())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (pcMalloc == NULL)
 	{
 		gcLogger.Error2(__METHOD__, " Could not write NULL mallocator.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (!pcFileWriter->WriteString(pcMalloc->ShortName()))
 	{
 		gcLogger.Error2(__METHOD__, " Could not write mallocator name [", pcMalloc->ClassName(), "].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (pcMalloc->IsLocal())
@@ -160,7 +160,7 @@ BOOL CMallocators::Write(CFileWriter* pcFileWriter, CMallocator* pcMalloc)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 

@@ -238,7 +238,7 @@ void CArrayInt2D::RemoveColumns(int iColumn, int iCount)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt2D::RemoveRows(int iRow, int iCount)
 {
-	mcArray.RemoveRange(iRow * miWidth, (iRow+iCount) * miWidth, TRUE);
+	mcArray.RemoveRange(iRow * miWidth, (iRow+iCount) * miWidth, true);
 	miHeight -= iCount;
 }
 

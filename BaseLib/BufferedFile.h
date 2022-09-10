@@ -65,23 +65,23 @@ public:
 	void		Init(CAbstractFile* pcFile, int iBufferSize);
 	void		Kill(void);
 
-	BOOL		Open(EFileMode eFileMode);
-	BOOL		Close(void);
+	bool		Open(EFileMode eFileMode);
+	bool		Close(void);
 	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		IsOpen(void);
+	bool		IsOpen(void);
 	filePos		Size(void);
-	BOOL		Truncate(filePos iSize);
-	BOOL		Flush(void);
-	BOOL		Delete(void);
+	bool		Truncate(filePos iSize);
+	bool		Flush(void);
+	bool		Delete(void);
 	char*		GetFilename(void);
 
 	void		MatchFilePosToCurrentPos(void);
 	void		BufferSourceFileRead(void);
 	void		CopyFromBuffer(void* pvDest, size_t iByteSize, size_t iDestOffset);
-	BOOL		WriteUnwritten(void);
+	bool		WriteUnwritten(void);
 };
 
 

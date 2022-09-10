@@ -53,7 +53,7 @@ void* CScratchPadAllocator::Realloc(void* pv, size_t tSize)
 
 	pvNew = mcScratchPad.Add(tSize); 
 	psNode =  DataGetHeader<SSPNode, void>(pv);
-	psNode->bUsed = FALSE;
+	psNode->bUsed = false;
 	if (psNode->iSize > tSize)
 	{
 		memcpy(pvNew, pv, tSize);
@@ -70,19 +70,19 @@ void* CScratchPadAllocator::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CScratchPadAllocator::Free(void* pv)
+bool CScratchPadAllocator::Free(void* pv)
 {
 	SSPNode*	psNode;
 
 	if (pv)
 	{
 		psNode = DataGetHeader<SSPNode, void>(pv);
-		psNode->bUsed = FALSE;
-		return TRUE;
+		psNode->bUsed = false;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -111,7 +111,7 @@ const char* CScratchPadAllocator::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CScratchPadAllocator::Read(CFileReader* pcFileReader)
+bool CScratchPadAllocator::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
@@ -119,11 +119,11 @@ BOOL CScratchPadAllocator::Read(CFileReader* pcFileReader)
 
 	if (!pcFileReader->ReadData(&sParams, sizeof(SScratchPadParams)))
 	{
-		return FALSE;
+		return false;
 	}
 
 	mcScratchPad.Init(sParams.iChunkSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -131,7 +131,7 @@ BOOL CScratchPadAllocator::Read(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CScratchPadAllocator::Write(CFileWriter* pcFileWriter)
+bool CScratchPadAllocator::Write(CFileWriter* pcFileWriter)
 {
 	SScratchPadParams	sParams;
 
@@ -139,9 +139,9 @@ BOOL CScratchPadAllocator::Write(CFileWriter* pcFileWriter)
 
 	if (!pcFileWriter->WriteData(&sParams, sizeof(SScratchPadParams)))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 

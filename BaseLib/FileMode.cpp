@@ -5,15 +5,15 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL IsFileModeWritable(EFileMode eFileMode)
+bool IsFileModeWritable(EFileMode eFileMode)
 {
 	if ((eFileMode == EFM_ReadWrite) || (eFileMode == EFM_Write_Create) || (eFileMode == EFM_ReadWrite_Create))
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -22,15 +22,15 @@ BOOL IsFileModeWritable(EFileMode eFileMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL IsFileModeReadable(EFileMode eFileMode)
+bool IsFileModeReadable(EFileMode eFileMode)
 {
 	if ((eFileMode == EFM_ReadWrite) || (eFileMode == EFM_Read) || (eFileMode == EFM_ReadWrite_Create) || (eFileMode == EFM_Read_Create))
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -39,28 +39,28 @@ BOOL IsFileModeReadable(EFileMode eFileMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL IsFileModeReadOnly(EFileMode eFileMode)
+bool IsFileModeReadOnly(EFileMode eFileMode)
 {
 	if ((eFileMode == EFM_Read) || (eFileMode == EFM_Read_Create))
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
 
-BOOL IsFileModeCreate(EFileMode eFileMode)
+bool IsFileModeCreate(EFileMode eFileMode)
 {
 	if ((eFileMode == EFM_Read_Create) || (eFileMode == EFM_Write_Create) || (eFileMode == EFM_ReadWrite_Create))
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

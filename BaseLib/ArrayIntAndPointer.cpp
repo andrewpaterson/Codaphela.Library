@@ -63,7 +63,7 @@ void CArrayIntAndPointer::AddIfUnique(void* pvData, int iInt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::Get(int iElementPos, void** pvData, int* iType)
+bool CArrayIntAndPointer::Get(int iElementPos, void** pvData, int* iType)
 {
 	SIntAndPointer*	psPtr;
 
@@ -72,11 +72,11 @@ BOOL CArrayIntAndPointer::Get(int iElementPos, void** pvData, int* iType)
 	{
 		*pvData = psPtr->pvData;
 		*iType = psPtr->iValue;
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -179,7 +179,7 @@ void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElemen
 {
 	int				iPos;
 	SIntAndPointer	sTypedPointer;
-	BOOL			bExists;
+	bool			bExists;
 
 	//This function never overwrites because it does not know how to free an existing object.
 
@@ -210,12 +210,12 @@ void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElemen
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
+bool CArrayIntAndPointer::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
 {
 	if (miUsedElements == 0)
 	{
 		*piIndex = 0;
-		return FALSE;
+		return false;
 	}
 	return BinarySearch(pvElement, 0, miUsedElements - 1, fCompare, piIndex);
 }
@@ -225,7 +225,7 @@ BOOL CArrayIntAndPointer::FindInSorted(void* pvElement, DataCompare fCompare, in
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
+bool CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
 {
 	int		iMiddle;
 	int		iResultMiddle;
@@ -241,7 +241,7 @@ BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, Data
 		if (iResultMiddle == 0)
 		{
 			*piIndex = iMiddle;
-			return TRUE;
+			return true;
 		}
 		else if (iResultMiddle < 0)
 		{
@@ -261,6 +261,6 @@ BOOL CArrayIntAndPointer::BinarySearch(void* pvData, int iLeft, int iRight, Data
 	{
 		*piIndex = iMiddle;
 	}
-	return FALSE;
+	return false;
 }
 

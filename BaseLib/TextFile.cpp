@@ -73,7 +73,7 @@ void CTextFile::KillExceptBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextFile::Read(char* szFilename)
+bool CTextFile::Read(char* szFilename)
 {
 	CDiskFile*	pcDiskFile;
 	
@@ -84,7 +84,7 @@ BOOL CTextFile::Read(char* szFilename)
 		pcDiskFile = DiskFile(szFilename);
 		return Read(pcDiskFile);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -92,7 +92,7 @@ BOOL CTextFile::Read(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextFile::Read(CAbstractFile* pcAbstractFile)
+bool CTextFile::Read(CAbstractFile* pcAbstractFile)
 {
 	CFileBasic	mcFile;
 	filePos		iSize;
@@ -106,10 +106,10 @@ BOOL CTextFile::Read(CAbstractFile* pcAbstractFile)
 		mcFile.ReadData(mcText.Text(), (int)iSize);
 		mcFile.Close();
 		mcFile.Kill();
-		return TRUE;
+		return true;
 	}
 	mcFile.Kill();
-	return FALSE;
+	return false;
 }
 
 
@@ -117,7 +117,7 @@ BOOL CTextFile::Read(CAbstractFile* pcAbstractFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextFile::Write(char* szFilename)
+bool CTextFile::Write(char* szFilename)
 {
 	CFileBasic	mcFile;
 
@@ -131,11 +131,11 @@ BOOL CTextFile::Write(char* szFilename)
 			mcFile.WriteData(mcText.Text(), mcText.Length());
 			mcFile.Close();
 			mcFile.Kill();
-			return TRUE;
+			return true;
 		}
 		mcFile.Kill();
 	}
-	return FALSE;
+	return false;
 }
 
 

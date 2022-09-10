@@ -55,14 +55,14 @@ public:
 
 	friend SFloat4 operator * (float, const SFloat4&);
 
-	BOOL operator == (const SFloat4&) const;
-	BOOL operator != (const SFloat4&) const;	
+	bool operator == (const SFloat4&) const;
+	bool operator != (const SFloat4&) const;	
 
 	void 	Init(float x, float y, float z, float w);
 	void 	Zero(void);
 
-	BOOL 	Save(CFileWriter* pcFile);
-	BOOL 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFile);
+	bool 	Load(CFileReader* pcFile);
 
 	void 	Fix(void);
 	int		WholeNumbers(void);

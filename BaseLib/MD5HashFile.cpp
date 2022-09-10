@@ -33,11 +33,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CMD5HashFile::Init(CAbstractFile*	pcFile)
 {
 	CAbstractFile::Init();
-	mbHashing = FALSE;
+	mbHashing = false;
 	MD5Init(&msMD5Context);
 	mpcFile = pcFile;
-	mbResetMD5OnSeek = TRUE;
-	mbResetMD5OnOperationChange = TRUE;
+	mbResetMD5OnSeek = true;
+	mbResetMD5OnOperationChange = true;
 	meLastOp = LMD5OP_None;
 }
 
@@ -60,9 +60,9 @@ void CMD5HashFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::Open(EFileMode eFileMode)
+bool CMD5HashFile::Open(EFileMode eFileMode)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mpcFile->Open(eFileMode);
 	if (bResult)
@@ -71,7 +71,7 @@ BOOL CMD5HashFile::Open(EFileMode eFileMode)
 	}
 	else
 	{
-		mbHashing = FALSE;
+		mbHashing = false;
 	}
 	return bResult;
 }
@@ -81,9 +81,9 @@ BOOL CMD5HashFile::Open(EFileMode eFileMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::Close()
+bool CMD5HashFile::Close()
 {
-	BOOL	iResult;
+	bool	iResult;
 
 	StopHashing();
 	iResult = mpcFile->Close();
@@ -102,7 +102,7 @@ void CMD5HashFile::StopHashing(void)
 		if (mbHashing)
 		{
 			MD5Final(&msMD5Context);
-			mbHashing = FALSE;
+			mbHashing = false;
 		}
 	}
 }
@@ -117,7 +117,7 @@ void CMD5HashFile::StartHashing(void)
 	if (IsOpen())
 	{
 		MD5Init(&msMD5Context);
-		mbHashing = TRUE;
+		mbHashing = true;
 	}
 }
 
@@ -126,7 +126,7 @@ void CMD5HashFile::StartHashing(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::IsOpen(void)
+bool CMD5HashFile::IsOpen(void)
 {
 	return mpcFile->IsOpen();
 }
@@ -192,7 +192,7 @@ filePos CMD5HashFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CMD5HashFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	if (mbResetMD5OnSeek)
 	{
@@ -226,7 +226,7 @@ filePos CMD5HashFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::Truncate(filePos iSize)
+bool CMD5HashFile::Truncate(filePos iSize)
 {
 	return gcLogger.Error2(__METHOD__, " Cannot truncate Hash Files.", NULL);
 }
@@ -236,7 +236,7 @@ BOOL CMD5HashFile::Truncate(filePos iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::Flush(void)
+bool CMD5HashFile::Flush(void)
 {
 	return mpcFile->Flush();
 }
@@ -246,11 +246,11 @@ BOOL CMD5HashFile::Flush(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMD5HashFile::Delete(void)
+bool CMD5HashFile::Delete(void)
 {
 	if (IsOpen())
 	{
-		return FALSE;
+		return false;
 	}
 
 	return mpcFile->Delete();
@@ -338,7 +338,7 @@ CMD5HashFile* MD5HashFile(CAbstractFile* pcFile)
 
 	pcHashFile = NewMalloc<CMD5HashFile>();
 	pcHashFile->Init(pcFile);
-	pcHashFile->mbBasicFileMustFree = TRUE;
+	pcHashFile->mbBasicFileMustFree = true;
 	return pcHashFile;
 }
 

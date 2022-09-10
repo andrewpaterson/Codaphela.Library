@@ -18,8 +18,8 @@ public:
 	char* GetBadNode(void);
 
 protected:
-	void GenerateBadNode(CIndexTreeNode* pcCurrent, BOOL bHex);
-	BOOL GenerateBadKey(CArrayChar* acKey);
+	void GenerateBadNode(CIndexTreeNode* pcCurrent, bool bHex);
+	bool GenerateBadKey(CArrayChar* acKey);
 };
 
 

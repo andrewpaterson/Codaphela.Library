@@ -72,7 +72,7 @@ void CFileBasic::Kill(void)
 //  Description  : Opens the file specified with a specific mode.
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Open(EFileMode eMode)
+bool CFileBasic::Open(EFileMode eMode)
 {
 	return mpcFile->Open(eMode);
 }
@@ -89,7 +89,7 @@ BOOL CFileBasic::Open(EFileMode eMode)
 //  Description  : Closes the file (if it is already open)
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Close()
+bool CFileBasic::Close()
 {
 	return mpcFile->Close();
 }
@@ -146,7 +146,7 @@ filePos CFileBasic::Read(void* pvDest, filePos iSize, filePos iCount)
 //  Description  : Seeks to an offset relative to an origin within the file.
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
+bool CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 {
 	return mpcFile->Seek(iOffset, eOrigin);
 }
@@ -165,7 +165,7 @@ BOOL CFileBasic::Seek(filePos iOffset, EFileSeekOrigin eOrigin)
 //  Description  : Seeks to an offset relative to an origin within the file.
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Seek(filePos iOffset)
+bool CFileBasic::Seek(filePos iOffset)
 {
 	return mpcFile->Seek(iOffset, EFSO_SET);
 }
@@ -182,7 +182,7 @@ BOOL CFileBasic::Seek(filePos iOffset)
 //  Description  : Flush the file cache to disk.
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Flush(void)
+bool CFileBasic::Flush(void)
 {
 	return mpcFile->Flush();
 }
@@ -197,7 +197,7 @@ BOOL CFileBasic::Flush(void)
 //  Description  : Seeks to an offset relative to an origin within the file.
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::IsOpen(void)
+bool CFileBasic::IsOpen(void)
 {
 	if (mpcFile != NULL)
 	{
@@ -205,7 +205,7 @@ BOOL CFileBasic::IsOpen(void)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -244,7 +244,7 @@ filePos CFileBasic::GetFileSize(void)
 // 
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Truncate(filePos iSize)
+bool CFileBasic::Truncate(filePos iSize)
 {
 	return mpcFile->Truncate(iSize);
 }
@@ -269,7 +269,7 @@ filePos CFileBasic::GetFilePos()
 // 
 // 
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileBasic::Delete(void)
+bool CFileBasic::Delete(void)
 {
 	return mpcFile->Delete();
 }

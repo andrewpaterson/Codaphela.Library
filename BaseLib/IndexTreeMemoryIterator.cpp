@@ -27,9 +27,9 @@ void CIndexTreeMemoryIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryIterator::Iterate(void)
+bool CIndexTreeMemoryIterator::Iterate(void)
 {
-	BOOL	bHasData;
+	bool	bHasData;
 
 	if (mbStarted)
 	{
@@ -38,7 +38,7 @@ BOOL CIndexTreeMemoryIterator::Iterate(void)
 	else
 	{
 		bHasData = mpcTree->StartIteration(&sIter, &macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
-		mbStarted = TRUE;
+		mbStarted = true;
 	}
 
 	if (!bHasData)

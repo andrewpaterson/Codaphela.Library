@@ -61,15 +61,15 @@ public:
 			int		GetKeyInt(void* pvKey, int iKeySize, int iNullValue = -1);
 			int64	GetKeyLong(void* pvKey, int iKeySize, int64 lliNullValue = -1);
 			
-			BOOL	HasLong(int64 lliKey);
-			BOOL	HasInt(int iKey);
-			BOOL	HasString(char* pszKey);
-			BOOL	HasKey(void* pvKey, int iKeySize);
+			bool	HasLong(int64 lliKey);
+			bool	HasInt(int iKey);
+			bool	HasString(char* pszKey);
+			bool	HasKey(void* pvKey, int iKeySize);
 
-			BOOL	DeleteInt(int iKey);
-			BOOL	DeleteLong(int64 lliKey);
-			BOOL	DeleteString(char* pszKey);
-			BOOL	DeleteKey(void* pvKey, int iKeySize);
+			bool	DeleteInt(int iKey);
+			bool	DeleteLong(int64 lliKey);
+			bool	DeleteString(char* pszKey);
+			bool	DeleteKey(void* pvKey, int iKeySize);
 
 			int		DataSizeLong(int64 lliKey);
 			int		DataSizeString(char* pszKey);
@@ -86,8 +86,8 @@ protected:
 	virtual void*	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize) =0;
 	virtual void*	Get(void* pvKey, int iKeySize, size_t* piDataSize) =0;
 	virtual size_t	DataSize(void* pvKey, int iKeySize) =0;
-	virtual BOOL	Remove(void* pvKey, int iKeySize) =0;
-	virtual BOOL	Has(void* pvKey, int iKeySize) =0;
+	virtual bool	Remove(void* pvKey, int iKeySize) =0;
+	virtual bool	Has(void* pvKey, int iKeySize) =0;
 };
 
 

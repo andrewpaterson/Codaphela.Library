@@ -6,11 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Init(CIndexTreeMemory* pcTree)
+bool CIndexTreeMemoryAccess::Init(CIndexTreeMemory* pcTree)
 {
 	CIndexAccess::Init();
 	mpcTree = pcTree;
-	return TRUE;
+	return true;
 }
 
 
@@ -18,7 +18,7 @@ BOOL CIndexTreeMemoryAccess::Init(CIndexTreeMemory* pcTree)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Kill(void)
+bool CIndexTreeMemoryAccess::Kill(void)
 {
 	mpcTree = NULL;
 	return CIndexAccess::Kill();
@@ -29,9 +29,9 @@ BOOL CIndexTreeMemoryAccess::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Flush(void)
+bool CIndexTreeMemoryAccess::Flush(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -59,7 +59,7 @@ int64 CIndexTreeMemoryAccess::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::ValidateIndex(void)
+bool CIndexTreeMemoryAccess::ValidateIndex(void)
 {
 	return mpcTree->ValidateIndexTree();
 }
@@ -69,7 +69,7 @@ BOOL CIndexTreeMemoryAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+bool CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	void* pvResult;
 
@@ -82,9 +82,9 @@ BOOL CIndexTreeMemoryAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mpcTree->Get(pvKey, iKeySize, pvData,piDataSize, uiMaxDataSize);
 	return bResult;
@@ -95,7 +95,7 @@ BOOL CIndexTreeMemoryAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Remove(void* pvKey, int iKeySize)
+bool CIndexTreeMemoryAccess::Remove(void* pvKey, int iKeySize)
 {
 	return mpcTree->Remove(pvKey, iKeySize);
 }
@@ -105,7 +105,7 @@ BOOL CIndexTreeMemoryAccess::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Has(void* pvKey, int iKeySize)
+bool CIndexTreeMemoryAccess::Has(void* pvKey, int iKeySize)
 {
 	return mpcTree->HasKey(pvKey, iKeySize);
 }
@@ -125,13 +125,13 @@ int CIndexTreeMemoryAccess::DataSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Flush(void* pvKey, int iKeySize)
+bool CIndexTreeMemoryAccess::Flush(void* pvKey, int iKeySize)
 {
 	if (Has(pvKey, iKeySize))
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -139,9 +139,9 @@ BOOL CIndexTreeMemoryAccess::Flush(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeMemoryAccess::Evict(void* pvKey, int iKeySize)
+bool CIndexTreeMemoryAccess::Evict(void* pvKey, int iKeySize)
 {
-	return FALSE;
+	return false;
 }
 
 

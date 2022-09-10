@@ -184,7 +184,7 @@ SQuaternion operator * (float f, const SQuaternion& q)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SQuaternion::operator == (const SQuaternion& q) const
+bool SQuaternion::operator == (const SQuaternion& q) const
 {
 	return x == q.x && y == q.y && z == q.z && w == q.w;
 }
@@ -194,7 +194,7 @@ BOOL SQuaternion::operator == (const SQuaternion& q) const
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SQuaternion::operator != (const SQuaternion& q) const
+bool SQuaternion::operator != (const SQuaternion& q) const
 {
 	return x != q.x || y != q.y || z != q.z || w != q.w;
 }

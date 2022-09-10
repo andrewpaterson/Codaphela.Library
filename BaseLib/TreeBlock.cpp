@@ -252,7 +252,7 @@ void CTreeBlock::Detach(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CTreeBlock::RemoveLeaf(void* psNodeData)
+bool CTreeBlock::RemoveLeaf(void* psNodeData)
 {
 	STUNode*		psNodeHeader;
 
@@ -260,11 +260,11 @@ BOOL CTreeBlock::RemoveLeaf(void* psNodeData)
 	if ((psNodeData == NULL) || (psNodeHeader->sTNode.psUp))
 	{
 		//This wasn't a leaf so we can't detach it.
-		return FALSE;
+		return false;
 	}
 	Detach(psNodeData);
 	__CTreeBlock::Free(psNodeHeader);
-	return TRUE;
+	return true;
 }
 
 
@@ -311,7 +311,7 @@ void CTreeBlock::Remove(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
+bool CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 {
 	void*			pvData;
 	int				iPathSize;
@@ -320,7 +320,7 @@ BOOL CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 
 	if (!pcFileWriter->WriteData(this, sizeof(CTreeBlock))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	if (NumElements() != 0)
@@ -331,29 +331,29 @@ BOOL CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 			iPathSize = GetPathTo(aiPath, pvData);
 			if (iPathSize >= 1024)
 			{
-				return FALSE; 
+				return false; 
 			}
 			iSize = GetNodeSize(pvData);
 			if (!pcFileWriter->WriteInt(iSize))
 			{ 
-				return FALSE; 
+				return false; 
 			}
 			if (!pcFileWriter->WriteInt(iPathSize)) 
 			{ 
-				return FALSE; 
+				return false; 
 			}
 			if (!pcFileWriter->WriteData(aiPath, sizeof(int) * iPathSize)) 
 			{ 
-				return FALSE; 
+				return false; 
 			}
 			if (!pcFileWriter->WriteData(pvData, iSize)) 
 			{ 
-				return FALSE; 
+				return false; 
 			}
 			pvData = TraverseFrom(pvData);
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -361,7 +361,7 @@ BOOL CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
+bool CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 {
 	void*			pvData;
 	int				i;
@@ -372,7 +372,7 @@ BOOL CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 
 	if (!pcFileReader->ReadData(this, sizeof(CTreeBlock))) 
 	{ 
-		return FALSE; 
+		return false; 
 	}
 
 	iNumElements = NumElements();
@@ -382,21 +382,21 @@ BOOL CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 	{
 		if (!pcFileReader->ReadInt(&iSize)) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 		if (!pcFileReader->ReadData(&iPathSize, sizeof(int))) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 		if (!pcFileReader->ReadData(aiPath, sizeof(int) * iPathSize)) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 		pvData = InsertOnPath(aiPath, iPathSize, iSize);
 		if (!pcFileReader->ReadData(pvData, iSize)) 
 		{ 
-			return FALSE; 
+			return false; 
 		}
 	}
-	return TRUE;
+	return true;
 }

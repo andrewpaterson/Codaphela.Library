@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CDatasIO::Init(void)
 {
-	mcDataIOs.Init(32);
+	mcDataIOs.Init();
 }
 
 
@@ -116,9 +116,9 @@ int CDatasIO::NumDataIOs(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SDataTypeIO::Save(CFileWriter* pcFile)
+bool SDataTypeIO::Save(CFileWriter* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -126,9 +126,9 @@ BOOL SDataTypeIO::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SDataTypeIO::Load(CFileReader* pcFile)
+bool SDataTypeIO::Load(CFileReader* pcFile)
 {
-	return TRUE;
+	return true;
 }
 
 

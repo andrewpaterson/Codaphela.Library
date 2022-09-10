@@ -32,38 +32,38 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapStringBlock : public CMapBlock
 {
 public:
-	void		Init(BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
-	void		Init(CMallocator* pcMalloc, BOOL bCaseSensitive = TRUE, BOOL bOverwrite = TRUE);
+	void		Init(bool bCaseSensitive = true, bool bOverwrite = true);
+	void		Init(CMallocator* pcMalloc, bool bCaseSensitive = true, bool bOverwrite = true);
 	void		Kill(void);
 
 	void*		Get(const char* szKey);
 	void*		Get(const char* szKey, int* piDataSize);
 
 	void*		Put(char* szKey, int iDataSize);
-	BOOL		Put(char* szKey, void* psData, int iDataSize);
+	bool		Put(char* szKey, void* psData, int iDataSize);
 	void*		Put(const char* szKey, int iDataSize);
-	BOOL		Put(const char* szKey, void* psData, int iDataSize);
+	bool		Put(const char* szKey, void* psData, int iDataSize);
 
-	BOOL		Remove(char* szKey);
-	BOOL		Remove(const char* szKey);
+	bool		Remove(char* szKey);
+	bool		Remove(const char* szKey);
 
-	BOOL		HasKey(char* szKey);
-	BOOL		HasKey(const char* szKey);
+	bool		HasKey(char* szKey);
+	bool		HasKey(const char* szKey);
 
-	BOOL		WriteCaseSensitivity(CFileWriter* pcFileWriter);
-	BOOL		Write(CFileWriter* pcFileWriter);
+	bool		WriteCaseSensitivity(CFileWriter* pcFileWriter);
+	bool		Write(CFileWriter* pcFileWriter);
 	DataCompare	ReadCaseSensitivity(CFileReader* pcFileReader);
-	BOOL		Read(CFileReader* pcFileReader);
+	bool		Read(CFileReader* pcFileReader);
 
 	char*		GetKeyForData(void* psData);
 
-	BOOL		IsCaseSensitive(void);
-	void		SetCaseSensitive(BOOL bCaseSensitive);
+	bool		IsCaseSensitive(void);
+	void		SetCaseSensitive(bool bCaseSensitive);
 
 	void		GetKeysAsString(CChars* pszDest, char* szSeparator);
 
 protected:
-	DataCompare	CalculateCompareFunc(BOOL bCaseSensitive);
+	DataCompare	CalculateCompareFunc(bool bCaseSensitive);
 };
 
 

@@ -5,7 +5,7 @@
 
 CMallocators			gcMallocators;
 CConstructors			gcConstructors;
-BOOL					gbMemory = FALSE;
+bool					gbMemory = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ void MemoryInit(void)
 	}
 
 	gcMemory.Init();
-	gbMemory = TRUE;
+	gbMemory = true;
 
 	gcMallocators.Init();
 	gcConstructors.Init();
@@ -31,7 +31,7 @@ void MemoryInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
+void MemoryInit(int iDefaultAlignment, bool bDefaultFreeListParams)
 {
 	if (gbMemory)
 	{
@@ -39,7 +39,7 @@ void MemoryInit(int iDefaultAlignment, BOOL bDefaultFreeListParams)
 	}
 
 	gcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
-	gbMemory = TRUE;
+	gbMemory = true;
 
 	gcMallocators.Init();
 	gcConstructors.Init();
@@ -61,7 +61,7 @@ void MemoryKill(void)
 	gcMallocators.Kill();
 
 	gcMemory.Kill();
-	gbMemory = FALSE;
+	gbMemory = false;
 }
 
 
@@ -69,16 +69,16 @@ void MemoryKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL MemoryValidate(void)
+bool MemoryValidate(void)
 {
 	if (!gbMemory)
 	{
 		gcLogger.Error("Global Memory has not been initialised.  Call MemoryInit().");
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 

@@ -38,7 +38,7 @@ class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>
 public:
 	void 	Add(void* pvData, int iInt);
 	void 	AddIfUnique(void* pvData, int iInt);
-	BOOL 	Get(int iElementPos, void** pvData, int* iType);
+	bool 	Get(int iElementPos, void** pvData, int* iType);
 	void*	GetPtr(int iElementPos);
 	void*	SafeGetPtr(int iElementPos);
 	int		GetType(int iElementPos);
@@ -46,8 +46,8 @@ public:
 	void	Set(int iElementPos, void* pvData, int iInt);
 	void	Remove(void* pv);
 	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, int iInt);
-	BOOL	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
-	BOOL	BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
+	bool	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
+	bool	BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
 };
 
 

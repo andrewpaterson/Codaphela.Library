@@ -10,7 +10,7 @@
 void CMapMapIterator::Init(CMapBlock* pcMapBlock)
 {
 	mpcMap = pcMapBlock;
-	mbStarted = FALSE;
+	mbStarted = false;
 }
 
 
@@ -34,7 +34,7 @@ void* CMapMapIterator::Iterate(size_t* puiDataSize, void* pvDestKey, size_t* pui
 	int		iKeySize;
 	void*	pvData;
 	int		iDataSize;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (mbStarted)
 	{
@@ -42,7 +42,7 @@ void* CMapMapIterator::Iterate(size_t* puiDataSize, void* pvDestKey, size_t* pui
 	}
 	else
 	{
-		mbStarted = TRUE;
+		mbStarted = true;
 		bResult = mpcMap->StartIteration(&msIter, &pvKey, &iKeySize, &pvData, &iDataSize);
 	}
 

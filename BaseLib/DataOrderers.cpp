@@ -8,7 +8,7 @@
 
 
 CDataOrderers	gcDataOrderers;
-BOOL			gbDataOrderers = FALSE;
+bool			gbDataOrderers = false;
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -16,7 +16,7 @@ BOOL			gbDataOrderers = FALSE;
 //////////////////////////////////////////////////////////////////////////
 void CDataOrderers::Init(void)
 {
-	mmszClasses.Init(TRUE, FALSE);
+	mmszClasses.Init(true, false);
 }
 
 
@@ -34,7 +34,7 @@ void CDataOrderers::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
+bool CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
 {
 	char* sz;
 
@@ -42,11 +42,11 @@ BOOL CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
 	if (mmszClasses.Get(sz))
 	{
 		gcLogger.Error2(__METHOD__, " A mallocator named [", sz, "] already exists.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	mmszClasses.Put(sz, &pcMalloc);
-	return TRUE;
+	return true;
 }
 
 
@@ -69,7 +69,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringLength(&iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read data orderer name length.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if ((iLength < 0 || iLength >= 1024))
@@ -80,7 +80,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	if (!pcFileReader->ReadStringChars(szName, iLength))
 	{
 		gcLogger.Error2(__METHOD__, " Could not read data orderer name.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	if (StrEmpty(szName))
@@ -92,7 +92,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 	if (!ppcDataOrderer)
 	{
 		gcLogger.Error2(__METHOD__, " Could not find data orderer named [", szName, "].", NULL);
-		return FALSE;
+		return false;
 	}
 
 	pcDataOrderer = *ppcDataOrderer;
@@ -110,11 +110,11 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
+bool CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDataOrderer)
 {
 	if (!MemoryValidate() || !DataOrderersValidate())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (pcDataOrderer == NULL)
@@ -122,7 +122,7 @@ BOOL CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDa
 		if (!pcFileWriter->WriteString(""))
 		{
 			gcLogger.Error2(__METHOD__, " Could not write NULL data orderer.", NULL);
-			return FALSE;
+			return false;
 		}
 	}
 	else
@@ -130,11 +130,11 @@ BOOL CDataOrderers::Write(CFileWriter* pcFileWriter, CIndexTreeDataOrderer* pcDa
 		if (!pcFileWriter->WriteString(pcDataOrderer->ClassName()))
 		{
 			gcLogger.Error2(__METHOD__, " Could not write data orderer name [", pcDataOrderer->ClassName(), "].", NULL);
-			return FALSE;
+			return false;
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -168,7 +168,7 @@ void DataOrderersInit(CConstructors* pcConstructors, CDataOrderers* pcDataOrdere
 	pcDataOrderers->Add(pcModificationDataOrderer);
 	pcDataOrderers->Add(pcCreationDataOrderer);
 
-	gbDataOrderers = TRUE;
+	gbDataOrderers = true;
 }
 
 
@@ -186,16 +186,16 @@ void DataOrderersKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL DataOrderersValidate(void)
+bool DataOrderersValidate(void)
 {
 	if (!gbDataOrderers)
 	{
 		gcLogger.Error("Global Data Orderers have not been initialised.  Call DataOrderersInit.");
-		return FALSE;
+		return false;
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 

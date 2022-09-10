@@ -24,15 +24,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __ERROR_TYPES_H__
 #include "Define.h"
 
-#if (TRUE == -1)
+#if (true == -1)
 #error True must have a value of 1
 #endif
 
 
 enum TRISTATE
 {
-	TRITRUE	= TRUE,
-	TRIFALSE = FALSE,
+	TRITRUE	= true,
+	TRIFALSE = false,
 	TRIGNORED = 0xfffffffe,
 	TRIERROR = 0xffffffff
 };
@@ -64,7 +64,7 @@ extern TRISTATE	gTriState;
 #define ContinueOnTrueReturnOnError(p)	TTV(__LINE__) = p; if ((TTV(__LINE__) == TRITRUE)) { continue; } else if ((TTV(__LINE__) == TRIERROR)) { return TRIERROR; }
 TRISTATE Negate(TRISTATE tristate);
 TRISTATE Fix(TRISTATE tristate);
-BOOL NotTrue(TRISTATE tristate);
+bool NotTrue(TRISTATE tristate);
 
 //Not specifically TRISTATE related but errors nonetheless.
 #define ReturnZeroOnZero(p)				if (p == 0)  { return 0; }

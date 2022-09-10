@@ -30,19 +30,19 @@ class CPackFileNode
 protected:
 	filePos		muiFilePos;  //Start position within pack file
 	filePos		muiSize;
-	BOOL		mbNameWritten;
+	bool		mbNameWritten;
 
 public:
 	void 		Init(void);
 	void 		Kill(void);
-	BOOL 		Load(CFileReader* pcReader);
-	BOOL 		Save(CFileWriter* pcWriter);
+	bool 		Load(CFileReader* pcReader);
+	bool 		Save(CFileWriter* pcWriter);
 
 	filePos		FilePos(void);
 	filePos		Size(void);
-	BOOL		IsNameWritten(void);
+	bool		IsNameWritten(void);
 
-	BOOL		IsInitialised(void);
+	bool		IsInitialised(void);
 	void		SetFilePos(filePos iFilePos);
 	void		IncreaseSize(filePos iSize);
 };

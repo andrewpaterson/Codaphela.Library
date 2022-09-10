@@ -32,7 +32,7 @@ char* CMapStringInt::GetWithValue(int iData)
 	SMapIterator	sIter;
 	char*			szKey;
 	int*			piData;
-	BOOL			bResult;
+	bool			bResult;
 
 	bResult = StartIteration(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
 	while (bResult)

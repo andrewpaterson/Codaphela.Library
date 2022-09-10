@@ -60,7 +60,7 @@ void CListVariable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListVariable::Get(int iIndex, void** pvData)
+bool CListVariable::Get(int iIndex, void** pvData)
 {
 	SPointerAndSize*	ps;
 
@@ -287,7 +287,7 @@ void* CListVariable::PrivateMalloc(int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListVariable::Remove(void* pvElement)
+bool CListVariable::Remove(void* pvElement)
 {
 	int		iIndex;
 
@@ -295,9 +295,9 @@ BOOL CListVariable::Remove(void* pvElement)
 	if (iIndex != -1)
 	{
 		RemoveAt(iIndex);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -347,10 +347,10 @@ void* CListVariable::InsertAt(int iIndex, int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, BOOL bOverwriteExisting, int iElementSize)
+int CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, int iElementSize)
 {
 	int		iPos;
-	BOOL	bExists;
+	bool	bExists;
 	void*	pvData;
 
 	bExists = FindInSorted(pvElement, fCompare, &iPos);
@@ -385,7 +385,7 @@ int CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, BOOL 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CListVariable::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
+bool CListVariable::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
 {
 	SPointerAndSize	sPointerAndSize;
 

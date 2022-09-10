@@ -10,7 +10,7 @@
 void CIndexMapIterator::Init(CIndexBlock* pcIndex)
 {
 	mpcIndex = pcIndex;
-	mbStarted = FALSE;
+	mbStarted = false;
 }
 
 
@@ -31,7 +31,7 @@ void CIndexMapIterator::Kill(void)
 void* CIndexMapIterator::Iterate(size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
 {
 	void*	pvData;
-	BOOL	bResult;
+	bool	bResult;
 
 	if (mbStarted)
 	{
@@ -39,7 +39,7 @@ void* CIndexMapIterator::Iterate(size_t* puiDataSize, void* pvDestKey, size_t* p
 	}
 	else
 	{
-		mbStarted = TRUE;
+		mbStarted = true;
 		bResult = mpcIndex->Iterate(&msIter, &pvData, puiDataSize, pvDestKey, puiKeySize, uiMaxKeySize);
 	}
 

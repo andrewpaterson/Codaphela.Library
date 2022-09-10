@@ -81,7 +81,7 @@ void CMarkupTag::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTag::IsEmpty(void)
+bool CMarkupTag::IsEmpty(void)
 {
 	return macBases.NumElements() == 0;
 }
@@ -112,7 +112,7 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
 
 	psIter->iIndex = -1;
 	psIter->mpcCurrent = NULL;
-	psIter->bNamed = TRUE;
+	psIter->bNamed = true;
 	return GetTagFromIndex(szTagName, psIter);
 }
 
@@ -129,7 +129,7 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, int iTagNumber)
 
 	sIter.iIndex = -1;
 	sIter.mpcCurrent = NULL;
-	sIter.bNamed = TRUE;
+	sIter.bNamed = true;
 
 	pcTag = NULL;
 	for (i = 0; i <= iTagNumber; i++)
@@ -237,7 +237,7 @@ CMarkupTag* CMarkupTag::GetTag(STagIterator* psIter)
 
 	psIter->iIndex = -1;
 	psIter->mpcCurrent = NULL;
-	psIter->bNamed = FALSE;
+	psIter->bNamed = false;
 	return GetTagFromIndex(psIter);
 }
 
@@ -263,7 +263,7 @@ CMarkupTag* CMarkupTag::GetNextTag(STagIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTag::Is(char* szName)
+bool CMarkupTag::Is(char* szName)
 {
 	return mszName.Equals(szName);
 }
@@ -273,17 +273,17 @@ BOOL CMarkupTag::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTag::GetText(CChars* psz, BOOL bFirstContiguous, BOOL bFirstTag)
+bool CMarkupTag::GetText(CChars* psz, bool bFirstContiguous, bool bFirstTag)
 {
 	CMarkupBase*	pcBase;
 	CMarkupText*	pcText;
 	CMarkupRefText*	pcRefText;
 	int				i;
-	BOOL			bContiguous;
-	BOOL			bPreviousTag;
+	bool			bContiguous;
+	bool			bPreviousTag;
 
-	bContiguous = TRUE;
-	bPreviousTag = FALSE;
+	bContiguous = true;
+	bPreviousTag = false;
 	for (i = 0; i < macBases.NumElements(); i++)
 	{
 		pcBase = *(macBases.Get(i));
@@ -291,7 +291,7 @@ BOOL CMarkupTag::GetText(CChars* psz, BOOL bFirstContiguous, BOOL bFirstTag)
 		{
 			if (bPreviousTag)
 			{
-				bContiguous = FALSE;
+				bContiguous = false;
 				if (bFirstContiguous)
 				{
 					break;
@@ -299,7 +299,7 @@ BOOL CMarkupTag::GetText(CChars* psz, BOOL bFirstContiguous, BOOL bFirstTag)
 			}
 			pcText = (CMarkupText*)pcBase;
 			psz->Append(pcText->mszText);
-			bPreviousTag = FALSE;
+			bPreviousTag = false;
 
 			if (bFirstTag)
 			{
@@ -310,7 +310,7 @@ BOOL CMarkupTag::GetText(CChars* psz, BOOL bFirstContiguous, BOOL bFirstTag)
 		{
 			if (bPreviousTag)
 			{
-				bContiguous = FALSE;
+				bContiguous = false;
 				if (bFirstContiguous)
 				{
 					break;
@@ -318,7 +318,7 @@ BOOL CMarkupTag::GetText(CChars* psz, BOOL bFirstContiguous, BOOL bFirstTag)
 			}
 			pcRefText = (CMarkupRefText*)pcBase;
 			psz->Append(pcRefText->mpcRef->mszText);
-			bPreviousTag = FALSE;
+			bPreviousTag = false;
 
 			if (bFirstTag)
 			{
@@ -327,11 +327,11 @@ BOOL CMarkupTag::GetText(CChars* psz, BOOL bFirstContiguous, BOOL bFirstTag)
 		}
 		else if (pcBase->IsTag())
 		{
-			bPreviousTag = TRUE;
+			bPreviousTag = true;
 		}
 		else if (pcBase->IsRefDoc())
 		{
-			bPreviousTag = TRUE;
+			bPreviousTag = true;
 		}
 	}
 	return bContiguous;
@@ -438,21 +438,21 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTag::AddAttribute(char* szAttribute, char* szValue)
+bool CMarkupTag::AddAttribute(char* szAttribute, char* szValue)
 {
 	if (mcAttributes.Get(szAttribute))
 	{
-		return FALSE;
+		return false;
 	}
 	mcAttributes.Put(szAttribute, szValue);
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTag::ContainsOnlyText(void)
+bool CMarkupTag::ContainsOnlyText(void)
 {
 	int				i;
 	CMarkupBase*	pcBase;
@@ -462,10 +462,10 @@ BOOL CMarkupTag::ContainsOnlyText(void)
 		pcBase = *macBases.Get(i);
 		if ((!pcBase->IsText()) && (!pcBase->IsRefText()))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -473,7 +473,7 @@ BOOL CMarkupTag::ContainsOnlyText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
+bool CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 {
 	int				i;
 	CMarkupBase*	pcBase;
@@ -484,10 +484,10 @@ BOOL CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 		if (pcBase == pcOld)
 		{
 			macBases.Set(i, &pcNew);
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -510,11 +510,11 @@ int CMarkupTag::Print(CChars* psz, int iDepth, int iLine)
 	int				i;
 	CMarkupBase*	pcBase;
 	CChars			szText;
-	BOOL			bPadClosing;
+	bool			bPadClosing;
 	char*			szKey;
 	char*			szValue;
 	SMapIterator	sIter;
-	BOOL			bResult;
+	bool			bResult;
 
 	miLine = iLine;
 	miColumn = iDepth*2;
@@ -545,12 +545,12 @@ int CMarkupTag::Print(CChars* psz, int iDepth, int iLine)
 
 	if (macBases.NumElements() > 0)
 	{
-		bPadClosing = TRUE;
+		bPadClosing = true;
 		if (ContainsOnlyText())
 		{
 			szText.Init();
 			GetText(&szText);
-			iLine = CMarkupBase::Print(psz, &szText, iDepth+1, iLine, TRUE);
+			iLine = CMarkupBase::Print(psz, &szText, iDepth+1, iLine, true);
 			szText.Kill();
 		}
 		else

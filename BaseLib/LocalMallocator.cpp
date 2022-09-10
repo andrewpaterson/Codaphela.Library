@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLocalMallocator::IsLocal(void)
+bool CLocalMallocator::IsLocal(void)
 {
-	return TRUE;
+	return true;
 }
 
 

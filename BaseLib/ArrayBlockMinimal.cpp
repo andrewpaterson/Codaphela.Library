@@ -39,14 +39,14 @@ void CArrayBlockMinimal::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockMinimal::WriteHeader(CFileWriter* pcFileWriter)
+bool CArrayBlockMinimal::WriteHeader(CFileWriter* pcFileWriter)
 {
 	if (!pcFileWriter->WriteInt(miUsedElements))
 	{
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -54,22 +54,22 @@ BOOL CArrayBlockMinimal::WriteHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockMinimal::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
+bool CArrayBlockMinimal::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -77,16 +77,16 @@ BOOL CArrayBlockMinimal::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CArrayBlockMinimal::ReadAllocator(CFileReader* pcFileReader)
+bool CArrayBlockMinimal::ReadAllocator(CFileReader* pcFileReader)
 {
 	CMallocator*	pcMalloc;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 	CMalloc::Init(pcMalloc);
-	return TRUE;
+	return true;
 }
 

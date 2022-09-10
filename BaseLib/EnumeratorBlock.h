@@ -35,8 +35,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CEnumeratorBlock : public CEnumeratorTemplate<void>
 {
 public:
-	int		AddGetNode(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace, SENode** pcThisNode);
-	int		Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, BOOL bReplace = TRUE);
+	int		AddGetNode(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace, SENode** pcThisNode);
+	int		Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace = true);
 	void*	Add(char* szName, int iDataSize = 0);
 	void*	Add(char* szName, int iDataSize, int iNum);
 };

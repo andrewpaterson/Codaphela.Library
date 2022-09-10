@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 int CEnumeratorVoid::Add(char* szName, int iNum)
 {
-	return PrivateAddGetNode(szName, NULL, 0, 0, iNum, FALSE, NULL);
+	return PrivateAddGetNode(szName, NULL, 0, 0, iNum, false, NULL);
 }
 
 
@@ -39,7 +39,7 @@ int CEnumeratorVoid::Add(char* szName, int iNum)
 //////////////////////////////////////////////////////////////////////////
 int CEnumeratorVoid::Add(char* szName)
 {
-	return PrivateAddGetNode(szName, NULL, 0, 0, -1, FALSE, NULL);
+	return PrivateAddGetNode(szName, NULL, 0, 0, -1, false, NULL);
 }
 
 

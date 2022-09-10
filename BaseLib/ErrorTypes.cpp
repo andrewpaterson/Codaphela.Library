@@ -63,7 +63,7 @@ TRISTATE Fix(TRISTATE tristate)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL NotTrue(TRISTATE tristate)
+bool NotTrue(TRISTATE tristate)
 {
 	tristate = Fix(tristate);
 	return tristate != TRITRUE;

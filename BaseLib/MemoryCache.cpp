@@ -78,7 +78,7 @@ void CMemoryCache::Resize(size_t uiNewCacheSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
+bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
 	size_t						iCachedSize;
@@ -88,7 +88,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
 	if (iCachedSize > mpsDetail->muiCacheSize)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iRemainingAfterLast = RemainingAfterTail();
@@ -113,7 +113,7 @@ BOOL CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 	pcPreAllocationResult->miCachedSize = iCachedSize;
 	pcPreAllocationResult->mpsDescriptor = psCacheBasedDescriptor;
 
-	return TRUE;
+	return true;
 }
 
 
@@ -174,7 +174,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 void* CMemoryCache::Allocate(size_t uiDataSize)
 {
 	CMemoryCacheAllocation	cPreAllocation;
-	BOOL					bResult;
+	bool					bResult;
 	void*					pvCache;
 	int						i;
 	int						iNumEvictions;
@@ -212,7 +212,7 @@ void* CMemoryCache::Allocate(size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMemoryCache::CanCache(size_t uiDataSize)
+bool CMemoryCache::CanCache(size_t uiDataSize)
 {
 	return (miDescriptorSize + uiDataSize) <= mpsDetail->muiCacheSize;
 }

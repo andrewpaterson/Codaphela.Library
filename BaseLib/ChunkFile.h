@@ -35,55 +35,55 @@ class CChunkFile : public CFileBasic
 {
 protected:
 	CChunkStack			mcChunkStack;
-	BOOL				mbLastHashCheck;
+	bool				mbLastHashCheck;
 	CMapStringInt		mmsziNames;
 	SChunkFileHeader	msHeader;
 	int					miLastName;
 	
-	BOOL	__PrivateReadChunkBegin(void);
-	BOOL	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
+	bool	__PrivateReadChunkBegin(void);
+	bool	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
 
 public:
 	void	_Init(void);
 	void	Init(CAbstractFile*	pcFile);
 	void	Kill(void);
 
-	BOOL	ReadOpen(void);
-	BOOL	ReadClose(void);
+	bool	ReadOpen(void);
+	bool	ReadClose(void);
 
-	BOOL	WriteOpen(void);
-	BOOL	WriteOpen(int iUserID);
-	BOOL	WriteClose(void);
+	bool	WriteOpen(void);
+	bool	WriteOpen(int iUserID);
+	bool	WriteClose(void);
 
 	int		FindFirstChunkWithName(char* szName);
 	int		FindNextChunkWithName(void);
 	int		GetNumChunks(void);
 	void*	GetMD5Hash(void);
-	BOOL	ContainsChunks(void);
+	bool	ContainsChunks(void);
 
-	BOOL	ReadChunkBegin(int iChunkIndex);
-	BOOL	ReadChunkBegin(char* szName);
-	BOOL	ReadChunkEnd(void);
-	BOOL	ReadChunkEnd(int iNumChunksToEnd);
-	BOOL	ReadChunkEndAll(void);
+	bool	ReadChunkBegin(int iChunkIndex);
+	bool	ReadChunkBegin(char* szName);
+	bool	ReadChunkEnd(void);
+	bool	ReadChunkEnd(int iNumChunksToEnd);
+	bool	ReadChunkEndAll(void);
 
-	BOOL	WriteChunkBegin(void);
-	BOOL	WriteChunkEnd(char* szChunkName);
+	bool	WriteChunkBegin(void);
+	bool	WriteChunkEnd(char* szChunkName);
 
 	int		StackDepth(void);
 	filePos	ChunkSize(void);
 	filePos	ChunkStart(void);
 	
 	char*	GetTailChunkNameForIndex(int iIndex);
-	BOOL	SeekStart(void);
+	bool	SeekStart(void);
 
 protected:
 	int		FindFirstChunkWithID(int iName);
 	int		GetNumChunksWithID(int iName);
-	BOOL	ReadChunkNames(void);
-	BOOL	WriteChunkNames(void);
-	BOOL	WriteChunkEnd(int iChunkName);
-	BOOL	WriteBasic(const void* pvSource, filePos iSize);
+	bool	ReadChunkNames(void);
+	bool	WriteChunkNames(void);
+	bool	WriteChunkEnd(int iChunkName);
+	bool	WriteBasic(const void* pvSource, filePos iSize);
 	int		GetTailChunkNameIndex(int iChunkNum);
 };
 

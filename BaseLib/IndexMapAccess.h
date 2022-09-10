@@ -24,8 +24,8 @@ protected:
 	 void*			Put(void* pvKey, int iKeySize, void* pvData, size_t uiDataSize);
 	 void*			Get(void* pvKey, int iKeySize, size_t* puiDataSize);
 	 size_t			DataSize(void* pvKey, int iKeySize);
-	 BOOL			Remove(void* pvKey, int iKeySize);
-	 BOOL			Has(void* pvKey, int iKeySize);
+	 bool			Remove(void* pvKey, int iKeySize);
+	 bool			Has(void* pvKey, int iKeySize);
 };
 
 

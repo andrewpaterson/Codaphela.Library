@@ -35,7 +35,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::MakeDirs(BOOL bRemoveFirst, const char* szPathName, ...)
+bool CFileUtil::MakeDirs(bool bRemoveFirst, const char* szPathName, ...)
 {
 	va_list		vaMarker;
 	char*		pc;
@@ -51,16 +51,16 @@ BOOL CFileUtil::MakeDirs(BOOL bRemoveFirst, const char* szPathName, ...)
 		{
 			RemoveDir(pc);
 		}
-		if (!TouchDir(pc, FALSE))
+		if (!TouchDir(pc, false))
 		{
-			return FALSE;
+			return false;
 		}
 
 		iCount++;
 		pc = va_arg(vaMarker, char*);
 	}
 	va_end(vaMarker);
-	return TRUE;
+	return true;
 }
 
 
@@ -68,17 +68,17 @@ BOOL CFileUtil::MakeDirs(BOOL bRemoveFirst, const char* szPathName, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RemoveDirs(const char* szPathName, ...)
+bool CFileUtil::RemoveDirs(const char* szPathName, ...)
 {
 	va_list		vaMarker;
 	char*		pc;
 	int			iCount;
-	BOOL		bResult;
+	bool		bResult;
 
 	iCount = 0;
 	pc = (char*)szPathName;
 
-	bResult = TRUE;
+	bResult = true;
 	va_start(vaMarker, szPathName);
 	while (pc != NULL)
 	{
@@ -132,7 +132,7 @@ void CFileUtil::FullPath(CChars* szPathName)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::IsRootDirectory(const char* szPathName)
+bool CFileUtil::IsRootDirectory(const char* szPathName)
 {
 	CChars	sz;
 	int		iCount;
@@ -148,12 +148,12 @@ BOOL CFileUtil::IsRootDirectory(const char* szPathName)
 		if (iEnd == sz.Length()-1)
 		{
 			sz.Kill();
-			return TRUE;
+			return true;
 		}
 	}
 	sz.Kill();
 
-	return FALSE;
+	return false;
 }
 
 
@@ -161,9 +161,9 @@ BOOL CFileUtil::IsRootDirectory(const char* szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::CompareSize(const char* szFilename1, const char* szFilename2)
+bool CFileUtil::CompareSize(const char* szFilename1, const char* szFilename2)
 {
-	return Compare(szFilename1, szFilename2, TRUE);
+	return Compare(szFilename1, szFilename2, true);
 }
 
 
@@ -171,9 +171,9 @@ BOOL CFileUtil::CompareSize(const char* szFilename1, const char* szFilename2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2)
+bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2)
 {
-	return Compare(szFilename1, szFilename2, FALSE);
+	return Compare(szFilename1, szFilename2, false);
 }
 
 
@@ -181,12 +181,12 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL bSizeOnly)
+bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool bSizeOnly)
 {
 	CFileBasic	cPrimary;
 	CFileBasic	cBackup;
-	BOOL		bPrimary;
-	BOOL		bBackup;
+	bool		bPrimary;
+	bool		bBackup;
 	filePos		iPrimary;
 	filePos			iBackup;
 	int			i;
@@ -194,7 +194,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 	filePos		iPartialBlock;
 	void*		pvPrimary;
 	void*		pvBackup;
-	BOOL		bResult;
+	bool		bResult;
 
 	cPrimary.Init(DiskFile(szFilename1));
 	bPrimary = cPrimary.Open(EFM_Read);
@@ -206,7 +206,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 	{
 		cBackup.Kill();
 		cPrimary.Kill();
-		return TRUE;
+		return true;
 	}
 
 	if (bBackup && !bPrimary)
@@ -214,7 +214,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 		cBackup.Close();
 		cBackup.Kill();
 		cPrimary.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (!bBackup && bPrimary)
@@ -222,7 +222,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 		cBackup.Kill();
 		cPrimary.Close();
 		cPrimary.Kill();
-		return FALSE;
+		return false;
 	}
 
 	iPrimary = cPrimary.GetFileLength();
@@ -234,7 +234,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 		cBackup.Kill();
 		cPrimary.Close();
 		cPrimary.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (bSizeOnly)
@@ -243,7 +243,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 		cBackup.Kill();
 		cPrimary.Close();
 		cPrimary.Kill();
-		return TRUE;
+		return true;
 	}
 
 	iNumBlocks = iPrimary / FILE_BLOCK_SIZE;
@@ -266,7 +266,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 			cBackup.Kill();
 			cPrimary.Close();
 			cPrimary.Kill();
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -282,7 +282,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 		cBackup.Kill();
 		cPrimary.Close();
 		cPrimary.Kill();
-		return FALSE;
+		return false;
 	}
 
 	SafeFree(pvPrimary);
@@ -291,7 +291,7 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 	cBackup.Kill();
 	cPrimary.Close();
 	cPrimary.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -299,12 +299,12 @@ BOOL CFileUtil::Compare(const char* szFilename1, const char* szFilename2, BOOL b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::Copy(const char* szSource, const char* szDest)
+bool CFileUtil::Copy(const char* szSource, const char* szDest)
 {
 	CFileBasic	cPrimary;
 	CFileBasic	cBackup;
-	BOOL		bPrimary;
-	BOOL		bBackup;
+	bool		bPrimary;
+	bool		bBackup;
 	filePos		iPrimary;
 	int			i;
 	filePos		iNumBlocks;
@@ -318,7 +318,7 @@ BOOL CFileUtil::Copy(const char* szSource, const char* szDest)
 	{
 		Delete(szDest);
 		cPrimary.Kill();
-		return TRUE;
+		return true;
 	}
 
 	cBackup.Init(DiskFile(szDest));
@@ -328,7 +328,7 @@ BOOL CFileUtil::Copy(const char* szSource, const char* szDest)
 		cBackup.Kill();
 		cPrimary.Close();
 		cPrimary.Kill();
-		return FALSE;
+		return false;
 	}
 
 	iPrimary = cPrimary.GetFileLength();
@@ -348,7 +348,7 @@ BOOL CFileUtil::Copy(const char* szSource, const char* szDest)
 			cBackup.Kill();
 			cPrimary.Close();
 			cPrimary.Kill();
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -360,7 +360,7 @@ BOOL CFileUtil::Copy(const char* szSource, const char* szDest)
 		cBackup.Kill();
 		cPrimary.Close();
 		cPrimary.Kill();
-		return FALSE;
+		return false;
 	}
 
 	SafeFree(pvData);
@@ -368,7 +368,7 @@ BOOL CFileUtil::Copy(const char* szSource, const char* szDest)
 	cBackup.Kill();
 	cPrimary.Close();
 	cPrimary.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -425,7 +425,7 @@ void CFileUtil::SplitPath(const char* szPathName, CChars* szDestFilename, CChars
 void CFileUtil::SplitPath(const char* szPathName, CArrayChars* paszComponents)
 {
 	CChars	sz;
-	BOOL	bAbsolute;
+	bool	bAbsolute;
 
 	sz.Init(szPathName);
 
@@ -463,7 +463,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	CChars*			pszNode;
 	CChars*			apCharDirectories[4096];
 	int				iPos;
-	BOOL			bLeadingSeparator;
+	bool			bLeadingSeparator;
 	char			cDriveLetter;
 
 	if (szPathName->Empty())
@@ -486,10 +486,10 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	szTemp.Split(&szNodes, FILE_SEPARATOR[0]);
 	szTemp.Kill();
 
-	bLeadingSeparator = FALSE;
+	bLeadingSeparator = false;
 	if (szNodes.Get(0)->Empty())
 	{
-		bLeadingSeparator = TRUE;
+		bLeadingSeparator = true;
 	}
 
 	iPos = 0;
@@ -591,7 +591,7 @@ void CFileUtil::AppendToPath(CChars* szPathName, const char* szItem)
 void CFileUtil::PrependToPath(CChars* szPathName, const char* szItem)
 {
 	CChars			szTemp;
-	BOOL			bLeadingSeparator;
+	bool			bLeadingSeparator;
 	char			cDriveLetter;
 
 	if (StrEmpty(szItem))
@@ -610,11 +610,11 @@ void CFileUtil::PrependToPath(CChars* szPathName, const char* szItem)
 		szTemp.Init(szPathName->Text());
 	}
 
-	bLeadingSeparator = FALSE;
+	bLeadingSeparator = false;
 	if (szTemp.StartsWith(FILE_SEPARATOR))
 	{
 		szTemp.RemoveCharacter(0);
-		bLeadingSeparator = TRUE;
+		bLeadingSeparator = true;
 	}
 
 	szPathName->Clear();
@@ -722,7 +722,7 @@ void CFileUtil::RemovePath(CChars* szPathName)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::IsExtension(const char* szFilename, const char* szExtension)
+bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension)
 {
 	int		iExtension;
 	CChars	sz1;
@@ -749,10 +749,10 @@ int CFileUtil::FindExtension(const char* szString)
 	const char*	szExtension;
 	const char*	szSeparator;
 
-	szExtension = FindChar(szString, '.', TRUE);
+	szExtension = FindChar(szString, '.', true);
 	if (szExtension)
 	{
-		szSeparator = FindChar(szString, FILE_SEPARATOR[0], TRUE);
+		szSeparator = FindChar(szString, FILE_SEPARATOR[0], true);
 		if (szSeparator)
 		{
 			if (szSeparator > szExtension)
@@ -777,7 +777,7 @@ int CFileUtil::FindLastSeparator(const char* szString)
 {
 	const char*	sz;
 
-	sz = FindChar(szString, FILE_SEPARATOR[0], TRUE);
+	sz = FindChar(szString, FILE_SEPARATOR[0], true);
 	if (sz)
 	{
 		return (int) (size_t) (sz - szString);
@@ -797,7 +797,7 @@ int CFileUtil::FindFirstSeparator(const char* szString)
 {
 	const char*	sz;
 
-	sz = FindChar(szString, FILE_SEPARATOR[0], FALSE);
+	sz = FindChar(szString, FILE_SEPARATOR[0], false);
 	if (sz)
 	{
 		return (int) (size_t) (sz - szString);
@@ -812,16 +812,16 @@ int CFileUtil::FindFirstSeparator(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, const char* szExtension, CArrayChars* paszFiles, BOOL bHidden)
+bool CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden)
 {
 	CChars*			szDir;
 	int				i;
 	CArrayChars	aszDirs;
-	BOOL			bDirectories;
-	BOOL			bFiles;
+	bool			bDirectories;
+	bool			bFiles;
 
 	aszDirs.Init();
-	bDirectories = FindFiles(szDirectory, TRUE, NULL, NULL, &aszDirs, bHidden);
+	bDirectories = FindFiles(szDirectory, true, NULL, NULL, &aszDirs, bHidden);
 
 	for (i = 0; i < aszDirs.NumElements(); i++)
 	{
@@ -833,7 +833,7 @@ BOOL CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, 
 	}
 	aszDirs.Kill();
 
-	bFiles = FindFiles(szDirectory, FALSE, szInName, szExtension, paszFiles, bHidden);
+	bFiles = FindFiles(szDirectory, false, szInName, szExtension, paszFiles, bHidden);
 	return bFiles || bDirectories;
 }
 
@@ -842,7 +842,7 @@ BOOL CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::FindFilesWithNameContaining(const char* szPathName, const char* szFilename, CArrayChars* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
+void CFileUtil::FindFilesWithNameContaining(const char* szPathName, const char* szFilename, CArrayChars* paszFiles, bool bIncludeSubDirs, bool bHidden)
 {
 	if (bIncludeSubDirs)
 	{
@@ -850,7 +850,7 @@ void CFileUtil::FindFilesWithNameContaining(const char* szPathName, const char* 
 	}
 	else
 	{
-		FindFiles(szPathName, FALSE, szFilename, NULL, paszFiles, bHidden);
+		FindFiles(szPathName, false, szFilename, NULL, paszFiles, bHidden);
 	}
 }
 
@@ -859,7 +859,7 @@ void CFileUtil::FindFilesWithNameContaining(const char* szPathName, const char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::FindFilesWithExtension(const char* szPathName, const char* szExtension, CArrayChars* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
+void CFileUtil::FindFilesWithExtension(const char* szPathName, const char* szExtension, CArrayChars* paszFiles, bool bIncludeSubDirs, bool bHidden)
 {
 	if (bIncludeSubDirs)
 	{
@@ -867,7 +867,7 @@ void CFileUtil::FindFilesWithExtension(const char* szPathName, const char* szExt
 	}
 	else
 	{
-		FindFiles(szPathName, FALSE, NULL, szExtension, paszFiles, bHidden);
+		FindFiles(szPathName, false, NULL, szExtension, paszFiles, bHidden);
 	}
 }
 
@@ -876,9 +876,9 @@ void CFileUtil::FindFilesWithExtension(const char* szPathName, const char* szExt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileUtil::FindAllDirectories(const char* szPathName, CArrayChars* paszFiles, BOOL bHidden)
+void CFileUtil::FindAllDirectories(const char* szPathName, CArrayChars* paszFiles, bool bHidden)
 {
-	FindFiles(szPathName, TRUE, NULL, NULL, paszFiles, bHidden);
+	FindFiles(szPathName, true, NULL, NULL, paszFiles, bHidden);
 }
 
 
@@ -886,7 +886,7 @@ void CFileUtil::FindAllDirectories(const char* szPathName, CArrayChars* paszFile
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::FindAllFiles(const char* szPathName, CArrayChars* paszFiles, BOOL bIncludeSubDirs, BOOL bHidden)
+bool CFileUtil::FindAllFiles(const char* szPathName, CArrayChars* paszFiles, bool bIncludeSubDirs, bool bHidden)
 {
 	if (bIncludeSubDirs)
 	{
@@ -894,7 +894,7 @@ BOOL CFileUtil::FindAllFiles(const char* szPathName, CArrayChars* paszFiles, BOO
 	}
 	else
 	{
-		return FindFiles(szPathName, FALSE, NULL, NULL, paszFiles, bHidden);
+		return FindFiles(szPathName, false, NULL, NULL, paszFiles, bHidden);
 	}
 }
 
@@ -928,21 +928,21 @@ void CFileUtil::MakeNameFromDirectory(CChars* pszName, CChars* pszFilename, CCha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFilename)
+bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 {
 	CChars			szPath;
 	char			cDrive;
 	CArrayChars		aszPathComponents;
 	int				i;
 	CChars			szPartialPath;
-	BOOL			bResult;
+	bool			bResult;
 
 	szPath.Init(szDirectory);
 	CollapsePath(&szPath);
 	
 	if (szPath.Empty())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (bLastIsFilename)
@@ -951,7 +951,7 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFilename)
 		if (szPath.Empty())
 		{
 			szPath.Kill();
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -961,12 +961,12 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFilename)
 		if ((cDrive != 0) && (szPath.Length() == 3))
 		{
 			szPath.Kill();
-			return FALSE;
+			return false;
 		}
 		if (szPath.Length() == 1)
 		{
 			szPath.Kill();
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -974,7 +974,7 @@ BOOL CFileUtil::TouchDir(const char* szDirectory, BOOL bLastIsFilename)
 	SplitPath(szPath.Text(), &aszPathComponents);
 	szPath.Kill();
 	szPartialPath.Init();
-	bResult = FALSE;
+	bResult = false;
 	for (i = 0; i < aszPathComponents.NumElements(); i++)
 	{
 		if (i != 0)

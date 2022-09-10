@@ -16,10 +16,10 @@ protected:
 
 public:
 			void								Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-			BOOL								Init(CFileReader* pcFileReader);
+			bool								Init(CFileReader* pcFileReader);
 	virtual void								Kill(void) =0;
 
-	virtual BOOL								Write(CFileWriter* pcFileWrite);
+	virtual bool								Write(CFileWriter* pcFileWrite);
 
 			CLifeInit<CMallocator>				GetMalloc(void);
 			EIndexKeyReverse					GetKeyReverse(void);
@@ -28,13 +28,13 @@ public:
 			CLifeInit<CIndexTreeDataOrderer>	GetDataOrderer(void);
 
 protected:
-	virtual BOOL					Read(CFileReader* pcFileReader);
+	virtual bool					Read(CFileReader* pcFileReader);
 
 			EIndexKeyReverse		ReadKeyReverse(CFileReader* pcFileReader);
-			BOOL					WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse);
+			bool					WriteKeyReverse(CFileWriter* pcFileWriter, EIndexKeyReverse	eKeyReverse);
 
 			CIndexTreeDataOrderer*	ReadDataOrderer(CFileReader* pcFileReader);
-			BOOL					WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer*);
+			bool					WriteDataOrderer(CFileWriter* pcFileWriter, CIndexTreeDataOrderer*);
 };
 
 

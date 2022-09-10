@@ -121,7 +121,7 @@ size_t CDataMemory::GetSize(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDataMemory::Remove(CArrayVoidPtr* pav)
+bool CDataMemory::Remove(CArrayVoidPtr* pav)
 {
 	int					i;
 	void*				pv;
@@ -159,7 +159,7 @@ BOOL CDataMemory::Remove(CArrayVoidPtr* pav)
 				else
 				{
 					gcLogger.Error2(__METHOD__, " Could not deallocate memory.", NULL);
-					return FALSE;
+					return false;
 				}
 			}
 		}
@@ -168,7 +168,7 @@ BOOL CDataMemory::Remove(CArrayVoidPtr* pav)
 			DeallocateInLargeList(psAlloc);
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -395,7 +395,7 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 //////////////////////////////////////////////////////////////////////////
 void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 {
-	BOOL			bResult;
+	bool			bResult;
 	SFreeListDesc	sDesc;
 	int				iIndex;
 	int				iStride;
@@ -444,7 +444,7 @@ void CDataMemory::DeallocateInLargeList(SDataMemoryAllocation* psAlloc)
 CFreeList* CDataMemory::GetFreeList(size_t iElementSize)
 {
 	SFreeListDesc			sDesc;
-	BOOL					bResult;
+	bool					bResult;
 	int						iIndex;
 	SFreeListDesc*			psDesc;
 	SMemoryFreeListParams*	psParams;
@@ -471,7 +471,7 @@ CFreeList* CDataMemory::GetFreeList(size_t iElementSize)
 CFreeList* CDataMemory::GetOrAddFreeList(size_t iElementSize)
 {
 	SFreeListDesc			sDesc;
-	BOOL					bResult;
+	bool					bResult;
 	int						iIndex;
 	SFreeListDesc*			psDesc;
 	CFreeList*				pcList;
@@ -569,7 +569,7 @@ SMemory CDataMemory::StartIteration(SMemoryIterator* psIterator)
 
 	if (psIterator->pcFreeList != NULL)
 	{
-		psIterator->bInFreeLists = TRUE;
+		psIterator->bInFreeLists = true;
 		psIterator->pvLarge = NULL;
 
 		pv = psIterator->pcFreeList->StartIteration(&psIterator->sFreeListIterator);
@@ -585,7 +585,7 @@ SMemory CDataMemory::StartIteration(SMemoryIterator* psIterator)
 	}
 	else if (pvLargeHead != NULL)
 	{
-		psIterator->bInFreeLists = FALSE;
+		psIterator->bInFreeLists = false;
 		psIterator->pcFreeList = NULL;
 
 		psIterator->pvLarge = pvLargeHead;
@@ -620,7 +620,7 @@ SMemory CDataMemory::Iterate(SMemoryIterator* psIterator)
 				pv = mcLargeList.GetHead();
 				if (pv != NULL)
 				{
-					psIterator->bInFreeLists = FALSE;
+					psIterator->bInFreeLists = false;
 					psIterator->pcFreeList = NULL;
 
 					psIterator->pvLarge = pv;
@@ -730,7 +730,7 @@ int	CDataMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
 //////////////////////////////////////////////////////////////////////////
 void DataMemoryInit(void)
 {
-	gcDataMemoryFreeListParams.Init(sizeof(SDataMemoryAllocation), TRUE);
+	gcDataMemoryFreeListParams.Init(sizeof(SDataMemoryAllocation), true);
 }
 
 

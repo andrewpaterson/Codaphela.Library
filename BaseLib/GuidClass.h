@@ -39,9 +39,9 @@ public:
 	void Init(char8* sz);
 	void Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, uint8* paubData4);
 	void Clear(void);
-	BOOL Get32Format(CTextParser* pcParser, uint64 uiValue);
-	BOOL Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue);
-	BOOL Get0xFormat(CTextParser* pcParser, uint32 uiValue);
+	bool Get32Format(CTextParser* pcParser, uint64 uiValue);
+	bool Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue);
+	bool Get0xFormat(CTextParser* pcParser, uint32 uiValue);
 	void Append(CChars* psz);
 };
 

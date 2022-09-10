@@ -8,7 +8,7 @@ struct SChunkFilenameIterator
 {
 	CChars		szFullName;
 	CArrayInt	aiIndex;
-	BOOL		bDone;
+	bool		bDone;
 	CChars		szValue;
 
 	void Init(void);
@@ -28,30 +28,30 @@ public:
 	void		Init(CChunkFile* pcChunkFile);
 	void		Kill(void);
 
-	BOOL		WriteOpen(void);
-	BOOL		WriteOpen(int iUserID);
-	BOOL		WriteChunkBegin(char* szChunkName);
-	BOOL		WriteChunkEnd(void);
-	BOOL		WriteClose(void);
+	bool		WriteOpen(void);
+	bool		WriteOpen(int iUserID);
+	bool		WriteChunkBegin(char* szChunkName);
+	bool		WriteChunkEnd(void);
+	bool		WriteClose(void);
 
-	BOOL		ReadOpen(void);
-	BOOL		ReadChunkBegin(char* szChunkName);
-	BOOL		ReadChunkEnd(void);
-	BOOL		ReadClose(void);
+	bool		ReadOpen(void);
+	bool		ReadChunkBegin(char* szChunkName);
+	bool		ReadChunkEnd(void);
+	bool		ReadClose(void);
 
 	char*		StartNameIteration(SChunkFilenameIterator* psIter);
 	char*		IterateName(SChunkFilenameIterator* psIter);
-	BOOL		StopIteration(SChunkFilenameIterator* psIter);
+	bool		StopIteration(SChunkFilenameIterator* psIter);
 
 	CChunkFile* GetChunkFile(void);
 
 protected:
-	BOOL	WriteChunkBegin(void);
-	BOOL	WriteChunkEnd(char* szChunkName);
+	bool	WriteChunkBegin(void);
+	bool	WriteChunkEnd(char* szChunkName);
 
 	int		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
-	BOOL	WriteUnmatchedChunkEnds(int iMatchingOpen);
-	BOOL	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames);
+	bool	WriteUnmatchedChunkEnds(int iMatchingOpen);
+	bool	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames);
 
 	filePos	Write(const void* pvSource, filePos iSize, filePos iCount);
 	filePos	Read(void* pvDest, filePos iSize, filePos iCount);

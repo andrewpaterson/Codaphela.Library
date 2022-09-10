@@ -12,7 +12,7 @@ public:
 	void	Kill(void);
 	void	Add(M* pv);
 	M*		GetPtr(int iIndex);
-	BOOL	Get(int iIndex, M** pv);
+	bool	Get(int iIndex, M** pv);
 	M**		Get(int iIndex);
 	void	QuickSort(void);
 	int		Find(M* pv);
@@ -62,7 +62,7 @@ void CArrayTemplatePtr<M>::Add(M* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CArrayTemplatePtr<M>::Get(int iIndex, M** pv)
+bool CArrayTemplatePtr<M>::Get(int iIndex, M** pv)
 {
 	M** pvTemp;
 
@@ -70,11 +70,11 @@ BOOL CArrayTemplatePtr<M>::Get(int iIndex, M** pv)
 	if (pvTemp)
 	{
 		*pv = *pvTemp;
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

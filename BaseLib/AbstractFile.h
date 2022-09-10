@@ -30,21 +30,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CAbstractFile
 {
 public:
-	BOOL	mbBasicFileMustFree;  //Set by helpers
+	bool	mbBasicFileMustFree;  //Set by helpers
 
 			void		Init(void);
 	virtual void		Kill(void) =0;
-	virtual BOOL		Open(EFileMode eFileMode) =0;
-	virtual BOOL		Close(void) =0;
+	virtual bool		Open(EFileMode eFileMode) =0;
+	virtual bool		Close(void) =0;
 	virtual filePos		Read(void* pvBuffer, filePos iSize, filePos iCount) =0;
-	virtual BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin) =0;
+	virtual bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin) =0;
 	virtual filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount) =0;
 	virtual filePos		Tell(void) =0;
-	virtual BOOL		IsOpen(void) =0;
+	virtual bool		IsOpen(void) =0;
 	virtual filePos		Size(void) =0;
-	virtual BOOL		Truncate(filePos iSize) =0;
-	virtual BOOL		Flush(void) =0;
-	virtual BOOL		Delete(void) =0;
+	virtual bool		Truncate(filePos iSize) =0;
+	virtual bool		Flush(void) =0;
+	virtual bool		Delete(void) =0;
 	virtual char*		GetFilename(void) =0;
 };
 

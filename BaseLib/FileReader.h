@@ -26,36 +26,36 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "AbstractFile.h"
 
 
-#define CheckRead(pvData, iSize) 	if (Read(pvData, iSize, 1) != 1) { return FALSE; }
+#define CheckRead(pvData, iSize) 	if (Read(pvData, iSize, 1) != 1) { return false; }
 
 
 class CFileReader
 {
 public:
 	//General
-						BOOL	ReadData(void* pvData, filePos iDataSize);
+						bool	ReadData(void* pvData, filePos iDataSize);
 
 	//Strings.
-						BOOL	ReadStringLength(int* piLength);
-						BOOL	ReadStringChars(char* szString, int iLength);
-						BOOL	ReadString(char* szString, int iMaxLength);
+						bool	ReadStringLength(int* piLength);
+						bool	ReadStringChars(char* szString, int iLength);
+						bool	ReadString(char* szString, int iMaxLength);
 
 	//Helpers.		
-						BOOL	ReadInt(int8* pi);
-						BOOL	ReadInt(uint8* pi);
-						BOOL	ReadInt(int16* pi);
-						BOOL	ReadInt(uint16* pi);
-						BOOL	ReadInt(int32* pi);
-						BOOL	ReadInt(uint32* pi);
-						BOOL	ReadInt(int64* plli);
-						BOOL	ReadInt(uint64* plli);
-						BOOL	ReadFloat(float32* pf);
-						BOOL	ReadFloat(float64* pf);
-						BOOL	ReadChar(char8* pc);
-						BOOL	ReadChar(char16* pc);
-						BOOL	ReadBool(BOOL* pb);
-						BOOL	ReadBits(void* pvData, int iByteLength);
-						BOOL	ReadIntArray(int* pai, int iLength);
+						bool	ReadInt(int8* pi);
+						bool	ReadInt(uint8* pi);
+						bool	ReadInt(int16* pi);
+						bool	ReadInt(uint16* pi);
+						bool	ReadInt(int32* pi);
+						bool	ReadInt(uint32* pi);
+						bool	ReadInt(int64* plli);
+						bool	ReadInt(uint64* plli);
+						bool	ReadFloat(float32* pf);
+						bool	ReadFloat(float64* pf);
+						bool	ReadChar(char8* pc);
+						bool	ReadChar(char16* pc);
+						bool	ReadBool(bool* pb);
+						bool	ReadBits(void* pvData, int iByteLength);
+						bool	ReadIntArray(int* pai, int iLength);
 
 protected:
 	virtual				filePos	Read(void* pvDest, filePos iSize, filePos iCount) =0;

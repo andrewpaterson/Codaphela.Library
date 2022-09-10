@@ -7,9 +7,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	BOOL bResult;
+	bool bResult;
 
 	cMalloc.ConfigureLife(&mcMallocLife, &mpcMalloc);
 
@@ -17,18 +17,18 @@ BOOL CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyRever
 	mtSizeofNode = tSizeofNode;
 	mtSizeofDataNode = tSizeofDataNode;
 	mtSizeofNodePtr = tSizeofNodePtr;
-	bResult = TRUE;
+	bResult = true;
 	if ((iMaxKeySize <= 0) || (iMaxKeySize > MAX_KEY_SIZE))
 	{
 		gcLogger.Error2(__METHOD__, " Max Key size [", IntToString(iMaxKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
 		iMaxKeySize = MAX_KEY_SIZE;
-		bResult = FALSE;
+		bResult = false;
 	}
 	if ((iMaxDataSize <= 0) || (iMaxDataSize > MAX_DATA_SIZE))
 	{
 		gcLogger.Error2(__METHOD__, " Data size [", IntToString(iMaxDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
 		iMaxDataSize = MAX_DATA_SIZE;
-		bResult = FALSE;
+		bResult = false;
 	}
 	miMaxDataSize = iMaxDataSize;
 	miMaxKeySize = iMaxKeySize;
@@ -46,11 +46,11 @@ BOOL CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyRever
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::Kill(void)
+bool CIndexTree::Kill(void)
 {
 	mcDataOrdererLife.Kill();
 	mcMallocLife.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -128,19 +128,19 @@ void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::ValidatePut(int iKeySize, size_t iDataSize)
+bool CIndexTree::ValidatePut(int iKeySize, size_t iDataSize)
 {
 	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
 	{
 		gcLogger.Error2(__METHOD__, "Key size [", SizeToString(iKeySize), "] must be positive and <= [", SizeToString(miMaxKeySize), "].", NULL);
-		return FALSE;
+		return false;
 	}
 	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
 	{
 		gcLogger.Error2(__METHOD__, "Data size [", SizeToString(iDataSize), "] must be positive and <= [", SizeToString(miMaxDataSize), "].", NULL);
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -250,7 +250,7 @@ EIndexKeyReverse CIndexTree::ReverseKeys(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::StartKey(int* pi, int iKeySize)
+bool CIndexTree::StartKey(int* pi, int iKeySize)
 {
 	if (meReverseKey == IKR_No)
 	{
@@ -265,7 +265,7 @@ BOOL CIndexTree::StartKey(int* pi, int iKeySize)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to start key traversal for key direction [IKR_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -274,7 +274,7 @@ BOOL CIndexTree::StartKey(int* pi, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTree::LoopKey(int* pi, int iKeySize)
+bool CIndexTree::LoopKey(int* pi, int iKeySize)
 {
 	if (meReverseKey == IKR_No)
 	{
@@ -289,7 +289,7 @@ BOOL CIndexTree::LoopKey(int* pi, int iKeySize)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to loop key traversal for key direction [IKR_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
 }
 

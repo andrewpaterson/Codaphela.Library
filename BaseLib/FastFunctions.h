@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FastMemset.h"
 
 
-extern BOOL gbFastFunctions;
+extern bool gbFastFunctions;
 
 
 void FastFunctionsInit(void);

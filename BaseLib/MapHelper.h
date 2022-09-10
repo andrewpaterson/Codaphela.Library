@@ -7,7 +7,7 @@
 
 
 size_t	MinDataSize(size_t uiDataSize, size_t uiMaxDataSize);
-BOOL	CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength);
+bool	CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength);
 void	CopyData(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength);
 
 size_t	StrDataSize(char* pszData);

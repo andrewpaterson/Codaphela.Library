@@ -33,7 +33,7 @@ public:
 
 	void		RemoveTail(void);
 	void		Remove(SLLNode* psNode);
-	BOOL		SafeRemove(SLLNode* psNode);
+	bool		SafeRemove(SLLNode* psNode);
 
 	void		MoveToHead(SLLNode* psNode);
 	void		MoveToTTail(SLLNode* psNode);
@@ -42,7 +42,7 @@ public:
 
 	SLLNode*	Get(int iNum);
 	int			IndexOf(SLLNode* psExistingNode);
-	BOOL		IsInList(SLLNode* pcNode);
+	bool		IsInList(SLLNode* pcNode);
 
 	void		BubbleSort(DataCompare fCompare, size_t iOffset);
 	void		Swap(SLLNode* psNode1, SLLNode* psNode2);

@@ -13,7 +13,7 @@ public:
 	void					Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode);
 
 	void					ClearIndex(unsigned char uiIndex);
-	BOOL					ClearAndUncontain(unsigned char uiIndex);
+	bool					ClearAndUncontain(unsigned char uiIndex);
 
 	CIndexTreeNodeMemory*	GetNode(int i);
 	CIndexTreeNodeMemory**	GetNodes(void);
@@ -30,11 +30,11 @@ public:
 
 	void					SetChildrensParent(void);
 
-	BOOL					ValidateNodesEmpty(void);
-	void					Print(CChars* psz, BOOL bHex);
+	bool					ValidateNodesEmpty(void);
+	void					Print(CChars* psz, bool bHex);
 	void					Dump(void);
 
-	BOOL					Uncontain(unsigned char uiIndex);
+	bool					Uncontain(unsigned char uiIndex);
 };
 
 

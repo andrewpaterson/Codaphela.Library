@@ -14,7 +14,7 @@ void CMapBlock::_Init(void)
 {
 	mapArray._Init();
 	miLargestKeySize = 0;
-	mbOverwrite = FALSE;
+	mbOverwrite = false;
 	mpcDataFree = NULL;
 	fKeyCompare = NULL;
 }
@@ -24,7 +24,7 @@ void CMapBlock::_Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(BOOL bOverwrite)
+void CMapBlock::Init(bool bOverwrite)
 {
 	Init(&gcSystemAllocator, NULL, &CompareMNodeKey, bOverwrite);
 }
@@ -34,7 +34,7 @@ void CMapBlock::Init(BOOL bOverwrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
 	Init(pcMalloc, NULL, &CompareMNodeKey, bOverwrite);
 }
@@ -44,7 +44,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(DataCompare fKeyCompare, BOOL bOverwrite)
+void CMapBlock::Init(DataCompare fKeyCompare, bool bOverwrite)
 {
 	Init(&gcSystemAllocator, fKeyCompare, &CompareMNode, bOverwrite);
 }
@@ -54,7 +54,7 @@ void CMapBlock::Init(DataCompare fKeyCompare, BOOL bOverwrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, bool bOverwrite)
 {
 	Init(pcMalloc, fKeyCompare, &CompareMNode, bOverwrite);
 }
@@ -64,7 +64,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, BOOL bOverw
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, BOOL bOverwrite)
+void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, bool bOverwrite)
 {
 	int		iHoldingBufferSize;
 	int		iHoldingBuffers;
@@ -114,7 +114,7 @@ void CMapBlock::Kill(void)
 void* CMapBlock::Get(void* pvKey, int iKeySize)
 {
 	void*	pvData;
-	BOOL	bFound;
+	bool	bFound;
 
 	bFound = Get(pvKey, iKeySize, &pvData, NULL);
 	if (bFound)
@@ -132,7 +132,7 @@ void* CMapBlock::Get(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
+bool CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 {
 	SMNode*		psNode;
 	void*		pvData;
@@ -140,7 +140,7 @@ BOOL CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 	psNode = GetNode(pvKey, iKeySize);
 	if (!psNode)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pvData = GetData(psNode);
@@ -148,7 +148,7 @@ BOOL CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 	SafeAssign(ppvData, pvData);
 	SafeAssign(piDataSize, psNode->iDataSize);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -156,7 +156,7 @@ BOOL CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	void*		pvDestData;
 
@@ -167,11 +167,11 @@ BOOL CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 		{
 			memcpy(pvDestData, pvData, iDataSize);
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -185,7 +185,7 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 	SMNode*			psNode;
 	void*			pvDestKey;
 	void*			pvDestData;
-	BOOL			bResult;
+	bool			bResult;
 	void*			pvExistingData;
 
 	if (iKeySize > MAX_KEY_SIZE)
@@ -234,7 +234,7 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Remove(void* pvKey, int iKeySize)
+bool CMapBlock::Remove(void* pvKey, int iKeySize)
 {
 	SMNode*		psNode;
 
@@ -247,11 +247,11 @@ BOOL CMapBlock::Remove(void* pvKey, int iKeySize)
 			mpcDataFree->DataWillBeFreed(GetData(psNode));
 		}
 		mpcMalloc->Free(psNode);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -280,7 +280,7 @@ size_t CMapBlock::DataSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::HasKey(void* pvKey, int iKeySize)
+bool CMapBlock::HasKey(void* pvKey, int iKeySize)
 {
 	SMNode* psNode;
 
@@ -303,7 +303,7 @@ SMNode* CMapBlock::GetNode(void* pvKey, int iKeySize)
 	if (iKeySize > MAX_KEY_SIZE)
 	{
 		gcLogger.Error2(__METHOD__, " Key too long.  Cannot Get.", NULL);
-		return FALSE;
+		return false;
 	}
 
 	psSourceNode = (SMNode*)ac;
@@ -339,7 +339,7 @@ int CMapBlock::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
+bool CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
@@ -349,7 +349,7 @@ BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piK
 	ppsNode = (SMNode**)mapArray.StartIteration(psIterator);
 	if (!ppsNode)
 	{
-		return FALSE;
+		return false;
 	}
 
 	psNode = *ppsNode;
@@ -360,7 +360,7 @@ BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piK
 	SafeAssign(piKeySize, psNode->iKeySize);
 	SafeAssign(piDataSize, psNode->iDataSize);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -368,7 +368,7 @@ BOOL CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piK
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
+bool CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
@@ -378,7 +378,7 @@ BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize,
 	ppsNode = (SMNode**)mapArray.Iterate(psIterator);
 	if (!ppsNode)
 	{
-		return FALSE;
+		return false;
 	}
 
 	psNode = *ppsNode;
@@ -389,7 +389,7 @@ BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize,
 	SafeAssign(piKeySize, psNode->iKeySize);
 	SafeAssign(piDataSize, psNode->iDataSize);
 
-	return TRUE;
+	return true;
 }
 
 
@@ -397,30 +397,30 @@ BOOL CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
+bool CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	InsertHoldingIntoSorted();
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = mapArray.WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = mapArray.GetSortedArray()->WriteHeader(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -428,27 +428,27 @@ BOOL CMapBlock::WriteExceptData(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare)
+bool CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
 	CMallocator*	pcMalloc;
-	BOOL			bResult;
+	bool			bResult;
 
 	pcMalloc = gcMallocators.Read(pcFileReader);
 	if (pcMalloc == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = mapArray.ReadHeader(pcMalloc, pcFileReader, &CompareMNode);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	bResult = mapArray.GetSortedArray()->ReadHeader(pcFileReader, pcMalloc);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	CMalloc::Init(pcMalloc);
@@ -456,7 +456,7 @@ BOOL CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompar
 	this->fKeyCompare = fKeyCompare;
 	miLargestKeySize = 0;
 
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -533,19 +533,19 @@ void* CMapBlock::ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
+bool CMapBlock::Write(CFileWriter* pcFileWriter)
 {
 	int			iNumElements;
 	int			i;
 	void*		pvData;
 	int			iDataSize;
-	BOOL		bResult;
+	bool		bResult;
 
 
 	bResult = WriteExceptData(pcFileWriter);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iNumElements = mapArray.GetSortedSize();
@@ -554,16 +554,16 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 		pvData = WriteKey(pcFileWriter, i, &iDataSize);
 		if (!pvData)
 		{
-			return FALSE;
+			return false;
 		}
 
 		bResult = pcFileWriter->WriteData(pvData, iDataSize);
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -571,7 +571,7 @@ BOOL CMapBlock::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Read(CFileReader* pcFileReader)
+bool CMapBlock::Read(CFileReader* pcFileReader)
 {
 	return Read(pcFileReader, &CompareMNodeKey);
 }
@@ -581,7 +581,7 @@ BOOL CMapBlock::Read(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
+bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
 	int			i;
 	int			iNumElements;
@@ -590,14 +590,14 @@ BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 
 	if (fKeyCompare == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	mpcDataFree = NULL;
 
 	if (!ReadExceptData(pcFileReader, fKeyCompare))
 	{
-		return FALSE;
+		return false;
 	}
 	
 	iNumElements = mapArray.GetSortedSize();
@@ -606,11 +606,11 @@ BOOL CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 		pvData = ReadKey(pcFileReader, i, &iDataSize);
 		if (!pvData)
 		{
-			return FALSE;
+			return false;
 		}
 		ReturnOnFalse(pcFileReader->ReadData(pvData, iDataSize));
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -738,7 +738,7 @@ size_t CMapBlock::ByteSize(void)
 	SMapIterator	sIter;
 	int				iKeySize;
 	int				iDataSize;
-	BOOL			bExists;
+	bool			bExists;
 	size_t			uiByteSize;
 
 	uiByteSize = 0;

@@ -127,16 +127,16 @@ int CMarkupDoc::Print(CChars* psz, int iDepth, int iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupDoc::Is(char* szName)
+bool CMarkupDoc::Is(char* szName)
 {
 	if (mpcRootTag)
 	{
 		if (mpcRootTag->Is(szName))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -155,7 +155,7 @@ void CMarkupDoc::AddSubstitute(CMarkupSubstitute* pcSubstitute)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupDoc::FixReferences(void)
+bool CMarkupDoc::FixReferences(void)
 {
 	CMarkupReference*	pcRef;
 	int					i;
@@ -174,7 +174,7 @@ BOOL CMarkupDoc::FixReferences(void)
 			pcSubstitute = mpcMarkup->GetSubstitute(pcNamedRef->mszName.Text());
 			if (!pcSubstitute)
 			{
-				return FALSE;
+				return false;
 			}
 
 			pcReference = NULL;
@@ -199,7 +199,7 @@ BOOL CMarkupDoc::FixReferences(void)
 			}
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

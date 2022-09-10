@@ -66,7 +66,7 @@ public:
 	template<class Subclass>
 	Class* 		PostMalloc(Subclass* pv, int iNumElements, int iStride);
 
-	BOOL 		RequiresVirtualFunctionTable(void);
+	bool 		RequiresVirtualFunctionTable(void);
 };
 
 
@@ -146,7 +146,7 @@ Class* CPostMalloc<Class>::PostMalloc(Subclass* pv, int iNumElements, int iStrid
 //
 //////////////////////////////////////////////////////////////////////////
 template<class Class>
-BOOL CPostMalloc<Class>::RequiresVirtualFunctionTable(void)
+bool CPostMalloc<Class>::RequiresVirtualFunctionTable(void)
 {
 	return !std::is_trivially_default_constructible<Class>();
 }

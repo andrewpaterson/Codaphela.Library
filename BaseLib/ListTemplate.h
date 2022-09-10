@@ -29,10 +29,10 @@ public:
 	M*	 	Push(M* pvElement);
 	M*		Push(void);
 
-	BOOL	Contains(M* pvData);
+	bool	Contains(M* pvData);
 
-	BOOL	Set(int iIndex, M* pvData);
-	BOOL	SafeSet(int iIndex, M* pvData);
+	bool	Set(int iIndex, M* pvData);
+	bool	SafeSet(int iIndex, M* pvData);
 };
 
 
@@ -217,7 +217,7 @@ M* CListTemplate<M>::Push(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CListTemplate<M>::Contains(M* pvData)
+bool CListTemplate<M>::Contains(M* pvData)
 {
 	return CListBlock::Contains(pvData);
 }
@@ -228,7 +228,7 @@ BOOL CListTemplate<M>::Contains(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CListTemplate<M>::Set(int iIndex, M* pvData)
+bool CListTemplate<M>::Set(int iIndex, M* pvData)
 {
 	return CListBlock::Set(iIndex, pvData);
 }
@@ -239,7 +239,7 @@ BOOL CListTemplate<M>::Set(int iIndex, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-BOOL CListTemplate<M>::SafeSet(int iIndex, M* pvData)
+bool CListTemplate<M>::SafeSet(int iIndex, M* pvData)
 {
 	return CListBlock::SafeSet(iIndex, pvData);
 }

@@ -65,16 +65,16 @@ void CLogger::Init(const char* szName)
 	}
 
 
-	msConfig.bBreakOnWarning = FALSE;
-	msConfig.bBreakOnError = FALSE;
+	msConfig.bBreakOnWarning = false;
+	msConfig.bBreakOnError = false;
 
 #ifdef BREAK_ON_ERROR
-	msConfig.bBreakOnError = TRUE;
+	msConfig.bBreakOnError = true;
 #endif
 
 #ifdef BREAK_ON_WARNING
-	msConfig.bBreakOnError = TRUE;
-	msConfig.bBreakOnWarning = TRUE;
+	msConfig.bBreakOnError = true;
+	msConfig.bBreakOnWarning = true;
 #endif
 }
 
@@ -99,8 +99,8 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 	mapcFiles.Add((CAbstractFile**)&pcDebugFile);
 	mpcDebugOutputFile = pcDebugFile;
 
-	msConfig.bEnabled = TRUE;
-	msConfig.bDebugOutput = TRUE;
+	msConfig.bEnabled = true;
+	msConfig.bDebugOutput = true;
 
 	if (szName)
 	{
@@ -118,15 +118,15 @@ void CLogger::Kill(void)
 {
 	int				i;
 	CAbstractFile*	pcFile;
-	BOOL			bDebugFreed;
+	bool			bDebugFreed;
 
-	bDebugFreed = FALSE;
+	bDebugFreed = false;
 	for (i = 0; i < mapcFiles.NumElements(); i++)
 	{
 		pcFile = *mapcFiles.Get(i);
 		if (pcFile == mpcDebugOutputFile)
 		{
-			bDebugFreed = TRUE;
+			bDebugFreed = true;
 		}
 		if (pcFile->mbBasicFileMustFree)
 		{
@@ -173,11 +173,11 @@ void CLogger::Add(const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Error(const char* szText)
+bool CLogger::Error(const char* szText)
 {
 	Add("ERROR", szText);
 	Break();
-	return FALSE;
+	return false;
 }
 
 
@@ -198,7 +198,7 @@ void CLogger::Break(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Error2(const char* szText, ...)
+bool CLogger::Error2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char*		sz;
@@ -232,7 +232,7 @@ BOOL CLogger::Error2(const char* szText, ...)
 		Error("");
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -240,7 +240,7 @@ BOOL CLogger::Error2(const char* szText, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Warning(const char* szText)
+bool CLogger::Warning(const char* szText)
 {
 	Add("WARNING", szText);
 
@@ -249,7 +249,7 @@ BOOL CLogger::Warning(const char* szText)
 		BREAK();
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -257,7 +257,7 @@ BOOL CLogger::Warning(const char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLogger::Warning2(const char* szText, ...)
+bool CLogger::Warning2(const char* szText, ...)
 {
 	va_list		vaMarker;
 	char* sz;
@@ -283,7 +283,7 @@ BOOL CLogger::Warning2(const char* szText, ...)
 		Warning("");
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -428,7 +428,7 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Disable(void)
 {
-	msConfig.bEnabled = FALSE;
+	msConfig.bEnabled = false;
 }
 
 
@@ -438,7 +438,7 @@ void CLogger::Disable(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Enable(void)
 {
-	msConfig.bEnabled = TRUE;
+	msConfig.bEnabled = true;
 }
 
 
@@ -446,7 +446,7 @@ void CLogger::Enable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::SetBreakOnError(BOOL bBreakOnError)
+void CLogger::SetBreakOnError(bool bBreakOnError)
 {
 	msConfig.bBreakOnError = bBreakOnError;
 }
@@ -456,7 +456,7 @@ void CLogger::SetBreakOnError(BOOL bBreakOnError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogger::SetBreakOnWarning(BOOL bBreakOnWarning)
+void CLogger::SetBreakOnWarning(bool bBreakOnWarning)
 {
 	msConfig.bBreakOnWarning = bBreakOnWarning;
 }
@@ -466,16 +466,16 @@ void CLogger::SetBreakOnWarning(BOOL bBreakOnWarning)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SLogConfig CLogger::SetSilent(BOOL bBreakOnError)
+SLogConfig CLogger::SetSilent(bool bBreakOnError)
 {
 	SLogConfig sExisting;
 
 	GetConfig(&sExisting);
 
-	msConfig.bEnabled = TRUE;
+	msConfig.bEnabled = true;
 	msConfig.bBreakOnError = bBreakOnError;
-	msConfig.bBreakOnWarning = FALSE;
-	msConfig.bDebugOutput = FALSE;
+	msConfig.bBreakOnWarning = false;
+	msConfig.bDebugOutput = false;
 
 	RemoveOutput(mpcDebugOutputFile);
 

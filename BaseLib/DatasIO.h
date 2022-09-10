@@ -42,8 +42,8 @@ template<class Class>
 void CDatasIO::Add(char* szConstructorName)
 {
 	SDataIO*	psIO;
-	BOOL(Class::*	fSpecificClassFileSave)(CFileWriter*);
-	BOOL(Class::*	fSpecificClassFileLoad)(CFileReader*);
+	bool(Class::*	fSpecificClassFileSave)(CFileWriter*);
+	bool(Class::*	fSpecificClassFileLoad)(CFileReader*);
 
 	fSpecificClassFileSave = &Class::Save;
 	fSpecificClassFileLoad = &Class::Load;
@@ -74,8 +74,8 @@ void CDatasIO::Add(void)
 {
 	Class			m;
 	SDataIO*	psIO;
-	BOOL(Class::*	fSpecificClassFileSave)(CFileWriter*);
-	BOOL(Class::*	fSpecificClassFileLoad)(CFileReader*);
+	bool(Class::*	fSpecificClassFileSave)(CFileWriter*);
+	bool(Class::*	fSpecificClassFileLoad)(CFileReader*);
 
 	fSpecificClassFileSave = &Class::Save;
 	fSpecificClassFileLoad = &Class::Load;

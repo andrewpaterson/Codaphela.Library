@@ -91,7 +91,7 @@ void* CMapMapAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t uiDataS
 //////////////////////////////////////////////////////////////////////////
 void* CMapMapAccess::Get(void* pvKey, int iKeySize, size_t* puiDataSize)
 {
-	BOOL	bResult;
+	bool	bResult;
 	void*	pvData;
 
 	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (int*)puiDataSize);
@@ -120,7 +120,7 @@ size_t CMapMapAccess::DataSize(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapMapAccess::Remove(void* pvKey, int iKeySize)
+bool CMapMapAccess::Remove(void* pvKey, int iKeySize)
 {
 	return mpcMap->Remove(pvKey, iKeySize);
 }
@@ -130,7 +130,7 @@ BOOL CMapMapAccess::Remove(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CMapMapAccess::Has(void* pvKey, int iKeySize)
+bool CMapMapAccess::Has(void* pvKey, int iKeySize)
 {
 	return mpcMap->HasKey(pvKey, iKeySize);
 }

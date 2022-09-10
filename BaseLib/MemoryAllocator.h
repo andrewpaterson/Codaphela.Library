@@ -13,26 +13,26 @@ protected:
 
 public:
 	void			Init(void);
-	void			Init(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
+	void			Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void			Kill(void);
 
 	void*			Malloc(size_t tSize);
 	void*			Malloc(size_t tSize, char(**pacDebugName)[4]);
 	void*			Realloc(void* pv, size_t tSize);
-	BOOL			Free(void* pv);
+	bool			Free(void* pv);
 	int				FreeMultiple(CArrayVoidPtr* pav);
 
 	const char*		GetName(void);
 
-	BOOL			Read(CFileReader* pcFileReader);
-	BOOL			Write(CFileWriter* pcFileWriter);
+	bool			Read(CFileReader* pcFileReader);
+	bool			Write(CFileWriter* pcFileWriter);
 
 	CGeneralMemory*	GetMemory(void);
 	size_t			SizeOffset(void);
 
 public:
 	static CLifeInit<CMallocator> Create(void);
-	static CLifeInit<CMallocator> Create(int iDefaultAlignment, BOOL bDefaultFreeListParams = TRUE);
+	static CLifeInit<CMallocator> Create(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 };
 
 

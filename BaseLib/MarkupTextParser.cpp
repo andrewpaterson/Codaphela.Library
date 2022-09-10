@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTextParser::GetTag(CMarkupTag* pcParentTag, char* szTagName, BOOL bLogErrors)
+CMarkupTag* CMarkupTextParser::GetTag(CMarkupTag* pcParentTag, char* szTagName, bool bLogErrors)
 {
 	CMarkupTag* pcTag;
 
@@ -47,7 +47,7 @@ CMarkupTag* CMarkupTextParser::GetTag(CMarkupTag* pcParentTag, char* szTagName, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTextParser::ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, BOOL bLogErrors)
+bool CMarkupTextParser::ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool bLogErrors)
 {
 	CChars			szFloat;
 	CTextParser		cTextParser;
@@ -66,11 +66,11 @@ BOOL CMarkupTextParser::ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, BOOL b
 			LogError(pcFloatTag, "Tag body could not be parsed as a float.");
 		}
 		szFloat.Kill();
-		return FALSE;
+		return false;
 	}
 	*pcFloat = (float)fValue;
 	szFloat.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -78,7 +78,7 @@ BOOL CMarkupTextParser::ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, BOOL b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTextParser::ReadInteger(CMarkupTag* pcIntTag, int* pcInt, BOOL bLogErrors)
+bool CMarkupTextParser::ReadInteger(CMarkupTag* pcIntTag, int* pcInt, bool bLogErrors)
 {
 	CChars					szInt;
 	CTextParser				cTextParser;
@@ -97,10 +97,10 @@ BOOL CMarkupTextParser::ReadInteger(CMarkupTag* pcIntTag, int* pcInt, BOOL bLogE
 		}
 
 		szInt.Kill();
-		return FALSE;
+		return false;
 	}
 	szInt.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -108,7 +108,7 @@ BOOL CMarkupTextParser::ReadInteger(CMarkupTag* pcIntTag, int* pcInt, BOOL bLogE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, BOOL* pcBool, BOOL bLogErrors)
+bool CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogErrors)
 {
 	CChars					szBool;
 	CTextParser				cTextParser;
@@ -117,10 +117,10 @@ BOOL CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, BOOL* pcBool, BOOL bLogEr
 	szBool.Init();
 	pcIntTag->GetText(&szBool);
 	cTextParser.Init(&szBool);
-	tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("TRUE");
+	tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("true");
 	if (tResult = TRITRUE)
 	{
-		*pcBool = TRUE;
+		*pcBool = true;
 	}
 	else if (tResult == TRIERROR)
 	{
@@ -129,13 +129,13 @@ BOOL CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, BOOL* pcBool, BOOL bLogEr
 			LogError(pcIntTag, "Tag body could not be parsed as a boolean.");
 		}
 		szBool.Kill();
-		return FALSE;
+		return false;
 	}
 
-	tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("FALSE");
+	tResult = cTextParser.GetExactCaseInsensitiveCharacterSequence("false");
 	if (tResult = TRITRUE)
 	{
-		*pcBool = FALSE;
+		*pcBool = false;
 	}
 	else
 	{
@@ -144,12 +144,12 @@ BOOL CMarkupTextParser::ReadBool(CMarkupTag* pcIntTag, BOOL* pcBool, BOOL bLogEr
 			LogError(pcIntTag, "Tag body could not be parsed as a boolean.");
 		}
 		szBool.Kill();
-		return FALSE;
+		return false;
 	}
 
 	cTextParser.Kill();
 	szBool.Kill();
-	return TRUE;
+	return true;
 }
 
 

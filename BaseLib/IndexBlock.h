@@ -36,32 +36,32 @@ public:
 	void				Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig);
 	void				Kill(void);
 
-	BOOL				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
+	bool				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
 	void*				Get(void* pvKey, int iKeySize);
 
-	BOOL				GetLongestPartial(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
+	bool				GetLongestPartial(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
 	void*				GetLongestPartial(void* pvKey, int iKeySize);
 
 	void*				Put(void* pvKey, int iKeySize, int iDataSize);
-	BOOL				Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	bool				Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
-	BOOL				Remove(void* pvKey, int iKeySize);
+	bool				Remove(void* pvKey, int iKeySize);
 
 	size_t				DataSize(void* pvKey, int iKeySize);
 
-	BOOL				HasKey(void* pvKey, int iKeySize);
+	bool				HasKey(void* pvKey, int iKeySize);
 
 	int					NumElements(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
 	void				Dump(void);
 
-	BOOL				StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
-	BOOL				Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	bool				StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	bool				Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
 
-	BOOL				Write(CFileWriter* pcFileWriter);
-	BOOL				Read(CFileReader* pcFileReader);
+	bool				Write(CFileWriter* pcFileWriter);
+	bool				Read(CFileReader* pcFileReader);
 
-	BOOL				ValidateIndexTree(void);
+	bool				ValidateIndexTree(void);
 
 protected:
 	void				DataWillBeFreed(SIndexBlockNode* psNode);

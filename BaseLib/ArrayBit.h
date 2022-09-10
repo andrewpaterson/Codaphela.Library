@@ -52,23 +52,23 @@ public:
 	void	ReInit(void);
 	void	GrowBy(int iNumBits);
 
-	BOOL	Get(int iBit);  //return 0 or not 0 (not necessarily 1).
+	bool	Get(int iBit);  //return 0 or not 0 (not necessarily 1).
 	void	Get(void* pvDest, int iDestOffset, int iOffset, int iNumBits);
 
-	void	Add(BOOL bBit);
+	void	Add(bool bBit);
 	void	Add(void* pvSource, int iSourceOffset, int iNumBits);
 
-	void	Set(int iBit, BOOL bBit);  //bBit can only take 1 or 0.
+	void	Set(int iBit, bool bBit);  //bBit can only take 1 or 0.
 	void	Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits);
 
-	BOOL	Read(CFileReader* pcFile);
-	BOOL	Write(CFileWriter* pcFile);
+	bool	Read(CFileReader* pcFile);
+	bool	Write(CFileWriter* pcFile);
 
 	int		NumElements(void);
 	void*	GetData(void);
 	int		ByteSize(int iNumBits);
 
-	BOOL	IsLarge(void);
+	bool	IsLarge(void);
 };
 
 

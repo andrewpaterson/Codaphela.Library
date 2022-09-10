@@ -19,15 +19,15 @@ protected:
 
 public:
 
-	void	Init(M** ppcLifeCycleObject, BOOL bMustFree, BOOL bMustKill);
+	void	Init(M** ppcLifeCycleObject, bool bMustFree, bool bMustKill);
 	void	Kill(void);
 
-	BOOL	MustKill(void);
-	BOOL	MustFree(void);
+	bool	MustKill(void);
+	bool	MustFree(void);
 
-	BOOL	IsInitialised(void);
-	BOOL	HasLifeCycleObject(void);
-	BOOL	IsKilled(void);
+	bool	IsInitialised(void);
+	bool	HasLifeCycleObject(void);
+	bool	IsKilled(void);
 };
 
 
@@ -39,14 +39,14 @@ protected:
 	unsigned char	mcFlags;
 
 public:
-	void	Init(M* pcLifeCycleObject, BOOL bMustFree = TRUE, BOOL bMustKill = TRUE);
+	void	Init(M* pcLifeCycleObject, bool bMustFree = true, bool bMustKill = true);
 	void	Null(void);
 
 	void	ConfigureLife(CLife<M>* pcLife, M** ppcLifeCycleObject);
 
 	M*		GetLife(void);
-	BOOL	MustKill(void);
-	BOOL	MustFree(void);
+	bool	MustKill(void);
+	bool	MustFree(void);
 };
 
 
@@ -55,7 +55,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLife<M>::Init(M** ppcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
+void CLife<M>::Init(M** ppcLifeCycleObject, bool bMustFree, bool bMustKill)
 {
 	mppcLifeCycleObject = ppcLifeCycleObject;
 	mcFlags = LIFE_CYCLE_INITIALISED;
@@ -76,7 +76,7 @@ CLifeInit<SuperClass> LifeAlloc(Args ... args)
 
 	pcLife = NewMalloc<SpecificClass>();
 	pcLife->Init(args...);
-	cLife.Init(pcLife, TRUE, TRUE); 
+	cLife.Init(pcLife, true, true); 
 	return cLife;
 }
 
@@ -90,7 +90,7 @@ CLifeInit<SuperClass> LifeLocal(SuperClass* pcLifeCycleObject)
 {
 	CLifeInit<SuperClass>	cLife;
 
-	cLife.Init(pcLifeCycleObject, FALSE, FALSE);
+	cLife.Init(pcLifeCycleObject, false, false);
 	return cLife;
 }
 
@@ -113,7 +113,7 @@ CLifeInit<SuperClass> LifeNull(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CLifeInit<M>::Init(M* pcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
+void CLifeInit<M>::Init(M* pcLifeCycleObject, bool bMustFree, bool bMustKill)
 {
 	mpcLifeCycleObject = pcLifeCycleObject;
 	mcFlags = 0;
@@ -129,7 +129,7 @@ void CLifeInit<M>::Init(M* pcLifeCycleObject, BOOL bMustFree, BOOL bMustKill)
 template <class M>
 void CLifeInit<M>::Null(void)
 {
-	Init(NULL, FALSE, FALSE);
+	Init(NULL, false, false);
 }
 
 
@@ -164,7 +164,7 @@ M* CLifeInit<M>::GetLife(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLifeInit<M>::MustKill(void)
+bool CLifeInit<M>::MustKill(void)
 {
 	return FixBool(mcFlags & LIFE_CYCLE_FLAG_KILL);
 }
@@ -175,7 +175,7 @@ BOOL CLifeInit<M>::MustKill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLifeInit<M>::MustFree(void)
+bool CLifeInit<M>::MustFree(void)
 {
 	return FixBool(mcFlags & LIFE_CYCLE_FLAG_FREE);
 }
@@ -216,7 +216,7 @@ void CLife<M>::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLife<M>::MustKill(void)
+bool CLife<M>::MustKill(void)
 {
 	return FixBool(mcFlags & LIFE_CYCLE_FLAG_KILL);
 }
@@ -227,7 +227,7 @@ BOOL CLife<M>::MustKill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLife<M>::MustFree(void)
+bool CLife<M>::MustFree(void)
 {
 	return FixBool(mcFlags & LIFE_CYCLE_FLAG_FREE);
 }
@@ -238,7 +238,7 @@ BOOL CLife<M>::MustFree(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLife<M>::IsInitialised(void)
+bool CLife<M>::IsInitialised(void)
 {
 	return (mcFlags & ~0x000000FF) == LIFE_CYCLE_INITIALISED;
 }
@@ -249,13 +249,13 @@ BOOL CLife<M>::IsInitialised(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLife<M>::HasLifeCycleObject(void)
+bool CLife<M>::HasLifeCycleObject(void)
 {
 	if (mppcLifeCycleObject != NULL)
 	{
 		return *mppcLifeCycleObject != NULL;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -264,7 +264,7 @@ BOOL CLife<M>::HasLifeCycleObject(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-BOOL CLife<M>::IsKilled(void)
+bool CLife<M>::IsKilled(void)
 {
 	return (mcFlags & ~0x000000FF) == LIFE_CYCLE_KILLED;
 }

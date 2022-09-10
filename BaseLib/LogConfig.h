@@ -4,10 +4,10 @@
 
 struct SLogConfig
 {
-	BOOL	bEnabled;
-	BOOL	bDebugOutput;
-	BOOL	bBreakOnError;
-	BOOL	bBreakOnWarning;
+	bool	bEnabled;
+	bool	bDebugOutput;
+	bool	bBreakOnError;
+	bool	bBreakOnWarning;
 };
 
 

@@ -31,8 +31,8 @@ class CMapStringPrimitive : public CMapStringTemplate<D>
 public:
 	D		Get(char* szKey, D sNullValue = -1);
 	D		Get(const char* szKey, D sNullValue = -1);
-	BOOL	Put(char* szKey, D sData);
-	BOOL	Put(const char* szKey, D sData);
+	bool	Put(char* szKey, D sData);
+	bool	Put(const char* szKey, D sData);
 };
 
 
@@ -83,7 +83,7 @@ D CMapStringPrimitive<D>::Get(const char* szKey, D sNullValue)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CMapStringPrimitive<D>::Put(char* szKey, D sData)
+bool CMapStringPrimitive<D>::Put(char* szKey, D sData)
 {
 	return CMapStringTemplate<D>::Put(szKey, &sData);
 }
@@ -94,7 +94,7 @@ BOOL CMapStringPrimitive<D>::Put(char* szKey, D sData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CMapStringPrimitive<D>::Put(const char* szKey, D sData)
+bool CMapStringPrimitive<D>::Put(const char* szKey, D sData)
 {
 	return CMapStringTemplate<D>::Put(szKey, &sData);
 }

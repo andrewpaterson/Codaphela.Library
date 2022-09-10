@@ -44,7 +44,7 @@ void SetHandle(CDiskFile* pcDiskFile, HANDLE hFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL IsHandle(CDiskFile* pcDiskFile, HANDLE hFile)
+bool IsHandle(CDiskFile* pcDiskFile, HANDLE hFile)
 {
 	return pcDiskFile->IsFile(&hFile, sizeof(HANDLE));
 }
@@ -119,7 +119,7 @@ void CDiskFile::SetFile(void* pvFile, size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::IsFile(void* pvFile, size_t uiSize)
+bool CDiskFile::IsFile(void* pvFile, size_t uiSize)
 {
 	if (uiSize <= 8)
 	{
@@ -127,7 +127,7 @@ BOOL CDiskFile::IsFile(void* pvFile, size_t uiSize)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -165,7 +165,7 @@ HANDLE CreateWindowsFile(char* szName, unsigned int uiRights, unsigned uiShare, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Open(EFileMode eMode)
+bool CDiskFile::Open(EFileMode eMode)
 {
 	HANDLE hFile;
 
@@ -209,14 +209,14 @@ BOOL CDiskFile::Open(EFileMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Close(void)
+bool CDiskFile::Close(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 	HANDLE	hFile;
 
 	if (IsHandle(this, INVALID_HANDLE_VALUE))
 	{
-		return FALSE;
+		return false;
 	}
 
 	hFile = GetHandle(this);
@@ -224,9 +224,9 @@ BOOL CDiskFile::Close(void)
 	if (bResult)
 	{
 		SetHandle(this, INVALID_HANDLE_VALUE);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -236,7 +236,7 @@ BOOL CDiskFile::Close(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
-	BOOL			bResult;
+	bool			bResult;
 	filePos			iByteLength;
 	unsigned int	uiTruncatedLength;
 	unsigned int	uiReadLength;
@@ -279,7 +279,7 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
 	unsigned int	uiResult;
 
@@ -301,7 +301,7 @@ BOOL CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -313,7 +313,7 @@ BOOL CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
 	unsigned int	uiWritten;
-	BOOL			bResult;
+	bool			bResult;
 	filePos			iByteLength;
 	unsigned int	uiTruncatedLength;
 
@@ -372,7 +372,7 @@ filePos CDiskFile::Tell(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::IsOpen(void)
+bool CDiskFile::IsOpen(void)
 {
 	return !IsHandle(this, INVALID_HANDLE_VALUE);
 }
@@ -402,15 +402,15 @@ filePos CDiskFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Truncate(filePos iSize)
+bool CDiskFile::Truncate(filePos iSize)
 {
 	unsigned int	uiResult;
-	BOOL			bResult;
+	bool			bResult;
 
 	uiResult = SetFilePointer(GetHandle(this), (LONG)iSize, NULL, FILE_BEGIN);
 	if (uiResult == INVALID_SET_FILE_POINTER)
 	{
-		return FALSE;
+		return false;
 	}
 	bResult = SetEndOfFile(GetHandle(this));
 	return bResult;
@@ -421,9 +421,9 @@ BOOL CDiskFile::Truncate(filePos iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Flush(void)
+bool CDiskFile::Flush(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 	char*	sz;
 
 	if (IsOpen())
@@ -437,7 +437,7 @@ BOOL CDiskFile::Flush(void)
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -446,13 +446,13 @@ BOOL CDiskFile::Flush(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CDiskFile::Delete(void)
+bool CDiskFile::Delete(void)
 {
 	CFileUtil	cFileUtil;
 
 	if (IsOpen())
 	{
-		return FALSE;
+		return false;
 	}
 
 	return cFileUtil.Delete(mszFilename.Text());
@@ -483,7 +483,7 @@ CDiskFile* DiskFile(const char* szName)
 
 	pcDiskFile = NewMalloc<CDiskFile>();
 	pcDiskFile->Init(szName);
-	pcDiskFile->mbBasicFileMustFree = TRUE;
+	pcDiskFile->mbBasicFileMustFree = true;
 	return pcDiskFile;
 }
 

@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "FastFunctions.h"
 
 
-BOOL gbFastFunctions = FALSE;
+bool gbFastFunctions = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -36,7 +36,7 @@ void FastFunctionsInit(void)
 	InitMemcpyFastBackwards();
 	InitMemcmpFast();
 	InitMemsetFast();
-	gbFastFunctions = TRUE;
+	gbFastFunctions = true;
 }
 
 

@@ -31,7 +31,7 @@ class CFilenames
 {
 protected:
 	CFileNode<M>	mcRoot;
-	BOOL			mbParentsValid;
+	bool			mbParentsValid;
 
 public:
 	void			Init(void);
@@ -55,7 +55,7 @@ template <class M>
 void CFilenames<M>::Init(void)
 {
 	mcRoot.InitDirectory("", NULL);
-	mbParentsValid = FALSE;
+	mbParentsValid = false;
 }
 
 
@@ -139,7 +139,7 @@ CFileNode<M>* CFilenames<M>::AddFile(char* szFullName)
 	CFileNode<M>*	pcCurrent;
 	CFileNode<M>*	pcChild;
 
-	mbParentsValid = FALSE;
+	mbParentsValid = false;
 
 	asNames.Init();
 	szFake.Fake(szFullName);
@@ -242,7 +242,7 @@ void CFilenames<M>::FixParents(void)
 	if (!mbParentsValid)
 	{
 		mcRoot.Directory()->FixParents(&mcRoot);
-		mbParentsValid = TRUE;
+		mbParentsValid = true;
 	}
 }
 

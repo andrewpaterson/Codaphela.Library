@@ -33,14 +33,14 @@ public:
 			void				SetIndexTree(CIndexTree* pcIndexTree);
 
 			//This is not safe.  The tree could change under the SDataOrderIterator.
-			BOOL				StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
-			BOOL				Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
+			bool				StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
+			bool				Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
 
 			CIndexTreeNode*		GetFirstTreeNode(void);
 			CIndexTreeNode*		GetLastTreeNode(void);
 
 protected:
-			BOOL				IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
+			bool				IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize);
 };
 
 

@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
+bool CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 {
 	CFileBasic	cSource;
 	CFileBasic	cDest;
@@ -42,7 +42,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 
 	if ((!pcSource) || (!pcDest))
 	{
-		return FALSE;
+		return false;
 	}
 
 	cSource.Init(pcSource);
@@ -52,7 +52,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	{
 		cDest.Kill();
 		cSource.Kill();
-		return FALSE;
+		return false;
 	}
 
 	iLength = cSource.GetFileLength();
@@ -62,7 +62,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 		cDest.Kill();
 		cSource.Close();
 		cSource.Kill();
-		return TRUE;
+		return true;
 	}
 
 	eWriteMode = EFM_Write_Create;
@@ -71,7 +71,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 		cSource.Close();
 		cDest.Kill();
 		cSource.Kill();
-		return FALSE;
+		return false;
 	}
 
 	if (iLength > 10 MB)
@@ -103,7 +103,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 			cDest.Kill();
 
 			SafeFree(pvTemp);
-			return FALSE;
+			return false;
 		}
 
 		if (!cDest.WriteData(pvTemp, iChunk))
@@ -115,7 +115,7 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 			cDest.Kill();
 
 			SafeFree(pvTemp);
-			return FALSE;
+			return false;
 		}
 
 		iRemaining -= iChunk;
@@ -128,6 +128,6 @@ BOOL CFileCopier::Copy(CAbstractFile* pcSource, CAbstractFile* pcDest)
 	cDest.Kill();
 
 	SafeFree(pvTemp);
-	return TRUE;
+	return true;
 }
 

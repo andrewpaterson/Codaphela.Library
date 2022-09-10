@@ -18,13 +18,13 @@ public:
 
 	void*			Malloc(size_t tSize);
 	void*			Realloc(void* pv, size_t tSize);
-	BOOL			Free(void* pv);
+	bool			Free(void* pv);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ClassName(void);
 	unsigned int	ClassSize(void);
 
-	BOOL			IsLocal(void);
+	bool			IsLocal(void);
 	size_t			SizeOffset(void);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!

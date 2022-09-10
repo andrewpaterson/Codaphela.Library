@@ -48,7 +48,7 @@ void CGuidClass::Init(char8* sz)
 	TRISTATE	tResult;
 	uint64		uiValue;		
 	int32		iLength;
-	BOOL		bResult;
+	bool		bResult;
 
 	cParser.Init(sz);
 	tOpenCurly = cParser.GetExactCharacter('{');
@@ -143,7 +143,7 @@ void CGuidClass::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
+bool CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 {
 	TRISTATE	tResult;
 	uint64		uiValue2;
@@ -157,27 +157,27 @@ BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 	tResult = pcParser->GetExactCharacter(',');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetHexadecimal(&uiValue2, &iLength);
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetExactCharacter(',');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetHexadecimal(&uiValue3, &iLength);
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetExactCharacter(',');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 
 	muiData1 = uiValue1;
@@ -187,7 +187,7 @@ BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 	tOpenCurly = pcParser->GetExactCharacter('{');
 	if (tOpenCurly == TRIERROR)
 	{
-		return FALSE;
+		return false;
 	}
 	else if (tOpenCurly == TRIFALSE)
 	{
@@ -199,14 +199,14 @@ BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 		tResult = pcParser->GetHexadecimal(&uiSmallRight, &iLength);
 		if (tResult != TRITRUE)
 		{
-			return FALSE;
+			return false;
 		}
 		if (i != 7)
 		{
 			tResult = pcParser->GetExactCharacter(',');
 			if (tResult != TRITRUE)
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		maubData4[i] = (uint8)uiSmallRight;
@@ -217,7 +217,7 @@ BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 		tResult = pcParser->GetExactCharacter('}');
 		if (tResult != TRITRUE)
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (tOpenRound == TRITRUE)
@@ -225,10 +225,10 @@ BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 		tResult = pcParser->GetExactCharacter(')');
 		if (tResult != TRITRUE)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -236,7 +236,7 @@ BOOL CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGuidClass::Get32Format(CTextParser* pcParser, uint64 uiLeft)
+bool CGuidClass::Get32Format(CTextParser* pcParser, uint64 uiLeft)
 {
 	uint64		uiRight;
 	TRISTATE	tResult;
@@ -258,10 +258,10 @@ BOOL CGuidClass::Get32Format(CTextParser* pcParser, uint64 uiLeft)
 			maubData4[5] = ((uint8*)&uiRight)[2];
 			maubData4[6] = ((uint8*)&uiRight)[1];
 			maubData4[7] = ((uint8*)&uiRight)[0];
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -269,7 +269,7 @@ BOOL CGuidClass::Get32Format(CTextParser* pcParser, uint64 uiLeft)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGuidClass::Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue1)
+bool CGuidClass::Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue1)
 {
 	TRISTATE	tResult;
 	uint64		uiValue2;
@@ -281,42 +281,42 @@ BOOL CGuidClass::Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue1)
 	tResult = pcParser->GetExactCharacter('-');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetHexadecimalPart(&uiValue2, &iLength, 4);
 	if ((tResult != TRITRUE) || (iLength != 4))
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetExactCharacter('-');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetHexadecimalPart(&uiValue3, &iLength, 4);
 	if ((tResult != TRITRUE) || (iLength != 4))
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetExactCharacter('-');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetHexadecimalPart(&uiRight1, &iLength, 4);
 	if ((tResult != TRITRUE) || (iLength != 4))
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetExactCharacter('-');
 	if (tResult != TRITRUE)
 	{
-		return FALSE;
+		return false;
 	}
 	tResult = pcParser->GetHexadecimalPart(&uiRight2, &iLength, 12);
 	if ((tResult != TRITRUE) || (iLength != 12))
 	{
-		return FALSE;
+		return false;
 	}
 
 	muiData1 = uiValue1;
@@ -330,7 +330,7 @@ BOOL CGuidClass::Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue1)
 	maubData4[5] = ((uint8*)&uiRight2)[2];
 	maubData4[6] = ((uint8*)&uiRight2)[1];
 	maubData4[7] = ((uint8*)&uiRight2)[0];
-	return TRUE;
+	return true;
 }
 
 

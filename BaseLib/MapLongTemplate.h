@@ -31,10 +31,10 @@ template<class D>
 class CMapLongTemplate : public CMapPrimitiveTemplate<int64, D>
 {
 public:
-	void	Init(BOOL bOverwrite);
-	void	Init(CMallocator* pcMalloc, BOOL bOverwrite);
+	void	Init(bool bOverwrite);
+	void	Init(CMallocator* pcMalloc, bool bOverwrite);
 
-	BOOL	Read(CFileReader* pcFileReader);
+	bool	Read(CFileReader* pcFileReader);
 };
 
 
@@ -43,7 +43,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapLongTemplate<D>::Init(BOOL bOverwrite)
+void CMapLongTemplate<D>::Init(bool bOverwrite)
 {
 	Init(&gcSystemAllocator, bOverwrite);
 }
@@ -54,7 +54,7 @@ void CMapLongTemplate<D>::Init(BOOL bOverwrite)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
+void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
 	CMapTemplate<int64, D>::Init(pcMalloc, &CompareLong, bOverwrite);
 };
@@ -65,7 +65,7 @@ void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, BOOL bOverwrite)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-BOOL CMapLongTemplate<D>::Read(CFileReader* pcFileReader)
+bool CMapLongTemplate<D>::Read(CFileReader* pcFileReader)
 {
 	return CMapTemplate<int64, D>::Read(pcFileReader, &CompareLong);
 }

@@ -56,15 +56,15 @@ public:
 
 	friend SDouble2 operator * (double, const SDouble2&);
 
-	BOOL operator == (const SDouble2&) const;
-	BOOL operator != (const SDouble2&) const;
+	bool operator == (const SDouble2&) const;
+	bool operator != (const SDouble2&) const;
 
 	void Init(double x, double y);
 	void Init(int x, int y);
 	void Zero(void);
 
-	BOOL Save(CFileWriter* pcFile);
-	BOOL Load(CFileReader* pcFile);
+	bool Save(CFileWriter* pcFile);
+	bool Load(CFileReader* pcFile);
 
 	void Fix(void);
 	void Dump(void);

@@ -55,7 +55,7 @@ int CMarkupRefText::Print(CChars* psz, int iDepth, int iLine)
 	CChars	szText;
 
 	szText.Init(mpcRef->mszText);
-	iLine = CMarkupBase::Print(psz, &szText, iDepth, iLine, FALSE);
+	iLine = CMarkupBase::Print(psz, &szText, iDepth, iLine, false);
 	szText.Kill();
 	return iLine;
 }
@@ -99,7 +99,7 @@ int CMarkupRefDoc::Print(CChars* psz, int iDepth, int iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMarkupRefDoc::Is(char* szName)
+bool CMarkupRefDoc::Is(char* szName)
 {
 	return mpcRef->mpcDoc->Is(szName);
 }

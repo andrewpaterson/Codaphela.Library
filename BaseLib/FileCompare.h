@@ -30,11 +30,11 @@ class CFileCompare
 protected:	
 	void	ErrorNames(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2);
 	void	Difference(CChars* psz1, filePos iPosition, char c);
-	BOOL	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2);
+	bool	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2);
 
 public:
-	BOOL	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2);
-	BOOL	Compare(const char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2);
+	bool	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2);
+	bool	Compare(const char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2);
 };
 
 

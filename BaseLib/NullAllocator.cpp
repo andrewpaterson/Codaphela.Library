@@ -29,9 +29,9 @@ void* CNullAllocator::Malloc(size_t tSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CNullAllocator::Free(void* pv)
+bool CNullAllocator::Free(void* pv)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -59,9 +59,9 @@ const char* CNullAllocator::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNullAllocator::IsLocal(void)
+bool CNullAllocator::IsLocal(void)
 {
-	return FALSE;
+	return false;
 }
 
 

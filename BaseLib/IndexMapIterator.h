@@ -8,7 +8,7 @@ class CIndexMapIterator : public CMapIterator
 {
 protected:
 	CIndexBlock*					mpcIndex;
-	BOOL							mbStarted;
+	bool							mbStarted;
 	SIndexTreeMemoryUnsafeIterator	msIter;
 
 public:

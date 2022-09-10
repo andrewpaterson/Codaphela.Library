@@ -64,12 +64,12 @@ private:
 
 
 extern CTypeNames	gcTypeNames;
-extern BOOL			gbTypeNames;
+extern bool			gbTypeNames;
 
 
 void TypesInit(void);
 void TypesKill(void);
-BOOL TypesValidate(void);
+bool TypesValidate(void);
 
 
 #endif // !__TYPE_NAMES_H__

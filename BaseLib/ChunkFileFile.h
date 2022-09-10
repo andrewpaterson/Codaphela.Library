@@ -34,25 +34,25 @@ protected:
 	filePos			miChunkStart;
 	filePos			miChunkSize;
 
-	BOOL			mbEndOfFile;
-	BOOL			mbWriteMode;
-	BOOL			mbReadMode;
+	bool			mbEndOfFile;
+	bool			mbWriteMode;
+	bool			mbReadMode;
 
 public:
 	void		Init(CChunkFile* pcChunkFile);
 	void		Kill(void);
 
-	BOOL		Open(EFileMode eMode);
-	BOOL		Close(void);
+	bool		Open(EFileMode eMode);
+	bool		Close(void);
 	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
-	BOOL		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
+	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
 	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
 	filePos		Tell(void);
-	BOOL		IsOpen(void);
-	BOOL		Truncate(filePos iSize);
+	bool		IsOpen(void);
+	bool		Truncate(filePos iSize);
 	filePos		Size(void);
-	BOOL		Flush(void);
-	BOOL		Delete(void);
+	bool		Flush(void);
+	bool		Delete(void);
 	char*		GetFilename(void);
 };
 

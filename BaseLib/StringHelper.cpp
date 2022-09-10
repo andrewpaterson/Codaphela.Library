@@ -493,7 +493,7 @@ char* StrIStr(char* ps1, const char* ps2)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-const char* FindChar(const char* szString, char c, BOOL bReverse)
+const char* FindChar(const char* szString, char c, bool bReverse)
 {
 	int iLen;
 	int i;
@@ -808,7 +808,7 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 	char			iByte;
 	char			iBitIndex;
 	unsigned char	iBitMask;
-	BOOL			bAppendedSpace;
+	bool			bAppendedSpace;
 
 	if ((iDestLength == 0) || (iByteCount > 16))
 	{
@@ -835,14 +835,14 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 
 		iBitIndex++;
 		iBitMask >>= 1;
-		bAppendedSpace = FALSE;
+		bAppendedSpace = false;
 		if (iBitIndex == 8)
 		{
 			iBitMask = 0x80;
 			iBitIndex = 0;
 			iByte--;
 			szDest[iIndex] = ' ';
-			bAppendedSpace = TRUE;
+			bAppendedSpace = true;
 			INCREMENT_INDEX_BREAK_ON_MAX(iIndex, iDestLength);
 
 			if (iByte < 0)
@@ -978,7 +978,7 @@ char* CharToString(char* szDest, int iDestLength, char16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* BoolToString(char* szDest, int iDestLength, BOOL b)
+char* BoolToString(char* szDest, int iDestLength, bool b)
 {
 	if (b)
 	{

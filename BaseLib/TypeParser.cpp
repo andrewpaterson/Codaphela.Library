@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTypeParser::Init(char* szText, int iTextLen)
+bool CTypeParser::Init(char* szText, int iTextLen)
 {
 	AllocateParser();
 	return mpcParser->Init(szText, iTextLen);
@@ -40,7 +40,7 @@ BOOL CTypeParser::Init(char* szText, int iTextLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTypeParser::Init(char* szText)
+bool CTypeParser::Init(char* szText)
 {
 	AllocateParser();
 	return mpcParser->Init(szText);
@@ -51,7 +51,7 @@ BOOL CTypeParser::Init(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTypeParser::Init(CChars* szText)
+bool CTypeParser::Init(CChars* szText)
 {
 	AllocateParser();
 	return mpcParser->Init(szText);
@@ -65,7 +65,7 @@ BOOL CTypeParser::Init(CChars* szText)
 void CTypeParser::Init(CTextParser* pcParser)
 {
 	mpcParser = pcParser;
-	mbFreeParser = FALSE;
+	mbFreeParser = false;
 }
 
 
@@ -76,7 +76,7 @@ void CTypeParser::Init(CTextParser* pcParser)
 void CTypeParser::AllocateParser(void)
 {
 	mpcParser = (CTextParser*)malloc(sizeof(CTextParser));
-	mbFreeParser = TRUE;
+	mbFreeParser = true;
 }
 
 
@@ -610,14 +610,14 @@ TRISTATE CTypeParser::ParseInt4(SInt4* pDest, char cOpen, char cSplit, char cClo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseBool(BOOL* pDest)
+TRISTATE CTypeParser::ParseBool(bool* pDest)
 {
 	TRISTATE	tResult;
 
 	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("0");
 	if (tResult == TRITRUE)
 	{
-		*pDest = FALSE;
+		*pDest = false;
 		return TRITRUE;
 	}
 	ReturnOnError(tResult);
@@ -625,23 +625,23 @@ TRISTATE CTypeParser::ParseBool(BOOL* pDest)
 	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("1");
 	if (tResult == TRITRUE)
 	{
-		*pDest = TRUE;
+		*pDest = true;
 		return TRITRUE;
 	}
 	ReturnOnError(tResult);
 	
-	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("TRUE");
+	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("true");
 	if (tResult == TRITRUE)
 	{
-		*pDest = FALSE;
+		*pDest = false;
 		return TRITRUE;
 	}
 	ReturnOnError(tResult);
 
-	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("FALSE");
+	tResult = mpcParser->GetExactCaseInsensitiveCharacterSequence("false");
 	if (tResult == TRITRUE)
 	{
-		*pDest = TRUE;
+		*pDest = true;
 		return TRITRUE;
 	}
 	ReturnOnError(tResult);
@@ -800,7 +800,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 		case PT_bool: 
 			if (iDestLength >= BOOL_BYTE_SIZE)
 			{
-				return ParseBool((BOOL*)pvDest);
+				return ParseBool((bool*)pvDest);
 			}
 			break;
 		case PT_String:

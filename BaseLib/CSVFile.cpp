@@ -73,13 +73,13 @@ void CCSVFile::Close(void)
 																		//
 																		//
 ////////////////////////////////////////////////////////////////////////
-BOOL CCSVFile::ReadLine(CChars* szString)
+bool CCSVFile::ReadLine(CChars* szString)
 {
 	char	sBuffer[CSV_FILE_LINE_BUFFER_LENGTH+1];
 	int		iLength;
-	BOOL	bDoneAnything;
+	bool	bDoneAnything;
 
-	bDoneAnything = FALSE;
+	bDoneAnything = false;
 	for (;;)
 	{
 		iLength = ReadLine(sBuffer);
@@ -91,9 +91,9 @@ BOOL CCSVFile::ReadLine(CChars* szString)
 		szString->Append(sBuffer);
 		if (iLength < CSV_FILE_LINE_BUFFER_LENGTH)
 		{
-			return TRUE;
+			return true;
 		}
-		bDoneAnything = TRUE;
+		bDoneAnything = true;
 	}
 }
 
@@ -102,13 +102,13 @@ BOOL CCSVFile::ReadLine(CChars* szString)
 																		//
 																		//
 ////////////////////////////////////////////////////////////////////////
-BOOL CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
+bool CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
 {
 	int		iLength;
-	BOOL	bDoneAnything;
+	bool	bDoneAnything;
 	int		iPosition;
 
-	bDoneAnything = FALSE;
+	bDoneAnything = false;
 	iPosition = 0;
 	for (;;)
 	{
@@ -117,21 +117,21 @@ BOOL CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
 		if ((iLength > 0) && (iLength < CSV_FILE_LINE_BUFFER_LENGTH))
 		{
 			szBuffer[iPosition] = 0;
-			return TRUE;
+			return true;
 		}
 		if (iLength == 0)
 		{
 			if (bDoneAnything)
 			{
 				szBuffer[iPosition] = 0;
-				return TRUE;
+				return true;
 			}
 			else
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		bDoneAnything = TRUE;
+		bDoneAnything = true;
 	}
 }
 
