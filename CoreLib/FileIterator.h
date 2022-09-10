@@ -10,11 +10,11 @@ public:
 	int						miPackFileIndex;
 	CPackFileIterator		mcPackFileIterator;
 	CFileSystemIterator		mcFileSystemIterator;
-	BOOL					mbMoveOn;
-	BOOL					mbFileSystem;
+	bool					mbMoveOn;
+	bool					mbFileSystem;
 	
 	CFileIteratorReturn		mcCurrent;
-	BOOL					mbHasCurrent;
+	bool					mbHasCurrent;
 
 	void					Init(void);
 	void					Kill(void);

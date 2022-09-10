@@ -38,7 +38,7 @@ void CIndexTreeEvictionStrategyRandom::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
+bool CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 {
 	int i;
 
@@ -46,10 +46,10 @@ BOOL CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 	{
 		if (EvictRandomNode(pcDontEvict))
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -57,7 +57,7 @@ BOOL CIndexTreeEvictionStrategyRandom::Run(CIndexTreeNodeFile* pcDontEvict)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDontEvict)
+bool CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDontEvict)
 {
 	CIndexTreeNodeFile*		pcNode;
 	int						iNumIndexes;
@@ -71,7 +71,7 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 		if (pcNode == NULL)
 		{
 			//Nothing left to evict.
-			return FALSE;
+			return false;
 		}
 
 		iNumIndexes = pcNode->NumValidMemoryIndexes();
@@ -93,7 +93,7 @@ BOOL CIndexTreeEvictionStrategyRandom::EvictRandomNode(CIndexTreeNodeFile* pcDon
 			}
 			else
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		iKeyDepth++;

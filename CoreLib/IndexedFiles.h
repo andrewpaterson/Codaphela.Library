@@ -42,11 +42,11 @@ protected:
 
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite);
-	BOOL			Kill(void);
+	bool			Kill(void);
 
-	BOOL			ReadIndexedFileDescriptors(void);
-	BOOL			WriteIndexedFileDescriptors(void);
-	BOOL			DataFilename(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
+	bool			ReadIndexedFileDescriptors(void);
+	bool			WriteIndexedFileDescriptors(void);
+	bool			DataFilename(char* szFile1, char* szFile2, int iDataSize, int iFileNum);
 
 	CIndexedFile* 	GetOrCreateFile(unsigned int uiDataSize);
 	CIndexedFile* 	GetFile(unsigned int uiDataSize, int iFileNum);
@@ -60,12 +60,12 @@ public:
 	int				NumFiles(int iDataSize);
 	int				NumFiles(void);
 
-	BOOL			Read(CFileDataIndex* pcDataIndex, void* pvData);
-	BOOL			Delete(CFileDataIndex* pcDataIndex);
+	bool			Read(CFileDataIndex* pcDataIndex, void* pvData);
+	bool			Delete(CFileDataIndex* pcDataIndex);
 	CFileDataIndex	WriteNew(void* pvData, unsigned int uiDataSize);
-	BOOL			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize);
+	bool			WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize);
 
-	BOOL			IsDurable(void);
+	bool			IsDurable(void);
 	
 	void			Dump(void);
 };

@@ -41,7 +41,7 @@ void CPlainTextEditor::Init(char* szText)
 {
 	mszText.Init(szText);
 	mszText.PassifyNewlines();
-	mbMultiLine = TRUE;
+	mbMultiLine = true;
 	miEditPos = 0;
 	miPageLength = 25;
 
@@ -446,7 +446,7 @@ void CPlainTextEditor::Enter(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::Printable(char c)
 {
-	Printable(c, TRUE);
+	Printable(c, true);
 }
 
 
@@ -454,7 +454,7 @@ void CPlainTextEditor::Printable(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::Printable(char c, BOOL bInsert)
+void CPlainTextEditor::Printable(char c, bool bInsert)
 {
 	char	cCurrent;
 	int		iCharCount;
@@ -615,13 +615,13 @@ void CPlainTextEditor::Duplicate(void)
 	int		iStart;
 	int		iEnd;
 	CChars	szTemp;
-	BOOL	bNewLine;
+	bool	bNewLine;
 
 	if (!IsSelected())
 	{
 		iStart = FindStartOfLine(miEditPos);
 		iEnd = FindEndOfLine(miEditPos);
-		bNewLine = TRUE;
+		bNewLine = true;
 	}
 	else
 	{
@@ -635,7 +635,7 @@ void CPlainTextEditor::Duplicate(void)
 			iStart = miSelectionFloating;
 			iEnd = miSelectionAnchor;
 		}
-		bNewLine = FALSE;
+		bNewLine = false;
 	}
 
 	szTemp.Init();
@@ -759,7 +759,7 @@ void CPlainTextEditor::EndEnter(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::Space(void)
 {
-	Space(TRUE);
+	Space(true);
 }
 
 
@@ -767,7 +767,7 @@ void CPlainTextEditor::Space(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::Space(BOOL bInsert)
+void CPlainTextEditor::Space(bool bInsert)
 {
 	Printable(' ', bInsert);
 }
@@ -779,7 +779,7 @@ void CPlainTextEditor::Space(BOOL bInsert)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::Tab(void)
 {
-	Tab(TRUE);
+	Tab(true);
 }
 
 
@@ -787,7 +787,7 @@ void CPlainTextEditor::Tab(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::Tab(BOOL bInsert)
+void CPlainTextEditor::Tab(bool bInsert)
 {
 	char	szTemp[2];
 
@@ -1047,7 +1047,7 @@ int CPlainTextEditor::FindWordLeft(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPlainTextEditor::CanGoLeft(int iPos)
+bool CPlainTextEditor::CanGoLeft(int iPos)
 {
 	return (iPos > 0);
 }
@@ -1057,7 +1057,7 @@ BOOL CPlainTextEditor::CanGoLeft(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPlainTextEditor::CanGoRight(int iPos)
+bool CPlainTextEditor::CanGoRight(int iPos)
 {
 	return (iPos < mszText.Length());
 }
@@ -1067,7 +1067,7 @@ BOOL CPlainTextEditor::CanGoRight(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPlainTextEditor::IsWhiteSpace(char cCurrent)
+bool CPlainTextEditor::IsWhiteSpace(char cCurrent)
 {
 	return ((cCurrent == ' ') || (cCurrent == '\n') || (cCurrent == '\t'));
 }
@@ -1077,7 +1077,7 @@ BOOL CPlainTextEditor::IsWhiteSpace(char cCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPlainTextEditor::IsNormalChar(char cCurrent)
+bool CPlainTextEditor::IsNormalChar(char cCurrent)
 {
 	return (((cCurrent >= 'a') && (cCurrent <= 'z')) || 
 			((cCurrent >= 'A') && (cCurrent <= 'Z')) ||
@@ -1148,13 +1148,13 @@ int CPlainTextEditor::FindWordRight(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPlainTextEditor::IsSelected(void)
+bool CPlainTextEditor::IsSelected(void)
 {
 	if ((miSelectionAnchor == -1) && (miSelectionFloating == -1))
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////

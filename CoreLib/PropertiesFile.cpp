@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CPropertiesFile::Init(char* szFilename)
 {
 	mszName.Init(szFilename);
-	mcProperties.Init(4, FALSE);
+	mcProperties.Init();
 }
 
 
@@ -70,7 +70,7 @@ void CPropertiesFile::Set(char* szProperty, char* szValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPropertiesFile::Read(void)
+bool CPropertiesFile::Read(void)
 {
 	CTextFile	cFile;
 	CTextParser	cParser;
@@ -85,7 +85,7 @@ BOOL CPropertiesFile::Read(void)
 	if (!cFile.Read(mszName.Text()))
 	{
 		cFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	cFile.mcText.PassifyNewlines();
@@ -147,7 +147,7 @@ BOOL CPropertiesFile::Read(void)
 
 	cParser.Kill();
 	cFile.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -155,13 +155,13 @@ BOOL CPropertiesFile::Read(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPropertiesFile::Write(void)
+bool CPropertiesFile::Write(void)
 {
 	CTextFile		cFile;
 	char*			szProperty;
 	char*			szValue;
 	SMapIterator	sIter;
-	BOOL			bResult;
+	bool			bResult;
 
 	cFile.Init();
 
@@ -183,10 +183,10 @@ BOOL CPropertiesFile::Write(void)
 	if (!cFile.Write(mszName.Text()))
 	{
 		cFile.Kill();
-		return FALSE;
+		return false;
 	}
 	cFile.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -209,7 +209,7 @@ void CPropertiesFile::Print(CChars* pszDest)
 	char*			szProperty;
 	char*			szValue;
 	SMapIterator	sIter;
-	BOOL			bResult;
+	bool			bResult;
 
 	mcProperties.FinaliseSorted();
 	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);

@@ -55,8 +55,8 @@ public:
 	unsigned int	GetDataSize(void);
 	void			Cache(void* pvCache, unsigned int uiDataSize);
 	void			ClearCache(void);
-	BOOL			HasFile(void);
-	BOOL			IsCached(void);
+	bool			HasFile(void);
+	bool			IsCached(void);
 	void*			GetCache(void);
 	void			SetIndexes(int iFileIndex, filePos iIndexInFile);
 	int				GetFileIndex(void);
@@ -64,7 +64,7 @@ public:
 	filePos			GetPositionInFile(void);
 	CFileDataIndex	GetFileDataIndex(void);
 	CFilePosIndex*	GetFilePosIndex(void);
-	BOOL			Update(CIndexedDataDescriptor* pcNew);
+	bool			Update(CIndexedDataDescriptor* pcNew);
 };
 
 typedef CArrayTemplate<CIndexedDataDescriptor> CArrayIndexDescriptor;

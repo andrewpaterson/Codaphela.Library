@@ -75,7 +75,7 @@ SFunctionPointer GetNULLCallFunction(void)
 }
 
 
-BOOL SFunctionPointer::IsNull(void)
+bool SFunctionPointer::IsNull(void)
 {
 	return cCall == NULL;
 }

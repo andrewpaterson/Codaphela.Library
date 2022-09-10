@@ -49,9 +49,9 @@ void CXMLFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Read(char* szFilename, char* szDirectory)
+bool CXMLFile::Read(char* szFilename, char* szDirectory)
 {
-	BOOL			bResult;
+	bool			bResult;
 	CMarkupDoc*		pcDoc;
 	CChars			mszDirectory;
 
@@ -62,17 +62,17 @@ BOOL CXMLFile::Read(char* szFilename, char* szDirectory)
 	if (!bResult)
 	{
 		mszDirectory.Kill();
-		return FALSE;
+		return false;
 	}
 
 	bResult = pcDoc->FixReferences();
 	if (!bResult)
 	{
 		mszDirectory.Kill();
-		return FALSE;
+		return false;
 	}
 	mszDirectory.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -80,11 +80,11 @@ BOOL CXMLFile::Read(char* szFilename, char* szDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
+bool CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 {
 	CXMLParser	cXMLParser;
 	CTextFile	cTextFile;
-	BOOL		bResult;
+	bool		bResult;
 	TRISTATE	tResult;
 	CFileUtil	cFileUtil;
 	CChars		szPath;
@@ -99,7 +99,7 @@ BOOL CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 	{
 		cTextFile.Kill();
 		szPath.Kill();
-		return FALSE;
+		return false;
 	}
 
 	cTextFile.PassifyNewlines();
@@ -110,7 +110,7 @@ BOOL CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 		cXMLParser.Kill();
 		cTextFile.Kill();
 		szPath.Kill();
-		return FALSE;
+		return false;
 	}
 
 	bResult = Entities(&cXMLParser, pszDirectory);
@@ -119,13 +119,13 @@ BOOL CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 		cXMLParser.Kill();
 		cTextFile.Kill();
 		szPath.Kill();
-		return FALSE;
+		return false;
 	}
 
 	cXMLParser.Kill();
 	cTextFile.Kill();
 	szPath.Kill();
-	return TRUE;	
+	return true;	
 }
 
 
@@ -133,7 +133,7 @@ BOOL CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
+bool CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 {
 	int					i;
 	CXMLEntity*			pcEntity;
@@ -141,7 +141,7 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 	CMarkupSubText*		pcSubText;
 	CMarkupSubDoc*		pcSubDoc;
 	CMarkupDoc*			pcDoc;
-	BOOL				bResult;
+	bool				bResult;
 	CMarkupDoc*			pcParentDoc;
 
 	pcParentDoc = pcXMLParser->mpcDoc;
@@ -160,7 +160,7 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 			bResult = Read(pcEntity->mszValue.Text(), pcDoc, pszDirectory);
 			if (!bResult)
 			{
-				return FALSE;
+				return false;
 			}
 		}
 		else if (pcEntity->meType == XET_Internal)
@@ -170,7 +170,7 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 			pcParentDoc->AddSubstitute(pcSubText);
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -178,8 +178,8 @@ BOOL CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CXMLFile::Write(char* szFilename, char* szDirectory)
+bool CXMLFile::Write(char* szFilename, char* szDirectory)
 {
-	return FALSE;
+	return false;
 }
 

@@ -32,6 +32,6 @@ public:
 	void	Init(char* szServer, int iPort);
 	void	Kill(void);
 
-	BOOL	Connect(void);
+	bool	Connect(void);
 };
 

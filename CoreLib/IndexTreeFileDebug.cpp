@@ -35,7 +35,7 @@ int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFi
 
 	if (iNumCleared == iBufferSize)
 	{
-		bEmpty = TRUE;
+		bEmpty = true;
 		return -1;
 	}
 

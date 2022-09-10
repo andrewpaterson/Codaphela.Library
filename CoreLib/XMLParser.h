@@ -53,7 +53,7 @@ public:
 	TRISTATE	ParseVersion(void);
 	TRISTATE	ParseEncoding(void);
 	TRISTATE	ParseElement(void);
-	TRISTATE	ParseStartTagOrEmptyTag(BOOL* pbStart, CChars* pszIdentifier);
+	TRISTATE	ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifier);
 	TRISTATE	ParseEndTag(char* szIdentifier);
 	TRISTATE	ParseContent(void);
 	TRISTATE	ParseText(void);
@@ -70,8 +70,8 @@ public:
 	TRISTATE	ParseEntities(void);
 	TRISTATE	ParseExternalEntity(char* szName, char* szContent);
 	TRISTATE	ParseInternalEntity(char* szName, char* szContent);
-	BOOL		IsAllowedIdentifierChar(BOOL bFirstChar, unsigned char cChar);
-	BOOL		IsAllowedTextChar(unsigned char cChar);
+	bool		IsAllowedIdentifierChar(bool bFirstChar, unsigned char cChar);
+	bool		IsAllowedTextChar(unsigned char cChar);
 	TRISTATE	FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected);
 	TRISTATE	FailAlways(TRISTATE tResult, char* szExpected);
 };

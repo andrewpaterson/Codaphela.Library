@@ -94,7 +94,7 @@ int CSocket::Send(void* pvBuffer, int iBufferLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SocketsInit(void)
+bool SocketsInit(void)
 {
 	int			iResult;
 	WSADATA		wsaData;
@@ -104,9 +104,9 @@ BOOL SocketsInit(void)
 	if (iResult != 0) 
 	{
 		//printf("WSAStartup failed with error: %d\n", iResult);
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 

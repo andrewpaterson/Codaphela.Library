@@ -10,14 +10,14 @@ void CCodabase::Init(char* szDirectory, CLifeInit<CIndexedDataConfig> cIndexConf
 {
 	CIndexTreeHelper	cHelper;
 
-	cHelper.Init(szDirectory, "Primary", "Backup", FALSE);
+	cHelper.Init(szDirectory, "Primary", "Backup", false);
 
 	mcFileController.Init(cHelper.GetPrimaryDirectory(), cHelper.GetBackupDirectory());
 	mcFileController.Begin();
 	mcNamedIndexedData.Init(&mcFileController, cIndexConfig, cNamedConfig);
 	mcFileController.End();
 
-	cHelper.Kill(FALSE);
+	cHelper.Kill(false);
 }
 
 
@@ -36,7 +36,7 @@ void CCodabase::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Open(void)
+bool CCodabase::Open(void)
 {
 	return mcFileController.Begin();
 }
@@ -46,17 +46,17 @@ BOOL CCodabase::Open(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Close(void)
+bool CCodabase::Close(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	if (!mcNamedIndexedData.IsWriteThrough())
 	{
-		bResult = Flush(FALSE);
+		bResult = Flush(false);
 	}
 	else
 	{
-		bResult = TRUE;
+		bResult = true;
 	}
 	bResult |= mcFileController.End();
 	return bResult;
@@ -67,7 +67,7 @@ BOOL CCodabase::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::ValidateConfigInitialised(void)
+bool CCodabase::ValidateConfigInitialised(void)
 {
 	return mcNamedIndexedData.ValidateConfigInitialised();
 }
@@ -77,7 +77,7 @@ BOOL CCodabase::ValidateConfigInitialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::ValidateConfigKilled(void)
+bool CCodabase::ValidateConfigKilled(void)
 {
 	return mcNamedIndexedData.ValidateConfigKilled();
 }
@@ -87,7 +87,7 @@ BOOL CCodabase::ValidateConfigKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::ValidateIdentifiers(void)
+bool CCodabase::ValidateIdentifiers(void)
 {
 	return mcNamedIndexedData.ValidateIdentifiers();
 }
@@ -97,7 +97,7 @@ BOOL CCodabase::ValidateIdentifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Add(oi, pvData, uiDataSize);
 }
@@ -107,7 +107,7 @@ BOOL CCodabase::Add(OIndex oi, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Add(oi, szName, pvData, uiDataSize);
 }
@@ -117,7 +117,7 @@ BOOL CCodabase::Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Add(oi, szName, pvData, uiDataSize);
 }
@@ -127,7 +127,7 @@ BOOL CCodabase::Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Set(OIndex oi, void* pvData)
+bool CCodabase::Set(OIndex oi, void* pvData)
 {
 	return mcNamedIndexedData.Set(oi, pvData);
 }
@@ -137,7 +137,7 @@ BOOL CCodabase::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Set(oi, pvData, uiDataSize);
 }
@@ -147,7 +147,7 @@ BOOL CCodabase::Set(OIndex oi, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Set(char* szName, void* pvData)
+bool CCodabase::Set(char* szName, void* pvData)
 {
 	return mcNamedIndexedData.Set(szName, pvData);
 }
@@ -157,7 +157,7 @@ BOOL CCodabase::Set(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Set(char* szName, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Set(char* szName, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Set(szName, pvData, uiDataSize);
 }
@@ -167,7 +167,7 @@ BOOL CCodabase::Set(char* szName, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Set(CChars* szName, void* pvData)
+bool CCodabase::Set(CChars* szName, void* pvData)
 {
 	return mcNamedIndexedData.Set(szName, pvData);
 }
@@ -177,7 +177,7 @@ BOOL CCodabase::Set(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Set(CChars* szName, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Set(CChars* szName, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Set(szName, pvData, uiDataSize);
 }
@@ -187,7 +187,7 @@ BOOL CCodabase::Set(CChars* szName, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Put(oi, pvData, uiDataSize);
 }
@@ -197,7 +197,7 @@ BOOL CCodabase::Put(OIndex oi, void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Put(oi, szName, pvData, uiDataSize);
 }
@@ -207,7 +207,7 @@ BOOL CCodabase::Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
+bool CCodabase::Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize)
 {
 	return mcNamedIndexedData.Put(oi, szName, pvData, uiDataSize);
 }
@@ -217,7 +217,7 @@ BOOL CCodabase::Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Get(OIndex oi, void* pvData)
+bool CCodabase::Get(OIndex oi, void* pvData)
 {
 	return mcNamedIndexedData.Get(oi, pvData);
 }
@@ -227,7 +227,7 @@ BOOL CCodabase::Get(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
+bool CCodabase::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
 {
 	return mcNamedIndexedData.Get(oi, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -237,7 +237,7 @@ BOOL CCodabase::Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Get(char* szName, void* pvData)
+bool CCodabase::Get(char* szName, void* pvData)
 {
 	return mcNamedIndexedData.Get(szName, pvData);
 }
@@ -247,7 +247,7 @@ BOOL CCodabase::Get(char* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
+bool CCodabase::Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
 {
 	return mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -257,7 +257,7 @@ BOOL CCodabase::Get(char* szName, unsigned int* puiDataSize, void* pvData, unsig
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Get(CChars* szName, void* pvData)
+bool CCodabase::Get(CChars* szName, void* pvData)
 {
 	return mcNamedIndexedData.Get(szName, pvData);
 }
@@ -267,7 +267,7 @@ BOOL CCodabase::Get(CChars* szName, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Get(CChars* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
+bool CCodabase::Get(CChars* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize)
 {
 	return mcNamedIndexedData.Get(szName, puiDataSize, pvData, uiMaxDataSize);
 }
@@ -277,7 +277,7 @@ BOOL CCodabase::Get(CChars* szName, unsigned int* puiDataSize, void* pvData, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::GetName(OIndex oi, CChars* szName)
+bool CCodabase::GetName(OIndex oi, CChars* szName)
 {
 	return mcNamedIndexedData.GetName(oi, szName);
 }
@@ -287,7 +287,7 @@ BOOL CCodabase::GetName(OIndex oi, CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength)
+bool CCodabase::GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength)
 {
 	return mcNamedIndexedData.GetName(oi, szName, puiNameLength, uiMaxNameLength);
 }
@@ -317,7 +317,7 @@ OIndex CCodabase::GetIndex(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Contains(OIndex oi)
+bool CCodabase::Contains(OIndex oi)
 {
 	return mcNamedIndexedData.Contains(oi);
 }
@@ -327,7 +327,7 @@ BOOL CCodabase::Contains(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Contains(char* szName)
+bool CCodabase::Contains(char* szName)
 {
 	return mcNamedIndexedData.Contains(szName);
 }
@@ -337,7 +337,7 @@ BOOL CCodabase::Contains(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Contains(CChars* szName)
+bool CCodabase::Contains(CChars* szName)
 {
 	return mcNamedIndexedData.Contains(szName);
 }
@@ -347,7 +347,7 @@ BOOL CCodabase::Contains(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Remove(OIndex oi)
+bool CCodabase::Remove(OIndex oi)
 {
 	return mcNamedIndexedData.Remove(oi);
 }
@@ -357,7 +357,7 @@ BOOL CCodabase::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Remove(char* szName)
+bool CCodabase::Remove(char* szName)
 {
 	return mcNamedIndexedData.Remove(szName);
 }
@@ -367,7 +367,7 @@ BOOL CCodabase::Remove(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Remove(CChars* szName)
+bool CCodabase::Remove(CChars* szName)
 {
 	return mcNamedIndexedData.Remove(szName);
 }
@@ -378,9 +378,9 @@ BOOL CCodabase::Remove(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Flush(void)
+bool CCodabase::Flush(void)
 {
-	return Flush(FALSE);
+	return Flush(false);
 }
 
 
@@ -388,7 +388,7 @@ BOOL CCodabase::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::Flush(BOOL bClearCache)
+bool CCodabase::Flush(bool bClearCache)
 {
 	return mcNamedIndexedData.Flush(bClearCache);
 }
@@ -498,7 +498,7 @@ OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+bool CCodabase::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
 	return mcNamedIndexedData.StartNameIteration(psIterator, szKey, poi);
 }
@@ -508,7 +508,7 @@ BOOL CCodabase::StartNameIteration(SIndexTreeFileIterator* psIterator, char* szK
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCodabase::NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+bool CCodabase::NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
 	return mcNamedIndexedData.NameIterate(psIterator, szKey, poi);
 }

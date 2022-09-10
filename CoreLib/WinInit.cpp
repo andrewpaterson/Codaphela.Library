@@ -96,7 +96,7 @@ long FAR PASCAL WindowProcCB(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 			return 0L;
 
 		case WM_ACTIVATEAPP:
-			pcWindow->mbActive = (BOOL)wParam;
+			pcWindow->mbActive = (bool)wParam;
 			if (pcWindow->mActivateFunc)
 				pcWindow->mActivateFunc(pcWindow->mbActive);
 			return 1L;
@@ -170,7 +170,7 @@ void CWin32Window::Init(HINSTANCE hInst, MainFunc Main, ActivateFunc Activate, S
 	mpvRawInputObject = pvRawInputObject;
 	mRawInputFunc = rawInput;
 	mMainFunc = Main;
-	mbActive = FALSE;
+	mbActive = false;
 }
 
 
@@ -238,7 +238,7 @@ int CWin32Window::GetScreenHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWin32Window::CreateFullScreenWindow(int nCmdShow, char* szName)
+bool CWin32Window::CreateFullScreenWindow(int nCmdShow, char* szName)
 {
 	WNDCLASS	wc;
 
@@ -278,15 +278,15 @@ BOOL CWin32Window::CreateFullScreenWindow(int nCmdShow, char* szName)
 	if (!hWnd)
 	{
 		gcUserError.Set("Could not Create Window");
-		return FALSE;
+		return false;
 	}
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size_t)this));
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);
 	SetCursor(hCursor);
-	mbActive = TRUE;
-	return TRUE;
+	mbActive = true;
+	return true;
 }
 
 
@@ -294,7 +294,7 @@ BOOL CWin32Window::CreateFullScreenWindow(int nCmdShow, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWin32Window::CreateWindowedWindow(int nCmdShow, char* szName, int xp, int yp, int xs, int ys)
+bool CWin32Window::CreateWindowedWindow(int nCmdShow, char* szName, int xp, int yp, int xs, int ys)
 {
 	WNDCLASS	wc;
 	RECT		rect;
@@ -310,7 +310,7 @@ BOOL CWin32Window::CreateWindowedWindow(int nCmdShow, char* szName, int xp, int 
 	rect.top = yp;
 	rect.right = xp + xs;
 	rect.bottom = yp + ys;
-    AdjustWindowRect(&rect, iStyle, FALSE);
+    AdjustWindowRect(&rect, iStyle, false);
 	clientAreaLeftOffset = xp - rect.left;
 	clientAreaTopOffset = yp - rect.top;
 	clientAreaRightOffset = (xp+xs) - rect.right;
@@ -334,7 +334,7 @@ BOOL CWin32Window::CreateWindowedWindow(int nCmdShow, char* szName, int xp, int 
 	if (!hWnd)
 	{
 		gcUserError.Set("Could not Create Window");
-		return FALSE;
+		return false;
 	}
 
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size_t)this));
@@ -342,8 +342,8 @@ BOOL CWin32Window::CreateWindowedWindow(int nCmdShow, char* szName, int xp, int 
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);
 	SetCursor(hCursor);
-	mbActive = TRUE;
-	return TRUE;
+	mbActive = true;
+	return true;
 }
 
 
@@ -359,12 +359,12 @@ void CWin32Window::Destroy(void)
 	mSetFocusFunc = NULL;
 	mChangingFunc = NULL;
 	mMainFunc = NULL;
-	mbActive = FALSE;
+	mbActive = false;
 	DestroyWindow(hWnd);
 	UnregisterClass(className.Text(), hInstance);
 	className.Kill();
 	hWnd = NULL;
-	mbLoop = FALSE;
+	mbLoop = false;
 }
 
 
@@ -376,7 +376,7 @@ int CWin32Window::WinLoop(void)
 {
 	MSG		msg;
 
-	mbLoop = TRUE;
+	mbLoop = true;
 	gcLogger.Add("Start winloop...\n");
 
 	while (mbLoop)

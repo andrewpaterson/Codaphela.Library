@@ -23,10 +23,10 @@ public:
 
 	void	Init(ELogFileCommand eCommand);
 
-	BOOL	IsWrite(void);
-	BOOL	IsOpen(void);
-	BOOL	IsClose(void);
-	BOOL	IsDelete(void);
+	bool	IsWrite(void);
+	bool	IsOpen(void);
+	bool	IsClose(void);
+	bool	IsDelete(void);
 
 	char*	GetType(void);
 };
@@ -39,7 +39,7 @@ public:
 
 	void Init(EFileMode eMode);
 
-	BOOL Open(CAbstractFile* pcFile);
+	bool Open(CAbstractFile* pcFile);
 };
 
 
@@ -52,7 +52,7 @@ public:
 	void	Init(filePos iPosition, filePos iSize);
 	void	Init(filePos iPosition, void* pvSource, filePos iSize);
 
-	BOOL	Write(CAbstractFile* pcFile);
+	bool	Write(CAbstractFile* pcFile);
 	void*	GetData(void);
 };
 
@@ -62,7 +62,7 @@ class CLogFileCommandClose : public CLogFileCommand
 public:
 	void Init(void);
 
-	BOOL Close(CAbstractFile* pcFile);
+	bool Close(CAbstractFile* pcFile);
 };
 
 
@@ -71,7 +71,7 @@ class CLogFileCommandDelete : public CLogFileCommand
 public:
 	void Init(void);
 
-	BOOL Delete(CAbstractFile* pcFile);
+	bool Delete(CAbstractFile* pcFile);
 };
 
 

@@ -2,7 +2,7 @@
 #define __STACK_POINTER_H__
 #include "BaseLib/Define.h"
 
-
+#error
 class CPointer;
 class CStackPointer
 {

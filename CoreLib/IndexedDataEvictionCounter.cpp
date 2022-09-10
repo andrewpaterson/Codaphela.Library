@@ -25,10 +25,10 @@ void CIndexedDataEvictionCounter::Reset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataEvictionCounter::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
+bool CIndexedDataEvictionCounter::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
 {
 	miEvictions++;
-	return TRUE;
+	return true;
 }
 
 

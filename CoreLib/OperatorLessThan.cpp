@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "OperatorLessThan.h"
 #include "BaseLib/GeometricTypes.h"
 
-void LessThanInvalid(BOOL* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("LessThan not defined for types"); }
+void LessThanInvalid(bool* pvDest, void* pvLeft, void* pvRight) { gcUserError.Set("LessThan not defined for types"); }
 #include "OperatorLessThan_Functions.inl"
 
 
@@ -61,7 +61,7 @@ void COperatorLessThan::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void COperatorLessThan::Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
+void COperatorLessThan::Do(bool* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight)
 {
 	if ((eLeft < PRIMTIVE_OPERATOR_END) && (eRight < PRIMTIVE_OPERATOR_END))
 	{

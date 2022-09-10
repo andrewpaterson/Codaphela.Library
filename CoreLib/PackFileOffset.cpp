@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CPackFileOffset::Init(char* szPackFileOffset, char* szPackFileDirectory, int iFileRank)
+bool CPackFileOffset::Init(char* szPackFileOffset, char* szPackFileDirectory, int iFileRank)
 {
 	CDiskFile*		pcDiskFile;
 

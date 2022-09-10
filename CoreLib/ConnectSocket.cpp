@@ -52,7 +52,7 @@ void CConnectSocket::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConnectSocket::Connect(void)
+bool CConnectSocket::Connect(void)
 {
 	addrinfo*	sResult;
 	addrinfo*	ptr;
@@ -70,7 +70,7 @@ BOOL CConnectSocket::Connect(void)
 	if (iResult != 0) 
 	{
 		gcLogger.Error("getaddrinfo failed with error");
-		return FALSE;
+		return false;
 	}
 
 	// Attempt to connect to an address until one succeeds
@@ -81,7 +81,7 @@ BOOL CConnectSocket::Connect(void)
 		if (mSocket == INVALID_SOCKET) 
 		{
 			gcLogger.Error("socket failed with error");
-			return FALSE;
+			return false;
 		}
 
 		// Connect to server.
@@ -101,9 +101,9 @@ BOOL CConnectSocket::Connect(void)
 	if (mSocket == INVALID_SOCKET) 
 	{
 		gcLogger.Error("Unable to connect to server!\n");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 

@@ -15,7 +15,7 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	BOOL	IndexEvicted(OIndex oi, void* pvData, int iDataSize);
+	bool	IndexEvicted(OIndex oi, void* pvData, int iDataSize);
 
 	int		NumElements(void);
 	OIndex	GetKey(int iIndex);

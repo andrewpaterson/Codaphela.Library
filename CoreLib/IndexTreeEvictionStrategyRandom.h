@@ -14,11 +14,11 @@ public:
 	void		Init(int iSeed);
 	void		Kill(void);
 
-	BOOL		Run(CIndexTreeNodeFile* pcDontEvict);
+	bool		Run(CIndexTreeNodeFile* pcDontEvict);
 	CRandom*	GetRandom(void);
 
 protected:
-	BOOL		EvictRandomNode(CIndexTreeNodeFile* pcDontEvict);
+	bool		EvictRandomNode(CIndexTreeNodeFile* pcDontEvict);
 };
 
 

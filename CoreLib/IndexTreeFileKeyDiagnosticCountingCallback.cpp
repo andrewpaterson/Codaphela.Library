@@ -54,15 +54,15 @@ void CIndexTreeFileKeyDiagnosticCountingCallback::Evict(void* pvKey, int iKeySiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeFileKeyDiagnosticCountingCallback::Matches(void* pvKey, int iKeySize)
+bool CIndexTreeFileKeyDiagnosticCountingCallback::Matches(void* pvKey, int iKeySize)
 {
 	if (miKeyLength == iKeySize)
 	{
 		if (memcmp(mpvKey, pvKey, iKeySize) == 0)
 		{
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 

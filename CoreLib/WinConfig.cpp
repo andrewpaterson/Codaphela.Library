@@ -42,7 +42,7 @@ void CWinConfig::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWinConfig::Read(void)
+bool CWinConfig::Read(void)
 {
 	CPropertiesFile				cFile;
 	char*						szResolution;
@@ -57,17 +57,17 @@ BOOL CWinConfig::Read(void)
 	if (!cFile.Read())
 	{
 		cFile.Kill();
-		return FALSE;
+		return false;
 	}
 
 	szResolution = cFile.Get("Resolution");
 	if (szResolution)
 	{
 		cParser.Init(szResolution);
-		cParser.GetDigits(&ulli, &i, NULL, TRUE, FALSE);
+		cParser.GetDigits(&ulli, &i, NULL, true, false);
 		miWidth = (int)ulli;
 		cParser.GetExactCaseInsensitiveCharacter('X');
-		cParser.GetDigits(&ulli, &i, NULL, TRUE, FALSE);
+		cParser.GetDigits(&ulli, &i, NULL, true, false);
 		miHeight = (int)ulli;
 		cParser.Kill();
 	}
@@ -81,10 +81,10 @@ BOOL CWinConfig::Read(void)
 	if (szAspect)
 	{
 		cParser.Init(szAspect);
-		cParser.GetDigits(&ulli, &i, NULL, TRUE, FALSE);
+		cParser.GetDigits(&ulli, &i, NULL, true, false);
 		mfAspect = (float)ulli;
 		cParser.GetExactCharacter(':');
-		cParser.GetDigits(&ulli, &i, NULL, TRUE, FALSE);
+		cParser.GetDigits(&ulli, &i, NULL, true, false);
 		mfAspect /= (float)ulli;
 		cParser.Kill();
 	}
@@ -94,12 +94,12 @@ BOOL CWinConfig::Read(void)
 	}
 
 	szWindowed = cFile.Get("Windowed");
-	mbWindowed = TRUE;
+	mbWindowed = true;
 	if (szWindowed)
 	{
-		if (StringInsensitiveCompare(szWindowed, "FALSE") == 0)
+		if (StringInsensitiveCompare(szWindowed, "false") == 0)
 		{
-			mbWindowed = FALSE;
+			mbWindowed = false;
 		}
 	}
 
@@ -122,7 +122,7 @@ BOOL CWinConfig::Read(void)
 	}
 
 	cFile.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -134,7 +134,7 @@ void CWinConfig::Default(void)
 {
 	miWidth = 0;
 	miHeight = 0;
-	mbWindowed = TRUE;
+	mbWindowed = true;
 	mfAspect = 0;
 	meMode = WM_DX_HAL;
 }

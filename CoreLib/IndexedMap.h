@@ -11,33 +11,33 @@ class CIndexedMap : public CIndexedDataCommon, public CIndexedFilesEvictionCallb
 {
 protected:
 	CMapLongTemplate<CIndexedDataDescriptor>	mcDescriptors;
-	BOOL										mbDescriptorsWritten;
+	bool										mbDescriptorsWritten;
 	CDurableFile								mcDescriptorsFile;
 
 public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough);
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
-	BOOL	Kill(void);
+	bool	Kill(void);
 
-	BOOL	DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
-	BOOL	Flush(BOOL bClearCache);
+	bool	DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
 	int64	NumIndicesCached(void);
-	BOOL	IsDirty(OIndex oi);
+	bool	IsDirty(OIndex oi);
 
-	BOOL	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	bool	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	BOOL	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	bool	TestGetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
 protected:
-	void	InitIndices(CDurableFileController* pcDurableFileControl, BOOL bDirtyTesting);
+	void	InitIndices(CDurableFileController* pcDurableFileControl, bool bDirtyTesting);
 	void	NullCachedDescriptors(void);
 
-	BOOL	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
-	BOOL	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
-	BOOL	UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
-	BOOL	RemoveDescriptor(OIndex oi);
+	bool	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
+	bool	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
+	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool	RemoveDescriptor(OIndex oi);
 };
 
 

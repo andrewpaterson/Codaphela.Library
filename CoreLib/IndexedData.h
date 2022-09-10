@@ -51,23 +51,23 @@ protected:
 
 public:
 	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig);
-	BOOL 			Kill(void);
+	bool 			Kill(void);
 
-	BOOL			Flush(void);
-	BOOL			Flush(BOOL bClearDataCache);
+	bool			Flush(void);
+	bool			Flush(bool bClearDataCache);
 
-	BOOL			IsDurable(void);
-	BOOL			IsFlushed(void);
+	bool			IsDurable(void);
+	bool			IsFlushed(void);
 
 	int64			NumIndices(void);
 	int64			NumIndicesCached(void);
 	int64			NumIndicesCached(size_t iSize);
 
-	BOOL			IsDirty(OIndex oi);
-	BOOL			EvictKey(OIndex oi);
-	BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
+	bool			IsDirty(OIndex oi);
+	bool			EvictKey(OIndex oi);
+	bool			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);
 
-	BOOL			FlushKey(OIndex oi);
+	bool			FlushKey(OIndex oi);
 
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);
@@ -75,20 +75,20 @@ public:
 	unsigned char	GetRootFlags(void);
 
 	void			DumpIndex(void);
-	BOOL			ValidateIndex(void);
-	BOOL			ValidateConfigInitialised(void);
-	BOOL			ValidateConfigKilled(void);
+	bool			ValidateIndex(void);
+	bool			ValidateConfigInitialised(void);
+	bool			ValidateConfigKilled(void);
 
 	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size_t* piDataSize, size_t iMaxDataSize);
 	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, size_t* piDataSize, size_t iMaxDataSize);
 
 protected:
-	BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
-	BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE);
-	BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
-	BOOL			RemoveDescriptor(OIndex oi);
+	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
+	bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
+	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool			RemoveDescriptor(OIndex oi);
 
-	BOOL			DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool			DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
 };
 
 

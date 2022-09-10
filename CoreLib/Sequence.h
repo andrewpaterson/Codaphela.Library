@@ -15,7 +15,7 @@ protected:
 	CLife<CSequenceConfig>		mcConfig;
 
 public:
-	BOOL	Init(CLifeInit<CSequenceConfig> cConfig);
+	bool	Init(CLifeInit<CSequenceConfig> cConfig);
 	void	Kill(void);
 
 	OIndex	GetNext(void);
@@ -23,7 +23,7 @@ public:
 
 protected:
 	OIndex	ReadIndex(void);
-	BOOL	WriteIndex(OIndex oi);
+	bool	WriteIndex(OIndex oi);
 };
 
 

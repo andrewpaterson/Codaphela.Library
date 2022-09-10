@@ -12,7 +12,7 @@ private:
 public:
 	void	Init(void);
 	void	Reset(void);
-	BOOL	IndexEvicted(OIndex oi, void* pvData, int iDataSize);
+	bool	IndexEvicted(OIndex oi, void* pvData, int iDataSize);
 	int64	EvictionCount(void);
 };
 

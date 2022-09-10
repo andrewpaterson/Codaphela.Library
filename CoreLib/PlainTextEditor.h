@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CPlainTextEditor : public CTextEditor
 {
 public:
-	BOOL		mbMultiLine;
+	bool		mbMultiLine;
 	int			miTabWidth;  //In Spaces
 
 	CChars		mszText;
@@ -55,7 +55,7 @@ public:
 	void 	Delete(void);
 	void 	Backspace(void);
 	void 	Enter(void);
-	void 	Printable(char c, BOOL bInsert);
+	void 	Printable(char c, bool bInsert);
 	void 	Printable(char c);
 	void 	Home(void);
 	void 	End(void);
@@ -88,9 +88,9 @@ public:
 	void 	DeleteLine(void);
 	void 	EndEnter(void);
 	void 	HomeEnter(void);
-	void 	Space(BOOL bInsert);
+	void 	Space(bool bInsert);
 	void 	Space(void);
-	void 	Tab(BOOL bInsert);
+	void 	Tab(bool bInsert);
 	void 	Tab(void);
 	void 	BackTab(void);
 
@@ -117,11 +117,11 @@ private:
 
 	int		FindWordLeft(int iPos);
 	int		FindWordRight(int iPos);
-	BOOL 	CanGoLeft(int iPos);
-	BOOL 	CanGoRight(int iPos);
-	BOOL	IsWhiteSpace(char cCurrent);
-	BOOL	IsNormalChar(char cCurrent);
-	BOOL	IsSelected(void);
+	bool 	CanGoLeft(int iPos);
+	bool 	CanGoRight(int iPos);
+	bool	IsWhiteSpace(char cCurrent);
+	bool	IsNormalChar(char cCurrent);
+	bool	IsSelected(void);
 	int		FindStartOfLine(int iPos);
 	int		FindEndOfLine(int iPos);
 	int		FindPositionAlongLine(int iStartOfLine, int iCharCount);

@@ -30,7 +30,7 @@ class COperatorLogicalNot
 public:
 	void Init(void);
 	void Kill(void);
-	void Do(BOOL* pvDest, BOOL* pvRight);
+	void Do(bool* pvDest, bool* pvRight);
 };
 
 

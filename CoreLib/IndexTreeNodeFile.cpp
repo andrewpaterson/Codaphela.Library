@@ -101,16 +101,16 @@ CIndexTreeChildNode* CIndexTreeNodeFile::Get(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::SetFile(unsigned char uiIndex, CFileDataIndex cFileNode)
+bool CIndexTreeNodeFile::SetFile(unsigned char uiIndex, CFileDataIndex cFileNode)
 {
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex)->Init(cFileNode);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -119,16 +119,16 @@ BOOL CIndexTreeNodeFile::SetFile(unsigned char uiIndex, CFileDataIndex cFileNode
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pcNode)
+bool CIndexTreeNodeFile::SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pcNode)
 {
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex)->Init(pcNode);
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -137,16 +137,16 @@ BOOL CIndexTreeNodeFile::SetMemory(unsigned char uiIndex, CIndexTreeNodeFile* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::ClearIndex(unsigned char uiIndex)
+bool CIndexTreeNodeFile::ClearIndex(unsigned char uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
 		GetNode(uiIndex)->Clear();
-		return TRUE;
+		return true;
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -155,7 +155,7 @@ BOOL CIndexTreeNodeFile::ClearIndex(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::ClearIndexAndUncontain(unsigned char uiIndex)
+bool CIndexTreeNodeFile::ClearIndexAndUncontain(unsigned char uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
@@ -165,7 +165,7 @@ BOOL CIndexTreeNodeFile::ClearIndexAndUncontain(unsigned char uiIndex)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -277,37 +277,37 @@ unsigned char CIndexTreeNodeFile::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
+bool CIndexTreeNodeFile::Uncontain(unsigned char uiIndex)
 {
 	unsigned char	uiNextFirstIndex;
 
 	if ((uiIndex != muiFirstIndex) && (uiIndex != muiLastIndex))
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (muiFirstIndex == muiLastIndex)
 	{
-		SetNodesEmpty(TRUE);
+		SetNodesEmpty(true);
 		muiFirstIndex = 0;
 		muiLastIndex = 0;
-		return TRUE;
+		return true;
 	}
 
 	if (uiIndex == muiFirstIndex)
 	{
 		uiNextFirstIndex = FindNextFirstIndex();
 		MoveNodesLeft(uiNextFirstIndex);
-		return TRUE;
+		return true;
 	}
 
 	if (uiIndex == muiLastIndex)
 	{
 		muiLastIndex = FindPrevLastIndex();
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 
@@ -624,11 +624,11 @@ int CIndexTreeNodeFile::InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
+bool CIndexTreeNodeFile::ValidateNodesEmpty(void)
 {
 	int		iCount;
-	BOOL	bCountEmpty;
-	BOOL	bNodesEmpty;
+	bool	bCountEmpty;
+	bool	bNodesEmpty;
 
 	iCount = NumValidIndexes();
 
@@ -636,7 +636,7 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 	bNodesEmpty = !HasNodes();
 	if (bNodesEmpty == bCountEmpty)
 	{
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -656,7 +656,7 @@ BOOL CIndexTreeNodeFile::ValidateNodesEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::ValidateParent(void)
+bool CIndexTreeNodeFile::ValidateParent(void)
 {
 	CIndexTreeNodeFile*		pcShouldBeThis;
 	CIndexTreeChildNode*	pcShouldBeChild;
@@ -685,7 +685,7 @@ BOOL CIndexTreeNodeFile::ValidateParent(void)
 		return gcLogger.Error2(__METHOD__, " This node is not a memory node on the parents child node for key [", szKey, "].", NULL);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -693,7 +693,7 @@ BOOL CIndexTreeNodeFile::ValidateParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
+bool CIndexTreeNodeFile::HasOnlyFileNodes(void)
 {
 	int						iNumNodes;
 	int						i;
@@ -707,10 +707,10 @@ BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 		pcChild = &apcChildren[i];
 		if (!(pcChild->IsFile() || pcChild->IsUnallocated()))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -718,7 +718,7 @@ BOOL CIndexTreeNodeFile::HasOnlyFileNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
+bool CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 {
 	int						iNumNodes;
 	int						i;
@@ -734,11 +734,11 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 		{
 			if (pcChild->u.mpcMemory->HasFlags(uiFlags))
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -746,7 +746,7 @@ BOOL CIndexTreeNodeFile::HasChildWithFlags(unsigned char uiFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::HasFile(void)
+bool CIndexTreeNodeFile::HasFile(void)
 {
 	return mcFileIndex.HasFile();
 }
@@ -756,7 +756,7 @@ BOOL CIndexTreeNodeFile::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
+bool CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 {
 	unsigned char			c;
 	CIndexTreeChildNode*	pcNodeReference;
@@ -773,39 +773,39 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 			if (pcNode->IsDirty())
 			{
 				gcLogger.Error2(__METHOD__, " Cannot convert memory node to file node, node is dirty.", NULL);
-				return FALSE;
+				return false;
 			}
 			else if (pcNode->IsDeleted())
 			{
 				((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
 				gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node is deleted.", NULL);
-				return FALSE;
+				return false;
 			}
 
 			pcNodeReference->Init(pcNode->GetFileIndex());
-			return TRUE;
+			return true;
 		}
 		else
 		{
 			((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
 			gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node has not been written.", NULL);
-			return FALSE;
+			return false;
 		}
 	}
 	else if (pcNodeReference->IsFile())
 	{
-		return TRUE;
+		return true;
 	}
 	else if (pcNodeReference->IsUnallocated())
 	{
 		((CIndexTreeFile*)mpcIndexTree)->GetNodeKey(pcNode, szKey, MAX_KEY_SIZE);
 		gcLogger.Error2(__METHOD__, " Cannot convert memory node with key [", szKey, "] to file node, node is not allocated.", NULL);
-		return FALSE;
+		return false;
 	}
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Cannot convert to file node, node is corrupt.", NULL);
-		return FALSE;
+		return false;
 	}
 }
 
@@ -814,7 +814,7 @@ BOOL CIndexTreeNodeFile::ConvertToFileNode(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeFile::Print(CChars* psz, BOOL bHex)
+void CIndexTreeNodeFile::Print(CChars* psz, bool bHex)
 {
 	int						i;
 	CIndexTreeChildNode*	pcChild;
@@ -871,7 +871,7 @@ void CIndexTreeNodeFile::Dump(void)
 
 	sz.Init();
 
-	Print(&sz, FALSE);
+	Print(&sz, false);
 	sz.AppendNewLine();
 	sz.Dump();
 	sz.Kill();

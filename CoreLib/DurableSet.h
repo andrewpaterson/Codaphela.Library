@@ -36,20 +36,20 @@ private:
 	CArrayDurableFilePtr	mapcFiles;
 	CChars					mszMarkStart;
 	CChars					mszMarkRewrite;
-	BOOL					mbBegun;
+	bool					mbBegun;
 
 public:
 	void			Init(char* szMarkStartFile, char* szMarkRewriteFile);
 	void			Kill(void);
 
-	BOOL			HasBegun(void);
+	bool			HasBegun(void);
 
-	BOOL			Recover(void);
-	BOOL			Begin(void);
-	BOOL			End(void);
-	BOOL			Check(BOOL bThorough, BOOL bLogError);
+	bool			Recover(void);
+	bool			Begin(void);
+	bool			End(void);
+	bool			Check(bool bThorough, bool bLogError);
 
-	BOOL			Add(CDurableFile* pcFile);
+	bool			Add(CDurableFile* pcFile);
 	int				Num(void);
 	CDurableFile*	Get(int iIndex);
 
@@ -58,11 +58,11 @@ public:
 	void			MarkFinish(void);
 
 private:
-	BOOL			CheckFilesIdentical(BOOL bThorough, BOOL bLogError);
-	BOOL			CheckWriteStatus(BOOL bMarkStart, BOOL bMarkRewrite, BOOL bLogError);
-	BOOL			CheckWriteStatus(BOOL bLogError);
-	BOOL			CopyBackupToPrimary(void);
-	BOOL			CopyPrimaryToBackup(void);
+	bool			CheckFilesIdentical(bool bThorough, bool bLogError);
+	bool			CheckWriteStatus(bool bMarkStart, bool bMarkRewrite, bool bLogError);
+	bool			CheckWriteStatus(bool bLogError);
+	bool			CopyBackupToPrimary(void);
+	bool			CopyPrimaryToBackup(void);
 };
 
 

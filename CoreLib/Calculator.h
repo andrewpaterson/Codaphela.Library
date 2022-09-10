@@ -42,26 +42,26 @@ public:
 	CTextParser		mcParser;
 	CArrayInt		maiPrecedence;
 	CChars			mszError;
-	BOOL			mbUseUserError;
+	bool			mbUseUserError;
 
 	void		Init(void);
-	void		Init(BOOL bUseUserError);
+	void		Init(bool bUseUserError);
 	void		Kill(void);
 	CNumber		Eval(char* szText);
-	BOOL		Expression(CCalcExpression** ppcExpression);
-	BOOL		Operand(CCalcExpression** ppcExpression);
-	BOOL		Operator(CCalcOperator** pcOperator);
-	BOOL		Parentheses(CCalcParentheses** ppcParentheses);
-	BOOL		Value(CCalcConstExpression** ppcConst);
-	BOOL		Identifier(CCalcConstExpression** ppcConst);
-	BOOL		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
+	bool		Expression(CCalcExpression** ppcExpression);
+	bool		Operand(CCalcExpression** ppcExpression);
+	bool		Operator(CCalcOperator** pcOperator);
+	bool		Parentheses(CCalcParentheses** ppcParentheses);
+	bool		Value(CCalcConstExpression** ppcConst);
+	bool		Identifier(CCalcConstExpression** ppcConst);
+	bool		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
 	int			GetMinPrecedence(CArrayIntAndPointer* pcArray);
-	void		ResolveAmbiguity(CCalcOperator* pcOperator, BOOL bIsUnary);
-	BOOL		SetError(CChars* pszFirst, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight);
+	void		ResolveAmbiguity(CCalcOperator* pcOperator, bool bIsUnary);
+	bool		SetError(CChars* pszFirst, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight);
 	void		SetError(char* szError);
 	void		Print(CChars* psz, CArrayIntAndPointer* pcArray);
 	void		Dump(CArrayIntAndPointer* pcArray);
-	BOOL		HasError(void);
+	bool		HasError(void);
 	char*		GetError(void);
 };
 

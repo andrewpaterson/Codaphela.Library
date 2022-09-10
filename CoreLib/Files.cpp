@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CFiles::Init(char* szDirectory, char* szPackFilesExtension)
+bool CFiles::Init(char* szDirectory, char* szPackFilesExtension)
 {
 	CChars*						pszFullDirectory;
 
@@ -68,14 +68,14 @@ void CFiles::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
+bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 {
 	CPackFileOffset*			pcPackFiles;
 	char*						szFullName;
 	CChars						szPackFileOffset;
 	CChars*						pszFullDirectory;
 	int							iLength;
-	BOOL						bResult;
+	bool						bResult;
 	int							iRank;
 
 	pszFullDirectory = mcFileSystem.GetFullDirectoryName();
@@ -103,12 +103,12 @@ BOOL CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CFiles::AddPackFiles(void)
+bool CFiles::AddPackFiles(void)
 {
 	CArraySystemFilePtrs		aFileNodePtrs;
 	int							i;
 	CFileNodeSystemFile*		pcFileNodeSystemFile;
-	BOOL						bResult;
+	bool						bResult;
 
 	mcPackFilesArray.Init();
 
@@ -122,14 +122,14 @@ BOOL CFiles::AddPackFiles(void)
 		if (!bResult)
 		{
 			aFileNodePtrs.Kill();
-			return FALSE;
+			return false;
 		}
 	}
 
 	mcPackFilesArray.QuickSort(&ComparePackFileOffset);
 
 	aFileNodePtrs.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -230,7 +230,7 @@ CPackFile* CFiles::GetPackFile(char* szFullName)
 	CPackFileOffset*	pcPackFiles;
 	int					i;
 	CChars				sz;
-	BOOL				bResult;
+	bool				bResult;
 	CPackFile*			pcPackFile;
 
 	sz.Fake(szFullName);
@@ -323,7 +323,7 @@ CFileIteratorReturn* CFiles::StartIteration(CFileIterator* pcIter)
 	pcIter->Init();
 	if (mcPackFilesArray.IsEmpty())
 	{
-		pcIter->mbFileSystem = TRUE;
+		pcIter->mbFileSystem = true;
 	}
 	return Iterate(pcIter);
 }
@@ -359,7 +359,7 @@ CFileIteratorReturn* CFiles::IterateInPackFiles(CFileIterator* pcIter, CFileNode
 	else
 	{
 		pcPackFiles->mcPackFiles.StopIteration(&pcIter->mcPackFileIterator);
-		pcIter->mbMoveOn = TRUE;
+		pcIter->mbMoveOn = true;
 		return IterateInPackFiles(pcIter);
 	}
 }
@@ -376,7 +376,7 @@ CFileIteratorReturn* CFiles::IterateInPackFiles(CFileIterator* pcIter)
 
 	if (pcIter->mbMoveOn)
 	{
-		pcIter->mbMoveOn = FALSE;
+		pcIter->mbMoveOn = false;
 		pcIter->miPackFileIndex++;
 		if (pcIter->miPackFileIndex < mcPackFilesArray.NumElements())
 		{
@@ -387,8 +387,8 @@ CFileIteratorReturn* CFiles::IterateInPackFiles(CFileIterator* pcIter)
 		}
 		else
 		{
-			pcIter->mbFileSystem = TRUE;
-			pcIter->mbMoveOn = TRUE;
+			pcIter->mbFileSystem = true;
+			pcIter->mbMoveOn = true;
 			return IterateOnFileSystem(pcIter);
 		}
 	}
@@ -441,7 +441,7 @@ CFileIteratorReturn* CFiles::IterateOnFileSystem(CFileIterator* pcIter)
 
 	if (pcIter->mbMoveOn)
 	{
-		pcIter->mbMoveOn = FALSE;
+		pcIter->mbMoveOn = false;
 		pcSystemFileNode = mcFileSystem.StartIteration(&pcIter->mcFileSystemIterator);
 		return IterateFileSystemNode(pcIter, pcSystemFileNode);
 	}

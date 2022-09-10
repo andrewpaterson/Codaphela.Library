@@ -27,11 +27,11 @@ void CIndexTreeEvictedList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictedList::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CIndexTreeEvictedList::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	mcKeys.Add(pvKey, iKeySize + 1);
 	mcDatas.Add(pvData, iDataSize);
-	return TRUE;
+	return true;
 }
 
 

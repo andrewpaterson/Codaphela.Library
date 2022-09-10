@@ -5,11 +5,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Init(CIndexedData* pcIndexData)
+bool CIndexedDataAccess::Init(CIndexedData* pcIndexData)
 {
 	CIndexAccess::Init();
 	mpcIndexData = pcIndexData;
-	return TRUE;
+	return true;
 }
 
 
@@ -17,7 +17,7 @@ BOOL CIndexedDataAccess::Init(CIndexedData* pcIndexData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Kill(void)
+bool CIndexedDataAccess::Kill(void)
 {
 	mpcIndexData = NULL;
 	return CIndexAccess::Kill();
@@ -38,9 +38,9 @@ void CIndexedDataAccess::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Flush(void)
+bool CIndexedDataAccess::Flush(void)
 {
-	return mpcIndexData->Flush(FALSE);
+	return mpcIndexData->Flush(false);
 }
 
 
@@ -58,7 +58,7 @@ int64 CIndexedDataAccess::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::ValidateIndex(void)
+bool CIndexedDataAccess::ValidateIndex(void)
 {
 	return mpcIndexData->ValidateIndex();
 }
@@ -69,7 +69,7 @@ BOOL CIndexedDataAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+bool CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
 {
 	OIndex	oi;
 
@@ -80,7 +80,7 @@ BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDa
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -89,7 +89,7 @@ BOOL CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
 {
 	OIndex	oi;
 
@@ -100,7 +100,7 @@ BOOL CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* pi
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -137,7 +137,7 @@ int CIndexedDataAccess::DataSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
 {
 	OIndex	oi;
 
@@ -148,7 +148,7 @@ BOOL CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -157,7 +157,7 @@ BOOL CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Has(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Has(void* pvKey, int iKeySize)
 {
 	OIndex	oi;
 
@@ -168,7 +168,7 @@ BOOL CIndexedDataAccess::Has(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -177,7 +177,7 @@ BOOL CIndexedDataAccess::Has(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
 {
 	OIndex	oi;
 
@@ -188,7 +188,7 @@ BOOL CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 
@@ -197,7 +197,7 @@ BOOL CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDataAccess::Evict(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Evict(void* pvKey, int iKeySize)
 {
 	OIndex	oi;
 
@@ -208,7 +208,7 @@ BOOL CIndexedDataAccess::Evict(void* pvKey, int iKeySize)
 	}
 	else
 	{
-		return FALSE;
+		return false;
 	}
 }
 

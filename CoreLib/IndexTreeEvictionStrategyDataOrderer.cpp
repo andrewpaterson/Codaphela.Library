@@ -51,14 +51,14 @@ void CIndexTreeEvictionStrategyDataOrderer::SetIndexTree(CIndexTreeEvicting* pcI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexTreeEvictionStrategyDataOrderer::Run(CIndexTreeNodeFile* pcDontEvict)
+bool CIndexTreeEvictionStrategyDataOrderer::Run(CIndexTreeNodeFile* pcDontEvict)
 {
 	CIndexTreeNodeFile*		pcNode;
 
 	pcNode = (CIndexTreeNodeFile*)mpcOrderer->GetLastTreeNode();
 	if (pcNode == pcDontEvict || pcNode == NULL)
 	{
-		return FALSE;
+		return false;
 	}
 
 	return EvictNode(pcNode);

@@ -40,9 +40,9 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Kill(void)
+bool CIndexedDescriptorsFile::Kill(void)
 {
-	BOOL bResult;
+	bool bResult;
 
 	bResult = mcIndexTree.Kill();
 	return bResult;
@@ -53,7 +53,7 @@ BOOL CIndexedDescriptorsFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Remove(OIndex oi)
+bool CIndexedDescriptorsFile::Remove(OIndex oi)
 {
 	return mcIndexTree.Remove(&oi, sizeof(OIndex));
 }
@@ -63,7 +63,7 @@ BOOL CIndexedDescriptorsFile::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
+bool CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
 }
@@ -73,7 +73,7 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction)
+bool CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, bool bNoEviction)
 {
 	if (!bNoEviction)
 	{
@@ -90,7 +90,7 @@ BOOL CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
+bool CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 }
@@ -100,7 +100,7 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, BOOL bNoEviction)
+bool CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, bool bNoEviction)
 {
 	if (!bNoEviction)
 	{
@@ -117,7 +117,7 @@ BOOL CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, unsigned int uiDataSize, OIndex oi)
+bool CIndexedDescriptorsFile::SetCache(void* pvCache, unsigned int uiDataSize, OIndex oi)
 {
 	CIndexTreeNode*			pcNode;
 	CIndexedDataDescriptor*	pcDescriptor;
@@ -127,9 +127,9 @@ BOOL CIndexedDescriptorsFile::SetCache(void* pvCache, unsigned int uiDataSize, O
 	{
 		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetDataPtr();
 		pcDescriptor->Cache(pvCache, uiDataSize);
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -188,7 +188,7 @@ int64 CIndexedDescriptorsFile::NumDatas(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Flush(void)
+bool CIndexedDescriptorsFile::Flush(void)
 {
 	return mcIndexTree.Flush();
 }
@@ -198,7 +198,7 @@ BOOL CIndexedDescriptorsFile::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::IsFlushed(void)
+bool CIndexedDescriptorsFile::IsFlushed(void)
 {
 	return mcIndexTree.IsFlushed();
 }
@@ -208,7 +208,7 @@ BOOL CIndexedDescriptorsFile::IsFlushed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
+bool CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
 	CIndexTreeNodeFile*		pcNode;
 	CIndexedDataDescriptor*	pcReturn;
@@ -221,9 +221,9 @@ BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 		{
 			memcpy(pcDescriptor, pcReturn, sizeof(CIndexedDataDescriptor));
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -231,7 +231,7 @@ BOOL CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Evict(OIndex oi)
+bool CIndexedDescriptorsFile::Evict(OIndex oi)
 {
 	return mcIndexTree.Evict(&oi, sizeof(OIndex));
 }
@@ -241,9 +241,9 @@ BOOL CIndexedDescriptorsFile::Evict(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::Flush(OIndex oi)
+bool CIndexedDescriptorsFile::Flush(OIndex oi)
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -251,7 +251,7 @@ BOOL CIndexedDescriptorsFile::Flush(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CIndexedDescriptorsFile::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	OIndex	oi;
 
@@ -298,7 +298,7 @@ void CIndexedDescriptorsFile::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::ValidateIndex(void)
+bool CIndexedDescriptorsFile::ValidateIndex(void)
 {
 	return mcIndexTree.ValidateIndexTree();
 }
@@ -325,10 +325,10 @@ uint16 CIndexedDescriptorsFile::IndexTreeDataSize(uint16 uiSourceSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
+bool CIndexedDescriptorsFile::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
 {
 	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -336,11 +336,11 @@ BOOL CIndexedDescriptorsFile::IndexTreeWriteData(void* pvDataBuffer, void* pvSou
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedDescriptorsFile::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
+bool CIndexedDescriptorsFile::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
 {
 	memset_fast(pvDest, 0, uiDestDataSize);
 	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -352,7 +352,7 @@ OIndex CIndexedDescriptorsFile::StartIteration(SIndexTreeFileIterator* psIterato
 {
 	OIndex	oi;
 	int		iKeySize;
-	BOOL	bExists;
+	bool	bExists;
 
 	bExists = mcIndexTree.StartIteration(psIterator, &oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
 	if (bExists)
@@ -374,7 +374,7 @@ OIndex CIndexedDescriptorsFile::Iterate(SIndexTreeFileIterator* psIterator, void
 {
 	OIndex	oi;
 	int		iKeySize;
-	BOOL	bExists;
+	bool	bExists;
 
 	bExists = mcIndexTree.Iterate(psIterator, &oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
 	if (bExists)

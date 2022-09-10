@@ -27,12 +27,12 @@ class CListenSocket : public CSocket
 {
 protected:
 	SOCKET		mListenSocket;
-	BOOL		mbListening;
+	bool		mbListening;
 
 public:
-	BOOL Init(int iPort);
+	bool Init(int iPort);
 	void Kill(void);
 
-	BOOL Listen(void);
+	bool Listen(void);
 };
 

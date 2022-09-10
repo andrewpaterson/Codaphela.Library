@@ -50,9 +50,9 @@ void CIndexedData::Init(CDurableFileController* pcController, CLifeInit<CIndexed
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Kill(void)
+bool CIndexedData::Kill(void)
 {
-	BOOL bResult;
+	bool bResult;
 
 	mpcDurableFileControl = NULL;
 
@@ -68,7 +68,7 @@ BOOL CIndexedData::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
+bool CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction)
 {
 	return mcIndices.Get(pcDescriptor, oi, bNoEviction);
 }
@@ -78,7 +78,7 @@ BOOL CIndexedData::GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction)
+bool CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction)
 {
 	return mcIndices.Set(pcDescriptor, oi, bNoEviction);
 }
@@ -88,7 +88,7 @@ BOOL CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
+bool CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
 	return mcIndices.SetCache(pvCache, uiDataSize, oi);
 }
@@ -98,7 +98,7 @@ BOOL CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::RemoveDescriptor(OIndex oi)
+bool CIndexedData::RemoveDescriptor(OIndex oi)
 {
 	return mcIndices.Remove(oi);
 }
@@ -108,9 +108,9 @@ BOOL CIndexedData::RemoveDescriptor(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Flush(void)
+bool CIndexedData::Flush(void)
 {
-	return Flush(FALSE);
+	return Flush(false);
 }
 
 
@@ -118,9 +118,9 @@ BOOL CIndexedData::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::Flush(BOOL bClearDataCache)
+bool CIndexedData::Flush(bool bClearDataCache)
 {
-	BOOL bRresult;
+	bool bRresult;
 
 	if (meWriteThrough == IWT_No)
 	{
@@ -134,9 +134,9 @@ BOOL CIndexedData::Flush(BOOL bClearDataCache)
 	else
 	{
 		gcLogger.Error2(__METHOD__, " Don't know how to flush data with Write Through [IWT_Unknown].", NULL);
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -144,10 +144,10 @@ BOOL CIndexedData::Flush(BOOL bClearDataCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::IsFlushed(void)
+bool CIndexedData::IsFlushed(void)
 {
-	BOOL bIndicesFlushed;
-	BOOL bDataFlushed;
+	bool bIndicesFlushed;
+	bool bDataFlushed;
 
 	bIndicesFlushed = mcIndices.IsFlushed();
 	bDataFlushed = mcData.IsFlushed();
@@ -169,11 +169,11 @@ int64 CIndexedData::NumIndices(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::IsDirty(OIndex oi)
+bool CIndexedData::IsDirty(OIndex oi)
 {
 	CIndexedDataDescriptor		cKeyDescriptor;
 	SIndexedCacheDescriptor*	psDataDescriptor;
-	BOOL						bInMemory;
+	bool						bInMemory;
 
 	bInMemory = mcIndices.GetIfInMemory(&cKeyDescriptor, oi);
 	if (bInMemory)
@@ -183,11 +183,11 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 			psDataDescriptor = (SIndexedCacheDescriptor*)RemapSinglePointer(cKeyDescriptor.GetCache(), -(ptrdiff_t)sizeof(SIndexedCacheDescriptor));
 			if (psDataDescriptor->iFlags & CACHE_DESCRIPTOR_FLAG_DIRTY)
 			{
-				return TRUE;
+				return true;
 			}
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -195,9 +195,9 @@ BOOL CIndexedData::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
+bool CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
 {
-	BOOL						bResult;
+	bool						bResult;
 
 	if (mpcIndexedDataEvictionCallback)
 	{
@@ -207,7 +207,7 @@ BOOL CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDa
 	}
 	else
 	{
-		return TRUE;
+		return true;
 	}
 }
 
@@ -216,7 +216,7 @@ BOOL CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictKey(OIndex oi)
+bool CIndexedData::EvictKey(OIndex oi)
 {
 	return mcIndices.Evict(oi);
 }
@@ -226,7 +226,7 @@ BOOL CIndexedData::EvictKey(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
+bool CIndexedData::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 {
 	return mcData.Evict(oi, pcDescriptor);
 }
@@ -236,7 +236,7 @@ BOOL CIndexedData::EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::FlushKey(OIndex oi)
+bool CIndexedData::FlushKey(OIndex oi)
 {
 	return mcIndices.Flush(oi);
 }
@@ -256,7 +256,7 @@ void CIndexedData::DumpIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::ValidateIndex(void)
+bool CIndexedData::ValidateIndex(void)
 {
 	return mcIndices.ValidateIndex();
 }
@@ -266,7 +266,7 @@ BOOL CIndexedData::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::ValidateConfigInitialised(void)
+bool CIndexedData::ValidateConfigInitialised(void)
 {
 	if (!mcConfig.IsInitialised())
 	{
@@ -280,7 +280,7 @@ BOOL CIndexedData::ValidateConfigInitialised(void)
 	{
 		return gcLogger.Error2(__METHOD__, " IndexedData config is [NULL].", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -288,7 +288,7 @@ BOOL CIndexedData::ValidateConfigInitialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedData::ValidateConfigKilled(void)
+bool CIndexedData::ValidateConfigKilled(void)
 {
 	if (!mcConfig.IsKilled())
 	{
@@ -302,7 +302,7 @@ BOOL CIndexedData::ValidateConfigKilled(void)
 	{
 		return gcLogger.Error2(__METHOD__, " IndexedData config is [!NULL].", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -314,7 +314,7 @@ OIndex CIndexedData::StartIteration(SIndexTreeFileIterator* psIterator, void* pv
 {
 	CIndexedDataDescriptor	cDescriptor;
 	OIndex					oi;
-	BOOL					bResult;
+	bool					bResult;
 	size_t					iDescriptorSize;
 
 	oi = mcIndices.StartIteration(psIterator, &cDescriptor, &iDescriptorSize, sizeof(CIndexedDataDescriptor));
@@ -338,7 +338,7 @@ OIndex CIndexedData::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, s
 {
 	CIndexedDataDescriptor	cDescriptor;
 	OIndex					oi;
-	BOOL					bResult;
+	bool					bResult;
 	size_t					iDescriptorSize;
 
 	oi = mcIndices.Iterate(psIterator, &cDescriptor, &iDescriptorSize, sizeof(CIndexedDataDescriptor));
@@ -361,7 +361,7 @@ OIndex CIndexedData::Iterate(SIndexTreeFileIterator* psIterator, void* pvData, s
 int64 CIndexedData::NumIndicesCached(void) { return mcIndices.NumIndicesCached(); }
 int64 CIndexedData::NumIndicesCached(size_t iSize) { return mcIndices.NumIndicesCached(iSize); }
 CDurableFileController* CIndexedData::GetDurableFileControl(void) { return mpcDurableFileControl; }
-BOOL CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
+bool CIndexedData::IsDurable(void) { return mpcDurableFileControl->IsDurable(); }
 size_t CIndexedData::GetIndiciesSystemMemorySize(void) { return mcIndices.GetSystemMemorySize(); }
 size_t CIndexedData::GetDataSystemMemorySize(void) { return mcData.GetSystemMemorySize(); }
 unsigned char CIndexedData::GetRootFlags(void) { return mcIndices.GetRootFlags();  }

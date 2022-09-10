@@ -42,7 +42,7 @@ protected:
 
 public:
 
-	BOOL					Init(char* szDirectory, char* szPackFilesExtension);
+	bool					Init(char* szDirectory, char* szPackFilesExtension);
 	void					Kill(void);
 
 	int						GetNumPackFiles(void);
@@ -61,8 +61,8 @@ protected:
 	CPackFile*				GetPackFile(char* szFullName);
 	CPackFile*				GetPackFile(CPackFileOffset* pcPackFiles, char* szFullName);
 
-	BOOL					AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile);
-	BOOL					AddPackFiles(void);
+	bool					AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile);
+	bool					AddPackFiles(void);
 
 	CFileIteratorReturn*	IterateOnFileSystem(CFileIterator* pcIter);
 	CFileIteratorReturn*	IterateInPackFiles(CFileIterator* pcIter);

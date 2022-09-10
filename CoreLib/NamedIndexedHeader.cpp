@@ -104,7 +104,7 @@ int CNamedIndexedHeader::GetHeaderSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexedHeader::HasName(void)
+bool CNamedIndexedHeader::HasName(void)
 {
 	return (miNameLength > 0);
 }

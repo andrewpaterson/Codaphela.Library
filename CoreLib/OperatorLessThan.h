@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/DataTypes.h"
 
 
-typedef void	(* OperatorLessThanFunc)		(BOOL* pvDest, void* pvLeft, void* pvRight);
+typedef void	(* OperatorLessThanFunc)		(bool* pvDest, void* pvLeft, void* pvRight);
 
 
 class COperatorLessThan
@@ -35,7 +35,7 @@ public:
 
 	void Init(void);
 	void Kill(void);
-	void Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight);
+	void Do(bool* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight);
 };
 
 

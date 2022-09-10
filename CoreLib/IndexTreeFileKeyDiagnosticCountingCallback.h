@@ -18,7 +18,7 @@ public:
 	void	Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize);
 
 protected:
-	BOOL	Matches(void* pvKey, int iKeySize);
+	bool	Matches(void* pvKey, int iKeySize);
 };
 
 

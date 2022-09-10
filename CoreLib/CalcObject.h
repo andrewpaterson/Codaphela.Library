@@ -31,8 +31,8 @@ class CCalcObject
 public:
 	virtual void Init(void) =0;
 	virtual void Kill(void) =0;
-	virtual BOOL IsExpression(void) =0;
-	virtual BOOL IsOperator(void) =0;
+	virtual bool IsExpression(void) =0;
+	virtual bool IsOperator(void) =0;
 	virtual void Print(CChars* psz) =0;
 			void Dump(void);
 };

@@ -9,7 +9,7 @@ struct SIndexTreeDebugNode
 	unsigned int	uiIndexInFile;
 	int				iFileNumber;
 
-	BOOL			bEmpty;
+	bool			bEmpty;
 
 	uint16	uiDataSize;
 	uint16	iFileNodeSize;

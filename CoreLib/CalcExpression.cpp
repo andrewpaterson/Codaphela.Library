@@ -27,9 +27,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcExpression::IsExpression(void)
+bool CCalcExpression::IsExpression(void)
 {
-	return TRUE;
+	return true;
 }
 
 
@@ -37,8 +37,8 @@ BOOL CCalcExpression::IsExpression(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCalcExpression::IsOperator(void)
+bool CCalcExpression::IsOperator(void)
 {
-	return FALSE;
+	return false;
 }
 

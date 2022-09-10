@@ -38,9 +38,9 @@ void CNamedIndexes::Init(CDurableFileController* pcController, CLifeInit<CNamedI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Kill(void)
+bool CNamedIndexes::Kill(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcIndexTree.Kill();
 	mcConfig.Kill();
@@ -53,13 +53,13 @@ BOOL CNamedIndexes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 {
 	if (iDataSize != sizeof(OIndex))
 	{
 		return gcLogger.Error2(__METHOD__, "Data evicted was not an OIndex.", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -67,7 +67,7 @@ BOOL CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Add(char* szName, OIndex oi)
+bool CNamedIndexes::Add(char* szName, OIndex oi)
 {
 	int		iKeySize;
 
@@ -87,7 +87,7 @@ BOOL CNamedIndexes::Add(char* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Add(CChars* szName, OIndex oi)
+bool CNamedIndexes::Add(CChars* szName, OIndex oi)
 {
 	if (szName != NULL)
 	{
@@ -104,9 +104,9 @@ BOOL CNamedIndexes::Add(CChars* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
+bool CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
 {
-	BOOL	bExists;
+	bool	bExists;
 
 	if ((iNameLength != 0) && (szName != NULL))
 	{
@@ -133,10 +133,10 @@ BOOL CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Set(char* szName, OIndex oi)
+bool CNamedIndexes::Set(char* szName, OIndex oi)
 {
 	int		iKeySize;
-	BOOL	bExists;
+	bool	bExists;
 
 	if (!StrEmpty(szName))
 	{
@@ -159,9 +159,9 @@ BOOL CNamedIndexes::Set(char* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Set(CChars* szName, OIndex oi)
+bool CNamedIndexes::Set(CChars* szName, OIndex oi)
 {
-	BOOL	bExists;
+	bool	bExists;
 
 	if ((szName != NULL) && (!szName->Empty()))
 	{
@@ -183,7 +183,7 @@ BOOL CNamedIndexes::Set(CChars* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Put(char* szName, OIndex oi)
+bool CNamedIndexes::Put(char* szName, OIndex oi)
 {
 	int		iKeySize;
 
@@ -203,7 +203,7 @@ BOOL CNamedIndexes::Put(char* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Put(CChars* szName, OIndex oi)
+bool CNamedIndexes::Put(CChars* szName, OIndex oi)
 {
 	if ((szName != NULL) && (!szName->Empty()))
 	{
@@ -224,7 +224,7 @@ OIndex CNamedIndexes::Get(char* szName)
 {
 	int		iKeySize;
 	OIndex	iResult;
-	BOOL	bExists;
+	bool	bExists;
 
 	if (!StrEmpty(szName))
 	{
@@ -247,7 +247,7 @@ OIndex CNamedIndexes::Get(char* szName)
 OIndex CNamedIndexes::Get(CChars* szName)
 {
 	OIndex	iResult;
-	BOOL	bExists;
+	bool	bExists;
 
 	if ((szName != NULL) && !szName->Empty())
 	{
@@ -265,7 +265,7 @@ OIndex CNamedIndexes::Get(CChars* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Remove(char* szName)
+bool CNamedIndexes::Remove(char* szName)
 {
 	int iKeySize;
 
@@ -274,7 +274,7 @@ BOOL CNamedIndexes::Remove(char* szName)
 		iKeySize = strlen(szName);
 		return mcIndexTree.Remove(szName, iKeySize);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -282,7 +282,7 @@ BOOL CNamedIndexes::Remove(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Remove(CChars* szName)
+bool CNamedIndexes::Remove(CChars* szName)
 {
 	return mcIndexTree.Remove(szName->Text(), szName->Length());
 }
@@ -312,7 +312,7 @@ int64 CNamedIndexes::NumElementsCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Flush(void) 
+bool CNamedIndexes::Flush(void) 
 {
 	return mcIndexTree.Flush();
 }
@@ -322,10 +322,10 @@ BOOL CNamedIndexes::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+bool CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
 	int		iKeySize;
-	BOOL	bExists;
+	bool	bExists;
 	size_t	iDataSize;
 
 	bExists = mcIndexTree.StartIteration(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
@@ -352,10 +352,10 @@ BOOL CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szK
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
+bool CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
 	int		iKeySize;
-	BOOL	bExists;
+	bool	bExists;
 	size_t	iDataSize;
 
 	bExists = mcIndexTree.Iterate(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
@@ -399,10 +399,10 @@ uint16 CNamedIndexes::IndexTreeDataSize(uint16 uiSourceSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
+bool CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
 {
 	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -410,11 +410,11 @@ BOOL CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
+bool CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
 {
 	memset_fast(pvDest, 0, uiDestDataSize);
 	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -432,7 +432,7 @@ void CNamedIndexes::DumpIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::ValidateIndex(void)
+bool CNamedIndexes::ValidateIndex(void)
 {
 	return mcIndexTree.ValidateIndexTree();
 }
@@ -442,7 +442,7 @@ BOOL CNamedIndexes::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::ValidateConfigInitialised(void)
+bool CNamedIndexes::ValidateConfigInitialised(void)
 {
 	if (!mcConfig.IsInitialised())
 	{
@@ -456,7 +456,7 @@ BOOL CNamedIndexes::ValidateConfigInitialised(void)
 	{
 		return gcLogger.Error2(__METHOD__, " IndexedData config is [NULL].", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -464,7 +464,7 @@ BOOL CNamedIndexes::ValidateConfigInitialised(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CNamedIndexes::ValidateConfigKilled(void)
+bool CNamedIndexes::ValidateConfigKilled(void)
 {
 	if (!mcConfig.IsKilled())
 	{
@@ -478,7 +478,7 @@ BOOL CNamedIndexes::ValidateConfigKilled(void)
 	{
 		return gcLogger.Error2(__METHOD__, " IndexedData config is [!NULL].", NULL);
 	}
-	return TRUE;
+	return true;
 }
 
 

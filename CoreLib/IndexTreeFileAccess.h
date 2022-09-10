@@ -10,11 +10,11 @@ private:
 	CIndexTreeFile*		mpcTree;
 
 public:
-	BOOL				Init(CIndexTreeFile* pcTree);
-	BOOL				Kill(void);
-	BOOL				Flush(void);
+	bool				Init(CIndexTreeFile* pcTree);
+	bool				Kill(void);
+	bool				Flush(void);
 	int64				NumElements(void);
-	BOOL				ValidateIndex(void);
+	bool				ValidateIndex(void);
 	void				Dump(void);
 
 	CIndexTreeIterator* CreateIterator(void);
@@ -23,13 +23,13 @@ public:
 	CIndexTreeFile*		GetTree(void);
 
 protected:
-	BOOL	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
-	BOOL	Get(void* pvKey, int iKeySize, void* pvData, size_t* uiDataSize, size_t uiMaxDataSize);
-	BOOL	Remove(void* pvKey, int iKeySize);
+	bool	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
+	bool	Get(void* pvKey, int iKeySize, void* pvData, size_t* uiDataSize, size_t uiMaxDataSize);
+	bool	Remove(void* pvKey, int iKeySize);
 	int		DataSize(void* pvKey, int iKeySize);
-	BOOL	Has(void* pvKey, int iKeySize);
-	BOOL	Flush(void* pvKey, int iKeySize);
-	BOOL	Evict(void* pvKey, int iKeySize);
+	bool	Has(void* pvKey, int iKeySize);
+	bool	Flush(void* pvKey, int iKeySize);
+	bool	Evict(void* pvKey, int iKeySize);
 };
 
 

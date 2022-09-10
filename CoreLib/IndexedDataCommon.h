@@ -17,24 +17,24 @@ protected:
 
 public:
 			void			Init(CIndexedDataEvictionCallback* pcIndexedDataEvictionCallback);
-	virtual BOOL			Kill(void) =0;
+	virtual bool			Kill(void) =0;
 
-			BOOL			IsCaching(void);
-			BOOL			IsWriteThrough(void);
-			BOOL			IsFlushed(void);
+			bool			IsCaching(void);
+			bool			IsWriteThrough(void);
+			bool			IsFlushed(void);
 	
-			BOOL			Add(OIndex oi, void* pvData, size_t uiDataSize);
+			bool			Add(OIndex oi, void* pvData, size_t uiDataSize);
 
-			BOOL			Set(OIndex oi, void* pvData);
-			BOOL			Set(OIndex oi, void* pvData, size_t uiDataSize);
+			bool			Set(OIndex oi, void* pvData);
+			bool			Set(OIndex oi, void* pvData, size_t uiDataSize);
 
-			BOOL			Put(OIndex oi, void* pvData, size_t uiDataSize);
+			bool			Put(OIndex oi, void* pvData, size_t uiDataSize);
 
-			BOOL			Get(OIndex oi, void* pvData, size_t uiMaxSize = 0);
-			BOOL			Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
+			bool			Get(OIndex oi, void* pvData, size_t uiMaxSize = 0);
+			bool			Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
 
 			unsigned int	Size(OIndex oi);
-			BOOL			Contains(OIndex oi);
+			bool			Contains(OIndex oi);
 
 			int64			NumElements(void);
 
@@ -46,23 +46,23 @@ public:
 			int				NumFiles(void);
 			int64			NumDatas(size_t uiDataSize);
 
-			BOOL			Remove(OIndex oi);
+			bool			Remove(OIndex oi);
 
-	virtual BOOL			IsDirty(OIndex oi) =0;
+	virtual bool			IsDirty(OIndex oi) =0;
 
-	virtual BOOL			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
+	virtual bool			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 
 			unsigned int	TestGetCachedObjectSize(OIndex oi);
 
 protected:
-	virtual BOOL			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
-	virtual BOOL			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
-	virtual BOOL			UpdateDescriptorCache(OIndex oi, void* pvCache, size_t uiDataSize) =0;
-	virtual BOOL			RemoveDescriptor(OIndex oi) =0;
+	virtual bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
+	virtual bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
+	virtual bool			UpdateDescriptorCache(OIndex oi, void* pvCache, size_t uiDataSize) =0;
+	virtual bool			RemoveDescriptor(OIndex oi) =0;
 
-	virtual BOOL			Flush(BOOL bClearCache) =0;
+	virtual bool			Flush(bool bClearCache) =0;
 
-			BOOL			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
+			bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
 };
 
 

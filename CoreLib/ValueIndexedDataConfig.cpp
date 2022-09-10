@@ -142,7 +142,7 @@ CLifeInit<CIndexedDataConfig> CValueIndexedDataConfig::Create(char* szSubDirecto
 
 	pcEvictionStrategy = cEvictionStrategy.GetLife();
 	pcIndexTreeDataOrderer = pcEvictionStrategy->GetDataOrderer();
-	cIndexTreeDataOrderer.Init(pcIndexTreeDataOrderer, FALSE, FALSE);
+	cIndexTreeDataOrderer.Init(pcIndexTreeDataOrderer, false, false);
 
 	CLifeInit<CIndexedDataConfig> cLife = LifeAlloc<CValueIndexedDataConfig, CIndexedDataConfig>(szSubDirectory, uiDataCacheSize, uiIndexCacheSize, eWriteThrough, cEvictionStrategy, pcIndexTreeEvictionUserCallback, pcIndexedDataEvictionUserCallback, cIndexTreeDataOrderer);
 	return cLife;

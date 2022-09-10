@@ -15,12 +15,12 @@ protected:
 
 public:
 	virtual void					SetIndexTree(CIndexTreeEvicting* pcIndexTree);
-	virtual BOOL					Run(CIndexTreeNodeFile* pcDontEvict) =0;
+	virtual bool					Run(CIndexTreeNodeFile* pcDontEvict) =0;
 
 	virtual CIndexTreeDataOrderer*	GetDataOrderer(void);
 
 protected:
-			BOOL					EvictNode(CIndexTreeNodeFile* pcNode);
+			bool					EvictNode(CIndexTreeNodeFile* pcNode);
 			CIndexTreeNodeFile*		GetRootNode(void);
 };
 

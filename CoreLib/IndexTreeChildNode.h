@@ -26,10 +26,10 @@ public:
 	void	Init(CIndexTreeNodeFile* pcMemory);
 	void	Clear(void);
 
-	BOOL	IsValid(void);
-	BOOL	IsMemory(void);
-	BOOL	IsFile(void);
-	BOOL	IsUnallocated(void);
+	bool	IsValid(void);
+	bool	IsMemory(void);
+	bool	IsFile(void);
+	bool	IsUnallocated(void);
 };
 
 

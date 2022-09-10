@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/DataTypes.h"
 
 
-typedef void	(* OperatorNotEqualFunc)		(BOOL* pvDest, void* pvLeft, void* pvRight);
+typedef void	(* OperatorNotEqualFunc)		(bool* pvDest, void* pvLeft, void* pvRight);
 
 
 class COperatorNotEqual
@@ -35,7 +35,7 @@ public:
 
 	void Init(void);
 	void Kill(void);
-	void Do(BOOL* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight);
+	void Do(bool* pvDest, EPrimitiveType eLeft, void* pvLeft, EPrimitiveType eRight, void* pvRight);
 };
 
 

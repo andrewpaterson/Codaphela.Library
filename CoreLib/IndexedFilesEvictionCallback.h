@@ -8,10 +8,10 @@
 class CIndexedFilesEvictionCallback
 {
 public:
-	virtual BOOL DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize) =0;
-	virtual BOOL GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
-	virtual BOOL SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, BOOL bNoEviction = FALSE) =0;
-	virtual BOOL UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize) =0;
+	virtual bool DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize) =0;
+	virtual bool GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
+	virtual bool SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
+	virtual bool UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize) =0;
 };
 
 

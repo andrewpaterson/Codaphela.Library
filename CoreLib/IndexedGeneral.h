@@ -32,7 +32,7 @@ typedef int64 OIndex;
 #define NULL_O_INDEX	((OIndex)0)
 #define FIRST_O_INDEX	((OIndex)1)
 
-BOOL	IsValidIndex(OIndex oi);
+bool	IsValidIndex(OIndex oi);
 char*	IndexToString(OIndex oi);
 
 

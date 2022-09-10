@@ -223,7 +223,7 @@ size_t CIndexedCache::GetAllocatedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CIndexedCache::CanCache(unsigned int uiDataSize)
+bool CIndexedCache::CanCache(unsigned int uiDataSize)
 {
 	return mcCache.CanCache(uiDataSize);
 }
