@@ -95,7 +95,7 @@ void fat_register_system_time_function(FAT_GET_SYSTEM_TIME system_time);
 uint16 FatFileAllocate(SFatFile*	file, uint32		bytes);
 
 
-uint16 fat_format_volume(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);
+uint16 FatFormat(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);
 
 
 #endif // __FAT_32_H__
