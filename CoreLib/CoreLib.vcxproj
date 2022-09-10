@@ -299,6 +299,7 @@
     <ClInclude Include="Fat.h" />
     <ClInclude Include="FatCommon.h" />
     <ClInclude Include="FatFile.h" />
+    <ClInclude Include="FatFormat.h" />
     <ClInclude Include="FatInternals.h" />
     <ClInclude Include="FatStructure.h" />
     <ClInclude Include="FatVolume.h" />

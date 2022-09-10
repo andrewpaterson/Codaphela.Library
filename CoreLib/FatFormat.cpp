@@ -20,8 +20,11 @@
 #include <ctype.h>
 #include <string.h>
 #include <time.h>
-#include "Fat.h"
 #include "FatInternals.h"
+#include "FatCommon.h"
+#include "FatFormat.h"
+#include "FatFile.h"
+#include "FatStructure.h"
 
 
  // structure of the disk size to sectors per
@@ -142,7 +145,7 @@ static uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char f
 
 
 // format volume
-uint16 FatFormat(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
+uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
 {
 	bool					bSuccess;
 	uint32					i;

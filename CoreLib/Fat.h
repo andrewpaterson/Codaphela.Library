@@ -20,27 +20,6 @@
 #ifndef __FAT_32_H__
 #define __FAT_32_H__
 
-#include <time.h>
-#include "BaseLib/PrimitiveTypes.h"
-#include "FileDrive.h"
-#include "FatCommon.h"
-#include "FatVolume.h"
-#include "FatFile.h"
-#include "FatStructure.h"
-
-
-  // #################################
-  // compile options
-  // #################################
-
-  // if this option is not specified the library will only maintain 1 copy of
-  // the FAT table, otherwise it will maintain all the tables in the volume
-  // (usually two)
-
-  /* #define FAT_MAINTAIN_TWO_FAT_TABLES */
-
-
-uint16 FatFormat(uint8 fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);
 
 
 #endif // __FAT_32_H__
