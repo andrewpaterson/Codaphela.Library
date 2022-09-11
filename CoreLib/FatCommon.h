@@ -202,42 +202,44 @@ struct SFatDirectoryEntry
 
 
 // return codes (first 32 codes are reserved)
-#define FAT_SUCCESS								( 0x0 )
-#define FAT_UNKNOWN_ERROR						( 0x20 + 0x1 )
-#define FAT_CANNOT_READ_MEDIA					( 0x20 + 0x2 )
-#define FAT_CANNOT_WRITE_MEDIA					( 0x20 + 0x3 )
-#define FAT_NOT_A_DIRECTORY						( 0x20 + 0x4 )
-#define FAT_INVALID_FILENAME					( 0x20 + 0x5 )
-#define FAT_FILENAME_ALREADY_EXISTS				( 0x20 + 0x6 )
-#define FAT_INVALID_PATH						( 0x20 + 0x7 )
-#define FAT_CORRUPTED_FILE						( 0x20 + 0x8 )
-#define FAT_ILLEGAL_FILENAME					( 0x20 + 0x9 )
-#define FAT_FILENAME_TOO_LONG					( 0x20 + 0xA )
-#define FAT_NOT_A_FILE							( 0x20 + 0xB )
-#define FAT_FILE_NOT_FOUND						( 0x20 + 0xC )
-#define FAT_DIRECTORY_DOES_NOT_EXIST			( 0x20 + 0xD )
-#define FAT_INSUFFICIENT_DISK_SPACE				( 0x20 + 0xE )
-#define FAT_FEATURE_NOT_SUPPORTED				( 0x20 + 0xF )
-#define FAT_OP_IN_PROGRESS						( 0x20 + 0x10 )
-#define FAT_SECTOR_SIZE_NOT_SUPPORTED			( 0x20 + 0x11 )
-#define FAT_LFN_GENERATED						( 0x20 + 0x12 )
-#define FAT_SHORT_LFN_GENERATED					( 0x20 + 0x13 )
-#define FAT_SEEK_FAILED							( 0x20 + 0x14 )
-#define FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS	( 0x20 + 0x15 )
-#define FAT_INVALID_HANDLE						( 0x20 + 0x16 )
-#define FAT_INVALID_CLUSTER						( 0x20 + 0x17 )
-#define FAT_INVALID_FAT_VOLUME					( 0x20 + 0x18 )
-#define FAT_INVALID_VOLUME_LABEL				( 0x20 + 0x19 )
-#define FAT_INVALID_FORMAT_PARAMETERS			( 0x20 + 0x1A )
-#define FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED		( 0x20 + 0x1B )
-#define FAT_DIRECTORY_LIMIT_EXCEEDED			( 0x20 + 0x1C )
-#define FAT_INVALID_PARAMETERS					( 0x20 + 0x1D )
-#define FAT_FILE_HANDLE_IN_USE					( 0x20 + 0x1E )
-#define FAT_FILE_BUFFER_NOT_SET					( 0x20 + 0x1F )
-#define FAT_MISALIGNED_IO						( 0x20 + 0x20 )
-#define FAT_AWAITING_DATA						( 0x20 + 0x21 )
-#define FAT_BUFFER_TOO_BIG						( 0x20 + 0x22 )
-
+enum EFatCode
+{
+	FAT_SUCCESS							= 0x0,
+	FAT_UNKNOWN_ERROR					= 0x20 + 0x1,
+	FAT_CANNOT_READ_MEDIA				= 0x20 + 0x2,
+	FAT_CANNOT_WRITE_MEDIA				= 0x20 + 0x3,
+	FAT_NOT_A_DIRECTORY					= 0x20 + 0x4,
+	FAT_INVALID_FILENAME				= 0x20 + 0x5,
+	FAT_FILENAME_ALREADY_EXISTS			= 0x20 + 0x6,
+	FAT_INVALID_PATH					= 0x20 + 0x7,
+	FAT_CORRUPTED_FILE					= 0x20 + 0x8,
+	FAT_ILLEGAL_FILENAME				= 0x20 + 0x9,
+	FAT_FILENAME_TOO_LONG				= 0x20 + 0xA,
+	FAT_NOT_A_FILE						= 0x20 + 0xB,
+	FAT_FILE_NOT_FOUND					= 0x20 + 0xC,
+	FAT_DIRECTORY_DOES_NOT_EXIST		= 0x20 + 0xD,
+	FAT_INSUFFICIENT_DISK_SPACE			= 0x20 + 0xE,
+	FAT_FEATURE_NOT_SUPPORTED			= 0x20 + 0xF,
+	FAT_OP_IN_PROGRESS					= 0x20 + 0x10,
+	FAT_SECTOR_SIZE_NOT_SUPPORTED		= 0x20 + 0x11,
+	FAT_LFN_GENERATED					= 0x20 + 0x12,
+	FAT_SHORT_LFN_GENERATED				= 0x20 + 0x13,
+	FAT_SEEK_FAILED						= 0x20 + 0x14,
+	FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS= 0x20 + 0x15,
+	FAT_INVALID_HANDLE					= 0x20 + 0x16,
+	FAT_INVALID_CLUSTER					= 0x20 + 0x17,
+	FAT_INVALID_FAT_VOLUME				= 0x20 + 0x18,
+	FAT_INVALID_VOLUME_LABEL			= 0x20 + 0x19,
+	FAT_INVALID_FORMAT_PARAMETERS		= 0x20 + 0x1A,
+	FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED	= 0x20 + 0x1B,
+	FAT_DIRECTORY_LIMIT_EXCEEDED		= 0x20 + 0x1C,
+	FAT_INVALID_PARAMETERS				= 0x20 + 0x1D,
+	FAT_FILE_HANDLE_IN_USE				= 0x20 + 0x1E,
+	FAT_FILE_BUFFER_NOT_SET				= 0x20 + 0x1F,
+	FAT_MISALIGNED_IO					= 0x20 + 0x20,
+	FAT_AWAITING_DATA					= 0x20 + 0x21,
+	FAT_BUFFER_TOO_BIG					= 0x20 + 0x22
+};
 
 // these are the bits set on the reserved fields of a directory
 // entry to indicate that a SFN entry is actually a LFN entry with

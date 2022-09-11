@@ -478,7 +478,7 @@ uint32 CFatVolume::CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, uint16* result)
+uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* result)
 {
 	return FatAllocateCluster(parent, 1, 1, 1, result);
 }
@@ -494,7 +494,7 @@ uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, uint16* result)
+uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, EFatCode* result)
 {
 	return FatAllocateCluster(0, count, zero, 1, result);
 }
@@ -504,7 +504,7 @@ uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, uint16* resul
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, uint16* result)
+uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* result)
 {
 	return FatAllocateCluster(0, count, zero, page_size, result);
 }
@@ -518,7 +518,7 @@ uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result)
+uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, EFatCode* result)
 {
 	bool		bSuccess;
 	uint32		entry_sector;			/* the address of the cached sector */
@@ -1168,7 +1168,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					// directory then initialize it properly
 					if (parent)
 					{
-						uint16 uiResult;
+						EFatCode uiResult;
 						uiResult = FatInitializeDirectoryCluster(parent, cluster, uiBuffer);
 						if (uiResult != FAT_SUCCESS)
 						{
@@ -1181,12 +1181,10 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					{
 						if (zero)
 						{
-							uint16 uiResult;
-							uiResult = FatZeroCluster(cluster, uiBuffer);
-							if (uiResult != FAT_SUCCESS)
+							*result = FatZeroCluster(cluster, uiBuffer);
+							if (*result != FAT_SUCCESS)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = uiResult;
 								return 0;
 							}
 						}
@@ -1242,7 +1240,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatFreeClusterChain(uint32 cluster)
+EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;			/* the offset of the cluster entry within the FAT table */
@@ -1445,7 +1443,7 @@ uint16 CFatVolume::FatFreeClusterChain(uint32 cluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
+EFatCode CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;		/* todo: this one may require 64 bits for large drives? */
@@ -1564,7 +1562,7 @@ uint16 CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
+EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1704,7 +1702,7 @@ uint16 CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uint32* puiNewCluster)
+EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uint32* puiNewCluster)
 {
 	bool	bSuccess;
 	uint32	fat_offset = 0;
@@ -1742,7 +1740,7 @@ uint16 CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uin
 			if (!bSuccess)
 			{
 				muiFatSharedBufferSector = 0xFFFFFFFF;
-				return FAT_SUCCESS;
+				return FAT_UNKNOWN_ERROR;
 			}
 			muiFatSharedBufferSector = current_sector;
 		}
@@ -1832,12 +1830,12 @@ uint16 CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uin
 			// requested by the caller
 			if (FatIsEOFEntry(uiCluster))
 			{
-				return 0;
+				return FAT_UNKNOWN_ERROR;
 			}
 
 			// if we've followed the number of clusters requested by
 			// the caller set the return puiNewCluster to the current uiCluster
-			// and return true
+			// and return success
 			if (!--count)
 			{
 				*puiNewCluster = (uint32)uiCluster;
@@ -1882,12 +1880,12 @@ bool CFatVolume::FatIsEOFEntry(FatEntry fat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer)
+EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer)
 {
-	bool						bSuccess;
-	uint16						counter;
-	uint32						current_sector;
-	SFatRawDirectoryEntry* entries;
+	bool					bSuccess;
+	uint16					counter;
+	uint32					current_sector;
+	SFatRawDirectoryEntry*	entries;
 
 	// if this is a big endian system or the compiler does not support
 	// struct packing we cannot use SFatRawDirectoryEntry to write directly
@@ -1998,7 +1996,7 @@ uint16 CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatZeroCluster(uint32 cluster, uint8* uiBuffer)
+EFatCode CFatVolume::FatZeroCluster(uint32 cluster, uint8* uiBuffer)
 {
 	bool	bSuccess;
 	uint16	counter;
@@ -2035,28 +2033,25 @@ uint16 CFatVolume::FatZeroCluster(uint32 cluster, uint8* uiBuffer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::FatWriteFatSector(uint32 sector_address, uint8* uiBuffer)
+bool CFatVolume::FatWriteFatSector(uint32 uiSectorAddress, uint8* puiBuffer)
 {
 	bool bSuccess;
 
-	/*
 	// write the sector in the active FAT table
-	*/
-	bSuccess = Write(sector_address, uiBuffer);
+	bSuccess = Write(uiSectorAddress, puiBuffer);
 	if (!bSuccess)
 	{
 		return false;
 	}
-	/*
+
 	// if we got more than one FAT table update the others as well
-	*/
 #if defined(FAT_MAINTAIN_TWO_FAT_TABLES)
 	if (uiNoOfFatTables > 1)
 	{
 		int i;
 		for (i = 1; i < uiNoOfFatTables; i++)
 		{
-			bSuccess = device->Write(sector_address + (fat_size * i), uiBuffer);
+			bSuccess = device->Write(uiSectorAddress + (fat_size * i), uiBuffer);
 			if (!bSuccess)
 			{
 				return false;
@@ -2068,36 +2063,16 @@ bool CFatVolume::FatWriteFatSector(uint32 sector_address, uint8* uiBuffer)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // finds the first file in a directory
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
+EFatCode CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
 {
-	uint16					uiResult;
-	SFatDirectoryEntry		parent_entry;
-	SFatFileSystemQuery* query = q;
+	EFatCode				uiResult;
+	SFatDirectoryEntry		sParentEntry;
+	SFatFileSystemQuery*	query = q;
 
 	// make sure the query has a uiBuffer
 	if (!q->state.uiBuffer)
@@ -2119,7 +2094,7 @@ uint16 CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDi
 	if (parent_path != NULL)
 	{
 		// try to get the entry for the parent
-		uiResult = FatGetFileEntry(parent_path, &parent_entry);
+		uiResult = FatGetFileEntry(parent_path, &sParentEntry);
 
 		// if we were unable to get the parent entry
 		// then return the error that we received from
@@ -2131,7 +2106,7 @@ uint16 CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDi
 
 		// try to get the 1st entry of the
 		// query results
-		uiResult = FatQueryFirstEntry(&parent_entry.raw, attributes, &query->state, 0);
+		uiResult = FatQueryFirstEntry(&sParentEntry.raw, attributes, &query->state, 0);
 	}
 	// if the parent was not supplied then we
 	// submit the query without it
@@ -2185,10 +2160,11 @@ uint16 CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDi
 	{
 		if (*query->state.long_filename != 0)
 		{
-			for (uiResult = 0; uiResult < 256; uiResult++)
+			uint16	uiIndex;
+			for (uiIndex = 0; uiIndex < 256; uiIndex++)
 			{
-				query->current_entry.name[uiResult] = (uint8)query->state.long_filename[uiResult];
-				if (query->state.long_filename[uiResult] == 0)
+				query->current_entry.name[uiIndex] = (uint8)query->state.long_filename[uiIndex];
+				if (query->state.long_filename[uiIndex] == 0)
 				{
 					break;
 				}
@@ -2212,10 +2188,10 @@ uint16 CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
+EFatCode CFatVolume::FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q)
 {
-	uint16					uiResult;
-	SFatFileSystemQuery* query = q;
+	EFatCode				uiResult;
+	SFatFileSystemQuery*	query = q;
 
 	// try to get the next entry of the query
 	uiResult = FatQueryNextEntry(&query->state, 0, 0);
@@ -2264,11 +2240,14 @@ uint16 CFatVolume::FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSyst
 	{
 		if (*query->state.long_filename != 0)
 		{
-			for (uiResult = 0; uiResult < 256; uiResult++)
+			uint16 uiIndex;
+			for (uiIndex = 0; uiIndex < 256; uiIndex++)
 			{
-				query->current_entry.name[uiResult] = (uint8)query->state.long_filename[uiResult];
-				if (query->state.long_filename[uiResult] == 0)
+				query->current_entry.name[uiIndex] = (uint8)query->state.long_filename[uiIndex];
+				if (query->state.long_filename[uiIndex] == 0)
+				{
 					break;
+				}
 			}
 		}
 	}
@@ -2310,9 +2289,9 @@ void CFatVolume::FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* entry, SFatRaw
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatCreateDirectory(char* directory)
+EFatCode CFatVolume::FatCreateDirectory(char* directory)
 {
-	uint16				uiResult;
+	EFatCode			uiResult;
 	SFatDirectoryEntry	entry;
 
 	// check that we got a valid pathname
@@ -2336,7 +2315,7 @@ uint16 CFatVolume::FatCreateDirectory(char* directory)
 		size_t				path_len;
 		char*				path_scanner;
 		char				file_path[FAT_MAX_PATH + 1];
-		SFatDirectoryEntry	parent_entry;
+		SFatDirectoryEntry	sParentEntry;
 
 		// get the name of the file path including
 		// the filename
@@ -2376,7 +2355,7 @@ uint16 CFatVolume::FatCreateDirectory(char* directory)
 		path_scanner++;
 
 		// try to get the entry for the parent directory
-		uiResult = FatGetFileEntry(file_path, &parent_entry);
+		uiResult = FatGetFileEntry(file_path, &sParentEntry);
 
 		// if FatGetFileEntry returned an error
 		// then we return the error code to the calling
@@ -2387,13 +2366,13 @@ uint16 CFatVolume::FatCreateDirectory(char* directory)
 		}
 
 		// if the parent directory does not exists
-		if (*parent_entry.name == 0)
+		if (*sParentEntry.name == 0)
 		{
 			return FAT_DIRECTORY_DOES_NOT_EXIST;
 		}
 
 		// try to create the directory entry
-		return FatCreateDirectoryEntry(&parent_entry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &entry);
+		return FatCreateDirectoryEntry(&sParentEntry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &entry);
 	}
 
 	// if we get here it means that a file or
@@ -2407,9 +2386,9 @@ uint16 CFatVolume::FatCreateDirectory(char* directory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
+EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 {
-	uint16					uiResult;
+	EFatCode				uiResult;
 	char					match;
 	uint8					target_file[13];
 	uint8*					pLevel;
@@ -2495,10 +2474,10 @@ uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 		}
 
 		// copy the name of the current level entry
-		uiResult = 0;
+		uint16 uiCount = 0;
 		while (*path != 0x0 && *path != '\\')
 		{
-			if (uiResult++ > FAT_MAX_PATH)
+			if (uiCount++ > FAT_MAX_PATH)
 			{
 				return FAT_INVALID_FILENAME;
 			}
@@ -2628,7 +2607,7 @@ uint16 CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
+EFatCode CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked)
 {
 	bool	bSuccess;
 	uint32	first_sector;
@@ -2721,11 +2700,11 @@ uint16 CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 at
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry)
+EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry)
 {
 	char	pass;
 	bool	bSuccess;
-	uint32	sector_address;
+	uint32	uiSectorAddress;
 
 	do
 	{
@@ -2765,7 +2744,7 @@ uint16 CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, 
 					query->current_sector = 0x0;
 
 					// calculate the address of the next sector
-					sector_address = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
+					uiSectorAddress = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
 				}
 				// if there are more sectors on the current cluster then
 				else
@@ -2782,18 +2761,18 @@ uint16 CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, 
 							*query->current_entry_raw->uEntry.sFatRawCommon.name = 0;
 							return FAT_SUCCESS;
 						}
-						sector_address =
+						uiSectorAddress =
 							(GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + query->current_sector;
 					}
 					else
 					{
 						// calculate the address of the next sector
-						sector_address = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
+						uiSectorAddress = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
 					}
 				}
 
 				// read the next sector into the query uiBuffer
-				bSuccess = Read(sector_address, query->uiBuffer);
+				bSuccess = Read(uiSectorAddress, query->uiBuffer);
 				if (!bSuccess)
 				{
 					return FAT_CANNOT_READ_MEDIA;
@@ -2952,9 +2931,10 @@ uint16 CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
+EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
 {
-	uint16							uiResult;
+	EFatCode						uiResult;
+	uint16							uiLength;
 	int16							char_index;
 	uint16							illegal_char;
 	uint16							entries_count = 0;
@@ -2963,7 +2943,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	uintptr_t						last_entry_address;
 	FatEntry						fat;
 	FatEntry						last_fat;
-	SFatRawDirectoryEntry*			parent_entry;
+	SFatRawDirectoryEntry*			sParentEntry;
 
 	int								no_of_lfn_entries_needed = 0;
 	int								no_of_lfn_entries_found;
@@ -2972,7 +2952,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	uint8* uiBuffer = mauiFatSharedBuffer;
 
 	// get the length of the filename
-	uiResult = (uint16)strlen(name);
+	uiLength = (uint16)strlen(name);
 
 	// check that the character is a valid 8.3 filename, the
 	// file is invalid if:
@@ -2980,7 +2960,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	//	- name part is more than 8 chars (char_index > 8)
 	//	- extension part is more than 3 (uiResult - char_index > 4)
 	//	- it has more than one dot (FatIndexOf('.', name, char_index + 1) >= 0)
-	if (uiResult > 255)
+	if (uiLength > 255)
 	{
 		return FAT_FILENAME_TOO_LONG;
 	}
@@ -2989,12 +2969,12 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 	// a dot
 	char_index = FatIndexOf('.', name, 0x0);
 
-	if (char_index == 0 || char_index == (uiResult - 1))
+	if (char_index == 0 || char_index == (uiLength - 1))
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	for (char_index = 0x0; char_index < uiResult; char_index++)
+	for (char_index = 0x0; char_index < uiLength; char_index++)
 	{
 		// if the character is less than 0x20 with the
 		// exception of 0x5 then the filename is illegal
@@ -3216,11 +3196,11 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 
 			// set the parent entry pointer to the 1st
 			// entry of the current sector
-			parent_entry = (SFatRawDirectoryEntry*)uiBuffer;
+			sParentEntry = (SFatRawDirectoryEntry*)uiBuffer;
 
 
 			// for each directory entry in the sector...
-			while ((uintptr_t)parent_entry <= last_entry_address)
+			while ((uintptr_t)sParentEntry <= last_entry_address)
 			{
 				// make sure we don't exceed the limit of 0xFFFF entries
 				// per directory
@@ -3233,7 +3213,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 				entries_count++;
 
 				// if the directory entry is free
-				if (IS_FREE_DIRECTORY_ENTRY(parent_entry))
+				if (IS_FREE_DIRECTORY_ENTRY(sParentEntry))
 				{
 					// we've found a free entry
 					no_of_lfn_entries_found++;
@@ -3241,15 +3221,15 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 					// if this is the last directory entry or if we've
 					// found all the entries that we need then let's get
 					// ready to write them
-					if (IS_LAST_DIRECTORY_ENTRY(parent_entry) || no_of_lfn_entries_found == no_of_lfn_entries_needed)
+					if (IS_LAST_DIRECTORY_ENTRY(sParentEntry) || no_of_lfn_entries_found == no_of_lfn_entries_needed)
 					{
 						// if there where any free entries before this
 						// one then we need to rewind a bit
 						while (no_of_lfn_entries_found-- > 1)
 						{
-							if ((uintptr_t)parent_entry > (uintptr_t)uiBuffer)
+							if ((uintptr_t)sParentEntry > (uintptr_t)uiBuffer)
 							{
-								parent_entry--;
+								sParentEntry--;
 							}
 							else
 							{
@@ -3283,7 +3263,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 									return FAT_CANNOT_READ_MEDIA;
 								}
 								last_entry_address = ((uintptr_t)uiBuffer + GetNoOfBytesPerSector()) - 0x20;
-								parent_entry = (SFatRawDirectoryEntry*)last_entry_address;
+								sParentEntry = (SFatRawDirectoryEntry*)last_entry_address;
 							}
 						}
 
@@ -3299,52 +3279,52 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 								uint16 i, c;
 
 								// set the required fields for this entry
-								parent_entry->uEntry.sFatRawLongFileName.lfn_sequence = (uint8)no_of_lfn_entries_found;
-								parent_entry->uEntry.sFatRawLongFileName.lfn_checksum = lfn_checksum;
-								parent_entry->uEntry.sFatRawCommon.attributes = FAT_ATTR_LONG_NAME;
-								parent_entry->uEntry.sFatRawLongFileName.lfn_first_cluster = 0;
-								parent_entry->uEntry.sFatRawLongFileName.lfn_type = 0;
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_sequence = (uint8)no_of_lfn_entries_found;
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_checksum = lfn_checksum;
+								sParentEntry->uEntry.sFatRawCommon.attributes = FAT_ATTR_LONG_NAME;
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_first_cluster = 0;
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_type = 0;
 
 								// mark entry as the 1st entry if it is so
 								if (no_of_lfn_entries_found == no_of_lfn_entries_needed - 1)
 								{
-									parent_entry->uEntry.sFatRawLongFileName.lfn_sequence = parent_entry->uEntry.sFatRawLongFileName.lfn_sequence | FAT_FIRST_LFN_ENTRY;
+									sParentEntry->uEntry.sFatRawLongFileName.lfn_sequence = sParentEntry->uEntry.sFatRawLongFileName.lfn_sequence | FAT_FIRST_LFN_ENTRY;
 								}
 
 								// copy the lfn chars
 								c = (uint16)strlen(name);
 								i = ((no_of_lfn_entries_found - 1) * 13);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
-								parent_entry->uEntry.sFatRawLongFileName.lfn_chars_3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
+								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
 
 								// continue to next entry
-								if ((uintptr_t)parent_entry < (uintptr_t)last_entry_address)
+								if ((uintptr_t)sParentEntry < (uintptr_t)last_entry_address)
 								{
-									parent_entry++;
+									sParentEntry++;
 								}
 								else
 								{
@@ -3410,12 +3390,12 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 									{
 										return FAT_CANNOT_READ_MEDIA;
 									}
-									parent_entry = (SFatRawDirectoryEntry*)uiBuffer;
+									sParentEntry = (SFatRawDirectoryEntry*)uiBuffer;
 								}
 							}
 							else
 							{
-								*parent_entry = new_entry->raw;
+								*sParentEntry = new_entry->raw;
 							}
 						}
 
@@ -3427,7 +3407,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 							return FAT_CANNOT_WRITE_MEDIA;
 						}
 						new_entry->sector_addr = sector;
-						new_entry->sector_offset = (uintptr_t)parent_entry - (uintptr_t)uiBuffer;
+						new_entry->sector_offset = (uintptr_t)sParentEntry - (uintptr_t)uiBuffer;
 
 						// we're done!!!!!
 						return FAT_SUCCESS;
@@ -3440,7 +3420,7 @@ uint16 CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* 
 
 				// move the parent entry pointer to
 				// the next entry in the sector
-				parent_entry++;
+				sParentEntry++;
 			}
 
 			// move to the next sector in the cluster
@@ -3991,9 +3971,8 @@ char CFatVolume::FatCompareLongName(uint16* name1, uint16* name2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled)
+EFatCode CFatVolume::GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled)
 {
-
 	char		tmp[13];
 	char		has_uppercase = 0;
 	uint16		dot_index;

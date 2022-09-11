@@ -38,19 +38,19 @@ public:
 
 public:
 	uint16					FatFileUpdateSequentialClusterCount(void);
-	uint16					FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags);
+	EFatCode				FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags);
 
-	uint16					FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode				FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint16					FatFileSetBuffer(uint8* uiBuffer);
 	uint32					FatFileGetUniqueId(void);
 	uint16					FatFileAllocate(uint32 bytes);
-	uint16					FatFileSeek(uint32 offset, char mode);
+	EFatCode				FatFileSeek(uint32 offset, char mode);
 	uint16					FatFileWriteCallback(void);
 	uint16					FatFileWrite(uint8* buff, uint32 length);
 	uint16					FatFileReadCallback(void);
 	uint16					FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
-	uint16					FatFileFlush(void);
-	uint16					FatFileClose(void);
+	EFatCode				FatFileFlush(void);
+	EFatCode				FatFileClose(void);
 
 	void					SetVolume(CFatVolume* pcVolume);
 
