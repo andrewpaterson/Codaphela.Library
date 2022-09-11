@@ -1721,7 +1721,7 @@ uint16 CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uin
 	if (!count)
 	{
 		*puiNewCluster = (uint32)uiCluster;
-		return 1;
+		return FAT_SUCCESS;
 	}
 
 	// get the offset of the uiCluster entry within the FAT table,

@@ -572,7 +572,8 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 
 		if (msFile.uiNoOfClustersAfterPos)
 		{
-			if (!mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, msFile.uiNoOfClustersAfterPos, &last_cluster))
+			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, msFile.uiNoOfClustersAfterPos, &last_cluster);
+			if (uiResult != FAT_SUCCESS)
 			{
 				msFile.bBusy = 0;
 				return FAT_CORRUPTED_FILE;
@@ -710,7 +711,8 @@ uint16 CFatFile::FatFileSeek(uint32 offset, char mode)
 		// set the file file to point to the last cluster. if the file doesn't have
 		// that many clusters allocated this function will return 0. if that ever happens it means
 		// that the file is corrupted
-		if (!mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, (cluster_count - 1), &msFile.uiCurrentClusterAddress))
+		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, (cluster_count - 1), &msFile.uiCurrentClusterAddress);
+		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
 			return FAT_CORRUPTED_FILE;
@@ -1104,9 +1106,9 @@ uint16 CFatFile::FatFileReadCallback(void)
 			// we must find the next cluster
 			if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
-				// update the cluster address with the address of the
-				// next cluster
-				if (!mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, 1, &msFile.uiCurrentClusterAddress))
+				// update the cluster address with the address of the next cluster
+				uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, 1, &msFile.uiCurrentClusterAddress);
+				if (uiResult != FAT_SUCCESS)
 				{
 					msFile.bBusy = 0;
 					return FAT_CORRUPTED_FILE;
