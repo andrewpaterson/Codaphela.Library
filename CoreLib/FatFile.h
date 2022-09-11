@@ -37,7 +37,7 @@ public:
 	void					Init(CFatVolume* pcVolume);
 
 public:
-	uint16					FatFileUpdateSequentialClusterCount(void);
+	EFatCode				FatFileUpdateSequentialClusterCount(void);
 	EFatCode				FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags);
 
 	EFatCode				FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags);

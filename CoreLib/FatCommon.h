@@ -257,7 +257,7 @@ struct SFatQueryState
 {
 	uint8						Attributes;
 	uint16						current_sector;
-	uint32						current_cluster;
+	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		current_entry_raw;
 	uint8*						uiBuffer;
 
@@ -350,7 +350,7 @@ struct SFatQueryStateInternal
 {
 	uint8						Attributes;
 	uint16						current_sector;
-	uint32						current_cluster;
+	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry* current_entry_raw;
 	uint8* uiBuffer;
 
