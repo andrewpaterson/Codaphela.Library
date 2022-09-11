@@ -1841,7 +1841,7 @@ uint16 CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uin
 			if (!--count)
 			{
 				*puiNewCluster = (uint32)uiCluster;
-				return 1;
+				return FAT_SUCCESS;
 			}
 
 			// calculate the location of the next uiCluster in the chain
