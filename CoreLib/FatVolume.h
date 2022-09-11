@@ -102,7 +102,7 @@ public:
 	EFatCode			FatCreateDirectory(char* directory);
 	EFatCode			FatGetFileEntry(char* path, SFatDirectoryEntry* entry);
 	EFatCode			FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
-	EFatCode			FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* psNewEntry);
+	EFatCode			FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
 	EFatCode			FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry);
 
 	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);
