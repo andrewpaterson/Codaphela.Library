@@ -37,14 +37,14 @@ struct SFatRawDirectoryEntry
 
 		struct SFatRawLongFileName
 		{
-			uint8 lfn_sequence;
-			uint8 lfn_chars_1[10];
-			uint8 lfn_attributes;
-			uint8 lfn_type;
-			uint8 lfn_checksum;
-			uint8 lfn_chars_2[12];
-			uint16 lfn_first_cluster;
-			uint8 lfn_chars_3[4];
+			uint8	uiSequence;
+			uint8	auiChars1[10];
+			uint8	uiAttributes;
+			uint8	uiType;
+			uint8	uiChecksum;
+			uint8	auiChars2[12];
+			uint16	uiFirstCluster;
+			uint8	auiChars3[4];
 		} sFatRawLongFileName;
 	} uEntry;
 };
@@ -259,8 +259,8 @@ struct SFatQueryState
 
 	// LFN support members
 	uint16						long_filename[256];
-	uint8						lfn_sequence;
-	uint8						lfn_checksum;
+	uint8						uiSequence;
+	uint8						uiChecksum;
 
 	// buffer (MUST ALWAYS BE LAST!!!)
 	uint8						buff[MAX_SECTOR_LENGTH];
@@ -352,8 +352,8 @@ struct SFatQueryStateInternal
 
 	// LFN support members
 	uint16						long_filename[256];
-	uint8						lfn_sequence;
-	uint8						lfn_checksum;
+	uint8						uiSequence;
+	uint8						uiChecksum;
 
 };
 

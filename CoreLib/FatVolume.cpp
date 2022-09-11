@@ -2800,54 +2800,54 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 		if (query->current_entry_raw->uEntry.sFatRawCommon.attributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(query->current_entry_raw))
 		{
 			// if this enntry is marked as the 1st LFN sEntry
-			if (query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_sequence & FAT_FIRST_LFN_ENTRY)
+			if (query->current_entry_raw->uEntry.sFatRawLongFileName.uiSequence & FAT_FIRST_LFN_ENTRY)
 			{
-				query->lfn_sequence = (query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_sequence ^ FAT_FIRST_LFN_ENTRY) + 1;
-				query->lfn_checksum = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_checksum;
+				query->uiSequence = (query->current_entry_raw->uEntry.sFatRawLongFileName.uiSequence ^ FAT_FIRST_LFN_ENTRY) + 1;
+				query->uiChecksum = query->current_entry_raw->uEntry.sFatRawLongFileName.uiChecksum;
 
 				// insert null terminator at the end of the long filename
-				((uint8*)&query->long_filename[((query->lfn_sequence - 2) * 13) + 0xD])[INT16_BYTE0] = 0;
-				((uint8*)&query->long_filename[((query->lfn_sequence - 2) * 13) + 0xD])[INT16_BYTE1] = 0;
+				((uint8*)&query->long_filename[((query->uiSequence - 2) * 13) + 0xD])[INT16_BYTE0] = 0;
+				((uint8*)&query->long_filename[((query->uiSequence - 2) * 13) + 0xD])[INT16_BYTE1] = 0;
 			}
 
 			// if this is the LFN that we're expecting then
 			// process it, otherwise we'll have to wait for
 			// another 1st LFN sEntry otherwise read the LFN
 			// chrs and save them on the query state struct
-			if (query->lfn_checksum == query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_checksum &&
-				(query->lfn_sequence == (query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_sequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
+			if (query->uiChecksum == query->current_entry_raw->uEntry.sFatRawLongFileName.uiChecksum &&
+				(query->uiSequence == (query->current_entry_raw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
 			{
-				query->lfn_sequence = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_sequence & (0xFF ^ FAT_FIRST_LFN_ENTRY);
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x0])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[0];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x0])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[1];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x1])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[2];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x1])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[3];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x2])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[4];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x2])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[5];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x3])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[6];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x3])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[7];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x4])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[8];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x4])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_1[9];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x5])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[0];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x5])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[1];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x6])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[2];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x6])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[3];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x7])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[4];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x7])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[5];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x8])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[6];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x8])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[7];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x9])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[8];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0x9])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[9];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0xA])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[10];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0xA])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_2[11];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0xB])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_3[0];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0xB])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_3[1];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0xC])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_3[2];
-				((uint8*)&query->long_filename[((query->lfn_sequence - 1) * 13) + 0xC])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.lfn_chars_3[3];
+				query->uiSequence = query->current_entry_raw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY);
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x0])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[0];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x0])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[1];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x1])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[2];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x1])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[3];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x2])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[4];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x2])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[5];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x3])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[6];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x3])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[7];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x4])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[8];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x4])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars1[9];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x5])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[0];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x5])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[1];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x6])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[2];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x6])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[3];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x7])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[4];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x7])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[5];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x8])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[6];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x8])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[7];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x9])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[8];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0x9])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[9];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0xA])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[10];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0xA])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars2[11];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0xB])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars3[0];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0xB])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars3[1];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0xC])[INT16_BYTE0] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars3[2];
+				((uint8*)&query->long_filename[((query->uiSequence - 1) * 13) + 0xC])[INT16_BYTE1] = query->current_entry_raw->uEntry.sFatRawLongFileName.auiChars3[3];
 			}
 			else
 			{
-				query->lfn_checksum = 0;
+				query->uiChecksum = 0;
 			}
 
 			// make sure we never return this sEntry
@@ -2874,7 +2874,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 	// with it belongs to it. If it doesn't clear it.
 	if (*query->current_entry_raw->uEntry.sFatRawCommon.name != 0x0)
 	{
-		if (query->lfn_checksum != FatLongEntryChecksum((uint8*)query->current_entry_raw->uEntry.sFatRawCommon.name))
+		if (query->uiChecksum != FatLongEntryChecksum((uint8*)query->current_entry_raw->uEntry.sFatRawCommon.name))
 		{
 			query->long_filename[0] = 0x0;
 		}
@@ -2931,7 +2931,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* psNewEntry)
+EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode						uiResult;
 	uint16							uiLength;
@@ -2947,7 +2947,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 	int								no_of_lfn_entries_needed = 0;
 	int								no_of_lfn_entries_found;
-	char							lfn_checksum;
+	char							uiChecksum;
 
 	uint8* uiBuffer = mauiFatSharedBuffer;
 
@@ -3097,9 +3097,9 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 	// if the new sEntry is a directory and no cluster was supplied
 	// by the calling function then allocate a new cluster
-	if (entry_cluster == 0 && (attribs & FAT_ATTR_DIRECTORY))
+	if (uiEntryCluster == 0 && (attribs & FAT_ATTR_DIRECTORY))
 	{
-		entry_cluster = FatAllocateDirectoryCluster(parent, &uiResult);
+		uiEntryCluster = FatAllocateDirectoryCluster(parent, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
@@ -3113,8 +3113,8 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	psNewEntry->raw.uEntry.sFatRawCommon.attributes = attribs;
 	psNewEntry->raw.uEntry.sFatRawCommon.reserved = 0;
 	psNewEntry->raw.uEntry.sFatRawCommon.size = 0x0;
-	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(entry_cluster);
-	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(entry_cluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(uiEntryCluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(uiEntryCluster);
 	psNewEntry->raw.uEntry.sFatRawCommon.create_time_tenth = 0x0;
 	psNewEntry->raw.uEntry.sFatRawCommon.create_date = GetSystemClockDate();
 	psNewEntry->raw.uEntry.sFatRawCommon.create_time = GetSystemClockTime();
@@ -3268,7 +3268,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 						}
 
 						// compute the checksum for this sEntry
-						lfn_checksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.name);
+						uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.name);
 
 						// now we can start writting
 						no_of_lfn_entries_found = no_of_lfn_entries_needed;
@@ -3279,47 +3279,47 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 								uint16 i, c;
 
 								// set the required fields for this sEntry
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_sequence = (uint8)no_of_lfn_entries_found;
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_checksum = lfn_checksum;
+								sParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)no_of_lfn_entries_found;
+								sParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
 								sParentEntry->uEntry.sFatRawCommon.attributes = FAT_ATTR_LONG_NAME;
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_first_cluster = 0;
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_type = 0;
+								sParentEntry->uEntry.sFatRawLongFileName.uiFirstCluster = 0;
+								sParentEntry->uEntry.sFatRawLongFileName.uiType = 0;
 
 								// mark sEntry as the 1st sEntry if it is so
 								if (no_of_lfn_entries_found == no_of_lfn_entries_needed - 1)
 								{
-									sParentEntry->uEntry.sFatRawLongFileName.lfn_sequence = sParentEntry->uEntry.sFatRawLongFileName.lfn_sequence | FAT_FIRST_LFN_ENTRY;
+									sParentEntry->uEntry.sFatRawLongFileName.uiSequence = sParentEntry->uEntry.sFatRawLongFileName.uiSequence | FAT_FIRST_LFN_ENTRY;
 								}
 
 								// copy the lfn chars
 								c = (uint16)strlen(name);
 								i = ((no_of_lfn_entries_found - 1) * 13);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
-								sParentEntry->uEntry.sFatRawLongFileName.lfn_chars_3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
+								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
 
 								// continue to next sEntry
 								if ((uintptr_t)sParentEntry < (uintptr_t)last_entry_address)
@@ -3555,7 +3555,7 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 	// loop through each sEntry.
 	while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
 	{
-		if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
+		if (query.current_entry.raw.uEntry.sFatRawLongFileName.uiChecksum == checksum)
 		{
 			// mark the sEntry as deleted
 			query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
@@ -3591,20 +3591,20 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 {
 	EFatCode				uiResult;
-	uint32					entry_cluster;
-	char					new_parent[256];
-	char*					original_filename_part;
-	SFatDirectoryEntry		original_entry;
+	uint32					uiEntryCluster;
+	char					szNewParent[256];
+	char*					szOriginalFilenamePart;
+	SFatDirectoryEntry		sOriginalEntry;
 	SFatDirectoryEntry		sNewEntry;
 	bool					bSuccess;
-	uint8					checksum = 0;
+	uint8					uiChecksum = 0;
 	char					szOriginalParent[256];
 	char*					szNewFilenamePart;
 	uint8*					puiBuffer = mauiFatSharedBuffer;
 
 	// parse paths
-	FatParsePath(original_filename, szOriginalParent, &original_filename_part);
-	FatParsePath(new_filename, new_parent, &szNewFilenamePart);
+	FatParsePath(original_filename, szOriginalParent, &szOriginalFilenamePart);
+	FatParsePath(new_filename, szNewParent, &szNewFilenamePart);
 
 	// try to get the new sEntry to see if it exists.
 	FatGetFileEntry(new_filename, &sNewEntry);
@@ -3614,45 +3614,45 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 	}
 
 	// get the directory sEntry
-	FatGetFileEntry(original_filename, &original_entry);
+	FatGetFileEntry(original_filename, &sOriginalEntry);
 
-	if (*original_entry.name != 0)
+	if (*sOriginalEntry.name != 0)
 	{
 		SFatDirectoryEntry parent;
 
 		// compute the checksum for the file
-		checksum = FatLongEntryChecksum((uint8*)original_entry.raw.uEntry.sFatRawCommon.name);
+		uiChecksum = FatLongEntryChecksum((uint8*)sOriginalEntry.raw.uEntry.sFatRawCommon.name);
 
 		// get the cluster # for the sEntry
-		((uint16*)&entry_cluster)[INT32_WORD0] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		((uint16*)&entry_cluster)[INT32_WORD1] = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
+		((uint16*)&uiEntryCluster)[INT32_WORD0] = sOriginalEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+		((uint16*)&uiEntryCluster)[INT32_WORD1] = sOriginalEntry.raw.uEntry.sFatRawCommon.first_cluster_hi;
 
 		// get the new parent sEntry
-		uiResult = FatGetFileEntry(new_parent, &parent);
+		uiResult = FatGetFileEntry(szNewParent, &parent);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
 		}
 
 		// create the new sEntry in the parent folder
-		uiResult = FatCreateDirectoryEntry(&parent.raw, szNewFilenamePart, original_entry.attributes, entry_cluster, &sNewEntry);
+		uiResult = FatCreateDirectoryEntry(&parent.raw, szNewFilenamePart, sOriginalEntry.attributes, uiEntryCluster, &sNewEntry);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
 		}
 
 		// copy all info except name from the old sEntry to the new one
-		sNewEntry.raw.uEntry.sFatRawCommon.access_date = original_entry.raw.uEntry.sFatRawCommon.access_date;
-		sNewEntry.raw.uEntry.sFatRawCommon.attributes = original_entry.raw.uEntry.sFatRawCommon.attributes;
-		sNewEntry.raw.uEntry.sFatRawCommon.create_date = original_entry.raw.uEntry.sFatRawCommon.create_date;
-		sNewEntry.raw.uEntry.sFatRawCommon.create_time = original_entry.raw.uEntry.sFatRawCommon.create_time;
-		sNewEntry.raw.uEntry.sFatRawCommon.create_time_tenth = original_entry.raw.uEntry.sFatRawCommon.create_time_tenth;
-		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		sNewEntry.raw.uEntry.sFatRawCommon.modify_date = original_entry.raw.uEntry.sFatRawCommon.modify_date;
-		sNewEntry.raw.uEntry.sFatRawCommon.modify_time = original_entry.raw.uEntry.sFatRawCommon.modify_time;
-		sNewEntry.raw.uEntry.sFatRawCommon.reserved = original_entry.raw.uEntry.sFatRawCommon.reserved;
-		sNewEntry.raw.uEntry.sFatRawCommon.size = original_entry.raw.uEntry.sFatRawCommon.size;
+		sNewEntry.raw.uEntry.sFatRawCommon.access_date = sOriginalEntry.raw.uEntry.sFatRawCommon.access_date;
+		sNewEntry.raw.uEntry.sFatRawCommon.attributes = sOriginalEntry.raw.uEntry.sFatRawCommon.attributes;
+		sNewEntry.raw.uEntry.sFatRawCommon.create_date = sOriginalEntry.raw.uEntry.sFatRawCommon.create_date;
+		sNewEntry.raw.uEntry.sFatRawCommon.create_time = sOriginalEntry.raw.uEntry.sFatRawCommon.create_time;
+		sNewEntry.raw.uEntry.sFatRawCommon.create_time_tenth = sOriginalEntry.raw.uEntry.sFatRawCommon.create_time_tenth;
+		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = sOriginalEntry.raw.uEntry.sFatRawCommon.first_cluster_hi;
+		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = sOriginalEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+		sNewEntry.raw.uEntry.sFatRawCommon.modify_date = sOriginalEntry.raw.uEntry.sFatRawCommon.modify_date;
+		sNewEntry.raw.uEntry.sFatRawCommon.modify_time = sOriginalEntry.raw.uEntry.sFatRawCommon.modify_time;
+		sNewEntry.raw.uEntry.sFatRawCommon.reserved = sOriginalEntry.raw.uEntry.sFatRawCommon.reserved;
+		sNewEntry.raw.uEntry.sFatRawCommon.size = sOriginalEntry.raw.uEntry.sFatRawCommon.size;
 
 		// write modified sEntry to drive
 		muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
@@ -3670,15 +3670,15 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		}
 
 		// mark the original sEntry as deleted.
-		*original_entry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
-		bSuccess = Read(original_entry.uiSectorAddress, puiBuffer);
+		*sOriginalEntry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
+		bSuccess = Read(sOriginalEntry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
-		memcpy(puiBuffer + original_entry.uiSectorOffset, &original_entry.raw, sizeof(original_entry.raw));
-		bSuccess = Write(original_entry.uiSectorAddress, puiBuffer);
+		memcpy(puiBuffer + sOriginalEntry.uiSectorOffset, &sOriginalEntry.raw, sizeof(sOriginalEntry.raw));
+		bSuccess = Write(sOriginalEntry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -3697,7 +3697,7 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		// loop through each sEntry.
 		while (*query.current_entry.raw.uEntry.sFatRawCommon.name != 0)
 		{
-			if (query.current_entry.raw.uEntry.sFatRawLongFileName.lfn_checksum == checksum)
+			if (query.current_entry.raw.uEntry.sFatRawLongFileName.uiChecksum == uiChecksum)
 			{
 				// mark the sEntry as deleted
 				muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
