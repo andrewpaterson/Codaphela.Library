@@ -90,7 +90,7 @@ public:
 	uint16				FatFreeClusterChain(uint32 cluster);
 	uint16				FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry);
 	uint16				FatSetClusterEntry(uint32 cluster, FatEntry fat_entry);
-	char				FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
+	uint16				FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
 	bool				FatIsEOFEntry(FatEntry fat);
 	uint16				FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer);
 	uint16				FatZeroCluster(uint32 cluster, uint8* uiBuffer);
