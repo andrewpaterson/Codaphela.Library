@@ -3548,17 +3548,17 @@ uint16 CFatVolume::FatFileDelete(char* filename)
 		entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
 		bSuccess = Read(entry.sector_addr, uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
-			return uiResult;
+		if (!bSuccess)
+		{
+			return STORAGE_UNKNOWN_ERROR;
+		}
 
 		memcpy(uiBuffer + entry.sector_offset, &entry.raw, sizeof(entry.raw));
 
 		bSuccess = Write(entry.sector_addr, uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
-			return uiResult;
+			return STORAGE_UNKNOWN_ERROR;
 		}
 	}
 
@@ -3581,19 +3581,17 @@ uint16 CFatVolume::FatFileDelete(char* filename)
 			query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
 			bSuccess = Read(query.current_entry.sector_addr, uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
-				return uiResult;
+				return STORAGE_UNKNOWN_ERROR;
 			}
 
 			memcpy(uiBuffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(entry.raw));
 
 			bSuccess = Write(query.current_entry.sector_addr, uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
-				return uiResult;
+				return STORAGE_UNKNOWN_ERROR;
 			}
 		}
 
@@ -3679,35 +3677,31 @@ uint16 CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		// write modified entry to drive
 		muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
 		bSuccess = Read(new_entry.sector_addr, uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
-			return uiResult;
+			return STORAGE_UNKNOWN_ERROR;
 		}
 
 		memcpy(uiBuffer + new_entry.sector_offset, &new_entry.raw, sizeof(new_entry.raw));
 		bSuccess = Write(new_entry.sector_addr, uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
-			return uiResult;
+			return STORAGE_UNKNOWN_ERROR;
 		}
 
 		// mark the original entry as deleted.
 		*original_entry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
 		bSuccess = Read(original_entry.sector_addr, uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
-			return uiResult;
+			return STORAGE_UNKNOWN_ERROR;
 		}
 
 		memcpy(uiBuffer + original_entry.sector_offset, &original_entry.raw, sizeof(original_entry.raw));
 		bSuccess = Write(original_entry.sector_addr, uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
-			return uiResult;
+			return STORAGE_UNKNOWN_ERROR;
 		}
 	}
 	{
@@ -3729,17 +3723,15 @@ uint16 CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 				muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
 				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 				bSuccess = Read(query.current_entry.sector_addr, uiBuffer);
-				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (uiResult != STORAGE_SUCCESS)
+				if (!bSuccess)
 				{
-					return uiResult;
+					return STORAGE_UNKNOWN_ERROR;
 				}
 				memcpy(uiBuffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(query.current_entry.raw));
 				bSuccess = Write(query.current_entry.sector_addr, uiBuffer);
-				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (uiResult != STORAGE_SUCCESS)
+				if (!bSuccess)
 				{
-					return uiResult;
+					return STORAGE_UNKNOWN_ERROR;
 				}
 			}
 			// get the next LFN entry
