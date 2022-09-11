@@ -3,10 +3,6 @@
 #include "BaseLib/PrimitiveTypes.h"
 
 
-#define STORAGE_SUCCESS							0x0
-#define STORAGE_UNKNOWN_ERROR					0x03
-
-
 class CFileDrive
 {
 protected:
