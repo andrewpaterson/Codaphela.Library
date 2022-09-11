@@ -49,6 +49,7 @@ public:
 
 	uint16				GetSectorSize(void);
 	uint32				GetPageSize(void);
+	uint32				GetClusterSize(void);
 
 	bool				HasNextFreeCluser(void);
 	bool				IsFreeFat(uint32 uifat);

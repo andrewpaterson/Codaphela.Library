@@ -22,8 +22,7 @@ struct SFatFile
 	uint8					uiMagic;
 	uint8					uiAccessFlags;
 	SFatOperationState		sOperationState;
-	uint8*					uiBuffer;
-	uint8					auiBufferInternal[MAX_SECTOR_LENGTH];
+	uint8*					pvBuffer;
 };
 
 
@@ -38,9 +37,9 @@ public:
 
 public:
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags);
+	EFatCode				FatFileOpen(char* filename, uint8 uiAccessFlags);
 
-	EFatCode				FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	EFatCode				FatFileSetBuffer(uint8* uiBuffer);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
@@ -52,7 +51,7 @@ public:
 	EFatCode				FatFileFlush(void);
 	EFatCode				FatFileClose(void);
 
-	void					SetVolume(CFatVolume* pcVolume);
+	void					AllocateBuffer(void);
 
 	uint32					GetCurrentSize(void);
 	uint32					GetCurrentClusterAddress(void);
