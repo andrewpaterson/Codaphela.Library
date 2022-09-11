@@ -363,7 +363,7 @@ EFatCode CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* en
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileSetBuffer(uint8* uiBuffer)
+EFatCode CFatFile::FatFileSetBuffer(uint8* uiBuffer)
 {
 	if (GetBufferHead() != GetBuffer())
 	{
@@ -419,7 +419,7 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileAllocate(uint32 bytes)
+EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 {
 	EFatCode	uiResult;
 	uint32		uiNewCluster;
@@ -764,10 +764,10 @@ EFatCode CFatFile::FatFileSeek(uint32 offset, char mode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileWriteCallback(void)
+EFatCode CFatFile::FatFileWriteCallback(void)
 {
-	uint16	uiResult;
-	bool	bSuccess;
+	EFatCode	uiResult;
+	bool		bSuccess;
 
 	// loop while there are bytes to be read
 	while (msFile.sOperationState.bytes_remaining)
@@ -856,9 +856,9 @@ uint16 CFatFile::FatFileWriteCallback(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileWrite(uint8* buff, uint32 length)
+EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
 {
-	uint32 uiResult;
+	EFatCode uiResult;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -946,7 +946,7 @@ uint16 CFatFile::FatFileWrite(uint8* buff, uint32 length)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* bytes_read)
+EFatCode CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* bytes_read)
 {
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -1015,10 +1015,10 @@ uint16 CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* bytes_read)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileReadCallback(void)
+EFatCode CFatFile::FatFileReadCallback(void)
 {
-	uint16	uiResult;
-	bool	bSuccess;
+	EFatCode	uiResult;
+	bool		bSuccess;
 
 	// reset the # of bytes read
 	if (msFile.sOperationState.bytes_read)

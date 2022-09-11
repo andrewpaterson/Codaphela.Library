@@ -41,14 +41,14 @@ public:
 	EFatCode				FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags);
 
 	EFatCode				FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags);
-	uint16					FatFileSetBuffer(uint8* uiBuffer);
+	EFatCode				FatFileSetBuffer(uint8* uiBuffer);
 	uint32					FatFileGetUniqueId(void);
-	uint16					FatFileAllocate(uint32 bytes);
+	EFatCode				FatFileAllocate(uint32 bytes);
 	EFatCode				FatFileSeek(uint32 offset, char mode);
-	uint16					FatFileWriteCallback(void);
-	uint16					FatFileWrite(uint8* buff, uint32 length);
-	uint16					FatFileReadCallback(void);
-	uint16					FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
+	EFatCode				FatFileWriteCallback(void);
+	EFatCode				FatFileWrite(uint8* buff, uint32 length);
+	EFatCode				FatFileReadCallback(void);
+	EFatCode				FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
 	EFatCode				FatFileFlush(void);
 	EFatCode				FatFileClose(void);
 
