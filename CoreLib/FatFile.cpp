@@ -877,7 +877,7 @@ EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 uiLength)
 	// the current sector
 	msFile.sOperationState.end_of_buffer = msFile.uiBuffer + mpcVolume->GetNoOfBytesPerSector();
 
-	// copy the length of the uiBuffer to be writen
+	// copy the length of the buffer to be writen
 	// into the counter
 	msFile.sOperationState.uiBytesRemaining = uiLength;
 
@@ -905,7 +905,7 @@ EFatCode CFatFile::FatFileRead(uint8* buff, uint32 uiLength, uint32* uiBytesRead
 		return FAT_INVALID_HANDLE;
 	}
 
-	// make sure that either a uiBuffer is set or the file has been
+	// make sure that either a buffer is set or the file has been
 	// opened in unbuffered mode
 	if (!msFile.uiBuffer)
 	{
@@ -928,7 +928,7 @@ EFatCode CFatFile::FatFileRead(uint8* buff, uint32 uiLength, uint32* uiBytesRead
 	msFile.sOperationState.uiBytePosition += (uintptr_t)(msFile.pvBufferHead - msFile.uiBuffer);
 
 	// calculate the address of the current
-	// sector and the address of the end of the uiBuffer
+	// sector and the address of the end of the buffer
 	msFile.sOperationState.uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 	msFile.sOperationState.end_of_buffer = msFile.uiBuffer + mpcVolume->GetNoOfBytesPerSector();
 
@@ -1026,8 +1026,8 @@ EFatCode CFatFile::FatFileReadCallback(void)
 		}
 
 		// update the count of bytes read/remaining and if the file
-		// is buffered copy data to file uiBuffer
-		// copy the next byte to the uiBuffer
+		// is buffered copy data to file buffer
+		// copy the next byte to the buffer
 		*msFile.sOperationState.uiBuffer++ = *msFile.pvBufferHead++;
 
 		// update the  count of bytes read
@@ -1071,7 +1071,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		return FAT_INVALID_HANDLE;
 	}
 
-	// make sure that either a uiBuffer has been set or the file was
+	// make sure that either a buffer has been set or the file was
 	// opened in unbuffered mode
 	if (!msFile.uiBuffer)
 	{
@@ -1094,7 +1094,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		// calculate the address of the current sector
 		uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 
-		// if the uiBuffer is only partially filled we need to merge it
+		// if the buffer is only partially filled we need to merge it
 		// with the one on the drive
 		if (msFile.pvBufferHead <= msFile.uiBuffer + mpcVolume->GetNoOfBytesPerSector())
 		{
@@ -1107,8 +1107,7 @@ EFatCode CFatFile::FatFileFlush(void)
 				return FAT_CANNOT_READ_MEDIA;
 			}
 
-			for (i = (uint16)(msFile.pvBufferHead -
-				msFile.uiBuffer); i < mpcVolume->GetNoOfBytesPerSector(); i++)
+			for (i = (uint16)(msFile.pvBufferHead - msFile.uiBuffer); i < mpcVolume->GetNoOfBytesPerSector(); i++)
 			{
 				msFile.uiBuffer[i] = buff[i];
 			}
@@ -1139,7 +1138,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		}
 
 		// copy the modified file entry to the
-		// sector uiBuffer
+		// sector buffer
 		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
