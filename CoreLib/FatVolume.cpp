@@ -478,9 +478,9 @@ uint32 CFatVolume::CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* result)
+uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* peResult)
 {
-	return FatAllocateCluster(parent, 1, 1, 1, result);
+	return FatAllocateCluster(parent, 1, 1, 1, peResult);
 }
 
 
@@ -494,9 +494,9 @@ uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, EFatCode* result)
+uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, EFatCode* peResult)
 {
-	return FatAllocateCluster(0, count, zero, 1, result);
+	return FatAllocateCluster(0, count, zero, 1, peResult);
 }
 
 
@@ -504,9 +504,9 @@ uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, EFatCode* res
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* result)
+uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* peResult)
 {
-	return FatAllocateCluster(0, count, zero, page_size, result);
+	return FatAllocateCluster(0, count, zero, page_size, peResult);
 }
 
 
@@ -518,7 +518,7 @@ uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 page
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, EFatCode* result)
+uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, EFatCode* peResult)
 {
 	bool		bSuccess;
 	uint32		entry_sector;			/* the address of the cached sector */
@@ -533,7 +533,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 	uint32		last_entry_sector = 0;
 	uint32		last_entry_offset = 0;
 	uint32		start_cluster;
-	char		wrapped_around = 0;
+	bool		bWrappedAround = false;
 	uint16		step = 1;
 
 	uint8* uiBuffer = mauiFatSharedBuffer;
@@ -543,19 +543,21 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 	// be called with count = 0 as it won't return a cluster # which
 	// will cause undefined behaviour so the caller needs to make sure
 	// that it's requesting at least 1 cluster.
-	if (count > 1 && (parent != 0 || zero != 0))
+	if ((count > 1) && (parent != 0))
 	{
-		return FAT_UNKNOWN_ERROR;
+		*peResult = FAT_UNKNOWN_ERROR;
+		return 0;
 	}
 
 	if (count == 0)
 	{
-		return FAT_UNKNOWN_ERROR;
+		*peResult = FAT_UNKNOWN_ERROR;
+		return 0;
 	}
 
 	fat_entry = 0;
 	entries_updated = 0;
-	*result = FAT_SUCCESS;
+	*peResult = FAT_SUCCESS;
 	cluster = 0x2;
 	uiFirstCluster = 0;
 
@@ -619,7 +621,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			if (!bSuccess)
 			{
 				muiFatSharedBufferSector = (0xFFFFFFFF);
-				*result = FAT_CANNOT_READ_MEDIA;
+				*peResult = FAT_CANNOT_READ_MEDIA;
 				return 0;
 			}
 			muiFatSharedBufferSector = (entry_sector);
@@ -633,7 +635,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 		{
 			// if we've reached the last cluster on the drive return insufficient
 			// disk space error code.
-			if ((cluster > GetNoOfClusters() + 1) && start_cluster > 2 && !wrapped_around)
+			if ((cluster > GetNoOfClusters() + 1) && start_cluster > 2 && !bWrappedAround)
 			{
 				if (entries_updated)
 				{
@@ -642,7 +644,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					if (!bSuccess)
 					{
 						muiFatSharedBufferSector = (0xFFFFFFFF);
-						*result = FAT_CANNOT_READ_MEDIA;
+						*peResult = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
 
@@ -652,7 +654,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 
 				// reset the cluster # to 2
 				cluster = 2;
-				wrapped_around = 1;
+				bWrappedAround = 1;
 
 				// calculate the sector for the new cluster
 				entry_offset = CalculateFatEntryOffset(GetFileSystemType(), cluster);
@@ -663,7 +665,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 				break;
 
 			}
-			else if ((cluster > GetNoOfClusters() + 1) || (wrapped_around && cluster >= start_cluster))
+			else if ((cluster > GetNoOfClusters() + 1) || (bWrappedAround && cluster >= start_cluster))
 			{
 				if (entries_updated)
 				{
@@ -674,7 +676,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					if (!bSuccess)
 					{
 						muiFatSharedBufferSector = (0xFFFFFFFF);
-						*result = FAT_CANNOT_READ_MEDIA;
+						*peResult = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
 				}
@@ -690,7 +692,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 				}
 
 				// return insufficient disk space error
-				*result = FAT_INSUFFICIENT_DISK_SPACE;
+				*peResult = FAT_INSUFFICIENT_DISK_SPACE;
 				return 0;
 			}
 
@@ -718,7 +720,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (!bSuccess)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = FAT_CANNOT_READ_MEDIA;
+							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
 
@@ -731,7 +733,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					if (!bSuccess)
 					{
 						muiFatSharedBufferSector = (0xFFFFFFFF);
-						*result = FAT_CANNOT_READ_MEDIA;
+						*peResult = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
 
@@ -742,7 +744,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 				// read the 2nd byte
 				((uint8*)&fat_entry)[INT32_BYTE1] = uiBuffer[next_sector_loaded ? 0 : (entry_offset + 1)];
 
-				// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the result.
+				// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the peResult.
 				// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
 				// 16 bits where it is stored, so we need to shift the value 4 bits to the right.
 				// For even cluster numbers the FAT sEntry is stored in the lower 12 bits of the
@@ -764,7 +766,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					if (!bSuccess)
 					{
 						muiFatSharedBufferSector = (0xFFFFFFFF);
-						*result = FAT_CANNOT_READ_MEDIA;
+						*peResult = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
 					next_sector_loaded = 0;
@@ -823,7 +825,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (!bSuccess)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = FAT_CANNOT_WRITE_MEDIA;
+							*peResult = FAT_CANNOT_WRITE_MEDIA;
 							return 0;
 						}
 
@@ -835,7 +837,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (!bSuccess)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = FAT_CANNOT_READ_MEDIA;
+							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
 
@@ -862,7 +864,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (!bSuccess)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = FAT_CANNOT_READ_MEDIA;
+							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
 
@@ -875,7 +877,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (!bSuccess)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = FAT_CANNOT_READ_MEDIA;
+							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
 						entries_updated = 0;
@@ -898,7 +900,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								if (!bSuccess)
 								{
 									muiFatSharedBufferSector = (0xFFFFFFFF);
-									*result = FAT_CANNOT_READ_MEDIA;
+									*peResult = FAT_CANNOT_READ_MEDIA;
 									return 0;
 								}
 
@@ -911,7 +913,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -935,7 +937,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = FatWriteFatSector(last_entry_sector, uiBuffer);
 							if (!bSuccess)
 							{
-								*result = FAT_CANNOT_WRITE_MEDIA;
+								*peResult = FAT_CANNOT_WRITE_MEDIA;
 								return 0;
 							}
 
@@ -946,7 +948,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(last_entry_sector + 1, uiBuffer);
 							if (!bSuccess)
 							{
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 
@@ -972,7 +974,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = FatWriteFatSector(last_entry_sector + 1, uiBuffer);
 							if (!bSuccess)
 							{
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 
@@ -985,7 +987,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = 0xFFFFFFFF;
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -1002,7 +1004,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								if (!bSuccess)
 								{
 									muiFatSharedBufferSector = (0xFFFFFFFF);
-									*result = FAT_CANNOT_READ_MEDIA;
+									*peResult = FAT_CANNOT_READ_MEDIA;
 									return 0;
 								}
 
@@ -1016,7 +1018,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -1041,7 +1043,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 							// mark uiBuffer as clean
@@ -1052,7 +1054,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -1067,7 +1069,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 
@@ -1076,7 +1078,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -1102,7 +1104,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 
@@ -1114,7 +1116,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -1130,7 +1132,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 
@@ -1139,7 +1141,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							if (!bSuccess)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
-								*result = FAT_CANNOT_READ_MEDIA;
+								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
 						}
@@ -1159,7 +1161,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (!bSuccess)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = FAT_CANNOT_READ_MEDIA;
+							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
 					}
@@ -1173,7 +1175,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						if (uiResult != FAT_SUCCESS)
 						{
 							muiFatSharedBufferSector = (0xFFFFFFFF);
-							*result = uiResult;
+							*peResult = uiResult;
 							return 0;
 						}
 					}
@@ -1181,8 +1183,8 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					{
 						if (zero)
 						{
-							*result = FatZeroCluster(cluster, uiBuffer);
-							if (*result != FAT_SUCCESS)
+							*peResult = FatZeroCluster(cluster, uiBuffer);
+							if (*peResult != FAT_SUCCESS)
 							{
 								muiFatSharedBufferSector = (0xFFFFFFFF);
 								return 0;
@@ -1226,7 +1228,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			if (!bSuccess)
 			{
 				muiFatSharedBufferSector = (0xFFFFFFFF);
-				*result = FAT_CANNOT_READ_MEDIA;
+				*peResult = FAT_CANNOT_READ_MEDIA;
 				return 0;
 			}
 			entries_updated = 0;
