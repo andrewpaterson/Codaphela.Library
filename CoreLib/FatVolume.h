@@ -37,15 +37,15 @@ public:
 	uint32			muiFatSharedBufferSector;
 
 public:
-	uint16				Mount(CFileDrive* device);
-	uint16				Unmount(void);
+	EFatCode			Mount(CFileDrive* device);
+	EFatCode			Unmount(void);
 
 	bool				Read(uint64 uiSector, void* pvData);
 	bool				Write(uint64 uiSector, void* pvData);
 	bool				Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive);
 
-	uint16				FatFileDelete(char* filename);
-	uint16				FatFileRename(char* original_filename, char* new_filename);
+	EFatCode			FatFileDelete(char* filename);
+	EFatCode			FatFileRename(char* original_filename, char* new_filename);
 
 	uint16				GetSectorSize(void);
 	uint32				GetPageSize(void);
@@ -110,7 +110,7 @@ public:
 
 protected:
 	void				TrimPath(char* dest, char* src, size_t max);
-	void				FatParsePath(char* path, char* path_part, char** filename_part);
+	void				FatParsePath(char* path, char* szPathPart, char** filename_part);
 	char				GetLongNameForEntry(uint16* dst, uint8* src);
 	char				FatCompareShortName(uint8* name1, uint8* name2);
 	char				FatCompareLongName(uint16* name1, uint16* name2);

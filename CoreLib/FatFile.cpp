@@ -805,10 +805,10 @@ EFatCode CFatFile::FatFileWriteCallback(void)
 			if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
 				uiResult = mpcVolume->FatGetClusterEntry(msFile.uiCurrentClusterAddress, &msFile.uiCurrentClusterAddress);
-				if (uiResult != STORAGE_SUCCESS)
+				if (uiResult != FAT_SUCCESS)
 				{
 					msFile.bBusy = 0;
-					return FAT_CANNOT_WRITE_MEDIA;
+					return uiResult;
 				}
 				// reset the current sector and increase the cluster index
 				msFile.uiCurrentSectorIdx = 0x0;
