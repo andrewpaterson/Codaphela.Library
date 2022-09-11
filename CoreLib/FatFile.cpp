@@ -424,7 +424,7 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileAllocate(uint32 bytes)
+EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 {
 	EFatCode	uiResult;
 	uint32		uiNewCluster;
@@ -449,7 +449,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 	msFile.bBusy = 1;
 
 	// calculate how many clusters we need
-	uiClustersNeeded = (bytes + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
+	uiClustersNeeded = (uiBytes + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
 	uiClustersNeeded = (uiClustersNeeded + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
 	uiClustersNeeded = (msFile.uiNoOfClustersAfterPos > uiClustersNeeded) ? 0 : (uiClustersNeeded - msFile.uiNoOfClustersAfterPos);
 
@@ -483,6 +483,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 			return FAT_UNKNOWN_ERROR;
 		}
 
+		uiResult = FAT_UNKNOWN_ERROR;
 		uiNewCluster = mpcVolume->FatAllocateDataClusterEx(uiClustersNeeded, 0, page_size, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
@@ -492,6 +493,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 	}
 	else
 	{
+		uiResult = FAT_UNKNOWN_ERROR;
 		uiNewCluster = mpcVolume->FatAllocateDataCluster(uiClustersNeeded, 1, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
@@ -861,7 +863,7 @@ EFatCode CFatFile::FatFileWriteCallback(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
+EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 uiLength)
 {
 	EFatCode uiResult;
 
@@ -876,15 +878,9 @@ EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
 		return FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS;
 	}
 
-	// make sure length is not larger than 16-bit
-	if (length > 0xFFFF)
-	{
-		return FAT_BUFFER_TOO_BIG;
-	}
-
 	// if there's no clusters allocated to this file allocate
 	// enough clusters for this request
-	uiResult = FatFileAllocate(length);
+	uiResult = FatFileAllocate(uiLength);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
@@ -916,7 +912,7 @@ EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
 	// we're reading a multiple of the sector size
 	if (msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (length % mpcVolume->GetNoOfBytesPerSector())
+		if (uiLength % mpcVolume->GetNoOfBytesPerSector())
 		{
 			msFile.bBusy = 0;
 			return FAT_MISALIGNED_IO;
@@ -933,14 +929,14 @@ EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
 
 	// copy the length of the uiBuffer to be writen
 	// into the counter
-	msFile.sOperationState.uiBytesRemaining = (uint16)length;
+	msFile.sOperationState.uiBytesRemaining = uiLength;
 
 	// calculate the address of the current sector
 	msFile.sOperationState.uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 
 
 	msFile.sOperationState.internal_state = 0x0;
-	msFile.sOperationState.length = (uint16)length;
+	msFile.sOperationState.uiLength = uiLength;
 	msFile.sOperationState.uiBuffer = buff;
 
 	return FatFileWriteCallback();
@@ -951,7 +947,7 @@ EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* uiBytesRead)
+EFatCode CFatFile::FatFileRead(uint8* buff, uint32 uiLength, uint32* uiBytesRead)
 {
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -964,12 +960,6 @@ EFatCode CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* uiBytesRead)
 	if (!msFile.uiBuffer && !(msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING))
 	{
 		return FAT_FILE_BUFFER_NOT_SET;
-	}
-
-	// make sure length is not larger than 16-bit
-	if (length > 0xFFFF)
-	{
-		return FAT_BUFFER_TOO_BIG;
 	}
 
 	// check that another operation is not using the
@@ -997,7 +987,7 @@ EFatCode CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* uiBytesRead)
 	// to the one supplied by the user in this call
 	if (msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
 	{
-		if (length % mpcVolume->GetNoOfBytesPerSector())
+		if (uiLength % mpcVolume->GetNoOfBytesPerSector())
 		{
 			return FAT_MISALIGNED_IO;
 		}
@@ -1006,9 +996,9 @@ EFatCode CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* uiBytesRead)
 	}
 
 	// set the async op context
-	msFile.sOperationState.uiBytesRemaining = (uint16)length;
+	msFile.sOperationState.uiBytesRemaining = uiLength;
 	msFile.sOperationState.internal_state = 0x0;
-	msFile.sOperationState.length = (uint16)length;
+	msFile.sOperationState.uiLength = uiLength;
 	msFile.sOperationState.uiBuffer = buff;
 	msFile.sOperationState.uiBytesRead = uiBytesRead;
 

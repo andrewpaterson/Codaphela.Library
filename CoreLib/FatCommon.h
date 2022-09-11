@@ -271,10 +271,10 @@ struct SFatQueryState
 struct SFatOperationState
 {
 	uint32		uiBytePosition;
-	uint16		uiBytesRemaining;
+	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
 	uint32*		uiBytesRead;
-	uint16		length;
+	uint32		uiLength;
 	uint8*		end_of_buffer;
 	uint8*		uiBuffer;
 	uint8		internal_state;
