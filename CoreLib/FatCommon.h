@@ -275,7 +275,7 @@ struct SFatOperationState
 	uint32*		uiBytesRead;
 	uint32		uiLength;
 	uint8*		end_of_buffer;
-	uint8*		uiBuffer;
+	uint8*		pvBuffer;
 	uint8		internal_state;
 };
 
