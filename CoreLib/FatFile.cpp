@@ -76,9 +76,9 @@ uint16 CFatFile::FatFileUpdateSequentialClusterCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags)
+EFatCode CFatFile::FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessFlags)
 {
-	uint16					uiResult;
+	EFatCode				uiResult;
 	SFatDirectoryEntry		file_entry;
 
 	// use the internal uiBuffer
@@ -114,7 +114,7 @@ uint16 CFatFile::FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessF
 			ptrdiff_t			path_len;
 			char*				filename_scanner;
 			char				file_path[FAT_MAX_PATH + 1];
-			SFatDirectoryEntry	parent_entry;
+			SFatDirectoryEntry	sParentEntry;
 
 			// get the name of the file path including
 			// the filename
@@ -166,7 +166,7 @@ uint16 CFatFile::FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessF
 			filename_scanner++;
 
 			// try to get the entry for the parent directory
-			uiResult = volume->FatGetFileEntry(file_path, &parent_entry);
+			uiResult = volume->FatGetFileEntry(file_path, &sParentEntry);
 
 			// if FatGetFileEntry returned an error
 			// then we return the error code to the calling
@@ -177,13 +177,13 @@ uint16 CFatFile::FatFileOpen(CFatVolume* volume, char* filename, uint8 uiAccessF
 			}
 
 			// if the parent directory does not exists
-			if (*parent_entry.name == 0)
+			if (*sParentEntry.name == 0)
 			{
 				return FAT_DIRECTORY_DOES_NOT_EXIST;
 			}
 
 			// try to create the directory entry
-			uiResult = volume->FatCreateDirectoryEntry(&parent_entry.raw, filename_scanner, 0, 0, &file_entry);
+			uiResult = volume->FatCreateDirectoryEntry(&sParentEntry.raw, filename_scanner, 0, 0, &file_entry);
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
@@ -236,10 +236,10 @@ void CFatFile::SetVolume(CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags)
+EFatCode CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entry, uint8 uiAccessFlags)
 {
-	bool	bSuccess;
-	uint16	uiResult;
+	bool		bSuccess;
+	EFatCode	uiResult;
 
 	// set implicit access flags
 	uiAccessFlags |= FAT_FILE_ACCESS_READ;
@@ -367,13 +367,13 @@ uint16 CFatFile::FatFileSetBuffer(uint8* uiBuffer)
 {
 	if (GetBufferHead() != GetBuffer())
 	{
-		uint32	sector_address;
+		uint32	uiSectorAddress;
 		bool	bSuccess;
 
-		sector_address = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+		uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 		msFile.uiBuffer = uiBuffer;
 		msFile.pvBufferHead = uiBuffer + (uintptr_t)msFile.pvBufferHead;
-		bSuccess = mpcVolume->Read(sector_address, msFile.uiBuffer);
+		bSuccess = mpcVolume->Read(uiSectorAddress, msFile.uiBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -421,11 +421,11 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CFatFile::FatFileAllocate(uint32 bytes)
 {
-	uint16	uiResult;
-	uint32	uiNewCluster;
-	uint32	uiClustersNeeded;
-	bool	bSuccess;
-	uint8*	pvBuffer = mpcVolume->GetFatSharedBuffer();
+	EFatCode	uiResult;
+	uint32		uiNewCluster;
+	uint32		uiClustersNeeded;
+	bool		bSuccess;
+	uint8*		pvBuffer = mpcVolume->GetFatSharedBuffer();
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -613,13 +613,13 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileSeek(uint32 offset, char mode)
+EFatCode CFatFile::FatFileSeek(uint32 offset, char mode)
 {
 	uint32	new_pos;
 	uint32	sector_count;
 	uint32	cluster_count;
 	uint32	old_cluster;
-	uint32	sector_address;
+	uint32	uiSectorAddress;
 	uint16	uiResult;
 	bool	bSuccess;
 
@@ -731,13 +731,13 @@ uint16 CFatFile::FatFileSeek(uint32 offset, char mode)
 		msFile.pvBufferHead = msFile.uiBuffer;
 	}
 
-	sector_address = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+	uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 	msFile.uiCurrentClusterIdx = cluster_count - 1;
 
 	// load the last sector
 	if (msFile.uiBuffer)
 	{
-		bSuccess = mpcVolume->Read(sector_address, msFile.uiBuffer);
+		bSuccess = mpcVolume->Read(uiSectorAddress, msFile.uiBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -1185,9 +1185,9 @@ uint16 CFatFile::FatFileReadCallback(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileFlush(void)
+EFatCode CFatFile::FatFileFlush(void)
 {
-	uint32	sector_address = 0;
+	uint32	uiSectorAddress = 0;
 	bool	bSuccess;
 	uint8*	pvBuffer = mpcVolume->GetFatSharedBuffer();
 
@@ -1222,7 +1222,7 @@ uint16 CFatFile::FatFileFlush(void)
 		{
 			// calculate the address of the current
 			// sector
-			sector_address = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+			uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 
 			// if the uiBuffer is only partially filled we need to merge it
 			// with the one on the drive
@@ -1230,7 +1230,7 @@ uint16 CFatFile::FatFileFlush(void)
 			{
 				uint16 i;
 				uint8 buff[MAX_SECTOR_LENGTH];
-				bSuccess = mpcVolume->Read(sector_address, buff);
+				bSuccess = mpcVolume->Read(uiSectorAddress, buff);
 				if (!bSuccess)
 				{
 					msFile.bBusy = 0;
@@ -1245,7 +1245,7 @@ uint16 CFatFile::FatFileFlush(void)
 			}
 
 			// write the cached sector to media
-			bSuccess = mpcVolume->Write(sector_address, msFile.uiBuffer);
+			bSuccess = mpcVolume->Write(uiSectorAddress, msFile.uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
@@ -1312,9 +1312,9 @@ uint16 CFatFile::FatFileFlush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileClose(void)
+EFatCode CFatFile::FatFileClose(void)
 {
-	uint16		uiResult;
+	EFatCode	uiResult;
 	FatEntry	fat_entry;
 
 	// check that this is a valid file

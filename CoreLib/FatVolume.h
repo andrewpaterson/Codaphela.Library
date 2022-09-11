@@ -83,27 +83,27 @@ public:
 	uint32				GetFatSharedBufferSector(void);
 
 public:
-	uint32				FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, uint16* result);
-	uint32				FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, uint16* result);
-	uint32				FatAllocateDataCluster(uint32 count, char zero, uint16* result);
-	uint32				FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, uint16* result);
-	uint16				FatFreeClusterChain(uint32 cluster);
-	uint16				FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry);
-	uint16				FatSetClusterEntry(uint32 cluster, FatEntry fat_entry);
-	uint16				FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
+	uint32				FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, EFatCode* result);
+	uint32				FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* result);
+	uint32				FatAllocateDataCluster(uint32 count, char zero, EFatCode* result);
+	uint32				FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* result);
+	EFatCode			FatFreeClusterChain(uint32 cluster);
+	EFatCode			FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry);
+	EFatCode			FatSetClusterEntry(uint32 cluster, FatEntry fat_entry);
+	EFatCode			FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
 	bool				FatIsEOFEntry(FatEntry fat);
-	uint16				FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer);
-	uint16				FatZeroCluster(uint32 cluster, uint8* uiBuffer);
-	bool				FatWriteFatSector(uint32 sector_address, uint8* uiBuffer);
+	EFatCode			FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer);
+	EFatCode			FatZeroCluster(uint32 cluster, uint8* uiBuffer);
+	bool				FatWriteFatSector(uint32 uiSectorAddress, uint8* puiBuffer);
 
-	uint16				FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
-	uint16				FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
+	EFatCode			FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
+	EFatCode			FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
 	void				FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* entry, SFatRawDirectoryEntry* raw_entry);
-	uint16				FatCreateDirectory(char* directory);
-	uint16				FatGetFileEntry(char* path, SFatDirectoryEntry* entry);
-	uint16				FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
-	uint16				FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry);
-	uint16				FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry);
+	EFatCode			FatCreateDirectory(char* directory);
+	EFatCode			FatGetFileEntry(char* path, SFatDirectoryEntry* entry);
+	EFatCode			FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, char buffer_locked);
+	EFatCode			FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry);
+	EFatCode			FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry);
 
 	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);
 	uint32				CalculateFirstSectorOfCluster(uint32 cluster);
@@ -114,7 +114,7 @@ protected:
 	char				GetLongNameForEntry(uint16* dst, uint8* src);
 	char				FatCompareShortName(uint8* name1, uint8* name2);
 	char				FatCompareLongName(uint16* name1, uint16* name2);
-	uint16				GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
+	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
 	uint8				FatLongEntryChecksum(uint8* filename);
 	int					FatIndexOf(char chr, char* str, int index);
 };
