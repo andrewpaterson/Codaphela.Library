@@ -317,8 +317,7 @@ uint16 CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entr
 
 			// read the sector that contains the entry
 			bSuccess = volume->Read(entry->sector_addr, uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
 				return FAT_CANNOT_READ_MEDIA;
@@ -328,8 +327,7 @@ uint16 CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* entr
 
 			// write the modified entry to the media
 			bSuccess = volume->Write(entry->sector_addr, uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -369,7 +367,6 @@ uint16 CFatFile::FatFileSetBuffer(uint8* uiBuffer)
 {
 	if (GetBufferHead() != GetBuffer())
 	{
-		uint16	uiResult;
 		uint32	sector_address;
 		bool	bSuccess;
 
@@ -377,8 +374,7 @@ uint16 CFatFile::FatFileSetBuffer(uint8* uiBuffer)
 		msFile.uiBuffer = uiBuffer;
 		msFile.pvBufferHead = uiBuffer + (uintptr_t)msFile.pvBufferHead;
 		bSuccess = mpcVolume->Read(sector_address, msFile.uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -426,8 +422,8 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 uint16 CFatFile::FatFileAllocate(uint32 bytes)
 {
 	uint16	uiResult;
-	uint32	new_cluster;
-	uint32	no_of_clusters_needed;
+	uint32	uiNewCluster;
+	uint32	uiClustersNeeded;
 	bool	bSuccess;
 	uint8*	pvBuffer = mpcVolume->GetFatSharedBuffer();
 
@@ -448,12 +444,12 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 	msFile.bBusy = 1;
 
 	// calculate how many clusters we need
-	no_of_clusters_needed = (bytes + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
-	no_of_clusters_needed = (no_of_clusters_needed + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
-	no_of_clusters_needed = (msFile.uiNoOfClustersAfterPos > no_of_clusters_needed) ? 0 : (no_of_clusters_needed - msFile.uiNoOfClustersAfterPos);
+	uiClustersNeeded = (bytes + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
+	uiClustersNeeded = (uiClustersNeeded + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
+	uiClustersNeeded = (msFile.uiNoOfClustersAfterPos > uiClustersNeeded) ? 0 : (uiClustersNeeded - msFile.uiNoOfClustersAfterPos);
 
 	// if we already got all the clusters requested then thre's nothing to do
-	if (no_of_clusters_needed == 0)
+	if (uiClustersNeeded == 0)
 	{
 		msFile.bBusy = 0;
 		return FAT_SUCCESS;
@@ -472,17 +468,17 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 	{
 		uint32 clusters_per_page = page_size / mpcVolume->GetNoOfSectorsPerCluster();
 
-		if (no_of_clusters_needed % clusters_per_page)
+		if (uiClustersNeeded % clusters_per_page)
 		{
-			no_of_clusters_needed += clusters_per_page - (no_of_clusters_needed % clusters_per_page);
+			uiClustersNeeded += clusters_per_page - (uiClustersNeeded % clusters_per_page);
 		}
 
-		if ((no_of_clusters_needed % clusters_per_page) != 0)
+		if ((uiClustersNeeded % clusters_per_page) != 0)
 		{
 			return FAT_UNKNOWN_ERROR;
 		}
 
-		new_cluster = mpcVolume->FatAllocateDataClusterEx(no_of_clusters_needed, 0, page_size, &uiResult);
+		uiNewCluster = mpcVolume->FatAllocateDataClusterEx(uiClustersNeeded, 0, page_size, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
@@ -491,7 +487,7 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 	}
 	else
 	{
-		new_cluster = mpcVolume->FatAllocateDataCluster(no_of_clusters_needed, 1, &uiResult);
+		uiNewCluster = mpcVolume->FatAllocateDataCluster(uiClustersNeeded, 1, &uiResult);
 		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
@@ -501,7 +497,7 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
-	current_cluster = new_cluster;
+	current_cluster = uiNewCluster;
 
 	while (!mpcVolume->FatIsEOFEntry(current_cluster))
 	{
@@ -536,19 +532,18 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 	{
 		// modify the file entry to point to the
 		// new cluster
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(new_cluster);
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(new_cluster);
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(uiNewCluster);
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(uiNewCluster);
 
 		// mark the cached sector as unknown
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 		// try load the sector that contains the entry
 		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, pvBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
-			return uiResult;
+			return FAT_CANNOT_READ_MEDIA;
 		}
 
 		// copy the modified file entry to the
@@ -557,11 +552,10 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 
 		// write the modified entry to the media
 		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, pvBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
-			return uiResult;
+			return FAT_CANNOT_WRITE_MEDIA;
 		}
 	}
 	// if there are clusters allocated to the file update the last FAT entry
@@ -586,7 +580,7 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 
 		// set the FAT entry for the last cluster to the beggining of the newly
 		// allocated cluster chain (ie. link them)
-		uiResult = mpcVolume->FatSetClusterEntry(last_cluster, (FatEntry)new_cluster);
+		uiResult = mpcVolume->FatSetClusterEntry(last_cluster, (FatEntry)uiNewCluster);
 		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
@@ -598,12 +592,12 @@ uint16 CFatFile::FatFileAllocate(uint32 bytes)
 	// new cluster
 	if (!msFile.uiCurrentClusterAddress)
 	{
-		msFile.uiCurrentClusterAddress = new_cluster;
-		msFile.uiNoOfClustersAfterPos = no_of_clusters_needed - 1;
+		msFile.uiCurrentClusterAddress = uiNewCluster;
+		msFile.uiNoOfClustersAfterPos = uiClustersNeeded - 1;
 	}
 	else
 	{
-		msFile.uiNoOfClustersAfterPos += no_of_clusters_needed;
+		msFile.uiNoOfClustersAfterPos += uiClustersNeeded;
 	}
 
 	// update the count of sequential clusters
@@ -744,8 +738,7 @@ uint16 CFatFile::FatFileSeek(uint32 offset, char mode)
 	if (msFile.uiBuffer)
 	{
 		bSuccess = mpcVolume->Read(sector_address, msFile.uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -796,15 +789,12 @@ uint16 CFatFile::FatFileWriteCallback(void)
 			}
 			// write the cached sector to media
 			bSuccess = mpcVolume->Write(msFile.sOperationState.sector_addr, msFile.uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-
-			// if we were unable to read the sector
-			// then throw an error
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
+
 			// if this sector is the last of the current cluster then
 			// locate the next cluster and continue writing
 			if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
@@ -1041,8 +1031,7 @@ uint16 CFatFile::FatFileReadCallback(void)
 	{
 		// read the current sector synchronously
 		bSuccess = mpcVolume->Read(msFile.sOperationState.sector_addr, msFile.uiBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -1132,8 +1121,7 @@ uint16 CFatFile::FatFileReadCallback(void)
 
 			// read the next sector into the cache
 			bSuccess = mpcVolume->Read(msFile.sOperationState.sector_addr, msFile.uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_READ_MEDIA;
@@ -1199,7 +1187,6 @@ uint16 CFatFile::FatFileReadCallback(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CFatFile::FatFileFlush(void)
 {
-	uint16	uiResult;
 	uint32	sector_address = 0;
 	bool	bSuccess;
 	uint8*	pvBuffer = mpcVolume->GetFatSharedBuffer();
@@ -1244,11 +1231,10 @@ uint16 CFatFile::FatFileFlush(void)
 				uint16 i;
 				uint8 buff[MAX_SECTOR_LENGTH];
 				bSuccess = mpcVolume->Read(sector_address, buff);
-				uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-				if (uiResult != STORAGE_SUCCESS)
+				if (!bSuccess)
 				{
 					msFile.bBusy = 0;
-					return uiResult;
+					return FAT_CANNOT_READ_MEDIA;
 				}
 
 				for (i = (uint16)(msFile.pvBufferHead -
@@ -1260,8 +1246,7 @@ uint16 CFatFile::FatFileFlush(void)
 
 			// write the cached sector to media
 			bSuccess = mpcVolume->Write(sector_address, msFile.uiBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
@@ -1278,8 +1263,7 @@ uint16 CFatFile::FatFileFlush(void)
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, pvBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
@@ -1291,8 +1275,7 @@ uint16 CFatFile::FatFileFlush(void)
 
 		// write the modified entry to the media
 		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, pvBuffer);
-		uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-		if (uiResult != STORAGE_SUCCESS)
+		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -1304,15 +1287,13 @@ uint16 CFatFile::FatFileFlush(void)
 		// sector too TODO: implement this on driver!!
 		{
 			bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr + 1, pvBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
 			bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr + 1, pvBuffer);
-			uiResult = bSuccess ? STORAGE_SUCCESS : STORAGE_UNKNOWN_ERROR;
-			if (uiResult != STORAGE_SUCCESS)
+			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_WRITE_MEDIA;
