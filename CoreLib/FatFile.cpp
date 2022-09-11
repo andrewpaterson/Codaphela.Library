@@ -39,24 +39,29 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatFile::FatFileUpdateSequentialClusterCount(void)
+EFatCode CFatFile::FatFileUpdateSequentialClusterCount(void)
 {
-	uint32 current_cluster;
-	uint32 next_cluster;
+	uint32		uiCurrentCluster;
+	uint32		uiNextCluster;
+	EFatCode	eResult;
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
 	msFile.uiNoOfSequentialClusters = 0;
-	current_cluster = msFile.uiCurrentClusterAddress;
+	uiCurrentCluster = msFile.uiCurrentClusterAddress;
 
-	while (!mpcVolume->FatIsEOFEntry(current_cluster))
+	while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
 	{
-		mpcVolume->FatGetClusterEntry(current_cluster, &next_cluster);
+		eResult = mpcVolume->FatGetClusterEntry(uiCurrentCluster, &uiNextCluster);
+		if (eResult != FAT_SUCCESS)
+		{
+			return eResult;
+		}
 
-		if (next_cluster == (current_cluster + 1))
+		if (uiNextCluster == (uiCurrentCluster + 1))
 		{
 			msFile.uiNoOfSequentialClusters++;
-			current_cluster = next_cluster;
+			uiCurrentCluster = uiNextCluster;
 			if (msFile.uiNoOfSequentialClusters == 0xFFFF)
 			{
 				break;
@@ -456,8 +461,8 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 	}
 
 	// allocate a new cluster
-	uint32 current_cluster;
-	uint32 next_cluster;
+	uint32 uiCurrentCluster;
+	uint32 uiNextCluster;
 	uint32 page_size;
 	uint32 start_address;
 	uint32 end_address;
@@ -497,27 +502,27 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
-	current_cluster = uiNewCluster;
+	uiCurrentCluster = uiNewCluster;
 
-	while (!mpcVolume->FatIsEOFEntry(current_cluster))
+	while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
 	{
 		// calculate the start and end address the cluster
-		start_address = mpcVolume->CalculateFirstSectorOfCluster(current_cluster);
+		start_address = mpcVolume->CalculateFirstSectorOfCluster(uiCurrentCluster);
 		end_address = start_address + mpcVolume->GetNoOfSectorsPerCluster();
 
 		// find the last sequential sector after this address
-		while (!mpcVolume->FatIsEOFEntry(current_cluster))
+		while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
 		{
-			mpcVolume->FatGetClusterEntry(current_cluster, &next_cluster);
+			mpcVolume->FatGetClusterEntry(uiCurrentCluster, &uiNextCluster);
 
-			if (next_cluster == (current_cluster + 1))
+			if (uiNextCluster == (uiCurrentCluster + 1))
 			{
 				end_address += mpcVolume->GetNoOfSectorsPerCluster();
-				current_cluster = next_cluster;
+				uiCurrentCluster = uiNextCluster;
 			}
 			else
 			{
-				current_cluster = next_cluster;
+				uiCurrentCluster = uiNextCluster;
 				break;
 			}
 		}

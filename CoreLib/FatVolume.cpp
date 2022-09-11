@@ -1697,7 +1697,7 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 
 // increase a cluster address by the amount of clusters indicated by count. This function will
 // follow the FAT entry chain to fat the count-th cluster allocated to a file relative from the
-// current_cluster cluster
+// uiCurrentCluster cluster
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2137,7 +2137,7 @@ EFatCode CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFat
 	// query->CurrentCluster equals zero then this is the root
 	// directory of a FAT12/FAT16 volume and the calculation is
 	// different
-	if (query->state.current_cluster == 0x0)
+	if (query->state.uiCurrentCluster == 0x0)
 	{
 		query->current_entry.sector_addr = GetNoOfReservedSectors() +
 			(GetNoOfFatTables() * GetFatSize()) +
@@ -2145,7 +2145,7 @@ EFatCode CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFat
 	}
 	else
 	{
-		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.current_cluster) + query->state.current_sector;
+		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -2219,13 +2219,13 @@ EFatCode CFatVolume::FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSy
 	// query->CurrentCluster equals zero then this is the root
 	// directory of a FAT12/FAT16 volume and the calculation is
 	// different
-	if (query->state.current_cluster == 0x0)
+	if (query->state.uiCurrentCluster == 0x0)
 	{
 		query->current_entry.sector_addr = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query->state.current_sector;
 	}
 	else
 	{
-		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.current_cluster) + query->state.current_sector;
+		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -2581,13 +2581,13 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* entry)
 	// query->CurrentCluster equals zero then this is the root
 	// directory of a FAT12/FAT16 volume and the calculation is
 	// different
-	if (query.current_cluster == 0x0)
+	if (query.uiCurrentCluster == 0x0)
 	{
 		entry->sector_addr = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query.current_sector;
 	}
 	else
 	{
-		entry->sector_addr = CalculateFirstSectorOfCluster(query.current_cluster) + query.current_sector;
+		entry->sector_addr = CalculateFirstSectorOfCluster(query.uiCurrentCluster) + query.current_sector;
 	}
 
 	// calculate the offset of the entry within it's sector
@@ -2633,12 +2633,12 @@ EFatCode CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 
 		// calculate the cluster # from the
 		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			query->current_cluster = GetRootCluster();
-			first_sector = CalculateFirstSectorOfCluster(query->current_cluster);
+			query->uiCurrentCluster = GetRootCluster();
+			first_sector = CalculateFirstSectorOfCluster(query->uiCurrentCluster);
 		}
 		else
 		{
-			query->current_cluster = 0x0;
+			query->uiCurrentCluster = 0x0;
 			first_sector = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
 		}
 	}
@@ -2655,22 +2655,22 @@ EFatCode CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 
 		// set the CurrentCluster field of the query
 		// state structure to the values found on the
 		// directory entry structure
-		((uint16*)&query->current_cluster)[INT32_WORD0] = directory->uEntry.sFatRawCommon.first_cluster_lo;
+		((uint16*)&query->uiCurrentCluster)[INT32_WORD0] = directory->uEntry.sFatRawCommon.first_cluster_lo;
 
 		// read the upper word of the cluster address
 		// only if this is a FAT32 volume
 		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
 		{
-			((uint8*)&query->current_cluster)[INT32_BYTE2] = LO8(directory->uEntry.sFatRawCommon.first_cluster_hi);
-			((uint8*)&query->current_cluster)[INT32_BYTE3] = HI8(directory->uEntry.sFatRawCommon.first_cluster_hi);
+			((uint8*)&query->uiCurrentCluster)[INT32_BYTE2] = LO8(directory->uEntry.sFatRawCommon.first_cluster_hi);
+			((uint8*)&query->uiCurrentCluster)[INT32_BYTE3] = HI8(directory->uEntry.sFatRawCommon.first_cluster_hi);
 		}
 		else
 		{
-			((uint16*)&query->current_cluster)[INT32_WORD1] = 0;
+			((uint16*)&query->uiCurrentCluster)[INT32_WORD1] = 0;
 		}
 
 		// get the 1st sector of the directory entry
-		first_sector = CalculateFirstSectorOfCluster(query->current_cluster);
+		first_sector = CalculateFirstSectorOfCluster(query->uiCurrentCluster);
 	}
 
 	// read the sector into the query
@@ -2717,13 +2717,13 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 				// if the current sector is the last of the current cluster then we must find the next
 				// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
 				// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
-				if (query->current_cluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == GetNoOfSectorsPerCluster() - 1)
+				if (query->uiCurrentCluster > 0 &&/*query->current_sector > 0x0 &&*/ query->current_sector == GetNoOfSectorsPerCluster() - 1)
 				{
 					FatEntry fat;
 
 					// get the fat structure for the current cluster
 					// and return UNKNOWN_ERROR if the operation fails
-					if (FatGetClusterEntry(query->current_cluster, &fat) != FAT_SUCCESS)
+					if (FatGetClusterEntry(query->uiCurrentCluster, &fat) != FAT_SUCCESS)
 					{
 						return FAT_UNKNOWN_ERROR;
 					}
@@ -2738,13 +2738,13 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 
 					// set the current cluster to the next
 					// cluster of the directory entry
-					query->current_cluster = fat;
+					query->uiCurrentCluster = fat;
 
 					// reset the current sector
 					query->current_sector = 0x0;
 
 					// calculate the address of the next sector
-					uiSectorAddress = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
+					uiSectorAddress = CalculateFirstSectorOfCluster(query->uiCurrentCluster) + query->current_sector;
 				}
 				// if there are more sectors on the current cluster then
 				else
@@ -2754,7 +2754,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 					// if this is the root directory of a FAT16/FAT12
 					// volume and we have passed it's last sector then
 					// there's no more entries...
-					if (query->current_cluster == 0x0)
+					if (query->uiCurrentCluster == 0x0)
 					{
 						if (query->current_sector == GetRootDirectorySectors())
 						{
@@ -2767,7 +2767,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 					else
 					{
 						// calculate the address of the next sector
-						uiSectorAddress = CalculateFirstSectorOfCluster(query->current_cluster) + query->current_sector;
+						uiSectorAddress = CalculateFirstSectorOfCluster(query->uiCurrentCluster) + query->current_sector;
 					}
 				}
 
