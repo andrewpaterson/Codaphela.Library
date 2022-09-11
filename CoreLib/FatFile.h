@@ -45,9 +45,9 @@ public:
 	uint32					FatFileGetUniqueId(void);
 	uint16					FatFileAllocate(uint32 bytes);
 	uint16					FatFileSeek(uint32 offset, char mode);
-	void					FatFileWriteCallback(uint16* async_state_in);
+	uint16					FatFileWriteCallback(void);
 	uint16					FatFileWrite(uint8* buff, uint32 length);
-	void					FatFileReadCallback(uint16* state);
+	uint16					FatFileReadCallback(void);
 	uint16					FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
 	uint16					FatFileFlush(void);
 	uint16					FatFileClose(void);
