@@ -190,9 +190,9 @@ struct SFatDirectoryEntry
 
 
 // seek modes
-#define FAT_SEEK_START							0x1
-#define FAT_SEEK_CURRENT						0x2
-#define FAT_SEEK_END							0x3
+#define FAT_SEEK_START		0x1
+#define FAT_SEEK_CURRENT	0x2
+#define FAT_SEEK_END		0x3
 
 
 // return codes (first 32 codes are reserved)
@@ -270,15 +270,14 @@ struct SFatQueryState
 // holds the state of a read or write operation
 struct SFatOperationState
 {
-	uint32					pos;
-	uint16					bytes_remaining;
-	uint32					uiSectorAddress;
-	uint32*					bytes_read;
-	uint16					length;
-	uint16					storage_state;
-	uint8*					end_of_buffer;
-	uint8*					uiBuffer;
-	uint8					internal_state;
+	uint32		uiBytePosition;
+	uint16		uiBytesRemaining;
+	uint32		uiSectorAddress;
+	uint32*		uiBytesRead;
+	uint16		length;
+	uint8*		end_of_buffer;
+	uint8*		uiBuffer;
+	uint8		internal_state;
 };
 
 
@@ -334,10 +333,7 @@ enum EFatFileSystemType
 
 
 // table of illegal filename chars.
-static const char ILLEGAL_CHARS[] = {
-	0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B,
-	0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C
-};
+static const char ILLEGAL_CHARS[] = { 0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C };
 
 
 struct SFatQueryStateInternal
