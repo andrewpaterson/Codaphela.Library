@@ -1045,8 +1045,9 @@ uint16 CFatFile::FatFileReadCallback(void)
 			msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
 		}
+
 		// mark the cache as clean
-		msFile.bBufferDirty = 0;
+		msFile.bBufferDirty = false;
 
 		// if the file is unbuffered decrease the count of bytes remaining
 		// by one sector and set the uiBuffer head to the end of the uiBuffer
