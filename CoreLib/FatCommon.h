@@ -195,12 +195,6 @@ struct SFatDirectoryEntry
 #define FAT_SEEK_END							0x3
 
 
-// streaming IO responses
-#define FAT_STREAMING_RESPONSE_STOP				STORAGE_MULTI_SECTOR_RESPONSE_STOP
-#define FAT_STREAMING_RESPONSE_SKIP				STORAGE_MULTI_SECTOR_RESPONSE_SKIP
-#define FAT_STREAMING_RESPONSE_READY			STORAGE_MULTI_SECTOR_RESPONSE_READY
-
-
 // return codes (first 32 codes are reserved)
 enum EFatCode
 {
