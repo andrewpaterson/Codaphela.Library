@@ -2139,17 +2139,17 @@ EFatCode CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFat
 	// different
 	if (query->state.uiCurrentCluster == 0x0)
 	{
-		query->current_entry.sector_addr = GetNoOfReservedSectors() +
+		query->current_entry.uiSectorAddress = GetNoOfReservedSectors() +
 			(GetNoOfFatTables() * GetFatSize()) +
 			query->state.current_sector;
 	}
 	else
 	{
-		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.current_sector;
+		query->current_entry.uiSectorAddress = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the sEntry within it's sector
-	query->current_entry.sector_offset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.uiBuffer);
+	query->current_entry.uiSectorOffset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.uiBuffer);
 	// store a copy of the original FAT directory sEntry
 	// within the SFatDirectoryEntry structure that is returned
 	// to users
@@ -2221,15 +2221,15 @@ EFatCode CFatVolume::FatFindNextEntry(SFatDirectoryEntry** dir_entry, SFatFileSy
 	// different
 	if (query->state.uiCurrentCluster == 0x0)
 	{
-		query->current_entry.sector_addr = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query->state.current_sector;
+		query->current_entry.uiSectorAddress = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query->state.current_sector;
 	}
 	else
 	{
-		query->current_entry.sector_addr = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.current_sector;
+		query->current_entry.uiSectorAddress = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.current_sector;
 	}
 
 	// calculate the offset of the sEntry within it's sector
-	query->current_entry.sector_offset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.uiBuffer);
+	query->current_entry.uiSectorOffset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.uiBuffer);
 
 	// store a copy of the original FAT directory sEntry
 	// within the SFatDirectoryEntry structure that is returned
@@ -2432,8 +2432,8 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* sEntry)
 
 		// since the sEntry does not physically exist the
 		// address fields are set to zero as well
-		sEntry->sector_addr = 0x0;
-		sEntry->sector_offset = 0x0;
+		sEntry->uiSectorAddress = 0x0;
+		sEntry->uiSectorOffset = 0x0;
 
 		// set the location of the root directory
 		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
@@ -2583,15 +2583,15 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* sEntry)
 	// different
 	if (query.uiCurrentCluster == 0x0)
 	{
-		sEntry->sector_addr = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query.current_sector;
+		sEntry->uiSectorAddress = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + query.current_sector;
 	}
 	else
 	{
-		sEntry->sector_addr = CalculateFirstSectorOfCluster(query.uiCurrentCluster) + query.current_sector;
+		sEntry->uiSectorAddress = CalculateFirstSectorOfCluster(query.uiCurrentCluster) + query.current_sector;
 	}
 
 	// calculate the offset of the sEntry within it's sector
-	sEntry->sector_offset = (uint16)((uintptr_t)query.current_entry_raw) - ((uintptr_t)query.uiBuffer);
+	sEntry->uiSectorOffset = (uint16)((uintptr_t)query.current_entry_raw) - ((uintptr_t)query.uiBuffer);
 
 	// store a copy of the original FAT directory sEntry
 	// within the SFatDirectoryEntry structure that is returned
@@ -2931,7 +2931,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* new_entry)
+EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 entry_cluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode						uiResult;
 	uint16							uiLength;
@@ -2997,13 +2997,13 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 	// initialize the raw sEntry
 	// todo: check if no other functions are initializing
-	// new_entry and initialize the whole thing
-	memset(&new_entry->raw, 0, sizeof(new_entry->raw));
+	// sNewEntry and initialize the whole thing
+	memset(&psNewEntry->raw, 0, sizeof(psNewEntry->raw));
 
 	// attempt to format the filename provided
 	// to the format required by the directory sEntry
 	// and copy it to it's field
-	uiResult = GetShortNameForEntry(new_entry->raw.uEntry.sFatRawCommon.name, (uint8*)name, 0);
+	uiResult = GetShortNameForEntry(psNewEntry->raw.uEntry.sFatRawCommon.name, (uint8*)name, 0);
 
 	// if the above operation failed then the filename
 	// is invalid
@@ -3038,7 +3038,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 			for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
 			{
-				if (new_entry->raw.uEntry.sFatRawCommon.name[i] == 0x20)
+				if (psNewEntry->raw.uEntry.sFatRawCommon.name[i] == 0x20)
 				{
 					break;
 				}
@@ -3046,7 +3046,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 			for (c = 0; c < (char)strlen(name_suffix_str); c++)
 			{
-				new_entry->raw.uEntry.sFatRawCommon.name[i++] = name_suffix_str[c];
+				psNewEntry->raw.uEntry.sFatRawCommon.name[i++] = name_suffix_str[c];
 			}
 
 			// loop through all entries in the parent directory
@@ -3054,7 +3054,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 			// as invalid
 			while (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
 			{
-				if (memcmp(query.current_entry_raw->uEntry.sFatRawCommon.name, new_entry->raw.uEntry.sFatRawCommon.name, 11) == 0)
+				if (memcmp(query.current_entry_raw->uEntry.sFatRawCommon.name, psNewEntry->raw.uEntry.sFatRawCommon.name, 11) == 0)
 				{
 					is_valid_entry = 0;
 					break;
@@ -3076,7 +3076,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 				for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
 				{
-					if (new_entry->raw.uEntry.sFatRawCommon.name[i] == 0x20)
+					if (psNewEntry->raw.uEntry.sFatRawCommon.name[i] == 0x20)
 					{
 						break;
 					}
@@ -3084,7 +3084,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 				for (c = 0; c < (char)strlen(name_suffix_str); c++)
 				{
-					new_entry->raw.uEntry.sFatRawCommon.name[i++] = name_suffix_str[c];
+					psNewEntry->raw.uEntry.sFatRawCommon.name[i++] = name_suffix_str[c];
 				}
 			}
 		} while (!is_valid_entry);
@@ -3107,23 +3107,23 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	}
 
 	// set the sEntry attributes
-	strcpy((char*)new_entry->name, name);
-	new_entry->attributes = attribs;
-	new_entry->size = 0x0;
-	new_entry->raw.uEntry.sFatRawCommon.attributes = attribs;
-	new_entry->raw.uEntry.sFatRawCommon.reserved = 0;
-	new_entry->raw.uEntry.sFatRawCommon.size = 0x0;
-	new_entry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(entry_cluster);
-	new_entry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(entry_cluster);
-	new_entry->raw.uEntry.sFatRawCommon.create_time_tenth = 0x0;
-	new_entry->raw.uEntry.sFatRawCommon.create_date = GetSystemClockDate();
-	new_entry->raw.uEntry.sFatRawCommon.create_time = GetSystemClockTime();
-	new_entry->raw.uEntry.sFatRawCommon.modify_date = new_entry->raw.uEntry.sFatRawCommon.create_date;
-	new_entry->raw.uEntry.sFatRawCommon.modify_time = new_entry->raw.uEntry.sFatRawCommon.create_time;
-	new_entry->raw.uEntry.sFatRawCommon.access_date = new_entry->raw.uEntry.sFatRawCommon.create_date;
-	new_entry->create_time = FatDecodeDateTime(new_entry->raw.uEntry.sFatRawCommon.create_date, new_entry->raw.uEntry.sFatRawCommon.create_time);
-	new_entry->modify_time = FatDecodeDateTime(new_entry->raw.uEntry.sFatRawCommon.modify_date, new_entry->raw.uEntry.sFatRawCommon.modify_time);
-	new_entry->access_time = FatDecodeDateTime(new_entry->raw.uEntry.sFatRawCommon.access_date, 0);
+	strcpy((char*)psNewEntry->name, name);
+	psNewEntry->attributes = attribs;
+	psNewEntry->size = 0x0;
+	psNewEntry->raw.uEntry.sFatRawCommon.attributes = attribs;
+	psNewEntry->raw.uEntry.sFatRawCommon.reserved = 0;
+	psNewEntry->raw.uEntry.sFatRawCommon.size = 0x0;
+	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(entry_cluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(entry_cluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.create_time_tenth = 0x0;
+	psNewEntry->raw.uEntry.sFatRawCommon.create_date = GetSystemClockDate();
+	psNewEntry->raw.uEntry.sFatRawCommon.create_time = GetSystemClockTime();
+	psNewEntry->raw.uEntry.sFatRawCommon.modify_date = psNewEntry->raw.uEntry.sFatRawCommon.create_date;
+	psNewEntry->raw.uEntry.sFatRawCommon.modify_time = psNewEntry->raw.uEntry.sFatRawCommon.create_time;
+	psNewEntry->raw.uEntry.sFatRawCommon.access_date = psNewEntry->raw.uEntry.sFatRawCommon.create_date;
+	psNewEntry->create_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.create_date, psNewEntry->raw.uEntry.sFatRawCommon.create_time);
+	psNewEntry->modify_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.modify_date, psNewEntry->raw.uEntry.sFatRawCommon.modify_time);
+	psNewEntry->access_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.access_date, 0);
 
 	// there's no fat sEntry that points to the 1st cluster of
 	// a directory's cluster chain but we'll create a
@@ -3268,7 +3268,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 						}
 
 						// compute the checksum for this sEntry
-						lfn_checksum = FatLongEntryChecksum((uint8*)new_entry->raw.uEntry.sFatRawCommon.name);
+						lfn_checksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.name);
 
 						// now we can start writting
 						no_of_lfn_entries_found = no_of_lfn_entries_needed;
@@ -3395,7 +3395,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 							}
 							else
 							{
-								*sParentEntry = new_entry->raw;
+								*sParentEntry = psNewEntry->raw;
 							}
 						}
 
@@ -3406,8 +3406,8 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 						{
 							return FAT_CANNOT_WRITE_MEDIA;
 						}
-						new_entry->sector_addr = sector;
-						new_entry->sector_offset = (uintptr_t)sParentEntry - (uintptr_t)uiBuffer;
+						psNewEntry->uiSectorAddress = sector;
+						psNewEntry->uiSectorOffset = (uintptr_t)sParentEntry - (uintptr_t)uiBuffer;
 
 						// we're done!!!!!
 						return FAT_SUCCESS;
@@ -3527,15 +3527,15 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 		// mark the sEntry as deleted
 		sEntry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
-		bSuccess = Read(sEntry.sector_addr, uiBuffer);
+		bSuccess = Read(sEntry.uiSectorAddress, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_UNKNOWN_ERROR;
 		}
 
-		memcpy(uiBuffer + sEntry.sector_offset, &sEntry.raw, sizeof(sEntry.raw));
+		memcpy(uiBuffer + sEntry.uiSectorOffset, &sEntry.raw, sizeof(sEntry.raw));
 
-		bSuccess = Write(sEntry.sector_addr, uiBuffer);
+		bSuccess = Write(sEntry.uiSectorAddress, uiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_UNKNOWN_ERROR;
@@ -3560,15 +3560,15 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 			// mark the sEntry as deleted
 			query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 
-			bSuccess = Read(query.current_entry.sector_addr, uiBuffer);
+			bSuccess = Read(query.current_entry.uiSectorAddress, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_UNKNOWN_ERROR;
 			}
 
-			memcpy(uiBuffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(sEntry.raw));
+			memcpy(uiBuffer + query.current_entry.uiSectorOffset, &query.current_entry.raw, sizeof(sEntry.raw));
 
-			bSuccess = Write(query.current_entry.sector_addr, uiBuffer);
+			bSuccess = Write(query.current_entry.uiSectorAddress, uiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_UNKNOWN_ERROR;
@@ -3595,20 +3595,20 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 	char					new_parent[256];
 	char*					original_filename_part;
 	SFatDirectoryEntry		original_entry;
-	SFatDirectoryEntry		new_entry;
+	SFatDirectoryEntry		sNewEntry;
 	bool					bSuccess;
 	uint8					checksum = 0;
-	char					original_parent[256];
-	char* new_filename_part;
-	uint8* uiBuffer = mauiFatSharedBuffer;
+	char					szOriginalParent[256];
+	char*					szNewFilenamePart;
+	uint8*					puiBuffer = mauiFatSharedBuffer;
 
 	// parse paths
-	FatParsePath(original_filename, original_parent, &original_filename_part);
-	FatParsePath(new_filename, new_parent, &new_filename_part);
+	FatParsePath(original_filename, szOriginalParent, &original_filename_part);
+	FatParsePath(new_filename, new_parent, &szNewFilenamePart);
 
 	// try to get the new sEntry to see if it exists.
-	FatGetFileEntry(new_filename, &new_entry);
-	if (*new_entry.name != 0)
+	FatGetFileEntry(new_filename, &sNewEntry);
+	if (*sNewEntry.name != 0)
 	{
 		return FAT_FILENAME_ALREADY_EXISTS;
 	}
@@ -3635,35 +3635,35 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		}
 
 		// create the new sEntry in the parent folder
-		uiResult = FatCreateDirectoryEntry(&parent.raw, new_filename_part, original_entry.attributes, entry_cluster, &new_entry);
+		uiResult = FatCreateDirectoryEntry(&parent.raw, szNewFilenamePart, original_entry.attributes, entry_cluster, &sNewEntry);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
 		}
 
 		// copy all info except name from the old sEntry to the new one
-		new_entry.raw.uEntry.sFatRawCommon.access_date = original_entry.raw.uEntry.sFatRawCommon.access_date;
-		new_entry.raw.uEntry.sFatRawCommon.attributes = original_entry.raw.uEntry.sFatRawCommon.attributes;
-		new_entry.raw.uEntry.sFatRawCommon.create_date = original_entry.raw.uEntry.sFatRawCommon.create_date;
-		new_entry.raw.uEntry.sFatRawCommon.create_time = original_entry.raw.uEntry.sFatRawCommon.create_time;
-		new_entry.raw.uEntry.sFatRawCommon.create_time_tenth = original_entry.raw.uEntry.sFatRawCommon.create_time_tenth;
-		new_entry.raw.uEntry.sFatRawCommon.first_cluster_hi = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-		new_entry.raw.uEntry.sFatRawCommon.first_cluster_lo = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		new_entry.raw.uEntry.sFatRawCommon.modify_date = original_entry.raw.uEntry.sFatRawCommon.modify_date;
-		new_entry.raw.uEntry.sFatRawCommon.modify_time = original_entry.raw.uEntry.sFatRawCommon.modify_time;
-		new_entry.raw.uEntry.sFatRawCommon.reserved = original_entry.raw.uEntry.sFatRawCommon.reserved;
-		new_entry.raw.uEntry.sFatRawCommon.size = original_entry.raw.uEntry.sFatRawCommon.size;
+		sNewEntry.raw.uEntry.sFatRawCommon.access_date = original_entry.raw.uEntry.sFatRawCommon.access_date;
+		sNewEntry.raw.uEntry.sFatRawCommon.attributes = original_entry.raw.uEntry.sFatRawCommon.attributes;
+		sNewEntry.raw.uEntry.sFatRawCommon.create_date = original_entry.raw.uEntry.sFatRawCommon.create_date;
+		sNewEntry.raw.uEntry.sFatRawCommon.create_time = original_entry.raw.uEntry.sFatRawCommon.create_time;
+		sNewEntry.raw.uEntry.sFatRawCommon.create_time_tenth = original_entry.raw.uEntry.sFatRawCommon.create_time_tenth;
+		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = original_entry.raw.uEntry.sFatRawCommon.first_cluster_hi;
+		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = original_entry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+		sNewEntry.raw.uEntry.sFatRawCommon.modify_date = original_entry.raw.uEntry.sFatRawCommon.modify_date;
+		sNewEntry.raw.uEntry.sFatRawCommon.modify_time = original_entry.raw.uEntry.sFatRawCommon.modify_time;
+		sNewEntry.raw.uEntry.sFatRawCommon.reserved = original_entry.raw.uEntry.sFatRawCommon.reserved;
+		sNewEntry.raw.uEntry.sFatRawCommon.size = original_entry.raw.uEntry.sFatRawCommon.size;
 
 		// write modified sEntry to drive
 		muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
-		bSuccess = Read(new_entry.sector_addr, uiBuffer);
+		bSuccess = Read(sNewEntry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
-		memcpy(uiBuffer + new_entry.sector_offset, &new_entry.raw, sizeof(new_entry.raw));
-		bSuccess = Write(new_entry.sector_addr, uiBuffer);
+		memcpy(puiBuffer + sNewEntry.uiSectorOffset, &sNewEntry.raw, sizeof(sNewEntry.raw));
+		bSuccess = Write(sNewEntry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -3671,14 +3671,14 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 
 		// mark the original sEntry as deleted.
 		*original_entry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
-		bSuccess = Read(original_entry.sector_addr, uiBuffer);
+		bSuccess = Read(original_entry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
-		memcpy(uiBuffer + original_entry.sector_offset, &original_entry.raw, sizeof(original_entry.raw));
-		bSuccess = Write(original_entry.sector_addr, uiBuffer);
+		memcpy(puiBuffer + original_entry.uiSectorOffset, &original_entry.raw, sizeof(original_entry.raw));
+		bSuccess = Write(original_entry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
@@ -3688,7 +3688,7 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		SFatFileSystemQuery query;
 
 		// get the 1st LFN sEntry of the parent directory
-		uiResult = FatFindFirstEntry(original_parent, FAT_ATTR_LONG_NAME, 0, &query);
+		uiResult = FatFindFirstEntry(szOriginalParent, FAT_ATTR_LONG_NAME, 0, &query);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
@@ -3702,13 +3702,13 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 				// mark the sEntry as deleted
 				muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
 				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
-				bSuccess = Read(query.current_entry.sector_addr, uiBuffer);
+				bSuccess = Read(query.current_entry.uiSectorAddress, puiBuffer);
 				if (!bSuccess)
 				{
 					return FAT_UNKNOWN_ERROR;
 				}
-				memcpy(uiBuffer + query.current_entry.sector_offset, &query.current_entry.raw, sizeof(query.current_entry.raw));
-				bSuccess = Write(query.current_entry.sector_addr, uiBuffer);
+				memcpy(puiBuffer + query.current_entry.uiSectorOffset, &query.current_entry.raw, sizeof(query.current_entry.raw));
+				bSuccess = Write(query.current_entry.uiSectorAddress, puiBuffer);
 				if (!bSuccess)
 				{
 					return FAT_UNKNOWN_ERROR;

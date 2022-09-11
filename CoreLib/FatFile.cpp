@@ -321,17 +321,17 @@ EFatCode CFatFile::FatOpenFileByEntry(CFatVolume* volume, SFatDirectoryEntry* en
 			mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 			// read the sector that contains the entry
-			bSuccess = volume->Read(entry->sector_addr, uiBuffer);
+			bSuccess = volume->Read(entry->uiSectorAddress, uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
 			// copy the modified file entry to the sector uiBuffer
-			memcpy(uiBuffer + entry->sector_offset, &entry->raw, sizeof(SFatRawDirectoryEntry));
+			memcpy(uiBuffer + entry->uiSectorOffset, &entry->raw, sizeof(SFatRawDirectoryEntry));
 
 			// write the modified entry to the media
-			bSuccess = volume->Write(entry->sector_addr, uiBuffer);
+			bSuccess = volume->Write(entry->uiSectorAddress, uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
@@ -544,7 +544,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 		// try load the sector that contains the entry
-		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, pvBuffer);
+		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -553,10 +553,10 @@ EFatCode CFatFile::FatFileAllocate(uint32 bytes)
 
 		// copy the modified file entry to the
 		// sector uiBuffer
-		memcpy(pvBuffer + msFile.sDirectoryEntry.sector_offset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
-		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, pvBuffer);
+		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -793,7 +793,7 @@ EFatCode CFatFile::FatFileWriteCallback(void)
 				msFile.pvBufferHead = msFile.uiBuffer;
 			}
 			// write the cached sector to media
-			bSuccess = mpcVolume->Write(msFile.sOperationState.sector_addr, msFile.uiBuffer);
+			bSuccess = mpcVolume->Write(msFile.sOperationState.uiSectorAddress, msFile.uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
@@ -815,7 +815,7 @@ EFatCode CFatFile::FatFileWriteCallback(void)
 				msFile.uiCurrentClusterIdx++;
 				msFile.uiNoOfClustersAfterPos--;
 				// calculate the sector address
-				msFile.sOperationState.sector_addr = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+				msFile.sOperationState.uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 			}
 			// if there are more sectors in the
 			// current cluster then simply increase
@@ -823,7 +823,7 @@ EFatCode CFatFile::FatFileWriteCallback(void)
 			else
 			{
 				msFile.uiCurrentSectorIdx++;
-				msFile.sOperationState.sector_addr++;
+				msFile.sOperationState.uiSectorAddress++;
 			}
 		}
 		if (msFile.uiAccessFlags & FAT_FILE_FLAG_NO_BUFFERING)
@@ -936,7 +936,7 @@ EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 length)
 	msFile.sOperationState.bytes_remaining = (uint16)length;
 
 	// calculate the address of the current sector
-	msFile.sOperationState.sector_addr = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+	msFile.sOperationState.uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 
 
 	msFile.sOperationState.internal_state = 0x0;
@@ -989,7 +989,7 @@ EFatCode CFatFile::FatFileRead(uint8* buff, uint32 length, uint32* bytes_read)
 
 	// calculate the address of the current
 	// sector and the address of the end of the uiBuffer
-	msFile.sOperationState.sector_addr = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+	msFile.sOperationState.uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 	msFile.sOperationState.end_of_buffer = msFile.uiBuffer + mpcVolume->GetNoOfBytesPerSector();
 
 	// if the file is opened in unbuffered mode make sure that
@@ -1035,7 +1035,7 @@ EFatCode CFatFile::FatFileReadCallback(void)
 	if (msFile.bBufferDirty)
 	{
 		// read the current sector synchronously
-		bSuccess = mpcVolume->Read(msFile.sOperationState.sector_addr, msFile.uiBuffer);
+		bSuccess = mpcVolume->Read(msFile.sOperationState.uiSectorAddress, msFile.uiBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -1113,7 +1113,7 @@ EFatCode CFatFile::FatFileReadCallback(void)
 				// cluster
 				msFile.uiCurrentClusterIdx++;
 				msFile.uiCurrentSectorIdx = 0x0;
-				msFile.sOperationState.sector_addr = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+				msFile.sOperationState.uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 			}
 			else
 			{
@@ -1121,11 +1121,11 @@ EFatCode CFatFile::FatFileReadCallback(void)
 				// if there are more sectors in the current cluster then
 				// simply increase the current sector counter and address
 				msFile.uiCurrentSectorIdx++;
-				msFile.sOperationState.sector_addr++;
+				msFile.sOperationState.uiSectorAddress++;
 			}
 
 			// read the next sector into the cache
-			bSuccess = mpcVolume->Read(msFile.sOperationState.sector_addr, msFile.uiBuffer);
+			bSuccess = mpcVolume->Read(msFile.sOperationState.uiSectorAddress, msFile.uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
@@ -1267,7 +1267,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		// try load the sector that contains the entry
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
-		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr, pvBuffer);
+		bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -1276,10 +1276,10 @@ EFatCode CFatFile::FatFileFlush(void)
 
 		// copy the modified file entry to the
 		// sector uiBuffer
-		memcpy(pvBuffer + msFile.sDirectoryEntry.sector_offset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
 
 		// write the modified entry to the media
-		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr, pvBuffer);
+		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -1291,13 +1291,13 @@ EFatCode CFatFile::FatFileFlush(void)
 		// to so for now until we figure this out we'll write the next
 		// sector too TODO: implement this on driver!!
 		{
-			bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.sector_addr + 1, pvBuffer);
+			bSuccess = mpcVolume->Read(msFile.sDirectoryEntry.uiSectorAddress + 1, pvBuffer);
 			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.sector_addr + 1, pvBuffer);
+			bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.uiSectorAddress + 1, pvBuffer);
 			if (!bSuccess)
 			{
 				msFile.bBusy = 0;

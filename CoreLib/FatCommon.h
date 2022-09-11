@@ -144,8 +144,8 @@ struct SFatDirectoryEntry
 	time_t					modify_time;
 	time_t					access_time;
 	uint32					size;
-	uint32					sector_addr;
-	uint16					sector_offset;
+	uint32					uiSectorAddress;
+	uint16					uiSectorOffset;
 	SFatRawDirectoryEntry	raw;
 };
 
@@ -272,7 +272,7 @@ struct SFatOperationState
 {
 	uint32					pos;
 	uint16					bytes_remaining;
-	uint32					sector_addr;
+	uint32					uiSectorAddress;
 	uint32*					bytes_read;
 	uint16					length;
 	uint16					storage_state;
