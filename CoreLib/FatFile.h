@@ -17,7 +17,6 @@ struct SFatFile
 	uint32					uiNoOfClustersAfterPos;
 	uint16					uiNoOfSequentialClusters;
 	uint8*					pvBufferHead;
-	bool					bBufferDirty;
 	bool					bBusy;
 	uint8					uiMagic;
 	uint8					uiAccessFlags;
@@ -47,7 +46,6 @@ public:
 	uint32					GetNoOfClustersAfterPos(void);
 	uint16					GetNoOfSequentialClusters(void);
 	uint8*					GetBufferHead(void);
-	bool					IsBufferDirty(void);
 	bool					IsBusy(void);
 	uint8					GetMagic(void);
 	uint8					GetAccessFlags(void);
@@ -56,7 +54,6 @@ public:
 protected:
 
 	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
-	EFatCode				FatFileSetBuffer(uint8* uiBuffer);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
 	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
@@ -65,6 +62,7 @@ protected:
 
 	void					AllocateBuffer(void);
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
+	EFatCode				FatFileRead(SFatOperationState* psOperation);
 };
 
 
