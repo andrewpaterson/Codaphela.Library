@@ -71,6 +71,36 @@ bool CMemoryDrive::Read(uint64 uiSector, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMemoryDrive::Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
+{
+	uint64 uiEnd;
+
+	uiEnd = uiSector + uiNumSectors - 1;
+	if (uiSector >= muiMaxSector)
+	{
+		return false;
+	}
+
+	if (uiNumSectors == 0)
+	{
+		return true;
+	}
+
+	if (uiEnd >= muiMaxSector)
+	{
+		return false;
+	}
+
+	memcpy(pvData, RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), muiSectorSize * uiNumSectors);
+	return true;
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CMemoryDrive::Write(uint64 uiSector, void* pvData)
 {
 	if (uiSector < muiMaxSector)
@@ -82,6 +112,35 @@ bool CMemoryDrive::Write(uint64 uiSector, void* pvData)
 	{
 		return false;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMemoryDrive::Write(uint64 uiSector, uint32 uiNumSectors, void* pvData)
+{
+	uint64 uiEnd;
+
+	uiEnd = uiSector + uiNumSectors - 1;
+	if (uiSector >= muiMaxSector)
+	{
+		return false;
+	}
+
+	if (uiNumSectors == 0)
+	{
+		return true;
+	}
+
+	if (uiEnd >= muiMaxSector)
+	{
+		return false;
+	}
+
+	memcpy(RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), pvData, muiSectorSize * uiNumSectors);
+	return true;
 }
 
 

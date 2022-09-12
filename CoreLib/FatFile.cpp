@@ -942,8 +942,7 @@ EFatCode CFatFile::Read(uint8* buff, uint32 uiLength, uint32* uiBytesRead)
 	sOperation.uiBytePosition += msFile.uiCurrentSectorIdx * mpcVolume->GetNoOfBytesPerSector();
 	sOperation.uiBytePosition += (uintptr_t)(msFile.pvBufferHead - msFile.pvBuffer);
 
-	// calculate the address of the current
-	// sector and the address of the end of the buffer
+	// calculate the address of the current sector and the address of the end of the buffer
 	sOperation.uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 	sOperation.end_of_buffer = msFile.pvBuffer + mpcVolume->GetNoOfBytesPerSector();
 
@@ -972,6 +971,13 @@ EFatCode CFatFile::FatFileReadCallback(SFatOperationState* psOperation)
 	{
 		*psOperation->uiBytesRead = 0;
 	}
+
+	uint32		uiSectorsRemaining;
+	uiSectorsRemaining = psOperation->uiBytesRemaining % mpcVolume->GetSectorSize();
+
+	
+
+//	bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer, );
 
 	// if the sector cache is invalid
 	if (msFile.bBufferDirty)
