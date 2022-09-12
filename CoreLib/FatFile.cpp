@@ -92,7 +92,7 @@ void CFatFile::AllocateBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileOpen(char* filename, uint8 uiAccessFlags)
+EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 {
 	EFatCode				uiResult;
 	SFatDirectoryEntry		file_entry;
@@ -232,13 +232,25 @@ EFatCode CFatFile::FatFileOpen(char* filename, uint8 uiAccessFlags)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
+{
+	AllocateBuffer();
+
+	return FatOpenFileByEntry(psEntry, uiAccessFlags);
+}
+
+
 // opens a file given a pointer to it's
 // directory entry
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags)
+EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
 {
 	bool		bSuccess;
 	EFatCode	uiResult;
@@ -253,22 +265,22 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessF
 	// if the user is trying to open a directory then
 	// return an error code, otherwise it would corrupt
 	// the volume
-	if (entry->attributes & FAT_ATTR_DIRECTORY)
+	if (psEntry->attributes & FAT_ATTR_DIRECTORY)
 	{
 		return FAT_NOT_A_FILE;
 	}
 
 	// copy the volume file and the entry's
 	// structure to the file file
-	msFile.sDirectoryEntry = *entry;
-	msFile.uiCurrentSize = entry->size;
+	msFile.sDirectoryEntry = *psEntry;
+	msFile.uiCurrentSize = psEntry->size;
 	msFile.uiCurrentClusterIdx = 0;
 	msFile.uiAccessFlags = uiAccessFlags;
 	msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
 	msFile.bBusy = 0;
 
 	// calculate the # of clusters allocated
-	msFile.uiNoOfClustersAfterPos = (entry->size + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
+	msFile.uiNoOfClustersAfterPos = (psEntry->size + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
 	msFile.uiNoOfClustersAfterPos = (msFile.uiNoOfClustersAfterPos + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
 	if (msFile.uiNoOfClustersAfterPos)
 	{
@@ -281,8 +293,8 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessF
 	msFile.bBufferDirty = true;
 
 	// read the the cluster number
-	((uint16*)&msFile.uiCurrentClusterAddress)[INT32_WORD0] = entry->raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&msFile.uiCurrentClusterAddress)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? entry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+	((uint16*)&msFile.uiCurrentClusterAddress)[INT32_WORD0] = psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo;
+	((uint16*)&msFile.uiCurrentClusterAddress)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
 
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
@@ -302,32 +314,32 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessF
 
 		// if the file is not already empty then
 		// we'll empty it
-		if (entry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || entry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
+		if (psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
 		{
 			uint8* uiBuffer = mpcVolume->GetFatSharedBuffer();
 
 			// update the entry to point to cluster 0
-			entry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
-			entry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
-			entry->raw.uEntry.sFatRawCommon.size = 0x0;
-			msFile.sDirectoryEntry = *entry;
-			msFile.uiCurrentSize = entry->size;
+			psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
+			psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
+			psEntry->raw.uEntry.sFatRawCommon.size = 0x0;
+			msFile.sDirectoryEntry = *psEntry;
+			msFile.uiCurrentSize = psEntry->size;
 
 			// mark the cached sector as unknown
 			mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 			// read the sector that contains the entry
-			bSuccess = mpcVolume->Read(entry->uiSectorAddress, uiBuffer);
+			bSuccess = mpcVolume->Read(psEntry->uiSectorAddress, uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
 				return FAT_CANNOT_READ_MEDIA;
 			}
 			// copy the modified file entry to the sector uiBuffer
-			memcpy(uiBuffer + entry->uiSectorOffset, &entry->raw, sizeof(SFatRawDirectoryEntry));
+			memcpy(uiBuffer + psEntry->uiSectorOffset, &psEntry->raw, sizeof(SFatRawDirectoryEntry));
 
 			// write the modified entry to the media
-			bSuccess = mpcVolume->Write(entry->uiSectorAddress, uiBuffer);
+			bSuccess = mpcVolume->Write(psEntry->uiSectorAddress, uiBuffer);
 			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
@@ -1183,7 +1195,7 @@ EFatCode CFatFile::FatFileFlush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileClose(void)
+EFatCode CFatFile::Close(void)
 {
 	EFatCode	uiResult;
 	FatEntry	fat_entry;

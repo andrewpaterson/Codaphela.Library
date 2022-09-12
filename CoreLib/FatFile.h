@@ -33,24 +33,11 @@ protected:
 
 public:
 	void					Init(CFatVolume* pcVolume);
-
-public:
-	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileOpen(char* filename, uint8 uiAccessFlags);
-
-	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
-	EFatCode				FatFileSetBuffer(uint8* uiBuffer);
-	uint32					FatFileGetUniqueId(void);
-	EFatCode				FatFileAllocate(uint32 bytes);
-	EFatCode				FatFileSeek(uint32 offset, char mode);
-	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
+	EFatCode				Open(char* filename, uint8 uiAccessFlags);
+	EFatCode				Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode				Close(void);
 	EFatCode				FatFileWrite(uint8* buff, uint32 length);
-	EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
 	EFatCode				FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
-	EFatCode				FatFileFlush(void);
-	EFatCode				FatFileClose(void);
-
-	void					AllocateBuffer(void);
 
 	uint32					GetCurrentSize(void);
 	uint32					GetCurrentClusterAddress(void);
@@ -64,6 +51,20 @@ public:
 	uint8					GetMagic(void);
 	uint8					GetAccessFlags(void);
 	uint8*					GetBuffer(void);
+
+protected:
+
+	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode				FatFileSetBuffer(uint8* uiBuffer);
+	uint32					FatFileGetUniqueId(void);
+	EFatCode				FatFileAllocate(uint32 bytes);
+	EFatCode				FatFileSeek(uint32 offset, char mode);
+	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
+	EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
+	EFatCode				FatFileFlush(void);
+
+	void					AllocateBuffer(void);
+	EFatCode				FatFileUpdateSequentialClusterCount(void);
 };
 
 
