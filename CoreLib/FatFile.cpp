@@ -54,7 +54,7 @@ EFatCode CFatFile::FatFileUpdateSequentialClusterCount(void)
 
 	while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
 	{
-		eResult = mpcVolume->FatGetClusterEntry(uiCurrentCluster, &uiNextCluster);
+		eResult = mpcVolume->GetNextClusterEntry(uiCurrentCluster, &uiNextCluster);
 		if (eResult != FAT_SUCCESS)
 		{
 			return eResult;
@@ -226,9 +226,13 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 	// if the file has no clusters allocated then allocate one
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
-		FatFileUpdateSequentialClusterCount();
+		uiResult = FatFileUpdateSequentialClusterCount();
+		return uiResult;
 	}
-	return FAT_SUCCESS;
+	else
+	{
+		return FAT_SUCCESS;
+	}
 }
 
 
@@ -244,8 +248,7 @@ EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
 }
 
 
-// opens a file given a pointer to it's
-// directory entry
+// opens a file given a pointer to it's directory entry
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -300,7 +303,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 	{
 		// if the file is being opened for append access we
 		// seek to the end of the file
-		uiResult = FatFileSeek(0, FAT_SEEK_END);
+		uiResult = Seek(0, FAT_SEEK_END);
 		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.uiMagic = 0;
@@ -523,7 +526,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		// find the last sequential sector after this address
 		while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
 		{
-			mpcVolume->FatGetClusterEntry(uiCurrentCluster, &uiNextCluster);
+			mpcVolume->GetNextClusterEntry(uiCurrentCluster, &uiNextCluster);
 
 			if (uiNextCluster == (uiCurrentCluster + 1))
 			{
@@ -603,8 +606,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		}
 	}
 
-	// update the file to point to the
-	// new cluster
+	// update the file to point to the new cluster
 	if (!msFile.uiCurrentClusterAddress)
 	{
 		msFile.uiCurrentClusterAddress = uiNewCluster;
@@ -628,7 +630,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileSeek(uint32 offset, char mode)
+EFatCode CFatFile::Seek(uint32 offset, char mode)
 {
 	uint32	new_pos;
 	uint32	sector_count;
@@ -866,7 +868,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatOperationState* psOperation)
 			// locate the next cluster and continue writing
 			if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
-				uiResult = mpcVolume->FatGetClusterEntry(msFile.uiCurrentClusterAddress, &msFile.uiCurrentClusterAddress);
+				uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCurrentClusterAddress, &msFile.uiCurrentClusterAddress);
 				if (uiResult != FAT_SUCCESS)
 				{
 					msFile.bBusy = 0;
@@ -971,13 +973,6 @@ EFatCode CFatFile::FatFileReadCallback(SFatOperationState* psOperation)
 	{
 		*psOperation->uiBytesRead = 0;
 	}
-
-	uint32		uiSectorsRemaining;
-	uiSectorsRemaining = psOperation->uiBytesRemaining % mpcVolume->GetSectorSize();
-
-	
-
-//	bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer, );
 
 	// if the sector cache is invalid
 	if (msFile.bBufferDirty)
@@ -1224,7 +1219,7 @@ EFatCode CFatFile::Close(void)
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
 		// seek to the end of the file
-		uiResult = FatFileSeek(msFile.uiCurrentSize - 1, FAT_SEEK_START);
+		uiResult = Seek(msFile.uiCurrentSize - 1, FAT_SEEK_START);
 		if (uiResult != FAT_SUCCESS)
 		{
 			SafeFree(msFile.pvBuffer);
@@ -1243,7 +1238,7 @@ EFatCode CFatFile::Close(void)
 		msFile.bBusy = 1;
 
 		// free unused clusters
-		uiResult = mpcVolume->FatGetClusterEntry(msFile.uiCurrentClusterAddress, &fat_entry);
+		uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCurrentClusterAddress, &fat_entry);
 		if (uiResult != FAT_SUCCESS)
 		{
 			SafeFree(msFile.pvBuffer);

@@ -91,7 +91,7 @@ public:
 	uint32				FatAllocateDataCluster(uint32 count, char zero, EFatCode* result);
 	uint32				FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* result);
 	EFatCode			FatFreeClusterChain(uint32 cluster);
-	EFatCode			FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry);
+	EFatCode			GetNextClusterEntry(uint32 cluster, FatEntry* fat_entry);
 	EFatCode			FatSetClusterEntry(uint32 cluster, FatEntry fat_entry);
 	EFatCode			FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
 	bool				FatIsEOFEntry(FatEntry fat);
