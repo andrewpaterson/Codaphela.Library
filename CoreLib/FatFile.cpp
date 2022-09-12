@@ -290,11 +290,6 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 		msFile.uiNoOfClustersAfterPos--;
 	}
 
-	// set the sector cache as dirty, this will
-	// indicate that the current sector has not yet
-	// been read to other file functions
-	msFile.bBufferDirty = true;
-
 	// read the the cluster number
 	((uint16*)&msFile.uiCurrentClusterAddress)[INT32_WORD0] = psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo;
 	((uint16*)&msFile.uiCurrentClusterAddress)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
@@ -359,7 +354,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 		msFile.uiCurrentSectorIdx = 0x0;
 		msFile.uiCurrentClusterAddress = 0x0;
 		msFile.uiCurrentClusterIdx = 0;
-		msFile.pvBufferHead = (uint8*)msFile.pvBuffer;
+		msFile.pvBufferHead = msFile.pvBuffer;
 		msFile.uiNoOfClustersAfterPos = 0;
 	}
 	else
@@ -368,43 +363,11 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 		// simply set the file to point to the beggining
 		// of the 1st cluster
 		msFile.uiCurrentSectorIdx = 0x0;
-		msFile.pvBufferHead = (uint8*)msFile.pvBuffer;
+		msFile.pvBufferHead = msFile.pvBuffer;
 	}
 	return FAT_SUCCESS;
 }
 
-
-// sets the buffer of the file
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileSetBuffer(uint8* uiBuffer)
-{
-	if (GetBufferHead() != GetBuffer())
-	{
-		uint32	uiSectorAddress;
-		bool	bSuccess;
-
-		uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
-		msFile.pvBuffer = uiBuffer;
-		msFile.pvBufferHead = uiBuffer + (uintptr_t)msFile.pvBufferHead;
-		bSuccess = mpcVolume->Read(uiSectorAddress, msFile.pvBuffer);
-		if (!bSuccess)
-		{
-			msFile.bBusy = 0;
-			return FAT_CANNOT_READ_MEDIA;
-		}
-		msFile.bBufferDirty = false;
-	}
-	else
-	{
-		msFile.pvBuffer = uiBuffer;
-		msFile.pvBufferHead = uiBuffer;
-	}
-
-	return FAT_SUCCESS;
-}
 
 // gets a unique identifier of the file (ie. first cluster)
 //////////////////////////////////////////////////////////////////////////
@@ -638,7 +601,6 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 	uint32	old_cluster;
 	uint32	uiSectorAddress;
 	uint16	uiResult;
-	bool	bSuccess;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -739,18 +701,6 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 
 	uiSectorAddress = msFile.uiCurrentSectorIdx + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
 	msFile.uiCurrentClusterIdx = cluster_count - 1;
-
-	// load the last sector
-	if (msFile.pvBuffer)
-	{
-		bSuccess = mpcVolume->Read(uiSectorAddress, msFile.pvBuffer);
-		if (!bSuccess)
-		{
-			msFile.bBusy = 0;
-			return FAT_CANNOT_READ_MEDIA;
-		}
-		msFile.bBufferDirty = false;
-	}
 
 	// maintain the count of allocated clusters
 	if (old_cluster < msFile.uiCurrentClusterIdx)
@@ -955,7 +905,130 @@ EFatCode CFatFile::Read(uint8* buff, uint32 uiLength, uint32* uiBytesRead)
 	sOperation.pvBuffer = buff;
 	sOperation.uiBytesRead = uiBytesRead;
 
-	return FatFileReadCallback(&sOperation);
+	return FatFileRead(&sOperation);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::FatFileRead(SFatOperationState* psOperation)
+{
+	EFatCode	uiResult;
+	bool		bSuccess;
+	uint32		uiStartReadSector;
+	uint32		uiRemaingingSectors;
+	uint32		uiEndReadSector;
+	uint32		uiLastClusterSector;
+	uint32		uiSectorsToRead;
+	uint32		uiBytesToRead;
+	uint32		uiTotalBytesToRead;
+
+
+
+	if (msFile.pvBufferHead == psOperation->end_of_buffer)
+	{
+		msFile.pvBufferHead = msFile.pvBuffer;
+
+		// if this sector is the last of the current cluster
+		// we must find the next cluster
+		if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
+		{
+			// update the cluster address with the address of the next cluster
+			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, 1, &msFile.uiCurrentClusterAddress);
+			if (uiResult != FAT_SUCCESS)
+			{
+				msFile.bBusy = 0;
+				return FAT_CORRUPTED_FILE;
+			}
+
+			// reset the current sector increase the current cluster
+			// number and calculate the address of the first sector of the
+			// cluster
+			msFile.uiCurrentClusterIdx++;
+			msFile.uiCurrentSectorIdx = 0x0;
+			psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+		}
+		else
+		{
+
+			// if there are more sectors in the current cluster then
+			// simply increase the current sector counter and address
+			msFile.uiCurrentSectorIdx++;
+			psOperation->uiSectorAddress++;
+		}
+	}
+
+
+
+
+
+	uiTotalBytesToRead = 0;
+
+	for (;;)
+	{
+		msFile.pvBufferHead = msFile.pvBuffer;
+		uiStartReadSector = psOperation->uiSectorAddress;
+
+		uiLastClusterSector = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress) + (mpcVolume->GetNoOfSectorsPerCluster() - 1);
+
+		uiRemaingingSectors = psOperation->uiBytesRemaining / mpcVolume->GetSectorSize();
+		if (psOperation->uiBytesRemaining % mpcVolume->GetSectorSize() != 0)
+		{
+			uiRemaingingSectors++;
+		}
+
+		uiEndReadSector = uiStartReadSector + uiRemaingingSectors;
+		if (uiEndReadSector > uiLastClusterSector)
+		{
+			uiEndReadSector = uiLastClusterSector;
+		}
+
+		uiSectorsToRead = uiEndReadSector - uiStartReadSector + 1;
+		bSuccess = mpcVolume->Read(uiStartReadSector, uiSectorsToRead, msFile.pvBufferHead);
+		if (!bSuccess)
+		{
+			return FAT_CANNOT_READ_MEDIA;
+		}
+
+		uiBytesToRead = uiSectorsToRead * mpcVolume->GetNoOfBytesPerSector();
+		if (psOperation->uiBytesRemaining < uiBytesToRead)
+		{
+			uiBytesToRead = psOperation->uiBytesRemaining;
+		}
+		memcpy(psOperation->pvBuffer, msFile.pvBufferHead, uiBytesToRead);
+		psOperation->pvBuffer += uiBytesToRead;
+
+		psOperation->uiBytesRemaining -= uiBytesToRead;
+		uiTotalBytesToRead += uiBytesToRead;
+		if (psOperation->uiBytesRemaining == 0)
+		{
+			psOperation->uiSectorAddress += uiSectorsToRead;
+			msFile.pvBufferHead += uiBytesToRead;
+			break;
+		}
+
+		// update the cluster address with the address of the next cluster
+		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, 1, &msFile.uiCurrentClusterAddress);
+		if (uiResult != FAT_SUCCESS)
+		{
+			msFile.bBusy = 0;
+			return FAT_CORRUPTED_FILE;
+		}
+
+		// reset the current sector increase the current cluster
+		// number and calculate the address of the first sector of the
+		// cluster
+		msFile.uiCurrentClusterIdx++;
+		msFile.uiCurrentSectorIdx = 0x0;
+		psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+	}
+
+	SafeAssign(psOperation->uiBytesRead, uiTotalBytesToRead);
+
+	msFile.bBusy = 0;
+	return FAT_SUCCESS;
 }
 
 
@@ -974,19 +1047,12 @@ EFatCode CFatFile::FatFileReadCallback(SFatOperationState* psOperation)
 		*psOperation->uiBytesRead = 0;
 	}
 
-	// if the sector cache is invalid
-	if (msFile.bBufferDirty)
+	// read the current sector synchronously
+	bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer);
+	if (!bSuccess)
 	{
-		// read the current sector synchronously
-		bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer);
-		if (!bSuccess)
-		{
-			msFile.bBusy = 0;
-			return FAT_CANNOT_READ_MEDIA;
-		}
-
-		// mark the cache as clean
-		msFile.bBufferDirty = false;
+		msFile.bBusy = 0;
+		return FAT_CANNOT_READ_MEDIA;
 	}
 
 	// make sure that we haven't reaced the end of the file
@@ -1296,7 +1362,6 @@ uint32 CFatFile::GetCurrentSectorIdx(void) { return msFile.uiCurrentSectorIdx; }
 uint32 CFatFile::GetNoOfClustersAfterPos(void) { return msFile.uiNoOfClustersAfterPos; }
 uint16 CFatFile::GetNoOfSequentialClusters(void) { return msFile.uiNoOfSequentialClusters; }
 uint8* CFatFile::GetBufferHead(void) { return msFile.pvBufferHead; }
-bool CFatFile::IsBufferDirty(void) { return msFile.bBufferDirty; }
 bool CFatFile::IsBusy(void) { return msFile.bBusy; }
 uint8 CFatFile::GetMagic(void) { return msFile.uiMagic; }
 uint8 CFatFile::GetAccessFlags(void) { return msFile.uiAccessFlags; }
