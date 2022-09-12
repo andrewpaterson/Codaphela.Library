@@ -1036,104 +1036,104 @@ EFatCode CFatFile::FatFileRead(SFatOperationState* psOperation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileReadCallback(SFatOperationState* psOperation)
-{
-	EFatCode	uiResult;
-	bool		bSuccess;
-
-	// reset the # of bytes read
-	if (psOperation->uiBytesRead)
-	{
-		*psOperation->uiBytesRead = 0;
-	}
-
-	// read the current sector synchronously
-	bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer);
-	if (!bSuccess)
-	{
-		msFile.bBusy = 0;
-		return FAT_CANNOT_READ_MEDIA;
-	}
-
-	// make sure that we haven't reaced the end of the file
-	if (psOperation->uiBytePosition >= msFile.uiCurrentSize)
-	{
-		psOperation->uiBytesRemaining = 0;
-	}
-
-	// loop while there are bytes to be read
-	while (psOperation->uiBytesRemaining)
-	{
-		// if we've reached the end of the current
-		// sector then we must load the next...
-		if (msFile.pvBufferHead == psOperation->end_of_buffer)
-		{
-			msFile.pvBufferHead = msFile.pvBuffer;
-
-			// if this sector is the last of the current cluster
-			// we must find the next cluster
-			if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
-			{
-				// update the cluster address with the address of the next cluster
-				uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, 1, &msFile.uiCurrentClusterAddress);
-				if (uiResult != FAT_SUCCESS)
-				{
-					msFile.bBusy = 0;
-					return FAT_CORRUPTED_FILE;
-				}
-
-				// reset the current sector increase the current cluster
-				// number and calculate the address of the first sector of the
-				// cluster
-				msFile.uiCurrentClusterIdx++;
-				msFile.uiCurrentSectorIdx = 0x0;
-				psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
-			}
-			else
-			{
-
-				// if there are more sectors in the current cluster then
-				// simply increase the current sector counter and address
-				msFile.uiCurrentSectorIdx++;
-				psOperation->uiSectorAddress++;
-			}
-
-			// read the next sector into the cache
-			bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer);
-			if (!bSuccess)
-			{
-				msFile.bBusy = 0;
-				return FAT_CANNOT_READ_MEDIA;
-			}
-		}
-
-		// update the count of bytes read/remaining and if the file
-		// is buffered copy data to file buffer
-		// copy the next byte to the buffer
-		*psOperation->pvBuffer++ = *msFile.pvBufferHead++;
-
-		// update the  count of bytes read
-		if (psOperation->uiBytesRead)
-		{
-			(*psOperation->uiBytesRead)++;
-		}
-
-		// decrease the count of remaining bytes
-		psOperation->uiBytesRemaining--;
-
-		// increase the file pointer
-		psOperation->uiBytePosition++;
-
-		// check if we've reached the end of the file
-		if (psOperation->uiBytePosition >= msFile.uiCurrentSize)
-		{
-			psOperation->uiBytesRemaining = 0;
-		}
-	}
-
-	msFile.bBusy = 0;
-	return FAT_SUCCESS;
-}
+//EFatCode CFatFile::FatFileReadCallback(SFatOperationState* psOperation)
+//{
+//	EFatCode	uiResult;
+//	bool		bSuccess;
+//
+//	// reset the # of bytes read
+//	if (psOperation->uiBytesRead)
+//	{
+//		*psOperation->uiBytesRead = 0;
+//	}
+//
+//	// read the current sector synchronously
+//	bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer);
+//	if (!bSuccess)
+//	{
+//		msFile.bBusy = 0;
+//		return FAT_CANNOT_READ_MEDIA;
+//	}
+//
+//	// make sure that we haven't reaced the end of the file
+//	if (psOperation->uiBytePosition >= msFile.uiCurrentSize)
+//	{
+//		psOperation->uiBytesRemaining = 0;
+//	}
+//
+//	// loop while there are bytes to be read
+//	while (psOperation->uiBytesRemaining)
+//	{
+//		// if we've reached the end of the current
+//		// sector then we must load the next...
+//		if (msFile.pvBufferHead == psOperation->end_of_buffer)
+//		{
+//			msFile.pvBufferHead = msFile.pvBuffer;
+//
+//			// if this sector is the last of the current cluster
+//			// we must find the next cluster
+//			if (msFile.uiCurrentSectorIdx == mpcVolume->GetNoOfSectorsPerCluster() - 1)
+//			{
+//				// update the cluster address with the address of the next cluster
+//				uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentClusterAddress, 1, &msFile.uiCurrentClusterAddress);
+//				if (uiResult != FAT_SUCCESS)
+//				{
+//					msFile.bBusy = 0;
+//					return FAT_CORRUPTED_FILE;
+//				}
+//
+//				// reset the current sector increase the current cluster
+//				// number and calculate the address of the first sector of the
+//				// cluster
+//				msFile.uiCurrentClusterIdx++;
+//				msFile.uiCurrentSectorIdx = 0x0;
+//				psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentClusterAddress);
+//			}
+//			else
+//			{
+//
+//				// if there are more sectors in the current cluster then
+//				// simply increase the current sector counter and address
+//				msFile.uiCurrentSectorIdx++;
+//				psOperation->uiSectorAddress++;
+//			}
+//
+//			// read the next sector into the cache
+//			bSuccess = mpcVolume->Read(psOperation->uiSectorAddress, msFile.pvBuffer);
+//			if (!bSuccess)
+//			{
+//				msFile.bBusy = 0;
+//				return FAT_CANNOT_READ_MEDIA;
+//			}
+//		}
+//
+//		// update the count of bytes read/remaining and if the file
+//		// is buffered copy data to file buffer
+//		// copy the next byte to the buffer
+//		*psOperation->pvBuffer++ = *msFile.pvBufferHead++;
+//
+//		// update the  count of bytes read
+//		if (psOperation->uiBytesRead)
+//		{
+//			(*psOperation->uiBytesRead)++;
+//		}
+//
+//		// decrease the count of remaining bytes
+//		psOperation->uiBytesRemaining--;
+//
+//		// increase the file pointer
+//		psOperation->uiBytePosition++;
+//
+//		// check if we've reached the end of the file
+//		if (psOperation->uiBytePosition >= msFile.uiCurrentSize)
+//		{
+//			psOperation->uiBytesRemaining = 0;
+//		}
+//	}
+//
+//	msFile.bBusy = 0;
+//	return FAT_SUCCESS;
+//}
 
 
 // flushes file buffers
