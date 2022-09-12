@@ -57,7 +57,7 @@ protected:
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
 	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
-	EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
+	//EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
 	EFatCode				FatFileFlush(void);
 
 	void					AllocateBuffer(void);
