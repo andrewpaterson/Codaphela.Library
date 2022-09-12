@@ -38,6 +38,7 @@ public:
 	EFatCode				Close(void);
 	EFatCode				Write(uint8* buff, uint32 length);
 	EFatCode				Read(uint8* buff, uint32 length, uint32* bytes_read);
+	EFatCode				Seek(uint32 offset, char mode);
 
 	uint32					GetCurrentSize(void);
 	uint32					GetCurrentClusterAddress(void);
@@ -58,7 +59,6 @@ protected:
 	EFatCode				FatFileSetBuffer(uint8* uiBuffer);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
-	EFatCode				FatFileSeek(uint32 offset, char mode);
 	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
 	EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
 	EFatCode				FatFileFlush(void);

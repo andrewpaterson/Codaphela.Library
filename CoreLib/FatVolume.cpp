@@ -1275,13 +1275,13 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 {
 	bool	bSuccess;
-	uint32	uiClusterOffsetInBytes = 0;			/* the offset of the cluster sEntry within the FAT table */
-	uint32	uiClusterBytesRemainder;			/* the offset of the cluster sEntry within it's sector */
-	uint32	uiFirstClusterSector;			/* the sector where the sEntry is stored on the drive */
-	uint32	uiCurrentSector;			/* the sector that's currently loaded in memory */
-	char	is_odd_cluster = 0;		/* indicates that the sEntry being processed is an odd cluster address (FAT12 only) */
-	char	op_in_progress = 0;		/* indicates that a multi-step operation is in progress (FAT12 only) */
-	uint8* uiBuffer = mauiFatSharedBuffer;
+	uint32	uiClusterOffsetInBytes = 0;					// the offset of the cluster sEntry within the FAT table
+	uint32	uiClusterBytesRemainder;					// the offset of the cluster sEntry within it's sector
+	uint32	uiFirstClusterSector;						// the sector where the sEntry is stored on the drive
+	uint32	uiCurrentSector;							// the sector that's currently loaded in memory
+	char	bFat12OddClusterBeingProcessed = false;		// indicates that the sEntry being processed is an odd cluster address (FAT12 only)
+	char	bFat12MultiStepProgress = false;			// indicates that a multi-step operation is in progress (FAT12 only)
+	uint8*	pvBuffer = mauiFatSharedBuffer;
 
 	// get the offset of the cluster sEntry within the FAT table,
 	// the sector of the FAT table that contains the sEntry and the offset
@@ -1296,7 +1296,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 		// load sector to memory
 		if (!IsFatSectorLoaded(uiFirstClusterSector))
 		{
-			bSuccess = Read(uiFirstClusterSector, uiBuffer);
+			bSuccess = Read(uiFirstClusterSector, pvBuffer);
 			if (!bSuccess)
 			{
 				muiFatSharedBufferSector = (0xFFFFFFFF);
@@ -1324,30 +1324,30 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			{
 			case FAT_FS_TYPE_FAT12:
 			{
-				if (!op_in_progress)
+				if (!bFat12MultiStepProgress)
 				{
 					// remember whether this is an odd cluster or not
-					is_odd_cluster = (cluster & 0x1);
+					bFat12OddClusterBeingProcessed = (cluster & 0x1);
 
 					// set the cluster to zero to make sure that the upper bytes are cleared
 					// since we're only updating the lower 16 bits.
 					cluster = 0;
 
 					// read the 1st byte
-					((uint8*)&cluster)[0] = uiBuffer[uiClusterBytesRemainder];
+					((uint8*)&cluster)[0] = pvBuffer[uiClusterBytesRemainder];
 
 					// write the 1st byte
 					//
 					// note: since the value that we're writting is FREE_FAT which expands
 					// to zero we can skip a step or two in the update process. I left the code
 					// for the steps that we're skipping commented out for clarity.
-					if (is_odd_cluster)
+					if (bFat12OddClusterBeingProcessed)
 					{
-						uiBuffer[uiClusterBytesRemainder] &= 0x0F;
+						pvBuffer[uiClusterBytesRemainder] &= 0x0F;
 					}
 					else
 					{
-						uiBuffer[uiClusterBytesRemainder] = FREE_FAT;
+						pvBuffer[uiClusterBytesRemainder] = FREE_FAT;
 					}
 				}
 
@@ -1356,40 +1356,40 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 					/*
 					// flush current sector to drive
 					*/
-					bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
+					bSuccess = FatWriteFatSector(uiCurrentSector, pvBuffer);
 					if (!bSuccess)
 					{
 						muiFatSharedBufferSector = 0xFFFFFFFF;
 						return FAT_CANNOT_READ_MEDIA;
 					}
 
-					// if the sEntry spans a sector boundary set op_in_progress to 1
+					// if the sEntry spans a sector boundary set bFat12MultiStepProgress to 1
 					// so that we don't read the 1st byte again when we come back.
 					// also increase the sector number and set the uiClusterBytesRemainder to 0 since
 					// the next byte will be on offset zero when the next sector is loaded
 					uiFirstClusterSector++;
 					uiClusterBytesRemainder = 0;
-					op_in_progress = 1;
+					bFat12MultiStepProgress = 1;
 
 					// continue with the next iteration of the loop. We'll come right back
 					// here with the next sector loaded
 					continue;
 				}
-				else if (!op_in_progress)
+				else if (!bFat12MultiStepProgress)
 				{
 					// increase the offset to point to the next byte
 					uiClusterBytesRemainder++;
 				}
 
 				// read the 2nd byte
-				((uint8*)&cluster)[1] = uiBuffer[uiClusterBytesRemainder];
+				((uint8*)&cluster)[1] = pvBuffer[uiClusterBytesRemainder];
 
 				// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the result.
 				// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
 				// 16 bits where it is stored, so we need to shift the value 4 bits to the right.
 				// For even cluster numbers the FAT sEntry is stored in the lower 12 bits of the
 				// 16 bits where it is stored, so we need to clear the upper 4 bits.
-				if (is_odd_cluster)
+				if (bFat12OddClusterBeingProcessed)
 				{
 					cluster >>= 4;
 				}
@@ -1408,31 +1408,31 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 				// since that is part of the read operation and this is the write operation
 				// i've decided to keep it separate for code clarity. maybe the compiler
 				// can optimize this for us??
-				if (is_odd_cluster)
+				if (bFat12OddClusterBeingProcessed)
 				{
-					uiBuffer[uiClusterBytesRemainder] = FREE_FAT;
+					pvBuffer[uiClusterBytesRemainder] = FREE_FAT;
 				}
 				else
 				{
-					uiBuffer[uiClusterBytesRemainder] &= 0xF0;	/* clear bits that 1st byte will be written to */
+					pvBuffer[uiClusterBytesRemainder] &= 0xF0;	/* clear bits that 1st byte will be written to */
 				}
 
-				// clear op_in_progress flag.
-				op_in_progress = 0;
+				// clear bFat12MultiStepProgress flag.
+				bFat12MultiStepProgress = 0;
 				break;
 			}
 			case FAT_FS_TYPE_FAT16:
 			{
-				cluster = (uint32) * ((uint16*)&uiBuffer[uiClusterBytesRemainder]);
-				*((uint16*)&uiBuffer[uiClusterBytesRemainder]) = FREE_FAT;
+				cluster = (uint32) * ((uint16*)&pvBuffer[uiClusterBytesRemainder]);
+				*((uint16*)&pvBuffer[uiClusterBytesRemainder]) = FREE_FAT;
 				break;
 			}
 			case FAT_FS_TYPE_FAT32:
 			{
 				// FAT32 entries are actually 28 bits so we need to leave the
 				// upper nibble untouched
-				cluster = *((uint32*)&uiBuffer[uiClusterBytesRemainder]) & 0x0FFFFFFF;
-				*((uint32*)&uiBuffer[uiClusterBytesRemainder]) &= 0xF0000000;
+				cluster = *((uint32*)&pvBuffer[uiClusterBytesRemainder]) & 0x0FFFFFFF;
+				*((uint32*)&pvBuffer[uiClusterBytesRemainder]) &= 0xF0000000;
 				break;
 			}
 			}
@@ -1443,7 +1443,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			// if it's the EOF marker we're done, flush the uiBuffer and go
 			if (FatIsEOFEntry(cluster))
 			{
-				bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
+				bSuccess = FatWriteFatSector(uiCurrentSector, pvBuffer);
 				if (!bSuccess)
 				{
 					muiFatSharedBufferSector = 0xFFFFFFFF;
@@ -1460,7 +1460,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 		}
 
 		// flush FAT table changes
-		bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
+		bSuccess = FatWriteFatSector(uiCurrentSector, pvBuffer);
 		if (!bSuccess)
 		{
 			muiFatSharedBufferSector = 0xFFFFFFFF;
@@ -1475,7 +1475,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
+EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNextCluster)
 {
 	bool	bSuccess;
 	uint32	uiClusterOffsetInBytes = 0;		/* todo: this one may require 64 bits for large drives? */
@@ -1489,15 +1489,15 @@ EFatCode CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
 	switch (GetFileSystemType())
 	{
 	case FAT_FS_TYPE_FAT12:
-		uiClusterOffsetInBytes = cluster + (cluster >> 1);
+		uiClusterOffsetInBytes = uiCurrentCluster + (uiCurrentCluster >> 1);
 		break;
 
 	case FAT_FS_TYPE_FAT16:
-		uiClusterOffsetInBytes = cluster * ((uint32)2);
+		uiClusterOffsetInBytes = uiCurrentCluster * ((uint32)2);
 		break;
 
 	case FAT_FS_TYPE_FAT32:
-		uiClusterOffsetInBytes = cluster * ((uint32)4);
+		uiClusterOffsetInBytes = uiCurrentCluster * ((uint32)4);
 		break;
 	}
 
@@ -1522,67 +1522,67 @@ EFatCode CFatVolume::FatGetClusterEntry(uint32 cluster, FatEntry* fat_entry)
 	// value of the FAT sEntry
 	switch (GetFileSystemType())
 	{
-	case FAT_FS_TYPE_FAT12:
-	{
-		// clear fat_entry to make sure that the upper 16
-		// bits are not set.
-		*fat_entry = 0;
-
-		// read the 1st byte
-		((uint8*)fat_entry)[0] = uiBuffer[uiClusterBytesRemainder];
-
-		// load the next sector (if necessary) and set the offset
-		// for the next byte in the uiBuffer
-		if (uiClusterBytesRemainder == GetNoOfBytesPerSector() - 1)
+		case FAT_FS_TYPE_FAT12:
 		{
-			// load the next sector into the uiBuffer
-			bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
-			if (!bSuccess)
+			// clear fat_entry to make sure that the upper 16
+			// bits are not set.
+			*puiNextCluster = 0;
+
+			// read the 1st byte
+			((uint8*)puiNextCluster)[0] = uiBuffer[uiClusterBytesRemainder];
+
+			// load the next sector (if necessary) and set the offset
+			// for the next byte in the uiBuffer
+			if (uiClusterBytesRemainder == GetNoOfBytesPerSector() - 1)
 			{
-				muiFatSharedBufferSector = 0xFFFFFFFF;
-				return FAT_CANNOT_READ_MEDIA;
+				// load the next sector into the uiBuffer
+				bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
+				if (!bSuccess)
+				{
+					muiFatSharedBufferSector = 0xFFFFFFFF;
+					return FAT_CANNOT_READ_MEDIA;
+				}
+				muiFatSharedBufferSector = (uiFirstClusterSector + 1);
+
+				// the 2nd byte is now the 1st byte in the uiBuffer
+				uiClusterBytesRemainder = 0;
 			}
-			muiFatSharedBufferSector = (uiFirstClusterSector + 1);
+			else
+			{
+				// the 2nd byte is still right after the 1st one on
+				// the uiBuffer
+				uiClusterBytesRemainder++;
+			}
 
-			// the 2nd byte is now the 1st byte in the uiBuffer
-			uiClusterBytesRemainder = 0;
+			// read the 2nd byte
+			((uint8*)puiNextCluster)[1] = uiBuffer[uiClusterBytesRemainder];
+
+			// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the result.
+			// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
+			// 16 bits where it is stored, so we need to shift the value 4 bits to the right.
+			// For even cluster numbers the FAT sEntry is stored in the lower 12 bits of the
+			// 16 bits where it is stored, so we need to clear the upper 4 bits.
+
+			if (uiCurrentCluster & 0x1)
+			{
+				*puiNextCluster >>= 4;
+			}
+			else
+			{
+				*puiNextCluster &= 0xFFF;
+			}
+			break;
 		}
-		else
+		case FAT_FS_TYPE_FAT16:
 		{
-			// the 2nd byte is still right after the 1st one on
-			// the uiBuffer
-			uiClusterBytesRemainder++;
+			*puiNextCluster = (uint32) * ((uint16*)&uiBuffer[uiClusterBytesRemainder]);
+			break;
 		}
-
-		// read the 2nd byte
-		((uint8*)fat_entry)[1] = uiBuffer[uiClusterBytesRemainder];
-
-		// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the result.
-		// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
-		// 16 bits where it is stored, so we need to shift the value 4 bits to the right.
-		// For even cluster numbers the FAT sEntry is stored in the lower 12 bits of the
-		// 16 bits where it is stored, so we need to clear the upper 4 bits.
-
-		if (cluster & 0x1)
+		case FAT_FS_TYPE_FAT32:
 		{
-			*fat_entry >>= 4;
+			*puiNextCluster = *((uint32*)&uiBuffer[uiClusterBytesRemainder]) & 0x0FFFFFFF;
+			break;
 		}
-		else
-		{
-			*fat_entry &= 0xFFF;
-		}
-		break;
-	}
-	case FAT_FS_TYPE_FAT16:
-	{
-		*fat_entry = (uint32) * ((uint16*)&uiBuffer[uiClusterBytesRemainder]);
-		break;
-	}
-	case FAT_FS_TYPE_FAT32:
-	{
-		*fat_entry = *((uint32*)&uiBuffer[uiClusterBytesRemainder]) & 0x0FFFFFFF;
-		break;
-	}
 	}
 
 	return FAT_SUCCESS;
@@ -1737,12 +1737,12 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, uint32* puiNewCluster)
 {
 	bool	bSuccess;
-	uint32	uiClusterOffsetInBytes = 0;
+	uint32	uiClusterOffsetInBytes;
 	uint32	uiClusterBytesRemainder;
 	uint32	uiFirstClusterSector;
 	uint32	uiCurrentSector;
-	char	is_odd_cluster = 0;
-	char	op_in_progress = 0;
+	char	bFat12OddClusterBeingProcessed = 0;
+	char	bFat12MultiStepProgress = 0;
 	uint8*	pvBuffer = mauiFatSharedBuffer;
 
 	// if the count is zero we just return the same
@@ -1790,10 +1790,10 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 			{
 				case FAT_FS_TYPE_FAT12:
 				{
-					if (!op_in_progress)
+					if (!bFat12MultiStepProgress)
 					{
 						// remember whether this is an odd uiCluster or not
-						is_odd_cluster = (uiCluster & 0x1);
+						bFat12OddClusterBeingProcessed = (uiCluster & 0x1);
 
 						// set the uiCluster to zero to make sure that the upper bytes are cleared
 						// since we're only updating the lower 16 bits.
@@ -1805,19 +1805,19 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 
 					if (uiClusterBytesRemainder == GetNoOfBytesPerSector() - 1)
 					{
-						// if the sEntry spans a sector boundary set op_in_progress to 1
+						// if the sEntry spans a sector boundary set bFat12MultiStepProgress to 1
 						// so that we don't read the 1st byte again when we come back.
 						// also increase the sector number and set the uiClusterBytesRemainder to 0 since
 						// the next byte will be on offset zero when the next sector is loaded
 						uiFirstClusterSector++;
 						uiClusterBytesRemainder = 0;
-						op_in_progress = 1;
+						bFat12MultiStepProgress = 1;
 
 						// continue with the next iteration of the loop. We'll come right back
 						// here with the next sector loaded
 						continue;
 					}
-					else if (!op_in_progress)
+					else if (!bFat12MultiStepProgress)
 					{
 						// increase the offset to point to the next byte
 						uiClusterBytesRemainder++;
@@ -1831,7 +1831,7 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 					// 16 bits where it is stored, so we need to shift the puiNewCluster 4 bits to the right.
 					// For even uiCluster numbers the FAT sEntry is stored in the lower 12 bits of the
 					// 16 bits where it is stored, so we need to clear the upper 4 bits.
-					if (is_odd_cluster)
+					if (bFat12OddClusterBeingProcessed)
 					{
 						uiCluster >>= 4;
 					}
@@ -1840,8 +1840,8 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 						uiCluster &= 0xFFF;
 					}
 
-					// clear op_in_progress flag.
-					op_in_progress = 0;
+					// clear bFat12MultiStepProgress flag.
+					bFat12MultiStepProgress = 0;
 					break;
 				}
 				case FAT_FS_TYPE_FAT16:
@@ -2754,7 +2754,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, char buffer_locked
 
 					// get the fat structure for the current cluster
 					// and return UNKNOWN_ERROR if the operation fails
-					if (FatGetClusterEntry(query->uiCurrentCluster, &fat) != FAT_SUCCESS)
+					if (GetNextClusterEntry(query->uiCurrentCluster, &fat) != FAT_SUCCESS)
 					{
 						return FAT_UNKNOWN_ERROR;
 					}
@@ -3385,7 +3385,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 										// get the next cluster, we'll remember the last one so
 										// we can update it bellow if it's the eof cluster
 										last_fat = fat;
-										uiResult = FatGetClusterEntry(fat, &fat);
+										uiResult = GetNextClusterEntry(fat, &fat);
 										if (uiResult != FAT_SUCCESS)
 										{
 											return uiResult;
@@ -3471,7 +3471,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 		// get the next cluster, we'll remember the last one in
 		// case we need to rewind to write lfn entries
 		last_fat = fat;
-		uiResult = FatGetClusterEntry(fat, &fat);
+		uiResult = GetNextClusterEntry(fat, &fat);
 		if (uiResult != FAT_SUCCESS)
 		{
 			return uiResult;
