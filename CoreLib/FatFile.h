@@ -21,7 +21,6 @@ struct SFatFile
 	bool					bBusy;
 	uint8					uiMagic;
 	uint8					uiAccessFlags;
-	SFatOperationState		sOperationState;
 	uint8*					pvBuffer;
 };
 
@@ -44,9 +43,9 @@ public:
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
 	EFatCode				FatFileSeek(uint32 offset, char mode);
-	EFatCode				FatFileWriteCallback(void);
+	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
 	EFatCode				FatFileWrite(uint8* buff, uint32 length);
-	EFatCode				FatFileReadCallback(void);
+	EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
 	EFatCode				FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
 	EFatCode				FatFileFlush(void);
 	EFatCode				FatFileClose(void);
