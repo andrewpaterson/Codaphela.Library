@@ -768,7 +768,7 @@ EFatCode CFatFile::FatFileSeek(uint32 offset, char mode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileWrite(uint8* buff, uint32 uiLength)
+EFatCode CFatFile::Write(uint8* buff, uint32 uiLength)
 {
 	EFatCode			uiResult;
 	SFatOperationState	sOperation;
@@ -910,7 +910,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatOperationState* psOperation)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileRead(uint8* buff, uint32 uiLength, uint32* uiBytesRead)
+EFatCode CFatFile::Read(uint8* buff, uint32 uiLength, uint32* uiBytesRead)
 {
 	SFatOperationState	sOperation;
 
