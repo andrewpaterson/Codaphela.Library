@@ -36,8 +36,8 @@ public:
 	EFatCode				Open(char* filename, uint8 uiAccessFlags);
 	EFatCode				Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	EFatCode				Close(void);
-	EFatCode				FatFileWrite(uint8* buff, uint32 length);
-	EFatCode				FatFileRead(uint8* buff, uint32 length, uint32* bytes_read);
+	EFatCode				Write(uint8* buff, uint32 length);
+	EFatCode				Read(uint8* buff, uint32 length, uint32* bytes_read);
 
 	uint32					GetCurrentSize(void);
 	uint32					GetCurrentClusterAddress(void);

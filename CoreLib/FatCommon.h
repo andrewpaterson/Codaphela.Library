@@ -249,7 +249,7 @@ enum EFatCode
 struct SFatQueryState
 {
 	uint8						Attributes;
-	uint16						current_sector;
+	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		current_entry_raw;
 	uint8*						uiBuffer;
@@ -338,10 +338,10 @@ static const char ILLEGAL_CHARS[] = { 0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 
 struct SFatQueryStateInternal
 {
 	uint8						Attributes;
-	uint16						current_sector;
+	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
-	SFatRawDirectoryEntry* current_entry_raw;
-	uint8* uiBuffer;
+	SFatRawDirectoryEntry*		current_entry_raw;
+	uint8*						pvBuffer;
 
 	SFatRawDirectoryEntry* first_entry_raw;
 

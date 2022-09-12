@@ -41,7 +41,9 @@ public:
 	EFatCode			Unmount(void);
 
 	bool				Read(uint64 uiSector, void* pvData);
+	bool				Read(uint64 uiSector, uint32 uiNumSectors, void* pvData);
 	bool				Write(uint64 uiSector, void* pvData);
+	bool				Write(uint64 uiSector, uint32 uiNumSectors, void* pvData);
 	bool				Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive);
 
 	EFatCode			FatFileDelete(char* filename);
