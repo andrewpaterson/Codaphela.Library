@@ -25,6 +25,31 @@ struct SFatFile
 };
 
 
+// holds the state of the current write operation
+struct SFatWriteOperationState
+{
+	uint32		uiBytesRemaining;
+	uint32		uiSectorAddress;
+	uint32		uiLength;
+	uint8*		end_of_buffer;
+	uint8*		pvUserMemory;
+	uint8		internal_state;
+};
+
+
+// holds the state of the current read operation
+struct SFatReadOperationState
+{
+	uint32		uiBytesRemaining;
+	uint32		uiSectorAddress;
+	uint32*		puiBytesRead;
+	uint32		uiLength;
+	uint8*		end_of_buffer;
+	uint8*		pvUserMemory;
+	uint8		internal_state;
+};
+
+
 class CFatFile
 {
 protected:
@@ -38,7 +63,7 @@ public:
 	EFatCode				Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	EFatCode				Close(void);
 	EFatCode				Write(uint8* pvSource, uint32 length);
-	EFatCode				Read(uint8* pvDestination, uint32 length, uint32* bytes_read);
+	EFatCode				Read(uint8* pvDestination, uint32 length, uint32* puiBytesRead);
 	EFatCode				Seek(uint32 offset, char mode);
 
 	uint32					GetCurrentSize(void);
@@ -53,7 +78,6 @@ public:
 	uint8*					GetBuffer(void);
 
 protected:
-
 	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);

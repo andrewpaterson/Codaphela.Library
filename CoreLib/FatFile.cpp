@@ -857,7 +857,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* uiBytesRead)
+EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesRead)
 {
 	SFatReadOperationState	sOperation;
 	uint32					uiBytePosition;
@@ -899,7 +899,7 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* uiBytesRe
 	sOperation.internal_state = 0x0;
 	sOperation.uiLength = uiLength;
 	sOperation.pvUserMemory = pvDestination;
-	sOperation.uiBytesRead = uiBytesRead;
+	sOperation.puiBytesRead = puiBytesRead;
 
 	return FatFileRead(&sOperation);
 }
@@ -1025,7 +1025,7 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 		msFile.uiBufferSeekByteIndexInSector = 0;
 	}
 
-	SafeAssign(psOperation->uiBytesRead, uiTotalBytesToRead);
+	SafeAssign(psOperation->puiBytesRead, uiTotalBytesToRead);
 
 	msFile.bBusy = 0;
 	return FAT_SUCCESS;
