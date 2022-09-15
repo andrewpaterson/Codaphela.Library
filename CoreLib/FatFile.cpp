@@ -761,10 +761,6 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	uiBytePosition += (msFile.uiFirstCachedSectorIndexInCluster) * mpcVolume->GetNoOfBytesPerSector();
 	uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
 
-	// calculate the address of the end of
-	// the current sector
-	sOperation.end_of_buffer = mpvBuffer + mpcVolume->GetNoOfBytesPerSector();
-
 	// copy the length of the buffer to be writen
 	// into the counter
 	sOperation.uiBytesRemaining = uiLength;
@@ -795,9 +791,8 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 	{
 		// if we've reached the end of the current
 		// sector then we must flush it
-		if (msFile.uiBufferSeekByteIndexInSector == (psOperation->end_of_buffer - mpvBuffer))
+		if (msFile.uiBufferSeekByteIndexInSector == mpcVolume->GetNoOfBytesPerSector())
 		{
-			psOperation->end_of_buffer = mpvBuffer + mpcVolume->GetNoOfBytesPerSector();
 			msFile.uiBufferSeekByteIndexInSector = 0;
 
 			// write the cached sector to media
@@ -892,7 +887,6 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesR
 
 	// calculate the address of the current sector and the address of the end of the buffer
 	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
-	sOperation.end_of_buffer = mpvBuffer + mpcVolume->GetNoOfBytesPerSector();
 
 	// set the async op context
 	sOperation.uiBytesRemaining = uiLength;
@@ -923,7 +917,7 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 
 
 
-	if (msFile.uiBufferSeekByteIndexInSector == (psOperation->end_of_buffer - mpvBuffer)) 
+	if (msFile.uiBufferSeekByteIndexInSector == mpcVolume->GetNoOfBytesPerSector())
 	{
 		msFile.uiBufferSeekByteIndexInSector = 0;
 
