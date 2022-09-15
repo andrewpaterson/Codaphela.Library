@@ -266,32 +266,6 @@ struct SFatQueryState
 };
 
 
-// holds the state of the current write operation
-struct SFatWriteOperationState
-{
-	uint32		uiBytesRemaining;
-	uint32		uiSectorAddress;
-	uint32*		uiBytesRead;
-	uint32		uiLength;
-	uint8*		end_of_buffer;
-	uint8*		pvUserMemory;
-	uint8		internal_state;
-};
-
-
-// holds the state of the current write operation
-struct SFatReadOperationState
-{
-	uint32		uiBytesRemaining;
-	uint32		uiSectorAddress;
-	uint32*		uiBytesRead;
-	uint32		uiLength;
-	uint8*		end_of_buffer;
-	uint8*		pvUserMemory;
-	uint8		internal_state;
-};
-
-
 // Holds the state of a directory query.
 struct SFatFileSystemQuery
 {
