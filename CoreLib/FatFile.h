@@ -11,7 +11,8 @@ struct SFatFile
 {
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiFileSize;
-	uint32					uiCachedClusterInVolume;
+	uint32					uiFirstClusterInVolume;
+
 	uint32					uiCachedClusterIndex;				// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
 	uint32					uiFirstCachedSectorIndexInCluster;  // Sector 0 is the first sector in the cluster etc...
 	uint32					uiLastCachedSectorIndexInCluster;	// Inclusive.
@@ -30,16 +31,6 @@ struct SFatWriteOperationState
 {
 	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
-	uint8*		pvUserMemory;
-};
-
-
-// holds the state of the current read operation
-struct SFatReadOperationState
-{
-	uint32		uiBytesRemaining;
-	uint32		uiSectorAddress;
-	uint32*		puiBytesRead;
 	uint8*		pvUserMemory;
 };
 
@@ -80,7 +71,7 @@ protected:
 
 	void					AllocateBuffer(void);
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileRead(SFatReadOperationState* psOperation);
+	EFatCode				FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, uint32* puiBytesRead);
 };
 
 

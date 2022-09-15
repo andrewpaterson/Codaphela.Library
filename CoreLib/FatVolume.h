@@ -109,7 +109,7 @@ public:
 	EFatCode			FatQueryNextEntry(SFatQueryState* query, char buffer_locked, char first_entry);
 
 	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);
-	uint32				CalculateFirstSectorOfCluster(uint32 cluster);
+	uint32				CalculateFirstSectorOfCluster(uint32 uiCluster);
 
 protected:
 	void				TrimPath(char* dest, char* src, size_t max);
