@@ -43,27 +43,27 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::FatFileUpdateSequentialClusterCount(void)
 {
-	uint32		uiCurrentCluster;
+	uint32		uiCachedClusterInVolume;
 	uint32		uiNextCluster;
 	EFatCode	eResult;
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
 	msFile.uiNoOfSequentialClusters = 0;
-	uiCurrentCluster = msFile.uiCurrentCluster;
+	uiCachedClusterInVolume = msFile.uiCachedClusterInVolume;
 
-	while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
+	while (!mpcVolume->FatIsEOFEntry(uiCachedClusterInVolume))
 	{
-		eResult = mpcVolume->GetNextClusterEntry(uiCurrentCluster, &uiNextCluster);
+		eResult = mpcVolume->GetNextClusterEntry(uiCachedClusterInVolume, &uiNextCluster);
 		if (eResult != FAT_SUCCESS)
 		{
 			return eResult;
 		}
 
-		if (uiNextCluster == (uiCurrentCluster + 1))
+		if (uiNextCluster == (uiCachedClusterInVolume + 1))
 		{
 			msFile.uiNoOfSequentialClusters++;
-			uiCurrentCluster = uiNextCluster;
+			uiCachedClusterInVolume = uiNextCluster;
 			if (msFile.uiNoOfSequentialClusters == 0xFFFF)
 			{
 				break;
@@ -276,8 +276,8 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 	// copy the volume file and the entry's
 	// structure to the file file
 	msFile.sDirectoryEntry = *psEntry;
-	msFile.uiCurrentSize = psEntry->size;
-	msFile.uiCurrentClusterIndex = 0;
+	msFile.uiFileSize = psEntry->size;
+	msFile.uiCachedClusterIndex = 0;
 	msFile.uiAccessFlags = uiAccessFlags;
 	msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
 	msFile.bBusy = 0;
@@ -291,8 +291,8 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 	}
 
 	// read the the cluster number
-	((uint16*)&msFile.uiCurrentCluster)[INT32_WORD0] = psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&msFile.uiCurrentCluster)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+	((uint16*)&msFile.uiCachedClusterInVolume)[INT32_WORD0] = psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo;
+	((uint16*)&msFile.uiCachedClusterInVolume)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
 
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
@@ -321,7 +321,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 			psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
 			psEntry->raw.uEntry.sFatRawCommon.size = 0x0;
 			msFile.sDirectoryEntry = *psEntry;
-			msFile.uiCurrentSize = psEntry->size;
+			msFile.uiFileSize = psEntry->size;
 
 			// mark the cached sector as unknown
 			mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
@@ -345,15 +345,15 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 			}
 
 			// free the clusters allocated to the file
-			mpcVolume->FatFreeClusterChain(msFile.uiCurrentCluster);
+			mpcVolume->FatFreeClusterChain(msFile.uiCachedClusterInVolume);
 		}
 
 		// reset the file file to reflect an
 		// empty file
-		msFile.uiCurrentSize = 0x0;
-		msFile.uiCurrentSectorIndexInCluster = 0x0;
-		msFile.uiCurrentCluster = 0x0;
-		msFile.uiCurrentClusterIndex = 0;
+		msFile.uiFileSize = 0x0;
+		msFile.uiFirstCachedSectorIndexInCluster = 0x0;
+		msFile.uiCachedClusterInVolume = 0x0;
+		msFile.uiCachedClusterIndex = 0;
 		msFile.uiBufferSeekByteIndexInSector = 0;
 		msFile.uiNoOfClustersAfterPos = 0;
 	}
@@ -362,7 +362,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 		// if no append or overwrite flags are set then
 		// simply set the file to point to the beggining
 		// of the 1st cluster
-		msFile.uiCurrentSectorIndexInCluster = 0x0;
+		msFile.uiFirstCachedSectorIndexInCluster = 0x0;
 		msFile.uiBufferSeekByteIndexInSector = 0;
 	}
 	return FAT_SUCCESS;
@@ -435,7 +435,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	}
 
 	// allocate a new cluster
-	uint32 uiCurrentCluster;
+	uint32 uiCachedClusterInVolume;
 	uint32 uiNextCluster;
 	uint32 page_size;
 	uint32 start_address;
@@ -478,27 +478,27 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
-	uiCurrentCluster = uiNewCluster;
+	uiCachedClusterInVolume = uiNewCluster;
 
-	while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
+	while (!mpcVolume->FatIsEOFEntry(uiCachedClusterInVolume))
 	{
 		// calculate the start and end address the cluster
-		start_address = mpcVolume->CalculateFirstSectorOfCluster(uiCurrentCluster);
+		start_address = mpcVolume->CalculateFirstSectorOfCluster(uiCachedClusterInVolume);
 		end_address = start_address + mpcVolume->GetNoOfSectorsPerCluster();
 
 		// find the last sequential sector after this address
-		while (!mpcVolume->FatIsEOFEntry(uiCurrentCluster))
+		while (!mpcVolume->FatIsEOFEntry(uiCachedClusterInVolume))
 		{
-			mpcVolume->GetNextClusterEntry(uiCurrentCluster, &uiNextCluster);
+			mpcVolume->GetNextClusterEntry(uiCachedClusterInVolume, &uiNextCluster);
 
-			if (uiNextCluster == (uiCurrentCluster + 1))
+			if (uiNextCluster == (uiCachedClusterInVolume + 1))
 			{
 				end_address += mpcVolume->GetNoOfSectorsPerCluster();
-				uiCurrentCluster = uiNextCluster;
+				uiCachedClusterInVolume = uiNextCluster;
 			}
 			else
 			{
-				uiCurrentCluster = uiNextCluster;
+				uiCachedClusterInVolume = uiNextCluster;
 				break;
 			}
 		}
@@ -547,7 +547,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 
 		if (msFile.uiNoOfClustersAfterPos)
 		{
-			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentCluster, msFile.uiNoOfClustersAfterPos, &last_cluster);
+			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCachedClusterInVolume, msFile.uiNoOfClustersAfterPos, &last_cluster);
 			if (uiResult != FAT_SUCCESS)
 			{
 				msFile.bBusy = 0;
@@ -556,7 +556,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		}
 		else
 		{
-			last_cluster = msFile.uiCurrentCluster;
+			last_cluster = msFile.uiCachedClusterInVolume;
 		}
 
 		// set the FAT entry for the last cluster to the beggining of the newly
@@ -570,9 +570,9 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	}
 
 	// update the file to point to the new cluster
-	if (!msFile.uiCurrentCluster)
+	if (!msFile.uiCachedClusterInVolume)
 	{
-		msFile.uiCurrentCluster = uiNewCluster;
+		msFile.uiCachedClusterInVolume = uiNewCluster;
 		msFile.uiNoOfClustersAfterPos = uiClustersNeeded - 1;
 	}
 	else
@@ -621,14 +621,14 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 			break;
 
 		case FAT_SEEK_CURRENT:
-			uiBytePositionInFile = msFile.uiCurrentClusterIndex * mpcVolume->GetNoOfSectorsPerCluster() * mpcVolume->GetNoOfBytesPerSector();
-			uiBytePositionInFile += msFile.uiCurrentSectorIndexInCluster * mpcVolume->GetNoOfBytesPerSector();
+			uiBytePositionInFile = msFile.uiCachedClusterIndex * mpcVolume->GetNoOfSectorsPerCluster() * mpcVolume->GetNoOfBytesPerSector();
+			uiBytePositionInFile += msFile.uiFirstCachedSectorIndexInCluster * mpcVolume->GetNoOfBytesPerSector();
 			uiBytePositionInFile += msFile.uiBufferSeekByteIndexInSector;
 			uiBytePositionInFile += offset;
 			break;
 
 		case FAT_SEEK_END:
-			uiBytePositionInFile = msFile.uiCurrentSize - offset;
+			uiBytePositionInFile = msFile.uiFileSize - offset;
 			break;
 
 		default:
@@ -637,22 +637,22 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 	}
 
 	// if the seek goes out of bounds return error
-	if (uiBytePositionInFile > msFile.uiCurrentSize)
+	if (uiBytePositionInFile > msFile.uiFileSize)
 	{
 		msFile.bBusy = 0;
 		return FAT_SEEK_FAILED;
 	}
 
-	uiOldClusterIndex = msFile.uiCurrentClusterIndex;
-	msFile.uiCurrentClusterIndex = 0;
+	uiOldClusterIndex = msFile.uiCachedClusterIndex;
+	msFile.uiCachedClusterIndex = 0;
 	uiClusterIndex = 0;
 
 	// calculate the count of sectors being used by the file up to the desired position
 	uiSectorIndexInFile = (uiBytePositionInFile + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector();
 
 	// set the 1st cluster as the current cluster, we'll seek from there
-	((uint16*)&msFile.uiCurrentCluster)[INT32_WORD0] = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&msFile.uiCurrentCluster)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+	((uint16*)&msFile.uiCachedClusterInVolume)[INT32_WORD0] = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
+	((uint16*)&msFile.uiCachedClusterInVolume)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
 
 	// if the file occupies more than one cluster
 	if (uiSectorIndexInFile > mpcVolume->GetNoOfSectorsPerCluster())
@@ -664,7 +664,7 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 		// set the file file to point to the last cluster. if the file doesn't have
 		// that many clusters allocated this function will return 0. if that ever happens it means
 		// that the file is corrupted
-		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentCluster, uiClusterIndex, &msFile.uiCurrentCluster);
+		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCachedClusterInVolume, uiClusterIndex, &msFile.uiCachedClusterInVolume);
 		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
@@ -676,7 +676,7 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 	// head to point to the byte after the last one
 	if (uiBytePositionInFile)
 	{
-		msFile.uiCurrentSectorIndexInCluster = (((uiBytePositionInFile + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector()) - 1) % mpcVolume->GetNoOfSectorsPerCluster();
+		msFile.uiFirstCachedSectorIndexInCluster = (((uiBytePositionInFile + mpcVolume->GetNoOfBytesPerSector() - 1) / mpcVolume->GetNoOfBytesPerSector()) - 1) % mpcVolume->GetNoOfSectorsPerCluster();
 
 		if (uiBytePositionInFile % mpcVolume->GetNoOfBytesPerSector() == 0)
 		{
@@ -689,21 +689,21 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 	}
 	else
 	{
-		msFile.uiCurrentSectorIndexInCluster = 0;
+		msFile.uiFirstCachedSectorIndexInCluster = 0;
 		msFile.uiBufferSeekByteIndexInSector = 0;
 	}
 
-	uiSectorAddress = msFile.uiCurrentSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
-	msFile.uiCurrentClusterIndex = uiClusterIndex;
+	uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
+	msFile.uiCachedClusterIndex = uiClusterIndex;
 
 	// maintain the count of allocated clusters
-	if (uiOldClusterIndex < msFile.uiCurrentClusterIndex)
+	if (uiOldClusterIndex < msFile.uiCachedClusterIndex)
 	{
-		msFile.uiNoOfClustersAfterPos -= (msFile.uiCurrentClusterIndex - uiOldClusterIndex);
+		msFile.uiNoOfClustersAfterPos -= (msFile.uiCachedClusterIndex - uiOldClusterIndex);
 	}
-	else if (uiOldClusterIndex > msFile.uiCurrentClusterIndex)
+	else if (uiOldClusterIndex > msFile.uiCachedClusterIndex)
 	{
-		msFile.uiNoOfClustersAfterPos += (uiOldClusterIndex - msFile.uiCurrentClusterIndex);
+		msFile.uiNoOfClustersAfterPos += (uiOldClusterIndex - msFile.uiCachedClusterIndex);
 	}
 	msFile.bBusy = 0;
 	return FAT_SUCCESS;
@@ -716,8 +716,9 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 {
-	EFatCode			uiResult;
-	SFatWriteOperationState	sOperation;
+	EFatCode					uiResult;
+	SFatWriteOperationState		sOperation;
+	uint32						uiBytePosition;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -756,9 +757,9 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	msFile.bBusy = 1;
 
 	// calculate current pos
-	sOperation.uiBytePosition = msFile.uiCurrentClusterIndex * mpcVolume->GetNoOfSectorsPerCluster() * mpcVolume->GetNoOfBytesPerSector();
-	sOperation.uiBytePosition += (msFile.uiCurrentSectorIndexInCluster) * mpcVolume->GetNoOfBytesPerSector();
-	sOperation.uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
+	uiBytePosition = msFile.uiCachedClusterIndex * mpcVolume->GetNoOfSectorsPerCluster() * mpcVolume->GetNoOfBytesPerSector();
+	uiBytePosition += (msFile.uiFirstCachedSectorIndexInCluster) * mpcVolume->GetNoOfBytesPerSector();
+	uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
 
 	// calculate the address of the end of
 	// the current sector
@@ -769,14 +770,14 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	sOperation.uiBytesRemaining = uiLength;
 
 	// calculate the address of the current sector
-	sOperation.uiSectorAddress = msFile.uiCurrentSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
+	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
 
 	sOperation.internal_state = 0x0;
 	sOperation.uiLength = uiLength;
 	sOperation.pvUserMemory = pvSource;
 
-	return FatFileWriteCallback(&sOperation);
+	return FatFileWriteCallback(&sOperation, uiBytePosition);
 }
 
 
@@ -784,7 +785,7 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation)
+EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, uint32 uiBytePosition)
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
@@ -809,27 +810,27 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation)
 
 			// if this sector is the last of the current cluster then
 			// locate the next cluster and continue writing
-			if (msFile.uiCurrentSectorIndexInCluster == mpcVolume->GetNoOfSectorsPerCluster() - 1)
+			if (msFile.uiFirstCachedSectorIndexInCluster == mpcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
-				uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCurrentCluster, &msFile.uiCurrentCluster);
+				uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCachedClusterInVolume, &msFile.uiCachedClusterInVolume);
 				if (uiResult != FAT_SUCCESS)
 				{
 					msFile.bBusy = 0;
 					return uiResult;
 				}
 				// reset the current sector and increase the cluster index
-				msFile.uiCurrentSectorIndexInCluster = 0x0;
-				msFile.uiCurrentClusterIndex++;
+				msFile.uiFirstCachedSectorIndexInCluster = 0x0;
+				msFile.uiCachedClusterIndex++;
 				msFile.uiNoOfClustersAfterPos--;
 				// calculate the sector address
-				psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
+				psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 			}
 			// if there are more sectors in the
 			// current cluster then simply increase
 			// the current sector counter and address
 			else
 			{
-				msFile.uiCurrentSectorIndexInCluster++;
+				msFile.uiFirstCachedSectorIndexInCluster++;
 				psOperation->uiSectorAddress++;
 			}
 		}
@@ -838,11 +839,11 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation)
 		mpvBuffer[msFile.uiBufferSeekByteIndexInSector] = *psOperation->pvUserMemory++;
 		msFile.uiBufferSeekByteIndexInSector++;
 
-		// update the file size only if we're writting past
-		// the end of the file
-		if (psOperation->uiBytePosition++ >= msFile.uiCurrentSize)
+		// update the file size only if we're writting past the end of the file.
+		uiBytePosition++;
+		if (uiBytePosition >= msFile.uiFileSize)
 		{
-			msFile.uiCurrentSize++;
+			msFile.uiFileSize++;
 		}
 		psOperation->uiBytesRemaining--;
 	}
@@ -859,6 +860,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation)
 EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* uiBytesRead)
 {
 	SFatReadOperationState	sOperation;
+	uint32					uiBytePosition;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -884,12 +886,12 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* uiBytesRe
 	msFile.bBusy = 1;
 
 	// calculate current pos
-	sOperation.uiBytePosition = msFile.uiCurrentClusterIndex * mpcVolume->GetNoOfSectorsPerCluster() * mpcVolume->GetNoOfBytesPerSector();
-	sOperation.uiBytePosition += msFile.uiCurrentSectorIndexInCluster * mpcVolume->GetNoOfBytesPerSector();
-	sOperation.uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
+	uiBytePosition = msFile.uiCachedClusterIndex * mpcVolume->GetNoOfSectorsPerCluster() * mpcVolume->GetNoOfBytesPerSector();
+	uiBytePosition += msFile.uiFirstCachedSectorIndexInCluster * mpcVolume->GetNoOfBytesPerSector();
+	uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
 
 	// calculate the address of the current sector and the address of the end of the buffer
-	sOperation.uiSectorAddress = msFile.uiCurrentSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
+	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 	sOperation.end_of_buffer = mpvBuffer + mpcVolume->GetNoOfBytesPerSector();
 
 	// set the async op context
@@ -927,10 +929,10 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 
 		// if this sector is the last of the current cluster
 		// we must find the next cluster
-		if (msFile.uiCurrentSectorIndexInCluster == mpcVolume->GetNoOfSectorsPerCluster() - 1)
+		if (msFile.uiFirstCachedSectorIndexInCluster == mpcVolume->GetNoOfSectorsPerCluster() - 1)
 		{
 			// update the cluster address with the address of the next cluster
-			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentCluster, 1, &msFile.uiCurrentCluster);
+			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCachedClusterInVolume, 1, &msFile.uiCachedClusterInVolume);
 			if (uiResult != FAT_SUCCESS)
 			{
 				msFile.bBusy = 0;
@@ -940,16 +942,16 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 			// reset the current sector increase the current cluster
 			// number and calculate the address of the first sector of the
 			// cluster
-			msFile.uiCurrentClusterIndex++;
-			msFile.uiCurrentSectorIndexInCluster = 0x0;
-			psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
+			msFile.uiCachedClusterIndex++;
+			msFile.uiFirstCachedSectorIndexInCluster = 0x0;
+			psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 		}
 		else
 		{
 
 			// if there are more sectors in the current cluster then
 			// simply increase the current sector counter and address
-			msFile.uiCurrentSectorIndexInCluster++;
+			msFile.uiFirstCachedSectorIndexInCluster++;
 			psOperation->uiSectorAddress++;
 		}
 	}
@@ -964,7 +966,7 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 	{
 		uiStartReadSector = psOperation->uiSectorAddress;
 
-		uiLastClusterSector = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster) + (mpcVolume->GetNoOfSectorsPerCluster() - 1);
+		uiLastClusterSector = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume) + (mpcVolume->GetNoOfSectorsPerCluster() - 1);
 
 		uiRemaingingSectors = psOperation->uiBytesRemaining / mpcVolume->GetSectorSize();
 		if (psOperation->uiBytesRemaining % mpcVolume->GetSectorSize() != 0)
@@ -1006,7 +1008,7 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 		}
 
 		// update the cluster address with the address of the next cluster
-		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCurrentCluster, 1, &msFile.uiCurrentCluster);
+		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCachedClusterInVolume, 1, &msFile.uiCachedClusterInVolume);
 		if (uiResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
@@ -1016,9 +1018,9 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 		// reset the current sector increase the current cluster
 		// number and calculate the address of the first sector of the
 		// cluster
-		msFile.uiCurrentClusterIndex++;
-		msFile.uiCurrentSectorIndexInCluster = 0x0;
-		psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
+		msFile.uiCachedClusterIndex++;
+		msFile.uiFirstCachedSectorIndexInCluster = 0x0;
+		psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
 		msFile.uiBufferSeekByteIndexInSector = 0;
 	}
@@ -1068,7 +1070,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		msFile.bBusy = 1;
 
 		// calculate the address of the current sector
-		uiSectorAddress = msFile.uiCurrentSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCurrentCluster);
+		uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
 		// if the buffer is only partially filled we need to merge it
 		// with the one on the drive
@@ -1098,7 +1100,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		}
 
 		// update the file size on the entry
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.size = msFile.uiCurrentSize;
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.size = msFile.uiFileSize;
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date = GetSystemClockDate();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_time = GetSystemClockTime();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.access_date = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date;
@@ -1179,7 +1181,7 @@ EFatCode CFatFile::Close(void)
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
 		// seek to the end of the file
-		uiResult = Seek(msFile.uiCurrentSize - 1, FAT_SEEK_START);
+		uiResult = Seek(msFile.uiFileSize - 1, FAT_SEEK_START);
 		if (uiResult != FAT_SUCCESS)
 		{
 			SafeFree(mpvBuffer);
@@ -1198,7 +1200,7 @@ EFatCode CFatFile::Close(void)
 		msFile.bBusy = 1;
 
 		// free unused clusters
-		uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCurrentCluster, &fat_entry);
+		uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCachedClusterInVolume, &fat_entry);
 		if (uiResult != FAT_SUCCESS)
 		{
 			SafeFree(mpvBuffer);
@@ -1228,7 +1230,7 @@ EFatCode CFatFile::Close(void)
 					fat_entry = FAT32_EOC; 
 					break;
 			}
-			uiResult = mpcVolume->FatSetClusterEntry(msFile.uiCurrentCluster, fat_entry);
+			uiResult = mpcVolume->FatSetClusterEntry(msFile.uiCachedClusterInVolume, fat_entry);
 			if (uiResult != FAT_SUCCESS)
 			{
 				SafeFree(mpvBuffer);
@@ -1249,10 +1251,10 @@ EFatCode CFatFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatFile::GetCurrentSize(void) { return msFile.uiCurrentSize;  }
-uint32 CFatFile::GetCurrentClusterAddress(void) { return msFile.uiCurrentCluster; }
-uint32 CFatFile::GetCurrentClusterIdx(void) { return msFile.uiCurrentClusterIndex; }
-uint32 CFatFile::GetCurrentSectorIdx(void) { return msFile.uiCurrentSectorIndexInCluster; }
+uint32 CFatFile::GetCurrentSize(void) { return msFile.uiFileSize;  }
+uint32 CFatFile::GetCurrentClusterAddress(void) { return msFile.uiCachedClusterInVolume; }
+uint32 CFatFile::GetCurrentClusterIdx(void) { return msFile.uiCachedClusterIndex; }
+uint32 CFatFile::GetCurrentSectorIdx(void) { return msFile.uiFirstCachedSectorIndexInCluster; }
 uint32 CFatFile::GetNoOfClustersAfterPos(void) { return msFile.uiNoOfClustersAfterPos; }
 uint16 CFatFile::GetNoOfSequentialClusters(void) { return msFile.uiNoOfSequentialClusters; }
 bool CFatFile::IsBusy(void) { return msFile.bBusy; }

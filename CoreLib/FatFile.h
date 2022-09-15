@@ -10,10 +10,12 @@ class CFatVolume;
 struct SFatFile
 {
 	SFatDirectoryEntry		sDirectoryEntry;
-	uint32					uiCurrentSize;
-	uint32					uiCurrentCluster;
-	uint32					uiCurrentClusterIndex;			//Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
-	uint32					uiCurrentSectorIndexInCluster;  //Sector 0 is the first sector in the cluster etc...
+	uint32					uiFileSize;
+	uint32					uiCachedClusterInVolume;
+	uint32					uiCachedClusterIndex;				// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
+	uint32					uiFirstCachedSectorIndexInCluster;  // Sector 0 is the first sector in the cluster etc...
+	uint32					uiLastCachedSectorIndexInCluster;	// Inclusive.
+
 	uint32					uiNoOfClustersAfterPos;
 	uint16					uiNoOfSequentialClusters;
 	uint32					uiBufferSeekByteIndexInSector;
@@ -55,7 +57,7 @@ protected:
 	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
-	EFatCode				FatFileWriteCallback(SFatWriteOperationState* psOperation);
+	EFatCode				FatFileWriteCallback(SFatWriteOperationState* psOperation, uint32 uiBytePosition);
 	EFatCode				FatFileFlush(void);
 
 	void					AllocateBuffer(void);
@@ -65,5 +67,4 @@ protected:
 
 
 #endif // !__FAT_FILE_H__
-
 
