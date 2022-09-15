@@ -768,7 +768,6 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	// calculate the address of the current sector
 	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
-	sOperation.uiLength = uiLength;
 	sOperation.pvUserMemory = pvSource;
 
 	return FatFileWriteCallback(&sOperation, uiBytePosition);
@@ -886,7 +885,6 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesR
 
 	// set the async op context
 	sOperation.uiBytesRemaining = uiLength;
-	sOperation.uiLength = uiLength;
 	sOperation.pvUserMemory = pvDestination;
 	sOperation.puiBytesRead = puiBytesRead;
 
