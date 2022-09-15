@@ -49,7 +49,6 @@ public:
 	EFatCode			FatFileDelete(char* filename);
 	EFatCode			FatFileRename(char* original_filename, char* new_filename);
 
-	uint16				GetSectorSize(void);
 	uint32				GetPageSize(void);
 	uint32				GetClusterSize(void);
 
@@ -91,7 +90,7 @@ public:
 	uint32				FatAllocateDataCluster(uint32 count, char zero, EFatCode* result);
 	uint32				FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* result);
 	EFatCode			FatFreeClusterChain(uint32 cluster);
-	EFatCode			GetNextClusterEntry(uint32 cluster, FatEntry* fat_entry);
+	EFatCode			GetNextClusterEntry(uint32 cluster, uint32* puiNextCluster);
 	EFatCode			FatSetClusterEntry(uint32 cluster, FatEntry fat_entry);
 	EFatCode			FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
 	bool				FatIsEOFEntry(FatEntry fat);

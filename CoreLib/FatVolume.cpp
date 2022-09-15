@@ -384,16 +384,6 @@ bool CFatVolume::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatVolume::GetSectorSize(void)
-{
-	return msVolume.uiNoOfBytesPerSector;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetClusterSize(void)
 {
 	return msVolume.uiNoOfBytesPerSector * msVolume.uiNoOfSectorsPerCluster;
@@ -1694,7 +1684,7 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 		else
 		{
 			uiBuffer[uiClusterBytesRemainder] &= 0xF0;						/* clear bits that 1st byte will be written to */
-			uiBuffer[uiClusterBytesRemainder] |= HI8((uint16)fat_entry);		/* copy sEntry bits of 1st byte */
+			uiBuffer[uiClusterBytesRemainder] |= HI8((uint16)fat_entry);	/* copy sEntry bits of 1st byte */
 		}
 		break;
 	}
@@ -3856,9 +3846,9 @@ void CFatVolume::FatGetShortNameFromEntry(uint8* dest, const uint8* src)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 cluster)
+uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 uiCluster)
 {
-	return (((cluster - 0x2) * GetNoOfSectorsPerCluster()) + GetFirstDataSector());
+	return (((uiCluster - 2) * GetNoOfSectorsPerCluster()) + GetFirstDataSector());
 }
 
 

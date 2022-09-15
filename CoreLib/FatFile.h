@@ -11,11 +11,10 @@ struct SFatFile
 {
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiFileSize;
-	uint32					uiFirstClusterInVolume;
 
-	uint32					uiCachedClusterIndex;				// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
-	uint32					uiFirstCachedSectorIndexInCluster;  // Sector 0 is the first sector in the cluster etc...
-	uint32					uiLastCachedSectorIndexInCluster;	// Inclusive.
+	uint32					uiCluster;								// Cluster where the file is currently pointing.
+	uint32					uiClusterIndex;							// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
+	uint32					uiSectorInClusterIndex;
 
 	uint32					uiNoOfClustersAfterPos;
 	uint16					uiNoOfSequentialClusters;
@@ -40,7 +39,11 @@ class CFatFile
 protected:
 	SFatFile		msFile;
 	CFatVolume*		mpcVolume;
-	uint8*			mpvBuffer;
+
+	uint32			muiFirstCachedSector;
+	uint32			muiLastCachedSector;		// Inclusive.
+
+	uint8*			mpvCachedClusterBuffer;
 
 public:
 	void					Init(CFatVolume* pcVolume);
@@ -72,6 +75,7 @@ protected:
 	void					AllocateBuffer(void);
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
 	EFatCode				FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, uint32* puiBytesRead);
+	EFatCode				FindNextSector(uint32* puiSector);
 };
 
 
