@@ -2160,14 +2160,12 @@ EFatCode CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFat
 		return FAT_SUCCESS;
 	}
 
-	// fill the current sEntry structure with data from
-	// the current raw sEntry of the query
+	// fill the current entry structure with data from
+	// the current raw entry of the query
 	FatFillDirectoryEntryFromRaw(&query->current_entry, query->state.current_entry_raw);
 
-	// calculate the sector address of the sEntry - if
-	// query->CurrentCluster equals zero then this is the root
-	// directory of a FAT12/FAT16 volume and the calculation is
-	// different
+	// calculate the sector address of the entry - if query->CurrentCluster equals zero then this is the root
+	// directory of a FAT12/FAT16 volume and the calculation is different.
 	if (query->state.uiCurrentCluster == 0x0)
 	{
 		query->current_entry.uiSectorAddress = GetNoOfReservedSectors() +
@@ -2179,14 +2177,13 @@ EFatCode CFatVolume::FatFindFirstEntry(char* parent_path, uint8 attributes, SFat
 		query->current_entry.uiSectorAddress = CalculateFirstSectorOfCluster(query->state.uiCurrentCluster) + query->state.uiCurrentSector;
 	}
 
-	// calculate the offset of the sEntry within it's sector
+	// calculate the offset of the entry within it's sector
 	query->current_entry.uiSectorOffset = (uint16)((uintptr_t)query->state.current_entry_raw) - ((uintptr_t)query->state.uiBuffer);
-	// store a copy of the original FAT directory sEntry
-	// within the SFatDirectoryEntry structure that is returned
-	// to users
+
+	// store a copy of the original FAT directory entry within the SFatDirectoryEntry structure that is returned to users
 	query->current_entry.raw = *query->state.current_entry_raw;
 
-	// if long filenames are enabled copy the filename to the sEntry
+	// if long filenames are enabled copy the filename to the entry
 	if (*query->current_entry.name != 0)
 	{
 		if (*query->state.long_filename != 0)

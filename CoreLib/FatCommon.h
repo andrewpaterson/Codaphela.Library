@@ -269,7 +269,6 @@ struct SFatQueryState
 // holds the state of the current write operation
 struct SFatWriteOperationState
 {
-	uint32		uiBytePosition;
 	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
 	uint32*		uiBytesRead;
@@ -283,7 +282,6 @@ struct SFatWriteOperationState
 // holds the state of the current write operation
 struct SFatReadOperationState
 {
-	uint32		uiBytePosition;
 	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
 	uint32*		uiBytesRead;
