@@ -768,8 +768,6 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	// calculate the address of the current sector
 	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
-
-	sOperation.internal_state = 0x0;
 	sOperation.uiLength = uiLength;
 	sOperation.pvUserMemory = pvSource;
 
@@ -863,15 +861,13 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesR
 		return FAT_INVALID_HANDLE;
 	}
 
-	// make sure that either a buffer is set or the file has been
-	// opened in unbuffered mode
+	// make sure that either a buffer is set or the file has been opened in unbuffered mode.
 	if (!mpvBuffer)
 	{
 		return FAT_FILE_BUFFER_NOT_SET;
 	}
 
-	// check that another operation is not using the
-	// file at this time
+	// check that another operation is not using the file at this time.
 	if (msFile.bBusy)
 	{
 		return FAT_FILE_HANDLE_IN_USE;
@@ -890,7 +886,6 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesR
 
 	// set the async op context
 	sOperation.uiBytesRemaining = uiLength;
-	sOperation.internal_state = 0x0;
 	sOperation.uiLength = uiLength;
 	sOperation.pvUserMemory = pvDestination;
 	sOperation.puiBytesRead = puiBytesRead;

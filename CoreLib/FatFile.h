@@ -32,7 +32,6 @@ struct SFatWriteOperationState
 	uint32		uiSectorAddress;
 	uint32		uiLength;
 	uint8*		pvUserMemory;
-	uint8		internal_state;
 };
 
 
@@ -44,7 +43,6 @@ struct SFatReadOperationState
 	uint32*		puiBytesRead;
 	uint32		uiLength;
 	uint8*		pvUserMemory;
-	uint8		internal_state;
 };
 
 
