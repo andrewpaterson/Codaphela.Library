@@ -11,16 +11,15 @@ struct SFatFile
 {
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiCurrentSize;
-	uint32					uiCurrentClusterAddress;
-	uint32					uiCurrentClusterIdx;
-	uint32					uiCurrentSectorIdx;
+	uint32					uiCurrentCluster;
+	uint32					uiCurrentClusterIndex;			//Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
+	uint32					uiCurrentSectorIndexInCluster;  //Sector 0 is the first sector in the cluster etc...
 	uint32					uiNoOfClustersAfterPos;
 	uint16					uiNoOfSequentialClusters;
-	uint8*					pvBufferHead;
+	uint32					uiBufferSeekByteIndexInSector;
 	bool					bBusy;
 	uint8					uiMagic;
 	uint8					uiAccessFlags;
-	uint8*					pvBuffer;
 };
 
 
@@ -29,14 +28,15 @@ class CFatFile
 protected:
 	SFatFile		msFile;
 	CFatVolume*		mpcVolume;
+	uint8*			mpvBuffer;
 
 public:
 	void					Init(CFatVolume* pcVolume);
 	EFatCode				Open(char* filename, uint8 uiAccessFlags);
 	EFatCode				Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	EFatCode				Close(void);
-	EFatCode				Write(uint8* buff, uint32 length);
-	EFatCode				Read(uint8* buff, uint32 length, uint32* bytes_read);
+	EFatCode				Write(uint8* pvSource, uint32 length);
+	EFatCode				Read(uint8* pvDestination, uint32 length, uint32* bytes_read);
 	EFatCode				Seek(uint32 offset, char mode);
 
 	uint32					GetCurrentSize(void);
@@ -45,7 +45,6 @@ public:
 	uint32					GetCurrentSectorIdx(void);
 	uint32					GetNoOfClustersAfterPos(void);
 	uint16					GetNoOfSequentialClusters(void);
-	uint8*					GetBufferHead(void);
 	bool					IsBusy(void);
 	uint8					GetMagic(void);
 	uint8					GetAccessFlags(void);
@@ -56,13 +55,12 @@ protected:
 	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
-	EFatCode				FatFileWriteCallback(SFatOperationState* psOperation);
-	//EFatCode				FatFileReadCallback(SFatOperationState* psOperation);
+	EFatCode				FatFileWriteCallback(SFatWriteOperationState* psOperation);
 	EFatCode				FatFileFlush(void);
 
 	void					AllocateBuffer(void);
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileRead(SFatOperationState* psOperation);
+	EFatCode				FatFileRead(SFatReadOperationState* psOperation);
 };
 
 
