@@ -43,27 +43,27 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::FatFileUpdateSequentialClusterCount(void)
 {
-	uint32		uiCachedClusterInVolume;
+	uint32		uiCluster;
 	uint32		uiNextCluster;
 	EFatCode	eResult;
 
 	// find out how many clusters are allocated sequentially
 	// to this file following the current cursor location
 	msFile.uiNoOfSequentialClusters = 0;
-	uiCachedClusterInVolume = msFile.uiCluster;
+	uiCluster = msFile.uiCluster;
 
-	while (!mpcVolume->FatIsEOFEntry(uiCachedClusterInVolume))
+	while (!mpcVolume->FatIsEOFEntry(uiCluster))
 	{
-		eResult = mpcVolume->GetNextClusterEntry(uiCachedClusterInVolume, &uiNextCluster);
+		eResult = mpcVolume->GetNextClusterEntry(uiCluster, &uiNextCluster);
 		if (eResult != FAT_SUCCESS)
 		{
 			return eResult;
 		}
 
-		if (uiNextCluster == (uiCachedClusterInVolume + 1))
+		if (uiNextCluster == (uiCluster + 1))
 		{
 			msFile.uiNoOfSequentialClusters++;
-			uiCachedClusterInVolume = uiNextCluster;
+			uiCluster = uiNextCluster;
 			if (msFile.uiNoOfSequentialClusters == 0xFFFF)
 			{
 				break;
@@ -924,13 +924,15 @@ EFatCode CFatFile::FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, ui
 	EFatCode	uiResult;
 	bool		bSuccess;
 	uint32		uiStartReadSector;
+	uint32		uiEndReadSector;
 	uint32		uiRemaingingSectors;
-	uint32		uiSectorsToRead;
+	uint32		uiSectors;
 	uint32		uiTotalBytesRead;
 	uint32		uiByteIndexInFile;
 	uint32		uiBytesPerSector;
 	uint32		uiBytesToReadWholeCluster;
 	uint32		uiBytesReadInSector;
+	uint32		uiIndex;
 
 	uiBytesPerSector = mpcVolume->GetNoOfBytesPerSector();
 
@@ -965,27 +967,65 @@ EFatCode CFatFile::FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, ui
 
 		if (uiRemaingingSectors > mpcVolume->GetNoOfSectorsPerCluster() - msFile.uiSectorInClusterIndex)
 		{
-			uiSectorsToRead = mpcVolume->GetNoOfSectorsPerCluster() - msFile.uiSectorInClusterIndex;
+			uiSectors = mpcVolume->GetNoOfSectorsPerCluster() - msFile.uiSectorInClusterIndex;
 		}
 		else
 		{
-			uiSectorsToRead = uiRemaingingSectors;
+			uiSectors = uiRemaingingSectors;
 		}
 
-		if ((uiStartReadSector >= muiFirstCachedSector) && ((uiStartReadSector + uiSectorsToRead - 1) <= muiLastCachedSector))
+		uiEndReadSector = uiStartReadSector + uiSectors - 1;
+		if ((uiStartReadSector >= muiFirstCachedSector) && (uiEndReadSector <= muiLastCachedSector))
 		{
-			memcpy(pvDestination, &mpvCachedClusterBuffer[msFile.uiSectorInClusterIndex * uiBytesPerSector + msFile.uiBufferSeekByteIndexInSector], uiBytesRemaining);
-			uiTotalBytesRead += uiBytesRemaining;
-			msFile.uiBufferSeekByteIndexInSector += uiBytesRemaining;
-			uiBytesRemaining = 0;
-			SafeAssign(puiBytesRead, uiTotalBytesRead);
-			msFile.bBusy = 0;
-			return FAT_SUCCESS;;
+			uiIndex = msFile.uiSectorInClusterIndex * uiBytesPerSector + msFile.uiBufferSeekByteIndexInSector;
+			if (uiIndex + uiBytesRemaining >= uiBytesPerSector * mpcVolume->GetNoOfSectorsPerCluster())
+			{
+				uiBytesReadInSector = uiBytesPerSector * mpcVolume->GetNoOfSectorsPerCluster() - uiIndex;
+				memcpy(pvDestination, &mpvCachedClusterBuffer[uiIndex], uiBytesReadInSector);
+				msFile.uiBufferSeekByteIndexInSector = uiBytesPerSector;
+				if (msFile.uiBufferSeekByteIndexInSector == uiBytesPerSector)
+				{
+					uiStartReadSector = uiEndReadSector;
+					uiResult = FindNextSector(&uiStartReadSector);
+					if (uiResult != FAT_SUCCESS)
+					{
+						msFile.bBusy = 0;
+						SafeAssign(puiBytesRead, uiTotalBytesRead);
+						return uiResult;
+					}
+				}
+
+				uiTotalBytesRead += uiBytesReadInSector;
+				uiBytesRemaining -= uiBytesReadInSector;
+				pvDestination += uiBytesReadInSector;
+			}
+			else
+			{
+				memcpy(pvDestination, &mpvCachedClusterBuffer[uiIndex], uiBytesRemaining);
+				uiTotalBytesRead += uiBytesRemaining;
+				msFile.uiBufferSeekByteIndexInSector += uiBytesRemaining;
+				if (msFile.uiBufferSeekByteIndexInSector == uiBytesPerSector)
+				{
+					uiStartReadSector = uiEndReadSector;
+					uiResult = FindNextSector(&uiStartReadSector);
+					if (uiResult != FAT_SUCCESS)
+					{
+						msFile.bBusy = 0;
+						SafeAssign(puiBytesRead, uiTotalBytesRead);
+						return uiResult;
+					}
+				}
+
+				uiBytesRemaining = 0;
+				SafeAssign(puiBytesRead, uiTotalBytesRead);
+				msFile.bBusy = 0;
+				return FAT_SUCCESS;;
+			}
 		}
 		else
 		{
-			uiBytesToReadWholeCluster = uiSectorsToRead * uiBytesPerSector;
-			bSuccess = mpcVolume->Read(uiStartReadSector, uiSectorsToRead, &mpvCachedClusterBuffer[msFile.uiSectorInClusterIndex * uiBytesPerSector]);
+			uiBytesToReadWholeCluster = uiSectors * uiBytesPerSector;
+			bSuccess = mpcVolume->Read(uiStartReadSector, uiSectors, &mpvCachedClusterBuffer[msFile.uiSectorInClusterIndex * uiBytesPerSector]);
 			if (!bSuccess)
 			{
 				SafeAssign(puiBytesRead, uiTotalBytesRead);
@@ -994,12 +1034,12 @@ EFatCode CFatFile::FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, ui
 			}
 
 			muiFirstCachedSector = uiStartReadSector;
-			muiLastCachedSector = uiStartReadSector + uiSectorsToRead - 1;
+			muiLastCachedSector = uiStartReadSector + uiSectors - 1;
 			if (uiBytesToReadWholeCluster > uiBytesRemaining)
 			{
 				memcpy(pvDestination, &mpvCachedClusterBuffer[msFile.uiSectorInClusterIndex * uiBytesPerSector + msFile.uiBufferSeekByteIndexInSector], uiBytesRemaining);
 				msFile.uiBufferSeekByteIndexInSector += uiBytesRemaining;
-				msFile.uiSectorInClusterIndex += (uiSectorsToRead - 1);
+				msFile.uiSectorInClusterIndex += (uiSectors - 1);
 				uiTotalBytesRead += uiBytesRemaining;
 				uiBytesRemaining = 0;
 				SafeAssign(puiBytesRead, uiTotalBytesRead);
@@ -1011,7 +1051,7 @@ EFatCode CFatFile::FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, ui
 				uiBytesReadInSector = uiBytesToReadWholeCluster - msFile.uiBufferSeekByteIndexInSector;
 				memcpy(pvDestination, &mpvCachedClusterBuffer[msFile.uiSectorInClusterIndex * uiBytesPerSector + msFile.uiBufferSeekByteIndexInSector], uiBytesReadInSector);
 				msFile.uiBufferSeekByteIndexInSector = uiBytesPerSector;
-				msFile.uiSectorInClusterIndex += (uiSectorsToRead - 1);
+				msFile.uiSectorInClusterIndex += (uiSectors - 1);
 				uiTotalBytesRead += uiBytesReadInSector;
 				uiBytesRemaining -= uiBytesReadInSector;
 				pvDestination += uiBytesReadInSector;
