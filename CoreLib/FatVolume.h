@@ -62,7 +62,7 @@ public:
 	bool				IsFatSectorLoaded(uint32 uiSector);
 	uint32				CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, uint32 cluster);
 
-
+	uint32				GetBytesPerCluster(void);
 	uint32				GetID(void);
 	uint32				GetFatSize(void);
 	uint32				GetRootCluster(void);

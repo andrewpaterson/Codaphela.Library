@@ -152,7 +152,7 @@ int CCSVFile::ReadLine(char* sBuffer)
 	{
 		return 0;
 	}
-	iNewLinePosition = FindFirstByte(sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
+	iNewLinePosition = FindFirstByte((int8*)sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
 	if (iNewLinePosition != -1)
 	{
 		if (sBuffer[iNewLinePosition-1] == '\r')

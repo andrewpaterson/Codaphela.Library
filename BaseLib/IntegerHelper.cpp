@@ -140,7 +140,7 @@ int SetByte(int c, int iPos)
 //////////////////////////////////////////////////////////////////////////
 int GetBit(int iBit, void* pvBitArray)
 {
-	return ((char*)pvBitArray)[iBit / 8] & (1 << (iBit % 8));
+	return ((uint8*)pvBitArray)[iBit / 8] & (1 << (iBit % 8));
 }
 
 
@@ -172,11 +172,11 @@ int CountBits_PopCount64(uint64 x)
 //  https://stackoverflow.com/questions/14780928/count-number-of-bits-in-an-unsigned-integer
 //
 //////////////////////////////////////////////////////////////////////////
-int CountBits_PopCount32(unsigned int i)
+int CountBits_PopCount32(uint32 i)
 {
-	const unsigned int m1 = 0x55555555;
-	const unsigned int m2 = 0x33333333;
-	const unsigned int m4 = 0x0f0f0f0f;
+	const uint32 m1 = 0x55555555;
+	const uint32 m2 = 0x33333333;
+	const uint32 m4 = 0x0f0f0f0f;
 
 	i = i - ((i >> 1) & m1);
 	i = (i & m2) + ((i >> 2) & m2);
@@ -244,7 +244,7 @@ int	CountBits(void* pvBitArray, int iBitLength)
 {
 	if (iBitLength == 32)
 	{
-		return CountBits_PopCount32(*((unsigned int*)pvBitArray));
+		return CountBits_PopCount32(*((uint32*)pvBitArray));
 	}
 	else if (iBitLength == 64)
 	{
@@ -257,7 +257,7 @@ int	CountBits(void* pvBitArray, int iBitLength)
 	}
 	else if (iBitLength == 8)
 	{
-		return CountBits_PopCount8(*((unsigned char*)pvBitArray));
+		return CountBits_PopCount8(*((uint8*)pvBitArray));
 	}
 	else if (iBitLength == 16)
 	{
@@ -279,7 +279,7 @@ int	CountBits(void* pvBitArray, int iBitLength)
 //////////////////////////////////////////////////////////////////////////
 int GetBitReverseHiLo(int iBit, void* pvBitArray)
 {
-	return ((char*)pvBitArray)[iBit / 8] & (1 << (7 - (iBit % 8)));
+	return ((uint8*)pvBitArray)[iBit / 8] & (1 << (7 - (iBit % 8)));
 }
 
 
@@ -293,11 +293,11 @@ void SetBit(int iBit, void* pvBitArray, int bBit)
 {
 	if (bBit)
 	{
-		((char*)pvBitArray)[iBit / 8] |= (1 << (iBit % 8));
+		((uint8*)pvBitArray)[iBit / 8] |= (1 << (iBit % 8));
 	}
 	else
 	{
-		((char*)pvBitArray)[iBit / 8] &= ~(1 << (iBit % 8));
+		((uint8*)pvBitArray)[iBit / 8] &= ~(1 << (iBit % 8));
 	}
 }
 
@@ -325,7 +325,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 
 	for (i = 0; i < iIntSize; i++)
 	{
-		if (((unsigned int*)pvArray)[i] != 0x00000000)
+		if (((uint32*)pvArray)[i] != 0x00000000)
 		{
 			break;
 		}
@@ -340,7 +340,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	bFound = false;
 	for (i = iStart; i < iEnd; i++)
 	{
-		c = ((char*)pvArray)[i];
+		c = ((uint8*)pvArray)[i];
 		if (c != (unsigned char)0x00)
 		{
 			bFound = true;
@@ -355,7 +355,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 			return -1;
 		}
 
-		c = ((char*)pvArray)[i];
+		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
 		unsigned char ucCmp = 1;
 
@@ -386,7 +386,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	}
 	else
 	{
-		c = ((char*)pvArray)[i];
+		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
 		unsigned char ucCmp = 1;
 
@@ -422,7 +422,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 
 	for (i = 0; i < iIntSize; i++)
 	{
-		if (((unsigned int*)pvArray)[i] != 0xffffffff)
+		if (((uint32*)pvArray)[i] != 0xffffffff)
 		{
 			break;
 		}
@@ -436,7 +436,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	bFound = false;
 	for (i = iStart; i < iEnd; i++)
 	{
-		c = ((char*)pvArray)[i];
+		c = ((uint8*)pvArray)[i];
 		if (c != (unsigned char)0xff)
 		{
 			bFound = true;
@@ -451,7 +451,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 			return -1;
 		}
 
-		c = ((char*)pvArray)[i];
+		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
 		unsigned char ucCmp = 1;
 
@@ -482,7 +482,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	}
 	else
 	{
-		c = ((char*)pvArray)[i];
+		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
 		unsigned char ucCmp = 1;
 
@@ -585,7 +585,7 @@ void SetFlag(int* piDest, int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(unsigned int* piDest, int iFlag, int iFlagValue)
+void SetFlag(uint32* piDest, int iFlag, int iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -642,7 +642,7 @@ void SetFlag(uint16* psiDest, int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(char* psiDest, int iFlag, int iFlagValue)
+void SetFlag(uint8* psiDest, int iFlag, int iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -661,7 +661,7 @@ void SetFlag(char* psiDest, int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(unsigned char* psiDest, int iFlag, int iFlagValue)
+void SetFlag(int8* psiDest, int iFlag, int iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -694,7 +694,7 @@ void Swap(int* pi1, int* pi2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Swap(char* pc1, char* pc2)
+void Swap(uint8* pc1, uint8* pc2)
 {
 	char c3;
 
@@ -725,7 +725,26 @@ int FindFirstInt(int* piIntArray, int iSearch, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int FindFirstByte(char* pcCharArray, char cSearch, int iMaxLength)
+int FindFirstByte(uint8* pcCharArray, char cSearch, int iMaxLength)
+{
+	int		i;
+
+	for (i = 0; i < iMaxLength; i++)
+	{
+		if (pcCharArray[i] == cSearch)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int FindFirstByte(int8* pcCharArray, char cSearch, int iMaxLength)
 {
 	int		i;
 
@@ -859,7 +878,7 @@ char GetCrumb(int iCrumb, void* pvArray)
 	iBytePos = iCrumb / 4;
 	iCrumbInByte = iCrumb % 4;
 
-	return (((char*)pvArray)[iBytePos] >> (2 * iCrumbInByte)) & 0x3;
+	return (((uint8*)pvArray)[iBytePos] >> (2 * iCrumbInByte)) & 0x3;
 }
 
 
@@ -875,7 +894,7 @@ char GetNybble(int iNybble, void* pvArray)
 	iBytePos = iNybble / 2;
 	iNybbleInByte = iNybble % 2;
 
-	return (((char*)pvArray)[iBytePos] >> (4 * iNybbleInByte)) & 0xf;
+	return (((uint8*)pvArray)[iBytePos] >> (4 * iNybbleInByte)) & 0xf;
 }
 
 
@@ -952,7 +971,7 @@ void CopyBitsReverseHiLo(void* pvDest, int iDestOffset, void* pvSource, int iSou
 //////////////////////////////////////////////////////////////////////////
 int16 ReverseShortEndianness(int16 s)
 {
-	Swap((char*)&s, ((char*)&s) + 1);
+	Swap((uint8*)&s, ((uint8*)&s) + 1);
 	return s;
 }
 
@@ -963,8 +982,8 @@ int16 ReverseShortEndianness(int16 s)
 //////////////////////////////////////////////////////////////////////////
 int ReverseIntEndianness(int i)
 {
-	Swap(((char*)&i + 0), ((char*)&i) + 3);
-	Swap(((char*)&i + 1), ((char*)&i) + 2);
+	Swap(((uint8*)&i + 0), ((uint8*)&i) + 3);
+	Swap(((uint8*)&i + 1), ((uint8*)&i) + 2);
 	return i;
 }
 
@@ -975,10 +994,10 @@ int ReverseIntEndianness(int i)
 //////////////////////////////////////////////////////////////////////////
 int64 ReverseLongEndianness(int64 i)
 {
-	Swap(((char*)&i + 0), ((char*)&i) + 7);
-	Swap(((char*)&i + 1), ((char*)&i) + 6);
-	Swap(((char*)&i + 2), ((char*)&i) + 5);
-	Swap(((char*)&i + 3), ((char*)&i) + 4);
+	Swap(((uint8*)&i + 0), ((uint8*)&i) + 7);
+	Swap(((uint8*)&i + 1), ((uint8*)&i) + 6);
+	Swap(((uint8*)&i + 2), ((uint8*)&i) + 5);
+	Swap(((uint8*)&i + 3), ((uint8*)&i) + 4);
 	return i;
 }
 
@@ -1016,7 +1035,7 @@ void ReverseBytes(void* pv, int iSize)
 	iHalf = iSize / 2;
 	for (i = 0; i < iHalf; i++)
 	{
-		Swap(&(((char*)pv)[i]), &(((char*)pv)[iSize - i - 1]));
+		Swap(&(((uint8*)pv)[i]), &(((uint8*)pv)[iSize - i - 1]));
 	}
 }
 

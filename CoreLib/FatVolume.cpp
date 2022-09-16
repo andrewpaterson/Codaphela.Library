@@ -4255,6 +4255,16 @@ int CFatVolume::FatIndexOf(char chr, char* str, int index)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::GetBytesPerCluster(void) 
+{ 
+	return msVolume.uiNoOfBytesPerSector * msVolume.uiNoOfSectorsPerCluster;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetID(void) { return msVolume.uiID; }
 uint32 CFatVolume::GetFatSize(void) { return msVolume.uiFatSize; }
 uint32 CFatVolume::GetRootCluster(void) { return msVolume.uiRootCluster; }
