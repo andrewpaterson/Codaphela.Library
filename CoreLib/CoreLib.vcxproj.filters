@@ -531,8 +531,8 @@
     <ClCompile Include="FatTime.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
-    <ClCompile Include="ClusterCache.cpp">
-      <Filter>Source\FileSystem\Underlying</Filter>
+    <ClCompile Include="FatCache.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -902,8 +902,8 @@
     <ClInclude Include="FatTime.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
-    <ClInclude Include="ClusterCache.h">
-      <Filter>Source\FileSystem\Underlying</Filter>
+    <ClInclude Include="FatCache.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

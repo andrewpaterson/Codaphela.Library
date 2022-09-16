@@ -30,7 +30,7 @@ struct SFatWriteOperationState
 {
 	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
-	uint8* pvUserMemory;
+	uint8*		pvUserMemory;
 };
 
 
@@ -39,8 +39,8 @@ struct SFatReadOperationState
 {
 	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
-	uint32* puiBytesRead;
-	uint8* pvUserMemory;
+	uint32*		puiBytesRead;
+	uint8*		pvUserMemory;
 };
 
 
@@ -48,8 +48,8 @@ class CFatFile
 {
 protected:
 	SFatFile		msFile;
-	CFatVolume* mpcVolume;
-	uint8* mpvBuffer;
+	CFatVolume*		mpcVolume;
+	uint8*			mpvBuffer;
 
 public:
 	void					Init(CFatVolume* pcVolume);

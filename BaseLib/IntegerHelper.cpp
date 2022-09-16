@@ -138,7 +138,7 @@ int SetByte(int c, int iPos)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-int GetBit(int iBit, void* pvBitArray)
+bool GetBit(int iBit, void* pvBitArray)
 {
 	return ((uint8*)pvBitArray)[iBit / 8] & (1 << (iBit % 8));
 }
@@ -277,7 +277,7 @@ int	CountBits(void* pvBitArray, int iBitLength)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-int GetBitReverseHiLo(int iBit, void* pvBitArray)
+bool GetBitReverseHiLo(int iBit, void* pvBitArray)
 {
 	return ((uint8*)pvBitArray)[iBit / 8] & (1 << (7 - (iBit % 8)));
 }
@@ -289,7 +289,7 @@ int GetBitReverseHiLo(int iBit, void* pvBitArray)
 //	No bounds checking is done.
 //
 //////////////////////////////////////////////////////////////////////////
-void SetBit(int iBit, void* pvBitArray, int bBit)
+void SetBit(int iBit, void* pvBitArray, bool bBit)
 {
 	if (bBit)
 	{

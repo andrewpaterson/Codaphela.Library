@@ -748,6 +748,20 @@ bool PrivateAssertMemory(void* pvExpected, void* pvActual, int iSize, int iLine,
 	int		i;
 	char 	szExpected[32];
 	char 	szActual[32];
+	int		uiExpected;
+	int		uiActual;
+
+	for (i = 0; i < iSize; i++)
+	{
+		if (((uint8*)pvExpected)[i] != ((uint8*)pvActual)[i])
+		{
+			uiExpected = ((uint8*)pvExpected)[i];
+			uiActual = ((uint8*)pvActual)[i];
+			sprintf(szExpected, "mem[%i] == %u", i, uiExpected);
+			sprintf(szActual, "mem[%i] == %u", i, uiActual);
+			return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+		}
+	}
 
 	i = memcmp(pvExpected, pvActual, iSize);
 	if (i != 0)

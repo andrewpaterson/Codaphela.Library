@@ -427,7 +427,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	uiClustersNeeded = (uiClustersNeeded + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
 	uiClustersNeeded = (msFile.uiNoOfClustersAfterPos > uiClustersNeeded) ? 0 : (uiClustersNeeded - msFile.uiNoOfClustersAfterPos);
 
-	// if we already got all the clusters requested then thre's nothing to do
+	// if we already got all the clusters requested then there is nothing to do
 	if (uiClustersNeeded == 0)
 	{
 		msFile.bBusy = 0;

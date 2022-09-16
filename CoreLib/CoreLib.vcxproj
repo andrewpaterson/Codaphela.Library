@@ -181,7 +181,7 @@
   <ItemGroup>
     <ClCompile Include="CalcObject.cpp" />
     <ClCompile Include="CharEncoding.cpp" />
-    <ClCompile Include="ClusterCache.cpp" />
+    <ClCompile Include="FatCache.cpp" />
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
     <ClCompile Include="FatFile.cpp" />
@@ -294,7 +294,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CharEncoding.h" />
-    <ClInclude Include="ClusterCache.h" />
+    <ClInclude Include="FatCache.h" />
     <ClInclude Include="Codabase.h" />
     <ClInclude Include="CodabaseFactory.h" />
     <ClInclude Include="DataConnection.h" />
