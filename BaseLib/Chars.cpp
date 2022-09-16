@@ -1315,7 +1315,7 @@ void CChars::Split(CArrayChars* aszDest, char cSplitter)
 	iMax = Length();
 	for (;;)
 	{
-		iPos = FindFirstByte(pszPos, cSplitter, iMax);
+		iPos = FindFirstByte((int8*)pszPos, cSplitter, iMax);
 		if (iPos != -1)
 		{
 			aszDest->Add(pszPos, 0, iPos);

@@ -11,10 +11,10 @@ struct SFatFile
 {
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiFileSize;
-
-	uint32					uiCluster;								// Cluster where the file is currently pointing.
-	uint32					uiClusterIndex;							// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
-	uint32					uiSectorInClusterIndex;
+	uint32					uiCachedClusterInVolume;
+	uint32					uiCachedClusterIndex;				// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
+	uint32					uiFirstCachedSectorIndexInCluster;  // Sector 0 is the first sector in the cluster etc...
+	uint32					uiLastCachedSectorIndexInCluster;	// Inclusive.
 
 	uint32					uiNoOfClustersAfterPos;
 	uint16					uiNoOfSequentialClusters;
@@ -30,7 +30,17 @@ struct SFatWriteOperationState
 {
 	uint32		uiBytesRemaining;
 	uint32		uiSectorAddress;
-	uint8*		pvUserMemory;
+	uint8* pvUserMemory;
+};
+
+
+// holds the state of the current read operation
+struct SFatReadOperationState
+{
+	uint32		uiBytesRemaining;
+	uint32		uiSectorAddress;
+	uint32* puiBytesRead;
+	uint8* pvUserMemory;
 };
 
 
@@ -38,12 +48,8 @@ class CFatFile
 {
 protected:
 	SFatFile		msFile;
-	CFatVolume*		mpcVolume;
-
-	uint32			muiFirstCachedSector;
-	uint32			muiLastCachedSector;		// Inclusive.
-
-	uint8*			mpvCachedClusterBuffer;
+	CFatVolume* mpcVolume;
+	uint8* mpvBuffer;
 
 public:
 	void					Init(CFatVolume* pcVolume);
@@ -63,7 +69,7 @@ public:
 	bool					IsBusy(void);
 	uint8					GetMagic(void);
 	uint8					GetAccessFlags(void);
-	uint8*					GetBuffer(void);
+	uint8* GetBuffer(void);
 
 protected:
 	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
@@ -74,8 +80,7 @@ protected:
 
 	void					AllocateBuffer(void);
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileRead(uint8* pvDestination, uint32 uiBytesRemaining, uint32* puiBytesRead);
-	EFatCode				FindNextSector(uint32* puiSector);
+	EFatCode				FatFileRead(SFatReadOperationState* psOperation);
 };
 
 

@@ -47,13 +47,13 @@ int 	GetBit(int iBit, void* pvBitArray);  //return 1 or 0 in char array of bits.
 int 	GetBitReverseHiLo(int iBit, void* pvBitArray);  //return 1 or 0 in char array of bits indexed in reverse.
 int		CountBits(void* pvBitArray, int iBitLength); 
 int		CountBitsSingly(void* pvBitArray, int iBitLength);  //Slow, for testing.
-void 	SetBit(int iBit, void* pvBitArray, int bBit);  //bBit can only take 1 or 0.
-void 	SetFlag(int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
-void 	SetFlag(unsigned int* piDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
-void 	SetFlag(int16* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
-void 	SetFlag(uint16* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
-void 	SetFlag(char* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 4bytes.
-void 	SetFlag(unsigned char* psiDest, int iFlag, int iFlagValue);  //Identically to set bit but only works on 2bytes.
+void 	SetBit(int iBit, void* pvBitArray, int bBit);		//bBit can only take 1 or 0.
+void 	SetFlag(int* piDest, int iFlag, int iFlagValue);
+void 	SetFlag(uint32* piDest, int iFlag, int iFlagValue);
+void 	SetFlag(int16* psiDest, int iFlag, int iFlagValue);
+void 	SetFlag(uint16* psiDest, int iFlag, int iFlagValue);
+void 	SetFlag(int8* psiDest, int iFlag, int iFlagValue); 
+void 	SetFlag(uint8* psiDest, int iFlag, int iFlagValue);
 int 	FindFirstClearBit(void* pvArray, int iArraySize);
 int 	FindFirstSetBit(void* pvArray, int iArraySize);
 int 	FindLastClearBit(void* pvArray, int iArraySize);
@@ -61,9 +61,10 @@ int 	FindLastSetBit(void* pvArray, int iArraySize);
 bool 	FixBool(int i);
 bool	FixBool(void* pv);
 void 	Swap(int* pi1, int* pi2);
-void 	Swap(char* pc1, char* pi2);
+void 	Swap(uint8* pc1, uint8* pi2);
 int 	FindFirstInt(int* piIntArray, int iSearch, int iMaxLength);
-int		FindFirstByte(char* pcCharArray, char cSearch, int iMaxLength);
+int		FindFirstByte(uint8* pcCharArray, char cSearch, int iMaxLength);
+int		FindFirstByte(int8* pcCharArray, char cSearch, int iMaxLength);
 int		GetHighNybble(char c);
 int		GetLowNybble(char c);
 int 	CompareInt(const void* arg1, const void* arg2);
