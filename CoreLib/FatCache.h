@@ -37,6 +37,9 @@ public:
 	void	Clear(void);
 	uint8*	GetCache(void);
 
+	bool	IsSectorDirty(int iSectorIndex);
+	bool	IsSectorCached(int iSectorIndex);
+
 protected:
 	bool	FlushAndInvalidate(SClusterCache* psCluster);
 	bool	IsCached(uint32 uiSectorIndex);

@@ -20,6 +20,7 @@ void CFatCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorS
 	msCluster.pvCache = (uint8*)malloc(uiClusterSize);
 	msCluster.pbCachedSectors = (uint8*)malloc(muiBytesForBits);
 	msCluster.pbDirtySectors = (uint8*)malloc(muiBytesForBits);
+	memset(msCluster.pvCache, 0, muiClusterSize);
 	memset(msCluster.pbCachedSectors, 0, muiBytesForBits);
 	memset(msCluster.pbDirtySectors, 0, muiBytesForBits);
 }
@@ -166,13 +167,28 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 //////////////////////////////////////////////////////////////////////////
 bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
 {
+	int	iFirstDirtySector;
+	int	iLastDirtySector;
+
 	if (psCluster->uiCluster == NO_CLUSTER_CACHED)
 	{
 		return true;
 	}
 
+	iFirstDirtySector = FindFirstSetBit(psCluster->pbDirtySectors, muiSectorsPerCluster);
+	if (iFirstDirtySector == -1)
+	{
+		return true;
+	}
+
+	iLastDirtySector = FindNextClearBit(psCluster->pbDirtySectors, muiSectorsPerCluster, iFirstDirtySector);
+	if (iLastDirtySector == -1)
+	{
+		iLastDirtySector = muiSectorsPerCluster;
+	}
+
+	mpcDrive->Write(iFirstDirtySector, iLastDirtySector - iFirstDirtySector, &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
 	
-	msCluster.pbDirtySectors
 	return false;
 }
 
@@ -213,7 +229,10 @@ bool CFatCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex)
 //////////////////////////////////////////////////////////////////////////
 void CFatCache::Clear(void)
 {
+	msCluster.uiCluster = NO_CLUSTER_CACHED;
 	memset(msCluster.pvCache, 0, muiClusterSize);
+	memset(msCluster.pbCachedSectors, 0, muiBytesForBits);
+	memset(msCluster.pbDirtySectors, 0, muiBytesForBits);
 }
 
 
@@ -224,5 +243,25 @@ void CFatCache::Clear(void)
 uint8* CFatCache::GetCache(void)
 {
 	return msCluster.pvCache;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatCache::IsSectorDirty(int iSectorIndex)
+{
+	return GetBit(iSectorIndex, msCluster.pbDirtySectors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatCache::IsSectorCached(int iSectorIndex)
+{
+	return GetBit(iSectorIndex, msCluster.pbCachedSectors);
 }
 
