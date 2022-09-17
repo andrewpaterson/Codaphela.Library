@@ -16,13 +16,10 @@ void CFatCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorS
 	mpcDrive = pcDrive;
 	muiBytesForBits = muiSectorsPerCluster / sizeof(uint8);
 
-	msCluster.uiCluster = NO_CLUSTER_CACHED;
 	msCluster.pvCache = (uint8*)malloc(uiClusterSize);
 	msCluster.pbCachedSectors = (uint8*)malloc(muiBytesForBits);
 	msCluster.pbDirtySectors = (uint8*)malloc(muiBytesForBits);
-	memset(msCluster.pvCache, 0, muiClusterSize);
-	memset(msCluster.pbCachedSectors, 0, muiBytesForBits);
-	memset(msCluster.pbDirtySectors, 0, muiBytesForBits);
+	Invalidate(&msCluster);
 }
 
 
@@ -151,8 +148,8 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 
 		uiSectorLength = uiLength;
 		memcpy(&msCluster.pvCache[uiOffset], &pvSource[uiIndex], uiSectorLength);
-		SetBit(uiFirstSectorIndex, msCluster.pbCachedSectors, true);
-		SetBit(uiFirstSectorIndex, msCluster.pbDirtySectors, true);
+		SetBit(uiLastSectorIndexInclusive, msCluster.pbCachedSectors, true);
+		SetBit(uiLastSectorIndexInclusive, msCluster.pbDirtySectors, true);
 		uiIndex += uiSectorLength;
 		uiOffset += uiSectorLength;
 		uiLength -= uiSectorLength;
@@ -165,10 +162,22 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
+bool CFatCache::Flush(void)
 {
-	int	iFirstDirtySector;
-	int	iLastDirtySector;
+	return Flush(&msCluster);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatCache::Flush(SClusterCache* psCluster)
+{
+	int		iFirstDirtySector;
+	int		iLastDirtySector;
+	bool	bDone;
+	bool	bResult;
 
 	if (psCluster->uiCluster == NO_CLUSTER_CACHED)
 	{
@@ -181,15 +190,52 @@ bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
 		return true;
 	}
 
-	iLastDirtySector = FindNextClearBit(psCluster->pbDirtySectors, muiSectorsPerCluster, iFirstDirtySector);
-	if (iLastDirtySector == -1)
+	bDone = false;
+	for (;;)
 	{
-		iLastDirtySector = muiSectorsPerCluster;
-	}
+		iLastDirtySector = FindNextClearBit(psCluster->pbDirtySectors, muiSectorsPerCluster, iFirstDirtySector);
+		if (iLastDirtySector == -1)
+		{
+			iLastDirtySector = muiSectorsPerCluster;
+			bDone = true;
+		}
 
-	mpcDrive->Write(iFirstDirtySector, iLastDirtySector - iFirstDirtySector, &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
+		bResult = mpcDrive->Write(iFirstDirtySector, iLastDirtySector - iFirstDirtySector, &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
+		if (!bResult)
+		{
+			return false;
+		}
+
+		if (bDone)
+		{
+			break;
+		}
+
+		iFirstDirtySector = FindNextSetBit(psCluster->pbDirtySectors, muiSectorsPerCluster, iLastDirtySector);
+		if (iFirstDirtySector == -1)
+		{
+			break;
+		}
+	}
+	memset(psCluster->pbDirtySectors, 0, muiBytesForBits);
+
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
+{
+	bool bResult;
+
+	bResult = Flush(psCluster);
 	
-	return false;
+	Invalidate(psCluster);
+
+	return bResult;;
 }
 
 
@@ -229,11 +275,22 @@ bool CFatCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex)
 //////////////////////////////////////////////////////////////////////////
 void CFatCache::Clear(void)
 {
-	msCluster.uiCluster = NO_CLUSTER_CACHED;
-	memset(msCluster.pvCache, 0, muiClusterSize);
-	memset(msCluster.pbCachedSectors, 0, muiBytesForBits);
-	memset(msCluster.pbDirtySectors, 0, muiBytesForBits);
+	Invalidate(&msCluster);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatCache::Invalidate(SClusterCache* psCluster)
+{
+	psCluster->uiCluster = NO_CLUSTER_CACHED;
+	memset(psCluster->pvCache, 0, muiClusterSize);
+	memset(psCluster->pbCachedSectors, 0, muiBytesForBits);
+	memset(psCluster->pbDirtySectors, 0, muiBytesForBits);
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -263,5 +320,15 @@ bool CFatCache::IsSectorDirty(int iSectorIndex)
 bool CFatCache::IsSectorCached(int iSectorIndex)
 {
 	return GetBit(iSectorIndex, msCluster.pbCachedSectors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatCache::GetSectorsPerCluster(void)
+{
+	return muiSectorsPerCluster;
 }
 
