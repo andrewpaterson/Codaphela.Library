@@ -41,18 +41,14 @@ void CFatCache::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset)
 {
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset)
-{
 	bool	bResult;
 	uint32	uiLength;
+	uint16	uiFirstSectorIndex;
+	uint16	uiLastSectorIndexInclusive;
+	uint16	uiMaximumSector;
+	int		iStart;
+	int		iEnd;
+	int		i;
 
 	if (uiCluster != msCluster.uiCluster)
 	{
@@ -65,12 +61,87 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 		msCluster.uiClusterFirstSector = uiClusterFirstSector;
 	}
 
+	if (uiOffset >= muiClusterSize)
+	{
+		return false;
+	}
+
+	uiLength = *puiLength;
+	uiFirstSectorIndex = uiOffset / muiSectorSize;
+	uiLastSectorIndexInclusive = (uiOffset + (uiLength - 1)) / muiSectorSize;
+
+	uiMaximumSector = (uiMaximumOffset - 1) / muiSectorSize;
+
+	if (uiFirstSectorIndex > uiMaximumSector)
+	{
+		return false;
+	}
+
+	if (uiLastSectorIndexInclusive >= muiSectorsPerCluster)
+	{
+		uiLastSectorIndexInclusive = muiSectorsPerCluster - 1;
+		uiLength = muiClusterSize - uiOffset;
+		*puiLength -= uiLength;
+	}
+	else
+	{
+		*puiLength = 0;
+	}
+
+	for (;;)
+	{
+		iStart = FindNextClearBit(msCluster.pbCachedSectors, muiSectorsPerCluster, uiFirstSectorIndex);
+		if (iStart == -1)
+		{
+			break;
+		}
+
+		iEnd = FindNextSetBit(msCluster.pbCachedSectors, muiSectorsPerCluster, iStart);
+		if ((iEnd == -1) || (iEnd > uiMaximumSector))
+		{
+			iEnd = uiMaximumSector + 1;
+		}
+		mpcDrive->Read(msCluster.uiClusterFirstSector + iStart, iEnd - iStart, &msCluster.pvCache[iStart * muiSectorSize]);
+		for (i = iStart; i < iEnd; i++)
+		{
+			SetBit(i, msCluster.pbCachedSectors, true);
+		}
+
+		if (iEnd > uiMaximumSector)
+		{
+			break;
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset)
+{
+	bool	bResult;
+	uint32	uiLength;
 	uint16	uiFirstSectorIndex;
 	uint16	uiLastSectorIndexInclusive;
 	uint16	i;
 	uint16	uiPreviousMaximumSector;
 	uint16	uiSectorLength;
 	uint16	uiIndex;
+
+	if (uiCluster != msCluster.uiCluster)
+	{
+		bResult = FlushAndInvalidate(&msCluster);
+		if (!bResult)
+		{
+			return false;
+		}
+		msCluster.uiCluster = uiCluster;
+		msCluster.uiClusterFirstSector = uiClusterFirstSector;
+	}
 
 	if (uiOffset >= muiClusterSize)
 	{
@@ -200,7 +271,7 @@ bool CFatCache::Flush(SClusterCache* psCluster)
 			bDone = true;
 		}
 
-		bResult = mpcDrive->Write(iFirstDirtySector, iLastDirtySector - iFirstDirtySector, &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
+		bResult = mpcDrive->Write(psCluster->uiClusterFirstSector + iFirstDirtySector, iLastDirtySector - iFirstDirtySector, &psCluster->pvCache[iFirstDirtySector * muiSectorSize]);
 		if (!bResult)
 		{
 			return false;

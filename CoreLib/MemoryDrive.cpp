@@ -93,7 +93,6 @@ bool CMemoryDrive::Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
 
 	memcpy(pvData, RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), muiSectorSize * uiNumSectors);
 	return true;
-
 }
 
 
