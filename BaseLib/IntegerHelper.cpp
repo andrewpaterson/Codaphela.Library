@@ -514,10 +514,10 @@ int FindNextSetBit(void* pvArray, int iArraySize, int iStartBit)
 	int				iStartEight;
 
 	iRemainder = iStartBit % 8;
+	iStart = iStartBit / 8;
 
 	if (iRemainder != 0)
 	{
-		iStart = iStartBit / 8;
 		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
 
 		c = ((uint8*)pvArray)[iStart];
@@ -530,15 +530,25 @@ int FindNextSetBit(void* pvArray, int iArraySize, int iStartBit)
 				return ij + i;
 			ucCmp <<= 1;
 		}
-	}
 
-	iStartEight = iStart * 8 + 8;
-	iResult = FindFirstSetBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
-	if (iResult != -1)
-	{
-		return iResult + iStartEight;
+		iStartEight = iStart * 8 + 8;
+		iResult = FindFirstSetBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
+		if (iResult != -1)
+		{
+			return iResult + iStartEight;
+		}
+		return iResult;
 	}
-	return iResult;
+	else
+	{
+		iStartEight = iStartBit;
+		iResult = FindFirstSetBit(&((uint8*)pvArray)[iStart], iArraySize - iStartEight);
+		if (iResult != -1)
+		{
+			return iResult + iStartEight;
+		}
+		return iResult;
+	}
 }
 
 
@@ -559,8 +569,8 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 	int				iStartEight;
 
 	iRemainder = iStartBit % 8;
-
 	iStart = iStartBit / 8;
+
 	if (iRemainder != 0)
 	{
 		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
@@ -575,6 +585,7 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 				return ij + i;
 			ucCmp <<= 1;
 		}
+
 		iStartEight = iStart * 8 + 8;
 		iResult = FindFirstClearBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
 		if (iResult != -1)
@@ -593,8 +604,6 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 		}
 		return iResult;
 	}
-
-	
 }
 
 
@@ -826,13 +835,13 @@ int FindFirstInt(int* piIntArray, int iSearch, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int FindFirstByte(uint8* pcCharArray, char cSearch, int iMaxLength)
+int FindFirstByte(uint8* pcCharArray, uint8 uiSearch, int iMaxLength)
 {
 	int		i;
 
 	for (i = 0; i < iMaxLength; i++)
 	{
-		if (pcCharArray[i] == cSearch)
+		if (pcCharArray[i] == uiSearch)
 		{
 			return i;
 		}
@@ -845,18 +854,19 @@ int FindFirstByte(uint8* pcCharArray, char cSearch, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int FindFirstByte(int8* pcCharArray, char cSearch, int iMaxLength)
+int FindFirstByte(char* pcCharArray, char cSearch, int iMaxLength)
 {
-	int		i;
+	return FindFirstByte((uint8*)pcCharArray, cSearch, iMaxLength);
+}
 
-	for (i = 0; i < iMaxLength; i++)
-	{
-		if (pcCharArray[i] == cSearch)
-		{
-			return i;
-		}
-	}
-	return -1;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int FindFirstByte(int8* pcCharArray, int8 iSearch, int iMaxLength)
+{
+	return FindFirstByte((uint8*)pcCharArray, iSearch, iMaxLength);
 }
 
 
