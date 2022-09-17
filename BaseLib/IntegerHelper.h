@@ -58,6 +58,8 @@ int 	FindFirstClearBit(void* pvArray, int iArraySize);
 int 	FindFirstSetBit(void* pvArray, int iArraySize);
 int 	FindLastClearBit(void* pvArray, int iArraySize);
 int 	FindLastSetBit(void* pvArray, int iArraySize);
+int		FindNextSetBit(void* pvArray, int iArraySize, int iStartBit);
+int		FindNextClearBit(void* pvArray, int iArraySize, int iStartBit);
 bool 	FixBool(int i);
 bool	FixBool(void* pv);
 void 	Swap(int* pi1, int* pi2);
