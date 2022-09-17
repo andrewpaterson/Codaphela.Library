@@ -348,7 +348,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 		}
 	}
 
-	if (iRemainder == 0)
+	if ((i < iEnd) || (iRemainder == 0))
 	{
 		if (!bFound)
 		{
@@ -403,7 +403,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//	iArray size is in bits
+//	array size is in bits
 //
 //////////////////////////////////////////////////////////////////////////
 int FindFirstClearBit(void* pvArray, int iArraySize)
@@ -444,7 +444,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 		}
 	}
 
-	if (iRemainder == 0)
+	if ((i < iEnd) || (iRemainder == 0))
 	{
 		if (!bFound)
 		{
@@ -494,6 +494,96 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 		}
 		return -1;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	iArray size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+int FindNextSetBit(void* pvArray, int iArraySize, int iStartBit)
+{
+	int				i;
+	int				iRemainder;
+	int				iStart;
+	unsigned char	c;
+	int				iResult;
+	int				iStop;
+	int				ij;
+	int				iStartEight;
+
+	iRemainder = iStartBit % 8;
+
+	if (iRemainder != 0)
+	{
+		iStart = iStartBit / 8;
+		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
+
+		c = ((uint8*)pvArray)[iStart];
+		ij = iStart * 8;
+		unsigned char ucCmp = 1 << iRemainder;
+
+		for (i = iRemainder; i < iStop; i++)
+		{
+			if ((c & ucCmp))
+				return ij + i;
+			ucCmp <<= 1;
+		}
+	}
+
+	iStartEight = iStart * 8 + 8;
+	iResult = FindFirstSetBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
+	if (iResult != -1)
+	{
+		return iResult + iStartEight;
+	}
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//	Array size is in bits
+//
+//////////////////////////////////////////////////////////////////////////
+int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
+{
+	int				i;
+	int				iRemainder;
+	int				iStart;
+	unsigned char	c;
+	int				iResult;
+	int				iStop;
+	int				ij;
+	int				iStartEight;
+
+	iRemainder = iStartBit % 8;
+
+	if (iRemainder != 0)
+	{
+		iStart = iStartBit / 8;
+		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
+
+		c = ((uint8*)pvArray)[iStart];
+		ij = iStart * 8;
+		unsigned char ucCmp = 1 << iRemainder;
+
+		for (i = iRemainder; i < iStop; i++)
+		{
+			if (!(c & ucCmp))
+				return ij + i;
+			ucCmp <<= 1;
+		}
+	}
+
+	iStartEight = iStart * 8 + 8;
+	iResult = FindFirstClearBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
+	if (iResult != -1)
+	{
+		return iResult + iStartEight;
+	}
+	return iResult;
 }
 
 

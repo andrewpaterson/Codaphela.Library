@@ -170,6 +170,9 @@ bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
 	{
 		return true;
 	}
+
+	
+	msCluster.pbDirtySectors
 	return false;
 }
 
