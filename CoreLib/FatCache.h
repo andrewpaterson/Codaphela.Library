@@ -33,6 +33,7 @@ public:
 
 	bool	Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset);
 	bool	Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset);
+	bool	Flush(void);
 
 	void	Clear(void);
 	uint8*	GetCache(void);
@@ -40,7 +41,11 @@ public:
 	bool	IsSectorDirty(int iSectorIndex);
 	bool	IsSectorCached(int iSectorIndex);
 
+	uint16	GetSectorsPerCluster(void);
+
 protected:
+	void	Invalidate(SClusterCache* psCluster);
+	bool	Flush(SClusterCache* psCluster);
 	bool	FlushAndInvalidate(SClusterCache* psCluster);
 	bool	IsCached(uint32 uiSectorIndex);
 	bool	CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex);
