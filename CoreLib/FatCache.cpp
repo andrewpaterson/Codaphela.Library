@@ -97,9 +97,9 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 		}
 
 		iEnd = FindNextSetBit(msCluster.pbCachedSectors, muiSectorsPerCluster, iStart);
-		if ((iEnd == -1) || (iEnd > uiMaximumSector))
+		if ((iEnd == -1) || (iEnd > uiLastSectorIndexInclusive))
 		{
-			iEnd = uiMaximumSector + 1;
+			iEnd = uiLastSectorIndexInclusive + 1;
 		}
 		mpcDrive->Read(msCluster.uiClusterFirstSector + iStart, iEnd - iStart, &msCluster.pvCache[iStart * muiSectorSize]);
 		for (i = iStart; i < iEnd; i++)
@@ -107,13 +107,15 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 			SetBit(i, msCluster.pbCachedSectors, true);
 		}
 
-		if (iEnd > uiMaximumSector)
+		if (iEnd > uiLastSectorIndexInclusive)
 		{
 			break;
 		}
 	}
 
-	return false;
+	memcpy(pvDestination, &msCluster.pvCache[uiOffset], uiLength);
+
+	return true;
 }
 
 
@@ -132,6 +134,15 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 	uint16	uiSectorLength;
 	uint16	uiIndex;
 
+	if (uiOffset >= muiClusterSize)
+	{
+		return false;
+	}
+	if (uiOffset > uiPreviousMaximumOffset)
+	{
+		return false;
+	}
+
 	if (uiCluster != msCluster.uiCluster)
 	{
 		bResult = FlushAndInvalidate(&msCluster);
@@ -141,11 +152,6 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 		}
 		msCluster.uiCluster = uiCluster;
 		msCluster.uiClusterFirstSector = uiClusterFirstSector;
-	}
-
-	if (uiOffset >= muiClusterSize)
-	{
-		return false;
 	}
 
 	uiLength = *puiLength;
@@ -380,7 +386,14 @@ uint8* CFatCache::GetCache(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFatCache::IsSectorDirty(int iSectorIndex)
 {
-	return GetBit(iSectorIndex, msCluster.pbDirtySectors);
+	if ((iSectorIndex >= 0) && (iSectorIndex < muiSectorsPerCluster))
+	{
+		return GetBit(iSectorIndex, msCluster.pbDirtySectors);
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -390,7 +403,14 @@ bool CFatCache::IsSectorDirty(int iSectorIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CFatCache::IsSectorCached(int iSectorIndex)
 {
-	return GetBit(iSectorIndex, msCluster.pbCachedSectors);
+	if ((iSectorIndex >= 0) && (iSectorIndex < muiSectorsPerCluster))
+	{
+		return GetBit(iSectorIndex, msCluster.pbCachedSectors);
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
