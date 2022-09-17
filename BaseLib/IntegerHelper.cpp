@@ -560,9 +560,9 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 
 	iRemainder = iStartBit % 8;
 
+	iStart = iStartBit / 8;
 	if (iRemainder != 0)
 	{
-		iStart = iStartBit / 8;
 		iStop = iArraySize < 8 ? iStop = iArraySize : 8;
 
 		c = ((uint8*)pvArray)[iStart];
@@ -575,15 +575,26 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 				return ij + i;
 			ucCmp <<= 1;
 		}
+		iStartEight = iStart * 8 + 8;
+		iResult = FindFirstClearBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
+		if (iResult != -1)
+		{
+			return iResult + iStartEight;
+		}
+		return iResult;
+	}
+	else
+	{
+		iStartEight = iStartBit;
+		iResult = FindFirstClearBit(&((uint8*)pvArray)[iStart], iArraySize - iStartEight);
+		if (iResult != -1)
+		{
+			return iResult + iStartEight;
+		}
+		return iResult;
 	}
 
-	iStartEight = iStart * 8 + 8;
-	iResult = FindFirstClearBit(&((uint8*)pvArray)[iStart + 1], iArraySize - iStartEight);
-	if (iResult != -1)
-	{
-		return iResult + iStartEight;
-	}
-	return iResult;
+	
 }
 
 
