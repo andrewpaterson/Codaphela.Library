@@ -47,7 +47,8 @@ bool 	GetBit(int iBit, void* pvBitArray);  //return 1 or 0 in char array of bits
 bool 	GetBitReverseHiLo(int iBit, void* pvBitArray);  //return 1 or 0 in char array of bits indexed in reverse.
 int		CountBits(void* pvBitArray, int iBitLength); 
 int		CountBitsSingly(void* pvBitArray, int iBitLength);  //Slow, for testing.
-void 	SetBit(int iBit, void* pvBitArray, bool bBit);		//bBit can only take 1 or 0.
+void 	SetBit(int iBit, void* pvBitArray, bool bBit);
+void 	SetBits(int iStart, void* pvBitArray, bool bBit, int iLength);
 void 	SetFlag(int* piDest, int iFlag, int iFlagValue);
 void 	SetFlag(uint32* piDest, int iFlag, int iFlagValue);
 void 	SetFlag(int16* psiDest, int iFlag, int iFlagValue);
