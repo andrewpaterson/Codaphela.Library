@@ -716,9 +716,9 @@ EFatCode CFatFile::Seek(uint32 offset, char mode)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 {
-	EFatCode					uiResult;
-	SFatWriteOperationState		sOperation;
-	uint32						uiBytePosition;
+	EFatCode	uiResult;
+	uint32		uiBytePosition;
+	uint32		uiSectorAddress;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -761,16 +761,10 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	uiBytePosition += (msFile.uiFirstCachedSectorIndexInCluster) * mpcVolume->GetNoOfBytesPerSector();
 	uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
 
-	// copy the length of the buffer to be writen
-	// into the counter
-	sOperation.uiBytesRemaining = uiLength;
-
 	// calculate the address of the current sector
-	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
+	uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
-	sOperation.pvUserMemory = pvSource;
-
-	return FatFileWriteCallback(&sOperation, uiBytePosition);
+	return FatFileWrite(uiLength, uiSectorAddress, pvSource, uiBytePosition);
 }
 
 
@@ -778,13 +772,13 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, uint32 uiBytePosition)
+EFatCode CFatFile::FatFileWrite(uint32 uiBytesRemaining, uint32 uiSectorAddress, uint8* puiSource, uint32 uiBytePosition)
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
 
 	// loop while there are bytes to be read
-	while (psOperation->uiBytesRemaining)
+	while (uiBytesRemaining)
 	{
 		// if we've reached the end of the current
 		// sector then we must flush it
@@ -793,7 +787,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 			msFile.uiBufferSeekByteIndexInSector = 0;
 
 			// write the cached sector to media
-			bSuccess = mpcVolume->Write(psOperation->uiSectorAddress, mpvBuffer);
+			bSuccess = mpcVolume->Write(uiSectorAddress, mpvBuffer);
 			if (!bSuccess)
 			{
 				msFile.bBusy = 0;
@@ -815,7 +809,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 				msFile.uiCachedClusterIndex++;
 				msFile.uiNoOfClustersAfterPos--;
 				// calculate the sector address
-				psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
+				uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 			}
 			// if there are more sectors in the
 			// current cluster then simply increase
@@ -823,12 +817,12 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 			else
 			{
 				msFile.uiFirstCachedSectorIndexInCluster++;
-				psOperation->uiSectorAddress++;
+				uiSectorAddress++;
 			}
 		}
 
 		// write the next byte to the file cache
-		mpvBuffer[msFile.uiBufferSeekByteIndexInSector] = *psOperation->pvUserMemory++;
+		mpvBuffer[msFile.uiBufferSeekByteIndexInSector] = *puiSource++;
 		msFile.uiBufferSeekByteIndexInSector++;
 
 		// update the file size only if we're writting past the end of the file.
@@ -837,7 +831,7 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 		{
 			msFile.uiFileSize++;
 		}
-		psOperation->uiBytesRemaining--;
+		uiBytesRemaining--;
 	}
 
 	msFile.bBusy = 0;
@@ -851,8 +845,8 @@ EFatCode CFatFile::FatFileWriteCallback(SFatWriteOperationState* psOperation, ui
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesRead)
 {
-	SFatReadOperationState	sOperation;
-	uint32					uiBytePosition;
+	uint32		uiBytePosition;
+	uint32		uiSectorAddress;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -881,14 +875,9 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesR
 	uiBytePosition += msFile.uiBufferSeekByteIndexInSector;
 
 	// calculate the address of the current sector and the address of the end of the buffer
-	sOperation.uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
+	uiSectorAddress = msFile.uiFirstCachedSectorIndexInCluster + mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
-	// set the async op context
-	sOperation.uiBytesRemaining = uiLength;
-	sOperation.pvUserMemory = pvDestination;
-	sOperation.puiBytesRead = puiBytesRead;
-
-	return FatFileRead(&sOperation);
+	return FatFileRead(uiLength, uiSectorAddress, puiBytesRead, pvDestination);
 }
 
 
@@ -896,7 +885,7 @@ EFatCode CFatFile::Read(uint8* pvDestination, uint32 uiLength, uint32* puiBytesR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
+EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32 uiSectorAddress, uint32* puiBytesRead, uint8* pvDestination)
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
@@ -931,7 +920,7 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 			// cluster
 			msFile.uiCachedClusterIndex++;
 			msFile.uiFirstCachedSectorIndexInCluster = 0x0;
-			psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
+			uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 		}
 		else
 		{
@@ -939,7 +928,7 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 			// if there are more sectors in the current cluster then
 			// simply increase the current sector counter and address
 			msFile.uiFirstCachedSectorIndexInCluster++;
-			psOperation->uiSectorAddress++;
+			uiSectorAddress++;
 		}
 	}
 
@@ -951,12 +940,12 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 
 	for (;;)
 	{
-		uiStartReadSector = psOperation->uiSectorAddress;
+		uiStartReadSector = uiSectorAddress;
 
 		uiLastClusterSector = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume) + (mpcVolume->GetNoOfSectorsPerCluster() - 1);
 
-		uiRemaingingSectors = psOperation->uiBytesRemaining / mpcVolume->GetNoOfBytesPerSector();
-		if (psOperation->uiBytesRemaining % mpcVolume->GetNoOfBytesPerSector() != 0)
+		uiRemaingingSectors = uiBytesRemaining / mpcVolume->GetNoOfBytesPerSector();
+		if (uiBytesRemaining % mpcVolume->GetNoOfBytesPerSector() != 0)
 		{
 			uiRemaingingSectors++;
 		}
@@ -975,21 +964,21 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 		}
 
 		uiBytesToRead = uiSectorsToRead * mpcVolume->GetNoOfBytesPerSector();
-		if (psOperation->uiBytesRemaining < uiBytesToRead)
+		if (uiBytesRemaining < uiBytesToRead)
 		{
-			uiBytesToRead = psOperation->uiBytesRemaining;
+			uiBytesToRead = uiBytesRemaining;
 		}
 
 		uiBytesToRead -= msFile.uiBufferSeekByteIndexInSector;
 
-		memcpy(psOperation->pvUserMemory, &mpvBuffer[msFile.uiBufferSeekByteIndexInSector], uiBytesToRead);
-		psOperation->pvUserMemory += uiBytesToRead;
+		memcpy(pvDestination, &mpvBuffer[msFile.uiBufferSeekByteIndexInSector], uiBytesToRead);
+		pvDestination += uiBytesToRead;
 
-		psOperation->uiBytesRemaining -= uiBytesToRead;
+		uiBytesRemaining -= uiBytesToRead;
 		uiTotalBytesToRead += uiBytesToRead;
-		if (psOperation->uiBytesRemaining == 0)
+		if (uiBytesRemaining == 0)
 		{
-			psOperation->uiSectorAddress += uiSectorsToRead;
+			uiSectorAddress += uiSectorsToRead;
 			msFile.uiBufferSeekByteIndexInSector += uiBytesToRead;
 			break;
 		}
@@ -1007,12 +996,12 @@ EFatCode CFatFile::FatFileRead(SFatReadOperationState* psOperation)
 		// cluster
 		msFile.uiCachedClusterIndex++;
 		msFile.uiFirstCachedSectorIndexInCluster = 0x0;
-		psOperation->uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
+		uiSectorAddress = mpcVolume->CalculateFirstSectorOfCluster(msFile.uiCachedClusterInVolume);
 
 		msFile.uiBufferSeekByteIndexInSector = 0;
 	}
 
-	SafeAssign(psOperation->puiBytesRead, uiTotalBytesToRead);
+	SafeAssign(puiBytesRead, uiTotalBytesToRead);
 
 	msFile.bBusy = 0;
 	return FAT_SUCCESS;
