@@ -48,7 +48,6 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 	uint16	uiMaximumSector;
 	int		iStart;
 	int		iEnd;
-	int		i;
 	uint16	uiNumSectors;
 
 	if (uiOffset >= muiClusterSize)
@@ -56,6 +55,10 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 		return false;
 	}
 	if (uiOffset > uiMaximumOffset)
+	{
+		return false;
+	}
+	if (uiMaximumOffset > muiClusterSize)
 	{
 		return false;
 	}
@@ -101,7 +104,7 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 	for (;;)
 	{
 		iStart = FindNextClearBit(msCluster.pbCachedSectors, muiSectorsPerCluster, uiFirstSectorIndex);
-		if (iStart == -1)
+		if ((iStart == -1) || (iStart > uiLastSectorIndexInclusive))
 		{
 			break;
 		}
@@ -114,10 +117,7 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 
 		uiNumSectors = iEnd - iStart;
 		mpcDrive->Read(msCluster.uiClusterFirstSector + iStart, uiNumSectors, &msCluster.pvCache[iStart * muiSectorSize]);
-		for (i = iStart; i < iEnd; i++)
-		{
-			SetBit(i, msCluster.pbCachedSectors, true);
-		}
+		SetBits(iStart, msCluster.pbCachedSectors, true, uiNumSectors);
 
 		if (iEnd > uiLastSectorIndexInclusive)
 		{
@@ -151,6 +151,10 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 		return false;
 	}
 	if (uiOffset > uiPreviousMaximumOffset)
+	{
+		return false;
+	}
+	if (uiPreviousMaximumOffset > muiClusterSize)
 	{
 		return false;
 	}
