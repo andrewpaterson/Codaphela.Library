@@ -1,5 +1,6 @@
 #ifndef __FAT_FILE_H__
 #define __FAT_FILE_H__
+#include "FatCache.h"
 #include "FatCommon.h"
 
 
@@ -22,25 +23,6 @@ struct SFatFile
 	bool					bBusy;
 	uint8					uiMagic;
 	uint8					uiAccessFlags;
-};
-
-
-// holds the state of the current write operation
-struct SFatWriteOperationState
-{
-	uint32		uiBytesRemaining;
-	uint32		uiSectorAddress;
-	uint8*		pvUserMemory;
-};
-
-
-// holds the state of the current read operation
-struct SFatReadOperationState
-{
-	uint32		uiBytesRemaining;
-	uint32		uiSectorAddress;
-	uint32*		puiBytesRead;
-	uint8*		pvUserMemory;
 };
 
 
@@ -75,12 +57,12 @@ protected:
 	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint32					FatFileGetUniqueId(void);
 	EFatCode				FatFileAllocate(uint32 bytes);
-	EFatCode				FatFileWriteCallback(SFatWriteOperationState* psOperation, uint32 uiBytePosition);
+	EFatCode				FatFileWrite(uint32 uiBytesRemaining, uint32 uiSectorAddress, uint8* puiSource, uint32 uiBytePosition);
 	EFatCode				FatFileFlush(void);
 
 	void					AllocateBuffer(void);
 	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileRead(SFatReadOperationState* psOperation);
+	EFatCode				FatFileRead(uint32 uiBytesRemaining, uint32 uiSectorAddress, uint32* puiBytesRead, uint8* pvDestination);
 };
 
 
