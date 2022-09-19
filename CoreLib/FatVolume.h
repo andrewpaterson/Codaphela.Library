@@ -75,7 +75,7 @@ public:
 	uint32				GetTotalFreeClusters(void);
 	uint32				GetFsinfoSector(void);
 	uint16				GetRootDirectorySectors(void);
-	uint16				GetNoOfBytesPerSector(void);
+	uint16				GetSectorSize(void);
 	uint16				GetNoOfSectorsPerCluster(void);
 	bool				IsUseLongFilenames(void);
 	EFatFileSystemType	GetFileSystemType(void);
@@ -83,6 +83,7 @@ public:
 	char*				GetLabel(void);
 	uint8*				GetFatSharedBuffer(void);
 	uint32				GetFatSharedBufferSector(void);
+	CFileDrive*			GetFileDrive(void);
 
 public:
 	uint32				FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, EFatCode* result);
