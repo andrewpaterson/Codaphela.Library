@@ -38,7 +38,7 @@ public:
 	EFatCode	Close(void);
 	EFatCode	Write(uint8* pvSource, uint32 length);
 	EFatCode	Read(uint8* puiDestination, uint32 length, uint32* puiBytesRead);
-	EFatCode	Seek(uint32 offset, char mode);
+	EFatCode	Seek(uint32 offset, EFatSeek mode);
 
 	uint32		GetCurrentSize(void);
 	uint32		GetCurrentClusterAddress(void);

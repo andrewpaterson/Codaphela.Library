@@ -189,9 +189,12 @@ struct SFatDirectoryEntry
 
 
 // seek modes
-#define FAT_SEEK_START		0x1
-#define FAT_SEEK_CURRENT	0x2
-#define FAT_SEEK_END		0x3
+enum EFatSeek
+{
+	FAT_SEEK_START = 0x1,
+	FAT_SEEK_CURRENT = 0x2,
+	FAT_SEEK_END = 0x3
+};
 
 
 // return codes (first 32 codes are reserved)
