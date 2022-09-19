@@ -12,14 +12,12 @@ struct SFatFile
 {
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiFileSize;
-	uint32					uiCachedClusterInVolume;
-	uint32					uiCachedClusterIndex;				// Cluster 0 is the first cluster index in the file, cluster 1 the second etc... regardless of how they are scattered on the disk.
-	uint32					uiFirstCachedSectorIndexInCluster;  // Sector 0 is the first sector in the cluster etc...
-	uint32					uiLastCachedSectorIndexInCluster;	// Inclusive.
+	uint32					uiFilePosition;
+	uint32					uiSeekClusterInVolume;
 
 	uint32					uiNoOfClustersAfterPos;
 	uint16					uiNoOfSequentialClusters;
-	uint32					uiBufferSeekByteIndexInSector;
+
 	bool					bBusy;
 	uint8					uiMagic;
 	uint8					uiAccessFlags;
@@ -31,38 +29,34 @@ class CFatFile
 protected:
 	SFatFile		msFile;
 	CFatVolume*		mpcVolume;
-	uint8*			mpvBuffer;
+	CFatCache		mcCache;
 
 public:
-	void					Init(CFatVolume* pcVolume);
-	EFatCode				Open(char* filename, uint8 uiAccessFlags);
-	EFatCode				Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
-	EFatCode				Close(void);
-	EFatCode				Write(uint8* pvSource, uint32 length);
-	EFatCode				Read(uint8* pvDestination, uint32 length, uint32* puiBytesRead);
-	EFatCode				Seek(uint32 offset, char mode);
+	void		Init(CFatVolume* pcVolume);
+	EFatCode	Open(char* filename, uint8 uiAccessFlags);
+	EFatCode	Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode	Close(void);
+	EFatCode	Write(uint8* pvSource, uint32 length);
+	EFatCode	Read(uint8* puiDestination, uint32 length, uint32* puiBytesRead);
+	EFatCode	Seek(uint32 offset, char mode);
 
-	uint32					GetCurrentSize(void);
-	uint32					GetCurrentClusterAddress(void);
-	uint32					GetCurrentClusterIdx(void);
-	uint32					GetCurrentSectorIdx(void);
-	uint32					GetNoOfClustersAfterPos(void);
-	uint16					GetNoOfSequentialClusters(void);
-	bool					IsBusy(void);
-	uint8					GetMagic(void);
-	uint8					GetAccessFlags(void);
-	uint8* GetBuffer(void);
+	uint32		GetCurrentSize(void);
+	uint32		GetCurrentClusterAddress(void);
+	uint32		GetNoOfClustersAfterPos(void);
+	uint16		GetNoOfSequentialClusters(void);
+	bool		IsBusy(void);
+	uint8		GetMagic(void);
+	uint8		GetAccessFlags(void);
 
 protected:
-	EFatCode				FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
-	uint32					FatFileGetUniqueId(void);
-	EFatCode				FatFileAllocate(uint32 bytes);
-	EFatCode				FatFileWrite(uint32 uiBytesRemaining, uint32 uiSectorAddress, uint8* puiSource, uint32 uiBytePosition);
-	EFatCode				FatFileFlush(void);
+	EFatCode	FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	uint32		FatFileGetUniqueId(void);
+	EFatCode	FatFileAllocate(uint32 bytes);
+	EFatCode	FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource);
+	EFatCode	FatFileFlush(void);
 
-	void					AllocateBuffer(void);
-	EFatCode				FatFileUpdateSequentialClusterCount(void);
-	EFatCode				FatFileRead(uint32 uiBytesRemaining, uint32 uiSectorAddress, uint32* puiBytesRead, uint8* pvDestination);
+	EFatCode	FatFileUpdateSequentialClusterCount(void);
+	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
 };
 
 
