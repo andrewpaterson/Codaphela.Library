@@ -576,7 +576,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Seek(uint32 offset, char mode)
+EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 {
 	uint32	uiBytePositionInFile;
 	uint32	uiSectorIndexInFile;
@@ -960,7 +960,15 @@ EFatCode CFatFile::Close(void)
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
 		// seek to the end of the file
-		uiResult = Seek(msFile.uiFileSize - 1, FAT_SEEK_START);
+		if (msFile.uiFileSize > 0)
+		{
+			uiResult = Seek(msFile.uiFileSize - 1, FAT_SEEK_START);
+		}
+		else
+		{
+			uiResult = Seek(0, FAT_SEEK_START);
+		}
+
 		if (uiResult != FAT_SUCCESS)
 		{
 			mcCache.Kill();
