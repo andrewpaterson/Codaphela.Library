@@ -66,7 +66,6 @@ struct SFatFileSystemInfo
 #pragma pack(pop)
 
 
-// MBR partition entry structure
 #pragma pack(push, 1)
 struct SFatPartitionEntry
 {
@@ -80,7 +79,6 @@ struct SFatPartitionEntry
 #pragma pack(pop)
 
 
-// BPB structure ( 224 bits/28 bytes )
 #pragma pack(push, 1)
 struct SFatBIOSParameterBlock
 {
@@ -135,7 +133,6 @@ struct SFatBIOSParameterBlock
 #pragma pack(pop)
 
 
-// Stores information about directory entries.
 struct SFatDirectoryEntry
 {
 	uint8					name[FAT_MAX_FILENAME + 1];
@@ -330,7 +327,7 @@ struct SFatQueryStateInternal
 	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		current_entry_raw;
-	uint8*						pvBuffer;
+	uint8*						puiBuffer;
 
 	SFatRawDirectoryEntry* first_entry_raw;
 

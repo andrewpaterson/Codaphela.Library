@@ -18,7 +18,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	uint8					uiPartitionsTtried = 0;
 	char					szLabel[12];
 	uint32					uiFileSystemInfoSector;
-	uint8* pvBuffer = mauiFatSharedBuffer;
+	uint8*					puiBuffer = mauiFatSharedBuffer;
 
 	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
@@ -32,14 +32,14 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
 
 	// retrieve the boot sector (sector 0) from the storage device
-	bSuccess = mpcDevice->Read(0x0, pvBuffer);
+	bSuccess = mpcDevice->Read(0x0, puiBuffer);
 	if (!bSuccess)
 	{
 		return FAT_CANNOT_READ_MEDIA;
 	}
 
 	// set the partition sEntry pointer
-	sPartitionEntry = (SFatPartitionEntry*)(pvBuffer + 0x1BE);
+	sPartitionEntry = (SFatPartitionEntry*)(puiBuffer + 0x1BE);
 
 	for (;;)
 	{
@@ -59,7 +59,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			if (uiPartitionsTtried > 1)
 			{
 				// retrieve the boot sector (sector 0) from the storage device
-				bSuccess = mpcDevice->Read(0x0, pvBuffer);
+				bSuccess = mpcDevice->Read(0x0, puiBuffer);
 				if (!bSuccess)
 				{
 					return FAT_CANNOT_READ_MEDIA;
@@ -81,7 +81,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			}
 
 			// retrieve the 1st sector of partition
-			bSuccess = mpcDevice->Read(sPartitionEntry->lba_first_sector, pvBuffer);
+			bSuccess = mpcDevice->Read(sPartitionEntry->lba_first_sector, puiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -89,7 +89,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		}
 
 		// set our pointer to the BPB
-		psBPB = (SFatBIOSParameterBlock*)pvBuffer;
+		psBPB = (SFatBIOSParameterBlock*)puiBuffer;
 
 		// if the sector size is larger than what this build
 		// allows do not mount the mpsVolume
@@ -196,7 +196,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			uint8 uiMedia = psBPB->BPB_Media;
 
 			// read the 1st sector of the FAT table
-			bSuccess = mpcDevice->Read(msVolume.uiNoOfReservedSectors, pvBuffer);
+			bSuccess = mpcDevice->Read(msVolume.uiNoOfReservedSectors, puiBuffer);
 			if (!bSuccess)
 			{
 				return FAT_CANNOT_READ_MEDIA;
@@ -204,7 +204,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 			// if the lower byte of the 1st FAT sEntry is not the same as
 			// BPB_Media then this is not a valid mpsVolume
-			if (pvBuffer[0] != uiMedia)
+			if (puiBuffer[0] != uiMedia)
 			{
 				uiPartitionsTtried++;
 				continue;
@@ -217,7 +217,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	{
 
 		SFatQueryStateInternal query;
-		query.pvBuffer = pvBuffer;
+		query.puiBuffer = puiBuffer;
 		if (FatQueryFirstEntry(0, FAT_ATTR_VOLUME_ID, (SFatQueryState*)&query, 1) == FAT_SUCCESS)
 		{
 			if (*query.current_entry_raw->uEntry.sFatRawCommon.name != 0)
@@ -235,14 +235,14 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		SFatFileSystemInfo* psFileSystemInfo;
 
 		// read the sector containing the FSInfo structure
-		bSuccess = mpcDevice->Read(uiHiddenSectors + uiFileSystemInfoSector, pvBuffer);
+		bSuccess = mpcDevice->Read(uiHiddenSectors + uiFileSystemInfoSector, puiBuffer);
 		if (!bSuccess)
 		{
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
 		// set psFileSystemInfo pointer
-		psFileSystemInfo = (SFatFileSystemInfo*)pvBuffer;
+		psFileSystemInfo = (SFatFileSystemInfo*)puiBuffer;
 
 		// check signatures before using
 		if (psFileSystemInfo->LeadSig == 0x41615252 && psFileSystemInfo->StructSig == 0x61417272 && psFileSystemInfo->TrailSig == 0xAA550000)
@@ -2416,7 +2416,7 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* sEntry)
 	uint16					target_file_long[FAT_MAX_PATH + 1];	/* stores the utf16 long filename */
 	uint8					current_level[FAT_MAX_PATH + 1];
 
-	query.pvBuffer = mauiFatSharedBuffer;
+	query.puiBuffer = mauiFatSharedBuffer;
 
 	// if the path starts with a backlash then advance to
 	// the next character
@@ -2608,7 +2608,7 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* sEntry)
 	}
 
 	// calculate the offset of the sEntry within it's sector
-	sEntry->uiSectorOffset = (uint16)((uintptr_t)query.current_entry_raw) - ((uintptr_t)query.pvBuffer);
+	sEntry->uiSectorOffset = (uint16)((uintptr_t)query.current_entry_raw) - ((uintptr_t)query.puiBuffer);
 
 	// store a copy of the original FAT directory sEntry
 	// within the SFatDirectoryEntry structure that is returned
@@ -2618,8 +2618,7 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* sEntry)
 }
 
 
-// initializes a query of a set of directory
-// entries
+// initializes a query of a set of directory entries.
 //////////////////////////////////////////////////////////////////////////
 //
 //

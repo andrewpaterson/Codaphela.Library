@@ -21,10 +21,12 @@ class CFatCache
 {
 protected:
 	SClusterCache	msCluster;
+
 	uint16			muiClusterSize;
 	uint16			muiSectorSize;
 	uint16			muiSectorsPerCluster;
 	uint16			muiBytesForBits;
+
 	CFileDrive*		mpcDrive;
 
 public:
