@@ -29,7 +29,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	mpcDevice = device;
 
 	// mark the loaded sector as unknown
-	SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
+	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 	// retrieve the boot sector (sector 0) from the storage device
 	bSuccess = mpcDevice->Read(0x0, puiBuffer);
@@ -288,7 +288,7 @@ EFatCode CFatVolume::Unmount(void)
 		uint8*					uiBuffer = mauiFatSharedBuffer;
 
 		// mark the loaded sector as unknown
-		SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
+		muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 		// read the sector containing the FSInfo structure
 		bSuccess = mpcDevice->Read(GetFsinfoSector(), uiBuffer);
@@ -423,7 +423,18 @@ bool CFatVolume::HasNextFreeCluser(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::IsFreeFat(uint32 uifat)
 {
-	return ((GetFileSystemType() == FAT_FS_TYPE_FAT32) ? !(uifat & 0x0FFFFFFF) : (GetFileSystemType() == FAT_FS_TYPE_FAT16) ? !(uifat & 0xFFFF) : !(uifat & 0x0FFF));
+	switch (GetFileSystemType())
+	{
+		case FAT_FS_TYPE_FAT32:
+			return !(uifat & 0x0FFFFFFF);
+
+		case FAT_FS_TYPE_FAT16:
+			return !(uifat & 0xFFFF);
+
+		case FAT_FS_TYPE_FAT12:
+			return !(uifat & 0x0FFF);
+	}
+	return true;
 }
 
 
@@ -463,7 +474,7 @@ void CFatVolume::SetFatSharedBufferSector(uint32 uiSector)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::IsFatSectorLoaded(uint32 uiSector)
 {
-	return muiFatSharedBufferSector != 0xFFFFFFFF && (muiFatSharedBufferSector == uiSector);
+	return muiFatSharedBufferSector != FAT_UNKNOWN_SECTOR && (muiFatSharedBufferSector == uiSector);
 }
 
 
@@ -640,11 +651,11 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			bSuccess = Read(uiFirstClusterSector, uiBuffer);
 			if (!bSuccess)
 			{
-				muiFatSharedBufferSector = (0xFFFFFFFF);
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				*peResult = FAT_CANNOT_READ_MEDIA;
 				return 0;
 			}
-			muiFatSharedBufferSector = (uiFirstClusterSector);
+			muiFatSharedBufferSector = uiFirstClusterSector;
 		}
 
 		// save the current sector number
@@ -663,7 +674,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
 					if (!bSuccess)
 					{
-						muiFatSharedBufferSector = (0xFFFFFFFF);
+						muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 						*peResult = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
@@ -695,7 +706,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
 					if (!bSuccess)
 					{
-						muiFatSharedBufferSector = (0xFFFFFFFF);
+						muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 						*peResult = FAT_CANNOT_READ_MEDIA;
 						return 0;
 					}
@@ -719,94 +730,95 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			// copy the next FAT sEntry to the fat_entry variable
 			switch (GetFileSystemType())
 			{
-			case FAT_FS_TYPE_FAT12:
-			{
-				// clear fat_entry to make sure that the upper 16
-				// bits are not set.
-				fat_entry = 0;
-
-				// read the 1st byte
-				((uint8*)&fat_entry)[INT32_BYTE0] = uiBuffer[uiClusterBytesRemainder];
-
-				// load the next sector (if necessary) and set the offset
-				// for the next byte in the uiBuffer
-				if (uiClusterBytesRemainder == GetSectorSize() - 1)
+				case FAT_FS_TYPE_FAT12:
 				{
-					if (entries_updated)
+					// clear fat_entry to make sure that the upper 16
+					// bits are not set.
+					fat_entry = 0;
+
+					// read the 1st byte
+					((uint8*)&fat_entry)[INT32_BYTE0] = uiBuffer[uiClusterBytesRemainder];
+
+					// load the next sector (if necessary) and set the offset
+					// for the next byte in the uiBuffer
+					if (uiClusterBytesRemainder == GetSectorSize() - 1)
 					{
-						// if the uiBuffer is dirty flush it before we use it to load
-						// the next sector
-						bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
+						if (entries_updated)
+						{
+							// if the uiBuffer is dirty flush it before we use it to load
+							// the next sector
+							bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
+							if (!bSuccess)
+							{
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
+								*peResult = FAT_CANNOT_READ_MEDIA;
+								return 0;
+							}
+
+							// mark the uiBuffer as clean
+							entries_updated = 0;
+						}
+
+						// load the next sector into the uiBuffer
+						bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
 						if (!bSuccess)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
 
-						// mark the uiBuffer as clean
-						entries_updated = 0;
+						// set flag to indicate that we had to load the next sector
+						next_sector_loaded = 1;
 					}
 
-					// load the next sector into the uiBuffer
-					bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
-					if (!bSuccess)
+					// read the 2nd byte
+					((uint8*)&fat_entry)[INT32_BYTE1] = uiBuffer[next_sector_loaded ? 0 : (uiClusterBytesRemainder + 1)];
+
+					// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the peResult.
+					// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
+					// 16 bits where it is stored, so we need to shift the value 4 bits to the right.
+					// For even cluster numbers the FAT sEntry is stored in the lower 12 bits of the
+					// 16 bits where it is stored, so we need to clear the upper 4 bits.
+					if (cluster & 0x1)
 					{
-						muiFatSharedBufferSector = (0xFFFFFFFF);
-						*peResult = FAT_CANNOT_READ_MEDIA;
-						return 0;
+						fat_entry >>= 4;
 					}
-
-					// set flag to indicate that we had to load the next sector
-					next_sector_loaded = 1;
-				}
-
-				// read the 2nd byte
-				((uint8*)&fat_entry)[INT32_BYTE1] = uiBuffer[next_sector_loaded ? 0 : (uiClusterBytesRemainder + 1)];
-
-				// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the peResult.
-				// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
-				// 16 bits where it is stored, so we need to shift the value 4 bits to the right.
-				// For even cluster numbers the FAT sEntry is stored in the lower 12 bits of the
-				// 16 bits where it is stored, so we need to clear the upper 4 bits.
-				if (cluster & 0x1)
-				{
-					fat_entry >>= 4;
-				}
-				else
-				{
-					fat_entry &= 0xFFF;
-				}
-
-				// if we had to load the next sector into the cache we need
-				// to reload the current sector before continuing
-				if (next_sector_loaded)
-				{
-					bSuccess = Read(uiFirstClusterSector, uiBuffer);
-					if (!bSuccess)
+					else
 					{
-						muiFatSharedBufferSector = (0xFFFFFFFF);
-						*peResult = FAT_CANNOT_READ_MEDIA;
-						return 0;
+						fat_entry &= 0xFFF;
 					}
-					next_sector_loaded = 0;
+
+					// if we had to load the next sector into the cache we need
+					// to reload the current sector before continuing
+					if (next_sector_loaded)
+					{
+						bSuccess = Read(uiFirstClusterSector, uiBuffer);
+						if (!bSuccess)
+						{
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
+							*peResult = FAT_CANNOT_READ_MEDIA;
+							return 0;
+						}
+						next_sector_loaded = 0;
+					}
+					break;
 				}
-				break;
-			}
-			case FAT_FS_TYPE_FAT16:
-			{
-				fat_entry = *((uint16*)&uiBuffer[uiClusterBytesRemainder]);
-				break;
-			}
-			case FAT_FS_TYPE_FAT32:
-			{
-				fat_entry = *((uint32*)&uiBuffer[uiClusterBytesRemainder]) & 0x0FFFFFFF;
-				break;
-			}
+				case FAT_FS_TYPE_FAT16:
+				{
+					fat_entry = *((uint16*)&uiBuffer[uiClusterBytesRemainder]);
+					break;
+				}
+				case FAT_FS_TYPE_FAT32:
+				{
+					fat_entry = *((uint32*)&uiBuffer[uiClusterBytesRemainder]) & 0x0FFFFFFF;
+					break;
+				}
 			}
 
 			// if the current FAT is free
-			if (IsFreeFat(fat_entry))
+			bool bIsFatFree = IsFreeFat(fat_entry);
+			if (bIsFatFree)
 			{
 				// maintain the count of free cluster and the next
 				// cluster that may be free
@@ -844,7 +856,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 						if (!bSuccess)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = FAT_CANNOT_WRITE_MEDIA;
 							return 0;
 						}
@@ -856,7 +868,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
 						if (!bSuccess)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
@@ -883,7 +895,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						bSuccess = FatWriteFatSector(uiFirstClusterSector + 1, uiBuffer);
 						if (!bSuccess)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
@@ -896,7 +908,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						bSuccess = Read(uiFirstClusterSector, uiBuffer);
 						if (!bSuccess)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
@@ -919,7 +931,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 								if (!bSuccess)
 								{
-									muiFatSharedBufferSector = (0xFFFFFFFF);
+									muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 									*peResult = FAT_CANNOT_READ_MEDIA;
 									return 0;
 								}
@@ -932,7 +944,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiPreviousClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1006,7 +1018,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiPreviousClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = 0xFFFFFFFF;
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1023,7 +1035,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								bSuccess = FatWriteFatSector(uiPreviousClusterSector, uiBuffer);
 								if (!bSuccess)
 								{
-									muiFatSharedBufferSector = (0xFFFFFFFF);
+									muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 									*peResult = FAT_CANNOT_READ_MEDIA;
 									return 0;
 								}
@@ -1037,7 +1049,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiFirstClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1062,7 +1074,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1073,7 +1085,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiPreviousClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1088,7 +1100,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = FatWriteFatSector(uiPreviousClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1097,7 +1109,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiFirstClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1123,7 +1135,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1135,7 +1147,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiPreviousClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1151,7 +1163,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = FatWriteFatSector(uiPreviousClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1160,7 +1172,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							bSuccess = Read(uiFirstClusterSector, uiBuffer);
 							if (!bSuccess)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								*peResult = FAT_CANNOT_READ_MEDIA;
 								return 0;
 							}
@@ -1180,7 +1192,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 						if (!bSuccess)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
@@ -1194,7 +1206,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						uiResult = FatInitializeDirectoryCluster(parent, cluster, uiBuffer);
 						if (uiResult != FAT_SUCCESS)
 						{
-							muiFatSharedBufferSector = (0xFFFFFFFF);
+							muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 							*peResult = uiResult;
 							return 0;
 						}
@@ -1206,7 +1218,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							*peResult = FatZeroCluster(cluster, uiBuffer);
 							if (*peResult != FAT_SUCCESS)
 							{
-								muiFatSharedBufferSector = (0xFFFFFFFF);
+								muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 								return 0;
 							}
 						}
@@ -1247,7 +1259,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
 			if (!bSuccess)
 			{
-				muiFatSharedBufferSector = (0xFFFFFFFF);
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				*peResult = FAT_CANNOT_READ_MEDIA;
 				return 0;
 			}
@@ -1289,10 +1301,10 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			bSuccess = Read(uiFirstClusterSector, pvBuffer);
 			if (!bSuccess)
 			{
-				muiFatSharedBufferSector = (0xFFFFFFFF);
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			muiFatSharedBufferSector = (uiFirstClusterSector);
+			muiFatSharedBufferSector = uiFirstClusterSector;
 		}
 
 		// store the address of the sector that's (will be) loaded in memory
@@ -1349,7 +1361,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 					bSuccess = FatWriteFatSector(uiCurrentSector, pvBuffer);
 					if (!bSuccess)
 					{
-						muiFatSharedBufferSector = 0xFFFFFFFF;
+						muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 						return FAT_CANNOT_READ_MEDIA;
 					}
 
@@ -1436,7 +1448,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 				bSuccess = FatWriteFatSector(uiCurrentSector, pvBuffer);
 				if (!bSuccess)
 				{
-					muiFatSharedBufferSector = 0xFFFFFFFF;
+					muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 					return FAT_CANNOT_READ_MEDIA;
 				}
 
@@ -1453,7 +1465,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 		bSuccess = FatWriteFatSector(uiCurrentSector, pvBuffer);
 		if (!bSuccess)
 		{
-			muiFatSharedBufferSector = 0xFFFFFFFF;
+			muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 			return FAT_CANNOT_READ_MEDIA;
 		}
 	}
@@ -1502,10 +1514,10 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNex
 		bSuccess = Read(uiFirstClusterSector, uiBuffer);
 		if (!bSuccess)
 		{
-			muiFatSharedBufferSector = 0xFFFFFFFF;
+			muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		muiFatSharedBufferSector = (uiFirstClusterSector);
+		muiFatSharedBufferSector = uiFirstClusterSector;
 	}
 
 	// set the user supplied uiBuffer with the
@@ -1529,7 +1541,7 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNex
 				bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
 				if (!bSuccess)
 				{
-					muiFatSharedBufferSector = 0xFFFFFFFF;
+					muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 					return FAT_CANNOT_READ_MEDIA;
 				}
 				muiFatSharedBufferSector = (uiFirstClusterSector + 1);
@@ -1619,10 +1631,10 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 		bSuccess = Read(uiFirstClusterSector, uiBuffer);
 		if (!bSuccess)
 		{
-			muiFatSharedBufferSector = 0xFFFFFFFF;
+			muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		muiFatSharedBufferSector = (uiFirstClusterSector);
+		muiFatSharedBufferSector = uiFirstClusterSector;
 	}
 
 	// set the FAT sEntry
@@ -1650,7 +1662,7 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 			bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 			if (!bSuccess)
 			{
-				muiFatSharedBufferSector = (0xFFFFFFFF);
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				return FAT_CANNOT_WRITE_MEDIA;
 			}
 
@@ -1661,10 +1673,10 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 			bSuccess = Read(uiFirstClusterSector, uiBuffer);
 			if (!bSuccess)
 			{
-				muiFatSharedBufferSector = (0xFFFFFFFF);
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			muiFatSharedBufferSector = (uiFirstClusterSector);
+			muiFatSharedBufferSector = uiFirstClusterSector;
 
 			// the next byte is now loacted at offset 0 on the uiBuffer
 			uiClusterBytesRemainder = 0;
@@ -1708,7 +1720,7 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 cluster, FatEntry fat_entry)
 	bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
 	if (!bSuccess)
 	{
-		muiFatSharedBufferSector = 0xFFFFFFFF;
+		muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 		return FAT_CANNOT_WRITE_MEDIA;
 	}
 
@@ -1759,7 +1771,7 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 			bSuccess = Read(uiCurrentSector, pvBuffer);
 			if (!bSuccess)
 			{
-				muiFatSharedBufferSector = 0xFFFFFFFF;
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				return FAT_UNKNOWN_ERROR;
 			}
 			muiFatSharedBufferSector = uiCurrentSector;
@@ -1912,7 +1924,7 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 	// to the uiBuffer
 	entries = (SFatRawDirectoryEntry*)uiBuffer;
 
-	muiFatSharedBufferSector = (0xFFFFFFFF);
+	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 	// initialize the 1st sector of the directory cluster with
 	// the dot sEntry
@@ -2022,7 +2034,7 @@ EFatCode CFatVolume::FatZeroCluster(uint32 cluster, uint8* uiBuffer)
 	uint16	counter;
 	uint32	uiCurrentSector;
 
-	muiFatSharedBufferSector = 0xFFFFFFFF;
+	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 	// set all the bytes in the uiBuffer to zero
 	memset(uiBuffer, 0, GetSectorSize());
@@ -2475,7 +2487,7 @@ EFatCode CFatVolume::FatGetFileEntry(char* path, SFatDirectoryEntry* sEntry)
 	}
 
 	// mark the cached sector as unknown
-	muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
+	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 	// for each level on the path....
 	do
@@ -3173,7 +3185,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	}
 
 	// mark the cached sector as unknown
-	muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
+	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 	// for each cluster allocated to the parent
 	// directory sEntry
@@ -3394,7 +3406,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 											fat = newfat;
 										}
 										// mark the loaded sector as unknown
-										muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
+										muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 
 										// continue working on the new cluster
 										sector = CalculateFirstSectorOfCluster(fat);
@@ -3485,7 +3497,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 		}
 
 		// mark the loaded sector as unknown
-		muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
+		muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 	} while (1);
 }
 
@@ -3671,7 +3683,7 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 		sNewEntry.raw.uEntry.sFatRawCommon.size = sOriginalEntry.raw.uEntry.sFatRawCommon.size;
 
 		// write modified sEntry to drive
-		muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
+		muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 		bSuccess = Read(sNewEntry.uiSectorAddress, puiBuffer);
 		if (!bSuccess)
 		{
@@ -3716,7 +3728,7 @@ EFatCode CFatVolume::FatFileRename(char* original_filename, char* new_filename)
 			if (query.current_entry.raw.uEntry.sFatRawLongFileName.uiChecksum == uiChecksum)
 			{
 				// mark the sEntry as deleted
-				muiFatSharedBufferSector = (FAT_UNKNOWN_SECTOR);
+				muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 				query.current_entry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
 				bSuccess = Read(query.current_entry.uiSectorAddress, puiBuffer);
 				if (!bSuccess)
