@@ -556,7 +556,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 	uint32		uiCurrentSector;			/* address of the sector loaded in memory */
 	uint32		cluster;				/* cluster number */
 	uint32		uiClusterBytesRemainder = 0;		/* offset of fat sEntry within it's sector */
-	char		entries_updated;		/* indicates that the cached sector is dirty */
+	bool		bEntriesUpdated;		/* indicates that the cached sector is dirty */
 	char		next_sector_loaded = 0;	/* indicates that the next sector has been loaded */
 	FatEntry	last_fat_entry = 0;		/* stores the value of the last cluster found or EOC if no clusters found yet */
 	FatEntry	fat_entry;				/* temp value to store cluster numbers read from FAT table */
@@ -587,7 +587,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 	}
 
 	fat_entry = 0;
-	entries_updated = 0;
+	bEntriesUpdated = false;
 	*peResult = FAT_SUCCESS;
 	cluster = 0x2;
 	uiFirstCluster = 0;
@@ -668,7 +668,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			// disk space error code.
 			if ((cluster > GetNoOfClusters() + 1) && start_cluster > 2 && !bWrappedAround)
 			{
-				if (entries_updated)
+				if (bEntriesUpdated)
 				{
 					// if the uiBuffer is dirty flush the changes
 					bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
@@ -680,7 +680,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					}
 
 					// mark the uiBuffer as clean
-					entries_updated = 0;
+					bEntriesUpdated = false;
 				}
 
 				// reset the cluster # to 2
@@ -698,7 +698,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 			}
 			else if ((cluster > GetNoOfClusters() + 1) || (bWrappedAround && cluster >= start_cluster))
 			{
-				if (entries_updated)
+				if (bEntriesUpdated)
 				{
 					// if the uiBuffer is dirty flush the changes, otherwise when we try
 					// to free the cluster chain it would run into free clusters before
@@ -743,7 +743,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					// for the next byte in the uiBuffer
 					if (uiClusterBytesRemainder == GetSectorSize() - 1)
 					{
-						if (entries_updated)
+						if (bEntriesUpdated)
 						{
 							// if the uiBuffer is dirty flush it before we use it to load
 							// the next sector
@@ -756,7 +756,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							}
 
 							// mark the uiBuffer as clean
-							entries_updated = 0;
+							bEntriesUpdated = false;
 						}
 
 						// load the next sector into the uiBuffer
@@ -862,7 +862,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						}
 
 						// mark the uiBuffer as clean
-						entries_updated = 0;
+						bEntriesUpdated = false;
 
 						// load the next sector
 						bSuccess = Read(uiFirstClusterSector + 1, uiBuffer);
@@ -912,11 +912,11 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							*peResult = FAT_CANNOT_READ_MEDIA;
 							return 0;
 						}
-						entries_updated = 0;
+						bEntriesUpdated = false;
 					}
 					else
 					{
-						entries_updated = 1;
+						bEntriesUpdated = true;
 					}
 
 					// if this is not the 1st cluster allocated update
@@ -925,7 +925,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					{
 						if (uiPreviousClusterSector != uiFirstClusterSector)
 						{
-							if (entries_updated)
+							if (bEntriesUpdated)
 							{
 								// flush uiBuffer to disk
 								bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
@@ -937,7 +937,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								}
 
 								// mark uiBuffer as clean
-								entries_updated = 0;
+								bEntriesUpdated = false;
 							}
 
 							// load last_entry sector
@@ -974,7 +974,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							}
 
 							// mark the uiBuffer as clean
-							entries_updated = 0;
+							bEntriesUpdated = false;
 
 							// load the next sector
 							bSuccess = Read(uiPreviousClusterSector + 1, uiBuffer);
@@ -1025,11 +1025,11 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 						}
 						else
 						{
-							entries_updated = 1;
+							bEntriesUpdated = true;
 						}
 						if (uiPreviousClusterSector != uiFirstClusterSector)
 						{
-							if (entries_updated)
+							if (bEntriesUpdated)
 							{
 								// flush uiBuffer to disk
 								bSuccess = FatWriteFatSector(uiPreviousClusterSector, uiBuffer);
@@ -1041,7 +1041,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								}
 
 								// mark uiBuffer as clean
-								entries_updated = 0;
+								bEntriesUpdated = false;
 							}
 							/*
 							// reload current sector
@@ -1062,7 +1062,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					*((uint16*)&uiBuffer[uiClusterBytesRemainder]) = FAT16_EOC;
 
 					// mark the uiBuffer as dirty
-					entries_updated = 1;
+					bEntriesUpdated = true;
 
 					// if this is not the first cluster allocated update
 					// the last one to link to this one
@@ -1079,7 +1079,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 								return 0;
 							}
 							// mark uiBuffer as clean
-							entries_updated = 0;
+							bEntriesUpdated = false;
 
 							// load last_entry sector
 							bSuccess = Read(uiPreviousClusterSector, uiBuffer);
@@ -1123,7 +1123,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 					*((uint32*)&uiBuffer[uiClusterBytesRemainder]) |= FAT32_EOC & 0x0FFFFFFF;
 
 					// mark the uiBuffer as dity
-					entries_updated = 1;
+					bEntriesUpdated = true;
 
 					// if this is not the 1st cluster allocated update
 					// the last one to link to this one
@@ -1141,7 +1141,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 							}
 
 							// mark uiBuffer as clean
-							entries_updated = 0;
+							bEntriesUpdated = false;
 
 							// load last_entry sector
 							bSuccess = Read(uiPreviousClusterSector, uiBuffer);
@@ -1186,7 +1186,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 				// and return cluster #
 				if (!--count)
 				{
-					if (entries_updated)
+					if (bEntriesUpdated)
 					{
 						// flush uiBuffer to disk
 						bSuccess = FatWriteFatSector(uiFirstClusterSector, uiBuffer);
@@ -1254,7 +1254,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 
 		// if any changes where made to the fat sEntry currently cached sector
 		// flush the changes to the drive before moving to next sector
-		if (entries_updated)
+		if (bEntriesUpdated)
 		{
 			bSuccess = FatWriteFatSector(uiCurrentSector, uiBuffer);
 			if (!bSuccess)
@@ -1263,7 +1263,7 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 coun
 				*peResult = FAT_CANNOT_READ_MEDIA;
 				return 0;
 			}
-			entries_updated = 0;
+			bEntriesUpdated = false;
 		}
 	}
 }
