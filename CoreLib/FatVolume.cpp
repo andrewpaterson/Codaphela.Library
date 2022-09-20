@@ -1495,11 +1495,11 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNex
 		break;
 
 	case FAT_FS_TYPE_FAT16:
-		uiClusterOffsetInBytes = uiCurrentCluster * ((uint32)2);
+		uiClusterOffsetInBytes = uiCurrentCluster * 2;
 		break;
 
 	case FAT_FS_TYPE_FAT32:
-		uiClusterOffsetInBytes = uiCurrentCluster * ((uint32)4);
+		uiClusterOffsetInBytes = uiCurrentCluster * 4;
 		break;
 	}
 

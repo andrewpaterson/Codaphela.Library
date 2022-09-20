@@ -399,18 +399,10 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	// calculate the # of clusters allocated
 	uiClustersInFile = (msFile.uiFileSize + mpcVolume->GetSectorSize() - 1) / mpcVolume->GetSectorSize();
 	uiClustersInFile = (uiClustersInFile + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
-	if (uiClustersInFile != 0)
-	{
-		uiClustersInFile--;
-	}
 
 	// calculate how many clusters we need
 	uiClustersNeeded = (uiBytes + mpcVolume->GetSectorSize() - 1) / mpcVolume->GetSectorSize();
 	uiClustersNeeded = (uiClustersNeeded + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
-	if (uiClustersNeeded != 0)
-	{
-		uiClustersNeeded--;
-	}
 
 	if (uiClustersNeeded > uiClustersInFile)
 	{
