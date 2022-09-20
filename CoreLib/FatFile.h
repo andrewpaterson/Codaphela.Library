@@ -13,10 +13,7 @@ struct SFatFile
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiFileSize;
 	uint32					uiFilePosition;
-	uint32					uiSeekClusterInVolume;
-
-	uint32					uiNoOfClustersAfterPos;
-	uint16					uiNoOfSequentialClusters;
+	uint32					uiCursorClusterInVolume;
 
 	bool					bBusy;
 	uint8					uiMagic;
@@ -42,8 +39,6 @@ public:
 
 	uint32		GetCurrentSize(void);
 	uint32		GetCurrentClusterAddress(void);
-	uint32		GetNoOfClustersAfterPos(void);
-	uint16		GetNoOfSequentialClusters(void);
 	bool		IsBusy(void);
 	uint8		GetMagic(void);
 	uint8		GetAccessFlags(void);
@@ -55,7 +50,7 @@ protected:
 	EFatCode	FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource);
 	EFatCode	FatFileFlush(void);
 
-	EFatCode	FatFileUpdateSequentialClusterCount(void);
+	EFatCode	FatFileUpdateSequentialClusterCount(uint32 uiCursorClusterInVolume);
 	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
 };
 
