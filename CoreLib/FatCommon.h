@@ -260,7 +260,6 @@ struct SFatQueryState
 	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		current_entry_raw;
-	uint8*						uiBuffer;
 
 	SFatRawDirectoryEntry*		first_entry_raw;
 
@@ -268,9 +267,6 @@ struct SFatQueryState
 	uint16						long_filename[256];
 	uint8						uiSequence;
 	uint8						uiChecksum;
-
-	// buffer (MUST ALWAYS BE LAST!!!)
-	uint8						buff[MAX_SECTOR_LENGTH];
 };
 
 
@@ -335,9 +331,8 @@ struct SFatQueryStateInternal
 	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		current_entry_raw;
-	uint8*						puiBuffer;
 
-	SFatRawDirectoryEntry* first_entry_raw;
+	SFatRawDirectoryEntry*		first_entry_raw;
 
 	// LFN support members
 	uint16						long_filename[256];
