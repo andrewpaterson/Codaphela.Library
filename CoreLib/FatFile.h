@@ -27,6 +27,7 @@ protected:
 	SFatFile		msFile;
 	CFatVolume*		mpcVolume;
 	CFatCache		mcCache;
+	char			mszName[FAT_MAX_FILENAME];
 
 public:
 	void		Init(CFatVolume* pcVolume);
@@ -50,6 +51,7 @@ protected:
 	EFatCode	FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource);
 	EFatCode	FatFileFlush(void);
 
+	bool		IsFat32Volume(void);
 	EFatCode	FatFileUpdateSequentialClusterCount(uint32 uiCursorClusterInVolume);
 	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
 	uint32		CalculateFirstCluster(void);

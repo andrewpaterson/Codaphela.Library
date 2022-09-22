@@ -184,6 +184,7 @@
     <ClCompile Include="FatCache.cpp" />
     <ClCompile Include="Codabase.cpp" />
     <ClCompile Include="CodabaseFactory.cpp" />
+    <ClCompile Include="FatCommon.cpp" />
     <ClCompile Include="FatFile.cpp" />
     <ClCompile Include="FatFormat.cpp" />
     <ClCompile Include="FatTime.cpp" />
