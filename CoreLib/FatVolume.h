@@ -60,7 +60,6 @@ public:
 	void				SetFatSharedBufferSector(uint32 uiSector);
 
 	bool				IsFatSectorLoaded(uint32 uiSector);
-	uint32				CalculateFatEntryOffset(EFatFileSystemType eFileSystemType, uint32 cluster);
 
 	uint32				GetBytesPerCluster(void);
 	uint32				GetID(void);
@@ -96,7 +95,6 @@ public:
 	EFatCode			FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
 	bool				FatIsEOFEntry(FatEntry fat);
 	EFatCode			FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster, uint8* uiBuffer);
-	EFatCode			FatZeroCluster(uint32 cluster, uint8* uiBuffer);
 	bool				FatWriteFatSector(uint32 uiSectorAddress, uint8* puiBuffer);
 
 	EFatCode			FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
@@ -110,16 +108,29 @@ public:
 
 	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);
 	uint32				CalculateFirstSectorOfCluster(uint32 uiCluster);
+	char				GetLongNameForEntry(uint16* dst, uint8* src);
 
 protected:
 	void				TrimPath(char* dest, char* src, size_t max);
 	void				FatParsePath(char* path, char* szPathPart, char** filename_part);
-	char				GetLongNameForEntry(uint16* dst, uint8* src);
 	char				FatCompareShortName(uint8* name1, uint8* name2);
 	char				FatCompareLongName(uint16* name1, uint16* name2);
 	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
 	uint8				FatLongEntryChecksum(uint8* filename);
 	int					FatIndexOf(char chr, char* str, int index);
+
+	uint32				FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep);
+	uint16				CalculateStepSize(uint32 uiPageSize);
+	FatEntry			GetEndOfClusterMarker(void);
+	uint32				CalculateFatEntryOffset(uint32 cluster);
+	bool				FatReadFatSector(uint32 uiFatInfoSector, bool* pbEntriesUpdated, EFatCode* peResult);
+	bool				FlushAndInvalidate(bool* pbEntriesUpdated);
+	EFatCode			FatZeroCluster(uint32 cluster);
+
+	bool				ReadFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiCluster, uint32 uiSector, bool* pbEntriesUpdated, EFatCode* peResult, FatEntry* puiFatEntry);
+	bool				WriteFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, bool* pbEntriesUpdated, EFatCode* peResult, FatEntry uiLastFatEntry);
+	bool				WriteFat16Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, bool* pbEntriesUpdated, EFatCode* peResult, FatEntry uiLastFatEntry);
+	bool				WriteFat32Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, bool* pbEntriesUpdated, EFatCode* peResult, FatEntry uiLastFatEntry);
 };
 
 

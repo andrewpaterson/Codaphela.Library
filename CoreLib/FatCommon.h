@@ -147,6 +147,10 @@ struct SFatDirectoryEntry
 };
 
 
+uint32 GetFatClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume);
+char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume);
+
+
 // Defines the maximun sector size (in bytes) that this library should
 // support. An attempt to mount a volume with a sector size larger than this
 // value will fail.
@@ -233,6 +237,10 @@ enum EFatCode
 	FAT_AWAITING_DATA					= 0x20 + 0x21,
 	FAT_BUFFER_TOO_BIG					= 0x20 + 0x22
 };
+
+
+char* FatCodeToString(EFatCode eCode);
+
 
 // these are the bits set on the reserved fields of a directory
 // entry to indicate that a SFN entry is actually a LFN entry with

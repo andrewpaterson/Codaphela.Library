@@ -534,6 +534,9 @@
     <ClCompile Include="FatCache.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
+    <ClCompile Include="FatCommon.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">

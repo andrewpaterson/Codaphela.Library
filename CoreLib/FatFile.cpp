@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Logger.h"
 #include "FatVolume.h"
 #include "FatTime.h"
 #include "FatFile.h"
@@ -52,6 +53,7 @@ EFatCode CFatFile::FatFileUpdateSequentialClusterCount(uint32 uiCursorClusterInV
 	while (!mpcVolume->FatIsEOFEntry(uiCursorClusterInVolume))
 	{
 		eResult = mpcVolume->GetNextClusterEntry(uiCursorClusterInVolume, &uiNextCluster);
+		gcLogger.Info2(__METHOD__, " File [", mszName, "] get next cluster entry for cluster [", IntToString(uiCursorClusterInVolume), "] found cluster [", IntToString(uiNextCluster), "] and returned code [", FatCodeToString(eResult), "].", NULL);
 		if (eResult != FAT_SUCCESS)
 		{
 			return eResult;
@@ -75,15 +77,14 @@ EFatCode CFatFile::FatFileUpdateSequentialClusterCount(uint32 uiCursorClusterInV
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 {
-	EFatCode				uiResult;
-	SFatDirectoryEntry		file_entry;
+	EFatCode			eResult;
+	SFatDirectoryEntry	sFileEntry;
 
 	mcCache.Init(mpcVolume->GetFileDrive(), mpcVolume->GetClusterSize(), mpcVolume->GetSectorSize());
 
@@ -93,17 +94,18 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 	}
 
 	// get the file entry
-	uiResult = mpcVolume->FatGetFileEntry(filename, &file_entry);
+	eResult = mpcVolume->FatGetFileEntry(filename, &sFileEntry);
+	gcLogger.Info2(__METHOD__, " Filename [", filename, "] get file entry found [", FatEntryToString(&sFileEntry, IsFat32Volume()), "] returned code [", FatCodeToString(eResult), "].", NULL);
 
 	// if we could not get the file entry then return
 	// the error that we received from FatGetFileEntry
-	if (uiResult != FAT_SUCCESS)
+	if (eResult != FAT_SUCCESS)
 	{
-		return uiResult;
+		return eResult;
 	}
 
 	// if the entry was not found...
-	if (*file_entry.name == 0)
+	if (*sFileEntry.name == 0)
 	{
 		// if the create access flag was set then
 		// we create the file
@@ -111,7 +113,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 		{
 			// allocate memory for the file path
 			ptrdiff_t			path_len;
-			char* filename_scanner;
+			char*				filename_scanner;
 			char				file_path[FAT_MAX_PATH + 1];
 			SFatDirectoryEntry	sParentEntry;
 
@@ -165,14 +167,16 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			filename_scanner++;
 
 			// try to get the entry for the parent directory
-			uiResult = mpcVolume->FatGetFileEntry(file_path, &sParentEntry);
+			eResult = mpcVolume->FatGetFileEntry(file_path, &sParentEntry);
+			gcLogger.Info2(__METHOD__, " File [<ENTRY NOT YET FOUND>] get file entry for path ", StringToString(file_path), "] found [", FatEntryToString(&sParentEntry, IsFat32Volume()), "] and returned code [", FatCodeToString(eResult), "].", NULL);
+
 
 			// if FatGetFileEntry returned an error
 			// then we return the error code to the calling
 			// function
-			if (uiResult != FAT_SUCCESS)
+			if (eResult != FAT_SUCCESS)
 			{
-				return uiResult;
+				return eResult;
 			}
 
 			// if the parent directory does not exists
@@ -182,7 +186,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			}
 
 			// try to create the directory entry
-			uiResult = mpcVolume->FatCreateDirectoryEntry(&sParentEntry.raw, filename_scanner, 0, 0, &file_entry);
+			eResult = mpcVolume->FatCreateDirectoryEntry(&sParentEntry.raw, filename_scanner, 0, 0, &sFileEntry);
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
@@ -190,9 +194,9 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 			// if we were unable to create the entry for the file
 			// and
-			if (uiResult != FAT_SUCCESS)
+			if (eResult != FAT_SUCCESS)
 			{
-				return uiResult;
+				return eResult;
 			}
 
 		}
@@ -204,17 +208,19 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 		}
 	}
 
-	uiResult = FatOpenFileByEntry(&file_entry, uiAccessFlags);
-	if (uiResult != FAT_SUCCESS)
+	strcpy(mszName, (char*)sFileEntry.name);
+
+	eResult = FatOpenFileByEntry(&sFileEntry, uiAccessFlags);
+	if (eResult != FAT_SUCCESS)
 	{
-		return uiResult;
+		return eResult;
 	}
 
 	// if the file has no clusters allocated then allocate one
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
-		uiResult = FatFileUpdateSequentialClusterCount(msFile.uiCursorClusterInVolume);
-		return uiResult;
+		eResult = FatFileUpdateSequentialClusterCount(msFile.uiCursorClusterInVolume);
+		return eResult;
 	}
 	else
 	{
@@ -243,7 +249,7 @@ EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
 EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
 {
 	bool		bSuccess;
-	EFatCode	uiResult;
+	EFatCode	eResult;
 
 	// set implicit access flags
 	uiAccessFlags |= FAT_FILE_ACCESS_READ;
@@ -269,18 +275,18 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 	msFile.bBusy = 0;
 
 	// read the the cluster number
-	((uint16*)&msFile.uiCursorClusterInVolume)[INT32_WORD0] = psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&msFile.uiCursorClusterInVolume)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
+	msFile.uiCursorClusterInVolume = GetFatClusterFromFatEntry(&psEntry->raw, IsFat32Volume());
+	gcLogger.Info2(__METHOD__, " File [", mszName, "] first cluster [", IntToString(msFile.uiCursorClusterInVolume), "].", NULL);
 
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
 		// if the file is being opened for append access we
 		// seek to the end of the file
-		uiResult = Seek(0, FAT_SEEK_END);
-		if (uiResult != FAT_SUCCESS)
+		eResult = Seek(0, FAT_SEEK_END);
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.uiMagic = 0;
-			return uiResult;
+			return eResult;
 		}
 	}
 	else if (uiAccessFlags & FAT_FILE_ACCESS_OVERWRITE)
@@ -349,20 +355,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::FatFileGetUniqueId(void)
 {
-	uint32 id;
-
-	((uint16*)&id)[INT32_WORD0] = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-
-	if (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32)
-	{
-		((uint16*)&id)[INT32_WORD1] = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-	}
-	else
-	{
-		((uint16*)&id)[INT32_WORD1] = 0;
-	}
-
-	return id;
+	return GetFatClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
 }
 
 
@@ -373,7 +366,7 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 {
-	EFatCode	uiResult;
+	EFatCode	eResult;
 	uint32		uiNewCluster;
 	uint32		uiClustersNeeded;
 	uint32		uiClustersInFile;
@@ -437,22 +430,22 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 			return FAT_UNKNOWN_ERROR;
 		}
 
-		uiResult = FAT_UNKNOWN_ERROR;
-		uiNewCluster = mpcVolume->FatAllocateDataClusterEx(uiClustersNeeded, 0, uiPageSize, &uiResult);
-		if (uiResult != FAT_SUCCESS)
+		eResult = FAT_UNKNOWN_ERROR;
+		uiNewCluster = mpcVolume->FatAllocateDataClusterEx(uiClustersNeeded, 0, uiPageSize, &eResult);
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
-			return uiResult;
+			return eResult;
 		}
 	}
 	else
 	{
-		uiResult = FAT_UNKNOWN_ERROR;
-		uiNewCluster = mpcVolume->FatAllocateDataCluster(uiClustersNeeded, 1, &uiResult);
-		if (uiResult != FAT_SUCCESS)
+		eResult = FAT_UNKNOWN_ERROR;
+		uiNewCluster = mpcVolume->FatAllocateDataCluster(uiClustersNeeded, 1, &eResult);
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
-			return uiResult;
+			return eResult;
 		}
 	}
 
@@ -469,11 +462,11 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		// find the last sequential sector after this address
 		while (!mpcVolume->FatIsEOFEntry(uiCursorClusterInVolume))
 		{
-			uiResult = mpcVolume->GetNextClusterEntry(uiCursorClusterInVolume, &uiNextCluster);
-			if (uiResult != FAT_SUCCESS)
+			eResult = mpcVolume->GetNextClusterEntry(uiCursorClusterInVolume, &uiNextCluster);
+			if (eResult != FAT_SUCCESS)
 			{
 				msFile.bBusy = 0;
-				return uiResult;
+				return eResult;
 			}
 
 			if (uiNextCluster == (uiCursorClusterInVolume + 1))
@@ -530,8 +523,8 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 
 		if (uiClustersInFile != 0)
 		{
-			uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClustersInFile, &last_cluster);
-			if (uiResult != FAT_SUCCESS)
+			eResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClustersInFile, &last_cluster);
+			if (eResult != FAT_SUCCESS)
 			{
 				msFile.bBusy = 0;
 				return FAT_CORRUPTED_FILE;
@@ -544,11 +537,11 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 
 		// set the FAT entry for the last cluster to the beggining of the newly
 		// allocated cluster chain (ie. link them)
-		uiResult = mpcVolume->FatSetClusterEntry(last_cluster, (FatEntry)uiNewCluster);
-		if (uiResult != FAT_SUCCESS)
+		eResult = mpcVolume->FatSetClusterEntry(last_cluster, (FatEntry)uiNewCluster);
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
-			return uiResult;
+			return eResult;
 		}
 	}
 
@@ -572,12 +565,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::CalculateFirstCluster(void)
 {
-	uint32	uiFirstCluster;
-
-	((uint16*)&uiFirstCluster)[INT32_WORD0] = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-	((uint16*)&uiFirstCluster)[INT32_WORD1] = (mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32) ? msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi : 0;
-
-	return uiFirstCluster;
+	return GetFatClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
 }
 
 
@@ -592,7 +580,7 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	uint32	uiSectorIndexInFile;
 	uint32	uiClusterIndex;
 	uint32	uiOldClusterIndex;
-	uint16	uiResult;
+	uint16	eResult;
 
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
@@ -652,8 +640,8 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 		// set the file file to point to the last cluster. if the file doesn't have
 		// that many clusters allocated this function will return 0. if that ever happens it means
 		// that the file is corrupted
-		uiResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
-		if (uiResult != FAT_SUCCESS)
+		eResult = mpcVolume->FatIncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
 			return FAT_CORRUPTED_FILE;
@@ -673,7 +661,7 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 {
-	EFatCode	uiResult;
+	EFatCode	eResult;
 	uint32		uiOverFileLength;
 
 	// check that this is a valid file
@@ -694,10 +682,10 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	if ((msFile.uiFilePosition + uiLength) > msFile.uiFileSize)
 	{
 		uiOverFileLength = (msFile.uiFilePosition + uiLength);
-		uiResult = FatFileAllocate(uiOverFileLength);
-		if (uiResult != FAT_SUCCESS)
+		eResult = FatFileAllocate(uiOverFileLength);
+		if (eResult != FAT_SUCCESS)
 		{
-			return uiResult;
+			return eResult;
 		}
 	}
 
@@ -874,7 +862,16 @@ EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, ui
 }
 
 
-// flushes file buffers
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatFile::IsFat32Volume(void)
+{
+	return mpcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
