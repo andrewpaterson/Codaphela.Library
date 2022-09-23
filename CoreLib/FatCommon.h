@@ -261,7 +261,7 @@ struct SFatQueryState
 	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		sCurrentEntryRaw;
 
-	SFatRawDirectoryEntry*		first_entry_raw;
+	SFatRawDirectoryEntry*		sFirstEntryRaw;
 
 	// LFN support members
 	uint16						long_filename[256];
