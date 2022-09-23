@@ -177,7 +177,10 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 			// try to create the directory entry
 			eResult = mpcVolume->FatCreateDirectoryEntry(&sParentEntry.raw, pcFilenameScanner, 0, 0, &sFileEntry);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 			gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] create directory [", pcFilenameScanner, "] for parenty entry [", FatEntryToString(&sParentEntry, IsFat32Volume()), "] created [", FatEntryToString(&sFileEntry, IsFat32Volume()), "] and returned code [", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
@@ -267,7 +270,10 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 
 	// read the the cluster number
 	msFile.uiCursorClusterInVolume = GetFatClusterFromFatEntry(&psEntry->raw, IsFat32Volume());
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", mszName, "] first cluster [", IntToString(msFile.uiCursorClusterInVolume), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
 
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
@@ -309,7 +315,11 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 
 			// write the modified entry to the media
 			bSuccess = mpcVolume->Write(psEntry->uiSectorAddress, uiBuffer);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 			gcLogger.Info2(__METHOD__, " File [", mszName, "] write sector [", IntToString(psEntry->uiSectorAddress), "] returned [", BoolToString(bSuccess), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 			if (!bSuccess)
 			{
 				msFile.uiMagic = 0;
@@ -496,7 +506,11 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 
 		// write the modified entry to the media
 		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 		gcLogger.Info2(__METHOD__, " File [", mszName, "] write sector [", IntToString(msFile.sDirectoryEntry.uiSectorAddress), "] returned [", BoolToString(bSuccess), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -912,7 +926,11 @@ EFatCode CFatFile::FatFileFlush(void)
 
 		// write the modified entry to the media
 		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 		gcLogger.Info2(__METHOD__, " File [", mszName, "] write sector [", IntToString(msFile.sDirectoryEntry.uiSectorAddress), "] returned [", BoolToString(bSuccess), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 		if (!bSuccess)
 		{
 			msFile.bBusy = 0;
@@ -1054,7 +1072,11 @@ EFatCode CFatFile::FatIncreaseClusterAddress(char* szMethod, uint32 uiCluster, u
 	EFatCode eResult;
 
 	eResult = mpcVolume->FatIncreaseClusterAddress(uiCluster, uiCount, puiNewCluster);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " Filename [", GetShortFileName(), "] increase cluster address for [", IntToString(uiCluster), "] and count [", IntToString(uiCount), "] increased to [", IntToString(*puiNewCluster), "] and returned [", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 	return eResult;
 }
 
@@ -1068,7 +1090,11 @@ EFatCode CFatFile::GetNextClusterEntry(char* szMethod, uint32 uiCurrentCluster, 
 	EFatCode eResult;
 
 	eResult = mpcVolume->GetNextClusterEntry(uiCurrentCluster, puiNextCluster);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] get next cluster entry for cluster [", IntToString(uiCurrentCluster), "] found cluster [", IntToString(*puiNextCluster), "] and returned code [", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 	return eResult;
 }
 
@@ -1082,7 +1108,11 @@ EFatCode CFatFile::FatGetFileEntry(char* szMethod, char* szPath, SFatDirectoryEn
 	EFatCode eResult;
 
 	eResult = mpcVolume->FatGetFileEntry(szPath, psEntry);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] get file entry for path [", StringToString(szPath), "] found [", FatEntryToString(psEntry, IsFat32Volume()), "] returned code[", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 	return eResult;
 }
 
@@ -1096,7 +1126,11 @@ EFatCode CFatFile::FatSetClusterEntry(char* szMethod, uint32 uiCluster, fatEntry
 	EFatCode eResult;
 
 	eResult = mpcVolume->FatSetClusterEntry(msFile.uiCursorClusterInVolume, uiFatEntry);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] set cluster [", IntToString(uiCluster), "] FAT entry [", IntToString(uiFatEntry), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 	return eResult;
 }
 
@@ -1110,7 +1144,11 @@ EFatCode CFatFile::ReadFatSector(char* szMethod, uint32 uiFatSector)
 	EFatCode	eResult;
 
 	eResult = mpcVolume->FatReadFatSector(uiFatSector);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", mszName, "] read FAT sector [", IntToString(uiFatSector), "] returned [", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+		
 	return eResult;
 }
 
@@ -1124,7 +1162,11 @@ EFatCode CFatFile::FlushFatSector(char* szMethod)
 	EFatCode	eResult;
 
 	eResult = mpcVolume->FatFlushFatSector();
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", mszName, "] flsuh FAT sector returned [", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
 	return eResult;
 }
 
