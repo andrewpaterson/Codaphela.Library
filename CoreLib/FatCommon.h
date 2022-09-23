@@ -10,7 +10,7 @@
 
 
 // FAT entry data type
-typedef uint32 FatEntry;
+typedef uint32 fatEntry;
 
 
 // fat 32-byte directory entry structure
@@ -259,7 +259,7 @@ struct SFatQueryState
 	uint8						Attributes;
 	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
-	SFatRawDirectoryEntry*		current_entry_raw;
+	SFatRawDirectoryEntry*		sCurrentEntryRaw;
 
 	SFatRawDirectoryEntry*		first_entry_raw;
 
@@ -267,14 +267,16 @@ struct SFatQueryState
 	uint16						long_filename[256];
 	uint8						uiSequence;
 	uint8						uiChecksum;
+
+	uint8						auiBuffer[MAX_SECTOR_LENGTH];
 };
 
 
 // Holds the state of a directory query.
 struct SFatFileSystemQuery
 {
-	SFatDirectoryEntry	current_entry;
-	SFatQueryState		state;
+	SFatDirectoryEntry	sCurrentEntry;
+	SFatQueryState		sQueryState;
 };
 
 
@@ -323,23 +325,6 @@ enum EFatFileSystemType
 
 // table of illegal filename chars.
 static const char ILLEGAL_CHARS[] = { 0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C };
-
-
-struct SFatQueryStateInternal
-{
-	uint8						Attributes;
-	uint16						uiCurrentSector;
-	uint32						uiCurrentCluster;
-	SFatRawDirectoryEntry*		current_entry_raw;
-
-	SFatRawDirectoryEntry*		first_entry_raw;
-
-	// LFN support members
-	uint16						long_filename[256];
-	uint8						uiSequence;
-	uint8						uiChecksum;
-
-};
 
 
 #endif // ! __FAT_COMMON_H__

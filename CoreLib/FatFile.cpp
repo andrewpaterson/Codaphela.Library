@@ -524,7 +524,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		}
 
 		// set the FAT entry for the last cluster to the beggining of the newly allocated cluster chain (ie. link them).
-		eResult = FatSetClusterEntry(__METHOD__, last_cluster, (FatEntry)uiNewCluster);
+		eResult = FatSetClusterEntry(__METHOD__, last_cluster, (fatEntry)uiNewCluster);
 		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
@@ -934,7 +934,7 @@ EFatCode CFatFile::FatFileFlush(void)
 EFatCode CFatFile::Close(void)
 {
 	EFatCode	eResult;
-	FatEntry	uiFatEntry;
+	fatEntry	uiFatEntry;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -1091,7 +1091,7 @@ EFatCode CFatFile::FatGetFileEntry(char* szMethod, char* szPath, SFatDirectoryEn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatSetClusterEntry(char* szMethod, uint32 uiCluster, FatEntry uiFatEntry)
+EFatCode CFatFile::FatSetClusterEntry(char* szMethod, uint32 uiCluster, fatEntry uiFatEntry)
 {
 	EFatCode eResult;
 

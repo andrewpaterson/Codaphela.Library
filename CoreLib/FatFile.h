@@ -60,7 +60,7 @@ protected:
 	EFatCode	FatIncreaseClusterAddress(char* szMethod, uint32 uiCluster, uint16 uiCount, uint32* puiNewCluster);
 	EFatCode	GetNextClusterEntry(char* szMethod, uint32 uiCurrentCluster, uint32* puiNextCluster);
 	EFatCode	FatGetFileEntry(char* szMethod, char* path, SFatDirectoryEntry* sEntry);
-	EFatCode	FatSetClusterEntry(char* szMethod, uint32 cluster, FatEntry uiFatEntry);
+	EFatCode	FatSetClusterEntry(char* szMethod, uint32 cluster, fatEntry uiFatEntry);
 	EFatCode	ReadFatSector(char* szMethod, uint32 uiFatInfoSector);
 	EFatCode	FlushFatSector(char* szMethod);
 };
