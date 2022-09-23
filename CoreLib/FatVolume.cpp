@@ -208,9 +208,9 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 	if (FatQueryFirstEntry(0, FAT_ATTR_VOLUME_ID, &query, 1) == FAT_SUCCESS)
 	{
-		if (*query.sCurrentEntryRaw->uEntry.sFatRawCommon.name != 0)
+		if (*query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0)
 		{
-			TrimPath(msVolume.szLabel, (char*)query.sCurrentEntryRaw->uEntry.sFatRawCommon.name, 11);
+			TrimPath(msVolume.szLabel, (char*)query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, 11);
 		}
 	}
 	msVolume.uiFileSystemInfoSector = 0xFFFFFFFF;
@@ -1751,17 +1751,17 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 	// initialize the 1st sector of the directory cluster with
 	// the dot sEntry
 	memset(mauiFatSharedBuffer, 0, GetSectorSize());
-	entries->uEntry.sFatRawCommon.name[0x0] = '.';
-	entries->uEntry.sFatRawCommon.name[0x1] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x2] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x3] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x4] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x5] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x6] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x7] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x8] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x9] = ' ';
-	entries->uEntry.sFatRawCommon.name[0xA] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x0] = '.';
+	entries->uEntry.sFatRawCommon.szShortName[0x1] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x2] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x3] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x4] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x5] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x6] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x7] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x8] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x9] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0xA] = ' ';
 	entries->uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
 	entries->uEntry.sFatRawCommon.size = 0x0;
 	entries->uEntry.sFatRawCommon.reserved = 0;
@@ -1779,17 +1779,17 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 	entries++;
 
 	// initialize the dot dot sEntry
-	entries->uEntry.sFatRawCommon.name[0x0] = '.';
-	entries->uEntry.sFatRawCommon.name[0x1] = '.';
-	entries->uEntry.sFatRawCommon.name[0x2] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x3] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x4] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x5] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x6] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x7] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x8] = ' ';
-	entries->uEntry.sFatRawCommon.name[0x9] = ' ';
-	entries->uEntry.sFatRawCommon.name[0xA] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x0] = '.';
+	entries->uEntry.sFatRawCommon.szShortName[0x1] = '.';
+	entries->uEntry.sFatRawCommon.szShortName[0x2] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x3] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x4] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x5] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x6] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x7] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x8] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0x9] = ' ';
+	entries->uEntry.sFatRawCommon.szShortName[0xA] = ' ';
 	entries->uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
 	entries->uEntry.sFatRawCommon.size = 0x0;
 	entries->uEntry.sFatRawCommon.reserved = 0;
@@ -2113,7 +2113,7 @@ void CFatVolume::FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* sEntry, SFatRa
 {
 
 	// copy the filename and transform the filename from the internal structure to the public one
-	FatGetShortNameFromEntry(sEntry->name, raw_entry->uEntry.sFatRawCommon.name);
+	FatGetShortNameFromEntry(sEntry->name, (uint8*)raw_entry->uEntry.sFatRawCommon.szShortName);
 
 	// copy other data from the internal sEntry structure to the public one
 	sEntry->attributes = raw_entry->uEntry.sFatRawCommon.attributes;
@@ -2231,7 +2231,7 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 	// copy the file name to the psEntry and the raw
 	// psEntry in their respective formats
 	strcpy((char*)psEntry->name, "ROOT");
-	GetShortNameForEntry(psEntry->raw.uEntry.sFatRawCommon.name, psEntry->name, 1);
+	GetShortNameForEntry((uint8*)psEntry->raw.uEntry.sFatRawCommon.szShortName, psEntry->name, 1);
 
 	// set the general fields of the psEntry
 	psEntry->attributes = psEntry->raw.uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
@@ -2318,11 +2318,11 @@ EFatCode CFatVolume::MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szCo
 			return FAT_INVALID_FILENAME;
 		}
 		bLongFilename = true;
-		bMatch = FatCompareLongName(puiTargetFileLongName, psQuery->long_filename) || FatCompareShortName(szConstructedShortFileName, (char*)psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.name);
+		bMatch = FatCompareLongName(puiTargetFileLongName, psQuery->long_filename) || FatCompareShortName(szConstructedShortFileName, (char*)psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 	}
 	else
 	{
-		bMatch = FatCompareShortName(szConstructedShortFileName, (char*)psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.name);
+		bMatch = FatCompareShortName(szConstructedShortFileName, (char*)psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 	}
 
 	*pbUsingLFN = bLongFilename;
@@ -2380,7 +2380,7 @@ EFatCode CFatVolume::FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 		}
 
 		// if the output of FatQueryFirstEntry indicates that there are no entries available...
-		if (*sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.name == 0)
+		if (*sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName == 0)
 		{
 			psEntry->name[0] = '\0';
 			return FAT_SUCCESS;
@@ -2412,11 +2412,11 @@ EFatCode CFatVolume::FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			// match the filename against the next psEntry.
 			if (bLongFilename)
 			{
-				bMatch = FatCompareLongName(auiConstructedLongFilename, sQuery.long_filename) || FatCompareShortName(szConstructedShortFileName, (char*)sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.name);
+				bMatch = FatCompareLongName(auiConstructedLongFilename, sQuery.long_filename) || FatCompareShortName(szConstructedShortFileName, (char*)sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 			}
 			else
 			{
-				bMatch = FatCompareShortName(szConstructedShortFileName, (char*)sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.name);
+				bMatch = FatCompareShortName(szConstructedShortFileName, (char*)sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 			}
 		}
 
@@ -2427,7 +2427,7 @@ EFatCode CFatVolume::FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 
 	// copy the filename and transform the filename
 	// from the internal structure to the public one
-	FatGetShortNameFromEntry(psEntry->name, sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.name);
+	FatGetShortNameFromEntry(psEntry->name, (uint8*)sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 
 	// copy other data from the internal psEntry structure
 	// to the public one
@@ -2574,7 +2574,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, bool bBufferLocked
 					if (FatIsEOFEntry(uiFat))
 					{
 						// set the current sEntry to 0
-						*query->sCurrentEntryRaw->uEntry.sFatRawCommon.name = 0;
+						*query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName = 0;
 						return FAT_SUCCESS;
 					}
 
@@ -2600,7 +2600,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, bool bBufferLocked
 					{
 						if (query->uiCurrentSector == GetRootDirectorySectors())
 						{
-							*query->sCurrentEntryRaw->uEntry.sFatRawCommon.name = 0;
+							*query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName = 0;
 							return FAT_SUCCESS;
 						}
 						uiSectorAddress = (GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + query->uiCurrentSector;
@@ -2705,12 +2705,12 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, bool bBufferLocked
 
 	// repeat the process until we find a valid entry
 	// that matches the attributes given
-	while (!bPass || *query->sCurrentEntryRaw->uEntry.sFatRawCommon.name == 0xE5);
+	while (!bPass || *query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName == 0xE5);
 
 	// if we found an entry we need to check it's LFN checksum to make sure that the long filename that we've associated with it belongs to it. If it doesn't clear it.
-	if (*query->sCurrentEntryRaw->uEntry.sFatRawCommon.name != 0x0)
+	if (*query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0x0)
 	{
-		if (query->uiChecksum != FatLongEntryChecksum((uint8*)query->sCurrentEntryRaw->uEntry.sFatRawCommon.name))
+		if (query->uiChecksum != FatLongEntryChecksum((uint8*)query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName))
 		{
 			query->long_filename[0] = 0x0;
 		}
@@ -2724,34 +2724,34 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* query, bool bBufferLocked
 		int i = 0;
 		for (uint16 uiResult = 0; uiResult < 8; uiResult++)
 		{
-			if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[uiResult] != 0x20)
+			if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
 			{
 				if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.reserved & FAT_LOWERCASE_BASENAME)
 				{
-					query->long_filename[i++] = tolower(query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[uiResult]);
+					query->long_filename[i++] = tolower(query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
 				}
 				else
 				{
-					query->long_filename[i++] = query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[uiResult];
+					query->long_filename[i++] = query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
 				}
 			}
 		}
 
-		if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[8] != 0x20)
+		if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[8] != 0x20)
 		{
 			query->long_filename[i++] = '.';
 
 			for (uint16 uiResult = 8; uiResult < 11; uiResult++)
 			{
-				if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[uiResult] != 0x20)
+				if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
 				{
 					if (query->sCurrentEntryRaw->uEntry.sFatRawCommon.reserved & FAT_LOWERCASE_EXTENSION)
 					{
-						query->long_filename[i++] = tolower(query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[uiResult]);
+						query->long_filename[i++] = tolower(query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
 					}
 					else
 					{
-						query->long_filename[i++] = query->sCurrentEntryRaw->uEntry.sFatRawCommon.name[uiResult];
+						query->long_filename[i++] = query->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
 					}
 				}
 			}
@@ -2837,7 +2837,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	// attempt to format the filename provided
 	// to the format required by the directory sEntry
 	// and copy it to it's field
-	eResult = GetShortNameForEntry(psNewEntry->raw.uEntry.sFatRawCommon.name, (uint8*)name, 0);
+	eResult = GetShortNameForEntry((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName, (uint8*)name, 0);
 
 	// if the above operation failed then the filename
 	// is invalid
@@ -2871,7 +2871,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 			for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
 			{
-				if (psNewEntry->raw.uEntry.sFatRawCommon.name[i] == 0x20)
+				if (psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i] == 0x20)
 				{
 					break;
 				}
@@ -2879,15 +2879,15 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 			for (c = 0; c < (char)strlen(name_suffix_str); c++)
 			{
-				psNewEntry->raw.uEntry.sFatRawCommon.name[i++] = name_suffix_str[c];
+				psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i++] = name_suffix_str[c];
 			}
 
 			// loop through all entries in the parent directory
 			// and if we find one with the same name as hours mark the name
 			// as invalid
-			while (*query.sCurrentEntryRaw->uEntry.sFatRawCommon.name != 0)
+			while (*query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0)
 			{
-				if (memcmp(query.sCurrentEntryRaw->uEntry.sFatRawCommon.name, psNewEntry->raw.uEntry.sFatRawCommon.name, 11) == 0)
+				if (memcmp(query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, psNewEntry->raw.uEntry.sFatRawCommon.szShortName, 11) == 0)
 				{
 					is_valid_entry = 0;
 					break;
@@ -2909,7 +2909,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 				for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
 				{
-					if (psNewEntry->raw.uEntry.sFatRawCommon.name[i] == 0x20)
+					if (psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i] == 0x20)
 					{
 						break;
 					}
@@ -2917,7 +2917,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 				for (c = 0; c < (char)strlen(name_suffix_str); c++)
 				{
-					psNewEntry->raw.uEntry.sFatRawCommon.name[i++] = name_suffix_str[c];
+					psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i++] = name_suffix_str[c];
 				}
 			}
 		} while (!is_valid_entry);
@@ -3088,7 +3088,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 						}
 
 						// compute the checksum for this sEntry
-						uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.name);
+						uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName);
 
 						// now we can start writting
 						iLFNEntriesFound = iLFNEntriesNeeded;
@@ -3310,7 +3310,7 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 	if (sEntry.name != 0)
 	{
 		// compute the checksum for the file
-		checksum = FatLongEntryChecksum((uint8*)sEntry.raw.uEntry.sFatRawCommon.name);
+		checksum = FatLongEntryChecksum((uint8*)sEntry.raw.uEntry.sFatRawCommon.szShortName);
 
 		// make sure we're not trying to delete a directory
 		if (sEntry.attributes & FAT_ATTR_DIRECTORY)
@@ -3330,7 +3330,7 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 		}
 
 		// mark the sEntry as deleted
-		sEntry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
+		sEntry.raw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 
 		eResult = FatReadFatSector(sEntry.uiSectorAddress);
 		if (eResult != FAT_SUCCESS)
@@ -3358,12 +3358,12 @@ EFatCode CFatVolume::FatFileDelete(char* filename)
 	}
 
 	// loop through each sEntry.
-	while (*query.sCurrentEntry.raw.uEntry.sFatRawCommon.name != 0)
+	while (*query.sCurrentEntry.raw.uEntry.sFatRawCommon.szShortName != 0)
 	{
 		if (query.sCurrentEntry.raw.uEntry.sFatRawLongFileName.uiChecksum == checksum)
 		{
 			// mark the sEntry as deleted
-			query.sCurrentEntry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
+			query.sCurrentEntry.raw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 
 			eResult = FatReadFatSector(query.sCurrentEntry.uiSectorAddress);
 			if (eResult != FAT_SUCCESS)
@@ -3427,7 +3427,7 @@ EFatCode CFatVolume::FatFileRename(char* szOriginalFilename, char* szNewFilename
 		SFatDirectoryEntry parent;
 
 		// compute the checksum for the file
-		uiChecksum = FatLongEntryChecksum((uint8*)sOriginalEntry.raw.uEntry.sFatRawCommon.name);
+		uiChecksum = FatLongEntryChecksum((uint8*)sOriginalEntry.raw.uEntry.sFatRawCommon.szShortName);
 
 		// get the cluster # for the sEntry
 		uiEntryCluster = GetFatClusterFromFatEntry(&sOriginalEntry.raw, GetFileSystemType() == FAT_FS_TYPE_FAT32);
@@ -3470,7 +3470,7 @@ EFatCode CFatVolume::FatFileRename(char* szOriginalFilename, char* szNewFilename
 		mbEntriesUpdated = true;
 
 		// mark the original sEntry as deleted.
-		*sOriginalEntry.raw.uEntry.sFatRawCommon.name = FAT_DELETED_ENTRY;
+		*sOriginalEntry.raw.uEntry.sFatRawCommon.szShortName = (char)FAT_DELETED_ENTRY;
 		eResult = FatReadFatSector(sOriginalEntry.uiSectorAddress);
 		if (eResult != FAT_SUCCESS)
 		{
@@ -3491,13 +3491,13 @@ EFatCode CFatVolume::FatFileRename(char* szOriginalFilename, char* szNewFilename
 	}
 
 	// loop through each sEntry.
-	while (*query.sCurrentEntry.raw.uEntry.sFatRawCommon.name != 0)
+	while (*query.sCurrentEntry.raw.uEntry.sFatRawCommon.szShortName != 0)
 	{
 		if (query.sCurrentEntry.raw.uEntry.sFatRawLongFileName.uiChecksum == uiChecksum)
 		{
 			// mark the sEntry as deleted
 			muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
-			query.sCurrentEntry.raw.uEntry.sFatRawCommon.name[0] = FAT_DELETED_ENTRY;
+			query.sCurrentEntry.raw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 			eResult = FatReadFatSector(query.sCurrentEntry.uiSectorAddress);
 			if (eResult != FAT_SUCCESS)
 			{

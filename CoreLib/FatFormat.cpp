@@ -585,11 +585,11 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 		{
 			if (i < c)
 			{
-				entry->uEntry.sFatRawCommon.name[i] = (volume_label[i]);
+				entry->uEntry.sFatRawCommon.szShortName[i] = (volume_label[i]);
 			}
 			else
 			{
-				entry->uEntry.sFatRawCommon.name[i] = 0x20;
+				entry->uEntry.sFatRawCommon.szShortName[i] = 0x20;
 			}
 		}
 	}

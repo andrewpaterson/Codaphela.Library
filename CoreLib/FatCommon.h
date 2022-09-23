@@ -21,18 +21,18 @@ struct SFatRawDirectoryEntry
 	{
 		struct SFatRawCommon
 		{
-			uint8 name[11];
-			uint8 attributes;
-			uint8 reserved;
-			uint8 create_time_tenth;
-			uint16 create_time;
-			uint16 create_date;
-			uint16 access_date;
-			uint16 first_cluster_hi;
-			uint16 modify_time;
-			uint16 modify_date;
-			uint16 first_cluster_lo;
-			uint32 size;
+			uint8	szShortName[11];
+			uint8	attributes;
+			uint8	reserved;
+			uint8	create_time_tenth;
+			uint16	create_time;
+			uint16	create_date;
+			uint16	access_date;
+			uint16	first_cluster_hi;
+			uint16	modify_time;
+			uint16	modify_date;
+			uint16	first_cluster_lo;
+			uint32	size;
 		} sFatRawCommon;
 
 		struct SFatRawLongFileName
@@ -310,8 +310,8 @@ enum EFatFileSystemType
 
 // macros for checking if a directory entry is free
 // and if it's the last entry on the directory
-#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0xE5 || *(entry)->uEntry.sFatRawCommon.name == 0x0)
-#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.name == 0x0)
+#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == 0xE5 || *(entry)->uEntry.sFatRawCommon.szShortName == 0x0)
+#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == 0x0)
 
 
  // min and max macros
