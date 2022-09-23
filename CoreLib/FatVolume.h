@@ -116,10 +116,10 @@ public:
 
 protected:
 	void				TrimPath(char* dest, char* src, size_t max);
-	void				FatParsePath(char* path, char* szPathPart, char** filename_part);
-	char				FatCompareShortName(uint8* name1, uint8* name2);
-	char				FatCompareLongName(uint16* name1, uint16* name2);
-	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, char lfn_disabled);
+	void				FatParsePath(char* path, char* szPathPart, char** pszFilenamePart);
+	bool				FatCompareShortName(char* szName1, char* szName2);
+	char				FatCompareLongName(uint16* name1, uint16* puiName2);
+	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, bool bLFNDisabled);
 	uint8				FatLongEntryChecksum(uint8* filename);
 	int					FatIndexOf(char chr, char* str, int index);
 
@@ -134,6 +134,10 @@ protected:
 	EFatCode			WriteFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat16Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat32Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
+
+	EFatCode			CreateFakeRootEntry(SFatDirectoryEntry* psEntry);
+	char*				FindNextPathItem(char* szPath, char* szCurrentLevelPath);
+	EFatCode			MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);
 };
 
 
