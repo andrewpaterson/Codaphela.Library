@@ -130,6 +130,9 @@ protected:
 	EFatCode			FlushAndInvalidate(void);
 	EFatCode			FatZeroCluster(uint32 cluster);
 
+	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiClusterBytesRemainder, uint32 uiFirstClusterSector, fatEntry uiLastFatEntry, uint32 uiPreviousClusterSector, uint32 uiLastEntryOffset);
+	EFatCode			InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterIndexInTable, bool bZero);
+
 	EFatCode			ReadFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiCluster, uint32 uiSector, fatEntry* puiFatEntry);
 	EFatCode			WriteFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat16Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
