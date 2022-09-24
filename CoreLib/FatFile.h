@@ -63,6 +63,7 @@ protected:
 	EFatCode	FatSetClusterEntry(char* szMethod, uint32 cluster, fatEntry uiFatEntry);
 	EFatCode	ReadFatSector(char* szMethod, uint32 uiFatInfoSector);
 	EFatCode	FlushFatSector(char* szMethod);
+	EFatCode	FatCreateDirectoryEntry(char* szMethod, SFatRawDirectoryEntry* psParentEntry, char* szName, SFatDirectoryEntry* psDirectoryEntry);
 };
 
 
