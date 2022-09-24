@@ -53,10 +53,7 @@ EFatCode CFatFile::FatFileUpdateSequentialClusterCount(uint32 uiCursorClusterInV
 	while (!mpcVolume->FatIsEOFEntry(uiCursorClusterInVolume))
 	{
 		eResult = GetNextClusterEntry(__METHOD__, uiCursorClusterInVolume, &uiNextCluster);
-		if (eResult != FAT_SUCCESS)
-		{
-			return eResult;
-		}
+		RETURN_ON_FAT_FAILURE(eResult);
 
 		if (uiNextCluster == (uiCursorClusterInVolume + 1))
 		{
@@ -95,10 +92,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 	// get the file entry
 	eResult = FatGetFileEntry(__METHOD__, filename, &sFileEntry);
-	if (eResult != FAT_SUCCESS)
-	{
-		return eResult;
-	}
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	// if the entry was not found...
 	if (*sFileEntry.name == 0)
@@ -164,10 +158,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 			// try to get the entry for the parent directory
 			eResult = FatGetFileEntry(__METHOD__, szFilePath, &sParentEntry);
-			if (eResult != FAT_SUCCESS)
-			{
-				return eResult;
-			}
+			RETURN_ON_FAT_FAILURE(eResult);
 
 			// if the parent directory does not exists
 			if (*sParentEntry.name == 0)
@@ -176,22 +167,14 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			}
 
 			// try to create the directory entry
-			eResult = mpcVolume->FatCreateDirectoryEntry(&sParentEntry.raw, pcFilenameScanner, 0, 0, &sFileEntry);
+			eResult = FatCreateDirectoryEntry(__METHOD__,  &sParentEntry.raw, pcFilenameScanner, &sFileEntry);
+			RETURN_ON_FAT_FAILURE(eResult);
 
-#ifdef __LOG_FAT_VOLUME_CALLS__
-			gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] create directory [", pcFilenameScanner, "] for parenty entry [", FatEntryToString(&sParentEntry, IsFat32Volume()), "] created [", FatEntryToString(&sFileEntry, IsFat32Volume()), "] and returned code [", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
 			uiAccessFlags = uiAccessFlags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
 
-			// if we were unable to create the entry for the file
-			// and
-			if (eResult != FAT_SUCCESS)
-			{
-				return eResult;
-			}
 
 		}
 		// if the create flag is not set then return the
@@ -205,10 +188,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 	strcpy(mszName, (char*)sFileEntry.name);
 
 	eResult = FatOpenFileByEntry(&sFileEntry, uiAccessFlags);
-	if (eResult != FAT_SUCCESS)
-	{
-		return eResult;
-	}
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	// if the file has no clusters allocated then allocate one
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
@@ -684,10 +664,7 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	{
 		uiOverFileLength = (msFile.uiFilePosition + uiLength);
 		eResult = FatFileAllocate(uiOverFileLength);
-		if (eResult != FAT_SUCCESS)
-		{
-			return eResult;
-		}
+		RETURN_ON_FAT_FAILURE(eResult);
 	}
 
 
@@ -1165,6 +1142,23 @@ EFatCode CFatFile::FlushFatSector(char* szMethod)
 
 #ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", mszName, "] flsuh FAT sector returned [", FatCodeToString(eResult), "].", NULL);
+#endif // __LOG_FAT_VOLUME_CALLS__
+
+	return eResult;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::FatCreateDirectoryEntry(char* szMethod, SFatRawDirectoryEntry* psParentEntry, char* szName, SFatDirectoryEntry* psDirectoryEntry)
+{
+	EFatCode	eResult;
+
+	eResult = mpcVolume->FatCreateDirectoryEntry(psParentEntry, szName, 0, 0, psDirectoryEntry);
+
+#ifdef __LOG_FAT_VOLUME_CALLS__
+	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] create directory [", pcFilenameScanner, "] for parenty entry [", FatEntryToString(&sParentEntry, IsFat32Volume()), "] created [", FatEntryToString(&sFileEntry, IsFat32Volume()), "] and returned code [", FatCodeToString(eResult), "].", NULL);
 #endif // __LOG_FAT_VOLUME_CALLS__
 
 	return eResult;

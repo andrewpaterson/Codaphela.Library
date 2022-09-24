@@ -308,10 +308,12 @@ enum EFatFileSystemType
 #define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
 
 
-// macros for checking if a directory entry is free
-// and if it's the last entry on the directory
-#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == 0xE5 || *(entry)->uEntry.sFatRawCommon.szShortName == 0x0)
+// macros for checking if a directory entry is free and if it's the last entry on the directory
+#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == FAT_DELETED_ENTRY || *(entry)->uEntry.sFatRawCommon.szShortName == 0x0)
 #define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == 0x0)
+
+
+#define RETURN_ON_FAT_FAILURE(result) 	if (eResult != FAT_SUCCESS)	{ return result; }
 
 
  // min and max macros
