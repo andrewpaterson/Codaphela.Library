@@ -275,11 +275,11 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 
 		// if the file is not already empty then
 		// we'll empty it
-		if (psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord != 0x0 || psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord != 0x0)
+		if (psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord != 0 || psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord != 0)
 		{
 			// update the entry to point to cluster 0
-			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0x0;
-			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0x0;
+			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
+			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
 			psEntry->raw.uEntry.sFatRawCommon.uiSize = 0x0;
 			msFile.sDirectoryEntry = *psEntry;
 			msFile.uiFileSize = psEntry->size;
