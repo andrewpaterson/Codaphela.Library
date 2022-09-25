@@ -273,12 +273,12 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 
 		// if the file is not already empty then
 		// we'll empty it
-		if (psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo != 0x0 || psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi != 0x0)
+		if (psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord != 0x0 || psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord != 0x0)
 		{
 			// update the entry to point to cluster 0
-			psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0x0;
-			psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0x0;
-			psEntry->raw.uEntry.sFatRawCommon.size = 0x0;
+			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0x0;
+			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0x0;
+			psEntry->raw.uEntry.sFatRawCommon.uiSize = 0x0;
 			msFile.sDirectoryEntry = *psEntry;
 			msFile.uiFileSize = psEntry->size;
 
@@ -459,11 +459,11 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	}
 
 	// if this is the 1st cluster cluster allocated to the file then we must modify the file's entry
-	if (!msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo && !msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi)
+	if (!msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord && !msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord)
 	{
 		// modify the file entry to point to the  new cluster
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(uiNewCluster);
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(uiNewCluster);
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiNewCluster);
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiNewCluster);
 
 		// mark the cached sector as unknown
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
@@ -878,10 +878,10 @@ EFatCode CFatFile::FatFileFlush(void)
 		mcCache.Flush();
 
 		// update the file size on the entry
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.size = msFile.uiFileSize;
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date = GetSystemClockDate();
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_time = GetSystemClockTime();
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.access_date = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.modify_date;
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiSize = msFile.uiFileSize;
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
 
 		// try load the sector that contains the entry
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);

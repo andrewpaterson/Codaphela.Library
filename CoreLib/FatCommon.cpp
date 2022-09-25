@@ -54,10 +54,10 @@ uint32 GetFatClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32V
 
 	if (psRawEntry != NULL)
 	{
-		((uint16*)&uiCursorClusterInVolume)[INT32_WORD0] = psRawEntry->uEntry.sFatRawCommon.first_cluster_lo;
+		((uint16*)&uiCursorClusterInVolume)[INT32_WORD0] = psRawEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord;
 		if (bFat32Volume)
 		{
-			((uint16*)&uiCursorClusterInVolume)[INT32_WORD1] = psRawEntry->uEntry.sFatRawCommon.first_cluster_hi;
+			((uint16*)&uiCursorClusterInVolume)[INT32_WORD1] = psRawEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord;
 		}
 		else
 		{
