@@ -3,8 +3,9 @@
 
 
 class CFatVolume;
-void PrintFATCluster(CFatVolume* pcVolume);
+void PrintInterestingFATClusters(CFatVolume* pcVolume);
 
+void PrintRootDirectory(CFatVolume* pcVolume);
 
 #endif // !__FAT_DEBUG_H__
 

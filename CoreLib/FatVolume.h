@@ -61,11 +61,13 @@ public:
 	void				SetFatSharedBufferSector(uint32 uiSector);
 
 	bool				IsFatSectorLoaded(uint32 uiSector);
+	uint32				GetRootCluster(void);
+	uint32				GetRootSector(void);
 
 	uint32				GetBytesPerCluster(void);
 	uint32				GetID(void);
 	uint32				GetFatSize(void);
-	uint32				GetRootCluster(void);
+	uint32				GetFat32RootCluster(void);
 	uint32				GetFirstDataSector(void);
 	uint32				GetNoOfSectors(void);
 	uint32				GetNoOfDataSectors(void);
