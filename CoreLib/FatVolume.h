@@ -123,17 +123,21 @@ protected:
 	uint8				FatLongEntryChecksum(uint8* filename);
 	int					FatIndexOf(char chr, char* str, int index);
 
+	void				CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndexInTable, uint32* puiFirstClusterSector);
 	uint32				FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep);
-	uint16				CalculateStepSize(uint32 uiPageSize);
+	EFatCode			WrapClusterSearch(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndexInTable, uint32* puiOffsetInSector, uint32* puiFirstClusterSector);
+	uint16				CalculateClusterStepSize(uint32 uiPageSize);
 	fatEntry			GetEndOfClusterMarker(void);
 	uint32				CalculateFatEntryOffset(uint32 cluster);
 	EFatCode			FlushAndInvalidate(void);
 	EFatCode			FatZeroCluster(uint32 cluster);
 
-	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiClusterBytesRemainder, uint32 uiFirstClusterSector, fatEntry uiLastFatEntry, uint32 uiPreviousClusterSector, uint32 uiLastEntryOffset);
 	EFatCode			InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterIndexInTable, bool bZero);
 
+	EFatCode			ReadFatEntry(uint32 uiClusterBytesRemainder, uint32 uiClusterIndexInTable, uint32 uiSector, fatEntry* puiFatEntry);
 	EFatCode			ReadFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiCluster, uint32 uiSector, fatEntry* puiFatEntry);
+
+	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiClusterBytesRemainder, uint32 uiFirstClusterSector, fatEntry uiLastFatEntry, uint32 uiPreviousClusterSector, uint32 uiLastEntryOffset);
 	EFatCode			WriteFat12Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat16Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat32Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);

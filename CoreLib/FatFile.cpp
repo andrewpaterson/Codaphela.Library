@@ -356,17 +356,13 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		return FAT_INVALID_HANDLE;
 	}
 
-	// check that another operation is not using the
-	// file at this time
 	if (msFile.bBusy)
 	{
 		return FAT_FILE_HANDLE_IN_USE;
 	}
-
-	// mark the file as in use
 	msFile.bBusy = 1;
 
-	// calculate the # of clusters allocated
+	// calculate the number of clusters currently allocated
 	uiClustersInFile = (msFile.uiFileSize + mpcVolume->GetSectorSize() - 1) / mpcVolume->GetSectorSize();
 	uiClustersInFile = (uiClustersInFile + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster();
 
