@@ -1,6 +1,8 @@
 /*
  * fat32lib - Portable FAT12/16/32 Filesystem Library
  * Copyright (C) 2013 Fernando Rodriguez (frodriguez.developer@outlook.com)
+ * 
+ * https://github.com/fdev1/fat32lib
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License Version 3 as
