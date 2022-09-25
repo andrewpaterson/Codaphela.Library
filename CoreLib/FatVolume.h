@@ -86,10 +86,10 @@ public:
 	CFileDrive*			GetFileDrive(void);
 
 public:
-	uint32				FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 count, char zero, uint32 page_size, EFatCode* result);
+	uint32				FatAllocateCluster(SFatRawDirectoryEntry* parent, uint32 uiClusterCount, bool bEraseCluster, uint32 page_size, EFatCode* result);
 	uint32				FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* result);
-	uint32				FatAllocateDataCluster(uint32 count, char zero, EFatCode* result);
-	uint32				FatAllocateDataClusterEx(uint32 count, char zero, uint32 page_size, EFatCode* result);
+	uint32				FatAllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult);
+	uint32				FatAllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult);
 	EFatCode			FatFreeClusterChain(uint32 uiCluster);
 	EFatCode			GetNextClusterEntry(uint32 uiCluster, uint32* puiNextCluster);
 	EFatCode			FatSetClusterEntry(uint32 uiCluster, fatEntry fat_entry);
