@@ -470,16 +470,13 @@ uint32 CFatVolume::FatAllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EF
 // allocates the requested number of clusters - finds the free clusters, initializes it to zeroes,
 // links them as a cluster chain (marking the last one as EOC) and returns the cluster number for
 // the 1st cluster in the chain
-//
-// NOTE: this function used the volume/shared uiBuffer (if enabled) so it must not be
-// locked before calling this function
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, EFatCode* peResult)
+uint32 CFatVolume::FatAllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult)
 {
-	return FatAllocateCluster(0, count, zero, 1, peResult);
+	return FatAllocateCluster(0, uiClusterCount, bEraseCluster, 1, peResult);
 }
 
 
@@ -487,9 +484,9 @@ uint32 CFatVolume::FatAllocateDataCluster(uint32 count, char zero, EFatCode* peR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateDataClusterEx(uint32 count, char zero, uint32 uiPageSize, EFatCode* peResult)
+uint32 CFatVolume::FatAllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult)
 {
-	return FatAllocateCluster(0, count, zero, uiPageSize, peResult);
+	return FatAllocateCluster(0, uiClusterCount, bEraseCluster, uiPageSize, peResult);
 }
 
 
@@ -1030,7 +1027,7 @@ EFatCode CFatVolume::WrapClusterSearch(uint32 uiStartCluster, uint32 uiLastFatEn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiCount, char zero, uint32 uiPageSize, EFatCode* peResult)
+uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult)
 {
 	uint32		uiFirstClusterSector;
 	uint32		uiCurrentSector;
@@ -1047,13 +1044,13 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* psParentDirectory, 
 	uint16		uiClusterStep;
 	int			iCount;
 
-	if ((uiCount > 1) && (psParentDirectory != NULL))
+	if ((uiClusterCount > 1) && (psParentDirectory != NULL))
 	{
 		*peResult = FAT_UNKNOWN_ERROR;
 		return 0;
 	}
 
-	if (uiCount == 0)
+	if (uiClusterCount == 0)
 	{
 		*peResult = FAT_UNKNOWN_ERROR;
 		return 0;
@@ -1119,12 +1116,12 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* psParentDirectory, 
 					return 0;
 				}
 
-				uiCount--;
+				uiClusterCount--;
 
 				// if we've found all the clusters that the user requested leave and return the cluster number.
-				if (uiCount == 0)
+				if (uiClusterCount == 0)
 				{
-					*peResult = InitialiseAllocatedFatCluster(psParentDirectory, uiClusterIndex, zero);
+					*peResult = InitialiseAllocatedFatCluster(psParentDirectory, uiClusterIndex, bEraseCluster);
 					if (*peResult != FAT_SUCCESS)
 					{
 						return 0;
