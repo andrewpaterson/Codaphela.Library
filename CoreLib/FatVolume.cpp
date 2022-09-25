@@ -434,7 +434,7 @@ bool CFatVolume::IsFatSectorLoaded(uint32 uiSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::CalculateFatEntryOffset(uint32 uiClusterIndexInFAT)
+uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT)
 {
 	switch (GetFileSystemType())
 	{
@@ -941,16 +941,15 @@ EFatCode CFatVolume::InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psPare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndexInTable, uint32 uiSector, fatEntry* puiFatEntry)
+EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex, uint32 uiFat12Sector, fatEntry* puiFatEntry)
 {
 	EFatCode	eResult;
 
-	// copy the next FAT entry to the fatEntry variable
 	switch (GetFileSystemType())
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
-			eResult = ReadFat12Entry(uiOffsetInSector, uiClusterIndexInTable, uiSector, puiFatEntry);
+			eResult = ReadFat12Entry(uiOffsetInSector, uiClusterIndex, uiFat12Sector, puiFatEntry);
 			break;
 		}
 		case FAT_FS_TYPE_FAT16:
@@ -974,10 +973,10 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndexInTable, uint32* puiFirstClusterSector)
+void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector)
 {
-	*puiOffsetInSector = CalculateFatEntryOffset(uiClusterIndexInTable);
-	*puiFirstClusterSector = GetNoOfReservedSectors() + (*puiOffsetInSector / GetSectorSize());
+	*puiOffsetInSector = CalculateFATEntryIndex(uiClusterIndex);
+	*puiSector = GetNoOfReservedSectors() + (*puiOffsetInSector / GetSectorSize());
 	*puiOffsetInSector = *puiOffsetInSector % GetSectorSize();
 }
 
@@ -986,25 +985,25 @@ void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::WrapClusterSearch(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndexInTable, uint32* puiOffsetInSector, uint32* puiFirstClusterSector)
+EFatCode CFatVolume::WrapClusterSearch(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndex, uint32* puiOffsetInSector, uint32* puiFirstClusterSector)
 {
 	EFatCode	eResult;
 
 	if (uiStartCluster > 2 && !*pbWrappedAround)
 	{
-		*puiClusterIndexInTable = 2;
+		*puiClusterIndex = 2;
 		*pbWrappedAround = true;
 
-		CalculateFATIndexAndOffset(puiOffsetInSector, *puiClusterIndexInTable, puiFirstClusterSector);
+		CalculateFATIndexAndOffset(puiOffsetInSector, *puiClusterIndex, puiFirstClusterSector);
 		//// calculate the sector for the new cluster
-		//uiOffsetInSector = CalculateFatEntryOffset(*puiClusterIndexInTable);
+		//uiOffsetInSector = CalculateFATEntryIndex(*puiClusterIndex);
 		//uiFirstClusterSector = GetNoOfReservedSectors();  //Was this right/
 		//uiOffsetInSector = uiOffsetInSector % GetSectorSize();
 
 		// break from this loop so that sector gets loaded
 		return FAT_SUCCESS;
 	}
-	else if (*pbWrappedAround && (*puiClusterIndexInTable >= uiStartCluster))
+	else if (*pbWrappedAround && (*puiClusterIndex >= uiStartCluster))
 	{
 		eResult = FatFlushFatSector();
 		if (eResult != FAT_SUCCESS)
@@ -1178,7 +1177,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 	// get the offset of the cluster sEntry within the FAT table,
 	// the sector of the FAT table that contains the sEntry and the offset
 	// of the fat sEntry within the sector
-	uiClusterOffsetInBytes = CalculateFatEntryOffset(cluster);
+	uiClusterOffsetInBytes = CalculateFATEntryIndex(cluster);
 	uiFirstClusterSector = GetNoOfReservedSectors() + (uiClusterOffsetInBytes / GetSectorSize());
 	uiOffsetInSector = uiClusterOffsetInBytes % GetSectorSize();
 
@@ -1328,7 +1327,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			}
 
 			// calculate the location of the next cluster in the chain
-			uiClusterOffsetInBytes = CalculateFatEntryOffset(cluster);
+			uiClusterOffsetInBytes = CalculateFATEntryIndex(cluster);
 			uiFirstClusterSector = GetNoOfReservedSectors() + (uiClusterOffsetInBytes / GetSectorSize());
 			uiOffsetInSector = uiClusterOffsetInBytes % GetSectorSize();
 		}
@@ -1351,7 +1350,7 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNex
 	// get the offset of the sEntry within the FAT table
 	// for the requested cluster
 
-	uiClusterOffsetInBytes = CalculateFatEntryOffset(uiCurrentCluster);
+	uiClusterOffsetInBytes = CalculateFATEntryIndex(uiCurrentCluster);
 
 	// get the address of the sector that contains the FAT sEntry and
 	// the offset of the FAT sEntry within that sector
@@ -1439,7 +1438,7 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 uiCluster, fatEntry uiFatEntry)
 	uint32		uiOffsetInSector;
 	EFatCode	eResult;
 
-	uiClusterOffsetInBytes = CalculateFatEntryOffset(uiCluster);
+	uiClusterOffsetInBytes = CalculateFATEntryIndex(uiCluster);
 
 	// get the address of the sector that contains the FAT sEntry
 	// and the offset of the FAT sEntry within that sector
@@ -1553,7 +1552,7 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 	}
 
 	// get the offset of the uiCluster sEntry within the FAT table, the sector of the FAT table that contains the sEntry and the offset of the fat sEntry within the sector
-	uiClusterOffsetInBytes = CalculateFatEntryOffset(uiCluster);
+	uiClusterOffsetInBytes = CalculateFATEntryIndex(uiCluster);
 	uiFirstClusterSector = GetNoOfReservedSectors() + (uiClusterOffsetInBytes / GetSectorSize());
 	uiOffsetInSector = uiClusterOffsetInBytes % GetSectorSize();
 
@@ -1662,7 +1661,7 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiCluster, uint16 count, u
 			}
 
 			// calculate the location of the next uiCluster in the chain
-			uiClusterOffsetInBytes = CalculateFatEntryOffset(uiCluster);
+			uiClusterOffsetInBytes = CalculateFATEntryIndex(uiCluster);
 			uiFirstClusterSector = GetNoOfReservedSectors() + (uiClusterOffsetInBytes / GetSectorSize());
 			uiOffsetInSector = uiClusterOffsetInBytes % GetSectorSize();
 		}

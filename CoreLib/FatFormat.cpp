@@ -144,7 +144,7 @@ uint8 FatCalculateClusterSize(uint8 fs_type, uint32 total_sectors, char forced_f
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
+EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device)
 {
 	bool					bSuccess;
 	uint32					i;
@@ -165,8 +165,8 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 	uint32					root_entry_sector;
 	uint32					root_entry_offset = 0;
 
-	SFatBIOSParameterBlock*				bpb;
-	SFatFileSystemInfo*				psFileSystemInfo;
+	SFatBIOSParameterBlock*	bpb;
+	SFatFileSystemInfo*		psFileSystemInfo;
 	SFatRawDirectoryEntry*	entry;
 
 	uint8					uiBuffer[MAX_SECTOR_LENGTH];
