@@ -2546,7 +2546,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferLock
 					// if this is the root directory of a FAT16/FAT12
 					// volume and we have passed it's last sector then
 					// there's no more entries...
-					if (psQuery->uiCurrentCluster == 0x0)
+					if (psQuery->uiCurrentCluster == 0)
 					{
 						if (psQuery->uiCurrentSector == GetRootDirectorySectors())
 						{
@@ -2596,10 +2596,8 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferLock
 				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 2) * 13) + 0xD])[INT16_BYTE1] = 0;
 			}
 
-			// if this is the LFN that we're expecting then
-			// process it, otherwise we'll have to wait for
-			// another 1st LFN sEntry otherwise read the LFN
-			// chrs and save them on the psQuery state struct
+			// if this is the LFN that we're expecting then process it, otherwise we'll have to wait for another 1st LFN sEntry otherwise read the LFN
+			// characters and save them on the psQuery state struct.
 			if (psQuery->uiChecksum == psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum &&
 				(psQuery->uiSequence == (psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
 			{
@@ -2902,7 +2900,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	// directory sEntry so that we can handle the 1st
 	// cluster with the same code as all other clusters
 	// in the chain
-	if (parent && (parent->uEntry.sFatRawCommon.uiFirstClusterLowWord != 0x0 || parent->uEntry.sFatRawCommon.uiFirstClusterHighWord != 0x0))
+	if (parent && (parent->uEntry.sFatRawCommon.uiFirstClusterLowWord != 0 || parent->uEntry.sFatRawCommon.uiFirstClusterHighWord != 0))
 	{
 		uiFat = GetFatClusterFromFatEntry(parent, GetFileSystemType() == FAT_FS_TYPE_FAT32);
 	}
