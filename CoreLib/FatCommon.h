@@ -22,17 +22,17 @@ struct SFatRawDirectoryEntry
 		struct SFatRawCommon
 		{
 			uint8	szShortName[11];
-			uint8	attributes;
-			uint8	reserved;
-			uint8	create_time_tenth;
-			uint16	create_time;
-			uint16	create_date;
-			uint16	access_date;
-			uint16	first_cluster_hi;
-			uint16	modify_time;
-			uint16	modify_date;
-			uint16	first_cluster_lo;
-			uint32	size;
+			uint8	uiAttributes;
+			uint8	uiReserved;
+			uint8	uiCreateTimeTenths;
+			uint16	uiCreateTime;
+			uint16	uiCreateDate;
+			uint16	uiAccessDate;
+			uint16	uiFirstClusterHighWord;
+			uint16	uiModifyTime;
+			uint16	uiModifyDate;
+			uint16	uiFirstClusterLowWord;
+			uint32	uiSize;
 		} sFatRawCommon;
 
 		struct SFatRawLongFileName
@@ -137,8 +137,8 @@ struct SFatDirectoryEntry
 {
 	uint8					name[FAT_MAX_FILENAME + 1];
 	uint8					attributes;
-	time_t					create_time;
-	time_t					modify_time;
+	time_t					uiCreateTime;
+	time_t					uiModifyTime;
 	time_t					access_time;
 	uint32					size;
 	uint32					uiSectorAddress;

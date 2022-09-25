@@ -1727,17 +1727,17 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 	entries->uEntry.sFatRawCommon.szShortName[0x8] = ' ';
 	entries->uEntry.sFatRawCommon.szShortName[0x9] = ' ';
 	entries->uEntry.sFatRawCommon.szShortName[0xA] = ' ';
-	entries->uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
-	entries->uEntry.sFatRawCommon.size = 0x0;
-	entries->uEntry.sFatRawCommon.reserved = 0;
-	entries->uEntry.sFatRawCommon.first_cluster_lo = LO16(cluster);
-	entries->uEntry.sFatRawCommon.first_cluster_hi = HI16(cluster);
-	entries->uEntry.sFatRawCommon.create_date = GetSystemClockDate();
-	entries->uEntry.sFatRawCommon.create_time = GetSystemClockTime();
-	entries->uEntry.sFatRawCommon.modify_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.modify_time = entries->uEntry.sFatRawCommon.create_time;
-	entries->uEntry.sFatRawCommon.access_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.create_time_tenth = 0xc6;
+	entries->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
+	entries->uEntry.sFatRawCommon.uiSize = 0x0;
+	entries->uEntry.sFatRawCommon.uiReserved = 0;
+	entries->uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(cluster);
+	entries->uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(cluster);
+	entries->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
+	entries->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	entries->uEntry.sFatRawCommon.uiModifyDate = entries->uEntry.sFatRawCommon.uiCreateDate;
+	entries->uEntry.sFatRawCommon.uiModifyTime = entries->uEntry.sFatRawCommon.uiCreateTime;
+	entries->uEntry.sFatRawCommon.uiAccessDate = entries->uEntry.sFatRawCommon.uiCreateDate;
+	entries->uEntry.sFatRawCommon.uiCreateTimeTenths = 0xc6;
 
 	// write the sEntry to the uiBuffer or move to the next sEntry
 	// as required by target platform
@@ -1755,17 +1755,17 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 	entries->uEntry.sFatRawCommon.szShortName[0x8] = ' ';
 	entries->uEntry.sFatRawCommon.szShortName[0x9] = ' ';
 	entries->uEntry.sFatRawCommon.szShortName[0xA] = ' ';
-	entries->uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
-	entries->uEntry.sFatRawCommon.size = 0x0;
-	entries->uEntry.sFatRawCommon.reserved = 0;
-	entries->uEntry.sFatRawCommon.first_cluster_lo = parent->uEntry.sFatRawCommon.first_cluster_lo;
-	entries->uEntry.sFatRawCommon.first_cluster_hi = parent->uEntry.sFatRawCommon.first_cluster_hi;
-	entries->uEntry.sFatRawCommon.create_date = GetSystemClockDate();
-	entries->uEntry.sFatRawCommon.create_time = GetSystemClockTime();
-	entries->uEntry.sFatRawCommon.modify_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.modify_time = entries->uEntry.sFatRawCommon.create_time;
-	entries->uEntry.sFatRawCommon.access_date = entries->uEntry.sFatRawCommon.create_date;
-	entries->uEntry.sFatRawCommon.create_time_tenth = 0xc6;
+	entries->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
+	entries->uEntry.sFatRawCommon.uiSize = 0x0;
+	entries->uEntry.sFatRawCommon.uiReserved = 0;
+	entries->uEntry.sFatRawCommon.uiFirstClusterLowWord = parent->uEntry.sFatRawCommon.uiFirstClusterLowWord;
+	entries->uEntry.sFatRawCommon.uiFirstClusterHighWord = parent->uEntry.sFatRawCommon.uiFirstClusterHighWord;
+	entries->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
+	entries->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	entries->uEntry.sFatRawCommon.uiModifyDate = entries->uEntry.sFatRawCommon.uiCreateDate;
+	entries->uEntry.sFatRawCommon.uiModifyTime = entries->uEntry.sFatRawCommon.uiCreateTime;
+	entries->uEntry.sFatRawCommon.uiAccessDate = entries->uEntry.sFatRawCommon.uiCreateDate;
+	entries->uEntry.sFatRawCommon.uiCreateTimeTenths = 0xc6;
 
 	mbEntriesUpdated = true;
 
@@ -1780,8 +1780,8 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 		uiParentCluster = GetFatClusterFromFatEntry(parent, true);
 		if (GetRootCluster() == uiParentCluster)
 		{
-			entries->uEntry.sFatRawCommon.first_cluster_lo = 0;
-			entries->uEntry.sFatRawCommon.first_cluster_hi = 0;
+			entries->uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
+			entries->uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
 			mbEntriesUpdated = true;
 		}
 	}
@@ -2068,11 +2068,11 @@ void CFatVolume::FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* sEntry, SFatRa
 	FatGetShortNameFromEntry(sEntry->name, (uint8*)raw_entry->uEntry.sFatRawCommon.szShortName);
 
 	// copy other data from the internal sEntry structure to the public one
-	sEntry->attributes = raw_entry->uEntry.sFatRawCommon.attributes;
-	sEntry->size = raw_entry->uEntry.sFatRawCommon.size;
-	sEntry->create_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.create_date, raw_entry->uEntry.sFatRawCommon.create_time);
-	sEntry->modify_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.modify_date, raw_entry->uEntry.sFatRawCommon.modify_time);
-	sEntry->access_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.access_date, 0);
+	sEntry->attributes = raw_entry->uEntry.sFatRawCommon.uiAttributes;
+	sEntry->size = raw_entry->uEntry.sFatRawCommon.uiSize;
+	sEntry->uiCreateTime = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.uiCreateDate, raw_entry->uEntry.sFatRawCommon.uiCreateTime);
+	sEntry->uiModifyTime = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.uiModifyDate, raw_entry->uEntry.sFatRawCommon.uiModifyTime);
+	sEntry->access_time = FatDecodeDateTime(raw_entry->uEntry.sFatRawCommon.uiAccessDate, 0);
 	sEntry->raw = *raw_entry;
 }
 
@@ -2186,8 +2186,8 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 	GetShortNameForEntry((uint8*)psEntry->raw.uEntry.sFatRawCommon.szShortName, psEntry->name, 1);
 
 	// set the general fields of the psEntry
-	psEntry->attributes = psEntry->raw.uEntry.sFatRawCommon.attributes = FAT_ATTR_DIRECTORY;
-	psEntry->size = psEntry->raw.uEntry.sFatRawCommon.size = 0x0;
+	psEntry->attributes = psEntry->raw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
+	psEntry->size = psEntry->raw.uEntry.sFatRawCommon.uiSize = 0x0;
 
 	// since the psEntry does not physically exist the
 	// address fields are set to zero as well
@@ -2200,8 +2200,8 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 		// if this is a FAT32 volume then the root
 		// directory is located on the data section just like
 		// any other directory
-		psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(GetRootCluster());
-		psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(GetRootCluster());
+		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(GetRootCluster());
+		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(GetRootCluster());
 	}
 	else
 	{
@@ -2209,8 +2209,8 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 		// address to zero and when time comes to get the
 		// directory we'll calculate the address right after
 		// the end of the FATs
-		psEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = 0;
-		psEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = 0;
+		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
+		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
 	}
 
 	return FAT_SUCCESS;
@@ -2374,11 +2374,11 @@ EFatCode CFatVolume::FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 
 	// copy other data from the internal psEntry structure
 	// to the public one
-	psEntry->attributes = sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.attributes;
-	psEntry->size = sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.size;
-	psEntry->create_time = FatDecodeDateTime(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.create_date, sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.create_time);
-	psEntry->modify_time = FatDecodeDateTime(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.modify_date, sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.modify_time);
-	psEntry->access_time = FatDecodeDateTime(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.access_date, 0);
+	psEntry->attributes = sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes;
+	psEntry->size = sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiSize;
+	psEntry->uiCreateTime = FatDecodeDateTime(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiCreateDate, sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiCreateTime);
+	psEntry->uiModifyTime = FatDecodeDateTime(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiModifyDate, sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiModifyTime);
+	psEntry->access_time = FatDecodeDateTime(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.uiAccessDate, 0);
 
 	// calculate the sector address of the psEntry - if
 	// query->CurrentCluster equals zero then this is the root
@@ -2422,7 +2422,7 @@ EFatCode CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 
 	// get the cluster # accordingly
 	if (directory)
 	{
-		if (directory->uEntry.sFatRawCommon.first_cluster_hi == 0 && directory->uEntry.sFatRawCommon.first_cluster_lo == 0)
+		if (directory->uEntry.sFatRawCommon.uiFirstClusterHighWord == 0 && directory->uEntry.sFatRawCommon.uiFirstClusterLowWord == 0)
 		{
 			directory = NULL;
 		}
@@ -2449,7 +2449,7 @@ EFatCode CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 
 	{
 		// if the sEntry provided is not a directory
 		// sEntry return an error code
-		if (!(directory->uEntry.sFatRawCommon.attributes & FAT_ATTR_DIRECTORY))
+		if (!(directory->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_DIRECTORY))
 		{
 			return FAT_NOT_A_DIRECTORY;
 		}
@@ -2573,7 +2573,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferLock
 		}
 
 		// if this is a long filename sEntry...
-		if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.attributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(psQuery->sCurrentEntryRaw))
+		if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(psQuery->sCurrentEntryRaw))
 		{
 			// if this entry is marked as the 1st LFN sEntry
 			if (psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & FAT_FIRST_LFN_ENTRY)
@@ -2633,10 +2633,10 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferLock
 		{
 			// check that the current entry passes the psQuery attributes check
 			bPass =
-				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.attributes & FAT_ATTR_HIDDEN) || (psQuery->Attributes & FAT_ATTR_HIDDEN)) &&
-				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.attributes & FAT_ATTR_SYSTEM) || (psQuery->Attributes & FAT_ATTR_SYSTEM)) &&
-				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.attributes & FAT_ATTR_VOLUME_ID) || (psQuery->Attributes & FAT_ATTR_VOLUME_ID)) &&
-				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.attributes & FAT_ATTR_LONG_NAME) || (psQuery->Attributes & FAT_ATTR_LONG_NAME));
+				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_HIDDEN) || (psQuery->Attributes & FAT_ATTR_HIDDEN)) &&
+				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_SYSTEM) || (psQuery->Attributes & FAT_ATTR_SYSTEM)) &&
+				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_VOLUME_ID) || (psQuery->Attributes & FAT_ATTR_VOLUME_ID)) &&
+				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_LONG_NAME) || (psQuery->Attributes & FAT_ATTR_LONG_NAME));
 		}
 	}
 
@@ -2656,14 +2656,14 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferLock
 	// if this entry doesn't have an LFN entry but its marked as having
 	// a lowercase name or extension then fill the long filename with the
 	// lowercase version
-	if (psQuery->long_filename[0] == 0 && (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.reserved & (FAT_LOWERCASE_EXTENSION | FAT_LOWERCASE_BASENAME)))
+	if (psQuery->long_filename[0] == 0 && (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & (FAT_LOWERCASE_EXTENSION | FAT_LOWERCASE_BASENAME)))
 	{
 		int i = 0;
 		for (uint16 uiResult = 0; uiResult < 8; uiResult++)
 		{
 			if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
 			{
-				if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.reserved & FAT_LOWERCASE_BASENAME)
+				if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME)
 				{
 					psQuery->long_filename[i++] = tolower(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
 				}
@@ -2682,7 +2682,7 @@ EFatCode CFatVolume::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferLock
 			{
 				if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
 				{
-					if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.reserved & FAT_LOWERCASE_EXTENSION)
+					if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION)
 					{
 						psQuery->long_filename[i++] = tolower(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
 					}
@@ -2871,20 +2871,20 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	strcpy((char*)psNewEntry->name, name);
 	psNewEntry->attributes = attribs;
 	psNewEntry->size = 0x0;
-	psNewEntry->raw.uEntry.sFatRawCommon.attributes = attribs;
-	psNewEntry->raw.uEntry.sFatRawCommon.reserved = 0;
-	psNewEntry->raw.uEntry.sFatRawCommon.size = 0x0;
-	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_lo = LO16(uiEntryCluster);
-	psNewEntry->raw.uEntry.sFatRawCommon.first_cluster_hi = HI16(uiEntryCluster);
-	psNewEntry->raw.uEntry.sFatRawCommon.create_time_tenth = 0x0;
-	psNewEntry->raw.uEntry.sFatRawCommon.create_date = GetSystemClockDate();
-	psNewEntry->raw.uEntry.sFatRawCommon.create_time = GetSystemClockTime();
-	psNewEntry->raw.uEntry.sFatRawCommon.modify_date = psNewEntry->raw.uEntry.sFatRawCommon.create_date;
-	psNewEntry->raw.uEntry.sFatRawCommon.modify_time = psNewEntry->raw.uEntry.sFatRawCommon.create_time;
-	psNewEntry->raw.uEntry.sFatRawCommon.access_date = psNewEntry->raw.uEntry.sFatRawCommon.create_date;
-	psNewEntry->create_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.create_date, psNewEntry->raw.uEntry.sFatRawCommon.create_time);
-	psNewEntry->modify_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.modify_date, psNewEntry->raw.uEntry.sFatRawCommon.modify_time);
-	psNewEntry->access_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.access_date, 0);
+	psNewEntry->raw.uEntry.sFatRawCommon.uiAttributes = attribs;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiReserved = 0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiSize = 0x0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiEntryCluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiEntryCluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTimeTenths = 0x0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
+	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	psNewEntry->raw.uEntry.sFatRawCommon.uiModifyDate = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiModifyTime = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiAccessDate = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate;
+	psNewEntry->uiCreateTime = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate, psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime);
+	psNewEntry->uiModifyTime = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiModifyDate, psNewEntry->raw.uEntry.sFatRawCommon.uiModifyTime);
+	psNewEntry->access_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiAccessDate, 0);
 
 	// there's no fat sEntry that points to the 1st cluster of
 	// a directory's cluster chain but we'll create a
@@ -2892,7 +2892,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	// directory sEntry so that we can handle the 1st
 	// cluster with the same code as all other clusters
 	// in the chain
-	if (parent && (parent->uEntry.sFatRawCommon.first_cluster_lo != 0x0 || parent->uEntry.sFatRawCommon.first_cluster_hi != 0x0))
+	if (parent && (parent->uEntry.sFatRawCommon.uiFirstClusterLowWord != 0x0 || parent->uEntry.sFatRawCommon.uiFirstClusterHighWord != 0x0))
 	{
 		uiFat = GetFatClusterFromFatEntry(parent, GetFileSystemType() == FAT_FS_TYPE_FAT32);
 	}
@@ -3024,7 +3024,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 								// set the required fields for this sEntry
 								sParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)iLFNEntriesFound;
 								sParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
-								sParentEntry->uEntry.sFatRawCommon.attributes = FAT_ATTR_LONG_NAME;
+								sParentEntry->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_LONG_NAME;
 								sParentEntry->uEntry.sFatRawLongFileName.uiFirstCluster = 0;
 								sParentEntry->uEntry.sFatRawLongFileName.uiType = 0;
 
@@ -3321,17 +3321,17 @@ EFatCode CFatVolume::FatFileRename(char* szOriginalFilename, char* szNewFilename
 		RETURN_ON_FAT_FAILURE(eResult);
 
 		// copy all info except name from the old sEntry to the new one
-		sNewEntry.raw.uEntry.sFatRawCommon.access_date = sOriginalEntry.raw.uEntry.sFatRawCommon.access_date;
-		sNewEntry.raw.uEntry.sFatRawCommon.attributes = sOriginalEntry.raw.uEntry.sFatRawCommon.attributes;
-		sNewEntry.raw.uEntry.sFatRawCommon.create_date = sOriginalEntry.raw.uEntry.sFatRawCommon.create_date;
-		sNewEntry.raw.uEntry.sFatRawCommon.create_time = sOriginalEntry.raw.uEntry.sFatRawCommon.create_time;
-		sNewEntry.raw.uEntry.sFatRawCommon.create_time_tenth = sOriginalEntry.raw.uEntry.sFatRawCommon.create_time_tenth;
-		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_hi = sOriginalEntry.raw.uEntry.sFatRawCommon.first_cluster_hi;
-		sNewEntry.raw.uEntry.sFatRawCommon.first_cluster_lo = sOriginalEntry.raw.uEntry.sFatRawCommon.first_cluster_lo;
-		sNewEntry.raw.uEntry.sFatRawCommon.modify_date = sOriginalEntry.raw.uEntry.sFatRawCommon.modify_date;
-		sNewEntry.raw.uEntry.sFatRawCommon.modify_time = sOriginalEntry.raw.uEntry.sFatRawCommon.modify_time;
-		sNewEntry.raw.uEntry.sFatRawCommon.reserved = sOriginalEntry.raw.uEntry.sFatRawCommon.reserved;
-		sNewEntry.raw.uEntry.sFatRawCommon.size = sOriginalEntry.raw.uEntry.sFatRawCommon.size;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiAccessDate = sOriginalEntry.raw.uEntry.sFatRawCommon.uiAccessDate;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiAttributes = sOriginalEntry.raw.uEntry.sFatRawCommon.uiAttributes;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiCreateDate = sOriginalEntry.raw.uEntry.sFatRawCommon.uiCreateDate;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiCreateTime = sOriginalEntry.raw.uEntry.sFatRawCommon.uiCreateTime;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiCreateTimeTenths = sOriginalEntry.raw.uEntry.sFatRawCommon.uiCreateTimeTenths;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = sOriginalEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = sOriginalEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiModifyDate = sOriginalEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiModifyTime = sOriginalEntry.raw.uEntry.sFatRawCommon.uiModifyTime;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiReserved = sOriginalEntry.raw.uEntry.sFatRawCommon.uiReserved;
+		sNewEntry.raw.uEntry.sFatRawCommon.uiSize = sOriginalEntry.raw.uEntry.sFatRawCommon.uiSize;
 
 		// write modified entry to drive
 		eResult = FatReadFatSector(sNewEntry.uiSectorAddress);

@@ -566,17 +566,17 @@ uint16 FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 ui
 
 	// initialize the volume label entry
 	entry = (SFatRawDirectoryEntry*)uiBuffer;
-	entry->uEntry.sFatRawCommon.attributes = FAT_ATTR_VOLUME_ID;
-	entry->uEntry.sFatRawCommon.first_cluster_hi = 0;
-	entry->uEntry.sFatRawCommon.first_cluster_lo = 0;
-	entry->uEntry.sFatRawCommon.reserved = 0;
-	entry->uEntry.sFatRawCommon.size = 0;
-	entry->uEntry.sFatRawCommon.create_date = GetSystemClockDate();
-	entry->uEntry.sFatRawCommon.create_time = GetSystemClockTime();
-	entry->uEntry.sFatRawCommon.modify_date = entry->uEntry.sFatRawCommon.create_date;
-	entry->uEntry.sFatRawCommon.modify_time = entry->uEntry.sFatRawCommon.create_time;
-	entry->uEntry.sFatRawCommon.access_date = entry->uEntry.sFatRawCommon.create_date;
-	entry->uEntry.sFatRawCommon.create_time_tenth = 0;
+	entry->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_VOLUME_ID;
+	entry->uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
+	entry->uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
+	entry->uEntry.sFatRawCommon.uiReserved = 0;
+	entry->uEntry.sFatRawCommon.uiSize = 0;
+	entry->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
+	entry->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	entry->uEntry.sFatRawCommon.uiModifyDate = entry->uEntry.sFatRawCommon.uiCreateDate;
+	entry->uEntry.sFatRawCommon.uiModifyTime = entry->uEntry.sFatRawCommon.uiCreateTime;
+	entry->uEntry.sFatRawCommon.uiAccessDate = entry->uEntry.sFatRawCommon.uiCreateDate;
+	entry->uEntry.sFatRawCommon.uiCreateTimeTenths = 0;
 
 	// set the volume label
 	if ((c = strlen(volume_label)))
