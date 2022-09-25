@@ -43,6 +43,13 @@ char gaszFatErrors[][34] = {"UNKNOWN_ERROR" ,
 							"AWAITING_DATA",
 							"BUFFER_TOO_BIG"};
 
+char gaszFatAttributes[][10] = {"READ_ONLY",
+								"HIDDEN",
+								"SYSTEM",
+								"VOLUME_ID",
+								"DIRECTORY",
+								"ARCHIVE",
+								"LONG_NAME"};
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -69,6 +76,56 @@ uint32 GetFatClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32V
 	else
 	{
 		return 0xFFFFFFFF;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FatAttributeToString(uint8 uiAttribute)
+{
+#define FAT_ATTR_READ_ONLY				0x1
+#define FAT_ATTR_HIDDEN					0x2
+#define FAT_ATTR_SYSTEM					0x4
+#define FAT_ATTR_VOLUME_ID				0x8
+#define FAT_ATTR_DIRECTORY				0x10
+#define FAT_ATTR_ARCHIVE				0x20 
+
+	if (uiAttribute == FAT_ATTR_LONG_NAME)
+	{
+		return gaszFatAttributes[6];
+	}
+
+	if (uiAttribute & FAT_ATTR_READ_ONLY)
+	{
+		return gaszFatAttributes[0];
+	}
+	else if (uiAttribute & FAT_ATTR_HIDDEN)
+	{
+		return gaszFatAttributes[1];
+	}
+	else if (uiAttribute & FAT_ATTR_SYSTEM)
+	{
+		return gaszFatAttributes[2];
+	}
+	else if (uiAttribute & FAT_ATTR_VOLUME_ID)
+	{
+		return gaszFatAttributes[3];
+	}
+	else if (uiAttribute & FAT_ATTR_DIRECTORY)
+	{
+		return gaszFatAttributes[4];
+	}
+	else if (uiAttribute & FAT_ATTR_ARCHIVE)
+	{
+		return gaszFatAttributes[5];
+	}
+	else
+	{
+		return "";
 	}
 }
 

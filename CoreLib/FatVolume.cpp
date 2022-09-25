@@ -1774,7 +1774,7 @@ EFatCode CFatVolume::FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent
 		uint32 uiParentCluster;
 
 		uiParentCluster = GetFatClusterFromFatEntry(parent, true);
-		if (GetRootCluster() == uiParentCluster)
+		if (GetFat32RootCluster() == uiParentCluster)
 		{
 			entries->uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
 			entries->uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
@@ -2176,6 +2176,8 @@ EFatCode CFatVolume::FatCreateDirectory(char* directory)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 {
+	uint32	uiRootCluster;
+
 	// copy the file name to the psEntry and the raw
 	// psEntry in their respective formats
 	strcpy((char*)psEntry->name, "ROOT");
@@ -2190,24 +2192,9 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 	psEntry->uiSectorAddress = 0;
 	psEntry->uiSectorOffset = 0;
 
-	// set the location of the root directory
-	if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
-	{
-		// if this is a FAT32 volume then the root
-		// directory is located on the data section just like
-		// any other directory
-		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(GetRootCluster());
-		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(GetRootCluster());
-	}
-	else
-	{
-		// if the volume is FAT12/16 we set the cluster
-		// address to zero and when time comes to get the
-		// directory we'll calculate the address right after
-		// the end of the FATs
-		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
-		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
-	}
+	uiRootCluster = GetRootCluster();
+	psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiRootCluster);
+	psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiRootCluster);
 
 	return FAT_SUCCESS;
 }
@@ -2400,7 +2387,44 @@ EFatCode CFatVolume::FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 }
 
 
-// initializes a query of a set of directory entries.
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::GetRootCluster(void)
+{
+	if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
+	{
+		return GetFat32RootCluster();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::GetRootSector(void)
+{
+	uint32 uiCurrentCluster;
+
+	if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
+	{
+		uiCurrentCluster = GetFat32RootCluster();
+		return CalculateFirstSectorOfCluster(uiCurrentCluster);
+	}
+	else
+	{
+		return GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+	}
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2424,21 +2448,11 @@ EFatCode CFatVolume::FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 
 		}
 	}
 
-	// if no directory sEntry was provided
-	// we'll use the root sEntry of the volume
+	// if no directory entry was provided we'll use the root entry of the volume.
 	if (directory == NULL)
 	{
-		// calculate the cluster # from the
-		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
-		{
-			query->uiCurrentCluster = GetRootCluster();
-			uiFirstSector = CalculateFirstSectorOfCluster(query->uiCurrentCluster);
-		}
-		else
-		{
-			query->uiCurrentCluster = 0x0;
-			uiFirstSector = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
-		}
+		query->uiCurrentCluster = GetRootCluster();
+		uiFirstSector = GetRootSector();
 	}
 	// if a directory sEntry was provided
 	else
@@ -2898,15 +2912,8 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	// cluster address found on the volume structure
 	else
 	{
-		if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
-		{
-			uiFat = GetRootCluster();
-		}
-		else
-		{
-			uiFat = uiLastFat = 0x0;
-			uiFirstSectorOfCluster = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
-		}
+		uiFat = GetRootCluster();
+		uiFirstSectorOfCluster = GetRootSector();
 	}
 
 	FlushAndInvalidate();
@@ -2916,11 +2923,11 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	for (;;)
 	{
 		// calculate the address of the 1st sector
-		// of the cluster - skip this step if uiResult equals
+		// of the cluster - skip this step if result equals
 		// 1, this means that this is the 1st sector of the
 		// root sEntry which doesn't start at the beggining
 		// of the cluster
-		if (uiFat != 0x0)
+		if (uiFat != 0)
 		{
 			uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiFat);
 		}
@@ -3894,7 +3901,7 @@ uint32 CFatVolume::GetBytesPerCluster(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetID(void) { return msVolume.uiID; }
 uint32 CFatVolume::GetFatSize(void) { return msVolume.uiFatSize; }
-uint32 CFatVolume::GetRootCluster(void) { return msVolume.uiRootCluster; }
+uint32 CFatVolume::GetFat32RootCluster(void) { return msVolume.uiRootCluster; }
 uint32 CFatVolume::GetFirstDataSector(void) { return msVolume.uiFirstDataSector; }
 uint32 CFatVolume::GetNoOfSectors(void) { return msVolume.uiNoOfSectors; }
 uint32 CFatVolume::GetNoOfDataSectors(void) { return msVolume.uiNoOfDataSectors; }
