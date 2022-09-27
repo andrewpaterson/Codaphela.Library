@@ -21,6 +21,8 @@ public:
 			uint64	GetTotalSectors(void);
 			uint32	GetSectorSize(void);
 	virtual uint32	GetPageSize(void);
+
+			uint64	SetMaxSectorForTesting(uint64 uiMaxSector);
 };
 
 

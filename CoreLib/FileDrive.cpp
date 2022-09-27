@@ -41,3 +41,15 @@ uint32 CFileDrive::GetPageSize(void)
 	return 1;  //The page size is represented as multiples of sectors.
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CFileDrive::SetMaxSectorForTesting(uint64 uiMaxSector)
+{
+	uint64 uiOldMaxSector = muiMaxSector;
+	muiMaxSector = uiMaxSector;
+	return uiOldMaxSector;
+}
+

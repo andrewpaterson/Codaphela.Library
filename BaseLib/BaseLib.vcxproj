@@ -199,6 +199,7 @@
     <ClInclude Include="ExternalString.h" />
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="MemCompare.h" />
     <ClInclude Include="RedirectPrintf.h" />
     <ClInclude Include="IndexLongString.h" />
     <ClInclude Include="IndexPrimitiveTemplate.h" />
@@ -634,6 +635,7 @@
     <ClCompile Include="TypeConverter.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeParser.cpp" />
+    <ClCompile Include="MemCompare.cpp" />
     <ClCompile Include="WindowsError.cpp" />
   </ItemGroup>
   <ItemGroup>
