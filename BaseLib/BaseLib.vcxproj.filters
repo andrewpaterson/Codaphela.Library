@@ -1026,6 +1026,9 @@
     <ClInclude Include="CharHelper.h">
       <Filter>Source\Math\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="MemCompare.h">
+      <Filter>Source\File\Compare</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1624,6 +1627,9 @@
     </ClCompile>
     <ClCompile Include="CharHelper.cpp">
       <Filter>Source\Math\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="MemCompare.cpp">
+      <Filter>Source\File\Compare</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

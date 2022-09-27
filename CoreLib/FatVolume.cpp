@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include "BaseLib/MemCompare.h"
 #include "FatTime.h"
 #include "FatVolume.h"
 
@@ -18,9 +19,11 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	char					szLabel[12];
 	uint32					uiFileSystemInfoSector;
 	EFatCode				eResult;
+	uint8					auiBuffer[MAX_SECTOR_LENGTH];
 
 	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
 	mbEntriesUpdated = false;
+	muiSharedReadCount = 0;
 
 	// set the null terminator.
 	szLabel[11] = 0;
@@ -29,11 +32,11 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	mpcDevice = device;
 
 	// retrieve the boot sector (sector 0) from the storage device
-	eResult = FatReadFatSector(0);
+	eResult = FatReadFatSector(0, auiBuffer);
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	// set the partition sEntry pointer
-	sPartitionEntry = (SFatPartitionEntry*)(mauiFatSharedBuffer + 0x1BE);
+	sPartitionEntry = (SFatPartitionEntry*)(auiBuffer + 0x1BE);
 
 	for (;;)
 	{
@@ -51,7 +54,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			if (uiPartitionsTried > 1)
 			{
 				// retrieve the boot sector (sector 0) from the storage device
-				eResult = FatReadFatSector(0);
+				eResult = FatReadFatSector(0, auiBuffer);
 				RETURN_ON_FAT_FAILURE(eResult);
 
 				// move to the next partition sEntry
@@ -69,12 +72,12 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			}
 
 			// retrieve the 1st sector of partition
-			eResult = FatReadFatSector(sPartitionEntry->lba_first_sector);
+			eResult = FatReadFatSector(sPartitionEntry->lba_first_sector, auiBuffer);
 			RETURN_ON_FAT_FAILURE(eResult);
 		}
 
 		// set our pointer to the BPB
-		psBPB = (SFatBIOSParameterBlock*)mauiFatSharedBuffer;
+		psBPB = (SFatBIOSParameterBlock*)auiBuffer;
 
 		// if the sector size is larger than what this build
 		// allows do not mount the mpsVolume
@@ -173,11 +176,11 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		uint32	uiFATSector;
 
 		uiFATSector = msVolume.uiNoOfReservedSectors;
-		eResult = FatReadFatSector(uiFATSector);
+		eResult = FatReadFatSector(uiFATSector, auiBuffer);
 		RETURN_ON_FAT_FAILURE(eResult);
 
-		// if the lower byte of the 1st FAT sEntry is not the same as BPB_Media then this is not a valid mpsVolume
-		if (mauiFatSharedBuffer[0] != uiMedia)
+		// if the lower byte of the 1st FAT sEntry is not the same as BPB_Media then this is not a valid volume
+		if (auiBuffer[0] != uiMedia)
 		{
 			uiPartitionsTried++;
 			continue;
@@ -203,11 +206,11 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		SFatFileSystemInfo* psFileSystemInfo;
 
 		// read the sector containing the FSInfo structure
-		eResult = FatReadFatSector(uiHiddenSectors + uiFileSystemInfoSector);
+		eResult = FatReadFatSector(uiHiddenSectors + uiFileSystemInfoSector, auiBuffer);
 		RETURN_ON_FAT_FAILURE(eResult);
 
 		// set psFileSystemInfo pointer
-		psFileSystemInfo = (SFatFileSystemInfo*)mauiFatSharedBuffer;
+		psFileSystemInfo = (SFatFileSystemInfo*)auiBuffer;
 
 		// check signatures before using
 		if (psFileSystemInfo->LeadSig == 0x41615252 && psFileSystemInfo->StructSig == 0x61417272 && psFileSystemInfo->TrailSig == 0xAA550000)
@@ -563,13 +566,41 @@ EFatCode CFatVolume::FatReadFatSector(uint32 uiFatInfoSector)
 {
 	EFatCode	eResult;
 	bool		bSuccess;
+	uint32		uiFatSharedBufferSector;
+	uint8		auiFatSharedBuffer[MAX_SECTOR_LENGTH];
+
+	muiSharedReadCount++;
 
 	if (!IsFatSectorLoaded(uiFatInfoSector))
 	{
+		uiFatSharedBufferSector = muiFatSharedBufferSector;
+
 		eResult = FlushAndInvalidate();
 		if (eResult != FAT_SUCCESS)
 		{
 			return FAT_CANNOT_WRITE_MEDIA;
+		}
+
+		if (uiFatSharedBufferSector != FAT_UNKNOWN_SECTOR)
+		{
+			bSuccess = Read(uiFatSharedBufferSector, auiFatSharedBuffer);
+			if (!bSuccess)
+			{
+				return FAT_CANNOT_READ_MEDIA;
+			}
+			if (memcmp(mauiFatSharedBuffer, auiFatSharedBuffer, MAX_SECTOR_LENGTH) != 0)
+			{
+				CChars	szLeft;
+				CChars	szRight;
+				
+				szLeft.Init();
+				szRight.Init();
+				MemCompare("Cache", "Drive", &szLeft, &szRight, mauiFatSharedBuffer, auiFatSharedBuffer, MAX_SECTOR_LENGTH, MAX_SECTOR_LENGTH);
+				szLeft.DumpKill();
+				szRight.DumpKill();
+
+				return FAT_AWAITING_DATA;
+			}
 		}
 
 		bSuccess = Read(uiFatInfoSector, mauiFatSharedBuffer);
@@ -854,7 +885,7 @@ EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntry
 	EFatCode	eResult;
 
 	*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) &= 0xF0000000;
-	*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) |= FAT32_EOC & 0x0FFFFFFF;
+	*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) |= FAT32_EOC;
 	mbEntriesUpdated = true;
 
 	// if this is not the 1st cluster allocated update the last one to link to this one
@@ -2724,7 +2755,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 	uintptr_t						uiLastEntryAddress;
 	fatEntry						uiFat;
 	fatEntry						uiLastFat;
-	SFatRawDirectoryEntry*			sParentEntry;
+	SFatRawDirectoryEntry*			psParentEntry;
 
 	int								iLFNEntriesNeeded = 0;
 	int								iLFNEntriesFound;
@@ -2945,10 +2976,10 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			// set the parent sEntry pointer to the 1st sEntry of the current sector
-			sParentEntry = (SFatRawDirectoryEntry*)mauiFatSharedBuffer;
+			psParentEntry = (SFatRawDirectoryEntry*)mauiFatSharedBuffer;
 
 			// for each directory sEntry in the sector...
-			while ((uintptr_t)sParentEntry <= uiLastEntryAddress)
+			while ((uintptr_t)psParentEntry <= uiLastEntryAddress)
 			{
 				// make sure we don't exceed the limit of 0xFFFF entries
 				// per directory
@@ -2961,7 +2992,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 				uiEntriesCount++;
 
 				// if the directory sEntry is free
-				if (IS_FREE_DIRECTORY_ENTRY(sParentEntry))
+				if (IS_FREE_DIRECTORY_ENTRY(psParentEntry))
 				{
 					// we've found a free sEntry
 					iLFNEntriesFound++;
@@ -2969,15 +3000,15 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 					// if this is the last directory sEntry or if we've
 					// found all the entries that we need then let's get
 					// ready to write them
-					if (IS_LAST_DIRECTORY_ENTRY(sParentEntry) || iLFNEntriesFound == iLFNEntriesNeeded)
+					if (IS_LAST_DIRECTORY_ENTRY(psParentEntry) || iLFNEntriesFound == iLFNEntriesNeeded)
 					{
 						// if there where any free entries before this
 						// one then we need to rewind a bit
 						while (iLFNEntriesFound-- > 1)
 						{
-							if ((uintptr_t)sParentEntry > (uintptr_t)mauiFatSharedBuffer)
+							if ((uintptr_t)psParentEntry > (uintptr_t)mauiFatSharedBuffer)
 							{
-								sParentEntry--;
+								psParentEntry--;
 							}
 							else
 							{
@@ -3007,7 +3038,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 								RETURN_ON_FAT_FAILURE(eResult);
 
 								uiLastEntryAddress = ((uintptr_t)mauiFatSharedBuffer + GetSectorSize()) - 0x20;
-								sParentEntry = (SFatRawDirectoryEntry*)uiLastEntryAddress;
+								psParentEntry = (SFatRawDirectoryEntry*)uiLastEntryAddress;
 							}
 						}
 
@@ -3023,53 +3054,53 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 								uint16 i, c;
 
 								// set the required fields for this sEntry
-								sParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)iLFNEntriesFound;
-								sParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
-								sParentEntry->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_LONG_NAME;
-								sParentEntry->uEntry.sFatRawLongFileName.uiFirstCluster = 0;
-								sParentEntry->uEntry.sFatRawLongFileName.uiType = 0;
+								psParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)iLFNEntriesFound;
+								psParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
+								psParentEntry->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_LONG_NAME;
+								psParentEntry->uEntry.sFatRawLongFileName.uiFirstCluster = 0;
+								psParentEntry->uEntry.sFatRawLongFileName.uiType = 0;
 
 								// mark sEntry as the 1st sEntry if it is so
 								if (iLFNEntriesFound == iLFNEntriesNeeded - 1)
 								{
-									sParentEntry->uEntry.sFatRawLongFileName.uiSequence = sParentEntry->uEntry.sFatRawLongFileName.uiSequence | FAT_FIRST_LFN_ENTRY;
+									psParentEntry->uEntry.sFatRawLongFileName.uiSequence = psParentEntry->uEntry.sFatRawLongFileName.uiSequence | FAT_FIRST_LFN_ENTRY;
 								}
 
 								// copy the lfn chars
 								c = (uint16)strlen(name);
 								i = ((iLFNEntriesFound - 1) * 13);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
-								sParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)name[i + 0x0]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)name[i + 0x1]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)name[i + 0x2]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)name[i + 0x3]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)name[i + 0x4]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)name[i + 0x5]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)name[i + 0x6]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)name[i + 0x7]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)name[i + 0x8]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)name[i + 0x9]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)name[i + 0xA]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)name[i + 0xB]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
+								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)name[i + 0xC]);
 								mbEntriesUpdated = true;
 
 								// continue to next sEntry
-								if ((uintptr_t)sParentEntry < (uintptr_t)uiLastEntryAddress)
+								if ((uintptr_t)psParentEntry < (uintptr_t)uiLastEntryAddress)
 								{
-									sParentEntry++;
+									psParentEntry++;
 								}
 								else
 								{
@@ -3117,17 +3148,17 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 									eResult = FatReadFatSector(sector);
 									RETURN_ON_FAT_FAILURE(eResult);
 
-									sParentEntry = (SFatRawDirectoryEntry*)mauiFatSharedBuffer;
+									psParentEntry = (SFatRawDirectoryEntry*)mauiFatSharedBuffer;
 								}
 							}
 							else
 							{
-								*sParentEntry = psNewEntry->raw;
+								*psParentEntry = psNewEntry->raw;
 							}
 						}
 
 						psNewEntry->uiSectorAddress = sector;
-						psNewEntry->uiSectorOffset = (uintptr_t)sParentEntry - (uintptr_t)mauiFatSharedBuffer;
+						psNewEntry->uiSectorOffset = (uintptr_t)psParentEntry - (uintptr_t)mauiFatSharedBuffer;
 
 						FlushAndInvalidate();
 
@@ -3142,7 +3173,7 @@ EFatCode CFatVolume::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char
 
 				// move the parent sEntry pointer to
 				// the next sEntry in the sector
-				sParentEntry++;
+				psParentEntry++;
 			}
 
 			// move to the next sector in the cluster

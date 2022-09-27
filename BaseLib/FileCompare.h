@@ -23,18 +23,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FILE_COMPARE_H__
 #define __FILE_COMPARE_H__
 #include "NaiveFile.h"
+#include "MemCompare.h"
 
 
 class CFileCompare
 {
-protected:	
-	void	ErrorNames(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2);
-	void	Difference(CChars* psz1, filePos iPosition, char c);
-	bool	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2);
-
 public:
 	bool	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2);
 	bool	Compare(const char* szName1, void* pvMemory, filePos iLength, CChars* psz1, CChars* psz2);
+
+protected:
+	bool	Compare(const char* szName1, const char* szName2, CChars* psz1, CChars* psz2, void* pvMem1, void* pvMem2, filePos iLength1, filePos iLength2);
 };
 
 

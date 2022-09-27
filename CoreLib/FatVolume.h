@@ -36,6 +36,7 @@ public:
 	uint8			mauiFatSharedBuffer[MAX_SECTOR_LENGTH];
 	uint32			muiFatSharedBufferSector;
 	bool			mbEntriesUpdated;
+	uint32			muiSharedReadCount;
 
 public:
 	EFatCode			Mount(CFileDrive* device);

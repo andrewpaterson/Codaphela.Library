@@ -350,7 +350,6 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	uint32		uiNewCluster;
 	uint32		uiClustersNeeded;
 	uint32		uiClustersInFile;
-	bool		bSuccess;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -479,18 +478,14 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 		// copy the modified file entry to the sector buffer
 		uint8* pvBuffer = mpcVolume->GetFatSharedBuffer();
 		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		mpcVolume->mbEntriesUpdated = true;
 
 		// write the modified entry to the media
-		bSuccess = mpcVolume->Write(msFile.sDirectoryEntry.uiSectorAddress, pvBuffer);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-		gcLogger.Info2(__METHOD__, " File [", mszName, "] write sector [", IntToString(msFile.sDirectoryEntry.uiSectorAddress), "] returned [", BoolToString(bSuccess), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-		if (!bSuccess)
+		eResult = mpcVolume->FatFlushFatSector();
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
-			return FAT_CANNOT_WRITE_MEDIA;
+			return eResult;
 		}
 	}
 	// if there are clusters allocated to the file update the last FAT entry
@@ -674,7 +669,8 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	// mark the file as in use
 	msFile.bBusy = 1;
 
-	return FatFileWrite(uiLength, pvSource);
+	eResult = FatFileWrite(uiLength, pvSource);
+	return eResult;
 }
 
 
@@ -882,6 +878,7 @@ EFatCode CFatFile::FatFileFlush(void)
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_ARCHIVE;
 
 		// try load the sector that contains the entry
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
