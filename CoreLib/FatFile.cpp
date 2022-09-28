@@ -251,7 +251,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 	msFile.bBusy = 0;
 
 	// read the the cluster number
-	msFile.uiCursorClusterInVolume = GetFatClusterFromFatEntry(&psEntry->raw, IsFat32Volume());
+	msFile.uiCursorClusterInVolume = GetFirstClusterFromFatEntry(&psEntry->raw, IsFat32Volume());
 
 #ifdef __LOG_FAT_VOLUME_CALLS__
 	gcLogger.Info2(__METHOD__, " File [", mszName, "] first cluster [", IntToString(msFile.uiCursorClusterInVolume), "].", NULL);
@@ -335,7 +335,7 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::FatFileGetUniqueId(void)
 {
-	return GetFatClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
+	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
 }
 
 
@@ -458,11 +458,12 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	}
 
 	// if this is the 1st cluster cluster allocated to the file then we must modify the file's entry
-	if (!msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord && !msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord)
+	if ((msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord == 0) && (msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord == 0))
 	{
-		// modify the file entry to point to the  new cluster
+		// modify the file entry to point to the new cluster
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiNewCluster);
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiNewCluster);
+		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_ARCHIVE;
 
 		// mark the cached sector as unknown
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
@@ -537,7 +538,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::CalculateFirstCluster(void)
 {
-	return GetFatClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
+	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
 }
 
 
@@ -878,7 +879,6 @@ EFatCode CFatFile::FatFileFlush(void)
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_ARCHIVE;
 
 		// try load the sector that contains the entry
 		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);

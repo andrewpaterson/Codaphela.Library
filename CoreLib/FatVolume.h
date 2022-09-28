@@ -146,6 +146,8 @@ protected:
 	EFatCode			WriteFat16Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat32Entry(uint32 uiClusterBytesRemainder, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSecto, fatEntry uiLastFatEntry);
 
+	EFatCode			Fat12IncreaseClusterAddress(uint32 uiClusterIndex, uint32* puiFirstClusterSector, uint32* puiOffsetInSector, bool* pbFat12OddClusterBeingProcessed, bool* pbFat12MultiStepProgress);
+
 	EFatCode			CreateFakeRootEntry(SFatDirectoryEntry* psEntry);
 	char*				FindNextPathItem(char* szPath, char* szCurrentLevelPath);
 	EFatCode			MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);

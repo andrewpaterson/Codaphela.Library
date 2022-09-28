@@ -227,7 +227,7 @@ void PrintRootDirectory(CFatVolume* pcVolume)
 					sz.AppendNewLine();
 
 					sz.Append("Cluster:    ");
-					sz.Append(GetFatClusterFromFatEntry(psEntry, pcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32));
+					sz.Append(GetFirstClusterFromFatEntry(psEntry, pcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32));
 					sz.AppendNewLine();
 
 					sz.Append("Size:       ");
