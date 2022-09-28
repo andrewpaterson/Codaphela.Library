@@ -51,11 +51,12 @@ char gaszFatAttributes[][10] = {"READ_ONLY",
 								"ARCHIVE",
 								"LONG_NAME"};
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 GetFatClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume)
+uint32 GetFirstClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume)
 {
 	uint32 uiCursorClusterInVolume;
 
@@ -165,7 +166,7 @@ char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 		return "NULL";
 	}
 		
-	uiCluster = GetFatClusterFromFatEntry(&psFatEntry->raw, bFat32Volume);
+	uiCluster = GetFirstClusterFromFatEntry(&psFatEntry->raw, bFat32Volume);
 
 	iCount = IncrementLogToStringCount();
 

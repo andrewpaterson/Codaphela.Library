@@ -147,7 +147,7 @@ struct SFatDirectoryEntry
 };
 
 
-uint32	GetFatClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume);
+uint32	GetFirstClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume);
 char*	FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume);
 char*	FatAttributeToString(uint8 uiAttribute);
 
