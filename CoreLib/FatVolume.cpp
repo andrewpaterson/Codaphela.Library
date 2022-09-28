@@ -1192,10 +1192,9 @@ uint32 CFatVolume::FatAllocateCluster(SFatRawDirectoryEntry* psParentDirectory, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
+EFatCode CFatVolume::FatFreeClusterChain(uint32 uiClusterIndex)
 {
 	EFatCode	eResult;
-	uint32		uiClusterOffsetInBytes = 0;					// the offset of the cluster sEntry within the FAT table
 	uint32		uiOffsetInSector;					// the offset of the cluster sEntry within it's sector
 	uint32		uiFirstClusterSector;						// the sector where the sEntry is stored on the drive
 	uint32		uiCurrentSector;							// the sector that's currently loaded in memory
@@ -1205,9 +1204,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 	// get the offset of the cluster sEntry within the FAT table,
 	// the sector of the FAT table that contains the sEntry and the offset
 	// of the fat sEntry within the sector
-	uiClusterOffsetInBytes = CalculateFATEntryIndex(cluster);
-	uiFirstClusterSector = GetNoOfReservedSectors() + (uiClusterOffsetInBytes / GetSectorSize());
-	uiOffsetInSector = uiClusterOffsetInBytes % GetSectorSize();
+	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
 	// loop until we reach the EOC cluster or an error occurs.
 	for (;;)
@@ -1228,7 +1225,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 		{
 			// if cluster is less than 2 either we got a bug
 			// or the file system is corrupted
-			if (cluster < 2)
+			if (uiClusterIndex < 2)
 			{
 				// leave critical section and return error code
 				return FAT_INVALID_CLUSTER;
@@ -1241,14 +1238,14 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 				if (!bFat12MultiStepProgress)
 				{
 					// remember whether this is an odd cluster or not
-					bFat12OddClusterBeingProcessed = (cluster & 0x1);
+					bFat12OddClusterBeingProcessed = (uiClusterIndex & 0x1);
 
 					// set the cluster to zero to make sure that the upper bytes are cleared
 					// since we're only updating the lower 16 bits.
-					cluster = 0;
+					uiClusterIndex = 0;
 
 					// read the 1st byte
-					((uint8*)&cluster)[0] = mauiFatSharedBuffer[uiOffsetInSector];
+					((uint8*)&uiClusterIndex)[0] = mauiFatSharedBuffer[uiOffsetInSector];
 
 					// write the 1st byte
 					//
@@ -1287,7 +1284,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 				}
 
 				// read the 2nd byte
-				((uint8*)&cluster)[1] = mauiFatSharedBuffer[uiOffsetInSector];
+				((uint8*)&uiClusterIndex)[1] = mauiFatSharedBuffer[uiOffsetInSector];
 
 				// Since a FAT12 sEntry is only 12 bits (1.5 bytes) we need to adjust the result.
 				// For odd cluster numbers the FAT sEntry is stored in the upper 12 bits of the
@@ -1296,11 +1293,11 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 				// 16 bits where it is stored, so we need to clear the upper 4 bits.
 				if (bFat12OddClusterBeingProcessed)
 				{
-					cluster >>= 4;
+					uiClusterIndex >>= 4;
 				}
 				else
 				{
-					cluster &= 0xFFF;
+					uiClusterIndex &= 0xFFF;
 				}
 
 				// write the 2nd byte
@@ -1329,7 +1326,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			}
 			case FAT_FS_TYPE_FAT16:
 			{
-				cluster = *((uint16*)&mauiFatSharedBuffer[uiOffsetInSector]);
+				uiClusterIndex = *((uint16*)&mauiFatSharedBuffer[uiOffsetInSector]);
 				*((uint16*)&mauiFatSharedBuffer[uiOffsetInSector]) = FREE_FAT;
 				break;
 			}
@@ -1337,7 +1334,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			{
 				// FAT32 entries are actually 28 bits so we need to leave the
 				// upper nibble untouched
-				cluster = *((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) & 0x0FFFFFFF;
+				uiClusterIndex = *((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) & 0x0FFFFFFF;
 				*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) &= 0xF0000000;
 				break;
 			}
@@ -1347,7 +1344,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			SetTotalFreeClusters(GetTotalFreeClusters() + 1);
 
 			// if it's the EOF marker we're done, flush the uiBuffer and go
-			if (FatIsEOFEntry(cluster))
+			if (FatIsEOFEntry(uiClusterIndex))
 			{
 				eResult = FlushAndInvalidate();
 				RETURN_ON_FAT_FAILURE(eResult);
@@ -1355,9 +1352,7 @@ EFatCode CFatVolume::FatFreeClusterChain(uint32 cluster)
 			}
 
 			// calculate the location of the next cluster in the chain
-			uiClusterOffsetInBytes = CalculateFATEntryIndex(cluster);
-			uiFirstClusterSector = GetNoOfReservedSectors() + (uiClusterOffsetInBytes / GetSectorSize());
-			uiOffsetInSector = uiClusterOffsetInBytes % GetSectorSize();
+			CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 		}
 	}
 }
