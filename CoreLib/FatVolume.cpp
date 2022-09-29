@@ -1445,7 +1445,7 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FatSetClusterEntry(uint32 uiClusterIndex, fatEntry uiFatEntry)
+EFatCode CFatVolume::FatSetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume)
 {
 	uint32		uiFirstClusterSector;
 	uint32		uiOffsetInSector;
@@ -1468,13 +1468,13 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 uiClusterIndex, fatEntry uiFatEnt
 			// write the 1st byte
 			if (uiClusterIndex & 1)
 			{
-				uiFatEntry <<= 4;												// odd entries occupy the upper 12 bits so we must shift
-				mauiFatSharedBuffer[uiOffsetInSector] &= 0x0F;						// clear sEntry bits on 1st byte
-				mauiFatSharedBuffer[uiOffsetInSector] |= LO8((uint16)uiFatEntry);	// set sEntry bits on 1st byte
+				uiClusterInVolume <<= 4;													// odd entries occupy the upper 12 bits so we must shift
+				mauiFatSharedBuffer[uiOffsetInSector] &= 0x0F;								// clear sEntry bits on 1st byte
+				mauiFatSharedBuffer[uiOffsetInSector] |= LO8((uint16)uiClusterInVolume);	// set sEntry bits on 1st byte
 			}
 			else
 			{
-				mauiFatSharedBuffer[uiOffsetInSector] = LO8((uint16)uiFatEntry);	/* just copy the 1st byte */
+				mauiFatSharedBuffer[uiOffsetInSector] = LO8((uint16)uiClusterInVolume);		// just copy the 1st byte
 			}
 			mbEntriesUpdated = true;
 
@@ -1501,19 +1501,19 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 uiClusterIndex, fatEntry uiFatEnt
 			// write the 2nd byte
 			if (uiClusterIndex & 1)
 			{
-				mauiFatSharedBuffer[uiOffsetInSector] = HI8((uint16)uiFatEntry);		/* just copy the 1st byte */
+				mauiFatSharedBuffer[uiOffsetInSector] = HI8((uint16)uiClusterInVolume);		/* just copy the 1st byte */
 			}
 			else
 			{
 				mauiFatSharedBuffer[uiOffsetInSector] &= 0xF0;						/* clear bits that 1st byte will be written to */
-				mauiFatSharedBuffer[uiOffsetInSector] |= HI8((uint16)uiFatEntry);	/* copy sEntry bits of 1st byte */
+				mauiFatSharedBuffer[uiOffsetInSector] |= HI8((uint16)uiClusterInVolume);	/* copy sEntry bits of 1st byte */
 			}
 			mbEntriesUpdated = true;
 			break;
 		}
 		case FAT_FS_TYPE_FAT16:
 		{
-			*((uint16*)&mauiFatSharedBuffer[uiOffsetInSector]) = (uint16)uiFatEntry;
+			*((uint16*)&mauiFatSharedBuffer[uiOffsetInSector]) = (uint16)uiClusterInVolume;
 			mbEntriesUpdated = true;
 			break;
 		}
@@ -1523,7 +1523,7 @@ EFatCode CFatVolume::FatSetClusterEntry(uint32 uiClusterIndex, fatEntry uiFatEnt
 			// since a FAT32 sEntry is actually 28 bits we need
 			// to make sure that we don't modify the upper nibble.
 			*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) &= 0xF0000000;
-			*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) |= uiFatEntry & 0x0FFFFFFF;
+			*((uint32*)&mauiFatSharedBuffer[uiOffsetInSector]) |= uiClusterInVolume & 0x0FFFFFFF;
 			mbEntriesUpdated = true;
 			break;
 		}
@@ -1607,7 +1607,7 @@ EFatCode CFatVolume::Fat12IncreaseClusterAddress(uint32 uiClusterIndex, uint32* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiClusterIndex, uint16 count, uint32* puiNewCluster)
+EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
 {
 	uint32		uiOffsetInSector;
 	uint32		uiFirstClusterSector;
@@ -1618,9 +1618,9 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiClusterIndex, uint16 cou
 
 	// if the count is zero we just return the same
 	// uiCluster that we received
-	if (!count)
+	if (uiClusterCount == 0)
 	{
-		*puiNewCluster = (uint32)uiClusterIndex;
+		*puiNewClusterIndex = uiClusterIndex;
 		return FAT_SUCCESS;
 	}
 
@@ -1683,11 +1683,12 @@ EFatCode CFatVolume::FatIncreaseClusterAddress(uint32 uiClusterIndex, uint16 cou
 			}
 
 			// if we've followed the number of clusters requested by
-			// the caller set the return puiNewCluster to the current uiCluster
+			// the caller set the return puiNewClusterIndex to the current uiCluster
 			// and return success
-			if (!--count)
+			uiClusterCount--;
+			if (uiClusterCount == 0)
 			{
-				*puiNewCluster = (uint32)uiClusterIndex;
+				*puiNewClusterIndex = (uint32)uiClusterIndex;
 				return FAT_SUCCESS;
 			}
 
