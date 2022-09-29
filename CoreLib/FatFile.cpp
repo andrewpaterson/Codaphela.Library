@@ -941,22 +941,6 @@ EFatCode CFatFile::Close(void)
 
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
-		// seek to the end of the file
-		if (msFile.uiFileSize > 0)
-		{
-			eResult = Seek(msFile.uiFileSize - 1, FAT_SEEK_START);
-		}
-		else
-		{
-			eResult = Seek(0, FAT_SEEK_START);
-		}
-
-		if (eResult != FAT_SUCCESS)
-		{
-			mcCache.Kill();
-			return eResult;
-		}
-
 		// check that another operation is not using the
 		// file at this time
 		if (msFile.bBusy)

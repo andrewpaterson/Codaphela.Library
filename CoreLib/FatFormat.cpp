@@ -177,8 +177,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 		return FAT_INVALID_VOLUME_LABEL;
 	}
 
-	// get the total capacity of the storage
-	// device in bytes
+	// get the total capacity of the storage device in bytes.
 	media_type = 0xF8;
 	uiFileSystemInfoSector = 1;
 	uiNoOfFatTables = 2;
@@ -187,8 +186,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 	total_sectors = (uint32)device->GetTotalSectors();
 	no_of_bytes_per_sector = device->GetSectorSize();
 
-	// if the user didn't specify a file system type find the
-	// most appropriate one
+	// if the user didn't specify a file system type find the most appropriate one.
 	if (fs_type == FAT_FS_TYPE_UNSPECIFIED)
 	{
 		// if the user specifies a cluster size he/she must also
@@ -258,11 +256,11 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 	// calculate the count of clusters on the volume without accounting
 	// for the space that will be used by the FAT tables
 	root_dir_sectors = ((no_of_root_entries * 32) + (no_of_bytes_per_sector - 1)) / no_of_bytes_per_sector;
-	uiNoOfClusters = (total_sectors - uiNoOfReservedSectors - root_dir_sectors) / uiNoOfSectorsPerCluster; /*rounds down*/
+	uiNoOfClusters = (total_sectors - uiNoOfReservedSectors - root_dir_sectors) / uiNoOfSectorsPerCluster;
 
 	// calculate the FAT table size (ignoring the fact that it won't fit
 	// since we're allocating all disk space to clusters
-	while (1)
+	for (;;)
 	{
 		switch (fs_type)
 		{

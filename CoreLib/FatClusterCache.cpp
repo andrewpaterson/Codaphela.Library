@@ -1,14 +1,14 @@
 #include <stdlib.h>
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/IntegerHelper.h"
-#include "FatCache.h"
+#include "FatClusterCache.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorSize)
+void CFatClusterCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorSize)
 {
 	muiClusterSize = uiClusterSize;
 	muiSectorSize = uiSectorSize;
@@ -27,7 +27,7 @@ void CFatCache::Init(CFileDrive* pcDrive, uint16 uiClusterSize, uint16 uiSectorS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatCache::Kill(void)
+void CFatClusterCache::Kill(void)
 {
 	SafeFree(msCluster.pbDirtySectors);
 	SafeFree(msCluster.pbCachedSectors);
@@ -39,7 +39,7 @@ void CFatCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset)
+bool CFatClusterCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiMaximumOffset)
 {
 	bool	bResult;
 	uint32	uiLength;
@@ -135,7 +135,7 @@ bool CFatCache::Read(uint8* pvDestination, uint32 uiCluster, uint32 uiClusterFir
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset)
+bool CFatClusterCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSector, uint16 uiOffset, uint32* puiLength, uint16 uiPreviousMaximumOffset)
 {
 	bool	bResult;
 	uint32	uiLength;
@@ -255,7 +255,7 @@ bool CFatCache::Write(uint8* pvSource, uint32 uiCluster, uint32 uiClusterFirstSe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::Flush(void)
+bool CFatClusterCache::Flush(void)
 {
 	return Flush(&msCluster);
 }
@@ -265,7 +265,7 @@ bool CFatCache::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::Flush(SClusterCache* psCluster)
+bool CFatClusterCache::Flush(SClusterCache* psCluster)
 {
 	int		iFirstDirtySector;
 	int		iLastDirtySector;
@@ -320,7 +320,7 @@ bool CFatCache::Flush(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
+bool CFatClusterCache::FlushAndInvalidate(SClusterCache* psCluster)
 {
 	bool bResult;
 
@@ -336,7 +336,7 @@ bool CFatCache::FlushAndInvalidate(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::IsCached(uint32 uiSectorIndex)
+bool CFatClusterCache::IsCached(uint32 uiSectorIndex)
 {
 	return GetBit(uiSectorIndex, msCluster.pbCachedSectors);
 }
@@ -346,7 +346,7 @@ bool CFatCache::IsCached(uint32 uiSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex)
+bool CFatClusterCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex)
 {
 	bool	bResult;
 
@@ -366,7 +366,7 @@ bool CFatCache::CacheSector(SClusterCache* psCluster, uint32 uiSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatCache::Clear(void)
+void CFatClusterCache::Clear(void)
 {
 	Invalidate(&msCluster);
 }
@@ -376,7 +376,7 @@ void CFatCache::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatCache::Invalidate(SClusterCache* psCluster)
+void CFatClusterCache::Invalidate(SClusterCache* psCluster)
 {
 	psCluster->uiCluster = NO_CLUSTER_CACHED;
 	memset(psCluster->pvCache, 0, muiClusterSize);
@@ -390,7 +390,7 @@ void CFatCache::Invalidate(SClusterCache* psCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8* CFatCache::GetCache(void)
+uint8* CFatClusterCache::GetCache(void)
 {
 	return msCluster.pvCache;
 }
@@ -400,7 +400,7 @@ uint8* CFatCache::GetCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::IsSectorDirty(int iSectorIndex)
+bool CFatClusterCache::IsSectorDirty(int iSectorIndex)
 {
 	if ((iSectorIndex >= 0) && (iSectorIndex < muiSectorsPerCluster))
 	{
@@ -417,7 +417,7 @@ bool CFatCache::IsSectorDirty(int iSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatCache::IsSectorCached(int iSectorIndex)
+bool CFatClusterCache::IsSectorCached(int iSectorIndex)
 {
 	if ((iSectorIndex >= 0) && (iSectorIndex < muiSectorsPerCluster))
 	{
@@ -434,7 +434,7 @@ bool CFatCache::IsSectorCached(int iSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CFatCache::GetSectorsPerCluster(void)
+uint16 CFatClusterCache::GetSectorsPerCluster(void)
 {
 	return muiSectorsPerCluster;
 }
