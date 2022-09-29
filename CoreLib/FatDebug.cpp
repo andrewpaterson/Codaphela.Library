@@ -161,26 +161,21 @@ void PrintLongNamePart(CChars* psz, uint8* puiChars, uint8 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void PrintRootDirectory(CFatVolume* pcVolume)
+EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 {
 	EFatCode				eResult;
 	uint32					uiCluster;
 	uint32					uiSector;
 	SFatRawDirectoryEntry*	psEntry;
 	uint32					uiSectorCount;
-	CChars					sz;
 	char					szShortName[13];
 	
 	uiCluster = pcVolume->GetRootCluster();
 	uiSector = pcVolume->GetRootSector();
 
 	eResult = pcVolume->FatReadFatSector(uiSector);
-	if (eResult != FAT_SUCCESS)
-	{
-		return;
-	}
+	RETURN_ON_FAT_FAILURE(eResult);
 
-	sz.Init();
 	uiSectorCount = 0;
 	memset(szShortName, '\0', 13);
 	psEntry = (SFatRawDirectoryEntry*)pcVolume->mauiFatSharedBuffer;
@@ -190,15 +185,12 @@ void PrintRootDirectory(CFatVolume* pcVolume)
 		{
 			if (uiSectorCount == pcVolume->GetNoOfSectorsPerCluster() - 1)
 			{
-				if (pcVolume->GetNextClusterEntry(uiCluster, &uiCluster) != FAT_SUCCESS)
-				{
-					sz.DumpKill();
-					return;
-				}
+				eResult = pcVolume->GetNextClusterEntry(uiCluster, &uiCluster);
+				RETURN_ON_FAT_FAILURE(eResult);
+
 				if (pcVolume->FatIsEOFEntry(uiCluster))
 				{
-					sz.DumpKill();
-					return;
+					return FAT_SUCCESS;
 				}
 				uiSector = pcVolume->CalculateFirstSectorOfCluster(uiCluster); // +psQuery->uiCurrentSector;
 				uiSectorCount = 0;
@@ -220,73 +212,91 @@ void PrintRootDirectory(CFatVolume* pcVolume)
 				{
 					pcVolume->FatGetShortNameFromEntry((uint8*)szShortName, psEntry->uEntry.sFatRawCommon.szShortName);
 
-					sz.Append("---------------------------------------");
-					sz.AppendNewLine();
-					sz.Append("Short name: ");
-					sz.Append(szShortName);
-					sz.AppendNewLine();
+					psz->Append("---------------------------------------");
+					psz->AppendNewLine();
+					psz->Append("Short name: ");
+					psz->Append(szShortName);
+					psz->AppendNewLine();
 
-					sz.Append("Cluster:    ");
-					sz.Append(GetFirstClusterFromFatEntry(psEntry, pcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32));
-					sz.AppendNewLine();
+					psz->Append("Cluster:    ");
+					psz->Append(GetFirstClusterFromFatEntry(psEntry, pcVolume->GetFileSystemType() == FAT_FS_TYPE_FAT32));
+					psz->AppendNewLine();
 
-					sz.Append("Size:       ");
-					sz.Append(psEntry->uEntry.sFatRawCommon.uiSize);
-					sz.AppendNewLine();
+					psz->Append("Size:       ");
+					psz->Append(psEntry->uEntry.sFatRawCommon.uiSize);
+					psz->AppendNewLine();
 
-					sz.Append("Attributes: ");
-					PrintAttributes(&sz, psEntry->uEntry.sFatRawCommon.uiAttributes);
-					sz.AppendNewLine();
+					psz->Append("Attributes: ");
+					PrintAttributes(psz, psEntry->uEntry.sFatRawCommon.uiAttributes);
+					psz->AppendNewLine();
 
-					sz.Append("Created:    ");
-					sz.Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiCreateDate, psEntry->uEntry.sFatRawCommon.uiCreateTime));
-					sz.AppendNewLine();
+					if (bPrintTimes)
+					{
+						psz->Append("Created:    ");
+						psz->Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiCreateDate, psEntry->uEntry.sFatRawCommon.uiCreateTime));
+						psz->AppendNewLine();
 
-					sz.Append("Accessed:   ");
-					sz.Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiAccessDate, 0));
-					sz.AppendNewLine();
+						psz->Append("Accessed:   ");
+						psz->Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiAccessDate, 0));
+						psz->AppendNewLine();
 
-					sz.Append("Modified:   ");
-					sz.Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiModifyDate, psEntry->uEntry.sFatRawCommon.uiModifyTime));
-					sz.AppendNewLine();
+						psz->Append("Modified:   ");
+						psz->Append(FatDecodeDateTime(psEntry->uEntry.sFatRawCommon.uiModifyDate, psEntry->uEntry.sFatRawCommon.uiModifyTime));
+						psz->AppendNewLine();
+					}
 				}
 			}
 			else
 			{
-				sz.Append("---------------------------------------");
-				sz.AppendNewLine();
+				psz->Append("---------------------------------------");
+				psz->AppendNewLine();
 
-				sz.Append("Sequence:     ");
-				sz.Append(psEntry->uEntry.sFatRawLongFileName.uiSequence);
-				sz.AppendNewLine();
+				psz->Append("Sequence:     ");
+				psz->Append(psEntry->uEntry.sFatRawLongFileName.uiSequence);
+				psz->AppendNewLine();
 
-				sz.Append("Long name[1]: ");
-				PrintLongNamePart(&sz, psEntry->uEntry.sFatRawLongFileName.auiChars1, 10);
-				sz.AppendNewLine();
+				psz->Append("Long name[1]: ");
+				PrintLongNamePart(psz, psEntry->uEntry.sFatRawLongFileName.auiChars1, 10);
+				psz->AppendNewLine();
 
-				sz.Append("Long name[2]: ");
-				PrintLongNamePart(&sz, psEntry->uEntry.sFatRawLongFileName.auiChars2, 12);
-				sz.AppendNewLine();
+				psz->Append("Long name[2]: ");
+				PrintLongNamePart(psz, psEntry->uEntry.sFatRawLongFileName.auiChars2, 12);
+				psz->AppendNewLine();
 
-				sz.Append("Long name[3]: ");
-				PrintLongNamePart(&sz, psEntry->uEntry.sFatRawLongFileName.auiChars3, 4);
-				sz.AppendNewLine();
+				psz->Append("Long name[3]: ");
+				PrintLongNamePart(psz, psEntry->uEntry.sFatRawLongFileName.auiChars3, 4);
+				psz->AppendNewLine();
 
-				sz.Append("Cluster:      ");
-				sz.Append(psEntry->uEntry.sFatRawLongFileName.uiFirstCluster);
-				sz.AppendNewLine();
+				psz->Append("Cluster:      ");
+				psz->Append(psEntry->uEntry.sFatRawLongFileName.uiFirstCluster);
+				psz->AppendNewLine();
 
-				sz.Append("Attributes:   ");
-				PrintAttributes(&sz, psEntry->uEntry.sFatRawLongFileName.uiAttributes);
-				sz.AppendNewLine();
+				psz->Append("Attributes:   ");
+				PrintAttributes(psz, psEntry->uEntry.sFatRawLongFileName.uiAttributes);
+				psz->AppendNewLine();
 
-				sz.Append("Checksum:     ");
-				sz.Append(psEntry->uEntry.sFatRawLongFileName.uiChecksum);
-				sz.AppendNewLine();
+				psz->Append("Checksum:     ");
+				psz->Append(psEntry->uEntry.sFatRawLongFileName.uiChecksum);
+				psz->AppendNewLine();
 			}
 		}
 
 		psEntry++;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void DumpRootDirectory(CFatVolume* pcVolume)
+{
+	CChars		sz;
+	EFatCode	eResult;
+
+	sz.Init();
+	eResult = PrintRootDirectory(&sz, pcVolume, true);
+	sz.DumpKill();
 }
 

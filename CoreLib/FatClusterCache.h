@@ -1,5 +1,5 @@
-#ifndef __FAT_CACHE_H__
-#define __FAT_CACHE_H__
+#ifndef __FAT_CLUSTER_CACHE_H__
+#define __FAT_CLUSTER_CACHE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "FileDrive.h"
 
@@ -17,7 +17,7 @@ struct SClusterCache
 };
 
 
-class CFatCache
+class CFatClusterCache
 {
 protected:
 	SClusterCache	msCluster;
@@ -54,5 +54,5 @@ protected:
 };
 
 
-#endif // __FAT_CACHE_H__
+#endif // __FAT_CLUSTER_CACHE_H__
 

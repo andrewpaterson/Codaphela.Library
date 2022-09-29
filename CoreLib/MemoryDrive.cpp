@@ -73,7 +73,8 @@ bool CMemoryDrive::Read(uint64 uiSector, void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryDrive::Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
 {
-	uint64 uiEnd;
+	uint64	uiEnd;
+	void*	pvSource;
 
 	uiEnd = uiSector + uiNumSectors - 1;
 	if (uiSector >= muiMaxSector)
@@ -91,7 +92,8 @@ bool CMemoryDrive::Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
 		return false;
 	}
 
-	memcpy(pvData, RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), muiSectorSize * uiNumSectors);
+	pvSource = RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize));
+	memcpy(pvData, pvSource, muiSectorSize * uiNumSectors);
 	return true;
 }
 

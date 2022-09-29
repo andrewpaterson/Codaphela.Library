@@ -1,6 +1,6 @@
 #ifndef __FAT_FILE_H__
 #define __FAT_FILE_H__
-#include "FatCache.h"
+#include "FatClusterCache.h"
 #include "FatCommon.h"
 
 
@@ -26,7 +26,7 @@ class CFatFile
 protected:
 	SFatFile		msFile;
 	CFatVolume*		mpcVolume;
-	CFatCache		mcCache;
+	CFatClusterCache		mcCache;
 	char			mszName[FAT_MAX_FILENAME];
 
 public:
