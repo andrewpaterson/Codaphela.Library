@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FILE_READER_H__
 #define __FILE_READER_H__
 #include "ErrorTypes.h"
-#include "AbstractFile.h"
+#include "FilePosition.h"
 
 
 #define CheckRead(pvData, iSize) 	if (Read(pvData, iSize, 1) != 1) { return false; }

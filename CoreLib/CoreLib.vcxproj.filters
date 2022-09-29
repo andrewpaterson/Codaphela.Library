@@ -540,6 +540,9 @@
     <ClCompile Include="FatDebug.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
+    <ClCompile Include="FatInfoSectorCache.cpp">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IndexedData.h">
@@ -912,6 +915,9 @@
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
     <ClInclude Include="FatDebug.h">
+      <Filter>Source\FileSystem\Fat32</Filter>
+    </ClInclude>
+    <ClInclude Include="FatInfoSectorCache.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
   </ItemGroup>

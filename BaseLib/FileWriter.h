@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FILE_WRITER_H__
 #define __FILE_WRITER_H__
 #include "ErrorTypes.h"
-#include "AbstractFile.h"
+#include "FilePosition.h"
 
 
 #define CheckWrite(pvData, iSize)	if (Write(pvData, iSize, 1) != 1) { return false; }

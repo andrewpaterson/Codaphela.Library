@@ -18,7 +18,7 @@ struct SFatVolume
 	uint32				uiTotalFreeClusters;
 	uint32				uiFileSystemInfoSector;
 	uint16				uiRootDirectorySectors;
-	uint16				uiNoOfBytesPerSector;
+	uint16				uiBytesPerSector;
 	uint16				uiNoOfSectorsPerCluster;
 	bool				bUseLongFilenames;
 	EFatFileSystemType	eFileSystem;

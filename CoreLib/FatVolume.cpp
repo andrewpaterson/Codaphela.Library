@@ -114,7 +114,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		msVolume.uiNoOfClusters = msVolume.uiNoOfDataSectors / psBPB->BPB_SecPerClus;
 		msVolume.uiFirstDataSector = psBPB->BPB_RsvdSecCnt + uiHiddenSectors + (psBPB->BPB_NumFATs * msVolume.uiFatSize) + msVolume.uiRootDirectorySectors;
 		msVolume.uiNoOfReservedSectors = psBPB->BPB_RsvdSecCnt + uiHiddenSectors;
-		msVolume.uiNoOfBytesPerSector = psBPB->BPB_BytsPerSec;
+		msVolume.uiBytesPerSector = psBPB->BPB_BytsPerSec;
 		msVolume.uiNoOfSectorsPerCluster = psBPB->BPB_SecPerClus;
 		msVolume.uiNoOfFatTables = psBPB->BPB_NumFATs;
 		uiFileSystemInfoSector = psBPB->uFatEx.sFat32.BPB_FSInfo;
@@ -340,7 +340,7 @@ bool CFatVolume::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetClusterSize(void)
 {
-	return msVolume.uiNoOfBytesPerSector * msVolume.uiNoOfSectorsPerCluster;
+	return msVolume.uiBytesPerSector * msVolume.uiNoOfSectorsPerCluster;
 }
 
 
@@ -3922,7 +3922,7 @@ int CFatVolume::FatIndexOf(char chr, char* str, int index)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetBytesPerCluster(void) 
 { 
-	return msVolume.uiNoOfBytesPerSector * msVolume.uiNoOfSectorsPerCluster;
+	return msVolume.uiBytesPerSector * msVolume.uiNoOfSectorsPerCluster;
 }
 
 
@@ -3942,7 +3942,7 @@ uint32 CFatVolume::GetNextFreeCluster(void) { return msVolume.uiNextFreeCluster;
 uint32 CFatVolume::GetTotalFreeClusters(void) { return msVolume.uiTotalFreeClusters; }
 uint32 CFatVolume::GetFsinfoSector(void) { return msVolume.uiFileSystemInfoSector; }
 uint16 CFatVolume::GetRootDirectorySectors(void) { return msVolume.uiRootDirectorySectors; }
-uint16 CFatVolume::GetSectorSize(void) { return msVolume.uiNoOfBytesPerSector; }
+uint16 CFatVolume::GetSectorSize(void) { return msVolume.uiBytesPerSector; }
 uint16 CFatVolume::GetNoOfSectorsPerCluster(void) { return msVolume.uiNoOfSectorsPerCluster; }
 bool CFatVolume::IsUseLongFilenames(void) { return msVolume.bUseLongFilenames; }
 EFatFileSystemType CFatVolume::GetFileSystemType(void) { return msVolume.eFileSystem; }

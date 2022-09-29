@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "LogConfig.h"
 #include "LogString.h"
 #include "ArrayTemplate.h"
+#include "AbstractFile.h"
 
 
 typedef CArrayTemplate<CAbstractFile*> CArrayFile;
