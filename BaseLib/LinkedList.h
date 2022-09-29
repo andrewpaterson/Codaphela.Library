@@ -11,6 +11,7 @@ struct SLLNode
 };
 
 
+//This is not the class you're looking for.  You want CLinkedListBlock.
 class CLinkedList
 {
 protected:

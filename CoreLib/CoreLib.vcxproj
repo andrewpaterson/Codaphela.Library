@@ -188,6 +188,7 @@
     <ClCompile Include="FatDebug.cpp" />
     <ClCompile Include="FatFile.cpp" />
     <ClCompile Include="FatFormat.cpp" />
+    <ClCompile Include="FatInfoSectorCache.cpp" />
     <ClCompile Include="FatTime.cpp" />
     <ClCompile Include="FatVolume.cpp" />
     <ClCompile Include="FileDrive.cpp" />
@@ -305,6 +306,7 @@
     <ClInclude Include="FatDebug.h" />
     <ClInclude Include="FatFile.h" />
     <ClInclude Include="FatFormat.h" />
+    <ClInclude Include="FatInfoSectorCache.h" />
     <ClInclude Include="FatTime.h" />
     <ClInclude Include="FatVolume.h" />
     <ClInclude Include="FileDrive.h" />
