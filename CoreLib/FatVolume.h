@@ -95,8 +95,8 @@ public:
 	uint32				FatAllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult);
 	EFatCode			FatFreeClusterChain(uint32 uiClusterIndex);
 	EFatCode			GetNextClusterEntry(uint32 uiCluster, uint32* puiNextCluster);
-	EFatCode			FatSetClusterEntry(uint32 uiCluster, fatEntry fat_entry);
-	EFatCode			FatIncreaseClusterAddress(uint32 cluster, uint16 count, uint32* value);
+	EFatCode			FatSetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume);
+	EFatCode			FatIncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex);
 	bool				FatIsEOFEntry(fatEntry fat);
 	EFatCode			FatInitializeDirectoryCluster(SFatRawDirectoryEntry* parent, uint32 cluster);
 	EFatCode			FatWriteFatSector(uint32 uiSectorAddress, uint8* puiBuffer);
