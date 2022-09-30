@@ -18,11 +18,10 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	uint8					uiPartitionsTried = 0;
 	char					szLabel[12];
 	uint32					uiFileSystemInfoSector;
-	EFatCode				eResult;
-	uint8					auiBuffer[MAX_SECTOR_LENGTH];
+	uint8*					pvMBRSector;
+	uint8*					pvLBASector;
 
-	muiFatSharedBufferSector = FAT_UNKNOWN_SECTOR;
-	mbEntriesUpdated = false;
+	mcSectorCache.Init(device, 3);
 	muiSharedReadCount = 0;
 
 	// set the null terminator.
@@ -31,32 +30,32 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	// save the storage device handle
 	mpcDevice = device;
 
-	// retrieve the boot sector (sector 0) from the storage device
-	eResult = FatReadFatSector(0, auiBuffer);
-	RETURN_ON_FAT_FAILURE(eResult);
+	pvMBRSector = (uint8*)mcSectorCache.ReadSector(0);
+	if (pvMBRSector == NULL)
+	{
+		return FAT_CANNOT_READ_MEDIA;
+	}
+
+	mcSectorCache.Lock(pvMBRSector);
 
 	// set the partition sEntry pointer
-	sPartitionEntry = (SFatPartitionEntry*)(auiBuffer + 0x1BE);
+	sPartitionEntry = (SFatPartitionEntry*)(pvMBRSector + 0x1BE);
 
 	for (;;)
 	{
-		// if we've already tried to mount the mpsVolume as partitionless
-		// try to mount the next partition
-		if (uiPartitionsTried)
+		// if we've already tried to mount the volume as partitionless try to mount the next partition
+		if (uiPartitionsTried > 0)
 		{
 			// if we've already tried all 4 partitions then we're out of luck
 			if (uiPartitionsTried > 4)
 			{
+				mcSectorCache.Unlock(pvMBRSector);
 				return FAT_INVALID_FAT_VOLUME;
 			}
 
 			// if we've tried to mount a partition mpsVolume (not the unpartioned one) then we must reload sector 0 (MBR)
 			if (uiPartitionsTried > 1)
 			{
-				// retrieve the boot sector (sector 0) from the storage device
-				eResult = FatReadFatSector(0, auiBuffer);
-				RETURN_ON_FAT_FAILURE(eResult);
-
 				// move to the next partition sEntry
 				sPartitionEntry++;
 			}
@@ -72,17 +71,27 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			}
 
 			// retrieve the 1st sector of partition
-			eResult = FatReadFatSector(sPartitionEntry->lba_first_sector, auiBuffer);
-			RETURN_ON_FAT_FAILURE(eResult);
+			pvLBASector = (uint8*)mcSectorCache.ReadSector(sPartitionEntry->lba_first_sector);
+			if (pvLBASector == NULL)
+			{
+				mcSectorCache.Unlock(pvMBRSector);
+				return FAT_CANNOT_READ_MEDIA;
+			}
+
+			// set our pointer to the BPB
+			psBPB = (SFatBIOSParameterBlock*)pvLBASector;
+		}
+		else
+		{
+			psBPB = (SFatBIOSParameterBlock*)pvMBRSector;
 		}
 
-		// set our pointer to the BPB
-		psBPB = (SFatBIOSParameterBlock*)auiBuffer;
 
 		// if the sector size is larger than what this build
 		// allows do not mount the mpsVolume
 		if (psBPB->BPB_BytsPerSec > MAX_SECTOR_LENGTH)
 		{
+			mcSectorCache.Unlock(pvMBRSector);
 			return FAT_SECTOR_SIZE_NOT_SUPPORTED;
 		}
 
@@ -174,13 +183,18 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 		uint8	uiMedia = psBPB->BPB_Media;
 		uint32	uiFATSector;
+		uint8*	pvFATSector;
 
 		uiFATSector = msVolume.uiNoOfReservedSectors;
-		eResult = FatReadFatSector(uiFATSector, auiBuffer);
-		RETURN_ON_FAT_FAILURE(eResult);
+		pvFATSector = (uint8*)mcSectorCache.ReadSector(uiFATSector);
+		if (pvFATSector == NULL)
+		{
+			mcSectorCache.Unlock(pvMBRSector);
+			return FAT_CANNOT_READ_MEDIA;
+		}
 
 		// if the lower byte of the 1st FAT sEntry is not the same as BPB_Media then this is not a valid volume
-		if (auiBuffer[0] != uiMedia)
+		if (pvFATSector[0] != uiMedia)
 		{
 			uiPartitionsTried++;
 			continue;
@@ -189,7 +203,8 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	}
 
 	// read volume label sEntry from the root directory (if any)
-	SFatQueryState query;
+	SFatQueryState	query;
+	uint8* pvFSInfoSector;
 
 	if (FatQueryFirstEntry(0, FAT_ATTR_VOLUME_ID, &query, 1) == FAT_SUCCESS)
 	{
@@ -206,11 +221,15 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		SFatFileSystemInfo* psFileSystemInfo;
 
 		// read the sector containing the FSInfo structure
-		eResult = FatReadFatSector(uiHiddenSectors + uiFileSystemInfoSector, auiBuffer);
-		RETURN_ON_FAT_FAILURE(eResult);
+		pvFSInfoSector = (uint8*)mcSectorCache.ReadSector(sPartitionEntry->lba_first_sector);
+		if (pvFSInfoSector == NULL)
+		{
+			mcSectorCache.Unlock(pvMBRSector);
+			return FAT_CANNOT_READ_MEDIA;
+		}
 
 		// set psFileSystemInfo pointer
-		psFileSystemInfo = (SFatFileSystemInfo*)auiBuffer;
+		psFileSystemInfo = (SFatFileSystemInfo*)pvFSInfoSector;
 
 		// check signatures before using
 		if (psFileSystemInfo->LeadSig == 0x41615252 && psFileSystemInfo->StructSig == 0x61417272 && psFileSystemInfo->TrailSig == 0xAA550000)
@@ -237,6 +256,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		msVolume.uiFileSystemInfoSector = uiHiddenSectors + uiFileSystemInfoSector;
 	}
 
+	mcSectorCache.Unlock(pvMBRSector);
 	return FAT_SUCCESS;
 }
 

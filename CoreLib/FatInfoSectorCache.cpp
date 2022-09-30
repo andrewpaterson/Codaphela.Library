@@ -28,6 +28,30 @@ void* CFatSectorCache::GetCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFatSectorCache::Lock(void)
+{
+	muiLocks++;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatSectorCache::Unlock(void)
+{
+	if (muiLocks != 0)
+	{
+		muiLocks--;
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFatInfoSectorCache::Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches)
 {
 	mpcDrive = pcDrive;
@@ -47,6 +71,29 @@ void CFatInfoSectorCache::Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCach
 void CFatInfoSectorCache::Kill(void)
 {
 	mllcCachedSectors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CFatInfoSectorCache::ReadSector(uint32 uiInfoSector)
+{
+	CFatSectorCache*	pcCachedSector;
+	void*				pvData;
+
+	pcCachedSector = GetOrCacheSector(uiInfoSector);
+
+	if (pcCachedSector != NULL)
+	{
+		pvData = pcCachedSector->GetCache();
+		return pvData;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -180,5 +227,89 @@ bool CFatInfoSectorCache::FlushCache(CFatSectorCache* pcCachedSector)
 		}
 	}
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatInfoSectorCache::Lock(void* pvSectorCache)
+{
+	CFatSectorCache*	pcCachedSector;
+
+	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(pvSectorCache, -((ptrdiff_t) sizeof(CFatSectorCache)));
+	pcCachedSector->Lock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatInfoSectorCache::Unlock(void* pvSectorCache)
+{
+	CFatSectorCache* pcCachedSector;
+
+	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(pvSectorCache, -((ptrdiff_t) sizeof(CFatSectorCache)));
+	pcCachedSector->Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatInfoSectorCache::GetNumAllocatedSectors(void)
+{
+	return mllcCachedSectors.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatInfoSectorCache::GetNumCachedSectors(void)
+{
+	CFatSectorCache*	pcCachedSector;
+	uint16				uiCount;
+
+	uiCount = 0;
+	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
+	while (pcCachedSector != NULL)
+	{
+		if (pcCachedSector->muiInfoSector != NO_SECTOR_CACHED)
+		{
+			uiCount++;
+		}
+		pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetNext(pcCachedSector);
+	}
+
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CFatInfoSectorCache::GetLockedCachedSectors(void)
+{
+	CFatSectorCache*	pcCachedSector;
+	uint16				uiCount;
+
+	uiCount = 0;
+	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
+	while (pcCachedSector != NULL)
+	{
+		if (pcCachedSector->muiLocks > 0)
+		{
+			uiCount++;
+		}
+		pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetNext(pcCachedSector);
+	}
+
+	return uiCount;
 }
 
