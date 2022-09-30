@@ -18,6 +18,8 @@ public:
 
 	void	Init(uint32 uiInfoSector, uint64 uiCreationStamp);
 	void*	GetCache(void);
+	void	Lock(void);
+	void	Unlock(void);
 };
 
 
@@ -35,6 +37,12 @@ protected:
 public:
 	void				Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches);
 	void				Kill(void);
+	void*				ReadSector(uint32 uiInfoSector);
+	void				Lock(void* pvSectorCache);
+	void				Unlock(void* pvSectorCache);
+	uint16				GetNumAllocatedSectors(void);
+	uint16				GetNumCachedSectors(void);
+	uint16				GetLockedCachedSectors(void);
 
 protected:
 	CFatSectorCache*	AddNewCache(void);

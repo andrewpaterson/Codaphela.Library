@@ -1,6 +1,7 @@
 #ifndef __FAT_VOLUME_H__
 #define __FAT_VOLUME_H__
 #include "FileDrive.h"
+#include "FatInfoSectorCache.h"
 #include "FatCommon.h"
 
 
@@ -30,13 +31,15 @@ struct SFatVolume
 class CFatVolume
 {
 public:
-	SFatVolume		msVolume;
-	CFileDrive*		mpcDevice;
+	SFatVolume				msVolume;
+	CFileDrive*				mpcDevice;
 
-	uint8			mauiFatSharedBuffer[MAX_SECTOR_LENGTH];
-	uint32			muiFatSharedBufferSector;
-	bool			mbEntriesUpdated;
-	uint32			muiSharedReadCount;
+		uint8					mauiFatSharedBuffer[MAX_SECTOR_LENGTH];
+		uint32					muiFatSharedBufferSector;
+		bool					mbEntriesUpdated;
+
+	uint32					muiSharedReadCount;
+	CFatInfoSectorCache		mcSectorCache;
 
 public:
 	EFatCode			Mount(CFileDrive* device);
