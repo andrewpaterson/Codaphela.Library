@@ -269,6 +269,8 @@ struct SFatQueryState
 	uint8						uiSequence;
 	uint8						uiChecksum;
 
+	uint8*						puiBuffer;
+
 	uint8						auiBuffer[MAX_SECTOR_LENGTH];
 };
 

@@ -217,7 +217,6 @@ EFatCode CFatFile::Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags)
 }
 
 
-// opens a file given a pointer to it's directory entry
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -253,10 +252,6 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 	// read the the cluster number
 	msFile.uiCursorClusterInVolume = GetFirstClusterFromFatEntry(&psEntry->raw, IsFat32Volume());
 
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", mszName, "] first cluster [", IntToString(msFile.uiCursorClusterInVolume), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
 		// if the file is being opened for append access we
@@ -273,55 +268,18 @@ EFatCode CFatFile::FatOpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAcces
 		// if the file is being opened with the OVERWRITE flag we must free all the clusters
 		// currently allocated to the file and update it's directory entry to point to cluster 1
 
-		// if the file is not already empty then
-		// we'll empty it
-		if (psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord != 0 || psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord != 0)
+		eResult = mpcVolume->Free(psEntry);
+		if (eResult != FAT_SUCCESS)
 		{
-			// update the entry to point to cluster 0
-			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
-			psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
-			psEntry->raw.uEntry.sFatRawCommon.uiSize = 0x0;
-			msFile.sDirectoryEntry = *psEntry;
-			msFile.uiFileSize = psEntry->size;
-
-			// read the sector that contains the entry
-			eResult = ReadFatSector(__METHOD__, psEntry->uiSectorAddress);
-			if (eResult != FAT_SUCCESS)
-			{
-				msFile.uiMagic = 0;
-				return eResult;
-			}
-
-			uint8* uiBuffer = mpcVolume->GetFatSharedBuffer();
-			memcpy(uiBuffer + psEntry->uiSectorOffset, &psEntry->raw, sizeof(SFatRawDirectoryEntry));
-
-			// write the modified entry to the media
-			bSuccess = mpcVolume->Write(psEntry->uiSectorAddress, uiBuffer);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-			gcLogger.Info2(__METHOD__, " File [", mszName, "] write sector [", IntToString(psEntry->uiSectorAddress), "] returned [", BoolToString(bSuccess), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-			if (!bSuccess)
-			{
-				msFile.uiMagic = 0;
-				return FAT_CANNOT_WRITE_MEDIA;
-			}
-
-			// free the clusters allocated to the file
-			mpcVolume->FatFreeClusterChain(msFile.uiCursorClusterInVolume);
+			msFile.uiMagic = 0;
+			return eResult;
 		}
 
-		// reset the file file to reflect an
-		// empty file
 		msFile.uiFileSize = 0;
 		msFile.uiFilePosition = 0;
 	}
 	else
 	{
-		// if no append or overwrite flags are set then
-		// simply set the file to point to the beggining
-		// of the 1st cluster
 		msFile.uiFilePosition = 0;
 	}
 	return FAT_SUCCESS;
@@ -347,9 +305,10 @@ uint32 CFatFile::FatFileGetUniqueId(void)
 EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 {
 	EFatCode	eResult;
-	uint32		uiNewClusterInVolume;
+	fatEntry	uiNewClusterInVolume;
 	uint32		uiClustersNeeded;
 	uint32		uiClustersInFile;
+	fatEntry	uiCursorClusterInVolume;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -361,7 +320,7 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	{
 		return FAT_FILE_HANDLE_IN_USE;
 	}
-	msFile.bBusy = 1;
+	msFile.bBusy = true;
 
 	// calculate the number of clusters currently allocated to this file.
 	uiClustersInFile = (msFile.uiFileSize + mpcVolume->GetClusterSize() - 1) / mpcVolume->GetClusterSize();
@@ -375,148 +334,23 @@ EFatCode CFatFile::FatFileAllocate(uint32 uiBytes)
 	}
 	else
 	{
-		msFile.bBusy = 0;
+		msFile.bBusy = false;
 		return FAT_SUCCESS;
 	}
 
-	// allocate a new cluster
-	uint32 uiCursorClusterInVolume;
-	uint32 uiNextCluster;
-	uint32 uiPageSize;
-	uint32 uiStartSector;
-	uint32 uiEndSector;
-
-	uiPageSize = mpcVolume->GetPageSize();
-
-	if (uiPageSize > mpcVolume->GetNoOfSectorsPerCluster())
-	{
-		uint32 clusters_per_page = uiPageSize / mpcVolume->GetNoOfSectorsPerCluster();
-
-		if (uiClustersNeeded % clusters_per_page)
-		{
-			uiClustersNeeded += clusters_per_page - (uiClustersNeeded % clusters_per_page);
-		}
-
-		if ((uiClustersNeeded % clusters_per_page) != 0)
-		{
-			return FAT_UNKNOWN_ERROR;
-		}
-
-		eResult = FAT_UNKNOWN_ERROR;
-		uiNewClusterInVolume = mpcVolume->FatAllocateDataClusterEx(uiClustersNeeded, 0, uiPageSize, &eResult);
-		if (eResult != FAT_SUCCESS)
-		{
-			msFile.bBusy = 0;
-			return eResult;
-		}
-	}
-	else
-	{
-		eResult = FAT_UNKNOWN_ERROR;
-		uiNewClusterInVolume = mpcVolume->FatAllocateDataCluster(uiClustersNeeded, 1, &eResult);
-		if (eResult != FAT_SUCCESS)
-		{
-			msFile.bBusy = 0;
-			return eResult;
-		}
-	}
-
-	// find out how many clusters are allocated sequentially
-	// to this file following the current cursor location
 	uiCursorClusterInVolume = CalculateFirstCluster();
-
-	while (!mpcVolume->FatIsEOFEntry(uiCursorClusterInVolume))
+	eResult = mpcVolume->Allocate(uiClustersNeeded, uiCursorClusterInVolume, &uiNewClusterInVolume);
+	if (eResult != FAT_SUCCESS)
 	{
-		// calculate the start and end address the cluster
-		uiStartSector = mpcVolume->CalculateFirstSectorOfCluster(uiCursorClusterInVolume);
-		uiEndSector = uiStartSector + mpcVolume->GetNoOfSectorsPerCluster();
-
-		// find the last sequential sector after this address
-		while (!mpcVolume->FatIsEOFEntry(uiCursorClusterInVolume))
-		{
-			eResult = GetNextClusterEntry(__METHOD__, uiCursorClusterInVolume, &uiNextCluster);
-			if (eResult != FAT_SUCCESS)
-			{
-				msFile.bBusy = 0;
-				return eResult;
-			}
-
-			if (uiNextCluster == (uiCursorClusterInVolume + 1))
-			{
-				uiEndSector += mpcVolume->GetNoOfSectorsPerCluster();
-				uiCursorClusterInVolume = uiNextCluster;
-			}
-			else
-			{
-				uiCursorClusterInVolume = uiNextCluster;
-				break;
-			}
-		}
-
-		// pre-erase the clusters
-		mpcVolume->Erase(uiStartSector, uiEndSector - 1);
+		msFile.bBusy = false;
+		return eResult;
 	}
 
-	// if this is the 1st cluster cluster allocated to the file then we must modify the file's entry
-	if ((msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord == 0) && (msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord == 0))
+	eResult = mpcVolume->UpdateDirectoryEntry(&msFile.sDirectoryEntry, uiCursorClusterInVolume, uiNewClusterInVolume, uiClustersInFile);
+	if (eResult != FAT_SUCCESS)
 	{
-		// modify the file entry to point to the new cluster
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiNewClusterInVolume);
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiNewClusterInVolume);
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_ARCHIVE;
-
-		// mark the cached sector as unknown
-		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
-
-		// try load the sector that contains the entry
-		eResult = ReadFatSector(__METHOD__, msFile.sDirectoryEntry.uiSectorAddress);
-		if (eResult != FAT_SUCCESS)
-		{
-			msFile.bBusy = 0;
-			return eResult;
-		}
-
-		// copy the modified file entry to the sector buffer
-		uint8* pvBuffer = mpcVolume->GetFatSharedBuffer();
-		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
-		mpcVolume->mbEntriesUpdated = true;
-
-		// write the modified entry to the media
-		eResult = mpcVolume->FatFlushFatSector();
-		if (eResult != FAT_SUCCESS)
-		{
-			msFile.bBusy = 0;
-			return eResult;
-		}
-	}
-	else
-	{
-		// if there are clusters allocated to the file update the last FAT entry
-		// of the file to point to the newly allocated cluster(s)
-
-		uint32 uiEndClusterIndex;
-
-		if (uiClustersInFile != 0)
-		{
-			eResult = FatIncreaseClusterAddress(__METHOD__, msFile.uiCursorClusterInVolume, uiClustersInFile, &uiEndClusterIndex);
-			if (eResult != FAT_SUCCESS)
-			{
-				msFile.bBusy = 0;
-				return FAT_CORRUPTED_FILE;
-			}
-		}
-		else
-		{
-			uiEndClusterIndex = msFile.uiCursorClusterInVolume;
-		}
-
-		// set the FAT entry for the last cluster to the beggining of the newly allocated cluster chain (ie. link them).
-		eResult = FatSetClusterEntry(__METHOD__, uiEndClusterIndex, (fatEntry)uiNewClusterInVolume);
-		if (eResult != FAT_SUCCESS)
-		{
-			msFile.bBusy = 0;
-			return eResult;
-		}
+		msFile.bBusy = false;
+		return eResult;
 	}
 
 	// update the file to point to the new cluster
@@ -605,11 +439,11 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	msFile.uiCursorClusterInVolume = CalculateFirstCluster();
 
 	// if the file occupies more than one cluster
-	if (uiSectorIndexInFile > mpcVolume->GetNoOfSectorsPerCluster())
+	if (uiSectorIndexInFile > mpcVolume->NumSectorsPerCluster())
 	{
 		// calculate the count of clusters occupied by the file and
 		// update the ClustersAllocated value of the file
-		uiClusterIndex = ((uiSectorIndexInFile + mpcVolume->GetNoOfSectorsPerCluster() - 1) / mpcVolume->GetNoOfSectorsPerCluster()) - 1;
+		uiClusterIndex = ((uiSectorIndexInFile + mpcVolume->NumSectorsPerCluster() - 1) / mpcVolume->NumSectorsPerCluster()) - 1;
 
 		// set the file file to point to the last cluster. if the file doesn't have
 		// that many clusters allocated this function will return 0. if that ever happens it means
@@ -851,7 +685,6 @@ bool CFatFile::IsFat32Volume(void)
 EFatCode CFatFile::FatFileFlush(void)
 {
 	uint32		uiSectorAddress = 0;
-	EFatCode	eResult;
 
 	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -881,31 +714,17 @@ EFatCode CFatFile::FatFileFlush(void)
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
 
 		// try load the sector that contains the entry
-		mpcVolume->SetFatSharedBufferSector(FAT_UNKNOWN_SECTOR);
-
-		eResult = ReadFatSector(__METHOD__, msFile.sDirectoryEntry.uiSectorAddress);
-		if (eResult != FAT_SUCCESS)
+		uint8*	pvBuffer;
+		pvBuffer = mpcVolume->ReadInfoSector(msFile.sDirectoryEntry.uiSectorAddress);
+		if (pvBuffer == NULL)
 		{
 			msFile.bBusy = 0;
-			return eResult;
+			return FAT_CANNOT_READ_MEDIA;
 		}
 
 		// copy the modified file entry to the sector buffer
-		uint8* pvBuffer = mpcVolume->GetFatSharedBuffer();
 		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
-		mpcVolume->mbEntriesUpdated = true;
-
-		eResult = mpcVolume->FatFlushFatSector();
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-		gcLogger.Info2(__METHOD__, " File [", mszName, "] write sector [", IntToString(msFile.sDirectoryEntry.uiSectorAddress), "] returned [", BoolToString(bSuccess), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-		if (eResult != FAT_SUCCESS)
-		{
-			msFile.bBusy = 0;
-			return eResult;
-		}
+		mpcVolume->SetInfoSectorDirty(pvBuffer);
 
 		// mark the file file as not bBusy
 		msFile.bBusy = 0;
@@ -962,7 +781,7 @@ EFatCode CFatFile::Close(void)
 
 		if (!mpcVolume->FatIsEOFEntry(uiFatEntry))
 		{
-			eResult = mpcVolume->FatFreeClusterChain(uiFatEntry);
+			eResult = mpcVolume->FreeChain(uiFatEntry);
 			if (eResult != FAT_SUCCESS)
 			{
 				mcCache.Kill();
@@ -983,7 +802,7 @@ EFatCode CFatFile::Close(void)
 				uiFatEntry = FAT32_EOC;
 				break;
 			}
-			eResult = FatSetClusterEntry(__METHOD__, msFile.uiCursorClusterInVolume, uiFatEntry);
+			eResult = mpcVolume->FatSetClusterEntry(msFile.uiCursorClusterInVolume, uiFatEntry);
 			if (eResult != FAT_SUCCESS)
 			{
 				mcCache.Kill();
@@ -1014,131 +833,6 @@ char* CFatFile::GetShortFileName(void)
 	{
 		return mszName;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatIncreaseClusterAddress(char* szMethod, uint32 uiClusterIndex, uint16 uiCount, uint32* puiNewClusterIndex)
-{
-	EFatCode eResult;
-
-	eResult = mpcVolume->FatIncreaseClusterAddress(uiClusterIndex, uiCount, puiNewClusterIndex);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " Filename [", GetShortFileName(), "] increase cluster address for [", IntToString(uiCluster), "] and count [", IntToString(uiCount), "] increased to [", IntToString(*puiNewClusterInVolume), "] and returned [", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::GetNextClusterEntry(char* szMethod, uint32 uiCurrentCluster, uint32* puiNextCluster)
-{
-	EFatCode eResult;
-
-	eResult = mpcVolume->GetNextClusterEntry(uiCurrentCluster, puiNextCluster);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] get next cluster entry for cluster [", IntToString(uiCurrentCluster), "] found cluster [", IntToString(*puiNextCluster), "] and returned code [", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatGetFileEntry(char* szMethod, char* szPath, SFatDirectoryEntry* psEntry)
-{
-	EFatCode eResult;
-
-	eResult = mpcVolume->FatGetFileEntry(szPath, psEntry);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] get file entry for path [", StringToString(szPath), "] found [", FatEntryToString(psEntry, IsFat32Volume()), "] returned code[", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatSetClusterEntry(char* szMethod, uint32 uiClusterIndex, fatEntry uiClusterInVolume)
-{
-	EFatCode eResult;
-
-	eResult = mpcVolume->FatSetClusterEntry(uiClusterIndex, uiClusterInVolume);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] set cluster [", IntToString(uiCluster), "] FAT entry [", IntToString(uiFatEntry), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ReadFatSector(char* szMethod, uint32 uiFatSector)
-{
-	EFatCode	eResult;
-
-	eResult = mpcVolume->FatReadFatSector(uiFatSector);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", mszName, "] read FAT sector [", IntToString(uiFatSector), "] returned [", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-		
-	return eResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FlushFatSector(char* szMethod)
-{
-	EFatCode	eResult;
-
-	eResult = mpcVolume->FatFlushFatSector();
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", mszName, "] flsuh FAT sector returned [", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-	return eResult;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatCreateDirectoryEntry(char* szMethod, SFatRawDirectoryEntry* psParentEntry, char* szName, SFatDirectoryEntry* psDirectoryEntry)
-{
-	EFatCode	eResult;
-
-	eResult = mpcVolume->FatCreateDirectoryEntry(psParentEntry, szName, 0, 0, psDirectoryEntry);
-
-#ifdef __LOG_FAT_VOLUME_CALLS__
-	gcLogger.Info2(__METHOD__, " File [", GetShortFileName(), "] create directory [", pcFilenameScanner, "] for parenty entry [", FatEntryToString(&sParentEntry, IsFat32Volume()), "] created [", FatEntryToString(&sFileEntry, IsFat32Volume()), "] and returned code [", FatCodeToString(eResult), "].", NULL);
-#endif // __LOG_FAT_VOLUME_CALLS__
-
-	return eResult;
 }
 
 

@@ -20,6 +20,7 @@ public:
 	void*	GetCache(void);
 	void	Lock(void);
 	void	Unlock(void);
+	void	Dirty(void);
 };
 
 
@@ -43,6 +44,8 @@ public:
 	uint16				GetNumAllocatedSectors(void);
 	uint16				GetNumCachedSectors(void);
 	uint16				GetLockedCachedSectors(void);
+	void				Dirty(void* pvSectorCache);
+	bool				Flush(void);
 
 protected:
 	CFatSectorCache*	AddNewCache(void);
