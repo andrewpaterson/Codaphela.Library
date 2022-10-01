@@ -31,14 +31,9 @@ void PrintInterestingFATClusters(CFatVolume* pcVolume)
 	szNumber.Init();
 	szSector.Init();
 	uiRow = 0;
-	for (uiClusterIndex = 0; uiClusterIndex < pcVolume->GetNoOfClusters(); uiClusterIndex++)
+	for (uiClusterIndex = 0; uiClusterIndex < pcVolume->GetNumClusters(); uiClusterIndex++)
 	{
 		pcVolume->CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiSector);
-		eResult = pcVolume->FatReadFatSector(uiSector);
-		if (eResult != FAT_SUCCESS)
-		{
-			break;
-		}
 
 		eResult = pcVolume->ReadFatEntry(uiOffsetInSector, uiClusterIndex, uiSector, &uiEntry);
 		if (eResult != FAT_SUCCESS)
@@ -169,21 +164,31 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 	SFatRawDirectoryEntry*	psEntry;
 	uint32					uiSectorCount;
 	char					szShortName[13];
+	uint8*					pvSector;
+	uint16					uiEntryCount;
+	uint16					uiEntriesPerSector;
 	
 	uiCluster = pcVolume->GetRootCluster();
 	uiSector = pcVolume->GetRootSector();
 
-	eResult = pcVolume->FatReadFatSector(uiSector);
-	RETURN_ON_FAT_FAILURE(eResult);
+	pvSector = pcVolume->ReadInfoSector(uiSector);
+	if (pvSector == NULL)
+	{
+		return FAT_CANNOT_READ_MEDIA;
+	}
+
 
 	uiSectorCount = 0;
+	uiEntryCount = 0;
+	uiEntriesPerSector = (pcVolume->GetSectorSize() - 0x20) / sizeof(SFatRawDirectoryEntry);
 	memset(szShortName, '\0', 13);
-	psEntry = (SFatRawDirectoryEntry*)pcVolume->mauiFatSharedBuffer;
+	psEntry = (SFatRawDirectoryEntry*)pvSector;
 	for (;;)
 	{
-		if (((uintptr_t)psEntry - (uintptr_t)pcVolume->mauiFatSharedBuffer) == pcVolume->GetSectorSize() - 0x20)
+		if (uiEntryCount == uiEntriesPerSector)
 		{
-			if (uiSectorCount == pcVolume->GetNoOfSectorsPerCluster() - 1)
+			uiEntryCount = 0;
+			if (uiSectorCount == pcVolume->NumSectorsPerCluster() - 1)
 			{
 				eResult = pcVolume->GetNextClusterEntry(uiCluster, &uiCluster);
 				RETURN_ON_FAT_FAILURE(eResult);
@@ -200,8 +205,16 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 				uiSectorCount++;
 				uiSector++;
 			}
-			eResult = pcVolume->FatReadFatSector(uiSector);
-			psEntry = (SFatRawDirectoryEntry*)pcVolume->mauiFatSharedBuffer;
+			pvSector = pcVolume->ReadInfoSector(uiSector);
+			if (pvSector == NULL)
+			{
+				return FAT_CANNOT_READ_MEDIA;
+			}
+			psEntry = (SFatRawDirectoryEntry*)pvSector;
+		}
+		else
+		{
+			uiEntryCount++;
 		}
 
 		if (!(psEntry->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY))

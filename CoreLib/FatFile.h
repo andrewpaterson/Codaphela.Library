@@ -24,10 +24,10 @@ struct SFatFile
 class CFatFile
 {
 protected:
-	SFatFile		msFile;
-	CFatVolume*		mpcVolume;
+	SFatFile				msFile;
+	CFatVolume*				mpcVolume;
 	CFatClusterCache		mcCache;
-	char			mszName[FAT_MAX_FILENAME];
+	char					mszName[FAT_MAX_FILENAME];
 
 public:
 	void		Init(CFatVolume* pcVolume);
@@ -57,13 +57,6 @@ protected:
 	uint32		CalculateFirstCluster(void);
 
 	char*		GetShortFileName(void);
-	EFatCode	FatIncreaseClusterAddress(char* szMethod, uint32 uiClusterIndex, uint16 uiCount, uint32* puiNewClusterIndex);
-	EFatCode	GetNextClusterEntry(char* szMethod, uint32 uiCurrentCluster, uint32* puiNextCluster);
-	EFatCode	FatGetFileEntry(char* szMethod, char* path, SFatDirectoryEntry* sEntry);
-	EFatCode	FatSetClusterEntry(char* szMethod, uint32 uiClusterIndex, fatEntry uiClusterInVolume);
-	EFatCode	ReadFatSector(char* szMethod, uint32 uiFatInfoSector);
-	EFatCode	FlushFatSector(char* szMethod);
-	EFatCode	FatCreateDirectoryEntry(char* szMethod, SFatRawDirectoryEntry* psParentEntry, char* szName, SFatDirectoryEntry* psDirectoryEntry);
 };
 
 
