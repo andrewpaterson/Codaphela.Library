@@ -14,11 +14,11 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 {
 	SFatBIOSParameterBlock* psBPB;
 	uint32					uiHiddenSectors = 0;
-	SFatPartitionEntry*		sPartitionEntry;
+	SFatPartitionEntry*		psPartitionEntry;
 	uint8					uiPartitionsTried = 0;
 	uint32					uiFileSystemInfoSector;
-	uint8* pvMBRSector;
-	uint8* pvLBASector;
+	uint8*					pvMBRSector;
+	uint8*					pvLBASector;
 
 	mcSectorCache.Init(device, 3);
 
@@ -36,7 +36,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 	mcSectorCache.Lock(pvMBRSector);
 
 	// set the partition sEntry pointer
-	sPartitionEntry = (SFatPartitionEntry*)(pvMBRSector + 0x1BE);
+	psPartitionEntry = (SFatPartitionEntry*)(pvMBRSector + 0x1BE);
 
 	for (;;)
 	{
@@ -54,21 +54,21 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			if (uiPartitionsTried > 1)
 			{
 				// move to the next partition sEntry
-				sPartitionEntry++;
+				psPartitionEntry++;
 			}
 
 			// remember how many sectors before this partition
-			uiHiddenSectors = sPartitionEntry->lba_first_sector;
+			uiHiddenSectors = psPartitionEntry->lba_first_sector;
 
 			// make sure the partition doesn't exceeds the physical boundries of the device
-			if (sPartitionEntry->lba_first_sector + sPartitionEntry->total_sectors > mpcDevice->GetTotalSectors())
+			if (psPartitionEntry->lba_first_sector + psPartitionEntry->total_sectors > mpcDevice->GetTotalSectors())
 			{
 				uiPartitionsTried++;
 				continue;
 			}
 
 			// retrieve the 1st sector of partition
-			pvLBASector = (uint8*)mcSectorCache.ReadSector(sPartitionEntry->lba_first_sector);
+			pvLBASector = (uint8*)mcSectorCache.ReadSector(psPartitionEntry->lba_first_sector);
 			if (pvLBASector == NULL)
 			{
 				mcSectorCache.Unlock(pvMBRSector);
@@ -102,9 +102,9 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 		// make sure that SecPerClus is a power of two
 		uint16 uiResult = psBPB->BPB_SecPerClus;
-		while (uiResult != 0x1)
+		while (uiResult != 1)
 		{
-			if (uiResult & 0x1)
+			if (uiResult & 1)
 			{
 				uiPartitionsTried++;
 				continue;
@@ -227,7 +227,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		SFatFileSystemInfo* psFileSystemInfo;
 
 		// read the sector containing the FSInfo structure
-		pvFSInfoSector = (uint8*)mcSectorCache.ReadSector(sPartitionEntry->lba_first_sector);
+		pvFSInfoSector = (uint8*)mcSectorCache.ReadSector(psPartitionEntry->lba_first_sector);
 		if (pvFSInfoSector == NULL)
 		{
 			mcSectorCache.Unlock(pvMBRSector);
@@ -273,9 +273,9 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Unmount(void)
 {
-	SFatFileSystemInfo* psFileSystemInfo;
+	SFatFileSystemInfo*		psFileSystemInfo;
 	EFatCode				eResult;
-	uint8* pvBuffer;
+	uint8*					pvBuffer;
 
 	// if this is a FAT32 volume we'll update the psFileSystemInfo structure
 	if (eFileSystem == FAT_FS_TYPE_FAT32 && uiFileSystemInfoSector != 0xFFFFFFFF)
@@ -311,6 +311,8 @@ EFatCode CFatVolume::Unmount(void)
 		eResult = Flush();
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
+
+	mcSectorCache.Kill();
 	return FAT_SUCCESS;
 }
 
@@ -424,6 +426,8 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 	uiEntryCount = 0;
 	uiEntriesPerSector = (GetSectorSize() - 0x20) / sizeof(SFatRawDirectoryEntry);
 
+	uiEntryCount = psQuery->sCurrentEntryRaw - psQuery->sFirstEntryRaw;
+
 	do
 	{
 		// if the current entry is the last entry of the sector...
@@ -506,7 +510,6 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 			// if there are more entries on the current sector...
 			else
 			{
-				// simply increase the current sEntry pointer
 				psQuery->sCurrentEntryRaw++;
 				uiEntryCount++;
 			}
@@ -3740,7 +3743,8 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 
 		// set the current entry to the entry that we've just found
 		psCurrentEntry = sQuery.sCurrentEntryRaw;
-	} while (szPath[0] != '\0');
+	} 
+	while (szPath[0] != '\0');
 
 	// copy the filename and transform the filename
 	// from the internal structure to the public one
