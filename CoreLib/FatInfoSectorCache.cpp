@@ -177,14 +177,16 @@ CFatSectorCache* CFatInfoSectorCache::GetOrCacheSector(uint32 uiInfoSector)
 		pcCachedSector = AddNewCache();
 		return InitialiseCache(uiInfoSector, pcCachedSector);
 	}
-
-	bSuccess = FlushCache(pcCachedSector);
-	if (!bSuccess)
+	else
 	{
-		return NULL;
+		bSuccess = FlushCache(pcOldestUnlockedSector);
+		if (!bSuccess)
+		{
+			return NULL;
+		}
+		return InitialiseCache(uiInfoSector, pcOldestUnlockedSector);
 	}
 
-	return InitialiseCache(uiInfoSector, pcCachedSector);
 }
 
 

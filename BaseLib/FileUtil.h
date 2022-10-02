@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __FILE_UTIL_H__
 #define __FILE_UTIL_H__
-#include "Define.h"
 #include "Numbers.h"
 #include "Chars.h"
 #include "ArrayChars.h"
