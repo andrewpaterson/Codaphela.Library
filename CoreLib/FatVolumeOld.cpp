@@ -1968,7 +1968,7 @@ EFatCode CFatVolumeOld::FatWriteFatSector(uint32 uiSectorAddress, uint8* puiBuff
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolumeOld::FatFindFirstEntry(char* szParentPath, uint8 attributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* query)
+EFatCode CFatVolumeOld::FindFirstFATEntry(char* szParentPath, uint8 attributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* query)
 {
 	EFatCode			eResult;
 	SFatDirectoryEntry	sParentEntry;
@@ -1987,7 +1987,7 @@ EFatCode CFatVolumeOld::FatFindFirstEntry(char* szParentPath, uint8 attributes, 
 	if (szParentPath != NULL)
 	{
 		// try to get the entry for the parent
-		eResult = FatGetFileEntry(szParentPath, &sParentEntry);
+		eResult = GetFileEntry(szParentPath, &sParentEntry);
 		RETURN_ON_FAT_FAILURE(eResult);
 
 		// try to get the 1st sEntry of the
@@ -2066,7 +2066,7 @@ EFatCode CFatVolumeOld::FatFindFirstEntry(char* szParentPath, uint8 attributes, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolumeOld::FatFindNextEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* query)
+EFatCode CFatVolumeOld::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* query)
 {
 	EFatCode				uiResult;
 
@@ -2173,7 +2173,7 @@ EFatCode CFatVolumeOld::FatCreateDirectory(char* directory)
 	}
 
 	// try get the file sEntry
-	uiResult = FatGetFileEntry(directory, &sEntry);
+	uiResult = GetFileEntry(directory, &sEntry);
 	if (uiResult != FAT_SUCCESS)
 	{
 		return uiResult;
@@ -2227,9 +2227,9 @@ EFatCode CFatVolumeOld::FatCreateDirectory(char* directory)
 		path_scanner++;
 
 		// try to get the sEntry for the parent directory
-		uiResult = FatGetFileEntry(file_path, &sParentEntry);
+		uiResult = GetFileEntry(file_path, &sParentEntry);
 
-		// if FatGetFileEntry returned an error
+		// if GetFileEntry returned an error
 		// then we return the error code to the calling
 		// function
 		if (uiResult != FAT_SUCCESS)
@@ -2244,7 +2244,7 @@ EFatCode CFatVolumeOld::FatCreateDirectory(char* directory)
 		}
 
 		// try to create the directory sEntry
-		return FatCreateDirectoryEntry(&sParentEntry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &sEntry);
+		return CreateFATEntry(&sParentEntry.raw, path_scanner, FAT_ATTR_DIRECTORY, 0, &sEntry);
 	}
 
 	// if we get here it means that a file or
@@ -2353,7 +2353,7 @@ EFatCode CFatVolumeOld::MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolumeOld::FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
+EFatCode CFatVolumeOld::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 {
 	EFatCode				eResult;
 	bool					bMatch;
@@ -2794,7 +2794,7 @@ EFatCode CFatVolumeOld::FatQueryNextEntry(SFatQueryState* psQuery, bool bBufferL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolumeOld::FatCreateDirectoryEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
+EFatCode CFatVolumeOld::CreateFATEntry(SFatRawDirectoryEntry* parent, char* name, uint8 attribs, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode						eResult;
 	uint16							uiLength;
@@ -3283,7 +3283,7 @@ EFatCode CFatVolumeOld::FatFileDelete(char* filename)
 
 
 	// get the sEntry for the file
-	eResult = FatGetFileEntry(filename, &sEntry);
+	eResult = GetFileEntry(filename, &sEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	FlushAndInvalidate();
@@ -3326,7 +3326,7 @@ EFatCode CFatVolumeOld::FatFileDelete(char* filename)
 	FatParsePath(filename, szPathPart, &szNamePart);
 
 	// get the 1st LFN sEntry of the parent directory
-	eResult = FatFindFirstEntry(szPathPart, FAT_ATTR_LONG_NAME, 0, &query);
+	eResult = FindFirstFATEntry(szPathPart, FAT_ATTR_LONG_NAME, 0, &query);
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	// loop through each sEntry.
@@ -3347,7 +3347,7 @@ EFatCode CFatVolumeOld::FatFileDelete(char* filename)
 		}
 
 		// get the next LFN sEntry
-		eResult = FatFindNextEntry(0, &query);
+		eResult = FindNextFATEntry(0, &query);
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
 
@@ -3376,14 +3376,14 @@ EFatCode CFatVolumeOld::FatFileRename(char* szOriginalFilename, char* szNewFilen
 	FatParsePath(szNewFilename, szNewParent, &szNewFilenamePart);
 
 	// try to get the new sEntry to see if it exists.
-	FatGetFileEntry(szNewFilename, &sNewEntry);
+	GetFileEntry(szNewFilename, &sNewEntry);
 	if (*sNewEntry.name != 0)
 	{
 		return FAT_FILENAME_ALREADY_EXISTS;
 	}
 
 	// get the directory sEntry
-	FatGetFileEntry(szOriginalFilename, &sOriginalEntry);
+	GetFileEntry(szOriginalFilename, &sOriginalEntry);
 
 	if (*sOriginalEntry.name != 0)
 	{
@@ -3396,11 +3396,11 @@ EFatCode CFatVolumeOld::FatFileRename(char* szOriginalFilename, char* szNewFilen
 		uiEntryCluster = GetFirstClusterFromFatEntry(&sOriginalEntry.raw, GetFileSystemType() == FAT_FS_TYPE_FAT32);
 
 		// get the new parent sEntry
-		eResult = FatGetFileEntry(szNewParent, &parent);
+		eResult = GetFileEntry(szNewParent, &parent);
 		RETURN_ON_FAT_FAILURE(eResult);
 
 		// create the new sEntry in the parent folder
-		eResult = FatCreateDirectoryEntry(&parent.raw, szNewFilenamePart, sOriginalEntry.attributes, uiEntryCluster, &sNewEntry);
+		eResult = CreateFATEntry(&parent.raw, szNewFilenamePart, sOriginalEntry.attributes, uiEntryCluster, &sNewEntry);
 		RETURN_ON_FAT_FAILURE(eResult);
 
 		// copy all info except name from the old sEntry to the new one
@@ -3435,7 +3435,7 @@ EFatCode CFatVolumeOld::FatFileRename(char* szOriginalFilename, char* szNewFilen
 	SFatFileSystemQuery query;
 
 	// get the 1st LFN sEntry of the parent directory
-	eResult = FatFindFirstEntry(szOriginalParent, FAT_ATTR_LONG_NAME, 0, &query);
+	eResult = FindFirstFATEntry(szOriginalParent, FAT_ATTR_LONG_NAME, 0, &query);
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	// loop through each sEntry.
@@ -3453,7 +3453,7 @@ EFatCode CFatVolumeOld::FatFileRename(char* szOriginalFilename, char* szNewFilen
 			mbEntriesUpdated = true;
 		}
 		// get the next LFN sEntry
-		eResult = FatFindNextEntry(0, &query);
+		eResult = FindNextFATEntry(0, &query);
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
 
@@ -3705,7 +3705,7 @@ char CFatVolumeOld::FatCompareLongName(uint16* name1, uint16* name2)
 
 
 // converts an 8.3 filename to the format required
-// by the FAT directory sEntry structure
+// by the FAT directory entry structure
 //////////////////////////////////////////////////////////////////////////
 //
 //

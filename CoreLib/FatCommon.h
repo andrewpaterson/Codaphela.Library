@@ -292,23 +292,23 @@ enum EFatFileSystemType
 };
 
 
-#define FAT12_EOC						( 0x0FFF )
-#define FAT16_EOC						( 0xFFFF )
-#define FAT32_EOC						( 0x0FFFFFFF )
-#define FAT12_BAD_CLUSTER				( 0x0FF7 )
-#define FAT16_BAD_CLUSTER				( 0xFFF7 )
-#define FAT32_BAD_CLUSTER				( 0x0FFFFFF7 )
-#define FAT16_CLEAN_SHUTDOWN			( 0x8000 )
-#define FAT32_CLEAN_SHUTDOWN			( 0x08000000 )
-#define FAT16_HARD_ERROR				( 0x4000 )
-#define FAT32_HARD_ERROR				( 0x04000000 )
-#define FAT32_CUTOVER					( 1024 )
-#define FREE_FAT						( 0x0000 )
-#define ILLEGAL_CHARS_COUNT 			( 0x10 )
-#define BACKSLASH						( 0x5C )
-#define FAT_OPEN_HANDLE_MAGIC			( 0x4B )
-#define FAT_DELETED_ENTRY				( 0xE5 )
-#define FAT_UNKNOWN_SECTOR				( 0xFFFFFFFF )
+#define FAT12_EOC					0x0FFF
+#define FAT16_EOC					0xFFFF
+#define FAT32_EOC					0x0FFFFFFF
+#define FAT12_BAD_CLUSTER			0x0FF7
+#define FAT16_BAD_CLUSTER			0xFFF7
+#define FAT32_BAD_CLUSTER			0x0FFFFFF7
+#define FAT16_CLEAN_SHUTDOWN		0x8000
+#define FAT32_CLEAN_SHUTDOWN		0x08000000
+#define FAT16_HARD_ERROR			0x4000
+#define FAT32_HARD_ERROR			0x04000000
+#define FREE_FAT					0x0000
+#define ILLEGAL_CHARS_COUNT 		0x10
+#define BACKSLASH					0x5C
+#define FAT_OPEN_HANDLE_MAGIC		0x4B
+#define FAT_KANJI_SKIP_ENTRY		0x05
+#define FAT_DELETED_ENTRY			0xE5
+#define FAT_UNKNOWN_SECTOR			0xFFFFFFFF
 
 
 // macros for checking if a directory entry is free and if it's the last entry on the directory

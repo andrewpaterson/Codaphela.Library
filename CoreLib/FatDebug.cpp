@@ -223,7 +223,7 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 			{
 				if (psEntry->uEntry.sFatRawCommon.szShortName[0] != '\0')
 				{
-					pcVolume->FatGetShortNameFromEntry((uint8*)szShortName, psEntry->uEntry.sFatRawCommon.szShortName);
+					ConvertFATShortInternalNameInto8Dot3Format((uint8*)szShortName, psEntry->uEntry.sFatRawCommon.szShortName);
 
 					psz->Append("---------------------------------------");
 					psz->AppendNewLine();

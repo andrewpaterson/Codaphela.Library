@@ -109,13 +109,13 @@ public:
 	uint8*				ReadInfoSector(uint32 uiFatInfoSector);
 	void				SetInfoSectorDirty(uint8* pvCachedSector);
 
-	EFatCode			FatFindFirstEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
-	EFatCode			FatFindNextEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
+	EFatCode			FindFirstFATEntry(char* parent_path, uint8 attributes, SFatDirectoryEntry** dir_entry, SFatFileSystemQuery* q);
+	EFatCode			FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	void				FatFillDirectoryEntryFromRaw(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 	EFatCode			FatCreateDirectory(char* szDirectory);
-	EFatCode			FatGetFileEntry(char* szPath, SFatDirectoryEntry* psEntry);
+	EFatCode			GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry);
 	EFatCode			FatQueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, bool bBufferLocked);
-	EFatCode			FatCreateDirectoryEntry(SFatRawDirectoryEntry* psParent, char* szName, uint8 attribs, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
+	EFatCode			CreateFATEntry(SFatRawDirectoryEntry* psParent, char* szName, uint8 attribs, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
 	EFatCode			FatQueryNextEntry(SFatQueryState* query, bool bBufferLocked, bool bFirstEntry);
 
 	void				FatGetShortNameFromEntry(uint8* dest, const uint8* src);

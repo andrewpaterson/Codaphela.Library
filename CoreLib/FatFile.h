@@ -52,7 +52,6 @@ protected:
 	EFatCode	FatFileFlush(void);
 
 	bool		IsFat32Volume(void);
-	EFatCode	FatFileUpdateSequentialClusterCount(uint32 uiCursorClusterInVolume);
 	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
 	uint32		CalculateFirstCluster(void);
 
