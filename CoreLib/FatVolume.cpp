@@ -10,30 +10,69 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Mount(CFileDrive* device)
+bool CFatVolume::CheckFileAllocationTableLargeEnough(uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector)
+{
+	switch (eFileSystem)
+	{
+		case FAT_FS_TYPE_FAT12:
+		{
+			if (uiFatSize < (((uiNoOfClusters + (uiNoOfClusters >> 1)) + uiBytesPerSector - 1) / uiBytesPerSector))
+			{
+				return false;
+			}
+			break;
+		}
+		case FAT_FS_TYPE_FAT16:
+		{
+			if (uiFatSize < (((uiNoOfClusters * 2) + uiBytesPerSector - 1) / uiBytesPerSector))
+			{
+				return false;
+			}
+			break;
+		}
+		case FAT_FS_TYPE_FAT32:
+		{
+			if (uiFatSize < (((uiNoOfClusters * 4) + uiBytesPerSector - 1) / uiBytesPerSector))
+			{
+				return false;
+			}
+			break;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster)
+{
+	while (uiSectorsPerCluster != 1)
+	{
+		if (uiSectorsPerCluster & 1)
+		{
+			return false;
+		}
+		uiSectorsPerCluster >>= 1;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::FindBiosParameterBlock(uint32* puiFat32FileSystemInfoSector, uint8* pvMBRSector)
 {
 	SFatBIOSParameterBlock* psBPB;
 	uint32					uiHiddenSectors = 0;
 	SFatPartitionEntry*		psPartitionEntry;
 	uint8					uiPartitionsTried = 0;
 	uint32					uiFileSystemInfoSector;
-	uint8*					pvMBRSector;
 	uint8*					pvLBASector;
-
-	mcSectorCache.Init(device, 3);
-
-	// set the null terminator.
-
-	// save the storage device handle
-	mpcDevice = device;
-
-	pvMBRSector = (uint8*)mcSectorCache.ReadSector(0);
-	if (pvMBRSector == NULL)
-	{
-		return FAT_CANNOT_READ_MEDIA;
-	}
-
-	mcSectorCache.Lock(pvMBRSector);
 
 	// set the partition sEntry pointer
 	psPartitionEntry = (SFatPartitionEntry*)(pvMBRSector + 0x1BE);
@@ -46,11 +85,10 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			// if we've already tried all 4 partitions then we're out of luck
 			if (uiPartitionsTried > 4)
 			{
-				mcSectorCache.Unlock(pvMBRSector);
 				return FAT_INVALID_FAT_VOLUME;
 			}
 
-			// if we've tried to mount a partition mpsVolume (not the unpartioned one) then we must reload sector 0 (MBR)
+			// if we've tried to mount a partition volume (not the unpartioned one) then we must reload sector 0 (MBR)
 			if (uiPartitionsTried > 1)
 			{
 				// move to the next partition sEntry
@@ -71,7 +109,6 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			pvLBASector = (uint8*)mcSectorCache.ReadSector(psPartitionEntry->lba_first_sector);
 			if (pvLBASector == NULL)
 			{
-				mcSectorCache.Unlock(pvMBRSector);
 				return FAT_CANNOT_READ_MEDIA;
 			}
 
@@ -88,7 +125,6 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		// allows do not mount the mpsVolume
 		if (psBPB->BPB_BytsPerSec > MAX_SECTOR_LENGTH)
 		{
-			mcSectorCache.Unlock(pvMBRSector);
 			return FAT_SECTOR_SIZE_NOT_SUPPORTED;
 		}
 
@@ -100,16 +136,10 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 			continue;
 		}
 
-		// make sure that SecPerClus is a power of two
-		uint16 uiResult = psBPB->BPB_SecPerClus;
-		while (uiResult != 1)
+		if (!CheckSectorsPerClusterIsPowerOfTwo(psBPB->BPB_SecPerClus))
 		{
-			if (uiResult & 1)
-			{
-				uiPartitionsTried++;
-				continue;
-			}
-			uiResult >>= 1;
+			uiPartitionsTried++;
+			continue;
 		}
 
 		// get all the info we need from BPB
@@ -124,38 +154,18 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		uiNoOfSectorsPerCluster = psBPB->BPB_SecPerClus;
 		uiNoOfFatTables = psBPB->BPB_NumFATs;
 		uiFileSystemInfoSector = psBPB->uFatEx.sFat32.BPB_FSInfo;
-		uiBytesPerCluster =  uiBytesPerSector * uiNoOfSectorsPerCluster;
+		uiBytesPerCluster = uiBytesPerSector * uiNoOfSectorsPerCluster;
 
 		// determine the FAT file system type
 		eFileSystem = (uiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (uiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
 
-		// sanity check that the FAT table is big enough
-		switch (eFileSystem)
+		if (!CheckFileAllocationTableLargeEnough(uiFatSize, uiNoOfClusters, uiBytesPerSector))
 		{
-		case FAT_FS_TYPE_FAT12:
-			if (uiFatSize < (((uiNoOfClusters + (uiNoOfClusters >> 1)) + psBPB->BPB_BytsPerSec - 1) / psBPB->BPB_BytsPerSec))
-			{
-				uiPartitionsTried++;
-				continue;
-			}
-			break;
-		case FAT_FS_TYPE_FAT16:
-			if (uiFatSize < (((uiNoOfClusters * 2) + psBPB->BPB_BytsPerSec - 1) / psBPB->BPB_BytsPerSec))
-			{
-				uiPartitionsTried++;
-				continue;
-			}
-			break;
-		case FAT_FS_TYPE_FAT32:
-			if (uiFatSize < (((uiNoOfClusters * 4) + psBPB->BPB_BytsPerSec - 1) / psBPB->BPB_BytsPerSec))
-			{
-				uiPartitionsTried++;
-				continue;
-			}
-			break;
+			uiPartitionsTried++;
+			continue;
 		}
 
-		// read the mpsVolume label from the boot sector
+		// read the volume label from the boot sector
 		if (eFileSystem == FAT_FS_TYPE_FAT16)
 		{
 			uiID = psBPB->uFatEx.sFat16.BS_VolID;
@@ -187,13 +197,12 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 		uint8	uiMedia = psBPB->BPB_Media;
 		uint32	uiFATSector;
-		uint8* pvFATSector;
+		uint8*	pvFATSector;
 
 		uiFATSector = uiNoOfReservedSectors;
 		pvFATSector = (uint8*)mcSectorCache.ReadSector(uiFATSector);
 		if (pvFATSector == NULL)
 		{
-			mcSectorCache.Unlock(pvMBRSector);
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
@@ -206,28 +215,73 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		break;
 	}
 
+	*puiFat32FileSystemInfoSector = psPartitionEntry->lba_first_sector;
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::Mount(CFileDrive* device)
+{
+	uint32					uiHiddenSectors = 0;
+	uint8					uiPartitionsTried = 0;
+	uint32					uiFileSystemInfoSector;
+	uint8*					pvMBRSector;
+	EFatCode				eResult;
+	uint32					uiFat32FileSystemInfoSector;
+
+	mcSectorCache.Init(device, 3);
+
+	// set the null terminator.
+
+	// save the storage device handle
+	mpcDevice = device;
+
+	pvMBRSector = (uint8*)mcSectorCache.ReadSector(0);
+	if (pvMBRSector == NULL)
+	{
+		return FAT_CANNOT_READ_MEDIA;
+	}
+
+	mcSectorCache.Lock(pvMBRSector);
+
+	eResult = FindBiosParameterBlock(&uiFat32FileSystemInfoSector, pvMBRSector);
+	if (eResult != FAT_SUCCESS)
+	{
+		mcSectorCache.Unlock(pvMBRSector);
+		return eResult;
+	}
+
 	// read volume label sEntry from the root directory (if any)
 	SFatQueryState	query;
-	uint8* pvFSInfoSector;
+	uint8*			pvFSInfoSector;
+	//EFatCode		eResult;
 
-	if (QueryFirstEntry(0, FAT_ATTR_VOLUME_ID, &query, 1) == FAT_SUCCESS)
+	eResult = QueryFirstEntry(0, FAT_ATTR_VOLUME_ID, &query, 1);
+	if (eResult == FAT_SUCCESS)
 	{
 		if (*query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0)
 		{
-			CChars	szLabel;
-			szLabel.Init((char*)query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, 0, 10);
-			szLabel.StripWhiteSpace();
+			if (query.sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_VOLUME_ID)
+			{
+				mszLabel.Kill();
+				mszLabel.Init((char*)query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, 0, 10);
+				mszLabel.StripWhiteSpace();
+			}
 		}
 	}
 	uiFileSystemInfoSector = 0xFFFFFFFF;
 
-	// if we find a valid psFileSystemInfo structure we'll use it
+	// if we find a valid FatFileSystemInfo structure we'll use it
 	if (eFileSystem == FAT_FS_TYPE_FAT32)
 	{
 		SFatFileSystemInfo* psFileSystemInfo;
 
 		// read the sector containing the FSInfo structure
-		pvFSInfoSector = (uint8*)mcSectorCache.ReadSector(psPartitionEntry->lba_first_sector);
+		pvFSInfoSector = (uint8*)mcSectorCache.ReadSector(uiFat32FileSystemInfoSector);
 		if (pvFSInfoSector == NULL)
 		{
 			mcSectorCache.Unlock(pvMBRSector);
@@ -420,22 +474,14 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 {
 	bool		bPass;
 	uint32		uiSectorAddress;
-	uint16		uiEntryCount;
-	uint16		uiEntriesPerSector;
-
-	uiEntryCount = 0;
-	uiEntriesPerSector = (GetSectorSize() - 0x20) / sizeof(SFatRawDirectoryEntry);
-
-	uiEntryCount = psQuery->sCurrentEntryRaw - psQuery->sFirstEntryRaw;
 
 	do
 	{
 		// if the current entry is the last entry of the sector...
 		if (!bFirstEntry)
 		{
-			if (uiEntryCount == uiEntriesPerSector)
+			if (((uintptr_t)psQuery->sCurrentEntryRaw - (uintptr_t)psQuery->sFirstEntryRaw) == GetSectorSize() - 0x20)
 			{
-				uiEntryCount = 0;
 				// if the current sector is the last of the current cluster then we must find the next
 				// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
 				// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
@@ -511,13 +557,11 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 			else
 			{
 				psQuery->sCurrentEntryRaw++;
-				uiEntryCount++;
 			}
 		}
 		else
 		{
 			bFirstEntry = false;
-			//uiEntryCount++; //?
 		}
 
 		// if this is a long filename sEntry...
@@ -1676,7 +1720,7 @@ EFatCode CFatVolume::IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32
 
 	if (*puiOffsetInSector == GetSectorSize() - 1)
 	{
-		*puiSector++;
+		(*puiSector)++;
 		*puiOffsetInSector = 0;
 		*pbFat12MultiStepProgress = true;
 
@@ -1684,7 +1728,7 @@ EFatCode CFatVolume::IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32
 	}
 	else if (!*pbFat12MultiStepProgress)
 	{
-		*puiOffsetInSector++;
+		(*puiOffsetInSector)++;
 	}
 
 	((uint8*)&puiClusterIndex)[1] = puiBuffer[*puiOffsetInSector];
@@ -2195,7 +2239,7 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiC
 		// so that we don't read the 1st byte again when we come back.
 		// also increase the sector number and set the uiOffsetInSector to 0 since
 		// the next byte will be on offset zero when the next sector is loaded
-		*puiSector++;
+		(*puiSector)++;
 		*puiOffsetInSector = 0;
 		*pbFat12MultiStepProgress = true;
 
@@ -2206,7 +2250,7 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiC
 	else if (!*pbFat12MultiStepProgress)
 	{
 		// increase the offset to point to the next byte
-		*puiOffsetInSector++;
+		(*puiOffsetInSector)++;
 	}
 
 	// read the 2nd byte

@@ -1613,7 +1613,7 @@ EFatCode CFatVolumeOld::Fat12IncreaseClusterAddress(uint32 uiClusterIndex, uint3
 		// so that we don't read the 1st byte again when we come back.
 		// also increase the sector number and set the uiOffsetInSector to 0 since
 		// the next byte will be on offset zero when the next sector is loaded
-		*puiFirstClusterSector++;
+		(*puiFirstClusterSector)++;
 		*puiOffsetInSector = 0;
 		*pbFat12MultiStepProgress = true;
 
@@ -1624,7 +1624,7 @@ EFatCode CFatVolumeOld::Fat12IncreaseClusterAddress(uint32 uiClusterIndex, uint3
 	else if (!*pbFat12MultiStepProgress)
 	{
 		// increase the offset to point to the next byte
-		*puiOffsetInSector++;
+		(*puiOffsetInSector)++;
 	}
 
 	// read the 2nd byte
