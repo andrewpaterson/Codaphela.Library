@@ -87,13 +87,6 @@ uint32 GetFirstClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat3
 //////////////////////////////////////////////////////////////////////////
 char* FatAttributeToString(uint8 uiAttribute)
 {
-#define FAT_ATTR_READ_ONLY				0x1
-#define FAT_ATTR_HIDDEN					0x2
-#define FAT_ATTR_SYSTEM					0x4
-#define FAT_ATTR_VOLUME_ID				0x8
-#define FAT_ATTR_DIRECTORY				0x10
-#define FAT_ATTR_ARCHIVE				0x20 
-
 	if (uiAttribute == FAT_ATTR_LONG_NAME)
 	{
 		return gaszFatAttributes[6];

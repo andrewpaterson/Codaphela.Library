@@ -136,6 +136,10 @@ protected:
 	EFatCode			MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);
 	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, bool bLFNDisabled);
 	void				FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
+
+	EFatCode			FindBiosParameterBlock(uint32* puiFat32FileSystemInfoSector, uint8* pvMBRSector);
+	bool				CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
+	bool				CheckFileAllocationTableLargeEnough(uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector);
 };
 
 

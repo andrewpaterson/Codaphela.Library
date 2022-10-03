@@ -162,11 +162,10 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 	uint32					uiCluster;
 	uint32					uiSector;
 	SFatRawDirectoryEntry*	psEntry;
+	SFatRawDirectoryEntry*	psFirstEntry;
 	uint32					uiSectorCount;
 	char					szShortName[13];
 	uint8*					pvSector;
-	uint16					uiEntryCount;
-	uint16					uiEntriesPerSector;
 	
 	uiCluster = pcVolume->GetRootCluster();
 	uiSector = pcVolume->GetRootSector();
@@ -179,15 +178,14 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 
 
 	uiSectorCount = 0;
-	uiEntryCount = 0;
-	uiEntriesPerSector = (pcVolume->GetSectorSize() - 0x20) / sizeof(SFatRawDirectoryEntry);
 	memset(szShortName, '\0', 13);
 	psEntry = (SFatRawDirectoryEntry*)pvSector;
+	psFirstEntry = (SFatRawDirectoryEntry*)pvSector;
+
 	for (;;)
 	{
-		if (uiEntryCount == uiEntriesPerSector)
+		if (((uintptr_t)psEntry - (uintptr_t)psFirstEntry) == pcVolume->GetSectorSize() - 0x20)
 		{
-			uiEntryCount = 0;
 			if (uiSectorCount == pcVolume->NumSectorsPerCluster() - 1)
 			{
 				eResult = pcVolume->GetNextClusterEntry(uiCluster, &uiCluster);
@@ -211,10 +209,6 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 				return FAT_CANNOT_READ_MEDIA;
 			}
 			psEntry = (SFatRawDirectoryEntry*)pvSector;
-		}
-		else
-		{
-			uiEntryCount++;
 		}
 
 		if (!(psEntry->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY))
@@ -296,6 +290,16 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 
 		psEntry++;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume)
+{
+	
 }
 
 
