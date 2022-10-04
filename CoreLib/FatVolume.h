@@ -9,25 +9,25 @@
 class CFatVolume
 {
 protected:
-	uint32					uiID;
-	uint32					uiFatSize;
-	uint32					uiRootCluster;
-	uint32					uiRootSector;
-	uint32					uiFirstDataSector;
-	uint32					uiNoOfSectors;
-	uint32					uiNoOfDataSectors;
-	uint32					uiNoOfClusters;
-	uint32					uiNoOfReservedSectors;
-	uint32					uiNextFreeCluster;
-	uint32					uiTotalFreeClusters;
-	uint32					uiFileSystemInfoSector;
-	uint32					uiBytesPerCluster;
-	uint16					uiRootDirectorySectors;
-	uint16					uiBytesPerSector;
-	uint16					uiNoOfSectorsPerCluster;
-	bool					bUseLongFilenames;
-	EFatFileSystemType		eFileSystem;
-	uint8					uiNoOfFatTables;
+	uint32					muiID;
+	uint32					muiFatSize;
+	uint32					muiRootCluster;
+	uint32					muiRootSector;
+	uint32					muiFirstDataSector;
+	uint32					muiNoOfSectors;
+	uint32					muiNoOfDataSectors;
+	uint32					muiNoOfClusters;
+	uint32					muiNoOfReservedSectors;
+	uint32					muiNextFreeCluster;
+	uint32					muiTotalFreeClusters;
+	uint32					muiFileSystemInfoSector;
+	uint32					muiBytesPerCluster;
+	uint16					muiRootDirectorySectors;
+	uint16					muiBytesPerSector;
+	uint16					muiNoOfSectorsPerCluster;
+	bool					mbUseLongFilenames;
+	EFatFileSystemType		meFileSystem;
+	uint8					muiNoOfFatTables;
 	CChars					mszLabel;
 
 	CFileDrive*				mpcDevice;
@@ -137,7 +137,7 @@ protected:
 	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, bool bLFNDisabled);
 	void				FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 
-	EFatCode			FindBiosParameterBlock(uint32* puiFat32FileSystemInfoSector, uint8* pvMBRSector);
+	EFatCode			FindBiosParameterBlock(uint8* pvMBRSector);
 	bool				CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
 	bool				CheckFileAllocationTableLargeEnough(uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector);
 };
