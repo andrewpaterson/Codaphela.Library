@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void PrintInterestingFATClusters(CFatVolume* pcVolume)
+void DumpInterestingFATClusters(CFatVolume* pcVolume)
 {
 	EFatCode	eResult;
 	uint32		uiOffsetInSector;
