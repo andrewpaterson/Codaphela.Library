@@ -209,6 +209,7 @@ EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 				return FAT_CANNOT_READ_MEDIA;
 			}
 			psEntry = (SFatRawDirectoryEntry*)pvSector;
+			psFirstEntry = (SFatRawDirectoryEntry*)pvSector;
 		}
 
 		if (!(psEntry->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY))
