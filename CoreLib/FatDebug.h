@@ -4,10 +4,10 @@
 
 class CFatVolume;
 
-void		PrintInterestingFATClusters(CFatVolume* pcVolume);
 EFatCode	PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes);
 void		PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume);
 
+void		DumpInterestingFATClusters(CFatVolume* pcVolume);
 void		DumpRootDirectory(CFatVolume* pcVolume, bool bPrintTime = true);
 
 
