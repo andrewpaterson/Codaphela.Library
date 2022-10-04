@@ -43,6 +43,42 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+EFatCode FindBackslash(char* filename, char** ppcFilenameScanner)
+{
+	ptrdiff_t			iPathLength;
+	char*				pcFilenameScanner;
+
+	iPathLength = strlen(filename);
+
+	pcFilenameScanner = filename + (iPathLength - 1);
+
+	if (*pcFilenameScanner == BACKSLASH)
+	{
+		return FAT_INVALID_FILENAME;
+	}
+
+	for (;;)
+	{
+		if (*pcFilenameScanner == BACKSLASH)
+		{
+			break;
+		}
+
+		if (pcFilenameScanner == filename)
+		{
+			return FAT_INVALID_PATH;
+		}
+		pcFilenameScanner--;
+	}
+
+	*ppcFilenameScanner = pcFilenameScanner;
+	return FAT_SUCCESS;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 {
 	EFatCode			eResult;
@@ -60,55 +96,18 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 	eResult = mpcVolume->GetFileEntry(filename, &sFileEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	// if the entry was not found...
 	if (*sFileEntry.name == 0)
 	{
-		// if the create access flag was set then
-		// we create the file
 		if (uiAccessFlags & FAT_FILE_ACCESS_CREATE)
 		{
-			// allocate memory for the file path
 			ptrdiff_t			iPathLength;
 			char*				pcFilenameScanner;
 			char				szFilePath[FAT_MAX_PATH + 1];
 			SFatDirectoryEntry	sParentEntry;
 
-			// get the name of the file path including
-			// the filename
-			iPathLength = strlen(filename);
+			eResult = FindBackslash(filename, &pcFilenameScanner);
+			RETURN_ON_FAT_FAILURE(eResult);
 
-			// set the pointer that will be used to scan
-			// filename to the end of the filename
-			pcFilenameScanner = filename + (iPathLength - 0x1);
-
-			// if the filename ends with a backslash then it
-			// is an invalid filename ( it's actually a directory
-			// path )
-			if (*pcFilenameScanner == BACKSLASH)
-			{
-				return FAT_INVALID_FILENAME;
-			}
-
-			// scan the filename starting at the end until
-			// a backslash is found - when we exit this loop
-			// path_scanner will point to the last character
-			// of the filepath
-			for (;;)
-			{
-				if (*pcFilenameScanner == BACKSLASH)
-				{
-					break;
-				}
-
-				if (pcFilenameScanner == filename)
-				{
-					return FAT_INVALID_PATH;
-				}
-				pcFilenameScanner--;
-			}
-
-			// calculate the length of the path part of the
-			// filename
 			iPathLength = pcFilenameScanner - filename;
 
 			// copy the path part of the filename to
@@ -116,7 +115,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			memcpy(szFilePath, filename, iPathLength);
 
 			// set the null terminator of the szFilePath uiBuffer
-			szFilePath[iPathLength] = 0x0;
+			szFilePath[iPathLength] = '\0';
 
 			// increase pointer to the beggining of the filename
 			// part of the path
