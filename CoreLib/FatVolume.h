@@ -33,6 +33,8 @@ protected:
 	CFileDrive*				mpcDevice;
 	CFatInfoSectorCache		mcSectorCache;
 
+	SFatBIOSParameterBlock	msBPB;
+
 public:
 	EFatCode			Mount(CFileDrive* device);
 	EFatCode			Unmount(void);
@@ -139,7 +141,10 @@ protected:
 
 	EFatCode			FindBiosParameterBlock(uint8* pvMBRSector);
 	bool				CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
-	bool				CheckFileAllocationTableLargeEnough(uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector);
+	bool				CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSystem, uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector);
+
+	bool				IsIllegalFilenameCharacter(char c);
+	bool				IsIllegalFilename(char* szName, uint16 uiLength);
 };
 
 

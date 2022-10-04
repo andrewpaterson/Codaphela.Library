@@ -10,13 +10,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatVolume::CheckFileAllocationTableLargeEnough(uint32 muiFatSize, uint32 muiNoOfClusters, uint16 muiBytesPerSector)
+bool CFatVolume::CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSystem, uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector)
 {
-	switch (meFileSystem)
+	switch (eFileSystem)
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
-			if (muiFatSize < (((muiNoOfClusters + (muiNoOfClusters >> 1)) + muiBytesPerSector - 1) / muiBytesPerSector))
+			if (uiFatSize < (((uiNoOfClusters + (uiNoOfClusters >> 1)) + uiBytesPerSector - 1) / uiBytesPerSector))
 			{
 				return false;
 			}
@@ -24,7 +24,7 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(uint32 muiFatSize, uint32 m
 		}
 		case FAT_FS_TYPE_FAT16:
 		{
-			if (muiFatSize < (((muiNoOfClusters * 2) + muiBytesPerSector - 1) / muiBytesPerSector))
+			if (uiFatSize < (((uiNoOfClusters * 2) + uiBytesPerSector - 1) / uiBytesPerSector))
 			{
 				return false;
 			}
@@ -32,7 +32,7 @@ bool CFatVolume::CheckFileAllocationTableLargeEnough(uint32 muiFatSize, uint32 m
 		}
 		case FAT_FS_TYPE_FAT32:
 		{
-			if (muiFatSize < (((muiNoOfClusters * 4) + muiBytesPerSector - 1) / muiBytesPerSector))
+			if (uiFatSize < (((uiNoOfClusters * 4) + uiBytesPerSector - 1) / uiBytesPerSector))
 			{
 				return false;
 			}
@@ -67,13 +67,15 @@ bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::FindBiosParameterBlock(uint8* pvMBRSector)
 {
-	SFatBIOSParameterBlock* psBPB;
-	uint32					uiHiddenSectors = 0;
+	uint32					uiHiddenSectors;
 	SFatPartitionEntry*		psPartitionEntry;
-	uint8					uiPartitionsTried = 0;
+	uint8					uiPartitionsTried;
 	uint8*					pvLBASector;
 
-	// set the partition sEntry pointer
+	uiHiddenSectors = 0;
+	memcpy(&msBPB, pvMBRSector, sizeof(SFatBIOSParameterBlock));
+
+	uiPartitionsTried = 0;
 	psPartitionEntry = (SFatPartitionEntry*)(pvMBRSector + 0x1BE);
 
 	for (;;)
@@ -112,69 +114,61 @@ EFatCode CFatVolume::FindBiosParameterBlock(uint8* pvMBRSector)
 			}
 
 			// set our pointer to the BPB
-			psBPB = (SFatBIOSParameterBlock*)pvLBASector;
-		}
-		else
-		{
-			psBPB = (SFatBIOSParameterBlock*)pvMBRSector;
+			memcpy(&msBPB, pvLBASector, sizeof(SFatBIOSParameterBlock));
 		}
 
-
-		// if the sector size is larger than what this build
-		// allows do not mount the mpsVolume
-		if (psBPB->BPB_BytsPerSec > MAX_SECTOR_LENGTH)
+		// if the sector size is larger than what this build allows do not mount the volume.
+		if (msBPB.BPB_BytsPerSec > MAX_SECTOR_LENGTH)
 		{
 			return FAT_SECTOR_SIZE_NOT_SUPPORTED;
 		}
 
-		// make sure BPB_BytsPerSec and BPB_SecPerClus are
-		// valid before we divide by them
-		if (!psBPB->BPB_BytsPerSec || !psBPB->BPB_SecPerClus)
+		// make sure BPB_BytsPerSec and BPB_SecPerClus are valid before we divide by them.
+		if (!msBPB.BPB_BytsPerSec || !msBPB.BPB_SecPerClus)
 		{
 			uiPartitionsTried++;
 			continue;
 		}
 
-		if (!CheckSectorsPerClusterIsPowerOfTwo(psBPB->BPB_SecPerClus))
+		if (!CheckSectorsPerClusterIsPowerOfTwo(msBPB.BPB_SecPerClus))
 		{
 			uiPartitionsTried++;
 			continue;
 		}
 
-		// get all the info we need from BPB
-		muiRootDirectorySectors = ((psBPB->BPB_RootEntCnt * 32) + (psBPB->BPB_BytsPerSec - 1)) / psBPB->BPB_BytsPerSec;
-		muiFatSize = (psBPB->BPB_FATSz16) ? psBPB->BPB_FATSz16 : psBPB->uFatEx.sFat32.BPB_FATSz32;
-		muiNoOfSectors = (psBPB->BPB_TotSec16) ? psBPB->BPB_TotSec16 : psBPB->BPB_TotSec32;
-		muiNoOfDataSectors = muiNoOfSectors - (psBPB->BPB_RsvdSecCnt + (psBPB->BPB_NumFATs * muiFatSize) + muiRootDirectorySectors);
-		muiNoOfClusters = muiNoOfDataSectors / psBPB->BPB_SecPerClus;
-		muiFirstDataSector = psBPB->BPB_RsvdSecCnt + uiHiddenSectors + (psBPB->BPB_NumFATs * muiFatSize) + muiRootDirectorySectors;
-		muiNoOfReservedSectors = psBPB->BPB_RsvdSecCnt + uiHiddenSectors;
-		muiBytesPerSector = psBPB->BPB_BytsPerSec;
-		muiNoOfSectorsPerCluster = psBPB->BPB_SecPerClus;
-		muiNoOfFatTables = psBPB->BPB_NumFATs;
-		muiFileSystemInfoSector = psBPB->uFatEx.sFat32.BPB_FSInfo;
-		muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
-
-		// determine the FAT file system type
+		// get all the info we need from BPB.
+		muiRootDirectorySectors = ((msBPB.BPB_RootEntCnt * 32) + (msBPB.BPB_BytsPerSec - 1)) / msBPB.BPB_BytsPerSec;
+		muiFatSize = (msBPB.BPB_FATSz16) ? msBPB.BPB_FATSz16 : msBPB.uFatEx.sFat32.BPB_FATSz32;
+		muiNoOfSectors = (msBPB.BPB_TotSec16) ? msBPB.BPB_TotSec16 : msBPB.BPB_TotSec32;
+		muiNoOfDataSectors = muiNoOfSectors - (msBPB.BPB_RsvdSecCnt + (msBPB.BPB_NumFATs * muiFatSize) + muiRootDirectorySectors);
+		muiNoOfClusters = muiNoOfDataSectors / msBPB.BPB_SecPerClus;
+		muiBytesPerSector = msBPB.BPB_BytsPerSec;
 		meFileSystem = (muiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (muiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
 
-		if (!CheckFileAllocationTableLargeEnough(muiFatSize, muiNoOfClusters, muiBytesPerSector))
+		if (!CheckFileAllocationTableLargeEnough(meFileSystem, muiFatSize, muiNoOfClusters, muiBytesPerSector))
 		{
 			uiPartitionsTried++;
 			continue;
 		}
 
-		// read the volume label from the boot sector
+		muiFirstDataSector = msBPB.BPB_RsvdSecCnt + uiHiddenSectors + (msBPB.BPB_NumFATs * muiFatSize) + muiRootDirectorySectors;
+		muiNoOfReservedSectors = msBPB.BPB_RsvdSecCnt + uiHiddenSectors;
+		muiNoOfSectorsPerCluster = msBPB.BPB_SecPerClus;
+		muiNoOfFatTables = msBPB.BPB_NumFATs;
+		muiFileSystemInfoSector = msBPB.uFatEx.sFat32.BPB_FSInfo;
+		muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
+
+		// read the volume label from the boot sector.
 		if (meFileSystem == FAT_FS_TYPE_FAT16)
 		{
-			muiID = psBPB->uFatEx.sFat16.BS_VolID;
-			mszLabel.Init(psBPB->uFatEx.sFat16.BS_VolLab, 0, 10);
+			muiID = msBPB.uFatEx.sFat16.BS_VolID;
+			mszLabel.Init(msBPB.uFatEx.sFat16.BS_VolLab, 0, 10);
 			mszLabel.StripWhiteSpace();
 		}
 		else if (meFileSystem == FAT_FS_TYPE_FAT32)
 		{
-			muiID = psBPB->uFatEx.sFat32.BS_VolID;
-			mszLabel.Init(psBPB->uFatEx.sFat32.BS_VolLab, 0, 10);
+			muiID = msBPB.uFatEx.sFat32.BS_VolID;
+			mszLabel.Init(msBPB.uFatEx.sFat32.BS_VolLab, 0, 10);
 			mszLabel.StripWhiteSpace();
 		}
 		else
@@ -182,10 +176,10 @@ EFatCode CFatVolume::FindBiosParameterBlock(uint8* pvMBRSector)
 			mszLabel.Init();
 		}
 
-		// if the mpsVolume is FAT32 then copy the root sEntry's cluster from the BPB_RootClus field on the BPB 
+		// if the volume is FAT32 then copy the root sEntry's cluster from the BPB_RootClus field on the BPB .
 		if (meFileSystem == FAT_FS_TYPE_FAT32)
 		{
-			muiRootCluster = psBPB->uFatEx.sFat32.BPB_RootClus;
+			muiRootCluster = msBPB.uFatEx.sFat32.BPB_RootClus;
 		}
 		else
 		{
@@ -194,7 +188,6 @@ EFatCode CFatVolume::FindBiosParameterBlock(uint8* pvMBRSector)
 
 		muiRootSector = CalculateRootSector();
 
-		uint8	uiMedia = psBPB->BPB_Media;
 		uint32	uiFATSector;
 		uint8*	pvFATSector;
 
@@ -206,15 +199,14 @@ EFatCode CFatVolume::FindBiosParameterBlock(uint8* pvMBRSector)
 		}
 
 		// if the lower byte of the 1st FAT sEntry is not the same as BPB_Media then this is not a valid volume
-		if (pvFATSector[0] != uiMedia)
+		if (pvFATSector[0] != msBPB.BPB_Media)
 		{
 			uiPartitionsTried++;
 			continue;
 		}
-		break;
-	}
 
-	return FAT_SUCCESS;
+		return FAT_SUCCESS;
+	}
 }
 
 
@@ -242,12 +234,9 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		return FAT_CANNOT_READ_MEDIA;
 	}
 
-	mcSectorCache.Lock(pvMBRSector);
-
 	eResult = FindBiosParameterBlock(pvMBRSector);
 	if (eResult != FAT_SUCCESS)
 	{
-		mcSectorCache.Unlock(pvMBRSector);
 		return eResult;
 	}
 
@@ -281,7 +270,6 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		pvFSInfoSector = (uint8*)mcSectorCache.ReadSector(muiFileSystemInfoSector);
 		if (pvFSInfoSector == NULL)
 		{
-			mcSectorCache.Unlock(pvMBRSector);
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
@@ -312,7 +300,6 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		// remember psFileSystemInfo sector
 	}
 
-	mcSectorCache.Unlock(pvMBRSector);
 	return FAT_SUCCESS;
 }
 
@@ -437,7 +424,7 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 att
 			return FAT_NOT_A_DIRECTORY;
 		}
 
-		query->uiCurrentCluster = GetFirstClusterFromFatEntry(directory, GetFileSystemType() == FAT_FS_TYPE_FAT32);
+		query->uiCurrentCluster = GetFirstClusterFromFatEntry(directory, meFileSystem == FAT_FS_TYPE_FAT32);
 
 		// get the 1st sector of the directory sEntry
 		uiFirstSector = CalculateFirstSectorOfCluster(query->uiCurrentCluster);
@@ -701,7 +688,7 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNex
 		return FAT_CANNOT_READ_MEDIA;
 	}
 
-	switch (GetFileSystemType())
+	switch (meFileSystem)
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
@@ -1070,7 +1057,7 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 	// to cluster 0, even in FAT32 when the root directory is not actually on
 	// cluster 0 so we need to check if the parent is the root directory and
 	// in that case set the 1st cluster to 0
-	if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
+	if (meFileSystem == FAT_FS_TYPE_FAT32)
 	{
 		uint32 uiParentCluster;
 
@@ -1352,20 +1339,20 @@ EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32
 	SetTotalFreeClusters(GetTotalFreeClusters() - 1);
 
 	// mark the FAT as the the new 1st link of the cluster chain (or the end of the chain if we're only allocating 1 cluster)
-	switch (GetFileSystemType())
+	switch (meFileSystem)
 	{
-	case FAT_FS_TYPE_FAT12:
-	{
-		return WriteFat12Entry(uiOffsetInSector, uiLastEntryOffset, uiClusterIndexInTable, uiSector, uiLastSector, uiLastFatEntry);
-	}
-	case FAT_FS_TYPE_FAT16:
-	{
-		return WriteFat16Entry(uiOffsetInSector, uiLastEntryOffset, uiClusterIndexInTable, uiSector, uiLastSector, uiLastFatEntry);
-	}
-	case FAT_FS_TYPE_FAT32:
-	{
-		return WriteFat32Entry(uiOffsetInSector, uiLastEntryOffset, uiClusterIndexInTable, uiSector, uiLastSector, uiLastFatEntry);
-	}
+		case FAT_FS_TYPE_FAT12:
+		{
+			return WriteFat12Entry(uiOffsetInSector, uiLastEntryOffset, uiClusterIndexInTable, uiSector, uiLastSector, uiLastFatEntry);
+		}
+		case FAT_FS_TYPE_FAT16:
+		{
+			return WriteFat16Entry(uiOffsetInSector, uiLastEntryOffset, uiClusterIndexInTable, uiSector, uiLastSector, uiLastFatEntry);
+		}
+		case FAT_FS_TYPE_FAT32:
+		{
+			return WriteFat32Entry(uiOffsetInSector, uiLastEntryOffset, uiClusterIndexInTable, uiSector, uiLastSector, uiLastFatEntry);
+		}
 	}
 
 	return FAT_UNKNOWN_ERROR;
@@ -1666,7 +1653,7 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
 	// set the FAT sEntry
-	switch (GetFileSystemType())
+	switch (meFileSystem)
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
@@ -1826,33 +1813,33 @@ EFatCode CFatVolume::IncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClus
 			}
 
 			// read the uiCluster sEntry and mark it as free
-			switch (GetFileSystemType())
+			switch (meFileSystem)
 			{
-			case FAT_FS_TYPE_FAT12:
-			{
-				eResult = IncreaseFat12ClusterAddress(&uiClusterIndex, &uiFirstClusterSector, &uiOffsetInSector, &bFat12OddClusterBeingProcessed, &bFat12MultiStepProgress);
-				RETURN_ON_FAT_FAILURE(eResult);
-				if (uiOffsetInSector != 0)
+				case FAT_FS_TYPE_FAT12:
 				{
+					eResult = IncreaseFat12ClusterAddress(&uiClusterIndex, &uiFirstClusterSector, &uiOffsetInSector, &bFat12OddClusterBeingProcessed, &bFat12MultiStepProgress);
+					RETURN_ON_FAT_FAILURE(eResult);
+					if (uiOffsetInSector != 0)
+					{
+						break;
+					}
+					else
+					{
+						continue;
+					}
+				}
+				case FAT_FS_TYPE_FAT16:
+				{
+					eResult = IncreaseFat16ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
+					RETURN_ON_FAT_FAILURE(eResult);
 					break;
 				}
-				else
+				case FAT_FS_TYPE_FAT32:
 				{
-					continue;
+					eResult = IncreaseFat32ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
+					RETURN_ON_FAT_FAILURE(eResult);
+					break;
 				}
-			}
-			case FAT_FS_TYPE_FAT16:
-			{
-				eResult = IncreaseFat16ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
-				RETURN_ON_FAT_FAILURE(eResult);
-				break;
-			}
-			case FAT_FS_TYPE_FAT32:
-			{
-				eResult = IncreaseFat32ClusterAddress(&uiClusterIndex, uiFirstClusterSector, uiOffsetInSector);
-				RETURN_ON_FAT_FAILURE(eResult);
-				break;
-			}
 			}
 
 			// if the last uiCluster marks the end of the chian we return
@@ -1939,16 +1926,16 @@ void CFatVolume::CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 ui
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::CalculateFATEntryIndex(uint32 uiClusterIndexInFAT)
 {
-	switch (GetFileSystemType())
+	switch (meFileSystem)
 	{
-	case FAT_FS_TYPE_FAT12:
-		return uiClusterIndexInFAT + (uiClusterIndexInFAT >> 1);
+		case FAT_FS_TYPE_FAT12:
+			return uiClusterIndexInFAT + (uiClusterIndexInFAT >> 1);
 
-	case FAT_FS_TYPE_FAT16:
-		return uiClusterIndexInFAT * 2;
+		case FAT_FS_TYPE_FAT16:
+			return uiClusterIndexInFAT * 2;
 
-	case FAT_FS_TYPE_FAT32:
-		return uiClusterIndexInFAT * 4;
+		case FAT_FS_TYPE_FAT32:
+			return uiClusterIndexInFAT * 4;
 	}
 
 	return 0xFFFFFFFF;
@@ -2015,16 +2002,16 @@ uint32 CFatVolume::GetPageSize(void)
 //////////////////////////////////////////////////////////////////////////
 bool CFatVolume::FatIsEOFEntry(fatEntry uiFat)
 {
-	switch (GetFileSystemType())
+	switch (meFileSystem)
 	{
-	case FAT_FS_TYPE_FAT12:
-		return uiFat >= 0x0FF8;
+		case FAT_FS_TYPE_FAT12:
+			return uiFat >= 0x0FF8;
 
-	case FAT_FS_TYPE_FAT16:
-		return uiFat >= 0xFFF8;
+		case FAT_FS_TYPE_FAT16:
+			return uiFat >= 0xFFF8;
 
-	case FAT_FS_TYPE_FAT32:
-		return uiFat >= 0x0FFFFFF8;
+		case FAT_FS_TYPE_FAT32:
+			return uiFat >= 0x0FFFFFF8;
 	}
 
 	return false;
@@ -2037,16 +2024,13 @@ bool CFatVolume::FatIsEOFEntry(fatEntry uiFat)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::CalculateRootSector(void)
 {
-	uint32 uiCurrentCluster;
-
-	if (GetFileSystemType() == FAT_FS_TYPE_FAT32)
+	if (meFileSystem == FAT_FS_TYPE_FAT32)
 	{
-		uiCurrentCluster = GetRootCluster();
-		return CalculateFirstSectorOfCluster(uiCurrentCluster);
+		return CalculateFirstSectorOfCluster(muiRootCluster);
 	}
 	else
 	{
-		return GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+		return muiNoOfReservedSectors + (muiNoOfFatTables * muiFatSize);
 	}
 }
 
@@ -2058,7 +2042,7 @@ uint32 CFatVolume::CalculateRootSector(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::CalculateFirstSectorOfCluster(uint32 uiCluster)
 {
-	return (((uiCluster - 2) * NumSectorsPerCluster()) + GetFirstDataSector());
+	return (((uiCluster - 2) * muiNoOfSectorsPerCluster) + muiFirstDataSector);
 }
 
 
@@ -2169,7 +2153,7 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 {
 	EFatCode	eResult;
 
-	switch (GetFileSystemType())
+	switch (meFileSystem)
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
@@ -2377,7 +2361,7 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 			}
 
 			// read the cluster sEntry and mark it as free
-			switch (GetFileSystemType())
+			switch (meFileSystem)
 			{
 				case FAT_FS_TYPE_FAT12:
 				{
@@ -3172,12 +3156,62 @@ void CFatVolume::FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFa
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFatVolume::IsIllegalFilenameCharacter(char c)
+{
+	uint16	uiIndex;
+
+	if (c <= 0x1F)
+	{
+		return true;
+	}
+
+	for (uiIndex = 0; uiIndex < ILLEGAL_CHARS_COUNT; uiIndex++)
+	{
+		if (c == ILLEGAL_CHARS[uiIndex] && c != '.')
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatVolume::IsIllegalFilename(char* szName, uint16 uiLength)
+{
+	int16		uiCharIndex;
+	
+	uiCharIndex = FatIndexOf('.', szName, 0);
+
+	if (uiCharIndex == 0 || uiCharIndex == (uiLength - 1))
+	{
+		return true;
+	}
+
+	for (uiCharIndex = 0x0; uiCharIndex < uiLength; uiCharIndex++)
+	{
+		if (IsIllegalFilenameCharacter(szName[uiCharIndex]))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode				eResult;
 	uint16					uiLength;
-	int16					char_index;
-	uint16					illegal_char;
 	uint16					uiDirectoryEntries = 0;
 	uint32					uiSector;
 	uint32					uiFirstSectorOfCluster = 0;
@@ -3191,120 +3225,77 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	uint8*					puiBuffer;
 	uintptr_t				puiLastEntryAddress;
 
-	// get the length of the filename
 	uiLength = (uint16)strlen(szName);
 
-	// check that the character is a valid 8.3 filename, the
-	// file is invalid if:
-	//
-	//	- name part is more than 8 chars (char_index > 8)
-	//	- extension part is more than 3 (uiResult - char_index > 4)
-	//	- it has more than one dot (FatIndexOf('.', name, char_index + 1) >= 0)
-	if (uiLength > 255)
+	if (uiLength > FAT_MAX_FILENAME)
 	{
 		return FAT_FILENAME_TOO_LONG;
 	}
 
-	// all names are also invalid if they start or end with
-	// a dot
-	char_index = FatIndexOf('.', szName, 0);
-
-	if (char_index == 0 || char_index == (uiLength - 1))
+	if (IsIllegalFilename(szName, uiLength))
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	for (char_index = 0x0; char_index < uiLength; char_index++)
-	{
-		// if the character is less than 0x20 with the exception of 0x5 then the filename is illegal.
-		if (szName[char_index] < 0x1F)
-		{
-			return FAT_ILLEGAL_FILENAME;
-		}
-
-		// compare the character with a table of illegal characters, if a match is found then the filename is illegal.
-		for (illegal_char = 0x0; illegal_char < ILLEGAL_CHARS_COUNT; illegal_char++)
-		{
-			if (szName[char_index] == ILLEGAL_CHARS[illegal_char] && szName[char_index] != '.')
-			{
-				return FAT_ILLEGAL_FILENAME;
-			}
-		}
-	}
-
-	// initialize the raw sEntry
-	// todo: check if no other functions are initializing
-	// sNewEntry and initialize the whole thing
 	memset(&psNewEntry->raw, 0, sizeof(psNewEntry->raw));
 
-	// attempt to format the filename provided
-	// to the format required by the directory sEntry
-	// and copy it to it's field
 	eResult = GetShortNameForEntry((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName, (uint8*)szName, false);
-
-	// if the above operation failed then the filename
-	// is invalid
 	if (eResult != FAT_SUCCESS && eResult != FAT_LFN_GENERATED)
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	// if this is going to be an lfn sEntry we need to make
-	// sure that the short filename is available
 	if (eResult == FAT_LFN_GENERATED)
 	{
-		SFatQueryState query;
-		uint16 name_suffix = 0;
-		char is_valid_entry;
-		char name_suffix_str[6];
-		uint8 i, c;
+		SFatQueryState	sQuery;
+		uint16			uiNameSuffix = 0;
+		bool			bIsValidEntry;
+		char			szNameSuffix[6];
+		uint8			i;
+		uint8			c;
 
 		do
 		{
-			is_valid_entry = 1;
+			bIsValidEntry = true;
 
-			memset(&query, 0, sizeof(query));
-			eResult = QueryFirstEntry(psParentDirectory, 0, &query, 0);
+			memset(&sQuery, 0, sizeof(sQuery));
+			eResult = QueryFirstEntry(psParentDirectory, 0, &sQuery, 0);
 			RETURN_ON_FAT_FAILURE(eResult);
 
-			sprintf(name_suffix_str, "~%i", name_suffix);
+			sprintf(szNameSuffix, "~%i", uiNameSuffix);
 
-			for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
+			for (i = 0; i < 8 - (char)strlen(szNameSuffix); i++)
 			{
-				if (psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i] == 0x20)
+				if (psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i] == ' ')
 				{
 					break;
 				}
 			}
 
-			for (c = 0; c < (char)strlen(name_suffix_str); c++)
+			for (c = 0; c < (char)strlen(szNameSuffix); c++)
 			{
-				psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i++] = name_suffix_str[c];
+				psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i++] = szNameSuffix[c];
 			}
 
-			// loop through all entries in the parent directory
-			// and if we find one with the same name as hours mark the name
-			// as invalid
-			while (*query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0)
+			// loop through all entries in the parent directory and if we find one with the same name as ours mark the name as invalid.
+			while (*sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0)
 			{
-				if (memcmp(query.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, psNewEntry->raw.uEntry.sFatRawCommon.szShortName, 11) == 0)
+				if (memcmp(sQuery.sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, psNewEntry->raw.uEntry.sFatRawCommon.szShortName, 11) == 0)
 				{
-					is_valid_entry = 0;
+					bIsValidEntry = false;
 					break;
 				}
-				eResult = QueryNextEntry(&query, false, false);
+				eResult = QueryNextEntry(&sQuery, false, false);
 				RETURN_ON_FAT_FAILURE(eResult);
 			}
 
 			// if the filename is taken we need to compute a new one
-			if (!is_valid_entry)
+			if (!bIsValidEntry)
 			{
-				// create the filename suffix and append it after
-				// the last char or replace the end of the filename
-				// with it.
-				sprintf(name_suffix_str, "~%i", name_suffix++);
+				// create the filename suffix and append it after the last char or replace the end of the filename with it.
+				sprintf(szNameSuffix, "~%i", uiNameSuffix++);
 
-				for (i = 0; i < 8 - (char)strlen(name_suffix_str); i++)
+				for (i = 0; i < 8 - (char)strlen(szNameSuffix); i++)
 				{
 					if (psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i] == 0x20)
 					{
@@ -3312,12 +3303,12 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 					}
 				}
 
-				for (c = 0; c < (char)strlen(name_suffix_str); c++)
+				for (c = 0; c < (char)strlen(szNameSuffix); c++)
 				{
-					psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i++] = name_suffix_str[c];
+					psNewEntry->raw.uEntry.sFatRawCommon.szShortName[i++] = szNameSuffix[c];
 				}
 			}
-		} while (!is_valid_entry);
+		} while (!bIsValidEntry);
 
 		// calculate the # of entries needed to store the lfn
 		// including the actual sEntry
@@ -3356,7 +3347,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	// directory sEntry so that we can handle the 1st cluster with the same code as all other clusters in the chain.
 	if (psParentDirectory && (psParentDirectory->uEntry.sFatRawCommon.uiFirstClusterLowWord != 0 || psParentDirectory->uEntry.sFatRawCommon.uiFirstClusterHighWord != 0))
 	{
-		uiFat = GetFirstClusterFromFatEntry(psParentDirectory, GetFileSystemType() == FAT_FS_TYPE_FAT32);
+		uiFat = GetFirstClusterFromFatEntry(psParentDirectory, meFileSystem == FAT_FS_TYPE_FAT32);
 	}
 
 	// if no parent was specified then we create the fake fat sEntry from the root directory's cluster address found on the volume structure

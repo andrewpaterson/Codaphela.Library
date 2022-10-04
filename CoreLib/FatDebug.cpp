@@ -308,13 +308,13 @@ void PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void DumpRootDirectory(CFatVolume* pcVolume)
+void DumpRootDirectory(CFatVolume* pcVolume, bool bPrintTime)
 {
 	CChars		sz;
 	EFatCode	eResult;
 
 	sz.Init();
-	eResult = PrintRootDirectory(&sz, pcVolume, true);
+	eResult = PrintRootDirectory(&sz, pcVolume, bPrintTime);
 	sz.DumpKill();
 }
 
