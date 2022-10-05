@@ -185,7 +185,7 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 
 	for (;;)
 	{
-		if (((uintptr_t)psEntry - (uintptr_t)psFirstEntry) == pcVolume->GetSectorSize() - 0x20)
+		if (((uintptr_t)psEntry - (uintptr_t)psFirstEntry) == pcVolume->GetSectorSize())
 		{
 			if (uiSectorCount == pcVolume->NumSectorsPerCluster() - 1)
 			{

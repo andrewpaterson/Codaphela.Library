@@ -555,8 +555,7 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 				psQuery->uiChecksum = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum;
 
 				// insert null terminator at the end of the long filename
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 2) * 13) + 0xD])[INT16_BYTE0] = 0;
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 2) * 13) + 0xD])[INT16_BYTE1] = 0;
+				memset(psQuery->long_filename, 0, sizeof(uint16) * (FAT_MAX_FILENAME + 1));
 			}
 
 			// if this is the LFN that we're expecting then process it, otherwise we'll have to wait for another 1st LFN sEntry otherwise read the LFN
@@ -583,14 +582,17 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[5];
 				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[6];
 				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[7];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[8];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[9];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[10];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[11];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[0];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[1];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[2];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[3];
+				if (psQuery->uiSequence < 20)
+				{
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[8];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[9];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[10];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[11];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[0];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[1];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[2];
+					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[3];
+				}
 			}
 			else
 			{
@@ -3103,7 +3105,7 @@ EFatCode CFatVolume::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SF
 	// calculate the offset of the sEntry within it's sector
 	psQuery->sCurrentEntry.uiSectorOffset = (uint16)((uintptr_t)psQuery->sQueryState.sCurrentEntryRaw) - ((uintptr_t)psQuery->sQueryState.sFirstEntryRaw);
 
-	// store a copy of the original FAT directory sEntry
+	// store a copy of the original FAT directory entry
 	// within the SFatDirectoryEntry structure that is returned
 	// to users
 	psQuery->sCurrentEntry.raw = *psQuery->sQueryState.sCurrentEntryRaw;
@@ -3281,6 +3283,89 @@ EFatCode CFatVolume::GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName, uint8 uiAttributes, uint32 uiEntryCluster)
+{
+	strcpy((char*)psNewEntry->name, szName);
+	psNewEntry->attributes = uiAttributes;
+	psNewEntry->size = 0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiAttributes = uiAttributes;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiReserved = 0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiSize = 0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiEntryCluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiEntryCluster);
+	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTimeTenths = 0;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
+	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
+	psNewEntry->raw.uEntry.sFatRawCommon.uiModifyDate = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiModifyTime = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime;
+	psNewEntry->raw.uEntry.sFatRawCommon.uiAccessDate = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate;
+	psNewEntry->uiCreateTime = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate, psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime);
+	psNewEntry->uiModifyTime = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiModifyDate, psNewEntry->raw.uEntry.sFatRawCommon.uiModifyTime);
+	psNewEntry->access_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiAccessDate, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound)
+{
+	uint16 i;
+	uint16 c;
+
+	// set the required fields for this entry
+	psParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
+	psParentEntry->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_LONG_NAME;
+	psParentEntry->uEntry.sFatRawLongFileName.uiFirstCluster = 0;
+	psParentEntry->uEntry.sFatRawLongFileName.uiType = 0;
+
+	// mark sEntry as the 1st sEntry if it is so
+	if (iLFNEntriesFound == iLFNEntriesNeeded - 1)
+	{
+		psParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)iLFNEntriesFound | FAT_FIRST_LFN_ENTRY;
+	}
+	else
+	{
+		psParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)iLFNEntriesFound;
+	}
+
+	// copy the lfn chars
+	c = (uint16)strlen(szName);
+	i = ((iLFNEntriesFound - 1) * 13);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)szName[i + 0x0]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)szName[i + 0x0]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)szName[i + 0x1]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)szName[i + 0x1]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)szName[i + 0x2]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)szName[i + 0x2]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)szName[i + 0x3]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)szName[i + 0x3]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)szName[i + 0x4]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)szName[i + 0x4]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)szName[i + 0x5]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)szName[i + 0x5]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)szName[i + 0x6]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)szName[i + 0x6]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)szName[i + 0x7]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)szName[i + 0x7]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)szName[i + 0x8]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)szName[i + 0x8]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)szName[i + 0x9]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)szName[i + 0x9]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)szName[i + 0xA]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)szName[i + 0xA]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)szName[i + 0xB]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)szName[i + 0xB]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)szName[i + 0xC]);
+	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)szName[i + 0xC]);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode				eResult;
@@ -3297,6 +3382,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	char					uiChecksum;
 	uint8*					puiBuffer;
 	uintptr_t				puiLastEntryAddress;
+	bool					bAllLFNEntriesFound;
 
 	uiLength = (uint16)strlen(szName);
 
@@ -3336,24 +3422,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
 
-	// set the sEntry attributes
-	strcpy((char*)psNewEntry->name, szName);
-	psNewEntry->attributes = uiAttributes;
-	psNewEntry->size = 0;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiAttributes = uiAttributes;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiReserved = 0;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiSize = 0;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiEntryCluster);
-	psNewEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiEntryCluster);
-	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTimeTenths = 0;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
-	psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
-	psNewEntry->raw.uEntry.sFatRawCommon.uiModifyDate = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiModifyTime = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime;
-	psNewEntry->raw.uEntry.sFatRawCommon.uiAccessDate = psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate;
-	psNewEntry->uiCreateTime = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiCreateDate, psNewEntry->raw.uEntry.sFatRawCommon.uiCreateTime);
-	psNewEntry->uiModifyTime = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiModifyDate, psNewEntry->raw.uEntry.sFatRawCommon.uiModifyTime);
-	psNewEntry->access_time = FatDecodeDateTime(psNewEntry->raw.uEntry.sFatRawCommon.uiAccessDate, 0);
+	InitialiseNewEntry(psNewEntry, szName, uiAttributes, uiEntryCluster);
 
 	// there's no fat entry that points to the 1st cluster of a directory's cluster chain but we'll create a fake fat sEntry from the 1st cluster data on the
 	// directory sEntry so that we can handle the 1st cluster with the same code as all other clusters in the chain.
@@ -3370,6 +3439,9 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	}
 
 	iLFNEntriesFound = 0;
+	bAllLFNEntriesFound = false;
+	puiBuffer = NULL;
+	psParentEntry = NULL;
 
 	for (;;)
 	{
@@ -3378,8 +3450,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 			uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiFat);
 		}
 
-		// set the current sector to the first
-		// sector of the cluster
+		// set the current sector to the first  sector of the cluster
 		uiSector = uiFirstSectorOfCluster;
 
 		// for each sector in the cluster
@@ -3391,9 +3462,8 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 			{
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			puiLastEntryAddress = ((uintptr_t)puiBuffer + GetSectorSize()) - 0x20;
 
-			// set the parent sEntry pointer to the 1st sEntry of the current sector.
+			puiLastEntryAddress = ((uintptr_t)puiBuffer + GetSectorSize()) - 0x20;
 			psParentEntry = (SFatRawDirectoryEntry*)puiBuffer;
 
 			// for each directory entry in the sector...
@@ -3416,168 +3486,8 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 					// if this is the last directory sEntry or if we've found all the entries that we need then let's get ready to write them.
 					if (IS_LAST_DIRECTORY_ENTRY(psParentEntry) || iLFNEntriesFound == iLFNEntriesNeeded)
 					{
-						// if there where any free entries before this one then we need to rewind a bit.
-						while (iLFNEntriesFound-- > 1)
-						{
-							if ((uintptr_t)psParentEntry > (uintptr_t)puiBuffer)
-							{
-								psParentEntry--;
-							}
-							else
-							{
-								// if the last sEntry is on the same cluster we
-								// can just decrease the sector number, otherwise we
-								// need to get the sector address for the last cluster
-								if (uiSector > uiFirstSectorOfCluster)
-								{
-									uiSector--;
-								}
-								else
-								{
-									if (uiLastFat == 0)
-									{
-										uiFirstSectorOfCluster = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
-									}
-									else
-									{
-										uiFat = uiLastFat;
-										uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiFat);
-									}
-									uiSector = uiFirstSectorOfCluster + NumSectorsPerCluster();
-								}
-
-								// read the last sector to the cache, calculate the last entry address and set our pointer to it
-								puiBuffer = ReadInfoSector(uiSector);
-								if (puiBuffer == NULL)
-								{
-									return FAT_CANNOT_READ_MEDIA;
-								}
-								puiLastEntryAddress = ((uintptr_t)puiBuffer + GetSectorSize()) - 0x20;
-
-								psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;
-							}
-						}
-
-						// compute the checksum for this entry
-						uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName);
-
-						// now we can start writting
-						iLFNEntriesFound = iLFNEntriesNeeded;
-						while (iLFNEntriesFound--)
-						{
-							if (iLFNEntriesFound)
-							{
-								uint16 i, c;
-
-								// set the required fields for this entry
-								psParentEntry->uEntry.sFatRawLongFileName.uiSequence = (uint8)iLFNEntriesFound;
-								psParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
-								psParentEntry->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_LONG_NAME;
-								psParentEntry->uEntry.sFatRawLongFileName.uiFirstCluster = 0;
-								psParentEntry->uEntry.sFatRawLongFileName.uiType = 0;
-
-								// mark sEntry as the 1st sEntry if it is so
-								if (iLFNEntriesFound == iLFNEntriesNeeded - 1)
-								{
-									psParentEntry->uEntry.sFatRawLongFileName.uiSequence = psParentEntry->uEntry.sFatRawLongFileName.uiSequence | FAT_FIRST_LFN_ENTRY;
-								}
-
-								// copy the lfn chars
-								c = (uint16)strlen(szName);
-								i = ((iLFNEntriesFound - 1) * 13);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)szName[i + 0x0]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)szName[i + 0x0]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)szName[i + 0x1]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)szName[i + 0x1]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)szName[i + 0x2]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)szName[i + 0x2]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)szName[i + 0x3]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)szName[i + 0x3]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)szName[i + 0x4]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)szName[i + 0x4]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)szName[i + 0x5]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)szName[i + 0x5]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)szName[i + 0x6]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)szName[i + 0x6]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)szName[i + 0x7]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)szName[i + 0x7]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)szName[i + 0x8]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)szName[i + 0x8]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)szName[i + 0x9]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)szName[i + 0x9]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)szName[i + 0xA]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)szName[i + 0xA]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)szName[i + 0xB]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)szName[i + 0xB]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)szName[i + 0xC]);
-								psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)szName[i + 0xC]);
-								mcSectorCache.Dirty(puiBuffer);
-
-								// continue to next sEntry
-								if ((uintptr_t)psParentEntry < (uintptr_t)puiLastEntryAddress)
-								{
-									psParentEntry++;
-								}
-								else
-								{
-									if (uiFat == 0 || uiSector < uiFirstSectorOfCluster + NumSectorsPerCluster() - 1)
-									{
-										uiSector++;
-
-										// make sure that we don't overflow the root directory on FAT12/16 volumes
-										if (!uiFat)
-										{
-											if (uiSector > uiFirstSectorOfCluster + GetRootDirectorySectors())
-											{
-												return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
-											}
-										}
-									}
-									else
-									{
-										// get the next cluster, we'll remember the last one so we can update it bellow if it's the eof cluster
-										uiLastFat = uiFat;
-										eResult = GetNextClusterEntry(uiFat, &uiFat);
-										RETURN_ON_FAT_FAILURE(eResult);
-
-										// if this is the end of the FAT chain allocate a new cluster to this folder and continue
-										if (FatIsEOFEntry(uiFat))
-										{
-											fatEntry uiNewFat = AllocateDataCluster(1, 1, &eResult);
-											RETURN_ON_FAT_FAILURE(eResult);
-
-											eResult = SetClusterEntry(uiLastFat, uiNewFat);
-											RETURN_ON_FAT_FAILURE(eResult);
-
-											uiFat = uiNewFat;
-										}
-
-										// continue working on the new cluster
-										uiSector = CalculateFirstSectorOfCluster(uiFat);
-									}
-
-									// load the next sector
-									puiBuffer = ReadInfoSector(uiSector);
-									if (puiBuffer == NULL)
-									{
-										return FAT_CANNOT_READ_MEDIA;
-									}
-									puiLastEntryAddress = ((uintptr_t)puiBuffer + GetSectorSize()) - 0x20;
-
-									psParentEntry = (SFatRawDirectoryEntry*)puiBuffer;
-								}
-							}
-							else
-							{
-								*psParentEntry = psNewEntry->raw;
-								mcSectorCache.Dirty(puiBuffer);
-							}
-						}
-
-						psNewEntry->uiSectorAddress = uiSector;
-						psNewEntry->uiSectorOffset = (uintptr_t)psParentEntry - (uintptr_t)puiBuffer;
-
-						return FAT_SUCCESS;
+						bAllLFNEntriesFound = true;
+						break;
 					}
 				}
 				else
@@ -3587,6 +3497,11 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 
 				// move the parent sEntry pointer to the next sEntry in the sector.
 				psParentEntry++;
+			}
+
+			if (bAllLFNEntriesFound)
+			{
+				break;
 			}
 
 			// move to the next sector in the cluster.
@@ -3603,8 +3518,12 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 			}
 		}
 
-		// get the next cluster, we'll remember the last one in
-		// case we need to rewind to write lfn entries
+		if (bAllLFNEntriesFound)
+		{
+			break;
+		}
+
+		// get the next cluster, we'll remember the last one in case we need to rewind to write lfn entries
 		uiLastFat = uiFat;
 		eResult = GetNextClusterEntry(uiFat, &uiFat);
 		RETURN_ON_FAT_FAILURE(eResult);
@@ -3624,6 +3543,128 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 			uiFat = uiNewFat;
 		}
 	}
+
+	// WRITE BEGINS HERE.
+	// if there where any free entries before this one then we need to rewind a bit.
+	while (iLFNEntriesFound-- > 1)
+	{
+		if ((uintptr_t)psParentEntry > (uintptr_t)puiBuffer)
+		{
+			psParentEntry--;
+		}
+		else
+		{
+			// if the last sEntry is on the same cluster we
+			// can just decrease the sector number, otherwise we
+			// need to get the sector address for the last cluster
+			if (uiSector > uiFirstSectorOfCluster)
+			{
+				uiSector--;
+			}
+			else
+			{
+				if (uiLastFat == 0)
+				{
+					uiFirstSectorOfCluster = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+				}
+				else
+				{
+					uiFat = uiLastFat;
+					uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiFat);
+				}
+				uiSector = uiFirstSectorOfCluster + NumSectorsPerCluster();
+			}
+
+			// read the last sector of the cache, calculate the last entry address and set our pointer to it
+			puiBuffer = ReadInfoSector(uiSector);
+			if (puiBuffer == NULL)
+			{
+				return FAT_CANNOT_READ_MEDIA;
+			}
+
+			puiLastEntryAddress = ((uintptr_t)puiBuffer + GetSectorSize()) - 0x20;
+			//								psParentEntry = (SFatRawDirectoryEntry*)puiBuffer;
+			psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;
+		}
+	}
+
+	// compute the checksum for this entry
+	uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName);
+
+	// now we can start writting
+	iLFNEntriesFound = iLFNEntriesNeeded;
+	while (iLFNEntriesFound--)
+	{
+		if (iLFNEntriesFound > 0)
+		{
+			InitialiseParentEntry(psParentEntry, szName, uiChecksum, iLFNEntriesNeeded, iLFNEntriesFound);
+			mcSectorCache.Dirty(puiBuffer);
+
+			// continue to next sEntry
+			if ((uintptr_t)psParentEntry < (uintptr_t)puiLastEntryAddress)
+			{
+				psParentEntry++;
+			}
+			else
+			{
+				if (uiFat == 0 || uiSector < uiFirstSectorOfCluster + NumSectorsPerCluster() - 1)
+				{
+					uiSector++;
+
+					// make sure that we don't overflow the root directory on FAT12/16 volumes
+					if (!uiFat)
+					{
+						if (uiSector > uiFirstSectorOfCluster + GetRootDirectorySectors())
+						{
+							return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
+						}
+					}
+				}
+				else
+				{
+					// get the next cluster, we'll remember the last one so we can update it bellow if it's the eof cluster
+					uiLastFat = uiFat;
+					eResult = GetNextClusterEntry(uiFat, &uiFat);
+					RETURN_ON_FAT_FAILURE(eResult);
+
+					// if this is the end of the FAT chain allocate a new cluster to this folder and continue
+					if (FatIsEOFEntry(uiFat))
+					{
+						fatEntry uiNewFat = AllocateDataCluster(1, 1, &eResult);
+						RETURN_ON_FAT_FAILURE(eResult);
+
+						eResult = SetClusterEntry(uiLastFat, uiNewFat);
+						RETURN_ON_FAT_FAILURE(eResult);
+
+						uiFat = uiNewFat;
+					}
+
+					// continue working on the new cluster
+					uiSector = CalculateFirstSectorOfCluster(uiFat);
+				}
+
+				// load the next sector
+				puiBuffer = ReadInfoSector(uiSector);
+				if (puiBuffer == NULL)
+				{
+					return FAT_CANNOT_READ_MEDIA;
+				}
+
+				puiLastEntryAddress = ((uintptr_t)puiBuffer + GetSectorSize()) - 0x20;
+				psParentEntry = (SFatRawDirectoryEntry*)puiBuffer;
+			}
+		}
+		else
+		{
+			*psParentEntry = psNewEntry->raw;
+			mcSectorCache.Dirty(puiBuffer);
+		}
+	}
+
+	psNewEntry->uiSectorAddress = uiSector;
+	psNewEntry->uiSectorOffset = (uintptr_t)psParentEntry - (uintptr_t)puiBuffer;
+
+	return FAT_SUCCESS;
 }
 
 

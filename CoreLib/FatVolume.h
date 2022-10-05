@@ -147,6 +147,8 @@ protected:
 	bool				IsIllegalFilename(char* szName, uint16 uiLength);
 	void				GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName);
 	EFatCode			GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* psParentDirectory, uint8* szShortName);
+	void				InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName, uint8 uiAttributes, uint32 uiEntryCluster);
+	void				InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound);
 };
 
 

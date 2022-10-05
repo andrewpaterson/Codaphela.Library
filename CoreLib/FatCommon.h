@@ -264,7 +264,7 @@ struct SFatQueryState
 	SFatRawDirectoryEntry*		sFirstEntryRaw;
 
 	// LFN support members
-	uint16						long_filename[256];
+	uint16						long_filename[FAT_MAX_FILENAME + 1];
 	uint8						uiSequence;
 	uint8						uiChecksum;
 
