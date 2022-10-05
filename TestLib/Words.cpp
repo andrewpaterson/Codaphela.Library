@@ -1,3 +1,4 @@
+#include "BaseLib/StdRandom.h"
 #include "Words.h"
 
 
@@ -465,7 +466,7 @@ void GetArchaicWords(CArrayChars* pasz)
 		iIndex = pszDefinition->Find(':');
 		if (iIndex != -1)
 		{
-			sz.Init(pszDefinition->Text(), 0, iIndex - 1);
+			sz.Init(pszDefinition->Text(), 0, iIndex);
 			gaszArchaicWords.Add(sz);
 			sz.Kill();
 		}
@@ -1491,6 +1492,50 @@ void GetCommonWords(CArrayChars* pasz)
 	{
 		sz = pasz->Get(i)->Text();
 		ToLower(sz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void PrintRandomWords(CChars* psz, CRandom* pcRandom, bool bIncludeArchaic, int iWordCount)
+{
+	int		iMaxWords;
+	int		i;
+	int		iWordNum;
+	int		iCommonWords;
+	bool	bFirst;
+
+	iCommonWords = gaszCommonWords.NumElements();
+	iMaxWords = iCommonWords;
+	if (bIncludeArchaic)
+	{
+		iMaxWords += gaszArchaicWords.NumElements();
+	}
+
+	bFirst = true;
+	for (i = 0; i < iWordCount; i++)
+	{
+		if (!bFirst)
+		{
+			psz->Append(" ");
+		}
+		else
+		{
+			bFirst = false;
+		}
+
+		iWordNum = pcRandom->Next(0, iMaxWords - 1);
+		if (iWordNum > gaszCommonWords.NumElements())
+		{
+			psz->Append(gaszArchaicWords.Get(iWordNum - iCommonWords));
+		}
+		else
+		{
+			psz->Append(gaszCommonWords.Get(iWordNum));
+		}
 	}
 }
 

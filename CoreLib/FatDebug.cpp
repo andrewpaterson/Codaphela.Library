@@ -1,4 +1,5 @@
-#include "BaseLib/Chars.h"
+#include "BaseLib/IntegerHelper.h"
+#include "BaseLib/ArrayChars.h"
 #include "BaseLib/StringHelper.h"
 #include "FatVolume.h"
 #include "FatTime.h"
@@ -156,7 +157,7 @@ void PrintLongNamePart(CChars* psz, uint8* puiChars, uint8 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode PrintRootDirectory(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
+EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrintTimes)
 {
 	EFatCode				eResult;
 	uint32					uiCluster;
@@ -308,13 +309,190 @@ void PrintBiosParameterBlock(CChars* psz, CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void DumpRootDirectory(CFatVolume* pcVolume, bool bPrintTime)
+void DumpRootDirectoryEntries(CFatVolume* pcVolume, bool bPrintTime)
 {
 	CChars		sz;
 	EFatCode	eResult;
 
 	sz.Init();
-	eResult = PrintRootDirectory(&sz, pcVolume, bPrintTime);
+	eResult = PrintRootDirectoryEntries(&sz, pcVolume, bPrintTime);
 	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayChars* paszDirectories)
+{
+	SFatFileSystemQuery		sQuery;
+	SFatDirectoryEntry* psFatDirectoryEntry;
+	EFatCode				eResult;
+	char					szNewPath[FAT_MAX_PATH];
+
+	memset(&sQuery, 0, sizeof(SFatFileSystemQuery));
+	eResult = pcVolume->FindFirstFATEntry(szPath, 0, &psFatDirectoryEntry, &sQuery);
+	for (;;)
+	{
+		if (eResult != FAT_SUCCESS)
+		{
+			return eResult;
+		}
+
+		if (StrEmpty((char*)psFatDirectoryEntry->name))
+		{
+			return FAT_SUCCESS;
+		}
+
+		memset(szNewPath, 0, FAT_MAX_PATH);
+		strcpy(szNewPath, szPath);
+		strcat(szNewPath, "\\");
+		strcat(szNewPath, (char*)psFatDirectoryEntry->name);
+
+		if (FixBool(psFatDirectoryEntry->attributes & FAT_ATTR_DIRECTORY))
+		{
+			if (!((strcmp((char*)psFatDirectoryEntry->name, ".") == 0) || (strcmp((char*)psFatDirectoryEntry->name, "..") == 0)))
+			{
+				eResult = RecurseFindFatDirectories(pcVolume, szNewPath, paszDirectories);
+				if (eResult != FAT_SUCCESS)
+				{
+					return eResult;
+				}
+				paszDirectories->Add(szNewPath);
+			}
+		}
+
+		eResult = pcVolume->FindNextFATEntry(&psFatDirectoryEntry, &sQuery);
+		if (eResult != FAT_SUCCESS)
+		{
+			return eResult;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles, int iDepth, int iMaxDepth)
+{
+	SFatFileSystemQuery		sQuery;
+	SFatDirectoryEntry* psFatDirectoryEntry;
+	EFatCode				eResult;
+	char					szNewPath[FAT_MAX_PATH];
+
+	memset(&sQuery, 0, sizeof(SFatFileSystemQuery));
+	eResult = pcVolume->FindFirstFATEntry(szPath, 0, &psFatDirectoryEntry, &sQuery);
+	for (;;)
+	{
+		if (eResult != FAT_SUCCESS)
+		{
+			return eResult;
+		}
+
+		if (StrEmpty((char*)psFatDirectoryEntry->name))
+		{
+			return FAT_SUCCESS;
+		}
+
+		memset(szNewPath, 0, FAT_MAX_PATH);
+		strcpy(szNewPath, szPath);
+		strcat(szNewPath, "\\");
+		strcat(szNewPath, (char*)psFatDirectoryEntry->name);
+
+		if (FixBool(psFatDirectoryEntry->attributes & FAT_ATTR_DIRECTORY))
+		{
+			if ((iDepth < iMaxDepth) || (iMaxDepth == -1))
+			{
+				if (!((strcmp((char*)psFatDirectoryEntry->name, ".") == 0) || (strcmp((char*)psFatDirectoryEntry->name, "..") == 0)))
+				{
+					eResult = RecurseFindFatFilenames(pcVolume, szNewPath, paszFiles, iDepth + 1, iMaxDepth);
+					if (eResult != FAT_SUCCESS)
+					{
+						return eResult;
+					}
+				}
+			}
+		}
+
+		if (FixBool(psFatDirectoryEntry->attributes & FAT_ATTR_ARCHIVE))
+		{
+			paszFiles->Add(szNewPath);
+		}
+
+		eResult = pcVolume->FindNextFATEntry(&psFatDirectoryEntry, &sQuery);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles)
+{
+	return RecurseFindFatFilenames(pcVolume, szPath, paszFiles, 0, -1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void DumpAllFatFilenames(CFatVolume* pcVolume)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintAllFatFilenames(&sz, pcVolume);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void PrintAllFatFilenames(CChars* psz, CFatVolume* pcVolume)
+{
+	CArrayChars				aszFileNames;
+
+	aszFileNames.Init();
+	RecurseFindFatFilenames(pcVolume, "", &aszFileNames);
+
+	aszFileNames.Print(psz);
+	aszFileNames.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void DumpRootFatFilenames(CFatVolume* pcVolume)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintRootFatFilenames(&sz, pcVolume);
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void PrintRootFatFilenames(CChars* psz, CFatVolume* pcVolume)
+{
+	CArrayChars				aszFileNames;
+
+	aszFileNames.Init();
+	RecurseFindFatFilenames(pcVolume, "", &aszFileNames, 0, 0);
+
+	aszFileNames.Print(psz);
+	aszFileNames.Kill();
 }
 
