@@ -453,91 +453,147 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 att
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
+{
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x0])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[0];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x0])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[1];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x1])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[2];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x1])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[3];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x2])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[4];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x2])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[5];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x3])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[6];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x3])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[7];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x4])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[8];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x4])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[9];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x5])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[0];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x5])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[1];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x6])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[2];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x6])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[3];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[4];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[5];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[6];
+	((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[7];
+	if (psQuery->uiSequence < 20)
+	{
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[8];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[9];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[10];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[11];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[0];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[1];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[2];
+		((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[3];
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
+{
+	uint32		uiSectorAddress;
+
+	if (((uintptr_t)psQuery->sCurrentEntryRaw - (uintptr_t)psQuery->sFirstEntryRaw) == GetSectorSize() - 0x20)
+	{
+		// if the current sector is the last of the current cluster then we must find the next
+		// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
+		// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
+		if (psQuery->uiCurrentCluster > 0 && psQuery->uiCurrentSector == NumSectorsPerCluster() - 1)
+		{
+			fatEntry uiFat;
+
+			// get the fat structure for the current cluster and return UNKNOWN_ERROR if the operation fails
+			if (GetNextClusterEntry(psQuery->uiCurrentCluster, &uiFat) != FAT_SUCCESS)
+			{
+				return FAT_UNKNOWN_ERROR;
+			}
+
+			// if this is the last cluster of the directory...
+			if (FatIsEOFEntry(uiFat))
+			{
+				psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
+				return FAT_SHORT_NAME_FOUND;
+			}
+
+			// set the current cluster to the next cluster of the directory etry
+			psQuery->uiCurrentCluster = uiFat;
+
+			// reset the current sector
+			psQuery->uiCurrentSector = 0;
+
+			// calculate the address of the next sector
+			uiSectorAddress = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
+		}
+		else
+		{
+			// if there are more sectors on the current cluster then
+			psQuery->uiCurrentSector++;
+
+			// if this is the root directory of a FAT16/FAT12
+			// volume and we have passed it's last sector then
+			// there's no more entries...
+			if (psQuery->uiCurrentCluster == 0)
+			{
+				if (psQuery->uiCurrentSector == GetRootDirectorySectors())
+				{
+					psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
+					return FAT_SHORT_NAME_FOUND;
+				}
+				uiSectorAddress = (GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + psQuery->uiCurrentSector;
+			}
+			else
+			{
+				// calculate the address of the next sector
+				uiSectorAddress = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
+			}
+		}
+
+		// read the next sector into the query buffer
+		mcSectorCache.Unlock(psQuery->puiBuffer);
+		psQuery->puiBuffer = ReadInfoSector(uiSectorAddress, true);
+		if (psQuery->puiBuffer == NULL)
+		{
+			return FAT_CANNOT_READ_MEDIA;
+		}
+		psQuery->sFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->puiBuffer;
+		psQuery->sCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->puiBuffer;
+	}
+	// if there are more entries on the current sector...
+	else
+	{
+		psQuery->sCurrentEntryRaw++;
+	}
+
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry)
 {
 	bool		bPass;
-	uint32		uiSectorAddress;
+	EFatCode	eResult;
 
 	do
 	{
 		// if the current entry is the last entry of the sector...
 		if (!bFirstEntry)
 		{
-			if (((uintptr_t)psQuery->sCurrentEntryRaw - (uintptr_t)psQuery->sFirstEntryRaw) == GetSectorSize() - 0x20)
+			eResult = FindNextRawDirectoryEntry(psQuery);
+			if (eResult != FAT_SUCCESS)
 			{
-				// if the current sector is the last of the current cluster then we must find the next
-				// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
-				// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
-				if (psQuery->uiCurrentCluster > 0 && psQuery->uiCurrentSector == NumSectorsPerCluster() - 1)
-				{
-					fatEntry uiFat;
-
-					// get the fat structure for the current cluster
-					// and return UNKNOWN_ERROR if the operation fails
-					if (GetNextClusterEntry(psQuery->uiCurrentCluster, &uiFat) != FAT_SUCCESS)
-					{
-						mcSectorCache.Unlock(psQuery->puiBuffer);
-						return FAT_UNKNOWN_ERROR;
-					}
-
-					// if this is the last cluster of the directory...
-					if (FatIsEOFEntry(uiFat))
-					{
-						mcSectorCache.Unlock(psQuery->puiBuffer);
-						// set the current sEntry to 0
-						*psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName = 0;
-						return FAT_SUCCESS;
-					}
-
-					// set the current cluster to the next
-					// cluster of the directory sEntry
-					psQuery->uiCurrentCluster = uiFat;
-
-					// reset the current sector
-					psQuery->uiCurrentSector = 0;
-
-					// calculate the address of the next sector
-					uiSectorAddress = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
-				}
-				else
-				{
-					// if there are more sectors on the current cluster then
-					psQuery->uiCurrentSector++;
-
-					// if this is the root directory of a FAT16/FAT12
-					// volume and we have passed it's last sector then
-					// there's no more entries...
-					if (psQuery->uiCurrentCluster == 0)
-					{
-						if (psQuery->uiCurrentSector == GetRootDirectorySectors())
-						{
-							mcSectorCache.Unlock(psQuery->puiBuffer);
-							*psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName = 0;
-							return FAT_SUCCESS;
-						}
-						uiSectorAddress = (GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + psQuery->uiCurrentSector;
-					}
-					else
-					{
-						// calculate the address of the next sector
-						uiSectorAddress = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
-					}
-				}
-
-				// read the next sector into the psQuery uiBuffer
 				mcSectorCache.Unlock(psQuery->puiBuffer);
-				psQuery->puiBuffer = ReadInfoSector(uiSectorAddress, true);
-				if (psQuery->puiBuffer == NULL)
-				{
-					return FAT_CANNOT_READ_MEDIA;
-				}
-				psQuery->sFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->puiBuffer;
-				psQuery->sCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->puiBuffer;
+				return eResult;
 			}
-			// if there are more entries on the current sector...
-			else
+			else if (eResult == FAT_SHORT_NAME_FOUND)
 			{
-				psQuery->sCurrentEntryRaw++;
+				mcSectorCache.Unlock(psQuery->puiBuffer);
+				return FAT_SUCCESS;
 			}
 		}
 		else
@@ -564,35 +620,7 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 				(psQuery->uiSequence == (psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
 			{
 				psQuery->uiSequence = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY);
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x0])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[0];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x0])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[1];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x1])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[2];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x1])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[3];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x2])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[4];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x2])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[5];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x3])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[6];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x3])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[7];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x4])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[8];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x4])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[9];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x5])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[0];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x5])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[1];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x6])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[2];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x6])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[3];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[4];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[5];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[6];
-				((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[7];
-				if (psQuery->uiSequence < 20)
-				{
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[8];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[9];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[10];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[11];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[0];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[1];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE0] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[2];
-					((uint8*)&psQuery->long_filename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE1] = psQuery->sCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[3];
-				}
+				SetQueryLongFilenamePart(psQuery);
 			}
 			else
 			{
@@ -612,14 +640,14 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 				(!(psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_LONG_NAME) || (psQuery->Attributes & FAT_ATTR_LONG_NAME));
 		}
 	}
-	while (!bPass || *psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName == FAT_DELETED_ENTRY);
+	while (!bPass || psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY);
 
 	// if we found an entry we need to check it's LFN checksum to make sure that the long filename that we've associated with it belongs to it. If it doesn't clear it.
-	if (*psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName != 0x0)
+	if (psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] != '\0')
 	{
 		if (psQuery->uiChecksum != FatLongEntryChecksum((uint8*)psQuery->sCurrentEntryRaw->uEntry.sFatRawCommon.szShortName))
 		{
-			psQuery->long_filename[0] = 0x0;
+			psQuery->long_filename[0] = 0;
 		}
 	}
 
