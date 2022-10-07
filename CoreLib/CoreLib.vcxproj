@@ -191,7 +191,6 @@
     <ClCompile Include="FatInfoSectorCache.cpp" />
     <ClCompile Include="FatTime.cpp" />
     <ClCompile Include="FatVolume.cpp" />
-    <ClCompile Include="FatVolumeOld.cpp" />
     <ClCompile Include="FileDrive.cpp" />
     <ClCompile Include="FileIterator.cpp" />
     <ClCompile Include="FileIteratorReturn.cpp" />
@@ -310,7 +309,6 @@
     <ClInclude Include="FatInfoSectorCache.h" />
     <ClInclude Include="FatTime.h" />
     <ClInclude Include="FatVolume.h" />
-    <ClInclude Include="FatVolumeOld.h" />
     <ClInclude Include="FileDrive.h" />
     <ClInclude Include="IndexedDataEvictionCallback.h" />
     <ClInclude Include="IndexedDataEvictionCounter.h" />

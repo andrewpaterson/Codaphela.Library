@@ -8,6 +8,17 @@
 #define	NO_SECTOR_CACHED	0xffffffff
 
 
+struct SFatCache
+{
+	void*	pvCachedSector;
+	uint32	uiTimeStamp;
+
+	void	Clear(void);
+	uint8*	Get(void);
+	bool	IsValid(void);
+}; 
+
+
 class CFatSectorCache
 {
 public:
@@ -38,14 +49,15 @@ protected:
 public:
 	void				Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches);
 	void				Kill(void);
-	void*				ReadSector(uint32 uiInfoSector);
-	void				Lock(void* pvSectorCache);
-	void				Unlock(void* pvSectorCache);
+	SFatCache			ReadSector(uint32 uiInfoSector);
+	void				Lock(SFatCache sSectorCache);
+	void				Unlock(SFatCache sSectorCache);
 	uint16				GetNumAllocatedSectors(void);
 	uint16				GetNumCachedSectors(void);
 	uint16				GetLockedCachedSectors(void);
-	void				Dirty(void* pvSectorCache);
+	void				Dirty(SFatCache sSectorCache);
 	bool				Flush(void);
+	bool				ValidateTimeStamp(SFatCache sSectorCache);
 
 protected:
 	CFatSectorCache*	AddNewCache(void);

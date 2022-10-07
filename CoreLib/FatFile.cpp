@@ -679,17 +679,18 @@ EFatCode CFatFile::FatFileFlush(void)
 		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
 
 		// try load the sector that contains the entry
-		uint8*	pvBuffer;
-		pvBuffer = mpcVolume->ReadInfoSector(msFile.sDirectoryEntry.uiSectorAddress);
-		if (pvBuffer == NULL)
+		SFatCache	sBuffer;
+
+		sBuffer = mpcVolume->ReadSector(msFile.sDirectoryEntry.uiSectorAddress);
+		if (!sBuffer.IsValid())
 		{
 			msFile.bBusy = 0;
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
 		// copy the modified file entry to the sector buffer
-		memcpy(pvBuffer + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
-		mpcVolume->SetInfoSectorDirty(pvBuffer);
+		memcpy(sBuffer.Get() + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		mpcVolume->DirtySector(sBuffer);
 
 		// mark the file file as not bBusy
 		msFile.bBusy = 0;
