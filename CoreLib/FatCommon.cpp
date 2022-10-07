@@ -184,6 +184,7 @@ char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 void SFatQueryState::Init(void)
 {
 	memset(this, 0, sizeof(SFatQueryState));
+	memset(uiLockedSectors, 0xff, sizeof(uint32) * FAT_MAX_SECTOR_QUERY_LOCKS);
 }
 
 
@@ -191,8 +192,45 @@ void SFatQueryState::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SFatQueryState::Kill(CFatInfoSectorCache* pcCache)
+bool SFatQueryState::Kill(CFatInfoSectorCache* pcCache)
 {
+	int		i;
+	uint32	uiSector;
+	bool	bResult;
+
+	bResult = true;
+	for (i = 0; i < FAT_MAX_SECTOR_QUERY_LOCKS; i++)
+	{
+		uiSector = uiLockedSectors[i];
+		if (uiSector != 0xffffffff)
+		{
+			bResult &= pcCache->Unlock(uiSector);
+			uiLockedSectors[i] = 0xffffffff;
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SFatQueryState::Lock(uint32 uiSector)
+{
+	int		i;
+	uint32	uiCheckSector;
+
+	for (i = 0; i < FAT_MAX_SECTOR_QUERY_LOCKS; i++)
+	{
+		uiCheckSector = uiLockedSectors[i];
+		if (uiCheckSector == 0xffffffff)
+		{
+			uiLockedSectors[i] = uiSector;
+			return true;
+		}
+	}
+	return false;
 }
 
 

@@ -39,12 +39,14 @@ void CFatSectorCache::Lock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatSectorCache::Unlock(void)
+bool CFatSectorCache::Unlock(void)
 {
 	if (muiLocks != 0)
 	{
 		muiLocks--;
+		return true;
 	}
+	return false;
 }
 
 
@@ -274,12 +276,59 @@ void CFatInfoSectorCache::Lock(SFatCache sSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Unlock(SFatCache sSectorCache)
+bool CFatInfoSectorCache::Unlock(SFatCache sSectorCache)
 {
 	CFatSectorCache* pcCachedSector;
 
-	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t) sizeof(CFatSectorCache)));
-	pcCachedSector->Unlock();
+	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t)sizeof(CFatSectorCache)));
+	return pcCachedSector->Unlock();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatInfoSectorCache::Unlock(uint32 uiSector)
+{
+	SFatCache			sSectorCache;
+	CFatSectorCache*	pcCachedSector;
+	
+	sSectorCache = FindCachedSector(uiSector);
+	if (sSectorCache.IsValid())
+	{
+		pcCachedSector = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t)sizeof(CFatSectorCache)));
+		pcCachedSector->Unlock();
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SFatCache CFatInfoSectorCache::FindCachedSector(uint32 uiInfoSector)
+{
+	CFatSectorCache*	pcCachedSector;
+	SFatCache			sCachedSector;
+
+	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
+	while (pcCachedSector != NULL)
+	{
+		if (pcCachedSector->muiInfoSector == uiInfoSector)
+		{
+			sCachedSector.pvCachedSector = pcCachedSector->GetCache();
+			sCachedSector.uiTimeStamp = (uint32)pcCachedSector->muiCreationStamp;
+			return sCachedSector;
+		}
+
+		pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetNext(pcCachedSector);
+	}
+	sCachedSector.pvCachedSector = NULL;
+	sCachedSector.uiTimeStamp = 0xffffffff;
+	return sCachedSector;
 }
 
 

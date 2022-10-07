@@ -30,7 +30,7 @@ public:
 	void	Init(uint32 uiInfoSector, uint64 uiCreationStamp);
 	void*	GetCache(void);
 	void	Lock(void);
-	void	Unlock(void);
+	bool	Unlock(void);
 	void	Dirty(void);
 };
 
@@ -51,7 +51,8 @@ public:
 	void				Kill(void);
 	SFatCache			ReadSector(uint32 uiInfoSector);
 	void				Lock(SFatCache sSectorCache);
-	void				Unlock(SFatCache sSectorCache);
+	bool				Unlock(SFatCache sSectorCache);
+	bool				Unlock(uint32 uiSector);
 	uint16				GetNumAllocatedSectors(void);
 	uint16				GetNumCachedSectors(void);
 	uint16				GetLockedCachedSectors(void);
@@ -64,6 +65,7 @@ protected:
 	CFatSectorCache*	GetOrCacheSector(uint32 uiInfoSector);
 	CFatSectorCache*	InitialiseCache(uint32 uiInfoSector, CFatSectorCache* pcCachedSector);
 	bool				FlushCache(CFatSectorCache* pcCachedSector);
+	SFatCache			FindCachedSector(uint32 uiInfoSector);
 };
 
 
