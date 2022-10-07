@@ -40,13 +40,15 @@ public:
 	EFatCode			Unmount(void);
 	EFatCode			Flush(void);
 	bool				Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive);
-	EFatCode			FatCreateDirectory(char* szDirectory);
+	EFatCode			CreateDirectory(char* szDirectory);
+	EFatCode			RenameFile(char* szOriginalFilename, char* szNewFilename);
+	EFatCode			DeleteFile(char* szFilename);
 
 	//Suspect
 	EFatCode			Allocate(uint32 uiClustersNeeded, uint32 uiCursorClusterInVolume, uint32* puiNewClusterInVolume);
 	EFatCode			Free(SFatDirectoryEntry* psEntry);
-	uint8*				ReadInfoSector(uint32 uiFatInfoSector, bool bLock = false);
-	void				SetInfoSectorDirty(uint8* pvCachedSector);
+	SFatCache			ReadSector(uint32 uiFatInfoSector, bool bLock = false);
+	void				DirtySector(SFatCache sCachedSector);
 	void				CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector);
 	EFatCode			GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry);
 	uint32				CalculateFirstSectorOfCluster(uint32 uiCluster);
@@ -60,6 +62,8 @@ public:
 	EFatCode			FindFirstFATEntry(char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode			FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode			CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
+
+	EFatCode			ValidateFatCache(SFatCache sCache);
 
 	//Broken
 	EFatCode			CountSequentialClusters(uint32 uiCluster, uint32* puiSequentialClustersAfter);
@@ -87,6 +91,7 @@ public:
 	uint32				GetRootCluster(void);
 	uint32				GetRootSector(void);
 	uint32				GetPageSize(void);
+	CFatInfoSectorCache* GetSectorCache(void);
 
 protected:
 	EFatCode			QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, bool bBufferLocked);
@@ -119,8 +124,8 @@ protected:
 
 	EFatCode			WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry);
 	EFatCode			WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry);
-	EFatCode			WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntryOffset, uint32 uiClusterIndexInTable, uint32 uiSector, uint32 uiLastSector, fatEntry uiLastFatEntry);
-	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiOffsetInSector, uint32 uiSector, fatEntry uiLastFatEntry, uint32 uiLastSector, uint32 uiLastEntryOffset);
+	EFatCode			WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntryOffset, uint32 uiClusterIndexInTable, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry);
+	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiOffsetInSector, uint32 uiSector, fatEntry uiLastFatEntry, uint32 uiPreviousSector, uint32 uiLastEntryOffset);
 
 	void				SetNextFreeCluster(uint32 uiCluster);
 	void				SetTotalFreeClusters(uint32 uiTotalFreeClusters);
@@ -139,7 +144,7 @@ protected:
 	EFatCode			GetShortNameForEntry(uint8* dest, uint8* src, bool bLFNDisabled);
 	void				FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 
-	EFatCode			FindBiosParameterBlock(uint8* pvMBRSector);
+	EFatCode			FindBiosParameterBlock(SFatCache sMBRSector);
 	bool				CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
 	bool				CheckFileAllocationTableLargeEnough(EFatFileSystemType eFileSystem, uint32 uiFatSize, uint32 uiNoOfClusters, uint16 uiBytesPerSector);
 
@@ -151,6 +156,8 @@ protected:
 	void				InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound);
 	void				SetQueryLongFilenamePart(SFatQueryState* psQuery);
 	EFatCode			FindNextRawDirectoryEntry(SFatQueryState* psQuery);
+
+	void				FatParsePath(char* path, char* szPathPart, char** filename_part);
 };
 
 

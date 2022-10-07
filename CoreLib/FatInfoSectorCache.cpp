@@ -1,3 +1,4 @@
+#include "BaseLib/PointerFunctions.h"
 #include "FatInfoSectorCache.h"
 
 
@@ -87,22 +88,37 @@ void CFatInfoSectorCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CFatInfoSectorCache::ReadSector(uint32 uiInfoSector)
+SFatCache CFatInfoSectorCache::ReadSector(uint32 uiInfoSector)
 {
 	CFatSectorCache*	pcCachedSector;
-	void*				pvData;
+	SFatCache			sSectorCache;
 
 	pcCachedSector = GetOrCacheSector(uiInfoSector);
 
 	if (pcCachedSector != NULL)
 	{
-		pvData = pcCachedSector->GetCache();
-		return pvData;
+		sSectorCache.pvCachedSector = pcCachedSector->GetCache();
+		sSectorCache.uiTimeStamp = (uint32)pcCachedSector->muiCreationStamp;
 	}
 	else
 	{
-		return NULL;
+		sSectorCache.pvCachedSector = NULL;
+		sSectorCache.uiTimeStamp = 0xffffffff;
 	}
+	return sSectorCache;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatInfoSectorCache::ValidateTimeStamp(SFatCache sSectorCache)
+{
+	CFatSectorCache* pcSectorCache;
+
+	pcSectorCache = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t)sizeof(CFatSectorCache)));
+	return (uint32)pcSectorCache->muiCreationStamp == sSectorCache.uiTimeStamp;
 }
 
 
@@ -245,11 +261,11 @@ bool CFatInfoSectorCache::FlushCache(CFatSectorCache* pcCachedSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Lock(void* pvSectorCache)
+void CFatInfoSectorCache::Lock(SFatCache sSectorCache)
 {
 	CFatSectorCache*	pcCachedSector;
 
-	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(pvSectorCache, -((ptrdiff_t) sizeof(CFatSectorCache)));
+	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t) sizeof(CFatSectorCache)));
 	pcCachedSector->Lock();
 }
 
@@ -258,11 +274,11 @@ void CFatInfoSectorCache::Lock(void* pvSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Unlock(void* pvSectorCache)
+void CFatInfoSectorCache::Unlock(SFatCache sSectorCache)
 {
 	CFatSectorCache* pcCachedSector;
 
-	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(pvSectorCache, -((ptrdiff_t) sizeof(CFatSectorCache)));
+	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t) sizeof(CFatSectorCache)));
 	pcCachedSector->Unlock();
 }
 
@@ -271,11 +287,11 @@ void CFatInfoSectorCache::Unlock(void* pvSectorCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Dirty(void* pvSectorCache)
+void CFatInfoSectorCache::Dirty(SFatCache sSectorCache)
 {
 	CFatSectorCache* pcCachedSector;
 
-	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(pvSectorCache, -((ptrdiff_t)sizeof(CFatSectorCache)));
+	pcCachedSector = (CFatSectorCache*)RemapSinglePointer(sSectorCache.pvCachedSector, -((ptrdiff_t)sizeof(CFatSectorCache)));
 	pcCachedSector->Dirty();
 }
 
@@ -364,5 +380,36 @@ uint16 CFatInfoSectorCache::GetLockedCachedSectors(void)
 	}
 
 	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SFatCache::Clear(void)
+{
+	pvCachedSector = NULL;
+	uiTimeStamp = 0xffffffff;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8* SFatCache::Get(void)
+{
+	return (uint8*)pvCachedSector;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SFatCache::IsValid(void)
+{
+	return pvCachedSector != NULL;
 }
 

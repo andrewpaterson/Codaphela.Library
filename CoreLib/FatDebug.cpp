@@ -166,25 +166,27 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 	SFatRawDirectoryEntry*	psFirstEntry;
 	uint32					uiSectorCount;
 	char					szShortName[13];
-	uint8*					pvSector;
+	SFatCache				sCache;
 	
 	uiCluster = pcVolume->GetRootCluster();
 	uiSector = pcVolume->GetRootSector();
 
-	pvSector = pcVolume->ReadInfoSector(uiSector);
-	if (pvSector == NULL)
+	sCache = pcVolume->ReadSector(uiSector);
+	if (!sCache.IsValid())
 	{
 		return FAT_CANNOT_READ_MEDIA;
 	}
 
-
 	uiSectorCount = 0;
 	memset(szShortName, '\0', 13);
-	psEntry = (SFatRawDirectoryEntry*)pvSector;
-	psFirstEntry = (SFatRawDirectoryEntry*)pvSector;
+	psEntry = (SFatRawDirectoryEntry*)sCache.Get();
+	psFirstEntry = (SFatRawDirectoryEntry*)sCache.Get();
 
 	for (;;)
 	{
+		eResult = pcVolume->ValidateFatCache(sCache);
+		RETURN_ON_FAT_FAILURE(eResult);
+
 		if (((uintptr_t)psEntry - (uintptr_t)psFirstEntry) == pcVolume->GetSectorSize())
 		{
 			if (uiSectorCount == pcVolume->NumSectorsPerCluster() - 1)
@@ -204,14 +206,17 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 				uiSectorCount++;
 				uiSector++;
 			}
-			pvSector = pcVolume->ReadInfoSector(uiSector);
-			if (pvSector == NULL)
+			sCache = pcVolume->ReadSector(uiSector);
+			if (!sCache.IsValid())
 			{
 				return FAT_CANNOT_READ_MEDIA;
 			}
-			psEntry = (SFatRawDirectoryEntry*)pvSector;
-			psFirstEntry = (SFatRawDirectoryEntry*)pvSector;
+			psEntry = (SFatRawDirectoryEntry*)sCache.Get();
+			psFirstEntry = (SFatRawDirectoryEntry*)sCache.Get();
 		}
+
+		eResult = pcVolume->ValidateFatCache(sCache);
+		RETURN_ON_FAT_FAILURE(eResult);
 
 		if (!(psEntry->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY))
 		{
@@ -327,22 +332,23 @@ void DumpRootDirectoryEntries(CFatVolume* pcVolume, bool bPrintTime)
 EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayChars* paszDirectories)
 {
 	SFatFileSystemQuery		sQuery;
-	SFatDirectoryEntry* psFatDirectoryEntry;
+	SFatDirectoryEntry*		psFatDirectoryEntry;
 	EFatCode				eResult;
 	char					szNewPath[FAT_MAX_PATH];
 
-	memset(&sQuery, 0, sizeof(SFatFileSystemQuery));
+	sQuery.Init();
 	eResult = pcVolume->FindFirstFATEntry(szPath, 0, &psFatDirectoryEntry, &sQuery);
 	for (;;)
 	{
 		if (eResult != FAT_SUCCESS)
 		{
-			return eResult;
+			break;
 		}
 
 		if (StrEmpty((char*)psFatDirectoryEntry->name))
 		{
-			return FAT_SUCCESS;
+			eResult = FAT_SUCCESS;
+			break;
 		}
 
 		memset(szNewPath, 0, FAT_MAX_PATH);
@@ -357,7 +363,7 @@ EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayCha
 				eResult = RecurseFindFatDirectories(pcVolume, szNewPath, paszDirectories);
 				if (eResult != FAT_SUCCESS)
 				{
-					return eResult;
+					break;
 				}
 				paszDirectories->Add(szNewPath);
 			}
@@ -366,9 +372,12 @@ EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayCha
 		eResult = pcVolume->FindNextFATEntry(&psFatDirectoryEntry, &sQuery);
 		if (eResult != FAT_SUCCESS)
 		{
-			return eResult;
+			break;
 		}
 	}
+
+	sQuery.Kill(pcVolume->GetSectorCache());
+	return eResult;
 }
 
 
@@ -379,22 +388,23 @@ EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayCha
 EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles, int iDepth, int iMaxDepth)
 {
 	SFatFileSystemQuery		sQuery;
-	SFatDirectoryEntry* psFatDirectoryEntry;
+	SFatDirectoryEntry*		psFatDirectoryEntry;
 	EFatCode				eResult;
 	char					szNewPath[FAT_MAX_PATH];
 
-	memset(&sQuery, 0, sizeof(SFatFileSystemQuery));
+	sQuery.Init();
 	eResult = pcVolume->FindFirstFATEntry(szPath, 0, &psFatDirectoryEntry, &sQuery);
 	for (;;)
 	{
 		if (eResult != FAT_SUCCESS)
 		{
-			return eResult;
+			break;
 		}
 
 		if (StrEmpty((char*)psFatDirectoryEntry->name))
 		{
-			return FAT_SUCCESS;
+			eResult = FAT_SUCCESS;
+			break;
 		}
 
 		memset(szNewPath, 0, FAT_MAX_PATH);
@@ -411,7 +421,7 @@ EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars
 					eResult = RecurseFindFatFilenames(pcVolume, szNewPath, paszFiles, iDepth + 1, iMaxDepth);
 					if (eResult != FAT_SUCCESS)
 					{
-						return eResult;
+						break;
 					}
 				}
 			}
@@ -424,6 +434,9 @@ EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars
 
 		eResult = pcVolume->FindNextFATEntry(&psFatDirectoryEntry, &sQuery);
 	}
+
+	sQuery.Kill(pcVolume->GetSectorCache());
+	return eResult;
 }
 
 

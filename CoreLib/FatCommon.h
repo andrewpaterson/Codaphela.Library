@@ -2,7 +2,7 @@
 #define __FAT_COMMON_H__
 #include <time.h>
 #include "BaseLib/PrimitiveTypes.h"
-
+#include "FatInfoSectorCache.h"
 
 #define FAT_MAX_PATH					260
 #define FAT_FIRST_LFN_ENTRY				0x40
@@ -237,7 +237,8 @@ enum EFatCode
 	FAT_MISALIGNED_IO					= 0x20 + 0x20,
 	FAT_AWAITING_DATA					= 0x20 + 0x21,
 	FAT_BUFFER_TOO_BIG					= 0x20 + 0x22,
-	FAT_SHORT_NAME_FOUND				= 0x20 + 0x23
+	FAT_INVALID_FAT_CACHE				= 0x20 + 0x23,
+	FAT_SHORT_NAME_FOUND				= 0x20 + 0x24
 };
 
 
@@ -261,17 +262,18 @@ struct SFatQueryState
 	uint8						Attributes;
 	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
-	SFatRawDirectoryEntry*		sCurrentEntryRaw;
-	SFatRawDirectoryEntry*		sFirstEntryRaw;
+	SFatRawDirectoryEntry*		psCurrentEntryRaw;
+	SFatRawDirectoryEntry*		psFirstEntryRaw;
 
 	// LFN support members
 	uint16						long_filename[FAT_MAX_FILENAME + 1];
 	uint8						uiSequence;
 	uint8						uiChecksum;
 
-	uint8*						puiBuffer;
+	SFatCache					sBuffer;
 
-	uint8						auiBuffer[MAX_SECTOR_LENGTH];
+	void	Init(void);
+	void	Kill(CFatInfoSectorCache* pcCache);
 };
 
 
@@ -279,7 +281,10 @@ struct SFatQueryState
 struct SFatFileSystemQuery
 {
 	SFatDirectoryEntry	sCurrentEntry;
-	SFatQueryState		sQueryState;
+	SFatQueryState		sQuery;
+
+	void	Init(void);
+	void	Kill(CFatInfoSectorCache* pcCache);
 };
 
 

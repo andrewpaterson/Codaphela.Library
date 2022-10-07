@@ -525,9 +525,6 @@
     <ClCompile Include="FatFile.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
-    <ClCompile Include="FatVolumeOld.cpp">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClCompile>
     <ClCompile Include="FatTime.cpp">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClCompile>
@@ -900,9 +897,6 @@
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
     <ClInclude Include="FatCommon.h">
-      <Filter>Source\FileSystem\Fat32</Filter>
-    </ClInclude>
-    <ClInclude Include="FatVolumeOld.h">
       <Filter>Source\FileSystem\Fat32</Filter>
     </ClInclude>
     <ClInclude Include="FatFile.h">
