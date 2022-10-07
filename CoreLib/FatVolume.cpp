@@ -1010,6 +1010,7 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 	SFatRawDirectoryEntry*	psEntries;
 	SFatCache				sBuffer;
 	bool					bSuccess;
+	uint32					uiLastClusterSector;
 
 	READ_SECTOR(sBuffer, uiSector)
 
@@ -1083,12 +1084,15 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 		}
 	}
 
-	uiFirstClusterSector = CalculateFirstSectorOfCluster(uiCluster);
-
-	bSuccess = mpcDevice->Erase(uiFirstClusterSector + 1, NumSectorsPerCluster() - 2);
-	if (!bSuccess)
+	uiFirstClusterSector = CalculateFirstSectorOfCluster(uiCluster) + 1;
+	uiLastClusterSector = uiFirstClusterSector + NumSectorsPerCluster() - 2;
+	if (uiLastClusterSector >= uiFirstClusterSector)
 	{
-		return FAT_CANNOT_WRITE_MEDIA;
+		bSuccess = mpcDevice->Erase(uiFirstClusterSector, uiLastClusterSector);
+		if (!bSuccess)
+		{
+			return FAT_CANNOT_WRITE_MEDIA;
+		}
 	}
 	return FAT_SUCCESS;
 }
