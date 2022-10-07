@@ -7,6 +7,7 @@
 #define FAT_MAX_PATH					260
 #define FAT_FIRST_LFN_ENTRY				0x40
 #define FAT_MAX_FILENAME				255
+#define FAT_MAX_SECTOR_QUERY_LOCKS		32
 
 
 // FAT entry data type
@@ -259,21 +260,22 @@ char* FatCodeToString(EFatCode eCode);
 // Holds the internal state of a directory query.
 struct SFatQueryState
 {
-	uint8						Attributes;
+	uint8						uiAttributes;
 	uint16						uiCurrentSector;
 	uint32						uiCurrentCluster;
 	SFatRawDirectoryEntry*		psCurrentEntryRaw;
 	SFatRawDirectoryEntry*		psFirstEntryRaw;
 
-	// LFN support members
-	uint16						long_filename[FAT_MAX_FILENAME + 1];
+	uint16						auiLongFilename[FAT_MAX_FILENAME + 1];
 	uint8						uiSequence;
 	uint8						uiChecksum;
 
 	SFatCache					sBuffer;
+	uint32						uiLockedSectors[FAT_MAX_SECTOR_QUERY_LOCKS];
 
 	void	Init(void);
-	void	Kill(CFatInfoSectorCache* pcCache);
+	bool	Kill(CFatInfoSectorCache* pcCache);
+	bool	Lock(uint32 uiSector);
 };
 
 
