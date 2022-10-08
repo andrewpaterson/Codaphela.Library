@@ -58,21 +58,21 @@ char gaszFatAttributes[][10] = {"READ_ONLY",
 //////////////////////////////////////////////////////////////////////////
 uint32 GetFirstClusterFromFatEntry(SFatRawDirectoryEntry* psRawEntry, bool bFat32Volume)
 {
-	uint32 uiCursorClusterInVolume;
+	uint32 uiCluster;
 
 	if (psRawEntry != NULL)
 	{
-		((uint16*)&uiCursorClusterInVolume)[INT32_WORD0] = psRawEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord;
+		((uint16*)&uiCluster)[INT32_WORD0] = psRawEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord;
 		if (bFat32Volume)
 		{
-			((uint16*)&uiCursorClusterInVolume)[INT32_WORD1] = psRawEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord;
+			((uint16*)&uiCluster)[INT32_WORD1] = psRawEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord;
 		}
 		else
 		{
-			((uint16*)&uiCursorClusterInVolume)[INT32_WORD1] = 0;
+			((uint16*)&uiCluster)[INT32_WORD1] = 0;
 		}
 
-		return uiCursorClusterInVolume;
+		return uiCluster;
 	}
 	else
 	{

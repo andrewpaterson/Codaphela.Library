@@ -45,14 +45,14 @@ public:
 	EFatCode			DeleteFile(char* szFilename);
 
 	//Suspect
-	EFatCode			Allocate(uint32 uiClustersNeeded, uint32 uiCursorClusterInVolume, uint32* puiNewClusterInVolume);
+	EFatCode			Allocate(uint32 uiClustersNeeded, uint32 uiCursorClusterInVolume, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster);
 	EFatCode			Free(SFatDirectoryEntry* psEntry);
 	SFatCache			ReadSector(uint32 uiFatInfoSector, bool bLock = false);
 	void				DirtySector(SFatCache sCachedSector);
 	void				CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector);
 	EFatCode			GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry);
 	uint32				CalculateFirstSectorOfCluster(uint32 uiCluster);
-	EFatCode			GetNextClusterEntry(uint32 uiCurrentCluster, uint32* puiNextCluster);
+	EFatCode			GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiNextCluster);
 	EFatCode			IncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex);
 	bool				FatIsEOFEntry(fatEntry uiFat);
 	EFatCode			FreeChain(uint32 uiClusterIndex);
@@ -62,6 +62,7 @@ public:
 	EFatCode			FindFirstFATEntry(char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode			FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode			CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
+	fatEntry			GetEndOfClusterMarker(void);
 
 	EFatCode			ValidateFatCache(SFatCache sCache);
 
@@ -98,9 +99,9 @@ protected:
 	EFatCode			QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry);
 
 	uint32				AllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* peResult);
-	uint32				AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult);
-	uint32				AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult);
-	uint32				AllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult);
+	uint32				AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult, uint32 uiPreviousCluster);
+	uint32				AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster);
+	uint32				AllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster);
 
 	EFatCode			FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiClusterIndex, uint32* puiSector, uint32* puiOffsetInSector);
 	EFatCode			FreeFat16Chain(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector);
@@ -122,15 +123,14 @@ protected:
 	EFatCode			ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry);
 	EFatCode			ReadFat32Entry(uint32 uiOffsetInSector, uint32 uiSector, fatEntry* puiFatEntry);
 
-	EFatCode			WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry);
-	EFatCode			WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry);
-	EFatCode			WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntryOffset, uint32 uiClusterIndexInTable, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiLastFatEntry);
-	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiOffsetInSector, uint32 uiSector, fatEntry uiLastFatEntry, uint32 uiPreviousSector, uint32 uiLastEntryOffset);
+	EFatCode			WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiPreviousFatEntry);
+	EFatCode			WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousOffset, uint32 uiCluster, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiPreviousFatEntry);
+	EFatCode			WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiPreviousEntryOffset, uint32 uiClusterIndexInTable, uint32 uiSector, uint32 uiPreviousSector, fatEntry uiPreviousFatEntry);
+	EFatCode			WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32 uiOffsetInSector, uint32 uiSector, fatEntry uiPreviousFatEntry, uint32 uiPreviousSector, uint32 uiPreviousEntryOffset);
 
 	void				SetNextFreeCluster(uint32 uiCluster);
 	void				SetTotalFreeClusters(uint32 uiTotalFreeClusters);
 	uint32				FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep);
-	fatEntry			GetEndOfClusterMarker(void);
 	bool				HasNextFreeCluser(void);
 	uint16				CalculateClusterStepSize(uint32 uiPageSize);
 	EFatCode			WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndex, uint32* puiOffsetInSector, uint32* puiFirstClusterSector);
