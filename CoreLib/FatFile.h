@@ -37,6 +37,7 @@ public:
 	EFatCode	Write(uint8* pvSource, uint32 length);
 	EFatCode	Read(uint8* puiDestination, uint32 length, uint32* puiBytesRead);
 	EFatCode	Seek(uint32 offset, EFatSeek mode);
+	EFatCode	Flush(void);
 
 	uint32		GetCurrentSize(void);
 	uint32		GetCurrentClusterAddress(void);
@@ -44,12 +45,12 @@ public:
 	uint8		GetMagic(void);
 	uint8		GetAccessFlags(void);
 
+	EFatCode	AllocateClusters(uint32 bytes);
+
 protected:
-	EFatCode	FatOpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode	OpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint32		FatFileGetUniqueId(void);
-	EFatCode	FatFileAllocate(uint32 bytes);
 	EFatCode	FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource);
-	EFatCode	FatFileFlush(void);
 
 	bool		IsFat32Volume(void);
 	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);

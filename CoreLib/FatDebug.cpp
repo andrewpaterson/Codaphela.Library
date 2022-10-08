@@ -24,10 +24,12 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 	CChars		szSector;
 	fatEntry	uiPreviousEntry;
 	bool		bAllEntriesSame;
+	uint32		uiEOC;
 	
 	uiPreviousSector = 0;
 	bAllEntriesSame = true;
 	
+	uiEOC = pcVolume->GetEndOfClusterMarker();
 	sz.Init();
 	szNumber.Init();
 	szSector.Init();
@@ -59,9 +61,9 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 			}
 
 			szSector.Clear();
-			szSector.Append("-------------------------------------------------------------------- ");
+			szSector.Append("-------------------------------------------------------------------- Sector (");
 			szSector.Append(uiSector);
-			szSector.Append(" --------------------------------------------------------------------");
+			szSector.Append(") --------------------------------------------------------------------");
 			szSector.AppendNewLine();
 			uiPreviousSector = uiSector;
 			uiRow = 0;
@@ -77,9 +79,21 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 			}
 		}
 
-		szNumber.Append((int)uiEntry, 16);
-		szSector.RightAlign(szNumber.Text(), ' ', 10);
+		szNumber.Append((int)uiClusterIndex, 16);
+		szSector.RightAlign(szNumber.Text(), ' ', 5);
 		szNumber.Clear();
+		szSector.Append(" -> ");
+
+		if (uiEOC != uiEntry)
+		{
+			szNumber.Append((int)uiEntry, 16);
+			szSector.RightAlign(szNumber.Text(), ' ', 4);
+			szNumber.Clear();
+		}
+		else
+		{
+			szSector.Append(" EOC");
+		}
 		uiRow++;
 		if (uiRow == 16)
 		{
@@ -92,6 +106,8 @@ void DumpInterestingFATClusters(CFatVolume* pcVolume)
 		}
 	}
 
+	szSector.Kill();
+	szNumber.Kill();
 	sz.DumpKill();
 }
 
@@ -185,14 +201,14 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 	for (;;)
 	{
 		eResult = pcVolume->ValidateFatCache(sCache);
-		RETURN_ON_FAT_FAILURE(eResult);
+		RETURN_ON_FAT_FAILURE(eResult)
 
 		if (((uintptr_t)psEntry - (uintptr_t)psFirstEntry) == pcVolume->GetSectorSize())
 		{
 			if (uiSectorCount == pcVolume->NumSectorsPerCluster() - 1)
 			{
 				eResult = pcVolume->GetNextClusterEntry(uiCluster, &uiCluster);
-				RETURN_ON_FAT_FAILURE(eResult);
+				RETURN_ON_FAT_FAILURE(eResult)
 
 				if (pcVolume->FatIsEOFEntry(uiCluster))
 				{
@@ -216,7 +232,7 @@ EFatCode PrintRootDirectoryEntries(CChars* psz, CFatVolume* pcVolume, bool bPrin
 		}
 
 		eResult = pcVolume->ValidateFatCache(sCache);
-		RETURN_ON_FAT_FAILURE(eResult);
+		RETURN_ON_FAT_FAILURE(eResult)
 
 		if (!(psEntry->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY))
 		{

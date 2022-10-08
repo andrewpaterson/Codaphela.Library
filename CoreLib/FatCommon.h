@@ -315,7 +315,6 @@ enum EFatFileSystemType
 #define FAT_OPEN_HANDLE_MAGIC		0x4B
 #define FAT_KANJI_SKIP_ENTRY		0x05
 #define FAT_DELETED_ENTRY			0xE5
-#define FAT_UNKNOWN_SECTOR			0xFFFFFFFF
 
 
 // macros for checking if a directory entry is free and if it's the last entry on the directory
