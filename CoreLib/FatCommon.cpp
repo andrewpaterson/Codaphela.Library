@@ -134,7 +134,7 @@ char* FatCodeToString(EFatCode eCode)
 		return gszFatSuccess;
 	}
 
-	if (eCode >= FAT_UNKNOWN_ERROR && eCode <= FAT_BUFFER_TOO_BIG)
+	if (eCode >= FAT_UNKNOWN_ERROR && eCode <= FAT_LAST_ERROR_ENUM)
 	{
 		return gaszFatErrors[eCode - 0x20];
 	}

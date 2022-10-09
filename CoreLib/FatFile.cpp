@@ -94,7 +94,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 	// get the file entry
 	eResult = mpcVolume->GetFileEntry(filename, &sFileEntry);
-	RETURN_ON_FAT_FAILURE(eResult)
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	if (sFileEntry.name[0] == '\0')
 	{
@@ -106,7 +106,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			SFatDirectoryEntry	sParentEntry;
 
 			eResult = FindBackslash(filename, &pcFilenameScanner);
-			RETURN_ON_FAT_FAILURE(eResult)
+			RETURN_ON_FAT_FAILURE(eResult);
 
 			iPathLength = pcFilenameScanner - filename;
 
@@ -123,7 +123,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 			// try to get the entry for the parent directory
 			eResult = mpcVolume->GetFileEntry(szFilePath, &sParentEntry);
-			RETURN_ON_FAT_FAILURE(eResult)
+			RETURN_ON_FAT_FAILURE(eResult);
 
 			// if the parent directory does not exists
 			if (*sParentEntry.name == 0)
@@ -133,7 +133,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 			// try to create the directory entry
 			eResult = mpcVolume->CreateFATEntry(&sParentEntry.raw, pcFilenameScanner, FAT_ATTR_ARCHIVE, 0, &sFileEntry);
-			RETURN_ON_FAT_FAILURE(eResult)
+			RETURN_ON_FAT_FAILURE(eResult);
 
 			// make sure the file is opened with no append flags
 			// todo: figure out why we need this and fix it
@@ -144,7 +144,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
 			msFile.bBusy = 0;
 
-			RETURN_ON_FAT_FAILURE(eResult)
+			RETURN_ON_FAT_FAILURE(eResult);
 		}
 		else
 		{
@@ -406,17 +406,15 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	}
 	
 	// calculate the count of sectors being used by the file up to the desired position
-	uiSectorIndexInFile = (uiBytePositionInFile + mpcVolume->GetSectorSize() - 1) / mpcVolume->GetSectorSize();
+	uiSectorIndexInFile = uiBytePositionInFile / mpcVolume->GetSectorSize();
+	uiClusterIndex = uiSectorIndexInFile / mpcVolume->NumSectorsPerCluster();
 
 	// set the 1st cluster as the current cluster, we'll seek from there
 	msFile.uiCursorClusterInVolume = CalculateFirstCluster();
 
 	// if the file occupies more than one cluster
-	if (uiSectorIndexInFile > mpcVolume->NumSectorsPerCluster())
+	if (uiClusterIndex > 0)
 	{
-		// calculate the count of clusters occupied by the file and update the ClustersAllocated value of the file
-		uiClusterIndex = ((uiSectorIndexInFile + mpcVolume->NumSectorsPerCluster() - 1) / mpcVolume->NumSectorsPerCluster()) - 1;
-
 		// set the file file to point to the last cluster. if the file doesn't have that many clusters allocated this function will return 0. if that ever happens it means that the file is corrupted
 		eResult = mpcVolume->IncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
 		if (eResult != FAT_SUCCESS)
@@ -461,8 +459,12 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 	{
 		uiOverFileLength = (msFile.uiFilePosition + uiLength);
 		eResult = AllocateClusters(uiOverFileLength);
-		RETURN_ON_FAT_FAILURE(eResult)
+		RETURN_ON_FAT_FAILURE(eResult);
+
+		eResult = Seek(msFile.uiFilePosition, FAT_SEEK_START);
+		RETURN_ON_FAT_FAILURE(eResult);
 	}
+
 
 	// check that another operation is not using the file at this time
 	if (msFile.bBusy)
@@ -510,6 +512,12 @@ EFatCode CFatFile::FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource)
 
 		uiBytesWritten = uiBytesRemaining;
 		bSuccess = mcCache.Write(puiSource, msFile.uiCursorClusterInVolume, uiFirstSectorOfCluster, uiWriteOffsetInCluster, &uiBytesRemaining, uiPreviousMaximumOffset);
+		if (!bSuccess)
+		{
+			msFile.bBusy = 0;
+			return FAT_CANNOT_WRITE_MEDIA;
+		}
+
 		uiBytesWritten -= uiBytesRemaining;
 
 		puiSource += uiBytesWritten;
@@ -517,12 +525,6 @@ EFatCode CFatFile::FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource)
 		if (msFile.uiFilePosition > msFile.uiFileSize)
 		{
 			msFile.uiFileSize = msFile.uiFilePosition;
-		}
-
-		if (!bSuccess)
-		{
-			msFile.bBusy = 0;
-			return FAT_CANNOT_WRITE_MEDIA;
 		}
 
 		if (uiBytesRemaining == 0)
