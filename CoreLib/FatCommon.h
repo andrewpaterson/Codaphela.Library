@@ -234,12 +234,9 @@ enum EFatCode
 	FAT_DIRECTORY_LIMIT_EXCEEDED		= 0x20 + 0x1C,
 	FAT_INVALID_PARAMETERS				= 0x20 + 0x1D,
 	FAT_FILE_HANDLE_IN_USE				= 0x20 + 0x1E,
-	FAT_FILE_BUFFER_NOT_SET				= 0x20 + 0x1F,
-	FAT_MISALIGNED_IO					= 0x20 + 0x20,
-	FAT_AWAITING_DATA					= 0x20 + 0x21,
-	FAT_BUFFER_TOO_BIG					= 0x20 + 0x22,
-	FAT_INVALID_FAT_CACHE				= 0x20 + 0x23,
-	FAT_SHORT_NAME_FOUND				= 0x20 + 0x24
+	FAT_INVALID_FAT_CACHE				= 0x20 + 0x1F,
+	FAT_SHORT_NAME_FOUND				= 0x20 + 0x20,
+	FAT_LAST_ERROR_ENUM					= FAT_SHORT_NAME_FOUND
 };
 
 
@@ -315,6 +312,9 @@ enum EFatFileSystemType
 #define FAT_OPEN_HANDLE_MAGIC		0x4B
 #define FAT_KANJI_SKIP_ENTRY		0x05
 #define FAT_DELETED_ENTRY			0xE5
+#define FAT12_CLUSTER_MASK			0x00000FFF
+#define FAT16_CLUSTER_MASK			0x0000FFFF
+#define FAT32_CLUSTER_MASK			0x0FFFFFFF
 
 
 // macros for checking if a directory entry is free and if it's the last entry on the directory
