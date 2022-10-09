@@ -326,12 +326,6 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 		return eResult;
 	}
 
-	// update the file to point to the new cluster
-	if (msFile.uiCursorClusterInVolume == 0)
-	{
-		msFile.uiCursorClusterInVolume = uiNewCluster;
-	}
-
 	msFile.bBusy = 0;
 	return FAT_SUCCESS;
 }
