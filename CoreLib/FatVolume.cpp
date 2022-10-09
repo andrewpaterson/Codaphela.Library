@@ -337,6 +337,7 @@ EFatCode CFatVolume::Unmount(void)
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
 
+	mszLabel.Kill();
 	mcSectorCache.Kill();
 	return FAT_SUCCESS;
 }
