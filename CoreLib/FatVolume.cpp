@@ -866,6 +866,28 @@ fatEntry CFatVolume::GetEndOfClusterMarker(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+fatEntry CFatVolume::GetBadClusterMarker(void)
+{
+	switch (meFileSystem)
+	{
+		case FAT_FS_TYPE_FAT12:
+			return FAT12_BAD_CLUSTER;
+
+		case FAT_FS_TYPE_FAT16:
+			return FAT16_BAD_CLUSTER;
+
+		case FAT_FS_TYPE_FAT32:
+			return FAT32_BAD_CLUSTER;
+	}
+
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CFatVolume::HasNextFreeCluser(void)
 {
 	if (muiNextFreeCluster != 0xFFFFFFFF)

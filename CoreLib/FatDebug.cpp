@@ -10,104 +10,238 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void DumpInterestingFATClusters(CFatVolume* pcVolume)
+fatEntry GetDunnoClusterMarker(CFatVolume* pcVolume)
+{
+	switch (pcVolume->GetFileSystemType())
+	{
+	case FAT_FS_TYPE_FAT12:
+		return 0x0FF8;
+
+	case FAT_FS_TYPE_FAT16:
+		return 0xFFF8;
+
+	case FAT_FS_TYPE_FAT32:
+		return 0x0FFFFFF8;
+	}
+
+	return 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode AllFATClustersEntriesSame(bool* pbAllEntriesSame, CFatVolume* pcVolume, uint32 uiStartClusterIndex, uint32 uiEndClusterIndex)
 {
 	EFatCode	eResult;
 	uint32		uiOffsetInSector;
 	fatEntry	uiEntry;
-	CChars		sz;
 	uint16		uiRow;
-	CChars		szNumber;
 	fatEntry	uiClusterIndex;
 	uint32		uiSector;
-	uint32		uiPreviousSector;
-	CChars		szSector;
 	fatEntry	uiPreviousEntry;
-	bool		bAllEntriesSame;
-	uint32		uiEOC;
-	
-	uiPreviousSector = 0;
-	bAllEntriesSame = true;
-	
-	uiEOC = pcVolume->GetEndOfClusterMarker();
-	sz.Init();
-	szNumber.Init();
-	szSector.Init();
+	bool		bFirst;
+
+	*pbAllEntriesSame = true;
+	bFirst = true;
+
 	uiRow = 0;
-	for (uiClusterIndex = 0; uiClusterIndex < pcVolume->GetNumClusters(); uiClusterIndex++)
+	for (uiClusterIndex = uiStartClusterIndex; uiClusterIndex < uiEndClusterIndex; uiClusterIndex++)
 	{
 		pcVolume->CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiSector);
 
 		eResult = pcVolume->ReadFatEntry(uiOffsetInSector, uiClusterIndex, uiSector, &uiEntry);
-		if (eResult != FAT_SUCCESS)
+		RETURN_ON_FAT_FAILURE(eResult)
+
+		if (bFirst)
 		{
-			break;
-		}
-
-		if (uiPreviousSector != uiSector)
-		{
-			if (szSector.EndsWith(", "))
-			{
-				szSector.RemoveFromEnd(2);
-			}
-			if (!szSector.EndsWith('\n'))
-			{
-				szSector.AppendNewLine();
-			}
-
-			if (!bAllEntriesSame)
-			{
-				sz.Append(szSector);
-			}
-
-			szSector.Clear();
-			szSector.Append("-------------------------------------------------------------------- Sector (");
-			szSector.Append(uiSector);
-			szSector.Append(") --------------------------------------------------------------------");
-			szSector.AppendNewLine();
-			uiPreviousSector = uiSector;
-			uiRow = 0;
-
+			bFirst = false;
 			uiPreviousEntry = uiEntry;
-			bAllEntriesSame = true;
 		}
 		else
 		{
 			if (uiEntry != uiPreviousEntry)
 			{
-				bAllEntriesSame = false;
+				*pbAllEntriesSame = false;
+				break;
 			}
 		}
 
-		szNumber.Append((int)uiClusterIndex, 16);
-		szSector.RightAlign(szNumber.Text(), ' ', 5);
-		szNumber.Clear();
-		szSector.Append(" -> ");
+	}
 
-		if (uiEOC != uiEntry)
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClusterIndex, uint32 uiEndClusterIndex)
+{
+	EFatCode	eResult;
+	uint32		uiOffsetInSector;
+	uint32		uiSector;
+	fatEntry	uiEntry;
+	uint16		uiRow;
+	CChars		szNumber;
+	fatEntry	uiClusterIndex;
+	uint32		uiPreviousSector;
+	fatEntry	uiPreviousEntry;
+	uint32		uiEOC;
+	uint32		uiDunno;
+	uint32		uiBAD;
+	bool		bFirst;
+
+	uiPreviousSector = 0;
+	bFirst = true;
+
+	uiEOC = pcVolume->GetEndOfClusterMarker();
+	uiDunno = GetDunnoClusterMarker(pcVolume);
+	uiBAD = pcVolume->GetBadClusterMarker();
+
+	szNumber.Init();
+	uiRow = 0;
+	for (uiClusterIndex = uiStartClusterIndex; uiClusterIndex < uiEndClusterIndex; uiClusterIndex++)
+	{
+		pcVolume->CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiSector);
+
+		eResult = pcVolume->ReadFatEntry(uiOffsetInSector, uiClusterIndex, uiSector, &uiEntry);
+		RETURN_ON_FAT_FAILURE(eResult)
+
+		if (bFirst || (uiPreviousSector != uiSector))
 		{
-			szNumber.Append((int)uiEntry, 16);
-			szSector.RightAlign(szNumber.Text(), ' ', 4);
-			szNumber.Clear();
+			bFirst = false;
+
+			if (psz->EndsWith(", "))
+			{
+				psz->RemoveFromEnd(2);
+			}
+			if (!psz->EndsWith('\n'))
+			{
+				psz->AppendNewLine();
+			}
+
+			psz->Clear();
+			psz->Append("-------------------------------------------------------------------- Sector (");
+			psz->Append(uiSector);
+			psz->Append(") --------------------------------------------------------------------");
+			psz->AppendNewLine();
+			uiPreviousSector = uiSector;
+			uiRow = 0;
+
+			uiPreviousEntry = uiEntry;
+		}
+
+		szNumber.Append((int)uiClusterIndex, 16);
+		psz->RightAlign(szNumber.Text(), ' ', 5);
+		szNumber.Clear();
+		psz->Append(" -> ");
+
+		if (uiEntry == uiEOC)
+		{
+			psz->Append(" EOC");
+		}
+		else if (uiEntry == uiDunno)
+		{
+			psz->Append("FFF8");
+		}
+		else if (uiEntry == uiBAD)
+		{
+			psz->Append(" BAD");
 		}
 		else
 		{
-			szSector.Append(" EOC");
+			szNumber.Append((int)uiEntry, 16);
+			psz->RightAlign(szNumber.Text(), ' ', 4);
+			szNumber.Clear();
 		}
 		uiRow++;
 		if (uiRow == 16)
 		{
-			szSector.AppendNewLine();
+			psz->AppendNewLine();
 			uiRow = 0;
 		}
 		else
 		{
-			szSector.Append(", ");
+			psz->Append(", ");
+		}
+	}
+
+	szNumber.Kill();
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode PrintInterestingFATClusters(CChars* psz, CFatVolume* pcVolume)
+{
+	EFatCode	eResult;
+	uint16		uiRow;
+	CChars		szNumber;
+	fatEntry	uiClusterIndex;
+	CChars		szSector;
+	bool		bAllEntriesSame;
+	uint32		uiOffsetInSector;
+	uint32		uiSector;
+	uint32		uiPreviousSector;
+	uint32		uiFirstCluster;
+	bool		bFirst;
+
+	psz->Init();
+	szNumber.Init();
+	szSector.Init();
+	uiRow = 0;
+	uiPreviousSector = 0;
+	uiFirstCluster = 0;
+	bFirst = true;
+
+	for (uiClusterIndex = 0; uiClusterIndex < pcVolume->GetNumClusters(); uiClusterIndex ++)
+	{
+		pcVolume->CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiSector);
+
+		if (uiSector != uiPreviousSector)
+		{
+			uiPreviousSector = uiSector;
+			if (!bFirst)
+			{
+				eResult = AllFATClustersEntriesSame(&bAllEntriesSame, pcVolume, uiFirstCluster, uiClusterIndex);
+				RETURN_ON_FAT_FAILURE(eResult)
+
+				if (!bAllEntriesSame)
+				{
+					eResult = PrintFATClusters(psz, pcVolume, uiFirstCluster, uiClusterIndex);
+					RETURN_ON_FAT_FAILURE(eResult)
+				}
+			}
+			else
+			{
+				bFirst = false;
+			}
+			uiFirstCluster = uiClusterIndex;
 		}
 	}
 
 	szSector.Kill();
 	szNumber.Kill();
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void DumpInterestingFATClusters(CFatVolume* pcVolume)
+{
+	CChars		sz;
+
+	sz.Init();
+	PrintInterestingFATClusters(&sz, pcVolume);
 	sz.DumpKill();
 }
 
