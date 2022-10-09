@@ -13,6 +13,8 @@ void		PrintAllFatFilenames(CChars* psz, CFatVolume* pcVolume);
 EFatCode	RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars* paszFiles);
 EFatCode	RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayChars* paszDirectories);
 
+EFatCode	PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClusterIndex, uint32 uiEndClusterIndex);
+EFatCode	PrintInterestingFATClusters(CChars* psz, CFatVolume* pcVolume);
 void		DumpInterestingFATClusters(CFatVolume* pcVolume);
 void		DumpRootDirectoryEntries(CFatVolume* pcVolume, bool bPrintTime = true);
 

@@ -356,7 +356,6 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	uint32	uiBytePositionInFile;
 	uint32	uiSectorIndexInFile;
 	uint32	uiClusterIndex;
-	uint32	uiOldClusterIndex;
 	uint16	eResult;
 
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
@@ -373,22 +372,30 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 
 	switch (mode)
 	{
-	case FAT_SEEK_START:
-		uiBytePositionInFile = offset;
-		break;
+		case FAT_SEEK_START:
+		{
+			uiBytePositionInFile = offset;
+			break;
+		}
 
-	case FAT_SEEK_CURRENT:
-		uiBytePositionInFile = msFile.uiFilePosition;
-		uiBytePositionInFile += offset;
-		break;
+		case FAT_SEEK_CURRENT:
+		{
+			uiBytePositionInFile = msFile.uiFilePosition;
+			uiBytePositionInFile += offset;
+			break;
+		}
 
-	case FAT_SEEK_END:
-		uiBytePositionInFile = msFile.uiFileSize - offset;
-		break;
+		case FAT_SEEK_END:
+		{
+			uiBytePositionInFile = msFile.uiFileSize - offset;
+			break;
+		}
 
-	default:
-		msFile.bBusy = 0;
-		return FAT_SEEK_FAILED;
+		default:
+		{
+			msFile.bBusy = 0;
+			return FAT_SEEK_FAILED;
+		}
 	}
 
 	// if the seek goes out of bounds return error
@@ -397,10 +404,7 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 		msFile.bBusy = 0;
 		return FAT_SEEK_FAILED;
 	}
-
-	uiOldClusterIndex = msFile.uiFilePosition / mpcVolume->GetClusterSize();
-	uiClusterIndex = 0;
-
+	
 	// calculate the count of sectors being used by the file up to the desired position
 	uiSectorIndexInFile = (uiBytePositionInFile + mpcVolume->GetSectorSize() - 1) / mpcVolume->GetSectorSize();
 
@@ -410,13 +414,10 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	// if the file occupies more than one cluster
 	if (uiSectorIndexInFile > mpcVolume->NumSectorsPerCluster())
 	{
-		// calculate the count of clusters occupied by the file and
-		// update the ClustersAllocated value of the file
+		// calculate the count of clusters occupied by the file and update the ClustersAllocated value of the file
 		uiClusterIndex = ((uiSectorIndexInFile + mpcVolume->NumSectorsPerCluster() - 1) / mpcVolume->NumSectorsPerCluster()) - 1;
 
-		// set the file file to point to the last cluster. if the file doesn't have
-		// that many clusters allocated this function will return 0. if that ever happens it means
-		// that the file is corrupted
+		// set the file file to point to the last cluster. if the file doesn't have that many clusters allocated this function will return 0. if that ever happens it means that the file is corrupted
 		eResult = mpcVolume->IncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
 		if (eResult != FAT_SUCCESS)
 		{

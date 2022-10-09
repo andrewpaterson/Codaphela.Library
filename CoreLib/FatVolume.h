@@ -63,6 +63,7 @@ public:
 	EFatCode			FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode			CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
 	fatEntry			GetEndOfClusterMarker(void);
+	fatEntry			GetBadClusterMarker(void);
 
 	EFatCode			ValidateFatCache(SFatCache sCache);
 
