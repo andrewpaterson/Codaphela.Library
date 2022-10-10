@@ -146,6 +146,9 @@ protected:
 	EFatCode				MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);
 	EFatCode				GetShortNameForEntry(uint8* dest, uint8* src, bool bLFNDisabled);
 	void					FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
+	fatEntry				GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory);
+	uint32					GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory);
+	EFatCode				FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
 
 	EFatCode				FindBiosParameterBlock(SFatCache sMBRSector);
 	bool					CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
