@@ -3429,6 +3429,70 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 //
 //
 //////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiLastDirectoryCluster, uint32 uiSector)
+{
+	uintptr_t				puiLastEntryAddress;
+	SFatCache				sBuffer;
+	SFatRawDirectoryEntry*	psParentEntry;
+	uint32					uiFirstSectorOfCluster;
+	fatEntry				uiDirectoryCluster;
+
+	uiFirstSectorOfCluster = *puiFirstSectorOfCluster;
+	uiDirectoryCluster = *puiDirectoryCluster;
+	psParentEntry = *ppsParentEntry;
+
+	// if there where any free entries before this one then we need to rewind a bit.
+	while (iLFNEntriesFound-- > 1)
+	{
+		READ_SECTOR(sBuffer, uiSector);
+		puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
+
+		if ((uintptr_t)psParentEntry > (uintptr_t)sBuffer.Get())
+		{
+			psParentEntry--;
+		}
+		else
+		{
+			// if the last entry is on the same cluster we can just decrease the sector number, otherwise we need to get the sector address for the last cluster
+			if (uiSector > uiFirstSectorOfCluster)
+			{
+				uiSector--;
+			}
+			else
+			{
+				if (uiLastDirectoryCluster == 0)
+				{
+					uiFirstSectorOfCluster = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+				}
+				else
+				{
+					uiDirectoryCluster = uiLastDirectoryCluster;
+					uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiDirectoryCluster);
+				}
+				uiSector = uiFirstSectorOfCluster + NumSectorsPerCluster();
+			}
+
+			// read the last sector of the cache, calculate the last entry address and set our pointer to it
+			READ_SECTOR(sBuffer, uiSector);
+
+			puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
+			//								psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();  ?? Isn't this more correct?
+			psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;
+		}
+	}
+
+	*ppsParentEntry = psParentEntry;
+	*puiFirstSectorOfCluster = uiFirstSectorOfCluster;
+	*puiDirectoryCluster = uiDirectoryCluster;
+
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry)
 {
 	EFatCode				eResult;
@@ -3487,45 +3551,8 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	eResult = FindEnoughEntries(&uiLastDirectoryCluster, &uiDirectoryCluster, &uiFirstSectorOfCluster, &uiSector, &iLFNEntriesFound, &psParentEntry, psParentDirectory, iLFNEntriesNeeded);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	// if there where any free entries before this one then we need to rewind a bit.
-	while (iLFNEntriesFound-- > 1)
-	{
-		READ_SECTOR(sBuffer, uiSector);
-		puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
-
-		if ((uintptr_t)psParentEntry > (uintptr_t)sBuffer.Get())
-		{
-			psParentEntry--;
-		}
-		else
-		{
-			// if the last entry is on the same cluster we can just decrease the sector number, otherwise we need to get the sector address for the last cluster
-			if (uiSector > uiFirstSectorOfCluster)
-			{
-				uiSector--;
-			}
-			else
-			{
-				if (uiLastDirectoryCluster == 0)
-				{
-					uiFirstSectorOfCluster = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
-				}
-				else
-				{
-					uiDirectoryCluster = uiLastDirectoryCluster;
-					uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiDirectoryCluster);
-				}
-				uiSector = uiFirstSectorOfCluster + NumSectorsPerCluster();
-			}
-
-			// read the last sector of the cache, calculate the last entry address and set our pointer to it
-			READ_SECTOR(sBuffer, uiSector);
-
-			puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
-			//								psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();  ?? Isn't this more correct?
-			psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;
-		}
-	}
+	eResult = RewindFoundEntries(&psParentEntry, &uiFirstSectorOfCluster, &uiDirectoryCluster, iLFNEntriesFound, uiLastDirectoryCluster, uiSector);
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	// compute the checksum for this entry
 	uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName);
