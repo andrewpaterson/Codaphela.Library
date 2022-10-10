@@ -116,7 +116,7 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			SFatCache	sLBASector;
 
 			// retrieve the 1st sector of partition
-			READ_SECTOR(sLBASector, psPartitionEntry->lba_first_sector)
+			READ_SECTOR(sLBASector, psPartitionEntry->lba_first_sector);
 
 			// set our pointer to the BPB
 			memcpy(&msBPB, sLBASector.pvCachedSector, sizeof(SFatBIOSParameterBlock));
@@ -197,7 +197,7 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 		SFatCache	sFATSector;
 
 		uiFATSector = muiNoOfReservedSectors;
-		READ_SECTOR(sFATSector, uiFATSector)
+		READ_SECTOR(sFATSector, uiFATSector);
 
 		// if the lower byte of the 1st FAT entry is not the same as BPB_Media then this is not a valid volume
 		if (sFATSector.Get()[0] != msBPB.BPB_Media)
@@ -226,7 +226,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 	mpcDevice = device;
 
-	READ_SECTOR(sMBRSector, 0)
+	READ_SECTOR(sMBRSector, 0);
 
 	eResult = FindBiosParameterBlock(sMBRSector);
 	if (eResult != FAT_SUCCESS)
@@ -266,7 +266,7 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 
 		muiFileSystemInfoSector = uiHiddenSectors + muiFileSystemInfoSector;
 
-		READ_SECTOR(sInfoSector, muiFileSystemInfoSector)
+		READ_SECTOR(sInfoSector, muiFileSystemInfoSector);
 
 		psFileSystemInfo = (SFatFileSystemInfo*)sInfoSector.Get();
 
@@ -311,7 +311,7 @@ EFatCode CFatVolume::Unmount(void)
 	// if this is a FAT32 volume we'll update the psFileSystemInfo structure
 	if (meFileSystem == FAT_FS_TYPE_FAT32 && muiFileSystemInfoSector != 0xFFFFFFFF)
 	{
-		READ_SECTOR(sBuffer, muiFileSystemInfoSector)
+		READ_SECTOR(sBuffer, muiFileSystemInfoSector);
 
 		// set the pointer to the psFileSystemInfo structure
 		psFileSystemInfo = (SFatFileSystemInfo*)sBuffer.Get();
@@ -996,7 +996,7 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 
 	uiSector = CalculateFirstSectorOfCluster(uiCluster);
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 
 	psEntries = (SFatRawDirectoryEntry*)sBuffer.Get();
 
@@ -1150,7 +1150,7 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 	puiBuffer = sBuffer.Get();
 
 	if (uiCluster & 1)
@@ -1166,7 +1166,7 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 
 	if (uiOffsetInSector == GetSectorSize() - 1)
 	{
-		READ_SECTOR(sBuffer, uiSector + 1)
+		READ_SECTOR(sBuffer, uiSector + 1);
 		puiBuffer = sBuffer.Get();
 		bNextSector = true;
 	}
@@ -1190,7 +1190,7 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 	// if this is not the 1st cluster allocated update the last one to link to this one
 	if (uiLastFatEntry != FAT12_EOC)
 	{
-		READ_SECTOR(sBuffer, uiPreviousSector)
+		READ_SECTOR(sBuffer, uiPreviousSector);
 		puiBuffer = sBuffer.Get();
 
 		if (uiLastFatEntry & 1)
@@ -1207,7 +1207,7 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 		// if the FAT entry spans a sector boundary flush the currently loaded sector to the drive and load the next one.
 		if (uiPreviousOffset == GetSectorSize() - 1)
 		{
-			READ_SECTOR(sBuffer, uiPreviousSector + 1)
+			READ_SECTOR(sBuffer, uiPreviousSector + 1);
 			puiBuffer = sBuffer.Get();
 			bNextSector = true;
 		}
@@ -1238,7 +1238,7 @@ EFatCode CFatVolume::WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 	puiBuffer = sBuffer.Get();
 
 	*((uint16*)&puiBuffer[uiOffsetInSector]) = FAT16_EOC;
@@ -1246,7 +1246,7 @@ EFatCode CFatVolume::WriteFat16Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 
 	if (uiLastFatEntry != FAT16_EOC)
 	{
-		READ_SECTOR(sBuffer, uiPreviousSector)
+		READ_SECTOR(sBuffer, uiPreviousSector);
 		puiBuffer = sBuffer.Get();
 
 		*((uint16*)&puiBuffer[uiPreviousOffset]) = (uint16)uiCluster;
@@ -1266,7 +1266,7 @@ EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntry
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 	puiBuffer = sBuffer.Get();
 
 	*((uint32*)&puiBuffer[uiOffsetInSector]) = FAT32_EOC;
@@ -1275,7 +1275,7 @@ EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntry
 	// if this is not the 1st cluster allocated update the last one to link to this one
 	if (uiLastFatEntry != FAT32_EOC)
 	{
-		READ_SECTOR(sBuffer, uiPreviousSector)
+		READ_SECTOR(sBuffer, uiPreviousSector);
 		puiBuffer = sBuffer.Get();
 
 		// update the last entry to point to this one
@@ -1484,7 +1484,7 @@ EFatCode CFatVolume::SetFat12ClusterEntry(uint32 uiClusterIndex, fatEntry uiClus
 	uint8*		puiBuffer;
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiFirstClusterSector)
+	READ_SECTOR(sBuffer, uiFirstClusterSector);
 	puiBuffer = sBuffer.Get();
 
 	// write the 1st byte
@@ -1504,7 +1504,7 @@ EFatCode CFatVolume::SetFat12ClusterEntry(uint32 uiClusterIndex, fatEntry uiClus
 	// loaded sector to the drive and load the next one.
 	if (uiOffsetInSector == GetSectorSize() - 1)
 	{
-		READ_SECTOR(sBuffer, uiFirstClusterSector + 1)
+		READ_SECTOR(sBuffer, uiFirstClusterSector + 1);
 		puiBuffer = sBuffer.Get();
 
 		// the next byte is now loacted at offset 0 on the uiBuffer
@@ -1541,7 +1541,7 @@ EFatCode CFatVolume::SetFat16ClusterEntry(fatEntry uiClusterInVolume, uint32 uiF
 	uint8*		puiBuffer;
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiFirstClusterSector)
+	READ_SECTOR(sBuffer, uiFirstClusterSector);
 	puiBuffer = sBuffer.Get();
 
 	*((uint16*)&puiBuffer[uiOffsetInSector]) = (uint16)uiClusterInVolume;
@@ -1560,7 +1560,7 @@ EFatCode CFatVolume::SetFat32ClusterEntry(fatEntry uiClusterInVolume, uint32 uiF
 	uint8*		puiBuffer;
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiFirstClusterSector)
+	READ_SECTOR(sBuffer, uiFirstClusterSector);
 	puiBuffer = sBuffer.Get();
 
 	*((uint32*)&puiBuffer[uiOffsetInSector]) = uiClusterInVolume & 0x0FFFFFFF;
@@ -1616,7 +1616,7 @@ EFatCode CFatVolume::IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, *puiSector)
+	READ_SECTOR(sBuffer, *puiSector);
 	puiBuffer = sBuffer.Get();
 
 	if (!*pbFat12MultiStepProgress)
@@ -1665,7 +1665,7 @@ EFatCode CFatVolume::IncreaseFat16ClusterAddress(uint32* puiClusterIndex, uint32
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 	puiBuffer = sBuffer.Get();
 
 	*puiClusterIndex = *((uint16*)&puiBuffer[uiOffsetInSector]);
@@ -1682,7 +1682,7 @@ EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 	puiBuffer = sBuffer.Get();
 
 	*puiClusterIndex = *((uint32*)&puiBuffer[uiOffsetInSector]) & 0x0FFFFFFF;
@@ -1806,7 +1806,7 @@ EFatCode CFatVolume::Free(SFatDirectoryEntry* psEntry)
 		psEntry->raw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
 		psEntry->raw.uEntry.sFatRawCommon.uiSize = 0x0;
 
-		READ_SECTOR(sBuffer, psEntry->uiSectorAddress)
+		READ_SECTOR(sBuffer, psEntry->uiSectorAddress);
 
 		memcpy(sBuffer.Get() + psEntry->uiSectorOffset, &psEntry->raw, sizeof(SFatRawDirectoryEntry));
 		DirtySector(sBuffer);
@@ -1971,7 +1971,7 @@ EFatCode CFatVolume::ReadFat12Entry(uint32 uiOffsetInSector, uint32 uiCluster, u
 
 	uiFatEntry = 0;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 
 	// read the 1st byte
 	((uint8*)&uiFatEntry)[INT32_BYTE0] = sBuffer.Get()[uiOffsetInSector];
@@ -1979,7 +1979,7 @@ EFatCode CFatVolume::ReadFat12Entry(uint32 uiOffsetInSector, uint32 uiCluster, u
 	// load the next sector (if necessary) and set the offset for the next byte in the uiBuffer
 	if (uiOffsetInSector == GetSectorSize() - 1)
 	{
-		READ_SECTOR(sBuffer, uiSector + 1)
+		READ_SECTOR(sBuffer, uiSector + 1);
 		bNextSector = true;
 	}
 	else
@@ -2015,7 +2015,7 @@ EFatCode CFatVolume::ReadFat16Entry(uint32 uiOffsetInSector, uint32 uiSector, fa
 {
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 
 	*puiFatEntry = *((uint16*)&(sBuffer.Get()[uiOffsetInSector]));
 	return FAT_SUCCESS;
@@ -2030,7 +2030,7 @@ EFatCode CFatVolume::ReadFat32Entry(uint32 uiOffsetInSector, uint32 uiSector, fa
 {
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 	*puiFatEntry = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & 0x0FFFFFFF;
 	return FAT_SUCCESS;
 }
@@ -2075,7 +2075,7 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiC
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
 
-	READ_SECTOR(sBuffer, *puiSector)
+	READ_SECTOR(sBuffer, *puiSector);
 	puiBuffer = sBuffer.Get();
 
 	if (!*pbFat12MultiStepProgress)
@@ -2172,7 +2172,7 @@ EFatCode CFatVolume::FreeFat16Chain(uint32* puiClusterIndex, uint32 uiSector, ui
 {
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 
 	*puiClusterIndex = *((uint16*)&(sBuffer.Get()[uiOffsetInSector]));
 	*((uint16*)&(sBuffer.Get()[uiOffsetInSector])) = FREE_FAT;
@@ -2190,7 +2190,7 @@ EFatCode CFatVolume::FreeFat32Chain(uint32* puiClusterIndex, uint32 uiSector, ui
 {
 	SFatCache	sBuffer;
 
-	READ_SECTOR(sBuffer, uiSector)
+	READ_SECTOR(sBuffer, uiSector);
 
 	// FAT32 entries are actually 28 bits so we need to leave the  upper nibble untouched.
 	*puiClusterIndex = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & 0x0FFFFFFF;
@@ -3336,7 +3336,7 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 		// for each sector in the cluster
 		while (uiDirectoryCluster == 0 || uiSector < (uiFirstSectorOfCluster + NumSectorsPerCluster()))
 		{
-			READ_SECTOR(sBuffer, uiSector)
+			READ_SECTOR(sBuffer, uiSector);
 			puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
 			psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();
 
@@ -3519,7 +3519,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 			}
 
 			// read the last sector of the cache, calculate the last entry address and set our pointer to it
-			READ_SECTOR(sBuffer, uiSector)
+			READ_SECTOR(sBuffer, uiSector);
 
 			puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
 			//								psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();  ?? Isn't this more correct?
@@ -3586,7 +3586,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 				}
 
 				// load the next sector
-				READ_SECTOR(sBuffer, uiSector)
+				READ_SECTOR(sBuffer, uiSector);
 
 				puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
 				//psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;  ?? Be sure.
@@ -3894,7 +3894,7 @@ EFatCode CFatVolume::DeleteFile(char* szFilename)
 		// mark the entry as deleted.
 		sEntry.raw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 
-		READ_SECTOR(sBuffer, sEntry.uiSectorAddress)
+		READ_SECTOR(sBuffer, sEntry.uiSectorAddress);
 
 		memcpy(sBuffer.Get() + sEntry.uiSectorOffset, &sEntry.raw, sizeof(sEntry.raw));
 		DirtySector(sBuffer);
@@ -4005,7 +4005,7 @@ EFatCode CFatVolume::RenameFile(char* szOriginalFilename, char* szNewFilename)
 		sNewEntry.raw.uEntry.sFatRawCommon.uiReserved = sOriginalEntry.raw.uEntry.sFatRawCommon.uiReserved;
 		sNewEntry.raw.uEntry.sFatRawCommon.uiSize = sOriginalEntry.raw.uEntry.sFatRawCommon.uiSize;
 
-		READ_SECTOR(sBuffer, sNewEntry.uiSectorAddress)
+		READ_SECTOR(sBuffer, sNewEntry.uiSectorAddress);
 
 		memcpy(sBuffer.Get() + sNewEntry.uiSectorOffset, &sNewEntry.raw, sizeof(sNewEntry.raw));
 		DirtySector(sBuffer);
@@ -4013,7 +4013,7 @@ EFatCode CFatVolume::RenameFile(char* szOriginalFilename, char* szNewFilename)
 		// mark the original entry as deleted.
 		sOriginalEntry.raw.uEntry.sFatRawCommon.szShortName[0] = (char)FAT_DELETED_ENTRY;
 
-		READ_SECTOR(sBuffer, sOriginalEntry.uiSectorAddress)
+		READ_SECTOR(sBuffer, sOriginalEntry.uiSectorAddress);
 
 		memcpy(sBuffer.Get() + sOriginalEntry.uiSectorOffset, &sOriginalEntry.raw, sizeof(sOriginalEntry.raw));
 		DirtySector(sBuffer);
