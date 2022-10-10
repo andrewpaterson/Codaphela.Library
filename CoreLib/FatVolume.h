@@ -149,6 +149,7 @@ protected:
 	fatEntry				GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory);
 	uint32					GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory);
 	EFatCode				FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
+	EFatCode				RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, uint32* puiFirstSectorOfCluster, fatEntry* puiDirectoryCluster, int iLFNEntriesFound, fatEntry uiLastDirectoryCluster, uint32 uiSector);
 
 	EFatCode				FindBiosParameterBlock(SFatCache sMBRSector);
 	bool					CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster);
