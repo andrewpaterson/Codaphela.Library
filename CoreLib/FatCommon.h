@@ -70,9 +70,9 @@ struct SFatFileSystemInfo
 #pragma pack(push, 1)
 struct SFatPartitionEntry
 {
-	uint8	status;
+	uint8	uiStatus;
 	uint8	uiFirstCylinderHeadSectorSector[3];
-	uint8	partition_type;
+	uint8	uiPartitionType;
 	uint8	uiLastCylinderHeadSectorSector[3];
 	uint32	uiLBAFirstSector;
 	uint32	uiTotalSectors;
