@@ -459,11 +459,11 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 		// initialize the FSInfo structure
 		psFileSystemInfo = (SFatFileSystemInfo*)uiBuffer;
 		memset(uiBuffer, 0, MAX_SECTOR_LENGTH);
-		psFileSystemInfo->LeadSig = 0x41615252;
-		psFileSystemInfo->StructSig = 0x61417272;
-		psFileSystemInfo->Free_Count = uiNoOfClusters - 1;
-		psFileSystemInfo->Nxt_Free = 3;
-		psFileSystemInfo->TrailSig = 0xAA550000;
+		psFileSystemInfo->uiLeadSignature = 0x41615252;
+		psFileSystemInfo->uiStructSignature = 0x61417272;
+		psFileSystemInfo->uiNumFreeClusters = uiNoOfClusters - 1;
+		psFileSystemInfo->uiNextFreeCluster = 3;
+		psFileSystemInfo->uiTrailSignature = 0xAA550000;
 		psFileSystemInfo = 0;
 
 		// write the FSInfo structor to sector # BPB_FSInfo
