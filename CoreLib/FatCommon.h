@@ -8,7 +8,8 @@
 #define FAT_FIRST_LFN_ENTRY				0x40
 #define FAT_MAX_FILENAME				255
 #define FAT_MAX_SECTOR_QUERY_LOCKS		32
-
+#define FAT_MAX_DIRECTORY_ENTRIES		0xFFFF
+#define FAT_LONG_NAME_END_WCHAR			0xFFFF
 
 // FAT entry data type
 typedef uint32 fatEntry;

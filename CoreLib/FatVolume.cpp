@@ -215,16 +215,16 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Mount(CFileDrive* device)
+EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 {
 	uint32					uiHiddenSectors = 0;
 	uint8					uiPartitionsTried = 0;
 	SFatCache				sMBRSector;
 	EFatCode				eResult;
 
-	mcSectorCache.Init(device, 3);
+	mcSectorCache.Init(pcDevice, 3);
 
-	mpcDevice = device;
+	mpcDevice = pcDevice;
 
 	READ_SECTOR(sMBRSector, 0);
 
@@ -1279,7 +1279,7 @@ EFatCode CFatVolume::WriteFat32Entry(uint32 uiOffsetInSector, uint32 uiLastEntry
 		puiBuffer = sBuffer.Get();
 
 		// update the last entry to point to this one
-		*((uint32*)&puiBuffer[uiLastEntryOffset]) = (*((uint32*)&puiBuffer[uiLastEntryOffset]) & 0xF0000000) | uiClusterIndexInTable & 0x0FFFFFFF;
+		*((uint32*)&puiBuffer[uiLastEntryOffset]) = (*((uint32*)&puiBuffer[uiLastEntryOffset]) & (~FAT32_CLUSTER_MASK)) | uiClusterIndexInTable & FAT32_CLUSTER_MASK;
 		DirtySector(sBuffer);
 	}
 
@@ -2288,13 +2288,13 @@ bool CFatVolume::IsFreeFat(fatEntry uifat)
 	switch (meFileSystem)
 	{
 		case FAT_FS_TYPE_FAT32:
-			return (uifat & 0x0FFFFFFF) == 0;
+			return (uifat & FAT32_CLUSTER_MASK) == 0;
 
 		case FAT_FS_TYPE_FAT16:
-			return (uifat & 0xFFFF) == 0;
+			return (uifat & FAT16_CLUSTER_MASK) == 0;
 
 		case FAT_FS_TYPE_FAT12:
-			return (uifat & 0x0FFF) == 0;
+			return (uifat & FAT12_CLUSTER_MASK) == 0;
 	}
 
 	return true;
@@ -3183,10 +3183,41 @@ void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName
 //
 //
 //////////////////////////////////////////////////////////////////////////
+uint16 CFatVolume::LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex)
+{
+	if (uiLFNIndex + uiNameIndex > uiNameLength)
+	{
+		return FAT_LONG_NAME_END_WCHAR;
+	}
+	else
+	{
+		return (uint16)szName[uiLFNIndex + uiNameIndex];
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex)
+{
+	uint16	uiWideChar;
+
+	uiWideChar = LongNameCharToWideChar(uiLFNIndex, uiNameLength, szName, uiNameIndex);
+	aui[0x0] = (uint8)uiWideChar;
+	aui[0x1] = (uint8)(uiWideChar >> 8);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound)
 {
-	uint16 i;
-	uint16 c;
+	uint16 uiLFNIndex;
+	uint16 uiNameLength;
 
 	// set the required fields for this entry
 	psParentEntry->uEntry.sFatRawLongFileName.uiChecksum = uiChecksum;
@@ -3205,34 +3236,24 @@ void CFatVolume::InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, cha
 	}
 
 	// copy the lfn chars
-	c = (uint16)strlen(szName);
-	i = ((iLFNEntriesFound - 1) * 13);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0] = LO8((i + 0x0 > c) ? 0xFFFF : (uint16)szName[i + 0x0]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x1] = HI8((i + 0x0 > c) ? 0xFFFF : (uint16)szName[i + 0x0]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2] = LO8((i + 0x1 > c) ? 0xFFFF : (uint16)szName[i + 0x1]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x3] = HI8((i + 0x1 > c) ? 0xFFFF : (uint16)szName[i + 0x1]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4] = LO8((i + 0x2 > c) ? 0xFFFF : (uint16)szName[i + 0x2]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x5] = HI8((i + 0x2 > c) ? 0xFFFF : (uint16)szName[i + 0x2]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6] = LO8((i + 0x3 > c) ? 0xFFFF : (uint16)szName[i + 0x3]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x7] = HI8((i + 0x3 > c) ? 0xFFFF : (uint16)szName[i + 0x3]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8] = LO8((i + 0x4 > c) ? 0xFFFF : (uint16)szName[i + 0x4]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x9] = HI8((i + 0x4 > c) ? 0xFFFF : (uint16)szName[i + 0x4]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0] = LO8((i + 0x5 > c) ? 0xFFFF : (uint16)szName[i + 0x5]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x1] = HI8((i + 0x5 > c) ? 0xFFFF : (uint16)szName[i + 0x5]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2] = LO8((i + 0x6 > c) ? 0xFFFF : (uint16)szName[i + 0x6]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x3] = HI8((i + 0x6 > c) ? 0xFFFF : (uint16)szName[i + 0x6]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4] = LO8((i + 0x7 > c) ? 0xFFFF : (uint16)szName[i + 0x7]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x5] = HI8((i + 0x7 > c) ? 0xFFFF : (uint16)szName[i + 0x7]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6] = LO8((i + 0x8 > c) ? 0xFFFF : (uint16)szName[i + 0x8]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x7] = HI8((i + 0x8 > c) ? 0xFFFF : (uint16)szName[i + 0x8]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8] = LO8((i + 0x9 > c) ? 0xFFFF : (uint16)szName[i + 0x9]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x9] = HI8((i + 0x9 > c) ? 0xFFFF : (uint16)szName[i + 0x9]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA] = LO8((i + 0xA > c) ? 0xFFFF : (uint16)szName[i + 0xA]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xB] = HI8((i + 0xA > c) ? 0xFFFF : (uint16)szName[i + 0xA]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0] = LO8((i + 0xB > c) ? 0xFFFF : (uint16)szName[i + 0xB]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x1] = HI8((i + 0xB > c) ? 0xFFFF : (uint16)szName[i + 0xB]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2] = LO8((i + 0xC > c) ? 0xFFFF : (uint16)szName[i + 0xC]);
-	psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x3] = HI8((i + 0xC > c) ? 0xFFFF : (uint16)szName[i + 0xC]);
+	uiNameLength = (uint16)strlen(szName);
+	uiLFNIndex = ((iLFNEntriesFound - 1) * 13);
+	
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x0], uiLFNIndex, uiNameLength, szName, 0x0);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x2], uiLFNIndex, uiNameLength, szName, 0x1);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x4], uiLFNIndex, uiNameLength, szName, 0x2);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x6], uiLFNIndex, uiNameLength, szName, 0x3);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars1[0x8], uiLFNIndex, uiNameLength, szName, 0x4);
+	
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x0], uiLFNIndex, uiNameLength, szName, 0x5);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x2], uiLFNIndex, uiNameLength, szName, 0x6);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x4], uiLFNIndex, uiNameLength, szName, 0x7);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x6], uiLFNIndex, uiNameLength, szName, 0x8);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0x8], uiLFNIndex, uiNameLength, szName, 0x9);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars2[0xA], uiLFNIndex, uiNameLength, szName, 0xA);
+	
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x0], uiLFNIndex, uiNameLength, szName, 0xB);
+	GenerateDirectoryEntryNameParts(&psParentEntry->uEntry.sFatRawLongFileName.auiChars3[0x2], uiLFNIndex, uiNameLength, szName, 0xC);
 }
 
 
@@ -3341,8 +3362,7 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 			// for each directory entry in the sector...
 			while ((uintptr_t)psParentEntry <= puiLastEntryAddress)
 			{
-				// make sure we don't exceed the limit of 0xFFFF entries per directory.
-				if ((uiDirectoryEntries + iLFNEntriesNeeded) == 0xFFFF)
+				if ((uiDirectoryEntries + iLFNEntriesNeeded) == FAT_MAX_DIRECTORY_ENTRIES)
 				{
 					return FAT_DIRECTORY_LIMIT_EXCEEDED;
 				}
