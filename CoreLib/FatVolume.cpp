@@ -104,10 +104,10 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			}
 
 			// remember how many sectors before this partition
-			uiHiddenSectors = psPartitionEntry->lba_first_sector;
+			uiHiddenSectors = psPartitionEntry->uiLBAFirstSector;
 
 			// make sure the partition doesn't exceeds the physical boundries of the device
-			if (psPartitionEntry->lba_first_sector + psPartitionEntry->total_sectors > mpcDevice->GetTotalSectors())
+			if (psPartitionEntry->uiLBAFirstSector + psPartitionEntry->uiTotalSectors > mpcDevice->GetTotalSectors())
 			{
 				uiPartitionsTried++;
 				continue;
@@ -116,7 +116,7 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			SFatCache	sLBASector;
 
 			// retrieve the 1st sector of partition
-			READ_SECTOR(sLBASector, psPartitionEntry->lba_first_sector);
+			READ_SECTOR(sLBASector, psPartitionEntry->uiLBAFirstSector);
 
 			// set our pointer to the BPB
 			memcpy(&msBPB, sLBASector.pvCachedSector, sizeof(SFatBIOSParameterBlock));

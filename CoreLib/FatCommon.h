@@ -71,11 +71,11 @@ struct SFatFileSystemInfo
 struct SFatPartitionEntry
 {
 	uint8	status;
-	uint8	chs_first_sector[3];
+	uint8	uiFirstCylinderHeadSectorSector[3];
 	uint8	partition_type;
-	uint8	chs_last_sector[3];
-	uint32	lba_first_sector;
-	uint32	total_sectors;
+	uint8	uiLastCylinderHeadSectorSector[3];
+	uint32	uiLBAFirstSector;
+	uint32	uiTotalSectors;
 };
 #pragma pack(pop)
 
