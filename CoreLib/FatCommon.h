@@ -328,15 +328,6 @@ enum EFatFileSystemType
 #define RETURN_ON_FAT_FAILURE(result) 	if (eResult != FAT_SUCCESS)	{ return result; }
 
 
- // min and max macros
-#define MAX(a, b)		(( ( a ) > ( b ) ) ? ( a ) : ( b ) )
-#define MIN(a, b)		(( ( a ) < ( b ) ) ? ( a ) : ( b ) )
-#define LO8(word)		((uint8) (word))
-#define HI8(word)		((uint8) ((word) >> 8 ))
-#define LO16(dword)		((uint16) (dword))
-#define HI16(dword)		((uint16) ((dword) >> 16 ))
-
-
 // table of illegal filename chars.
 static const char ILLEGAL_CHARS[] = { 0x22, 0x2A, 0x2B, 0x2C, 0x2E, 0x2F, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x5B, 0x5C, 0x5D, 0x7C };
 

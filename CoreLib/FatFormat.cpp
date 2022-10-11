@@ -504,10 +504,10 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 					value <<= 4;								/* an odd entry occupies the upper 12-bits of the word */
 
 					uiBuffer[1 + 0] &= 0x0F;					/* clear entry bits on 1st byte */
-					uiBuffer[1 + 0] |= LO8(value);				/* set entry bits on 1st byte */
+					uiBuffer[1 + 0] |= (uint8)value;				/* set entry bits on 1st byte */
 
 					uiBuffer[1 + 1] = 0x00;						/* clear the 2nd byte */
-					uiBuffer[1 + 1] = HI8(value);				/* set the 2nd byte */
+					uiBuffer[1 + 1] = value >> 8;				/* set the 2nd byte */
 
 				}
 				else if (fs_type == FAT_FS_TYPE_FAT16)
