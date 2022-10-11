@@ -492,9 +492,9 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 					uint16 value;
 
 					/* even */
-					value = 0xFF8;									/* the value to be written */
-					*((uint16*)&uiBuffer[0]) &= 0xF000;				/* clear bits for entry */
-					*((uint16*)&uiBuffer[0]) |= (value & 0x0FFF);	/* set bits for entry */
+					value = 0x0FF8;												/* the value to be written */
+					*((uint16*)&uiBuffer[0]) &= (~FAT12_CLUSTER_MASK);			/* clear bits for entry */
+					*((uint16*)&uiBuffer[0]) |= (value & FAT12_CLUSTER_MASK);	/* set bits for entry */
 
 
 					// odd - we need to write this one 1 byte at a time since
