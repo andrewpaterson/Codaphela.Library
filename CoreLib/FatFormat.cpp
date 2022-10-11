@@ -333,7 +333,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 	{
 		case FAT_FS_TYPE_FAT12:
 		{
-			if (uiNoOfClusters > 4084)
+			if (uiNoOfClusters > FAT12_MAX_CLUSTERS)
 			{
 				return FAT_INVALID_FORMAT_PARAMETERS;
 			}
@@ -341,7 +341,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 		}
 		case FAT_FS_TYPE_FAT16:
 		{
-			if (uiNoOfClusters > 65524 || uiNoOfClusters < 4085)
+			if (uiNoOfClusters > FAT16_MAX_CLUSTERS || uiNoOfClusters < (FAT12_MAX_CLUSTERS + 1))
 			{
 				return FAT_INVALID_FORMAT_PARAMETERS;
 			}
@@ -349,7 +349,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 		}
 		case FAT_FS_TYPE_FAT32:
 		{
-			if (uiNoOfClusters < 65525)
+			if (uiNoOfClusters < (FAT16_MAX_CLUSTERS + 1))
 			{
 				return FAT_INVALID_FORMAT_PARAMETERS;
 			}

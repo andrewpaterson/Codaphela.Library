@@ -1563,7 +1563,7 @@ EFatCode CFatVolume::SetFat32ClusterEntry(fatEntry uiClusterInVolume, uint32 uiF
 	READ_SECTOR(sBuffer, uiFirstClusterSector);
 	puiBuffer = sBuffer.Get();
 
-	*((uint32*)&puiBuffer[uiOffsetInSector]) = uiClusterInVolume & 0x0FFFFFFF;
+	*((uint32*)&puiBuffer[uiOffsetInSector]) = uiClusterInVolume & FAT32_CLUSTER_MASK;
 	DirtySector(sBuffer);
 
 	return FAT_SUCCESS;
@@ -1648,7 +1648,7 @@ EFatCode CFatVolume::IncreaseFat12ClusterAddress(uint32* puiClusterIndex, uint32
 	}
 	else
 	{
-		*puiClusterIndex &= 0xFFF;
+		*puiClusterIndex &= FAT12_CLUSTER_MASK;
 	}
 
 	*pbFat12MultiStepProgress = false;
@@ -1685,7 +1685,7 @@ EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32
 	READ_SECTOR(sBuffer, uiSector);
 	puiBuffer = sBuffer.Get();
 
-	*puiClusterIndex = *((uint32*)&puiBuffer[uiOffsetInSector]) & 0x0FFFFFFF;
+	*puiClusterIndex = *((uint32*)&puiBuffer[uiOffsetInSector]) & FAT32_CLUSTER_MASK;
 	return FAT_SUCCESS;
 }
 
@@ -1999,7 +1999,7 @@ EFatCode CFatVolume::ReadFat12Entry(uint32 uiOffsetInSector, uint32 uiCluster, u
 	}
 	else
 	{
-		uiFatEntry &= 0xFFF;
+		uiFatEntry &= FAT12_CLUSTER_MASK;
 	}
 
 	*puiFatEntry = uiFatEntry;
@@ -2031,7 +2031,7 @@ EFatCode CFatVolume::ReadFat32Entry(uint32 uiOffsetInSector, uint32 uiSector, fa
 	SFatCache	sBuffer;
 
 	READ_SECTOR(sBuffer, uiSector);
-	*puiFatEntry = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & 0x0FFFFFFF;
+	*puiFatEntry = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & FAT32_CLUSTER_MASK;
 	return FAT_SUCCESS;
 }
 
@@ -2070,7 +2070,7 @@ EFatCode CFatVolume::ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiClusterIndex, uint32* puiSector, uint32* puiOffsetInSector)
+EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiFreedClusterIndex, uint32* puiSector, uint32* puiOffsetInSector)
 {
 	SFatCache	sBuffer;
 	uint8*		puiBuffer;
@@ -2081,14 +2081,14 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiC
 	if (!*pbFat12MultiStepProgress)
 	{
 		// remember whether this is an odd cluster or not
-		*pbFat12MultiStepProgress = *puiClusterIndex & 1;
+		*pbFat12MultiStepProgress = *puiFreedClusterIndex & 1;
 
 		// set the cluster to zero to make sure that the upper bytes are cleared
 		// since we're only updating the lower 16 bits.
-		*puiClusterIndex = 0;
+		*puiFreedClusterIndex = 0;
 
 		// read the 1st byte
-		((uint8*)puiClusterIndex)[0] = puiBuffer[*puiOffsetInSector];
+		((uint8*)puiFreedClusterIndex)[0] = puiBuffer[*puiOffsetInSector];
 
 		// write the 1st byte
 		//
@@ -2124,18 +2124,18 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiC
 	}
 
 	// read the 2nd byte
-	((uint8*)puiClusterIndex)[1] = puiBuffer[*puiOffsetInSector];
+	((uint8*)puiFreedClusterIndex)[1] = puiBuffer[*puiOffsetInSector];
 
 	// Since a FAT12 entry is only 12 bits (1.5 bytes) we need to adjust the result.  For odd cluster numbers the FAT entry is stored in the upper 12 bits of the
 	// 16 bits where it is stored, so we need to shift the value 4 bits to the right.  For even cluster numbers the FAT entry is stored in the lower 12 bits of the
 	// 16 bits where it is stored, so we need to clear the upper 4 bits.
 	if (*pbFat12MultiStepProgress)
 	{
-		*puiClusterIndex >>= 4;
+		*puiFreedClusterIndex >>= 4;
 	}
 	else
 	{
-		*puiClusterIndex &= 0xFFF;
+		*puiFreedClusterIndex &= 0xFFF;
 	}
 
 	// write the 2nd byte
@@ -2168,13 +2168,14 @@ EFatCode CFatVolume::FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeFat16Chain(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
+EFatCode CFatVolume::FreeFat16Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
 {
 	SFatCache	sBuffer;
 
 	READ_SECTOR(sBuffer, uiSector);
 
-	*puiClusterIndex = *((uint16*)&(sBuffer.Get()[uiOffsetInSector]));
+	*puiFreedClusterIndex = *((uint16*)&(sBuffer.Get()[uiOffsetInSector]));
+
 	*((uint16*)&(sBuffer.Get()[uiOffsetInSector])) = FREE_FAT;
 	DirtySector(sBuffer);
 
@@ -2186,15 +2187,15 @@ EFatCode CFatVolume::FreeFat16Chain(uint32* puiClusterIndex, uint32 uiSector, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::FreeFat32Chain(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
+EFatCode CFatVolume::FreeFat32Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector)
 {
 	SFatCache	sBuffer;
 
 	READ_SECTOR(sBuffer, uiSector);
 
-	// FAT32 entries are actually 28 bits so we need to leave the  upper nibble untouched.
-	*puiClusterIndex = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & 0x0FFFFFFF;
-	*((uint32*)&(sBuffer.Get()[uiOffsetInSector])) &= 0xF0000000;
+	*puiFreedClusterIndex = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & FAT32_CLUSTER_MASK;
+
+	*((uint32*)&(sBuffer.Get()[uiOffsetInSector])) &= 0;
 	DirtySector(sBuffer);
 
 	return FAT_SUCCESS;
