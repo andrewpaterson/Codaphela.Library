@@ -1016,8 +1016,8 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 	psEntries->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
 	psEntries->uEntry.sFatRawCommon.uiSize = 0x0;
 	psEntries->uEntry.sFatRawCommon.uiReserved = 0;
-	psEntries->uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiCluster);
-	psEntries->uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiCluster);
+	psEntries->uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiCluster;
+	psEntries->uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiCluster >> 16);
 	psEntries->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
 	psEntries->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
 	psEntries->uEntry.sFatRawCommon.uiModifyDate = psEntries->uEntry.sFatRawCommon.uiCreateDate;
@@ -1156,11 +1156,11 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 	if (uiCluster & 1)
 	{
 		puiBuffer[uiOffsetInSector] &= 0x0F;
-		puiBuffer[uiOffsetInSector] |= LO8((uint16)FAT12_EOC << 4);
+		puiBuffer[uiOffsetInSector] |= (uint8)(FAT12_EOC << 4);
 	}
 	else
 	{
-		puiBuffer[uiOffsetInSector] = LO8((uint16)FAT12_EOC);
+		puiBuffer[uiOffsetInSector] = (uint8)FAT12_EOC;
 	}
 	DirtySector(sBuffer);
 
@@ -1177,13 +1177,13 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 
 	if (uiCluster & 1)
 	{
-		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] = HI8((uint16)FAT12_EOC << 4);
+		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] = ((uint16)FAT12_EOC << 4) >> 8;  //Wut?
 	}
 	else
 	{
 		//Even cluster.
 		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] &= 0xF0;
-		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] |= HI8((uint16)FAT12_EOC);
+		puiBuffer[bNextSector ? 0 : (uiOffsetInSector + 1)] |= FAT12_EOC >> 8;
 	}
 	DirtySector(sBuffer);
 
@@ -1196,11 +1196,11 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 		if (uiLastFatEntry & 1)
 		{
 			puiBuffer[uiPreviousOffset] &= 0x0F;
-			puiBuffer[uiPreviousOffset] |= LO8((uint16)uiCluster << 4);
+			puiBuffer[uiPreviousOffset] |= (uint8)(uiCluster << 4);
 		}
 		else
 		{
-			puiBuffer[uiPreviousOffset] = LO8((uint16)uiCluster);
+			puiBuffer[uiPreviousOffset] = (uint8)uiCluster;
 		}
 		DirtySector(sBuffer);
 
@@ -1215,12 +1215,12 @@ EFatCode CFatVolume::WriteFat12Entry(uint32 uiOffsetInSector, uint32 uiPreviousO
 		// write the 2nd byte
 		if (uiLastFatEntry & 1)
 		{
-			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] = HI8((uint16)uiCluster << 4);
+			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] = ((uint16)uiCluster << 4) >> 8;
 		}
 		else
 		{
 			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] &= 0xF0;
-			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] |= HI8((uint16)uiCluster);
+			puiBuffer[bNextSector ? 0 : (uiPreviousOffset + 1)] |= (uint8)(uiCluster >> 8);
 		}
 		DirtySector(sBuffer);
 	}
@@ -1460,8 +1460,8 @@ EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 ui
 	if ((uiCluster == 0))
 	{
 		// modify the file entry to point to the new cluster
-		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiNewClusterInVolume);
-		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiNewClusterInVolume);
+		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiNewClusterInVolume;
+		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiNewClusterInVolume >> 16);
 		psEntry->sRaw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_ARCHIVE;
 
 		READ_SECTOR(sBuffer, psEntry->uiSectorAddress);
@@ -1492,11 +1492,11 @@ EFatCode CFatVolume::SetFat12ClusterEntry(uint32 uiClusterIndex, fatEntry uiClus
 	{
 		uiClusterInVolume <<= 4;										// odd entries occupy the upper 12 bits so we must shift
 		puiBuffer[uiOffsetInSector] &= 0x0F;							// clear entry bits on 1st byte
-		puiBuffer[uiOffsetInSector] |= LO8((uint16)uiClusterInVolume);	// set entry bits on 1st byte
+		puiBuffer[uiOffsetInSector] |= (uint8)uiClusterInVolume;	// set entry bits on 1st byte
 	}
 	else
 	{
-		puiBuffer[uiOffsetInSector] = LO8((uint16)uiClusterInVolume);		// just copy the 1st byte
+		puiBuffer[uiOffsetInSector] = (uint8)uiClusterInVolume;		// just copy the 1st byte
 	}
 	DirtySector(sBuffer);
 
@@ -1519,12 +1519,13 @@ EFatCode CFatVolume::SetFat12ClusterEntry(uint32 uiClusterIndex, fatEntry uiClus
 	// write the 2nd byte
 	if (uiClusterIndex & 1)
 	{
-		puiBuffer[uiOffsetInSector] = HI8((uint16)uiClusterInVolume);
+		//puiBuffer[uiOffsetInSector] = ((uint16)uiClusterInVolume << 4) >> 8;  //Isn't this correct?
+		puiBuffer[uiOffsetInSector] = ((uint16)uiClusterInVolume) >> 8;
 	}
 	else
 	{
 		puiBuffer[uiOffsetInSector] &= 0xF0;							
-		puiBuffer[uiOffsetInSector] |= HI8((uint16)uiClusterInVolume);
+		puiBuffer[uiOffsetInSector] |= ((uint16)uiClusterInVolume) >> 8;
 	}
 	DirtySector(sBuffer);
 
@@ -2195,7 +2196,7 @@ EFatCode CFatVolume::FreeFat32Chain(uint32* puiFreedClusterIndex, uint32 uiSecto
 
 	*puiFreedClusterIndex = *((uint32*)&(sBuffer.Get()[uiOffsetInSector])) & FAT32_CLUSTER_MASK;
 
-	*((uint32*)&(sBuffer.Get()[uiOffsetInSector])) &= 0;
+	*((uint32*)&(sBuffer.Get()[uiOffsetInSector])) &= (~FAT32_CLUSTER_MASK);
 	DirtySector(sBuffer);
 
 	return FAT_SUCCESS;
@@ -2343,8 +2344,8 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 	psEntry->uiSectorOffset = 0;
 
 	uiRootCluster = GetRootCluster();
-	psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiRootCluster);
-	psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiRootCluster);
+	psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiRootCluster;
+	psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiRootCluster >> 16);
 
 	return FAT_SUCCESS;
 }
@@ -3166,8 +3167,8 @@ void CFatVolume::InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiAttributes = uiAttributes;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiReserved = 0;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiSize = 0;
-	psNewEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = LO16(uiEntryCluster);
-	psNewEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = HI16(uiEntryCluster);
+	psNewEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiEntryCluster;
+	psNewEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiEntryCluster >> 16);
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateTimeTenths = 0;
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
 	psNewEntry->sRaw.uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
