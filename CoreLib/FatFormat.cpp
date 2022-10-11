@@ -54,8 +54,8 @@ static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat12[] =
 //* The way this table is accessed is to look for the first entry
 //* in the table for which the disk size is less than or equal
 //* to the DiskSize field in that table entry.  For this table to
-//* work properly BPB_RsvdSecCnt must be 1, BPB_NumFATs
-//* must be 2, and BPB_RootEntCnt must be 512. Any of these values
+//* work properly uiReservedSectorCount must be 1, uiNumFileAllocationTables
+//* must be 2, and uiRootEntryCount must be 512. Any of these values
 //* being different may require the first table entries DiskSize value
 //* to be changed otherwise the cluster count may be to low for FAT16.
 static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
@@ -78,7 +78,7 @@ static const SDiskSizeToSectorsPerCluster gasFatDiskSizeTableFat16[] =
 // The way this table is accessed is to look for the first entry
 // in the table for which the disk size is less than or equal
 // to the DiskSize field in that table entry. For this table to
-// work properly BPB_RsvdSecCnt must be 32, and BPB_NumFATs
+// work properly uiReservedSectorCount must be 32, and uiNumFileAllocationTables
 // must be 2. Any of these values being different may require the first
 // table entries DiskSize value to be changed otherwise the cluster count
 // may be to low for FAT32.
@@ -383,22 +383,22 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 	// set common Bios Parameter Block (BPB) fields.
 	bpb = (SFatBIOSParameterBlock*)uiBuffer;
 
-	memcpy(bpb->BS_OEMName, "FAT32LIB", 8);
-	bpb->BS_jmpBoot[0] = 0xEB;
-	bpb->BS_jmpBoot[1] = 0x00;
-	bpb->BS_jmpBoot[2] = 0x90;
-	bpb->BPB_NumHeads = 0x1;
-	bpb->BPB_HiddSec = 0x0;
-	bpb->BPB_SecPerTrk = 0;
-	bpb->BPB_Media = media_type;
-	bpb->BPB_NumFATs = uiNoOfFatTables;
-	bpb->BPB_BytsPerSec = uiBytesPerSector;
-	bpb->BPB_RootEntCnt = no_of_root_entries;
-	bpb->BPB_RsvdSecCnt = uiNoOfReservedSectors;
-	bpb->BPB_SecPerClus = uiSectorsPerCluster;
-	bpb->BPB_TotSec16 = (fs_type == FAT_FS_TYPE_FAT32 || uiTotalSectors > 0xFFFF) ? 0 : uiTotalSectors;
-	bpb->BPB_TotSec32 = (fs_type == FAT_FS_TYPE_FAT32 || uiTotalSectors > 0xFFFF) ? uiTotalSectors : 0;
-	bpb->BPB_FATSz16 = (fs_type == FAT_FS_TYPE_FAT32) ? 0 : uiFatTableSizeInSectors;
+	memcpy(bpb->szOEMName, "FAT32LIB", 8);
+	bpb->uiJumpInstrustion[0] = 0xEB;
+	bpb->uiJumpInstrustion[1] = 0x00;
+	bpb->uiJumpInstrustion[2] = 0x90;
+	bpb->uiNumHeads = 0x1;
+	bpb->uiNumHiddenSectors = 0x0;
+	bpb->uiSectorsPerTrack = 0;
+	bpb->uiMediaType = media_type;
+	bpb->uiNumFileAllocationTables = uiNoOfFatTables;
+	bpb->uiBytsPerSector = uiBytesPerSector;
+	bpb->uiRootEntryCount = no_of_root_entries;
+	bpb->uiReservedSectorCount = uiNoOfReservedSectors;
+	bpb->uiSectorsPerCluster = uiSectorsPerCluster;
+	bpb->uiTotalSectorsFat16 = (fs_type == FAT_FS_TYPE_FAT32 || uiTotalSectors > 0xFFFF) ? 0 : uiTotalSectors;
+	bpb->uiTotalSectorsFat32 = (fs_type == FAT_FS_TYPE_FAT32 || uiTotalSectors > 0xFFFF) ? uiTotalSectors : 0;
+	bpb->uiFATSzFat16 = (fs_type == FAT_FS_TYPE_FAT32) ? 0 : uiFatTableSizeInSectors;
 
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
