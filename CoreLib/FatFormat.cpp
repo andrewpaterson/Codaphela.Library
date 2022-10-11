@@ -403,34 +403,34 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
 		// set FAT32 specific fields
-		bpb->uFatEx.sFat32.BS_DrvNum = 0;
-		bpb->uFatEx.sFat32.BS_Reserved1 = 0;
-		bpb->uFatEx.sFat32.BS_BootSig = 0x29;
-		bpb->uFatEx.sFat32.BPB_FATSz32 = uiFatTableSizeInSectors;
-		bpb->uFatEx.sFat32.BPB_ExtFlags = 0;
-		bpb->uFatEx.sFat32.BPB_FSVer = 0;
-		bpb->uFatEx.sFat32.BPB_RootClus = root_cluster;
-		bpb->uFatEx.sFat32.BPB_FSInfo = uiFileSystemInfoSector;
-		bpb->uFatEx.sFat32.BPB_BkBootSec = backup_boot_sector;
-		time((time_t*)&bpb->uFatEx.sFat32.BS_VolID);
-		memset(bpb->uFatEx.sFat32.BPB_Reserved, 0, 12);
-		memcpy(bpb->uFatEx.sFat32.BS_VolLab, "NO NAME    ", 11);
-		memcpy(bpb->uFatEx.sFat32.BS_FilSysType, "FAT32   ", 8);
+		bpb->uFatEx.sFat32.uiDriverNumber = 0;
+		bpb->uFatEx.sFat32.uiReserved1 = 0;
+		bpb->uFatEx.sFat32.uiBootSignature = 0x29;
+		bpb->uFatEx.sFat32.uiFATSzFat32 = uiFatTableSizeInSectors;
+		bpb->uFatEx.sFat32.uiExtendedFlags = 0;
+		bpb->uFatEx.sFat32.uiFileSystemVersion = 0;
+		bpb->uFatEx.sFat32.uiRootCluster = root_cluster;
+		bpb->uFatEx.sFat32.uiFileSystemInformation = uiFileSystemInfoSector;
+		bpb->uFatEx.sFat32.uiBackupBootSector = backup_boot_sector;
+		time((time_t*)&bpb->uFatEx.sFat32.uiVolumeID);
+		memset(bpb->uFatEx.sFat32.auiReserved, 0, 12);
+		memcpy(bpb->uFatEx.sFat32.szVolumeLabel, "NO NAME    ", 11);
+		memcpy(bpb->uFatEx.sFat32.szFileSystemType, "FAT32   ", 8);
 
-		SetFatVolumeLabel(bpb->uFatEx.sFat32.BS_VolLab, volume_label);
+		SetFatVolumeLabel(bpb->uFatEx.sFat32.szVolumeLabel, volume_label);
 	}
 	else
 	{
 		// set FAT12/FAT16 specific fields
-		bpb->uFatEx.sFat16.BS_DrvNum = 0;
-		bpb->uFatEx.sFat16.BS_Reserved1 = 0;
-		bpb->uFatEx.sFat16.BS_BootSig = 0x29;
-		time((time_t*)&bpb->uFatEx.sFat16.BS_VolID);
-		memcpy(bpb->uFatEx.sFat16.BS_VolLab, "NO NAME    ", 11);
-		memcpy(bpb->uFatEx.sFat16.BS_FilSysType, "FAT     ", 8);
+		bpb->uFatEx.sFat16.uiDriverNumber = 0;
+		bpb->uFatEx.sFat16.uiReserved1 = 0;
+		bpb->uFatEx.sFat16.uiBootSignature = 0x29;
+		time((time_t*)&bpb->uFatEx.sFat16.uiVolumeID);
+		memcpy(bpb->uFatEx.sFat16.szVolumeLabel, "NO NAME    ", 11);
+		memcpy(bpb->uFatEx.sFat16.szFileSystemType, "FAT     ", 8);
 
 		// set the volume label
-		SetFatVolumeLabel(bpb->uFatEx.sFat16.BS_VolLab, volume_label);
+		SetFatVolumeLabel(bpb->uFatEx.sFat16.szVolumeLabel, volume_label);
 	}
 
 	// set the boot sector signature
@@ -449,7 +449,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 	// and FSInfo structure
 	if (fs_type == FAT_FS_TYPE_FAT32)
 	{
-		// write a copy of the boot sector to sector # BPB_BkBootSec
+		// write a copy of the boot sector to sector # uiBackupBootSector
 		bSuccess = device->Write(backup_boot_sector, uiBuffer);
 		if (!bSuccess)
 		{
@@ -466,7 +466,7 @@ EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 
 		psFileSystemInfo->uiTrailSignature = 0xAA550000;
 		psFileSystemInfo = 0;
 
-		// write the FSInfo structor to sector # BPB_FSInfo
+		// write the FSInfo structor to sector # uiFileSystemInformation
 		bSuccess = device->Write(uiFileSystemInfoSector, uiBuffer);
 		if (!bSuccess)
 		{
