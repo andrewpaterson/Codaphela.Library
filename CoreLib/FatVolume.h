@@ -144,7 +144,7 @@ protected:
 
 	EFatCode				CreateFakeRootEntry(SFatDirectoryEntry* psEntry);
 	EFatCode				MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);
-	EFatCode				GetShortNameForEntry(uint8* dest, uint8* src, bool bLFNDisabled);
+	EFatCode				GetShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled);
 	void					FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 	fatEntry				GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory);
 	uint32					GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory);

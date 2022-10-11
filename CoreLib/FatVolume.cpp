@@ -2331,7 +2331,7 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 
 	// copy the file name to the psEntry and the raw entry in their respective formats
 	strcpy((char*)psEntry->name, "ROOT");
-	GetShortNameForEntry((uint8*)psEntry->raw.uEntry.sFatRawCommon.szShortName, psEntry->name, 1);
+	GetShortNameForEntry((char*)psEntry->raw.uEntry.sFatRawCommon.szShortName, (char*)psEntry->name, 1);
 
 	// set the general fields of the entry
 	psEntry->attributes = psEntry->raw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
@@ -2383,12 +2383,13 @@ char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char GetLongNameForEntry(uint16* puiDest, uint8* puiSource)
+char GetLongNameForEntry(uint16* puiDest, char* szSource)
 {
-	register int i;
-	for (i = 0; i < (int)strlen((char*)puiSource); i++)
+	int i;
+
+	for (i = 0; i < (int)strlen((char*)szSource); i++)
 	{
-		puiDest[i] = (uint16)puiSource[i];
+		puiDest[i] = (uint16)szSource[i];
 	}
 	puiDest[i] = 0x0;
 
@@ -2443,9 +2444,9 @@ EFatCode CFatVolume::MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szCo
 	bool bLongFilename = false;
 	bool bMatch;
 
-	if (GetShortNameForEntry((uint8*)szConstructedShortFileName, (uint8*)szCurrentLevelPath, 1) == FAT_INVALID_FILENAME)
+	if (GetShortNameForEntry(szConstructedShortFileName, szCurrentLevelPath, 1) == FAT_INVALID_FILENAME)
 	{
-		if (GetLongNameForEntry(puiTargetFileLongName, (uint8*)szCurrentLevelPath) == FAT_INVALID_FILENAME)
+		if (GetLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath) == FAT_INVALID_FILENAME)
 		{
 			return FAT_INVALID_FILENAME;
 		}
@@ -2532,7 +2533,7 @@ void TrimPath(char* szDest, char* szSource, size_t uiMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool bLFNDisabled)
+EFatCode CFatVolume::GetShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled)
 {
 	char		szName[13];
 	bool		bUppercase = false;
@@ -2540,19 +2541,16 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 	uint16		uiLength;
 	uint16		i;
 
-	// check that the name is actually a long filename
-	// before processing it as such
+	// check that the name is actually a long filename before processing it as such.
 	if (!bLFNDisabled)
 	{
 		uint8	c;
 		bool	bLFN = false;
 
-		uiLength = (uint16)strlen((char*)puiSource);
-		uiDotIndex = FatIndexOf('.', (char*)puiSource, 0);
+		uiLength = (uint16)strlen(szSource);
+		uiDotIndex = FatIndexOf('.', szSource, 0);
 
-		// if the file hs no extension and is longer than 8 chars
-		// or if the name part has more than 8 chars or the extension more than 8
-		// or if it has more than one dot then we need to handle it as a lfn
+		// if the file hs no extension and is longer than 8 chars or if the name part has more than 8 chars or the extension more than 8 or if it has more than one dot then we need to handle it as a LFN.
 		if (uiDotIndex < 0 && uiLength > 8) bLFN = true;
 		if (uiDotIndex >= 0)
 		{
@@ -2562,7 +2560,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 			}
 			if (uiDotIndex >= 0)
 			{
-				if (FatIndexOf('.', (char*)puiSource, 1) >= 0)
+				if (FatIndexOf('.', (char*)szSource, 1) >= 0)
 				{
 					bLFN = true;
 				}
@@ -2578,7 +2576,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 		{
 			for (i = 0; i < uiLength; i++)
 			{
-				if (puiSource[i] == ' ' || puiSource[i] != toupper(puiSource[i]))
+				if (szSource[i] == ' ' || szSource[i] != toupper(szSource[i]))
 				{
 					bLFN = true;
 					break;
@@ -2591,7 +2589,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 			uiDotIndex = uiLength;
 			for (i = uiLength - 1; i; i--)
 			{
-				if (puiSource[i] == '.')
+				if (szSource[i] == '.')
 				{
 					uiDotIndex = i;
 					break;
@@ -2604,7 +2602,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 			{
 				while (c < uiDotIndex)
 				{
-					if (puiSource[c] == ' ' || puiSource[c] == '.')
+					if (szSource[c] == ' ' || szSource[c] == '.')
 					{
 						c++;
 					}
@@ -2615,7 +2613,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 				}
 				if (c < uiDotIndex)
 				{
-					szName[i] = toupper(puiSource[c++]);
+					szName[i] = toupper(szSource[c++]);
 				}
 				else
 				{
@@ -2629,7 +2627,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 			{
 				while (c < uiLength)
 				{
-					if (puiSource[c] == ' ' || puiSource[c] == '.')
+					if (szSource[c] == ' ' || szSource[c] == '.')
 					{
 						c++;
 					}
@@ -2640,7 +2638,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 				}
 				if (c < uiLength)
 				{
-					szName[i] = toupper(puiSource[c++]);
+					szName[i] = toupper(szSource[c++]);
 				}
 				else
 				{
@@ -2651,7 +2649,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 			// now we copy it to the callers buffer and we're done
 			for (i = 0; i < 11; i++)
 			{
-				*puiDest++ = szName[i];
+				*szDest++ = szName[i];
 			}
 
 			// return special code so the caller knows to store the long name.
@@ -2660,7 +2658,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 	}
 
 	// trim-off spaces - if the result is greater than 12 it will return an empty string.
-	TrimPath(szName, (char*)puiSource, 12);
+	TrimPath(szName, (char*)szSource, 12);
 
 	// if the name uiLength was invalid return error code.
 	if (*szName == 0 || strlen(szName) > 12)
@@ -2698,11 +2696,11 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
 					bUppercase = true;
 
-				*puiDest++ = toupper(szName[i]);
+				*szDest++ = toupper(szName[i]);
 			}
 			else
 			{
-				*puiDest++ = ' ';
+				*szDest++ = ' ';
 			}
 		}
 		else
@@ -2712,11 +2710,11 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
 					bUppercase = true;
 
-				*puiDest++ = toupper(szName[i]);
+				*szDest++ = toupper(szName[i]);
 			}
 			else
 			{
-				*puiDest++ = ' ';
+				*szDest++ = ' ';
 			}
 		}
 	}
@@ -2725,7 +2723,7 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 	if (uiDotIndex == 0)
 	{
 		for (i = 0; i < 3; i++)
-			*puiDest++ = ' ';
+			*szDest++ = ' ';
 	}
 	// if there is an extension...
 	else
@@ -2737,11 +2735,11 @@ EFatCode CFatVolume::GetShortNameForEntry(uint8* puiDest, uint8* puiSource, bool
 			{
 				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
 					bUppercase = true;
-				*puiDest++ = toupper(szName[i]);
+				*szDest++ = toupper(szName[i]);
 			}
 			else
 			{
-				*puiDest++ = ' ';
+				*szDest++ = ' ';
 			}
 		}
 	}
@@ -3522,7 +3520,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 
 	memset(&psNewEntry->raw, 0, sizeof(psNewEntry->raw));
 
-	eResult = GetShortNameForEntry((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName, (uint8*)szName, false);
+	eResult = GetShortNameForEntry((char*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName, szName, false);
 	if (eResult != FAT_SUCCESS && eResult != FAT_LFN_GENERATED)
 	{
 		return FAT_INVALID_FILENAME;
