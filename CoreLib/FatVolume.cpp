@@ -123,31 +123,31 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 		}
 
 		// if the sector size is larger than what this build allows do not mount the volume.
-		if (msBPB.BPB_BytsPerSec > MAX_SECTOR_LENGTH)
+		if (msBPB.uiBytsPerSector > MAX_SECTOR_LENGTH)
 		{
 			return FAT_SECTOR_SIZE_NOT_SUPPORTED;
 		}
 
-		// make sure BPB_BytsPerSec and BPB_SecPerClus are valid before we divide by them.
-		if (!msBPB.BPB_BytsPerSec || !msBPB.BPB_SecPerClus)
+		// make sure uiBytsPerSector and uiSectorsPerCluster are valid before we divide by them.
+		if (!msBPB.uiBytsPerSector || !msBPB.uiSectorsPerCluster)
 		{
 			uiPartitionsTried++;
 			continue;
 		}
 
-		if (!CheckSectorsPerClusterIsPowerOfTwo(msBPB.BPB_SecPerClus))
+		if (!CheckSectorsPerClusterIsPowerOfTwo(msBPB.uiSectorsPerCluster))
 		{
 			uiPartitionsTried++;
 			continue;
 		}
 
 		// get all the info we need from BPB.
-		muiRootDirectorySectors = ((msBPB.BPB_RootEntCnt * 32) + (msBPB.BPB_BytsPerSec - 1)) / msBPB.BPB_BytsPerSec;
-		muiFatSize = (msBPB.BPB_FATSz16) ? msBPB.BPB_FATSz16 : msBPB.uFatEx.sFat32.BPB_FATSz32;
-		muiNoOfSectors = (msBPB.BPB_TotSec16) ? msBPB.BPB_TotSec16 : msBPB.BPB_TotSec32;
-		muiNoOfDataSectors = muiNoOfSectors - (msBPB.BPB_RsvdSecCnt + (msBPB.BPB_NumFATs * muiFatSize) + muiRootDirectorySectors);
-		muiNoOfClusters = muiNoOfDataSectors / msBPB.BPB_SecPerClus;
-		muiBytesPerSector = msBPB.BPB_BytsPerSec;
+		muiRootDirectorySectors = ((msBPB.uiRootEntryCount * 32) + (msBPB.uiBytsPerSector - 1)) / msBPB.uiBytsPerSector;
+		muiFatSize = (msBPB.uiFATSzFat16) ? msBPB.uiFATSzFat16 : msBPB.uFatEx.sFat32.BPB_FATSz32;
+		muiNoOfSectors = (msBPB.uiTotalSectorsFat16) ? msBPB.uiTotalSectorsFat16 : msBPB.uiTotalSectorsFat32;
+		muiNoOfDataSectors = muiNoOfSectors - (msBPB.uiReservedSectorCount + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors);
+		muiNoOfClusters = muiNoOfDataSectors / msBPB.uiSectorsPerCluster;
+		muiBytesPerSector = msBPB.uiBytsPerSector;
 		meFileSystem = (muiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (muiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
 
 		if (!CheckFileAllocationTableLargeEnough(meFileSystem, muiFatSize, muiNoOfClusters, muiBytesPerSector))
@@ -156,10 +156,10 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			continue;
 		}
 
-		muiFirstDataSector = msBPB.BPB_RsvdSecCnt + uiHiddenSectors + (msBPB.BPB_NumFATs * muiFatSize) + muiRootDirectorySectors;
-		muiNoOfReservedSectors = msBPB.BPB_RsvdSecCnt + uiHiddenSectors;
-		muiNoOfSectorsPerCluster = msBPB.BPB_SecPerClus;
-		muiNoOfFatTables = msBPB.BPB_NumFATs;
+		muiFirstDataSector = msBPB.uiReservedSectorCount + uiHiddenSectors + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors;
+		muiNoOfReservedSectors = msBPB.uiReservedSectorCount + uiHiddenSectors;
+		muiNoOfSectorsPerCluster = msBPB.uiSectorsPerCluster;
+		muiNoOfFatTables = msBPB.uiNumFileAllocationTables;
 		muiFileSystemInfoSector = msBPB.uFatEx.sFat32.BPB_FSInfo;
 		muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
 
@@ -199,8 +199,8 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 		uiFATSector = muiNoOfReservedSectors;
 		READ_SECTOR(sFATSector, uiFATSector);
 
-		// if the lower byte of the 1st FAT entry is not the same as BPB_Media then this is not a valid volume
-		if (sFATSector.Get()[0] != msBPB.BPB_Media)
+		// if the lower byte of the 1st FAT entry is not the same as uiMediaType then this is not a valid volume
+		if (sFATSector.Get()[0] != msBPB.uiMediaType)
 		{
 			uiPartitionsTried++;
 			continue;

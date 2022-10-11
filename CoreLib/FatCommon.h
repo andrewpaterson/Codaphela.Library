@@ -83,20 +83,20 @@ struct SFatPartitionEntry
 #pragma pack(push, 1)
 struct SFatBIOSParameterBlock
 {
-	uint8	BS_jmpBoot[3];					/* 0  */
-	char	BS_OEMName[8];					/* 3  */
-	uint16	BPB_BytsPerSec;					/* 11 */
-	uint8	BPB_SecPerClus;					/* 13 */
-	uint16	BPB_RsvdSecCnt;					/* 14 */
-	uint8	BPB_NumFATs;					/* 16 */
-	uint16	BPB_RootEntCnt;					/* 17 */
-	uint16	BPB_TotSec16;					/* 19 */
-	uint8	BPB_Media;						/* 21 */
-	uint16	BPB_FATSz16;					/* 22 */
-	uint16	BPB_SecPerTrk;					/* 24 */
-	uint16	BPB_NumHeads;					/* 26 */
-	uint32	BPB_HiddSec;					/* 28 */
-	uint32	BPB_TotSec32;					/* 32 */
+	uint8	uiJumpInstrustion[3];	
+	char	szOEMName[8];			
+	uint16	uiBytsPerSector;		
+	uint8	uiSectorsPerCluster;	
+	uint16	uiReservedSectorCount;	
+	uint8	uiNumFileAllocationTables;
+	uint16	uiRootEntryCount;		
+	uint16	uiTotalSectorsFat16;	
+	uint8	uiMediaType;			
+	uint16	uiFATSzFat16;			
+	uint16	uiSectorsPerTrack;		
+	uint16	uiNumHeads;				
+	uint32	uiNumHiddenSectors;		
+	uint32	uiTotalSectorsFat32;	
 	union
 	{
 		struct SFat16BPB
