@@ -36,7 +36,7 @@ protected:
 	SFatBIOSParameterBlock	msBPB;
 
 public:
-	EFatCode				Mount(CFileDrive* device);
+	EFatCode				Mount(CFileDrive* pcDevice);
 	EFatCode				Unmount(void);
 	EFatCode				Flush(void);
 	bool					Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive);
@@ -165,6 +165,8 @@ protected:
 	EFatCode				FindNextRawDirectoryEntry(SFatQueryState* psQuery);
 
 	void					FatParsePath(char* path, char* szPathPart, char** filename_part);
+	uint16					LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex);
+	void					GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex);
 };
 
 
