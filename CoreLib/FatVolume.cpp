@@ -639,7 +639,7 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 	// if we found an entry we need to check it's LFN checksum to make sure that the long filename that we've associated with it belongs to it. If it doesn't clear it.
 	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] != '\0')
 	{
-		if (psQuery->uiChecksum != FatLongEntryChecksum((uint8*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName))
+		if (psQuery->uiChecksum != FatLongEntryChecksum((char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName))
 		{
 			psQuery->auiLongFilename[0] = 0;
 		}
@@ -1886,14 +1886,14 @@ void CFatVolume::DirtySector(SFatCache sCachedSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CFatVolume::FatLongEntryChecksum(uint8* filename)
+uint8 CFatVolume::FatLongEntryChecksum(char* szFilename)
 {
 	uint16	len;
 	uint8	sum = 0;
 
 	for (len = 11; len != 0; len--)
 	{
-		sum = ((sum & 1) ? 0x80 : 0) + (sum >> 1) + *filename++;
+		sum = ((sum & 1) ? 0x80 : 0) + (sum >> 1) + *szFilename++;
 	}
 	return sum;
 }
@@ -3555,7 +3555,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	// compute the checksum for this entry
-	uiChecksum = FatLongEntryChecksum((uint8*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName);
+	uiChecksum = FatLongEntryChecksum((char*)psNewEntry->raw.uEntry.sFatRawCommon.szShortName);
 
 	// now we can start writting
 	iLFNEntriesFound = iLFNEntriesNeeded;
@@ -3900,7 +3900,7 @@ EFatCode CFatVolume::DeleteFile(char* szFilename)
 	if (sEntry.name != 0)
 	{
 		// compute the checksum for the file
-		uiChecksum = FatLongEntryChecksum((uint8*)sEntry.raw.uEntry.sFatRawCommon.szShortName);
+		uiChecksum = FatLongEntryChecksum((char*)sEntry.raw.uEntry.sFatRawCommon.szShortName);
 
 		// make sure we're not trying to delete a directory.
 		if (sEntry.attributes & FAT_ATTR_DIRECTORY)
@@ -4006,7 +4006,7 @@ EFatCode CFatVolume::RenameFile(char* szOriginalFilename, char* szNewFilename)
 		SFatDirectoryEntry parent;
 
 		// compute the checksum for the file
-		uiChecksum = FatLongEntryChecksum((uint8*)sOriginalEntry.raw.uEntry.sFatRawCommon.szShortName);
+		uiChecksum = FatLongEntryChecksum((char*)sOriginalEntry.raw.uEntry.sFatRawCommon.szShortName);
 
 		// get the cluster # for the entry
 		uiEntryCluster = GetFirstClusterFromFatEntry(&sOriginalEntry.raw, GetFileSystemType() == FAT_FS_TYPE_FAT32);

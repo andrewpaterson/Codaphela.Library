@@ -111,7 +111,7 @@ protected:
 	EFatCode				FreeFat32Chain(uint32* puiClusterIndex, uint32 uiSector, uint32 uiOffsetInSector);
 
 	uint32					CalculateFATEntryIndex(uint32 uiClusterIndexInFAT);
-	uint8					FatLongEntryChecksum(uint8* filename);
+	uint8					FatLongEntryChecksum(char* szFilename);
 	uint32					CalculateRootSector(void);
 
 	EFatCode				SetFat12ClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume, uint32 uiFirstClusterSector, uint16 uiOffsetInSector);
