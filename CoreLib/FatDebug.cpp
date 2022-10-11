@@ -495,7 +495,7 @@ EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayCha
 			break;
 		}
 
-		if (StrEmpty((char*)psFatDirectoryEntry->name))
+		if (StrEmpty((char*)psFatDirectoryEntry->szName))
 		{
 			eResult = FAT_SUCCESS;
 			break;
@@ -504,11 +504,11 @@ EFatCode RecurseFindFatDirectories(CFatVolume* pcVolume, char* szPath, CArrayCha
 		memset(szNewPath, 0, FAT_MAX_PATH);
 		strcpy(szNewPath, szPath);
 		strcat(szNewPath, "\\");
-		strcat(szNewPath, (char*)psFatDirectoryEntry->name);
+		strcat(szNewPath, (char*)psFatDirectoryEntry->szName);
 
-		if (FixBool(psFatDirectoryEntry->attributes & FAT_ATTR_DIRECTORY))
+		if (FixBool(psFatDirectoryEntry->uiAttributes & FAT_ATTR_DIRECTORY))
 		{
-			if (!((strcmp((char*)psFatDirectoryEntry->name, ".") == 0) || (strcmp((char*)psFatDirectoryEntry->name, "..") == 0)))
+			if (!((strcmp((char*)psFatDirectoryEntry->szName, ".") == 0) || (strcmp((char*)psFatDirectoryEntry->szName, "..") == 0)))
 			{
 				eResult = RecurseFindFatDirectories(pcVolume, szNewPath, paszDirectories);
 				if (eResult != FAT_SUCCESS)
@@ -551,7 +551,7 @@ EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars
 			break;
 		}
 
-		if (StrEmpty((char*)psFatDirectoryEntry->name))
+		if (StrEmpty((char*)psFatDirectoryEntry->szName))
 		{
 			eResult = FAT_SUCCESS;
 			break;
@@ -560,13 +560,13 @@ EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars
 		memset(szNewPath, 0, FAT_MAX_PATH);
 		strcpy(szNewPath, szPath);
 		strcat(szNewPath, "\\");
-		strcat(szNewPath, (char*)psFatDirectoryEntry->name);
+		strcat(szNewPath, (char*)psFatDirectoryEntry->szName);
 
-		if (FixBool(psFatDirectoryEntry->attributes & FAT_ATTR_DIRECTORY))
+		if (FixBool(psFatDirectoryEntry->uiAttributes & FAT_ATTR_DIRECTORY))
 		{
 			if ((iDepth < iMaxDepth) || (iMaxDepth == -1))
 			{
-				if (!((strcmp((char*)psFatDirectoryEntry->name, ".") == 0) || (strcmp((char*)psFatDirectoryEntry->name, "..") == 0)))
+				if (!((strcmp((char*)psFatDirectoryEntry->szName, ".") == 0) || (strcmp((char*)psFatDirectoryEntry->szName, "..") == 0)))
 				{
 					eResult = RecurseFindFatFilenames(pcVolume, szNewPath, paszFiles, iDepth + 1, iMaxDepth);
 					if (eResult != FAT_SUCCESS)
@@ -577,7 +577,7 @@ EFatCode RecurseFindFatFilenames(CFatVolume* pcVolume, char* szPath, CArrayChars
 			}
 		}
 
-		if (FixBool(psFatDirectoryEntry->attributes & FAT_ATTR_ARCHIVE))
+		if (FixBool(psFatDirectoryEntry->uiAttributes & FAT_ATTR_ARCHIVE))
 		{
 			paszFiles->Add(szNewPath);
 		}

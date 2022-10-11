@@ -136,15 +136,15 @@ struct SFatBIOSParameterBlock
 
 struct SFatDirectoryEntry
 {
-	uint8					name[FAT_MAX_FILENAME + 1];
-	uint8					attributes;
-	time_t					uiCreateTime;
-	time_t					uiModifyTime;
-	time_t					access_time;
-	uint32					size;
+	uint8					szName[FAT_MAX_FILENAME + 1];  //Converting this to a chat causes a failure with sign extension ... somewhere.
+	uint8					uiAttributes;
+	time_t					tCreateTime;
+	time_t					tModifyTime;
+	time_t					tAccessTime;
+	uint32					uiSize;
 	uint32					uiSectorAddress;
 	uint16					uiSectorOffset;
-	SFatRawDirectoryEntry	raw;
+	SFatRawDirectoryEntry	sRaw;
 };
 
 

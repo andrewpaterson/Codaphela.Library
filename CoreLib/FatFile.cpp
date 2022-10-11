@@ -96,7 +96,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 	eResult = mpcVolume->GetFileEntry(filename, &sFileEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	if (sFileEntry.name[0] == '\0')
+	if (sFileEntry.szName[0] == '\0')
 	{
 		if (uiAccessFlags & FAT_FILE_ACCESS_CREATE)
 		{
@@ -126,13 +126,13 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			// if the parent directory does not exists
-			if (*sParentEntry.name == 0)
+			if (*sParentEntry.szName == 0)
 			{
 				return FAT_DIRECTORY_DOES_NOT_EXIST;
 			}
 
 			// try to create the directory entry
-			eResult = mpcVolume->CreateFATEntry(&sParentEntry.raw, pcFilenameScanner, FAT_ATTR_ARCHIVE, 0, &sFileEntry);
+			eResult = mpcVolume->CreateFATEntry(&sParentEntry.sRaw, pcFilenameScanner, FAT_ATTR_ARCHIVE, 0, &sFileEntry);
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			// make sure the file is opened with no append flags
@@ -152,7 +152,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 		}
 	}
 
-	strcpy(mszName, (char*)sFileEntry.name);
+	strcpy(mszName, (char*)sFileEntry.szName);
 
 	eResult = OpenFileByEntry(&sFileEntry, uiAccessFlags);
 	return eResult;
@@ -189,7 +189,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 	// if the user is trying to open a directory then
 	// return an error code, otherwise it would corrupt
 	// the volume
-	if (psEntry->attributes & FAT_ATTR_DIRECTORY)
+	if (psEntry->uiAttributes & FAT_ATTR_DIRECTORY)
 	{
 		return FAT_NOT_A_FILE;
 	}
@@ -197,13 +197,13 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 	// copy the volume file and the entry's
 	// structure to the file file
 	msFile.sDirectoryEntry = *psEntry;
-	msFile.uiFileSize = psEntry->size;
+	msFile.uiFileSize = psEntry->uiSize;
 	msFile.uiAccessFlags = uiAccessFlags;
 	msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
 	msFile.bBusy = 0;
 
 	// read the the cluster number
-	msFile.uiCursorClusterInVolume = GetFirstClusterFromFatEntry(&psEntry->raw, IsFat32Volume());
+	msFile.uiCursorClusterInVolume = GetFirstClusterFromFatEntry(&psEntry->sRaw, IsFat32Volume());
 
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
@@ -246,7 +246,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::FatFileGetUniqueId(void)
 {
-	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
+	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.sRaw, IsFat32Volume());
 }
 
 
@@ -337,7 +337,7 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatFile::CalculateFirstCluster(void)
 {
-	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.raw, IsFat32Volume());
+	return GetFirstClusterFromFatEntry(&msFile.sDirectoryEntry.sRaw, IsFat32Volume());
 }
 
 
@@ -672,10 +672,10 @@ EFatCode CFatFile::Flush(void)
 		mcCache.Flush();
 
 		// update the file size on the entry
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiSize = msFile.uiFileSize;
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
-		msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.raw.uEntry.sFatRawCommon.uiModifyDate;
+		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiSize = msFile.uiFileSize;
+		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
+		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
+		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate;
 
 		// try load the sector that contains the entry
 		SFatCache	sBuffer;
@@ -688,7 +688,7 @@ EFatCode CFatFile::Flush(void)
 		}
 
 		// copy the modified file entry to the sector buffer
-		memcpy(sBuffer.Get() + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.raw, sizeof(SFatRawDirectoryEntry));
+		memcpy(sBuffer.Get() + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.sRaw, sizeof(SFatRawDirectoryEntry));
 		mpcVolume->DirtySector(sBuffer);
 
 		// mark the file file as not bBusy

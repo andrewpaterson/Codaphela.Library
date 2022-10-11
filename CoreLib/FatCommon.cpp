@@ -158,7 +158,7 @@ char* FatEntryToString(SFatDirectoryEntry* psFatEntry, bool bFat32Volume)
 		return "NULL";
 	}
 		
-	uiCluster = GetFirstClusterFromFatEntry(&psFatEntry->raw, bFat32Volume);
+	uiCluster = GetFirstClusterFromFatEntry(&psFatEntry->sRaw, bFat32Volume);
 
 	iCount = IncrementLogToStringCount();
 
