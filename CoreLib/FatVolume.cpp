@@ -143,7 +143,7 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 
 		// get all the info we need from BPB.
 		muiRootDirectorySectors = ((msBPB.uiRootEntryCount * 32) + (msBPB.uiBytsPerSector - 1)) / msBPB.uiBytsPerSector;
-		muiFatSize = (msBPB.uiFATSzFat16) ? msBPB.uiFATSzFat16 : msBPB.uFatEx.sFat32.BPB_FATSz32;
+		muiFatSize = (msBPB.uiFATSzFat16) ? msBPB.uiFATSzFat16 : msBPB.uFatEx.sFat32.uiFATSzFat32;
 		muiNoOfSectors = (msBPB.uiTotalSectorsFat16) ? msBPB.uiTotalSectorsFat16 : msBPB.uiTotalSectorsFat32;
 		muiNoOfDataSectors = muiNoOfSectors - (msBPB.uiReservedSectorCount + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors);
 		muiNoOfClusters = muiNoOfDataSectors / msBPB.uiSectorsPerCluster;
@@ -160,20 +160,20 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 		muiNoOfReservedSectors = msBPB.uiReservedSectorCount + uiHiddenSectors;
 		muiNoOfSectorsPerCluster = msBPB.uiSectorsPerCluster;
 		muiNoOfFatTables = msBPB.uiNumFileAllocationTables;
-		muiFileSystemInfoSector = msBPB.uFatEx.sFat32.BPB_FSInfo;
+		muiFileSystemInfoSector = msBPB.uFatEx.sFat32.uiFileSystemInformation;
 		muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
 
 		// read the volume label from the boot sector.
 		if (meFileSystem == FAT_FS_TYPE_FAT16)
 		{
-			muiID = msBPB.uFatEx.sFat16.BS_VolID;
-			mszLabel.Init(msBPB.uFatEx.sFat16.BS_VolLab, 0, 10);
+			muiID = msBPB.uFatEx.sFat16.uiVolumeID;
+			mszLabel.Init(msBPB.uFatEx.sFat16.szVolumeLabel, 0, 10);
 			mszLabel.StripWhiteSpace();
 		}
 		else if (meFileSystem == FAT_FS_TYPE_FAT32)
 		{
-			muiID = msBPB.uFatEx.sFat32.BS_VolID;
-			mszLabel.Init(msBPB.uFatEx.sFat32.BS_VolLab, 0, 10);
+			muiID = msBPB.uFatEx.sFat32.uiVolumeID;
+			mszLabel.Init(msBPB.uFatEx.sFat32.szVolumeLabel, 0, 10);
 			mszLabel.StripWhiteSpace();
 		}
 		else
@@ -181,10 +181,10 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			mszLabel.Init();
 		}
 
-		// if the volume is FAT32 then copy the root entry's cluster from the BPB_RootClus field on the BPB .
+		// if the volume is FAT32 then copy the root entry's cluster from the uiRootCluster field on the BPB .
 		if (meFileSystem == FAT_FS_TYPE_FAT32)
 		{
-			muiRootCluster = msBPB.uFatEx.sFat32.BPB_RootClus;
+			muiRootCluster = msBPB.uFatEx.sFat32.uiRootCluster;
 		}
 		else
 		{

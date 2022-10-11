@@ -101,33 +101,33 @@ struct SFatBIOSParameterBlock
 	{
 		struct SFat16BPB
 		{
-			uint8	BS_DrvNum;
-			uint8	BS_Reserved1;
-			uint8	BS_BootSig;
-			uint32	BS_VolID;
-			char	BS_VolLab[11];
-			char	BS_FilSysType[8];
-			char	Pad1[8];
-			uint32	Pad2;
-			uint8	Pad3;
-			uint8	ExtraPadding[15];
+			uint8	uiDriverNumber;
+			uint8	uiReserved1;
+			uint8	uiBootSignature;
+			uint32	uiVolumeID;
+			char	szVolumeLabel[11];
+			char	szFileSystemType[8];
+			char	acPad1[8];
+			uint32	uiPad2;
+			uint8	uiPad3;
+			uint8	auiExtraPadding[15];
 		} sFat16;
 
 		struct SFat32BPB
 		{
-			uint32	BPB_FATSz32;
-			uint16	BPB_ExtFlags;
-			uint16	BPB_FSVer;
-			uint32	BPB_RootClus;
-			uint16	BPB_FSInfo;
-			uint16	BPB_BkBootSec;
-			uint8	BPB_Reserved[12];
-			uint8	BS_DrvNum;
-			uint8	BS_Reserved1;
-			uint8	BS_BootSig;
-			uint32	BS_VolID;
-			char	BS_VolLab[11];
-			char	BS_FilSysType[8];
+			uint32	uiFATSzFat32;
+			uint16	uiExtendedFlags;
+			uint16	uiFileSystemVersion;
+			uint32	uiRootCluster;
+			uint16	uiFileSystemInformation;
+			uint16	uiBackupBootSector;
+			uint8	auiReserved[12];
+			uint8	uiDriverNumber;
+			uint8	uiReserved1;
+			uint8	uiBootSignature;
+			uint32	uiVolumeID;
+			char	szVolumeLabel[11];
+			char	szFileSystemType[8];
 		} sFat32;
 	} uFatEx;
 };
