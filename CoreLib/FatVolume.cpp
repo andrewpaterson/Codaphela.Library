@@ -271,14 +271,14 @@ EFatCode CFatVolume::Mount(CFileDrive* device)
 		psFileSystemInfo = (SFatFileSystemInfo*)sInfoSector.Get();
 
 		// check signatures before using
-		if (psFileSystemInfo->LeadSig == 0x41615252 && psFileSystemInfo->StructSig == 0x61417272 && psFileSystemInfo->TrailSig == 0xAA550000)
+		if (psFileSystemInfo->uiLeadSignature == 0x41615252 && psFileSystemInfo->uiStructSignature == 0x61417272 && psFileSystemInfo->uiTrailSignature == 0xAA550000)
 		{
-			muiNextFreeCluster = psFileSystemInfo->Nxt_Free;
+			muiNextFreeCluster = psFileSystemInfo->uiNextFreeCluster;
 
 			// if this value is greater than or equal to the # of clusters in the mpsVolume it cannot possible be valid
-			if (psFileSystemInfo->Free_Count < muiNoOfClusters)
+			if (psFileSystemInfo->uiNumFreeClusters < muiNoOfClusters)
 			{
-				muiTotalFreeClusters = psFileSystemInfo->Free_Count;
+				muiTotalFreeClusters = psFileSystemInfo->uiNumFreeClusters;
 			}
 			else
 			{
@@ -320,15 +320,15 @@ EFatCode CFatVolume::Unmount(void)
 		// note: when you mount a removable device in windows it will channge
 		// these signatures, i guess it feels it cannot be trusted. So we're going
 		// to rebuild them no matter what as they significantly speed up this
-		// implementation. After the mpsVolume has been mounted elsewhere Free_Count cannot
+		// implementation. After the mpsVolume has been mounted elsewhere uiNumFreeClusters cannot
 		// be trusted. This implementation doesn't actually use it but if you only
 		// mount the mpsVolume with us it will keep it up to date.
 
-		psFileSystemInfo->Nxt_Free = GetNextFreeCluster();
-		psFileSystemInfo->Free_Count = GetTotalFreeClusters();
-		psFileSystemInfo->LeadSig = 0x41615252;
-		psFileSystemInfo->StructSig = 0x61417272;
-		psFileSystemInfo->TrailSig = 0xAA550000;
+		psFileSystemInfo->uiNextFreeCluster = GetNextFreeCluster();
+		psFileSystemInfo->uiNumFreeClusters = GetTotalFreeClusters();
+		psFileSystemInfo->uiLeadSignature = 0x41615252;
+		psFileSystemInfo->uiStructSignature = 0x61417272;
+		psFileSystemInfo->uiTrailSignature = 0xAA550000;
 
 		DirtySector(sBuffer);
 

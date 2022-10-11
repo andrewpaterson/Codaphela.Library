@@ -56,13 +56,13 @@ struct SFatRawDirectoryEntry
 #pragma pack(push, 1)
 struct SFatFileSystemInfo
 {
-	uint32	TrailSig;
-	uint8	Reserved2[12];
-	uint32	Nxt_Free;
-	uint32	Free_Count;
-	uint32	StructSig;
-	uint8	Reserved1[480];
-	uint32	LeadSig;
+	uint32	uiTrailSignature;
+	uint8	uiReserved2[12];
+	uint32	uiNextFreeCluster;
+	uint32	uiNumFreeClusters;
+	uint32	uiStructSignature;
+	uint8	uiReserved1[480];
+	uint32	uiLeadSignature;
 };
 #pragma pack(pop)
 
