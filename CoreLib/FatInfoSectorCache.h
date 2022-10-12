@@ -59,6 +59,7 @@ public:
 	void				Dirty(SFatCache sSectorCache);
 	bool				Flush(void);
 	bool				ValidateTimeStamp(SFatCache sSectorCache);
+	void				Dump(void);
 
 protected:
 	CFatSectorCache*	AddNewCache(void);
