@@ -80,9 +80,25 @@ void CFatInfoSectorCache::Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFatInfoSectorCache::Kill(void)
+bool CFatInfoSectorCache::Kill(void)
 {
+	CFatSectorCache*	pcCachedSector;
+	uint32				uiLockCount;
+
+	uiLockCount = 0;
+	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
+	while (pcCachedSector != NULL)
+	{
+		if (pcCachedSector->muiInfoSector != NO_SECTOR_CACHED)
+		{
+			uiLockCount += pcCachedSector->muiLocks;
+		}
+		pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetNext(pcCachedSector);
+	}
+
 	mllcCachedSectors.Kill();
+
+	return uiLockCount == 0;
 }
 
 

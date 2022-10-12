@@ -156,8 +156,9 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			continue;
 		}
 
-		muiFirstDataSector = msBPB.uiReservedSectorCount + uiHiddenSectors + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors;
-		muiNoOfReservedSectors = msBPB.uiReservedSectorCount + uiHiddenSectors;
+		muiHiddenSectors = uiHiddenSectors;
+		muiFirstDataSector = msBPB.uiReservedSectorCount + muiHiddenSectors + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors;
+		muiNoOfReservedSectors = msBPB.uiReservedSectorCount + muiHiddenSectors;
 		muiNoOfSectorsPerCluster = msBPB.uiSectorsPerCluster;
 		muiNoOfFatTables = msBPB.uiNumFileAllocationTables;
 		muiFileSystemInfoSector = msBPB.uFatEx.sFat32.uiFileSystemInformation;
@@ -250,7 +251,6 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 				mszLabel.StripWhiteSpace();
 			}
 		}
-		sQuery.Kill(GetSectorCache());
 	}
 	else
 	{
@@ -258,40 +258,13 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 		return eResult;
 	}
 
+	sQuery.Kill(GetSectorCache());
+
 	// if we find a valid FatFileSystemInfo structure we'll use it
 	if ((meFileSystem == FAT_FS_TYPE_FAT32) && (muiFileSystemInfoSector > 0) && (muiFileSystemInfoSector != 0xFFFFFFFF))
 	{
-		SFatFileSystemInfo* psFileSystemInfo;
-		SFatCache			sInfoSector;
-
-		muiFileSystemInfoSector = uiHiddenSectors + muiFileSystemInfoSector;
-
-		READ_SECTOR(sInfoSector, muiFileSystemInfoSector);
-
-		psFileSystemInfo = (SFatFileSystemInfo*)sInfoSector.Get();
-
-		// check signatures before using
-		if (psFileSystemInfo->uiLeadSignature == 0x41615252 && psFileSystemInfo->uiStructSignature == 0x61417272 && psFileSystemInfo->uiTrailSignature == 0xAA550000)
-		{
-			muiNextFreeCluster = psFileSystemInfo->uiNextFreeCluster;
-
-			// if this value is greater than or equal to the # of clusters in the mpsVolume it cannot possible be valid
-			if (psFileSystemInfo->uiNumFreeClusters < muiNoOfClusters)
-			{
-				muiTotalFreeClusters = psFileSystemInfo->uiNumFreeClusters;
-			}
-			else
-			{
-				muiTotalFreeClusters = muiNoOfClusters - 1;
-			}
-		}
-		else
-		{
-			muiNextFreeCluster = 0xFFFFFFFF;
-			muiTotalFreeClusters = muiNoOfClusters - 1;
-		}
-
-		// remember psFileSystemInfo sector
+		eResult = InitialiseFat32FileSystemInfo();
+		RETURN_ON_FAT_FAILURE(eResult);
 	}
 
 	return FAT_SUCCESS;
@@ -307,6 +280,7 @@ EFatCode CFatVolume::Unmount(void)
 	SFatFileSystemInfo*		psFileSystemInfo;
 	EFatCode				eResult;
 	SFatCache				sBuffer;
+	bool					bResult;
 
 	// if this is a FAT32 volume we'll update the psFileSystemInfo structure
 	if (meFileSystem == FAT_FS_TYPE_FAT32 && muiFileSystemInfoSector != 0xFFFFFFFF)
@@ -338,10 +312,55 @@ EFatCode CFatVolume::Unmount(void)
 	}
 
 	mszLabel.Kill();
-	mcSectorCache.Kill();
-	return FAT_SUCCESS;
+	bResult = mcSectorCache.Kill();
+	if (bResult)
+	{
+		return FAT_SUCCESS;
+	}
+	else
+	{
+		return FAT_NO_CACHE_LOCK;
+	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::InitialiseFat32FileSystemInfo(void)
+{
+	SFatFileSystemInfo* psFileSystemInfo;
+	SFatCache			sInfoSector;
+
+	muiFileSystemInfoSector = muiHiddenSectors + muiFileSystemInfoSector;
+
+	READ_SECTOR(sInfoSector, muiFileSystemInfoSector);
+
+	psFileSystemInfo = (SFatFileSystemInfo*)sInfoSector.Get();
+
+	// check signatures before using
+	if (psFileSystemInfo->uiLeadSignature == 0x41615252 && psFileSystemInfo->uiStructSignature == 0x61417272 && psFileSystemInfo->uiTrailSignature == 0xAA550000)
+	{
+		muiNextFreeCluster = psFileSystemInfo->uiNextFreeCluster;
+
+		// if this value is greater than or equal to the # of clusters in the mpsVolume it cannot possible be valid
+		if (psFileSystemInfo->uiNumFreeClusters < muiNoOfClusters)
+		{
+			muiTotalFreeClusters = psFileSystemInfo->uiNumFreeClusters;
+		}
+		else
+		{
+			muiTotalFreeClusters = muiNoOfClusters - 1;
+		}
+	}
+	else
+	{
+		muiNextFreeCluster = 0xFFFFFFFF;
+		muiTotalFreeClusters = muiNoOfClusters - 1;
+	}
+	return FAT_SUCCESS;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -423,7 +442,10 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 att
 	{
 		return FAT_CANNOT_READ_MEDIA;
 	}
-	psQuery->Lock(uiFirstSector);
+	if (!psQuery->Lock(uiFirstSector))
+	{
+		return FAT_NO_CACHE_LOCK;
+	}
 
 	psQuery->psFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 	psQuery->psCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
@@ -551,7 +573,10 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 		{
 			return FAT_CANNOT_READ_MEDIA;
 		}
-		psQuery->Lock(uiSector);
+		if (!psQuery->Lock(uiSector))
+		{
+			return FAT_NO_CACHE_LOCK;
+		}
 
 		psQuery->psFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 		psQuery->psCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
@@ -3462,7 +3487,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 	psParentEntry = *ppsParentEntry;
 
 	// if there where any free entries before this one then we need to rewind a bit.
-	while (iLFNEntriesFound-- > 1)
+	while (iLFNEntriesFound > 1)
 	{
 		READ_SECTOR(sBuffer, uiSector);
 		puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
@@ -3499,6 +3524,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 			//								psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();  ?? Isn't this more correct?
 			psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;
 		}
+		iLFNEntriesFound--;
 	}
 
 	*ppsParentEntry = psParentEntry;
@@ -3540,7 +3566,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 		return FAT_INVALID_FILENAME;
 	}
 
-	memset(&psNewEntry->sRaw, 0, sizeof(psNewEntry->sRaw));
+	memset(&psNewEntry->sRaw, 0, sizeof(SFatRawDirectoryEntry));
 
 	eResult = GetShortNameForEntry((char*)psNewEntry->sRaw.uEntry.sFatRawCommon.szShortName, szName, false);
 	if (eResult != FAT_SUCCESS && eResult != FAT_LFN_GENERATED)
