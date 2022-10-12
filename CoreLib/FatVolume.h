@@ -14,6 +14,7 @@ protected:
 	uint32					muiRootCluster;
 	uint32					muiRootSector;
 	uint32					muiFirstDataSector;
+	uint32					muiHiddenSectors;
 	uint32					muiNoOfSectors;
 	uint32					muiNoOfDataSectors;
 	uint32					muiNoOfClusters;
@@ -98,6 +99,8 @@ public:
 	CFatInfoSectorCache*	GetSectorCache(void);
 
 protected:
+	EFatCode				InitialiseFat32FileSystemInfo(void);
+
 	EFatCode				QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, bool bBufferLocked);
 	EFatCode				QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry);
 

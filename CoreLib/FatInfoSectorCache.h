@@ -48,7 +48,7 @@ protected:
 
 public:
 	void				Init(CFileDrive* pcDrive, uint16 uiMinimumUnlockedCaches);
-	void				Kill(void);
+	bool				Kill(void);
 	SFatCache			ReadSector(uint32 uiInfoSector);
 	void				Lock(SFatCache sSectorCache);
 	bool				Unlock(SFatCache sSectorCache);
