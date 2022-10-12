@@ -1,4 +1,5 @@
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/Chars.h"
 #include "FatInfoSectorCache.h"
 
 
@@ -445,6 +446,42 @@ uint16 CFatInfoSectorCache::GetLockedCachedSectors(void)
 	}
 
 	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatInfoSectorCache::Dump(void)
+{
+	CFatSectorCache*	pcCachedSector;
+	CChars				sz;
+
+	sz.Init();
+	pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetHead();
+	while (pcCachedSector != NULL)
+	{
+		sz.Append("Sector: ");
+		sz.Append(pcCachedSector->muiInfoSector);
+		sz.AppendNewLine();
+
+		sz.Append("Time:   ");
+		sz.Append(pcCachedSector->muiCreationStamp);
+		sz.AppendNewLine();
+
+		sz.Append("Dirty:  ");
+		sz.AppendBool(pcCachedSector->mbDirty);
+		sz.AppendNewLine();
+
+		sz.Append("Locks:  ");
+		sz.Append(pcCachedSector->muiLocks);
+		sz.AppendNewLine();
+		sz.AppendNewLine();
+
+		pcCachedSector = (CFatSectorCache*)mllcCachedSectors.GetNext(pcCachedSector);
+	}
+	sz.DumpKill();
 }
 
 

@@ -74,8 +74,10 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 	uint32					uiHiddenSectors;
 	SFatPartitionEntry*		psPartitionEntry;
 	uint8					uiPartitionsTried;
+	EFatCode				eResult;
 
-	ValidateFatCache(sMBRSector);
+	eResult = ValidateFatCache(sMBRSector);
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	uiHiddenSectors = 0;
 	memcpy(&msBPB, sMBRSector.Get(), sizeof(SFatBIOSParameterBlock));
@@ -85,7 +87,8 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 
 	for (;;)
 	{
-		ValidateFatCache(sMBRSector);
+		eResult = ValidateFatCache(sMBRSector);
+		RETURN_ON_FAT_FAILURE(eResult);
 
 		// if we've already tried to mount the volume as partitionless try to mount the next partition
 		if (uiPartitionsTried > 0)
@@ -3668,14 +3671,16 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 		}
 		else
 		{
-			ValidateFatCache(sBuffer);
+			eResult = ValidateFatCache(sBuffer);
+			RETURN_ON_FAT_FAILURE(eResult);
 
 			*psParentEntry = psNewEntry->sRaw;
 			DirtySector(sBuffer);
 		}
 	}
 
-	ValidateFatCache(sBuffer);
+	eResult = ValidateFatCache(sBuffer);
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	psNewEntry->uiSectorAddress = uiSector;
 	psNewEntry->uiSectorOffset = (uintptr_t)psParentEntry - (uintptr_t)sBuffer.Get();
@@ -3836,7 +3841,8 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 				break;
 			}
 
-			ValidateFatCache(sQuery.sBuffer);
+			eResult = ValidateFatCache(sQuery.sBuffer);
+			RETURN_ON_FAT_FAILURE(eResult);
 
 			// if the output of FatQueryFirstEntry indicates that  there are no entries available then set the psEntry name to 0 and return success.
 			if (IS_LAST_DIRECTORY_ENTRY(sQuery.psCurrentEntryRaw))
@@ -3868,7 +3874,8 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 
 	if (eResult == FAT_SUCCESS)
 	{
-		ValidateFatCache(sQuery.sBuffer);
+		eResult = ValidateFatCache(sQuery.sBuffer);
+		RETURN_ON_FAT_FAILURE(eResult);
 
 		// copy the filename and transform the filename from the internal structure to the public one.
 		ConvertFATShortInternalNameInto8Dot3Format(psEntry->szName, (uint8*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
