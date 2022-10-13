@@ -45,16 +45,15 @@ public:
 	EFatCode				Rename(char* szOriginalFilename, char* szNewFilename);
 	EFatCode				Delete(char* szFilename);
 
-	//Suspect
-	EFatCode				Allocate(uint32 uiClustersNeeded, uint32 uiCursorClusterInVolume, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster);
-	EFatCode				Free(SFatDirectoryEntry* psEntry);
+	EFatCode				AllocateClusters(uint32 uiClustersNeeded, uint32 uiCursorClusterInVolume, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster);
+	EFatCode				FreeDirectoryEntry(SFatDirectoryEntry* psEntry);
 	SFatCache				ReadSector(uint32 uiFatInfoSector, bool bLock = false);
 	void					DirtySector(SFatCache sCachedSector);
 	void					CalculateFATIndexAndOffset(uint32* puiOffsetInSector, uint32 uiClusterIndex, uint32* puiSector);
 	EFatCode				GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry);
 	uint32					CalculateFirstSectorOfCluster(uint32 uiCluster);
 	EFatCode				GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiNextCluster);
-	EFatCode				IncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex);
+	EFatCode				SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex);
 	bool					FatIsEOFEntry(fatEntry uiFat);
 	EFatCode				FreeChain(uint32 uiClusterIndex);
 	EFatCode				SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume);

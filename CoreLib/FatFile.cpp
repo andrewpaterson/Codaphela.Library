@@ -221,7 +221,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 		// if the file is being opened with the OVERWRITE flag we must free all the clusters
 		// currently allocated to the file and update it's directory entry to point to cluster 1
 
-		eResult = mpcVolume->Free(psEntry);
+		eResult = mpcVolume->FreeDirectoryEntry(psEntry);
 		if (eResult != FAT_SUCCESS)
 		{
 			msFile.uiMagic = 0;
@@ -311,7 +311,7 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 		return FAT_SUCCESS;
 	}
 
-	eResult = mpcVolume->Allocate(uiClustersNeeded, uiFirstCluster, &uiNewCluster, uiPreviousCluster);
+	eResult = mpcVolume->AllocateClusters(uiClustersNeeded, uiFirstCluster, &uiNewCluster, uiPreviousCluster);
 	if (eResult != FAT_SUCCESS)
 	{
 		msFile.bBusy = false;
@@ -410,7 +410,7 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	if (uiClusterIndex > 0)
 	{
 		// set the file file to point to the last cluster. if the file doesn't have that many clusters allocated this function will return 0. if that ever happens it means that the file is corrupted
-		eResult = mpcVolume->IncreaseClusterAddress(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
+		eResult = mpcVolume->SeekByClusterCount(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
 		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
