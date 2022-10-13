@@ -39,10 +39,8 @@ public:
 	EFatCode	Seek(uint32 offset, EFatSeek mode);
 	EFatCode	Flush(void);
 
-	uint32		GetCurrentSize(void);
-	uint32		GetCurrentClusterAddress(void);
+	uint32		Size(void);
 	bool		IsBusy(void);
-	uint8		GetMagic(void);
 	uint8		GetAccessFlags(void);
 
 	EFatCode	AllocateClusters(uint32 bytes);
