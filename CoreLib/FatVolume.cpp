@@ -219,6 +219,35 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::InitialiseVolumeLabel(void)
+{
+	EFatCode			eResult;
+	SFatQueryState		sQuery;
+
+	sQuery.Init();
+	eResult = QueryFirstEntry(0, FAT_ATTR_VOLUME_ID, &sQuery, 1);
+	if (eResult == FAT_SUCCESS)
+	{
+		if (sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] != '\0')
+		{
+			if (sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_VOLUME_ID)
+			{
+				mszLabel.Kill();
+				mszLabel.Init((char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, 0, 10);
+				mszLabel.StripWhiteSpace();
+			}
+		}
+	}
+
+	sQuery.Kill(GetSectorCache());
+	return eResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 {
 	uint32					uiHiddenSectors = 0;
@@ -238,30 +267,8 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 		return eResult;
 	}
 
-	// read volume label entry from the root directory (if any)
-	SFatQueryState	sQuery;
-
-	sQuery.Init();
-	eResult = QueryFirstEntry(0, FAT_ATTR_VOLUME_ID, &sQuery, 1);
-	if (eResult == FAT_SUCCESS)
-	{
-		if (sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] != '\0')
-		{
-			if (sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_VOLUME_ID)
-			{
-				mszLabel.Kill();
-				mszLabel.Init((char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, 0, 10);
-				mszLabel.StripWhiteSpace();
-			}
-		}
-	}
-	else
-	{
-		sQuery.Kill(GetSectorCache());
-		return eResult;
-	}
-
-	sQuery.Kill(GetSectorCache());
+	eResult = InitialiseVolumeLabel();
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	// if we find a valid FatFileSystemInfo structure we'll use it
 	if ((meFileSystem == FAT_FS_TYPE_FAT32) && (muiFileSystemInfoSector > 0) && (muiFileSystemInfoSector != 0xFFFFFFFF))
