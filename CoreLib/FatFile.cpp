@@ -805,9 +805,7 @@ char* CFatFile::GetShortFileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatFile::GetCurrentSize(void) { return msFile.uiFileSize; }
-uint32 CFatFile::GetCurrentClusterAddress(void) { return msFile.uiCursorClusterInVolume; }
+uint32 CFatFile::Size(void) { return msFile.uiFileSize; }
 bool CFatFile::IsBusy(void) { return msFile.bBusy; }
-uint8 CFatFile::GetMagic(void) { return msFile.uiMagic; }
 uint8 CFatFile::GetAccessFlags(void) { return msFile.uiAccessFlags; }
 
