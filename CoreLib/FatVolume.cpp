@@ -741,7 +741,7 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Allocate(uint32 uiClustersNeeded, uint32 uiCluster, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster)
+EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster)
 {
 	uint32		uiPageSize;
 	uint32		uiStartSector;
@@ -1724,7 +1724,7 @@ EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::IncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
+EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterCount, uint32* puiNewClusterIndex)
 {
 	uint32		uiOffsetInSector;
 	uint32		uiFirstClusterSector;
@@ -1819,7 +1819,7 @@ EFatCode CFatVolume::IncreaseClusterAddress(uint32 uiClusterIndex, uint16 uiClus
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::Free(SFatDirectoryEntry* psEntry)
+EFatCode CFatVolume::FreeDirectoryEntry(SFatDirectoryEntry* psEntry)
 {
 	uint32		uiCluster;
 	EFatCode	eResult;
