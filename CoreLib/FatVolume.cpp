@@ -285,21 +285,11 @@ EFatCode CFatVolume::Unmount(void)
 	SFatCache				sBuffer;
 	bool					bResult;
 
-	// if this is a FAT32 volume we'll update the psFileSystemInfo structure
 	if (meFileSystem == FAT_FS_TYPE_FAT32 && muiFileSystemInfoSector != 0xFFFFFFFF)
 	{
 		READ_SECTOR(sBuffer, muiFileSystemInfoSector);
 
-		// set the pointer to the psFileSystemInfo structure
 		psFileSystemInfo = (SFatFileSystemInfo*)sBuffer.Get();
-
-		// check the signatures before writting
-		// note: when you mount a removable device in windows it will channge
-		// these signatures, i guess it feels it cannot be trusted. So we're going
-		// to rebuild them no matter what as they significantly speed up this
-		// implementation. After the mpsVolume has been mounted elsewhere uiNumFreeClusters cannot
-		// be trusted. This implementation doesn't actually use it but if you only
-		// mount the mpsVolume with us it will keep it up to date.
 
 		psFileSystemInfo->uiNextFreeCluster = GetNextFreeCluster();
 		psFileSystemInfo->uiNumFreeClusters = GetTotalFreeClusters();
@@ -309,7 +299,6 @@ EFatCode CFatVolume::Unmount(void)
 
 		DirtySector(sBuffer);
 
-		// write the psFileSystemInfo sector
 		eResult = Flush();
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
@@ -342,12 +331,10 @@ EFatCode CFatVolume::InitialiseFat32FileSystemInfo(void)
 
 	psFileSystemInfo = (SFatFileSystemInfo*)sInfoSector.Get();
 
-	// check signatures before using
 	if (psFileSystemInfo->uiLeadSignature == 0x41615252 && psFileSystemInfo->uiStructSignature == 0x61417272 && psFileSystemInfo->uiTrailSignature == 0xAA550000)
 	{
 		muiNextFreeCluster = psFileSystemInfo->uiNextFreeCluster;
 
-		// if this value is greater than or equal to the # of clusters in the mpsVolume it cannot possible be valid
 		if (psFileSystemInfo->uiNumFreeClusters < muiNoOfClusters)
 		{
 			muiTotalFreeClusters = psFileSystemInfo->uiNumFreeClusters;
@@ -401,45 +388,31 @@ bool CFatVolume::Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* psQuery, bool bBufferLocked)
+EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, uint8 attributes, SFatQueryState* psQuery, bool bBufferLocked)
 {
 	uint32		uiFirstSector;
 	EFatCode	eResult;
 
-	// make sure the long filename is set to an empty string,
 	psQuery->auiLongFilename[0] = 0;
 
-	// if the directory entry has the cluster # set to zero it is the root directory so we need to get the cluster # accordingly.
-	if (directory)
-	{
-		if (directory->uEntry.sFatRawCommon.uiFirstClusterHighWord == 0 && directory->uEntry.sFatRawCommon.uiFirstClusterLowWord == 0)
-		{
-			directory = NULL;
-		}
-	}
-
-	// if no directory entry was provided we'll use the root entry of the volume.
-	if (directory == NULL)
+	if ((psDirectoryEntry == NULL) || 
+		(psDirectoryEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord == 0 && psDirectoryEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord == 0))
 	{
 		psQuery->uiCurrentCluster = GetRootCluster();
 		uiFirstSector = GetRootSector();
 	}
-	// if a directory entry was provided
 	else
 	{
-		// if the entry provided is not a directory entry return an error code.
-		if (!(directory->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_DIRECTORY))
+		if (!(psDirectoryEntry->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_DIRECTORY))
 		{
 			return FAT_NOT_A_DIRECTORY;
 		}
 
-		psQuery->uiCurrentCluster = GetFirstClusterFromFatEntry(directory, meFileSystem == FAT_FS_TYPE_FAT32);
+		psQuery->uiCurrentCluster = GetFirstClusterFromFatEntry(psDirectoryEntry, meFileSystem == FAT_FS_TYPE_FAT32);
 
-		// get the 1st sector of the directory entry
 		uiFirstSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster);
 	}
 
-	// read the sector into the query state buffer
 	psQuery->sBuffer = ReadSector(uiFirstSector, true);
 	if (!psQuery->sBuffer.IsValid())
 	{
@@ -453,14 +426,21 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 att
 	psQuery->psFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 	psQuery->psCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 
-	// set the 1st and current entry pointers on the query state to the 1st entry of the directory.
 	psQuery->uiAttributes = attributes;
 	psQuery->uiCurrentSector = 0;
 
-
-	// find the 1st entry and return it's result code
 	eResult = QueryNextEntry(psQuery, bBufferLocked, true);
 	return eResult;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery, int8 iLongOffset, uint8* puiChars, int8 iRawOffset)
+{
+	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + iLongOffset])[0] = puiChars[iRawOffset + 0];
+	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + iLongOffset])[1] = puiChars[iRawOffset + 1];
 }
 
 
@@ -470,34 +450,21 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 att
 //////////////////////////////////////////////////////////////////////////
 void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
 {
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x0])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[0];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x0])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[1];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x1])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[2];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x1])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[3];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x2])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[4];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x2])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[5];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x3])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[6];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x3])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[7];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x4])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[8];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x4])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1[9];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x5])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[0];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x5])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[1];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x6])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[2];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x6])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[3];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[4];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x7])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[5];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[6];
-	((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x8])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[7];
+	SetQueryLongFilenamePart(psQuery, 0, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 0);
+	SetQueryLongFilenamePart(psQuery, 1, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 2);
+	SetQueryLongFilenamePart(psQuery, 2, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 4);
+	SetQueryLongFilenamePart(psQuery, 3, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 6);
+	SetQueryLongFilenamePart(psQuery, 4, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars1, 8);
+	SetQueryLongFilenamePart(psQuery, 5, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 0);
+	SetQueryLongFilenamePart(psQuery, 6, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 2);
+	SetQueryLongFilenamePart(psQuery, 7, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 4);
+	SetQueryLongFilenamePart(psQuery, 8, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 6);
 	if (psQuery->uiSequence < 20)
 	{
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[8];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0x9])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[9];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[10];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0xA])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2[11];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[0];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0xB])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[1];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE0] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[2];
-		((uint8*)&psQuery->auiLongFilename[((psQuery->uiSequence - 1) * 13) + 0xC])[INT16_BYTE1] = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3[3];
+		SetQueryLongFilenamePart(psQuery, 9, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 8);
+		SetQueryLongFilenamePart(psQuery, 10, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars2, 10);
+		SetQueryLongFilenamePart(psQuery, 11, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3, 0);
+		SetQueryLongFilenamePart(psQuery, 12, psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.auiChars3, 2);
 	}
 }
 
