@@ -163,6 +163,7 @@ protected:
 	EFatCode				GenerateUniqueShortNameWithSuffix(SFatRawDirectoryEntry* psParentDirectory, uint8* szShortName);
 	void					InitialiseNewEntry(SFatDirectoryEntry* psNewEntry, char* szName, uint8 uiAttributes, uint32 uiEntryCluster);
 	void					InitialiseParentEntry(SFatRawDirectoryEntry* psParentEntry, char* szName, char uiChecksum, int iLFNEntriesNeeded, int iLFNEntriesFound);
+	void					SetQueryLongFilenamePart(SFatQueryState* psQuery, int8 iLongOffset, uint8* puiChars, int8 iRawOffset);
 	void					SetQueryLongFilenamePart(SFatQueryState* psQuery);
 	EFatCode				FindNextRawDirectoryEntry(SFatQueryState* psQuery);
 
