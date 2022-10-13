@@ -3940,7 +3940,7 @@ void CFatVolume::FatParsePath(char* szPath, char* szPathPart, char** pszFilename
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::DeleteFile(char* szFilename)
+EFatCode CFatVolume::Delete(char* szFilename)
 {
 	EFatCode				eResult;
 	uint32					uiFirstCluster;
@@ -4034,7 +4034,7 @@ EFatCode CFatVolume::DeleteFile(char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::RenameFile(char* szOriginalFilename, char* szNewFilename)
+EFatCode CFatVolume::Rename(char* szOriginalFilename, char* szNewFilename)
 {
 	EFatCode				eResult;
 	uint32					uiEntryCluster;

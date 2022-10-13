@@ -42,8 +42,8 @@ public:
 	EFatCode				Flush(void);
 	bool					Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive);
 	EFatCode				CreateDirectory(char* szDirectory);
-	EFatCode				RenameFile(char* szOriginalFilename, char* szNewFilename);
-	EFatCode				DeleteFile(char* szFilename);
+	EFatCode				Rename(char* szOriginalFilename, char* szNewFilename);
+	EFatCode				Delete(char* szFilename);
 
 	//Suspect
 	EFatCode				Allocate(uint32 uiClustersNeeded, uint32 uiCursorClusterInVolume, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster);
