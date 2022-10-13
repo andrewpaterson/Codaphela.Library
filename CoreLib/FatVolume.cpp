@@ -3469,6 +3469,8 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 	*ppsParentEntry = psParentEntry;
 	*puiSector = uiSector;
 	*piLFNEntriesFound = iLFNEntriesFound;
+	*puiFirstSectorOfCluster = uiFirstSectorOfCluster;
+
 	return FAT_SUCCESS;
 }
 
@@ -3597,6 +3599,11 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 
 	InitialiseNewEntry(psNewEntry, szName, uiAttributes, uiEntryCluster);
 
+	iLFNEntriesFound = 0;
+	uiSector = 0;
+	uiDirectoryCluster = 0;
+	uiFirstSectorOfCluster = 0;
+	uiLastDirectoryCluster = 0;
 	eResult = FindEnoughEntries(&uiLastDirectoryCluster, &uiDirectoryCluster, &uiFirstSectorOfCluster, &uiSector, &iLFNEntriesFound, &psParentEntry, psParentDirectory, iLFNEntriesNeeded);
 	RETURN_ON_FAT_FAILURE(eResult);
 
@@ -3665,7 +3672,6 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 				READ_SECTOR(sBuffer, uiSector);
 
 				puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
-				//psParentEntry = (SFatRawDirectoryEntry*)puiLastEntryAddress;  ?? Be sure.
 				psParentEntry = (SFatRawDirectoryEntry*)sBuffer.Get();  
 			}
 		}
