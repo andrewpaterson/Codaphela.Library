@@ -174,6 +174,8 @@ protected:
 
 	EFatCode				FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector, SFatQueryState* psQuery);
 	EFatCode				FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery);
+	bool					IsFreeDirectoryEntry(SFatRawDirectoryEntry* psEntry);
+	bool					IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry);
 };
 
 

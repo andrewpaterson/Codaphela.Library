@@ -321,11 +321,6 @@ enum EFatFileSystemType
 #define FAT16_MAX_CLUSTERS			65524
 
 
-// macros for checking if a directory entry is free and if it's the last entry on the directory
-#define IS_FREE_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == FAT_DELETED_ENTRY || *(entry)->uEntry.sFatRawCommon.szShortName == '\0')
-#define IS_LAST_DIRECTORY_ENTRY(entry) (*(entry)->uEntry.sFatRawCommon.szShortName == '\0')
-
-
 #define RETURN_ON_FAT_FAILURE(result) 	if (eResult != FAT_SUCCESS)	{ return result; }
 
 
