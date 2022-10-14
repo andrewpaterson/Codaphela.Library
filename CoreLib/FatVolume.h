@@ -96,7 +96,7 @@ public:
 	uint32					GetRootSector(void);
 	uint32					GetPageSize(void);
 	CFatInfoSectorCache*	GetSectorCache(void);
-
+	
 protected:
 	EFatCode				InitialiseFat32FileSystemInfo(void);
 
@@ -106,7 +106,7 @@ protected:
 	uint32					AllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* peResult);
 	uint32					AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult, uint32 uiPreviousCluster);
 	uint32					AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster);
-	uint32					AllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster);
+	uint32					AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster);
 
 	EFatCode				FreeFat12Chain(bool* pbFat12MultiStepProgress, uint32* puiFreedClusterIndex, uint32* puiSector, uint32* puiOffsetInSector);
 	EFatCode				FreeFat16Chain(uint32* puiFreedClusterIndex, uint32 uiSector, uint32 uiOffsetInSector);
@@ -140,7 +140,7 @@ protected:
 	uint16					CalculateClusterStepSize(uint32 uiPageSize);
 	EFatCode				WrapAllocate(uint32 uiStartCluster, uint32 uiLastFatEntry, bool* pbWrappedAround, uint32* puiClusterIndex, uint32* puiOffsetInSector, uint32* puiFirstClusterSector);
 	EFatCode				InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiCluster, bool bZero);
-	EFatCode				InitialiseCluster(uint32 uiCluster);
+	EFatCode				EraseClusterContents(uint32 uiCluster);
 	EFatCode				InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirectoryParent, uint32 uiCluster);
 	bool					IsFreeFat(fatEntry uifat);
 
@@ -178,6 +178,8 @@ protected:
 	bool					IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry);
 	void					ProcessQueryLongFileNameEntry(SFatQueryState* psQuery);
 	void					ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery);
+
+	EFatCode				EraseClusterChainContents(fatEntry uiCluster);
 };
 
 

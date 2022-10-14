@@ -765,57 +765,18 @@ EFatCode CFatVolume::GetNextClusterEntry(uint32 uiCurrentCluster, fatEntry* puiN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster)
+EFatCode CFatVolume::EraseClusterChainContents(fatEntry uiCluster)
 {
-	uint32		uiPageSize;
 	uint32		uiStartSector;
 	uint32		uiEndSector;
 	EFatCode	eResult;
 	bool		bSuccess;
 
-	uiPageSize = GetPageSize();
-
-	if (uiPageSize > NumSectorsPerCluster())
-	{
-		uint32 clusters_per_page = uiPageSize / NumSectorsPerCluster();
-
-		if (uiClustersNeeded % clusters_per_page)
-		{
-			uiClustersNeeded += clusters_per_page - (uiClustersNeeded % clusters_per_page);
-		}
-
-		if ((uiClustersNeeded % clusters_per_page) != 0)
-		{
-			return FAT_UNKNOWN_ERROR;
-		}
-
-		eResult = FAT_UNKNOWN_ERROR;
-		*puiNewClusterInVolume = AllocateDataClusterEx(uiClustersNeeded, false, uiPageSize, &eResult, uiPreviousCluster);
-		if (eResult != FAT_SUCCESS)
-		{
-			return eResult;
-		}
-	}
-	else
-	{
-		eResult = FAT_UNKNOWN_ERROR;
-		*puiNewClusterInVolume = AllocateDataCluster(uiClustersNeeded, true, &eResult, uiPreviousCluster);
-		if (eResult != FAT_SUCCESS)
-		{
-			return eResult;
-		}
-	}
-
-	uiCluster = *puiNewClusterInVolume;
-
-	// find out how many clusters are allocated sequentially to this file following the current cursor location
 	while (!FatIsEOFEntry(uiCluster))
 	{
-		// calculate the start and end address the cluster
 		uiStartSector = CalculateFirstSectorOfCluster(uiCluster);
 		uiEndSector = uiStartSector + NumSectorsPerCluster();
 
-		// pre-erase the clusters
 		bSuccess = Erase(uiStartSector, uiEndSector - 1);
 		if (!bSuccess)
 		{
@@ -829,31 +790,68 @@ EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster,
 }
 
 
-// allocates a cluster for a directory - finds a free cluster, initializes it as
-// required by a directory, marks it's FAT entry as EOC and returns the cluster address
-//
-// NOTE: this function used the volume/shared uiBuffer (if enabled) so it must not be
-// locked before calling this function
 //////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::AllocateClusters(uint32 uiClustersNeeded, uint32 uiCluster, uint32* puiNewClusterInVolume, uint32 uiPreviousCluster)
+{
+	uint32		uiPageSize;
+	EFatCode	eResult;
+
+	uiPageSize = GetPageSize();
+
+	if (uiPageSize > NumSectorsPerCluster())
+	{
+		uint32 uiClustersPerPage = uiPageSize / NumSectorsPerCluster();
+
+		if (uiClustersNeeded % uiClustersPerPage > 0)
+		{
+			uiClustersNeeded += uiClustersPerPage - (uiClustersNeeded % uiClustersPerPage);
+		}
+
+		if ((uiClustersNeeded % uiClustersPerPage) != 0)
+		{
+			return FAT_UNKNOWN_ERROR;
+		}
+
+		*puiNewClusterInVolume = AllocateDataClusterEx(uiClustersNeeded, false, uiPageSize, &eResult, uiPreviousCluster);
+		if (eResult != FAT_SUCCESS)
+		{
+			return eResult;
+		}
+	}
+	else
+	{
+		*puiNewClusterInVolume = AllocateDataCluster(uiClustersNeeded, false, &eResult, uiPreviousCluster);
+		if (eResult != FAT_SUCCESS)
+		{
+			return eResult;
+		}
+	}
+
+	eResult = EraseClusterChainContents(*puiNewClusterInVolume);
+	return eResult;
+}
+
+
+/////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::AllocateDirectoryCluster(SFatRawDirectoryEntry* parent, EFatCode* peResult)
 {
-	return AllocateCluster(parent, 1, true, 1, peResult, GetEndOfClusterMarker());
+	return AllocateClusters(parent, 1, true, 1, peResult, GetEndOfClusterMarker());
 }
 
 
-// allocates the requested number of clusters - finds the free clusters, initializes it to zeroes,
-// links them as a cluster chain (marking the last one as EOC) and returns the cluster number for
-// the 1st cluster in the chain
-//////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster, EFatCode* peResult, uint32 uiPreviousCluster)
 {
-	return AllocateCluster(NULL, uiClusterCount, bEraseCluster, 1, peResult, uiPreviousCluster);
+	return AllocateClusters(NULL, uiClusterCount, bEraseCluster, 1, peResult, uiPreviousCluster);
 }
 
 
@@ -863,7 +861,7 @@ uint32 CFatVolume::AllocateDataCluster(uint32 uiClusterCount, bool bEraseCluster
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster)
 {
-	return AllocateCluster(NULL, uiClusterCount, bEraseCluster, uiPageSize, peResult, uiPreviousCluster);
+	return AllocateClusters(NULL, uiClusterCount, bEraseCluster, uiPageSize, peResult, uiPreviousCluster);
 }
 
 
@@ -873,11 +871,12 @@ uint32 CFatVolume::AllocateDataClusterEx(uint32 uiClusterCount, bool bEraseClust
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::FindNextPageCluster(uint32 uiPageSize, uint32 uiCluster, uint16 uiStep)
 {
+	uint32 uiSector;
+	uint16 uiStepCount;
+
 	if (NumSectorsPerCluster() < uiPageSize)
 	{
-		uint32 uiSector;
-		uint16 uiStepCount = 0;
-
+		uiStepCount = 0;
 		uiSector = CalculateFirstSectorOfCluster(uiCluster);
 		while (uiSector % uiPageSize && uiStepCount < uiStep)
 		{
@@ -1012,7 +1011,7 @@ uint16 CFatVolume::CalculateClusterStepSize(uint32 uiPageSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::InitialiseCluster(uint32 uiCluster)
+EFatCode CFatVolume::EraseClusterContents(uint32 uiCluster)
 {
 	bool	bSuccess;
 	uint16	uiSectorsPerCluster;
@@ -1150,7 +1149,7 @@ EFatCode CFatVolume::InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psPare
 	{
 		if (bZero)
 		{
-			eResult = InitialiseCluster(uiCluster);
+			eResult = EraseClusterContents(uiCluster);
 			RETURN_ON_FAT_FAILURE(eResult);
 		}
 	}
@@ -1369,12 +1368,11 @@ EFatCode CFatVolume::WriteAllocatedFatEntry(uint32 uiClusterIndexInTable, uint32
 	return FAT_UNKNOWN_ERROR;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::AllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster)
+uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, uint32 uiClusterCount, bool bEraseCluster, uint32 uiPageSize, EFatCode* peResult, uint32 uiPreviousCluster)
 {
 	uint32		uiFirstClusterSector;
 	uint32		uiCurrentSector;
@@ -1498,6 +1496,7 @@ uint32 CFatVolume::AllocateCluster(SFatRawDirectoryEntry* psParentDirectory, uin
 		} while (uiCurrentSector == uiFirstClusterSector);
 	}
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -3478,7 +3477,7 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 		{
 			fatEntry uiNewFat;
 
-			uiNewFat = AllocateDataCluster(1, 1, &eResult, GetEndOfClusterMarker());  // GetEndOfClusterMarker() ?  Should this be the actual previous cluster?
+			uiNewFat = AllocateDataCluster(1, true, &eResult, GetEndOfClusterMarker());  // GetEndOfClusterMarker() ?  Should this be the actual previous cluster?
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			eResult = SetClusterEntry(*puiLastDirectoryCluster, uiNewFat);
@@ -3678,7 +3677,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 					// if this is the end of the FAT chain allocate a new cluster to this folder and continue
 					if (FatIsEOFEntry(uiDirectoryCluster))
 					{
-						fatEntry uiNewFat = AllocateDataCluster(1, 1, &eResult, uiLastDirectoryCluster);  // uiLastDirectoryCluster is probably right but then is SetClusterEntry below needed?
+						fatEntry uiNewFat = AllocateDataCluster(1, true, &eResult, uiLastDirectoryCluster);  // uiLastDirectoryCluster is probably right but then is SetClusterEntry below needed?
 						RETURN_ON_FAT_FAILURE(eResult);
 
 						eResult = SetClusterEntry(uiLastDirectoryCluster, uiNewFat);
