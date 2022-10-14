@@ -171,6 +171,9 @@ protected:
 	uint16					LongNameCharToWideChar(uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex);
 	void					GenerateDirectoryEntryNameParts(uint8* aui, uint16 uiLFNIndex, uint16 uiNameLength, char* szName, uint16 uiNameIndex);
 	EFatCode				InitialiseVolumeLabel(void);
+
+	EFatCode				FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector, SFatQueryState* psQuery);
+	EFatCode				FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery);
 };
 
 

@@ -479,6 +479,65 @@ void CFatVolume::SetQueryLongFilenamePart(SFatQueryState* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector, SFatQueryState* psQuery)
+{
+	fatEntry	uiFat;
+	EFatCode	eResult;
+
+	eResult = GetNextClusterEntry(psQuery->uiCurrentCluster, &uiFat);
+	RETURN_ON_FAT_FAILURE(eResult);
+
+	// if this is the last cluster of the directory...
+	if (FatIsEOFEntry(uiFat))
+	{
+		psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
+		return FAT_SHORT_NAME_FOUND;
+	}
+
+	// set the current cluster to the next cluster of the directory etry
+	psQuery->uiCurrentCluster = uiFat;
+
+	// reset the current sector
+	psQuery->uiCurrentSector = 0;
+
+	// calculate the address of the next sector.
+	*puiSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery)
+{
+	// if there are more sectors on the current cluster then
+	psQuery->uiCurrentSector++;
+
+	// if this is the root directory of a FAT16/FAT12 volume and we have passed it's last sector then there are no more entries...
+	if (psQuery->uiCurrentCluster == 0)
+	{
+		if (psQuery->uiCurrentSector == GetRootDirectorySectors())
+		{
+			psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
+			return FAT_SHORT_NAME_FOUND;
+		}
+		*puiSector = (GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + psQuery->uiCurrentSector;
+	}
+	else
+	{
+		// calculate the address of the next sector
+		*puiSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
+	}
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 {
 	uint32		uiSector;
@@ -489,55 +548,15 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 
 	if (((uintptr_t)psQuery->psCurrentEntryRaw - (uintptr_t)psQuery->psFirstEntryRaw) == GetSectorSize() - 0x20)
 	{
-		// if the current sector is the last of the current cluster then we must find the next
-		// cluster... if CurrentCluster == 0 then this is the root directory of a FAT16/FAT12 volume, that
-		// volume has a fixed size in sectors and is not allocated as a cluster chain so we don't do this
 		if ((psQuery->uiCurrentCluster > 0) && (psQuery->uiCurrentSector == NumSectorsPerCluster() - 1))
 		{
-			fatEntry uiFat;
-
-			// get the fat structure for the current cluster and return UNKNOWN_ERROR if the operation fails
-			if (GetNextClusterEntry(psQuery->uiCurrentCluster, &uiFat) != FAT_SUCCESS)
-			{
-				return FAT_UNKNOWN_ERROR;
-			}
-
-			// if this is the last cluster of the directory...
-			if (FatIsEOFEntry(uiFat))
-			{
-				psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
-				return FAT_SHORT_NAME_FOUND;
-			}
-
-			// set the current cluster to the next cluster of the directory etry
-			psQuery->uiCurrentCluster = uiFat;
-
-			// reset the current sector
-			psQuery->uiCurrentSector = 0;
-
-			// calculate the address of the next sector.
-			uiSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
+			eResult = FindNextRawDirectoryEntrySectorInCluster(&uiSector, psQuery);
+			RETURN_ON_FAT_FAILURE(eResult);
 		}
 		else
 		{
-			// if there are more sectors on the current cluster then
-			psQuery->uiCurrentSector++;
-
-			// if this is the root directory of a FAT16/FAT12 volume and we have passed it's last sector then there are no more entries...
-			if (psQuery->uiCurrentCluster == 0)
-			{
-				if (psQuery->uiCurrentSector == GetRootDirectorySectors())
-				{
-					psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
-					return FAT_SHORT_NAME_FOUND;
-				}
-				uiSector = (GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + psQuery->uiCurrentSector;
-			}
-			else
-			{
-				// calculate the address of the next sector
-				uiSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
-			}
+			eResult = FindNextRawDirectoryEntryCluster(&uiSector, psQuery);
+			RETURN_ON_FAT_FAILURE(eResult);
 		}
 
 		eResult = ValidateFatCache(psQuery->sBuffer);
@@ -557,7 +576,6 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 		psQuery->psFirstEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 		psQuery->psCurrentEntryRaw = (SFatRawDirectoryEntry*)psQuery->sBuffer.Get();
 	}
-	// if there are more entries on the current sector...
 	else
 	{
 		psQuery->psCurrentEntryRaw++;
