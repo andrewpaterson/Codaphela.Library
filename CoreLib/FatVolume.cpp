@@ -609,6 +609,84 @@ bool CFatVolume::IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery)
+{
+	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & FAT_FIRST_LFN_ENTRY)
+	{
+		psQuery->uiSequence = (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence ^ FAT_FIRST_LFN_ENTRY) + 1;
+		psQuery->uiChecksum = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum;
+
+		memset(psQuery->auiLongFilename, 0, sizeof(uint16) * (FAT_MAX_FILENAME + 1));
+	}
+
+	if (psQuery->uiChecksum == psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum &&
+		(psQuery->uiSequence == (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
+	{
+		psQuery->uiSequence = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY);
+		SetQueryLongFilenamePart(psQuery);
+	}
+	else
+	{
+		psQuery->uiChecksum = 0;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFatVolume::ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery)
+{
+	int		i;
+	uint16	uiResult;
+
+	i = 0;
+	for (uiResult = 0; uiResult < 8; uiResult++)
+	{
+		if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
+		{
+			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME)
+			{
+				psQuery->auiLongFilename[i] = tolower(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
+			}
+			else
+			{
+				psQuery->auiLongFilename[i] = psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
+			}
+			i++;
+		}
+	}
+
+	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[8] != 0x20)
+	{
+		psQuery->auiLongFilename[i++] = '.';
+
+		for (uiResult = 8; uiResult < 11; uiResult++)
+		{
+			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
+			{
+				if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION)
+				{
+					psQuery->auiLongFilename[i] = tolower(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
+				}
+				else
+				{
+					psQuery->auiLongFilename[i] = psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
+				}
+				i++;
+			}
+		}
+	}
+
+	psQuery->auiLongFilename[i] = 0x0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry)
 {
 	bool		bPass;
@@ -619,13 +697,13 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 		if (!bFirstEntry)
 		{
 			eResult = FindNextRawDirectoryEntry(psQuery);
-			if (eResult != FAT_SUCCESS)
-			{
-				return eResult;
-			}
-			else if (eResult == FAT_SHORT_NAME_FOUND)
+			if (eResult == FAT_SHORT_NAME_FOUND)
 			{
 				return FAT_SUCCESS;
+			}
+			else if (eResult != FAT_SUCCESS)
+			{
+				return eResult;
 			}
 		}
 		else
@@ -633,38 +711,13 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 			bFirstEntry = false;
 		}
 
-		// if this is a long filename entry...
 		if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_LONG_NAME && !IsFreeDirectoryEntry(psQuery->psCurrentEntryRaw))
 		{
-			// if this entry is marked as the 1st LFN entry
-			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & FAT_FIRST_LFN_ENTRY)
-			{
-				psQuery->uiSequence = (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence ^ FAT_FIRST_LFN_ENTRY) + 1;
-				psQuery->uiChecksum = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum;
-
-				// insert null terminator at the end of the long filename
-				memset(psQuery->auiLongFilename, 0, sizeof(uint16) * (FAT_MAX_FILENAME + 1));
-			}
-
-			// if this is the LFN that we're expecting then process it, otherwise we'll have to wait for another 1st LFN entry otherwise read the LFN
-			// characters and save them on the psQuery state struct.
-			if (psQuery->uiChecksum == psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiChecksum &&
-				(psQuery->uiSequence == (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY)) + 1))
-			{
-				psQuery->uiSequence = psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & (0xFF ^ FAT_FIRST_LFN_ENTRY);
-				SetQueryLongFilenamePart(psQuery);
-			}
-			else
-			{
-				psQuery->uiChecksum = 0;
-			}
-
-			// make sure we never return this entry
+			ProcessQueryLongFileNameEntry(psQuery);
 			bPass = (psQuery->uiAttributes == FAT_ATTR_LONG_NAME);
 		}
 		else
 		{
-			// check that the current entry passes the psQuery attributes check
 			bPass =
 				(!(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_HIDDEN) || (psQuery->uiAttributes & FAT_ATTR_HIDDEN)) &&
 				(!(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes & FAT_ATTR_SYSTEM) || (psQuery->uiAttributes & FAT_ATTR_SYSTEM)) &&
@@ -674,7 +727,6 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 	}
 	while (!bPass || psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] == FAT_DELETED_ENTRY);
 
-	// if we found an entry we need to check it's LFN checksum to make sure that the long filename that we've associated with it belongs to it. If it doesn't clear it.
 	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] != '\0')
 	{
 		if (psQuery->uiChecksum != FatLongEntryChecksum((char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName))
@@ -683,47 +735,9 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 		}
 	}
 
-	// if this entry doesn't have an LFN entry but its marked as having
-	// a lowercase name or extension then fill the long filename with the
-	// lowercase version
 	if (psQuery->auiLongFilename[0] == 0 && (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & (FAT_LOWERCASE_EXTENSION | FAT_LOWERCASE_BASENAME)))
 	{
-		int i = 0;
-		for (uint16 uiResult = 0; uiResult < 8; uiResult++)
-		{
-			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
-			{
-				if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME)
-				{
-					psQuery->auiLongFilename[i++] = tolower(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
-				}
-				else
-				{
-					psQuery->auiLongFilename[i++] = psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
-				}
-			}
-		}
-
-		if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[8] != 0x20)
-		{
-			psQuery->auiLongFilename[i++] = '.';
-
-			for (uint16 uiResult = 8; uiResult < 11; uiResult++)
-			{
-				if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
-				{
-					if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION)
-					{
-						psQuery->auiLongFilename[i++] = tolower(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
-					}
-					else
-					{
-						psQuery->auiLongFilename[i++] = psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
-					}
-				}
-			}
-		}
-		psQuery->auiLongFilename[i] = 0x0;
+		ConstructQueryLongFileNameFromShortName(psQuery);
 	}
 
 	return FAT_SUCCESS;

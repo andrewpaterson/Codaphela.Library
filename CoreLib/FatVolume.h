@@ -176,6 +176,8 @@ protected:
 	EFatCode				FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery);
 	bool					IsFreeDirectoryEntry(SFatRawDirectoryEntry* psEntry);
 	bool					IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry);
+	void					ProcessQueryLongFileNameEntry(SFatQueryState* psQuery);
+	void					ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery);
 };
 
 
