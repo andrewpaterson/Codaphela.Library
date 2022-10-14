@@ -1382,7 +1382,7 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 	fatEntry	uiLastClusterIndex;
 	fatEntry	uiFatEntry;
 	uint32		uiFirstEmptyCluster;
-	uint32		uiLastClusterSector = 0;
+	uint32		uiLastClusterSector;
 	uint32		uiLastEntryOffset;
 	uint32		uiStartCluster;
 	bool		bWrappedAround;
@@ -1412,19 +1412,20 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 	uiClusterStep = CalculateClusterStepSize(uiPageSize);
 	uiCluster = FindNextPageCluster(uiPageSize, uiCluster, uiClusterStep);
 
-	uiStartCluster = uiCluster;
-	uiLastClusterIndex = uiPreviousCluster;
-
-	if (!FatIsEOFEntry(uiLastClusterIndex))
+	if (!FatIsEOFEntry(uiPreviousCluster))
 	{
-		CalculateFATIndexAndOffset(&uiLastEntryOffset, uiLastClusterIndex, &uiLastClusterSector);
+		CalculateFATIndexAndOffset(&uiLastEntryOffset, uiPreviousCluster, &uiLastClusterSector);
 	}
 	else
 	{
+		uiLastClusterSector = 0;
 		uiLastEntryOffset = 0;
 	}
 
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiCluster, &uiFirstClusterSector);
+
+	uiStartCluster = uiCluster;
+	uiLastClusterIndex = uiPreviousCluster;
 
 	for (iCount = 0;; iCount++)
 	{
@@ -1465,7 +1466,6 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 
 				uiClusterCount--;
 
-				// if we've found all the clusters that the user requested leave and return the cluster number.
 				if (uiClusterCount == 0)
 				{
 					*peResult = InitialiseAllocatedFatCluster(psParentDirectory, uiCluster, bEraseCluster);
