@@ -171,18 +171,16 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 		if (meFileSystem == FAT_FS_TYPE_FAT16)
 		{
 			muiID = msBPB.uFatEx.sFat16.uiVolumeID;
+			mszLabel.Kill();
 			mszLabel.Init(msBPB.uFatEx.sFat16.szVolumeLabel, 0, 10);
 			mszLabel.StripWhiteSpace();
 		}
 		else if (meFileSystem == FAT_FS_TYPE_FAT32)
 		{
 			muiID = msBPB.uFatEx.sFat32.uiVolumeID;
+			mszLabel.Kill();
 			mszLabel.Init(msBPB.uFatEx.sFat32.szVolumeLabel, 0, 10);
 			mszLabel.StripWhiteSpace();
-		}
-		else
-		{
-			mszLabel.Init();
 		}
 
 		// if the volume is FAT32 then copy the root entry's cluster from the uiRootCluster field on the BPB .
@@ -256,6 +254,7 @@ EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 	EFatCode				eResult;
 
 	mcSectorCache.Init(pcDevice, 3);
+	mszLabel.Init();
 
 	mpcDevice = pcDevice;
 
@@ -579,7 +578,6 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 
 	do
 	{
-		// if the current entry is the last entry of the sector...
 		if (!bFirstEntry)
 		{
 			eResult = FindNextRawDirectoryEntry(psQuery);
