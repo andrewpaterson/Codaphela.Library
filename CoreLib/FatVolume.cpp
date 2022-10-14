@@ -589,6 +589,26 @@ EFatCode CFatVolume::FindNextRawDirectoryEntry(SFatQueryState* psQuery)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFatVolume::IsFreeDirectoryEntry(SFatRawDirectoryEntry* psEntry)
+{
+	return *psEntry->uEntry.sFatRawCommon.szShortName == FAT_DELETED_ENTRY || IsLastDirectoryEntry(psEntry);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatVolume::IsLastDirectoryEntry(SFatRawDirectoryEntry* psEntry)
+{
+	return *psEntry->uEntry.sFatRawCommon.szShortName == '\0';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry)
 {
 	bool		bPass;
@@ -614,7 +634,7 @@ EFatCode CFatVolume::QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked,
 		}
 
 		// if this is a long filename entry...
-		if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_LONG_NAME && !IS_FREE_DIRECTORY_ENTRY(psQuery->psCurrentEntryRaw))
+		if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes == FAT_ATTR_LONG_NAME && !IsFreeDirectoryEntry(psQuery->psCurrentEntryRaw))
 		{
 			// if this entry is marked as the 1st LFN entry
 			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawLongFileName.uiSequence & FAT_FIRST_LFN_ENTRY)
@@ -3389,13 +3409,13 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 				uiDirectoryEntries++;
 
 				// if the directory entry is free.
-				if (IS_FREE_DIRECTORY_ENTRY(psParentEntry))
+				if (IsFreeDirectoryEntry(psParentEntry))
 				{
 					// we've found a free entry
 					iLFNEntriesFound++;
 
 					// if this is the last directory entry or if we've found all the entries that we need then let's get ready to write them.
-					if (IS_LAST_DIRECTORY_ENTRY(psParentEntry) || iLFNEntriesFound == iLFNEntriesNeeded)
+					if (IsLastDirectoryEntry(psParentEntry) || iLFNEntriesFound == iLFNEntriesNeeded)
 					{
 						bAllLFNEntriesFound = true;
 						break;
@@ -3840,7 +3860,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			// if the output of FatQueryFirstEntry indicates that  there are no entries available then set the psEntry name to 0 and return success.
-			if (IS_LAST_DIRECTORY_ENTRY(sQuery.psCurrentEntryRaw))
+			if (IsLastDirectoryEntry(sQuery.psCurrentEntryRaw))
 			{
 				psEntry->szName[0] = '\0';
 				sQuery.Kill(GetSectorCache());
