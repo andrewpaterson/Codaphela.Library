@@ -1850,13 +1850,13 @@ EFatCode CFatVolume::FreeDirectoryEntry(SFatDirectoryEntry* psEntry)
 
 	uiCluster = GetFirstClusterFromFatEntry(&psEntry->sRaw, meFileSystem == FAT_FS_TYPE_FAT32);
 
-	// if the file is not already empty then  we'll empty it
 	if (uiCluster != 0)
 	{
-		// update the entry to point to cluster 0
 		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = 0;
 		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = 0;
 		psEntry->sRaw.uEntry.sFatRawCommon.uiSize = 0x0;
+		FillDirectoryEntryFromRawEntry(psEntry, &psEntry->sRaw);
+
 
 		READ_SECTOR(sBuffer, psEntry->uiSectorAddress);
 

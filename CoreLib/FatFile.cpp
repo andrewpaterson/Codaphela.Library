@@ -82,7 +82,7 @@ EFatCode FindBackslash(char* filename, char** ppcFilenameScanner)
 EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 {
 	EFatCode			eResult;
-	SFatDirectoryEntry	sFileEntry;
+	//SFatDirectoryEntry	sFileEntry;
 
 	memset(mszName, 0, FAT_MAX_FILENAME);
 	mcCache.Init(mpcVolume->GetFileDrive(), mpcVolume->GetClusterSize(), mpcVolume->GetSectorSize());
@@ -92,10 +92,10 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 		return FAT_INVALID_FILENAME;
 	}
 
-	eResult = mpcVolume->GetFileEntry(filename, &sFileEntry);
+	eResult = mpcVolume->GetFileEntry(filename, &msFile.sDirectoryEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	if (sFileEntry.szName[0] == '\0')
+	if (msFile.sDirectoryEntry.szName[0] == '\0')
 	{
 		if (uiAccessFlags & FAT_FILE_ACCESS_CREATE)
 		{
@@ -122,7 +122,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			}
 
 			pcFilenameScanner++;
-			eResult = mpcVolume->CreateFATEntry(&sParentEntry.sRaw, pcFilenameScanner, FAT_ATTR_ARCHIVE, 0, &sFileEntry);
+			eResult = mpcVolume->CreateFATEntry(&sParentEntry.sRaw, pcFilenameScanner, FAT_ATTR_ARCHIVE, 0, &msFile.sDirectoryEntry);
 			RETURN_ON_FAT_FAILURE(eResult);
 
 			uiAccessFlags = uiAccessFlags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
@@ -140,9 +140,9 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 		}
 	}
 
-	strcpy(mszName, (char*)sFileEntry.szName);
+	strcpy(mszName, (char*)msFile.sDirectoryEntry.szName);
 
-	eResult = OpenFileByEntry(&sFileEntry, uiAccessFlags);
+	eResult = OpenFileByEntry(&msFile.sDirectoryEntry, uiAccessFlags);
 	return eResult;
 }
 
@@ -197,7 +197,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 	}
 	else if (uiAccessFlags & FAT_FILE_ACCESS_OVERWRITE)
 	{
-		eResult = mpcVolume->FreeDirectoryEntry(psEntry);
+		eResult = mpcVolume->FreeDirectoryEntry(&msFile.sDirectoryEntry);
 		if (eResult != FAT_SUCCESS)
 		{
 			msFile.uiMagic = 0;
@@ -206,6 +206,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 
 		msFile.uiFileSize = 0;
 		msFile.uiFilePosition = 0;
+		msFile.uiFilePositionCluster = 0;
 	}
 	else
 	{
@@ -597,8 +598,13 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRea
 	uint32		uiBytesRead;
 	uint32		uiTotalBytesRead;
 
-	msFile.bBusy = true;
+	if (msFile.uiFileSize == 0 || msFile.uiFilePositionCluster == 0)
+	{
+		*puiBytesRead = 0;
+		return FAT_SUCCESS;
+	}
 
+	msFile.bBusy = true;
 	uiTotalBytesRead = 0;
 	for (;;)
 	{
@@ -764,9 +770,9 @@ EFatCode CFatFile::Truncate(void)
 			return eResult;
 		}
 
-		mpcVolume->FillDirectoryEntryFromRawEntry(&msFile.sDirectoryEntry, &msFile.sDirectoryEntry.sRaw);
+		msFile.uiFileSize = 0;
+		msFile.uiFilePosition = 0;
 		msFile.uiFilePositionCluster = 0;
-		msFile.uiFileSize = msFile.uiFilePosition;
 	}
 
 	msFile.bBusy = false;
