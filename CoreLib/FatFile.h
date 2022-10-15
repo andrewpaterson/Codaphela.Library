@@ -46,6 +46,7 @@ public:
 	uint8		GetAccessFlags(void);
 
 	EFatCode	AllocateClusters(uint32 bytes);
+	uint32		CalculateFirstCluster(void);
 
 protected:
 	EFatCode	OpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
@@ -54,7 +55,6 @@ protected:
 
 	bool		IsFat32Volume(void);
 	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
-	uint32		CalculateFirstCluster(void);
 
 	EFatCode	FlushCacheUpdateAccess(void);
 
