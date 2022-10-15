@@ -279,21 +279,21 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
+bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 {
 	unsigned int	uiResult;
 
 	if (IsOpen())
 	{
-		if (iSeekOrigin == EFSO_SET)
+		if (eSeekOrigin == EFSO_SET)
 		{
 			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_BEGIN);
 		}
-		else if (iSeekOrigin == EFSO_CURRENT)
+		else if (eSeekOrigin == EFSO_CURRENT)
 		{
 			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_CURRENT);
 		}
-		else if (iSeekOrigin == EFSO_END)
+		else if (eSeekOrigin == EFSO_END)
 		{
 			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_END);
 		}

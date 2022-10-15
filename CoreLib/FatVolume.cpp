@@ -4172,44 +4172,6 @@ EFatCode CFatVolume::Rename(char* szOriginalFilename, char* szNewFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::CountSequentialClusters(uint32 uiCluster, uint32* puiSequentialClustersAfter)
-{
-	uint32		uiNextCluster;
-	EFatCode	eResult;
-	uint16		uiSequentialClustersAfterCursor;
-
-	//This is FAT16 specific.
-	uiSequentialClustersAfterCursor = 0;
-	*puiSequentialClustersAfter = 0;
-
-	while (!FatIsEOFEntry(uiCluster))
-	{
-		eResult = GetNextClusterEntry(uiCluster, &uiNextCluster);
-		RETURN_ON_FAT_FAILURE(eResult);
-
-		if (uiNextCluster == (uiCluster + 1))
-		{
-			uiSequentialClustersAfterCursor++;
-			uiCluster = uiNextCluster;
-			if (uiSequentialClustersAfterCursor == 0xFFFF)  //GetEndOfClusterMarker
-			{
-				break;
-			}
-		}
-		else
-		{
-			break;
-		}
-	}
-	*puiSequentialClustersAfter = uiSequentialClustersAfterCursor;
-	return FAT_SUCCESS;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::GetClusterSize(void) { return muiBytesPerCluster; }
 uint32 CFatVolume::GetID(void) { return muiID; }
 uint32 CFatVolume::GetFatSize(void) { return muiFatSize; }

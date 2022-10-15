@@ -13,7 +13,7 @@ struct SFatFile
 	SFatDirectoryEntry		sDirectoryEntry;
 	uint32					uiFileSize;
 	uint32					uiFilePosition;
-	uint32					uiCursorClusterInVolume;
+	fatEntry				uiFilePositionCluster;
 
 	bool					bBusy;
 	uint8					uiMagic;
@@ -38,7 +38,9 @@ public:
 	EFatCode	Read(uint8* puiDestination, uint32 length, uint32* puiBytesRead);
 	EFatCode	Seek(uint32 offset, EFatSeek mode);
 	EFatCode	Flush(void);
+	EFatCode	Truncate(void);
 
+	uint32		Tell(void);
 	uint32		Size(void);
 	bool		IsBusy(void);
 	uint8		GetAccessFlags(void);
