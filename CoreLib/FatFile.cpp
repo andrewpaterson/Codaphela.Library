@@ -131,7 +131,7 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			msFile.uiFileSize = 0;
 			msFile.uiAccessFlags = uiAccessFlags;
 			msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 
 			RETURN_ON_FAT_FAILURE(eResult);
 		}
@@ -183,7 +183,7 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 	msFile.uiFileSize = psEntry->uiSize;
 	msFile.uiAccessFlags = uiAccessFlags;
 	msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
-	msFile.bBusy = 0;
+	msFile.bBusy = false;
 
 	msFile.uiCursorClusterInVolume = GetFirstClusterFromFatEntry(&psEntry->sRaw, IsFat32Volume());
 
@@ -299,7 +299,7 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 		return eResult;
 	}
 
-	msFile.bBusy = 0;
+	msFile.bBusy = false;
 	return FAT_SUCCESS;
 }
 
@@ -335,7 +335,7 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 		return FAT_FILE_HANDLE_IN_USE;
 	}
 
-	msFile.bBusy = 1;
+	msFile.bBusy = true;
 
 	switch (mode)
 	{
@@ -360,14 +360,14 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 
 		default:
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			return FAT_SEEK_FAILED;
 		}
 	}
 
 	if (uiBytePositionInFile > msFile.uiFileSize)
 	{
-		msFile.bBusy = 0;
+		msFile.bBusy = false;
 		return FAT_SEEK_FAILED;
 	}
 	
@@ -381,14 +381,14 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 		eResult = mpcVolume->SeekByClusterCount(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
 		if (eResult != FAT_SUCCESS)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			return FAT_CORRUPTED_FILE;
 		}
 	}
 
 	msFile.uiFilePosition = uiBytePositionInFile;
 
-	msFile.bBusy = 0;
+	msFile.bBusy = false;
 	return FAT_SUCCESS;
 }
 
@@ -490,7 +490,7 @@ EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* pui
 		bSuccess = mcCache.Write(puiSource, msFile.uiCursorClusterInVolume, uiFirstSectorOfCluster, uiWriteOffsetInCluster, &uiBytesRemaining, uiPreviousMaximumOffset);
 		if (!bSuccess)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			return FAT_CANNOT_WRITE_MEDIA;
 		}
 
@@ -505,14 +505,14 @@ EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* pui
 
 		if (uiBytesRemaining == 0)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			return FAT_SUCCESS;
 		}
 
 		uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCursorClusterInVolume, &msFile.uiCursorClusterInVolume);
 		if (uiResult != FAT_SUCCESS)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			return uiResult;
 		}
 	}
@@ -552,7 +552,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, uint32 uiLength, uint32* puiBytes
 	eResult = ValidateCanRead();
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	return FatFileRead(uiLength, puiBytesRead, puiDestination);
+	return ReadFromClusters(uiLength, puiBytesRead, puiDestination);
 }
 
 
@@ -560,7 +560,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, uint32 uiLength, uint32* puiBytes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination)
+EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination)
 {
 	EFatCode	eResult;
 	bool		bSuccess;
@@ -605,14 +605,14 @@ EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, ui
 
 		if (!bSuccess)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			SafeAssign(puiBytesRead, uiTotalBytesRead);
 			return FAT_CANNOT_READ_MEDIA;
 		}
 
 		if (uiBytesRemaining == 0)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			SafeAssign(puiBytesRead, uiTotalBytesRead);
 			return FAT_SUCCESS;
 		}
@@ -620,7 +620,7 @@ EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, ui
 		eResult = mpcVolume->GetNextClusterEntry(msFile.uiCursorClusterInVolume, &msFile.uiCursorClusterInVolume);
 		if (eResult != FAT_SUCCESS)
 		{
-			msFile.bBusy = 0;
+			msFile.bBusy = false;
 			SafeAssign(puiBytesRead, uiTotalBytesRead);
 			return eResult;
 		}
@@ -642,53 +642,54 @@ bool CFatFile::IsFat32Volume(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::FlushCacheUpdateAccess(void)
+{
+	SFatCache	sBuffer;
+
+	msFile.bBusy = true;
+
+	mcCache.Flush();
+
+	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiSize = msFile.uiFileSize;
+	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
+	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
+	msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate;
+
+	sBuffer = mpcVolume->ReadSector(msFile.sDirectoryEntry.uiSectorAddress);
+	if (!sBuffer.IsValid())
+	{
+		msFile.bBusy = false;
+		return FAT_CANNOT_READ_MEDIA;
+	}
+
+	memcpy(sBuffer.Get() + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.sRaw, sizeof(SFatRawDirectoryEntry));
+	mpcVolume->DirtySector(sBuffer);
+
+	msFile.bBusy = false;
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Flush(void)
 {
-	uint32		uiSectorAddress = 0;
+	EFatCode	eResult;
 
-	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
-
-	// check that we got write access
+	if (msFile.bBusy)
+	{
+		return FAT_FILE_HANDLE_IN_USE;
+	}
 	if (msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE)
 	{
-		// check that another operation is not using the
-		// file at this time
-		if (msFile.bBusy)
-		{
-			return FAT_FILE_HANDLE_IN_USE;
-		}
-
-		// mark the file as in use
-		msFile.bBusy = 1;
-
-		mcCache.Flush();
-
-		// update the file size on the entry
-		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiSize = msFile.uiFileSize;
-		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate = GetSystemClockDate();
-		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyTime = GetSystemClockTime();
-		msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiAccessDate = msFile.sDirectoryEntry.sRaw.uEntry.sFatRawCommon.uiModifyDate;
-
-		// try load the sector that contains the entry
-		SFatCache	sBuffer;
-
-		sBuffer = mpcVolume->ReadSector(msFile.sDirectoryEntry.uiSectorAddress);
-		if (!sBuffer.IsValid())
-		{
-			msFile.bBusy = 0;
-			return FAT_CANNOT_READ_MEDIA;
-		}
-
-		// copy the modified file entry to the sector buffer
-		memcpy(sBuffer.Get() + msFile.sDirectoryEntry.uiSectorOffset, &msFile.sDirectoryEntry.sRaw, sizeof(SFatRawDirectoryEntry));
-		mpcVolume->DirtySector(sBuffer);
-
-		// mark the file file as not bBusy
-		msFile.bBusy = 0;
+		eResult = FlushCacheUpdateAccess();
+		RETURN_ON_FAT_FAILURE(eResult);
 	}
 	return FAT_SUCCESS;
 }
@@ -729,7 +730,7 @@ EFatCode CFatFile::Close(void)
 		}
 
 		// mark the file as in use
-		msFile.bBusy = 1;
+		msFile.bBusy = true;
 
 		// free unused clusters
 		eResult = mpcVolume->GetNextClusterEntry(msFile.uiCursorClusterInVolume, &uiFatEntry);
