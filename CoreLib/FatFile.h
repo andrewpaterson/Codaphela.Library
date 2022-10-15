@@ -48,13 +48,16 @@ public:
 protected:
 	EFatCode	OpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
 	uint32		FatFileGetUniqueId(void);
-	EFatCode	FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource);
+	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
 
 	bool		IsFat32Volume(void);
 	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
 	uint32		CalculateFirstCluster(void);
 
 	char*		GetShortFileName(void);
+	EFatCode	ValidateCanRead(void);
+	EFatCode	ValidateCanWrite(void);
+	EFatCode	PotentiallyAllocateClusters(uint32 uiLength);
 };
 
 

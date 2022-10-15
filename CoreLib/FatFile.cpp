@@ -110,33 +110,22 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 
 			iPathLength = pcFilenameScanner - filename;
 
-			// copy the path part of the filename to
-			// the szFilePath uiBuffer
 			memcpy(szFilePath, filename, iPathLength);
-
-			// set the null terminator of the szFilePath uiBuffer
 			szFilePath[iPathLength] = '\0';
 
-			// increase pointer to the beggining of the filename
-			// part of the path
-			pcFilenameScanner++;
 
-			// try to get the entry for the parent directory
 			eResult = mpcVolume->GetFileEntry(szFilePath, &sParentEntry);
 			RETURN_ON_FAT_FAILURE(eResult);
 
-			// if the parent directory does not exists
 			if (*sParentEntry.szName == 0)
 			{
 				return FAT_DIRECTORY_DOES_NOT_EXIST;
 			}
 
-			// try to create the directory entry
+			pcFilenameScanner++;
 			eResult = mpcVolume->CreateFATEntry(&sParentEntry.sRaw, pcFilenameScanner, FAT_ATTR_ARCHIVE, 0, &sFileEntry);
 			RETURN_ON_FAT_FAILURE(eResult);
 
-			// make sure the file is opened with no append flags
-			// todo: figure out why we need this and fix it
 			uiAccessFlags = uiAccessFlags & (0xFF ^ FAT_FILE_ACCESS_APPEND);
 			
 			msFile.uiFileSize = 0;
@@ -179,36 +168,27 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 {
 	EFatCode	eResult;
 
-	// set implicit access flags
 	uiAccessFlags |= FAT_FILE_ACCESS_READ;
 	if (uiAccessFlags & (FAT_FILE_ACCESS_CREATE | FAT_FILE_ACCESS_APPEND | FAT_FILE_ACCESS_OVERWRITE))
 	{
 		uiAccessFlags |= FAT_FILE_ACCESS_WRITE;
 	}
 
-	// if the user is trying to open a directory then
-	// return an error code, otherwise it would corrupt
-	// the volume
 	if (psEntry->uiAttributes & FAT_ATTR_DIRECTORY)
 	{
 		return FAT_NOT_A_FILE;
 	}
 
-	// copy the volume file and the entry's
-	// structure to the file file
 	msFile.sDirectoryEntry = *psEntry;
 	msFile.uiFileSize = psEntry->uiSize;
 	msFile.uiAccessFlags = uiAccessFlags;
 	msFile.uiMagic = FAT_OPEN_HANDLE_MAGIC;
 	msFile.bBusy = 0;
 
-	// read the the cluster number
 	msFile.uiCursorClusterInVolume = GetFirstClusterFromFatEntry(&psEntry->sRaw, IsFat32Volume());
 
 	if (uiAccessFlags & FAT_FILE_ACCESS_APPEND)
 	{
-		// if the file is being opened for append access we
-		// seek to the end of the file
 		eResult = Seek(0, FAT_SEEK_END);
 		if (eResult != FAT_SUCCESS)
 		{
@@ -218,9 +198,6 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 	}
 	else if (uiAccessFlags & FAT_FILE_ACCESS_OVERWRITE)
 	{
-		// if the file is being opened with the OVERWRITE flag we must free all the clusters
-		// currently allocated to the file and update it's directory entry to point to cluster 1
-
 		eResult = mpcVolume->FreeDirectoryEntry(psEntry);
 		if (eResult != FAT_SUCCESS)
 		{
@@ -239,7 +216,6 @@ EFatCode CFatFile::OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFl
 }
 
 
-// gets a unique identifier of the file (ie. first cluster)
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -265,7 +241,6 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 	fatEntry	uiNextCluster;
 	fatEntry	uiPreviousCluster;
 
-	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
@@ -298,7 +273,6 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 		}
 	}
 
-	// calculate how many clusters we need to grow the file by.
 	uiClustersNeeded = (uiBytes + mpcVolume->GetClusterSize() - 1) / mpcVolume->GetClusterSize();
 
 	if (uiClustersNeeded > uiClustersInFile)
@@ -318,7 +292,6 @@ EFatCode CFatFile::AllocateClusters(uint32 uiBytes)
 		return eResult;
 	}
 
-	// UpdateDirectoryEntry overwrites the FAT with uiNewCluster == 6 but it should a) not overwrite at all and b) uiNewCluster should == 7
 	eResult = mpcVolume->UpdateDirectoryEntry(&msFile.sDirectoryEntry, uiFirstCluster, uiNewCluster, uiClustersInFile);
 	if (eResult != FAT_SUCCESS)
 	{
@@ -392,24 +365,19 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 		}
 	}
 
-	// if the seek goes out of bounds return error
 	if (uiBytePositionInFile > msFile.uiFileSize)
 	{
 		msFile.bBusy = 0;
 		return FAT_SEEK_FAILED;
 	}
 	
-	// calculate the count of sectors being used by the file up to the desired position
 	uiSectorIndexInFile = uiBytePositionInFile / mpcVolume->GetSectorSize();
 	uiClusterIndex = uiSectorIndexInFile / mpcVolume->NumSectorsPerCluster();
 
-	// set the 1st cluster as the current cluster, we'll seek from there
 	msFile.uiCursorClusterInVolume = CalculateFirstCluster();
 
-	// if the file occupies more than one cluster
 	if (uiClusterIndex > 0)
 	{
-		// set the file file to point to the last cluster. if the file doesn't have that many clusters allocated this function will return 0. if that ever happens it means that the file is corrupted
 		eResult = mpcVolume->SeekByClusterCount(msFile.uiCursorClusterInVolume, uiClusterIndex, &msFile.uiCursorClusterInVolume);
 		if (eResult != FAT_SUCCESS)
 		{
@@ -424,30 +392,35 @@ EFatCode CFatFile::Seek(uint32 offset, EFatSeek mode)
 	return FAT_SUCCESS;
 }
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
+EFatCode CFatFile::ValidateCanWrite(void)
 {
-	EFatCode	eResult;
-	uint32		uiOverFileLength;
-
-	// check that this is a valid file
 	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
 	{
 		return FAT_INVALID_HANDLE;
 	}
-	// check that the file is open for write access
 	if (!(msFile.uiAccessFlags & FAT_FILE_ACCESS_WRITE))
 	{
 		return FAT_FILE_NOT_OPENED_FOR_WRITE_ACCESS;
 	}
+	if (msFile.bBusy)
+	{
+		return FAT_FILE_HANDLE_IN_USE;
+	}
+	return FAT_SUCCESS;
+}
 
-	// if there's no clusters allocated to this file allocate
-	// enough clusters for this request
-	// You need to allocate the difference between the end of the file and the lengh.  It could be zero.
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::PotentiallyAllocateClusters(uint32 uiLength)
+{
+	EFatCode	eResult;
+	uint32		uiOverFileLength;
 
 	if ((msFile.uiFilePosition + uiLength) > msFile.uiFileSize)
 	{
@@ -458,18 +431,25 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 		eResult = Seek(msFile.uiFilePosition, FAT_SEEK_START);
 		RETURN_ON_FAT_FAILURE(eResult);
 	}
+	return FAT_SUCCESS;
+}
 
 
-	// check that another operation is not using the file at this time
-	if (msFile.bBusy)
-	{
-		return FAT_FILE_HANDLE_IN_USE;
-	}
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
+{
+	EFatCode	eResult;
 
-	// mark the file as in use
-	msFile.bBusy = true;
+	eResult = ValidateCanWrite();
+	RETURN_ON_FAT_FAILURE(eResult);
 
-	eResult = FatFileWrite(uiLength, pvSource);
+	eResult = PotentiallyAllocateClusters(uiLength);
+	RETURN_ON_FAT_FAILURE(eResult);
+
+	eResult = WriteIntoExistingClusters(uiLength, pvSource);
 	return eResult;
 }
 
@@ -478,7 +458,7 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource)
+EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource)
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
@@ -488,6 +468,8 @@ EFatCode CFatFile::FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource)
 	uint16		uiWriteOffsetInCluster;
 	uint16		uiPreviousMaximumOffset;
 	uint32		uiBytesWritten;
+
+	msFile.bBusy = true;
 
 	for (;;)
 	{
@@ -537,26 +519,38 @@ EFatCode CFatFile::FatFileWrite(uint32 uiBytesRemaining, uint8* puiSource)
 }
 
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatFile::ValidateCanRead(void)
+{
+	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
+	{
+		return FAT_INVALID_HANDLE;
+	}
+
+	if (msFile.bBusy)
+	{
+		return FAT_FILE_HANDLE_IN_USE;
+	}
+	return FAT_SUCCESS;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::Read(uint8* puiDestination, uint32 uiLength, uint32* puiBytesRead)
 {
-	// check that this is a valid file
-	if (msFile.uiMagic != FAT_OPEN_HANDLE_MAGIC)
-	{
-		return FAT_INVALID_HANDLE;
-	}
+	EFatCode	eResult;
 
-	// check that another operation is not using the file at this time.
-	if (msFile.bBusy)
-	{
-		return FAT_FILE_HANDLE_IN_USE;
-	}
-
-	// mark the file as in use
-	msFile.bBusy = 1;
+	eResult = ValidateCanRead();
+	RETURN_ON_FAT_FAILURE(eResult);
 
 	return FatFileRead(uiLength, puiBytesRead, puiDestination);
 }
@@ -568,7 +562,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, uint32 uiLength, uint32* puiBytes
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination)
 {
-	EFatCode	uiResult;
+	EFatCode	eResult;
 	bool		bSuccess;
 	uint32		uiFirstSector;
 	uint32		uiClustersInFile;
@@ -577,6 +571,8 @@ EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, ui
 	uint16		uiPreviousMaximumOffset;
 	uint32		uiBytesRead;
 	uint32		uiTotalBytesRead;
+
+	msFile.bBusy = true;
 
 	uiTotalBytesRead = 0;
 	for (;;)
@@ -621,12 +617,12 @@ EFatCode CFatFile::FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, ui
 			return FAT_SUCCESS;
 		}
 
-		uiResult = mpcVolume->GetNextClusterEntry(msFile.uiCursorClusterInVolume, &msFile.uiCursorClusterInVolume);
-		if (uiResult != FAT_SUCCESS)
+		eResult = mpcVolume->GetNextClusterEntry(msFile.uiCursorClusterInVolume, &msFile.uiCursorClusterInVolume);
+		if (eResult != FAT_SUCCESS)
 		{
 			msFile.bBusy = 0;
 			SafeAssign(puiBytesRead, uiTotalBytesRead);
-			return uiResult;
+			return eResult;
 		}
 	}
 }
@@ -698,7 +694,6 @@ EFatCode CFatFile::Flush(void)
 }
 
 
-// closes an open file
 //////////////////////////////////////////////////////////////////////////
 //
 //
