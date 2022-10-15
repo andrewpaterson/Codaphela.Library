@@ -69,8 +69,7 @@ public:
 
 	EFatCode				ValidateFatCache(SFatCache sCache);
 
-	//Broken
-	EFatCode				CountSequentialClusters(uint32 uiCluster, uint32* puiSequentialClustersAfter);
+	void					FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 
 	//Getters
 	uint32					GetClusterSize(void);
@@ -147,7 +146,6 @@ protected:
 	EFatCode				CreateFakeRootEntry(SFatDirectoryEntry* psEntry);
 	EFatCode				MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);
 	EFatCode				GetShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled);
-	void					FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFatRawDirectoryEntry* psRawEntry);
 	fatEntry				GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory);
 	uint32					GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory);
 	EFatCode				FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
