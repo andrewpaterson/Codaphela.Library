@@ -59,7 +59,11 @@ protected:
 	char*		GetShortFileName(void);
 	EFatCode	ValidateCanRead(void);
 	EFatCode	ValidateCanWrite(void);
+
 	EFatCode	PotentiallyAllocateClusters(uint32 uiLength);
+	EFatCode	CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster);
+
+	EFatCode	CalculateSeekPosition(uint32 offset, EFatSeek mode, uint32* puiBytePositionInFile);
 };
 
 
