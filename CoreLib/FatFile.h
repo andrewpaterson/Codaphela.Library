@@ -51,8 +51,10 @@ protected:
 	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
 
 	bool		IsFat32Volume(void);
-	EFatCode	FatFileRead(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
+	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
 	uint32		CalculateFirstCluster(void);
+
+	EFatCode	FlushCacheUpdateAccess(void);
 
 	char*		GetShortFileName(void);
 	EFatCode	ValidateCanRead(void);
