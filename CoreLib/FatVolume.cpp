@@ -439,6 +439,7 @@ EFatCode CFatVolume::QueryFirstEntry(SFatRawDirectoryEntry* psDirectoryEntry, ui
 	return eResult;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
