@@ -652,49 +652,9 @@ void CFatVolume::ProcessQueryLongFileNameEntry(SFatQueryState* psQuery)
 //////////////////////////////////////////////////////////////////////////
 void CFatVolume::ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery)
 {
-	int		i;
-	uint16	uiResult;
-
-	i = 0;
-	for (uiResult = 0; uiResult < 8; uiResult++)
-	{
-		if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
-		{
-			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME)
-			{
-				psQuery->auiLongFilename[i] = tolower(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
-			}
-			else
-			{
-				psQuery->auiLongFilename[i] = psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
-			}
-			i++;
-		}
-	}
-
-	if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[8] != 0x20)
-	{
-		psQuery->auiLongFilename[i++] = '.';
-
-		for (uiResult = 8; uiResult < 11; uiResult++)
-		{
-			if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult] != 0x20)
-			{
-				if (psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION)
-				{
-					psQuery->auiLongFilename[i] = tolower(psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult]);
-				}
-				else
-				{
-					psQuery->auiLongFilename[i] = psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[uiResult];
-				}
-				i++;
-			}
-		}
-	}
-
-	psQuery->auiLongFilename[i] = 0x0;
+	::ConstructFatLongFileNameFromShortName(psQuery->auiLongFilename, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME, psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION);
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
