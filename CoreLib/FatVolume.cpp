@@ -69,12 +69,73 @@ bool CFatVolume::CheckSectorsPerClusterIsPowerOfTwo(uint8 uiSectorsPerCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SFatBIOSParameterBlock* psBPB, uint32 uiHiddenSectors)
+{
+	// get all the info we need from BPB.
+	muiRootDirectorySectors = ((psBPB->uiRootEntryCount * 32) + (psBPB->uiBytsPerSector - 1)) / psBPB->uiBytsPerSector;
+	muiFatSize = (psBPB->uiFATSzFat16) ? psBPB->uiFATSzFat16 : psBPB->uFatEx.sFat32.uiFATSzFat32;
+	muiNoOfSectors = (psBPB->uiTotalSectorsFat16) ? psBPB->uiTotalSectorsFat16 : psBPB->uiTotalSectorsFat32;
+	muiNoOfDataSectors = muiNoOfSectors - (psBPB->uiReservedSectorCount + (psBPB->uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors);
+	muiNoOfClusters = muiNoOfDataSectors / psBPB->uiSectorsPerCluster;
+	muiBytesPerSector = psBPB->uiBytsPerSector;
+	meFileSystem = (muiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (muiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
+
+	if (!CheckFileAllocationTableLargeEnough(meFileSystem, muiFatSize, muiNoOfClusters, muiBytesPerSector))
+	{
+		(*puiPartitionsTried)++;
+		return false;
+	}
+
+	muiHiddenSectors = uiHiddenSectors;
+	muiFirstDataSector = psBPB->uiReservedSectorCount + muiHiddenSectors + (psBPB->uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors;
+	muiNoOfReservedSectors = psBPB->uiReservedSectorCount + muiHiddenSectors;
+	muiNoOfSectorsPerCluster = psBPB->uiSectorsPerCluster;
+	muiNoOfFatTables = psBPB->uiNumFileAllocationTables;
+	muiFileSystemInfoSector = psBPB->uFatEx.sFat32.uiFileSystemInformation;
+	muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
+
+	// read the volume label from the boot sector.
+	if (meFileSystem == FAT_FS_TYPE_FAT16)
+	{
+		muiID = psBPB->uFatEx.sFat16.uiVolumeID;
+		mszLabel.Kill();
+		mszLabel.Init(psBPB->uFatEx.sFat16.szVolumeLabel, 0, 10);
+		mszLabel.StripWhiteSpace();
+	}
+	else if (meFileSystem == FAT_FS_TYPE_FAT32)
+	{
+		muiID = psBPB->uFatEx.sFat32.uiVolumeID;
+		mszLabel.Kill();
+		mszLabel.Init(psBPB->uFatEx.sFat32.szVolumeLabel, 0, 10);
+		mszLabel.StripWhiteSpace();
+	}
+
+	// if the volume is FAT32 then copy the root entry's cluster from the uiRootCluster field on the BPB .
+	if (meFileSystem == FAT_FS_TYPE_FAT32)
+	{
+		muiRootCluster = psBPB->uFatEx.sFat32.uiRootCluster;
+	}
+	else
+	{
+		muiRootCluster = 0;
+	}
+
+	muiRootSector = CalculateRootSector();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 {
 	uint32					uiHiddenSectors;
 	SFatPartitionEntry*		psPartitionEntry;
 	uint8					uiPartitionsTried;
 	EFatCode				eResult;
+	bool					bContinue;
 
 	eResult = ValidateFatCache(sMBRSector);
 	RETURN_ON_FAT_FAILURE(eResult);
@@ -144,56 +205,11 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			continue;
 		}
 
-		// get all the info we need from BPB.
-		muiRootDirectorySectors = ((msBPB.uiRootEntryCount * 32) + (msBPB.uiBytsPerSector - 1)) / msBPB.uiBytsPerSector;
-		muiFatSize = (msBPB.uiFATSzFat16) ? msBPB.uiFATSzFat16 : msBPB.uFatEx.sFat32.uiFATSzFat32;
-		muiNoOfSectors = (msBPB.uiTotalSectorsFat16) ? msBPB.uiTotalSectorsFat16 : msBPB.uiTotalSectorsFat32;
-		muiNoOfDataSectors = muiNoOfSectors - (msBPB.uiReservedSectorCount + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors);
-		muiNoOfClusters = muiNoOfDataSectors / msBPB.uiSectorsPerCluster;
-		muiBytesPerSector = msBPB.uiBytsPerSector;
-		meFileSystem = (muiNoOfClusters < 4085) ? FAT_FS_TYPE_FAT12 : (muiNoOfClusters < 65525) ? FAT_FS_TYPE_FAT16 : FAT_FS_TYPE_FAT32;
-
-		if (!CheckFileAllocationTableLargeEnough(meFileSystem, muiFatSize, muiNoOfClusters, muiBytesPerSector))
+		bContinue = !InitialiseVolumeParametersFromBPB(&uiPartitionsTried, &msBPB, uiHiddenSectors);
+		if (bContinue)
 		{
-			uiPartitionsTried++;
 			continue;
 		}
-
-		muiHiddenSectors = uiHiddenSectors;
-		muiFirstDataSector = msBPB.uiReservedSectorCount + muiHiddenSectors + (msBPB.uiNumFileAllocationTables * muiFatSize) + muiRootDirectorySectors;
-		muiNoOfReservedSectors = msBPB.uiReservedSectorCount + muiHiddenSectors;
-		muiNoOfSectorsPerCluster = msBPB.uiSectorsPerCluster;
-		muiNoOfFatTables = msBPB.uiNumFileAllocationTables;
-		muiFileSystemInfoSector = msBPB.uFatEx.sFat32.uiFileSystemInformation;
-		muiBytesPerCluster = muiBytesPerSector * muiNoOfSectorsPerCluster;
-
-		// read the volume label from the boot sector.
-		if (meFileSystem == FAT_FS_TYPE_FAT16)
-		{
-			muiID = msBPB.uFatEx.sFat16.uiVolumeID;
-			mszLabel.Kill();
-			mszLabel.Init(msBPB.uFatEx.sFat16.szVolumeLabel, 0, 10);
-			mszLabel.StripWhiteSpace();
-		}
-		else if (meFileSystem == FAT_FS_TYPE_FAT32)
-		{
-			muiID = msBPB.uFatEx.sFat32.uiVolumeID;
-			mszLabel.Kill();
-			mszLabel.Init(msBPB.uFatEx.sFat32.szVolumeLabel, 0, 10);
-			mszLabel.StripWhiteSpace();
-		}
-
-		// if the volume is FAT32 then copy the root entry's cluster from the uiRootCluster field on the BPB .
-		if (meFileSystem == FAT_FS_TYPE_FAT32)
-		{
-			muiRootCluster = msBPB.uFatEx.sFat32.uiRootCluster;
-		}
-		else
-		{
-			muiRootCluster = 0;
-		}
-
-		muiRootSector = CalculateRootSector();
 
 		uint32		uiFATSector;
 		SFatCache	sFATSector;

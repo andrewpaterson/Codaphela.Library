@@ -98,6 +98,7 @@ public:
 	
 protected:
 	EFatCode				InitialiseFat32FileSystemInfo(void);
+	bool					InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SFatBIOSParameterBlock* psBPB, uint32 uiHiddenSectors);
 
 	EFatCode				QueryFirstEntry(SFatRawDirectoryEntry* directory, uint8 attributes, SFatQueryState* query, bool bBufferLocked);
 	EFatCode				QueryNextEntry(SFatQueryState* psQuery, bool bBufferLocked, bool bFirstEntry);
