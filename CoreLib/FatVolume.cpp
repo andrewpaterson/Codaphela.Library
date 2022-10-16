@@ -136,6 +136,9 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 	uint8					uiPartitionsTried;
 	EFatCode				eResult;
 	bool					bContinue;
+	SFatCache				sLBASector;
+	uint32					uiFATSector;
+	SFatCache				sFATSector;
 
 	eResult = ValidateFatCache(sMBRSector);
 	RETURN_ON_FAT_FAILURE(eResult);
@@ -163,7 +166,6 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 			// if we've tried to mount a partition volume (not the unpartioned one) then we must reload sector 0 (MBR)
 			if (uiPartitionsTried > 1)
 			{
-				// move to the next partition entry
 				psPartitionEntry++;
 			}
 
@@ -176,8 +178,6 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 				uiPartitionsTried++;
 				continue;
 			}
-
-			SFatCache	sLBASector;
 
 			// retrieve the 1st sector of partition
 			READ_SECTOR(sLBASector, psPartitionEntry->uiLBAFirstSector);
@@ -210,9 +210,6 @@ EFatCode CFatVolume::FindBiosParameterBlock(SFatCache sMBRSector)
 		{
 			continue;
 		}
-
-		uint32		uiFATSector;
-		SFatCache	sFATSector;
 
 		uiFATSector = muiNoOfReservedSectors;
 		READ_SECTOR(sFATSector, uiFATSector);
@@ -403,7 +400,6 @@ bool CFatVolume::Erase(uint32 uiStartSector, uint32 uiStopSectorInclusive)
 {
 	return mpcDevice->Erase(uiStartSector, uiStopSectorInclusive);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -975,14 +971,14 @@ fatEntry CFatVolume::GetClusterEntryMask(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CFatVolume::GetEntryCluster(SFatDirectoryEntry* psEntry)
+uint32 CFatVolume::GetEntryCluster(SFatRawDirectoryEntry* psEntry)
 {
 	fatEntry	uiClusterEntryMask;
 	fatEntry	uiEntry;
 
 	uiClusterEntryMask = GetClusterEntryMask();
 
-	uiEntry = psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord | psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord << 16;
+	uiEntry = psEntry->uEntry.sFatRawCommon.uiFirstClusterLowWord | psEntry->uEntry.sFatRawCommon.uiFirstClusterHighWord << 16;
 	uiEntry &= uiClusterEntryMask;
 
 	return uiEntry;
@@ -1053,25 +1049,10 @@ EFatCode CFatVolume::EraseClusterContents(uint32 uiCluster)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirectoryParent, uint32 uiCluster)
+void CFatVolume::InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries, char* sz, uint32 uiCluster)
 {
-	uint32					uiFirstClusterSector;
-	SFatRawDirectoryEntry*	psEntries;
-	SFatCache				sBuffer;
-	bool					bSuccess;
-	uint32					uiLastClusterSector;
-	uint32					uiSector;
-
-	uiSector = CalculateFirstSectorOfCluster(uiCluster);
-
-	READ_SECTOR(sBuffer, uiSector);
-
-	psEntries = (SFatRawDirectoryEntry*)sBuffer.Get();
-
-	// initialize the 1st sector of the directory cluster with the dot entry
-	memset(psEntries, 0, GetSectorSize());
-	psEntries->uEntry.sFatRawCommon.szShortName[0x0] = '.';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x1] = ' ';
+	psEntries->uEntry.sFatRawCommon.szShortName[0x0] = sz[0];
+	psEntries->uEntry.sFatRawCommon.szShortName[0x1] = sz[1];
 	psEntries->uEntry.sFatRawCommon.szShortName[0x2] = ' ';
 	psEntries->uEntry.sFatRawCommon.szShortName[0x3] = ' ';
 	psEntries->uEntry.sFatRawCommon.szShortName[0x4] = ' ';
@@ -1092,32 +1073,36 @@ EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirecto
 	psEntries->uEntry.sFatRawCommon.uiModifyTime = psEntries->uEntry.sFatRawCommon.uiCreateTime;
 	psEntries->uEntry.sFatRawCommon.uiAccessDate = psEntries->uEntry.sFatRawCommon.uiCreateDate;
 	psEntries->uEntry.sFatRawCommon.uiCreateTimeTenths = 0xc6;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirectoryParent, uint32 uiCluster)
+{
+	uint32					uiFirstClusterSector;
+	SFatRawDirectoryEntry*	psEntries;
+	SFatCache				sBuffer;
+	bool					bSuccess;
+	uint32					uiLastClusterSector;
+	uint32					uiSector;
+
+	uiSector = CalculateFirstSectorOfCluster(uiCluster);
+
+	READ_SECTOR(sBuffer, uiSector);
+
+	psEntries = (SFatRawDirectoryEntry*)sBuffer.Get();
+
+	memset(psEntries, 0, GetSectorSize());
+
+	InitialiseDottyDirectoryEntry(psEntries, ". ", uiCluster);
+	
 	psEntries++;
 
-	// initialize the dot dot entry.
-	psEntries->uEntry.sFatRawCommon.szShortName[0x0] = '.';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x1] = '.';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x2] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x3] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x4] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x5] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x6] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x7] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x8] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0x9] = ' ';
-	psEntries->uEntry.sFatRawCommon.szShortName[0xA] = ' ';
-	psEntries->uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
-	psEntries->uEntry.sFatRawCommon.uiSize = 0x0;
-	psEntries->uEntry.sFatRawCommon.uiReserved = 0;
-	psEntries->uEntry.sFatRawCommon.uiFirstClusterLowWord = psDirectoryParent->uEntry.sFatRawCommon.uiFirstClusterLowWord;
-	psEntries->uEntry.sFatRawCommon.uiFirstClusterHighWord = psDirectoryParent->uEntry.sFatRawCommon.uiFirstClusterHighWord;
-	psEntries->uEntry.sFatRawCommon.uiCreateDate = GetSystemClockDate();
-	psEntries->uEntry.sFatRawCommon.uiCreateTime = GetSystemClockTime();
-	psEntries->uEntry.sFatRawCommon.uiModifyDate = psEntries->uEntry.sFatRawCommon.uiCreateDate;
-	psEntries->uEntry.sFatRawCommon.uiModifyTime = psEntries->uEntry.sFatRawCommon.uiCreateTime;
-	psEntries->uEntry.sFatRawCommon.uiAccessDate = psEntries->uEntry.sFatRawCommon.uiCreateDate;
-	psEntries->uEntry.sFatRawCommon.uiCreateTimeTenths = 0xc6;
+	InitialiseDottyDirectoryEntry(psEntries, "..", GetEntryCluster(psDirectoryParent));
+	
 	DirtySector(sBuffer);
 
 	// when the parent is the root directory the dotdot entry always points to cluster 0, even in FAT32 when the root directory is not actually on

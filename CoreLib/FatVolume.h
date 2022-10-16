@@ -65,7 +65,7 @@ public:
 	fatEntry				GetEndOfClusterMarker(void);
 	fatEntry				GetBadClusterMarker(void);
 	fatEntry				GetClusterEntryMask(void);
-	uint32					GetEntryCluster(SFatDirectoryEntry* psEntry);
+	uint32					GetEntryCluster(SFatRawDirectoryEntry* psEntry);
 
 	EFatCode				ValidateFatCache(SFatCache sCache);
 
@@ -142,6 +142,7 @@ protected:
 	EFatCode				InitialiseAllocatedFatCluster(SFatRawDirectoryEntry* psParentDirectory, uint32 uiCluster, bool bZero);
 	EFatCode				EraseClusterContents(uint32 uiCluster);
 	EFatCode				InitializeDirectoryCluster(SFatRawDirectoryEntry* psDirectoryParent, uint32 uiCluster);
+	void					InitialiseDottyDirectoryEntry(SFatRawDirectoryEntry* psEntries, char* sz, uint32 uiCluster);
 	bool					IsFreeFat(fatEntry uifat);
 
 	EFatCode				CreateFakeRootEntry(SFatDirectoryEntry* psEntry);
