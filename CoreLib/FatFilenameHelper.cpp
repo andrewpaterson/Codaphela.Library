@@ -388,3 +388,56 @@ void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* pui
 	*puiDest = '\0';
 }
 
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension)
+{
+	int		i;
+	uint16	uiResult;
+
+	i = 0;
+	for (uiResult = 0; uiResult < 8; uiResult++)
+	{
+		if (szShortName[uiResult] != ' ')
+		{
+			if (bLowercaseBase)
+			{
+				auiLongFilename[i] = tolower(szShortName[uiResult]);
+			}
+			else
+			{
+				auiLongFilename[i] = szShortName[uiResult];
+			}
+			i++;
+		}
+	}
+
+	if (szShortName[8] != ' ')
+	{
+		auiLongFilename[i++] = '.';
+
+		for (uiResult = 8; uiResult < 11; uiResult++)
+		{
+			if (szShortName[uiResult] != 0x20)
+			{
+				if (bLowercaseExtension)
+				{
+					auiLongFilename[i] = tolower(szShortName[uiResult]);
+				}
+				else
+				{
+					auiLongFilename[i] = szShortName[uiResult];
+				}
+				i++;
+			}
+		}
+	}
+
+	auiLongFilename[i] = 0x0;
+}
+
