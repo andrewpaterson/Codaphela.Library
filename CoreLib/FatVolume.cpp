@@ -3369,7 +3369,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			return FAT_SUCCESS;
 		}
 
-		eResult = MatchesFatFileName(&bMatch, &bLongFilename, szConstructedShortFileName, auiConstructedLongFilename, szCurrentLevelPath, &sQuery);
+		eResult = MatchesFatFileName(&bMatch, &bLongFilename, szConstructedShortFileName, auiConstructedLongFilename, szCurrentLevelPath, sQuery.auiLongFilename, sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 		if (eResult != FAT_SUCCESS)
 		{
 			break;

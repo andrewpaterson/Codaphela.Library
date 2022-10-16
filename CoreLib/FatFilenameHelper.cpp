@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char GetFatLongNameForEntry(uint16* puiDest, char* szSource)
+EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource)
 {
 	int i;
 
@@ -62,7 +62,7 @@ char CompareFatLongName(uint16* puiName1, uint16* puiName2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery)
+EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName)
 {
 	bool bLongFilename = false;
 	bool bMatch;
@@ -74,11 +74,11 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 			return FAT_INVALID_FILENAME;
 		}
 		bLongFilename = true;
-		bMatch = CompareFatLongName(puiTargetFileLongName, psQuery->auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
+		bMatch = CompareFatLongName(puiTargetFileLongName, auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
 	}
 	else
 	{
-		bMatch = CompareFatShortName(szConstructedShortFileName, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
+		bMatch = CompareFatShortName(szConstructedShortFileName, (char*)auiShortName);
 	}
 
 	*pbUsingLFN = bLongFilename;
