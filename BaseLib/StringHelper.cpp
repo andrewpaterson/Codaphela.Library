@@ -526,6 +526,68 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 	return NULL;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int FindCharIndex(char chr, char* str, int index)
+{
+	int i = 0;
+
+	str = str + index;
+	do
+	{
+		if (str[i] == chr)
+		{
+			return i;
+		}
+		i++;
+	} while (str[i]);
+
+	return -1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size_t uiMaxLength)
+{
+	uint32	uiSourceLength;
+	uint32	uiLeadSpaces = 0;
+	uint32	uiLastChar = 0;
+	uint32	i;
+	char* szFirstCharOfDest = szDest;
+
+	uiSourceLength = strlen(szSource);
+
+	for (i = 0; i < uiSourceLength && szSource[i] == ' '; i++)
+	{
+		uiLeadSpaces++;
+	}
+
+	if (uiSourceLength == uiLeadSpaces)
+	{
+		*szDest = '\0';
+		return;
+	}
+
+	for (uiLastChar = uiSourceLength - 1; uiLastChar > 0 && (szSource[uiLastChar] == ' '); uiLastChar--);
+
+	for (i = uiLeadSpaces; i <= uiLastChar; i++)
+	{
+		*szDest++ = szSource[i];
+		if (!uiMaxLength--)
+		{
+			*szFirstCharOfDest = '\0';
+			return;
+		}
+	}
+
+	*szDest = '\0';
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //

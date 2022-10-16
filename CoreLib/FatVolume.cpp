@@ -1660,7 +1660,6 @@ EFatCode CFatVolume::SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterIn
 }
 
 
-// increase a cluster address by the amount of clusters indicated by count. This function will // follow the FAT entry chain to fat the count-th cluster allocated to a file relative from the input cluster
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1744,7 +1743,6 @@ EFatCode CFatVolume::IncreaseFat32ClusterAddress(uint32* puiClusterIndex, uint32
 }
 
 
-// increase a cluster address by the amount of clusters indicated by count. This function will follow the FAT entry chain to fat the count-th cluster allocated to a file relative from the input cluster.
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1758,15 +1756,12 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 	bool		bFat12MultiStepProgress;
 	EFatCode	eResult;
 
-	// if the count is zero we just return the same
-	// uiCluster that we received
 	if (uiClusterCount == 0)
 	{
 		*puiNewClusterIndex = uiClusterIndex;
 		return FAT_SUCCESS;
 	}
 
-	// get the offset of the cluster entry within the FAT table, the sector of the FAT table that contains the entry and the offset of the fat entry within the sector
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
 	bFat12OddClusterBeingProcessed = false;
@@ -1776,16 +1771,13 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 	{
 		uiCurrentSector = uiFirstClusterSector;
 
-		// free all the fat entries on the current sector
 		while (uiCurrentSector == uiFirstClusterSector)
 		{
-			// make sure we don't try to free an invalid uiCluster
 			if (uiClusterIndex < 2)
 			{
 				return FAT_INVALID_CLUSTER;
 			}
 
-			// read the uiCluster entry and mark it as free
 			switch (meFileSystem)
 			{
 				case FAT_FS_TYPE_FAT12:
@@ -1815,17 +1807,11 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 				}
 			}
 
-			// if the last uiCluster marks the end of the chian we return
-			// false as we cannot increase the address by the # of clusters
-			// requested by the caller
 			if (FatIsEOFEntry(uiClusterIndex))
 			{
 				return FAT_UNKNOWN_ERROR;
 			}
 
-			// if we've followed the number of clusters requested by
-			// the caller set the return puiNewClusterIndex to the current uiCluster
-			// and return success
 			uiClusterCount--;
 			if (uiClusterCount == 0)
 			{
@@ -1833,7 +1819,6 @@ EFatCode CFatVolume::SeekByClusterCount(uint32 uiClusterIndex, uint16 uiClusterC
 				return FAT_SUCCESS;
 			}
 
-			// calculate the location of the next cluster in the chain
 			CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 		}
 	}
@@ -2000,7 +1985,6 @@ uint32 CFatVolume::CalculateRootSector(void)
 		return muiNoOfReservedSectors + (muiNoOfFatTables * muiFatSize);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -2269,25 +2253,19 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 	bool		bFat12OddClusterBeingProcessed = false;	
 	bool		bFat12MultiStepProgress = false;		
 
-	// get the offset of the cluster entry within the FAT table, the sector of the FAT table that contains the entry and the offset of the fat entry within the sector.
 	CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 
-	// loop until we reach the EOC cluster or an error occurs.
 	for (;;)
 	{
-		// store the address of the sector that's (will be) loaded in memory.
 		uiCurrentSector = uiFirstClusterSector;
 
-		// loop until a new sector needs to be loaded to continue with the operation.
 		while (uiCurrentSector == uiFirstClusterSector)
 		{
-			// if cluster is less than 2 either we got a bug or the file system is corrupted.
 			if (uiClusterIndex < 2)
 			{
 				return FAT_INVALID_CLUSTER;
 			}
 
-			// read the cluster entry and mark it as free.
 			switch (meFileSystem)
 			{
 				case FAT_FS_TYPE_FAT12:
@@ -2317,16 +2295,13 @@ EFatCode CFatVolume::FreeChain(uint32 uiClusterIndex)
 				}
 			}
 
-			// increase the count of free clusters
 			SetTotalFreeClusters(GetTotalFreeClusters() + 1);
 
-			// if it's the EOF marker we're done, flush the uiBuffer and go
 			if (FatIsEOFEntry(uiClusterIndex))
 			{
 				return FAT_SUCCESS;
 			}
 
-			// calculate the location of the next cluster in the chain
 			CalculateFATIndexAndOffset(&uiOffsetInSector, uiClusterIndex, &uiFirstClusterSector);
 		}
 	}
@@ -2383,15 +2358,12 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 {
 	uint32	uiRootCluster;
 
-	// copy the file name to the psEntry and the raw entry in their respective formats
 	strcpy((char*)psEntry->szName, "ROOT");
 	GetShortNameForEntry((char*)psEntry->sRaw.uEntry.sFatRawCommon.szShortName, (char*)psEntry->szName, 1);
 
-	// set the general fields of the entry
 	psEntry->uiAttributes = psEntry->sRaw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
 	psEntry->uiSize = psEntry->sRaw.uEntry.sFatRawCommon.uiSize = 0x0;
 
-	// since the psEntry does not physically exist the address fields are set to zero as well
 	psEntry->uiSectorAddress = 0;
 	psEntry->uiSectorOffset = 0;
 
@@ -2518,70 +2490,6 @@ EFatCode CFatVolume::MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szCo
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int FatIndexOf(char chr, char* str, int index)
-{
-	//DELETE THIS FUNCTION
-	int i = 0;
-
-	str = str + index;
-	do
-	{
-		if (str[i] == chr)
-		{
-			return i;
-		}
-		i++;
-	} while (str[i]);
-
-	return -1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void TrimPath(char* szDest, char* szSource, size_t uiMaxLength)
-{
-	//DELETE THIS FUNCTION
-	uint32	uiSourceLength;
-	uint32	uiLeadSpaces = 0;
-	uint32	uiLastChar = 0;
-	uint32	i;
-	char*	szFirstCharOfDest = szDest;
-
-	uiSourceLength = strlen(szSource);
-
-	for (i = 0; i < uiSourceLength && szSource[i] == ' '; i++)
-	{
-		uiLeadSpaces++;
-	}
-
-	if (uiSourceLength == uiLeadSpaces)
-	{
-		*szDest = '\0';
-		return;
-	}
-
-	for (uiLastChar = uiSourceLength - 1; uiLastChar > 0 && (szSource[uiLastChar] == ' '); uiLastChar--);
-
-	for (i = uiLeadSpaces; i <= uiLastChar; i++)
-	{
-		*szDest++ = szSource[i];
-		if (!uiMaxLength--)
-		{
-			*szFirstCharOfDest = '\0';
-			return;
-		}
-	}
-
-	*szDest = '\0';
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -2602,7 +2510,7 @@ EFatCode CFatVolume::GetShortNameForEntry(char* szDest, char* szSource, bool bLF
 		bool	bLFN = false;
 
 		uiLength = (uint16)strlen(szSource);
-		uiDotIndex = FatIndexOf('.', szSource, 0);
+		uiDotIndex = FindCharIndex('.', szSource, 0);
 
 		// if the file hs no extension and is longer than 8 chars or if the name part has more than 8 chars or the extension more than 8 or if it has more than one dot then we need to handle it as a LFN.
 		if (uiDotIndex < 0 && uiLength > 8) bLFN = true;
@@ -2614,7 +2522,7 @@ EFatCode CFatVolume::GetShortNameForEntry(char* szDest, char* szSource, bool bLF
 			}
 			if (uiDotIndex >= 0)
 			{
-				if (FatIndexOf('.', (char*)szSource, 1) >= 0)
+				if (FindCharIndex('.', (char*)szSource, 1) >= 0)
 				{
 					bLFN = true;
 				}
@@ -2712,7 +2620,7 @@ EFatCode CFatVolume::GetShortNameForEntry(char* szDest, char* szSource, bool bLF
 	}
 
 	// trim-off spaces - if the result is greater than 12 it will return an empty string.
-	TrimPath(szName, (char*)szSource, 12);
+	StrCpySafeStripSurroundingSpaces(szName, (char*)szSource, 12);
 
 	// if the name uiLength was invalid return error code.
 	if (*szName == 0 || strlen(szName) > 12)
@@ -3102,7 +3010,7 @@ bool CFatVolume::IsIllegalFilename(char* szName, uint16 uiLength)
 {
 	int16		uiCharIndex;
 	
-	uiCharIndex = FatIndexOf('.', szName, 0);
+	uiCharIndex = FindCharIndex('.', szName, 0);
 
 	if (uiCharIndex == 0 || uiCharIndex == (uiLength - 1))
 	{
