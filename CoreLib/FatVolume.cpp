@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include "BaseLib/MemCompare.h"
 #include "FatTime.h"
+#include "FatFilenameHelper.h"
 #include "FatVolume.h"
 
 
@@ -2359,7 +2360,7 @@ EFatCode CFatVolume::CreateFakeRootEntry(SFatDirectoryEntry* psEntry)
 	uint32	uiRootCluster;
 
 	strcpy((char*)psEntry->szName, "ROOT");
-	GetShortNameForEntry((char*)psEntry->sRaw.uEntry.sFatRawCommon.szShortName, (char*)psEntry->szName, 1);
+	GetFatShortNameForEntry((char*)psEntry->sRaw.uEntry.sFatRawCommon.szShortName, (char*)psEntry->szName, 1);
 
 	psEntry->uiAttributes = psEntry->sRaw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_DIRECTORY;
 	psEntry->uiSize = psEntry->sRaw.uEntry.sFatRawCommon.uiSize = 0x0;
@@ -2402,401 +2403,6 @@ char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
 	*szPathLevel = NULL;
 
 	return szPath;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char GetLongNameForEntry(uint16* puiDest, char* szSource)
-{
-	int i;
-
-	for (i = 0; i < (int)strlen((char*)szSource); i++)
-	{
-		puiDest[i] = (uint16)szSource[i];
-	}
-	puiDest[i] = 0x0;
-
-	return FAT_SUCCESS;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool FatCompareShortName(char* szName1, char* szName2)
-{
-	return memcmp(szName1, szName2, 11) == 0;
-}
-
-
-// performs an ASCII comparison on two UTF16 strings
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char FatCompareLongName(uint16* puiName1, uint16* puiName2)
-{
-	int		i;
-	char	c1, c2;
-
-	for (i = 0; i <= FAT_MAX_FILENAME; i++)
-	{
-		c1 = toupper((char)puiName1[i]);
-		c2 = toupper((char)puiName2[i]);
-		if (c1 != c2)
-		{
-			return 0;
-		}
-
-		if (c1 == '\0')
-		{
-			return 1;
-		}
-	}
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery)
-{
-	bool bLongFilename = false;
-	bool bMatch;
-
-	if (GetShortNameForEntry(szConstructedShortFileName, szCurrentLevelPath, 1) == FAT_INVALID_FILENAME)
-	{
-		if (GetLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath) == FAT_INVALID_FILENAME)
-		{
-			return FAT_INVALID_FILENAME;
-		}
-		bLongFilename = true;
-		bMatch = FatCompareLongName(puiTargetFileLongName, psQuery->auiLongFilename) || FatCompareShortName(szConstructedShortFileName, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
-	}
-	else
-	{
-		bMatch = FatCompareShortName(szConstructedShortFileName, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
-	}
-
-	*pbUsingLFN = bLongFilename;
-	*pbMatch = bMatch;
-	return FAT_SUCCESS;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::GetShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled)
-{
-	char		szName[13];
-	bool		bUppercase = false;
-	uint16		uiDotIndex;
-	uint16		uiLength;
-	uint16		i;
-
-	// check that the name is actually a long filename before processing it as such.
-	if (!bLFNDisabled)
-	{
-		uint8	c;
-		bool	bLFN = false;
-
-		uiLength = (uint16)strlen(szSource);
-		uiDotIndex = FindCharIndex('.', szSource, 0);
-
-		// if the file hs no extension and is longer than 8 chars or if the name part has more than 8 chars or the extension more than 8 or if it has more than one dot then we need to handle it as a LFN.
-		if (uiDotIndex < 0 && uiLength > 8) bLFN = true;
-		if (uiDotIndex >= 0)
-		{
-			if (uiDotIndex > 7 || (uiLength - uiDotIndex) > 4)
-			{
-				bLFN = true;
-			}
-			if (uiDotIndex >= 0)
-			{
-				if (FindCharIndex('.', (char*)szSource, 1) >= 0)
-				{
-					bLFN = true;
-				}
-			}
-		}
-		else
-		{
-			if (uiLength > 8) bLFN = true;
-		}
-
-		// if it has spaces or lowercase letters we must also handle it as a long filename
-		if (!bLFN)
-		{
-			for (i = 0; i < uiLength; i++)
-			{
-				if (szSource[i] == ' ' || szSource[i] != toupper(szSource[i]))
-				{
-					bLFN = true;
-					break;
-				}
-			}
-		}
-		if (bLFN)
-		{
-			// first we find the location of the LAST dot
-			uiDotIndex = uiLength;
-			for (i = uiLength - 1; i; i--)
-			{
-				if (szSource[i] == '.')
-				{
-					uiDotIndex = i;
-					break;
-				}
-			}
-
-			// now we copy the first 8 chars of the filename excluding dots and spaces and we pad it with spaces.
-			c = 0;
-			for (i = 0; i < 8; i++)
-			{
-				while (c < uiDotIndex)
-				{
-					if (szSource[c] == ' ' || szSource[c] == '.')
-					{
-						c++;
-					}
-					else
-					{
-						break;
-					}
-				}
-				if (c < uiDotIndex)
-				{
-					szName[i] = toupper(szSource[c++]);
-				}
-				else
-				{
-					szName[i] = ' ';
-				}
-			}
-
-			// do the same for the extension
-			c = uiDotIndex + 1;
-			for (i = 8; i < 11; i++)
-			{
-				while (c < uiLength)
-				{
-					if (szSource[c] == ' ' || szSource[c] == '.')
-					{
-						c++;
-					}
-					else
-					{
-						break;
-					}
-				}
-				if (c < uiLength)
-				{
-					szName[i] = toupper(szSource[c++]);
-				}
-				else
-				{
-					szName[i] = ' ';
-				}
-			}
-
-			// now we copy it to the callers buffer and we're done
-			for (i = 0; i < 11; i++)
-			{
-				*szDest++ = szName[i];
-			}
-
-			// return special code so the caller knows to store the long name.
-			return FAT_LFN_GENERATED;
-		}
-	}
-
-	// trim-off spaces - if the result is greater than 12 it will return an empty string.
-	StrCpySafeStripSurroundingSpaces(szName, (char*)szSource, 12);
-
-	// if the name uiLength was invalid return error code.
-	if (*szName == 0 || strlen(szName) > 12)
-	{
-		return FAT_INVALID_FILENAME;
-	}
-
-	// find the location of the dot.
-	uiDotIndex = (uintptr_t)strchr(szName, (int)'.');
-
-	// strchr gave us the address of the dot, we now convert it to a 1-based index.
-	if (uiDotIndex)
-	{
-		uiDotIndex -= (uintptr_t)szName - 1;
-	}
-
-	// get the uiLength of the input string
-	uiLength = (uint16)strlen(szName);
-
-	// check that this is a valid 8.3 filename
-	if ((uiLength > 9 &&
-		(uiDotIndex == 0 || (uiDotIndex) > 9)) ||
-		(uiDotIndex > 0 && (uiLength - uiDotIndex) > 5))
-	{
-		return FAT_INVALID_FILENAME;
-	}
-
-	// copy the 1st part of the filename to the destination bBuffer.
-	for (i = 0; i < 8; i++)
-	{
-		if (uiDotIndex == 0)
-		{
-			if (i < uiLength)
-			{
-				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
-					bUppercase = true;
-
-				*szDest++ = toupper(szName[i]);
-			}
-			else
-			{
-				*szDest++ = ' ';
-			}
-		}
-		else
-		{
-			if (i < uiDotIndex - 1)
-			{
-				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
-					bUppercase = true;
-
-				*szDest++ = toupper(szName[i]);
-			}
-			else
-			{
-				*szDest++ = ' ';
-			}
-		}
-	}
-
-	// if there's not extension fill the extension characters with spaces.
-	if (uiDotIndex == 0)
-	{
-		for (i = 0; i < 3; i++)
-			*szDest++ = ' ';
-	}
-	// if there is an extension...
-	else
-	{
-		// copy the extension characters to the destination bBuffer.
-		for (i = uiDotIndex; i < uiDotIndex + 3; i++)
-		{
-			if (i < uiLength)
-			{
-				if (bLFNDisabled && (szName[i] != toupper(szName[i])))
-					bUppercase = true;
-				*szDest++ = toupper(szName[i]);
-			}
-			else
-			{
-				*szDest++ = ' ';
-			}
-		}
-	}
-
-	return bUppercase ? FAT_INVALID_FILENAME : FAT_SUCCESS;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* puiSource)
-{
-	if (*puiSource != FAT_KANJI_SKIP_ENTRY)
-	{
-		*puiDest++ = *puiSource++;
-	}
-	else
-	{
-		*puiDest++ = FAT_DELETED_ENTRY;
-	}
-
-	// if there's a second character...
-	if (*puiSource != ' ')
-	{
-		*puiDest++ = *puiSource++;
-		if (*puiSource != ' ')
-		{
-			*puiDest++ = *puiSource++;
-			if (*puiSource != ' ')
-			{
-				*puiDest++ = *puiSource++;
-				if (*puiSource != ' ')
-				{
-					*puiDest++ = *puiSource++;
-					if (*puiSource != ' ')
-					{
-						*puiDest++ = *puiSource++;
-						if (*puiSource != ' ')
-						{
-							*puiDest++ = *puiSource++;
-							if (*puiSource != ' ')
-							{
-								*puiDest++ = *puiSource++;
-							}
-							else
-							{
-								puiSource++;
-							}
-						}
-						else
-						{
-							puiSource += 0x2;
-						}
-					}
-					else
-					{
-						puiSource += 0x3;
-					}
-				}
-				else
-				{
-					puiSource += 0x4;
-				}
-			}
-			else
-			{
-				puiSource += 0x5;
-			}
-		}
-		else
-		{
-			puiSource += 0x6;
-		}
-	}
-	else
-	{
-		puiSource += 0x7;
-	}
-
-	if (*puiSource != ' ')
-	{
-		*puiDest++ = '.';
-		*puiDest++ = *puiSource++;
-		if (*puiSource != ' ')
-		{
-			*puiDest++ = *puiSource++;
-			if (*puiSource != ' ')
-			{
-				*puiDest++ = *puiSource;
-			}
-		}
-	}
-	*puiDest = '\0';
 }
 
 
@@ -3505,7 +3111,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 
 	memset(&psNewEntry->sRaw, 0, sizeof(SFatRawDirectoryEntry));
 
-	eResult = GetShortNameForEntry((char*)psNewEntry->sRaw.uEntry.sFatRawCommon.szShortName, szName, false);
+	eResult = GetFatShortNameForEntry((char*)psNewEntry->sRaw.uEntry.sFatRawCommon.szShortName, szName, false);
 	if (eResult != FAT_SUCCESS && eResult != FAT_LFN_GENERATED)
 	{
 		return FAT_INVALID_FILENAME;
@@ -3763,7 +3369,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			return FAT_SUCCESS;
 		}
 
-		eResult = MatchesFileName(&bMatch, &bLongFilename, szConstructedShortFileName, auiConstructedLongFilename, szCurrentLevelPath, &sQuery);
+		eResult = MatchesFatFileName(&bMatch, &bLongFilename, szConstructedShortFileName, auiConstructedLongFilename, szCurrentLevelPath, &sQuery);
 		if (eResult != FAT_SUCCESS)
 		{
 			break;
@@ -3793,11 +3399,11 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			// match the filename against the next psEntry.
 			if (bLongFilename)
 			{
-				bMatch = FatCompareLongName(auiConstructedLongFilename, sQuery.auiLongFilename) || FatCompareShortName(szConstructedShortFileName, (char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
+				bMatch = CompareFatLongName(auiConstructedLongFilename, sQuery.auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 			}
 			else
 			{
-				bMatch = FatCompareShortName(szConstructedShortFileName, (char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
+				bMatch = CompareFatShortName(szConstructedShortFileName, (char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 			}
 		}
 		if (eResult != FAT_SUCCESS)

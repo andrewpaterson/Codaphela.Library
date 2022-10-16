@@ -146,8 +146,6 @@ protected:
 	bool					IsFreeFat(fatEntry uifat);
 
 	EFatCode				CreateFakeRootEntry(SFatDirectoryEntry* psEntry);
-	EFatCode				MatchesFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, SFatQueryState* psQuery);
-	EFatCode				GetShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled);
 	fatEntry				GetDirectoryCluster(SFatRawDirectoryEntry* psParentDirectory);
 	uint32					GetDirectorySector(SFatRawDirectoryEntry* psParentDirectory);
 	EFatCode				FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEntry* puiDirectoryCluster, uint32* puiFirstSectorOfCluster, uint32* puiSector, int* piLFNEntriesFound, SFatRawDirectoryEntry** ppsParentEntry, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
@@ -181,9 +179,6 @@ protected:
 
 	EFatCode				EraseClusterChainContents(fatEntry uiCluster);
 };
-
-
-void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* puiSource);
 
 
 #endif __FAT_VOLUME_H__

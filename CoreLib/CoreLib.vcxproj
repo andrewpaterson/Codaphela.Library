@@ -187,6 +187,7 @@
     <ClCompile Include="FatCommon.cpp" />
     <ClCompile Include="FatDebug.cpp" />
     <ClCompile Include="FatFile.cpp" />
+    <ClCompile Include="FatFilenameHelper.cpp" />
     <ClCompile Include="FatFormat.cpp" />
     <ClCompile Include="FatInfoSectorCache.cpp" />
     <ClCompile Include="FatTime.cpp" />
@@ -305,6 +306,7 @@
     <ClInclude Include="FatCommon.h" />
     <ClInclude Include="FatDebug.h" />
     <ClInclude Include="FatFile.h" />
+    <ClInclude Include="FatFilenameHelper.h" />
     <ClInclude Include="FatFormat.h" />
     <ClInclude Include="FatInfoSectorCache.h" />
     <ClInclude Include="FatTime.h" />

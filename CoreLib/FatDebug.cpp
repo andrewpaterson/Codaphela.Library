@@ -3,6 +3,7 @@
 #include "BaseLib/StringHelper.h"
 #include "FatVolume.h"
 #include "FatTime.h"
+#include "FatFilenameHelper.h"
 #include "FatDebug.h"
 
 
