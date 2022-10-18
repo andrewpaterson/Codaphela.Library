@@ -526,10 +526,8 @@ EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector,
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery)
 {
-	// if there are more sectors on the current cluster then
 	psQuery->uiCurrentSector++;
 
-	// if this is the root directory of a FAT16/FAT12 volume and we have passed it's last sector then there are no more entries...
 	if (psQuery->uiCurrentCluster == 0)
 	{
 		if (psQuery->uiCurrentSector == GetRootDirectorySectors())
@@ -537,11 +535,10 @@ EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQue
 			psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
 			return FAT_SHORT_NAME_FOUND;
 		}
-		*puiSector = (GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize())) + psQuery->uiCurrentSector;
+		*puiSector = GetRootDirectorySector() + psQuery->uiCurrentSector;
 	}
 	else
 	{
-		// calculate the address of the next sector
 		*puiSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
 	}
 	return FAT_SUCCESS;
@@ -654,7 +651,6 @@ void CFatVolume::ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery
 {
 	::ConstructFatLongFileNameFromShortName(psQuery->auiLongFilename, (char*)psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_BASENAME, psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.uiReserved & FAT_LOWERCASE_EXTENSION);
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1461,26 +1457,22 @@ uint32 CFatVolume::AllocateClusters(SFatRawDirectoryEntry* psParentDirectory, ui
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 uiCluster, uint32 uiNewClusterInVolume, uint32 uiClustersInFile)
+EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 uiFirstCluster, uint32 uiNewClusterInVolume, uint32 uiClustersInFile)
 {
 	SFatCache	sBuffer;
 
-	// if this is the 1st cluster cluster allocated to the file then we must modify the file's entry
-	if ((uiCluster == 0))
+	if ((uiFirstCluster == 0))
 	{
-		// modify the file entry to point to the new cluster
 		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiNewClusterInVolume;
 		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiNewClusterInVolume >> 16);
 		psEntry->sRaw.uEntry.sFatRawCommon.uiAttributes = FAT_ATTR_ARCHIVE;
 
 		READ_SECTOR(sBuffer, psEntry->uiSectorAddress);
 
-		// copy the modified file entry to the sector buffer
 		memcpy(sBuffer.Get() + psEntry->uiSectorOffset, &psEntry->sRaw, sizeof(SFatRawDirectoryEntry));
 		DirtySector(sBuffer);
 	}
@@ -2346,10 +2338,7 @@ char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
 
 	szPathLevel = szCurrentLevelPath;
 
-	if (*szPath == '\\')
-	{
-		szPath++;
-	}
+	szPath = StepPathOverSlash(szPath);
 
 	uint16 uiCount = 0;
 	while (*szPath != '\0' && *szPath != '\\')
@@ -2365,6 +2354,15 @@ char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
 	return szPath;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::GetRootDirectorySector(void)
+{
+	return GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -2375,49 +2373,32 @@ EFatCode CFatVolume::FindFirstFATEntry(char* szParentPath, uint8 uiAttributes, S
 	EFatCode			eResult;
 	SFatDirectoryEntry	sParentEntry;
 
-	// if the path starts with a backslash then advance to the next character
-	if (szParentPath)
-	{
-		if (*szParentPath == '\\')
-		{
-			szParentPath++;
-		}
-	}
-
-	// if a parent was specified...
+	szParentPath = StepPathOverSlash(szParentPath);
+	
 	if (szParentPath != NULL)
 	{
-		// try to get the entry for the parent
 		eResult = GetFileEntry(szParentPath, &sParentEntry);
 		RETURN_ON_FAT_FAILURE(eResult);
 
-		// try to get the 1st entry of the query results.
 		eResult = QueryFirstEntry(&sParentEntry.sRaw, uiAttributes, &psQuery->sQuery, 0);
 	}
-	// if the parent was not supplied then we submit the query without it.
 	else
 	{
 		eResult = QueryFirstEntry(0, uiAttributes, &psQuery->sQuery, 0);
 	}
-
-	// if we cant get the 1st entry then return the error that we received from fat_Query_First_entry.
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	// if there are no more entries
 	if (psQuery->sQuery.psCurrentEntryRaw == NULL)
 	{
 		psQuery->sCurrentEntry.szName[0] = '\0';
 		return FAT_SUCCESS;
 	}
 
-	// fill the current entry structure with data from the current raw entry of the query.
 	FillDirectoryEntryFromRawEntry(&psQuery->sCurrentEntry, psQuery->sQuery.psCurrentEntryRaw);
 
-	// calculate the sector address of the entry - if query->CurrentCluster equals zero then this is the root
-	// directory of a FAT12/FAT16 volume and the calculation is different.
 	if (psQuery->sQuery.uiCurrentCluster == 0)
 	{
-		psQuery->sCurrentEntry.uiSectorAddress = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + psQuery->sQuery.uiCurrentSector;
+		psQuery->sCurrentEntry.uiSectorAddress = GetRootDirectorySector() + psQuery->sQuery.uiCurrentSector;
 	}
 	else
 	{
@@ -2486,7 +2467,7 @@ EFatCode CFatVolume::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SF
 	// directory of a FAT12/FAT16 volume and the calculation is different.
 	if (psQuery->sQuery.uiCurrentCluster == 0x0)
 	{
-		psQuery->sCurrentEntry.uiSectorAddress = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + psQuery->sQuery.uiCurrentSector;
+		psQuery->sCurrentEntry.uiSectorAddress = GetRootDirectorySector() + psQuery->sQuery.uiCurrentSector;
 	}
 	else
 	{
@@ -3010,7 +2991,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 			{
 				if (uiLastDirectoryCluster == 0)
 				{
-					uiFirstSectorOfCluster = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+					uiFirstSectorOfCluster = GetRootDirectorySector();
 				}
 				else
 				{
@@ -3287,10 +3268,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 	uint16					auiConstructedLongFilename[FAT_MAX_PATH + 1];
 	char					szCurrentLevelPath[FAT_MAX_PATH + 1];
 
-	if (szPath[0] == '\\')
-	{
-		szPath++;
-	}
+	szPath = StepPathOverSlash(szPath);
 
 	if (szPath[0] != '\0')
 	{
@@ -3395,7 +3373,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 		// calculate the sector address of the psEntry - if query->CurrentCluster equals zero then this is the root directory of a FAT12/FAT16 volume and the calculation is different.
 		if (sQuery.uiCurrentCluster == 0x0)
 		{
-			psEntry->uiSectorAddress = GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize()) + sQuery.uiCurrentSector;
+			psEntry->uiSectorAddress = GetRootDirectorySector() + sQuery.uiCurrentSector;
 		}
 		else
 		{

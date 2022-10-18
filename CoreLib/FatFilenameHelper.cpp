@@ -389,8 +389,6 @@ void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* pui
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -439,5 +437,24 @@ void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShor
 	}
 
 	auiLongFilename[i] = 0x0;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* StepPathOverSlash(char* szPathName)
+{
+	if (szPathName)
+	{
+		if (szPathName[0] == '\\')
+		{
+			szPathName++;
+		}
+	}
+	return szPathName;
 }
 
