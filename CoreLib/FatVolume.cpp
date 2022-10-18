@@ -501,20 +501,16 @@ EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector,
 	eResult = GetNextClusterEntry(psQuery->uiCurrentCluster, &uiFat);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	// if this is the last cluster of the directory...
 	if (FatIsEOFEntry(uiFat))
 	{
 		psQuery->psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] = '\0';
 		return FAT_SHORT_NAME_FOUND;
 	}
 
-	// set the current cluster to the next cluster of the directory etry
 	psQuery->uiCurrentCluster = uiFat;
 
-	// reset the current sector
 	psQuery->uiCurrentSector = 0;
 
-	// calculate the address of the next sector.
 	*puiSector = CalculateFirstSectorOfCluster(psQuery->uiCurrentCluster) + psQuery->uiCurrentSector;
 	return FAT_SUCCESS;
 }
@@ -2354,6 +2350,7 @@ char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
 	return szPath;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -2361,6 +2358,54 @@ char* FindNextPathItem(char* szPath, char* szCurrentLevelPath)
 uint32 CFatVolume::GetRootDirectorySector(void)
 {
 	return GetNoOfReservedSectors() + (GetNoOfFatTables() * GetFatSize());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFatVolume::HasNoMoreEntries(SFatFileSystemQuery* psQuery)
+{
+	return psQuery->sQuery.psCurrentEntryRaw == NULL;
+}
+
+
+/////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::TerminalQueryEntry(SFatFileSystemQuery* psQuery)
+{
+	psQuery->sCurrentEntry.szName[0] = '\0';
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::CalculateQuerySector(SFatFileSystemQuery* psQuery)
+{
+	if (psQuery->sQuery.uiCurrentCluster == 0)
+	{
+		return GetRootDirectorySector() + psQuery->sQuery.uiCurrentSector;
+	}
+	else
+	{
+		return CalculateFirstSectorOfCluster(psQuery->sQuery.uiCurrentCluster) + psQuery->sQuery.uiCurrentSector;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CFatVolume::CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery)
+{
+	return (uint16)((uintptr_t)psQuery->sQuery.psCurrentEntryRaw) - ((uintptr_t)psQuery->sQuery.psFirstEntryRaw);
 }
 
 
@@ -2381,57 +2426,28 @@ EFatCode CFatVolume::FindFirstFATEntry(char* szParentPath, uint8 uiAttributes, S
 		RETURN_ON_FAT_FAILURE(eResult);
 
 		eResult = QueryFirstEntry(&sParentEntry.sRaw, uiAttributes, &psQuery->sQuery, 0);
+		RETURN_ON_FAT_FAILURE(eResult);
 	}
 	else
 	{
 		eResult = QueryFirstEntry(0, uiAttributes, &psQuery->sQuery, 0);
+		RETURN_ON_FAT_FAILURE(eResult);
 	}
-	RETURN_ON_FAT_FAILURE(eResult);
 
-	if (psQuery->sQuery.psCurrentEntryRaw == NULL)
+	if (HasNoMoreEntries(psQuery))
 	{
-		psQuery->sCurrentEntry.szName[0] = '\0';
-		return FAT_SUCCESS;
+		return TerminalQueryEntry(psQuery);
 	}
 
 	FillDirectoryEntryFromRawEntry(&psQuery->sCurrentEntry, psQuery->sQuery.psCurrentEntryRaw);
 
-	if (psQuery->sQuery.uiCurrentCluster == 0)
-	{
-		psQuery->sCurrentEntry.uiSectorAddress = GetRootDirectorySector() + psQuery->sQuery.uiCurrentSector;
-	}
-	else
-	{
-		psQuery->sCurrentEntry.uiSectorAddress = CalculateFirstSectorOfCluster(psQuery->sQuery.uiCurrentCluster) + psQuery->sQuery.uiCurrentSector;
-	}
-
-	// calculate the offset of the entry within it's sector
-	psQuery->sCurrentEntry.uiSectorOffset = (uint16)((uintptr_t)psQuery->sQuery.psCurrentEntryRaw) - ((uintptr_t)psQuery->sQuery.psFirstEntryRaw);
-
-	// store a copy of the original FAT directory entry within the SFatDirectoryEntry structure that is returned to users
+	psQuery->sCurrentEntry.uiSectorAddress = CalculateQuerySector(psQuery);
+	psQuery->sCurrentEntry.uiSectorOffset = CalculateQuerySectorOffset(psQuery);
 	psQuery->sCurrentEntry.sRaw = *psQuery->sQuery.psCurrentEntryRaw;
 
-	// if long filenames are enabled copy the filename to the entry
-	if (*psQuery->sCurrentEntry.szName != 0)
-	{
-		if (*psQuery->sQuery.auiLongFilename != 0)
-		{
-			uint16	uiIndex;
-			for (uiIndex = 0; uiIndex < 256; uiIndex++)
-			{
-				psQuery->sCurrentEntry.szName[uiIndex] = (uint8)psQuery->sQuery.auiLongFilename[uiIndex];
-				if (psQuery->sQuery.auiLongFilename[uiIndex] == 0)
-				{
-					break;
-				}
-			}
-		}
-	}
+	CopyLongFilenameIntoString((char*)psQuery->sCurrentEntry.szName, psQuery->sQuery.auiLongFilename);
 
-	if (ppsDirectoryEntry)
-	{
-		*ppsDirectoryEntry = &psQuery->sCurrentEntry;
-	}
+	SafeAssign(ppsDirectoryEntry, &psQuery->sCurrentEntry);
 
 	return FAT_SUCCESS;
 }
@@ -2445,63 +2461,27 @@ EFatCode CFatVolume::FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SF
 {
 	EFatCode				eResult;
 
-	// try to get the next entry of the query.
 	eResult = QueryNextEntry(&psQuery->sQuery, false, false);
 	if (eResult != FAT_SUCCESS)
 	{
 		return eResult;
 	}
 
-	// if there are no more entries
-	if (psQuery->sQuery.psCurrentEntryRaw == 0)
+	if (HasNoMoreEntries(psQuery))
 	{
-		// set the filename of the current entry to 0.
-		psQuery->sCurrentEntry.szName[0] = '\0';
-		return FAT_SUCCESS;
+		return TerminalQueryEntry(psQuery);
 	}
 
-	// fill the current entry structure with data from the current raw entry of the query.
+
 	FillDirectoryEntryFromRawEntry(&psQuery->sCurrentEntry, psQuery->sQuery.psCurrentEntryRaw);
 
-	// calculate the sector address of the entry - if query->CurrentCluster equals zero then this is the root
-	// directory of a FAT12/FAT16 volume and the calculation is different.
-	if (psQuery->sQuery.uiCurrentCluster == 0x0)
-	{
-		psQuery->sCurrentEntry.uiSectorAddress = GetRootDirectorySector() + psQuery->sQuery.uiCurrentSector;
-	}
-	else
-	{
-		psQuery->sCurrentEntry.uiSectorAddress = CalculateFirstSectorOfCluster(psQuery->sQuery.uiCurrentCluster) + psQuery->sQuery.uiCurrentSector;
-	}
-
-	// calculate the offset of the entry within it's sector
-	psQuery->sCurrentEntry.uiSectorOffset = (uint16)((uintptr_t)psQuery->sQuery.psCurrentEntryRaw) - ((uintptr_t)psQuery->sQuery.psFirstEntryRaw);
-
-	// store a copy of the original FAT directory entry
-	// within the SFatDirectoryEntry structure that is returned
-	// to users
+	psQuery->sCurrentEntry.uiSectorAddress = CalculateQuerySector(psQuery);
+	psQuery->sCurrentEntry.uiSectorOffset = CalculateQuerySectorOffset(psQuery);
 	psQuery->sCurrentEntry.sRaw = *psQuery->sQuery.psCurrentEntryRaw;
 
-	if (*psQuery->sCurrentEntry.szName != 0)
-	{
-		if (*psQuery->sQuery.auiLongFilename != 0)
-		{
-			uint16 uiIndex;
-			for (uiIndex = 0; uiIndex < 256; uiIndex++)
-			{
-				psQuery->sCurrentEntry.szName[uiIndex] = (uint8)psQuery->sQuery.auiLongFilename[uiIndex];
-				if (psQuery->sQuery.auiLongFilename[uiIndex] == 0)
-				{
-					break;
-				}
-			}
-		}
-	}
+	CopyLongFilenameIntoString((char*)psQuery->sCurrentEntry.szName, psQuery->sQuery.auiLongFilename);
 
-	if (ppsDirectoryEntry)
-	{
-		*ppsDirectoryEntry = &psQuery->sCurrentEntry;
-	}
+	SafeAssign(ppsDirectoryEntry, &psQuery->sCurrentEntry);
 
 	return FAT_SUCCESS;
 }

@@ -440,8 +440,6 @@ void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShor
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -456,5 +454,30 @@ char* StepPathOverSlash(char* szPathName)
 		}
 	}
 	return szPathName;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource)
+{
+	uint16	uiIndex;
+
+	if (szDestination[0] != '\0')
+	{
+		if (auiSource[0] != 0)
+		{
+			for (uiIndex = 0; uiIndex < 256; uiIndex++)
+			{
+				szDestination[uiIndex] = (char)auiSource[uiIndex];
+				if (auiSource[uiIndex] == 0)
+				{
+					break;
+				}
+			}
+		}
+	}
 }
 
