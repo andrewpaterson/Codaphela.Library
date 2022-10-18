@@ -58,7 +58,7 @@ public:
 	EFatCode				FreeChain(uint32 uiClusterIndex);
 	EFatCode				SetClusterEntry(uint32 uiClusterIndex, fatEntry uiClusterInVolume);
 	EFatCode				ReadFatEntry(uint32 uiOffsetInSector, uint32 uiClusterIndex, uint32 uiFat12Sector, fatEntry* puiFatEntry);
-	EFatCode				UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 uiCluster, uint32 uiNewClusterInVolume, uint32 uiClustersInFile);
+	EFatCode				UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 uiFirstCluster, uint32 uiNewClusterInVolume, uint32 uiClustersInFile);
 	EFatCode				FindFirstFATEntry(char* szParentPath, uint8 uiAttributes, SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode				FindNextFATEntry(SFatDirectoryEntry** ppsDirectoryEntry, SFatFileSystemQuery* psQuery);
 	EFatCode				CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, char* szName, uint8 uiAttributes, uint32 uiEntryCluster, SFatDirectoryEntry* psNewEntry);
@@ -178,6 +178,7 @@ protected:
 	void					ConstructQueryLongFileNameFromShortName(SFatQueryState* psQuery);
 
 	EFatCode				EraseClusterChainContents(fatEntry uiCluster);
+	uint32					GetRootDirectorySector(void);
 };
 
 
