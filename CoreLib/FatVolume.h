@@ -180,6 +180,9 @@ protected:
 	EFatCode				TerminalQueryEntry(SFatFileSystemQuery* psQuery);
 	uint32					CalculateQuerySector(SFatFileSystemQuery* psQuery);
 	uint32					CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery);
+
+	EFatCode				CheckEntryName(char* szName);
+	EFatCode				WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
 };
 
 
