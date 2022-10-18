@@ -1,3 +1,5 @@
+#include <string.h>
+#include <stdio.h>
 #include "BaseLib/StringHelper.h"
 #include "FatFilenameHelper.h"
 
@@ -478,6 +480,87 @@ void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource)
 				}
 			}
 		}
+	}
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIllegalFilenameCharacter(char c)
+{
+	uint16	uiIndex;
+
+	if (c <= 0x1F)
+	{
+		return true;
+	}
+
+	for (uiIndex = 0; uiIndex < ILLEGAL_CHARS_COUNT; uiIndex++)
+	{
+		if (c == ILLEGAL_CHARS[uiIndex] && c != '.')
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool IsIllegalFilename(char* szName, uint16 uiLength)
+{
+	int16		uiCharIndex;
+
+	uiCharIndex = FindCharIndex('.', szName, 0);
+
+	if (uiCharIndex == 0 || uiCharIndex == (uiLength - 1))
+	{
+		return true;
+	}
+
+	for (uiCharIndex = 0x0; uiCharIndex < uiLength; uiCharIndex++)
+	{
+		if (IsIllegalFilenameCharacter(szName[uiCharIndex]))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
+{
+	char			szNameSuffix[6];
+	uint8			i;
+	uint8			c;
+
+	sprintf(szNameSuffix, "~%i", uiNameSuffix);
+
+	for (i = 0; i < 8 - (char)strlen(szNameSuffix); i++)
+	{
+		if (szShortName[i] == ' ')
+		{
+			break;
+		}
+	}
+
+	for (c = 0; c < (char)strlen(szNameSuffix); c++)
+	{
+		szShortName[i] = szNameSuffix[c];
+		i++;
 	}
 }
 
