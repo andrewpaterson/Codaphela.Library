@@ -179,6 +179,10 @@ protected:
 
 	EFatCode				EraseClusterChainContents(fatEntry uiCluster);
 	uint32					GetRootDirectorySector(void);
+	bool					HasNoMoreEntries(SFatFileSystemQuery* psQuery);
+	EFatCode				TerminalQueryEntry(SFatFileSystemQuery* psQuery);
+	uint32					CalculateQuerySector(SFatFileSystemQuery* psQuery);
+	uint32					CalculateQuerySectorOffset(SFatFileSystemQuery* psQuery);
 };
 
 
