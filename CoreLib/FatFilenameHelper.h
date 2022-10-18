@@ -14,7 +14,9 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension);
 char* StepPathOverSlash(char* szPathName);
 void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource);
-
+bool IsIllegalFilenameCharacter(char c);
+bool IsIllegalFilename(char* szName, uint16 uiLength);
+void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName);
 
 #endif // __FAT_FILENAME_HELPER_H__
 
