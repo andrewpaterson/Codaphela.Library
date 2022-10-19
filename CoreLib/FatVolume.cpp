@@ -2941,6 +2941,52 @@ EFatCode CFatVolume::CheckEntryName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::IncrementDirectorySector(uint32* puiSector, uint32 uiFirstSectorOfCluster, fatEntry uiDirectoryCluster)
+{
+	(*puiSector)++;
+
+	if (IsRootDirectoryCluster(uiDirectoryCluster))
+	{
+		if ((*puiSector) > uiFirstSectorOfCluster + GetRootDirectorySectors())
+		{
+			return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
+		}
+	}
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatEntry* puiDirectoryCluster, fatEntry uiLastDirectoryCluster)
+{
+	EFatCode	eResult;
+
+	eResult = GetNextClusterEntry(*puiDirectoryCluster, puiDirectoryCluster);
+	RETURN_ON_FAT_FAILURE(eResult);
+
+	if (FatIsEOFEntry(*puiDirectoryCluster))
+	{
+		fatEntry uiNewFat = AllocateDataCluster(1, true, &eResult, uiLastDirectoryCluster);
+		RETURN_ON_FAT_FAILURE(eResult);
+
+		eResult = SetClusterEntry(uiLastDirectoryCluster, uiNewFat);
+		RETURN_ON_FAT_FAILURE(eResult);
+
+		*puiDirectoryCluster = uiNewFat;
+	}
+
+	*puiSector = CalculateFirstSectorOfCluster(*puiDirectoryCluster);
+	return FAT_SUCCESS;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded)
 {
 	EFatCode				eResult;
@@ -2959,6 +3005,7 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName,
 	uiDirectoryCluster = 0;
 	uiFirstSectorOfCluster = 0;
 	uiLastDirectoryCluster = 0;
+
 	eResult = FindEnoughEntries(&uiLastDirectoryCluster, &uiDirectoryCluster, &uiFirstSectorOfCluster, &uiSector, &iLFNEntriesFound, &psParentEntry, psParentDirectory, iLFNEntriesNeeded);
 	RETURN_ON_FAT_FAILURE(eResult);
 
@@ -2986,38 +3033,16 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName,
 			{
 				if (IsRootDirectoryCluster(uiDirectoryCluster) || uiSector < uiFirstSectorOfCluster + NumSectorsPerCluster() - 1)
 				{
-					uiSector++;
-
-					if (IsRootDirectoryCluster(uiDirectoryCluster))
-					{
-						if (uiSector > uiFirstSectorOfCluster + GetRootDirectorySectors())
-						{
-							return FAT_ROOT_DIRECTORY_LIMIT_EXCEEDED;
-						}
-					}
+					eResult = IncrementDirectorySector(&uiSector, uiFirstSectorOfCluster, uiDirectoryCluster);
+					RETURN_ON_FAT_FAILURE(eResult);
 				}
 				else
 				{
 					uiLastDirectoryCluster = uiDirectoryCluster;
-					eResult = GetNextClusterEntry(uiDirectoryCluster, &uiDirectoryCluster);
+					eResult = IncrementOrAllocateDirectoryCluster(&uiSector, &uiDirectoryCluster, uiLastDirectoryCluster);
 					RETURN_ON_FAT_FAILURE(eResult);
-
-					if (FatIsEOFEntry(uiDirectoryCluster))
-					{
-						fatEntry uiNewFat = AllocateDataCluster(1, true, &eResult, uiLastDirectoryCluster);
-						RETURN_ON_FAT_FAILURE(eResult);
-
-						eResult = SetClusterEntry(uiLastDirectoryCluster, uiNewFat);
-						RETURN_ON_FAT_FAILURE(eResult);
-
-						uiDirectoryCluster = uiNewFat;
-					}
-
-					// continue working on the new cluster
-					uiSector = CalculateFirstSectorOfCluster(uiDirectoryCluster);
 				}
 
-				// load the next sector
 				READ_SECTOR(sBuffer, uiSector);
 
 				puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
@@ -3095,43 +3120,29 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::CreateDirectory(char* szDirectory)
 {
-	EFatCode			uiResult;
+	EFatCode			eResult;
 	SFatDirectoryEntry	sEntry;
 
-	// check that we got a valid pathname
-	if (!szDirectory || strlen(szDirectory) > FAT_MAX_PATH)
+	if (StrEmpty(szDirectory) || strlen(szDirectory) > FAT_MAX_PATH)
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	// try get the file entry
-	uiResult = GetFileEntry(szDirectory, &sEntry);
-	if (uiResult != FAT_SUCCESS)
-	{
-		return uiResult;
-	}
+	eResult = GetFileEntry(szDirectory, &sEntry);
+	RETURN_ON_FAT_FAILURE(eResult);
 
-	// if we don'tfind a file or directory by that name
-	// we can create it, otherwise return file already exists error
-	if (*sEntry.szName == 0)
+	// if we don't find a file or directory by that name we can create it, otherwise return file already exists error
+	if (sEntry.szName[0] == '\0')
 	{
-		// allocate memory for the file path
 		size_t				uiPathLength;
 		char*				szPathScanner;
 		char				szFilePath[FAT_MAX_PATH + 1];
 		SFatDirectoryEntry	sParentEntry;
 
-		// get the name of the file path including
-		// the filename
 		uiPathLength = strlen(szDirectory);
 
-		// set the pointer that will be used to scan
-		// filename to the end of the filename
 		szPathScanner = szDirectory + (uiPathLength - 0x1);
 
-		// if the filename ends with a backslash then it
-		// is an invalid filename ( it's actually a directory
-		// path )
 		if (*szPathScanner == BACKSLASH)
 		{
 			return FAT_INVALID_FILENAME;
@@ -3146,23 +3157,17 @@ EFatCode CFatVolume::CreateDirectory(char* szDirectory)
 		szFilePath[uiPathLength] = 0x0;
 		szPathScanner++;
 
-		uiResult = GetFileEntry(szFilePath, &sParentEntry);
+		eResult = GetFileEntry(szFilePath, &sParentEntry);
+		RETURN_ON_FAT_FAILURE(eResult);
 
-		if (uiResult != FAT_SUCCESS)
-		{
-			return uiResult;
-		}
-
-		if (*sParentEntry.szName == 0)
+		if (sParentEntry.szName[0] == '\0')
 		{
 			return FAT_DIRECTORY_DOES_NOT_EXIST;
 		}
 
-		// try to create the directory entry
 		return CreateFATEntry(&sParentEntry.sRaw, szPathScanner, FAT_ATTR_DIRECTORY, 0, &sEntry);
 	}
 
-	// if we get here it means that a file or directory with that name already exists.
 	return FAT_FILENAME_ALREADY_EXISTS;
 }
 
