@@ -311,7 +311,6 @@ enum EFatFileSystemType
 #define FAT32_HARD_ERROR			0x04000000
 #define FREE_FAT					0x0000
 #define ILLEGAL_CHARS_COUNT 		0x10
-#define BACKSLASH					0x5C
 #define FAT_OPEN_HANDLE_MAGIC		0x4B
 #define FAT_KANJI_SKIP_ENTRY		0x05
 #define FAT_DELETED_ENTRY			0xE5

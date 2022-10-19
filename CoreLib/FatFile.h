@@ -31,12 +31,12 @@ protected:
 
 public:
 	void		Init(CFatVolume* pcVolume);
-	EFatCode	Open(char* filename, uint8 uiAccessFlags);
-	EFatCode	Open(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode	Open(char* szFilename, uint8 uiAccessFlags);
+	EFatCode	Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	EFatCode	Close(void);
-	EFatCode	Write(uint8* pvSource, uint32 length);
+	EFatCode	Write(uint8* pvSource, uint32 uiLength);
 	EFatCode	Read(uint8* puiDestination, uint32 length, uint32* puiBytesRead);
-	EFatCode	Seek(uint32 offset, EFatSeek mode);
+	EFatCode	Seek(uint32 uiOffset, EFatSeek eMode);
 	EFatCode	Flush(void);
 	EFatCode	Truncate(void);
 
@@ -49,7 +49,7 @@ public:
 	uint32		CalculateFirstCluster(void);
 
 protected:
-	EFatCode	OpenFileByEntry(SFatDirectoryEntry* entry, uint8 uiAccessFlags);
+	EFatCode	OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	uint32		FatFileGetUniqueId(void);
 	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
 
@@ -65,7 +65,7 @@ protected:
 	EFatCode	PotentiallyAllocateClusters(uint32 uiLength);
 	EFatCode	CounterClustersInFile(uint32* puiClustersInFile, fatEntry* puiPreviousCluster, fatEntry uiFirstCluster);
 
-	EFatCode	CalculateSeekPosition(uint32 offset, EFatSeek mode, uint32* puiBytePositionInFile);
+	EFatCode	CalculateSeekPosition(uint32 uiOffset, EFatSeek eMode, uint32* puiBytePositionInFile);
 };
 
 

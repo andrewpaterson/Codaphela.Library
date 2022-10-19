@@ -43,28 +43,28 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode FindBackslash(char* filename, char** ppcFilenameScanner)
+EFatCode FindBackslash(char* szFilename, char** ppcFilenameScanner)
 {
 	ptrdiff_t			iPathLength;
 	char*				pcFilenameScanner;
 
-	iPathLength = strlen(filename);
+	iPathLength = strlen(szFilename);
 
-	pcFilenameScanner = filename + (iPathLength - 1);
+	pcFilenameScanner = szFilename + (iPathLength - 1);
 
-	if (*pcFilenameScanner == BACKSLASH)
+	if (*pcFilenameScanner == '\\')
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
 	for (;;)
 	{
-		if (*pcFilenameScanner == BACKSLASH)
+		if (*pcFilenameScanner == '\\')
 		{
 			break;
 		}
 
-		if (pcFilenameScanner == filename)
+		if (pcFilenameScanner == szFilename)
 		{
 			return FAT_INVALID_PATH;
 		}
@@ -80,20 +80,19 @@ EFatCode FindBackslash(char* filename, char** ppcFilenameScanner)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
+EFatCode CFatFile::Open(char* szFilename, uint8 uiAccessFlags)
 {
 	EFatCode			eResult;
-	//SFatDirectoryEntry	sFileEntry;
 
 	memset(mszName, 0, FAT_MAX_FILENAME);
 	mcCache.Init(mpcVolume->GetFileDrive(), mpcVolume->GetClusterSize(), mpcVolume->GetSectorSize());
 
-	if (filename == 0 || strlen(filename) > FAT_MAX_PATH)
+	if (szFilename == 0 || strlen(szFilename) > FAT_MAX_PATH)
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	eResult = mpcVolume->GetFileEntry(filename, &msFile.sDirectoryEntry);
+	eResult = mpcVolume->GetFileEntry(szFilename, &msFile.sDirectoryEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
 	if (msFile.sDirectoryEntry.szName[0] == '\0')
@@ -105,12 +104,12 @@ EFatCode CFatFile::Open(char* filename, uint8 uiAccessFlags)
 			char				szFilePath[FAT_MAX_PATH + 1];
 			SFatDirectoryEntry	sParentEntry;
 
-			eResult = FindBackslash(filename, &pcFilenameScanner);
+			eResult = FindBackslash(szFilename, &pcFilenameScanner);
 			RETURN_ON_FAT_FAILURE(eResult);
 
-			iPathLength = pcFilenameScanner - filename;
+			iPathLength = pcFilenameScanner - szFilename;
 
-			memcpy(szFilePath, filename, iPathLength);
+			memcpy(szFilePath, szFilename, iPathLength);
 			szFilePath[iPathLength] = '\0';
 
 

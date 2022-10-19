@@ -13,6 +13,7 @@ void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* pui
 EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName);
 void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension);
 char* StepPathOverSlash(char* szPathName);
+char* StepPathToSlash(char* szPathName);
 void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource);
 bool IsIllegalFilenameCharacter(char c);
 bool IsIllegalFilename(char* szName, uint16 uiLength);
