@@ -184,6 +184,8 @@ protected:
 	EFatCode				CheckEntryName(char* szName);
 	EFatCode				WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
 	bool					IsRootDirectoryCluster(uint32 uiDirectoryCluster);
+	EFatCode				IncrementDirectorySector(uint32* puiSector, uint32 uiFirstSectorOfCluster, fatEntry uiDirectoryCluster);
+	EFatCode				IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatEntry* puiDirectoryCluster, fatEntry uiLastDirectoryCluster);
 };
 
 
