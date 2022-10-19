@@ -3113,6 +3113,48 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 	return eResult;
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EFatCode CFatVolume::CreateDirectory(char* szDirectory, SFatDirectoryEntry* psEntry)
+{
+	size_t				uiPathLength;
+	char*				szPathScanner;
+	char				szFilePath[FAT_MAX_PATH + 1];
+	SFatDirectoryEntry	sParentEntry;
+	EFatCode			eResult;
+
+	uiPathLength = strlen(szDirectory);
+
+	szPathScanner = szDirectory + (uiPathLength - 0x1);
+
+	if (szPathScanner[0] == '\\')
+	{
+		return FAT_INVALID_FILENAME;
+	}
+
+	szPathScanner = StepPathToSlash(szPathScanner);
+
+	uiPathLength = (size_t)(szPathScanner - szDirectory);
+
+	memcpy(szFilePath, szDirectory, uiPathLength);
+
+	szFilePath[uiPathLength] = '\0';
+	szPathScanner++;
+
+	eResult = GetFileEntry(szFilePath, &sParentEntry);
+	RETURN_ON_FAT_FAILURE(eResult);
+
+	if (sParentEntry.szName[0] == '\0')
+	{
+		return FAT_DIRECTORY_DOES_NOT_EXIST;
+	}
+
+	eResult = CreateFATEntry(&sParentEntry.sRaw, szPathScanner, FAT_ATTR_DIRECTORY, 0, psEntry);
+	return eResult;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -3131,41 +3173,10 @@ EFatCode CFatVolume::CreateDirectory(char* szDirectory)
 	eResult = GetFileEntry(szDirectory, &sEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
 
-	// if we don't find a file or directory by that name we can create it, otherwise return file already exists error
 	if (sEntry.szName[0] == '\0')
 	{
-		size_t				uiPathLength;
-		char*				szPathScanner;
-		char				szFilePath[FAT_MAX_PATH + 1];
-		SFatDirectoryEntry	sParentEntry;
-
-		uiPathLength = strlen(szDirectory);
-
-		szPathScanner = szDirectory + (uiPathLength - 0x1);
-
-		if (*szPathScanner == BACKSLASH)
-		{
-			return FAT_INVALID_FILENAME;
-		}
-
-		while (*(--szPathScanner) != BACKSLASH);	/*scan file backwords until we get to */
-
-		uiPathLength = (size_t)(szPathScanner - szDirectory);
-
-		memcpy(szFilePath, szDirectory, uiPathLength);
-
-		szFilePath[uiPathLength] = 0x0;
-		szPathScanner++;
-
-		eResult = GetFileEntry(szFilePath, &sParentEntry);
-		RETURN_ON_FAT_FAILURE(eResult);
-
-		if (sParentEntry.szName[0] == '\0')
-		{
-			return FAT_DIRECTORY_DOES_NOT_EXIST;
-		}
-
-		return CreateFATEntry(&sParentEntry.sRaw, szPathScanner, FAT_ATTR_DIRECTORY, 0, &sEntry);
+		eResult = CreateDirectory(szDirectory, &sEntry);
+		return eResult;
 	}
 
 	return FAT_FILENAME_ALREADY_EXISTS;
