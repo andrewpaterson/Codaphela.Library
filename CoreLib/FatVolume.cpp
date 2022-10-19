@@ -3212,7 +3212,6 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 
 	memset(szCurrentLevelPath, 0, FAT_MAX_PATH + 1);
 
-	// for each level on the path....
 	sQuery.Init();
 	do
 	{
@@ -3223,15 +3222,13 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			break;
 		}
 
-		// try to find the first psEntry
 		eResult = QueryFirstEntry(psCurrentEntry, 0, &sQuery, true);
 		if (eResult != FAT_SUCCESS)
 		{
 			break;
 		}
 
-		// if the output of FatQueryFirstEntry indicates that there are no entries available...
-		if (*sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName == 0)
+		if (sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName[0] == '\0')
 		{
 			psEntry->szName[0] = '\0';
 			sQuery.Kill(GetSectorCache());
@@ -3244,10 +3241,8 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			break;
 		}
 
-		// if the file doesn't match then get the next file.
 		while (!bMatch)
 		{
-			//  try to get the next file.
 			eResult = QueryNextEntry(&sQuery, true, false);
 			if (eResult != FAT_SUCCESS)
 			{
@@ -3257,7 +3252,6 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			eResult = ValidateFatCache(sQuery.sBuffer);
 			RETURN_ON_FAT_FAILURE(eResult);
 
-			// if the output of FatQueryFirstEntry indicates that  there are no entries available then set the psEntry name to 0 and return success.
 			if (IsLastDirectoryEntry(sQuery.psCurrentEntryRaw))
 			{
 				psEntry->szName[0] = '\0';
@@ -3265,7 +3259,6 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 				return FAT_SUCCESS;
 			}
 
-			// match the filename against the next psEntry.
 			if (bLongFilename)
 			{
 				bMatch = CompareFatLongName(auiConstructedLongFilename, sQuery.auiLongFilename) || CompareFatShortName(szConstructedShortFileName, (char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
@@ -3280,7 +3273,6 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			break;
 		}
 
-		// set the current entry to the entry that we've just found.
 		psCurrentEntry = sQuery.psCurrentEntryRaw;
 	} 
 	while (szPath[0] != '\0');
@@ -3290,18 +3282,14 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 		eResult = ValidateFatCache(sQuery.sBuffer);
 		RETURN_ON_FAT_FAILURE(eResult);
 
-		// copy the filename and transform the filename from the internal structure to the public one.
 		ConvertFATShortInternalNameInto8Dot3Format(psEntry->szName, (uint8*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName);
 
-		// copy other data from the internal psEntry structure
-		// to the public one
 		psEntry->uiAttributes = sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAttributes;
 		psEntry->uiSize = sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiSize;
 		psEntry->tCreateTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiCreateDate, sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiCreateTime);
 		psEntry->tModifyTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiModifyDate, sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiModifyTime);
 		psEntry->tAccessTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAccessDate, 0);
 
-		// calculate the sector address of the psEntry - if query->CurrentCluster equals zero then this is the root directory of a FAT12/FAT16 volume and the calculation is different.
 		if (IsRootDirectoryCluster(sQuery.uiCurrentCluster))
 		{
 			psEntry->uiSectorAddress = GetRootDirectorySector() + sQuery.uiCurrentSector;
@@ -3311,35 +3299,13 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 			psEntry->uiSectorAddress = CalculateFirstSectorOfCluster(sQuery.uiCurrentCluster) + sQuery.uiCurrentSector;
 		}
 
-		// calculate the offset of the psEntry within it's sector
 		psEntry->uiSectorOffset = (uint16)((uintptr_t)sQuery.psCurrentEntryRaw) - ((uintptr_t)sQuery.psFirstEntryRaw);
 
-		// store a copy of the original FAT directory entry within the SFatDirectoryEntry structure that is returned to users.
 		psEntry->sRaw = *sQuery.psCurrentEntryRaw;
 	}
 
 	sQuery.Kill(GetSectorCache());
 	return eResult;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CFatVolume::FatParsePath(char* szPath, char* szPathPart, char** pszFilenamePart)
-{
-	*pszFilenamePart = szPath + strlen(szPath);
-
-	while (*--(*pszFilenamePart) != '\\' && (*pszFilenamePart) != szPath);
-
-	while (szPath != *pszFilenamePart)
-	{
-		*szPathPart++ = *szPath++;
-	}
-	*szPathPart = 0;
-	(*pszFilenamePart)++;
 }
 
 
@@ -3394,7 +3360,7 @@ EFatCode CFatVolume::Delete(char* szFilename)
 	}
 
 	// parse the filename
-	FatParsePath(szFilename, szPathPart, &szNamePart);
+	ParsePathAndFilename(szFilename, szPathPart, &szNamePart);
 
 	SFatFileSystemQuery		sQuery;
 
@@ -3454,8 +3420,8 @@ EFatCode CFatVolume::Rename(char* szOriginalFilename, char* szNewFilename)
 	char*					szNewFilenamePart;
 	SFatCache				sBuffer;
 
-	FatParsePath(szOriginalFilename, szOriginalParent, &szOriginalFilenamePart);
-	FatParsePath(szNewFilename, szNewParent, &szNewFilenamePart);
+	ParsePathAndFilename(szOriginalFilename, szOriginalParent, &szOriginalFilenamePart);
+	ParsePathAndFilename(szNewFilename, szNewParent, &szNewFilenamePart);
 
 	// try to get the new entry to see if it exists.
 	GetFileEntry(szNewFilename, &sNewEntry);

@@ -575,3 +575,21 @@ void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ParsePathAndFilename(char* szPath, char* szPathPart, char** pszFilenamePart)
+{
+	*pszFilenamePart = szPath + strlen(szPath);
+
+	while (*--(*pszFilenamePart) != '\\' && (*pszFilenamePart) != szPath);
+
+	while (szPath != *pszFilenamePart)
+	{
+		*szPathPart++ = *szPath++;
+	}
+	*szPathPart = 0;
+	(*pszFilenamePart)++;
+}
