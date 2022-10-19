@@ -183,6 +183,7 @@ protected:
 
 	EFatCode				CheckEntryName(char* szName);
 	EFatCode				WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName, SFatRawDirectoryEntry* psParentDirectory, int iLFNEntriesNeeded);
+	bool					IsRootDirectoryCluster(uint32 uiDirectoryCluster);
 };
 
 
