@@ -18,6 +18,8 @@ void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource);
 bool IsIllegalFilenameCharacter(char c);
 bool IsIllegalFilename(char* szName, uint16 uiLength);
 void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName);
+void ParsePathAndFilename(char* szPath, char* szPathPart, char** pszFilenamePart);
+
 
 #endif // __FAT_FILENAME_HELPER_H__
 
