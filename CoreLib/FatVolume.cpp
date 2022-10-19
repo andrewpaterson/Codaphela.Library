@@ -520,11 +520,21 @@ EFatCode CFatVolume::FindNextRawDirectoryEntrySectorInCluster(uint32* puiSector,
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CFatVolume::IsRootDirectoryCluster(uint32 uiDirectoryCluster)
+{
+	return uiDirectoryCluster == 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::FindNextRawDirectoryEntryCluster(uint32* puiSector, SFatQueryState* psQuery)
 {
 	psQuery->uiCurrentSector++;
 
-	if (psQuery->uiCurrentCluster == 0)
+	if (IsRootDirectoryCluster(psQuery->uiCurrentCluster))
 	{
 		if (psQuery->uiCurrentSector == GetRootDirectorySectors())
 		{
@@ -1461,7 +1471,7 @@ EFatCode CFatVolume::UpdateDirectoryEntry(SFatDirectoryEntry* psEntry, uint32 ui
 {
 	SFatCache	sBuffer;
 
-	if ((uiFirstCluster == 0))
+	if (IsRootDirectoryCluster(uiFirstCluster))  //Why do we only do anything with a zero cluster.  What about other directories?
 	{
 		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterLowWord = (uint16)uiNewClusterInVolume;
 		psEntry->sRaw.uEntry.sFatRawCommon.uiFirstClusterHighWord = (uint16)(uiNewClusterInVolume >> 16);
@@ -2388,7 +2398,7 @@ EFatCode CFatVolume::TerminalQueryEntry(SFatFileSystemQuery* psQuery)
 //////////////////////////////////////////////////////////////////////////
 uint32 CFatVolume::CalculateQuerySector(SFatFileSystemQuery* psQuery)
 {
-	if (psQuery->sQuery.uiCurrentCluster == 0)
+	if (IsRootDirectoryCluster(psQuery->sQuery.uiCurrentCluster))
 	{
 		return GetRootDirectorySector() + psQuery->sQuery.uiCurrentSector;
 	}
@@ -2495,7 +2505,6 @@ void CFatVolume::FillDirectoryEntryFromRawEntry(SFatDirectoryEntry* psEntry, SFa
 {
 	ConvertFATShortInternalNameInto8Dot3Format(psEntry->szName, (uint8*)psRawEntry->uEntry.sFatRawCommon.szShortName);
 
-	// copy other data from the internal entry structure to the public one
 	psEntry->uiAttributes = psRawEntry->uEntry.sFatRawCommon.uiAttributes;
 	psEntry->uiSize = psRawEntry->uEntry.sFatRawCommon.uiSize;
 	psEntry->tCreateTime = FatDecodeDateTime(psRawEntry->uEntry.sFatRawCommon.uiCreateDate, psRawEntry->uEntry.sFatRawCommon.uiCreateTime);
@@ -2753,14 +2762,14 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 
 	for (;;)
 	{
-		if (uiDirectoryCluster != 0)
+		if (!IsRootDirectoryCluster(uiDirectoryCluster))
 		{
 			uiFirstSectorOfCluster = CalculateFirstSectorOfCluster(uiDirectoryCluster);
 		}
 
 		uiSector = uiFirstSectorOfCluster;
 
-		while (uiDirectoryCluster == 0 || uiSector < (uiFirstSectorOfCluster + NumSectorsPerCluster()))
+		while (IsRootDirectoryCluster(uiDirectoryCluster) || uiSector < (uiFirstSectorOfCluster + NumSectorsPerCluster()))
 		{
 			READ_SECTOR(sBuffer, uiSector);
 			puiLastEntryAddress = ((uintptr_t)sBuffer.Get() + GetSectorSize()) - 0x20;
@@ -2800,7 +2809,7 @@ EFatCode CFatVolume::FindEnoughEntries(fatEntry* puiLastDirectoryCluster, fatEnt
 
 			uiSector++;
 
-			if (uiDirectoryCluster == 0)
+			if (IsRootDirectoryCluster(uiDirectoryCluster))
 			{
 				if (uiSector > uiFirstSectorOfCluster + GetRootDirectorySectors())
 				{
@@ -2875,7 +2884,7 @@ EFatCode CFatVolume::RewindFoundEntries(SFatRawDirectoryEntry** ppsParentEntry, 
 			}
 			else
 			{
-				if (uiLastDirectoryCluster == 0)
+				if (IsRootDirectoryCluster(uiLastDirectoryCluster))
 				{
 					uiFirstSectorOfCluster = GetRootDirectorySector();
 				}
@@ -2969,19 +2978,17 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName,
 			InitialiseParentEntry(psParentEntry, szName, uiChecksum, iLFNEntriesNeeded, iLFNEntriesFound);
 			DirtySector(sBuffer);
 
-			// continue to next entry.
 			if ((uintptr_t)psParentEntry < (uintptr_t)puiLastEntryAddress)
 			{
 				psParentEntry++;
 			}
 			else
 			{
-				if (uiDirectoryCluster == 0 || uiSector < uiFirstSectorOfCluster + NumSectorsPerCluster() - 1)
+				if (IsRootDirectoryCluster(uiDirectoryCluster) || uiSector < uiFirstSectorOfCluster + NumSectorsPerCluster() - 1)
 				{
 					uiSector++;
 
-					// make sure that we don't overflow the root directory on FAT12/16 volumes
-					if (uiDirectoryCluster == 0)
+					if (IsRootDirectoryCluster(uiDirectoryCluster))
 					{
 						if (uiSector > uiFirstSectorOfCluster + GetRootDirectorySectors())
 						{
@@ -2991,15 +2998,13 @@ EFatCode CFatVolume::WriteFATEntry(SFatDirectoryEntry* psNewEntry, char* szName,
 				}
 				else
 				{
-					// get the next cluster, we'll remember the last one so we can update it bellow if it's the eof cluster
 					uiLastDirectoryCluster = uiDirectoryCluster;
 					eResult = GetNextClusterEntry(uiDirectoryCluster, &uiDirectoryCluster);
 					RETURN_ON_FAT_FAILURE(eResult);
 
-					// if this is the end of the FAT chain allocate a new cluster to this folder and continue
 					if (FatIsEOFEntry(uiDirectoryCluster))
 					{
-						fatEntry uiNewFat = AllocateDataCluster(1, true, &eResult, uiLastDirectoryCluster);  // uiLastDirectoryCluster is probably right but then is SetClusterEntry below needed?
+						fatEntry uiNewFat = AllocateDataCluster(1, true, &eResult, uiLastDirectoryCluster);
 						RETURN_ON_FAT_FAILURE(eResult);
 
 						eResult = SetClusterEntry(uiLastDirectoryCluster, uiNewFat);
@@ -3071,7 +3076,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 		iLFNEntriesNeeded = 0;
 	}
 
-	if (uiEntryCluster == 0 && (uiAttributes & FAT_ATTR_DIRECTORY))
+	if (IsRootDirectoryCluster(uiEntryCluster) && (uiAttributes & FAT_ATTR_DIRECTORY))
 	{
 		uiEntryCluster = AllocateDirectoryCluster(psParentDirectory, &eResult);
 		RETURN_ON_FAT_FAILURE(eResult);
@@ -3281,7 +3286,7 @@ EFatCode CFatVolume::GetFileEntry(char* szPath, SFatDirectoryEntry* psEntry)
 		psEntry->tAccessTime = FatDecodeDateTime(sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.uiAccessDate, 0);
 
 		// calculate the sector address of the psEntry - if query->CurrentCluster equals zero then this is the root directory of a FAT12/FAT16 volume and the calculation is different.
-		if (sQuery.uiCurrentCluster == 0x0)
+		if (IsRootDirectoryCluster(sQuery.uiCurrentCluster))
 		{
 			psEntry->uiSectorAddress = GetRootDirectorySector() + sQuery.uiCurrentSector;
 		}
