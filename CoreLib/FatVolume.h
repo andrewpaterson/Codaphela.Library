@@ -186,6 +186,10 @@ protected:
 	EFatCode				IncrementDirectorySector(uint32* puiSector, uint32 uiFirstSectorOfCluster, fatEntry uiDirectoryCluster);
 	EFatCode				IncrementOrAllocateDirectoryCluster(uint32* puiSector, fatEntry* puiDirectoryCluster, fatEntry uiLastDirectoryCluster);
 	EFatCode				CreateDirectory(char* szDirectory, SFatDirectoryEntry* psEntry);
+
+	EFatCode				Delete(SFatDirectoryEntry* psEntry, char* szNamePart, char* szPathPart, uint8 uiChecksum);
+	void					CopyRawEntry(SFatDirectoryEntry* psOriginalEntry, SFatDirectoryEntry* psNewEntry);
+	EFatCode				Rename(char* szOriginalParent, uint8 uiChecksum);
 };
 
 
