@@ -1,7 +1,7 @@
 #ifndef __INDEX_GENERATOR_H__
 #define __INDEX_GENERATOR_H__
-#include "CoreLib/Sequence.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/Sequence.h"
+#include "BaseLib/IndexedGeneral.h"
 
 
 class CIndexGenerator

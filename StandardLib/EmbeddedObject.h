@@ -1,7 +1,7 @@
 #ifndef __EMBEDDED_OBJECT__
 #define __EMBEDDED_OBJECT__
 #include "BaseLib/Validation.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "StackPointer.h"
 #include "StackPointers.h"
 #include "ObjectPointerArrays.h"

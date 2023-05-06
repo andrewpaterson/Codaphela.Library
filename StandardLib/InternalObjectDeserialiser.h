@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INTERNAL_OBJECT_DESERIALISER__
 #define __INTERNAL_OBJECT_DESERIALISER__
-#include "CoreLib/DataConnection.h"
+#include "BaseLib/DataConnection.h"
 #include "DependentReadObjects.h"
 
 
