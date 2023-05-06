@@ -1,7 +1,7 @@
 #ifndef __OBJECT_HEADER_H__
 #define __OBJECT_HEADER_H__
 #include "BaseLib/Chars.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 
 
 class CObjectIdentifier

@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __POINTER_OBJECT_H__
 #define __POINTER_OBJECT_H__
 #include "BaseLib/Logger.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
 
 

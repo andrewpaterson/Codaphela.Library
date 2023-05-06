@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MARKUP_TEXT_PARSER_H__
 #define __MARKUP_TEXT_PARSER_H__
-#include "BaseLib/MarkupTag.h"
+#include "MarkupTag.h"
 
 
 //Why doesn't this use the TypeParser?

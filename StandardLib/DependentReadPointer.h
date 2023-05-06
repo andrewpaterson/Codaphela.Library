@@ -1,7 +1,7 @@
 #ifndef __DEPENDENT_READ_POINTER_H__
 #define __DEPENDENT_READ_POINTER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 
 
 class CBaseObject;

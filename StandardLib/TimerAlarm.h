@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TIMER_ALARM_H__
 #define __TIMER_ALARM_H__
-#include "CoreLib/Timer.h"
+#include "BaseLib/Timer.h"
 #include "BaseLib/Define.h"
 #include "Action.h"
 #include "TimerListener.h"

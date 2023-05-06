@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __EXTERNAL_OBJECT_WRITER_H__
 #define __EXTERNAL_OBJECT_WRITER_H__
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "Unknown.h"
 
 

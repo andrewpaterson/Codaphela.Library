@@ -1,6 +1,6 @@
 #ifndef __EXTERNAL_OBJECT_READER_H__
 #define __EXTERNAL_OBJECT_READER_H__
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "SerialisedObject.h"
 #include "Unknown.h"
 

@@ -1,4 +1,4 @@
-#include "CoreLib/DataConnection.h"
+#include "BaseLib/DataConnection.h"
 #include "ObjectWriter.h"
 #include "SerialisedObject.h"
 #include "InternalObjectSerialiser.h"

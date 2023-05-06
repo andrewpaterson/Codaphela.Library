@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __BASE_OBJECT_H__
 #define __BASE_OBJECT_H__
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "EmbeddedObject.h"
 #include "Class.h"
 

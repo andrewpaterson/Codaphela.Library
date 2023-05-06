@@ -1,6 +1,6 @@
 #ifndef __SERIALISED_OBJECT_H__
 #define __SERIALISED_OBJECT_H__
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "ObjectFileGeneral.h"
 
 

@@ -20,7 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/TypeConverter.h"
-#include "CoreLib/Operators.h"
+#include "BaseLib/Operators.h"
 #include "ChannelAccessor.h"
 
 

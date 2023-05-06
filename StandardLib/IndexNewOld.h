@@ -1,7 +1,7 @@
 #ifndef __INDEX_NEW_OLD_H__
 #define __INDEX_NEW_OLD_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 
 
 class CIndexNewOld

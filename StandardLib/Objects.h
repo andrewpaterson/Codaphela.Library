@@ -20,8 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __OBJECTS_H__
 #define __OBJECTS_H__
-#include "CoreLib/DataConnection.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/DataConnection.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "NamedIndexedObjects.h"
 #include "Unknowns.h"
 #include "Null.h"
