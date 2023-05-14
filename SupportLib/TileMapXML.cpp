@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/MemoryFile.h"
 #include "BaseLib/CSVFileImutable.h"
-#include "CoreLib/XMLFile.h"
+#include "BaseLib/XMLFile.h"
 #include "BaseLib/MarkupTextParser.h"
 #include "ObjectSourcesXML.h"
 #include "ImageCelsSourceXML.h"

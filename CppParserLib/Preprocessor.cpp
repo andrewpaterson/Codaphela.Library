@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "CoreLib/Calculator.h"
+#include "BaseLib/Calculator.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/Logger.h"
