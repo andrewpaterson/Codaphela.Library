@@ -30,7 +30,7 @@ void CThreadPool::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void RunThread(int iThreadId, CThread* pcThread)
 {
-	pcThread->Start(iThreadId, FALSE);
+	pcThread->Start(iThreadId, false);
 }
 
 

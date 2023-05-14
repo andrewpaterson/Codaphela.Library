@@ -138,9 +138,9 @@ int CSafeLinkedListBlock::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeLinkedListBlock::Write(CFileWriter* pcFileWriter)
+bool CSafeLinkedListBlock::Write(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.Write(pcFileWriter);
@@ -154,9 +154,9 @@ BOOL CSafeLinkedListBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeLinkedListBlock::Read(CFileReader* pcFileReader)
+bool CSafeLinkedListBlock::Read(CFileReader* pcFileReader)
 {
-	BOOL bResult;
+	bool bResult;
 
 	m.lock();
 	bResult = c.Read(pcFileReader);
@@ -396,9 +396,9 @@ int CSafeLinkedListBlock::IndexOf(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeLinkedListBlock::IsInList(void* pvData)
+bool CSafeLinkedListBlock::IsInList(void* pvData)
 {
-	BOOL bResult;
+	bool bResult;
 
 	m.lock();
 	bResult = c.IsInList(pvData);

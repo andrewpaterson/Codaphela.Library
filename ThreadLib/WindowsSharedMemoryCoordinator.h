@@ -30,7 +30,7 @@ protected:
 	SResizableWindowsSharedMemoryFile*	mpsDescriptor;
 	
 public:
-	BOOL							Init(char* szCoordinatorMemoryName);
+	bool							Init(char* szCoordinatorMemoryName);
 	void							Kill(void);
 
 	SWindowsSharedMemoryFileName*	Add(char* szName);

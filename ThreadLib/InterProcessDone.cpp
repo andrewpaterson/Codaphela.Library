@@ -72,7 +72,7 @@ void CInterProcessDone::Wait(int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInterProcessDone::IsDone(int iCount)
+bool CInterProcessDone::IsDone(int iCount)
 {
 	return mpsDone->iDone >= iCount;
 }

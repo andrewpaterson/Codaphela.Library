@@ -20,9 +20,9 @@ void CSharedMemory::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemory::Kill(void)
+bool CSharedMemory::Kill(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	bResult = mcMappedFile.Kill();
 	mpsDescriptor = NULL;

@@ -41,7 +41,7 @@ void CInterProcessHold::Kill(void)
 void CInterProcessHold::Start(void)
 {
 	mpsWait = (SInterProcessWait*)mcSharedMemory.Create(sizeof(SInterProcessWait));
-	mpsWait->iWait = TRUE;
+	mpsWait->iWait = true;
 }
 
 
@@ -74,6 +74,6 @@ void CInterProcessHold::Wait(void)
 //////////////////////////////////////////////////////////////////////////
 void CInterProcessHold::Stop(void)
 {
-	mpsWait->iWait = FALSE;
+	mpsWait->iWait = false;
 }
 

@@ -8,8 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CMainProcessDirector::Init(void)
 {
-	mmszRedirects.Init(FALSE, TRUE);
-	mbRanRedirect = FALSE;
+	mmszRedirects.Init(false, true);
+	mbRanRedirect = false;
 	miRedirectResult = 0;
 }
 
@@ -38,7 +38,7 @@ void CMainProcessDirector::AddRedirect(char* szName, main_func fMain)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMainProcessDirector::Run(int argc, char* argv[])
+bool CMainProcessDirector::Run(int argc, char* argv[])
 {
 	main_func*	pfMain;
 	CChars		sz;
@@ -60,12 +60,12 @@ BOOL CMainProcessDirector::Run(int argc, char* argv[])
 		sz.Kill();
 		if (pfMain)
 		{
-			mbRanRedirect = TRUE;
+			mbRanRedirect = true;
 			miRedirectResult =(*pfMain)(argc-2, &argv[2]);
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 

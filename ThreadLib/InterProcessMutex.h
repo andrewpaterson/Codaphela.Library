@@ -14,11 +14,11 @@ public:
 	void Init(char* szName);
 	void Kill(void);
 
-	BOOL Create(void);
-	BOOL Connect(void);
+	bool Create(void);
+	bool Connect(void);
 	void Close(void);
-	BOOL Lock(void);
-	BOOL Unlock(void);
+	bool Lock(void);
+	bool Unlock(void);
 };
 
 

@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
+bool CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
 {
 	return InitMaster(szName, uiByteSize);
 }
@@ -15,7 +15,7 @@ BOOL CSharedMemoryQueue::Init(char* szName, size_t uiByteSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::Init(char* szName)
+bool CSharedMemoryQueue::Init(char* szName)
 {
 	return InitClient(szName);
 }
@@ -25,14 +25,14 @@ BOOL CSharedMemoryQueue::Init(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
+bool CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 {
-	BOOL				bResult;
+	bool				bResult;
 	SSharedMemoryMap	sMap;
 	CChars				szMemoryName;
 	CChars				szMutexName;
 
-	mbMaster = TRUE;
+	mbMaster = true;
 
 	szMutexName.Init("Local\\ProcessMutex:")->Append(szName);
 	mcMutex.Init(szMutexName.Text());
@@ -42,7 +42,7 @@ BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 	if (!bResult)
 	{
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	bResult = mcMutex.Lock();
@@ -50,7 +50,7 @@ BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 	{
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	szMemoryName.Init("Local\\SharedMemory:")->Append(szName);
@@ -61,7 +61,7 @@ BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	bResult = mcSharedMemory.Create(uiByteSize + sizeof(SCircularMemoryList));
@@ -70,7 +70,7 @@ BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	sMap = mcSharedMemory.Touch();
@@ -79,12 +79,12 @@ BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 	mcQueue.Init(sMap.pvMemory, sMap.uiSize);
 	mcMutex.Unlock();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -92,14 +92,14 @@ BOOL CSharedMemoryQueue::InitMaster(char* szName, size_t uiByteSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::InitClient(char* szName)
+bool CSharedMemoryQueue::InitClient(char* szName)
 {
-	BOOL				bResult;
+	bool				bResult;
 	SSharedMemoryMap	sMap;
 	CChars				szMemoryName;
 	CChars				szMutexName;
 
-	mbMaster = FALSE;
+	mbMaster = false;
 
 	szMutexName.Init("Local\\ProcessMutex:")->Append(szName);
 	mcMutex.Init(szMutexName.Text());
@@ -109,7 +109,7 @@ BOOL CSharedMemoryQueue::InitClient(char* szName)
 	if (!bResult)
 	{
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	bResult = mcMutex.Lock();
@@ -117,7 +117,7 @@ BOOL CSharedMemoryQueue::InitClient(char* szName)
 	{
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	szMemoryName.Init("Local\\SharedMemory:")->Append(szName);
@@ -128,7 +128,7 @@ BOOL CSharedMemoryQueue::InitClient(char* szName)
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	bResult = mcSharedMemory.Connect();
@@ -137,7 +137,7 @@ BOOL CSharedMemoryQueue::InitClient(char* szName)
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 
 	sMap = mcSharedMemory.Touch();
@@ -146,12 +146,12 @@ BOOL CSharedMemoryQueue::InitClient(char* szName)
 		mcSharedMemory.Close();
 		mcMutex.Unlock();
 		mcMutex.Close();
-		return FALSE;
+		return false;
 	}
 	mcQueue.InitExisting((SCircularMemoryList*)sMap.pvMemory, sMap.uiSize);
 	mcMutex.Unlock();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -172,7 +172,7 @@ void CSharedMemoryQueue::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
+bool CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 {
 	void*				pvMemory;
 
@@ -187,7 +187,7 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 		if (!sResize.pvMemory)
 		{
 			mcMutex.Unlock();
-			return FALSE;
+			return false;
 		}
 
 		mcQueue.Remap((SCircularMemoryList*)sResize.pvMemory, sResize.uiSize);
@@ -195,14 +195,14 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 		if (!pvMemory)
 		{
 			mcMutex.Unlock();
-			return FALSE;
+			return false;
 		}
 	}
 
 	memcpy(pvMemory, pvData, uiDataSize);
 	mcMutex.Unlock();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -210,7 +210,7 @@ BOOL CSharedMemoryQueue::Push(void* pvData, size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize)
+bool CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize)
 {
 	void*	pvMemory;
 
@@ -222,7 +222,7 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 	if (!pvMemory)
 	{
 		mcMutex.Unlock();
-		return FALSE;
+		return false;
 	}
 
 	if (*puiDataSize <= uiMaxDataSize)
@@ -230,12 +230,12 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 		memcpy(pvData, pvMemory, *puiDataSize);
 		mcQueue.Drop(pvMemory);
 		mcMutex.Unlock();
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		mcMutex.Unlock();
-		return FALSE;
+		return false;
 	}
 }
 
@@ -244,9 +244,9 @@ BOOL CSharedMemoryQueue::Pop(void* pvData, size_t* puiDataSize, size_t uiMaxData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::IsEmpty(void)
+bool CSharedMemoryQueue::IsEmpty(void)
 {
-	BOOL	bEmpty;
+	bool	bEmpty;
 
 	mcMutex.Lock();
 	SSharedMemoryMap sMap = mcSharedMemory.Touch();
@@ -320,9 +320,9 @@ size_t CSharedMemoryQueue::GetAllocatedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSharedMemoryQueue::ValidateQueue(void)
+bool CSharedMemoryQueue::ValidateQueue(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	mcMutex.Lock();
 	SSharedMemoryMap sMap = mcSharedMemory.Touch();

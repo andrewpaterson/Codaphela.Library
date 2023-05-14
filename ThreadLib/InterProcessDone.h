@@ -22,7 +22,7 @@ public:
 
 	void Start(void);
 	void Open(void);
-	BOOL IsDone(int iCount);
+	bool IsDone(int iCount);
 	void Wait(int iCount);
 	void Stop(void);
 };

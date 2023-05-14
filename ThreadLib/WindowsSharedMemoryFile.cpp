@@ -50,13 +50,13 @@ void CWindowsSharedMemoryFile::Reinit(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindowsSharedMemoryFile::Kill(void)
+bool CWindowsSharedMemoryFile::Kill(void)
 {
 	if (mhMapFile != NULL)
 	{
 		return gcLogger.Error2(__METHOD__, " Cannot Kill windows shared memory file [", mszName, "].  It's handle has not been closed.", NULL);
 	}
-    return TRUE;
+    return true;
 }
 
 
@@ -64,13 +64,13 @@ BOOL CWindowsSharedMemoryFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindowsSharedMemoryFile::IsNamed(void)
+bool CWindowsSharedMemoryFile::IsNamed(void)
 {
     if (StrEmpty(mszName))
     {
-        return FALSE;
+        return false;
     }
-    return TRUE;
+    return true;
 }
 
 
@@ -103,7 +103,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Create(size_t uiSize)
 
     mhMapFile = OpenFileMapping(
         FILE_MAP_ALL_ACCESS,
-        FALSE,
+        false,
         mszName);
     if (mhMapFile)
     {
@@ -165,7 +165,7 @@ SSharedMemoryResult CWindowsSharedMemoryFile::Open(void)
 
     mhMapFile = OpenFileMapping(
         FILE_MAP_ALL_ACCESS,
-        FALSE,
+        false,
         mszName);
 
     if (mhMapFile == NULL)

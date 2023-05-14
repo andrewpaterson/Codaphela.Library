@@ -289,7 +289,7 @@ int CTypeNames::GetByteSize(EPrimitiveType eType)
 //////////////////////////////////////////////////////////////////////////
 int CTypeNames::GetBitSize(EPrimitiveType eType)
 {
-	STypeName*	psTypeName;
+	STypeName* psTypeName;
 
 	psTypeName = masTypeNames.SafeGet((int)eType);
 	if (psTypeName)
@@ -300,7 +300,6 @@ int CTypeNames::GetBitSize(EPrimitiveType eType)
 	{
 		return 0;
 	}
-
 }
 
 

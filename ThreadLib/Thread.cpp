@@ -14,7 +14,7 @@ CThread::CThread()
 	meState = TS_Waiting;
 	miThreadId = 0;
 	mpstdThread = NULL;
-	mbDelete = FALSE;
+	mbDelete = false;
 }
 
 
@@ -30,7 +30,7 @@ CThread::CThread(CThreadStarter* pcStarter, CThreadStateNotifer* pcNotify)
 	meState = TS_Waiting;
 	miThreadId = 0;
 	mpstdThread = NULL;
-	mbDelete = FALSE;
+	mbDelete = false;
 }
 
 
@@ -87,7 +87,7 @@ void CThread::SetThread(std::thread* pstdThread)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CThread::Start(int iThreadId, BOOL bDelete)
+void CThread::Start(int iThreadId, bool bDelete)
 {
 	miThreadId = iThreadId;
 	mbDelete = bDelete;
@@ -101,7 +101,7 @@ void CThread::Start(int iThreadId, BOOL bDelete)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CThread::IsDone(void)
+bool CThread::IsDone(void)
 {
 	return meState == TS_Stopped;
 }
@@ -111,7 +111,7 @@ BOOL CThread::IsDone(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CThread::IsRunning(void)
+bool CThread::IsRunning(void)
 {
 	return meState == TS_Running;
 }

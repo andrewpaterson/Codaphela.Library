@@ -21,8 +21,8 @@ public:
 	void 	Kill(void);
 
 	int		NumElements(void);
-	BOOL	IsEmpty(void);
-	BOOL	IsNotEmpty(void);
+	bool	IsEmpty(void);
+	bool	IsNotEmpty(void);
 	int		AllocatedElements(void);
 	int 	ElementSize(void);
 
@@ -35,17 +35,17 @@ public:
 	void 	Copy(CSafeArrayBlock* pcTemplateArray);
 	int		Copy(CStackMemory<>* pcTemp);
 
-	BOOL	Get(int iIndex, void* pvDest);
-	BOOL	Tail(void* pvDest);
+	bool	Get(int iIndex, void* pvDest);
+	bool	Tail(void* pvDest);
 
 	void	InsertAt(void* pvData, int iIndex);
-	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, BOOL bOverwriteExisting);
+	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, bool bOverwriteExisting);
 
-	BOOL	Pop(void* pvDest);
-	BOOL	Pop(void);
+	bool	Pop(void* pvDest);
+	bool	Pop(void);
 	void 	Push(void* pvData);
-	BOOL	PopFirst(void* pvData);
-	BOOL	PopFirst(void);
+	bool	PopFirst(void* pvData);
+	bool	PopFirst(void);
 
 	int		Resize(int iNumElements);
 
@@ -53,13 +53,13 @@ public:
 	void	QuickSort(int(*fCompare)(const void*, const void*));
 	void	Reverse(void);
 
-	BOOL	Contains(void* pData);
+	bool	Contains(void* pData);
 	int 	Find(void* pData);
-	BOOL	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), int* piIndex);
+	bool	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), int* piIndex);
 
-	void 	RemoveAt(int iIndex, int bPreserveOrder = TRUE);
-	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder = TRUE);
-	BOOL 	RemoveTail(void);
+	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
+	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
+	bool 	RemoveTail(void);
 
 	void	Set(int iIndex, void* pvData);
 	void	Swap(int iIndex1, int iIndex2);
@@ -69,13 +69,13 @@ public:
 	int		ChunkSize(void);
 	int		SetUsedElements(int iNumElements);
 
-	BOOL	SetChunkSize(int iChunkSize);
+	bool	SetChunkSize(int iChunkSize);
 
-	BOOL	Write(CFileWriter* pcFileWriter);
-	BOOL	Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
+	bool	Read(CFileReader* pcFileReader);
 
 private:
-	BOOL	MemcpyDestAndUnlock(void* pvSource, void* pvDest);
+	bool	MemcpyDestAndUnlock(void* pvSource, void* pvDest);
 };
 
 
