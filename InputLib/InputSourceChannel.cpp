@@ -20,7 +20,7 @@ along with Codaphela InputLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "CoreLib/Operators.h"
+#include "BaseLib/Operators.h"
 #include "InputSourceChannel.h"
 #include "InputSourceValue.h"
 

@@ -22,7 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TypeParser.h"
 #include "BaseLib/MarkupTextParser.h"
-#include "CoreLib/XMLFile.h"
+#include "BaseLib/XMLFile.h"
 #include "InputDeviceVariableListener.h"
 #include "InputDeviceVariableValue.h"
 #include "InputDevices.h"

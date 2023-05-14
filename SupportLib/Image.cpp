@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/NaiveFile.h"
-#include "CoreLib/Operators.h"
+#include "BaseLib/Operators.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
