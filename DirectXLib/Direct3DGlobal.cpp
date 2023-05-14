@@ -33,7 +33,7 @@ Microsoft DirectX and associated libraries are Copyright Microsoft Corporation
 
 
 CD3D	gcD3D;
-#include "CoreLib/Timer.h"
+#include "BaseLib/Timer.h"
 
 
 #define ReturnOnFailure(hResult, message) \

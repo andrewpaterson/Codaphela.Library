@@ -26,7 +26,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/ArrayTemplate.h"
 #include "StandardLib/StandardHeader.h"
-#include "CoreLib/Timer.h"
+#include "BaseLib/Timer.h"
 
 
 struct SAnimationCelIndex;

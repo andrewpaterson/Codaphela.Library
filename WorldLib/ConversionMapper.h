@@ -21,7 +21,7 @@ along with Codaphela SceneLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __CONVERSION_MAPPER_H__
 #define __CONVERSION_MAPPER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "CoreLib/IndexedGeneral.h"
+#include "BaseLib/IndexedGeneral.h"
 #include "DirectXLib/Direct3DGlobal.h"
 #include "WorldLib/GraphicsInstance.h"
 #include "WorldLib/GraphicsTexture.h"

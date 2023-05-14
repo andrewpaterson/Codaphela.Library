@@ -21,7 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __COMPONENT_LISTENER_H__
 #define __COMPONENT_LISTENER_H__
 #include "BaseLib/ArrayTemplate.h"
-#include "CoreLib/TextEditor.h"
+#include "BaseLib/TextEditor.h"
 
 
 class CComponentListener : public CTextEditor, public CListener
