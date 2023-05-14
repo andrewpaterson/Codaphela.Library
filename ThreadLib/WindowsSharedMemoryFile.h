@@ -17,9 +17,9 @@ public:
 	void						Init(char* szName);
 	void						Reinit(void);
 	void						Reinit(char* szName);
-	BOOL						Kill(void);
+	bool						Kill(void);
 
-	BOOL						IsNamed(void);
+	bool						IsNamed(void);
 	char*						GetName(void);
 
 	SSharedMemoryResult			Create(size_t uiSize);

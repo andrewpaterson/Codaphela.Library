@@ -87,7 +87,7 @@ int CSafeArrayBlock::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::IsEmpty(void)
+bool CSafeArrayBlock::IsEmpty(void)
 {
 	return c.IsEmpty();
 }
@@ -97,7 +97,7 @@ BOOL CSafeArrayBlock::IsEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::IsNotEmpty(void)
+bool CSafeArrayBlock::IsNotEmpty(void)
 {
 	return c.IsNotEmpty();
 }
@@ -236,7 +236,7 @@ int CSafeArrayBlock::Copy(CStackMemory<>* pcTemp)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Get(int iIndex, void* pvDest)
+bool CSafeArrayBlock::Get(int iIndex, void* pvDest)
 {
 	void*	pv;
 
@@ -250,7 +250,7 @@ BOOL CSafeArrayBlock::Get(int iIndex, void* pvDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Tail(void* pvDest)
+bool CSafeArrayBlock::Tail(void* pvDest)
 {
 	void* pv;
 
@@ -276,7 +276,7 @@ void CSafeArrayBlock::InsertAt(void* pvData, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CSafeArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, BOOL bOverwriteExisting)
+int CSafeArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, bool bOverwriteExisting)
 {
 	int iIndex;
 
@@ -292,9 +292,9 @@ int CSafeArrayBlock::InsertIntoSorted(int(*fCompare)(const void*, const void*), 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Pop(void* pvDest)
+bool CSafeArrayBlock::Pop(void* pvDest)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.Pop(pvDest);
@@ -308,9 +308,9 @@ BOOL CSafeArrayBlock::Pop(void* pvDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Pop(void)
+bool CSafeArrayBlock::Pop(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.Pop();
@@ -336,9 +336,9 @@ void CSafeArrayBlock::Push(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::PopFirst(void* pvDest)
+bool CSafeArrayBlock::PopFirst(void* pvDest)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.PopFirst(pvDest);
@@ -352,9 +352,9 @@ BOOL CSafeArrayBlock::PopFirst(void* pvDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::PopFirst(void)
+bool CSafeArrayBlock::PopFirst(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.PopFirst();
@@ -420,9 +420,9 @@ void CSafeArrayBlock::Reverse(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Contains(void* pvData)
+bool CSafeArrayBlock::Contains(void* pvData)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.Contains(pvData);
@@ -452,9 +452,9 @@ int CSafeArrayBlock::Find(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::FindInSorted(void* pvData, int(*fCompare)(const void*, const void*), int* piIndex)
+bool CSafeArrayBlock::FindInSorted(void* pvData, int(*fCompare)(const void*, const void*), int* piIndex)
 {
-	BOOL bResult;
+	bool bResult;
 
 	m.lock();
 	bResult = c.FindInSorted(pvData, fCompare, piIndex);
@@ -480,7 +480,7 @@ void CSafeArrayBlock::RemoveAt(int iIndex, int bPreserveOrder)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CSafeArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL bPreserveOrder)
+void CSafeArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder)
 {
 	m.lock();
 	c.RemoveRange(iStartIndex, iEndIndexExclusive, bPreserveOrder);
@@ -492,9 +492,9 @@ void CSafeArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, BOOL 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::RemoveTail(void)
+bool CSafeArrayBlock::RemoveTail(void)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.RemoveTail();
@@ -580,9 +580,9 @@ int CSafeArrayBlock::SetUsedElements(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::SetChunkSize(int iChunkSize)
+bool CSafeArrayBlock::SetChunkSize(int iChunkSize)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.SetChunkSize(iChunkSize);
@@ -596,9 +596,9 @@ BOOL CSafeArrayBlock::SetChunkSize(int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Write(CFileWriter* pcFileWriter)
+bool CSafeArrayBlock::Write(CFileWriter* pcFileWriter)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.Write(pcFileWriter);
@@ -612,9 +612,9 @@ BOOL CSafeArrayBlock::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::Read(CFileReader* pcFileReader)
+bool CSafeArrayBlock::Read(CFileReader* pcFileReader)
 {
-	BOOL	bResult;
+	bool	bResult;
 
 	m.lock();
 	bResult = c.Read(pcFileReader);
@@ -628,18 +628,18 @@ BOOL CSafeArrayBlock::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-BOOL CSafeArrayBlock::MemcpyDestAndUnlock(void* pvSource, void* pvDest)
+bool CSafeArrayBlock::MemcpyDestAndUnlock(void* pvSource, void* pvDest)
 {
 	if (pvSource != NULL)
 	{
 		memcpy(pvDest, pvSource, c.ElementSize());
 		m.unlock();
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		m.unlock();
-		return FALSE;
+		return false;
 	}
 }
 

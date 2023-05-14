@@ -38,7 +38,7 @@ SSharedMemoryResult::SSharedMemoryResult(ESharedMemoryResult eRsult)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SSharedMemoryResult::IsFailed(void)
+bool SSharedMemoryResult::IsFailed(void)
 {
     return eResult != SMR_Success;
 }
@@ -48,7 +48,7 @@ BOOL SSharedMemoryResult::IsFailed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SSharedMemoryResult::IsSuccess(void)
+bool SSharedMemoryResult::IsSuccess(void)
 {
     return eResult == SMR_Success;
 }
@@ -58,7 +58,7 @@ BOOL SSharedMemoryResult::IsSuccess(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SSharedMemoryResult::IsInvalid(void)
+bool SSharedMemoryResult::IsInvalid(void)
 {
     return eResult == SMR_Invalid;
 }

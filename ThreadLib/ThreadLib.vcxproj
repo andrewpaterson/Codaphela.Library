@@ -95,7 +95,6 @@
       <SDLCheck>true</SDLCheck>
       <DisableSpecificWarnings>26440;26447;26455</DisableSpecificWarnings>
       <CallingConvention>VectorCall</CallingConvention>
-      <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
     </ClCompile>
     <Lib />

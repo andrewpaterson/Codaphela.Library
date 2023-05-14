@@ -10,9 +10,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
+bool CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 {
-    BOOL    bResult;
+    bool    bResult;
 
     bResult = InitCoordinator(szMemoryName);
     mcHoldingMappedFile.Init();
@@ -41,10 +41,10 @@ BOOL CResizableSharedMemory::Init(char* szMemoryName, char* szDebugIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::InitCoordinator(char* szMemoryName)
+bool CResizableSharedMemory::InitCoordinator(char* szMemoryName)
 {
     CChars  sz;
-    BOOL    bResult;
+    bool    bResult;
 
     sz.Init(szMemoryName);
     sz.Append(":C");
@@ -67,7 +67,7 @@ BOOL CResizableSharedMemory::InitCoordinator(char* szMemoryName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::ReinitCoordinator(void)
+bool CResizableSharedMemory::ReinitCoordinator(void)
 {
     mpcCoordinatorMappedFile = NULL;
     mcMappedFile.Close();
@@ -75,7 +75,7 @@ BOOL CResizableSharedMemory::ReinitCoordinator(void)
     mpsDescriptor = NULL;
     mpvMemory = NULL;
 
-    return FALSE;
+    return false;
 }
 
 
@@ -107,7 +107,7 @@ void CResizableSharedMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::Create(size_t uiSize)
+bool CResizableSharedMemory::Create(size_t uiSize)
 {
     TouchHolding();
 
@@ -133,11 +133,11 @@ BOOL CResizableSharedMemory::Create(size_t uiSize)
     if (Map(uiSize))
     {
         StrCpySafe(mpsDescriptor->szName, mszSharedName.Text(), 64);
-        return TRUE;
+        return true;
     }
     else
     {
-        return TRUE;
+        return true;
     }
 
 }
@@ -147,7 +147,7 @@ BOOL CResizableSharedMemory::Create(size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::Connect(void)
+bool CResizableSharedMemory::Connect(void)
 {
     TouchHolding();
 
@@ -190,7 +190,7 @@ BOOL CResizableSharedMemory::Connect(void)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap CResizableSharedMemory::Touch(void)
 {
-    BOOL    bResult;
+    bool    bResult;
 
     if (mpsDescriptor)
     {
@@ -227,7 +227,7 @@ SSharedMemoryMap CResizableSharedMemory::Touch(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::Map(size_t uiSize)
+bool CResizableSharedMemory::Map(size_t uiSize)
 {
     mpsDescriptor = mcMappedFile.Map(uiSize);
     if (mpsDescriptor == NULL)
@@ -238,7 +238,7 @@ BOOL CResizableSharedMemory::Map(size_t uiSize)
 
     mpsDescriptor->iMapCount++;
     mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
-    return TRUE;
+    return true;
 }
 
 
@@ -246,7 +246,7 @@ BOOL CResizableSharedMemory::Map(size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CResizableSharedMemory::Remap(size_t uiSize)
+bool CResizableSharedMemory::Remap(size_t uiSize)
 {
     uint64                      uiOldSize;
 
@@ -268,19 +268,19 @@ BOOL CResizableSharedMemory::Remap(size_t uiSize)
             }
             mpsDescriptor->iMapCount++;
             mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
-            return FALSE;
+            return false;
         }
         else
         {
             mpsDescriptor->iMapCount++;
             mpsDescriptor->uiSize = uiSize;
             mpvMemory = RemapSinglePointer(mpsDescriptor, sizeof(SSharedMemoryDescriptor));
-            return TRUE;
+            return true;
         }
     }
     else
     {
-        return FALSE;
+        return false;
     }
 }
 
@@ -366,7 +366,7 @@ size_t CResizableSharedMemory::GetSize(void)
 //////////////////////////////////////////////////////////////////////////
 SSharedMemoryMap CResizableSharedMemory::Resize(size_t uiSize)
 {
-    BOOL                        bResult;
+    bool                        bResult;
     uint64                      uiOldSize;
     int                         iStillMapped;
     void*                       pvMemory;

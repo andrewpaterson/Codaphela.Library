@@ -17,7 +17,7 @@ void SWindowsSharedMemoryFileName::Init(int iIndex, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
+bool CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 {
 	mcMemory.Init(szCoordinatorMemoryName);
 	SSharedMemoryResult sResult = mcMemory.Open();
@@ -25,7 +25,7 @@ BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 	{
 		mpsDescriptor = (SResizableWindowsSharedMemoryFile*)mcMemory.Map(sResult.GetSize());
 		mpsDescriptor->miClients++;
-		return TRUE;
+		return true;
 	}
 	
 	sResult = mcMemory.Create(8192);
@@ -37,11 +37,11 @@ BOOL CWindowsSharedMemoryCoordinator::Init(char* szCoordinatorMemoryName)
 		mpsDescriptor->iNumSharedMemoryFiles = 0;
 		mpsDescriptor->iValidSharedMemoryIndex = -1;
 		memset(&mpsDescriptor->macMemoryFiles[0], 0, sizeof(CWindowsSharedMemoryFile));
-		return TRUE;
+		return true;
 	}
 	
 	mpsDescriptor = NULL;
-	return FALSE;
+	return false;
 }
 
 
@@ -76,7 +76,7 @@ SWindowsSharedMemoryFileName* CWindowsSharedMemoryCoordinator::Add(char* szName)
 	{
 		if (mpsDescriptor->iValidSharedMemoryIndex != -1)
 		{
-			return FALSE;
+			return false;
 		}
 
 		sz.Init(szName);
@@ -85,7 +85,7 @@ SWindowsSharedMemoryFileName* CWindowsSharedMemoryCoordinator::Add(char* szName)
 		if (sz.Length() >= 64)
 		{
 			sz.Kill();
-			return FALSE;
+			return false;
 		}
 
 		pcMemoryFile = &mpsDescriptor->macMemoryFiles[mpsDescriptor->iNumSharedMemoryFiles];

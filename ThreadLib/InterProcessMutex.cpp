@@ -30,11 +30,11 @@ void CInterProcessMutex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInterProcessMutex::Create(void)
+bool CInterProcessMutex::Create(void)
 {
     mhMutex = CreateMutex(
                 NULL,               // default security descriptor
-                FALSE,              // mutex not owned
+                false,              // mutex not owned
                 mszName.Text());    // object name
 
     if (mhMutex == NULL)
@@ -45,11 +45,11 @@ BOOL CInterProcessMutex::Create(void)
     {
         if (GetLastError() == ERROR_ALREADY_EXISTS)
         {
-            return TRUE;
+            return true;
         }
         else
         {
-            return TRUE;
+            return true;
         }
     }
 }
@@ -59,11 +59,11 @@ BOOL CInterProcessMutex::Create(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInterProcessMutex::Connect(void)
+bool CInterProcessMutex::Connect(void)
 {
     mhMutex = OpenMutex( 
                 MUTEX_ALL_ACCESS,   // request full access
-                FALSE,              // handle not inheritable
+                false,              // handle not inheritable
                 mszName.Text());    // object name
 
     if (mhMutex == NULL)
@@ -72,7 +72,7 @@ BOOL CInterProcessMutex::Connect(void)
     }
     else
     {
-        return TRUE;
+        return true;
     }
 }
 
@@ -91,7 +91,7 @@ void CInterProcessMutex::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInterProcessMutex::Lock(void)
+bool CInterProcessMutex::Lock(void)
 {
     DWORD dwWaitResult;
 
@@ -101,12 +101,12 @@ BOOL CInterProcessMutex::Lock(void)
 
     if (dwWaitResult == WAIT_OBJECT_0)
     {
-        return TRUE;
+        return true;
     }
     else if (dwWaitResult == WAIT_ABANDONED)
     {
         // The thread got ownership of an abandoned mutex
-        return FALSE;
+        return false;
     }
     else
     {
@@ -119,15 +119,15 @@ BOOL CInterProcessMutex::Lock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInterProcessMutex::Unlock(void)
+bool CInterProcessMutex::Unlock(void)
 {
     if (!ReleaseMutex(mhMutex))
     {
-        return FALSE;
+        return false;
     }
     else
     {
-        return TRUE;
+        return true;
     }
 }
 

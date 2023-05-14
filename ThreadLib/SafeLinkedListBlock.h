@@ -24,8 +24,8 @@ public:
 
 	int			ByteSize(void);
 
-	BOOL		Write(CFileWriter* pcFileWriter);
-	BOOL		Read(CFileReader* pcFileReader);
+	bool		Write(CFileWriter* pcFileWriter);
+	bool		Read(CFileReader* pcFileReader);
 
 	void		InsertDetachedAfterTail(void* pvData);
 	void		Detach(void* pvData);
@@ -50,7 +50,7 @@ public:
 
 	void*		Get(int iNum);
 	int			IndexOf(void* pvData);
-	BOOL		IsInList(void* pvData);
+	bool		IsInList(void* pvData);
 
 	void		BubbleSort(int(*fCompare)(const void*, const void*));
 	void		InsertDetachedIntoSorted(int(*fCompare)(const void*, const void*), void* pvData);

@@ -16,7 +16,7 @@ void RunThread(CThread* pcThread)
 	std::thread::id* pid = &id;
 	int	iid = *((int*)pid);
 
-	pcThread->Start(iid, TRUE);
+	pcThread->Start(iid, true);
 }
 
 

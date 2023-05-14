@@ -22,13 +22,13 @@ private:
 	SSharedMemoryDescriptor*		mpsHoldingDescriptor;
 
 public:
-	BOOL				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
+	bool				Init(char* szMemoryName, char* szDebugIdentifier = NULL);
 	void				Kill(void);
 
 	SSharedMemoryMap	Touch(void);
 
-	BOOL				Create(size_t uiSize);
-	BOOL				Connect(void);
+	bool				Create(size_t uiSize);
+	bool				Connect(void);
 	int					Close(void);
 
 	SSharedMemoryMap	IncreaseSize(size_t uiMore);
@@ -37,11 +37,11 @@ public:
 	size_t				GetSize(void);
 
 protected:
-	BOOL	InitCoordinator(char* szMemoryName);
-	BOOL	ReinitCoordinator(void);
+	bool	InitCoordinator(char* szMemoryName);
+	bool	ReinitCoordinator(void);
 
-	BOOL	Map(size_t uiSize);
-	BOOL	Remap(size_t uiSize);
+	bool	Map(size_t uiSize);
+	bool	Remap(size_t uiSize);
 
 	void	HoldValid(void);
 	void	TouchHolding(void);

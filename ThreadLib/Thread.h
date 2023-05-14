@@ -17,7 +17,7 @@ private:
 	EThreadState			meState;
 	int						miThreadId;
 	std::thread*			mpstdThread;
-	BOOL					mbDelete;
+	bool					mbDelete;
 	CThreadStarter*			mpcStarter;
 	CArrayTemplateEmbedded<CThreadStateNotifer*, 2> mapcNotifiers;
 
@@ -32,12 +32,12 @@ public:
 			void	Start(void);
 
 			void	TryStop(void);
-			BOOL	IsDone(void);
-			BOOL	IsRunning(void);
+			bool	IsDone(void);
+			bool	IsRunning(void);
 			int		GetThreadId(void);
 			void	AddNotifier(CThreadStateNotifer* pcNotify);
 
-			void	Start(int iThreadId, BOOL bDelete);
+			void	Start(int iThreadId, bool bDelete);
 protected:
 	virtual void	Run(void) =0;
 			void	SetThread(std::thread* pstdThread);

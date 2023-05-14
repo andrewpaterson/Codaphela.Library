@@ -25,9 +25,9 @@ struct SSharedMemoryResult
 	SSharedMemoryResult(ESharedMemoryResult eRsult);
 
 	size_t	GetSize(void);
-	BOOL	IsFailed(void);
-	BOOL	IsSuccess(void);
-	BOOL	IsInvalid(void);
+	bool	IsFailed(void);
+	bool	IsSuccess(void);
+	bool	IsInvalid(void);
 };
 
 

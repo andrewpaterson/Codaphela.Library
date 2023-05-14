@@ -11,10 +11,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ForkProcess(char* szParameter1, char* szParameter2, BOOL bWaitForProcessToExit)
+bool ForkProcess(char* szParameter1, char* szParameter2, bool bWaitForProcessToExit)
 {
     CChars  sz;
-    BOOL    bResult;
+    bool    bResult;
 
     sz.Init(szParameter1);
     sz.Append(" ");
@@ -31,10 +31,10 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, BOOL bWaitForProcessToE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, BOOL bWaitForProcessToExit)
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, bool bWaitForProcessToExit)
 {
     CChars  sz;
-    BOOL    bResult;
+    bool    bResult;
 
     sz.Init(szParameter1);
     sz.Append(" ");
@@ -53,10 +53,10 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, BOO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, BOOL bWaitForProcessToExit)
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, bool bWaitForProcessToExit)
 {
     CChars  sz;
-    BOOL    bResult;
+    bool    bResult;
 
     sz.Init(szParameter1);
     sz.Append(" ");
@@ -77,10 +77,10 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, BOOL bWaitForProcessToExit)
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, bool bWaitForProcessToExit)
 {
     CChars  sz;
-    BOOL    bResult;
+    bool    bResult;
 
     sz.Init(szParameter1);
     sz.Append(" ");
@@ -103,10 +103,10 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, char* szParameter6, BOOL bWaitForProcessToExit)
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, char* szParameter6, bool bWaitForProcessToExit)
 {
     CChars  sz;
-    BOOL    bResult;
+    bool    bResult;
 
     sz.Init(szParameter1);
     sz.Append(" ");
@@ -131,7 +131,7 @@ BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit)
+bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit)
 {
     CStackMemory<>          cTemp;
     unsigned long           uiLength;
@@ -168,7 +168,7 @@ BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit)
         szCommandLine.Text(),
         NULL,                   // Process handle not inheritable
         NULL,                   // Thread handle not inheritable
-        FALSE,                  // Set handle inheritance to FALSE
+        false,                  // Set handle inheritance to false
         0,                      // No creation flags
         NULL,                   // Use parent's environment block
         NULL,                   // Use parent's starting directory 
@@ -177,7 +177,7 @@ BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit)
     {
         szCommandLine.Kill();
         gcLogger.Error2(__METHOD__, "CreateProcess failed [", WindowsErrorCodeToString(GetLastError()), "].", NULL);
-        return FALSE;
+        return false;
     }
     szCommandLine.Kill();
 
@@ -191,6 +191,6 @@ BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit)
     CloseHandle(sProcessInformation.hProcess);
     CloseHandle(sProcessInformation.hThread);
 
-    return TRUE;
+    return true;
 }
 

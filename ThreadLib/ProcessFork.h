@@ -2,13 +2,13 @@
 #define __PROCESS_FORK_H__
 
 
-BOOL ForkProcess(char* szCommandLineParameters, BOOL bWaitForProcessToExit);
+bool ForkProcess(char* szCommandLineParameters, bool bWaitForProcessToExit);
 
-BOOL ForkProcess(char* szParameter1, char* szParameter2, BOOL bWaitForProcessToExit);
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, BOOL bWaitForProcessToExit);
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, BOOL bWaitForProcessToExit);
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, BOOL bWaitForProcessToExit);
-BOOL ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, char* szParameter6, BOOL bWaitForProcessToExit);
+bool ForkProcess(char* szParameter1, char* szParameter2, bool bWaitForProcessToExit);
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, bool bWaitForProcessToExit);
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, bool bWaitForProcessToExit);
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, bool bWaitForProcessToExit);
+bool ForkProcess(char* szParameter1, char* szParameter2, char* szParameter3, char* szParameter4, char* szParameter5, char* szParameter6, bool bWaitForProcessToExit);
 
 
 #endif // !__PROCESS_FORK_H__

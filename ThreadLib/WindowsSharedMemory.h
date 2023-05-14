@@ -12,7 +12,7 @@ protected:
 
 public:
 	void	Init(char* szName);
-	BOOL	Kill(void);
+	bool	Kill(void);
 
 	char*	GetName(void);
 

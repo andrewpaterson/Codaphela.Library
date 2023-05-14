@@ -11,26 +11,26 @@ private:
 	CResizableSharedMemory	mcSharedMemory;
 	CMemoryQueue			mcQueue;
 	CInterProcessMutex		mcMutex;
-	BOOL					mbMaster;
+	bool					mbMaster;
 
 public:
-	BOOL	Init(char* szName, size_t uiByteSize);
-	BOOL	Init(char* szName);
+	bool	Init(char* szName, size_t uiByteSize);
+	bool	Init(char* szName);
 	void	Kill(void);
 
-	BOOL	Push(void* pvData, size_t uiDataSize);
-	BOOL	Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
+	bool	Push(void* pvData, size_t uiDataSize);
+	bool	Pop(void* pvData, size_t* puiDataSize, size_t uiMaxDataSize);
 
-	BOOL	IsEmpty(void);
+	bool	IsEmpty(void);
 	int		NumElements(void);
 	size_t	GetCacheSize(void);
 	size_t	GetAllocatedSize(void);
 
-	BOOL	ValidateQueue(void);
+	bool	ValidateQueue(void);
 
 protected:
-	BOOL	InitMaster(char* szName, size_t uiByteSize);
-	BOOL	InitClient(char* szName);
+	bool	InitMaster(char* szName, size_t uiByteSize);
+	bool	InitClient(char* szName);
 };
 
 
