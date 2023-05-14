@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __PLAIN_GRAPHICAL_TEXT_EDITOR_H__
 #define __PLAIN_GRAPHICAL_TEXT_EDITOR_H__
-#include "CoreLib/PlainTextEditor.h"
+#include "BaseLib/PlainTextEditor.h"
 #include "TextData.h"
 
 

@@ -20,7 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __COMPONENT_INPUT_H__
 #define __COMPONENT_INPUT_H__
-#include "CoreLib/TextEditor.h"
+#include "BaseLib/TextEditor.h"
 #include "InputLib/Input.h"
 #include "ComponentInputKeyboard.h"
 #include "ComponentInputMouse.h"

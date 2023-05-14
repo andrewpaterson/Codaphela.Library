@@ -25,7 +25,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/TypeNames.h"
 #include "BaseLib/TypeConverter.h"
-#include "CoreLib/Operators.h"
+#include "BaseLib/Operators.h"
 #include "StandardLib/Unknowns.h"
 #include "SupportLib/ImageReader.h"
 #include "SupportLib/Scene.h"

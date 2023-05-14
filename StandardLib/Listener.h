@@ -23,7 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknown.h"
 
 
-class CListener : public CUnknown
+class CListener : public CUnknown  //Probably shouldn't extend CUnknown
 {
 public:
 };
