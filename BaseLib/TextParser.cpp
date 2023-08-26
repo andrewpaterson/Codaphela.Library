@@ -628,8 +628,6 @@ TRISTATE CTextParser::GetExactCharacter(char c, bool bSkipWhiteSpace)
 }
 
 
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1254,6 +1252,7 @@ TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuo
 	int			iPos;
 	char		cCurrent;
 	TRISTATE	tReturn;
+	TRISTATE	tResult;
 	char		cEscape;
 
 	PushPosition();
@@ -1265,7 +1264,8 @@ TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuo
 
 	if (!mbOutsideText)
 	{
-		if (GetExactCharacter(cOpenQuote, false))
+		tResult = GetExactCharacter(cOpenQuote, false);
+		if (tResult == TRITRUE)
 		{
 			iPos = 0;
 			for (;;)
@@ -1337,7 +1337,7 @@ TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuo
 		{
 			//No quote so not a string.
 			PopPosition();
-			return TRIFALSE;
+			return tResult;
 		}
 	}
 	else
@@ -2435,20 +2435,14 @@ TRISTATE CTextParser::GetHexadecimalPart(unsigned long long int* pulli, int* piN
 					if (i == iMaxDigits)
 					{
 						*pulli = iNum;
-						if (piNumDigits)
-						{
-							*piNumDigits = i;
-						}
+						SafeAssign(piNumDigits, i);
 						return TRITRUE;
 					}
 				}
 				else if ((tReturn == TRIFALSE) || (tReturn == TRIERROR))
 				{
 					*pulli = iNum;
-					if (piNumDigits)
-					{
-						*piNumDigits = i;
-					}
+					SafeAssign(piNumDigits, i);
 					return TRITRUE;
 				}
 			}
@@ -2457,10 +2451,7 @@ TRISTATE CTextParser::GetHexadecimalPart(unsigned long long int* pulli, int* piN
 				if (i > 0)
 				{
 					*pulli = iNum;
-					if (piNumDigits)
-					{
-						*piNumDigits = i;
-					}
+					SafeAssign(piNumDigits, i);
 					return TRITRUE;
 				}
 
@@ -2522,10 +2513,7 @@ TRISTATE CTextParser::GetOctal(unsigned long long int* pulli, int* piNumDigits, 
 				else if ((tReturn == TRIFALSE) || (tReturn == TRIERROR))
 				{
 					*pulli = iNum;
-					if (piNumDigits)
-					{
-						*piNumDigits = i;
-					}
+					SafeAssign(piNumDigits, i);
 					PassPosition();
 					return TRITRUE;
 				}
@@ -2535,10 +2523,7 @@ TRISTATE CTextParser::GetOctal(unsigned long long int* pulli, int* piNumDigits, 
 				if (i > 0)
 				{
 					*pulli = iNum;
-					if (piNumDigits)
-					{
-						*piNumDigits = i;
-					}
+					SafeAssign(piNumDigits, i);
 					PassPosition();
 					return TRITRUE;
 				}
@@ -2621,40 +2606,64 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhiteSpace)
 		}
 
 		fLeft = ((double)ulliLeft) * iSign;
-		tReturn = GetExactCharacter('.', false);
-		if (tReturn == TRITRUE)
+		if (!mbOutsideText)
 		{
-			tReturn = GetDigits(&ulliRight, &iSign, &iNumDecimals);
+			tReturn = GetExactCharacter('.', false);
 			if (tReturn == TRITRUE)
 			{
-				if (iSign <= 0)
+				tReturn = GetDigits(&ulliRight, &iSign, &iNumDecimals);
+				if (tReturn == TRITRUE)
 				{
-					//Cant have: 34.-342 but -34.342 would be fine.
+					if (iSign <= 0)
+					{
+						//Cant have: 34.-342 but -34.342 would be fine.
+						PopPosition();
+						SetErrorSyntaxError();
+						return TRIERROR;
+					}
+
+					fRight = (double)ulliRight;
+					fTemp = pow(10.0L, -iNumDecimals);
+					fRight *= fTemp;
+
+					if (fLeft >= 0)
+					{
+						*pf = fLeft + fRight;
+					}
+					else
+					{
+						*pf = fLeft - fRight;
+					}
+					PassPosition();
+					return TRITRUE;
+				}
+				else
+				{
+					//A decimal point must be followed by a number.
 					PopPosition();
 					SetErrorSyntaxError();
 					return TRIERROR;
 				}
-
-				fRight = (double)ulliRight;
-				fTemp = pow(10.0L, -iNumDecimals);
-				fRight *= fTemp;
-
-				if (fLeft >= 0)
+			}
+			else if (tReturn == TRIFALSE)
+			{
+				//No decimal point...
+				if (!bLeft)
 				{
-					*pf = fLeft + fRight;
+					//No digits and no point...
+					PopPosition();
+					return TRIFALSE;
 				}
 				else
 				{
-					*pf = fLeft - fRight;
+					*pf = fLeft;
+					PassPosition();
+					return TRITRUE;
 				}
-				PassPosition();
-				return TRITRUE;
 			}
 			else
 			{
-				//A decimal point must be followed by a number.
 				PopPosition();
-				SetErrorSyntaxError();
 				return TRIERROR;
 			}
 		}
