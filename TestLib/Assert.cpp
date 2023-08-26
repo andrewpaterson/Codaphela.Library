@@ -47,8 +47,8 @@ void ToBoolString(bool b, char* szString, int iStringLength);
 void ToCharString(char c, char* szString, int iStringLength);
 void ToIntString(int i, char* szString, int iStringLength);
 void ToIntHexString(int i, char* szString, int iStringLength);
-void ToLongLongIntString(long long int i, char* szString, int iStringLength);
-void ToLongLongIntHexString(long long int i, char* szString, int iStringLength);
+void ToLongLongIntString(int64_t i, char* szString, int iStringLength);
+void ToLongLongIntHexString(int64_t i, char* szString, int iStringLength);
 void ToFloatString(float f, char* sz, int iDecimals);
 void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
 void ToDoubleString(double f, char* sz, int iDecimals);
@@ -552,7 +552,7 @@ bool PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongLongInt(long long int iExpected, long long int iActual, int iLine, char* szFile)
+bool PrivateAssertLongLongInt(int64_t iExpected, int64_t iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -576,7 +576,7 @@ bool PrivateAssertLongLongInt(long long int iExpected, long long int iActual, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual, int iLine, char* szFile)
+bool PrivateAssertLongLongIntHex(int64_t iExpected, int64_t iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -598,7 +598,7 @@ bool PrivateAssertLongLongIntHex(long long int iExpected, long long int iActual,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongHex(long long int iExpected, long long int iActual, int iLine, char* szFile)
+bool PrivateAssertLongHex(int64_t iExpected, int64_t iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -1306,7 +1306,7 @@ void ToCharString(char c, char* szString, int iStringLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongLongIntString(long long int i, char* szString, int iStringLength)
+void ToLongLongIntString(int64_t i, char* szString, int iStringLength)
 {
     IntToString(szString, iStringLength, i, 10);
 }
@@ -1370,7 +1370,7 @@ void ToLongDoubleString(long double f, char* sz, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongLongIntHexString(long long int i, char* szString, int iStringLength)
+void ToLongLongIntHexString(int64_t i, char* szString, int iStringLength)
 {
 	IntToString(&szString[2], iStringLength-2, i, 16);
 	szString[0] = '0';

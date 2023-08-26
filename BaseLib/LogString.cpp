@@ -141,7 +141,7 @@ char* ShortToFlags(int iShort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* LongLongToString(long long int lli, int iBase)
+char* LongLongToString(int64 lli, int iBase)
 {
 	int iCount = IncrementLogToStringCount();
 
@@ -160,9 +160,9 @@ char* SizeToString(size_t i, int iBase)
 	{
 		return IntToString((int)i, iBase);
 	}
-	else if (sizeof(size_t) == sizeof(long long int))
+	else if (sizeof(size_t) == sizeof(int64))
 	{
-		return LongLongToString((long long int)i, iBase);
+		return LongLongToString((int64)i, iBase);
 	}
 	else
 	{

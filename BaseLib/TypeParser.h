@@ -46,7 +46,7 @@ public:
 	void 		Init(CTextParser* pcParser);
 	void 		Kill(void);
 
-	TRISTATE	GetSmallIntegerValue(long long int* plliValue, long long int lliMax, long long int lliMin);
+	TRISTATE	GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64 lliMin);
 	TRISTATE	GetCharAndFloat(char c, float* pf);
 	TRISTATE	GetCharAndInt(char c, int* pi);
 
@@ -58,8 +58,8 @@ public:
 	TRISTATE	ParseUInt(unsigned int* pDest);
 	TRISTATE	ParseUShort(uint16* pDest);
 	TRISTATE	ParseUChar(unsigned char* pDest);
-	TRISTATE	ParseLong(long long int* pDest);
-	TRISTATE	ParseULong(unsigned long long int* pDest);
+	TRISTATE	ParseLong(int64* pDest);
+	TRISTATE	ParseULong(uint64* pDest);
 	TRISTATE	ParseFloat2(SFloat2* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseFloat3(SFloat3* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 	TRISTATE	ParseFloat4(SFloat4* pDest, char cOpen = '\0', char cSplit = ',', char cClose = '\0');

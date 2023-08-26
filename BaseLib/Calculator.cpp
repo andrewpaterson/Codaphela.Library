@@ -281,7 +281,7 @@ bool CCalculator::Value(CCalcConstExpression** ppcConst)
 {
 	TRISTATE				tResult;
 	CNumber					cNumber;
-	unsigned long long int	ulli;
+	uint64	ulli;
 
 	tResult = mcParser.GetHexadecimal(&ulli);
 	if (tResult == TRITRUE)

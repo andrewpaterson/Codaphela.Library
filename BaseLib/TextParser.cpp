@@ -1752,7 +1752,7 @@ TRISTATE CTextParser::GetSign(int* pi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetInteger(unsigned long long int* pulli, int* piSign, int* piNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetInteger(uint64* pulli, int* piSign, int* piNumDigits, bool bSkipWhiteSpace)
 {
 	TRISTATE	tResult;
 
@@ -1795,7 +1795,7 @@ TRISTATE CTextParser::GetInteger(unsigned long long int* pulli, int* piSign, int
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetInteger(int* pi, int* piNumDigits, bool bSkipWhiteSpace)
 {
-	unsigned long long int	ulliTemp;
+	uint64	ulliTemp;
 	TRISTATE				tReturn;
 	int						iSign;
 
@@ -1809,7 +1809,7 @@ TRISTATE CTextParser::GetInteger(int* pi, int* piNumDigits, bool bSkipWhiteSpace
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetIntegerLiteral(unsigned long long int* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, bool bSkipWhiteSpace)
 {
 	char		cCurrent;
 	char		cNext;
@@ -1947,9 +1947,9 @@ TRISTATE CTextParser::GetFloatLiteral(long double* pldf, int iAllowedPrefix, int
 	int						iSuffix;
 	int						iExponent;
 	bool					bSeparator;
-	unsigned long long int	ulliWholeNumber;
-	unsigned long long int	ulliDecimalNumber;
-	long long int			lliExponentNumber;
+	uint64	ulliWholeNumber;
+	uint64	ulliDecimalNumber;
+	int64			lliExponentNumber;
 	long double				ldf;
 	int						iNumWholeDigits;
 	int						iNumDecimalDigits;
@@ -2049,7 +2049,7 @@ TRISTATE CTextParser::GetFloatLiteral(long double* pldf, int iAllowedPrefix, int
 
 							if (!mbOutsideText)
 							{
-								tResult = GetDigits((unsigned long long int*)&lliExponentNumber, &iSign, &iNumExponentDigits, false, true, iBase, iAllowedSeparator);
+								tResult = GetDigits((uint64*)&lliExponentNumber, &iSign, &iNumExponentDigits, false, true, iBase, iAllowedSeparator);
 								if (tResult == TRIERROR)
 								{
 									PassPosition();
@@ -2078,7 +2078,7 @@ TRISTATE CTextParser::GetFloatLiteral(long double* pldf, int iAllowedPrefix, int
 
 							if (!mbOutsideText)
 							{
-								tResult = GetDigits((unsigned long long int*) &lliExponentNumber, &iSign, &iNumExponentDigits, false, true, iBase, iAllowedSeparator);
+								tResult = GetDigits((uint64*) &lliExponentNumber, &iSign, &iNumExponentDigits, false, true, iBase, iAllowedSeparator);
 								if (tResult == TRIERROR)
 								{
 									PassPosition();
@@ -2148,7 +2148,7 @@ TRISTATE CTextParser::GetFloatLiteral(long double* pldf, int iAllowedPrefix, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long double	CTextParser::MakeLongDouble(int iBase, unsigned long long int ulliWholeNumber, unsigned long long int ulliDecimalNumber, int iNumDecimalDigits, long long int lliExponentNumber)
+long double	CTextParser::MakeLongDouble(int iBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, int iNumDecimalDigits, int64 lliExponentNumber)
 {
 	long double		ldf;
 	long double		ldfPow;
@@ -2187,7 +2187,7 @@ long double	CTextParser::MakeLongDouble(int iBase, unsigned long long int ulliWh
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetSingleInteger(char cCurrent, unsigned long long int* pulli, int* piBase, int* piNumDigits)
+TRISTATE CTextParser::GetSingleInteger(char cCurrent, uint64* pulli, int* piBase, int* piNumDigits)
 {
 	if (cCurrent >= '0' && cCurrent <= '9')
 	{
@@ -2209,9 +2209,9 @@ TRISTATE CTextParser::GetSingleInteger(char cCurrent, unsigned long long int* pu
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetDigits(unsigned long long int* pulli, int* piSign, int* piNumDigits, bool bSkipWhiteSpace, bool bTestSign, int iBase, int iAllowedSeparator)
+TRISTATE CTextParser::GetDigits(uint64* pulli, int* piSign, int* piNumDigits, bool bSkipWhiteSpace, bool bTestSign, int iBase, int iAllowedSeparator)
 {
-	unsigned long long int	ulliValue;
+	uint64	ulliValue;
 	int						iSign;
 	int						iTemp;
 	TRISTATE				tReturn;
@@ -2368,7 +2368,7 @@ TRISTATE CTextParser::GetIntegerSeparator(int iAllowedSeparator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetHexadecimal(unsigned long long int* pulli, int* piNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetHexadecimal(uint64* pulli, int* piNumDigits, bool bSkipWhiteSpace)
 {
 	TRISTATE	tReturn;
 
@@ -2410,9 +2410,9 @@ TRISTATE CTextParser::GetHexadecimal(unsigned long long int* pulli, int* piNumDi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetHexadecimalPart(unsigned long long int* pulli, int* piNumDigits, int iMaxDigits)
+TRISTATE CTextParser::GetHexadecimalPart(uint64* pulli, int* piNumDigits, int iMaxDigits)
 {
-	unsigned long long int	iNum;
+	uint64	iNum;
 	int						iTemp;
 	TRISTATE				tReturn;
 	int						i;
@@ -2472,9 +2472,9 @@ TRISTATE CTextParser::GetHexadecimalPart(unsigned long long int* pulli, int* piN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetOctal(unsigned long long int* pulli, int* piNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetOctal(uint64* pulli, int* piNumDigits, bool bSkipWhiteSpace)
 {
-	unsigned long long int	iNum;
+	uint64	iNum;
 	int						iTemp;
 	TRISTATE				tReturn;
 	int						i;
@@ -2567,8 +2567,8 @@ TRISTATE CTextParser::GetFloat(float* pf, bool bSkipWhiteSpace)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhiteSpace)
 {
-	unsigned long long int	ulliLeft;
-	unsigned long long int	ulliRight;
+	uint64	ulliLeft;
+	uint64	ulliRight;
 	TRISTATE				tReturn;
 	int						iNumDecimals;
 	double					fLeft;
@@ -3617,7 +3617,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, 
 	char					cEscape;
 	int						iWidth;
 	unsigned short			ui;
-	unsigned long long int	ulli;
+	uint64	ulli;
 	int						iNumDigits;
 
 	tResult = GetCharacter(&c);

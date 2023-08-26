@@ -1258,7 +1258,7 @@ void CIndexTreeMemory::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 	if (bShowSize)
 	{
 		sz.Append("[");
-		sz.Append((unsigned long long int)this->GetUserMemorySize());
+		sz.Append((uint64)this->GetUserMemorySize());
 		sz.Append("] ");
 	}
 

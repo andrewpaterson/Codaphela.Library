@@ -30,17 +30,17 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayLong::AddList(long long int iStop, ...)
+void CArrayLong::AddList(int64 iStop, ...)
 {
 	va_list		vaMarker;
-	long long int		iValue;
+	int64		iValue;
 
 	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, long long int);
+	iValue = va_arg(vaMarker, int64);
 	while (iValue != iStop)
 	{
 		Add(iValue);
-		iValue = va_arg(vaMarker, long long int);
+		iValue = va_arg(vaMarker, int64);
 	}
 	va_end(vaMarker);
 }
@@ -53,7 +53,7 @@ void CArrayLong::AddList(long long int iStop, ...)
 void CArrayLong::Dump(void)
 {
 	int				i;
-	long long int	iValue;
+	int64	iValue;
 	char			sz[32];
 
 

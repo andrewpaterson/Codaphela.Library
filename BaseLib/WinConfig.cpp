@@ -50,7 +50,7 @@ bool CWinConfig::Read(void)
 	char*						szMode;
 	char*						szWindowed;
 	CTextParser					cParser;
-	unsigned long long int		ulli;
+	uint64		ulli;
 	int							i;
 
 	cFile.Init("Config.txt");

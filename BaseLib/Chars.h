@@ -79,8 +79,8 @@ public:
 	void	Append(unsigned int ui);
 	void	Append(float f, int iMaxDecimals = -1, bool bAppendF = false);
 	void	Append(double d, int iMaxDecimals = -1, bool bAppendD = false);
-	void	Append(long long int lli);
-	void	Append(unsigned long long int ulli);
+	void	Append(int64 lli);
+	void	Append(uint64 ulli);
 	CChars*	Append(CExternalString* pcString);
 	void	AppendList(const char* szFirst, ...);
 	void	AppendQuoted(char c);
