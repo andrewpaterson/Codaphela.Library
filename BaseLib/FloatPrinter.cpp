@@ -394,6 +394,6 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, bo
 //////////////////////////////////////////////////////////////////////////
 char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals, bool bAppendType)
 {
-	return NumberToString<double, long long int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0xfffffffffffff, 0x10000000000000, 0x7ff0000000000000, 52, 0x7ff, 1023, 17);
+	return NumberToString<double, int64>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0xfffffffffffff, 0x10000000000000, 0x7ff0000000000000, 52, 0x7ff, 1023, 17);
 }
 

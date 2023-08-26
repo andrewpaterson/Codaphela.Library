@@ -98,10 +98,10 @@ void CTypeParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::GetSmallIntegerValue(long long int* plliValue, long long int lliMax, long long int lliMin)
+TRISTATE CTypeParser::GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64 lliMin)
 {
-	unsigned long long int	ulliValue;
-	long long int			lliValue;
+	uint64	ulliValue;
+	int64			lliValue;
 	int						iSign;
 	TRISTATE				tResult;
 
@@ -138,7 +138,7 @@ TRISTATE CTypeParser::GetSmallIntegerValue(long long int* plliValue, long long i
 TRISTATE CTypeParser::ParseInt(int* pDest)
 {
 	TRISTATE				tResult;
-	long long int			lliValue;
+	int64			lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_INT, MIN_INT);
 	if (tResult == TRITRUE)
@@ -156,7 +156,7 @@ TRISTATE CTypeParser::ParseInt(int* pDest)
 TRISTATE CTypeParser::ParseChar(char* pDest)
 {
 	TRISTATE				tResult;
-	long long int			lliValue;
+	int64			lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_CHAR, MIN_CHAR);
 	if (tResult == TRITRUE)
@@ -174,7 +174,7 @@ TRISTATE CTypeParser::ParseChar(char* pDest)
 TRISTATE CTypeParser::ParseShort(int16* pDest)
 {
 	TRISTATE				tResult;
-	long long int			lliValue;
+	int64			lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_SHORT, MIN_SHORT);
 	if (tResult == TRITRUE)
@@ -228,7 +228,7 @@ TRISTATE CTypeParser::ParseDouble(double* pDest)
 TRISTATE CTypeParser::ParseUInt(unsigned int* pDest)
 {
 	TRISTATE				tResult;
-	long long int			lliValue;
+	int64			lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_UINT, MIN_UINT);
 	if (tResult == TRITRUE)
@@ -246,7 +246,7 @@ TRISTATE CTypeParser::ParseUInt(unsigned int* pDest)
 TRISTATE CTypeParser::ParseUShort(uint16* pDest)
 {
 	TRISTATE				tResult;
-	long long int			lliValue;
+	int64			lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_USHORT, MIN_USHORT);
 	if (tResult == TRITRUE)
@@ -264,7 +264,7 @@ TRISTATE CTypeParser::ParseUShort(uint16* pDest)
 TRISTATE CTypeParser::ParseUChar(unsigned char* pDest)
 {
 	TRISTATE				tResult;
-	long long int			lliValue;
+	int64			lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_UCHAR, MIN_UCHAR);
 	if (tResult == TRITRUE)
@@ -279,7 +279,7 @@ TRISTATE CTypeParser::ParseUChar(unsigned char* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseLong(long long int* pDest)
+TRISTATE CTypeParser::ParseLong(int64* pDest)
 {
 	return GetSmallIntegerValue(pDest, MAX_LONG, MIN_LONG);
 }
@@ -289,7 +289,7 @@ TRISTATE CTypeParser::ParseLong(long long int* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseULong(unsigned long long int* pDest)
+TRISTATE CTypeParser::ParseULong(uint64* pDest)
 {
 	int						iSign;
 	TRISTATE				tResult;
@@ -752,13 +752,13 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 		case PT_int64:
 			if (iDestLength >= LONG_BYTE_SIZE)
 			{
-				return ParseLong((long long int*)pvDest);
+				return ParseLong((int64*)pvDest);
 			}
 			break;
 		case PT_uint64:
 			if (iDestLength >= LONG_BYTE_SIZE)
 			{
-				return ParseULong((unsigned long long int*)pvDest);
+				return ParseULong((uint64*)pvDest);
 			}
 			break;
 		case PT_M2float32:

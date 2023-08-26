@@ -36,7 +36,7 @@ char* CharToString(char c);
 char* CharToString(unsigned char c);
 char* CharToString(char16 c);
 char* IntToString(int i, int iBase = 10);
-char* LongLongToString(long long int lli, int iBase = 10);
+char* LongLongToString(int64 lli, int iBase = 10);
 char* FloatToString(float f, int iDecimals = -1);
 char* DoubleToString(double d, int iDecimals = -1);
 char* SizeToString(size_t i, int iBase = 10);

@@ -645,7 +645,7 @@ CChars* CChars::Append(int i, int iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(unsigned long long int ulli)
+void CChars::Append(uint64 ulli)
 {
 	char sz[64];
 
@@ -658,7 +658,7 @@ void CChars::Append(unsigned long long int ulli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(long long int lli)
+void CChars::Append(int64 lli)
 {
 	char sz[64];
 

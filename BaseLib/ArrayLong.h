@@ -25,10 +25,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayLong : public CArrayTemplatePrimitive<long long int>
+class CArrayLong : public CArrayTemplatePrimitive<int64>
 {
 public:
-	void 	AddList(long long int iStop, ...);
+	void 	AddList(int64 iStop, ...);
 	void	Dump(void);
 };
 

@@ -6,5 +6,5 @@ void IncrementDouble(void* pvDest) { (*(double*)pvDest)++; }
 void IncrementUInt(void* pvDest) { (*(unsigned int*)pvDest)++; }
 void IncrementUShort(void* pvDest) { (*(uint16*)pvDest)++; }
 void IncrementUChar(void* pvDest) { (*(unsigned char*)pvDest)++; }
-void IncrementLong(void* pvDest) { (*(long long int*)pvDest)++; }
-void IncrementULong(void* pvDest) { (*(unsigned long long int*)pvDest)++; }
+void IncrementLong(void* pvDest) { (*(int64*)pvDest)++; }
+void IncrementULong(void* pvDest) { (*(uint64*)pvDest)++; }

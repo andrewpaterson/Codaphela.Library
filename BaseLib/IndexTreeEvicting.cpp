@@ -525,9 +525,9 @@ void CIndexTreeEvicting::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 	if (bShowSize)
 	{
 		sz.Append("[");
-		sz.Append((unsigned long long int)mcIndexTree.GetUserMemorySize());
+		sz.Append((uint64)mcIndexTree.GetUserMemorySize());
 		sz.Append(" / ");
-		sz.Append((unsigned long long int)muiCutoff);
+		sz.Append((uint64)muiCutoff);
 		sz.Append("] ");
 	}
 
