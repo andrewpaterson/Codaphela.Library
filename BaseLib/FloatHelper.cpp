@@ -355,7 +355,7 @@ bool DoubleEqual(double f1, double f2, double fTolerance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LongDoubleEqual(long double f1, long double f2)
+bool LongDoubleEqual(float96 f1, float96 f2)
 {
 	return LongDoubleEqual(f1, f2, SMALL_NUMBER);
 }
@@ -365,7 +365,7 @@ bool LongDoubleEqual(long double f1, long double f2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LongDoubleEqual(long double f1, long double f2, long double fTolerance)
+bool LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance)
 {
 	// f1 == f2
 	if ((f2 - fTolerance > f1) || (f2 + fTolerance < f1))
@@ -575,9 +575,9 @@ void InterpolateDouble(double* fDest, double f1, double f2, double fPos)
 //////////////////////////////////////////////////////////////////////////
 double DoubleToleranceForDecimals(int iDecimals)
 {
-	long double fTolerance;
+	float96 fTolerance;
 
-	fTolerance = powl(10.0, (long double)iDecimals);
+	fTolerance = powl(10.0, (float96)iDecimals);
 	fTolerance = 1.0f/fTolerance;
 	return fTolerance;
 }

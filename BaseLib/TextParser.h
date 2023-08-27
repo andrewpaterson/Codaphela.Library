@@ -55,7 +55,6 @@ enum ETextParseError
 #define NUMBER_PREFIX_BINARY		0x01
 #define NUMBER_PREFIX_OCTAL			0x02
 #define NUMBER_PREFIX_HEXADECIMAL	0x04
-
 #define INTEGER_PREFIX_ALL			(NUMBER_PREFIX_BINARY | NUMBER_PREFIX_OCTAL | NUMBER_PREFIX_HEXADECIMAL)
 #define FLOAT_PREFIX_ALL			NUMBER_PREFIX_HEXADECIMAL
 
@@ -72,7 +71,6 @@ enum ETextParseError
 #define FLOAT_SUFFIX_F				0x0100
 #define FLOAT_SUFFIX_D				0x0200
 #define FLOAT_SUFFIX_L				0x0400
-
 #define FLOAT_SUFFIX_CPP			(FLOAT_SUFFIX_F | FLOAT_SUFFIX_D | FLOAT_SUFFIX_L)
 #define FLOAT_SUFFIX_JAVA			(FLOAT_SUFFIX_F | FLOAT_SUFFIX_D)
 
@@ -166,7 +164,7 @@ public:
 	TRISTATE		GetIntegerLiteral(uint64* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, bool bSkipWhiteSpace);
 	TRISTATE		GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth, bool bSkipWhiteSpace);
 	TRISTATE		GetStringLiteral(void* szDest, size_t uiDestByteLength, bool bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, bool bSkipWhiteSpace);
-	TRISTATE		GetFloatLiteral(long double* pldf , int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, bool bSkipWhiteSpace);
+	TRISTATE		GetFloatLiteral(float96* pldf , int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, bool bSkipWhiteSpace);
 
 	//Non linear functions.
 	TRISTATE		FindExactIdentifier(char* szIdentifier);
@@ -209,7 +207,7 @@ protected:
 	TRISTATE	GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth);
 	int			ChangeWidth(int iWidth, int iOldWidth, void* szDest, size_t uiDestByteLength, int iLength);
 	TRISTATE	GetFloatSuffix(int* piSuffix, int iAllowedSuffix);
-	long double	MakeLongDouble(int iBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, int iNumDecimalDigits, int64 lliExponentNumber);
+	float96	MakeLongDouble(int iBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, int iNumDecimalDigits, int64 lliExponentNumber);
 };
 
 

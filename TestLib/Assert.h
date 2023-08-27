@@ -53,7 +53,7 @@ bool PrivateAssertFloat(float fExpected, float fActual, int iDecimals, int iLine
 bool PrivateAssertFloat(float fExpected, float fActual, int iLine, char* szFile);
 bool PrivateAssertFloat3(SFloat3 fExpected, SFloat3* pfActual, int iDecimals, int iLine, char* szFile);
 bool PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iLine, char* szFile);
-bool PrivateAssertLongDouble(long double fExpected, long double fActual, int iDecimals, int iLine, char* szFile);
+bool PrivateAssertLongDouble(float96 fExpected, float96 fActual, int iDecimals, int iLine, char* szFile);
 bool PrivateAssertSize(size_t iExpected, size_t iActual, int iLine, char* szFile);
 bool PrivateAssertString(const char* szExpected, const char* szActual, bool bTestCase, int iLine, char* szFile);
 bool PrivateAssertStringApproximate(const char* szExpected, const char* szActual, bool bTestCase, int iLine, char* szFile);
