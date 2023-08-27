@@ -681,11 +681,11 @@ bool PrivateAssertDouble(double fExpected, double fActual, int iDecimals, int iL
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongDouble(long double fExpected, long double fActual, int iDecimals, int iLine, char* szFile)
+bool PrivateAssertLongDouble(float96 fExpected, float96 fActual, int iDecimals, int iLine, char* szFile)
 {
 	char			szExpected[32];
 	char			szActual[32];
-	long double		fTolerance;
+	float96		fTolerance;
 
 	fTolerance = DoubleToleranceForDecimals(iDecimals);
 	if (!LongDoubleEqual(fExpected, fActual, fTolerance))
@@ -1357,7 +1357,7 @@ void ToDoubleString(double f, char* sz, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongDoubleString(long double f, char* sz, int iDecimals)
+void ToLongDoubleString(float96 f, char* sz, int iDecimals)
 {
 	char szFormatter[20];
 
