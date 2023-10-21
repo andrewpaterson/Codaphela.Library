@@ -570,16 +570,16 @@ void CPreprocessorTokenParser::SkipWhiteSpace(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessorTokenParser::GetFloat(long double* pf)
 {
-	CPPText*				pcText;
-	char					c;
-	uint64	ulliLeft;
-	uint64	ulliRight;
-	int						iSign;
-	bool					bResult;
-	long double				fLeft;
-	long double				fRight;
-	long double				fTemp;
-	int						iNumDecimals;
+	CPPText*		pcText;
+	char			c;
+	uint64			ulliLeft;
+	uint64			ulliRight;
+	int				iSign;
+	bool			bResult;
+	long double		fLeft;
+	long double		fRight;
+	long double		fTemp;
+	int				iNumDecimals;
 
 	PushPosition();
 
@@ -669,12 +669,12 @@ bool CPreprocessorTokenParser::GetFloat(long double* pf)
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhiteSpace, bool bTestSign)
 {	
-	CPPText*				pcText;
-	char					c;
-	uint64	ulli;
-	int						iSign;
-	bool					bResult;
-	int						iNumDecimals;
+	CPPText*	pcText;
+	char		c;
+	uint64		ulli;
+	int			iSign;
+	bool		bResult;
+	int			iNumDecimals;
 
 	PushPosition();
 

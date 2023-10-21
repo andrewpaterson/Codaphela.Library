@@ -27,8 +27,8 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SPPHolderMark
 {
-	CPPToken*		pcCurrentToken;
-	int				iTokenIndex;
+	CPPToken*				pcCurrentToken;
+	int						iTokenIndex;
 	CPPTokenListHolder*		pcHolder;
 
 	void Init(CPPTokenListHolder* pcHolder, CPPToken* pcCurrentToken, int iTokenIndex);

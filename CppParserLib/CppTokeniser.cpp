@@ -507,10 +507,10 @@ bool CCPPTokeniser::Identifier(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::DoubleLiteral(void)
 {
-	long double				f;
-	unsigned long long int	ulliExponent;
-	long double				fTen;
-	bool					bResult;
+	long double		f;
+	uint64			ulliExponent;
+	long double		fTen;
+	bool			bResult;
 
 	mcParser.PushPosition();
 
@@ -741,8 +741,8 @@ bool CCPPTokeniser::WideStringLiteral(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::DecimalInteger(void)
 {
-	bool					bResult;
-	unsigned long long int  ulli;
+	bool	bResult;
+	uint64  ulli;
 
 	mcParser.PushPosition();
 
@@ -765,9 +765,9 @@ bool CCPPTokeniser::DecimalInteger(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCPPTokeniser::IntegerLiteral(void)
 {
-	unsigned long long int	ulliNumber;
-	int						iNumDigits;
-	bool					bReturn;
+	uint64	ulliNumber;
+	int		iNumDigits;
+	bool	bReturn;
 
 	bReturn = DecimalInteger();
 	if (bReturn)
@@ -797,6 +797,7 @@ bool CCPPTokeniser::IntegerLiteral(void)
 		}
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -838,7 +839,7 @@ bool CCPPTokeniser::ShortLiteral(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCPPTokeniser::IntegerType(unsigned long long int ulliValue)
+void CCPPTokeniser::IntegerType(uint64 ulliValue)
 {
 	bool			bResult;
 	bool			bUnsigned;
@@ -911,7 +912,6 @@ void CCPPTokeniser::IntegerType(unsigned long long int ulliValue)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -971,3 +971,4 @@ void CCPPTokeniser::Error(char* szError)
 	CChars::Dump(szError);
 	CChars::Dump("\n");
 }
+
