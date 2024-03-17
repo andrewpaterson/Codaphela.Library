@@ -40,7 +40,7 @@ void CGuidClass::Init(uint32 uiData1, uint16 uiData2, uint16 uiData3, uint8* pau
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGuidClass::Init(char8* sz)
+TRISTATE CGuidClass::Init(char8* sz)
 {
 	CTextParser	cParser;
 	TRISTATE	tOpenCurly;
@@ -57,7 +57,7 @@ void CGuidClass::Init(char8* sz)
 	{
 		cParser.Kill();
 		Clear();
-		return;
+		return TRIFALSE;
 	}
 	else if (tOpenCurly == TRIFALSE)
 	{
@@ -72,7 +72,7 @@ void CGuidClass::Init(char8* sz)
 		{
 			Clear();
 			cParser.Kill();
-			return;
+			return TRIERROR;
 		}
 	}
 	else
@@ -91,14 +91,14 @@ void CGuidClass::Init(char8* sz)
 				{
 					Clear();
 					cParser.Kill();
-					return;
+					return TRIERROR;
 				}
 			}
 			else
 			{
 				Clear();
 				cParser.Kill();
-				return;
+				return TRIERROR;
 			}
 		}
 	}
@@ -110,7 +110,7 @@ void CGuidClass::Init(char8* sz)
 		{
 			cParser.Kill();
 			Clear();
-			return;
+			return TRIERROR;
 		}
 	}
 	else if (tOpenRound == TRITRUE)
@@ -120,12 +120,12 @@ void CGuidClass::Init(char8* sz)
 		{
 			cParser.Kill();
 			Clear();
-			return;
+			return TRIERROR;
 		}
 	}
 
 	cParser.Kill();
-	return;
+	return TRITRUE;
 }
 
 
