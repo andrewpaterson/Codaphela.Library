@@ -891,6 +891,19 @@ TRISTATE CTextParser::GetDebugCharacterSequence(char* szSequence)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::SkipUTF8BOM(void)
+{
+	TRISTATE	tResult;
+
+	tResult = GetExactCharacterSequence("\xEF\xBB\xBF");
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetCharacterSequence(char* szSequence, int* piLength, bool bSkipWhiteSpace)
 {
 	char	c;

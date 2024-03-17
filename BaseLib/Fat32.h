@@ -24,5 +24,5 @@
 #include "FatFormat.h"
 
 
-#endif // __FAT_32_H__
+#endif // !__FAT_32_H__
 

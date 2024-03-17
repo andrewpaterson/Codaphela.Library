@@ -54,5 +54,5 @@ protected:
 };
 
 
-#endif // __FAT_CLUSTER_CACHE_H__
+#endif // !__FAT_CLUSTER_CACHE_H__
 
