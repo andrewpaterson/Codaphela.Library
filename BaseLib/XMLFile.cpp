@@ -97,6 +97,7 @@ bool CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 	bResult = cTextFile.Read(szPath.Text());
 	if (!bResult)
 	{
+		gcLogger.Error2(__METHOD__, " Could not read XML file [", szPath.Text(), "].", NULL);
 		cTextFile.Kill();
 		szPath.Kill();
 		return false;

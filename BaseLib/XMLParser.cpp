@@ -132,6 +132,12 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 	mszSourceContext = szSourceContext;
 
 	mcParser.Init(szText);
+	tResult = mcParser.SkipUTF8BOM();
+	if (tResult == TRIERROR)
+	{
+		return TRIERROR;
+	}
+
 	tResult = ParseProlog();
 	if (tResult == TRIERROR)
 	{

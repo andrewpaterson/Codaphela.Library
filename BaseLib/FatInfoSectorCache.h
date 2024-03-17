@@ -70,5 +70,5 @@ protected:
 };
 
 
-#endif // __FAT_INFO_SECTOR_CACHE__
+#endif // !__FAT_INFO_SECTOR_CACHE__
 

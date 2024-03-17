@@ -180,6 +180,7 @@ public:
 	TRISTATE		GetHFClosingQuote(char cQuoteType);
 	TRISTATE		ReadLine(CTextParser* pcLine);
 	TRISTATE		GetDebugCharacterSequence(char* szSequence);
+	TRISTATE		SkipUTF8BOM(void);
 
 	void			SetErrorEndOfFile(void);
 	void			SetErrorSyntaxError(void);
