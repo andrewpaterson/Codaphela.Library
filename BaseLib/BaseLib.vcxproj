@@ -320,6 +320,7 @@
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="QuickSort.h" />
     <ClInclude Include="ScratchPadAllocator.h" />
+    <ClInclude Include="Source\Aarvark\Aardvark.h" />
     <ClInclude Include="StackMemory.h" />
     <ClInclude Include="DebugOutputFile.h" />
     <ClInclude Include="StdRandom.h" />
@@ -434,7 +435,6 @@
     <ClInclude Include="WindowsError.h" />
     <ClInclude Include="WindowsHeaders.h" />
     <ClInclude Include="ConstructorCall.h" />
-    <ClInclude Include="Aardvark.h" />
     <ClInclude Include="CharEncoding.h" />
     <ClInclude Include="FatClusterCache.h" />
     <ClInclude Include="Codabase.h" />
@@ -668,6 +668,7 @@
     <ClCompile Include="RedirectPrintf.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="DebugOutputFile.cpp" />
+    <ClCompile Include="Source\Aarvark\Aardvark.cpp" />
     <ClCompile Include="StdRandom.cpp" />
     <ClCompile Include="SystemAllocator.cpp" />
     <ClCompile Include="TemporaryMemory.cpp" />
@@ -757,7 +758,6 @@
     <ClCompile Include="FastMemcpyBackwards.cpp" />
     <ClCompile Include="FastMemset.cpp" />
     <ClCompile Include="PointerFunctions.cpp" />
-    <ClCompile Include="Aardvark.cpp" />
     <ClCompile Include="TypeConverter.cpp" />
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeParser.cpp" />

@@ -816,7 +816,7 @@ bool CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, 
 {
 	CChars*			szDir;
 	int				i;
-	CArrayChars	aszDirs;
+	CArrayChars		aszDirs;
 	bool			bDirectories;
 	bool			bFiles;
 
