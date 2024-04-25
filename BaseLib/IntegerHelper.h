@@ -26,17 +26,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PrimitiveTypes.h"
 
 
-#ifdef MAXINT
-#undef MAXINT
-#endif //MAXINT
-#define MAXINT 0x7fffffff
-
-#ifdef MININT
-#undef MININT
-#endif //MININT
-#define MININT 0x80000000
-
-
 uint32 	TruncateLowBits(uint32 i);
 bool 	IsPowerOfTwo(uint32 i);
 int32 	GetBestHighBit(int32 i);
@@ -49,12 +38,12 @@ int32	CountBits(void* pvBitArray, int32 iBitLength);
 int32	CountBitsSingly(void* pvBitArray, int32 iBitLength);  //Slow, for testing.
 void 	SetBit(int32 iBit, void* pvBitArray, bool bBit);
 void 	SetBits(int32 iStart, void* pvBitArray, bool bBit, int32 iLength);
-void 	SetFlag(int32* piDest, int32 iFlag, int32 iFlagValue);
-void 	SetFlag(uint32* piDest, int32 iFlag, int32 iFlagValue);
-void 	SetFlag(int16* psiDest, int32 iFlag, int32 iFlagValue);
-void 	SetFlag(uint16* psiDest, int32 iFlag, int32 iFlagValue);
-void 	SetFlag(int8* psiDest, int32 iFlag, int32 iFlagValue); 
-void 	SetFlag(uint8* psiDest, int32 iFlag, int32 iFlagValue);
+void 	SetFlag(int32* piDest, int32 iFlag, bool iFlagValue);
+void 	SetFlag(uint32* piDest, uint32 iFlag, bool iFlagValue);
+void 	SetFlag(int16* psiDest, int16 iFlag, bool iFlagValue);
+void 	SetFlag(uint16* psiDest, uint16 iFlag, bool iFlagValue);
+void 	SetFlag(int8* psiDest, int8 iFlag, bool iFlagValue);
+void 	SetFlag(uint8* psiDest, uint8 iFlag, bool iFlagValue);
 int32 	FindFirstClearBit(void* pvArray, int32 iArraySize);
 int32 	FindFirstSetBit(void* pvArray, int32 iArraySize);
 int32 	FindLastClearBit(void* pvArray, int32 iArraySize);

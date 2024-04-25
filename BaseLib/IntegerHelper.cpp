@@ -670,7 +670,10 @@ int32 FindLastSetBit(void* pvArray, int32 iArraySize)
 //////////////////////////////////////////////////////////////////////////
 bool FixBool(void* pv)
 {
-	return FixBool((int32)(size_t) pv);
+	if (pv)
+		return true;
+	else
+		return false;
 }
 
 
@@ -691,7 +694,7 @@ bool FixBool(int32 i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(int32* piDest, int32 iFlag, int32 iFlagValue)
+void SetFlag(int32* piDest, int32 iFlag, bool iFlagValue)
 {
 	//If the value is true then OR it with dest.
 	if (iFlagValue)
@@ -710,7 +713,7 @@ void SetFlag(int32* piDest, int32 iFlag, int32 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(uint32* piDest, int32 iFlag, int32 iFlagValue)
+void SetFlag(uint32* piDest, uint32 iFlag, bool iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -729,7 +732,7 @@ void SetFlag(uint32* piDest, int32 iFlag, int32 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(int16* psiDest, int32 iFlag, int32 iFlagValue)
+void SetFlag(int16* psiDest, int16 iFlag, bool iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -748,7 +751,7 @@ void SetFlag(int16* psiDest, int32 iFlag, int32 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(uint16* psiDest, int32 iFlag, int32 iFlagValue)
+void SetFlag(uint16* psiDest, uint16 iFlag, bool iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -767,7 +770,7 @@ void SetFlag(uint16* psiDest, int32 iFlag, int32 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(uint8* psiDest, int32 iFlag, int32 iFlagValue)
+void SetFlag(uint8* psiDest, uint8 iFlag, bool iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -786,7 +789,7 @@ void SetFlag(uint8* psiDest, int32 iFlag, int32 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SetFlag(int8* psiDest, int32 iFlag, int32 iFlagValue)
+void SetFlag(int8* psiDest, int8 iFlag, bool iFlagValue)
 {
 	//If the value is true then or it with dest.
 	if (iFlagValue)
@@ -1141,6 +1144,10 @@ void ReverseEndianness(void* pv, int32 iSize)
 	if (iSize == 2)
 	{
 		*(int16*)pv = ReverseShortEndianness(*(int16*)pv);
+	}
+	if (iSize == 4)
+	{
+		*(int32*)pv = ReverseIntEndianness(*(int32*)pv);
 	}
 	if (iSize == 8)
 	{
