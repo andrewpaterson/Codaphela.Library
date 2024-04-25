@@ -62,11 +62,12 @@ The routine MD5Update updates the message-digest context to
 account for the presence of each of the characters inBuf[0..inLen-1]
 in the message whose digest is being computed.
 */
-void MD5Update(SMD5Context *mdContext, uint8 *inBuf, unsigned int inLen)
+void MD5Update(SMD5Context *mdContext, uint8 *inBuf, uint32 inLen)
 {
-	uint32 in[16];
-	int mdi;
-	unsigned int i, ii;
+	uint32	in[16];
+	int32	mdi;
+	uint32	i;
+	uint32	ii;
 
 	/* compute number of bytes mod 64 */
 	mdi = (int)((mdContext->i[0] >> 3) & 0x3F);
@@ -104,8 +105,8 @@ void MD5Final(SMD5Context *mdContext)
 {
 	uint32 in[16];
 	int mdi;
-	unsigned int i, ii;
-	unsigned int padLen;
+	uint32 i, ii;
+	uint32 padLen;
 
 	/* save number of bits */
 	in[14] = mdContext->i[0];
