@@ -55,7 +55,7 @@ void* CIndexTreeEvictedList::GetKey(int iIndex, int* piKeySize)
 	{
 		*piKeySize = mcKeys.GetSize(iIndex);
 	}
-	return (unsigned char*)mcKeys.Get(iIndex);
+	return (uint8*)mcKeys.Get(iIndex);
 }
 
 

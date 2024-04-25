@@ -14,14 +14,14 @@ struct SIndexTreeDebugNode
 	uint16	uiDataSize;
 	uint16	iFileNodeSize;
 
-	unsigned char	uiFirstIndex;
-	unsigned char	uiLastIndex;
+	uint8	uiFirstIndex;
+	uint8	uiLastIndex;
 
-	unsigned char	uiIndexInParent;
-	unsigned char	sFlags;
+	uint8	uiIndexInParent;
+	uint8	sFlags;
 
 	int		InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex);
-	void	InitBroken(unsigned char uiIndexInParent);
+	void	InitBroken(uint8 uiIndexInParent);
 	void	Print(CChars* sz);
 	void	Dump(void);
 };

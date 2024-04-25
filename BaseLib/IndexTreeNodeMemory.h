@@ -6,14 +6,14 @@
 class CIndexTreeNodeMemory : public CIndexTreeNode
 {
 public:
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiIndexInParent);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint8 uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiIndexInParent);
 
-	CIndexTreeNodeMemory*	Get(unsigned char uiIndex);
-	void					Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode);
+	CIndexTreeNodeMemory*	Get(uint8 uiIndex);
+	void					Set(uint8 uiIndex, CIndexTreeNodeMemory* pcNode);
 
-	void					ClearIndex(unsigned char uiIndex);
-	bool					ClearAndUncontain(unsigned char uiIndex);
+	void					ClearIndex(uint8 uiIndex);
+	bool					ClearAndUncontain(uint8 uiIndex);
 
 	CIndexTreeNodeMemory*	GetNode(int i);
 	CIndexTreeNodeMemory**	GetNodes(void);
@@ -22,11 +22,11 @@ public:
 
 	void					RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
 	void					RemapDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode);
-	void					Contain(unsigned char uiIndex);
+	void					Contain(uint8 uiIndex);
 
-	unsigned char			FindPrevLastIndex(void);
-	unsigned char			FindNextFirstIndex(void);
-	unsigned char			FindIndex(CIndexTreeNodeMemory* pcChild);
+	uint8					FindPrevLastIndex(void);
+	uint8					FindNextFirstIndex(void);
+	uint8					FindIndex(CIndexTreeNodeMemory* pcChild);
 
 	void					SetChildrensParent(void);
 
@@ -34,7 +34,7 @@ public:
 	void					Print(CChars* psz, bool bHex);
 	void					Dump(void);
 
-	bool					Uncontain(unsigned char uiIndex);
+	bool					Uncontain(uint8 uiIndex);
 };
 
 

@@ -65,7 +65,7 @@ bool PrivateAssertNumber(const char* szExpected, CNumber* pcActual, int iLine, c
 bool PrivateAssertPointer(void* pvExpected, void* pvActual, int iLine, char* szFile);
 bool PrivateAssertNotNull(void* pvActual, int iLine, char* szFile);
 bool PrivateAssertNull(void* pvActual, int iLine, char* szFile);
-bool PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int iLine, char* szFile);
+bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, int iLine, char* szFile);
 bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, int iLine, char* szFile);
 bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size_t iLength, int iLine, char* szFile);
 bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, int iLine, char* szFile);

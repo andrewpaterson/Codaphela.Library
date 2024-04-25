@@ -61,22 +61,23 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** documentation and/or software.                                    **
 ***********************************************************************
 */
+#include "PrimitiveTypes.h"
 
 
 /* Data structure for MD5 (Message-Digest) computation */
 struct SMD5Context
 {
-	unsigned long int i[2];		/* number of _bits_ handled mod 2^64 */
-	unsigned long int buf[4];	/* scratch buffer */
-	unsigned char in[64];		/* input buffer */
-	unsigned char digest[16];	/* actual digest after MD5Final call */
+	uint32 i[2];		/* number of _bits_ handled mod 2^64 */
+	uint32 buf[4];	/* scratch buffer */
+	uint8 in[64];		/* input buffer */
+	uint8 digest[16];	/* actual digest after MD5Final call */
 };
 
 
 void MD5Init(SMD5Context* mdContext);
-void MD5Update(SMD5Context* mdContext, unsigned char*, unsigned int);
+void MD5Update(SMD5Context* mdContext, uint8*, unsigned int);
 void MD5Final(SMD5Context* mdContext);
-void MD5Transform(unsigned long int*, unsigned long int*);
+void MD5Transform(uint32*, uint32*);
 void MD5Dump(SMD5Context* ctx);
 
 

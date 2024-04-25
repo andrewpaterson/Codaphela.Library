@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 char GetEscapeCode(char cCurrent);
 char* GetEscapeString(char cCurrent, char* szDest);
-char* GetEscapeString(unsigned char cCurrent, char* szDest);
+char* GetEscapeString(uint8 cCurrent, char* szDest);
 char* GetEscapeString(char16 cCurrent, char* szDest);
 
 

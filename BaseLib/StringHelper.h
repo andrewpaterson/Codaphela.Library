@@ -59,7 +59,7 @@ char*		FlagsToString(char* szDest, int iDestLength, int iFlags);
 char*		FlagsToString(char* szDest, int iDestLength, short int iFlags);
 char*		FlagsToString(char* szDest, int iDestLength, char iFlags);
 char*		CharToString(char* szDest, int iDestLength, char c);
-char*		CharToString(char* szDest, int iDestLength, unsigned char c);
+char*		CharToString(char* szDest, int iDestLength, uint8 c);
 char*		CharToString(char* szDest, int iDestLength, char16 c);
 char*		BoolToString(char* szDest, int iDestLength, bool b);
 

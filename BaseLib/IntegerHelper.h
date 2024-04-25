@@ -37,8 +37,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MININT 0x80000000
 
 
-int 	TruncateLowBits(int i);
-int 	IsPowerOfTwo(int i);
+uint32 	TruncateLowBits(uint32 i);
+bool 	IsPowerOfTwo(uint32 i);
 int 	GetBestHighBit(int i);
 int 	GetLogBase2(int i);  //0x1 -> 0, 0x2 -> 1, 0x4 -> 2, 0x8 -> 3, 0x10 -> 4, 0x20 -> 5...
 int 	GetByte(int iInt, int iPos);
@@ -75,7 +75,7 @@ int 	CompareInt(const void* arg1, const void* arg2);
 int 	CompareLong(const void* arg1, const void* arg2);
 int		CompareIntReverse(const void* arg1, const void* arg2);
 int		CompareLongReverse(const void* arg1, const void* arg2);
-char 	GetCrumb(int iCrumb, void* pvArray);  //return 11, 10, 01 or 00 in char.
+char 	GetCrumb(int iCrumb, void* pvArray);  //return 11, 10, 01 or 00.
 char 	GetNybble(int iNybble, void* pvArray);
 void 	CopyBits(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.
 void 	CopyBitsReverseHiLo(void* pvDest, int iDestOffset, void* pvSource, int iSourceOffset, int iNumBits, int bClear);  //Setting clear will make all unused bits zero.

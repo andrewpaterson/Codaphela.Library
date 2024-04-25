@@ -2306,10 +2306,10 @@ CChars* CChars::AppendData(const char* szData, size_t iMaxLength)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLength)
 {
-	int				i;
-	int				iLength;
-	unsigned char	c;
-	bool			bLastReadable;
+	int		i;
+	int		iLength;
+	uint8	c;
+	bool	bLastReadable;
 	
 	if (iDataLength > iMaxLength)
 	{
@@ -2385,11 +2385,11 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 //////////////////////////////////////////////////////////////////////////
 bool CChars::AppendData2(const char* szData, size_t iDataLength)
 {
-	size_t			i;
-	int				iPrintable;
-	unsigned char	c;
-	float			fPrintable;
-	CChars			sz;
+	size_t	i;
+	int		iPrintable;
+	uint8	c;
+	float	fPrintable;
+	CChars	sz;
 
 	if ((szData == NULL) || (iDataLength == 0))
 	{

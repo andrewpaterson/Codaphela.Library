@@ -631,7 +631,7 @@ size_t CIndexTreeEvicting::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeEvicting::GetRootFlags(void)
+uint8 CIndexTreeEvicting::GetRootFlags(void)
 {
 	return mcIndexTree.GetRoot()->GetFlags();
 }

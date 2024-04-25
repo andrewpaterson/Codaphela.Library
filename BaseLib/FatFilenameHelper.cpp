@@ -554,9 +554,9 @@ bool IsIllegalFilename(char* szName, uint16 uiLength)
 //////////////////////////////////////////////////////////////////////////
 void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 {
-	char			szNameSuffix[6];
-	uint8			i;
-	uint8			c;
+	char	szNameSuffix[6];
+	uint8	i;
+	uint8	c;
 
 	sprintf(szNameSuffix, "~%i", uiNameSuffix);
 

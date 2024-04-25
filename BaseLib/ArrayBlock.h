@@ -90,7 +90,7 @@ public:
 	bool	PopFirst(void);
 
 	int		AddNum(int iNumElements);
-	void*	GrowToAtLeastNumElements(int iNumElements, bool bClear = false, unsigned char  iClear = 0);
+	void*	GrowToAtLeastNumElements(int iNumElements, bool bClear = false, uint8  iClear = 0);
 	int		Resize(int iNumElements);
 
 	void	BubbleSort(DataCompare fCompare);

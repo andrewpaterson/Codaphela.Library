@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, unsigned char uiIndexInParent)
+void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint8 uiIndexInParent)
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, 0, uiIndexInParent);
 }
@@ -17,7 +17,7 @@ void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent)
+void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiIndexInParent)
 {
  	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
 }
@@ -27,7 +27,7 @@ void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeNodeMemory::Get(unsigned char uiIndex)
+CIndexTreeNodeMemory* CIndexTreeNodeMemory::Get(uint8 uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
@@ -44,7 +44,7 @@ CIndexTreeNodeMemory* CIndexTreeNodeMemory::Get(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNode)
+void CIndexTreeNodeMemory::Set(uint8 uiIndex, CIndexTreeNodeMemory* pcNode)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -60,7 +60,7 @@ void CIndexTreeNodeMemory::Set(unsigned char uiIndex, CIndexTreeNodeMemory* pcNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::ClearIndex(unsigned char uiIndex)
+void CIndexTreeNodeMemory::ClearIndex(uint8 uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -76,7 +76,7 @@ void CIndexTreeNodeMemory::ClearIndex(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNodeMemory::ClearAndUncontain(unsigned char uiIndex)
+bool CIndexTreeNodeMemory::ClearAndUncontain(uint8 uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -121,7 +121,7 @@ CIndexTreeNodeMemory** CIndexTreeNodeMemory::GetNodes(void)
 void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
 {
 	CIndexTreeNodeMemory**	apcChildren;
-	unsigned char			uiIndex;
+	uint8					uiIndex;
 
 	apcChildren = GetNodes();
 	uiIndex = pcNewNode->muiIndexInParent - muiFirstIndex;
@@ -149,7 +149,7 @@ void CIndexTreeNodeMemory::RemapDataLinks(CIndexTreeNodeMemory* pcOldNode, CInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
+void CIndexTreeNodeMemory::Contain(uint8 uiIndex)
 {
 	CIndexTreeNode::Contain(uiIndex, 0);
 }
@@ -159,9 +159,9 @@ void CIndexTreeNodeMemory::Contain(unsigned char uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNodeMemory::FindNextFirstIndex(void)
+uint8 CIndexTreeNodeMemory::FindNextFirstIndex(void)
 {
-	unsigned char			i;
+	uint8					i;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -182,7 +182,7 @@ unsigned char CIndexTreeNodeMemory::FindNextFirstIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNodeMemory::FindPrevLastIndex(void)
+uint8 CIndexTreeNodeMemory::FindPrevLastIndex(void)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
@@ -205,7 +205,7 @@ unsigned char CIndexTreeNodeMemory::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
+uint8 CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChildTest;
@@ -217,7 +217,7 @@ unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 		pcChildTest = apcChildren[i];
 		if (pcChild == pcChildTest)
 		{
-			return (unsigned char)i + muiFirstIndex;
+			return (uint8)i + muiFirstIndex;
 		}
 	}
 
@@ -230,9 +230,9 @@ unsigned char CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNodeMemory::Uncontain(unsigned char uiIndex)
+bool CIndexTreeNodeMemory::Uncontain(uint8 uiIndex)
 {
-	unsigned char	uiNextFirstIndex;
+	uint8	uiNextFirstIndex;
 
 	if ((uiIndex != muiFirstIndex) && (uiIndex != muiLastIndex))
 	{

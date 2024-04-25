@@ -31,8 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CDiskFile : public CAbstractFile
 {
 public:
-	unsigned char	maFile[8];
-	CChars			mszFilename;
+	uint8		maFile[8];
+	CChars		mszFilename;
 
 	void		Init(const char* szFilename);
 	void		Init(CChars szFilename);

@@ -36,7 +36,7 @@ class CLifeInit
 {
 protected:
 	M*				mpcLifeCycleObject;
-	unsigned char	mcFlags;
+	uint8	mcFlags;
 
 public:
 	void	Init(M* pcLifeCycleObject, bool bMustFree = true, bool bMustKill = true);

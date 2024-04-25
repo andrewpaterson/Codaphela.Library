@@ -81,7 +81,7 @@ protected:
 
 	size_t					GetSystemMemorySize(void);
 	size_t					GetUserMemorySize(void);
-	unsigned char			GetRootFlags(void);
+	uint8					GetRootFlags(void);
 
 	int						PotentiallyEvict(void* pvKey, int iKeySize);
 	bool					GetWithoutEviction(void* pvKey, int iKeySize, void* pvObject, size_t* piDataSize, size_t uiMaxDataSize);

@@ -70,8 +70,8 @@ public:
 	TRISTATE	ParseEntities(void);
 	TRISTATE	ParseExternalEntity(char* szName, char* szContent);
 	TRISTATE	ParseInternalEntity(char* szName, char* szContent);
-	bool		IsAllowedIdentifierChar(bool bFirstChar, unsigned char cChar);
-	bool		IsAllowedTextChar(unsigned char cChar);
+	bool		IsAllowedIdentifierChar(bool bFirstChar, uint8 cChar);
+	bool		IsAllowedTextChar(uint8 cChar);
 	TRISTATE	FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected);
 	TRISTATE	FailAlways(TRISTATE tResult, char* szExpected);
 };

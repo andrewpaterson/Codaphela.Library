@@ -279,7 +279,7 @@ size_t CIndexedDescriptorsFile::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexedDescriptorsFile::GetRootFlags(void)
+uint8 CIndexedDescriptorsFile::GetRootFlags(void)
 {
 	return mcIndexTree.GetRootFlags();
 }

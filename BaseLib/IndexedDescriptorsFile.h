@@ -54,7 +54,7 @@ public:
 	bool			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
 	size_t			GetSystemMemorySize(void);
-	unsigned char	GetRootFlags(void);
+	uint8			GetRootFlags(void);
 
 	void			Dump(void);
 	bool			ValidateIndex(void);

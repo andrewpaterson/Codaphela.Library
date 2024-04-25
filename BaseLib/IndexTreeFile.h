@@ -98,8 +98,8 @@ protected:
 
 	void					SetWriteThrough(EIndexWriteThrough eWriteThrough);
 
-	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize, unsigned char uiFirstIndex, unsigned char uiLastIndex);
-	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiDataSize);
+	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent, uint8 uiDataSize, uint8 uiFirstIndex, uint8 uiLastIndex);
+	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent, uint8 uiDataSize);
 
 	CIndexTreeNodeFile*		GetRoot(void);
 	CIndexTreeNodeFile*		GetNode(void* pvKey, int iKeySize);
@@ -136,10 +136,10 @@ protected:
 	bool					InitRoot(char* szSubDirectory);
 	void					RecurseKill(CIndexTreeNodeFile* pcNode);
 
-	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c);
-	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, unsigned char c, bool bReadNode);
-	bool					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, unsigned char uiIndexInParent);
-	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, unsigned char c);
+	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, uint8 c);
+	CIndexTreeNodeFile*		ReadNode(CIndexTreeNodeFile* pcParent, uint8 c, bool bReadNode);
+	bool					Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* pcFileNodeParent, uint8 uiIndexInParent);
+	CIndexTreeNodeFile*		ReadMemoryNode(CIndexTreeNodeFile* pcParent, uint8 c);
 	bool					HasMemoryNodes(CIndexTreeNodeFile* pcNode);
 	
 	bool					Write(CIndexTreeNodeFile* pcNode);
@@ -147,16 +147,16 @@ protected:
 
 	CIndexTreeNodeFile*		AllocateRoot(void);
 	CIndexTreeNodeFile*		AllocateRoot(CFileDataIndex cFileIndex);
-	CIndexTreeNodeFile*		AllocateNodeSingle(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, uint16 uiDataSize);
-	CIndexTreeNodeFile*		AllocateNodeRange(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, uint16 uiDataSize);
-	CIndexTreeNodeFile*		AllocateNodeFromBuffer(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent, void* pvBuffer, int iMaxBufferSize);
+	CIndexTreeNodeFile*		AllocateNodeSingle(CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent, uint16 uiDataSize);
+	CIndexTreeNodeFile*		AllocateNodeRange(CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint16 uiDataSize);
+	CIndexTreeNodeFile*		AllocateNodeFromBuffer(CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent, void* pvBuffer, int iMaxBufferSize);
 
-	CIndexTreeNodeFile*		ReallocateNodeForContainIndex(CIndexTreeNodeFile* pcNode, unsigned char uiIndex);
+	CIndexTreeNodeFile*		ReallocateNodeForContainIndex(CIndexTreeNodeFile* pcNode, uint8 uiIndex);
 	CIndexTreeNodeFile*		ReallocateNodeForLargerData(CIndexTreeNodeFile* pcNode, void* pvData, uint16 uiDataSize);
 	CIndexTreeNodeFile*		ReallocateNodeForSmallerData(CIndexTreeNodeFile* pcNode, void* pvData, uint16 uiOriginalSize);
-	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, unsigned char c);
+	CIndexTreeNodeFile*		ReallocateNodeForUncontainIndex(CIndexTreeNodeFile* pcNode, uint8 c);
 
-	CIndexTreeNodeFile*		AllocateChildNode(CIndexTreeNodeFile* pcParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeFile*		AllocateChildNode(CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeData(CIndexTreeNodeFile* pcCurrent, void* pvObject, uint16 uiDataSize);
 	CIndexTreeNodeFile*		AllocateKey(void* pvKey, int iKeySize);
 	bool					HasData(CIndexTreeNodeFile* pcNode);
@@ -168,15 +168,15 @@ protected:
 	bool					Flush(CIndexTreeNodeFile** ppcCurrent);
 	bool					CanEvict(CIndexTreeNodeFile* pcNode);
 
-	void					ClearNodesFlags(CArrayVoidPtr* papNodes, unsigned char uiFlags);
-	void					FindWithFlags(CArrayVoidPtr* papNodes, unsigned char uiFollowFlags, unsigned char uiAddFlags);
+	void					ClearNodesFlags(CArrayVoidPtr* papNodes, uint8 uiFlags);
+	void					FindWithFlags(CArrayVoidPtr* papNodes, uint8 uiFollowFlags, uint8 uiAddFlags);
 	int						RecurseNumElements(CIndexTreeNodeFile* pcNode);
 	int						RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode);
 	int						RecurseNumMemoryElements(CIndexTreeNodeFile* pcNode, size_t iSize);
 	int						CountListSize(void);
 	int						RecurseCountListSize(CIndexTreeNodeFile* pcNode);
 	size_t					RecurseByteSize(CIndexTreeNodeFile* pcNode);
-	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, unsigned char uiFollowFlags, unsigned char uiAddFlags, CArrayVoidPtr* papNodes);
+	void					RecurseFindWithFlags(CIndexTreeRecursor* pcCursor, uint8 uiFollowFlags, uint8 uiAddFlags, CArrayVoidPtr* papNodes);
 	int						RecurseNumNodes(CIndexTreeRecursor* pcCursor);
 	int						RecurseNumMemoryNodes(CIndexTreeRecursor* pcCursor);
 

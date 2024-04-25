@@ -285,7 +285,7 @@ int CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CF
 void* CGeneralMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 {
 	CFreeList*	pcFreeList;
-	void*				pv;
+	void*		pv;
 
 	if ((mbBreakOnAlloc) && (muiAllocCount == muiBreakAlloc))
 	{

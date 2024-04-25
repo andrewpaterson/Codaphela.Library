@@ -10,24 +10,24 @@
 class CFatVolume;
 struct SFatFile
 {
-	SFatDirectoryEntry		sDirectoryEntry;
-	uint32					uiFileSize;
-	uint32					uiFilePosition;
-	fatEntry				uiFilePositionCluster;
+	SFatDirectoryEntry	sDirectoryEntry;
+	uint32				uiFileSize;
+	uint32				uiFilePosition;
+	fatEntry			uiFilePositionCluster;
 
-	bool					bBusy;
-	uint8					uiMagic;
-	uint8					uiAccessFlags;
+	bool				bBusy;
+	uint8				uiMagic;
+	uint8				uiAccessFlags;
 };
 
 
 class CFatFile
 {
 protected:
-	SFatFile				msFile;
-	CFatVolume*				mpcVolume;
-	CFatClusterCache		mcCache;
-	char					mszName[FAT_MAX_FILENAME];
+	SFatFile			msFile;
+	CFatVolume*			mpcVolume;
+	CFatClusterCache	mcCache;
+	char				mszName[FAT_MAX_FILENAME];
 
 public:
 	void		Init(CFatVolume* pcVolume);

@@ -1042,7 +1042,7 @@ void CNumber::PrivateZeroDigits(int iFirst, int iLast)
 
 	pcStart = DigitToArray(iFirst);
 	iLength = GetDigitsBetween(iFirst, iLast);
-	memset_fast(pcStart, (unsigned char)0, iLength);
+	memset_fast(pcStart, (uint8)0, iLength);
 }
 
 
@@ -1216,11 +1216,11 @@ CNumber* CNumber::Shift(int iOffset)
 		iLast = OffsetDigit(iLast, -1);
 
 		pcNew = DigitToArray(iLast);
-		memset_fast(pcNew, (unsigned char)0, iOffset);
+		memset_fast(pcNew, (uint8)0, iOffset);
 	}
 	else
 	{
-		memset_fast(pcOld, (unsigned char)0, -iOffset);
+		memset_fast(pcOld, (uint8)0, -iOffset);
 	}
 	return this;
 }

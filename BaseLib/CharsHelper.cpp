@@ -38,7 +38,7 @@ void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
 
 	cRandom.Init();
 
-	sz.Init("	unsigned char		uc[] = {");
+	sz.Init("	uint8		uc[] = {");
 	for (i = 0; i < iNum; i++)
 	{
 		r = cRandom.Next(0, 255);
@@ -59,7 +59,7 @@ void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCharsHelper::GenerateBitStream(unsigned char* ucBytes, int iByteCount)
+void CCharsHelper::GenerateBitStream(uint8* ucBytes, int iByteCount)
 {
 	bool	b;
 	CChars	sz;

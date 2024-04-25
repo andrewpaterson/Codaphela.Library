@@ -72,7 +72,7 @@ public:
 	CDurableFileController* GetDurableFileControl(void);
 	size_t			GetIndiciesSystemMemorySize(void);
 	size_t			GetDataSystemMemorySize(void);
-	unsigned char	GetRootFlags(void);
+	uint8			GetRootFlags(void);
 
 	void			DumpIndex(void);
 	bool			ValidateIndex(void);
