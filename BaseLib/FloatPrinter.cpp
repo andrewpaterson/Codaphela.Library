@@ -46,26 +46,26 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 template<class FLOAT, class INTEGER>
 char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
-	unsigned char*	pui;
-	INTEGER			iMantissa;
-	bool			bNegative;
-	int				iExponent;
-	INTEGER			iValue;
-	CNumber*		pcResult;
-	CNumber*		pcTwoPower;
-	int				iWholeDigits;
-	int				iFractionalDigits;
-	CNumber			cExponent;
-	CNumber			cTwo;
-	int				iLeftMost;
-	CChars			sz;
-	int				iFractionalPart;
-	bool			bNumeric;
-	int				iSignificantDigits;
-	int				iIndex;
-	int				iLength;
+	uint8*		pui;
+	INTEGER		iMantissa;
+	bool		bNegative;
+	int			iExponent;
+	INTEGER		iValue;
+	CNumber*	pcResult;
+	CNumber*	pcTwoPower;
+	int			iWholeDigits;
+	int			iFractionalDigits;
+	CNumber		cExponent;
+	CNumber		cTwo;
+	int			iLeftMost;
+	CChars		sz;
+	int			iFractionalPart;
+	bool		bNumeric;
+	int			iSignificantDigits;
+	int			iIndex;
+	int			iLength;
 
-	pui = (unsigned char*)&f;
+	pui = (uint8*)&f;
 	iExponent = (int)((*((INTEGER*)pui) & iExponentMask) >> iExponentShift);
 	iMantissa = *((INTEGER*)pui) & iMantissaMask;
 	bNegative = FixBool((*((INTEGER*)pui) & iNegativeBit) == iNegativeBit);
@@ -198,26 +198,26 @@ char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecim
 template<class FLOAT, class INTEGER>
 char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
-	unsigned char*	pui;
-	INTEGER			iMantissa;
-	bool			bNegative;
-	int				iExponent;
-	INTEGER			iValue;
-	CNumber*		pcResult;
-	CNumber*		pcTwoPower;
-	int				iWholeDigits;
-	int				iFractionalDigits;
-	CNumber			cExponent;
-	CNumber			cTwo;
-	int				iLeftMost;
-	CChars			sz;
-	int				iFractionalPart;
-	bool			bNumeric;
-	int				iSignificantDigits;
-	int				iIndex;
-	int				iLength;
+	uint8*		pui;
+	INTEGER		iMantissa;
+	bool		bNegative;
+	int			iExponent;
+	INTEGER		iValue;
+	CNumber*	pcResult;
+	CNumber*	pcTwoPower;
+	int			iWholeDigits;
+	int			iFractionalDigits;
+	CNumber		cExponent;
+	CNumber		cTwo;
+	int			iLeftMost;
+	CChars		sz;
+	int			iFractionalPart;
+	bool		bNumeric;
+	int			iSignificantDigits;
+	int			iIndex;
+	int			iLength;
 
-	pui = (unsigned char*)&f;
+	pui = (uint8*)&f;
 	iExponent = -126;
 	iMantissa = *((INTEGER*)pui) & iMantissaMask;
 	bNegative = FixBool((*((INTEGER*)pui) & iNegativeBit) == iNegativeBit);
@@ -335,12 +335,12 @@ char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDe
 template<class FLOAT, class INTEGER>
 char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {	
-	unsigned char*	pui;
-	INTEGER			iMantissa;
-	bool			bNegative;
-	int				iExponent;
+	uint8*		pui;
+	INTEGER		iMantissa;
+	bool		bNegative;
+	int			iExponent;
 
-	pui = (unsigned char*)&f;
+	pui = (uint8*)&f;
 	iExponent = (int)((*((INTEGER*)pui) & iExponentMask) >> iExponentShift);
 
 	if (iExponent == 0)

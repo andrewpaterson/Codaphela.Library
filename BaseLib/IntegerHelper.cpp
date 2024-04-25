@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //	eg: 1025 become 1024 but 1024 becomes 1024.  (also 2047 becomes 1024).
 //
 //////////////////////////////////////////////////////////////////////////
-int TruncateLowBits(int i)
+uint32 TruncateLowBits(uint32 i)
 {
 	if (i == 0)
 	{
@@ -43,16 +43,16 @@ int TruncateLowBits(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int IsPowerOfTwo(int i)
+bool IsPowerOfTwo(uint32 i)
 {
 	int	iPow2;
 
 	iPow2 = TruncateLowBits(i);
 	if (iPow2 == i)
 	{
-		return iPow2;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 
@@ -110,7 +110,7 @@ int GetByte(int iInt, int iPos)
 
 	iPos *= 8;
 	iInt >>= iPos;
-	c = (unsigned char)(iInt & 0xff);
+	c = (uint8)(iInt & 0xff);
 	return c;
 }
 
@@ -207,7 +207,7 @@ int CountBits_PopCount16(uint16 i)
 //  https://stackoverflow.com/questions/30688465/how-to-check-the-number-of-set-bits-in-an-8-bit-unsigned-char
 //
 //////////////////////////////////////////////////////////////////////////
-int CountBits_PopCount8(unsigned char b)
+int CountBits_PopCount8(uint8 b)
 {
 	b = b - ((b >> 1) & 0x55);
 	b = (b & 0x33) + ((b >> 2) & 0x33);
@@ -333,7 +333,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	int				iStart;
 	int				iEnd;
 	bool			bFound;
-	unsigned char	c;
+	uint8	c;
 
 	iIntSize = iArraySize / 32;
 	iRemainder = iArraySize % 32;
@@ -356,7 +356,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	for (i = iStart; i < iEnd; i++)
 	{
 		c = ((uint8*)pvArray)[i];
-		if (c != (unsigned char)0x00)
+		if (c != (uint8)0x00)
 		{
 			bFound = true;
 			break;
@@ -372,7 +372,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 
 		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
-		unsigned char ucCmp = 1;
+		uint8 ucCmp = 1;
 
 		if ((c & ucCmp))
 			return iStart;
@@ -403,7 +403,7 @@ int FindFirstSetBit(void* pvArray, int iArraySize)
 	{
 		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
-		unsigned char ucCmp = 1;
+		uint8 ucCmp = 1;
 
 		for (i = 0; i < iRemainder; i++)
 		{
@@ -430,7 +430,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	int				iStart;
 	int				iEnd;
 	bool			bFound;
-	unsigned char	c;
+	uint8	c;
 
 	iIntSize = iArraySize / 32;
 	iRemainder = iArraySize % 32;
@@ -452,7 +452,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	for (i = iStart; i < iEnd; i++)
 	{
 		c = ((uint8*)pvArray)[i];
-		if (c != (unsigned char)0xff)
+		if (c != (uint8)0xff)
 		{
 			bFound = true;
 			break;
@@ -468,7 +468,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 
 		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
-		unsigned char ucCmp = 1;
+		uint8 ucCmp = 1;
 
 		if (!(c & ucCmp))
 			return iStart;
@@ -499,7 +499,7 @@ int FindFirstClearBit(void* pvArray, int iArraySize)
 	{
 		c = ((uint8*)pvArray)[i];
 		iStart = i * 8;
-		unsigned char ucCmp = 1;
+		uint8 ucCmp = 1;
 
 		for (i = 0; i < iRemainder; i++)
 		{
@@ -522,7 +522,7 @@ int FindNextSetBit(void* pvArray, int iArraySize, int iStartBit)
 	int				i;
 	int				iRemainder;
 	int				iStart;
-	unsigned char	c;
+	uint8	c;
 	int				iResult;
 	int				iStop;
 	int				ij;
@@ -537,7 +537,7 @@ int FindNextSetBit(void* pvArray, int iArraySize, int iStartBit)
 
 		c = ((uint8*)pvArray)[iStart];
 		ij = iStart * 8;
-		unsigned char ucCmp = 1 << iRemainder;
+		uint8 ucCmp = 1 << iRemainder;
 
 		for (i = iRemainder; i < iStop; i++)
 		{
@@ -577,7 +577,7 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 	int				i;
 	int				iRemainder;
 	int				iStart;
-	unsigned char	c;
+	uint8	c;
 	int				iResult;
 	int				iStop;
 	int				ij;
@@ -592,7 +592,7 @@ int FindNextClearBit(void* pvArray, int iArraySize, int iStartBit)
 
 		c = ((uint8*)pvArray)[iStart];
 		ij = iStart * 8;
-		unsigned char ucCmp = 1 << iRemainder;
+		uint8 ucCmp = 1 << iRemainder;
 
 		for (i = iRemainder; i < iStop; i++)
 		{

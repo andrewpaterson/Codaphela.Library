@@ -90,10 +90,10 @@ protected:
 	void					RecurseKill(CIndexTreeNodeMemory* pcNode);
 
 	CIndexTreeNodeMemory*	AllocateRoot(void);
-	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeMemory*	AllocateNode(CIndexTreeNodeMemory* pcParent, uint8 uiIndexInParent);
 	bool					Remove(CIndexTreeNodeMemory* pcCurrent);
 
-	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex);
+	CIndexTreeNodeMemory*	ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, uint8 uiIndex);
 	CIndexTreeNodeMemory*	ReallocateNodeForLargerData(CIndexTreeNodeMemory* pcNode, void* pvData, uint16 uiDataSize);
 	CIndexTreeNodeMemory*	ReallocateNodeForSmallerData(CIndexTreeNodeMemory* pcNode, void* pvData, uint16 uiDataSize);
 	CIndexTreeNodeMemory*	ReallocateNodeForRemove(CIndexTreeNodeMemory* pcNode, size_t tNewNodeSize);
@@ -103,7 +103,7 @@ protected:
 
 	void					RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNode);
 
-	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent);
+	CIndexTreeNodeMemory*	SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, uint8 uiIndexInParent);
 	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);
 	int						RecurseSize(CIndexTreeNodeMemory* pcNode);
 	int						RecurseNumNodes(CIndexTreeNodeMemory* pcNode);

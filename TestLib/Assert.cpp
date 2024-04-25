@@ -53,7 +53,7 @@ void ToFloatString(float f, char* sz, int iDecimals);
 void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
 void ToDoubleString(double f, char* sz, int iDecimals);
 void ToPointerString(void* pv, char* sz, int iStringLength);
-void ToMD5String(unsigned char* puc, char* sz, int iStringLength);
+void ToMD5String(uint8* puc, char* sz, int iStringLength);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -942,7 +942,7 @@ bool PrivateAssertPointer(void* pvExpected, void* pvActual, int iLine, char* szF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertMD5(unsigned char* pucExpected, unsigned char* pucActual, int iLine, char* szFile)
+bool PrivateAssertMD5(uint8* pucExpected, uint8* pucActual, int iLine, char* szFile)
 {
 	char szExpected[33];
 	char szActual[33];
@@ -1290,7 +1290,7 @@ void ToIntHexString(int i, char* szString, int iStringLength)
 void ToCharString(char c, char* szString, int iStringLength)
 {
 	CharToString(c);
-	if ((c >= 0 && c <= 31) || (c == 127) || ((unsigned char)c >= 128 && (unsigned char)c <= 159))
+	if ((c >= 0 && c <= 31) || (c == 127) || ((uint8)c >= 128 && (uint8)c <= 159))
 	{
 		ToIntHexString(c, szString, iStringLength);
 	}
@@ -1399,7 +1399,7 @@ void ToPointerString(void* pv, char* szString, int iStringLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToMD5String(unsigned char* puc, char* sz, int iStringLength)
+void ToMD5String(uint8* puc, char* sz, int iStringLength)
 {
 	CChars	c;
 

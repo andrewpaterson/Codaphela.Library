@@ -143,7 +143,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::AllocateRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::AllocateNode(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent)
+CIndexTreeNodeMemory* CIndexTreeMemory::AllocateNode(CIndexTreeNodeMemory* pcParent, uint8 uiIndexInParent)
 {
 	CIndexTreeNodeMemory*	pcNode;
 
@@ -181,7 +181,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
-	unsigned char			c;
+	uint8					c;
 	bool					bExecute;
 
 	if ((iKeySize == 0) || (pvKey == NULL))
@@ -193,7 +193,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, int iKeySize)
 	bExecute = StartKey(&i, iKeySize);
 	while (bExecute)
 	{
-		c = ((unsigned char*)pvKey)[i];
+		c = ((uint8*)pvKey)[i];
 
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
@@ -214,7 +214,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
-	unsigned char			c;
+	uint8					c;
 	bool					bExecute;
 	CIndexTreeNodeMemory*	pcFound;
 
@@ -228,7 +228,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 	bExecute = StartKey(&i, iKeySize);
 	while (bExecute)
 	{
-		c = ((unsigned char*)pvKey)[i];
+		c = ((uint8*)pvKey)[i];
 
 		pcCurrent = pcCurrent->Get(c);
 		if (pcCurrent == NULL)
@@ -361,7 +361,7 @@ void* CIndexTreeMemory::Put(void* pvKey, int iKeySize, void* pvData, size_t iDat
 CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, int iKeySize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
-	unsigned char			c;
+	uint8					c;
 	bool					bExecute;
 	int						i;
 
@@ -414,7 +414,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::SetNodeData(CIndexTreeNodeMemory* pcCurr
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, unsigned char uiIndex)
+CIndexTreeNodeMemory* CIndexTreeMemory::ReallocateNodeForIndex(CIndexTreeNodeMemory* pcNode, uint8 uiIndex)
 {
 	CIndexTreeNodeMemory*	pcOldNode;
 	size_t					tNewNodeSize;
@@ -548,7 +548,7 @@ void CIndexTreeMemory::RemapNodePointers(CIndexTreeNodeMemory* pcOldNode, CIndex
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, unsigned char uiIndexInParent)
+CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* pcParent, uint8 uiIndexInParent)
 {
 	CIndexTreeNodeMemory* pcNew;
 	CIndexTreeNodeMemory* pcChildNodeOnParent;
@@ -575,7 +575,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* 
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 {
-	unsigned char			c;
+	uint8					c;
 	CIndexTreeNodeMemory*	pcCurrent;
 	int						i;
 	bool					bExecute;
@@ -608,7 +608,7 @@ bool CIndexTreeMemory::Remove(void* pvKey, int iKeySize)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 {
-	unsigned char			c;
+	uint8					c;
 	CIndexTreeNodeMemory*	pcParent;
 	CIndexTreeNodeMemory*	pcNode;
 	bool					bResizeNode;
@@ -1409,8 +1409,8 @@ void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor
 	CChars					szKey;
 	bool					bHasNodes;
 	bool					bHasData;
-	unsigned char			iFirst;
-	unsigned char			iLast;
+	uint8					iFirst;
+	uint8					iLast;
 
 	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -1457,7 +1457,7 @@ void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor
 void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
-	unsigned char			c;
+	uint8					c;
 	int						i;
 	bool					bExecute;
 
@@ -1480,7 +1480,7 @@ void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, bool
 
 	while (bExecute)
 	{
-		c = ((unsigned char*)pvKey)[i];
+		c = ((uint8*)pvKey)[i];
 		if (pcCurrent != NULL)
 		{
 			pcCurrent = DebugNode(pszDest, pcCurrent, c, bShowFlags, bShowSize);
@@ -1627,8 +1627,8 @@ bool CIndexTreeMemory::RecurseValidateLimits(CIndexTreeRecursor* pcCursor)
 {
 	int						i;
 	CIndexTreeNodeMemory*	pcChild;
-	unsigned char			iFirst;
-	unsigned char			iLast;
+	uint8					iFirst;
+	uint8					iLast;
 	bool					bResult;
 	CIndexTreeNodeMemory*	pcFirst;
 	CIndexTreeNodeMemory*	pcLast;
@@ -1720,7 +1720,7 @@ bool CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 	CIndexTreeNodeMemory*	pcChild;
 	bool					bResult;
 	CIndexTreeNodeMemory*	pcChildsParent;
-	unsigned char			uiIndexInParent;
+	uint8					uiIndexInParent;
 
 
 	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();

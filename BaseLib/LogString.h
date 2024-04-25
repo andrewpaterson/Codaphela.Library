@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 int IncrementLogToStringCount(void);
 
 char* CharToString(char c);
-char* CharToString(unsigned char c);
+char* CharToString(uint8 c);
 char* CharToString(char16 c);
 char* IntToString(int i, int iBase = 10);
 char* LongLongToString(int64 lli, int iBase = 10);

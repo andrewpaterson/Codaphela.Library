@@ -29,8 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define MAX_CHAR	((char)0x7f)
 #define MIN_CHAR	((char)0x80)
-#define MAX_UCHAR	((unsigned char)0xff)
-#define MIN_UCHAR	((unsigned char)0x00)
+#define MAX_UCHAR	((uint8)0xff)
+#define MIN_UCHAR	((uint8)0x00)
 
 #define MAX_SHORT	((int16)0x7fff)
 #define MIN_SHORT	((int16)0x8000)

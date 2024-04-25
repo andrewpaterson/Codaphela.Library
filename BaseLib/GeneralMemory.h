@@ -25,11 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseMemory.h"
 
 
-//CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns. 
-//  It finds it's use mostly in CUnknowns.
-//  It It's not a replacement for malloc / free.
-//
-//CGeneralMemory is also useful as a debugging too.  When coupled with collections (from Data) it can be used to tell if their allocations are being unexpectedly sized / allocated.
 class CGeneralMemory : public CBaseMemory
 {
 private:

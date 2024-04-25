@@ -30,16 +30,16 @@ void LessThanOrEqualDoubleDouble(bool* pvDest, void* pvLeft, void* pvRight) { *p
 void LessThanOrEqualDoubleLong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(double*)pvLeft <= *(int64*)pvRight); }
 void LessThanOrEqualUIntUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft <= *(unsigned int*)pvRight); }
 void LessThanOrEqualUIntUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft <= *(uint16*)pvRight); }
-void LessThanOrEqualUIntUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft <= *(unsigned char*)pvRight); }
+void LessThanOrEqualUIntUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft <= *(uint8*)pvRight); }
 void LessThanOrEqualUIntULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft <= *(uint64*)pvRight); }
 void LessThanOrEqualUShortUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft <= *(unsigned int*)pvRight); }
 void LessThanOrEqualUShortUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft <= *(uint16*)pvRight); }
-void LessThanOrEqualUShortUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft <= *(unsigned char*)pvRight); }
+void LessThanOrEqualUShortUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft <= *(uint8*)pvRight); }
 void LessThanOrEqualUShortULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft <= *(uint64*)pvRight); }
-void LessThanOrEqualUCharUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft <= *(unsigned int*)pvRight); }
-void LessThanOrEqualUCharUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft <= *(uint16*)pvRight); }
-void LessThanOrEqualUCharUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft <= *(unsigned char*)pvRight); }
-void LessThanOrEqualUCharULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft <= *(uint64*)pvRight); }
+void LessThanOrEqualUCharUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft <= *(unsigned int*)pvRight); }
+void LessThanOrEqualUCharUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft <= *(uint16*)pvRight); }
+void LessThanOrEqualUCharUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft <= *(uint8*)pvRight); }
+void LessThanOrEqualUCharULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft <= *(uint64*)pvRight); }
 void LessThanOrEqualLongInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft <= *(int*)pvRight); }
 void LessThanOrEqualLongShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft <= *(int16*)pvRight); }
 void LessThanOrEqualLongChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft <= *(char*)pvRight); }
@@ -48,5 +48,5 @@ void LessThanOrEqualLongDouble(bool* pvDest, void* pvLeft, void* pvRight) { *pvD
 void LessThanOrEqualLongLong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft <= *(int64*)pvRight); }
 void LessThanOrEqualULongUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft <= *(unsigned int*)pvRight); }
 void LessThanOrEqualULongUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft <= *(uint16*)pvRight); }
-void LessThanOrEqualULongUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft <= *(unsigned char*)pvRight); }
+void LessThanOrEqualULongUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft <= *(uint8*)pvRight); }
 void LessThanOrEqualULongULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft <= *(uint64*)pvRight); }

@@ -508,7 +508,7 @@ size_t CNamedIndexes::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CNamedIndexes::GetRootFlags(void)
+uint8 CNamedIndexes::GetRootFlags(void)
 {
 	return mcIndexTree.GetRoot()->GetFlags();
 }

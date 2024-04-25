@@ -262,10 +262,10 @@ EFatCode CFatVolume::InitialiseVolumeLabel(void)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Mount(CFileDrive* pcDevice)
 {
-	uint32					uiHiddenSectors = 0;
-	uint8					uiPartitionsTried = 0;
-	SFatCache				sMBRSector;
-	EFatCode				eResult;
+	uint32		uiHiddenSectors = 0;
+	uint8		uiPartitionsTried = 0;
+	SFatCache	sMBRSector;
+	EFatCode	eResult;
 
 	mcSectorCache.Init(pcDevice, 3);
 	mszLabel.Init();
@@ -3360,13 +3360,13 @@ EFatCode CFatVolume::Delete(SFatDirectoryEntry* psEntry, char* szNamePart, char*
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Delete(char* szFilename)
 {
-	EFatCode				eResult;
-	uint32					uiFirstCluster;
-	SFatDirectoryEntry		sEntry;
-	char					szPathPart[FAT_MAX_PATH];
-	char*					szNamePart;
-	uint8					uiChecksum;
-	SFatCache				sBuffer;
+	EFatCode			eResult;
+	uint32				uiFirstCluster;
+	SFatDirectoryEntry	sEntry;
+	char				szPathPart[FAT_MAX_PATH];
+	char*				szNamePart;
+	uint8				uiChecksum;
+	SFatCache			sBuffer;
 
 	eResult = GetFileEntry(szFilename, &sEntry);
 	RETURN_ON_FAT_FAILURE(eResult);
@@ -3478,16 +3478,16 @@ EFatCode CFatVolume::Rename(char* szOriginalParent, uint8 uiChecksum)
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::Rename(char* szOriginalFilename, char* szNewFilename)
 {
-	EFatCode				eResult;
-	uint32					uiEntryCluster;
-	char					szNewParent[256];
-	char*					szOriginalFilenamePart;
-	SFatDirectoryEntry		sOriginalEntry;
-	SFatDirectoryEntry		sNewEntry;
-	uint8					uiChecksum = 0;
-	char					szOriginalParent[256];
-	char*					szNewFilenamePart;
-	SFatCache				sBuffer;
+	EFatCode			eResult;
+	uint32				uiEntryCluster;
+	char				szNewParent[256];
+	char*				szOriginalFilenamePart;
+	SFatDirectoryEntry	sOriginalEntry;
+	SFatDirectoryEntry	sNewEntry;
+	uint8				uiChecksum = 0;
+	char				szOriginalParent[256];
+	char*				szNewFilenamePart;
+	SFatCache			sBuffer;
 
 	ParsePathAndFilename(szOriginalFilename, szOriginalParent, &szOriginalFilenamePart);
 	ParsePathAndFilename(szNewFilename, szNewParent, &szNewFilenamePart);

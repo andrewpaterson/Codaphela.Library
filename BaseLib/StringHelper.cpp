@@ -723,7 +723,7 @@ int StrEmpty(const char* szString)
 int StrPrintable(const char* szString)
 {
 	int				i;
-	unsigned char	c;
+	uint8	c;
 	int				iPrintable;
 
 	if (StrEmpty(szString))
@@ -756,7 +756,7 @@ int StrPrintable(const char* szString)
 int StrPrintable(const char* szString, int iLength)
 {
 	int				i;
-	unsigned char	c;
+	uint8	c;
 	int				iPrintable;
 
 	iPrintable = 0;
@@ -869,7 +869,7 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 	int				i;
 	char			iByte;
 	char			iBitIndex;
-	unsigned char	iBitMask;
+	uint8	iBitMask;
 	bool			bAppendedSpace;
 
 	if ((iDestLength == 0) || (iByteCount > 16))
@@ -962,7 +962,7 @@ char* FlagsToString(char* szDest, int iDestLength, char iFlags)
 //////////////////////////////////////////////////////////////////////////
 char* CharToString(char* szDest, int iDestLength, char c)
 {
-	return CharToString(szDest, iDestLength, (unsigned char)c);
+	return CharToString(szDest, iDestLength, (uint8)c);
 }
 
 
@@ -970,7 +970,7 @@ char* CharToString(char* szDest, int iDestLength, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(char* szDest, int iDestLength, unsigned char c)
+char* CharToString(char* szDest, int iDestLength, uint8 c)
 {
 	char		sz[10];
 	short int	iIndex;

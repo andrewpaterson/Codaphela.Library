@@ -261,7 +261,7 @@ TRISTATE CTypeParser::ParseUShort(uint16* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseUChar(unsigned char* pDest)
+TRISTATE CTypeParser::ParseUChar(uint8* pDest)
 {
 	TRISTATE				tResult;
 	int64			lliValue;
@@ -746,7 +746,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 		case PT_uint8:
 			if (iDestLength >= BYTE_BYTE_SIZE)
 			{
-				return ParseUChar((unsigned char*)pvDest);
+				return ParseUChar((uint8*)pvDest);
 			}
 			break;
 		case PT_int64:
@@ -829,7 +829,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 		case PT_sixbits:
 			if (iDestLength >= BYTE_BYTE_SIZE)
 			{
-				return ParseUChar((unsigned char*)pvDest);
+				return ParseUChar((uint8*)pvDest);
 			}
 			break;
 

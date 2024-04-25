@@ -149,7 +149,7 @@ void StrEscapeChar(char c, char* szDest)
 //////////////////////////////////////////////////////////////////////////
 char* GetEscapeString(char cCurrent, char* szDest)
 {
-	return GetEscapeString((unsigned char)cCurrent, szDest);
+	return GetEscapeString((uint8)cCurrent, szDest);
 }
 
 
@@ -157,7 +157,7 @@ char* GetEscapeString(char cCurrent, char* szDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* GetEscapeString(unsigned char cCurrent, char* szDest)
+char* GetEscapeString(uint8 cCurrent, char* szDest)
 {
 	if (cCurrent == '\\')
 	{

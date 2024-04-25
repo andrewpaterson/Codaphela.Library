@@ -32,7 +32,7 @@ int IncrementLogToStringCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(unsigned char c)
+char* CharToString(uint8 c)
 {
 	int iCount = IncrementLogToStringCount();
 	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);

@@ -74,7 +74,7 @@ void CXMLParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CXMLParser::IsAllowedIdentifierChar(bool bFirstChar, unsigned char cChar)
+bool CXMLParser::IsAllowedIdentifierChar(bool bFirstChar, uint8 cChar)
 {
 	if (((cChar >= 'a') && (cChar <= 'z')) || ((cChar >= 'A') && (cChar <= 'Z')))
 	{
@@ -111,7 +111,7 @@ bool CXMLParser::IsAllowedIdentifierChar(bool bFirstChar, unsigned char cChar)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CXMLParser::IsAllowedTextChar(unsigned char cChar)
+bool CXMLParser::IsAllowedTextChar(uint8 cChar)
 {
 	if ((cChar == '&') || (cChar == '>') || (cChar == '<'))
 	{

@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiFirstIndex, unsigned char uiLastIndex, uint16 uiDataSize, int iClearValue, unsigned char uiIndexInParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint16 uiDataSize, int iClearValue, uint8 uiIndexInParent)
 {
 	size_t tSize;
 
@@ -33,7 +33,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uns
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, unsigned char uiIndexInParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiIndexInParent)
 {
 	muiMagic = INDEX_TREE_NODE_MAGIC;
 	mpcIndexTree = pcIndexTree;
@@ -172,7 +172,7 @@ CIndexTreeNode* CIndexTreeNode::GetParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::GetIndexInParent(void)
+uint8 CIndexTreeNode::GetIndexInParent(void)
 {
 	return muiIndexInParent;
 }
@@ -182,7 +182,7 @@ unsigned char CIndexTreeNode::GetIndexInParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::GetFlags(void)
+uint8 CIndexTreeNode::GetFlags(void)
 {
 	return msFlags;
 }
@@ -192,7 +192,7 @@ unsigned char CIndexTreeNode::GetFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::GetTransientFlags(void)
+uint8 CIndexTreeNode::GetTransientFlags(void)
 {
 	return msFlags & INDEX_TREE_NODE_TRANSIENT_FLAGS;
 }
@@ -212,7 +212,7 @@ CIndexTree* CIndexTreeNode::GetIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(unsigned char uiIndex)
+size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(uint8 uiIndex)
 {
 	size_t	tSize;
 	int		iRequiredIndices;
@@ -268,7 +268,7 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Contain(unsigned char uiIndex, int iClearValue)
+void CIndexTreeNode::Contain(uint8 uiIndex, int iClearValue)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 	if (!HasNodes())
@@ -293,7 +293,7 @@ void CIndexTreeNode::Contain(unsigned char uiIndex, int iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearOnlyNode(unsigned char uiIndex, int iClearValue)
+void CIndexTreeNode::ClearOnlyNode(uint8 uiIndex, int iClearValue)
 {
 	size_t	tSize;
 	void*	pvNodes;
@@ -310,7 +310,7 @@ void CIndexTreeNode::ClearOnlyNode(unsigned char uiIndex, int iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::MoveNodesLeft(unsigned char uiNextFirstIndex)
+void CIndexTreeNode::MoveNodesLeft(uint8 uiNextFirstIndex)
 {
 	size_t	tSize;
 	void*	pvSource;
@@ -331,7 +331,7 @@ void CIndexTreeNode::MoveNodesLeft(unsigned char uiNextFirstIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::MoveNodesRight(unsigned char uiNewFirstIndex, int iClearValue)
+void CIndexTreeNode::MoveNodesRight(uint8 uiNewFirstIndex, int iClearValue)
 {
 	size_t		tSize;
 	void*		pvNodes;
@@ -353,7 +353,7 @@ void CIndexTreeNode::MoveNodesRight(unsigned char uiNewFirstIndex, int iClearVal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearLastNodes(unsigned char uiNewLastIndex, int iClearValue)
+void CIndexTreeNode::ClearLastNodes(uint8 uiNewLastIndex, int iClearValue)
 {
 	int			uiOldNumIndexes;
 	void*		pvDest;
@@ -388,7 +388,7 @@ int CIndexTreeNode::NumIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNode::NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastIndex)
+int CIndexTreeNode::NumIndexes(uint8 uiFirstIndex, uint8 uiLastIndex)
 {
 	return (uiLastIndex - uiFirstIndex) + 1;
 }
@@ -398,10 +398,10 @@ int CIndexTreeNode::NumIndexes(unsigned char uiFirstIndex, unsigned char uiLastI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNode::GetAdditionalIndexes(unsigned char uiIndex)
+int CIndexTreeNode::GetAdditionalIndexes(uint8 uiIndex)
 {
-	unsigned char uiFirstIndex;
-	unsigned char uiLastIndex;
+	uint8 uiFirstIndex;
+	uint8 uiLastIndex;
 
 	if (uiIndex < muiFirstIndex)
 	{
@@ -492,7 +492,7 @@ bool CIndexTreeNode::IsMagic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::HasFlags(unsigned char sFlags)
+bool CIndexTreeNode::HasFlags(uint8 sFlags)
 {
 	//True if any flag matches (including all flags matching).
 	return FixBool(msFlags & sFlags);
@@ -503,7 +503,7 @@ bool CIndexTreeNode::HasFlags(unsigned char sFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearFlags(unsigned char sFlags)
+void CIndexTreeNode::ClearFlags(uint8 sFlags)
 {
 	SetFlag(&msFlags, sFlags, false);
 }
@@ -513,7 +513,7 @@ void CIndexTreeNode::ClearFlags(unsigned char sFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::GetFirstIndex(void)
+uint8 CIndexTreeNode::GetFirstIndex(void)
 {
 	return muiFirstIndex;
 }
@@ -523,7 +523,7 @@ unsigned char CIndexTreeNode::GetFirstIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::GetLastIndex(void)
+uint8 CIndexTreeNode::GetLastIndex(void)
 {
 	return muiLastIndex;
 }
@@ -563,9 +563,9 @@ void CIndexTreeNode::SetData(bool bHasData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned char CIndexTreeNode::NumAllocatedNodes(void)
+uint8 CIndexTreeNode::NumAllocatedNodes(void)
 {
-	return (unsigned char)NumIndexes();
+	return (uint8)NumIndexes();
 }
 
 
@@ -573,7 +573,7 @@ unsigned char CIndexTreeNode::NumAllocatedNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::ContainsIndex(unsigned char uiIndex)
+bool CIndexTreeNode::ContainsIndex(uint8 uiIndex)
 {
 	if (!HasNodes())
 	{

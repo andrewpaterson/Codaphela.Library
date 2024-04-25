@@ -35,10 +35,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CFreeList;
 struct SFNode
 {
-	unsigned char	bFull;
-	char			iOffset;
-	uint16			uiChunkSize;
-	CFreeList*		pcList;
+	uint8		bFull;
+	int8		iOffset;
+	uint16		uiChunkSize;
+	CFreeList*	pcList;
 };
 
 
@@ -67,10 +67,10 @@ protected:
 	char				miOffset;
 	char				miSuppliedOffset;
 	char				miAlignment;
-	unsigned char		muiMagic;
+	uint8				muiMagic;
 
-	uint16		miStride;
-	uint16		miElementSize;
+	uint16				miStride;
+	uint16				miElementSize;
 
 public:
 	void		Init(uint16 iElementSize);

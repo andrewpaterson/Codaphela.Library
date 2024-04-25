@@ -933,7 +933,7 @@ int CArrayBlock::Resize(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, bool bClear, unsigned char iClear)
+void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, bool bClear, uint8 iClear)
 {
 	int		iOldUsedElements;
 	void*	pvStart;

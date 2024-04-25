@@ -260,18 +260,18 @@ char* FatCodeToString(EFatCode eCode);
 // Holds the internal state of a directory query.
 struct SFatQueryState
 {
-	uint8						uiAttributes;
-	uint16						uiCurrentSector;
-	uint32						uiCurrentCluster;
-	SFatRawDirectoryEntry*		psCurrentEntryRaw;
-	SFatRawDirectoryEntry*		psFirstEntryRaw;
+	uint8					uiAttributes;
+	uint16					uiCurrentSector;
+	uint32					uiCurrentCluster;
+	SFatRawDirectoryEntry*	psCurrentEntryRaw;
+	SFatRawDirectoryEntry*	psFirstEntryRaw;
 
-	uint16						auiLongFilename[FAT_MAX_FILENAME + 1];
-	uint8						uiSequence;
-	uint8						uiChecksum;
+	uint16					auiLongFilename[FAT_MAX_FILENAME + 1];
+	uint8					uiSequence;
+	uint8					uiChecksum;
 
-	SFatCache					sBuffer;
-	uint32						uiLockedSectors[FAT_MAX_SECTOR_QUERY_LOCKS];
+	SFatCache				sBuffer;
+	uint32					uiLockedSectors[FAT_MAX_SECTOR_QUERY_LOCKS];
 
 	void	Init(void);
 	bool	Kill(CFatInfoSectorCache* pcCache);

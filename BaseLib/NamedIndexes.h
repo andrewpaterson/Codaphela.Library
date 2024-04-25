@@ -72,7 +72,7 @@ public:
 
 	size_t			GetSystemMemorySize(void);
 	size_t			GetUserMemorySize(void);
-	unsigned char	GetRootFlags(void);
+	uint8	GetRootFlags(void);
 
 
 	void			DumpIndex(void);

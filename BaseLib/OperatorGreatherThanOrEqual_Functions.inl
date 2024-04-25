@@ -30,16 +30,16 @@ void GreatherThanOrEqualDoubleDouble(bool* pvDest, void* pvLeft, void* pvRight) 
 void GreatherThanOrEqualDoubleLong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(double*)pvLeft >= *(int64*)pvRight); }
 void GreatherThanOrEqualUIntUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft >= *(unsigned int*)pvRight); }
 void GreatherThanOrEqualUIntUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft >= *(uint16*)pvRight); }
-void GreatherThanOrEqualUIntUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft >= *(unsigned char*)pvRight); }
+void GreatherThanOrEqualUIntUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft >= *(uint8*)pvRight); }
 void GreatherThanOrEqualUIntULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned int*)pvLeft >= *(uint64*)pvRight); }
 void GreatherThanOrEqualUShortUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft >= *(unsigned int*)pvRight); }
 void GreatherThanOrEqualUShortUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft >= *(uint16*)pvRight); }
-void GreatherThanOrEqualUShortUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft >= *(unsigned char*)pvRight); }
+void GreatherThanOrEqualUShortUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft >= *(uint8*)pvRight); }
 void GreatherThanOrEqualUShortULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint16*)pvLeft >= *(uint64*)pvRight); }
-void GreatherThanOrEqualUCharUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft >= *(unsigned int*)pvRight); }
-void GreatherThanOrEqualUCharUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft >= *(uint16*)pvRight); }
-void GreatherThanOrEqualUCharUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft >= *(unsigned char*)pvRight); }
-void GreatherThanOrEqualUCharULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(unsigned char*)pvLeft >= *(uint64*)pvRight); }
+void GreatherThanOrEqualUCharUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft >= *(unsigned int*)pvRight); }
+void GreatherThanOrEqualUCharUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft >= *(uint16*)pvRight); }
+void GreatherThanOrEqualUCharUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft >= *(uint8*)pvRight); }
+void GreatherThanOrEqualUCharULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint8*)pvLeft >= *(uint64*)pvRight); }
 void GreatherThanOrEqualLongInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft >= *(int*)pvRight); }
 void GreatherThanOrEqualLongShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft >= *(int16*)pvRight); }
 void GreatherThanOrEqualLongChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft >= *(char*)pvRight); }
@@ -48,5 +48,5 @@ void GreatherThanOrEqualLongDouble(bool* pvDest, void* pvLeft, void* pvRight) { 
 void GreatherThanOrEqualLongLong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(int64*)pvLeft >= *(int64*)pvRight); }
 void GreatherThanOrEqualULongUInt(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft >= *(unsigned int*)pvRight); }
 void GreatherThanOrEqualULongUShort(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft >= *(uint16*)pvRight); }
-void GreatherThanOrEqualULongUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft >= *(unsigned char*)pvRight); }
+void GreatherThanOrEqualULongUChar(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft >= *(uint8*)pvRight); }
 void GreatherThanOrEqualULongULong(bool* pvDest, void* pvLeft, void* pvRight) { *pvDest = (bool)(*(uint64*)pvLeft >= *(uint64*)pvRight); }
