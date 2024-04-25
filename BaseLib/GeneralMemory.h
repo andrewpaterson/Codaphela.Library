@@ -35,24 +35,24 @@ private:
 	CMemoryFreeListParams		mcFreeListParams;
 	int							miDefaultAlignment;
 
-	unsigned int				muiAllocCount;
-	unsigned int				muiBreakAlloc;
+	uint32				muiAllocCount;
+	uint32				muiBreakAlloc;
 	bool						mbBreakOnAlloc;
 
 public:
 	void					Init(void);
 	void					Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void					Kill(void);
-	void*					Add(unsigned int iSize);
-	void*					Add(unsigned int iSize, int iAlignment, int iOffset = 0);
+	void*					Add(uint32 iSize);
+	void*					Add(uint32 iSize, int iAlignment, int iOffset = 0);
 	bool					Remove(void* pv);
 	int						RemoveMultiple(CArrayVoidPtr* pav);
-	unsigned int			GetSize(void* pv);
-	CFreeList*				GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	CFreeList*				GetFreeList(unsigned int iElementSize);
-	void*					Grow(void* pvInitial, unsigned int iSize);
+	uint32			GetSize(void* pv);
+	CFreeList*				GetFreeList(uint32 iElementSize, int iAlignment, int iOffset);
+	CFreeList*				GetFreeList(uint32 iElementSize);
+	void*					Grow(void* pvInitial, uint32 iSize);
 	void					SetDebugName(void* pv, char (*pszDebug)[4]);
-	void					BreakOnAdd(unsigned int uiAllocCount);
+	void					BreakOnAdd(uint32 uiAllocCount);
 	int						NumElements(void);
 	int						ByteSize(void);
 	CMemoryFreeListParams*	GetFreeListParams(void);
@@ -73,13 +73,13 @@ protected:
 	int						RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:
-	CFreeList*				GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset);
-	void*					AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize);
+	CFreeList*				GetOrAddFreeList(uint32 iElementSize, int iAlignment, int iOffset);
+	void*					AllocateInFreeList(CFreeList* pcFreeList, uint32 uiElementSize);
 	bool					DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
-	void*					AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset);
+	void*					AllocateInLargeList(uint32 uiSize, int iAlignment, int iOffset);
 	bool					DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc);
-	void					CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize);
+	void					CopyAllocation(void* pvDest, void* pvSource, uint32 uiDestSize, uint32 uiSourceSize);
 };
 
 

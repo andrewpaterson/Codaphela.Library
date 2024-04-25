@@ -75,7 +75,7 @@ struct SMD5Context
 
 
 void MD5Init(SMD5Context* mdContext);
-void MD5Update(SMD5Context* mdContext, uint8*, unsigned int);
+void MD5Update(SMD5Context* mdContext, uint8*, uint32);
 void MD5Final(SMD5Context* mdContext);
 void MD5Transform(uint32*, uint32*);
 void MD5Dump(SMD5Context* ctx);

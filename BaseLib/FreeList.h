@@ -44,16 +44,16 @@ struct SFNode
 
 struct SFreeListParams
 {
-	int		iAlignment;
+	int32	iAlignment;
 	char	iOffset;
-	int		iElementSize;
+	int32	iElementSize;
 };
 
 
 struct SFreeListIterator
 {
 	SFNode*		psCurrent;  //Current FreeList node.
-	int			iPosition;  //Element within this node.
+	int32		iPosition;  //Element within this node.
 };
 
 
@@ -82,25 +82,25 @@ public:
 	void*		Add(void* pvData);
 	bool		Remove(void* pvData);
 	bool		Remove(SFNode* psNode, void* pvData);
-	void*		Get(int iElement);
+	void*		Get(int32 iElement);
 	void*		StartIteration(SFreeListIterator* psIterator);
 	void*		Iterate(SFreeListIterator* psIterator);
 	void		RemoveDuringIteration(SFreeListIterator* psIterator);
 	bool		Contains(void* pvData, bool bIsAllocated = true);
-	int			NumElements(void);
+	int32		NumElements(void);
 	bool		HasElements(void);
-	int			NumNodeElements(SFNode* psNode);
-	void		SetAdditionalSize(int iSize);
-	int			GetElementSize(void);
-	int			GetElementStride(void);
-	int			GetNumAllocatedChunks(void);
-	SFNode*		GetNode(int iNode);
-	void*		GetElement(SFNode* psNode, int iPosition);
+	int32		NumNodeElements(SFNode* psNode);
+	void		SetAdditionalSize(int32 iSize);
+	int32		GetElementSize(void);
+	int32		GetElementStride(void);
+	int32		GetNumAllocatedChunks(void);
+	SFNode*		GetNode(int32 iNode);
+	void*		GetElement(SFNode* psNode, int32 iPosition);
 	char		GetOffset(void);
-	int			GetAlignment(void);
+	int32		GetAlignment(void);
 	void*		GetBitArray(SFNode* psNode);
 	SFNode* 	FindNode(void* pvData, bool bIsAllocated = true);
-	int			ByteSize(void);
+	int32		ByteSize(void);
 	void*		GetFirstNodeElement(SFNode* psNode);
 	void*		GetLastNodeElement(SFNode* psNode);
 	void		RemoveNode(SFNode* psNode);
@@ -109,17 +109,17 @@ public:
 protected:
 	SFNode*		AllocateNew(void);
 	void		Deallocate(SFNode* psNode);
-	void*		AllocateExisting(SFNode* psNode, int iPosition);
+	void*		AllocateExisting(SFNode* psNode, int32 iPosition);
 	void*		AllocateNewSetFirst(void);
 	void		FindNextAllocatedElement(SFreeListIterator* psIterator);
 	void		FindPrevAllocatedElement(SFreeListIterator* psIterator);
-	bool		RemoveExisiting(SFNode* psNode, int iPosition);
-	int			CalculateStride(void);
-	char		CalculateOffset(int iOffset);
-	int			CalculateBitArraySize(uint16 uiChunkSize);
-	int			CalculateOffset(SFNode* psNode);
-	void*		GetElementInNode(SFNode* psNode, int iPosition);
-	bool		IsElementInNodeAllocated(SFNode* psNode, int iPosition);
+	bool		RemoveExisiting(SFNode* psNode, int32 iPosition);
+	int32		CalculateStride(void);
+	char		CalculateOffset(int32 iOffset);
+	int32		CalculateBitArraySize(uint16 uiChunkSize);
+	int32		CalculateOffset(SFNode* psNode);
+	void*		GetElementInNode(SFNode* psNode, int32 iPosition);
+	bool		IsElementInNodeAllocated(SFNode* psNode, int32 iPosition);
 	void		RemoveExisiting(SFNode* psNode, void* pvData);
 };
 
