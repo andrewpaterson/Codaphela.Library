@@ -137,7 +137,7 @@ png_write_info(png_structp png_ptr, png_infop info_ptr)
 
    if (info_ptr->valid & PNG_INFO_PLTE)
       png_write_PLTE(png_ptr, info_ptr->palette,
-         (png_uint_32)info_ptr->num_palette);
+         (uint32)info_ptr->num_palette);
    else if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
       png_error(png_ptr, "Valid palette required for paletted images");
 
@@ -151,7 +151,7 @@ png_write_info(png_structp png_ptr, png_infop info_ptr)
          {
             int j;
             for (j = 0; j<(int)info_ptr->num_trans; j++)
-               info_ptr->trans[j] = (png_byte)(255 - info_ptr->trans[j]);
+               info_ptr->trans[j] = (uint8)(255 - info_ptr->trans[j]);
          }
 #endif
       png_write_tRNS(png_ptr, info_ptr->trans, &(info_ptr->trans_values),
@@ -402,15 +402,15 @@ png_write_end(png_structp png_ptr, png_infop info_ptr)
 #if !defined(_WIN32_WCE)
 /* "time.h" functions are not supported on WindowsCE */
 void PNGAPI
-png_convert_from_struct_tm(png_timep ptime, struct tm FAR * ttime)
+png_convert_from_struct_tm(png_timep ptime, struct tm * ttime)
 {
    png_debug(1, "in png_convert_from_struct_tm\n");
-   ptime->year = (png_uint_16)(1900 + ttime->tm_year);
-   ptime->month = (png_byte)(ttime->tm_mon + 1);
-   ptime->day = (png_byte)ttime->tm_mday;
-   ptime->hour = (png_byte)ttime->tm_hour;
-   ptime->minute = (png_byte)ttime->tm_min;
-   ptime->second = (png_byte)ttime->tm_sec;
+   ptime->year = (uint16)(1900 + ttime->tm_year);
+   ptime->month = (uint8)(ttime->tm_mon + 1);
+   ptime->day = (uint8)ttime->tm_mday;
+   ptime->hour = (uint8)ttime->tm_hour;
+   ptime->minute = (uint8)ttime->tm_min;
+   ptime->second = (uint8)ttime->tm_sec;
 }
 
 void PNGAPI
@@ -536,7 +536,7 @@ png_create_write_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
    /* initialize zbuf - compression buffer */
    png_ptr->zbuf_size = PNG_ZBUF_SIZE;
    png_ptr->zbuf = (png_bytep)png_malloc(png_ptr,
-      (png_uint_32)png_ptr->zbuf_size);
+      (uint32)png_ptr->zbuf_size);
 
    png_set_write_fn(png_ptr, png_voidp_NULL, png_rw_ptr_NULL,
       png_flush_ptr_NULL);
@@ -690,7 +690,7 @@ png_write_init_3(png_structpp ptr_ptr, png_const_charp user_png_ver,
    /* initialize zbuf - compression buffer */
    png_ptr->zbuf_size = PNG_ZBUF_SIZE;
    png_ptr->zbuf = (png_bytep)png_malloc(png_ptr,
-      (png_uint_32)png_ptr->zbuf_size);
+      (uint32)png_ptr->zbuf_size);
 
 #if defined(PNG_WRITE_WEIGHTED_FILTER_SUPPORTED)
    png_set_filter_heuristics(png_ptr, PNG_FILTER_HEURISTIC_DEFAULT,
@@ -705,9 +705,9 @@ png_write_init_3(png_structpp ptr_ptr, png_const_charp user_png_ver,
  */
 void PNGAPI
 png_write_rows(png_structp png_ptr, png_bytepp row,
-   png_uint_32 num_rows)
+   uint32 num_rows)
 {
-   png_uint_32 i; /* row counter */
+   uint32 i; /* row counter */
    png_bytepp rp; /* row pointer */
 
    png_debug(1, "in png_write_rows\n");
@@ -728,7 +728,7 @@ png_write_rows(png_structp png_ptr, png_bytepp row,
 void PNGAPI
 png_write_image(png_structp png_ptr, png_bytepp image)
 {
-   png_uint_32 i; /* row index */
+   uint32 i; /* row index */
    int pass, num_pass; /* pass variables */
    png_bytepp rp; /* points to current row */
 
@@ -868,7 +868,7 @@ png_write_row(png_structp png_ptr, png_bytep row)
    png_ptr->row_info.width = png_ptr->usr_width;
    png_ptr->row_info.channels = png_ptr->usr_channels;
    png_ptr->row_info.bit_depth = png_ptr->usr_bit_depth;
-   png_ptr->row_info.pixel_depth = (png_byte)(png_ptr->row_info.bit_depth *
+   png_ptr->row_info.pixel_depth = (uint8)(png_ptr->row_info.bit_depth *
       png_ptr->row_info.channels);
 
    png_ptr->row_info.rowbytes = PNG_ROWBYTES(png_ptr->row_info.pixel_depth,
@@ -1145,7 +1145,7 @@ png_set_filter(png_structp png_ptr, int method, int filters)
          case PNG_FILTER_VALUE_UP:    png_ptr->do_filter=PNG_FILTER_UP;   break;
          case PNG_FILTER_VALUE_AVG:   png_ptr->do_filter=PNG_FILTER_AVG;  break;
          case PNG_FILTER_VALUE_PAETH: png_ptr->do_filter=PNG_FILTER_PAETH;break;
-         default: png_ptr->do_filter = (png_byte)filters; break;
+         default: png_ptr->do_filter = (uint8)filters; break;
       }
 
       /* If we have allocated the row_buf, this means we have already started
@@ -1202,7 +1202,7 @@ png_set_filter(png_structp png_ptr, int method, int filters)
             if (png_ptr->prev_row == NULL)
             {
                png_warning(png_ptr, "Can't add Paeth filter after starting");
-               png_ptr->do_filter &= (png_byte)(~PNG_FILTER_PAETH);
+               png_ptr->do_filter &= (uint8)(~PNG_FILTER_PAETH);
             }
             else
             {
@@ -1255,15 +1255,15 @@ png_set_filter_heuristics(png_structp png_ptr, int heuristic_method,
       num_weights = 0;
    }
 
-   png_ptr->num_prev_filters = (png_byte)num_weights;
-   png_ptr->heuristic_method = (png_byte)heuristic_method;
+   png_ptr->num_prev_filters = (uint8)num_weights;
+   png_ptr->heuristic_method = (uint8)heuristic_method;
 
    if (num_weights > 0)
    {
       if (png_ptr->prev_filters == NULL)
       {
          png_ptr->prev_filters = (png_bytep)png_malloc(png_ptr,
-            (png_uint_32)(png_sizeof(png_byte) * num_weights));
+            (uint32)(png_sizeof(uint8) * num_weights));
 
          /* To make sure that the weighting starts out fairly */
          for (i = 0; i < num_weights; i++)
@@ -1275,10 +1275,10 @@ png_set_filter_heuristics(png_structp png_ptr, int heuristic_method,
       if (png_ptr->filter_weights == NULL)
       {
          png_ptr->filter_weights = (png_uint_16p)png_malloc(png_ptr,
-            (png_uint_32)(png_sizeof(png_uint_16) * num_weights));
+            (uint32)(png_sizeof(uint16) * num_weights));
 
          png_ptr->inv_filter_weights = (png_uint_16p)png_malloc(png_ptr,
-            (png_uint_32)(png_sizeof(png_uint_16) * num_weights));
+            (uint32)(png_sizeof(uint16) * num_weights));
          for (i = 0; i < num_weights; i++)
          {
             png_ptr->inv_filter_weights[i] =
@@ -1296,9 +1296,9 @@ png_set_filter_heuristics(png_structp png_ptr, int heuristic_method,
          else
          {
             png_ptr->inv_filter_weights[i] =
-               (png_uint_16)((double)PNG_WEIGHT_FACTOR*filter_weights[i]+0.5);
+               (uint16)((double)PNG_WEIGHT_FACTOR*filter_weights[i]+0.5);
             png_ptr->filter_weights[i] =
-               (png_uint_16)((double)PNG_WEIGHT_FACTOR/filter_weights[i]+0.5);
+               (uint16)((double)PNG_WEIGHT_FACTOR/filter_weights[i]+0.5);
          }
       }
    }
@@ -1309,10 +1309,10 @@ png_set_filter_heuristics(png_structp png_ptr, int heuristic_method,
    if (png_ptr->filter_costs == NULL)
    {
       png_ptr->filter_costs = (png_uint_16p)png_malloc(png_ptr,
-         (png_uint_32)(png_sizeof(png_uint_16) * PNG_FILTER_VALUE_LAST));
+         (uint32)(png_sizeof(uint16) * PNG_FILTER_VALUE_LAST));
 
       png_ptr->inv_filter_costs = (png_uint_16p)png_malloc(png_ptr,
-         (png_uint_32)(png_sizeof(png_uint_16) * PNG_FILTER_VALUE_LAST));
+         (uint32)(png_sizeof(uint16) * PNG_FILTER_VALUE_LAST));
 
       for (i = 0; i < PNG_FILTER_VALUE_LAST; i++)
       {
@@ -1338,9 +1338,9 @@ png_set_filter_heuristics(png_structp png_ptr, int heuristic_method,
       else if (filter_costs[i] >= 1.0)
       {
          png_ptr->inv_filter_costs[i] =
-            (png_uint_16)((double)PNG_COST_FACTOR / filter_costs[i] + 0.5);
+            (uint16)((double)PNG_COST_FACTOR / filter_costs[i] + 0.5);
          png_ptr->filter_costs[i] =
-            (png_uint_16)((double)PNG_COST_FACTOR * filter_costs[i] + 0.5);
+            (uint16)((double)PNG_COST_FACTOR * filter_costs[i] + 0.5);
       }
    }
 }

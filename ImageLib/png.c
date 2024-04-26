@@ -26,7 +26,7 @@ const char png_libpng_ver[18] = PNG_LIBPNG_VER_STRING;
 
 /* png_sig was changed to a function in version 1.0.5c */
 /* Place to hold the signature string for a PNG file. */
-const png_byte FARDATA png_sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+const uint8 FARDATA png_sig[8] = {137, 80, 78, 71, 13, 10, 26, 10};
 #endif /* PNG_READ_SUPPORTED */
 
 /* Invoke global declarations for constant strings for known chunk types */
@@ -102,7 +102,7 @@ png_set_sig_bytes(png_structp png_ptr, int num_bytes)
    if (num_bytes > 8)
       png_error(png_ptr, "Too many bytes for PNG signature.");
 
-   png_ptr->sig_bytes = (png_byte)(num_bytes < 0 ? 0 : num_bytes);
+   png_ptr->sig_bytes = (uint8)(num_bytes < 0 ? 0 : num_bytes);
 }
 
 /* Checks whether the supplied bytes match the PNG signature.  We allow
@@ -116,7 +116,7 @@ png_set_sig_bytes(png_structp png_ptr, int num_bytes)
 int PNGAPI
 png_sig_cmp(png_bytep sig, png_size_t start, png_size_t num_to_check)
 {
-   png_byte png_signature[8] = {137, 80, 78, 71, 13, 10, 26, 10};
+   uint8 png_signature[8] = {137, 80, 78, 71, 13, 10, 26, 10};
    if (num_to_check > 8)
       num_to_check = 8;
    else if (num_to_check < 1)
@@ -155,8 +155,8 @@ png_zalloc(voidpf png_ptr, uint32 items, uint32 size)
 {
    png_voidp ptr;
    png_structp p=(png_structp)png_ptr;
-   png_uint_32 save_flags=p->flags;
-   png_uint_32 num_bytes;
+   uint32 save_flags=p->flags;
+   uint32 num_bytes;
 
    if(png_ptr == NULL) return (NULL);
    if (items > PNG_UINT_32_MAX/size)
@@ -164,7 +164,7 @@ png_zalloc(voidpf png_ptr, uint32 items, uint32 size)
      png_warning (p, "Potential overflow in png_zalloc()");
      return (NULL);
    }
-   num_bytes = (png_uint_32)items * size;
+   num_bytes = (uint32)items * size;
 
    p->flags|=PNG_FLAG_MALLOC_NULL_MEM_OK;
    ptr = (png_voidp)png_malloc((png_structp)png_ptr, num_bytes);
@@ -174,11 +174,11 @@ png_zalloc(voidpf png_ptr, uint32 items, uint32 size)
    if (ptr == NULL)
        return ((voidpf)ptr);
 
-   if (num_bytes > (png_uint_32)0x8000L)
+   if (num_bytes > (uint32)0x8000L)
    {
       png_memset(ptr, 0, (png_size_t)0x8000L);
       png_memset((png_bytep)ptr + (png_size_t)0x8000L, 0,
-         (png_size_t)(num_bytes - (png_uint_32)0x8000L));
+         (png_size_t)(num_bytes - (uint32)0x8000L));
    }
    else
    {
@@ -325,7 +325,7 @@ png_info_init_3(png_infopp ptr_ptr, png_size_t png_info_struct_size)
 #ifdef PNG_FREE_ME_SUPPORTED
 void PNGAPI
 png_data_freer(png_structp png_ptr, png_infop info_ptr,
-   int freer, png_uint_32 mask)
+   int freer, uint32 mask)
 {
    png_debug(1, "in png_data_freer\n");
    if (png_ptr == NULL || info_ptr == NULL)
@@ -341,7 +341,7 @@ png_data_freer(png_structp png_ptr, png_infop info_ptr,
 #endif
 
 void PNGAPI
-png_free_data(png_structp png_ptr, png_infop info_ptr, png_uint_32 mask,
+png_free_data(png_structp png_ptr, png_infop info_ptr, uint32 mask,
    int num)
 {
    png_debug(1, "in png_free_data\n");
@@ -651,7 +651,7 @@ png_convert_to_rfc1123(png_structp png_ptr, png_timep ptime)
    if(png_ptr == NULL) return (NULL);
    if (png_ptr->time_buffer == NULL)
    {
-      png_ptr->time_buffer = (png_charp)png_malloc(png_ptr, (png_uint_32)(29*
+      png_ptr->time_buffer = (png_charp)png_malloc(png_ptr, (uint32)(29*
          png_sizeof(char)));
    }
 
@@ -771,11 +771,11 @@ png_reset_zstream(png_structp png_ptr)
 #endif /* defined(PNG_READ_SUPPORTED) || defined(PNG_WRITE_SUPPORTED) */
 
 /* This function was added to libpng-1.0.7 */
-png_uint_32 PNGAPI
+uint32 PNGAPI
 png_access_version_number(void)
 {
    /* Version of *.c files used when building libpng */
-   return((png_uint_32) PNG_LIBPNG_VER);
+   return((uint32) PNG_LIBPNG_VER);
 }
 
 

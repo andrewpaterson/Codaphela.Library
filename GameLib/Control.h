@@ -26,7 +26,7 @@ along with Codaphela GameLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CControl : public CUnknown
 {
-BASE_FUNCTIONS(CControl);
+CONSTRUCTABLE(CControl);
 public:
 	virtual void Control(void) =0;
 };

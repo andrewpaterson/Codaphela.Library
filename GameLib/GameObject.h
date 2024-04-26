@@ -25,7 +25,7 @@ along with Codaphela GameLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CGameObject : public CUnknown
 {
-BASE_FUNCTIONS(CGameObject);
+CONSTRUCTABLE(CGameObject);
 public:
 	void 			Init(void);
 	void 			Kill(void);

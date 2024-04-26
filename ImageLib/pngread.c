@@ -136,7 +136,7 @@ png_create_read_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
    /* initialize zbuf - compression buffer */
    png_ptr->zbuf_size = PNG_ZBUF_SIZE;
    png_ptr->zbuf = (png_bytep)png_malloc(png_ptr,
-     (png_uint_32)png_ptr->zbuf_size);
+     (uint32)png_ptr->zbuf_size);
    png_ptr->zstream.zalloc = png_zalloc;
    png_ptr->zstream.zfree = png_zfree;
    png_ptr->zstream.opaque = (voidpf)png_ptr;
@@ -288,7 +288,7 @@ png_read_init_3(png_structpp ptr_ptr, png_const_charp user_png_ver,
    /* initialize zbuf - compression buffer */
    png_ptr->zbuf_size = PNG_ZBUF_SIZE;
    png_ptr->zbuf = (png_bytep)png_malloc(png_ptr,
-     (png_uint_32)png_ptr->zbuf_size);
+     (uint32)png_ptr->zbuf_size);
    png_ptr->zstream.zalloc = png_zalloc;
    png_ptr->zstream.zfree = png_zfree;
    png_ptr->zstream.opaque = (voidpf)png_ptr;
@@ -402,8 +402,8 @@ png_read_info(png_structp png_ptr, png_infop info_ptr)
       PNG_zTXt;
 #endif
 #endif /* PNG_USE_LOCAL_ARRAYS */
-      png_byte chunk_length[4];
-      png_uint_32 length;
+      uint8 chunk_length[4];
+      uint32 length;
 
       png_read_data(png_ptr, chunk_length, 4);
       length = png_get_uint_31(png_ptr,chunk_length);
@@ -698,7 +698,7 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
       {
          while (!png_ptr->idat_size)
          {
-            png_byte chunk_length[4];
+            uint8 chunk_length[4];
 
             png_crc_finish(png_ptr, 0);
 
@@ -824,9 +824,9 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
 
 void PNGAPI
 png_read_rows(png_structp png_ptr, png_bytepp row,
-   png_bytepp display_row, png_uint_32 num_rows)
+   png_bytepp display_row, uint32 num_rows)
 {
-   png_uint_32 i;
+   uint32 i;
    png_bytepp rp;
    png_bytepp dp;
 
@@ -875,7 +875,7 @@ png_read_rows(png_structp png_ptr, png_bytepp row,
 void PNGAPI
 png_read_image(png_structp png_ptr, png_bytepp image)
 {
-   png_uint_32 i,image_height;
+   uint32 i,image_height;
    int pass, j;
    png_bytepp rp;
 
@@ -915,8 +915,8 @@ png_read_image(png_structp png_ptr, png_bytepp image)
 void PNGAPI
 png_read_end(png_structp png_ptr, png_infop info_ptr)
 {
-   png_byte chunk_length[4];
-   png_uint_32 length;
+   uint8 chunk_length[4];
+   uint32 length;
 
    png_debug(1, "in png_read_end\n");
    if(png_ptr == NULL) return;
