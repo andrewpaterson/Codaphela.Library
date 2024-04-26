@@ -977,7 +977,7 @@ png_write_flush(png_structp png_ptr)
          png_write_IDAT(png_ptr, png_ptr->zbuf,
                         png_ptr->zbuf_size);
          png_ptr->zstream.next_out = png_ptr->zbuf;
-         png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+         png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
          wrote_IDAT = 1;
       }
    } while(wrote_IDAT == 1);
@@ -989,7 +989,7 @@ png_write_flush(png_structp png_ptr)
       png_write_IDAT(png_ptr, png_ptr->zbuf,
                      png_ptr->zbuf_size - png_ptr->zstream.avail_out);
       png_ptr->zstream.next_out = png_ptr->zbuf;
-      png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+      png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
    }
    png_ptr->flush_rows = 0;
    png_flush(png_ptr);

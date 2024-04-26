@@ -86,8 +86,8 @@ bool SMeshFaceType::Equals(SMeshFaceType* psOther)
 //////////////////////////////////////////////////////////////////////////
 bool SMeshFaceType::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadBits(&iFlags1, sizeof(unsigned int)));
-	ReturnOnFalse(pcFile->ReadBits(&iFlags2, sizeof(unsigned int)));
+	ReturnOnFalse(pcFile->ReadBits(&iFlags1, sizeof(uint32)));
+	ReturnOnFalse(pcFile->ReadBits(&iFlags2, sizeof(uint32)));
 	return true;
 }
 
@@ -98,8 +98,8 @@ bool SMeshFaceType::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool SMeshFaceType::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteBits(&iFlags1, sizeof(unsigned int)));
-	ReturnOnFalse(pcFile->WriteBits(&iFlags2, sizeof(unsigned int)));
+	ReturnOnFalse(pcFile->WriteBits(&iFlags1, sizeof(uint32)));
+	ReturnOnFalse(pcFile->WriteBits(&iFlags2, sizeof(uint32)));
 	return true;
 }
 

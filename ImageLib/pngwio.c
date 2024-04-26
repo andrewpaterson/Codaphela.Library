@@ -153,7 +153,7 @@ png_default_flush(png_structp png_ptr)
                    the output functions.  May be NULL.
    write_data_fn - pointer to a new output function that takes as its
                    arguments a pointer to a png_struct, a pointer to
-                   data to be written, and a 32-bit unsigned int that is
+                   data to be written, and a 32-bit uint32 that is
                    the number of bytes to be written.  The new write
                    function should call png_error(png_ptr, "Error msg")
                    to exit and output any fatal error messages.

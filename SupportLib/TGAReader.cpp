@@ -32,12 +32,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //+------------------------------------------------------------------+
 struct STGAFileHeader
 {
-	unsigned char  iIDLength;
-	unsigned char  iColourMapType;
-	unsigned char  iImageType;
+	uint8  iIDLength;
+	uint8  iColourMapType;
+	uint8  iImageType;
 	unsigned short iFirstEntryIndex;
 	unsigned short iColourMapLength;
-	unsigned char  iColourMapEntrySize;
+	uint8  iColourMapEntrySize;
 	unsigned short iOriginX;
 	unsigned short iOriginY;
 };
@@ -50,8 +50,8 @@ struct STGAImageHeader
 {
 	unsigned short iImageWidth;
 	unsigned short iImageHeight;
-	unsigned char  iPixelDepth;
-	unsigned char  iPixelDescriptor;
+	uint8  iPixelDepth;
+	uint8  iPixelDescriptor;
 };
 
 
@@ -69,7 +69,7 @@ bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	int   					iBitsPerPixel;
 	int   					iBytesPerPixel;
 	int   					iImageSize;
-	unsigned char*			pvMem;
+	uint8*			pvMem;
 	CImage					cImageImport;
 	CImageCopier			cCopier;
 	filePos					iRead;
@@ -147,7 +147,7 @@ bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	iImageSize     = (iBytesPerPixel * iWidth * iHeight); // Calculate Memory Needed To Store Image
 	iStride = iWidth * iBytesPerPixel;
 
-	pvMem = (unsigned char*)malloc(iImageSize);
+	pvMem = (uint8*)malloc(iImageSize);
 	iRead = sFile.Read(pvMem, iImageSize, 1);
 	if (iRead != 1)
 	{

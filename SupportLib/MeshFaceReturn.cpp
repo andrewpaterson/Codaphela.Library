@@ -51,9 +51,9 @@ void CMFRet::PackOverflow(void)
 void CMFRet::Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges)
 {
 	miFirstFace = iFirstFace;
-	manCorners[0] = (unsigned char)(iCorner1 | iCorner2 << 4);
-	manCorners[1] = (unsigned char)(iCorner3 | 1 << 4);
-	manCorners[3] = (unsigned char)(iNewEdges << 4);
+	manCorners[0] = (uint8)(iCorner1 | iCorner2 << 4);
+	manCorners[1] = (uint8)(iCorner3 | 1 << 4);
+	manCorners[3] = (uint8)(iNewEdges << 4);
 }
 
 
@@ -64,10 +64,10 @@ void CMFRet::Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int 
 void CMFRet::Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6, int iNewEdges)
 {
 	miFirstFace = iFirstFace;
-	manCorners[0] = (unsigned char)(iCorner1 | iCorner2 << 4);
-	manCorners[1] = (unsigned char)(iCorner3 | 2 << 4);
-	manCorners[2] = (unsigned char)(iCorner4 | iCorner5 << 4);
-	manCorners[3] = (unsigned char)(iCorner6 | iNewEdges << 4);
+	manCorners[0] = (uint8)(iCorner1 | iCorner2 << 4);
+	manCorners[1] = (uint8)(iCorner3 | 2 << 4);
+	manCorners[2] = (uint8)(iCorner4 | iCorner5 << 4);
+	manCorners[3] = (uint8)(iCorner6 | iNewEdges << 4);
 }
 
 
@@ -90,10 +90,10 @@ void CMFRet::Pack2(CMFRet r2)
 //////////////////////////////////////////////////////////////////////////
 void CMFRet::Repack(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int iCorner5, int iCorner6)
 {
-	manCorners[0] = (unsigned char)(iCorner1 | iCorner2 << 4);
-	manCorners[1] = (manCorners[1] & 0xf0) | (unsigned char)(iCorner3);
-	manCorners[2] = (unsigned char)(iCorner4 | iCorner5 << 4);
-	manCorners[3] = (manCorners[3] & 0xf0) | (unsigned char)(iCorner6);
+	manCorners[0] = (uint8)(iCorner1 | iCorner2 << 4);
+	manCorners[1] = (manCorners[1] & 0xf0) | (uint8)(iCorner3);
+	manCorners[2] = (uint8)(iCorner4 | iCorner5 << 4);
+	manCorners[3] = (manCorners[3] & 0xf0) | (uint8)(iCorner6);
 }
 
 
@@ -103,8 +103,8 @@ void CMFRet::Repack(int iCorner1, int iCorner2, int iCorner3, int iCorner4, int 
 //////////////////////////////////////////////////////////////////////////
 void CMFRet::Repack(int iCorner1, int iCorner2, int iCorner3)
 {
-	manCorners[0] = (unsigned char)(iCorner1 | iCorner2 << 4);
-	manCorners[1] = (manCorners[1] & 0xf0) | (unsigned char)(iCorner3);
+	manCorners[0] = (uint8)(iCorner1 | iCorner2 << 4);
+	manCorners[1] = (manCorners[1] & 0xf0) | (uint8)(iCorner3);
 }
 
 

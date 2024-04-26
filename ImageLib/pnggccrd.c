@@ -311,30 +311,30 @@ static const int FARDATA png_pass_width[7] = {8, 4, 4, 2, 2, 1, 1};
 static int _unmask;
 #endif
 
-static unsigned long long _mask8_0  = 0x0102040810204080LL;
+static uint64 _mask8_0  = 0x0102040810204080LL;
 
-static unsigned long long _mask16_1 = 0x0101020204040808LL;
-static unsigned long long _mask16_0 = 0x1010202040408080LL;
+static uint64 _mask16_1 = 0x0101020204040808LL;
+static uint64 _mask16_0 = 0x1010202040408080LL;
 
-static unsigned long long _mask24_2 = 0x0101010202020404LL;
-static unsigned long long _mask24_1 = 0x0408080810101020LL;
-static unsigned long long _mask24_0 = 0x2020404040808080LL;
+static uint64 _mask24_2 = 0x0101010202020404LL;
+static uint64 _mask24_1 = 0x0408080810101020LL;
+static uint64 _mask24_0 = 0x2020404040808080LL;
 
-static unsigned long long _mask32_3 = 0x0101010102020202LL;
-static unsigned long long _mask32_2 = 0x0404040408080808LL;
-static unsigned long long _mask32_1 = 0x1010101020202020LL;
-static unsigned long long _mask32_0 = 0x4040404080808080LL;
+static uint64 _mask32_3 = 0x0101010102020202LL;
+static uint64 _mask32_2 = 0x0404040408080808LL;
+static uint64 _mask32_1 = 0x1010101020202020LL;
+static uint64 _mask32_0 = 0x4040404080808080LL;
 
-static unsigned long long _mask48_5 = 0x0101010101010202LL;
-static unsigned long long _mask48_4 = 0x0202020204040404LL;
-static unsigned long long _mask48_3 = 0x0404080808080808LL;
-static unsigned long long _mask48_2 = 0x1010101010102020LL;
-static unsigned long long _mask48_1 = 0x2020202040404040LL;
-static unsigned long long _mask48_0 = 0x4040808080808080LL;
+static uint64 _mask48_5 = 0x0101010101010202LL;
+static uint64 _mask48_4 = 0x0202020204040404LL;
+static uint64 _mask48_3 = 0x0404080808080808LL;
+static uint64 _mask48_2 = 0x1010101010102020LL;
+static uint64 _mask48_1 = 0x2020202040404040LL;
+static uint64 _mask48_0 = 0x4040808080808080LL;
 
-static unsigned long long _const4   = 0x0000000000FFFFFFLL;
-//static unsigned long long _const5 = 0x000000FFFFFF0000LL;     // NOT USED
-static unsigned long long _const6   = 0x00000000000000FFLL;
+static uint64 _const4   = 0x0000000000FFFFFFLL;
+//static uint64 _const5 = 0x000000FFFFFF0000LL;     // NOT USED
+static uint64 _const6   = 0x00000000000000FFLL;
 
 // These are used in the row-filter routines and should/would be local
 //  variables if not for gcc addressing limitations.
@@ -1703,10 +1703,10 @@ png_do_read_interlace(png_structp png_ptr)
          default: /* 8-bit or larger (this is where the routine is modified) */
          {
 #if 0
-//          static unsigned long long _const4 = 0x0000000000FFFFFFLL;  no good
-//          static unsigned long long const4 = 0x0000000000FFFFFFLL;   no good
-//          unsigned long long _const4 = 0x0000000000FFFFFFLL;         no good
-//          unsigned long long const4 = 0x0000000000FFFFFFLL;          no good
+//          static uint64 _const4 = 0x0000000000FFFFFFLL;  no good
+//          static uint64 const4 = 0x0000000000FFFFFFLL;   no good
+//          uint64 _const4 = 0x0000000000FFFFFFLL;         no good
+//          uint64 const4 = 0x0000000000FFFFFFLL;          no good
 #endif
             png_bytep sptr, dp;
             png_uint_32 i;
@@ -2765,7 +2765,7 @@ png_do_read_interlace(png_structp png_ptr)
 // globally here to ensure alignment on 8-byte boundaries.
 
 union uAll {
-   long long use;
+   int64 use;
    double  align;
 } _LBCarryMask = {0x0101010101010101LL},
   _HBClearMask = {0x7f7f7f7f7f7f7f7fLL},
@@ -5146,7 +5146,7 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
          break;
    }
    png_debug2(0, "row_number=%5ld, %5s, ", png_ptr->row_number, filnm);
-   png_debug1(0, "row=0x%08lx, ", (unsigned long)row);
+   png_debug1(0, "row=0x%08lx, ", (uint32)row);
    png_debug2(0, "pixdepth=%2d, bytes=%d, ", (int)row_info->pixel_depth,
       (int)((row_info->pixel_depth + 7) >> 3));
    png_debug1(0,"rowbytes=%8ld\n", row_info->rowbytes);

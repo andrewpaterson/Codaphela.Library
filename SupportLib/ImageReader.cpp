@@ -92,7 +92,7 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	//	Create A Temporary Bitmap
 	//----------------------------------------------------------------------------------------
 	BITMAPINFO		bi = {0};												// The Type Of Bitmap We Request
-	unsigned int*	pBits = NULL;												// Pointer To The Bitmap Bits
+	uint32*	pBits = NULL;												// Pointer To The Bitmap Bits
 	
 	bi.bmiHeader.biSize			= sizeof(BITMAPINFOHEADER);				// Set Structure Size
 	bi.bmiHeader.biBitCount		= 32;									// 32 Bit
@@ -121,7 +121,7 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	// Converting from BGR To RGB format and adding alpha of 255
 	//----------------------------------------------------------------------------------------
 	int							x, y;
-	unsigned int				iAlpha;
+	uint32				iAlpha;
 	bool						bNonZeroAlpha;
 	CImage						cImageImport;
 	int							i;
@@ -132,7 +132,7 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	{
 		for (x = 0; x < lWidthPixels; x++)
 		{
-			unsigned int iPixel = pBits[(x + (lHeightPixels - y - 1) * lWidthPixels)];
+			uint32 iPixel = pBits[(x + (lHeightPixels - y - 1) * lWidthPixels)];
 			iAlpha = iPixel & 0xff000000;
 			if (iAlpha != 0)
 			{

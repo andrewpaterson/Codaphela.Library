@@ -466,13 +466,13 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
 
  /* Check for overflow */
 #if defined(__TURBOC__) && !defined(__FLAT__)
- if (size != (unsigned long)size)
+ if (size != (uint32)size)
    ret = NULL;
  else
    ret = farmalloc(size);
 #else
 # if defined(_MSC_VER) && defined(MAXSEG_64K)
- if (size != (unsigned long)size)
+ if (size != (uint32)size)
    ret = NULL;
  else
    ret = halloc(size, 1);

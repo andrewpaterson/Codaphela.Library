@@ -39,8 +39,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SMeshFaceType
 {
-	unsigned int	iFlags1;
-	unsigned int	iFlags2;
+	uint32	iFlags1;
+	uint32	iFlags2;
 
 	void	Clear(void);
 	bool	IsNormal(void);

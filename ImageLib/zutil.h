@@ -44,11 +44,11 @@
 #endif
 /* compile with -Dlocal if your debugger can't find static symbols */
 
-typedef unsigned char  uch;
+typedef uint8  uch;
 typedef uch FAR uchf;
 typedef unsigned short ush;
 typedef ush FAR ushf;
-typedef unsigned long  ulg;
+typedef uint32  ulg;
 
 extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 /* (size given to avoid silly warnings with Visual C++) */
@@ -92,7 +92,7 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #    if(__STDC__ == 1) && (defined(__LARGE__) || defined(__COMPACT__))
        /* Allow compilation with ANSI keywords only enabled */
        void _Cdecl farfree( void *block );
-       void *_Cdecl farmalloc( unsigned long nbytes );
+       void *_Cdecl farmalloc( uint32 nbytes );
 #    else
 #      include <alloc.h>
 #    endif
@@ -226,9 +226,9 @@ extern const char * const z_errmsg[10]; /* indexed by 2-zlib_error */
 #    define zmemzero(dest, len) memset(dest, 0, len)
 #  endif
 #else
-   extern void zmemcpy  OF((Bytef* dest, const Bytef* source, uInt len));
-   extern int  zmemcmp  OF((const Bytef* s1, const Bytef* s2, uInt len));
-   extern void zmemzero OF((Bytef* dest, uInt len));
+   extern void zmemcpy  OF((Bytef* dest, const Bytef* source, uint32 len));
+   extern int  zmemcmp  OF((const Bytef* s1, const Bytef* s2, uint32 len));
+   extern void zmemzero OF((Bytef* dest, uint32 len));
 #endif
 
 /* Diagnostic functions */

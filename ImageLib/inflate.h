@@ -12,6 +12,7 @@
    trailer decoding by inflate().  NO_GZIP would be used to avoid linking in
    the crc code when it is not needed.  For shared libraries, gzip decoding
    should be left enabled. */
+#include "BaseLib/PrimitiveTypes.h"
 #ifndef NO_GZIP
 #  define GUNZIP
 #endif
@@ -81,17 +82,17 @@ struct inflate_state {
     int havedict;               /* true if dictionary provided */
     int flags;                  /* gzip header method and flags (0 if zlib) */
     unsigned dmax;              /* zlib header max distance (INFLATE_STRICT) */
-    unsigned long check;        /* protected copy of check value */
-    unsigned long total;        /* protected copy of output count */
+    uint32 check;        /* protected copy of check value */
+    uint32 total;        /* protected copy of output count */
     gz_headerp head;            /* where to save gzip header information */
         /* sliding window */
     unsigned wbits;             /* log base 2 of requested window size */
     unsigned wsize;             /* window size or zero if not using window */
     unsigned whave;             /* valid bytes in the window */
     unsigned write;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if needed */
+    uint8 FAR *window;  /* allocated sliding window, if needed */
         /* bit accumulator */
-    unsigned long hold;         /* input bit accumulator */
+    uint32 hold;         /* input bit accumulator */
     unsigned bits;              /* number of bits in "in" */
         /* for string and stored block copying */
     unsigned length;            /* literal or length of data to copy */

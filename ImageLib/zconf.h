@@ -2,6 +2,7 @@
  * Copyright (C) 1995-2005 Jean-loup Gailly.
  * For conditions of distribution and use, see copyright notice in zlib.h
  */
+#include "BaseLib/PrimitiveTypes.h"
 
 /* @(#) $Id$ */
 
@@ -48,8 +49,8 @@
 #  define in_func               z_in_func
 #  define out_func              z_out_func
 #  define Byte                  z_Byte
-#  define uInt                  z_uInt
-#  define uLong                 z_uLong
+#  define uint32                  z_uInt
+#  define uint32                 z_uLong
 #  define Bytef                 z_Bytef
 #  define charf                 z_charf
 #  define intf                  z_intf
@@ -258,10 +259,8 @@
 #endif
 
 #if !defined(__MACTYPES__)
-typedef unsigned char  Byte;  /* 8 bits */
+typedef uint8  Byte;  /* 8 bits */
 #endif
-typedef unsigned int   uInt;  /* 16 bits or more */
-typedef unsigned long  uLong; /* 32 bits or more */
 
 #ifdef SMALL_MEDIUM
    /* Borland C/C++ and some old MSC versions ignore FAR inside typedef */
@@ -271,8 +270,8 @@ typedef unsigned long  uLong; /* 32 bits or more */
 #endif
 typedef char  FAR charf;
 typedef int   FAR intf;
-typedef uInt  FAR uIntf;
-typedef uLong FAR uLongf;
+typedef uint32  FAR uIntf;
+typedef uint32 FAR uLongf;
 
 #ifdef STDC
    typedef void const *voidpc;

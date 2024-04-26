@@ -29,18 +29,18 @@ const char * ZEXPORT zlibVersion()
     return ZLIB_VERSION;
 }
 
-uLong ZEXPORT zlibCompileFlags()
+uint32 ZEXPORT zlibCompileFlags()
 {
-    uLong flags;
+    uint32 flags;
 
     flags = 0;
-    switch (sizeof(uInt)) {
+    switch (sizeof(uint32)) {
     case 2:     break;
     case 4:     flags += 1;     break;
     case 8:     flags += 2;     break;
     default:    flags += 3;
     }
-    switch (sizeof(uLong)) {
+    switch (sizeof(uint32)) {
     case 2:     break;
     case 4:     flags += 1 << 2;        break;
     case 8:     flags += 2 << 2;        break;
@@ -149,7 +149,7 @@ const char * ZEXPORT zError(err)
 void zmemcpy(dest, source, len)
     Bytef* dest;
     const Bytef* source;
-    uInt  len;
+    uint32  len;
 {
     if (len == 0) return;
     do {
@@ -160,9 +160,9 @@ void zmemcpy(dest, source, len)
 int zmemcmp(s1, s2, len)
     const Bytef* s1;
     const Bytef* s2;
-    uInt  len;
+    uint32  len;
 {
-    uInt j;
+    uint32 j;
 
     for (j = 0; j < len; j++) {
         if (s1[j] != s2[j]) return 2*(s1[j] > s2[j])-1;
@@ -172,7 +172,7 @@ int zmemcmp(s1, s2, len)
 
 void zmemzero(dest, len)
     Bytef* dest;
-    uInt  len;
+    uint32  len;
 {
     if (len == 0) return;
     do {
@@ -292,8 +292,8 @@ void  zcfree (voidpf opaque, voidpf ptr)
 #ifndef MY_ZCALLOC /* Any system without a special alloc function */
 
 #ifndef STDC
-extern voidp  malloc OF((uInt size));
-extern voidp  calloc OF((uInt items, uInt size));
+extern voidp  malloc OF((uint32 size));
+extern voidp  calloc OF((uint32 items, uint32 size));
 extern void   free   OF((voidpf ptr));
 #endif
 
@@ -303,7 +303,7 @@ voidpf zcalloc (opaque, items, size)
     unsigned size;
 {
     if (opaque) items += size - size; /* make compiler happy */
-    return sizeof(uInt) > 2 ? (voidpf)malloc(items * size) :
+    return sizeof(uint32) > 2 ? (voidpf)malloc(items * size) :
                               (voidpf)calloc(items, size);
 }
 

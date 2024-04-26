@@ -151,7 +151,7 @@ voidpf PNGAPI
 #else
 voidpf /* private */
 #endif
-png_zalloc(voidpf png_ptr, uInt items, uInt size)
+png_zalloc(voidpf png_ptr, uint32 items, uint32 size)
 {
    png_voidp ptr;
    png_structp p=(png_structp)png_ptr;
@@ -231,7 +231,7 @@ png_calculate_crc(png_structp png_ptr, png_bytep ptr, png_size_t length)
    }
 
    if (need_crc)
-      png_ptr->crc = crc32(png_ptr->crc, ptr, (uInt)length);
+      png_ptr->crc = crc32(png_ptr->crc, ptr, (uint32)length);
 }
 
 /* Allocate the memory for an info_struct for the application.  We don't

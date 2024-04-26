@@ -1989,8 +1989,8 @@ extern PNG_EXPORT(void,png_free) PNGARG((png_structp png_ptr, png_voidp ptr));
 
 #if defined(PNG_1_0_X)
 /* Function to allocate memory for zlib. */
-extern PNG_EXPORT(voidpf,png_zalloc) PNGARG((voidpf png_ptr, uInt items,
-   uInt size));
+extern PNG_EXPORT(voidpf,png_zalloc) PNGARG((voidpf png_ptr, uint32 items,
+   uint32 size));
 
 /* Function to free memory for zlib */
 extern PNG_EXPORT(void,png_zfree) PNGARG((voidpf png_ptr, voidpf ptr));
@@ -2656,11 +2656,11 @@ extern PNG_EXPORT(void,png_save_int_32)
    PNGARG((png_bytep buf, png_int_32 i));
 
 /* Place a 16-bit number into a buffer in PNG byte order.
- * The parameter is declared unsigned int, not png_uint_16,
+ * The parameter is declared uint32, not png_uint_16,
  * just to avoid potential problems on pre-ANSI C compilers.
  */
 extern PNG_EXPORT(void,png_save_uint_16)
-   PNGARG((png_bytep buf, unsigned int i));
+   PNGARG((png_bytep buf, uint32 i));
 /* No png_save_int_16 -- may be added if there's a real need for it. */
 
 /* ************************************************************************* */
@@ -2909,7 +2909,7 @@ PNG_EXTERN void png_info_destroy PNGARG((png_structp png_ptr,
 
 #ifndef PNG_1_0_X
 /* Function to allocate memory for zlib. */
-PNG_EXTERN voidpf png_zalloc PNGARG((voidpf png_ptr, uInt items, uInt size));
+PNG_EXTERN voidpf png_zalloc PNGARG((voidpf png_ptr, uint32 items, uint32 size));
 
 /* Function to free memory for zlib */
 PNG_EXTERN void png_zfree PNGARG((voidpf png_ptr, voidpf ptr));

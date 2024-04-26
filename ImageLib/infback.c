@@ -28,7 +28,7 @@ local void fixedtables OF((struct inflate_state FAR *state));
 int ZEXPORT inflateBackInit_(strm, windowBits, window, version, stream_size)
 z_streamp strm;
 int windowBits;
-unsigned char FAR *window;
+uint8 FAR *window;
 const char *version;
 int stream_size;
 {
@@ -164,7 +164,7 @@ struct inflate_state FAR *state;
     do { \
         PULL(); \
         have--; \
-        hold += (unsigned long)(*next++) << bits; \
+        hold += (uint32)(*next++) << bits; \
         bits += 8; \
     } while (0)
 
@@ -246,13 +246,13 @@ out_func out;
 void FAR *out_desc;
 {
     struct inflate_state FAR *state;
-    unsigned char FAR *next;    /* next input */
-    unsigned char FAR *put;     /* next output */
+    uint8 FAR *next;    /* next input */
+    uint8 FAR *put;     /* next output */
     unsigned have, left;        /* available input and output */
-    unsigned long hold;         /* bit buffer */
+    uint32 hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
     unsigned copy;              /* number of stored or match bytes to copy */
-    unsigned char FAR *from;    /* where to copy match bytes from */
+    uint8 FAR *from;    /* where to copy match bytes from */
     code this;                  /* current decoding table entry */
     code last;                  /* parent table entry */
     unsigned len;               /* length to copy for repeats, bits to drop */
@@ -497,7 +497,7 @@ void FAR *out_desc;
                         "inflate:         literal '%c'\n" :
                         "inflate:         literal 0x%02x\n", this.val));
                 ROOM();
-                *put++ = (unsigned char)(state->length);
+                *put++ = (uint8)(state->length);
                 left--;
                 state->mode = LEN;
                 break;

@@ -131,7 +131,7 @@ png_default_read_data(png_structp png_ptr, png_bytep data, png_size_t length)
    read_data_fn - pointer to a new input function that takes as its
                   arguments a pointer to a png_struct, a pointer to
                   a location where input data can be stored, and a 32-bit
-                  unsigned int that is the number of bytes to be read.
+                  uint32 that is the number of bytes to be read.
                   To exit and output any fatal error messages the new write
                   function should call png_error(png_ptr, "Error msg"). */
 void PNGAPI

@@ -39,11 +39,11 @@ png_save_int_32(png_bytep buf, png_int_32 i)
 }
 
 /* Place a 16-bit number into a buffer in PNG byte order.
- * The parameter is declared unsigned int, not png_uint_16,
+ * The parameter is declared uint32, not png_uint_16,
  * just to avoid potential problems on pre-ANSI C compilers.
  */
 void PNGAPI
-png_save_uint_16(png_bytep buf, unsigned int i)
+png_save_uint_16(png_bytep buf, uint32 i)
 {
    buf[0] = (png_byte)((i >> 8) & 0xff);
    buf[1] = (png_byte)(i & 0xff);
@@ -205,9 +205,9 @@ png_text_compress(png_structp png_ptr,
     */
 
    /* set up the compression buffers */
-   png_ptr->zstream.avail_in = (uInt)text_len;
+   png_ptr->zstream.avail_in = (uint32)text_len;
    png_ptr->zstream.next_in = (Bytef *)text;
-   png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+   png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
    png_ptr->zstream.next_out = (Bytef *)png_ptr->zbuf;
 
    /* this is the same compression loop as in png_write_row() */
@@ -259,7 +259,7 @@ png_text_compress(png_structp png_ptr,
          comp->num_output_ptr++;
 
          /* and reset the buffer */
-         png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+         png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
          png_ptr->zstream.next_out = png_ptr->zbuf;
       }
    /* continue until we don't have any more to compress */
@@ -310,7 +310,7 @@ png_text_compress(png_structp png_ptr,
             comp->num_output_ptr++;
 
             /* and reset the buffer pointers */
-            png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+            png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
             png_ptr->zstream.next_out = png_ptr->zbuf;
          }
       }
@@ -527,7 +527,7 @@ png_write_IHDR(png_structp png_ptr, png_uint_32 width, png_uint_32 height,
       png_ptr->zlib_method, png_ptr->zlib_window_bits,
       png_ptr->zlib_mem_level, png_ptr->zlib_strategy);
    png_ptr->zstream.next_out = png_ptr->zbuf;
-   png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+   png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
    /* libpng is not interested in zstream.data_type */
    /* set it to a predefined value, to avoid its evaluation inside zlib */
    png_ptr->zstream.data_type = Z_BINARY;
@@ -615,7 +615,7 @@ png_write_IDAT(png_structp png_ptr, png_bytep data, png_size_t length)
    if (!(png_ptr->mode & PNG_HAVE_IDAT) &&
        png_ptr->compression_type == PNG_COMPRESSION_TYPE_BASE)
    {
-      unsigned int z_cmf = data[0];  /* zlib compression method and flags */
+      uint32 z_cmf = data[0];  /* zlib compression method and flags */
       if ((z_cmf & 0x0f) == 8 && (z_cmf & 0xf0) <= 0x70)
       {
          /* Avoid memory underflows and multiplication overflows. */
@@ -627,8 +627,8 @@ png_write_IDAT(png_structp png_ptr, png_bytep data, png_size_t length)
             png_uint_32 uncompressed_idat_size = png_ptr->height *
                ((png_ptr->width *
                png_ptr->channels * png_ptr->bit_depth + 15) >> 3);
-            unsigned int z_cinfo = z_cmf >> 4;
-            unsigned int half_z_window_size = 1 << (z_cinfo + 7);
+            uint32 z_cinfo = z_cmf >> 4;
+            uint32 half_z_window_size = 1 << (z_cinfo + 7);
             while (uncompressed_idat_size <= half_z_window_size &&
                    half_z_window_size >= 256)
             {
@@ -1627,7 +1627,7 @@ png_write_sCAL(png_structp png_ptr, int unit, double width, double height)
    total_len += png_strlen(buf + total_len);
 #endif
 
-   png_debug1(3, "sCAL total length = %u\n", (unsigned int)total_len);
+   png_debug1(3, "sCAL total length = %u\n", (uint32)total_len);
    png_write_chunk(png_ptr, (png_bytep)png_sCAL, (png_bytep)buf, total_len);
 }
 #else
@@ -1657,7 +1657,7 @@ png_write_sCAL_s(png_structp png_ptr, int unit, png_charp width,
    png_memcpy(buf + 1, width, wlen + 1);      /* append the '\0' here */
    png_memcpy(buf + wlen + 2, height, hlen);  /* do NOT append the '\0' here */
 
-   png_debug1(3, "sCAL total length = %u\n", (unsigned int)total_len);
+   png_debug1(3, "sCAL total length = %u\n", (uint32)total_len);
    png_write_chunk(png_ptr, (png_bytep)png_sCAL, buf, total_len);
 }
 #endif
@@ -1810,7 +1810,7 @@ png_write_start_row(png_structp png_ptr)
       png_ptr->num_rows = png_ptr->height;
       png_ptr->usr_width = png_ptr->width;
    }
-   png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+   png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
    png_ptr->zstream.next_out = png_ptr->zbuf;
 }
 
@@ -1901,7 +1901,7 @@ png_write_finish_row(png_structp png_ptr)
          {
             png_write_IDAT(png_ptr, png_ptr->zbuf, png_ptr->zbuf_size);
             png_ptr->zstream.next_out = png_ptr->zbuf;
-            png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+            png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
          }
       }
       else if (ret != Z_STREAM_END)
@@ -2723,7 +2723,7 @@ png_write_filtered_row(png_structp png_ptr, png_bytep filtered_row)
    /* set up the zlib input buffer */
 
    png_ptr->zstream.next_in = filtered_row;
-   png_ptr->zstream.avail_in = (uInt)png_ptr->row_info.rowbytes + 1;
+   png_ptr->zstream.avail_in = (uint32)png_ptr->row_info.rowbytes + 1;
    /* repeat until we have compressed all the data */
    do
    {
@@ -2746,7 +2746,7 @@ png_write_filtered_row(png_structp png_ptr, png_bytep filtered_row)
          /* write the IDAT and reset the zlib output buffer */
          png_write_IDAT(png_ptr, png_ptr->zbuf, png_ptr->zbuf_size);
          png_ptr->zstream.next_out = png_ptr->zbuf;
-         png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+         png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
       }
    /* repeat until all data has been compressed */
    } while (png_ptr->zstream.avail_in);

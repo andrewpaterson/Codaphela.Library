@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __COLOUR_RGBA32_H__
 #define __COLOUR_RGBA32_H__
+#include "BaseLib/PrimitiveTypes.h"
 
 
 #define RGBA32_RED_SHIFT	0
@@ -45,14 +46,14 @@ int Set8BitAlphaColour(int iAlpha);
 int Set8BitBlueColour(int iBlue);
 int Set8BitGreenColour(int iGreen);
 int Set8BitRedColour(int iRed);
-int Set8BitAlphaColour(unsigned char iAlpha);
-int Set8BitBlueColour(unsigned char iBlue);
-int Set8BitGreenColour(unsigned char iGreen);
-int Set8BitRedColour(unsigned char iRed);
+int Set8BitAlphaColour(uint8 iAlpha);
+int Set8BitBlueColour(uint8 iBlue);
+int Set8BitGreenColour(uint8 iGreen);
+int Set8BitRedColour(uint8 iRed);
 float Convert8BitColourToFloat(int iColour);
 int ConvertFloatTo8BitColour(float fColour);
 int Set32BitColour(int r, int g, int b, int a);
-int Set32BitColour(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+int Set32BitColour(uint8 r, uint8 g, uint8 b, uint8 a);
 int Set32BitColour(float r, float g, float b, float a);
 void Get32BitColour(int* r, int* g, int* b, int* a, int iColour);
 void Get32BitColour(float* r, float* g, float* b, float* a, int iColour);
@@ -69,11 +70,11 @@ int GetM8BitAlphaColour(int iColour);
 int GetM8BitBlueColour(int iColour);
 int GetM8BitGreenColour(int iColour);
 int GetM8BitRedColour(int iColour);
-int SetM32BitColour(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
-int SetM8BitAlphaColour(unsigned char iAlpha);
-int SetM8BitBlueColour(unsigned char iBlue);
-int SetM8BitGreenColour(unsigned char iGreen);
-int SetM8BitRedColour(unsigned char iRed);
+int SetM32BitColour(uint8 r, uint8 g, uint8 b, uint8 a);
+int SetM8BitAlphaColour(uint8 iAlpha);
+int SetM8BitBlueColour(uint8 iBlue);
+int SetM8BitGreenColour(uint8 iGreen);
+int SetM8BitRedColour(uint8 iRed);
 
 //Conversion functions see RGB32.png for details.
 int ConvertToBGR(int iColour);

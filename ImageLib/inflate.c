@@ -22,7 +22,7 @@
  * 1.2.beta2    4 Dec 2002
  * - Change external routine names to reduce potential conflicts
  * - Correct filename to inffixed.h for fixed tables in inflate.c
- * - Make hbuf[] unsigned char to match parameter type in inflate.c
+ * - Make hbuf[] uint8 to match parameter type in inflate.c
  * - Change strm->next_out[-state->offset] to *(strm->next_out - state->offset)
  *   to avoid negation problem on Alphas (64 bit) in inflate.c
  *
@@ -64,7 +64,7 @@
  * - Typecasting all around to reduce compiler warnings
  * - Changed loops from while (1) or do {} while (1) to for (;;), again to
  *   make compilers happy
- * - Changed type of window in inflateBackInit() to unsigned char *
+ * - Changed type of window in inflateBackInit() to uint8 *
  *
  * 1.2.beta7    27 Jan 2003
  * - Changed many types to unsigned or unsigned short to avoid warnings
@@ -97,7 +97,7 @@ local int updatewindow OF((z_streamp strm, unsigned out));
 #ifdef BUILDFIXED
    void makefixed OF((void));
 #endif
-local unsigned syncsearch OF((unsigned FAR *have, unsigned char FAR *buf,
+local unsigned syncsearch OF((unsigned FAR *have, uint8 FAR *buf,
                               unsigned len));
 
 int ZEXPORT inflateReset(strm)
@@ -331,9 +331,9 @@ unsigned out;
 
     /* if it hasn't been done already, allocate space for the window */
     if (state->window == Z_NULL) {
-        state->window = (unsigned char FAR *)
+        state->window = (uint8 FAR *)
                         ZALLOC(strm, 1U << state->wbits,
-                               sizeof(unsigned char));
+                               sizeof(uint8));
         if (state->window == Z_NULL) return 1;
     }
 
@@ -384,17 +384,17 @@ unsigned out;
 #ifdef GUNZIP
 #  define CRC2(check, word) \
     do { \
-        hbuf[0] = (unsigned char)(word); \
-        hbuf[1] = (unsigned char)((word) >> 8); \
+        hbuf[0] = (uint8)(word); \
+        hbuf[1] = (uint8)((word) >> 8); \
         check = crc32(check, hbuf, 2); \
     } while (0)
 
 #  define CRC4(check, word) \
     do { \
-        hbuf[0] = (unsigned char)(word); \
-        hbuf[1] = (unsigned char)((word) >> 8); \
-        hbuf[2] = (unsigned char)((word) >> 16); \
-        hbuf[3] = (unsigned char)((word) >> 24); \
+        hbuf[0] = (uint8)(word); \
+        hbuf[1] = (uint8)((word) >> 8); \
+        hbuf[2] = (uint8)((word) >> 16); \
+        hbuf[3] = (uint8)((word) >> 24); \
         check = crc32(check, hbuf, 4); \
     } while (0)
 #endif
@@ -434,7 +434,7 @@ unsigned out;
     do { \
         if (have == 0) goto inf_leave; \
         have--; \
-        hold += (unsigned long)(*next++) << bits; \
+        hold += (uint32)(*next++) << bits; \
         bits += 8; \
     } while (0)
 
@@ -556,20 +556,20 @@ z_streamp strm;
 int flush;
 {
     struct inflate_state FAR *state;
-    unsigned char FAR *next;    /* next input */
-    unsigned char FAR *put;     /* next output */
+    uint8 FAR *next;    /* next input */
+    uint8 FAR *put;     /* next output */
     unsigned have, left;        /* available input and output */
-    unsigned long hold;         /* bit buffer */
+    uint32 hold;         /* bit buffer */
     unsigned bits;              /* bits in bit buffer */
     unsigned in, out;           /* save starting available input and output */
     unsigned copy;              /* number of stored or match bytes to copy */
-    unsigned char FAR *from;    /* where to copy match bytes from */
+    uint8 FAR *from;    /* where to copy match bytes from */
     code this;                  /* current decoding table entry */
     code last;                  /* parent table entry */
     unsigned len;               /* length to copy for repeats, bits to drop */
     int ret;                    /* return code */
 #ifdef GUNZIP
-    unsigned char hbuf[4];      /* buffer for gzip header crc calculation */
+    uint8 hbuf[4];      /* buffer for gzip header crc calculation */
 #endif
     static const unsigned short order[19] = /* permutation of code lengths */
         {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
@@ -1070,7 +1070,7 @@ int flush;
             break;
         case LIT:
             if (left == 0) goto inf_leave;
-            *put++ = (unsigned char)(state->length);
+            *put++ = (uint8)(state->length);
             left--;
             state->mode = LEN;
             break;
@@ -1169,10 +1169,10 @@ z_streamp strm;
 int ZEXPORT inflateSetDictionary(strm, dictionary, dictLength)
 z_streamp strm;
 const Bytef *dictionary;
-uInt dictLength;
+uint32 dictLength;
 {
     struct inflate_state FAR *state;
-    unsigned long id;
+    uint32 id;
 
     /* check state */
     if (strm == Z_NULL || strm->state == Z_NULL) return Z_STREAM_ERROR;
@@ -1238,7 +1238,7 @@ gz_headerp head;
  */
 local unsigned syncsearch(have, buf, len)
 unsigned FAR *have;
-unsigned char FAR *buf;
+uint8 FAR *buf;
 unsigned len;
 {
     unsigned got;
@@ -1263,8 +1263,8 @@ int ZEXPORT inflateSync(strm)
 z_streamp strm;
 {
     unsigned len;               /* number of bytes to look at or looked at */
-    unsigned long in, out;      /* temporary to save total_in and total_out */
-    unsigned char buf[4];       /* to restore bit buffer to byte string */
+    uint32 in, out;      /* temporary to save total_in and total_out */
+    uint8 buf[4];       /* to restore bit buffer to byte string */
     struct inflate_state FAR *state;
 
     /* check parameters */
@@ -1279,7 +1279,7 @@ z_streamp strm;
         state->bits -= state->bits & 7;
         len = 0;
         while (state->bits >= 8) {
-            buf[len++] = (unsigned char)(state->hold);
+            buf[len++] = (uint8)(state->hold);
             state->hold >>= 8;
             state->bits -= 8;
         }
@@ -1326,7 +1326,7 @@ z_streamp source;
 {
     struct inflate_state FAR *state;
     struct inflate_state FAR *copy;
-    unsigned char FAR *window;
+    uint8 FAR *window;
     unsigned wsize;
 
     /* check input */
@@ -1341,8 +1341,8 @@ z_streamp source;
     if (copy == Z_NULL) return Z_MEM_ERROR;
     window = Z_NULL;
     if (state->window != Z_NULL) {
-        window = (unsigned char FAR *)
-                 ZALLOC(source, 1U << state->wbits, sizeof(unsigned char));
+        window = (uint8 FAR *)
+                 ZALLOC(source, 1U << state->wbits, sizeof(uint8));
         if (window == Z_NULL) {
             ZFREE(source, copy);
             return Z_MEM_ERROR;

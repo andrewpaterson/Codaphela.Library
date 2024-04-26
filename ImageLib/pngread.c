@@ -151,7 +151,7 @@ png_create_read_struct_2(png_const_charp user_png_ver, png_voidp error_ptr,
    }
 
    png_ptr->zstream.next_out = png_ptr->zbuf;
-   png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+   png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
 
    png_set_read_fn(png_ptr, png_voidp_NULL, png_rw_ptr_NULL);
 
@@ -303,7 +303,7 @@ png_read_init_3(png_structpp ptr_ptr, png_const_charp user_png_ver,
    }
 
    png_ptr->zstream.next_out = png_ptr->zbuf;
-   png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+   png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
 
    png_set_read_fn(png_ptr, png_voidp_NULL, png_rw_ptr_NULL);
 }
@@ -691,7 +691,7 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
       png_error(png_ptr, "Invalid attempt to read row data");
 
    png_ptr->zstream.next_out = png_ptr->row_buf;
-   png_ptr->zstream.avail_out = (uInt)png_ptr->irowbytes;
+   png_ptr->zstream.avail_out = (uint32)png_ptr->irowbytes;
    do
    {
       if (!(png_ptr->zstream.avail_in))
@@ -710,10 +710,10 @@ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
             if (png_memcmp(png_ptr->chunk_name, png_IDAT, 4))
                png_error(png_ptr, "Not enough image data");
          }
-         png_ptr->zstream.avail_in = (uInt)png_ptr->zbuf_size;
+         png_ptr->zstream.avail_in = (uint32)png_ptr->zbuf_size;
          png_ptr->zstream.next_in = png_ptr->zbuf;
          if (png_ptr->zbuf_size > png_ptr->idat_size)
-            png_ptr->zstream.avail_in = (uInt)png_ptr->idat_size;
+            png_ptr->zstream.avail_in = (uint32)png_ptr->idat_size;
          png_crc_read(png_ptr, png_ptr->zbuf,
             (png_size_t)png_ptr->zstream.avail_in);
          png_ptr->idat_size -= png_ptr->zstream.avail_in;

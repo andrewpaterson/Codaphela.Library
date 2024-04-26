@@ -1089,15 +1089,15 @@
  * numbers suggest (a png_uint_32 must be at least 32 bits long), but they
  * don't have to be exactly that size.  Some compilers dislike passing
  * unsigned shorts as function parameters, so you may be better off using
- * unsigned int for png_uint_16.  Likewise, for 64-bit systems, you may
- * want to have unsigned int for png_uint_32 instead of unsigned long.
+ * uint32 for png_uint_16.  Likewise, for 64-bit systems, you may
+ * want to have uint32 for png_uint_32 instead of uint32.
  */
 
-typedef unsigned long png_uint_32;
+typedef uint32 png_uint_32;
 typedef long png_int_32;
 typedef unsigned short png_uint_16;
 typedef short png_int_16;
-typedef unsigned char png_byte;
+typedef uint8 png_byte;
 
 /* This is usually size_t.  It is typedef'ed just in case you need it to
    change (I'm not sure if you will or not, so I thought I'd be safe) */

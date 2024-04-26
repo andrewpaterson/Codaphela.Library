@@ -57,16 +57,16 @@ void GenerateNormalMapFromMono(CImage* pcImage, SFloat3* pasNormals, EChannel eH
 			}
 			else
 			{
-				c = *((unsigned char*)pcAccessor->Get(x-1, y-1));
+				c = *((uint8*)pcAccessor->Get(x-1, y-1));
 				f1 = Convert8BitColourToFloat(c);
 
-				c = *((unsigned char*)pcAccessor->Get(x, y-1));
+				c = *((uint8*)pcAccessor->Get(x, y-1));
 				f2 = Convert8BitColourToFloat(c);
 
-				c = *((unsigned char*)pcAccessor->Get(x-1, y));
+				c = *((uint8*)pcAccessor->Get(x-1, y));
 				f3 = Convert8BitColourToFloat(c);
 
-				c = *((unsigned char*)pcAccessor->Get(x, y));
+				c = *((uint8*)pcAccessor->Get(x, y));
 				f4 = Convert8BitColourToFloat(c);
 
 				fdx1 = f1 - f2;

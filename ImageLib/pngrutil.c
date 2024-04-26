@@ -189,9 +189,9 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
    {
       int ret = Z_OK;
       png_ptr->zstream.next_in = (png_bytep)(chunkdata + prefix_size);
-      png_ptr->zstream.avail_in = (uInt)(chunklength - prefix_size);
+      png_ptr->zstream.avail_in = (uint32)(chunklength - prefix_size);
       png_ptr->zstream.next_out = png_ptr->zbuf;
-      png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+      png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
 
       text_size = 0;
       text = NULL;
@@ -271,7 +271,7 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
             else
             {
                png_ptr->zstream.next_out = png_ptr->zbuf;
-               png_ptr->zstream.avail_out = (uInt)png_ptr->zbuf_size;
+               png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
             }
          }
       }
@@ -1413,7 +1413,7 @@ png_handle_bKGD(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
 void /* PRIVATE */
 png_handle_hIST(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
 {
-   unsigned int num, i;
+   uint32 num, i;
    png_uint_16 readbuf[PNG_MAX_PALETTE_LENGTH];
 
    png_debug(1, "in png_handle_hIST\n");
@@ -1440,8 +1440,8 @@ png_handle_hIST(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
    }
 
    num = length / 2 ;
-   if (num != (unsigned int) png_ptr->num_palette || num >
-      (unsigned int) PNG_MAX_PALETTE_LENGTH)
+   if (num != (uint32) png_ptr->num_palette || num >
+      (uint32) PNG_MAX_PALETTE_LENGTH)
    {
       png_warning(png_ptr, "Incorrect hIST chunk length");
       png_crc_finish(png_ptr, length);
@@ -2873,7 +2873,7 @@ png_read_finish_row(png_structp png_ptr)
       int ret;
 
       png_ptr->zstream.next_out = (Byte *)&extra;
-      png_ptr->zstream.avail_out = (uInt)1;
+      png_ptr->zstream.avail_out = (uint32)1;
       for(;;)
       {
          if (!(png_ptr->zstream.avail_in))
@@ -2892,10 +2892,10 @@ png_read_finish_row(png_structp png_ptr)
                   png_error(png_ptr, "Not enough image data");
 
             }
-            png_ptr->zstream.avail_in = (uInt)png_ptr->zbuf_size;
+            png_ptr->zstream.avail_in = (uint32)png_ptr->zbuf_size;
             png_ptr->zstream.next_in = png_ptr->zbuf;
             if (png_ptr->zbuf_size > png_ptr->idat_size)
-               png_ptr->zstream.avail_in = (uInt)png_ptr->idat_size;
+               png_ptr->zstream.avail_in = (uint32)png_ptr->idat_size;
             png_crc_read(png_ptr, png_ptr->zbuf, png_ptr->zstream.avail_in);
             png_ptr->idat_size -= png_ptr->zstream.avail_in;
          }

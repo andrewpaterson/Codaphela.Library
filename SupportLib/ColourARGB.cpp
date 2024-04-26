@@ -84,22 +84,22 @@ int Set8BitRedColour(int iRed)
 	return iRed << RGBA32_RED_SHIFT;
 }
 
-int Set8BitAlphaColour(unsigned char iAlpha)
+int Set8BitAlphaColour(uint8 iAlpha)
 {
 	return iAlpha << RGBA32_ALPHA_SHIFT;
 }
 
-int Set8BitBlueColour(unsigned char iBlue)
+int Set8BitBlueColour(uint8 iBlue)
 {
 	return iBlue << RGBA32_BLUE_SHIFT;
 }
 
-int Set8BitGreenColour(unsigned char iGreen)
+int Set8BitGreenColour(uint8 iGreen)
 {
 	return iGreen << RGBA32_GREEN_SHIFT;
 }
 
-int Set8BitRedColour(unsigned char iRed)
+int Set8BitRedColour(uint8 iRed)
 {
 	return iRed << RGBA32_RED_SHIFT;
 }
@@ -127,7 +127,7 @@ int Set32BitColour(int r, int g, int b, int a)
 }
 
 
-int Set32BitColour(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+int Set32BitColour(uint8 r, uint8 g, uint8 b, uint8 a)
 {
 	int		iColour;
 
@@ -320,27 +320,27 @@ int GetM8BitRedColour(int iColour)
 	return (iColour >> M_RGBA32_RED_SHIFT) & 0xff;
 }
 
-int SetM8BitAlphaColour(unsigned char iAlpha)
+int SetM8BitAlphaColour(uint8 iAlpha)
 {
 	return iAlpha << M_RGBA32_ALPHA_SHIFT;
 }
 
-int SetM8BitBlueColour(unsigned char iBlue)
+int SetM8BitBlueColour(uint8 iBlue)
 {
 	return iBlue << M_RGBA32_BLUE_SHIFT;
 }
 
-int SetM8BitGreenColour(unsigned char iGreen)
+int SetM8BitGreenColour(uint8 iGreen)
 {
 	return iGreen << M_RGBA32_GREEN_SHIFT;
 }
 
-int SetM8BitRedColour(unsigned char iRed)
+int SetM8BitRedColour(uint8 iRed)
 {
 	return iRed << M_RGBA32_RED_SHIFT;
 }
 
-int SetM32BitColour(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+int SetM32BitColour(uint8 r, uint8 g, uint8 b, uint8 a)
 {
 	int		iColour;
 
