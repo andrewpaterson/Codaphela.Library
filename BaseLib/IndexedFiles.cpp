@@ -235,7 +235,7 @@ bool CIndexedFiles::DataFilename(char* szFile1, char* szFile2, int iDataSize, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedFile* CIndexedFiles::GetOrCreateFile(unsigned int uiDataSize)
+CIndexedFile* CIndexedFiles::GetOrCreateFile(uint32 uiDataSize)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
@@ -291,7 +291,7 @@ CIndexedFile* CIndexedFiles::GetOrCreateFile(unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedFile* CIndexedFiles::GetFile(unsigned int uiDataSize, int iFileNum)
+CIndexedFile* CIndexedFiles::GetFile(uint32 uiDataSize, int iFileNum)
 {
 	int				i;
 	CIndexedFile*	pcIndexedFile;
@@ -389,7 +389,7 @@ void CIndexedFiles::GetFiles(CArrayIndexedFilePtr* papc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedFiles::GetFileDataSize(int iFileIndex)
+uint32 CIndexedFiles::GetFileDataSize(int iFileIndex)
 {
 	CIndexedFile*	pcFile;
 
@@ -485,10 +485,10 @@ int CIndexedFiles::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileDataIndex CIndexedFiles::WriteNew(void* pvData, unsigned int uiDataSize)
+CFileDataIndex CIndexedFiles::WriteNew(void* pvData, uint32 uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
-	unsigned int	uiDataIndex;
+	uint32	uiDataIndex;
 	CFileDataIndex	cDataIndex;
 
 	if (uiDataSize != 0)
@@ -522,7 +522,7 @@ CFileDataIndex CIndexedFiles::WriteNew(void* pvData, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, unsigned int uiDataSize)
+bool CIndexedFiles::WriteExisting(CFileDataIndex* pcDataIndex, void* pvData, uint32 uiDataSize)
 {
 	CIndexedFile*	pcIndexedFile;
 	bool			bResult;

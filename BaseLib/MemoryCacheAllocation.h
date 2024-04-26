@@ -7,10 +7,10 @@ class CMemoryCacheAllocation
 {
 friend class CMemoryCache;
 protected:
-	unsigned int				muiSize;
+	uint32						muiSize;
 	CArrayVoidPtr				mapEvictedCacheDescriptors; 
 	SMemoryCacheDescriptor*		mpsDescriptor;
-	unsigned int				miCachedSize;
+	uint32						miCachedSize;
 
 public:
 	void						Init(int uiSize);

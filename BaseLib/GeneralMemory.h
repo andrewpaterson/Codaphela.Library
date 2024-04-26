@@ -25,6 +25,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseMemory.h"
 
 
+//CGeneralMemory is designed to sit behind multiple collections with similar allocation patterns. 
+//  It finds it's use mostly in CUnknowns.
+//  It It's not a replacement for malloc / free.
 class CGeneralMemory : public CBaseMemory
 {
 private:
@@ -35,8 +38,8 @@ private:
 	CMemoryFreeListParams		mcFreeListParams;
 	int							miDefaultAlignment;
 
-	uint32				muiAllocCount;
-	uint32				muiBreakAlloc;
+	uint32						muiAllocCount;
+	uint32						muiBreakAlloc;
 	bool						mbBreakOnAlloc;
 
 public:
@@ -47,7 +50,7 @@ public:
 	void*					Add(uint32 iSize, int iAlignment, int iOffset = 0);
 	bool					Remove(void* pv);
 	int						RemoveMultiple(CArrayVoidPtr* pav);
-	uint32			GetSize(void* pv);
+	uint32					GetSize(void* pv);
 	CFreeList*				GetFreeList(uint32 iElementSize, int iAlignment, int iOffset);
 	CFreeList*				GetFreeList(uint32 iElementSize);
 	void*					Grow(void* pvInitial, uint32 iSize);

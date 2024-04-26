@@ -39,7 +39,7 @@ void CLinkedListBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-unsigned int CLinkedListBlock::GetNodeSize(void* pvData)
+uint32 CLinkedListBlock::GetNodeSize(void* pvData)
 {
 	SLLBlockNode*		psNodeHeader;
 
@@ -74,7 +74,7 @@ int CLinkedListBlock::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
+void* CLinkedListBlock::InsertAfterTail(uint32 uiDataSize)
 {
 	SLLBlockNode* psNode;
 
@@ -87,7 +87,7 @@ void* CLinkedListBlock::InsertAfterTail(unsigned int uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::Add(unsigned int uiDataSize)
+void* CLinkedListBlock::Add(uint32 uiDataSize)
 {
 	return InsertAfterTail(uiDataSize);
 }
@@ -97,7 +97,7 @@ void* CLinkedListBlock::Add(unsigned int uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertBeforeHead(unsigned int uiDataSize)
+void* CLinkedListBlock::InsertBeforeHead(uint32 uiDataSize)
 {
 	SLLBlockNode* psNode;
 
@@ -110,7 +110,7 @@ void* CLinkedListBlock::InsertBeforeHead(unsigned int uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertBeforeNode(unsigned int uiDataSize, void* psPos)
+void* CLinkedListBlock::InsertBeforeNode(uint32 uiDataSize, void* psPos)
 {
 	SLLBlockNode* psNode;
 	SLLBlockNode* psNodePos;
@@ -125,7 +125,7 @@ void* CLinkedListBlock::InsertBeforeNode(unsigned int uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlock::InsertAfterNode(unsigned int uiDataSize, void* psPos)
+void* CLinkedListBlock::InsertAfterNode(uint32 uiDataSize, void* psPos)
 {
 	SLLBlockNode* psNode;
 	SLLBlockNode* psNodePos;
@@ -140,7 +140,7 @@ void* CLinkedListBlock::InsertAfterNode(unsigned int uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLBlockNode* CLinkedListBlock::AllocateDetached(unsigned int uiDataSize)
+SLLBlockNode* CLinkedListBlock::AllocateDetached(uint32 uiDataSize)
 {
 	SLLBlockNode*		psNode;
 

@@ -23,15 +23,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FAST_MEMCPY_BACKWARDS_H__
 #define __FAST_MEMCPY_BACKWARDS_H__
 #include <string.h>
+#include "PrimitiveTypes.h"
 
 
 typedef void (*memcpy_fast_backwards_func)(void*, void*);
 extern memcpy_fast_backwards_func ga_memcpy_fast_backwards[65];
 
 
-void memcpy_fast_backwards(void* pvDest, void* pvSource, unsigned int uiByteSize);
+void memcpy_fast_backwards(void* pvDest, void* pvSource, uint32 uiByteSize);
 void InitMemcpyFastBackwards(void);
-void memcpy_backwards_large(void* pvDest, void* pvSource, unsigned int uiByteSize);
+void memcpy_backwards_large(void* pvDest, void* pvSource, uint32 uiByteSize);
 
 void memcpy_fast_backwards_0bytes(void* pvDest, void* pvSource);  //For completeness...
 void memcpy_fast_backwards_1byte(void* pvDest, void* pvSource);

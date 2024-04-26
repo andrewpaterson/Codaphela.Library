@@ -146,7 +146,7 @@ void* CDiskFile::GetFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-HANDLE CreateWindowsFile(char* szName, unsigned int uiRights, unsigned uiShare, unsigned int uiCreation)
+HANDLE CreateWindowsFile(char* szName, uint32 uiRights, unsigned uiShare, uint32 uiCreation)
 {
 	HANDLE	hFile;
 
@@ -238,8 +238,8 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 {
 	bool			bResult;
 	filePos			iByteLength;
-	unsigned int	uiTruncatedLength;
-	unsigned int	uiReadLength;
+	uint32	uiTruncatedLength;
+	uint32	uiReadLength;
 
 	if (iSize == 0)
 	{
@@ -251,7 +251,7 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 		iByteLength = iSize * iCount;
 		if (iByteLength <= MAX_UINT)
 		{
-			uiTruncatedLength = (unsigned int)iByteLength;
+			uiTruncatedLength = (uint32)iByteLength;
 		}
 		else
 		{
@@ -281,7 +281,7 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 {
-	unsigned int	uiResult;
+	uint32	uiResult;
 
 	if (IsOpen())
 	{
@@ -312,17 +312,17 @@ bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 {
-	unsigned int	uiWritten;
+	uint32	uiWritten;
 	bool			bResult;
 	filePos			iByteLength;
-	unsigned int	uiTruncatedLength;
+	uint32	uiTruncatedLength;
 
 	if (IsOpen() && (iSize > 0) && (iCount > 0))
 	{
 		iByteLength = iSize * iCount;
 		if (iByteLength <= MAX_UINT)
 		{
-			uiTruncatedLength = (unsigned int)iByteLength;
+			uiTruncatedLength = (uint32)iByteLength;
 		}
 		else
 		{
@@ -355,7 +355,7 @@ filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Tell(void)
 {
-	unsigned int	uiResult;
+	uint32	uiResult;
 	if (IsOpen())
 	{
 		uiResult = SetFilePointer(GetHandle(this), 0, NULL, FILE_CURRENT);
@@ -384,7 +384,7 @@ bool CDiskFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Size(void)
 {
-	unsigned int	uiFileSize;
+	uint32	uiFileSize;
 
 	if (IsOpen())
 	{
@@ -404,7 +404,7 @@ filePos CDiskFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDiskFile::Truncate(filePos iSize)
 {
-	unsigned int	uiResult;
+	uint32	uiResult;
 	bool			bResult;
 
 	uiResult = SetFilePointer(GetHandle(this), (LONG)iSize, NULL, FILE_BEGIN);

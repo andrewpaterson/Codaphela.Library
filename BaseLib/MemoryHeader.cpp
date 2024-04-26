@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SFreeListDesc::Init(unsigned int iStride)
+void SFreeListDesc::Init(uint32 iStride)
 {
 	this->iStride = iStride;
 	this->pcFreeList = NULL;
@@ -28,7 +28,7 @@ void SFreeListDesc::Init(CFreeList* pcFreeList, int iStride)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SAlignedFreeListDesc::Init(unsigned int iStride, int iAlignment, int iOffset)
+void SAlignedFreeListDesc::Init(uint32 iStride, int iAlignment, int iOffset)
 {
 	this->iStride = iStride;
 	this->iAlignment = iAlignment;

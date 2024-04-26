@@ -20,7 +20,7 @@ void CGlobalMemoryAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CGlobalMemoryAllocator::Malloc(size_t tSize)
 {
-	return gcMemory.Add((unsigned int)tSize);
+	return gcMemory.Add((uint32)tSize);
 }
 
 
@@ -32,7 +32,7 @@ void* CGlobalMemoryAllocator::Realloc(void* pv, size_t tSize)
 {
 	void*	pvNew;
 
-	pvNew = gcMemory.Grow(pv, (unsigned int)tSize);
+	pvNew = gcMemory.Grow(pv, (uint32)tSize);
 	return pvNew;
 }
 

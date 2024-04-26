@@ -239,7 +239,7 @@ char* IntToString(char* szDest, int iDestLength, int iValue, int iBase)
 
 	if (iBase != 10)
 	{
-		return IntToString(szDest, iDestLength, (unsigned int)iValue, iBase);
+		return IntToString(szDest, iDestLength, (uint32)iValue, iBase);
 	}
 
 	bNegative = iValue < 0;
@@ -284,11 +284,11 @@ char* IntToString(char* szDest, int iDestLength, int iValue, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
+char* IntToString(char* szDest, int iDestLength, uint32 iValue, int iBase)
 {
-	unsigned int	iQuotient;
-	unsigned int    iDigit;
-	unsigned int    iPos;
+	uint32	iQuotient;
+	uint32    iDigit;
+	uint32    iPos;
 
 	if (iBase < 2 || iBase > 16)
 	{
@@ -326,8 +326,8 @@ char* IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase)
 char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 {
 	uint64			ulliQuotient;
-	unsigned int    iDigit;
-	unsigned int    iPos;
+	uint32    iDigit;
+	uint32    iPos;
 
 	if (iBase < 2 || iBase > 16)
 	{
@@ -340,7 +340,7 @@ char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 
 	do
 	{
-		iDigit = (unsigned int)(ulliQuotient % iBase);
+		iDigit = (uint32)(ulliQuotient % iBase);
 		ulliQuotient /= iBase;
 
 		szDest[iPos] = gszDigits[iDigit];
@@ -864,7 +864,7 @@ char GetHexChar(char c4Bit)
 //////////////////////////////////////////////////////////////////////////
 char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 {
-	short int		iIndex;
+	int16		iIndex;
 	char			iBit;
 	int				i;
 	char			iByte;
@@ -940,7 +940,7 @@ char* FlagsToString(char* szDest, int iDestLength, int iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FlagsToString(char* szDest, int iDestLength, short int iFlags)
+char* FlagsToString(char* szDest, int iDestLength, int16 iFlags)
 {
 	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 2);
 }
@@ -973,7 +973,7 @@ char* CharToString(char* szDest, int iDestLength, char c)
 char* CharToString(char* szDest, int iDestLength, uint8 c)
 {
 	char		sz[10];
-	short int	iIndex;
+	int16	iIndex;
 	int			iLength;
 
 	if (iDestLength == 0)
@@ -1008,7 +1008,7 @@ char* CharToString(char* szDest, int iDestLength, uint8 c)
 char* CharToString(char* szDest, int iDestLength, char16 c)
 {
 	char		sz[10];
-	short int	iIndex;
+	int16	iIndex;
 	int			iLength;
 
 	if (iDestLength == 0)

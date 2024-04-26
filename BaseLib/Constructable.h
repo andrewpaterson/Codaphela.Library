@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CONSTRUCTABLE_H__
 #define __CONSTRUCTABLE_H__
+#include "PrimitiveTypes.h"
 
 
 class _CForceVirtualSuper1
@@ -39,7 +40,7 @@ class CConstructable : public _CForceVirtualSuper1, public _CForceVirtualSuper2
 {
 public:
 	virtual const char*		ClassName(void) =0;
-	virtual unsigned int	ClassSize(void) =0;
+	virtual uint32	ClassSize(void) =0;
 };
 
 
@@ -49,7 +50,7 @@ const char* ClassName(void)\
 {\
 	return #c##;\
 }\
-unsigned int ClassSize(void)\
+uint32 ClassSize(void)\
 {\
 	return sizeof(c);\
 }

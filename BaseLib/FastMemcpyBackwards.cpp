@@ -239,7 +239,7 @@ void memcpy_fast_backwards_16bytes(void* pvDest, void* pvSource)
 }
 
 
-void memcpy_fast_backwards(void* pvDest, void* pvSource, unsigned int uiByteSize)
+void memcpy_fast_backwards(void* pvDest, void* pvSource, uint32 uiByteSize)
 {
 	if (uiByteSize <= 64)
 	{
@@ -252,7 +252,7 @@ void memcpy_fast_backwards(void* pvDest, void* pvSource, unsigned int uiByteSize
 }
 
 
-void memcpy_backwards_large(void* pvDest, void* pvSource, unsigned int uiByteSize)
+void memcpy_backwards_large(void* pvDest, void* pvSource, uint32 uiByteSize)
 {
 	memmove(pvDest, pvSource, uiByteSize);
 }

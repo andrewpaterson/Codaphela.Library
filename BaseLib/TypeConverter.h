@@ -33,22 +33,22 @@ Microsoft Windows is Copyright Microsoft Corporation
 // To 'char' Conversions.
 void ConvertDoubleToChar	(char* pcDest, 			double* f);
 void ConvertFloatToChar		(char* pcDest, 			float* f);
-void ConvertLongToChar		(char* pcDest, 			long long* i);
+void ConvertLongToChar		(char* pcDest, 			int64* i);
 void ConvertIntToChar		(char* pcDest, 			int* i);
 void ConvertShortToChar		(char* pcDest, 			int16* s);
 void ConvertCharToChar		(char* pcDest, 			char* c);
-void ConvertULongToChar		(char* pcDest, 			unsigned long long* i);
-void ConvertUIntToChar		(char* pcDest, 			unsigned int* i);
+void ConvertULongToChar		(char* pcDest, 			uint64* i);
+void ConvertUIntToChar		(char* pcDest, 			uint32* i);
 void ConvertUShortToChar	(char* pcDest, 			uint16* s);
 void ConvertUCharToChar		(char* pcDest, 			uint8* c);
 void ConvertDoubleToUChar	(uint8* pcDest, double* f);
 void ConvertFloatToUChar	(uint8* pcDest, float* f);
-void ConvertLongToUChar		(uint8* pcDest, long long* i);
+void ConvertLongToUChar		(uint8* pcDest, int64* i);
 void ConvertIntToUChar		(uint8* pcDest, int* i);
 void ConvertShortToUChar	(uint8* pcDest, int16* s);
 void ConvertCharToUChar		(uint8* pcDest, char* c);
-void ConvertULongToUChar	(uint8* pcDest, unsigned long long* i);
-void ConvertUIntToUChar		(uint8* pcDest, unsigned int* i);
+void ConvertULongToUChar	(uint8* pcDest, uint64* i);
+void ConvertUIntToUChar		(uint8* pcDest, uint32* i);
 void ConvertUShortToUChar	(uint8* pcDest, uint16* s);
 void ConvertUCharToUChar	(uint8* pcDest, uint8* c);
 
@@ -61,22 +61,22 @@ void ConvertUCharToUChar	(uint8* pcDest, uint8* c);
 // To 'int16' Conversions.
 void ConvertDoubleToShort	(int16* psDest,  			double* f);
 void ConvertFloatToShort	(int16* psDest,  			float* f);
-void ConvertLongToShort		(int16* psDest,  			long long* i);
+void ConvertLongToShort		(int16* psDest,  			int64* i);
 void ConvertIntToShort		(int16* psDest,  			int* i);
 void ConvertShortToShort	(int16* psDest,  			int16* s);
 void ConvertCharToShort		(int16* psDest,  			char* c);
-void ConvertULongToShort	(int16* psDest,  			unsigned long long* i);
-void ConvertUIntToShort		(int16* psDest,  			unsigned int* i);
+void ConvertULongToShort	(int16* psDest,  			uint64* i);
+void ConvertUIntToShort		(int16* psDest,  			uint32* i);
 void ConvertUShortToShort	(int16* psDest,  			uint16* s);
 void ConvertUCharToShort	(int16* psDest,  			uint8* c);
 void ConvertDoubleToUShort	(uint16* psDest,  	double* f);
 void ConvertFloatToUShort	(uint16* psDest,  	float* f);
-void ConvertLongToUShort	(uint16* psDest,  	long long* i);
+void ConvertLongToUShort	(uint16* psDest,  	int64* i);
 void ConvertIntToUShort		(uint16* psDest,  	int* i);
 void ConvertShortToUShort	(uint16* psDest,  	int16* s);
 void ConvertCharToUShort	(uint16* psDest,  	char* c);
-void ConvertULongToUShort	(uint16* psDest,  	unsigned long long* i);
-void ConvertUIntToUShort	(uint16* psDest,  	unsigned int* i);
+void ConvertULongToUShort	(uint16* psDest,  	uint64* i);
+void ConvertUIntToUShort	(uint16* psDest,  	uint32* i);
 void ConvertUShortToUShort	(uint16* psDest,  	uint16* s);
 void ConvertUCharToUShort	(uint16* psDest,  	uint8* c);
 
@@ -89,24 +89,24 @@ void ConvertUCharToUShort	(uint16* psDest,  	uint8* c);
 // To 'int' Conversions.
 void ConvertDoubleToInt		(int* piDest,  			double* f);
 void ConvertFloatToInt		(int* piDest,  			float* f);
-void ConvertLongToInt		(int* piDest,  			long long* i);
+void ConvertLongToInt		(int* piDest,  			int64* i);
 void ConvertIntToInt		(int* piDest,  			int* i);
 void ConvertShortToInt		(int* piDest,  			int16* s);
 void ConvertCharToInt		(int* piDest,  			char* c);
-void ConvertULongToInt		(int* piDest,  			unsigned long long* i);
-void ConvertUIntToInt		(int* piDest,  			unsigned int* i);
+void ConvertULongToInt		(int* piDest,  			uint64* i);
+void ConvertUIntToInt		(int* piDest,  			uint32* i);
 void ConvertUShortToInt		(int* piDest,  			uint16* s);
 void ConvertUCharToInt		(int* piDest,  			uint8* c);
-void ConvertDoubleToUInt	(unsigned int* psDest,  double* f);
-void ConvertFloatToUInt		(unsigned int* piDest,  float* f);
-void ConvertLongToUInt		(unsigned int* piDest, 	long long* i);
-void ConvertIntToUInt		(unsigned int* piDest,  int* i);
-void ConvertShortToUInt		(unsigned int* piDest,  int16* s);
-void ConvertCharToUInt		(unsigned int* piDest,  char* c);
-void ConvertULongToUInt		(unsigned int* piDest, 	unsigned long long* i);
-void ConvertUIntToUInt		(unsigned int* piDest,  unsigned int* i);
-void ConvertUShortToUInt	(unsigned int* piDest,  uint16* s);
-void ConvertUCharToUInt		(unsigned int* piDest,  uint8* c);
+void ConvertDoubleToUInt	(uint32* psDest,  double* f);
+void ConvertFloatToUInt		(uint32* piDest,  float* f);
+void ConvertLongToUInt		(uint32* piDest, 	int64* i);
+void ConvertIntToUInt		(uint32* piDest,  int* i);
+void ConvertShortToUInt		(uint32* piDest,  int16* s);
+void ConvertCharToUInt		(uint32* piDest,  char* c);
+void ConvertULongToUInt		(uint32* piDest, 	uint64* i);
+void ConvertUIntToUInt		(uint32* piDest,  uint32* i);
+void ConvertUShortToUInt	(uint32* piDest,  uint16* s);
+void ConvertUCharToUInt		(uint32* piDest,  uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,26 +115,26 @@ void ConvertUCharToUInt		(unsigned int* piDest,  uint8* c);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'long' Conversions.
-void ConvertDoubleToLong	(long long* piDest,  			double* f);
-void ConvertFloatToLong		(long long* piDest,  			float* f);
-void ConvertLongToLong		(long long* piDest,  			long long* i);
-void ConvertIntToLong		(long long* piDest,  			int* i);
-void ConvertShortToLong		(long long* piDest,  			int16* s);
-void ConvertCharToLong		(long long* piDest,  			char* c);
-void ConvertULongToLong		(long long* piDest,  			unsigned long long* i);
-void ConvertUIntToLong		(long long* piDest,  			unsigned int* i);
-void ConvertUShortToLong	(long long* piDest,  			uint16* s);
-void ConvertUCharToLong		(long long* piDest,  			uint8* c);
-void ConvertDoubleToULong	(unsigned long long* psDest,	double* f);
-void ConvertFloatToULong	(unsigned long long* piDest,	float* f);
-void ConvertLongToULong		(unsigned long long* piDest,	long long* i);
-void ConvertIntToULong		(unsigned long long* piDest,	int* i);
-void ConvertShortToULong	(unsigned long long* piDest,	int16* s);
-void ConvertCharToULong		(unsigned long long* piDest,	char* c);
-void ConvertULongToULong	(unsigned long long* piDest, 	unsigned long long* i);
-void ConvertUIntToULong		(unsigned long long* piDest,	unsigned int* i);
-void ConvertUShortToULong	(unsigned long long* piDest,	uint16* s);
-void ConvertUCharToULong	(unsigned long long* piDest,	uint8* c);
+void ConvertDoubleToLong	(int64* piDest,  			double* f);
+void ConvertFloatToLong		(int64* piDest,  			float* f);
+void ConvertLongToLong		(int64* piDest,  			int64* i);
+void ConvertIntToLong		(int64* piDest,  			int* i);
+void ConvertShortToLong		(int64* piDest,  			int16* s);
+void ConvertCharToLong		(int64* piDest,  			char* c);
+void ConvertULongToLong		(int64* piDest,  			uint64* i);
+void ConvertUIntToLong		(int64* piDest,  			uint32* i);
+void ConvertUShortToLong	(int64* piDest,  			uint16* s);
+void ConvertUCharToLong		(int64* piDest,  			uint8* c);
+void ConvertDoubleToULong	(uint64* psDest,	double* f);
+void ConvertFloatToULong	(uint64* piDest,	float* f);
+void ConvertLongToULong		(uint64* piDest,	int64* i);
+void ConvertIntToULong		(uint64* piDest,	int* i);
+void ConvertShortToULong	(uint64* piDest,	int16* s);
+void ConvertCharToULong		(uint64* piDest,	char* c);
+void ConvertULongToULong	(uint64* piDest, 	uint64* i);
+void ConvertUIntToULong		(uint64* piDest,	uint32* i);
+void ConvertUShortToULong	(uint64* piDest,	uint16* s);
+void ConvertUCharToULong	(uint64* piDest,	uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,23 +145,23 @@ void ConvertUCharToULong	(unsigned long long* piDest,	uint8* c);
 // To 'float' Conversions.
 void ConvertDoubleToFloat	(float* pfDest, double* f);
 void ConvertFloatToFloat	(float* pfDest, float* f);
-void ConvertLongToFloat		(float* pfDest, long long* i);
+void ConvertLongToFloat		(float* pfDest, int64* i);
 void ConvertIntToFloat		(float* pfDest, int* i);
 void ConvertShortToFloat	(float* pfDest, int16* s);
 void ConvertCharToFloat		(float* pfDest, char* c);
-void ConvertULongToFloat	(float* pfDest, unsigned long long* i);
-void ConvertUIntToFloat		(float* pfDest, unsigned int* i);
+void ConvertULongToFloat	(float* pfDest, uint64* i);
+void ConvertUIntToFloat		(float* pfDest, uint32* i);
 void ConvertUShortToFloat	(float* pfDest, uint16* s);
 void ConvertUCharToFloat	(float* pfDest, uint8* c);
 
 void ConvertDoubleToDouble	(double* pfDest, double* f);
 void ConvertFloatToDouble	(double* pfDest, float* f);
-void ConvertLongToDouble	(double* pfDest, long long* i);
+void ConvertLongToDouble	(double* pfDest, int64* i);
 void ConvertIntToDouble		(double* pfDest, int* i);
 void ConvertShortToDouble	(double* pfDest, int16* s);
 void ConvertCharToDouble	(double* pfDest, char* c);
-void ConvertULongToDouble	(double* pfDest, unsigned long long* i);
-void ConvertUIntToDouble	(double* pfDest, unsigned int* i);
+void ConvertULongToDouble	(double* pfDest, uint64* i);
+void ConvertUIntToDouble	(double* pfDest, uint32* i);
 void ConvertUShortToDouble	(double* pfDest, uint16* s);
 void ConvertUCharToDouble	(double* pfDest, uint8* c);
 
@@ -174,7 +174,7 @@ void ConvertUCharToDouble	(double* pfDest, uint8* c);
 // To 'Sixbits' Conversions.
 void ConvertUCharToSixbits	(uint8* pcDest,  uint8* c);		
 void ConvertUShortToSixbits	(uint8* pcDest,  uint16* s);		
-void ConvertUIntToSixbits	(uint8* pcDest,  unsigned int* i);		
+void ConvertUIntToSixbits	(uint8* pcDest,  uint32* i);		
 void ConvertDoubleToSixbits	(uint8* pcDest,  double* f);				
 void ConvertFloatToSixbits	(uint8* pcDest,  float* f);				
 
@@ -187,7 +187,7 @@ void ConvertFloatToSixbits	(uint8* pcDest,  float* f);
 // To 'Nickle' Conversions.
 void ConvertUCharToNickle	(uint8* pcDest,  uint8* c);		
 void ConvertUShortToNickle	(uint8* pcDest,  uint16* s);		
-void ConvertUIntToNickle	(uint8* pcDest,  unsigned int* i);		
+void ConvertUIntToNickle	(uint8* pcDest,  uint32* i);		
 void ConvertDoubleToNickle	(uint8* pcDest,  double* f);				
 void ConvertFloatToNickle	(uint8* pcDest,  float* f);				
 
@@ -200,7 +200,7 @@ void ConvertFloatToNickle	(uint8* pcDest,  float* f);
 // To 'Nybble' Conversions.
 void ConvertUCharToNybble	(uint8* pcDest,  uint8* c);
 void ConvertUShortToNybble	(uint8* pcDest,  uint16* s);
-void ConvertUIntToNybble	(uint8* pcDest,  unsigned int* i);
+void ConvertUIntToNybble	(uint8* pcDest,  uint32* i);
 void ConvertDoubleToNybble	(uint8* pcDest,  double* f);
 void ConvertFloatToNybble	(uint8* pcDest,  float* f);
 
@@ -213,7 +213,7 @@ void ConvertFloatToNybble	(uint8* pcDest,  float* f);
 // To 'Crumb' Conversions.
 void ConvertUCharToCrumb	(uint8* pcDest,  uint8* c);
 void ConvertUShortToCrumb	(uint8* pcDest,  uint16* s);
-void ConvertUIntToCrumb		(uint8* pcDest,  unsigned int* i);
+void ConvertUIntToCrumb		(uint8* pcDest,  uint32* i);
 void ConvertDoubleToCrumb	(uint8* pcDest,  double* f);
 void ConvertFloatToCrumb	(uint8* pcDest,  float* f);
 
@@ -226,7 +226,7 @@ void ConvertFloatToCrumb	(uint8* pcDest,  float* f);
 // To 'Bit' Conversions.
 void ConvertUCharToBit		(uint8* pcDest,  uint8* c);
 void ConvertUShortToBit		(uint8* pcDest,  uint16* s);
-void ConvertUIntToBit		(uint8* pcDest,  unsigned int* i);
+void ConvertUIntToBit		(uint8* pcDest,  uint32* i);
 void ConvertDoubleToBit		(uint8* pcDest,  double* f);
 void ConvertFloatToBit		(uint8* pcDest,  float* f);
 
@@ -251,12 +251,12 @@ void ConvertThreeBitsToUChar(uint8* pDest,  uint8* c);
 void ConvertCrumbToUChar	(uint8* pDest,  uint8* c);
 void ConvertBitToUChar		(uint8* pDest,  uint8* c);
 
-void ConvertSixbitsToUInt	(unsigned int* pDest,  	uint8* c);
-void ConvertNickleToUInt	(unsigned int* pDest,  	uint8* c);
-void ConvertNybbleToUInt	(unsigned int* pDest,  	uint8* c);
-void ConvertThreeBitsToUInt	(unsigned int* pDest,  	uint8* c);
-void ConvertCrumbToUInt		(unsigned int* pDest,  	uint8* c);
-void ConvertBitToUInt		(unsigned int* pDest,  	uint8* c);
+void ConvertSixbitsToUInt	(uint32* pDest,  	uint8* c);
+void ConvertNickleToUInt	(uint32* pDest,  	uint8* c);
+void ConvertNybbleToUInt	(uint32* pDest,  	uint8* c);
+void ConvertThreeBitsToUInt	(uint32* pDest,  	uint8* c);
+void ConvertCrumbToUInt		(uint32* pDest,  	uint8* c);
+void ConvertBitToUInt		(uint32* pDest,  	uint8* c);
 
 void ConvertSixbitsToFloat	(float* pDest,  		uint8* c);
 void ConvertNickleToFloat	(float* pDest,  		uint8* c);

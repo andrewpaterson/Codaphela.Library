@@ -157,10 +157,10 @@ float TruncateFloat(float fInput, int iBinaryExponent)
 	//Everything below the binary exponent is truncated.
 
 	float			fReturn;
-	unsigned int	iTruncated;
+	uint32	iTruncated;
 	int				iFloatExponent;
 	int				iExponentDifference;
-	unsigned int	uiFractionMask;
+	uint32	uiFractionMask;
 	int				iMaskedBits;
 
 	//Remember that an exponent of 0x7f is 2**0 = 1.  0x80 is 2**1 = 2.  0x81 is 2**2 = 4 etc..

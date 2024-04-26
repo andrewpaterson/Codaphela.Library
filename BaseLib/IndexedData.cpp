@@ -88,7 +88,7 @@ bool CIndexedData::SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize)
+bool CIndexedData::UpdateDescriptorCache(OIndex oi, void* pvCache, uint32 uiDataSize)
 {
 	return mcIndices.SetCache(pvCache, uiDataSize, oi);
 }
@@ -195,7 +195,7 @@ bool CIndexedData::IsDirty(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize)
+bool CIndexedData::DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize)
 {
 	bool						bResult;
 

@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SIndexedFileDataDescriptor
 {
 public:
-	unsigned int	muiDataSize;
+	uint32	muiDataSize;
 	CFilePosIndex	mcFileIndex;
 };
 
@@ -43,17 +43,17 @@ private:
 	SIndexedFileDataDescriptor	msFileDescriptor;
 
 	void*						mpvCache;  //NULL if object is not cached.
-	unsigned int				muiCacheDataSize;
+	uint32				muiCacheDataSize;
 
 public:
-	void 			Init(unsigned int uiDataSize, CFilePosIndex* pcFilePosIndex);
-	void 			Init(unsigned int uiDataSize, void* pvCache);
-	void 			Init(unsigned int uiFileDataSize, CFilePosIndex* pcFilePosIndex, unsigned int uiCacheDataSize, void* pvCache);
+	void 			Init(uint32 uiDataSize, CFilePosIndex* pcFilePosIndex);
+	void 			Init(uint32 uiDataSize, void* pvCache);
+	void 			Init(uint32 uiFileDataSize, CFilePosIndex* pcFilePosIndex, uint32 uiCacheDataSize, void* pvCache);
 
-	unsigned int	GetFileDataSize(void);
-	unsigned int	GetCacheDataSize(void);
-	unsigned int	GetDataSize(void);
-	void			Cache(void* pvCache, unsigned int uiDataSize);
+	uint32	GetFileDataSize(void);
+	uint32	GetCacheDataSize(void);
+	uint32	GetDataSize(void);
+	void			Cache(void* pvCache, uint32 uiDataSize);
 	void			ClearCache(void);
 	bool			HasFile(void);
 	bool			IsCached(void);

@@ -68,7 +68,7 @@ bool CFileWriter::WriteInt(int32 i)
 //////////////////////////////////////////////////////////////////////////
 bool CFileWriter::WriteInt(uint32 ui)
 {
-	CheckWrite(&ui, sizeof(unsigned int));
+	CheckWrite(&ui, sizeof(uint32));
 	return true;
 }
 

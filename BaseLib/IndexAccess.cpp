@@ -628,7 +628,7 @@ CChars CIndexAccess::GetStringString(char* pszKey, size_t uiMaxDataSize)
 	size_t			iKeySize;
 	bool			bResult;
 	CChars			sz;
-	unsigned int	uiDataSize;
+	uint32	uiDataSize;
 
 	if (StrEmpty(pszKey))
 	{

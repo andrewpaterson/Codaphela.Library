@@ -6,7 +6,7 @@
 
 struct SIndexTreeDebugNode
 {
-	unsigned int	uiIndexInFile;
+	uint32	uiIndexInFile;
 	int				iFileNumber;
 
 	bool			bEmpty;
@@ -20,7 +20,7 @@ struct SIndexTreeDebugNode
 	uint8	uiIndexInParent;
 	uint8	sFlags;
 
-	int		InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex);
+	int		InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, uint32 uiIndex);
 	void	InitBroken(uint8 uiIndexInParent);
 	void	Print(CChars* sz);
 	void	Dump(void);

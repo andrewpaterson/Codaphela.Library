@@ -213,9 +213,9 @@ protected:
 	bool					WriteRootFileIndex(CFileDataIndex* pcRootIndex);
 
 	CIndexTreeNodeFile*		DebugNode(CChars* pszDest, CIndexTreeNodeFile* pcParent, int uiIndexInParent, bool bShowFlags, bool bShowSize);
-	void					DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent, bool bShowFlags, bool bShowSize);
+	void					DebugNode(CChars* pszDest, int iFile, uint32 uiIndex, int uIndexFromParent, bool bShowFlags, bool bShowSize);
 	void					DebugNodeChildren(CChars* pszDest, CIndexTreeNodeFile* pcCurrent, int uIndexFromParent, bool bShowFlags, bool bShowSize);
-	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex);
+	void					ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, uint32 uiIndex);
 	void					PrintChildFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 	void					PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars* psz);
 

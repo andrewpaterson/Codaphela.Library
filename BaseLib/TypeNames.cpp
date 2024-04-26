@@ -107,7 +107,7 @@ void CTypeNames::Init(void)
 	AddType(PT_int64,		LONG_BYTE_SIZE,		"Long",			"int64",	"PT_int64");
 	AddType(PT_uint8,		BYTE_BYTE_SIZE,		"UByte",		"uint8",	"PT_uint8");
 	AddType(PT_uint16,		SHORT_BYTE_SIZE,	"UShort",		"uint16",			"PT_uint16");
-	AddType(PT_uint32,		INT_BYTE_SIZE,		"UInt",			"unsigned int",		"PT_uint32");
+	AddType(PT_uint32,		INT_BYTE_SIZE,		"UInt",			"uint32",		"PT_uint32");
 	AddType(PT_uint64,		LONG_BYTE_SIZE,		"ULong",		"uint64", "PT_uint64");
 	AddType(PT_float32,		FLOAT_BYTE_SIZE,	"Float",		"float",			"PT_float32");
 	AddType(PT_float64,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_float64");

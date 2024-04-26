@@ -8,7 +8,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedHeader::Init(char* szName, int iNameLength, void* pvData, unsigned int uiDataSize)
+void CNamedIndexedHeader::Init(char* szName, int iNameLength, void* pvData, uint32 uiDataSize)
 {
 	char* szDestName;
 	void* szDestData;
@@ -35,7 +35,7 @@ void CNamedIndexedHeader::Init(char* szName, int iNameLength, void* pvData, unsi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNamedIndexedHeader::Init(void* pvData, unsigned int uiDataSize)
+void CNamedIndexedHeader::Init(void* pvData, uint32 uiDataSize)
 {
 	void* szDestData;
 
@@ -114,7 +114,7 @@ bool CNamedIndexedHeader::HasName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t NamedIndexedHeaderSize(char* szName, unsigned int uiDataSize)
+size_t NamedIndexedHeaderSize(char* szName, uint32 uiDataSize)
 {
 	return NamedIndexedHeaderSize(strlen(szName), uiDataSize);
 }
@@ -124,7 +124,7 @@ size_t NamedIndexedHeaderSize(char* szName, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t NamedIndexedHeaderSize(int iNameLength, unsigned int uiDataSize)
+size_t NamedIndexedHeaderSize(int iNameLength, uint32 uiDataSize)
 {
 	if (iNameLength > 0)
 	{
@@ -141,7 +141,7 @@ size_t NamedIndexedHeaderSize(int iNameLength, unsigned int uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t NamedIndexedHeaderSize(unsigned int uiDataSize)
+size_t NamedIndexedHeaderSize(uint32 uiDataSize)
 {
 	return sizeof(CNamedIndexedHeader) + uiDataSize;
 }

@@ -85,10 +85,10 @@ public:
 protected:
 	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
 	bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool			UpdateDescriptorCache(OIndex oi, void* pvCache, uint32 uiDataSize);
 	bool			RemoveDescriptor(OIndex oi);
 
-	bool			DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool			DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize);
 };
 
 

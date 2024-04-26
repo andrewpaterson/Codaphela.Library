@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, unsigned int uiDataSize, int iFileNum)
+bool CIndexedFile::Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, uint32 uiDataSize, int iFileNum)
 {
 	miFileIndex = iFileIndex;
 	muiDataSize = uiDataSize;
@@ -93,7 +93,7 @@ bool CIndexedFile::IsFull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
- unsigned int CIndexedFile::Write(void* pvData)
+ uint32 CIndexedFile::Write(void* pvData)
 {
 	return Write(pvData, 1);
 }
@@ -113,7 +113,7 @@ bool CIndexedFile::Write(filePos iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedFile::Write(void* pvData, filePos iCount)
+uint32 CIndexedFile::Write(void* pvData, filePos iCount)
 {
 	filePos		iFilePos;
 	filePos		iWritten;
@@ -141,7 +141,7 @@ unsigned int CIndexedFile::Write(void* pvData, filePos iCount)
 	iDataIndex = iFilePos / muiDataSize;
 	if (iDataIndex < MAX_UINT)
 	{
-		return (unsigned int)iDataIndex;
+		return (uint32)iDataIndex;
 	}
 	return INDEXED_FILE_WRITE_ERROR;
 }
@@ -286,7 +286,7 @@ void CIndexedFile::Dump(void)
 	filePos			iSizeOnDisk;
 	filePos			iPos;
 	char			pvData[80];
-	unsigned int	iReadSize;
+	uint32	iReadSize;
 	CFileBasic*		pcFile;
 
 	pcFile = mcFile.DumpGetPrimaryFile();
@@ -389,7 +389,7 @@ int CIndexedFile::GetFileNumber(void) { return miFileNumber; }
 bool CIndexedFile::IsFileIndex(int iFileIndex) { return miFileIndex == iFileIndex; }
 char* CIndexedFile::GetFilename(void) { return mcFile.GetFilename(); }
 char* CIndexedFile::GetRewriteName(void) { return mcFile.GetRewriteName(); }
-unsigned int CIndexedFile::GetDataSize(void) { return muiDataSize; }
+uint32 CIndexedFile::GetDataSize(void) { return muiDataSize; }
 filePos	CIndexedFile::NumDatas(void) { return miNumDatas; }
 filePos	CIndexedFile::GetFileSize(void) { return mcFile.Size(); };
 

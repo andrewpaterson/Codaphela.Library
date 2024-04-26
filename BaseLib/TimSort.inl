@@ -54,7 +54,7 @@ static int NAME(timsort) (void* a, size_t nel, size_t width, CMPPARAMS(c, carg))
 
 	/**
 		 * March over the array once, left to right, finding natural runs,
-		 * extending short natural runs to minRun elements, and merging runs
+		 * extending int16 natural runs to minRun elements, and merging runs
 		 * to maintain stack invariant.
 		 */
 	if ((err = timsort_init(&ts, a, nel, CMPARGS(c, carg), width)))
@@ -66,7 +66,7 @@ static int NAME(timsort) (void* a, size_t nel, size_t width, CMPPARAMS(c, carg))
 		size_t runLen =
 			CALL(countRunAndMakeAscending) (a, nel, CMPARGS(c, carg), width);
 
-		// If run is short, extend to min(minRun, nel)
+		// If run is int16, extend to min(minRun, nel)
 		if (runLen < minRun) {
 			size_t force = nel <= minRun ? nel : minRun;
 			CALL(binarySort) (a, force, runLen, CMPARGS(c, carg), width);

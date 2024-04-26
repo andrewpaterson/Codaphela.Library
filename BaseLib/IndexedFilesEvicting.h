@@ -31,8 +31,8 @@ public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
 	bool			Kill(void);
 
-	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiMaxDataSize);
-	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
+	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiMaxDataSize);
+	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiDataSize);
 
 	bool			Flush(bool bClearCache);
 	bool			IsFlushed(void);
@@ -50,13 +50,13 @@ public:
 
 	size_t			GetSystemMemorySize(void);
 
-	unsigned int	TestGetCachedObjectSize(OIndex oi);
+	uint32	TestGetCachedObjectSize(OIndex oi);
 
 protected:
-	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
-	CIndexedCacheResult	CacheAllocate(OIndex oi, unsigned int uiDataSize);
+	void*				SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiDataSize);
+	CIndexedCacheResult	CacheAllocate(OIndex oi, uint32 uiDataSize);
 
-	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize);
+	CFilePosIndex		WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiDataSize);
 	bool				WriteEvictedData1b(SIndexedCacheDescriptor* psCached, void* pvData, EClearCache eClearCache, bool bNoEviction);
 	bool				EvictWriteData(CIndexedDataDescriptor* pcDescriptor, EClearCache eClearCache);
 	bool				WriteEvictedData2(CIndexedDataDescriptor* pcDescriptor, OIndex oi, void* pvData, EClearCache eClearCache, bool bNoEviction);

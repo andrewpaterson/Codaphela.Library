@@ -38,7 +38,7 @@ void CMemoryAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CMemoryAllocator::Malloc(size_t tSize)
 {
-	return mcMemory.Add((unsigned int)tSize);
+	return mcMemory.Add((uint32)tSize);
 }
 
 
@@ -51,7 +51,7 @@ void* CMemoryAllocator::Malloc(size_t tSize, char(**pacDebugName)[4])
 	void*						pv;
 	SGeneralMemoryAllocation*	psGeneralMemoryAllocation;
 
-	pv = mcMemory.Add((unsigned int)tSize);
+	pv = mcMemory.Add((uint32)tSize);
 	psGeneralMemoryAllocation = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	if (pacDebugName)
 	{
@@ -69,7 +69,7 @@ void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
 {
 	void*	pvNew;
 
-	pvNew = mcMemory.Grow(pv, (unsigned int)tSize);
+	pvNew = mcMemory.Grow(pv, (uint32)tSize);
 	return pvNew;
 }
 

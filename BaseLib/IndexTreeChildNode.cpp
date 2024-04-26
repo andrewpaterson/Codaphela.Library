@@ -27,7 +27,7 @@ void CIndexTreeChildNode::Init(CFileDataIndex* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeChildNode::Init(int iFile, unsigned int uiIndex)
+void CIndexTreeChildNode::Init(int iFile, uint32 uiIndex)
 {
 	u.mcFile.Init(iFile, uiIndex);
 	iType = INDEX_TREE_FILE_NODE_FILE;

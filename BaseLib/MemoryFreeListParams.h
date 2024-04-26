@@ -8,15 +8,15 @@
 
 struct SMemoryFreeListParams
 {
-	unsigned int	iMaxListSize;  //This is the size of the actual element in the free list including SGeneralMemoryAllocation
+	uint32	iMaxListSize;  //This is the size of the actual element in the free list including SGeneralMemoryAllocation
 
 								   //These exist for some binary search Compare function stuffs.
-	unsigned int	iMaxElementSize;
-	unsigned int	iMinElementSize;
+	uint32	iMaxElementSize;
+	uint32	iMinElementSize;
 
 	int				iChunkSize;
 
-	SMemoryFreeListParams*	Init(unsigned int iFreeListSize, int iPrevSize, int iChunkSize, int iHeaderSize);
+	SMemoryFreeListParams*	Init(uint32 iFreeListSize, int iPrevSize, int iChunkSize, int iHeaderSize);
 };
 
 
@@ -30,22 +30,22 @@ class CMemoryFreeListParams
 private:
 	CArrayFreeListParams		mcParams;
 	int							miHeaderSize;
-	unsigned int				muiFreeListSizeLimit;
+	uint32				muiFreeListSizeLimit;
 
 public:
 	void Init(int iHeaderSize, bool bDefaultFreeListParams = true);
 	void Kill(void);
 
-	void					AddParamBlock(unsigned int iFreeListSize, int iPrevSize, int iChunkSize);
+	void					AddParamBlock(uint32 iFreeListSize, int iPrevSize, int iChunkSize);
 	void					AddParamBlock(SMemoryFreeListParams* psParam);
 
 	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
 	bool					Read(CFileReader* pcFileReader);
 	bool					Write(CFileWriter* pcFileWriter);
-	void					SetFreeListSizeLimit(unsigned int uiFreeListSizeLimit);
+	void					SetFreeListSizeLimit(uint32 uiFreeListSizeLimit);
 	SMemoryFreeListParams*	GetFreeListParamsForSize(size_t iElementSize);
-	unsigned int			GetFreeListSizeLimit(void);
-	unsigned int			GetMaxFreeListElementSize(void);
+	uint32			GetFreeListSizeLimit(void);
+	uint32			GetMaxFreeListElementSize(void);
 	int						NumParams(void);
 
 private:

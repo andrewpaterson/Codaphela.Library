@@ -225,7 +225,7 @@ TRISTATE CTypeParser::ParseDouble(double* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseUInt(unsigned int* pDest)
+TRISTATE CTypeParser::ParseUInt(uint32* pDest)
 {
 	TRISTATE				tResult;
 	int64			lliValue;
@@ -734,7 +734,7 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength,
 		case PT_uint32:
 			if (iDestLength >= INT_BYTE_SIZE)
 			{
-				return ParseUInt((unsigned int*)pvDest);
+				return ParseUInt((uint32*)pvDest);
 			}
 			break;
 		case PT_uint16:

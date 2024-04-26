@@ -27,8 +27,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplateMinimal.h"
 
 
-#define MAX_CHAR	((char)0x7f)
-#define MIN_CHAR	((char)0x80)
+#define MAX_CHAR	((int8)0x7f)
+#define MIN_CHAR	((int8)0x80)
 #define MAX_UCHAR	((uint8)0xff)
 #define MIN_UCHAR	((uint8)0x00)
 
@@ -37,15 +37,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MAX_USHORT	((uint16)0xffff)
 #define MIN_USHORT	((uint16)0x0000)
 
-#define MAX_INT		((int)0x7fffffff)
-#define MIN_INT		((int)0x80000000)
-#define MAX_UINT	((unsigned int)0xffffffff)
-#define MIN_UINT	((unsigned int)0x00000000)
+#define MAX_INT		((int32)0x7fffffff)
+#define MIN_INT		((int32)0x80000000)
+#define MAX_UINT	((uint32)0xffffffff)
+#define MIN_UINT	((uint32)0x00000000)
 
-#define MAX_LONG	((long long)0x7fffffffffffffffLL)
-#define MIN_LONG	((long long)0x8000000000000000LL)
-#define MAX_ULONG	((unsigned long long)0xffffffffffffffffLL)
-#define MIN_ULONG	((unsigned long long)0x0000000000000000LL)
+#define MAX_LONG	((int64)0x7fffffffffffffffLL)
+#define MIN_LONG	((int64)0x8000000000000000LL)
+#define MAX_ULONG	((uint64)0xffffffffffffffffLL)
+#define MIN_ULONG	((uint64)0x0000000000000000LL)
 
 
 #define INT_BYTE_SIZE		sizeof(int32)

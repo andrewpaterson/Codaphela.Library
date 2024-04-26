@@ -671,7 +671,7 @@ void CChars::Append(int64 lli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(unsigned int ui)
+void CChars::Append(uint32 ui)
 {
 	char sz[32];
 
@@ -1043,7 +1043,7 @@ void CChars::Append(char cPadCharacter, int iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(const char* sz, char cPadCharacter, unsigned int iWidth)
+void CChars::LeftAlign(const char* sz, char cPadCharacter, uint32 iWidth)
 {
 	size_t	uiLen;
 
@@ -1067,7 +1067,7 @@ void CChars::LeftAlign(const char* sz, char cPadCharacter, unsigned int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(const char* sz, char cPadCharacter, unsigned int iWidth)
+void CChars::RightAlign(const char* sz, char cPadCharacter, uint32 iWidth)
 {
 	size_t	uiLen;
 
@@ -1091,7 +1091,7 @@ void CChars::RightAlign(const char* sz, char cPadCharacter, unsigned int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(CChars sz, char cPadCharacter, unsigned int iWidth)
+void CChars::LeftAlign(CChars sz, char cPadCharacter, uint32 iWidth)
 {
 	if (sz.Length() <= (int)iWidth)
 	{
@@ -1109,7 +1109,7 @@ void CChars::LeftAlign(CChars sz, char cPadCharacter, unsigned int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(CChars sz, char cPadCharacter, unsigned int iWidth)
+void CChars::RightAlign(CChars sz, char cPadCharacter, uint32 iWidth)
 {
 	if (sz.Length() <= (int)iWidth)
 	{
@@ -1127,7 +1127,7 @@ void CChars::RightAlign(CChars sz, char cPadCharacter, unsigned int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(char cPadCharacter, unsigned int iWidth)
+void CChars::RightAlign(char cPadCharacter, uint32 iWidth)
 {
 	int		iLength;
 	char*	pcDest;
@@ -2446,7 +2446,7 @@ void CChars::AppendPointer(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, bool bAppendComma)
+bool CChars::AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma)
 {
 	if (msFlags & uiFlag)
 	{

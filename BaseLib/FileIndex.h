@@ -19,7 +19,7 @@ public:
 	bool			HasFile(void);
 	void			SetIndex(int iFile, filePos ulliFilePos);
 
-	CFileDataIndex	ToFileDataIndex(unsigned int muiDataSize);
+	CFileDataIndex	ToFileDataIndex(uint32 muiDataSize);
 };
 
 
@@ -27,21 +27,21 @@ public:
 class CFileDataIndex
 {
 public:
-	unsigned int	muiIndex;
+	uint32	muiIndex;
 	int				miFile;
 
 public:
 	void			Init(void);
-	void			Init(int iFile, unsigned int uiIndex);
+	void			Init(int iFile, uint32 uiIndex);
 	void			Kill(void);
 
 	bool			HasFile(void);
-	void			SetIndex(int iFile, unsigned int uiIndex);
+	void			SetIndex(int iFile, uint32 uiIndex);
 	void			SetIndex(CFileDataIndex* pcSource);
 
 	bool			Equals(CFileDataIndex* pcOther);
 
-	CFilePosIndex	ToFilePosIndex(unsigned int muiDataSize);
+	CFilePosIndex	ToFilePosIndex(uint32 muiDataSize);
 };
 
 

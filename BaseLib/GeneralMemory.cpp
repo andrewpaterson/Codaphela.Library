@@ -80,7 +80,7 @@ void CGeneralMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::Add(unsigned int iSize)
+void* CGeneralMemory::Add(uint32 iSize)
 {
 	return Add(iSize, miDefaultAlignment);
 }
@@ -113,7 +113,7 @@ bool CGeneralMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CGeneralMemory::GetSize(void* pv)
+uint32 CGeneralMemory::GetSize(void* pv)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 
@@ -282,7 +282,7 @@ int CGeneralMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
+void* CGeneralMemory::Add(uint32 uiSize, int iAlignment, int iOffset)
 {
 	CFreeList*	pcFreeList;
 	void*		pv;
@@ -326,7 +326,7 @@ void* CGeneralMemory::Add(unsigned int uiSize, int iAlignment, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::Grow(void* pvInitial, unsigned int uiSize)
+void* CGeneralMemory::Grow(void* pvInitial, uint32 uiSize)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CFreeList*					pcList;
@@ -378,9 +378,9 @@ void* CGeneralMemory::Grow(void* pvInitial, unsigned int uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int uiDestSize, unsigned int uiSourceSize)
+void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, uint32 uiDestSize, uint32 uiSourceSize)
 {
-	unsigned int	uiSize;
+	uint32	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
 	memcpy(pvDest, pvSource, uiSize);
@@ -391,7 +391,7 @@ void CGeneralMemory::CopyAllocation(void* pvDest, void* pvSource, unsigned int u
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize)
+void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, uint32 uiElementSize)
 {
 	SGeneralMemoryAllocation*	psMemoryAllocation;
 	SFNode*						psNode;
@@ -411,8 +411,8 @@ void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiE
 //////////////////////////////////////////////////////////////////////////
 bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryAllocation* psAlloc)
 {
-	SFNode*			psFreeListNode;
-	bool			bFreed;
+	SFNode*		psFreeListNode;
+	bool		bFreed;
 
 	if (!psAlloc)
 	{
@@ -425,8 +425,8 @@ bool CGeneralMemory::DeallocateInFreeList(CFreeList* pcFreeList, SGeneralMemoryA
 	int		iSize;
 	void*	pvMem;
 
-	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(unsigned int);
-	pvMem = RemapSinglePointer(psAlloc, sizeof(unsigned int));
+	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(uint32);
+	pvMem = RemapSinglePointer(psAlloc, sizeof(uint32));
 	memset(pvMem, 0xef, iSize);
 #endif
 
@@ -466,7 +466,7 @@ void CGeneralMemory::FreeFreeList(CFreeList* pcFreeList)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGeneralMemory::AllocateInLargeList(unsigned int uiSize, int iAlignment, int iOffset)
+void* CGeneralMemory::AllocateInLargeList(uint32 uiSize, int iAlignment, int iOffset)
 {
 	SGeneralMemoryAllocation*	psMemoryAllocation;
 
@@ -502,7 +502,7 @@ bool CGeneralMemory::DeallocateInLargeList(SGeneralMemoryAllocation* psAlloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
+CFreeList* CGeneralMemory::GetFreeList(uint32 iElementSize, int iAlignment, int iOffset)
 {
 	SAlignedFreeListDesc	sDesc;
 	bool					bResult;
@@ -529,7 +529,7 @@ CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize, int iAlignment
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize)
+CFreeList* CGeneralMemory::GetFreeList(uint32 iElementSize)
 {
 	return GetFreeList(iElementSize, miDefaultAlignment, 0);
 }
@@ -539,7 +539,7 @@ CFreeList* CGeneralMemory::GetFreeList(unsigned int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CGeneralMemory::GetOrAddFreeList(unsigned int iElementSize, int iAlignment, int iOffset)
+CFreeList* CGeneralMemory::GetOrAddFreeList(uint32 iElementSize, int iAlignment, int iOffset)
 {
 	SAlignedFreeListDesc	sDesc;
 	bool					bResult;
@@ -592,7 +592,7 @@ void CGeneralMemory::SetDebugName(void* pv, char (*pszDebug)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGeneralMemory::BreakOnAdd(unsigned int uiAllocCount)
+void CGeneralMemory::BreakOnAdd(uint32 uiAllocCount)
 {
 	mbBreakOnAlloc = true;
 	muiBreakAlloc = uiAllocCount;
@@ -605,8 +605,8 @@ void CGeneralMemory::BreakOnAdd(unsigned int uiAllocCount)
 //////////////////////////////////////////////////////////////////////////
 int CGeneralMemory::NumElements(void)
 {
-	CFreeList*		pcBlock;
-	int					iCount;
+	CFreeList*	pcBlock;
+	int			iCount;
 
 	iCount = 0;
 	pcBlock = mcFreeLists.GetHead();
@@ -627,8 +627,8 @@ int CGeneralMemory::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 int CGeneralMemory::ByteSize(void)
 {
-	int					iSize;
-	CFreeList*		pcFreeList;
+	int			iSize;
+	CFreeList*	pcFreeList;
 
 	iSize = 0;
 	pcFreeList = mcFreeLists.GetHead();
