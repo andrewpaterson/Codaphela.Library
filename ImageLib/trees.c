@@ -1001,7 +1001,7 @@ void _tr_flush_block(s, buf, stored_len, eof)
     }
     Assert (s->compressed_len == s->bits_sent, "bad compressed size");
     /* The above check is made mod 2^32, for files larger than 512 MB
-     * and uLong implemented on 32 bits.
+     * and uint32 implemented on 32 bits.
      */
     init_block(s);
 
@@ -1108,7 +1108,7 @@ local void compress_block(s, ltree, dtree)
         } /* literal or match pair ? */
 
         /* Check that the overlay between pending_buf and d_buf+l_buf is ok: */
-        Assert((uInt)(s->pending) < s->lit_bufsize + 2*lx,
+        Assert((uint32)(s->pending) < s->lit_bufsize + 2*lx,
                "pendingBuf overflow");
 
     } while (lx < s->last_lit);

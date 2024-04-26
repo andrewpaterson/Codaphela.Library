@@ -32,10 +32,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 void SImageColour::Full(void)
 {
 	//This is just a testing method.  Float 1.0f is not 'full' with a bit value of 0xffffffff.
-	*(unsigned int*)(&c[0]) = 0xffffffff;
-	*(unsigned int*)(&c[4]) = 0xffffffff;
-	*(unsigned int*)(&c[8]) = 0xffffffff;
-	*(unsigned int*)(&c[12]) = 0xffffffff;
+	*(uint32*)(&c[0]) = 0xffffffff;
+	*(uint32*)(&c[4]) = 0xffffffff;
+	*(uint32*)(&c[8]) = 0xffffffff;
+	*(uint32*)(&c[12]) = 0xffffffff;
 }
 
 

@@ -35,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SImageColour
 {
-	unsigned char	c[MAX_IMAGE_COLOUR_BYTES];
+	uint8	c[MAX_IMAGE_COLOUR_BYTES];
 
 	void Zero(void);
 	void Full(void);

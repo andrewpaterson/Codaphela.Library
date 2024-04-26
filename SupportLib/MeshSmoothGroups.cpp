@@ -116,8 +116,8 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 	int				j;
 	int				iFace;
 	CArrayInt		aiUniqueNames;
-	unsigned int	uiFaceName;
-	unsigned int	uiSmoothingGroup;
+	uint32	uiFaceName;
+	uint32	uiSmoothingGroup;
 
 	iNumPolygons = pcMeshEditor->mcPolygons.mcPolygons.NumElements();
 
@@ -220,7 +220,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	int					i, j, k, l;
 	int*				aiFaceRef;
 	SFloat3				cNormal;  
-	unsigned int		dwSmooth[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
+	uint32		dwSmooth[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
 	int					iNumNormals;
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;

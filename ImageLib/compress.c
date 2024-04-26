@@ -23,21 +23,21 @@ int ZEXPORT compress2 (dest, destLen, source, sourceLen, level)
     Bytef *dest;
     uLongf *destLen;
     const Bytef *source;
-    uLong sourceLen;
+    uint32 sourceLen;
     int level;
 {
     z_stream stream;
     int err;
 
     stream.next_in = (Bytef*)source;
-    stream.avail_in = (uInt)sourceLen;
+    stream.avail_in = (uint32)sourceLen;
 #ifdef MAXSEG_64K
     /* Check for source > 64K on 16-bit machine: */
-    if ((uLong)stream.avail_in != sourceLen) return Z_BUF_ERROR;
+    if ((uint32)stream.avail_in != sourceLen) return Z_BUF_ERROR;
 #endif
     stream.next_out = dest;
-    stream.avail_out = (uInt)*destLen;
-    if ((uLong)stream.avail_out != *destLen) return Z_BUF_ERROR;
+    stream.avail_out = (uint32)*destLen;
+    if ((uint32)stream.avail_out != *destLen) return Z_BUF_ERROR;
 
     stream.zalloc = (alloc_func)0;
     stream.zfree = (free_func)0;
@@ -63,7 +63,7 @@ int ZEXPORT compress (dest, destLen, source, sourceLen)
     Bytef *dest;
     uLongf *destLen;
     const Bytef *source;
-    uLong sourceLen;
+    uint32 sourceLen;
 {
     return compress2(dest, destLen, source, sourceLen, Z_DEFAULT_COMPRESSION);
 }
@@ -72,8 +72,8 @@ int ZEXPORT compress (dest, destLen, source, sourceLen)
      If the default memLevel or windowBits for deflateInit() is changed, then
    this function needs to be updated.
  */
-uLong ZEXPORT compressBound (sourceLen)
-    uLong sourceLen;
+uint32 ZEXPORT compressBound (sourceLen)
+    uint32 sourceLen;
 {
     return sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11;
 }

@@ -34,7 +34,7 @@ protected:
 	int				miOffset;
 	int				miImageStride;
 	int				miPixelStride;
-	unsigned char*	mpucImageData;
+	uint8*	mpucImageData;
 
 public:
 	void	Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor);

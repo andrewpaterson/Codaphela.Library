@@ -23,13 +23,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_FACE_RETURN_H__
 #define __MESH_FACE_RETURN_H__
+#include "BaseLib/PrimitiveTypes.h"
 
 
 class CMFRet
 {
 public:
 	int				miFirstFace;
-	unsigned char	manCorners[4];
+	uint8	manCorners[4];
 
 	void	PackEmpty(void);
 	void	Pack(int iFirstFace, int iCorner1, int iCorner2, int iCorner3, int iNewEdges);

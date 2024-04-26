@@ -68,7 +68,7 @@ void* CImageAccessorByte::Get(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 void CImageAccessorByte::Set(int x, int y, void* pvSource)
 {
-	mpucImageData[x * miPixelStride + miOffset + y * miImageStride] = *(unsigned char*)pvSource;
+	mpucImageData[x * miPixelStride + miOffset + y * miImageStride] = *(uint8*)pvSource;
 }
 
 
@@ -78,6 +78,6 @@ void CImageAccessorByte::Set(int x, int y, void* pvSource)
 //////////////////////////////////////////////////////////////////////////
 void CImageAccessorByte::SyncDataCache(void)
 {
-	mpucImageData = (unsigned char*)mpcImage->mcChannels.GetData();
+	mpucImageData = (uint8*)mpcImage->mcChannels.GetData();
 }
 

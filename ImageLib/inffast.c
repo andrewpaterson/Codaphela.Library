@@ -70,19 +70,19 @@ z_streamp strm;
 unsigned start;         /* inflate()'s starting value for strm->avail_out */
 {
     struct inflate_state FAR *state;
-    unsigned char FAR *in;      /* local strm->next_in */
-    unsigned char FAR *last;    /* while in < last, enough input available */
-    unsigned char FAR *out;     /* local strm->next_out */
-    unsigned char FAR *beg;     /* inflate()'s initial strm->next_out */
-    unsigned char FAR *end;     /* while out < end, enough space available */
+    uint8 FAR *in;      /* local strm->next_in */
+    uint8 FAR *last;    /* while in < last, enough input available */
+    uint8 FAR *out;     /* local strm->next_out */
+    uint8 FAR *beg;     /* inflate()'s initial strm->next_out */
+    uint8 FAR *end;     /* while out < end, enough space available */
 #ifdef INFLATE_STRICT
     unsigned dmax;              /* maximum distance from zlib header */
 #endif
     unsigned wsize;             /* window size or zero if not using window */
     unsigned whave;             /* valid bytes in the window */
     unsigned write;             /* window write index */
-    unsigned char FAR *window;  /* allocated sliding window, if wsize != 0 */
-    unsigned long hold;         /* local strm->hold */
+    uint8 FAR *window;  /* allocated sliding window, if wsize != 0 */
+    uint32 hold;         /* local strm->hold */
     unsigned bits;              /* local strm->bits */
     code const FAR *lcode;      /* local strm->lencode */
     code const FAR *dcode;      /* local strm->distcode */
@@ -93,7 +93,7 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                                 /*  window position, window bytes to copy */
     unsigned len;               /* match length, unused bytes */
     unsigned dist;              /* match distance */
-    unsigned char FAR *from;    /* where to copy match from */
+    uint8 FAR *from;    /* where to copy match from */
 
     /* copy state to local variables */
     state = (struct inflate_state FAR *)strm->state;
@@ -120,9 +120,9 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
        input data or output space */
     do {
         if (bits < 15) {
-            hold += (unsigned long)(PUP(in)) << bits;
+            hold += (uint32)(PUP(in)) << bits;
             bits += 8;
-            hold += (unsigned long)(PUP(in)) << bits;
+            hold += (uint32)(PUP(in)) << bits;
             bits += 8;
         }
         this = lcode[hold & lmask];
@@ -135,14 +135,14 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             Tracevv((stderr, this.val >= 0x20 && this.val < 0x7f ?
                     "inflate:         literal '%c'\n" :
                     "inflate:         literal 0x%02x\n", this.val));
-            PUP(out) = (unsigned char)(this.val);
+            PUP(out) = (uint8)(this.val);
         }
         else if (op & 16) {                     /* length base */
             len = (unsigned)(this.val);
             op &= 15;                           /* number of extra bits */
             if (op) {
                 if (bits < op) {
-                    hold += (unsigned long)(PUP(in)) << bits;
+                    hold += (uint32)(PUP(in)) << bits;
                     bits += 8;
                 }
                 len += (unsigned)hold & ((1U << op) - 1);
@@ -151,9 +151,9 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
             }
             Tracevv((stderr, "inflate:         length %u\n", len));
             if (bits < 15) {
-                hold += (unsigned long)(PUP(in)) << bits;
+                hold += (uint32)(PUP(in)) << bits;
                 bits += 8;
-                hold += (unsigned long)(PUP(in)) << bits;
+                hold += (uint32)(PUP(in)) << bits;
                 bits += 8;
             }
             this = dcode[hold & dmask];
@@ -166,10 +166,10 @@ unsigned start;         /* inflate()'s starting value for strm->avail_out */
                 dist = (unsigned)(this.val);
                 op &= 15;                       /* number of extra bits */
                 if (bits < op) {
-                    hold += (unsigned long)(PUP(in)) << bits;
+                    hold += (uint32)(PUP(in)) << bits;
                     bits += 8;
                     if (bits < op) {
-                        hold += (unsigned long)(PUP(in)) << bits;
+                        hold += (uint32)(PUP(in)) << bits;
                         bits += 8;
                     }
                 }

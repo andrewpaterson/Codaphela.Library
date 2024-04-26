@@ -534,7 +534,7 @@ png_debug_malloc(png_structp png_ptr, png_uint_32 size)
       /* Make sure the caller isn't assuming zeroed memory. */
       png_memset(pinfo->pointer, 0xdd, pinfo->size);
       if(verbose)
-         printf("png_malloc %lu bytes at %x\n",(unsigned long)size,
+         printf("png_malloc %lu bytes at %x\n",(uint32)size,
           pinfo->pointer);
       return (png_voidp)(pinfo->pointer);
    }
@@ -575,7 +575,7 @@ png_debug_free(png_structp png_ptr, png_voidp ptr)
          }
          if (pinfo->next == NULL)
          {
-            fprintf(STDERR, "Pointer %x not found\n", (unsigned int)ptr);
+            fprintf(STDERR, "Pointer %x not found\n", (uint32)ptr);
             break;
          }
          ppinfo = &pinfo->next;
@@ -1064,7 +1064,7 @@ test_one_file(PNG_CONST char *inname, PNG_CONST char *outname)
    png_debug(0, "\nAllocating row buffer...");
    row_buf = (png_bytep)png_malloc(read_ptr,
       png_get_rowbytes(read_ptr, read_info_ptr));
-   png_debug1(0, "0x%08lx\n\n", (unsigned long)row_buf);
+   png_debug1(0, "0x%08lx\n\n", (uint32)row_buf);
 #endif /* SINGLE_ROWBUF_ALLOC */
    png_debug(0, "Writing row data\n");
 
@@ -1092,7 +1092,7 @@ test_one_file(PNG_CONST char *inname, PNG_CONST char *outname)
          png_debug2(0, "\nAllocating row buffer (pass %d, y = %ld)...", pass,y);
          row_buf = (png_bytep)png_malloc(read_ptr,
             png_get_rowbytes(read_ptr, read_info_ptr));
-         png_debug2(0, "0x%08lx (%ld bytes)\n", (unsigned long)row_buf,
+         png_debug2(0, "0x%08lx (%ld bytes)\n", (uint32)row_buf,
             png_get_rowbytes(read_ptr, read_info_ptr));
 #endif /* !SINGLE_ROWBUF_ALLOC */
          png_read_rows(read_ptr, (png_bytepp)&row_buf, png_bytepp_NULL, 1);
@@ -1189,7 +1189,7 @@ test_one_file(PNG_CONST char *inname, PNG_CONST char *outname)
       iwidth = png_get_image_width(write_ptr, write_info_ptr);
       iheight = png_get_image_height(write_ptr, write_info_ptr);
       fprintf(STDERR, "Image width = %lu, height = %lu\n",
-         (unsigned long)iwidth, (unsigned long)iheight);
+         (uint32)iwidth, (uint32)iheight);
    }
 #endif
 

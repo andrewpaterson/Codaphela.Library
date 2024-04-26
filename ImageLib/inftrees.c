@@ -115,8 +115,8 @@ unsigned short FAR *work;
         if (count[max] != 0) break;
     if (root > max) root = max;
     if (max == 0) {                     /* no symbols to code at all */
-        this.op = (unsigned char)64;    /* invalid code marker */
-        this.bits = (unsigned char)1;
+        this.op = (uint8)64;    /* invalid code marker */
+        this.bits = (uint8)1;
         this.val = (unsigned short)0;
         *(*table)++ = this;             /* make a table to force an error */
         *(*table)++ = this;
@@ -215,17 +215,17 @@ unsigned short FAR *work;
     /* process all codes and make table entries */
     for (;;) {
         /* create table entry */
-        this.bits = (unsigned char)(len - drop);
+        this.bits = (uint8)(len - drop);
         if ((int)(work[sym]) < end) {
-            this.op = (unsigned char)0;
+            this.op = (uint8)0;
             this.val = work[sym];
         }
         else if ((int)(work[sym]) > end) {
-            this.op = (unsigned char)(extra[work[sym]]);
+            this.op = (uint8)(extra[work[sym]]);
             this.val = base[work[sym]];
         }
         else {
-            this.op = (unsigned char)(32 + 64);         /* end of block */
+            this.op = (uint8)(32 + 64);         /* end of block */
             this.val = 0;
         }
 
@@ -282,8 +282,8 @@ unsigned short FAR *work;
 
             /* point entry in root table to sub-table */
             low = huff & mask;
-            (*table)[low].op = (unsigned char)curr;
-            (*table)[low].bits = (unsigned char)root;
+            (*table)[low].op = (uint8)curr;
+            (*table)[low].bits = (uint8)root;
             (*table)[low].val = (unsigned short)(next - *table);
         }
     }
@@ -295,8 +295,8 @@ unsigned short FAR *work;
        through high index bits.  When the current sub-table is filled, the loop
        drops back to the root table to fill in any remaining entries there.
      */
-    this.op = (unsigned char)64;                /* invalid code marker */
-    this.bits = (unsigned char)(len - drop);
+    this.op = (uint8)64;                /* invalid code marker */
+    this.bits = (uint8)(len - drop);
     this.val = (unsigned short)0;
     while (huff != 0) {
         /* when done with sub-table, drop back to root table */
@@ -304,7 +304,7 @@ unsigned short FAR *work;
             drop = 0;
             len = root;
             next = *table;
-            this.bits = (unsigned char)len;
+            this.bits = (uint8)len;
         }
 
         /* put invalid code marker in table */
