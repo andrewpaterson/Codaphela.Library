@@ -146,7 +146,7 @@ void* CDiskFile::GetFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-HANDLE CreateWindowsFile(char* szName, uint32 uiRights, unsigned uiShare, uint32 uiCreation)
+HANDLE CreateWindowsFile(char* szName, uint32 uiRights, uint32 uiShare, uint32 uiCreation)
 {
 	HANDLE	hFile;
 

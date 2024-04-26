@@ -51,13 +51,13 @@ public:
 	Ptr<CString>	Append(char c, int iNumber) { msz.Append(c, iNumber); D(); return this; }
 	Ptr<CString>	Append(int i) { msz.Append(i); D(); return this; }
 	Ptr<CString>	Append(int i, int iBase) { msz.Append(i, iBase); D(); return this; }
-	Ptr<CString>	Append(unsigned int ui) { msz.Append(ui); D(); return this; }
+	Ptr<CString>	Append(uint32 ui) { msz.Append(ui); D(); return this; }
 	Ptr<CString>	Append(float f) { msz.Append(f); D(); return this; }
 	Ptr<CString>	Append(float f, int iNumDecimals) { msz.Append(f, iNumDecimals); D(); return this; }
 	Ptr<CString>	Append(double d) { msz.Append(d); D(); return this; }
 	Ptr<CString>	Append(double d, int iNumDecimals) { msz.Append(d, iNumDecimals); D(); return this; }
-	Ptr<CString>	Append(long long int lli) { msz.Append(lli); D(); return this; }
-	Ptr<CString>	Append(unsigned long long int ulli) { msz.Append(ulli); D(); return this; }
+	Ptr<CString>	Append(int64 lli) { msz.Append(lli); D(); return this; }
+	Ptr<CString>	Append(uint64 ulli) { msz.Append(ulli); D(); return this; }
 	Ptr<CString>	AppendQuoted(char c) { msz.AppendQuoted(c); D(); return this; }
 	Ptr<CString>	AppendQuoted(const char* sz) { msz.AppendQuoted(sz); D(); return this; }
 	Ptr<CString>	AppendQuoted(Ptr<CString> pString);
@@ -78,8 +78,8 @@ public:
 	Ptr<CString>	AppendData(const char* szData, size_t iDataLength, size_t iMaxLength) { msz.AppendData(szData, iDataLength, iMaxLength); D(); return this; }
 	Ptr<CString>	AppendData2(const char* szData, size_t iDataLength) { msz.AppendData2(szData, iDataLength); D(); return this; }
 	Ptr<CString>	AppendPointer(void* pv) { msz.AppendPointer(pv); D(); return this; }
-	bool			AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, bool bAppendComma = false) { D(); return msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma); }
-	bool			AppendFlag(unsigned int msFlags, unsigned int uiFlag, Ptr<CString> pFlagName, bool bAppendComma = false);
+	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma = false) { D(); return msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma); }
+	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, Ptr<CString> pFlagName, bool bAppendComma = false);
 	Ptr<CString>	LeftAlign(CChars sz, char cPadCharacter, int iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	LeftAlign(const char* sz, char cPadCharacter, int iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	LeftAlign(Ptr<CString> pString, char cPadCharacter, int iWidth);

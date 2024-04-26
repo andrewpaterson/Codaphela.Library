@@ -102,7 +102,7 @@ bool CUnknown::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 int CUnknown::Compare(CUnknown* pcRight)
 {
-	unsigned int		iSmallest;
+	uint32		iSmallest;
 
 	if (pcRight)
 	{
