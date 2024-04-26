@@ -34,5 +34,5 @@ int ComparePtr(const void* arg1, const void* arg2);
 int ComparePtrPtr(const void* arg1, const void* arg2);
 
 
-#endif // !__POINTER_FUNCTIONS_H__
+#endif // __POINTER_FUNCTIONS_H__
 

@@ -81,5 +81,5 @@ void MD5Transform(uint32*, uint32*);
 void MD5Dump(SMD5Context* ctx);
 
 
-#endif // !__MD5_H__
+#endif // __MD5_H__
 

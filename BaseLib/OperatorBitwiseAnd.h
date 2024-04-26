@@ -39,4 +39,4 @@ public:
 };
 
 
-#endif // !__OPERATOR_BITWISE_AND_H__
+#endif // __OPERATOR_BITWISE_AND_H__

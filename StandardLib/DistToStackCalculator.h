@@ -21,5 +21,5 @@ public:
 };
 
 
-#endif // !__DIST_TO_STACK_CALCULATOR_H__
+#endif // __DIST_TO_STACK_CALCULATOR_H__
 

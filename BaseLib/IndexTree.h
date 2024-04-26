@@ -84,5 +84,5 @@ protected:
 };
 
 
-#endif // !__INDEX_TREE_H__
+#endif // __INDEX_TREE_H__
 

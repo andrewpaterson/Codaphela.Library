@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // !__CHUNK_FILE_SYSTEM_OBJECT_READER_H__
+#endif // __CHUNK_FILE_SYSTEM_OBJECT_READER_H__
 

@@ -127,5 +127,5 @@ protected:
 typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
 
 
-#endif // !__FREE_LIST_BASE_H__
+#endif // __FREE_LIST_BASE_H__
 

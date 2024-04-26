@@ -24,5 +24,5 @@ protected:
 };
 
 
-#endif // !__MEMORY_QUEUE_H__
+#endif // __MEMORY_QUEUE_H__
 

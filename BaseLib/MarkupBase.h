@@ -69,5 +69,5 @@ public:
 };
 
 
-#endif // !__MARKUP_BASE_H__
+#endif // __MARKUP_BASE_H__
 

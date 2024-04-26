@@ -25,5 +25,5 @@ public:
 };
 
 
-#endif // !__ARRAY_BLOCK_MINIMAL_H__
+#endif // __ARRAY_BLOCK_MINIMAL_H__
 

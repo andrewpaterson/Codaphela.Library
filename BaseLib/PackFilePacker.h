@@ -17,5 +17,5 @@ public:
 bool PackDirectory(char* szDestPakFile, char* szSourceDirectory, char* szPackDirectory);
 
 
-#endif // !__PACK_FILE_PACKER_H__
+#endif // __PACK_FILE_PACKER_H__
 

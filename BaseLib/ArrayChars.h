@@ -83,5 +83,5 @@ public:
 };
 
 
-#endif // !__ARRAY_CHARS_H__
+#endif // __ARRAY_CHARS_H__
 

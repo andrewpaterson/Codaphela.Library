@@ -25,5 +25,5 @@ protected:
 };
 
 
-#endif // !__MEMORY_BLOCK_H__
+#endif // __MEMORY_BLOCK_H__
 

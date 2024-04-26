@@ -7,5 +7,5 @@ class CFileDrive;
 EFatCode FatFormat(EFatFileSystemType fs_type, char* const volume_label, uint32 uiNoOfSectorsPerCluster, CFileDrive* device);
 
 
-#endif // !__FAT_FORMAT_H__
+#endif // __FAT_FORMAT_H__
 

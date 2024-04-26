@@ -69,5 +69,5 @@ protected:
 };
 
 
-#endif // !__FAT_FILE_H__
+#endif // __FAT_FILE_H__
 

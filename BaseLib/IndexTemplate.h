@@ -123,5 +123,5 @@ bool CIndexTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D
 }
 
 
-#endif // !__INDEX_TEMPLATE_H__
+#endif // __INDEX_TEMPLATE_H__
 

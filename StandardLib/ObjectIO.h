@@ -13,5 +13,5 @@ public:
 };
 
 
-#endif // !__OBJECT_IO_H__
+#endif // __OBJECT_IO_H__
 

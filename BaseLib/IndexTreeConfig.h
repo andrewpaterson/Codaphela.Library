@@ -38,5 +38,5 @@ protected:
 };
 
 
-#endif // !__INDEX_TREE_CONFIG_H__
+#endif // __INDEX_TREE_CONFIG_H__
 

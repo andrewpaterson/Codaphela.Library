@@ -247,5 +247,5 @@ void CFilenames<M>::FixParents(void)
 }
 
 
-#endif // !__FILE_NAMES_H__
+#endif // __FILE_NAMES_H__
 

@@ -31,5 +31,5 @@ char* GetEscapeString(uint8 cCurrent, char* szDest);
 char* GetEscapeString(char16 cCurrent, char* szDest);
 
 
-#endif // !__ESCAPE_CODES_H__
+#endif // __ESCAPE_CODES_H__
 

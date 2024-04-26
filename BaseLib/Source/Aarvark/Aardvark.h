@@ -54,5 +54,5 @@ void DoStuff();
 #define F1(X) X##__##X
 
 
-#endif // !__AARDVARK_H__
+#endif // __AARDVARK_H__
 

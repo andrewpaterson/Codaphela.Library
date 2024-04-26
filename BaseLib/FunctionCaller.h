@@ -81,5 +81,5 @@ SFunctionPointer GetNULLCallFunction(void);
 #define GetNULLCall GetNULLCallFunction()
 
 
-#endif // !__NEW_FUNCTION_CALLER_H__
+#endif // __NEW_FUNCTION_CALLER_H__
 

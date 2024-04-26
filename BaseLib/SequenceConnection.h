@@ -12,5 +12,5 @@ public:
 };
 
 
-#endif // !__SEQUENCE_CONNECTION_H__
+#endif // __SEQUENCE_CONNECTION_H__
 

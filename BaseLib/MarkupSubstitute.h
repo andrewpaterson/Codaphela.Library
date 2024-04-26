@@ -76,5 +76,5 @@ public:
 };
 
 
-#endif // !__MARKUP_SUBSTITUTE_H__
+#endif // __MARKUP_SUBSTITUTE_H__
 

@@ -85,5 +85,5 @@ protected:
 };
 
 
-#endif // !__ARRAY_BLOCK_SORTED_H__
+#endif // __ARRAY_BLOCK_SORTED_H__
 

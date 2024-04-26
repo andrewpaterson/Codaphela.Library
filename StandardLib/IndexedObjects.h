@@ -49,5 +49,5 @@ public:
 };
 
 
-#endif // !__INDEX_OBJECTS_H__
+#endif // __INDEX_OBJECTS_H__
 

@@ -72,5 +72,5 @@ CONSTRUCTABLE(SIOData);
 };
 
 
-#endif // !__DATA_TYPES_IO_H__
+#endif // __DATA_TYPES_IO_H__
 

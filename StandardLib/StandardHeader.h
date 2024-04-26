@@ -31,5 +31,5 @@ protected:
 };
 
 
-#endif // !__STANDARD_HEADER_H__
+#endif // __STANDARD_HEADER_H__
 

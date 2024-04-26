@@ -25,5 +25,5 @@ public:
 extern CNullAllocator	gcNullAllocator;
 
 
-#endif // !__NULL_ALLOCATOR_H__
+#endif // __NULL_ALLOCATOR_H__
 

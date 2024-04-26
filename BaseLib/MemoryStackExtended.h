@@ -57,5 +57,5 @@ public:
 };
 
 
-#endif // !__MEMORY_STACK_EXTENDEDED_H__
+#endif // __MEMORY_STACK_EXTENDEDED_H__
 

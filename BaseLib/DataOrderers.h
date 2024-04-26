@@ -30,5 +30,5 @@ extern CDataOrderers	gcDataOrderers;
 extern bool				gbDataOrderers;
 
 
-#endif // !__ACCESS_DATA_ORDERERS_H__
+#endif // __ACCESS_DATA_ORDERERS_H__
 

@@ -33,5 +33,5 @@ public:
 };
 
 
-#endif // !__CHANNELS_ACCESSOR_WORST_CASE_H__
+#endif // __CHANNELS_ACCESSOR_WORST_CASE_H__
 

@@ -56,5 +56,5 @@ CAction* CActions::AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*
 }
 
 
-#endif // !__ACTIONABLE_H__
+#endif // __ACTIONABLE_H__
 

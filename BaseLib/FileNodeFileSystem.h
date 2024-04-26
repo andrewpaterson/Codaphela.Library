@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // !__FILE_NODE_SYSTEM_FILE_H__
+#endif // __FILE_NODE_SYSTEM_FILE_H__
 

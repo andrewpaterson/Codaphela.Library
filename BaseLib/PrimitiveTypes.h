@@ -40,5 +40,5 @@ typedef double					float64;
 typedef long double				float96;
 
 
-#endif // !__PRIMITIVE_TYPES_H__
+#endif // __PRIMITIVE_TYPES_H__
 

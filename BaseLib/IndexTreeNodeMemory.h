@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // !__INDEX_TREE_NODE_MEMORY_H__
+#endif // __INDEX_TREE_NODE_MEMORY_H__
 

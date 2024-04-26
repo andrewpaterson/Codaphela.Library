@@ -54,5 +54,5 @@ public:
 };
 
 
-#endif // !__MEMORY_STACK_H__
+#endif // __MEMORY_STACK_H__
 

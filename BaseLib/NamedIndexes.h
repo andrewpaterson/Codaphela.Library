@@ -82,5 +82,5 @@ public:
 };
 
 
-#endif // !__NAMED_INDEXES_H__
+#endif // __NAMED_INDEXES_H__
 

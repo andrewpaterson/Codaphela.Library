@@ -111,5 +111,5 @@ void 		Double3RotateAboutNormalisedAxis(SDouble3* psVecDest, SDouble3 p, double 
 void 		Double3Normalize(SDouble3* pOut, const SDouble3* pV);
 
 
-#endif // !__DOUBLE_3_H__
+#endif // __DOUBLE_3_H__
 

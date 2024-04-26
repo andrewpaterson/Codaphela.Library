@@ -17,5 +17,5 @@ public:
 typedef CArrayTemplate<CIndexNewOld>	CArrayIndexNewOld;
 
 
-#endif // !__INDEX_NEW_OLD_H__
+#endif // __INDEX_NEW_OLD_H__
 

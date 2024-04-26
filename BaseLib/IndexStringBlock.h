@@ -26,5 +26,5 @@ public:
 };
 
 
-#endif // !__INDEX_STRING_BLOCK_H__
+#endif // __INDEX_STRING_BLOCK_H__
 

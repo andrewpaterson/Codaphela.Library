@@ -101,4 +101,4 @@ void OperatorsInit(void);
 void OperatorsKill(void);
 
 
-#endif // !__OPERATORS_H__
+#endif // __OPERATORS_H__

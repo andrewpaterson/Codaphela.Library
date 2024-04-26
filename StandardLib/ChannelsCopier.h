@@ -39,5 +39,5 @@ public:
 };
 
 
-#endif // !__CHANNELS_COPIER_H__
+#endif // __CHANNELS_COPIER_H__
 

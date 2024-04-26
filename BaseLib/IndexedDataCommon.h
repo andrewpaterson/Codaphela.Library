@@ -66,5 +66,5 @@ protected:
 };
 
 
-#endif // !__INDEXED_DATA_COMMON_H__
+#endif // __INDEXED_DATA_COMMON_H__
 

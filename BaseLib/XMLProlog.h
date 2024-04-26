@@ -20,5 +20,5 @@ public:
 };
 
 
-#endif // !__XML_PROLOG_H__
+#endif // __XML_PROLOG_H__
 

@@ -35,5 +35,5 @@ public:
 extern CStackPointers	gcStackPointers;
 
 
-#endif // !__STACK_POINTERS_H__
+#endif // __STACK_POINTERS_H__
 

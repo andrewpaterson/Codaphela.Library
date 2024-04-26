@@ -12,5 +12,5 @@ void DataIOKill(void);
 bool DataIOValidate(void);
 
 
-#endif // !__GLOBAL_DATA_TYPES_IO_H__
+#endif // __GLOBAL_DATA_TYPES_IO_H__
 

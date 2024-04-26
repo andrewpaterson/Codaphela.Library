@@ -58,5 +58,5 @@ public:
 int CompareFileToMemory(const char* szFilename, void* pvMem, int iLength);
 
 
-#endif // !__NAIVE_FILE_H__
+#endif // __NAIVE_FILE_H__
 

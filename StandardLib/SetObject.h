@@ -68,5 +68,5 @@ Ptr<M> CSetObject::Iterate(SSetIterator* psIter)
 }
 
 
-#endif // !__SET_OBJECT_H__
+#endif // __SET_OBJECT_H__
 

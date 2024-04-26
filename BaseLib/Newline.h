@@ -31,5 +31,5 @@ int CountCarriageReturns(char* szString, int iLen);
 int CountLineFeeds(char* szString, int iLen);
 
 
-#endif // !__NEW_LINE_H__
+#endif // __NEW_LINE_H__
 

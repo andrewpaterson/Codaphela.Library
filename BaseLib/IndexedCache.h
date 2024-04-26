@@ -69,5 +69,5 @@ public:
 };
 
 
-#endif // !__INDEXED_CACHE_H__
+#endif // __INDEXED_CACHE_H__
 

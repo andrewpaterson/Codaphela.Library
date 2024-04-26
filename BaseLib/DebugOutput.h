@@ -39,5 +39,5 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif // LINUX_GNU_32
 
 
-#endif // !__DEBUG_OUTPUT_H__
+#endif // __DEBUG_OUTPUT_H__
 

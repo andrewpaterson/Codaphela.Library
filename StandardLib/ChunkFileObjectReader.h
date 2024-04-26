@@ -39,5 +39,5 @@ public:
 };
 
 
-#endif // !__CHUNK_FILE_OBJECT_READER_H__
+#endif // __CHUNK_FILE_OBJECT_READER_H__
 

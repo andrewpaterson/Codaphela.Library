@@ -10,5 +10,5 @@ enum EIndexWriteThrough
 };
 
 
-#endif // !__INDEX_WRITE_THROUGH__H__
+#endif // __INDEX_WRITE_THROUGH__H__
 

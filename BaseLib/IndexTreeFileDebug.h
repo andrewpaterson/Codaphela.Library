@@ -30,5 +30,5 @@ struct SIndexTreeDebugNode
 typedef CArrayTemplate<SIndexTreeDebugNode> CArrayIndexTreeDebugNode;
 
 
-#endif // !__INDEX_TREE_FILE_DEBUG_H__
+#endif // __INDEX_TREE_FILE_DEBUG_H__
 

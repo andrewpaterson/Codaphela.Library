@@ -123,5 +123,5 @@ void CListenerCall::CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnk
 }
 
 
-#endif // !__LISTENER_CALL_H__
+#endif // __LISTENER_CALL_H__
 

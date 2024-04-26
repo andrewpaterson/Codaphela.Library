@@ -199,6 +199,6 @@ Ptr<M> Ptr<M>::operator + (char* sz)
 }
 
 
-#endif // !__POINTER_H__
+#endif // __POINTER_H__
 
 

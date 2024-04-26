@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // !__COUNTING_ALLOCATOR_H__
+#endif // __COUNTING_ALLOCATOR_H__
 

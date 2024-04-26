@@ -41,5 +41,5 @@ protected:
 };
 
 
-#endif // !__INDEXED_FILES_EVICTED_DESCRIPTOR_LIST_H__
+#endif // __INDEXED_FILES_EVICTED_DESCRIPTOR_LIST_H__
 

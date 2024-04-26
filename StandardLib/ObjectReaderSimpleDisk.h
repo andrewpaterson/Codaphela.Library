@@ -18,5 +18,5 @@ public:
 };
 
 
-#endif // !__OBJECT_READER_SIMPLE_DISK_H__
+#endif // __OBJECT_READER_SIMPLE_DISK_H__
 

@@ -152,5 +152,5 @@ bool CPostMalloc<Class>::RequiresVirtualFunctionTable(void)
 }
 
 
-#endif // !__CONSTRUCTOR_CALL_H__
+#endif // __CONSTRUCTOR_CALL_H__
 

@@ -15,5 +15,5 @@ public:
 };
 
 
-#endif // !__INDEX_TREE_MEMORY_CONFIG_H__
+#endif // __INDEX_TREE_MEMORY_CONFIG_H__
 

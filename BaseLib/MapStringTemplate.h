@@ -106,5 +106,5 @@ bool CMapStringTemplate<D>::Put(const char* szKey, D* psData)
 }
 
 
-#endif // !__MAP_STRING_TEMPLATE_H__
+#endif // __MAP_STRING_TEMPLATE_H__
 

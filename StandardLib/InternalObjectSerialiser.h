@@ -40,5 +40,5 @@ protected:
 };
 
 
-#endif // !__INTERNAL_OBJECT_SERIALISER_H__
+#endif // __INTERNAL_OBJECT_SERIALISER_H__
 

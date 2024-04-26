@@ -56,5 +56,5 @@ protected:
 };
 
 
-#endif // !__MEMORY_CACHE_H__
+#endif // __MEMORY_CACHE_H__
 

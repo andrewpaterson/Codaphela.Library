@@ -88,5 +88,5 @@ protected:
 };
 
 
-#endif // !__CHUNK_FILE_H__
+#endif // __CHUNK_FILE_H__
 

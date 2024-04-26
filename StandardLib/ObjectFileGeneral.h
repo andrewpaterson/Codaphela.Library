@@ -18,5 +18,5 @@
 #define OBJECT_UNNAMED_FILE		"Unnamed"
 
 
-#endif // !__OBJECT_FILE_GENERAL__
+#endif // __OBJECT_FILE_GENERAL__
 

@@ -132,5 +132,5 @@ protected:
 };
 
 
-#endif // !__INDEX_TREE_MEMORY_H__
+#endif // __INDEX_TREE_MEMORY_H__
 

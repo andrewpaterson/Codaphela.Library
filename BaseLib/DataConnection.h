@@ -53,5 +53,5 @@ public:
 };
 
 
-#endif // !__DATA_CONNECTION_H__
+#endif // __DATA_CONNECTION_H__
 

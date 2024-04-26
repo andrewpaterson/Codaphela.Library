@@ -12,5 +12,5 @@ struct SENode
 };
 
 
-#endif // !__ENUMERATOR_NODE_H__
+#endif // __ENUMERATOR_NODE_H__
 

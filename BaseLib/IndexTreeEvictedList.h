@@ -23,5 +23,5 @@ public:
 };
 
 
-#endif // !__INDEX_TREE_EVICTED_LIST_H__
+#endif // __INDEX_TREE_EVICTED_LIST_H__
 

@@ -9,5 +9,5 @@ uint16 GetSystemClockDate(void);
 uint16 GetSystemClockTime(void);
 
 
-#endif // !__FAT_TIME_H__
+#endif // __FAT_TIME_H__
 

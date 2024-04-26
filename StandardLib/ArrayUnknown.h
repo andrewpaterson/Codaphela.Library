@@ -76,5 +76,5 @@ M* CArrayUnknown::Insert(int iIndex)
 }
 
 
-#endif // !__ARRAY_UNKNOWN_H__
+#endif // __ARRAY_UNKNOWN_H__
 

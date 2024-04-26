@@ -57,6 +57,6 @@ void NumberInit(int iScratchPadSize = 1 MB);
 void NumberKill(void);
 
 
-#endif // !__NUMBER_CONTROL_H__
+#endif // __NUMBER_CONTROL_H__
 
 

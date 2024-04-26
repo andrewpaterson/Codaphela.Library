@@ -112,5 +112,5 @@ DataIO_FileReader CDatasIO::GetFileReader(void)
 }
 
 
-#endif // !__DATAS_IO_H__
+#endif // __DATAS_IO_H__
 

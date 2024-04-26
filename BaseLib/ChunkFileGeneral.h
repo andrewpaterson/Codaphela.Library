@@ -28,5 +28,5 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define CFN_Chunk 0xffffffff
 
 
-#endif // !__CHUNK_FILE_GENERAL_H__
+#endif // __CHUNK_FILE_GENERAL_H__
 

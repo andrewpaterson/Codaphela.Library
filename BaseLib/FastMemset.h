@@ -102,5 +102,5 @@ void memset_fast_64bytes(void* pvDest, uint8 cVal);
 void memset_fast_65bytesUp(void* pvDest, uint8 cVal, uint32 iByteSize);
 
 
-#endif // !__FAST_MEMSET_H__
+#endif // __FAST_MEMSET_H__
 

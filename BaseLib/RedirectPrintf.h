@@ -14,5 +14,5 @@ int eprintf(const char* szUnformatted, ...);
 void SetPrintFunction(PrintFunction pPrintFunction);
 
 
-#endif // !__REDIRECT_PRINT_F__
+#endif // __REDIRECT_PRINT_F__
 

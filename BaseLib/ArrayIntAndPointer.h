@@ -51,5 +51,5 @@ public:
 };
 
 
-#endif // !__ARRAY_TYPED_POINTER_H__
+#endif // __ARRAY_TYPED_POINTER_H__
 

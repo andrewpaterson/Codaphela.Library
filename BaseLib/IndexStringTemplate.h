@@ -83,5 +83,5 @@ bool CIndexStringTemplate<D>::Put(const char* szKey, D* psData, const char* szLa
 }
 
 
-#endif // !__INDEX_STRING_TEMPLATE_H__
+#endif // __INDEX_STRING_TEMPLATE_H__
 

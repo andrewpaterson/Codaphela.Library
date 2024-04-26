@@ -115,5 +115,5 @@ protected:
 };
 
 
-#endif // !__DURABLE_FILE_H__
+#endif // __DURABLE_FILE_H__
 

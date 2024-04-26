@@ -149,5 +149,5 @@ bool CIndexStringPrimitive<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterato
 
 
 
-#endif //!__INDEX_STRING_PRIMITIVE_H__
+#endif //__INDEX_STRING_PRIMITIVE_H__
 

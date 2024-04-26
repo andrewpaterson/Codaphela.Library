@@ -20,5 +20,5 @@ Ptr<M> Null(void)
 }
 
 
-#endif // !__NULL_H__
+#endif // __NULL_H__
 

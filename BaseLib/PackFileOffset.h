@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // !__PACK_FILE_OFFSET_H__
+#endif // __PACK_FILE_OFFSET_H__
 

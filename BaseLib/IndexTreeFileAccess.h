@@ -33,6 +33,6 @@ protected:
 };
 
 
-#endif // !__INDEX_TREE_FILE_ACCESS_H__
+#endif // __INDEX_TREE_FILE_ACCESS_H__
 
 

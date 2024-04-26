@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif // !__CHANNELS_ACCESSOR_CONTIGUOUS_H__
+#endif // __CHANNELS_ACCESSOR_CONTIGUOUS_H__
 

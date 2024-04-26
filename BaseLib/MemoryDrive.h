@@ -24,5 +24,5 @@ public:
 };
 
 
-#endif // !__MEMORY_DRIVE_H__
+#endif // __MEMORY_DRIVE_H__
 

@@ -20,5 +20,5 @@ public:
 };
 
 
-#endif // !__INDEX_TREE_BLOCK_FILE_HELPER_H__
+#endif // __INDEX_TREE_BLOCK_FILE_HELPER_H__
 

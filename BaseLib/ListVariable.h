@@ -70,5 +70,5 @@ private:
 };
 
 
-#endif // !__LIST_VARIABLE_H__
+#endif // __LIST_VARIABLE_H__
 

@@ -75,5 +75,5 @@ public:
 CMD5HashFile*	MD5HashFile(CAbstractFile* pcFile);
 
 
-#endif // !__MD5_HASH_FILE_H__
+#endif // __MD5_HASH_FILE_H__
 

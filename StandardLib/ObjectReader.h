@@ -55,5 +55,5 @@ protected:
 };
 
 
-#endif // !__OBJECT_READER_H__
+#endif // __OBJECT_READER_H__
 

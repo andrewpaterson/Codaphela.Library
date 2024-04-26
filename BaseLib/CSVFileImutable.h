@@ -53,5 +53,5 @@ public:
 };
 
 
-#endif // !__CSV_FILE_IMMUTABLE_H__
+#endif // __CSV_FILE_IMMUTABLE_H__
 

@@ -1419,5 +1419,5 @@ bool CTreeTemplate<M>::ReadTreeTemplate(CFileReader* pcFileReader)
 }
 
 
-#endif // !__TREE_TEMPLATE_H__
+#endif // __TREE_TEMPLATE_H__
 

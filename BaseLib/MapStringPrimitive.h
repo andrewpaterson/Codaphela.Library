@@ -100,5 +100,5 @@ bool CMapStringPrimitive<D>::Put(const char* szKey, D sData)
 }
 
 
-#endif // !__MAP_STRING_INT_H__
+#endif // __MAP_STRING_INT_H__
 

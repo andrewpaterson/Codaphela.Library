@@ -61,5 +61,5 @@ public:
 CDiskFile* DiskFile(const char* szName);
 
 
-#endif // !__DISK_FILE_H__
+#endif // __DISK_FILE_H__
 

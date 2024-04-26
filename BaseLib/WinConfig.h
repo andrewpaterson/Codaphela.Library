@@ -49,5 +49,5 @@ public:
 };
 
 
-#endif // !__WIN_CONFIG_H__
+#endif // __WIN_CONFIG_H__
 

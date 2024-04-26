@@ -67,5 +67,5 @@ extern char gszDigits[17];
 extern char	gszEmptyString[4];
 
 
-#endif // !__STRING_HELPER_H__
+#endif // __STRING_HELPER_H__
 

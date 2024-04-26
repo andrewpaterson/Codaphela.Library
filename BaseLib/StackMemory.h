@@ -92,5 +92,5 @@ void* CStackMemory<I>::GetStackData(void)
 }
 
 
-#endif // !__STACK_MEMORY_H__
+#endif // __STACK_MEMORY_H__
 

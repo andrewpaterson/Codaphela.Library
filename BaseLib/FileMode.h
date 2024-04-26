@@ -56,5 +56,5 @@ bool IsFileModeReadOnly(EFileMode eFileMode);
 bool IsFileModeCreate(EFileMode eFileMode);
 
 
-#endif // !__FILE_MODE_H__
+#endif // __FILE_MODE_H__
 

@@ -6,5 +6,5 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals = -
 char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals = -1, bool bAppendF = false);
 
 
-#endif // !__FLOAT_PRINTER_H__
+#endif // __FLOAT_PRINTER_H__
 

@@ -82,5 +82,5 @@ public:
 };
 
 
-#endif // !__ABSTRACT_TEXT_EDITOR_H__
+#endif // __ABSTRACT_TEXT_EDITOR_H__
 

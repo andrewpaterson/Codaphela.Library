@@ -91,5 +91,5 @@ protected:
 };
 
 
-#endif // !__LINK_LIST_ALIGNED_H__
+#endif // __LINK_LIST_ALIGNED_H__
 

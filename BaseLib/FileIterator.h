@@ -25,5 +25,5 @@ public:
 };
 
 
-#endif // !__FILE_ITERATOR_H__
+#endif // __FILE_ITERATOR_H__
 

@@ -48,5 +48,5 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define CORRUPT_MEMORY	((void*)(16 KB))
 
 
-#endif // !__NUMBERS_H__
+#endif // __NUMBERS_H__
 

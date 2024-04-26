@@ -24,6 +24,6 @@ public:
 };
 
 
-#endif // !__PRIMITIVE_VOID_H__
+#endif // __PRIMITIVE_VOID_H__
 
 

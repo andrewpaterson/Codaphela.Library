@@ -5,5 +5,5 @@
 bool IsWhiteSpace(char	c, bool bIncludeNewLines = true);
 
 
-#endif // !__CHAR_HELPER_H__
+#endif // __CHAR_HELPER_H__
 

@@ -39,5 +39,5 @@ public:
 };
 
 
-#endif // !__TIMER_LISTENER_H__
+#endif // __TIMER_LISTENER_H__
 

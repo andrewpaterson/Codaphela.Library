@@ -8,5 +8,5 @@ class CIndexStringInt : public CIndexStringPrimitive<int>
 };
 
 
-#endif // !__INDEX_STRING_INT_H__
+#endif // __INDEX_STRING_INT_H__
 

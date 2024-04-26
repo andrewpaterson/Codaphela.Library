@@ -58,5 +58,5 @@ M* CSetUnknown::Add(void)
 }
 
 
-#endif // !__SET_UNKNOWN_H__
+#endif // __SET_UNKNOWN_H__
 

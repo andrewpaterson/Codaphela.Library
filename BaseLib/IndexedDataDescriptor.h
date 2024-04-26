@@ -70,6 +70,6 @@ public:
 typedef CArrayTemplate<CIndexedDataDescriptor> CArrayIndexDescriptor;
 
 
-#endif // !__INDEXED_DATA_DESCRIPTOR_H__
+#endif // __INDEXED_DATA_DESCRIPTOR_H__
 
 

@@ -93,5 +93,5 @@ CClass* CPrimitiveClasses::AddClassWithConstructorAndIO(EPrimitiveType eFieldTyp
 }
 
 
-#endif // !__PRIMITIVE_CLASSES_H__
+#endif // __PRIMITIVE_CLASSES_H__
 

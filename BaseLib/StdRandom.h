@@ -17,5 +17,5 @@ public:
 };
 
 
-#endif // !__STD_RANDOM_H__
+#endif // __STD_RANDOM_H__
 
