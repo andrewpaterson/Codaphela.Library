@@ -26,13 +26,19 @@ protected:
 	void*			mpvHeapEnd;
 
 public:
-	void	Init(void* pvHeapStart, void* pvHeapEnd);
-	void	Kill(void);
-	void*	Allocate(uint32 uiSize);
+	void		Init(void* pvHeapStart, void* pvHeapEnd);
+	void		Kill(void);
+	void*		Allocate(uint32 uiSize);
+	void		Deallocate(void* pvData);
+	SMMNode*	StartIteration(void);
+	SMMNode*	Iterate(SMMNode* psNode);
 
 protected:
 	void*	AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnusedNodeSize, uint32 uiAllocateSize);
 };
+
+
+uint32 GetMMNodeDataSize(SMMNode* psNode);
 
 
 #endif // __MEMORY_MANAGER_H__
