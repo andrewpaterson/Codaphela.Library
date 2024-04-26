@@ -206,9 +206,9 @@ png_text_compress(png_structp png_ptr,
 
    /* set up the compression buffers */
    png_ptr->zstream.avail_in = (uint32)text_len;
-   png_ptr->zstream.next_in = (Bytef *)text;
+   png_ptr->zstream.next_in = (uint8 *)text;
    png_ptr->zstream.avail_out = (uint32)png_ptr->zbuf_size;
-   png_ptr->zstream.next_out = (Bytef *)png_ptr->zbuf;
+   png_ptr->zstream.next_out = (uint8 *)png_ptr->zbuf;
 
    /* this is the same compression loop as in png_write_row() */
    do
