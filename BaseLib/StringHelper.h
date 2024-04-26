@@ -52,11 +52,11 @@ char*		NullToEmpty(const char* szString);
 char		GetHexChar(char c4Bit);
 
 char*		IntToString(char* szDest, int iDestLength, int iValue, int iBase = 10);
-char*		IntToString(char* szDest, int iDestLength, unsigned int iValue, int iBase = 10);
+char*		IntToString(char* szDest, int iDestLength, uint32 iValue, int iBase = 10);
 char*		IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase = 10);
 char*		IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase = 10);
 char*		FlagsToString(char* szDest, int iDestLength, int iFlags);
-char*		FlagsToString(char* szDest, int iDestLength, short int iFlags);
+char*		FlagsToString(char* szDest, int iDestLength, int16 iFlags);
 char*		FlagsToString(char* szDest, int iDestLength, char iFlags);
 char*		CharToString(char* szDest, int iDestLength, char c);
 char*		CharToString(char* szDest, int iDestLength, uint8 c);

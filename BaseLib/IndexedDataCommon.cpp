@@ -120,7 +120,7 @@ bool CIndexedDataCommon::Put(OIndex oi, void* pvData, size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedDataCommon::Size(OIndex oi)
+uint32 CIndexedDataCommon::Size(OIndex oi)
 {
 	bool						bResult;
 	CIndexedDataDescriptor		cDescriptor;
@@ -328,7 +328,7 @@ int64 CIndexedDataCommon::NumDatas(size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedDataCommon::TestGetCachedObjectSize(OIndex oi) { return  mcData.TestGetCachedObjectSize(oi); }
+uint32 CIndexedDataCommon::TestGetCachedObjectSize(OIndex oi) { return  mcData.TestGetCachedObjectSize(oi); }
 bool CIndexedDataCommon::IsCaching(void) { return mcData.IsCaching();  }
 bool CIndexedDataCommon::IsWriteThrough(void) { return meWriteThrough == IWT_Yes; }
 bool CIndexedDataCommon::IsFlushed(void) { return mcData.IsFlushed(); }

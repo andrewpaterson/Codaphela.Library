@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFileController.h"
 
 
-#define INDEXED_FILE_WRITE_ERROR	((unsigned int)-1)
+#define INDEXED_FILE_WRITE_ERROR	((uint32)-1)
 #define INDEX_FILE_EMPTY_CHAR		0x55
 
 
@@ -43,17 +43,17 @@ private:
 
 	CDurableFile	mcFile;
 
-	unsigned int	muiDataSize;
+	uint32	muiDataSize;
 	filePos			miNumDatas;
 	int				miFileNumber;  //There may be more than one file of the same size.
 
 public:
-	bool			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, unsigned int uiDataSize, int iFileNum);
+	bool			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, uint32 uiDataSize, int iFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
 	bool			IsFull(void);
 
-	unsigned int	Write(void* pvData);
+	uint32	Write(void* pvData);
 	bool			Write(filePos iIndex, void* pvData);
 	bool			Write(filePos iIndex, void* pvData, filePos iCount);
 
@@ -70,7 +70,7 @@ public:
 	char*			GetFilename(void);
 	int				GetFileNumber(void);
 	char*			GetRewriteName(void);
-	unsigned int	GetDataSize(void);
+	uint32	GetDataSize(void);
 	filePos			NumDatas(void);
 	int				GetUsedDataIndices(CArrayBit* pab);
 
@@ -78,7 +78,7 @@ public:
 	void			Dump(void);
 
 protected:
-	unsigned int	Write(void* pvData, filePos iCount);
+	uint32	Write(void* pvData, filePos iCount);
 };
 
 

@@ -76,7 +76,7 @@ public:
 	void	Append(char c, int iNumber);
 	CChars* Append(int i);
 	CChars* Append(int i, int iBase);
-	void	Append(unsigned int ui);
+	void	Append(uint32 ui);
 	void	Append(float f, int iMaxDecimals = -1, bool bAppendF = false);
 	void	Append(double d, int iMaxDecimals = -1, bool bAppendD = false);
 	void	Append(int64 lli);
@@ -99,7 +99,7 @@ public:
 	CChars* AppendData(const char* szData, size_t iDataLength, size_t iMaxLength);
 	bool	AppendData2(const char* szData, size_t iDataLength);
 	void	AppendPointer(void* pv);
-	bool	AppendFlag(unsigned int msFlags, unsigned int uiFlag, const char* szFlagName, bool bAppendComma = false);
+	bool	AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma = false);
 	void	Insert(int iPos, char c);
 	void	Insert(int iPos, const char* szString);
 	void	Insert(int iPos, CChars* pszString);
@@ -107,11 +107,11 @@ public:
 	char*	Text(void);
 	char*	Text(int iIndex);
 	bool	Empty(void);
-	void	LeftAlign(CChars sz, char cPadCharacter, unsigned int iWidth);
-	void	LeftAlign(const char* sz, char cPadCharacter, unsigned int iWidth);
-	void	RightAlign(CChars sz, char cPadCharacter, unsigned int iWidth);
-	void	RightAlign(const char* sz, char cPadCharacter, unsigned int iWidth);
-	void	RightAlign(char cPadCharacter, unsigned int iWidth);
+	void	LeftAlign(CChars sz, char cPadCharacter, uint32 iWidth);
+	void	LeftAlign(const char* sz, char cPadCharacter, uint32 iWidth);
+	void	RightAlign(CChars sz, char cPadCharacter, uint32 iWidth);
+	void	RightAlign(const char* sz, char cPadCharacter, uint32 iWidth);
+	void	RightAlign(char cPadCharacter, uint32 iWidth);
 	void	RemoveLastCharacter(void);
 	void	RemoveFromStart(int iNumChars);
 	void	RemoveFromEnd(int iNumChars);

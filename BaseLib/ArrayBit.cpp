@@ -107,7 +107,7 @@ void CArrayBit::GrowBy(int iNumBits)
 	iOldByteSize = ByteSize(miNumBits);
 	iNewByteSize = ByteSize(miNumBits + iNumBits);
 
-	iTransitionSize = sizeof(unsigned int)*3;
+	iTransitionSize = sizeof(uint32)*3;
 	if ((iNewByteSize <= iTransitionSize) || (iOldByteSize == iNewByteSize))
 	{
 		miNumBits += iNumBits;
@@ -263,7 +263,7 @@ int CArrayBit::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBit::IsLarge(void)
 {
-	return miNumBits > sizeof(unsigned int)*3*8;
+	return miNumBits > sizeof(uint32)*3*8;
 }
 
 

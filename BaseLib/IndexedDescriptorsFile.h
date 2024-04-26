@@ -29,7 +29,7 @@ public:
 	bool			Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi, bool bNoEviction);
 	bool			Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 	bool			Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi, bool bNoEviction);
-	bool			SetCache(void* pvCache, unsigned int uiDataSize, OIndex oi);
+	bool			SetCache(void* pvCache, uint32 uiDataSize, OIndex oi);
 	bool			Flush(void);
 
 	int64			NumElements(void);

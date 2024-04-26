@@ -31,19 +31,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SLinkedListBlockDesc
 {
 	int				iNumElements;
-	unsigned int	uiNodeSize;
+	uint32	uiNodeSize;
 
-	void Init(int iNumElements, unsigned int uiNodeSize);
+	void Init(int iNumElements, uint32 uiNodeSize);
 };
 
 
 struct SLinkedListTemplateDesc
 {
 	int				iNumElements;
-	unsigned int	uiNodeSize;
-	unsigned int	uiDataSize;
+	uint32	uiNodeSize;
+	uint32	uiDataSize;
 
-	void Init(int iNumElements, unsigned int uiNodeSize, unsigned int uiDataSize);
+	void Init(int iNumElements, uint32 uiNodeSize, uint32 uiDataSize);
 };
 
 
@@ -58,10 +58,10 @@ public:
 	void		Init(CMallocator* pcMalloc, size_t uiNodeSize);
 	void		Kill(void);
 
-	void*		InsertAfterTail(unsigned int uiDataSize);
-	void*		InsertBeforeHead(unsigned int uiDataSize);
-	void*		InsertBeforeNode(unsigned int uiDataSize, void* psPos);
-	void*		InsertAfterNode(unsigned int uiDataSize, void* psPos); 
+	void*		InsertAfterTail(uint32 uiDataSize);
+	void*		InsertBeforeHead(uint32 uiDataSize);
+	void*		InsertBeforeNode(uint32 uiDataSize, void* psPos);
+	void*		InsertAfterNode(uint32 uiDataSize, void* psPos); 
 
 	void* 		GetHead(void);
 	void* 		GetTail(void);

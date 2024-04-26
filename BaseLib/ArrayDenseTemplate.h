@@ -37,7 +37,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SDenseNode
 {
-	unsigned int	iFlags;
+	uint32	iFlags;
 	SDenseNode*		psParent;
 	SDenseNode*		psLeftNode;  //NULL must always be marked as DENSE_NODE_LEFT_ELEMENT
 	SDenseNode*		psRightNode; //NULL must always be marked as DENSE_NODE_RIGHT_ELEMENT

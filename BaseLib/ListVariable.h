@@ -29,8 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SPointerAndSize
 {
-	void*			pvData;
-	unsigned int	iSize;
+	void*	pvData;
+	uint32	iSize;
 };
 
 typedef CArrayTemplate<SPointerAndSize> CArrayTypedPointerAndSize;

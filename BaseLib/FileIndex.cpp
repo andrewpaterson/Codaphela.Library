@@ -60,7 +60,7 @@ void CFilePosIndex::SetIndex(int iFile, filePos ulliFilePos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFileDataIndex CFilePosIndex::ToFileDataIndex(unsigned int muiDataSize)
+CFileDataIndex CFilePosIndex::ToFileDataIndex(uint32 muiDataSize)
 {
 	filePos			iIndex;
 	filePos			iRemainder;
@@ -72,7 +72,7 @@ CFileDataIndex CFilePosIndex::ToFileDataIndex(unsigned int muiDataSize)
 		iRemainder = mulliFilePos % muiDataSize;
 		if (iRemainder == 0)
 		{
-			cFileDataIndex.Init(miFile, (unsigned int)iIndex);
+			cFileDataIndex.Init(miFile, (uint32)iIndex);
 			return cFileDataIndex;
 		}
 		else
@@ -105,7 +105,7 @@ void CFileDataIndex::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileDataIndex::Init(int iFile, unsigned int uiIndex)
+void CFileDataIndex::Init(int iFile, uint32 uiIndex)
 {
 	miFile = iFile;
 	muiIndex = uiIndex;
@@ -137,7 +137,7 @@ bool CFileDataIndex::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileDataIndex::SetIndex(int iFile, unsigned int uiIndex)
+void CFileDataIndex::SetIndex(int iFile, uint32 uiIndex)
 {
 	miFile = iFile;
 	muiIndex = uiIndex;
@@ -169,7 +169,7 @@ bool CFileDataIndex::Equals(CFileDataIndex* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex CFileDataIndex::ToFilePosIndex(unsigned int muiDataSize)
+CFilePosIndex CFileDataIndex::ToFilePosIndex(uint32 muiDataSize)
 {
 	CFilePosIndex	cPosIndex;
 

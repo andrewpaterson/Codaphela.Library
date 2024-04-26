@@ -1605,6 +1605,9 @@
     <ClInclude Include="Source\Aarvark\Aardvark.h">
       <Filter>Source\Aardvark</Filter>
     </ClInclude>
+    <ClInclude Include="MemoryManager.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2004,9 +2007,6 @@
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="GeneralMemory.cpp">
-      <Filter>Source\Memory\Manager</Filter>
-    </ClCompile>
-    <ClCompile Include="BaseMemory.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
     <ClCompile Include="ArrayBlockMinimal.cpp">
@@ -2554,6 +2554,9 @@
     </ClCompile>
     <ClCompile Include="Source\Aarvark\Aardvark.cpp">
       <Filter>Source\Aardvark</Filter>
+    </ClCompile>
+    <ClCompile Include="MemoryManager.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

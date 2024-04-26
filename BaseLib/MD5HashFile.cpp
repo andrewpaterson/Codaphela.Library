@@ -154,7 +154,7 @@ filePos CMD5HashFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 	if (iSuccessfulCount > 0)
 	{
 		iSuccessfulBytes = iSuccessfulCount * iSize;
-		MD5Update(&msMD5Context, (uint8*)pvBuffer, (unsigned int)iSuccessfulBytes);
+		MD5Update(&msMD5Context, (uint8*)pvBuffer, (uint32)iSuccessfulBytes);
 	}
 	return iSuccessfulCount;
 }
@@ -182,7 +182,7 @@ filePos CMD5HashFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 	if (iSuccessfulCount > 0)
 	{
 		iSuccessfulBytes = iSuccessfulCount * iSize;
-		MD5Update(&msMD5Context, (uint8*)pvBuffer, (unsigned int)iSuccessfulBytes);
+		MD5Update(&msMD5Context, (uint8*)pvBuffer, (uint32)iSuccessfulBytes);
 	}
 	return iSuccessfulCount;
 }

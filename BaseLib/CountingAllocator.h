@@ -30,7 +30,7 @@ public:
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ClassName(void);
-	unsigned int	ClassSize(void);
+	uint32	ClassSize(void);
 
 	bool			IsLocal(void);
 	size_t			SizeOffset(void);

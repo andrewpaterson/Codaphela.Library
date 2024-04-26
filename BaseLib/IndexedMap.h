@@ -19,7 +19,7 @@ public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
 	bool	Kill(void);
 
-	bool	DescriptorEvicted(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool	DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize);
 	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
@@ -36,7 +36,7 @@ protected:
 
 	bool	GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
 	bool	SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
-	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, unsigned int uiDataSize);
+	bool	UpdateDescriptorCache(OIndex oi, void* pvCache, uint32 uiDataSize);
 	bool	RemoveDescriptor(OIndex oi);
 };
 

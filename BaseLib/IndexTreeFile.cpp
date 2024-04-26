@@ -2987,7 +2987,7 @@ bool CIndexTreeFile::Write(CIndexTreeNodeFile* pcNode)
 	int						iFileSize;
 	CIndexedFile*			pcNewIndexFile;
 	CIndexedFile*			pcOldIndexFile;
-	unsigned int			uiDataIndex;
+	uint32			uiDataIndex;
 	CFileDataIndex*			pcIndex;
 
 	iFileSize = pcNode->CalculateFileSize(mpcDataCallback);
@@ -3366,7 +3366,7 @@ bool CIndexTreeFile::Read(CIndexTreeChildNode* pcChildNode, CIndexTreeNodeFile* 
 	bool					bResult;
 	CIndexTreeNodeFile*		pcFileNode;
 	int						iFile;
-	unsigned int			uiIndex;
+	uint32			uiIndex;
 	
 	iFile = pcChildNode->u.mcFile.miFile;
 	uiIndex = pcChildNode->u.mcFile.muiIndex;
@@ -3637,7 +3637,7 @@ CIndexTreeNodeFile* CIndexTreeFile::DebugNode(CChars* pszDest, CIndexTreeNodeFil
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex, int uIndexFromParent, bool bShowFlags, bool bShowSize)
+void CIndexTreeFile::DebugNode(CChars* pszDest, int iFile, uint32 uiIndex, int uIndexFromParent, bool bShowFlags, bool bShowSize)
 {
 	SIndexTreeDebugNode		sDebugNode;
 
@@ -3654,7 +3654,7 @@ void CIndexTreeFile::DebugNode(CChars* pszDest, int iFile, unsigned int uiIndex,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, unsigned int uiIndex)
+void CIndexTreeFile::ReadDebugNode(SIndexTreeDebugNode* psDebugNode, int iFile, uint32 uiIndex)
 {
 	CIndexedFile*			pcFile;
 	int						iDataSize;
@@ -3868,11 +3868,11 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 	char*					pucMemory;
 	bool					bResult;
 	int						iFile;
-	unsigned int			uiIndex;
+	uint32			uiIndex;
 	int						i;
 	SIndexTreeDebugNode		sDebugNode;
 	int						iPos;
-	unsigned int			ulliFilePos;
+	uint32			ulliFilePos;
 
 	iFile = pcCurrent->GetFileIndex()->miFile;
 
@@ -3889,7 +3889,7 @@ void CIndexTreeFile::PrintNodeFileIndexes(CIndexTreeNodeFile* pcCurrent, CChars*
 		for (i = 0; i <= sDebugNode.uiLastIndex - sDebugNode.uiFirstIndex; i++)
 		{
 			iFile = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
-			ulliFilePos = *((unsigned int*)&pucMemory[iPos]);  iPos += sizeof(unsigned int);
+			ulliFilePos = *((uint32*)&pucMemory[iPos]);  iPos += sizeof(uint32);
 
 			if (iFile != -1)
 			{

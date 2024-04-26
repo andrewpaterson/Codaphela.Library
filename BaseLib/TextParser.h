@@ -162,7 +162,7 @@ public:
 	TRISTATE		GetFloat(double* pf, bool bSkipWhiteSpace = true);
 	TRISTATE		GetNumber(CNumber* pcNumber, bool bSkipWhiteSpace = true);
 	TRISTATE		GetIntegerLiteral(uint64* pulli, int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedSeparator, int* piNumDigits, bool bSkipWhiteSpace);
-	TRISTATE		GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth, bool bSkipWhiteSpace);
+	TRISTATE		GetCharacterLiteral(uint16* pc, bool bAllowUTF16, int* piCharacterWidth, bool bSkipWhiteSpace);
 	TRISTATE		GetStringLiteral(void* szDest, size_t uiDestByteLength, bool bAllowUTF16, int* piCharacterCount, int* piCharacterWidth, bool bSkipWhiteSpace);
 	TRISTATE		GetFloatLiteral(float96* pldf , int iAllowedPrefix, int* piBase, int iAllowedSuffix, int* piSuffix, int iAllowedExponent, int* piExponent, int iAllowedSeparator, int* piNumWholeDigits, int* piNumDecinalDigits, int* piNumExponentDigits, bool bSkipWhiteSpace);
 
@@ -205,7 +205,7 @@ protected:
 	bool		IsDigit(char cCurrent, int iBase);
 	TRISTATE	GetIntegerSuffix(int* piSuffix, int iAllowedSuffix);
 	TRISTATE	GetIntegerSeparator(int iAllowedSeparator);
-	TRISTATE	GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth);
+	TRISTATE	GetCharacterLiteral(uint16* pc, bool bAllowUTF16, int* piCharacterWidth);
 	int			ChangeWidth(int iWidth, int iOldWidth, void* szDest, size_t uiDestByteLength, int iLength);
 	TRISTATE	GetFloatSuffix(int* piSuffix, int iAllowedSuffix);
 	float96	MakeLongDouble(int iBase, uint64 ulliWholeNumber, uint64 ulliDecimalNumber, int iNumDecimalDigits, int64 lliExponentNumber);

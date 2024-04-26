@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, unsigned int uiIndex)
+int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, uint32 uiIndex)
 {
 	uint8*	pucMemory;
 	int		iPos;

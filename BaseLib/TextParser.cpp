@@ -3571,11 +3571,11 @@ TRISTATE ParseFloat(double* pf, char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, int* piCharacterWidth, bool bSkipWhiteSpace)
 {
 	TRISTATE		tResult;
 	int				iWidth;
-	unsigned short	ui;
+	uint16	ui;
 
 	PushPosition();
 
@@ -3637,13 +3637,13 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, int* piCharacterWidth)
+TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, int* piCharacterWidth)
 {
 	TRISTATE			tResult;
 	char				c;
 	char				cEscape;
 	int					iWidth;
-	unsigned short		ui;
+	uint16		ui;
 	uint64				ulli;
 	int					iNumDigits;
 
@@ -3669,7 +3669,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, 
 					{
 						if (ulli < 0x100)
 						{
-							ui = (unsigned short)ulli;
+							ui = (uint16)ulli;
 							iWidth = 1;
 						}
 						else
@@ -3689,7 +3689,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, 
 					{
 						if (iNumDigits >= 1 && iNumDigits <= 4)
 						{
-							ui = (unsigned short)ulli;
+							ui = (uint16)ulli;
 							if (ulli < 0x100)
 							{
 								iWidth = 1;
@@ -3722,7 +3722,7 @@ TRISTATE CTextParser::GetCharacterLiteral(unsigned short* pc, bool bAllowUTF16, 
 					tResult = GetDigits(&ulli, NULL, &iNumDigits, false, false, 16, NUMBER_SEPARATOR_NONE);
 					if (tResult == TRITRUE)
 					{
-						ui = (unsigned short)ulli;
+						ui = (uint16)ulli;
 						if (iNumDigits == 4)
 						{
 							iWidth = 2;
@@ -3784,7 +3784,7 @@ TRISTATE CTextParser::GetStringLiteral(void* szDest, size_t uiDestByteLength, bo
 {
 	TRISTATE			tResult;
 	int					iWidth;
-	unsigned short		ui;
+	uint16		ui;
 	int					iPosition;
 	int					iOldWidth;
 
@@ -3812,7 +3812,7 @@ TRISTATE CTextParser::GetStringLiteral(void* szDest, size_t uiDestByteLength, bo
 				}
 				else if (iOldWidth == 2)
 				{
-					((unsigned short*)(szDest))[iPosition] = 0;
+					((uint16*)(szDest))[iPosition] = 0;
 				}
 				SafeAssign(piCharacterCount, iPosition);
 				SafeAssign(piCharacterWidth, iOldWidth);
@@ -3837,7 +3837,7 @@ TRISTATE CTextParser::GetStringLiteral(void* szDest, size_t uiDestByteLength, bo
 				}
 				else if (iOldWidth == 2)
 				{
-					((unsigned short*)(szDest))[iPosition] = ui;
+					((uint16*)(szDest))[iPosition] = ui;
 				}
 
 				iPosition++;

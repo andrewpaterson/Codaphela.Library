@@ -28,20 +28,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SAlignedData
 {
-	unsigned int	uiSize;
-	void*			pvAlloc;  //This is the original allocation pointer.
-	int				iAlignment;
-	int				iOffset;
+	uint32	uiSize;
+	void*	pvAlloc;  //This is the original allocation pointer.
+	int		iAlignment;
+	int		iOffset;
 };
 
 
 struct SAlignedDataDesc
 {
-	unsigned int	uiSize;
-	int				iAlignment;
-	int				iOffset;
+	uint32	uiSize;
+	int		iAlignment;
+	int		iOffset;
 
-	void	Init(unsigned int uiSize, int iAlignment, int iOffset);
+	void	Init(uint32 uiSize, int iAlignment, int iOffset);
 };
 
 
@@ -60,18 +60,18 @@ public:
 	void			Init(CMallocator* pcMalloc);
 	void			Kill(void);
 
-	void*			InsertAfterTail(unsigned int iSize, int iAlignment, int iOffset);
-	void*			InsertBeforeHead(unsigned int uiSize, int iAlignment, int iOffset);
-	void*			InsertBeforeNode(void* psPos, unsigned int uiSize, int iAlignment, int iOffset);
-	void*			InsertAfterNode(void* psPos, unsigned int uiSize, int iAlignment, int iOffset); 
-	void*			Add(unsigned int uiSize, int iAlignment);
+	void*			InsertAfterTail(uint32 iSize, int iAlignment, int iOffset);
+	void*			InsertBeforeHead(uint32 uiSize, int iAlignment, int iOffset);
+	void*			InsertBeforeNode(void* psPos, uint32 uiSize, int iAlignment, int iOffset);
+	void*			InsertAfterNode(void* psPos, uint32 uiSize, int iAlignment, int iOffset); 
+	void*			Add(uint32 uiSize, int iAlignment);
 
-	SLLAlignedNode*	AllocateDetached(unsigned int uiSize, int iAlignment, int iOffset);
+	SLLAlignedNode*	AllocateDetached(uint32 uiSize, int iAlignment, int iOffset);
 	void			Remove(void* pvData);
 	bool			SafeRemove(void* pvData);
 	void			FreeDetached(void* psNodeData);
 	void			FreeNode(SLLAlignedNode* psNode);
-	void*			Grow(void* pvData, unsigned int uiNewSize);
+	void*			Grow(void* pvData, uint32 uiNewSize);
 
 	bool			Write(CFileWriter* pcFileWriter);
 	bool			Read(CFileReader* pcFileReader);

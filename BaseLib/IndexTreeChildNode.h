@@ -22,7 +22,7 @@ public:
 
 	void	Init(CFileDataIndex cFile);
 	void	Init(CFileDataIndex* pcFile);
-	void	Init(int iFile, unsigned int uiIndex);
+	void	Init(int iFile, uint32 uiIndex);
 	void	Init(CIndexTreeNodeFile* pcMemory);
 	void	Clear(void);
 

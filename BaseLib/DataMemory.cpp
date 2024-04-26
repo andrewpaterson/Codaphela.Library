@@ -261,7 +261,7 @@ int CDataMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::Add(unsigned int uiSize)
+void* CDataMemory::Add(uint32 uiSize)
 {
 	CFreeList*	pcFreeList;
 	void*				pv;
@@ -284,7 +284,7 @@ void* CDataMemory::Add(unsigned int uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::Grow(void* pvInitial, unsigned int uiSize)
+void* CDataMemory::Grow(void* pvInitial, uint32 uiSize)
 {
 	SDataMemoryAllocation*	psAlloc;
 	CFreeList*				pcList;
@@ -349,7 +349,7 @@ void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size_t uiDestSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::AllocateInFreeList(CFreeList* pcFreeList, unsigned int uiElementSize)
+void* CDataMemory::AllocateInFreeList(CFreeList* pcFreeList, uint32 uiElementSize)
 {
 	SDataMemoryAllocation*	psMemoryAllocation;
 	SFNode*						psNode;
@@ -375,8 +375,8 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	size_t	iSize;
 	void*	pvMem;
 
-	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(unsigned int);
-	pvMem = RemapSinglePointer(psAlloc, sizeof(unsigned int));
+	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(uint32);
+	pvMem = RemapSinglePointer(psAlloc, sizeof(uint32));
 	memset(pvMem, 0xef, iSize);
 #endif
 
@@ -416,7 +416,7 @@ void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::AllocateInLargeList(unsigned int uiSize)
+void* CDataMemory::AllocateInLargeList(uint32 uiSize)
 {
 	SDataMemoryAllocation*	psMemoryAllocation;
 

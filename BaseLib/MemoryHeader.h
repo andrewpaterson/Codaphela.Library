@@ -8,24 +8,24 @@
 
 struct SDataMemoryAllocation
 {
-	size_t			uiSize;
-	SFNode*			psFreeListNode;
+	size_t		uiSize;
+	SFNode*		psFreeListNode;
 };
 
 
 struct SGeneralMemoryAllocation : public SDataMemoryAllocation
 {
-	unsigned int	uiAllocCount;
-	char			szDebug[4];
+	uint32	uiAllocCount;
+	char	szDebug[4];
 };
 
 
 struct SFreeListDesc
 {
-	CFreeList*		pcFreeList;
-	unsigned int	iStride;
+	CFreeList*	pcFreeList;
+	uint32		iStride;
 
-	void Init(unsigned int iStride);
+	void Init(uint32 iStride);
 	void Init(CFreeList* pcFreeList, int iStride);
 };
 
@@ -34,10 +34,10 @@ struct SFreeListDesc
 //Just that they all have the same alignment and offset.
 struct SAlignedFreeListDesc : SFreeListDesc
 {
-	int				iAlignment;
-	int				iOffset;
+	int		iAlignment;
+	int		iOffset;
 
-	void Init(unsigned int iStride, int iAlignment, int iOffset);
+	void Init(uint32 iStride, int iAlignment, int iOffset);
 	void Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset);
 };
 
@@ -56,10 +56,10 @@ struct SMemoryIterator
 //Memory Iterator result.
 struct SMemory
 {
-	bool			bValid;
-	void*			pvMem;
-	unsigned int	uiAllocCount;
-	unsigned int	uiSize;
+	bool	bValid;
+	void*	pvMem;
+	uint32	uiAllocCount;
+	uint32	uiSize;
 
 	void Init(void);
 	void Set(SGeneralMemoryAllocation* psAllocation);

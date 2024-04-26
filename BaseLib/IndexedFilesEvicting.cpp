@@ -55,12 +55,12 @@ bool CIndexedFilesEvicting::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistingDescriptor, void* pvData, unsigned int uiMaxDataSize)
+bool CIndexedFilesEvicting::GetData(OIndex oi, CIndexedDataDescriptor* pcExistingDescriptor, void* pvData, uint32 uiMaxDataSize)
 {
 	bool					bResult;
 	void*					pvCache;
 	CIndexedCacheResult		cResult;
-	unsigned int			uiDataSize;
+	uint32			uiDataSize;
 	CFileDataIndex			cDataIndex;
 
 	//The descriptor has always been set prior to calling this.
@@ -310,13 +310,13 @@ void CIndexedFilesEvicting::InvalidateData(CIndexedDataDescriptor* pcDescriptor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize)
+bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiDataSize)
 {
 	bool					bResult;
 	void*					pvNewCache;
 	CIndexedDataDescriptor	cResultDescriptor;
 	CFilePosIndex			cPosIndex;
-	unsigned int			uiFileDataSize;
+	uint32			uiFileDataSize;
 	
 	if (mbCaching && mcDataCache.CanCache(uiDataSize))
 	{
@@ -376,7 +376,7 @@ bool CIndexedFilesEvicting::SetData(OIndex oi, CIndexedDataDescriptor* pcDescrip
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize)
+void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiDataSize)
 {
 	void*					pvExistingCache;
 	void*					pvNewCache;
@@ -433,7 +433,7 @@ void* CIndexedFilesEvicting::SetCacheData(OIndex oi, CIndexedDataDescriptor* pcD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, unsigned int uiDataSize)
+CFilePosIndex CIndexedFilesEvicting::WriteThroughData(CIndexedDataDescriptor* pcDescriptor, void* pvData, uint32 uiDataSize)
 {
 	CFileDataIndex			cDataIndex;
 	CFileDataIndex			cNewDataIndex;
@@ -500,7 +500,7 @@ bool CIndexedFilesEvicting::CacheDataEvicted(void* pvData, SMemoryCacheDescripto
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, unsigned int uiDataSize)
+CIndexedCacheResult CIndexedFilesEvicting::CacheAllocate(OIndex oi, uint32 uiDataSize)
 {
 	CIndexedCacheResult		cResult;
 
@@ -517,7 +517,7 @@ bool CIndexedFilesEvicting::Evict(OIndex oi, CIndexedDataDescriptor* pcDescripto
 {
 	void*			pvData;
 	bool			bResult;
-	unsigned int	uiDataSize;
+	uint32	uiDataSize;
 
 	pvData = pcDescriptor->GetCache();
 	if (pvData)
@@ -612,7 +612,7 @@ bool CIndexedFilesEvicting::WriteEvictedData2(CIndexedDataDescriptor* pcDescript
 {
 	CFilePosIndex			cFilePosIndex;
 	CIndexedDataDescriptor	cResultDescriptor;
-	unsigned int			uiDataSize;
+	uint32			uiDataSize;
 
 	uiDataSize = pcDescriptor->GetCacheDataSize();
 	if (uiDataSize == 0)
@@ -649,7 +649,7 @@ bool CIndexedFilesEvicting::CompareDiskToMemory(CIndexedDataDescriptor* pcDescri
 {
 	//This function tells the disk whether it must update itself because the cached value has changed.
 	//It also timestamps the descriptor of the changed data.
-	unsigned int		uiDataSize;
+	uint32		uiDataSize;
 	void*				pvTemp;
 	CStackMemory<>		cStack;
 	bool				bResult;
@@ -687,7 +687,7 @@ bool CIndexedFilesEvicting::ClearDescriptorCache(SIndexedCacheDescriptor* psCach
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
+uint32 CIndexedFilesEvicting::TestGetCachedObjectSize(OIndex oi)
 {
 	SIndexedCacheDescriptor*	psDescriptor;
 	void*						pvData;

@@ -33,7 +33,7 @@ public:
 			bool			Get(OIndex oi, void* pvData, size_t uiMaxSize = 0);
 			bool			Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
 
-			unsigned int	Size(OIndex oi);
+			uint32	Size(OIndex oi);
 			bool			Contains(OIndex oi);
 
 			int64			NumElements(void);
@@ -52,7 +52,7 @@ public:
 
 	virtual bool			EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor) =0;
 
-			unsigned int	TestGetCachedObjectSize(OIndex oi);
+			uint32	TestGetCachedObjectSize(OIndex oi);
 
 protected:
 	virtual bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;

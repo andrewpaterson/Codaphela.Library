@@ -195,7 +195,7 @@ bool CDurableFileController::End(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 {
-	unsigned int	uiFileCount;
+	uint32	uiFileCount;
 	bool			bResult;
 	SMapIterator	sIter;
 	bool			bExists;
@@ -231,10 +231,10 @@ bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 {
-	unsigned int	uiFileMagic;
+	uint32	uiFileMagic;
 	bool			bRead;
-	unsigned int	uiFileNumber;
-	unsigned int	uiFileCount;
+	uint32	uiFileNumber;
+	uint32	uiFileCount;
 	bool			bResult;
 	CStackMemory<>	cStack;
 	int				iFilenameLength;

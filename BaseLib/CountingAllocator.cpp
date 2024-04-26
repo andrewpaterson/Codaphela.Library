@@ -198,7 +198,7 @@ const char* CCountingAllocator::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CCountingAllocator::ClassSize(void)
+uint32 CCountingAllocator::ClassSize(void)
 {
 	return mpcAlloc->ClassSize();
 }

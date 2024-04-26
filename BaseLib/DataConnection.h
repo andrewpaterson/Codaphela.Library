@@ -8,30 +8,30 @@
 class CDataConnection
 {
 public:
-	virtual bool	Add(OIndex oi, void* pvData, unsigned int uiDataSize) =0;
-	virtual bool	Add(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize) =0;
-	virtual bool	Add(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize) =0;
+	virtual bool	Add(OIndex oi, void* pvData, uint32 uiDataSize) =0;
+	virtual bool	Add(OIndex oi, char* szName, void* pvData, uint32 uiDataSize) =0;
+	virtual bool	Add(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize) =0;
 
 	virtual bool	Set(OIndex oi, void* pvData) =0;
-	virtual bool	Set(OIndex oi, void* pvData, unsigned int uiDataSize) =0;
+	virtual bool	Set(OIndex oi, void* pvData, uint32 uiDataSize) =0;
 	virtual bool	Set(char* szName, void* pvData) =0;
-	virtual bool	Set(char* szName, void* pvData, unsigned int uiDataSize) =0;
+	virtual bool	Set(char* szName, void* pvData, uint32 uiDataSize) =0;
 	virtual bool	Set(CChars* szName, void* pvData) =0;
-	virtual bool	Set(CChars* szName, void* pvData, unsigned int uiDataSize) =0;
+	virtual bool	Set(CChars* szName, void* pvData, uint32 uiDataSize) =0;
 
-	virtual bool	Put(OIndex oi, void* pvData, unsigned int uiDataSize) =0;
-	virtual bool	Put(OIndex oi, char* szName, void* pvData, unsigned int uiDataSize) =0;
-	virtual bool	Put(OIndex oi, CChars* szName, void* pvData, unsigned int uiDataSize) =0;
+	virtual bool	Put(OIndex oi, void* pvData, uint32 uiDataSize) =0;
+	virtual bool	Put(OIndex oi, char* szName, void* pvData, uint32 uiDataSize) =0;
+	virtual bool	Put(OIndex oi, CChars* szName, void* pvData, uint32 uiDataSize) =0;
 
 	virtual bool	Get(OIndex oi, void* pvData) =0;
-	virtual bool	Get(OIndex oi, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize) =0;
+	virtual bool	Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize) =0;
 	virtual bool	Get(char* szName, void* pvData) =0;
-	virtual bool	Get(char* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize) =0;
+	virtual bool	Get(char* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize) =0;
 	virtual bool	Get(CChars* szName, void* pvData) =0;
-	virtual bool	Get(CChars* szName, unsigned int* puiDataSize, void* pvData, unsigned int uiMaxDataSize) =0;
+	virtual bool	Get(CChars* szName, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize) =0;
 
 	virtual bool	GetName(OIndex oi, CChars* szName) =0;
-	virtual bool	GetName(OIndex oi, char* szName, unsigned int* puiNameLength, unsigned int uiMaxNameLength) =0;
+	virtual bool	GetName(OIndex oi, char* szName, uint32* puiNameLength, uint32 uiMaxNameLength) =0;
 	virtual OIndex	GetIndex(char* szName) =0;
 	virtual OIndex	GetIndex(CChars* szName) =0;
 

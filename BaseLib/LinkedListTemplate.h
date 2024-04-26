@@ -31,7 +31,7 @@ template<class M>
 class CLinkedListTemplate : public CBaseLinkedListBlock, public CPostMalloc<M>
 {
 private:
-	unsigned int	muiDataSize;
+	uint32	muiDataSize;
 
 public:
 	void			Init(void);
@@ -436,8 +436,8 @@ bool CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* 
 template<class M>
 bool CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElements)
 {
-	int				i;
-	M*				pvData;
+	int		i;
+	M*		pvData;
 
 	for (i = 0; i < iNumElements; i++)
 	{

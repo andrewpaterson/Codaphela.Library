@@ -32,7 +32,7 @@ CTimer	gcTimer;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int GetDebugTickCount()
+uint32 GetDebugTickCount()
 {
 	//return giTime;
 	return GetTickCount();

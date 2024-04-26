@@ -200,6 +200,7 @@
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="MemCompare.h" />
+    <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="RedirectPrintf.h" />
     <ClInclude Include="IndexLongString.h" />
     <ClInclude Include="IndexPrimitiveTemplate.h" />
@@ -598,7 +599,6 @@
     <ClCompile Include="ArraySizer.cpp" />
     <ClCompile Include="BaseFileNode.cpp" />
     <ClCompile Include="BaseLinkedListBlock.cpp" />
-    <ClCompile Include="BaseMemory.cpp" />
     <ClCompile Include="ChunkFileFile.cpp" />
     <ClCompile Include="ChunkFileHeader.cpp" />
     <ClCompile Include="ChunkStack.cpp" />
@@ -659,6 +659,7 @@
     <ClCompile Include="MemoryCacheEvictedData.cpp" />
     <ClCompile Include="MemoryFreeListParams.cpp" />
     <ClCompile Include="MemoryHeader.cpp" />
+    <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="MemoryQueue.cpp" />
     <ClCompile Include="ModificationDataOrderer.cpp" />
     <ClCompile Include="NullAllocator.cpp" />

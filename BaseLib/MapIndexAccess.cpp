@@ -80,9 +80,9 @@ bool CMapIndexAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataS
 //////////////////////////////////////////////////////////////////////////
 bool CMapIndexAccess::Get(void* pvKey, int iKeySize, void* pvDestData, size_t* piDataSize, size_t uiMaxDataSize)
 {
-	void*			pvData;
-	bool			bResult;
-	unsigned int	uiDataSize;
+	void*	pvData;
+	bool	bResult;
+	uint32	uiDataSize;
 
 	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (int*)&uiDataSize);
 	if (bResult)

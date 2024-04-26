@@ -40,7 +40,7 @@ protected:
 
 		struct SSmall
 		{
-			unsigned int	ui[3];
+			uint32	ui[3];
 		} aSmall;
 	} u;
 

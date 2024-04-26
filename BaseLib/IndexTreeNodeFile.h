@@ -21,7 +21,7 @@ public:
 
 	int						InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
-	void					SetFileIndex(int iFile, unsigned int uiIndex);
+	void					SetFileIndex(int iFile, uint32 uiIndex);
 	CFileDataIndex*			GetFileIndex(void);
 
 	CIndexTreeChildNode*	Get(uint8 uiIndex);

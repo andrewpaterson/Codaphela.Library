@@ -99,7 +99,7 @@ const char* CTrackingAllocator::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-unsigned int CTrackingAllocator::ClassSize(void)
+uint32 CTrackingAllocator::ClassSize(void)
 {
 	return mpcAlloc->ClassSize();
 }

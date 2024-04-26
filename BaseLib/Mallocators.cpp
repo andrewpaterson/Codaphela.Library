@@ -91,7 +91,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 	if (!szClassName)
 	{
 		mmShortNames.Dump();
-		gcLogger.Error2(__METHOD__, " Could not find mallocator for short name [", szShortName, "].", NULL);
+		gcLogger.Error2(__METHOD__, " Could not find mallocator for int16 name [", szShortName, "].", NULL);
 		return false;
 	}
 

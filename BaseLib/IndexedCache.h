@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedCacheDescriptor : public SMemoryCacheDescriptor
 {
-	unsigned int				iFlags;
+	uint32				iFlags;
 	OIndex						oi;
 };
 
@@ -62,7 +62,7 @@ public:
 	int							GetIndexCacheDescritorSize(void);
 	size_t						GetCacheSize(void);
 	size_t						GetAllocatedSize(void);
-	bool						CanCache(unsigned int uiDataSize);
+	bool						CanCache(uint32 uiDataSize);
 
 	void*						TestGetDescriptor(OIndex oi);
 	void						Dump(void);
