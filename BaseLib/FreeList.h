@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __FREE_LIST_BASE_H__
-#define __FREE_LIST_BASE_H__
+#ifndef __FREE_LIST_H__
+#define __FREE_LIST_H__
 #include "IntegerHelper.h"
 #include "LinkedListBlock.h"
 #include "LinkedListTemplate.h"
@@ -127,5 +127,5 @@ protected:
 typedef CLinkedListTemplate<CFreeList> CLinkListFreeList;
 
 
-#endif // __FREE_LIST_BASE_H__
+#endif // __FREE_LIST_H__
 

@@ -41,9 +41,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 #define Deg2Rad(x)		((N_PI * x) / 180.0f)
 
-#define KB				*(1024)
-#define MB				*(1024*1024)
-#define GB				*(1024*1024*1024)
+#define KB				*(1024LL)
+#define MB				*(1024LL*1024LL)
+#define GB				*(1024LL*1024LL*1024LL)
 
 #define CORRUPT_MEMORY	((void*)(16 KB))
 
