@@ -1086,18 +1086,12 @@
 
 /* Some typedefs to get us started.  These should be safe on most of the
  * common platforms.  The typedefs should be at least as large as the
- * numbers suggest (a png_uint_32 must be at least 32 bits long), but they
+ * numbers suggest (a uint32 must be at least 32 bits long), but they
  * don't have to be exactly that size.  Some compilers dislike passing
  * unsigned shorts as function parameters, so you may be better off using
- * uint32 for png_uint_16.  Likewise, for 64-bit systems, you may
- * want to have uint32 for png_uint_32 instead of uint32.
+ * uint32 for uint16.  Likewise, for 64-bit systems, you may
+ * want to have uint32 for uint32 instead of uint32.
  */
-
-typedef uint32 png_uint_32;
-typedef long png_int_32;
-typedef unsigned short png_uint_16;
-typedef short png_int_16;
-typedef uint8 png_byte;
 
 /* This is usually size_t.  It is typedef'ed just in case you need it to
    change (I'm not sure if you will or not, so I thought I'd be safe) */
@@ -1119,7 +1113,7 @@ typedef uint8 png_byte;
  */
 
 /* Separate compiler dependencies (problem here is that zlib.h always
-   defines FAR. (SJT) */
+   defines. (SJT) */
 #ifdef __BORLANDC__
 #  if defined(__LARGE__) || defined(__HUGE__) || defined(__COMPACT__)
 #    define LDATA 1
@@ -1130,22 +1124,22 @@ typedef uint8 png_byte;
 #  if !defined(__WIN32__) && !defined(__FLAT__) && !defined(__CYGWIN__)
 #    define PNG_MAX_MALLOC_64K
 #    if (LDATA != 1)
-#      ifndef FAR
-#        define FAR __far
+#      ifndef
+#        define __far
 #      endif
 #      define USE_FAR_KEYWORD
 #    endif   /* LDATA != 1 */
      /* Possibly useful for moving data out of default segment.
       * Uncomment it if you want. Could also define FARDATA as
       * const if your compiler supports it. (SJT)
-#    define FARDATA FAR
+#    define FARDATA
       */
 #  endif  /* __WIN32__, __FLAT__, __CYGWIN__ */
 #endif   /* __BORLANDC__ */
 
 
 /* Suggest testing for specific compiler first before testing for
- * FAR.  The Watcom compiler defines both __MEDIUM__ and M_I86MM,
+ *.  The Watcom compiler defines both __MEDIUM__ and M_I86MM,
  * making reliance oncertain keywords suspect. (SJT)
  */
 
@@ -1153,35 +1147,30 @@ typedef uint8 png_byte;
 #if defined(FAR)
 #  if defined(M_I86MM)
 #    define USE_FAR_KEYWORD
-#    define FARDATA FAR
+#    define FARDATA
 #    include <dos.h>
 #  endif
 #endif
 
-/* SJT: default case */
-#ifndef FAR
-#  define FAR
-#endif
-
-/* At this point FAR is always defined */
+/* At this point is always defined */
 #ifndef FARDATA
 #  define FARDATA
 #endif
 
 /* Typedef for floating-point numbers that are converted
    to fixed-point with a multiple of 100,000, e.g., int_gamma */
-typedef png_int_32 png_fixed_point;
+typedef int32 png_fixed_point;
 
 /* Add typedefs for pointers */
-typedef void            FAR * png_voidp;
-typedef png_byte        FAR * png_bytep;
-typedef png_uint_32     FAR * png_uint_32p;
-typedef png_int_32      FAR * png_int_32p;
-typedef png_uint_16     FAR * png_uint_16p;
-typedef png_int_16      FAR * png_int_16p;
-typedef PNG_CONST char  FAR * png_const_charp;
-typedef char            FAR * png_charp;
-typedef png_fixed_point FAR * png_fixed_point_p;
+typedef void       * png_voidp;
+typedef uint8      * png_bytep;
+typedef uint32     * png_uint_32p;
+typedef int32      * png_int_32p;
+typedef uint16     * png_uint_16p;
+typedef int16      * png_int_16p;
+typedef PNG_CONST char  * png_const_charp;
+typedef char            * png_charp;
+typedef png_fixed_point * png_fixed_point_p;
 
 #ifndef PNG_NO_STDIO
 #if defined(_WIN32_WCE)
@@ -1192,24 +1181,24 @@ typedef FILE                * png_FILE_p;
 #endif
 
 #ifdef PNG_FLOATING_POINT_SUPPORTED
-typedef double          FAR * png_doublep;
+typedef double          * png_doublep;
 #endif
 
 /* Pointers to pointers; i.e. arrays */
-typedef png_byte        FAR * FAR * png_bytepp;
-typedef png_uint_32     FAR * FAR * png_uint_32pp;
-typedef png_int_32      FAR * FAR * png_int_32pp;
-typedef png_uint_16     FAR * FAR * png_uint_16pp;
-typedef png_int_16      FAR * FAR * png_int_16pp;
-typedef PNG_CONST char  FAR * FAR * png_const_charpp;
-typedef char            FAR * FAR * png_charpp;
-typedef png_fixed_point FAR * FAR * png_fixed_point_pp;
+typedef uint8           * * png_bytepp;
+typedef uint32          * * png_uint_32pp;
+typedef int32           * * png_int_32pp;
+typedef uint16          * * png_uint_16pp;
+typedef int16           * * png_int_16pp;
+typedef PNG_CONST char  * * png_const_charpp;
+typedef char            * * png_charpp;
+typedef png_fixed_point * * png_fixed_point_pp;
 #ifdef PNG_FLOATING_POINT_SUPPORTED
-typedef double          FAR * FAR * png_doublepp;
+typedef double          * * png_doublepp;
 #endif
 
 /* Pointers to pointers to pointers; i.e., pointer to array */
-typedef char            FAR * FAR * FAR * png_charppp;
+typedef char            * * * png_charppp;
 
 #if defined(PNG_1_0_X) || defined(PNG_1_2_X)
 /* SPC -  Is this stuff deprecated? */
@@ -1219,8 +1208,8 @@ typedef char            FAR * FAR * FAR * png_charppp;
  * Eliminates need to change all the source files.
  */
 typedef charf *         png_zcharp;
-typedef charf * FAR *   png_zcharpp;
-typedef z_stream FAR *  png_zstreamp;
+typedef charf * *   png_zcharpp;
+typedef z_stream *  png_zstreamp;
 #endif /* (PNG_1_0_X) || defined(PNG_1_2_X) */
 
 /*

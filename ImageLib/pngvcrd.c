@@ -142,7 +142,7 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
             int s_inc, s_start, s_end;
             int m;
             int shift;
-            png_uint_32 i;
+            uint32 i;
 
             sp = png_ptr->row_buf + 1;
             dp = row;
@@ -171,8 +171,8 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
                   int value;
 
                   value = (*sp >> shift) & 0x1;
-                  *dp &= (png_byte)((0x7f7f >> (7 - shift)) & 0xff);
-                  *dp |= (png_byte)(value << shift);
+                  *dp &= (uint8)((0x7f7f >> (7 - shift)) & 0xff);
+                  *dp |= (uint8)(value << shift);
                }
 
                if (shift == s_end)
@@ -199,7 +199,7 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
             int s_start, s_end, s_inc;
             int m;
             int shift;
-            png_uint_32 i;
+            uint32 i;
             int value;
 
             sp = png_ptr->row_buf + 1;
@@ -227,8 +227,8 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
                if (m & mask)
                {
                   value = (*sp >> shift) & 0x3;
-                  *dp &= (png_byte)((0x3f3f >> (6 - shift)) & 0xff);
-                  *dp |= (png_byte)(value << shift);
+                  *dp &= (uint8)((0x3f3f >> (6 - shift)) & 0xff);
+                  *dp |= (uint8)(value << shift);
                }
 
                if (shift == s_end)
@@ -254,7 +254,7 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
             int s_start, s_end, s_inc;
             int m;
             int shift;
-            png_uint_32 i;
+            uint32 i;
             int value;
 
             sp = png_ptr->row_buf + 1;
@@ -281,8 +281,8 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
                if (m & mask)
                {
                   value = (*sp >> shift) & 0xf;
-                  *dp &= (png_byte)((0xf0f >> (4 - shift)) & 0xff);
-                  *dp |= (png_byte)(value << shift);
+                  *dp &= (uint8)((0xf0f >> (4 - shift)) & 0xff);
+                  *dp |= (uint8)(value << shift);
                }
 
                if (shift == s_end)
@@ -305,7 +305,7 @@ png_combine_row(png_structp png_ptr, png_bytep row, int mask)
          {
             png_bytep srcptr;
             png_bytep dstptr;
-            png_uint_32 len;
+            uint32 len;
             int m;
             int diff, unmask;
 
@@ -385,7 +385,7 @@ end8:
             {
                register uint32 incr1, initial_val, final_val;
                png_size_t pixel_bytes;
-               png_uint_32 i;
+               uint32 i;
                register int disp = png_pass_inc[png_ptr->pass];
                int offset_table[7] = {0, 4, 0, 2, 0, 1, 0};
 
@@ -411,7 +411,7 @@ end8:
          {
             png_bytep srcptr;
             png_bytep dstptr;
-            png_uint_32 len;
+            uint32 len;
             int unmask, diff;
             __int64 mask1=0x0101020204040808,
                     mask0=0x1010202040408080;
@@ -501,7 +501,7 @@ end16:
             {
                register uint32 incr1, initial_val, final_val;
                png_size_t pixel_bytes;
-               png_uint_32 i;
+               uint32 i;
                register int disp = png_pass_inc[png_ptr->pass];
                int offset_table[7] = {0, 4, 0, 2, 0, 1, 0};
 
@@ -527,7 +527,7 @@ end16:
          {
             png_bytep srcptr;
             png_bytep dstptr;
-            png_uint_32 len;
+            uint32 len;
             int unmask, diff;
 
             __int64 mask2=0x0101010202020404,  //24bpp
@@ -636,7 +636,7 @@ end24:
             {
                register uint32 incr1, initial_val, final_val;
                png_size_t pixel_bytes;
-               png_uint_32 i;
+               uint32 i;
                register int disp = png_pass_inc[png_ptr->pass];
                int offset_table[7] = {0, 4, 0, 2, 0, 1, 0};
 
@@ -662,7 +662,7 @@ end24:
          {
             png_bytep srcptr;
             png_bytep dstptr;
-            png_uint_32 len;
+            uint32 len;
             int unmask, diff;
 
             __int64 mask3=0x0101010102020202,  //32bpp
@@ -780,7 +780,7 @@ end32:
             {
                register uint32 incr1, initial_val, final_val;
                png_size_t pixel_bytes;
-               png_uint_32 i;
+               uint32 i;
                register int disp = png_pass_inc[png_ptr->pass];
                int offset_table[7] = {0, 4, 0, 2, 0, 1, 0};
 
@@ -806,7 +806,7 @@ end32:
          {
             png_bytep srcptr;
             png_bytep dstptr;
-            png_uint_32 len;
+            uint32 len;
             int unmask, diff;
 
             __int64 mask5=0x0101010101010202,
@@ -942,7 +942,7 @@ end48:
             {
                register uint32 incr1, initial_val, final_val;
                png_size_t pixel_bytes;
-               png_uint_32 i;
+               uint32 i;
                register int disp = png_pass_inc[png_ptr->pass];
                int offset_table[7] = {0, 4, 0, 2, 0, 1, 0};
 
@@ -1003,7 +1003,7 @@ png_do_read_interlace(png_structp png_ptr)
    png_row_infop row_info = &(png_ptr->row_info);
    png_bytep row = png_ptr->row_buf + 1;
    int pass = png_ptr->pass;
-   png_uint_32 transformations = png_ptr->transformations;
+   uint32 transformations = png_ptr->transformations;
 #ifdef PNG_USE_LOCAL_ARRAYS
    const int png_pass_inc[7] = {8, 8, 4, 4, 2, 2, 1};
 #endif
@@ -1020,7 +1020,7 @@ png_do_read_interlace(png_structp png_ptr)
 
    if (row != NULL && row_info != NULL)
    {
-      png_uint_32 final_width;
+      uint32 final_width;
 
       final_width = row_info->width * png_pass_inc[pass];
 
@@ -1031,8 +1031,8 @@ png_do_read_interlace(png_structp png_ptr)
             png_bytep sp, dp;
             int sshift, dshift;
             int s_start, s_end, s_inc;
-            png_byte v;
-            png_uint_32 i;
+            uint8 v;
+            uint32 i;
             int j;
 
             sp = row + (png_size_t)((row_info->width - 1) >> 3);
@@ -1058,11 +1058,11 @@ png_do_read_interlace(png_structp png_ptr)
 
             for (i = row_info->width; i; i--)
             {
-               v = (png_byte)((*sp >> sshift) & 0x1);
+               v = (uint8)((*sp >> sshift) & 0x1);
                for (j = 0; j < png_pass_inc[pass]; j++)
                {
-                  *dp &= (png_byte)((0x7f7f >> (7 - dshift)) & 0xff);
-                  *dp |= (png_byte)(v << dshift);
+                  *dp &= (uint8)((0x7f7f >> (7 - dshift)) & 0xff);
+                  *dp |= (uint8)(v << dshift);
                   if (dshift == s_end)
                   {
                      dshift = s_start;
@@ -1087,7 +1087,7 @@ png_do_read_interlace(png_structp png_ptr)
             png_bytep sp, dp;
             int sshift, dshift;
             int s_start, s_end, s_inc;
-            png_uint_32 i;
+            uint32 i;
 
             sp = row + (png_size_t)((row_info->width - 1) >> 2);
             dp = row + (png_size_t)((final_width - 1) >> 2);
@@ -1112,14 +1112,14 @@ png_do_read_interlace(png_structp png_ptr)
 
             for (i = row_info->width; i; i--)
             {
-               png_byte v;
+               uint8 v;
                int j;
 
-               v = (png_byte)((*sp >> sshift) & 0x3);
+               v = (uint8)((*sp >> sshift) & 0x3);
                for (j = 0; j < png_pass_inc[pass]; j++)
                {
-                  *dp &= (png_byte)((0x3f3f >> (6 - dshift)) & 0xff);
-                  *dp |= (png_byte)(v << dshift);
+                  *dp &= (uint8)((0x3f3f >> (6 - dshift)) & 0xff);
+                  *dp |= (uint8)(v << dshift);
                   if (dshift == s_end)
                   {
                      dshift = s_start;
@@ -1144,7 +1144,7 @@ png_do_read_interlace(png_structp png_ptr)
             png_bytep sp, dp;
             int sshift, dshift;
             int s_start, s_end, s_inc;
-            png_uint_32 i;
+            uint32 i;
 
             sp = row + (png_size_t)((row_info->width - 1) >> 1);
             dp = row + (png_size_t)((final_width - 1) >> 1);
@@ -1169,14 +1169,14 @@ png_do_read_interlace(png_structp png_ptr)
 
             for (i = row_info->width; i; i--)
             {
-               png_byte v;
+               uint8 v;
                int j;
 
-               v = (png_byte)((*sp >> sshift) & 0xf);
+               v = (uint8)((*sp >> sshift) & 0xf);
                for (j = 0; j < png_pass_inc[pass]; j++)
                {
-                  *dp &= (png_byte)((0xf0f >> (4 - dshift)) & 0xff);
-                  *dp |= (png_byte)(v << dshift);
+                  *dp &= (uint8)((0xf0f >> (4 - dshift)) & 0xff);
+                  *dp |= (uint8)(v << dshift);
                   if (dshift == s_end)
                   {
                      dshift = s_start;
@@ -1202,7 +1202,7 @@ png_do_read_interlace(png_structp png_ptr)
             // __int64 const5 = 0x000000FFFFFF0000;  // unused...
             __int64 const6 = 0x00000000000000FF;
             png_bytep sptr, dp;
-            png_uint_32 i;
+            uint32 i;
             png_size_t pixel_bytes;
             int width = row_info->width;
 
@@ -1329,7 +1329,7 @@ loop_pass4:
                      dp -= width_mmx*6;
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
 
                         png_memcpy(v, sptr, 3);
@@ -1395,7 +1395,7 @@ loop1_pass0:
                         *
                         * Original code:
                         *
-                        * png_byte v[8];
+                        * uint8 v[8];
                         * png_memcpy(v, sptr, pixel_bytes);
                         * for (j = 0; j < png_pass_inc[pass]; j++)
                         * {
@@ -1536,7 +1536,7 @@ loop2_pass0:
                      dp -= (width_mmx*16 - 2);            // sign fixed
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
                         sptr -= 2;
                         png_memcpy(v, sptr, 2);
@@ -1581,7 +1581,7 @@ loop2_pass2:
                      dp -= (width_mmx*8 - 2);            // sign fixed
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
                         sptr -= 2;
                         png_memcpy(v, sptr, 2);
@@ -1621,7 +1621,7 @@ loop2_pass4:
                      dp -= (width_mmx*4 - 2);            // sign fixed
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
                         sptr -= 2;
                         png_memcpy(v, sptr, 2);
@@ -1674,7 +1674,7 @@ loop4_pass0:
                      dp -= (width_mmx*32 - 4);            // sign fixed
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
                         sptr -= 4;
                         png_memcpy(v, sptr, 4);
@@ -1719,7 +1719,7 @@ loop4_pass2:
                      dp -= (width_mmx*16 - 4);            // sign fixed
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
                         sptr -= 4;
                         png_memcpy(v, sptr, 4);
@@ -1762,7 +1762,7 @@ loop4_pass4:
                      dp -= (width_mmx*8 - 4);            // sign fixed
                      for (i = width; i; i--)
                      {
-                        png_byte v[8];
+                        uint8 v[8];
                         int j;
                         sptr -= 4;
                         png_memcpy(v, sptr, 4);
@@ -1780,7 +1780,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, 6);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1796,7 +1796,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, pixel_bytes);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1826,7 +1826,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, pixel_bytes);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1841,7 +1841,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, pixel_bytes);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1856,7 +1856,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, pixel_bytes);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1871,7 +1871,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, pixel_bytes);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1886,7 +1886,7 @@ loop4_pass4:
                {
                   for (i = width; i; i--)
                   {
-                     png_byte v[8];
+                     uint8 v[8];
                      int j;
                      png_memcpy(v, sptr, pixel_bytes);
                      for (j = 0; j < png_pass_inc[pass]; j++)
@@ -1930,9 +1930,9 @@ png_read_filter_row_mmx_avg(png_row_infop row_info, png_bytep row
                             , png_bytep prev_row)
 {
    int bpp;
-   png_uint_32 FullLength;
-   png_uint_32 MMXLength;
-   //png_uint_32 len;
+   uint32 FullLength;
+   uint32 MMXLength;
+   //uint32 len;
    int diff;
 
    bpp = (row_info->pixel_depth + 7) >> 3; // Get # bytes per pixel
@@ -2362,9 +2362,9 @@ void /* PRIVATE */
 png_read_filter_row_mmx_paeth(png_row_infop row_info, png_bytep row,
                               png_bytep prev_row)
 {
-   png_uint_32 FullLength;
-   png_uint_32 MMXLength;
-   //png_uint_32 len;
+   uint32 FullLength;
+   uint32 MMXLength;
+   //uint32 len;
    int bpp;
    int diff;
    //int ptemp;
@@ -3259,8 +3259,8 @@ png_read_filter_row_mmx_sub(png_row_infop row_info, png_bytep row)
 {
    //int test;
    int bpp;
-   png_uint_32 FullLength;
-   png_uint_32 MMXLength;
+   uint32 FullLength;
+   uint32 MMXLength;
    int diff;
 
    bpp = (row_info->pixel_depth + 7) >> 3; // Get # bytes per pixel
@@ -3347,12 +3347,12 @@ dsub3lp:
          //
          //         png_bytep rp;
          //         png_bytep lp;
-         //         png_uint_32 i;
+         //         uint32 i;
          //         bpp = (row_info->pixel_depth + 7) >> 3;
-         //         for (i = (png_uint_32)bpp, rp = row + bpp, lp = row;
+         //         for (i = (uint32)bpp, rp = row + bpp, lp = row;
          //            i < row_info->rowbytes; i++, rp++, lp++)
          //      {
-         //            *rp = (png_byte)(((int)(*rp) + (int)(*lp)) & 0xff);
+         //            *rp = (uint8)(((int)(*rp) + (int)(*lp)) & 0xff);
          //      }
          _asm {
             mov ebx, diff
@@ -3562,7 +3562,7 @@ void /* PRIVATE */
 png_read_filter_row_mmx_up(png_row_infop row_info, png_bytep row,
    png_bytep prev_row)
 {
-   png_uint_32 len;
+   uint32 len;
    len  = row_info->rowbytes;       // # of bytes to filter
    _asm {
       mov edi, row
@@ -3746,15 +3746,15 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
          }
          else
          {
-            png_uint_32 i;
-            png_uint_32 istop = row_info->rowbytes;
-            png_uint_32 bpp = (row_info->pixel_depth + 7) >> 3;
+            uint32 i;
+            uint32 istop = row_info->rowbytes;
+            uint32 bpp = (row_info->pixel_depth + 7) >> 3;
             png_bytep rp = row + bpp;
             png_bytep lp = row;
 
             for (i = bpp; i < istop; i++)
             {
-               *rp = (png_byte)(((int)(*rp) + (int)(*lp++)) & 0xff);
+               *rp = (uint8)(((int)(*rp) + (int)(*lp++)) & 0xff);
                rp++;
             }
          }
@@ -3775,14 +3775,14 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
          }
          else
          {
-            png_uint_32 i;
-            png_uint_32 istop = row_info->rowbytes;
+            uint32 i;
+            uint32 istop = row_info->rowbytes;
             png_bytep rp = row;
             png_bytep pp = prev_row;
 
             for (i = 0; i < istop; ++i)
             {
-               *rp = (png_byte)(((int)(*rp) + (int)(*pp++)) & 0xff);
+               *rp = (uint8)(((int)(*rp) + (int)(*pp++)) & 0xff);
                rp++;
             }
          }
@@ -3803,23 +3803,23 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
          }
          else
          {
-            png_uint_32 i;
+            uint32 i;
             png_bytep rp = row;
             png_bytep pp = prev_row;
             png_bytep lp = row;
-            png_uint_32 bpp = (row_info->pixel_depth + 7) >> 3;
-            png_uint_32 istop = row_info->rowbytes - bpp;
+            uint32 bpp = (row_info->pixel_depth + 7) >> 3;
+            uint32 istop = row_info->rowbytes - bpp;
 
             for (i = 0; i < bpp; i++)
             {
-               *rp = (png_byte)(((int)(*rp) +
+               *rp = (uint8)(((int)(*rp) +
                   ((int)(*pp++) >> 1)) & 0xff);
                rp++;
             }
 
             for (i = 0; i < istop; i++)
             {
-               *rp = (png_byte)(((int)(*rp) +
+               *rp = (uint8)(((int)(*rp) +
                   ((int)(*pp++ + *lp++) >> 1)) & 0xff);
                rp++;
             }
@@ -3841,17 +3841,17 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
          }
          else
          {
-            png_uint_32 i;
+            uint32 i;
             png_bytep rp = row;
             png_bytep pp = prev_row;
             png_bytep lp = row;
             png_bytep cp = prev_row;
-            png_uint_32 bpp = (row_info->pixel_depth + 7) >> 3;
-            png_uint_32 istop=row_info->rowbytes - bpp;
+            uint32 bpp = (row_info->pixel_depth + 7) >> 3;
+            uint32 istop=row_info->rowbytes - bpp;
 
             for (i = 0; i < bpp; i++)
             {
-               *rp = (png_byte)(((int)(*rp) + (int)(*pp++)) & 0xff);
+               *rp = (uint8)(((int)(*rp) + (int)(*pp++)) & 0xff);
                rp++;
             }
 
@@ -3887,7 +3887,7 @@ png_read_filter_row(png_structp png_ptr, png_row_infop row_info, png_bytep
 
                p = (pa <= pb && pa <=pc) ? a : (pb <= pc) ? b : c;
 
-               *rp = (png_byte)(((int)(*rp) + p) & 0xff);
+               *rp = (uint8)(((int)(*rp) + p) & 0xff);
                rp++;
             }
          }

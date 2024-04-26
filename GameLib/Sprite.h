@@ -28,7 +28,7 @@ along with Codaphela GameLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CSprite : public CGameObject
 {
-BASE_FUNCTIONS(CSprite);
+CONSTRUCTABLE(CSprite);
 public:
 	SFloat2 					msPosition;
 	SFloat2 					msVelocity;

@@ -33,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-long FAR PASCAL WindowProcCB(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+long PASCAL WindowProcCB(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CWin32Window*		pcWindow;
 

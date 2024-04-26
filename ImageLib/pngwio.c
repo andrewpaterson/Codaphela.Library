@@ -43,14 +43,14 @@ png_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 void PNGAPI
 png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   png_uint_32 check;
+   uint32 check;
 
    if(png_ptr == NULL) return;
 #if defined(_WIN32_WCE)
    if ( !WriteFile((HANDLE)(png_ptr->io_ptr), data, length, &check, NULL) )
       check = 0;
 #else
-   check = (png_uint_32)fwrite(data, 1, length, (png_FILE_p)(png_ptr->io_ptr));
+   check = (uint32)fwrite(data, 1, length, (png_FILE_p)(png_ptr->io_ptr));
 #endif
    if (check != length)
       png_error(png_ptr, "Write Error");
@@ -67,13 +67,13 @@ png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 void PNGAPI
 png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-   png_uint_32 check;
-   png_byte *near_data;  /* Needs to be "png_byte *" instead of "png_bytep" */
+   uint32 check;
+   uint8 *near_data;  /* Needs to be "uint8 *" instead of "png_bytep" */
    png_FILE_p io_ptr;
 
    if(png_ptr == NULL) return;
    /* Check if data really is near. If so, use usual code. */
-   near_data = (png_byte *)CVT_PTR_NOCHECK(data);
+   near_data = (uint8 *)CVT_PTR_NOCHECK(data);
    io_ptr = (png_FILE_p)CVT_PTR(png_ptr->io_ptr);
    if ((png_bytep)near_data == data)
    {
@@ -86,7 +86,7 @@ png_default_write_data(png_structp png_ptr, png_bytep data, png_size_t length)
    }
    else
    {
-      png_byte buf[NEAR_BUF_SIZE];
+      uint8 buf[NEAR_BUF_SIZE];
       png_size_t written, remaining, err;
       check = 0;
       remaining = length;
@@ -209,9 +209,9 @@ png_set_write_fn(png_structp png_ptr, png_voidp io_ptr,
 void *png_far_to_near(png_structp png_ptr,png_voidp ptr, int check)
 {
    void *near_ptr;
-   void FAR *far_ptr;
+   void *far_ptr;
    FP_OFF(near_ptr) = FP_OFF(ptr);
-   far_ptr = (void FAR *)near_ptr;
+   far_ptr = (void *)near_ptr;
    if(check != 0)
       if(FP_SEG(ptr) != FP_SEG(far_ptr))
          png_error(png_ptr,"segment lost in conversion");
@@ -221,9 +221,9 @@ void *png_far_to_near(png_structp png_ptr,png_voidp ptr, int check)
 void *png_far_to_near(png_structp png_ptr,png_voidp ptr, int check)
 {
    void *near_ptr;
-   void FAR *far_ptr;
-   near_ptr = (void FAR *)ptr;
-   far_ptr = (void FAR *)near_ptr;
+   void *far_ptr;
+   near_ptr = (void *)ptr;
+   far_ptr = (void *)near_ptr;
    if(check != 0)
       if(far_ptr != ptr)
          png_error(png_ptr,"segment lost in conversion");

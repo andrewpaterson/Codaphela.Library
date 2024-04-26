@@ -53,7 +53,7 @@ png_create_struct_2(int type, png_malloc_ptr malloc_fn, png_voidp mem_ptr)
       png_struct dummy_struct;
       png_structp png_ptr = &dummy_struct;
       png_ptr->mem_ptr=mem_ptr;
-      struct_ptr = (*(malloc_fn))(png_ptr, (png_uint_32)size);
+      struct_ptr = (*(malloc_fn))(png_ptr, (uint32)size);
    }
    else
 #endif /* PNG_USER_MEM_SUPPORTED */
@@ -114,7 +114,7 @@ png_destroy_struct_2(png_voidp struct_ptr, png_free_ptr free_fn,
  */
 
 png_voidp PNGAPI
-png_malloc(png_structp png_ptr, png_uint_32 size)
+png_malloc(png_structp png_ptr, uint32 size)
 {
    png_voidp ret;
 
@@ -132,7 +132,7 @@ png_malloc(png_structp png_ptr, png_uint_32 size)
 }
 
 png_voidp PNGAPI
-png_malloc_default(png_structp png_ptr, png_uint_32 size)
+png_malloc_default(png_structp png_ptr, uint32 size)
 {
    png_voidp ret;
 #endif /* PNG_USER_MEM_SUPPORTED */
@@ -141,7 +141,7 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
       return (NULL);
 
 #ifdef PNG_MAX_MALLOC_64K
-   if (size > (png_uint_32)65536L)
+   if (size > (uint32)65536L)
    {
       png_warning(png_ptr, "Cannot Allocate > 64K");
       ret = NULL;
@@ -151,7 +151,7 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
 
    if (size != (size_t)size)
      ret = NULL;
-   else if (size == (png_uint_32)65536L)
+   else if (size == (uint32)65536L)
    {
       if (png_ptr->offset_table == NULL)
       {
@@ -160,10 +160,10 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
          if (ret == NULL || ((png_size_t)ret & 0xffff))
          {
             int num_blocks;
-            png_uint_32 total_size;
+            uint32 total_size;
             png_bytep table;
             int i;
-            png_byte huge * hptr;
+            uint8 huge * hptr;
 
             if (ret != NULL)
             {
@@ -180,7 +180,7 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
             else
                num_blocks++;
 
-            total_size = ((png_uint_32)65536L) * (png_uint_32)num_blocks+16;
+            total_size = ((uint32)65536L) * (uint32)num_blocks+16;
 
             table = farmalloc(total_size);
 
@@ -223,16 +223,16 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
                return (NULL);
             }
 
-            hptr = (png_byte huge *)table;
+            hptr = (uint8 huge *)table;
             if ((png_size_t)hptr & 0xf)
             {
-               hptr = (png_byte huge *)((long)(hptr) & 0xfffffff0L);
+               hptr = (uint8 huge *)((long)(hptr) & 0xfffffff0L);
                hptr = hptr + 16L;  /* "hptr += 16L" fails on Turbo C++ 3.0 */
             }
             for (i = 0; i < num_blocks; i++)
             {
                png_ptr->offset_table_ptr[i] = (png_bytep)hptr;
-               hptr = hptr + (png_uint_32)65536L;  /* "+=" fails on TC++3.0 */
+               hptr = hptr + (uint32)65536L;  /* "+=" fails on TC++3.0 */
             }
 
             png_ptr->offset_table_number = num_blocks;
@@ -426,7 +426,7 @@ png_destroy_struct_2(png_voidp struct_ptr, png_free_ptr free_fn,
    have the ability to do that. */
 
 png_voidp PNGAPI
-png_malloc(png_structp png_ptr, png_uint_32 size)
+png_malloc(png_structp png_ptr, uint32 size)
 {
    png_voidp ret;
 
@@ -444,7 +444,7 @@ png_malloc(png_structp png_ptr, png_uint_32 size)
 }
 
 png_voidp PNGAPI
-png_malloc_default(png_structp png_ptr, png_uint_32 size)
+png_malloc_default(png_structp png_ptr, uint32 size)
 {
    png_voidp ret;
 #endif /* PNG_USER_MEM_SUPPORTED */
@@ -453,7 +453,7 @@ png_malloc_default(png_structp png_ptr, png_uint_32 size)
       return (NULL);
 
 #ifdef PNG_MAX_MALLOC_64K
-   if (size > (png_uint_32)65536L)
+   if (size > (uint32)65536L)
    {
 #ifndef PNG_USER_MEM_SUPPORTED
       if(png_ptr->flags&PNG_FLAG_MALLOC_NULL_MEM_OK) == 0)
@@ -538,10 +538,10 @@ png_free_default(png_structp png_ptr, png_voidp ptr)
  * memory.
  */
 png_voidp PNGAPI
-png_malloc_warn(png_structp png_ptr, png_uint_32 size)
+png_malloc_warn(png_structp png_ptr, uint32 size)
 {
    png_voidp ptr;
-   png_uint_32 save_flags;
+   uint32 save_flags;
    if(png_ptr == NULL) return (NULL);
 
    save_flags=png_ptr->flags;
@@ -554,12 +554,12 @@ png_malloc_warn(png_structp png_ptr, png_uint_32 size)
 
 png_voidp PNGAPI
 png_memcpy_check (png_structp png_ptr, png_voidp s1, png_voidp s2,
-   png_uint_32 length)
+   uint32 length)
 {
    png_size_t size;
 
    size = (png_size_t)length;
-   if ((png_uint_32)size != length)
+   if ((uint32)size != length)
       png_error(png_ptr,"Overflow in png_memcpy_check.");
 
    return(png_memcpy (s1, s2, size));
@@ -567,12 +567,12 @@ png_memcpy_check (png_structp png_ptr, png_voidp s1, png_voidp s2,
 
 png_voidp PNGAPI
 png_memset_check (png_structp png_ptr, png_voidp s1, int value,
-   png_uint_32 length)
+   uint32 length)
 {
    png_size_t size;
 
    size = (png_size_t)length;
-   if ((png_uint_32)size != length)
+   if ((uint32)size != length)
       png_error(png_ptr,"Overflow in png_memset_check.");
 
    return (png_memset (s1, value, size));

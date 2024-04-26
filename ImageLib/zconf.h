@@ -172,29 +172,29 @@
 #  endif
 #endif
 
-/* The following definitions for FAR are needed only for MSDOS mixed
+/* The following definitions for are needed only for MSDOS mixed
  * model programming (small or medium model with some far allocations).
  * This was tested only with MSC; for other MSDOS compilers you may have
  * to define NO_MEMCPY in zutil.h.  If you don't need the mixed model,
- * just define FAR to be empty.
+ * just define to be empty.
  */
 #ifdef SYS16BIT
 #  if defined(M_I86SM) || defined(M_I86MM)
      /* MSC small or medium model */
 #    define SMALL_MEDIUM
 #    ifdef _MSC_VER
-#      define FAR _far
+#      define _far
 #    else
-#      define FAR far
+#      define far
 #    endif
 #  endif
 #  if (defined(__SMALL__) || defined(__MEDIUM__))
      /* Turbo C small or medium model */
 #    define SMALL_MEDIUM
 #    ifdef __BORLANDC__
-#      define FAR _far
+#      define _far
 #    else
-#      define FAR far
+#      define far
 #    endif
 #  endif
 #endif
@@ -217,8 +217,8 @@
     * Caution: the standard ZLIB1.DLL is NOT compiled using ZLIB_WINAPI.
     */
 #  ifdef ZLIB_WINAPI
-#    ifdef FAR
-#      undef FAR
+#    ifdef
+#      undef
 #    endif
 #    include <windows.h>
      /* No need for _export, use ZLIB.DEF instead. */
@@ -227,7 +227,7 @@
 #    ifdef WIN32
 #      define ZEXPORTVA WINAPIV
 #    else
-#      define ZEXPORTVA FAR CDECL
+#      define ZEXPORTVA CDECL
 #    endif
 #  endif
 #endif
@@ -254,32 +254,28 @@
 #  define ZEXPORTVA
 #endif
 
-#ifndef FAR
-#  define FAR
-#endif
-
 #if !defined(__MACTYPES__)
 typedef uint8  Byte;  /* 8 bits */
 #endif
 
 #ifdef SMALL_MEDIUM
-   /* Borland C/C++ and some old MSC versions ignore FAR inside typedef */
-#  define Bytef Byte FAR
+   /* Borland C/C++ and some old MSC versions ignore inside typedef */
+#  define Bytef Byte
 #else
-   typedef Byte  FAR Bytef;
+   typedef Byte  Bytef;
 #endif
-typedef char  FAR charf;
-typedef int   FAR intf;
-typedef uint32  FAR uIntf;
-typedef uint32 FAR uLongf;
+typedef char  charf;
+typedef int   intf;
+typedef uint32  uIntf;
+typedef uint32 uLongf;
 
 #ifdef STDC
    typedef void const *voidpc;
-   typedef void FAR   *voidpf;
+   typedef void   *voidpf;
    typedef void       *voidp;
 #else
    typedef Byte const *voidpc;
-   typedef Byte FAR   *voidpf;
+   typedef Byte   *voidpf;
    typedef Byte       *voidp;
 #endif
 
@@ -306,8 +302,8 @@ typedef uint32 FAR uLongf;
 
 #if defined(__MVS__)
 #  define NO_vsnprintf
-#  ifdef FAR
-#    undef FAR
+#  ifdef
+#    undef
 #  endif
 #endif
 
