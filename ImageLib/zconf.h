@@ -48,14 +48,14 @@
 #  define free_func             z_free_func
 #  define in_func               z_in_func
 #  define out_func              z_out_func
-#  define Byte                  z_Byte
+#  define uint8                  z_Byte
 #  define uint32                  z_uInt
 #  define uint32                 z_uLong
-#  define Bytef                 z_Bytef
-#  define charf                 z_charf
-#  define intf                  z_intf
-#  define uIntf                 z_uIntf
-#  define uLongf                z_uLongf
+#  define uint8                 z_Bytef
+#  define int8                 z_charf
+#  define int32                  z_intf
+#  define uint32                 z_uIntf
+#  define uint32                z_uLongf
 #  define voidpf                z_voidpf
 #  define voidp                 z_voidp
 #endif
@@ -254,29 +254,15 @@
 #  define ZEXPORTVA
 #endif
 
-#if !defined(__MACTYPES__)
-typedef uint8  Byte;  /* 8 bits */
-#endif
-
-#ifdef SMALL_MEDIUM
-   /* Borland C/C++ and some old MSC versions ignore inside typedef */
-#  define Bytef Byte
-#else
-   typedef Byte  Bytef;
-#endif
-typedef char  charf;
-typedef int   intf;
-typedef uint32  uIntf;
-typedef uint32 uLongf;
 
 #ifdef STDC
    typedef void const *voidpc;
    typedef void   *voidpf;
    typedef void       *voidp;
 #else
-   typedef Byte const *voidpc;
-   typedef Byte   *voidpf;
-   typedef Byte       *voidp;
+   typedef uint8 const *voidpc;
+   typedef uint8   *voidpf;
+   typedef uint8       *voidp;
 #endif
 
 #if 0           /* HAVE_UNISTD_H -- this line is updated by ./configure */

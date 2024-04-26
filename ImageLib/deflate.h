@@ -94,14 +94,14 @@ typedef unsigned IPos;
 typedef struct internal_state {
     z_streamp strm;      /* pointer back to this zlib stream */
     int   status;        /* as the name implies */
-    Bytef *pending_buf;  /* output still pending */
+    uint8 *pending_buf;  /* output still pending */
     ulg   pending_buf_size; /* size of pending_buf */
-    Bytef *pending_out;  /* next pending byte to output to the stream */
+    uint8 *pending_out;  /* next pending byte to output to the stream */
     uint32   pending;      /* nb of bytes in the pending buffer */
     int   wrap;          /* bit 0 true for zlib, bit 1 true for gzip */
     gz_headerp  gzhead;  /* gzip header information to write */
     uint32   gzindex;      /* where in extra, name, or comment */
-    Byte  method;        /* STORED (for zip only) or DEFLATED */
+    uint8  method;        /* STORED (for zip only) or DEFLATED */
     int   last_flush;    /* value of flush param for previous deflate call */
 
                 /* used by deflate.c: */
@@ -110,7 +110,7 @@ typedef struct internal_state {
     uint32  w_bits;        /* log2(w_size)  (8..16) */
     uint32  w_mask;        /* w_size - 1 */
 
-    Bytef *window;
+    uint8 *window;
     /* Sliding window. Input bytes are read into the second half of the window,
      * and move to the first half later to keep a dictionary of at least wSize
      * bytes. With this organization, matches are limited to a distance of
@@ -281,10 +281,10 @@ typedef struct internal_state {
         /* in trees.c */
 void _tr_init         OF((deflate_state *s));
 int  _tr_tally        OF((deflate_state *s, unsigned dist, unsigned lc));
-void _tr_flush_block  OF((deflate_state *s, charf *buf, ulg stored_len,
+void _tr_flush_block  OF((deflate_state *s, int8 *buf, ulg stored_len,
                           int eof));
 void _tr_align        OF((deflate_state *s));
-void _tr_stored_block OF((deflate_state *s, charf *buf, ulg stored_len,
+void _tr_stored_block OF((deflate_state *s, int8 *buf, ulg stored_len,
                           int eof));
 
 #define d_code(dist) \

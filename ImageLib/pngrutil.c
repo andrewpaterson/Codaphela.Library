@@ -2872,7 +2872,7 @@ png_read_finish_row(png_structp png_ptr)
       char extra;
       int ret;
 
-      png_ptr->zstream.next_out = (Byte *)&extra;
+      png_ptr->zstream.next_out = (uint8 *)&extra;
       png_ptr->zstream.avail_out = (uint32)1;
       for(;;)
       {

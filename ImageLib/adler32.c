@@ -56,7 +56,7 @@
 /* ========================================================================= */
 uint32 ZEXPORT adler32(adler, buf, len)
     uint32 adler;
-    const Bytef *buf;
+    const uint8 *buf;
     uint32 len;
 {
     uint32 sum2;
