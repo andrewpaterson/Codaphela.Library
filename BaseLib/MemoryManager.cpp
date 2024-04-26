@@ -67,6 +67,32 @@ void SetUnusedMMNodeDataSize(SMMNode* psNode, uint32 uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+SMMNode* GetNodeForData(void* pvData)
+{
+	SMMNode*	psNode;
+
+	psNode = (SMMNode*)RemapSinglePointer(pvData, -(ptrdiff_t)(MM_NODE_HEADER_SIZE));
+	return psNode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void MarkNodeRemoved(SMMNode* psNode)
+{
+	psNode->psNext = NULL;
+	psNode->psPrev = NULL;
+	psNode->uiFlags = 0xff;
+	psNode->uiSize = 0xffff;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void* CMemoryManager::Allocate(uint32 uiSize)
 {
 	SMMNode*	psNode;
@@ -149,5 +175,88 @@ void* CMemoryManager::AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnuse
 	uiUnusedNodeSize = (size_t)psNewUnusedNode->psNext - (size_t)psNewUnusedNode;
 	SetUnusedMMNodeDataSize(psNewUnusedNode, uiUnusedNodeSize);
 	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryManager::Deallocate(void* pvData)
+{
+	SMMNode*	psNode;
+	SMMNode*	psPrev;
+	SMMNode*	psNext;
+	uint32		uiUnusedNodeSize;
+
+	if (pvData == NULL)
+	{
+		return;
+	}
+
+	psNode = GetNodeForData(pvData);
+	psNode->uiFlags &= (~MM_NODE_USED);
+	psNext = (SMMNode*)psNode->psNext;
+	if (psNext == NULL)
+	{
+		while ((psNode->uiFlags & MM_NODE_USED) == 0)
+		{
+			psPrev = (SMMNode*)psNode->psPrev;
+			mcLinkedList.Remove(psNode);
+			MarkNodeRemoved(psNode);
+			if (psPrev == NULL)
+			{
+				return;
+			}
+			psNode = psPrev;
+		}
+		return;
+	}
+
+	if ((psNext->uiFlags & MM_NODE_USED) == 0)
+	{
+		while ((psNext->uiFlags & MM_NODE_USED) == 0)
+		{
+			psNode = psNext;
+			psNext = (SMMNode*)psNode->psNext;
+			mcLinkedList.Remove(psNode);
+			MarkNodeRemoved(psNode);
+		}
+		psNode = (SMMNode*)psNext->psPrev;
+	}
+
+	psPrev = (SMMNode*)psNode->psPrev;
+	while (psPrev && ((psPrev->uiFlags & MM_NODE_USED) == 0))
+	{
+		psPrev = (SMMNode*)psNode->psPrev;
+		if (psPrev)
+		{
+			mcLinkedList.Remove(psNode);
+			MarkNodeRemoved(psNode);
+			psNode = psPrev;
+		}
+	}
+	uiUnusedNodeSize = (size_t)psNode->psNext - (size_t)psNode;
+	SetUnusedMMNodeDataSize(psNode, uiUnusedNodeSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMMNode* CMemoryManager::StartIteration(void)
+{
+	return (SMMNode*)mcLinkedList.GetHead();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SMMNode* CMemoryManager::Iterate(SMMNode* psNode)
+{
+	return (SMMNode*)psNode->psNext;
 }
 
