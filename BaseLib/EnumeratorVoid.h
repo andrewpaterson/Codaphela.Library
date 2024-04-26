@@ -36,5 +36,5 @@ public:
 };
 
 
-#endif // !__ENUMERATOR_VOID_H__
+#endif // __ENUMERATOR_VOID_H__
 

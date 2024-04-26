@@ -76,5 +76,5 @@ SDouble4x4* Double4x4PerspectiveFovRH(SDouble4x4* psOut, double fFovY, double fA
 bool		Double4x4Equals(SDouble4x4* ps1, SDouble4x4* ps2);
 
 
-#endif // !__DOUBLE_4_X_4_H__
+#endif // __DOUBLE_4_X_4_H__
 

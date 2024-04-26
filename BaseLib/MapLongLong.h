@@ -32,5 +32,5 @@ public:
 };
 
 
-#endif // !__MAP_LONG_LONG_H__
+#endif // __MAP_LONG_LONG_H__
 

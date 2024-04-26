@@ -43,5 +43,5 @@ public:
 typedef CArrayTemplate<CChannel>	CArrayChannelOffset;
 
 
-#endif // !__CHANNEL_H__
+#endif // __CHANNEL_H__
 

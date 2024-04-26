@@ -102,5 +102,5 @@ protected:
 };
 
 
-#endif // !__BASE_LINKED_LIST_BLOCK_H__
+#endif // __BASE_LINKED_LIST_BLOCK_H__
 

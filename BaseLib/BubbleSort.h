@@ -7,5 +7,5 @@
 void BubbleSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumElements);
 
 
-#endif // !__BUBBLE_SORT_H__
+#endif // __BUBBLE_SORT_H__
 

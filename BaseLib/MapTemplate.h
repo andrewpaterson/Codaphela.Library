@@ -103,5 +103,5 @@ bool CMapTemplate<M, D>::Remove(M* psKey)
 }
 
 
-#endif // !__MAP_TEMPLATE_H__
+#endif // __MAP_TEMPLATE_H__
 

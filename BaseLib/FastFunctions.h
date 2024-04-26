@@ -39,5 +39,5 @@ void FastFunctionsKill(void);
 void memmove_fast(void* pvDest, void* pvSource, int iByteSize);
 
 
-#endif // !__FAST_FUNCTIONS_H__
+#endif // __FAST_FUNCTIONS_H__
 

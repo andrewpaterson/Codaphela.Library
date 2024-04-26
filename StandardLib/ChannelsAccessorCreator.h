@@ -73,5 +73,5 @@ private:
 };
 
 
-#endif // !__CHANNELS_ACCESSOR_CREATOR_H__
+#endif // __CHANNELS_ACCESSOR_CREATOR_H__
 

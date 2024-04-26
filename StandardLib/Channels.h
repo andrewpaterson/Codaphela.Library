@@ -116,5 +116,5 @@ protected:
 };
 
 
-#endif // !__CHANNELS__H__
+#endif // __CHANNELS__H__
 

@@ -88,5 +88,5 @@ SDouble2* 	Double2Scale(SDouble2* pOut, const SDouble2* pV, double s);
 SDouble2* 	Double2Lerp(SDouble2* pOut, const SDouble2* pV1, const SDouble2* pV2, double s);
 
 
-#endif // !__DOUBLE_2_H__
+#endif // __DOUBLE_2_H__
 

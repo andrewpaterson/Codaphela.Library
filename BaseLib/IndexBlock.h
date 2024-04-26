@@ -67,5 +67,5 @@ protected:
 	void				DataWillBeFreed(SIndexBlockNode* psNode);
 };
 
-#endif // !__INDEX_BLOCK_H__
+#endif // __INDEX_BLOCK_H__
 

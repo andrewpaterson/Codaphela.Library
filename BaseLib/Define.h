@@ -100,5 +100,5 @@ Microsoft Windows is Copyright Microsoft Corporation
 #endif // LINUX_GNU_32
 
 
-#endif // !__DEFINE_H__
+#endif // __DEFINE_H__
 

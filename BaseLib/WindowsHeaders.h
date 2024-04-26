@@ -28,5 +28,5 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <winuser.h>
 #include <shlwapi.h>
 #endif // _WIN32
-#endif // !__WINDOWS_HEADERS_H__
+#endif // __WINDOWS_HEADERS_H__
 

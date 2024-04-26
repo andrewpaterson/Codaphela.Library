@@ -48,5 +48,5 @@ public:
 };
 
 
-#endif // !__TIMER_ALARM_H__
+#endif // __TIMER_ALARM_H__
 

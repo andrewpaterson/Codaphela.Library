@@ -27,5 +27,5 @@ protected:
 };
 
 
-#endif // !__SEQUENCE_H__
+#endif // __SEQUENCE_H__
 

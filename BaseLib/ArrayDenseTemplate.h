@@ -1154,5 +1154,5 @@ void CArrayDenseTemplate<M>::Init(void)
 }
 
 
-#endif // !__ARRAY_DENSE_TEMPLATE_H__
+#endif // __ARRAY_DENSE_TEMPLATE_H__
 

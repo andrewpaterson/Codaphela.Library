@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // !__MAP_COMMON_H__
+#endif // __MAP_COMMON_H__
 

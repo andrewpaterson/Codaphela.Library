@@ -146,5 +146,5 @@ enum EPrimitiveType
 #define SIZE_IN_BITS		0x80000000 //If GetSize returns a size with this flag set then the size is in bits, not bytes.
 
 
-#endif // !__DATA_TYPES_H__
+#endif // __DATA_TYPES_H__
 

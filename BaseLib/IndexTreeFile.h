@@ -226,5 +226,5 @@ protected:
 };
 
 
-#endif // !__INDEX_TREE_FILE_H__
+#endif // __INDEX_TREE_FILE_H__
 

@@ -159,5 +159,5 @@ M* CArrayTemplateEmbeddedPtr<M, I>::Pop(void)
 }
 
 
-#endif // !__ARRAY_TEMPLATE_EMBEDDED_POINTER_H__
+#endif // __ARRAY_TEMPLATE_EMBEDDED_POINTER_H__
 

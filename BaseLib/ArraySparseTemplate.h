@@ -535,5 +535,5 @@ void CArraySparseTemplate<M>::Init()
 }
 
 
-#endif // !__ARRAY_SPARSE_TEMPLATE_H__
+#endif // __ARRAY_SPARSE_TEMPLATE_H__
 

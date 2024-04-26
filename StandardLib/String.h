@@ -189,5 +189,5 @@ Ptr<CString> OString(Args ... args)
 }
 
 
-#endif // !__STRING_H__
+#endif // __STRING_H__
 

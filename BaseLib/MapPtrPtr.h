@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // !__MAP_PTR_PTR_H__
+#endif // __MAP_PTR_PTR_H__
 

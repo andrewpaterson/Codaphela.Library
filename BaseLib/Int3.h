@@ -28,5 +28,5 @@ public:
 };
 
 
-#endif // !__INT3_H__
+#endif // __INT3_H__
 

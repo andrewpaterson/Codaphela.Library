@@ -22,5 +22,5 @@ protected:
 };
 
 
-#endif // !__EXTERNAL_OBJECT_READER_H__
+#endif // __EXTERNAL_OBJECT_READER_H__
 

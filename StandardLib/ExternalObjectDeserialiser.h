@@ -65,5 +65,5 @@ protected:
 };
 
 
-#endif // !__EXTERNAL_OBJECT_DESERIALISER_H__
+#endif // __EXTERNAL_OBJECT_DESERIALISER_H__
 

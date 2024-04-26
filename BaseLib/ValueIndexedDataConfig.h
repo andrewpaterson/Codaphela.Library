@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // !__VALUE_INDEXED_DATA_CONFIG_H__
+#endif // __VALUE_INDEXED_DATA_CONFIG_H__
 

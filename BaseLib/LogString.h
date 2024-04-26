@@ -52,5 +52,5 @@ extern char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STR
 extern int  giLogToStringCount;
 
 
-#endif // !__LOG_TO_STRING_H__
+#endif // __LOG_TO_STRING_H__
 

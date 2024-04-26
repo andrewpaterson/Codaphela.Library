@@ -112,5 +112,5 @@ bool Failed(const char* szExpected, const char* szActual, int iLine, char* szFil
 #define AssertFileString(e, a)				Validate(PrivateAssertFileString(e, a, __LINE__, __FILE__))
 #define Fail()								Validate(Failed(__LINE__, __FILE__))
 
-#endif // !__ASSERT_FUNCTIONS_H__
+#endif // __ASSERT_FUNCTIONS_H__
 

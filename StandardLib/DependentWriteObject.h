@@ -22,5 +22,5 @@ typedef CArrayTemplate<CDependentWriteObject>	CArrayDependentWriteObject;
 
 
 
-#endif // !__DEPENDENT_WRITE_OBJECT_H__
+#endif // __DEPENDENT_WRITE_OBJECT_H__
 

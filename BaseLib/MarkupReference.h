@@ -71,5 +71,5 @@ public:
 };
 
 
-#endif // !__MARKUP_REFERENCE_H__
+#endif // __MARKUP_REFERENCE_H__
 

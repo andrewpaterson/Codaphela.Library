@@ -123,5 +123,5 @@ bool CIndexPrimitiveBlock<M>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator
 }
 
 
-#endif // !__INDEX_PRIMITIVE_BLOCK_H__
+#endif // __INDEX_PRIMITIVE_BLOCK_H__
 

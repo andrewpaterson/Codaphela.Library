@@ -36,5 +36,5 @@ bool	IsValidIndex(OIndex oi);
 char*	IndexToString(OIndex oi);
 
 
-#endif // !__INDEXED_GENERAL_H__
+#endif // __INDEXED_GENERAL_H__
 

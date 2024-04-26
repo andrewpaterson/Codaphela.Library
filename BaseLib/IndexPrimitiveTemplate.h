@@ -84,5 +84,5 @@ bool CIndexPrimitiveTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIt
 }
 
 
-#endif // !__INDEX_PRIMITIVE_TEMPLATE_H__
+#endif // __INDEX_PRIMITIVE_TEMPLATE_H__
 

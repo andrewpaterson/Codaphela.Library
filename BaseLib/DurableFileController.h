@@ -69,5 +69,5 @@ public:
 };
 
 
-#endif // !__FILE_DISTRIBUTOR_H__
+#endif // __FILE_DISTRIBUTOR_H__
 

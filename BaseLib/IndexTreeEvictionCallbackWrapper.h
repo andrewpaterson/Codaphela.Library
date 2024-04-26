@@ -16,5 +16,5 @@ public:
 };
 
 
-#endif // !__EVICTION_CALLBACK_WRAPPER_H__
+#endif // __EVICTION_CALLBACK_WRAPPER_H__
 

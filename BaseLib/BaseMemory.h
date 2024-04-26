@@ -11,5 +11,5 @@ public:
 };
 
 
-#endif // !__BASE_MEMORY_H__
+#endif // __BASE_MEMORY_H__
 

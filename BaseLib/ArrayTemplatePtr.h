@@ -159,5 +159,5 @@ M* CArrayTemplatePtr<M>::Pop(void)
 }
 
 
-#endif // !__ARRAY_TEMPLATE_POINTER_H__
+#endif // __ARRAY_TEMPLATE_POINTER_H__
 

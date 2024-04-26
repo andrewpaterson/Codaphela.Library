@@ -103,5 +103,5 @@ protected:
 };
 
 
-#endif // !__INDEX_ACCESS_H__
+#endif // __INDEX_ACCESS_H__
 

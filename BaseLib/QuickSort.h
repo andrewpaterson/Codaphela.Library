@@ -7,5 +7,5 @@
 void QuickSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumElements);
 
 
-#endif // !__QUICK_SORT_H__
+#endif // __QUICK_SORT_H__
 

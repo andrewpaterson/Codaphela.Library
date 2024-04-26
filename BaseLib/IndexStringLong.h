@@ -8,5 +8,5 @@ class CIndexStringLong : public CIndexStringPrimitive<int64>
 };
 
 
-#endif // !__INDEX_STRING_LONG_H__
+#endif // __INDEX_STRING_LONG_H__
 

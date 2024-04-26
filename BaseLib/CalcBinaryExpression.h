@@ -41,5 +41,5 @@ public:
 };
 
 
-#endif // !__CALC_BINARY_EXPRESSION_H__
+#endif // __CALC_BINARY_EXPRESSION_H__
 

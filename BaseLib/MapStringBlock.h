@@ -67,5 +67,5 @@ protected:
 };
 
 
-#endif // !__MAP_STRING_BLOCK_H__
+#endif // __MAP_STRING_BLOCK_H__
 

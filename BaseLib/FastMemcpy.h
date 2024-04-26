@@ -100,5 +100,5 @@ void memcpy_fast_63bytes(void* pvDest, void* pvSource);
 void memcpy_fast_64bytes(void* pvDest, void* pvSource);
 
 
-#endif // !__FAST_MEMCPY_H__
+#endif // __FAST_MEMCPY_H__
 

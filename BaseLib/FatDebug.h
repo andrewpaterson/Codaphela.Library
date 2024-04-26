@@ -23,5 +23,5 @@ void		DumpInterestingFATClusters(CFatVolume* pcVolume);
 void		DumpRootDirectoryEntries(CFatVolume* pcVolume, bool bPrintTime = true);
 
 
-#endif // !__FAT_DEBUG_H__
+#endif // __FAT_DEBUG_H__
 

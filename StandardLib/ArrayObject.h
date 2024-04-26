@@ -56,5 +56,5 @@ Ptr<M> CArrayObject::Get(int iIndex)
 }
 
 
-#endif // !__ARRAY_OBJECT_H__
+#endif // __ARRAY_OBJECT_H__
 

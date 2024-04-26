@@ -24,5 +24,5 @@ void TransientSequenceInit(void);
 void TransientSequenceKill(void);
 
 
-#endif // !__TRANSIENT_SEQUENCE_H__
+#endif // __TRANSIENT_SEQUENCE_H__
 

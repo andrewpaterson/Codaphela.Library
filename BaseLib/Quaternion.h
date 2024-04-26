@@ -60,5 +60,5 @@ public:
 
 
 
-#endif // !__QUATERNION_H__
+#endif // __QUATERNION_H__
 

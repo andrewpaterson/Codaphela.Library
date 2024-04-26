@@ -48,5 +48,5 @@ public:
 typedef	CArrayTemplate<CXMLEntity>	CArrayXMLEntity;
 
 
-#endif // !__XML_ENTITY_H__
+#endif // __XML_ENTITY_H__
 

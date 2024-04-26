@@ -136,5 +136,5 @@ private:
 };
 
 
-#endif // !__PLAIN_TEXT_EDITOR_H__
+#endif // __PLAIN_TEXT_EDITOR_H__
 

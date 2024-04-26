@@ -17,5 +17,5 @@ public:
 };
 
 
-#endif // !__INDEX_TREE_EVICTION_COUNTER_H__
+#endif // __INDEX_TREE_EVICTION_COUNTER_H__
 

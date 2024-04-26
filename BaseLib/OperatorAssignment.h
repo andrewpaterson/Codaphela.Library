@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // !__OPERATOR_REMAINDER_H__
+#endif // __OPERATOR_REMAINDER_H__
 

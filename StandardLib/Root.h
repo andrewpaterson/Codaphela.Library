@@ -98,5 +98,5 @@ Ptr<M> CRoot::Get(char* szObjectName)
 }
 
 
-#endif // !__ROOT_H__
+#endif // __ROOT_H__
 

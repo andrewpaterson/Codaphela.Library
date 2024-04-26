@@ -688,5 +688,5 @@ bool CArrayTemplateEmbedded<M, I>::Read(CFileReader* pcFileReader)
 }
 
 
-#endif // !__ARRAY_EMBEDDED_H__
+#endif // __ARRAY_EMBEDDED_H__
 

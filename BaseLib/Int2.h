@@ -30,5 +30,5 @@ public:
 };
 
 
-#endif // !__INT2_H__
+#endif // __INT2_H__
 

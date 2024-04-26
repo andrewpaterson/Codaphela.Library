@@ -60,5 +60,5 @@ protected:
 };
 
 
-#endif // !__FILE_HEADER_H__
+#endif // __FILE_HEADER_H__
 

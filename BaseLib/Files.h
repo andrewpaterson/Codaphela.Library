@@ -75,5 +75,5 @@ protected:
 int ComparePackFileOffset(const void* arg1, const void* arg2);
 
 
-#endif // !__FILES_H__
+#endif // __FILES_H__
 

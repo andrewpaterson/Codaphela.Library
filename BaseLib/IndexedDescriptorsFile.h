@@ -61,5 +61,5 @@ public:
 };
 
 
-#endif // !__INDEX_DESCRIPTORS_FILE_H__
+#endif // __INDEX_DESCRIPTORS_FILE_H__
 

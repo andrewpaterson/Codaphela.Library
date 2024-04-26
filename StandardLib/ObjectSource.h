@@ -52,5 +52,5 @@ public:
 };
 
 
-#endif // !__OBJECT_SOURCE_H__
+#endif // __OBJECT_SOURCE_H__
 

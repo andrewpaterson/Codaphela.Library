@@ -17,5 +17,5 @@ public:
 };
 
 
-#endif // !__LOCAL_MALLOCATOR_H__
+#endif // __LOCAL_MALLOCATOR_H__
 

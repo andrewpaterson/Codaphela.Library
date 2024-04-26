@@ -86,5 +86,5 @@ SDouble4* 	Double4Lerp(SDouble4* pOut, const SDouble4* pV1, const SDouble4* pV2,
 SDouble4*   Double4Transform(SDouble4* psOut, SDouble4x4* psMat, SDouble4* psV);
 
 
-#endif // !__DOUBLE_4_H__
+#endif // __DOUBLE_4_H__
 

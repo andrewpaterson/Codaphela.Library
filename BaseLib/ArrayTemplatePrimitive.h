@@ -515,5 +515,5 @@ void CArrayTemplatePrimitive<M>::Push(M iElement)
 }
 
 
-#endif // !__ARRAY_PRIMITIVE_TEMPLATE_H__
+#endif // __ARRAY_PRIMITIVE_TEMPLATE_H__
 

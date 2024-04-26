@@ -36,5 +36,5 @@ public:
 };
 
 
-#endif // !__VALUE_NAMED_INDEXES_CONFIG_H__
+#endif // __VALUE_NAMED_INDEXES_CONFIG_H__
 

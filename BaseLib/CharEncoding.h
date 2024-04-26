@@ -20,5 +20,5 @@ public:
 };
 
 
-#endif // !__CHAR_ENCODING_H__
+#endif // __CHAR_ENCODING_H__
 

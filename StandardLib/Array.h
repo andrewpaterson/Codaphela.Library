@@ -133,5 +133,5 @@ bool CArray<M>::Remove(Ptr<M> pObject)
 }
 
 
-#endif // !__ARRAY_H__
+#endif // __ARRAY_H__
 

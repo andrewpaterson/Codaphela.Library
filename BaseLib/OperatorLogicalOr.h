@@ -34,4 +34,4 @@ public:
 };
 
 
-#endif // !__OPERATOR_LOGICAL_OR_H__
+#endif // __OPERATOR_LOGICAL_OR_H__

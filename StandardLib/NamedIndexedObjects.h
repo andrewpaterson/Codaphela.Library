@@ -60,5 +60,5 @@ public:
 
 
 
-#endif // !__NAMED_INDEX_OBJECTS_H__
+#endif // __NAMED_INDEX_OBJECTS_H__
 

@@ -25,5 +25,5 @@ extern CGeneralMemory			gcMemory;
 extern CGlobalMemoryAllocator	gcMemoryAllocator;
 
 
-#endif // !__GLOBAL_MEMORY_ALLOCATOR_H__
+#endif // __GLOBAL_MEMORY_ALLOCATOR_H__
 

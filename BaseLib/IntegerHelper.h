@@ -82,5 +82,5 @@ int32	GetPowerOf2SizeAuto(int32 iInt);
 int32	LargestInt(int32* pInts, int32 iCount);
 
 
-#endif // !__INTEGER_HELPER_H__
+#endif // __INTEGER_HELPER_H__
 

@@ -26,5 +26,5 @@ public:
 };
 
 
-#endif // !__MEMORY_CACHE_ALLOCATION_H__
+#endif // __MEMORY_CACHE_ALLOCATION_H__
 

@@ -96,5 +96,5 @@ public:
 };
 
 #endif // _WIN32
-#endif // !__WIN_INIT_H__
+#endif // __WIN_INIT_H__
 

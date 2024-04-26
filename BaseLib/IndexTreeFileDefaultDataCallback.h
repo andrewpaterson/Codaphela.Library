@@ -15,5 +15,5 @@ public:
 extern CIndexTreeFileDefaultDataCallback gcIndexTreeFileDefaultCallback;
 
 
-#endif // !__INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
+#endif // __INDEX_TREE_FILE_DEFAULT_CALLBACK_H__
 

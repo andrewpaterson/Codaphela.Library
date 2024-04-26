@@ -9,5 +9,5 @@ public:
 };
 
 
-#endif // !__KILLABLE_H__
+#endif // __KILLABLE_H__
 

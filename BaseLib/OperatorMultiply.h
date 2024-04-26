@@ -39,4 +39,4 @@ public:
 };
 
 
-#endif // !__OPERATOR_MULTIPLY_H__
+#endif // __OPERATOR_MULTIPLY_H__

@@ -53,5 +53,5 @@ protected:
 };
 
 
-#endif // !__INTERNAL_OBJECT_DESERIALISER__
+#endif // __INTERNAL_OBJECT_DESERIALISER__
 

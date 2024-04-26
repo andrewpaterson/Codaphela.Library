@@ -46,5 +46,5 @@ protected:
 };
 
 
-#endif // !__MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
+#endif // __MULTI_FILE_OBJECT_WRITER_SIMPLE_H__
 

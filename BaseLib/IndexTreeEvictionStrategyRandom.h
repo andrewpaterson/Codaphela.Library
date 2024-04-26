@@ -22,5 +22,5 @@ protected:
 };
 
 
-#endif // !__INDEX_TREE_EVICTION_STRATEGY_RANDOM_H__
+#endif // __INDEX_TREE_EVICTION_STRATEGY_RANDOM_H__
 

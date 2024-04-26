@@ -29,5 +29,5 @@ public:
 };
 
 
-#endif // !__INDEXED_DATA_CONFIG_H__
+#endif // __INDEXED_DATA_CONFIG_H__
 

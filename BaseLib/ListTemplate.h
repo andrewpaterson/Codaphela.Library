@@ -245,5 +245,5 @@ bool CListTemplate<M>::SafeSet(int iIndex, M* pvData)
 }
 
 
-#endif // !__LIST_TEMPLATE_H__
+#endif // __LIST_TEMPLATE_H__
 

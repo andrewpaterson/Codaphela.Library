@@ -24,5 +24,5 @@ public:
 };
 
 
-#endif // !__DIST_CALCULATOR_H__
+#endif // __DIST_CALCULATOR_H__
 

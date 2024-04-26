@@ -93,5 +93,5 @@ void DataMemoryInit(void);
 void DataMemoryKill(void);
 
 
-#endif // !__DATA_MEMORY_H__
+#endif // __DATA_MEMORY_H__
 

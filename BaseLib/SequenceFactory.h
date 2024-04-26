@@ -10,5 +10,5 @@ public:
 };
 
 
-#endif // !__SEQUENCE_FACTORY_H__
+#endif // __SEQUENCE_FACTORY_H__
 

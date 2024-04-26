@@ -25,5 +25,5 @@ public:
 };
 
 
-#endif // !__PRIMITIVE_FIELD_H__
+#endif // __PRIMITIVE_FIELD_H__
 

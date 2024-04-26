@@ -115,5 +115,5 @@ M* CFileNode<M>::File(void)
 }
 
 
-#endif // !__FILE_NODE_H__
+#endif // __FILE_NODE_H__
 

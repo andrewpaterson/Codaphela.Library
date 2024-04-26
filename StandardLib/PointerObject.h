@@ -99,5 +99,5 @@ public:
 void LogPointerDebug(CPointer* pvThis, char* szMethod);
 
 
-#endif // !__POINTER_OBJECT_H__
+#endif // __POINTER_OBJECT_H__
 
