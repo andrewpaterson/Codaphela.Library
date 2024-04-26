@@ -62,7 +62,7 @@ void CIndexedCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, unsigned uiDataSize)
+CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, uint32 uiDataSize)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;

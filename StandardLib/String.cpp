@@ -221,7 +221,7 @@ Ptr<CString> CString::AppendBool(bool bValue, Ptr<CString> pTrue, Ptr<CString> p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CString::AppendFlag(unsigned int msFlags, unsigned int uiFlag, Ptr<CString> pFlagName, bool bAppendComma)
+bool CString::AppendFlag(uint32 msFlags, uint32 uiFlag, Ptr<CString> pFlagName, bool bAppendComma)
 {
 	return AppendFlag(msFlags, uiFlag, pFlagName->Text(), bAppendComma);
 }

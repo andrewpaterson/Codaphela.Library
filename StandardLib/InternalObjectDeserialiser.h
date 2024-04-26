@@ -47,7 +47,7 @@ public:
 
 protected:
 	CBaseObject*	GetFromMemory(CObjectIdentifier* pcIdentifier);
-	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised, unsigned int iSize);
+	CBaseObject*	ReadSerialised(CSerialisedObject* pcSerialised, uint32 iSize);
 	bool			AddDependent(CObjectIdentifier* pcObjectPointerToIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex) override;
 	bool			AddReverseDependent(CObjectIdentifier* pcHeader, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingHeapFrom, uint16 iNumEmbedded, uint16 iEmbeddedIndex, int iDistToRoot) override;
 };

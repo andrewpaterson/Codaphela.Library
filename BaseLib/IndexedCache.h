@@ -47,7 +47,7 @@ public:
 	void						Zero(void);
 	void						Kill(void);
 
-	CIndexedCacheResult			Allocate(OIndex oi, unsigned uiDataSize);
+	CIndexedCacheResult			Allocate(OIndex oi, uint32 uiDataSize);
 	void						Clear(void);
 	void						Invalidate(void* pcCache);
 	void						SetDirty(void* pvCache);

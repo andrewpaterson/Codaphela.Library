@@ -169,7 +169,7 @@ int32 CountBits_PopCount64(uint64 x)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//  https://stackoverflow.com/questions/14780928/count-number-of-bits-in-an-unsigned-integer
+//  https://stackoverflow.com/questions/14780928/count-number-of-bits-in-an-uint32-integer
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CountBits_PopCount32(uint32 i)
@@ -204,7 +204,7 @@ int32 CountBits_PopCount16(uint16 i)
 
 //////////////////////////////////////////////////////////////////////////
 //
-//  https://stackoverflow.com/questions/30688465/how-to-check-the-number-of-set-bits-in-an-8-bit-unsigned-char
+//  https://stackoverflow.com/questions/30688465/how-to-check-the-number-of-set-bits-in-an-8-bit-uint32-char
 //
 //////////////////////////////////////////////////////////////////////////
 int32 CountBits_PopCount8(uint8 b)

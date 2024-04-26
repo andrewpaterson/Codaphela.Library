@@ -65,7 +65,7 @@ void _quicksort(void* const pbase, size_t total_elems, size_t size, DataCompare 
     char* base_ptr = (char*)pbase;
     const size_t max_thresh = MAX_THRESH * size;
     if (total_elems == 0)
-        /* Avoid lossage with unsigned arithmetic below.  */
+        /* Avoid lossage with uint32 arithmetic below.  */
         return;
     if (total_elems > MAX_THRESH)
     {
