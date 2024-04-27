@@ -34,7 +34,8 @@ public:
 	SMMNode*	Iterate(SMMNode* psNode);
 
 protected:
-	void*	AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnusedNodeSize, uint32 uiAllocateSize);
+	void*		AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnusedNodeSize, uint32 uiAllocateSize);
+	void		DeallocateLastNode(SMMNode* psNode);
 };
 
 
