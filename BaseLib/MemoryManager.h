@@ -28,8 +28,10 @@ protected:
 public:
 	void		Init(void* pvHeapStart, void* pvHeapEnd);
 	void		Kill(void);
+
 	void*		Allocate(uint32 uiSize);
 	void		Deallocate(void* pvData);
+
 	SMMNode*	StartIteration(void);
 	SMMNode*	Iterate(SMMNode* psNode);
 

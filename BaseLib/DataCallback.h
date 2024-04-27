@@ -1,6 +1,5 @@
 #ifndef __DATA_CALLBACK_H__
 #define __DATA_CALLBACK_H__
-#include "Define.h"
 
 
 typedef int	(*DataCompare)(const void* pvLeft, const void* pvRight);
