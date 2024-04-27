@@ -1,6 +1,7 @@
 #ifndef __INDEX_TREE_MEMORY_H__
 #define __INDEX_TREE_MEMORY_H__
 #include "PrimitiveTypes.h"
+#include "DataFree.h"
 #include "IndexTreeNodeMemory.h"
 #include "IndexTreeRecursor.h"
 #include "IndexTreeMemoryConfig.h"

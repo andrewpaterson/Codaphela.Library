@@ -1128,7 +1128,7 @@
     <ClInclude Include="IndexBlock.h">
       <Filter>Source\Data\Map\Index</Filter>
     </ClInclude>
-    <ClInclude Include="DataCallback.h">
+    <ClInclude Include="DataCompare.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
     <ClInclude Include="DataOrderers.h">
@@ -1607,6 +1607,9 @@
     </ClInclude>
     <ClInclude Include="MemoryManager.h">
       <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="DataFree.h">
+      <Filter>Source\Data</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2144,9 +2147,6 @@
     <ClCompile Include="DataOrderers.cpp">
       <Filter>Source\Data\Index\DataOrder</Filter>
     </ClCompile>
-    <ClCompile Include="DataCallback.cpp">
-      <Filter>Source\Data</Filter>
-    </ClCompile>
     <ClCompile Include="DataTypesIO.cpp">
       <Filter>Source\Data\Types\File</Filter>
     </ClCompile>
@@ -2557,6 +2557,9 @@
     </ClCompile>
     <ClCompile Include="MemoryManager.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="DataFree.cpp">
+      <Filter>Source\Data</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

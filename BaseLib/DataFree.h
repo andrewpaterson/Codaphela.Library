@@ -1,8 +1,5 @@
-#ifndef __DATA_CALLBACK_H__
-#define __DATA_CALLBACK_H__
-
-
-typedef int	(*DataCompare)(const void* pvLeft, const void* pvRight);
+#ifndef __DATA_FREE_H__
+#define __DATA_FREE_H__
 
 
 typedef void (*DataFree)(const void* pvData);
@@ -11,7 +8,7 @@ typedef void (*DataFree)(const void* pvData);
 class CDataFree
 {
 public:
-	virtual void DataWillBeFreed(void* pvData) =0;
+	virtual void DataWillBeFreed(void* pvData) = 0;
 };
 
 
@@ -26,5 +23,5 @@ public:
 };
 
 
-#endif // __DATA_CALLBACK_H__
+#endif // __DATA_FREE_H__
 
