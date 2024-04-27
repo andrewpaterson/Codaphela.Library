@@ -55,7 +55,7 @@ public:
 	void*	Get(int iIndex, size_t* puiElementSize);
 	void	Set(int iIndex, void* pvData, int iElementSize);
 	void*	Resize(int iIndex, int iElementSize = 0);
-	void	RemoveAt(int iIndex, int bPreserveOrder = true);
+	void	RemoveAt(int iIndex, bool bPreserveOrder = true);
 	int		IndexOf(void* pvElement);
 	bool	Remove(void* pvElement);
 	int		NumElements(void);

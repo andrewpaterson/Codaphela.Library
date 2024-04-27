@@ -235,7 +235,7 @@ void* CListVariable::Resize(int iIndex, int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListVariable::RemoveAt(int iIndex, int bPreserveOrder)
+void CListVariable::RemoveAt(int iIndex, bool bPreserveOrder)
 {
 	SPointerAndSize*	psType;
 

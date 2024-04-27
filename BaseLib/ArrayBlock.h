@@ -108,7 +108,7 @@ public:
 	int		FindWithIntKey(int iKey, int iKeyOffset);
 	int 	FindWithKey(void* pData, int iKeyOffset, int iKeySize);
 
-	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
+	void 	RemoveAt(int iIndex, bool bPreserveOrder = true);
 	void	RemoveAt(int* paiIndex, int iNumElements, bool bPreserveOrder = true);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
 	bool 	RemoveTail(void);
@@ -141,7 +141,7 @@ protected:
 	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
 	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
 	void	PrivateRemoveAt(int iIndex, bool bPreserveOrder, int iDataSize);
-	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize);
+	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder, int iDataSize);
 	int		RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iDataSize);
 	void 	SetArraySize(int iNumElements);
 };
