@@ -46,7 +46,7 @@ public:
 
 	bool	Contains(void* pData);
 
-	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
+	void 	RemoveAt(int iIndex, bool bPreserveOrder = true);
 	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
 	void 	RemoveTail(void);
 

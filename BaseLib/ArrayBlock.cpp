@@ -409,7 +409,7 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iData
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveAt(int iIndex, int bPreserveOrder)
+void CArrayBlock::RemoveAt(int iIndex, bool bPreserveOrder)
 {
 	PrivateRemoveAt(iIndex, bPreserveOrder, miElementSize);
 }
@@ -419,7 +419,7 @@ void CArrayBlock::RemoveAt(int iIndex, int bPreserveOrder)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, int bPreserveOrder, int iDataSize)
+void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder, int iDataSize)
 {
 	int		iNumTrailing;
 	int		iNumToRemove;

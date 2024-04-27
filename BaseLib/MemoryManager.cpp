@@ -15,6 +15,7 @@ void CMemoryManager::Init(void* pvHeapStart, void* pvHeapEnd)
 
 	muiCacheSize = MM_EMPTY_NODE_CACHE_SIZE;
 	ClearEmptyCache();
+	mbCacheFull = false;
 }
 
 
@@ -29,7 +30,6 @@ void CMemoryManager::Kill(void)
 	mcLinkedList.Kill();
 	mpvHeapStart = NULL;
 	mpvHeapEnd = NULL;
-	mbCacheFull = false;
 }
 
 
@@ -40,6 +40,7 @@ void CMemoryManager::Kill(void)
 void CMemoryManager::DisableEmptyCache(void)
 {
 	muiCacheSize = 0;
+	mbCacheFull = true;
 }
 
 
@@ -268,15 +269,16 @@ void CMemoryManager::EvictUnsedEmptyCache(SMMNode* psAltered)
 		{
 			if ((mapsEmpty[ui] >= psAltered) && (mapsEmpty[ui] < psNext))
 			{
-				mapsEmpty[ui] = NULL;
 				if (bLast)
 				{
 					muiEmptyCacheSize--;
 				}
-				else
-				{
-					bLast = false;
-				}
+				mapsEmpty[ui] = NULL;
+				mbCacheFull = false;
+			}
+			else
+			{
+				bLast = false;
 			}
 			if (ui == 0)
 			{
@@ -290,7 +292,6 @@ void CMemoryManager::EvictUnsedEmptyCache(SMMNode* psAltered)
 		{
 			if ((mapsEmpty[ui] >= psAltered))
 			{
-				mapsEmpty[ui] = NULL;
 				if (bLast)
 				{
 					muiEmptyCacheSize--;
@@ -299,6 +300,8 @@ void CMemoryManager::EvictUnsedEmptyCache(SMMNode* psAltered)
 				{
 					bLast = false;
 				}
+				mapsEmpty[ui] = NULL;
+				mbCacheFull = false;
 			}
 			if (ui == 0)
 			{
@@ -316,6 +319,11 @@ void CMemoryManager::EvictUnsedEmptyCache(SMMNode* psAltered)
 void CMemoryManager::InsertEmptyIntoCache(SMMNode* psEmpty)
 {
 	uint16		ui;
+
+	if (mbCacheFull)
+	{
+		return;
+	}
 
 	for (ui = 0; ui < muiEmptyCacheSize; ui++)
 	{
@@ -335,6 +343,8 @@ void CMemoryManager::InsertEmptyIntoCache(SMMNode* psEmpty)
 			return;
 		}
 	}
+
+	mbCacheFull = true;
 }
 
 

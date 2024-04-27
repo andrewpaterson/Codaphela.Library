@@ -334,7 +334,7 @@ bool CListBlock::Contains(void* pData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::RemoveAt(int iIndex, int bPreserveOrder)
+void CListBlock::RemoveAt(int iIndex, bool bPreserveOrder)
 {
 	void* pv;
 	bool bResult;

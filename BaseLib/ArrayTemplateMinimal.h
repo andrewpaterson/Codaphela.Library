@@ -80,7 +80,7 @@ public:
 	int		FindWithIntKey(int iKey, int iKeyOffset);
 	bool	FindInSorted(M* pData, DataCompare fCompare, int* piIndex);
 
-	bool	RemoveAt(int iElementPos, int bPreserveOrder = 0);
+	bool	RemoveAt(int iElementPos, bool bPreserveOrder = 0);
 	bool	RemoveTail(void);
 	void	RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip);
 
@@ -333,7 +333,7 @@ M* CArrayTemplateMinimal<M>::Get(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayTemplateMinimal<M>::RemoveAt(int iElementPos, int bPreserveOrder)
+bool CArrayTemplateMinimal<M>::RemoveAt(int iElementPos, bool bPreserveOrder)
 {
 	M*	pvEnd;
 	M*	pvElement;

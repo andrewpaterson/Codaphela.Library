@@ -74,8 +74,8 @@ public:
 	bool	IsEmbedded(void);
 	bool	IsArray(void);
 	int		NumElements(void);
-	bool	Remove(M* pvElement, int bPreserveOrder = true);
-	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
+	bool	Remove(M* pvElement, bool bPreserveOrder = true);
+	void 	RemoveAt(int iIndex, bool bPreserveOrder = true);
 	M*		SafeGet(int iIndex);
 	void	Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded);
 	bool	TestInternalConsistency(void);
@@ -535,7 +535,7 @@ int CArrayTemplateEmbedded<M, I>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-bool CArrayTemplateEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
+bool CArrayTemplateEmbedded<M, I>::Remove(M* pData, bool bPreserveOrder)
 {
 	int		iIndex;
 
@@ -557,7 +557,7 @@ bool CArrayTemplateEmbedded<M, I>::Remove(M* pData, int bPreserveOrder)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void CArrayTemplateEmbedded<M, I>::RemoveAt(int iIndex, int bPreserveOrder)
+void CArrayTemplateEmbedded<M, I>::RemoveAt(int iIndex, bool bPreserveOrder)
 {
 	void*	pSource;
 	void*	pDest;
