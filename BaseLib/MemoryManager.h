@@ -16,7 +16,8 @@ struct SMMNode : public SLLNode
 };
 
 
-#define MM_NODE_HEADER_SIZE		sizeof(SMMNode)
+#define MM_NODE_HEADER_SIZE			sizeof(SMMNode)
+#define MM_EMPTY_NODE_CACHE_SIZE	32
 
 
 class CMemoryManager
@@ -26,6 +27,11 @@ protected:
 	void*			mpvHeapStart;
 	void*			mpvHeapEnd;
 
+	SMMNode*		mapsEmpty[MM_EMPTY_NODE_CACHE_SIZE];
+	uint16			muiEmptyCacheSize;
+	uint16			muiCacheSize;
+	bool			mbCacheFull;
+
 public:
 	void		Init(void* pvHeapStart, void* pvHeapEnd);
 	void		Kill(void);
@@ -33,13 +39,25 @@ public:
 	void*		Allocate(uint32 uiSize);
 	void		Deallocate(void* pvData);
 
+	void		DisableEmptyCache(void);
+
 	SMMNode*	StartIteration(void);
 	SMMNode*	Iterate(SMMNode* psNode);
+
+	uint32		GetNumAllocations(bool bIncludeUnused);
+	uint32		GetUnusedAllocationSize(void);
+	uint32		GetUsedAllocationSize(void);
+	uint32		GetRemaingTailSize(void);
+	uint32		GetTotalSize(void);
 
 protected:
 	void*		AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnusedNodeSize, uint32 uiAllocateSize);
 	void*		AllocateNodeAfterEnd(uint32 uiSize);
 	void		DeallocateLastNode(SMMNode* psNode);
+
+	void		ClearEmptyCache(void);
+	void		EvictUnsedEmptyCache(SMMNode* psAltered);
+	void		InsertEmptyIntoCache(SMMNode* psEmpty);
 };
 
 

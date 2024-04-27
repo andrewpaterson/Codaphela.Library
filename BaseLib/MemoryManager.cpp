@@ -12,6 +12,9 @@ void CMemoryManager::Init(void* pvHeapStart, void* pvHeapEnd)
 	mcLinkedList.Init();
 	mpvHeapStart = pvHeapStart;
 	mpvHeapEnd = pvHeapEnd;
+
+	muiCacheSize = MM_EMPTY_NODE_CACHE_SIZE;
+	ClearEmptyCache();
 }
 
 
@@ -21,9 +24,38 @@ void CMemoryManager::Init(void* pvHeapStart, void* pvHeapEnd)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryManager::Kill(void)
 {
+	ClearEmptyCache();
+
 	mcLinkedList.Kill();
 	mpvHeapStart = NULL;
 	mpvHeapEnd = NULL;
+	mbCacheFull = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryManager::DisableEmptyCache(void)
+{
+	muiCacheSize = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryManager::ClearEmptyCache(void)
+{
+	uint16	ui;
+
+	muiEmptyCacheSize = 0;
+	for (ui = 0; ui < muiCacheSize; ui++)
+	{
+		mapsEmpty[ui] = NULL;
+	}
 }
 
 
@@ -217,6 +249,99 @@ void CMemoryManager::DeallocateLastNode(SMMNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMemoryManager::EvictUnsedEmptyCache(SMMNode* psAltered)
+{
+	uint16		ui;
+	SMMNode*	psNext;
+	bool		bLast;
+
+	if (muiEmptyCacheSize == 0)
+	{
+		return;
+	}
+
+	bLast = true;
+	psNext = (SMMNode*)psAltered->psNext;
+	if (psNext)
+	{
+		for (ui = muiEmptyCacheSize-1; ; ui--)
+		{
+			if ((mapsEmpty[ui] >= psAltered) && (mapsEmpty[ui] < psNext))
+			{
+				mapsEmpty[ui] = NULL;
+				if (bLast)
+				{
+					muiEmptyCacheSize--;
+				}
+				else
+				{
+					bLast = false;
+				}
+			}
+			if (ui == 0)
+			{
+				break;
+			}
+		}
+	}
+	else
+	{
+		for (ui = muiEmptyCacheSize - 1; ; ui--)
+		{
+			if ((mapsEmpty[ui] >= psAltered))
+			{
+				mapsEmpty[ui] = NULL;
+				if (bLast)
+				{
+					muiEmptyCacheSize--;
+				}
+				else
+				{
+					bLast = false;
+				}
+			}
+			if (ui == 0)
+			{
+				break;
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMemoryManager::InsertEmptyIntoCache(SMMNode* psEmpty)
+{
+	uint16		ui;
+
+	for (ui = 0; ui < muiEmptyCacheSize; ui++)
+	{
+		if (mapsEmpty[ui] == NULL)
+		{
+			mapsEmpty[ui] = psEmpty;
+			return;
+		}
+	}
+
+	for (; ui < muiCacheSize; ui++)
+	{
+		if (mapsEmpty[ui] == NULL)
+		{
+			muiEmptyCacheSize++;
+			mapsEmpty[ui] = psEmpty;
+			return;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMemoryManager::Deallocate(void* pvData)
 {
 	SMMNode*	psNode;
@@ -262,6 +387,9 @@ void CMemoryManager::Deallocate(void* pvData)
 
 	uiUnusedNodeSize = (size_t)psCurrent->psNext - (size_t)psCurrent;
 	SetUnusedMMNodeDataSize(psCurrent, uiUnusedNodeSize);
+
+	EvictUnsedEmptyCache(psCurrent);
+	InsertEmptyIntoCache(psCurrent);
 }
 
 
@@ -282,5 +410,104 @@ SMMNode* CMemoryManager::StartIteration(void)
 SMMNode* CMemoryManager::Iterate(SMMNode* psNode)
 {
 	return (SMMNode*)psNode->psNext;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CMemoryManager::GetNumAllocations(bool bIncludeUnused)
+{
+	SMMNode*	psNode;
+	uint32		uiCount;
+
+	uiCount = 0;
+	psNode = (SMMNode*)mcLinkedList.GetHead();
+	while (psNode)
+	{
+		if (bIncludeUnused || psNode->uiFlags & MM_NODE_USED)
+		{
+			uiCount++;
+		}
+		psNode = (SMMNode*)psNode->psNext;
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CMemoryManager::GetUnusedAllocationSize(void)
+{
+	SMMNode*	psNode;
+	uint32		uiSize;
+
+	uiSize = 0;
+	psNode = (SMMNode*)mcLinkedList.GetHead();
+	while (psNode)
+	{
+		if (!(psNode->uiFlags & MM_NODE_USED))
+		{
+			uiSize += GetMMNodeDataSize(psNode);
+		}
+		psNode = (SMMNode*)psNode->psNext;
+	}
+	return uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CMemoryManager::GetUsedAllocationSize(void)
+{
+	SMMNode*	psNode;
+	uint32		uiSize;
+
+	uiSize = 0;
+	psNode = (SMMNode*)mcLinkedList.GetHead();
+	while (psNode)
+	{
+		if (psNode->uiFlags & MM_NODE_USED)
+		{
+			uiSize += GetMMNodeDataSize(psNode);
+		}
+		psNode = (SMMNode*)psNode->psNext;
+	}
+	return uiSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CMemoryManager::GetRemaingTailSize(void)
+{
+	SMMNode* psNode;
+
+	psNode = (SMMNode*)mcLinkedList.GetTail();
+	if (psNode)
+	{
+		return (size_t)mpvHeapEnd - (size_t)psNode - GetMMNodeDataSize(psNode) + 1;
+	}
+	else
+	{
+		return (size_t)mpvHeapEnd - (size_t)mpvHeapStart + 1;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint32 CMemoryManager::GetTotalSize(void)
+{
+	return (size_t)mpvHeapEnd - (size_t)mpvHeapStart + 1;
 }
 
