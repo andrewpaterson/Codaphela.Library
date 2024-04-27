@@ -97,8 +97,6 @@ void* CMemoryManager::Allocate(uint32 uiSize)
 {
 	SMMNode*	psNode;
 	uint32		uiNodeSize;
-	void*		pvData;
-	uint32		uiRemaingSize;
 
 	if (uiSize == 0)
 	{
@@ -111,7 +109,7 @@ void* CMemoryManager::Allocate(uint32 uiSize)
 		return NULL;
 	}
 
-	psNode = (SMMNode*)mcLinkedList.GetHead();
+	psNode = (SMMNode*)mcLinkedList.GetTail();
 	while (psNode)
 	{
 		if (!(psNode->uiFlags & MM_NODE_USED))
@@ -122,32 +120,10 @@ void* CMemoryManager::Allocate(uint32 uiSize)
 				return AllocateNodeInUnused(psNode, uiNodeSize, uiSize);
 			}
 		}
-		psNode = (SMMNode*)psNode->psNext;
+		psNode = (SMMNode*)psNode->psPrev;
 	}
 
-	psNode = (SMMNode*)mcLinkedList.GetTail();
-	if (psNode == NULL)
-	{
-		psNode = (SMMNode*)mpvHeapStart;
-	}
-	else
-	{
-		uiNodeSize = GetMMNodeDataSize(psNode);
-		psNode = (SMMNode*)RemapSinglePointer(psNode, uiNodeSize);
-	}
-
-	uiRemaingSize = (size_t)mpvHeapEnd - (size_t)psNode + 1;
-	if (uiSize <= uiRemaingSize)
-	{
-		SetUsedMMNodeDataSize(psNode, uiSize);
-		mcLinkedList.InsertAfterTail(psNode);
-		pvData = RemapSinglePointer(psNode, MM_NODE_HEADER_SIZE);
-		return pvData;
-	}
-	else
-	{
-		return NULL;
-	}
+	return AllocateNodeAfterEnd(uiSize);
 }
 
 
@@ -174,6 +150,43 @@ void* CMemoryManager::AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnuse
 	uiUnusedNodeSize = (size_t)psNewUnusedNode->psNext - (size_t)psNewUnusedNode;
 	SetUnusedMMNodeDataSize(psNewUnusedNode, uiUnusedNodeSize);
 	return pvData;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMemoryManager::AllocateNodeAfterEnd(uint32 uiSize)
+{
+	SMMNode*	psNode;
+	uint32		uiNodeSize;
+	void*		pvData;
+	uint32		uiRemaingSize;
+
+	psNode = (SMMNode*)mcLinkedList.GetTail();
+	if (psNode == NULL)
+	{
+		psNode = (SMMNode*)mpvHeapStart;
+	}
+	else
+	{
+		uiNodeSize = GetMMNodeDataSize(psNode);
+		psNode = (SMMNode*)RemapSinglePointer(psNode, uiNodeSize);
+	}
+
+	uiRemaingSize = (size_t)mpvHeapEnd - (size_t)psNode + 1;
+	if (uiSize <= uiRemaingSize)
+	{
+		SetUsedMMNodeDataSize(psNode, uiSize);
+		mcLinkedList.InsertAfterTail(psNode);
+		pvData = RemapSinglePointer(psNode, MM_NODE_HEADER_SIZE);
+		return pvData;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

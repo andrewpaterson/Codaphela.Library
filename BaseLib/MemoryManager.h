@@ -8,6 +8,7 @@
 #define MM_NODE_USED 0x80
 #define MM_NODE_SIZE_MASK 0x7f
 
+
 struct SMMNode : public SLLNode
 {
 	uint16	uiSize;
@@ -37,6 +38,7 @@ public:
 
 protected:
 	void*		AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnusedNodeSize, uint32 uiAllocateSize);
+	void*		AllocateNodeAfterEnd(uint32 uiSize);
 	void		DeallocateLastNode(SMMNode* psNode);
 };
 
