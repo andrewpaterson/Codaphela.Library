@@ -1,7 +1,8 @@
 #ifndef __MAP_BLOCK_H__
 #define __MAP_BLOCK_H__
 #include "Malloc.h"
-#include "DataCallback.h"
+#include "DataCompare.h"
+#include "DataFree.h"
 #include "MapNode.h"
 #include "ArrayBlockSorted.h"
 

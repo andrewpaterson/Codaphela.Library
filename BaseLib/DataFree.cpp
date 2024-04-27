@@ -1,6 +1,4 @@
-#ifndef __DATA_FREE_H__
-#define __DATA_FREE_H__
-#include "DataCallback.h"
+#include "DataFree.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -21,7 +19,4 @@ void CDataFreeCallBack::DataWillBeFreed(void* pvData)
 {
 	mDataFree(pvData);
 }
-
-
-#endif // __DATA_FREE_H__
 

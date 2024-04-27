@@ -1,7 +1,7 @@
 #ifndef __TIMSORT_H__
 #define __TIMSORT_H__
 #include "Define.h"
-#include "DataCallback.h"
+#include "DataCompare.h"
 
 
 /*

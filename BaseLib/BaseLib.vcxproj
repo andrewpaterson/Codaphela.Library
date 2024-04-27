@@ -185,9 +185,10 @@
     <ClInclude Include="BubbleSort.h" />
     <ClInclude Include="CharHelper.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
+    <ClInclude Include="DataFree.h" />
     <ClInclude Include="DataIO.h" />
     <ClInclude Include="DataOrderers.h" />
-    <ClInclude Include="DataCallback.h" />
+    <ClInclude Include="DataCompare.h" />
     <ClInclude Include="DatasIO.h" />
     <ClInclude Include="DataTypesIO.h" />
     <ClInclude Include="DateTime.h" />
@@ -568,7 +569,7 @@
     <ClCompile Include="BubbleSort.cpp" />
     <ClCompile Include="CharHelper.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
-    <ClCompile Include="DataCallback.cpp" />
+    <ClCompile Include="DataFree.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
     <ClCompile Include="DataTypesIO.cpp" />
