@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SLinkedListBlockDesc
 {
-	int				iNumElements;
+	int		iNumElements;
 	uint32	uiNodeSize;
 
 	void Init(int iNumElements, uint32 uiNodeSize);
@@ -39,7 +39,7 @@ struct SLinkedListBlockDesc
 
 struct SLinkedListTemplateDesc
 {
-	int				iNumElements;
+	int		iNumElements;
 	uint32	uiNodeSize;
 	uint32	uiDataSize;
 

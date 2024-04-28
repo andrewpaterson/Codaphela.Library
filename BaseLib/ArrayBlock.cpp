@@ -612,16 +612,6 @@ void CArrayBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Unuse(void)
-{
-	miUsedElements = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Zero(void)
 {
 	if (miUsedElements != 0)
@@ -689,16 +679,6 @@ void CArrayBlock::Push(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::Push(void)
-{
-	return Add();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 bool CArrayBlock::Pop(void* pvDest)
 {
 	void*	pvSource;
@@ -715,16 +695,6 @@ bool CArrayBlock::Pop(void* pvDest)
 		memset(pvDest, 0, miElementSize);
 		return false;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::Pop(void)
-{
-	return RemoveTail();
 }
 
 
@@ -755,16 +725,6 @@ bool CArrayBlock::PopFirst(void* pvDest)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::PopFirst(void)
-{
-	return RemoveFirst();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::Tail(void)
 {
 	if (miUsedElements == 0)
@@ -774,15 +734,6 @@ void* CArrayBlock::Tail(void)
 	return Get(miUsedElements-1);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CArrayBlock::ByteSize()
-{
-	return miUsedElements * miElementSize;
-}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -820,17 +771,6 @@ int CArrayBlock::Find(void* pvData)
 		}
 	}
 	return -1;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::Contains(void* pvData)
-{
-	return Find(pvData) >= 0;
 }
 
 
@@ -967,16 +907,6 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, bool bClear, uint8
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::AddNum(int iNumElements)
-{
-	return SetUsedElements(iNumElements + miUsedElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 bool CArrayBlock::Equals(CArrayBlock* pcTemplateArray)
 {
 	if (pcTemplateArray->miUsedElements == miUsedElements)
@@ -1003,36 +933,6 @@ void CArrayBlock::Swap(int iIndex1, int iIndex2)
 	pElement2 = Get(iIndex2);
 
 	MemSwp(pElement1, pElement2, miElementSize);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::BubbleSort(DataCompare fCompare)
-{
-	::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::QuickSort(DataCompare fCompare)
-{
-	::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::TimSort(DataCompare fCompare)
-{
-	::TimSort(fCompare, mpvArray, miElementSize, miUsedElements);
 }
 
 
@@ -1145,7 +1045,6 @@ void CArrayBlock::Reverse(void)
 		Swap(i, miUsedElements-i-1);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -1317,55 +1216,6 @@ void* CArrayBlock::InsertBlockAt(void* paElements, int iLength, int iIndex)
 void* CArrayBlock::Get(int iIndex)
 {
 	return (void*)RemapSinglePointer(mpvArray, miElementSize * iIndex);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CArrayBlock::ElementSize(void)
-{
-	return miElementSize;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CArrayBlock::NumElements(void)
-{
-	return miUsedElements;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CArrayBlock::AllocatedElements(void)
-{
-	return miNumElements;
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::IsEmpty(void)
-{
-	return miUsedElements == 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::IsNotEmpty(void)
-{
-	return miUsedElements != 0;
 }
 
 
@@ -1559,27 +1409,6 @@ void CArrayBlock::GetHeader(SArrayTemplateHeader* psHeader)
 }
 
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::GetData(void)
-{
-	return mpvArray;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-int CArrayBlock::ChunkSize(void)
-{
-	return miChunkSize;
-}
-
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -1730,18 +1559,22 @@ bool CArrayBlock::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::FakeSetUsedElements(int iUsedElements)
-{
-	miUsedElements = iUsedElements;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CArrayBlock::SetAllocateSize(int iSize)
-{
-	miChunkSize = iSize;
-}
+void* CArrayBlock::Push(void) { return Add(); }
+bool CArrayBlock::PopFirst(void) { return RemoveFirst(); }
+int CArrayBlock::ByteSize() { return miUsedElements * miElementSize; }
+bool CArrayBlock::Pop(void) { return RemoveTail(); }
+bool CArrayBlock::Contains(void* pvData) { return Find(pvData) >= 0; }
+void CArrayBlock::BubbleSort(DataCompare fCompare) { ::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements); }
+void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements); }
+void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
+void* CArrayBlock::GetData(void) { return mpvArray; }
+int CArrayBlock::ChunkSize(void) { return miChunkSize; }
+int CArrayBlock::AddNum(int iNumElements) { return SetUsedElements(iNumElements + miUsedElements); }
+void CArrayBlock::FakeSetUsedElements(int iUsedElements) { miUsedElements = iUsedElements; }
+void CArrayBlock::SetAllocateSize(int iSize) { miChunkSize = iSize; }
+int CArrayBlock::ElementSize(void) { return miElementSize; }
+int CArrayBlock::NumElements(void) { return miUsedElements; }
+int CArrayBlock::AllocatedElements(void) { return miNumElements; }
+bool CArrayBlock::IsEmpty(void) { return miUsedElements == 0; }
+bool CArrayBlock::IsNotEmpty(void) { return miUsedElements != 0; }
 
