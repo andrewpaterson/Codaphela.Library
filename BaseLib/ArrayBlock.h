@@ -118,7 +118,6 @@ public:
 	void	Set(int iIndex, void* pvData);
 	bool	SafeSet(int iIndex, void* pvData);
 	void	Swap(int iIndex1, int iIndex2);
-	void	Unuse(void);  //Da fuq?
 	void 	Zero(void);
 
 	int 	ByteSize(void);
