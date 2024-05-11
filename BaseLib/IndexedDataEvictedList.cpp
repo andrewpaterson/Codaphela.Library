@@ -27,7 +27,7 @@ void CIndexedDataEvictedList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSize)
+bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, size iDataSize)
 {
 	mcKeys.Add(oi);
 	mcDatas.Add(pvData, iDataSize);
@@ -39,7 +39,7 @@ bool CIndexedDataEvictedList::IndexEvicted(OIndex oi, void* pvData, int iDataSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataEvictedList::NumElements(void)
+size CIndexedDataEvictedList::NumElements(void)
 {
 	return mcKeys.NumElements();
 }
@@ -49,7 +49,7 @@ int CIndexedDataEvictedList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CIndexedDataEvictedList::GetKey(int iIndex)
+OIndex CIndexedDataEvictedList::GetKey(size iIndex)
 {
 	return mcKeys.GetValue(iIndex);
 }
@@ -59,7 +59,7 @@ OIndex CIndexedDataEvictedList::GetKey(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexedDataEvictedList::GetData(int iIndex, int* piDataSize)
+void* CIndexedDataEvictedList::GetData(size iIndex, size* piDataSize)
 {
 	if (piDataSize)
 	{

@@ -10,12 +10,12 @@ class CIndexTreeConfig
 protected:
 	CLifeInit<CMallocator>				mcMalloc;
 	CLifeInit<CIndexTreeDataOrderer>	mcDataOrderer;
-	int									miMaxDataSize;
-	int									miMaxKeySize;
+	size								miMaxDataSize;
+	size								miMaxKeySize;
 	EIndexKeyReverse					meKeyReverse;
 
 public:
-			void								Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+			void								Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 			bool								Init(CFileReader* pcFileReader);
 	virtual void								Kill(void) =0;
 

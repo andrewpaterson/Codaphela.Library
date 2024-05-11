@@ -73,16 +73,16 @@ public:
 												// 6543210987654321098765432101234567890123456
 	//Initialisation
 	CNumber*	Init(void);
-	CNumber*	Init(int i);
-	CNumber*	Init(float ff);
-	CNumber*	Init(char* szNumber, int iLen = 0);
+	CNumber*	Init(int32 iNumber);
+	CNumber*	Init(float32 ff);
+	CNumber*	Init(char* szNumber, size iLen = 0);
 	CNumber*	Init(CNumber* pcNumber);
 	CNumber*	Zero(void);
 	CNumber*	One(void);
 	CNumber*	Pi(void);
 	CNumber*	E(void);
 	CNumber*	Digit(char cValue);
-	CNumber*	Digit(int iDigit, char cValue);
+	CNumber*	Digit(int16 iDigit, char cValue);
 	CNumber* 	Copy(CNumber* pcNumber);
 	//Two
 	//Half
@@ -91,38 +91,38 @@ public:
 
 	//Initialisation(cMaxWholeNumbers, cMaxDecimals)
 	CNumber*	Init(int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	Init(int i, int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	Init(float ff, int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, int iLen = 0);
+	CNumber*	Init(int32 iNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, size iLen = 0);
 	CNumber*	Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Zero(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	One(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	E(int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	BinaryOne(int iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Digit(char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	Digit(int iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	Digit(int16 iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber* 	Copy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 
 	//Initialisation Errors
 	CNumber*	NotANumber(void);
-	CNumber*	Overflow(int iSign);
+	CNumber*	Overflow(int16 iSign);
 	CNumber*	DivisionByZero(void);
 
 	//Miscellaneous
 	void		SetFirstNonZerotDigit(int16 iDigit);  //Valid: 26 -> 1, not 0, -1 -> -16.
 	void		SetLastNonZeroDigit(int16 iDigit);  //Inclusive of this digit.  First always >= Last.
-	void		SetSign(int iSign);
-	int			GetSign(void);
+	void		SetSign(int16 iSign);
+	int16		GetSign(void);
 	void		SetFlag(int16 iFlag);
 	void		ClearFlag(int16 iFlags);
 	int16		GetMaxWholeNumbers(void);
 	int16		GetMaxDecimals(void);
 	int16		GetFirstNonZeroDigit(void);  //GetFirstNonZeroDigit
 	int16		GetLastNonZeroDigit(void);  //GetLastNonZeroDigit
-	int			GetDecimals(void);
-	int			GetWholeNumbers(void);
-	int			GetDigitsBetween(void);
+	int16		GetDecimals(void);
+	int16		GetWholeNumbers(void);
+	size		GetDigitsBetween(void);
 	bool		IsNAN(void);
 	bool		IsUnderflow(void);
 	bool		IsOverflow(void);
@@ -132,20 +132,20 @@ public:
 	bool		IsClean(void);
 	bool		IsDivisionByZero(void);
 	bool		IsError(void);
-	void		AddBinaryOne(int iBinaryExponent);
-	void		SetDigit(int iDigit, char cValue);
-	void		SetDigitUnsafe(int iDigit, char cValue);
+	void		AddBinaryOne(int16 iBinaryExponent);
+	void		SetDigit(int16 iDigit, char cValue);
+	void		SetDigitUnsafe(int16 iDigit, char cValue);
 	void		Clean(void);
 	void		CleanRight(void);
 	void		CleanLeft(void);
-	char*		DigitToArray(int iDigit);
-	int			OffsetDigit(int iCurrentDigit, int iOffset);
-	int			GetDigitsBetween(int iFirst, int iLast);
-	void		RoundSignificant(int iSignificantDigits);
-	void		PrivateZeroDigits(int iFirst, int iLast);
+	char*		DigitToArray(int16 iDigit);
+	int16		OffsetDigit(int16 iCurrentDigit, int16 iOffset);
+	size		GetDigitsBetween(int16 iFirst, int16 iLast);
+	void		RoundSignificant(int16 iSignificantDigits);
+	void		PrivateZeroDigits(int16 iFirst, int16 iLast);
 	void		PrivateZeroEnds(void);
 	bool		IsInteger(void);
-	bool		DigitsEqual(CNumber* pcTest, int iFirstDigit, int iLastDigit);
+	bool		DigitsEqual(CNumber* pcTest, int16 iFirstDigit, int16 iLastDigit);
 
 	//Logical
 	bool		Equals(CNumber* pcNumber);
@@ -170,13 +170,13 @@ public:
 	bool		PrivateError(CNumber* pcNumber);
 	void		PrivateIntegerRoot(CNumber* pcRoot);
 	void		PrivateIntegerExponent(CNumber* pcExponent);  //The number returned is not this.
-	void		PrivateIntegerExponent(int iExponent);
-	void		PrivateIntegerFactorial(int iN, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	void		PrivateIntegerExponent(int16 iExponent);
+	void		PrivateIntegerFactorial(int16 iN, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void		PrivateInit(void);
-	void		PrivateInit(int16 cWholeNumbers, int16 cMaxDecimals);
+	void		PrivateInit(size cWholeNumbers, size cMaxDecimals);
 	void		PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	bool		PrivateEquals(CNumber* pcNumber, int16 iDecimals);
-	int			PrivateGetIndex(int iDigit);
+	size		PrivateGetIndex(int16 iDigit);
 
 	//Mathematical
 	CNumber*	Add(CNumber* pcNumber);
@@ -220,19 +220,19 @@ public:
 	CNumber*	DegreesToRadians(void);
 	CNumber*	RadiansToDegrees(void);
 
-	CNumber*	Shift(int iOffset);
-	CNumber*	Truncate(int iDigit);
-	CNumber*	TruncateHigh(int iDigit);
+	CNumber*	Shift(int16 iOffset);
+	CNumber*	Truncate(int16 iDigit);
+	CNumber*	TruncateHigh(int16 iDigit);
 	CNumber*	Integer(void);
 	CNumber*	Fractional(void);
 	CNumber*	Ceiling(void);
 	CNumber*	Floor(void);
 
 	//Conversion
-	int  		IntValue(void);
-	float		FloatValue(void);
-	char		GetDigitUnsafe(int iDigit);  //zero returns '.' or '\0'.
-	char		SafeGetDigit(int iDigit);
+	int32  		IntValue(void);
+	float32		FloatValue(void);
+	char		GetDigitUnsafe(int16 iDigit);  //zero returns '.' or '\0'.
+	char		SafeGetDigit(int16 iDigit);
 	void		Print(CChars* pcChars);
 	bool		PrintFloating(CChars* pcChars);
 	void		Dump(void);

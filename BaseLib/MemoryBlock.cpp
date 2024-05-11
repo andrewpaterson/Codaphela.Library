@@ -50,20 +50,20 @@ void* CMemoryBlock::GetMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryBlock::Allocate(size_t tSize)
+void* CMemoryBlock::Allocate(size uiSize)
 {
 	if (mpvMem == NULL)
 	{
-		mpvMem = Malloc(tSize);
+		mpvMem = Malloc(uiSize);
 	}
 	else
 	{
-		mpvMem = Realloc(mpvMem, tSize);
+		mpvMem = Realloc(mpvMem, uiSize);
 	}
 
 	if (mpvMem != NULL)
 	{
-		mtSize = tSize;
+		mtSize = uiSize;
 	}
 	else
 	{
@@ -78,7 +78,7 @@ void* CMemoryBlock::Allocate(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CMemoryBlock::GetSize(void)
+size CMemoryBlock::GetSize(void)
 {
 	return mtSize;
 }
@@ -88,9 +88,9 @@ size_t CMemoryBlock::GetSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryBlock::Malloc(size_t tSize)
+void* CMemoryBlock::Malloc(size uiSize)
 {
-	return mpcMalloc->Malloc(tSize);
+	return mpcMalloc->Malloc(uiSize);
 }
 
 
@@ -108,9 +108,9 @@ void CMemoryBlock::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryBlock::Realloc(void* pv, size_t tSize)
+void* CMemoryBlock::Realloc(void* pv, size uiSize)
 {
-	pv = mpcMalloc->Realloc(pv, tSize);
+	pv = mpcMalloc->Realloc(pv, uiSize);
 	return pv;
 }
 

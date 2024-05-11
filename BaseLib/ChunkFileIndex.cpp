@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SChunkIndex::Init(filePos iChunkDataPos, int iName, filePos iChunkSize)
+void SChunkIndex::Init(filePos iChunkDataPos, chunkName iName, filePos iChunkSize)
 {
 	memset(this, 0xEE, sizeof(SChunkIndex));
 
@@ -71,10 +71,10 @@ void CChunkIndex::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChunkIndex::FindFirstChunkWithName(int iName)
+size CChunkIndex::FindFirstChunkWithName(chunkName iName)
 {
-	int i;
-	int	iTestName;
+	size		i;
+	chunkName	iTestName;
 
 	miCurrChunkNum = 0;
 	miSearchName = iName;
@@ -84,11 +84,11 @@ int CChunkIndex::FindFirstChunkWithName(int iName)
 		iTestName = mcChunkIndices.Get(i)->miName;
 		if (iTestName == iName)
 		{
-			miCurrChunkNum = i+1;
+			miCurrChunkNum = i + 1;
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -96,19 +96,19 @@ int CChunkIndex::FindFirstChunkWithName(int iName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChunkIndex::FindNextChunkWithName(void)
+size CChunkIndex::FindNextChunkWithName(void)
 {
-	int i;
+	size i;
 
 	for (i = miCurrChunkNum; i < mcChunkIndices.NumElements(); i++)
 	{
 		if (mcChunkIndices.Get(i)->miName == miSearchName)
 		{
-			miCurrChunkNum = i+1;
+			miCurrChunkNum = i + 1;
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -116,10 +116,10 @@ int CChunkIndex::FindNextChunkWithName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChunkIndex::GetNumChunksWithName(int iName)
+size CChunkIndex::GetNumChunksWithName(chunkName iName)
 {
-	int i;
-	int iNumWithName;
+	size	i;
+	size	iNumWithName;
 
 	iNumWithName = 0;
 

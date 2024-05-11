@@ -37,12 +37,12 @@ public:
 	void		Kill(void);
 
 	void*		Get(const char* szKey);
-	void*		Get(const char* szKey, int* piDataSize);
+	void*		Get(const char* szKey, size* piDataSize);
 
-	void*		Put(char* szKey, int iDataSize);
-	bool		Put(char* szKey, void* psData, int iDataSize);
-	void*		Put(const char* szKey, int iDataSize);
-	bool		Put(const char* szKey, void* psData, int iDataSize);
+	void*		Put(char* szKey, size iDataSize);
+	bool		Put(char* szKey, void* psData, size iDataSize);
+	void*		Put(const char* szKey, size iDataSize);
+	bool		Put(const char* szKey, void* psData, size iDataSize);
 
 	bool		Remove(char* szKey);
 	bool		Remove(const char* szKey);

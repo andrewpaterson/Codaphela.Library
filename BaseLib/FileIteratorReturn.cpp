@@ -18,7 +18,7 @@ void CFileIteratorReturn::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileIteratorReturn::Init(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank)
+void CFileIteratorReturn::Init(EFileIteratorReturnType eType, CBaseFileNode* pcNode, uint32 iFileRank)
 {
 	meType = eType;
 	mszFullName.Init();
@@ -43,7 +43,7 @@ void CFileIteratorReturn::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileIteratorReturn::InsertInName(int iIndex, char* szText)
+void CFileIteratorReturn::InsertInName(size iIndex, char* szText)
 {
 	mszFullName.Insert(iIndex, szText);
 }
@@ -56,5 +56,5 @@ void CFileIteratorReturn::InsertInName(int iIndex, char* szText)
 EFileIteratorReturnType CFileIteratorReturn::GetType(void) { return meType; }
 char* CFileIteratorReturn::GetFullName(void) { return mszFullName.Text(); }
 CBaseFileNode* CFileIteratorReturn::GetNode(void) { return mpsNode; }
-int CFileIteratorReturn::GetFileRank(void) { return miFileRank; }
+uint32 CFileIteratorReturn::GetFileRank(void) { return miFileRank; }
 

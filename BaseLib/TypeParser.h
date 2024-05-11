@@ -39,7 +39,7 @@ public:
 	CTextParser*	mpcParser;
 	bool			mbFreeParser;
 
-	bool 		Init(char* szText, int iTextLen);
+	bool 		Init(char* szText, size iTextLen);
 	bool 		Init(char* szText);
 	bool 		Init(CChars* szText);
 	void 		AllocateParser(void);
@@ -48,9 +48,9 @@ public:
 
 	TRISTATE	GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64 lliMin);
 	TRISTATE	GetCharAndFloat(char c, float* pf);
-	TRISTATE	GetCharAndInt(char c, int* pi);
+	TRISTATE	GetCharAndInt(char c, int32* pi);
 
-	TRISTATE	ParseInt(int* pDest);  	
+	TRISTATE	ParseInt(int32* pDest);  	
 	TRISTATE	ParseChar(char* pDest);
 	TRISTATE	ParseShort(int16* pDest);
 	TRISTATE	ParseFloat(float* pDest);
@@ -72,7 +72,7 @@ public:
 	TRISTATE	ParseNumber(CNumber* pDest);	
 	TRISTATE	ParseDate(CDate* pDest);
 
-	TRISTATE	Parse(EPrimitiveType eType, void* pvDest, int iDestLength, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
+	TRISTATE	Parse(EPrimitiveType eType, void* pvDest, size iDestLength, char cOpen = '\0', char cSplit = ',', char cClose = '\0');
 };
 
 

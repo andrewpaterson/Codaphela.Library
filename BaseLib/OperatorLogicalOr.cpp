@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "OperatorLogicalOr.h"
+#include "ErrorHandler.h"
 #include "IntegerHelper.h"
 
 

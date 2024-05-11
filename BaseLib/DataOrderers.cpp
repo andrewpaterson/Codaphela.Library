@@ -56,7 +56,7 @@ bool CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 {
-	int						iLength;
+	size					iLength;
 	char					szName[1024];
 	CIndexTreeDataOrderer**	ppcDataOrderer;
 	CIndexTreeDataOrderer*	pcDataOrderer;

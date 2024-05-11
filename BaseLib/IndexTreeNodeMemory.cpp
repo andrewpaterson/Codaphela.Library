@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint8 uiIndexInParent)
+void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiFirstIndex, size uiLastIndex, size uiIndexInParent)
 {
 	CIndexTreeNode::Init(pcIndexTree, pcParent, uiFirstIndex, uiLastIndex, 0, 0, uiIndexInParent);
 }
@@ -17,7 +17,7 @@ void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiIndexInParent)
+void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiIndexInParent)
 {
  	CIndexTreeNode::Init(pcIndexTree, pcParent, uiIndexInParent);
 }
@@ -27,7 +27,7 @@ void CIndexTreeNodeMemory::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeNodeMemory::Get(uint8 uiIndex)
+CIndexTreeNodeMemory* CIndexTreeNodeMemory::Get(size uiIndex)
 {
 	if (ContainsIndex(uiIndex))
 	{
@@ -44,7 +44,7 @@ CIndexTreeNodeMemory* CIndexTreeNodeMemory::Get(uint8 uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Set(uint8 uiIndex, CIndexTreeNodeMemory* pcNode)
+void CIndexTreeNodeMemory::Set(size uiIndex, CIndexTreeNodeMemory* pcNode)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -60,7 +60,7 @@ void CIndexTreeNodeMemory::Set(uint8 uiIndex, CIndexTreeNodeMemory* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::ClearIndex(uint8 uiIndex)
+void CIndexTreeNodeMemory::ClearIndex(size uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -76,7 +76,7 @@ void CIndexTreeNodeMemory::ClearIndex(uint8 uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNodeMemory::ClearAndUncontain(uint8 uiIndex)
+bool CIndexTreeNodeMemory::ClearAndUncontain(size uiIndex)
 {
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -98,7 +98,7 @@ bool CIndexTreeNodeMemory::ClearAndUncontain(uint8 uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeNodeMemory::GetNode(int i)
+CIndexTreeNodeMemory* CIndexTreeNodeMemory::GetNode(size i)
 {
 	return GetNodes()[i];
 }
@@ -121,7 +121,7 @@ CIndexTreeNodeMemory** CIndexTreeNodeMemory::GetNodes(void)
 void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
 {
 	CIndexTreeNodeMemory**	apcChildren;
-	uint8					uiIndex;
+	size					uiIndex;
 
 	apcChildren = GetNodes();
 	uiIndex = pcNewNode->muiIndexInParent - muiFirstIndex;
@@ -133,7 +133,7 @@ void CIndexTreeNodeMemory::RemapChildNodes(CIndexTreeNodeMemory* pcOldNode, CInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::RemapDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
+void CIndexTreeNodeMemory::RemapvDataLinks(CIndexTreeNodeMemory* pcOldNode, CIndexTreeNodeMemory* pcNewNode)
 {
 	CIndexTreeDataNode*		pcDataNode;
 
@@ -149,7 +149,7 @@ void CIndexTreeNodeMemory::RemapDataLinks(CIndexTreeNodeMemory* pcOldNode, CInde
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNodeMemory::Contain(uint8 uiIndex)
+void CIndexTreeNodeMemory::Contain(size uiIndex)
 {
 	CIndexTreeNode::Contain(uiIndex, 0);
 }
@@ -159,14 +159,16 @@ void CIndexTreeNodeMemory::Contain(uint8 uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNodeMemory::FindNextFirstIndex(void)
+size CIndexTreeNodeMemory::FindNextFirstIndex(void)
 {
-	uint8					i;
+	size					i;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
+	size					uiNumIndices;
 
 	apcChildren = GetNodes();
-	for (i = 1; i <= (int)(muiLastIndex - muiFirstIndex); i++)
+	uiNumIndices = muiLastIndex - muiFirstIndex;
+	for (i = 1; i <= uiNumIndices; i++)
 	{
 		pcChild = apcChildren[i];
 		if (pcChild != NULL)
@@ -182,21 +184,28 @@ uint8 CIndexTreeNodeMemory::FindNextFirstIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNodeMemory::FindPrevLastIndex(void)
+size CIndexTreeNodeMemory::FindPrevLastIndex(void)
 {
-	int						i;
+	size					i;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
 
 	apcChildren = GetNodes();
-	for (i = (int)(muiLastIndex - muiFirstIndex)-1; i >= 0; i--)
+	if (muiLastIndex > muiFirstIndex)
 	{
-		pcChild = apcChildren[i];
-		if (pcChild != NULL)
+		i = muiLastIndex - muiFirstIndex;
+		do
 		{
-			return muiFirstIndex + i;
+			i--;
+			pcChild = apcChildren[i];
+			if (pcChild != NULL)
+			{
+				return muiFirstIndex + i;
+			}
 		}
+		while (i != 0);
 	}
+
 	return muiFirstIndex;
 }
 
@@ -205,19 +214,21 @@ uint8 CIndexTreeNodeMemory::FindPrevLastIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
+size CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 {
-	int						i;
+	size					i;
 	CIndexTreeNodeMemory*	pcChildTest;
 	CIndexTreeNodeMemory**	apcChildren;
+	size					uiNumIndices;
 
+	uiNumIndices = muiLastIndex - muiFirstIndex;
 	apcChildren = GetNodes();
-	for (i = 0; i <= (int)(muiLastIndex - muiFirstIndex); i++)
+	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChildTest = apcChildren[i];
 		if (pcChild == pcChildTest)
 		{
-			return (uint8)i + muiFirstIndex;
+			return i + muiFirstIndex;
 		}
 	}
 
@@ -230,9 +241,9 @@ uint8 CIndexTreeNodeMemory::FindIndex(CIndexTreeNodeMemory* pcChild)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNodeMemory::Uncontain(uint8 uiIndex)
+bool CIndexTreeNodeMemory::Uncontain(size uiIndex)
 {
-	uint8	uiNextFirstIndex;
+	size	uiNextFirstIndex;
 
 	if ((uiIndex != muiFirstIndex) && (uiIndex != muiLastIndex))
 	{
@@ -256,7 +267,7 @@ bool CIndexTreeNodeMemory::Uncontain(uint8 uiIndex)
 	
 	if (uiIndex == muiLastIndex)
 	{
-		muiLastIndex = FindPrevLastIndex();
+		muiLastIndex = (uint8)FindPrevLastIndex();
 		return true;
 	}
 
@@ -270,8 +281,8 @@ bool CIndexTreeNodeMemory::Uncontain(uint8 uiIndex)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::SetChildrensParent(void)
 {
-	int						i;
-	int						iNumNodes;
+	size					i;
+	size					iNumNodes;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
 
@@ -303,12 +314,13 @@ CIndexTreeNodeMemory* CIndexTreeNodeMemory::GetParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNodeMemory::NumValidIndexes(void)
+size CIndexTreeNodeMemory::NumValidIndexes(void)
 {
-	int						i;
+	size					i;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
-	int						iCount;
+	size					iCount;
+	size					uiNumIndices;
 
 	if ((!HasNodes()) && (muiLastIndex == 0) && (muiFirstIndex == 0))
 	{
@@ -317,7 +329,9 @@ int CIndexTreeNodeMemory::NumValidIndexes(void)
 
 	iCount = 0;
 	apcChildren = GetNodes();
-	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+
+	uiNumIndices = muiLastIndex - muiFirstIndex;
+	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = apcChildren[i];
 		if (pcChild != NULL)
@@ -335,7 +349,7 @@ int CIndexTreeNodeMemory::NumValidIndexes(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 {
-	int		iCount;
+	size	iCount;
 	bool	bCountEmpty;
 	bool	bNodesEmpty;
 
@@ -368,9 +382,10 @@ bool CIndexTreeNodeMemory::ValidateNodesEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNodeMemory::Print(CChars* psz, bool bHex)
 {
-	int						i;
+	size					i;
 	CIndexTreeNodeMemory*	pcChild;
 	CIndexTreeNodeMemory**	apcChildren;
+	size					uiNumIndices;
 
 	CIndexTreeNode::Print(psz, bHex);
 
@@ -382,7 +397,8 @@ void CIndexTreeNodeMemory::Print(CChars* psz, bool bHex)
 	psz->Append(" ");
 
 	apcChildren = GetNodes();
-	for (i = 0; i <= muiLastIndex - muiFirstIndex; i++)
+	uiNumIndices = muiLastIndex - muiFirstIndex;
+	for (i = 0; i <= uiNumIndices; i++)
 	{
 		pcChild = apcChildren[i];
 		if (pcChild != NULL)

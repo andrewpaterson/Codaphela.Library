@@ -1,5 +1,6 @@
 #ifndef __INT3_H__
 #define __INT3_H__
+#include "Constructable.h"
 #include "DataTypes.h"
 
 

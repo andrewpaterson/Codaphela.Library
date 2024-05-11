@@ -26,10 +26,10 @@ class CExternalString
 {
 public:
 	char*	msz;
-	int		miLen;
+	size	miLen;
 
 	void	Init(void);
-	void	Init(char* sz, int iLen);
+	void	Init(char* sz, size iLen);
 	void	Init(char* szStart, char* szLastCharInclusive);
 	void	Clear(void);
 	char*	EndInclusive(void);

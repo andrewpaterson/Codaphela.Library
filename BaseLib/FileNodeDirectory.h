@@ -65,7 +65,7 @@ void CFileNodeDirectory<M>::Init(void)
 template <class M>
 void CFileNodeDirectory<M>::Kill(void)
 {
-	int				i;
+	size			i;
 	CFileNode<M>*	pcChild;
 
 	for (i = 0; i < maNodeFiles.NumElements(); i++)
@@ -84,7 +84,7 @@ void CFileNodeDirectory<M>::Kill(void)
 template <class M>
 CFileNode<M>* CFileNodeDirectory<M>::Get(char* szName)
 {
-	int				i;
+	size			i;
 	CFileNode<M>*	pcNode;
 
 	for (i = 0; i < maNodeFiles.NumElements(); i++)
@@ -136,7 +136,7 @@ CFileNode<M>* CFileNodeDirectory<M>::AddFile(char* szName, CFileNode<M>* pcParen
 template <class M>
 void CFileNodeDirectory<M>::FixParents(CFileNode<M>* pcContaintingNode)
 {
-	int						i;
+	size					i;
 	CFileNode<M>*			pcNode;
 	CFileNodeDirectory<M>*	pcDirectory;
 

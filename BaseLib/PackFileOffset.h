@@ -36,9 +36,9 @@ class CPackFileOffset
 public:
 	CPackFiles	mcPackFiles;
 	CChars		mszOffset;
-	int			miFileRank;
+	uint32		miFileRank;
 
-	bool Init(char* szPackFileOffset, char* szPackFileDirectory, int iFileRank);
+	bool Init(char* szPackFileOffset, char* szPackFileDirectory, uint32 iFileRank);
 	void Kill(void);
 };
 

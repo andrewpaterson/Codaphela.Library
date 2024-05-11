@@ -114,7 +114,7 @@ bool CLogFileCommandOpen::Open(CAbstractFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFileCommandWrite::Init(filePos iPosition, filePos iSize)
+void CLogFileCommandWrite::Init(filePos iPosition, size iSize)
 {
 	CLogFileCommand::Init(LFC_Write);
 	this->iPosition = iPosition;
@@ -126,14 +126,14 @@ void CLogFileCommandWrite::Init(filePos iPosition, filePos iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, filePos iSize)
+void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, size iSize)
 {
-	void*					pvData;
+	void*	pvData;
 
 	Init(iPosition, iSize);
 
 	pvData = RemapSinglePointer(this, sizeof(CLogFileCommandWrite));
-	memcpy_fast(pvData, (void*)pvSource, (int)(iSize));
+	memcpy_fast(pvData, (void*)pvSource, iSize);
 }
 
 
@@ -143,8 +143,8 @@ void CLogFileCommandWrite::Init(filePos iPosition, void* pvSource, filePos iSize
 //////////////////////////////////////////////////////////////////////////
 bool CLogFileCommandWrite::Write(CAbstractFile* pcFile)
 {
-	void*		pvData;
-	filePos		iWritten;
+	void*	pvData;
+	size	iWritten;
 
 	pcFile->Seek(iPosition, EFSO_SET);
 	pvData = GetData();

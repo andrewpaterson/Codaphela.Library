@@ -37,8 +37,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SDurableFileCommandWrite
 {
-	filePos	iPosition;
-	filePos	iSize;
+	size	iPosition;
+	size	iSize;
 };
 
 
@@ -74,23 +74,23 @@ public:
 	bool		IsDurable(void);
 	bool		IsBegun(void);
 
-	filePos		Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
+	size		Write(filePos iDistance, const void* pvSource, size iSize, size iCount);
+	size		Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, size iSize, size iCount);
+	size		Write(const void* pvSource, size iSize, size iCount);
 
-	filePos		Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
-	filePos		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount);
-	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
+	size		Read(filePos iDistance, void* pvDest, size iSize, size iCount);
+	size		Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, size iSize, size iCount);
+	size		Read(void* pvDest, size iSize, size iCount);
 
 	bool		Create(void);
 	bool		Exists(void);
 
 	filePos		Tell(void);
 	filePos		Size(void);
-	bool		Truncate(filePos iSize);
+	bool		Truncate(size iSize);
 
-	int			GetNumWrites(void);
-	void*		GetWriteData(int iWrite);
+	size		GetNumWrites(void);
+	void*		GetWriteData(size iWrite);
 	void		AddFile(void);
 
 	bool		CheckIdentical(bool bThorough, bool bLogError);

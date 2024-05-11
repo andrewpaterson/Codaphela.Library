@@ -13,7 +13,7 @@
 #include "IndexTreeDataOrderer.h"
 
 
-#define MAX_DATA_SIZE (8 KB)
+#define MAX_DATA_SIZE ((size)(8 KB))
 
 
 class CIndexTree
@@ -27,26 +27,26 @@ protected:
 	CIndexTreeDataOrderer*			mpcDataOrderer;
 
 	EIndexKeyReverse				meReverseKey;
-	size_t							mtSizeofNode;
-	size_t							mtSizeofNodePtr;
-	size_t							mtSizeofDataNode;
-	size_t							miMaxDataSize;
-	int								miMaxKeySize;
+	size							mtSizeofNode;
+	size							mtSizeofNodePtr;
+	size							mtSizeofDataNode;
+	size							miMaxDataSize;
+	size							miMaxKeySize;
 
 public:
-			bool					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+			bool					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size tSizeofNode, size tSizeofDataNode, size tSizeofNodePtr, size iMaxDataSize, size	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	virtual bool					Kill(void);
 
-	virtual bool					Remove(void* pvKey, int iKeySize) =0;
-	virtual bool					HasKey(void* pvKey, int iKeySize) =0;
+	virtual bool					Remove(void* pvKey, size iKeySize) =0;
+	virtual bool					HasKey(void* pvKey, size iKeySize) =0;
 
-			size_t					SizeofNode(void);
-			size_t					SizeofDataNode(void);
-			size_t					SizeofNodePtr(void);
+			size					SizeofNode(void);
+			size					SizeofDataNode(void);
+			size					SizeofNodePtr(void);
 			EIndexKeyReverse		ReverseKeys(void);
 
-			size_t					CalculateRootNodeSize(void);
-			size_t					CalculateNodeSize(int iRequiredIndices, size_t iDataSize);
+			size					CalculateRootNodeSize(void);
+			size					CalculateNodeSize(size iRequiredIndices, size iDataSize);
 
 			void					GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey);
 	virtual void					Dump(void) =0;
@@ -55,11 +55,11 @@ public:
 			CMallocator*			GetMallocator();
 
 protected:
-			void*					Malloc(size_t tSize);
-			void*					Realloc(void* pv, size_t tSize);
+			void*					Malloc(size uiSize);
+			void*					Realloc(void* pv, size uiSize);
 			void					Free(void* pv);
 
-			bool					ValidatePut(int iKeySize, size_t iDataSize);
+			bool					ValidatePut(size iKeySize, size iDataSize);
 
 			void					InsertReorderData(CIndexTreeNode* pcNode);
 			void					GetReorderData(CIndexTreeNode* pcNode);
@@ -69,18 +69,18 @@ protected:
 
 			void					FreeNode(CIndexTreeNode* pcNode);
 
-			bool					StartKey(int* pi, int iKeySize);
-			bool					LoopKey(int* pi, int iKeySize);
+			bool					StartKey(size* pi, size iKeySize);
+			bool					LoopKey(size* pi, size iKeySize);
 
 			CIndexTreeNode*			GetNodeForDataNode(CIndexTreeDataNode* pcDataNode);
 			CIndexTreeNode*			GetNodeForData(void* pvData);
 			void*					GetDataForDataNode(CIndexTreeDataNode* pcDataNode);
 			void*					GetDataForNode(CIndexTreeNode* pcNode);
 
-	virtual	int						GetNodeKey(CIndexTreeNode* pcNode, char* pvDestKey, int iDestKeySize) =0;
-	virtual	int						GetNodeKeySize(CIndexTreeNode* pcNode) =0;
-	virtual	uint16					GetNodeDataSize(CIndexTreeNode* pcNode) =0;
-	virtual	uint16					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, int iDestDataSize) =0;
+	virtual	size					GetNodeKey(CIndexTreeNode* pcNode, uint8* pvDestKey, size iDestKeySize) =0;
+	virtual	size					GetNodeKeySize(CIndexTreeNode* pcNode) =0;
+	virtual	size					GetNodeDataSize(CIndexTreeNode* pcNode) =0;
+	virtual	size					GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, size iDestDataSize) =0;
 };
 
 

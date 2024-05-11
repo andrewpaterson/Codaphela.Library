@@ -19,8 +19,8 @@ public:
 			void									Kill(void);
 
 	virtual char*									GetSubdirectory(void) =0;
-	virtual size_t									GetDataCacheSize(void) =0;
-	virtual size_t									GetIndexCacheSize(void) =0;
+	virtual size									GetDataCacheSize(void) =0;
+	virtual size									GetIndexCacheSize(void) =0;
 	virtual EIndexWriteThrough						GetWriteThrough(void) =0;
 	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionUserCallback(void) =0;
 	virtual CIndexedDataEvictionCallback*			GetIndexedDataEvictionUserCallback(void) =0;

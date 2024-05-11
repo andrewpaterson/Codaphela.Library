@@ -37,14 +37,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SDenseNode
 {
-	uint32	iFlags;
+	uint32			iFlags;
 	SDenseNode*		psParent;
 	SDenseNode*		psLeftNode;  //NULL must always be marked as DENSE_NODE_LEFT_ELEMENT
 	SDenseNode*		psRightNode; //NULL must always be marked as DENSE_NODE_RIGHT_ELEMENT
 
-	void 			Set(int iLeftCount, bool bLeftElement, bool bRightElement);
-	int  			GetLeftCount(void);
-	void  			SetLeftCount(int iLeftCount);
+	void 			Set(size iLeftCount, bool bLeftElement, bool bRightElement);
+	size  			GetLeftCount(void);
+	void  			SetLeftCount(size iLeftCount);
 	SDenseNode*		GetRight(void);
 	SDenseNode*		GetLeft(void);
 	SDenseNode**	GetParentPointer(void);
@@ -62,45 +62,45 @@ private:
 	CFreeList		mcDenseNodes;
 	CFreeList		mcElementNodes;
 	SDenseNode*		mpsRoot;
-	int				miUsedElements;
-	int				miUsedNodes;
+	size			miUsedElements;
+	size			miUsedNodes;
 
 public:
-	void			Init(uint16 iElementSize);
+	void			Init(size iElementSize);
 	void			Kill(void);
 	M*				Add(void);
 	M*				Add(M* pvData);
-	M* 				AddGetIndex(int* piPos);
-	void			Set(int iElementPos, M* pvData);
-	bool			SafeSet(int iElementPos, M* pvData);
-	M* 				InsertAt(int iElementPos);
-	M*				InsertAt(M* pvData, int iElementPos);
-	void 			RemoveAt(int iElementPos);
-	void			RemoveRange(int iStartPos, int iEndPos);
+	M* 				AddGetIndex(size* piPos);
+	void			Set(size iElementPos, M* pvData);
+	bool			SafeSet(size iElementPos, M* pvData);
+	M* 				InsertAt(size iElementPos);
+	M*				InsertAt(M* pvData, size iElementPos);
+	void 			RemoveAt(size iElementPos);
+	void			RemoveRange(size iStartPos, size iEndPos);
 	void 			RemoveTail(void);
-	M*				Get(int iElementPos);
-	M*				SafeGet(int iElementPos);
-	int				NumUsedElements(void);;
-	int				NumUsedNodes(void);
+	M*				Get(size iElementPos);
+	M*				SafeGet(size iElementPos);
+	size			NumUsedElements(void);;
+	size			NumUsedNodes(void);
 	SDenseNode*		RotateLeft(SDenseNode* psNode);
 	SDenseNode*		RotateRight(SDenseNode* psNode);
 	void			Rebalance(void);
-	void			RecurseRebalance(SDenseNode* psNode, int iNumElements);
-	void			RecurseRebalanceChildren(SDenseNode* psNode, int iNumElements);
+	void			RecurseRebalance(SDenseNode* psNode, size iNumElements);
+	void			RecurseRebalanceChildren(SDenseNode* psNode, size iNumElements);
 	void			IncreaseLeftCounts(SDenseNode* psNode);
 	void			DecreaseLeftCounts(SDenseNode* psNode);
 	SDenseNode*		TestGetRoot(void);
 	bool			TestStructure(void);
 
 protected:
-	void			Search(int iElementPos, SDenseNode** ppsNode, bool* pbLeft, bool* pbInsertionLeft);
+	void			Search(size iElementPos, SDenseNode** ppsNode, bool* pbLeft, bool* pbInsertionLeft);
 	SDenseNode*		PrivateAddNode(void);
 	M*				PrivateAddElement(void);
 	void			PrivateRemoveElement(M* psElement);
 	void			PrivateRemoveNode(SDenseNode* psNode);
 	void			Dump(void);
-	void			RecurseDump(int iDepth, SDenseNode* psNode, CChars* psz, bool bLeft);
-	void			RecurseDumpElement(int iDepth, M* psElement, CChars* psz, bool bLeft);
+	void			RecurseDump(size iDepth, SDenseNode* psNode, CChars* psz, bool bLeft);
+	void			RecurseDumpElement(size iDepth, M* psElement, CChars* psz, bool bLeft);
 	bool			RecurseTestStructure1(SDenseNode* psNode);
 	bool			RecurseTestStructure2(SDenseNode* psNode);
 };
@@ -118,7 +118,7 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDenseNode::Set(int iLeftCount, bool bLeftElement, bool bRightElement)
+void SDenseNode::Set(size iLeftCount, bool bLeftElement, bool bRightElement)
 {
 	iFlags = iLeftCount;
 	if (bLeftElement)
@@ -136,7 +136,7 @@ void SDenseNode::Set(int iLeftCount, bool bLeftElement, bool bRightElement)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int SDenseNode::GetLeftCount(void)
+size SDenseNode::GetLeftCount(void)
 {
 	return iFlags & DENSE_NODE_LEFT_COUNT_MASK;
 }
@@ -146,7 +146,7 @@ int SDenseNode::GetLeftCount(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SDenseNode::SetLeftCount(int iLeftCount)
+void SDenseNode::SetLeftCount(size iLeftCount)
 {
 	iFlags &= (DENSE_NODE_LEFT_ELEMENT | DENSE_NODE_RIGHT_ELEMENT);
 	iFlags |= iLeftCount;
@@ -179,7 +179,7 @@ bool SDenseNode::IsRightElement(void)
 //////////////////////////////////////////////////////////////////////////
 void SDenseNode::SetRightElement(bool bRightElement)
 {
-	SetFlag(&iFlags, DENSE_NODE_RIGHT_ELEMENT, bRightElement);
+	SetFlagInt(&iFlags, DENSE_NODE_RIGHT_ELEMENT, bRightElement);
 }
 
 
@@ -189,7 +189,7 @@ void SDenseNode::SetRightElement(bool bRightElement)
 //////////////////////////////////////////////////////////////////////////
 void SDenseNode::SetLeftElement(bool bLeftElement)
 {
-	SetFlag(&iFlags, DENSE_NODE_LEFT_ELEMENT, bLeftElement);
+	SetFlagInt(&iFlags, DENSE_NODE_LEFT_ELEMENT, bLeftElement);
 }
 
 
@@ -239,7 +239,7 @@ SDenseNode* SDenseNode::GetLeft(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::Init(uint16 iElementSize)
+void __CArrayDenseTemplate<M>::Init(size iElementSize)
 {
 	mcDenseNodes.Init(sizeof(SDenseNode));
 	mcElementNodes.Init(iElementSize);
@@ -294,7 +294,7 @@ M* __CArrayDenseTemplate<M>::Add(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayDenseTemplate<M>::AddGetIndex(int* piPos)
+M* __CArrayDenseTemplate<M>::AddGetIndex(size* piPos)
 {
 	M*	psElement;
 
@@ -309,7 +309,7 @@ M* __CArrayDenseTemplate<M>::AddGetIndex(int* piPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::Set(int iElementPos, M* pvData)
+void __CArrayDenseTemplate<M>::Set(size iElementPos, M* pvData)
 {
 	SafeSet(iElementPos, pvData);
 }
@@ -320,9 +320,9 @@ void __CArrayDenseTemplate<M>::Set(int iElementPos, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool __CArrayDenseTemplate<M>::SafeSet(int iElementPos, M* pvData)
+bool __CArrayDenseTemplate<M>::SafeSet(size iElementPos, M* pvData)
 {
-	if ((iElementPos >= 0) && (iElementPos < miUsedElements))
+	if (iElementPos < miUsedElements)
 	{
 		M*	psElement;
 
@@ -397,7 +397,7 @@ void __CArrayDenseTemplate<M>::PrivateRemoveNode(SDenseNode* psNode)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::Search(int iElementPos, SDenseNode** ppsNode, bool* pbLeft, bool* pbInsertionLeft)
+void __CArrayDenseTemplate<M>::Search(size iElementPos, SDenseNode** ppsNode, bool* pbLeft, bool* pbInsertionLeft)
 {
 	SDenseNode*		psNode;
 	int				iCount;
@@ -511,7 +511,7 @@ SDenseNode* __CArrayDenseTemplate<M>::TestGetRoot(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayDenseTemplate<M>::NumUsedElements(void)
+size __CArrayDenseTemplate<M>::NumUsedElements(void)
 {
 	return miUsedElements;
 }
@@ -522,7 +522,7 @@ int __CArrayDenseTemplate<M>::NumUsedElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int __CArrayDenseTemplate<M>::NumUsedNodes(void)
+size __CArrayDenseTemplate<M>::NumUsedNodes(void)
 {
 	return miUsedNodes;
 }
@@ -533,7 +533,7 @@ int __CArrayDenseTemplate<M>::NumUsedNodes(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayDenseTemplate<M>::InsertAt(int iElementPos)
+M* __CArrayDenseTemplate<M>::InsertAt(size iElementPos)
 {
 	SDenseNode*		psNode;
 	SDenseNode*		psNewNode;
@@ -541,7 +541,7 @@ M* __CArrayDenseTemplate<M>::InsertAt(int iElementPos)
 	bool			bLeft;
 	bool			bInsertionLeft;
 
-	if ((iElementPos < 0) || (iElementPos > miUsedElements))
+	if (iElementPos > miUsedElements)
 	{
 		return NULL;
 	}
@@ -613,7 +613,7 @@ M* __CArrayDenseTemplate<M>::InsertAt(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayDenseTemplate<M>::InsertAt(M* pvData, int iElementPos)
+M* __CArrayDenseTemplate<M>::InsertAt(M* pvData, size iElementPos)
 {
 	M*	psElement;
 
@@ -627,14 +627,14 @@ M* __CArrayDenseTemplate<M>::InsertAt(M* pvData, int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::RemoveAt(int iElementPos)
+void __CArrayDenseTemplate<M>::RemoveAt(size iElementPos)
 {
 	SDenseNode*		psRemovedNode;
 	M*				psElement;
 	bool			bLeft;
 	bool			bRemovalLeft;
 
-	if ((iElementPos < 0) || (iElementPos >= miUsedElements))
+	if (iElementPos >= miUsedElements)
 	{
 		return;
 	}
@@ -725,14 +725,20 @@ void __CArrayDenseTemplate<M>::RemoveAt(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::RemoveRange(int iStartPos, int iEndPos)
+void __CArrayDenseTemplate<M>::RemoveRange(size iStartPos, size iEndPos)
 {
-	int	i;
+	size	i;
 
 	//There's a more optimal way of doing this...
-	for (i = iEndPos-1; i >= iStartPos; i--)
+	i = iEndPos;
+	if (i != 0)
 	{
-		RemoveAt(i);
+		do
+		{
+			i--;
+			RemoveAt(i);
+		}
+		while (i != iStartPos);
 	}
 }
 
@@ -744,7 +750,7 @@ void __CArrayDenseTemplate<M>::RemoveRange(int iStartPos, int iEndPos)
 template<class M>
 void __CArrayDenseTemplate<M>::RemoveTail(void)
 {
-	RemoveAt(miUsedElements-1);
+	RemoveAt(miUsedElements - 1);
 }
 
 
@@ -753,7 +759,7 @@ void __CArrayDenseTemplate<M>::RemoveTail(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayDenseTemplate<M>::Get(int iElementPos)
+M* __CArrayDenseTemplate<M>::Get(size iElementPos)
 {
 	return SafeGet(iElementPos);
 }
@@ -764,13 +770,13 @@ M* __CArrayDenseTemplate<M>::Get(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArrayDenseTemplate<M>::SafeGet(int iElementPos)
+M* __CArrayDenseTemplate<M>::SafeGet(size iElementPos)
 {
 	SDenseNode*		psNode;
 	bool			bLeft;
 	bool			bIgnored;
 
-	if ((iElementPos < 0) || (iElementPos >= miUsedElements))
+	if (iElementPos >= miUsedElements)
 	{
 		return NULL;
 	}
@@ -909,7 +915,7 @@ void __CArrayDenseTemplate<M>::Rebalance(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::RecurseRebalance(SDenseNode* psNode, int iNumElements)
+void __CArrayDenseTemplate<M>::RecurseRebalance(SDenseNode* psNode, size iNumElements)
 {
 	if (psNode->GetLeftCount() < (iNumElements / 2))
 	{
@@ -929,7 +935,7 @@ void __CArrayDenseTemplate<M>::RecurseRebalance(SDenseNode* psNode, int iNumElem
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::RecurseRebalanceChildren(SDenseNode* psNode, int iNumElements)
+void __CArrayDenseTemplate<M>::RecurseRebalanceChildren(SDenseNode* psNode, size iNumElements)
 {
 	if (psNode)
 	{
@@ -1078,7 +1084,7 @@ void __CArrayDenseTemplate<M>::Dump(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::RecurseDump(int iDepth, SDenseNode* psNode, CChars* psz, bool bLeft)
+void __CArrayDenseTemplate<M>::RecurseDump(size iDepth, SDenseNode* psNode, CChars* psz, bool bLeft)
 {
 	if (psNode)
 	{
@@ -1119,7 +1125,7 @@ void __CArrayDenseTemplate<M>::RecurseDump(int iDepth, SDenseNode* psNode, CChar
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArrayDenseTemplate<M>::RecurseDumpElement(int iDepth, M* psElement, CChars* psz, bool bLeft)
+void __CArrayDenseTemplate<M>::RecurseDumpElement(size iDepth, M* psElement, CChars* psz, bool bLeft)
 {
 	if (bLeft)
 	{
@@ -1133,7 +1139,7 @@ void __CArrayDenseTemplate<M>::RecurseDumpElement(int iDepth, M* psElement, CCha
 	if (psElement)
 	{
 		psz->Append("*");
-		psz->Append(*((int*)psElement));
+		psz->Append(*((size*)psElement));
 		psz->Append("*\n");
 	}
 	else

@@ -253,7 +253,7 @@ bool CCalculator::Identifier(CCalcConstExpression** ppcConst)
 {
 	TRISTATE				tResult;
 	CNumber					cNumber;
-	int						iLength;
+	size					iLength;
 	char*					sz;
 
 	tResult = mcParser.GetIdentifier(NULL, &iLength);
@@ -279,15 +279,15 @@ bool CCalculator::Identifier(CCalcConstExpression** ppcConst)
 //////////////////////////////////////////////////////////////////////////
 bool CCalculator::Value(CCalcConstExpression** ppcConst)
 {
-	TRISTATE				tResult;
-	CNumber					cNumber;
-	uint64	ulli;
+	TRISTATE	tResult;
+	CNumber		cNumber;
+	uint64		ulli;
 
 	tResult = mcParser.GetHexadecimal(&ulli);
 	if (tResult == TRITRUE)
 	{
 		*ppcConst = NewMalloc<CCalcConstExpression>();
-		(*ppcConst)->SetValue(cNumber.Init((int)ulli));
+		(*ppcConst)->SetValue(cNumber.Init((int32)ulli));  //This needs to properly take an int64.
 		return true;
 	}
 
@@ -315,7 +315,7 @@ bool CCalculator::Value(CCalcConstExpression** ppcConst)
 bool CCalculator::Operator(CCalcOperator** pcOperator)
 {
 	TRISTATE		tResult;
-	int				i;
+	size			i;
 	char*			szSimpleOp;
 	ECalcOperator	eOp;
 
@@ -406,7 +406,7 @@ bool CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
 //////////////////////////////////////////////////////////////////////////
 bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray)
 {
-	int						iIndex;
+	size					iIndex;
 	CCalcOperator*			pcOperator;
 	CCalcExpression*		pcOperand;
 	CCalcObject*			pcObject;
@@ -416,7 +416,7 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 	CCalcBinaryExpression*	pcBinary;
 	CCalcExpression*		pcOperandLeft;
 	CCalcExpression*		pcOperandRight;
-	int						iOldUsedElements;
+	size					iOldUsedElements;
 	CChars					szStart;
 	bool					bUnary;
 
@@ -532,7 +532,7 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 //////////////////////////////////////////////////////////////////////////
 int CCalculator::GetMinPrecedence(CArrayIntAndPointer* pcArray)
 {
-	int					i;
+	size				i;
 	CCalcObject*		pcObject;
 	CCalcOperator*		pcOperator;
 	int					iMinPrecedence;
@@ -641,7 +641,7 @@ bool CCalculator::HasError(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Print(CChars* psz, CArrayIntAndPointer* pcArray)
 {
-	int				i;
+	size			i;
 	CCalcObject*	pcObject;
 
 	for (i = 0; i < pcArray->NumElements(); i++)

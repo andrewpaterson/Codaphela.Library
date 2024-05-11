@@ -14,7 +14,7 @@ class CIndexTemplate : public CIndexBlock
 
 	bool	Remove(M* pvKey);
 
-	size_t	DataSize(M* pvKey);
+	size	DataSize(M* pvKey);
 
 	bool	HasKey(M* pvKey);
 
@@ -30,7 +30,7 @@ class CIndexTemplate : public CIndexBlock
 template<class M, class D>
 bool CIndexTemplate<M, D>::Get(M* pvKey, D** ppvData)
 {
-	int iDataSize;
+	size iDataSize;
 
 	return CIndexBlock::Get(pvKey, sizeof(M), ppvData, &iDataSize);
 }
@@ -85,7 +85,7 @@ bool CIndexTemplate<M, D>::Remove(M* pvKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-size_t CIndexTemplate<M, D>::DataSize(M* pvKey)
+size CIndexTemplate<M, D>::DataSize(M* pvKey)
 {
 	return CIndexBlock::DataSize(pvKey, sizeof(M));
 }

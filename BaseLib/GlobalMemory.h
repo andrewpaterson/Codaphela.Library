@@ -12,7 +12,7 @@ extern bool						gbMemory;
 
 
 void MemoryInit(void);
-void MemoryInit(int iDefaultAlignment, bool bDefaultFreeListParams = true);
+void MemoryInit(uint16 iDefaultAlignment, bool bDefaultFreeListParams = true);
 void MemoryKill(void);
 bool MemoryValidate(void);
 

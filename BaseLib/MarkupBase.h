@@ -46,8 +46,8 @@ public:
 	CMarkupTag*		mpcParent;
 	CMarkupDoc*		mpcDoc;
 
-	int				miLine;
-	int				miColumn;
+	uint32			miLine;
+	uint32			miColumn;
 
 public:
 			void 	Init(EMarkupType eType, CMarkupTag* pcParent);
@@ -58,14 +58,14 @@ public:
 			bool	IsRefText(void);
 			bool	IsNamedRef(void);
 
-			int		GetLine(void);
-			int		GetColumn(void);
-			void	SetLineAndColumn(int iLine, int iColumn);
+			uint32	GetLine(void);
+			uint32	GetColumn(void);
+			void	SetLineAndColumn(uint32 iLine, uint32 iColumn);
 
 			void	ReplaceIllegalChars(CChars* pszMutableSource);
-			int		Print(CChars* pszDest, CChars* pszMutableSource, int iDepth, int iLine, bool bAllowSameLine);
+			uint32	Print(CChars* pszDest, CChars* pszMutableSource, uint32 iDepth, uint32 iLine, bool bAllowSameLine);
 
-	virtual int		Print(CChars* psz, int iDepth, int iLine) =0;
+	virtual uint32	Print(CChars* psz, uint32 iDepth, uint32 iLine) =0;
 };
 
 

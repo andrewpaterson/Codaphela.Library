@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringString::Put(char* szKey, char* szValue)
 {
-	int		iStrLen;
+	size	iStrLen;
 	bool	bResult;
 
 	if (szValue == NULL)
@@ -47,9 +47,29 @@ bool CMapStringString::Put(char* szKey, char* szValue)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+bool CMapStringString::Put(uint8* szKey, char* szValue)
+{
+	return Put((char*)szKey, szValue);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 char* CMapStringString::Get(char* szKey)
 {
 	return (char*)CMapStringBlock::Get(szKey);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+char* CMapStringString::Get(uint8* szKey)
+{
+	return (char*)CMapStringBlock::Get((char*)szKey);
 }
 
 
@@ -62,11 +82,11 @@ void CMapStringString::Dump(void)
 	SMapIterator	sIter;
 	char*			szKey;
 	char*			szValue;
-	int				iKeySize;
-	int				iValueSize;
+	size			iKeySize;
+	size			iValueSize;
 	bool			bHasNext;
 	CChars			sz;
-	size_t			uiCount;
+	size			uiCount;
 
 	uiCount = 0;
 	sz.Init();

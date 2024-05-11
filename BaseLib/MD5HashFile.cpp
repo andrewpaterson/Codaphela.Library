@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 
 Microsoft Windows is Copyright Microsoft Corporation
-
+f
 ** ------------------------------------------------------------------------ **/
 #include "Logger.h"
 #include "ConstructorCall.h"
@@ -136,10 +136,10 @@ bool CMD5HashFile::IsOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CMD5HashFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
+size CMD5HashFile::Read(void* pvBuffer, size iSize, size iCount)
 {
-	filePos		iSuccessfulCount;
-	filePos		iSuccessfulBytes;
+	size		iSuccessfulCount;
+	size		iSuccessfulBytes;
 
 	if (mbResetMD5OnOperationChange)
 	{
@@ -164,10 +164,10 @@ filePos CMD5HashFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CMD5HashFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
+size CMD5HashFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
-	filePos		iSuccessfulCount;
-	filePos		iSuccessfulBytes;
+	size		iSuccessfulCount;
+	size		iSuccessfulBytes;
 
 	if (mbResetMD5OnOperationChange)
 	{
@@ -179,7 +179,7 @@ filePos CMD5HashFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 	meLastOp = LMD5OP_Write;
 
 	iSuccessfulCount = mpcFile->Write(pvBuffer, iSize, iCount);
-	if (iSuccessfulCount > 0)
+	if (iSuccessfulCount != 0)
 	{
 		iSuccessfulBytes = iSuccessfulCount * iSize;
 		MD5Update(&msMD5Context, (uint8*)pvBuffer, (uint32)iSuccessfulBytes);

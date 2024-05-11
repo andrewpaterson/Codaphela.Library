@@ -5,8 +5,8 @@
 class CMapBlock;
 struct SMNode
 {
-	int				iKeySize;
-	int				iDataSize;
+	size			iKeySize;
+	size			iDataSize;
 	DataCompare		fKeyCompare;
 
 	int KeyCompare(const void* arg1, const void* arg2);

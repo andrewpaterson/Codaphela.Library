@@ -30,10 +30,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CountCarriageReturns(char* szString, int iLen)
+size CountCarriageReturns(char* szString, size iLen)
 {
-	int		i;
-	int		iNumCarriageReturns;
+	size	i;
+	size	iNumCarriageReturns;
 
 	iNumCarriageReturns = 0;
 	for (i = 0; i < iLen; i++)
@@ -51,10 +51,10 @@ int CountCarriageReturns(char* szString, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CountLineFeeds(char* szString, int iLen)
+size CountLineFeeds(char* szString, size iLen)
 {
-	int		i;
-	int		iNumLineFeeds;
+	size	i;
+	size	iNumLineFeeds;
 
 	iNumLineFeeds = 0;
 	for (i = 0; i < iLen; i++)
@@ -72,10 +72,10 @@ int CountLineFeeds(char* szString, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CountNewLines(char* szString, int iLen)
+size CountNewLines(char* szString, size iLen)
 {
-	int iCarriageReturns;
-	int iLineFeeds;
+	size iCarriageReturns;
+	size iLineFeeds;
 
 	iCarriageReturns = CountCarriageReturns(szString, iLen);
 	iLineFeeds = CountLineFeeds(szString, iLen);
@@ -92,7 +92,7 @@ int CountNewLines(char* szString, int iLen)
 	if (iLineFeeds != iCarriageReturns)
 	{
 		//There is no file format where /r and /n are not balanced.
-		return -1;
+		return SIZE_MAX;
 	}
 	return iCarriageReturns;
 }
@@ -102,20 +102,20 @@ int CountNewLines(char* szString, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int PassifyNewlines(char *szString)
+size PassifyNewlines(char *szString)
 {
-	int		iLen;
-	int		i;
-	int		iNumCarriageReturns;
+	size	iLen;
+	size	i;
+	size	iNumCarriageReturns;
 	char*	szNewString;  //Should use StackMemory.
-	int		iPos;
+	size	iPos;
 
-	iLen = (int)strlen(szString);
+	iLen = strlen(szString);
 	iNumCarriageReturns = CountCarriageReturns(szString, iLen);
 
 	if (iNumCarriageReturns == 0)
 	{
-		return -1;
+		return SIZE_MAX;
 	}
 
 	szNewString	= (char*)malloc(iLen-iNumCarriageReturns+1);
@@ -132,6 +132,6 @@ int PassifyNewlines(char *szString)
 
 	memcpy(szString, szNewString, iPos);
 	SafeFree(szNewString);
-	return iPos-1;
+	return iPos - 1;
 }
 

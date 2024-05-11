@@ -23,7 +23,7 @@ char* IndexToString(OIndex oi)
 	}
 	else
 	{
-		return LongLongToString(oi);
+		return LongToString(oi);
 	}
 }
 

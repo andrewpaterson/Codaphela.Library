@@ -1,5 +1,6 @@
 #ifndef __LINKED_LIST_H__
 #define __LINKED_LIST_H__
+#include "PrimitiveTypes.h"
 #include "DataCompare.h"
 
 
@@ -31,6 +32,7 @@ public:
 	SLLNode* 	GetNext(SLLNode* psExistingNode);
 	SLLNode* 	GetPrev(SLLNode* psExistingNode);
 
+	void		RemoveHead(void);
 	void		RemoveTail(void);
 	void		Remove(SLLNode* psNode);
 	bool		SafeRemove(SLLNode* psNode);
@@ -38,15 +40,15 @@ public:
 	void		MoveToHead(SLLNode* psNode);
 	void		MoveToTTail(SLLNode* psNode);
 
-	int			NumElements(void);
+	size		NumElements(void);
 
-	SLLNode*	Get(int iNum);
-	int			IndexOf(SLLNode* psExistingNode);
+	SLLNode*	Get(size iNum);
+	size		IndexOf(SLLNode* psExistingNode);
 	bool		IsInList(SLLNode* pcNode);
 
-	void		BubbleSort(DataCompare fCompare, size_t iOffset);
+	void		BubbleSort(DataCompare fCompare, size iOffset);
 	void		Swap(SLLNode* psNode1, SLLNode* psNode2);
-	void		InsertIntoSorted(DataCompare fCompare, SLLNode* psNode, size_t iOffset);
+	void		InsertIntoSorted(DataCompare fCompare, SLLNode* psNode, size iOffset);
 };
 
 

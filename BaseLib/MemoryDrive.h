@@ -9,7 +9,7 @@ protected:
 	void*	mpvData;
 
 public:
-	bool	Init(size_t uiSizeInBytes, uint32 uiSectorSize);
+	bool	Init(size uiSizeInBytes, uint32 uiSectorSize);
 	void	Kill(void);
 
 	bool	Read(uint64 uiSector, void* pvData);

@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayBit : public CMalloc
 {
 protected:
-	int				miNumBits;
+	size	miNumBits;
 
 	union
 	{
@@ -50,23 +50,23 @@ public:
 	void	Kill(void);
 	void	Zero(void);
 	void	ReInit(void);
-	void	GrowBy(int iNumBits);
+	void	GrowBy(size iNumBits);
 
-	bool	Get(int iBit);  //return 0 or not 0 (not necessarily 1).
-	void	Get(void* pvDest, int iDestOffset, int iOffset, int iNumBits);
+	bool	Get(size iBit);  //return 0 or not 0 (not necessarily 1).
+	void	Get(void* pvDest, size iDestOffset, size iOffset, size iNumBits);
 
 	void	Add(bool bBit);
-	void	Add(void* pvSource, int iSourceOffset, int iNumBits);
+	void	Add(void* pvSource, size iSourceOffset, size iNumBits);
 
-	void	Set(int iBit, bool bBit);  //bBit can only take 1 or 0.
-	void	Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits);
+	void	Set(size iBit, bool bBit);  //bBit can only take 1 or 0.
+	void	Set(size iOffset, void* pvSource, size iSourceOffset, size iNumBits);
 
 	bool	Read(CFileReader* pcFile);
 	bool	Write(CFileWriter* pcFile);
 
-	int		NumElements(void);
+	size	NumElements(void);
 	void*	GetData(void);
-	int		ByteSize(int iNumBits);
+	size	ByteSize(size iNumBits);
 
 	bool	IsLarge(void);
 };

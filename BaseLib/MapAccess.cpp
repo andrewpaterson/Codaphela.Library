@@ -25,9 +25,19 @@ void** CMapAccess::PutLongPtr(int64 lliKey, void* pvPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int* CMapAccess::PutLongInt(int64 lliKey, int iData)
+int16* CMapAccess::PutLongShort(int64 lliKey, int16 iData)
 {
-	return (int*)Put(&lliKey, sizeof(int64), &iData, sizeof(int));
+	return (int16*)Put(&lliKey, sizeof(int64), &iData, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32* CMapAccess::PutLongInt(int64 lliKey, int32 iData)
+{
+	return (int32*)Put(&lliKey, sizeof(int64), &iData, sizeof(int32));
 }
 
 
@@ -66,7 +76,7 @@ char* CMapAccess::PutLongString(int64 lliKey, char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::PutLongData(int64 lliKey, void* pvData, size_t iDataSize)
+void* CMapAccess::PutLongData(int64 lliKey, void* pvData, size iDataSize)
 {
 	return Put(&lliKey, sizeof(int64), pvData, iDataSize);
 }
@@ -76,9 +86,9 @@ void* CMapAccess::PutLongData(int64 lliKey, void* pvData, size_t iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void** CMapAccess::PutIntPtr(int iKey, void* pvPointer)
+void** CMapAccess::PutShortPtr(int16 iKey, void* pvPointer)
 {
-	return (void**)Put(&iKey, sizeof(int), &pvPointer, sizeof(void*));
+	return (void**)Put(&iKey, sizeof(int16), &pvPointer, sizeof(void*));
 }
 
 
@@ -86,9 +96,9 @@ void** CMapAccess::PutIntPtr(int iKey, void* pvPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int* CMapAccess::PutIntInt(int iKey, int iData)
+int16* CMapAccess::PutShortShort(int16 iKey, int16 iData)
 {
-	return (int*)Put(&iKey, sizeof(int), &iData, sizeof(int));
+	return (int16*)Put(&iKey, sizeof(int16), &iData, sizeof(int16));
 }
 
 
@@ -96,9 +106,9 @@ int* CMapAccess::PutIntInt(int iKey, int iData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64* CMapAccess::PutIntLong(int iKey, int64 lliData)
+int32* CMapAccess::PutShortInt(int16 iKey, int32 iData)
 {
-	return (int64*)Put(&iKey, sizeof(int), &lliData, sizeof(int64));
+	return (int32*)Put(&iKey, sizeof(int16), &iData, sizeof(int32));
 }
 
 
@@ -106,9 +116,9 @@ int64* CMapAccess::PutIntLong(int iKey, int64 lliData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::PutIntChar(int iKey, char cData)
+int64* CMapAccess::PutShortLong(int16 iKey, int64 lliData)
 {
-	return (char*)Put(&iKey, sizeof(int), &cData, sizeof(char));
+	return (int64*)Put(&iKey, sizeof(int16), &lliData, sizeof(int64));
 }
 
 
@@ -116,9 +126,9 @@ char* CMapAccess::PutIntChar(int iKey, char cData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::PutIntString(int iKey, char* pszData)
+char* CMapAccess::PutShortChar(int16 iKey, char cData)
 {
-	return (char*)Put(&iKey, sizeof(int), pszData, StrDataSize(pszData));
+	return (char*)Put(&iKey, sizeof(int16), &cData, sizeof(char));
 }
 
 
@@ -126,9 +136,89 @@ char* CMapAccess::PutIntString(int iKey, char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::PutIntData(int iKey, void* pvData, size_t iDataSize)
+char* CMapAccess::PutShortString(int16 iKey, char* pszData)
 {
-	return (void*)Put(&iKey, sizeof(int), pvData, iDataSize);
+	return (char*)Put(&iKey, sizeof(int16), pszData, StrDataSize(pszData));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapAccess::PutShortData(int16 iKey, void* pvData, size iDataSize)
+{
+	return (void*)Put(&iKey, sizeof(int16), pvData, iDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void** CMapAccess::PutIntPtr(int32 iKey, void* pvPointer)
+{
+	return (void**)Put(&iKey, sizeof(int32), &pvPointer, sizeof(void*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int16* CMapAccess::PutIntShort(int32 iKey, int16 iData)
+{
+	return (int16*)Put(&iKey, sizeof(int32), &iData, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32* CMapAccess::PutIntInt(int32 iKey, int32 iData)
+{
+	return (int32*)Put(&iKey, sizeof(int32), &iData, sizeof(int32));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64* CMapAccess::PutIntLong(int32 iKey, int64 lliData)
+{
+	return (int64*)Put(&iKey, sizeof(int32), &lliData, sizeof(int64));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CMapAccess::PutIntChar(int32 iKey, char cData)
+{
+	return (char*)Put(&iKey, sizeof(int32), &cData, sizeof(char));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CMapAccess::PutIntString(int32 iKey, char* pszData)
+{
+	return (char*)Put(&iKey, sizeof(int32), pszData, StrDataSize(pszData));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapAccess::PutIntData(int32 iKey, void* pvData, size iDataSize)
+{
+	return (void*)Put(&iKey, sizeof(int32), pvData, iDataSize);
 }
 
 
@@ -146,7 +236,7 @@ void** CMapAccess::PutStringPtr(char* pszKey, void* pvPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::PutStringData(char* pszKey, void* pvData, size_t iDataSize)
+void* CMapAccess::PutStringData(char* pszKey, void* pvData, size iDataSize)
 {
 	return (void*)Put(pszKey, StrKeySize(pszKey), pvData, iDataSize);
 }
@@ -166,9 +256,19 @@ char* CMapAccess::PutStringChar(char* pszKey, char cData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int* CMapAccess::PutStringInt(char* pszKey, int iData)
+int16* CMapAccess::PutStringShort(char* pszKey, int16 iData)
 {
-	return (int*)Put(pszKey, StrKeySize(pszKey), &iData, sizeof(int));
+	return (int16*)Put(pszKey, StrKeySize(pszKey), &iData, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32* CMapAccess::PutStringInt(char* pszKey, int32 iData)
+{
+	return (int32*)Put(pszKey, StrKeySize(pszKey), &iData, sizeof(int32));
 }
 
 
@@ -196,7 +296,7 @@ char* CMapAccess::PutStringString(char* pszKey, char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::PutKeyData(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+void* CMapAccess::PutKeyData(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	return Put(pvKey, iKeySize, pvData, iDataSize);
 }
@@ -206,9 +306,9 @@ void* CMapAccess::PutKeyData(void* pvKey, int iKeySize, void* pvData, size_t iDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int* CMapAccess::PutKeyInt(void* pvKey, int iKeySize, int iData)
+int32* CMapAccess::PutKeyInt(void* pvKey, size iKeySize, int32 iData)
 {
-	return (int*)Put(pvKey, iKeySize, &iData, sizeof(int));
+	return (int32*)Put(pvKey, iKeySize, &iData, sizeof(int32));
 }
 
 
@@ -216,7 +316,7 @@ int* CMapAccess::PutKeyInt(void* pvKey, int iKeySize, int iData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::PutKeyString(void* pvKey, int iKeySize, char* pszData)
+char* CMapAccess::PutKeyString(void* pvKey, size iKeySize, char* pszData)
 {
 	return (char*)Put(pvKey, iKeySize, pszData, StrDataSize(pszData));
 }
@@ -226,7 +326,7 @@ char* CMapAccess::PutKeyString(void* pvKey, int iKeySize, char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::GetString(void* pvKey, int iKeySize)
+char* CMapAccess::GetString(void* pvKey, size iKeySize)
 {
 	return (char*)Get(pvKey, iKeySize, NULL);
 }
@@ -246,11 +346,31 @@ char* CMapAccess::GetLongString(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::GetLongInt(int64 lliKey, int iNullValue)
+int16 CMapAccess::GetLongShort(int64 lliKey, int16 iNullValue)
 {
-	int*	pi;
+	int16*	pi;
 	
-	pi = (int*)Get(&lliKey, sizeof(int64), NULL);
+	pi = (int16*)Get(&lliKey, sizeof(int64), NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CMapAccess::GetLongInt(int64 lliKey, int32 iNullValue)
+{
+	int32*	pi;
+	
+	pi = (int32*)Get(&lliKey, sizeof(int64), NULL);
 	if (pi)
 	{
 		return *pi;
@@ -306,7 +426,7 @@ char CMapAccess::GetLongChar(int64 lliKey, char cNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::GetLongData(int64 lliKey, size_t* piDataSize)
+void* CMapAccess::GetLongData(int64 lliKey, size* piDataSize)
 {
 	return Get(&lliKey, sizeof(int64), piDataSize);
 }
@@ -336,9 +456,9 @@ void* CMapAccess::GetLongPtr(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::GetIntString(int iKey)
+char* CMapAccess::GetIntString(int32 iKey)
 {
-	return GetString(&iKey, sizeof(int));
+	return GetString(&iKey, sizeof(int32));
 }
 
 
@@ -346,11 +466,11 @@ char* CMapAccess::GetIntString(int iKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::GetIntInt(int iKey, int iNullValue)
+int32 CMapAccess::GetIntInt(int32 iKey, int32 iNullValue)
 {
-	int* pi;
+	int32* pi;
 
-	pi = (int*)Get(&iKey, sizeof(int), NULL);
+	pi = (int32*)Get(&iKey, sizeof(int32), NULL);
 	if (pi)
 	{
 		return *pi;
@@ -366,11 +486,31 @@ int CMapAccess::GetIntInt(int iKey, int iNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CMapAccess::GetIntLong(int iKey, int64 lliNullValue)
+int16 CMapAccess::GetIntShort(int32 iKey, int16 iNullValue)
+{
+	int16* pi;
+
+	pi = (int16*)Get(&iKey, sizeof(int16), NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CMapAccess::GetIntLong(int32 iKey, int64 lliNullValue)
 {
 	int64* plli;
 
-	plli = (int64*)Get(&iKey, sizeof(int), NULL);
+	plli = (int64*)Get(&iKey, sizeof(int32), NULL);
 	if (plli)
 	{
 		return *plli;
@@ -386,11 +526,11 @@ int64 CMapAccess::GetIntLong(int iKey, int64 lliNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CMapAccess::GetIntChar(int iKey, char cNullValue)
+char CMapAccess::GetIntChar(int32 iKey, char cNullValue)
 {
 	char* pc;
 
-	pc = (char*)Get(&iKey, sizeof(int), NULL);
+	pc = (char*)Get(&iKey, sizeof(int32), NULL);
 	if (pc)
 	{
 		return *pc;
@@ -406,9 +546,9 @@ char CMapAccess::GetIntChar(int iKey, char cNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::GetIntData(int iKey, size_t* piDataSize)
+void* CMapAccess::GetIntData(int32 iKey, size* piDataSize)
 {
-	return Get(&iKey, sizeof(int), piDataSize);
+	return Get(&iKey, sizeof(int32), piDataSize);
 }
 
 
@@ -416,11 +556,11 @@ void* CMapAccess::GetIntData(int iKey, size_t* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::GetIntPtr(int iKey)
+void* CMapAccess::GetIntPtr(int32 iKey)
 {
 	void* pv;
 
-	pv = Get(&iKey, sizeof(int), NULL);
+	pv = Get(&iKey, sizeof(int32), NULL);
 	if (pv)
 	{
 		return pv;
@@ -436,7 +576,127 @@ void* CMapAccess::GetIntPtr(int iKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::GetStringData(char* pszKey, size_t* piDataSize)
+char* CMapAccess::GetShortString(int16 iKey)
+{
+	return GetString(&iKey, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CMapAccess::GetShortInt(int16 iKey, int32 iNullValue)
+{
+	int32* pi;
+
+	pi = (int32*)Get(&iKey, sizeof(int16), NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int16 CMapAccess::GetShortShort(int16 iKey, int16 iNullValue)
+{
+	int16* pi;
+
+	pi = (int16*)Get(&iKey, sizeof(int16), NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CMapAccess::GetShortLong(int16 iKey, int64 lliNullValue)
+{
+	int64* plli;
+
+	plli = (int64*)Get(&iKey, sizeof(int16), NULL);
+	if (plli)
+	{
+		return *plli;
+	}
+	else
+	{
+		return lliNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char CMapAccess::GetShortChar(int16 iKey, char cNullValue)
+{
+	char* pc;
+
+	pc = (char*)Get(&iKey, sizeof(int16), NULL);
+	if (pc)
+	{
+		return *pc;
+	}
+	else
+	{
+		return cNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapAccess::GetShortData(int16 iKey, size* piDataSize)
+{
+	return Get(&iKey, sizeof(int16), piDataSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapAccess::GetShortPtr(int16 iKey)
+{
+	void* pv;
+
+	pv = Get(&iKey, sizeof(int16), NULL);
+	if (pv)
+	{
+		return pv;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapAccess::GetStringData(char* pszKey, size* piDataSize)
 {
 	return Get(pszKey, StrKeySize(pszKey), piDataSize);
 }
@@ -476,11 +736,31 @@ char CMapAccess::GetStringChar(char* pszKey, char cNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::GetStringInt(char* pszKey, int iNullValue)
+int16 CMapAccess::GetStringShort(char* pszKey, int16 iNullValue)
 {
-	int* pi;
+	int16* pi;
 
-	pi = (int*)Get(pszKey, StrKeySize(pszKey), NULL);
+	pi = (int16*)Get(pszKey, StrKeySize(pszKey), NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CMapAccess::GetStringInt(char* pszKey, int32 iNullValue)
+{
+	int32* pi;
+
+	pi = (int32*)Get(pszKey, StrKeySize(pszKey), NULL);
 	if (pi)
 	{
 		return *pi;
@@ -536,7 +816,7 @@ void* CMapAccess::GetStringPtr(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMapAccess::GetKeyString(void* pvKey, int iKeySize)
+char* CMapAccess::GetKeyString(void* pvKey, size iKeySize)
 {
 	return GetString(pvKey, iKeySize);
 }
@@ -546,7 +826,7 @@ char* CMapAccess::GetKeyString(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapAccess::GetKeyData(void* pvKey, int iKeySize, size_t* piDataSize)
+void* CMapAccess::GetKeyData(void* pvKey, size iKeySize, size* piDataSize)
 {
 	return Get(pvKey, iKeySize, piDataSize);
 }
@@ -556,11 +836,11 @@ void* CMapAccess::GetKeyData(void* pvKey, int iKeySize, size_t* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::GetKeyInt(void* pvKey, int iKeySize, int iNullValue)
+int16 CMapAccess::GetKeyShort(void* pvKey, size iKeySize, int16 iNullValue)
 {
-	int*	pi;
+	int16*	pi;
 
-	pi = (int*)Get(pvKey, iKeySize, NULL);
+	pi = (int16*)Get(pvKey, iKeySize, NULL);
 	if (pi)
 	{
 		return *pi;
@@ -576,7 +856,27 @@ int CMapAccess::GetKeyInt(void* pvKey, int iKeySize, int iNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CMapAccess::GetKeyLong(void* pvKey, int iKeySize, int64 lliNullValue)
+int32 CMapAccess::GetKeyInt(void* pvKey, size iKeySize, int32 iNullValue)
+{
+	int32*	pi;
+
+	pi = (int32*)Get(pvKey, iKeySize, NULL);
+	if (pi)
+	{
+		return *pi;
+	}
+	else
+	{
+		return iNullValue;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int64 CMapAccess::GetKeyLong(void* pvKey, size iKeySize, int64 lliNullValue)
 {
 	int64* plli;
 
@@ -606,9 +906,19 @@ bool CMapAccess::HasLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapAccess::HasInt(int iKey)
+bool CMapAccess::HasShort(int16 iKey)
 {
-	return Has(&iKey, sizeof(int));
+	return Has(&iKey, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapAccess::HasInt(int32 iKey)
+{
+	return Has(&iKey, sizeof(int32));
 }
 
 
@@ -626,7 +936,7 @@ bool CMapAccess::HasString(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapAccess::HasKey(void* pvKey, int iKeySize)
+bool CMapAccess::HasKey(void* pvKey, size iKeySize)
 {
 	return Has(pvKey, iKeySize);
 }
@@ -646,9 +956,19 @@ bool CMapAccess::DeleteLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapAccess::DeleteInt(int iKey)
+bool CMapAccess::DeleteShort(int16 iKey)
 {
-	return Remove(&iKey, sizeof(int));
+	return Remove(&iKey, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapAccess::DeleteInt(int32 iKey)
+{
+	return Remove(&iKey, sizeof(int32));
 }
 
 
@@ -666,7 +986,7 @@ bool CMapAccess::DeleteString(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapAccess::DeleteKey(void* pvKey, int iKeySize)
+bool CMapAccess::DeleteKey(void* pvKey, size iKeySize)
 {
 	return Remove(pvKey, iKeySize);
 }
@@ -676,7 +996,27 @@ bool CMapAccess::DeleteKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::DataSizeLong(int64 lliKey)
+size CMapAccess::DataSizeInt(int16 iKey)
+{
+	return DataSize(&iKey, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapAccess::DataSizeShort(int32 iKey)
+{
+	return DataSize(&iKey, sizeof(int32));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapAccess::DataSizeLong(int64 lliKey)
 {
 	return DataSize(&lliKey, sizeof(int64));
 }
@@ -686,7 +1026,7 @@ int CMapAccess::DataSizeLong(int64 lliKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::DataSizeString(char* pszKey)
+size CMapAccess::DataSizeString(char* pszKey)
 {
 	return DataSize(pszKey, StrKeySize(pszKey));
 }
@@ -696,7 +1036,7 @@ int CMapAccess::DataSizeString(char* pszKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapAccess::DataSizeKey(void* pvKey, int iKeySize)
+size CMapAccess::DataSizeKey(void* pvKey, size iKeySize)
 {
 	return DataSize(pvKey, iKeySize);
 }

@@ -78,7 +78,7 @@ bool CMarkupTextParser::ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTextParser::ReadInteger(CMarkupTag* pcIntTag, int* pcInt, bool bLogErrors)
+bool CMarkupTextParser::ReadInteger(CMarkupTag* pcIntTag, int64* pcInt, bool bLogErrors)
 {
 	CChars					szInt;
 	CTextParser				cTextParser;

@@ -8,23 +8,24 @@
 
 
 char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
-int  giLogToStringCount = 0;
+size  giLogToStringCount = 0;
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int IncrementLogToStringCount(void)
+size IncrementLogToStringCount(void)
 {
-	int	iCount = giLogToStringCount;
-
+	size	uiCount;
+	
+	uiCount = giLogToStringCount;
 	giLogToStringCount++;
 	if (giLogToStringCount >= LOG_TO_STRING_SCRATCH_PAD_SIZE)
 	{
 		giLogToStringCount = 0;
 	}
-	return iCount;
+	return uiCount;
 }
 
 
@@ -34,8 +35,10 @@ int IncrementLogToStringCount(void)
 //////////////////////////////////////////////////////////////////////////
 char* CharToString(uint8 c)
 {
-	int iCount = IncrementLogToStringCount();
-	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	return CharToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, c);
 }
 
 
@@ -45,8 +48,10 @@ char* CharToString(uint8 c)
 //////////////////////////////////////////////////////////////////////////
 char* CharToString(char c)
 {
-	int iCount = IncrementLogToStringCount();
-	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	return CharToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, c);
 }
 
 
@@ -56,8 +61,10 @@ char* CharToString(char c)
 //////////////////////////////////////////////////////////////////////////
 char* CharToString(char16 c)
 {
-	int iCount = IncrementLogToStringCount();
-	return CharToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, c);
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	return CharToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, c);
 }
 
 
@@ -67,8 +74,10 @@ char* CharToString(char16 c)
 //////////////////////////////////////////////////////////////////////////
 char* BoolToString(bool b)
 {
-	int iCount = IncrementLogToStringCount();
-	return BoolToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, b);
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	return BoolToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, b);
 }
 
 
@@ -76,12 +85,13 @@ char* BoolToString(bool b)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* IntToString(int i, int iBase)
+char* ByteToString(int8 i, uint16 iBase)
 {
-	int iCount = IncrementLogToStringCount();
+	size	uiCount;
 
-	IntToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, i, iBase);
-	return gaszLogToStringScratchPad[iCount];
+	uiCount = IncrementLogToStringCount();
+	ByteToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, i, iBase);
+	return gaszLogToStringScratchPad[uiCount];
 }
 
 
@@ -89,11 +99,13 @@ char* IntToString(int i, int iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FloatToString(float f, int iDecimals)
+char* ByteToString(uint8 ui, uint16 iBase)
 {
-	int iCount = IncrementLogToStringCount();
+	size	uiCount;
 
-	return FloatToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, f, iDecimals);
+	uiCount = IncrementLogToStringCount();
+	ByteToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, ui, iBase);
+	return gaszLogToStringScratchPad[uiCount];
 }
 
 
@@ -101,11 +113,13 @@ char* FloatToString(float f, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* DoubleToString(double d, int iDecimals)
+char* ShortToString(int16 i, uint16 iBase)
 {
-	int iCount = IncrementLogToStringCount();
+	size	uiCount;
 
-	return DoubleToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, d, iDecimals);
+	uiCount = IncrementLogToStringCount();
+	ShortToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, i, iBase);
+	return gaszLogToStringScratchPad[uiCount];
 }
 
 
@@ -113,12 +127,109 @@ char* DoubleToString(double d, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* IntToFlags(int iInt)
+char* ShortToString(uint16 ui, uint16 iBase)
 {
-	char* sz;
-	int iCount = IncrementLogToStringCount();
-	sz = gaszLogToStringScratchPad[iCount];
+	size	uiCount;
 
+	uiCount = IncrementLogToStringCount();
+	ShortToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, ui, iBase);
+	return gaszLogToStringScratchPad[uiCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* IntToString(int32 i, uint16 iBase)
+{
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	IntToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, i, iBase);
+	return gaszLogToStringScratchPad[uiCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* IntToString(uint32 ui, uint16 iBase)
+{
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	IntToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, ui, iBase);
+	return gaszLogToStringScratchPad[uiCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* LongToString(int64 lli, uint16 iBase)
+{
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	LongToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, lli, iBase);
+	return gaszLogToStringScratchPad[uiCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* LongToString(uint64 ulli, uint16 iBase)
+{
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	LongToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, ulli, iBase);
+	return gaszLogToStringScratchPad[uiCount];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FloatToString(float f, uint16 iDecimals)
+{
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	return FloatToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, f, iDecimals);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* DoubleToString(double d, uint16 iDecimals)
+{
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	return DoubleToString(gaszLogToStringScratchPad[uiCount], LOG_TO_STRING_MAX_LENGTH, d, iDecimals);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* IntToFlags(uint32 iInt)
+{
+	char*	sz;
+	size	uiCount;
+
+	uiCount = IncrementLogToStringCount();
+	sz = gaszLogToStringScratchPad[uiCount];
 	return FlagsToString(sz, LOG_TO_STRING_MAX_LENGTH, iInt);
 }
 
@@ -127,12 +238,13 @@ char* IntToFlags(int iInt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* ShortToFlags(int iShort)
+char* ShortToFlags(uint16 iShort)
 {
 	char* sz;
-	int iCount = IncrementLogToStringCount();
-	sz = gaszLogToStringScratchPad[iCount];
+	size	uiCount;
 
+	uiCount = IncrementLogToStringCount();
+	sz = gaszLogToStringScratchPad[uiCount];
 	return FlagsToString(sz, LOG_TO_STRING_MAX_LENGTH, iShort);
 }
 
@@ -141,28 +253,19 @@ char* ShortToFlags(int iShort)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* LongLongToString(int64 lli, int iBase)
+char* SizeToString(size i, uint16 iBase)
 {
-	int iCount = IncrementLogToStringCount();
-
-	IntToString(gaszLogToStringScratchPad[iCount], LOG_TO_STRING_MAX_LENGTH, lli, iBase);
-	return gaszLogToStringScratchPad[iCount];
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* SizeToString(size_t i, int iBase)
-{
-	if (sizeof(size_t) == sizeof(int))
+	if (sizeof(size) == sizeof(uint16))
 	{
-		return IntToString((int)i, iBase);
+		return ShortToString((uint16)i, iBase);
 	}
-	else if (sizeof(size_t) == sizeof(int64))
+	else if (sizeof(size) == sizeof(uint32))
 	{
-		return LongLongToString((int64)i, iBase);
+		return IntToString((uint32)i, iBase);
+	}
+	else if (sizeof(size) == sizeof(uint64))
+	{
+		return LongToString((uint64)i, iBase);
 	}
 	else
 	{
@@ -177,15 +280,15 @@ char* SizeToString(size_t i, int iBase)
 //////////////////////////////////////////////////////////////////////////
 char* PointerToString(void* pv)
 {
-	int iCount = IncrementLogToStringCount();
-	
+	size	uiCount;
 	CChars	sz;
 
+	uiCount = IncrementLogToStringCount();
 	sz.Init();
-	sz.AppendHexHiLo(&pv, sizeof(size_t));
-	StrCpySafe(gaszLogToStringScratchPad[iCount], sz.Text(), LOG_TO_STRING_MAX_LENGTH);
+	sz.AppendHexHiLo(&pv, sizeof(size));
+	StrCpySafe(gaszLogToStringScratchPad[uiCount], sz.Text(), LOG_TO_STRING_MAX_LENGTH);
 	sz.Kill();
-	return gaszLogToStringScratchPad[iCount];
+	return gaszLogToStringScratchPad[uiCount];
 }
 
 
@@ -193,13 +296,15 @@ char* PointerToString(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* MethodToString(const char* szFile, int iLine, const char* szFunction)
+char* MethodToString(const char* szFile, size iLine, const char* szFunction)
 {
-	int		iCount = IncrementLogToStringCount();
-	char*	sz = gaszLogToStringScratchPad[iCount];
-
+	size		uiCount;
+	char*		sz;
 	CChars		szOutput;
 	CFileUtil	cFileUtil;
+
+	uiCount = IncrementLogToStringCount();
+	sz = gaszLogToStringScratchPad[uiCount];
 
 	szOutput.Init();
 	szOutput.Append(szFile);
@@ -240,7 +345,7 @@ char* StringToString(char* sz)
 //////////////////////////////////////////////////////////////////////////
 char* StringToString(char* szStart, char* szLastCharInclusive)
 {
-	int		iCount;
+	size	uiCount;
 	char*	sz;
 
 	if (szStart != NULL)
@@ -251,8 +356,8 @@ char* StringToString(char* szStart, char* szLastCharInclusive)
 		}
 		else
 		{
-			iCount = IncrementLogToStringCount();
-			sz = gaszLogToStringScratchPad[iCount];
+			uiCount = IncrementLogToStringCount();
+			sz = gaszLogToStringScratchPad[uiCount];
 			//Should be StrCpySafe but a Safe version hasn't been written yet.
 			StrCpy(sz, szStart, szLastCharInclusive);
 		}

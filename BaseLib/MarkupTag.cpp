@@ -63,7 +63,7 @@ void CMarkupTag::Init(char* szName, CMarkupTag* pcParent)
 void CMarkupTag::Kill(void)
 {
 	CMarkupBase*	pcBase;
-	int				i;
+	size			i;
 
 	mszName.Kill();
 	mcAttributes.Kill();
@@ -121,11 +121,11 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTag::GetTag(char* szTagName, int iTagNumber)
+CMarkupTag* CMarkupTag::GetTag(char* szTagName, uint32 iTagNumber)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcTag;
-	int				i;
+	uint32			i;
 
 	sIter.iIndex = -1;
 	sIter.mpcCurrent = NULL;
@@ -153,8 +153,8 @@ CMarkupTag* CMarkupTag::GetTagFromIndex(char* szTagName, STagIterator* psIter)
 	CMarkupBase*	pcBase;
 	CMarkupTag*		pcTag;
 	CMarkupRefDoc*	pcRefDoc;
-	int				i;
-	int				iIndex;
+	size			i;
+	size			iIndex;
 
 	iIndex = psIter->iIndex +1;
 	for (i = iIndex; i < macBases.NumElements(); i++)
@@ -195,8 +195,8 @@ CMarkupTag* CMarkupTag::GetTagFromIndex(STagIterator* psIter)
 	CMarkupBase*	pcBase;
 	CMarkupTag*		pcTag;
 	CMarkupRefDoc*	pcRefDoc;
-	int				i;
-	int				iIndex;
+	size			i;
+	size			iIndex;
 
 	iIndex = psIter->iIndex +1;
 	for (i = iIndex; i < macBases.NumElements(); i++)
@@ -278,7 +278,7 @@ bool CMarkupTag::GetText(CChars* psz, bool bFirstContiguous, bool bFirstTag)
 	CMarkupBase*	pcBase;
 	CMarkupText*	pcText;
 	CMarkupRefText*	pcRefText;
-	int				i;
+	size			i;
 	bool			bContiguous;
 	bool			bPreviousTag;
 
@@ -454,7 +454,7 @@ bool CMarkupTag::AddAttribute(char* szAttribute, char* szValue)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::ContainsOnlyText(void)
 {
-	int				i;
+	size			i;
 	CMarkupBase*	pcBase;
 
 	for (i = 0; i < macBases.NumElements(); i++)
@@ -475,7 +475,7 @@ bool CMarkupTag::ContainsOnlyText(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 {
-	int				i;
+	size			i;
 	CMarkupBase*	pcBase;
 
 	for (i = 0; i < macBases.NumElements(); i++)
@@ -505,9 +505,9 @@ void CMarkupTag::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupTag::Print(CChars* psz, int iDepth, int iLine)
+uint32 CMarkupTag::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 {
-	int				i;
+	size			i;
 	CMarkupBase*	pcBase;
 	CChars			szText;
 	bool			bPadClosing;

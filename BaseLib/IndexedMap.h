@@ -15,15 +15,15 @@ protected:
 	CDurableFile								mcDescriptorsFile;
 
 public:
-	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough);
-	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size_t iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough);
+	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
 	bool	Kill(void);
 
 	bool	DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize);
 	bool	Flush(bool bClearCache);
 
 	int64	NumIndices(void);
-	int64	NumIndicesCached(void);
+	size	NumIndicesCached(void);
 	bool	IsDirty(OIndex oi);
 
 	bool	EvictData(OIndex oi, CIndexedDataDescriptor* pcDescriptor);

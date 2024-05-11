@@ -22,9 +22,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __DATA_TYPES_H__
 #define __DATA_TYPES_H__
-#include "ErrorHandler.h"
-#include "Chars.h"
-#include "ArrayTemplateMinimal.h"
+#include "PrimitiveTypes.h"
+
 
 
 #define MAX_CHAR	((int8)0x7f)

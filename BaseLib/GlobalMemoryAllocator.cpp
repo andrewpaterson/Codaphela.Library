@@ -18,9 +18,9 @@ void CGlobalMemoryAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGlobalMemoryAllocator::Malloc(size_t tSize)
+void* CGlobalMemoryAllocator::Malloc(size uiSize)
 {
-	return gcMemory.Add((uint32)tSize);
+	return gcMemory.Add((uint32)uiSize);
 }
 
 
@@ -28,11 +28,11 @@ void* CGlobalMemoryAllocator::Malloc(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CGlobalMemoryAllocator::Realloc(void* pv, size_t tSize)
+void* CGlobalMemoryAllocator::Realloc(void* pv, size uiSize)
 {
 	void*	pvNew;
 
-	pvNew = gcMemory.Grow(pv, (uint32)tSize);
+	pvNew = gcMemory.Grow(pv, (uint32)uiSize);
 	return pvNew;
 }
 
@@ -61,7 +61,7 @@ bool CGlobalMemoryAllocator::IsLocal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CGlobalMemoryAllocator::SizeOffset(void)
+size CGlobalMemoryAllocator::SizeOffset(void)
 {
 	return sizeof(SGeneralMemoryAllocation);
 }

@@ -31,9 +31,9 @@ void CMalloc::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMalloc::Malloc(size_t tSize)
+void* CMalloc::Malloc(size uiSize)
 {
-	return mpcMalloc->Malloc(tSize);
+	return mpcMalloc->Malloc(uiSize);
 }
 
 
@@ -51,9 +51,9 @@ void CMalloc::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMalloc::Realloc(void* pv, size_t tSize)
+void* CMalloc::Realloc(void* pv, size uiSize)
 {
-	return mpcMalloc->Realloc(pv, tSize);
+	return mpcMalloc->Realloc(pv, uiSize);
 }
 
 

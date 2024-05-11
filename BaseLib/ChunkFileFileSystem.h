@@ -29,7 +29,7 @@ public:
 	void		Kill(void);
 
 	bool		WriteOpen(void);
-	bool		WriteOpen(int iUserID);
+	bool		WriteOpen(uint32 iUserID);
 	bool		WriteChunkBegin(char* szChunkName);
 	bool		WriteChunkEnd(void);
 	bool		WriteClose(void);
@@ -46,15 +46,15 @@ public:
 	CChunkFile* GetChunkFile(void);
 
 protected:
-	bool	WriteChunkBegin(void);
-	bool	WriteChunkEnd(char* szChunkName);
+	bool		WriteChunkBegin(void);
+	bool		WriteChunkEnd(char* szChunkName);
 
-	int		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
-	bool	WriteUnmatchedChunkEnds(int iMatchingOpen);
-	bool	WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames);
+	uint32		FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames);
+	bool		WriteUnmatchedChunkEnds(size iMatchingOpen);
+	bool		WriteNewUnmatchedChunks(size iMatchingOpen, CArrayChars* paszChunkNames);
 
-	filePos	Write(const void* pvSource, filePos iSize, filePos iCount);
-	filePos	Read(void* pvDest, filePos iSize, filePos iCount);
+	size		Write(const void* pvSource, size iSize, size iCount);
+	size		Read(void* pvDest, size iSize, size iCount);
 };
 
 

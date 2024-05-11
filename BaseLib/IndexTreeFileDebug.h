@@ -4,12 +4,13 @@
 #include "ArrayTemplate.h"
 #include "Chars.h"
 
+
 struct SIndexTreeDebugNode
 {
 	uint32	uiIndexInFile;
-	int				iFileNumber;
+	uint32	uiFileIndex;
 
-	bool			bEmpty;
+	bool	bEmpty;
 
 	uint16	uiDataSize;
 	uint16	iFileNodeSize;
@@ -20,8 +21,8 @@ struct SIndexTreeDebugNode
 	uint8	uiIndexInParent;
 	uint8	sFlags;
 
-	int		InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, uint32 uiIndex);
-	void	InitBroken(uint8 uiIndexInParent);
+	int		InitFromBuffer(void* pvBuffer, size iBufferSize, uint32 uiFileIndex, uint32 uiIndexInFile);
+	void	InitBroken(size uiIndexInParent);
 	void	Print(CChars* sz);
 	void	Dump(void);
 };

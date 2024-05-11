@@ -45,9 +45,9 @@ void CFreeListAllocator::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CFreeListAllocator::Malloc(size_t tSize)
+void* CFreeListAllocator::Malloc(size uiSize)
 {
-	if (tSize > (size_t)mcFreeList.GetElementSize())
+	if (uiSize > (size)mcFreeList.GetElementSize())
 	{
 		return NULL;
 	}
@@ -70,9 +70,9 @@ bool CFreeListAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CFreeListAllocator::Realloc(void* pv, size_t tSize)
+void* CFreeListAllocator::Realloc(void* pv, size uiSize)
 {
-	if (tSize > (size_t)mcFreeList.GetElementSize())
+	if (uiSize > (size)mcFreeList.GetElementSize())
 	{
 		mcFreeList.Remove(pv);
 		return NULL;
@@ -144,7 +144,7 @@ bool CFreeListAllocator::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CFreeListAllocator::SizeOffset(void)
+size CFreeListAllocator::SizeOffset(void)
 {
 	return 0;
 }

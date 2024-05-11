@@ -9,7 +9,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CBaseLinkedListBlock::Init(CMallocator* pcMalloc, size_t uiNodeSize)
+void CBaseLinkedListBlock::Init(CMallocator* pcMalloc, size uiNodeSize)
 {
 	CMalloc::Init(pcMalloc);
 	muiNodeSize = uiNodeSize;
@@ -21,7 +21,7 @@ void CBaseLinkedListBlock::Init(CMallocator* pcMalloc, size_t uiNodeSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CBaseLinkedListBlock::Init(size_t uiNodeSize)
+void CBaseLinkedListBlock::Init(size uiNodeSize)
 {
 	Init(&gcSystemAllocator, uiNodeSize);
 }
@@ -108,7 +108,7 @@ void* CBaseLinkedListBlock::GetPrev(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::Get(int iNum)
+void* CBaseLinkedListBlock::Get(size iNum)
 {
 	SLLNode*	psNode;
 
@@ -255,7 +255,7 @@ SLLNode* CBaseLinkedListBlock::DataGetNode(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertAfterTail(uint32 uiDataSize)
+void* CBaseLinkedListBlock::InsertAfterTail(size uiDataSize)
 {
 	SLLNode*	psNode;
 
@@ -268,7 +268,7 @@ void* CBaseLinkedListBlock::InsertAfterTail(uint32 uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertBeforeHead(uint32 uiDataSize)
+void* CBaseLinkedListBlock::InsertBeforeHead(size uiDataSize)
 {
 	SLLNode*	psNode;
 
@@ -281,7 +281,7 @@ void* CBaseLinkedListBlock::InsertBeforeHead(uint32 uiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertBeforeNode(uint32 uiDataSize, void* psPos)
+void* CBaseLinkedListBlock::InsertBeforeNode(size uiDataSize, void* psPos)
 {
 	SLLNode*	psNode;
 	SLLNode*	psNodePos;
@@ -296,7 +296,7 @@ void* CBaseLinkedListBlock::InsertBeforeNode(uint32 uiDataSize, void* psPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CBaseLinkedListBlock::InsertAfterNode(uint32 uiDataSize, void* psPos)
+void* CBaseLinkedListBlock::InsertAfterNode(size uiDataSize, void* psPos)
 {
 	SLLNode* psNode;
 	SLLNode* psNodePos;
@@ -334,7 +334,7 @@ void CBaseLinkedListBlock::Detach(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLNode* CBaseLinkedListBlock::AllocateDetached(size_t uiDataSize)
+SLLNode* CBaseLinkedListBlock::AllocateDetached(size uiDataSize)
 {
 	SLLNode* psNode;
 
@@ -381,7 +381,7 @@ void CBaseLinkedListBlock::Swap(void* psData1, void* psData2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CBaseLinkedListBlock::NumElements(void)
+size CBaseLinkedListBlock::NumElements(void)
 {
 	return mcList.NumElements();
 }
@@ -427,7 +427,7 @@ bool CBaseLinkedListBlock::IsInList(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CBaseLinkedListBlock::IndexOf(void* pvData)
+size CBaseLinkedListBlock::IndexOf(void* pvData)
 {
 	SLLNode* psNode;
 
@@ -440,7 +440,7 @@ int CBaseLinkedListBlock::IndexOf(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SLinkedListBlockDesc::Init(int iNumElements, uint32 uiNodeSize)
+void SLinkedListBlockDesc::Init(size iNumElements, size uiNodeSize)
 {
 	this->iNumElements = iNumElements;
 	this->uiNodeSize = uiNodeSize;
@@ -451,7 +451,7 @@ void SLinkedListBlockDesc::Init(int iNumElements, uint32 uiNodeSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SLinkedListTemplateDesc::Init(int iNumElements, uint32 uiNodeSize, uint32 uiDataSize)
+void SLinkedListTemplateDesc::Init(size iNumElements, size uiNodeSize, size uiDataSize)
 {
 	this->iNumElements = iNumElements;
 	this->uiNodeSize = uiNodeSize;

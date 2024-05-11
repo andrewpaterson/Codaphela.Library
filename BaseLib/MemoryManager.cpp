@@ -180,7 +180,7 @@ void* CMemoryManager::AllocateNodeInUnused(SMMNode* psUnusedNode, uint32 uiUnuse
 
 	psNewUnusedNode = (SMMNode*)RemapSinglePointer(psUnusedNode, uiAllocateSize);
 	mcLinkedList.InsertAfterNode(psUnusedNode, (SLLNode*)psNewUnusedNode);
-	uiUnusedNodeSize = (size_t)psNewUnusedNode->psNext - (size_t)psNewUnusedNode;
+	uiUnusedNodeSize = (size)psNewUnusedNode->psNext - (size)psNewUnusedNode;
 	SetUnusedMMNodeDataSize(psNewUnusedNode, uiUnusedNodeSize);
 	return pvData;
 }
@@ -208,7 +208,7 @@ void* CMemoryManager::AllocateNodeAfterEnd(uint32 uiSize)
 		psNode = (SMMNode*)RemapSinglePointer(psNode, uiNodeSize);
 	}
 
-	uiRemaingSize = (size_t)mpvHeapEnd - (size_t)psNode + 1;
+	uiRemaingSize = (size)mpvHeapEnd - (size)psNode + 1;
 	if (uiSize <= uiRemaingSize)
 	{
 		SetUsedMMNodeDataSize(psNode, uiSize);
@@ -265,48 +265,52 @@ void CMemoryManager::EvictUnsedEmptyCache(SMMNode* psAltered)
 	psNext = (SMMNode*)psAltered->psNext;
 	if (psNext)
 	{
-		for (ui = muiEmptyCacheSize-1; ; ui--)
+		if (muiEmptyCacheSize != 0)
 		{
-			if ((mapsEmpty[ui] >= psAltered) && (mapsEmpty[ui] < psNext))
+			ui = muiEmptyCacheSize;
+			do
 			{
-				if (bLast)
+				ui--;
+				if ((mapsEmpty[ui] >= psAltered) && (mapsEmpty[ui] < psNext))
 				{
-					muiEmptyCacheSize--;
-				}
-				mapsEmpty[ui] = NULL;
-				mbCacheFull = false;
-			}
-			else
-			{
-				bLast = false;
-			}
-			if (ui == 0)
-			{
-				break;
-			}
-		}
-	}
-	else
-	{
-		for (ui = muiEmptyCacheSize - 1; ; ui--)
-		{
-			if ((mapsEmpty[ui] >= psAltered))
-			{
-				if (bLast)
-				{
-					muiEmptyCacheSize--;
+					if (bLast)
+					{
+						muiEmptyCacheSize--;
+					}
+					mapsEmpty[ui] = NULL;
+					mbCacheFull = false;
 				}
 				else
 				{
 					bLast = false;
 				}
-				mapsEmpty[ui] = NULL;
-				mbCacheFull = false;
 			}
-			if (ui == 0)
+			while (ui != 0);
+		}
+	}
+	else
+	{
+		if (muiEmptyCacheSize != 0)
+		{
+			ui = muiEmptyCacheSize;
+			do
 			{
-				break;
+				ui--;
+				if ((mapsEmpty[ui] >= psAltered))
+				{
+					if (bLast)
+					{
+						muiEmptyCacheSize--;
+					}
+					else
+					{
+						bLast = false;
+					}
+					mapsEmpty[ui] = NULL;
+					mbCacheFull = false;
+				}
 			}
+			while (ui != 0);
 		}
 	}
 }
@@ -395,7 +399,7 @@ void CMemoryManager::Deallocate(void* pvData)
 		}
 	}
 
-	uiUnusedNodeSize = (size_t)psCurrent->psNext - (size_t)psCurrent;
+	uiUnusedNodeSize = (size)psCurrent->psNext - (size)psCurrent;
 	SetUnusedMMNodeDataSize(psCurrent, uiUnusedNodeSize);
 
 	EvictUnsedEmptyCache(psCurrent);
@@ -503,11 +507,11 @@ uint32 CMemoryManager::GetRemaingTailSize(void)
 	psNode = (SMMNode*)mcLinkedList.GetTail();
 	if (psNode)
 	{
-		return (size_t)mpvHeapEnd - (size_t)psNode - GetMMNodeDataSize(psNode) + 1;
+		return (size)mpvHeapEnd - (size)psNode - GetMMNodeDataSize(psNode) + 1;
 	}
 	else
 	{
-		return (size_t)mpvHeapEnd - (size_t)mpvHeapStart + 1;
+		return (size)mpvHeapEnd - (size)mpvHeapStart + 1;
 	}
 }
 
@@ -518,6 +522,6 @@ uint32 CMemoryManager::GetRemaingTailSize(void)
 //////////////////////////////////////////////////////////////////////////
 uint32 CMemoryManager::GetTotalSize(void)
 {
-	return (size_t)mpvHeapEnd - (size_t)mpvHeapStart + 1;
+	return (size)mpvHeapEnd - (size)mpvHeapStart + 1;
 }
 

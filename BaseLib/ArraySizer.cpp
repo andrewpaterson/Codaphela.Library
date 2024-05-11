@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CalculateChunkSize(int iNumElements)
+size CalculateChunkSize(size iNumElements)
 {
 	if (iNumElements < 192)
 	{
@@ -99,9 +99,9 @@ int CalculateChunkSize(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CalculateChunkSize(int iNumElements, int iCurrentChunkSize)
+size CalculateChunkSize(size iNumElements, size iCurrentChunkSize)
 {
-	int	iNewChunkSize;
+	size	iNewChunkSize;
 
 	iNewChunkSize = CalculateChunkSize(iNumElements);
 	if (iNewChunkSize < iCurrentChunkSize)
@@ -116,18 +116,18 @@ int CalculateChunkSize(int iNumElements, int iCurrentChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CalculateArraySize(int iNumElements, int iChunkeSize)
+size CalculateArraySize(size iNumElements, size iChunkeSize)
 {
-	int	iNumAllocations;
-	int iNumLeftOvers;
-	int	iOldUsedElements;
+	size	iNumAllocations;
+	size	iNumLeftOvers;
+	size	iOldUsedElements;
 
 	iOldUsedElements = iNumElements;
 
 	iNumAllocations = iNumElements / iChunkeSize;
 	iNumLeftOvers = iNumElements % iChunkeSize;
 
-	if (iNumLeftOvers > 0)
+	if (iNumLeftOvers != 0)
 	{
 		iNumAllocations++;
 	}

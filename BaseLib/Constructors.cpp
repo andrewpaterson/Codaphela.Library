@@ -56,13 +56,13 @@ void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMalloc, size_t uiAdditionalSize, char(**pacDebugName)[4])
+void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMalloc, size uiAdditionalSize, char(**pacDebugName)[4])
 {
-	void*		pcConstructor;
-	size_t		uiSize;
-	void*		pcObject;
+	void*	pcConstructor;
+	size	uiSize;
+	void*	pcObject;
 
-	pcConstructor = mcConstructors.Get(szConstructorName, (int*)&uiSize);
+	pcConstructor = mcConstructors.Get(szConstructorName, &uiSize);
 	if (!pcConstructor)
 	{
 		gcLogger.Error2(__METHOD__, " Could not find a Constructor named [", szConstructorName, "].", NULL);
@@ -78,7 +78,7 @@ void* CConstructors::Construct(const char* szConstructorName, CMallocator* pcMal
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CConstructors::NumConstructors(void)
+size CConstructors::NumConstructors(void)
 {
 	return mcConstructors.NumElements();
 }
@@ -125,7 +125,7 @@ bool CConstructors::ValidateNotAdded(const char* szClassName)
 bool CConstructors::Contains(const char* szName)
 {
 	void*	pcConstructor;
-	int		iSize;
+	size		iSize;
 
 	pcConstructor = mcConstructors.Get(szName, &iSize);
 	return pcConstructor != NULL;

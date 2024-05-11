@@ -37,7 +37,7 @@ void CExternalString::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalString::Init(char* sz, int iLen)
+void CExternalString::Init(char* sz, size iLen)
 {
 	msz = sz;
 	miLen = iLen;
@@ -123,9 +123,9 @@ bool CExternalString::Equals(CExternalString* pcOther)
 //////////////////////////////////////////////////////////////////////////
 bool CExternalString::Equals(char* sz)
 {
-	int iLen;
+	size iLen;
 
-	iLen = (int)strlen(sz);
+	iLen = strlen(sz);
 	if (iLen == miLen)
 	{
 		if (miLen == 0)

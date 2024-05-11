@@ -66,8 +66,8 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, bool bOverw
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, bool bOverwrite)
 {
-	int		iHoldingBufferSize;
-	int		iHoldingBuffers;
+	size	iHoldingBufferSize;
+	size	iHoldingBuffers;
 
 	CMalloc::Init(pcMalloc);
 
@@ -88,7 +88,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare
 //////////////////////////////////////////////////////////////////////////
 void CMapBlock::Kill(void)
 {
-	int			i;
+	size		i;
 	SMNode**	ppsNode;
 
 	mapArray.InsertHoldingIntoSorted();
@@ -107,11 +107,12 @@ void CMapBlock::Kill(void)
 	CMalloc::Kill();
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::Get(void* pvKey, int iKeySize)
+void* CMapBlock::Get(void* pvKey, size iKeySize)
 {
 	void*	pvData;
 	bool	bFound;
@@ -132,7 +133,7 @@ void* CMapBlock::Get(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
+bool CMapBlock::Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize)
 {
 	SMNode*		psNode;
 	void*		pvData;
@@ -156,9 +157,9 @@ bool CMapBlock::Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CMapBlock::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
-	void*		pvDestData;
+	void*	pvDestData;
 
 	pvDestData = Put(pvKey, iKeySize, iDataSize);
 	if (pvDestData != NULL)
@@ -180,13 +181,13 @@ bool CMapBlock::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
+void* CMapBlock::Put(void* pvKey, size iKeySize, size iDataSize)
 {
-	SMNode*			psNode;
-	void*			pvDestKey;
-	void*			pvDestData;
-	bool			bResult;
-	void*			pvExistingData;
+	SMNode*		psNode;
+	void*		pvDestKey;
+	void*		pvDestData;
+	bool		bResult;
+	void*		pvExistingData;
 
 	if (iKeySize > MAX_KEY_SIZE)
 	{
@@ -234,7 +235,7 @@ void* CMapBlock::Put(void* pvKey, int iKeySize, int iDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Remove(void* pvKey, int iKeySize)
+bool CMapBlock::Remove(void* pvKey, size iKeySize)
 {
 	SMNode*		psNode;
 
@@ -260,7 +261,7 @@ bool CMapBlock::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CMapBlock::DataSize(void* pvKey, int iKeySize)
+size CMapBlock::DataSize(void* pvKey, size iKeySize)
 {
 	SMNode* psNode;
 
@@ -280,7 +281,7 @@ size_t CMapBlock::DataSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::HasKey(void* pvKey, int iKeySize)
+bool CMapBlock::HasKey(void* pvKey, size iKeySize)
 {
 	SMNode* psNode;
 
@@ -293,7 +294,7 @@ bool CMapBlock::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMNode* CMapBlock::GetNode(void* pvKey, int iKeySize)
+SMNode* CMapBlock::GetNode(void* pvKey, size iKeySize)
 {
 	SMNode**	ppsNode;
 	SMNode*		psSourceNode;
@@ -329,7 +330,7 @@ SMNode* CMapBlock::GetNode(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapBlock::NumElements(void)
+size CMapBlock::NumElements(void)
 {
 	return mapArray.NumElements();
 }
@@ -339,7 +340,7 @@ int CMapBlock::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
+bool CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
@@ -368,12 +369,12 @@ bool CMapBlock::StartIteration(SMapIterator* psIterator, void** ppvKey, int* piK
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize)
+bool CMapBlock::Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
 	void*		pvData;
-	SMNode* psNode;
+	SMNode*		psNode;
 
 	ppsNode = (SMNode**)mapArray.Iterate(psIterator);
 	if (!ppsNode)
@@ -463,7 +464,7 @@ bool CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompar
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize)
+void* CMapBlock::WriteKey(CFileWriter* pcFileWriter, size iIndex, size* piDataSize)
 {
 	void*		pvKey;
 	void*		pvData;
@@ -472,11 +473,11 @@ void* CMapBlock::WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize
 	psNode = *((SMNode**)mapArray.GetInSorted(iIndex));
 	RemapKeyAndData(psNode, &pvKey, &pvData);
 
-	if (!pcFileWriter->WriteInt(psNode->iKeySize))
+	if (!pcFileWriter->WriteSize(psNode->iKeySize))
 	{
 		return NULL;
 	}
-	if (!pcFileWriter->WriteInt(psNode->iDataSize))
+	if (!pcFileWriter->WriteSize(psNode->iDataSize))
 	{
 		return NULL;
 	}
@@ -494,20 +495,20 @@ void* CMapBlock::WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize)
+void* CMapBlock::ReadKey(CFileReader* pcFileReader, size iIndex, size* piDataSize)
 {
 	SMNode*		psNode;
 	SMNode**	ppsNode;
 	void*		pvKey;
 	void*		pvData;
-	int			iKeySize;
-	int			iDataSize;
+	size		iKeySize;
+	size		iDataSize;
 
-	if (!pcFileReader->ReadInt(&iKeySize))
+	if (!pcFileReader->ReadSize(&iKeySize))
 	{
 		return NULL;
 	}
-	if (!pcFileReader->ReadInt(&iDataSize))
+	if (!pcFileReader->ReadSize(&iDataSize))
 	{
 		return NULL;
 	}
@@ -535,11 +536,11 @@ void* CMapBlock::ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Write(CFileWriter* pcFileWriter)
 {
-	int			iNumElements;
-	int			i;
-	void*		pvData;
-	int			iDataSize;
-	bool		bResult;
+	size	iNumElements;
+	size	i;
+	void*	pvData;
+	size	iDataSize;
+	bool	bResult;
 
 
 	bResult = WriteExceptData(pcFileWriter);
@@ -583,10 +584,10 @@ bool CMapBlock::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
-	int			i;
-	int			iNumElements;
-	void*		pvData;
-	int			iDataSize;
+	size	i;
+	size	iNumElements;
+	void*	pvData;
+	size	iDataSize;
 
 	if (fKeyCompare == NULL)
 	{
@@ -618,7 +619,7 @@ bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMNode* CMapBlock::AllocateNode(int iKeySize, int iDataSize, void** ppvKey, void** ppvData)
+SMNode* CMapBlock::AllocateNode(size iKeySize, size iDataSize, void** ppvKey, void** ppvData)
 {
 	SMNode*	psNode;
 
@@ -696,7 +697,7 @@ void CMapBlock::InsertHoldingIntoSorted(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlock::GetInSorted(int iIndex, void** ppvKey, void** ppvData)
+void CMapBlock::GetInSorted(size iIndex, void** ppvKey, void** ppvData)
 {
 	SMNode**	ppsNode;
 	void*		pvKey;
@@ -733,13 +734,13 @@ void* CMapBlock::GetData(SMNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CMapBlock::ByteSize(void)
+size CMapBlock::ByteSize(void)
 {
 	SMapIterator	sIter;
-	int				iKeySize;
-	int				iDataSize;
+	size				iKeySize;
+	size				iDataSize;
 	bool			bExists;
-	size_t			uiByteSize;
+	size			uiByteSize;
 
 	uiByteSize = 0;
 	bExists = StartIteration(&sIter, NULL, &iKeySize, NULL, &iDataSize);

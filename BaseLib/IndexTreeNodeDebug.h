@@ -1,5 +1,6 @@
 #ifndef __INDEX_TREE_NODE_DEBUG_H__
 #define __INDEX_TREE_NODE_DEBUG_H__
+#include "Chars.h"
 #include "IndexTreeNode.h"
 
 

@@ -76,7 +76,7 @@ void CCSVFile::Close(void)
 bool CCSVFile::ReadLine(CChars* szString)
 {
 	char	sBuffer[CSV_FILE_LINE_BUFFER_LENGTH+1];
-	int		iLength;
+	size	iLength;
 	bool	bDoneAnything;
 
 	bDoneAnything = false;
@@ -102,11 +102,11 @@ bool CCSVFile::ReadLine(CChars* szString)
 																		//
 																		//
 ////////////////////////////////////////////////////////////////////////
-bool CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
+bool CCSVFile::ReadLine(char* szBuffer, size iMaxLength)
 {
-	int		iLength;
+	size		iLength;
 	bool	bDoneAnything;
-	int		iPosition;
+	size		iPosition;
 
 	bDoneAnything = false;
 	iPosition = 0;
@@ -140,20 +140,20 @@ bool CCSVFile::ReadLine(char* szBuffer, int iMaxLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CCSVFile::ReadLine(char* sBuffer)
+size CCSVFile::ReadLine(char* sBuffer)
 {
-	int		iNewLinePosition;
-	int		iBytesRead;
-	filePos	iPosition;
+	size		iNewLinePosition;
+	size		iBytesRead;
+	filePos		iPosition;
 
 	iPosition = mcFile.GetFilePos();
-	iBytesRead = (int)mcFile.Read(sBuffer, 1, CSV_FILE_LINE_BUFFER_LENGTH);
+	iBytesRead = mcFile.Read(sBuffer, 1, CSV_FILE_LINE_BUFFER_LENGTH);
 	if (iBytesRead == 0)
 	{
 		return 0;
 	}
-	iNewLinePosition = FindFirstByte((int8*)sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
-	if (iNewLinePosition != -1)
+	iNewLinePosition = FindFirstByte((uint8*)sBuffer, '\n', CSV_FILE_LINE_BUFFER_LENGTH);
+	if (iNewLinePosition != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		if (sBuffer[iNewLinePosition-1] == '\r')
 		{

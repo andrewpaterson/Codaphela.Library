@@ -15,7 +15,7 @@ public:
 	void	Init(CIndexBlock* pcIndex);
 	void	Kill(void);
 
-	void*	Iterate(size_t* piDataSize = NULL, void* pvDestKey = NULL, size_t* puiKeySize = NULL, size_t uiMaxKeySize = 0);
+	void*	Iterate(size* piDataSize = NULL, void* pvDestKey = NULL, size* puiKeySize = NULL, size uiMaxKeySize = 0);
 };
 
 

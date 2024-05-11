@@ -20,8 +20,8 @@ protected:
 	CIndexTreeEvictionCallbackWrapper	mcEvictionCallbackWrapper;
 
 public:
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
-	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size_t uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy);
+	void			Init(CIndexedDataCommon* pcIndexedData, CDurableFileController* pcDurableFileController, char* szSubDirectory, size uiIndexCacheSize, EIndexWriteThrough eWriteThrough, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeEvictionCallback* pcEvictionCallback, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	bool			Kill(void);
 
 	bool			Remove(OIndex oi);
@@ -34,27 +34,27 @@ public:
 
 	int64			NumElements(void);
 	int64			NumIndices(void);
-	int				NumIndicesCached(void);
-	int				NumIndicesCached(size_t iSize);
+	size			NumIndicesCached(void);
+	size			NumIndicesCached(size iSize);
 	int64			NumDatas(void);
 	bool			IsFlushed(void);
 
 	bool			Evict(OIndex oi);
 	bool			Flush(OIndex oi);
 
-	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 
-	bool			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	bool			IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 
-	uint16			IndexTreeDataSize(uint16 uiSourceSize);
-	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
-	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
+	size			IndexTreeDataSize(size uiSourceSize);
+	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize);
+	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize);
 
 	bool			GetIfInMemory(CIndexedDataDescriptor* pcDescriptor, OIndex oi);
 
-	size_t			GetSystemMemorySize(void);
-	uint8			GetRootFlags(void);
+	size			GetSystemMemorySize(void);
+	size			GetRootFlags(void);
 
 	void			Dump(void);
 	bool			ValidateIndex(void);

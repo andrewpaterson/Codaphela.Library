@@ -42,14 +42,14 @@ public:
 	void 				Kill(void);
 
 	bool 				ReadLine(void);
-	bool				ReadLine(char* szString, int iMaxLength);
-	bool 				ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow);
+	bool				ReadLine(char* szString, int32 iMaxLength);
+	bool 				ReadLine(filePos iFileOffset, SCSVRowImmutable** ppsCSVRow);
 	SCSVRowImmutable*	AllocateRow(char* szText);
 	void				FreeRow(SCSVRowImmutable* psCSVRow);
 	void 				ReadAllLines(void);
 	void 				Dump(void);
-	int					NumRows(void);
-	SCSVRowImmutable*	Get(int iRowNum);
+	size				NumRows(void);
+	SCSVRowImmutable*	Get(size iRowNum);
 };
 
 

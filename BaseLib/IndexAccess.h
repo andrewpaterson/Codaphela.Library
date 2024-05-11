@@ -19,87 +19,119 @@ public:
 	virtual void	Dump(void) =0;
 
 			bool	PutLongPtr(int64 lliKey, void* pvPointer);
-			bool	PutLongInt(int64 lliKey, int iData);
+			bool	PutLongShort(int64 lliKey, int32 iData);
+			bool	PutLongInt(int64 lliKey, int32 iData);
 			bool	PutLongChar(int64 lliKey, char cData);
 			bool	PutLongString(int64 lliKey, char* pszData);
-			bool	PutLongData(int64 lliKey, void* pvData, size_t iDataSize);
+			bool	PutLongData(int64 lliKey, void* pvData, size iDataSize);
 			bool	PutLongLong(int64 lliKey, int64 lliData);
-			bool	PutIntPtr(int iKey, void* pvPointer);
-			bool	PutIntInt(int iKey, int iData);
-			bool	PutIntLong(int iKey, int64 lliData);
-			bool	PutIntChar(int iKey, char cData);
-			bool	PutIntString(int iKey, char* pszData);
-			bool	PutIntData(int iKey, void* pvData, size_t iDataSize);
+			bool	PutShortPtr(int16 iKey, void* pvPointer);
+			bool	PutShortShort(int16 iKey, int16 iData);
+			bool	PutShortInt(int16 iKey, int32 iData);
+			bool	PutShortLong(int16 iKey, int64 lliData);
+			bool	PutShortChar(int16 iKey, char cData);
+			bool	PutShortString(int16 iKey, char* pszData);
+			bool	PutShortData(int16 iKey, void* pvData, size iDataSize);
+			bool	PutIntPtr(int32 iKey, void* pvPointer);
+			bool	PutIntShort(int32 iKey, int16 iData);
+			bool	PutIntInt(int32 iKey, int32 iData);
+			bool	PutIntLong(int32 iKey, int64 lliData);
+			bool	PutIntChar(int32 iKey, char cData);
+			bool	PutIntString(int32 iKey, char* pszData);
+			bool	PutIntData(int32 iKey, void* pvData, size iDataSize);
 			bool	PutStringPtr(char* pszKey, void* pvPointer);
-			bool	PutStringData(char* pszKey, void* pvData, size_t iDataSize);
+			bool	PutStringData(char* pszKey, void* pvData, size iDataSize);
 			bool	PutStringChar(char* pszKey, char cData);
-			bool	PutStringInt(char* pszKey, int iData);
+			bool	PutStringShort(char* pszKey, int16 iData);
+			bool	PutStringInt(char* pszKey, int32 iData);
 			bool	PutStringLong(char* pszKey, int64 lliData);
 			bool	PutStringString(char* pszKey, char* pszData);
-			bool	PutKeyData(void* pvKey, int iKeySize, void* pvData, size_t iDataSize);
-			bool	PutKeyInt(void* pvKey, int iKeySize, int iData);
-			bool	PutKeyString(void* pvKey, int iKeySize, char* pszData);
+			bool	PutKeyData(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+			bool	PutKeyShort(void* pvKey, size iKeySize, int16 iData);
+			bool	PutKeyInt(void* pvKey, size iKeySize, int32 iData);
+			bool	PutKeyLong(void* pvKey, size iKeySize, int64 iData);
+			bool	PutKeyString(void* pvKey, size iKeySize, char* pszData);
 
-			char*	GetLongString(int64 lliKey, char* pszDest, size_t uiMaxDataSize = 0);
-			int		GetLongInt(int64 lliKey, int iNullValue = -1);
+			char*	GetLongString(int64 lliKey, char* pszDest, size uiMaxDataSize = 0);
+			int16	GetLongShort(int64 lliKey, int16 iNullValue = -1);
+			int32	GetLongInt(int64 lliKey, int32 iNullValue = -1);
 			int64	GetLongLong(int64 lliKey, int64 lliNullValue = -1);
 			char	GetLongChar(int64 lliKey, char cNullValue = -1);
-			bool	GetLongData(int64 lliKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
+			bool	GetLongData(int64 lliKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
 			void*	GetLongPtr(int64 lliKey);
-			char*	GetIntString(int iKey, char* pszDest, size_t uiMaxDataSize = 0);
-			int		GetIntInt(int iKey, int iNullValue = -1);
-			int64	GetIntLong(int iKey, int64 iNullValue = -1LL);
-			char	GetIntChar(int iKey, char cNullValue = -1);
-			void*	GetIntPtr(int iKey);
-			bool	GetIntData(int iKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
-			bool	GetStringData(char* pszKey, void* pvData, size_t* piDataSize = NULL, size_t uiMaxDataSize = 0);
-			char*	GetStringString(char* pszKey, char* pszDest, size_t uiMaxDataSize = 0);
-			CChars	GetStringString(char* pszKey, size_t uiMaxDataSize = 0);
+			char*	GetShortString(int16 iKey, char* pszDest, size uiMaxDataSize = 0);
+			int16	GetShortShort(int16 iKey, int16 iNullValue = -1);
+			int32	GetShortInt(int16 iKey, int32 iNullValue = -1);
+			int64	GetShortLong(int16 iKey, int64 iNullValue = -1LL);
+			char	GetShortChar(int16 iKey, char cNullValue = -1);
+			void*	GetShortPtr(int16 iKey);
+			bool	GetShortData(int16 iKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
+			char*	GetIntString(int32 iKey, char* pszDest, size uiMaxDataSize = 0);
+			int16	GetIntShort(int32 iKey, int16 iNullValue = -1);
+			int32	GetIntInt(int32 iKey, int32 iNullValue = -1);
+			int64	GetIntLong(int32 iKey, int64 iNullValue = -1LL);
+			char	GetIntChar(int32 iKey, char cNullValue = -1);
+			void*	GetIntPtr(int32 iKey);
+			bool	GetIntData(int32 iKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
+			bool	GetStringData(char* pszKey, void* pvData, size* piDataSize = NULL, size uiMaxDataSize = 0);
+			char*	GetStringString(char* pszKey, char* pszDest, size uiMaxDataSize = 0);
+			CChars	GetStringString(char* pszKey, size uiMaxDataSize = 0);
 			char	GetStringChar(char* pszKey, char iNullValue = -1);
-			int		GetStringInt(char* pszKey, int iNullValue = -1);
+			int16	GetStringShort(char* pszKey, int16 iNullValue = -1);
+			int32	GetStringInt(char* pszKey, int32 iNullValue = -1);
 			int64	GetStringLong(char* pszKey, int64 iNullValue = -1LL);
 			void*	GetStringPtr(char* pszKey);
-			char*	GetKeyString(void* pvKey, int iKeySize, char* pszDest, size_t uiMaxDataSize = 0);
-			bool	GetKeyData(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize = 0);
-			int		GetKeyInt(void* pvKey, int iKeySize, int iNullValue = -1);
+			char*	GetKeyString(void* pvKey, size iKeySize, char* pszDest, size uiMaxDataSize = 0);
+			bool	GetKeyData(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize = 0);
+			int16	GetKeyShort(void* pvKey, size iKeySize, int16 iNullValue = -1);
+			int32	GetKeyInt(void* pvKey, size iKeySize, int32 iNullValue = -1);
+			int64	GetKeyLong(void* pvKey, size iKeySize, int64 iNullValue = -1);
 
+			bool	HasShort(int16 iKey);
+			bool	HasInt(int32 iKey);
 			bool	HasLong(int64 lliKey);
-			bool	HasInt(int iKey);
 			bool	HasString(char* pszKey);
-			bool	HasKey(void* pvKey, int iKeySize);
+			bool	HasKey(void* pvKey, size iKeySize);
 
+			bool	DeleteShort(int16 lliKey);
+			bool	DeleteInt(int32 lliKey);
 			bool	DeleteLong(int64 lliKey);
 			bool	DeleteString(char* pszKey);
-			bool	DeleteKey(void* pvKey, int iKeySize);
+			bool	DeleteKey(void* pvKey, size iKeySize);
 
-			int		DataSizeLong(int64 lliKey);
-			int		DataSizeString(char* pszKey);
-			int		DataSizeKey(void* pvKey, int iKeySize);
+			size	DataSizeLong(int16 lliKey);
+			size	DataSizeLong(int32 lliKey);
+			size	DataSizeLong(int64 lliKey);
+			size	DataSizeString(char* pszKey);
+			size	DataSizeKey(void* pvKey, size iKeySize);
 
+			bool	FlushLong(int16 lliKey);
+			bool	FlushLong(int32 lliKey);
 			bool	FlushLong(int64 lliKey);
 			bool	FlushString(char* pszKey);
-			bool	FlushKey(void* pvKey, int iKeySize);
+			bool	FlushKey(void* pvKey, size iKeySize);
 
+			bool	EvictShort(int16 iKey);
+			bool	EvictInt(int32 iKey);
 			bool	EvictLong(int64 lliKey);
-			bool	EvictInt(int iKey);
 			bool	EvictString(char* pszKey);
-			bool	EvictKey(void* pvKey, int iKeySize);
+			bool	EvictKey(void* pvKey, size iKeySize);
 
 public:
 	virtual	CIndexTreeIterator* CreateIterator(void) =0;
 	virtual	void				FreeIterator(CIndexTreeIterator* pcIter) =0;
 
 protected:
-			char*	GetString(void* pvKey, int iKeySize, char* pszDest, size_t uiMaxDataSize);
+			char*	GetString(void* pvKey, size iKeySize, char* pszDest, size uiMaxDataSize);
 
 protected:
-	virtual bool	Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize) =0;
-	virtual bool	Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize) =0;
-	virtual int		DataSize(void* pvKey, int iKeySize) =0;
-	virtual bool	Remove(void* pvKey, int iKeySize) =0;
-	virtual bool	Has(void* pvKey, int iKeySize) =0;
-	virtual bool	Flush(void* pvKey, int iKeySize) =0;
-	virtual bool	Evict(void* pvKey, int iKeySize) =0;
+	virtual bool	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize) =0;
+	virtual bool	Get(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize) =0;
+	virtual size	DataSize(void* pvKey, size iKeySize) =0;
+	virtual bool	Remove(void* pvKey, size iKeySize) =0;
+	virtual bool	Has(void* pvKey, size iKeySize) =0;
+	virtual bool	Flush(void* pvKey, size iKeySize) =0;
+	virtual bool	Evict(void* pvKey, size iKeySize) =0;
 };
 
 

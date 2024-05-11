@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteData(void* pvData, filePos iDataSize)
+bool CFileWriter::WriteData(void* pvData, size iDataSize)
 {
 	CheckWrite(pvData, iDataSize);
 	return true;
@@ -42,10 +42,10 @@ bool CFileWriter::WriteData(void* pvData, filePos iDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CFileWriter::WriteString(const char* szString)
 {
-	int		iStrLen;
+	size	iStrLen;
 
-	iStrLen = (int)strlen(szString)+1;
-	WriteInt(iStrLen);
+	iStrLen = strlen(szString)+1;
+	WriteSize(iStrLen);
 	CheckWrite(szString, iStrLen);
 	return true;
 }
@@ -57,7 +57,7 @@ bool CFileWriter::WriteString(const char* szString)
 //////////////////////////////////////////////////////////////////////////
 bool CFileWriter::WriteInt(int32 i)
 {
-	CheckWrite(&i, sizeof(int));
+	CheckWrite(&i, sizeof(int32));
 	return true;
 }
 
@@ -69,6 +69,17 @@ bool CFileWriter::WriteInt(int32 i)
 bool CFileWriter::WriteInt(uint32 ui)
 {
 	CheckWrite(&ui, sizeof(uint32));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteSize(size ui)
+{
+	CheckWrite(&ui, sizeof(size));
 	return true;
 }
 
@@ -110,7 +121,7 @@ bool CFileWriter::WriteChar(char8 c)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteChar(char16 c)
+bool CFileWriter::WriteWChar(char16 c)
 {
 	CheckWrite(&c, sizeof(char16));
 	return true;
@@ -132,7 +143,7 @@ bool CFileWriter::WriteBool(bool b)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(int16 i)
+bool CFileWriter::WriteShort(int16 i)
 {
 	CheckWrite(&i, sizeof(int16));
 	return true;
@@ -143,7 +154,7 @@ bool CFileWriter::WriteInt(int16 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(uint16 i)
+bool CFileWriter::WriteShort(uint16 i)
 {
 	CheckWrite(&i, sizeof(uint16));
 	return true;
@@ -154,7 +165,7 @@ bool CFileWriter::WriteInt(uint16 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(int8 i)
+bool CFileWriter::WriteByte(int8 i)
 {
 	CheckWrite(&i, sizeof(int8));
 	return true;
@@ -165,7 +176,7 @@ bool CFileWriter::WriteInt(int8 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(uint8 i)
+bool CFileWriter::WriteByte(uint8 i)
 {
 	CheckWrite(&i, sizeof(uint8));
 	return true;
@@ -176,7 +187,7 @@ bool CFileWriter::WriteInt(uint8 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(int64 i)
+bool CFileWriter::WriteLong(int64 i)
 {
 	CheckWrite(&i, sizeof(int64));
 	return true;
@@ -187,7 +198,7 @@ bool CFileWriter::WriteInt(int64 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(uint64 ulli)
+bool CFileWriter::WriteLong(uint64 ulli)
 {
 	CheckWrite(&ulli, sizeof(uint64));
 	return true;
@@ -198,7 +209,7 @@ bool CFileWriter::WriteInt(uint64 ulli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteBits(void* pvData, int iByteLength)
+bool CFileWriter::WriteBits(void* pvData, size iByteLength)
 {
 	CheckWrite(pvData, iByteLength);
 	return true;
@@ -209,9 +220,9 @@ bool CFileWriter::WriteBits(void* pvData, int iByteLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteIntArray(int* pai, int iLength)
+bool CFileWriter::WriteIntArray(int32* pai, size iLength)
 {
-	CheckWrite(pai, iLength * sizeof(int));
+	CheckWrite(pai, iLength * sizeof(int32));
 	return true;
 }
 

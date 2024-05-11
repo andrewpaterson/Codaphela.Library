@@ -33,7 +33,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define MEMORY_FILE_EOF_FLAG          0x0010
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
@@ -48,7 +47,7 @@ void CMemoryFile::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryFile::Init(void* pvInitialMem, int iInitialLength)
+void CMemoryFile::Init(void* pvInitialMem, size iInitialLength)
 {
 	CAbstractFile::Init();
 	mcArray.Init();
@@ -137,31 +136,31 @@ bool CMemoryFile::Close(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
+size CMemoryFile::Read(void* pvBuffer, size iSize, size iCount)
 {
-	filePos	iAmountToCopy;
-	filePos iAmountToRead;
-	filePos	iNumCopied;
-	filePos	iOldPos;
+	size	uiAmountToCopy;
+	size	iAmountToRead;
+	size	iNumCopied;
+	size	iOldPos;
 
 	if (miFlags & MEMORY_FILE_READ_FLAG)
 	{
 		iOldPos = miPos;
-		iAmountToRead = (int)(iSize * iCount);
-		iAmountToCopy = (mcArray.NumElements() - miPos);
+		iAmountToRead = iSize * iCount;
+		uiAmountToCopy = (mcArray.NumElements() - miPos);
 
-		if (iAmountToRead > iAmountToCopy)
+		if (iAmountToRead > uiAmountToCopy)
 		{
-			iNumCopied = iAmountToCopy / (int)iSize;
-			iAmountToCopy = iNumCopied * iSize;
+			iNumCopied = uiAmountToCopy / iSize;
+			uiAmountToCopy = iNumCopied * iSize;
 			miFlags |= MEMORY_FILE_EOF_FLAG;
 			miPos = mcArray.NumElements();
 		}
 		else
 		{
-			iAmountToCopy = iSize * iCount;
-			iNumCopied = (int)iCount;
-			miPos += iAmountToCopy;
+			uiAmountToCopy = iSize * iCount;
+			iNumCopied = iCount;
+			miPos += uiAmountToCopy;
 
 			if (miPos == mcArray.NumElements())
 			{
@@ -172,8 +171,8 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 				miFlags &= ~MEMORY_FILE_EOF_FLAG;
 			}
 		}
-		memcpy(pvBuffer, mcArray.Get((int)iOldPos), (int)iAmountToCopy);
-		return (int)iNumCopied;
+		memcpy(pvBuffer, mcArray.Get(iOldPos), uiAmountToCopy);
+		return iNumCopied;
 	}
 	return 0;
 }
@@ -185,29 +184,63 @@ filePos CMemoryFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
+	size		uiNumElements;
+	filePos		iTemp;
+	
+	uiNumElements = mcArray.NumElements();
+
 	if (iSeekOrigin == EFSO_SET)
 	{
-		miPos = iOffset;
+		if (iOffset < 0)
+		{
+			miPos = 0;
+		}
+		else if ((size)iOffset > uiNumElements)
+		{
+			miPos = uiNumElements;  //This is not the same behavior as file...
+		}
+		else
+		{
+			miPos = (size)iOffset;
+		}
 	}
 	else if (iSeekOrigin == EFSO_END)
 	{
-		miPos = mcArray.NumElements() + iOffset;
+		if (iOffset < 0)
+		{
+			if ((size)(-iOffset) > uiNumElements)
+			{
+				miPos = 0;
+			}
+			else
+			{
+				miPos = uiNumElements + (size)iOffset;
+			}
+		}
+		else
+		{
+			miPos = uiNumElements;
+		}
 	}
 	else if (iSeekOrigin == EFSO_CURRENT)
 	{
-		miPos += iOffset;
+		iTemp = miPos + iOffset;
+		if (iTemp < 0)
+		{
+			miPos = 0;
+		}
+		else if (iTemp > uiNumElements)
+		{
+			miPos = uiNumElements;
+		}
+		else
+		{
+			miPos = (size)iTemp;
+		}
 	}
 
-	if (miPos > mcArray.NumElements())
-	{
-		miPos = mcArray.NumElements();  //This is not the same behavior as file...
-	}
-	if (miPos < 0)
-	{
-		miPos = 0;
-	}
 
-	if (miPos == mcArray.NumElements())
+	if (miPos == uiNumElements)
 	{
 		miFlags |= MEMORY_FILE_EOF_FLAG;
 	}
@@ -223,26 +256,28 @@ bool CMemoryFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-filePos CMemoryFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
+size CMemoryFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
-	filePos iAmountToCopy;
-	filePos	iAmountToAdd;
+	size	uiAmountToCopy;
+	size	uiAmountToAdd;
+	size	uiEndRemaining;
 
 	if (miFlags & MEMORY_FILE_WRITE_FLAG)
 	{
-		iAmountToCopy = iSize * iCount;
-		iAmountToAdd = iAmountToCopy - (mcArray.NumElements() - miPos);
-		if (iAmountToAdd > 0)
+		uiAmountToCopy = iSize * iCount;
+		uiEndRemaining = mcArray.NumElements() - miPos;
+		if (uiAmountToCopy > uiEndRemaining)
 		{
-			mcArray.AddNum((int)iAmountToAdd);
+			uiAmountToAdd = uiAmountToCopy - uiEndRemaining;
+			mcArray.AddNum(uiAmountToAdd);
 			if (mcArray.IsEmpty())
 			{
 				return 0;
 			}
 		}
 
-		memcpy(mcArray.Get((int)miPos), pvBuffer, (int)iAmountToCopy);
-		miPos += iAmountToCopy;
+		memcpy(mcArray.Get(miPos), pvBuffer, uiAmountToCopy);
+		miPos += uiAmountToCopy;
 
 		if (miPos == mcArray.NumElements())
 		{
@@ -294,7 +329,7 @@ filePos CMemoryFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryFile::Truncate(filePos iSize)
 {
-	return mcArray.SetUsedElements((size_t)iSize);
+	return mcArray.SetUsedElements((size)iSize);
 }
 
 
@@ -348,7 +383,7 @@ void* CMemoryFile::GetBufferPointer(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryFile::GetBufferSize(void)
+size CMemoryFile::GetBufferSize(void)
 {
 	return mcArray.NumElements();
 }
@@ -368,7 +403,7 @@ void CMemoryFile::SetBufferPointer(void* pvBuffer)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryFile::SetBufferSize(int iBufferSize)
+void CMemoryFile::SetBufferSize(size iBufferSize)
 {
 	mcArray.Fake(mcArray.GetData(), iBufferSize);
 }
@@ -393,7 +428,7 @@ CMemoryFile* MemoryFile(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength)
+CMemoryFile* MemoryFile(void* pvInitialMem, size iInitialLength)
 {
 	CMemoryFile*	pcMemoryFile;
 

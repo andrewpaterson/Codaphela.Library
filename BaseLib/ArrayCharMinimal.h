@@ -31,11 +31,11 @@ public:
 	void	Init(void);
 	void	Init(char* sz);
 	void	Allocate(char* sz);
-	void	Allocate(int iNumElements);
+	void	Allocate(size iNumElements);
 	void	Add(char c);
-	int		AddIfUnique(char c);
-	int		Find(char c);
-	char	GetValue(int iElementPos);
+	size	AddIfUnique(char c);
+	size	Find(char c);
+	char	GetValue(size iElementPos);
 	char*	GetArray(void);
 };
 

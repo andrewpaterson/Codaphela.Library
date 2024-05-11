@@ -36,8 +36,8 @@ enum EWinMode
 class CWinConfig
 {
 public:
-	int			miWidth;
-	int			miHeight;
+	uint16		miWidth;
+	uint16		miHeight;
 	bool		mbWindowed;
 	float		mfAspect;
 	EWinMode	meMode;

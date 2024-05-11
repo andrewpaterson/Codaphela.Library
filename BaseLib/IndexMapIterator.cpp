@@ -28,7 +28,7 @@ void CIndexMapIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexMapIterator::Iterate(size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+void* CIndexMapIterator::Iterate(size* puiDataSize, void* pvDestKey, size* puiKeySize, size uiMaxKeySize)
 {
 	void*	pvData;
 	bool	bResult;

@@ -93,7 +93,7 @@ void CPackFilePacker::List(CPackFiles* pcPackFiles, CChars* pszDest)
 {
 	CArrayPackFileNodePtrs	acFileNodes;
 	CFileNodePackFileNode*	pcFileNode;
-	int						i;
+	uint32					i;
 	CChars					szName;
 	CChars					szSize;
 	CPackFileNode*			pcPackFileNode;

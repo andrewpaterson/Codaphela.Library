@@ -105,7 +105,7 @@ bool CPackFiles::IsReadMode(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 {
-	filePos		iReadPos;
+	filePos	iReadPos;
 
 	if (mpsLastAccessed)
 	{
@@ -131,15 +131,15 @@ bool CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount)
+size CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount)
 {
-	filePos iRemaining;
-	filePos	iSizeToRead;
+	size	iRemaining;
+	size	iSizeToRead;
 
-	iRemaining = (psPackFile->FilePos() + psPackFile->Size()) - miPosition;
+	iRemaining = (size)((psPackFile->FilePos() + psPackFile->Size()) - miPosition);
 	iSizeToRead = iSize * iCount;
 
-	if (iSizeToRead < iRemaining)
+	if (iSizeToRead <= iRemaining)
 	{
 		miPosition += iSizeToRead;
 		return mcFile.Read(pvBuffer, iSize, iCount);
@@ -150,7 +150,7 @@ filePos CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, fileP
 	}
 	else
 	{
-		iCount = (int)(iRemaining / iSize);
+		iCount = iRemaining / iSize;
 		iSizeToRead = iSize * iCount;
 		miPosition += iSizeToRead;
 		return mcFile.Read(pvBuffer, iSize, iCount);
@@ -162,7 +162,7 @@ filePos CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, fileP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSize, filePos iCount)
+size CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount)
 {
 	if (meMode == PFM_Read)
 	{
@@ -190,9 +190,9 @@ filePos CPackFiles::Read(CPackFileNode* psPackFile, void* pvBuffer, filePos iSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, int iSeekOrigin)
+bool CPackFiles::PrivateSeek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigin iSeekOrigin)
 {
-	filePos	iAbsoluteOffset;
+	filePos		iAbsoluteOffset;
 
 	if (iSeekOrigin == EFSO_SET)
 	{
@@ -259,9 +259,9 @@ bool CPackFiles::Seek(CPackFileNode* psPackFile, filePos iOffset, EFileSeekOrigi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, filePos iSize, filePos iCount)
+size CPackFiles::Write(CPackFileNode* psPackFile, const void* pvBuffer, size iSize, size iCount)
 {
-	filePos		iWritten;
+	size	iWritten;
 
 	if (meMode == PFM_Write)
 	{
@@ -353,7 +353,6 @@ CPackFile* CPackFiles::WriteOpen(char* szFilename)
 		pcFileNode = GetNode(szFilename);
 		if (pcFileNode != NULL)
 		{
-			
 			//Can't write to an existing file.
 			return NULL;
 		}
@@ -470,8 +469,8 @@ bool CPackFiles::AddFile(CAbstractFile* pcFile, char* szFilename)
 bool CPackFiles::AddDirectory(char* szDirectory, char* szPackDirectory)
 {
 	CFileUtil		cFileUtil;
-	CArrayChars	aszFilenames;
-	int				i;
+	CArrayChars		aszFilenames;
+	size			i;
 	CChars*			pszFilename;
 	CDiskFile		cDiskFile;
 	CChars			szName;
@@ -622,6 +621,7 @@ bool CPackFiles::WriteHeader(void)
 
 	miPosition = mcFile.GetFilePos();
 	miNextNodesPtr = miPosition - sizeof(filePos);
+
 	return true;
 }
 
@@ -635,7 +635,7 @@ bool CPackFiles::ReadHeader(void)
 	CFileHeader	cFileHeader;
 
 	ReturnOnFalse(cFileHeader.Load(&mcFile, PACK_FILE_WRITER, PACK_FILE_VERSION));
-	ReturnOnFalse(mcFile.ReadInt(&miNodes));
+	ReturnOnFalse(mcFile.ReadLong(&miNodes));
 
 	miPosition = mcFile.GetFilePos();
 	miNextNodesPtr = miPosition - sizeof(filePos);
@@ -651,8 +651,8 @@ bool CPackFiles::ReadHeader(void)
 bool CPackFiles::ReadNodes(void)
 {
 	filePos		iPosition;
-	int			i;
-	int			iNumFiles;
+	size		i;
+	uint32		uiNumFiles;
 	bool		bResult;
 
 	iPosition = miPosition;
@@ -664,15 +664,15 @@ bool CPackFiles::ReadNodes(void)
 			{
 				mcFile.Seek(miNodes, EFSO_SET);
 			}
-			ReturnOnFalse(mcFile.ReadInt(&iNumFiles));
+			ReturnOnFalse(mcFile.ReadInt(&uiNumFiles));
 
-			for (i = 0; i < iNumFiles; i++)
+			for (i = 0; i < uiNumFiles; i++)
 			{
 				ReturnOnFalse(ReadNode());
 			}
 
 			miNextNodesPtr = miPosition;
-			bResult = mcFile.ReadInt(&miNodes);
+			bResult = mcFile.ReadLong(&miNodes);
 			if (!bResult)
 			{
 				break;
@@ -695,7 +695,7 @@ bool CPackFiles::ReadNodes(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPackFiles::ReadNode(void)
 {
-	CChars			sz;
+	CChars					sz;
 	CFileNodePackFileNode*	pcNode;
 
 
@@ -726,8 +726,8 @@ bool CPackFiles::ReadNode(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPackFiles::WriteNodes(void)
 {
-	filePos	iPosition;
-	int		iNumFiles;
+	filePos		iPosition;
+	uint32		iNumFiles;
 
 	if (miNextNodesPtr == 0)
 	{
@@ -737,7 +737,7 @@ bool CPackFiles::WriteNodes(void)
 	iPosition = mcFile.GetFileSize();
 
 	mcFile.Seek(miNextNodesPtr, EFSO_SET);
-	ReturnOnFalse(mcFile.WriteInt(iPosition));
+	ReturnOnFalse(mcFile.WriteLong(iPosition));
 
 	mcFile.Seek(iPosition, EFSO_SET);
 	iNumFiles = GetNumUnwrittenNames();
@@ -750,7 +750,7 @@ bool CPackFiles::WriteNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFiles::GetNumUnwrittenNames(void)
+uint32 CPackFiles::GetNumUnwrittenNames(void)
 {
 	return RecurseGetNumUnwrittenNames(mcNames.GetRoot());
 }
@@ -760,11 +760,11 @@ int CPackFiles::GetNumUnwrittenNames(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPackFiles::RecurseGetNumUnwrittenNames(CFileNodePackFileNode* pcNode)
+uint32 CPackFiles::RecurseGetNumUnwrittenNames(CFileNodePackFileNode* pcNode)
 {
 	CFileNodePackFileNode*	pcChild;
-	int				i;
-	int				iNumUnwritten;
+	size					i;
+	uint32					iNumUnwritten;
 
 	if (pcNode->IsDirectory())
 	{
@@ -818,10 +818,10 @@ bool CPackFiles::WriteUnwrittenNames(void)
 bool CPackFiles::RecurseWriteUnwrittenNames(CFileNodePackFileNode* pcNode, CChars* pszPath)
 {
 	CFileNodePackFileNode*	pcChild;
-	int				i;
-	bool			bResult;
-	int				iPathLength;
-	CChars			szPath;
+	size					i;
+	bool					bResult;
+	size					iPathLength;
+	CChars					szPath;
 
 	if (pcNode->IsDirectory())
 	{
@@ -870,7 +870,6 @@ bool CPackFiles::Unpack(char* szDestination)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -879,7 +878,7 @@ bool CPackFiles::RecurseUnpack(CFileNodePackFileNode* pcNode, char* szDestinatio
 {
 	CChars					szFilename;
 	CFileNodePackFileNode*	pcChild;
-	int						i;
+	size					i;
 	CPackFileNode*			pcFile;
 	bool					bResult;
 	CPackFile*				pcPackFile;
@@ -979,7 +978,7 @@ CFileNodePackFileNode* CPackFiles::StartIteration(CPackFileIterator* psIter)
 CFileNodePackFileNode* CPackFiles::Iterate(CPackFileIterator* psIter)
 {
 	SPackFileIteratorPosition*	psCurrent;
-	int							iDirectoryElements;
+	size						iDirectoryElements;
 	CFileNodePackFileNode*		pcChild;
 
 	psCurrent = psIter->Peek();

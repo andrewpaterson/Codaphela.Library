@@ -32,7 +32,7 @@ public:
 	void	Add(int i);
 	int		AddIfUnique(int i);
 	int		Find(int i);
-	int		GetValue(int iElementPos);
+	int		GetValue(size iElementPos);
 	void	QuickSort(void);
 };
 

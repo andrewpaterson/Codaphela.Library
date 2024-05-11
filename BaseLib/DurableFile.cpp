@@ -405,7 +405,7 @@ bool CDurableFile::OpenPrimaryForRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::Write(filePos iDistance, const void* pvSource, filePos iSize, filePos iCount)
+size CDurableFile::Write(filePos iDistance, const void* pvSource, size iSize, size iCount)
 {
 	return Write(EFSO_SET, iDistance, pvSource, iSize, iCount);
 }
@@ -415,7 +415,7 @@ filePos CDurableFile::Write(filePos iDistance, const void* pvSource, filePos iSi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, filePos iSize, filePos iCount)
+size CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const void* pvSource, size iSize, size iCount)
 {
 	bool bResult;
 
@@ -440,7 +440,7 @@ filePos CDurableFile::Write(EFileSeekOrigin eOrigin, filePos iDistance, const vo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
+size CDurableFile::Write(const void* pvSource, size iSize, size iCount)
 {
 	bool bResult;
 
@@ -464,7 +464,7 @@ filePos CDurableFile::Write(const void* pvSource, filePos iSize, filePos iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::Read(filePos iDistance, void* pvDest, filePos iSize, filePos iCount)
+size CDurableFile::Read(filePos iDistance, void* pvDest, size iSize, size iCount)
 {
 	return Read(EFSO_SET, iDistance, pvDest, iSize, iCount);
 }
@@ -474,7 +474,7 @@ filePos CDurableFile::Read(filePos iDistance, void* pvDest, filePos iSize, fileP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, filePos iSize, filePos iCount)
+size CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvDest, size iSize, size iCount)
 {
 	bool	bResult;
 
@@ -503,7 +503,7 @@ filePos CDurableFile::Read(EFileSeekOrigin eOrigin, filePos iDistance, void* pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDurableFile::Read(void* pvDest, filePos iSize, filePos iCount)
+size CDurableFile::Read(void* pvDest, size iSize, size iCount)
 {
 	bool bResult;
 
@@ -600,7 +600,7 @@ filePos CDurableFile::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDurableFile::Truncate(filePos iSize)
+bool CDurableFile::Truncate(size iSize)
 {
 	if (!IsBegun())
 	{
@@ -670,7 +670,7 @@ bool CDurableFile::IsOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDurableFile::GetNumWrites(void)
+size CDurableFile::GetNumWrites(void)
 {
 	return mcLogFile.GetNumWrites();
 }
@@ -680,7 +680,7 @@ int CDurableFile::GetNumWrites(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDurableFile::GetWriteData(int iWrite)
+void* CDurableFile::GetWriteData(size iWrite)
 {
 	return mcLogFile.GetWriteData(iWrite)->GetData();
 }

@@ -38,11 +38,11 @@ int CTrackingAllocator::AllocatedCount(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrackingAllocator::Malloc(size_t tSize)
+void* CTrackingAllocator::Malloc(size uiSize)
 {
 	void*	pv;
 
-	pv = mpcAlloc->Malloc(tSize);
+	pv = mpcAlloc->Malloc(uiSize);
 	mapv.Add(&pv);
 
 	return pv;
@@ -53,11 +53,11 @@ void* CTrackingAllocator::Malloc(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CTrackingAllocator::Realloc(void* pv, size_t tSize)
+void* CTrackingAllocator::Realloc(void* pv, size uiSize)
 {
 	void*	pvNew;
 
-	pvNew = mpcAlloc->Realloc(pv, tSize);
+	pvNew = mpcAlloc->Realloc(pv, uiSize);
 	if (pvNew != pv)
 	{
 		mapv.Remove(&pv);
@@ -99,7 +99,7 @@ const char* CTrackingAllocator::ClassName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CTrackingAllocator::ClassSize(void)
+size CTrackingAllocator::ClassSize(void)
 {
 	return mpcAlloc->ClassSize();
 }
@@ -119,7 +119,7 @@ bool CTrackingAllocator::IsLocal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CTrackingAllocator::SizeOffset(void)
+size CTrackingAllocator::SizeOffset(void)
 {
 	return mpcAlloc->SizeOffset();
 }

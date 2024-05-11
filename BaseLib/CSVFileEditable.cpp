@@ -51,10 +51,10 @@ void SCSVRowEditable::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void SCSVRowEditable::Dump(void)
 {
-	int			i;
+	size		i;
 	CChars		szString;
 	CChars		szLeft;
-	CChars*	pszString;
+	CChars*		pszString;
 
 	szString.Init();
 	for (i = 0; i < aszData.NumElements(); i++)
@@ -79,9 +79,9 @@ void SCSVRowEditable::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SCSVRowEditable::IndexOf(char* szString)
+size SCSVRowEditable::IndexOf(char* szString)
 {
-	int			i;
+	size	i;
 	CChars*	pcString;
 
 	for (i = 0; i < aszData.NumElements(); i++)
@@ -92,14 +92,14 @@ int SCSVRowEditable::IndexOf(char* szString)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SCSVRowEditable::NumCells(void)
+size SCSVRowEditable::NumCells(void)
 {
 	return aszData.NumElements();
 }
@@ -109,7 +109,7 @@ int SCSVRowEditable::NumCells(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* SCSVRowEditable::Get(int iIndex)
+CChars* SCSVRowEditable::Get(size iIndex)
 {
 	return aszData.Get(iIndex);
 }
@@ -132,7 +132,7 @@ void CCSVFileEditable::Init(char cSeparator)
 //////////////////////////////////////////////////////////////////////////
 void CCSVFileEditable::Kill(void)
 {
-	int			i;
+	size				i;
 	SCSVRowEditable*	psCSVRow;
 
 	for (i = 0; i < masCSVRows.NumElements(); i++)
@@ -183,7 +183,7 @@ bool CCSVFileEditable::ReadLine(CChars* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCSVFileEditable::ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow)
+bool CCSVFileEditable::ReadLine(filePos iFileOffset, SCSVRowEditable* psCSVRow)
 {
 	CChars	cString;
 	bool	bResult;
@@ -217,7 +217,8 @@ void CCSVFileEditable::ReadAllLines(void)
 	do
 	{
 		bResult = ReadLine();
-	} while (bResult);
+	} 
+	while (bResult);
 }
 
 
@@ -227,7 +228,7 @@ void CCSVFileEditable::ReadAllLines(void)
 //////////////////////////////////////////////////////////////////////////
 void CCSVFileEditable::Dump(void)
 {
-	int			i;
+	size				i;
 	SCSVRowEditable*	psCSVRow;
 
 	for (i = 0; i < masCSVRows.NumElements(); i++)
@@ -242,7 +243,7 @@ void CCSVFileEditable::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCSVFileEditable::NumRows(void)
+size CCSVFileEditable::NumRows(void)
 {
 	return masCSVRows.NumElements();
 }
@@ -252,7 +253,7 @@ int CCSVFileEditable::NumRows(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SCSVRowEditable* CCSVFileEditable::Get(int iRowNum)
+SCSVRowEditable* CCSVFileEditable::Get(size iRowNum)
 {
 	return masCSVRows.Get(iRowNum);
 }

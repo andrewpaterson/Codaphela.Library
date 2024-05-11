@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Init(int iElementSize)
+void CListBlock::Init(size iElementSize)
 {
 	Init(iElementSize, 4);
 }
@@ -15,7 +15,7 @@ void CListBlock::Init(int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Init(int iElementSize, int iAlignment)
+void CListBlock::Init(size iElementSize, uint16 iAlignment)
 {
 	Init(iElementSize, iAlignment, 0);
 }
@@ -25,7 +25,7 @@ void CListBlock::Init(int iElementSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Init(int iElementSize, int iAlignment, int iOffset)
+void CListBlock::Init(size iElementSize, uint16 iAlignment, int16 iOffset)
 {
 	mcFreeList.Init(iElementSize, iAlignment, iOffset);
 	mapIndices.Init();
@@ -47,7 +47,7 @@ void CListBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CListBlock::NumElements(void)
+size CListBlock::NumElements(void)
 {
 	return mapIndices.NumElements();
 }
@@ -57,7 +57,7 @@ int CListBlock::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CListBlock::NumBlocks(void)
+size CListBlock::NumBlocks(void)
 {
 	return mcFreeList.GetNumAllocatedChunks();
 }
@@ -67,7 +67,7 @@ int CListBlock::NumBlocks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CListBlock::NumElementsFromFreeList(void)
+size CListBlock::NumElementsFromFreeList(void)
 {
 	return mcFreeList.NumElements();
 }
@@ -97,7 +97,7 @@ bool CListBlock::IsNotEmpty(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CListBlock::ElementSize(void)
+size CListBlock::ElementSize(void)
 {
 	return mcFreeList.GetElementSize();
 }
@@ -135,7 +135,7 @@ void* CListBlock::Add(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CListBlock::AddGetIndex(int* piIndex)
+void* CListBlock::AddGetIndex(size* piIndex)
 {
 	void* pv;
 	void** ppv;
@@ -162,7 +162,7 @@ void* CListBlock::AddGetIndex(int* piIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CListBlock::Get(int iIndex)
+void* CListBlock::Get(size iIndex)
 {
 	void** ppv;
 
@@ -175,7 +175,7 @@ void* CListBlock::Get(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void*CListBlock::SafeGet(int iIndex)
+void*CListBlock::SafeGet(size iIndex)
 {
 	return Get(iIndex);
 }
@@ -185,7 +185,7 @@ void*CListBlock::SafeGet(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CListBlock::GetIndex(void* pvElement)
+size CListBlock::GetIndex(void* pvElement)
 {
 	return mapIndices.Find(pvElement);
 }
@@ -197,7 +197,7 @@ int CListBlock::GetIndex(void* pvElement)
 //////////////////////////////////////////////////////////////////////////
 void* CListBlock::Tail(void)
 {
-	void** ppv;
+	void**	ppv;
 
 	ppv = mapIndices.Tail();
 	return Dereference(ppv);
@@ -208,9 +208,9 @@ void* CListBlock::Tail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CListBlock::InsertAt(int iIndex)
+void* CListBlock::InsertAt(size iIndex)
 {
-	void* pv;
+	void*	pv;
 
 	pv = mcFreeList.Add();
 	mapIndices.InsertAt(&pv, iIndex);
@@ -222,9 +222,9 @@ void* CListBlock::InsertAt(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CListBlock::InsertAt(void* pvData, int iIndex)
+void* CListBlock::InsertAt(void* pvData, size iIndex)
 {
-	void* pv;
+	void*	pv;
 
 	pv = mcFreeList.Add();
 	mapIndices.InsertAt(&pv, iIndex);
@@ -238,7 +238,7 @@ void* CListBlock::InsertAt(void* pvData, int iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CListBlock::Pop(void* pvData)
 {
-	void* pv;
+	void*	pv;
 
 	pv = mapIndices.Pop();
 	if (pv != NULL)
@@ -260,7 +260,7 @@ bool CListBlock::Pop(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 bool CListBlock::Pop(void)
 {
-	void* pv;
+	void*	pv;
 
 	pv = mapIndices.Pop();
 	if (pv != NULL)
@@ -281,7 +281,7 @@ bool CListBlock::Pop(void)
 //////////////////////////////////////////////////////////////////////////
 void* CListBlock::Push(void* pvElement)
 {
-	void* pv;
+	void*	pv;
 
 	pv = mcFreeList.Add(pvElement);
 	mapIndices.Push(pv);
@@ -295,7 +295,7 @@ void* CListBlock::Push(void* pvElement)
 //////////////////////////////////////////////////////////////////////////
 void* CListBlock::Push(void)
 {
-	void* pv;
+	void*	pv;
 
 	pv = mcFreeList.Add();
 	mapIndices.Push(pv);
@@ -317,9 +317,9 @@ void CListBlock::Reverse(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CListBlock::Contains(void* pData)
+bool CListBlock::Contains(void* pvData)
 {
-	if (GetIndex(pData) != -1)
+	if (GetIndex(pvData) != -1)
 	{
 		return true;
 	}
@@ -334,10 +334,10 @@ bool CListBlock::Contains(void* pData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::RemoveAt(int iIndex, bool bPreserveOrder)
+void CListBlock::RemoveAt(size iIndex, bool bPreserveOrder)
 {
-	void* pv;
-	bool bResult;
+	void*	pv;
+	bool	bResult;
 
 	bResult = mapIndices.Get(iIndex, &pv);
 	if (bResult)
@@ -352,9 +352,9 @@ void CListBlock::RemoveAt(int iIndex, bool bPreserveOrder)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder)
+void CListBlock::RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder)
 {
-	int		i;
+	size	i;
 	void*	pv;
 
 	for (i = iStartIndex; i < iEndIndexExclusive; i++)
@@ -381,7 +381,7 @@ void CListBlock::RemoveTail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CListBlock::Set(int iIndex, void* pvData)
+bool CListBlock::Set(size iIndex, void* pvData)
 {
 	void*	pv;
 	bool	bResult;
@@ -403,7 +403,7 @@ bool CListBlock::Set(int iIndex, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CListBlock::SafeSet(int iIndex, void* pvData)
+bool CListBlock::SafeSet(size iIndex, void* pvData)
 {
 	return Set(iIndex, pvData);
 }
@@ -413,7 +413,7 @@ bool CListBlock::SafeSet(int iIndex, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CListBlock::Swap(int iIndex1, int iIndex2)
+void CListBlock::Swap(size iIndex1, size iIndex2)
 {
 	return mapIndices.Swap(iIndex1, iIndex2);
 }

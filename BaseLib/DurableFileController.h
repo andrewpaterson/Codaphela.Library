@@ -40,7 +40,7 @@ private:
 	CChars			mszRewriteDirectory;
 	bool			mbDurable;
 	CDurableFile	mcFileList;
-	CMapStringInt	mcNameMap;
+	CMapStringInt	mcNameMap;  //Should be a Map of String to Size.
 
 public:
 	bool			Init(char* szDirectory);
@@ -55,8 +55,8 @@ public:
 	bool			Check(bool bThorough, bool bLogError);
 
 	bool			AddFile(CDurableFile* pcFile);
-	int				NumFiles(void);
-	CDurableFile*	GetFile(int iIndex);
+	size			NumFiles(void);
+	CDurableFile*	GetFile(size iIndex);
 
 	bool			IsBegun(void);
 	char*			GetDirectory(void);

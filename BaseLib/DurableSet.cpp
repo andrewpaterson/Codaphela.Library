@@ -144,9 +144,10 @@ bool CDurableSet::Begin(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::End(void)
 {
-	int				i;
+	size			i;
 	CDurableFile*	pcDurable;
 	bool			bResult;
+	size			uiNumElements;
 
 	if (!mbBegun)
 	{
@@ -155,7 +156,8 @@ bool CDurableSet::End(void)
 
 	bResult = true;
 	MarkStart();
-	for (i = 0; i < mapcFiles.NumElements(); i++)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
 		bResult &= pcDurable->Commit();
@@ -264,7 +266,7 @@ bool CDurableSet::CheckWriteStatus(bool bMarkStart, bool bMarkRewrite, bool bLog
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::Add(CDurableFile* pcFile)
 {
-	int		iIndex;
+	size	iIndex;
 	bool	bResult;
 
 	bResult = mapcFiles.FindInSorted(&pcFile, ComparePtrPtr, &iIndex);
@@ -284,7 +286,7 @@ bool CDurableSet::Add(CDurableFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDurableSet::Num(void)
+size CDurableSet::Num(void)
 {
 	return mapcFiles.NumElements();
 }
@@ -294,7 +296,7 @@ int CDurableSet::Num(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDurableFile* CDurableSet::Get(int iIndex)
+CDurableFile* CDurableSet::Get(size iIndex)
 {
 	CDurableFile*	pcDurable;
 
@@ -346,11 +348,13 @@ void CDurableSet::MarkFinish(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::CheckFilesIdentical(bool bThorough, bool bLogError)
 {
-	int				i;
+	size			i;
 	CDurableFile*	pcDurable;
 	bool			bResult;
+	size			uiNumElements;
 
-	for (i = 0; i < mapcFiles.NumElements(); i++)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
 		bResult = pcDurable->CheckIdentical(bThorough, bLogError);
@@ -369,11 +373,13 @@ bool CDurableSet::CheckFilesIdentical(bool bThorough, bool bLogError)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::CopyBackupToPrimary(void)
 {
-	int				i;
+	size			i;
 	CDurableFile*	pcDurable;
 	bool			bResult;
+	size			uiNumElements;
 
-	for (i = 0; i < mapcFiles.NumElements(); i++)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
 		bResult = pcDurable->CopyBackupToPrimary();
@@ -392,11 +398,13 @@ bool CDurableSet::CopyBackupToPrimary(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableSet::CopyPrimaryToBackup(void)
 {
-	int				i;
+	size			i;
 	CDurableFile*	pcDurable;
 	bool			bResult;
+	size			uiNumElements;
 
-	for (i = 0; i < mapcFiles.NumElements(); i++)
+	uiNumElements = mapcFiles.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDurable = *mapcFiles.Get(i);
 		bResult = pcDurable->CopyPrimaryToBackup();

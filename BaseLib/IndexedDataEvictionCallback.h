@@ -5,7 +5,7 @@
 class CIndexedDataEvictionCallback
 {
 public:
-	virtual bool IndexEvicted(OIndex oi, void* pvData, int iDataSize) =0;
+	virtual bool IndexEvicted(OIndex oi, void* pvData, size iDataSize) =0;
 };
 
 

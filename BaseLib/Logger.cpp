@@ -116,7 +116,7 @@ void CLogger::Init(CAbstractFile* pcFile, const char* szName)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Kill(void)
 {
-	int				i;
+	size			i;
 	CAbstractFile*	pcFile;
 	bool			bDebugFreed;
 
@@ -152,7 +152,7 @@ void CLogger::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::Add(const char* szText)
 {
-	int				i;
+	size			i;
 	CAbstractFile*	pcFile;
 
 	if (msConfig.bEnabled)
@@ -162,7 +162,7 @@ void CLogger::Add(const char* szText)
 			pcFile = *mapcFiles.Get(i);
 			pcFile->Open(EFM_ReadWrite_Create);
 			pcFile->Seek(0, EFSO_END);
-			pcFile->Write(szText, (int)strlen(szText), 1);
+			pcFile->Write(szText, strlen(szText), 1);
 			pcFile->Close();
 		}
 	}
@@ -379,7 +379,7 @@ void CLogger::Debug(const char* szText)
 void CLogger::Add(const char* szErrorLevel, const char* szText)
 {
 	char	szMessage[1 KB];
-	int		iLength;
+	size	iLength;
 
 	if (szText == NULL)
 	{
@@ -387,10 +387,10 @@ void CLogger::Add(const char* szErrorLevel, const char* szText)
 		return;
 	}
 
-	iLength = (int)strlen(szText);
+	iLength = strlen(szText);
 	if (szErrorLevel)
 	{
-		iLength += (int)strlen(szErrorLevel);
+		iLength += strlen(szErrorLevel);
 	}
 
 	if (iLength > (1 KB - 80))
@@ -529,7 +529,7 @@ void CLogger::AddOutput(CAbstractFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CLogger::RemoveOutput(CAbstractFile* pcFile)
 {
-	int	iIndex;
+	size	iIndex;
 
 	iIndex = mapcFiles.FindWithKey(&pcFile, 0, sizeof(CAbstractFile*));
 	mapcFiles.RemoveAt(iIndex);

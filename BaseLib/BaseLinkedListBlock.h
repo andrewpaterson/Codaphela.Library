@@ -30,20 +30,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SLinkedListBlockDesc
 {
-	int		iNumElements;
-	uint32	uiNodeSize;
+	size	iNumElements;
+	size	uiNodeSize;
 
-	void Init(int iNumElements, uint32 uiNodeSize);
+	void Init(size iNumElements, size uiNodeSize);
 };
 
 
 struct SLinkedListTemplateDesc
 {
-	int		iNumElements;
-	uint32	uiNodeSize;
-	uint32	uiDataSize;
+	size	iNumElements;
+	size	uiNodeSize;
+	size	uiDataSize;
 
-	void Init(int iNumElements, uint32 uiNodeSize, uint32 uiDataSize);
+	void Init(size iNumElements, size uiNodeSize, size uiDataSize);
 };
 
 
@@ -51,17 +51,17 @@ class CBaseLinkedListBlock : public CMalloc
 {
 protected:
 	CLinkedList		mcList;
-	size_t			muiNodeSize;
+	size			muiNodeSize;
 
 public:
-	void		Init(size_t uiNodeSize);
-	void		Init(CMallocator* pcMalloc, size_t uiNodeSize);
+	void		Init(size uiNodeSize);
+	void		Init(CMallocator* pcMalloc, size uiNodeSize);
 	void		Kill(void);
 
-	void*		InsertAfterTail(uint32 uiDataSize);
-	void*		InsertBeforeHead(uint32 uiDataSize);
-	void*		InsertBeforeNode(uint32 uiDataSize, void* psPos);
-	void*		InsertAfterNode(uint32 uiDataSize, void* psPos); 
+	void*		InsertAfterTail(size uiDataSize);
+	void*		InsertBeforeHead(size uiDataSize);
+	void*		InsertBeforeNode(size uiDataSize, void* psPos);
+	void*		InsertAfterNode(size uiDataSize, void* psPos); 
 
 	void* 		GetHead(void);
 	void* 		GetTail(void);
@@ -84,17 +84,17 @@ public:
 	void		Detach(void* pvData);
 
 	void		FreeDetached(void* pvData);
-	int			NumElements(void);
+	size		NumElements(void);
 
-	void*		Get(int iNum);
-	int			IndexOf(void* pvData);
+	void*		Get(size iNum);
+	size		IndexOf(void* pvData);
 	bool		IsInList(void* pvData);
 
 	void		BubbleSort(DataCompare fCompare);
 	void		InsertDetachedIntoSorted(DataCompare fCompare, void* pvData);
 
 protected:	
-	SLLNode*	AllocateDetached(size_t uiDataSize);
+	SLLNode*	AllocateDetached(size uiDataSize);
 
 	void		Swap(void* psData1, void* psData2);
 	void*		NodeGetData(SLLNode* psNode);

@@ -13,17 +13,17 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	void	Put(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	void	Get(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	void	Remove(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	void	Flush(void* pvKey, int iKeySize, void* pvData, int iDataSize);
-	void	Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	void	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Get(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Remove(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Flush(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 
 	void	Print(CChars* psz);
 	void	Dump(void);
 
 protected:
-	void	Log(char* szOperation, void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	void	Log(char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize);
 };
 
 #endif // __INDEX_TREE_FILE_KEY_DIAGNOSTIC_LOGGING_CALLBACK_H__

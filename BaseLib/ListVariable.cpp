@@ -60,7 +60,7 @@ void CListVariable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CListVariable::Get(int iIndex, void** pvData)
+bool CListVariable::Get(size iIndex, void** pvData)
 {
 	SPointerAndSize*	ps;
 
@@ -74,7 +74,7 @@ bool CListVariable::Get(int iIndex, void** pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Get(int iIndex)
+void* CListVariable::Get(size iIndex)
 {
 	SPointerAndSize*	ps;
 
@@ -94,7 +94,7 @@ void* CListVariable::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Get(int iIndex, size_t* puiElementSize)
+void* CListVariable::Get(size iIndex, size* puiElementSize)
 {
 	SPointerAndSize* ps;
 
@@ -116,7 +116,7 @@ void* CListVariable::Get(int iIndex, size_t* puiElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListVariable::GetSize(int iIndex)
+size CListVariable::GetSize(size iIndex)
 {
 	SPointerAndSize*	ps;
 
@@ -136,7 +136,7 @@ int CListVariable::GetSize(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Add(size_t iElementSize)
+void* CListVariable::Add(size iElementSize)
 {
 	SPointerAndSize*	psType;
 
@@ -158,7 +158,7 @@ void* CListVariable::Add(size_t iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Add(void* pvElement, size_t iElementSize)
+void* CListVariable::Add(void* pvElement, size iElementSize)
 {
 	void*	pvDest;
 
@@ -176,7 +176,7 @@ void* CListVariable::Add(void* pvElement, size_t iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListVariable::Set(int iIndex, void* pvData, int iElementSize)
+void CListVariable::Set(size iIndex, void* pvData, size iElementSize)
 {
 	SPointerAndSize*	psType;
 
@@ -209,7 +209,7 @@ void CListVariable::Set(int iIndex, void* pvData, int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::Resize(int iIndex, int iElementSize)
+void* CListVariable::Resize(size iIndex, size iElementSize)
 {
 	SPointerAndSize*	psType;
 
@@ -235,7 +235,7 @@ void* CListVariable::Resize(int iIndex, int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListVariable::RemoveAt(int iIndex, bool bPreserveOrder)
+void CListVariable::RemoveAt(size iIndex, bool bPreserveOrder)
 {
 	SPointerAndSize*	psType;
 
@@ -266,7 +266,7 @@ void CListVariable::PrivateFree(SPointerAndSize* psType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListVariable::NumElements(void)
+size CListVariable::NumElements(void)
 {
 	return mcArray.NumElements();
 }
@@ -276,7 +276,7 @@ int CListVariable::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::PrivateMalloc(int iElementSize)
+void* CListVariable::PrivateMalloc(size iElementSize)
 {
 	return mcFreeLists.Add(iElementSize);
 }
@@ -289,10 +289,10 @@ void* CListVariable::PrivateMalloc(int iElementSize)
 //////////////////////////////////////////////////////////////////////////
 bool CListVariable::Remove(void* pvElement)
 {
-	int		iIndex;
+	size		iIndex;
 
 	iIndex = IndexOf(pvElement);
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		RemoveAt(iIndex);
 		return true;
@@ -305,9 +305,9 @@ bool CListVariable::Remove(void* pvElement)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListVariable::IndexOf(void* pvElement)
+size CListVariable::IndexOf(void* pvElement)
 {
-	int					i;
+	size				i;
 	SPointerAndSize*	psPtr;
 
 	for (i = 0; i < mcArray.NumElements(); i++)
@@ -318,7 +318,7 @@ int CListVariable::IndexOf(void* pvElement)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -326,7 +326,7 @@ int CListVariable::IndexOf(void* pvElement)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CListVariable::InsertAt(int iIndex, int iElementSize)
+void* CListVariable::InsertAt(size iIndex, size iElementSize)
 {
 	SPointerAndSize*	psType;
 
@@ -347,9 +347,9 @@ void* CListVariable::InsertAt(int iIndex, int iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, int iElementSize)
+size CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, bool bOverwriteExisting, size iElementSize)
 {
-	int		iPos;
+	size	iPos;
 	bool	bExists;
 	void*	pvData;
 
@@ -385,7 +385,7 @@ int CListVariable::InsertIntoSorted(DataCompare fCompare, void* pvElement, bool 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CListVariable::FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex)
+bool CListVariable::FindInSorted(void* pvElement, DataCompare fCompare, size* piIndex)
 {
 	SPointerAndSize	sPointerAndSize;
 
@@ -393,3 +393,4 @@ bool CListVariable::FindInSorted(void* pvElement, DataCompare fCompare, int* piI
 	sPointerAndSize.iSize = 0;
 	return mcArray.FindInSorted(&sPointerAndSize, fCompare, piIndex);
 }
+

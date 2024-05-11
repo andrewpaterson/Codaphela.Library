@@ -27,11 +27,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CMapStringInt::GetWithValue(int iData)
+char* CMapStringInt::GetWithValue(int32 iData)
 {
 	SMapIterator	sIter;
 	char*			szKey;
-	int*			piData;
+	int32*			piData;
 	bool			bResult;
 
 	bResult = StartIteration(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);

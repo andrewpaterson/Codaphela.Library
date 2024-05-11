@@ -23,14 +23,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FAST_MEMCPY_H__
 #define __FAST_MEMCPY_H__
 #include "Define.h"
+#include "PrimitiveTypes.h"
 
 
 typedef void (*memcpy_fast_func)(void*, void*);
 extern memcpy_fast_func ga_memcpy_fast[65];
 
 
-void memcpy_fast(void* pvDest, void* pvSource, size_t uiByteSize);
-void memcpy_large(void* pvDest, void* pvSource, size_t uiByteSize);
+void memcpy_fast(void* pvDest, void* pvSource, size uiByteSize);
+void memcpy_large(void* pvDest, void* pvSource, size uiByteSize);
 void InitMemcpyFast(void);
 
 void memcpy_fast_0bytes(void* pvDest, void* pvSource);  //For completeness...

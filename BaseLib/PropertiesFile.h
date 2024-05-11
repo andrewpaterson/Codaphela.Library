@@ -40,7 +40,7 @@ public:
 	void	Set(char* szProperty, char* szValue);
 	bool	Read(void);
 	bool	Write(void);
-	int		NumProperties(void);
+	size	NumProperties(void);
 	void	Print(CChars* pszDest);
 	void	Dump(void);
 };

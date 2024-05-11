@@ -29,29 +29,29 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMemoryFile : public CAbstractFile
 {
 protected:
-	int			miFlags;
-	filePos		miPos;
+	size		miFlags;
+	size		miPos;
 	bool		mbOpen;
 	void*		mpvInitialMem;
-	int			miInitialLength;
+	size		miInitialLength;
 	bool		mbFakeArray;
 	CArrayChar	mcArray;
 
 public:
 	void		Init(void);
-	void		Init(void* pvInitialMem, int iInitialLength);
+	void		Init(void* pvInitialMem, size iInitialLength);
 	void		Kill(void);
 
 	void*		GetBufferPointer(void);
-	int			GetBufferSize(void);
+	size		GetBufferSize(void);
 	void		SetBufferPointer(void* pvBuffer);
-	void		SetBufferSize(int iBufferSize);
+	void		SetBufferSize(size iBufferSize);
 
 	bool		Open(EFileMode eFileMode);
 	bool		Close(void);
-	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	size		Read(void* pvBuffer, size iSize, size iCount);
 	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	size		Write(const void* pvBuffer, size iSize, size iCount);
 	filePos		Tell(void);
 	bool		IsOpen(void);
 	filePos		Size(void);
@@ -63,7 +63,7 @@ public:
 
 
 CMemoryFile* MemoryFile(void);
-CMemoryFile* MemoryFile(void* pvInitialMem, int iInitialLength);
+CMemoryFile* MemoryFile(void* pvInitialMem, size iInitialLength);
 
 
 #endif // __MEMORY_FILE_H__

@@ -79,12 +79,14 @@ void CArrayChars::Init(const char* szFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::Init(CArrayChars* pasz)
 {
-	int		i;
-	CChars* psz;
+	size		i;
+	CChars*		psz;
+	size		uiChars;
 
 	Init();
 
-	for (i = 0; i < pasz->NumElements(); i++)
+	uiChars = pasz->NumElements();
+	for (i = 0; i < uiChars; i++)
 	{
 		psz = pasz->Get(i);
 		Add(psz);
@@ -109,12 +111,14 @@ void CArrayChars::Fake(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::Kill(void)
 {
-	int		i;
+	size		i;
 	CChars*	pcChars;
+	size		uiElements;
 
 	if (!mbFaked)
 	{
-		for (i = 0; i < mcArray.NumElements(); i++)
+		uiElements = mcArray.NumElements();
+		for (i = 0; i < uiElements; i++)
 		{
 			pcChars = mcArray.Get(i);
 			pcChars->Kill();
@@ -212,7 +216,7 @@ CChars* CArrayChars::Add(const char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayChars::Add(char* szString, int iStartInclusive, int iEndExclusive)
+CChars* CArrayChars::Add(char* szString, size iStartInclusive, size iEndExclusive)
 {
 	CChars*		pcChars2;
 
@@ -240,11 +244,11 @@ CChars* CArrayChars::Add(char* szText, char* szLastCharInclusive)
 	pcChars2 = mcArray.Add();
 	if (!mbFaked)
 	{
-		pcChars2->Init(szText, 0, (int)(szLastCharInclusive-szText)+1);
+		pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
 	}
 	else
 	{
-		pcChars2->Fake(szText, 0, (int)(szLastCharInclusive-szText)+1);
+		pcChars2->Fake(szText, 0, (size)(szLastCharInclusive-szText)+1);
 	}
 	return pcChars2;	
 }
@@ -283,12 +287,14 @@ void CArrayChars::AddList(char* sz, ...)
 //////////////////////////////////////////////////////////////////////////
 CChars* CArrayChars::AddIfUnique(char* szString)
 {
-	int			i;
+	size		i;
 	CChars*		pcExisting;
+	size		uiElements;
 
 	if (!mbFaked)
 	{
-		for (i = 0; i < mcArray.NumElements(); i++)
+		uiElements = mcArray.NumElements();
+		for (i = 0; i < uiElements; i++)
 		{
 			pcExisting = mcArray.Get(i);
 			if (pcExisting->Equals(szString))
@@ -311,11 +317,14 @@ CChars* CArrayChars::AddIfUnique(char* szString)
 //////////////////////////////////////////////////////////////////////////
 CChars* CArrayChars::AddIfUnique(CChars cChars)
 {
-	int			i;
+	size		i;
 	CChars*		pcExisting;
+	size		uiElements;
 
 	if (!mbFaked)
-	{	for (i = 0; i < mcArray.NumElements(); i++)
+	{	
+		uiElements = mcArray.NumElements();
+		for (i = 0; i < uiElements; i++)
 		{
 			pcExisting = mcArray.Get(i);
 			if (pcExisting->Equals(cChars))
@@ -342,7 +351,7 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 	CChars		szTemp;
 	char		c;
 	bool		bResult;
-	int			iIndex;
+	size		iIndex;
 
 	c = szLastCharInclusive[1];
 	szLastCharInclusive[1] = 0;
@@ -358,7 +367,7 @@ CChars* CArrayChars::InsertIntoSorted(char* szText, char* szLastCharInclusive)
 	{
 		szLastCharInclusive[1] = c;
 		pcChars2 = mcArray.InsertAt(iIndex);
-		pcChars2->Init(szText, 0, (int)(szLastCharInclusive-szText)+1);
+		pcChars2->Init(szText, 0, (size)(szLastCharInclusive-szText)+1);
 		return pcChars2;	
 	}
 }
@@ -372,7 +381,7 @@ CChars* CArrayChars::InsertIntoSorted(CChars* psz)
 {
 	CChars*		pcChars2;
 	bool		bResult;
-	int			iIndex;
+	size		iIndex;
 
 	bResult = mcArray.FindInSorted(psz, CompareChars, &iIndex);
 	if (bResult)
@@ -425,10 +434,12 @@ void CArrayChars::Remove(CChars* pcChars)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::Remove(char* szString)
 {
-	int			i;
+	size		i;
 	CChars*		pcChars2;
+	size		uiElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		pcChars2 = mcArray.Get(i);
 		if (pcChars2->Equals(szString))
@@ -444,7 +455,7 @@ void CArrayChars::Remove(char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChars::Remove(int iIndex)
+void CArrayChars::Remove(size iIndex)
 {
 	CChars*		pcChars;
 
@@ -458,7 +469,7 @@ void CArrayChars::Remove(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CChars* CArrayChars::Get(int iIndex)
+CChars* CArrayChars::Get(size iIndex)
 {
 	return mcArray.SafeGet(iIndex);
 }
@@ -470,9 +481,9 @@ CChars* CArrayChars::Get(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 CChars* CArrayChars::Tail(void)
 {
-	if (NumElements() > 0)
+	if (NumElements() != 0)
 	{
-		return Get(NumElements()-1);
+		return Get(NumElements() - 1);
 	}
 	else
 	{
@@ -485,7 +496,7 @@ CChars* CArrayChars::Tail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-char* CArrayChars::GetText(int iIndex)
+char* CArrayChars::GetText(size iIndex)
 {
 	CChars*		pcChars;
 
@@ -502,7 +513,7 @@ char* CArrayChars::GetText(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::NumElements(void)
+size CArrayChars::NumElements(void)
 {
 	return mcArray.NumElements();
 }
@@ -512,12 +523,14 @@ int CArrayChars::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::GetIndex(char* szStart)
+size CArrayChars::GetIndex(char* szStart)
 {
-	int			i;
+	size		i;
 	CChars*		psz;
+	size		uiElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		psz = mcArray.Get(i);
 		if (psz->Equals(szStart))
@@ -525,7 +538,7 @@ int CArrayChars::GetIndex(char* szStart)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -533,12 +546,14 @@ int CArrayChars::GetIndex(char* szStart)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::GetIndex(CChars* psz)
+size CArrayChars::GetIndex(CChars* psz)
 {
-	int			i;
+	size		i;
 	CChars*		pszOther;
+	size		uiElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		pszOther = mcArray.Get(i);
 		if (pszOther->Equals(psz))
@@ -546,7 +561,7 @@ int CArrayChars::GetIndex(CChars* psz)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -554,12 +569,14 @@ int CArrayChars::GetIndex(CChars* psz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::GetSubStringIndex(char* szStart)
+size CArrayChars::GetSubStringIndex(char* szStart)
 {
-	int			i;
+	size		i;
 	CChars*		psz;
+	size		uiElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		psz = mcArray.Get(i);
 		if (psz->Contains(szStart))
@@ -567,21 +584,22 @@ int CArrayChars::GetSubStringIndex(char* szStart)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::GetIndex(char* szStart, int iLen)
+size CArrayChars::GetIndex(char* szStart, size iLen)
 {
-	int			i;
+	size		i;
 	CChars*		psz;
+	size		uiElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		psz = mcArray.Get(i);
 		if (psz->Equals(szStart, iLen))
@@ -589,7 +607,7 @@ int CArrayChars::GetIndex(char* szStart, int iLen)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -597,7 +615,7 @@ int CArrayChars::GetIndex(char* szStart, int iLen)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::FindInSorted(char* szString, bool bCaseSensitive)
+size CArrayChars::FindInSorted(char* szString, bool bCaseSensitive)
 {
 	CChars	szFake;
 
@@ -610,10 +628,10 @@ int CArrayChars::FindInSorted(char* szString, bool bCaseSensitive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
+size CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
 {
 	DataCompare		fCompare;
-	int				iIndex;
+	size			iIndex;
 	bool			bResult;
 
 	if (bCaseSensitive)
@@ -627,7 +645,7 @@ int CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
 	bResult = mcArray.FindInSorted(szString, fCompare, &iIndex);
 	if (!bResult)
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 	else
 	{
@@ -642,10 +660,12 @@ int CArrayChars::FindInSorted(CChars* szString, bool bCaseSensitive)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::Copy(CArrayChars* pcSource)
 {
-	int		i;
-	CChars*	psz;
+	size		i;
+	CChars*		psz;
+	size		uiSourceElements;
 
-	for (i = 0; i < pcSource->NumElements(); i++)
+	uiSourceElements = pcSource->NumElements();
+	for (i = 0; i < uiSourceElements; i++)
 	{
 		psz = pcSource->Get(i);
 		Add(*psz);
@@ -659,16 +679,18 @@ void CArrayChars::Copy(CArrayChars* pcSource)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayChars::Equals(CArrayChars* pcOther)
 {
-	int		i;
-	CChars*	pszThis;
-	CChars*	pszOther;
+	size		i;
+	CChars*		pszThis;
+	CChars*		pszOther;
+	size		uiElements;
 
 	if (mcArray.NumElements() != pcOther->mcArray.NumElements())
 	{
 		return false;
 	}
 
-	for (i = 0; i < NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		pszThis = Get(i);
 		pszOther = pcOther->Get(i);
@@ -687,10 +709,10 @@ bool CArrayChars::Equals(CArrayChars* pcOther)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayChars::Contains(char* szText)
 {
-	int		iIndex;
+	size	iIndex;
 
 	iIndex = GetIndex(szText);
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return true;
 	}
@@ -704,10 +726,10 @@ bool CArrayChars::Contains(char* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayChars::Contains(CChars* psz)
 {
-	int		iIndex;
+	size	iIndex;
 
 	iIndex = GetIndex(psz);
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return true;
 	}
@@ -721,10 +743,10 @@ bool CArrayChars::Contains(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayChars::ContainsSubString(char* szText)
 {
-	int		iIndex;
+	size	iIndex;
 
 	iIndex = GetSubStringIndex(szText);
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return true;
 	}
@@ -792,10 +814,12 @@ void CArrayChars::Finalise(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::Print(CChars* pszDest)
 {
-	int			i;
+	size		i;
 	CChars*		psz;
+	size		uiElements;
 
-	for (i = 0; i < mcArray.NumElements(); i++)
+	uiElements = mcArray.NumElements();
+	for (i = 0; i < uiElements; i++)
 	{
 		psz = mcArray.Get(i);
 		pszDest->Append(psz);
@@ -810,7 +834,7 @@ void CArrayChars::Print(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CArrayChars::Dump(void)
 {
-	CChars		sz;
+	CChars	sz;
 
 	sz.Init();
 	Print(&sz);
@@ -825,7 +849,7 @@ void CArrayChars::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayChars::Split(char* szString, char cSplitter)
 {
-	CChars			szTemp;
+	CChars	szTemp;
 
 	szTemp.Init(szString);
 	if (!szTemp.Empty())
@@ -846,9 +870,9 @@ bool CArrayChars::Split(char* szString, char cSplitter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayChars::RemoveTail(void)
 {
-	if (NumElements() > 0)
+	if (NumElements() != 0)
 	{
-		Remove(NumElements()-1);
+		Remove(NumElements() - 1);
 		return true;
 	}
 	else

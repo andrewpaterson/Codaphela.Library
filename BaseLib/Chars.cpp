@@ -68,6 +68,7 @@ int CompareCharsIgnoreCase(const void* arg1, const void* arg2)
 	return szString1->CompareIgnoreCase(szString2);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -84,9 +85,9 @@ void CChars::_Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::InitLength(int iLength)
+CChars* CChars::InitLength(size iLength)
 {
-	if (iLength > 0)
+	if (iLength != 0)
 	{
 		mcText.Init();
 		mcText.Resize(iLength + 1);
@@ -116,12 +117,12 @@ CChars* CChars::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Init(const char* sz)
+CChars* CChars::Init(const char* szString)
 {
 	mcText.Init();
-	if (!StrEmpty(sz))
+	if (!StrEmpty(szString))
 	{
-		Set(sz);
+		Set(szString);
 	}
 	else
 	{
@@ -135,12 +136,12 @@ CChars* CChars::Init(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
+CChars* CChars::Init(CChars szString, size iStartInclusive, size iEndExclusive)
 {
-	if (iEndExclusive - iStartInclusive > 0)
+	if (iEndExclusive > iStartInclusive)
 	{
 		mcText.Init();
-		AppendSubString(sz, iStartInclusive, iEndExclusive);
+		AppendSubString(szString, iStartInclusive, iEndExclusive);
 		CleanIfEmpty();
 	}
 	else
@@ -155,12 +156,12 @@ CChars* CChars::Init(CChars sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
+CChars* CChars::Init(const char* szString, size iStartInclusive, size iEndExclusive)
 {
-	if (iEndExclusive - iStartInclusive > 0)
+	if (iEndExclusive > iStartInclusive)
 	{
 		mcText.Init();
-		AppendSubString(sz, iStartInclusive, iEndExclusive);
+		AppendSubString(szString, iStartInclusive, iEndExclusive);
 		CleanIfEmpty();
 	}
 	else
@@ -176,10 +177,10 @@ CChars* CChars::Init(const char* sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Init(const char* sz, int iStartInclusive)
+CChars* CChars::Init(const char* szString, size iStartInclusive)
 {
 	mcText.Init();
-	Set(&sz[iStartInclusive]);
+	Set(&szString[iStartInclusive]);
 	return this;
 }
 
@@ -188,12 +189,12 @@ CChars* CChars::Init(const char* sz, int iStartInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Init(CChars sz)
+CChars* CChars::Init(CChars szString)
 {
-	if (!sz.Empty())
+	if (!szString.Empty())
 	{
 		mcText.Init();
-		mcText.Copy(&(sz.mcText));
+		mcText.Copy(&(szString.mcText));
 	}
 	else
 	{
@@ -227,9 +228,9 @@ CChars* CChars::Init(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Init(char cPadCharacter, int iNumber)
+CChars* CChars::Init(char cPadCharacter, size iNumber)
 {
-	if (iNumber > 0)
+	if (iNumber != 0)
 	{
 		mcText.Init();
 		Append(cPadCharacter, iNumber);
@@ -262,7 +263,7 @@ CChars* CChars::InitList(const char* szFirst, ...)
 
 	va_list			vaMarker;
 	const char*		pc;
-	int				iCount;
+	size				iCount;
 
 	if (szFirst)
 	{
@@ -294,7 +295,7 @@ CChars* CChars::InitList(CChars* szFirst, ...)
 
 	va_list		vaMarker;
 	CChars*		pc;
-	int			iCount;
+	size			iCount;
 
 	if (szFirst)
 	{
@@ -319,7 +320,7 @@ CChars* CChars::InitList(CChars* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::InitData2(const char* szData, int iDataLength)
+bool CChars::InitData2(const char* szData, size iDataLength)
 {
 	InitEmpty();
 
@@ -355,11 +356,11 @@ void CChars::DumpKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(const char* sz)
+void CChars::Fake(const char* szString)
 {
-	if (sz)
+	if (szString)
 	{
-		mcText.Fake((char*)sz, (int)strlen(sz) + 1);
+		mcText.Fake((char*)szString, strlen(szString) + 1);
 	}
 	else
 	{
@@ -372,13 +373,13 @@ void CChars::Fake(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Fake(const char* sz, int iStartInclusive, int iEndExclusive)
+void CChars::Fake(const char* szString, size iStartInclusive, size iEndExclusive)
 {
 	char* pcPosition;
 
-	if (iEndExclusive - iStartInclusive > 0)
+	if (iEndExclusive > iStartInclusive)
 	{
-		pcPosition = (char*)RemapSinglePointer(sz, iStartInclusive);
+		pcPosition = (char*)RemapSinglePointer(szString, iStartInclusive);
 		mcText.Fake(pcPosition, iEndExclusive - iStartInclusive + 1);
 	}
 	else
@@ -403,10 +404,10 @@ CChars* CChars::Reinit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Length(void)
+size CChars::Length(void)
 {
 	//Don't include the zero char at the end of the string.
-	if (mcText.IsEmpty())
+	if (mcText.IsEmpty() || IsFakeEmpty())
 	{
 		return 0;
 	}
@@ -418,14 +419,14 @@ int CChars::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Set(CChars sz)
+void CChars::Set(CChars szString)
 {
-	int iLen;
+	size iLen;
 
-	iLen = sz.Length()+1;
+	iLen = szString.Length() + 1;
 	if (iLen > 1)
 	{
-		SetNonNull(sz.Text(), iLen);
+		SetNonNull(szString.Text(), iLen);
 	}
 	else
 	{
@@ -440,7 +441,7 @@ void CChars::Set(CChars sz)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Set(CChars* psz)
 {
-	int iLen;
+	size iLen;
 
 	iLen = psz->Length() + 1;
 	if (iLen > 1)
@@ -458,14 +459,14 @@ void CChars::Set(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Set(const char* sz)
+void CChars::Set(const char* szString)
 {
-	size_t iLen;
+	size iLen;
 
-	if (!StrEmpty(sz))
+	if (!StrEmpty(szString))
 	{
-		iLen = (strlen(sz)) + 1;
-		SetNonNull(sz, iLen);
+		iLen = (strlen(szString)) + 1;
+		SetNonNull(szString, iLen);
 	}
 	else
 	{
@@ -478,7 +479,7 @@ void CChars::Set(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::SetNonNull(const char* sz, int iLen)
+void CChars::SetNonNull(const char* szString, size iLen)
 {
 	if (!IsFakeEmpty())
 	{
@@ -489,7 +490,7 @@ void CChars::SetNonNull(const char* sz, int iLen)
 		Unfake();
 		mcText.Resize(iLen);
 	}
-	memcpy(mcText.GetData(), sz, iLen);
+	memcpy(mcText.GetData(), szString, iLen);
 }
 
 
@@ -511,7 +512,7 @@ void CChars::SetEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::SetChar(int iIndex, char c)
+void CChars::SetChar(size iIndex, char c)
 {
 	if (iIndex < Length())
 	{
@@ -524,18 +525,19 @@ void CChars::SetChar(int iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(const char* sz)
+CChars* CChars::Append(const char* szString)
 {
-	int		iLen;
-	char* pcPosition;
+	size	iLen;
+	char*	pcPosition;
 
-	if (!StrEmpty(sz))
+	if (!StrEmpty(szString))
 	{
-		iLen = (int)strlen(sz);
+		iLen = strlen(szString);
 		pcPosition = PrivateGrow(iLen);
-		memcpy(pcPosition, sz, iLen);
+		memcpy(pcPosition, szString, iLen);
 		pcPosition[iLen] = '\0';
 	}
+
 	return this;
 }
 
@@ -554,6 +556,7 @@ CChars* CChars::Append(CExternalString* pcString)
 		memcpy(pcPosition, pcString->msz, pcString->miLen);
 		pcPosition[pcString->miLen] = '\0';
 	}
+
 	return this;
 }
 
@@ -562,15 +565,15 @@ CChars* CChars::Append(CExternalString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(const char* sz, int iLen)
+CChars* CChars::Append(const char* szString, size iLen)
 {
 	char*	pcPosition;
 	char*	pcZero;
 
-	if (sz && iLen > 0)
+	if (szString && iLen > 0)
 	{
 		pcPosition = PrivateGrow(iLen);
-		memcpy(pcPosition, sz, iLen);
+		memcpy(pcPosition, szString, iLen);
 		pcZero = mcText.Tail();
 		*pcZero = '\0';
 	}
@@ -583,7 +586,7 @@ CChars* CChars::Append(const char* sz, int iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(char c)
+CChars* CChars::Append(char c)
 {
 	char* pcReplace;
 
@@ -592,6 +595,8 @@ void CChars::Append(char c)
 	pcReplace = mcText.Tail();
 	*pcReplace = c;
 	mcText.Add(0);
+
+	return this;
 }
 
 
@@ -599,9 +604,10 @@ void CChars::Append(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(CChars sz)
+CChars* CChars::Append(CChars szString)
 {
-	Append(sz.Text());
+	Append(szString.Text());
+	return this;
 }
 
 
@@ -609,9 +615,10 @@ void CChars::Append(CChars sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(CChars* psz)
+CChars* CChars::Append(CChars* psz)
 {
 	Append(psz->Text());
+	return this;
 }
 
 
@@ -619,12 +626,12 @@ void CChars::Append(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(int i)
+CChars* CChars::Append(int32 i)
 {
-	char sz[32];
+	char szString[32];
 
-	IntToString(sz, 32, i, 10);
-	return Append(sz);
+	IntToString(szString, 32, i, 10);
+	return Append(szString);
 }
 
 
@@ -632,12 +639,12 @@ CChars* CChars::Append(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(int i, int iBase)
+CChars* CChars::Append(int32 i, uint16 iBase)
 {
-	char sz[32];
+	char szString[32];
 
-	IntToString(sz, 32, i, iBase);
-	return Append(sz);
+	IntToString(szString, 32, i, iBase);
+	return Append(szString);
 }
 
 
@@ -645,12 +652,12 @@ CChars* CChars::Append(int i, int iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(uint64 ulli)
+CChars* CChars::Append(uint64 ulli)
 {
-	char sz[64];
+	char szString[64];
 
-	IntToString(sz, 64, ulli, 10);
-	Append(sz);
+	LongToString(szString, 64, ulli);
+	return Append(szString);
 }
 
 
@@ -658,12 +665,12 @@ void CChars::Append(uint64 ulli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(int64 lli)
+CChars* CChars::Append(int64 lli)
 {
-	char sz[64];
+	char szString[64];
 
-	IntToString(sz, 64, lli, 10);
-	Append(sz);
+	LongToString(szString, 64, lli);
+	return Append(szString);
 }
 
 
@@ -671,12 +678,12 @@ void CChars::Append(int64 lli)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(uint32 ui)
+CChars* CChars::Append(uint32 ui)
 {
-	char sz[32];
+	char szString[32];
 
-	IntToString(sz, 32, ui, 10);
-	Append(sz);
+	IntToString(szString, 32, ui);
+	return Append(szString);
 }
 
 
@@ -684,13 +691,12 @@ void CChars::Append(uint32 ui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(float f, int iMaxDecimals, bool bAppendF)
+CChars* CChars::Append(float f, int iMaxDecimals, bool bAppendF)
 {
-	char sz[32];
+	char szString[32];
 
-	FloatToString(sz, 32, f, iMaxDecimals, bAppendF);
-
-	Append(sz);
+	FloatToString(szString, 32, f, iMaxDecimals, bAppendF);
+	return  Append(szString);
 }
 
 
@@ -698,13 +704,12 @@ void CChars::Append(float f, int iMaxDecimals, bool bAppendF)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(double d, int iMaxDecimals, bool bAppendD)
+CChars* CChars::Append(double d, int iMaxDecimals, bool bAppendD)
 {
-	char	sz[128];
+	char	szString[128];
 
-	DoubleToString(sz, 128, d, iMaxDecimals, bAppendD);
-
-	Append(sz);
+	DoubleToString(szString, 128, d, iMaxDecimals, bAppendD);
+	return Append(szString);
 }
 
 
@@ -712,11 +717,13 @@ void CChars::Append(double d, int iMaxDecimals, bool bAppendD)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendQuoted(const char* sz)
+CChars* CChars::AppendQuoted(const char* szString)
 {
 	Append('"');
-	Append(sz);
+	Append(szString);
 	Append('"');
+
+	return this;
 }
 
 
@@ -724,11 +731,13 @@ void CChars::AppendQuoted(const char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendQuoted(char c)
+CChars* CChars::AppendQuoted(char c)
 {
 	Append('\'');
 	Append(c);
 	Append('\'');
+
+	return this;
 }
 
 
@@ -746,9 +755,9 @@ CChars* CChars::AppendNewLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::AppendNewLine(CChars sz)
+CChars* CChars::AppendNewLine(CChars szString)
 {
-	Append(&sz);
+	Append(&szString);
 	return AppendNewLine();
 }
 
@@ -757,9 +766,9 @@ CChars* CChars::AppendNewLine(CChars sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char GetNumberAs1DigitHex(int nybble)
+char GetNumberAs1DigitHex(size nybble)
 {
-	if ((nybble >= 0) && (nybble <= 15))
+	if (nybble <= 15)
 	{
 		return gszDigits[nybble];
 	}
@@ -771,23 +780,31 @@ char GetNumberAs1DigitHex(int nybble)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendHexHiLo(void* pv, int iNumBytes)
+CChars* CChars::AppendHexHiLo(void* pv, size iNumBytes)
 {
-	int		i;
+	size	i;
 	char*	pb;
-	int		nibble;
+	int8	nibble;
 	char	c;
 
-	for (i = iNumBytes-1; i >= 0; i--)
+	if (iNumBytes != 0)
 	{
-		pb = (char*)RemapSinglePointer(pv, i);
-		nibble = GetHighNybble(*pb);
-		c = GetNumberAs1DigitHex(nibble);
-		Append(c);
-		nibble = GetLowNybble(*pb);
-		c = GetNumberAs1DigitHex(nibble);
-		Append(c);
+		i = iNumBytes;
+		do
+		{
+			i--;
+			pb = (char*)RemapSinglePointer(pv, i);
+			nibble = GetHighNybble(*pb);
+			c = GetNumberAs1DigitHex(nibble);
+			Append(c);
+			nibble = GetLowNybble(*pb);
+			c = GetNumberAs1DigitHex(nibble);
+			Append(c);
+		}
+		while (i != 0);
 	}
+
+	return this;
 }
 
 
@@ -795,32 +812,38 @@ void CChars::AppendHexHiLo(void* pv, int iNumBytes)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendHexLoHi(void* pv, int iNumBytes)
+CChars* CChars::AppendHexLoHi(void* pv, size iNumBytes)
 {
-	int		i;
+	size	i;
 	char*	pb;
-	int		nibble;
+	int8	nibble;
 	char	c;
 
-	for (i = 0; i < iNumBytes; i++)
+	if (iNumBytes != 0)
 	{
-		pb = (char*)RemapSinglePointer(pv, i);
-		nibble = GetHighNybble(*pb);
-		c = GetNumberAs1DigitHex(nibble);
-		Append(c);
-		nibble = GetLowNybble(*pb);
-		c = GetNumberAs1DigitHex(nibble);
-		Append(c);
+		for (i = 0; i < iNumBytes; i++)
+		{
+			pb = (char*)RemapSinglePointer(pv, i);
+			nibble = GetHighNybble(*pb);
+			c = GetNumberAs1DigitHex(nibble);
+			Append(c);
+			nibble = GetLowNybble(*pb);
+			c = GetNumberAs1DigitHex(nibble);
+			Append(c);
+		}
 	}
+
+	return this;
 }
+
 
 ///////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendBool(bool bValue)
+CChars* CChars::AppendBool(bool bValue)
 {
-	AppendBool(bValue, "True", "False");
+	return AppendBool(bValue, "True", "False");
 }
 
 
@@ -828,15 +851,15 @@ void CChars::AppendBool(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
+CChars* CChars::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
 {
 	if (bValue)
 	{
-		Append(szTrue);
+		return Append(szTrue);
 	}
 	else
 	{
-		Append(szFalse);
+		return Append(szFalse);
 	}
 }
 
@@ -845,9 +868,9 @@ void CChars::AppendBool(bool bValue, const char* szTrue, const char* szFalse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Insert(int iPos, char c)
+void CChars::Insert(size iPos, char c)
 {
-	if ((iPos < 0) || (iPos >= mcText.NumElements()))
+	if (iPos >= mcText.NumElements())
 	{
 		return;
 	}
@@ -862,10 +885,10 @@ void CChars::Insert(int iPos, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Insert(int iPos, const char* szString)
+void CChars::Insert(size iPos, const char* szString)
 {
 	char*	pcNew;
-	size_t	uiInsertLen;
+	size	uiInsertLen;
 
 	if (StrEmpty(szString))
 	{
@@ -886,10 +909,10 @@ void CChars::Insert(int iPos, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Insert(int iPos, CChars* pszString)
+void CChars::Insert(size iPos, CChars* pszString)
 {
 	char*	pcNew;
-	size_t uiInsertLen;
+	size uiInsertLen;
 
 	if (pszString == NULL || pszString->Empty())
 	{
@@ -933,15 +956,11 @@ char* CChars::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChars::Text(int iIndex)
+char* CChars::Text(size iIndex)
 {
 	if (iIndex < Length())
 	{
 		return mcText.Get(iIndex);
-	}
-	else if (iIndex < 0)
-	{
-		return mcText.Get(0);
 	}
 	else
 	{
@@ -968,11 +987,11 @@ bool CChars::Empty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendList(const char* szFirst, ...)
+CChars* CChars::AppendList(const char* szFirst, ...)
 {
 	va_list			vaMarker;
 	const char*		pc;
-	int				iCount;
+	size				iCount;
 
 	iCount = 0;
 	pc = szFirst;
@@ -985,6 +1004,8 @@ void CChars::AppendList(const char* szFirst, ...)
 		pc = va_arg(vaMarker, char*);
 	}
 	va_end(vaMarker);
+
+	return this;
 }
 
 
@@ -992,14 +1013,14 @@ void CChars::AppendList(const char* szFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChars::PrivateGrow(int iNumberOfCharacters)
+char* CChars::PrivateGrow(size iNumberOfCharacters)
 {
-	char* pszPosition;
-	int		iPosition;
+	char*	pszPosition;
+	size	iPosition;
 
 	if (mcText.IsEmpty())
 	{
-		if (iNumberOfCharacters > 0)
+		if (iNumberOfCharacters != 0)
 		{
 			mcText.AddNum(iNumberOfCharacters + 1);  //To include trailing zero.
 		}
@@ -1011,13 +1032,21 @@ char* CChars::PrivateGrow(int iNumberOfCharacters)
 	}
 	else
 	{
-		if (IsFakeEmpty())
+		if (iNumberOfCharacters != 0)
 		{
-			Unfake();
+			if (IsFakeEmpty())
+			{
+				Unfake();
+			}
+			iPosition = mcText.AddNum(iNumberOfCharacters);
+			pszPosition = (char*)RemapSinglePointer(mcText.GetData(), iPosition - 1);
+			return pszPosition;
 		}
-		iPosition = mcText.AddNum(iNumberOfCharacters);
-		pszPosition = (char*)RemapSinglePointer(mcText.GetData(), iPosition - 1);
-		return pszPosition;
+		else
+		{
+			SetEmpty();
+			return mcText.GetData();
+		}
 	}
 }
 
@@ -1026,38 +1055,52 @@ char* CChars::PrivateGrow(int iNumberOfCharacters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Append(char cPadCharacter, int iNumber)
+CChars* CChars::Append(char cPadCharacter, size iNumber)
 {
 	char*	pcPosition;
 
-	if (iNumber > 0)
+	if (iNumber != 0)
 	{
 		pcPosition = PrivateGrow(iNumber);
 		memset(pcPosition, cPadCharacter, iNumber);
 		pcPosition = mcText.Tail();
 		*pcPosition = '\0';
 	}
+
+	return this;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(const char* sz, char cPadCharacter, uint32 iWidth)
-{
-	size_t	uiLen;
 
-	if (!StrEmpty(sz))
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CChars::Append(char cPadCharacter, int iNumber)
+{
+	return Append(cPadCharacter, (uint32)iNumber);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::LeftAlign(const char* szString, char cPadCharacter, size iWidth)
+{
+	size	uiLen;
+
+	uiLen = strlen(szString);
+	if (uiLen != 0)
 	{
-		uiLen = strlen(sz);
+		uiLen = strlen(szString);
 		if (uiLen <= iWidth)
 		{
-			Append(sz);
+			Append(szString);
 			Append(cPadCharacter, iWidth - uiLen);
 		}
 		else
 		{
-			AppendSubString(sz, 0, iWidth);
+			AppendSubString(szString, 0, iWidth);
 		}
 	}
 }
@@ -1067,21 +1110,21 @@ void CChars::LeftAlign(const char* sz, char cPadCharacter, uint32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(const char* sz, char cPadCharacter, uint32 iWidth)
+void CChars::RightAlign(const char* szString, char cPadCharacter, size iWidth)
 {
-	size_t	uiLen;
+	size	uiLen;
 
-	if (!StrEmpty(sz))
+	uiLen = strlen(szString);
+	if (uiLen != 0)
 	{
-		uiLen = strlen(sz);
 		if (uiLen <= iWidth)
 		{
 			Append(cPadCharacter, iWidth - uiLen);
-			Append(sz);
+			Append(szString);
 		}
 		else
 		{
-			AppendSubString(sz, 0, iWidth);
+			AppendSubString(szString, 0, iWidth);
 		}
 	}
 }
@@ -1091,16 +1134,16 @@ void CChars::RightAlign(const char* sz, char cPadCharacter, uint32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(CChars sz, char cPadCharacter, uint32 iWidth)
+void CChars::LeftAlign(CChars szString, char cPadCharacter, size iWidth)
 {
-	if (sz.Length() <= (int)iWidth)
+	if (szString.Length() <= iWidth)
 	{
-		Append(sz);
-		Append(cPadCharacter, iWidth - sz.Length());
+		Append(szString);
+		Append(cPadCharacter, iWidth - szString.Length());
 	}
 	else
 	{
-		AppendSubString(sz, 0, iWidth);
+		AppendSubString(szString, 0, iWidth);
 	}
 }
 
@@ -1109,16 +1152,16 @@ void CChars::LeftAlign(CChars sz, char cPadCharacter, uint32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(CChars sz, char cPadCharacter, uint32 iWidth)
+void CChars::RightAlign(CChars szString, char cPadCharacter, size iWidth)
 {
-	if (sz.Length() <= (int)iWidth)
+	if (szString.Length() <= iWidth)
 	{
-		Append(cPadCharacter, iWidth - sz.Length());
-		Append(sz);
+		Append(cPadCharacter, iWidth - szString.Length());
+		Append(szString);
 	}
 	else
 	{
-		AppendSubString(sz, 0, iWidth);
+		AppendSubString(szString, 0, iWidth);
 	}
 }
 
@@ -1127,13 +1170,13 @@ void CChars::RightAlign(CChars sz, char cPadCharacter, uint32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(char cPadCharacter, uint32 iWidth)
+void CChars::RightAlign(char cPadCharacter, size iWidth)
 {
-	int		iLength;
+	size	iLength;
 	char*	pcDest;
-	int		iOldWidth;
+	size	iOldWidth;
 
-	if (Length() < (int)iWidth)
+	if (Length() < iWidth)
 	{
 		iLength = iWidth - Length();
 		iOldWidth = Length();
@@ -1150,16 +1193,18 @@ void CChars::RightAlign(char cPadCharacter, uint32 iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(const char* sz, int iLength)
+CChars* CChars::AppendSubString(const char* szString, size iLength)
 {
 	char*	pcPosition;
 
-	if ((sz) && (iLength > 0))
+	if ((szString) && (iLength != 0))
 	{
 		pcPosition = PrivateGrow(iLength);
-		memcpy(pcPosition, sz, iLength);
+		memcpy(pcPosition, szString, iLength);
 		(*mcText.Tail()) = '\0';
 	}
+
+	return this;
 }
 
 
@@ -1167,12 +1212,12 @@ void CChars::AppendSubString(const char* sz, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive)
+CChars* CChars::AppendSubString(CChars szString, size iStartInclusive, size iEndExclusive)
 {
 	const char* pcPosition;
 
-	pcPosition = (char*)RemapSinglePointer((void*)sz.Text(), iStartInclusive);
-	AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
+	pcPosition = (char*)RemapSinglePointer((void*)szString.Text(), iStartInclusive);
+	return AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
 }
 
 
@@ -1180,12 +1225,12 @@ void CChars::AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(const char* sz, int iStartInclusive, int iEndExclusive)
+CChars* CChars::AppendSubString(const char* szString, size iStartInclusive, size iEndExclusive)
 {
 	const char* pcPosition;
 
-	pcPosition = (char*)RemapSinglePointer((void*)sz, iStartInclusive);
-	AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
+	pcPosition = (char*)RemapSinglePointer((void*)szString, iStartInclusive);
+	return AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
 }
 
 
@@ -1193,9 +1238,9 @@ void CChars::AppendSubString(const char* sz, int iStartInclusive, int iEndExclus
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
+CChars* CChars::AppendSubString(const char* szStartInclusive, const char* szEndExclusive)
 {
-	AppendSubString(szStartInclusive, (int)(szEndExclusive-szStartInclusive));
+	return AppendSubString(szStartInclusive, (size)(szEndExclusive-szStartInclusive));
 }
 
 
@@ -1207,7 +1252,7 @@ void CChars::RemoveLastCharacter(void)
 {
 	char*	pcPosition;
 
-	if (Length() > 0)
+	if (Length() != 0)
 	{
 		mcText.RemoveTail();
 		if (mcText.NumElements() > 1)
@@ -1227,7 +1272,7 @@ void CChars::RemoveLastCharacter(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RemoveFromStart(int iNumChars)
+void CChars::RemoveFromStart(size iNumChars)
 {
 	Remove(0, iNumChars);
 }
@@ -1237,9 +1282,17 @@ void CChars::RemoveFromStart(int iNumChars)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RemoveFromEnd(int iNumChars)
+void CChars::RemoveFromEnd(size iNumChars)
 {
-	Remove(Length() - iNumChars, Length());
+	size iLength;
+
+	iLength = Length();
+	if (iNumChars >= iLength)
+	{
+		SetEmpty();
+	}
+
+	Remove(iLength - iNumChars, iLength);
 }
 
 
@@ -1247,9 +1300,9 @@ void CChars::RemoveFromEnd(int iNumChars)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Remove(int iStartInclusive, int iEndExclusive)
+void CChars::Remove(size iStartInclusive, size iEndExclusive)
 {
-	int	iLength;
+	size	iLength;
 
 	if (!Empty())
 	{
@@ -1268,14 +1321,14 @@ void CChars::Remove(int iStartInclusive, int iEndExclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RemoveEnd(int iIndex)
+void CChars::RemoveEnd(size iIndex)
 {
-	int	iToRemove;
+	size	iToRemove;
 
 	iToRemove = Length() - iIndex;
-	if (iToRemove > 0)
+	if (iToRemove != 0)
 	{
-		if (iIndex > 0)
+		if (iIndex != 0)
 		{
 			mcText.RemoveRange(iIndex, Length());
 		}
@@ -1291,9 +1344,9 @@ void CChars::RemoveEnd(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RemoveCharacter(int iPos)
+void CChars::RemoveCharacter(size iPos)
 {
-	if ((iPos < Length()) && (iPos >= 0))
+	if (iPos < Length())
 	{
 		mcText.RemoveAt(iPos, true);
 		CleanIfEmpty();
@@ -1307,16 +1360,16 @@ void CChars::RemoveCharacter(int iPos)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Split(CArrayChars* aszDest, char cSplitter)
 {
-	int		iPos;
+	size	iPos;
 	char*	pszPos;
-	int		iMax;
+	size	iMax;
 
 	pszPos = Text();
 	iMax = Length();
 	for (;;)
 	{
-		iPos = FindFirstByte((int8*)pszPos, cSplitter, iMax);
-		if (iPos != -1)
+		iPos = FindFirstByte((uint8*)pszPos, cSplitter, iMax);
+		if (iPos != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			aszDest->Add(pszPos, 0, iPos);
 			iPos++;
@@ -1364,7 +1417,7 @@ bool CChars::Equals(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::Equals(const char* szString, int iLen)
+bool CChars::Equals(const char* szString, size iLen)
 {
 	if (iLen == Length())
 	{
@@ -1464,21 +1517,35 @@ bool CChars::ContainsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Occurrences(const char* szString)
+size CChars::Occurrences(const char* szString)
 {
-	int		iCount;
-	int		iIndex;
-	int		iFindLen;
+	size	iCount;
+	size	iIndex;
+	size	iFindLen;
+
+	iFindLen = strlen(szString);
+	if (iFindLen == 0)
+	{
+		return 0;
+	}
+
+	iIndex = Find(0, szString);
+	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return 0;
+	}
 
 	iCount = 0;
-	iIndex = Find(0, szString);
-	iFindLen = (int)strlen(szString);
-	while (iIndex != -1)
+	for (;;)
 	{
 		iCount++;
-		iIndex = Find(iIndex+iFindLen, szString);
+		iIndex += iFindLen;
+		iIndex = Find(iIndex, szString);
+		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
+		{
+			return iCount;
+		}
 	}
-	return iCount;
 }
 
 
@@ -1518,12 +1585,20 @@ bool CChars::StartsWithIgnoreCase(const char* szString)
 //////////////////////////////////////////////////////////////////////////
 bool CChars::EndsWith(const char* szString)
 {
+	size	uiLen;
+
 	if (szString == NULL)
 	{
 		return false;
 	}
 
-	return SubStringEquals(Length() - (int)strlen(szString), szString);
+	uiLen = strlen(szString);
+	if (uiLen > Length())
+	{ 
+		return false;
+	}
+
+	return SubStringEquals(Length() - uiLen, szString);
 }
 
 
@@ -1533,10 +1608,10 @@ bool CChars::EndsWith(const char* szString)
 //////////////////////////////////////////////////////////////////////////
 bool CChars::EndsWith(char c)
 {
-	int		iLength;
+	size		iLength;
 
 	iLength = Length();
-	if (iLength > 0)
+	if (iLength != 0)
 	{
 		if (Text()[iLength - 1] == c)
 		{
@@ -1546,18 +1621,27 @@ bool CChars::EndsWith(char c)
 	return false;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 bool CChars::EndsWithIgnoreCase(const char* szString)
 {
+	size	uiLen;
+
 	if (szString == NULL)
 	{
 		return false;
 	}
 
-	return SubStringEqualsIgnoreCase(Length() - (int)strlen(szString), szString);
+	uiLen = strlen(szString);
+	if (uiLen > Length())
+	{
+		return false;
+	}
+
+	return SubStringEqualsIgnoreCase(Length() - strlen(szString), szString);
 }
 
 
@@ -1565,17 +1649,12 @@ bool CChars::EndsWithIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::SubStringEquals(int iStart, const char* szString)
+bool CChars::SubStringEquals(size iStart, const char* szString)
 {
-	int	i;
-	int	j;
-	int	iLen;
-	int iSubLen;
-
-	if (iStart < 0)
-	{
-		return false;
-	}
+	size	i;
+	size	j;
+	size	iLen;
+	size	iSubLen;
 
 	iLen = Length();
 	if (iLen == 0)
@@ -1618,18 +1697,13 @@ bool CChars::SubStringEquals(int iStart, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
+bool CChars::SubStringEqualsIgnoreCase(size iStart, const char* szString)
 {
-	int	i;
-	int	j;
-	int	iLen;
-	int             c1;
-	int             c2;
-
-	if (iStart < 0)
-	{
-		return false;
-	}
+	size	i;
+	size	j;
+	size	iLen;
+	size    c1;
+	size    c2;
 
 	iLen = Length();
 	for (i = iStart, j = 0; i < iLen; i++, j++)
@@ -1656,11 +1730,11 @@ bool CChars::SubStringEqualsIgnoreCase(int iStart, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindFromEnd(const char* szString)
+size CChars::FindFromEnd(const char* szString)
 {
-	int iOtherLen;
+	size iOtherLen;
 
-	iOtherLen = (int)strlen(szString);
+	iOtherLen = strlen(szString);
 	return FindFromEnd(Length() - iOtherLen, szString);
 }
 
@@ -1669,23 +1743,26 @@ int CChars::FindFromEnd(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindFromEnd(int iIndex, const char* szString)
+size CChars::FindFromEnd(size iIndex, const char* szString)
 {
-	int	i;
+	size	i;
 
-	if ((iIndex < 0) || (iIndex > Length()))
+	if (iIndex > Length())
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	for (i = iIndex; i >= 0; i--)
+	i = iIndex + 1;
+	do
 	{
+		i--;
 		if (SubStringEquals(i, szString))
 		{
 			return i;
 		}
 	}
-	return -1;
+	while (i != 0);
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1693,8 +1770,13 @@ int CChars::FindFromEnd(int iIndex, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindFromEnd(char c)
+size CChars::FindFromEnd(char c)
 {
+	if (mcText.IsEmpty() || IsFakeEmpty())
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+	
 	return FindFromEnd(Length() - 1, c);
 
 }
@@ -1704,18 +1786,21 @@ int CChars::FindFromEnd(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindFromEnd(int iIndex, char c)
+size CChars::FindFromEnd(size iIndex, char c)
 {
-	int	i;
+	size	i;
 
-	for (i = iIndex; i >= 0; i--)
+	i = iIndex + 1;
+	do
 	{
+		i--;
 		if (mcText.GetValue(i) == c)
 		{
 			return i;
 		}
 	}
-	return -1;
+	while (i != 0);
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1723,7 +1808,7 @@ int CChars::FindFromEnd(int iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Find(const char* szString)
+size CChars::Find(const char* szString)
 {
 	return Find(0, szString);
 }
@@ -1733,21 +1818,34 @@ int CChars::Find(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Find(int iIndex, const char* szString)
+size CChars::Find(size iIndex, const char* szString)
 {
-	int iOtherLen;
-	int	i;
+	size	iOtherLen;
+	size	i;
+	size	iLen;
+	size	iDiff;
 
-	iOtherLen = (int)strlen(szString);
+	iLen = Length();
+	if (iIndex > iLen)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
 
-	for (i = iIndex; i <= Length() - iOtherLen; i++)
+	iOtherLen = strlen(szString);
+	if (iOtherLen > iLen - iIndex)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+
+	iDiff = iLen - iOtherLen;
+	for (i = iIndex; i <= iDiff; i++)
 	{
 		if (SubStringEquals(i, szString))
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1755,23 +1853,20 @@ int CChars::Find(int iIndex, const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Find(int iIndex, char c)
+size CChars::Find(size iIndex, char c)
 {
-	int	i;
+	size	i;
+	size	iLen;
 
-	if (iIndex < 0)
-	{
-		iIndex = 0;
-	}
-
-	for (i = iIndex; i < Length(); i++)
+	iLen = Length();
+	for (i = iIndex; i < iLen; i++)
 	{
 		if (mcText.GetValue(i) == c)
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1779,7 +1874,7 @@ int CChars::Find(int iIndex, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Find(char c)
+size CChars::Find(char c)
 {
 	return Find(0, c);
 }
@@ -1789,17 +1884,14 @@ int CChars::Find(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindDigit(int iIndex)
+size CChars::FindDigit(size iIndex)
 {
-	int		i;
+	size	i;
 	char	c;
+	size	iLen;
 
-	if (iIndex < 0)
-	{
-		iIndex = 0;
-	}
-
-	for (i = iIndex; i < Length(); i++)
+	iLen = Length();
+	for (i = iIndex; i < iLen; i++)
 	{
 		c = *mcText.Get(i);
 		if ((c >= '0') && (c <= '9'))
@@ -1807,7 +1899,7 @@ int CChars::FindDigit(int iIndex)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -1815,7 +1907,7 @@ int CChars::FindDigit(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CChars::GetChar(int iIndex)
+char CChars::GetChar(size iIndex)
 {
 	char*	pc;
 
@@ -1834,25 +1926,30 @@ char CChars::GetChar(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CChars szOldString)
 {
-	int		i;
-	int		j;
+	size	i;
+	size	j;
 	CChars	cTemp;
 	char	cNew;
 	char	cOld;
+	size	iLen;
+	size	iOldLen;
+
+	iLen = Length();
 
 	//This will find the index of each character in this string in the old string.
 
 	paiOldToNewIndices->SetUsedElements(szOldString.Length());
 	paiOldToNewIndices->SetArrayValues(-1);
 
-	paiNewToOldIndices->SetUsedElements(Length());
+	paiNewToOldIndices->SetUsedElements(iLen);
 	paiNewToOldIndices->SetArrayValues(-1);
 
 	cTemp.Init(szOldString);
-	for (j = 0; j < Length(); j++)
+	iOldLen = cTemp.Length();
+	for (j = 0; j < iLen; j++)
 	{
 		cNew = GetChar(j);
-		for (i = 0; i < cTemp.Length(); i++)
+		for (i = 0; i < iOldLen; i++)
 		{
 			cOld = cTemp.GetChar(i);
 			if (cOld == cNew)
@@ -1872,7 +1969,7 @@ void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::IsWhiteSpace(int iPos, bool bIncludeNewLines)
+bool CChars::IsWhiteSpace(size iPos, bool bIncludeNewLines)
 {
 	char	c;
 
@@ -1887,8 +1984,8 @@ bool CChars::IsWhiteSpace(int iPos, bool bIncludeNewLines)
 //////////////////////////////////////////////////////////////////////////
 bool CChars::IsWhiteSpace(void)
 {
-	int		i;
-	int		iLen;
+	size		i;
+	size		iLen;
 
 	iLen = Length();
 	for (i = 0; i < iLen; i++)
@@ -1906,9 +2003,9 @@ bool CChars::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::SetLength(int iLength)
+void CChars::SetLength(size iLength)
 {
-	if (iLength > 0)
+	if (iLength != 0)
 	{
 		UnfakeIfFakeEmpty();
 
@@ -1927,10 +2024,10 @@ void CChars::SetLength(int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
+size CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
 {
-	int		iLength;
-	int		iStart;
+	size	iLength;
+	size	iStart;
 
 	iLength = Length();
 	for (iStart = 0; iStart < iLength; iStart++)
@@ -1948,20 +2045,28 @@ int CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
+size CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
 {
-	int		iLength;
-	int		iEnd;
+	size	iLength;
+	size	iEnd;
 
 	iLength = Length();
-	for (iEnd = iLength-1; iEnd >= 0; iEnd--)
+	if (iLength != 0)
 	{
-		if (!IsWhiteSpace(iEnd, bIncludeNewLines))
+		iEnd = iLength;
+		do
 		{
-			break;
+			iEnd--;
+			if (!IsWhiteSpace(iEnd, bIncludeNewLines))
+			{
+				break;
+			}
 		}
+		while (iEnd != 0);
+
+		return iEnd;
 	}
-	return iEnd;
+	return 0;
 }
 
 
@@ -1969,11 +2074,11 @@ int CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::StripWhiteSpace(bool bIncludeNewLines)
+size CChars::StripWhiteSpace(bool bIncludeNewLines)
 {
-	int		iLength;
-	int		iStart;
-	int		iEnd;
+	size	iLength;
+	size	iStart;
+	size	iEnd;
 
 	iStart = FindEndOfLeadingWhiteSpace(bIncludeNewLines);
 	iEnd = FindStartOfTrailingWhiteSpace(bIncludeNewLines);
@@ -2031,15 +2136,16 @@ int CChars::CompareIgnoreCase(const char* szOther)
 	return StringInsensitiveCompare(Text(), szOther);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Replace(char cFind, char cReplace)
+size CChars::Replace(char cFind, char cReplace)
 {
-	int		i;
-	int		iLength;
-	int		iCount;
+	size	i;
+	size	iLength;
+	size	iCount;
 
 	iLength = Length();
 	iCount = 0;
@@ -2059,18 +2165,17 @@ int CChars::Replace(char cFind, char cReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Replace(const char* szFind, const char* szReplace)
+size CChars::Replace(const char* szFind, const char* szReplace)
 {
-	int		iReplaceLen;
-	int		iFindLen;
-	int		iDifference;
+	size	iReplaceLen;
+	size	iFindLen;
 
 	if (szFind == NULL)
 	{
 		return 0;
 	}
 
-	iFindLen = (int)strlen(szFind);
+	iFindLen = strlen(szFind);
 	if (iFindLen == 0)
 	{
 		return 0;
@@ -2082,22 +2187,20 @@ int CChars::Replace(const char* szFind, const char* szReplace)
 	}
 	else
 	{
-		iReplaceLen = (int)strlen(szReplace);
+		iReplaceLen = strlen(szReplace);
 	}
 
-	iDifference = iReplaceLen-iFindLen;
-
-	if (iDifference > 0)
+	if (iReplaceLen > iFindLen)
 	{
-		return ReplaceWithLonger(szFind, szReplace, iFindLen, iDifference);
+		return ReplaceWithLonger(szFind, szReplace, iFindLen, iReplaceLen - iFindLen);
 	}
-	else if (iDifference < 0)
+	else if (iFindLen > iReplaceLen)
 	{
-		return ReplaceWithShorter(szFind, szReplace, iReplaceLen, iFindLen, iDifference);
+		return ReplaceWithShorter(szFind, szReplace, iReplaceLen, iFindLen, iFindLen - iReplaceLen);
 	}
 	else
 	{
-		return ReplaceWithEqualLength(szFind, szReplace, iFindLen, iDifference);
+		return ReplaceWithEqualLength(szFind, szReplace, iFindLen);
 	}
 }
 
@@ -2106,18 +2209,18 @@ int CChars::Replace(const char* szFind, const char* szReplace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::ReplaceWithEqualLength(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
+size CChars::ReplaceWithEqualLength(const char* szFind, const char* szReplace, size iFindLen)
 {
-	int		iCount;
-	int		iIndex;
+	size		iCount;
+	size		iIndex;
 
 	iCount = 0;
 	iIndex = Find(0, szFind);
-	while (iIndex != -1)
+	while (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		Overwrite(iIndex, szReplace);
 		iCount++;
-		iIndex = Find(iIndex+iFindLen, szFind);
+		iIndex = Find(iIndex + iFindLen, szFind);
 	}
 	return iCount;}
 
@@ -2126,28 +2229,29 @@ int CChars::ReplaceWithEqualLength(const char* szFind, const char* szReplace, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, int iReplaceLen, int iFindLen, int iDifference)
+size CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, size iReplaceLen, size iFindLen, size iDifference)
 {
-	int		iCount;
-	int		iIndex;
-	int		iTotalDifference;
-	int		iOldIndex;
-	int		iDestPos;
-	int		iSize;
-	int		iEnd;
+	size		iCount;
+	size		iIndex;
+	size		iTotalDifference;
+	size		iOldIndex;
+	size		iDestPos;
+	size		iSize;
+	size		iEnd;
 
-	//Remember that iDifference is NEGATIVE!
+	//Remember that iDifference is Positive!
 	iCount = 0;
 	iIndex = Find(0, szFind);
-	if (iIndex == -1)
+	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return 0;
 	}
 
 	iOldIndex = 0;
+	iDestPos = 0;  // iDestPos will be correctly initialised after iCount loops once
 	for (;;)
 	{
-		iSize = iIndex - iOldIndex + iDifference;
+		iSize = iIndex - iOldIndex - iDifference;
 
 		if (iReplaceLen != 0)
 		{
@@ -2155,7 +2259,7 @@ int CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, int iR
 			{
 				memcpy(mcText.Get(iDestPos), mcText.Get(iOldIndex + iFindLen), iSize - 1);
 			}
-			Overwrite(iIndex + (iCount * iDifference), szReplace);
+			Overwrite(iIndex - (iCount * iDifference), szReplace);
 		}
 		else
 		{
@@ -2166,13 +2270,13 @@ int CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, int iR
 		}
 		iCount++;
 		iOldIndex = iIndex;
-		iDestPos = iOldIndex + iReplaceLen + (iDifference * (iCount-1));
+		iDestPos = iOldIndex + iReplaceLen - (iDifference * (iCount - 1));
 		iIndex = Find(iIndex + iFindLen, szFind);
-		if (iIndex == -1)
+		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			iTotalDifference = iDifference * iCount;
-			iEnd = Length() + iTotalDifference;
-			iSize = Length() - iOldIndex + iDifference;
+			iEnd = Length() - iTotalDifference;
+			iSize = Length() - iOldIndex - iDifference;
 			if (iEnd != iDestPos)
 			{
 				if (iCount != 0)
@@ -2183,7 +2287,8 @@ int CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, int iR
 			break;
 		}
 	}
-	mcText.AddNum(iTotalDifference);
+
+	mcText.RemoveNum(iTotalDifference);
 	(*mcText.Tail()) = '\0';
 	return iCount;
 }
@@ -2193,13 +2298,13 @@ int CChars::ReplaceWithShorter(const char* szFind, const char* szReplace, int iR
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::ReplaceWithLonger(const char* szFind, const char* szReplace, int iFindLen, int iDifference)
+size CChars::ReplaceWithLonger(const char* szFind, const char* szReplace, size iFindLen, size iDifference)
 {
-	int		iCount;
-	int		iIndex;
-	int		i;
-	int		iTotalDifference;
-	int		iOldIndex;
+	size		iCount;
+	size		iIndex;
+	size		i;
+	size		iTotalDifference;
+	size		iOldIndex;
 
 	iCount = Occurrences(szFind);
 	if (iCount == 0)
@@ -2212,14 +2317,18 @@ int CChars::ReplaceWithLonger(const char* szFind, const char* szReplace, int iFi
 	(*mcText.Tail()) = '\0';
 
 	iIndex = Length() - (iFindLen + iTotalDifference);
-	for (i = iCount-1; i >= 0; i--)
+	i = iCount;
+	do
 	{
+		i--;
 		iOldIndex = iIndex;
 		iIndex = FindFromEnd(iIndex, szFind);
-		memcpy(mcText.Get(iIndex + iFindLen + (iDifference * (i+1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
+		memcpy(mcText.Get(iIndex + iFindLen + (iDifference * (i + 1))), mcText.Get(iIndex + iFindLen), iOldIndex - iIndex);
 		Overwrite(iIndex + (iDifference * i), szReplace);
 		iIndex -= iFindLen;
 	}
+	while (i != 0);
+
 	return iCount;
 }
 
@@ -2228,11 +2337,16 @@ int CChars::ReplaceWithLonger(const char* szFind, const char* szReplace, int iFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Overwrite(int iIndex, const char* szReplace)
+void CChars::Overwrite(size iIndex, const char* szReplace)
 {
-	int		i;
-	int		j;
-	int		iLen;
+	size		i;
+	size		j;
+	size		iLen;
+
+	if (szReplace == NULL)
+	{
+		return;
+	}
 
 	if (StrEmpty(szReplace))
 	{
@@ -2281,10 +2395,10 @@ void CChars::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::AppendData(const char* szData, size_t iMaxLength)
+CChars* CChars::AppendData(const char* szData, size iMaxLength)
 {
-	size_t		i;
-	size_t		iLength;
+	size	i;
+	size	iLength;
 
 	iLength = iMaxLength;
 	for (i = 0; i < iMaxLength; i++)
@@ -2304,10 +2418,10 @@ CChars* CChars::AppendData(const char* szData, size_t iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLength)
+CChars* CChars::AppendData(const char* szData, size iDataLength, size iMaxLength)
 {
-	int		i;
-	int		iLength;
+	size	i;
+	size	iLength;
 	uint8	c;
 	bool	bLastReadable;
 	
@@ -2331,7 +2445,7 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 		c = szData[i];
 		if (c == 0)
 		{
-			if ((bLastReadable) && (i > 0))
+			if ((bLastReadable) && (i != 0))
 			{
 				Append("\\0");
 			}
@@ -2383,13 +2497,13 @@ CChars* CChars::AppendData(const char* szData, size_t iDataLength, size_t iMaxLe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::AppendData2(const char* szData, size_t iDataLength)
+bool CChars::AppendData2(const char* szData, size iDataLength)
 {
-	size_t	i;
-	int		iPrintable;
+	size	i;
+	size	iPrintable;
 	uint8	c;
 	float	fPrintable;
-	CChars	sz;
+	CChars	szString;
 
 	if ((szData == NULL) || (iDataLength == 0))
 	{
@@ -2408,24 +2522,24 @@ bool CChars::AppendData2(const char* szData, size_t iDataLength)
 	{
 		Append("0x");
 
-		sz.Init();
+		szString.Init();
 
 		for (i = 0; i < iDataLength; i++)
 		{
 			c = szData[i];
 
-			sz.Clear();
-			sz.Append((int)c, 16);
-			sz.RightAlign('0', 2);
+			szString.Clear();
+			szString.Append((int32)c, (uint16)16);
+			szString.RightAlign('0', 2);
 
-			Append(sz);
+			Append(szString);
 			if (i != iDataLength - 1)
 			{
 				Append(' ');
 			}
 		}
 
-		sz.Kill();
+		szString.Kill();
 	}
 	return true;
 }
@@ -2435,10 +2549,10 @@ bool CChars::AppendData2(const char* szData, size_t iDataLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::AppendPointer(void* pv)
+CChars* CChars::AppendPointer(void* pv)
 {
 	Append("0x");
-	AppendHexHiLo(&pv, sizeof(void*));
+	return AppendHexHiLo(&pv, sizeof(void*));
 }
 
 
@@ -2465,7 +2579,7 @@ bool CChars::AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::CountNewLines(void)
+size CChars::CountNewLines(void)
 {
 	return ::CountNewLines(mcText.GetData(), mcText.NumElements());
 }
@@ -2475,14 +2589,16 @@ int CChars::CountNewLines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChars::Count(char c)
+size CChars::Count(char c)
 {
-	int		i;
+	size	i;
 	char	cAt;
-	int		iCount;
+	size	iCount;
+	size	iLen;
 
+	iLen = Length();
 	iCount = 0;
-	for (i = 0; i < Length(); i++)
+	for (i = 0; i < iLen; i++)
 	{
 		cAt = GetChar(i);
 		if (cAt == c)
@@ -2520,12 +2636,12 @@ void CChars::UpperCase(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::PassifyNewlines(void)
 {
-	int	iNewLen;
+	size	iNewLen;
 
 	iNewLen = ::PassifyNewlines(mcText.GetData());
-	if (iNewLen != -1)
+	if (iNewLen != SIZE_MAX)
 	{
-		mcText.Resize(iNewLen+1);
+		mcText.Resize(iNewLen + 1);
 	}
 }
 
@@ -2534,11 +2650,11 @@ void CChars::PassifyNewlines(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChars::FindLineContaining(char* szPosition, int* piLineNumber)
+char* CChars::FindLineContaining(char* szPosition, size* piLineNumber)
 {
-	int		i;
-	int		iNumLineFeeds;
-	int		iLen;
+	size	i;
+	size	iNumLineFeeds;
+	size	iLen;
 	char*	szString;
 	char*	szStartOfLine;
 	char*	szPrevStartOfLine;
@@ -2580,7 +2696,7 @@ char* CChars::FindLineContaining(char* szPosition, int* piLineNumber)
 //////////////////////////////////////////////////////////////////////////
 void CChars::MakeCPlusPlus(void)
 {
-	int		iIndex;
+	size	iIndex;
 	bool	bStartOfLine;
 	char	c;
 
@@ -2646,7 +2762,7 @@ bool CChars::WriteString(CFileWriter* pcWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CChars::ReadString(CFileReader* pcReader)
 {
-	bool bResult;
+	bool	bResult;
 
 	bResult = mcText.Read(pcReader);
 	if (bResult)
@@ -2667,7 +2783,7 @@ bool CChars::ReadString(CFileReader* pcReader)
 //////////////////////////////////////////////////////////////////////////
 bool CChars::ReadChars(CFileReader* pcReader)
 {
-	int	iLength;
+	uint32	iLength;
 
 	if (!pcReader->ReadStringLength(&iLength))
 	{
@@ -2679,9 +2795,9 @@ bool CChars::ReadChars(CFileReader* pcReader)
 		Init();
 		return true;
 	}
-	else if (iLength > 0)
+	else if (iLength != 0)
 	{
-		Init('@', iLength-1);
+		Init('@', iLength - 1);
 		if (!pcReader->ReadData(Text(), iLength)) 
 		{ 
 			return false; 
@@ -2759,11 +2875,11 @@ void CChars::UnfakeIfFakeEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChars::CopyIntoBuffer(char* szDest, int iDestLength)
+char* CChars::CopyIntoBuffer(char* szDest, size iDestLength)
 {
-	int		iLength;
+	size		iLength;
 
-	if (iDestLength > 0)
+	if (iDestLength != 0)
 	{
 		iLength = Length();
 		if (iLength < iDestLength)
@@ -2795,27 +2911,30 @@ char* CChars::CopyIntoBuffer(char* szDest, int iDestLength)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Dump(void)
 {
-	CChars	sz;
-	int		i;
+	CChars	szString;
+	size	i;
+	size	iLen;
 
-	if (Length() <= 10000)
+	iLen = Length();
+	if (iLen <= 10000)
 	{
-		if (Length() > 0)
+		if (iLen != 0)
 		{
 			EngineOutput(Text());
 		}
 		return;
 	}
 
-	for (i = 0; i < Length()-10000; i+=10000)
+	for (i = 0; i < iLen - 10000; i += 10000)
 	{
-		sz.Init(Text(), i, i+10000);
-		EngineOutput(sz.Text());
-		sz.Kill();
+		szString.Init(Text(), i, i + 10000);
+		EngineOutput(szString.Text());
+		szString.Kill();
 	}
-	sz.Init(Text(), i, Length());
-	EngineOutput(sz.Text());
-	sz.Kill();
+
+	szString.Init(Text(), i, iLen);
+	EngineOutput(szString.Text());
+	szString.Kill();
 }
 
 
@@ -2823,11 +2942,11 @@ void CChars::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::Dump(const char* sz)
+void CChars::Dump(const char* szString)
 {
 	CChars	c;
 
-	c.Init(sz);
+	c.Init(szString);
 	c.Dump();
 	c.Kill();
 }

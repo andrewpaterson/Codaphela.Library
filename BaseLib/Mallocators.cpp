@@ -59,7 +59,7 @@ bool CMallocators::Add(CMallocator* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 {
-	int					iLength;
+	uint32				iLength;
 	char				szShortName[1024];
 	CMallocator**		ppcMallocator;
 	CLocalMallocator*	pcLocalMallocator;

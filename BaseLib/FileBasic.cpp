@@ -108,7 +108,7 @@ bool CFileBasic::Close()
 //  Description  : writes a buffer from memory to a file
 // 
 //////////////////////////////////////////////////////////////////////////
-filePos CFileBasic::Write(const void* pvSource, filePos iSize, filePos iCount)
+size CFileBasic::Write(const void* pvSource, size iSize, size iCount)
 {
 	return mpcFile->Write(pvSource, iSize, iCount);
 }
@@ -127,7 +127,7 @@ filePos CFileBasic::Write(const void* pvSource, filePos iSize, filePos iCount)
 //  Description  : Reads from file into a memory buffer
 // 
 //////////////////////////////////////////////////////////////////////////
-filePos CFileBasic::Read(void* pvDest, filePos iSize, filePos iCount)
+size CFileBasic::Read(void* pvDest, size iSize, size iCount)
 {
 	return mpcFile->Read(pvDest, iSize, iCount);
 }

@@ -7,16 +7,16 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint16 uiDataSize, int iClearValue, uint8 uiIndexInParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiFirstIndex, size uiLastIndex, size uiDataSize, size iClearValue, size uiIndexInParent)
 {
-	size_t tSize;
+	size	uiSize;
 
 	muiMagic = INDEX_TREE_NODE_MAGIC;
 	mpcIndexTree = pcIndexTree;
-	muiFirstIndex = uiFirstIndex;
-	muiLastIndex = uiLastIndex;
+	muiFirstIndex = (uint8)uiFirstIndex;
+	muiLastIndex = (uint8)uiLastIndex;
 	msFlags = 0;
-	muiIndexInParent = uiIndexInParent;
+	muiIndexInParent = (uint8)uiIndexInParent;
 	mpcParent = pcParent;
 
 	if (uiDataSize != 0)
@@ -24,8 +24,8 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uin
 		SetData(true);
 		GetNodeData()->Init(uiDataSize);
 	}
-	tSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
-	memset(GetNodesMemory(), iClearValue, tSize);
+	uiSize = (uiLastIndex - uiFirstIndex + 1) * SizeofNodePtr();
+	memset(GetNodesMemory(), iClearValue, uiSize);
 }
 
 
@@ -33,7 +33,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uint8 uiIndexInParent)
+void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, size uiIndexInParent)
 {
 	muiMagic = INDEX_TREE_NODE_MAGIC;
 	mpcIndexTree = pcIndexTree;
@@ -41,7 +41,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uin
 	muiFirstIndex = 0;
 	muiLastIndex = 0;
 	msFlags = 0;
-	muiIndexInParent = uiIndexInParent;
+	muiIndexInParent = (uint8)uiIndexInParent;
 	SetNodesEmpty(true);
 }
 
@@ -50,7 +50,7 @@ void CIndexTreeNode::Init(CIndexTree* pcIndexTree, CIndexTreeNode* pcParent, uin
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CIndexTreeNode::GetDataSize(void)
+size CIndexTreeNode::GetDataSize(void)
 {
 	if (!HasData())
 	{
@@ -101,7 +101,7 @@ CIndexTreeDataNode* CIndexTreeNode::GetNodeData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::SizeofNode(void)
+size CIndexTreeNode::SizeofNode(void)
 {
 	if (HasData())
 	{
@@ -118,7 +118,7 @@ size_t CIndexTreeNode::SizeofNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::SizeofNodeAndData(void)
+size CIndexTreeNode::SizeofNodeAndData(void)
 {
 	if (HasData())
 	{
@@ -135,7 +135,7 @@ size_t CIndexTreeNode::SizeofNodeAndData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::SizeofNodePtr(void)
+size CIndexTreeNode::SizeofNodePtr(void)
 {
 	return mpcIndexTree->SizeofNodePtr();
 }
@@ -172,7 +172,7 @@ CIndexTreeNode* CIndexTreeNode::GetParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNode::GetIndexInParent(void)
+size CIndexTreeNode::GetIndexInParent(void)
 {
 	return muiIndexInParent;
 }
@@ -182,7 +182,7 @@ uint8 CIndexTreeNode::GetIndexInParent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNode::GetFlags(void)
+size CIndexTreeNode::GetFlags(void)
 {
 	return msFlags;
 }
@@ -192,7 +192,7 @@ uint8 CIndexTreeNode::GetFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNode::GetTransientFlags(void)
+size CIndexTreeNode::GetTransientFlags(void)
 {
 	return msFlags & INDEX_TREE_NODE_TRANSIENT_FLAGS;
 }
@@ -212,21 +212,21 @@ CIndexTree* CIndexTreeNode::GetIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(uint8 uiIndex)
+size CIndexTreeNode::CalculateRequiredNodeSizeForIndex(size uiIndex)
 {
-	size_t	tSize;
-	int		iRequiredIndices;
+	size	uiSize;
+	size	iRequiredIndices;
 
 	if (HasNodes())
 	{
 		iRequiredIndices = GetAdditionalIndexes(uiIndex);
-		tSize = SizeofNodeAndData() + iRequiredIndices * SizeofNodePtr();
-		return tSize;
+		uiSize = SizeofNodeAndData() + iRequiredIndices * SizeofNodePtr();
+		return uiSize;
 	}
 	else
 	{
-		tSize = mpcIndexTree->CalculateNodeSize(1, GetDataSize());
-		return tSize;
+		uiSize = mpcIndexTree->CalculateNodeSize(1, GetDataSize());
+		return uiSize;
 	}
 }
 
@@ -235,15 +235,15 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForIndex(uint8 uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(uint16 uiDataSize)
+size CIndexTreeNode::CalculateRequiredNodeSizeForData(size uiDataSize)
 {
-	size_t	tSize;
-	int		iExistingIndices;
+	size	uiSize;
+	size	iExistingIndices;
 
 	iExistingIndices = NumIndexes();
-	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, uiDataSize);
+	uiSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, uiDataSize);
 
-	return tSize;
+	return uiSize;
 }
 
 
@@ -251,24 +251,23 @@ size_t CIndexTreeNode::CalculateRequiredNodeSizeForData(uint16 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
+size CIndexTreeNode::CalculateRequiredNodeSizeForCurrent(void)
 {
-	size_t	tSize;
-	int		iExistingIndices;
+	size	uiSize;
+	size	iExistingIndices;
 
 	iExistingIndices = NumIndexes();
-	tSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, GetDataSize());
+	uiSize = mpcIndexTree->CalculateNodeSize(iExistingIndices, GetDataSize());
 
-	return tSize;
+	return uiSize;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::Contain(uint8 uiIndex, int iClearValue)
+void CIndexTreeNode::Contain(size uiIndex, size iClearValue)
 {
 	//Contain assumes that the memory this node resides in has already been sized large enough.
 	if (!HasNodes())
@@ -293,16 +292,16 @@ void CIndexTreeNode::Contain(uint8 uiIndex, int iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearOnlyNode(uint8 uiIndex, int iClearValue)
+void CIndexTreeNode::ClearOnlyNode(size uiIndex, size iClearValue)
 {
-	size_t	tSize;
+	size	uiSize;
 	void*	pvNodes;
 
 	pvNodes = GetNodesMemory();
-	muiFirstIndex = uiIndex;
-	muiLastIndex = uiIndex;
-	tSize = SizeofNodePtr();
-	memset(pvNodes, iClearValue, tSize);
+	muiFirstIndex = (uint8)uiIndex;
+	muiLastIndex = (uint8)uiIndex;
+	uiSize = SizeofNodePtr();
+	memset(pvNodes, iClearValue, uiSize);
 }
 
 
@@ -310,20 +309,20 @@ void CIndexTreeNode::ClearOnlyNode(uint8 uiIndex, int iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::MoveNodesLeft(uint8 uiNextFirstIndex)
+void CIndexTreeNode::MoveNodesLeft(size uiNextFirstIndex)
 {
-	size_t	tSize;
+	size	uiSize;
 	void*	pvSource;
 	void*	pvNodes;
-	int		iNewNumIndexes;
+	size	iNewNumIndexes;
 
 	pvNodes = GetNodesMemory();
 
 	iNewNumIndexes = NumIndexes(uiNextFirstIndex, muiLastIndex);
-	tSize = (uiNextFirstIndex - muiFirstIndex) * SizeofNodePtr();
-	pvSource = (CIndexTreeNode**)RemapSinglePointer(pvNodes, tSize);
+	uiSize = (uiNextFirstIndex - muiFirstIndex) * SizeofNodePtr();
+	pvSource = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiSize);
 	memmove(pvNodes, pvSource, iNewNumIndexes * SizeofNodePtr());
-	muiFirstIndex = uiNextFirstIndex;
+	muiFirstIndex = (uint8)uiNextFirstIndex;
 }
 
 
@@ -331,21 +330,21 @@ void CIndexTreeNode::MoveNodesLeft(uint8 uiNextFirstIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::MoveNodesRight(uint8 uiNewFirstIndex, int iClearValue)
+void CIndexTreeNode::MoveNodesRight(size uiNewFirstIndex, size iClearValue)
 {
-	size_t		tSize;
+	size		uiSize;
 	void*		pvNodes;
 	void*		pvDest;
-	int			uiOldNumIndexes;
+	size		uiOldNumIndexes;
 
 	pvNodes = GetNodesMemory();
 	uiOldNumIndexes = NumIndexes();
 
-	tSize = (muiFirstIndex - uiNewFirstIndex) * SizeofNodePtr();
-	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, tSize);
+	uiSize = (muiFirstIndex - uiNewFirstIndex) * SizeofNodePtr();
+	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiSize);
 	memmove(pvDest, pvNodes, uiOldNumIndexes * SizeofNodePtr());
-	memset(pvNodes, iClearValue, tSize);
-	muiFirstIndex = uiNewFirstIndex;
+	memset(pvNodes, iClearValue, uiSize);
+	muiFirstIndex = (uint8)uiNewFirstIndex;
 }
 
 
@@ -353,20 +352,20 @@ void CIndexTreeNode::MoveNodesRight(uint8 uiNewFirstIndex, int iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearLastNodes(uint8 uiNewLastIndex, int iClearValue)
+void CIndexTreeNode::ClearLastNodes(size uiNewLastIndex, size iClearValue)
 {
-	int			uiOldNumIndexes;
+	size		uiOldNumIndexes;
 	void*		pvDest;
-	size_t		tSize;
+	size		uiSize;
 	void*		pvNodes;
 
 	pvNodes = GetNodesMemory();
 	uiOldNumIndexes = NumIndexes();
 
-	tSize = (uiNewLastIndex - muiLastIndex) * SizeofNodePtr();
+	uiSize = (uiNewLastIndex - muiLastIndex) * SizeofNodePtr();
 	pvDest = (CIndexTreeNode**)RemapSinglePointer(pvNodes, uiOldNumIndexes * SizeofNodePtr());
-	memset(pvDest, iClearValue, tSize);
-	muiLastIndex = uiNewLastIndex;
+	memset(pvDest, iClearValue, uiSize);
+	muiLastIndex = (uint8)uiNewLastIndex;
 }
 
 
@@ -374,7 +373,7 @@ void CIndexTreeNode::ClearLastNodes(uint8 uiNewLastIndex, int iClearValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNode::NumIndexes(void)
+size CIndexTreeNode::NumIndexes(void)
 {
 	if (!HasNodes())
 	{
@@ -388,7 +387,7 @@ int CIndexTreeNode::NumIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNode::NumIndexes(uint8 uiFirstIndex, uint8 uiLastIndex)
+size CIndexTreeNode::NumIndexes(size uiFirstIndex, size uiLastIndex)
 {
 	return (uiLastIndex - uiFirstIndex) + 1;
 }
@@ -398,10 +397,10 @@ int CIndexTreeNode::NumIndexes(uint8 uiFirstIndex, uint8 uiLastIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeNode::GetAdditionalIndexes(uint8 uiIndex)
+size CIndexTreeNode::GetAdditionalIndexes(size uiIndex)
 {
-	uint8 uiFirstIndex;
-	uint8 uiLastIndex;
+	size	uiFirstIndex;
+	size	uiLastIndex;
 
 	if (uiIndex < muiFirstIndex)
 	{
@@ -492,7 +491,7 @@ bool CIndexTreeNode::IsMagic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::HasFlags(uint8 sFlags)
+bool CIndexTreeNode::HasFlags(size sFlags)
 {
 	//True if any flag matches (including all flags matching).
 	return FixBool(msFlags & sFlags);
@@ -503,9 +502,9 @@ bool CIndexTreeNode::HasFlags(uint8 sFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ClearFlags(uint8 sFlags)
+void CIndexTreeNode::ClearFlags(size sFlags)
 {
-	SetFlag(&msFlags, sFlags, false);
+	SetFlagByte(&msFlags, (uint8)sFlags, false);
 }
 
 
@@ -513,7 +512,7 @@ void CIndexTreeNode::ClearFlags(uint8 sFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNode::GetFirstIndex(void)
+size CIndexTreeNode::GetFirstIndex(void)
 {
 	return muiFirstIndex;
 }
@@ -523,7 +522,7 @@ uint8 CIndexTreeNode::GetFirstIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNode::GetLastIndex(void)
+size CIndexTreeNode::GetLastIndex(void)
 {
 	return muiLastIndex;
 }
@@ -555,7 +554,7 @@ bool CIndexTreeNode::HasData(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetData(bool bHasData)
 {
-	return SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DATA, bHasData);
+	return SetFlagByte(&msFlags, INDEX_TREE_NODE_FLAG_DATA, bHasData);
 }
 
 
@@ -563,9 +562,9 @@ void CIndexTreeNode::SetData(bool bHasData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeNode::NumAllocatedNodes(void)
+size CIndexTreeNode::NumAllocatedNodes(void)
 {
-	return (uint8)NumIndexes();
+	return NumIndexes();
 }
 
 
@@ -573,7 +572,7 @@ uint8 CIndexTreeNode::NumAllocatedNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeNode::ContainsIndex(uint8 uiIndex)
+bool CIndexTreeNode::ContainsIndex(size uiIndex)
 {
 	if (!HasNodes())
 	{
@@ -616,7 +615,7 @@ void CIndexTreeNode::SetNodesEmpty(bool bEmpty)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetDirtyNode(bool bDirty)
 {
-	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, bDirty);
+	SetFlagByte(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_NODE, bDirty);
 }
 
 
@@ -626,7 +625,7 @@ void CIndexTreeNode::SetDirtyNode(bool bDirty)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetDeletedNode(bool bDeleted)
 {
-	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, bDeleted);
+	SetFlagByte(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_NODE, bDeleted);
 }
 
 
@@ -636,7 +635,7 @@ void CIndexTreeNode::SetDeletedNode(bool bDeleted)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetDirtyPath(bool bDirty)
 {
-	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, bDirty);
+	SetFlagByte(&msFlags, INDEX_TREE_NODE_FLAG_DIRTY_PATH, bDirty);
 }
 
 
@@ -646,7 +645,7 @@ void CIndexTreeNode::SetDirtyPath(bool bDirty)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeNode::SetDeletedPath(bool bDeleted)
 {
-	SetFlag(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, bDeleted);
+	SetFlagByte(&msFlags, INDEX_TREE_NODE_FLAG_DELETED_PATH, bDeleted);
 }
 
 
@@ -654,7 +653,7 @@ void CIndexTreeNode::SetDeletedPath(bool bDeleted)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::SetData(void* pvData, uint16 uiDataSize)
+void CIndexTreeNode::SetData(void* pvData, size uiDataSize)
 {
 	if (GetDataSize() != uiDataSize)
 	{
@@ -679,14 +678,14 @@ void CIndexTreeNode::SetData(void* pvData, uint16 uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
+void CIndexTreeNode::ChangeDataSize(size uiSize)
 {
-	size_t				tIndexSize;
+	size				tIndexSize;
 	void*				apcChildren;
 	int					iDataSizeDiff;
 	void*				apcMovedChildren;
 	bool				bHasData;
-	int					iOldDataSize;
+	size				iOldDataSize;
 
 	bHasData = HasData();
 	iOldDataSize = GetDataSize();
@@ -732,7 +731,7 @@ void CIndexTreeNode::ChangeDataSize(uint16 uiSize)
 			if (HasNodes())
 			{
 				tIndexSize = (muiLastIndex - muiFirstIndex + 1) * SizeofNodePtr();
-				iDataSizeDiff = -((int)(iOldDataSize + (mpcIndexTree->SizeofDataNode() - mpcIndexTree->SizeofNode())));
+				iDataSizeDiff = -(int)((iOldDataSize + (mpcIndexTree->SizeofDataNode() - mpcIndexTree->SizeofNode())));
 
 				apcMovedChildren = RemapSinglePointer(apcChildren, iDataSizeDiff);
 				memmove(apcMovedChildren, apcChildren, tIndexSize);
@@ -762,22 +761,22 @@ void CIndexTreeNode::Print(CChars* psz, bool bHex)
 	{
 		if (!bHex)
 		{
-			psz->Append((int)GetFirstIndex());
+			psz->Append((uint16)GetFirstIndex());
 			psz->Append(":");
-			psz->Append((int)GetLastIndex());
+			psz->Append((uint16)GetLastIndex());
 		}
 		else
 		{
-			psz->Append((int)GetFirstIndex(), 16);
+			psz->Append((int32)GetFirstIndex(), (uint16)16);
 			psz->Append(":");
-			psz->Append((int)GetLastIndex(), 16);
+			psz->Append((int32)GetLastIndex(), (uint16)16);
 		}
 	}
 
 	if (GetDataSize() > 0)
 	{
 		psz->Append(" (");
-		psz->Append((int)GetDataSize());
+		psz->Append((uint16)GetDataSize());
 		psz->Append(")");
 	}
 }

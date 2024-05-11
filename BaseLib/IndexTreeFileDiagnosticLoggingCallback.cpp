@@ -27,7 +27,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Put(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	Log("Put", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -37,7 +37,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Put(void* pvKey, int iKeySize, voi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Get(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Get(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	Log("Get", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -47,7 +47,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Get(void* pvKey, int iKeySize, voi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Remove(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Remove(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	Log("Remove", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -57,7 +57,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Remove(void* pvKey, int iKeySize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Flush(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Flush(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	Log("Flush", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -67,7 +67,7 @@ void CIndexTreeFileDiagnosticLoggingCallback::Flush(void* pvKey, int iKeySize, v
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	Log("Evict", pvKey, iKeySize, pvData, iDataSize);
 }
@@ -77,11 +77,11 @@ void CIndexTreeFileDiagnosticLoggingCallback::Evict(void* pvKey, int iKeySize, v
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileDiagnosticLoggingCallback::Log(char* szOperation, void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileDiagnosticLoggingCallback::Log(char* szOperation, void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	szLog.Append(szOperation);
 	szLog.Append(":");
-	szLog.Append(' ' , 7 - (int)strlen(szOperation));
+	szLog.Append(' ' , 7 - strlen(szOperation));
 	szLog.AppendData2((char*)pvKey, iKeySize);
 	szLog.Append(" [");
 	szLog.Append(iDataSize);

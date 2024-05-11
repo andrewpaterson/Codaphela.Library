@@ -28,20 +28,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SAlignedData
 {
-	uint32	uiSize;
+	size	uiSize;
 	void*	pvAlloc;  //This is the original allocation pointer.
-	int		iAlignment;
-	int		iOffset;
+	uint8	iAlignment;
+	int8	iOffset;
 };
 
 
 struct SAlignedDataDesc
 {
-	uint32	uiSize;
-	int		iAlignment;
-	int		iOffset;
+	size	uiSize;
+	uint8	iAlignment;
+	int8	iOffset;
 
-	void	Init(uint32 uiSize, int iAlignment, int iOffset);
+	void	Init(size uiSize, uint8 iAlignment, int8 iOffset);
 };
 
 
@@ -56,38 +56,38 @@ struct SLLAlignedNode
 class CLinkedListBlockAligned : public CBaseLinkedListBlock
 {
 public:
-	void			Init(void);
-	void			Init(CMallocator* pcMalloc);
-	void			Kill(void);
+	void				Init(void);
+	void				Init(CMallocator* pcMalloc);
+	void				Kill(void);
 
-	void*			InsertAfterTail(uint32 iSize, int iAlignment, int iOffset);
-	void*			InsertBeforeHead(uint32 uiSize, int iAlignment, int iOffset);
-	void*			InsertBeforeNode(void* psPos, uint32 uiSize, int iAlignment, int iOffset);
-	void*			InsertAfterNode(void* psPos, uint32 uiSize, int iAlignment, int iOffset); 
-	void*			Add(uint32 uiSize, int iAlignment);
+	void*				InsertAfterTail(size uiSize, uint16 iAlignment, int16 iOffset);
+	void*				InsertBeforeHead(size uiSize, uint16 iAlignment, int16 iOffset);
+	void*				InsertBeforeNode(void* psPos, size uiSize, uint16 iAlignment, int16 iOffset);
+	void*				InsertAfterNode(void* psPos, size uiSize, uint16 iAlignment, int16 iOffset); 
+	void*				Add(size uiSize, uint16 iAlignment);
 
-	SLLAlignedNode*	AllocateDetached(uint32 uiSize, int iAlignment, int iOffset);
-	void			Remove(void* pvData);
-	bool			SafeRemove(void* pvData);
-	void			FreeDetached(void* psNodeData);
-	void			FreeNode(SLLAlignedNode* psNode);
-	void*			Grow(void* pvData, uint32 uiNewSize);
+	SLLAlignedNode*		AllocateDetached(size uiSize, uint16 iAlignment, int16 iOffset);
+	void				Remove(void* pvData);
+	bool				SafeRemove(void* pvData);
+	void				FreeDetached(void* psNodeData);
+	void				FreeNode(SLLAlignedNode* psNode);
+	void*				Grow(void* pvData, size uiNewSize);
 
-	bool			Write(CFileWriter* pcFileWriter);
-	bool			Read(CFileReader* pcFileReader);
+	bool				Write(CFileWriter* pcFileWriter);
+	bool				Read(CFileReader* pcFileReader);
 
-	SLLAlignedNode*	CalculateActualStart(void* pvMem, int iAlignment, int iOffset);
-	SLLAlignedNode*	GetNode(void* pvMem);
+	SLLAlignedNode*		CalculateActualStart(void* pvMem, uint16 iAlignment, int16 iOffset);
+	SLLAlignedNode*		GetNode(void* pvMem);
 
-	int				ByteSize(void);
+	size				ByteSize(void);
 
 protected:	
-	int				GetNodeSize(void* pvMem);
+	size				GetNodeSize(void* pvMem);
 
-	bool			WriteHeader(CFileWriter* pcFileWriter);
-	bool			WriteData(CFileWriter* pcFileWriter);
-	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
-	bool			ReadData(CFileReader* pcFileReader, int iNumElements);
+	bool				WriteHeader(CFileWriter* pcFileWriter);
+	bool				WriteData(CFileWriter* pcFileWriter);
+	bool				ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size* piNumElements);
+	bool				ReadData(CFileReader* pcFileReader, size iNumElements);
 };
 
 

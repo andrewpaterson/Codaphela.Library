@@ -44,11 +44,18 @@ bool Failed(void);
 bool IsMultiLine(const char* szExpected, const char* szActual);
 void ToTristateString(TRISTATE t, char* szString, int iStringLength);
 void ToBoolString(bool b, char* szString, int iStringLength);
+void ToCharString(uint8 c, char* szString, int iStringLength);
 void ToCharString(char c, char* szString, int iStringLength);
-void ToIntString(int i, char* szString, int iStringLength);
-void ToIntHexString(int i, char* szString, int iStringLength);
-void ToLongLongIntString(int64_t i, char* szString, int iStringLength);
-void ToLongLongIntHexString(int64_t i, char* szString, int iStringLength);
+void ToShortString(int16 i, char* szString, int iStringLength);
+void ToShortString(uint16 i, char* szString, int iStringLength);
+void ToIntString(int32 i, char* szString, int iStringLength);
+void ToIntString(uint32 i, char* szString, int iStringLength);
+void ToIntHexString(int32 i, char* szString, int iStringLength);
+void ToIntHexString(uint32 i, char* szString, int iStringLength);
+void ToLongString(int64 i, char* szString, int iStringLength);
+void ToLongString(uint64 i, char* szString, int iStringLength);
+void ToLongHexString(int64 i, char* szString, int iStringLength);
+void ToLongHexString(uint64 i, char* szString, int iStringLength);
 void ToFloatString(float f, char* sz, int iDecimals);
 void ToFloat3String(SFloat3* psFloat3, char* sz, int iWholeNumbers, int iDecimals);
 void ToDoubleString(double f, char* sz, int iDecimals);
@@ -193,6 +200,26 @@ int TestTotalStatistics(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool PrivateAssertString(const char* szExpected, const uint8* szActual, bool bTestCase, int iLine, char* szFile)
+{
+	return PrivateAssertString(szExpected, (char*)szActual, bTestCase, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertString(const uint8* szExpected, const uint8* szActual, bool bTestCase, int iLine, char* szFile)
+{
+	return PrivateAssertString((char*)szExpected, (char*)szActual, bTestCase, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool PrivateAssertString(const char* szExpected, const char* szActual, bool bTestCase, int iLine, char* szFile)
 {
 	if ((szExpected == NULL) && (szActual == NULL))
@@ -239,7 +266,7 @@ bool PrivateAssertString(const char* szExpected, const char* szActual, bool bTes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* GetNextLine(int* piIndex, CArrayChars* pac)
+char* GetNextLine(uint32* piIndex, CArrayChars* pac)
 {
 	CChars*	pc;
 
@@ -273,8 +300,8 @@ bool PrivateAssertStringApproximate(const char* szExpected, const char* szActual
 	CArrayChars		acExpected;
 	CChars			cActual;
 	CArrayChars		acActual;
-	int				iExpected;
-	int				iActual;
+	uint32			iExpected;
+	uint32			iActual;
 	char*			szExpectedLine;
 	char*			szActualLine;
 	bool			bResult;
@@ -464,16 +491,35 @@ bool PrivateAssertInt(int iExpected, int iActual, int iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertSize(size_t iExpected, size_t iActual, int iLine, char* szFile)
+bool PrivateAssertSize(size iExpected, size iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntString(iExpected, szExpected, 32);
-		ToLongLongIntString(iActual, szActual, 32);
-		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+		if (sizeof(size) == 2)
+		{
+			ToShortString((uint16)iExpected, szExpected, 32);
+			ToShortString((uint16)iActual, szActual, 323);
+			return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+		}
+		else if (sizeof(size) == 4)
+		{
+			ToIntString((uint32)iExpected, szExpected, 32);
+			ToIntString((uint32)iActual, szActual, 323);
+			return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+		}
+		else if (sizeof(size) == 8)
+		{
+			ToLongString((uint64)iExpected, szExpected, 32);
+			ToLongString((uint64)iActual, szActual, 323);
+			return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+		}
+		else
+		{
+			return Failed("Valid size", "Invalid size", iLine, szFile, false);
+		}
 	}
 	else
 	{
@@ -501,6 +547,26 @@ bool PrivateAssertIntHex(int iExpected, int iActual, int iLine, char* szFile)
 	{
 		return Pass();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertShort(uint16 iExpected, uint16 iActual, int iLine, char* szFile)
+{
+	return PrivateAssertShort((int16)iExpected, (int16)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertShort(int16 iExpected, uint16 iActual, int iLine, char* szFile)
+{
+	return PrivateAssertShort(iExpected, (int16)iActual, iLine, szFile);
 }
 
 
@@ -552,15 +618,15 @@ bool PrivateAssertShortHex(int16 iExpected, int16 iActual, int iLine, char* szFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongLongInt(int64_t iExpected, int64_t iActual, int iLine, char* szFile)
+bool PrivateAssertLongLongInt(int64 iExpected, int64 iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntString(iExpected, szExpected, 32);
-		ToLongLongIntString(iActual, szActual, 32);
+		ToLongString(iExpected, szExpected, 32);
+		ToLongString(iActual, szActual, 32);
 		strcat(szExpected, "LL");
 		strcat(szActual, "LL");
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
@@ -576,15 +642,15 @@ bool PrivateAssertLongLongInt(int64_t iExpected, int64_t iActual, int iLine, cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongLongIntHex(int64_t iExpected, int64_t iActual, int iLine, char* szFile)
+bool PrivateAssertLongLongIntHex(int64 iExpected, int64 iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntHexString(iExpected, szExpected, 32);
-		ToLongLongIntHexString(iActual, szActual, 32);
+		ToLongHexString(iExpected, szExpected, 32);
+		ToLongHexString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
 	}
 	else
@@ -598,15 +664,15 @@ bool PrivateAssertLongLongIntHex(int64_t iExpected, int64_t iActual, int iLine, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertLongHex(int64_t iExpected, int64_t iActual, int iLine, char* szFile)
+bool PrivateAssertLongHex(int64 iExpected, int64 iActual, int iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
 
 	if (iExpected != iActual)
 	{
-		ToLongLongIntHexString(iExpected, szExpected, 32);
-		ToLongLongIntHexString(iActual, szActual, 32);
+		ToLongHexString(iExpected, szExpected, 32);
+		ToLongHexString(iActual, szActual, 32);
 		strcat(szExpected, "LL");
 		strcat(szActual, "LL");
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
@@ -1040,7 +1106,7 @@ bool PrivateAssertFile(const char* szExpectedFilename, char* szActualFilename, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size_t iLength, int iLine, char* szFile)
+bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, size iLength, int iLine, char* szFile)
 {
 	CFileCompare	cCompare;
 	bool			bResult;
@@ -1073,7 +1139,7 @@ bool PrivateAssertFileMemory(const char* szExpectedFilename, void* pcMemory, siz
 //////////////////////////////////////////////////////////////////////////
 bool PrivateAssertFileString(const char* szExpectedFilename, const char* szString, int iLine, char* szFile)
 {
-	size_t iLength;
+	size iLength;
 
 	iLength = strlen(szString);
 	return PrivateAssertFileMemory(szExpectedFilename, (void*)szString, iLength, iLine, szFile);
@@ -1265,7 +1331,27 @@ void ToBoolString(bool b, char* szString, int iStringLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToIntString(int i, char* szString, int iStringLength)
+void ToShortString(int16 i, char* szString, int iStringLength)
+{
+	ShortToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortString(uint16 i, char* szString, int iStringLength)
+{
+	ShortToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntString(int32 i, char* szString, int iStringLength)
 {
 	IntToString(szString, iStringLength, i, 10);
 }
@@ -1275,11 +1361,61 @@ void ToIntString(int i, char* szString, int iStringLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToIntHexString(int i, char* szString, int iStringLength)
+void ToIntString(uint32 i, char* szString, int iStringLength)
 {
-	IntToString(&szString[2], iStringLength-2, i, 16);
+	IntToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongString(int64 i, char* szString, int iStringLength)
+{
+	LongToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongString(uint64 i, char* szString, int iStringLength)
+{
+	LongToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntHexString(int32 i, char* szString, int iStringLength)
+{
+	return ToIntHexString((uint32)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToIntHexString(uint32 i, char* szString, int iStringLength)
+{
+	IntToString(&szString[2], iStringLength - 2, i, 16);
 	szString[0] = '0';
 	szString[1] = 'x';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToCharString(uint8 c, char* szString, int iStringLength)
+{
+	return ToCharString((char)c, szString, iStringLength);
 }
 
 
@@ -1299,16 +1435,6 @@ void ToCharString(char c, char* szString, int iStringLength)
 		szString[0] = c;
 		szString[1] = 0;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void ToLongLongIntString(int64_t i, char* szString, int iStringLength)
-{
-    IntToString(szString, iStringLength, i, 10);
 }
 
 
@@ -1370,9 +1496,19 @@ void ToLongDoubleString(float96 f, char* sz, int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLongLongIntHexString(int64_t i, char* szString, int iStringLength)
+void ToLongHexString(int64 i, char* szString, int iStringLength)
 {
-	IntToString(&szString[2], iStringLength-2, i, 16);
+	return ToLongHexString((uint64)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToLongHexString(uint64 i, char* szString, int iStringLength)
+{
+	LongToString(&szString[2], iStringLength - 2, i, 16);
 	szString[0] = '0';
 	szString[1] = 'x';
 }
@@ -1386,7 +1522,7 @@ void ToPointerString(void* pv, char* szString, int iStringLength)
 {
 	CChars	c;
 
-	IntToString(szString, iStringLength, (int)(size_t)pv, 16);
+	IntToString(szString, iStringLength, (uint32)pv, 16);
 
 	c.Init(szString);
 	c.RightAlign('0', 8);
@@ -1394,6 +1530,7 @@ void ToPointerString(void* pv, char* szString, int iStringLength)
 	strcpy(szString, c.Text());
 	c.Kill();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

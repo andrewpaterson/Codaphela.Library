@@ -7,7 +7,7 @@
 class CFileIterator
 {
 public:
-	int						miPackFileIndex;
+	uint32					miPackFileIndex;
 	CPackFileIterator		mcPackFileIterator;
 	CFileSystemIterator		mcFileSystemIterator;
 	bool					mbMoveOn;

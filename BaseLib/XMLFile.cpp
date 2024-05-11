@@ -136,7 +136,7 @@ bool CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 //////////////////////////////////////////////////////////////////////////
 bool CXMLFile::Entities(CXMLParser* pcXMLParser, CChars* pszDirectory)
 {
-	int					i;
+	size				i;
 	CXMLEntity*			pcEntity;
 	CMarkup*			pcMarkup;
 	CMarkupSubText*		pcSubText;

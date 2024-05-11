@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexLongString::Get(int64 lli, char** pszData, int* piLength)
+bool CIndexLongString::Get(int64 lli, char** pszData, size* piLength)
 {
 	return CIndexPrimitiveBlock<int64>::Get(lli, (void**)pszData, piLength);
 }

@@ -17,8 +17,8 @@ public:
 	void			Init(int iElementSize, int iAlignment, int iOffset);
 	void			Kill(void);
 
-	void*			Malloc(size_t tSize);
-	void*			Realloc(void* pv, size_t tSize);
+	void*			Malloc(size uiSize);
+	void*			Realloc(void* pv, size uiSize);
 	bool			Free(void* pv);
 
 	CFreeList*		GetFreeList(void);
@@ -28,7 +28,7 @@ public:
 	bool			Read(CFileReader* pcFileReader);
 	bool			Write(CFileWriter* pcFileWriter);
 
-	size_t			SizeOffset(void);
+	size			SizeOffset(void);
 
 public:
 	static CLifeInit<CMallocator> Create(int iElementSize);

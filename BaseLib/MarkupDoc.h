@@ -53,8 +53,8 @@ public:
 
 	void			AddSubstitute(CMarkupSubstitute* pcSubstitute);
 
-	int				Print(CChars* psz);
-	int				Print(CChars* psz, int iDepth, int iLine);
+	size			Print(CChars* psz);
+	size			Print(CChars* psz, size iDepth, size iLine);
 	void			Dump(void);
 };
 

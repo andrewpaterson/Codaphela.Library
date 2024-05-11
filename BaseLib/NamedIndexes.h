@@ -38,47 +38,47 @@ protected:
 	CNamedIndexesConfig*		mpcConfig;
 	
 public:
-	void			Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
-	bool			Kill(void);
+	void	Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
+	bool	Kill(void);
 
-	bool			Add(char* szName, OIndex oi);
-	bool			Add(CChars* szName, OIndex oi);
-	bool			Add(char* szName, int iNameLength, OIndex oi);
+	bool	Add(char* szName, OIndex oi);
+	bool	Add(CChars* szName, OIndex oi);
+	bool	Add(char* szName, size iNameLength, OIndex oi);
 
-	bool			Set(char* szName, OIndex oi);
-	bool			Set(CChars* szName, OIndex oi);
+	bool	Set(char* szName, OIndex oi);
+	bool	Set(CChars* szName, OIndex oi);
 
-	bool			Put(char* szName, OIndex oi);
-	bool			Put(CChars* szName, OIndex oi);
+	bool	Put(char* szName, OIndex oi);
+	bool	Put(CChars* szName, OIndex oi);
 
-	OIndex			Get(char* szName);
-	OIndex			Get(CChars* szName);
+	OIndex	Get(char* szName);
+	OIndex	Get(CChars* szName);
 
-	bool			Remove(char* szName);
-	bool			Remove(CChars* szName);
+	bool	Remove(char* szName);
+	bool	Remove(CChars* szName);
 
-	int64			NumElements(void);
-	int64			NumElementsCached(void);
-	bool			Flush(void);
+	int64	NumElements(void);
+	int64	NumElementsCached(void);
+	bool	Flush(void);
 
-	bool			StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
-	bool			Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	bool	StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
+	bool	Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
-	bool			IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 
-	uint16			IndexTreeDataSize(uint16 uiSourceSize);
-	bool			IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize);
-	bool			IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize);
+	size	IndexTreeDataSize(size uiSourceSize);
+	bool	IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize);
+	bool	IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize);
 
-	size_t			GetSystemMemorySize(void);
-	size_t			GetUserMemorySize(void);
-	uint8	GetRootFlags(void);
+	size	GetSystemMemorySize(void);
+	size	GetUserMemorySize(void);
+	size	GetRootFlags(void);
 
 
-	void			DumpIndex(void);
-	bool			ValidateIndex(void);
-	bool			ValidateConfigInitialised(void);
-	bool			ValidateConfigKilled(void);
+	void	DumpIndex(void);
+	bool	ValidateIndex(void);
+	bool	ValidateConfigInitialised(void);
+	bool	ValidateConfigKilled(void);
 };
 
 

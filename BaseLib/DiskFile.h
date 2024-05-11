@@ -40,9 +40,9 @@ public:
 
 	bool		Open(EFileMode eMode);
 	bool		Close(void);
-	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	size		Read(void* pvBuffer, size iSize, size iCount);
 	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	size		Write(const void* pvBuffer, size iSize, size iCount);
 	filePos		Tell(void);
 	bool		IsOpen(void);
 	filePos		Size(void);
@@ -51,8 +51,8 @@ public:
 	bool		Delete(void);
 	char*		GetFilename(void);
 
-	void		SetFile(void* pvFile, size_t uiSize);
-	bool		IsFile(void* pvFile, size_t uiSize);
+	void		SetFile(void* pvFile, size uiSize);
+	bool		IsFile(void* pvFile, size uiSize);
 	void*		GetFile(void);
 };
 

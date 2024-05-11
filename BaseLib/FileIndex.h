@@ -9,15 +9,15 @@ class CFilePosIndex
 {
 public:
 	filePos			mulliFilePos;
-	int				miFile;
+	uint32			miFile;
 
 public:
 	void			Init(void);
-	void			Init(int iFile, filePos ulliFilePos);
+	void			Init(uint32 iFile, filePos ulliFilePos);
 	void			Kill(void);
 
 	bool			HasFile(void);
-	void			SetIndex(int iFile, filePos ulliFilePos);
+	void			SetIndex(uint32 iFile, filePos ulliFilePos);
 
 	CFileDataIndex	ToFileDataIndex(uint32 muiDataSize);
 };
@@ -28,15 +28,15 @@ class CFileDataIndex
 {
 public:
 	uint32	muiIndex;
-	int				miFile;
+	uint32	miFile;
 
 public:
 	void			Init(void);
-	void			Init(int iFile, uint32 uiIndex);
+	void			Init(uint32 iFile, uint32 uiIndex);
 	void			Kill(void);
 
 	bool			HasFile(void);
-	void			SetIndex(int iFile, uint32 uiIndex);
+	void			SetIndex(uint32 iFile, uint32 uiIndex);
 	void			SetIndex(CFileDataIndex* pcSource);
 
 	bool			Equals(CFileDataIndex* pcOther);

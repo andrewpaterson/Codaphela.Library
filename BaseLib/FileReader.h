@@ -33,32 +33,33 @@ class CFileReader
 {
 public:
 	//General
-						bool	ReadData(void* pvData, filePos iDataSize);
+						bool	ReadData(void* pvData, size iDataSize);
 
 	//Strings.
-						bool	ReadStringLength(int* piLength);
-						bool	ReadStringChars(char* szString, int iLength);
-						bool	ReadString(char* szString, int iMaxLength);
+						bool	ReadStringLength(size* piLength);
+						bool	ReadStringChars(char* szString, size iLength);
+						bool	ReadString(char* szString, size iMaxLength);
 
 	//Helpers.		
-						bool	ReadInt(int8* pi);
-						bool	ReadInt(uint8* pi);
-						bool	ReadInt(int16* pi);
-						bool	ReadInt(uint16* pi);
+						bool	ReadByte(int8* pi);
+						bool	ReadByte(uint8* pi);
+						bool	ReadShort(int16* pi);
+						bool	ReadShort(uint16* pi);
 						bool	ReadInt(int32* pi);
 						bool	ReadInt(uint32* pi);
-						bool	ReadInt(int64* plli);
-						bool	ReadInt(uint64* plli);
+						bool	ReadLong(int64* plli);
+						bool	ReadLong(uint64* plli);
+						bool	ReadSize(size* pui);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);
 						bool	ReadChar(char8* pc);
-						bool	ReadChar(char16* pc);
+						bool	ReadWChar(char16* pc);
 						bool	ReadBool(bool* pb);
-						bool	ReadBits(void* pvData, int iByteLength);
-						bool	ReadIntArray(int* pai, int iLength);
+						bool	ReadBits(void* pvData, size iByteLength);
+						bool	ReadIntArray(int32* pai, size iLength);
 
 protected:
-	virtual				filePos	Read(void* pvDest, filePos iSize, filePos iCount) =0;
+	virtual				size	Read(void* pvDest, size iSize, size iCount) =0;
 };
 
 

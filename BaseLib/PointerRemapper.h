@@ -23,10 +23,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __POINTER_REMAPPER_H__
 #define __POINTER_REMAPPER_H__
 #include <stddef.h>
+#include "PrimitiveTypes.h"
 
 
-void*	RemapSinglePointer(const void* pvPtr, ptrdiff_t iOffest);
-__inline void* RemapSinglePointer(const void* pvPtr, ptrdiff_t iOffest)
+void*	RemapSinglePointer(const void* pvPtr, ptrdiff iOffest);
+__inline void* RemapSinglePointer(const void* pvPtr, ptrdiff iOffest)
 {
 	return &((char*)pvPtr)[iOffest];
 }

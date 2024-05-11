@@ -25,7 +25,7 @@ void CIndexTreeEvictionCounter::Reset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictionCounter::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CIndexTreeEvictionCounter::IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	miEvictions++;
 	return true;

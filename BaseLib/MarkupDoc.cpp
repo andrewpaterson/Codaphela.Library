@@ -44,7 +44,7 @@ void CMarkupDoc::Init(CMarkup* pcMarkup)
 void CMarkupDoc::Kill(void)
 {
 	CMarkupSubstitute*	pcSubstitute;
-	int					i;
+	size				i;
 
 	if (mpcRootTag)
 	{
@@ -97,7 +97,7 @@ CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupDoc::Print(CChars* psz)
+size CMarkupDoc::Print(CChars* psz)
 {
 	return Print(psz, 0, 0);
 }
@@ -107,7 +107,7 @@ int CMarkupDoc::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupDoc::Print(CChars* psz, int iDepth, int iLine)
+size CMarkupDoc::Print(CChars* psz, size iDepth, size iLine)
 {
 	if (!mpcRootTag)
 	{
@@ -158,7 +158,7 @@ void CMarkupDoc::AddSubstitute(CMarkupSubstitute* pcSubstitute)
 bool CMarkupDoc::FixReferences(void)
 {
 	CMarkupReference*	pcRef;
-	int					i;
+	size				i;
 	CMarkupNamedRef*	pcNamedRef;
 	CMarkupSubstitute*	pcSubstitute;
 	CMarkupRefDoc*		pcMarkupRefDoc;

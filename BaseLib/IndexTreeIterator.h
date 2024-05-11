@@ -10,16 +10,16 @@ protected:
 	char			macData[MAX_DATA_SIZE];
 	int				miType;
 	bool			mbStarted;
-	int				miKeySize;
-	size_t			miDataSize;
+	size			miKeySize;
+	size			miDataSize;
 
 public:
 			void	Init(int iType);
 	virtual void	Kill(void);
 
-			size_t	GetDataSize(void);
+			size	GetDataSize(void);
 			void*	GetData(void);
-			size_t	GetKeySize(void);
+			size	GetKeySize(void);
 			char*	GetKey(void);
 
 	virtual bool	Iterate(void) =0;

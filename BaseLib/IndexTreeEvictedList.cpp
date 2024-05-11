@@ -27,7 +27,7 @@ void CIndexTreeEvictedList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictedList::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CIndexTreeEvictedList::IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	mcKeys.Add(pvKey, iKeySize + 1);
 	mcDatas.Add(pvData, iDataSize);
@@ -39,7 +39,7 @@ bool CIndexTreeEvictedList::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvictedList::NumElements(void)
+size CIndexTreeEvictedList::NumElements(void)
 {
 	return mcKeys.NumElements();
 }
@@ -49,7 +49,7 @@ int CIndexTreeEvictedList::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeEvictedList::GetKey(int iIndex, int* piKeySize)
+void* CIndexTreeEvictedList::GetKey(size iIndex, size* piKeySize)
 {
 	if (piKeySize)
 	{
@@ -63,7 +63,7 @@ void* CIndexTreeEvictedList::GetKey(int iIndex, int* piKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeEvictedList::GetData(int iIndex, int* piDataSize)
+void* CIndexTreeEvictedList::GetData(size iIndex, size* piDataSize)
 {
 	if (piDataSize)
 	{

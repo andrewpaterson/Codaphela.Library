@@ -16,7 +16,7 @@ void CIndexTreeFileKeyDiagnosticCountingCallback::Init(char* szKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCountingCallback::Init(void* pvKey, int iKeyLength)
+void CIndexTreeFileKeyDiagnosticCountingCallback::Init(void* pvKey, size iKeyLength)
 {
 	CIndexTreeFileDiagnosticCallback::Init();
 	miCount = 0;
@@ -41,7 +41,7 @@ void CIndexTreeFileKeyDiagnosticCountingCallback::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeFileKeyDiagnosticCountingCallback::Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+void CIndexTreeFileKeyDiagnosticCountingCallback::Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	if (Matches(pvKey, iKeySize))
 	{
@@ -54,7 +54,7 @@ void CIndexTreeFileKeyDiagnosticCountingCallback::Evict(void* pvKey, int iKeySiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFileKeyDiagnosticCountingCallback::Matches(void* pvKey, int iKeySize)
+bool CIndexTreeFileKeyDiagnosticCountingCallback::Matches(void* pvKey, size iKeySize)
 {
 	if (miKeyLength == iKeySize)
 	{

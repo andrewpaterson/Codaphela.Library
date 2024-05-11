@@ -6,7 +6,7 @@
 
 struct SCircularMemoryList
 {
-	size_t						muiCacheSize;
+	size						muiCacheSize;
 
 	SMemoryCacheDescriptor*		mpsTail;
 	SMemoryCacheDescriptor*		mpsHead;
@@ -19,30 +19,30 @@ protected:
 	SCircularMemoryList*		mpsDetail;
 	SMemoryCacheDescriptor*		mpvCache;
 
-	int							miDescriptorSize;
+	size						miDescriptorSize;
 
 public:
-	void						Init(void* pvCache, size_t uiByteSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
-	void						InitExisting(void* pvCache, size_t uiByteSize, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						Init(void* pvCache, size uiByteSize, size iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void						InitExisting(void* pvCache, size uiByteSize, size iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void						Kill(void);
 
 	//These methods need to be renamed to something sane.
-	void						Remap(void* pvNewCache, size_t uiByteSize);
-	void						Remap(SCircularMemoryList* pvNewCache, size_t uiByteSize);
+	void						Remap(void* pvNewCache, size uiByteSize);
+	void						Remap(SCircularMemoryList* pvNewCache, size uiByteSize);
 
 	void						Clear(void);
 
-	size_t						GetSize(void* pvData);
-	int							NumElements(void);
+	size						GetSize(void* pvData);
+	size						NumElements(void);
 
-	int							GetDescriptorSize(void);
+	size						GetDescriptorSize(void);
 
 	void						Deallocate(void* pvData);
 
 	bool						IsEmpty(void);
-	int							NumElements(int iSize);
-	size_t						GetCacheSize(void);
-	size_t						GetAllocatedSize(void);
+	size						NumElements(size iSize);
+	size						GetCacheSize(void);
+	size						GetAllocatedSize(void);
 
 	bool						ValidateCache(void);
 	void						Dump(void);
@@ -50,13 +50,13 @@ public:
 protected:
 	SMemoryCacheDescriptor*		OneAllocation(void);
 	SMemoryCacheDescriptor*		InsertNext(SMemoryCacheDescriptor* psCacheBasedDescriptor);
-	bool						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size_t uiNewSize, SMemoryCacheDescriptor* psExisting);
+	bool						Overlaps(SMemoryCacheDescriptor* pvCacheBasedNew, size uiNewSize, SMemoryCacheDescriptor* psExisting);
 
-	size_t						RemainingAfterTail(void);
-	size_t						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
+	size						RemainingAfterTail(void);
+	size						RemainingAfter(SMemoryCacheDescriptor* psCacheBasedDescriptor);
 
-	void						RemapDifferentMemory(void* pvNewCache, size_t uiCacheSize);
-	void						RemapSameMemory(size_t uiCacheSize);
+	void						RemapDifferentMemory(void* pvNewCache, size uiCacheSize);
+	void						RemapSameMemory(size uiCacheSize);
 
 	SMemoryCacheDescriptor*		StartIteration(void);
 	SMemoryCacheDescriptor*		Iterate(SMemoryCacheDescriptor* psCacheBasedDescriptor);

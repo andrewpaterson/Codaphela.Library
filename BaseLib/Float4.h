@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __FLOAT_4_H__
 #define __FLOAT_4_H__
 #include "Define.h"
+#include "Constructable.h"
 #include "ChunkFile.h"
 
 

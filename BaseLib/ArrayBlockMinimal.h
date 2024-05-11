@@ -12,7 +12,7 @@
 class CArrayBlockMinimal : public CMalloc
 {
 protected:
-	int 			miUsedElements;
+	size	miUsedElements;
 
 public:
 	void Init(void);

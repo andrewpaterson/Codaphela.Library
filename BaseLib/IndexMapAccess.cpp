@@ -72,7 +72,7 @@ void CIndexMapAccess::FreeIterator(CMapIterator* pcIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexMapAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t uiDataSize)
+void* CIndexMapAccess::Put(void* pvKey, size iKeySize, void* pvData, size uiDataSize)
 {
 	void* pv;
 
@@ -93,12 +93,12 @@ void* CIndexMapAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t uiDat
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexMapAccess::Get(void* pvKey, int iKeySize, size_t* puiDataSize)
+void* CIndexMapAccess::Get(void* pvKey, size iKeySize, size* puiDataSize)
 {
 	bool	bResult;
 	void* pvData;
 
-	bResult = mpcIndex->Get(pvKey, iKeySize, &pvData, (int*)puiDataSize);
+	bResult = mpcIndex->Get(pvKey, iKeySize, &pvData, (size*)puiDataSize);
 	if (bResult)
 	{
 		return pvData;
@@ -114,7 +114,7 @@ void* CIndexMapAccess::Get(void* pvKey, int iKeySize, size_t* puiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexMapAccess::DataSize(void* pvKey, int iKeySize)
+size CIndexMapAccess::DataSize(void* pvKey, size iKeySize)
 {
 	return mpcIndex->DataSize(pvKey, iKeySize);
 }
@@ -124,7 +124,7 @@ size_t CIndexMapAccess::DataSize(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexMapAccess::Remove(void* pvKey, int iKeySize)
+bool CIndexMapAccess::Remove(void* pvKey, size iKeySize)
 {
 	return mpcIndex->Remove(pvKey, iKeySize);
 }
@@ -134,7 +134,7 @@ bool CIndexMapAccess::Remove(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexMapAccess::Has(void* pvKey, int iKeySize)
+bool CIndexMapAccess::Has(void* pvKey, size iKeySize)
 {
 	return mpcIndex->HasKey(pvKey, iKeySize);
 }

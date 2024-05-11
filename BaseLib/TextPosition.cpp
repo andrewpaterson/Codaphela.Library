@@ -17,7 +17,7 @@ void STextPosition::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(char* szPos, int iLine, int iColumn)
+void STextPosition::Init(char* szPos, size iLine, size iColumn)
 {
 	this->szPos = szPos;
 	this->iLine = iLine;
@@ -29,12 +29,12 @@ void STextPosition::Init(char* szPos, int iLine, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextPosition::Init(char* szStartOfText, int iLength, char* szPosition)
+void STextPosition::Init(char* szStartOfText, size iLength, char* szPosition)
 {
 	CChars	sz;
 	char*	szLineStart;
-	int		iLineNumber;
-	int		iColumnNumber;
+	size	iLineNumber;
+	size	iColumnNumber;
 		
 	sz.Fake(szStartOfText, 0, iLength);
 	szLineStart = sz.FindLineContaining(szPosition, &iLineNumber);
@@ -87,9 +87,9 @@ void CTextPositionPrinter::Kill(void)
 void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 {
 	CChars	szParserText;
-	int		iPreviousLineEnd;
-	int		iLineEnd;
-	int		iUsedLength;
+	size	iPreviousLineEnd;
+	size	iLineEnd;
+	size	iUsedLength;
 
 	szParserText.Fake(mcText.msz, 0, mcText.miLen - 1);
 
@@ -126,7 +126,7 @@ void CTextPositionPrinter::PrintPosition(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CTextPositionPrinter::PrintPositionSingleLineParser(CChars* pszDest)
 {
-	int		iBefore;
+	size		iBefore;
 
 	pszDest->Append(&mcText);
 	iBefore = mcTextPosition.szPos - mcText.msz;
@@ -146,11 +146,11 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 	CChars				szParserLine;
 	CExternalString		pac;
 	CChars				szParserText;
-	int					iPreviousLineEnd;
-	int					iLineEnd;
-	int					iParserPos;
+	size				iPreviousLineEnd;
+	size				iLineEnd;
+	size				iParserPos;
 	CChars				szLine;
-	int					iUsedLength;
+	size				iUsedLength;
 
 	szParserText.Fake(mcText.msz, 0, mcText.miLen - 1);
 
@@ -203,8 +203,8 @@ void CTextPositionPrinter::PrintPositionMultilineParser(CChars* pszDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTextPositionPrinter::UsedLength(void)
+size CTextPositionPrinter::UsedLength(void)
 {
-	return (int)(mcTextPosition.szPos - mcText.msz);
+	return (size)(mcTextPosition.szPos - mcText.msz);
 }
 

@@ -108,7 +108,7 @@ void CDataMemory::Remove(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CDataMemory::GetSize(void* pv)
+size CDataMemory::GetSize(void* pv)
 {
 	SDataMemoryAllocation*	psAlloc;
 
@@ -336,9 +336,9 @@ void* CDataMemory::Grow(void* pvInitial, uint32 uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size_t uiDestSize, size_t uiSourceSize)
+void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize)
 {
-	size_t	uiSize;
+	size	uiSize;
 
 	uiSize = (uiDestSize < uiSourceSize) ? uiDestSize : uiSourceSize;
 	memcpy(pvDest, pvSource, uiSize);
@@ -372,7 +372,7 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	psFreeListNode = psAlloc->psFreeListNode;
 
 #ifdef _DEBUG
-	size_t	iSize;
+	size	iSize;
 	void*	pvMem;
 
 	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(uint32);
@@ -397,8 +397,8 @@ void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 {
 	bool			bResult;
 	SFreeListDesc	sDesc;
-	int				iIndex;
-	int				iStride;
+	size			iIndex;
+	size			iStride;
 
 	iStride = pcFreeList->GetElementStride() - sizeof(SDataMemoryAllocation);
 	sDesc.Init(iStride);
@@ -441,11 +441,11 @@ void CDataMemory::DeallocateInLargeList(SDataMemoryAllocation* psAlloc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CDataMemory::GetFreeList(size_t iElementSize)
+CFreeList* CDataMemory::GetFreeList(size iElementSize)
 {
 	SFreeListDesc			sDesc;
 	bool					bResult;
-	int						iIndex;
+	size					iIndex;
 	SFreeListDesc*			psDesc;
 	SMemoryFreeListParams*	psParams;
 	int						iStride;
@@ -468,18 +468,18 @@ CFreeList* CDataMemory::GetFreeList(size_t iElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CFreeList* CDataMemory::GetOrAddFreeList(size_t iElementSize)
+CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 {
 	SFreeListDesc			sDesc;
 	bool					bResult;
-	int						iIndex;
+	size					iIndex;
 	SFreeListDesc*			psDesc;
 	CFreeList*				pcList;
 	SMemoryFreeListParams*	psParams;
-	int						iFinalOffset;
-	int						iStride;
+	uint8					iFinalOffset;
+	size					iStride;
 
-	iFinalOffset = CalculateOffset(0 - ((char)sizeof(SDataMemoryAllocation)), DATA_MEMORY_ALIGNMENT);
+	iFinalOffset = CalculateOffset((int16)(0 - sizeof(SDataMemoryAllocation)), DATA_MEMORY_ALIGNMENT);
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	if (psParams == NULL)
 	{

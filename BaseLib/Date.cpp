@@ -43,9 +43,9 @@ bool CDate::Save(CFileWriter* pcFile)
 {
 	bool	bResult;
 
-	bResult = pcFile->WriteInt(msYear);
-	bResult &= pcFile->WriteInt(mcMonth);
-	bResult &= pcFile->WriteInt(mcDay);
+	bResult = pcFile->WriteShort(msYear);
+	bResult &= pcFile->WriteByte(mcMonth);
+	bResult &= pcFile->WriteByte(mcDay);
 	return bResult;
 }
 
@@ -58,9 +58,9 @@ bool CDate::Load(CFileReader* pcFile)
 {
 	bool	bResult;
 
-	bResult = pcFile->ReadInt(&msYear);
-	bResult &= pcFile->ReadInt(&mcMonth);
-	bResult &= pcFile->ReadInt(&mcDay);
+	bResult = pcFile->ReadShort(&msYear);
+	bResult &= pcFile->ReadByte(&mcMonth);
+	bResult &= pcFile->ReadByte(&mcDay);
 	return bResult;
 }
 

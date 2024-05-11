@@ -30,27 +30,27 @@ template<class M>
 class CArrayTemplatePrimitive : public CArrayTemplate<M>
 {
 public:
-	M 		GetValue(int iElementPos);
-	M		SafeGetValue(int iElementPos);
-	M 		operator[](int iElementPos);
-	void	SetValue(int iElementPos, M iElement);
+	M 		GetValue(size iElementPos);
+	M		SafeGetValue(size iElementPos);
+	M 		operator[](size iElementPos);
+	void	SetValue(size iElementPos, M iElement);
 	void 	Add(M iElement);
-	void 	Add(M* paElements, int iNumElements);
-	void	InsertAt(M iElement, int iIndex);
+	void 	Add(M* paElements, size iNumElements);
+	void	InsertAt(M iElement, size iIndex);
 	void 	SetArrayValues(M iValue);
 	void	SetArrayValues(M iStart, M iIncrement);
 	void	QuickSort(void);
 	void	BubbleSort(void);
-	int 	Find(M iValue);
-	int 	AddIfUnique(M iValue);
-	void	Swap(int iIndex1, int iIndex2);
+	size 	Find(M iValue);
+	size 	AddIfUnique(M iValue);
+	void	Swap(size iIndex1, size iIndex2);
 	void	InsertIntoSorted(M iElement, bool bOverwriteExisting);
 	bool	RemoveFromSorted(M iElement);
 	bool	RemoveDuplicatesFromSorted(void);
 	void	MakeUnique(void);
 	void	Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2);
 	bool	IsSorted(void);
-	int		FindFinalContiguousInSorted(void);
+	size	FindFinalContiguousInSorted(void);
 	M		Pop(void);
 	void 	Push(M iElement);
 };
@@ -80,7 +80,7 @@ int ComparePrimitive(const void* arg1, const void* arg2)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::GetValue(int iElementPos)
+M CArrayTemplatePrimitive<M>::GetValue(size iElementPos)
 {
 	return (*(CArrayTemplate<M>::Get(iElementPos)));
 }
@@ -91,7 +91,7 @@ M CArrayTemplatePrimitive<M>::GetValue(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::operator[](int iElementPos)
+M CArrayTemplatePrimitive<M>::operator[](size iElementPos)
 {
 	return (*(CArrayTemplate<M>::Get(iElementPos)));
 }
@@ -102,11 +102,11 @@ M CArrayTemplatePrimitive<M>::operator[](int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::SafeGetValue(int iElementPos)
+M CArrayTemplatePrimitive<M>::SafeGetValue(size iElementPos)
 {
-	if ((iElementPos >= 0) && (iElementPos < this->miUsedElements))
+	if (iElementPos < miUsedElements)
 	{
-		return ((M*)this->mpvArray)[iElementPos];
+		return ((M*)mpvArray)[iElementPos];
 	}
 	return -1;
 }
@@ -117,9 +117,9 @@ M CArrayTemplatePrimitive<M>::SafeGetValue(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePrimitive<M>::SetValue(int iElementPos, M iElement)
+void CArrayTemplatePrimitive<M>::SetValue(size iElementPos, M iElement)
 {
-	((M*)this->mpvArray)[iElementPos] = iElement;
+	((M*)mpvArray)[iElementPos] = iElement;
 }
 
 
@@ -142,9 +142,9 @@ void CArrayTemplatePrimitive<M>::Add(M iElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePrimitive<M>::Add(M* paElements, int iNumElements)
+void CArrayTemplatePrimitive<M>::Add(M* paElements, size iNumElements)
 {
-	int		i;
+	size	i;
 	M*		pvTemp;
 
 	for (i = 0; i < iNumElements; i++)
@@ -160,7 +160,7 @@ void CArrayTemplatePrimitive<M>::Add(M* paElements, int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePrimitive<M>::InsertAt(M iElement, int iIndex)
+void CArrayTemplatePrimitive<M>::InsertAt(M iElement, size iIndex)
 {
 	M*	pvTemp;
 
@@ -179,11 +179,11 @@ void CArrayTemplatePrimitive<M>::InsertAt(M iElement, int iIndex)
 template<class M>
 void CArrayTemplatePrimitive<M>::SetArrayValues(M iValue)
 {
-	int	i;
+	size	i;
 
-	for (i = 0; i < this->miUsedElements; i++)
+	for (i = 0; i < miUsedElements; i++)
 	{
-		((M*)this->mpvArray)[i] = iValue;
+		((M*)mpvArray)[i] = iValue;
 	}
 }
 
@@ -195,11 +195,11 @@ void CArrayTemplatePrimitive<M>::SetArrayValues(M iValue)
 template<class M>
 void CArrayTemplatePrimitive<M>::SetArrayValues(M iStartValue, M iIncrement)
 {
-	int	i;
+	size	i;
 
-	for (i = 0; i < this->miUsedElements; i++)
+	for (i = 0; i < miUsedElements; i++)
 	{
-		((M*)this->mpvArray)[i] = iStartValue;
+		((M*)mpvArray)[i] = iStartValue;
 		iStartValue += iIncrement;
 	}
 }
@@ -232,18 +232,18 @@ void CArrayTemplatePrimitive<M>::BubbleSort(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplatePrimitive<M>::Find(M iValue)
+size CArrayTemplatePrimitive<M>::Find(M iValue)
 {
-	int	i;
+	size	i;
 
-	for (i = 0; i < this->miUsedElements; i++)
+	for (i = 0; i < miUsedElements; i++)
 	{
-		if (((M*)this->mpvArray)[i] == iValue)
+		if (((M*)mpvArray)[i] == iValue)
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -252,12 +252,12 @@ int CArrayTemplatePrimitive<M>::Find(M iValue)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplatePrimitive<M>::AddIfUnique(M iValue)
+size CArrayTemplatePrimitive<M>::AddIfUnique(M iValue)
 {
-	int iPos;
+	size iPos;
 
 	iPos = Find(iValue);
-	if (iPos == -1)
+	if (iPos == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		Add(iValue);
 	}
@@ -270,14 +270,14 @@ int CArrayTemplatePrimitive<M>::AddIfUnique(M iValue)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePrimitive<M>::Swap(int iIndex1, int iIndex2)
+void CArrayTemplatePrimitive<M>::Swap(size iIndex1, size iIndex2)
 {
 	M*		piElement1;
 	M*		piElement2;
 	M		iTemp;
 
-	piElement1 = this->Get(iIndex1);
-	piElement2 = this->Get(iIndex2);
+	piElement1 = Get(iIndex1);
+	piElement2 = Get(iIndex2);
 	iTemp = (*piElement1);
 	(*piElement1) = (*piElement2);
 	(*piElement2) = iTemp;
@@ -291,11 +291,11 @@ void CArrayTemplatePrimitive<M>::Swap(int iIndex1, int iIndex2)
 template<class M>
 void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, bool bOverwriteExisting)
 {
-	int		iPos;
+	size	iPos;
 	bool	bExists;
 
-	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
-	if (iPos < this->miUsedElements)
+	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
+	if (iPos < miUsedElements)
 	{
 		if (!bExists)
 		{
@@ -327,13 +327,13 @@ void CArrayTemplatePrimitive<M>::InsertIntoSorted(M iElement, bool bOverwriteExi
 template<class M>
 bool CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 {
-	int		iPos;
+	size	iPos;
 	bool	bExists;
 
-	bExists = this->FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
+	bExists = FindInSorted(&iElement, ComparePrimitive<M>, &iPos);
 	if (bExists)
 	{
-		this->RemoveAt(iPos, true);
+		RemoveAt(iPos, true);
 		return true;
 	}
 	return false;
@@ -347,18 +347,18 @@ bool CArrayTemplatePrimitive<M>::RemoveFromSorted(M iElement)
 template<class M>
 bool CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
 {
-	int		i;
+	size	i;
 	M		iValue;
 	M		iCurrent;
 	bool	bAnyRemoved;
-	int     iWrite;
+	size  iWrite;
 
 	bAnyRemoved = false;
-    if (this->miUsedElements > 0)
+    if (miUsedElements > 0)
     {
         iCurrent = GetValue(0);
         iWrite = 1;
-        for (i = 1; i < this->miUsedElements; i++)
+        for (i = 1; i < miUsedElements; i++)
         {
             iValue = GetValue(i);
             if (iValue != iCurrent)
@@ -375,7 +375,7 @@ bool CArrayTemplatePrimitive<M>::RemoveDuplicatesFromSorted(void)
 
         if (bAnyRemoved)
         {
-            this->Resize(iWrite);
+            Resize(iWrite);
         }
     }
 	return bAnyRemoved;
@@ -401,10 +401,10 @@ void CArrayTemplatePrimitive<M>::MakeUnique(void)
 template<class M>
 void CArrayTemplatePrimitive<M>::Intersect(CArrayTemplatePrimitive<M>* pcArray1, CArrayTemplatePrimitive<M>* pcArray2)
 {
-	int	i;
-	int	j;
-	M	x;
-	M	y;
+	size	i;
+	size	j;
+	M		x;
+	M		y;
 
 	//This assumes that both arrays contain only unique values.
 	for (i = 0; i < pcArray1->NumElements(); i++)
@@ -432,15 +432,15 @@ void CArrayTemplatePrimitive<M>::Intersect(CArrayTemplatePrimitive<M>* pcArray1,
 template<class M>
 bool CArrayTemplatePrimitive<M>::IsSorted(void)
 {
-	int		i;
+	size	i;
 	M		iValue;
 	M		iLast;
 
-	if (this->miUsedElements > 1)
+	if (miUsedElements > 1)
 	{
 		iLast = GetValue(0);
 
-		for (i = 1; i < this->miUsedElements; i++)
+		for (i = 1; i < miUsedElements; i++)
 		{
 			iValue = GetValue(i);
 			if (i != 0)
@@ -467,25 +467,32 @@ bool CArrayTemplatePrimitive<M>::IsSorted(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
+size CArrayTemplatePrimitive<M>::FindFinalContiguousInSorted(void)
 {
-	int		i;
+	size	i;
 	M		iValue;
 
-	if (this->miUsedElements == 0)
+	if (miUsedElements == 0)
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	for (i = 0; i < this->miUsedElements; i++)
+	for (i = 0; i < miUsedElements; i++)
 	{
 		iValue = GetValue(i);
 		if (i != iValue)
 		{
-			return i-1;
+			if (i > 1)
+			{
+				return i - 1;
+			}
+			else
+			{
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
 		}
 	}
-	return this->miUsedElements-1;
+	return miUsedElements - 1;
 }
 
 

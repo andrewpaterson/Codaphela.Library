@@ -418,7 +418,7 @@ int64 CCodabase::NumIndicesCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCodabase::NumIndicesCached(size_t iSize)
+int64 CCodabase::NumIndicesCached(size iSize)
 {
 	return mcNamedIndexedData.NumIndicesCached(iSize);
 }
@@ -438,7 +438,7 @@ int64 CCodabase::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CCodabase::NumDataCached(size_t iSize)
+int64 CCodabase::NumDataCached(size iSize)
 {
 	return mcNamedIndexedData.NumDataCached(iSize);
 }
@@ -478,7 +478,7 @@ void CCodabase::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	return mcNamedIndexedData.StartIndexIteration(psIterator, pvData, piDataSize, iMaxDataSize);
 }
@@ -488,7 +488,7 @@ OIndex CCodabase::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+OIndex CCodabase::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	return mcNamedIndexedData.IndexIterate(psIterator, pvData, piDataSize, iMaxDataSize);
 }

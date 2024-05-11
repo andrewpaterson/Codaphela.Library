@@ -9,7 +9,7 @@ CIndexTreeFileDefaultDataCallback gcIndexTreeFileDefaultCallback;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CIndexTreeFileDefaultDataCallback::IndexTreeDataSize(uint16 uiSourceSize)
+size CIndexTreeFileDefaultDataCallback::IndexTreeDataSize(size uiSourceSize)
 {
 	return uiSourceSize;
 }
@@ -19,7 +19,7 @@ uint16 CIndexTreeFileDefaultDataCallback::IndexTreeDataSize(uint16 uiSourceSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFileDefaultDataCallback::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
+bool CIndexTreeFileDefaultDataCallback::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize)
 {
 	if (iFileDataSize == uiSourceDataSize)
 	{
@@ -37,7 +37,7 @@ bool CIndexTreeFileDefaultDataCallback::IndexTreeWriteData(void* pvDataBuffer, v
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFileDefaultDataCallback::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
+bool CIndexTreeFileDefaultDataCallback::IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize)
 {
 	if (uiDestDataSize == iFileDataSize)
 	{

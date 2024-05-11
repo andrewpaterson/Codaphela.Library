@@ -8,15 +8,15 @@
 
 struct SMemoryFreeListParams
 {
-	uint32	iMaxListSize;  //This is the size of the actual element in the free list including SGeneralMemoryAllocation
+	size	iMaxListSize;			//This is the size of the actual element in the free list including SGeneralMemoryAllocation
 
 								   //These exist for some binary search Compare function stuffs.
-	uint32	iMaxElementSize;
-	uint32	iMinElementSize;
+	size	iMaxElementSize;
+	size	iMinElementSize;
 
-	int				iChunkSize;
+	size	iChunkSize;
 
-	SMemoryFreeListParams*	Init(uint32 iFreeListSize, int iPrevSize, int iChunkSize, int iHeaderSize);
+	SMemoryFreeListParams*	Init(size iFreeListSize, size iPrevSize, size iChunkSize, size iHeaderSize);
 };
 
 
@@ -24,29 +24,28 @@ typedef CArrayTemplate<SMemoryFreeListParams>		CArrayFreeListParams;
 int CompareFreeListParam(const void* arg1, const void* arg2);
 
 
-
 class CMemoryFreeListParams
 {
 private:
-	CArrayFreeListParams		mcParams;
-	int							miHeaderSize;
-	uint32				muiFreeListSizeLimit;
+	CArrayFreeListParams	mcParams;
+	size					miHeaderSize;
+	size					muiFreeListSizeLimit;
 
 public:
-	void Init(int iHeaderSize, bool bDefaultFreeListParams = true);
+	void Init(size iHeaderSize, bool bDefaultFreeListParams = true);
 	void Kill(void);
 
-	void					AddParamBlock(uint32 iFreeListSize, int iPrevSize, int iChunkSize);
+	void					AddParamBlock(size iFreeListSize, size iPrevSize, size iChunkSize);
 	void					AddParamBlock(SMemoryFreeListParams* psParam);
 
-	SMemoryFreeListParams*	GetFreeListParams(int iIndex);
+	SMemoryFreeListParams*	GetFreeListParams(size iIndex);
 	bool					Read(CFileReader* pcFileReader);
 	bool					Write(CFileWriter* pcFileWriter);
-	void					SetFreeListSizeLimit(uint32 uiFreeListSizeLimit);
-	SMemoryFreeListParams*	GetFreeListParamsForSize(size_t iElementSize);
-	uint32			GetFreeListSizeLimit(void);
-	uint32			GetMaxFreeListElementSize(void);
-	int						NumParams(void);
+	void					SetFreeListSizeLimit(size uiFreeListSizeLimit);
+	SMemoryFreeListParams*	GetFreeListParamsForSize(size iElementSize);
+	size					GetFreeListSizeLimit(void);
+	size					GetMaxFreeListElementSize(void);
+	size					NumParams(void);
 
 private:
 	void					InitFreeListParams(void);

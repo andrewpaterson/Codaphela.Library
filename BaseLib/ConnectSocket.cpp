@@ -55,7 +55,7 @@ void CConnectSocket::Kill(void)
 bool CConnectSocket::Connect(void)
 {
 	addrinfo*	sResult;
-	addrinfo*	ptr;
+	addrinfo*	pAddrInfo;
 	addrinfo	hints;
 	int			iResult;
 
@@ -74,10 +74,10 @@ bool CConnectSocket::Connect(void)
 	}
 
 	// Attempt to connect to an address until one succeeds
-	for (ptr = sResult; ptr != NULL; ptr = ptr->ai_next) 
+	for (pAddrInfo = sResult; pAddrInfo != NULL; pAddrInfo = pAddrInfo->ai_next) 
 	{
 		// Create a SOCKET for connecting to server
-		mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+		mSocket = socket(pAddrInfo->ai_family, pAddrInfo->ai_socktype, pAddrInfo->ai_protocol);
 		if (mSocket == INVALID_SOCKET) 
 		{
 			gcLogger.Error("socket failed with error");
@@ -85,7 +85,7 @@ bool CConnectSocket::Connect(void)
 		}
 
 		// Connect to server.
-		iResult = connect(mSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
+		iResult = connect(mSocket, pAddrInfo->ai_addr, (int)pAddrInfo->ai_addrlen);
 
 		if (iResult == SOCKET_ERROR)
 		{

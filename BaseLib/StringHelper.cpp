@@ -22,8 +22,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include <string.h>
 #include <ctype.h>
+#include "PointerFunctions.h"
 #include "DataTypes.h"
 #include "EscapeCodes.h"
+#include "ArrayElementNotFound.h"
 #include "StringHelper.h"
 
 
@@ -107,12 +109,12 @@ int StringInsensitiveCompare(const char* ps1, const char* ps2)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-int MemICmp(const void* pv1, const void* pv2, int iLength)
+int MemICmp(const void* pv1, const void* pv2, size iLength)
 {
-    int             i;
-    int             c1;
-    int             c2;
-    int             iDiff;
+	size	i;
+    char	c1;
+	char	c2;
+	char	iDiff;
 
     if ((pv1 == NULL) && (pv2 == NULL))
     {
@@ -154,9 +156,9 @@ int MemICmp(const void* pv1, const void* pv2, int iLength)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-int MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2)
+int MemCmp(const void* pv1, size iLen1, const void* pv2, size iLen2)
 {
-	int		iSize;
+	size	iSize;
 	int		iResult;
 
 	iSize = iLen1;
@@ -198,14 +200,14 @@ int MemCmp(const void* pv1, int iLen1, const void* pv2, int iLen2)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-void MemSwp(const void* pv1, const void* pv2, size_t uiLength)
+void MemSwp(const void* pv1, const void* pv2, size uiLength)
 {
-	int		i;
-	int		iIntLength;
+	size	i;
+	size	iIntLength;
 	int		iTemp;
-	int		iRemainder;
+	size	iRemainder;
 	char	cTemp;
-	int		iCharIndex;
+	size	iCharIndex;
 	
 	iIntLength = uiLength / sizeof(int);
 	iRemainder = uiLength % sizeof(int);
@@ -230,12 +232,127 @@ void MemSwp(const void* pv1, const void* pv2, size_t uiLength)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, int iValue, int iBase)
+char* ByteToString(char* szDest, size iDestLength, int8 iValue, uint16 iBase)
 {
-	int		iQuotient;
-	int     iDigit;
-	int     iPos;
-	int		bNegative;
+	return ShortToString(szDest, iDestLength, (int16)iValue, iBase);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+char* ByteToString(char* szDest, size iDestLength, uint8 iValue, uint16 iBase)
+{
+	return ShortToString(szDest, iDestLength, (uint16)iValue, iBase);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+char* ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase)
+{
+	int16	iQuotient;
+	uint16  iDigit;
+	size	iPos;
+	bool	bNegative;
+
+	if (iBase != 10)
+	{
+		return ShortToString(szDest, iDestLength, (uint16)iValue, iBase);
+	}
+
+	bNegative = iValue < 0;
+	if (bNegative)
+	{
+		if (iValue == MIN_SHORT)
+		{
+			strcpy(szDest, "-32768");
+			return szDest;
+		}
+		iValue *= -1;
+	}
+	iQuotient = iValue;
+	iPos = 0;
+
+	do
+	{
+		iDigit = iQuotient % iBase;
+		iQuotient /= iBase;
+
+		szDest[iPos] = gszDigits[iDigit];
+		iPos++;
+
+	}
+	while (iQuotient != 0);
+
+	if (bNegative)
+	{
+		szDest[iPos] = '-';
+		iPos++;
+	}
+
+	szDest[iPos] = '\0';
+
+	//Reverse the string.
+	StrRev(szDest, iPos);
+
+	return szDest;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+char* ShortToString(char* szDest, size iDestLength, uint16 iValue, uint16 iBase)
+{
+	uint16	iQuotient;
+	uint16	iDigit;
+	size	iPos;
+
+	if (iBase < 2 || iBase > 16)
+	{
+		szDest[0] = 0;
+		return szDest;
+	}
+
+	iQuotient = iValue;
+	iPos = 0;
+
+	do
+	{
+		iDigit = iQuotient % iBase;
+		iQuotient /= iBase;
+
+		szDest[iPos] = gszDigits[iDigit];
+		iPos++;
+
+	}
+	while (iQuotient != 0);
+
+
+	szDest[iPos] = '\0';
+
+	//Reverse the string.
+	StrRev(szDest, iPos);
+
+	return szDest;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
+{
+	int32	iQuotient;
+	uint16  iDigit;
+	size	iPos;
+	bool		bNegative;
 
 	if (iBase != 10)
 	{
@@ -284,11 +401,11 @@ char* IntToString(char* szDest, int iDestLength, int iValue, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, uint32 iValue, int iBase)
+char* IntToString(char* szDest, size iDestLength, uint32 iValue, uint16 iBase)
 {
 	uint32	iQuotient;
-	uint32    iDigit;
-	uint32    iPos;
+	uint16	iDigit;
+	size	iPos;
 
 	if (iBase < 2 || iBase > 16)
 	{
@@ -323,11 +440,11 @@ char* IntToString(char* szDest, int iDestLength, uint32 iValue, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
+char* LongToString(char* szDest, size iDestLength, uint64 ulliValue, uint16 iBase)
 {
-	uint64			ulliQuotient;
-	uint32    iDigit;
-	uint32    iPos;
+	uint64	ulliQuotient;
+	uint16	iDigit;
+	size	iPos;
 
 	if (iBase < 2 || iBase > 16)
 	{
@@ -362,16 +479,16 @@ char* IntToString(char* szDest, int iDestLength, uint64 ulliValue, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase)
+char* LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase)
 {
 	int64	lliQuotient;
-	int		iDigit;
-	int		iPos;
-	int		bNegative;
+	uint16	iDigit;
+	size	iPos;
+	bool	bNegative;
 
 	if (iBase != 10)
 	{
-		return IntToString(szDest, iDestLength, (uint64)lliValue, iBase);
+		return LongToString(szDest, iDestLength, (uint64)lliValue, iBase);
 	}
 
 	bNegative = lliValue < 0;
@@ -413,10 +530,10 @@ char* IntToString(char* szDest, int iDestLength, int64 lliValue, int iBase)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-char* StrRev(char* szString, int iLength)
+char* StrRev(char* szString, size iLength)
 {
-	int  i;
-	char c;
+	size	i;
+	char	c;
 
 	if (iLength <= 1)
 	{
@@ -439,9 +556,9 @@ char* StrRev(char* szString, int iLength)
 ////////////////////////////////////////////////////////////////////////////////////
 char* StrRev(char* szString)
 {
-	int iLength;
+	size iLength;
 
-	iLength = (int)strlen(szString);
+	iLength = strlen(szString);
 	return StrRev(szString, iLength);
 }
 
@@ -452,18 +569,18 @@ char* StrRev(char* szString)
 ////////////////////////////////////////////////////////////////////////////////////
 char* StrIStr(char* ps1, const char* ps2)
 {
-    int iS1Len;
-    int iS2Len;
-    int iSearchCount;
-    int i;
+	size iS1Len;
+	size iS2Len;
+	size iSearchCount;
+	size i;
 
     if ((ps1 == NULL) || (ps2 == NULL))
     {
         return NULL;
     }
 
-    iS1Len = (int)strlen(ps1);
-    iS2Len = (int)strlen(ps2);
+    iS1Len = strlen(ps1);
+    iS2Len = strlen(ps2);
 
     if ((iS1Len == 0) || (iS2Len == 0))
     {
@@ -495,22 +612,25 @@ char* StrIStr(char* ps1, const char* ps2)
 ////////////////////////////////////////////////////////////////////////////////////
 const char* FindChar(const char* szString, char c, bool bReverse)
 {
-	int iLen;
-	int i;
+	size	iLen;
+	size	i;
 
 	if (szString)
 	{
-		iLen = (int)strlen(szString);
+		iLen = strlen(szString);
 
 		if (bReverse)
 		{
-			for (i =  iLen-1; i >= 0; i--)
+			i = iLen;
+			do
 			{
+				i--;
 				if (szString[i] == c)
 				{
 					return &szString[i];
 				}
 			}
+			while (i != 0);
 		}
 		else
 		{
@@ -526,14 +646,16 @@ const char* FindChar(const char* szString, char c, bool bReverse)
 	return NULL;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int FindCharIndex(char chr, char* str, int index)
-{
-	int i = 0;
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size FindCharIndex(char chr, char* str, size index)
+{
+	size i;
+
+	i = 0;
 	str = str + index;
 	do
 	{
@@ -552,13 +674,17 @@ int FindCharIndex(char chr, char* str, int index)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size_t uiMaxLength)
+void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size uiMaxLength)
 {
-	uint32	uiSourceLength;
-	uint32	uiLeadSpaces = 0;
-	uint32	uiLastChar = 0;
-	uint32	i;
-	char* szFirstCharOfDest = szDest;
+	size	uiSourceLength;
+	size	uiLeadSpaces;
+	size	uiLastChar;
+	size	i;
+	char*	szFirstCharOfDest;
+
+	uiLeadSpaces = 0;
+	uiLastChar = 0;
+	szFirstCharOfDest = szDest;
 
 	uiSourceLength = strlen(szSource);
 
@@ -573,7 +699,9 @@ void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size_t uiMax
 		return;
 	}
 
-	for (uiLastChar = uiSourceLength - 1; uiLastChar > 0 && (szSource[uiLastChar] == ' '); uiLastChar--);
+	uiLastChar = uiSourceLength;
+	do	uiLastChar--;
+	while (uiLastChar != 0 && (szSource[uiLastChar] == ' '));
 
 	for (i = uiLeadSpaces; i <= uiLastChar; i++)
 	{
@@ -593,11 +721,11 @@ void StrCpySafeStripSurroundingSpaces(char* szDest, char* szSource, size_t uiMax
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StrCpySafe(char* szDest, const char* szSource, int iDestLength, int* piSourceLength)
+char* StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piSourceLength)
 {
-	int iLen;
+	size iLen;
 
-	iLen = (int)strlen(szSource);
+	iLen = strlen(szSource);
 	SafeAssign(piSourceLength, iLen);
 
 	if (iDestLength == 0)
@@ -622,13 +750,13 @@ char* StrCpySafe(char* szDest, const char* szSource, int iDestLength, int* piSou
 //////////////////////////////////////////////////////////////////////////
 void ToLower(char* szString)
 {
-	int		iLen;	
-	int		i;
+	size	iLen;
+	size	i;
 	char	c;
 	
 	if (szString)
 	{
-		iLen = (int)strlen(szString);
+		iLen = strlen(szString);
 		for (i = 0; i < iLen; i++)
 		{
 			c = szString[i];
@@ -647,13 +775,13 @@ void ToLower(char* szString)
 //////////////////////////////////////////////////////////////////////////
 void ToUpper(char* szString)
 {
-	int		iLen;	
-	int		i;
+	size	iLen;
+	size	i;
 	char	c;
 
 	if (szString)
 	{
-		iLen = (int)strlen(szString);
+		iLen = strlen(szString);
 		for (i = 0; i < iLen; i++)
 		{
 			c = szString[i];
@@ -699,19 +827,19 @@ char ToUpper(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int StrEmpty(const char* szString)
+bool StrEmpty(const char* szString)
 {
 	if (szString == NULL)
 	{
-		return 1;
+		return true;
 	}
 	else if (*szString == '\0')
 	{
-		return 1;
+		return true;
 	}
 	else
 	{
-		return 0;
+		return false;
 	}
 }
 
@@ -720,11 +848,11 @@ int StrEmpty(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int StrPrintable(const char* szString)
+size StrPrintable(const char* szString)
 {
-	int				i;
+	size	i;
 	uint8	c;
-	int				iPrintable;
+	size	iPrintable;
 
 	if (StrEmpty(szString))
 	{
@@ -753,11 +881,11 @@ int StrPrintable(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int StrPrintable(const char* szString, int iLength)
+size StrPrintable(const char* szString, size iLength)
 {
-	int				i;
+	size	i;
 	uint8	c;
-	int				iPrintable;
+	size	iPrintable;
 
 	iPrintable = 0;
 	for (i = 0; i < iLength; i++)
@@ -777,9 +905,9 @@ int StrPrintable(const char* szString, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t StrLen(const char* szString, const char* szLastCharInclusive)
+size StrLen(const char* szString, const char* szLastCharInclusive)
 {
-	ptrdiff_t i;
+	ptr i;
 
 	if (szLastCharInclusive)
 	{
@@ -823,7 +951,7 @@ char* NullToEmpty(const char* szString)
 //////////////////////////////////////////////////////////////////////////
 char* StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive)
 {
-	size_t	uiLength;
+	size	uiLength;
 
 	uiLength = StrLen(szString, szLastCharInclusive);
 	memcpy(szDest, szString, uiLength);
@@ -862,15 +990,15 @@ char GetHexChar(char c4Bit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
+char* FlagsToString(char* szDest, size iDestLength, uint8* pvMem, size iByteCount)
 {
-	int16		iIndex;
-	char			iBit;
-	int				i;
-	char			iByte;
-	char			iBitIndex;
+	size	iIndex;
+	uint8	iBit;
+	size	i;
+	size	iByte;
+	size	iBitIndex;
 	uint8	iBitMask;
-	bool			bAppendedSpace;
+	bool	bAppendedSpace;
 
 	if ((iDestLength == 0) || (iByteCount > 16))
 	{
@@ -907,7 +1035,7 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 			bAppendedSpace = true;
 			INCREMENT_INDEX_BREAK_ON_MAX(iIndex, iDestLength);
 
-			if (iByte < 0)
+			if (iByte == ARRAY_ELEMENT_NOT_FOUND)
 			{
 				break;
 			}
@@ -925,14 +1053,13 @@ char* FlagsToString(char* szDest, int iDestLength, char* pvMem, int iByteCount)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FlagsToString(char* szDest, int iDestLength, int iFlags)
+char* FlagsToString(char* szDest, size iDestLength, int32 iFlags)
 {
-	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 4);
+	return FlagsToString(szDest, iDestLength, (uint8*)&iFlags, 4);
 }
 
 
@@ -940,9 +1067,9 @@ char* FlagsToString(char* szDest, int iDestLength, int iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FlagsToString(char* szDest, int iDestLength, int16 iFlags)
+char* FlagsToString(char* szDest, size iDestLength, int16 iFlags)
 {
-	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 2);
+	return FlagsToString(szDest, iDestLength, (uint8*)&iFlags, 2);
 }
 
 
@@ -950,9 +1077,9 @@ char* FlagsToString(char* szDest, int iDestLength, int16 iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FlagsToString(char* szDest, int iDestLength, char iFlags)
+char* FlagsToString(char* szDest, size iDestLength, int8 iFlags)
 {
-	return FlagsToString(szDest, iDestLength, (char*)&iFlags, 1);
+	return FlagsToString(szDest, iDestLength, (uint8*)&iFlags, 1);
 }
 
 
@@ -960,7 +1087,37 @@ char* FlagsToString(char* szDest, int iDestLength, char iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(char* szDest, int iDestLength, char c)
+char* FlagsToString(char* szDest, size iDestLength, uint32 iFlags)
+{
+	return FlagsToString(szDest, iDestLength, (uint8*)&iFlags, 4);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FlagsToString(char* szDest, size iDestLength, uint16 iFlags)
+{
+	return FlagsToString(szDest, iDestLength, (uint8*)&iFlags, 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* FlagsToString(char* szDest, size iDestLength, uint8 iFlags)
+{
+	return FlagsToString(szDest, iDestLength, (uint8*)&iFlags, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CharToString(char* szDest, size iDestLength, char c)
 {
 	return CharToString(szDest, iDestLength, (uint8)c);
 }
@@ -970,11 +1127,11 @@ char* CharToString(char* szDest, int iDestLength, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(char* szDest, int iDestLength, uint8 c)
+char* CharToString(char* szDest, size iDestLength, uint8 c)
 {
 	char		sz[10];
-	int16	iIndex;
-	int			iLength;
+	size		iIndex;
+	size		iLength;
 
 	if (iDestLength == 0)
 	{
@@ -1005,11 +1162,11 @@ char* CharToString(char* szDest, int iDestLength, uint8 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CharToString(char* szDest, int iDestLength, char16 c)
+char* CharToString(char* szDest, size iDestLength, char16 c)
 {
-	char		sz[10];
-	int16	iIndex;
-	int			iLength;
+	char	sz[10];
+	size	iIndex;
+	size	iLength;
 
 	if (iDestLength == 0)
 	{
@@ -1040,7 +1197,7 @@ char* CharToString(char* szDest, int iDestLength, char16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* BoolToString(char* szDest, int iDestLength, bool b)
+char* BoolToString(char* szDest, size iDestLength, bool b)
 {
 	if (b)
 	{

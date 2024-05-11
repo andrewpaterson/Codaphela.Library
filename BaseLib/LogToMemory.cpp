@@ -24,7 +24,7 @@ void CLogToMemory::Start(bool bSetSilent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLogToMemory::Stop(char* szOutput, size_t uiOutputSize)
+void CLogToMemory::Stop(char* szOutput, size uiOutputSize)
 {
 	CFileBasic	cFileBasic;
 

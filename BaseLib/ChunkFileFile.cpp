@@ -75,17 +75,17 @@ bool CChunkFileFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CChunkFileFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
+size CChunkFileFile::Read(void* pvBuffer, size iSize, size iCount)
 {
-	filePos		iRemain;
-	filePos		iReadSize;
+	size	iRemain;
+	size	iReadSize;
 
 	if (!mbReadMode)
 	{
 		return 0;
 	}
 
-	iRemain = miChunkSize - Tell();
+	iRemain = (size)(miChunkSize - Tell());
 
 	iReadSize = iSize * iCount;
 
@@ -137,7 +137,7 @@ bool CChunkFileFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CChunkFileFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
+size CChunkFileFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
 	if (!mbWriteMode)
 	{

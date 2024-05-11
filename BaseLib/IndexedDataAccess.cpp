@@ -69,7 +69,7 @@ bool CIndexedDataAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+bool CIndexedDataAccess::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	OIndex	oi;
 
@@ -89,7 +89,7 @@ bool CIndexedDataAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t iDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CIndexedDataAccess::Get(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	OIndex	oi;
 
@@ -109,7 +109,7 @@ bool CIndexedDataAccess::Get(void* pvKey, int iKeySize, void* pvData, size_t* pi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataAccess::DataSize(void* pvKey, int iKeySize)
+size CIndexedDataAccess::DataSize(void* pvKey, size iKeySize)
 {
 	OIndex			oi;
 	uint32	uiDataSize;
@@ -137,7 +137,7 @@ int CIndexedDataAccess::DataSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Remove(void* pvKey, size iKeySize)
 {
 	OIndex	oi;
 
@@ -157,7 +157,7 @@ bool CIndexedDataAccess::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Has(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Has(void* pvKey, size iKeySize)
 {
 	OIndex	oi;
 
@@ -177,7 +177,7 @@ bool CIndexedDataAccess::Has(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Flush(void* pvKey, size iKeySize)
 {
 	OIndex	oi;
 
@@ -197,7 +197,7 @@ bool CIndexedDataAccess::Flush(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataAccess::Evict(void* pvKey, int iKeySize)
+bool CIndexedDataAccess::Evict(void* pvKey, size iKeySize)
 {
 	OIndex	oi;
 

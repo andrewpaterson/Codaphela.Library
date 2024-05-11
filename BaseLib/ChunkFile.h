@@ -38,53 +38,53 @@ protected:
 	bool				mbLastHashCheck;
 	CMapStringInt		mmsziNames;
 	SChunkFileHeader	msHeader;
-	int					miLastName;
+	chunkName			miLastName;
 	
 	bool	__PrivateReadChunkBegin(void);
 	bool	__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex);
 
 public:
-	void	_Init(void);
-	void	Init(CAbstractFile*	pcFile);
-	void	Kill(void);
+	void		_Init(void);
+	void		Init(CAbstractFile*	pcFile);
+	void		Kill(void);
 
-	bool	ReadOpen(void);
-	bool	ReadClose(void);
+	bool		ReadOpen(void);
+	bool		ReadClose(void);
 
-	bool	WriteOpen(void);
-	bool	WriteOpen(int iUserID);
-	bool	WriteClose(void);
+	bool		WriteOpen(void);
+	bool		WriteOpen(chunkName iUserID);
+	bool		WriteClose(void);
 
-	int		FindFirstChunkWithName(char* szName);
-	int		FindNextChunkWithName(void);
-	int		GetNumChunks(void);
-	void*	GetMD5Hash(void);
-	bool	ContainsChunks(void);
+	size		FindFirstChunkWithName(char* szName);
+	size		FindNextChunkWithName(void);
+	size		GetNumChunks(void);
+	void*		GetMD5Hash(void);
+	bool		ContainsChunks(void);
 
-	bool	ReadChunkBegin(int iChunkIndex);
-	bool	ReadChunkBegin(char* szName);
-	bool	ReadChunkEnd(void);
-	bool	ReadChunkEnd(int iNumChunksToEnd);
-	bool	ReadChunkEndAll(void);
+	bool		ReadChunkBegin(size iChunkIndex);
+	bool		ReadChunkBegin(char* szName);
+	bool		ReadChunkEnd(void);
+	bool		ReadChunkEnd(size iNumChunksToEnd);
+	bool		ReadChunkEndAll(void);
 
-	bool	WriteChunkBegin(void);
-	bool	WriteChunkEnd(char* szChunkName);
+	bool		WriteChunkBegin(void);
+	bool		WriteChunkEnd(char* szChunkName);
 
-	int		StackDepth(void);
-	filePos	ChunkSize(void);
-	filePos	ChunkStart(void);
+	size		StackDepth(void);
+	filePos		ChunkSize(void);
+	filePos		ChunkStart(void);
 	
-	char*	GetTailChunkNameForIndex(int iIndex);
-	bool	SeekStart(void);
+	char*		GetTailChunkNameForIndex(size iIndex);
+	bool		SeekStart(void);
 
 protected:
-	int		FindFirstChunkWithID(int iName);
-	int		GetNumChunksWithID(int iName);
-	bool	ReadChunkNames(void);
-	bool	WriteChunkNames(void);
-	bool	WriteChunkEnd(int iChunkName);
-	bool	WriteBasic(const void* pvSource, filePos iSize);
-	int		GetTailChunkNameIndex(int iChunkNum);
+	size		FindFirstChunkWithID(chunkName iName);
+	size		GetNumChunksWithID(chunkName iName);
+	bool		ReadChunkNames(void);
+	bool		WriteChunkNames(void);
+	bool		WriteChunkEnd(chunkName iChunkName);
+	bool		WriteBasic(const void* pvSource, size uiSize);
+	chunkName	GetTailChunkNameIndex(size iChunkNum);
 };
 
 

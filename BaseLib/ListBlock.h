@@ -4,8 +4,8 @@
 #include "FreeList.h"
 
 
-//Elements in a list are always of the same size.  List elements are indexed from the start of the list.  
-//Elements in a list can be different sizes.  List elements are indexed from the start of the list.  
+//Elements in an CListBlock are always of the same size.  List elements are indexed from the start of the list.  
+//Elements in a CListVariable can be different sizes.  List elements are indexed from the start of the list.  
 class CListBlock
 {
 protected:
@@ -13,29 +13,29 @@ protected:
 	CArrayVoidPtr	mapIndices;
 
 public:
-	void	Init(int iElementSize);
-	void	Init(int iElementSize, int iAlignment);
-	void	Init(int iElementSize, int iAlignment, int iOffset);
+	void	Init(size iElementSize);
+	void	Init(size iElementSize, uint16 iAlignment);
+	void	Init(size iElementSize, uint16 iAlignment, int16 iOffset);
 	void	Kill(void);
 
-	int		NumElements(void);
+	size	NumElements(void);
 	bool	IsEmpty(void);
 	bool	IsNotEmpty(void);
-	int 	ElementSize(void);
-	int		NumBlocks(void);
-	int		NumElementsFromFreeList(void);
+	size 	ElementSize(void);
+	size	NumBlocks(void);
+	size	NumElementsFromFreeList(void);
 
 	void*	Add(void);
 	void*	Add(void* pvData);
-	void* 	AddGetIndex(int* piIndex);
+	void* 	AddGetIndex(size* piIndex);
 
-	void*	Get(int iIndex);
-	void*	SafeGet(int iIndex);
-	int		GetIndex(void* pvElement);
+	void*	Get(size iIndex);
+	void*	SafeGet(size iIndex);
+	size	GetIndex(void* pvElement);
 	void*	Tail(void);
 
-	void* 	InsertAt(int iIndex);
-	void* 	InsertAt(void* pvData, int iIndex);
+	void* 	InsertAt(size iIndex);
+	void* 	InsertAt(void* pvData, size iIndex);
 
 	bool	Pop(void* pvData);
 	bool	Pop(void);
@@ -44,15 +44,15 @@ public:
 
 	void	Reverse(void);
 
-	bool	Contains(void* pData);
+	bool	Contains(void* pvData);
 
-	void 	RemoveAt(int iIndex, bool bPreserveOrder = true);
-	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
+	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
+	void	RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder = true);
 	void 	RemoveTail(void);
 
-	bool	Set(int iIndex, void* pvData);
-	bool	SafeSet(int iIndex, void* pvData);
-	void	Swap(int iIndex1, int iIndex2);
+	bool	Set(size iIndex, void* pvData);
+	bool	SafeSet(size iIndex, void* pvData);
+	void	Swap(size iIndex1, size iIndex2);
 
 protected:
 	void*	Dereference(void** pv);

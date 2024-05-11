@@ -31,15 +31,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SCSVRowEditable
 {
-	int				iFileOffset;
+	filePos			iFileOffset;
 	CArrayChars		aszData;
 
 	void 		Init(void);
 	void 		Kill(void);
 	void 		Dump(void);
-	int	 		IndexOf(char* szString);
-	int			NumCells(void);
-	CChars*		Get(int iIndex);
+	size	 	IndexOf(char* szString);
+	size		NumCells(void);
+	CChars*		Get(size iIndex);
 };
 
 
@@ -57,11 +57,11 @@ public:
 
 	bool 				ReadLine(void);
 	bool				ReadLine(CChars* szString);
-	bool 				ReadLine(int iFileOffset, SCSVRowEditable* psCSVRow);
+	bool 				ReadLine(filePos iFileOffset, SCSVRowEditable* psCSVRow);
 	void 				ReadAllLines(void);
 	void 				Dump(void);
-	int					NumRows(void);
-	SCSVRowEditable*	Get(int iRowNum);
+	size				NumRows(void);
+	SCSVRowEditable*	Get(size iRowNum);
 };
 
 

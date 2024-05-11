@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
+void CMemoryCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize)
 {
 	CCircularMemoryList::Init(malloc(uiCacheSize + sizeof(SCircularMemoryList)), uiCacheSize + sizeof(SCircularMemoryList), iDescriptorSize);
 	mpcEvictionCallback = pcEvictionCallback;
@@ -56,7 +56,7 @@ void CMemoryCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::Resize(size_t uiNewCacheSize)
+void CMemoryCache::Resize(size uiNewCacheSize)
 {
 	SCircularMemoryList*	pvNewDetail;
 
@@ -81,8 +81,8 @@ void CMemoryCache::Resize(size_t uiNewCacheSize)
 bool CMemoryCache::PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult)
 {
 	SMemoryCacheDescriptor*		psCacheBasedDescriptor;
-	size_t						iCachedSize;
-	size_t						iRemainingAfterLast;
+	size						iCachedSize;
+	size						iRemainingAfterLast;
 	SMemoryCacheDescriptor*		psTail;
 
 	iCachedSize = miDescriptorSize + pcPreAllocationResult->muiSize;
@@ -171,7 +171,7 @@ void* CMemoryCache::PostAllocate(CMemoryCacheAllocation* pcPreAllocated)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryCache::Allocate(size_t uiDataSize)
+void* CMemoryCache::Allocate(size uiDataSize)
 {
 	CMemoryCacheAllocation	cPreAllocation;
 	bool					bResult;
@@ -212,7 +212,7 @@ void* CMemoryCache::Allocate(size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryCache::CanCache(size_t uiDataSize)
+bool CMemoryCache::CanCache(size uiDataSize)
 {
 	return (miDescriptorSize + uiDataSize) <= mpsDetail->muiCacheSize;
 }
@@ -222,7 +222,7 @@ bool CMemoryCache::CanCache(size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryCache::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
+void CMemoryCache::FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors)
 {
 	SMemoryCacheDescriptor*	psCacheBasedNext;
 

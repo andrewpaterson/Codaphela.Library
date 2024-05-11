@@ -29,7 +29,9 @@ class CMapStringString : public CMapStringBlock
 {
 public:
 	char*	Get(char* szKey);
+	char*	Get(uint8* szKey);
 	bool	Put(char* szKey, char* szValue);
+	bool	Put(uint8* szKey, char* szValue);
 	void	Dump(void);
 };
 

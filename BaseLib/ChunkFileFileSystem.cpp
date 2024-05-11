@@ -64,13 +64,18 @@ void CChunkFileFileSystem::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChunkFileFileSystem::FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames)
+size CChunkFileFileSystem::FindChunkNamesMatching(CArrayChars* paszOpenChunkNames, CArrayChars* paszChunkNames)
 {
-	int				i;
+	size			i;
 	CChars*			pszNewName;
 	CChars*			pszOpenName;
+	size			uiChunkNames;
+	size			uiOpenChunkNames;
 
-	for (i = 0; i < paszChunkNames->NumElements() && i < paszOpenChunkNames->NumElements(); i++)
+	uiChunkNames = paszChunkNames->NumElements();
+	uiOpenChunkNames = paszOpenChunkNames->NumElements();
+
+	for (i = 0; (i < uiChunkNames) && (i < uiOpenChunkNames); i++)
 	{
 		pszNewName = paszChunkNames->Get(i);
 		pszOpenName = paszOpenChunkNames->Get(i);
@@ -87,16 +92,23 @@ int CChunkFileFileSystem::FindChunkNamesMatching(CArrayChars* paszOpenChunkNames
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileFileSystem::WriteUnmatchedChunkEnds(int iMatchingOpen)
+bool CChunkFileFileSystem::WriteUnmatchedChunkEnds(size iMatchingOpen)
 {
-	int			i;
+	size		i;
 	CChars*		pszOpenName;
 
-	for (i = maszOpenChunkNames.NumElements()-1; i >= iMatchingOpen; i--)
+	i = maszOpenChunkNames.NumElements();
+	if ((i != 0) && (i > iMatchingOpen))
 	{
-		pszOpenName = maszOpenChunkNames.Get(i);
-		ReturnOnFalse(WriteChunkEnd(pszOpenName->Text()));
+		do
+		{
+			i--;
+			pszOpenName = maszOpenChunkNames.Get(i);
+			ReturnOnFalse(WriteChunkEnd(pszOpenName->Text()));
+		}
+		while ((i != 0) && (i > iMatchingOpen));
 	}
+
 	return true;
 }
 
@@ -105,12 +117,14 @@ bool CChunkFileFileSystem::WriteUnmatchedChunkEnds(int iMatchingOpen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileFileSystem::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChars* paszChunkNames)
+bool CChunkFileFileSystem::WriteNewUnmatchedChunks(size iMatchingOpen, CArrayChars* paszChunkNames)
 {
-	int			i;
+	size		i;
 	CChars*		pszOpenName;
+	size		uiChunkNames;
 
-	for (i = iMatchingOpen; i < paszChunkNames->NumElements(); i++)
+	uiChunkNames = paszChunkNames->NumElements();
+	for (i = iMatchingOpen; i < uiChunkNames; i++)
 	{
 		pszOpenName = paszChunkNames->Get(i);
 		ReturnOnFalse(WriteChunkBegin());
@@ -125,8 +139,8 @@ bool CChunkFileFileSystem::WriteNewUnmatchedChunks(int iMatchingOpen, CArrayChar
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFileFileSystem::WriteChunkBegin(char* szChunkName)
 {
-	CArrayChars	aszChunkNames;
-	int				iMatchingOpen;
+	CArrayChars		aszChunkNames;
+	size			iMatchingOpen;
 
 	aszChunkNames.Init();
 	aszChunkNames.Split(szChunkName, '/');
@@ -193,7 +207,7 @@ bool CChunkFileFileSystem::WriteOpen(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFileFileSystem::WriteOpen(int iUserID)
+bool CChunkFileFileSystem::WriteOpen(uint32 iUserID)
 {
 	return mpcChunkFile->WriteOpen(iUserID);
 }
@@ -240,12 +254,12 @@ bool CChunkFileFileSystem::WriteChunkEnd(char* szChunkName)
 bool CChunkFileFileSystem::ReadChunkBegin(char* szChunkName)
 {
 	CArrayChars	aszChunkNames;
-	int				iDepth;
-	CChars*			pszName;
-	int				iIndex;
-	bool*			abFoundFirst;
-	int				iLength;
-	bool			bResult;
+	size		iDepth;
+	CChars*		pszName;
+	size		iIndex;
+	bool*		abFoundFirst;
+	size		iLength;
+	bool		bResult;
 
 	if (!szChunkName)
 	{
@@ -340,10 +354,10 @@ char* CChunkFileFileSystem::StartNameIteration(SChunkFilenameIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 char* CChunkFileFileSystem::IterateName(SChunkFilenameIterator* psIter)
 {
-	int		iNumChunks;
-	char*	szName;
-	int*	piIndex;
-	int		iLength;
+	size		iNumChunks;
+	char*		szName;
+	size*		piIndex;
+	size		iLength;
 
 	if (psIter->bDone)
 	{
@@ -430,7 +444,7 @@ CChunkFile* CChunkFileFileSystem::GetChunkFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CChunkFileFileSystem::Write(const void* pvSource, filePos iSize, filePos iCount)
+size CChunkFileFileSystem::Write(const void* pvSource, size iSize, size iCount)
 {
 	return mpcChunkFile->Write(pvSource, iSize, iCount);
 }
@@ -440,7 +454,7 @@ filePos CChunkFileFileSystem::Write(const void* pvSource, filePos iSize, filePos
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CChunkFileFileSystem::Read(void* pvDest, filePos iSize, filePos iCount)
+size CChunkFileFileSystem::Read(void* pvDest, size iSize, size iCount)
 {
 	return mpcChunkFile->Read(pvDest, iSize, iCount);
 }

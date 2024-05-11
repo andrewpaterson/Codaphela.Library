@@ -17,7 +17,7 @@ CONSTRUCTABLE(CNamedIndexesConfig);
 public:
 	virtual void									Kill(void);
 
-	virtual size_t									GetIndexCacheSize(void) =0;
+	virtual size									GetIndexCacheSize(void) =0;
 	virtual CLifeInit<CIndexTreeEvictionStrategy>	GetEvictionStrategy(void) =0;
 	virtual EIndexWriteThrough						GetWriteThrough(void) =0;
 	virtual CIndexTreeEvictionCallback*				GetIndexTreeEvictionCallback(void) =0;

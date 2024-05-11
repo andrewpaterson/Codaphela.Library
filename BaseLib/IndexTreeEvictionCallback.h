@@ -5,7 +5,7 @@
 class CIndexTreeEvictionCallback
 {
 public:
-	virtual bool IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize) =0;
+	virtual bool IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize) =0;
 };
 
 

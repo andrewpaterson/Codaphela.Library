@@ -53,7 +53,7 @@ bool CNamedIndexes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize)
+bool CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	if (iDataSize != sizeof(OIndex))
 	{
@@ -69,7 +69,7 @@ bool CNamedIndexes::IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::Add(char* szName, OIndex oi)
 {
-	int		iKeySize;
+	size		iKeySize;
 
 	if (szName != NULL)
 	{
@@ -104,7 +104,7 @@ bool CNamedIndexes::Add(CChars* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
+bool CNamedIndexes::Add(char* szName, size iNameLength, OIndex oi)
 {
 	bool	bExists;
 
@@ -135,7 +135,7 @@ bool CNamedIndexes::Add(char* szName, int iNameLength, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::Set(char* szName, OIndex oi)
 {
-	int		iKeySize;
+	size	iKeySize;
 	bool	bExists;
 
 	if (!StrEmpty(szName))
@@ -185,7 +185,7 @@ bool CNamedIndexes::Set(CChars* szName, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::Put(char* szName, OIndex oi)
 {
-	int		iKeySize;
+	size		iKeySize;
 
 	if (!StrEmpty(szName))
 	{
@@ -222,7 +222,7 @@ bool CNamedIndexes::Put(CChars* szName, OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 OIndex CNamedIndexes::Get(char* szName)
 {
-	int		iKeySize;
+	size	iKeySize;
 	OIndex	iResult;
 	bool	bExists;
 
@@ -267,7 +267,7 @@ OIndex CNamedIndexes::Get(CChars* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::Remove(char* szName)
 {
-	int iKeySize;
+	size iKeySize;
 
 	if (szName)
 	{
@@ -324,9 +324,9 @@ bool CNamedIndexes::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
-	int		iKeySize;
+	size	iKeySize;
 	bool	bExists;
-	size_t	iDataSize;
+	size	iDataSize;
 
 	bExists = mcIndexTree.StartIteration(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
 	if (bExists)
@@ -354,9 +354,9 @@ bool CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szK
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi)
 {
-	int		iKeySize;
+	size	iKeySize;
 	bool	bExists;
-	size_t	iDataSize;
+	size	iDataSize;
 
 	bExists = mcIndexTree.Iterate(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
 	if (bExists)
@@ -382,7 +382,7 @@ bool CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIn
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CNamedIndexes::IndexTreeDataSize(uint16 uiSourceSize)
+size CNamedIndexes::IndexTreeDataSize(size uiSourceSize)
 {
 	if (uiSourceSize != 0)
 	{
@@ -399,7 +399,7 @@ uint16 CNamedIndexes::IndexTreeDataSize(uint16 uiSourceSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int iFileDataSize, uint16 uiSourceDataSize)
+bool CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, size iFileDataSize, size uiSourceDataSize)
 {
 	memcpy_fast(pvDataBuffer, pvSource, iFileDataSize);
 	return true;
@@ -410,7 +410,7 @@ bool CNamedIndexes::IndexTreeWriteData(void* pvDataBuffer, void* pvSource, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, uint16 uiDestDataSize, int iFileDataSize)
+bool CNamedIndexes::IndexTreeReadData(void* pvDest, void* pvDataBuffer, size uiDestDataSize, size iFileDataSize)
 {
 	memset_fast(pvDest, 0, uiDestDataSize);
 	memcpy_fast(pvDest, pvDataBuffer, iFileDataSize);
@@ -488,7 +488,7 @@ bool CNamedIndexes::ValidateConfigKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CNamedIndexes::GetSystemMemorySize(void)
+size CNamedIndexes::GetSystemMemorySize(void)
 {
 	return mcIndexTree.GetSystemMemorySize();
 }
@@ -498,7 +498,7 @@ size_t CNamedIndexes::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CNamedIndexes::GetUserMemorySize(void)
+size CNamedIndexes::GetUserMemorySize(void)
 {
 	return mcIndexTree.GetUserMemorySize();
 }
@@ -508,7 +508,7 @@ size_t CNamedIndexes::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CNamedIndexes::GetRootFlags(void)
+size CNamedIndexes::GetRootFlags(void)
 {
 	return mcIndexTree.GetRoot()->GetFlags();
 }

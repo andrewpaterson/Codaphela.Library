@@ -75,16 +75,16 @@ public:
 	bool			Flush(void);
 	bool			Flush(bool bClearCache);
 
-	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex 			StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex			IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 	bool			StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool			NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 
 	int64			NumIndices(void);
 	int64			NumIndicesCached(void);
-	int64			NumIndicesCached(size_t iSize);
+	int64			NumIndicesCached(size iSize);
 	int64			NumDataCached(void);
-	int64			NumDataCached(size_t iSize);
+	int64			NumDataCached(size iSize);
 	int64			NumNames(void);
 	int64			NumNamesCached(void);
 	bool			IsCaching(void);
@@ -97,9 +97,9 @@ public:
 	bool			ValidateConfigInitialised(void);
 	bool			ValidateConfigKilled(void);
 
-	size_t			GetIndiciesSystemMemorySize(void);
-	size_t			GetDataSystemMemorySize(void);
-	size_t			GetNamesSystemMemorySize(void);
+	size			GetIndiciesSystemMemorySize(void);
+	size			GetDataSystemMemorySize(void);
+	size			GetNamesSystemMemorySize(void);
 
 	void			Dump(void);
 

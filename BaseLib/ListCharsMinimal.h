@@ -31,14 +31,14 @@ template class CListTemplateMinimal<char>;
 class CListCharsMinimal : public __CListCharsMinimal
 {
 public:
-	size_t		TotalSize(int iNumElements, int iRowLength);
+	size		TotalSize(int iNumElements, int iRowLength);
 
 	void		Init(int iNumElements, int iRowLength);
 	
-	size_t 		IndexOf(char* szString);
+	size 		IndexOf(char* szString);
 
 	void		Add(char* sz);
-	void		Add(char* sz, size_t iSize);
+	void		Add(char* sz, size iSize);
 };
 
 

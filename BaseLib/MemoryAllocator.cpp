@@ -16,9 +16,9 @@ void CMemoryAllocator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryAllocator::Init(int iDefaultAlignment, bool bDefaultFreeListParams)
+void CMemoryAllocator::Init(int uiDefaultAlignment, bool bDefaultFreeListParams)
 {
-	mcMemory.Init(iDefaultAlignment, bDefaultFreeListParams);
+	mcMemory.Init(uiDefaultAlignment, bDefaultFreeListParams);
 }
 
 
@@ -36,9 +36,9 @@ void CMemoryAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryAllocator::Malloc(size_t tSize)
+void* CMemoryAllocator::Malloc(size uiSize)
 {
-	return mcMemory.Add((uint32)tSize);
+	return mcMemory.Add((uint32)uiSize);
 }
 
 
@@ -46,12 +46,12 @@ void* CMemoryAllocator::Malloc(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryAllocator::Malloc(size_t tSize, char(**pacDebugName)[4])
+void* CMemoryAllocator::Malloc(size uiSize, char(**pacDebugName)[4])
 {
 	void*						pv;
 	SGeneralMemoryAllocation*	psGeneralMemoryAllocation;
 
-	pv = mcMemory.Add((uint32)tSize);
+	pv = mcMemory.Add((uint32)uiSize);
 	psGeneralMemoryAllocation = GENERAL_MEMORY_GET_ALLOCATION(pv);
 	if (pacDebugName)
 	{
@@ -65,11 +65,11 @@ void* CMemoryAllocator::Malloc(size_t tSize, char(**pacDebugName)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryAllocator::Realloc(void* pv, size_t tSize)
+void* CMemoryAllocator::Realloc(void* pv, size uiSize)
 {
 	void*	pvNew;
 
-	pvNew = mcMemory.Grow(pv, (uint32)tSize);
+	pvNew = mcMemory.Grow(pv, (uint32)uiSize);
 	return pvNew;
 }
 
@@ -88,7 +88,7 @@ bool CMemoryAllocator::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
+size CMemoryAllocator::FreeMultiple(CArrayVoidPtr* pav)
 {
 	return mcMemory.RemoveMultiple(pav);
 }
@@ -110,15 +110,15 @@ const char* CMemoryAllocator::GetName(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryAllocator::Read(CFileReader* pcFileReader)
 {
-	int						iDefaultAlignment;
+	size					uiDefaultAlignment;
 	CMemoryFreeListParams*	pcParams;
 
-	if (!pcFileReader->ReadInt(&iDefaultAlignment))
+	if (!pcFileReader->ReadSize(&uiDefaultAlignment))
 	{
 		return false;
 	}
 
-	mcMemory.Init(iDefaultAlignment, false);
+	mcMemory.Init((uint16)uiDefaultAlignment, false);
 	pcParams = mcMemory.GetFreeListParams();
 
 	return pcParams->Read(pcFileReader);
@@ -133,7 +133,7 @@ bool CMemoryAllocator::Write(CFileWriter* pcFileWriter)
 {
 	CMemoryFreeListParams*	pcParams;
 
-	if (!pcFileWriter->WriteInt(mcMemory.GetDefaultAlignment()))
+	if (!pcFileWriter->WriteSize(mcMemory.GetDefaultAlignment()))
 	{
 		return false;
 	}
@@ -158,7 +158,7 @@ CGeneralMemory* CMemoryAllocator::GetMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CMemoryAllocator::SizeOffset(void)
+size CMemoryAllocator::SizeOffset(void)
 {
 	return sizeof(SGeneralMemoryAllocation);
 }
@@ -178,8 +178,8 @@ CLifeInit<CMallocator> CMemoryAllocator::Create(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CLifeInit<CMallocator> CMemoryAllocator::Create(int iDefaultAlignment, bool bDefaultFreeListParams)
+CLifeInit<CMallocator> CMemoryAllocator::Create(int uiDefaultAlignment, bool bDefaultFreeListParams)
 {
-	return LifeAlloc<CMemoryAllocator, CMallocator>(iDefaultAlignment, bDefaultFreeListParams);
+	return LifeAlloc<CMemoryAllocator, CMallocator>(uiDefaultAlignment, bDefaultFreeListParams);
 }
 

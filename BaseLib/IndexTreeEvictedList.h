@@ -14,11 +14,11 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	bool	IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	bool	IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	
-	int		NumElements(void);
-	void*	GetKey(int iIndex, int* piKeySize = NULL);
-	void*	GetData(int iIndex, int* piDataSize = NULL);
+	size	NumElements(void);
+	void*	GetKey(size iIndex, size* piKeySize = NULL);
+	void*	GetData(size iIndex, size* piDataSize = NULL);
 	void	Clear(void);
 };
 

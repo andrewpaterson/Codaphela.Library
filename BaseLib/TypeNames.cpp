@@ -44,15 +44,15 @@ bool		gbTypeNames = false;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTypeNames::AddType(EPrimitiveType eType, int iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName)
+void CTypeNames::AddType(EPrimitiveType eType, size iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName)
 {
 	STypeName*	psTypeName;
-	int			iPrettyNameLen;
-	int			iCppNameLen;
-	int			iPrimitiveNameLen;
-	int			iLen;
+	size		iPrettyNameLen;
+	size		iCppNameLen;
+	size		iPrimitiveNameLen;
+	size		iLen;
 
-	psTypeName = (STypeName*)masTypeNames.GrowToAtLeastNumElements(((int)eType)+1, true, 0);
+	psTypeName = (STypeName*)masTypeNames.GrowToAtLeastNumElements(((size)eType) + 1, true, 0);
 
 	psTypeName->eType = eType;
 	if (iSize & SIZE_IN_BITS)
@@ -66,9 +66,9 @@ void CTypeNames::AddType(EPrimitiveType eType, int iSize, const char* szPrettyNa
 		psTypeName->iBitSize = iSize * 8;
 	}
 
-	iPrettyNameLen = (int)strlen(szPrettyName) + 1;
-	iCppNameLen = (int)strlen(szCppName) + 1;
-	iPrimitiveNameLen = (int)strlen(szPrimitiveName) + 1;
+	iPrettyNameLen = (size)strlen(szPrettyName) + 1;
+	iCppNameLen = (size)strlen(szCppName) + 1;
+	iPrimitiveNameLen = (size)strlen(szPrimitiveName) + 1;
 
 	iLen = iPrettyNameLen + iCppNameLen + iPrimitiveNameLen;
 	psTypeName->szPrettyName = (char*)malloc(iLen);
@@ -147,9 +147,9 @@ void CTypeNames::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTypeNames::Kill(void)
 {
-	int			i;
+	size			i;
 	STypeName*	psTypeName;
-	int			iNumElements;
+	size			iNumElements;
 
 	mmsziCppNames.Kill();
 	mmsziPrettyNames.Kill();
@@ -176,7 +176,7 @@ const char* CTypeNames::GetPrettyName(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
-	psTypeName = masTypeNames.SafeGet((int)eType);
+	psTypeName = masTypeNames.SafeGet((size)eType);
 	if (psTypeName)
 	{
 		return psTypeName->szPrettyName;
@@ -196,7 +196,7 @@ const char* CTypeNames::GetCPPName(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
-	psTypeName = masTypeNames.SafeGet((int)eType);
+	psTypeName = masTypeNames.SafeGet((size)eType);
 	if (psTypeName)
 	{
 		return psTypeName->szCppName;
@@ -216,7 +216,7 @@ const char* CTypeNames::GetPrimitiveName(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
-	psTypeName = masTypeNames.SafeGet((int)eType);
+	psTypeName = masTypeNames.SafeGet((size)eType);
 	if (psTypeName)
 	{
 		return psTypeName->szPrimitiveName;
@@ -234,9 +234,9 @@ const char* CTypeNames::GetPrimitiveName(EPrimitiveType eType)
 //////////////////////////////////////////////////////////////////////////
 EPrimitiveType CTypeNames::GetTypeFromPrettyName(const char* szPrettyName)
 {
-	int*	piType;
+	size*	piType;
 
-	piType = mmsziPrettyNames.CMapStringTemplate::Get(szPrettyName);
+	piType = (size*)mmsziPrettyNames.CMapStringTemplate::Get(szPrettyName);
 	if (piType)
 	{
 		return (EPrimitiveType)(*piType);
@@ -251,9 +251,9 @@ EPrimitiveType CTypeNames::GetTypeFromPrettyName(const char* szPrettyName)
 //////////////////////////////////////////////////////////////////////////
 EPrimitiveType CTypeNames::GetTypeFromCPPName(const char* szCppName)
 {
-	int*	piType;
+	size*	piType;
 
-	piType = mmsziCppNames.CMapStringTemplate::Get(szCppName);
+	piType = (size*)mmsziCppNames.CMapStringTemplate::Get(szCppName);
 	if (piType)
 	{
 		return (EPrimitiveType)(*piType);
@@ -266,11 +266,11 @@ EPrimitiveType CTypeNames::GetTypeFromCPPName(const char* szCppName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTypeNames::GetByteSize(EPrimitiveType eType)
+size CTypeNames::GetByteSize(EPrimitiveType eType)
 {
 	STypeName*	psTypeName;
 
-	psTypeName = masTypeNames.SafeGet((int)eType);
+	psTypeName = masTypeNames.SafeGet((size)eType);
 	if (psTypeName)
 	{
 		return psTypeName->iByteSize;
@@ -287,11 +287,11 @@ int CTypeNames::GetByteSize(EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTypeNames::GetBitSize(EPrimitiveType eType)
+size CTypeNames::GetBitSize(EPrimitiveType eType)
 {
 	STypeName* psTypeName;
 
-	psTypeName = masTypeNames.SafeGet((int)eType);
+	psTypeName = masTypeNames.SafeGet((size)eType);
 	if (psTypeName)
 	{
 		return psTypeName->iBitSize;

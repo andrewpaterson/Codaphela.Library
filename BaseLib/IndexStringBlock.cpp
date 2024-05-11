@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void* CIndexStringBlock::Get(char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Get(szKey, iKeySize);
 }
 
@@ -18,7 +18,7 @@ void* CIndexStringBlock::Get(char* szKey, char* szLastCharInclusive)
 //////////////////////////////////////////////////////////////////////////
 void* CIndexStringBlock::Get(const char* szKey, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Get((void*)szKey, iKeySize);
 }
 
@@ -27,9 +27,9 @@ void* CIndexStringBlock::Get(const char* szKey, const char* szLastCharInclusive)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexStringBlock::Get(char* szKey, void** ppvData, int* piDataSize, char* szLastCharInclusive)
+bool CIndexStringBlock::Get(char* szKey, void** ppvData, size* piDataSize, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Get(szKey, iKeySize, ppvData, piDataSize);
 }
 
@@ -38,9 +38,9 @@ bool CIndexStringBlock::Get(char* szKey, void** ppvData, int* piDataSize, char* 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexStringBlock::Get(const char* szKey, void** ppvData, int* piDataSize, const char* szLastCharInclusive)
+bool CIndexStringBlock::Get(const char* szKey, void** ppvData, size* piDataSize, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Get((void*)szKey, iKeySize, ppvData, piDataSize);
 }
 
@@ -51,7 +51,7 @@ bool CIndexStringBlock::Get(const char* szKey, void** ppvData, int* piDataSize, 
 //////////////////////////////////////////////////////////////////////////
 void* CIndexStringBlock::GetLongestPartial(char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::GetLongestPartial(szKey, iKeySize);
 }
 
@@ -60,9 +60,9 @@ void* CIndexStringBlock::GetLongestPartial(char* szKey, char* szLastCharInclusiv
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexStringBlock::GetLongestPartial(char* szKey, void** ppvData, int* piDataSize, char* szLastCharInclusive)
+bool CIndexStringBlock::GetLongestPartial(char* szKey, void** ppvData, size* piDataSize, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::GetLongestPartial(szKey, iKeySize, ppvData, piDataSize);
 }
 
@@ -71,9 +71,9 @@ bool CIndexStringBlock::GetLongestPartial(char* szKey, void** ppvData, int* piDa
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexStringBlock::Put(char* szKey, int iDataSize, char* szLastCharInclusive)
+void* CIndexStringBlock::Put(char* szKey, size iDataSize, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Put(szKey, iKeySize, iDataSize);
 }
 
@@ -82,9 +82,9 @@ void* CIndexStringBlock::Put(char* szKey, int iDataSize, char* szLastCharInclusi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexStringBlock::Put(char* szKey, void* pvData, int iDataSize, char* szLastCharInclusive)
+bool CIndexStringBlock::Put(char* szKey, void* pvData, size iDataSize, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Put(szKey, iKeySize, pvData, iDataSize);
 }
 
@@ -93,9 +93,9 @@ bool CIndexStringBlock::Put(char* szKey, void* pvData, int iDataSize, char* szLa
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexStringBlock::Put(const char* szKey, int iDataSize, const char* szLastCharInclusive)
+void* CIndexStringBlock::Put(const char* szKey, size iDataSize, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Put((void*)szKey, iKeySize, iDataSize);
 }
 
@@ -104,9 +104,9 @@ void* CIndexStringBlock::Put(const char* szKey, int iDataSize, const char* szLas
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexStringBlock::Put(const char* szKey, void* pvData, int iDataSize, const char* szLastCharInclusive)
+bool CIndexStringBlock::Put(const char* szKey, void* pvData, size iDataSize, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Put((void*)szKey, iKeySize, pvData, iDataSize);
 }
 
@@ -117,7 +117,7 @@ bool CIndexStringBlock::Put(const char* szKey, void* pvData, int iDataSize, cons
 //////////////////////////////////////////////////////////////////////////
 bool CIndexStringBlock::HasKey(char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::HasKey(szKey, iKeySize);
 }
 
@@ -128,7 +128,7 @@ bool CIndexStringBlock::HasKey(char* szKey, char* szLastCharInclusive)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexStringBlock::HasKey(const char* szKey, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::HasKey((void*)szKey, iKeySize);
 }
 
@@ -139,7 +139,7 @@ bool CIndexStringBlock::HasKey(const char* szKey, const char* szLastCharInclusiv
 //////////////////////////////////////////////////////////////////////////
 bool CIndexStringBlock::Remove(char* szKey, char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Remove(szKey, iKeySize);
 }
 
@@ -150,7 +150,7 @@ bool CIndexStringBlock::Remove(char* szKey, char* szLastCharInclusive)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexStringBlock::Remove(const char* szKey, const char* szLastCharInclusive)
 {
-	int iKeySize = StrLen(szKey, szLastCharInclusive);
+	size iKeySize = StrLen(szKey, szLastCharInclusive);
 	return CIndexBlock::Remove((void*)szKey, iKeySize);
 }
 

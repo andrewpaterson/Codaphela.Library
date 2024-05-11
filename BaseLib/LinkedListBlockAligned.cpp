@@ -83,7 +83,7 @@ void CLinkedListBlockAligned::FreeNode(SLLAlignedNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::InsertAfterTail(uint32 uiSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertAfterTail(size uiSize, uint16 iAlignment, int16 iOffset)
 {
 	SLLAlignedNode*	psNode;
 
@@ -96,7 +96,7 @@ void* CLinkedListBlockAligned::InsertAfterTail(uint32 uiSize, int iAlignment, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::InsertBeforeHead(uint32 uiSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertBeforeHead(size uiSize, uint16 iAlignment, int16 iOffset)
 {
 	SLLAlignedNode* psNode;
 
@@ -109,7 +109,7 @@ void* CLinkedListBlockAligned::InsertBeforeHead(uint32 uiSize, int iAlignment, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, uint32 uiSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, size uiSize, uint16 iAlignment, int16 iOffset)
 {
 	SLLAlignedNode* psNode;
 	SLLAlignedNode* psNodePos;
@@ -124,7 +124,7 @@ void* CLinkedListBlockAligned::InsertBeforeNode(void* psPos, uint32 uiSize, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, uint32 uiSize, int iAlignment, int iOffset)
+void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, size uiSize, uint16 iAlignment, int16 iOffset)
 {
 	SLLAlignedNode* psNode;
 	SLLAlignedNode* psNodePos;
@@ -139,12 +139,21 @@ void* CLinkedListBlockAligned::InsertAfterNode(void* psPos, uint32 uiSize, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(uint32 uiSize, int iAlignment, int iOffset)
+SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(size uiSize, uint16 iAlignment, int16 iOffset)
 {
 	void*				pvMem;
-	int					iTotalSize;
+	size				iTotalSize;
 	SLLAlignedNode*		psNode;
-	int					iCaclulatedOffset;
+	uint8				iCaclulatedOffset;
+
+	if ((iOffset < -128) || (iOffset > 127))
+	{
+		return NULL;
+	}
+	if (iAlignment > 255)
+	{
+		return NULL;
+	}
 
 	iCaclulatedOffset = ::CalculateOffset(iOffset - sizeof(SLLAlignedNode), iAlignment);
 	iTotalSize = uiSize + sizeof(SLLAlignedNode) + iAlignment - 1;
@@ -153,8 +162,8 @@ SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(uint32 uiSize, int iAl
 	if (pvMem != NULL)
 	{
 		psNode = CalculateActualStart(pvMem, iAlignment, iCaclulatedOffset);
-		psNode->sAligned.iAlignment = iAlignment;
-		psNode->sAligned.iOffset = iOffset;
+		psNode->sAligned.iAlignment = (uint8)iAlignment;
+		psNode->sAligned.iOffset = (int8)iOffset;
 		psNode->sAligned.uiSize = uiSize;
 		psNode->sAligned.pvAlloc = pvMem;
 		psNode->sNode.psNext = NULL;
@@ -173,7 +182,7 @@ SLLAlignedNode* CLinkedListBlockAligned::AllocateDetached(uint32 uiSize, int iAl
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::Add(uint32 uiSize, int iAlignment)
+void* CLinkedListBlockAligned::Add(size uiSize, uint16 iAlignment)
 {
 	return InsertAfterTail(uiSize, iAlignment, 0);
 }
@@ -183,9 +192,9 @@ void* CLinkedListBlockAligned::Add(uint32 uiSize, int iAlignment)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkedListBlockAligned::ByteSize(void)
+size CLinkedListBlockAligned::ByteSize(void)
 {
-	int		iSize;
+	size	iSize;
 	void*	pvNode;
 
 	iSize = 0;
@@ -205,7 +214,7 @@ int CLinkedListBlockAligned::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
+size CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 {
 	SLLAlignedNode*		psNodeHeader;
 
@@ -218,23 +227,23 @@ int CLinkedListBlockAligned::GetNodeSize(void* pvMem)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLAlignedNode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, int iAlignment, int iOffset)
+SLLAlignedNode* CLinkedListBlockAligned::CalculateActualStart(void* pvMem, uint16 iAlignment, int16 iOffset)
 {
-	size_t	iStart;
-	size_t	iByteDiff;
-	size_t	iActualOffset;
+	ptr		iStart;
+	size	iByteDiff;
+	size	iActualOffset;
 
-	iStart = (size_t)pvMem;
+	iStart = (ptr)pvMem;
 
 	iByteDiff = iStart % iAlignment;
 	if (iByteDiff == 0)
 	{
-		return (SLLAlignedNode*)(size_t)(iStart + iOffset);
+		return (SLLAlignedNode*)(iStart + iOffset);
 	}
 	else
 	{
-		iActualOffset = (((size_t)iAlignment - iByteDiff) + iOffset) % (size_t)iAlignment;
-		return (SLLAlignedNode*)(size_t)(iStart + iActualOffset);
+		iActualOffset = ((iAlignment - iByteDiff) + iOffset) % iAlignment;
+		return (SLLAlignedNode*)(iStart + iActualOffset);
 	}
 }
 
@@ -247,7 +256,7 @@ SLLAlignedNode* CLinkedListBlockAligned::GetNode(void* pvMem)
 {
 	if (pvMem)
 	{
-		return (SLLAlignedNode*)(size_t)((uint32)(size_t)pvMem - sizeof(SLLAlignedNode));
+		return (SLLAlignedNode*)(size)((uint32)(size)pvMem - sizeof(SLLAlignedNode));
 	}
 	else
 	{
@@ -302,7 +311,7 @@ void CLinkedListBlockAligned::FreeDetached(void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CLinkedListBlockAligned::Grow(void* pvData, uint32 uiNewSize)
+void* CLinkedListBlockAligned::Grow(void* pvData, size uiNewSize)
 {
 	SLLAlignedNode*		psNodeHeader;
 	void*				pvAllocatedEnd;
@@ -318,8 +327,8 @@ void* CLinkedListBlockAligned::Grow(void* pvData, uint32 uiNewSize)
 		return NULL;
 	}
 
-	pvAllocatedEnd = (void*)(size_t) ((int)(size_t) psNodeHeader->sAligned.pvAlloc + sizeof(SLLAlignedNode) + psNodeHeader->sAligned.uiSize + psNodeHeader->sAligned.iAlignment-1);
-	pvObjectEnd = (void*)(size_t) ((int)(size_t) pvData + uiNewSize);
+	pvAllocatedEnd = (void*)(size) ((size) psNodeHeader->sAligned.pvAlloc + sizeof(SLLAlignedNode) + psNodeHeader->sAligned.uiSize + psNodeHeader->sAligned.iAlignment - 1);
+	pvObjectEnd = (void*)(size) ((size) pvData + uiNewSize);
 
 	if (pvAllocatedEnd >= pvObjectEnd)
 	{
@@ -369,7 +378,7 @@ bool CLinkedListBlockAligned::Write(CFileWriter* pcFileWriter)
 bool CLinkedListBlockAligned::WriteHeader(CFileWriter* pcFileWriter)
 {
 	SLinkedListBlockDesc	sHeader;
-	int						iNumElements;
+	size					iNumElements;
 
 	iNumElements = NumElements();
 	sHeader.Init(iNumElements, muiNodeSize);
@@ -426,7 +435,7 @@ bool CLinkedListBlockAligned::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	int				iNumElements;
+	size			iNumElements;
 	bool			bResult;
 	CMallocator*	pcMalloc;
 
@@ -451,7 +460,7 @@ bool CLinkedListBlockAligned::Read(CFileReader* pcFileReader)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CLinkedListBlockAligned::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+bool CLinkedListBlockAligned::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size* piNumElements)
 {
 	SLinkedListBlockDesc	sDesc;
 
@@ -475,9 +484,9 @@ bool CLinkedListBlockAligned::ReadHeader(CFileReader* pcFileReader, CMallocator*
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CLinkedListBlockAligned::ReadData(CFileReader* pcFileReader, int iNumElements)
+bool CLinkedListBlockAligned::ReadData(CFileReader* pcFileReader, size iNumElements)
 {
-	int					i;
+	size				i;
 	void*				pvData;
 	uint32				uiSize;
 	SAlignedDataDesc	sDataDesc;
@@ -504,7 +513,7 @@ bool CLinkedListBlockAligned::ReadData(CFileReader* pcFileReader, int iNumElemen
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SAlignedDataDesc::Init(uint32 uiSize, int iAlignment, int iOffset)
+void SAlignedDataDesc::Init(size uiSize, uint8 iAlignment, int8 iOffset)
 {
 	this->uiSize = uiSize;
 	this->iAlignment = iAlignment;

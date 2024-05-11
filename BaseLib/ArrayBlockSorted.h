@@ -11,8 +11,8 @@ typedef CArrayTemplate<CArrayBlock> CArrayArrayBlock;
 
 struct SArraySortedIterator
 {
-	int iArrayBlock;
-	int iIndex;
+	size iArrayBlock;
+	size iIndex;
 };
 
 
@@ -23,17 +23,17 @@ protected:
 	CArrayBlock			maSortedArray;
 	CArrayArrayBlock	maaHoldingArrays;
 	DataCompare			mfCompare;
-	int*				mapiInsertionIndices;
+	size*				mapiInsertionIndices;
 
-	int					miElementSize;
-	int					miHoldingBufferSize;
+	size				miElementSize;
+	size				miHoldingBufferSize;
 	bool				mbOverwrite;
 
 public:
 	void			_Init(void);
-	void			Init(int iElementSize, DataCompare fCompare);
-	void			Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);
-	void			Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare);
+	void			Init(size iElementSize, DataCompare fCompare);
+	void			Init(size iElementSize, size iHoldingBufferSize, size iHoldingBuffers, DataCompare fCompare);
+	void			Init(CMallocator* pcMalloc, size iElementSize, size iHoldingBufferSize, size iHoldingBuffers, DataCompare fCompare);
 	void			Kill(void);
 
 	bool			Add(void* pv);
@@ -48,7 +48,7 @@ public:
 	void*			Iterate(SArraySortedIterator* psIter);
 	void*			GetIterated(SArraySortedIterator* psIter);
 
-	size_t			ByteSize(void);
+	size			ByteSize(void);
 
 	bool			WriteHeader(CFileWriter* pcFileWriter);
 	bool			Write(CFileWriter* pcFileWriter);
@@ -57,11 +57,11 @@ public:
 
 	void			SetOverwrite(bool bOverwrite);
 
-	int				NumElements(void);
-	int				GetSortedSize(void);
-	int				GetHoldingSize(void);
-	void*			GetInSorted(int iIndex);
-	void*			GetInHolding(int iArray, int iIndex);
+	size			NumElements(void);
+	size			GetSortedSize(void);
+	size			GetHoldingSize(void);
+	void*			GetInSorted(size iIndex);
+	void*			GetInHolding(size iArray, size iIndex);
 
 	void			InsertHoldingIntoSorted(void);
 	CArrayBlock*	GetSortedArray(void);
@@ -74,13 +74,13 @@ protected:
 	void			ClearHoldingArrays(void);
 	void			MergeHoldingArrays(CArrayBlock* paMergedArray);
 	void			SortMerge(CArrayBlock* paMergedArray);
-	void			InsertHoldingIntoSorted(int* paiInsertionIndices, int oldLength, CArrayBlock* paSourceArray);
-	int*			CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
+	void			InsertHoldingIntoSorted(size* paiInsertionIndices, size oldLength, CArrayBlock* paSourceArray);
+	size*			CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays);
 	void*			FindInHoldingArrays(void* pv);
 	void*			FindInSortedArray(void* pv);
 	bool			RemoveFromHoldingArrays(void* pv);
 	bool			RemoveFromSortedArray(void* pv);
-	CArrayBlock*	GetArrayBlock(int iIndex);
+	CArrayBlock*	GetArrayBlock(size iIndex);
 	bool			InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv);
 };
 

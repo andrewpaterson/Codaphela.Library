@@ -23,3 +23,4 @@ typedef CArrayTemplate<CChunkStackElement> CChunkStack;
 
 
 #endif // __CHUNK_STACK_H__
+
