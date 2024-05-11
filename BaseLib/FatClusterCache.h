@@ -40,8 +40,8 @@ public:
 	void	Clear(void);
 	uint8*	GetCache(void);
 
-	bool	IsSectorDirty(int iSectorIndex);
-	bool	IsSectorCached(int iSectorIndex);
+	bool	IsSectorDirty(uint16 iSectorIndex);
+	bool	IsSectorCached(uint16 iSectorIndex);
 
 	uint16	GetSectorsPerCluster(void);
 
