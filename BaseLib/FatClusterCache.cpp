@@ -400,9 +400,9 @@ uint8* CFatClusterCache::GetCache(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::IsSectorDirty(int iSectorIndex)
+bool CFatClusterCache::IsSectorDirty(uint16 iSectorIndex)
 {
-	if ((iSectorIndex >= 0) && (iSectorIndex < muiSectorsPerCluster))
+	if (iSectorIndex < muiSectorsPerCluster)
 	{
 		return GetBit(iSectorIndex, msCluster.pbDirtySectors);
 	}
@@ -417,9 +417,9 @@ bool CFatClusterCache::IsSectorDirty(int iSectorIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFatClusterCache::IsSectorCached(int iSectorIndex)
+bool CFatClusterCache::IsSectorCached(uint16 iSectorIndex)
 {
-	if ((iSectorIndex >= 0) && (iSectorIndex < muiSectorsPerCluster))
+	if (iSectorIndex < muiSectorsPerCluster)
 	{
 		return GetBit(iSectorIndex, msCluster.pbCachedSectors);
 	}

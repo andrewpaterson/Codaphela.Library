@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include "ArrayElementNotFound.h"
 #include "StringHelper.h"
 #include "FatFilenameHelper.h"
 
@@ -11,9 +12,11 @@
 //////////////////////////////////////////////////////////////////////////
 EFatCode GetFatLongNameForEntry(uint16* puiDest, char* szSource)
 {
-	int i;
+	size	i;
+	size	uiLength;
 
-	for (i = 0; i < (int)strlen((char*)szSource); i++)
+	uiLength = strlen(szSource);
+	for (i = 0; i < uiLength; i++)
 	{
 		puiDest[i] = (uint16)szSource[i];
 	}
@@ -39,8 +42,9 @@ bool CompareFatShortName(char* szName1, char* szName2)
 //////////////////////////////////////////////////////////////////////////
 char CompareFatLongName(uint16* puiName1, uint16* puiName2)
 {
-	int		i;
-	char	c1, c2;
+	size	i;
+	char	c1;
+	char	c2;;
 
 	for (i = 0; i <= FAT_MAX_FILENAME; i++)
 	{
@@ -66,9 +70,10 @@ char CompareFatLongName(uint16* puiName1, uint16* puiName2)
 //////////////////////////////////////////////////////////////////////////
 EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructedShortFileName, uint16* puiTargetFileLongName, char* szCurrentLevelPath, uint16* auiLongFilename, uint8* auiShortName)
 {
-	bool bLongFilename = false;
+	bool bLongFilename;
 	bool bMatch;
 
+	bLongFilename = false;
 	if (GetFatShortNameForEntry(szConstructedShortFileName, szCurrentLevelPath, 1) == FAT_INVALID_FILENAME)
 	{
 		if (GetFatLongNameForEntry(puiTargetFileLongName, szCurrentLevelPath) == FAT_INVALID_FILENAME)
@@ -95,21 +100,23 @@ EFatCode MatchesFatFileName(bool* pbMatch, bool* pbUsingLFN, char* szConstructed
 //////////////////////////////////////////////////////////////////////////
 EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled)
 {
-	char		szName[13];
-	bool		bUppercase = false;
-	uint16		uiDotIndex;
-	uint16		uiLength;
-	uint16		i;
+	char	szName[13];
+	bool	bUppercase;
+	size	uiDotIndex;
+	size	uiLength;
+	size	i;
+	uint8	c;
+	bool	bLFN;
 
+	bUppercase = false;
 	if (!bLFNDisabled)
 	{
-		uint8	c;
-		bool	bLFN = false;
+		bLFN = false;
 
-		uiLength = (uint16)strlen(szSource);
-		uiDotIndex = (uint16)FindCharIndex('.', szSource, 0);
+		uiLength = strlen(szSource);
+		uiDotIndex = FindCharIndex('.', szSource, 0);
 
-		if (uiDotIndex < 0 && uiLength > 8)
+		if (uiDotIndex == ARRAY_ELEMENT_NOT_FOUND && uiLength > 8)
 		{
 			bLFN = true;
 		}
@@ -183,7 +190,7 @@ EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled
 				}
 			}
 
-			c = uiDotIndex + 1;
+			c = (uint8)(uiDotIndex + 1);
 			for (i = 8; i < 11; i++)
 			{
 				while (c < uiLength)
@@ -218,19 +225,18 @@ EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled
 
 	StrCpySafeStripSurroundingSpaces(szName, (char*)szSource, 12);
 
-	if (*szName == 0 || strlen(szName) > 12)
+	uiLength = strlen(szName);
+	if (uiLength == 0 || uiLength > 12)
 	{
 		return FAT_INVALID_FILENAME;
 	}
 
-	uiDotIndex = (uintptr_t)strchr(szName, (int)'.');
+	uiDotIndex = FindCharIndex('.', szName, 0);
 
-	if (uiDotIndex)
+	if (uiDotIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		uiDotIndex -= (uintptr_t)szName - 1;
+		uiDotIndex = 0;
 	}
-
-	uiLength = (uint16)strlen(szName);
 
 	if ((uiLength > 9 &&
 		(uiDotIndex == 0 || (uiDotIndex) > 9)) ||
@@ -397,8 +403,8 @@ void ConvertFATShortInternalNameInto8Dot3Format(uint8* puiDest, const uint8* pui
 //////////////////////////////////////////////////////////////////////////
 void ConstructFatLongFileNameFromShortName(uint16* auiLongFilename, char* szShortName, bool bLowercaseBase, bool bLowercaseExtension)
 {
-	int		i;
-	uint16	uiResult;
+	size	i;
+	size	uiResult;
 
 	i = 0;
 	for (uiResult = 0; uiResult < 8; uiResult++)
@@ -476,7 +482,7 @@ char* StepPathToSlash(char* szPathName)
 //////////////////////////////////////////////////////////////////////////
 void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource)
 {
-	uint16	uiIndex;
+	size	uiIndex;
 
 	if (szDestination[0] != '\0')
 	{
@@ -502,7 +508,7 @@ void CopyLongFilenameIntoString(char* szDestination, uint16* auiSource)
 //////////////////////////////////////////////////////////////////////////
 bool IsIllegalFilenameCharacter(char c)
 {
-	uint16	uiIndex;
+	size	uiIndex;
 
 	if (c <= 0x1F)
 	{
@@ -555,12 +561,14 @@ bool IsIllegalFilename(char* szName, uint16 uiLength)
 void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 {
 	char	szNameSuffix[6];
-	uint8	i;
-	uint8	c;
+	size	i;
+	size	c;
+	size	uiSuffixLength;
 
 	sprintf(szNameSuffix, "~%i", uiNameSuffix);
+	uiSuffixLength = strlen(szNameSuffix);
 
-	for (i = 0; i < 8 - (char)strlen(szNameSuffix); i++)
+	for (i = 0; i < 8 - uiSuffixLength; i++)
 	{
 		if (szShortName[i] == ' ')
 		{
@@ -568,7 +576,7 @@ void GenerateShortNameWithSuffix(uint16 uiNameSuffix, uint8* szShortName)
 		}
 	}
 
-	for (c = 0; c < (char)strlen(szNameSuffix); c++)
+	for (c = 0; c < uiSuffixLength; c++)
 	{
 		szShortName[i] = szNameSuffix[c];
 		i++;
@@ -593,3 +601,4 @@ void ParsePathAndFilename(char* szPath, char* szPathPart, char** pszFilenamePart
 	*szPathPart = 0;
 	(*pszFilenamePart)++;
 }
+

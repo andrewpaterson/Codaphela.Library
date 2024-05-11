@@ -45,8 +45,8 @@ void CFatFile::Init(CFatVolume* pcVolume)
 //////////////////////////////////////////////////////////////////////////
 EFatCode FindBackslash(char* szFilename, char** ppcFilenameScanner)
 {
-	ptrdiff_t			iPathLength;
-	char*				pcFilenameScanner;
+	size	iPathLength;
+	char*	pcFilenameScanner;
 
 	iPathLength = strlen(szFilename);
 
@@ -99,7 +99,7 @@ EFatCode CFatFile::Open(char* szFilename, uint8 uiAccessFlags)
 	{
 		if (uiAccessFlags & FAT_FILE_ACCESS_CREATE)
 		{
-			ptrdiff_t			iPathLength;
+			size				iPathLength;
 			char*				pcFilenameScanner;
 			char				szFilePath[FAT_MAX_PATH + 1];
 			SFatDirectoryEntry	sParentEntry;
@@ -470,7 +470,7 @@ EFatCode CFatFile::PotentiallyAllocateClusters(uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
+EFatCode CFatFile::Write(uint8* pvSource, size uiLength)
 {
 	EFatCode	eResult;
 
@@ -489,7 +489,7 @@ EFatCode CFatFile::Write(uint8* pvSource, uint32 uiLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource)
+EFatCode CFatFile::WriteIntoExistingClusters(size uiBytesRemaining, uint8* puiSource)
 {
 	EFatCode	uiResult;
 	bool		bSuccess;
@@ -498,7 +498,7 @@ EFatCode CFatFile::WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* pui
 	uint32		uiWriteClusterIndex;
 	uint16		uiWriteOffsetInCluster;
 	uint16		uiPreviousMaximumOffset;
-	uint32		uiBytesWritten;
+	size		uiBytesWritten;
 
 	msFile.bBusy = true;
 
@@ -573,7 +573,7 @@ EFatCode CFatFile::ValidateCanRead(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::Read(uint8* puiDestination, uint32 uiLength, uint32* puiBytesRead)
+EFatCode CFatFile::Read(uint8* puiDestination, size uiLength, size* puiBytesRead)
 {
 	EFatCode	eResult;
 
@@ -588,7 +588,7 @@ EFatCode CFatFile::Read(uint8* puiDestination, uint32 uiLength, uint32* puiBytes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination)
+EFatCode CFatFile::ReadFromClusters(size uiBytesRemaining, size* puiBytesRead, uint8* puiDestination)
 {
 	EFatCode	eResult;
 	bool		bSuccess;
@@ -597,8 +597,8 @@ EFatCode CFatFile::ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRea
 	uint32		uiReadClusterIndex;
 	uint16		uiReadOffsetInCluster;
 	uint16		uiPreviousMaximumOffset;
-	uint32		uiBytesRead;
-	uint32		uiTotalBytesRead;
+	size		uiBytesRead;
+	size		uiTotalBytesRead;
 
 	if (msFile.uiFileSize == 0 || msFile.uiFilePositionCluster == 0)
 	{

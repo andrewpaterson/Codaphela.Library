@@ -34,8 +34,8 @@ public:
 	EFatCode	Open(char* szFilename, uint8 uiAccessFlags);
 	EFatCode	Open(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	EFatCode	Close(void);
-	EFatCode	Write(uint8* pvSource, uint32 uiLength);
-	EFatCode	Read(uint8* puiDestination, uint32 length, uint32* puiBytesRead);
+	EFatCode	Write(uint8* pvSource, size uiLength);
+	EFatCode	Read(uint8* puiDestination, size length, size* puiBytesRead);
 	EFatCode	Seek(uint32 uiOffset, EFatSeek eMode);
 	EFatCode	Flush(void);
 	EFatCode	Truncate(void);
@@ -51,10 +51,10 @@ public:
 protected:
 	EFatCode	OpenFileByEntry(SFatDirectoryEntry* psEntry, uint8 uiAccessFlags);
 	uint32		FatFileGetUniqueId(void);
-	EFatCode	WriteIntoExistingClusters(uint32 uiBytesRemaining, uint8* puiSource);
+	EFatCode	WriteIntoExistingClusters(size uiBytesRemaining, uint8* puiSource);
 
 	bool		IsFat32Volume(void);
-	EFatCode	ReadFromClusters(uint32 uiBytesRemaining, uint32* puiBytesRead, uint8* puiDestination);
+	EFatCode	ReadFromClusters(size uiBytesRemaining, size* puiBytesRead, uint8* puiDestination);
 
 	EFatCode	FlushCacheUpdateAccess(void);
 
