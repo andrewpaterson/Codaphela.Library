@@ -41,7 +41,7 @@ void CArrayBlockMinimal::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockMinimal::WriteHeader(CFileWriter* pcFileWriter)
 {
-	if (!pcFileWriter->WriteInt(miUsedElements))
+	if (!pcFileWriter->WriteSize(miUsedElements))
 	{
 		return false;
 	}

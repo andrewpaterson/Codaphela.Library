@@ -1,3 +1,4 @@
+#include "ArrayElementNotFound.h"
 #include "PointerRemapper.h"
 #include "LinkedList.h"
 
@@ -180,9 +181,19 @@ SLLNode* CLinkedList::GetPrev(SLLNode* psExistingNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CLinkedList::RemoveHead(void)
+{
+	Remove(mpsHead);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 void CLinkedList::RemoveTail(void)
 {
-
+	Remove(mpsTail);
 }
 
 
@@ -256,9 +267,9 @@ void CLinkedList::MoveToTTail(SLLNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkedList::NumElements(void)
+size CLinkedList::NumElements(void)
 {
-	int			iCount;
+	size		iCount;
 	SLLNode*	psNode;
 
 	iCount = 0;
@@ -276,9 +287,9 @@ int CLinkedList::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SLLNode* CLinkedList::Get(int iNum)
+SLLNode* CLinkedList::Get(size iNum)
 {
-	int			iCount;
+	size		iCount;
 	SLLNode*	psData;
 
 	psData = GetHead();
@@ -304,9 +315,9 @@ SLLNode* CLinkedList::Get(int iNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CLinkedList::IndexOf(SLLNode* psNode)
+size CLinkedList::IndexOf(SLLNode* psNode)
 {
-	int			iIndex;
+	size			iIndex;
 	SLLNode*	psCurrent;
 
 	iIndex = 0;
@@ -331,10 +342,10 @@ int CLinkedList::IndexOf(SLLNode* psNode)
 //////////////////////////////////////////////////////////////////////////
 bool CLinkedList::IsInList(SLLNode* psNode)
 {
-	int iIndex;
+	size iIndex;
 
 	iIndex = IndexOf(psNode);
-	return iIndex != -1;
+	return iIndex != ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -342,7 +353,7 @@ bool CLinkedList::IsInList(SLLNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedList::BubbleSort(DataCompare fCompare, size_t iOffset)
+void CLinkedList::BubbleSort(DataCompare fCompare, size iOffset)
 {
 	SLLNode*	psCurrent;
 	SLLNode*	psNext;
@@ -448,7 +459,7 @@ void CLinkedList::Swap(SLLNode* psNode1, SLLNode* psNode2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CLinkedList::InsertIntoSorted(DataCompare fCompare, SLLNode* psNode, size_t iOffset)
+void CLinkedList::InsertIntoSorted(DataCompare fCompare, SLLNode* psNode, size iOffset)
 {
 	SLLNode*	psCurrent;
 	int			iResult;

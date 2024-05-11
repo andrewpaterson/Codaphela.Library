@@ -50,7 +50,7 @@ void CMarkupRefText::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupRefText::Print(CChars* psz, int iDepth, int iLine)
+uint32 CMarkupRefText::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 {
 	CChars	szText;
 
@@ -88,7 +88,7 @@ void CMarkupRefDoc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupRefDoc::Print(CChars* psz, int iDepth, int iLine)
+uint32 CMarkupRefDoc::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 {
 	iLine = mpcRef->mpcDoc->Print(psz, iDepth, iLine);
 	return iLine;
@@ -140,7 +140,7 @@ void CMarkupNamedRef::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupNamedRef::Print(CChars* psz, int iDepth, int iLine)
+uint32 CMarkupNamedRef::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 {
 	miLine = iLine;
 	miColumn = iDepth*2;
@@ -151,3 +151,4 @@ int CMarkupNamedRef::Print(CChars* psz, int iDepth, int iLine)
 	psz->AppendNewLine();
 	return iLine;
 }
+

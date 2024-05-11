@@ -106,7 +106,7 @@ void CDiskFile::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDiskFile::SetFile(void* pvFile, size_t uiSize)
+void CDiskFile::SetFile(void* pvFile, size uiSize)
 {
 	if (uiSize <= 8)
 	{
@@ -119,7 +119,7 @@ void CDiskFile::SetFile(void* pvFile, size_t uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDiskFile::IsFile(void* pvFile, size_t uiSize)
+bool CDiskFile::IsFile(void* pvFile, size uiSize)
 {
 	if (uiSize <= 8)
 	{
@@ -234,12 +234,12 @@ bool CDiskFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
+size CDiskFile::Read(void* pvBuffer, size iSize, size iCount)
 {
-	bool			bResult;
-	filePos			iByteLength;
-	uint32	uiTruncatedLength;
-	uint32	uiReadLength;
+	bool	bResult;
+	size	iByteLength;
+	size	uiTruncatedLength;
+	size	uiReadLength;
 
 	if (iSize == 0)
 	{
@@ -251,7 +251,7 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 		iByteLength = iSize * iCount;
 		if (iByteLength <= MAX_UINT)
 		{
-			uiTruncatedLength = (uint32)iByteLength;
+			uiTruncatedLength = iByteLength;
 		}
 		else
 		{
@@ -281,21 +281,21 @@ filePos CDiskFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 {
-	uint32	uiResult;
+	size	uiResult;
 
 	if (IsOpen())
 	{
 		if (eSeekOrigin == EFSO_SET)
 		{
-			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_BEGIN);
+			uiResult = SetFilePointer(GetHandle(this), (uint32)iOffset, NULL, FILE_BEGIN);
 		}
 		else if (eSeekOrigin == EFSO_CURRENT)
 		{
-			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_CURRENT);
+			uiResult = SetFilePointer(GetHandle(this), (uint32)iOffset, NULL, FILE_CURRENT);
 		}
 		else if (eSeekOrigin == EFSO_END)
 		{
-			uiResult = SetFilePointer(GetHandle(this), (LONG)iOffset, NULL, FILE_END);
+			uiResult = SetFilePointer(GetHandle(this), (uint32)iOffset, NULL, FILE_END);
 		}
 		return (uiResult != INVALID_SET_FILE_POINTER);
 	}
@@ -310,31 +310,19 @@ bool CDiskFile::Seek(filePos iOffset, EFileSeekOrigin eSeekOrigin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
+size CDiskFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
-	uint32	uiWritten;
-	bool			bResult;
-	filePos			iByteLength;
-	uint32	uiTruncatedLength;
+	size	uiWritten;
+	bool	bResult;
+	size	iByteLength;
+	size	uiTruncatedLength;
 
-	if (IsOpen() && (iSize > 0) && (iCount > 0))
+	if (IsOpen() && (iSize != 0) && (iCount != 0))
 	{
 		iByteLength = iSize * iCount;
-		if (iByteLength <= MAX_UINT)
-		{
-			uiTruncatedLength = (uint32)iByteLength;
-		}
-		else
-		{
-			uiTruncatedLength = 0;
-		}
+		uiTruncatedLength = iByteLength;
 
-		bResult = WriteFile(
-			GetHandle(this),
-			pvBuffer,
-			uiTruncatedLength,
-			(LPDWORD)&uiWritten,
-			NULL);
+		bResult = WriteFile(GetHandle(this), pvBuffer, uiTruncatedLength, (LPDWORD)&uiWritten, NULL);
 
 		if (bResult)
 		{
@@ -355,7 +343,8 @@ filePos CDiskFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Tell(void)
 {
-	uint32	uiResult;
+	size	uiResult;
+
 	if (IsOpen())
 	{
 		uiResult = SetFilePointer(GetHandle(this), 0, NULL, FILE_CURRENT);
@@ -384,7 +373,7 @@ bool CDiskFile::IsOpen(void)
 //////////////////////////////////////////////////////////////////////////
 filePos CDiskFile::Size(void)
 {
-	uint32	uiFileSize;
+	size	uiFileSize;
 
 	if (IsOpen())
 	{
@@ -404,10 +393,10 @@ filePos CDiskFile::Size(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDiskFile::Truncate(filePos iSize)
 {
-	uint32	uiResult;
-	bool			bResult;
+	size	uiResult;
+	bool	bResult;
 
-	uiResult = SetFilePointer(GetHandle(this), (LONG)iSize, NULL, FILE_BEGIN);
+	uiResult = SetFilePointer(GetHandle(this), (uint32)iSize, NULL, FILE_BEGIN);
 	if (uiResult == INVALID_SET_FILE_POINTER)
 	{
 		return false;

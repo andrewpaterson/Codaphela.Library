@@ -25,10 +25,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "MapStringPrimitive.h"
 
 
-class CMapStringInt : public CMapStringPrimitive<int>
+class CMapStringInt : public CMapStringPrimitive<int32>
 {
 public:
-	char*	GetWithValue(int iData);
+	char*	GetWithValue(int32 iData);
 };
 
 

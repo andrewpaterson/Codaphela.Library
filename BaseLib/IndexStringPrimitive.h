@@ -17,8 +17,8 @@ public:
 	bool	Put(char* szKey, D sData, char* szLastCharInclusive = NULL);
 	bool	Put(const char* szKey, D sData, const char* szLastCharInclusive = NULL);
 
-	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
-	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize);
+	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size* puiKeySize, size uiMaxKeySize);
+	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size* puiKeySize, size uiMaxKeySize);
 };
 
 
@@ -115,7 +115,7 @@ bool CIndexStringPrimitive<D>::Put(const char* szKey, D sData, const char* szLas
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-bool CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+bool CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size* puiKeySize, size uiMaxKeySize)
 {
 	D*		pvResult;
 	bool	bResult;
@@ -134,7 +134,7 @@ bool CIndexStringPrimitive<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* ps
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class D>
-bool CIndexStringPrimitive<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+bool CIndexStringPrimitive<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D* pvData, void* pvDestKey, size* puiKeySize, size uiMaxKeySize)
 {
 	D*		pvResult;
 	bool	bResult;

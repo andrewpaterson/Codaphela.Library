@@ -6,19 +6,19 @@
 class CIndexTreeFileKeyDiagnosticCountingCallback : public CIndexTreeFileDiagnosticCallback
 {
 protected:
-	int		miCount;
+	size	miCount;
 	void*	mpvKey;
-	int		miKeyLength;
+	size	miKeyLength;
 
 public:
 	void	Init(char* szKey);
-	void	Init(void* pvKey, int iKeyLength);
+	void	Init(void* pvKey, size iKeySize);
 	void	Kill(void);
 
-	void	Evict(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	void	Evict(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 
 protected:
-	bool	Matches(void* pvKey, int iKeySize);
+	bool	Matches(void* pvKey, size iKeySize);
 };
 
 

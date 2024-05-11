@@ -52,20 +52,19 @@ void CArrayLong::AddList(int64 iStop, ...)
 //////////////////////////////////////////////////////////////////////////
 void CArrayLong::Dump(void)
 {
-	int				i;
+	uint32	i;
 	int64	iValue;
-	char			sz[32];
+	char	sz[32];
 
 
 	EngineOutput("[");
 	for (i = 0; i < miUsedElements; i++)
 	{
 		iValue = GetValue(i);
-		IntToString(sz, 32, iValue, 10);
+		LongToString(sz, 32, iValue);
 		EngineOutput(sz);
 		EngineOutput(" ");
 	}
 	EngineOutput("]\n");
-
 }
 

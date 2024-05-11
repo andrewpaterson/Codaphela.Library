@@ -29,25 +29,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SIntAndPointer
 {
 	void*	pvData;
-	int		iValue;  //Arbitrary type values... no need to be a registered type.
+	int32	iValue;  //Arbitrary type values... no need to be a registered type.
 };
 
 
 class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>
 {
 public:
-	void 	Add(void* pvData, int iInt);
-	void 	AddIfUnique(void* pvData, int iInt);
-	bool 	Get(int iElementPos, void** pvData, int* iType);
-	void*	GetPtr(int iElementPos);
-	void*	SafeGetPtr(int iElementPos);
-	int		GetType(int iElementPos);
-	int		SafeGetType(int iElementPos);
-	void	Set(int iElementPos, void* pvData, int iInt);
+	void 	Add(void* pvData, int32 iInt);
+	void 	AddIfUnique(void* pvData, int32 iInt);
+	bool 	Get(size iElementPos, void** pvData, int32* iType);
+	void*	GetPtr(size iElementPos);
+	void*	SafeGetPtr(size iElementPos);
+	size	GetType(size iElementPos);
+	size	SafeGetType(size iElementPos);
+	void	Set(size iElementPos, void* pvData, int32 iInt);
 	void	Remove(void* pv);
-	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, int iInt);
-	bool	FindInSorted(void* pvElement, DataCompare fCompare, int* piIndex);
-	bool	BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
+	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, int32 iInt);
+	bool	FindInSorted(void* pvElement, DataCompare fCompare, size* piIndex);
+	bool	BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex);
 };
 
 

@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t MinDataSize(size_t uiDataSize, size_t uiMaxDataSize)
+size MinDataSize(size uiDataSize, size uiMaxDataSize)
 {
 	if (uiMaxDataSize == 0)
 	{
@@ -28,7 +28,7 @@ size_t MinDataSize(size_t uiDataSize, size_t uiMaxDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength)
+bool CopyString(char* pvDest, char* pvSource, size iSourceLength, size iMaxDestLength)
 {
 	if (pvDest)
 	{
@@ -52,14 +52,14 @@ bool CopyString(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CopyData(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDestLength)
+void CopyData(void* pvDest, void* pvSource, size iSourceLength, size iMaxDestLength)
 {
 	if (pvDest)
 	{
 		memcpy(pvDest, pvSource, MinDataSize(iSourceLength, iMaxDestLength));
 		if ((iSourceLength < iMaxDestLength) || (iMaxDestLength == 0))
 		{
-			pvDest[iSourceLength] = '\0';
+			((char*)pvDest)[iSourceLength] = '\0';
 		}
 	}
 }
@@ -69,9 +69,9 @@ void CopyData(char* pvDest, char* pvSource, size_t iSourceLength, size_t iMaxDes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t StrDataSize(char* pszData)
+size StrDataSize(char* pszData)
 {
-	size_t uiDataSize;
+	size uiDataSize;
 
 	if (StrEmpty(pszData))
 	{
@@ -86,15 +86,15 @@ size_t StrDataSize(char* pszData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t StrKeySize(char* pszKey)
+size StrKeySize(char* pszKey)
 {
-	size_t		iKeySize;
+	size		iKeySize;
 
 	if (StrEmpty(pszKey))
 	{
 		return 0;
 	}
 
-	iKeySize = (int)strlen(pszKey);
+	iKeySize = strlen(pszKey);
 	return iKeySize;
 }

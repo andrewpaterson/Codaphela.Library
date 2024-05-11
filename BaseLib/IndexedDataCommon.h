@@ -23,15 +23,15 @@ public:
 			bool			IsWriteThrough(void);
 			bool			IsFlushed(void);
 	
-			bool			Add(OIndex oi, void* pvData, size_t uiDataSize);
+			bool			Add(OIndex oi, void* pvData, size uiDataSize);
 
 			bool			Set(OIndex oi, void* pvData);
-			bool			Set(OIndex oi, void* pvData, size_t uiDataSize);
+			bool			Set(OIndex oi, void* pvData, size uiDataSize);
 
-			bool			Put(OIndex oi, void* pvData, size_t uiDataSize);
+			bool			Put(OIndex oi, void* pvData, size uiDataSize);
 
-			bool			Get(OIndex oi, void* pvData, size_t uiMaxSize = 0);
-			bool			Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
+			bool			Get(OIndex oi, void* pvData, size uiMaxSize = 0);
+			bool			Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxSize);
 
 			uint32	Size(OIndex oi);
 			bool			Contains(OIndex oi);
@@ -39,12 +39,12 @@ public:
 			int64			NumElements(void);
 
 	virtual int64			NumIndices(void) =0;
-	virtual int64			NumIndicesCached(void) =0;
+	virtual size			NumIndicesCached(void) =0;
 			int64			NumDatas(void);
-			int				NumDataCached(void);
-			int				NumDataCached(size_t iSize);
-			int				NumFiles(void);
-			int64			NumDatas(size_t uiDataSize);
+			size			NumDataCached(void);
+			size			NumDataCached(size iSize);
+			size			NumFiles(void);
+			int64			NumDatas(size uiDataSize);
 
 			bool			Remove(OIndex oi);
 
@@ -57,12 +57,12 @@ public:
 protected:
 	virtual bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
 	virtual bool			SetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false) =0;
-	virtual bool			UpdateDescriptorCache(OIndex oi, void* pvCache, size_t uiDataSize) =0;
+	virtual bool			UpdateDescriptorCache(OIndex oi, void* pvCache, size uiDataSize) =0;
 	virtual bool			RemoveDescriptor(OIndex oi) =0;
 
 	virtual bool			Flush(bool bClearCache) =0;
 
-			bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize);
+			bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size* puiDataSize, void* pvData, size uiMaxSize);
 };
 
 

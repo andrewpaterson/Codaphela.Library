@@ -32,8 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SIndexedCacheDescriptor : public SMemoryCacheDescriptor
 {
-	uint32				iFlags;
-	OIndex						oi;
+	size	iFlags;
+	OIndex	oi;
 };
 
 
@@ -43,26 +43,26 @@ protected:
 	CMemoryCache				mcCache;
 
 public:
-	void						Init(size_t iCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback);
+	void						Init(size iCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback);
 	void						Zero(void);
 	void						Kill(void);
 
-	CIndexedCacheResult			Allocate(OIndex oi, uint32 uiDataSize);
+	CIndexedCacheResult			Allocate(OIndex oi, size uiDataSize);
 	void						Clear(void);
 	void						Invalidate(void* pcCache);
 	void						SetDirty(void* pvCache);
 	void*						GetCache(SIndexedCacheDescriptor* psDescriptor);
 
-	SIndexedCacheDescriptor*	GetDescriptor(void* pvData);  // <-- Hmmmm....
+	SIndexedCacheDescriptor*	GetDescriptor(void* pvData);
 	void*						StartIteration(void);
 	void*						Iterate(void* psCurrent);
-	int							NumCached(void);
-	int							NumCached(int iSize);
+	size						NumCached(void);
+	size						NumCached(size iSize);
 
-	int							GetIndexCacheDescritorSize(void);
-	size_t						GetCacheSize(void);
-	size_t						GetAllocatedSize(void);
-	bool						CanCache(uint32 uiDataSize);
+	size							GetIndexCacheDescritorSize(void);
+	size						GetCacheSize(void);
+	size						GetAllocatedSize(void);
+	bool						CanCache(size uiDataSize);
 
 	void*						TestGetDescriptor(OIndex oi);
 	void						Dump(void);

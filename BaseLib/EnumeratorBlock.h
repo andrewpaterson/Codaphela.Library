@@ -25,20 +25,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "EnumeratorTemplate.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//		!!!!!!!!!! CAUTION: Data size for node not stored. !!!!!!!!!!!
-//
-//////////////////////////////////////////////////////////////////////////
-
-
 class CEnumeratorBlock : public CEnumeratorTemplate<void>
 {
 public:
-	int		AddGetNode(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace, SENode** pcThisNode);
-	int		Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace = true);
-	void*	Add(char* szName, int iDataSize = 0);
-	void*	Add(char* szName, int iDataSize, int iNum);
+	size	AddGetNode(char* szName, void* pvData, size uiDataSize, size uiKeySize, size iNum, bool bReplace, SENode** pcThisNode);
+	size	Add(char* szName, void* pvData, size uiDataSize, size uiKeySize, size iNum, bool bReplace = true);
+	void*	Add(char* szName, size uiDataSize = 0);
+	void*	Add(char* szName, size uiDataSize, size iNum);
 };
 
 

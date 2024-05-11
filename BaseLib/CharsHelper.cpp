@@ -132,9 +132,9 @@ void CCharsHelper::Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArra
 void CCharsHelper::InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArrayChars* paszRight)
 {
 	CArrayChars aszIntersection;
-	int			i;
+	size		i;
 	CChars*		psz;
-	int			iIndex;
+	size		iIndex;
 
 	aszIntersection.Init();
 	Intersect(&aszIntersection, paszLeft, paszRight);
@@ -143,7 +143,7 @@ void CCharsHelper::InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft
 	{
 		psz = paszLeft->Get(i);
 		iIndex = aszIntersection.FindInSorted(psz);
-		if (iIndex == -1)
+		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			paszDest->Add(psz);
 		}
@@ -153,7 +153,7 @@ void CCharsHelper::InverseIntersect(CArrayChars* paszDest, CArrayChars* paszLeft
 	{
 		psz = paszRight->Get(i);
 		iIndex = aszIntersection.FindInSorted(psz);
-		if (iIndex == -1)
+		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			paszDest->Add(psz);
 		}

@@ -44,14 +44,14 @@ void CWinConfig::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinConfig::Read(void)
 {
-	CPropertiesFile				cFile;
-	char*						szResolution;
-	char*						szAspect;
-	char*						szMode;
-	char*						szWindowed;
-	CTextParser					cParser;
-	uint64		ulli;
-	int							i;
+	CPropertiesFile		cFile;
+	char*				szResolution;
+	char*				szAspect;
+	char*				szMode;
+	char*				szWindowed;
+	CTextParser			cParser;
+	uint64				ulli;
+	int16				iSign;
 
 	cFile.Init("Config.txt");
 	if (!cFile.Read())
@@ -64,10 +64,10 @@ bool CWinConfig::Read(void)
 	if (szResolution)
 	{
 		cParser.Init(szResolution);
-		cParser.GetDigits(&ulli, &i, NULL, true, false);
+		cParser.GetDigits(&ulli, &iSign, NULL, true, false);
 		miWidth = (int)ulli;
 		cParser.GetExactCaseInsensitiveCharacter('X');
-		cParser.GetDigits(&ulli, &i, NULL, true, false);
+		cParser.GetDigits(&ulli, &iSign, NULL, true, false);
 		miHeight = (int)ulli;
 		cParser.Kill();
 	}
@@ -81,10 +81,10 @@ bool CWinConfig::Read(void)
 	if (szAspect)
 	{
 		cParser.Init(szAspect);
-		cParser.GetDigits(&ulli, &i, NULL, true, false);
+		cParser.GetDigits(&ulli, &iSign, NULL, true, false);
 		mfAspect = (float)ulli;
 		cParser.GetExactCharacter(':');
-		cParser.GetDigits(&ulli, &i, NULL, true, false);
+		cParser.GetDigits(&ulli, &iSign, NULL, true, false);
 		mfAspect /= (float)ulli;
 		cParser.Kill();
 	}
@@ -146,6 +146,5 @@ void CWinConfig::Default(void)
 //////////////////////////////////////////////////////////////////////////
 void CWinConfig::Write(void)
 {
-
 }
 

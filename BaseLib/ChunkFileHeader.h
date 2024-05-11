@@ -1,6 +1,7 @@
 #ifndef __CHUNK_FILE_HEADER_H__
 #define __CHUNK_FILE_HEADER_H__
 #include "AbstractFile.h"
+#include "ChunkFileName.h"
 
 
 #define CHUNK_HEADER_MAGIC 0xb4d85f9a
@@ -8,23 +9,23 @@
 
 struct SChunkFileHeader
 {
-	int			miUserID;
+	chunkName	miUserID;
 	filePos		miChunkNamesPos;
 	char		macMD5Hash[16];  //0's if not hashed.
-	int			miMagic;
+	uint32		miMagic;
 
-	void		WriteInit(int iUserID);
+	void		WriteInit(uint32 iUserID);
 };
 
 
 class CChunkHeader
 {
 public:
-	int		miName;
-	filePos	miChunkSize;
-	filePos	miChunkIndexPos;  // -1 if no index.
-	char	macMD5Hash[16];  //0's if not hashed.
-	int		miMagic;
+	chunkName	miName;
+	filePos		miChunkSize;
+	filePos		miChunkIndexPos;  // -1 if no index.
+	char		macMD5Hash[16];  //0's if not hashed.
+	uint32		miMagic;
 
 	void WriteInit(void);
 };

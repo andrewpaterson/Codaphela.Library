@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse)
+bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, szSubDirectory, uiCutoff, pcIndexTreeEvictionCallback, cEvictionStrategy, pcWriterCallback, LifeLocal<CMallocator>(&gcSystemAllocator), IWT_Yes, eKeyReverse);
 }
@@ -19,7 +19,7 @@ bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	return Init(pcDurableFileControl, szSubDirectory, uiCutoff, pcIndexTreeEvictionCallback, cEvictionStrategy, pcWriterCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse, cDataOrderer);
 }
@@ -29,7 +29,7 @@ bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, szSubDirectory, uiCutoff, pcIndexTreeEvictionCallback, cEvictionStrategy, pcWriterCallback, LifeLocal<CMallocator>(&gcSystemAllocator), eWriteThrough, eKeyReverse);
 }
@@ -39,7 +39,7 @@ bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
+bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse)
 {
 	return Init(pcDurableFileControl, szSubDirectory, uiCutoff, pcIndexTreeEvictionCallback, cEvictionStrategy, pcWriterCallback, cMalloc, eWriteThrough, eKeyReverse, LifeNull<CIndexTreeDataOrderer>());
 }
@@ -49,7 +49,7 @@ bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size_t uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, size uiCutoff, CIndexTreeEvictionCallback* pcIndexTreeEvictionCallback, CLifeInit<CIndexTreeEvictionStrategy> cEvictionStrategy, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	bool	bResult;
 
@@ -91,10 +91,10 @@ bool CIndexTreeEvicting::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CIndexTreeEvicting::Get(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	bool	bFound;
-	int		iEvicted;
+	size	iEvicted;
 
 	bFound = mcIndexTree.Get(pvKey, iKeySize, pvData, piDataSize, uiMaxDataSize);
 	if (bFound)
@@ -109,7 +109,7 @@ bool CIndexTreeEvicting::Get(void* pvKey, int iKeySize, void* pvData, size_t* pi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvData, size_t* piDataSize, size_t uiMaxDataSize)
+bool CIndexTreeEvicting::GetWithoutEviction(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	bool	bResult;
 
@@ -122,10 +122,10 @@ bool CIndexTreeEvicting::GetWithoutEviction(void* pvKey, int iKeySize, void* pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+bool CIndexTreeEvicting::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	bool	bResult;
-	int		iEvicted;
+	size	iEvicted;
 
 	bResult = mcIndexTree.Put(pvKey, iKeySize, pvData, iDataSize);
 	iEvicted = PotentiallyEvict(pvKey, iKeySize);
@@ -137,7 +137,7 @@ bool CIndexTreeEvicting::Put(void* pvKey, int iKeySize, void* pvData, size_t iDa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvData, size_t iDataSize)
+bool CIndexTreeEvicting::PutWithoutEviction(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	bool	bResult;
 
@@ -150,10 +150,10 @@ bool CIndexTreeEvicting::PutWithoutEviction(void* pvKey, int iKeySize, void* pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Remove(void* pvKey, int iKeySize)
+bool CIndexTreeEvicting::Remove(void* pvKey, size iKeySize)
 {
 	bool	bFound;
-	int		iEvicted;
+	size		iEvicted;
 
 	bFound = mcIndexTree.Remove(pvKey, iKeySize);
 	if (bFound)
@@ -168,7 +168,7 @@ bool CIndexTreeEvicting::Remove(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
+bool CIndexTreeEvicting::HasKey(void* pvKey, size iKeySize)
 {
 	bool	bFound;
 	bool	bAnyEvicted;
@@ -186,10 +186,10 @@ bool CIndexTreeEvicting::HasKey(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CIndexTreeEvicting::GetDataSize(void* pvKey, int iKeySize)
+size CIndexTreeEvicting::GetDataSize(void* pvKey, size iKeySize)
 {
-	uint16	uiSize;
-	int				iEvicted;
+	size	uiSize;
+	size	iEvicted;
 
 	uiSize = mcIndexTree.GetDataSize(pvKey, iKeySize);
 	iEvicted = PotentiallyEvict(pvKey, iKeySize);
@@ -201,14 +201,14 @@ uint16 CIndexTreeEvicting::GetDataSize(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
+size CIndexTreeEvicting::PotentiallyEvict(void* pvKey, size iKeySize)
 {
-	size_t				uiLastSize;
-	size_t				uiSize;
-	CIndexTreeNodeFile*	pcDontEvict;
-	bool				bResult;
-	CChars				sz;
-	int					iEvicted;
+	size					uiLastSize;
+	size					uiSize;
+	CIndexTreeNodeFile*		pcDontEvict;
+	bool					bResult;
+	CChars					sz;
+	size					iEvicted;
 
 	uiLastSize = 0;
 	pcDontEvict = mcIndexTree.GetMemoryNode(pvKey, iKeySize);
@@ -261,7 +261,7 @@ int CIndexTreeEvicting::PotentiallyEvict(void* pvKey, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
+bool CIndexTreeEvicting::Evict(void* pvKey, size iKeySize)
 {
 	CIndexTreeNodeFile* pcNode;
 
@@ -284,16 +284,16 @@ bool CIndexTreeEvicting::Evict(void* pvKey, int iKeySize)
 bool CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 {
 	CStackMemory<>		cStack;
-	char*				pvMem;
-	int					iKeySize;
+	uint8*				pvMem;
+	size				iKeySize;
 	bool				bResult;
 	void*				pvData;
-	uint16		uiDataSize;
+	size				uiDataSize;
 
 	if (mpcIndexTreeEvictionCallback)
 	{
 		iKeySize = mcIndexTree.GetNodeKeySize(pcNode);
-		pvMem = (char*)cStack.Init(iKeySize + 1);
+		pvMem = (uint8*)cStack.Init(iKeySize + 1);
 		mcIndexTree.GetNodeKey(pcNode, pvMem, iKeySize + 1);
 		pvMem[iKeySize] = 0;
 		pvData = pcNode->GetDataPtr();
@@ -324,7 +324,7 @@ bool CIndexTreeEvicting::EvictNodeWithObject(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Flush(void* pvKey, int iKeySize)
+bool CIndexTreeEvicting::Flush(void* pvKey, size iKeySize)
 {
 	return mcIndexTree.Flush(pvKey, iKeySize);
 }
@@ -430,7 +430,7 @@ CIndexTreeFile* CIndexTreeEvicting::GetIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::NumNodes(void)
+size CIndexTreeEvicting::NumNodes(void)
 {
 	return mcIndexTree.NumNodes();
 }
@@ -440,7 +440,7 @@ int CIndexTreeEvicting::NumNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::NumMemoryNodes(void)
+size CIndexTreeEvicting::NumMemoryNodes(void)
 {
 	return mcIndexTree.NumMemoryNodes();
 }
@@ -471,7 +471,7 @@ int64 CIndexTreeEvicting::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::NumMemoryElements(void)
+size CIndexTreeEvicting::NumMemoryElements(void)
 {
 	return mcIndexTree.NumMemoryElements();
 }
@@ -481,7 +481,7 @@ int CIndexTreeEvicting::NumMemoryElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::NumMemoryElements(size_t iSize)
+size CIndexTreeEvicting::NumMemoryElements(size iSize)
 {
 	return mcIndexTree.NumMemoryElements(iSize);
 }
@@ -491,7 +491,7 @@ int CIndexTreeEvicting::NumMemoryElements(size_t iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
+void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
 {
 	return mcIndexTree.DebugKey(pszDest, pvKey, iKeySize, bSkipRoot, bShowFlags, bShowSize, bKeyAlreadyReversed);
 }
@@ -503,7 +503,7 @@ void CIndexTreeEvicting::DebugKey(CChars* pszDest, void* pvKey, int iKeySize, bo
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvicting::Dump(void)
 {
-	CChars				sz;
+	CChars	sz;
 
 	sz.Init();
 	Print(&sz, true, true);
@@ -518,7 +518,7 @@ void CIndexTreeEvicting::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeEvicting::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
-	CChars				sz;
+	CChars	sz;
 
 	sz.Init();
 	sz.Append("= [IndexTreeEvicting]  ");
@@ -553,7 +553,7 @@ CIndexTreeNodeFile* CIndexTreeEvicting::GetRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, int iKeySize)
+CIndexTreeNodeFile* CIndexTreeEvicting::GetMemoryNode(void* pvKey, size iKeySize)
 {
 	return mcIndexTree.GetMemoryNode(pvKey, iKeySize);
 }
@@ -591,7 +591,7 @@ bool CIndexTreeEvicting::EvictNode(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, int iDestKeySize)
+size CIndexTreeEvicting::GetNodeKey(CIndexTreeNodeFile* pcNode, uint8* pvDestKey, size iDestKeySize)
 {
 	return mcIndexTree.GetNodeKey(pcNode, pvDestKey, iDestKeySize);
 }
@@ -601,7 +601,7 @@ int CIndexTreeEvicting::GetNodeKey(CIndexTreeNodeFile* pcNode, char* pvDestKey, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeEvicting::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
+size CIndexTreeEvicting::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 {
 	return mcIndexTree.GetNodeKeySize(pcNode);
 }
@@ -611,7 +611,7 @@ int CIndexTreeEvicting::GetNodeKeySize(CIndexTreeNodeFile* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeEvicting::GetSystemMemorySize(void)
+size CIndexTreeEvicting::GetSystemMemorySize(void)
 {
 	return mcIndexTree.GetSystemMemorySize();
 }
@@ -621,7 +621,7 @@ size_t CIndexTreeEvicting::GetSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTreeEvicting::GetUserMemorySize(void)
+size CIndexTreeEvicting::GetUserMemorySize(void)
 {
 	return mcIndexTree.GetUserMemorySize();
 }
@@ -631,7 +631,7 @@ size_t CIndexTreeEvicting::GetUserMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CIndexTreeEvicting::GetRootFlags(void)
+size CIndexTreeEvicting::GetRootFlags(void)
 {
 	return mcIndexTree.GetRoot()->GetFlags();
 }
@@ -641,10 +641,10 @@ uint8 CIndexTreeEvicting::GetRootFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+bool CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	bool	bResult;
-	int		iEvicted;
+	size	iEvicted;
 
 	bResult = mcIndexTree.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
 	if (bResult)
@@ -663,11 +663,11 @@ bool CIndexTreeEvicting::StartIteration(SIndexTreeFileIterator* psIterator, void
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, int* piKeySize, int iMaxKeySize, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+bool CIndexTreeEvicting::Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 
 	bool	bResult;
-	int		iEvicted;
+	size		iEvicted;
 
 	bResult = mcIndexTree.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, pvData, piDataSize, iMaxDataSize);
 	if (bResult)

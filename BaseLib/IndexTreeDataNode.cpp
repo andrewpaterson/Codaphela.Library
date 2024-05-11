@@ -5,9 +5,9 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeDataNode::Init(uint16 uiDataSize)
+void CIndexTreeDataNode::Init(size uiDataSize)
 {
-	muiDataSize = uiDataSize;
+	muiDataSize = (uint16)uiDataSize;
 	msListNode.psNext = NULL;
 	msListNode.psPrev = NULL;
 }
@@ -29,7 +29,7 @@ void CIndexTreeDataNode::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CIndexTreeDataNode::GetDataSize(void)
+size CIndexTreeDataNode::GetDataSize(void)
 {
 	return muiDataSize;
 }
@@ -39,9 +39,9 @@ uint16 CIndexTreeDataNode::GetDataSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeDataNode::SetDataSize(uint16 uiDataSize)
+void CIndexTreeDataNode::SetDataSize(size uiDataSize)
 {
-	muiDataSize = uiDataSize;
+	muiDataSize = (uint16)uiDataSize;
 }
 
 

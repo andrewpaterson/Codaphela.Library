@@ -27,19 +27,19 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorBlock::AddGetNode(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace, SENode** pcThisNode)
+size CEnumeratorBlock::AddGetNode(char* szName, void* pvData, size uiDataSize, size uiKeySize, size iNum, bool bReplace, SENode** pcThisNode)
 {
-	int			iID;
+	size			iID;
 	SENode*		psNode;
 
 	if (pcThisNode)
 	{
-		iID = PrivateAddGetNode(szName, pvData, iDataSize, iKeySize, iNum, bReplace, pcThisNode);
+		iID = PrivateAddGetNode(szName, pvData, uiDataSize, uiKeySize, iNum, bReplace, pcThisNode);
 		psNode = (*pcThisNode);
 	}
 	else
 	{
-		iID = PrivateAddGetNode(szName, pvData, iDataSize, iKeySize, iNum, bReplace, &psNode);
+		iID = PrivateAddGetNode(szName, pvData, uiDataSize, uiKeySize, iNum, bReplace, &psNode);
 	}
 	//If name with key exists and can't be replaced.
 	if (psNode == NULL)
@@ -55,9 +55,9 @@ int CEnumeratorBlock::AddGetNode(char* szName, void* pvData, int iDataSize, int 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CEnumeratorBlock::Add(char* szName, void* pvData, int iDataSize, int iKeySize, int iNum, bool bReplace)
+size CEnumeratorBlock::Add(char* szName, void* pvData, size uiDataSize, size uiKeySize, size iNum, bool bReplace)
 {
-	return AddGetNode(szName, pvData, iDataSize, iKeySize, iNum, bReplace, NULL);
+	return AddGetNode(szName, pvData, uiDataSize, uiKeySize, iNum, bReplace, NULL);
 }
 
 
@@ -65,9 +65,9 @@ int CEnumeratorBlock::Add(char* szName, void* pvData, int iDataSize, int iKeySiz
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CEnumeratorBlock::Add(char* szName, int iDataSize)
+void* CEnumeratorBlock::Add(char* szName, size uiDataSize)
 {
-	return Add(szName, iDataSize, -1);
+	return Add(szName, uiDataSize, -1);
 }
 
 
@@ -75,11 +75,11 @@ void* CEnumeratorBlock::Add(char* szName, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CEnumeratorBlock::Add(char* szName, int iDataSize, int iNum)
+void* CEnumeratorBlock::Add(char* szName, size uiDataSize, size iNum)
 {
 	SENode*		psNode;
 
-	AddGetNode(szName, NULL, iDataSize, 0, iNum, true, &psNode);
+	AddGetNode(szName, NULL, uiDataSize, 0, iNum, true, &psNode);
 	return psNode->pvData;
 }
 

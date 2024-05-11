@@ -44,10 +44,10 @@ public:
 	void 	Close(void);
 
 	bool	ReadLine(CChars* szString);
-	bool	ReadLine(char* szString, int iMaxLength);
+	bool	ReadLine(char* szString, size iMaxLength);
 
 protected:
-	int		ReadLine(char* snz);
+	size	ReadLine(char* snz);
 };
 
 

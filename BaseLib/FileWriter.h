@@ -33,31 +33,32 @@ class CFileWriter
 {
 public:
 	//General
-						bool	WriteData(void* pvData, filePos iDataSize);
+						bool	WriteData(void* pvData, size iDataSize);
 
 	//Strings.
 						bool	WriteString(const char* szString);
 
 	//Helpers.		
-						bool	WriteInt(int8 i);
-						bool	WriteInt(uint8 i);
-						bool	WriteInt(int16 i);
-						bool	WriteInt(uint16 i);
+						bool	WriteByte(int8 i);
+						bool	WriteByte(uint8 i);
+						bool	WriteShort(int16 i);
+						bool	WriteShort(uint16 i);
 						bool	WriteInt(int32 i);
 						bool	WriteInt(uint32 i);
-						bool	WriteInt(int64 i);
-						bool	WriteInt(uint64 i);
+						bool	WriteLong(int64 i);
+						bool	WriteLong(uint64 i);
+						bool	WriteSize(size ui);
 						bool	WriteFloat(float32 f);
 						bool	WriteFloat(float64 f);
 						bool	WriteChar(char8 c);
-						bool	WriteChar(char16 c);
+						bool	WriteWChar(char16 c);
 						bool	WriteBool(bool b);
-						bool	WriteBits(void* pvData, int iBitLength);
+						bool	WriteBits(void* pvData, size iBitLength);
 
-						bool	WriteIntArray(int* pai, int iLength);
+						bool	WriteIntArray(int32* pai, size iLength);
 
 protected:
-	virtual				filePos	Write(const void* pvSource, filePos iSize, filePos iCount) =0;
+	virtual				size	Write(const void* pvSource, size iSize, size iCount) =0;
 };
 
 

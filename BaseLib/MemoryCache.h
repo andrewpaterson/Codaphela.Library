@@ -1,3 +1,4 @@
+
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2022 Andrew Paterson
@@ -33,13 +34,13 @@ protected:
 	CMemoryCacheEvictionCallback*	mpcEvictionCallback;
 
 public:
-	void	Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
+	void	Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback, int iDescriptorSize = sizeof(SMemoryCacheDescriptor));
 	void	Kill(void);
-	void	Resize(size_t uiNewCacheSize);
+	void	Resize(size uiNewCacheSize);
 
-	void*	Allocate(size_t uiDataSize);
+	void*	Allocate(size uiDataSize);
 
-	bool	CanCache(size_t uiDataSize);
+	bool	CanCache(size uiDataSize);
 
 	void*	StartIteration(void);
 	void*	Iterate(void* psCurrent);
@@ -50,7 +51,7 @@ public:
 	void*	GetPrev(void* psCurrent);
 
 protected:
-	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size_t uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
+	void	FindOverlapping(SMemoryCacheDescriptor* psCachedBasedNew, size uiNewSize, CArrayVoidPtr* pasOverlappingCacheDescriptors);
 	bool	PreAllocate(CMemoryCacheAllocation* pcPreAllocationResult);
 	void*	PostAllocate(CMemoryCacheAllocation* pcPreAllocated);
 };

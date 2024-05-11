@@ -1,18 +1,19 @@
 #ifndef __TEXT_POSITION_H__
 #define __TEXT_POSITION_H__
 #include "Define.h"
+#include "PrimitiveTypes.h"
 #include "ExternalString.h"
 
 
 struct STextPosition
 {
 	char*	szPos;
-	int		iLine;
-	int		iColumn;
+	size	iLine;
+	size	iColumn;
 
 	void	Init(void);
-	void	Init(char* szPos, int iLine, int iColumn);
-	void	Init(char* szStartOfText, int iLength, char* szPosition);
+	void	Init(char* szPos, size iLine, size iColumn);
+	void	Init(char* szStartOfText, size iLength, char* szPosition);
 	void	Clear(void);
 };
 
@@ -34,7 +35,7 @@ public:
 protected:
 	void	PrintPositionSingleLineParser(CChars* pszDest);
 	void	PrintPositionMultilineParser(CChars* pszDest);
-	int		UsedLength(void);
+	size	UsedLength(void);
 };
 
 

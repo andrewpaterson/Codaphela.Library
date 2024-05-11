@@ -41,9 +41,9 @@ void CArrayCharMinimal::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCharMinimal::Init(char* sz)
 {
-	int	iNumElements;
+	size	iNumElements;
 
-	iNumElements = (int)strlen(sz) + 1;
+	iNumElements = strlen(sz) + 1;
 	Allocate(iNumElements);
 	memcpy(mpvArray, sz, iNumElements);
 }
@@ -53,7 +53,7 @@ void CArrayCharMinimal::Init(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCharMinimal::Allocate(int iNumElements)
+void CArrayCharMinimal::Allocate(size iNumElements)
 {
 	CArrayTemplateMinimal<char>::Allocate(iNumElements);
 }
@@ -86,9 +86,9 @@ void CArrayCharMinimal::Add(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCharMinimal::AddIfUnique(char c)
+size CArrayCharMinimal::AddIfUnique(char c)
 {
-	int iElementNum;
+	size	iElementNum;
 
 	iElementNum = Find(c);
 	if (iElementNum == -1)
@@ -103,9 +103,9 @@ int CArrayCharMinimal::AddIfUnique(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCharMinimal::Find(char c)
+size CArrayCharMinimal::Find(char c)
 {
-	int	j;
+	size	j;
 
 	for (j = 0; j < miUsedElements; j++)
 	{
@@ -122,7 +122,7 @@ int CArrayCharMinimal::Find(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CArrayCharMinimal::GetValue(int iElementPos)
+char CArrayCharMinimal::GetValue(size iElementPos)
 {
 	return *Get(iElementPos);
 }
@@ -136,3 +136,4 @@ char* CArrayCharMinimal::GetArray(void)
 {
 	return mpvArray;
 }
+

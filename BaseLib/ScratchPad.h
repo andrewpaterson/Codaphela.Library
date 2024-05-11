@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SSPNode
 {
 public:
-	size_t			iSize;
+	size			iSize;
 	bool			bUsed;
 };
 
@@ -50,11 +50,11 @@ public:
 	void	Init(int iChunkSize);
 	void	Kill(void);
 
-	void*	Add(size_t tSize);
+	void*	Add(size uiSize);
 	void	Reset(void);
 
-	size_t	GetMemorySize(void);
-	size_t	GetUsedSize(void);
+	size	GetMemorySize(void);
+	size	GetUsedSize(void);
 
 	void	GetParams(SScratchPadParams* psParams);
 };

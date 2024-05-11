@@ -397,7 +397,7 @@ bool CFatInfoSectorCache::Flush(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CFatInfoSectorCache::GetNumAllocatedSectors(void)
 {
-	return mllcCachedSectors.NumElements();
+	return (uint16)mllcCachedSectors.NumElements();
 }
 
 

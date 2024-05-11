@@ -1,3 +1,4 @@
+#include "StringHelper.h"
 #include "ListCharsMinimal.h"
 
 
@@ -5,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CListCharsMinimal::TotalSize(int iNumElements, int iRowLength)
+size CListCharsMinimal::TotalSize(int iNumElements, int iRowLength)
 {
 	return __CListCharsMinimal::TotalSize(iNumElements, iRowLength + iNumElements);
 }
@@ -26,9 +27,9 @@ void CListCharsMinimal::Init(int iNumElements, int iRowLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CListCharsMinimal::IndexOf(char* szString)
+size CListCharsMinimal::IndexOf(char* szString)
 {
-	size_t	i;
+	size	i;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
@@ -55,7 +56,7 @@ void CListCharsMinimal::Add(char* sz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListCharsMinimal::Add(char* sz, size_t iSize)
+void CListCharsMinimal::Add(char* sz, size iSize)
 {
 	char*	szDest;
 

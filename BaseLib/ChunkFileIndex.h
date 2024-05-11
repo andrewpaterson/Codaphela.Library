@@ -24,15 +24,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CHUNK_INDEX_H__
 #include "ArrayTemplate.h"
 #include "AbstractFile.h"
+#include "ChunkFileName.h"
 
 
 struct SChunkIndex
 {
-	int			miName;
-	filePos		miChunkSize;  //Size of data in this chunk
-	filePos		miChunkDataPos;  //Position of chunk data in file
+	chunkName	miName;
+	filePos		miChunkSize;	//Size of data in this chunk
+	filePos		miChunkDataPos;	//Position of chunk data in file
 
-	void Init(filePos iChunkDataPos, int iName, filePos iChunkSize);
+	void Init(filePos iChunkDataPos, chunkName iName, filePos iChunkSize);
 };
 
 
@@ -42,8 +43,8 @@ typedef CArrayTemplate<SChunkIndex>	CChunkIndexArray;
 class CChunkIndex
 {
 protected:
-	int		miSearchName;
-	int		miCurrChunkNum;
+	chunkName	miSearchName;
+	size		miCurrChunkNum;
 
 public:
 	CChunkIndexArray	mcChunkIndices;
@@ -51,9 +52,9 @@ public:
 	void	ReadInit(void);
 	void	WriteInit(void);
 	void	Kill(void);
-	int		FindFirstChunkWithName(int iName);
-	int		FindNextChunkWithName(void);
-	int		GetNumChunksWithName(int iName);
+	uint32	FindFirstChunkWithName(chunkName iName);
+	uint32	FindNextChunkWithName(void);
+	size	GetNumChunksWithName(chunkName iName);
 };
 
 

@@ -184,7 +184,7 @@ int eprintf(const char* szUnformatted, ...)
 	int					iLength;
 	char*				aszParameters;
 	char*				szParameter;
-	size_t				iFormattedeLength;
+	size				iFormattedeLength;
 	CStackMemory<1 KB>	cStack;
 	char*				szFormattedParameter;
 

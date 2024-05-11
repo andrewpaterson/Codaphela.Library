@@ -5,7 +5,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SChunkFileHeader::WriteInit(int iUserID)
+void SChunkFileHeader::WriteInit(chunkName iUserID)
 {
 	memset(this, 0xEE, sizeof(SChunkFileHeader));
 	miUserID = iUserID;

@@ -7,12 +7,12 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void BubbleSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumElements)
+void BubbleSort(DataCompare fCompare, void* pvArray, size uiStride, size iNumElements)
 {
-	int		iIndex;
+	size	iIndex;
 	int		iResult;
 	bool	bSwapped;
-	int		iNumDone;
+	size	iNumDone;
 	void*	pvLeft;
 	void*	pvRight;
 
@@ -23,7 +23,8 @@ void BubbleSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumEl
 		iIndex = 0;
 		bSwapped = false;
 
-		while ((iIndex + 1) < (iNumElements - iNumDone))
+
+		while ((iIndex + 1) != (iNumElements - iNumDone))
 		{
 			pvLeft = RemapSinglePointer(pvArray, uiStride * iIndex);
 			pvRight = RemapSinglePointer(pvArray, uiStride * (iIndex + 1));

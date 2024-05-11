@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexedCache::Init(size_t uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback)
+void CIndexedCache::Init(size uiCacheSize, CMemoryCacheEvictionCallback* pcEvictionCallback)
 {
 	mcCache.Init(uiCacheSize, pcEvictionCallback, sizeof(SIndexedCacheDescriptor));
 }
@@ -62,7 +62,7 @@ void CIndexedCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, uint32 uiDataSize)
+CIndexedCacheResult CIndexedCache::Allocate(OIndex oi, size uiDataSize)
 {
 	void*						pvCache;
 	SIndexedCacheDescriptor*	psCacheDesc;
@@ -133,7 +133,7 @@ void CIndexedCache::SetDirty(void* pvCache)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedCache::NumCached(void)
+size CIndexedCache::NumCached(void)
 {
 	return mcCache.NumElements();
 }
@@ -143,7 +143,7 @@ int CIndexedCache::NumCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedCache::NumCached(int iSize)
+size CIndexedCache::NumCached(size iSize)
 {
 	return mcCache.NumElements(iSize);
 }
@@ -155,7 +155,7 @@ int CIndexedCache::NumCached(int iSize)
 //////////////////////////////////////////////////////////////////////////
 SIndexedCacheDescriptor* CIndexedCache::GetDescriptor(void* pvData)
 {
-	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -mcCache.GetDescriptorSize());
+	return (SIndexedCacheDescriptor*)RemapSinglePointer(pvData, -((ptrdiff)mcCache.GetDescriptorSize()));
 }
 
 
@@ -193,7 +193,7 @@ void* CIndexedCache::Iterate(void* psCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedCache::GetIndexCacheDescritorSize(void)
+size CIndexedCache::GetIndexCacheDescritorSize(void)
 {
 	return mcCache.GetDescriptorSize();
 }
@@ -203,7 +203,7 @@ int CIndexedCache::GetIndexCacheDescritorSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexedCache::GetCacheSize(void)
+size CIndexedCache::GetCacheSize(void)
 {
 	return mcCache.GetCacheSize();
 }
@@ -213,7 +213,7 @@ size_t CIndexedCache::GetCacheSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexedCache::GetAllocatedSize(void)
+size CIndexedCache::GetAllocatedSize(void)
 {
 	return mcCache.GetAllocatedSize();
 }
@@ -223,7 +223,7 @@ size_t CIndexedCache::GetAllocatedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedCache::CanCache(uint32 uiDataSize)
+bool CIndexedCache::CanCache(size uiDataSize)
 {
 	return mcCache.CanCache(uiDataSize);
 }

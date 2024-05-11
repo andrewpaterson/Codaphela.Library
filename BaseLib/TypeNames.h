@@ -28,8 +28,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct STypeName
 {
 	EPrimitiveType		eType;
-	int					iByteSize;
-	int					iBitSize;
+	size					iByteSize;
+	size					iBitSize;
 	char*				szPrettyName;
 	char*				szCppName;
 	char*				szPrimitiveName;
@@ -55,11 +55,11 @@ public:
 	const char* 		GetPrimitiveName(EPrimitiveType eType);
 	EPrimitiveType		GetTypeFromPrettyName(const char* szPrettyName);
 	EPrimitiveType		GetTypeFromCPPName(const char* szPrettyName);
-	int					GetByteSize(EPrimitiveType eType);
-	int					GetBitSize(EPrimitiveType eType);
+	size				GetByteSize(EPrimitiveType eType);
+	size				GetBitSize(EPrimitiveType eType);
 
 private:
-	void				AddType(EPrimitiveType eType, int iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName);
+	void				AddType(EPrimitiveType eType, size iSize, const char* szPrettyName, const char* szCppName, const char* szPrimitiveName);
 };
 
 

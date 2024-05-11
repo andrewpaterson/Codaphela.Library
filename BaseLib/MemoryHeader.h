@@ -3,19 +3,20 @@
 #include "FreeList.h"
 #include "PointerRemapper.h"
 #include "ArrayVoidPtr.h"
+#include "ArrayTemplateMinimal.h"
 #include "LinkedListBlockAligned.h"
 
 
 struct SDataMemoryAllocation
 {
-	size_t		uiSize;
+	size		uiSize;
 	SFNode*		psFreeListNode;
 };
 
 
 struct SGeneralMemoryAllocation : public SDataMemoryAllocation
 {
-	uint32	uiAllocCount;
+	size	uiAllocCount;
 	char	szDebug[4];
 };
 
@@ -23,9 +24,9 @@ struct SGeneralMemoryAllocation : public SDataMemoryAllocation
 struct SFreeListDesc
 {
 	CFreeList*	pcFreeList;
-	uint32		iStride;
+	size		iStride;
 
-	void Init(uint32 iStride);
+	void Init(size iStride);
 	void Init(CFreeList* pcFreeList, int iStride);
 };
 
@@ -34,11 +35,11 @@ struct SFreeListDesc
 //Just that they all have the same alignment and offset.
 struct SAlignedFreeListDesc : SFreeListDesc
 {
-	int		iAlignment;
-	int		iOffset;
+	uint8	iAlignment;
+	int8	iOffset;
 
-	void Init(uint32 iStride, int iAlignment, int iOffset);
-	void Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset);
+	void Init(size iStride, uint16 iAlignment, int16 iOffset);
+	void Init(CFreeList* pcFreeList, int iStride, uint16 iAlignment, int16 iOffset);
 };
 
 
@@ -58,8 +59,8 @@ struct SMemory
 {
 	bool	bValid;
 	void*	pvMem;
-	uint32	uiAllocCount;
-	uint32	uiSize;
+	size	uiAllocCount;
+	size	uiSize;
 
 	void Init(void);
 	void Set(SGeneralMemoryAllocation* psAllocation);

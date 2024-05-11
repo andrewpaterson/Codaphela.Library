@@ -148,7 +148,7 @@ bool CFileHeader::IsWriterVersion(const char* szWriterVersion)
 //////////////////////////////////////////////////////////////////////////
 bool CFileHeader::CheckHeaderSize(const char* szMethod)
 {
-	size_t		tFileHeaderSize;
+	size		tFileHeaderSize;
 
 	tFileHeaderSize = sizeof(CFileHeader);
 	if (tFileHeaderSize != FILE_HEADER_SIZE)

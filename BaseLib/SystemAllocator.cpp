@@ -18,9 +18,9 @@ void CSystemAllocator::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CSystemAllocator::Malloc(size_t tSize)
+void* CSystemAllocator::Malloc(size uiSize)
 {
-	return malloc(tSize);
+	return malloc(uiSize);
 }
 
 
@@ -46,15 +46,15 @@ bool CSystemAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CSystemAllocator::Realloc(void* pv, size_t tSize)
+void* CSystemAllocator::Realloc(void* pv, size uiSize)
 {
 	if (pv == NULL)
 	{
-		pv = malloc(tSize);
+		pv = malloc(uiSize);
 	}
 	else
 	{
-		pv = realloc(pv, tSize);
+		pv = realloc(pv, uiSize);
 	}
 	return pv;
 }
@@ -74,7 +74,7 @@ bool CSystemAllocator::IsLocal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CSystemAllocator::SizeOffset(void)
+size CSystemAllocator::SizeOffset(void)
 {
 	return 0;
 }

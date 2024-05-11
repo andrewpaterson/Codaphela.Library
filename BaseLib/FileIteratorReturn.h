@@ -21,19 +21,19 @@ protected:
 	EFileIteratorReturnType		meType;
 	CChars						mszFullName;
 	CBaseFileNode*				mpsNode;
-	int							miFileRank;
+	uint32						miFileRank;
 
 public:
 	void						Init(void);
-	void						Init(EFileIteratorReturnType eType, CBaseFileNode* pcNode, int iFileRank);
+	void						Init(EFileIteratorReturnType eType, CBaseFileNode* pcNode, uint32 iFileRank);
 	void						Kill(void);
 
-	void						InsertInName(int iIndex, char* szText);
+	void						InsertInName(size iIndex, char* szText);
 
 	EFileIteratorReturnType		GetType(void);
 	char*						GetFullName(void);
 	CBaseFileNode*				GetNode(void);
-	int							GetFileRank(void);
+	uint32						GetFileRank(void);
 };
 
 

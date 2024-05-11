@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTypeParser::Init(char* szText, int iTextLen)
+bool CTypeParser::Init(char* szText, size iTextLen)
 {
 	AllocateParser();
 	return mpcParser->Init(szText, iTextLen);
@@ -100,10 +100,10 @@ void CTypeParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64 lliMin)
 {
-	uint64	ulliValue;
-	int64			lliValue;
-	int						iSign;
-	TRISTATE				tResult;
+	uint64		ulliValue;
+	int64		lliValue;
+	int16		iSign;
+	TRISTATE	tResult;
 
 	tResult = mpcParser->GetInteger(&ulliValue, &iSign);
 	if (tResult == TRITRUE)
@@ -135,15 +135,15 @@ TRISTATE CTypeParser::GetSmallIntegerValue(int64* plliValue, int64 lliMax, int64
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::ParseInt(int* pDest)
+TRISTATE CTypeParser::ParseInt(int32* pDest)
 {
-	TRISTATE				tResult;
-	int64			lliValue;
+	TRISTATE	tResult;
+	int64		lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_INT, MIN_INT);
 	if (tResult == TRITRUE)
 	{
-		*pDest = (int)lliValue;
+		*pDest = (int32)lliValue;
 	}
 	return tResult;
 }
@@ -155,8 +155,8 @@ TRISTATE CTypeParser::ParseInt(int* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseChar(char* pDest)
 {
-	TRISTATE				tResult;
-	int64			lliValue;
+	TRISTATE	tResult;
+	int64		lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_CHAR, MIN_CHAR);
 	if (tResult == TRITRUE)
@@ -173,8 +173,8 @@ TRISTATE CTypeParser::ParseChar(char* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseShort(int16* pDest)
 {
-	TRISTATE				tResult;
-	int64			lliValue;
+	TRISTATE	tResult;
+	int64		lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_SHORT, MIN_SHORT);
 	if (tResult == TRITRUE)
@@ -192,7 +192,7 @@ TRISTATE CTypeParser::ParseShort(int16* pDest)
 TRISTATE CTypeParser::ParseFloat(float* pDest)
 {
 	TRISTATE	tResult;
-	double	ldValue;
+	double		ldValue;
 
 	tResult = mpcParser->GetFloat(&ldValue);
 	if (tResult == TRITRUE)
@@ -210,7 +210,7 @@ TRISTATE CTypeParser::ParseFloat(float* pDest)
 TRISTATE CTypeParser::ParseDouble(double* pDest)
 {
 	TRISTATE	tResult;
-	double	ldValue;
+	double		ldValue;
 
 	tResult = mpcParser->GetFloat(&ldValue);
 	if (tResult == TRITRUE)
@@ -227,13 +227,13 @@ TRISTATE CTypeParser::ParseDouble(double* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseUInt(uint32* pDest)
 {
-	TRISTATE				tResult;
-	int64			lliValue;
+	TRISTATE	tResult;
+	int64		lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_UINT, MIN_UINT);
 	if (tResult == TRITRUE)
 	{
-		*pDest = (int)lliValue;
+		*pDest = (uint32)lliValue;
 	}
 	return tResult;
 }
@@ -245,13 +245,13 @@ TRISTATE CTypeParser::ParseUInt(uint32* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseUShort(uint16* pDest)
 {
-	TRISTATE				tResult;
-	int64			lliValue;
+	TRISTATE	tResult;
+	int64		lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_USHORT, MIN_USHORT);
 	if (tResult == TRITRUE)
 	{
-		*pDest = (int)lliValue;
+		*pDest = (uint16)lliValue;
 	}
 	return tResult;
 }
@@ -263,13 +263,13 @@ TRISTATE CTypeParser::ParseUShort(uint16* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseUChar(uint8* pDest)
 {
-	TRISTATE				tResult;
-	int64			lliValue;
+	TRISTATE	tResult;
+	int64		lliValue;
 
 	tResult = GetSmallIntegerValue(&lliValue, MAX_UCHAR, MIN_UCHAR);
 	if (tResult == TRITRUE)
 	{
-		*pDest = (int)lliValue;
+		*pDest = (uint8)lliValue;
 	}
 	return tResult;
 }
@@ -291,8 +291,8 @@ TRISTATE CTypeParser::ParseLong(int64* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseULong(uint64* pDest)
 {
-	int						iSign;
-	TRISTATE				tResult;
+	int16		iSign;
+	TRISTATE	tResult;
 
 	tResult = mpcParser->GetInteger(pDest, &iSign);
 	if (tResult == TRITRUE)
@@ -338,7 +338,7 @@ TRISTATE CTypeParser::GetCharAndFloat(char c, float* pf)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::GetCharAndInt(char c, int* pi)
+TRISTATE CTypeParser::GetCharAndInt(char c, int32* pi)
 {
 	TRISTATE	tResult;
 
@@ -655,7 +655,7 @@ TRISTATE CTypeParser::ParseBool(bool* pDest)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTypeParser::ParseString(CChars* pDest)
 {
-	int			iLen;
+	size		iLen;
 	TRISTATE	tResult;
 
 	mpcParser->PushPosition();
@@ -697,14 +697,14 @@ TRISTATE CTypeParser::ParseDate(CDate* pDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, int iDestLength, char cOpen, char cSplit, char cClose)
+TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength, char cOpen, char cSplit, char cClose)
 {
 	switch (eType)
 	{
 		case PT_int32:
 			if (iDestLength >= INT_BYTE_SIZE)
 			{
-				return ParseInt((int*)pvDest);
+				return ParseInt((int32*)pvDest);
 			}
 			break;
 		case PT_int16:

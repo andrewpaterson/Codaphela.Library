@@ -6,7 +6,7 @@
 
 struct SCountingMemoryAllocation
 {
-	size_t			tSize;
+	size			uiSize;
 };
 
 
@@ -14,26 +14,26 @@ class CCountingAllocator : public CMallocator
 {
 protected:
 	CMallocator*	mpcAlloc;
-	size_t			mtUserSize;
-	size_t			mtSystemSize;
+	size			mtUserSize;
+	size			mtSystemSize;
 
 public:
 	void			Init(CMallocator* pcAlloc);
 	void			Kill(void);
 
-	size_t			AllocatedUserSize(void);
-	size_t			AllocatedSystemSize(void);
+	size			AllocatedUserSize(void);
+	size			AllocatedSystemSize(void);
 
-	void*			Malloc(size_t tSize);
-	void*			Realloc(void* pv, size_t tSize);
+	void*			Malloc(size uiSize);
+	void*			Realloc(void* pv, size uiSize);
 	bool			Free(void* pv);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ClassName(void);
-	uint32	ClassSize(void);
+	size			ClassSize(void);
 
 	bool			IsLocal(void);
-	size_t			SizeOffset(void);
+	size			SizeOffset(void);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ShortName(void);

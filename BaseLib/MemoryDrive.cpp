@@ -9,9 +9,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMemoryDrive::Init(size_t uiSizeInBytes, uint32 uiSectorSize)
+bool CMemoryDrive::Init(size uiSizeInBytes, uint32 uiSectorSize)
 {
-	size_t	uiSectorCount;
+	size	uiSectorCount;
 	uint64	uiSectorRemainder;
 
 	CFileDrive::Init(uiSectorSize);
@@ -57,7 +57,7 @@ bool CMemoryDrive::Read(uint64 uiSector, void* pvData)
 {
 	if (uiSector < muiMaxSector)
 	{
-		memcpy(pvData, RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), muiSectorSize);
+		memcpy(pvData, RemapSinglePointer(mpvData, (size)(uiSector * muiSectorSize)), muiSectorSize);
 		return true;
 	}
 	else
@@ -92,7 +92,7 @@ bool CMemoryDrive::Read(uint64 uiSector, uint32 uiNumSectors, void* pvData)
 		return false;
 	}
 
-	pvSource = RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize));
+	pvSource = RemapSinglePointer(mpvData, (size)(uiSector * muiSectorSize));
 	memcpy(pvData, pvSource, muiSectorSize * uiNumSectors);
 	return true;
 }
@@ -106,7 +106,7 @@ bool CMemoryDrive::Write(uint64 uiSector, void* pvData)
 {
 	if (uiSector < muiMaxSector)
 	{
-		memcpy(RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), pvData, muiSectorSize);
+		memcpy(RemapSinglePointer(mpvData, (size)(uiSector * muiSectorSize)), pvData, muiSectorSize);
 		return true;
 	}
 	else
@@ -140,7 +140,7 @@ bool CMemoryDrive::Write(uint64 uiSector, uint32 uiNumSectors, void* pvData)
 		return false;
 	}
 
-	memcpy(RemapSinglePointer(mpvData, (size_t)(uiSector * muiSectorSize)), pvData, muiSectorSize * uiNumSectors);
+	memcpy(RemapSinglePointer(mpvData, (size)(uiSector * muiSectorSize)), pvData, muiSectorSize * uiNumSectors);
 	return true;
 }
 
@@ -153,7 +153,7 @@ bool CMemoryDrive::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 {
 	if ((uiStartSector < muiMaxSector) && (uiStopSectorInclusive < muiMaxSector) && (uiStartSector >= uiStartSector))
 	{
-		memset(RemapSinglePointer(mpvData, (ptrdiff_t)(uiStartSector * muiSectorSize)), 0, (size_t)(((uiStopSectorInclusive - uiStartSector) + 1) * muiSectorSize));
+		memset(RemapSinglePointer(mpvData, (ptrdiff_t)(uiStartSector * muiSectorSize)), 0, (size)(((uiStopSectorInclusive - uiStartSector) + 1) * muiSectorSize));
 		return true;
 	}
 	else
@@ -168,7 +168,7 @@ bool CMemoryDrive::Erase(uint64 uiStartSector, uint64 uiStopSectorInclusive)
 //////////////////////////////////////////////////////////////////////////
 bool CMemoryDrive::Erase(void)
 {
-	memset(mpvData, 0, (size_t)muiMaxSector * muiSectorSize);
+	memset(mpvData, 0, (size)muiMaxSector * muiSectorSize);
 	return true;
 }
 

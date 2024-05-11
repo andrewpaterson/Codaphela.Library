@@ -1,5 +1,6 @@
 #ifndef __INDEX_TREE_EVICTION_CALLBACK_WRAPPER_H__
 #define __INDEX_TREE_EVICTION_CALLBACK_WRAPPER_H__
+#include "PrimitiveTypes.h"
 #include "IndexTreeEvictionCallback.h"
 
 
@@ -12,7 +13,7 @@ protected:
 public:
 	void Init(CIndexTreeEvictionCallback* pcCallback1, CIndexTreeEvictionCallback* pcCallback2);
 
-	bool IndexTreeNodeEvicted(void* pvKey, int iKeySize, void* pvData, int iDataSize);
+	bool IndexTreeNodeEvicted(void* pvKey, size iKeySize, void* pvData, size iDataSize);
 };
 
 

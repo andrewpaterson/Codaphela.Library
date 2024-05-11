@@ -36,9 +36,9 @@ void CScratchPadAllocator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CScratchPadAllocator::Malloc(size_t tSize)
+void* CScratchPadAllocator::Malloc(size uiSize)
 {
-	return mcScratchPad.Add(tSize);
+	return mcScratchPad.Add(uiSize);
 }
 
 
@@ -46,17 +46,17 @@ void* CScratchPadAllocator::Malloc(size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CScratchPadAllocator::Realloc(void* pv, size_t tSize)
+void* CScratchPadAllocator::Realloc(void* pv, size uiSize)
 {
 	SSPNode*	psNode;
 	void*		pvNew;
 
-	pvNew = mcScratchPad.Add(tSize); 
+	pvNew = mcScratchPad.Add(uiSize); 
 	psNode =  DataGetHeader<SSPNode, void>(pv);
 	psNode->bUsed = false;
-	if (psNode->iSize > tSize)
+	if (psNode->iSize > uiSize)
 	{
-		memcpy(pvNew, pv, tSize);
+		memcpy(pvNew, pv, uiSize);
 	}
 	else
 	{
@@ -149,7 +149,7 @@ bool CScratchPadAllocator::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CScratchPadAllocator::SizeOffset(void)
+size CScratchPadAllocator::SizeOffset(void)
 {
 	return sizeof(SSPNode);
 }

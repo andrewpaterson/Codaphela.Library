@@ -45,7 +45,7 @@ public:
 	bool					Init(char* szDirectory, char* szPackFilesExtension);
 	void					Kill(void);
 
-	int						GetNumPackFiles(void);
+	size					GetNumPackFiles(void);
 	CAbstractFile*			GetFile(char* szFullName);
 
 	CFileIteratorReturn*	StartIteration(CFileIterator* pcIter);
@@ -54,7 +54,7 @@ public:
 
 	void					GetFilenames(CMapStringInt* cFilenames);
 
-	CPackFiles*				GetPackFiles(int iIndex);
+	CPackFiles*				GetPackFiles(size iIndex);
 
 protected:
 	CDiskFile*				GetSystemFile(char* szFullName);

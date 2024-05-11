@@ -28,12 +28,12 @@ void CMapMapIterator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapIterator::Iterate(size_t* puiDataSize, void* pvDestKey, size_t* puiKeySize, size_t uiMaxKeySize)
+void* CMapMapIterator::Iterate(uint32* puiDataSize, void* pvDestKey, uint32* puiKeySize, uint32 uiMaxKeySize)
 {
 	void*	pvKey;
-	int		iKeySize;
+	uint32	iKeySize;
 	void*	pvData;
-	int		iDataSize;
+	uint32	iDataSize;
 	bool	bResult;
 
 	if (mbStarted)

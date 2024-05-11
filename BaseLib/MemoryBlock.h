@@ -8,19 +8,19 @@ class CMemoryBlock : public CMalloc
 {
 protected:
 	void*			mpvMem;
-	size_t			mtSize;
+	size			mtSize;
 
 public:
 	void	Init(void);
 	void	Init(CMallocator* pcMalloc);
 	void	Kill(void);
 	void*	GetMemory(void);
-	void*	Allocate(size_t tSize);
-	size_t	GetSize(void);
+	void*	Allocate(size uiSize);
+	size	GetSize(void);
 
 protected:	
-	void*	Malloc(size_t tSize);
-	void*	Realloc(void* pv, size_t tSize);
+	void*	Malloc(size uiSize);
+	void*	Realloc(void* pv, size uiSize);
 	void	Free(void* pv);
 };
 

@@ -39,7 +39,7 @@ bool CFileUtil::MakeDirs(bool bRemoveFirst, const char* szPathName, ...)
 {
 	va_list		vaMarker;
 	char*		pc;
-	int			iCount;
+	size		iCount;
 
 	iCount = 0;
 	pc = (char*)szPathName;
@@ -72,7 +72,7 @@ bool CFileUtil::RemoveDirs(const char* szPathName, ...)
 {
 	va_list		vaMarker;
 	char*		pc;
-	int			iCount;
+	size		iCount;
 	bool		bResult;
 
 	iCount = 0;
@@ -135,8 +135,8 @@ void CFileUtil::FullPath(CChars* szPathName)
 bool CFileUtil::IsRootDirectory(const char* szPathName)
 {
 	CChars	sz;
-	int		iCount;
-	int		iEnd;
+	size	iCount;
+	size	iEnd;
 
 	sz.Init(szPathName);
 	FullPath(&sz);
@@ -145,7 +145,7 @@ bool CFileUtil::IsRootDirectory(const char* szPathName)
 	if (iCount == 1)
 	{
 		iEnd = sz.FindFromEnd(FILE_SEPARATOR[0]);
-		if (iEnd == sz.Length()-1)
+		if (iEnd == sz.Length() - 1)
 		{
 			sz.Kill();
 			return true;
@@ -188,10 +188,10 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 	bool		bPrimary;
 	bool		bBackup;
 	filePos		iPrimary;
-	filePos			iBackup;
-	int			i;
+	filePos		iBackup;
+	size		i;
 	filePos		iNumBlocks;
-	filePos		iPartialBlock;
+	size		iPartialBlock;
 	void*		pvPrimary;
 	void*		pvBackup;
 	bool		bResult;
@@ -270,10 +270,10 @@ bool CFileUtil::Compare(const char* szFilename1, const char* szFilename2, bool b
 		}
 	}
 
-	cPrimary.ReadData(pvPrimary, (int)iPartialBlock);
-	cBackup.ReadData(pvBackup, (int)iPartialBlock);
+	cPrimary.ReadData(pvPrimary, iPartialBlock);
+	cBackup.ReadData(pvBackup, iPartialBlock);
 
-	bResult = memcmp(pvPrimary, pvBackup, (int)iPartialBlock);
+	bResult = memcmp(pvPrimary, pvBackup, (size)iPartialBlock);
 	if (bResult != 0)
 	{
 		SafeFree(pvPrimary);
@@ -306,9 +306,9 @@ bool CFileUtil::Copy(const char* szSource, const char* szDest)
 	bool		bPrimary;
 	bool		bBackup;
 	filePos		iPrimary;
-	int			i;
+	size		i;
 	filePos		iNumBlocks;
-	int			iPartialBlock;
+	size		iPartialBlock;
 	void*		pvData;
 
 	cPrimary.Init(DiskFile(szSource));
@@ -334,7 +334,7 @@ bool CFileUtil::Copy(const char* szSource, const char* szDest)
 	iPrimary = cPrimary.GetFileLength();
 
 	iNumBlocks = iPrimary / FILE_BLOCK_SIZE;
-	iPartialBlock = (int)(iPrimary % FILE_BLOCK_SIZE);
+	iPartialBlock = (size)(iPrimary % FILE_BLOCK_SIZE);
 
 	pvData = malloc(FILE_BLOCK_SIZE);
 
@@ -388,7 +388,7 @@ void CFileUtil::FixSeparators(CChars* szPathName)
 //////////////////////////////////////////////////////////////////////////
 void CFileUtil::SplitPath(const char* szPathName, CChars* szDestFilename, CChars* szDestDirectory)
 {
-	int		iIndex;
+	size	iIndex;
 	CChars	szTemp;
 
 	//Does not append a trailing separator.
@@ -463,6 +463,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 	CChars*			pszNode;
 	CChars*			apCharDirectories[4096];
 	int				iPos;
+	int				iNumElements;
 	bool			bLeadingSeparator;
 	char			cDriveLetter;
 
@@ -492,8 +493,9 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 		bLeadingSeparator = true;
 	}
 
+	iNumElements = (int)szNodes.NumElements();
 	iPos = 0;
-	for (i = 0; i < szNodes.NumElements(); i++)
+	for (i = 0; i < iNumElements; i++)
 	{
 		pszNode = szNodes.Get(i);
 		if (pszNode->Equals("."))
@@ -537,7 +539,7 @@ void CFileUtil::CollapsePath(CChars* szPathName)
 		for (i = 0; i < iPos; i++)
 		{
 			szTemp.Append(apCharDirectories[i]);
-			if (i != iPos-1)
+			if (i != iPos - 1)
 			{
 				szTemp.Append(FILE_SEPARATOR);
 			}
@@ -643,8 +645,8 @@ void CFileUtil::PrependToPath(CChars* szPathName, const char* szItem)
 //////////////////////////////////////////////////////////////////////////
 void CFileUtil::RemoveLastFromPath(CChars* szPathName)
 {
-	int		iLastIndex;
-	int		iFirstIndex;
+	size	iLastIndex;
+	size	iFirstIndex;
 
 	iLastIndex = FindLastSeparator(szPathName->Text());
 	if (IsAbsolutePath(szPathName->Text()))
@@ -661,7 +663,7 @@ void CFileUtil::RemoveLastFromPath(CChars* szPathName)
 	}
 	else
 	{
-		if (iLastIndex != -1)
+		if (iLastIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			szPathName->RemoveEnd(iLastIndex);
 		}
@@ -679,10 +681,10 @@ void CFileUtil::RemoveLastFromPath(CChars* szPathName)
 ////////////////////////////////////////////////////////////////////////////////////
 void CFileUtil::RemoveExtension(CChars* szPathName)
 {
-	int		iIndex;
+	size	iIndex;
 
 	iIndex = FindExtension(szPathName->Text());
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		szPathName->RemoveEnd(iIndex);
 	}
@@ -696,7 +698,7 @@ void CFileUtil::RemoveExtension(CChars* szPathName)
 ////////////////////////////////////////////////////////////////////////////////////
 void CFileUtil::RemovePath(CChars* szPathName)
 {
-	int		iIndex;
+	size	iIndex;
 
 	if (szPathName == NULL)
 	{
@@ -709,7 +711,7 @@ void CFileUtil::RemovePath(CChars* szPathName)
 	}
 
 	iIndex = FindLastSeparator(szPathName->Text());
-	if (iIndex == -1)
+	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return;
 	}
@@ -724,11 +726,11 @@ void CFileUtil::RemovePath(CChars* szPathName)
 ////////////////////////////////////////////////////////////////////////////////////
 bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension)
 {
-	int		iExtension;
+	size	iExtension;
 	CChars	sz1;
 
 	iExtension = FindExtension(szFilename);
-	if (iExtension != -1)
+	if (iExtension != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		sz1.Fake((char*)&szFilename[iExtension+1]);
 		return sz1.Equals(szExtension);
@@ -744,7 +746,7 @@ bool CFileUtil::IsExtension(const char* szFilename, const char* szExtension)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-int CFileUtil::FindExtension(const char* szString)
+size CFileUtil::FindExtension(const char* szString)
 {
 	const char*	szExtension;
 	const char*	szSeparator;
@@ -757,14 +759,14 @@ int CFileUtil::FindExtension(const char* szString)
 		{
 			if (szSeparator > szExtension)
 			{
-				return -1;
+				return ARRAY_ELEMENT_NOT_FOUND;
 			}
 		}
-		return ((int) (size_t) (szExtension - szString));
+		return szExtension - szString;
 	}
 	else
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 }
 
@@ -773,18 +775,18 @@ int CFileUtil::FindExtension(const char* szString)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-int CFileUtil::FindLastSeparator(const char* szString)
+size CFileUtil::FindLastSeparator(const char* szString)
 {
 	const char*	sz;
 
 	sz = FindChar(szString, FILE_SEPARATOR[0], true);
 	if (sz)
 	{
-		return (int) (size_t) (sz - szString);
+		return sz - szString;
 	}
 	else
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 }
 
@@ -793,20 +795,21 @@ int CFileUtil::FindLastSeparator(const char* szString)
 //
 //
 ////////////////////////////////////////////////////////////////////////////////////
-int CFileUtil::FindFirstSeparator(const char* szString)
+size CFileUtil::FindFirstSeparator(const char* szString)
 {
 	const char*	sz;
 
 	sz = FindChar(szString, FILE_SEPARATOR[0], false);
 	if (sz)
 	{
-		return (int) (size_t) (sz - szString);
+		return sz - szString;
 	}
 	else
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -815,7 +818,7 @@ int CFileUtil::FindFirstSeparator(const char* szString)
 bool CFileUtil::RecurseFindFiles(const char* szDirectory, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden)
 {
 	CChars*			szDir;
-	int				i;
+	size			i;
 	CArrayChars		aszDirs;
 	bool			bDirectories;
 	bool			bFiles;
@@ -905,7 +908,7 @@ bool CFileUtil::FindAllFiles(const char* szPathName, CArrayChars* paszFiles, boo
 //////////////////////////////////////////////////////////////////////////
 void CFileUtil::MakeNameFromDirectory(CChars* pszName, CChars* pszFilename, CChars* pszDirectory)
 {
-	int		iToRemove;
+	size	iToRemove;
 	CChars	szDirectory;
 
 	pszName->Init(pszFilename->Text());
@@ -933,7 +936,7 @@ bool CFileUtil::TouchDir(const char* szDirectory, bool bLastIsFilename)
 	CChars			szPath;
 	char			cDrive;
 	CArrayChars		aszPathComponents;
-	int				i;
+	size			i;
 	CChars			szPartialPath;
 	bool			bResult;
 

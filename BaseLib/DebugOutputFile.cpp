@@ -50,7 +50,7 @@ bool CDebugOutputFile::Close(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-filePos CDebugOutputFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
+size CDebugOutputFile::Read(void* pvBuffer, size iSize, size iCount)
 {
 	return 0;
 }
@@ -77,7 +77,7 @@ bool CDebugOutputFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-filePos CDebugOutputFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
+size CDebugOutputFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
 	//Fix this up to ensure that the zero-terminated buffer is the same as size * count.
 	EngineOutput((char*)pvBuffer);

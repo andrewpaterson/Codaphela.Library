@@ -31,16 +31,16 @@ class CPlainTextEditor : public CTextEditor
 {
 public:
 	bool		mbMultiLine;
-	int			miTabWidth;  //In Spaces
+	size		miTabWidth;  //In Spaces
 
 	CChars		mszText;
 
-	int		miEditPos;
-	int		miPageLength;  //Characters to step up or down on page up or page down.
+	size		miEditPos;
+	size		miPageLength;  //Characters to step up or down on page up or page down.
 
-	int		miSelectionAnchor;  // -1 for no selection.
-	int		miSelectionFloating;  // -1 for no selection.
-	int		miUpDownCharCount;
+	size		miSelectionAnchor;  // -1 for no selection.
+	size		miSelectionFloating;  // -1 for no selection.
+	size		miUpDownCharCount;
 
 	void	Init(void);
 	void 	Init(char* szText);
@@ -95,43 +95,43 @@ public:
 	void 	BackTab(void);
 
 	char*	Text(void);
-	int		Length(void);
-	void	SetPageLength(int iPageSize);
-	void	SetPosition(int iPosition);
+	size	Length(void);
+	void	SetPageLength(size iPageSize);
+	void	SetPosition(size iPosition);
 
-	int		GetCharCountAlongLine(int iPos);
+	size	GetCharCountAlongLine(size iPos);
 	SInt2	GetEditPosition(void);
-	SInt2	GetPosition(int iPosition);
+	SInt2	GetPosition(size iPosition);
 
 private:
-	int		FindUp(int iPos);
-	int		FindDown(int iPos);
-	int		FindLeft(int iPos);
-	int		FindRight(int iPos);
-	int		FindHome(int iPos);
-	int		FindEnd(int iPos);
-	int		FindDocumentHome(void);
-	int		FindDocumentEnd(void);
-	int		FindPageUp(int iPos);
-	int		FindPageDown(int iPos);
+	size	FindUp(size iPos);
+	size	FindDown(size iPos);
+	size	FindLeft(size iPos);
+	size	FindRight(size iPos);
+	size	FindHome(size iPos);
+	size	FindEnd(size iPos);
+	size	FindDocumentHome(void);
+	size	FindDocumentEnd(void);
+	size	FindPageUp(size iPos);
+	size	FindPageDown(size iPos);
 
-	int		FindWordLeft(int iPos);
-	int		FindWordRight(int iPos);
-	bool 	CanGoLeft(int iPos);
-	bool 	CanGoRight(int iPos);
+	size	FindWordLeft(size iPos);
+	size	FindWordRight(size iPos);
+	bool 	CanGoLeft(size iPos);
+	bool 	CanGoRight(size iPos);
 	bool	IsWhiteSpace(char cCurrent);
 	bool	IsNormalChar(char cCurrent);
 	bool	IsSelected(void);
-	int		FindStartOfLine(int iPos);
-	int		FindEndOfLine(int iPos);
-	int		FindPositionAlongLine(int iStartOfLine, int iCharCount);
-	int		CountChar(int iCharCount, char c);
+	size	FindStartOfLine(size iPos);
+	size	FindEndOfLine(size iPos);
+	size	FindPositionAlongLine(size iStartOfLine, size iCharCount);
+	size	CountChar(size iCharCount, char c);
 	void	ResetUpDown(void);
-	void	UpdateUpDown(int iPos);
+	void	UpdateUpDown(size iPos);
 	void	FixSelection(void);
 	void	BeginSelection(void);
 	void	EndSelection(void);
-	int		DeleteSelection(void);
+	size	DeleteSelection(void);
 	void	OverwriteSelection(char* szText);
 };
 

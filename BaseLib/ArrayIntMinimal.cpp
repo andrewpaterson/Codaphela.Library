@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "ArrayTemplatePrimitive.h"
 #include "ArrayIntMinimal.h"
 
 
@@ -59,7 +60,7 @@ int CArrayIntMinimal::AddIfUnique(int i)
 //////////////////////////////////////////////////////////////////////////
 int CArrayIntMinimal::Find(int i)
 {
-	int	j;
+	size	j;
 
 	for (j = 0; j < miUsedElements; j++)
 	{
@@ -76,7 +77,7 @@ int CArrayIntMinimal::Find(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayIntMinimal::GetValue(int iElementPos)
+int CArrayIntMinimal::GetValue(size iElementPos)
 {
 	return *Get(iElementPos);
 }

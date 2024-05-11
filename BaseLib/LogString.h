@@ -30,26 +30,32 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define LOG_TO_STRING_MAX_LENGTH		512
 
 
-int IncrementLogToStringCount(void);
+size IncrementLogToStringCount(void);
 
 char* CharToString(char c);
 char* CharToString(uint8 c);
 char* CharToString(char16 c);
-char* IntToString(int i, int iBase = 10);
-char* LongLongToString(int64 lli, int iBase = 10);
-char* FloatToString(float f, int iDecimals = -1);
-char* DoubleToString(double d, int iDecimals = -1);
-char* SizeToString(size_t i, int iBase = 10);
+char* ByteToString(int8 i, uint16 iBase = 10);
+char* ByteToString(uint8 i, uint16 iBase = 10);
+char* ShortToString(int16 i, uint16 iBase = 10);
+char* ShortToString(uint16 i, uint16 iBase = 10);
+char* IntToString(int32 i, uint16 iBase = 10);
+char* IntToString(uint32 i, uint16 iBase = 10);
+char* LongToString(int64 lli, uint16 iBase = 10);
+char* LongToString(uint64 ulli, uint16 iBase = 10);
+char* FloatToString(float f, uint16 iDecimals = -1);
+char* DoubleToString(double d, uint16 iDecimals = -1);
+char* SizeToString(size i, uint16 iBase = 10);
 char* PointerToString(void* pv);
-char* MethodToString(const char* szFile, int iLine, const char* szFunction);
-char* IntToFlags(int iInt);
-char* ShortToFlags(int siShort);
+char* MethodToString(const char* szFile, size iLine, const char* szFunction);
+char* IntToFlags(uint32 iInt);
+char* ShortToFlags(uint16 siShort);
 char* StringToString(char* sz);
 char* StringToString(char* szStart, char* szLastCharInclusive);
 char* BoolToString(bool b);
 
-extern char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
-extern int  giLogToStringCount;
+extern char		gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
+extern size		giLogToStringCount;
 
 
 #endif // __LOG_TO_STRING_H__

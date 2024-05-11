@@ -6,7 +6,7 @@
 
 class CMapIterator : public CKillable
 {
-	virtual void*	Iterate(size_t* piDataSize = NULL, void* pvDestKey = NULL, size_t* puiKeySize = NULL, size_t uiMaxKeySize = 0) =0;
+	virtual void*	Iterate(size* piDataSize = NULL, void* pvDestKey = NULL, size* puiKeySize = NULL, size uiMaxKeySize = 0) =0;
 };
 
 

@@ -48,11 +48,11 @@ void CNumber::PrivateInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateInit(int16 cWholeNumbers, int16 cMaxDecimals)
+void CNumber::PrivateInit(size cWholeNumbers, size cMaxDecimals)
 {
-	memset_fast(this, 0, NUMBER_SIZE((int)cWholeNumbers, (int)cMaxDecimals));
-	mcMaxWholeNumbers = cWholeNumbers;
-	mcMaxDecimals = cMaxDecimals;
+	memset_fast(this, 0, NUMBER_SIZE(cWholeNumbers, cMaxDecimals));
+	mcMaxWholeNumbers = (int16)cWholeNumbers;
+	mcMaxDecimals = (int16)cMaxDecimals;
 }
 
 
@@ -82,25 +82,29 @@ CNumber* CNumber::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(int i, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::Init(int32 iNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
-	int		iRemainder;
-	int		iCount;
-	int		iIndex;
+	int32		iRemainder;
+	int16		iCount;
+	int16		iIndex;
 
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
 	SetLastNonZeroDigit(1);
-	SetSign(i);
-	if (i < 0)
+	if (iNumber < 0)
 	{
-		i = -i;
+		iNumber = -iNumber;
+		SetSign(-1);
+	}
+	else
+	{
+		SetSign(1);
 	}
 
 	iCount = 0;
 	for (;;)
 	{
-		iRemainder = i % 10;
-		i = i / 10;
+		iRemainder = iNumber % 10;
+		iNumber = iNumber / 10;
 		iIndex = mcMaxWholeNumbers - iCount-1;
 		if (iIndex < 0)
 		{
@@ -108,7 +112,7 @@ CNumber* CNumber::Init(int i, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 		}
 		mcDigits[iIndex] = iRemainder;
 		iCount ++;
-		if (i == 0)
+		if (iNumber == 0)
 		{
 			break;
 		}
@@ -121,9 +125,9 @@ CNumber* CNumber::Init(int i, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 }
 
 
-CNumber* CNumber::Init(int i)
+CNumber* CNumber::Init(int32 iNumber)
 {
-	return Init(i, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS);
+	return Init(iNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS);
 }
 
 
@@ -131,18 +135,18 @@ CNumber* CNumber::Init(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(float ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::Init(float32 ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
-	int		i;
-	int		e;
-	int		f;
-	int		s;
-	int		iCount;
-	int		iBitMask;
+	int32		i;
+	int32		e;
+	int32		f;
+	int32		s;
+	int32		iCount;
+	int32		iBitMask;
 
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
 
-	i = *((int*)((void*)&ff));
+	i = *((int32*)((void*)&ff));
 	s = (i & 0x80000000) >> 31;
 	e = (i & 0x7F800000) >> 23;
 	f = (i & 0x007FFFFF);
@@ -173,7 +177,7 @@ CNumber* CNumber::Init(float ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 			iBitMask = 1 << (22-iCount);
 			if (f & iBitMask)
 			{
-				AddBinaryOne(e-iCount-1);
+				AddBinaryOne(e - iCount - 1);
 			}
 		}
 	}
@@ -190,7 +194,7 @@ CNumber* CNumber::Init(float ff, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 	RoundSignificant(8);
 	return this;
 }
-CNumber* CNumber::Init(float ff)
+CNumber* CNumber::Init(float32 ff)
 {
 	return Init(ff, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS);
 }
@@ -200,9 +204,9 @@ CNumber* CNumber::Init(float ff)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::BinaryOne(int iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
-	int			iNumber;
+	int32	iNumber;
 
 	if ((iBinaryExponent < 32) && (iBinaryExponent >= 0))
 	{
@@ -232,24 +236,24 @@ CNumber* CNumber::BinaryOne(int iBinaryExponent, int16 cMaxWholeNumbers, int16 c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, int iLen)
+CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, size iLen)
 {
-	char	cDigits[64 KB];
-	int		iSign;
-	int		iDecimalPoint;
-	int		i;
+	char	cDigits[MAX_SHORT];
+	int16	iSign;
+	int16	iDecimalPoint;
+	size	i;
 	char	c;
-	int		iPos;
+	int16	iPos;
 	bool	bAnyDigits;
-	int		iNonZero;
+	int16	iNonZero;
 
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
 
 	if (iLen == 0)
 	{
-		iLen = (int)strlen(szNumber);
+		iLen = strlen(szNumber);
 	}
-	if (iLen >= 64 KB)
+	if (iLen >= MAX_SHORT)
 	{
 		return NotANumber();
 	}
@@ -337,7 +341,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 	Clean();
 	return this;
 }
-CNumber* CNumber::Init(char* szNumber, int iLen)
+CNumber* CNumber::Init(char* szNumber, size iLen)
 {
 	return Init(szNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS, iLen);
 }
@@ -489,7 +493,7 @@ CNumber* CNumber::DivisionByZero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Overflow(int iSign)
+CNumber* CNumber::Overflow(int16 iSign)
 {
 	mcFirstDigit = 0;
 	mcLastDigit = 0;
@@ -545,7 +549,7 @@ CNumber* CNumber::Digit(char cValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Digit(int iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::Digit(int16 iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	Zero(cMaxWholeNumbers, cMaxDecimals);
 	if ((cValue >= 0) && (cValue <= 9))
@@ -563,7 +567,7 @@ CNumber* CNumber::Digit(int iDigit, char cValue, int16 cMaxWholeNumbers, int16 c
 	}
 	return this;
 }
-CNumber* CNumber::Digit(int iDigit, char cValue)
+CNumber* CNumber::Digit(int16 iDigit, char cValue)
 {
 	Zero();
 	if ((cValue >= 0) && (cValue <= 9))
@@ -587,7 +591,7 @@ CNumber* CNumber::Digit(int iDigit, char cValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::AddBinaryOne(int iBinaryExponent)
+void CNumber::AddBinaryOne(int16 iBinaryExponent)
 {
 	CNumber*	pcNumber;
 
@@ -643,7 +647,7 @@ int16 CNumber::GetLastNonZeroDigit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::SetSign(int iSign)
+void CNumber::SetSign(int16 iSign)
 {
 	if (iSign < 0)
 	{
@@ -660,7 +664,7 @@ void CNumber::SetSign(int iSign)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int	CNumber::GetSign(void)
+int16 CNumber::GetSign(void)
 {
 	if (IsNegative())
 	{
@@ -676,8 +680,8 @@ int	CNumber::GetSign(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::IsZero(void)
 {
-	int	iLast;
-	int iFirst;
+	int16	iLast;
+	int16	iFirst;
 
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
@@ -696,7 +700,7 @@ bool CNumber::IsZero(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::IsOdd(void)
 {
-	int		iLast;
+	int16	iLast;
 	char	cDigit;
 
 	if (IsError())
@@ -724,7 +728,7 @@ bool CNumber::IsOdd(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::IsEven(void)
 {
-	int		iLast;
+	int16	iLast;
 	char	cDigit;
 
 	if (IsError())
@@ -802,9 +806,9 @@ void CNumber::ClearFlag(int16 iFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::GetDecimals(void)
+int16 CNumber::GetDecimals(void)
 {
-	int	iLast;
+	int16	iLast;
 
 	iLast = GetLastNonZeroDigit();
 	if (iLast < 0)
@@ -844,12 +848,12 @@ int16 CNumber::GetMaxDecimals(void)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::CleanLeft(void)
 {
-	int		i;
+	int16	i;
 	char	c;
-	int		iFirst;
-	int		iLast;
+	int16	iFirst;
+	int16	iLast;
 	bool	bAnyNonZero;
-	int		iFirstDiscovered;
+	int16	iFirstDiscovered;
 
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
@@ -891,12 +895,12 @@ void CNumber::CleanLeft(void)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::CleanRight(void)
 {
-	int		i;
+	int16	i;
 	char	c;
-	int		iFirst;
-	int		iLast;
+	int16	iFirst;
+	int16	iLast;
 	bool	bAnyNonZero;
-	int		iLastDiscovered;
+	int16	iLastDiscovered;
 
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
@@ -948,7 +952,7 @@ void CNumber::Clean(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::OffsetDigit(int iCurrentDigit, int iOffset)
+int16 CNumber::OffsetDigit(int16 iCurrentDigit, int16 iOffset)
 {
 	if (iCurrentDigit < 0)
 	{
@@ -976,7 +980,7 @@ int CNumber::OffsetDigit(int iCurrentDigit, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::GetDigitsBetween(int iFirst, int iLast)
+size CNumber::GetDigitsBetween(int16 iFirst, int16 iLast)
 {
 	if (((iFirst > 0) && (iLast > 0)) || ((iFirst < 0) && (iLast < 0)))
 	{
@@ -994,22 +998,22 @@ int CNumber::GetDigitsBetween(int iFirst, int iLast)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::RoundSignificant(int iSignificantDigits)
+void CNumber::RoundSignificant(int16 iSignificantDigits)
 {
-	int			iDigits;
-	int			iDifference;
-	int			iLast;
-	int			iNewLast;
+	int16		iDigits;
+	int16		iDifference;
+	int16		iLast;
+	int16		iNewLast;
 	char		cBeyondDigit;
 	CNumber*	pcRound;
-	int			iBeyondLast;
+	int16		iBeyondLast;
 
 	if (iSignificantDigits <= 0)
 	{
 		return;
 	}
 
-	iDigits = GetDigitsBetween();
+	iDigits = (int16)GetDigitsBetween();
 	if (iDigits > iSignificantDigits)
 	{
 		iLast = GetLastNonZeroDigit();
@@ -1035,9 +1039,9 @@ void CNumber::RoundSignificant(int iSignificantDigits)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateZeroDigits(int iFirst, int iLast)
+void CNumber::PrivateZeroDigits(int16 iFirst, int16 iLast)
 {
-	int		iLength;
+	size	iLength;
 	char*	pcStart;
 
 	pcStart = DigitToArray(iFirst);
@@ -1052,8 +1056,8 @@ void CNumber::PrivateZeroDigits(int iFirst, int iLast)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateZeroEnds(void)
 {
-	int		iFirst;
-	int		iLast;
+	int16	iFirst;
+	int16	iLast;
 
 	iFirst = OffsetDigit(GetFirstNonZeroDigit(), 1);
 	if (iFirst <= mcMaxWholeNumbers)
@@ -1076,7 +1080,7 @@ void CNumber::PrivateZeroEnds(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::IsInteger(void)
 {
-	int		iLast;
+	int32		iLast;
 
 	iLast = GetLastNonZeroDigit();
 	if (iLast > 0)
@@ -1091,9 +1095,9 @@ bool CNumber::IsInteger(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNumber::DigitsEqual(CNumber* pcTest, int iFirstDigit, int iLastDigit)
+bool CNumber::DigitsEqual(CNumber* pcTest, int16 iFirstDigit, int16 iLastDigit)
 {
-	int iResult;
+	int32 iResult;
 
 	iResult = memcmp(DigitToArray(iFirstDigit), pcTest->DigitToArray(iLastDigit), GetDigitsBetween(iFirstDigit, iLastDigit));
 	return iResult == 0;
@@ -1162,12 +1166,12 @@ CNumber* CNumber::Fractional(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Shift(int iOffset)
+CNumber* CNumber::Shift(int16 iOffset)
 {
-	int		iFirst;
-	int		iLast;
-	int		iLength;
-	int		iStart;
+	int16	iFirst;
+	int16	iLast;
+	size	iLength;
+	int16	iStart;
 	char*	pcOld;
 	char*	pcNew;
 
@@ -1230,9 +1234,9 @@ CNumber* CNumber::Shift(int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Truncate(int iDigitToTruncateInclusive)
+CNumber* CNumber::Truncate(int16 iDigitToTruncateInclusive)
 {
-	int		iLast;
+	int16		iLast;
 
 	iLast = GetLastNonZeroDigit();
 	if (iDigitToTruncateInclusive >= iLast)
@@ -1248,9 +1252,9 @@ CNumber* CNumber::Truncate(int iDigitToTruncateInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::TruncateHigh(int iDigit)
+CNumber* CNumber::TruncateHigh(int16 iDigit)
 {
-	int		iFirst;
+	int16		iFirst;
 
 	iFirst = GetFirstNonZeroDigit();
 	if (iDigit <= iFirst)
@@ -1284,9 +1288,9 @@ bool CNumber::IsClean(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::GetWholeNumbers(void)
+int16 CNumber::GetWholeNumbers(void)
 {
-	int iFirst;
+	int16	iFirst;
 
 	iFirst = GetFirstNonZeroDigit();
 	if (iFirst > 0)
@@ -1304,10 +1308,10 @@ int CNumber::GetWholeNumbers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::GetDigitsBetween(void)
+size CNumber::GetDigitsBetween(void)
 {
-	int	iLast;
-	int iFirst;
+	int16	iLast;
+	int16	iFirst;
 
 	iFirst = GetFirstNonZeroDigit();
 	iLast = GetLastNonZeroDigit();
@@ -1382,11 +1386,11 @@ bool CNumber::IsPositiveOrZero(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateEquals(CNumber* pcNumber, int16 iDecimals)
 {
-	int		iThisLastDigit;
-	int		iOtherLastDigit;
-	int		iThisFirstDigit;
-	int		iOtherFirstDigit;
-	int		iResult;
+	int32	iThisLastDigit;
+	int32	iOtherLastDigit;
+	int32	iThisFirstDigit;
+	int32	iOtherFirstDigit;
+	int32	iResult;
 
 	if (IsError())
 	{
@@ -1587,12 +1591,12 @@ bool CNumber::LessThanOrEquals(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 {
-	int		iThisLastDigit;
-	int		iOtherLastDigit;
-	int		iThisFirstDigit;
-	int		iOtherFirstDigit;
-	int		iLast;
-	int		iResult;
+	int32	iThisLastDigit;
+	int32	iOtherLastDigit;
+	int32	iThisFirstDigit;
+	int32	iOtherFirstDigit;
+	int32	iLast;
+	int32	iResult;
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iThisLastDigit = GetLastNonZeroDigit();
@@ -1641,12 +1645,12 @@ bool CNumber::PrivateGreaterThan(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrivateGreaterThanOrEquals(CNumber* pcNumber)
 {
-	int		iThisLastDigit;
-	int		iOtherLastDigit;
-	int		iThisFirstDigit;
-	int		iOtherFirstDigit;
-	int		iLast;
-	int		iResult;
+	int32		iThisLastDigit;
+	int32		iOtherLastDigit;
+	int32		iThisFirstDigit;
+	int32		iOtherFirstDigit;
+	int32		iLast;
+	int32		iResult;
 
 	iThisFirstDigit = GetFirstNonZeroDigit();
 	iThisLastDigit = GetLastNonZeroDigit();
@@ -1835,14 +1839,14 @@ bool CNumber::PrivateError(CNumber* pcNumber)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateAdd(CNumber* pcNumber)
 {
-	int		i;
+	int32	i;
 	char	cCarry;
-	int		iThisLastDigit;
-	int		iOtherLastDigit;
-	int		iLast;
-	int		iFirst;
-	int		iThisFirstDigit;
-	int		iOtherFirstDigit;
+	int32	iThisLastDigit;
+	int32	iOtherLastDigit;
+	int32	iLast;
+	int32	iFirst;
+	int32	iThisFirstDigit;
+	int32	iOtherFirstDigit;
 	char	cThisDigit;
 	char	cOtherDigit;
 	char	cResult;
@@ -1918,20 +1922,20 @@ void CNumber::PrivateAdd(CNumber* pcNumber)
 void CNumber::PrivateSubtract(CNumber* pcNumber)
 {
 	char	cCarry;
-	int		iThisLastDigit;
-	int		iOtherLastDigit;
-	int		iThisFirstDigit;
-	int		iOtherFirstDigit;
+	int32	iThisLastDigit;
+	int32	iOtherLastDigit;
+	int32	iThisFirstDigit;
+	int32	iOtherFirstDigit;
 	char	cThisDigit;
 	char	cOtherDigit;
 	char	cResult;
-	int		iThisLastIndex;
-	int		iOtherLastIndex;
-	int		iThisFirstIndex;
-	int		iOtherFirstIndex;
-	int		iDiff;
-	int		iThisIndex;
-	int		iOtherIndex;
+	int32	iThisLastIndex;
+	int32	iOtherLastIndex;
+	int32	iThisFirstIndex;
+	int32	iOtherFirstIndex;
+	int16	iDiff;
+	int32	iThisIndex;
+	int32	iOtherIndex;
 
 	if (PrivateError(pcNumber)) return;
 
@@ -1962,7 +1966,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 	{
 		SetLastNonZeroDigit(iOtherLastDigit);
 
-		iDiff = GetDigitsBetween(iThisLastDigit, iOtherLastDigit) - 1;
+		iDiff = (int16)(GetDigitsBetween(iThisLastDigit, iOtherLastDigit)) - 1;
 		iThisIndex = PrivateGetIndex(iOtherLastDigit);
 		for (iOtherIndex = iOtherLastIndex; iOtherIndex > iOtherLastIndex - iDiff; iOtherIndex--, iThisIndex--)
 		{
@@ -2059,7 +2063,7 @@ void CNumber::PrivateSubtract(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::PrivateGetIndex(int iDigit)
+size CNumber::PrivateGetIndex(int16 iDigit)
 {
 	//Assumes iDigit != 0.
 	if (iDigit > 0)
@@ -2068,7 +2072,7 @@ int CNumber::PrivateGetIndex(int iDigit)
 	}
 	else
 	{
-		return mcMaxWholeNumbers-iDigit-1;
+		return mcMaxWholeNumbers - iDigit - 1;
 	}
 }
 
@@ -2080,22 +2084,22 @@ int CNumber::PrivateGetIndex(int iDigit)
 CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 {
 	char		cCarry;
-	int			iThisLastDigit;
-	int			iMultiplicandLastDigit;
-	int			iThisFirstDigit;
-	int			iMultiplicandFirstDigit;
+	int32			iThisLastDigit;
+	int32			iMultiplicandLastDigit;
+	int32			iThisFirstDigit;
+	int32			iMultiplicandFirstDigit;
 	char		cThisDigit;
 	char		cOtherDigit;
-	int			i;
-	int			j;
-	int			iResultantDigit;
-	int			iThisDigit;
-	int			iOtherDigit;
+	int32			i;
+	int32			j;
+	int32			iResultantDigit;
+	int32			iThisDigit;
+	int32			iOtherDigit;
 	char		cResult;
 	CNumber*	pcResult;
 	CNumber*	pcLine;
-	int			iFirstSignificantDigit;
-	int			iDecimals;
+	int32			iFirstSignificantDigit;
+	int32			iDecimals;
 
 	if (PrivateError(pcMultiplicand)) return this;
 
@@ -2206,7 +2210,7 @@ CNumber* CNumber::Multiply(CNumber* pcMultiplicand)
 		}
 	}
 
-	pcResult->SetSign(GetSign()*pcMultiplicand->GetSign());
+	pcResult->SetSign(GetSign() * pcMultiplicand->GetSign());
 	pcResult->Clean();
 	Init(pcResult, mcMaxWholeNumbers, mcMaxDecimals);
 	gcNumberControl.Remove(1+1);
@@ -2225,12 +2229,12 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 	char		cThisDigit;
 	char		cPartialQuotient;
 	CNumber*	pcQuotient;
-	int			iDividendDigit;
-	int			iQuotientDigit;
+	int32		iDividendDigit;
+	int32		iQuotientDigit;
 	bool		bExact;
-	int			iLastDigit;
-	int			iLastDivisorDigit;
-	int			iDecimals;
+	int32		iLastDigit;
+	int32		iLastDivisorDigit;
+	int32		iDecimals;
 
 	if (PrivateError(pcDivisorIn)) return this;
 	if (pcDivisorIn->IsZero()) return DivisionByZero();
@@ -2297,7 +2301,7 @@ CNumber* CNumber::Divide(CNumber* pcDivisorIn)
 		}
 	}
 
-	pcQuotient->SetSign(GetSign()*pcDivisorIn->GetSign());
+	pcQuotient->SetSign(GetSign() * pcDivisorIn->GetSign());
 	pcQuotient->Clean();
 	Init(pcQuotient, mcMaxWholeNumbers, mcMaxDecimals);
 	gcNumberControl.Remove(3);
@@ -2420,10 +2424,10 @@ bool CNumber::PrivateOverflow(CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateIntegerFactorial(int iN, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+void CNumber::PrivateIntegerFactorial(int16 iN, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	CNumber*	pcI;
-	int			i;
+	int16		i;
 
 	if (iN < 0)
 	{
@@ -2466,8 +2470,8 @@ void CNumber::PrivateIntegerRoot(CNumber* pcRoot)
 	CNumber* 	pcX_kTimesRootMinusOne;
 	CNumber* 	pcX_kToPowerRootMinusOne;
 	CNumber* 	pcBaseOver;
-	int			iIterations;
-	int			iDecimals;
+	int32		iIterations;
+	int32		iDecimals;
 	CNumber*	pcThis;
 
 	iDecimals = mcMaxDecimals + 3;
@@ -2514,9 +2518,9 @@ void CNumber::PrivateIntegerRoot(CNumber* pcRoot)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
-	int iOtherFirst;
-	int	iOtherLast;
-	int iLength;
+	int16	iOtherFirst;
+	int16	iOtherLast;
+	size	iLength;
 
 	//This function assumes that pcNumber is a different size to this.
 	mcMaxWholeNumbers = cMaxWholeNumbers;
@@ -2562,11 +2566,11 @@ void CNumber::PrivateCopy(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::PrivateIntegerExponent(int iExponent)
+void CNumber::PrivateIntegerExponent(int16 iExponent)
 {
 	CNumber*	pcResult;
 	CNumber*	pcBase;
-	int			iDecimals;
+	int32		iDecimals;
 
 	if (iExponent == 0)
 	{
@@ -2663,7 +2667,7 @@ void CNumber::PrivateIntegerExponent(CNumber* pcExponentIn)
 	CNumber*	pcResult;
 	CNumber*	pcExponent;
 	CNumber*	pcTwo;
-	int			n;
+	int32		n;
 
 	if (pcExponentIn->GetFirstNonZeroDigit() <= 9)
 	{
@@ -2885,7 +2889,7 @@ CNumber* CNumber::Increment(void)
 CNumber* CNumber::Power(CNumber* pcExponentIn)
 {
 	CNumber*	pcResult;
-	int			iDecimals;
+	int32		iDecimals;
 	CNumber*	pcExponent;
 
 	if (pcExponentIn->IsInteger())
@@ -2918,7 +2922,7 @@ CNumber* CNumber::Root(CNumber* pcRootIn)
 {
 	CNumber*	pcResult;
 	CNumber*	pcRoot;
-	int			iDecimals;
+	int32		iDecimals;
 
 	if (pcRootIn->IsInteger())
 	{
@@ -2971,7 +2975,7 @@ CNumber* CNumber::ArithmeticGeometricMean(CNumber* pcOther)
 	CNumber*	pcGn;
 	CNumber*	pcAn_1;
 	CNumber*	pcGn_1;
-	int			iDecimals;
+	int32		iDecimals;
 	CNumber*	pcTwo;
 
 	iDecimals = mcMaxDecimals;
@@ -3018,7 +3022,7 @@ CNumber* CNumber::ArithmeticGeometricMean(CNumber* pcOther)
 CNumber* CNumber::Exponential(void)  //e^this
 {
 	//Also	=	cosh(x)+sinh(x)
-	int			i;
+	int32		i;
 	CNumber*	pcFractional;
 	CNumber*	pcIntegral;
 	CNumber*	pcOne;
@@ -3026,7 +3030,7 @@ CNumber* CNumber::Exponential(void)  //e^this
 	CNumber*	pcNumber;
 	CNumber*	pcE;
 	CNumber*	pcResult;
-	int			iDecimals;
+	int32		iDecimals;
 
 	iDecimals = mcMaxDecimals+3;
 	pcFractional = gcNumberControl.Add(mcMaxWholeNumbers, iDecimals);
@@ -3087,15 +3091,15 @@ CNumber* CNumber::Logarithm(CNumber* pcBase)
 	//Read the wiki for a faster implementation.
 
 	CNumber*	pcOne;
-	int			iInteger;
+	int32		iInteger;
 	CNumber*	pcInverseBase;
 	CNumber*	pcDecimal;
 	CNumber*	pcPartial;
 	CNumber*	pcPointFive;
 	CNumber*	pcResult;
-	int			i;
-	int			iSign;
-	int			iDecimals;
+	int32		i;
+	int32		iSign;
+	int32		iDecimals;
 
 	if (PrivateError(pcBase))
 	{
@@ -3189,7 +3193,7 @@ CNumber* CNumber::Logarithm(CNumber* pcBase)
 CNumber* CNumber::NaturalLogarithm(void)
 {
 	CNumber*	pcE;
-	int			iDecimals;
+	int32		iDecimals;
 	CNumber*	pcResult;
 
 	//3 seems to be the minimum
@@ -3421,13 +3425,13 @@ CNumber* CNumber::RadiansToDegrees(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNumber::IntValue(void)
+int32 CNumber::IntValue(void)
 {
-	int		iFirst;
-	int		i;
-	int		iTimes;
-	int		iValue;
-	int		iResult;
+	int32	iFirst;
+	int32	i;
+	int32	iTimes;
+	int32	iValue;
+	int32	iResult;
 
 	iFirst = GetFirstNonZeroDigit();
 
@@ -3455,14 +3459,14 @@ int CNumber::IntValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CNumber::FloatValue(void)
+float32 CNumber::FloatValue(void)
 {
-	//int		iFirst;
-	//int		i;
-	//int		iTimes;
-	//int		iValue;
-	//int		iResult;
-	//int		iLast;
+	//int32		iFirst;
+	//int32		i;
+	//int32		iTimes;
+	//int32		iValue;
+	//int32		iResult;
+	//int32		iLast;
 
 	//iFirst = GetFirstNonZeroDigit();
 	//iLast = GetLastNonZeroDigit();
@@ -3495,7 +3499,7 @@ float CNumber::FloatValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CNumber::SafeGetDigit(int iDigit)
+char CNumber::SafeGetDigit(int16 iDigit)
 {
 	if (iDigit <= mcFirstDigit && iDigit >= mcLastDigit)
 	{
@@ -3516,7 +3520,7 @@ char CNumber::SafeGetDigit(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CNumber::GetDigitUnsafe(int iDigit)
+char CNumber::GetDigitUnsafe(int16 iDigit)
 {
 	if ((iDigit > 0) && (iDigit <= mcMaxWholeNumbers))
 	{
@@ -3537,10 +3541,10 @@ char CNumber::GetDigitUnsafe(int iDigit)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::SetDigit(int iDigit, char cValue)
+void CNumber::SetDigit(int16 iDigit, char cValue)
 {
-	int		iFirstDigit;
-	int		iLastDigit;
+	int16	iFirstDigit;
+	int16	iLastDigit;
 	char*	pcValue;
 	bool	bWasZero;
 
@@ -3611,7 +3615,7 @@ void CNumber::SetDigit(int iDigit, char cValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumber::SetDigitUnsafe(int iDigit, char cValue)
+void CNumber::SetDigitUnsafe(int16 iDigit, char cValue)
 {
 	char*	pcValue;
 
@@ -3624,15 +3628,15 @@ void CNumber::SetDigitUnsafe(int iDigit, char cValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CNumber::DigitToArray(int iDigit)
+char* CNumber::DigitToArray(int16 iDigit)
 {
 	if (iDigit > 0)
 	{
-		return &mcDigits[mcMaxWholeNumbers-iDigit];
+		return &mcDigits[mcMaxWholeNumbers - iDigit];
 	}
 	else if (iDigit < 0)
 	{
-		return &mcDigits[mcMaxWholeNumbers-iDigit-1];
+		return &mcDigits[mcMaxWholeNumbers - iDigit - 1];
 	}
 	return NULL;
 }
@@ -3644,12 +3648,12 @@ char* CNumber::DigitToArray(int iDigit)
 //////////////////////////////////////////////////////////////////////////
 bool CNumber::PrintFloating(CChars* pcChars)
 {
-	int		iFirstDigit;
-	int		iLastDigit;
-	int		i;
+	int32	iFirstDigit;
+	int32	iLastDigit;
+	int32	i;
 	char	c;
-	int		iStart;
-	int		iStop;
+	int32	iStart;
+	int32	iStop;
 
 	if (IsNAN())
 	{
@@ -3769,12 +3773,12 @@ bool CNumber::PrintFloating(CChars* pcChars)
 //////////////////////////////////////////////////////////////////////////
 void CNumber::Print(CChars* pcChars)
 {
-	int		iFirstDigit;
-	int		iLastDigit;
-	int		i;
+	int32	iFirstDigit;
+	int32	iLastDigit;
+	int32	i;
 	char	c;
-	int		iStart;
-	int		iStop;
+	int32	iStart;
+	int32	iStop;
 
 	if (IsNAN())
 	{

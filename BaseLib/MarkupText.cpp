@@ -69,7 +69,7 @@ char* CMarkupText::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMarkupText::Print(CChars* psz, int iDepth, int iLine)
+uint32 CMarkupText::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 {
 	CChars	szText;
 

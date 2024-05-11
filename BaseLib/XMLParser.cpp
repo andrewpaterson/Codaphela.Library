@@ -55,7 +55,7 @@ void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
 //////////////////////////////////////////////////////////////////////////
 void CXMLParser::Kill(void)
 {
-	int				i;
+	size				i;
 	CXMLEntity*		pcEntity;
 
 	mpcCurrent = NULL;
@@ -179,10 +179,10 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::FailOnErrorReturnOnFalse(TRISTATE tResult, char* szExpected)
 {
+	CChars	szError;
+
 	if (tResult == TRIERROR)
 	{
-		CChars	szError;
-
 		szError.Init("Expected [");
 		szError.Append(szExpected);
 		szError.Append("].  Got ");
@@ -229,9 +229,9 @@ TRISTATE CXMLParser::FailAlways(TRISTATE tResult, char* szExpected)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseVersion(void)
 {
-	TRISTATE		tResult;
-	double			pfVersion;
-	char			acQuote[2];
+	TRISTATE	tResult;
+	double		pfVersion;
+	char		acQuote[2];
 
 	tResult = mcParser.GetExactIdentifier("version");
 	if (NotTrue(tResult))
@@ -321,8 +321,8 @@ TRISTATE CXMLParser::ParseEncoding(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseStandalone(void)
 {
-	TRISTATE		tResult;
-	CChars			szStandalone;
+	TRISTATE	tResult;
+	CChars		szStandalone;
 
 	tResult = mcParser.GetExactIdentifier("standalone");
 	if (tResult == TRIFALSE)
@@ -366,7 +366,7 @@ TRISTATE CXMLParser::ParseStandalone(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseProlog(void)
 {
-	TRISTATE		tResult;
+	TRISTATE	tResult;
 
 	mcParser.PushPosition();
 	tResult = mcParser.GetExactCharacterSequence("<?xml");
@@ -416,7 +416,7 @@ TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 {
 	char		c;
 	TRISTATE	tResult;
-	int			i;
+	size		i;
 
 	mcParser.SkipWhiteSpace();
 	for (i = 0;; i++)
@@ -454,10 +454,10 @@ TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 {
-	TRISTATE		tResult;
-	TRISTATE		tSingle;
-	TRISTATE		tDouble;
-	char*			szStart;
+	TRISTATE	tResult;
+	TRISTATE	tSingle;
+	TRISTATE	tDouble;
+	char*		szStart;
 
 	tResult = mcParser.GetExactCharacter('=', false);
 	if (tResult != TRITRUE)
@@ -477,7 +477,7 @@ TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 		}
 	}
 
-	pszValue->AppendSubString(szStart+1, mcParser.mszParserPos-1);
+	pszValue->AppendSubString(szStart + 1, mcParser.mszParserPos - 1);
 	return TRITRUE;
 }
 
@@ -491,8 +491,8 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifie
 	TRISTATE	tResult;
 	TRISTATE	tEmpty;
 	TRISTATE	tClosing;
-	int			iLine;
-	int			iColumn;
+	size		iLine;
+	size		iColumn;
 
 	mcParser.PushPosition();
 
@@ -624,7 +624,7 @@ TRISTATE CXMLParser::ParseEndTag(char* szIdentifier)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseContent(void)
 {
-	TRISTATE		tResult;
+	TRISTATE	tResult;
 
 	for (;;)
 	{
@@ -680,8 +680,8 @@ TRISTATE CXMLParser::ParseContent(void)
 TRISTATE CXMLParser::ParseNamedReference(void)
 {
 	TRISTATE			tResult;
-	int					iLine;
-	int					iColumn;
+	size				iLine;
+	size				iColumn;
 	CChars				szIdentifier;
 	CMarkupNamedRef*	pcNamedRef;
 
@@ -726,8 +726,8 @@ TRISTATE CXMLParser::ParseText(void)
 	TRISTATE		tResult;
 	CChars			szText;
 	CMarkupText*	pcMarkupText;
-	int				iLine;
-	int				iColumn;
+	size			iLine;
+	size			iColumn;
 
 	iLine = mcParser.Line();
 	iColumn = mcParser.Column();
@@ -786,6 +786,7 @@ TRISTATE CXMLParser::ParseComment(void)
 TRISTATE CXMLParser::ParseComments(void)
 {
 	TRISTATE tResult;
+
 	for (;;)
 	{
 		tResult = ParseComment();
@@ -911,7 +912,7 @@ TRISTATE CXMLParser::ParseText(CChars* pszText)
 {
 	char		c;
 	TRISTATE	tResult;
-	int			i;
+	size		i;
 
 	for (i = 0;; i++)
 	{
@@ -1152,7 +1153,7 @@ TRISTATE CXMLParser::ParseEntity(void)
 	TRISTATE	tResult;
 	CChars		szEntityName;
 	bool		bSystem;
-	int			iLength;
+	size		iLength;
 	CChars		szContent;
 
 	tResult = mcParser.GetExactCaseInsensitiveCharacterSequence("<!ENTITY");

@@ -17,7 +17,7 @@ class CMapBlock : public CMalloc
 friend struct SMNode;
 protected:
 	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SMNode*.  
-	int					miLargestKeySize;
+	size					miLargestKeySize;
 	bool				mbOverwrite;
 	CDataFree*			mpcDataFree;
 	DataCompare			fKeyCompare;
@@ -31,45 +31,45 @@ public:
 	void				Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare fCompare, bool bOverwrite);
 	void				Kill(void);
 
-	bool				Get(void* pvKey, int iKeySize, void** ppvData, int* piDataSize);
-	void*				Get(void* pvKey, int iKeySize);
+	bool				Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
+	void*				Get(void* pvKey, size iKeySize);
 
-	void*				Put(void* pvKey, int iKeySize, int iDataSize);
-	bool				Put(void* psKey, int iKeySize, void* pvData, int iDataSize);
+	void*				Put(void* pvKey, size iKeySize, size iDataSize);
+	bool				Put(void* psKey, size iKeySize, void* pvData, size iDataSize);
 
-	bool				Remove(void* pvKey, int iKeySize);
+	bool				Remove(void* pvKey, size iKeySize);
 
-	size_t				DataSize(void* pvKey, int iKeySize);
+	size				DataSize(void* pvKey, size iKeySize);
 
-	bool				HasKey(void* pvKey, int iKeySize);
+	bool				HasKey(void* pvKey, size iKeySize);
 
-	int					NumElements(void);
+	size				NumElements(void);
 	CArrayBlockSorted*	GetArray(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
 
-	bool				StartIteration(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
-	bool				Iterate(SMapIterator* psIterator, void** ppvKey, int* piKeySize, void** ppvData, int* piDataSize);
+	bool				StartIteration(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize);
+	bool				Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize);
 
 	bool				Write(CFileWriter* pcFileWriter);
 	bool				Read(CFileReader* pcFileReader);
 	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
 
 	void				FinaliseSorted(void);
-	size_t				ByteSize(void);
+	size				ByteSize(void);
 	void				Dump(void);
 
 protected:
 	bool				WriteExceptData(CFileWriter* pcFileWriter);
 	bool				ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare);
-	void*				WriteKey(CFileWriter* pcFileWriter, int iIndex, int* piDataSize);
-	void*				ReadKey(CFileReader* pcFileReader, int iIndex, int* piDataSize);
+	void*				WriteKey(CFileWriter* pcFileWriter, size iIndex, size* piDataSize);
+	void*				ReadKey(CFileReader* pcFileReader, size iIndex, size* piDataSize);
 
-	SMNode*				AllocateNode(int iKeySize, int iDataSize, void** ppvKey, void** ppvData);
+	SMNode*				AllocateNode(size iKeySize, size iDataSize, void** ppvKey, void** ppvData);
 	void				RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
 
 	void				InsertHoldingIntoSorted(void);
-	void				GetInSorted(int iIndex, void** ppvKey, void** ppvData);
-	SMNode*				GetNode(void* pvKey, int iKeySize);
+	void				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
+	SMNode*				GetNode(void* pvKey, size iKeySize);
 	void*				GetData(SMNode* psNode);
 };
 

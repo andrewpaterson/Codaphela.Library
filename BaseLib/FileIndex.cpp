@@ -18,7 +18,7 @@ void CFilePosIndex::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFilePosIndex::Init(int iFile, filePos ulliFilePos)
+void CFilePosIndex::Init(uint32 iFile, filePos ulliFilePos)
 {
 	miFile = iFile;
 	mulliFilePos = ulliFilePos;
@@ -49,7 +49,7 @@ bool CFilePosIndex::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFilePosIndex::SetIndex(int iFile, filePos ulliFilePos)
+void CFilePosIndex::SetIndex(uint32 iFile, filePos ulliFilePos)
 {
 	miFile = iFile;
 	mulliFilePos = ulliFilePos;
@@ -77,7 +77,7 @@ CFileDataIndex CFilePosIndex::ToFileDataIndex(uint32 muiDataSize)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Cannot convert a FilePosIndex [", IntToString(miFile), ", ", LongLongToString(mulliFilePos), "] to a FileDataIndex.  It is not a multiple of Data Size [", IntToString(muiDataSize), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Cannot convert a FilePosIndex [", IntToString(miFile), ", ", LongToString(mulliFilePos), "] to a FileDataIndex.  It is not a multiple of Data Size [", IntToString(muiDataSize), "].", NULL);
 			cFileDataIndex.Init();
 			return cFileDataIndex;
 		}
@@ -96,8 +96,8 @@ CFileDataIndex CFilePosIndex::ToFileDataIndex(uint32 muiDataSize)
 //////////////////////////////////////////////////////////////////////////
 void CFileDataIndex::Init(void)
 {
-	miFile = -1;
-	muiIndex = -1;
+	miFile = MAX_UINT;
+	muiIndex = MAX_UINT;
 }
 
 
@@ -105,7 +105,7 @@ void CFileDataIndex::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileDataIndex::Init(int iFile, uint32 uiIndex)
+void CFileDataIndex::Init(uint32 iFile, uint32 uiIndex)
 {
 	miFile = iFile;
 	muiIndex = uiIndex;
@@ -137,7 +137,7 @@ bool CFileDataIndex::HasFile(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFileDataIndex::SetIndex(int iFile, uint32 uiIndex)
+void CFileDataIndex::SetIndex(uint32 iFile, uint32 uiIndex)
 {
 	miFile = iFile;
 	muiIndex = uiIndex;

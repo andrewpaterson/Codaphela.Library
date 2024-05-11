@@ -10,12 +10,12 @@ CONSTRUCTABLE(CGlobalMemoryAllocator);
 public:
 	void		Kill(void);
 
-	void*		Malloc(size_t tSize);
-	void*		Realloc(void* pv, size_t tSize);
+	void*		Malloc(size uiSize);
+	void*		Realloc(void* pv, size uiSize);
 	bool		Free(void* pv);
 
 	bool		IsLocal(void);
-	size_t		SizeOffset(void);
+	size		SizeOffset(void);
 
 	const char*	ShortName(void);
 };

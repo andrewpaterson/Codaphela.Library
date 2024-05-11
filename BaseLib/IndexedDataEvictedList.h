@@ -15,11 +15,11 @@ public:
 	void	Init(void);
 	void	Kill(void);
 
-	bool	IndexEvicted(OIndex oi, void* pvData, int iDataSize);
+	bool	IndexEvicted(OIndex oi, void* pvData, size iDataSize);
 
-	int		NumElements(void);
-	OIndex	GetKey(int iIndex);
-	void*	GetData(int iIndex, int* piDataSize = NULL);
+	size		NumElements(void);
+	OIndex	GetKey(size iIndex);
+	void*	GetData(size iIndex, size* piDataSize = NULL);
 	void	Clear(void);
 
 };

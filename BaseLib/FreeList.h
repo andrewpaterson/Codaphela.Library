@@ -37,23 +37,23 @@ struct SFNode
 {
 	uint8		bFull;
 	int8		iOffset;
-	uint16		uiChunkSize;
+	size		uiChunkSize;
 	CFreeList*	pcList;
 };
 
 
 struct SFreeListParams
 {
-	int32	iAlignment;
-	char	iOffset;
-	int32	iElementSize;
+	uint8		iAlignment;
+	int8		iOffset;
+	size		iElementSize;
 };
 
 
 struct SFreeListIterator
 {
 	SFNode*		psCurrent;  //Current FreeList node.
-	int32		iPosition;  //Element within this node.
+	size		iPosition;  //Element within this node.
 };
 
 
@@ -64,43 +64,43 @@ protected:
 	SFNode*				mpsUnused;
 	SFNode*				mpsNotFull;
 
-	char				miOffset;
-	char				miSuppliedOffset;
-	char				miAlignment;
+	uint8				miOffset;
+	int8				miSuppliedOffset;
+	uint8				miAlignment;
 	uint8				muiMagic;
 
-	uint16				miStride;
-	uint16				miElementSize;
+	size				miStride;
+	size				miElementSize;
 
 public:
-	void		Init(uint16 iElementSize);
-	void		Init(uint16 iElementSize, char iAlignment);
-	void		Init(uint16 iElementSize, char iAlignment, char iOffset);
+	void		Init(size iElementSize);
+	void		Init(size iElementSize, uint16 iAlignment);
+	void		Init(size iElementSize, uint16 iAlignment, int16 iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
 	void*		Add(void* pvData);
 	bool		Remove(void* pvData);
 	bool		Remove(SFNode* psNode, void* pvData);
-	void*		Get(int32 iElement);
+	void*		Get(size iElement);
 	void*		StartIteration(SFreeListIterator* psIterator);
 	void*		Iterate(SFreeListIterator* psIterator);
 	void		RemoveDuringIteration(SFreeListIterator* psIterator);
 	bool		Contains(void* pvData, bool bIsAllocated = true);
-	int32		NumElements(void);
+	size		NumElements(void);
 	bool		HasElements(void);
-	int32		NumNodeElements(SFNode* psNode);
-	void		SetAdditionalSize(int32 iSize);
-	int32		GetElementSize(void);
-	int32		GetElementStride(void);
-	int32		GetNumAllocatedChunks(void);
-	SFNode*		GetNode(int32 iNode);
-	void*		GetElement(SFNode* psNode, int32 iPosition);
-	char		GetOffset(void);
-	int32		GetAlignment(void);
+	size		NumNodeElements(SFNode* psNode);
+	void		SetAdditionalSize(size iSize);
+	size		GetElementSize(void);
+	size		GetElementStride(void);
+	size		GetNumAllocatedChunks(void);
+	SFNode*		GetNode(size iNode);
+	void*		GetElement(SFNode* psNode, size iPosition);
+	uint8		GetOffset(void);
+	uint8		GetAlignment(void);
 	void*		GetBitArray(SFNode* psNode);
 	SFNode* 	FindNode(void* pvData, bool bIsAllocated = true);
-	int32		ByteSize(void);
+	size		ByteSize(void);
 	void*		GetFirstNodeElement(SFNode* psNode);
 	void*		GetLastNodeElement(SFNode* psNode);
 	void		RemoveNode(SFNode* psNode);
@@ -109,17 +109,17 @@ public:
 protected:
 	SFNode*		AllocateNew(void);
 	void		Deallocate(SFNode* psNode);
-	void*		AllocateExisting(SFNode* psNode, int32 iPosition);
+	void*		AllocateExisting(SFNode* psNode, size iPosition);
 	void*		AllocateNewSetFirst(void);
 	void		FindNextAllocatedElement(SFreeListIterator* psIterator);
 	void		FindPrevAllocatedElement(SFreeListIterator* psIterator);
-	bool		RemoveExisiting(SFNode* psNode, int32 iPosition);
-	int32		CalculateStride(void);
-	char		CalculateOffset(int32 iOffset);
-	int32		CalculateBitArraySize(uint16 uiChunkSize);
-	int32		CalculateOffset(SFNode* psNode);
-	void*		GetElementInNode(SFNode* psNode, int32 iPosition);
-	bool		IsElementInNodeAllocated(SFNode* psNode, int32 iPosition);
+	bool		RemoveExisiting(SFNode* psNode, size iPosition);
+	size		CalculateStride(void);
+	uint8		CalculateOffset(int16 iOffset);
+	size		CalculateBitArraySize(size uiChunkSize);
+	uint8		CalculateOffset(SFNode* psNode);
+	void*		GetElementInNode(SFNode* psNode, size iPosition);
+	bool		IsElementInNodeAllocated(SFNode* psNode, size iPosition);
 	void		RemoveExisiting(SFNode* psNode, void* pvData);
 };
 

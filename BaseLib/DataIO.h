@@ -27,9 +27,9 @@ struct SDataIO
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool SaveMultiple(M* psThis, CFileWriter* pcFile, size_t uiCount)
+bool SaveMultiple(M* psThis, CFileWriter* pcFile, size uiCount)
 {
-	size_t	i;
+	size	i;
 	bool	bResult;
 
 	bResult = true;
@@ -47,9 +47,9 @@ bool SaveMultiple(M* psThis, CFileWriter* pcFile, size_t uiCount)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool LoadMultiple(M* psThis, CFileReader* pcFile, size_t uiCount)
+bool LoadMultiple(M* psThis, CFileReader* pcFile, size uiCount)
 {
-	size_t	i;
+	size	i;
 	bool	bResult;
 
 	bResult = true;

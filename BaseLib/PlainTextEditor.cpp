@@ -45,10 +45,10 @@ void CPlainTextEditor::Init(char* szText)
 	miEditPos = 0;
 	miPageLength = 25;
 
-	miSelectionAnchor = -1;
-	miSelectionFloating = -1;
+	miSelectionAnchor = SIZE_MAX;
+	miSelectionFloating = SIZE_MAX;
 	miTabWidth = 4;
-	miUpDownCharCount = -1;
+	miUpDownCharCount = SIZE_MAX;
 }
 
 
@@ -406,7 +406,7 @@ void CPlainTextEditor::Backspace(void)
 	{
 		if (CanGoLeft(miEditPos))
 		{
-			mszText.RemoveCharacter(miEditPos-1);
+			mszText.RemoveCharacter(miEditPos - 1);
 			Left();
 		}
 	}
@@ -457,7 +457,7 @@ void CPlainTextEditor::Printable(char c)
 void CPlainTextEditor::Printable(char c, bool bInsert)
 {
 	char	cCurrent;
-	int		iCharCount;
+	size		iCharCount;
 	char	szTemp[2];
 
 	if (!IsSelected())
@@ -476,7 +476,7 @@ void CPlainTextEditor::Printable(char c, bool bInsert)
 			else if (cCurrent == '\t')
 			{
 				iCharCount = GetCharCountAlongLine(miEditPos);
-				if (iCharCount % miTabWidth == miTabWidth-1)
+				if (iCharCount % miTabWidth == miTabWidth - 1)
 				{
 					mszText.SetChar(miEditPos, c);
 				}
@@ -526,8 +526,8 @@ void CPlainTextEditor::Cut(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::Copy(CChars* pszDest)
 {
-	int	iStart;
-	int iEnd;
+	size	iStart;
+	size	iEnd;
 
 	if (IsSelected())
 	{
@@ -578,9 +578,9 @@ void CPlainTextEditor::Paste(char* szSource)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::CutLine(CChars* pszDest)
 {
-	int		iCount;
-	int		iStart;
-	int		iEnd;
+	size		iCount;
+	size		iStart;
+	size		iEnd;
 
 	if (!IsSelected())
 	{
@@ -612,8 +612,8 @@ void CPlainTextEditor::CutLine(CChars* pszDest)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::Duplicate(void)
 {
-	int		iStart;
-	int		iEnd;
+	size	iStart;
+	size	iEnd;
 	CChars	szTemp;
 	bool	bNewLine;
 
@@ -656,7 +656,7 @@ void CPlainTextEditor::Duplicate(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::DeleteWordRemainingRight(void)
 {
-	int	iEnd;
+	size	iEnd;
 
 	iEnd = FindWordRight(miEditPos);
 	if (miEditPos != iEnd)
@@ -674,7 +674,7 @@ void CPlainTextEditor::DeleteWordRemainingRight(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::DeleteWordRemainingLeft(void)
 {
-	int	iEnd;
+	size	iEnd;
 
 	iEnd = FindWordLeft(miEditPos);
 	if (miEditPos != iEnd)
@@ -692,9 +692,9 @@ void CPlainTextEditor::DeleteWordRemainingLeft(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::DeleteLine(void)
 {
-	int		iCount;
-	int		iStart;
-	int		iEnd;
+	size	iCount;
+	size	iStart;
+	size	iEnd;
 
 	iCount = GetCharCountAlongLine(miEditPos);
 	if (!IsSelected())
@@ -819,7 +819,7 @@ void CPlainTextEditor::BackTab(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindLeft(int iCurrentPos)
+size CPlainTextEditor::FindLeft(size iCurrentPos)
 {
 	if (CanGoLeft(iCurrentPos))
 	{
@@ -833,7 +833,7 @@ int CPlainTextEditor::FindLeft(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindRight(int iCurrentPos)
+size CPlainTextEditor::FindRight(size iCurrentPos)
 {
 	if (CanGoRight(iCurrentPos))
 	{
@@ -847,10 +847,10 @@ int CPlainTextEditor::FindRight(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindUp(int iCurrentPos)
+size CPlainTextEditor::FindUp(size iCurrentPos)
 {
-	int	iStartOfThisLine;
-	int iStartOfPrevLine;
+	size	iStartOfThisLine;
+	size	iStartOfPrevLine;
 
 	iStartOfThisLine = FindStartOfLine(iCurrentPos);
 	if (iStartOfThisLine == 0)
@@ -859,7 +859,7 @@ int CPlainTextEditor::FindUp(int iCurrentPos)
 	}
 	else
 	{
-		iStartOfPrevLine = FindStartOfLine(iStartOfThisLine-1);
+		iStartOfPrevLine = FindStartOfLine(iStartOfThisLine - 1);
 		return FindPositionAlongLine(iStartOfPrevLine, miUpDownCharCount);
 	}
 }
@@ -869,10 +869,10 @@ int CPlainTextEditor::FindUp(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindDown(int iCurrentPos)
+size CPlainTextEditor::FindDown(size iCurrentPos)
 {
-	int	iEndOfThisLine;
-	int iStartOfNextLine;
+	size	iEndOfThisLine;
+	size	iStartOfNextLine;
 
 	iEndOfThisLine = FindEndOfLine(iCurrentPos);
 	if (iEndOfThisLine == mszText.Length())
@@ -891,7 +891,7 @@ int CPlainTextEditor::FindDown(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindHome(int iCurrentPos)
+size CPlainTextEditor::FindHome(size iCurrentPos)
 {
 	return FindStartOfLine(iCurrentPos);
 }
@@ -901,7 +901,7 @@ int CPlainTextEditor::FindHome(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindEnd(int iCurrentPos)
+size CPlainTextEditor::FindEnd(size iCurrentPos)
 {
 	return FindEndOfLine(iCurrentPos);
 }
@@ -911,7 +911,7 @@ int CPlainTextEditor::FindEnd(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindDocumentHome(void)
+size CPlainTextEditor::FindDocumentHome(void)
 {
 	return 0;
 }
@@ -921,7 +921,7 @@ int CPlainTextEditor::FindDocumentHome(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindDocumentEnd(void)
+size CPlainTextEditor::FindDocumentEnd(void)
 {
 	return mszText.Length();
 }
@@ -931,10 +931,10 @@ int CPlainTextEditor::FindDocumentEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindPageUp(int iCurrentPos)
+size CPlainTextEditor::FindPageUp(size iCurrentPos)
 {
-	int	i;
-	int	iLineStart;
+	size	i;
+	size	iLineStart;
 
 	iLineStart = FindStartOfLine(iCurrentPos);
 	if (iLineStart == 0)
@@ -944,7 +944,7 @@ int CPlainTextEditor::FindPageUp(int iCurrentPos)
 
 	for (i = 0; i < miPageLength; i++)
 	{
-		iLineStart = FindStartOfLine(iLineStart-1);
+		iLineStart = FindStartOfLine(iLineStart - 1);
 		if (iLineStart == 0)
 		{
 			break;
@@ -958,11 +958,11 @@ int CPlainTextEditor::FindPageUp(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindPageDown(int iCurrentPos)
+size CPlainTextEditor::FindPageDown(size iCurrentPos)
 {
-	int	iLineEnd;
-	int	i;
-	int	iLineStart;
+	size	iLineEnd;
+	size	i;
+	size	iLineStart;
 
 	iLineEnd = FindEndOfLine(iCurrentPos);
 	if (iLineEnd == mszText.Length())
@@ -987,7 +987,7 @@ int CPlainTextEditor::FindPageDown(int iCurrentPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindWordLeft(int iPos)
+size CPlainTextEditor::FindWordLeft(size iPos)
 {
 	char c;
 
@@ -1047,7 +1047,7 @@ int CPlainTextEditor::FindWordLeft(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPlainTextEditor::CanGoLeft(int iPos)
+bool CPlainTextEditor::CanGoLeft(size iPos)
 {
 	return (iPos > 0);
 }
@@ -1057,7 +1057,7 @@ bool CPlainTextEditor::CanGoLeft(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPlainTextEditor::CanGoRight(int iPos)
+bool CPlainTextEditor::CanGoRight(size iPos)
 {
 	return (iPos < mszText.Length());
 }
@@ -1090,7 +1090,7 @@ bool CPlainTextEditor::IsNormalChar(char cCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindWordRight(int iPos)
+size CPlainTextEditor::FindWordRight(size iPos)
 {
 	char c;
 
@@ -1150,7 +1150,7 @@ int CPlainTextEditor::FindWordRight(int iPos)
 //////////////////////////////////////////////////////////////////////////
 bool CPlainTextEditor::IsSelected(void)
 {
-	if ((miSelectionAnchor == -1) && (miSelectionFloating == -1))
+	if ((miSelectionAnchor == SIZE_MAX) && (miSelectionFloating == SIZE_MAX))
 	{
 		return false;
 	}
@@ -1171,7 +1171,7 @@ char* CPlainTextEditor::Text(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::Length(void)
+size CPlainTextEditor::Length(void)
 {
 	return mszText.Length();
 }
@@ -1181,7 +1181,7 @@ int CPlainTextEditor::Length(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::SetPageLength(int iPageLength)
+void CPlainTextEditor::SetPageLength(size iPageLength)
 {
 	miPageLength = iPageLength;
 }
@@ -1191,7 +1191,7 @@ void CPlainTextEditor::SetPageLength(int iPageLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::SetPosition(int iPosition)
+void CPlainTextEditor::SetPosition(size iPosition)
 {
 	ClearSelection();
 	ResetUpDown();
@@ -1203,7 +1203,7 @@ void CPlainTextEditor::SetPosition(int iPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindStartOfLine(int iPos)
+size CPlainTextEditor::FindStartOfLine(size iPos)
 {
 	char	c;
 
@@ -1234,7 +1234,7 @@ int CPlainTextEditor::FindStartOfLine(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindEndOfLine(int iPos)
+size CPlainTextEditor::FindEndOfLine(size iPos)
 {
 	char	c;
 
@@ -1264,12 +1264,12 @@ int CPlainTextEditor::FindEndOfLine(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::GetCharCountAlongLine(int iPos)
+size CPlainTextEditor::GetCharCountAlongLine(size iPos)
 {
-	int		iStartOfLine;
-	int		i;
+	size		iStartOfLine;
+	size		i;
 	char	c;
-	int		iCount;
+	size		iCount;
 
 	iStartOfLine = FindStartOfLine(iPos);
 	if (iStartOfLine == iPos)
@@ -1301,15 +1301,16 @@ SInt2 CPlainTextEditor::GetEditPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CPlainTextEditor::GetPosition(int iPosition)
+SInt2 CPlainTextEditor::GetPosition(size iPosition)
 {
 	char	c;
 	SInt2	sPos;
+	size	i;
 
 	sPos.x = 0;
 	sPos.y = 0;
 
-	for (int i = 0; i < iPosition; i++)
+	for (i = 0; i < iPosition; i++)
 	{
 		c = mszText.GetChar(i);
 		if (c == '\0')
@@ -1334,11 +1335,11 @@ SInt2 CPlainTextEditor::GetPosition(int iPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::FindPositionAlongLine(int iStartOfLine, int iCharCount)
+size CPlainTextEditor::FindPositionAlongLine(size iStartOfLine, size iCharCount)
 {
-	int		iPos;
+	size	iPos;
 	char	c;
-	int		iCountedSoFar;
+	size	iCountedSoFar;
 
 	if (iCharCount == 0)
 	{
@@ -1360,7 +1361,7 @@ int CPlainTextEditor::FindPositionAlongLine(int iStartOfLine, int iCharCount)
 		}
 		else if (iCountedSoFar > iCharCount)
 		{
-			return iPos-1;
+			return iPos - 1;
 		}
 
 		iCountedSoFar = CountChar(iCountedSoFar, c);
@@ -1373,9 +1374,9 @@ int CPlainTextEditor::FindPositionAlongLine(int iStartOfLine, int iCharCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::CountChar(int iCharCount, char c)
+size CPlainTextEditor::CountChar(size iCharCount, char c)
 {
-	int		iTabMod;
+	size	iTabMod;
 
 	if (c == '\t')
 	{
@@ -1404,7 +1405,7 @@ int CPlainTextEditor::CountChar(int iCharCount, char c)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::ResetUpDown(void)
 {
-	miUpDownCharCount = -1;
+	miUpDownCharCount = SIZE_MAX;
 }
 
 
@@ -1412,9 +1413,9 @@ void CPlainTextEditor::ResetUpDown(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPlainTextEditor::UpdateUpDown(int iPos)
+void CPlainTextEditor::UpdateUpDown(size iPos)
 {
-	if (miUpDownCharCount == -1)
+	if (miUpDownCharCount == SIZE_MAX)
 	{
 		miUpDownCharCount = GetCharCountAlongLine(iPos);
 	}
@@ -1440,8 +1441,8 @@ void CPlainTextEditor::SelectAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CPlainTextEditor::ClearSelection(void)
 {
-	miSelectionAnchor = -1;
-	miSelectionFloating = -1;
+	miSelectionAnchor = SIZE_MAX;
+	miSelectionFloating = SIZE_MAX;
 }
 
 
@@ -1489,10 +1490,10 @@ void CPlainTextEditor::EndSelection(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPlainTextEditor::DeleteSelection(void)
+size CPlainTextEditor::DeleteSelection(void)
 {
-	int	iStart;
-	int iEnd;
+	size	iStart;
+	size	iEnd;
 
 	if (IsSelected())
 	{
@@ -1512,7 +1513,7 @@ int CPlainTextEditor::DeleteSelection(void)
 	}
 	else
 	{
-		return -1;
+		return miEditPos;
 	}
 }
 

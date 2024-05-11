@@ -135,7 +135,7 @@ EFatCode PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClust
 			uiPreviousEntry = uiEntry;
 		}
 
-		szNumber.Append((int)uiClusterIndex, 16);
+		szNumber.Append((int32)uiClusterIndex, (uint16)16);
 		psz->RightAlign(szNumber.Text(), ' ', 5);
 		szNumber.Clear();
 		psz->Append(" -> ");
@@ -154,7 +154,7 @@ EFatCode PrintFATClusters(CChars* psz, CFatVolume* pcVolume, uint32 uiStartClust
 		}
 		else
 		{
-			szNumber.Append((int)uiEntry, 16);
+			szNumber.Append((int32)uiEntry, (uint16)16);
 			psz->RightAlign(szNumber.Text(), ' ', 4);
 			szNumber.Clear();
 		}

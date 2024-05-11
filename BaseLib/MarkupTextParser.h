@@ -31,7 +31,7 @@ class CMarkupTextParser
 public:
 	static CMarkupTag* GetTag(CMarkupTag* pcParentTag, char* szTagName, bool bLogErrors = true);
 	static bool 		ReadFloat(CMarkupTag* pcFloatTag, float* pcFloat, bool bLogErrors = true);
-	static bool 		ReadInteger(CMarkupTag* pcIntTag, int* pcInt, bool bLogErrors = true);
+	static bool 		ReadInteger(CMarkupTag* pcIntTag, int64* pcInt, bool bLogErrors = true);
 	static bool 		ReadBool(CMarkupTag* pcIntTag, bool* pcBool, bool bLogErrors = true);
 
 	static void 		LogError(CMarkupTag* pcTag, char* szError);

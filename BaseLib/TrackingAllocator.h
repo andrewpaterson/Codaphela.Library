@@ -16,16 +16,16 @@ public:
 
 	int				AllocatedCount(void);
 
-	void*			Malloc(size_t tSize);
-	void*			Realloc(void* pv, size_t tSize);
+	void*			Malloc(size uiSize);
+	void*			Realloc(void* pv, size uiSize);
 	bool			Free(void* pv);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ClassName(void);
-	uint32	ClassSize(void);
+	size			ClassSize(void);
 
 	bool			IsLocal(void);
-	size_t			SizeOffset(void);
+	size			SizeOffset(void);
 
 	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
 	const char*		ShortName(void);

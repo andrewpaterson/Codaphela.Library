@@ -7,7 +7,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size_t tSizeofNode, size_t tSizeofDataNode, size_t tSizeofNodePtr, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+bool CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size tSizeofNode, size tSizeofDataNode, size tSizeofNodePtr, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	bool bResult;
 
@@ -18,13 +18,13 @@ bool CIndexTree::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyRever
 	mtSizeofDataNode = tSizeofDataNode;
 	mtSizeofNodePtr = tSizeofNodePtr;
 	bResult = true;
-	if ((iMaxKeySize <= 0) || (iMaxKeySize > MAX_KEY_SIZE))
+	if (iMaxKeySize > MAX_KEY_SIZE)
 	{
 		gcLogger.Error2(__METHOD__, " Max Key size [", IntToString(iMaxKeySize), "] must be positive and <= [", IntToString(MAX_KEY_SIZE), "].", NULL);
 		iMaxKeySize = MAX_KEY_SIZE;
 		bResult = false;
 	}
-	if ((iMaxDataSize <= 0) || (iMaxDataSize > MAX_DATA_SIZE))
+	if (iMaxDataSize > MAX_DATA_SIZE)
 	{
 		gcLogger.Error2(__METHOD__, " Data size [", IntToString(iMaxDataSize), "] must be positive and <= [", IntToString(MAX_DATA_SIZE), "].", NULL);
 		iMaxDataSize = MAX_DATA_SIZE;
@@ -58,9 +58,9 @@ bool CIndexTree::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Malloc(size_t tSize)
+void* CIndexTree::Malloc(size uiSize)
 {
-	return mpcMalloc->Malloc(tSize);
+	return mpcMalloc->Malloc(uiSize);
 }
 
 
@@ -78,9 +78,9 @@ void CIndexTree::Free(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTree::Realloc(void* pv, size_t tSize)
+void* CIndexTree::Realloc(void* pv, size uiSize)
 {
-	return mpcMalloc->Realloc(pv, tSize);
+	return mpcMalloc->Realloc(pv, uiSize);
 }
 
 
@@ -88,7 +88,7 @@ void* CIndexTree::Realloc(void* pv, size_t tSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTree::SizeofNode(void)
+size CIndexTree::SizeofNode(void)
 {
 	return mtSizeofNode;
 }
@@ -98,7 +98,7 @@ size_t CIndexTree::SizeofNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTree::SizeofDataNode(void)
+size CIndexTree::SizeofDataNode(void)
 {
 	return mtSizeofDataNode;
 }
@@ -108,7 +108,7 @@ size_t CIndexTree::SizeofDataNode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTree::SizeofNodePtr(void)
+size CIndexTree::SizeofNodePtr(void)
 {
 	return mtSizeofNodePtr;
 }
@@ -128,14 +128,14 @@ void CIndexTree::FreeNode(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTree::ValidatePut(int iKeySize, size_t iDataSize)
+bool CIndexTree::ValidatePut(size iKeySize, size iDataSize)
 {
-	if ((iKeySize <= 0) || (iKeySize > miMaxKeySize))
+	if (iKeySize > miMaxKeySize)
 	{
 		gcLogger.Error2(__METHOD__, "Key size [", SizeToString(iKeySize), "] must be positive and <= [", SizeToString(miMaxKeySize), "].", NULL);
 		return false;
 	}
-	if ((iDataSize <= 0) || (iDataSize > miMaxDataSize))
+	if (iDataSize > miMaxDataSize)
 	{
 		gcLogger.Error2(__METHOD__, "Data size [", SizeToString(iDataSize), "] must be positive and <= [", SizeToString(miMaxDataSize), "].", NULL);
 		return false;
@@ -213,7 +213,7 @@ void CIndexTree::HasKeyReorderData(CIndexTreeNode* pcNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTree::CalculateRootNodeSize(void)
+size CIndexTree::CalculateRootNodeSize(void)
 {
 	return CalculateNodeSize(MAX_UCHAR + 1, 0);
 }
@@ -223,7 +223,7 @@ size_t CIndexTree::CalculateRootNodeSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CIndexTree::CalculateNodeSize(int iRequiredIndices, size_t iDataSize)
+size CIndexTree::CalculateNodeSize(size iRequiredIndices, size iDataSize)
 {
 	if (iDataSize == 0)
 	{
@@ -250,17 +250,25 @@ EIndexKeyReverse CIndexTree::ReverseKeys(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTree::StartKey(int* pi, int iKeySize)
+bool CIndexTree::StartKey(size* pi, size iKeySize)
 {
 	if (meReverseKey == IKR_No)
 	{
 		*pi = 0;
-		return *pi < iKeySize;
+		return iKeySize != 0;
 	}
 	else if (meReverseKey == IKR_Yes)
 	{
-		*pi = iKeySize - 1;
-		return *pi >= 0;
+		if (iKeySize == 0)
+		{
+			*pi = 0;;
+			return false;
+		}
+		else
+		{
+			*pi = iKeySize - 1;
+			return true;
+		}
 	}
 	else
 	{
@@ -274,17 +282,31 @@ bool CIndexTree::StartKey(int* pi, int iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTree::LoopKey(int* pi, int iKeySize)
+bool CIndexTree::LoopKey(size* pi, size iKeySize)
 {
 	if (meReverseKey == IKR_No)
 	{
-		(*pi)++;
-		return *pi < iKeySize;
+		if (iKeySize == 0)
+		{
+			return false;
+		}
+		else
+		{
+			(*pi)++;
+			return *pi < iKeySize;
+		}
 	}
 	else if (meReverseKey == IKR_Yes)
 	{
-		(*pi)--;
-		return *pi >= 0;
+		if ((*pi == 0) || (iKeySize == 0))
+		{
+			return false;;
+		}
+		else
+		{
+			(*pi)--;
+			return true;
+		}
 	}
 	else
 	{
@@ -340,7 +362,7 @@ void* CIndexTree::GetDataForNode(CIndexTreeNode* pcNode)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 {
-	int				iNodeSize;
+	size			iNodeSize;
 	CStackMemory<>	cTemp;
 	char*			szKey;
 
@@ -348,7 +370,7 @@ void CIndexTree::GetNodeKey(CIndexTreeNode* pcNode, CArrayChar* pacKey)
 	{
 		iNodeSize = GetNodeKeySize(pcNode);
 		szKey = (char*)cTemp.Init(iNodeSize);
-		GetNodeKey(pcNode, szKey, iNodeSize);
+		GetNodeKey(pcNode, (uint8*)szKey, iNodeSize);
 
 		pacKey->Add(szKey, iNodeSize);
 

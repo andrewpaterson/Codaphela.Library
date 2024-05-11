@@ -40,8 +40,8 @@ protected:
 	};
 
 protected:
-	void	BecomeArray(int iUsedElements);
-	void	BecomeEmbedded(int iUsedElements);
+	void	BecomeArray(size iUsedElements);
+	void	BecomeEmbedded(size iUsedElements);
 
 public:
 	//Appease the constructor gods.
@@ -56,27 +56,27 @@ public:
 	void	ReInit(void);
 
 	M*		Add(void);
-	M*		Add(M* pData);
+	M*		Add(M* pvData);
 	void	AddPtr(void* pv);
-	int 	ByteSize(void);
-	int		EmbeddedSize(void);
-	int 	Find(M* pvElement);
-	M*		Get(int iIndex);
+	size 	ByteSize(void);
+	size	EmbeddedSize(void);
+	size 	Find(M* pvElement);
+	M*		Get(size iIndex);
 	M*		GetData(void);
-	int		GetIndex(M* pvElement);
-	void*	GetPtr(int iIndex);
-	int		AddNum(int iNumElements);
-	int		Resize(int iNumElements);
-	M* 		InsertAt(int iIndex);
-	M*		InsertAt(M* pData, int iIndex);
+	size	GetIndex(M* pvElement);
+	void*	GetPtr(size iIndex);
+	size	AddNum(size iNumElements);
+	size	Resize(size iNumElements);
+	M* 		InsertAt(size iIndex);
+	M*		InsertAt(M* pvData, size iIndex);
 	bool	IsEmpty(void);
 	bool	IsNotEmpty(void);
 	bool	IsEmbedded(void);
 	bool	IsArray(void);
-	int		NumElements(void);
+	size	NumElements(void);
 	bool	Remove(M* pvElement, bool bPreserveOrder = true);
-	void 	RemoveAt(int iIndex, bool bPreserveOrder = true);
-	M*		SafeGet(int iIndex);
+	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
+	M*		SafeGet(size iIndex);
 	void	Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded);
 	bool	TestInternalConsistency(void);
 	void 	Zero(void);
@@ -150,7 +150,7 @@ bool CArrayTemplateEmbedded<M, I>::IsArray(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
+void CArrayTemplateEmbedded<M, I>::BecomeArray(size iUsedElements)
 {
 	M	am[I];  //Problem
 
@@ -158,7 +158,7 @@ void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 	mcArray.Init();
 	mcArray.AddNum(iUsedElements);
 	memcpy(mcArray.GetData(), am, miUsedElements * sizeof(M));
-	miUsedElements = iUsedElements;
+	miUsedElements = (uint16)iUsedElements;
 }
 
 
@@ -167,7 +167,7 @@ void CArrayTemplateEmbedded<M, I>::BecomeArray(int iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
+void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(size iUsedElements)
 {
 	M	am[I];  //Problem
 
@@ -175,7 +175,7 @@ void CArrayTemplateEmbedded<M, I>::BecomeEmbedded(int iUsedElements)
 	mcArray.Kill();
 
 	memcpy(mam, am, iUsedElements * sizeof(M));
-	miUsedElements = iUsedElements;
+	miUsedElements = (uint16)iUsedElements;
 }
 
 
@@ -197,7 +197,7 @@ M* CArrayTemplateEmbedded<M, I>::Add(void)
 		else
 		{
 			miUsedElements++;
-			pv = &mam[miUsedElements-1];
+			pv = &mam[miUsedElements - 1];
 		}
 	}
 	else
@@ -214,12 +214,12 @@ M* CArrayTemplateEmbedded<M, I>::Add(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-M* CArrayTemplateEmbedded<M, I>::Add(M* pData)
+M* CArrayTemplateEmbedded<M, I>::Add(M* pvData)
 {
 	M*	pAdded;
 
 	pAdded = Add();
-	memcpy(pAdded, pData, sizeof(M));
+	memcpy(pAdded, pvData, sizeof(M));
 	return pAdded;
 }
 
@@ -243,7 +243,7 @@ void CArrayTemplateEmbedded<M, I>::AddPtr(void* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::ByteSize(void)
+size CArrayTemplateEmbedded<M, I>::ByteSize(void)
 {
 	if (IsEmbedded())
 	{
@@ -261,7 +261,7 @@ int CArrayTemplateEmbedded<M, I>::ByteSize(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::EmbeddedSize(void)
+size CArrayTemplateEmbedded<M, I>::EmbeddedSize(void)
 {
 	return I;
 }
@@ -272,7 +272,7 @@ int CArrayTemplateEmbedded<M, I>::EmbeddedSize(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-M* CArrayTemplateEmbedded<M, I>::Get(int iIndex)
+M* CArrayTemplateEmbedded<M, I>::Get(size iIndex)
 {
 	if (IsEmbedded())
 	{
@@ -312,7 +312,7 @@ M* CArrayTemplateEmbedded<M, I>::GetData(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void* CArrayTemplateEmbedded<M, I>::GetPtr(int iIndex)
+void* CArrayTemplateEmbedded<M, I>::GetPtr(size iIndex)
 {
 	return *Get(iIndex);
 }
@@ -323,30 +323,27 @@ void* CArrayTemplateEmbedded<M, I>::GetPtr(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
+size CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
 {
-	int tIndex;
-	int tBase;
-	int tDifference;
+	size	uiIndex;
+	size	tDifference;
 
-	tBase = (int)(size_t) GetData();
-	tIndex = (int)(size_t) pvElement;
-	tDifference = tIndex - tBase;
+	tDifference = (size)((ptr)pvElement - (ptr)GetData());
 
 	//Make sure the element is correctly aligned.
 	if (tDifference % sizeof(M) != 0)
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
 	//Make sure the element lies within the array.
-	tIndex = tDifference / sizeof(M);
-	if ((tIndex < 0) || (tIndex >= miUsedElements))
+	uiIndex = (tDifference / sizeof(M));
+	if (uiIndex >= miUsedElements)
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	return tIndex;
+	return uiIndex;
 }
 
 
@@ -355,20 +352,20 @@ int CArrayTemplateEmbedded<M, I>::GetIndex(M* pvElement)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::Find(M* pData)
+size CArrayTemplateEmbedded<M, I>::Find(M* pvData)
 {
-	int		i;
 	M*		pIndex;
+	size	i;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pIndex = Get(i);
-		if (memcmp(pIndex, pData, sizeof(M)) == 0)
+		if (memcmp(pIndex, pvData, sizeof(M)) == 0)
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -377,27 +374,27 @@ int CArrayTemplateEmbedded<M, I>::Find(M* pData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::AddNum(int iNumElements)
+size CArrayTemplateEmbedded<M, I>::AddNum(size iNumElements)
 {
-	int	iOldUsedElements;
+	size	iOldUsedElements;
 
 	if (IsEmbedded())
 	{
 		iOldUsedElements = miUsedElements;
-		if (miUsedElements + iNumElements > I)
+		if (miUsedElements + (uint16)iNumElements > I)
 		{
-			BecomeArray(miUsedElements + iNumElements);
+			BecomeArray(miUsedElements + (uint16)iNumElements);
 			return iOldUsedElements;
 		}
 		else
 		{
-			miUsedElements += iNumElements;
+			miUsedElements += (uint16)iNumElements;
 			return iOldUsedElements;
 		}
 	}
 	else
 	{
-		miUsedElements += iNumElements;
+		miUsedElements += (uint16)iNumElements;
 		return mcArray.AddNum(iNumElements);
 	}
 }
@@ -408,9 +405,9 @@ int CArrayTemplateEmbedded<M, I>::AddNum(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::Resize(int iNumElements)
+size CArrayTemplateEmbedded<M, I>::Resize(size iNumElements)
 {
-	int	iOldUsedElements;
+	size	iOldUsedElements;
 
 	iOldUsedElements = miUsedElements;
 	if (IsEmbedded())
@@ -422,7 +419,7 @@ int CArrayTemplateEmbedded<M, I>::Resize(int iNumElements)
 		}
 		else
 		{
-			miUsedElements = iNumElements;
+			miUsedElements = (uint16)iNumElements;
 			return iOldUsedElements;
 		}
 	}
@@ -435,7 +432,7 @@ int CArrayTemplateEmbedded<M, I>::Resize(int iNumElements)
 		}
 		else
 		{
-			miUsedElements = iNumElements;
+			miUsedElements = (uint16)iNumElements;
 			return mcArray.Resize(iNumElements);
 		}
 	}
@@ -447,7 +444,7 @@ int CArrayTemplateEmbedded<M, I>::Resize(int iNumElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
+M* CArrayTemplateEmbedded<M, I>::InsertAt(size iIndex)
 {
 	void*	pSource;
 	void*	pDest;
@@ -487,12 +484,12 @@ M* CArrayTemplateEmbedded<M, I>::InsertAt(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pData, int iIndex)
+M* CArrayTemplateEmbedded<M, I>::InsertAt(M* pvData, size iIndex)
 {
 	M*	pAdded;
 
 	pAdded = InsertAt(iIndex);
-	memcpy(pAdded, pData, sizeof(M));
+	memcpy(pAdded, pvData, sizeof(M));
 	return pAdded;
 }
 
@@ -524,7 +521,7 @@ bool CArrayTemplateEmbedded<M, I>::IsNotEmpty(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-int CArrayTemplateEmbedded<M, I>::NumElements(void)
+size CArrayTemplateEmbedded<M, I>::NumElements(void)
 {
 	return miUsedElements;
 }
@@ -535,12 +532,12 @@ int CArrayTemplateEmbedded<M, I>::NumElements(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-bool CArrayTemplateEmbedded<M, I>::Remove(M* pData, bool bPreserveOrder)
+bool CArrayTemplateEmbedded<M, I>::Remove(M* pvData, bool bPreserveOrder)
 {
-	int		iIndex;
+	size		iIndex;
 
-	iIndex = Find(pData);
-	if (iIndex != -1)
+	iIndex = Find(pvData);
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		RemoveAt(iIndex, bPreserveOrder);
 		return true;
@@ -557,11 +554,11 @@ bool CArrayTemplateEmbedded<M, I>::Remove(M* pData, bool bPreserveOrder)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void CArrayTemplateEmbedded<M, I>::RemoveAt(int iIndex, bool bPreserveOrder)
+void CArrayTemplateEmbedded<M, I>::RemoveAt(size iIndex, bool bPreserveOrder)
 {
 	void*	pSource;
 	void*	pDest;
-	int		iMove;
+	size	iMove;
 
 	if (IsEmbedded())
 	{
@@ -593,7 +590,7 @@ void CArrayTemplateEmbedded<M, I>::RemoveAt(int iIndex, bool bPreserveOrder)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-M* CArrayTemplateEmbedded<M, I>::SafeGet(int iIndex)
+M* CArrayTemplateEmbedded<M, I>::SafeGet(size iIndex)
 {
 	return Get(iIndex);
 }
@@ -606,8 +603,8 @@ M* CArrayTemplateEmbedded<M, I>::SafeGet(int iIndex)
 template<class M, int8 I>
 void CArrayTemplateEmbedded<M, I>::Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded)
 {
-	int		i;
-	int		iNumElements;
+	size	i;
+	size	iNumElements;
 	M*		pvData;
 
 	iNumElements = pcArrayTemplateEmbedded->NumElements();

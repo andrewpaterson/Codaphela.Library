@@ -9,21 +9,21 @@ class CListTemplate : public CListBlock, protected CPostMalloc<M>
 {
 public:
 	void	Init(void);
-	void	Init(int iAlignment);
-	void	Init(int iAlignment, int iOffset);
+	void	Init(uint16 iAlignment);
+	void	Init(uint16 iAlignment, int16 iOffset);
 	void	Kill(void);
 
 	M*		Add(void);
 	M*		Add(M* pvData);
-	M* 		AddGetIndex(int* piIndex);
+	M* 		AddGetIndex(size* piIndex);
 
-	M*		Get(int iIndex);
-	M*		SafeGet(int iIndex);
-	int		GetIndex(M* pvElement);
+	M*		Get(size iIndex);
+	M*		SafeGet(size iIndex);
+	size	GetIndex(M* pvElement);
 	M*		Tail(void);
 
-	M* 		InsertAt(int iIndex);
-	M* 		InsertAt(M* pvData, int iIndex);
+	M* 		InsertAt(size iIndex);
+	M* 		InsertAt(M* pvData, size iIndex);
 
 	void	Pop(M* pvData);
 	M*	 	Push(M* pvElement);
@@ -31,8 +31,8 @@ public:
 
 	bool	Contains(M* pvData);
 
-	bool	Set(int iIndex, M* pvData);
-	bool	SafeSet(int iIndex, M* pvData);
+	bool	Set(size iIndex, M* pvData);
+	bool	SafeSet(size iIndex, M* pvData);
 };
 
 
@@ -52,7 +52,7 @@ void CListTemplate<M>::Init(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CListTemplate<M>::Init(int iAlignment)
+void CListTemplate<M>::Init(uint16 iAlignment)
 {
 	CListBlock::Init(sizeof(M), iAlignment);
 }
@@ -63,7 +63,7 @@ void CListTemplate<M>::Init(int iAlignment)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CListTemplate<M>::Init(int iAlignment, int iOffset)
+void CListTemplate<M>::Init(uint16 iAlignment, int16 iOffset)
 {
 	CListBlock::Init(sizeof(M), iAlignment, iOffset);
 }
@@ -107,7 +107,7 @@ M* CListTemplate<M>::Add(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplate<M>::AddGetIndex(int* piIndex)
+M* CListTemplate<M>::AddGetIndex(size* piIndex)
 {
 	return PostMalloc((M*)CListBlock::AddGetIndex(piIndex));
 }
@@ -118,7 +118,7 @@ M* CListTemplate<M>::AddGetIndex(int* piIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplate<M>::Get(int iIndex)
+M* CListTemplate<M>::Get(size iIndex)
 {
 	return (M*)CListBlock::Get(iIndex);
 }
@@ -129,7 +129,7 @@ M* CListTemplate<M>::Get(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplate<M>::SafeGet(int iIndex)
+M* CListTemplate<M>::SafeGet(size iIndex)
 {
 	return (M*)CListBlock::SafeGet(iIndex);
 }
@@ -140,7 +140,7 @@ M* CListTemplate<M>::SafeGet(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CListTemplate<M>::GetIndex(M* pvElement)
+size CListTemplate<M>::GetIndex(M* pvElement)
 {
 	return CListBlock::GetIndex(pvElement);
 }
@@ -162,7 +162,7 @@ M* CListTemplate<M>::Tail(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplate<M>::InsertAt(int iIndex)
+M* CListTemplate<M>::InsertAt(size iIndex)
 {
 	return PostMalloc((M*)CListBlock::InsertAt(iIndex));
 }
@@ -173,7 +173,7 @@ M* CListTemplate<M>::InsertAt(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplate<M>::InsertAt(M* pvData, int iIndex)
+M* CListTemplate<M>::InsertAt(M* pvData, size iIndex)
 {
 	return PostMalloc((M*)CListBlock::InsertAt(pvData, iIndex));
 }
@@ -228,7 +228,7 @@ bool CListTemplate<M>::Contains(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CListTemplate<M>::Set(int iIndex, M* pvData)
+bool CListTemplate<M>::Set(size iIndex, M* pvData)
 {
 	return CListBlock::Set(iIndex, pvData);
 }
@@ -239,7 +239,7 @@ bool CListTemplate<M>::Set(int iIndex, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CListTemplate<M>::SafeSet(int iIndex, M* pvData)
+bool CListTemplate<M>::SafeSet(size iIndex, M* pvData)
 {
 	return CListBlock::SafeSet(iIndex, pvData);
 }

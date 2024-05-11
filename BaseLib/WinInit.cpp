@@ -37,7 +37,7 @@ long PASCAL WindowProcCB(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	CWin32Window*		pcWindow;
 
-	pcWindow = (CWin32Window*)((size_t)GetWindowLongPtr(hWnd, GWLP_USERDATA));
+	pcWindow = (CWin32Window*)((size)GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
 	//Do nothing if the window is not yet created.
 	if (pcWindow)
@@ -280,7 +280,7 @@ bool CWin32Window::CreateFullScreenWindow(int nCmdShow, char* szName)
 		gcUserError.Set("Could not Create Window");
 		return false;
 	}
-	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size_t)this));
+	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size)this));
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);
@@ -337,7 +337,7 @@ bool CWin32Window::CreateWindowedWindow(int nCmdShow, char* szName, int xp, int 
 		return false;
 	}
 
-	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size_t)this));
+	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size)this));
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);

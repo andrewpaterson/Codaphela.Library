@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SFreeListDesc::Init(uint32 iStride)
+void SFreeListDesc::Init(size iStride)
 {
 	this->iStride = iStride;
 	this->pcFreeList = NULL;
@@ -28,11 +28,11 @@ void SFreeListDesc::Init(CFreeList* pcFreeList, int iStride)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SAlignedFreeListDesc::Init(uint32 iStride, int iAlignment, int iOffset)
+void SAlignedFreeListDesc::Init(size iStride, uint16 iAlignment, int16 iOffset)
 {
 	this->iStride = iStride;
-	this->iAlignment = iAlignment;
-	this->iOffset = iOffset;
+	this->iAlignment = (uint8)iAlignment;
+	this->iOffset = (int8)iOffset;
 	this->pcFreeList = NULL;
 }
 
@@ -41,11 +41,11 @@ void SAlignedFreeListDesc::Init(uint32 iStride, int iAlignment, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SAlignedFreeListDesc::Init(CFreeList* pcFreeList, int iStride, int iAlignment, int iOffset)
+void SAlignedFreeListDesc::Init(CFreeList* pcFreeList, int iStride, uint16 iAlignment, int16 iOffset)
 {
 	this->iStride = iStride;
-	this->iAlignment = iAlignment;
-	this->iOffset = iOffset;
+	this->iAlignment = (uint8)iAlignment;
+	this->iOffset = (int8)iOffset;
 	this->pcFreeList = pcFreeList;
 }
 

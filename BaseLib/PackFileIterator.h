@@ -6,7 +6,7 @@
 struct SPackFileIteratorPosition
 {
 	CFileNodePackFileNode*	pcNode;
-	int						iIndex;
+	size					iIndex;
 };
 
 

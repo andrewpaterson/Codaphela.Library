@@ -14,18 +14,17 @@ public:
 	void				Init(CIndexTreeNode* pcRoot);
 	void				Kill(void);
 
-	void				Push(CIndexTreeNode* pcChild, char c);
+	void				Push(CIndexTreeNode* pcChild, uint8 c);
 	void				Pop(void);
 
 	void				GenerateBad(void);
 
 	CIndexTreeNode*		GetNode(void);
 
-	void				GetKey(char* pc, int* piKeySize);
-	int					GetKeySize(void);
+	void				GetKey(void* pc, size* piKeySize);
+	size				GetKeySize(void);
 };
 
 
 #endif // __INDEX_TREE_RECURSOR_H__
-
 

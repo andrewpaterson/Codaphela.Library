@@ -28,11 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertRoot(int iDataSize)
+void* CTreeBlock::InsertRoot(size uiDataSize)
 {
 	void*		psNode;
 
-	psNode = AllocateDetached(iDataSize);
+	psNode = AllocateDetached(uiDataSize);
 	__CTreeBlock::InsertDetachedOnPath(NULL, 0, psNode);
 	return psNode;
 }
@@ -42,12 +42,12 @@ void* CTreeBlock::InsertRoot(int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertOnPath(int* aiPos, int iLevel, int iDataSize)
+void* CTreeBlock::InsertOnPath(size* auiPos, size uiLevel, size uiDataSize)
 {
 	void*		psNode;
 
-	psNode = AllocateDetached(iDataSize);
-	__CTreeBlock::InsertDetachedOnPath(aiPos, iLevel, psNode);
+	psNode = AllocateDetached(uiDataSize);
+	__CTreeBlock::InsertDetachedOnPath(auiPos, uiLevel, psNode);
 	return psNode;
 }
 
@@ -56,12 +56,12 @@ void* CTreeBlock::InsertOnPath(int* aiPos, int iLevel, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertOnPath(int* aiPos, int iLevel, int iDataSize, int* aiOldPos, int iOldLevel, void* psOldNode)
+void* CTreeBlock::InsertOnPath(size* auiPos, size uiLevel, size uiDataSize, size* auiOldPos, size uiOldLevel, void* psOldNode)
 {
 	void*		psNode;
 
-	psNode = AllocateDetached(iDataSize);
-	__CTreeBlock::InsertDetachedOnPath(aiPos, iLevel, psNode, aiOldPos, iOldLevel, psOldNode);
+	psNode = AllocateDetached(uiDataSize);
+	__CTreeBlock::InsertDetachedOnPath(auiPos, uiLevel, psNode, auiOldPos, uiOldLevel, psOldNode);
 	return psNode;
 }
 
@@ -70,12 +70,12 @@ void* CTreeBlock::InsertOnPath(int* aiPos, int iLevel, int iDataSize, int* aiOld
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertOnRightOfChildren(void* psParent, int iDataSize)
+void* CTreeBlock::InsertOnRightOfChildren(void* psParent, size uiDataSize)
 {
 	void*		psNode;
 
 	//Allocate memory for the user data and the attached tree data
-	psNode = AllocateDetached(iDataSize);
+	psNode = AllocateDetached(uiDataSize);
 	__CTreeBlock::InsertDetachedOnRightOfChildren(psParent, psNode);
 	return psNode;
 }
@@ -85,11 +85,11 @@ void* CTreeBlock::InsertOnRightOfChildren(void* psParent, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertOnLeftOfChildren(void* psParent, int iDataSize)
+void* CTreeBlock::InsertOnLeftOfChildren(void* psParent, size uiDataSize)
 {
 	void *psNode;
 
-	psNode = AllocateDetached(iDataSize);	
+	psNode = AllocateDetached(uiDataSize);	
 	__CTreeBlock::InsertDetachedOnLeftOfChildren(psParent, psNode);
 	return psNode;
 }
@@ -99,11 +99,11 @@ void* CTreeBlock::InsertOnLeftOfChildren(void* psParent, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertAtChildNum(void* psParent, int iChildNum, int iDataSize)
+void* CTreeBlock::InsertAtChildNum(void* psParent, size iChildNum, size uiDataSize)
 {
 	void	*psNode;
 
-	psNode = AllocateDetached(iDataSize);
+	psNode = AllocateDetached(uiDataSize);
 	__CTreeBlock::InsertDetachedAtChildNum(psParent, iChildNum, psNode);
 	return psNode;
 }
@@ -113,11 +113,11 @@ void* CTreeBlock::InsertAtChildNum(void* psParent, int iChildNum, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertOnUp(void* psPos, int iDataSize)
+void* CTreeBlock::InsertOnUp(void* psPos, size uiDataSize)
 {
 	void*	psNode;
 
-	psNode = AllocateDetached(iDataSize);
+	psNode = AllocateDetached(uiDataSize);
 	__CTreeBlock::InsertDetachedOnUp(psPos, psNode);
 	return psNode;
 }
@@ -127,11 +127,11 @@ void* CTreeBlock::InsertOnUp(void* psPos, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::InsertOnAcross(void* psPos, int iDataSize)
+void* CTreeBlock::InsertOnAcross(void* psPos, size uiDataSize)
 {
 	void*	psNode;
 
-	psNode = AllocateDetached(iDataSize);
+	psNode = AllocateDetached(uiDataSize);
 	__CTreeBlock::InsertDetachedOnAcross(psPos, psNode);
 	return psNode;
 }
@@ -176,12 +176,12 @@ void CTreeBlock::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CTreeBlock::AllocateDetached(int iDataSize)
+void* CTreeBlock::AllocateDetached(size uiDataSize)
 {
 	STUNode*	psNode;
 	
-	psNode = (STUNode*)Malloc(sizeof(STUNode) + iDataSize);
-	psNode->iSize = iDataSize;
+	psNode = (STUNode*)Malloc(sizeof(STUNode) + uiDataSize);
+	psNode->iSize = uiDataSize;
 	return HeaderGetData<STUNode, void>(psNode);
 }
 
@@ -206,10 +206,10 @@ void CTreeBlock::FreeDetached(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CTreeBlock::ByteSize(void)
+size CTreeBlock::ByteSize(void)
 {
 	void*	pvNode;
-	int		iSize;
+	size		iSize;
 
 	iSize = 0;
 	pvNode = StartTraversal();
@@ -226,7 +226,7 @@ int CTreeBlock::ByteSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CTreeBlock::GetNodeSize(void* pvData)
+size	CTreeBlock::GetNodeSize(void* pvData)
 {
 	STUNode*		psNodeHeader;
 
@@ -272,10 +272,10 @@ bool CTreeBlock::RemoveLeaf(void* psNodeData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CTreeBlock::RemoveBranch(void* psNodeData)
+size CTreeBlock::RemoveBranch(void* psNodeData)
 {
 	CTreeBlock	cTree;
-	int				iNum;
+	size				iNum;
 
 	if (!RemoveLeaf(psNodeData))
 	{
@@ -314,9 +314,9 @@ void CTreeBlock::Remove(void* psNodeData)
 bool CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 {
 	void*			pvData;
-	int				iPathSize;
-	int				aiPath[1024];
-	int				iSize;
+	size				iPathSize;
+	size				aiPath[1024];
+	size				iSize;
 
 	if (!pcFileWriter->WriteData(this, sizeof(CTreeBlock))) 
 	{ 
@@ -334,15 +334,15 @@ bool CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 				return false; 
 			}
 			iSize = GetNodeSize(pvData);
-			if (!pcFileWriter->WriteInt(iSize))
+			if (!pcFileWriter->WriteSize(iSize))
 			{ 
 				return false; 
 			}
-			if (!pcFileWriter->WriteInt(iPathSize)) 
+			if (!pcFileWriter->WriteSize(iPathSize)) 
 			{ 
 				return false; 
 			}
-			if (!pcFileWriter->WriteData(aiPath, sizeof(int) * iPathSize)) 
+			if (!pcFileWriter->WriteData(aiPath, sizeof(size) * iPathSize)) 
 			{ 
 				return false; 
 			}
@@ -364,11 +364,11 @@ bool CTreeBlock::WriteTreeUnknown(CFileWriter* pcFileWriter)
 bool CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 {
 	void*			pvData;
-	int				i;
-	int				iPathSize;
-	int				aiPath[1024];
-	int				iNumElements;
-	int				iSize;;
+	size				i;
+	size				iPathSize;
+	size				aiPath[1024];
+	size				iNumElements;
+	size				iSize;;
 
 	if (!pcFileReader->ReadData(this, sizeof(CTreeBlock))) 
 	{ 
@@ -380,15 +380,15 @@ bool CTreeBlock::ReadTreeUnknown(CFileReader* pcFileReader)
 
 	for (i = 0; i < iNumElements; i++)
 	{
-		if (!pcFileReader->ReadInt(&iSize)) 
+		if (!pcFileReader->ReadSize(&iSize)) 
 		{ 
 			return false; 
 		}
-		if (!pcFileReader->ReadData(&iPathSize, sizeof(int))) 
+		if (!pcFileReader->ReadSize(&iPathSize)) 
 		{ 
 			return false; 
 		}
-		if (!pcFileReader->ReadData(aiPath, sizeof(int) * iPathSize)) 
+		if (!pcFileReader->ReadData(aiPath, sizeof(size) * iPathSize)) 
 		{ 
 			return false; 
 		}

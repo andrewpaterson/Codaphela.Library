@@ -13,7 +13,7 @@ private:
 
 public:
 	void Start(bool bSetSilent);
-	void Stop(char* szOutput, size_t uiOutputSize);
+	void Stop(char* szOutput, size uiOutputSize);
 };
 
 

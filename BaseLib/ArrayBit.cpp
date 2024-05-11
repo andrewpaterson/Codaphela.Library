@@ -71,7 +71,7 @@ void CArrayBit::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::Zero(void)
 {
-	int	iAllocatedBytes;
+	size	iAllocatedBytes;
 	
 	iAllocatedBytes = ByteSize(miNumBits);
 	memset(GetData(), 0, iAllocatedBytes);
@@ -97,11 +97,11 @@ void CArrayBit::ReInit(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::GrowBy(int iNumBits)
+void CArrayBit::GrowBy(size iNumBits)
 {
-	int		iOldByteSize;
-	int		iNewByteSize;
-	int		iTransitionSize;
+	size		iOldByteSize;
+	size		iNewByteSize;
+	size		iTransitionSize;
 	void*	pvData;
 
 	iOldByteSize = ByteSize(miNumBits);
@@ -132,7 +132,7 @@ void CArrayBit::GrowBy(int iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBit::Get(int iBit)
+bool CArrayBit::Get(size iBit)
 {
 	return GetBit(iBit, GetData());
 }
@@ -142,7 +142,7 @@ bool CArrayBit::Get(int iBit)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Set(int iBit, bool bBit)
+void CArrayBit::Set(size iBit, bool bBit)
 {
 	SetBit(iBit, GetData(), bBit);
 }
@@ -163,7 +163,7 @@ void CArrayBit::Add(bool bBit)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Get(void* pvDest, int iDestOffset, int iOffset, int iNumBits)
+void CArrayBit::Get(void* pvDest, size iDestOffset, size iOffset, size iNumBits)
 {
 	CopyBits(pvDest, iDestOffset, GetData(), iOffset, iNumBits, 1);
 }
@@ -173,7 +173,7 @@ void CArrayBit::Get(void* pvDest, int iDestOffset, int iOffset, int iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits)
+void CArrayBit::Set(size iOffset, void* pvSource, size iSourceOffset, size iNumBits)
 {
 	CopyBits(GetData(), iOffset, pvSource, iSourceOffset, iNumBits, 0);
 }
@@ -183,9 +183,9 @@ void CArrayBit::Set(int iOffset, void* pvSource, int iSourceOffset, int iNumBits
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBit::Add(void* pvSource, int iSourceOffset, int iNumBits)
+void CArrayBit::Add(void* pvSource, size iSourceOffset, size iNumBits)
 {
-	int		iOldNumBits;
+	size		iOldNumBits;
 
 	iOldNumBits = miNumBits;
 	GrowBy(iNumBits);
@@ -201,7 +201,7 @@ bool CArrayBit::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	int				iNumBits;
+	size			iNumBits;
 	bool			bResult;
 	CMallocator*	pcMalloc;
 
@@ -212,7 +212,7 @@ bool CArrayBit::Read(CFileReader* pcFileReader)
 	}
 
 	Init(pcMalloc);
-	bResult = pcFileReader->ReadInt(&iNumBits);
+	bResult = pcFileReader->ReadSize(&iNumBits);
 	if (!bResult)
 	{
 		return false;
@@ -237,7 +237,7 @@ bool CArrayBit::Write(CFileWriter* pcFileWriter)
 		return false;
 	}
 
-	bResult = pcFileWriter->WriteInt(miNumBits);
+	bResult = pcFileWriter->WriteSize(miNumBits);
 	if (!bResult)
 	{
 		return false;
@@ -251,7 +251,7 @@ bool CArrayBit::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBit::NumElements(void)
+size CArrayBit::NumElements(void)
 {
 	return miNumBits;
 }
@@ -288,7 +288,7 @@ void* CArrayBit::GetData(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBit::ByteSize(int iNumBits)
+size CArrayBit::ByteSize(size iNumBits)
 {
 	return (iNumBits + 7) / 8;
 }

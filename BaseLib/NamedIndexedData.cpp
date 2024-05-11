@@ -101,7 +101,7 @@ bool CNamedIndexedData::Add(OIndex oi, char* szName, int iNameLength, void* pvDa
 {
 	CStackMemory<>			cStack;
 	CNamedIndexedHeader*	pcHeader;
-	size_t					sSize;
+	size					sSize;
 	bool					bResult;
 
 	if (szName != NULL)
@@ -260,7 +260,7 @@ bool CNamedIndexedData::Set(OIndex oi, char* szName, int iNameLength, void* pvDa
 	CStackMemory<>			cStackSet;
 	CStackMemory<>			cStackGet;
 	CNamedIndexedHeader*	pcHeaderSet;
-	size_t					sSize;
+	size					sSize;
 	CNamedIndexedHeader*	pcHeaderGet;
 	uint32			uiOldDataSize;
 	int						iOldNameLength;
@@ -838,7 +838,7 @@ int64 CNamedIndexedData::NumIndicesCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CNamedIndexedData::NumIndicesCached(size_t iSize)
+int64 CNamedIndexedData::NumIndicesCached(size iSize)
 {
 	return mcData.NumIndicesCached(iSize);
 }
@@ -858,7 +858,7 @@ int64 CNamedIndexedData::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CNamedIndexedData::NumDataCached(size_t iSize)
+int64 CNamedIndexedData::NumDataCached(size iSize)
 {
 	return mcData.NumDataCached(iSize);
 }
@@ -946,7 +946,7 @@ bool CNamedIndexedData::ValidateOidToNameToOid(void)
 		if (!bResult)
 		{
 			cStackMemory.Kill();
-			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated index [0x", LongLongToString(oi, 16), "] but it doesn not exist.", NULL);
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated index [0x", LongToString(oi, 16), "] but it doesn not exist.", NULL);
 		}
 		if (uiDataSize > uiMaxDataSize)
 		{
@@ -965,7 +965,7 @@ bool CNamedIndexedData::ValidateOidToNameToOid(void)
 			if (oi != oiFromData)
 			{
 				cStackMemory.Kill();
-				return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Index [0x", LongLongToString(oi, 16), "] maps to name [", szName, "] but the name maps to index [0x", LongLongToString(oiFromData, 16), "].", NULL);
+				return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Index [0x", LongToString(oi, 16), "] maps to name [", szName, "] but the name maps to index [0x", LongToString(oiFromData, 16), "].", NULL);
 			}
 		}
 
@@ -1005,7 +1005,7 @@ bool CNamedIndexedData::ValidateNameToOidToName(void)
 		if (!bResult)
 		{
 			cStackMemory.Kill();
-			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated oid [0x", LongLongToString(oi, 16), "] but it doesn not exist.", NULL);
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Iterated oid [0x", LongToString(oi, 16), "] but it doesn not exist.", NULL);
 		}
 		if (uiDataSize > uiMaxDataSize)
 		{
@@ -1022,7 +1022,7 @@ bool CNamedIndexedData::ValidateNameToOidToName(void)
 		if (iResult != 0)
 		{
 			cStackMemory.Kill();
-			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Name [", szName, "] maps to index [0x", LongLongToString(oi, 16), "] but the index maps to name [", szNameFromData, "].", NULL);
+			return gcLogger.Error2(__METHOD__, " NamedIndexedData corrupt.  Name [", szName, "] maps to index [0x", LongToString(oi, 16), "] but the index maps to name [", szNameFromData, "].", NULL);
 		}
 
 		bExists = NameIterate(&sIter, szName, &oi);
@@ -1066,7 +1066,7 @@ bool CNamedIndexedData::ValidateConfigKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CNamedIndexedData::GetIndiciesSystemMemorySize(void)
+size CNamedIndexedData::GetIndiciesSystemMemorySize(void)
 {
 	return mcData.GetIndiciesSystemMemorySize();
 }
@@ -1076,7 +1076,7 @@ size_t CNamedIndexedData::GetIndiciesSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CNamedIndexedData::GetDataSystemMemorySize(void)
+size CNamedIndexedData::GetDataSystemMemorySize(void)
 {
 	return mcData.GetDataSystemMemorySize();
 }
@@ -1086,7 +1086,7 @@ size_t CNamedIndexedData::GetDataSystemMemorySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CNamedIndexedData::GetNamesSystemMemorySize(void)
+size CNamedIndexedData::GetNamesSystemMemorySize(void)
 {
 	return mcNames.GetSystemMemorySize();
 }
@@ -1112,14 +1112,14 @@ void CNamedIndexedData::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	CStackMemory<8 KB>		cStack;
 	CNamedIndexedHeader*	pcHeader;
 	void*					pvHeaderData;
-	size_t					iMaxDataAndHeaderSize;
+	size					iMaxDataAndHeaderSize;
 	OIndex					oi;
-	size_t					iDataSize;
+	size					iDataSize;
 
 	iMaxDataAndHeaderSize = iMaxDataSize + sizeof(CNamedIndexedHeader) + MAX_KEY_SIZE;
 	pcHeader = (CNamedIndexedHeader*)cStack.Init(iMaxDataAndHeaderSize);
@@ -1145,14 +1145,14 @@ OIndex CNamedIndexedData::StartIndexIteration(SIndexTreeFileIterator* psIterator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize)
+OIndex CNamedIndexedData::IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	CStackMemory<8 KB>		cStack;
 	CNamedIndexedHeader* pcHeader;
 	void* pvHeaderData;
-	size_t					iMaxDataAndHeaderSize;
+	size					iMaxDataAndHeaderSize;
 	OIndex					oi;
-	size_t					iDataSize;
+	size					iDataSize;
 
 	iMaxDataAndHeaderSize = iMaxDataSize + sizeof(CNamedIndexedHeader) + MAX_KEY_SIZE;
 	pcHeader = (CNamedIndexedHeader*)cStack.Init(iMaxDataAndHeaderSize);

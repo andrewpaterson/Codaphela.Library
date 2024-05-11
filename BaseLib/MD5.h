@@ -68,7 +68,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SMD5Context
 {
 	uint32 i[2];		/* number of _bits_ handled mod 2^64 */
-	uint32 buf[4];	/* scratch buffer */
+	uint32 buf[4];		/* scratch buffer */
 	uint8 in[64];		/* input buffer */
 	uint8 digest[16];	/* actual digest after MD5Final call */
 };

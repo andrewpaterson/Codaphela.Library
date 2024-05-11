@@ -56,7 +56,7 @@ int GetIndex(SFloat3* psPoints, int iStride, SFloat3* psPosition)
 	int		iIndex;
 	int		iModulus;
 
-	iIndex = ((int)(size_t)psPosition - (int)(size_t)psPoints);
+	iIndex = ((int)(size)psPosition - (int)(size)psPoints);
 	iModulus = iIndex % iStride;
 	iIndex = iIndex / iStride;
 

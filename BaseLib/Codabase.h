@@ -62,16 +62,16 @@ public:
 
 	int64	NumIndices(void);
 	int64	NumIndicesCached(void);
-	int64	NumIndicesCached(size_t iSize);
+	int64	NumIndicesCached(size iSize);
 	int64	NumDataCached(void);
-	int64	NumDataCached(size_t iSize);
+	int64	NumDataCached(size iSize);
 	int64	NumNames(void);
 	int64	NumNamesCached(void);
 
 	void	Dump(void);
 
-	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
-	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
+	OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize);
 	bool	StartNameIteration(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 	bool	NameIterate(SIndexTreeFileIterator* psIterator, char* szKey, OIndex* poi);
 };

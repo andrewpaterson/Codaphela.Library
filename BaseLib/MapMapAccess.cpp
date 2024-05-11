@@ -72,7 +72,7 @@ void CMapMapAccess::FreeIterator(CMapIterator* pcIter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t uiDataSize)
+void* CMapMapAccess::Put(void* pvKey, uint32 iKeySize, void* pvData, uint32 uiDataSize)
 {
 	void*	pv;
 
@@ -89,12 +89,12 @@ void* CMapMapAccess::Put(void* pvKey, int iKeySize, void* pvData, size_t uiDataS
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapMapAccess::Get(void* pvKey, int iKeySize, size_t* puiDataSize)
+void* CMapMapAccess::Get(void* pvKey, uint32 iKeySize, uint32* puiDataSize)
 {
 	bool	bResult;
 	void*	pvData;
 
-	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (int*)puiDataSize);
+	bResult = mpcMap->Get(pvKey, iKeySize, &pvData, (uint32*)puiDataSize);
 	if (bResult)
 	{
 		return pvData;
@@ -110,7 +110,7 @@ void* CMapMapAccess::Get(void* pvKey, int iKeySize, size_t* puiDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size_t CMapMapAccess::DataSize(void* pvKey, int iKeySize)
+uint32 CMapMapAccess::DataSize(void* pvKey, uint32 iKeySize)
 {
 	return mpcMap->DataSize(pvKey, iKeySize);
 }
@@ -120,7 +120,7 @@ size_t CMapMapAccess::DataSize(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapMapAccess::Remove(void* pvKey, int iKeySize)
+bool CMapMapAccess::Remove(void* pvKey, uint32 iKeySize)
 {
 	return mpcMap->Remove(pvKey, iKeySize);
 }
@@ -130,7 +130,7 @@ bool CMapMapAccess::Remove(void* pvKey, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapMapAccess::Has(void* pvKey, int iKeySize)
+bool CMapMapAccess::Has(void* pvKey, uint32 iKeySize)
 {
 	return mpcMap->HasKey(pvKey, iKeySize);
 }

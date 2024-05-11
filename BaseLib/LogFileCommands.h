@@ -46,11 +46,11 @@ public:
 class CLogFileCommandWrite : public CLogFileCommand
 {
 public:
-	filePos				iPosition;
-	filePos				iSize;
+	filePos		iPosition;
+	size		iSize;
 
-	void	Init(filePos iPosition, filePos iSize);
-	void	Init(filePos iPosition, void* pvSource, filePos iSize);
+	void	Init(filePos iPosition, size iSize);
+	void	Init(filePos iPosition, void* pvSource, size iSize);
 
 	bool	Write(CAbstractFile* pcFile);
 	void*	GetData(void);

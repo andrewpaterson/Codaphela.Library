@@ -57,8 +57,8 @@ void CFileSystem::Kill(void)
 void CFileSystem::ReadDirectory(void)
 {
 	CFileUtil			cFileUtil;
-	CArrayChars		aszFilenames;
-	int					i;
+	CArrayChars			aszFilenames;
+	size				i;
 	CChars*				pszFilename;
 	CSystemFileNode*	pcNode;
 	CChars				szName;
@@ -108,8 +108,6 @@ CFileNodeSystemFile* CFileSystem::GetFileNode(char* szName, CChars* pszRemaining
 {
 	return mcNames.GetNearestFile(szName, pszRemainingName);
 }
-
-
 
 
 //////////////////////////////////////////////////////////////////////////

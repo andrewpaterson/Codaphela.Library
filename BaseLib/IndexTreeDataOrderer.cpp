@@ -56,7 +56,7 @@ void CIndexTreeDataOrderer::New(CIndexTreeDataNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
+bool CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize)
 {
 	SLLNode*			psNode;
 
@@ -69,7 +69,7 @@ bool CIndexTreeDataOrderer::StartIteration(SDataOrderIterator* psIter, char* pvD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
+bool CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize)
 {
 	SLLNode*	psNode;
 
@@ -91,12 +91,12 @@ bool CIndexTreeDataOrderer::Iterate(SDataOrderIterator* psIter, char* pvDestKey,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, char* pvDestKey, int* piKeySize, int iDestKeySize, void* pvDestData, int* piDataSize, int iDestDataSize)
+bool CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psIter, uint8* pvDestKey, size* piKeySize, size iDestKeySize, void* pvDestData, size* piDataSize, size iDestDataSize)
 {
 	CIndexTreeDataNode* pcDataNode;
 	CIndexTreeNode*		pcNode;
-	int					iKeySize;
-	int					iDataSize;
+	size				iKeySize;
+	size				iDataSize;
 
 	if (psNode)
 	{
@@ -126,9 +126,9 @@ bool CIndexTreeDataOrderer::IterateNode(SLLNode* psNode, SDataOrderIterator* psI
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTreeDataOrderer::GetFirstTreeNode(void)
 {
-	SLLNode*			psNode;
-	CIndexTreeDataNode* pcDataNode;
-	CIndexTreeNode*		pcNode;
+	SLLNode*				psNode;
+	CIndexTreeDataNode*		pcDataNode;
+	CIndexTreeNode*			pcNode;
 
 	psNode = mcDataOrder.GetHead();
 	if (psNode != NULL)
@@ -151,9 +151,9 @@ CIndexTreeNode* CIndexTreeDataOrderer::GetFirstTreeNode(void)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeNode* CIndexTreeDataOrderer::GetLastTreeNode(void)
 {
-	SLLNode* psNode;
-	CIndexTreeDataNode* pcDataNode;
-	CIndexTreeNode* pcNode;
+	SLLNode*				psNode;
+	CIndexTreeDataNode*		pcDataNode;
+	CIndexTreeNode*			pcNode;
 
 	psNode = mcDataOrder.GetTail();
 	if (psNode != NULL)

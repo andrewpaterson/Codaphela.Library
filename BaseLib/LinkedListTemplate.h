@@ -52,7 +52,7 @@ public:
 	void			Remove(M* pvData);
 	bool			SafeRemove(M* pvData);
 
-	int				ByteSize(void);
+	size			ByteSize(void);
 
 	bool			Write(CFileWriter* pcFileWriter);
 	bool			Read(CFileReader* pcFileReader);
@@ -65,8 +65,8 @@ protected:
 
 	bool			WriteHeader(CFileWriter* pcFileWriter);
 	bool			WriteData(CFileWriter* pcFileWriter);
-	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
-	bool			ReadData(CFileReader* pcFileReader, int iNumElements);
+	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size* piNumElements);
+	bool			ReadData(CFileReader* pcFileReader, size iNumElements);
 };
 
 
@@ -174,10 +174,10 @@ bool CLinkedListTemplate<M>::SafeRemove(M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CLinkedListTemplate<M>::ByteSize(void)
+size CLinkedListTemplate<M>::ByteSize(void)
 {
-	int		iSize;
-	M*	pvNode;
+	size	iSize;
+	M*		pvNode;
 
 	iSize = 0;
 
@@ -332,8 +332,8 @@ bool CLinkedListTemplate<M>::Write(CFileWriter* pcFileWriter)
 template<class M>
 bool CLinkedListTemplate<M>::WriteHeader(CFileWriter* pcFileWriter)
 {
-	SLinkedListTemplateDesc	sHeader;
-	int						iNumElements;
+	SLinkedListTemplateDesc		sHeader;
+	size						iNumElements;
 
 	iNumElements = NumElements();
 	sHeader.Init(iNumElements, muiNodeSize, muiDataSize);
@@ -379,7 +379,7 @@ bool CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	int				iNumElements;
+	size			iNumElements;
 	bool			bResult;
 	CMallocator*	pcMalloc;
 
@@ -405,7 +405,7 @@ bool CLinkedListTemplate<M>::Read(CFileReader* pcFileReader)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements)
+bool CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size* piNumElements)
 {
 	SLinkedListTemplateDesc	sDesc;
 
@@ -434,9 +434,9 @@ bool CLinkedListTemplate<M>::ReadHeader(CFileReader* pcFileReader, CMallocator* 
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, int iNumElements)
+bool CLinkedListTemplate<M>::ReadData(CFileReader* pcFileReader, size iNumElements)
 {
-	int		i;
+	size	i;
 	M*		pvData;
 
 	for (i = 0; i < iNumElements; i++)

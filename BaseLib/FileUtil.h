@@ -60,7 +60,7 @@ public:
 	void	SplitPath(const char* szPathName, CArrayChars* paszComponents);
 
 	void    RemoveExtension(CChars* szPathName);
-	int		FindExtension(const char* szPathName);
+	size	FindExtension(const char* szPathName);
 	void    AppendToPath(CChars* szPathName, const char* szItem);
 	void    PrependToPath(CChars* szPathName, const char* szItem);
 	void    RemoveLastFromPath(CChars* szPathName);
@@ -84,8 +84,8 @@ private:
 	bool	RecurseFindFiles(const char* szPathName, const char* szInName, const char* szExtension, CArrayChars* paszFiles, bool bHidden);
 	bool	Compare(const char* szFilename1, const char* szFilename2, bool bSizeOnly);
 
-	int		FindFirstSeparator(const char* szString);
-	int		FindLastSeparator(const char* szPathName);
+	size	FindFirstSeparator(const char* szString);
+	size	FindLastSeparator(const char* szPathName);
 	void    RemoveLastSeparator(CChars* szPathName);
 };
 

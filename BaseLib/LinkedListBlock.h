@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SLLBlockNode : public SLLNode
 {
-	uint32	uiSize;
+	size	uiSize;
 };
 
 
@@ -42,9 +42,9 @@ public:
 	void*			InsertBeforeHead(uint32 uiDataSize);
 	void*			InsertBeforeNode(uint32 uiDataSize, void* psPos);
 	void*			InsertAfterNode(uint32 uiDataSize, void* psPos); 
-	void*			Add(uint32 uiDataSize);
+	void*			Add(size uiDataSize);
 
-	int				ByteSize(void);
+	size			ByteSize(void);
 
 	bool			Write(CFileWriter* pcFileWriter);
 	bool			Read(CFileReader* pcFileReader);
@@ -52,14 +52,14 @@ public:
 	void			InsertDetachedAfterTail(void* pvData);
 
 protected:	
-	uint32			GetNodeSize(void* psData);
-	SLLBlockNode*	AllocateDetached(uint32 uiDataSize);
+	size			GetNodeSize(void* psData);
+	SLLBlockNode*	AllocateDetached(size uiDataSize);
 	SLLBlockNode*	DataGetNode(void *pvData);
 
 	bool			WriteHeader(CFileWriter* pcFileWriter);
 	bool			WriteData(CFileWriter* pcFileWriter);
-	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, int* piNumElements);
-	bool			ReadData(CFileReader* pcFileReader, int iNumElements);
+	bool			ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc, size* piNumElements);
+	bool			ReadData(CFileReader* pcFileReader, size iNumElements);
 };
 
 

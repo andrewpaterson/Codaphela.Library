@@ -30,7 +30,7 @@ class CPackFileNode;
 struct SPackFileReadPtrPosition 
 {
 	CPackFileNode*	psPackFile;
-	filePos				iLastReadPos;
+	filePos			iLastReadPos;
 };
 
 

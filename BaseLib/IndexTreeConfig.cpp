@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeConfig::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+void CIndexTreeConfig::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
 	mcMalloc = cMalloc;
 	meKeyReverse = eKeyReverse;
@@ -46,7 +46,7 @@ void CIndexTreeConfig::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 EIndexKeyReverse CIndexTreeConfig::ReadKeyReverse(CFileReader* pcFileReader)
 {
-	int					iLength;
+	uint32				iLength;
 	CStackMemory<32>	cStack;
 	char*				szName;
 	EIndexKeyReverse	eKeyReverse;
@@ -141,9 +141,9 @@ bool CIndexTreeConfig::Write(CFileWriter* pcFileWriter)
 	ReturnOnFalse(bResult);
 	bResult = WriteKeyReverse(pcFileWriter, meKeyReverse);
 	ReturnOnFalse(bResult);
-	bResult = pcFileWriter->WriteInt(miMaxDataSize);
+	bResult = pcFileWriter->WriteSize(miMaxDataSize);
 	ReturnOnFalse(bResult);
-	bResult = pcFileWriter->WriteInt(miMaxKeySize);
+	bResult = pcFileWriter->WriteSize(miMaxKeySize);
 	ReturnOnFalse(bResult);
 	bResult = WriteDataOrderer(pcFileWriter, mcDataOrderer.GetLife());
 	return bResult;
@@ -160,8 +160,8 @@ bool CIndexTreeConfig::Read(CFileReader* pcFileReader)
 
 	CMallocator*						pcMalloc;
 	EIndexKeyReverse					eKeyReverse;
-	int									iMaxDataSize;
-	int									iMaxKeySize;
+	size								iMaxDataSize;
+	size								iMaxKeySize;
 	CIndexTreeDataOrderer*				pcDataOrderer;
 	bool								bResult;
 	CLifeInit<CMallocator>				cMalloc;
@@ -179,10 +179,10 @@ bool CIndexTreeConfig::Read(CFileReader* pcFileReader)
 		return false;
 	}
 
-	bResult = pcFileReader->ReadInt(&iMaxDataSize);
+	bResult = pcFileReader->ReadSize(&iMaxDataSize);
 	ReturnOnFalse(bResult);
 
-	bResult = pcFileReader->ReadInt(&iMaxKeySize);
+	bResult = pcFileReader->ReadSize(&iMaxKeySize);
 	ReturnOnFalse(bResult);
 
 	pcDataOrderer = ReadDataOrderer(pcFileReader);

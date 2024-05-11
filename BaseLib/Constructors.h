@@ -41,8 +41,8 @@ public:
 	template<class M>	M*		Get(void);
 
 						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, char(**pacDebugName)[4] = NULL);
-						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, size_t uiAdditionalSize, char(**pacDebugName)[4] = NULL);
-						int		NumConstructors(void);
+						void*	Construct(const char* szConstructorName, CMallocator* pcMalloc, size uiAdditionalSize, char(**pacDebugName)[4] = NULL);
+						size	NumConstructors(void);
 
 						bool	Contains(const char* szName);
 
@@ -61,7 +61,7 @@ template<class M>
 M* StackConstruct(CStackMemory<>* pcStack)
 {
 	M*		pvM;
-	size_t	iSize;
+	size	iSize;
 
 	iSize = sizeof(M);
 	pvM = (M*)pcStack->Init(iSize);
@@ -125,7 +125,7 @@ template<class M>
 M* CConstructors::Add(void)
 {
 	M*				pvM;
-	int				iSize;
+	size			iSize;
 	CStackMemory<>	cStack;  //Stop the destructor being called on M so we can't just declare M on the stack.
 	const char*		szClassName;
 	bool			bResult;

@@ -1,3 +1,4 @@
+#include "PointerRemapper.h"
 #include "Define.h"
 
 
@@ -6,25 +7,25 @@ template <class M>
 class CListTemplateMinimal
 {
 protected:
-	size_t	miNumElements;
+	size	miNumElements;
 	int		miRowLength;  //The number of characters in the string including all terminating zeros.
-	size_t	miTotalSize;
+	size	miTotalSize;
 
-	size_t	miUsedElements;
-	size_t	miUsedLength;
+	size	miUsedElements;
+	size	miUsedLength;
 
 	int		maiFieldOffsets[1];	//This is just the first fields positions, the size of the struct will be increased to contain iNumFields char*'s.
 							//...
 							//The size of the struct will also include all the zero terminated strings lengths.
 public:
-	size_t	TotalSize(int iNumElements, int iRowLength);
+	size	TotalSize(int iNumElements, int iRowLength);
 
 	void	Init(int iNumFields, int iRowLength);
 	void	Kill(void);
 
-	M*		Get(size_t iIndex);
-	M*		Get(size_t iIndex, size_t* piSize);
-	M*		Add(M* pv, size_t iSize);
+	M*		Get(size iIndex);
+	M*		Get(size iIndex, size* piSize);
+	M*		Add(M* pv, size iSize);
 	int		NumElements(void);
 	int		AllocatedElements(void);
 };
@@ -35,7 +36,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-size_t CListTemplateMinimal<M>::TotalSize(int iNumElements, int iRowLength)
+size CListTemplateMinimal<M>::TotalSize(int iNumElements, int iRowLength)
 {
 	return sizeof(CListTemplateMinimal<M>) + iNumElements * sizeof(M*) + iRowLength;
 }
@@ -76,7 +77,7 @@ void CListTemplateMinimal<M>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplateMinimal<M>::Get(size_t iIndex)
+M* CListTemplateMinimal<M>::Get(size iIndex)
 {
 	return (M*)RemapSinglePointer(this, maiFieldOffsets[iIndex]);
 }
@@ -87,7 +88,7 @@ M* CListTemplateMinimal<M>::Get(size_t iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplateMinimal<M>::Get(size_t iIndex, size_t* piSize)
+M* CListTemplateMinimal<M>::Get(size iIndex, size* piSize)
 {
 	if (iIndex < miNumElements - 1)
 	{
@@ -106,9 +107,9 @@ M* CListTemplateMinimal<M>::Get(size_t iIndex, size_t* piSize)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CListTemplateMinimal<M>::Add(M* pv, size_t iSize)
+M* CListTemplateMinimal<M>::Add(M* pv, size iSize)
 {
-	size_t	iStringStart;
+	size	iStringStart;
 	M*		pvDest;
 
 	iStringStart = (int)maiFieldOffsets[0];

@@ -32,53 +32,54 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DurableFileController.h"
 
 
-#define INDEXED_FILE_WRITE_ERROR	((uint32)-1)
+#define INDEXED_FILE_WRITE_ERROR	((filePos)-1)
+#define INDEXED_FILE_NOT_FOUND		((uint32)-1)
 #define INDEX_FILE_EMPTY_CHAR		0x55
 
 
 class CIndexedFile
 {
 private:
-	int				miFileIndex;  //This is the index of the file in the CIndexedFiles.mcFiles array.
+	size			muiFileIndex;  //This is the index of the file in the CIndexedFiles.mcFiles array.
 
 	CDurableFile	mcFile;
 
-	uint32	muiDataSize;
+	size			muiDataSize;
 	filePos			miNumDatas;
-	int				miFileNumber;  //There may be more than one file of the same size.
+	uint32			muiFileNumber;  //There may be more than one file of the same size.
 
 public:
-	bool			Init(CDurableFileController* pcDurableFileControl, int iFileIndex, char* szFilename, char* szRewriteName, uint32 uiDataSize, int iFileNum);
+	bool			Init(CDurableFileController* pcDurableFileControl, size uiFileIndex, char* szFilename, char* szRewriteName, size uiDataSize, uint32 uiFileNum);
 	void			Kill(void);
 	filePos			CalculateNumDatas(void);
 	bool			IsFull(void);
 
-	uint32	Write(void* pvData);
+	filePos			Write(void* pvData);
 	bool			Write(filePos iIndex, void* pvData);
-	bool			Write(filePos iIndex, void* pvData, filePos iCount);
+	bool			Write(filePos iIndex, void* pvData, size iCount);
 
 	bool			Read(filePos iIndex, void* pvData);
-	bool			Read(filePos iIndex, void* pvData, filePos iCount);
+	bool			Read(filePos iIndex, void* pvData, size iCount);
 
 	bool			Delete(filePos iIndex);
-	bool			Delete(filePos iIndex, filePos iCount);
+	bool			Delete(filePos iIndex, size iCount);
 
-	int				GetFileIndex(void);
-	bool			IsFileIndex(int iFileIndex);
+	size			GetFileIndex(void);
+	bool			IsFileIndex(size uiFileIndex);
 
 	CFileBasic*		DumpGetPrimaryFile(void);
 	char*			GetFilename(void);
-	int				GetFileNumber(void);
+	uint32			GetFileNumber(void);
 	char*			GetRewriteName(void);
-	uint32	GetDataSize(void);
+	size			GetDataSize(void);
 	filePos			NumDatas(void);
-	int				GetUsedDataIndices(CArrayBit* pab);
+	filePos			GetUsedDataIndices(CArrayBit* pab);
 
 	filePos			GetFileSize(void);
 	void			Dump(void);
 
 protected:
-	uint32	Write(void* pvData, filePos iCount);
+	filePos			Write(void* pvData, size iCount);
 };
 
 

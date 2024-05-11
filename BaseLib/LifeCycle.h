@@ -59,8 +59,8 @@ void CLife<M>::Init(M** ppcLifeCycleObject, bool bMustFree, bool bMustKill)
 {
 	mppcLifeCycleObject = ppcLifeCycleObject;
 	mcFlags = LIFE_CYCLE_INITIALISED;
-	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
-	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
+	SetFlagInt(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
+	SetFlagInt(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
 };
 
 
@@ -117,8 +117,8 @@ void CLifeInit<M>::Init(M* pcLifeCycleObject, bool bMustFree, bool bMustKill)
 {
 	mpcLifeCycleObject = pcLifeCycleObject;
 	mcFlags = 0;
-	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
-	SetFlag(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
+	SetFlagByte(&mcFlags, LIFE_CYCLE_FLAG_FREE, bMustFree);
+	SetFlagByte(&mcFlags, LIFE_CYCLE_FLAG_KILL, bMustKill);
 }
 
 

@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryFreeListParams* SMemoryFreeListParams::Init(uint32 iFreeListSize, int32 iPrevSize, int32 iChunkSize, int32 iHeaderSize)
+SMemoryFreeListParams* SMemoryFreeListParams::Init(size iFreeListSize, size iPrevSize, size iChunkSize, size iHeaderSize)
 {
 	iMaxListSize = iFreeListSize;
 	iMaxElementSize = iFreeListSize - iHeaderSize;
@@ -27,12 +27,12 @@ SMemoryFreeListParams* SMemoryFreeListParams::Init(uint32 iFreeListSize, int32 i
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int32 CompareFreeListParam(const void* arg1, const void* arg2)
+int CompareFreeListParam(const void* arg1, const void* arg2)
 {
-	uint32			uiElementSize;
+	size					uiElementSize;
 	SMemoryFreeListParams*	psParams;
 
-	uiElementSize = *((uint32*)arg1);
+	uiElementSize = *((size*)arg1);
 	psParams = (SMemoryFreeListParams*)arg2;
 
 	if (uiElementSize < psParams->iMinElementSize)
@@ -55,7 +55,7 @@ int32 CompareFreeListParam(const void* arg1, const void* arg2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryFreeListParams::Init(int32 iHeaderSize, bool bDefaultFreeListParams)
+void CMemoryFreeListParams::Init(size iHeaderSize, bool bDefaultFreeListParams)
 {
 	miHeaderSize = iHeaderSize;
 	if (bDefaultFreeListParams)
@@ -129,9 +129,9 @@ void CMemoryFreeListParams::InitFreeListParams(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryFreeListParams::AddParamBlock(uint32 iFreeListSize, int32 iPrevSize, int32 iChunkSize)
+void CMemoryFreeListParams::AddParamBlock(size iFreeListSize, size iPrevSize, size iChunkSize)
 {
-	SMemoryFreeListParams		sParam;
+	SMemoryFreeListParams	sParam;
 
 	iFreeListSize += miHeaderSize;
 	iPrevSize += miHeaderSize;
@@ -158,7 +158,7 @@ void CMemoryFreeListParams::AddParamBlock(SMemoryFreeListParams* psParam)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParams(int32 iIndex)
+SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParams(size iIndex)
 {
 	return mcParams.SafeGet(iIndex);
 }
@@ -168,9 +168,9 @@ SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParams(int32 iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size_t iElementSize)
+SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size iElementSize)
 {
-	int32						iIndex;
+	size					iIndex;
 	SMemoryFreeListParams*	psParams;
 
 	if ((iElementSize > 0) && (iElementSize <= muiFreeListSizeLimit))
@@ -187,7 +187,7 @@ SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size_t iE
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryFreeListParams::SetFreeListSizeLimit(uint32 uiFreeListSizeLimit)
+void CMemoryFreeListParams::SetFreeListSizeLimit(size uiFreeListSizeLimit)
 {
 	muiFreeListSizeLimit = uiFreeListSizeLimit;
 }
@@ -200,21 +200,21 @@ void CMemoryFreeListParams::SetFreeListSizeLimit(uint32 uiFreeListSizeLimit)
 bool CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 {
 	SMemoryFreeListParams	sBlockParams;
-	int32						i;
-	int32						iHeaderSize;
-	uint32			uiFreeListSizeLimit;
-	int32						iFreeListParams;
+	size					i;
+	size					iHeaderSize;
+	size					uiFreeListSizeLimit;
+	size					iFreeListParams;
 
 
-	if (!pcFileReader->ReadInt(&iHeaderSize))
+	if (!pcFileReader->ReadSize(&iHeaderSize))
 	{
 		return false;
 	}
-	if (!pcFileReader->ReadInt((int32*)&uiFreeListSizeLimit))
+	if (!pcFileReader->ReadSize(&uiFreeListSizeLimit))
 	{
 		return false;
 	}
-	if (!pcFileReader->ReadInt(&iFreeListParams))
+	if (!pcFileReader->ReadSize(&iFreeListParams))
 	{
 		return false;
 	}
@@ -245,17 +245,17 @@ bool CMemoryFreeListParams::Read(CFileReader* pcFileReader)
 bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 {
 	SMemoryFreeListParams*	psBlockParams;
-	int32						i;
+	size					i;
 
-	if (!pcFileWriter->WriteInt(miHeaderSize))
+	if (!pcFileWriter->WriteSize(miHeaderSize))
 	{
 		return false;
 	}
-	if (!pcFileWriter->WriteInt(muiFreeListSizeLimit))
+	if (!pcFileWriter->WriteSize(muiFreeListSizeLimit))
 	{
 		return false;
 	}
-	if (!pcFileWriter->WriteInt(mcParams.NumElements()))
+	if (!pcFileWriter->WriteSize(mcParams.NumElements()))
 	{
 		return false;
 	}
@@ -277,7 +277,7 @@ bool CMemoryFreeListParams::Write(CFileWriter* pcFileWriter)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32 CMemoryFreeListParams::GetMaxFreeListElementSize(void)
+size CMemoryFreeListParams::GetMaxFreeListElementSize(void)
 {
 	return muiFreeListSizeLimit - miHeaderSize;
 }
@@ -287,6 +287,6 @@ uint32 CMemoryFreeListParams::GetMaxFreeListElementSize(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32 CMemoryFreeListParams::GetFreeListSizeLimit(void) { return muiFreeListSizeLimit; }
-int32 CMemoryFreeListParams::NumParams(void) { return mcParams.NumElements(); }
+size CMemoryFreeListParams::GetFreeListSizeLimit(void) { return muiFreeListSizeLimit; }
+size CMemoryFreeListParams::NumParams(void) { return mcParams.NumElements(); }
 

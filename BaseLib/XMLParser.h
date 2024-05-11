@@ -32,16 +32,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CXMLParser
 {
 protected:
-	CXMLProlog					mcProlog;
+	CXMLProlog			mcProlog;
 
 public:
-	CTextParser					mcParser;
-	int							miDepth;
-	CMarkupTag*					mpcCurrent;
-	CArrayXMLEntity				macEntities;
-	CMarkupDoc*					mpcDoc;
-	char*						mszSourceContext;  //Generally a filename.
-	CLogger*					mpcLogger;
+	CTextParser			mcParser;
+	int					miDepth;
+	CMarkupTag*			mpcCurrent;
+	CArrayXMLEntity		macEntities;
+	CMarkupDoc*			mpcDoc;
+	char*				mszSourceContext;  //Generally a filename.
+	CLogger*			mpcLogger;
 
 	void		Init(CMarkup* pcMarkup, CLogger* pcLogger);
 	void		Init(CMarkupDoc* pcDoc, CLogger* pcLogger);

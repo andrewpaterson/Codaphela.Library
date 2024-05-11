@@ -11,11 +11,11 @@ public:
 	void	Init(void);
 	void	Kill(void);
 	void	Add(M* pv);
-	M*		GetPtr(int iIndex);
-	bool	Get(int iIndex, M** pv);
-	M**		Get(int iIndex);
+	M*		GetPtr(size iIndex);
+	bool	Get(size iIndex, M** pv);
+	M**		Get(size iIndex);
 	void	QuickSort(void);
-	int		Find(M* pv);
+	int32	Find(M* pv);
 	void 	Push(M* pv);
 	M*		Pop(void);
 };
@@ -62,7 +62,7 @@ void CArrayTemplatePtr<M>::Add(M* pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayTemplatePtr<M>::Get(int iIndex, M** pv)
+bool CArrayTemplatePtr<M>::Get(size iIndex, M** pv)
 {
 	M** pvTemp;
 
@@ -84,7 +84,7 @@ bool CArrayTemplatePtr<M>::Get(int iIndex, M** pv)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M** CArrayTemplatePtr<M>::Get(int iIndex)
+M** CArrayTemplatePtr<M>::Get(size iIndex)
 {
 	return CArrayTemplate<M*>::Get(iIndex);
 }
@@ -95,7 +95,7 @@ M** CArrayTemplatePtr<M>::Get(int iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayTemplatePtr<M>::GetPtr(int iIndex)
+M* CArrayTemplatePtr<M>::GetPtr(size iIndex)
 {
 	return *CArrayTemplate<M*>::Get(iIndex);
 }
@@ -117,9 +117,9 @@ void CArrayTemplatePtr<M>::QuickSort(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-int CArrayTemplatePtr<M>::Find(M* pv)
+int32 CArrayTemplatePtr<M>::Find(M* pv)
 {
-	int		i;
+	size	i;
 	M**		pvData;
 
 	pvData = GetData();
@@ -130,7 +130,7 @@ int CArrayTemplatePtr<M>::Find(M* pv)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 

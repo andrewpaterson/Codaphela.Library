@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadData(void* pvData, filePos iDataSize)
+bool CFileReader::ReadData(void* pvData, size iDataSize)
 {
 	CheckRead(pvData, iDataSize);
 	return true;
@@ -40,9 +40,9 @@ bool CFileReader::ReadData(void* pvData, filePos iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadStringLength(int* piLength)
+bool CFileReader::ReadStringLength(size* piLength)
 {
-	CheckRead(piLength, sizeof(int));
+	CheckRead(piLength, sizeof(size));
 	return true;
 }
 
@@ -51,7 +51,7 @@ bool CFileReader::ReadStringLength(int* piLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadStringChars(char* szString, int iLength)
+bool CFileReader::ReadStringChars(char* szString, size iLength)
 {
 	CheckRead(szString, iLength);
 	return true;
@@ -62,9 +62,9 @@ bool CFileReader::ReadStringChars(char* szString, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadString(char* szString, int iMaxLength)
+bool CFileReader::ReadString(char* szString, size iMaxLength)
 {
-	int		iLength;
+	size		iLength;
 
 	if (!ReadStringLength(&iLength))
 	{
@@ -111,7 +111,18 @@ bool CFileReader::ReadInt(uint32* pui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(int64* plli)
+bool CFileReader::ReadSize(size* pui)
+{
+	CheckRead(pui, sizeof(size));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadLong(int64* plli)
 {
 	CheckRead(plli, sizeof(int64));
 	return true;
@@ -122,7 +133,7 @@ bool CFileReader::ReadInt(int64* plli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(uint64* pulli)
+bool CFileReader::ReadLong(uint64* pulli)
 {
 	CheckRead(pulli, sizeof(uint64));
 	return true;
@@ -166,7 +177,7 @@ bool CFileReader::ReadChar(char8* pc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadChar(char16* pc)
+bool CFileReader::ReadWChar(char16* pc)
 {
 	CheckRead(pc, sizeof(char16));
 	return true;
@@ -188,7 +199,7 @@ bool CFileReader::ReadBool(bool* pb)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(int16* pi)
+bool CFileReader::ReadShort(int16* pi)
 {
 	CheckRead(pi, sizeof(int16));
 	return true;
@@ -199,7 +210,7 @@ bool CFileReader::ReadInt(int16* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(uint16* pi)
+bool CFileReader::ReadShort(uint16* pi)
 {
 	CheckRead(pi, sizeof(uint16));
 	return true;
@@ -210,7 +221,7 @@ bool CFileReader::ReadInt(uint16* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(int8* pi)
+bool CFileReader::ReadByte(int8* pi)
 {
 	CheckRead(pi, sizeof(int8));
 	return true;
@@ -221,7 +232,7 @@ bool CFileReader::ReadInt(int8* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(uint8* pi)
+bool CFileReader::ReadByte(uint8* pi)
 {
 	CheckRead(pi, sizeof(uint8));
 	return true;
@@ -232,7 +243,7 @@ bool CFileReader::ReadInt(uint8* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadBits(void* pvData, int iByteLength)
+bool CFileReader::ReadBits(void* pvData, size iByteLength)
 {
 	CheckRead(pvData, iByteLength);
 	return true;
@@ -243,8 +254,9 @@ bool CFileReader::ReadBits(void* pvData, int iByteLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadIntArray(int* pai, int iLength)
+bool CFileReader::ReadIntArray(int32* pai, size iLength)
 {
-	CheckRead(pai, iLength * sizeof(int));
+	CheckRead(pai, iLength * sizeof(int32));
 	return true;
 }
+

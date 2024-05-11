@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct STUNode
 {
-	int		iSize;
+	size	iSize;
 	STNode	sTNode;
 };
 
@@ -38,30 +38,30 @@ class CTreeBlock : public __CTreeBlock
 public:
 	void	Kill(void);
 
-	int		GetNodeSize(void* psData);
+	size		GetNodeSize(void* psData);
 
-	void*	InsertRoot(int iDataSize);
-	void*	InsertOnRightOfChildren(void* psParent, int iDataSize);
-	void*	InsertOnLeftOfChildren(void* psParent, int iDataSize);
-	void*	InsertOnPath(int* aiPos, int iLevel, int iDataSize);
-	void*	InsertOnPath(int* aiPos, int iLevel, int iDataSize, int* aiOldPos, int iOldLevel, void* psOldNode);
-	void*	InsertAtChildNum(void* psParent, int iChildNum, int iDataSize);
-	void*	InsertOnUp(void* psPos, int iDataSize);
-	void*	InsertOnAcross(void* psPos, int iDataSize);
+	void*	InsertRoot(size uiDataSize);
+	void*	InsertOnRightOfChildren(void* psParent, size uiDataSize);
+	void*	InsertOnLeftOfChildren(void* psParent, size uiDataSize);
+	void*	InsertOnPath(size* auiPos, size uiLevel, size uiDataSize);
+	void*	InsertOnPath(size* auiPos, size uiLevel, size uiDataSize, size* auiOldPos, size uiOldLevel, void* psOldNode);
+	void*	InsertAtChildNum(void* psParent, size iChildNum, size uiDataSize);
+	void*	InsertOnUp(void* psPos, size uiDataSize);
+	void*	InsertOnAcross(void* psPos, size uiDataSize);
 
 	void	Detach(void* psNodeData);
 	bool	RemoveLeaf(void* psNodeData);
-	int		RemoveBranch(void* psNodeData);
+	size	RemoveBranch(void* psNodeData);
 	void	Remove(void* psNodeData);
 
-	int		ByteSize(void);
+	size	ByteSize(void);
 	
 	bool	WriteTreeUnknown(CFileWriter* pcFileWriter);
 	bool	ReadTreeUnknown(CFileReader* pcFileReader);
 
 protected:
 	void	FreeDetached(void* psNodeData);
-	void*	AllocateDetached(int iDataSize);
+	void*	AllocateDetached(size uiDataSize);
 	void	RecursiveFreeNodes(STNode *psNode);
 };
 

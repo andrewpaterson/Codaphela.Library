@@ -11,11 +11,11 @@ protected:
 	uint16		muiDataSize;   // Size of object "pointed" to by this node.  The object is small: usually a OIndex, a pointer or a CFileId.
 
 public:
-	void		Init(uint16 uiDataSize);
+	void		Init(size uiDataSize);
 	void		Kill(void);
 
-	uint16		GetDataSize(void);
-	void		SetDataSize(uint16 uiDataSize);
+	size		GetDataSize(void);
+	void		SetDataSize(size uiDataSize);
 	SLLNode*	GetListNode(void);
 	void		RemapListNode(void);
 };

@@ -32,7 +32,7 @@ class CPackFile : public CAbstractFile
 public:
 	CPackFiles*		mpcPackFiles;
 	CPackFileNode*	mpsPackFileNode;
-	filePos			miPos;
+	size			miPos;
 	EFileMode		meMode;
 
 	void		Init(CPackFiles* pcPackFiles, CPackFileNode* psPackFileNode);
@@ -40,9 +40,9 @@ public:
 
 	bool		Open(EFileMode eFileMode);
 	bool		Close(void);
-	filePos		Read(void* pvBuffer, filePos iSize, filePos iCount);
+	size		Read(void* pvBuffer, size iSize, size iCount);
 	bool		Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin);
-	filePos		Write(const void* pvBuffer, filePos iSize, filePos iCount);
+	size		Write(const void* pvBuffer, size iSize, size iCount);
 	filePos		Tell(void);
 	bool		IsOpen(void);
 	filePos		Size(void);

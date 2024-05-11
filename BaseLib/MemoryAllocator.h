@@ -16,11 +16,11 @@ public:
 	void			Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
 	void			Kill(void);
 
-	void*			Malloc(size_t tSize);
-	void*			Malloc(size_t tSize, char(**pacDebugName)[4]);
-	void*			Realloc(void* pv, size_t tSize);
+	void*			Malloc(size uiSize);
+	void*			Malloc(size uiSize, char(**pacDebugName)[4]);
+	void*			Realloc(void* pv, size uiSize);
 	bool			Free(void* pv);
-	int				FreeMultiple(CArrayVoidPtr* pav);
+	size			FreeMultiple(CArrayVoidPtr* pav);
 
 	const char*		GetName(void);
 
@@ -28,7 +28,7 @@ public:
 	bool			Write(CFileWriter* pcFileWriter);
 
 	CGeneralMemory*	GetMemory(void);
-	size_t			SizeOffset(void);
+	size			SizeOffset(void);
 
 public:
 	static CLifeInit<CMallocator> Create(void);

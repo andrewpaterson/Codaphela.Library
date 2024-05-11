@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Numbers.h"
 #include "CSVFileImutable.h"
 #include "IntegerHelper.h"
 #include "PointerRemapper.h"
@@ -32,7 +33,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void SCSVRowImmutable::Dump(void)
 {	
-	size_t		i;
+	size		i;
 	CChars		szString;
 	CChars		szLeft;
 	char*		pszString;
@@ -73,7 +74,7 @@ void CCSVFileImmutable::Init(char cSeparator)
 //////////////////////////////////////////////////////////////////////////
 void CCSVFileImmutable::Kill(void)
 {
-	int					i;
+	size				i;
 	SCSVRowImmutable*	psCSVRow;
 
 	for (i = 0; i < mapsCSVRows.NumElements(); i++)
@@ -93,13 +94,13 @@ void CCSVFileImmutable::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 SCSVRowImmutable* CCSVFileImmutable::AllocateRow(char* szText)
 {
-	int					iLength;
+	size				iLength;
 	char				c;
-	int					iNumSeparators;
+	size				iNumSeparators;
 	SCSVRowImmutable*	psCSVRow;
-	int					iTotalSize;
-	int					i;
-	int		iSize;
+	size				iTotalSize;
+	size				i;
+	size				iSize;
 
 	iNumSeparators = 0;
 
@@ -179,7 +180,7 @@ bool CCSVFileImmutable::ReadLine(void)
 	{
 		return false;
 	}
-	mapsCSVRows.Add(psCSVRow, (int)iFilePos);
+	mapsCSVRows.Add(psCSVRow, (int32)iFilePos);
 
 	return true;
 }
@@ -189,7 +190,7 @@ bool CCSVFileImmutable::ReadLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCSVFileImmutable::ReadLine(char* szString, int iMaxLength)
+bool CCSVFileImmutable::ReadLine(char* szString, int32 iMaxLength)
 {
 	return CCSVFile::ReadLine(szString, iMaxLength);
 }
@@ -199,17 +200,17 @@ bool CCSVFileImmutable::ReadLine(char* szString, int iMaxLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCSVFileImmutable::ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow)
+bool CCSVFileImmutable::ReadLine(filePos iFileOffset, SCSVRowImmutable** ppsCSVRow)
 {
 	bool	bResult;
-	char		szBuffer[1024*128];
+	char	szBuffer[128 KB];
 
 	if (iFileOffset != -1)
 	{
 		mcFile.Seek(iFileOffset, EFSO_SET);
 	}
 
-	bResult = ReadLine(szBuffer, 1024*128);
+	bResult = ReadLine(szBuffer, 128 KB);
 	if (bResult)
 	{
 		*ppsCSVRow = AllocateRow(szBuffer);
@@ -226,13 +227,14 @@ bool CCSVFileImmutable::ReadLine(int iFileOffset, SCSVRowImmutable** ppsCSVRow)
 void CCSVFileImmutable::ReadAllLines(void)
 {
 	bool	bResult;
-	int		iRow = 0;
+	size	iRow = 0;
 
 	do
 	{
 		bResult = ReadLine();
 		iRow++;
-	} while (bResult);
+	} 
+	while (bResult);
 }
 
 
@@ -242,7 +244,7 @@ void CCSVFileImmutable::ReadAllLines(void)
 //////////////////////////////////////////////////////////////////////////
 void CCSVFileImmutable::Dump(void)
 {
-	int					i;
+	size				i;
 	SCSVRowImmutable*	psCSVRow;
 
 	for (i = 0; i < mapsCSVRows.NumElements(); i++)
@@ -257,7 +259,7 @@ void CCSVFileImmutable::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCSVFileImmutable::NumRows(void)
+size CCSVFileImmutable::NumRows(void)
 {
 	return mapsCSVRows.NumElements();
 }
@@ -267,7 +269,7 @@ int CCSVFileImmutable::NumRows(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SCSVRowImmutable* CCSVFileImmutable::Get(int iRowNum)
+SCSVRowImmutable* CCSVFileImmutable::Get(size iRowNum)
 {
 	return (SCSVRowImmutable*)mapsCSVRows.SafeGetPtr(iRowNum);
 }

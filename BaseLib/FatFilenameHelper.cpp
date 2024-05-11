@@ -107,7 +107,7 @@ EFatCode GetFatShortNameForEntry(char* szDest, char* szSource, bool bLFNDisabled
 		bool	bLFN = false;
 
 		uiLength = (uint16)strlen(szSource);
-		uiDotIndex = FindCharIndex('.', szSource, 0);
+		uiDotIndex = (uint16)FindCharIndex('.', szSource, 0);
 
 		if (uiDotIndex < 0 && uiLength > 8)
 		{
@@ -527,7 +527,7 @@ bool IsIllegalFilenameCharacter(char c)
 //////////////////////////////////////////////////////////////////////////
 bool IsIllegalFilename(char* szName, uint16 uiLength)
 {
-	int16		uiCharIndex;
+	size		uiCharIndex;
 
 	uiCharIndex = FindCharIndex('.', szName, 0);
 

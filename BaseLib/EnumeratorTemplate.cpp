@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int AlphabeticalComparisionCallbackCaseSensitive(const void* pvNode1, const void* pvNode2)
+size AlphabeticalComparisionCallbackCaseSensitive(const void* pvNode1, const void* pvNode2)
 {
 	SENode* psNode1;
 	SENode*	psNode2;
@@ -49,7 +49,7 @@ int AlphabeticalComparisionCallbackCaseSensitive(const void* pvNode1, const void
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int AlphabeticalComparisionCallbackCaseInsensitive(const void* pvNode1, const  void* pvNode2)
+size AlphabeticalComparisionCallbackCaseInsensitive(const void* pvNode1, const  void* pvNode2)
 {
 	SENode* psNode1;
 	SENode*	psNode2;

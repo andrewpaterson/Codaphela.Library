@@ -457,6 +457,9 @@
     <Filter Include="Source\Aardvark">
       <UniqueIdentifier>{5170d5df-3541-4423-8ed7-bc3cb1140127}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Search">
+      <UniqueIdentifier>{e84275a1-c05d-490f-a55a-92d8e7308864}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1611,6 +1614,15 @@
     <ClInclude Include="DataFree.h">
       <Filter>Source\Data</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayElementNotFound.h">
+      <Filter>Source\Data\Array\Basic</Filter>
+    </ClInclude>
+    <ClInclude Include="BinarySearch.h">
+      <Filter>Source\Search</Filter>
+    </ClInclude>
+    <ClInclude Include="ChunkFileName.h">
+      <Filter>Source\File\Chunk</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1947,9 +1959,6 @@
       <Filter>Source\Memory\Temporary</Filter>
     </ClCompile>
     <ClCompile Include="FileIndex.cpp">
-      <Filter>Source\File\Basic</Filter>
-    </ClCompile>
-    <ClCompile Include="FilePosition.cpp">
       <Filter>Source\File\Basic</Filter>
     </ClCompile>
     <ClCompile Include="IndexTreeNode.cpp">
@@ -2561,6 +2570,12 @@
     <ClCompile Include="DataFree.cpp">
       <Filter>Source\Data</Filter>
     </ClCompile>
+    <ClCompile Include="ArrayChar.cpp">
+      <Filter>Source\Data\Array\Primitive\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="BinarySearch.cpp">
+      <Filter>Source\Search</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">
@@ -2577,6 +2592,7 @@
     <None Include="TimSort.inl">
       <Filter>Source\Sort</Filter>
     </None>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl">

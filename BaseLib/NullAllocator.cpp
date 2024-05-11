@@ -19,7 +19,7 @@ void CNullAllocator::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CNullAllocator::Malloc(size_t tSize)
+void* CNullAllocator::Malloc(size uiSize)
 {
 	return NULL;
 }
@@ -39,7 +39,7 @@ bool CNullAllocator::Free(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CNullAllocator::Realloc(void* pv, size_t tSize)
+void* CNullAllocator::Realloc(void* pv, size uiSize)
 {
 	return NULL;
 }
@@ -69,7 +69,7 @@ bool CNullAllocator::IsLocal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CNullAllocator::SizeOffset(void)
+size CNullAllocator::SizeOffset(void)
 {
 	return 0;
 }

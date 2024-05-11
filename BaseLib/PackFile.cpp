@@ -97,7 +97,7 @@ bool CPackFile::Close(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CPackFile::Read(void* pvBuffer, filePos iSize, filePos iCount)
+size CPackFile::Read(void* pvBuffer, size iSize, size iCount)
 {
 	if (meMode == EFM_Read)
 	{
@@ -125,7 +125,7 @@ bool CPackFile::Seek(filePos iOffset, EFileSeekOrigin iSeekOrigin)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CPackFile::Write(const void* pvBuffer, filePos iSize, filePos iCount)
+size CPackFile::Write(const void* pvBuffer, size iSize, size iCount)
 {
 	if (meMode == EFM_Write_Create)
 	{

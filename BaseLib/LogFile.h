@@ -11,7 +11,7 @@ class CLogFile : public CAbstractFile
 protected:
 	CListVariable		macCommands;
 	filePos				miPosition;
-	filePos				miLength;  
+	filePos				miLength;
 
 	filePos				miBackingFileLength;
 	CAbstractFile*		mpcBackingFile;
@@ -19,7 +19,6 @@ protected:
 	EFileMode			meFileMode;
 
 	bool				mbOpenedBackingFile;
-	int					miLastWriteOpenIndex;
 	bool				mbBegun;
 	bool				mbBackingFileExists;
 
@@ -33,8 +32,8 @@ public:
 
 	bool					Open(EFileMode eFileMode);
 	bool					Close(void);
-	filePos					Write(const void* pvSource, filePos iSize, filePos iCount);
-	filePos					Read(void* pvDest, filePos iSize, filePos iCount);
+	size					Write(const void* pvSource, size iSize, size iCount);
+	size					Read(void* pvDest, size iSize, size iCount);
 	filePos					Tell(void);
 	filePos					Size(void);
 	bool					Truncate(filePos iSize);
@@ -48,25 +47,25 @@ public:
 	bool					Commit(CAbstractFile* pcFile);
 
 	void					Dump(void);
-	int						GetNumWrites(void);
-	filePos					GetWriteSize(int iIndex);
-	int						GetNumCommands(void);
-	CLogFileCommandWrite*	GetWriteData(int iWrite);
-	bool					TestFindHoles(int iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	size					GetNumWrites(void);
+	size					GetWriteSize(size iIndex);
+	size					GetNumCommands(void);
+	CLogFileCommandWrite*	GetWriteData(size iWrite);
+	bool					TestFindHoles(size iWriteIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength);
 	bool					IsBegun(void);
 
 protected:
-	bool					FindTouchingWriteCommands(int iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength, bool bMustOverlap);
-	bool					Overlaps(filePos iPosition, filePos iLength, CLogFileCommandWrite* psWrite);
-	bool					AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, filePos iLength);
-	bool					FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, filePos iLength);
+	bool					FindTouchingWriteCommands(size iStartIndex, CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength, bool bMustOverlap);
+	bool					Overlaps(filePos iPosition, size iLength, CLogFileCommandWrite* psWrite);
+	bool					AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping, const void* pvSource, filePos iPosition, size iLength);
+	bool					FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition, size iLength);
 	void					UpdateLength(void);
-	filePos					ReadFromBackingFile(void* pvDest, filePos iSize, filePos iCount);
-	filePos					ReadWithNoTouchingWrites(void* pvDest, filePos iSize, filePos iCount);
-	filePos					ReadFirstTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
-	filePos					ReadNextTouchingWrites(int iWriteIndex, void* pvDest, filePos iSize, filePos iCount);
-	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, filePos iByteSize, void* pvDest);
-	int						FindNextWriteCommand(int iIndex);
+	size					ReadFromBackingFile(void* pvDest, size iSize, size iCount);
+	size					ReadWithNoTouchingWrites(void* pvDest, size iSize, size iCount);
+	size					ReadFirstTouchingWrites(size iWriteIndex, void* pvDest, size iSize, size iCount);
+	size					ReadNextTouchingWrites(size iWriteIndex, void* pvDest, size iSize, size iCount);
+	void					CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByteSize, void* pvDest);
+	size					FindNextWriteCommand(size iIndex);
 
 	bool					ValidateBegun(char* szMethod, char* szTask, CAbstractFile* pcFile);
 
@@ -75,8 +74,8 @@ protected:
 	void					AddCommandErrorString(CChars* pszDest, char* szMethod, CLogFileCommand* psCommand, CAbstractFile* pcFile);
 
 	CLogFileCommandOpen*	AddOpenCommand(EFileMode eFileMode);
-	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, filePos iByteLength);
-	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, filePos iByteLength);
+	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, void* pvSource, size iByteLength);
+	CLogFileCommandWrite*	AddWriteCommand(filePos iPosition, size iByteLength);
 	CLogFileCommandClose*	AddCloseCommand(void);
 	CLogFileCommandDelete*	AddDeleteCommand(void);
 };

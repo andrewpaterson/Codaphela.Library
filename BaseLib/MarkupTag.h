@@ -32,7 +32,7 @@ typedef CArrayTemplate<CMarkupBase*>	CArrayMarkupBase;
 
 struct STagIterator
 {
-	int				iIndex;
+	size			iIndex;
 	CMarkupTag*		mpcCurrent;
 	bool			bNamed;
 };
@@ -53,7 +53,7 @@ public:
 	bool				IsEmpty(void);
 	char*				GetAttribute(char* szAttribute);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
-	CMarkupTag*			GetTag(char* szTagName, int iTagNumber);
+	CMarkupTag*			GetTag(char* szTagName, uint32 iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
 	CMarkupTag*			GetTagFromIndex(char* szTagName, STagIterator* psIter);
 	CMarkupTag*			GetTagFromIndex(STagIterator* psIter);
@@ -71,7 +71,7 @@ public:
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	void				Print(CChars* psz);
-	int					Print(CChars* psz, int iDepth, int iLine);
+	uint32				Print(CChars* psz, uint32 iDepth, uint32 iLine);
 	void				Dump(void);
 };
 

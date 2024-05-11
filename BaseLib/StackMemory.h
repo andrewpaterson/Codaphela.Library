@@ -1,6 +1,7 @@
 #ifndef __STACK_MEMORY_H__
 #define __STACK_MEMORY_H__
 #include "PointerFunctions.h"
+#include "PrimitiveTypes.h"
 #include "Numbers.h"
 
 
@@ -13,7 +14,7 @@ private:
 
 public:
 	void*	Init(void);
-	void*	Init(size_t iSize);
+	void*	Init(size iSize);
 	void	Kill(void);
 	int		GetStackSize(void);
 	void*	GetStackData(void);
@@ -37,7 +38,7 @@ void* CStackMemory<I>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<int I>
-void* CStackMemory<I>::Init(size_t iSize)
+void* CStackMemory<I>::Init(size iSize)
 {
 	if (iSize > I)
 	{

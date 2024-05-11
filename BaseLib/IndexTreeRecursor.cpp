@@ -30,7 +30,7 @@ void CIndexTreeRecursor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::Push(CIndexTreeNode *pcChild, char c)
+void CIndexTreeRecursor::Push(CIndexTreeNode *pcChild, uint8 c)
 {
 	macKey.Push(c);
 	mpcCurrent = pcChild;
@@ -61,9 +61,9 @@ void CIndexTreeRecursor::GenerateBad(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeRecursor::GetKey(char* pc, int* piKeySize)
+void CIndexTreeRecursor::GetKey(void* pc, size* piKeySize)
 {
-	int	iKeySize;
+	size	iKeySize;
 
 	iKeySize = macKey.NumElements();
 	memcpy_fast(pc, macKey.GetData(), iKeySize);
@@ -75,7 +75,7 @@ void CIndexTreeRecursor::GetKey(char* pc, int* piKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexTreeRecursor::GetKeySize(void)
+size CIndexTreeRecursor::GetKeySize(void)
 {
 	return macKey.NumElements();
 }

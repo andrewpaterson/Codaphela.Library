@@ -23,12 +23,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __NEW_LINE_H__
 #define __NEW_LINE_H__
 #include "Define.h"
+#include "PrimitiveTypes.h"
 
 
-int PassifyNewlines(char *szString);
-int CountNewLines(char* szString, int iLen);
-int CountCarriageReturns(char* szString, int iLen);
-int CountLineFeeds(char* szString, int iLen);
+size PassifyNewlines(char *szString);
+size CountNewLines(char* szString, size iLen);
+size CountCarriageReturns(char* szString, size iLen);
+size CountLineFeeds(char* szString, size iLen);
 
 
 #endif // __NEW_LINE_H__

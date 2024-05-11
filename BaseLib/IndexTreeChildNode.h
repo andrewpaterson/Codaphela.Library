@@ -13,7 +13,7 @@ class CIndexTreeNodeFile;
 class CIndexTreeChildNode
 {
 public:
-	int		iType;
+	uint32		iType;
 	union
 	{
 		CFileDataIndex				mcFile;
@@ -22,7 +22,7 @@ public:
 
 	void	Init(CFileDataIndex cFile);
 	void	Init(CFileDataIndex* pcFile);
-	void	Init(int iFile, uint32 uiIndex);
+	void	Init(uint32 iFile, uint32 uiIndex);
 	void	Init(CIndexTreeNodeFile* pcMemory);
 	void	Clear(void);
 

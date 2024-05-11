@@ -196,9 +196,15 @@ void CArrayInt2D::InsertColumns(int iColumn, int iCount)
 	//Naive implementation, fix as necessary.
 	int		i;
 
-	for (i = miHeight-1; i >= 0; i--)
+	i = miHeight;
+	if (i != 0)
 	{
-		mcArray.InsertNumAt(iCount, i*miWidth + iColumn);
+		do
+		{
+			i--;
+			mcArray.InsertNumAt(iCount, i * miWidth + iColumn);
+		}
+		while (i != 0);
 	}
 	miWidth += iCount;
 }
@@ -224,9 +230,15 @@ void CArrayInt2D::RemoveColumns(int iColumn, int iCount)
 	//Naive implementation, fix as necessary.
 	int		i;
 
-	for (i = miHeight-1; i >= 0; i--)
+	i = miHeight;
+	if (i != 0)
 	{
-		mcArray.RemoveRange(i*miWidth + iColumn, i*miWidth + iColumn+iCount);
+		do
+		{
+			i--;
+			mcArray.RemoveRange(i * miWidth + iColumn, i * miWidth + iColumn + iCount);
+		}
+		while (i != 0);
 	}
 	miWidth -= iCount;
 }

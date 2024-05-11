@@ -23,7 +23,7 @@ void CArrayBlockSorted::_Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(int iElementSize, DataCompare fCompare)
+void CArrayBlockSorted::Init(size iElementSize, DataCompare fCompare)
 {
 	Init(&gcSystemAllocator, iElementSize, 256, 4, fCompare);
 }
@@ -33,7 +33,7 @@ void CArrayBlockSorted::Init(int iElementSize, DataCompare fCompare)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare)
+void CArrayBlockSorted::Init(size iElementSize, size iHoldingBufferSize, size iHoldingBuffers, DataCompare fCompare)
 {
 	Init(&gcSystemAllocator, iElementSize, iHoldingBufferSize, iHoldingBuffers, fCompare);
 }
@@ -43,10 +43,10 @@ void CArrayBlockSorted::Init(int iElementSize, int iHoldingBufferSize, int iHold
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldingBufferSize, int iHoldingBuffers, DataCompare fCompare)
+void CArrayBlockSorted::Init(CMallocator* pcMalloc, size iElementSize, size iHoldingBufferSize, size iHoldingBuffers, DataCompare fCompare)
 {
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
 
 	CMalloc::Init(pcMalloc);
 	miHoldingBufferSize = iHoldingBufferSize;
@@ -64,7 +64,7 @@ void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldi
 			paHoldingArray = maaHoldingArrays.Get(i);
 			paHoldingArray->Init(pcMalloc, miElementSize);
 		}
-		mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
+		mapiInsertionIndices = (size*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(size));
 	}
 	else
 	{
@@ -80,10 +80,12 @@ void CArrayBlockSorted::Init(CMallocator* pcMalloc, int iElementSize, int iHoldi
 void CArrayBlockSorted::Kill(void)
 {
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
+	size			iNumElements;
 
+	iNumElements = maaHoldingArrays.NumElements();
 	mpcMalloc->Free(mapiInsertionIndices);
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	for (i = 0; i < iNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		paHoldingArray->Kill();
@@ -127,9 +129,11 @@ bool CArrayBlockSorted::AddIntoHoldingArrays(void* pv, bool* pbUpdateSortedArray
 {
 	bool			bAdded;
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
+	size			iNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	iNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		if (paHoldingArray->NumElements() < miHoldingBufferSize)
@@ -165,8 +169,8 @@ bool CArrayBlockSorted::AddIntoHoldingArrays(void* pv, bool* pbUpdateSortedArray
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv)
 {
-	int				iIndex;
-	bool			bFound;
+	size	iIndex;
+	bool	bFound;
 
 	bFound = paBlock->FindInSorted(pv, mfCompare, &iIndex);
 	if (!bFound)
@@ -196,8 +200,8 @@ bool CArrayBlockSorted::InsertIntoArrayBlock(CArrayBlock* paBlock, void* pv)
 void CArrayBlockSorted::InsertHoldingIntoSorted(void)
 {
 	CArrayBlock		aMergedHoldingArrays;
-	int*			paiInsertionIndices;
-	int				oldLength;
+	size*			paiInsertionIndices;
+	size			oldLength;
 
 	aMergedHoldingArrays.Init(mpcMalloc, miElementSize);
 	MergeHoldingArrays(&aMergedHoldingArrays);
@@ -231,9 +235,11 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(void)
 void CArrayBlockSorted::ClearHoldingArrays(void)
 {
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
+	size			iNumElements;
 
-	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
+	iNumElements = maaHoldingArrays.NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		paHoldingArray = maaHoldingArrays.Get(i);
 		paHoldingArray->ReInit();
@@ -265,8 +271,8 @@ void CArrayBlockSorted::MergeHoldingArrays(CArrayBlock* paMergedArray)
 void CArrayBlockSorted::SortMerge(CArrayBlock* paMergedArray)
 {
 	CArrayBlock*	paHoldingArray;
-	int				i;
-	int				iNumElements;
+	size			i;
+	size			iNumElements;
 
 	iNumElements = maaHoldingArrays.NumElements();
 	for (i = 0; i < iNumElements; i++)
@@ -283,21 +289,23 @@ void CArrayBlockSorted::SortMerge(CArrayBlock* paMergedArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlockSorted::InsertHoldingIntoSorted(int* paiInsertionIndices, int oldLength, CArrayBlock* paSourceArray)
+void CArrayBlockSorted::InsertHoldingIntoSorted(size* paiInsertionIndices, size oldLength, CArrayBlock* paSourceArray)
 {
-	void* pvSortedArrayElementData = maSortedArray.GetData();
+	void*	pvSortedArrayElementData;
 
-	int		offset;
-	int		indexIndex;
-	int		sortedIndex;
-	int		destIndex;
-	int		startIndex;
-	int		nextSortedIndex;
-	int		length;
+	size	offset;
+	size	indexIndex;
+	size	sortedIndex;
+	size	destIndex;
+	size	startIndex;
+	size	nextSortedIndex;
+	size	length;
 	void*	pvOther;
 
+	pvSortedArrayElementData = maSortedArray.GetData();
+
 	offset = 0;
-	indexIndex = -1;
+	indexIndex = ARRAY_ELEMENT_NOT_FOUND;
 	sortedIndex = 0;
 	destIndex = 0;
 	startIndex = paSourceArray->NumElements() - 1;
@@ -305,7 +313,7 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(int* paiInsertionIndices, int ol
 
 	for (;;)
 	{
-		for (indexIndex = startIndex; indexIndex >= 0; indexIndex--)
+		for (indexIndex = startIndex; indexIndex != ARRAY_ELEMENT_NOT_FOUND; indexIndex--)
 		{
 			sortedIndex = paiInsertionIndices[indexIndex];
 			destIndex = sortedIndex + indexIndex;
@@ -320,7 +328,7 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(int* paiInsertionIndices, int ol
 			}
 		}
 
-		if (indexIndex >= 0)
+		if (indexIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			length = nextSortedIndex - sortedIndex;
 			startIndex = indexIndex;
@@ -339,14 +347,16 @@ void CArrayBlockSorted::InsertHoldingIntoSorted(int* paiInsertionIndices, int ol
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays)
+size* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingArrays)
 {
 	bool	bFound;
-	int		iIndex;
+	size	iIndex;
 	void*	pv;
-	int		i;
+	size	i;
+	size	iNumElements;
 
-	for (i = 0; i < paMergedHoldingArrays->NumElements(); i++)
+	iNumElements = paMergedHoldingArrays->NumElements();
+	for (i = 0; i < iNumElements; i++)
 	{
 		pv = paMergedHoldingArrays->Get(i);
 		bFound = maSortedArray.FindInSorted(pv, mfCompare, &iIndex);
@@ -363,7 +373,7 @@ int* CArrayBlockSorted::CalculateInsertionIndices(CArrayBlock* paMergedHoldingAr
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::Contains(void* pv)
 {
-	void* pvFound;
+	void*	pvFound;
 
 	pvFound = Get(pv);
 	if (pvFound)
@@ -431,11 +441,11 @@ void* CArrayBlockSorted::Get(void* pv)
 void* CArrayBlockSorted::FindInHoldingArrays(void* pv)
 {
 	bool			bFound;
-	int				iIndex;
+	size			iIndex;
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
 	void*			pvData;
-	int				iNumElements;
+	size			iNumElements;
 
 	iNumElements = maaHoldingArrays.NumElements();
 	for (i = 0; i < iNumElements; i++)
@@ -458,7 +468,7 @@ void* CArrayBlockSorted::FindInHoldingArrays(void* pv)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlockSorted::FindInSortedArray(void* pv)
 {
-	int		iIndex;
+	size	iIndex;
 	bool	bFound;
 	void*	pvData;
 
@@ -480,9 +490,9 @@ void* CArrayBlockSorted::FindInSortedArray(void* pv)
 bool CArrayBlockSorted::RemoveFromHoldingArrays(void* pv)
 {
 	bool			bFound;
-	int				iIndex;
+	size			iIndex;
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
 
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
 	{
@@ -504,7 +514,7 @@ bool CArrayBlockSorted::RemoveFromHoldingArrays(void* pv)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::RemoveFromSortedArray(void* pv)
 {
-	int		iIndex;
+	size	iIndex;
 	bool	bFound;
 
 	bFound = maSortedArray.FindInSorted(pv, mfCompare, &iIndex);
@@ -599,9 +609,9 @@ void* CArrayBlockSorted::GetIterated(SArraySortedIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlockSorted::WriteHeader(CFileWriter* pcFileWriter)
 {
-	ReturnOnFalse(pcFileWriter->WriteInt(miHoldingBufferSize));
-	ReturnOnFalse(pcFileWriter->WriteInt(miElementSize));
-	ReturnOnFalse(pcFileWriter->WriteInt(maaHoldingArrays.NumElements()));
+	ReturnOnFalse(pcFileWriter->WriteSize(miHoldingBufferSize));
+	ReturnOnFalse(pcFileWriter->WriteSize(miElementSize));
+	ReturnOnFalse(pcFileWriter->WriteSize(maaHoldingArrays.NumElements()));
 	ReturnOnFalse(pcFileWriter->WriteBool(mbOverwrite));
 	return true;
 }
@@ -639,16 +649,16 @@ bool CArrayBlockSorted::Write(CFileWriter* pcFileWriter)
 bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileReader, DataCompare fCompare)
 {
 	CArrayBlock*	paHoldingArray;
-	int				i;
-	int				iHoldingBufferSize;
-	int				iElementSize;
-	int				iHoldingBuffers;
+	size			i;
+	size			iHoldingBufferSize;
+	size			iElementSize;
+	size			iHoldingBuffers;
 	bool			bOverwrite;
 
 	CMalloc::Init(pcMalloc);
-	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBufferSize));
-	ReturnOnFalse(pcFileReader->ReadInt(&iElementSize));
-	ReturnOnFalse(pcFileReader->ReadInt(&iHoldingBuffers));
+	ReturnOnFalse(pcFileReader->ReadSize(&iHoldingBufferSize));
+	ReturnOnFalse(pcFileReader->ReadSize(&iElementSize));
+	ReturnOnFalse(pcFileReader->ReadSize(&iHoldingBuffers));
 	ReturnOnFalse(pcFileReader->ReadBool(&bOverwrite));
 
 	miHoldingBufferSize = iHoldingBufferSize;
@@ -664,7 +674,7 @@ bool CArrayBlockSorted::ReadHeader(CMallocator* pcMalloc, CFileReader* pcFileRea
 		paHoldingArray->Init(mpcMalloc, miElementSize);
 	}
 
-	mapiInsertionIndices = (int*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(int));
+	mapiInsertionIndices = (size*)mpcMalloc->Malloc(miHoldingBufferSize * iHoldingBuffers * sizeof(size));
 	return true;
 }
 
@@ -706,7 +716,7 @@ void CArrayBlockSorted::SetOverwrite(bool bOverwrite)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayBlock* CArrayBlockSorted::GetArrayBlock(int iIndex)
+CArrayBlock* CArrayBlockSorted::GetArrayBlock(size iIndex)
 {
 	CArrayBlock*	paHoldingArray;
 
@@ -730,7 +740,6 @@ CArrayBlock* CArrayBlockSorted::GetArrayBlock(int iIndex)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -745,7 +754,7 @@ CArrayBlock* CArrayBlockSorted::GetSortedArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlockSorted::NumElements(void)
+size CArrayBlockSorted::NumElements(void)
 {
 	return GetSortedSize() + GetHoldingSize();
 }
@@ -755,7 +764,7 @@ int CArrayBlockSorted::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlockSorted::GetSortedSize(void)
+size CArrayBlockSorted::GetSortedSize(void)
 {
 	return maSortedArray.NumElements();
 }
@@ -765,11 +774,11 @@ int CArrayBlockSorted::GetSortedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlockSorted::GetHoldingSize(void)
+size CArrayBlockSorted::GetHoldingSize(void)
 {
-	int				iSize;
+	size			iSize;
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
 
 	iSize = 0;
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
@@ -786,7 +795,7 @@ int CArrayBlockSorted::GetHoldingSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlockSorted::GetInSorted(int iIndex)
+void* CArrayBlockSorted::GetInSorted(size iIndex)
 {
 	return maSortedArray.SafeGet(iIndex);
 }
@@ -796,7 +805,7 @@ void* CArrayBlockSorted::GetInSorted(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlockSorted::GetInHolding(int iArray, int iIndex)
+void* CArrayBlockSorted::GetInHolding(size iArray, size iIndex)
 {
 	CArrayBlock*	paHoldingArray;
 
@@ -814,11 +823,11 @@ void* CArrayBlockSorted::GetInHolding(int iArray, int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CArrayBlockSorted::ByteSize(void)
+size CArrayBlockSorted::ByteSize(void)
 {
-	size_t			uiSize;
+	size			uiSize;
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size				i;
 
 	uiSize = 0;
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)
@@ -829,7 +838,7 @@ size_t CArrayBlockSorted::ByteSize(void)
 	}
 	uiSize += maaHoldingArrays.ByteSize();
 	uiSize += maSortedArray.ByteSize();
-	uiSize += miHoldingBufferSize * maaHoldingArrays.NumElements() * sizeof(int);
+	uiSize += miHoldingBufferSize * maaHoldingArrays.NumElements() * sizeof(size);
 	return uiSize;
 }
 
@@ -840,9 +849,9 @@ size_t CArrayBlockSorted::ByteSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlockSorted::Print(CChars* psz)
 {
-	size_t			uiSize;
+	size			uiSize;
 	CArrayBlock*	paHoldingArray;
-	int				i;
+	size			i;
 
 	uiSize = 0;
 	for (i = 0; i < maaHoldingArrays.NumElements(); i++)

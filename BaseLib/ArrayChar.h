@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayChar: public CArrayTemplatePrimitive<char>
 {
 public:
-	void AddList(int iStop, ...);
+	void AddList(char iStop, ...);
 };
 
 

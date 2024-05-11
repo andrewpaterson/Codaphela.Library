@@ -25,7 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseMemory.h"
 
 
-#define DATA_MEMORY_ALIGNMENT 4
+#define DATA_MEMORY_ALIGNMENT ((uint16)4)
 
 
 extern CMemoryFreeListParams gcDataMemoryFreeListParams;
@@ -53,8 +53,8 @@ public:
 	void*					Add(uint32 iSize);
 	void					Remove(void* pv);
 	bool					Remove(CArrayVoidPtr* pav);
-	size_t					GetSize(void* pv);
-	CFreeList*				GetFreeList(size_t iElementSize);
+	size					GetSize(void* pv);
+	CFreeList*				GetFreeList(size iElementSize);
 	void*					Grow(void* pvInitial, uint32 iSize);
 	int						NumElements(void);
 	int						ByteSize(void);
@@ -75,13 +75,13 @@ protected:
 	int						RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList);
 
 private:
-	CFreeList*				GetOrAddFreeList(size_t iElementSize);
+	CFreeList*				GetOrAddFreeList(size iElementSize);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, uint32 uiElementSize);
 	void					DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
 	void*					AllocateInLargeList(uint32 uiSize);
 	void					DeallocateInLargeList(SDataMemoryAllocation* psAlloc);
-	void					CopyAllocation(void* pvDest, void* pvSource, size_t uiDestSize, size_t uiSourceSize);
+	void					CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize);
 };
 
 

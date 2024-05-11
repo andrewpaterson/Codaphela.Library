@@ -72,14 +72,14 @@ void CPropertiesFile::Set(char* szProperty, char* szValue)
 //////////////////////////////////////////////////////////////////////////
 bool CPropertiesFile::Read(void)
 {
-	CTextFile	cFile;
-	CTextParser	cParser;
-	char		sz[1024];
-	int			iLen;
-	CChars		szValue;
-	CChars		szProperty;
-	TRISTATE	tResult;
-	char*		szStartOfValue;
+	CTextFile		cFile;
+	CTextParser		cParser;
+	char			sz[1024];
+	size			iLen;
+	CChars			szValue;
+	CChars			szProperty;
+	TRISTATE		tResult;
+	char*			szStartOfValue;
 
 	cFile.Init();
 	if (!cFile.Read(mszName.Text()))
@@ -194,7 +194,7 @@ bool CPropertiesFile::Write(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CPropertiesFile::NumProperties(void)
+size CPropertiesFile::NumProperties(void)
 {
 	return mcProperties.NumElements();
 }

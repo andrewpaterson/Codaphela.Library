@@ -18,9 +18,9 @@ public:
 };
 
 
-size_t NamedIndexedHeaderSize(char* szName, uint32 uiDataSize);
-size_t NamedIndexedHeaderSize(uint32 uiDataSize);
-size_t NamedIndexedHeaderSize(int iNameLength, uint32 uiDataSize);
+size NamedIndexedHeaderSize(char* szName, uint32 uiDataSize);
+size NamedIndexedHeaderSize(uint32 uiDataSize);
+size NamedIndexedHeaderSize(int iNameLength, uint32 uiDataSize);
 
 
 #endif // __NAMED_INDEXED_HEADER_H__

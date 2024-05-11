@@ -17,7 +17,7 @@ void CIndexedDataCommon::Init(CIndexedDataEvictionCallback* pcIndexedDataEvictio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::Add(OIndex oi, void* pvData, size_t uiDataSize)
+bool CIndexedDataCommon::Add(OIndex oi, void* pvData, size uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	bool					bResult;
@@ -68,7 +68,7 @@ bool CIndexedDataCommon::Set(OIndex oi, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::Set(OIndex oi, void* pvData, size_t uiDataSize)
+bool CIndexedDataCommon::Set(OIndex oi, void* pvData, size uiDataSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	bool					bResult;
@@ -94,7 +94,7 @@ bool CIndexedDataCommon::Set(OIndex oi, void* pvData, size_t uiDataSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::Put(OIndex oi, void* pvData, size_t uiDataSize)
+bool CIndexedDataCommon::Put(OIndex oi, void* pvData, size uiDataSize)
 {
 	bool					bExists;
 	CIndexedDataDescriptor	cDescriptor;
@@ -143,7 +143,7 @@ uint32 CIndexedDataCommon::Size(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
+bool CIndexedDataCommon::Get(OIndex oi, void* pvData, size uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	bool					bResult;
@@ -168,7 +168,7 @@ bool CIndexedDataCommon::Get(OIndex oi, void* pvData, size_t uiMaxSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
+bool CIndexedDataCommon::Get(OIndex oi, size* puiDataSize, void* pvData, size uiMaxSize)
 {
 	CIndexedDataDescriptor	cDescriptor;
 	bool					bResult;
@@ -195,10 +195,10 @@ bool CIndexedDataCommon::Get(OIndex oi, size_t* puiDataSize, void* pvData, size_
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size_t* puiDataSize, void* pvData, size_t uiMaxSize)
+bool CIndexedDataCommon::GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, size* puiDataSize, void* pvData, size uiMaxSize)
 {
 	bool	bResult;
-	size_t	uiDataSize;
+	size	uiDataSize;
 
 	uiDataSize = pcDescriptor->GetDataSize();
 	SafeAssign(puiDataSize, uiDataSize);
@@ -278,7 +278,7 @@ bool CIndexedDataCommon::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataCommon::NumDataCached(void)
+size CIndexedDataCommon::NumDataCached(void)
  {
 	return mcData.NumCached();
 }
@@ -288,7 +288,7 @@ int CIndexedDataCommon::NumDataCached(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataCommon::NumDataCached(size_t iSize)
+size CIndexedDataCommon::NumDataCached(size iSize)
 {
 	return mcData.NumCached(iSize);
 }
@@ -298,7 +298,7 @@ int CIndexedDataCommon::NumDataCached(size_t iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedDataCommon::NumFiles(void)
+size CIndexedDataCommon::NumFiles(void)
 {
 	return mcData.NumFiles();
 }
@@ -318,7 +318,7 @@ int64 CIndexedDataCommon::NumDatas()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CIndexedDataCommon::NumDatas(size_t uiDataSize)
+int64 CIndexedDataCommon::NumDatas(size uiDataSize)
 {
 	return mcData.NumDatas(uiDataSize);
 }

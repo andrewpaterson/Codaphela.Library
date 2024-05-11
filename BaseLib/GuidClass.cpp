@@ -47,7 +47,7 @@ TRISTATE CGuidClass::Init(char8* sz)
 	TRISTATE	tOpenRound;
 	TRISTATE	tResult;
 	uint64		uiValue;		
-	int32		iLength;
+	uint16		iLength;
 	bool		bResult;
 
 	cParser.Init(sz);
@@ -149,8 +149,8 @@ bool CGuidClass::Get0xFormat(CTextParser* pcParser, uint32 uiValue1)
 	uint64		uiValue2;
 	uint64		uiValue3;
 	uint64		uiSmallRight;
-	int			iLength;
-	int			i;
+	uint16		iLength;
+	uint16		i;
 	TRISTATE	tOpenCurly;
 	TRISTATE	tOpenRound;
 
@@ -240,7 +240,7 @@ bool CGuidClass::Get32Format(CTextParser* pcParser, uint64 uiLeft)
 {
 	uint64		uiRight;
 	TRISTATE	tResult;
-	int32		iLength;
+	uint16		iLength;
 
 	tResult = pcParser->GetHexadecimalPart(&uiRight, &iLength);
 	if (tResult == TRITRUE)
@@ -276,7 +276,7 @@ bool CGuidClass::Get8_4_4_4_12Format(CTextParser* pcParser, uint32 uiValue1)
 	uint64		uiValue3;
 	uint64		uiRight1;
 	uint64		uiRight2;
-	int			iLength;
+	uint16		iLength;
 
 	tResult = pcParser->GetExactCharacter('-');
 	if (tResult != TRITRUE)

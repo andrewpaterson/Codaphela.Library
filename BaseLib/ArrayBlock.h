@@ -6,16 +6,17 @@
 #include "Mallocator.h"
 #include "FileIO.h"
 #include "Malloc.h"
+#include "DataTypes.h"
+#include "ArrayElementNotFound.h"
 #include "DataCompare.h"
 
 
 struct SArrayTemplateHeader
 {
-	int		miElementSize;
-	int		miUsedElements;
-	int		miChunkSize;
+	size		miElementSize;
+	size		miUsedElements;
+	size		miChunkSize;
 };
-
 
 //Elements in an array are always of the same size.  Array elements are indexed from the start of the array.
 //A pointer to an array element may become invalid if another element has been since added to or removed from the array.
@@ -28,58 +29,58 @@ class CRandom;
 class CArrayBlock : public CMalloc, protected SArrayTemplateHeader
 {
 protected:
-	int		miNumElements;
+	size	miNumElements;
 	void*	mpvArray;
 
 public:
 	void 	_Init(void);
-	void 	Init(int iElementSize);
-	void 	Init(CMallocator* pcMalloc, int iElementSize);
-	void	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
+	void 	Init(size iElementSize);
+	void 	Init(CMallocator* pcMalloc, size iElementSize);
+	void	Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize);
 	void 	ReInit(void);
 
 	void 	Finalise(void);
-	void	Fake(int iElementSize, void* pvData, int iNum, int iChunkSize = 1);
+	void	Fake(size iElementSize, void* pvData, size iNum, size iChunkSize = 1);
 
 	void 	Kill(void);
 
-	void 	SetAllocateSize(int iSize);
-	void	FakeSetUsedElements(int iUsedElements);
+	void 	SetAllocateSize(size iSize);
+	void	FakeSetUsedElements(size iUsedElements);
 
-	int		NumElements(void);
+	size	NumElements(void);
 	bool	IsEmpty(void);
 	bool	IsNotEmpty(void);
-	int		AllocatedElements(void);
-	int 	ElementSize(void);
+	size	AllocatedElements(void);
+	size 	ElementSize(void);
 
 	void*	Add(void);
 	void*	Add(void* pvData);
-	void* 	AddGetIndex(int* piIndex);
-	int		AddGetIndex(void* pvData);
-	int 	AddIfUnique(void* pData);
-	int 	AddIfUniqueKey(void* pData, int iKeyOffset, int iKeySize);
+	void* 	AddGetIndex(size* piIndex);
+	size	AddExistingGetIndex(void* pvData);
+	size 	AddIfUnique(void* pvData);
+	size 	AddIfUniqueKey(void* pvData, size iKeyOffset, size iKeySize);
 
 	void 	Copy(CArrayBlock* pcTemplateArray);
 
-	void*	Get(int iIndex);
-	void*	SafeGet(int iIndex);
-	int		GetAdjustedIndex(int iIndex);
+	void*	Get(size iIndex);
+	void*	SafeGet(size iIndex);
+	size	GetAdjustedIndex(size iIndex);
 	void*	GetData(void);
 	void	GetHeader(SArrayTemplateHeader* psHeader);
-	int		GetIndex(void* pvData);
+	size	GetIndex(void* pvData);
 	void*	Tail(void);
 
 	void*	InsertArrayAfterEnd(CArrayBlock* pcTemplateArray);
-	void*	InsertArrayAt(CArrayBlock* pcTemplateArray, int iIndex);
+	void*	InsertArrayAt(CArrayBlock* pcTemplateArray, size iIndex);
 	void*	InsertArrayBeforeStart(CArrayBlock* pcTemplateArray);
-	void* 	InsertAt(int iIndex);
-	void* 	InsertAt(void* pvData, int iIndex);
-	void*	InsertBlockAfterEnd(void* paElements, int iLength);
-	void*	InsertBlockAt(void* paElements, int iIndex, int iLength);
-	void*	InsertBlockBeforeStart(void* paElements, int iLength);
-	int		InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting);
-	void*	InsertNumAt(int iNumElements, int iIndex);
-	void	InsertBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void* 	InsertAt(size iIndex);
+	void* 	InsertAt(void* pvData, size iIndex);
+	void*	InsertBlockAfterEnd(void* paElements, size iLength);
+	void*	InsertBlockAt(void* paElements, size iIndex, size iLength);
+	void*	InsertBlockBeforeStart(void* paElements, size iLength);
+	size	InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting);
+	void*	InsertNumAt(size iNumElements, size iIndex);
+	void	InsertBatch(size iFirstIndex, size iNumInBatch, int32 iNumBatches, size iStrideToNextBatch);
 
 	bool	Pop(void* pvDest);
 	bool	Pop(void);
@@ -89,9 +90,10 @@ public:
 	bool	PopFirst(void* pvData);
 	bool	PopFirst(void);
 
-	int		AddNum(int iNumElements);
-	void*	GrowToAtLeastNumElements(int iNumElements, bool bClear = false, uint8  iClear = 0);
-	int		Resize(int iNumElements);
+	size	AddNum(size iNumElements);
+	size	RemoveNum(size iNumElements);
+	void*	GrowToAtLeastNumElements(size iNumElements, bool bClear = false, uint8  iClear = 0);
+	size	Resize(size iNumElements);
 
 	void	BubbleSort(DataCompare fCompare);
 	void	QuickSort(DataCompare fCompare);
@@ -100,32 +102,32 @@ public:
 	void	Reverse(void);
 	void	Shuffle(CRandom* pcRandom = NULL);
 
-	bool	Contains(void* pData);
+	bool	Contains(void* pvData);
 	bool	Equals(CArrayBlock* pcTemplateArray);
-	int 	Find(void* pData);
-	bool	FindInSorted(void* pvData, DataCompare fCompare, int* piIndex);
-	int		FindWithIntKey(int iKey);
-	int		FindWithIntKey(int iKey, int iKeyOffset);
-	int 	FindWithKey(void* pData, int iKeyOffset, int iKeySize);
+	size 	Find(void* pvData);
+	bool	FindInSorted(void* pvData, DataCompare fCompare, size* piIndex);
+	size	FindWithIntKey(size iKey);
+	size	FindWithIntKey(size iKey, size iKeyOffset);
+	size 	FindWithKey(void* pvData, size iKeyOffset, size iKeySize);
 
-	void 	RemoveAt(int iIndex, bool bPreserveOrder = true);
-	void	RemoveAt(int* paiIndex, int iNumElements, bool bPreserveOrder = true);
-	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
+	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
+	void	RemoveAt(size* paiIndex, size iNumElements, bool bPreserveOrder = true);
+	void	RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder = true);
 	bool 	RemoveTail(void);
 	bool	RemoveFirst(void);
-	void	RemoveBatch(int iFirstIndex, int iNumInBatch, int iNumBatches, int iStrideToNextBatch);
+	void	RemoveBatch(size iFirstIndex, size iNumInBatch, size iNumBatches, size iStrideToNextBatch);
 
-	void	Set(int iIndex, void* pvData);
-	bool	SafeSet(int iIndex, void* pvData);
-	void	Swap(int iIndex1, int iIndex2);
+	void	Set(size iIndex, void* pvData);
+	bool	SafeSet(size iIndex, void* pvData);
+	void	Swap(size iIndex1, size iIndex2);
 	void 	Zero(void);
 
-	int 	ByteSize(void);
-	int		ChunkSize(void);
-	int		SetUsedElements(int iNumElements);
+	size 	ByteSize(void);
+	size	ChunkSize(void);
+	size	SetUsedElements(size iNumElements);
 
-	int		RemoveAtNoDeallocate(int iIndex);
-	bool	SetChunkSize(int iChunkSize);
+	size	RemoveAtNoDeallocate(size iIndex);
+	bool	SetChunkSize(size iChunkSize);
 
 	bool	Write(CFileWriter* pcFileWriter);
 	bool	Read(CFileReader* pcFileReader);
@@ -136,13 +138,13 @@ public:
 	bool	ReadHeader(CFileReader* pcFileReader, CMallocator* pcMalloc);
 
 protected:
-	bool	BinarySearch(void* pData, int iLeft, int iRight, DataCompare fCompare, int* piIndex);
-	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex);
-	void*	CopyBlockInto(void* paElements, int iLength, int iIndex);
-	void	PrivateRemoveAt(int iIndex, bool bPreserveOrder, int iDataSize);
-	void	PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder, int iDataSize);
-	int		RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iDataSize);
-	void 	SetArraySize(int iNumElements);
+	bool	BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex);
+	void*	CopyArrayInto(CArrayBlock* pcTemplateArray, size iIndex);
+	void*	CopyBlockInto(void* paElements, size iLength, size iIndex);
+	void	PrivateRemoveAt(size iIndex, bool bPreserveOrder, size iDataSize);
+	void	PrivateRemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder, size iDataSize);
+	size	RemoveAtNoDeallocate(size iIndex, bool bPreserveOrder, size iDataSize);
+	void 	SetArraySize(size iNumElements);
 };
 
 

@@ -50,8 +50,8 @@ public:
 	bool			Check(bool bThorough, bool bLogError);
 
 	bool			Add(CDurableFile* pcFile);
-	int				Num(void);
-	CDurableFile*	Get(int iIndex);
+	size			Num(void);
+	CDurableFile*	Get(size iIndex);
 
 	void			MarkStart(void);
 	void			MarkRewrite(void);

@@ -15,7 +15,7 @@ public:
 	void	Init(CMapBlock* pcMapBlock);
 	void	Kill(void);
 
-	void*	Iterate(size_t* piDataSize = NULL, void* pvDestKey = NULL, size_t* puiKeySize = NULL, size_t uiMaxKeySize = 0);
+	void*	Iterate(uint32* piDataSize = NULL, void* pvDestKey = NULL, uint32* puiKeySize = NULL, uint32 uiMaxKeySize = 0);
 };
 
 

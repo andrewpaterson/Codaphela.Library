@@ -1,6 +1,7 @@
 #ifndef __INT4_H__
 #define __INT4_H__
 #include "DataIO.h"
+#include "Constructable.h"
 #include "DataTypes.h"
 
 

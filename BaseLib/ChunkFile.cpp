@@ -74,7 +74,7 @@ bool CChunkFile::WriteOpen(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::WriteOpen(int iUserID)
+bool CChunkFile::WriteOpen(chunkName iUserID)
 {
 	mcChunkStack.Init();
 	mmsziNames.Init();
@@ -99,11 +99,11 @@ bool CChunkFile::WriteOpen(int iUserID)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::WriteBasic(const void* pvSource, filePos iSize)
+bool CChunkFile::WriteBasic(const void* pvSource, size uiSize)
 {
-	filePos		iFilePos;
+	size		iFilePos;
 
-	iFilePos = CFileBasic::Write(pvSource, iSize, 1);
+	iFilePos = CFileBasic::Write(pvSource, uiSize, 1);
 	return iFilePos == 1;
 }
 
@@ -170,8 +170,8 @@ bool CChunkFile::ReadOpen(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadClose(void)
 {
-	int					i;
-	bool				bResult;
+	size	i;
+	bool	bResult;
 
 	for (i = 0; i < mcChunkStack.NumElements(); i++)
 	{
@@ -199,7 +199,7 @@ bool CChunkFile::WriteChunkBegin(void)
 	//This will only be NULL when WriteChunkBegin is called by WriteOpen.
 	if (psElement)
 	{
-		psElement->bContainsChunks = 1;
+		psElement->bContainsChunks = true;
 		((CMD5HashFile*)mpcFile)->CopyContextToDest(&psElement->sMD5Context); //Save the files current MD5 hash to the chunk which contains the new chunk
 	}
 
@@ -221,10 +221,10 @@ bool CChunkFile::WriteChunkBegin(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::WriteChunkEnd(char* szChunkName)
 {
-	int*	piName;
-	int		iName;
+	chunkName*	piName;
+	chunkName	iName;
 
-	piName = mmsziNames.CMapStringTemplate::Get(szChunkName);
+	piName = (chunkName*)mmsziNames.CMapStringTemplate::Get(szChunkName);
 	if (!piName)
 	{
 		miLastName++;
@@ -244,16 +244,25 @@ bool CChunkFile::WriteChunkEnd(char* szChunkName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::WriteChunkEnd(int iChunkName)
+bool CChunkFile::WriteChunkEnd(chunkName iChunkName)
 {
 	filePos					iFilePos;
 	CChunkStackElement*		psElement;
 	CChunkStackElement*		psParent;
 	SChunkIndex*			psIndexParent;
+	size					uiNumElements;
 
 	iFilePos = CFileBasic::GetFilePos();
 	psElement = mcChunkStack.Tail();
-	psParent = mcChunkStack.SafeGet(mcChunkStack.NumElements()-2);
+	uiNumElements = mcChunkStack.NumElements();
+	if (uiNumElements > 1)
+	{
+		psParent = mcChunkStack.SafeGet(uiNumElements - 2);
+	}
+	else
+	{
+		psParent = NULL;
+	}
 
 	//How can there ever not be an element?
 	if (psElement)
@@ -328,6 +337,7 @@ bool CChunkFile::SeekStart(void)
 bool CChunkFile::__PrivateReadChunkBegin(void)
 {
 	CChunkStackElement*		psElement;
+	bool					bResult;
 
 	psElement = mcChunkStack.Push();
 	psElement->iChunkHeaderPos = CFileBasic::GetFilePos();
@@ -342,16 +352,24 @@ bool CChunkFile::__PrivateReadChunkBegin(void)
 
 	if (psElement->sHeader.miChunkIndexPos != -1)
 	{
-		psElement->bContainsChunks = 1;
+		psElement->bContainsChunks = true;
 	}
 	else
 	{
-		psElement->bContainsChunks = 0;
+		psElement->bContainsChunks = false;
 	}
 	if (psElement->bContainsChunks)
 	{
-		__PrivateReadChunkIndex(psElement->sHeader.miChunkIndexPos, &psElement->cChunkIndex);
-		CFileBasic::Seek(psElement->iChunkHeaderPos + sizeof(CChunkHeader), EFSO_SET);
+		bResult = __PrivateReadChunkIndex(psElement->sHeader.miChunkIndexPos, &psElement->cChunkIndex);
+		if (!bResult)
+		{
+			return false;
+		}
+		bResult = CFileBasic::Seek(psElement->iChunkHeaderPos + sizeof(CChunkHeader), EFSO_SET);
+		if (!bResult)
+		{
+			return false;
+		}
 	}
 	((CMD5HashFile*)mpcFile)->StartHashing();
 	return true;
@@ -373,7 +391,7 @@ bool CChunkFile::__PrivateReadChunkIndex(filePos iIndexPos, CChunkIndex* pcIndex
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::FindFirstChunkWithID(int iName)
+size CChunkFile::FindFirstChunkWithID(chunkName iName)
 {
 	CChunkStackElement*		psElement;
 
@@ -385,7 +403,7 @@ int CChunkFile::FindFirstChunkWithID(int iName)
 			return psElement->cChunkIndex.FindFirstChunkWithName(iName);
 		}
 	}
-	return -1;
+	return CHUNK_FILE_NOT_FOUND;
 }
 
 
@@ -393,18 +411,18 @@ int CChunkFile::FindFirstChunkWithID(int iName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::FindFirstChunkWithName(char* szName)
+size CChunkFile::FindFirstChunkWithName(char* szName)
 {
-	int*	piName;
+	chunkName*	piName;
 
-	piName = mmsziNames.CMapStringTemplate::Get(szName);
+	piName = (chunkName*)mmsziNames.CMapStringTemplate::Get(szName);
 	if (piName)
 	{
 		return FindFirstChunkWithID(*piName);
 	}
 	else
 	{
-		return -1;
+		return CHUNK_FILE_NOT_FOUND;
 	}
 }
 
@@ -413,7 +431,7 @@ int CChunkFile::FindFirstChunkWithName(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::FindNextChunkWithName(void)
+size CChunkFile::FindNextChunkWithName(void)
 {
 	CChunkStackElement*		psElement;
 
@@ -425,7 +443,7 @@ int CChunkFile::FindNextChunkWithName(void)
 			return psElement->cChunkIndex.FindNextChunkWithName();
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -433,7 +451,7 @@ int CChunkFile::FindNextChunkWithName(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::GetNumChunksWithID(int iName)
+size CChunkFile::GetNumChunksWithID(chunkName iName)
 {
 	CChunkStackElement*		psElement;
 
@@ -453,7 +471,7 @@ int CChunkFile::GetNumChunksWithID(int iName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::GetNumChunks(void)
+size CChunkFile::GetNumChunks(void)
 {
 	CChunkStackElement*		psElement;
 
@@ -473,7 +491,7 @@ int CChunkFile::GetNumChunks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::GetTailChunkNameIndex(int iChunkNum)
+chunkName CChunkFile::GetTailChunkNameIndex(size iChunkNum)
 {
 	SChunkIndex*			psIndex;
 	CChunkStackElement*		psElement;
@@ -500,9 +518,9 @@ int CChunkFile::GetTailChunkNameIndex(int iChunkNum)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadChunkBegin(char* szName)
 {
-	int					iChunkNum;
-	CChunkStackElement* psElement;
-	SChunkIndex*		psIndex;
+	chunkName				iChunkNum;
+	CChunkStackElement*		psElement;
+	SChunkIndex*			psIndex;
 
 	iChunkNum = FindFirstChunkWithName(szName);
 	psElement = mcChunkStack.Tail();
@@ -523,7 +541,7 @@ bool CChunkFile::ReadChunkBegin(char* szName)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::ReadChunkBegin(int iChunkIndex)
+bool CChunkFile::ReadChunkBegin(size iChunkIndex)
 {
 	CChunkStackElement*		psElement;
 	SChunkIndex*			psIndex;
@@ -566,7 +584,7 @@ bool CChunkFile::ReadChunkEnd(void)
 		if (psElement->bContainsChunks)
 		{
 			iSeekPos = psElement->sHeader.miChunkIndexPos;
-			iSeekPos += psElement->cChunkIndex.mcChunkIndices.ByteSize() + sizeof(int)*2 + sizeof(int)*3 + sizeof(void*);
+			iSeekPos += psElement->cChunkIndex.mcChunkIndices.ByteSize() + sizeof(size)*2 + sizeof(size)*3 + sizeof(void*);  //Howw is this caclulated?
 		}
 		else
 		{
@@ -586,9 +604,9 @@ bool CChunkFile::ReadChunkEnd(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CChunkFile::ReadChunkEnd(int iNumChunksToEnd)
+bool CChunkFile::ReadChunkEnd(size iNumChunksToEnd)
 {
-	int		i;
+	size		i;
 	bool	bResult;
 
 	bResult = true;
@@ -673,7 +691,7 @@ bool CChunkFile::ContainsChunks(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CChunkFile::StackDepth(void)
+size CChunkFile::StackDepth(void)
 {
 	return mcChunkStack.NumElements();
 }
@@ -717,12 +735,12 @@ filePos CChunkFile::ChunkStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CChunkFile::GetTailChunkNameForIndex(int iIndex)
+char* CChunkFile::GetTailChunkNameForIndex(size iIndex)
 {
-	int	iName;
+	chunkName	iName;
 
 	iName = GetTailChunkNameIndex(iIndex);
-	if (iName == -1)
+	if (iName == CHUNK_FILE_NOT_FOUND)
 	{
 		return NULL;
 	}
@@ -737,7 +755,7 @@ char* CChunkFile::GetTailChunkNameForIndex(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadChunkEndAll(void)
 {
-	int		i;
+	size		i;
 
 	if (mcChunkStack.NumElements() > 0)
 	{

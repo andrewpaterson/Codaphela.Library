@@ -1,0 +1,9 @@
+#ifndef __ARRAY_ELEMENT_NOT_FOUND_H__
+#define __ARRAY_ELEMENT_NOT_FOUND_H__
+
+
+#define ARRAY_ELEMENT_NOT_FOUND		SIZE_MAX
+
+
+#endif // __ARRAY_ELEMENT_NOT_FOUND_H__
+

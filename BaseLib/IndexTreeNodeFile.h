@@ -13,48 +13,48 @@ private:
 	CFileDataIndex			mcFileIndex;  //This index is not valid if the node is dirty; the node will need to be rewritten.
 
 public:
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, CFileDataIndex cFileIndex, uint8 uiIndexInParent);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint8 uiIndexInParent);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, uint8 uiFirstIndex, uint8 uiLastIndex, uint16 uiDataSize, uint8 uiIndexInParent);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileDataIndex cFileIndex, uint8 uiIndexInParent);
-	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, uint8 uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, size uiFirstIndex, size uiLastIndex, CFileDataIndex cFileIndex, size uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, size uiFirstIndex, size uiLastIndex, size uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, size uiFirstIndex, size uiLastIndex, size uiDataSize, size uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, CFileDataIndex cFileIndex, size uiIndexInParent);
+	void					Init(CIndexTree* pcIndexTree, CIndexTreeNodeFile* pcParent, size uiIndexInParent);
 
-	int						InitFromBuffer(void* pvBuffer, int iMaxBufferSize, CIndexTreeFileDataCallback* pcCallback);
+	size					InitFromBuffer(void* pvBuffer, size iMaxBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
-	void					SetFileIndex(int iFile, uint32 uiIndex);
+	void					SetFileIndex(uint32 iFile, uint32 uiIndex);
 	CFileDataIndex*			GetFileIndex(void);
 
-	CIndexTreeChildNode*	Get(uint8 uiIndex);
-	bool					SetFile(uint8 uiIndex, CFileDataIndex cFileNode);
-	bool					SetMemory(uint8 uiIndex, CIndexTreeNodeFile* pcNode);
+	CIndexTreeChildNode*	Get(size uiIndex);
+	bool					SetFile(size uiIndex, CFileDataIndex cFileNode);
+	bool					SetMemory(size uiIndex, CIndexTreeNodeFile* pcNode);
 
-	bool					ClearIndex(uint8 uiIndex);
-	bool					ClearIndexAndUncontain(uint8 uiIndex);
+	bool					ClearIndex(size uiIndex);
+	bool					ClearIndexAndUncontain(size uiIndex);
 
-	CIndexTreeChildNode*	GetNode(int i);
+	CIndexTreeChildNode*	GetNode(size i);
 	CIndexTreeChildNode*	GetNodes(void);
 	CIndexTreeChildNode*	GetFirstNode(void);
-	int						NumValidIndexes(void);
-	int						NumValidMemoryIndexes(void);
+	size					NumValidIndexes(void);
+	size					NumValidMemoryIndexes(void);
 
 	void					RemapChildNodes(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNewNode);
 
-	uint8					FindPrevLastIndex(void);
-	uint8					FindNextFirstIndex(void);
+	size					FindPrevLastIndex(void);
+	size					FindNextFirstIndex(void);
 
 	void					SetChildrensParent(void);
 
-	size_t					CalculateNodeSize(void);
-	size_t					CalculateDataBufferSize(CIndexTreeFileDataCallback* pcCallback);
-	size_t					CalculateFileSize(CIndexTreeFileDataCallback* pcCallback);
-	int						WriteToBuffer(void* pvBuffer, int iBufferSize, CIndexTreeFileDataCallback* pcCallback);
+	size					CalculateNodeSize(void);
+	size					CalculateDataBufferSize(CIndexTreeFileDataCallback* pcCallback);
+	size					CalculateFileSize(CIndexTreeFileDataCallback* pcCallback);
+	size					WriteToBuffer(void* pvBuffer, size iBufferSize, CIndexTreeFileDataCallback* pcCallback);
 
 	bool					HasFile(void);
 	bool					HasOnlyFileNodes(void);
-	bool					HasChildWithFlags(uint8 uiFlags);
+	bool					HasChildWithFlags(size uiFlags);
 	bool					ConvertToFileNode(CIndexTreeNodeFile* pcNode);
 
-	CIndexTreeNodeFile*		GetValidMemoryNode(int iIndex);
+	CIndexTreeNodeFile*		GetValidMemoryNode(size iIndex);
 
 	bool					ValidateNodesEmpty(void);
 	bool					ValidateParent(void);
@@ -62,7 +62,7 @@ public:
 	void					Dump(void);
 
 protected:
-	bool					Uncontain(uint8 uiIndex);
+	bool					Uncontain(size uiIndex);
 };
 
 

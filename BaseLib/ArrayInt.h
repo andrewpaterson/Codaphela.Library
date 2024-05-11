@@ -25,13 +25,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplatePrimitive.h"
 
 
-class CArrayInt : public CArrayTemplatePrimitive<int>
+class CArrayInt : public CArrayTemplatePrimitive<uint32>
 {
 public:
-	void	AddRemap(int iElementPos, int iRemapNum);
-	void 	AddList(int iStop, ...);
-	void	RemoveRemap(int iElementPos);
-	int		FindUnusedInSorted(void);
+	void	AddRemap(uint32 iElementPos, int32 iRemapNum);
+	void 	AddList(int32 iStop, ...);
+	void	RemoveRemap(uint32 iElementPos);
+	uint32	FindUnusedInSorted(void);
 	void	Dump(void);
 };
 

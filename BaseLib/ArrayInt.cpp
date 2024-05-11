@@ -29,31 +29,28 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::AddRemap(int iElementPos, int iRemapNum)
+void CArrayInt::AddRemap(uint32 iElementPos, int32 iRemapNum)
 {
-	int*	pi;
-	int		i;
-	int		iNumToAdd;
-	int		iMinusOne;
+	int32*		pi;
+	uint32		iIndex;
+	uint32		iNumToAdd;
+	uint32		iMinusOne;
 
-	if (iElementPos >= 0)
+	if (miUsedElements > iElementPos)
 	{
-		if (miUsedElements > iElementPos)
-		{
-			pi = (int*)CArrayTemplate<int>::Get(iElementPos);
-			(*pi) = iRemapNum;
-		}
-		else
-		{
-			iMinusOne = -1;
-			iNumToAdd = (iElementPos - miUsedElements);
+		pi = (int32*)CArrayTemplate<uint32>::Get(iElementPos);
+		(*pi) = iRemapNum;
+	}
+	else
+	{
+		iMinusOne = -1;
+		iNumToAdd = (iElementPos - miUsedElements);
 
-			for (i = 0; i < iNumToAdd; i++)
-			{
-				Add(iMinusOne);
-			}
-			Add(iRemapNum);
+		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)
+		{
+			Add(iMinusOne);
 		}
+		Add(iRemapNum);
 	}
 }
 
@@ -62,30 +59,40 @@ void CArrayInt::AddRemap(int iElementPos, int iRemapNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::RemoveRemap(int iElementPos)
+void CArrayInt::RemoveRemap(uint32 iElementPos)
 {
-	int*	pi;
-	int		i;
-	int		iCutDown;
+	int32*	pi;
+	uint32	iIndex;
+	uint32	iCutDown;
 
 	if (iElementPos < miUsedElements)
 	{
-		pi = (int*)CArrayTemplate<int>::Get(iElementPos);
+		pi = (int32*)CArrayTemplate<uint32>::Get(iElementPos);
 		(*pi) = -1;
 	}
 
 	iCutDown = miUsedElements;
-	for (i = miUsedElements-1; i >= 0; i--)
+	iIndex = miUsedElements;
+	if (iIndex != 0)
 	{
-		pi = (int*)CArrayTemplate<int>::Get(iElementPos);
-		if (*pi == -1)
+		do
 		{
-			iCutDown = i;
+			iIndex--;
+			pi = (int32*)CArrayTemplate<uint32>::Get(iElementPos);
+			if (*pi == -1)
+			{
+				iCutDown = iIndex;
+			}
+			else
+			{
+				break;
+			}
+			if (iIndex == 0)
+			{
+				break;
+			}
 		}
-		else
-		{
-			break;
-		}
+		while (iIndex != 0);
 	}
 	if (iCutDown != miUsedElements)
 	{
@@ -98,22 +105,22 @@ void CArrayInt::RemoveRemap(int iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayInt::FindUnusedInSorted(void)
+uint32 CArrayInt::FindUnusedInSorted(void)
 {
-	int		i;
-	int		iValue;
+	uint32		iIndex;
+	int32		iValue;
 
 	if (miUsedElements == 0)
 	{
 		return 0;
 	}
 
-	for (i = 0; i < miUsedElements; i++)
+	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
 	{
-		iValue = *Get(i);
-		if (iValue != i)
+		iValue = *Get(iIndex);
+		if (iValue != iIndex)
 		{
-			return i;
+			return iIndex;
 		}
 	}
 	return miUsedElements;
@@ -124,17 +131,17 @@ int CArrayInt::FindUnusedInSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::AddList(int iStop, ...)
+void CArrayInt::AddList(int32 iStop, ...)
 {
 	va_list		vaMarker;
-	int		iValue;
+	int32		iValue;
 
 	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, int);
+	iValue = va_arg(vaMarker, uint32);
 	while (iValue != iStop)
 	{
 		Add(iValue);
-		iValue = va_arg(vaMarker, int);
+		iValue = va_arg(vaMarker, uint32);
 	}
 	va_end(vaMarker);
 }
@@ -146,15 +153,15 @@ void CArrayInt::AddList(int iStop, ...)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt::Dump(void)
 {
-	int			i;
-	int			iValue;
-	char		sz[32];
+	uint32			iIndex;
+	int32			iValue;
+	char			sz[32];
 
 
 	EngineOutput("[");
-	for (i = 0; i < miUsedElements; i++)
+	for (iIndex = 0; iIndex < miUsedElements; iIndex++)
 	{
-		iValue = GetValue(i);
+		iValue = GetValue(iIndex);
 		IntToString(sz, 32, iValue, 10);
 		EngineOutput(sz);
 		EngineOutput(" ");

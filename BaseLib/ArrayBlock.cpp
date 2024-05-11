@@ -27,7 +27,7 @@ void CArrayBlock::_Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(int iElementSize)
+void CArrayBlock::Init(size iElementSize)
 {
 	Init(&gcSystemAllocator, iElementSize);
 }
@@ -37,7 +37,7 @@ void CArrayBlock::Init(int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize)
+void CArrayBlock::Init(CMallocator* pcMalloc, size iElementSize)
 {
 	Init(pcMalloc, iElementSize, 1);
 }
@@ -47,7 +47,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
+void CArrayBlock::Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize)
 {
 	CMalloc::Init(pcMalloc);
 	mpvArray = NULL;
@@ -62,7 +62,7 @@ void CArrayBlock::Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
+void CArrayBlock::Fake(size iElementSize, void* pvData, size iNum, size iChunkSize)
 {
 	CMalloc::Init(&gcNullAllocator);
 	mpvArray = pvData;
@@ -80,7 +80,7 @@ void CArrayBlock::Fake(int iElementSize, void* pvData, int iNum, int iChunkSize)
 void CArrayBlock::ReInit(void)
 {
 	CMallocator*	pcMalloc;
-	int				iChunkSize;
+	size				iChunkSize;
 
 	pcMalloc = mpcMalloc;
 	iChunkSize = miChunkSize;
@@ -95,15 +95,15 @@ void CArrayBlock::ReInit(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::SafeGet(int iIndex)
+void* CArrayBlock::SafeGet(size iIndex)
 {
-	if ((iIndex < 0) || (iIndex >= miUsedElements))
+	if (iIndex < miUsedElements)
 	{
-		return NULL;
+		return Get(iIndex);
 	}
 	else
 	{
-		return Get(iIndex);
+		return NULL;
 	}
 }
 
@@ -112,16 +112,12 @@ void* CArrayBlock::SafeGet(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::SafeSet(int iIndex, void* pvData)
+bool CArrayBlock::SafeSet(size iIndex, void* pvData)
 {
-	//Fix for virtual in CArrayTemplate
-	int		iOldLength;
+	size		iOldLength;
 
-	if (iIndex < 0)
-	{
-		return false;
-	}
-	else if (iIndex < miUsedElements)
+
+	if (iIndex < miUsedElements)
 	{
 		Set(iIndex, pvData);
 		return true;
@@ -141,9 +137,9 @@ bool CArrayBlock::SafeSet(int iIndex, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::SetUsedElements(int iUsedElements)
+size CArrayBlock::SetUsedElements(size iUsedElements)
 {
-	int	iOldUsedElements;
+	size	iOldUsedElements;
 
 	iOldUsedElements = miUsedElements;
 	SetArraySize(iUsedElements);
@@ -155,7 +151,7 @@ int CArrayBlock::SetUsedElements(int iUsedElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::RemoveAtNoDeallocate(int iIndex)
+size CArrayBlock::RemoveAtNoDeallocate(size iIndex)
 {
 	//This is only used by CConvexHullGenerator.RemoveDiscontiguousTriangles/
 	//It should be removed.
@@ -167,7 +163,7 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::SetChunkSize(int iChunkSize)
+bool CArrayBlock::SetChunkSize(size iChunkSize)
 {
 	if (iChunkSize < miChunkSize)
 	{
@@ -200,11 +196,11 @@ bool CArrayBlock::SetChunkSize(int iChunkSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::SetArraySize(int iNeededElements)
+void CArrayBlock::SetArraySize(size iNeededElements)
 {
-	void*	ptr;
-	int		iNumElements;
-	int		iChunkSize;
+	void*	pv;
+	size	iNumElements;
+	size	iChunkSize;
 
 	if (iNeededElements == 0)
 	{
@@ -223,8 +219,8 @@ void CArrayBlock::SetArraySize(int iNeededElements)
 
 		if (miNumElements != iNumElements)
 		{
-			ptr = (void*)Realloc(mpvArray, miElementSize * iNumElements);
-			mpvArray = ptr;
+			pv = (void*)Realloc(mpvArray, miElementSize * iNumElements);
+			mpvArray = pv;
 			if (mpvArray == NULL)
 			{
 				iNeededElements = 0;
@@ -258,7 +254,7 @@ void* CArrayBlock::Add(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::AddGetIndex(int* piIndex)
+void* CArrayBlock::AddGetIndex(size* piIndex)
 {
 	void* pv;
 
@@ -272,7 +268,7 @@ void* CArrayBlock::AddGetIndex(int* piIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::AddGetIndex(void* pvData)
+size CArrayBlock::AddExistingGetIndex(void* pvData)
 {
 	void* pv;
 
@@ -300,7 +296,7 @@ void* CArrayBlock::Add(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Set(int iIndex, void* pvData)
+void CArrayBlock::Set(size iIndex, void* pvData)
 {
 	void*	pvTemp;
 
@@ -313,12 +309,13 @@ void CArrayBlock::Set(int iIndex, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertAt(int iIndex)  //The new element will be at iIndex
+void* CArrayBlock::InsertAt(size iIndex)
 {
 	void*	pSource;
 	void*	pDest;
 
-	if ((iIndex < 0) || (iIndex > miNumElements))
+	//The new element will be at iIndex
+	if (iIndex > miNumElements)
 	{
 		return NULL;
 	}
@@ -341,13 +338,13 @@ void* CArrayBlock::InsertAt(int iIndex)  //The new element will be at iIndex
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertAt(void* pvData, int iIndex)
+void* CArrayBlock::InsertAt(void* pvData, size iIndex)
 {
-	void* ptr;
+	void* pv;
 
-	ptr = InsertAt(iIndex);
-	memcpy(ptr, pvData, miElementSize);
-	return ptr;
+	pv = InsertAt(iIndex);
+	memcpy(pv, pvData, miElementSize);
+	return pv;
 }
 
 
@@ -355,9 +352,9 @@ void* CArrayBlock::InsertAt(void* pvData, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::PrivateRemoveAt(int iIndex, bool bPreserveOrder, int iDataSize)
+void CArrayBlock::PrivateRemoveAt(size iIndex, bool bPreserveOrder, size iDataSize)
 {
-	if ((iIndex < miUsedElements) && (iIndex >= 0))
+	if (iIndex < miUsedElements)
 	{
 		miUsedElements = RemoveAtNoDeallocate(iIndex, bPreserveOrder, iDataSize);
 
@@ -373,12 +370,12 @@ void CArrayBlock::PrivateRemoveAt(int iIndex, bool bPreserveOrder, int iDataSize
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iDataSize)
+size CArrayBlock::RemoveAtNoDeallocate(size iIndex, bool bPreserveOrder, size iDataSize)
 {
 	void*	pSource;
 	void*	pDest;
 	void*	pEnd;
-	int		iUsedElements;
+	size		iUsedElements;
 
 	iUsedElements = miUsedElements;
 	iUsedElements--;
@@ -409,7 +406,7 @@ int CArrayBlock::RemoveAtNoDeallocate(int iIndex, bool bPreserveOrder, int iData
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveAt(int iIndex, bool bPreserveOrder)
+void CArrayBlock::RemoveAt(size iIndex, bool bPreserveOrder)
 {
 	PrivateRemoveAt(iIndex, bPreserveOrder, miElementSize);
 }
@@ -419,10 +416,10 @@ void CArrayBlock::RemoveAt(int iIndex, bool bPreserveOrder)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder, int iDataSize)
+void CArrayBlock::PrivateRemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder, size iDataSize)
 {
-	int		iNumTrailing;
-	int		iNumToRemove;
+	size		iNumTrailing;
+	size		iNumToRemove;
 	void*	pvEnd;
 	void*	pvStart;
 	void*	pv;
@@ -430,11 +427,6 @@ void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, bo
 	if (iEndIndexExclusive <= iStartIndex)
 	{
 		return;
-	}
-
-	if (iStartIndex < 0)
-	{
-		iStartIndex = 0;
 	}
 
 	if (iEndIndexExclusive >= miUsedElements)
@@ -465,7 +457,7 @@ void CArrayBlock::PrivateRemoveRange(int iStartIndex, int iEndIndexExclusive, bo
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder)
+void CArrayBlock::RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder)
 {
 	PrivateRemoveRange(iStartIndex, iEndIndexExclusive, bPreserveOrder, miElementSize);
 }
@@ -475,16 +467,16 @@ void CArrayBlock::RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPre
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, bool bPreserveOrder)
+void CArrayBlock::RemoveAt(size* paiElementsToDelete, size iNumElementsToDelete, bool bPreserveOrder)
 {
-	int		i;
-	int		iIndex;
-	int		iFirstElementToMove;
-	int		iEndElementToMove;
-	int		iMoved;
-	int		iDestElement;
-	int		iDestOffset;
-	int		iNumDeleted;
+	size		i;
+	size		iIndex;
+	size		iFirstElementToMove;
+	size		iEndElementToMove;
+	size		iMoved;
+	size		iDestElement;
+	size		iDestOffset;
+	size		iNumDeleted;
 
 	//Little gotcha on paiElementsToDelete.  It must be sorted smallest to largest and each value must be unique.
 
@@ -542,10 +534,16 @@ void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, b
 	}
 	else
 	{
-		for (i = iNumElementsToDelete-1; i >= 0; i--)
+		i = iNumElementsToDelete;
+		if (i != 0)
 		{
-			iIndex = paiElementsToDelete[i];
-			RemoveAt(iIndex, false);
+			do
+			{
+				i--;
+				iIndex = paiElementsToDelete[i];
+				RemoveAt(iIndex, false);
+			}
+			while (iNumElementsToDelete != 0);
 		}
 	}
 }
@@ -557,7 +555,7 @@ void CArrayBlock::RemoveAt(int* paiElementsToDelete, int iNumElementsToDelete, b
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlock::RemoveTail(void)
 {
-	if (miUsedElements > 0)
+	if (miUsedElements != 0)
 	{
 		RemoveAt(miUsedElements - 1);
 		return true;
@@ -572,7 +570,7 @@ bool CArrayBlock::RemoveTail(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayBlock::RemoveFirst(void)
 {
-	if (miUsedElements > 0)
+	if (miUsedElements != 0)
 	{
 		RemoveAt(0);
 		return true;
@@ -649,7 +647,7 @@ void* CArrayBlock::PushCopy(void)
 	void*	pDest;
 	void*	pSource;
 
-	if (miUsedElements >= 1)
+	if (miUsedElements > 0)
 	{
 		pDest = Add();
 		pSource = Get(miUsedElements-2);
@@ -683,7 +681,7 @@ bool CArrayBlock::Pop(void* pvDest)
 {
 	void*	pvSource;
 
-	if (miUsedElements > 0)
+	if (miUsedElements != 0)
 	{
 		pvSource = Get(miUsedElements - 1);
 		memcpy(pvDest, pvSource, miElementSize);
@@ -706,7 +704,7 @@ bool CArrayBlock::PopFirst(void* pvDest)
 {
 	void* pvSource;
 
-	if (miUsedElements > 0)
+	if (miUsedElements != 0)
 	{
 		pvSource = Get(0);
 		memcpy(pvDest, pvSource, miElementSize);
@@ -731,7 +729,7 @@ void* CArrayBlock::Tail(void)
 	{
 		return NULL;
 	}
-	return Get(miUsedElements-1);
+	return Get(miUsedElements - 1);
 }
 
 
@@ -740,12 +738,12 @@ void* CArrayBlock::Tail(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::AddIfUnique(void* pvData)
+size CArrayBlock::AddIfUnique(void* pvData)
 {
-	int iElementNum;
+	size iElementNum;
 
 	iElementNum = Find(pvData);
-	if (iElementNum == -1)
+	if (iElementNum == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		Add(pvData);
 	}
@@ -757,9 +755,9 @@ int CArrayBlock::AddIfUnique(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::Find(void* pvData)
+size CArrayBlock::Find(void* pvData)
 {
-	int		i;
+	size	i;
 	void*	pv;
 
 	for (i = 0; i < miUsedElements; i++)
@@ -770,7 +768,7 @@ int CArrayBlock::Find(void* pvData)
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -778,12 +776,12 @@ int CArrayBlock::Find(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::AddIfUniqueKey(void* pvData, int iKeyOffset, int iKeySize)
+size CArrayBlock::AddIfUniqueKey(void* pvData, size iKeyOffset, size iKeySize)
 {
-	int	iElementNum;
+	size	iElementNum;
 
 	iElementNum = FindWithKey(pvData, iKeyOffset, iKeySize);
-	if (iElementNum == -1)
+	if (iElementNum == ARRAY_ELEMENT_NOT_FOUND)
 	{
 		Add(pvData);
 		iElementNum = miUsedElements - 1;
@@ -796,9 +794,9 @@ int CArrayBlock::AddIfUniqueKey(void* pvData, int iKeyOffset, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::FindWithKey(void* pvData, int iKeyOffset, int iKeySize)
+size CArrayBlock::FindWithKey(void* pvData, size iKeyOffset, size iKeySize)
 {
-	int		i;
+	size	i;
 	void*	pIndex;
 	void*	pTest;
 
@@ -813,7 +811,7 @@ int CArrayBlock::FindWithKey(void* pvData, int iKeyOffset, int iKeySize)
 		}
 		pIndex = RemapSinglePointer(pIndex, miElementSize);
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -821,20 +819,20 @@ int CArrayBlock::FindWithKey(void* pvData, int iKeyOffset, int iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CArrayBlock::FindWithIntKey(int iKey)
+size CArrayBlock::FindWithIntKey(size iKey)
 {
-	int		i;
+	size	i;
 	void*	pIndex;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pIndex = Get(i);
-		if (*((int*)pIndex) == iKey)
+		if (*((size*)pIndex) == iKey)
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -842,20 +840,20 @@ int	CArrayBlock::FindWithIntKey(int iKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int	CArrayBlock::FindWithIntKey(int iKey, int iKeyOffset)
+size CArrayBlock::FindWithIntKey(size iKey, size iKeyOffset)
 {
-	int		i;
+	size	i;
 	void*	pIndex;
 
 	for (i = 0; i < miUsedElements; i++)
 	{
 		pIndex = RemapSinglePointer(mpvArray, i * miElementSize + iKeyOffset);
-		if (*((int*)pIndex) == iKey)
+		if (*((size*)pIndex) == iKey)
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -863,7 +861,7 @@ int	CArrayBlock::FindWithIntKey(int iKey, int iKeyOffset)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::Resize(int iNumElements)
+size CArrayBlock::Resize(size iNumElements)
 {
 	return SetUsedElements(iNumElements);
 }
@@ -873,9 +871,9 @@ int CArrayBlock::Resize(int iNumElements)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, bool bClear, uint8 iClear)
+void* CArrayBlock::GrowToAtLeastNumElements(size iNumElements, bool bClear, uint8 iClear)
 {
-	int		iOldUsedElements;
+	size	iOldUsedElements;
 	void*	pvStart;
 
 	if (iNumElements == 0)
@@ -894,11 +892,11 @@ void* CArrayBlock::GrowToAtLeastNumElements(int iNumElements, bool bClear, uint8
 				memset(pvStart, iClear, (iNumElements - iOldUsedElements) * miElementSize);
 			}
 		}
-		return Get(iNumElements-1);
+		return Get(iNumElements - 1);
 	}
 	else
 	{
-		return Get(iNumElements-1);
+		return Get(iNumElements - 1);
 	}
 }
 
@@ -924,7 +922,7 @@ bool CArrayBlock::Equals(CArrayBlock* pcTemplateArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::Swap(int iIndex1, int iIndex2)
+void CArrayBlock::Swap(size iIndex1, size iIndex2)
 {
 	void*	pElement1;
 	void*	pElement2;
@@ -940,9 +938,9 @@ void CArrayBlock::Swap(int iIndex1, int iIndex2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting)
+size CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOverwriteExisting)
 {
-	int		iIndex;
+	size	iIndex;
 	bool	bExists;
 
 	bExists = FindInSorted(pvData, fCompare, &iIndex);
@@ -976,7 +974,7 @@ int CArrayBlock::InsertIntoSorted(DataCompare fCompare, void* pvData, bool bOver
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, int* piIndex)
+bool CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, size* piIndex)
 {
 	if (miUsedElements == 0)
 	{
@@ -991,13 +989,14 @@ bool CArrayBlock::FindInSorted(void* pvData, DataCompare fCompare, int* piIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare fCompare, int* piIndex)
+bool CArrayBlock::BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex)
 {
-	int		iMiddle;
+	size	iMiddle;
 	int		iResultMiddle;
 	void*	pvMiddle;
 
 	iResultMiddle = 0;
+	iMiddle = 0;
 	while (iLeft <= iRight)
 	{
 		iMiddle = (iLeft + iRight) >> 1; //Divide by 2
@@ -1010,6 +1009,10 @@ bool CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare 
 		}
 		else if (iResultMiddle < 0)
 		{
+			if (iMiddle == 0)
+			{
+				break;
+			}
 			iRight = iMiddle - 1;
 		}
 		else
@@ -1036,13 +1039,13 @@ bool CArrayBlock::BinarySearch(void* pvData, int iLeft, int iRight, DataCompare 
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Reverse(void)
 {
-	int	i;
-	int	iCount;
+	size	i;
+	size	iCount;
 
 	iCount = miUsedElements/2;
 	for (i = 0; i < iCount; i++)
 	{
-		Swap(i, miUsedElements-i-1);
+		Swap(i, miUsedElements - i - 1);
 	}
 }
 
@@ -1053,11 +1056,11 @@ void CArrayBlock::Reverse(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::Shuffle(CRandom* pcRandom)
 {
-	int			i;
-	int			iNumElements;
+	size		i;
+	size		iNumElements;
 	CRandom		cRandom;
 	bool		bKillRandom;
-	int			iIndex;
+	size		iIndex;
 
 	bKillRandom = false;
 	if (pcRandom == NULL)
@@ -1087,7 +1090,7 @@ void CArrayBlock::Shuffle(CRandom* pcRandom)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex)
+void* CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, size iIndex)
 {
 	void*	pv;
 
@@ -1104,7 +1107,7 @@ void* CArrayBlock::CopyArrayInto(CArrayBlock* pcTemplateArray, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::CopyBlockInto(void* paElements, int iLength, int iIndex)
+void* CArrayBlock::CopyBlockInto(void* paElements, size iLength, size iIndex)
 {
 	void*	pv;
 
@@ -1120,7 +1123,7 @@ void* CArrayBlock::CopyBlockInto(void* paElements, int iLength, int iIndex)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::InsertArrayAfterEnd(CArrayBlock* pcTemplateArray)
 {
-	int		iArrayIndex;
+	size	iArrayIndex;
 
 	iArrayIndex = AddNum(pcTemplateArray->miUsedElements);
 	return CopyArrayInto(pcTemplateArray, iArrayIndex);
@@ -1142,7 +1145,7 @@ void* CArrayBlock::InsertArrayBeforeStart(CArrayBlock* pcTemplateArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertArrayAt(CArrayBlock* pcTemplateArray, int iIndex)
+void* CArrayBlock::InsertArrayAt(CArrayBlock* pcTemplateArray, size iIndex)
 {
 	InsertNumAt(pcTemplateArray->miUsedElements, iIndex);
 	return CopyArrayInto(pcTemplateArray, iIndex);
@@ -1153,13 +1156,13 @@ void* CArrayBlock::InsertArrayAt(CArrayBlock* pcTemplateArray, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertNumAt(int iNumElements, int iIndex)
+void* CArrayBlock::InsertNumAt(size iNumElements, size iIndex)
 {
 	void*	pvFrom;
 	void*	pvTo;
-	int		iNumToMove;
+	size	iNumToMove;
 
-	if ((iNumElements <= 0) || (iIndex < 0) || (iIndex > miNumElements))
+	if ((iNumElements == 0) || (iIndex > miNumElements))
 	{
 		return NULL;
 	}
@@ -1178,9 +1181,9 @@ void* CArrayBlock::InsertNumAt(int iNumElements, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertBlockAfterEnd(void* paElements, int iLength)
+void* CArrayBlock::InsertBlockAfterEnd(void* paElements, size iLength)
 {
-	int		iArrayIndex;
+	size		iArrayIndex;
 
 	iArrayIndex = AddNum(iLength);
 	return CopyBlockInto(paElements, iLength, iArrayIndex);
@@ -1191,7 +1194,7 @@ void* CArrayBlock::InsertBlockAfterEnd(void* paElements, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertBlockBeforeStart(void* paElements, int iLength)
+void* CArrayBlock::InsertBlockBeforeStart(void* paElements, size iLength)
 {
 	InsertNumAt(iLength, 0);
 	return CopyBlockInto(paElements, iLength, 0);
@@ -1202,7 +1205,7 @@ void* CArrayBlock::InsertBlockBeforeStart(void* paElements, int iLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::InsertBlockAt(void* paElements, int iLength, int iIndex)
+void* CArrayBlock::InsertBlockAt(void* paElements, size iLength, size iIndex)
 {
 	InsertNumAt(iLength, iIndex);
 	return CopyBlockInto(paElements, iLength, iIndex);
@@ -1213,7 +1216,7 @@ void* CArrayBlock::InsertBlockAt(void* paElements, int iLength, int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayBlock::Get(int iIndex)
+void* CArrayBlock::Get(size iIndex)
 {
 	return (void*)RemapSinglePointer(mpvArray, miElementSize * iIndex);
 }
@@ -1223,11 +1226,11 @@ void* CArrayBlock::Get(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::GetAdjustedIndex(int iIndex)
+size CArrayBlock::GetAdjustedIndex(size iIndex)
 {
-	if (iIndex == -1)
+	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		return NumElements()-1;
+		return NumElements() - 1;
 	}
 	return iIndex;
 }
@@ -1237,30 +1240,30 @@ int CArrayBlock::GetAdjustedIndex(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CArrayBlock::GetIndex(void* pvData)
+size CArrayBlock::GetIndex(void* pvData)
 {
-	size_t tIndex;
-	size_t tBase;
-	size_t tDifference;
+	size tIndex;
+	size tBase;
+	size tDifference;
 
-	tBase = (size_t) mpvArray;
-	tIndex = (size_t) pvData;
+	tBase = (size) mpvArray;
+	tIndex = (size) pvData;
 	tDifference = tIndex - tBase;
 
 	//Make sure the element is correctly aligned.
 	if (tDifference % miElementSize != 0)
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
-
+	
 	//Make sure the element lies within the array.
 	tIndex = tDifference / miElementSize;
-	if ((tIndex < 0) || (tIndex >= (size_t)miUsedElements))
+	if (tIndex >= (size)miUsedElements)
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	return (int)tIndex;
+	return (size)tIndex;
 }
 
 
@@ -1268,16 +1271,16 @@ int CArrayBlock::GetIndex(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip)
+void CArrayBlock::RemoveBatch(size iFirstElementPos, size iNumInBatch, size iNumBatches, size iSkip)
 {
-	int		i;
+	size	i;
 	void*	pcFirst;
 	void*	pcSource;
 	void*	pcDest;
-	int		iDest;
-	int		iSource;
-	int		iRemaining;
-	int		iSkipStride;
+	size	iDest;
+	size	iSource;
+	int32	iRemaining;
+	size	iSkipStride;
 
 	pcFirst = Get(iFirstElementPos);
 
@@ -1319,18 +1322,18 @@ void CArrayBlock::RemoveBatch(int iFirstElementPos, int iNumInBatch, int iNumBat
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBatches, int iSkip)
+void CArrayBlock::InsertBatch(size iFirstElementPos, size iNumInBatch, int32 iNumBatches, size iSkip)
 {
-	int		i;
+	size	i;
 	void*	pcFirst;
-	int		iTotalStride;
+	size	iTotalStride;
 	void*	pcSource;
 	void*	pcDest;
-	int		iDest;
-	int		iSource;
-	int		iOldNumElements;
-	int		iRemaining;
-	int		iStride;
+	size	iDest;
+	size	iSource;
+	size	iOldNumElements;
+	size	iRemaining;
+	size	iStride;
 
 	iOldNumElements = AddNum(iNumInBatch * iNumBatches);
 
@@ -1343,55 +1346,93 @@ void CArrayBlock::InsertBatch(int iFirstElementPos, int iNumInBatch, int iNumBat
 	pcDest = RemapSinglePointer(pcFirst, iDest * miElementSize);
 	pcSource = RemapSinglePointer(pcFirst, iSource * miElementSize);
 
-	iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
-
-	if (iRemaining > 0)
+	if (iOldNumElements > iSource)
 	{
-		memcpy(pcDest, pcSource, iRemaining * miElementSize);
+		if ((iOldNumElements - iSource) > iFirstElementPos)
+		{
+			iRemaining = (iOldNumElements - iSource) - iFirstElementPos;
+			memcpy(pcDest, pcSource, iRemaining * miElementSize);
+		}
 	}
 
 	iStride = iSkip * miElementSize;
 	iTotalStride = (iNumInBatch + iSkip) * miElementSize;
 	if (iStride == 1)
 	{
-		for (i = iNumBatches - 2; i >= 0; i--)
+		i = iNumBatches - 1;
+		if (i != 0)
 		{
-			memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			do
+			{
+				i--;
+				memcpy_fast_1byte(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			}
+			while (i != 0);
 		}
 	}
 	else if (iStride == 2)
 	{
-		for (i = iNumBatches - 2; i >= 0; i--)
+		i = iNumBatches - 1;
+		if (i != 0)
 		{
-			memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			do
+			{
+				i--;
+				memcpy_fast_2bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			}
+			while (i != 0);
 		}
 	}
 	else if (iStride == 4)
 	{
-		for (i = iNumBatches - 2; i >= 0; i--)
+		i = iNumBatches - 1;
+		if (i != 0)
 		{
-			memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			do
+			{
+				i--;
+				memcpy_fast_4bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			}
+			while (i != 0);
 		}
 	}
 	else if (iStride == 8)
 	{
-		for (i = iNumBatches - 2; i >= 0; i--)
+		i = iNumBatches - 1;
+		if (i != 0)
 		{
-			memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			do
+			{
+				i--;
+				memcpy_fast_8bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			}
+			while (i != 0);
 		}
 	}
 	else if (iStride == 12)
 	{
-		for (i = iNumBatches - 2; i >= 0; i--)
+		i = iNumBatches - 1;
+		if (i != 0)
 		{
-			memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			do
+			{
+				i--;
+				memcpy_fast_12bytes(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i));
+			}
+			while (i != 0);
 		}
 	}
 	else
 	{
-		for (i = iNumBatches - 2; i >= 0; i--)
+		i = iNumBatches - 1;
+		if (i != 0)
 		{
-			memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
+			do
+			{
+				i--;
+				memcpy(RemapSinglePointer(pcFirst, iTotalStride * (i + 1) - iStride), RemapSinglePointer(pcFirst, iStride * i), iStride);
+			}
+			while (i != 0);
 		}
 	}
 }
@@ -1561,20 +1602,21 @@ bool CArrayBlock::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayBlock::Push(void) { return Add(); }
 bool CArrayBlock::PopFirst(void) { return RemoveFirst(); }
-int CArrayBlock::ByteSize() { return miUsedElements * miElementSize; }
+size CArrayBlock::ByteSize() { return miUsedElements * miElementSize; }
 bool CArrayBlock::Pop(void) { return RemoveTail(); }
-bool CArrayBlock::Contains(void* pvData) { return Find(pvData) >= 0; }
+bool CArrayBlock::Contains(void* pvData) { return Find(pvData) != ARRAY_ELEMENT_NOT_FOUND; }
 void CArrayBlock::BubbleSort(DataCompare fCompare) { ::BubbleSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void CArrayBlock::QuickSort(DataCompare fCompare) { ::QuickSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void CArrayBlock::TimSort(DataCompare fCompare) { ::TimSort(fCompare, mpvArray, miElementSize, miUsedElements); }
 void* CArrayBlock::GetData(void) { return mpvArray; }
-int CArrayBlock::ChunkSize(void) { return miChunkSize; }
-int CArrayBlock::AddNum(int iNumElements) { return SetUsedElements(iNumElements + miUsedElements); }
-void CArrayBlock::FakeSetUsedElements(int iUsedElements) { miUsedElements = iUsedElements; }
-void CArrayBlock::SetAllocateSize(int iSize) { miChunkSize = iSize; }
-int CArrayBlock::ElementSize(void) { return miElementSize; }
-int CArrayBlock::NumElements(void) { return miUsedElements; }
-int CArrayBlock::AllocatedElements(void) { return miNumElements; }
+size CArrayBlock::ChunkSize(void) { return miChunkSize; }
+size CArrayBlock::AddNum(size iNumElements) { return SetUsedElements(miUsedElements + iNumElements); }
+size CArrayBlock::RemoveNum(size iNumElements) { return SetUsedElements(miUsedElements - iNumElements); }
+void CArrayBlock::FakeSetUsedElements(size iUsedElements) { miUsedElements = iUsedElements; }
+void CArrayBlock::SetAllocateSize(size iSize) { miChunkSize = iSize; }
+size CArrayBlock::ElementSize(void) { return miElementSize; }
+size CArrayBlock::NumElements(void) { return miUsedElements; }
+size CArrayBlock::AllocatedElements(void) { return miNumElements; }
 bool CArrayBlock::IsEmpty(void) { return miUsedElements == 0; }
 bool CArrayBlock::IsNotEmpty(void) { return miUsedElements != 0; }
 

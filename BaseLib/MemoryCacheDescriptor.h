@@ -1,12 +1,13 @@
 #ifndef __MEMORY_CACHE_DESCRIPTOR_H__
 #define __MEMORY_CACHE_DESCRIPTOR_H__
+#include "PrimitiveTypes.h"
 
 
 struct SMemoryCacheDescriptor
 {
 	SMemoryCacheDescriptor* psNext;
 	SMemoryCacheDescriptor* psPrev;
-	size_t					uiSize;  //Not including the sizeof this.
+	size					uiSize;  //Not including the sizeof this.
 };
 
 

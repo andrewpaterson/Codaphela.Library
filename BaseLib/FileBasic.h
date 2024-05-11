@@ -57,8 +57,8 @@ public:
 	char*		GetFilename(void);
 
 	//Generally you shouldn't use these.  Use WriteData instead.
-	filePos		Write(const void* pvSource, filePos iSize, filePos iCount);
-	filePos		Read(void* pvDest, filePos iSize, filePos iCount);
+	size		Write(const void* pvSource, size iSize, size iCount);
+	size		Read(void* pvDest, size iSize, size iCount);
 };
 
 

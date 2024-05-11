@@ -44,7 +44,7 @@ int GetPow2DigitsToPow10Digits(int iPow2)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
 	uint8*		pui;
 	INTEGER		iMantissa;
@@ -171,7 +171,7 @@ char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecim
 				if (iIndex >= 0)
 				{
 					iLength = sz.Length();
-					sz.Append('0', (iMaxDecimals - (iLength - iIndex)) + 1);
+					sz.Append('0', (size)((iMaxDecimals - (iLength - iIndex)) + 1));
 				}
 			}
 			else
@@ -196,7 +196,7 @@ char* NormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecim
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {
 	uint8*		pui;
 	INTEGER		iMantissa;
@@ -308,7 +308,7 @@ char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDe
 				if (iIndex >= 0)
 				{
 					iLength = sz.Length();
-					sz.Append('0', (iMaxDecimals - (iLength - iIndex)) + 1);
+					sz.Append('0', (size)((iMaxDecimals - (iLength - iIndex)) + 1));
 				}
 			}
 			else
@@ -333,7 +333,7 @@ char* SubnormalNumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDe
 //
 //////////////////////////////////////////////////////////////////////////
 template<class FLOAT, class INTEGER>
-char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
+char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, bool bAppendType, char* szType, INTEGER iNegativeBit, INTEGER iMantissaMask, INTEGER iFirstMantisaBit, INTEGER iExponentMask, int iExponentShift, int iReservedExponent, int iExponentBias, int iMaxSignificantDigits)
 {	
 	uint8*		pui;
 	INTEGER		iMantissa;
@@ -382,7 +382,7 @@ char* NumberToString(char* szDest, int iDestLength, FLOAT f, int iMaxDecimals, b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, bool bAppendType)
+char* FloatToString(char* szDest, size iDestLength, float f, int iMaxDecimals, bool bAppendType)
 {
 	return NumberToString<float, int>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "f", 0x80000000, 0x7fffff, 0x800000, 0x7f800000, 23, 255, 127, 9);
 }
@@ -392,7 +392,7 @@ char* FloatToString(char* szDest, int iDestLength, float f, int iMaxDecimals, bo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* DoubleToString(char* szDest, int iDestLength, double f, int iMaxDecimals, bool bAppendType)
+char* DoubleToString(char* szDest, size iDestLength, double f, int iMaxDecimals, bool bAppendType)
 {
 	return NumberToString<double, int64>(szDest, iDestLength, f, iMaxDecimals, bAppendType, "", 0x8000000000000000, 0xfffffffffffff, 0x10000000000000, 0x7ff0000000000000, 52, 0x7ff, 1023, 17);
 }

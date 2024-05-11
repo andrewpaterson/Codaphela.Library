@@ -5,10 +5,10 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayChar::AddList(int iStop, ...)
+void CArrayChar::AddList(char iStop, ...)
 {
 	va_list		vaMarker;
-	int		iValue;
+	char			iValue;
 
 	va_start(vaMarker, iStop);
 	iValue = va_arg(vaMarker, int);

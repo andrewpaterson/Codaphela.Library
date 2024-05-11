@@ -3,9 +3,9 @@
 #include "GlobalMemory.h"
 
 
-CMallocators			gcMallocators;
-CConstructors			gcConstructors;
-bool					gbMemory = false;
+CMallocators	gcMallocators;
+CConstructors	gcConstructors;
+bool			gbMemory = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -31,7 +31,7 @@ void MemoryInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void MemoryInit(int iDefaultAlignment, bool bDefaultFreeListParams)
+void MemoryInit(uint16 iDefaultAlignment, bool bDefaultFreeListParams)
 {
 	if (gbMemory)
 	{

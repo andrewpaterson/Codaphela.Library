@@ -48,7 +48,7 @@ bool CFiles::Init(char* szDirectory, char* szPackFilesExtension)
 //////////////////////////////////////////////////////////////////////////
 void CFiles::Kill(void)
 {
-	int					i;
+	uint32				i;
 	CPackFileOffset*	pcPackFiles;
 	
 	mszPackFilesExtension.Kill();
@@ -74,9 +74,9 @@ bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 	char*						szFullName;
 	CChars						szPackFileOffset;
 	CChars*						pszFullDirectory;
-	int							iLength;
+	size						iLength;
 	bool						bResult;
-	int							iRank;
+	uint32						iRank;
 
 	pszFullDirectory = mcFileSystem.GetFullDirectoryName();
 	iLength = mszPackFilesExtension.Length()+1;
@@ -106,7 +106,7 @@ bool CFiles::AddPackFile(CFileNodeSystemFile* pcFileNodeSystemFile)
 bool CFiles::AddPackFiles(void)
 {
 	CArraySystemFilePtrs		aFileNodePtrs;
-	int							i;
+	uint32						i;
 	CFileNodeSystemFile*		pcFileNodeSystemFile;
 	bool						bResult;
 
@@ -162,7 +162,7 @@ int ComparePackFileOffset(const void* arg1, const void* arg2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFiles::GetNumPackFiles(void)
+size CFiles::GetNumPackFiles(void)
 {
 	return mcPackFilesArray.NumElements();
 }
@@ -228,7 +228,7 @@ CDiskFile* CFiles::GetSystemFile(char* szFullName)
 CPackFile* CFiles::GetPackFile(char* szFullName)
 {
 	CPackFileOffset*	pcPackFiles;
-	int					i;
+	size				i;
 	CChars				sz;
 	bool				bResult;
 	CPackFile*			pcPackFile;
@@ -285,13 +285,13 @@ void CFiles::GetFilenames(CMapStringInt* pcFilenames)
 {
 	CFileIterator			cIter;
 	CFileIteratorReturn*	pcReturn;
-	int*					piValue;
-	int						iRank;
+	uint32*					piValue;
+	uint32					iRank;
 
 	pcReturn = StartIteration(&cIter);
 	while (pcReturn)
 	{
-		piValue = pcFilenames->CMapStringTemplate::Get(pcReturn->GetFullName());
+		piValue = (uint32*)pcFilenames->CMapStringTemplate::Get(pcReturn->GetFullName());
 		if (!piValue)
 		{
 			iRank = pcReturn->GetFileRank() << 16;
@@ -467,7 +467,7 @@ void CFiles::StopIteration(CFileIterator* pcIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackFiles* CFiles::GetPackFiles(int iIndex)
+CPackFiles* CFiles::GetPackFiles(size iIndex)
 {
 	CPackFileOffset*	pcOffset;
 

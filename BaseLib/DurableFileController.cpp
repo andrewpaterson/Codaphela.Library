@@ -160,8 +160,8 @@ bool CDurableFileController::Begin(void)
 bool CDurableFileController::Begin(CDurableFile* pcFirst, ...)
 {
 	va_list			vaMarker;
-	CDurableFile* pc;
-	int				iCount;
+	CDurableFile*	pc;
+	size			iCount;
 
 	iCount = 0;
 	pc = pcFirst;
@@ -195,12 +195,12 @@ bool CDurableFileController::End(void)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 {
-	uint32	uiFileCount;
+	uint32			uiFileCount;
 	bool			bResult;
 	SMapIterator	sIter;
 	bool			bExists;
 	char*			pcName;
-	int*			piWriteOrRewrite;
+	int32*			piWriteOrRewrite;
 
 	pcFile->Truncate(0);
 
@@ -231,15 +231,15 @@ bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 {
-	uint32	uiFileMagic;
+	uint32			uiFileMagic;
 	bool			bRead;
-	uint32	uiFileNumber;
-	uint32	uiFileCount;
+	uint32			uiFileNumber;
+	uint32			uiFileCount;
 	bool			bResult;
 	CStackMemory<>	cStack;
-	int				iFilenameLength;
+	size			iFilenameLength;
 	char*			szFilename;
-	int				iWriteOrRewrite;
+	int32			iWriteOrRewrite; 
 	
 	uiFileCount = 0;
 	bRead = pcFile->ReadInt(&uiFileMagic);
@@ -300,7 +300,7 @@ bool CDurableFileController::Recover(CDurableFile* pcFirst, ...)
 {
 	va_list			vaMarker;
 	CDurableFile*	pc;
-	int				iCount;
+	size			iCount;
 
 	iCount = 0;
 	pc = pcFirst;
@@ -342,7 +342,7 @@ bool CDurableFileController::AddFile(CDurableFile* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDurableFileController::NumFiles(void)
+size CDurableFileController::NumFiles(void)
 {
 	return mcDurableSet.Num();
 }
@@ -352,7 +352,7 @@ int CDurableFileController::NumFiles(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CDurableFile* CDurableFileController::GetFile(int iIndex)
+CDurableFile* CDurableFileController::GetFile(size iIndex)
 {
 	return mcDurableSet.Get(iIndex);
 }

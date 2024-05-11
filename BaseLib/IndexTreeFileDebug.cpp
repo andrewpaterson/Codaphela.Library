@@ -7,25 +7,25 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFile, uint32 uiIndex)
+int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, size uiBufferSize, uint32 uiFileIndex, uint32 uiIndexInFile)
 {
 	uint8*	pucMemory;
 	int		iPos;
-	int		iFileSize;
-	int		iFileDataSize;
+	uint32	uiFileSize;
+	uint32	iFileDataSize;
 	int		iNumCleared;
-	int		i;
+	size	i;
 
 	memset(this, 0, sizeof(SIndexTreeDebugNode));
-	iFileNumber = iFile;
-	uiIndexInFile = uiIndex;
-	iFileNodeSize = iBufferSize;
+	this->uiFileIndex = uiFileIndex;
+	this->uiIndexInFile = uiIndexInFile;
+	this->iFileNodeSize = (uint16)uiBufferSize;
 
 	pucMemory = (uint8*)pvBuffer;
 	iPos = 0;
 
 	iNumCleared = 0;
-	for (i = 0; i < iBufferSize; i++)
+	for (i = 0; i < uiBufferSize; i++)
 	{
 		if (((char*)pvBuffer)[i] == INDEX_FILE_EMPTY_CHAR)
 		{
@@ -33,20 +33,20 @@ int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFi
 		}
 	}
 
-	if (iNumCleared == iBufferSize)
+	if (iNumCleared == uiBufferSize)
 	{
 		bEmpty = true;
 		return -1;
 	}
 
-	iFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
-	if (iBufferSize != iFileSize)
+	uiFileSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(uint32);
+	if (uiBufferSize != uiFileSize)
 	{
-		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(iBufferSize), "] did not match node size in file [", IntToString(iFileSize), "].", NULL);
+		gcLogger.Error2(__METHOD__, " Node buffer size [", IntToString(uiBufferSize), "] did not match node size in file [", IntToString(uiFileSize), "].", NULL);
 		return -1;
 	}
 
-	iFileDataSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(int);
+	iFileDataSize = *((int*)&pucMemory[iPos]);  iPos += sizeof(uint32);
 	uiDataSize = *((uint16*)&pucMemory[iPos]);  iPos += sizeof(uint16);
 
 	uiFirstIndex = pucMemory[iPos];  iPos++;
@@ -62,12 +62,12 @@ int SIndexTreeDebugNode::InitFromBuffer(void* pvBuffer, int iBufferSize, int iFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SIndexTreeDebugNode::InitBroken(uint8 uiIndexInParent)
+void SIndexTreeDebugNode::InitBroken(size uiIndexInParent)
 {
 	memset(this, 0, sizeof(SIndexTreeDebugNode));
-	iFileNumber = -1;
-	uiIndexInFile = -1;
-	this->uiIndexInParent = uiIndexInParent;
+	uiFileIndex = MAX_UINT;
+	uiIndexInFile = MAX_UINT;
+	this->uiIndexInParent = (uint8)uiIndexInParent;
 }
 
 
@@ -78,7 +78,7 @@ void SIndexTreeDebugNode::InitBroken(uint8 uiIndexInParent)
 void SIndexTreeDebugNode::Print(CChars* sz)
 {
 	sz->Append("FileNumber[");
-	sz->Append(iFileNumber);
+	sz->Append(uiFileIndex);
 	sz->Append("], ");
 
 	sz->Append("IndexInFile[");

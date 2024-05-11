@@ -40,7 +40,7 @@ public:
 	void 	Init(CMarkupSubText* pcRef, CMarkupTag* pcParent);
 	void 	Kill(void);
 
-	int		Print(CChars* psz, int iDepth, int iLine);
+	uint32	Print(CChars* psz, uint32 iDepth, uint32 iLine);
 };
 
 
@@ -50,12 +50,12 @@ class CMarkupRefDoc : public CMarkupReference
 public:
 	CMarkupSubDoc*	mpcRef;
 
-	void 	Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
-	void 	Kill(void);
+	void 			Init(CMarkupSubDoc* pcRef, CMarkupTag* pcParent);
+	void 			Kill(void);
 
-	bool		Is(char* szName);
-	CMarkupTag*	GetRootTag(void);
-	int			Print(CChars* psz, int iDepth, int iLine);
+	bool			Is(char* szName);
+	CMarkupTag*		GetRootTag(void);
+	uint32			Print(CChars* psz, uint32 iDepth, uint32 iLine);
 };
 
 
@@ -64,10 +64,10 @@ class CMarkupNamedRef : public CMarkupReference
 public:
 	CChars	mszName;
 
-	void 	Init(char* szName, CMarkupTag* pcParent);
-	void 	Kill(void);
+	void 		Init(char* szName, CMarkupTag* pcParent);
+	void 		Kill(void);
 
-	int		Print(CChars* psz, int iDepth, int iLine);
+	uint32		Print(CChars* psz, uint32 iDepth, uint32 iLine);
 };
 
 

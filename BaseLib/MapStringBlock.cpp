@@ -20,10 +20,10 @@ void CMapStringBlock::Init(bool bCaseSensitive, bool bOverwrite)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringBlock::Init(CMallocator* pcMalloc, bool bCaseSensitive, bool bOverwrite)
 {
-	DataCompare	CaseFunc;
+	DataCompare	fCaseFunc;
 
-	CaseFunc = CalculateCompareFunc(bCaseSensitive);
-	CMapBlock::Init(pcMalloc, CaseFunc, bOverwrite);
+	fCaseFunc = CalculateCompareFunc(bCaseSensitive);
+	CMapBlock::Init(pcMalloc, fCaseFunc, bOverwrite);
 }
 
 
@@ -44,7 +44,7 @@ void CMapStringBlock::Kill(void)
 void* CMapStringBlock::Get(const char* szKey)
 {
 	void*	pvData;
-	int		iStrLen;
+	size		iStrLen;
 
 	if (!szKey)
 	{
@@ -61,11 +61,11 @@ void* CMapStringBlock::Get(const char* szKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Get(const char* szKey, int* piDataSize)
+void* CMapStringBlock::Get(const char* szKey, size* piDataSize)
 {
 	void*	pvData;
 	bool	bFound;
-	int		iStrLen;
+	size	iStrLen;
 
 	if (!szKey)
 	{
@@ -89,10 +89,10 @@ void* CMapStringBlock::Get(const char* szKey, int* piDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Put(char* szKey, int iDataSize)
+void* CMapStringBlock::Put(char* szKey, size iDataSize)
 {
 	void*	pvData;
-	int		iStrLen;
+	size		iStrLen;
 
 	if (StrEmpty(szKey))
 	{
@@ -109,9 +109,9 @@ void* CMapStringBlock::Put(char* szKey, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(char* szKey, void* psData, int iDataSize)
+bool CMapStringBlock::Put(char* szKey, void* psData, size iDataSize)
 {
-	int	iStrLen;
+	size	iStrLen;
 
 	if (StrEmpty(szKey))
 	{
@@ -122,11 +122,12 @@ bool CMapStringBlock::Put(char* szKey, void* psData, int iDataSize)
 	return CMapBlock::Put(szKey, iStrLen, psData, iDataSize);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMapStringBlock::Put(const char* szKey, int iDataSize)
+void* CMapStringBlock::Put(const char* szKey, size iDataSize)
 {
 	return Put((char*)szKey, iDataSize);
 }
@@ -136,7 +137,7 @@ void* CMapStringBlock::Put(const char* szKey, int iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringBlock::Put(const char* szKey, void* psData, int iDataSize)
+bool CMapStringBlock::Put(const char* szKey, void* psData, size iDataSize)
 {
 	return Put((char*)szKey, psData, iDataSize);
 }
@@ -148,7 +149,7 @@ bool CMapStringBlock::Put(const char* szKey, void* psData, int iDataSize)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringBlock::Remove(char* szKey)
 {
-	int	iStrLen;
+	size	iStrLen;
 
 	if (StrEmpty(szKey))
 	{
@@ -175,7 +176,7 @@ bool CMapStringBlock::Remove(const char* szKey)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringBlock::HasKey(char* szKey)
 {
-	int	iStrLen;
+	size	iStrLen;
 
 	if (StrEmpty(szKey))
 	{
@@ -232,15 +233,15 @@ bool CMapStringBlock::Write(CFileWriter* pcFileWriter)
 DataCompare CMapStringBlock::ReadCaseSensitivity(CFileReader* pcFileReader)
 {
 	bool			bCaseSensitive;
-	DataCompare		CaseFunc;
+	DataCompare		fCaseFunc;
 
 	if (!pcFileReader->ReadBool(&bCaseSensitive))
 	{
 		return NULL;
 	}
 
-	CaseFunc = CalculateCompareFunc(bCaseSensitive);
-	return CaseFunc;
+	fCaseFunc = CalculateCompareFunc(bCaseSensitive);
+	return fCaseFunc;
 }
 
 
@@ -252,11 +253,15 @@ bool CMapStringBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	DataCompare		CaseFunc;
+	DataCompare		fCaseFunc;
 	bool			bResult;
 
-	CaseFunc = ReadCaseSensitivity(pcFileReader);
-	bResult = CMapBlock::Read(pcFileReader, CaseFunc);
+	fCaseFunc = ReadCaseSensitivity(pcFileReader);
+	if (fCaseFunc == NULL)
+	{
+		return false;
+	}
+	bResult = CMapBlock::Read(pcFileReader, fCaseFunc);
 	return bResult;
 }
 
@@ -335,7 +340,7 @@ void CMapStringBlock::GetKeysAsString(CChars* pszDest, char* szSeparator)
 {
 	SMapIterator	sIter;
 	char*			szKey;
-	int				iStrLen;
+	size				iStrLen;
 	bool			bHasNext;
 	bool			bFirst;
 

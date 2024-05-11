@@ -60,8 +60,8 @@ public:
 	bool			IsFlushed(void);
 
 	int64			NumIndices(void);
-	int64			NumIndicesCached(void);
-	int64			NumIndicesCached(size_t iSize);
+	size			NumIndicesCached(void);
+	size			NumIndicesCached(size iSize);
 
 	bool			IsDirty(OIndex oi);
 	bool			EvictKey(OIndex oi);
@@ -70,17 +70,17 @@ public:
 	bool			FlushKey(OIndex oi);
 
 	CDurableFileController* GetDurableFileControl(void);
-	size_t			GetIndiciesSystemMemorySize(void);
-	size_t			GetDataSystemMemorySize(void);
-	uint8			GetRootFlags(void);
+	size			GetIndiciesSystemMemorySize(void);
+	size			GetDataSystemMemorySize(void);
+	size			GetRootFlags(void);
 
 	void			DumpIndex(void);
 	bool			ValidateIndex(void);
 	bool			ValidateConfigInitialised(void);
 	bool			ValidateConfigKilled(void);
 
-	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size_t* piDataSize, size_t iMaxDataSize);
-	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, size_t* piDataSize, size_t iMaxDataSize);
+	OIndex 			StartIteration(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
+	OIndex			Iterate(SIndexTreeFileIterator* psIterator, void* ppvData, size* piDataSize, size iMaxDataSize);
 
 protected:
 	bool			GetDescriptor(OIndex oi, CIndexedDataDescriptor* pcDescriptor, bool bNoEviction = false);
