@@ -145,7 +145,7 @@ uint8 FatCalculateClusterSize(uint8 fs_type, uint32 uiTotalSectors, char forced_
 //////////////////////////////////////////////////////////////////////////
 void SetFatVolumeLabel(char* szDestination, char* szVolumeLabel)
 {
-	size_t	c;
+	size	c;
 	uint8	i;
 
 	c = strlen(szVolumeLabel);

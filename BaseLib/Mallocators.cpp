@@ -59,7 +59,7 @@ bool CMallocators::Add(CMallocator* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 {
-	uint32				iLength;
+	size				iLength;
 	char				szShortName[1024];
 	CMallocator**		ppcMallocator;
 	CLocalMallocator*	pcLocalMallocator;
@@ -76,7 +76,7 @@ CMallocator* CMallocators::Read(CFileReader* pcFileReader)
 		return false;
 	}
 
-	if ((iLength < 0 || iLength >= 1024))
+	if (iLength >= 1024)
 	{
 		gcLogger.Error2(__METHOD__, " Could not read mallocator name, too long [", IntToString(iLength), "].", NULL);
 	}

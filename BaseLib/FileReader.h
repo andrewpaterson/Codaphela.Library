@@ -45,10 +45,11 @@ public:
 						bool	ReadByte(uint8* pi);
 						bool	ReadShort(int16* pi);
 						bool	ReadShort(uint16* pi);
-						bool	ReadInt(int32* pi);
-						bool	ReadInt(uint32* pi);
+						bool	ReadInt32(int32* pi);
+						bool	ReadInt32(uint32* pi);
 						bool	ReadLong(int64* plli);
 						bool	ReadLong(uint64* plli);
+						bool	ReadInt(int* pi);
 						bool	ReadSize(size* pui);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);

@@ -38,7 +38,7 @@ class CMarkupSubstitute : public CKillable
 public:
 	CChars					mszName;
 	EMarkupSubstituteType	meType;
-	int						miReferences;
+	size					miReferences;
 
 			void Init(char* szName, EMarkupSubstituteType eType);
 			void Kill(void);

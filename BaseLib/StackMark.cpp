@@ -27,22 +27,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SStackMark::Init(int iUsedMemory, int iElements)
+void SStackMark::Init(size iUsedMemory, size iElements)
 {
 	miUsedMemory = iUsedMemory;
 	miElements = iElements;
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackMarkExtended::Init(int iElements)
+void CStackMarkExtended::Init(size iElements)
 {
 	mcMarks.Init();
-	miElements = iElements;
+	muiElements = iElements;
 }
 
 

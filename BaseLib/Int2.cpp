@@ -127,8 +127,8 @@ void SInt2::Zero(void)
 //////////////////////////////////////////////////////////////////////////
 bool SInt2::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(x));
-	ReturnOnFalse(pcFile->WriteInt(y));
+	ReturnOnFalse(pcFile->WriteInt32(x));
+	ReturnOnFalse(pcFile->WriteInt32(y));
 	return true;
 }
 
@@ -139,8 +139,8 @@ bool SInt2::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool SInt2::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt(&x));
-	ReturnOnFalse(pcFile->ReadInt(&y));
+	ReturnOnFalse(pcFile->ReadInt32(&x));
+	ReturnOnFalse(pcFile->ReadInt32(&y));
 	return true;
 }
 

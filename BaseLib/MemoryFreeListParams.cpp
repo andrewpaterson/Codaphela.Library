@@ -168,14 +168,14 @@ SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParams(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size iElementSize)
+SMemoryFreeListParams* CMemoryFreeListParams::GetFreeListParamsForSize(size uiElementSize)
 {
 	size					iIndex;
 	SMemoryFreeListParams*	psParams;
 
-	if ((iElementSize > 0) && (iElementSize <= muiFreeListSizeLimit))
+	if ((uiElementSize != 0) && (uiElementSize <= muiFreeListSizeLimit))
 	{
-		mcParams.FindInSorted((SMemoryFreeListParams*)&iElementSize, CompareFreeListParam, &iIndex);
+		mcParams.FindInSorted((SMemoryFreeListParams*)&uiElementSize, CompareFreeListParam, &iIndex);
 		psParams = mcParams.Get(iIndex);
 		return psParams;
 	}

@@ -249,7 +249,7 @@ size CDiskFile::Read(void* pvBuffer, size iSize, size iCount)
 	if (IsOpen())
 	{
 		iByteLength = iSize * iCount;
-		if (iByteLength <= MAX_UINT)
+		if (iByteLength <= SIZE_MAX)
 		{
 			uiTruncatedLength = iByteLength;
 		}

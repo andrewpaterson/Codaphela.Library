@@ -208,10 +208,10 @@ bool CDurableFileController::WriteControlledFileList(CDurableFile* pcFile)
 	bExists = mcNameMap.StartIteration(&sIter, (void**)&pcName, NULL, (void**)&piWriteOrRewrite, NULL);
 	while (bExists)
 	{
-		bResult = pcFile->WriteInt(DURABLE_FILE_MAGIC);
-		bResult &= pcFile->WriteInt(uiFileCount);
+		bResult = pcFile->WriteInt32(DURABLE_FILE_MAGIC);
+		bResult &= pcFile->WriteInt32(uiFileCount);
 		bResult &= pcFile->WriteString(pcName);
-		bResult &= pcFile->WriteInt(*piWriteOrRewrite);
+		bResult &= pcFile->WriteInt32(*piWriteOrRewrite);
 
 		if (!bResult)
 		{
@@ -242,7 +242,7 @@ bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 	int32			iWriteOrRewrite; 
 	
 	uiFileCount = 0;
-	bRead = pcFile->ReadInt(&uiFileMagic);
+	bRead = pcFile->ReadInt32(&uiFileMagic);
 	while (bRead)
 	{
 		if (uiFileMagic != DURABLE_FILE_MAGIC)
@@ -251,7 +251,7 @@ bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 		}
 		
 		uiFileNumber = -1;
-		bResult = pcFile->ReadInt(&uiFileNumber);
+		bResult = pcFile->ReadInt32(&uiFileNumber);
 		if (uiFileNumber != uiFileCount)
 		{
 			return gcLogger.Error2(__METHOD__, " File list is corrupt.  Expected to read file number [", IntToString(uiFileCount), "] but read number [", IntToString(uiFileNumber), "].", NULL);
@@ -265,7 +265,7 @@ bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 			bResult = pcFile->ReadStringChars(szFilename, iFilenameLength);
 			if (bResult)
 			{
-				bResult = pcFile->ReadInt(&iWriteOrRewrite);
+				bResult = pcFile->ReadInt32(&iWriteOrRewrite);
 				mcNameMap.Put(szFilename, iWriteOrRewrite);
 			}
 			cStack.Kill();
@@ -276,7 +276,7 @@ bool CDurableFileController::ReadControlledFileList(CDurableFile* pcFile)
 		}
 
 		//Uh... why did this not loop?
-		bRead = pcFile->ReadInt(&uiFileMagic);
+		bRead = pcFile->ReadInt32(&uiFileMagic);
 	}
 	return true;
 }

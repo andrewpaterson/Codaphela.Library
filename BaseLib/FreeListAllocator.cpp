@@ -117,7 +117,7 @@ bool CFreeListAllocator::Read(CFileReader* pcFileReader)
 		return false;
 	}
 
-	mcFreeList.Init(sParams.iElementSize, sParams.iAlignment, sParams.iOffset);
+	mcFreeList.Init(sParams.uiElementSize, sParams.uiAlignment, sParams.iOffset);
 	return true;
 }
 

@@ -29,14 +29,14 @@ class CCSVHelper
 {
 public:
 	CCSVFileImmutable	mcFile;
-	int					miLine;
+	size				miLine;
 
 	void 	Init(char* szFilename, char cSeparator);
 	void 	Kill(void);
 
-	int		GetColumnIndex(char* szName);
-	char*	Get(int iRow, int iColumn);
-	int		NumRows(void);
+	size	GetColumnIndex(char* szName);
+	char*	Get(size iRow, size iColumn);
+	size	NumRows(void);
 };
 
 

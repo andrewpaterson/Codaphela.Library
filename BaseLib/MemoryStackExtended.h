@@ -34,8 +34,8 @@ class CMemoryStackExtended
 {
 protected:
 	CArrayMemoryStacks	mcStacks;
-	size				miChunkSize;
-	size				miElements;
+	size				muiChunkSize;
+	size				muiElements;
 
 public:
 	void			Init(size iChunkSize);

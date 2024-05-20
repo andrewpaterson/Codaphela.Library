@@ -148,7 +148,7 @@ bool CFatInfoSectorCache::ValidateTimeStamp(SFatCache sSectorCache)
 CFatSectorCache* CFatInfoSectorCache::AddNewCache(void)
 {
 	CFatSectorCache*	pcSectorCache;
-	size_t				uiSize;
+	size				uiSize;
 
 	uiSize = sizeof(CFatSectorCache) + muiSectorSize;
 	pcSectorCache = (CFatSectorCache*)mllcCachedSectors.Add(uiSize);

@@ -30,20 +30,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountCarriageReturns(char* szString, size iLen)
+size CountCarriageReturns(char* szString, size uiLen)
 {
 	size	i;
-	size	iNumCarriageReturns;
+	size	uiNumCarriageReturns;
 
-	iNumCarriageReturns = 0;
-	for (i = 0; i < iLen; i++)
+	uiNumCarriageReturns = 0;
+	for (i = 0; i < uiLen; i++)
 	{
 		if (szString[i] == '\r')
 		{
-			iNumCarriageReturns++;
+			uiNumCarriageReturns++;
 		}
 	}
-	return iNumCarriageReturns;
+	return uiNumCarriageReturns;
 }
 
 
@@ -51,13 +51,13 @@ size CountCarriageReturns(char* szString, size iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountLineFeeds(char* szString, size iLen)
+size CountLineFeeds(char* szString, size uiLen)
 {
 	size	i;
 	size	iNumLineFeeds;
 
 	iNumLineFeeds = 0;
-	for (i = 0; i < iLen; i++)
+	for (i = 0; i < uiLen; i++)
 	{
 		if (szString[i] == '\n')
 		{
@@ -72,13 +72,13 @@ size CountLineFeeds(char* szString, size iLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CountNewLines(char* szString, size iLen)
+size CountNewLines(char* szString, size uiLen)
 {
 	size iCarriageReturns;
 	size iLineFeeds;
 
-	iCarriageReturns = CountCarriageReturns(szString, iLen);
-	iLineFeeds = CountLineFeeds(szString, iLen);
+	iCarriageReturns = CountCarriageReturns(szString, uiLen);
+	iLineFeeds = CountLineFeeds(szString, uiLen);
 	
 	if (iLineFeeds == 0)
 	{
@@ -104,34 +104,34 @@ size CountNewLines(char* szString, size iLen)
 //////////////////////////////////////////////////////////////////////////
 size PassifyNewlines(char *szString)
 {
-	size	iLen;
+	size	uiLen;
 	size	i;
-	size	iNumCarriageReturns;
+	size	uiNumCarriageReturns;
 	char*	szNewString;  //Should use StackMemory.
-	size	iPos;
+	size	uiPos;
 
-	iLen = strlen(szString);
-	iNumCarriageReturns = CountCarriageReturns(szString, iLen);
+	uiLen = strlen(szString);
+	uiNumCarriageReturns = CountCarriageReturns(szString, uiLen);
 
-	if (iNumCarriageReturns == 0)
+	if (uiNumCarriageReturns == 0)
 	{
 		return SIZE_MAX;
 	}
 
-	szNewString	= (char*)malloc(iLen-iNumCarriageReturns+1);
+	szNewString	= (char*)malloc(uiLen-uiNumCarriageReturns+1);
 
-	iPos = 0;
-	for (i = 0; i <= iLen; i++)
+	uiPos = 0;
+	for (i = 0; i <= uiLen; i++)
 	{
 		if (szString[i] != '\r')
 		{
-			szNewString[iPos] = szString[i];
-			iPos++;
+			szNewString[uiPos] = szString[i];
+			uiPos++;
 		}
 	}
 
-	memcpy(szString, szNewString, iPos);
+	memcpy(szString, szNewString, uiPos);
 	SafeFree(szNewString);
-	return iPos - 1;
+	return uiPos - 1;
 }
 

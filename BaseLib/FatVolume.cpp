@@ -3119,7 +3119,7 @@ EFatCode CFatVolume::CreateFATEntry(SFatRawDirectoryEntry* psParentDirectory, ch
 //////////////////////////////////////////////////////////////////////////
 EFatCode CFatVolume::CreateDirectory(char* szDirectory, SFatDirectoryEntry* psEntry)
 {
-	size_t				uiPathLength;
+	size				uiPathLength;
 	char*				szPathScanner;
 	char				szFilePath[FAT_MAX_PATH + 1];
 	SFatDirectoryEntry	sParentEntry;
@@ -3136,7 +3136,7 @@ EFatCode CFatVolume::CreateDirectory(char* szDirectory, SFatDirectoryEntry* psEn
 
 	szPathScanner = StepPathToSlash(szPathScanner);
 
-	uiPathLength = (size_t)(szPathScanner - szDirectory);
+	uiPathLength = (size)(szPathScanner - szDirectory);
 
 	memcpy(szFilePath, szDirectory, uiPathLength);
 

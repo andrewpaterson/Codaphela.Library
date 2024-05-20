@@ -89,7 +89,7 @@ bool CFileReader::ReadString(char* szString, size iMaxLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(int32* pi)
+bool CFileReader::ReadInt32(int32* pi)
 {
 	CheckRead(pi, sizeof(int32));
 	return true;
@@ -100,7 +100,7 @@ bool CFileReader::ReadInt(int32* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(uint32* pui)
+bool CFileReader::ReadInt32(uint32* pui)
 {
 	CheckRead(pui, sizeof(uint32));
 	return true;
@@ -114,6 +114,17 @@ bool CFileReader::ReadInt(uint32* pui)
 bool CFileReader::ReadSize(size* pui)
 {
 	CheckRead(pui, sizeof(size));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadInt(int* pi)
+{
+	CheckRead(pi, sizeof(int));
 	return true;
 }
 

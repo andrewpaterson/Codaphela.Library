@@ -40,7 +40,7 @@ bool CompareFatShortName(char* szName1, char* szName2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CompareFatLongName(uint16* puiName1, uint16* puiName2)
+int CompareFatLongName(uint16* puiName1, uint16* puiName2)
 {
 	size	i;
 	char	c1;

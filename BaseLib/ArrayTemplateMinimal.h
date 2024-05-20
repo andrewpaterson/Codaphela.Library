@@ -67,7 +67,7 @@ public:
 	M*		InsertAt(M* pvData, size iElementPos);
 	M*		InsertNumAt(size iNumElements, size iIndex);
 	size	InsertIntoSorted(DataCompare fCompare, M* pvElement, bool bOverwriteExisting);
-	void	InsertBatch(size iFirstElementPos, size iNumInBatch, size iNumBatches, size iSkip);  //Test Virtual
+	void	InsertBatch(size iFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip);  //Test Virtual
 
 	M*		Push(void);
 	M*		PushCopy(void);
@@ -83,7 +83,7 @@ public:
 
 	bool	RemoveAt(size iElementPos, bool bPreserveOrder = 0);
 	bool	RemoveTail(void);
-	void	RemoveBatch(size iFirstElementPos, size iNumInBatch, size iNumBatches, size iSkip);
+	void	RemoveBatch(size iFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip);
 
 	void	Set(size iElementPos, M* pvData);
 
@@ -307,7 +307,7 @@ M* CArrayTemplateMinimal<M>::AddGetIndex(size* piIndex)
 template<class M>
 M* CArrayTemplateMinimal<M>::SafeGet(size iElementPos)
 {
-	if ((iElementPos < 0) || (iElementPos >= miUsedElements))
+	if (iElementPos >= miUsedElements)
 	{
 		return NULL;
 	}
@@ -468,9 +468,9 @@ void CArrayTemplateMinimal<M>::Zero(void)
 template<class M>
 void CArrayTemplateMinimal<M>::Zero(size iStart, size iEnd)
 {
-	if ((iStart > 0) && (iEnd <= miUsedElements))
+	if (iEnd <= miUsedElements)
 	{
-		memset((void*)Get(iStart), 0, (iEnd-iStart) * sizeof(M));
+		memset((void*)Get(iStart), 0, (iEnd - iStart) * sizeof(M));
 	}
 }
 
@@ -869,23 +869,17 @@ M* CArrayTemplateMinimal<M>::InsertNumAt(size iNumElements, size iIndex)
 {
 	M*		pvFrom;
 	M*		pvTo;
-	size	iNumToMove;
+	size	uiNumToMove;
 
-	if (iNumElements <= 0)
-	{
-		return NULL;
-	}
-
-	iNumToMove = miUsedElements - iIndex;
+	uiNumToMove = miUsedElements - iIndex;
 	AddNum(iNumElements);
 
 	pvFrom = Get(iIndex);
 	pvTo = Get(iIndex + iNumElements);
-	memmove(pvTo, pvFrom, iNumToMove * sizeof(M));
+	memmove(pvTo, pvFrom, uiNumToMove * sizeof(M));
 
 	return pvFrom;
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -930,7 +924,7 @@ void CArrayTemplateMinimal<M>::FakeSetUsedElements(size iUsedElements)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::RemoveBatch(size iFirstElementPos, size iNumInBatch, size iNumBatches, size iSkip)
+void CArrayTemplateMinimal<M>::RemoveBatch(size iFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip)
 {
 	size	i;
 	M*		pcFirst;
@@ -942,31 +936,34 @@ void CArrayTemplateMinimal<M>::RemoveBatch(size iFirstElementPos, size iNumInBat
 
 	pcFirst = Get(iFirstElementPos);
 
-	iSkipStride = iSkip * sizeof(M);
-	for (i = 0; i <= iNumBatches-2; i++)
+	iSkipStride = uiSkip * sizeof(M);
+	if (uiNumBatches >= 2)
 	{
-		iDest = iFirstElementPos + iSkip * i;
-		iSource = iFirstElementPos + (iSkip + iNumInBatch) * i + iNumInBatch;
+		for (i = 0; i <= uiNumBatches - 2; i++)
+		{
+			iDest = iFirstElementPos + uiSkip * i;
+			iSource = iFirstElementPos + (uiSkip + uiNumInBatch) * i + uiNumInBatch;
 
-		pcDest = Get(iDest);
-		pcSource = Get(iSource);
+			pcDest = Get(iDest);
+			pcSource = Get(iSource);
 
-		memcpy(pcDest, pcSource, iSkipStride);
+			memcpy(pcDest, pcSource, iSkipStride);
+		}
 	}
 
-	iDest = iFirstElementPos + (iSkip + iNumInBatch) * iNumBatches  - iSkip;
+	iDest = iFirstElementPos + (uiSkip + uiNumInBatch) * uiNumBatches  - uiSkip;
 	if (miUsedElements > iDest)
 	{
-		iSource = iFirstElementPos + iSkip * (iNumBatches - 1);
+		iSource = iFirstElementPos + uiSkip * (uiNumBatches - 1);
 		pcDest = Get(iDest);
 		pcSource = Get(iSource);
 
 		memcpy(pcSource, pcDest, (miUsedElements - iDest) * sizeof(M));
-		SetArraySize(miUsedElements - (iNumInBatch * iNumBatches));
+		SetArraySize(miUsedElements - (uiNumInBatch * uiNumBatches));
 	}
 	else
 	{
-		SetArraySize(miUsedElements - (iNumInBatch * iNumBatches) + (iDest - miUsedElements));
+		SetArraySize(miUsedElements - (uiNumInBatch * uiNumBatches) + (iDest - miUsedElements));
 	}
 }
 
@@ -976,7 +973,7 @@ void CArrayTemplateMinimal<M>::RemoveBatch(size iFirstElementPos, size iNumInBat
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBatch, size iNumBatches, size iSkip)
+void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip)
 {
 	size	i;
 	M* pcFirst;
@@ -989,14 +986,14 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 	size	iRemaining;
 	size	iStride;
 
-	iOldNumElements = AddNum(iNumInBatch * iNumBatches);
+	iOldNumElements = AddNum(uiNumInBatch * uiNumBatches);
 
 	pcFirst = Get(iFirstElementPos);
 
-	i = iNumBatches - 1;
+	i = uiNumBatches - 1;
 
-	iDest = (iNumInBatch + iSkip) * (i + 1) - iSkip;
-	iSource = iSkip * i;
+	iDest = (uiNumInBatch + uiSkip) * (i + 1) - uiSkip;
+	iSource = uiSkip * i;
 	pcDest = (M*)RemapSinglePointer(pcFirst, iDest * sizeof(M));
 	pcSource = (M*)RemapSinglePointer(pcFirst, iSource * sizeof(M));
 
@@ -1009,11 +1006,11 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 		}
 	}
 
-	iStride = iSkip * sizeof(M);
-	iTotalStride = (iNumInBatch + iSkip) * sizeof(M);
+	iStride = uiSkip * sizeof(M);
+	iTotalStride = (uiNumInBatch + uiSkip) * sizeof(M);
 	if (iStride == 1)
 	{
-		i = iNumBatches - 1;
+		i = uiNumBatches - 1;
 		if (i != 0)
 		{
 			do
@@ -1026,7 +1023,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 	}
 	else if (iStride == 2)
 	{
-		i = iNumBatches - 1;
+		i = uiNumBatches - 1;
 		if (i != 0)
 		{
 			do
@@ -1039,7 +1036,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 	}
 	else if (iStride == 4)
 	{
-		i = iNumBatches - 1;
+		i = uiNumBatches - 1;
 		if (i != 0)
 		{
 			do
@@ -1052,7 +1049,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 	}
 	else if (iStride == 8)
 	{
-		i = iNumBatches - 1;
+		i = uiNumBatches - 1;
 		if (i != 0)
 		{
 			do
@@ -1065,7 +1062,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 	}
 	else if (iStride == 12)
 	{
-		i = iNumBatches - 1;
+		i = uiNumBatches - 1;
 		if (i != 0)
 		{
 			do
@@ -1078,7 +1075,7 @@ void CArrayTemplateMinimal<M>::InsertBatch(size iFirstElementPos, size iNumInBat
 	}
 	else
 	{
-		i = iNumBatches - 1;
+		i = uiNumBatches - 1;
 		if (i != 0)
 		{
 			do
