@@ -123,19 +123,19 @@ size CDataMemory::GetSize(void* pv)
 //////////////////////////////////////////////////////////////////////////
 bool CDataMemory::Remove(CArrayVoidPtr* pav)
 {
-	int					i;
-	void*				pv;
+	size					i;
+	void*					pv;
 	SDataMemoryAllocation*	psAlloc;
-	CFreeList*		pcList;
-	SFNode*				psNode;
-	int					iNumElements;
-	int					iRemoved;
+	CFreeList*				pcList;
+	SFNode*					psNode;
+	size					uiNumElements;
+	size					uiRemoved;
 
 	pav->QuickSort();
 
-	iNumElements = pav->NumElements();
+	uiNumElements = pav->NumElements();
 	i = 0;
-	while (i < iNumElements)
+	while (i < uiNumElements)
 	{
 		pv = pav->GetPtr(i);
 		psAlloc = DATA_MEMORY_GET_ALLOCATION(pv);
@@ -144,17 +144,17 @@ bool CDataMemory::Remove(CArrayVoidPtr* pav)
 			psNode = psAlloc->psFreeListNode;
 			pcList = psAlloc->psFreeListNode->pcList;
 
-			iRemoved = RemoveNode(pav, i, psAlloc, psNode, pcList);
-			if (iRemoved != 0)
+			uiRemoved = RemoveNode(pav, i, psAlloc, psNode, pcList);
+			if (uiRemoved != 0)
 			{
-				i += iRemoved;
+				i += uiRemoved;
 			}
 			else
 			{
-				iRemoved = RemoveElements(pav, i, psNode, pcList);
-				if (iRemoved != 0)
+				uiRemoved = RemoveElements(pav, i, psNode, pcList);
+				if (uiRemoved != 0)
 				{
-					i += iRemoved;
+					i += uiRemoved;
 				}
 				else
 				{
@@ -176,16 +176,16 @@ bool CDataMemory::Remove(CArrayVoidPtr* pav)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDataMemory::RemoveNode(CArrayVoidPtr* pav, int i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
+int CDataMemory::RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
 {
-	void*				pvLast;
+	void*					pvLast;
 	SDataMemoryAllocation*	psPotentialLast;
-	int					iNodeElements;
+	size					uiNodeElements;
 	SDataMemoryAllocation*	psFirst;
 	SDataMemoryAllocation*	psLast;
-	int					iNumElements;
+	size					uiNumElements;
 
-	iNumElements = pav->NumElements();
+	uiNumElements = pav->NumElements();
 	psFirst = (SDataMemoryAllocation*)pcList->GetFirstNodeElement(psNode);
 	if (psAlloc == psFirst)
 	{
@@ -193,22 +193,25 @@ int CDataMemory::RemoveNode(CArrayVoidPtr* pav, int i, SDataMemoryAllocation* ps
 
 		if (psNode->bFull)
 		{
-			iNodeElements = psNode->uiChunkSize;
+			uiNodeElements = psNode->uiChunkSize;
 		}
 		else
 		{
-			iNodeElements = pcList->NumNodeElements(psNode);
+			uiNodeElements = pcList->NumNodeElements(psNode);
 		}
 
-		if (i + iNodeElements - 1 < iNumElements)
+		if ((i != 0) && (uiNodeElements != 0))
 		{
-			pvLast = pav->GetPtr(i + iNodeElements - 1);
-			psPotentialLast = DATA_MEMORY_GET_ALLOCATION(pvLast);
-
-			if (psPotentialLast == psLast)
+			if (i + uiNodeElements - 1 < uiNumElements)
 			{
-				pcList->RemoveNode(psNode);
-				return iNodeElements;
+				pvLast = pav->GetPtr(i + uiNodeElements - 1);
+				psPotentialLast = DATA_MEMORY_GET_ALLOCATION(pvLast);
+
+				if (psPotentialLast == psLast)
+				{
+					pcList->RemoveNode(psNode);
+					return uiNodeElements;
+				}
 			}
 		}
 	}
@@ -221,21 +224,21 @@ int CDataMemory::RemoveNode(CArrayVoidPtr* pav, int i, SDataMemoryAllocation* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDataMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFreeList* pcList)
+int CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList)
 {
 	void*						pv;
-	SDataMemoryAllocation*	psFirst;
-	SDataMemoryAllocation*	psLast;
-	int							iCount;
-	SDataMemoryAllocation*	psAlloc;
-	int							iNumElements;
+	SDataMemoryAllocation*		psFirst;
+	SDataMemoryAllocation*		psLast;
+	size						uiCount;
+	SDataMemoryAllocation*		psAlloc;
+	size						uiNumElements;
 
-	iNumElements = pav->NumElements();
+	uiNumElements = pav->NumElements();
 
 	psFirst = (SDataMemoryAllocation*)pcList->GetFirstNodeElement(psNode);
 	psLast = (SDataMemoryAllocation*)pcList->GetLastNodeElement(psNode);
 
-	iCount = 0;
+	uiCount = 0;
 	pv = pav->GetPtr(i);
 	psAlloc = DATA_MEMORY_GET_ALLOCATION(pv);
 
@@ -244,8 +247,8 @@ int CDataMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFree
 		pcList->Remove(psNode, psAlloc);
 
 		i++;
-		iCount++;
-		if (i >= iNumElements)
+		uiCount++;
+		if (i >= uiNumElements)
 		{
 			break;
 		}
@@ -253,7 +256,7 @@ int CDataMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFree
 		psAlloc = DATA_MEMORY_GET_ALLOCATION(pv);
 	}
 
-	return iCount;
+	return uiCount;
 }
 
 
@@ -261,7 +264,7 @@ int CDataMemory::RemoveElements(CArrayVoidPtr* pav, int i, SFNode* psNode, CFree
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::Add(uint32 uiSize)
+void* CDataMemory::Add(size uiSize)
 {
 	CFreeList*	pcFreeList;
 	void*				pv;
@@ -284,7 +287,7 @@ void* CDataMemory::Add(uint32 uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::Grow(void* pvInitial, uint32 uiSize)
+void* CDataMemory::Grow(void* pvInitial, size uiSize)
 {
 	SDataMemoryAllocation*	psAlloc;
 	CFreeList*				pcList;
@@ -349,7 +352,7 @@ void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::AllocateInFreeList(CFreeList* pcFreeList, uint32 uiElementSize)
+void* CDataMemory::AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize)
 {
 	SDataMemoryAllocation*	psMemoryAllocation;
 	SFNode*						psNode;
@@ -375,8 +378,8 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	size	iSize;
 	void*	pvMem;
 
-	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(uint32);
-	pvMem = RemapSinglePointer(psAlloc, sizeof(uint32));
+	iSize = sizeof(psAlloc) + psAlloc->uiSize - sizeof(size);
+	pvMem = RemapSinglePointer(psAlloc, sizeof(size));
 	memset(pvMem, 0xef, iSize);
 #endif
 
@@ -416,7 +419,7 @@ void CDataMemory::FreeFreeList(CFreeList* pcFreeList)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CDataMemory::AllocateInLargeList(uint32 uiSize)
+void* CDataMemory::AllocateInLargeList(size uiSize)
 {
 	SDataMemoryAllocation*	psMemoryAllocation;
 
@@ -512,18 +515,18 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 int CDataMemory::NumElements(void)
 {
 	CFreeList*		pcBlock;
-	int					iCount;
+	int					uiCount;
 
-	iCount = 0;
+	uiCount = 0;
 	pcBlock = mcFreeLists.GetHead();
 	while (pcBlock)
 	{
-		iCount += pcBlock->NumElements();
+		uiCount += pcBlock->NumElements();
 		pcBlock = mcFreeLists.GetNext(pcBlock);
 	}
 
-	iCount += mcLargeList.NumElements();
-	return iCount;
+	uiCount += mcLargeList.NumElements();
+	return uiCount;
 }
 
 

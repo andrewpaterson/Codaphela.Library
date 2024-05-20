@@ -55,7 +55,7 @@ bool CFileWriter::WriteString(const char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(int32 i)
+bool CFileWriter::WriteInt32(int32 i)
 {
 	CheckWrite(&i, sizeof(int32));
 	return true;
@@ -66,7 +66,7 @@ bool CFileWriter::WriteInt(int32 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(uint32 ui)
+bool CFileWriter::WriteInt32(uint32 ui)
 {
 	CheckWrite(&ui, sizeof(uint32));
 	return true;
@@ -80,6 +80,17 @@ bool CFileWriter::WriteInt(uint32 ui)
 bool CFileWriter::WriteSize(size ui)
 {
 	CheckWrite(&ui, sizeof(size));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteInt(int i)
+{
+	CheckWrite(&i, sizeof(int));
 	return true;
 }
 

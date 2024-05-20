@@ -112,9 +112,9 @@ SInt3& SInt3::operator -= (const SInt3& v)
 //////////////////////////////////////////////////////////////////////////
 bool SInt3::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(x));
-	ReturnOnFalse(pcFile->WriteInt(y));
-	ReturnOnFalse(pcFile->WriteInt(z));
+	ReturnOnFalse(pcFile->WriteInt32(x));
+	ReturnOnFalse(pcFile->WriteInt32(y));
+	ReturnOnFalse(pcFile->WriteInt32(z));
 	return true;
 }
 
@@ -125,9 +125,9 @@ bool SInt3::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool SInt3::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt(&x));
-	ReturnOnFalse(pcFile->ReadInt(&y));
-	ReturnOnFalse(pcFile->ReadInt(&z));
+	ReturnOnFalse(pcFile->ReadInt32(&x));
+	ReturnOnFalse(pcFile->ReadInt32(&y));
+	ReturnOnFalse(pcFile->ReadInt32(&z));
 	return true;
 }
 

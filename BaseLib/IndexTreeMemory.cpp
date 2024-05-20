@@ -1446,7 +1446,6 @@ void CIndexTreeMemory::RecurseDump(CChars* pszDest, CIndexTreeRecursor* pcCursor
 		{
 			iFirst = pcNode->GetFirstIndex();
 			iLast = pcNode->GetLastIndex();
-
 			for (i = iFirst; i <= iLast; i++)
 			{
 				pcChild = pcNode->Get(i);
@@ -1722,18 +1721,22 @@ bool CIndexTreeMemory::ValidateParentIndex(void)
 bool CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 {
 	CIndexTreeNodeMemory*	pcNode;
-	size						i;
+	size					i;
 	CIndexTreeNodeMemory*	pcChild;
 	bool					bResult;
 	CIndexTreeNodeMemory*	pcChildsParent;
 	size					uiIndexInParent;
+	size					iFirst;
+	size					iLast;
 
 	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
 	if (pcNode != NULL)
 	{
 		if (pcNode->HasNodes())
 		{
-			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			iFirst = pcNode->GetFirstIndex();
+			iLast = pcNode->GetLastIndex();
+			for (i = iFirst; i <= iLast; i++)
 			{
 				pcChild = pcNode->Get(i);
 				if (pcChild != NULL)
@@ -1756,7 +1759,9 @@ bool CIndexTreeMemory::RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor)
 				}
 			}
 
-			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			iFirst = pcNode->GetFirstIndex();
+			iLast = pcNode->GetLastIndex();
+			for (i = iFirst; i <= iLast; i++)
 			{
 				pcChild = pcNode->Get(i);
 				pcCursor->Push(pcChild, (uint8)i);
@@ -1804,6 +1809,8 @@ bool CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 	bool					bResult;
 	CIndexTreeNodeMemory*	pcBackNode;
 	size					iCount;
+	size					iFirst;
+	size					iLast;
 
 	pcNode = (CIndexTreeNodeMemory*)pcCursor->GetNode();
 	if (pcNode != NULL)
@@ -1831,7 +1838,9 @@ bool CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 
 		if (pcNode->HasNodes())
 		{
-			for (i = pcNode->GetFirstIndex(); i <= pcNode->GetLastIndex(); i++)
+			iFirst = pcNode->GetFirstIndex();
+			iLast = pcNode->GetLastIndex();
+			for (i = iFirst; i <= iLast; i++)
 			{
 				pcChild = pcNode->Get(i);
 				pcCursor->Push(pcChild, (uint8)i);

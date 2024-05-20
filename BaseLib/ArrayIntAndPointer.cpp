@@ -100,7 +100,7 @@ void* CArrayIntAndPointer::GetPtr(size iElementPos)
 //////////////////////////////////////////////////////////////////////////
 void* CArrayIntAndPointer::SafeGetPtr(size iElementPos)
 {
-	if ((iElementPos < 0) || (iElementPos >= miUsedElements))
+	if (iElementPos >= miUsedElements)
 	{
 		return NULL;
 	}

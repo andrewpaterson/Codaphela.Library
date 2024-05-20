@@ -133,10 +133,17 @@ bool CPackFiles::ChangeReadFiles(CPackFileNode* psPackFile)
 //////////////////////////////////////////////////////////////////////////
 size CPackFiles::PrivateRead(CPackFileNode* psPackFile, void* pvBuffer, size iSize, size iCount)
 {
-	size	iRemaining;
-	size	iSizeToRead;
+	size		iRemaining;
+	size		iSizeToRead;
+	filePos		iFilePos;
 
-	iRemaining = (size)((psPackFile->FilePos() + psPackFile->Size()) - miPosition);
+	iFilePos = psPackFile->FilePos() + psPackFile->Size() - miPosition;
+	if (iFilePos < 0)
+	{
+		return 0;
+	}
+
+	iRemaining = (size)iFilePos;
 	iSizeToRead = iSize * iCount;
 
 	if (iSizeToRead <= iRemaining)
@@ -664,7 +671,7 @@ bool CPackFiles::ReadNodes(void)
 			{
 				mcFile.Seek(miNodes, EFSO_SET);
 			}
-			ReturnOnFalse(mcFile.ReadInt(&uiNumFiles));
+			ReturnOnFalse(mcFile.ReadInt32(&uiNumFiles));
 
 			for (i = 0; i < uiNumFiles; i++)
 			{
@@ -741,7 +748,7 @@ bool CPackFiles::WriteNodes(void)
 
 	mcFile.Seek(iPosition, EFSO_SET);
 	iNumFiles = GetNumUnwrittenNames();
-	ReturnOnFalse(mcFile.WriteInt(iNumFiles));
+	ReturnOnFalse(mcFile.WriteInt32(iNumFiles));
 	return WriteUnwrittenNames();
 }
 

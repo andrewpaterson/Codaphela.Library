@@ -50,15 +50,17 @@ void CCSVHelper::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCSVHelper::GetColumnIndex(char* szName)
+size CCSVHelper::GetColumnIndex(char* szName)
 {
 	SCSVRowImmutable*	pcRow;
-	int					i;
+	size				i;
 	char*				szHeader;
 	CChars				sz;
+	size				uiNumElements;
 
 	pcRow = mcFile.Get(0);
-	for (i = 0; i < pcRow->NumElements(); i++)
+	uiNumElements = pcRow->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		szHeader = pcRow->Get(i);
 		sz.Init(szHeader);
@@ -70,7 +72,7 @@ int CCSVHelper::GetColumnIndex(char* szName)
 		}
 		sz.Kill();
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -78,14 +80,10 @@ int CCSVHelper::GetColumnIndex(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCSVHelper::Get(int iRow, int iColumn)
+char* CCSVHelper::Get(size iRow, size iColumn)
 {
 	SCSVRowImmutable*	pcRow;
 
-	if ((iColumn < 0) || (iRow < 0))
-	{
-		return NULL;
-	}
 	pcRow = mcFile.Get(iRow);
 	return pcRow->Get(iColumn);
 }
@@ -95,7 +93,7 @@ char* CCSVHelper::Get(int iRow, int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCSVHelper::NumRows(void)
+size CCSVHelper::NumRows(void)
 {
 	return mcFile.NumRows();
 }

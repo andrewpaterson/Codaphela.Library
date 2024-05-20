@@ -56,10 +56,10 @@ bool CDataOrderers::Add(CIndexTreeDataOrderer* pcMalloc)
 //////////////////////////////////////////////////////////////////////////
 CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 {
-	size					iLength;
-	char					szName[1024];
-	CIndexTreeDataOrderer**	ppcDataOrderer;
-	CIndexTreeDataOrderer*	pcDataOrderer;
+	size						iLength;
+	char						szName[1024];
+	CIndexTreeDataOrderer**		ppcDataOrderer;
+	CIndexTreeDataOrderer*		pcDataOrderer;
 	
 	if (!MemoryValidate() || !DataOrderersValidate())
 	{
@@ -72,7 +72,7 @@ CIndexTreeDataOrderer* CDataOrderers::Read(CFileReader* pcFileReader)
 		return false;
 	}
 
-	if ((iLength < 0 || iLength >= 1024))
+	if (iLength >= 1024)
 	{
 		gcLogger.Error2(__METHOD__, " Could not read data orderer name, too long [", IntToString(iLength), "].", NULL);
 	}

@@ -113,13 +113,13 @@ bool CIndexedFile::Write(filePos iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CIndexedFile::Write(void* pvData, size iCount)
+filePos CIndexedFile::Write(void* pvData, size uiCount)
 {
 	filePos		iFilePos;
-	size		iWritten;
+	size		uiWritten;
 	filePos		iDataIndex;
 
-	if (iCount == 0)
+	if (uiCount == 0)
 	{
 		return 0;
 	}
@@ -130,13 +130,13 @@ filePos CIndexedFile::Write(void* pvData, size iCount)
 		return INDEXED_FILE_WRITE_ERROR;
 	}
 
-	iWritten = mcFile.Write(EFSO_END, 0, pvData, muiDataSize, iCount);
-	if (iWritten != iCount)
+	uiWritten = mcFile.Write(EFSO_END, 0, pvData, muiDataSize, uiCount);
+	if (uiWritten != uiCount)
 	{
 		return INDEXED_FILE_WRITE_ERROR;
 	}
 
-	miNumDatas += iCount;
+	miNumDatas += uiCount;
 
 	iDataIndex = iFilePos / muiDataSize;
 	if (iDataIndex < MAX_UINT)
@@ -151,25 +151,25 @@ filePos CIndexedFile::Write(void* pvData, size iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Write(filePos iIndex, void* pvData, size iCount)
+bool CIndexedFile::Write(filePos iIndex, void* pvData, size uiCount)
 {
-	size		iWritten;
+	size		uiWritten;
 	filePos		iFileLengh;
 	filePos		iPosition;
 
-	if (iCount == 0)
+	if (uiCount == 0)
 	{
 		return false;
 	}
 
 	iPosition = iIndex * muiDataSize;
-	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, iCount);
-	if (iWritten != iCount)
+	uiWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	if (uiWritten != uiCount)
 	{
 		return false;
 	}
 
-	if (iIndex + iCount > miNumDatas)
+	if (iIndex + uiCount > miNumDatas)
 	{
 		iFileLengh = mcFile.Size();
 		miNumDatas = iFileLengh / muiDataSize;
@@ -192,23 +192,23 @@ bool CIndexedFile::Read(filePos iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Read(filePos iIndex, void* pvData, size iCount)
+bool CIndexedFile::Read(filePos iIndex, void* pvData, size uiCount)
 {
 	size		iRead;
 	filePos		iPosition;
 
-	if (iCount == 0)
+	if (uiCount == 0)
 	{
 		return false;
 	}
-	if (iIndex + iCount > miNumDatas)
+	if (iIndex + uiCount > miNumDatas)
 	{
 		return false;
 	}
 
 	iPosition = iIndex * muiDataSize;
-	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, iCount);
-	return iRead == iCount;
+	iRead = mcFile.Read(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
+	return iRead == uiCount;
 }
 
 
@@ -226,38 +226,38 @@ bool CIndexedFile::Delete(filePos iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedFile::Delete(filePos iIndex, size iCount)
+bool CIndexedFile::Delete(filePos iIndex, size uiCount)
 {
-	size			iWritten;
+	size			uiWritten;
 	filePos			iPosition;
 	void*			pvData;
 	CStackMemory<>	cTemp;
-	size			iSize;
+	size			uiSize;
 
-	if (iCount == 0)
+	if (uiCount == 0)
 	{
 		return false;
 	}
 
-	if (iIndex + iCount > miNumDatas)
+	if (iIndex + uiCount > miNumDatas)
 	{
 		//This is wrong.  You need to loop multiple times if miNumDatas - iIndex is > than SIZE_MAX
-		iCount = (size)(miNumDatas - iIndex);
-		if (iCount <= 0)
+		if (miNumDatas <= iIndex)
 		{
 			return true;
 		}
+		uiCount = (size)(miNumDatas - iIndex);
 	}
 
-	iSize = iCount * muiDataSize;
+	uiSize = uiCount * muiDataSize;
 	iPosition = iIndex * muiDataSize;
 
-	pvData = cTemp.Init(iSize);
-	memset(pvData, INDEX_FILE_EMPTY_CHAR, iSize);
-	iWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, iCount);
+	pvData = cTemp.Init(uiSize);
+	memset(pvData, INDEX_FILE_EMPTY_CHAR, uiSize);
+	uiWritten = mcFile.Write(EFSO_SET, iPosition, pvData, muiDataSize, uiCount);
 	cTemp.Kill();
 
-	return iWritten == iCount;
+	return uiWritten == uiCount;
 }
 
 
@@ -282,7 +282,7 @@ void CIndexedFile::Dump(void)
 	filePos			iSizeOnDisk;
 	filePos			iPos;
 	char			pvData[80];
-	size			iReadSize;
+	size			uiReadSize;
 	CFileBasic*		pcFile;
 	filePos			iNumDatas;
 
@@ -312,18 +312,18 @@ void CIndexedFile::Dump(void)
 	sz.Append(")\n\n");
 	sz.Append("Data on Disk\n------------\n");
 
-	iReadSize = 80;
-	if (muiDataSize < iReadSize)
+	uiReadSize = 80;
+	if (muiDataSize < uiReadSize)
 	{
-		iReadSize = muiDataSize;
+		uiReadSize = muiDataSize;
 	}
 
 	iPos = mcFile.Tell();
 	for (i = 0; i < iNumDatas; i++)
 	{
 		pcFile->Seek(i * muiDataSize, EFSO_SET);
-		pcFile->Read(pvData, iReadSize, 1);
-		sz.AppendData(pvData, iReadSize);
+		pcFile->Read(pvData, uiReadSize, 1);
+		sz.AppendData(pvData, uiReadSize);
 		sz.AppendNewLine();
 	}
 	sz.AppendNewLine();

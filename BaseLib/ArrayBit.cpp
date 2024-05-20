@@ -99,32 +99,32 @@ void CArrayBit::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBit::GrowBy(size iNumBits)
 {
-	size		iOldByteSize;
-	size		iNewByteSize;
-	size		iTransitionSize;
+	size	uiOldByteSize;
+	size	uiNewByteSize;
+	size	uiTransitionSize;
 	void*	pvData;
 
-	iOldByteSize = ByteSize(miNumBits);
-	iNewByteSize = ByteSize(miNumBits + iNumBits);
+	uiOldByteSize = ByteSize(miNumBits);
+	uiNewByteSize = ByteSize(miNumBits + iNumBits);
 
-	iTransitionSize = sizeof(uint32)*3;
-	if ((iNewByteSize <= iTransitionSize) || (iOldByteSize == iNewByteSize))
+	uiTransitionSize = sizeof(uint32)*3;
+	if ((uiNewByteSize <= uiTransitionSize) || (uiOldByteSize == uiNewByteSize))
 	{
 		miNumBits += iNumBits;
 		return;
 	}
 
-	if ((iOldByteSize <= iTransitionSize) && (iNewByteSize > iTransitionSize))
+	if ((uiOldByteSize <= uiTransitionSize) && (uiNewByteSize > uiTransitionSize))
 	{
-		pvData = Malloc(iNewByteSize);
-		memcpy_fast(pvData, GetData(), iNewByteSize);
+		pvData = Malloc(uiNewByteSize);
+		memcpy_fast(pvData, GetData(), uiNewByteSize);
         u.aLarge.mpvData = pvData;
 		miNumBits += iNumBits;
 		return;
 	}
 
 	miNumBits += iNumBits;
-    u.aLarge.mpvData = Realloc(u.aLarge.mpvData, iNewByteSize);
+    u.aLarge.mpvData = Realloc(u.aLarge.mpvData, uiNewByteSize);
 }
 
 

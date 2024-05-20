@@ -36,8 +36,8 @@ void CMarkupTag::Init(CMarkupTag* pcParent)
 	macBases.Init();
 	mcAttributes.Init(1);
 	mszName.Init();
-	miLine = -1;
-	miColumn = -1;
+	miLine = ARRAY_ELEMENT_NOT_FOUND;
+	miColumn = ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -51,8 +51,8 @@ void CMarkupTag::Init(char* szName, CMarkupTag* pcParent)
 	macBases.Init();
 	mcAttributes.Init(1);
 	mszName.Init(szName);
-	miLine = -1;
-	miColumn = -1;
+	miLine = ARRAY_ELEMENT_NOT_FOUND;
+	miColumn = ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -64,11 +64,13 @@ void CMarkupTag::Kill(void)
 {
 	CMarkupBase*	pcBase;
 	size			i;
+	size			uiNumElements;
 
 	mszName.Kill();
 	mcAttributes.Kill();
 
-	for (i = 0; i < macBases.NumElements(); i++)
+	uiNumElements = macBases.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBase = *(macBases.Get(i));
 		pcBase->Kill();
@@ -110,7 +112,7 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
 		psIter = &sTemp;
 	}
 
-	psIter->iIndex = -1;
+	psIter->iIndex = ARRAY_ELEMENT_NOT_FOUND;
 	psIter->mpcCurrent = NULL;
 	psIter->bNamed = true;
 	return GetTagFromIndex(szTagName, psIter);
@@ -121,23 +123,26 @@ CMarkupTag* CMarkupTag::GetTag(char* szTagName, STagIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMarkupTag* CMarkupTag::GetTag(char* szTagName, uint32 iTagNumber)
+CMarkupTag* CMarkupTag::GetTag(char* szTagName, size uiTagNumber)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcTag;
-	uint32			i;
+	size			i;
 
-	sIter.iIndex = -1;
+	sIter.iIndex = ARRAY_ELEMENT_NOT_FOUND;
 	sIter.mpcCurrent = NULL;
 	sIter.bNamed = true;
 
 	pcTag = NULL;
-	for (i = 0; i <= iTagNumber; i++)
+	if (uiTagNumber != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		pcTag = GetTagFromIndex(szTagName, &sIter);
-		if (!pcTag)
+		for (i = 0; i <= uiTagNumber; i++)
 		{
-			return NULL;
+			pcTag = GetTagFromIndex(szTagName, &sIter);
+			if (!pcTag)
+			{
+				return NULL;
+			}
 		}
 	}
 	return pcTag;
@@ -155,9 +160,11 @@ CMarkupTag* CMarkupTag::GetTagFromIndex(char* szTagName, STagIterator* psIter)
 	CMarkupRefDoc*	pcRefDoc;
 	size			i;
 	size			iIndex;
+	size			uiNumElements;
 
+	uiNumElements = macBases.NumElements();
 	iIndex = psIter->iIndex +1;
-	for (i = iIndex; i < macBases.NumElements(); i++)
+	for (i = iIndex; i < uiNumElements; i++)
 	{
 		pcBase = *(macBases.Get(i));
 		if (pcBase->IsTag())
@@ -197,9 +204,11 @@ CMarkupTag* CMarkupTag::GetTagFromIndex(STagIterator* psIter)
 	CMarkupRefDoc*	pcRefDoc;
 	size			i;
 	size			iIndex;
+	size			uiNumElements;
 
-	iIndex = psIter->iIndex +1;
-	for (i = iIndex; i < macBases.NumElements(); i++)
+	uiNumElements = macBases.NumElements();
+	iIndex = psIter->iIndex + 1;
+	for (i = iIndex; i < uiNumElements; i++)
 	{
 		pcBase = *(macBases.Get(i));
 		if (pcBase->IsTag())
@@ -235,7 +244,7 @@ CMarkupTag* CMarkupTag::GetTag(STagIterator* psIter)
 		psIter = &sTemp;
 	}
 
-	psIter->iIndex = -1;
+	psIter->iIndex = ARRAY_ELEMENT_NOT_FOUND;
 	psIter->mpcCurrent = NULL;
 	psIter->bNamed = false;
 	return GetTagFromIndex(psIter);
@@ -281,10 +290,12 @@ bool CMarkupTag::GetText(CChars* psz, bool bFirstContiguous, bool bFirstTag)
 	size			i;
 	bool			bContiguous;
 	bool			bPreviousTag;
+	size			uiNumElements;
 
+	uiNumElements = macBases.NumElements();
 	bContiguous = true;
 	bPreviousTag = false;
-	for (i = 0; i < macBases.NumElements(); i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBase = *(macBases.Get(i));
 		if (pcBase->IsText())
@@ -456,8 +467,10 @@ bool CMarkupTag::ContainsOnlyText(void)
 {
 	size			i;
 	CMarkupBase*	pcBase;
+	size			uiNumElements;
 
-	for (i = 0; i < macBases.NumElements(); i++)
+	uiNumElements = macBases.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBase = *macBases.Get(i);
 		if ((!pcBase->IsText()) && (!pcBase->IsRefText()))
@@ -477,8 +490,10 @@ bool CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 {
 	size			i;
 	CMarkupBase*	pcBase;
+	size			uiNumElements;
 
-	for (i = 0; i < macBases.NumElements(); i++)
+	uiNumElements = macBases.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBase = *macBases.Get(i);
 		if (pcBase == pcOld)
@@ -505,7 +520,7 @@ void CMarkupTag::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMarkupTag::Print(CChars* psz, uint32 iDepth, uint32 iLine)
+size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 {
 	size			i;
 	CMarkupBase*	pcBase;
@@ -515,6 +530,9 @@ uint32 CMarkupTag::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 	char*			szValue;
 	SMapIterator	sIter;
 	bool			bResult;
+	size			uiNumElements;
+
+	uiNumElements = macBases.NumElements();
 
 	miLine = iLine;
 	miColumn = iDepth*2;
@@ -543,7 +561,7 @@ uint32 CMarkupTag::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 	iLine++;
 	psz->AppendNewLine();
 
-	if (macBases.NumElements() > 0)
+	if (uiNumElements > 0)
 	{
 		bPadClosing = true;
 		if (ContainsOnlyText())
@@ -555,7 +573,7 @@ uint32 CMarkupTag::Print(CChars* psz, uint32 iDepth, uint32 iLine)
 		}
 		else
 		{
-			for (i = 0; i < macBases.NumElements(); i++)
+			for (i = 0; i < uiNumElements; i++)
 			{
 				pcBase = *macBases.Get(i);
 				iLine = pcBase->Print(psz, iDepth + 1, iLine);

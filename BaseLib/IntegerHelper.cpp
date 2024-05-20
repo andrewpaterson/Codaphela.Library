@@ -704,9 +704,13 @@ size FindLastSetBit(void* pvArray, size iArraySize)
 bool FixBool(void* pv)
 {
 	if (pv)
+	{
 		return true;
+	}
 	else
+	{
 		return false;
+	}
 }
 
 
@@ -748,12 +752,10 @@ void SetFlagInt(uint32* piDest, uint32 iFlag, bool iFlagValue)
 //////////////////////////////////////////////////////////////////////////
 void SetFlagShort(uint16* psiDest, uint16 iFlag, bool iFlagValue)
 {
-	//If the value is true then or it with dest.
 	if (iFlagValue)
 	{
 		*psiDest |= iFlag;
 	}
-	//If the value is false then negate and and it with dest.
 	else
 	{
 		*psiDest &= (~iFlag);
@@ -767,12 +769,10 @@ void SetFlagShort(uint16* psiDest, uint16 iFlag, bool iFlagValue)
 //////////////////////////////////////////////////////////////////////////
 void SetFlagByte(uint8* psiDest, uint8 iFlag, bool iFlagValue)
 {
-	//If the value is true then or it with dest.
 	if (iFlagValue)
 	{
 		*psiDest |= iFlag;
 	}
-	//If the value is false then negate and and it with dest.
 	else
 	{
 		*psiDest &= (~iFlag);
@@ -786,12 +786,27 @@ void SetFlagByte(uint8* psiDest, uint8 iFlag, bool iFlagValue)
 //////////////////////////////////////////////////////////////////////////
 void SetFlagLong(uint64* piDest, uint64 iFlag, bool iFlagValue)
 {
-	//If the value is true then or it with dest.
 	if (iFlagValue)
 	{
 		*piDest |= iFlag;
 	}
-	//If the value is false then negate and and it with dest.
+	else
+	{
+		*piDest &= (~iFlag);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SetFlagSize(size* piDest, size iFlag, bool iFlagValue)
+{
+	if (iFlagValue)
+	{
+		*piDest |= iFlag;
+	}
 	else
 	{
 		*piDest &= (~iFlag);

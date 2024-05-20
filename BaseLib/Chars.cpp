@@ -421,12 +421,12 @@ size CChars::Length(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Set(CChars szString)
 {
-	size iLen;
+	size uiLen;
 
-	iLen = szString.Length() + 1;
-	if (iLen > 1)
+	uiLen = szString.Length() + 1;
+	if (uiLen > 1)
 	{
-		SetNonNull(szString.Text(), iLen);
+		SetNonNull(szString.Text(), uiLen);
 	}
 	else
 	{
@@ -441,12 +441,12 @@ void CChars::Set(CChars szString)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Set(CChars* psz)
 {
-	size iLen;
+	size uiLen;
 
-	iLen = psz->Length() + 1;
-	if (iLen > 1)
+	uiLen = psz->Length() + 1;
+	if (uiLen > 1)
 	{
-		SetNonNull(psz->Text(), iLen);
+		SetNonNull(psz->Text(), uiLen);
 	}
 	else
 	{
@@ -461,12 +461,12 @@ void CChars::Set(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Set(const char* szString)
 {
-	size iLen;
+	size uiLen;
 
 	if (!StrEmpty(szString))
 	{
-		iLen = (strlen(szString)) + 1;
-		SetNonNull(szString, iLen);
+		uiLen = (strlen(szString)) + 1;
+		SetNonNull(szString, uiLen);
 	}
 	else
 	{
@@ -479,18 +479,18 @@ void CChars::Set(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::SetNonNull(const char* szString, size iLen)
+void CChars::SetNonNull(const char* szString, size uiLen)
 {
 	if (!IsFakeEmpty())
 	{
-		mcText.Resize(iLen);
+		mcText.Resize(uiLen);
 	}
 	else
 	{
 		Unfake();
-		mcText.Resize(iLen);
+		mcText.Resize(uiLen);
 	}
-	memcpy(mcText.GetData(), szString, iLen);
+	memcpy(mcText.GetData(), szString, uiLen);
 }
 
 
@@ -527,15 +527,15 @@ void CChars::SetChar(size iIndex, char c)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Append(const char* szString)
 {
-	size	iLen;
+	size	uiLen;
 	char*	pcPosition;
 
 	if (!StrEmpty(szString))
 	{
-		iLen = strlen(szString);
-		pcPosition = PrivateGrow(iLen);
-		memcpy(pcPosition, szString, iLen);
-		pcPosition[iLen] = '\0';
+		uiLen = strlen(szString);
+		pcPosition = PrivateGrow(uiLen);
+		memcpy(pcPosition, szString, uiLen);
+		pcPosition[uiLen] = '\0';
 	}
 
 	return this;
@@ -565,15 +565,15 @@ CChars* CChars::Append(CExternalString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(const char* szString, size iLen)
+CChars* CChars::Append(const char* szString, size uiLen)
 {
 	char*	pcPosition;
 	char*	pcZero;
 
-	if (szString && iLen > 0)
+	if (szString && uiLen > 0)
 	{
-		pcPosition = PrivateGrow(iLen);
-		memcpy(pcPosition, szString, iLen);
+		pcPosition = PrivateGrow(uiLen);
+		memcpy(pcPosition, szString, uiLen);
 		pcZero = mcText.Tail();
 		*pcZero = '\0';
 	}
@@ -1085,7 +1085,7 @@ CChars* CChars::Append(char cPadCharacter, int iNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(const char* szString, char cPadCharacter, size iWidth)
+void CChars::LeftAlign(const char* szString, char cPadCharacter, size uiWidth)
 {
 	size	uiLen;
 
@@ -1093,14 +1093,14 @@ void CChars::LeftAlign(const char* szString, char cPadCharacter, size iWidth)
 	if (uiLen != 0)
 	{
 		uiLen = strlen(szString);
-		if (uiLen <= iWidth)
+		if (uiLen <= uiWidth)
 		{
 			Append(szString);
-			Append(cPadCharacter, iWidth - uiLen);
+			Append(cPadCharacter, uiWidth - uiLen);
 		}
 		else
 		{
-			AppendSubString(szString, 0, iWidth);
+			AppendSubString(szString, 0, uiWidth);
 		}
 	}
 }
@@ -1110,21 +1110,21 @@ void CChars::LeftAlign(const char* szString, char cPadCharacter, size iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(const char* szString, char cPadCharacter, size iWidth)
+void CChars::RightAlign(const char* szString, char cPadCharacter, size uiWidth)
 {
 	size	uiLen;
 
 	uiLen = strlen(szString);
 	if (uiLen != 0)
 	{
-		if (uiLen <= iWidth)
+		if (uiLen <= uiWidth)
 		{
-			Append(cPadCharacter, iWidth - uiLen);
+			Append(cPadCharacter, uiWidth - uiLen);
 			Append(szString);
 		}
 		else
 		{
-			AppendSubString(szString, 0, iWidth);
+			AppendSubString(szString, 0, uiWidth);
 		}
 	}
 }
@@ -1134,16 +1134,16 @@ void CChars::RightAlign(const char* szString, char cPadCharacter, size iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::LeftAlign(CChars szString, char cPadCharacter, size iWidth)
+void CChars::LeftAlign(CChars szString, char cPadCharacter, size uiWidth)
 {
-	if (szString.Length() <= iWidth)
+	if (szString.Length() <= uiWidth)
 	{
 		Append(szString);
-		Append(cPadCharacter, iWidth - szString.Length());
+		Append(cPadCharacter, uiWidth - szString.Length());
 	}
 	else
 	{
-		AppendSubString(szString, 0, iWidth);
+		AppendSubString(szString, 0, uiWidth);
 	}
 }
 
@@ -1152,16 +1152,16 @@ void CChars::LeftAlign(CChars szString, char cPadCharacter, size iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(CChars szString, char cPadCharacter, size iWidth)
+void CChars::RightAlign(CChars szString, char cPadCharacter, size uiWidth)
 {
-	if (szString.Length() <= iWidth)
+	if (szString.Length() <= uiWidth)
 	{
-		Append(cPadCharacter, iWidth - szString.Length());
+		Append(cPadCharacter, uiWidth - szString.Length());
 		Append(szString);
 	}
 	else
 	{
-		AppendSubString(szString, 0, iWidth);
+		AppendSubString(szString, 0, uiWidth);
 	}
 }
 
@@ -1170,15 +1170,15 @@ void CChars::RightAlign(CChars szString, char cPadCharacter, size iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChars::RightAlign(char cPadCharacter, size iWidth)
+void CChars::RightAlign(char cPadCharacter, size uiWidth)
 {
 	size	iLength;
 	char*	pcDest;
 	size	iOldWidth;
 
-	if (Length() < iWidth)
+	if (Length() < uiWidth)
 	{
-		iLength = iWidth - Length();
+		iLength = uiWidth - Length();
 		iOldWidth = Length();
 		PrivateGrow(iLength);
 		pcDest = (char*)RemapSinglePointer(mcText.GetData(), iLength);
@@ -1417,11 +1417,11 @@ bool CChars::Equals(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::Equals(const char* szString, size iLen)
+bool CChars::Equals(const char* szString, size uiLen)
 {
-	if (iLen == Length())
+	if (uiLen == Length())
 	{
-		if (memcmp(Text(), szString, iLen) == 0)
+		if (memcmp(Text(), szString, uiLen) == 0)
 		{
 			return true;
 		}
@@ -1653,11 +1653,11 @@ bool CChars::SubStringEquals(size iStart, const char* szString)
 {
 	size	i;
 	size	j;
-	size	iLen;
+	size	uiLen;
 	size	iSubLen;
 
-	iLen = Length();
-	if (iLen == 0)
+	uiLen = Length();
+	if (uiLen == 0)
 	{
 		iSubLen = strlen(szString);
 		if (iSubLen != 0)
@@ -1670,12 +1670,12 @@ bool CChars::SubStringEquals(size iStart, const char* szString)
 		}
 	}
 
-	if (iStart >= iLen)
+	if (iStart >= uiLen)
 	{
 		return false;
 	}
 
-	for (i = iStart, j = 0; i < iLen; i++, j++)
+	for (i = iStart, j = 0; i < uiLen; i++, j++)
 	{
 		if (szString[j] != 0)
 		{
@@ -1701,12 +1701,12 @@ bool CChars::SubStringEqualsIgnoreCase(size iStart, const char* szString)
 {
 	size	i;
 	size	j;
-	size	iLen;
+	size	uiLen;
 	size    c1;
 	size    c2;
 
-	iLen = Length();
-	for (i = iStart, j = 0; i < iLen; i++, j++)
+	uiLen = Length();
+	for (i = iStart, j = 0; i < uiLen; i++, j++)
 	{
 		if (szString[j] != 0)
 		{
@@ -1822,22 +1822,22 @@ size CChars::Find(size iIndex, const char* szString)
 {
 	size	iOtherLen;
 	size	i;
-	size	iLen;
+	size	uiLen;
 	size	iDiff;
 
-	iLen = Length();
-	if (iIndex > iLen)
+	uiLen = Length();
+	if (iIndex > uiLen)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
 	iOtherLen = strlen(szString);
-	if (iOtherLen > iLen - iIndex)
+	if (iOtherLen > uiLen - iIndex)
 	{
 		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
-	iDiff = iLen - iOtherLen;
+	iDiff = uiLen - iOtherLen;
 	for (i = iIndex; i <= iDiff; i++)
 	{
 		if (SubStringEquals(i, szString))
@@ -1856,10 +1856,10 @@ size CChars::Find(size iIndex, const char* szString)
 size CChars::Find(size iIndex, char c)
 {
 	size	i;
-	size	iLen;
+	size	uiLen;
 
-	iLen = Length();
-	for (i = iIndex; i < iLen; i++)
+	uiLen = Length();
+	for (i = iIndex; i < uiLen; i++)
 	{
 		if (mcText.GetValue(i) == c)
 		{
@@ -1888,10 +1888,10 @@ size CChars::FindDigit(size iIndex)
 {
 	size	i;
 	char	c;
-	size	iLen;
+	size	uiLen;
 
-	iLen = Length();
-	for (i = iIndex; i < iLen; i++)
+	uiLen = Length();
+	for (i = iIndex; i < uiLen; i++)
 	{
 		c = *mcText.Get(i);
 		if ((c >= '0') && (c <= '9'))
@@ -1931,22 +1931,22 @@ void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewInd
 	CChars	cTemp;
 	char	cNew;
 	char	cOld;
-	size	iLen;
+	size	uiLen;
 	size	iOldLen;
 
-	iLen = Length();
+	uiLen = Length();
 
 	//This will find the index of each character in this string in the old string.
 
 	paiOldToNewIndices->SetUsedElements(szOldString.Length());
 	paiOldToNewIndices->SetArrayValues(-1);
 
-	paiNewToOldIndices->SetUsedElements(iLen);
+	paiNewToOldIndices->SetUsedElements(uiLen);
 	paiNewToOldIndices->SetArrayValues(-1);
 
 	cTemp.Init(szOldString);
 	iOldLen = cTemp.Length();
-	for (j = 0; j < iLen; j++)
+	for (j = 0; j < uiLen; j++)
 	{
 		cNew = GetChar(j);
 		for (i = 0; i < iOldLen; i++)
@@ -1985,10 +1985,10 @@ bool CChars::IsWhiteSpace(size iPos, bool bIncludeNewLines)
 bool CChars::IsWhiteSpace(void)
 {
 	size		i;
-	size		iLen;
+	size		uiLen;
 
-	iLen = Length();
-	for (i = 0; i < iLen; i++)
+	uiLen = Length();
+	for (i = 0; i < uiLen; i++)
 	{
 		if (!IsWhiteSpace(i, true))
 		{
@@ -2341,7 +2341,7 @@ void CChars::Overwrite(size iIndex, const char* szReplace)
 {
 	size		i;
 	size		j;
-	size		iLen;
+	size		uiLen;
 
 	if (szReplace == NULL)
 	{
@@ -2353,8 +2353,8 @@ void CChars::Overwrite(size iIndex, const char* szReplace)
 		return;
 	}
 
-	iLen = Length();
-	for (i = iIndex, j = 0; i < iLen; i++, j++)
+	uiLen = Length();
+	for (i = iIndex, j = 0; i < uiLen; i++, j++)
 	{
 		if (szReplace[j] == 0)
 		{
@@ -2594,11 +2594,11 @@ size CChars::Count(char c)
 	size	i;
 	char	cAt;
 	size	iCount;
-	size	iLen;
+	size	uiLen;
 
-	iLen = Length();
+	uiLen = Length();
 	iCount = 0;
-	for (i = 0; i < iLen; i++)
+	for (i = 0; i < uiLen; i++)
 	{
 		cAt = GetChar(i);
 		if (cAt == c)
@@ -2654,18 +2654,18 @@ char* CChars::FindLineContaining(char* szPosition, size* piLineNumber)
 {
 	size	i;
 	size	iNumLineFeeds;
-	size	iLen;
+	size	uiLen;
 	char*	szString;
 	char*	szStartOfLine;
 	char*	szPrevStartOfLine;
 	char*	szCurrent;
 
-	iLen = Length();
+	uiLen = Length();
 	iNumLineFeeds = 0;
 	szString = Text();
 	szStartOfLine = Text();
 	szPrevStartOfLine = szStartOfLine;
-	for (i = 0; i < iLen; i++)
+	for (i = 0; i < uiLen; i++)
 	{
 		szCurrent = &szString[i];
 		if (*szCurrent == '\n')
@@ -2913,26 +2913,26 @@ void CChars::Dump(void)
 {
 	CChars	szString;
 	size	i;
-	size	iLen;
+	size	uiLen;
 
-	iLen = Length();
-	if (iLen <= 10000)
+	uiLen = Length();
+	if (uiLen <= 10000)
 	{
-		if (iLen != 0)
+		if (uiLen != 0)
 		{
 			EngineOutput(Text());
 		}
 		return;
 	}
 
-	for (i = 0; i < iLen - 10000; i += 10000)
+	for (i = 0; i < uiLen - 10000; i += 10000)
 	{
 		szString.Init(Text(), i, i + 10000);
 		EngineOutput(szString.Text());
 		szString.Kill();
 	}
 
-	szString.Init(Text(), i, iLen);
+	szString.Init(Text(), i, uiLen);
 	EngineOutput(szString.Text());
 	szString.Kill();
 }

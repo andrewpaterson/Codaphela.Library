@@ -62,8 +62,13 @@ void CMarkupSubstitute::AddRef(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupSubstitute::RemoveRef(void)
 {
+	if (miReferences == 0)
+	{
+		return true;
+	}
+
 	miReferences--;
-	if (miReferences <= 0)
+	if (miReferences == 0)
 	{
 		return true;
 	}

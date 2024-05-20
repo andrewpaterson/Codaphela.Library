@@ -43,11 +43,12 @@ public:
 						bool	WriteByte(uint8 i);
 						bool	WriteShort(int16 i);
 						bool	WriteShort(uint16 i);
-						bool	WriteInt(int32 i);
-						bool	WriteInt(uint32 i);
+						bool	WriteInt32(int32 i);
+						bool	WriteInt32(uint32 i);
 						bool	WriteLong(int64 i);
 						bool	WriteLong(uint64 i);
 						bool	WriteSize(size ui);
+						bool	WriteInt(int i);
 						bool	WriteFloat(float32 f);
 						bool	WriteFloat(float64 f);
 						bool	WriteChar(char8 c);

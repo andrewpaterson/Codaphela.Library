@@ -34,10 +34,10 @@ void SInt4::Zero(void)
 //////////////////////////////////////////////////////////////////////////
 bool SInt4::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(x));
-	ReturnOnFalse(pcFile->WriteInt(y));
-	ReturnOnFalse(pcFile->WriteInt(z));
-	ReturnOnFalse(pcFile->WriteInt(w));
+	ReturnOnFalse(pcFile->WriteInt32(x));
+	ReturnOnFalse(pcFile->WriteInt32(y));
+	ReturnOnFalse(pcFile->WriteInt32(z));
+	ReturnOnFalse(pcFile->WriteInt32(w));
 	return true;
 }
 
@@ -48,10 +48,10 @@ bool SInt4::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool SInt4::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt(&x));
-	ReturnOnFalse(pcFile->ReadInt(&y));
-	ReturnOnFalse(pcFile->ReadInt(&z));
-	ReturnOnFalse(pcFile->ReadInt(&w));
+	ReturnOnFalse(pcFile->ReadInt32(&x));
+	ReturnOnFalse(pcFile->ReadInt32(&y));
+	ReturnOnFalse(pcFile->ReadInt32(&z));
+	ReturnOnFalse(pcFile->ReadInt32(&w));
 	return true;
 }
 

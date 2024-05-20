@@ -30,8 +30,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CMemoryStackExtended::Init(size iChunkSize)
 {
 	mcStacks.Init();
-	miElements = 0;
-	miChunkSize = iChunkSize;
+	muiElements = 0;
+	muiChunkSize = iChunkSize;
 }
 
 
@@ -44,14 +44,12 @@ void CMemoryStackExtended::Clear(void)
 	size			i;
 	CMemoryStack*	pcStack;
 	CMemoryStack	cStack;
-	size			iNumStacks;
-	size			iNumElements;
+	size			uiNumElements;
 
-	iNumStacks = mcStacks.NumElements();
-	if (iNumStacks > 0)
+	uiNumElements = mcStacks.NumElements();
+	if (uiNumElements != 0)
 	{
-		iNumElements = mcStacks.NumElements();
-		for (i = 1; i < iNumElements; i++)
+		for (i = 1; i < uiNumElements; i++)
 		{
 			pcStack = mcStacks.Get(i);
 			pcStack->Kill();
@@ -64,7 +62,7 @@ void CMemoryStackExtended::Clear(void)
 		cStack.Clear();
 		mcStacks.Add(&cStack);
 	}
-	miElements = 0;
+	muiElements = 0;
 }
 
 
@@ -76,8 +74,10 @@ void CMemoryStackExtended::Kill(void)
 {
 	size			i;
 	CMemoryStack*	pcStack;
+	size			uiNumElements;
 
-	for (i = 0; i < mcStacks.NumElements(); i++)
+	uiNumElements = mcStacks.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcStack = mcStacks.Get(i);
 		pcStack->Kill();
@@ -90,18 +90,18 @@ void CMemoryStackExtended::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStackExtended::Add(size iSize)
+void* CMemoryStackExtended::Add(size uiSize)
 {
 	size			i;
 	CMemoryStack*	pcStack;
-	size			iRemaining;
+	size			uiRemaining;
 
-	if (iSize > miChunkSize)
+	if (uiSize > muiChunkSize)
 	{
 		pcStack = mcStacks.Add();
-		pcStack->Init(iSize);
-		miElements++;
-		return pcStack->Add(iSize);
+		pcStack->Init(uiSize);
+		muiElements++;
+		return pcStack->Add(uiSize);
 	}
 
 	i = mcStacks.NumElements();
@@ -111,20 +111,20 @@ void* CMemoryStackExtended::Add(size iSize)
 		{
 			i--;
 			pcStack = mcStacks.Get(i);
-			iRemaining = pcStack->GetRemainingMemory();
-			if (iSize <= iRemaining)
+			uiRemaining = pcStack->GetRemainingMemory();
+			if (uiSize <= uiRemaining)
 			{
-				miElements++;
-				return pcStack->Add(iSize);
+				muiElements++;
+				return pcStack->Add(uiSize);
 			}
 		}
 		while (i != 0);
 	}
 
 	pcStack = mcStacks.Add();
-	pcStack->Init(miChunkSize);
-	miElements++;
-	return pcStack->Add(iSize);
+	pcStack->Init(muiChunkSize);
+	muiElements++;
+	return pcStack->Add(uiSize);
 }
 
 
@@ -142,10 +142,15 @@ void CMemoryStackExtended::Remove(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMemoryStackExtended::Remove(size iNumToRemove)
+void CMemoryStackExtended::Remove(size uiNumToRemove)
 {
-	miElements -= iNumToRemove;
-	if (miElements == 0)
+	if (uiNumToRemove > muiElements)
+	{
+		uiNumToRemove = muiElements;
+	}
+
+	muiElements -= uiNumToRemove;
+	if (muiElements == 0)
 	{
 		Clear();
 	}
@@ -161,10 +166,12 @@ void CMemoryStackExtended::Mark(CStackMarkExtended* psMark)
 	size			i;
 	CMemoryStack*	pcStack;
 	SStackMark		sMark;
+	size			uiNumElements;
 
-	psMark->Init(miElements);
+	uiNumElements = mcStacks.NumElements();
+	psMark->Init(muiElements);
 
-	for (i = 0; i < mcStacks.NumElements(); i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcStack = mcStacks.Get(i);
 		sMark = pcStack->Mark();
@@ -184,7 +191,7 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 	CMemoryStack*	pcStack;
 	SStackMark*		psMark;
 
-	if (pcMark->miElements == 0)
+	if (pcMark->muiElements == 0)
 	{
 		Clear();
 	}
@@ -204,7 +211,7 @@ void CMemoryStackExtended::Rollback(CStackMarkExtended* pcMark)
 			pcStack->Clear();
 		}
 
-		miElements = pcMark->miElements;
+		muiElements = pcMark->muiElements;
 	}
 }
 
@@ -217,15 +224,17 @@ size CMemoryStackExtended::GetTotalMemory(void)
 {
 	size			i;
 	CMemoryStack*	pcStack;
-	size				iSize;
+	size			uiSize;
+	size			uiNumElements;
 
-	iSize = 0;
-	for (i = 0; i < mcStacks.NumElements(); i++)
+	uiNumElements = mcStacks.NumElements();
+	uiSize = 0;
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcStack = mcStacks.Get(i);
-		iSize += pcStack->GetTotalMemory();
+		uiSize += pcStack->GetTotalMemory();
 	}
-	return iSize;
+	return uiSize;
 }
 
 
@@ -237,15 +246,17 @@ size CMemoryStackExtended::GetUsedMemory(void)
 {
 	size			i;
 	CMemoryStack*	pcStack;
-	size			iSize;
+	size			uiSize;
+	size			uiNumElements;
 
-	iSize = 0;
-	for (i = 0; i < mcStacks.NumElements(); i++)
+	uiNumElements = mcStacks.NumElements();
+	uiSize = 0;
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcStack = mcStacks.Get(i);
-		iSize += pcStack->GetUsedMemory();
+		uiSize += pcStack->GetUsedMemory();
 	}
-	return iSize;
+	return uiSize;
 }
 
 
@@ -275,6 +286,6 @@ size CMemoryStackExtended::NumStacks(void)
 //////////////////////////////////////////////////////////////////////////
 size CMemoryStackExtended::NumElements(void)
 {
-	return miElements;
+	return muiElements;
 }
 

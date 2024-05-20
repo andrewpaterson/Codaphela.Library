@@ -53,7 +53,7 @@ public:
 	bool				IsEmpty(void);
 	char*				GetAttribute(char* szAttribute);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
-	CMarkupTag*			GetTag(char* szTagName, uint32 iTagNumber);
+	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
 	CMarkupTag*			GetTagFromIndex(char* szTagName, STagIterator* psIter);
 	CMarkupTag*			GetTagFromIndex(STagIterator* psIter);
@@ -71,7 +71,7 @@ public:
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	void				Print(CChars* psz);
-	uint32				Print(CChars* psz, uint32 iDepth, uint32 iLine);
+	size				Print(CChars* psz, size iDepth, size iLine);
 	void				Dump(void);
 };
 

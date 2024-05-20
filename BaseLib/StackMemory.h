@@ -5,7 +5,7 @@
 #include "Numbers.h"
 
 
-template<int I = 4 KB>
+template<size I = 4 KB>
 class CStackMemory
 {
 private:
@@ -16,7 +16,7 @@ public:
 	void*	Init(void);
 	void*	Init(size iSize);
 	void	Kill(void);
-	int		GetStackSize(void);
+	size	GetStackSize(void);
 	void*	GetStackData(void);
 };
 
@@ -25,7 +25,7 @@ public:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<int I>
+template<size I>
 void* CStackMemory<I>::Init(void)
 {
 	mpvOffStack = NULL;
@@ -37,7 +37,7 @@ void* CStackMemory<I>::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<int I>
+template<size I>
 void* CStackMemory<I>::Init(size iSize)
 {
 	if (iSize > I)
@@ -57,7 +57,7 @@ void* CStackMemory<I>::Init(size iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<int I>
+template<size I>
 void CStackMemory<I>::Kill(void)
 {
 	SafeFree(mpvOffStack);
@@ -68,8 +68,8 @@ void CStackMemory<I>::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<int I>
-int CStackMemory<I>::GetStackSize(void)
+template<size I>
+size CStackMemory<I>::GetStackSize(void)
 {
 	return I;
 }
@@ -79,7 +79,7 @@ int CStackMemory<I>::GetStackSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-template<int I>
+template<size I>
 void* CStackMemory<I>::GetStackData(void)
 {
 	if (mpvOffStack)

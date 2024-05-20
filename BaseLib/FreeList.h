@@ -44,9 +44,9 @@ struct SFNode
 
 struct SFreeListParams
 {
-	uint8		iAlignment;
+	uint8		uiAlignment;
 	int8		iOffset;
-	size		iElementSize;
+	uint16		uiElementSize;
 };
 
 
@@ -64,18 +64,18 @@ protected:
 	SFNode*				mpsUnused;
 	SFNode*				mpsNotFull;
 
-	uint8				miOffset;
+	uint8				muiOffset;
 	int8				miSuppliedOffset;
-	uint8				miAlignment;
+	uint8				muiAlignment;
 	uint8				muiMagic;
 
-	size				miStride;
-	size				miElementSize;
+	uint16				muiStride;
+	uint16				muiElementSize;
 
 public:
-	void		Init(size iElementSize);
-	void		Init(size iElementSize, uint16 iAlignment);
-	void		Init(size iElementSize, uint16 iAlignment, int16 iOffset);
+	void		Init(size uiElementSize);
+	void		Init(size uiElementSize, size uiAlignment);
+	void		Init(size uiElementSize, size uiAlignment, int16 iOffset);
 	void		Kill(void);
 
 	void*		Add(SFNode** ppsNode = NULL);
@@ -85,11 +85,12 @@ public:
 	void*		Get(size iElement);
 	void*		StartIteration(SFreeListIterator* psIterator);
 	void*		Iterate(SFreeListIterator* psIterator);
-	void		RemoveDuringIteration(SFreeListIterator* psIterator);
+	bool		RemoveDuringIteration(SFreeListIterator* psIterator);
 	bool		Contains(void* pvData, bool bIsAllocated = true);
 	size		NumElements(void);
 	bool		HasElements(void);
 	size		NumNodeElements(SFNode* psNode);
+	size		NumNodes(void);
 	void		SetAdditionalSize(size iSize);
 	size		GetElementSize(void);
 	size		GetElementStride(void);
@@ -111,8 +112,8 @@ protected:
 	void		Deallocate(SFNode* psNode);
 	void*		AllocateExisting(SFNode* psNode, size iPosition);
 	void*		AllocateNewSetFirst(void);
-	void		FindNextAllocatedElement(SFreeListIterator* psIterator);
-	void		FindPrevAllocatedElement(SFreeListIterator* psIterator);
+	bool		FindNextAllocatedElement(SFreeListIterator* psIterator);
+	bool		FindPrevAllocatedElement(SFreeListIterator* psIterator);
 	bool		RemoveExisiting(SFNode* psNode, size iPosition);
 	size		CalculateStride(void);
 	uint8		CalculateOffset(int16 iOffset);
@@ -120,7 +121,7 @@ protected:
 	uint8		CalculateOffset(SFNode* psNode);
 	void*		GetElementInNode(SFNode* psNode, size iPosition);
 	bool		IsElementInNodeAllocated(SFNode* psNode, size iPosition);
-	void		RemoveExisiting(SFNode* psNode, void* pvData);
+	bool		RemoveExisiting(SFNode* psNode, void* pvData);
 };
 
 

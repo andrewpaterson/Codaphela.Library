@@ -1,6 +1,6 @@
 #ifndef __TIMSORT_H__
 #define __TIMSORT_H__
-#include "Define.h"
+#include "PrimitiveTypes.h"
 #include "DataCompare.h"
 
 
@@ -61,7 +61,7 @@
   */
 
 
-void TimSort(DataCompare fCompare, void* pvArray, size_t uiStride, int iNumElements);
+void TimSort(DataCompare fCompare, void* pvArray, size uiStride, int iNumElements);
 
 
 #endif // __TIMSORT_H__

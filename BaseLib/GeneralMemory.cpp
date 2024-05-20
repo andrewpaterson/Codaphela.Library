@@ -638,7 +638,7 @@ size CGeneralMemory::NumElements(void)
 size CGeneralMemory::ByteSize(void)
 {
 	size			iSize;
-	CFreeList*	pcFreeList;
+	CFreeList*		pcFreeList;
 
 	iSize = 0;
 	pcFreeList = mcFreeLists.GetHead();

@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryStack::Init(int iSize)
+void CMemoryStack::Init(size iSize)
 {
 	mpvMemory = NULL;
 	miMemorySize = iSize;
@@ -43,7 +43,7 @@ void CMemoryStack::Init(int iSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStack::Allocate(int iSize)
+void* CMemoryStack::Allocate(size iSize)
 {
 	Init(iSize);
 	mpvMemory = malloc(miMemorySize);
@@ -77,7 +77,7 @@ void CMemoryStack::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CMemoryStack::Add(int iSize)
+void* CMemoryStack::Add(size iSize)
 {
 	void*	pvCurrent;
 
@@ -116,8 +116,13 @@ void CMemoryStack::Remove(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMemoryStack::Remove(int iNumToRemove)
+void CMemoryStack::Remove(size iNumToRemove)
 {
+	if (iNumToRemove > miElements)
+	{
+		iNumToRemove = miElements;
+	}
+
 	miElements -= iNumToRemove;
 	if (miElements == 0)
 	{
@@ -154,7 +159,7 @@ void CMemoryStack::Rollback(SStackMark* psMark)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryStack::GetTotalMemory(void)
+size CMemoryStack::GetTotalMemory(void)
 {
 	return miMemorySize;
 }
@@ -164,7 +169,7 @@ int CMemoryStack::GetTotalMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryStack::GetUsedMemory(void)
+size CMemoryStack::GetUsedMemory(void)
 {
 	return miUsedMemory;
 }
@@ -174,7 +179,7 @@ int CMemoryStack::GetUsedMemory(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryStack::GetRemainingMemory(void)
+size CMemoryStack::GetRemainingMemory(void)
 {
 	return miMemorySize - miUsedMemory;
 }
@@ -194,7 +199,7 @@ void* CMemoryStack::GetData(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CMemoryStack::NumElements(void)
+size CMemoryStack::NumElements(void)
 {
 	return miElements;
 }
