@@ -586,14 +586,14 @@ CChars* CChars::Append(const char* szString, size uiLen)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(char c)
+CChars* CChars::Append(char cPadCharacter)
 {
 	char* pcReplace;
 
 	UnfakeIfFakeEmpty();
 
 	pcReplace = mcText.Tail();
-	*pcReplace = c;
+	*pcReplace = cPadCharacter;
 	mcText.Add(0);
 
 	return this;
@@ -691,7 +691,7 @@ CChars* CChars::Append(uint32 ui)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(float f, int iMaxDecimals, bool bAppendF)
+CChars* CChars::Append(float f, size iMaxDecimals, bool bAppendF)
 {
 	char szString[32];
 
@@ -704,7 +704,7 @@ CChars* CChars::Append(float f, int iMaxDecimals, bool bAppendF)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(double d, int iMaxDecimals, bool bAppendD)
+CChars* CChars::Append(double d, size iMaxDecimals, bool bAppendD)
 {
 	char	szString[128];
 
@@ -1059,7 +1059,7 @@ CChars* CChars::Append(char cPadCharacter, size iNumber)
 {
 	char*	pcPosition;
 
-	if (iNumber != 0)
+	if ((iNumber != 0) && (iNumber != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		pcPosition = PrivateGrow(iNumber);
 		memset(pcPosition, cPadCharacter, iNumber);
@@ -1068,16 +1068,6 @@ CChars* CChars::Append(char cPadCharacter, size iNumber)
 	}
 
 	return this;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CChars* CChars::Append(char cPadCharacter, int iNumber)
-{
-	return Append(cPadCharacter, (uint32)iNumber);
 }
 
 

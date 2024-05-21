@@ -55,7 +55,7 @@ public:
 	bool		Value(CCalcConstExpression** ppcConst);
 	bool		Identifier(CCalcConstExpression** ppcConst);
 	bool		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
-	int			GetMinPrecedence(CArrayIntAndPointer* pcArray);
+	uint		GetMinPrecedence(CArrayIntAndPointer* pcArray);
 	void		ResolveAmbiguity(CCalcOperator* pcOperator, bool bIsUnary);
 	bool		SetError(CChars* pszFirst, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight);
 	void		SetError(char* szError);
