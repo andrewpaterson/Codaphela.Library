@@ -50,12 +50,12 @@ void CArrayInt2D::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayInt2D::AddColumn(void)
+size CArrayInt2D::AddColumn(void)
 {
-	int	iOldWidth;
+	size	iOldWidth;
 
 	iOldWidth = miWidth;
-	InsertColumns(miWidth-1, 1);
+	InsertColumns(miWidth - 1, 1);
 	return iOldWidth;
 }
 
@@ -64,12 +64,12 @@ int CArrayInt2D::AddColumn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayInt2D::AddRow(void)
+size CArrayInt2D::AddRow(void)
 {
-	int	iOldHeight;
+	size	iOldHeight;
 
 	iOldHeight = miHeight;
-	InsertRows(miHeight-1, 1);
+	InsertRows(miHeight - 1, 1);
 	return iOldHeight;
 }
 
@@ -78,7 +78,7 @@ int CArrayInt2D::AddRow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::InsertColumn(int iColumn)
+void CArrayInt2D::InsertColumn(size iColumn)
 {
 	InsertColumns(iColumn, 1);
 }
@@ -88,7 +88,7 @@ void CArrayInt2D::InsertColumn(int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::InsertRow(int iRow)
+void CArrayInt2D::InsertRow(size iRow)
 {
 	InsertRows(iRow, 1);
 }
@@ -98,7 +98,7 @@ void CArrayInt2D::InsertRow(int iRow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::RemoveColumn(int iColumn)
+void CArrayInt2D::RemoveColumn(size iColumn)
 {
 	RemoveColumns(iColumn, 1);
 }
@@ -108,7 +108,7 @@ void CArrayInt2D::RemoveColumn(int iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::RemoveRow(int iRow)
+void CArrayInt2D::RemoveRow(size iRow)
 {
 	RemoveRows(iRow, 1);
 }
@@ -118,7 +118,7 @@ void CArrayInt2D::RemoveRow(int iRow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::SetColumns(int iNumColumns)
+void CArrayInt2D::SetColumns(size iNumColumns)
 {
 	if (miHeight == 0)
 	{
@@ -149,7 +149,7 @@ void CArrayInt2D::SetColumns(int iNumColumns)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::SetRows(int iNumRows)
+void CArrayInt2D::SetRows(size iNumRows)
 {
 	if (miWidth == 0)
 	{
@@ -180,7 +180,7 @@ void CArrayInt2D::SetRows(int iNumRows)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::SetSize(int iNumColumns, int iNumRows)
+void CArrayInt2D::SetSize(size iNumColumns, size iNumRows)
 {
 	SetColumns(iNumColumns);
 	SetRows(iNumRows);
@@ -191,10 +191,10 @@ void CArrayInt2D::SetSize(int iNumColumns, int iNumRows)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::InsertColumns(int iColumn, int iCount)
+void CArrayInt2D::InsertColumns(size iColumn, size iCount)
 {
 	//Naive implementation, fix as necessary.
-	int		i;
+	size		i;
 
 	i = miHeight;
 	if (i != 0)
@@ -214,7 +214,7 @@ void CArrayInt2D::InsertColumns(int iColumn, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::InsertRows(int iRow, int iCount)
+void CArrayInt2D::InsertRows(size iRow, size iCount)
 {
 	mcArray.InsertNumAt(iCount * miWidth, iRow * miWidth);
 	miHeight += iCount;
@@ -225,10 +225,10 @@ void CArrayInt2D::InsertRows(int iRow, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::RemoveColumns(int iColumn, int iCount)
+void CArrayInt2D::RemoveColumns(size iColumn, size iCount)
 {
 	//Naive implementation, fix as necessary.
-	int		i;
+	size		i;
 
 	i = miHeight;
 	if (i != 0)
@@ -248,7 +248,7 @@ void CArrayInt2D::RemoveColumns(int iColumn, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::RemoveRows(int iRow, int iCount)
+void CArrayInt2D::RemoveRows(size iRow, size iCount)
 {
 	mcArray.RemoveRange(iRow * miWidth, (iRow+iCount) * miWidth, true);
 	miHeight -= iCount;
@@ -259,7 +259,7 @@ void CArrayInt2D::RemoveRows(int iRow, int iCount)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayInt2D::Get(int x, int y)
+uint CArrayInt2D::Get(size x, size y)
 {
 	return mcArray.GetValue(x + y*miWidth);
 }
@@ -269,9 +269,9 @@ int CArrayInt2D::Get(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::Set(int x, int y, int iValue)
+void CArrayInt2D::Set(size x, size y, uint iValue)
 {
-	mcArray.SetValue(x + y*miWidth, iValue);
+	mcArray.SetValue(x + y * miWidth, iValue);
 }
 
 
@@ -279,11 +279,11 @@ void CArrayInt2D::Set(int x, int y, int iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayInt2D::SafeGet(int x, int y, int iNullValue)
+uint CArrayInt2D::SafeGet(size x, size y, uint iNullValue)
 {
-	if (((x >= 0) && (x < miWidth)) && ((y >= 0) && (y < miHeight)))
+	if ((x < miWidth) && (y < miHeight))
 	{
-		return mcArray.GetValue(x + y*miWidth);
+		return mcArray.GetValue(x + y * miWidth);
 	}
 	return iNullValue;
 }
@@ -293,7 +293,7 @@ int CArrayInt2D::SafeGet(int x, int y, int iNullValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::SafeSet(int x, int y, int iValue)
+void CArrayInt2D::SafeSet(size x, size y, uint iValue)
 {
 	if (((x >= 0) && (x < miWidth)) && ((y >= 0) && (y < miHeight)))
 	{
@@ -306,10 +306,10 @@ void CArrayInt2D::SafeSet(int x, int y, int iValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::Fill(int iX1, int iY1, int iX2, int iY2, int iValue)
+void CArrayInt2D::Fill(size iX1, size iY1, size iX2, size iY2, uint iValue)
 {
-	int		x;
-	int		y;
+	size	x;
+	size	y;
 
 	for (y = iY1; y < iY2; y++)
 	{
@@ -320,18 +320,16 @@ void CArrayInt2D::Fill(int iX1, int iY1, int iX2, int iY2, int iValue)
 	}
 }
 
-
-
 	
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt2D::CountFill(int iX1, int iY1, int iX2, int iY2)
+void CArrayInt2D::CountFill(size iX1, size iY1, size iX2, size iY2)
 {
-	int		x;
-	int		y;
-	int		iValue;
+	size	x;
+	size	y;
+	uint	iValue;
 
 	iValue = 0;
 	for (y = iY1; y < iY2; y++)

@@ -507,7 +507,7 @@ bool CLogFile::AmalgamateOverlappingWrites(CArrayIntAndPointer* papvOverlapping,
 	filePos					iEnd;  //Inclusive;
 	size					i;
 	CLogFileCommandWrite*	psWrite;
-	int32					iIndex;
+	size					iIndex;
 	size					iIndeedSize;
 	CLogFileCommandWrite*	psCommand;
 	void*					pvData;
@@ -734,7 +734,7 @@ void CLogFile::CopyWritesToRead(CArrayIntAndPointer* papvOverlapping, size iByte
 	size					i;
 	size					iNumWrites;
 	CLogFileCommandWrite*	psWrite;
-	int32					iIndex;
+	size					iIndex;
 	void*					pvData;
 	size					iDestOffset;
 	size					iSourceOffset;
@@ -924,7 +924,7 @@ bool CLogFile::FindHoles(CArrayIntAndPointer* papvOverlapping, filePos iPosition
 	CArrayIntAndPointer		apvOverlappingSorted;  //Should be an CArraySizeAndPointer
 	size					i;
 	CLogFileCommandWrite*	psWrite;
-	int32					eCommand;
+	size					eCommand;
 	bool					bHoles;
 	filePos					iEnd;
 	size					uiNumElements;

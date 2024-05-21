@@ -26,13 +26,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "DataTypes.h"
 
 
-class CArrayIntMinimal : public CArrayTemplateMinimal<int>
+class CArrayIntMinimal : public CArrayTemplateMinimal<uint>
 {
 public:
-	void	Add(int i);
-	int		AddIfUnique(int i);
-	int		Find(int i);
-	int		GetValue(size iElementPos);
+	void	Add(uint i);
+	size	AddIfUnique(uint i);
+	size	Find(uint i);
+	uint	GetValue(size iElementPos);
 	void	QuickSort(void);
 };
 

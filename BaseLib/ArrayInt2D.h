@@ -30,34 +30,34 @@ class CArrayInt2D
 {
 public:
 	CArrayInt	mcArray;
-	int			miWidth;
-	int			miHeight;
+	size		miWidth;
+	size		miHeight;
 
 	void	Init(void);
 	void	Kill(void);
 
-	int		AddColumn(void);
-	int		AddRow(void);
-	void	InsertColumn(int iColumn);  //iColumn is the column to insert *before*.
-	void	InsertRow(int iRow);
-	void	InsertColumns(int iColumn, int iCount);
-	void	InsertRows(int iRow, int iCount);
+	size	AddColumn(void);
+	size	AddRow(void);
+	void	InsertColumn(size iColumn);  //iColumn is the column to insert *before*.
+	void	InsertRow(size iRow);
+	void	InsertColumns(size iColumn, size iCount);
+	void	InsertRows(size iRow, size iCount);
 
-	void	RemoveColumn(int iColumn);
-	void	RemoveRow(int iRow);
-	void	RemoveColumns(int iColumn, int iCount);
-	void	RemoveRows(int iRow, int iCount);
+	void	RemoveColumn(size iColumn);
+	void	RemoveRow(size iRow);
+	void	RemoveColumns(size iColumn, size iCount);
+	void	RemoveRows(size iRow, size iCount);
 
-	void	SetColumns(int iNumColumns);
-	void	SetRows(int iNumRows);
-	void	SetSize(int iNumColumns, int iNumRows);
+	void	SetColumns(size iNumColumns);
+	void	SetRows(size iNumRows);
+	void	SetSize(size iNumColumns, size iNumRows);
 
-	int		Get(int x, int y);
-	void	Set(int x, int y, int iValue);
-	int		SafeGet(int x, int y, int iNullValue);
-	void	SafeSet(int x, int y, int iValue);
-	void	Fill(int iX1, int iY1, int iX2, int iY2, int iValue);
-	void	CountFill(int iX1, int iY1, int iX2, int iY2);
+	uint	Get(size x, size y);
+	void	Set(size x, size y, uint iValue);
+	uint	SafeGet(size x, size y, uint iNullValue);
+	void	SafeSet(size x, size y, uint iValue);
+	void	Fill(size iX1, size iY1, size iX2, size iY2, uint iValue);
+	void	CountFill(size iX1, size iY1, size iX2, size iY2);
 };
 
 

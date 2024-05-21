@@ -400,8 +400,8 @@ template<class M>
 void __CArrayDenseTemplate<M>::Search(size iElementPos, SDenseNode** ppsNode, bool* pbLeft, bool* pbInsertionLeft)
 {
 	SDenseNode*		psNode;
-	int				iCount;
-	int				iLefts;
+	size			iCount;
+	size			iLefts;
 
 	if (miUsedElements > 0)
 	{

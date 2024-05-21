@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayIntAndPointer::Add(void* pvData, int32 iInt)
+void CArrayIntAndPointer::Add(void* pvData, uint iInt)
 {
 	SIntAndPointer*	psPtr;
 
@@ -41,7 +41,7 @@ void CArrayIntAndPointer::Add(void* pvData, int32 iInt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayIntAndPointer::AddIfUnique(void* pvData, int32 iInt)
+void CArrayIntAndPointer::AddIfUnique(void* pvData, uint iInt)
 {
 	SIntAndPointer*		psPtr;
 	size				i;
@@ -63,7 +63,7 @@ void CArrayIntAndPointer::AddIfUnique(void* pvData, int32 iInt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayIntAndPointer::Get(size iElementPos, void** pvData, int32* iType)
+bool CArrayIntAndPointer::Get(size iElementPos, void** pvData, uint* iType)
 {
 	SIntAndPointer*	psPtr;
 
@@ -145,7 +145,7 @@ size CArrayIntAndPointer::SafeGetType(size iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayIntAndPointer::Set(size iElementPos, void* pvData, int32 iInt)
+void CArrayIntAndPointer::Set(size iElementPos, void* pvData, uint iInt)
 {
 	SIntAndPointer*	psTypedPointer;
 
@@ -175,7 +175,7 @@ void CArrayIntAndPointer::Remove(void* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElement, int32 iInt)
+void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElement, uint iInt)
 {
 	size				iPos;
 	SIntAndPointer	sTypedPointer;

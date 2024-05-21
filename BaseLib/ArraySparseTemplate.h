@@ -31,8 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SSparseNode
 {
-	int				iIndex;
-	int				iLeafDepth;
+	size				iIndex;
+	size				iLeafDepth;
 	SSparseNode*	psParent;
 	SSparseNode*	psLeft;
 	SSparseNode*	psRight;
@@ -48,26 +48,26 @@ class __CArraySparseTemplate
 {
 private:
 	CFreeList		mcNodes;
-	int				miElementSize;
+	size				miElementSize;
 	SSparseNode*	mpsRoot;
 
 public:
 	void 			Init(uint16 iElementSize);
 	void 			Kill(void);
-	M*				Set(int iElementPos, M* pvData);
-	SSparseNode*	Search(int iElementPos);
-	M* 				Set(int iElementPos);
-	M*				Get(int iElementPos);
+	M*				Set(size iElementPos, M* pvData);
+	SSparseNode*	Search(size iElementPos);
+	M* 				Set(size iElementPos);
+	M*				Get(size iElementPos);
 	void			Dump(void);
-	void			RecurseDump(int iDepth, SSparseNode* psNode, CChars* psz, bool bLeft);
+	void			RecurseDump(size iDepth, SSparseNode* psNode, CChars* psz, bool bLeft);
 	SSparseNode*	TestGetRoot(void);
 
 private:
-	SSparseNode*	AllocateNode(int iElementPos, SSparseNode* psParent);
+	SSparseNode*	AllocateNode(size iElementPos, SSparseNode* psParent);
 	SSparseNode*	RotateLeft(SSparseNode* psNode);
 	SSparseNode*	RotateRight(SSparseNode* psNode);
 	void			RecurseRebalance(SSparseNode* psNode);
-	void			RecurseIncreaseDepths(SSparseNode* psNode, int iLeafDepth);
+	void			RecurseIncreaseDepths(SSparseNode* psNode, size iLeafDepth);
 	void			RecurseUpdateDepth(SSparseNode* psNode);
 };
 
@@ -130,7 +130,7 @@ void __CArraySparseTemplate<M>::Kill(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArraySparseTemplate<M>::Set(int iElementPos, M* pvData)
+M* __CArraySparseTemplate<M>::Set(size iElementPos, M* pvData)
 {
 	M*	psElement;
 
@@ -151,7 +151,7 @@ M* __CArraySparseTemplate<M>::Set(int iElementPos, M* pvData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-SSparseNode* __CArraySparseTemplate<M>::AllocateNode(int iElementPos, SSparseNode* psParent)
+SSparseNode* __CArraySparseTemplate<M>::AllocateNode(size iElementPos, SSparseNode* psParent)
 {
 	SSparseNode*	psNode;
 
@@ -171,7 +171,7 @@ SSparseNode* __CArraySparseTemplate<M>::AllocateNode(int iElementPos, SSparseNod
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArraySparseTemplate<M>::RecurseIncreaseDepths(SSparseNode* psNode, int iLeafDepth)
+void __CArraySparseTemplate<M>::RecurseIncreaseDepths(SSparseNode* psNode, size iLeafDepth)
 {
 	if (psNode->iLeafDepth < iLeafDepth)
 	{
@@ -192,9 +192,9 @@ void __CArraySparseTemplate<M>::RecurseIncreaseDepths(SSparseNode* psNode, int i
 template<class M>
 void __CArraySparseTemplate<M>::RecurseUpdateDepth(SSparseNode* psNode)
 {
-	int	iLeftDepth;
-	int	iRightDepth;
-	int	iNewDepth;
+	size	iLeftDepth;
+	size	iRightDepth;
+	size	iNewDepth;
 
 	if (psNode)
 	{
@@ -226,7 +226,7 @@ void __CArraySparseTemplate<M>::RecurseUpdateDepth(SSparseNode* psNode)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-SSparseNode* __CArraySparseTemplate<M>::Search(int iElementPos)
+SSparseNode* __CArraySparseTemplate<M>::Search(size iElementPos)
 {
 	SSparseNode*	psNode;
 
@@ -272,7 +272,7 @@ SSparseNode* __CArraySparseTemplate<M>::Search(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArraySparseTemplate<M>::Set(int iElementPos)
+M* __CArraySparseTemplate<M>::Set(size iElementPos)
 {
 	SSparseNode*	psNode;
 	SSparseNode*	psNewNode;
@@ -311,7 +311,7 @@ M* __CArraySparseTemplate<M>::Set(int iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* __CArraySparseTemplate<M>::Get(int iElementPos)
+M* __CArraySparseTemplate<M>::Get(size iElementPos)
 {
 	SSparseNode*	psNode;
 
@@ -417,8 +417,8 @@ SSparseNode* __CArraySparseTemplate<M>::RotateRight(SSparseNode* psNode)
 template<class M>
 void __CArraySparseTemplate<M>::RecurseRebalance(SSparseNode* psNode)
 {
-	int		iLeftDepth;
-	int		iRightDepth;
+	size	iLeftDepth;
+	size	iRightDepth;
 	int		iDiff;
 
 	if (!psNode)
@@ -489,7 +489,7 @@ void __CArraySparseTemplate<M>::Dump(void)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void __CArraySparseTemplate<M>::RecurseDump(int iDepth, SSparseNode* psNode, CChars* psz, bool bLeft)
+void __CArraySparseTemplate<M>::RecurseDump(size iDepth, SSparseNode* psNode, CChars* psz, bool bLeft)
 {
 	if (psNode)
 	{

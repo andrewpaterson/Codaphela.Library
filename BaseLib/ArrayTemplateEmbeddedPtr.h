@@ -1,21 +1,22 @@
 #ifndef __ARRAY_TEMPLATE_EMBEDDED_POINTER_H__
 #define __ARRAY_TEMPLATE_EMBEDDED_POINTER_H__
+#include "PrimitiveTypes.h"
 #include "PointerFunctions.h"
 #include "ArrayTemplateEmbedded.h"
 
 
-template<class M, int I>
+template<class M, uint I>
 class CArrayTemplateEmbeddedPtr : public CArrayTemplateEmbedded<M*, I>
 {
 public:
 	void	Init(void);
 	void	Kill(void);
 	void	Add(M* pv);
-	M*		GetPtr(int iIndex);
-	bool	Get(int iIndex, M** pv);
-	M**		Get(int iIndex);
+	M*		GetPtr(size iIndex);
+	bool	Get(size iIndex, M** pv);
+	M**		Get(size iIndex);
 	void	QuickSort(void);
-	int		Find(M* pv);
+	size	Find(M* pv);
 	void 	Push(M* pv);
 	M*		Pop(void);
 };
@@ -25,7 +26,7 @@ public:
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
+template<class M, uint I>
 void CArrayTemplateEmbeddedPtr<M, I>::Init(void)
 {
 	CArrayTemplateEmbedded<M*, I>::Init();
@@ -36,7 +37,7 @@ void CArrayTemplateEmbeddedPtr<M, I>::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
+template<class M, uint I>
 void CArrayTemplateEmbeddedPtr<M, I>::Kill(void)
 {
 	CArrayTemplateEmbedded<M*, I>::Kill();
@@ -47,7 +48,7 @@ void CArrayTemplateEmbeddedPtr<M, I>::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
+template<class M, uint I>
 void CArrayTemplateEmbeddedPtr<M, I>::Add(M* pv)
 {
 	M** pvTemp;
@@ -61,8 +62,8 @@ void CArrayTemplateEmbeddedPtr<M, I>::Add(M* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
-bool CArrayTemplateEmbeddedPtr<M, I>::Get(int iIndex, M** pv)
+template<class M, uint I>
+bool CArrayTemplateEmbeddedPtr<M, I>::Get(size iIndex, M** pv)
 {
 	M** pvTemp;
 
@@ -83,8 +84,8 @@ bool CArrayTemplateEmbeddedPtr<M, I>::Get(int iIndex, M** pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
-M** CArrayTemplateEmbeddedPtr<M, I>::Get(int iIndex)
+template<class M, uint I>
+M** CArrayTemplateEmbeddedPtr<M, I>::Get(size iIndex)
 {
 	return CArrayTemplateEmbedded<M*, I>::Get(iIndex);
 }
@@ -94,8 +95,8 @@ M** CArrayTemplateEmbeddedPtr<M, I>::Get(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
-M* CArrayTemplateEmbeddedPtr<M, I>::GetPtr(int iIndex)
+template<class M, uint I>
+M* CArrayTemplateEmbeddedPtr<M, I>::GetPtr(size iIndex)
 {
 	return *CArrayTemplateEmbedded<M*, I>::Get(iIndex);
 }
@@ -105,7 +106,7 @@ M* CArrayTemplateEmbeddedPtr<M, I>::GetPtr(int iIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
+template<class M, uint I>
 void CArrayTemplateEmbeddedPtr<M, I>::QuickSort(void)
 {
 	CArrayTemplateEmbedded<M*, I>::QuickSort(&ComparePtrPtr);
@@ -116,21 +117,23 @@ void CArrayTemplateEmbeddedPtr<M, I>::QuickSort(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
-int CArrayTemplateEmbeddedPtr<M, I>::Find(M* pv)
+template<class M, uint I>
+size CArrayTemplateEmbeddedPtr<M, I>::Find(M* pv)
 {
-	int		i;
-	M** pvData;
+	size	i;
+	M**		pvData;
+	size	uiNumElements;
 
 	pvData = GetData();
-	for (i = 0; i < NumElements(); i++)
+	uiNumElements = NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (pvData[i] == pv)
 		{
 			return i;
 		}
 	}
-	return -1;
+	return ARRAY_ELEMENT_NOT_FOUND;
 }
 
 
@@ -138,7 +141,7 @@ int CArrayTemplateEmbeddedPtr<M, I>::Find(M* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
+template<class M, uint I>
 void CArrayTemplateEmbeddedPtr<M, I>::Push(M* pv)
 {
 	Add(pv);
@@ -149,7 +152,7 @@ void CArrayTemplateEmbeddedPtr<M, I>::Push(M* pv)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, int I>
+template<class M, uint I>
 M* CArrayTemplateEmbeddedPtr<M, I>::Pop(void)
 {
 	M* pv;
