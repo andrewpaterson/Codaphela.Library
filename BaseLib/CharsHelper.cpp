@@ -29,12 +29,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
+void CCharsHelper::GenerateRandomNumbersCharList(size iNum)
 {
-	int		i;
-	int		r;
-	CChars	sz;
-	CRandom	cRandom;
+	size		i;
+	int			r;
+	CChars		sz;
+	CRandom		cRandom;
 
 	cRandom.Init();
 
@@ -59,15 +59,17 @@ void CCharsHelper::GenerateRandomNumbersCharList(int iNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCharsHelper::GenerateBitStream(uint8* ucBytes, int iByteCount)
+void CCharsHelper::GenerateBitStream(uint8* ucBytes, size iByteCount)
 {
 	bool	b;
 	CChars	sz;
+	size	i;
+	size	j;
 
 	sz.Init();
-	for (int i = 0; i < iByteCount; i++)
+	for (i = 0; i < iByteCount; i++)
 	{
-		for (int j = 0; j < 8; j++)
+		for (j = 0; j < 8; j++)
 		{
 			b = GetBit(j, &ucBytes[i]);
 			if (b)
@@ -94,10 +96,10 @@ void CCharsHelper::Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArra
 {
 	CArrayChars*	paszIterate;
 	CArrayChars		aszSorted;
-	int				i;
-	int				iNumElements;
+	size			i;
+	size			iNumElements;
 	CChars*			psz;
-	int				iIndex;
+	size			iIndex;
 
 	if (paszLeft->NumElements() > paszRight->NumElements())
 	{
@@ -116,7 +118,7 @@ void CCharsHelper::Intersect(CArrayChars* paszDest, CArrayChars* paszLeft, CArra
 	{
 		psz = paszIterate->Get(i);
 		iIndex = aszSorted.FindInSorted(psz);
-		if (iIndex != -1)
+		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			paszDest->InsertIntoSorted(psz);
 		}

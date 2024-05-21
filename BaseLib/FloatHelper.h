@@ -42,7 +42,7 @@ float 	NormaliseFloat(float fMax, float fMin, float fPos);  //returns 1 .. 0
 float	InterpolateFloat(float f1, float f2, float fPos);
 void	InterpolateFloat(float* fDest, float f1, float f2, float fPos);
 float	FloatToleranceForDecimals(int iDecimals);
-int		FloatWholeNumbers(float f);
+size	FloatWholeNumbers(float f);
 double	sq(double f);
 bool	DoubleEqual(double f1, double f2);
 bool	DoubleEqual(double f1, double f2, double fTolerance);
@@ -57,7 +57,7 @@ double 	NormaliseDouble(double fMax, double fMin, double fPos);  //returns 1 .. 
 double	InterpolateDouble(double f1, double f2, double fPos);
 void	InterpolateDouble(double* fDest, double f1, double f2, double fPos);
 double	DoubleToleranceForDecimals(int iDecimals);
-int		DoubleWholeNumbers(double f);
+size	DoubleWholeNumbers(double f);
 bool	LongDoubleEqual(float96 f1, float96 f2);
 bool	LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance);
 void	Swap(float* f1, float* f2);

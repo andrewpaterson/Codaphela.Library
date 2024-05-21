@@ -156,12 +156,12 @@ float TruncateFloat(float fInput, int iBinaryExponent)
 {
 	//Everything below the binary exponent is truncated.
 
-	float			fReturn;
+	float	fReturn;
 	uint32	iTruncated;
-	int				iFloatExponent;
-	int				iExponentDifference;
+	int		iFloatExponent;
+	int		iExponentDifference;
 	uint32	uiFractionMask;
-	int				iMaskedBits;
+	int		iMaskedBits;
 
 	//Remember that an exponent of 0x7f is 2**0 = 1.  0x80 is 2**1 = 2.  0x81 is 2**2 = 4 etc..
 
@@ -171,7 +171,7 @@ float TruncateFloat(float fInput, int iBinaryExponent)
 
 	iBinaryExponent += 0x7f;  //Get the ieee 754 exponent representation to truncate to.
 
-	iExponentDifference = iFloatExponent-iBinaryExponent;  //The difference between the floats exponent and the wanted exponent.
+	iExponentDifference = iFloatExponent - iBinaryExponent;  //The difference between the floats exponent and the wanted exponent.
 
 	//If the exponent difference is >= 0 then our float has some digits which are not trunacted.
 	if (iExponentDifference >= 0)
@@ -298,11 +298,12 @@ float FloatToleranceForDecimals(int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int FloatWholeNumbers(float f)
+size FloatWholeNumbers(float f)
 {
-	float fCmp = 1.0f;
-	int iWholes;
+	float	fCmp;
+	size	iWholes;
 
+	fCmp = 1.0f;
 	f = fabsf(f);
 	for (iWholes = 0; iWholes < 8; iWholes++)
 	{
@@ -587,11 +588,12 @@ double DoubleToleranceForDecimals(int iDecimals)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int DoubleWholeNumbers(double f)
+size DoubleWholeNumbers(double f)
 {
-	double	fCmp = 1.0f;
-	int		iWholes;
+	double	fCmp;
+	size	iWholes;
 
+	fCmp = 1.0f;
 	f = fabs(f);
 	for (iWholes = 0; iWholes < 8; iWholes++)
 	{
@@ -625,7 +627,7 @@ void Swap(float* f1, float* f2)
 //////////////////////////////////////////////////////////////////////////
 float NotANumber(void)
 {
-	int	i = 0xffffffff;
+	uint32	i = 0xffffffff;
 	float f = *((float*)((void*)&i));
 	return f;
 }
@@ -637,7 +639,7 @@ float NotANumber(void)
 //////////////////////////////////////////////////////////////////////////
 bool IsNotANumber(float* pf)
 {
-	return *((int*)((void*)pf)) == 0xffffffff;
+	return *((uint32*)((void*)pf)) == 0xffffffff;
 }
 
 

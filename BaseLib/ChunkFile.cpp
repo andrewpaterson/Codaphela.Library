@@ -624,8 +624,8 @@ bool CChunkFile::ReadChunkEnd(size iNumChunksToEnd)
 //////////////////////////////////////////////////////////////////////////
 bool CChunkFile::ReadChunkNames(void)
 {
-	int*			piVal;
-	int				iMax;
+	size*			piVal;
+	chunkName		iMax;
 	bool			bResult;
 	SMapIterator	sIter;
 

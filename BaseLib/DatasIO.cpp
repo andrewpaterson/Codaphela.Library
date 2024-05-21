@@ -106,7 +106,7 @@ SDataIO* CDatasIO::GetIO(const char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDatasIO::NumDataIOs(void)
+size CDatasIO::NumDataIOs(void)
 {
 	return mcDataIOs.NumElements();
 }

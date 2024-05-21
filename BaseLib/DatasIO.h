@@ -30,7 +30,7 @@ public:
 
 	SDataIO*			GetIO(char* szClassName);
 	SDataIO*			GetIO(const char* szClassName);
-	int					NumDataIOs(void);
+	size				NumDataIOs(void);
 };
 
 
