@@ -176,7 +176,7 @@ bool CDataMemory::Remove(CArrayVoidPtr* pav)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDataMemory::RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
+size CDataMemory::RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList)
 {
 	void*					pvLast;
 	SDataMemoryAllocation*	psPotentialLast;
@@ -224,7 +224,7 @@ int CDataMemory::RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList)
+size CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList)
 {
 	void*						pv;
 	SDataMemoryAllocation*		psFirst;
@@ -451,7 +451,7 @@ CFreeList* CDataMemory::GetFreeList(size iElementSize)
 	size					iIndex;
 	SFreeListDesc*			psDesc;
 	SMemoryFreeListParams*	psParams;
-	int						iStride;
+	size						iStride;
 
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
@@ -512,10 +512,10 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CDataMemory::NumElements(void)
+size CDataMemory::NumElements(void)
 {
 	CFreeList*		pcBlock;
-	int					uiCount;
+	size			uiCount;
 
 	uiCount = 0;
 	pcBlock = mcFreeLists.GetHead();
@@ -534,9 +534,9 @@ int CDataMemory::NumElements(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CDataMemory::ByteSize(void)
+size CDataMemory::ByteSize(void)
 {
-	int					iSize;
+	size			iSize;
 	CFreeList*		pcFreeList;
 
 	iSize = 0;
@@ -724,7 +724,7 @@ uint64 CDataMemory::GetTotalAllocations(void)
 CFreeList* CDataMemory::TestGetFreeListsHead(void) { return mcFreeLists.GetHead(); }
 void* CDataMemory::TestGetLargeListsHead(void) { return mcLargeList.GetHead(); }
 CMemoryFreeListParams* CDataMemory::GetFreeListParams(void) { return mpcFreeListParams; }
-int	CDataMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
+size CDataMemory::NumFreeLists(void) { return mcFreeLists.NumElements(); }
 
 
 //////////////////////////////////////////////////////////////////////////

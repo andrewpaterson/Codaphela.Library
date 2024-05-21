@@ -258,8 +258,8 @@ void SDouble2::Dump(void)
 {
 	CChars		sz;
 	CChars		sx;
-	int			iWidth;
-	int			iDecimals;
+	size		iWidth;
+	size		iDecimals;
 
 	iWidth = 6;
 	iDecimals = iWidth-5;

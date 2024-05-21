@@ -56,8 +56,8 @@ public:
 	size					GetSize(void* pv);
 	CFreeList*				GetFreeList(size iElementSize);
 	void*					Grow(void* pvInitial, size iSize);
-	int						NumElements(void);
-	int						ByteSize(void);
+	size					NumElements(void);
+	size					ByteSize(void);
 	CMemoryFreeListParams*	GetFreeListParams(void);
 
 	SMemory					StartIteration(SMemoryIterator* psIterator);
@@ -68,11 +68,11 @@ public:
 
 	CFreeList*				TestGetFreeListsHead(void);
 	void*					TestGetLargeListsHead(void);
-	int						NumFreeLists(void);
+	size						NumFreeLists(void);
 
 protected:
-	int						RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList);
-	int						RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList);
+	size					RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList);
+	size					RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList);
 
 private:
 	CFreeList*				GetOrAddFreeList(size iElementSize);
