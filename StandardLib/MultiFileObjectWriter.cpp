@@ -116,7 +116,7 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	//Write file type identifier.
 	szExtension = OBJECT_FILE_EXTENSION;
 	ReturnOnFalse(cFile.WriteData(szExtension, 4));
-	ReturnOnFalse(cFile.WriteInt(BASIC_OBJECT_FILE));
+	ReturnOnFalse(cFile.WriteInt32(BASIC_OBJECT_FILE));
 
 	ReturnOnFalse(cFile.WriteData(pcSerialised, pcSerialised->GetLength()));
 

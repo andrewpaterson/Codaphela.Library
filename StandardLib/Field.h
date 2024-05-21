@@ -35,7 +35,7 @@ public:
 	virtual	SDataIO*	GetDataIO(void);
 
 protected:
-	virtual	size_t		GetNameOffset(void) =0;
+	virtual	size		GetNameOffset(void) =0;
 };
 
 

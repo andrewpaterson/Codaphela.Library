@@ -50,10 +50,12 @@ void CObjectsSource::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CObjectSource* CObjectsSource::GetSource(char* szFullName)
 {
-	int					i;
-	CObjectSource*		pcSource;
+	size			i;
+	CObjectSource*	pcSource;
+	size			uiSources;
 
-	for (i = 0; i < macSources.NumElements(); i++)
+	uiSources = macSources.NumElements();
+	for (i = 0; i < uiSources; i++)
 	{
 		pcSource = (CObjectSource*)macSources.Get(i);
 		if (pcSource->Contains(szFullName))

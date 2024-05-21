@@ -50,7 +50,7 @@ protected:
 	CClass*		AddClass(EPrimitiveType eFieldType);
 	template<class Class>
 	CClass*		AddClassWithConstructorAndIO(EPrimitiveType eFieldType);
-	CClass*		AddClass(const char* szClassName, size_t uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest);
+	CClass*		AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest);
 	CClass*		AddVoid(void);
 };
 
@@ -63,7 +63,7 @@ template<class Class>
 CClass* CPrimitiveClasses::AddClass(EPrimitiveType eFieldType)
 {
 	Class	cInstance;
-	size_t	uiOffset;
+	size	uiOffset;
 	CClass* pcClass;
 
 	uiOffset = (char*)(&cInstance.mVal) - (char*)(&cInstance);

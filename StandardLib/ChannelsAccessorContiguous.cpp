@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, int iByteSize, int iBitSize, int iBufferSize)
+void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize)
 {
 	CChannelAccessor*	pcAccessor;
 
@@ -40,9 +40,9 @@ void CChannelsAccessorContiguous::Init(CChannels* pcChannels, CArrayChannelAcces
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorContiguous::Get(int iPos)
+void* CChannelsAccessorContiguous::Get(size iPos)
 {
-	void*				pvSource;
+	void*	pvSource;
 
 	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride() + miByteOffset);
 	return pvSource;
@@ -53,9 +53,9 @@ void* CChannelsAccessorContiguous::Get(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorContiguous::Set(int iPos, void* pvSource)
+void CChannelsAccessorContiguous::Set(size iPos, void* pvSource)
 {
-	void*				pvDest;
+	void*	pvDest;
 
 	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride() + miByteOffset);
 	memcpy_fast(pvDest, pvSource, miByteSize);
@@ -70,3 +70,4 @@ bool CChannelsAccessorContiguous::IsContiguous(void)
 {
 	return true;
 }
+

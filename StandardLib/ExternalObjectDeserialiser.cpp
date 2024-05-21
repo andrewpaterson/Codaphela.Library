@@ -29,8 +29,9 @@ void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNa
 //////////////////////////////////////////////////////////////////////////
 void CExternalObjectDeserialiser::Kill(void)
 {
-	int						i;
+	size					i;
 	CDependentReadObject*	pcDependent;
+	size					uiReadObjects;
 
 	mpcObjects = NULL;
 	mpcMemory = NULL;
@@ -38,7 +39,8 @@ void CExternalObjectDeserialiser::Kill(void)
 	mcIndexRemap.Kill();
 	mcPointers.Kill();
 
-	for (i = 0; i < mcReadObjects.NumElements(); i++)
+	uiReadObjects = mcReadObjects.NumElements();
+	for (i = 0; i < uiReadObjects; i++)
 	{
 		pcDependent = mcReadObjects.Get(i);
 		pcDependent->Kill();
@@ -259,9 +261,9 @@ bool CExternalObjectDeserialiser::Mark(OIndex oi)
 CDependentReadObject* CExternalObjectDeserialiser::GetObject(OIndex oi)
 {
 	CDependentReadObject	cObject;
-	int						iIndex;
+	size					iIndex;
 	bool					bResult;
-	CDependentReadObject* pcDependent;
+	CDependentReadObject*	pcDependent;
 
 	cObject.moi = oi;
 
@@ -312,10 +314,12 @@ int CExternalObjectDeserialiser::NumObjects(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CExternalObjectDeserialiser::GetNewIndexFromOld(OIndex oiOld)
 {
-	int				i;
-	CIndexNewOld* pcRemap;
+	size			i;
+	CIndexNewOld*	pcRemap;
+	size			uiIndices;
 
-	for (i = 0; i < mcIndexRemap.NumElements(); i++)
+	uiIndices = mcIndexRemap.NumElements();
+	for (i = 0; i < uiIndices; i++)
 	{
 		pcRemap = mcIndexRemap.Get(i);
 		if (pcRemap->moiOld == oiOld)
@@ -453,7 +457,7 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 {
 	CDependentReadObject	cDependent;
 	bool					bOiExistsInDependents;
-	int						iIndex;
+	size					iIndex;
 	CDependentReadPointer*	pcPointer;
 	bool					bNameExistsInDatabase;
 
@@ -506,8 +510,8 @@ bool CExternalObjectDeserialiser::AddReverseDependent(CObjectIdentifier* pcHeade
 ////////////////////////////////////////////////////////////////////////
 CDependentReadObject* CExternalObjectDeserialiser::GetUnread(void)
 {
-	int						iOldIndex;
-	CDependentReadObject* psObject;
+	size					iOldIndex;
+	CDependentReadObject*	psObject;
 
 	if (mcReadObjects.NumElements() == 0)
 	{

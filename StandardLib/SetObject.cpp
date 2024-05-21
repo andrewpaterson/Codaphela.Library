@@ -38,12 +38,14 @@ Ptr<CSetObject> CSetObject::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CSetObject::Get(int iIndex)
+CPointer CSetObject::Get(size iIndex)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
+	size			uiNumElements;
 
-	if ((iIndex >=0) && (iIndex < mcArray.UnsafeNumElements()))
+	uiNumElements = mcArray.UnsafeNumElements();
+	if (iIndex < uiNumElements)
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
 		pObject.AssignObject(pcObject);
@@ -85,7 +87,7 @@ CPointer CSetObject::StartIteration(SSetIterator* psIter)
 CPointer CSetObject::Iterate(SSetIterator* psIter)
 {
 	CBaseObject*	pcObject;
-	CPointer	pObject;
+	CPointer		pObject;
 
 	pcObject = (CBaseObject*)mcArray.Iterate(psIter);
 	pObject.AssignObject(pcObject);

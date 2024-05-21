@@ -60,7 +60,7 @@ CBaseObject* CEmbeddedObjectField::GetEmbeddedObject(CBaseObject* pcFieldContain
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CEmbeddedObjectField::GetNameOffset(void)
+size CEmbeddedObjectField::GetNameOffset(void)
 {
 	return sizeof(CEmbeddedObjectField);
 }

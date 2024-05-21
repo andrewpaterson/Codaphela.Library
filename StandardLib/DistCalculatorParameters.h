@@ -21,10 +21,10 @@ class CDistCalculatorParameters
 {
 private:
 	CArrayTemplateEmbeddedBaseObjectPtr		mapcTouched;
-	CArrayDistToRoot				macExpectedDists;
+	CArrayDistToRoot						macExpectedDists;
 	CArrayTemplateEmbeddedBaseObjectPtr		mapcDetachedFromRoot;
 
-	CArrayBlockObjectPtr				mapcCompletelyDetached;
+	CArrayBlockObjectPtr					mapcCompletelyDetached;
 
 public:
 	void					Init(void);

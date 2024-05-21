@@ -69,7 +69,7 @@ if (!result) \
 bool CObjectWriter::Write(CBaseObject* pcThis)
 {
 	bool			bResult;
-	filePos			iLength;
+	size			iLength;
 	CObjectHeader	sHeader;
 
 	if (!pcThis)
@@ -77,10 +77,10 @@ bool CObjectWriter::Write(CBaseObject* pcThis)
 		return gcLogger.Error2(__METHOD__, " Cannot serialse a NULL object.", NULL);
 	}
 
-	bResult = WriteInt(0);
+	bResult = WriteSize(0);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
 
-	bResult = mcFile.WriteInt(OBJECT_DATA);
+	bResult = mcFile.WriteInt32(OBJECT_DATA);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object magic saving object [", sz.Text(), "].", NULL);
 
 	InitObjectHeader(&sHeader, pcThis);
@@ -90,9 +90,9 @@ bool CObjectWriter::Write(CBaseObject* pcThis)
 	bResult = pcThis->SaveManaged(this);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not Save() object [", sz.Text(), "].", NULL);
 
-	iLength = mcFile.GetFilePos();
+	iLength = (size)mcFile.GetFilePos();
 	mcFile.Seek(0);
-	bResult = WriteInt((int)iLength);
+	bResult = WriteSize(iLength);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "].", NULL);
 
 	mcFile.Seek(iLength);
@@ -113,10 +113,10 @@ bool CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 
 	iStart = mcFile.GetFilePos();
 
-	bResult = WriteInt(0);
+	bResult = WriteSize(0);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);
 
-	bResult = mcFile.WriteInt(OBJECT_FROM_HEAP);
+	bResult = mcFile.WriteInt32(OBJECT_FROM_HEAP);
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object froms magic saving object [", sz.Text(), "] 'froms'.", NULL);
 
 	bResult = pcThis->SaveHeapFroms(this);
@@ -124,7 +124,7 @@ bool CObjectWriter::WriteHeapFroms(CBaseObject* pcThis)
 
 	iLength = mcFile.GetFilePos();
 	mcFile.Seek(iStart);
-	bResult = WriteInt((int)(iLength - iStart));
+	bResult = WriteSize((size)(iLength - iStart));
 	ObjectWriterErrorCheck(bResult, pcThis, __METHOD__, " Could not write object steam size saving object [", sz.Text(), "] 'froms'.", NULL);
 
 	mcFile.Seek(iLength);
@@ -167,8 +167,8 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 {
 	bool				bResult;
 	CBaseObject*		pcContainer;
-	uint16				iEmbeddedIndex;
-	uint16				iNumEmbedded;
+	size				iEmbeddedIndex;
+	size				iNumEmbedded;
 	CObjectIdentifier	sIdentifier;
 
 	if (pcDependent)
@@ -179,8 +179,8 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 
 		InitIdentifier(&sIdentifier, pcContainer);
 		bResult = WriteIdentifier(&sIdentifier);
-		bResult &= WriteInt(iNumEmbedded);
-		bResult &= WriteInt(iEmbeddedIndex);
+		bResult &= WriteShort((uint16)iNumEmbedded);
+		bResult &= WriteShort((uint16)iEmbeddedIndex);
 
 		if (bResult)
 		{
@@ -228,8 +228,8 @@ void CObjectWriter::InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObj
 //////////////////////////////////////////////////////////////////////////
 void CObjectWriter::InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject)
 {
-	OIndex		oi;
-	const char* szObjectName;
+	OIndex			oi;
+	const char*		szObjectName;
 
 	if (pcObject)
 	{
@@ -277,15 +277,15 @@ bool CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 {
 	bool bResult;
 
-	bResult = WriteInt(psIdentifier->mcType);
+	bResult = WriteInt32(psIdentifier->mcType);
 	ReturnOnFalse(bResult);
 
-	bResult = WriteInt(0xffffffff);
+	bResult = WriteInt32(0xffffffff);
 	ReturnOnFalse(bResult);
 
 	if (psIdentifier->mcType != OBJECT_POINTER_NULL)
 	{
-		bResult = WriteInt(psIdentifier->moi);
+		bResult = WriteLong(psIdentifier->moi);
 		ReturnOnFalse(bResult);
 
 		if (psIdentifier->mcType == OBJECT_POINTER_NAMED)
@@ -302,10 +302,8 @@ bool CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CObjectWriter::Write(const void* pvSource, filePos iSize, filePos iCount)
+size CObjectWriter::Write(const void* pvSource, size iSize, size iCount)
 {
 	return mcFile.Write(pvSource, iSize, iCount);
 }
-
-
 

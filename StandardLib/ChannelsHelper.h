@@ -28,11 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SChannel
 {
-	int					iChannel;
-	EPrimitiveType		eType;
-	bool				bReverse;
+	size			iChannel;
+	EPrimitiveType	eType;
+	bool			bReverse;
 
-	void Init(int iChannel, EPrimitiveType eType, bool bReverse);
+	void Init(size iChannel, EPrimitiveType eType, bool bReverse);
 };
 
 
@@ -43,7 +43,7 @@ struct SChannelsChangingDesc
 {
 	CArrayChannel	asAddedChannels;
 	CArrayChannel	asRemovedChannels;
-	int				iSize;
+	size			iSize;
 	void*			pvUserData;
 
 	void Init();

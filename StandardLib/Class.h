@@ -95,29 +95,29 @@ public:
 	void				Primitive(CBaseObject* pcThis, Char16* pcPrimitive, char* szFieldName);
 
 	void				UnmanagedInt(CBaseObject* pcThis, int8* pc, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, int8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, int8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, int16* pi, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, int16* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, int16* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, int32* pi, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, int32* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, int32* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, int64* pi, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, int64* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, int64* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, uint8* pc, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, uint8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, uint8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, uint16* pi, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, uint16* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, uint16* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, uint32* pi, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, uint32* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, uint32* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(CBaseObject* pcThis, uint64* pi, char* szFieldName);
-	void				UnmanagedInt(CBaseObject* pcThis, uint64* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(CBaseObject* pcThis, uint64* pai, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(CBaseObject* pcThis, float32* pf, char* szFieldName);
-	void				UnmanagedFloat(CBaseObject* pcThis, float32* paf, size_t uiLength, char* szFieldName);
+	void				UnmanagedFloat(CBaseObject* pcThis, float32* paf, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(CBaseObject* pcThis, float64* pf, char* szFieldName);
-	void				UnmanagedFloat(CBaseObject* pcThis, float64* paf, size_t uiLength, char* szFieldName);
+	void				UnmanagedFloat(CBaseObject* pcThis, float64* paf, size uiLength, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char8* pc, char* szFieldName);
-	void				UnmanagedChar(CBaseObject* pcThis, char8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedChar(CBaseObject* pcThis, char8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char16* pc, char* szFieldName);
-	void				UnmanagedChar(CBaseObject* pcThis, char16* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedChar(CBaseObject* pcThis, char16* pac, size uiLength, char* szFieldName);
 
 	void				UnmanagedEnum(CBaseObject* pcThis, void* pe, char* szFieldName);
 
@@ -125,13 +125,13 @@ public:
 	void				UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName);
 	void				UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName);
 
-	void				UnmanagedData(CBaseObject* pcThis, void* pv, size_t uiSizeof, char* szFieldName);
+	void				UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, char* szFieldName);
 	void				UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName);
 
 protected:
-	CField*				AddField(size_t uiFieldSize, char* szName);
+	CField*				AddField(size uiFieldSize, char* szName);
 	void				Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName);
-	void				Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size_t uiLength, char* szFieldName);
+	void				Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, char* szFieldName);
 	uint32				ComputeSize(void);
 };
 

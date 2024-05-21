@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannel::Init(int iChannel, EPrimitiveType eType, bool bReverse)
+void CChannel::Init(size iChannel, EPrimitiveType eType, bool bReverse)
 {
 	this->iChannel = iChannel;
 	this->eType = eType;
@@ -39,14 +39,14 @@ void CChannel::Init(int iChannel, EPrimitiveType eType, bool bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannel::Init(int iChannel, EPrimitiveType eType, int iByteSize, int iBitSize, int iByteOffset, int iBitOffset, bool bReverse)
+void CChannel::Init(size iChannel, EPrimitiveType eType, size iByteSize, size iBitSize, size iByteOffset, size iBitOffset, bool bReverse)
 {
 	this->iChannel = iChannel;
 	this->eType = eType;
 	this->bReverse = bReverse;  //If type is bit'ty then reverse all bits otherwise reverse endianness.
-	miByteSize = iByteSize;  //-1 if bits not a multiple of 8.
+	miByteSize = iByteSize;  //CHANNEL_NON_ALIGNED_BYTES if bits not a multiple of 8.
 	miBitSize = iBitSize;
-	miByteOffset = iByteOffset;  //-1 if not byte aligned.
+	miByteOffset = iByteOffset;  //CHANNEL_NON_ALIGNED_BYTES if not byte aligned.
 	miBitOffset = iBitOffset;
 }
 
@@ -57,6 +57,6 @@ void CChannel::Init(int iChannel, EPrimitiveType eType, int iByteSize, int iBitS
 //////////////////////////////////////////////////////////////////////////
 bool CChannel::Is8BitAligned(void)
 {
-	return ((miByteSize != -1) && (miByteOffset != -1));
+	return ((miByteSize != CHANNEL_NON_ALIGNED_BYTES) && (miByteOffset != CHANNEL_NON_ALIGNED_BYTES));
 }
 

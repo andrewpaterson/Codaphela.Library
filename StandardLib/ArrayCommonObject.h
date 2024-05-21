@@ -39,25 +39,25 @@ public:
 
 	bool					Add(CPointer& pObject);
 	void					AddAll(CArrayCommonObject* pcArray);
-	void					Set(int iIndex, CPointer& pObject);
+	void					Set(size  iIndex, CPointer& pObject);
 
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CBaseObject* pcObject);
 	void					RemoveAll(void);
 	void					Clear(void);
 
-	int						NumElements(void);
-	int						NonNullElements(void);
-	int						Size(void);
-	int						Length(void);
+	size 					NumElements(void);
+	size 					NonNullElements(void);
+	size 					Size(void);
+	size 					Length(void);
 	bool					IsEmpty(void);
 
 	void					MakeSubRoot(void);
 	bool					IsSubRoot(void);
 	void					SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
-	int						NumPointerTos(void);
-	int						BaseNumPointerTos(void);
+	size 					NumPointerTos(void);
+	size 					BaseNumPointerTos(void);
 	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
@@ -68,9 +68,9 @@ public:
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
-	CBaseObject*			UnsafeGet(int iIndex);
+	CBaseObject*			UnsafeGet(size  iIndex);
 	bool					UnsafeRemove(CBaseObject* pcObject);
-	CEmbeddedObject*		GetEmbeddedObject(uint16 iIndex);
+	CEmbeddedObject*		GetEmbeddedObject(size iIndex);
 
 	void					BaseValidatePointerTos(void);
 	void					ValidatePointerTos(void);
@@ -80,13 +80,13 @@ public:
 	void					KillAll(void);
 
 protected:
-	void	FreePointers(void) override;
-	void	Free(void);
-	void	RemovePointerTo(CEmbeddedObject* pcTo);
-	int		RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
-	void	SetPointedTosDistToRoot(int iDistToRoot);
+	void					FreePointers(void) override;
+	void					Free(void);
+	void					RemovePointerTo(CEmbeddedObject* pcTo);
+	size 					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	void					SetPointedTosDistToRoot(int iDistToRoot);
 
-	void	UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	void					UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 };
 
 

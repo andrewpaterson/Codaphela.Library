@@ -28,8 +28,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SChannelAccess 
 {
-	int					iChannel;
-	EPrimitiveType		eType;
+	size			iChannel;
+	EPrimitiveType	eType;
 };
 
 
@@ -49,12 +49,12 @@ public:
 	CChannelsAccessor*	Create(void);
 	CChannelsAccessor*	CreateAndKill(void);
 
-	static CChannelsAccessor*	CreateSingleChannelAccessor(CChannels* pcChannels, int iChannel, EPrimitiveType eType = PT_Undefined);
+	static CChannelsAccessor*	CreateSingleChannelAccessor(CChannels* pcChannels, size iChannel, EPrimitiveType eType = PT_Undefined);
 
-	void 	AddAccess(int iChannel, EPrimitiveType eType = PT_Undefined);
-	void 	AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType = PT_Undefined);
+	void 	AddAccess(size iChannel, EPrimitiveType eType = PT_Undefined);
+	void 	AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType = PT_Undefined);
+	void	AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CChannel* pcChannel);
 	void	AddAccess(CChannels* pcChannels);
@@ -67,7 +67,7 @@ private:
 	bool	CalculateSourceTypesSame(void);
 	bool	CalculateChannelByteAligned(void);
 	bool	CalculateAccessByteAligned(void);
-	int		CalclulateBitSize(void);
+	size	CalclulateBitSize(void);
 
 	bool	CreateAccessors(void);
 };

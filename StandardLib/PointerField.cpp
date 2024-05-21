@@ -73,7 +73,7 @@ CPointer* CPointerField::GetPointer(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CPointerField::GetNameOffset(void)
+size CPointerField::GetNameOffset(void)
 {
 	return sizeof(CPointerField);
 }

@@ -53,29 +53,29 @@ public:
 	void				Embedded(CBaseObject* pcObject, char* szFieldName);
 
 	bool				IsDirty(void);
-	int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	uint16				GetNumEmbedded(void);
-	CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
+	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
+	size				GetNumEmbedded(void);
+	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 	CBaseObject*		Dehollow(void);
-	int					NumHeapFroms(void);
-	int					NumStackFroms(void);
-	void				SetFlag(int iFlag, int iFlagValue);
+	size				NumHeapFroms(void);
+	size				NumStackFroms(void);
+	void				SetFlag(uint16 iFlag, uint16 iFlagValue);
 	void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
 	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestFromToStack(void);
-	int					NumPointerTos(void);
-	int					BaseNumPointerTos(void);
+	size				NumPointerTos(void);
+	size				BaseNumPointerTos(void);
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	void				BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 	void				CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	void				BaseCollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
-	int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
+	size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
-	int					GetFieldPointerToIndex(CPointer* pcFieldPointer);
-	int					GetNumFieldPointerTos(void);
-	CPointer*			GetFieldPointerTo(int iIndex);
+	size				GetFieldPointerToIndex(CPointer* pcFieldPointer);
+	size				GetNumFieldPointerTos(void);
+	CPointer*			GetFieldPointerTo(size iIndex);
 
 	void				ValidatePointerTos(void);
 	void				ValidateConsistency(void);
@@ -96,29 +96,29 @@ public:
 	void				Primitive(Char16* pcPrimitive, char* szFieldName);
 
 	void				UnmanagedInt(int8* pc, char* szFieldName);
-	void				UnmanagedInt(int8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedInt(int16* pi, char* szFieldName);
-	void				UnmanagedInt(int16* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int16* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(int32* pi, char* szFieldName);
-	void				UnmanagedInt(int32* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int32* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(int64* pi, char* szFieldName);
-	void				UnmanagedInt(int64* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(int64* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(uint8* pc, char* szFieldName);
-	void				UnmanagedInt(uint8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedInt(uint16* pi, char* szFieldName);
-	void				UnmanagedInt(uint16* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint16* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(uint32* pi, char* szFieldName);
-	void				UnmanagedInt(uint32* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint32* pai, size uiLength, char* szFieldName);
 	void				UnmanagedInt(uint64* pi, char* szFieldName);
-	void				UnmanagedInt(uint64* pai, size_t uiLength, char* szFieldName);
+	void				UnmanagedInt(uint64* pai, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(float32* pf, char* szFieldName);
-	void				UnmanagedFloat(float32* paf, size_t uiLength, char* szFieldName);
+	void				UnmanagedFloat(float32* paf, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(float64* pf, char* szFieldName);
-	void				UnmanagedFloat(float64* paf, size_t uiLength, char* szFieldName);
+	void				UnmanagedFloat(float64* paf, size uiLength, char* szFieldName);
 	void				UnmanagedChar(char8* pc, char* szFieldName);
-	void				UnmanagedChar(char8* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedChar(char8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedChar(char16* pc, char* szFieldName);
-	void				UnmanagedChar(char16* pac, size_t uiLength, char* szFieldName);
+	void				UnmanagedChar(char16* pac, size uiLength, char* szFieldName);
 
 	void				UnmanagedEnum(void* pe, char* szFieldName);
 
@@ -126,7 +126,7 @@ public:
 	void				UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
 	void				UnmanagedDate(CDate* pcDate, char* szFieldName);
 
-	void				UnmanagedData(void* pv, size_t uiSizeof, char* szFieldName);
+	void				UnmanagedData(void* pv, size uiSizeof, char* szFieldName);
 
 protected:
 	void				EmbedFields(void);
@@ -138,17 +138,17 @@ protected:
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);
-	int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
+	size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	void				BaseUpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 	int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 	void				SetPointedTosDistToRoot(int iDistToRoot);
 	bool				SetDistToRoot(int iDistToRoot) override;
 	void				SetDistToStack(int iDistToStack);
-	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, int* piIndex);
-	CEmbeddedObject*	RecurseGetEmbeddedObject(int iIndex, int* iCount);
-	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, int* piIndex);
-	CPointer*			RecurseGetFieldPointerTo(int iIndex, int* piCount);
+	bool				RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex);
+	CEmbeddedObject*	RecurseGetEmbeddedObject(size iIndex, size* iCount);
+	bool				RecurseGetFieldPointerToIndex(CPointer* pcTest, size* piIndex);
+	CPointer*			RecurseGetFieldPointerTo(size iIndex, size* piCount);
 	void				BaseValidatePointerTos(void);
 	void				ValidateEmbeddedConsistency(void);
 	bool				IsDistToRootValid(void);

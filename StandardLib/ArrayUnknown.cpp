@@ -56,7 +56,7 @@ bool CArrayUnknown::Add(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayUnknown::Insert(int iIndex, CUnknown* pcUnknown)
+bool CArrayUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 {
 	return CArrayCommonUnknown::Insert(iIndex, pcUnknown);
 }
@@ -66,7 +66,7 @@ bool CArrayUnknown::Insert(int iIndex, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CArrayUnknown::Get(int iIndex)
+CUnknown* CArrayUnknown::Get(size iIndex)
 {
 	return CArrayCommonUnknown::UnsafeGet(iIndex);
 }
@@ -76,7 +76,7 @@ CUnknown* CArrayUnknown::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayUnknown::Set(int iIndex, CUnknown* pcUnknown)
+void CArrayUnknown::Set(size iIndex, CUnknown* pcUnknown)
 {
 	CArrayCommonUnknown::UnsafeSet(iIndex, pcUnknown);
 }
@@ -86,7 +86,7 @@ void CArrayUnknown::Set(int iIndex, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayUnknown::Remove(int iIndex)
+void CArrayUnknown::Remove(size iIndex)
 {
 	CArrayCommonUnknown::Remove(iIndex);
 }

@@ -36,7 +36,7 @@ void CSetUnknown::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CSetUnknown::Init(int iChunkSize)
+void CSetUnknown::Init(size iChunkSize)
 {
 	CArrayCommonUnknown::Init(false, true, false, true, false, iChunkSize);
 }

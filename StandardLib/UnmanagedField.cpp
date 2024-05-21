@@ -18,7 +18,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size_t uiLength, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, size uiLength, char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;
@@ -40,7 +40,7 @@ void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcCo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size_t uiLength, char* szName)
+void CUnmanagedField::Init(EPrimitiveType eType, ptrdiff_t iOffset, CClass* pcContainingClass, uint32 uiElementSize, size uiLength, char* szName)
 {
 	CClasses*	pcClasses;
 	CClass*		pcFieldClass;
@@ -77,7 +77,7 @@ bool CUnmanagedField::IsArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CUnmanagedField::GetLength(void)
+size CUnmanagedField::GetLength(void)
 {
 	return muiLength;
 }
@@ -117,7 +117,7 @@ void* CUnmanagedField::GetData(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CUnmanagedField::GetNameOffset(void)
+size CUnmanagedField::GetNameOffset(void)
 {
 	return sizeof(CUnmanagedField);
 }

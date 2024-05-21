@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CMapCommon::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	miFlags = 0;
-	SetFlag(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
 }
 
 

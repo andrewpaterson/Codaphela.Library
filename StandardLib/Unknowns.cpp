@@ -101,7 +101,7 @@ CUnknown* CUnknowns::Add(const char* szClassName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CUnknowns::Add(const char* szClassName, size_t uiAdditionalSize)
+CUnknown* CUnknowns::Add(const char* szClassName, size uiAdditionalSize)
 {
 	CUnknown* pcUnknown;
 	char(*acDebug)[4];
@@ -132,7 +132,7 @@ CUnknown* CUnknowns::Add(const char* szClassName, size_t uiAdditionalSize)
 CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 {
 	bool		bResult;
-	int			iLength;
+	size		iLength;
 	char		sz[256];
 	char*		psz;
 	CUnknown*	pcUnknown;
@@ -244,16 +244,18 @@ void CUnknowns::RemoveInKill(CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 void CUnknowns::RemoveInKill(CArrayUnknownPtr* papcObjectPts)
 {
-	int				i;
+	size			i;
 	CUnknown*		pcUnknown;
 	CArrayVoidPtr	cArray;
 	void**			pvData;
-	int				iNumFreed;
+	size			iNumFreed;
+	size			uiPtrs;
 
 	if (papcObjectPts)
 	{
 		//Optimise this sometime later as iterables aren't used yet.
-		for (i = 0; i < papcObjectPts->NumElements(); i++)
+		uiPtrs = papcObjectPts->NumElements();
+		for (i = 0; i < uiPtrs; i++)
 		{
 			pcUnknown = *papcObjectPts->Get(i);
 			if (pcUnknown->Iterable())
@@ -399,7 +401,7 @@ bool CUnknowns::IsFreed(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CUnknowns::NumElements(void)
+size CUnknowns::NumElements(void)
 {
 	return miNumElements;
 }

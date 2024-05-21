@@ -27,7 +27,7 @@ class CDependentWriteObjects
 {
 protected:
 	CArrayDependentWriteObject	mcObjects;
-	int							miGetIndex;
+	size						miGetIndex;
 
 public:
 	void			Init(void);

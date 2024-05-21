@@ -50,8 +50,8 @@ void CDependentWriteObjects::Kill(void)
 void CDependentWriteObjects::Add(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
-	bool				bExists;
-	int					iIndex;
+	bool					bExists;
+	size 					iIndex;
 
 	cObject.Init(pcObject, false);
 
@@ -69,10 +69,12 @@ void CDependentWriteObjects::Add(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CDependentWriteObjects::GetUnwritten(void)
 {
-	int					iOldIndex;
+	size 					iOldIndex;
 	CDependentWriteObject*	psObject;
+	size					uiObjects;
 
-	if (mcObjects.NumElements() == 0)
+	uiObjects = mcObjects.NumElements();
+	if (uiObjects == 0)
 	{
 		return NULL;
 	}
@@ -80,7 +82,7 @@ CBaseObject* CDependentWriteObjects::GetUnwritten(void)
 	iOldIndex = miGetIndex;
 	for (;;)
 	{
-		if (miGetIndex >= mcObjects.NumElements()-1)
+		if (miGetIndex >= uiObjects - 1)
 		{
 			miGetIndex = 0;
 		}
@@ -110,7 +112,7 @@ CBaseObject* CDependentWriteObjects::GetUnwritten(void)
 void CDependentWriteObjects::Mark(CBaseObject* pcObject)
 {
 	CDependentWriteObject	cObject;
-	int						iIndex;
+	size					iIndex;
 	bool					bResult;
 	CDependentWriteObject*	pcDependent;
 

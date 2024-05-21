@@ -35,22 +35,22 @@ public:
 	Ptr<CString>	AddOperator(Ptr<CString> pString);
 	Ptr<CString>	AddOperator(char* sz);
 
-	int				Length(void) { return msz.Length(); }
+	size			Length(void) { return msz.Length(); }
 	Ptr<CString>	Set(const char* sz) { msz.Set(sz); D(); return this; }
 	Ptr<CString>	Set(Ptr<CString> pString);
 	Ptr<CString>	Set(CChars sz) { msz.Set(sz); D(); return this; }
 	Ptr<CString>	Set(CChars* psz) { msz.Set(psz); D(); return this; }
 	Ptr<CString>	Append(const char* sz) { msz.Append(sz); D(); return this; }
-	Ptr<CString>	Append(const char* sz, int iStrlen) { msz.Append(sz, iStrlen); D(); return this; }
+	Ptr<CString>	Append(const char* sz, size iStrlen) { msz.Append(sz, iStrlen); D(); return this; }
 	Ptr<CString>	Append(Ptr<CString> pString);
-	Ptr<CString>	Append(Ptr<CString> pString, int iStrlen);
+	Ptr<CString>	Append(Ptr<CString> pString, size iStrlen);
 	Ptr<CString>	Append(CString* pcString);
 	Ptr<CString>	Append(CChars sz) { msz.Append(sz); D(); return this; }
 	Ptr<CString>	Append(CChars* psz) { msz.Append(psz); D(); return this; }
 	Ptr<CString>	Append(char c) { msz.Append(c); D(); return this; }
-	Ptr<CString>	Append(char c, int iNumber) { msz.Append(c, iNumber); D(); return this; }
-	Ptr<CString>	Append(int i) { msz.Append(i); D(); return this; }
-	Ptr<CString>	Append(int i, int iBase) { msz.Append(i, iBase); D(); return this; }
+	Ptr<CString>	Append(char c, size iNumber) { msz.Append(c, iNumber); D(); return this; }
+	Ptr<CString>	Append(int32 i) { msz.Append(i); D(); return this; }
+	Ptr<CString>	Append(int32 i, uint16 iBase) { msz.Append(i, iBase); D(); return this; }
 	Ptr<CString>	Append(uint32 ui) { msz.Append(ui); D(); return this; }
 	Ptr<CString>	Append(float f) { msz.Append(f); D(); return this; }
 	Ptr<CString>	Append(float f, int iNumDecimals) { msz.Append(f, iNumDecimals); D(); return this; }
@@ -63,55 +63,55 @@ public:
 	Ptr<CString>	AppendQuoted(Ptr<CString> pString);
 	Ptr<CString>	AppendNewLine(void) { msz.AppendNewLine(); D(); return this; }
 	Ptr<CString>	AppendNewLine(CChars sz) { msz.AppendNewLine(sz); D(); return this; }
-	Ptr<CString>	AppendHexHiLo(void* pv, int iNumBytes) { msz.AppendHexHiLo(pv, iNumBytes); D(); return this; }
-	Ptr<CString>	AppendHexLoHi(void* pv, int iNumBytes) { msz.AppendHexLoHi(pv, iNumBytes); D(); return this; }
-	Ptr<CString>	AppendSubString(const char* sz, int iLength) { msz.AppendSubString(sz, iLength); D(); return this; }
-	Ptr<CString>	AppendSubString(const char* sz, int iStartInclusive, int iEndExclusive) { msz.AppendSubString(sz, iStartInclusive, iEndExclusive); D(); return this; }
+	Ptr<CString>	AppendHexHiLo(void* pv, size iNumBytes) { msz.AppendHexHiLo(pv, iNumBytes); D(); return this; }
+	Ptr<CString>	AppendHexLoHi(void* pv, size iNumBytes) { msz.AppendHexLoHi(pv, iNumBytes); D(); return this; }
+	Ptr<CString>	AppendSubString(const char* sz, size iLength) { msz.AppendSubString(sz, iLength); D(); return this; }
+	Ptr<CString>	AppendSubString(const char* sz, size iStartInclusive, size iEndExclusive) { msz.AppendSubString(sz, iStartInclusive, iEndExclusive); D(); return this; }
 	Ptr<CString>	AppendSubString(const char* szStartInclusive, const char* szEndExclusive) { msz.AppendSubString(szStartInclusive, szEndExclusive); D(); return this; }
-	Ptr<CString>	AppendSubString(Ptr<CString> pString, int iLength);
-	Ptr<CString>	AppendSubString(Ptr<CString> pString, int iStartInclusive, int iEndExclusive);
-	Ptr<CString>	AppendSubString(CChars sz, int iStartInclusive, int iEndExclusive) { msz.AppendSubString(sz, iStartInclusive, iEndExclusive); D(); return this; }
+	Ptr<CString>	AppendSubString(Ptr<CString> pString, size iLength);
+	Ptr<CString>	AppendSubString(Ptr<CString> pString, size iStartInclusive, size iEndExclusive);
+	Ptr<CString>	AppendSubString(CChars sz, size iStartInclusive, size iEndExclusive) { msz.AppendSubString(sz, iStartInclusive, iEndExclusive); D(); return this; }
 	Ptr<CString>	AppendBool(bool bValue) { msz.AppendBool(bValue); D(); return this; }
 	Ptr<CString>	AppendBool(bool bValue, const char* szTrue, const char* szFalse) { msz.AppendBool(bValue, szTrue, szFalse); D(); return this; }
 	Ptr<CString>	AppendBool(bool bValue, Ptr<CString> pTrue, Ptr<CString> pFalse);
-	Ptr<CString>	AppendData(const char* szData, size_t iMaxLength) { msz.AppendData(szData, iMaxLength); D(); return this; }
-	Ptr<CString>	AppendData(const char* szData, size_t iDataLength, size_t iMaxLength) { msz.AppendData(szData, iDataLength, iMaxLength); D(); return this; }
-	Ptr<CString>	AppendData2(const char* szData, size_t iDataLength) { msz.AppendData2(szData, iDataLength); D(); return this; }
+	Ptr<CString>	AppendData(const char* szData, size iMaxLength) { msz.AppendData(szData, iMaxLength); D(); return this; }
+	Ptr<CString>	AppendData(const char* szData, size iDataLength, size iMaxLength) { msz.AppendData(szData, iDataLength, iMaxLength); D(); return this; }
+	Ptr<CString>	AppendData2(const char* szData, size iDataLength) { msz.AppendData2(szData, iDataLength); D(); return this; }
 	Ptr<CString>	AppendPointer(void* pv) { msz.AppendPointer(pv); D(); return this; }
 	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma = false) { D(); return msz.AppendFlag(msFlags, uiFlag, szFlagName, bAppendComma); }
 	bool			AppendFlag(uint32 msFlags, uint32 uiFlag, Ptr<CString> pFlagName, bool bAppendComma = false);
-	Ptr<CString>	LeftAlign(CChars sz, char cPadCharacter, int iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
-	Ptr<CString>	LeftAlign(const char* sz, char cPadCharacter, int iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
-	Ptr<CString>	LeftAlign(Ptr<CString> pString, char cPadCharacter, int iWidth);
-	Ptr<CString>	RightAlign(CChars sz, char cPadCharacter, int iWidth) { msz.RightAlign(sz, cPadCharacter, iWidth); D(); return this; }
-	Ptr<CString>	RightAlign(const char* sz, char cPadCharacter, int iWidth) { msz.RightAlign(sz, cPadCharacter, iWidth); D(); return this; }
-	Ptr<CString>	RightAlign(Ptr<CString> pString, char cPadCharacter, int iWidth);
-	Ptr<CString>	RightAlign(char cPadCharacter, int iWidth) { msz.RightAlign(cPadCharacter, iWidth); D(); return this; }
+	Ptr<CString>	LeftAlign(CChars sz, char cPadCharacter, size iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
+	Ptr<CString>	LeftAlign(const char* sz, char cPadCharacter, size iWidth) { msz.LeftAlign(sz, cPadCharacter, iWidth); D(); return this; }
+	Ptr<CString>	LeftAlign(Ptr<CString> pString, char cPadCharacter, size iWidth);
+	Ptr<CString>	RightAlign(CChars sz, char cPadCharacter, size iWidth) { msz.RightAlign(sz, cPadCharacter, iWidth); D(); return this; }
+	Ptr<CString>	RightAlign(const char* sz, char cPadCharacter, size iWidth) { msz.RightAlign(sz, cPadCharacter, iWidth); D(); return this; }
+	Ptr<CString>	RightAlign(Ptr<CString> pString, char cPadCharacter, size iWidth);
+	Ptr<CString>	RightAlign(char cPadCharacter, size iWidth) { msz.RightAlign(cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	StripWhiteSpace(bool bIncludeNewLines = false) { msz.StripWhiteSpace(bIncludeNewLines); D(); return this; }
 	Ptr<CString>	Reverse(void) { msz.Reverse(); D(); return this; }
 	Ptr<CString>	Clear(void) { msz.Clear(); D(); return this; }
 	Ptr<CString>	LowerCase(void) { msz.LowerCase(); D(); return this; }
 	Ptr<CString>	UpperCase(void) { msz.UpperCase(); D(); return this; }
-	void			Insert(int iPos, char c) { msz.Insert(iPos, c); D(); }
-	void			Insert(int iPos, const char* szString) { msz.Insert(iPos, szString); D(); }
-	void			Insert(int iPos, Ptr<CString> pString);
-	void			Insert(int iPos, CChars* pszString) { msz.Insert(iPos, pszString); D(); }
+	void			Insert(size iPos, char c) { msz.Insert(iPos, c); D(); }
+	void			Insert(size iPos, const char* szString) { msz.Insert(iPos, szString); D(); }
+	void			Insert(size iPos, Ptr<CString> pString);
+	void			Insert(size iPos, CChars* pszString) { msz.Insert(iPos, pszString); D(); }
 	void			Minimize(void) { msz.Minimize(); }
 	char*			Text(void) { return msz.Text(); }
-	char*			Text(int iIndex) { return msz.Text(iIndex); }
+	char*			Text(size iIndex) { return msz.Text(iIndex); }
 	CChars*			GetChars(void);
 	bool			Empty(void) { return msz.Empty(); }
 	void			RemoveLastCharacter(void) { msz.RemoveLastCharacter(); D(); }
-	void			RemoveFromStart(int iNumChars) { msz.RemoveFromStart(iNumChars); D(); }
-	void			RemoveFromEnd(int iNumChars) { msz.RemoveFromEnd(iNumChars); D(); }
-	void			Remove(int iStart, int iEnd) { msz.Remove(iStart, iEnd); D(); }
-	void			RemoveEnd(int iIndex) { msz.RemoveEnd(iIndex); D(); }
-	void			RemoveCharacter(int iPos) { msz.RemoveCharacter(iPos); D(); }
+	void			RemoveFromStart(size iNumChars) { msz.RemoveFromStart(iNumChars); D(); }
+	void			RemoveFromEnd(size iNumChars) { msz.RemoveFromEnd(iNumChars); D(); }
+	void			Remove(size iStart, size iEnd) { msz.Remove(iStart, iEnd); D(); }
+	void			RemoveEnd(size iIndex) { msz.RemoveEnd(iIndex); D(); }
+	void			RemoveCharacter(size iPos) { msz.RemoveCharacter(iPos); D(); }
 	bool			Equals(const char* szString) { return msz.Equals(szString); }
 	bool			Equals(Ptr<CString> pString);
 	bool			Equals(CChars szString) { return msz.Equals(szString); }
-	bool			Equals(const char* szString, int iLen) { return msz.Equals(szString, iLen); }
-	bool			Equals(Ptr<CString> pString, int iLen);
+	bool			Equals(const char* szString, size iLen) { return msz.Equals(szString, iLen); }
+	bool			Equals(Ptr<CString> pString, size iLen);
 	bool			Equals(CChars* pszString) { return msz.Equals(pszString); }
 	bool			EqualsIgnoreCase(const char* szString) { return msz.EqualsIgnoreCase(szString); }
 	bool			EqualsIgnoreCase(Ptr<CString> pString);
@@ -128,44 +128,44 @@ public:
 	bool			StartsWith(Ptr<CString> pString);
 	bool			StartsWithIgnoreCase(const char* szString) { return msz.StartsWithIgnoreCase(szString); }
 	bool			StartsWithIgnoreCase(Ptr<CString> pString);
-	int				Occurrences(const char* szString) { return msz.Occurrences(szString); }
-	int				Occurrences(Ptr<CString> pString);
-	bool			SubStringEquals(int iStart, const char* szString) { return msz.SubStringEquals(iStart, szString); }
-	bool			SubStringEquals(int iStart, Ptr<CString> pString);
-	bool			SubStringEqualsIgnoreCase(int iStart, const char* szString) { return msz.SubStringEqualsIgnoreCase(iStart, szString); }
-	bool			SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString);
-	int				FindFromEnd(const char* szString) { return msz.FindFromEnd(szString); }
-	int				FindFromEnd(Ptr<CString> pString);
-	int				FindFromEnd(int iPos, const char* szString) { return msz.FindFromEnd(iPos, szString); }
-	int				FindFromEnd(int iPos, Ptr<CString> pString);
-	int				FindFromEnd(char c) { return msz.FindFromEnd(c); }
-	int				FindFromEnd(int iIndex, char c) { return msz.FindFromEnd(iIndex, c); }
-	int				Find(Ptr<CString> pString);
-	int				Find(const char* szString) { return msz.Find(szString); }
-	int				Find(int iPos, const char* szString) { return msz.Find(iPos, szString); }
-	int				Find(int iPos, Ptr<CString> pString);
-	int				Find(int iPos, char c) { return msz.Find(iPos, c); }
-	int				Find(char c) { return msz.Find(c); }
-	int				FindDigit(int iStartIndex) { return msz.FindDigit(iStartIndex); }
-	char			GetChar(int iIndex) { return msz.GetChar(iIndex); }
-	void			SetChar(int iPos, char c) { msz.SetChar(iPos, c); D(); }
+	size			Occurrences(const char* szString) { return msz.Occurrences(szString); }
+	size			Occurrences(Ptr<CString> pString);
+	bool			SubStringEquals(size iStart, const char* szString) { return msz.SubStringEquals(iStart, szString); }
+	bool			SubStringEquals(size iStart, Ptr<CString> pString);
+	bool			SubStringEqualsIgnoreCase(size iStart, const char* szString) { return msz.SubStringEqualsIgnoreCase(iStart, szString); }
+	bool			SubStringEqualsIgnoreCase(size iStart, Ptr<CString> pString);
+	size			FindFromEnd(const char* szString) { return msz.FindFromEnd(szString); }
+	size			FindFromEnd(Ptr<CString> pString);
+	size			FindFromEnd(size iPos, const char* szString) { return msz.FindFromEnd(iPos, szString); }
+	size			FindFromEnd(size iPos, Ptr<CString> pString);
+	size			FindFromEnd(char c) { return msz.FindFromEnd(c); }
+	size			FindFromEnd(size iIndex, char c) { return msz.FindFromEnd(iIndex, c); }
+	size			Find(Ptr<CString> pString);
+	size			Find(const char* szString) { return msz.Find(szString); }
+	size			Find(size iPos, const char* szString) { return msz.Find(iPos, szString); }
+	size			Find(size iPos, Ptr<CString> pString);
+	size			Find(size iPos, char c) { return msz.Find(iPos, c); }
+	size			Find(char c) { return msz.Find(c); }
+	size			FindDigit(size iStartIndex) { return msz.FindDigit(iStartIndex); }
+	char			GetChar(size iIndex) { return msz.GetChar(iIndex); }
+	void			SetChar(size iPos, char c) { msz.SetChar(iPos, c); D(); }
 	void			Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CChars szOldString) { msz.Difference(paiNewToOldIndices, paiOldToNewIndices, szOldString); }
-	bool			IsWhiteSpace(int iPos, bool bIncludeNewLines) { return msz.IsWhiteSpace(iPos, bIncludeNewLines); }
+	bool			IsWhiteSpace(size iPos, bool bIncludeNewLines) { return msz.IsWhiteSpace(iPos, bIncludeNewLines); }
 	bool			IsWhiteSpace(void) { return msz.IsWhiteSpace(); }
-	void			SetLength(int iLength) { msz.SetLength(iLength); D(); }
+	void			SetLength(size iLength) { msz.SetLength(iLength); D(); }
 	int				Compare(CChars* szOther) { return msz.Compare(szOther); }
 	int				Compare(const char* szOther) { return msz.Compare(szOther); }
-	int				Compare(Ptr<CString> pOther);
+	int				Compare(Ptr<CString> pOther) { return Compare(pOther->Text()); }
 	int				CompareIgnoreCase(CChars* szOther) { return msz.CompareIgnoreCase(szOther); }
 	int				CompareIgnoreCase(const char* szOther) { return msz.CompareIgnoreCase(szOther); }
-	int				CompareIgnoreCase(Ptr<CString> pOther);
-	int				Replace(char cFind, char cReplace) { D();  return msz.Replace(cFind, cReplace); }
-	int				Replace(const char* szFind, const char* szReplace) { D();  return msz.Replace(szFind, szReplace); }
-	int				Replace(Ptr<CString> pFind, Ptr<CString> pReplace);
-	void			Overwrite(int iPos, const char* szReplace) { msz.Overwrite(iPos, szReplace); D(); }
-	void			Overwrite(int iPos, Ptr<CString> pReplace);
-	int				CountNewLines(void) { return msz.CountNewLines(); }
-	int				Count(char c) { return msz.Count(c); }
+	int				CompareIgnoreCase(Ptr<CString> pOther) { return CompareIgnoreCase(pOther->Text()); }
+	size			Replace(char cFind, char cReplace) { D();  return msz.Replace(cFind, cReplace); }
+	size			Replace(const char* szFind, const char* szReplace) { D();  return msz.Replace(szFind, szReplace); }
+	size			Replace(Ptr<CString> pFind, Ptr<CString> pReplace) { return Replace(pFind->Text(), pReplace->Text()); }
+	void			Overwrite(size iPos, const char* szReplace) { msz.Overwrite(iPos, szReplace); D(); }
+	void			Overwrite(size iPos, Ptr<CString> pReplace) { return Overwrite(iPos, pReplace->Text()); }
+	size			CountNewLines(void) { return msz.CountNewLines(); }
+	size			Count(char c) { return msz.Count(c); }
 
 	void					Split(CArrayChars* aszDest, char cSplitter) { msz.Split(aszDest, cSplitter); }
 	Ptr<CArray<CString>>	Split(char cSplitter);

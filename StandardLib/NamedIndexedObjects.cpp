@@ -270,7 +270,7 @@ bool CNamedIndexedObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-OIndex CNamedIndexedObjects::NumIndexed(void)
+size CNamedIndexedObjects::NumIndexed(void)
 {
 	return mcMemoryIndexedObjects.NumIndexed();
 }
@@ -280,7 +280,7 @@ OIndex CNamedIndexedObjects::NumIndexed(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNamedIndexedObjects::NumNames(void)
+size CNamedIndexedObjects::NumNames(void)
 {
 	return mcMemoryNames.NumElements();
 }

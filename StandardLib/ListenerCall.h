@@ -25,9 +25,9 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //I'm not sure where the following defines belong.  I suspect they are what CListenerCall should have been had C++ not been retarded.
 //Rewrite this to use variable args templates.
-#define CALL_LISTENERS_0(listeners, func) for (int iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(); }
-#define CALL_LISTENERS_1(listeners, func, param1) for (int iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(param1); }
-#define CALL_LISTENERS_2(listeners, func, param1, param2) for (int iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(param1, param2); }
+#define CALL_LISTENERS_0(listeners, func) for (size iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(); }
+#define CALL_LISTENERS_1(listeners, func, param1) for (size iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(param1); }
+#define CALL_LISTENERS_2(listeners, func, param1, param2) for (size iListenerNumber = 0; iListenerNumber < listeners.NumElements(); iListenerNumber++) { (*listeners.Get(iListenerNumber))->func(param1, param2); }
 
 
 typedef CArrayTemplate<CListener*>	CArrayListenerPtr;
@@ -62,8 +62,8 @@ public:
 template <class M>
 void CListenerCall::AddAllowedClass(void)
 {
-	const char*				szName;
-	M					cTemp;
+	const char*		szName;
+	M				cTemp;
 
 	szName = cTemp.ClassName();
 	AddAllowedClassName(szName);
@@ -104,17 +104,19 @@ bool CListenerCall::AddListener(M* pcListener)
 template <class M>
 void CListenerCall::CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
 {
-	int					i;
+	size				i;
 	M*					pcListener;
 	M					cTemp;
 	const char*			szName;
 	CArrayListenerPtr*	pcArray;
+	size				uiNumElements;
 
 	szName = cTemp.ClassName();
 	pcArray = mcListeners.Get(szName);
 	if (pcArray)
 	{
-		for (i = 0; i < pcArray->NumElements(); i++)
+		uiNumElements = pcArray->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcListener = (M*)(*pcArray->Get(i));
 			(pcListener->*ListenerFunc)(pcSource, pvContext);

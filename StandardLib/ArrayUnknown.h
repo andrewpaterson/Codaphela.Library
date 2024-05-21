@@ -35,13 +35,13 @@ public:
 	bool		Add(CUnknown* pcUnknown);
 
 	template<class M>
-	M*			Insert(int iIndex);
-	bool		Insert(int iIndex, CUnknown* pcUnknown);
+	M*			Insert(size iIndex);
+	bool		Insert(size iIndex, CUnknown* pcUnknown);
 
-	CUnknown*	Get(int iIndex);
-	void		Set(int iIndex, CUnknown* pcUnknown);
+	CUnknown*	Get(size iIndex);
+	void		Set(size iIndex, CUnknown* pcUnknown);
 
-	void		Remove(int iIndex);
+	void		Remove(size iIndex);
 	bool		Remove(CUnknown* pcUnknown);
 };
 
@@ -66,7 +66,7 @@ M* CArrayUnknown::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayUnknown::Insert(int iIndex)
+M* CArrayUnknown::Insert(size iIndex)
 {
 	M*	pv;
 

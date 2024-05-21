@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, bool bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel)
+void CChannelAccessor::Init(size iAccessByteSize, size iAccessBitSize, EPrimitiveType eAccessType, size iChannelByteOffset, size iChannelByteSize, EPrimitiveType eChannelType, bool bChannelReverse, size iChannelBitSize, size iChannelBitOffset, size iChannel)
 {
 	miAccessByteSize = iAccessByteSize;
 	miAccessBitSize = iAccessBitSize;
@@ -88,7 +88,7 @@ void CChannelAccessor::GetCast(EPrimitiveType eType, void* pvBase, void* pvDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvDest)
+void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest)
 {
 	char	c[16];
 
@@ -102,7 +102,7 @@ void CChannelAccessor::GetAsSub(EPrimitiveType eType, void* pvBase, int iBitOffs
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetCastSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvDest)
+void CChannelAccessor::GetCastSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest)
 {
 	char	c[16];
 
@@ -115,7 +115,7 @@ void CChannelAccessor::GetCastSub(EPrimitiveType eType, void* pvBase, int iBitOf
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::GetBits(void* pvBase, int iBitOffset, int iNumBits, void* pvDest)
+void CChannelAccessor::GetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvDest)
 {
 	if (!mbChannelReverse)
 	{
@@ -158,7 +158,7 @@ void CChannelAccessor::SetFrom(EPrimitiveType eType, void* pvBase, void* pvSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvSource)
+void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvSource)
 {
 	char	c[16];
 
@@ -171,7 +171,7 @@ void CChannelAccessor::SetFromSub(EPrimitiveType eType, void* pvBase, int iBitOf
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelAccessor::SetBits(void* pvBase, int iBitOffset, int iNumBits, void* pvSource)
+void CChannelAccessor::SetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvSource)
 {
 	if (!mbChannelReverse)
 	{

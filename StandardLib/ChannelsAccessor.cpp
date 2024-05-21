@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessor::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, int iByteSize, int iBitSize, int iBufferSize)
+void CChannelsAccessor::Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize)
 {
 	mpcChannels = pcChannels;
 	memcpy(&macAccessors, pcAccessors, sizeof(CArrayChannelAccessor));
@@ -68,12 +68,14 @@ bool CChannelsAccessor::IsContiguous(void)
 //////////////////////////////////////////////////////////////////////////
 EPrimitiveType CChannelsAccessor::GetType(void)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	EPrimitiveType		eType;
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	eType = PT_Undefined;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		if (eType == PT_Undefined)
@@ -93,7 +95,7 @@ EPrimitiveType CChannelsAccessor::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelsAccessor::GetBitSize(void)
+size CChannelsAccessor::GetBitSize(void)
 {
 	return miBitSize;
 }
@@ -103,7 +105,7 @@ int CChannelsAccessor::GetBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelsAccessor::GetByteSize(void)
+size CChannelsAccessor::GetByteSize(void)
 {
 	return miByteSize;
 }
@@ -113,7 +115,7 @@ int CChannelsAccessor::GetByteSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelsAccessor::GetBufferSize(void)
+size CChannelsAccessor::GetBufferSize(void)
 {
 	return miBufferSize;
 }

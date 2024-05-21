@@ -27,34 +27,34 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CChannelAccessor
 {
 public:
-	int					miAccessByteSize;  
-	int					miAccessBitSize;
+	size				miAccessByteSize;  
+	size				miAccessBitSize;
 	EPrimitiveType		meAccessType;
 
-	int					miChannelByteOffset;
-	int					miChannelByteSize;
+	size				miChannelByteOffset;
+	size				miChannelByteSize;
 	EPrimitiveType		meChannelType;
 	bool				mbChannelReverse;
-	int					miChannelBitSize;
-	int					miChannelBitOffset;
+	size				miChannelBitSize;
+	size				miChannelBitOffset;
 
-	int					miChannel;
+	size				miChannel;
 
-	void	Init(int iAccessByteSize, int iAccessBitSize, EPrimitiveType eAccessType, int iChannelByteOffset, int iChannelByteSize, EPrimitiveType eChannelType, bool bChannelReverse, int iChannelBitSize, int iChannelBitOffset, int iChannel);
+	void	Init(size iAccessByteSize, size iAccessBitSize, EPrimitiveType eAccessType, size iChannelByteOffset, size iChannelByteSize, EPrimitiveType eChannelType, bool bChannelReverse, size iChannelBitSize, size iChannelBitOffset, size iChannel);
 	
 	void	GetNative(void* pvBase, void* pvDest); //Not valid if miByteSize or miByteOffset -1
 	void	GetAs(EPrimitiveType eType, void* pvBase, void* pvDest); //Not valid if miByteSize or miByteOffset -1
-	void	GetAsSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvDest);	
+	void	GetAsSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest);	
 
 	void	SetNative(void* pvBase, void* pvSource); //Not valid if miByteSize or miByteOffset -1
 	void	SetFrom(EPrimitiveType eType, void* pvBase, void* pvSource);	//Not valid if miByteSize or miByteOffset -1
-	void	SetFromSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvSource);	
+	void	SetFromSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvSource);	
 
-	void	GetBits(void* pvBase, int iBitOffset, int iNumBits, void* pvDest);
-	void	SetBits(void* pvBase, int iBitOffset, int iNumBits, void* pvSource);
+	void	GetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvDest);
+	void	SetBits(void* pvBase, size iBitOffset, size iNumBits, void* pvSource);
 
 	void	GetCast(EPrimitiveType eType, void* pvBase, void* pvDest);
-	void	GetCastSub(EPrimitiveType eType, void* pvBase, int iBitOffset, void* pvDest);
+	void	GetCastSub(EPrimitiveType eType, void* pvBase, size iBitOffset, void* pvDest);
 };
 
 

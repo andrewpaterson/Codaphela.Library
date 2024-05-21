@@ -27,12 +27,12 @@ class CChannelsAccessorContiguous  : public CChannelsAccessor  //Non converting 
 {
 CONSTRUCTABLE(CChannelsAccessorContiguous); 
 public:
-	int		miByteOffset;
+	size	miByteOffset;
 
-	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, int iByteSize, int iBitSize, int iBufferSize);
+	void	Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize);
 
-	void*	Get(int iPos);
-	void	Set(int iPos, void* pvData);
+	void*	Get(size iPos);
+	void	Set(size iPos, void* pvData);
 
 	bool	IsContiguous(void);
 };

@@ -37,7 +37,7 @@ CHollowObject::CHollowObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::Init(uint16 iNumEmbedded)
+void CHollowObject::Init(size iNumEmbedded)
 {
 	PreInit();
 	SetFlagNumEmbedded(iNumEmbedded);
@@ -162,7 +162,7 @@ void CHollowObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::NumPointerTos(void)
+size CHollowObject::NumPointerTos(void)
 {
 	return 0;
 }
@@ -172,7 +172,7 @@ int CHollowObject::NumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+size CHollowObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	return 0;
 }
@@ -237,7 +237,7 @@ void CHollowObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CHollowObject::GetNumEmbedded(void)
+size CHollowObject::GetNumEmbedded(void)
 {
 	return GetNumEmbeddedFromFlags();
 }
@@ -247,7 +247,7 @@ uint16 CHollowObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CHollowObject::GetEmbeddedObject(uint16 iIndex)
+CEmbeddedObject* CHollowObject::GetEmbeddedObject(size iIndex)
 {
 	if (iIndex >= GetNumEmbeddedFromFlags())
 	{
@@ -267,10 +267,11 @@ CEmbeddedObject* CHollowObject::GetEmbeddedObject(uint16 iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
+size CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 {
 	CHollowEmbeddedObject*	pcCurrent;
-	int						i;
+	size					i;
+	size					uiNumEmbedded;
 
 	if (pcEmbedded == this)
 	{
@@ -278,7 +279,8 @@ int CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 	}
 	else
 	{
-		for (i = 1; i < GetNumEmbedded(); i++)
+		uiNumEmbedded = GetNumEmbedded();
+		for (i = 1; i < uiNumEmbedded; i++)
 		{
 			pcCurrent = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
 			if (pcCurrent == pcEmbedded)
@@ -296,7 +298,7 @@ int CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
+CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(size iIndex)
 {
 	CEmbeddedObject*	pcEmbedded;
 
@@ -309,15 +311,16 @@ CEmbeddedObject* CHollowObject::GetRemappedEmbeddedObject(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::NumHeapFroms(void)
+size CHollowObject::NumHeapFroms(void)
 {
 	CHollowEmbeddedObject*	pcHollowEmbedded;
-	int						i;
-	int						iCount;	
+	size					i;
+	size					iCount;	
+	size					uiNumEmbedded;
 
 	iCount = CEmbeddedObject::NumHeapFroms();
-
-	for (i = 1; i < GetNumEmbedded(); i++)
+	uiNumEmbedded = GetNumEmbedded();
+	for (i = 1; i < uiNumEmbedded; i++)
 	{
 		pcHollowEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
 		iCount += pcHollowEmbedded->NumHeapFroms();
@@ -330,15 +333,16 @@ int CHollowObject::NumHeapFroms(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowObject::NumStackFroms(void)
+size CHollowObject::NumStackFroms(void)
 {
 	CHollowEmbeddedObject*	pcHollowEmbedded;
-	int						i;
-	int						iCount;	
+	size					i;
+	size					iCount;	
+	size					uiNumEmbedded;
 
 	iCount = CEmbeddedObject::NumStackFroms();
-
-	for (i = 1; i < GetNumEmbedded(); i++)
+	uiNumEmbedded = GetNumEmbedded();
+	for (i = 1; i < uiNumEmbedded; i++)
 	{
 		pcHollowEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
 		iCount += pcHollowEmbedded->NumStackFroms();

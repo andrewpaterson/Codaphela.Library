@@ -27,8 +27,8 @@ class CChannelsAccessorTypeConvert : public CChannelsAccessor  //Does type conve
 {
 CONSTRUCTABLE(CChannelsAccessorTypeConvert); 
 public:
-	void*	Get(int iPos);
-	void	Set(int iPos, void* pvData);
+	void*	Get(size iPos);
+	void	Set(size iPos, void* pvData);
 };
 
 

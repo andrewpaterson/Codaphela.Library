@@ -34,14 +34,14 @@ public:
 
 	void				Add(CPointer& pObject);
 	void				AddAll(Ptr<CArrayObject> pcArray);
-	void				Insert(int iIndex, CPointer& pObject);
-	CPointer			Get(int iIndex);
-	void				Set(int iIndex, CPointer& pObject);
+	void				Insert(size  iIndex, CPointer& pObject);
+	CPointer			Get(size  iIndex);
+	void				Set(size  iIndex, CPointer& pObject);
 	bool				Remove(CPointer& pObject);
-	bool				RemoveAt(int iIndex);
+	bool				RemoveAt(size  iIndex);
 
 	template<class M>
-	Ptr<M>				Get(int iIndex);
+	Ptr<M>				Get(size  iIndex);
 };
 
 
@@ -50,7 +50,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CArrayObject::Get(int iIndex)
+Ptr<M> CArrayObject::Get(size  iIndex)
 {
 	return (M*)Get(iIndex);
 }

@@ -37,7 +37,7 @@ void CHollowEmbeddedObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CHollowEmbeddedObject::GetNumEmbedded(void)
+size CHollowEmbeddedObject::GetNumEmbedded(void)
 {
 	return 0;
 }
@@ -47,7 +47,7 @@ uint16 CHollowEmbeddedObject::GetNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CHollowEmbeddedObject::GetEmbeddedObject(uint16 iIndex)
+CEmbeddedObject* CHollowEmbeddedObject::GetEmbeddedObject(size iIndex)
 {
 	if (iIndex == 0)
 	{
@@ -193,7 +193,7 @@ void CHollowEmbeddedObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowEmbeddedObject::NumPointerTos(void)
+size CHollowEmbeddedObject::NumPointerTos(void)
 {
 	return 0;
 }
@@ -222,7 +222,7 @@ void CHollowEmbeddedObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHollowEmbeddedObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
+size CHollowEmbeddedObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 {
 	return 0;
 }
