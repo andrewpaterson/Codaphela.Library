@@ -29,23 +29,23 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SIntAndPointer
 {
 	void*	pvData;
-	int32	iValue;  //Arbitrary type values... no need to be a registered type.
+	uint	iValue;  //Arbitrary type values... no need to be a registered type.
 };
 
 
 class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>
 {
 public:
-	void 	Add(void* pvData, int32 iInt);
-	void 	AddIfUnique(void* pvData, int32 iInt);
-	bool 	Get(size iElementPos, void** pvData, int32* iType);
+	void 	Add(void* pvData, uint iInt);
+	void 	AddIfUnique(void* pvData, uint iInt);
+	bool 	Get(size iElementPos, void** pvData, uint* iType);
 	void*	GetPtr(size iElementPos);
 	void*	SafeGetPtr(size iElementPos);
 	size	GetType(size iElementPos);
 	size	SafeGetType(size iElementPos);
-	void	Set(size iElementPos, void* pvData, int32 iInt);
+	void	Set(size iElementPos, void* pvData, uint iInt);
 	void	Remove(void* pv);
-	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, int32 iInt);
+	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, uint iInt);
 	bool	FindInSorted(void* pvElement, DataCompare fCompare, size* piIndex);
 	bool	BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex);
 };

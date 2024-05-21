@@ -28,11 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayIntMinimal::Add(int i)
+void CArrayIntMinimal::Add(uint i)
 {
-	int*	pi;
+	uint*	pi;
 
-	pi = CArrayTemplateMinimal<int>::Add();
+	pi = CArrayTemplateMinimal<uint>::Add();
 	*pi = i;
 }
 
@@ -41,9 +41,9 @@ void CArrayIntMinimal::Add(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayIntMinimal::AddIfUnique(int i)
+size CArrayIntMinimal::AddIfUnique(uint i)
 {
-	int iElementNum;
+	uint iElementNum;
 
 	iElementNum = Find(i);
 	if (iElementNum == -1)
@@ -58,7 +58,7 @@ int CArrayIntMinimal::AddIfUnique(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayIntMinimal::Find(int i)
+size CArrayIntMinimal::Find(uint i)
 {
 	size	j;
 
@@ -77,7 +77,7 @@ int CArrayIntMinimal::Find(int i)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayIntMinimal::GetValue(size iElementPos)
+uint CArrayIntMinimal::GetValue(size iElementPos)
 {
 	return *Get(iElementPos);
 }
@@ -89,6 +89,6 @@ int CArrayIntMinimal::GetValue(size iElementPos)
 //////////////////////////////////////////////////////////////////////////
 void CArrayIntMinimal::QuickSort(void)
 {
-	CArrayTemplateMinimal<int>::QuickSort(&ComparePrimitive<int>);
+	CArrayTemplateMinimal<uint>::QuickSort(&ComparePrimitive<uint>);
 }
 
