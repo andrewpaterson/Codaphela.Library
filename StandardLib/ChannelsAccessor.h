@@ -31,24 +31,24 @@ CONSTRUCTABLE(CChannelsAccessor);
 protected:
 	CChannels*				mpcChannels;
 	CArrayChannelAccessor	macAccessors;
-	int						miByteSize;
-	int						miBitSize;
+	size					miByteSize;
+	size					miBitSize;
 	char*					mpvGetBuffer;
-	int						miBufferSize;  //How many bytes in the buffer.
+	size					miBufferSize;  //How many bytes in the buffer.
 
 public:
-	void						Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, int iByteSize, int iBitSize, int iBufferSize);
+	void						Init(CChannels* pcChannels, CArrayChannelAccessor* pcAccessors, size iByteSize, size iBitSize, size iBufferSize);
 	virtual void				Kill(void);
 
-	virtual void*				Get(int iPos) =0;
-	virtual void				Set(int iPos, void* pvData) =0;
+	virtual void*				Get(size iPos) =0;
+	virtual void				Set(size iPos, void* pvData) =0;
 
 	virtual bool				IsContiguous(void);
 
 	EPrimitiveType				GetType(void);
-	int							GetBitSize(void);
-	int							GetByteSize(void);
-	int							GetBufferSize(void);
+	size						GetBitSize(void);
+	size						GetByteSize(void);
+	size						GetBufferSize(void);
 	CArrayChannelAccessor*		GetAccessors(void);
 	CChannels*					GetChannels(void);
 };

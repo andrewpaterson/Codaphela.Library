@@ -61,7 +61,7 @@ CSerialisedObject* CObjectReaderSimpleDisk::Read(char* szObjectName)
 		return NULL;
 	}
 
-	bResult = mcFile.ReadInt(&iFileType);
+	bResult = mcFile.ReadInt32(&iFileType);
 	if ((!bResult) || (iFileType != BASIC_OBJECT_FILE))
 	{
 		mcFile.Close();

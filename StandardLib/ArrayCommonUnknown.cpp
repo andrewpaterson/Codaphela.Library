@@ -19,6 +19,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
+#include "BaseLib/PrimitiveTypes.h"
 #include "Unknowns.h"
 #include "ArrayUnknown.h"
 
@@ -31,11 +32,11 @@ void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique
 {
 	mcArray.Init();
 	miFlags = 0;
-	SetFlag(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
-	SetFlag(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
-	SetFlag(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
-	SetFlag(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
-	SetFlag(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
 	miNonNullElements = 0;
 }
 
@@ -44,15 +45,15 @@ void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, int iChunkSize)
+void CArrayCommonUnknown::Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize)
 {
 	mcArray.Init(&gcSystemAllocator, iChunkSize);
 	miFlags = 0;
-	SetFlag(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
-	SetFlag(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
-	SetFlag(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
-	SetFlag(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
-	SetFlag(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKillElements);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
 	miNonNullElements = 0;
 }
 
@@ -75,12 +76,14 @@ void CArrayCommonUnknown::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::PrivateKill(void)
 {
-	int			i;
+	size		i;
 	CUnknown*	pcUnknown;
+	size		uiNumElements;
 
 	if (miFlags & ARRAY_COMMOM_KILL_ELEMENT)
 	{
-		for (i = 0; i < mcArray.NumElements(); i++)
+		uiNumElements = mcArray.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcUnknown = *mcArray.Get(i);
 			if (pcUnknown)
@@ -99,7 +102,7 @@ void CArrayCommonUnknown::PrivateKill(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::TypeKnown(bool bTypeKnown)
 {
-	SetFlag(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_TYPE_KNOWN, bTypeKnown);
 }
 
 
@@ -120,10 +123,10 @@ void CArrayCommonUnknown::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::SaveArrayHeader(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(mcArray.NumElements()));
-	ReturnOnFalse(pcFile->WriteInt(miNonNullElements));
-	ReturnOnFalse(pcFile->WriteInt(mcArray.ChunkSize()));
-	ReturnOnFalse(pcFile->WriteInt(miFlags));
+	ReturnOnFalse(pcFile->WriteSize(mcArray.NumElements()));
+	ReturnOnFalse(pcFile->WriteSize(miNonNullElements));
+	ReturnOnFalse(pcFile->WriteSize(mcArray.ChunkSize()));
+	ReturnOnFalse(pcFile->WriteShort(miFlags));
 	return true;
 }
 
@@ -132,16 +135,16 @@ bool CArrayCommonUnknown::SaveArrayHeader(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements)
+bool CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements)
 {
 	bool	bTypeKnown;
-	int		iChunkSize;
-	int		iNonNullElements;
+	size	iChunkSize;
+	size	iNonNullElements;
 
-	ReturnOnFalse(pcFile->ReadInt(piNumElements));
-	ReturnOnFalse(pcFile->ReadInt(&iNonNullElements));
-	ReturnOnFalse(pcFile->ReadInt(&iChunkSize));
-	ReturnOnFalse(pcFile->ReadInt(piFlags));
+	ReturnOnFalse(pcFile->ReadSize(piNumElements));
+	ReturnOnFalse(pcFile->ReadSize(&iNonNullElements));
+	ReturnOnFalse(pcFile->ReadSize(&iChunkSize));
+	ReturnOnFalse(pcFile->ReadShort(piFlags));
 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMOM_TYPE_KNOWN);
 
@@ -163,7 +166,7 @@ bool CArrayCommonUnknown::Save(CFileWriter* pcFile)
 {
 	SSetIterator	sIter;
 	CUnknown*		pcUnknown;
-	int				iCount;
+	size				iCount;
 
 	iCount = 0;
 
@@ -191,10 +194,10 @@ bool CArrayCommonUnknown::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::Load(CFileReader* pcFile)
 {
-	int				iNumElements;
-	int				iFlags;
-	int				i;
-	CUnknown*		pcUnknown;
+	size		iNumElements;
+	uint16		iFlags;
+	size		i;
+	CUnknown*	pcUnknown;
 
 	ReturnOnFalse(LoadArrayHeader(pcFile, &iFlags, &iNumElements));
 
@@ -209,12 +212,11 @@ bool CArrayCommonUnknown::Load(CFileReader* pcFile)
 }
 
 
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::PostLoad(int iFlags)
+void CArrayCommonUnknown::PostLoad(uint16 iFlags)
 {
 	miFlags = iFlags;
 	if (miFlags & ARRAY_COMMOM_IS_PTR_SORTED)
@@ -228,7 +230,7 @@ void CArrayCommonUnknown::PostLoad(int iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::SetChunkSize(int iChunkSize)
+void CArrayCommonUnknown::SetChunkSize(size iChunkSize)
 {
 	mcArray.SetChunkSize(iChunkSize);
 }
@@ -258,7 +260,7 @@ bool CArrayCommonUnknown::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonUnknown::NumElements(void)
+size CArrayCommonUnknown::NumElements(void)
 {
 	if (!(miFlags & ARRAY_COMMOM_IGNORE_NULL))
 	{
@@ -277,7 +279,7 @@ int CArrayCommonUnknown::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::KillElements(bool bKill)
 {
-	SetFlag(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKill);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_KILL_ELEMENT, bKill);
 }
 
 
@@ -291,7 +293,7 @@ void CArrayCommonUnknown::UniqueElements(bool bUnique)
 	{
 		//MakeUnique();
 	}
-	SetFlag(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_UNIQUE_ONLY, bUnique);
 }
 
 
@@ -305,7 +307,7 @@ void CArrayCommonUnknown::IgnoreNullElements(bool bIgnoreNull)
 	{
 		//RemoveNulls();
 	}
-	SetFlag(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IGNORE_NULL, bIgnoreNull);
 }
 
 
@@ -315,7 +317,7 @@ void CArrayCommonUnknown::IgnoreNullElements(bool bIgnoreNull)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::PreserveOrder(bool bPreserveOrder)
 {
-	SetFlag(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_PRESERVE_ORDER, bPreserveOrder);
 }
 
 
@@ -326,7 +328,7 @@ void CArrayCommonUnknown::PreserveOrder(bool bPreserveOrder)
 void CArrayCommonUnknown::Sort(void)
 {
 	mcArray.QuickSort(ComparePtrPtr);
-	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, true);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, true);
 }
 
 
@@ -336,10 +338,10 @@ void CArrayCommonUnknown::Sort(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::Contains(CUnknown* pcUnknown)
 {
-	int		iIndex;
+	size		iIndex;
 	
 	iIndex = Find(pcUnknown);
-	if (iIndex >= 0)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return true;
 	}
@@ -354,10 +356,10 @@ bool CArrayCommonUnknown::Contains(CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonUnknown::Find(CUnknown* pcUnknown)
+size CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 {
 	CUnknown*		pcCurrent;
-	int				iIndex;
+	size				iIndex;
 	bool			bResult;
 
 	if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
@@ -410,7 +412,7 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 		}
 	}
 	mcArray.Add(&pcUnknown);
-	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 
 	if (pcUnknown != NULL)
 	{
@@ -424,7 +426,7 @@ bool CArrayCommonUnknown::Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::Set(int iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
+bool CArrayCommonUnknown::Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary)
 {
 	EArrayUnsetReturn	eUnset;
 
@@ -447,7 +449,7 @@ bool CArrayCommonUnknown::Set(int iIndex, CUnknown* pcUnknown, bool bCleanNullsI
 	CleanNullsIfNecessary(bCleanNullsIfNecessary);
 
 	mcArray.Set(iIndex, &pcUnknown);
-	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 
 	if (pcUnknown != NULL)
 	{
@@ -463,7 +465,7 @@ bool CArrayCommonUnknown::Set(int iIndex, CUnknown* pcUnknown, bool bCleanNullsI
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 {
-	int			i;
+	size		i;
 	CUnknown*	pcUnknown;
 
 	if (miFlags & ARRAY_COMMOM_UNIQUE_ONLY)
@@ -490,7 +492,7 @@ bool CArrayCommonUnknown::AddAll(CArrayCommonUnknown* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::Insert(int iIndex, CUnknown* pcUnknown)
+bool CArrayCommonUnknown::Insert(size iIndex, CUnknown* pcUnknown)
 {
 	if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
 	{
@@ -505,7 +507,7 @@ bool CArrayCommonUnknown::Insert(int iIndex, CUnknown* pcUnknown)
 		}
 	}
 	mcArray.InsertAt(&pcUnknown, iIndex);
-	SetFlag(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
+	SetFlagShort(&miFlags, ARRAY_COMMOM_IS_PTR_SORTED, false);
 	miNonNullElements++;
 	return true;
 }
@@ -530,40 +532,51 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(bool bCleanNullsIfNecessary)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 {
-	int			iDest;
-	int			iSource;
+	size		iDest;
+	size		iSource;
 	CUnknown*	pcSource;
-	int			iLastNotNull;
+	size		uiLastNotNull;
+	size		uiArrayElements;
 
 	if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
 	{
-		if (mcArray.NumElements() - miNonNullElements >= mcArray.ChunkSize() * 3)
+		if (miNonNullElements != 0)
 		{
-			for (iLastNotNull = mcArray.NumElements()-1; iLastNotNull >= 0; iLastNotNull--)
+			uiArrayElements = mcArray.NumElements();
+			if (uiArrayElements - miNonNullElements >= mcArray.ChunkSize() * 3)
 			{
-				pcSource = *mcArray.Get(iLastNotNull);
-				if (pcSource)
+				if (uiArrayElements != 0)
 				{
-					break;
-				}
-			}
-
-			//If iLastNotNull+1 == miNonNullElements then all the NULLs are at the end.  No need to touch the array.
-			if (iLastNotNull+1 != miNonNullElements)
-			{
-				iSource = 0;
-				for (iDest = 0; iDest < miNonNullElements; iDest++)
-				{
-					do 
+					uiLastNotNull = uiArrayElements;
+					do
 					{
-						pcSource = *mcArray.Get(iSource);
-						iSource++;
-
-					} while(pcSource == NULL);
-					mcArray.Set(iDest, &pcSource);
+						uiLastNotNull--;
+						pcSource = *mcArray.Get(uiLastNotNull);
+						if (pcSource)
+						{
+							break;
+						}
+					}
+					while (uiLastNotNull != 0);
 				}
+
+				//If uiLastNotNull+1 == miNonNullElements then all the NULLs are at the end.  No need to touch the array.
+				if (uiLastNotNull + 1 != miNonNullElements)
+				{
+					iSource = 0;
+					for (iDest = 0; iDest < miNonNullElements; iDest++)
+					{
+						do
+						{
+							pcSource = *mcArray.Get(iSource);
+							iSource++;
+						}
+						while (pcSource == NULL);
+						mcArray.Set(iDest, &pcSource);
+					}
+				}
+				mcArray.SetUsedElements(miNonNullElements);
 			}
-			mcArray.SetUsedElements(miNonNullElements);
 		}
 	}
 }
@@ -575,7 +588,7 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 {
-	int			iIndex;
+	size	iIndex;
 
 	if ((miFlags & ARRAY_COMMOM_IGNORE_NULL) && (pcUnknown == NULL))
 	{
@@ -583,7 +596,7 @@ bool CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 	}
 
 	iIndex = Find(pcUnknown);
-	if (iIndex != -1)
+	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
 		return Remove(iIndex);
 	}
@@ -601,27 +614,42 @@ bool CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 bool CArrayCommonUnknown::RemoveLast(bool bCleanNullsIfNecessary)
 {
 	CUnknown*	pcUnknown;
-	int			i;
+	size		i;
+	size		uiNumElements;
 
-	if (mcArray.NumElements() > 0)
+	uiNumElements = mcArray.NumElements();
+	if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
 	{
-		if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
+		if (uiNumElements != 0)
 		{
-			for (i = mcArray.NumElements()-1; i >=0; i--)
+			i = uiNumElements;
+			do
 			{
+				i--;
 				pcUnknown = *mcArray.Get(i);
 				if (pcUnknown)
 				{
 					return Remove(i, bCleanNullsIfNecessary);
 				}
 			}
+			while (i != 0);
 		}
 		else
 		{
-			return Remove(mcArray.NumElements()-1, bCleanNullsIfNecessary);
+			return false;
 		}
 	}
-	return false;
+	else
+	{
+		if (uiNumElements != 0)
+		{
+			return Remove(uiNumElements - 1, bCleanNullsIfNecessary);
+		}
+		else
+		{
+			return false;
+		}
+	}
 }
 
 
@@ -629,7 +657,7 @@ bool CArrayCommonUnknown::RemoveLast(bool bCleanNullsIfNecessary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::Remove(int iIndex, bool bCleanNullsIfNecessary)
+bool CArrayCommonUnknown::Remove(size iIndex, bool bCleanNullsIfNecessary)
 {
 	EArrayUnsetReturn	eUnset;
 
@@ -661,12 +689,12 @@ bool CArrayCommonUnknown::Remove(int iIndex, bool bCleanNullsIfNecessary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//bool CArrayCommonUnknown::Remove(int iIndex, bool bCleanNullsIfNecessary)
+//bool CArrayCommonUnknown::Remove(size iIndex, bool bCleanNullsIfNecessary)
 //{
 //	CUnknown*	pcNull;
 //	CUnknown*	pcUnknown;
 //
-//	if ((iIndex < 0) && (iIndex >= mcArray.NumElements()))
+//	if (iIndex >= mcArray.NumElements())
 //	{
 //		if (bCleanNullsIfNecessary)
 //		{
@@ -719,14 +747,14 @@ bool CArrayCommonUnknown::Remove(int iIndex, bool bCleanNullsIfNecessary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-EArrayUnsetReturn CArrayCommonUnknown::Unset(int iIndex)
+EArrayUnsetReturn CArrayCommonUnknown::Unset(size iIndex)
 {
 	CUnknown*			pcNull;
 	CUnknown*			pcUnknown;
 	EArrayUnsetReturn	eReturn;
 
 	eReturn = AUR_NoChange;
-	if ((iIndex < 0) && (iIndex >= mcArray.NumElements()))
+	if (iIndex >= mcArray.NumElements())
 	{
 		//Index out of bounds.
 		return eReturn;
@@ -772,11 +800,11 @@ EArrayUnsetReturn CArrayCommonUnknown::Unset(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
+bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 {
 	bool	bRemoved;
 
-	if (mcArray.NumElements() > psIter->iIndex)
+	if ((mcArray.NumElements() > psIter->iIndex) && (psIter->iIndex != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		bRemoved = Remove(psIter->iIndex, false);
 		if (psIter->iIndex > 0)
@@ -804,6 +832,11 @@ void CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 				psIter->bStepFirst = false;
 			}
 		}
+		return bRemoved;
+	}
+	else
+	{
+		return false;
 	}
 }
 
@@ -812,16 +845,27 @@ void CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::RemoveEnd(int iIndexInclusive)
+bool CArrayCommonUnknown::RemoveEnd(size iIndexInclusive)
 {
-	int		i;
+	size		i;
 	bool	bResult;
+
+	if (iIndexInclusive == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		return false;
+	}
 
 	//Don't call this if you're using a set.
 	bResult = true;
-	for (i = mcArray.NumElements()-1; i >= iIndexInclusive; i--)
+	i = mcArray.NumElements();
+	if (i != iIndexInclusive)
 	{
-		bResult &= Remove(i, false);
+		do
+		{
+			i--;
+			bResult &= Remove(i, false);
+		}
+		while (i > iIndexInclusive);
 	}
 	return bResult;
 }
@@ -831,7 +875,7 @@ bool CArrayCommonUnknown::RemoveEnd(int iIndexInclusive)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonUnknown::UnsafeSet(int iIndex, CUnknown* pcUnknown)
+void CArrayCommonUnknown::UnsafeSet(size iIndex, CUnknown* pcUnknown)
 {
 	mcArray.Set(iIndex, &pcUnknown);
 }
@@ -841,7 +885,7 @@ void CArrayCommonUnknown::UnsafeSet(int iIndex, CUnknown* pcUnknown)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CArrayCommonUnknown::UnsafeGet(int iIndex)
+CUnknown* CArrayCommonUnknown::UnsafeGet(size iIndex)
 {
 	return *mcArray.Get(iIndex);
 }
@@ -851,7 +895,7 @@ CUnknown* CArrayCommonUnknown::UnsafeGet(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown** CArrayCommonUnknown::UnsafeGetPointer(int iIndex)
+CUnknown** CArrayCommonUnknown::UnsafeGetPointer(size iIndex)
 {
 	return mcArray.Get(iIndex);
 }
@@ -861,7 +905,7 @@ CUnknown** CArrayCommonUnknown::UnsafeGetPointer(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonUnknown::UnsafeNumElements(void)
+size CArrayCommonUnknown::UnsafeNumElements(void)
 {
 	return mcArray.NumElements();
 }
@@ -871,7 +915,7 @@ int CArrayCommonUnknown::UnsafeNumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonUnknown::UnsafeNonNullElements(void)
+size CArrayCommonUnknown::UnsafeNonNullElements(void)
 {
 	return miNonNullElements;
 }
@@ -896,20 +940,28 @@ CUnknown* CArrayCommonUnknown::First(void)
 CUnknown* CArrayCommonUnknown::Last(void)
 {
 	CUnknown*	pcUnknown;
-	int			i;
+	size			i;
+	size		uiNumElements;
 
-	if (mcArray.NumElements() > 0)
+	uiNumElements = mcArray.NumElements();
+	if (uiNumElements != 0)
 	{
 		pcUnknown = *mcArray.Tail();
 		if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
 		{
-			for (i = mcArray.NumElements()-2; i >=0; i--)
+			i = uiNumElements - 1;
+			if (i != 0)
 			{
-				pcUnknown = *mcArray.Get(i);
-				if (pcUnknown)
+				do
 				{
-					return pcUnknown;
+					i--;
+					pcUnknown = *mcArray.Get(i);
+					if (pcUnknown)
+					{
+						return pcUnknown;
+					}
 				}
+				while (i != 0);
 			}
 		}
 		else
@@ -929,7 +981,7 @@ CUnknown* CArrayCommonUnknown::StartIteration(SSetIterator* psIter)
 {
 	CUnknown*	pcUnknown;
 
-	if (mcArray.NumElements() > 0)
+	if (mcArray.NumElements() != 0)
 	{
 		psIter->iIndex = 0;
 		psIter->bStepFirst = true;
@@ -956,7 +1008,7 @@ CUnknown* CArrayCommonUnknown::Iterate(SSetIterator* psIter)
 	CUnknown*	pcUnknown;
 	bool		bMore;
 
-	if (mcArray.NumElements() > 0)
+	if (mcArray.NumElements() != 0)
 	{
 		if (!(miFlags & ARRAY_COMMOM_IGNORE_NULL))
 		{
@@ -997,7 +1049,7 @@ CUnknown* CArrayCommonUnknown::Iterate(SSetIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown)
 {
-	int			iNum;
+	size	iNum;
 
 	iNum = mcArray.NumElements();
 	if (psIter->bStepFirst)
@@ -1051,3 +1103,4 @@ bool CArrayCommonUnknown::IsNotEmpty(void)
 {
 	return NumElements() != 0;
 }
+

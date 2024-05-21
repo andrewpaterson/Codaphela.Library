@@ -28,8 +28,8 @@ class CChannelsAccessorWorstCase : public CChannelsAccessor
 {
 CONSTRUCTABLE(CChannelsAccessorWorstCase); 
 public:
-	void*	Get(int iPos);
-	void	Set(int iPos, void* pvData);  //No bit offset for source, it's byte aligned.
+	void*	Get(size iPos);
+	void	Set(size iPos, void* pvData);  //No bit offset for source, it's byte aligned.
 };
 
 

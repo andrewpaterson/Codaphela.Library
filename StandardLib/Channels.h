@@ -31,9 +31,9 @@ class CChannels : public CUnknown
 CONSTRUCTABLE(CChannels);
 protected:
 	CArrayChannelOffset		masChannelOffsets;
-	int						miSize;  //The number of 'pixels' in the channels (not the size in bytes).
-	int						miByteStride;  //The number of bytes between 'pixels' zero if not a whole byte.
-	int						miBitStride;  //The number of bits between pixels.
+	size					miSize;			//The number of 'pixels' in the channels (not the size in bytes).
+	size					miByteStride;	//The number of bytes between 'pixels' zero if not a whole byte.
+	size					miBitStride;	//The number of bits between pixels.
 	bool					mbOnlyBasicTypes;  //Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
 
 	CArrayChar				mabData;
@@ -44,34 +44,34 @@ protected:
 
 public:
 	void 					Init(void);
-	void 					Init(int iSize, EPrimitiveType eType, int iFirst, ...);
-	void 					Init(int iSize, void* pvUserData, EPrimitiveType eType, int iFirst, ...);
+	void 					Init(size iSize, EPrimitiveType eType, size iFirst, ...);
+	void 					Init(size iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...);
 	void					Init(CChannels* pcSource);
 	void 					Kill(void);
 
 	void 					BeginChange(void);
-	void 					SetSize(int iSize);
-	void 					PrivateAddChannel(int iChannel, EPrimitiveType eType, bool bReverse);
-	void 					AddChannel(int iChannel, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, bool bReverse = false);
-	void 					AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, bool bReverse = false);
+	void 					SetSize(size iSize);
+	void 					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
+	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannels(CArrayChannel* pasChannels);
 	void 					AddChannels(CChannels* pcSourceChannels);
-	void					RemoveChannel(int iChannel);
+	void					RemoveChannel(size iChannel);
 	void					SetData(void* pvMem);
 	void					ByteAlign(void);
-	void					RenameChannel(int iOldName, int iNewName);
+	void					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);
 	bool					IsChanging(void);
 	bool					IsSameFormat(CChannels* psOther);
-	bool					IsChannelRemoved(int iChannel);
-	bool					IsChannelAdded(int iChannel);
+	bool					IsChannelRemoved(size iChannel);
+	bool					IsChannelAdded(size iChannel);
 	bool					IsIgnored(void);
 
-	bool					Is8BitAligned(int iBitStart, int iBitLength);
-	int						CalculateByteStride(int iBitStride);
-	int						CalculateByteSize(int iBitStride, int iSize);
+	bool					Is8BitAligned(size iBitStart, size iBitLength);
+	size					CalculateByteStride(size iBitStride);
+	size					CalculateByteSize(size iBitStride, size iSize);
 	void					AllocateData(void);
 	void					FreeData(void);
 
@@ -79,23 +79,23 @@ public:
 	bool					Save(CFileWriter* pcFile);
 	void					Copy(CChannels* pcData);
 	void					Clear(void);
-	void					Dump(int iLineLength);
+	void					Dump(size iLineLength);
 
 	char*					GetData(void);
 	bool					IsUserAllocated(void);
-	CChannel*				GetChannel(int iChannel);		
-	int						GetNumChannels(void);
-	CChannel*				GetChannelAtIndex(int iIndex);
-	int						GetIndexOfChannel(CChannel* pcChannel);
-	bool					HasChannel(int iChannel);
-	bool					HasChannel(int iChannel1, int iChannel2);
-	bool					HasChannel(int iChannel1, int iChannel2, int iChannel3);
-	bool					HasChannels(int iFirst, ...);
-	int						GetSize(void);
-	int						GetByteSize(void);
+	CChannel*				GetChannel(size iChannel);		
+	size					GetNumChannels(void);
+	CChannel*				GetChannelAtIndex(size iIndex);
+	size					GetIndexOfChannel(CChannel* pcChannel);
+	bool					HasChannel(size iChannel);
+	bool					HasChannel(size iChannel1, size iChannel2);
+	bool					HasChannel(size iChannel1, size iChannel2, size iChannel3);
+	bool					HasChannels(size iFirst, ...);
+	size					GetSize(void);
+	size					GetByteSize(void);
 	CArrayChannelOffset*	GetChannelOffsets(void);
-	int						GetByteStride(void);
-	int						GetBitStride(void);
+	size					GetByteStride(void);
+	size					GetBitStride(void);
 
 	void					GetAllChannels(CArrayInt* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
@@ -104,10 +104,10 @@ public:
 	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
 	bool					IsOnlyBasicTypes(void);
 
-	void					SetByteStride(int iByteStride);
+	void					SetByteStride(size iByteStride);
 	void					SetBitStrideFromByteStride(void);
 
-	bool					IsValid(int iPos);
+	bool					IsValid(size iPos);
 
 	EPrimitiveType			GetLargestPrimitiveType(void);
 

@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SChannel::Init(int iChannel, EPrimitiveType eType, bool bReverse)
+void SChannel::Init(size iChannel, EPrimitiveType eType, bool bReverse)
 {
 	this->iChannel = iChannel;
 	this->eType = eType;

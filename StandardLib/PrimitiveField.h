@@ -18,7 +18,7 @@ public:
 
 	bool				IsPrimitive(void);
 	uint32				GetSizeOf(void);
-	size_t				GetNameOffset(void);
+	size				GetNameOffset(void);
 	SDataIO*			GetDataIO(void);
 	CPrimitiveObject*	GetPrimitiveObject(CBaseObject* pcFieldContainer);
 	void*				GetValue(CBaseObject* pcFieldContainer);

@@ -64,10 +64,12 @@ void CArrayCommonObject::FreePointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAll(void)
 {
-	int				i;
+	size 			i;
 	CBaseObject*	pcObject;
+	size 			uiNumElements;
 
-	for (i = 0; i < NumElements(); i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = UnsafeGet(i);
 		if (pcObject)
@@ -146,16 +148,16 @@ void CArrayCommonObject::Free(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 {
-	int				i;
-	int				iNumElements;
+	size 			i;
+	size 			uiNumElements;
 	CBaseObject*	pcPointedTo;
 
 	ReturnOnFalse(mcArray.SaveArrayHeader(pcFile));
 
 	ReturnOnFalse(pcFile->WriteBool(mbSubRoot));
 
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		ReturnOnFalse(pcFile->WriteDependent(pcPointedTo));
@@ -170,17 +172,17 @@ bool CArrayCommonObject::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Load(CObjectReader* pcFile)
 {
-	int					i;
-	int					iFlags;
-	int					iNumElements;
+	size 				i;
+	uint16 				iFlags;
+	size 				uiNumElements;
 	CEmbeddedObject**	pcPointedTo;
 
 	//Note: This function has never been called.
-	ReturnOnFalse(mcArray.LoadArrayHeader(pcFile, &iFlags, &iNumElements));
+	ReturnOnFalse(mcArray.LoadArrayHeader(pcFile, &iFlags, &uiNumElements));
 
 	ReturnOnFalse(pcFile->ReadBool(&mbSubRoot));
 
-	for (i = 0; i < iNumElements; i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
 		ReturnOnFalse(pcFile->ReadDependent(pcPointedTo, this));
@@ -214,12 +216,12 @@ bool CArrayCommonObject::Add(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 {
-	int				i;
-	int				iNumElements;
+	size 			i;
+	size 			uiNumElements;
 	CBaseObject*	pcObject;
 
-	iNumElements = pcArray->NumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = pcArray->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = pcArray->UnsafeGet(i);
 		mcArray.Add(pcObject);
@@ -235,11 +237,11 @@ void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Set(int iIndex, CPointer& pObject)
+void CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 {
 	CBaseObject*		pcPointedTo;
 
-	if ((iIndex < 0) || (iIndex >= mcArray.UnsafeNumElements()))
+	if (iIndex >= mcArray.UnsafeNumElements())
 	{
 		return;
 	}
@@ -277,7 +279,7 @@ bool CArrayCommonObject::Remove(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::NumElements(void)
+size CArrayCommonObject::NumElements(void)
 {
 	return mcArray.NumElements();
 }
@@ -287,9 +289,9 @@ int CArrayCommonObject::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::Size(void)
+size CArrayCommonObject::Size(void)
 {
-	return NumElements();
+	return mcArray.NumElements();
 }
 
 
@@ -297,9 +299,9 @@ int CArrayCommonObject::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::Length(void)
+size CArrayCommonObject::Length(void)
 {
-	return NumElements();
+	return mcArray.NumElements();
 }
 
 
@@ -309,7 +311,7 @@ int CArrayCommonObject::Length(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::IsEmpty(void)
 {
-	return NumElements() == 0;
+	return mcArray.IsEmpty();
 }
 
 
@@ -317,7 +319,7 @@ bool CArrayCommonObject::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::NonNullElements(void)
+size CArrayCommonObject::NonNullElements(void)
 {
 	return mcArray.UnsafeNonNullElements();
 }
@@ -327,7 +329,7 @@ int CArrayCommonObject::NonNullElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::NumPointerTos(void)
+size CArrayCommonObject::NumPointerTos(void)
 {
 	return BaseNumPointerTos();
 }
@@ -337,14 +339,16 @@ int CArrayCommonObject::NumPointerTos(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::BaseNumPointerTos(void)
+size CArrayCommonObject::BaseNumPointerTos(void)
 {
 	CBaseObject*	pcPointedTo;
-	int				i;
-	int				iCount;
+	size 			i;
+	size 			iCount;
+	size 			uiNumElements;
 
+	uiNumElements = mcArray.UnsafeNumElements();
 	iCount = 0;
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -362,10 +366,12 @@ int CArrayCommonObject::BaseNumPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
 {
-	CBaseObject* pcPointedTo;
-	int						i;
+	CBaseObject*	pcPointedTo;
+	size 			i;
+	size 			uiNumElements;
 
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -384,9 +390,11 @@ void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
 void CArrayCommonObject::RemoveAllPointerTos(void)
 {
 	CBaseObject*	pcPointedTo;
-	int				i;
+	size 			i;
+	size 			uiNumElements;
 
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -405,15 +413,15 @@ void CArrayCommonObject::RemoveAllPointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist)
 {
-	int					i;
+	size 				i;
 	CEmbeddedObject*	pcPointedTo;
-	int					iNumElements;
+	size 				uiNumElements;
 
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		AddExpectedDistToRoot(pcPointedTo, iExpectedDist+1, pcParameters);
+		AddExpectedDistToRoot(pcPointedTo, iExpectedDist + 1, pcParameters);
 	}
 }
 
@@ -457,38 +465,39 @@ void CArrayCommonObject::SetPointerTosExpectedDistToRoot(int iDistToRoot)
 	SetPointedTosDistToRoot(iDistToRoot);
 }
 
-	//////////////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 {
-	CBaseObject*			pcPointedTo;
-	CBaseObject*			pcContainer;
-	int						i;
-	int						iNumElements;
+	CBaseObject*	pcPointedTo;
+	CBaseObject*	pcContainer;
+	size			i;
+	size 			uiNumElements;
 
-	iNumElements = mcArray.UnsafeNumElements();
+	uiNumElements = mcArray.UnsafeNumElements();
 
 #ifdef _DEBUG
-	Validate((iNumElements != 0xCCCCCCCC));
+	Validate((uiNumElements != 0xCCCCCCCC));
 #endif // _DEBUG
 
 	if (iDistToRoot >= ROOT_DIST_TO_ROOT)
 	{
-		for (i = 0; i < iNumElements; i++)
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 			if (pcPointedTo)
 			{
 				pcContainer = pcPointedTo->GetEmbeddingContainer();
-				pcContainer->SetExpectedDistToRoot(iDistToRoot+1);
+				pcContainer->SetExpectedDistToRoot(iDistToRoot + 1);
 			}
 		}
 	}
 	else if (iDistToRoot == UNATTACHED_DIST_TO_ROOT)
 	{
-		for (i = 0; i < iNumElements; i++)
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 			if (pcPointedTo)
@@ -512,11 +521,11 @@ void CArrayCommonObject::SetPointedTosDistToRoot(int iDistToRoot)
 void CArrayCommonObject::GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos)
 {
 	CEmbeddedObject*	pcPointedTo;
-	int					i;
-	int					iNumElements;
+	size 				i;
+	size 				uiNumElements;
 
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -544,12 +553,12 @@ void CArrayCommonObject::BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papc
 void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters)
 {
 	CEmbeddedObject*	pcPointedTo;
-	int					i;
-	int					iNumElements;
+	size 				i;
+	size 				uiNumElements;
 	CBaseObject*		pcContainer;
 
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CEmbeddedObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -568,9 +577,11 @@ void CArrayCommonObject::CollectAndClearPointerTosInvalidDistToRootObjects(CDist
 bool CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 {
 	CEmbeddedObject*	pcPointedTo;
-	int					i;
+	size 				i;
+	size 				uiNumElements;
 
-	for (i = 0; i < mcArray.UnsafeNumElements(); i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
 		if (pcPointedTo)
@@ -589,7 +600,7 @@ bool CArrayCommonObject::ContainsPointerTo(CEmbeddedObject* pcEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CArrayCommonObject::UnsafeGet(int iIndex)
+CBaseObject* CArrayCommonObject::UnsafeGet(size iIndex)
 {
 	return (CBaseObject*)mcArray.UnsafeGet(iIndex);
 }
@@ -599,16 +610,16 @@ CBaseObject* CArrayCommonObject::UnsafeGet(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
+size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	int					iCount;
+	size 					iCount;
 	CEmbeddedObject**	ppcPointedTo;
-	int					i;
-	int					iNumElements;
+	size 					i;
+	size 					uiNumElements;
 
 	iCount = 0;
-	iNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
 		if (*ppcPointedTo)
@@ -628,7 +639,7 @@ int CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(uint16 iIndex)
+CEmbeddedObject* CArrayCommonObject::GetEmbeddedObject(size iIndex)
 {
 	if (iIndex == 0)
 	{
@@ -655,12 +666,14 @@ void CArrayCommonObject::BaseValidatePointerTos(void)
 //////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::ValidatePointerTos(void)
 {
-	int					iCount;
+	size 				iCount;
 	CEmbeddedObject**	ppcPointedTo;
-	int					i;
+	size 				i;
+	size 				uiNumElements;
 
+	uiNumElements = mcArray.UnsafeNumElements();
 	iCount = 0;
-	for (i = 0; i < mcArray.NumElements(); i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
 		if (*ppcPointedTo)
@@ -690,11 +703,11 @@ void CArrayCommonObject::TouchAll(void)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
-	int				i;
-	int				iNum;
+	size 			i;
+	size 			uiNumElements;
 
-	iNum = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNum; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
 		pObject.AssignObject(pcObject);
@@ -710,11 +723,11 @@ void CArrayCommonObject::KillAll(void)
 {
 	CBaseObject*	pcObject;
 	CPointer		pObject;
-	int				i;
-	int				iNum;
+	size 			i;
+	size 			uiNumElements;
 
-	iNum = mcArray.UnsafeNumElements();
-	for (i = 0; i < iNum; i++)
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
 		pcObject->Kill();

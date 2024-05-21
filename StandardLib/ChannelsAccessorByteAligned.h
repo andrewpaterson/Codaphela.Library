@@ -27,8 +27,8 @@ class CChannelsAccessorByteAligned : public CChannelsAccessor
 {
 CONSTRUCTABLE(CChannelsAccessorByteAligned); 
 public:
-	void*	Get(int iPos);
-	void	Set(int iPos, void* pvData);
+	void*	Get(size iPos);
+	void	Set(size iPos, void* pvData);
 };
 
 

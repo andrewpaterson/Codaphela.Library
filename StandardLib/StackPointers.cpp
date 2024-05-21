@@ -1,3 +1,4 @@
+#include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/PointerFunctions.h"
 #include "StackPointers.h"
 
@@ -228,11 +229,11 @@ void CStackPointers::TestSetLastUsed(int iLastUsed)
 int CStackPointers::TestFindUnusedIndex(int iLastUsed)
 {
 	CStackPointer*	pcUnused;
-	size_t			iIndex;
+	size			iIndex;
 
 	TestSetLastUsed(iLastUsed);
 	pcUnused = FindUnused();
-	iIndex = ((size_t)pcUnused - (size_t)mpcMemory)/sizeof(CStackPointer);
+	iIndex = ((size)pcUnused - (size)mpcMemory)/sizeof(CStackPointer);
 
 	return iIndex;
 }

@@ -48,7 +48,7 @@ void CPrimitiveClasses::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CPrimitiveClasses::AddClass(const char* szClassName, size_t uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest) 
+CClass* CPrimitiveClasses::AddClass(const char* szClassName, size uiClassSize, EPrimitiveType eFieldType, uint32 eFieldOffest) 
 {
 	CUnmanagedField*	pcField;
 	CClass*				pcClass;

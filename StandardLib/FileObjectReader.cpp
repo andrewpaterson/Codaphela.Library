@@ -71,7 +71,7 @@ CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
 		return NULL;
 	}
 
-	bResult = mpcFile->ReadInt(&iFileType);
+	bResult = mpcFile->ReadInt32(&iFileType);
 	if ((!bResult) || (iFileType != BASIC_OBJECT_FILE))
 	{
 		return NULL;

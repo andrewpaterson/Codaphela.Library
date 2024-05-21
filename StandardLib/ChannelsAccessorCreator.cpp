@@ -64,9 +64,9 @@ CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 	bool				bChannelByteAligned;
 	bool				bAccessByteAligned;
 
-	int					iBitSize;
-	int					iByteSize;
-	int					iBufferSize;
+	size					iBitSize;
+	size					iByteSize;
+	size					iBufferSize;
 
 	CChannelsAccessor*	pcAccessor;
 	bool				bResult;
@@ -167,7 +167,7 @@ CChannelsAccessor* CChannelsAccessorCreator::CreateAndKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChannels* pcChannels, int iChannel, EPrimitiveType eType)
+CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChannels* pcChannels, size iChannel, EPrimitiveType eType)
 {
 	CChannelsAccessorCreator	cCreator;
 
@@ -183,14 +183,15 @@ CChannelsAccessor* CChannelsAccessorCreator::CreateSingleChannelAccessor(CChanne
 //////////////////////////////////////////////////////////////////////////
 bool CChannelsAccessorCreator::CreateAccessors(void)
 {
-	int					i;
+	size				i;
 	SChannelAccess*		psAccess;
 	CChannelAccessor*	pcAccessor;
-	int					iByteSize;
-	int					iBitSize;
+	size				iByteSize;
+	size				iBitSize;
 	EPrimitiveType		eAccessType;
 	CChannel*			pcChannel;
-	int					iIndex;
+	size				iIndex;
+	size				uiNumAccess;
 
 	if (CalculateEmpty())
 	{
@@ -198,8 +199,8 @@ bool CChannelsAccessorCreator::CreateAccessors(void)
 	}
 
 	macAccessor.Init();  //Safe to call init again if no elements have been added.
-
-	for (i = 0; i < masAccess.NumElements(); i++)
+	uiNumAccess = masAccess.NumElements();
+	for (i = 0; i < uiNumAccess; i++)
 	{
 		psAccess = masAccess.Get(i);
 		pcAccessor = macAccessor.Add();
@@ -246,17 +247,19 @@ bool CChannelsAccessorCreator::CalculateEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannelsAccessorCreator::CalculateContiguous(void)
 {
-	int					i;
+	size				i;
 	CChannel*			psChannel;
 	SChannelAccess*		psAccess;
-	int					iLastIndex;
-	int					iIndex;
+	size				iLastIndex;
+	size				iIndex;
+	size				uiNumAccess;
 
 	psAccess = masAccess.Get(0);
 	psChannel = mpcChannels->GetChannel(psAccess->iChannel);
 	iLastIndex = mpcChannels->GetIndexOfChannel(psChannel);
 
-	for (i = 1; i < masAccess.NumElements(); i++)
+	uiNumAccess = masAccess.NumElements();
+	for (i = 1; i < uiNumAccess; i++)
 	{
 		psAccess = masAccess.Get(i);
 		psChannel = mpcChannels->GetChannel(psAccess->iChannel);
@@ -283,10 +286,12 @@ bool CChannelsAccessorCreator::CalculateContiguous(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannelsAccessorCreator::CalculateSourceTypesSame(void)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;;
+	size				uiNumAccessors;
 
-	for (i = 0; i < macAccessor.NumElements(); i++)
+	uiNumAccessors = macAccessor.NumElements();
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessor.Get(i);
 
@@ -309,21 +314,23 @@ bool CChannelsAccessorCreator::CalculateSourceTypesSame(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 {
-	int					i;
+	size				i;
 	CChannel*			pcChannel;
 	SChannelAccess*		psAccess;
+	size				uiNumAccess;
 
-	if (mpcChannels->GetByteStride() == -1)
+	if (mpcChannels->GetByteStride() == CHANNEL_NON_ALIGNED_BYTES)
 	{
 		return false;
 	}
 
-	for (i = 0; i < masAccess.NumElements(); i++)
+	uiNumAccess = masAccess.NumElements();
+	for (i = 0; i < uiNumAccess; i++)
 	{
 		psAccess = masAccess.Get(i);
 		pcChannel = mpcChannels->GetChannel(psAccess->iChannel);
-
-		if (pcChannel->miByteSize == -1)
+		
+		if (pcChannel->miByteSize == CHANNEL_NON_ALIGNED_BYTES)
 		{
 			return false;
 		}
@@ -338,10 +345,12 @@ bool CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannelsAccessorCreator::CalculateAccessByteAligned(void)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
+	size				uiNumAccessors;
 
-	for (i = 0; i < macAccessor.NumElements(); i++)
+	uiNumAccessors = macAccessor.NumElements();
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessor.Get(i);
 		if (pcAccessor->miAccessByteSize == -1)
@@ -357,14 +366,16 @@ bool CChannelsAccessorCreator::CalculateAccessByteAligned(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelsAccessorCreator::CalclulateBitSize(void)
+size CChannelsAccessorCreator::CalclulateBitSize(void)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
-	int					iBitSize;
+	size				iBitSize;
+	size				uiNumAccessors;
 
 	iBitSize = 0;
-	for (i = 0; i < macAccessor.NumElements(); i++)
+	uiNumAccessors = macAccessor.NumElements();
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessor.Get(i);
 		iBitSize += pcAccessor->miAccessBitSize;
@@ -378,7 +389,7 @@ int CChannelsAccessorCreator::CalclulateBitSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel, EPrimitiveType eType)
+void CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
 {
 	SChannelAccess*	psAccess;
 
@@ -396,7 +407,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel, EPrimitiveType eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiveType eType)
+void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -407,7 +418,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, EPrimitiv
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType)
+void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -419,7 +430,7 @@ void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType)
+void CChannelsAccessorCreator::AddAccess(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType)
 {
 	AddAccess(iChannel1, eType);
 	AddAccess(iChannel2, eType);
@@ -434,10 +445,12 @@ void CChannelsAccessorCreator::AddAccess(int iChannel1, int iChannel2, int iChan
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eType)
 {
-	int		i;
-	int		iChannel;
+	size	i;
+	size	iChannel;
+	size	uiNumChannels;
 
-	for (i = 0; i < paiChannels->NumElements(); i++)
+	uiNumChannels = paiChannels->NumElements();
+	for (i = 0; i < uiNumChannels; i++)
 	{
 		iChannel = paiChannels->GetValue(i);
 		AddAccess(iChannel, eType);
@@ -461,12 +474,16 @@ void CChannelsAccessorCreator::AddAccess(CChannel* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CChannels* pcChannels)
 {
-	int			i;
-	CChannel*	pcChannel;
+	size					i;
+	CChannel*				pcChannel;
+	size					uiChannelOffsets;
+	CArrayChannelOffset*	pcChannelOffsets;
 
-	for (i = 0; i < pcChannels->GetChannelOffsets()->NumElements(); i++)
+	pcChannelOffsets = pcChannels->GetChannelOffsets();
+	uiChannelOffsets = pcChannelOffsets->NumElements();
+	for (i = 0; i < uiChannelOffsets; i++)
 	{
-		pcChannel = pcChannels->GetChannelOffsets()->Get(i);
+		pcChannel = pcChannelOffsets->Get(i);
 		AddAccess(pcChannel);
 	}
 }
@@ -488,14 +505,17 @@ void CChannelsAccessorCreator::AddAccess(CChannelAccessor* pcChannel)
 //////////////////////////////////////////////////////////////////////////
 void CChannelsAccessorCreator::AddAccess(CChannelsAccessor* pcChannels)
 {
-	int						i;
+	size					i;
 	CChannelAccessor*		pcChannel;
 	CArrayChannelAccessor*	pacAccessors;
+	size					uiNumAccessors;
 
 	pacAccessors = pcChannels->GetAccessors();
-	for (i = 0; i < pacAccessors->NumElements(); i++)
+	uiNumAccessors = pacAccessors->NumElements();
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcChannel = pacAccessors->Get(i);
 		AddAccess(pcChannel);
 	}
 }
+

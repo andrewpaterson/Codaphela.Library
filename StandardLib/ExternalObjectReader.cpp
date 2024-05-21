@@ -43,7 +43,7 @@ CSerialisedObject* CExternalObjectReader::ReadSerialised(CFileReader* pcReader)
 	void*				pvOffset;
 	bool				bResult;
 
-	if (!pcReader->ReadInt(&iLength))
+	if (!pcReader->ReadInt32(&iLength))
 	{
 		return NULL;
 	}

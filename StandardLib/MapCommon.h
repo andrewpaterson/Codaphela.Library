@@ -29,7 +29,7 @@ class CMapCommon : public CUnknown
 {
 CONSTRUCTABLE(CMapCommon);
 protected:
-	int		miFlags;
+	uint16	miFlags;
 
 public:
 	void 			Init(bool bKillElements = true, bool bOverwriteExisting = true);

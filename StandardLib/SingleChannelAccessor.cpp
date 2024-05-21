@@ -97,8 +97,8 @@ void CSingleChannelAccessor::GetConvertTo(int iChannel, EPrimitiveType eType, vo
 
 		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
-		bSub |= miChannelByteOffset == -1;
-		bSub |= miChannelByteSize == -1;
+		bSub |= miChannelByteOffset == SIZE_MAX;
+		bSub |= miChannelByteSize == SIZE_MAX;
 
 		if (!bSub)
 		{
@@ -151,8 +151,8 @@ void CSingleChannelAccessor::GetCastTo(int iChannel, EPrimitiveType eType, void*
 
 		CChannelAccessor::Init(iByteSize, iBitSize, eType, pcChannel->miByteOffset, pcChannel->miByteSize, pcChannel->eType, pcChannel->bReverse, pcChannel->miBitSize, pcChannel->miBitOffset, pcChannel->iChannel);
 
-		bSub |= miChannelByteOffset == -1;
-		bSub |= miChannelByteSize == -1;
+		bSub |= miChannelByteOffset == SIZE_MAX;
+		bSub |= miChannelByteSize == SIZE_MAX;
 
 		if (!bSub)
 		{

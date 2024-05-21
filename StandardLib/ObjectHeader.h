@@ -7,7 +7,7 @@
 class CObjectIdentifier
 {
 public:
-	int		mcType;
+	int32	mcType;
 	CChars	mszObjectName;
 	OIndex	moi;
 

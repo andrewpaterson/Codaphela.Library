@@ -51,7 +51,7 @@ protected:
 	void			InitObjectHeader(CObjectHeader* psHeader, CBaseObject* pcObject);
 	void			InitIdentifier(CObjectIdentifier* psHeader, CBaseObject* pcObject);
 
-	filePos			Write(const void* pvSource, filePos iSize, filePos iCount);
+	size			Write(const void* pvSource, size iSize, size iCount);
 };
 
 

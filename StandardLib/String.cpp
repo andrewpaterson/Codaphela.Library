@@ -171,7 +171,7 @@ Ptr<CString> CString::Append(CString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CString> CString::Append(Ptr<CString> pString, int iStrlen)
+Ptr<CString> CString::Append(Ptr<CString> pString, size iStrlen)
 {
 	return Append(pString->Text(), iStrlen);
 }
@@ -191,7 +191,7 @@ Ptr<CString> CString::AppendQuoted(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CString> CString::AppendSubString(Ptr<CString> pString, int iLength)
+Ptr<CString> CString::AppendSubString(Ptr<CString> pString, size iLength)
 {
 	return AppendSubString(pString->Text(), iLength);
 }
@@ -201,7 +201,7 @@ Ptr<CString> CString::AppendSubString(Ptr<CString> pString, int iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CString> CString::AppendSubString(Ptr<CString> pString, int iStartInclusive, int iEndExclusive)
+Ptr<CString> CString::AppendSubString(Ptr<CString> pString, size iStartInclusive, size iEndExclusive)
 {
 	return AppendSubString(pString->Text(), iStartInclusive, iEndExclusive);
 }
@@ -231,7 +231,7 @@ bool CString::AppendFlag(uint32 msFlags, uint32 uiFlag, Ptr<CString> pFlagName, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CString> CString::LeftAlign(Ptr<CString> pString, char cPadCharacter, int iWidth)
+Ptr<CString> CString::LeftAlign(Ptr<CString> pString, char cPadCharacter, size iWidth)
 {
 	return LeftAlign(pString->Text(), cPadCharacter, iWidth);
 }
@@ -241,7 +241,7 @@ Ptr<CString> CString::LeftAlign(Ptr<CString> pString, char cPadCharacter, int iW
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CString> CString::RightAlign(Ptr<CString> pString, char cPadCharacter, int iWidth)
+Ptr<CString> CString::RightAlign(Ptr<CString> pString, char cPadCharacter, size iWidth)
 {
 	return RightAlign(pString->Text(), cPadCharacter, iWidth);
 }
@@ -251,7 +251,7 @@ Ptr<CString> CString::RightAlign(Ptr<CString> pString, char cPadCharacter, int i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CString::Insert(int iPos, Ptr<CString> pString)
+void CString::Insert(size iPos, Ptr<CString> pString)
 {
 	return Insert(iPos, pString->Text());
 }
@@ -271,7 +271,7 @@ bool CString::Equals(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CString::Equals(Ptr<CString> pString, int iLen)
+bool CString::Equals(Ptr<CString> pString, size iLen)
 {
 	return Equals(pString->Text(), iLen);
 }
@@ -351,7 +351,7 @@ bool CString::StartsWithIgnoreCase(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int	 CString::Occurrences(Ptr<CString> pString)
+size CString::Occurrences(Ptr<CString> pString)
 {
 	return Occurrences(pString->Text());
 }
@@ -361,7 +361,7 @@ int	 CString::Occurrences(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CString::SubStringEquals(int iStart, Ptr<CString> pString)
+bool CString::SubStringEquals(size iStart, Ptr<CString> pString)
 {
 	return SubStringEquals(iStart, pString->Text());
 }
@@ -371,7 +371,7 @@ bool CString::SubStringEquals(int iStart, Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CString::SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString)
+bool CString::SubStringEqualsIgnoreCase(size iStart, Ptr<CString> pString)
 {
 	return SubStringEqualsIgnoreCase(iStart, pString->Text());
 }
@@ -381,7 +381,7 @@ bool CString::SubStringEqualsIgnoreCase(int iStart, Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CString::FindFromEnd(Ptr<CString> pString)
+size CString::FindFromEnd(Ptr<CString> pString)
 {
 	return FindFromEnd(pString->Text());
 }
@@ -391,7 +391,7 @@ int CString::FindFromEnd(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int	 CString::FindFromEnd(int iPos, Ptr<CString> pString)
+size CString::FindFromEnd(size iPos, Ptr<CString> pString)
 {
 	return FindFromEnd(iPos, pString->Text());
 }
@@ -401,7 +401,7 @@ int	 CString::FindFromEnd(int iPos, Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int	 CString::Find(Ptr<CString> pString)
+size CString::Find(Ptr<CString> pString)
 {
 	return Find(pString->Text());
 }
@@ -411,49 +411,9 @@ int	 CString::Find(Ptr<CString> pString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int	 CString::Find(int iPos, Ptr<CString> pString)
+size  CString::Find(size iPos, Ptr<CString> pString)
 {
 	return Find(iPos, pString->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int	 CString::Compare(Ptr<CString> pOther)
-{
-	return Compare(pOther->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CString::CompareIgnoreCase(Ptr<CString> pOther)
-{
-	return CompareIgnoreCase(pOther->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int	 CString::Replace(Ptr<CString> pFind, Ptr<CString> pReplace)
-{
-	return Replace(pFind->Text(), pReplace->Text());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CString::Overwrite(int iPos, Ptr<CString> pReplace)
-{
-	return Overwrite(iPos, pReplace->Text());
 }
 
 
@@ -475,9 +435,10 @@ Ptr<CArray<CString>> CString::Split(char cSplitter)
 {
 	Ptr<CArray<CString>>	paDest;
 	CArrayChars				aszTemp;
-	int						i;
+	size					i;
 	CChars*					psz;
 	Ptr<CString>			pString;
+	size					uiNumElements;
 
 	paDest = GetObjects()->Malloc<CArray<CString>>();
 	paDest->Init();
@@ -485,7 +446,8 @@ Ptr<CArray<CString>> CString::Split(char cSplitter)
 	aszTemp.Init();
 	msz.Split(&aszTemp, cSplitter);
 
-	for (i = 0; i < aszTemp.NumElements(); i++)
+	uiNumElements = aszTemp.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psz = aszTemp.Get(i);
 		pString = GetObjects()->Malloc<CString>()->Init(psz);

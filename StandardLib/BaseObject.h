@@ -86,8 +86,8 @@ protected:
 	CChars		mon;
 	CObjects*	mpcObjectsThisIn;
 	CClass*		mpcClass;
-	int32		miDistToRoot;
-	int32		miDistToStack;
+	int			miDistToRoot;
+	int			miDistToStack;
 	uint16		muiFlags;
 	uint16		muiNumEmbedded;
 	uint16		muiPreInits;
@@ -128,10 +128,10 @@ public:
 			bool				IsNamed(const char* szName);
 
 			char*				GetName(void) override;
-			int					SerialisedSize(void);
+			size				SerialisedSize(void);
 	virtual char*				GetIdentifier(CChars* psz);
 
-			uint16				GetNumEmbedded(void);
+			size				GetNumEmbedded(void);
 
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(bool bDirty);
@@ -143,8 +143,8 @@ public:
 			void				CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject* pcTo, CDistCalculatorParameters* pcParameters);
 			void				CollectAndClearInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 	virtual bool				IsDistToRootValid(void);
-			int					CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
-			int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
+			size				CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters);
+			size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 
 			void				AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters);
 			void				ClearDistTouchedFlags(void);
@@ -158,11 +158,11 @@ public:
 			CClass*				Class(CClasses* pcClasses);
 
 	virtual bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
-			CEmbeddedObject* 	TestGetPointerTo(int iToIndex);
-			int 				TestGetNumEmbeddedFromFlags(void);
+			CEmbeddedObject* 	TestGetPointerTo(size iToIndex);
+			size 				TestGetNumEmbeddedFromFlags(void);
 			void				ClearFlagNumEmbedded(void);
-	virtual void				SetFlag(int iFlag, int iFlagValue);
-			int					GetFlags(void);
+	virtual void				SetFlag(uint16 iFlag, uint16 iFlagValue);
+			uint16				GetFlags(void);
 			bool				CanFindRoot(void);
 			bool				CanFindRootThroughValidPath(void);
 
@@ -170,8 +170,8 @@ public:
 			void				DumpPointerTos(void);
 			void				Dump(void);
 
-			void				ValidateFlagSet(int iFlag, char* szFlag);
-			void				ValidateFlagNotSet(int iFlag, char* szFlag);
+			void				ValidateFlagSet(uint16 iFlag, char* szFlag);
+			void				ValidateFlagNotSet(uint16 iFlag, char* szFlag);
 			void				ValidateContainerFlag(void);
 			void				ValidateFlags(void);
 			void				ValidateDistToRoot(void);
@@ -211,7 +211,7 @@ protected:
 
 	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void) override;
-			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
+			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			bool				RemoveToFrom(CEmbeddedObject* pcPointedTo);
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
@@ -219,7 +219,7 @@ protected:
 	virtual int					CalculateDistToRootFromPointedFroms(int iDistToRoot);
 			bool				IsBaseObject(void);
 			uint16				GetNumEmbeddedFromFlags(void);
-			void				SetFlagNumEmbedded(int iNumEmbedded);
+			void				SetFlagNumEmbedded(size iNumEmbedded);
 			bool				IsMarkedUnreachable(void);
 			void				ReplaceOneWithX(char* szDest, char* szMask);
 			void				ContainerPreInit(void);

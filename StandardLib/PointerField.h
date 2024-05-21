@@ -14,7 +14,7 @@ public:
 
 	bool		IsPointer(void);
 	uint32		GetSizeOf(void);
-	size_t		GetNameOffset(void);
+	size		GetNameOffset(void);
 	CPointer*	GetPointer(CBaseObject* pcFieldContainer);
 };
 

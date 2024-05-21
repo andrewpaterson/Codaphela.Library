@@ -26,20 +26,22 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorAccessBitty::Get(int iPos)
+void* CChannelsAccessorAccessBitty::Get(size iPos)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
 	void*				pvSource;
-	int					iDestBitPos;
+	size				iDestBitPos;
 	char				c[16];
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
 	iDestBitPos = 0;
 	mpvGetBuffer[miBufferSize-1] = 0;
 	pvDest = mpvGetBuffer;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetAs(pcAccessor->meAccessType, pvSource, c);
@@ -54,19 +56,21 @@ void* CChannelsAccessorAccessBitty::Get(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorAccessBitty::Set(int iPos, void* pvSource)
+void CChannelsAccessorAccessBitty::Set(size iPos, void* pvSource)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
-	int					iDestBitPos;
-	int					iSourceBitPos;
-	char				c[16 +1];
+	size				iDestBitPos;
+	size				iSourceBitPos;
+	char				c[16+1];
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
 	iDestBitPos = mpcChannels->GetBitStride() * iPos;
 	iSourceBitPos = 0;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		c[pcAccessor->miAccessBitSize/8] = 0;

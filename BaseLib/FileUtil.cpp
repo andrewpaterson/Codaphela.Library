@@ -397,7 +397,7 @@ void CFileUtil::SplitPath(const char* szPathName, CChars* szDestFilename, CChars
 		szTemp.Init(szPathName);
 		FixSeparators(&szTemp);
 		iIndex = FindLastSeparator(szTemp.Text());
-		if (iIndex > 0)
+		if ((iIndex != 0) && (iIndex != ARRAY_ELEMENT_NOT_FOUND))
 		{
 			if (iIndex > 1)
 			{

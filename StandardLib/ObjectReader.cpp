@@ -59,12 +59,12 @@ CBaseObject* CObjectReader::Read(void)
 	bool			bResult;
 	filePos			iLength;
 	filePos			iStart;
-	int				iExpectedLength;
+	size			iExpectedLength;
 	CObjectHeader	sHeader;
-	int				iMagic;
+	int32			iMagic;
 
 	iStart = mcFile.GetFilePos();
-	bResult = ReadInt(&iExpectedLength);
+	bResult = ReadSize(&iExpectedLength);
 	if (!bResult)
 	{
 		gcLogger.Error2(__METHOD__, " Could not read serialised object length.", NULL);
@@ -72,7 +72,7 @@ CBaseObject* CObjectReader::Read(void)
 	}
 
 	iMagic = OBJECT_DATA;
-	bResult = mcFile.ReadInt(&iMagic);
+	bResult = mcFile.ReadInt32(&iMagic);
 	if (bResult)
 	{
 		bResult = iMagic == OBJECT_DATA;
@@ -159,18 +159,18 @@ if (!result) \
 bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 {
 	filePos			iStart;
-	int				iExpectedLength;
+	size			iExpectedLength;
 	filePos			iLength;
 	bool			bResult;
 	int				iMagic;
 
 	iStart = mcFile.GetFilePos();
-	bResult = ReadInt(&iExpectedLength);
+	bResult = ReadSize(&iExpectedLength);
 	
 	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Could not read object steam size loading object [", sz.Text(), "] 'froms'.", NULL);
 
 	iMagic = OBJECT_FROM_HEAP;
-	bResult = mcFile.ReadInt(&iMagic);
+	bResult = mcFile.ReadInt32(&iMagic);
 	if (bResult)
 	{
 		bResult = iMagic == OBJECT_FROM_HEAP;
@@ -183,7 +183,7 @@ bool CObjectReader::ReadHeapFroms(CBaseObject* pcThis)
 
 	iLength = mcFile.GetFilePos();
 	bResult = (iLength - iStart) == iExpectedLength;
-	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", LongLongToString(iExpectedLength), "] but read length [", LongLongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
+	ObjectReaderErrorCheck(bResult, pcThis, __METHOD__, " Size mismatch expected stream length [", SizeToString(iExpectedLength), "] but read length [", LongToString(iLength - iStart), "] reading object froms [", sz.Text(), "] 'froms'.", NULL);
 
 	return true;
 }
@@ -199,8 +199,8 @@ bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 
 	pcPointerHeader->Init();
 
-	ReturnOnFalse(ReadInt(&pcPointerHeader->mcType));
-	ReturnOnFalse(ReadInt(&iIgnored));
+	ReturnOnFalse(ReadInt32(&pcPointerHeader->mcType));
+	ReturnOnFalse(ReadInt32(&iIgnored));
 
 	if (pcPointerHeader->mcType == OBJECT_POINTER_NULL)
 	{
@@ -208,11 +208,11 @@ bool CObjectReader::ReadIdentifier(CObjectIdentifier* pcPointerHeader)
 	}
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_ID)
 	{
-		ReturnOnFalse(ReadInt(&pcPointerHeader->moi));
+		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
 	}
 	else if (pcPointerHeader->mcType == OBJECT_POINTER_NAMED)
 	{
-		ReturnOnFalse(ReadInt(&pcPointerHeader->moi));
+		ReturnOnFalse(ReadLong(&pcPointerHeader->moi));
 		ReturnOnFalse(pcPointerHeader->mszObjectName.ReadChars(this));
 	}
 	else
@@ -240,7 +240,7 @@ bool CObjectReader::ReadObjectHeader(CObjectHeader* pcObjectHeader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-filePos CObjectReader::Read(void* pvDest, filePos iSize, filePos iCount)
+size CObjectReader::Read(void* pvDest, size iSize, size iCount)
 {
 	return mcFile.Read(pvDest, iSize, iCount);
 }
@@ -268,8 +268,8 @@ bool CObjectReader::ReadPointer(CPointer* pObject)
 
 	if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
 	{
-		bResult = ReadInt(&cHeader.miNumEmbedded);
-		bResult &= ReadInt(&cHeader.miEmbeddedIndex);
+		bResult = ReadShort(&cHeader.miNumEmbedded);
+		bResult &= ReadShort(&cHeader.miEmbeddedIndex);
 		if (!bResult)
 		{
 			cHeader.Kill();
@@ -305,8 +305,8 @@ bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 	{
 		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
 		{
-			bResult = ReadInt(&cHeader.miNumEmbedded);
-			bResult &= ReadInt(&cHeader.miEmbeddedIndex);
+			bResult = ReadShort(&cHeader.miNumEmbedded);
+			bResult &= ReadShort(&cHeader.miEmbeddedIndex);
 
 			*ppcObjectPtr = NULL;
 			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
@@ -341,8 +341,8 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 	{
 		if ((cHeader.mcType == OBJECT_POINTER_NAMED) || (cHeader.mcType == OBJECT_POINTER_ID))
 		{
-			bResult = ReadInt(&cHeader.miNumEmbedded);
-			bResult &= ReadInt(&cHeader.miEmbeddedIndex);
+			bResult = ReadShort(&cHeader.miNumEmbedded);
+			bResult &= ReadShort(&cHeader.miEmbeddedIndex);
 			bResult &= ReadInt(&iDistToRoot);
 
 			*ppcObjectPtr = NULL;
@@ -366,5 +366,4 @@ bool CObjectReader::ReadReverseDependent(CEmbeddedObject** ppcObjectPtr, CBaseOb
 
 	//cHeader is killed by mpcDependents.
 }
-
 

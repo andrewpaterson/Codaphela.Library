@@ -25,18 +25,20 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorChannelBitty::Get(int iPos)
+void* CChannelsAccessorChannelBitty::Get(size iPos)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
 	void*				pvSource;
-	int					iSourceBitPos;
+	size				iSourceBitPos;
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvSource = mpcChannels->GetData();
 	iSourceBitPos = mpcChannels->GetBitStride() * iPos;
 	pvDest = mpvGetBuffer;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetAsSub(pcAccessor->meAccessType, pvSource, iSourceBitPos, pvDest);
@@ -50,16 +52,18 @@ void* CChannelsAccessorChannelBitty::Get(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorChannelBitty::Set(int iPos, void* pvSource)
+void CChannelsAccessorChannelBitty::Set(size iPos, void* pvSource)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
-	int					iDestBitPos;
+	size				iDestBitPos;
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvDest = mpcChannels->GetData();
 	iDestBitPos = mpcChannels->GetBitStride() * iPos;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->SetFromSub(pcAccessor->meAccessType, pvDest, iDestBitPos, pvSource);

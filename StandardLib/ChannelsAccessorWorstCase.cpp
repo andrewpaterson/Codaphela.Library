@@ -26,20 +26,22 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorWorstCase::Get(int iPos)
+void* CChannelsAccessorWorstCase::Get(size iPos)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvSource;
-	int					iSourceBitPos;
-	int					iDestBitPos;
+	size				iSourceBitPos;
+	size				iDestBitPos;
 	char				c[16];
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvSource = mpcChannels->GetData();
 	iSourceBitPos = mpcChannels->GetBitStride() * iPos;
 	iDestBitPos = 0;
 	mpvGetBuffer[miBufferSize-1] = 0;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetAsSub(pcAccessor->meAccessType, pvSource, iSourceBitPos, c);
@@ -54,19 +56,21 @@ void* CChannelsAccessorWorstCase::Get(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorWorstCase::Set(int iPos, void* pvSource)
+void CChannelsAccessorWorstCase::Set(size iPos, void* pvSource)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
-	int					iDestBitPos;
-	int					iSourceBitPos;
+	size				iDestBitPos;
+	size				iSourceBitPos;
 	char				c[16 +1];
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvDest = mpcChannels->GetData();
 	iDestBitPos = mpcChannels->GetBitStride() * iPos;
 	iSourceBitPos = 0;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		c[pcAccessor->miAccessBitSize/8] = 0;

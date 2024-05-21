@@ -40,7 +40,7 @@ protected:
 	CConstructors*			mpcConstructors;
 	CLife<CMallocator>		mcMallocLife;
 	CMallocator*			mpcMalloc;
-	size_t					miNumElements;
+	size					miNumElements;
 
 public:
 						void			Init(char* szName, CConstructors* pcConstructors);
@@ -52,7 +52,7 @@ public:
 	template<class M>	M*				Add(void);
 	template<class M>	M*				Add(int iAdditionalSize);
 						CUnknown*		Add(const char* szClassName);
-						CUnknown*		Add(const char* szClassName, size_t uiAdditionalSize);
+						CUnknown*		Add(const char* szClassName, size uiAdditionalSize);
 						CUnknown*		AddFromHeader(CFileReader* pcFile);
 
 
@@ -70,7 +70,7 @@ public:
 
 						//Debug stuff
 						void			DumpAddDetail(CUnknown* pcUnknown);
-						size_t			NumElements(void);
+						size			NumElements(void);
 
 						int				GetIterableListsHeadNumElements(void);
 

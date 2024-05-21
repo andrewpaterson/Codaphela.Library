@@ -849,15 +849,15 @@ bool PrivateAssertMemory(void* pvExpected, void* pvActual, size iSize, size iLin
 //////////////////////////////////////////////////////////////////////////
 int	zerocmp(void* pv, size iSize)
 {
-	size	i;
+	size		i;
 
 	for (i = 0; i < iSize; i++)
 	{
-		if (((char*)pv)[i] > 0)
+		if (((int8*)pv)[i] > 0)
 		{
 			return 1;
 		}
-		if (((char*)pv)[i] < 0)
+		if (((int8*)pv)[i] < 0)
 		{
 			return -1;
 		}

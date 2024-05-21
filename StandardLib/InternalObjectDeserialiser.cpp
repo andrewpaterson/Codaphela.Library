@@ -41,7 +41,7 @@ void CInternalObjectDeserialiser::Kill(void)
 CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 {
 	CSerialisedObject*		pcSerialised;
-	uint32			uiDataSize;
+	size					uiDataSize;
 	CStackMemory<>			cTemp;
 	bool					bExists;
 	CBaseObject*			pcBaseObject;
@@ -51,7 +51,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 	bExists = mpcDataConnection->Get(oi, &uiDataSize, pcSerialised, cTemp.GetStackSize());
 	if (bExists)
 	{
-		if (uiDataSize <= (uint32)cTemp.GetStackSize())
+		if (uiDataSize <= cTemp.GetStackSize())
 		{
 			return ReadSerialised(pcSerialised, uiDataSize);
 		}
@@ -78,7 +78,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(OIndex oi)
 CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
-	uint32		uiDataSize;
+	size				uiDataSize;
 	CStackMemory<>		cTemp;
 	bool				bExists;
 	CBaseObject*		pcBaseObject;
@@ -88,7 +88,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 	bExists = mpcDataConnection->Get(szObjectName, &uiDataSize, pcSerialised, cTemp.GetStackSize());
 	if (bExists)
 	{
-		if (uiDataSize <= (uint32)cTemp.GetStackSize())
+		if (uiDataSize <= cTemp.GetStackSize())
 		{
 			return ReadSerialised(pcSerialised, uiDataSize);
 		}
@@ -112,7 +112,7 @@ CBaseObject* CInternalObjectDeserialiser::Read(char* szObjectName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised, uint32 iSize)
+CBaseObject* CInternalObjectDeserialiser::ReadSerialised(CSerialisedObject* pcSerialised, size iSize)
 {
 	CObjectReader	cReader;
 	CBaseObject*	pvObject;

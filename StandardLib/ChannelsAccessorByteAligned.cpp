@@ -25,16 +25,18 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CChannelsAccessorByteAligned::Get(int iPos)
+void* CChannelsAccessorByteAligned::Get(size iPos)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
 	void*				pvSource;
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvSource = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
 	pvDest = mpvGetBuffer;
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->GetNative(pvSource, pvDest);
@@ -48,14 +50,16 @@ void* CChannelsAccessorByteAligned::Get(int iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsAccessorByteAligned::Set(int iPos, void* pvSource)
+void CChannelsAccessorByteAligned::Set(size iPos, void* pvSource)
 {
-	int					i;
+	size				i;
 	CChannelAccessor*	pcAccessor;
 	void*				pvDest;
+	size				uiNumAccessors;
 
+	uiNumAccessors = macAccessors.NumElements();
 	pvDest = RemapSinglePointer(mpcChannels->GetData(), iPos * mpcChannels->GetByteStride());
-	for (i = 0; i < macAccessors.NumElements(); i++)
+	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
 		pcAccessor->SetNative(pvDest, pvSource);

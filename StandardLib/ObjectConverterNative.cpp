@@ -74,7 +74,7 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 		return NULL;
 	}
 
-	bResult = cFile.ReadInt(&c);
+	bResult = cFile.ReadInt32(&c);
 	if (!bResult)
 	{
 		return NULL;
@@ -149,10 +149,12 @@ bool CObjectConverterNative::IsNative(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjectConverterNative::TestGetNewIndexFromOld(OIndex oiOld)
 {
-	int				i;
-	CIndexNewOld* pcRemap;
+	size			i;
+	CIndexNewOld*	pcRemap;
+	size			uiIndices;
 
-	for (i = 0; i < mcIndexRemap.NumElements(); i++)
+	uiIndices = mcIndexRemap.NumElements();
+	for (i = 0; i < uiIndices; i++)
 	{
 		pcRemap = mcIndexRemap.Get(i);
 		if (pcRemap->moiOld == oiOld)

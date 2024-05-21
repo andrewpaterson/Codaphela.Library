@@ -110,7 +110,7 @@ bool CIndexedObjects::Remove(OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CIndexedObjects::NumIndexed(void)
+size CIndexedObjects::NumIndexed(void)
 {
 	return mcIndexes.NumElements();
 }
@@ -122,9 +122,9 @@ int CIndexedObjects::NumIndexed(void)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 {
-	bool	bResult;
-	OIndex	oi;
-	int		iKeyLength;
+	bool		bResult;
+	OIndex		oi;
+	size		iKeyLength;
 
 	bResult = mcIndexes.StartIteration(psIterator, &oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
 	if ((bResult) && (iKeyLength == sizeof(OIndex)))
@@ -141,9 +141,9 @@ OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 //////////////////////////////////////////////////////////////////////////
 OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 {
-	bool	bResult;
-	OIndex	oi;
-	int		iKeyLength;
+	bool		bResult;
+	OIndex		oi;
+	size		iKeyLength;
 
 	bResult = mcIndexes.Iterate(psIterator, &oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
 	if ((bResult) && (iKeyLength == sizeof(OIndex)))

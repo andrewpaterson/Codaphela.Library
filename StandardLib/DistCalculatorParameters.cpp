@@ -62,10 +62,12 @@ void CDistCalculatorParameters::AddExpectedDist(CBaseObject* pcObject, int iExpe
 //////////////////////////////////////////////////////////////////////////
 SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 {
-	int				i;
+	size			i;
 	SDistToRoot*	psDistToRoot;
+	size			uiDists;
 
-	for (i = 0; i < macExpectedDists.NumElements(); i++)
+	uiDists = macExpectedDists.NumElements();
+	for (i = 0; i < uiDists; i++)
 	{
 		psDistToRoot = macExpectedDists.Get(i);
 		if (psDistToRoot->pcObject == pcObject)
@@ -84,15 +86,17 @@ SDistToRoot* CDistCalculatorParameters::GetExpectedDist(CBaseObject* pcObject)
 //////////////////////////////////////////////////////////////////////////
 SDistToRoot* CDistCalculatorParameters::GetLowestExpectedDist(void)
 {
-	int				i;
+	size			i;
 	int				iMinDist;
 	SDistToRoot*	pcMinDistToRoot;
 	SDistToRoot*	psDistToRoot;
+	size			uiDists;
 
 	iMinDist = MAX_DIST_TO_ROOT;
 	pcMinDistToRoot = NULL;
 
-	for (i = 0; i < macExpectedDists.NumElements(); i++)
+	uiDists = macExpectedDists.NumElements();
+	for (i = 0; i < uiDists; i++)
 	{
 		psDistToRoot = macExpectedDists.Get(i);
 		if (psDistToRoot->iExpectedDist < iMinDist)

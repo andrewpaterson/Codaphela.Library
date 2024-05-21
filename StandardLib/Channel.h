@@ -25,16 +25,19 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ChannelsHelper.h"
 
 
+#define CHANNEL_NON_ALIGNED_BYTES		SIZE_MAX
+
+
 class CChannel : public SChannel
 {
 public:
-	int		miByteSize;
-	int		miBitSize;
-	int		miByteOffset;
-	int		miBitOffset;
+	size	miByteSize;
+	size	miBitSize;
+	size	miByteOffset;
+	size	miBitOffset;
 
-	void	Init(int iChannel, EPrimitiveType eType, bool bReverse);
-	void	Init(int iChannel, EPrimitiveType eType, int iByteSize, int iBitSize, int iByteOffset, int iBitOffset, bool bReverse = false);
+	void	Init(size iChannel, EPrimitiveType eType, bool bReverse);
+	void	Init(size iChannel, EPrimitiveType eType, size iByteSize, size iBitSize, size iByteOffset, size iBitOffset, bool bReverse = false);
 
 	bool	Is8BitAligned(void);
 };

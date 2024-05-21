@@ -21,7 +21,7 @@ protected:
 	CArrayDependentReadPointer	mcPointers;
 	CArrayIndexNewOld			mcIndexRemap;
 
-	int							miGetIndex;  //The index of the next object to 'gotten' for reading.
+	size						miGetIndex;  //The index of the next object to 'gotten' for reading.
 
 	CExternalObjectReader*		mpcReader;  //The ObjectReader knows how to load the serialised form of the object by name.
 	CObjects*					mpcObjects;

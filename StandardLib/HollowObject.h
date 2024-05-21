@@ -28,7 +28,7 @@ class CHollowObject : public CBaseObject
 CONSTRUCTABLE(CHollowObject);
 public:
 								CHollowObject(void);
-			void				Init(uint16 iNumEmbedded);
+			void				Init(size iNumEmbedded);
 			void				Kill(void) final;
 
 			bool				IsHollow(void);
@@ -39,12 +39,12 @@ public:
 			bool				IsObject(void) override;
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-			int					NumPointerTos(void);
-			uint16				GetNumEmbedded(void);
-			CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
-			int					GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-			int					NumHeapFroms(void);
-			int					NumStackFroms(void);
+			size				NumPointerTos(void);
+			size				GetNumEmbedded(void);
+			CEmbeddedObject*	GetEmbeddedObject(size iIndex);
+			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
+			size				NumHeapFroms(void);
+			size				NumStackFroms(void);
 			void				RemoveAllPointerTosDontKill(void);
 			void				RemoveAllPointerTos(void);
 			void				BaseValidatePointerTos(void);
@@ -57,9 +57,9 @@ protected:
 
 			void				FreePointers(void) override;
 			void				Free(void);
-			int					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemovePointerTo(CEmbeddedObject* pcTo);
-	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(int iIndex);
+	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(size iIndex);
 			void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
 };
 

@@ -17,8 +17,8 @@ public:
 	int					GetDistToRoot(void);
 	bool				SetDistToRoot(int iDistToRoot) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
-	uint16				GetNumEmbedded(void);
-	CEmbeddedObject*	GetEmbeddedObject(uint16 iIndex);
+	size				GetNumEmbedded(void);
+	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 	bool				IsHollow(void);
 	CBaseObject*		Dehollow(void);
 	int					GetEmbeddedIndex(void);
@@ -26,7 +26,7 @@ public:
 	CObjects*			GetObjectsThisIn(void);
 	CStackPointers*		GetStackPointers(void);
 	void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-	int					NumPointerTos(void);
+	size				NumPointerTos(void);
 	void				ValidateConsistency(void);
 	bool				IsInitialised(void);
 	bool				IsDirty(void);
@@ -36,7 +36,7 @@ public:
 
 protected:
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
-	int					CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
+	size				CollectDetachedFroms(CDistCalculatorParameters* pcParameters);
 };
 
 

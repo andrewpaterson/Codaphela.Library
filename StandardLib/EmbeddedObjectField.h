@@ -13,7 +13,7 @@ public:
 
 	bool			IsEmbeddedObject(void);
 	uint32			GetSizeOf(void);
-	size_t			GetNameOffset(void);
+	size			GetNameOffset(void);
 
 	CBaseObject*	GetEmbeddedObject(CBaseObject* pcFieldContainer);
 };

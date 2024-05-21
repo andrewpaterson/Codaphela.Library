@@ -28,7 +28,7 @@ class CSetUnknown : public CArrayCommonUnknown
 CONSTRUCTABLE(CSetUnknown);
 public:
 	void 		Init(void);
-	void 		Init(int iChunkSize);
+	void 		Init(size iChunkSize);
 	void 		Kill(void);
 
 	template<class M>

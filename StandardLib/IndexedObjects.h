@@ -42,7 +42,7 @@ public:
 	bool			Has(OIndex oi);
 	bool			Add(OIndex oi, CBaseObject* pvMemory);
 	bool			Remove(OIndex oi);
-	int				NumIndexed(void);
+	size			NumIndexed(void);
 
 	OIndex			StartIteration(SIndexesIterator* psIterator);
 	OIndex			Iterate(SIndexesIterator* psIterator);

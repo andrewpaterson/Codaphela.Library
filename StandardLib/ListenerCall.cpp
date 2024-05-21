@@ -64,16 +64,18 @@ void CListenerCall::AddAllowedClassName(const char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CListenerCall::RemoveListener(CListener* pcRemoved)
 {
-	int					i;
+	size				i;
 	CArrayListenerPtr*	pcArray;
 	CListener*			pcListener;
 	SMapIterator		sIter;
 	bool				bResult;
+	size				uiNumElements;
 
 	bResult = mcListeners.StartIteration(&sIter, NULL, NULL, (void**)&pcArray, NULL);
 	while (bResult)
 	{
-		for (i = 0; i < pcArray->NumElements(); i++)
+		uiNumElements = pcArray->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcListener = (*pcArray->Get(i));
 			if (pcListener == pcRemoved)
@@ -94,14 +96,16 @@ bool CListenerCall::RemoveListener(CListener* pcRemoved)
 //////////////////////////////////////////////////////////////////////////
 void CListenerCall::CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
 {
-	int					i;
+	size				i;
 	CListener*			pcListener;
 	CArrayListenerPtr*	pcArray;
+	size				uiNumElements;
 
 	pcArray = mcListeners.Get(szClassName);
 	if (pcArray)
 	{
-		for (i = 0; i < pcArray->NumElements(); i++)
+		uiNumElements = pcArray->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcListener = *pcArray->Get(i);
 			(pcListener->*ListenerFunc)(pcSource, pvContext);

@@ -102,10 +102,10 @@ public:
 						CPointer				Null(void);
 	template<class M>	Ptr<M>					Null(void);
 
-						int64					NumMemoryIndexes(void);
-						int						NumMemoryNames(void);
+						size					NumMemoryIndexes(void);
+						size					NumMemoryNames(void);
 						int64					NumDatabaseIndexes(void);
-						int						NumDatabaseNames(void);
+						int64					NumDatabaseNames(void);
 
 						CSequenceConnection*	GetIndexGenerator(void);
 						CNamedIndexedObjects*	GetMemory(void);
@@ -141,8 +141,8 @@ protected:
 	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
 	template<class M>	M*						AllocateUninitialisedByTemplate(void);
 	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName);
-	template<class M>	M*						AllocateUninitialisedByTemplate(OIndex oi, int iAdditionalBytes);
-	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, int iAdditionalBytes);
+	template<class M>	M*						AllocateUninitialisedByTemplate(OIndex oi, size uiAdditionalBytes);
+	template<class M>	M*						AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, size uiAdditionalBytes);
 						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, OIndex oi);
 						CBaseObject*			AllocateUninitialisedByClassName(const char* szClassName, const char* szObjectName, OIndex oi);
 						bool					ValidateCanAllocate(const char* szClassName);
@@ -164,9 +164,9 @@ protected:
 						void					ValidateIndexedObjects(void);
 						void					ClearValidationFlags(void);
 						void					RecurseValidateSceneGraph(CBaseObject* pcBaseObject);
-						CHollowObject*			AllocateHollow(uint16 iNumEmbedded, OIndex oi);
-						CHollowObject*			AllocateHollow(uint16 iNumEmbedded, const char* szObjectName, OIndex oi);
-						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) ;
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
+						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
+						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
 						void					PrintMemory(CChars* psz);
 
 public:
@@ -175,9 +175,9 @@ public:
 
 						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
 						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
-						CHollowObject*			AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded);
-						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, uint16 iNumEmbedded);
-						CHollowObject*			AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, uint16 iNumEmbedded);
+						CHollowObject*			AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded);
+						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
+						CHollowObject*			AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded);
 
 protected:
 						CBaseObject*			AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oiForced, OIndex* poiExisting);
@@ -203,7 +203,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, int iAdditionalBytes)
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, size uiAdditionalBytes)
 {
 	SpecificClass*	pcObject;
 	bool			bResult;
@@ -214,7 +214,7 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, int iAdditio
 		return NULL;
 	}
 
-	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(iAdditionalBytes);
+	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(uiAdditionalBytes);
 	if (pcObject)
 	{
 		pcObject->Allocate(this);
@@ -229,7 +229,7 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(OIndex oi, int iAdditio
 //
 //////////////////////////////////////////////////////////////////////////
 template<class SpecificClass>
-SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, int iAdditionalBytes)
+SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectName, OIndex oi, size uiAdditionalBytes)
 {
 	SpecificClass*	pcObject;
 	bool			bResult;
@@ -240,7 +240,7 @@ SpecificClass* CObjects::AllocateUninitialisedByTemplate(const char* szObjectNam
 		return NULL;
 	}
 
-	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(iAdditionalBytes);
+	pcObject = mpcUnknownsAllocatingFrom->Add<SpecificClass>(uiAdditionalBytes);
 	if (pcObject)
 	{
 		pcObject->Allocate(this);

@@ -34,7 +34,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 struct SSetIterator
 {
-	int		iIndex;
+	size		iIndex;
 	bool	bStepFirst;
 };
 
@@ -52,45 +52,45 @@ class CArrayCommonUnknown : public CUnknown
 {
 CONSTRUCTABLE(CArrayCommonUnknown);
 protected:
-	int					miFlags;
+	uint16				miFlags;
 
 private:
 	CArrayUnknownPtr	mcArray;  //CArrayTemplate<CUnknown*>
-	int					miNonNullElements;
+	size				miNonNullElements;
 
 	bool				PrivateIterate(SSetIterator* psIter, CUnknown** ppcUnknown);
 	void				PrivateKill(void);
 
 public:
 	void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
-	void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, int iChunkSize);
+	void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize);
 	void 				Kill(void);
 	void 				ReInit(void);
 
 	bool				Save(CFileWriter* pcFile);
 	bool				Load(CFileReader* pcFile);
 
-	int					NumElements(void);
+	size				NumElements(void);
 	void				KillElements(bool bKill);
 	void				UniqueElements(bool bUnique);
 	void				IgnoreNullElements(bool bIgnoreNull);
 	void				PreserveOrder(bool bPreserveOrder);
 	void				Sort(void);
 	bool				Contains(CUnknown* pcUnknown);
-	int					Find(CUnknown* pcUnknown);
+	size				Find(CUnknown* pcUnknown);
 	void				CleanNullsIfNecessary(bool bCleanNullsIfNecessary);
 	void				CleanNullsIfNecessary(void);
 	void				TypeKnown(bool bTypeKnown);
 	bool				Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
 	bool				AddAll(CArrayCommonUnknown* pcSource);
-	bool				Set(int iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
-	bool				Insert(int iIndex, CUnknown* pcUnknown);
-	bool				RemoveEnd(int iIndexInclusive);
+	bool				Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
+	bool				Insert(size iIndex, CUnknown* pcUnknown);
+	bool				RemoveEnd(size iIndexInclusive);
 	bool				Remove(CUnknown* pcUnknown);
-	bool				Remove(int iIndex, bool bCleanNullsIfNecessary = true);
+	bool				Remove(size iIndex, bool bCleanNullsIfNecessary = true);
 	bool				RemoveLast(bool bCleanNullsIfNecessary = true);
-	void				RemoveDuringIteration(SSetIterator* psIter);
-	EArrayUnsetReturn	Unset(int iIndex);
+	bool				RemoveDuringIteration(SSetIterator* psIter);
+	EArrayUnsetReturn	Unset(size iIndex);
 	CUnknown*			First(void);
 	CUnknown*			Last(void);
 	CUnknown*			StartIteration(SSetIterator* psIter);
@@ -98,19 +98,19 @@ public:
 	bool				IsKillElements(void);
 	bool				IsEmpty(void);
 	bool				IsNotEmpty(void);
-	void				UnsafeSet(int iIndex, CUnknown* pcUnknown);
-	CUnknown*			UnsafeGet(int iIndex);
-	CUnknown**			UnsafeGetPointer(int iIndex);
-	int					UnsafeNumElements(void);
-	int					UnsafeNonNullElements(void);
-	bool				LoadArrayHeader(CFileReader* pcFile, int* piFlags, int* piNumElements);
+	void				UnsafeSet(size iIndex, CUnknown* pcUnknown);
+	CUnknown*			UnsafeGet(size iIndex);
+	CUnknown**			UnsafeGetPointer(size iIndex);
+	size				UnsafeNumElements(void);
+	size				UnsafeNonNullElements(void);
+	bool				LoadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements);
 	bool				SaveArrayHeader(CFileWriter* pcFile);
-	void				PostLoad(int iFlags);
-	void				SetChunkSize(int iChunkSize);
+	void				PostLoad(uint16 iFlags);
+	void				SetChunkSize(size iChunkSize);
 
 protected:
-	virtual bool	LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
-	virtual bool	SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
+	virtual bool		LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);
+	virtual bool		SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown);
 };
 
 

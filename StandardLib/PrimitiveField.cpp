@@ -81,7 +81,7 @@ void* CPrimitiveField::GetValue(CBaseObject* pcFieldContainer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size_t CPrimitiveField::GetNameOffset(void)
+size CPrimitiveField::GetNameOffset(void)
 {
 	return sizeof(CPrimitiveField);
 }

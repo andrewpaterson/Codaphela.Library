@@ -220,7 +220,7 @@ void CObjects::PrintMemory(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemory(void)
 {
-	CChars				sz;
+	CChars	sz;
 
 	sz.Init("-------------------------- Indices -------------------------- \n");
 	PrintMemory(&sz);
@@ -238,7 +238,7 @@ void CObjects::DumpMemory(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpNames(void)
 {
-	CChars				sz;
+	CChars	sz;
 
 	sz.Init("-------------------------- Names -------------------------- \n");
 	sz.Dump();
@@ -260,11 +260,10 @@ void CObjects::DumpNames(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::DumpGraph(void)
 {
-	CChars				sz;
-	Ptr<CRoot>			pRoot;
+	CChars		sz;
+	Ptr<CRoot>	pRoot;
 
 	sz.Init("-------------------------- Graph --------------------------- \n");
-
 
 	pRoot = Get(ROOT_NAME);
 	if (pRoot.IsNotNull())
@@ -280,20 +279,22 @@ void CObjects::DumpGraph(void)
 	CBaseObject*		pcBaseObject;
 	CBaseObject*		pcEmbeddedObject;
 	CObject*			pcObject;
-	int					i;
+	size				i;
+	size				uiNumEmbedded;
 
 	pcBaseObject = mcMemory.StartIteration(&sIter);
 	while (pcBaseObject)
 	{
-		SetFlag(&pcBaseObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
+		SetFlagShort(&pcBaseObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
 
 		if (pcBaseObject->IsObject())
 		{
 			pcObject = (CObject*)pcBaseObject;
-			for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
+			uiNumEmbedded = pcObject->mapEmbedded.NumElements();
+			for (i = 0; i < uiNumEmbedded; i++)
 			{
 				pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
-				SetFlag(&pcEmbeddedObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
+				SetFlagShort(&pcEmbeddedObject->muiFlags, OBJECT_FLAGS_DUMPED, false);
 			}
 		}
 		pcBaseObject = mcMemory.Iterate(&sIter);
@@ -307,12 +308,14 @@ void CObjects::DumpGraph(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iLevel, bool bEmbedded)
 {
-	CObject*					pcObject;
+	CObject*							pcObject;
 	CArrayTemplateEmbeddedObjectPtr		apcTos;
-	int							i;
-	CEmbeddedObject*			pcToObject;
-	CBaseObject*				pcEmbeddedObject;
-	CBaseObject*				pcBaseObject;
+	size								i;
+	CEmbeddedObject*					pcToObject;
+	CBaseObject*						pcEmbeddedObject;
+	CBaseObject*						pcBaseObject;
+	size								uiNumTos;
+	size								uiNumEmbedded;
 
 	if (!pcIncoming->IsBaseObject())
 	{
@@ -341,7 +344,8 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 
 	apcTos.Init();
 	pcBaseObject->BaseGetPointerTos(&apcTos);
-	for (i = 0; i < apcTos.NumElements(); i++)
+	uiNumTos = apcTos.NumElements();
+	for (i = 0; i < uiNumTos; i++)
 	{
 		pcToObject = *apcTos.Get(i);
 		RecurseDumpGraph(psz, pcToObject, iLevel+1, false);
@@ -350,7 +354,8 @@ void CObjects::RecurseDumpGraph(CChars* psz, CEmbeddedObject* pcIncoming, int iL
 	if (pcBaseObject->IsObject())
 	{
 		pcObject = (CObject*)pcBaseObject;
-		for (i = 0; i < pcObject->mapEmbedded.NumElements(); i++)
+		uiNumEmbedded = pcObject->mapEmbedded.NumElements();
+		for (i = 0; i < uiNumEmbedded; i++)
 		{
 			pcEmbeddedObject = *pcObject->mapEmbedded.Get(i);
 			RecurseDumpGraph(psz, pcEmbeddedObject, iLevel, true);
@@ -448,9 +453,10 @@ void CObjects::ValidateSceneGraph(void)
 void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 {
 	CArrayTemplateEmbeddedObjectPtr		apcTos;
-	int							i;
-	CEmbeddedObject*			pcToObject;
-	CBaseObject*				pcToContainerObject;
+	size								i;
+	CEmbeddedObject*					pcToObject;
+	CBaseObject*						pcToContainerObject;
+	size								uiNumTos;
 
 	pcBaseObject->ValidateNotEmbedded(__METHOD__);
 
@@ -462,7 +468,8 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 
 		apcTos.Init();
 		pcBaseObject->GetPointerTos(&apcTos);
-		for (i = 0; i < apcTos.NumElements(); i++)
+		uiNumTos = apcTos.NumElements();
+		for (i = 0; i < uiNumTos; i++)
 		{
 			pcToObject = *apcTos.Get(i);
 			pcToContainerObject = pcToObject->GetEmbeddingContainer();
@@ -532,8 +539,8 @@ bool CObjects::EvictInMemory(void)
 	SIndexesIterator		sIter;
 	OIndex					oi;
 	CBaseObject*			pcBaseObject;
-	CArrayBlockObjectPtr		apcBaseObjects;
-	int						iCount;
+	CArrayBlockObjectPtr	apcBaseObjects;
+	size					iCount;
 
 	apcBaseObjects.Init();
 	oi = StartMemoryIteration(&sIter);
@@ -573,12 +580,12 @@ bool CObjects::EvictInMemory(void)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 {
-	int				i;
+	size			i;
 	CBaseObject*	pcBaseObject;
-	int				iNumElements;
+	size			uiNumElements;
 
-	iNumElements = papcObjectPts->NumElements();
-	for (i = 0; i < iNumElements; i++)
+	uiNumElements = papcObjectPts->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
 		pcBaseObject->FreeInternal();
@@ -592,23 +599,23 @@ void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 //////////////////////////////////////////////////////////////////////////
 void CObjects::KillObjects(CArrayBlockObjectPtr* papcObjectPts)
 {
-	int					i;
+	size				i;
 	CBaseObject*		pcBaseObject;
-	int					iNumElements;
+	size				uiNumElements;
 	CArrayUnknownPtr	cArray;
 	CUnknown**			pvData;
 
 	if (papcObjectPts->IsNotEmpty())
 	{
-		iNumElements = papcObjectPts->NumElements();
-		for (i = 0; i < iNumElements; i++)
+		uiNumElements = papcObjectPts->NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcBaseObject = (*papcObjectPts->Get(i));
 			FreeObject(pcBaseObject);
 		}
 
 		pvData = (CUnknown**)papcObjectPts->GetData();
-		cArray.Fake(pvData, papcObjectPts->NumElements());
+		cArray.Fake(pvData, uiNumElements);
 		mpcUnknownsAllocatingFrom->RemoveInKill(&cArray);
 	}
 }
@@ -765,7 +772,9 @@ Ptr<CRoot> CObjects::GetRoot(void)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::HasRoot(void)
 {
-	Ptr<CRoot> pRoot = GetRoot();
+	Ptr<CRoot>	pRoot;
+
+	pRoot = GetRoot();
 	return pRoot.IsNotNull();
 }
 
@@ -777,7 +786,7 @@ bool CObjects::HasRoot(void)
 CPointer CObjects::Get(OIndex oi)
 {
 	CBaseObject*	pvObject;
-	CPointer	pObject;
+	CPointer		pObject;
 
 	pvObject = mcMemory.Get(oi);
 	if (pvObject)
@@ -1088,20 +1097,20 @@ bool CObjects::Contains(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 {
-	int								i;
-	int								iNumElements;
+	size							i;
+	size							uiNumElements;
 	CBaseObject*					pcKilled;
 	CBaseObject*					pcContainer;
 
 	//No embedded objects should be in the list papcKilled.
 
-	iNumElements = papcKilled->NumElements();
-	if (iNumElements == 0)
+	uiNumElements = papcKilled->NumElements();
+	if (uiNumElements == 0)
 	{
 		return true;
 	}
 
-	for (i = 0; i < iNumElements; i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcKilled = *papcKilled->Get(i);
 		if (pcKilled->IsEmbedded())
@@ -1117,7 +1126,7 @@ bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 		}
 	}
 
-	for (i = 0; i < iNumElements; i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcKilled = *papcKilled->Get(i);
 		pcKilled->RemoveAllPointerTosDontKill();
@@ -1136,7 +1145,7 @@ bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Null(void)
 {
-	CPointer		pvObject;
+	CPointer	pvObject;
 	return pvObject;
 }
 
@@ -1145,7 +1154,7 @@ CPointer CObjects::Null(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int64 CObjects::NumMemoryIndexes(void)
+size CObjects::NumMemoryIndexes(void)
 {
 	return mcMemory.NumIndexed();
 }
@@ -1155,7 +1164,7 @@ int64 CObjects::NumMemoryIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjects::NumMemoryNames(void)
+size CObjects::NumMemoryNames(void)
 {
 	return mcMemory.NumNames();
 }
@@ -1187,11 +1196,11 @@ int64 CObjects::NumDatabaseIndexes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CObjects::NumDatabaseNames(void)
+int64 CObjects::NumDatabaseNames(void)
 {
 	SIndexTreeFileIterator	sIter;
 	OIndex					oi;
-	int						iCount;
+	int64					iCount;
 
 	iCount = 0;
 	mpcDataConnection->StartNameIteration(&sIter, NULL, &oi);
@@ -1349,29 +1358,29 @@ CNamedIndexedObjects* CObjects::GetMemory(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded, OIndex oi)
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, OIndex oi)
 {
-	CHollowObject*		pcHollow;
-	int					iAdditionalBytes;
-	void* pvEmbedded;
+	CHollowObject*	pcHollow;
+	size			uiAdditionalBytes;
+	void*			pvEmbedded;
 
-	if (iNumEmbedded == 0)
+	if (uiNumEmbedded == 0)
 	{
 		return NULL;
 	}
-	if (iNumEmbedded == 1)
+	if (uiNumEmbedded == 1)
 	{
 		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(oi, 0);
 		pcHollow->Init(1);
 	}
 	else
 	{
-		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded - 1);
-		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(oi, iAdditionalBytes);
-		pcHollow->Init(iNumEmbedded);
+		uiAdditionalBytes = sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1);
+		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(oi, uiAdditionalBytes);
+		pcHollow->Init(uiNumEmbedded);
 
 		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
-		AppenedHollowEmbeddedObjects(pcHollow, iNumEmbedded, pvEmbedded);
+		AppenedHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
 	}
 	return pcHollow;
 }
@@ -1381,29 +1390,29 @@ CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded, const char* szObjectName, OIndex oi)
+CHollowObject* CObjects::AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi)
 {
-	CHollowObject*		pcHollow;
-	int					iAdditionalBytes;
-	void*				pvEmbedded;
+	CHollowObject*	pcHollow;
+	size			uiAdditionalBytes;
+	void*			pvEmbedded;
 
-	if (iNumEmbedded == 0)
+	if (uiNumEmbedded == 0)
 	{
 		return NULL;
 	}
-	if (iNumEmbedded == 1)
+	if (uiNumEmbedded == 1)
 	{
 		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, 0);
 		pcHollow->Init(1);
 	}
 	else
 	{
-		iAdditionalBytes = sizeof(CHollowEmbeddedObject) * (iNumEmbedded - 1);
-		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, iAdditionalBytes);
-		pcHollow->Init(iNumEmbedded);
+		uiAdditionalBytes = sizeof(CHollowEmbeddedObject) * (uiNumEmbedded - 1);
+		pcHollow = AllocateUninitialisedByTemplate<CHollowObject>(szObjectName, oi, uiAdditionalBytes);
+		pcHollow->Init(uiNumEmbedded);
 
 		pvEmbedded = RemapSinglePointer(pcHollow, sizeof(CHollowObject));
-		AppenedHollowEmbeddedObjects(pcHollow, iNumEmbedded, pvEmbedded);
+		AppenedHollowEmbeddedObjects(pcHollow, uiNumEmbedded, pvEmbedded);
 	}
 	return pcHollow;
 }
@@ -1413,12 +1422,12 @@ CHollowObject* CObjects::AllocateHollow(uint16 iNumEmbedded, const char* szObjec
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, uint16 iNumEmbedded, void* pvEmbedded) 
+void CObjects::AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) 
 {
-	int						i;
+	size					i;
 	CHollowEmbeddedObject*	pcEmbeddedObject;
 
-	for (i = 0; i < iNumEmbedded-1; i++)
+	for (i = 0; i < uiNumEmbedded - 1; i++)
 	{
 		pcEmbeddedObject = new (pvEmbedded) CHollowEmbeddedObject();
 		pcEmbeddedObject->SetEmbedding(pcHollow);
@@ -1647,7 +1656,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 			pcHollowObject = (CHollowObject*)pvObject;
 			if (pcHollowObject->GetIndex() != oi)
 			{
-				gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory with index [", LongLongToString(oi), "] but expected index [", LongLongToString(pcHollowObject->GetIndex()), "].", NULL);
+				gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory with index [", LongToString(oi), "] but expected index [", LongToString(pcHollowObject->GetIndex()), "].", NULL);
 				return NULL;
 			}
 			else
@@ -1696,7 +1705,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 {
 	CObjectRemapFrom	cRemapper;
-	int					iCount;
+	size				iCount;
 
 	if (pvExisting && pvObject)
 	{
@@ -1721,7 +1730,7 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded)
+CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -1734,7 +1743,7 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded)
 		return NULL;
 	}
 
-	pcHollow = AllocateHollow(iNumEmbedded, oi);
+	pcHollow = AllocateHollow(uiNumEmbedded, oi);
 	if (pcHollow)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
@@ -1758,7 +1767,7 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, uint16 iNumEmbedded)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, uint16 iNumEmbedded)
+CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OIndex oi, size uiNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -1776,7 +1785,7 @@ CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OInd
 		gcLogger.Error2(__METHOD__, " Cannot allocate a named hollow object with no name.", NULL);
 	}
 
-	pcHollow = AllocateHollow(iNumEmbedded, szObjectName, oi);
+	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (pcHollow)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
@@ -1802,7 +1811,7 @@ CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, uint16 iNumEmbedded)
+CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded)
 {
 	CHollowObject*	pcHollow;
 	bool			bResult;
@@ -1823,7 +1832,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName
 	}
 
 	oi = GetIndexGenerator()->GetNext();
-	pcHollow = AllocateHollow(iNumEmbedded, szObjectName, oi);
+	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (!pcHollow)
 	{
 		return NULL;

@@ -46,8 +46,8 @@ public:
 	bool				AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
 	bool				RemoveIndex(OIndex oi);
 	bool				RemoveName(char* szName);
-	OIndex				NumIndexed(void);
-	int					NumNames(void);
+	size				NumIndexed(void);
+	size				NumNames(void);
 
 	CIndexedObjects*	GetObjects(void);
 	CIndexTreeMemory*	GetNames(void);

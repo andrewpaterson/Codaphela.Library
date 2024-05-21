@@ -33,7 +33,7 @@ DESTRUCTABLE(CSetObject);
 public:
 						Ptr<CSetObject> Init(void);
 
-						CPointer		Get(int iIndex);
+						CPointer		Get(size iIndex);
 
 						void			RemoveDuringIteration(SSetIterator* psIter);
 

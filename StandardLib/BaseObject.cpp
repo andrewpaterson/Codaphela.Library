@@ -378,10 +378,11 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 
 	ValidateNotEmbedded(__METHOD__);
 
-	int								i;
+	size									i;
 	CArrayTemplateEmbeddedBaseObjectPtr		apcFroms;
-	CBaseObject*					pcFrom;
-	CBaseObject*					pcContainer;
+	CBaseObject*							pcFrom;
+	CBaseObject*							pcContainer;
+	size									uiNumFroms;
 
 	if (IsRoot())
 	{
@@ -397,9 +398,10 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 		apcFroms.Init();
 		GetHeapFroms(&apcFroms);
 
-		if (apcFroms.NumElements() > 0)
+		uiNumFroms = apcFroms.NumElements();
+		if (uiNumFroms != 0)
 		{
-			for (i = 0; i < apcFroms.NumElements(); i ++)
+			for (i = 0; i < uiNumFroms; i ++)
 			{
 				pcFrom = *apcFroms.Get(i);
 				pcContainer = pcFrom->GetEmbeddingContainer();
@@ -416,7 +418,7 @@ void CBaseObject::CollectValidDistStartingObjectsAndSetClearedToRoot(CBaseObject
 	{
 		if (pcTo != NULL)
 		{
-			pcParameters->AddExpectedDist(pcTo, miDistToRoot+1);
+			pcParameters->AddExpectedDist(pcTo, miDistToRoot + 1);
 		}
 	}
 }
@@ -453,11 +455,11 @@ void CBaseObject::CollectAndClearInvalidDistToRootObjects(CDistCalculatorParamet
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
+size CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters* pcParameters)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	int	iNumWithStackPointers;
+	size	iNumWithStackPointers;
 
 	iNumWithStackPointers = 0;
 
@@ -500,17 +502,17 @@ int CBaseObject::CollectDetachedAndSetDistToStackZero(CDistCalculatorParameters*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
+size CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 {
-	int					i;
-	int					iNumFroms;
+	size				i;
+	size				uiNumFroms;
 	CEmbeddedObject*	pcEmbedded;
 	CBaseObject*		pcBaseObject;
-	int					iNumWithStackPointers;
+	size				iNumWithStackPointers;
 
 	iNumWithStackPointers = 0;
-	iNumFroms = mapHeapFroms.NumElements();
-	for (i = 0; i < iNumFroms; i++)
+	uiNumFroms = mapHeapFroms.NumElements();
+	for (i = 0; i < uiNumFroms; i++)
 	{
 		pcEmbedded = *mapHeapFroms.Get(i);
 		pcBaseObject = pcEmbedded->GetEmbeddingContainer();
@@ -529,17 +531,19 @@ int CBaseObject::CollectDetachedFroms(CDistCalculatorParameters* pcParameters)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::IsDistToRootValid(void)
 {
-	int					i;
+	size				i;
 	CEmbeddedObject*	pcBaseObject;
 	int					iExpectedDistToRoot;
+	size				uiNumFroms;
 
 	if (miDistToRoot < ROOT_DIST_TO_ROOT)
 	{
 		return false;
 	}
 
+	uiNumFroms = mapHeapFroms.NumElements();
 	iExpectedDistToRoot = miDistToRoot - 1;
-	for (i = 0; i < mapHeapFroms.NumElements(); i++)
+	for (i = 0; i < uiNumFroms; i++)
 	{
 		pcBaseObject = *mapHeapFroms.Get(i);
 		if (pcBaseObject->GetDistToRoot() == iExpectedDistToRoot)
@@ -600,9 +604,9 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetFlag(int iFlag, int iFlagValue)
+void CBaseObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
 {
-	::SetFlag(&muiFlags, iFlag, iFlagValue);
+	::SetFlagShort(&muiFlags, iFlag, iFlagValue);
 }
 
 
@@ -610,7 +614,7 @@ void CBaseObject::SetFlag(int iFlag, int iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::GetFlags(void)
+uint16 CBaseObject::GetFlags(void)
 {
 	return muiFlags;
 }
@@ -624,8 +628,8 @@ bool CBaseObject::CanFindRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	CEmbeddedObject*				pcPointedFrom;
-	bool							bResult;
+	CEmbeddedObject*	pcPointedFrom;
+	bool				bResult;
 
 	if (IsRoot())
 	{
@@ -700,7 +704,7 @@ void CBaseObject::SetExpectedDistToRoot(int iExpectedDistToRoot)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	int	iBestDistToRoot;
+	int		iBestDistToRoot;
 
 	iBestDistToRoot = CalculateDistToRootFromPointedFroms(iExpectedDistToRoot);
 	if (SetDistToRoot(iBestDistToRoot))
@@ -719,7 +723,7 @@ void CBaseObject::SetCalculatedDistToRoot(void)
 	ValidateNotEmbedded(__METHOD__);
 	ValidateInitialised(__METHOD__);
 
-	int	iBestDistToRoot;
+	int		iBestDistToRoot;
 
 	iBestDistToRoot = CalculateDistToRootFromPointedFroms();
 	if (SetDistToRoot(iBestDistToRoot))
@@ -760,7 +764,7 @@ void CBaseObject::SetDistToStack(int iDistToStack)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::CalculateDistToRootFromPointedFroms(void)
 {
-	int iDistToRoot;
+	int		iDistToRoot;
 
 	iDistToRoot = CalculateDistToRootFromPointedFroms(MAX_DIST_TO_ROOT);
 	if (iDistToRoot != MAX_DIST_TO_ROOT)
@@ -780,14 +784,14 @@ int CBaseObject::CalculateDistToRootFromPointedFroms(void)
 //////////////////////////////////////////////////////////////////////////
 int CBaseObject::CalculateDistToRootFromPointedFroms(int iDistToRoot)
 {
-	int					iNumFroms;
-	int					i;
+	size				uiNumFroms;
+	size				i;
 	CEmbeddedObject*	pcFrom;
 	int					iBestDistToRoot;
 
 	iBestDistToRoot = iDistToRoot;
-	iNumFroms = CEmbeddedObject::NumHeapFroms();
-	for (i = 0; i < iNumFroms; i++)
+	uiNumFroms = CEmbeddedObject::NumHeapFroms();
+	for (i = 0; i < uiNumFroms; i++)
 	{
 		pcFrom = CEmbeddedObject::GetHeapFrom(i);
 		if (pcFrom)
@@ -821,7 +825,7 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 	int					iClosestToRoot;
 
 	pcClosestToRoot = GetClosestFromToRoot();
-	iClosestToRoot = pcClosestToRoot->GetDistToRoot()+1;
+	iClosestToRoot = pcClosestToRoot->GetDistToRoot() + 1;
 
 	pcParameters->AddTouched(this);
 	SetDistToRoot(iClosestToRoot);
@@ -837,7 +841,7 @@ void CBaseObject::UpdateAttachedTosDistToRoot(CDistCalculatorParameters* pcParam
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::AddExpectedDistToRoot(CEmbeddedObject* pcPointedTo, int iExpectedDist, CDistCalculatorParameters* pcParameters)
 {
-	CBaseObject*		pcPointedToContainer;
+	CBaseObject*	pcPointedToContainer;
 
 	if (pcPointedTo)
 	{
@@ -901,11 +905,11 @@ bool CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::SerialisedSize(void)
+size CBaseObject::SerialisedSize(void)
 {
 	//This method should only be used for testing.  It should be a helper somewhere else.
 	CObjectWriter	cWriter;
-	int				iLength;
+	size			iLength;
 	CMemoryFile		cMemory;
 
 	cMemory.Init();
@@ -1080,10 +1084,10 @@ bool CBaseObject::IsHollow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CEmbeddedObject* CBaseObject::TestGetPointerTo(int iToIndex)
+CEmbeddedObject* CBaseObject::TestGetPointerTo(size iToIndex)
 {
-	CEmbeddedObject**			ppTo;
-	CEmbeddedObject*			pTo;
+	CEmbeddedObject**					ppTo;
+	CEmbeddedObject*					pTo;
 	CArrayTemplateEmbeddedObjectPtr		apcTos;
 
 	apcTos.Init();
@@ -1166,26 +1170,29 @@ bool CBaseObject::SaveManaged(CObjectWriter* pcFile)
 bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 {
 	bool			bResult;
-	int				i;
-	int				iNumElements;
+	size			i;
+	size			uiNumElements;
 	CBaseObject*	pcHeapFrom;
+	int				iDistToRoot;
 
-	bResult = pcFile->WriteInt(GetDistToRoot());
+	iDistToRoot = GetDistToRoot();
+	bResult = pcFile->WriteInt(iDistToRoot);
 	ReturnOnFalse(bResult);
 
 	bResult = SaveEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 
-	iNumElements = mapHeapFroms.NumElements();
-	bResult = pcFile->WriteInt(iNumElements);
+	uiNumElements = mapHeapFroms.NumElements();
+	bResult = pcFile->WriteSize(uiNumElements);
 
 	ReturnOnFalse(bResult);
 
-	for (i = 0; i < iNumElements; i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcHeapFrom = (CBaseObject*)mapHeapFroms.GetPtr(i);
 		bResult = pcFile->WriteDependent(pcHeapFrom);
-		bResult &= pcFile->WriteInt(pcHeapFrom->GetDistToRoot());
+		iDistToRoot = pcHeapFrom->GetDistToRoot();
+		bResult &= pcFile->WriteInt(iDistToRoot);
 		ReturnOnFalse(bResult);
 	}
 	
@@ -1199,17 +1206,17 @@ bool CBaseObject::SaveHeapFroms(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 {
-	int						iNumFields;
+	size					uiNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size					i;
 	CBaseObject*			pcEmbeddedObject;
 	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
 		bResult = pcEmbeddedObject->SaveManaged(pcFile);
@@ -1229,17 +1236,17 @@ bool CBaseObject::SaveEmbeddedObjectsManaged(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 {
-	int						iNumFields;
+	size					uiNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size					i;
 	CBaseObject*			pcEmbeddedObject;
 	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
 		bResult = pcEmbeddedObject->SaveHeapFroms(pcFile);
@@ -1259,17 +1266,17 @@ bool CBaseObject::SaveEmbeddedObjectsHeapFroms(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SavePointers(CObjectWriter* pcFile)
 {
-	int						iNumFields;
+	size					uiNumFields;
 	CPointerField**			ppacPointerFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size					i;
 	CPointer*				pcPointer;
 	bool					bResult;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcPointer = ppacPointerFields[i]->GetPointer(this);
 		bResult = pcFile->WritePointer(pcPointer);
@@ -1289,20 +1296,20 @@ bool CBaseObject::SavePointers(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 {
-	int						iNumFields;
-	CPrimitiveField**		ppacPrimitiveFields;
-	CArrayVoidPtr*			papv;
-	int						i;
-	CPrimitiveObject*		pcPrimitive;
-	bool					bResult;
-	CPrimitiveField*		pcPrimitiveField;
-	SDataIO*				psIO;
-	void*					pvPrimitive;
+	size				uiNumFields;
+	CPrimitiveField**	ppacPrimitiveFields;
+	CArrayVoidPtr*		papv;
+	size				i;
+	CPrimitiveObject*	pcPrimitive;
+	bool				bResult;
+	CPrimitiveField*	pcPrimitiveField;
+	SDataIO*			psIO;
+	void*				pvPrimitive;
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcPrimitiveField = ppacPrimitiveFields[i];
 		psIO = pcPrimitiveField->GetDataIO();
@@ -1322,20 +1329,20 @@ bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 {
-	int						iNumFields;
-	CUnmanagedField**		ppacUnmanagedFields;
-	CArrayVoidPtr*			papv;
-	int						i;
-	CUnmanagedField*		pcUnmanagedField;
-	bool					bResult;
-	size_t					uiCount;
-	uint32					uiSize;
-	void*					pvUnmanaged;
+	size				uiNumFields;
+	CUnmanagedField**	ppacUnmanagedFields;
+	CArrayVoidPtr*		papv;
+	size				i;
+	CUnmanagedField*	pcUnmanagedField;
+	bool				bResult;
+	size				uiCount;
+	uint32				uiSize;
+	void*				pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();
 	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcUnmanagedField = ppacUnmanagedFields[i];
 		pvUnmanaged = pcUnmanagedField->GetData(this);
@@ -1406,17 +1413,17 @@ bool CBaseObject::LoadManaged(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 {
-	int						iNumFields;
+	size						uiNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size						i;
 	CBaseObject*			pcEmbeddedObject;
 	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
 		bResult = pcEmbeddedObject->LoadManaged(pcFile);
@@ -1436,17 +1443,17 @@ bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadPointers(CObjectReader* pcFile)
 {
-	int						iNumFields;
+	size						uiNumFields;
 	CPointerField**			ppacPointerFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size						i;
 	CPointer*				pcPointer;
 	bool					bResult;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcPointer = ppacPointerFields[i]->GetPointer(this);
 		bResult = pcFile->ReadPointer(pcPointer);
@@ -1466,10 +1473,10 @@ bool CBaseObject::LoadPointers(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 {
-	int						iNumFields;
+	size						uiNumFields;
 	CPrimitiveField**		ppacPrimitiveFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size						i;
 	CPrimitiveObject*		pcPrimitive;
 	bool					bResult;
 	CPrimitiveField*		pcPrimitiveField;
@@ -1478,8 +1485,8 @@ bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcPrimitiveField = ppacPrimitiveFields[i];
 		psIO = pcPrimitiveField->GetDataIO();
@@ -1503,20 +1510,20 @@ bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 {
-	int						iNumFields;
+	size						uiNumFields;
 	CUnmanagedField**		ppacUnmanagedFields;
 	CArrayVoidPtr*			papv;
-	int						i;
+	size						i;
 	CUnmanagedField*		pcUnmanagedField;
 	bool					bResult;
-	size_t					uiCount;
+	size					uiCount;
 	uint32					uiSize;
 	void*					pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();
 	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcUnmanagedField = ppacUnmanagedFields[i];
 		pvUnmanaged = pcUnmanagedField->GetData(this);
@@ -1541,8 +1548,8 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 {
 	bool				bResult;
-	int					i;
-	int					iNumElements;
+	size				i;
+	size				uiNumElements;
 	CEmbeddedObject*	pcHeapFrom;
 	int					iDistToRoot;
 	
@@ -1554,10 +1561,10 @@ bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 	bResult = LoadEmbeddedObjectsHeapFroms(pcFile);
 	ReturnOnFalse(bResult);
 
-	bResult = pcFile->ReadInt(&iNumElements);
+	bResult = pcFile->ReadSize(&uiNumElements);
 	ReturnOnFalse(bResult);
 
-	for (i = 0; i < iNumElements; i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		bResult = pcFile->ReadReverseDependent(&pcHeapFrom, this);
 		ReturnOnFalse(bResult);
@@ -1573,17 +1580,17 @@ bool CBaseObject::LoadHeapFroms(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadEmbeddedObjectsHeapFroms(CObjectReader* pcFile)
 {
-	int						iNumFields;
-	CEmbeddedObjectField** ppacEmbeddedObjectFields;
-	CArrayVoidPtr* papv;
-	int						i;
-	CBaseObject* pcEmbeddedObject;
+	size					uiNumFields;
+	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
+	CArrayVoidPtr*			papv;
+	size					i;
+	CBaseObject*			pcEmbeddedObject;
 	bool					bResult;
 
 	papv = mpcClass->GetEmbeddedObjectFields();
 	ppacEmbeddedObjectFields = (CEmbeddedObjectField**)papv->GetData();
-	iNumFields = papv->NumElements();
-	for (i = 0; i < iNumFields; i++)
+	uiNumFields = papv->NumElements();
+	for (i = 0; i < uiNumFields; i++)
 	{
 		pcEmbeddedObject = ppacEmbeddedObjectFields[i]->GetEmbeddedObject(this);
 		bResult = pcEmbeddedObject->LoadHeapFroms(pcFile);
@@ -1621,7 +1628,7 @@ bool CBaseObject::IsBaseObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CBaseObject::GetNumEmbedded(void)
+size CBaseObject::GetNumEmbedded(void)
 {
 	SetFlagNumEmbedded(1);
 	return 1;
@@ -1642,7 +1649,7 @@ uint16 CBaseObject::GetNumEmbeddedFromFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::SetFlagNumEmbedded(int iNumEmbedded)
+void CBaseObject::SetFlagNumEmbedded(size iNumEmbedded)
 {
 	muiNumEmbedded = (uint16)iNumEmbedded;
 }
@@ -1662,7 +1669,7 @@ void CBaseObject::ClearFlagNumEmbedded(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CBaseObject::TestGetNumEmbeddedFromFlags(void)
+size CBaseObject::TestGetNumEmbeddedFromFlags(void)
 {
 	return GetNumEmbeddedFromFlags();
 }
@@ -1689,7 +1696,7 @@ CObjects* CBaseObject::GetObjectsThisIn(void)
 //////////////////////////////////////////////////////////////////////////
 CClasses* CBaseObject::GetClasses(void)
 {
-	CObjects*		pcObjects;
+	CObjects*	pcObjects;
 
 	pcObjects = GetObjects();
 	if (pcObjects)
@@ -1759,7 +1766,7 @@ bool CBaseObject::IsInitialised(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ReplaceOneWithX(char* szDest, char* szMask)
 {
-	int i;
+	size i;
 
 	for (i = 0; ; i++)
 	{
@@ -1793,13 +1800,13 @@ CClass* CBaseObject::GetClass(void)
 void CBaseObject::DumpFroms(void)
 {
 	CChars				sz;
-	int					i;
-	int					iNumEmbedded;
+	size				i;
+	size				iNumEmbedded;
 	CEmbeddedObject*	pcEmbedded;
-	int					j;
-	int					iNumHeapFroms;
+	size				j;
+	size				iNumHeapFroms;
 	CEmbeddedObject*	pcFromObject;
-	int					iLength;
+	size				iLength;
 	CChars				szLine;
 
 	sz.Init();
@@ -1858,18 +1865,18 @@ void CBaseObject::DumpFroms(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::DumpPointerTos(void)
 {
-	CChars						sz;
-	int							i;
-	int							iNumEmbedded;
-	CEmbeddedObject*			pcEmbedded;
-	int							j;
-	int							iNumTos;
-	CEmbeddedObject**			ppcToObject;
-	int							iLength;
-	CChars						szLine;
+	CChars								sz;
+	size								i;
+	size								iNumEmbedded;
+	CEmbeddedObject*					pcEmbedded;
+	size								j;
+	size								iNumTos;
+	CEmbeddedObject**					ppcToObject;
+	size								iLength;
+	CChars								szLine;
 	CArrayTemplateEmbeddedObjectPtr		acTos;
-	CBaseObject*				pcToObject;
-	int							iTotalTos;
+	CBaseObject*						pcToObject;
+	size								iTotalTos;
 
 	sz.Init();
 
@@ -1947,7 +1954,7 @@ void CBaseObject::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateFlagNotSet(int iFlag, char* szFlag)
+void CBaseObject::ValidateFlagNotSet(uint16 iFlag, char* szFlag)
 {
 	CChars	sz;
 
@@ -1965,7 +1972,7 @@ void CBaseObject::ValidateFlagNotSet(int iFlag, char* szFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ValidateFlagSet(int iFlag, char* szFlag)
+void CBaseObject::ValidateFlagSet(uint16 iFlag, char* szFlag)
 {
 	CChars	sz;
 
@@ -1987,8 +1994,8 @@ void CBaseObject::ValidateCanFindRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	CChars			sz;
-	bool			bCanFindRoot;
+	CChars	sz;
+	bool	bCanFindRoot;
 
 	if (miDistToRoot > ROOT_DIST_TO_ROOT)
 	{
@@ -2048,9 +2055,9 @@ void CBaseObject::ValidateCanFindRoot(void)
 void CBaseObject::ValidateContainerFlag(void)
 {
 	CChars	sz;
-	int		iEmbeddedFlags;
-	int		iThisFlags;
-	int		iIgnoredFlags;
+	uint16	iEmbeddedFlags;
+	uint16	iThisFlags;
+	uint16	iIgnoredFlags;
 	char*	szEmbeddedFlags;
 	char*	szFlags;
 	char*	szIgnoredFlags;

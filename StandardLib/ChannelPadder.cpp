@@ -33,6 +33,7 @@ void CChannelPadder::Init(CChannels* pcExternal)
 	mpcExternal = pcExternal;
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -40,28 +41,31 @@ void CChannelPadder::Init(CChannels* pcExternal)
 bool CChannelPadder::OptimalPadding(void)
 {
 	EPrimitiveType			eType;
-	int						iMaxSize;
+	size					iMaxSize;
 	CChannel*				pcChannel;
-	int						i;
+	size					i;
 	int						iPos;
 	int						iAvail;
 	int						iClassSize;
 	int						iPad;
-	CArrayChannelOffset*	pcChannelOffset;
+	CArrayChannelOffset*	pacChannelOffsets;
+	size					uiChannelOffsets;
 
 	if (!mpcExternal->IsOnlyBasicTypes())
 	{
 		return false;
 	}
+
 	eType = mpcExternal->GetLargestPrimitiveType();
 	iMaxSize = gcTypeNames.GetByteSize(eType);
 	iPos = 0;
 	iAvail = iMaxSize;
-	pcChannelOffset = mpcExternal->GetChannelOffsets();
-	for (i = 0; i < pcChannelOffset->NumElements(); i++)
+	pacChannelOffsets = mpcExternal->GetChannelOffsets();
+	uiChannelOffsets = pacChannelOffsets->NumElements();
+	for (i = 0; i < uiChannelOffsets; i++)
 	{
-		pcChannel = pcChannelOffset->Get(i);
-		iClassSize = pcChannel->miByteSize;
+		pcChannel = pacChannelOffsets->Get(i);
+		iClassSize = (int)pcChannel->miByteSize;
 		if (iAvail != iMaxSize)
 		{
 			if (iAvail >= iClassSize)
@@ -77,8 +81,8 @@ bool CChannelPadder::OptimalPadding(void)
 			}
 		}
 
-		pcChannel->miByteOffset = iPos;
-		pcChannel->miBitOffset = iPos*8;
+		pcChannel->miByteOffset = (size)iPos;
+		pcChannel->miBitOffset = (size)(iPos * 8);
 
 		iPos += iClassSize;
 		iAvail -= iClassSize;
@@ -90,7 +94,7 @@ bool CChannelPadder::OptimalPadding(void)
 
 	if (iAvail != iMaxSize)
 	{
-		mpcExternal->SetByteStride(iPos+iAvail);
+		mpcExternal->SetByteStride(iPos + iAvail);
 	}
 	else
 	{
