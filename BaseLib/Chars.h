@@ -72,14 +72,13 @@ public:
 	CChars* Append(const char* szString, size iStrlen);
 	CChars* Append(CChars szString);
 	CChars* Append(CChars* psz);
-	CChars* Append(char c);
-	CChars* Append(char c, size iNumber);
-	CChars* Append(char c, int iNumber);
+	CChars* Append(char cPadCharacter);
+	CChars* Append(char cPadCharacter, size iNumber);
 	CChars* Append(int32 i);
 	CChars* Append(int32 i, uint16 iBase);
 	CChars* Append(uint32 ui);
-	CChars* Append(float f, int iMaxDecimals = -1, bool bAppendF = false);
-	CChars* Append(double d, int iMaxDecimals = -1, bool bAppendD = false);
+	CChars* Append(float f, size iMaxDecimals = -1, bool bAppendF = false);
+	CChars* Append(double d, size iMaxDecimals = -1, bool bAppendD = false);
 	CChars* Append(int64 lli);
 	CChars* Append(uint64 ulli);
 	CChars*	Append(CExternalString* pcString);

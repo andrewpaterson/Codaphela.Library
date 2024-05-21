@@ -59,8 +59,8 @@ void CCalcOperator::Set(ECalcOperator eOp)
 //////////////////////////////////////////////////////////////////////////
 void CCalcOperator::Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight)
 {
-	int	iLeft;
-	int iRight;
+	int32	iLeft;
+	int32	iRight;
 
 	switch (meOp)
 	{
@@ -165,7 +165,7 @@ void CCalcOperator::Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* 
 //////////////////////////////////////////////////////////////////////////
 void CCalcOperator::Evaluate(CNumber* pcAnswer, CNumber* pcNumber)
 {
-	int	i;
+	int32	i;
 
 	pcAnswer->Init(pcNumber);
 	switch (meOp)

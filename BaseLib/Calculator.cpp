@@ -530,17 +530,17 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CCalculator::GetMinPrecedence(CArrayIntAndPointer* pcArray)
+uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* pcArray)
 {
 	size				i;
 	CCalcObject*		pcObject;
 	CCalcOperator*		pcOperator;
-	int					iMinPrecedence;
-	int					iMinIndex;
-	int					iPrecedence;
+	uint				iMinPrecedence;
+	size				iMinIndex;
+	uint				iPrecedence;
 
 	iMinPrecedence = 12;
-	iMinIndex = -1;
+	iMinIndex = ARRAY_ELEMENT_NOT_FOUND;
 	for (i = 0; i < pcArray->NumElements(); i++)
 	{
 		pcObject = (CCalcObject*)pcArray->GetPtr(i);
