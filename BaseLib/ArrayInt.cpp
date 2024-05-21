@@ -29,21 +29,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::AddRemap(uint32 iElementPos, int32 iRemapNum)
+void CArrayInt::AddRemap(size iElementPos, uint iRemapNum)
 {
-	int32*		pi;
-	uint32		iIndex;
-	uint32		iNumToAdd;
-	uint32		iMinusOne;
+	uint*		pi;
+	size		iIndex;
+	size		iNumToAdd;
+	size		iMinusOne;
 
 	if (miUsedElements > iElementPos)
 	{
-		pi = (int32*)CArrayTemplate<uint32>::Get(iElementPos);
+		pi = CArrayTemplate<uint>::Get(iElementPos);
 		(*pi) = iRemapNum;
 	}
 	else
 	{
-		iMinusOne = -1;
+		iMinusOne = SIZE_MAX;
 		iNumToAdd = (iElementPos - miUsedElements);
 
 		for (iIndex = 0; iIndex < iNumToAdd; iIndex++)
@@ -59,15 +59,15 @@ void CArrayInt::AddRemap(uint32 iElementPos, int32 iRemapNum)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::RemoveRemap(uint32 iElementPos)
+void CArrayInt::RemoveRemap(size iElementPos)
 {
-	int32*	pi;
-	uint32	iIndex;
-	uint32	iCutDown;
+	uint*	pi;
+	size	iIndex;
+	size	iCutDown;
 
 	if (iElementPos < miUsedElements)
 	{
-		pi = (int32*)CArrayTemplate<uint32>::Get(iElementPos);
+		pi = CArrayTemplate<uint>::Get(iElementPos);
 		(*pi) = -1;
 	}
 
@@ -78,7 +78,7 @@ void CArrayInt::RemoveRemap(uint32 iElementPos)
 		do
 		{
 			iIndex--;
-			pi = (int32*)CArrayTemplate<uint32>::Get(iElementPos);
+			pi = CArrayTemplate<uint>::Get(iElementPos);
 			if (*pi == -1)
 			{
 				iCutDown = iIndex;
@@ -105,10 +105,10 @@ void CArrayInt::RemoveRemap(uint32 iElementPos)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint32 CArrayInt::FindUnusedInSorted(void)
+size CArrayInt::FindUnusedInSorted(void)
 {
-	uint32		iIndex;
-	int32		iValue;
+	size	iIndex;
+	uint	iValue;
 
 	if (miUsedElements == 0)
 	{
@@ -131,17 +131,17 @@ uint32 CArrayInt::FindUnusedInSorted(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayInt::AddList(int32 iStop, ...)
+void CArrayInt::AddList(uint iStop, ...)
 {
 	va_list		vaMarker;
-	int32		iValue;
+	uint		iValue;
 
 	va_start(vaMarker, iStop);
-	iValue = va_arg(vaMarker, uint32);
+	iValue = va_arg(vaMarker, uint);
 	while (iValue != iStop)
 	{
 		Add(iValue);
-		iValue = va_arg(vaMarker, uint32);
+		iValue = va_arg(vaMarker, uint);
 	}
 	va_end(vaMarker);
 }
@@ -153,9 +153,9 @@ void CArrayInt::AddList(int32 iStop, ...)
 //////////////////////////////////////////////////////////////////////////
 void CArrayInt::Dump(void)
 {
-	uint32			iIndex;
-	int32			iValue;
-	char			sz[32];
+	size	iIndex;
+	uint	iValue;
+	char	sz[32];
 
 
 	EngineOutput("[");

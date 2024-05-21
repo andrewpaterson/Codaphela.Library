@@ -981,7 +981,7 @@ void CChannels::Copy(CChannels* pcData)
 //////////////////////////////////////////////////////////////////////////
 bool CChannels::IsValid(size iPos)
 {
-	if (iPos >= miSize)
+	if ((iPos >= miSize) || (iPos == SIZE_MAX))
 	{
 		return false;
 	}

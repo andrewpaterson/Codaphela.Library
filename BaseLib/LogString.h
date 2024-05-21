@@ -46,6 +46,8 @@ char* LongToString(uint64 ulli, uint16 iBase = 10);
 char* FloatToString(float f, uint16 iDecimals = -1);
 char* DoubleToString(double d, uint16 iDecimals = -1);
 char* SizeToString(size i, uint16 iBase = 10);
+char* SIntToString(int i, uint16 iBase = 10);
+char* SIntToString(uint i, uint16 iBase = 10);
 char* PointerToString(void* pv);
 char* MethodToString(const char* szFile, size iLine, const char* szFunction);
 char* IntToFlags(uint32 iInt);

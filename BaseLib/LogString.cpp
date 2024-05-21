@@ -278,6 +278,56 @@ char* SizeToString(size i, uint16 iBase)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+char* SIntToString(int i, uint16 iBase)
+{
+	if (sizeof(size) == sizeof(int16))
+	{
+		return ShortToString((int16)i, iBase);
+	}
+	else if (sizeof(size) == sizeof(int32))
+	{
+		return IntToString((int16)i, iBase);
+	}
+	else if (sizeof(size) == sizeof(int64))
+	{
+		return LongToString((int64)i, iBase);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* SIntToString(uint i, uint16 iBase)
+{
+	if (sizeof(size) == sizeof(uint16))
+	{
+		return ShortToString((uint16)i, iBase);
+	}
+	else if (sizeof(size) == sizeof(uint32))
+	{
+		return IntToString((int16)i, iBase);
+	}
+	else if (sizeof(size) == sizeof(uint64))
+	{
+		return LongToString((uint64)i, iBase);
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* PointerToString(void* pv)
 {
 	size	uiCount;
