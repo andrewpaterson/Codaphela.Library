@@ -31,7 +31,7 @@ class CClass : public CPostMalloc<CField>
 {
 protected:
 	CChars				mszClassName;
-	uint32				muiSize;
+	size				muiSize;
 	EPrimitiveType		meType;
 	uint16				muiFlags;
 	CClasses*			mpcClassesThisIn;
@@ -44,7 +44,7 @@ protected:
 	CArrayVoidPtr		mapcUnmanaged;
 
 public:
-	void				Init(char* szClassName, uint32 uiSize, EPrimitiveType eType, CClasses* pcClasses);
+	void				Init(char* szClassName, size uiSize, EPrimitiveType eType, CClasses* pcClasses);
 	void				Kill(void);
 
 	void				Complete(void);
@@ -56,7 +56,7 @@ public:
 	CClasses*			GetClasses(void);
 	char*				GetName(void);
 	EPrimitiveType		GetType(void);
-	uint32				GetSizeOf(void);
+	size				GetSizeOf(void);
 
 	CField*				GetField(char* szFieldName);
 
@@ -132,7 +132,7 @@ protected:
 	CField*				AddField(size uiFieldSize, char* szName);
 	void				Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, char* szFieldName);
 	void				Unmanaged(CBaseObject* pcThis, EPrimitiveType eType, void* pv, size uiLength, char* szFieldName);
-	uint32				ComputeSize(void);
+	size				ComputeSize(void);
 };
 
 #endif // __CLASS_H__

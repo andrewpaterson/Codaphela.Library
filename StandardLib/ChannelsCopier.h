@@ -35,7 +35,7 @@ public:
 	void Init(CChannels* pcSource, CChannels* pcDest);
 	void Kill(void);
 
-	void Copy(int iSourcePos, int iDestPos, int iLength);
+	void Copy(size uiSourcePos, size uiDestPos, size uiLength);
 };
 
 

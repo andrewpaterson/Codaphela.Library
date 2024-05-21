@@ -633,6 +633,7 @@ bool CArrayCommonUnknown::RemoveLast(bool bCleanNullsIfNecessary)
 				}
 			}
 			while (i != 0);
+			return false;
 		}
 		else
 		{
@@ -683,64 +684,6 @@ bool CArrayCommonUnknown::Remove(size iIndex, bool bCleanNullsIfNecessary)
 		return false;
 	}
 }
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-//bool CArrayCommonUnknown::Remove(size iIndex, bool bCleanNullsIfNecessary)
-//{
-//	CUnknown*	pcNull;
-//	CUnknown*	pcUnknown;
-//
-//	if (iIndex >= mcArray.NumElements())
-//	{
-//		if (bCleanNullsIfNecessary)
-//		{
-//			CleanNullsIfNecessary();
-//		}
-//		return false;
-//	}
-//
-//	pcUnknown = *mcArray.Get(iIndex);
-//	if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
-//	{
-//		if (pcUnknown != NULL)
-//		{
-//			pcNull = NULL;
-//			mcArray.Set(iIndex, &pcNull);
-//			miNonNullElements--;
-//		}
-//		else
-//		{
-//			if (bCleanNullsIfNecessary)
-//			{
-//				CleanNullsIfNecessary();
-//			}
-//			return false;
-//		}
-//	}
-//	else
-//	{
-//		mcArray.RemoveAt(iIndex, miFlags & ARRAY_COMMOM_PRESERVE_ORDER);
-//		miNonNullElements--;
-//	}
-//
-//	if (miFlags & ARRAY_COMMOM_KILL_ELEMENT)
-//	{
-//		if (pcUnknown)
-//		{
-//			pcUnknown->Kill();
-//		}
-//	}
-//
-//	if (bCleanNullsIfNecessary)
-//	{
-//		CleanNullsIfNecessary();
-//	}
-//	return true;
-//}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -807,7 +750,7 @@ bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 	if ((mcArray.NumElements() > psIter->iIndex) && (psIter->iIndex != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		bRemoved = Remove(psIter->iIndex, false);
-		if (psIter->iIndex > 0)
+		if (psIter->iIndex != 0)
 		{
 			if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
 			{
@@ -847,7 +790,7 @@ bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::RemoveEnd(size iIndexInclusive)
 {
-	size		i;
+	size	i;
 	bool	bResult;
 
 	if (iIndexInclusive == ARRAY_ELEMENT_NOT_FOUND)
@@ -865,7 +808,7 @@ bool CArrayCommonUnknown::RemoveEnd(size iIndexInclusive)
 			i--;
 			bResult &= Remove(i, false);
 		}
-		while (i > iIndexInclusive);
+		while ((i > iIndexInclusive) && (i != 0));
 	}
 	return bResult;
 }

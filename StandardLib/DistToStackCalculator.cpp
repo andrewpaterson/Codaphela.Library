@@ -81,7 +81,7 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 
 	iNumDetached = pcParameters->NumCompletelyDetached();
 	iNumUpdated = 0;
-	for (i = iNumDetached-1; i >= 0; i--)
+	for (i = iNumDetached - 1; i >= 0; i--)
 	{
 		pcBaseObject = pcParameters->GetCompletelyDetached(i);
 		pcClosest = pcBaseObject->GetClosestFromToStack();

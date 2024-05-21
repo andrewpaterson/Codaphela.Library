@@ -10,7 +10,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClass::Init(char* szClassName, uint32 uiSize, EPrimitiveType eType, CClasses* pcClasses)
+void CClass::Init(char* szClassName, size uiSize, EPrimitiveType eType, CClasses* pcClasses)
 {
 	mszClassName.Init(szClassName);
 	mpcClassesThisIn = pcClasses;
@@ -367,7 +367,7 @@ EPrimitiveType CClass::GetType(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CClass::GetSizeOf(void)
+size CClass::GetSizeOf(void)
 {
 	return muiSize;
 }
@@ -472,7 +472,7 @@ CArrayVoidPtr* CClass::GetUnmanagedFields(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CClass::ComputeSize(void)
+size CClass::ComputeSize(void)
 {
 	return 0;
 }

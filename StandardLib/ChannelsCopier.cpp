@@ -59,29 +59,29 @@ void CChannelsCopier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannelsCopier::Copy(int iSourcePos, int iDestPos, int iLength)
+void CChannelsCopier::Copy(size uiSourcePos, size uiDestPos, size uiLength)
 {
-	int		i;
-	void*	pvData;
-	int		iSourceSize;
-	int		iDestSize;
+	size		i;
+	void*		pvData;
+	size		uiSourceSize;
+	size		uiDestSize;
 
-	iSourceSize = mpcSourceAccessor->GetChannels()->GetSize();
-	if (iSourcePos + iLength > iSourceSize)
+	uiSourceSize = mpcSourceAccessor->GetChannels()->GetSize();
+	if (uiSourcePos + uiLength > uiSourceSize)
 	{
-		iLength = iSourceSize - iSourcePos;
+		uiLength = uiSourceSize - uiSourcePos;
 	}
 
-	iDestSize = mpcDestAccessor->GetChannels()->GetSize();
-	if (iDestPos + iLength > iDestSize)
+	uiDestSize = mpcDestAccessor->GetChannels()->GetSize();
+	if (uiDestPos + uiLength > uiDestSize)
 	{
-		iLength = iDestSize - iDestPos;
+		uiLength = uiDestSize - uiDestPos;
 	}
 
-	for (i = 0; i < iLength; i++)
+	for (i = 0; i < uiLength; i++)
 	{
-		pvData = mpcSourceAccessor->Get(iSourcePos + i);
-		mpcDestAccessor->Set(iDestPos + i, pvData);
+		pvData = mpcSourceAccessor->Get(uiSourcePos + i);
+		mpcDestAccessor->Set(uiDestPos + i, pvData);
 	}
 }
 
