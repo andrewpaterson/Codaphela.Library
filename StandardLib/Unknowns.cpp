@@ -301,12 +301,12 @@ void CUnknowns::DebugName(CUnknown* pcUnknown, char (*pszDebug)[4])
 {
 	const char*	sz;
 	char		szDebug[4];
-	int			iLen;
+	size		iLen;
 
 	if (pszDebug)
 	{
 		sz = pcUnknown->ClassName();
-		iLen = (int)strlen(sz);
+		iLen = strlen(sz);
 		if (iLen >= 5)
 		{
 			szDebug[0] = sz[1];

@@ -42,14 +42,14 @@ bool CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
 	CMarkupTag*		pcWidth;
 	CMarkupTag*		pcHeight;
 	bool			bResult;
-	int 			iLeft; 
-	int 			iTop; 
-	int 			iRight; 
-	int 			iBottom; 
-	int 			iLeftOffset; 
-	int 			iTopOffset; 
-	int 			iRightOffset; 
-	int 			iBottomOffset; 
+	int64 			iLeft; 
+	int64 			iTop; 
+	int64 			iRight; 
+	int64 			iBottom; 
+	int64 			iLeftOffset; 
+	int64 			iTopOffset; 
+	int64 			iRightOffset; 
+	int64 			iBottomOffset; 
 	int 			iAlignment;
 
 	pcOffsetTopLeft = CMarkupTextParser::GetTag(pcTag, "OffsetTopLeft");
@@ -174,7 +174,7 @@ bool CSubImageXML::Import(CMarkupTag* pcTag, CSubImage* pcSubImage)
 
 	iRight += iLeft;
 	iBottom += iTop;
-	pcSubImage->Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
+	pcSubImage->Init((int)iLeft, (int)iTop, (int)iRight, (int)iBottom, (int)iLeftOffset, (int)iTopOffset, (int)iRightOffset, (int)iBottomOffset, iAlignment);
 	return true;
 }
 

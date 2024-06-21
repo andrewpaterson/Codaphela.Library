@@ -82,7 +82,7 @@ local block_state deflate_slow   OF((deflate_state *s, int flush));
 local void lm_init        OF((deflate_state *s));
 local void putShortMSB    OF((deflate_state *s, uint32 b));
 local void flush_pending  OF((z_streamp strm));
-local int read_buf        OF((z_streamp strm, uint8 *buf, unsigned size));
+local int read_buf        OF((z_streamp strm, uint8 *buf, unsigned int size));
 #ifndef FASTEST
 #ifdef ASMV
       void match_init OF((void)); /* asm code initialization */
@@ -532,7 +532,7 @@ local void putShortMSB (s, b)
 local void flush_pending(strm)
     z_streamp strm;
 {
-    unsigned len = strm->state->pending;
+    unsigned int len = strm->state->pending;
 
     if (len > strm->avail_out) len = strm->avail_out;
     if (len == 0) return;
@@ -953,14 +953,14 @@ int ZEXPORT deflateCopy (dest, source)
  * allocating a large strm->next_in buffer and copying from it.
  * (See also flush_pending()).
  */
-local int read_buf(strm, buf, size)
+local int read_buf(strm, buf, buf_len)
     z_streamp strm;
     uint8 *buf;
-    unsigned size;
+    unsigned int buf_len;
 {
-    unsigned len = strm->avail_in;
+    unsigned int len = strm->avail_in;
 
-    if (len > size) len = size;
+    if (len > buf_len) len = buf_len;
     if (len == 0) return 0;
 
     strm->avail_in  -= len;
@@ -1028,7 +1028,7 @@ local uint32 longest_match(s, cur_match)
     deflate_state *s;
     IPos cur_match;                             /* current match */
 {
-    unsigned chain_length = s->max_chain_length;/* max hash chain length */
+    unsigned int chain_length = s->max_chain_length;/* max hash chain length */
     register uint8 *scan = s->window + s->strstart; /* current string */
     register uint8 *match;                       /* matched string */
     register int len;                           /* length of current match */
@@ -1266,9 +1266,9 @@ local void check_match(s, start, match, length)
 local void fill_window(s)
     deflate_state *s;
 {
-    register unsigned n, m;
+    register unsigned int n, m;
     register Posf *p;
-    unsigned more;    /* Amount of free space at the end of the window. */
+    unsigned int more;    /* Amount of free space at the end of the window. */
     uint32 wsize = s->w_size;
 
     do {

@@ -73,7 +73,7 @@ void CImageModifierStack::SetImage(CImage* pcImage)
 //////////////////////////////////////////////////////////////////////////
 void CImageModifierStack::ApplyAll(void)
 {
-	int					i;
+	size				i;
 	CImageModifier*		pcModifier;
 
 	if (mpcImage)

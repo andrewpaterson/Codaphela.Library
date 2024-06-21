@@ -150,7 +150,7 @@ void CImageDivider::GenerateFromNumbers(CImageDividerNumbers* pcNumbers)
 //////////////////////////////////////////////////////////////////////////
 void CImageDivider::GenerateFromRectangles(CArrayRectangle* pacRectangles)
 {
-	int				i;
+	size			i;
 	CRectangle*		pcRectangle;
 
 	for (i = 0; i < pacRectangles->NumElements(); i++)

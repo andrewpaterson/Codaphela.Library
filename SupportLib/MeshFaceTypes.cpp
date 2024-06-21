@@ -110,8 +110,8 @@ bool SMeshFaceType::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool SMeshFaceType::IsNormal(void) { return FixBool(iFlags1 & MESH_FACE_NORMAL_FLAG1); }
 bool SMeshFaceType::IsColour(void) { return FixBool(iFlags1 & MESH_FACE_COLOUR_FLAG1); }
-int SMeshFaceType::GetUVs(void) { return (iFlags1 & MESH_FACE_UV_MASK1) >> MESH_FACE_UV_SHIFT; }
-int SMeshFaceType::GetMatricies(void) { return (iFlags1 & MESH_FACE_MATRIX_MASK1) >> MESH_FACE_MATRIX_SHIFT; }
+size SMeshFaceType::GetUVs(void) { return (iFlags1 & MESH_FACE_UV_MASK1) >> MESH_FACE_UV_SHIFT; }
+size SMeshFaceType::GetMatricies(void) { return (iFlags1 & MESH_FACE_MATRIX_MASK1) >> MESH_FACE_MATRIX_SHIFT; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -267,13 +267,13 @@ void CMeshFaceTypes::GenerateFromSkin(CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GenerateFromUVCoords(CMeshUVCoords* pcUVs)
 {
-	int					i;
+	size				i;
 	SMeshFaceType*		psType;
 	CMeshUVLayer*		pcUVLayer;
-	int					j;
+	size				j;
 	SMeshUVFace*		psFaceUVs;
-	int					iNumFaces;
-	int					iNumUVs;
+	size				iNumFaces;
+	size				iNumUVs;
 
 	if (pcUVs->InUse())
 	{
@@ -307,10 +307,10 @@ void CMeshFaceTypes::GenerateFromUVCoords(CMeshUVCoords* pcUVs)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GenerateFromColours(CMeshColours* pcColours)
 {
-	int					i;
+	size				i;
 	SMeshFaceType*		psType;
 	SMeshFaceColour*	psFaceColour;
-	int					iNumFaces;
+	size				iNumFaces;
 
 	if (pcColours->InUse())
 	{
@@ -364,12 +364,12 @@ void CMeshFaceTypes::GenerateFromMaterals(CMeshMaterials* pcMaterials)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::UpdateUniquesSkin(void)
 {
-	int				i;
+	size			i;
 	SMeshFaceType*	psUniqueType;
 	SMeshFaceType*	psFaceType;
-	int				iMaxMatricies;
-	int				j;
-	int				iNumFaces;
+	size			iMaxMatricies;
+	size			j;
+	size			iNumFaces;
 
 	iNumFaces = mcFaces.NumElements();
 	for (i = 0; i < mcUniqueTypes.NumElements(); i++)
@@ -400,8 +400,8 @@ void CMeshFaceTypes::UpdateUniquesSkin(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GenerateUniques(void)
 {
-	int				i;
-	int				iNumFaces;
+	size			i;
+	size			iNumFaces;
 	SMeshFaceType*	psType;
 
 	mcUniqueTypes.ReInit();
@@ -441,7 +441,7 @@ void CMeshFaceTypes::Touch(CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::GetFacesForType(SMeshFaceType* psFaceType, CArrayInt* paiFaceIndices)
 {
-	int				iFaceNum;
+	size			iFaceNum;
 	SMeshFaceType*	psThisFaceType;
 
 	for (iFaceNum = 0; iFaceNum < mcFaces.NumElements(); iFaceNum++)

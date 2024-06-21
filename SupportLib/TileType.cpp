@@ -82,7 +82,7 @@ void CTileType::AddTile(CTile* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTile* CTileType::Get(int iIndex)
+CTile* CTileType::Get(size iIndex)
 {
 	return (CTile*)macTiles.Get(iIndex);
 }

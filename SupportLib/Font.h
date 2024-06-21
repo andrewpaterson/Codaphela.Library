@@ -40,16 +40,16 @@ CONSTRUCTABLE(CFont);
 protected:
 	CChars			mszName;
 	Ptr<CImage>		pcImage;
-	int				miAverageWidth;
-	int				miHeight;
+	size			miAverageWidth;
+	size			miHeight;
 	bool			mbFixedWidh;
-	int				miSpace;
+	size			miSpace;
 	CArrayGlyph		macGlyphs;
 	int				miAscent;
 	int				miDescent;
 
 public:
-	Ptr<CFont>	Init(char* szName, int iSpaceWidth, int iAscent, int iDescent);
+	Ptr<CFont>	Init(char* szName, size iSpaceWidth, int iAscent, int iDescent);
 	void		Class(void);
 	void 		Free(void);
 
@@ -58,16 +58,16 @@ public:
 
 	void 		Done(void);
 	bool		Is(char* szName);
-	int 		Width(char* szText);
-	int			Height(void);
+	size 		Width(char* szText);
+	size			Height(void);
 	bool		IsWhiteSpace(char c);
 	CGlyph*		GetGlyph(char c);
-	CGlyph*		AddGlyph(CImageCel* pcCel, int iStep);
+	CGlyph*		AddGlyph(CImageCel* pcCel, size iStep);
 	Ptr<CImage>	GetImage(void);
 	void		SetImage(Ptr<CImage> pcImage);
-	int			GetSpace(void);
-	int			GetAscent(void);
-	int			GetDescent(void);
+	size			GetSpace(void);
+	size			GetAscent(void);
+	size			GetDescent(void);
 };
 
 

@@ -114,7 +114,7 @@ void CImageCelsSource::AddSource(CImageSource* pcImageSource, CImageCelSource* p
 void CImageCelsSource::AddDiskFileSource(char* szFileName, char* szImageName, CImageCelSource* pcCelSource)
 {
 	CImageSourceDiskFile*	pcDiskFile;
-	int						iLen;
+	size					iLen;
 	CChars					szNewName;
 	CFileUtil				cFileUtil;
 
@@ -122,7 +122,7 @@ void CImageCelsSource::AddDiskFileSource(char* szFileName, char* szImageName, CI
 	{
 		return;
 	}
-	iLen = (int)strlen(szFileName);
+	iLen = strlen(szFileName);
 	if (iLen == 0)
 	{
 		return;
@@ -152,19 +152,19 @@ void CImageCelsSource::AddDiskFileSource(char* szFileName, char* szImageName, CI
 void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource)
 {
 	CFileUtil				cFileUtil;
-	CArrayChars			cFileNames;
-	int						i;
+	CArrayChars				cFileNames;
+	size					i;
 	CChars*					pszName;
 	CImageSourceDiskFile*	pcDiskFile;
 	CChars					szNiceName;
-	int						iIndex;
-	int						iLen;
+	size					iIndex;
+	size					iLen;
 
 	if (!szFileNameContains)
 	{
 		return;
 	}
-	iLen = (int)strlen(szFileNameContains);
+	iLen = strlen(szFileNameContains);
 	if (iLen == 0)
 	{
 		return;
@@ -301,11 +301,11 @@ CArrayUnknown* CImageCelsSource::GetCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
+Ptr<CImage> CImageCelsSource::Combine(size iFirstCelIndex)
 {
 	CImageCombiner	cImageCombiner;
 	Ptr<CImage>		pcDest;
-	int				i;
+	size			i;
 	CImageCel*		pcCel;
 
 	pcDest = OMalloc<CImage>();
@@ -338,7 +338,7 @@ Ptr<CImage> CImageCelsSource::Combine(int iFirstCelIndex)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::PopulateImageArray(void)
 {
-	int								i;
+	size							i;
 	CImageSourceWithCelSources*		pcSource;
 	Ptr<CImage>						pcImage;
 

@@ -45,8 +45,8 @@ typedef CArrayTemplate<CTriangle*>			CArrayTrianglePtr;
 
 struct SConvexHullHoleEdge
 {
-	int	iNumEdges;
-	int	aaiEdgeIndices[3][2];  //1 triangle 2 edge indices, ... 3 triangles 2 edge indices.
+	size	iNumEdges;
+	int		aaiEdgeIndices[3][2];  //1 triangle 2 edge indices, ... 3 triangles 2 edge indices.
 };
 
 
@@ -56,11 +56,11 @@ public:
 	CFreeList	mcNormals;
 	CFreeList	mcTriangles;
 	SFloat3*	mpsPoints;
-	int			iStride;
-	int			iNumPoints;
+	size		iStride;
+	size		iNumPoints;
 	char*		mszHullName;
 
-	void 					Init(SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName = NULL);
+	void 					Init(SFloat3* psPoints, int iStride, size iNumPoints, char* szHullName = NULL);
 	void 					Kill(void);
 	bool					Generate(void);
 	int						FindMaxX(float* px);

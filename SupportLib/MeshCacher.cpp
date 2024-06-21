@@ -43,8 +43,8 @@ void CMeshCacher::Init(CMesh* pcMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::Kill(void)
 {
-	int						i;
-	CMeshTypeIndices*		pcType;
+	size				i;
+	CMeshTypeIndices*	pcType;
 
 	for (i = 0; i < mcTypeIndices.NumElements(); i++)
 	{
@@ -59,11 +59,11 @@ void CMeshCacher::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshCacher::GetIndexSize(SMeshFaceType* psFaceType)
+size CMeshCacher::GetIndexSize(SMeshFaceType* psFaceType)
 {
-	int		iOffset;
-	int		iUVLayers;
-	int		iMatricies;
+	size	iOffset;
+	size	iUVLayers;
+	size	iMatricies;
 
 	iOffset = 0;
 	iOffset += sizeof(int);  //Position Index;
@@ -296,10 +296,10 @@ void CMeshCacher::PopulateNormals(CMeshVertexArray* pcVertexArray, CMeshTypeIndi
 //////////////////////////////////////////////////////////////////////////
 void CMeshCacher::PopulateColours(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices)
 {
-	int							j;
-	int							iNumVerts;
-	int							iIndex;
-	int*						piColour;
+	size						j;
+	size						iNumVerts;
+	size						iIndex;
+	uint32*						piColour;
 	CChannelsAccessorCreator	cCreator;
 	CChannelsAccessor*			pcAccessor;
 

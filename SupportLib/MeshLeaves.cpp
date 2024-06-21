@@ -221,7 +221,7 @@ void CMeshLeaves::Init(void)
 void CMeshLeaves::Kill(void)
 {
 	CMeshLeaf*	pcLeaf;
-	int			i;
+	size		i;
 
 	for (i = 0; i < mcLeaves.NumElements(); i++)
 	{
@@ -238,7 +238,7 @@ void CMeshLeaves::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshLeaves::Save(CFileWriter* pcFile)
 {
-	int			i;
+	size		i;
 	CMeshLeaf*	pcLeaf;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
@@ -258,7 +258,7 @@ bool CMeshLeaves::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshLeaves::Load(CFileReader* pcFile)
 {
-	int			i;
+	size		i;
 	CMeshLeaf*	pcLeaf;
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
@@ -279,7 +279,7 @@ bool CMeshLeaves::Load(CFileReader* pcFile)
 void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, CMeshTriangles* pcTriangles, CMeshPositions* pcPositions, STriangleSphere* pasSpheres)
 {
 	CTriangleIndexed*		pcTriangle;
-	int						j;
+	size					j;
 	float					fRelativeVolume;
 	CMeshLeaf*				pcNewMeshLeaf;
 	float					fLargerVolume;
@@ -291,7 +291,7 @@ void CMeshLeaves::PrivateAddLeafSphere(int iFaceNum, CMeshConnectivity* pcConn, 
 	CTriangleIndexed*		pcTriangleOther;
 	STriangleSphere*		psSphere;
 	STriangleSphere*		psSphereOther;
-	int						iNewIndex;
+	size					iNewIndex;
 	SAdjFaces				sAdjFaces;
 
 	iNewIndex = mcLeaves.NumElements();

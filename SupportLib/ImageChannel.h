@@ -50,7 +50,7 @@ enum EImagePurpose	//3 bytes for purpose
 };
 
 
-#define IP_Palette(p)	((EImagePurpose)((int)IP_PaletteBase + p))
+#define IP_Palette(p)	((EImagePurpose)((size)IP_PaletteBase + p))
 
 
 #define IMAGE_PURPOSE(iChannel) ((EImagePurpose)((iChannel - 1) / NUM_CHANNEL_TYPES))
@@ -80,8 +80,8 @@ class CImageChannelsSource : public CUnknown
 CONSTRUCTABLE(CImageChannelsSource);
 public:
 	void				Kill(void);
-	virtual int			NumChannels(void) =0;
-	virtual	SChannel	GetChannel(int iIndex) =0;
+	virtual size		NumChannels(void) =0;
+	virtual	SChannel	GetChannel(size iIndex) =0;
 };
 
 
@@ -92,8 +92,8 @@ CONSTRUCTABLE(CChannelRGB);
 public:
 	static CImageChannelsSource* Get(void);
 
-	int 		NumChannels(void);
-	SChannel	GetChannel(int iIndex);
+	size 		NumChannels(void);
+	SChannel	GetChannel(size iIndex);
 };
 
 
@@ -103,8 +103,8 @@ CONSTRUCTABLE(CChannelRGBA);
 public:
 	static CImageChannelsSource* Get(void);
 
-	int 		NumChannels(void);
-	SChannel	GetChannel(int iIndex);
+	size 		NumChannels(void);
+	SChannel	GetChannel(size iIndex);
 };
 
 
@@ -114,8 +114,8 @@ CONSTRUCTABLE(CChannelRGBX);
 public:
 	static CImageChannelsSource* Get(void);
 
-	int 		NumChannels(void);
-	SChannel	GetChannel(int iIndex);
+	size 		NumChannels(void);
+	SChannel	GetChannel(size iIndex);
 };
 
 

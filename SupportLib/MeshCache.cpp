@@ -112,7 +112,7 @@ CMeshVertexArray* CMeshCache::AddVertexArray(SMeshFaceType sMeshFaceType)
 CMeshVertexArray* CMeshCache::GetVertexArray(SMeshFaceType sMeshFaceType)
 {
 	CMeshVertexArray*	pcVertexArray;
-	int					i;
+	size				i;
 
 	for (i = 0; i < mcMeshVerticesArrays.NumElements(); i++)
 	{

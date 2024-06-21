@@ -45,7 +45,7 @@ public:
 
 	void	AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
 	char	GetEdge(int iEdge);
-	int		NumVisibleEdges(char cEdge);
+	size	NumVisibleEdges(char cEdge);
 
 	void	GenerateEdgeSelectionFromPolygons(CMeshConnectivity* pcConn, CMeshPolygons* pcPolygons);
 };

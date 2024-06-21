@@ -82,7 +82,7 @@ void CMeshSmoothFaces::Apply(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 {
-	int					i, j, l;
+	size				i, j, l;
 	int*				aiFaceRef;
 	SFloat3				cNormal;  
 	CMeshCorner*		psCorners;
@@ -90,7 +90,7 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	CMeshFace*			psFace;
 	int					iPosition;
 	int					iNewNormalIndex;
-	int					iNumCorners;
+	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
 	SFloat3*			pcNormal;
 	CMeshNormals*		pcNormals;
@@ -111,12 +111,12 @@ void CMeshSmoothFaces::GenerateNormals(CMesh* pcMesh)
 	for (i = 0; i < iNumCorners; i++)
 	{
 		//Get the array of faces attached to the vert
-		aiFaceRef = psCorners[i].aiFace.GetData();
+		aiFaceRef = (int*)psCorners[i].aiFace.GetData();
 
 		cNormal.Init(0, 0, 0);
 
 		//Step over every face at this vertex
-		for (j = 0; j < (int)psCorners[i].aiFace.NumElements(); j++)
+		for (j = 0; j < psCorners[i].aiFace.NumElements(); j++)
 		{
 			psFace = &psFaces[aiFaceRef[j]];
 			psFaceNormal = pcNormals->mcFaces.Get(aiFaceRef[j]);

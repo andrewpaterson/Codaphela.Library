@@ -126,10 +126,10 @@ char CMeshEdgeVisibility::GetEdge(int iEdge)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
+size CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
 {
-	int		i;
-	int		iCount;
+	size	i;
+	size	iCount;
 
 	iCount = 0;
 	for (i = 0; i < mcEdges.NumElements(); i++)
@@ -149,11 +149,11 @@ int CMeshEdgeVisibility::NumVisibleEdges(char cEdge)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEdgeVisibility::GenerateEdgeSelectionFromPolygons(CMeshConnectivity* pcConn, CMeshPolygons* pcPolygons)
 {
-	int				i;
-	int				iPolygon;
+	size			i;
+	size			iPolygon;
 	CMeshPolygon*	psPolygon;
 	int				iFaceIndex;
-	int				j;
+	size			j;
 	CMeshFace*		psFace;
 	int				iEdgeIndex;
 	int				iAdjFaceIndex;

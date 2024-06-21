@@ -38,7 +38,7 @@ void CImageChannelsSource::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelRGB::NumChannels(void)
+size CChannelRGB::NumChannels(void)
 {
 	return 3;
 }
@@ -48,7 +48,7 @@ int CChannelRGB::NumChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SChannel CChannelRGB::GetChannel(int iIndex)
+SChannel CChannelRGB::GetChannel(size iIndex)
 {
 	SChannel	sChannel;
 
@@ -85,7 +85,7 @@ CImageChannelsSource* CChannelRGB::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelRGBA::NumChannels(void)
+size CChannelRGBA::NumChannels(void)
 {
 	return 4;
 }
@@ -95,7 +95,7 @@ int CChannelRGBA::NumChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SChannel CChannelRGBA::GetChannel(int iIndex)
+SChannel CChannelRGBA::GetChannel(size iIndex)
 {
 	SChannel	sChannel;
 
@@ -137,7 +137,7 @@ CImageChannelsSource* CChannelRGBA::Get(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CChannelRGBX::NumChannels(void)
+size CChannelRGBX::NumChannels(void)
 {
 	return 4;
 }
@@ -147,7 +147,7 @@ int CChannelRGBX::NumChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SChannel CChannelRGBX::GetChannel(int iIndex)
+SChannel CChannelRGBX::GetChannel(size iIndex)
 {
 	SChannel	sChannel;
 

@@ -58,7 +58,7 @@ void CImage::Init(void)
 void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
-	int			iCount;
+	size		iCount;
 	EChannel	eIC;
 
 	Init();
@@ -87,7 +87,7 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
-	int			iCount;
+	size		iCount;
 	EChannel	eIC;
 
 	Init();
@@ -207,7 +207,7 @@ void CImage::BeginChange(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::AddChannel(int iChannel, EPrimitiveType eType, bool bReverse)
+void CImage::AddChannel(size iChannel, EPrimitiveType eType, bool bReverse)
 {
 	mcChannels.AddChannel(iChannel, eType, bReverse);
 }
@@ -217,7 +217,7 @@ void CImage::AddChannel(int iChannel, EPrimitiveType eType, bool bReverse)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, bool bReverse)
+void CImage::AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse)
 {
 	AddChannel(iChannel1, eType, bReverse);
 	AddChannel(iChannel2, eType, bReverse);
@@ -228,7 +228,7 @@ void CImage::AddChannel(int iChannel1, int iChannel2, EPrimitiveType eType, bool
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType, bool bReverse)
+void CImage::AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse)
 {
 	AddChannel(iChannel1, eType, bReverse);
 	AddChannel(iChannel2, eType, bReverse);
@@ -240,7 +240,7 @@ void CImage::AddChannel(int iChannel1, int iChannel2, int iChannel3, EPrimitiveT
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType, bool bReverse)
+void CImage::AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse)
 {
 	AddChannel(iChannel1, eType, bReverse);
 	AddChannel(iChannel2, eType, bReverse);
@@ -255,7 +255,7 @@ void CImage::AddChannel(int iChannel1, int iChannel2, int iChannel3, int iChanne
 //////////////////////////////////////////////////////////////////////////
 void CImage::AddChannels(CImageChannelsSource* pcSource)
 {
-	int			i;
+	size		i;
 	SChannel	sChannel;
 
 	for (i = 0; i < pcSource->NumChannels(); i++)
@@ -290,7 +290,7 @@ void CImage::AddChannels(CImage* pcSourceChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::RemoveChannel(int iChannel)
+void CImage::RemoveChannel(size iChannel)
 {
 	mcChannels.RemoveChannel(iChannel);
 }
@@ -430,7 +430,7 @@ void CImage::RemovePurpose(EImagePurpose ePurpose)
 {
 	CArrayInt		mai;
 	EChannel		eChannel;
-	int				i;
+	size			i;
 	EImagePurpose	eCurrent;
 
 	if (IsChanging())
@@ -456,7 +456,7 @@ void CImage::RemovePurpose(EImagePurpose ePurpose)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::RenameChannel(int iOldName, int iNewName)
+void CImage::RenameChannel(size iOldName, size iNewName)
 {
 	mcChannels.RenameChannel(iOldName, iNewName);
 }
@@ -506,7 +506,7 @@ void* CImage::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImage::GetByteSize(void)
+size CImage::GetByteSize(void)
 {
 	return mcChannels.GetByteSize();
 }
@@ -526,7 +526,7 @@ CChannels* CImage::GetChannels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CImage::GetChannelsCount(void)
+size CImage::GetChannelsCount(void)
 {
 	return mcChannels.GetNumChannels();
 }
@@ -586,7 +586,7 @@ void CImage::GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChannel* CImage::GetChannel(int iChannel)
+CChannel* CImage::GetChannel(size iChannel)
 {
 	return mcChannels.GetChannel(iChannel);
 }
@@ -620,7 +620,7 @@ bool CImage::IsSameFormat(CImage* psOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::HasChannel(int iChannel)
+bool CImage::HasChannel(size iChannel)
 {
 	return mcChannels.HasChannel(iChannel);
 }
@@ -630,10 +630,10 @@ bool CImage::HasChannel(int iChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::HasChannels(int iFirst, ...)
+bool CImage::HasChannels(size iFirst, ...)
 {
 	va_list		vaMarker;
-	int			eIC;
+	size		eIC;
 	bool		bResult;
 
 	eIC = iFirst;
@@ -643,7 +643,7 @@ bool CImage::HasChannels(int iFirst, ...)
 	while (eIC != CHANNEL_ZERO)
 	{
 		bResult &= HasChannel(eIC);
-		eIC = va_arg(vaMarker, int);
+		eIC = va_arg(vaMarker, size);
 	}
 	va_end(vaMarker);
 

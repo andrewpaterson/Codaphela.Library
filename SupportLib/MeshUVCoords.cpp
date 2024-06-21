@@ -120,7 +120,7 @@ void CMeshUVCoords::ReInit(void)
 void CMeshUVCoords::Kill(void)
 {
 	CMeshUVLayer*	pcLayer;
-	int				i;
+	size			i;
 
 	for (i = 0; i < mcLayers.NumElements(); i++)
 	{
@@ -165,7 +165,7 @@ bool CMeshUVCoords::Load(CFileReader* pcFile)
 bool CMeshUVCoords::Save(CFileWriter* pcFile)
 {
 	CMeshUVLayer*	pcUVLayer;
-	int				i;
+	size			i;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(pcFile->WriteInt(mcLayers.NumElements()));
@@ -186,7 +186,7 @@ bool CMeshUVCoords::Save(CFileWriter* pcFile)
 int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 {
 	CMeshUVLayer*	pcUVLayer;
-	int				i;
+	size			i;
 
 	if (mbInUse)
 	{
@@ -197,7 +197,7 @@ int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 		{
 			pcUVLayer->AddFace(-1, -1, -1);
 		}
-		return mcLayers.NumElements()-1;
+		return mcLayers.NumElements() - 1;
 	}
 	else
 	{
@@ -210,9 +210,9 @@ int CMeshUVCoords::AddLayer(CMeshConnectivity* pcConn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMeshUVLayer* CMeshUVCoords::EnsureLayerExists(int iLayer, CMeshConnectivity* pcConn)
+CMeshUVLayer* CMeshUVCoords::EnsureLayerExists(size iLayer, CMeshConnectivity* pcConn)
 {
-	int				i;
+	size	i;
 
 	if (mbInUse)
 	{
@@ -241,7 +241,7 @@ CMeshUVLayer* CMeshUVCoords::EnsureLayerExists(int iLayer, CMeshConnectivity* pc
 void CMeshUVCoords::AddFace(void)
 {	
 	CMeshUVLayer*	pcUVLayer;
-	int				i;
+	size			i;
 
 	if (mbInUse)
 	{
@@ -258,12 +258,12 @@ void CMeshUVCoords::AddFace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUVCoords::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces, int iNumLayers)
+void CMeshUVCoords::IndexFaceCorners(int* paiDest, ptrdiff iStride, CArrayInt* paiSourceFaces, size iNumLayers)
 {
-	int					i;
+	size				i;
 	int					iFaceIndex;
 	SMeshUVFace*		psFaceUV;
-	int					j;
+	size				j;
 	CMeshUVLayer*		pcUVLayer;
 
 	for (i = 0; i < paiSourceFaces->NumElements(); i++)
@@ -307,8 +307,8 @@ void CMeshUVCoords::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSo
 int CMeshUVCoords::NumUVs(void)
 {
 	CMeshUVLayer*	pcUVLayer;
-	int				i;
-	int				iNumUVs;
+	size			i;
+	size			iNumUVs;
 
 	if (mbInUse)
 	{
@@ -325,3 +325,4 @@ int CMeshUVCoords::NumUVs(void)
 		return 0;
 	}
 }
+

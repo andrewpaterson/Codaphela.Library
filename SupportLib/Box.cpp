@@ -92,17 +92,17 @@ void CBox::SetFromPointsAxisAligned(SFloat3* psPoints, int iStride, int iNumPoin
 
 	if (mfLongLength < mfShortLength)
 	{
-		Swap(&mfLongLength, &mfShortLength);
+		SwapFloat(&mfLongLength, &mfShortLength);
 		Float3Swap(mpsLongAxis, mpsShortAxis);
 	}
 	if (mfLongLength < mfMiddleLength)
 	{
-		Swap(&mfLongLength, &mfMiddleLength);
+		SwapFloat(&mfLongLength, &mfMiddleLength);
 		Float3Swap(mpsLongAxis, mpsMiddleAxis);
 	}
 	if (mfMiddleLength < mfShortLength)
 	{
-		Swap(&mfMiddleLength, &mfShortLength);
+		SwapFloat(&mfMiddleLength, &mfShortLength);
 		Float3Swap(mpsMiddleAxis, mpsShortAxis);
 	}
 }

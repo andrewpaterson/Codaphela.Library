@@ -103,7 +103,7 @@ void CMeshConnectivity::ReInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::KillCorners(void)
 {
-	int				i;
+	size			i;
 	CMeshCorner*	psCorner;
 
 	for (i = 0; i < mcCorners.NumElements(); i++)
@@ -122,7 +122,7 @@ void CMeshConnectivity::KillCorners(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::KillCornerEdgesMap(void)
 {
-	int					i;
+	size				i;
 	CCornerEdgesMap*	pcCornerEdgeMap;
 
 	for (i = 0; i < mcCorners.NumElements(); i++)
@@ -274,7 +274,7 @@ CMeshFace* CMeshConnectivity::GetFace(int iElementNum)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConnectivity::Load(CFileReader* pcFile)
 {
-	int				i;
+	size			i;
 	CMeshCorner*	pcCorner;
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
@@ -321,7 +321,7 @@ bool CMeshConnectivity::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshConnectivity::Save(CFileWriter* pcFile)
 {
-	int				i;
+	size			i;
 	CMeshCorner*	pcCorner;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
@@ -393,6 +393,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(void)
 	CCornerEdgesMap*	pcCornerEdgesMap;
 	CMeshFace*			pcFace;
 	int					iNumEdges;
+	int					iNumFaces;
 
 	mcEdges.Kill();
 	mcEdges.Init();
@@ -409,7 +410,8 @@ int CMeshConnectivity::GenerateEdgeConnectivity(void)
 	}
 
 	iNumEdges = 0;
-	for (iFaceNum = 0; iFaceNum < mcFaces.NumElements(); iFaceNum++)
+	iNumFaces = (int)mcFaces.NumElements();
+	for (iFaceNum = 0; iFaceNum < iNumFaces; iFaceNum++)
 	{
 		pcFace = mcFaces.Get(iFaceNum);
 		iNumEdges += GenerateEdgeConnectivity(pcFace, iFaceNum);
@@ -454,7 +456,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 	iCornerLarger = pcFace->asCorner[iC2];
 	if (iCornerSmall > iCornerLarger)
 	{
-		Swap(&iCornerSmall, &iCornerLarger);
+		SwapInt(&iCornerSmall, &iCornerLarger);
 	}
 
 	iAddedEdges = 0;
@@ -497,7 +499,7 @@ int CMeshConnectivity::GenerateEdgeConnectivity(CMeshFace* pcFace, int iFaceNum,
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces)
 {
-	int			i;
+	size		i;
 	int			iFaceIndex;
 	CMeshFace*	pcFace;
 

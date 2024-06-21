@@ -160,7 +160,7 @@ void CTileWorld::AddGroup(Ptr<CImageCelGroup> pcGroup)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImageCelGroup> CTileWorld::GetGroup(char* szName)
 {
-	int						i;
+	size					i;
 	Ptr<CImageCelGroup>		pcImageCelGroup;
 
 	for (i = 0; i < macGroups.NumElements(); i++)

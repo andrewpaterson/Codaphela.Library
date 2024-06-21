@@ -146,7 +146,7 @@ void CMeshSkin::Kill(void)
 void CMeshSkin::KillSkinVerts(void)
 {
 	CMeshSkinVert*	psSkinVert;
-	int				i;
+	size			i;
 
 	for (i = 0; i < mcSkinVerts.NumElements(); i++)
 	{
@@ -177,7 +177,7 @@ void CMeshSkin::ReInit(void)
 bool CMeshSkin::Load(CFileReader* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
-	int				i;
+	size			i;
 
 	Init();
 
@@ -202,7 +202,7 @@ bool CMeshSkin::Load(CFileReader* pcFile)
 bool CMeshSkin::Save(CFileWriter* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
-	int				i;
+	size			i;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcSkinVerts.WriteAllocatorAndHeader(pcFile));
@@ -225,7 +225,7 @@ bool CMeshSkin::Save(CFileWriter* pcFile)
 void CMeshSkin::Touch(void)
 {
 	CMeshSkinVert*	pcSkinVert;
-	int				i;
+	size			i;
 
 	if (mbInUse)
 	{
@@ -289,7 +289,7 @@ int CMeshSkin::GetFaceMatrixCount(int iVert1, int iVert2, int iVert3)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSkin::PrivateAddMatricies(CMeshSkinVert* pcVert, CArrayInt* paiMatricies)
 {
-	int				i;
+	size			i;
 	SSkinWeight*	psWeight;
 
 	for (i = 0; i < pcVert->mcWeights.NumElements(); i++)
@@ -307,7 +307,7 @@ void CMeshSkin::PrivateAddMatricies(CMeshSkinVert* pcVert, CArrayInt* paiMatrici
 int CMeshSkin::GetFaceVertexMaxMatrixCount(int iVert1, int iVert2, int iVert3)
 {
 	CMeshSkinVert*	pcVert;
-	int				iNumMatricies;
+	size			iNumMatricies;
 
 	pcVert = mcSkinVerts.Get(iVert1);
 	iNumMatricies = pcVert->mcWeights.NumElements();
@@ -334,8 +334,8 @@ int CMeshSkin::GetFaceVertexMaxMatrixCount(int iVert1, int iVert2, int iVert3)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSkin::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces, CMeshConnectivity* pcConn)
 {
-	int			i;
-	int			iFaceIndex;
+	size		i;
+	size		iFaceIndex;
 	CMeshFace*	pcFace;
 
 	if (mbInUse)

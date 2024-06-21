@@ -92,7 +92,7 @@ public:
 	void			MovePosition(int iPosition, SFloat3* psPosition);
 	void			MovePositions(CArrayInt* paiPositions, SFloat3* psPosition);
 
-	void			AddUV(float u, float v, int iLayer = 0);
+	void			AddUV(float u, float v, size iLayer = 0);
 	void			AddNormal(float x, float y, float z);
 
 	void			Dump(void);

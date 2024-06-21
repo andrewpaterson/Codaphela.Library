@@ -611,7 +611,7 @@ size DoubleWholeNumbers(double f)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void Swap(float* f1, float* f2)
+void SwapFloat(float* f1, float* f2)
 {
 	float temp;
 

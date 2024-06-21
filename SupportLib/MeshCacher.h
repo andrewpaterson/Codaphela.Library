@@ -39,7 +39,7 @@ public:
 	bool	Vertex(void);
 
 private:
-	int		GetIndexSize(SMeshFaceType* psFaceType);
+	size	GetIndexSize(SMeshFaceType* psFaceType);
 	void	PopulatePositions(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices);
 	void	PopulateNormals(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices);
 	void	PopulateColours(CMeshVertexArray* pcVertexArray, CMeshTypeIndices* pcTypeIndices);

@@ -56,12 +56,12 @@ void CExtremeTriangle::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CExtremeTriangle::FindFurthestPoint(SFloat3* psPoints, int iStride)
 {
-	int					iFarIndex;
-	int					i;
-	SFloat3*			psOther;
-	float				fDist;
-	float				fMaxDist;
-	int					iIndex;
+	int			iFarIndex;
+	size		i;
+	SFloat3*	psOther;
+	float		fDist;
+	float		fMaxDist;
+	int			iIndex;
 
 	fMaxDist = 0.0f;
 	iFarIndex = -1;
@@ -96,7 +96,7 @@ bool CExtremeTriangle::NotContains(SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CConvexHullGenerator::Init(SFloat3* psPoints, int iStride, int iNumPoints, char* szHullName)
+void CConvexHullGenerator::Init(SFloat3* psPoints, int iStride, size iNumPoints, char* szHullName)
 {
 	mcNormals.Init(512, sizeof(SFloat3));
 	mcTriangles.Init(512, sizeof(CExtremeTriangle));
@@ -135,7 +135,7 @@ void CConvexHullGenerator::Kill(void)
 bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papcTriangles, int iMaxXIndex, int iMinXIndex, int iFarIndex)
 {
 	CHalfSpaceHelper			cHalfSpace;
-	int							i;
+	size						i;
 	CExtremeTriangle*			pcTriangleUp;
 	CExtremeTriangle*			pcTriangleDown;
 	SFloat3*					psPosition;
@@ -182,9 +182,9 @@ bool CConvexHullGenerator::FindFirstPairTriangles(CArrayExtremeTrianglePtr* papc
 //////////////////////////////////////////////////////////////////////////
 void CConvexHullGenerator::AddPointsFromTriangles(CExtremeTriangle* pcTriangle, CArrayExtremeTrianglePtr* papcTriangles, int iDontAdd)
 {
-	int					i;
+	size				i;
 	CExtremeTriangle*	pcOther;
-	int					j;
+	size				j;
 	int					iIndex;
 	SFloat3*			psPosition;
 
@@ -224,14 +224,14 @@ bool CConvexHullGenerator::Generate(void)
 	SFreeListIterator			sIter;
 	CArrayExtremeTrianglePtr	cDeleted;
 	CArrayExtremeTrianglePtr	cFixedDeleted;
-	int							j;
+	size						j;
 	SConvexHullHoleEdge			sEdges;
-	int							k;
+	size						k;
 	int							aiIndex[3];
 	int							iIndex;
 	CExtremeTriangle*			pcSelected;
 	CTextFile					cTextFile;
-	int							iTriangle;
+	size						iTriangle;
 	float						fMinX;
 	float						fMaxX;
 
@@ -475,8 +475,8 @@ CFreeList* CConvexHullGenerator::GetNormals(void)
 bool CConvexHullGenerator::RemoveDiscontiguousTriangles(CExtremeTriangle* pcSelected, CArrayExtremeTrianglePtr* papcTriangles, CArrayExtremeTrianglePtr* papcTemp)
 {
 	int							iIndex;
-	int							i;
-	int							j;
+	size						i;
+	size						j;
 	CExtremeTriangle*			pcTriangle1;
 	CExtremeTriangle*			pcTriangle2;
 	bool						bResult;
@@ -607,8 +607,8 @@ void CConvexHullGenerator::FindEdges(SConvexHullHoleEdge* psEdges, CExtremeTrian
 //////////////////////////////////////////////////////////////////////////
 bool CConvexHullGenerator::TrianglesHaveEdge(int iEdge1, int iEdge2, CExtremeTriangle* pcTriangleWithEdges, CArrayExtremeTrianglePtr* papcDeletedTriangles)
 {
-	int							i;
-	CExtremeTriangle*			pcTriangle;
+	size				i;
+	CExtremeTriangle*	pcTriangle;
 
 	for (i = 0; i < papcDeletedTriangles->NumElements(); i++)
 	{
@@ -715,7 +715,7 @@ int CConvexHullGenerator::FindFurthestPoint(int iMaxXIndex, int iMinXIndex)
 //////////////////////////////////////////////////////////////////////////
 int CConvexHullGenerator::FindMaxX(float* px)
 {
-	int			i;
+	size		i;
 	float		x;
 	int			iIndex;
 	SFloat3*	psPosition;
@@ -742,7 +742,7 @@ int CConvexHullGenerator::FindMaxX(float* px)
 //////////////////////////////////////////////////////////////////////////
 int CConvexHullGenerator::FindMinX(float* px)
 {
-	int			i;
+	size		i;
 	float		x;
 	int			iIndex;
 	SFloat3*	psPosition;
@@ -780,7 +780,7 @@ void CConvexHull::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CConvexHull::Kill(void)
 {
-	int			i;
+	size		i;
 	CPolygon*	pcPolygon;
 
 	for (i = 0; i < mcPolygons.NumElements(); i++)
@@ -826,7 +826,7 @@ void CConvexHull::BeginSetFromPoints(CConvexHullGenerator* psConvexHullGenerator
 //////////////////////////////////////////////////////////////////////////
 void CConvexHullGenerator::DumpTriangleObj(CChars* psz, int iLoop)
 {
-	int					i;
+	size				i;
 	SFloat3*			psPosition;
 	CExtremeTriangle*	pcTriangle;
 	int					iIndex1;
@@ -903,9 +903,9 @@ void CConvexHull::EndSetFromPoints(SFloat3* psNormals, int iStride, CConvexHullG
 //////////////////////////////////////////////////////////////////////////
 void ConvertTrianglesToPolygons(CArrayTrianglePtr* papcTriangles, CArrayPolygons* pacPolygons)
 {
-	int				i;
+	size			i;
 	CTriangle*		pcTriangle;
-	int				j;
+	size			j;
 	CTriangle*		pcTriangleOther;
 	CPolygon*		pcPolygon;
 
@@ -945,11 +945,11 @@ void ConvertTrianglesToPolygons(CArrayTrianglePtr* papcTriangles, CArrayPolygons
 //////////////////////////////////////////////////////////////////////////
 void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStride)
 {
-	int				i;
-	CPolygon*		pcPolygon;
-	int				j;
-	SFloat3*		psPosition;
-	int				iIndex;
+	size		i;
+	CPolygon*	pcPolygon;
+	size		j;
+	SFloat3*	psPosition;
+	int			iIndex;
 
 
 	for (i = 0; i < mcPolygons.NumElements(); i++)
@@ -975,7 +975,7 @@ void CConvexHull::GetIndices(CArrayInt* paiIndices, SFloat3* psPoints, int iStri
 void CConvexHull::GetVertices(CArrayBlock* pasPositions, SFloat3* psPoints, int iStride)
 {
 	CArrayInt	aiIndices;
-	int			i;
+	size			i;
 	int			iIndex;
 	SFloat3*	psPosition;
 

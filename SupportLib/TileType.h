@@ -41,7 +41,7 @@ public:
 	bool 	Is(char* szName);
 	CTile*	GetNull(void);
 	void	AddTile(CTile* pcTile);
-	CTile*	Get(int iIndex);
+	CTile*	Get(size iIndex);
 };
 
 

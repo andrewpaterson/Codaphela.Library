@@ -197,7 +197,7 @@ bool CPolygon::AddTriangle(CTriangle* pcTriangle)
 //////////////////////////////////////////////////////////////////////////
 bool CPolygon::HasPositionPtr(SFloat3* psPosition)
 {
-	int			i;
+	size		i;
 	SFloat3*	psOther;
 	
 	for (i = 0; i < mapsPositions.NumElements(); i++)
@@ -220,7 +220,7 @@ bool CPolygon::UnionPosition(SFloat3* psPosition)
 {
 	CArrayInt	cIndices;
 	int			iInsertionIndex;
-	int			i;
+	size		i;
 	int			iIndex;
 	
 	if (mbConvex)
@@ -271,7 +271,7 @@ bool CPolygon::UnionPosition(SFloat3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 bool CPolygon::Contains(SFloat3* psPosition)
 {
-	int			i;
+	size		i;
 	SFloat3*	psStart;
 	SFloat3*	psEnd;
 	CHalfSpace	cHalfSpace;
@@ -309,7 +309,7 @@ bool CPolygon::Contains(SFloat3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat3* psPosition, CArrayInt* pcVisibleIndices)
 {
-	int			i;
+	size		i;
 	CHalfSpace	cHalfSpace;
 	int			iStart;
 	int			iEnd;
@@ -344,7 +344,7 @@ void CPolygon::FindIndicesOfVisibleHalfSpaces(SFloat3* psPosition, CArrayInt* pc
 
 		if (cHalfSpace.NotContains(psPosition))
 		{
-			piLastIndex = pcVisibleIndices->Tail();
+			piLastIndex = (int*)pcVisibleIndices->Tail();
 			if (piLastIndex)
 			{
 				if (*piLastIndex == iStart)

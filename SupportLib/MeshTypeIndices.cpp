@@ -231,7 +231,7 @@ int CMeshTypeIndices::GetSkinIndex(int iVert)
 int CMeshTypeIndices::FindExistingVert(int* piFaceVertIndex)
 {
 	//Optimise this by creating an array of size mcPosition.NumElements of index into an array of ArrayInt (per position) indexing into maVerts.
-	int		i;
+	size	i;
 	int*	piVert;
 
 	for (i = 0; i < maVerts.NumElements(); i++)

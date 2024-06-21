@@ -48,7 +48,7 @@ void CRectangleBestPacker::Init(int iOutsideEdgeWidth, int iInnerEdgeWidth)
 //////////////////////////////////////////////////////////////////////////
 void CRectangleBestPacker::Kill(void)
 {
-	int				i;
+	size			i;
 	CPackAttempt*	pcAttempt;
 
 	for (i = 0; i < macPackAttempts.NumElements(); i++)
@@ -111,7 +111,7 @@ bool CRectangleBestPacker::AddRectangle(CImageCel* pcImageCel)
 //////////////////////////////////////////////////////////////////////////
 void CRectangleBestPacker::Pack(void)
 {
-	int				i;
+	size			i;
 	CPackAttempt*	pcAttempt;
 
 	if (macPackAttempts.NumElements() == 0)
@@ -136,7 +136,7 @@ void CRectangleBestPacker::Pack(void)
 //////////////////////////////////////////////////////////////////////////
 SInt2 CRectangleBestPacker::GetSourcesSizes(void)
 {
-	int						i;
+	size					i;
 	CPackSourceRectangle*	pcRect;
 	SInt2					sSize;
 

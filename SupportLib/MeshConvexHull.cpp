@@ -90,7 +90,7 @@ void CMeshConvexHull::GenerateConvexHull(CMeshPositions* pcPositions, CMeshNorma
 	int						j;
 	int						iNumVerts;
 	SFloat3*				psPosition;
-	int						iPositionIndex;
+	uint32					iPositionIndex;
 	int						iNormalIndex;
 
 	asPoint = pcPositions->mcPositions.GetData();
