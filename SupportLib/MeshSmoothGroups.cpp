@@ -163,14 +163,14 @@ void CMeshSmoothGroups::GenerateSmoothingFromNames(CMeshEditor* pcMeshEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothGroups::GenerateSmoothingFromAngles(CMeshEditor* pcMeshEditor)
 {
-	int				i;
-	int				iNumPolygons;
+	size			i;
+	size			iNumPolygons;
 	CMeshPolygon*	pcPolygon;
 	CArrayFloat3	asNormals;
 	CArrayInt		aiAdjPolys;
 	SFloat3*		psThisNormal;
 	SFloat3*		psOtherNormal;
-	int				j;
+	size			j;
 	int				iOtherGon;
 	float			fDot;
 	float			fResult;
@@ -217,11 +217,11 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 {
 	//! Remeber to check out the maxsdk doc: Computing Face and Vertex Normals, for Weighting by Face Angle.
 
-	int					i, j, k, l;
+	size				i, j, k, l;
 	int*				aiFaceRef;
 	SFloat3				cNormal;  
-	uint32		dwSmooth[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
-	int					iNumNormals;
+	uint32				dwSmooth[MAX_UNOVERLAPPING_SMOOTHING_GROUPS];
+	size				iNumNormals;
 	CMeshCorner*		psCorners;
 	CMeshFace*			psFaces;
 	CMeshFace*			psFace;
@@ -230,7 +230,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	int*				piSmoothing;
 	int					iSmoothing;
 	int					iNewNormalIndex;
-	int					iNumCorners;
+	size				iNumCorners;
 	SMeshNormalFace*	psFaceNormal;
 	SFloat3*			pcNormal;
 	CMeshNormals*		pcNormals;
@@ -244,7 +244,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 	psCorners = pcMesh->GetCorner(0);
 	psFaces = pcMesh->GetFace(0);
 
-	piSmoothing = mcSmoothingGroups.Get(0);
+	piSmoothing = (int*)mcSmoothingGroups.Get(0);
 
 	pcNormals = &pcMesh->mcNormals;
 
@@ -255,7 +255,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 		iNumNormals = 0;
 
 		//Get the array of faces attached to the vert
-		aiFaceRef = psCorners[i].aiFace.GetData();
+		aiFaceRef = (int*)psCorners[i].aiFace.GetData();
 
 		//Zero the smoothing group
 		dwSmooth[0] = 0;

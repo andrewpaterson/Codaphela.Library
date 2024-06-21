@@ -34,9 +34,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 //Hack to make this compile.  These used to be part of StandardTypes.
-SFloat3*	GetPosition(SFloat3* psPoints, int iStride, int iPoint);
-SFloat3*	GetNormal(SFloat3* psNormals, int iStride, int iNormal);
-int			GetIndex(SFloat3* psPoints, int iStride, SFloat3* psPosition);
+SFloat3*	GetPosition(SFloat3* psPoints, size iStride, size iPoint);
+SFloat3*	GetNormal(SFloat3* psNormals, size iStride, size iNormal);
+int			GetIndex(SFloat3* psPoints, size iStride, SFloat3* psPosition);
 
 
 #endif // __GEOMETRIC_TYPES_H__

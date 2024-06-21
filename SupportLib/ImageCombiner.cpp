@@ -250,19 +250,19 @@ void CImageCombiner::CalculateChannelsFromCels(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCombiner::UpdateChannels(CArrayChannel* pasSource)
 {
-	int			i;
+	size		i;
 	SChannel*	psSource;
 	SChannel*	psDest;
-	int			iSourceSize;
-	int			iDestSize;
-	int			iIndex;
+	size		iSourceSize;
+	size		iDestSize;
+	size		iIndex;
 
 	for (i = 0; i < pasSource->NumElements(); i++)
 	{
 		psSource = pasSource->Get(i);
 
 		iIndex = masChannels.FindWithIntKey(psSource->iChannel, 0);
-		if (iIndex != -1)
+		if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 		{
 			psDest = masChannels.Get(iIndex);
 			iSourceSize = gcTypeNames.GetByteSize(psSource->eType);
@@ -373,7 +373,7 @@ SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 void CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 {
 	CImageCel*			pcCelDest;
-	int					i;
+	size				i;
 	CPackedRectangle*	pcPackedRect;
 	CImageCel*			pcCelSource;
 
@@ -406,7 +406,7 @@ CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacP
 {
 	CPackedRectangle*		pcPackedRect;
 	CPackedRectangle*		pcFoundPackedRect;
-	int						j;
+	size					j;
 
 	pcFoundPackedRect = NULL;
 	for (j = 0; j < pacPackedRects->NumElements(); j++)
@@ -428,7 +428,7 @@ CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacP
 //////////////////////////////////////////////////////////////////////////
 void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 {
-	int						i;
+	size					i;
 	CPackedRectangle*		pcPackedRect;
 	CImageCel*				pcCelSource;
 	CImageAccessor*			pcSource;

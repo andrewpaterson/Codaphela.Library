@@ -297,21 +297,21 @@ extern voidp  calloc OF((uint32 items, uint32 size));
 extern void   free   OF((voidpf ptr));
 #endif
 
-voidpf zcalloc (opaque, items, size)
+voidpf zcalloc (opaque, items, mem_size)
     voidpf opaque;
-    unsigned items;
-    unsigned size;
+    unsigned int items;
+    unsigned int mem_size;
 {
-    if (opaque) items += size - size; /* make compiler happy */
-    return sizeof(uint32) > 2 ? (voidpf)malloc(items * size) :
-                              (voidpf)calloc(items, size);
+    if (opaque) items += mem_size - mem_size; /* make compiler happy */
+    return sizeof(uint32) > 2 ? (voidpf)malloc(items * mem_size) :
+                              (voidpf)calloc(items, mem_size);
 }
 
-void  zcfree (opaque, ptr)
+void  zcfree (opaque, mem_ptr)
     voidpf opaque;
-    voidpf ptr;
+    voidpf mem_ptr;
 {
-    free(ptr);
+    free(mem_ptr);
     if (opaque) return; /* make compiler happy */
 }
 

@@ -36,11 +36,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 bool AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 {
-	CEnumeratorVoid	cChannels;
-	CEnumeratorVoid	cTypes;
-	int				iType;
-	int				iChannel;
-	TRISTATE		tResult;
+	CEnumeratorVoid		cChannels;
+	CEnumeratorVoid		cTypes;
+	size				iType;
+	size				iChannel;
+	TRISTATE			tResult;
 
 	if (!pcTextParser->GetExactCharacter('{'))
 	{ 
@@ -115,12 +115,12 @@ bool AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 //////////////////////////////////////////////////////////////////////////
 bool SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileName)
 {
-	int				iWidth;
-	int				iHeight;
-	char*			szFileNameStart;
-	char*			szFileNameEnd;
-	CFileUtil		cFileUtil;
-	CChars			sz;
+	int64		iWidth;
+	int64		iHeight;
+	char*		szFileNameStart;
+	char*		szFileNameEnd;
+	CFileUtil	cFileUtil;
+	CChars		sz;
 
 	ReturnOnErrorAndFalse(pcTextParser->GetExactCharacter('{'));
 
@@ -130,7 +130,7 @@ bool SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileN
 	ReturnOnErrorAndFalse(pcTextParser->GetHFExactIdentifierAndInteger("Height", &iHeight));
 	pcTextParser->GetExactCharacter(';');
 
-	pcImport->SetSize(iWidth, iHeight);
+	pcImport->SetSize((int)iWidth, (int)iHeight);
 	ReturnOnErrorAndFalse(pcTextParser->GetExactIdentifier("Channels"));
 
 	ReturnOnFalse(AddChannelsFromText(pcTextParser, pcImport));
@@ -166,7 +166,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 	CTextFile		cTextFile;
 	CChars			szRawFilename;
 	CChars			szRadFilename;
-	int				iImageSize;
+	size			iImageSize;
 	CFileBasic		sFile;
 	CFileUtil		cFileUtil;
 
@@ -265,7 +265,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 bool LoadRAW(CImage *pcImage, char *szFileName)
 {
 	CFileBasic	sFile;
-	int			iImageSize;
+	size		iImageSize;
 	filePos		iResult;
 
 	sFile.Init(DiskFile(szFileName));
@@ -298,3 +298,4 @@ bool LoadRAW(CImage *pcImage, char *szFileName)
 	sFile.Kill();
 	return iResult == 1;
 }
+

@@ -85,7 +85,7 @@ public:
 class CPolygonIndexed : public CShapeIndexed
 {
 public:
-	CArrayIntMinimal		maiPositions;  //It's assumed all these points are in a plane.
+	CArrayIntMinimal	maiPositions;  //It's assumed all these points are in a plane.
 	int					miNormalIndex;
 	bool				mbConvex;
 

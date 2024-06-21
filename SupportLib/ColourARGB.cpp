@@ -288,14 +288,14 @@ int Set32BitColour(float r, float g, float b, float a)
 
 int ConvertToBGR(int iColour)
 {
-	Swap(&(((uint8*)(&iColour))[0]), &(((uint8*)(&iColour))[2]));
+	SwapByte(&(((uint8*)(&iColour))[0]), &(((uint8*)(&iColour))[2]));
 	return iColour;
 }
 
 
 int ConvertToBGRA(int iColour)
 {
-	Swap(&(((uint8*)(&iColour))[0]), &(((uint8*)(&iColour))[2]));
+	SwapByte(&(((uint8*)(&iColour))[0]), &(((uint8*)(&iColour))[2]));
 	return iColour;
 }
 

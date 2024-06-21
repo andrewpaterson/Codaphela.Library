@@ -415,7 +415,7 @@ void CMesh::MovePositions(CArrayInt* paiPositions, SFloat3* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::AddUV(float u, float v, int iLayer)
+void CMesh::AddUV(float u, float v, size iLayer)
 {
 	CMeshUVLayer*	pcUVLayer;
 	SFloat2*		psUV;
@@ -436,6 +436,15 @@ void CMesh::AddNormal(float x, float y, float z)
 
 	psNormal = mcNormals.mcNormals.Add();
 	psNormal->Init(x, y, z);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMesh::Dump(void)
+{
 }
 
 

@@ -110,8 +110,8 @@ void CMeshColours::AddFace(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshColours::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces)
 {
-	int					i;
-	int					iFaceIndex;
+	size				i;
+	size				iFaceIndex;
 	SMeshFaceColour*	psFaceColour;
 
 	//This assumes something else has check that paiSourceFaces actually have corner normals.

@@ -37,7 +37,7 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 	CTextFile	cTextFile;
 	CChars*		szText;
 	CChannel*	psChannel;
-	int			j;
+	size		j;
 	CTypeNames	cTypeNames;
 	char*		szTypeName;
 	CChars		szRawName;

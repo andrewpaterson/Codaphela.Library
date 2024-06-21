@@ -85,7 +85,7 @@ void CImageRecolour::Modify(CImage* pcImage)
 	int					y;
 	SImageColour		sColourOld[4];
 	SImageColour		sColourNew[4];
-	int					i;
+	size				i;
 	CImageColour*		pcColourOld;
 	CImageColour*		pcColourNew;
 	SImageColour*		psColourCurrent;

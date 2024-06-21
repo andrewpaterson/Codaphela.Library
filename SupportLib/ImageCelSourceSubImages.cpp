@@ -63,7 +63,7 @@ void CImageCelSourceSubImages::Divide(CImage* pcImage, CArrayUnknown* pcDestImag
 {
 	CImageDivider	cDivider;
 	CArrayRectangle	acRects;
-	int				i;
+	size			i;
 	CSubImage*		pcSubImage;
 	CImageCel*		pcCel;
 

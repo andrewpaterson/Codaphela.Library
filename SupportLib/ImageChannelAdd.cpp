@@ -64,7 +64,7 @@ void CImageChannelAdd::AddChannel(EChannel eChannel)
 //////////////////////////////////////////////////////////////////////////
 void CImageChannelAdd::Modify(CImage* pcImage)
 {
-	int				i;
+	size		i;
 	EChannel	eChannel;
 
 	pcImage->BeginChange();

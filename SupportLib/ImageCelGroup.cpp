@@ -103,7 +103,7 @@ int CImageCelGroup::NumCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageCel* CImageCelGroup::GetCel(int iIndex)
+CImageCel* CImageCelGroup::GetCel(size iIndex)
 {
 	return mcImageCels.Get(iIndex);
 }
@@ -115,7 +115,7 @@ CImageCel* CImageCelGroup::GetCel(int iIndex)
 //////////////////////////////////////////////////////////////////////////
 CImage* CImageCelGroup::GetImage(void)
 {
-	int			i;
+	size		i;
 	CImageCel*	pcCel;
 	CImage*		pcImage;
 

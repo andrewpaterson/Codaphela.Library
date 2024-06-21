@@ -97,10 +97,10 @@ bool CObjReader::Read(void)
 	CTextParser 		cTextParser;
 	CTextFile			cTextFile;
 	CEnumeratorVoid		cTypes;
-	int					iType;
-	CArrayChars		cLines;
+	size				iType;
+	CArrayChars			cLines;
 	CChars*				pszLine;
-	int					i;
+	size				i;
 	TRISTATE			tResult;
 
 	cTypes.Init();
@@ -240,12 +240,12 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 {
 	TRISTATE				tResult;
 	CArrayMeshCornerBuilder	asCorners;
-	int						iCorner;
-	int						iUV;
+	int64					iCorner;
+	int64					iUV;
 	CMeshCornerBuilder*		psCorner;
-	int						iNormal;
+	int64					iNormal;
 	CArrayInt				aiCorners;
-	int						i;
+	size					i;
 	int						iNumFaces;
 	bool					bNormals;
 	bool					bUVS;
@@ -262,7 +262,7 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 			break;
 		}
 		psCorner = asCorners.Add();
-		psCorner->Init(iCorner);
+		psCorner->Init((int)iCorner);
 
 		//No skipping whitespace because // is whitespace.
 		tResult = pcTextParser->GetExactCharacter('/', false);
@@ -272,7 +272,7 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 			if (tResult == TRITRUE)
 			{
 				psCorner->bUVCoord = true;
-				psCorner->iUVCoord = iUV;
+				psCorner->iUVCoord = (int)iUV;
 			}
 
 			tResult = pcTextParser->GetExactCharacter('/', false);
@@ -282,7 +282,7 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 				if (tResult == TRITRUE)
 				{
 					psCorner->bNormal = true;
-					psCorner->iNormal = iNormal;
+					psCorner->iNormal = (int)iNormal;
 				}
 			}
 		}
@@ -301,7 +301,7 @@ bool CObjReader::ReadFace(CTextParser* pcTextParser, int iNumCorners, int iNumNo
 		{
 			iCorner = iNumCorners + iCorner;
 		}
-		aiCorners.SetValue(i, iCorner);
+		aiCorners.SetValue(i, (int)iCorner);
 
 		if (!psCorner->bNormal)
 		{

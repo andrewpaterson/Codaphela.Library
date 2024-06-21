@@ -60,7 +60,7 @@ double	DoubleToleranceForDecimals(int iDecimals);
 size	DoubleWholeNumbers(double f);
 bool	LongDoubleEqual(float96 f1, float96 f2);
 bool	LongDoubleEqual(float96 f1, float96 f2, float96 fTolerance);
-void	Swap(float* f1, float* f2);
+void	SwapFloat(float* f1, float* f2);
 float	NotANumber(void);
 bool	IsNotANumber(float* pf);
 float	det2x2(float a, float b, float c, float d);

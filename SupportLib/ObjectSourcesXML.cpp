@@ -144,8 +144,8 @@ bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 	CMarkupTag*					pcSourceName;
 	CMarkupTag*					pcProperties;
 	CChars						szName;
-	int							iCelIndex;
-	int							iBrushID;
+	int64						iCelIndex;
+	int64						iBrushID;
 	CChars						szSourceName;
 	CTileImageCel*				pcTile;
 	Ptr<CImageCelGroup>	pcGroup;
@@ -205,7 +205,7 @@ bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 		return false;
 	}
 
-	pcCel = pcGroup->GetCel(iCelIndex);
+	pcCel = pcGroup->GetCel((size)iCelIndex);
 	if (!pcCel)
 	{
 		szName.Kill();

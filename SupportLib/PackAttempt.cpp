@@ -97,7 +97,7 @@ void CPackAttempt::Init(CRectangleBestPacker* pcRectanglePacker, int iMaxWidth)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::Kill(void)
 {
-	int				i;
+	size			i;
 	CPackedLine*	pcLine;
 
 	for (i = 0; i < macLines.NumElements(); i++)
@@ -117,8 +117,8 @@ void CPackAttempt::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::AddRectanglesFromPacker(void)
 {
-	int						i;
-	int						iNumRectangles;
+	size					i;
+	size					iNumRectangles;
 	CPackSourceRectangle*	pcPackedRect;
 	CPackRectangleAttempt*	pcRectAttempt;
 
@@ -163,8 +163,8 @@ void CPackAttempt::Pack(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::Done(void)
 {
-	int						i;
-	CPackedLine*			pcLine;
+	size			i;
+	CPackedLine*	pcLine;
 
 	if (macRectangles.NumElements() > 0)
 	{
@@ -225,19 +225,25 @@ void CPackAttempt::RemoveLastRectangle(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPackAttempt::GetLargestRectangleFittingAndRemoveIt(CRectangle* pcBounds, CPackRectangleAttempt* pcDest)
 {
-	int						i;
+	size					i;
 	CPackRectangleAttempt*	pcRect;
 
-	for (i = macRectangles.NumElements()-1; i >= 0; i--)
+	i = macRectangles.NumElements();
+	if (i != 0)
 	{
-		pcRect = macRectangles.Get(i);
-		if ((pcBounds->GetWidth() >= pcRect->mpcPackedRectangle->miWidth) && 
-			(pcBounds->GetHeight() >= pcRect->mpcPackedRectangle->miHeight))
+		do
 		{
-			pcDest->Init(pcRect->mpcPackedRectangle);
-			macRectangles.RemoveAt(i, true);
-			return true;
+			i--;
+			pcRect = macRectangles.Get(i);
+			if ((pcBounds->GetWidth() >= pcRect->mpcPackedRectangle->miWidth) &&
+				(pcBounds->GetHeight() >= pcRect->mpcPackedRectangle->miHeight))
+			{
+				pcDest->Init(pcRect->mpcPackedRectangle);
+				macRectangles.RemoveAt(i, true);
+				return true;
+			}
 		}
+		while (i != 0);
 	}
 	return false;
 }
@@ -259,7 +265,7 @@ int CPackAttempt::GetWastedArea(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles)
 {
-	int				i;
+	size			i;
 	CPackedLine*	pcLine;
 
 	for (i = 0; i < macLines.NumElements(); i++)
@@ -289,7 +295,7 @@ SInt2 CPackAttempt::GetPackedImageSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CPackAttempt::Print(CChars* psz)
 {
-	int				i;
+	size			i;
 	CPackedLine*	pcLine;
 
 	psz->Append("Lines[");

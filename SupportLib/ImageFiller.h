@@ -39,9 +39,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 struct SImageFill
 {
-	int x;
-	int y;
-	int iFill;
+	int		x;
+	int		y;
+	size	iFill;
 };
 
 
@@ -57,13 +57,13 @@ public:
 	CImage*					mpcDestImage;
 	CFillRectangle*			mpcDestSubImage;
 	CImageAccessor*			mpcDestMaskAccessor;
-	short					miMask;
+	uint16					miMask;
 
 	void Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* pcDestImage);
 	void Kill(void);
 	
-	bool Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMask);
-	bool Push(int x, int y, int iRemove);
+	bool Fill(int x, int y, CFillRectangle* pcDestSubImage, uint16 iMask);
+	bool Push(int x, int y, size iRemove);
 };
 
 

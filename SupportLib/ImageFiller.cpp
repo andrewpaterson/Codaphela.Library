@@ -64,9 +64,9 @@ void CImageFiller::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMask)
+bool CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, uint16 iMask)
 {
-	SImageFill		sImageFill;
+	SImageFill	sImageFill;
 
 	mpcDestSubImage = pcDestSubImage;
 	mpcDestSubImage->Init(iMask, x, y, x, y);
@@ -106,7 +106,7 @@ bool CImageFiller::Fill(int x, int y, CFillRectangle* pcDestSubImage, short iMas
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageFiller::Push(int x, int y, int iRemove)
+bool CImageFiller::Push(int x, int y, size iRemove)
 {
 	SImageColour*	psColour;
 	SImageFill*		psImageFill;
@@ -132,7 +132,7 @@ bool CImageFiller::Push(int x, int y, int iRemove)
 
 	psImageFill = mcStack.Push();
 	psImageFill->iFill = FILL_ALL;
-	SetFlag(&psImageFill->iFill, iRemove, false);
+	SetFlagSize(&psImageFill->iFill, iRemove, false);
 	psImageFill->x = x;
 	psImageFill->y = y;
 	mpcDestMaskAccessor->Set(x, y, &miMask);

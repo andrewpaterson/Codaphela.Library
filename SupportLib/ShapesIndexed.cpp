@@ -302,7 +302,7 @@ void CConvexHullIndexed::Init(int iNumPolygons)
 void CConvexHullIndexed::Kill(void)
 {
 	CPolygonIndexed*	pcPolygon;
-	int					i;
+	size				i;
 
 	for (i = 0; i < mcPolygons.NumElements(); i++)
 	{
@@ -321,7 +321,7 @@ void CConvexHullIndexed::Kill(void)
 bool CConvexHullIndexed::Save(CFileWriter* pcFile)
 {
 	CPolygonIndexed*	pcPolygon;
-	int					i;
+	size				i;
 
 
 	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));
@@ -342,7 +342,7 @@ bool CConvexHullIndexed::Save(CFileWriter* pcFile)
 bool CConvexHullIndexed::Load(CFileReader* pcFile)
 {
 	CPolygonIndexed*	pcPolygon;
-	int					i;
+	size				i;
 
 
 	ReturnOnFalse(mcPolygons.ReadAllocatorAndHeader(pcFile));

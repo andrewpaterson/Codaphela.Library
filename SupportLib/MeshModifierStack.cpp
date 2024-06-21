@@ -64,8 +64,10 @@ void CMeshModifierStack::AddModifier(CMeshModifier* pcEditor)
 void CMeshModifierStack::ApplyAll(CMeshEditor* pcMeshEditor)
 {
 	CMeshModifier*	pcEditor;
+	int				iNumElements;
 
-	for (miCurrent = 0; miCurrent < macEditors.NumElements(); miCurrent++)
+	iNumElements = macEditors.NumElements();
+	for (miCurrent = 0; miCurrent < iNumElements; miCurrent++)
 	{
 		pcEditor = (CMeshModifier*)macEditors.Get(miCurrent);
 		pcEditor->Apply(pcMeshEditor);
@@ -90,7 +92,7 @@ int CMeshModifierStack::NumEditors(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::ReInitConnectivity(void)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -110,7 +112,7 @@ void CMeshModifierStack::ReInitConnectivity(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::AddPosition(SFloat3* psPosition)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -131,7 +133,7 @@ void CMeshModifierStack::AddPosition(SFloat3* psPosition)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::AddFace(int iCorner1, int iCorner2, int iCorner3)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -151,7 +153,7 @@ void CMeshModifierStack::AddFace(int iCorner1, int iCorner2, int iCorner3)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::RemoveFace(int iFace)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -171,7 +173,7 @@ void CMeshModifierStack::RemoveFace(int iFace)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::RemoveFaces(CArrayInt* paiFaces)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -191,7 +193,7 @@ void CMeshModifierStack::RemoveFaces(CArrayInt* paiFaces)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::RemoveCorner(int iCorner)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -211,7 +213,7 @@ void CMeshModifierStack::RemoveCorner(int iCorner)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::MovePosition(int iPosition, SFloat3* psDelta)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)
@@ -231,7 +233,7 @@ void CMeshModifierStack::MovePosition(int iPosition, SFloat3* psDelta)
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::MovePositions(CArrayInt* paiPositions, SFloat3* psDelta)
 {
-	int					i;
+	size			i;
 	CMeshModifier*	pcEditor;
 
 	if (miCurrent != -1)

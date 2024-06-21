@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CFont::Init(char* szName, int iSpaceWidth, int iAscent, int iDescent)
+Ptr<CFont> CFont::Init(char* szName, size iSpaceWidth, int iAscent, int iDescent)
 {
 	mszName.Init(szName);
 	pcImage = NULL;
@@ -93,11 +93,11 @@ bool CFont::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Done(void)
 {
-	int			i;
+	size		i;
 	CGlyph*		pcGlyph;
-	int			iTotalWidth;
-	int			iLastWidth;
-	int			iWidth;
+	size		iTotalWidth;
+	size		iLastWidth;
+	size		iWidth;
 
 	iTotalWidth = 0;
 	iWidth = 0;
@@ -133,18 +133,18 @@ bool CFont::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFont::Width(char* szText)
+size CFont::Width(char* szText)
 {
-	int		iLen;
-	int		i;
-	int		iChar;
-	int		iWidth;
+	size	iLen;
+	size	i;
+	size	iChar;
+	size	iWidth;
 
-	iLen = (int)strlen(szText);
+	iLen = (size)strlen(szText);
 	iWidth = 0;
 	for (i = 0; i < iLen; i++)
 	{
-		iChar = (int)szText[i];
+		iChar = (size)szText[i];
 
 		if ((iChar < FIRST_LETTER) || (iChar >= FIRST_LETTER + macGlyphs.NumElements()))
 		{
@@ -167,7 +167,7 @@ int CFont::Width(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFont::Height(void)
+size CFont::Height(void)
 {
 	return miHeight;
 }
@@ -180,7 +180,7 @@ int CFont::Height(void)
 bool CFont::IsWhiteSpace(char c)
 {
 	//  c <=  to include the space.
-	if ((c <= FIRST_LETTER) || (c >= (FIRST_LETTER + macGlyphs.NumElements())))
+	if ((c <= FIRST_LETTER) || (c >= (char)(FIRST_LETTER + macGlyphs.NumElements())))
 	{
 		return true;
 	}
@@ -194,7 +194,7 @@ bool CFont::IsWhiteSpace(char c)
 //////////////////////////////////////////////////////////////////////////
 CGlyph* CFont::GetGlyph(char c)
 {
-	int	iChar;
+	size	iChar;
 
 	iChar = c;
 	if ((iChar < FIRST_LETTER) || (iChar >= FIRST_LETTER + macGlyphs.NumElements()))
@@ -209,7 +209,7 @@ CGlyph* CFont::GetGlyph(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGlyph* CFont::AddGlyph(CImageCel* pcCel, int iStep)
+CGlyph* CFont::AddGlyph(CImageCel* pcCel, size iStep)
 {
 	CGlyph*		pcGlyph;
 
@@ -243,7 +243,7 @@ void CFont::SetImage(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFont::GetSpace(void)
+size CFont::GetSpace(void)
 {
 	return miSpace;
 }
@@ -254,7 +254,7 @@ int CFont::GetSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFont::GetAscent(void)
+size CFont::GetAscent(void)
 {
 	return miAscent;
 }
@@ -264,7 +264,8 @@ int CFont::GetAscent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CFont::GetDescent(void)
+size CFont::GetDescent(void)
 {
 	return miDescent;
 }
+

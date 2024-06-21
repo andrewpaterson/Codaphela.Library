@@ -75,8 +75,8 @@ void CWinText::Init(HWND hWnd)
 //////////////////////////////////////////////////////////////////////////
 void CWinText::Kill()
 {
-	int		i;
-	int		j;
+	size	i;
+	size	j;
 	HFONT	hFont;
 
 	for (i = 0; i < mcWinFonts.NumElements(); i++)
@@ -99,7 +99,7 @@ void CWinText::Kill()
 SWinFontInstance* CWinText::Create(char* szName, int iHeight, int iWidth, int iWeight)
 {
 	HFONT				hFont;
-	int					i;
+	size				i;
 	SWinFont*			psWinFont;
 	SWinFontInstance*	psInstance;
 
@@ -152,12 +152,12 @@ SWinFontInstance* CWinText::Create(char* szName, int iHeight, int iWidth, int iW
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, bool bSingleLine, RECT* psRect)
+void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, size iFlags, bool bSingleLine, RECT* psRect)
 {
-	int	iLen;
-	int	iFormat;
+	size	iLen;
+	size	iFormat;
 
-	iLen = (int)strlen(szString);
+	iLen = strlen(szString);
 	iFormat = 0;
 	
 	if (iFlags & TEXT_ALIGN_HCENTER)	{ iFormat |= DT_CENTER; }
@@ -179,10 +179,10 @@ void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int i
 //////////////////////////////////////////////////////////////////////////
 void CWinText::Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int x, int y)
 {
-	int		iLen;
+	size	iLen;
 	bool	bReturn;
 
-	iLen = (int)strlen(szString);
+	iLen = strlen(szString);
 
 	SelectObject(hDC, psInstance->hFont);
 	bReturn = TextOut(hDC, x, y, szString, iLen);
@@ -248,7 +248,7 @@ Ptr<CImage> CWinText::PackImage(Ptr<CFont> pcFont, CImage* pcSource, CArrayRecta
 	CArrayUnknown*						pacCels;
 	CImageCel*							pcCel;
 	CImageRecolourInvertBlackAndWhite	cRecolour;
-	int									i;
+	size								i;
 	CImageCelSourceRectangles			cRectangles;
 	Ptr<CImage>							pcDestImage;
 
@@ -289,7 +289,7 @@ Ptr<CImage> CWinText::PackImage(Ptr<CFont> pcFont, CImage* pcSource, CArrayRecta
 void CWinText::GetSourceRectangles(CArrayRectangle* pacRectangles, CChars* pszLetters, HDC hDC)
 {
 	char			szSingle[2];
-	int				i;
+	size			i;
 	int				iWidth;
 	SIZE			sSize;
 	CRectangle*		pcRect;
@@ -316,7 +316,7 @@ void CWinText::GetSourceRectangles(CArrayRectangle* pacRectangles, CChars* pszLe
 //////////////////////////////////////////////////////////////////////////
 void CWinText::GetSourceGlyphs(CChars* pszDest)
 {
-	int		i;
+	size		i;
 
 	pszDest->Init();
 	for (i = 0; i < NUM_LETTERS; i++)
@@ -334,7 +334,7 @@ Ptr<CImage> CWinText::DrawTextToImage(CChars* pszLetters, HDC hDC)
 {
 	HBITMAP			hBM;
 	BITMAPINFO		bmi;
-	int*			pBits;
+	size*			pBits;
 	SIZE			sSize;
 
 	GetTextExtentPoint32(hDC, pszLetters->Text(), pszLetters->Length(), &sSize);

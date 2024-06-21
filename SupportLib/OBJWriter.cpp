@@ -99,7 +99,7 @@ void AddOBJVertices(CMesh* pcMesh, CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 {
-	int			i;
+	size		i;
 	SFloat3*	psNormal;
 	SFloat3		sNormal;
 
@@ -136,7 +136,7 @@ bool AddOBJNormals(CMeshNormals* pcNormals, CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 bool AddOBJTextureCoords(CMeshUVCoords* pcUVs, CChars* psz)
 {
-	int				i;
+	size			i;
 	SFloat2*		psUV;
 	SFloat2			sUV;
 	CMeshUVLayer*	pcUVLayer;

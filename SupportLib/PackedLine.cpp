@@ -144,7 +144,7 @@ bool CPackedLine::RecursePack(CRectangle* pcBounds)
 //////////////////////////////////////////////////////////////////////////
 void CPackedLine::Done(void)
 {
-	int						i;
+	size					i;
 	CPackRectangleAttempt*	pcRect;
 	int						iTemp;
 
@@ -175,7 +175,7 @@ void CPackedLine::Done(void)
 //////////////////////////////////////////////////////////////////////////
 CPackRectangleAttempt* CPackedLine::Get(void* pvUserData)
 {
-	int						i;
+	size					i;
 	CPackRectangleAttempt*	pcRect;
 
 	for (i = 0; i < macRectangles.NumElements(); i++)
@@ -197,7 +197,7 @@ CPackRectangleAttempt* CPackedLine::Get(void* pvUserData)
 //////////////////////////////////////////////////////////////////////////
 void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles)
 {
-	int						i;
+	size					i;
 	CPackRectangleAttempt*	pcRect;
 	CPackedRectangle*		pcPackedRect;
 	int						iLeft;
@@ -224,7 +224,7 @@ void CPackedLine::GetPackedRectangles(CArrayPackedRectangle* pacPackedRectangles
 //////////////////////////////////////////////////////////////////////////
 void CPackedLine::Print(CChars* psz)
 {
-	int						i;
+	size					i;
 	CPackRectangleAttempt*	pcRect;
 
 	for (i = 0; i < macRectangles.NumElements(); i++)

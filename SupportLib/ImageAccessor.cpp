@@ -148,13 +148,13 @@ bool CImageAccessor::IsValid(int x, int y)
 //////////////////////////////////////////////////////////////////////////
 bool CImageAccessor::MakeColour(SImageColour* psDest, CImageColour* pcColour)
 {
-	int						i;
+	size					i;
 	float					fValue;
 	SImageColour			sTemp;
 	bool					bValid;
 	void*					pvData;
 	CChannelAccessor*		pcAccessor;
-	int						iSize;
+	size					iSize;
 	CArrayChannelAccessor*	pacAccessors;
 
 	if (GetBufferSize() > sizeof(SImageColour))

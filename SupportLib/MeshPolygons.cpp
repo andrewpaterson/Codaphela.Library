@@ -107,7 +107,7 @@ void CMeshPolygons::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygons::Save(CFileWriter* pcFile)
 {
-	int				i;
+	size			i;
 	CMeshPolygon*	psPolygon;
 
 	ReturnOnFalse(mcPolygons.WriteAllocatorAndHeader(pcFile));	
@@ -129,7 +129,7 @@ bool CMeshPolygons::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshPolygons::Load(CFileReader* pcFile)
 {
-	int				i;
+	size			i;
 	CMeshPolygon*	psPolygon;
 
 	ReturnOnFalse(mcPolygons.ReadAllocatorAndHeader(pcFile));
@@ -338,7 +338,7 @@ CMeshPolygon* CMeshPolygons::GetPolygonForFace(int iFaceNum)
 {
 	int*	piPolygon;
 
-	piPolygon = maiFacesToPolygons.SafeGet(iFaceNum);
+	piPolygon = (int*)maiFacesToPolygons.SafeGet(iFaceNum);
 	if (piPolygon)
 	{
 		return mcPolygons.Get(*piPolygon);
@@ -652,7 +652,7 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 {
 	CMeshPolygon*	pcDestPolygon;
 	CMeshPolygon*	pcSourcePolygon;
-	int				i;
+	size			i;
 	int*			piPolygon;
 	int				iFace;
 	int				iLastPolygon;
@@ -664,7 +664,7 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 
 	for (i = 0; i < maiFacesToPolygons.NumElements(); i++)
 	{
-		piPolygon = maiFacesToPolygons.Get(i);
+		piPolygon = (int*)maiFacesToPolygons.Get(i);
 		if (*piPolygon == iSource)
 		{
 			*piPolygon = iDestPolygon;
@@ -685,7 +685,7 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 	{
 		for (i = 0; i < maiFacesToPolygons.NumElements(); i++)
 		{
-			piPolygon = maiFacesToPolygons.Get(i);
+			piPolygon = (int*)maiFacesToPolygons.Get(i);
 			if (*piPolygon == iLastPolygon)
 			{
 				*piPolygon = iSource;
@@ -702,9 +702,9 @@ void CMeshPolygons::MergePolygon(int iDestPolygon, int iSource)
 void CMeshPolygons::GetAdjacentPolygons(CMeshConnectivity* pcConn, int iPolygon, CArrayInt* paiAdj)
 {
 	CMeshPolygon*	pcPolygon;
-	int				i;
+	size			i;
 	int				iFace;
-	int				j;
+	size			j;
 	SAdjFaces		sAdjFaces;
 	int				iOtherGon;
 

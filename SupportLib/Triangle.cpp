@@ -74,7 +74,7 @@ void CTriangle::Set(float x1, float y1, float z1, float x2, float y2, float z2, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* CTriangle::GetPoint(int iPoint)
+SFloat3* CTriangle::GetPoint(size iPoint)
 {
 	if (iPoint == 0)
 	{
@@ -199,14 +199,14 @@ void CTriangle::GetAngles(float* psAngle0, float* psAngle1, float* psAngle2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTriangle::IsSliver(float fAngleSliver, SFloat3** pps0, SFloat3** pps1, SFloat3** pps2)
+size CTriangle::IsSliver(float fAngleSliver, SFloat3** pps0, SFloat3** pps1, SFloat3** pps2)
 {
 	float	fAngle0;
 	float	fAngle1;
 	float	fAngle2;
-	int		iIndex0;
-	int		iIndex1;
-	int		iIndex2;
+	size	iIndex0;
+	size	iIndex1;
+	size	iIndex2;
 
 	GetAngles(&fAngle0, &fAngle1, &fAngle2);
 	iIndex0 = 0;
@@ -214,18 +214,18 @@ int CTriangle::IsSliver(float fAngleSliver, SFloat3** pps0, SFloat3** pps1, SFlo
 	iIndex2 = 2;
 	if (fAngle0 < fAngle2)
 	{
-		Swap(&fAngle0, &fAngle2);
-		Swap(&iIndex0, &iIndex2);
+		SwapFloat(&fAngle0, &fAngle2);
+		SwapSize(&iIndex0, &iIndex2);
 	}
 	if (fAngle0 < fAngle1)
 	{
-		Swap(&fAngle0, &fAngle1);
-		Swap(&iIndex0, &iIndex1);
+		SwapFloat(&fAngle0, &fAngle1);
+		SwapSize(&iIndex0, &iIndex1);
 	}
 	if (fAngle1 < fAngle2)
 	{
-		Swap(&fAngle1, &fAngle2);
-		Swap(&iIndex1, &iIndex2);
+		SwapFloat(&fAngle1, &fAngle2);
+		SwapSize(&iIndex1, &iIndex2);
 	}
 
 	*pps0 = GetPoint(iIndex0);

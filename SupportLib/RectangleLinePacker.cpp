@@ -143,7 +143,7 @@ SInt2 CRectangleLinePacker::GetPackedImageSize(void)
 //////////////////////////////////////////////////////////////////////////
 int CRectangleLinePacker::GetWidestRect(void)
 {
-	int				i;
+	size			i;
 	int				iMaxWidth;
 	CRectangle*		pcRect;
 	int				iWidth;
@@ -169,7 +169,7 @@ int CRectangleLinePacker::GetWidestRect(void)
 //////////////////////////////////////////////////////////////////////////
 int CRectangleLinePacker::GetHighestRect(void)
 {
-	int				i;
+	size			i;
 	int				iMaxHeight;
 	CRectangle*		pcRect;
 	int				iHeight;
@@ -195,7 +195,7 @@ int CRectangleLinePacker::GetHighestRect(void)
 //////////////////////////////////////////////////////////////////////////
 int CRectangleLinePacker::PackLeftToRight(void)
 {
-	int				i;
+	size			i;
 	CRectangle*		pcRect;
 	int				iLeft;
 
@@ -216,7 +216,7 @@ int CRectangleLinePacker::PackLeftToRight(void)
 //////////////////////////////////////////////////////////////////////////
 int CRectangleLinePacker::PackTopToBottom(void)
 {
-	int				i;
+	size			i;
 	CRectangle*		pcRect;
 	int				iTop;
 

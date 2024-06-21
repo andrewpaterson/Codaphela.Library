@@ -31,9 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* GetPosition(SFloat3* psPoints, int iStride, int iPoint)
+SFloat3* GetPosition(SFloat3* psPoints, size iStride, size iPoint)
 {
-	return (SFloat3*)RemapSinglePointer(psPoints, iStride*iPoint);
+	return (SFloat3*)RemapSinglePointer(psPoints, iStride * iPoint);
 }
 
 
@@ -41,9 +41,9 @@ SFloat3* GetPosition(SFloat3* psPoints, int iStride, int iPoint)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat3* GetNormal(SFloat3* psNormals, int iStride, int iNormal)
+SFloat3* GetNormal(SFloat3* psNormals, size iStride, size iNormal)
 {
-	return (SFloat3*)RemapSinglePointer(psNormals, iStride*iNormal);
+	return (SFloat3*)RemapSinglePointer(psNormals, iStride * iNormal);
 }
 
 
@@ -51,13 +51,11 @@ SFloat3* GetNormal(SFloat3* psNormals, int iStride, int iNormal)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int GetIndex(SFloat3* psPoints, int iStride, SFloat3* psPosition)
+int GetIndex(SFloat3* psPoints, size iStride, SFloat3* psPosition)
 {
 	int		iIndex;
-	int		iModulus;
 
-	iIndex = ((int)(size)psPosition - (int)(size)psPoints);
-	iModulus = iIndex % iStride;
+	iIndex = (int)(psPosition - psPoints);
 	iIndex = iIndex / iStride;
 
 	return iIndex;

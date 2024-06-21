@@ -42,7 +42,7 @@ struct SWinFontInstance
 	int		iWidth;
 	int		iHeight;
 	int		iWeight;
-	int		iUniqueID;
+	size	iUniqueID;
 };
 
 
@@ -63,13 +63,13 @@ class CWinText
 {
 public:
 	CArrayWinFonts	mcWinFonts;
-	int				miNumFonts;
+	size			miNumFonts;
 			
 	void Init(HWND hWnd);
 	void Kill(void);
 			
 	SWinFontInstance*	Create(char* szName, int iHeight, int iWidth, int iWeight);
-	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int iFlags, bool bSingleLine, RECT* psRect);
+	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, size iFlags, bool bSingleLine, RECT* psRect);
 	void 				Draw(char* szString, SWinFontInstance* psInstance, HDC hDC, int x, int y);
 			
 	Ptr<CFont>			GenerateFont(SWinFontInstance* pcWinFont, char* szFontName);

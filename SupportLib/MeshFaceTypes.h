@@ -45,8 +45,8 @@ struct SMeshFaceType
 	void	Clear(void);
 	bool	IsNormal(void);
 	bool	IsColour(void);
-	int		GetUVs(void);
-	int		GetMatricies(void);
+	size	GetUVs(void);
+	size	GetMatricies(void);
 	int		GetMaterial(void);
 	bool	Equals(SMeshFaceType* psOther);
 	bool	Load(CFileReader* pcFile);

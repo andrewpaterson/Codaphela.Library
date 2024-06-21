@@ -222,8 +222,8 @@ bool CTileMapXML::ImportMap(CMarkupTag* pcTag)
 	CMarkupTag*		pcCelHeight;
 	bool			bResult;
 	CChars			szName;
-	int				iCelWidth;
-	int				iCelHeight;
+	int64			iCelWidth;
+	int64			iCelHeight;
 	CTileMap*		pcMap;
 
 	pcTileMap = CMarkupTextParser::GetTag(pcTag, "TileMap");
@@ -268,7 +268,7 @@ bool CTileMapXML::ImportMap(CMarkupTag* pcTag)
 		return false;
 	}
 
-	pcMap = mpcWorld->AddMap(szName.Text(), iCelWidth, iCelHeight);
+	pcMap = mpcWorld->AddMap(szName.Text(), (int)iCelWidth, (int)iCelHeight);
 
 	bResult = ImportMap2(pcTileMap, pcMap);
 	if (!bResult)
@@ -290,8 +290,8 @@ bool CTileMapXML::ImportMap2(CMarkupTag* pcTag, CTileMap* pcMap)
 	CMarkupTag*		pcWidth;
 	CMarkupTag*		pcHeight;
 	CMarkupTag*		pcLayers;
-	int				iWidth;
-	int				iHeight;
+	int64			iWidth;
+	int64			iHeight;
 	
 	pcWidth = CMarkupTextParser::GetTag(pcTag, "Width");
 	if (!pcWidth)
@@ -320,7 +320,7 @@ bool CTileMapXML::ImportMap2(CMarkupTag* pcTag, CTileMap* pcMap)
 		return false;
 	}
 
-	pcMap->SetMapSize(iWidth, iHeight);
+	pcMap->SetMapSize((int)iWidth, (int)iHeight);
 
 	return ImportLayers(pcLayers, pcMap);
 }
@@ -426,13 +426,13 @@ bool CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 	CChars				szCSV;
 	CCSVFileImmutable	cCSVFile;
 	CMemoryFile			cMemoryFile;
-	int					iRow;
+	size				iRow;
 	SCSVRowImmutable*	psRow;
 	int					i;
 	char*				szCelIndex;
 	CTextParser			cTextParser;
 	TRISTATE			tResult;
-	int					iCelIndex;
+	int64				iCelIndex;
 	CChars				szError;
 	CTile*				pcTile;
 
@@ -478,7 +478,7 @@ bool CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 				return false;
 			}
 			
-			pcTile = pcLayer->mpcTileType->Get(iCelIndex);
+			pcTile = pcLayer->mpcTileType->Get((size)iCelIndex);
 			if (pcTile)
 			{
 				pcLayer->Set(i, iRow, pcTile);

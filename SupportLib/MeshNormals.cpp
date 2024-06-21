@@ -171,8 +171,8 @@ void CMeshNormals::AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConne
 //////////////////////////////////////////////////////////////////////////
 void CMeshNormals::IndexFaceCorners(int* paiDest, int iStride, CArrayInt* paiSourceFaces)
 {
-	int					i;
-	int					iFaceIndex;
+	size				i;
+	size				iFaceIndex;
 	SMeshNormalFace*	psFaceNormal;
 
 	//This assumes something else has check that paiSourceFaces actually have corner normals.

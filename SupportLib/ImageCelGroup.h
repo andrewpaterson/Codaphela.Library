@@ -36,7 +36,6 @@ public:
 	CArrayImageCel	mcImageCels;
 
 	void 		Init(void);
-	void 		Init(char* szName);
 	void 		Free(void);
 	void		Class(void);
 
@@ -45,7 +44,7 @@ public:
 	void		AddCel(CImageCel* pcCel);
 	void		AddCels(CArrayCommonUnknown* pcCels);
 	int			NumCels(void);
-	CImageCel*	GetCel(int iIndex);
+	CImageCel*	GetCel(size iIndex);
 	CImage*		GetImage(void);
 };
 
