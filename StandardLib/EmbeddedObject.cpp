@@ -940,10 +940,23 @@ void CEmbeddedObject::ValidateNotEmbedded(char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 {
-	CBaseObject*					pcContainer;
+	CBaseObject* pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()),"] and embedding class [", pcContainer->ClassName(), "].", NULL);
+	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()), "] and embedding class [", pcContainer->ClassName(), "].", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::LogCantInitFreedObject(char* szMethod)
+{
+	CBaseObject* pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	gcLogger.Error2(szMethod, " Cannot be called on a freed object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
 
@@ -956,6 +969,6 @@ void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
 	CBaseObject*					pcContainer;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()),"].", NULL);
+	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 

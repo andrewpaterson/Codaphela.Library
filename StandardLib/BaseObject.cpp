@@ -62,6 +62,8 @@ CBaseObject::~CBaseObject()
 
 	ValidateInitCalled();
 	ValidateKillCalled();
+
+	muiFlags = 0;
 }
 
 
@@ -85,6 +87,11 @@ void CBaseObject::Allocate(CObjects* pcObjects)
 void CBaseObject::PreClass(void)
 {
 	CClasses*		pcClasses;
+
+	if (muiFlags & OBJECT_FLAGS_FREED)
+	{
+		LogCantInitFreedObject(__METHOD__);
+	}
 
 	if (!HasClass())
 	{
@@ -215,6 +222,7 @@ void CBaseObject::ContainerPostInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Initialised(void)
 {
+	SetFlag(OBJECT_FLAGS_CALLED_KILL, false);
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, true);
 }
 
@@ -238,6 +246,7 @@ void CBaseObject::Kill(void)
 	//This method is for the user to forcibly kill an object.
 	//It is not called internally.
 	SetFlag(OBJECT_FLAGS_CALLED_KILL, true);
+	SetFlag(OBJECT_FLAGS_CALLED_INIT, false);
 
 	bHeapFromChanged = HasHeapFroms();
 	KillInternal(bHeapFromChanged);
@@ -280,7 +289,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged)
 		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
 		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
 
-		FreeInternal();         //Handles embedded objects (in Object.FreeInternal()).
+		FreeInternal(false);    //Handles embedded objects (in Object.FreeInternal()).
 	}
 }
 
@@ -331,7 +340,7 @@ bool CBaseObject::Flush(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::FreeInternal(void)
+void CBaseObject::FreeInternal(bool bAllocatedInObjects)
 {
 	LOG_OBJECT_DESTRUCTION(this);
 
@@ -343,7 +352,10 @@ void CBaseObject::FreeInternal(void)
 
 	FreeIdentifiers();
 
-	SetFlag(OBJECT_FLAGS_FREED, true);
+	if (bAllocatedInObjects)
+	{
+		SetFlag(OBJECT_FLAGS_FREED, true);
+	}
 }
 
 
@@ -1938,6 +1950,99 @@ void CBaseObject::DumpPointerTos(void)
 
 	sz.Dump();
 	sz.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::PrintFlags(CChars* psz)
+{
+	if (muiFlags & OBJECT_FLAGS_TESTED_FOR_ROOT)
+	{
+		psz->Append("TESTED_FOR_ROOT, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_INVALIDATED)
+	{
+		psz->Append("INVALIDATED, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	{
+		psz->Append("CALLED_CONSTRUCTOR, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_DIRTY)
+	{
+		psz->Append("DIRTY, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_FREED)
+	{
+		psz->Append("FREED, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_DUMPED)
+	{
+		psz->Append("DUMPED, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_UNREACHABLE)
+	{
+		psz->Append("UNREACHABLE, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_TESTED_FOR_SANITY)
+	{
+		psz->Append("TESTED_FOR_SANITY, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_CALLED_ALLOCATE)
+	{
+		psz->Append("CALLED_ALLOCATE, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_CALLED_INIT)
+	{
+		psz->Append("CALLED_INIT, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_CALLED_KILL)
+	{
+		psz->Append("CALLED_KILL, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_CALLED_CLASS)
+	{
+		psz->Append("CALLED_CLASS, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_CLEARED_DIST_TO_ROOT)
+	{
+		psz->Append("CLEARED_DIST_TO_ROOT, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_UPDATED_TOS_DIST_TO_ROOT)
+	{
+		psz->Append("UPDATED_TOS_DIST_TO_ROOT, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_DIST_CALCULATOR_TOUCHED)
+	{
+		psz->Append("DIST_CALCULATOR_TOUCHED, ");
+	}
+	if (muiFlags & OBJECT_FLAGS_DIST_FROM_WALKED)
+	{
+		psz->Append("DIST_FROM_WALKED, ");
+	}
+
+	if (psz->EndsWith(", "))
+	{
+		psz->RemoveFromEnd(2);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::DumpFlags(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	PrintFlags(&sz);
+	sz.AppendNewLine();
+	sz.DumpKill();
 }
 
 

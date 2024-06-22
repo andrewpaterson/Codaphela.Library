@@ -141,20 +141,20 @@ void CObject::FreePointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::FreeInternal(void)
+void CObject::FreeInternal(bool bAllocatedInObjects)
 {
-	size				uiNumEmbedded;
-	CBaseObject*		pcEmbedded;
-	size				i;
+	size			uiNumEmbedded;
+	CBaseObject*	pcEmbedded;
+	size			i;
 
 	uiNumEmbedded = mapEmbedded.NumElements();
 	for (i = 0; i < uiNumEmbedded; i++)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
-		pcEmbedded->FreeInternal();
+		pcEmbedded->FreeInternal(bAllocatedInObjects);
 	}
 
-	CBaseObject::FreeInternal();
+	CBaseObject::FreeInternal(bAllocatedInObjects);
 }
 
 

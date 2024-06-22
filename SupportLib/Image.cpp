@@ -38,16 +38,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::PrivateInit(void)
+{
+	mcChannels.Init();
+	miWidth = 0;
+	miHeight = 0;
+	mpsImageChangingDesc = NULL;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(void)
 {
-	mcChannels.Init();
-	miWidth = 0;
-	miHeight = 0;
-	mpsImageChangingDesc = NULL;
+	PreInit();
+	PrivateInit();
+	PostInit();
 }
 
 
@@ -61,7 +74,9 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 	size		iCount;
 	EChannel	eIC;
 
-	Init();
+	PreInit();
+
+	PrivateInit();
 	iCount = 0;
 	eIC = eFirst;
 
@@ -77,6 +92,8 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 
 	SetSize(iWidth, iHeight);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -90,7 +107,9 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eTyp
 	size		iCount;
 	EChannel	eIC;
 
-	Init();
+	PreInit();
+
+	PrivateInit();
 	iCount = 0;
 	eIC = eFirst;
 
@@ -107,6 +126,8 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eTyp
 	SetSize(iWidth, iHeight);
 	SetData(pvUserData);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -116,11 +137,15 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eTyp
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(CImage* pcSource)
 {
-	Init();
+	PreInit();
+
+	PrivateInit();
 	BeginChange();
 	AddChannels(pcSource);
 	SetSize(pcSource->GetWidth(), pcSource->GetHeight());
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -130,11 +155,15 @@ void CImage::Init(CImage* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 {
-	Init();
+	PreInit();
+
+	PrivateInit();
 	BeginChange();
 	AddChannels(pcSource);
 	SetSize(iWidth, iHeight);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -144,12 +173,16 @@ void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource)
 {
-	Init();
+	PreInit();
+
+	PrivateInit();
 	BeginChange();
 	AddChannels(pcSource);
 	SetSize(iWidth, iHeight);
 	SetData(pvUserData);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -159,11 +192,15 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSourc
 //////////////////////////////////////////////////////////////////////////
 void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 {
-	Init();
+	PreInit();
+
+	PrivateInit();
 	BeginChange();
 	AddChannels(pcChannelsSource);
 	SetSize(iWidth, iHeight);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -173,7 +210,6 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Class(void)
 {
-	CObject::ClassNotImplemented();
 }
 
 
