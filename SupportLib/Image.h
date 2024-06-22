@@ -104,6 +104,9 @@ public:
 
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
+
+protected:
+	void					PrivateInit(void);
 };
 
 

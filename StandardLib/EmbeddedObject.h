@@ -43,7 +43,7 @@ public:
 
 	virtual void				Evict(void);
 
-	virtual void				FreeInternal(void) =0;
+	virtual void				FreeInternal(bool bAllocatedInObjects) =0;
 	virtual void				FreePointers(void);
 			void				PostRemapFroms(void);
 	virtual bool				Save(CObjectWriter* pcFile) =0;
@@ -113,6 +113,7 @@ public:
 			void				PrintObject(CChars* psz, bool bEmbedded = false);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				LogExpectedToBeInitialised(char* szMethod);
+			void				LogCantInitFreedObject(char* szMethod);
 			void				ValidateInitialised(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);

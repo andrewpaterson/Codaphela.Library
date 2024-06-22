@@ -169,6 +169,8 @@ public:
 			void				DumpFroms(void);
 			void				DumpPointerTos(void);
 			void				Dump(void);
+			void				PrintFlags(CChars* psz);
+			void				DumpFlags(void);
 
 			void				ValidateFlagSet(uint16 iFlag, char* szFlag);
 			void				ValidateFlagNotSet(uint16 iFlag, char* szFlag);
@@ -196,7 +198,7 @@ protected:
 	virtual void				Initialised(void);
 	virtual	void				EmbedFields(void) =0;
 
-			void				FreeInternal(void) override;
+			void				FreeInternal(bool bAllocatedInObjects) override;
 			void				KillInternal(bool bHeapFromChanged) override;
 			void				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
 

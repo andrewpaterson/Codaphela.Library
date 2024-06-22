@@ -130,7 +130,7 @@ public:
 
 protected:
 	void				EmbedFields(void);
-	void				FreeInternal(void) override;
+	void				FreeInternal(bool bAllocatedInObjects) override;
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
 	void				RemoveAllPointerTosDontKill(void);

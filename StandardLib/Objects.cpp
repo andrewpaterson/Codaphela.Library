@@ -588,7 +588,7 @@ void CObjects::KillDontFreeObjects(CArrayBlockObjectPtr* papcObjectPts)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBaseObject = (CBaseObject*)(*papcObjectPts->Get(i));
-		pcBaseObject->FreeInternal();
+		pcBaseObject->FreeInternal(true);
 	}
 }
 
