@@ -1271,50 +1271,51 @@ size CArrayBlock::GetIndex(void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CArrayBlock::RemoveBatch(size iFirstElementPos, size iNumInBatch, size iNumBatches, size iSkip)
+void CArrayBlock::RemoveBatch(size uiFirstElementPos, size uiNumInBatch, size uiNumBatches, size uiSkip)
 {
 	size	i;
-	void*	pcFirst;
 	void*	pcSource;
 	void*	pcDest;
-	size	iDest;
-	size	iSource;
-	int32	iRemaining;
-	size	iSkipStride;
+	size	uiDest;
+	size	uiSource;
+	size	uiCopyWidth;
+	size	uiSourceStride;
+	size	uiNewNumElements;
 
-	pcFirst = Get(iFirstElementPos);
-
-	iSkipStride = iSkip * miElementSize;
-	for (i = 0; i <= iNumBatches - 2; i++)
+	if (uiNumBatches >= 2)
 	{
-		iDest = iFirstElementPos + iSkip * i;
-		iSource = iFirstElementPos + (iSkip + iNumInBatch) * i + iNumInBatch;
+		uiCopyWidth = uiSkip * miElementSize;
+		uiSourceStride = uiSkip + uiNumInBatch;
+		for (i = 0; i < uiNumBatches - 1; i++)
+		{
+			uiDest = uiFirstElementPos + uiSkip * i;
+			uiSource = uiFirstElementPos + uiSourceStride * i + uiNumInBatch;
 
-		pcDest = Get(iDest);
-		pcSource = Get(iSource);
+			pcDest = Get(uiDest);
+			pcSource = Get(uiSource);
 
-		memcpy(pcDest, pcSource, iSkipStride);
+			memcpy(pcDest, pcSource, uiCopyWidth);
+		}
 	}
 
-	iDest = iFirstElementPos + (iSkip + iNumInBatch) * iNumBatches - iSkip;
-	iRemaining = miUsedElements - iDest;
-
-	if (iRemaining > 0)
+	uiSource = uiFirstElementPos + (uiSkip + uiNumInBatch) * uiNumBatches - uiSkip;
+	if (miUsedElements > uiSource)
 	{
-		iSource = iFirstElementPos + iSkip * (iNumBatches - 1);
-		pcDest = Get(iDest);
-		pcSource = Get(iSource);
+		uiDest = uiFirstElementPos + uiSkip * (uiNumBatches - 1);
+		pcDest = Get(uiDest);
+		pcSource = Get(uiSource);
 
-		memcpy(pcSource, pcDest, iRemaining * miElementSize);
-		iRemaining = 0;
+		uiCopyWidth = (miUsedElements - uiSource) * miElementSize;
+		memcpy(pcDest, pcSource, uiCopyWidth);
+
+		uiNewNumElements = miUsedElements - (uiNumInBatch * uiNumBatches);
+		SetArraySize(uiNewNumElements);
 	}
 	else
 	{
-		iRemaining = -iRemaining;
+		uiNewNumElements = miUsedElements - (uiNumInBatch * uiNumBatches) + (uiSource - miUsedElements);
+		SetArraySize(uiNewNumElements);
 	}
-
-
-	SetUsedElements(miUsedElements - iNumInBatch * iNumBatches + iRemaining);
 }
 
 
