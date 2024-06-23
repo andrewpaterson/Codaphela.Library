@@ -43,7 +43,7 @@ public:
 
 	void Init(ERGBToGreyStyle eStyle);
 	void Kill(void);
-	void Modify(CImage* pcImage);
+	bool Modify(CImage* pcImage);
 
 private:
 	bool AreChannelsSame(CImage* pcIMage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3);

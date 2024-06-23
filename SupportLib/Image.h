@@ -72,13 +72,13 @@ public:
 	void					AddChannels(CImageChannelsSource* pcSource);
 	void 					AddChannels(CArrayChannel* pasChannels);
 	void 					AddChannels(CImage* pcSourceChannels);
-	void					RemoveChannel(size iChannel);
+	bool					RemoveChannel(size iChannel);
 	void					RemovePurpose(EImagePurpose ePurpose);
 	void					SetSize(int iWidth, int iHeight);
 	int						GetHeight(void);
 	int						GetWidth(void);
 	void 					ByteAlignChannels(void);
-	void					RenameChannel(size iOldName, size iNewName);
+	bool					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);
 	bool					IsChanging(void);
 

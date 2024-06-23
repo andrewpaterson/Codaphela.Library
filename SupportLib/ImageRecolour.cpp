@@ -77,7 +77,7 @@ void CImageRecolour::AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewC
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRecolour::Modify(CImage* pcImage)
+bool CImageRecolour::Modify(CImage* pcImage)
 {
 	CImageAccessor*		pcAccessorOld;
 	CImageAccessor*		pcAccessorNew;
@@ -122,5 +122,7 @@ void CImageRecolour::Modify(CImage* pcImage)
 		pcAccessorNew->Kill();
 		pcAccessorOld->Kill();
 	}
+
+	return true;
 }
 

@@ -41,7 +41,7 @@ public:
 	void Kill(void);
 
 	void AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewColour);
-	void Modify(CImage* pcImage);
+	bool Modify(CImage* pcImage);
 };
 
 

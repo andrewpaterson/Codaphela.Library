@@ -318,7 +318,7 @@ void CChannels::PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bRev
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::RemoveChannel(size iChannel)
+bool CChannels::RemoveChannel(size iChannel)
 {
 	SChannel* psChannel;
 
@@ -328,8 +328,10 @@ void CChannels::RemoveChannel(size iChannel)
 		{
 			psChannel = mpsChangingDesc->asRemovedChannels.Add();
 			psChannel->iChannel = iChannel;
+			return true;
 		}
 	}
+	return false;
 }
 
 
@@ -427,7 +429,7 @@ bool CChannels::EndChange(void)
 					{
 						iOffset = psChannel->miByteOffset;
 						iSize = psChannel->miByteSize;
-						mabData.RemoveBatch(iOffset, iSize, miSize, miByteStride);
+						mabData.RemoveBatch(iOffset, iSize, miSize, miByteStride-iSize);
 					}
 					else
 					{
@@ -636,7 +638,7 @@ void CChannels::SetData(void* pvMem)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::RenameChannel(size iOldName, size iNewName)
+bool CChannels::RenameChannel(size iOldName, size iNewName)
 {
 	CChannel*	pcChannel;
 
@@ -644,7 +646,9 @@ void CChannels::RenameChannel(size iOldName, size iNewName)
 	if (pcChannel)
 	{
 		pcChannel->iChannel = iNewName;
+		return true;
 	}
+	return false;
 }
 
 

@@ -38,7 +38,7 @@ public:
 
 	void Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
 	void Kill(void);
-	void Modify(CImage* pcImage);
+	bool Modify(CImage* pcImage);
 };
 
 

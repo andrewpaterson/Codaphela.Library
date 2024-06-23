@@ -58,10 +58,10 @@ public:
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannels(CArrayChannel* pasChannels);
 	void 					AddChannels(CChannels* pcSourceChannels);
-	void					RemoveChannel(size iChannel);
+	bool					RemoveChannel(size iChannel);
 	void					SetData(void* pvMem);
 	void					ByteAlign(void);
-	void					RenameChannel(size iOldName, size iNewName);
+	bool					RenameChannel(size iOldName, size iNewName);
 	bool 					EndChange(void);
 	bool					IsChanging(void);
 	bool					IsSameFormat(CChannels* psOther);

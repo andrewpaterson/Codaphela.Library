@@ -62,7 +62,7 @@ public:
 	void Init(EImageResample eResample, EPow2Style eStyle);
 	void Init(EImageResample eResample, int iWidth, int iHeight);
 	void Kill(void);
-	void Modify(CImage* pcImage);
+	bool Modify(CImage* pcImage);
 };
 
 

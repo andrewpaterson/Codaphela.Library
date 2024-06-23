@@ -50,10 +50,11 @@ void CImageRGBToGrey::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageRGBToGrey::Modify(CImage* pcImage)
+bool CImageRGBToGrey::Modify(CImage* pcImage)
 {
 	bool				bDiffuseChannelsSame;
 	ERGBToGreyStyle		eStyle;
+	bool				bSuccess;
 
 	//This will preserve opacity.
 	eStyle = meStyle;
@@ -67,19 +68,29 @@ void CImageRGBToGrey::Modify(CImage* pcImage)
 				eStyle = RGBTGS_UseRed;
 			}
 		}
+
 		if (eStyle == RGBTGS_UseRed)
 		{
+			bSuccess = true;
+
 			pcImage->BeginChange();
-			pcImage->RemoveChannel(IMAGE_DIFFUSE_GREEN);
-			pcImage->RemoveChannel(IMAGE_DIFFUSE_BLUE);
-			pcImage->EndChange();
-			pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREY);
+			bSuccess &= pcImage->RemoveChannel(IMAGE_DIFFUSE_GREEN);
+			bSuccess &= pcImage->RemoveChannel(IMAGE_DIFFUSE_BLUE);
+			bSuccess &= pcImage->EndChange();
+			bSuccess &= pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREY);
+			return bSuccess;
 		}
+
 		if (eStyle == RGBTGS_UseAll)
 		{
 			//Implement me later
+			return false;
 		}
+
+		return false;
 	}
+
+	return false;
 }
 
 

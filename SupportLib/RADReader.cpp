@@ -66,7 +66,7 @@ bool AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 
 	cTypes.Init();
 	cTypes.Add("Char",		PT_int8);
-	cTypes.Add("UChar",		PT_uint8);
+	cTypes.Add("UByte",		PT_uint8);
 	cTypes.Add("Short",		PT_int16);
 	cTypes.Add("UShort",	PT_uint16);
 	cTypes.Add("Int",		PT_int32);

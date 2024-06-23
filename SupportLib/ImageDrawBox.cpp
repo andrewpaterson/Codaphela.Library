@@ -59,7 +59,7 @@ void CImageDrawBox::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDrawBox::Modify(CImage* pcImage)
+bool CImageDrawBox::Modify(CImage* pcImage)
 {
 	CImageAccessor*		pcAccessor;
 	int					x;
@@ -100,5 +100,7 @@ void CImageDrawBox::Modify(CImage* pcImage)
 	}
 
 	pcAccessor->Kill();
+
+	return true;
 }
 
