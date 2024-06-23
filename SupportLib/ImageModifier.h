@@ -32,7 +32,7 @@ class CImageModifier : public CUnknown
 CONSTRUCTABLE(CImageModifier);
 public:
 	void			Kill(void);
-	virtual void	Modify(CImage* pcImage) =0;
+	virtual bool	Modify(CImage* pcImage) =0;
 };
 
 

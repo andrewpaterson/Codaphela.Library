@@ -49,27 +49,34 @@ void CImageGreyToRGB::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageGreyToRGB::Modify(CImage* pcImage)
+bool CImageGreyToRGB::Modify(CImage* pcImage)
 {
-	CImageAccessor*			pcRed;
-	CImageAccessor*			pcGreen;
-	CImageAccessor*			pcBlue;
-	CChannel*				psGreyChannel;
-	int						x;
-	int						y;
-	int 					iWidth;
-	int 					iHeight;
-	void*					pvRed;
-	EPrimitiveType			eChannelType;
+	CImageAccessor*		pcRed;
+	CImageAccessor*		pcGreen;
+	CImageAccessor*		pcBlue;
+	CChannel*			psGreyChannel;
+	int					x;
+	int					y;
+	int 				iWidth;
+	int 				iHeight;
+	void*				pvRed;
+	EPrimitiveType		eChannelType;
+	bool				bSuccess;
 
 	psGreyChannel = pcImage->GetChannel(IMAGE_DIFFUSE_GREY);
 	if (psGreyChannel)
 	{
+		bSuccess = true;
 		eChannelType = psGreyChannel->eType;
-		pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_DIFFUSE_RED);
+		bSuccess &= pcImage->RenameChannel(IMAGE_DIFFUSE_GREY, IMAGE_DIFFUSE_RED);
 		pcImage->BeginChange();
 		pcImage->AddChannel(IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eChannelType);
-		pcImage->EndChange();
+		bSuccess &= pcImage->EndChange();
+
+		if (!bSuccess)
+		{
+			return false;
+		}
 
 		pcRed = CImageAccessorCreator::Create(pcImage, eChannelType, IMAGE_DIFFUSE_RED, CHANNEL_ZERO);
 		pcGreen = CImageAccessorCreator::Create(pcImage, eChannelType, IMAGE_DIFFUSE_GREEN, CHANNEL_ZERO);
@@ -91,6 +98,10 @@ void CImageGreyToRGB::Modify(CImage* pcImage)
 		pcRed->Kill();
 		pcGreen->Kill();
 		pcBlue->Kill();
+
+		return true;
 	}
+
+	return false;
 }
 

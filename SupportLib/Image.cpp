@@ -326,9 +326,9 @@ void CImage::AddChannels(CImage* pcSourceChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::RemoveChannel(size iChannel)
+bool CImage::RemoveChannel(size iChannel)
 {
-	mcChannels.RemoveChannel(iChannel);
+	return mcChannels.RemoveChannel(iChannel);
 }
 
 
@@ -492,9 +492,9 @@ void CImage::RemovePurpose(EImagePurpose ePurpose)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::RenameChannel(size iOldName, size iNewName)
+bool CImage::RenameChannel(size iOldName, size iNewName)
 {
-	mcChannels.RenameChannel(iOldName, iNewName);
+	return mcChannels.RenameChannel(iOldName, iNewName);
 }
 
 

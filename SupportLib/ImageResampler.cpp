@@ -67,7 +67,7 @@ void CImageResampler::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageResampler::Modify(CImage* pcImage)
+bool CImageResampler::Modify(CImage* pcImage)
 {
 	CImage			cDest;
 
@@ -78,12 +78,14 @@ void CImageResampler::Modify(CImage* pcImage)
 
 	if ((pcImage->GetWidth() == miWidth) && (pcImage->GetHeight() == miHeight))
 	{
-		return;
+		return true;
 	}
 
 	ResampleTo(&cDest, pcImage);
 	pcImage->Copy(&cDest);
 	cDest.Kill();
+
+	return true;
 }
 
 

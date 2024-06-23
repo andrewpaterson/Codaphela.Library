@@ -36,7 +36,7 @@ public:
 
 	void Init(EChannel eOldName, EChannel eNewName);
 	void Kill(void);
-	void Modify(CImage* pcImage);
+	bool Modify(CImage* pcImage);
 };
 
 

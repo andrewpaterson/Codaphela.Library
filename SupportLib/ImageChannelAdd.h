@@ -39,7 +39,7 @@ public:
 	void Kill(void);
 
 	void AddChannel(EChannel eChannel);
-	void Modify(CImage* pcImage);
+	bool Modify(CImage* pcImage);
 };
 
 

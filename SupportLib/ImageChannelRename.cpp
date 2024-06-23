@@ -49,8 +49,8 @@ void CImageChannelRename::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageChannelRename::Modify(CImage* pcImage)
+bool CImageChannelRename::Modify(CImage* pcImage)
 {
-	pcImage->RenameChannel(meOldName, meNewName);
+	return pcImage->RenameChannel(meOldName, meNewName);
 }
 
