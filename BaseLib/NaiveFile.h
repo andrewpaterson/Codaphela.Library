@@ -38,7 +38,7 @@ public:
 	CNaiveFile();
 
 	CNaiveFile*	Init(void);
-	CNaiveFile* Init(void* pvMem, int iSize);
+	CNaiveFile* Init(void* pvMem, size iSize);
 	void		Kill(void);
 	void		KillExceptBuffer(void);
 
@@ -48,14 +48,14 @@ public:
 
 	void*		Get(void);
 	void*		Get(int iOffset);
-	void		Set(void* pvMem, int iSize);
+	void		Set(void* pvMem, size iSize);
 	filePos		Size();
 
-	int			Compare(void* pvOther, int iSize);
+	int			Compare(void* pvOther, size iSize);
 };
 
 
-int CompareFileToMemory(const char* szFilename, void* pvMem, int iLength);
+int CompareFileToMemory(const char* szFilename, void* pvMem, size iLength);
 
 
 #endif // __NAIVE_FILE_H__

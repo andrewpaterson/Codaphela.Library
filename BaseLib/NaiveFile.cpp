@@ -54,7 +54,7 @@ CNaiveFile* CNaiveFile::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNaiveFile* CNaiveFile::Init(void* pvMem, int iSize)
+CNaiveFile* CNaiveFile::Init(void* pvMem, size iSize)
 {
 	Init();
 	Set(pvMem, iSize);
@@ -182,12 +182,12 @@ void* CNaiveFile::Get(int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNaiveFile::Set(void* pvMem, int iSize)
+void CNaiveFile::Set(void* pvMem, size iSize)
 {
 	SafeFree(mpvMem);
 	mpvMem = malloc(iSize);
 	miSize = iSize;
-	memcpy(mpvMem, pvMem, (int)miSize);
+	memcpy(mpvMem, pvMem, (size)miSize);
 }
 
 
@@ -205,7 +205,7 @@ filePos CNaiveFile::Size()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CNaiveFile::Compare(void* pvOther, int iSize)
+int CNaiveFile::Compare(void* pvOther, size iSize)
 {
 	int		iResult;
 	
@@ -232,7 +232,7 @@ int CNaiveFile::Compare(void* pvOther, int iSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CompareFileToMemory(const char* szFilename, void* pvMem, int iSize)
+int CompareFileToMemory(const char* szFilename, void* pvMem, size iSize)
 {
 	CNaiveFile	cNaiveFile;
 	int			iResult;
