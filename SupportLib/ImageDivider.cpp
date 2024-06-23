@@ -81,7 +81,6 @@ void CImageDivider::GenerateFromBorder(CImage* pcFillMask)
 	int						x, y;
 	SImageColour			cCellColour;
 	CImageFiller			cFiller;
-	CImage					cFillMask;
 	CFillRectangle			cFillBounds;
 	bool					bResult;
 	short					iMask;

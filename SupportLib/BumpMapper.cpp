@@ -180,6 +180,10 @@ bool ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, CImage* pcImageDest, CI
 		pcImageDest = &cDest;
 		cDest.Init();
 	}
+	else
+	{
+		cDest.Safe();
+	}
 
 	pcImageDest->BeginChange();
 	pcImageDest->SetSize(pcImageSource->GetWidth(), pcImageSource->GetHeight());
