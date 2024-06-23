@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_TYPES_H__
 #define __IMAGE_TYPES_H__
+#include "BaseLib/Chars.h"
 
 
 //The stop 'channel'.
@@ -54,6 +55,9 @@ typedef int EChannel;
 
 
 #define CHANNEL(ePurpose, eType) ((EChannel)((NUM_CHANNEL_TYPES * ePurpose) + eType + 1))
+
+
+void PrintChannelType(EChannelType eType, CChars* psz);
 
 
 #endif // !__IMAGE_TYPES_H__

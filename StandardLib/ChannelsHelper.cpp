@@ -60,3 +60,4 @@ void SChannelsChangingDesc::Kill(void)
 	pvUserData = NULL;
 }
 
+

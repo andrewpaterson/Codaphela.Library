@@ -71,6 +71,7 @@ SChannel CChannelRGB::GetChannel(size iIndex)
 
 CChannelRGB		gcRGB;
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -182,5 +183,59 @@ CChannelRGBX		gcRGBX;
 CImageChannelsSource* CChannelRGBX::Get(void)
 {
 	return &gcRGBX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void PrintImagePurpose(EImagePurpose ePurpose, CChars* psz)
+{
+	switch (ePurpose)
+	{
+	case IP_Unknown:
+		psz->Append("Unknown");
+		break;
+	case IP_Diffuse:
+		psz->Append("Diffuse");
+		break;
+	case IP_Specular:
+		psz->Append("Specular");
+		break;
+	case IP_Illumination:
+		psz->Append("Illumination");
+		break;
+	case IP_Opacity:
+		psz->Append("Opacity");
+		break;
+	case IP_Normal:
+		psz->Append("Normal");
+		break;
+	case IP_Bump:
+		psz->Append("Bump");
+		break;
+	case IP_UVAdjust:
+		psz->Append("UVAdjust");
+		break;
+	case IP_Detail:
+		psz->Append("Detail");
+		break;
+	case IP_Decal:
+		psz->Append("Decal");
+		break;
+	case IP_Mask:
+		psz->Append("Mask");
+		break;
+	case IP_Palette0:
+		psz->Append("Palette0");
+		break;
+	case IP_Palette1:
+		psz->Append("Palette1");
+		break;
+	default:
+		psz->Append("INVALID");
+		break;
+	}
 }
 

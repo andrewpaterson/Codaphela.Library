@@ -72,5 +72,8 @@ void TypesKill(void);
 bool TypesValidate(void);
 
 
+void PrintPrimitiveType(EPrimitiveType eType, CChars* psz);
+
+
 #endif // __TYPE_NAMES_H__
 
