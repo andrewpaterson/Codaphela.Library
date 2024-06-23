@@ -64,8 +64,10 @@ class CPackedRectangle : public CRectangle
 public:
 	void*		mpvUserData;
 
-	void Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData);
-	void Init(CRectangle* pcRect, void* pvUserData);
+	void	Init(int iLeft, int iTop, int iRight, int iBottom, void* pvUserData);
+	void	Init(CRectangle* pcRect, void* pvUserData);
+
+	void*	GetUserData(void);
 };
 
 
