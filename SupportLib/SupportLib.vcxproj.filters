@@ -1067,5 +1067,8 @@
     <ClCompile Include="FakeTracker.cpp">
       <Filter>Source\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="ChannelTypes.cpp">
+      <Filter>Source\Channel</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

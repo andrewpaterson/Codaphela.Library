@@ -119,5 +119,8 @@ public:
 };
 
 
+void PrintImagePurpose(EImagePurpose ePurpose, CChars* psz);
+
+
 #endif // !__IMAGE_IMAGE__H__
 

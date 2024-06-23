@@ -352,3 +352,19 @@ bool TypesValidate(void)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void PrintPrimitiveType(EPrimitiveType eType, CChars* psz)
+{
+	const char* pszTypeName;
+
+	pszTypeName = gcTypeNames.GetPrimitiveName(eType);
+	if (pszTypeName)
+	{
+		psz->Append(pszTypeName);
+	}
+}
+

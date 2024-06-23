@@ -95,7 +95,7 @@ bool Failed(const char* szExpected, const char* szActual, size iLine, char* szFi
 #define AssertIntHex(e, a)					Validate(PrivateAssertIntHex(e, a, __LINE__, __FILE__))
 #define AssertShort(e, a)					Validate(PrivateAssertShort(e, a, __LINE__, __FILE__))
 #define AssertShortHex(e, a)				Validate(PrivateAssertShortHex(e, a, __LINE__, __FILE__))
-#define AssertLong(e, a)				Validate(PrivateAssertLongLongInt(e, a, __LINE__, __FILE__))
+#define AssertLong(e, a)					Validate(PrivateAssertLongLongInt(e, a, __LINE__, __FILE__))
 #define AssertLongLongIntHex(e, a)			Validate(PrivateAssertLongLongIntHex(e, a, __LINE__, __FILE__))
 #define AssertFloat(e, a, t)				Validate(PrivateAssertFloat(e, a, t, __LINE__, __FILE__))
 #define AssertFloat3(e, a, t)				Validate(PrivateAssertFloat3(e, a, t, __LINE__, __FILE__))
