@@ -259,7 +259,7 @@ bool CImageCelsSource::Load(void)
 
 		if (pcCelsSource->NeedsMask())
 		{
-			pcMask = OMalloc<CImage>();
+			pcMask = OMallocNoI<CImage>();
 			macFillMasks.Add(pcMask);
 		}
 		iFirstCelIndex = macImageCels.NumElements();
