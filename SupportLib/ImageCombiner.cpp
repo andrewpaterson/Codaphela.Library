@@ -159,7 +159,6 @@ Ptr<CImage> CImageCombiner::InitiailiseDestImage(SInt2 sSize)
 	Ptr<CImage>		pcImage;
 
 	pcImage = OMalloc<CImage>();
-	pcImage->Init();
 	pcImage->BeginChange();
 
 	if (meChannels != ICC_UserSpecified)

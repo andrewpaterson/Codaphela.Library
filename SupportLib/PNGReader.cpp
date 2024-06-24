@@ -35,7 +35,7 @@ bool LoadPNG(CImage* pcImage, char *file_name)
 {
 	png_structp			png_ptr;
 	png_infop			info_ptr;
-	uint32		sig_read = 0;
+	uint32				sig_read = 0;
 	FILE*				fp;
 	png_bytep*			row_pointers;
 	int					iWidth;
