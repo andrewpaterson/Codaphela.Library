@@ -577,6 +577,7 @@
     <ClCompile Include="DataFree.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
+    <ClCompile Include="DataTypes.cpp" />
     <ClCompile Include="DataTypesIO.cpp" />
     <ClCompile Include="DateTime.cpp" />
     <ClCompile Include="Double2.cpp" />

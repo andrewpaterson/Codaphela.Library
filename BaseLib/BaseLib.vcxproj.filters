@@ -2576,6 +2576,9 @@
     <ClCompile Include="BinarySearch.cpp">
       <Filter>Source\Search</Filter>
     </ClCompile>
+    <ClCompile Include="DataTypes.cpp">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="gpl.txt">

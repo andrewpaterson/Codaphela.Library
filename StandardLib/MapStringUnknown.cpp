@@ -101,7 +101,7 @@ bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
 	void*		pvData;
 	size		iDataSize;
 
-	ReturnOnFalse(pcFileWriter->WriteShort(miFlags));
+	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
 	ReturnOnFalse(mcMap.WriteCaseSensitivity(pcFileWriter));
 	ReturnOnFalse(mcMap.WriteExceptData(pcFileWriter));
 
@@ -135,7 +135,7 @@ bool CMapStringUnknown::Load(CFileReader* pcFileReader)
 	size			iDataSize;
 	DataCompare		CaseFunc;
 
-	ReturnOnFalse(pcFileReader->ReadShort(&miFlags));
+	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
 	CaseFunc = mcMap.ReadCaseSensitivity(pcFileReader);
 	if (!mcMap.ReadExceptData(pcFileReader, CaseFunc))
 	{

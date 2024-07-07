@@ -95,22 +95,28 @@ public:
 	void				Primitive(Char8* pcPrimitive, char* szFieldName);
 	void				Primitive(Char16* pcPrimitive, char* szFieldName);
 
-	void				UnmanagedInt(int8* pc, char* szFieldName);
-	void				UnmanagedInt(int8* pac, size uiLength, char* szFieldName);
-	void				UnmanagedInt(int16* pi, char* szFieldName);
-	void				UnmanagedInt(int16* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt(int32* pi, char* szFieldName);
-	void				UnmanagedInt(int32* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt(int64* pi, char* szFieldName);
-	void				UnmanagedInt(int64* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt(uint8* pc, char* szFieldName);
-	void				UnmanagedInt(uint8* pac, size uiLength, char* szFieldName);
-	void				UnmanagedInt(uint16* pi, char* szFieldName);
-	void				UnmanagedInt(uint16* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt(uint32* pi, char* szFieldName);
-	void				UnmanagedInt(uint32* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt(uint64* pi, char* szFieldName);
-	void				UnmanagedInt(uint64* pai, size uiLength, char* szFieldName);
+	void				UnmanagedInt8(int8* pc, char* szFieldName);
+	void				UnmanagedInt8(int8* pac, size uiLength, char* szFieldName);
+	void				UnmanagedInt16(int16* pi, char* szFieldName);
+	void				UnmanagedInt16(int16* pai, size uiLength, char* szFieldName);
+	void				UnmanagedInt32(int32* pi, char* szFieldName);
+	void				UnmanagedInt32(int32* pai, size uiLength, char* szFieldName);
+	void				UnmanagedInt64(int64* pi, char* szFieldName);
+	void				UnmanagedInt64(int64* pai, size uiLength, char* szFieldName);
+	void				UnmanagedSInt(int* pi, char* szFieldName);
+	void				UnmanagedSInt(int* pai, size uiLength, char* szFieldName);
+	void				UnmanagedUInt8(uint8* pc, char* szFieldName);
+	void				UnmanagedUInt8(uint8* pac, size uiLength, char* szFieldName);
+	void				UnmanagedUInt16(uint16* pi, char* szFieldName);
+	void				UnmanagedUInt16(uint16* pai, size uiLength, char* szFieldName);
+	void				UnmanagedUInt32(uint32* pi, char* szFieldName);
+	void				UnmanagedUInt32(uint32* pai, size uiLength, char* szFieldName);
+	void				UnmanagedUInt64(uint64* pi, char* szFieldName);
+	void				UnmanagedUInt64(uint64* pai, size uiLength, char* szFieldName);
+	void				UnmanagedSUInt(uint* pi, char* szFieldName);
+	void				UnmanagedSUInt(uint* pai, size uiLength, char* szFieldName);
+	void				UnmanagedSize(size* pi, char* szFieldName);
+	void				UnmanagedSize(size* pai, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(float32* pf, char* szFieldName);
 	void				UnmanagedFloat(float32* paf, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(float64* pf, char* szFieldName);
@@ -119,6 +125,8 @@ public:
 	void				UnmanagedChar(char8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedChar(char16* pc, char* szFieldName);
 	void				UnmanagedChar(char16* pac, size uiLength, char* szFieldName);
+	void				UnmanagedBool(bool* pb, char* szFieldName);
+	void				UnmanagedBool(bool* pab, size uiLength, char* szFieldName);
 
 	void				UnmanagedEnum(void* pe, char* szFieldName);
 

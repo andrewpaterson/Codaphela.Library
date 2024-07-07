@@ -23,31 +23,39 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __CHANNELS__H__
 #define __CHANNELS__H__
 #include "Unknown.h"
+#include "Object.h"
+#include "ObjectReader.h"
+#include "ObjectWriter.h"
 #include "Channel.h"
 
 
-class CChannels : public CUnknown
+class CChannels : public CObject
 {
 CONSTRUCTABLE(CChannels);
+DESTRUCTABLE(CChannels);
 protected:
 	CArrayChannelOffset		masChannelOffsets;
-	size					miSize;			//The number of 'pixels' in the channels (not the size in bytes).
-	size					miByteStride;	//The number of bytes between 'pixels' zero if not a whole byte.
-	size					miBitStride;	//The number of bits between pixels.
-	bool					mbOnlyBasicTypes;  //Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
+	size					miSize;				//The number of 'pixels' in the channels (not the size in bytes).
+	size					miByteStride;		//The number of bytes between 'pixels' zero if not a whole byte.
+	size					miBitStride;		//The number of bits between pixels.
+	bool					mbOnlyBasicTypes;	//Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
 
 	CArrayChar				mabData;
 	char*					mpvUserData;
 
 	SChannelsChangingDesc*	mpsChangingDesc;
-	char*					mpvDataCache;  //A pointer to either mabData.pvArray or mpvUserData
+	char*					mpvDataCache;		//A pointer to either mabData.pvArray or mpvUserData
 
 public:
 	void 					Init(void);
 	void 					Init(size iSize, EPrimitiveType eType, size iFirst, ...);
 	void 					Init(size iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...);
 	void					Init(CChannels* pcSource);
-	void 					Kill(void);
+	void					Class(void);
+	void 					Free(void);
+
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
 	void 					BeginChange(void);
 	void 					SetSize(size iSize);
@@ -75,8 +83,6 @@ public:
 	void					AllocateData(void);
 	void					FreeData(void);
 
-	bool					Load(CFileReader* pcFile);
-	bool					Save(CFileWriter* pcFile);
 	void					Copy(CChannels* pcData);
 	void					Clear(void);
 	void					Dump(size iLineLength);
@@ -112,6 +118,7 @@ public:
 	EPrimitiveType			GetLargestPrimitiveType(void);
 
 protected:
+	void					PrivateInit(void);
 	void					Recalculate(void);
 };
 

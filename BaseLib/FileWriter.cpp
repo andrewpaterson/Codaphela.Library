@@ -88,9 +88,20 @@ bool CFileWriter::WriteSize(size ui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteInt(int i)
+bool CFileWriter::WriteSInt(int i)
 {
 	CheckWrite(&i, sizeof(int));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileWriter::WriteSUInt(uint i)
+{
+	CheckWrite(&i, sizeof(uint));
 	return true;
 }
 
@@ -154,7 +165,7 @@ bool CFileWriter::WriteBool(bool b)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteShort(int16 i)
+bool CFileWriter::WriteInt16(int16 i)
 {
 	CheckWrite(&i, sizeof(int16));
 	return true;
@@ -165,7 +176,7 @@ bool CFileWriter::WriteShort(int16 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteShort(uint16 i)
+bool CFileWriter::WriteInt16(uint16 i)
 {
 	CheckWrite(&i, sizeof(uint16));
 	return true;
@@ -176,7 +187,7 @@ bool CFileWriter::WriteShort(uint16 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteByte(int8 i)
+bool CFileWriter::WriteInt8(int8 i)
 {
 	CheckWrite(&i, sizeof(int8));
 	return true;
@@ -187,7 +198,7 @@ bool CFileWriter::WriteByte(int8 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteByte(uint8 i)
+bool CFileWriter::WriteInt8(uint8 i)
 {
 	CheckWrite(&i, sizeof(uint8));
 	return true;
@@ -198,7 +209,7 @@ bool CFileWriter::WriteByte(uint8 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteLong(int64 i)
+bool CFileWriter::WriteInt64(int64 i)
 {
 	CheckWrite(&i, sizeof(int64));
 	return true;
@@ -209,7 +220,7 @@ bool CFileWriter::WriteLong(int64 i)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileWriter::WriteLong(uint64 ulli)
+bool CFileWriter::WriteInt64(uint64 ulli)
 {
 	CheckWrite(&ulli, sizeof(uint64));
 	return true;

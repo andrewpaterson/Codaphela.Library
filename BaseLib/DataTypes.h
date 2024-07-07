@@ -25,7 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PrimitiveTypes.h"
 
 
-
 #define MAX_CHAR	((int8)0x7f)
 #define MIN_CHAR	((int8)0x80)
 #define MAX_UCHAR	((uint8)0xff)
@@ -132,7 +131,7 @@ enum EPrimitiveType
 
 	//Pointers.
 	PT_Pointer,		//An arbitrary void pointer.
-	PT_Data,		//8 Unknown arrays of bytes.  Data implies you should not perform operations/transformations directy on the data array.
+	PT_Data,		//8[] Unknown arrays of bytes.  Data implies you should not perform operations/transformations directy on the data array.
 
 	//Enum
 	PT_Enum,
@@ -143,6 +142,11 @@ enum EPrimitiveType
 
 
 #define SIZE_IN_BITS		0x80000000 //If GetSize returns a size with this flag set then the size is in bits, not bytes.
+
+
+EPrimitiveType IntPrimitive(void);
+EPrimitiveType SizePrimitive(void);
+EPrimitiveType UIntPrimitive(void);
 
 
 #endif // __DATA_TYPES_H__

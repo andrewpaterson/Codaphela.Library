@@ -126,7 +126,7 @@ bool CArrayCommonUnknown::SaveArrayHeader(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteSize(mcArray.NumElements()));
 	ReturnOnFalse(pcFile->WriteSize(miNonNullElements));
 	ReturnOnFalse(pcFile->WriteSize(mcArray.ChunkSize()));
-	ReturnOnFalse(pcFile->WriteShort(miFlags));
+	ReturnOnFalse(pcFile->WriteInt16(miFlags));
 	return true;
 }
 
@@ -144,7 +144,7 @@ bool CArrayCommonUnknown::LoadArrayHeader(CFileReader* pcFile, uint16* piFlags, 
 	ReturnOnFalse(pcFile->ReadSize(piNumElements));
 	ReturnOnFalse(pcFile->ReadSize(&iNonNullElements));
 	ReturnOnFalse(pcFile->ReadSize(&iChunkSize));
-	ReturnOnFalse(pcFile->ReadShort(piFlags));
+	ReturnOnFalse(pcFile->ReadInt16(piFlags));
 
 	bTypeKnown = FixBool(*piFlags & ARRAY_COMMOM_TYPE_KNOWN);
 
