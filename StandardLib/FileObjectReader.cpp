@@ -49,14 +49,9 @@ CSerialisedObject* CFileObjectReader::Read(OIndex oi)
 CSerialisedObject* CFileObjectReader::Read(char* szObjectName)
 {
 	CSerialisedObject*	pcSerialised;
-	CChars				szDirectory;
-	CChars				szFilename;
 	char				szExtension[4];
 	bool				bResult;
 	int					iFileType;
-
-	szFilename.Kill();
-	szDirectory.Kill();
 
 	bResult = mpcFile->Open(EFM_Read);
 	if (!bResult)
