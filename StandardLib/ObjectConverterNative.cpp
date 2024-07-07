@@ -109,11 +109,11 @@ CObjectSource* CObjectConverterNative::CreateSource(CAbstractFile* pcFile, char*
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szObjectName)
 {
-	CChunkFileFile				cFile;
-	CBaseObject*				pvObject;
-	CFileBasic					cFileBasic;
-	CExternalObjectDeserialiser	cGraphDeserialiser;
-	CExternalObjectReader*				pcReader;
+	CChunkFileFile					cFile;
+	CBaseObject*					pvObject;
+	CFileBasic						cFileBasic;
+	CExternalObjectDeserialiser		cGraphDeserialiser;
+	CExternalObjectReader*			pcReader;
 
 	//This if statement should be calling a virtual method instead.
 	pcReader = pcSource->GetReader();

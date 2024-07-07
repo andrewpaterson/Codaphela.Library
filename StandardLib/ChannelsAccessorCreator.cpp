@@ -64,9 +64,9 @@ CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 	bool				bChannelByteAligned;
 	bool				bAccessByteAligned;
 
-	size					iBitSize;
-	size					iByteSize;
-	size					iBufferSize;
+	size				iBitSize;
+	size				iByteSize;
+	size				iBufferSize;
 
 	CChannelsAccessor*	pcAccessor;
 	bool				bResult;

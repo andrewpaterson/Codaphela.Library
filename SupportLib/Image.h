@@ -24,7 +24,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE__H__
 #define __IMAGE__H__
 #include "BaseLib/GeometricTypes.h"
-#include "StandardLib/Object.h"
 #include "StandardLib/Channels.h"
 #include "StandardLib/Array.h"
 #include "ImageChannel.h"
@@ -48,6 +47,7 @@ struct SImageChangingDesc
 class CImage : public CObject
 {
 CONSTRUCTABLE(CImage);
+DESTRUCTABLE(CImage);
 public:
 	CChannels				mcChannels;
 	int						miWidth;
@@ -63,6 +63,9 @@ public:
 	void					Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
+
+	bool					Save(CObjectWriter* pcFile) override;
+	bool					Load(CObjectReader* pcFile) override;
 
 	void					BeginChange(void);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);

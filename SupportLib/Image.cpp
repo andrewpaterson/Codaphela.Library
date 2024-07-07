@@ -210,6 +210,12 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Class(void)
 {
+	int						miWidth;
+	int						miHeight;
+
+	Embedded(&mcChannels, "mcChannels");
+	UnmanagedSInt(&miWidth, "miWidth");
+	UnmanagedSInt(&miHeight, "miHeight");
 }
 
 
@@ -223,6 +229,32 @@ void CImage::Free(void)
 	miWidth = 0;
 	miHeight = 0;
 	mcChannels.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImage::Save(CObjectWriter* pcFile)
+{
+	ReturnOnFalse(pcFile->WriteInt32(miWidth));
+	ReturnOnFalse(pcFile->WriteInt32(miHeight));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImage::Load(CObjectReader* pcFile)
+{
+	mpsImageChangingDesc = NULL;
+
+	ReturnOnFalse(pcFile->ReadInt32(&miWidth));
+	ReturnOnFalse(pcFile->ReadInt32(&miHeight));
+	return true;
 }
 
 
@@ -413,8 +445,8 @@ bool CImage::Load(CObjectReader* pcFile)
 {
 	mpsImageChangingDesc = NULL;
 
-	ReturnOnFalse(pcFile->ReadInt(&miWidth));
-	ReturnOnFalse(pcFile->ReadInt(&miHeight));
+	ReturnOnFalse(pcFile->ReadSInt(&miWidth));
+	ReturnOnFalse(pcFile->ReadSInt(&miHeight));
 
 	ReturnOnFalse(mcChannels.Load(pcFile));
 	return true;
@@ -427,8 +459,8 @@ bool CImage::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CImage::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(miWidth));
-	ReturnOnFalse(pcFile->WriteInt(miHeight));
+	ReturnOnFalse(pcFile->WriteSInt(miWidth));
+	ReturnOnFalse(pcFile->WriteSInt(miHeight));
 
 	ReturnOnFalse(mcChannels.Save(pcFile));
 	return true;

@@ -165,10 +165,6 @@ void CChannels::Class(void)
 {
 	/*
 	CArrayChannelOffset		masChannelOffsets;
-	size					miSize;				//The number of 'pixels' in the channels (not the size in bytes).
-	size					miByteStride;		//The number of bytes between 'pixels' zero if not a whole byte.
-	size					miBitStride;		//The number of bits between pixels.
-	bool					mbOnlyBasicTypes;	//Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
 
 	CArrayChar				mabData;
 	char*					mpvUserData;
@@ -199,7 +195,6 @@ void CChannels::Free(void)
 	mpvDataCache = NULL;
 
 	SafeKill(mpsChangingDesc);
-	CUnknown::Kill();
 }
 
 
