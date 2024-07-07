@@ -41,15 +41,16 @@ public:
 						bool	ReadString(char* szString, size iMaxLength);
 
 	//Helpers.		
-						bool	ReadByte(int8* pi);
-						bool	ReadByte(uint8* pi);
-						bool	ReadShort(int16* pi);
-						bool	ReadShort(uint16* pi);
+						bool	ReadInt8(int8* pi);
+						bool	ReadInt8(uint8* pi);
+						bool	ReadInt16(int16* pi);
+						bool	ReadInt16(uint16* pi);
 						bool	ReadInt32(int32* pi);
 						bool	ReadInt32(uint32* pi);
-						bool	ReadLong(int64* plli);
-						bool	ReadLong(uint64* plli);
-						bool	ReadInt(int* pi);
+						bool	ReadInt64(int64* plli);
+						bool	ReadInt64(uint64* plli);
+						bool	ReadSInt(int* pi);
+						bool	ReadSUInt(uint* pi);
 						bool	ReadSize(size* pui);
 						bool	ReadFloat(float32* pf);
 						bool	ReadFloat(float64* pf);

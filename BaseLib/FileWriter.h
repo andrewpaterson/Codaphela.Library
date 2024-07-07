@@ -39,16 +39,17 @@ public:
 						bool	WriteString(const char* szString);
 
 	//Helpers.		
-						bool	WriteByte(int8 i);
-						bool	WriteByte(uint8 i);
-						bool	WriteShort(int16 i);
-						bool	WriteShort(uint16 i);
+						bool	WriteInt8(int8 i);
+						bool	WriteInt8(uint8 i);
+						bool	WriteInt16(int16 i);
+						bool	WriteInt16(uint16 i);
 						bool	WriteInt32(int32 i);
 						bool	WriteInt32(uint32 i);
-						bool	WriteLong(int64 i);
-						bool	WriteLong(uint64 i);
+						bool	WriteInt64(int64 i);
+						bool	WriteInt64(uint64 i);
 						bool	WriteSize(size ui);
-						bool	WriteInt(int i);
+						bool	WriteSInt(int i);
+						bool	WriteSUInt(uint i);
 						bool	WriteFloat(float32 f);
 						bool	WriteFloat(float64 f);
 						bool	WriteChar(char8 c);

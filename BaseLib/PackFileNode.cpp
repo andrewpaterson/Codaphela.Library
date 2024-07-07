@@ -52,8 +52,8 @@ void CPackFileNode::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CPackFileNode::Load(CFileReader* pcReader)
 {
-	ReturnOnFalse(pcReader->ReadLong(&muiFilePos));
-	ReturnOnFalse(pcReader->ReadLong(&muiSize));
+	ReturnOnFalse(pcReader->ReadInt64(&muiFilePos));
+	ReturnOnFalse(pcReader->ReadInt64(&muiSize));
 	mbNameWritten = true;  //If we loaded it the name has to have been written.
 	return true;
 }
@@ -65,8 +65,8 @@ bool CPackFileNode::Load(CFileReader* pcReader)
 //////////////////////////////////////////////////////////////////////////
 bool CPackFileNode::Save(CFileWriter* pcWriter)
 {
-	ReturnOnFalse(pcWriter->WriteLong(muiFilePos));
-	ReturnOnFalse(pcWriter->WriteLong(muiSize));
+	ReturnOnFalse(pcWriter->WriteInt64(muiFilePos));
+	ReturnOnFalse(pcWriter->WriteInt64(muiSize));
 	mbNameWritten = true;
 	return true;
 }

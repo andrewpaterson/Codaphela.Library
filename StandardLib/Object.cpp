@@ -822,49 +822,57 @@ void CObject::Embedded(CBaseObject* pcObject, char* szFieldName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::Primitive(Int8* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(UInt8* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Int16* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(UInt16* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Int32* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(UInt32* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Int64* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(UInt64* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Bool* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Float32* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Float64* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Char8* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
-void CObject::Primitive(Char16* pcPrimitive, char* szFieldName) { mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int8* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt8* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int16* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt16* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int32* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt32* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Int64* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(UInt64* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Bool* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Float32* pcPrimitive, char* szFieldName)	{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Float64* pcPrimitive, char* szFieldName)	{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Char8* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CObject::Primitive(Char16* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::UnmanagedInt(int8* pc, char* szFieldName) { mpcClass->UnmanagedInt(this, pc, szFieldName); };
-void CObject::UnmanagedInt(int8* pac, size uiLength, char* szFieldName) { mpcClass->UnmanagedInt(this, pac, uiLength, szFieldName); };
-void CObject::UnmanagedInt(int16* pi, char* szFieldName) { mpcClass->UnmanagedInt(this, pi, szFieldName); };
-void CObject::UnmanagedInt(int16* pai, size uiLength, char* szFieldName) { mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
-void CObject::UnmanagedInt(int32* pi, char* szFieldName) { mpcClass->UnmanagedInt(this, pi, szFieldName); };
-void CObject::UnmanagedInt(int32* pai, size uiLength, char* szFieldName) { mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
-void CObject::UnmanagedInt(int64* pi, char* szFieldName) { mpcClass->UnmanagedInt(this, pi, szFieldName); };
-void CObject::UnmanagedInt(int64* pai, size uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
-void CObject::UnmanagedInt(uint8* pc, char* szFieldName){ mpcClass->UnmanagedInt(this, pc, szFieldName); };
-void CObject::UnmanagedInt(uint8* pac, size uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pac, uiLength, szFieldName); };
-void CObject::UnmanagedInt(uint16* pi, char* szFieldName){ mpcClass->UnmanagedInt(this, pi, szFieldName); };
-void CObject::UnmanagedInt(uint16* pai, size uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
-void CObject::UnmanagedInt(uint32* pi, char* szFieldName){ mpcClass->UnmanagedInt(this, pi, szFieldName); };
-void CObject::UnmanagedInt(uint32* pai, size uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
-void CObject::UnmanagedInt(uint64* pi, char* szFieldName){ mpcClass->UnmanagedInt(this, pi, szFieldName); };
-void CObject::UnmanagedInt(uint64* pai, size uiLength, char* szFieldName){ mpcClass->UnmanagedInt(this, pai, uiLength, szFieldName); };
-void CObject::UnmanagedFloat(float32* pf, char* szFieldName) { mpcClass->UnmanagedFloat(this, pf, szFieldName); }
-void CObject::UnmanagedFloat(float32* paf, size uiLength, char* szFieldName) { mpcClass->UnmanagedFloat(this, paf, uiLength,szFieldName); }
-void CObject::UnmanagedFloat(float64* pf, char* szFieldName) { mpcClass->UnmanagedFloat(this, pf, szFieldName); }
-void CObject::UnmanagedFloat(float64* paf, size uiLength, char* szFieldName) { mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
-void CObject::UnmanagedChar(char8* pc, char* szFieldName) { mpcClass->UnmanagedChar(this, pc, szFieldName); }
-void CObject::UnmanagedChar(char8* pac, size uiLength, char* szFieldName) { mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
-void CObject::UnmanagedChar(char16* pc, char* szFieldName) { mpcClass->UnmanagedChar(this, pc, szFieldName); }
-void CObject::UnmanagedChar(char16* pac, size uiLength, char* szFieldName) { mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CObject::UnmanagedInt8(int8* pc, char* szFieldName)						{ mpcClass->UnmanagedInt8(this, pc, szFieldName); };
+void CObject::UnmanagedInt8(int8* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt8(this, pac, uiLength, szFieldName); };
+void CObject::UnmanagedInt16(int16* pi, char* szFieldName)						{ mpcClass->UnmanagedInt16(this, pi, szFieldName); };
+void CObject::UnmanagedInt16(int16* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt16(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt32(int32* pi, char* szFieldName)						{ mpcClass->UnmanagedInt32(this, pi, szFieldName); };
+void CObject::UnmanagedInt32(int32* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt32(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedInt64(int64* pi, char* szFieldName)						{ mpcClass->UnmanagedInt64(this, pi, szFieldName); };
+void CObject::UnmanagedInt64(int64* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt64(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedSInt(int* pi, char* szFieldName)							{ mpcClass->UnmanagedSInt(this, pi, szFieldName); };
+void CObject::UnmanagedSInt(int* pai, size uiLength, char* szFieldName)			{ mpcClass->UnmanagedSInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedUInt8(uint8* pc, char* szFieldName)						{ mpcClass->UnmanagedUInt8(this, pc, szFieldName); };
+void CObject::UnmanagedUInt8(uint8* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedUInt8(this, pac, uiLength, szFieldName); };
+void CObject::UnmanagedUInt16(uint16* pi, char* szFieldName)					{ mpcClass->UnmanagedUInt16(this, pi, szFieldName); };
+void CObject::UnmanagedUInt16(uint16* pai, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedUInt16(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedUInt32(uint32* pi, char* szFieldName)					{ mpcClass->UnmanagedUInt32(this, pi, szFieldName); };
+void CObject::UnmanagedUInt32(uint32* pai, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedUInt32(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedUInt64(uint64* pi, char* szFieldName)					{ mpcClass->UnmanagedUInt64(this, pi, szFieldName); };
+void CObject::UnmanagedUInt64(uint64* pai, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedUInt64(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedSUInt(uint* pi, char* szFieldName)						{ mpcClass->UnmanagedSUInt(this, pi, szFieldName); };
+void CObject::UnmanagedSUInt(uint* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedSUInt(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedSize(size* pi, char* szFieldName)						{ mpcClass->UnmanagedSize(this, pi, szFieldName); };
+void CObject::UnmanagedSize(size* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedSize(this, pai, uiLength, szFieldName); };
+void CObject::UnmanagedFloat(float32* pf, char* szFieldName)					{ mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CObject::UnmanagedFloat(float32* paf, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedFloat(this, paf, uiLength,szFieldName); }
+void CObject::UnmanagedFloat(float64* pf, char* szFieldName)					{ mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CObject::UnmanagedFloat(float64* paf, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CObject::UnmanagedChar(char8* pc, char* szFieldName)						{ mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CObject::UnmanagedChar(char8* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CObject::UnmanagedChar(char16* pc, char* szFieldName)						{ mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CObject::UnmanagedChar(char16* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CObject::UnmanagedBool(bool* pb, char* szFieldName)						{ mpcClass->UnmanagedBool(this, pb, szFieldName); }
+void CObject::UnmanagedBool(bool* pab, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedBool(this, pab, uiLength, szFieldName); }
 	 
 void CObject::UnmanagedEnum(void* pe, char* szFieldName) { mpcClass->UnmanagedEnum(this, pe, szFieldName); }
 

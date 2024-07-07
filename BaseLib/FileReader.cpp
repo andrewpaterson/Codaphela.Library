@@ -122,7 +122,7 @@ bool CFileReader::ReadSize(size* pui)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadInt(int* pi)
+bool CFileReader::ReadSInt(int* pi)
 {
 	CheckRead(pi, sizeof(int));
 	return true;
@@ -133,7 +133,18 @@ bool CFileReader::ReadInt(int* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadLong(int64* plli)
+bool CFileReader::ReadSUInt(uint* pi)
+{
+	CheckRead(pi, sizeof(uint));
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CFileReader::ReadInt64(int64* plli)
 {
 	CheckRead(plli, sizeof(int64));
 	return true;
@@ -144,7 +155,7 @@ bool CFileReader::ReadLong(int64* plli)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadLong(uint64* pulli)
+bool CFileReader::ReadInt64(uint64* pulli)
 {
 	CheckRead(pulli, sizeof(uint64));
 	return true;
@@ -210,7 +221,7 @@ bool CFileReader::ReadBool(bool* pb)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadShort(int16* pi)
+bool CFileReader::ReadInt16(int16* pi)
 {
 	CheckRead(pi, sizeof(int16));
 	return true;
@@ -221,7 +232,7 @@ bool CFileReader::ReadShort(int16* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadShort(uint16* pi)
+bool CFileReader::ReadInt16(uint16* pi)
 {
 	CheckRead(pi, sizeof(uint16));
 	return true;
@@ -232,7 +243,7 @@ bool CFileReader::ReadShort(uint16* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadByte(int8* pi)
+bool CFileReader::ReadInt8(int8* pi)
 {
 	CheckRead(pi, sizeof(int8));
 	return true;
@@ -243,7 +254,7 @@ bool CFileReader::ReadByte(int8* pi)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CFileReader::ReadByte(uint8* pi)
+bool CFileReader::ReadInt8(uint8* pi)
 {
 	CheckRead(pi, sizeof(uint8));
 	return true;

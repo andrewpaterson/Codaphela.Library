@@ -179,8 +179,8 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 
 		InitIdentifier(&sIdentifier, pcContainer);
 		bResult = WriteIdentifier(&sIdentifier);
-		bResult &= WriteShort((uint16)iNumEmbedded);
-		bResult &= WriteShort((uint16)iEmbeddedIndex);
+		bResult &= WriteInt16((uint16)iNumEmbedded);
+		bResult &= WriteInt16((uint16)iEmbeddedIndex);
 
 		if (bResult)
 		{
@@ -285,7 +285,7 @@ bool CObjectWriter::WriteIdentifier(CObjectIdentifier* psIdentifier)
 
 	if (psIdentifier->mcType != OBJECT_POINTER_NULL)
 	{
-		bResult = WriteLong(psIdentifier->moi);
+		bResult = WriteInt64(psIdentifier->moi);
 		ReturnOnFalse(bResult);
 
 		if (psIdentifier->mcType == OBJECT_POINTER_NAMED)

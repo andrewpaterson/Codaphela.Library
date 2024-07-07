@@ -20,7 +20,7 @@ bool CDateTime::Save(CFileWriter* pcFile)
 	bool	bResult;
 
 	bResult = mcDate.Save(pcFile);
-	bResult &= pcFile->WriteLong(miNanosecondsInDay);
+	bResult &= pcFile->WriteInt64(miNanosecondsInDay);
 	return bResult;
 }
 
@@ -34,7 +34,7 @@ bool CDateTime::Load(CFileReader* pcFile)
 	bool	bResult;
 
 	bResult = mcDate.Load(pcFile);
-	bResult &= pcFile->ReadLong(&miNanosecondsInDay);
+	bResult &= pcFile->ReadInt64(&miNanosecondsInDay);
 	return bResult;
 }
 

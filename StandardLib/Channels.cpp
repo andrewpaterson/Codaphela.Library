@@ -34,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Init(void)
+void CChannels::PrivateInit(void)
 {
 	masChannelOffsets.Init();
 	miSize = 0;
@@ -53,13 +53,27 @@ void CChannels::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CChannels::Init(void)
+{
+	PreInit();
+	PrivateInit();
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 {
+	PreInit();
+
 	va_list		vaMarker;
 	size		iCount;
 	size		i;
 
-	Init();
+	PrivateInit();
 	iCount = 0;
 	i = iFirst;
 
@@ -75,6 +89,8 @@ void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 
 	SetSize(iSize);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -84,11 +100,13 @@ void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...)
 {
+	PreInit();
+
 	va_list		vaMarker;
 	size		iCount;
 	size		i;
 
-	Init();
+	PrivateInit();
 	iCount = 0;
 	i = iFirst;
 
@@ -105,7 +123,10 @@ void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iF
 	SetSize(iSize);
 	SetData(pvUserData);
 	EndChange();
+
+	PostInit();
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -113,11 +134,13 @@ void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iF
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(CChannels* pcSource)
 {
+	PreInit();
+
 	CChannel*	psSource;
 	size		i;
 	size		uiOffsets;
 
-	Init();
+	PrivateInit();
 	BeginChange();
 
 	uiOffsets = pcSource->masChannelOffsets.NumElements();
@@ -129,6 +152,8 @@ void CChannels::Init(CChannels* pcSource)
 
 	SetSize(pcSource->miSize);
 	EndChange();
+
+	PostInit();
 }
 
 
@@ -136,7 +161,34 @@ void CChannels::Init(CChannels* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Kill(void)
+void CChannels::Class(void)
+{
+	/*
+	CArrayChannelOffset		masChannelOffsets;
+	size					miSize;				//The number of 'pixels' in the channels (not the size in bytes).
+	size					miByteStride;		//The number of bytes between 'pixels' zero if not a whole byte.
+	size					miBitStride;		//The number of bits between pixels.
+	bool					mbOnlyBasicTypes;	//Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
+
+	CArrayChar				mabData;
+	char*					mpvUserData;
+
+	SChannelsChangingDesc*	mpsChangingDesc;
+	char*					mpvDataCache;		//A pointer to either mabData.pvArray or mpvUserData
+	*/
+
+	UnmanagedSize(&miSize, "miSize");
+	UnmanagedSize(&miByteStride, "miByteStride");
+	UnmanagedSize(&miBitStride, "miBitStride");
+	UnmanagedBool(&mbOnlyBasicTypes, "mbOnlyBasicTypes");
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::Free(void)
 {
 	mabData.Kill();
 	masChannelOffsets.Kill();
@@ -148,6 +200,41 @@ void CChannels::Kill(void)
 
 	SafeKill(mpsChangingDesc);
 	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChannels::Load(CObjectReader* pcFile)
+{
+	mpsChangingDesc = NULL;
+	mpvUserData = NULL;
+	ReturnOnFalse(masChannelOffsets.Read(pcFile));
+	ReturnOnFalse(pcFile->ReadInt32(&miSize));
+	ReturnOnFalse(pcFile->ReadInt32(&miByteStride));
+	ReturnOnFalse(pcFile->ReadInt32(&miBitStride));
+	ReturnOnFalse(pcFile->ReadBool(&mbOnlyBasicTypes));
+	ReturnOnFalse(mabData.Read(pcFile));
+	mpvDataCache = mabData.GetData();
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChannels::Save(CObjectWriter* pcFile)
+{
+	ReturnOnFalse(masChannelOffsets.Write(pcFile));
+	ReturnOnFalse(pcFile->WriteSize(miSize));
+	ReturnOnFalse(pcFile->WriteSize(miByteStride));
+	ReturnOnFalse(pcFile->WriteSize(miBitStride));
+	ReturnOnFalse(pcFile->WriteBool(mbOnlyBasicTypes));
+	ReturnOnFalse(mabData.Write(pcFile));
+	return true;
 }
 
 
@@ -847,41 +934,6 @@ bool CChannels::HasChannels(size iFirst, ...)
 	va_end(vaMarker);
 
 	return bResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannels::Load(CFileReader* pcFile)
-{
-	mpsChangingDesc = NULL;
-	mpvUserData = NULL;
-	ReturnOnFalse(masChannelOffsets.Read(pcFile));
-	ReturnOnFalse(pcFile->ReadInt32(&miSize));
-	ReturnOnFalse(pcFile->ReadInt32(&miByteStride));
-	ReturnOnFalse(pcFile->ReadInt32(&miBitStride));
-	ReturnOnFalse(pcFile->ReadBool(&mbOnlyBasicTypes));
-	ReturnOnFalse(mabData.Read(pcFile));
-	mpvDataCache = mabData.GetData();
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CChannels::Save(CFileWriter* pcFile)
-{
-	ReturnOnFalse(masChannelOffsets.Write(pcFile));
-	ReturnOnFalse(pcFile->WriteSize(miSize));
-	ReturnOnFalse(pcFile->WriteSize(miByteStride));
-	ReturnOnFalse(pcFile->WriteSize(miBitStride));
-	ReturnOnFalse(pcFile->WriteBool(mbOnlyBasicTypes));
-	ReturnOnFalse(mabData.Write(pcFile));
-	return true;
 }
 
 
