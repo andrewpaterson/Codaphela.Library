@@ -112,9 +112,9 @@ bool CConnection::Save(CObjectWriter* pcFile)
 		return false;
 	}
 
-	ReturnOnFalse(pcFile->WriteInt(mbSelected));
-	ReturnOnFalse(pcFile->WriteInt(mbTopLevel));
-	ReturnOnFalse(pcFile->WriteInt(mbParity));
+	ReturnOnFalse(pcFile->WriteBool(mbSelected));
+	ReturnOnFalse(pcFile->WriteBool(mbTopLevel));
+	ReturnOnFalse(pcFile->WriteBool(mbParity));
 	return true;
 }
 
@@ -129,3 +129,4 @@ void CConnection::Copy(CConnection* pcConnection)
 	memcpy(&msWorldMatrix, &pcConnection->msWorldMatrix, sizeof(SFloat4x4));
 	memcpy(&msLocalMatrix, &pcConnection->msLocalMatrix, sizeof(SFloat4x4));
 }
+

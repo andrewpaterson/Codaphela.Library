@@ -61,8 +61,8 @@ void CInstance::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CInstance::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
-	ReturnOnFalse(pcFile->ReadInt((int*)&miObjectIndex));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meType));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&miObjectIndex));
 	ReturnOnFalse(maiConnections.Read(pcFile));
 	return true;
 }
@@ -74,8 +74,8 @@ bool CInstance::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CInstance::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(meType));
-	ReturnOnFalse(pcFile->WriteInt(miObjectIndex));
+	ReturnOnFalse(pcFile->WriteSInt(meType));
+	ReturnOnFalse(pcFile->WriteSInt(miObjectIndex));
 	ReturnOnFalse(maiConnections.Write(pcFile));
 	return true;
 }

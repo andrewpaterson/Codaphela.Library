@@ -78,9 +78,9 @@ void CLight::Class(void)
 //////////////////////////////////////////////////////////////////////////
 bool CLight::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt((int*)&meType));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meType));
 	ReturnOnFalse(msColour.Load(pcFile));
-	ReturnOnFalse(pcFile->ReadInt((int*)&meDecay));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meDecay));
 	ReturnOnFalse(pcFile->ReadFloat(&mfDecayStart));
 	ReturnOnFalse(pcFile->ReadBool(&mbCastShadows));
 	ReturnOnFalse(pcFile->ReadFloat(&mfIntensity));
@@ -94,9 +94,9 @@ bool CLight::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CLight::Save(CObjectWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(meType));
+	ReturnOnFalse(pcFile->WriteSInt(meType));
 	ReturnOnFalse(msColour.Save(pcFile));
-	ReturnOnFalse(pcFile->WriteInt(meDecay));
+	ReturnOnFalse(pcFile->WriteSInt(meDecay));
 	ReturnOnFalse(pcFile->WriteFloat(mfDecayStart));
 	ReturnOnFalse(pcFile->WriteBool(mbCastShadows));
 	ReturnOnFalse(pcFile->WriteFloat(mfIntensity));

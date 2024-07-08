@@ -63,7 +63,7 @@ bool CMaterialProperties::Save(CFileWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteFloat(fShininessPower));
 	ReturnOnFalse(pcFile->WriteFloat(fShininessBase));
 	ReturnOnFalse(pcFile->WriteBool(bLit));
-	ReturnOnFalse(pcFile->WriteInt(meOpacity));
+	ReturnOnFalse(pcFile->WriteSInt(meOpacity));
 	return true;
 }
 
@@ -81,6 +81,6 @@ bool CMaterialProperties::Load(CFileReader* pcFile)
 	ReturnOnFalse(pcFile->ReadFloat(&fShininessPower));
 	ReturnOnFalse(pcFile->ReadFloat(&fShininessBase));
 	ReturnOnFalse(pcFile->ReadBool(&bLit));
-	ReturnOnFalse(pcFile->ReadInt((int*)&meOpacity));
+	ReturnOnFalse(pcFile->ReadSInt((int*)&meOpacity));
 	return true;
 }

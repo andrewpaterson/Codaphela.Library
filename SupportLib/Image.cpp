@@ -236,10 +236,14 @@ void CImage::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::Save(CObjectWriter* pcFile)
+bool CImage::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt32(miWidth));
-	ReturnOnFalse(pcFile->WriteInt32(miHeight));
+	mpsImageChangingDesc = NULL;
+
+	ReturnOnFalse(pcFile->ReadSInt(&miWidth));
+	ReturnOnFalse(pcFile->ReadSInt(&miHeight));
+
+	//ReturnOnFalse(mcChannels.Load(pcFile));
 	return true;
 }
 
@@ -248,12 +252,12 @@ bool CImage::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::Load(CObjectReader* pcFile)
+bool CImage::Save(CObjectWriter* pcFile)
 {
-	mpsImageChangingDesc = NULL;
+	ReturnOnFalse(pcFile->WriteSInt(miWidth));
+	ReturnOnFalse(pcFile->WriteSInt(miHeight));
 
-	ReturnOnFalse(pcFile->ReadInt32(&miWidth));
-	ReturnOnFalse(pcFile->ReadInt32(&miHeight));
+	//ReturnOnFalse(mcChannels.Save(pcFile));
 	return true;
 }
 
@@ -434,36 +438,6 @@ bool CImage::EndChange(void)
 bool CImage::IsChanging(void)
 {
 	return mcChannels.IsChanging();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImage::Load(CObjectReader* pcFile)
-{
-	mpsImageChangingDesc = NULL;
-
-	ReturnOnFalse(pcFile->ReadSInt(&miWidth));
-	ReturnOnFalse(pcFile->ReadSInt(&miHeight));
-
-	ReturnOnFalse(mcChannels.Load(pcFile));
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CImage::Save(CObjectWriter* pcFile)
-{
-	ReturnOnFalse(pcFile->WriteSInt(miWidth));
-	ReturnOnFalse(pcFile->WriteSInt(miHeight));
-
-	ReturnOnFalse(mcChannels.Save(pcFile));
-	return true;
 }
 
 

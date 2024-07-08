@@ -85,8 +85,6 @@ public:
 	bool 					EndChange(void);
 	bool					IsChanging(void);
 
-	bool					Load(CObjectReader* pcFile);
-	bool					Save(CObjectWriter* pcFile);
 	void					Copy(CImage* pcSource);
 	void					Clear(void);
 
