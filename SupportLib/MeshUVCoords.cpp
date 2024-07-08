@@ -145,7 +145,7 @@ bool CMeshUVCoords::Load(CFileReader* pcFile)
 	Init();
 
 	ReturnOnFalse(LoadMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->ReadInt(&iNumLayers));
+	ReturnOnFalse(pcFile->ReadSInt(&iNumLayers));
 
 	mcLayers.Resize(iNumLayers);
 
@@ -168,7 +168,7 @@ bool CMeshUVCoords::Save(CFileWriter* pcFile)
 	size			i;
 
 	ReturnOnFalse(SaveMeshDetail(pcFile));
-	ReturnOnFalse(pcFile->WriteInt(mcLayers.NumElements()));
+	ReturnOnFalse(pcFile->WriteSInt(mcLayers.NumElements()));
 
 	for (i = 0; i < mcLayers.NumElements(); i++)
 	{

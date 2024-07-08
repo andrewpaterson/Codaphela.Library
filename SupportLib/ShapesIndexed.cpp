@@ -41,7 +41,7 @@ void CSphereIndexed::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool CSphereIndexed::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(miPosition));
+	ReturnOnFalse(pcFile->WriteSInt(miPosition));
 	ReturnOnFalse(pcFile->WriteFloat(mfRadius));
 	return true;
 }
@@ -53,7 +53,7 @@ bool CSphereIndexed::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CSphereIndexed::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt(&miPosition));
+	ReturnOnFalse(pcFile->ReadSInt(&miPosition));
 	ReturnOnFalse(pcFile->ReadFloat(&mfRadius));
 	return TRITRUE;
 }
@@ -113,7 +113,7 @@ void CTriangleIndexed::Init(int p1, int p2, int p3, int n)
 bool CTriangleIndexed::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteIntArray(maiPositions, 3));
-	ReturnOnFalse(pcFile->WriteInt(miNormalIndex));
+	ReturnOnFalse(pcFile->WriteSInt(miNormalIndex));
 	return true;
 }
 
@@ -125,7 +125,7 @@ bool CTriangleIndexed::Save(CFileWriter* pcFile)
 bool CTriangleIndexed::Load(CFileReader* pcFile)
 {
 	ReturnOnFalse(pcFile->ReadIntArray(maiPositions, 3));
-	ReturnOnFalse(pcFile->ReadInt(&miNormalIndex));
+	ReturnOnFalse(pcFile->ReadSInt(&miNormalIndex));
 	return TRITRUE;
 }
 
@@ -196,10 +196,10 @@ void CBoxIndexed::Init(int iCenterIndex, int iLongAxisIndex, float fLongAxisLeng
 //////////////////////////////////////////////////////////////////////////
 bool CBoxIndexed::Save(CFileWriter* pcFile)
 {
-	ReturnOnFalse(pcFile->WriteInt(miCenterIndex));
-	ReturnOnFalse(pcFile->WriteInt(miLongAxisIndex));
-	ReturnOnFalse(pcFile->WriteInt(miMiddleAxisIndex));
-	ReturnOnFalse(pcFile->WriteInt(miShortAxisIndex));
+	ReturnOnFalse(pcFile->WriteSInt(miCenterIndex));
+	ReturnOnFalse(pcFile->WriteSInt(miLongAxisIndex));
+	ReturnOnFalse(pcFile->WriteSInt(miMiddleAxisIndex));
+	ReturnOnFalse(pcFile->WriteSInt(miShortAxisIndex));
 	ReturnOnFalse(pcFile->WriteFloat(mfLongAxisLength));
 	ReturnOnFalse(pcFile->WriteFloat(mfMiddleAxisLength));
 	ReturnOnFalse(pcFile->WriteFloat(mfShortAxisLength));
@@ -213,10 +213,10 @@ bool CBoxIndexed::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBoxIndexed::Load(CFileReader* pcFile)
 {
-	ReturnOnFalse(pcFile->ReadInt(&miCenterIndex));
-	ReturnOnFalse(pcFile->ReadInt(&miLongAxisIndex));
-	ReturnOnFalse(pcFile->ReadInt(&miMiddleAxisIndex));
-	ReturnOnFalse(pcFile->ReadInt(&miShortAxisIndex));
+	ReturnOnFalse(pcFile->ReadSInt(&miCenterIndex));
+	ReturnOnFalse(pcFile->ReadSInt(&miLongAxisIndex));
+	ReturnOnFalse(pcFile->ReadSInt(&miMiddleAxisIndex));
+	ReturnOnFalse(pcFile->ReadSInt(&miShortAxisIndex));
 	ReturnOnFalse(pcFile->ReadFloat(&mfLongAxisLength));
 	ReturnOnFalse(pcFile->ReadFloat(&mfMiddleAxisLength));
 	ReturnOnFalse(pcFile->ReadFloat(&mfShortAxisLength));
