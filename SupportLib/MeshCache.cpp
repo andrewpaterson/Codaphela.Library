@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshCacher.h"
 #include "MeshCache.h"
 
@@ -31,8 +34,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshCache::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcMeshVerticesArrays.Init();
+
+	PostInit();
 }
 
 
@@ -40,10 +47,9 @@ void CMeshCache::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshCache::Kill(void)
+void CMeshCache::Free(void)
 {
 	mcMeshVerticesArrays.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -51,7 +57,19 @@ void CMeshCache::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshCache::Load(CFileReader* pcFile)
+void CMeshCache::Class(void)
+{
+	CMeshDetail::Class();
+
+	M_Embedded(mcMeshVerticesArrays);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshCache::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	return mcMeshVerticesArrays.Load(pcFile);
@@ -62,7 +80,7 @@ bool CMeshCache::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshCache::Save(CFileWriter* pcFile)
+bool CMeshCache::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcMeshVerticesArrays.Save(pcFile);
@@ -95,12 +113,12 @@ bool CMeshCache::Touch(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMeshVertexArray* CMeshCache::AddVertexArray(SMeshFaceType sMeshFaceType)
+Ptr<CMeshVertexArray> CMeshCache::AddVertexArray(SMeshFaceType sMeshFaceType)
 {
-	CMeshVertexArray*	pcVertexArray;
+	Ptr<CMeshVertexArray>	pcVertexArray;
 
-	pcVertexArray = mcMeshVerticesArrays.Add();
-	pcVertexArray->Init(sMeshFaceType);
+	pcVertexArray = OMalloc<CMeshVertexArray>(sMeshFaceType);
+	mcMeshVerticesArrays.Add(pcVertexArray);
 	return pcVertexArray;
 }
 
@@ -109,12 +127,14 @@ CMeshVertexArray* CMeshCache::AddVertexArray(SMeshFaceType sMeshFaceType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMeshVertexArray* CMeshCache::GetVertexArray(SMeshFaceType sMeshFaceType)
+Ptr<CMeshVertexArray> CMeshCache::GetVertexArray(SMeshFaceType sMeshFaceType)
 {
-	CMeshVertexArray*	pcVertexArray;
-	size				i;
+	Ptr<CMeshVertexArray>	pcVertexArray;
+	size					i;
+	size					uiNumElements;
 
-	for (i = 0; i < mcMeshVerticesArrays.NumElements(); i++)
+	uiNumElements = mcMeshVerticesArrays.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcVertexArray = mcMeshVerticesArrays.Get(i);
 		if (pcVertexArray->Is(&sMeshFaceType))
@@ -131,7 +151,7 @@ CMeshVertexArray* CMeshCache::GetVertexArray(SMeshFaceType sMeshFaceType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMeshVertexArray* CMeshCache::GetVertexArray(int iIndex)
+Ptr<CMeshVertexArray> CMeshCache::GetVertexArray(int iIndex)
 {
 	return mcMeshVerticesArrays.Get(iIndex);
 }

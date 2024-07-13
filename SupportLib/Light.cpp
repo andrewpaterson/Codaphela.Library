@@ -29,12 +29,16 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CLight::Init(void)
 {
+	PreInit();
+
 	meType = LT_Omni;
 	msColour.Init(0, 0, 0, 0);
 	meDecay = LDT_None;
 	mfDecayStart = 0.0f;
 	mbCastShadows = false;
 	mfIntensity = 0.0f;
+
+	PostInit();
 }
 
 
@@ -44,12 +48,16 @@ void CLight::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CLight::Init(ELightType eType, CImageColourARGB sColour, ELightDecayType eDecay, float fDecayStart, bool bCastShadows, float fIntensity)
 {
+	PreInit();
+
 	msColour = sColour;
 	meDecay = eDecay;
 	mfDecayStart = fDecayStart;
 	mbCastShadows = bCastShadows;
 	mfIntensity = fIntensity;
 	meType = eType;
+
+	PostInit();
 }
 
 

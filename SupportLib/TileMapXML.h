@@ -53,5 +53,5 @@ private:
 };
 
 
-#endif // !__TILE_MAP_XML_H__
+#endif // __TILE_MAP_XML_H__
 

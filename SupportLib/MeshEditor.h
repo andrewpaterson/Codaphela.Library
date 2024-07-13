@@ -29,24 +29,27 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshEdgeVisibility.h"
 #include "MeshPolygons.h"
 #include "MeshModifierStack.h"
-
+#include "Mesh.h"
 
 class CMesh;
-class CMeshEditor : public CUnknown
+class CMeshEditor : public CObject
 {
 CONSTRUCTABLE(CMeshEditor);
+DESTRUCTABLE(CMeshEditor);
 public:
-	CMesh*					mpcMesh;
+	Ptr<CMesh>				mpcMesh;
 	CMeshModifierStack		mcModifiers;
 
 	CMeshSelections			mcSelections;
 	CMeshEdgeVisibility		mcEdgeVisibility;
 	CMeshPolygons			mcPolygons;
 
-	void 	Init(CMesh* pcMesh);
-	void 	Kill(void);
-	bool 	Save(CFileWriter* pcFile);
-	bool 	Load(CFileReader* pcFile);
+	void	Init(Ptr<CMesh> pcMesh);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 
 	void	Touch(void);
 	void	Collapse(void);
@@ -62,7 +65,7 @@ public:
 	int		NumVisibleEdges(char cEdge);
 	int		NumPolygons(void);
 
-	void	ReInitConnectivity(void);
+	void	ClearConnectivity(void);
 
 	//These are the only methods that editors/modifers may use to alter mesh connectivity or positions.
 	void 	AddCorner(float x, float y, float z);
@@ -94,5 +97,5 @@ M* CMeshEditor::AddModifier(void)
 }
 
 
-#endif // !__MESH_EDITOR_H__
+#endif // __MESH_EDITOR_H__
 

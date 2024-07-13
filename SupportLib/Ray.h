@@ -36,4 +36,4 @@ public:
 };
 
 
-#endif // !__SHAPE_RAY_H__
+#endif // __SHAPE_RAY_H__

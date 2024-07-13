@@ -34,21 +34,22 @@ enum ECameraType
 
 class CCamera : public CObject
 {
-CONSTRUCTABLE(CCamera); 
+CONSTRUCTABLE(CCamera);
+DESTRUCTABLE(CCamera);
 public:
 	ECameraType		meCameraType;
 	float			mfFOV;
 
-	void 	Init(void);
-	void 	Init(ECameraType eCameraType, float fFOV);
-	void 	Free(void);
-	void	Class(void);
+	Ptr<CCamera>	Init(void);
+	Ptr<CCamera>	Init(ECameraType eCameraType, float fFOV);
+	void 			Free(void);
+	void			Class(void);
 
-	bool	Load(CObjectReader* pcFile);
-	bool	Save(CObjectWriter* pcFile);
-	void	Copy(CCamera* pcCamera);
+	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
+	void			Copy(CCamera* pcCamera);
 };
 
 
-#endif // !__CAMERA_H__
+#endif // __CAMERA_H__
 

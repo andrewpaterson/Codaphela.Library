@@ -56,5 +56,5 @@ public:
 };
 
 
-#endif // !__MESH_BOX_EDITOR_H__
+#endif // __MESH_BOX_EDITOR_H__
 

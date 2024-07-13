@@ -45,6 +45,7 @@ enum ELightType
 class CLight : public CObject
 {
 CONSTRUCTABLE(CLight);
+DESTRUCTABLE(CLight);
 public:
 	ELightType			meType;
 	CImageColourARGB	msColour;
@@ -64,5 +65,5 @@ public:
 };
 
 
-#endif // !__LIGHT_H__
+#endif // __LIGHT_H__
 

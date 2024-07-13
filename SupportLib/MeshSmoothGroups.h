@@ -57,7 +57,7 @@ public:
 
 	void	Apply(CMeshEditor* pcMeshEditor);
 
-	void	ReInitConnectivity(void);
+	void	ClearConnectivity(void);
 
 	void	AddFace(int iCorner1, int iCorner2, int iCorner3);
 
@@ -68,5 +68,5 @@ public:
 };
 
 
-#endif // !__MESH_SMOOTH_GROUPS_H__
+#endif // __MESH_SMOOTH_GROUPS_H__
 

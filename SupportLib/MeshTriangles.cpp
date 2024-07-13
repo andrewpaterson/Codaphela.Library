@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
 #include "MeshNormals.h"
@@ -33,8 +36,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshTriangles::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcTriangles.Init();
+
+	PostInit();
 }
 
 
@@ -42,10 +49,9 @@ void CMeshTriangles::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshTriangles::Kill(void)
+void CMeshTriangles::Free(void)
 {
 	mcTriangles.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -53,7 +59,19 @@ void CMeshTriangles::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshTriangles::Load(CFileReader* pcFile)
+void CMeshTriangles::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayTriangleIndexed, mcTriangles);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshTriangles::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcTriangles.Read(pcFile));
@@ -65,7 +83,7 @@ bool CMeshTriangles::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshTriangles::Save(CFileWriter* pcFile)
+bool CMeshTriangles::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcTriangles.Write(pcFile));

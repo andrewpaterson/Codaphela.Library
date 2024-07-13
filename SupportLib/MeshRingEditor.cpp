@@ -120,7 +120,7 @@ int CMeshRingEditor::ExpectedCornerChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshRingEditor::Apply(CMeshEditor* pcMeshEditor)
 {
-	ReInitConnectivity(pcMeshEditor);
+	ClearConnectivity(pcMeshEditor);
 	GenerateRing(pcMeshEditor);
 }
 

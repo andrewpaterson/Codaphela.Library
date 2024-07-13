@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "Mesh.h"
 #include "MeshEditor.h"
 
@@ -29,8 +30,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::Init(CMesh* pcMesh)
+void CMeshEditor::Init(Ptr<CMesh> pcMesh)
 {
+	PreInit();
+
 	mpcMesh = pcMesh;
 
 	mcSelections.Init();
@@ -38,6 +41,8 @@ void CMeshEditor::Init(CMesh* pcMesh)
 	mcPolygons.Init();
 
 	mcModifiers.Init();
+
+	PostInit();
 }
 
 
@@ -45,15 +50,13 @@ void CMeshEditor::Init(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::Kill(void)
+void CMeshEditor::Free(void)
 {
 	mcModifiers.Kill();
 
 	mcSelections.Kill();
 	mcEdgeVisibility.Kill();
 	mcPolygons.Kill();
-
-	mpcMesh = NULL;
 }
 
 
@@ -61,7 +64,21 @@ void CMeshEditor::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshEditor::Save(CFileWriter* pcFile)
+void CMeshEditor::Class(void)
+{
+	M_Pointer(mpcMesh);
+	M_Embedded(mcModifiers);
+	M_Embedded(mcSelections);
+	M_Embedded(mcEdgeVisibility);
+	M_Embedded(mcPolygons);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshEditor::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(mcSelections.Save(pcFile));
 	ReturnOnFalse(mcEdgeVisibility.Save(pcFile));
@@ -74,7 +91,7 @@ bool CMeshEditor::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshEditor::Load(CFileReader* pcFile)
+bool CMeshEditor::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(mcSelections.Load(pcFile));
 	ReturnOnFalse(mcEdgeVisibility.Load(pcFile));
@@ -170,15 +187,15 @@ int CMeshEditor::NumVisibleEdges(char cEdge)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditor::ReInitConnectivity(void)
+void CMeshEditor::ClearConnectivity(void)
 {
-	mpcMesh->ReInitConnectivity();
+	mpcMesh->ClearConnectivity();
 	
-	mcSelections.ReInit();
-	mcEdgeVisibility.ReInit();
-	mcPolygons.ReInit();
+	mcSelections.Clear();
+	mcEdgeVisibility.Clear();
+	mcPolygons.Clear();
 
-	mcModifiers.ReInitConnectivity();
+	mcModifiers.ClearConnectivity();
 }
 
 

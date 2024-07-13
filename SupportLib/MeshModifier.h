@@ -36,7 +36,7 @@ public:
 
 	virtual void	Apply(CMeshEditor* pcMeshEditor) =0;
 
-	virtual void	ReInitConnectivity(void);
+	virtual void	ClearConnectivity(void);
 
 	virtual void 	AddPosition(float x, float y, float z);
 	virtual void	AddPosition(SFloat3* psPosition);
@@ -55,5 +55,5 @@ public:
 };
 
 
-#endif // !__MESH_MODIFIER_H__
+#endif // __MESH_MODIFIER_H__
 

@@ -29,8 +29,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMaterial : public CObject
 {
 CONSTRUCTABLE(CMaterial);
-public:
-
+DESTRUCTABLE(CMaterial);
+protected:
 	CMaterialImage		msDiffuse;
 	CMaterialImage		msDiffuseLevel;
 	CMaterialImage		msSpecular;
@@ -42,6 +42,7 @@ public:
 	CMaterialImage		msReflection;
 	CMaterialProperties	msProperties;
 
+public:
 	void		Init(void);
 	void		Free(void);
 	void		Class(void);

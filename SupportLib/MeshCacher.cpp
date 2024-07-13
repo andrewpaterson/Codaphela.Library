@@ -101,21 +101,21 @@ size CMeshCacher::GetIndexSize(SMeshFaceType* psFaceType)
 //////////////////////////////////////////////////////////////////////////
 bool CMeshCacher::Index(void)
 {
-	int					iUniqueFaceTypes;
-	int					i;
-	SMeshFaceType*		psFaceType;
-	CArrayInt			aiFaces;
-	int					iStride;
-	void*				pvIndices;
-	int					iOffset;
-	int					iUVLayers;
-	CMeshTypeIndices*	pcMeshTypeIndices;
-	int					iNormalOffset;
-	int					iColourOffset;
-	int					iUVOffset;
-	int					iMatrixOffset;
-	int					iMatricies;
-	CMeshVertexArray*	pcVertexArray;
+	int						iUniqueFaceTypes;
+	int						i;
+	SMeshFaceType*			psFaceType;
+	CArrayInt				aiFaces;
+	int						iStride;
+	void*					pvIndices;
+	int						iOffset;
+	int						iUVLayers;
+	CMeshTypeIndices*		pcMeshTypeIndices;
+	int						iNormalOffset;
+	int						iColourOffset;
+	int						iUVOffset;
+	int						iMatrixOffset;
+	int						iMatricies;
+	Ptr<CMeshVertexArray>	pcVertexArray;
 
 	Kill();
 	Init(mpcMesh);
@@ -203,7 +203,7 @@ bool CMeshCacher::Vertex(void)
 	int						iNumVerts;
 	int						iStartIndex;
 	int						iNumIndices;
-	CMeshVertexArray*		pcVertexArray;
+	Ptr<CMeshVertexArray>	pcVertexArray;
 
 	iStartIndex = 0;
 	iUniqueTypes = mcTypeIndices.NumElements();
@@ -219,11 +219,11 @@ bool CMeshCacher::Vertex(void)
 		pcVertexArray->GetVertexArray()->SetSize(pcTypeIndices->NumVerts());
 		pcVertexArray->GetVertexArray()->EndChange();
 
-		PopulatePositions(pcVertexArray, pcTypeIndices);
-		PopulateNormals(pcVertexArray, pcTypeIndices);
-		PopulateColours(pcVertexArray, pcTypeIndices);
-		PopulateUVs(pcVertexArray, pcTypeIndices);
-		PopulateSkin(pcVertexArray, pcTypeIndices);
+		PopulatePositions(&pcVertexArray, pcTypeIndices);
+		PopulateNormals(&pcVertexArray, pcTypeIndices);
+		PopulateColours(&pcVertexArray, pcTypeIndices);
+		PopulateUVs(&pcVertexArray, pcTypeIndices);
+		PopulateSkin(&pcVertexArray, pcTypeIndices);
 	}
 
 	return true;

@@ -34,6 +34,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CConnection : public CObject
 {
 CONSTRUCTABLE(CConnection);
+DESTRUCTABLE(CConnection);
 public:
 	SFloat4x4			msWorldMatrix;
 	SFloat4x4			msLocalMatrix;  //It's possible to work this out given a parent matrix.
@@ -41,13 +42,13 @@ public:
 	bool				mbTopLevel;
 	bool				mbParity;
 
-	void 	Init(void);
-	void 	Free(void);
-	void	Class(void);
+	Ptr<CConnection> 	Init(void);
+	void 				Free(void);
+	void				Class(void);
 
-	bool	Load(CObjectReader* pcFile);
-	bool	Save(CObjectWriter* pcFile);
-	void	Copy(CConnection* pcConnection);
+	bool				Load(CObjectReader* pcFile);
+	bool				Save(CObjectWriter* pcFile);
+	void				Copy(CConnection* pcConnection);
 };
 
 

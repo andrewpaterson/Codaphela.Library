@@ -50,5 +50,5 @@ private:
 };
 
 
-#endif // !__IMAGE_RGB_TO_GREY_H__
+#endif // __IMAGE_RGB_TO_GREY_H__
 

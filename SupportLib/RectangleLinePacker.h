@@ -64,5 +64,5 @@ public:
 };
 
 
-#endif // !__RECTANGLE_LINE_PACKER_H__
+#endif // __RECTANGLE_LINE_PACKER_H__
 

@@ -28,16 +28,21 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 class CMeshEditor;
-class CMeshModifierStack : public CUnknown
+class CMeshModifierStack : public CObject
 {
 CONSTRUCTABLE(CMeshModifierStack);
+DESTRUCTABLE(CMeshModifierStack);
 protected:
 	CArrayUnknown	macEditors;  //Mesh | Editor 0 | Editor 1 | etc...
 	int				miCurrent;
 
 public:
-	void 	Init(void);
-	void 	Kill(void);
+	void	Init(void);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 
 	void 	AddModifier(CMeshModifier* pcEditor);
 	template<typename M>
@@ -46,7 +51,7 @@ public:
 
 	void	ApplyAll(CMeshEditor* pcMeshEditor);
 
-	void	ReInitConnectivity(void);
+	void	ClearConnectivity(void);
 
 	void	AddPosition(SFloat3* psPosition);
 
@@ -84,5 +89,5 @@ M* CMeshModifierStack::AddModifier(void)
 }
 
 
-#endif // !__MESH_MODIFIER_STACK_H__
+#endif // __MESH_MODIFIER_STACK_H__
 

@@ -72,7 +72,7 @@ bool CMeshSmoothFaces::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSmoothFaces::Apply(CMeshEditor* pcMeshEditor)
 {
-	GenerateNormals(pcMeshEditor->mpcMesh);
+	GenerateNormals(&pcMeshEditor->mpcMesh);
 }
 
 

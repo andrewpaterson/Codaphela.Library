@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_DETAIL_H__
 #define __MESH_DETAIL_H__
-#include "StandardLib/Unknown.h"
+#include "StandardLib/Object.h"
 
 
 #define MESH_DETAIL_POSITION		0x01
@@ -35,20 +35,23 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define MESH_DETAIL_CONNECTIVITY	0x40
 
 
-class CMeshDetail : public CUnknown
+class CObjectReader;
+class CObjectWriter;
+class CMeshDetail : public CObject
 {
 CONSTRUCTABLE(CMeshDetail);
+DESTRUCTABLE(CMeshDetail);
 public:
 	bool	mbInUse;
 
 	void	Init(bool bInUse = false);
 	bool	InUse(void);
+	void	Class(void);
 
-	bool	LoadMeshDetail(CFileReader* pcFile);
-	bool	SaveMeshDetail(CFileWriter* pcFile);
+	bool	LoadMeshDetail(CObjectReader* pcFile);
+	bool	SaveMeshDetail(CObjectWriter* pcFile);
 };
 
 
-#endif // !__MESH_DETAIL_H__
-
+#endif // __MESH_DETAIL_H__
 

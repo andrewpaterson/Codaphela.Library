@@ -54,4 +54,4 @@ typedef CArrayTemplate<CPackedLine>	CArrayPackedLine;
 int ComparePackedLine(const void* pv1, const void* pv2);
 
 
-#endif // !__PACKED_LINE_H__
+#endif // __PACKED_LINE_H__

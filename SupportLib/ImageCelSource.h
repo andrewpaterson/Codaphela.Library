@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // !__IMAGE_CEL_SOURCE_H__
+#endif // __IMAGE_CEL_SOURCE_H__
 

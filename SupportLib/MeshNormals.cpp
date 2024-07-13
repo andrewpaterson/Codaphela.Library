@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshConnectivity.h"
 #include "MeshSmoothGroups.h"
 #include "MeshPositions.h"
@@ -34,9 +37,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshNormals::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcNormals.Init();
 	mcFaces.Init();
+
+	PostInit();
 }
 
 
@@ -44,7 +51,7 @@ void CMeshNormals::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshNormals::ReInit(void)
+void CMeshNormals::Clear(void)
 {
 	mcNormals.ReInit();
 	mcFaces.ReInit();
@@ -55,11 +62,10 @@ void CMeshNormals::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshNormals::Kill(void)
+void CMeshNormals::Free(void)
 {
 	mcFaces.Kill();
 	mcNormals.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -67,7 +73,22 @@ void CMeshNormals::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshNormals::Load(CFileReader* pcFile)
+void CMeshNormals::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayFloat3, mcNormals);
+	U_Unknown(CArrayMeshFaceNormal, mcFaces);
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshNormals::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcNormals.Read(pcFile));
@@ -80,7 +101,7 @@ bool CMeshNormals::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshNormals::Save(CFileWriter* pcFile)
+bool CMeshNormals::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcNormals.Write(pcFile));

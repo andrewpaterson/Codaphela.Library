@@ -19,6 +19,9 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GlobalMemory.h"
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshConnectivity.h"
 #include "MeshEdgeVisibility.h"
 #include "MeshNormals.h"
@@ -42,6 +45,7 @@ void CMeshPolygon::Init(int iName)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygon::Kill(void)
 {
+	miName = -1;
 	maiFaces.Kill();
 }
 
@@ -74,8 +78,12 @@ bool CMeshPolygon::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPolygons::Init(void)
 {
+	PreInit();
+
 	mcPolygons.Init(); 
 	maiFacesToPolygons.Init();
+
+	PostInit();
 }
 
 
@@ -83,20 +91,19 @@ void CMeshPolygons::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::ReInit(void)
+void CMeshPolygons::KillPolygons(void)
 {
-	Kill();
-	Init();
-}
+	size			i;
+	CMeshPolygon*	pcPolygon;
+	size			uiNumElements;
 
+	uiNumElements = mcPolygons.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcPolygon = mcPolygons.Get(i);
+		pcPolygon->Kill();
+	}
 
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CMeshPolygons::Kill(void)
-{
-	maiFacesToPolygons.Kill();
 	mcPolygons.Kill();
 }
 
@@ -105,7 +112,42 @@ void CMeshPolygons::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMeshPolygons::Save(CFileWriter* pcFile)
+void CMeshPolygons::Free(void)
+{
+	maiFacesToPolygons.Kill();
+	KillPolygons();
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CMeshPolygons::Class(void)
+{
+	U_Unknown(CArrayMeshPolygon, mcPolygons);
+	U_Unknown(CArrayInt, maiFacesToPolygons);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CMeshPolygons::Clear(void)
+{
+	KillPolygons();
+	mcPolygons.Init();
+
+	maiFacesToPolygons.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshPolygons::Save(CObjectWriter* pcFile)
 {
 	size			i;
 	CMeshPolygon*	psPolygon;
@@ -127,7 +169,7 @@ bool CMeshPolygons::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMeshPolygons::Load(CFileReader* pcFile)
+bool CMeshPolygons::Load(CObjectReader* pcFile)
 {
 	size			i;
 	CMeshPolygon*	psPolygon;
@@ -356,7 +398,7 @@ void CMeshPolygons::GeneratePolygonsFromEdgeSelection(CMeshConnectivity* pcConn,
 {
 	int			iFaceIndex;
 
-	ReInit();
+	Clear();
 
 	iFaceIndex = 0;
 	for (;;)

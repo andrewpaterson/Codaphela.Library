@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshMaterials.h"
 
@@ -31,16 +34,20 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshMaterials::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcMaterials.Init();
 	mcFaces.Init();
+
+	PostInit();
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshMaterials::ReInit(void)
+void CMeshMaterials::Clear(void)
 {
 	mcMaterials.ReInit();
 	mcFaces.ReInit();
@@ -51,7 +58,7 @@ void CMeshMaterials::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshMaterials::Kill(void)
+void CMeshMaterials::Free(void)
 {
 	mcMaterials.Kill();
 	mcFaces.Kill();
@@ -63,7 +70,20 @@ void CMeshMaterials::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshMaterials::Load(CFileReader* pcFile)
+void CMeshMaterials::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayInt, mcMaterials);
+	U_Unknown(CArrayInt, mcFaces);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshMaterials::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcMaterials.Read(pcFile));
@@ -76,7 +96,7 @@ bool CMeshMaterials::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshMaterials::Save(CFileWriter* pcFile)
+bool CMeshMaterials::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcMaterials.Write(pcFile));

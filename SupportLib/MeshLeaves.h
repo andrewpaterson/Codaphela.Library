@@ -87,13 +87,16 @@ class CMeshTriangles;
 class CMeshLeaves : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshLeaves);
+DESTRUCTABLE(CMeshLeaves);
 public:
 	CArrayMeshLeaf	mcLeaves;
 
 	void 	Init(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 
 	void	GenerateLeafSpheres(CMeshConnectivity* pcConn, CMeshPositions* pcPositions, CMeshTriangles* pcTriangles);
 	void	SetSphereFromTriangle(STriangleSphere* psSphere, CTriangleIndexed* pcTriangleIndexed, CMeshPositions* pcPositions);
@@ -103,5 +106,5 @@ public:
 };
 
 
-#endif // !__MESH_LEAVES_H__
+#endif // __MESH_LEAVES_H__
 

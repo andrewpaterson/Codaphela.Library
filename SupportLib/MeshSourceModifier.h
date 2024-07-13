@@ -37,9 +37,9 @@ public:
 	virtual int ExpectedFaceChunkSize(void) =0;
 	virtual int ExpectedCornerChunkSize(void) =0;
 
-	void		ReInitConnectivity(CMeshEditor* pcMeshEditor);
+	void		ClearConnectivity(CMeshEditor* pcMeshEditor);
 };
 
 
-#endif // !__MESH_SOURCE_MODIFIER_H__
+#endif // __MESH_SOURCE_MODIFIER_H__
 

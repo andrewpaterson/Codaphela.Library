@@ -37,5 +37,5 @@ public:
 };
 
 
-#endif // !__FILL_RECTANGLE_H__
+#endif // __FILL_RECTANGLE_H__
 

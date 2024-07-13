@@ -23,6 +23,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/PointerFunctions.h"
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
 
@@ -55,6 +58,8 @@ void CCornerEdgesMap::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConnectivity::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init(true);
 
 	mcCorners.Init();
@@ -62,6 +67,8 @@ void CMeshConnectivity::Init(void)
 	mcFaces.Init();
 
 	mcCornerEdgesMap.Init();
+
+	PostInit();
 }
 
 
@@ -69,13 +76,27 @@ void CMeshConnectivity::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::Kill(void)
+void CMeshConnectivity::Free(void)
 {	
 	KillCornerEdgesMap();
 	KillCorners();
 	mcEdges.Kill();
 	mcFaces.Kill();
-	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshConnectivity::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayCorner, mcCorners);
+	U_Unknown(CArrayEdge, mcEdges);
+	U_Unknown(CArrayFace, mcFaces);
+	U_Unknown(CArrayCornerEdgesMap, mcCornerEdgesMap);
 }
 
 
@@ -83,17 +104,17 @@ void CMeshConnectivity::Kill(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshConnectivity::ReInit(void)
+void CMeshConnectivity::Clear(void)
 {
 	KillCornerEdgesMap();
-	KillCorners();
+	mcCornerEdgesMap.Init();
 
+	KillCorners();
 	mcCorners.Init();
+
 	mcCorners.ReInit();
 	mcEdges.ReInit();
 	mcFaces.ReInit();
-
-	mcCornerEdgesMap.Init();
 }
 
 
@@ -125,7 +146,7 @@ void CMeshConnectivity::KillCornerEdgesMap(void)
 	size				i;
 	CCornerEdgesMap*	pcCornerEdgeMap;
 
-	for (i = 0; i < mcCorners.NumElements(); i++)
+	for (i = 0; i < mcCornerEdgesMap.NumElements(); i++)
 	{
 		pcCornerEdgeMap = mcCornerEdgesMap.Get(i);
 		pcCornerEdgeMap->Kill();
@@ -133,7 +154,6 @@ void CMeshConnectivity::KillCornerEdgesMap(void)
 
 	mcCornerEdgesMap.Kill();
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -272,7 +292,7 @@ CMeshFace* CMeshConnectivity::GetFace(int iElementNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshConnectivity::Load(CFileReader* pcFile)
+bool CMeshConnectivity::Load(CObjectReader* pcFile)
 {
 	size			i;
 	CMeshCorner*	pcCorner;
@@ -319,7 +339,7 @@ bool CMeshConnectivity::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshConnectivity::Save(CFileWriter* pcFile)
+bool CMeshConnectivity::Save(CObjectWriter* pcFile)
 {
 	size			i;
 	CMeshCorner*	pcCorner;

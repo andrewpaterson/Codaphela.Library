@@ -50,5 +50,5 @@ public:
 typedef CArrayTemplate<CPolygon>	CArrayPolygons;
 
 
-#endif // !__POLYGON_H__
+#endif // __POLYGON_H__
 

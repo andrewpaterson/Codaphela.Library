@@ -48,7 +48,7 @@ void CMeshSourceModifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSourceModifier::ReInitConnectivity(CMeshEditor* pcMeshEditor)
+void CMeshSourceModifier::ClearConnectivity(CMeshEditor* pcMeshEditor)
 {
-	pcMeshEditor->ReInitConnectivity();
+	pcMeshEditor->ClearConnectivity();
 }

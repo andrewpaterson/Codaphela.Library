@@ -56,11 +56,12 @@ void CImage::PrivateInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(void)
+Ptr<CImage> CImage::Init(void)
 {
 	PreInit();
 	PrivateInit();
 	PostInit();
+	return this;
 }
 
 
@@ -68,7 +69,7 @@ void CImage::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
+Ptr<CImage> CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -94,6 +95,8 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 	EndChange();
 
 	PostInit();
+	
+	return this;
 }
 
 
@@ -101,7 +104,7 @@ void CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
+Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;
 	size		iCount;
@@ -128,6 +131,8 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eTyp
 	EndChange();
 
 	PostInit();
+
+	return this;
 }
 
 
@@ -135,7 +140,7 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eTyp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(CImage* pcSource)
+Ptr<CImage> CImage::Init(CImage* pcSource)
 {
 	PreInit();
 
@@ -146,6 +151,8 @@ void CImage::Init(CImage* pcSource)
 	EndChange();
 
 	PostInit();
+
+	return this;
 }
 
 
@@ -153,7 +160,7 @@ void CImage::Init(CImage* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
+Ptr<CImage> CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 {
 	PreInit();
 
@@ -164,6 +171,8 @@ void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 	EndChange();
 
 	PostInit();
+
+	return this;
 }
 
 
@@ -171,7 +180,7 @@ void CImage::Init(int iWidth, int iHeight, CImageChannelsSource* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource)
+Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource)
 {
 	PreInit();
 
@@ -183,6 +192,8 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSourc
 	EndChange();
 
 	PostInit();
+
+	return this;
 }
 
 
@@ -190,7 +201,7 @@ void CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSourc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
+Ptr<CImage> CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 {
 	PreInit();
 
@@ -201,6 +212,8 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 	EndChange();
 
 	PostInit();
+
+	return this;
 }
 
 
@@ -210,12 +223,10 @@ void CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Class(void)
 {
-	int						miWidth;
-	int						miHeight;
-
 	Embedded(&mcChannels, "mcChannels");
 	UnmanagedSInt(&miWidth, "miWidth");
 	UnmanagedSInt(&miHeight, "miHeight");
+	UnmanagedPointer((void**)&mpsImageChangingDesc, "mpsImageChangingDesc");
 }
 
 
@@ -228,7 +239,6 @@ void CImage::Free(void)
 	SafeFree(mpsImageChangingDesc);
 	miWidth = 0;
 	miHeight = 0;
-	mcChannels.Kill();
 }
 
 
@@ -243,7 +253,6 @@ bool CImage::Load(CObjectReader* pcFile)
 	ReturnOnFalse(pcFile->ReadSInt(&miWidth));
 	ReturnOnFalse(pcFile->ReadSInt(&miHeight));
 
-	//ReturnOnFalse(mcChannels.Load(pcFile));
 	return true;
 }
 
@@ -257,7 +266,6 @@ bool CImage::Save(CObjectWriter* pcFile)
 	ReturnOnFalse(pcFile->WriteSInt(miWidth));
 	ReturnOnFalse(pcFile->WriteSInt(miHeight));
 
-	//ReturnOnFalse(mcChannels.Save(pcFile));
 	return true;
 }
 

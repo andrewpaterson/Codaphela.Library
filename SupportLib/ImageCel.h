@@ -69,5 +69,5 @@ public:
 typedef CArrayType<CImageCel> CArrayImageCel;
 
 
-#endif // !__IMAGE_CEL_H__
+#endif // __IMAGE_CEL_H__
 

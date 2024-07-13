@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "Mesh.h"
 #include "MeshFaceTypes.h"
 
@@ -137,9 +140,13 @@ int SMeshFaceType::GetMaterial(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFaceTypes::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcFaces.Init();
 	mcUniqueTypes.Init();
+
+	PostInit();
 }
 
 
@@ -147,11 +154,10 @@ void CMeshFaceTypes::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshFaceTypes::Kill(void)
+void CMeshFaceTypes::Free(void)
 {
 	mcUniqueTypes.Kill();
 	mcFaces.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -159,7 +165,20 @@ void CMeshFaceTypes::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshFaceTypes::Load(CFileReader* pcFile)
+void CMeshFaceTypes::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayMeshFaceType, mcFaces);
+	U_Unknown(CArrayMeshFaceType, mcUniqueTypes);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshFaceTypes::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcFaces.Read(pcFile));
@@ -172,7 +191,7 @@ bool CMeshFaceTypes::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshFaceTypes::Save(CFileWriter* pcFile)
+bool CMeshFaceTypes::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	ReturnOnFalse(mcFaces.Write(pcFile));

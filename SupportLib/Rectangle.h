@@ -70,5 +70,5 @@ public:
 typedef CArrayTemplate<CRectangle>	CArrayRectangle;
 
 
-#endif // !__RECTANGLE_H__
+#endif // __RECTANGLE_H__
 

@@ -44,5 +44,5 @@ public:
 typedef CArrayTemplate<CMeshCornerBuilder>	CArrayMeshCornerBuilder;
 
 
-#endif // !__MESH_CORNER_BUILDER_H__
+#endif // __MESH_CORNER_BUILDER_H__
 

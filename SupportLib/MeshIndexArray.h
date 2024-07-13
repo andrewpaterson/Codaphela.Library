@@ -39,5 +39,5 @@ struct SMeshFaceIndex
 typedef CArrayTemplate<SMeshFaceIndex>	CArrayMeshFaceIndex;
 
 
-#endif // !__MESH_INDEX_ARRAY_H__
+#endif // __MESH_INDEX_ARRAY_H__
 

@@ -58,14 +58,19 @@ class CMeshConnectivity;
 class CMeshUVCoords : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshUVCoords)
+DESTRUCTABLE(CMeshUVCoords);
 public:
 	CArrayMeshUVLayer	mcLayers;
 
 	void			Init(void);
-	void			ReInit(void);
-	void			Kill(void);
-	bool			Load(CFileReader* pcFile);
-	bool			Save(CFileWriter* pcFile);
+	void			Free(void);
+	void			Class(void);
+	void			KillUVLayers(void);
+
+	void			Clear(void);
+
+	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
 
 	void			AddFace(void);
 	int				AddLayer(CMeshConnectivity* pcConn);
@@ -76,5 +81,5 @@ public:
 };
 
 
-#endif // !__MESH_UV_COORDS_H__
+#endif // __MESH_UV_COORDS_H__
 

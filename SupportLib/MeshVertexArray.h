@@ -24,24 +24,29 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_VERTEX_ARRAY_H__
 #define __MESH_VERTEX_ARRAY_H__
 #include "StandardLib/ArrayType.h"
+#include "StandardLib/Array.h"
 #include "VertexArray.h"
 #include "MeshFaceTypes.h"
 #include "MeshIndexArray.h"
 
 
-class CMeshVertexArray : public CUnknown
+//This is conceptually a single draw call.  The faces are indices into the vertex array.
+class CMeshVertexArray : public CObject
 {
 CONSTRUCTABLE(CMeshVertexArray);
+DESTRUCTABLE(CMeshVertexArray);
 protected:
 	SMeshFaceType			msFaceType;
 	CVertexArray			mcVertexArray;
 	CArrayMeshFaceIndex		mcFaceIndicies;
 
 public:
-	void 					Init(SMeshFaceType sFaceType);
-	void 					Kill(void);
-	bool					Save(CFileWriter* pcFile);
-	bool					Load(CFileReader* pcFile);
+	void					Init(SMeshFaceType sFaceType);
+	void 					Free(void);
+	void					Class(void);
+
+	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile);
 
 	bool					Is(SMeshFaceType* psFaceType);
 	CArrayMeshFaceIndex*	GetFaceIndicies(void);
@@ -53,8 +58,8 @@ private:
 };
 
 
-typedef CArrayType<CMeshVertexArray>	CMeshVertexArrayArray;
+typedef CArray<CMeshVertexArray>	CMeshVertexArrayArray;
 
 
-#endif // !__MESH_VERTEX_ARRAY_H__
+#endif // __MESH_VERTEX_ARRAY_H__
 

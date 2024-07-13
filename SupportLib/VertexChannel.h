@@ -77,5 +77,5 @@ enum EVertexPurpose	//1 bytes for purpose.
 #define VERTEX_MATRIX_3			CHANNEL(VP_Matrix_(3), CT_Index)
 
 
-#endif // !__VERTEX_CHANNEL_H__
+#endif // __VERTEX_CHANNEL_H__
 

@@ -30,19 +30,23 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshCache : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshCache);
+DESTRUCTABLE(CMeshCache);
 public:
 	CMeshVertexArrayArray	mcMeshVerticesArrays;
 
-	void 				Init(void);
-	void 				Kill(void);
-	bool				Load(CFileReader* pcFile);
-	bool				Save(CFileWriter* pcFile);
-	bool				Touch(CMesh* pcMesh);
-	CMeshVertexArray*	AddVertexArray(SMeshFaceType sMeshFaceType);
-	CMeshVertexArray*	GetVertexArray(SMeshFaceType sMeshFaceType);
-	CMeshVertexArray*	GetVertexArray(int iIndex);
+	void 					Init(void);
+	void 					Free(void);
+	void					Class(void);
+
+	bool					Load(CObjectReader* pcFile);
+	bool					Save(CObjectWriter* pcFile);
+
+	bool					Touch(CMesh* pcMesh);
+	Ptr<CMeshVertexArray>	AddVertexArray(SMeshFaceType sMeshFaceType);
+	Ptr<CMeshVertexArray>	GetVertexArray(SMeshFaceType sMeshFaceType);
+	Ptr<CMeshVertexArray>	GetVertexArray(int iIndex);
 };
 
 
-#endif // !__MESH_CACHE_H__
+#endif // __MESH_CACHE_H__
 

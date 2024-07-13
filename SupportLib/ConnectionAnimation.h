@@ -68,6 +68,7 @@ typedef CArrayTemplate<CAnimKeyFrame>	CArrayAnimKeyFrame;
 class CConnectionAnimation : public CObject
 {
 CONSTRUCTABLE(CConnectionAnimation);
+DESTRUCTABLE(CConnectionAnimation);
 public:
 	CArrayAnimKeyFrame	masKeyFrames;
 	int					miConnectionIndex;  //The connection this key-frame animates
@@ -89,5 +90,5 @@ public:
 };
 
 
-#endif // !__CONNECTION_ANIMATION_H__
+#endif // __CONNECTION_ANIMATION_H__
 

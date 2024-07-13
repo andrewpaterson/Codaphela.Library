@@ -23,6 +23,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerFunctions.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ClassDefines.h"
 #include "Mesh.h"
 
 
@@ -32,7 +33,11 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMesh::Init(void)
 {
+	PreInit();
+
 	PrivateInit();
+
+	PostInit();
 }
 
 
@@ -78,7 +83,15 @@ void CMesh::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CMesh::Class(void)
 {
-	CObject::ClassNotImplemented();
+	M_Embedded(mcPositions);
+	M_Embedded(mcConnectivity);
+	M_Embedded(mcNormals);
+	M_Embedded(mcUVs);
+	M_Embedded(mcMaterials);
+	M_Embedded(mcColours);
+	M_Embedded(mcSkin);
+	M_Embedded(mcFaceTypes);
+	M_Embedded(mcCache);
 }
 
 
@@ -259,16 +272,16 @@ CMeshFace* CMesh::GetFace(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMesh::ReInitConnectivity(void)
+void CMesh::ClearConnectivity(void)
 {
-	mcConnectivity.ReInit();
-	mcPositions.ReInit();
+	mcConnectivity.Clear();
+	mcPositions.Clear();
 
-	mcNormals.ReInit();
-	mcUVs.ReInit();
-	mcSkin.ReInit();
-	mcMaterials.ReInit();
-	mcColours.ReInit();
+	mcNormals.Clear();
+	mcUVs.Clear();
+	mcSkin.Clear();
+	mcMaterials.Clear();
+	mcColours.Clear();
 }
 
 

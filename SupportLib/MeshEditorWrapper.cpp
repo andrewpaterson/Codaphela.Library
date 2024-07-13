@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::Init(CMesh* pcMesh)
+void CMeshEditorWrapper::Init(Ptr<CMesh> pcMesh)
 {
 	mpcEditor = NULL;
 	mpcMesh = pcMesh;
@@ -41,7 +41,7 @@ void CMeshEditorWrapper::Init(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::Init(CMeshEditor* pcEditor)
+void CMeshEditorWrapper::Init(Ptr<CMeshEditor> pcEditor)
 {
 	mpcEditor = pcEditor;
 	mpcMesh = pcEditor->mpcMesh;
@@ -54,9 +54,6 @@ void CMeshEditorWrapper::Init(CMeshEditor* pcEditor)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::Kill(void)
 {
-	mpcMesh = NULL;
-	mpcEditor = NULL;
-	CUnknown::Kill();
 }
 
 
@@ -64,15 +61,15 @@ void CMeshEditorWrapper::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEditorWrapper::ReInitConnectivity(void)
+void CMeshEditorWrapper::ClearConnectivity(void)
 {
-	if (mpcEditor)
+	if (mpcEditor.IsNotNull())
 	{
-		mpcEditor->ReInitConnectivity();
+		mpcEditor->ClearConnectivity();
 	}
 	else
 	{
-		mpcMesh->ReInitConnectivity();
+		mpcMesh->ClearConnectivity();
 	}
 }
 
@@ -115,7 +112,7 @@ CMFRet CMeshEditorWrapper::AddFace(int iCorner1, int iCorner2, int iCorner3, int
 {
 	CMFRet	rFace;
 
-	if (mpcEditor)
+	if (mpcEditor.IsNotNull())
 	{
 		return mpcEditor->AddFace(iCorner1, iCorner2, iCorner3, iName, bEdge12, bEdge23, bEdge31, bFlipFaces);
 	}
@@ -143,7 +140,7 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 {
 	CMFRet	rQuad;
 
-	if (mpcEditor)
+	if (mpcEditor.IsNotNull())
 	{
 		return mpcEditor->AddQuad(iCorner1, iCorner2, iCorner3, iCorner4, iName, bFlipFaces);
 	}
@@ -171,7 +168,7 @@ CMFRet CMeshEditorWrapper::AddQuad(int iCorner1, int iCorner2, int iCorner3, int
 //////////////////////////////////////////////////////////////////////////
 CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFlipFaces)
 {
-	if (mpcEditor)
+	if (mpcEditor.IsNotNull())
 	{
 		return mpcEditor->AddPolygon(paiCorners, iName, bFlipFaces);
 	}
@@ -188,7 +185,7 @@ CMFRet CMeshEditorWrapper::AddPolygon(CArrayInt* paiCorners, int iName, bool bFl
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditorWrapper::AddCorner(float x, float y, float z)
 {
-	if (mpcEditor)
+	if (mpcEditor.IsNotNull())
 	{
 		mpcEditor->AddCorner(x, y, z);
 	}

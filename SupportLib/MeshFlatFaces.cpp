@@ -72,7 +72,7 @@ bool CMeshFlatFaces::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshFlatFaces::Apply(CMeshEditor* pcMeshEditor)
 {
-	GenerateNormals(pcMeshEditor->mpcMesh);
+	GenerateNormals(&pcMeshEditor->mpcMesh);
 }
 
 

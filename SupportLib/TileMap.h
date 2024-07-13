@@ -53,5 +53,5 @@ public:
 typedef CArrayType<CTileMap>	CArrayTileMap;
 
 
-#endif // !__TILE_MAP_H__
+#endif // __TILE_MAP_H__
 

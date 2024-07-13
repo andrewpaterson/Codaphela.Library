@@ -32,14 +32,14 @@ class CMeshTypeIndices
 {
 public:
 	int						miStride;
-	CMeshVertexArray*		mpcVertexArray;
+	Ptr<CMeshVertexArray>	mpcVertexArray;
 	CArrayBlock				maVerts;  //'Vertex Buffer',  however each vertex contains indcies into the data rather than the data itself.
 	int						miNormalOffset;
 	int						miColourOffset;
 	int						miUVOffset;
 	int						miSkinOffset;
 
-	void	Init(CMeshVertexArray* pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
+	void	Init(Ptr<CMeshVertexArray> pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset);
 	void	Kill(void);
 
 	bool	Generate(CArrayInt* paiFaces, void* pavFaceIndices);
@@ -60,5 +60,5 @@ public:
 typedef CArrayTemplate<CMeshTypeIndices>	CArrayMeshTypeIndices;
 
 
-#endif // !__MESH_TYPE_INDICES_H__
+#endif // __MESH_TYPE_INDICES_H__
 

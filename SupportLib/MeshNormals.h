@@ -46,15 +46,19 @@ class CMesh;
 class CMeshNormals : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshNormals);
+DESTRUCTABLE(CMeshNormals);
 public:
 	CArrayFloat3			mcNormals;  //0 .. Flats, Flats+1 .. End
 	CArrayMeshFaceNormal	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
 	void 		Init(void);
-	void 		ReInit(void);
-	void 		Kill(void);
-	bool		Load(CFileReader* pcFile);
-	bool		Save(CFileWriter* pcFile);
+	void 		Free(void);
+	void		Class(void);
+
+	void 		Clear(void);
+
+	bool		Load(CObjectReader* pcFile);
+	bool		Save(CObjectWriter* pcFile);
 
 	void		GenerateFlatFaceNormals(CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
 	void		AddFace(int iFaceNum, CMeshPositions* pcPositions, CMeshConnectivity* pcConn);
@@ -65,5 +69,5 @@ public:
 };
 
 
-#endif // !__MESH_NORMALS_H__
+#endif // __MESH_NORMALS_H__
 

@@ -29,7 +29,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageCelGroup::Init(void)
 {
+	PreInit();
+
 	mcImageCels.Init();
+
+	PostInit();
 }
 
 

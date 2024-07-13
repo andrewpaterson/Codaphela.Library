@@ -30,23 +30,25 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 class CMesh;
-class CMeshShape : public CUnknown
+class CMeshShape : public CObject
 {
 CONSTRUCTABLE(CMeshShape);
+DESTRUCTABLE(CMeshShape);
 public:
-	CMesh*				mpcMesh;
+	Ptr<CMesh>			mpcMesh;
 	CMeshTriangles		mcTriangles;		//Touched, Depends: Normals
 	CMeshLeaves			mcLeaves;			//Touched, Depends: Triangles
 	CMeshBoundingBox	mcBoundingBox;		//Touched, Optional Depends: Hull, Incompatible: Skin
 	CMeshConvexHull		mcHull;				//Touched, Incompatible: Skin
 
-	void 	Init(CMesh* pcMesh);
-	void 	Kill(void);
+	void 	Init(Ptr<CMesh> pcMesh);
+	void 	Free(void);
+	void	Class(void);
 
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 };
 
 
-#endif // !__MESH_SHAPE_H__
+#endif // __MESH_SHAPE_H__
 

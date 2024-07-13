@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "MeshEditor.h"
 #include "MeshModifierStack.h"
 
@@ -31,8 +32,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshModifierStack::Init(void)
 {
+	PreInit();
+
 	macEditors.Init();
 	miCurrent = -1;
+
+	PostInit();
 }
 
 
@@ -40,10 +45,42 @@ void CMeshModifierStack::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::Kill(void)
+void CMeshModifierStack::Free(void)
 {
 	macEditors.Kill();
-	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshModifierStack::Class(void)
+{
+	U_SInt(miCurrent);
+	U_Unknown(CArrayUnknown, macEditors);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshModifierStack::Load(CObjectReader* pcFile)
+{
+	CObject::NotImplemented(__METHOD__);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshModifierStack::Save(CObjectWriter* pcFile)
+{
+	CObject::NotImplemented(__METHOD__);
+	return false;
 }
 
 
@@ -90,7 +127,7 @@ int CMeshModifierStack::NumEditors(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifierStack::ReInitConnectivity(void)
+void CMeshModifierStack::ClearConnectivity(void)
 {
 	size			i;
 	CMeshModifier*	pcEditor;
@@ -100,7 +137,7 @@ void CMeshModifierStack::ReInitConnectivity(void)
 		for (i = miCurrent+1; i < macEditors.NumElements(); i++)
 		{
 			pcEditor = (CMeshModifier*)macEditors.Get(i);
-			pcEditor->ReInitConnectivity();
+			pcEditor->ClearConnectivity();
 		}
 	}
 }

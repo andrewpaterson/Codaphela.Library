@@ -18,22 +18,29 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "Connection.h"
 #include "StandardLib/ObjectReader.h"
 #include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ClassDefines.h"
+#include "Connection.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CConnection::Init(void)
+Ptr<CConnection> CConnection::Init(void)
 {
+	PreInit();
+
 	msWorldMatrix.Init();
 	msLocalMatrix.Init();
 	mbSelected = false;
 	mbTopLevel = false;
 	mbParity = false;
+
+	PostInit();
+
+	return this;
 }
 
 
@@ -53,7 +60,11 @@ void CConnection::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CConnection::Class(void)
 {
-	CObject::ClassNotImplemented();
+	U_4x4Float32(msWorldMatrix);
+	U_4x4Float32(msLocalMatrix);
+	U_Bool(mbParity);
+	U_Bool(mbTopLevel);
+	U_Bool(mbParity);
 }
 
 

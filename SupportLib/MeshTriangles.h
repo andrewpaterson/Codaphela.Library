@@ -35,17 +35,20 @@ class CMeshConnectivity;
 class CMeshTriangles : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshTriangles);
+DESTRUCTABLE(CMeshTriangles);
 public:
 	CArrayTriangleIndexed	mcTriangles;  //mcTriangles.NumElements == mpcMesh->mcFaces.NumElements
 
 	void 	Init(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 	Free(void);
+	void	Class(void);
 
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+	
 	void	GenerateTriangles(CMeshConnectivity* pcConn, CMeshNormals* pcNormals);
 };
 
 
-#endif // !__MESH_TRIANGLES_H__
+#endif // __MESH_TRIANGLES_H__
 

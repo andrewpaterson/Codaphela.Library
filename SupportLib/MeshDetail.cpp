@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDetail.h"
 
 
@@ -30,7 +33,21 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshDetail::Init(bool bInUse)
 {
+	PreInit();
+
 	mbInUse = bInUse;
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshDetail::Class(void)
+{
+	U_Bool(mbInUse);
 }
 
 
@@ -48,7 +65,7 @@ bool CMeshDetail::InUse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshDetail::LoadMeshDetail(CFileReader* pcFile)
+bool CMeshDetail::LoadMeshDetail(CObjectReader* pcFile)
 {
 	return pcFile->ReadBool(&mbInUse) == TRITRUE;
 }
@@ -58,7 +75,8 @@ bool CMeshDetail::LoadMeshDetail(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshDetail::SaveMeshDetail(CFileWriter* pcFile)
+bool CMeshDetail::SaveMeshDetail(CObjectWriter* pcFile)
 {
 	return pcFile->WriteBool(mbInUse);
 }
+

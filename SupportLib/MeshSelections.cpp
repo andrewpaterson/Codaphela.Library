@@ -22,6 +22,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshSelections.h"
 
 
@@ -31,9 +34,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshSelections::Init(void)
 {
+	PreInit();
+
 	mcVerts.Init();
 	mcEdges.Init();
 	mcFaces.Init();
+
+	PostInit();
 }
 
 
@@ -41,21 +48,31 @@ void CMeshSelections::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelections::Kill(void)
+void CMeshSelections::Free(void)
 {
 	mcFaces.Kill();
 	mcEdges.Kill();
 	mcVerts.Kill();
-	CUnknown::Kill();
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSelections::Class(void)
+{
+	U_Unknown(CArrayBit, mcVerts);
+	U_Unknown(CArrayBit, mcEdges);
+	U_Unknown(CArrayBit, mcFaces);
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CMeshSelections::ReInit(void)
+void CMeshSelections::Clear(void)
 {
 	mcVerts.ReInit();
 	mcEdges.ReInit();
@@ -67,7 +84,7 @@ void CMeshSelections::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshSelections::Load(CFileReader* pcFile)
+bool CMeshSelections::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(mcVerts.Read(pcFile));
 	ReturnOnFalse(mcEdges.Read(pcFile));
@@ -80,7 +97,7 @@ bool CMeshSelections::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshSelections::Save(CFileWriter* pcFile)
+bool CMeshSelections::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(mcVerts.Write(pcFile));
 	ReturnOnFalse(mcEdges.Write(pcFile));

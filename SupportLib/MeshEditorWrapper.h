@@ -26,6 +26,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/ArrayInt.h"
 #include "StandardLib/Unknown.h"
 #include "MeshFaceReturn.h"
+#include "Mesh.h"
+#include "MeshEditor.h"
 
 
 class CMesh;
@@ -38,14 +40,14 @@ CONSTRUCTABLE(CUnknown);
 public:
 
 	//Either/Or.
-	CMeshEditor*	mpcEditor;
-	CMesh*			mpcMesh;
+	Ptr<CMeshEditor>	mpcEditor;
+	Ptr<CMesh>			mpcMesh;
 
-	void 				Init(CMesh* pcMesh);
-	void 				Init(CMeshEditor* pcMesh);
+	void 				Init(Ptr<CMesh> pcMesh);
+	void 				Init(Ptr<CMeshEditor> pcMesh);
 	void				Kill(void);
 
-	void				ReInitConnectivity(void);
+	void				ClearConnectivity(void);
 
 	void				SetUVsInUse(bool bInUse);
 	void				SetNormalsInUse(bool bInUse);
@@ -69,5 +71,5 @@ public:
 };
 
 
-#endif // !__MESH_EDITOR_WRAPPER_H__
+#endif // __MESH_EDITOR_WRAPPER_H__
 

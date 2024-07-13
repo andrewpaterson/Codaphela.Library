@@ -129,5 +129,5 @@ public:
 typedef CArrayTemplate<CSubImage> CArraySubImage;
 
 
-#endif // !__SUB_IMAGE_H__
+#endif // __SUB_IMAGE_H__
 
