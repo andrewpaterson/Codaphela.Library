@@ -131,7 +131,7 @@ int CMeshPlaneEditor::ExpectedCornerChunkSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshPlaneEditor::Apply(CMeshEditor* pcMeshEditor)
 {
-	ReInitConnectivity(pcMeshEditor);
+	ClearConnectivity(pcMeshEditor);
 	GeneratePlane(pcMeshEditor);
 }
 

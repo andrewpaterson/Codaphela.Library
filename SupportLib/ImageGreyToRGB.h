@@ -36,5 +36,5 @@ public:
 };
 
 
-#endif // !__IMAGE_GREY_TO_RGB_H__
+#endif // __IMAGE_GREY_TO_RGB_H__
 

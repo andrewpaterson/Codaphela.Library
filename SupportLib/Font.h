@@ -37,6 +37,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CFont : public CObject
 {
 CONSTRUCTABLE(CFont);
+DESTRUCTABLE(CFont);
 protected:
 	CChars			mszName;
 	Ptr<CImage>		pcImage;

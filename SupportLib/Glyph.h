@@ -52,5 +52,5 @@ public:
 typedef CArrayType<CGlyph> CArrayGlyph;
 
 
-#endif // !__GLYPH_H__
+#endif // __GLYPH_H__
 

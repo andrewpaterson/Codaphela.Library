@@ -35,4 +35,4 @@ public:
 };
 
 
-#endif // !__MATERIAL_HELPER_H__
+#endif // __MATERIAL_HELPER_H__

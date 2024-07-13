@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshVertexArray.h"
 
 
@@ -30,9 +33,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshVertexArray::Init(SMeshFaceType sFaceType)
 {
+	PreInit();
+
 	msFaceType = sFaceType;
 	mcVertexArray.Init();
 	mcFaceIndicies.Init();
+
+	PostInit();
+
 	Change();
 }
 
@@ -41,10 +49,9 @@ void CMeshVertexArray::Init(SMeshFaceType sFaceType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshVertexArray::Kill(void)
+void CMeshVertexArray::Free(void)
 {
 	mcVertexArray.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -52,7 +59,19 @@ void CMeshVertexArray::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshVertexArray::Load(CFileReader* pcFile)
+void CMeshVertexArray::Class(void)
+{
+	M_Embedded(mcVertexArray);
+	U_Unknown(CArrayMeshFaceIndex, mcFaceIndicies);
+	U_Unknown(SMeshFaceType, msFaceType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshVertexArray::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(msFaceType.Load(pcFile));
 	ReturnOnFalse(mcVertexArray.Load(pcFile));
@@ -65,7 +84,7 @@ bool CMeshVertexArray::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshVertexArray::Save(CFileWriter* pcFile)
+bool CMeshVertexArray::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(msFaceType.Save(pcFile));
 	ReturnOnFalse(mcVertexArray.Save(pcFile));
@@ -80,11 +99,11 @@ bool CMeshVertexArray::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshVertexArray::Change(void)
 {
-	bool				bNormal;
-	bool				bColour; 
-	int					iNumberOfTextures;
-	int					iNumberOfMatrices;
-	int					i;
+	bool	bNormal;
+	bool	bColour; 
+	int		iNumberOfTextures;
+	int		iNumberOfMatrices;
+	int		i;
 
 	bNormal = msFaceType.IsNormal();
 	bColour = msFaceType.IsColour();
@@ -127,3 +146,4 @@ bool CMeshVertexArray::Is(SMeshFaceType* psFaceType) { return msFaceType.Equals(
 CArrayMeshFaceIndex* CMeshVertexArray::GetFaceIndicies(void) { return &mcFaceIndicies; }
 CVertexArray* CMeshVertexArray::GetVertexArray(void) { return &mcVertexArray; }
 SMeshFaceType* CMeshVertexArray::GetFaceType(void) { return &msFaceType; }
+

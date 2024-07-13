@@ -42,8 +42,11 @@ public:
 	float	mfRadius;
 
 	void 	Init(void);
+	void 	Kill(void);
+
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
+
 	bool	Shape(CSphere* pcShape, SFloat3* psVertexArray);
 };
 
@@ -56,8 +59,11 @@ public:
 
 	void	Init(void);
 	void 	Init(int p1, int p2, int p3, int n);
+	void 	Kill(void);
+
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
+
 	bool	Shape(CTriangle* pcShape, SFloat3* psVertexArray, SFloat3* psNormalArray);
 };
 
@@ -77,6 +83,8 @@ public:
 
 	void 	Init(void);
 	void 	Init(int iCenterIndex, int iLongAxisIndex, float fLongAxisLength, int iMiddleAxisIndex, float fMiddleAxisLength, int iShortAxisIndex, float fShortAxisLength);
+	void 	Kill(void);
+
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
 };
@@ -91,6 +99,7 @@ public:
 
 	void 	Init(void);
 	void 	Kill(void);
+
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
 };
@@ -107,10 +116,11 @@ public:
 	void 	Init(void);
 	void	Init(int iNumPolygons);
 	void 	Kill(void);
+
 	bool	Save(CFileWriter* pcFile);
 	bool 	Load(CFileReader* pcFile);
 };
 
 
-#endif // !__SHAPES_INDEXED_H__
+#endif // __SHAPES_INDEXED_H__
 

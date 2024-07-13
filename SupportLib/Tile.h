@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // !__TILE_H__
+#endif // __TILE_H__
 

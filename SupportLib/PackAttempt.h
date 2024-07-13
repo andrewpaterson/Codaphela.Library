@@ -61,5 +61,5 @@ typedef CArrayTemplate<CPackAttempt>	CArrayPackAttempt;
 int ComparePackAttempt(const void* pv1, const void* pv2);
 
 
-#endif // !__PACK_ATTEMPT_H__
+#endif // __PACK_ATTEMPT_H__
 

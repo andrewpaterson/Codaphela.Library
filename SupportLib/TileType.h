@@ -48,5 +48,5 @@ public:
 typedef CArrayType<CTileType>	CArrayTileType;
 
 
-#endif // !__TILE_TYPE_H__
+#endif // __TILE_TYPE_H__
 

@@ -126,7 +126,7 @@ void CMeshConeEditor::Apply(CMeshEditor* pcMeshEditor)
 	mcBottomDisc.SetFlipFaces(true);
 	mcBottomDisc.SetFaceName(3);
 	
-	ReInitConnectivity(pcMeshEditor);
+	ClearConnectivity(pcMeshEditor);
 
 	iFirstTop = 0;
 	mcTopDisc.GenerateDisc(pcMeshEditor);

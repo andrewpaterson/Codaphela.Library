@@ -39,15 +39,18 @@ typedef CArrayTemplate<SMeshFaceColour>	CArrayMeshFaceColours;
 class CMeshColours : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshColours);
+DESTRUCTABLE(CMeshColours);
 public:
 	CArrayInt				mcColours;
 	CArrayMeshFaceColours	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.
 
 	void 	Init(void);
-	void	ReInit(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void	Clear(void);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 
 	void	AddFace(void);
 
@@ -55,5 +58,5 @@ public:
 };
 
 
-#endif // !__MESH_VERTEX_COLOURS_H__
+#endif // __MESH_VERTEX_COLOURS_H__
 

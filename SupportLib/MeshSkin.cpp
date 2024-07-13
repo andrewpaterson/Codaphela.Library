@@ -23,6 +23,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/ArrayInt.h"
 #include "BaseLib/GlobalMemory.h"
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
 #include "MeshSkin.h"
@@ -121,9 +124,13 @@ void CMeshSkinVert::SortSkinWeights(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshSkin::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcSkinVerts.Init();
 	mcInverseSkinMatricies.Init();
+
+	PostInit();
 }
 
 
@@ -131,11 +138,10 @@ void CMeshSkin::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSkin::Kill(void)
+void CMeshSkin::Free(void)
 {
 	KillSkinVerts();
 	mcInverseSkinMatricies.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -161,11 +167,24 @@ void CMeshSkin::KillSkinVerts(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSkin::ReInit(void)
+void CMeshSkin::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayMeshSkinVert, mcSkinVerts);
+	U_Unknown(CArrayFloat4x4, mcInverseSkinMatricies);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshSkin::Clear(void)
 {
 	KillSkinVerts();
-
 	mcSkinVerts.Init();
+
 	mcInverseSkinMatricies.ReInit();
 }
 
@@ -174,7 +193,7 @@ void CMeshSkin::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshSkin::Load(CFileReader* pcFile)
+bool CMeshSkin::Load(CObjectReader* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
 	size			i;
@@ -199,7 +218,7 @@ bool CMeshSkin::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshSkin::Save(CFileWriter* pcFile)
+bool CMeshSkin::Save(CObjectWriter* pcFile)
 {
 	CMeshSkinVert*	psSkinVert;
 	size			i;

@@ -50,18 +50,24 @@ typedef CArrayTemplate<CMeshPolygon> CArrayMeshPolygon;
 class CMeshEdgeVisibility;
 class CMeshConnectivity;
 class CMeshNormals;
-class CMeshPolygons : public CUnknown
+class CMeshPolygons : public CObject
 {
 CONSTRUCTABLE(CMeshPolygons);
+DESTRUCTABLE(CMeshPolygons);
 public:
 	CArrayMeshPolygon	mcPolygons;
 	CArrayInt			maiFacesToPolygons;
 
 	void 			Init(void);
-	void 			Kill(void);
-	void			ReInit(void);
-	bool	 		Save(CFileWriter* pcFile);
-	bool	 		Load(CFileReader* pcFile);
+	void 			Free(void);
+	void			Class(void);
+	void			KillPolygons(void);
+
+	void 			Clear(void);
+
+	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
+
 	CMeshPolygon*	Get(int iPolygonNum);
 	CMeshPolygon*	Add(int iName);
 	CMeshPolygon*	GrowToNumPolygons(int iNumPolygons, int iName);
@@ -81,5 +87,5 @@ public:
 };
 
 
-#endif // !__MESH_POLYGONS_H__
+#endif // __MESH_POLYGONS_H__
 

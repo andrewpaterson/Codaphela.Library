@@ -22,6 +22,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/GlobalMemory.h"
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshTriangles.h"
 #include "MeshConnectivity.h"
 #include "MeshPositions.h"
@@ -209,8 +212,12 @@ bool CMeshLeaf::Load(CFileReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshLeaves::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcLeaves.Init();
+
+	PostInit();
 }
 
 
@@ -218,7 +225,7 @@ void CMeshLeaves::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshLeaves::Kill(void)
+void CMeshLeaves::Free(void)
 {
 	CMeshLeaf*	pcLeaf;
 	size		i;
@@ -228,7 +235,6 @@ void CMeshLeaves::Kill(void)
 		pcLeaf = mcLeaves.Get(i);
 		pcLeaf->Kill();
 	}
-	CUnknown::Kill();
 }
 
 
@@ -236,7 +242,19 @@ void CMeshLeaves::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshLeaves::Save(CFileWriter* pcFile)
+void CMeshLeaves::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayMeshLeaf, mcLeaves);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshLeaves::Save(CObjectWriter* pcFile)
 {
 	size		i;
 	CMeshLeaf*	pcLeaf;
@@ -256,7 +274,7 @@ bool CMeshLeaves::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshLeaves::Load(CFileReader* pcFile)
+bool CMeshLeaves::Load(CObjectReader* pcFile)
 {
 	size		i;
 	CMeshLeaf*	pcLeaf;

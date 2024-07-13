@@ -50,4 +50,4 @@ private:
 };
 
 
-#endif // !__RECTANGLE_POW2_PACKER_H__
+#endif // __RECTANGLE_POW2_PACKER_H__

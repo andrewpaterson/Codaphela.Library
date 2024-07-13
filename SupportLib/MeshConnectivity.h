@@ -51,6 +51,7 @@ typedef	CArrayTemplate<CCornerEdgesMap>		CArrayCornerEdgesMap;
 class CMeshConnectivity : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshConnectivity);
+DESTRUCTABLE(CMeshConnectivity);
 public:
 	CArrayCorner			mcCorners;
 	CArrayEdge				mcEdges;
@@ -59,10 +60,12 @@ public:
 	CArrayCornerEdgesMap	mcCornerEdgesMap;
 
 	void 			Init(void);
-	void 			Kill(void);
-	void 			ReInit(void);
-	bool			Load(CFileReader* pcFile);
-	bool			Save(CFileWriter* pcFile);
+	void 			Free(void);
+	void			Class(void);
+	
+	void 			Clear(void);
+	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
 
 	void			InitCorners(int iNumCorners);
 	void			KillCorners(void);
@@ -86,5 +89,5 @@ protected:
 };
 
 
-#endif // !__MESH_CONNECTIVITY_H__
+#endif // __MESH_CONNECTIVITY_H__
 

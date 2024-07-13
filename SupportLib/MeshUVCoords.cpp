@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
 #include "MeshUVCoords.h"
@@ -97,8 +100,12 @@ bool CMeshUVLayer::Save(CFileWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshUVCoords::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcLayers.Init();
+
+	PostInit();
 }
 
 
@@ -106,9 +113,9 @@ void CMeshUVCoords::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUVCoords::ReInit(void)
+void CMeshUVCoords::Clear(void)
 {
-	mcLayers.Kill();
+	KillUVLayers();
 	mcLayers.Init();
 }
 
@@ -117,18 +124,29 @@ void CMeshUVCoords::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshUVCoords::Kill(void)
+void CMeshUVCoords::Free(void)
+{
+	KillUVLayers();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshUVCoords::KillUVLayers(void)
 {
 	CMeshUVLayer*	pcLayer;
 	size			i;
+	size			uiNumElements;
 
-	for (i = 0; i < mcLayers.NumElements(); i++)
+	uiNumElements = mcLayers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcLayer = mcLayers.Get(i);
 		pcLayer->Kill();
 	}
 	mcLayers.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -136,7 +154,19 @@ void CMeshUVCoords::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshUVCoords::Load(CFileReader* pcFile)
+void CMeshUVCoords::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayMeshUVLayer, mcLayers);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshUVCoords::Load(CObjectReader* pcFile)
 {
 	CMeshUVLayer*	pcLayer;
 	int				i;
@@ -162,7 +192,7 @@ bool CMeshUVCoords::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshUVCoords::Save(CFileWriter* pcFile)
+bool CMeshUVCoords::Save(CObjectWriter* pcFile)
 {
 	CMeshUVLayer*	pcUVLayer;
 	size			i;

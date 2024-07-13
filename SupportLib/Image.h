@@ -54,13 +54,13 @@ public:
 	int						miHeight;
 	SImageChangingDesc*		mpsImageChangingDesc;
 	
-	void					Init(void);
-	void					Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
-	void					Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
-	void					Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
-	void					Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
-	void					Init(int iWidth, int iHeight, CImage* pcChannelsSource);
-	void					Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
+	Ptr<CImage>				Init(void);
+	Ptr<CImage>				Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
+	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
+	Ptr<CImage>				Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
+	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
+	Ptr<CImage>				Init(int iWidth, int iHeight, CImage* pcChannelsSource);
+	Ptr<CImage>				Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
 
@@ -111,5 +111,5 @@ protected:
 };
 
 
-#endif // !__IMAGE_H__
+#endif // __IMAGE_H__
 

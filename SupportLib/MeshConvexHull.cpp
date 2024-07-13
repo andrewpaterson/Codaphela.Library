@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "ConvexHull.h"
 #include "MeshPositions.h"
 #include "MeshNormals.h"
@@ -34,8 +37,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshConvexHull::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcHull.Init();
+
+	PostInit();
 }
 
 
@@ -43,10 +50,9 @@ void CMeshConvexHull::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshConvexHull::Kill(void)
+void CMeshConvexHull::Free(void)
 {
 	mcHull.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -54,7 +60,19 @@ void CMeshConvexHull::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshConvexHull::Load(CFileReader* pcFile)
+void CMeshConvexHull::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CConvexHullIndexed, mcHull);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshConvexHull::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	return mcHull.Load(pcFile);
@@ -65,7 +83,7 @@ bool CMeshConvexHull::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshConvexHull::Save(CFileWriter* pcFile)
+bool CMeshConvexHull::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcHull.Save(pcFile);

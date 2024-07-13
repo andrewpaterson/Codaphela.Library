@@ -55,5 +55,5 @@ public:
 bool ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, CImage* pcImageDest, CImage* pcImageSource, EChannel eHeightChannel);
 
 
-#endif // !__BUMP_MAPPER_H__
+#endif // __BUMP_MAPPER_H__
 

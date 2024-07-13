@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "MeshDefines.h"
 #include "MeshPositions.h"
 
@@ -31,8 +32,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshPositions::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init(true);
 	mcPositions.Init();
+
+	PostInit();
 }
 
 
@@ -40,10 +45,9 @@ void CMeshPositions::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPositions::Kill(void)
+void CMeshPositions::Free(void)
 {
 	mcPositions.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -51,7 +55,7 @@ void CMeshPositions::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshPositions::ReInit(void)
+void CMeshPositions::Clear(void)
 {
 	mcPositions.ReInit();
 }
@@ -61,7 +65,19 @@ void CMeshPositions::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshPositions::Load(CFileReader* pcFile)
+void CMeshPositions::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CArrayFloat3, mcPositions);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshPositions::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	ReturnOnFalse(mcPositions.Read(pcFile));
@@ -73,7 +89,7 @@ bool CMeshPositions::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshPositions::Save(CFileWriter* pcFile)
+bool CMeshPositions::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcPositions.Write(pcFile);

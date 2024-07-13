@@ -75,5 +75,5 @@ public:
 };
 
 
-#endif // !__RECTANGLE_BEST_PACKER_H__
+#endif // __RECTANGLE_BEST_PACKER_H__
 

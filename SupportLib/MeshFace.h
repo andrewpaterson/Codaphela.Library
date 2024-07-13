@@ -44,5 +44,5 @@ struct SAdjFaces
 };
 
 
-#endif // !__MESH_FACE_H__
+#endif // __MESH_FACE_H__
 

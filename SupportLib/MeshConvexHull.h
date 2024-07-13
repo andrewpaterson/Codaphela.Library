@@ -32,16 +32,20 @@ class CMeshNormals;
 class CMeshConvexHull : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshConvexHull);
+DESTRUCTABLE(CMeshConvexHull);
 public:
 	CConvexHullIndexed	mcHull;
 
 	void 	Init(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+
 	void	GenerateConvexHull(CMeshPositions* pcPositions, CMeshNormals* pcNormals);
 };
 
 
-#endif // !__MESH_CONVEX_HULL_H__
+#endif // __MESH_CONVEX_HULL_H__
 

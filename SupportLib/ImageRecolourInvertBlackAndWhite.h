@@ -41,5 +41,5 @@ public:
 };
 
 
-#endif // !__IMAGE_RECOLOUR_INVERT_BLACK_AND_WHITE_H__
+#endif // __IMAGE_RECOLOUR_INVERT_BLACK_AND_WHITE_H__
 

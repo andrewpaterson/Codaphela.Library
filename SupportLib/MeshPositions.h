@@ -24,6 +24,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_POSITIONS_H__
 #define __MESH_POSITIONS_H__
 #include "BaseLib/GeometricTypes.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshDetail.h"
 
@@ -31,19 +33,23 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshPositions : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshPositions);
+DESTRUCTABLE(CMeshPositions);
 public:
 	CArrayFloat3	mcPositions;
 
 	void 	Init(void);
-	void 	Kill(void);
-	void 	ReInit(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 	Free(void);
+	void	Class(void);
+
+	void 	Clear(void);
+
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 
 	void	AddPosition(float x, float y, float z);
 	void	AddPosition(SFloat3* psPosition);
 };
 
 
-#endif // !__MESH_POSITIONS_H__
+#endif // __MESH_POSITIONS_H__
 

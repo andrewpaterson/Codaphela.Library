@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "MeshDefines.h"
 #include "MeshConnectivity.h"
 #include "MeshPolygons.h"
@@ -33,17 +36,20 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshEdgeVisibility::Init(void)
 {
+	PreInit();
+
 	mcEdges.Init();
+
+	PostInit();
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEdgeVisibility::Kill(void)
+void CMeshEdgeVisibility::Free(void)
 {
 	mcEdges.Kill();
-	CUnknown::Kill();
 }
 
 
@@ -51,7 +57,17 @@ void CMeshEdgeVisibility::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshEdgeVisibility::ReInit(void)
+void CMeshEdgeVisibility::Class(void)
+{
+	U_Unknown(CArrayChar, mcEdges);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMeshEdgeVisibility::Clear(void)
 {
 	mcEdges.ReInit();
 }
@@ -61,10 +77,9 @@ void CMeshEdgeVisibility::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshEdgeVisibility::Load(CFileReader* pcFile)
+bool CMeshEdgeVisibility::Load(CObjectReader* pcFile)
 {
-	ReturnOnFalse(mcEdges.Read(pcFile));
-	return true;
+	return mcEdges.Read(pcFile);
 }
 
 
@@ -72,7 +87,7 @@ bool CMeshEdgeVisibility::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshEdgeVisibility::Save(CFileWriter* pcFile)
+bool CMeshEdgeVisibility::Save(CObjectWriter* pcFile)
 {
 	return mcEdges.Write(pcFile);
 }

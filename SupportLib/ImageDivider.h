@@ -61,5 +61,5 @@ private:
 };
 
 
-#endif // !__IMAGE_DIVIDER_H__
+#endif // __IMAGE_DIVIDER_H__
 

@@ -30,18 +30,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CMeshPolygons;
 class CMeshConnectivity;
-class CMeshEdgeVisibility : public CUnknown
+class CMeshEdgeVisibility : public CObject
 {
 CONSTRUCTABLE(CMeshEdgeVisibility);
+DESTRUCTABLE(CMeshEdgeVisibility);
 public:
 	//0 if not visible, > 0 if visible.  Char value is supposed to represent visible style.  Larger numbers are more visible.
 	CArrayChar	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
 
-	void 	Init(void);
-	void	ReInit(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void	Init(void);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+
+	void	Clear(void);
 
 	void	AddFace(CMeshFace* pcFace, int iNewEdges, char cEdge12 = 1, char cEdge23 = 1, char cEdge31 = 1);
 	char	GetEdge(int iEdge);
@@ -51,5 +55,5 @@ public:
 };
 
 
-#endif // !__MESH_EDGE_VISIBILITY_H__
+#endif // __MESH_EDGE_VISIBILITY_H__
 

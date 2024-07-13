@@ -39,5 +39,5 @@ public:
 };
 
 
-#endif // !__IMAGE_CELS_SOURCE_XML_H__
+#endif // __IMAGE_CELS_SOURCE_XML_H__
 

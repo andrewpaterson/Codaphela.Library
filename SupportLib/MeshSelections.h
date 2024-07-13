@@ -27,19 +27,23 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "MeshDetail.h"
 
 
-class CMeshSelections : public CUnknown
+class CMeshSelections : public CObject
 {
 CONSTRUCTABLE(CMeshSelections);
+DESTRUCTABLE(CMeshSelections);
 public:
 	CArrayBit	mcVerts;  //1 if selected.  mcVerts.NumElements == mpcMesh->mcPositions.NumElements
 	CArrayBit	mcEdges;  //mcEdges.NumElements == mpcMesh->mcEdges.NumElements
 	CArrayBit	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements
 
 	void 	Init(void);
-	void 	ReInit(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 	Free(void);
+	void	Class(void);
+
+	void 	Clear(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 
 	int		GetNumberOfSelectedFaces(bool bSelected);
 	void	SetFaceSelectionTo(bool bSelected);
@@ -56,5 +60,5 @@ public:
 };
 
 
-#endif // !__MESH_SELECTIONS_H__
+#endif // __MESH_SELECTIONS_H__
 

@@ -74,5 +74,5 @@ M* CImageModifierStack::AddModifier(void)
 }
 
 
-#endif // !__IMAGE_MODIFIER_STACK_H__
+#endif // __IMAGE_MODIFIER_STACK_H__
 

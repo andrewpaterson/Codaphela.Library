@@ -32,17 +32,20 @@ class CMeshNormals;
 class CMeshBoundingBox : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshBoundingBox);
+DESTRUCTABLE(CMeshBoundingBox);
 public:
 	CBoxIndexed		mcBox;
 
 	void 	Init(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void 	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
 
 	void	GenerateBoundingBox(CMeshPositions* pcPositions, CMeshNormals* pcNormals);
 };
 
 
-#endif // !__MESH_BOUNDING_BOX_H__
+#endif // __MESH_BOUNDING_BOX_H__
 

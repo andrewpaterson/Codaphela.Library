@@ -79,7 +79,7 @@ bool CMeshSmoothGroups::Save(CFileWriter* pcFile)
 void CMeshSmoothGroups::Apply(CMeshEditor* pcMeshEditor)
 {
 	GenerateSmoothing(pcMeshEditor);
-	GenerateNormals(pcMeshEditor->mpcMesh);
+	GenerateNormals(&pcMeshEditor->mpcMesh);
 }
 
 
@@ -401,7 +401,7 @@ void CMeshSmoothGroups::GenerateNormals(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshSmoothGroups::ReInitConnectivity(void)
+void CMeshSmoothGroups::ClearConnectivity(void)
 {
 	mcSmoothingGroups.ReInit();
 }

@@ -31,6 +31,8 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CMaterial::Init(void)
 {
+	PreInit();
+
 	msDiffuse.Init();
 	msDiffuseLevel.Init();
 	msSpecular.Init();
@@ -41,6 +43,8 @@ void CMaterial::Init(void)
 	msDecal.Init();
 	msReflection.Init();
 	msProperties.Init();
+
+	PostInit();
 }
 
 

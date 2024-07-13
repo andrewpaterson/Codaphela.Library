@@ -90,5 +90,5 @@ private:
 };
 
 
-#endif // !__IMAGE_CELS_SOURCE_H__
+#endif // __IMAGE_CELS_SOURCE_H__
 

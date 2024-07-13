@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageCopier.h"
 #include "ImageAccessorCreator.h"
 #include "Font.h"
@@ -32,6 +33,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFont> CFont::Init(char* szName, size iSpaceWidth, int iAscent, int iDescent)
 {
+	PreInit();
+
 	mszName.Init(szName);
 	pcImage = NULL;
 	miAverageWidth = 0;
@@ -41,6 +44,8 @@ Ptr<CFont> CFont::Init(char* szName, size iSpaceWidth, int iAscent, int iDescent
 	miAscent = iAscent;
 	miDescent = iDescent;
 	macGlyphs.Init();
+
+	PostInit();
 
 	return Ptr<CFont>(this);
 }
@@ -52,7 +57,15 @@ Ptr<CFont> CFont::Init(char* szName, size iSpaceWidth, int iAscent, int iDescent
 //////////////////////////////////////////////////////////////////////////
 void CFont::Class(void)
 {
-	CObject::ClassNotImplemented();
+	U_String(mszName);
+	M_Pointer(pcImage);
+	U_Size(miAverageWidth);
+	U_Size(miHeight);
+	U_Bool(mbFixedWidh);
+	U_Size(miSpace);
+	U_Unknown(CArrayGlyph, macGlyphs);
+	U_SInt(miAscent);
+	U_SInt(miDescent);
 }
 
 

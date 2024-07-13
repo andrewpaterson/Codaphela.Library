@@ -97,5 +97,5 @@ public:
 };
 
 
-#endif // !__PIXEL_OPACITY_H__
+#endif // __PIXEL_OPACITY_H__
 

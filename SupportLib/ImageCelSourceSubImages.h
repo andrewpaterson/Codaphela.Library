@@ -40,4 +40,4 @@ public:
 };
 
 
-#endif // !__IMAGE_CEL_SOURCE_SUB_IMAGES_H__
+#endif // __IMAGE_CEL_SOURCE_SUB_IMAGES_H__

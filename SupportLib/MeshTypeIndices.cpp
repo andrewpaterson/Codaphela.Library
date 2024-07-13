@@ -43,7 +43,7 @@ void SMeshFaceIndex::Init(int iFaceIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshTypeIndices::Init(CMeshVertexArray* pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset)
+void CMeshTypeIndices::Init(Ptr<CMeshVertexArray> pcVertexArray, int iStride, int iNormalOffset, int iColourOffset, int iUVOffset, int iSkinOffset)
 {
 	mpcVertexArray = pcVertexArray;
 	miStride = iStride;

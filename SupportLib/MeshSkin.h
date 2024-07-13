@@ -64,6 +64,7 @@ class CMeshConnectivity;
 class CMeshSkin : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshSkin);
+DESTRUCTABLE(CMeshSkin);
 public:
 	CArrayMeshSkinVert	mcSkinVerts;  //mcSkinVerts.NumElements == mpcMesh->mcConnectivity.mcCorners.NumElements.  
 									  //And there is a one to one mapping between corners and positions thus:
@@ -72,11 +73,15 @@ public:
 	CArrayFloat4x4		mcInverseSkinMatricies;  //Matricies to bring the object spaces verts to local matrix space.
 
 	void 	Init(void);
-	void	ReInit(void);
-	void 	Kill(void);
+	void	Clear(void);
+	void 	Free(void);
+	void	Class(void);
+
 	void	KillSkinVerts(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+
 	void	Touch(void);
 	void	AddCorner(void);
 	int		GetFaceMatrixCount(int iVert1, int iVert2, int iVert3);
@@ -86,5 +91,5 @@ public:
 };
 
 
-#endif // !__MESH_SKIN_H__
+#endif // __MESH_SKIN_H__
 

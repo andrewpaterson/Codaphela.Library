@@ -35,6 +35,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CInstance : public CObject
 {
 CONSTRUCTABLE(CInstance);
+DESTRUCTABLE(CInstance);
 public:
 
 	ETrackerType		meType;  //Which Tracker to look this object up in.
@@ -51,5 +52,5 @@ public:
 };
 
 
-#endif // !__INSTANCE_H__
+#endif // __INSTANCE_H__
 

@@ -29,5 +29,5 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 bool LoadTGA(CImage* pcImage, char* szFileName);
 
 
-#endif // !__TGA_READER_H__
+#endif // __TGA_READER_H__
 

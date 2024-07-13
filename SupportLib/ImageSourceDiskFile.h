@@ -40,5 +40,5 @@ public:
 };
 
 
-#endif // !__IMAGE_SOURCE_DISK_FILE_H__
+#endif // __IMAGE_SOURCE_DISK_FILE_H__
 

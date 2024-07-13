@@ -60,5 +60,5 @@ typedef int EChannel;
 void PrintChannelType(EChannelType eType, CChars* psz);
 
 
-#endif // !__IMAGE_TYPES_H__
+#endif // __IMAGE_TYPES_H__
 

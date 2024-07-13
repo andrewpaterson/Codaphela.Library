@@ -20,6 +20,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
+#include "StandardLib/ClassDefines.h"
 #include "ConnectionAnimation.h"
 
 
@@ -29,8 +30,12 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CConnectionAnimation::Init(void)
 {
+	PreInit();
+
 	masKeyFrames.Init();
 	miConnectionIndex = -1;
+
+	PostInit();
 }
 
 
@@ -50,7 +55,8 @@ void CConnectionAnimation::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CConnectionAnimation::Class(void)
 {
-	CObject::ClassNotImplemented();
+	U_Unknown(CArrayAnimKeyFrame, masKeyFrames);
+	U_SInt(miConnectionIndex);
 }
 
 

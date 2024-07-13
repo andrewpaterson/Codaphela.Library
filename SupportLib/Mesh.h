@@ -37,6 +37,7 @@ along with Codaphela MeshLib.  If not, see <http://www.gnu.org/licenses/>.
 class CMesh : public CObject
 {
 CONSTRUCTABLE(CMesh);
+DESTRUCTABLE(CMesh);
 protected:
 	CMeshPositions		mcPositions;		
 	CMeshConnectivity	mcConnectivity;		
@@ -75,7 +76,7 @@ public:
 	CMeshEdge*		GetEdge(int iIndex);
 	CMeshFace*		GetFace(int iIndex);
 
-	void			ReInitConnectivity(void);
+	void			ClearConnectivity(void);
 
 	void 			AddCorner(float x, float y, float z);
 	void			AddCorner(SFloat3* psPosition);
@@ -104,5 +105,5 @@ protected:
 };
 
 
-#endif // !__MESH_H__
+#endif // __MESH_H__
 

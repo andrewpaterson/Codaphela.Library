@@ -31,5 +31,5 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define MAX_UNOVERLAPPING_SMOOTHING_GROUPS	32
 
 
-#endif // !__MESH_DEFINES_H__
+#endif // __MESH_DEFINES_H__
 

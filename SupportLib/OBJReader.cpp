@@ -38,7 +38,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadOBJ(CMesh *pcMesh, char *szFileName)
+bool LoadOBJ(Ptr<CMesh> pcMesh, char *szFileName)
 {
 	CObjReader	cReader;
 	bool		bResult;
@@ -55,7 +55,7 @@ bool LoadOBJ(CMesh *pcMesh, char *szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(CMesh* pcMesh, char *szFileName)
+void CObjReader::Init(Ptr<CMesh> pcMesh, char *szFileName)
 {
 	mcWrapper.Init(pcMesh);
 	mszFileName.Init(szFileName);
@@ -66,7 +66,7 @@ void CObjReader::Init(CMesh* pcMesh, char *szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(CMeshEditor* pcEditor, char *szFileName)
+void CObjReader::Init(Ptr<CMeshEditor> pcEditor, char *szFileName)
 {
 	mcWrapper.Init(pcEditor);
 	mszFileName.Init(szFileName);
@@ -127,7 +127,7 @@ bool CObjReader::Read(void)
 	
 
 	//The Mesh/MeshEditor must already be initialised.
-	mcWrapper.ReInitConnectivity();
+	mcWrapper.ClearConnectivity();
 
 	for (i = 0; i < cLines.NumElements(); i++)
 	{

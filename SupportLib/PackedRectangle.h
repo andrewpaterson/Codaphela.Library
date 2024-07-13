@@ -74,5 +74,5 @@ public:
 typedef CArrayTemplate<CPackedRectangle> CArrayPackedRectangle;
 
 
-#endif // !__PACKED_RECTANGLE_H__
+#endif // __PACKED_RECTANGLE_H__
 

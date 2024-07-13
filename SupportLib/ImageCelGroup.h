@@ -49,5 +49,5 @@ public:
 };
 
 
-#endif // !__IMAGE_CEL_GROUP_H__
+#endif // __IMAGE_CEL_GROUP_H__
 

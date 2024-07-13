@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ReadMesh(CMesh* pcMesh, char* szFileName, EMeshType eType)
+bool ReadMesh(Ptr<CMesh> pcMesh, char* szFileName, EMeshType eType)
 {
 	if (eType == MT_Unknown)
 	{

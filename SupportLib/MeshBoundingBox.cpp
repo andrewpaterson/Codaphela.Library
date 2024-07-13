@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
+#include "StandardLib/ClassDefines.h"
 #include "Box.h"
 #include "MeshPositions.h"
 #include "MeshNormals.h"
@@ -33,8 +36,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoundingBox::Init(void)
 {
+	PreInit();
+
 	CMeshDetail::Init();
 	mcBox.Init();
+
+	PostInit();
 }
 
 
@@ -42,9 +49,9 @@ void CMeshBoundingBox::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshBoundingBox::Kill(void)
+void CMeshBoundingBox::Free(void)
 {
-	CUnknown::Kill();
+	mcBox.Kill();
 }
 
 
@@ -52,7 +59,19 @@ void CMeshBoundingBox::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshBoundingBox::Load(CFileReader* pcFile)
+void CMeshBoundingBox::Class(void)
+{
+	CMeshDetail::Class();
+
+	U_Unknown(CBoxIndexed, mcBox);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshBoundingBox::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(LoadMeshDetail(pcFile));
 	return mcBox.Load(pcFile);
@@ -63,7 +82,7 @@ bool CMeshBoundingBox::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshBoundingBox::Save(CFileWriter* pcFile)
+bool CMeshBoundingBox::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(SaveMeshDetail(pcFile));
 	return mcBox.Save(pcFile);

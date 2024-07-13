@@ -72,14 +72,18 @@ class CMesh;
 class CMeshFaceTypes : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshFaceTypes);
+DESTRUCTABLE(CMeshFaceTypes);
 public:
 	CArrayMeshFaceType	mcFaces;
 	CArrayMeshFaceType	mcUniqueTypes;
 
 	void	Init(void);
-	void	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void	Free(void);
+	void	Class(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+
 	void	Touch(CMesh* pcMesh);
 
 	void	ClearFaceTypes(int iNumFaces);
@@ -95,5 +99,5 @@ public:
 };
 
 
-#endif // !__MESH_FACE_TYPES_H__
+#endif // __MESH_FACE_TYPES_H__
 

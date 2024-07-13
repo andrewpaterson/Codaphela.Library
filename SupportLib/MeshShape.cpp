@@ -21,6 +21,9 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
+#include "StandardLib/ObjectReader.h"
+#include "StandardLib/ObjectWriter.h"
 #include "Mesh.h"
 #include "MeshShape.h"
 
@@ -29,13 +32,17 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshShape::Init(CMesh* pcMesh)
+void CMeshShape::Init(Ptr<CMesh> pcMesh)
 {
+	PreInit();
+
 	mpcMesh = pcMesh;
 	mcTriangles.Init();
 	mcLeaves.Init();
 	mcBoundingBox.Init();
 	mcHull.Init();
+
+	PostInit();
 }
 
 
@@ -43,14 +50,12 @@ void CMeshShape::Init(CMesh* pcMesh)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-
-void CMeshShape::Kill(void)
+void CMeshShape::Free(void)
 {
 	mcTriangles.Kill();
 	mcLeaves.Kill();
 	mcBoundingBox.Kill();
 	mcHull.Kill();
-	mpcMesh = NULL;
 }
 
 
@@ -58,7 +63,21 @@ void CMeshShape::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshShape::Load(CFileReader* pcFile)
+void CMeshShape::Class(void)
+{
+	M_Pointer(mpcMesh);
+	M_Embedded(mcTriangles);
+	M_Embedded(mcLeaves);
+	M_Embedded(mcBoundingBox);
+	M_Embedded(mcHull);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMeshShape::Load(CObjectReader* pcFile)
 {
 	ReturnOnFalse(mcTriangles.Load(pcFile));
 	ReturnOnFalse(mcLeaves.Load(pcFile));
@@ -72,7 +91,7 @@ bool CMeshShape::Load(CFileReader* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMeshShape::Save(CFileWriter* pcFile)
+bool CMeshShape::Save(CObjectWriter* pcFile)
 {
 	ReturnOnFalse(mcTriangles.Save(pcFile));
 	ReturnOnFalse(mcLeaves.Save(pcFile));

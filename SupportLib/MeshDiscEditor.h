@@ -53,5 +53,5 @@ public:
 };
 
 
-#endif // !__MESH_DISC_EDITOR_H__
+#endif // __MESH_DISC_EDITOR_H__
 

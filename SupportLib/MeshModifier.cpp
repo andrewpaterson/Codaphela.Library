@@ -38,7 +38,7 @@ void CMeshModifier::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshModifier::ReInitConnectivity(void)
+void CMeshModifier::ClearConnectivity(void)
 {
 }
 

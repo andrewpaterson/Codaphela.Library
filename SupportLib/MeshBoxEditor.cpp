@@ -154,9 +154,9 @@ void CMeshBoxEditor::Apply(CMeshEditor* pcMeshEditor)
 	int					iNameFront = 5;
 	int					iNameBack = 6;
 
-	ReInitConnectivity(pcMeshEditor);
+	ClearConnectivity(pcMeshEditor);
 
-	pcMesh = pcMeshEditor->mpcMesh;
+	pcMesh = &pcMeshEditor->mpcMesh;
 
 	//Top
 	iFirstTop = 0;

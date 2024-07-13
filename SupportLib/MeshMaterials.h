@@ -30,6 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMeshMaterials : public CMeshDetail
 {
 CONSTRUCTABLE(CMeshMaterials);
+DESTRUCTABLE(CMeshMaterials);
 public:
 	CArrayInt	mcMaterials;  //mcMaterials.NumElements is the number of materials in this mesh.  It maps 0 -> A, 1 -> B, 2 -> C
 							  //where A, B, C etc... are indexes in the Material Tracker.
@@ -37,13 +38,17 @@ public:
 	CArrayInt	mcFaces;  //mcFaces.NumElements == mpcMesh->mcFaces.NumElements.  The int is an index lookup into the MaterialTracker.
 
 	void 	Init(void);
-	void	ReInit(void);
-	void 	Kill(void);
-	bool	Load(CFileReader* pcFile);
-	bool	Save(CFileWriter* pcFile);
+	void	Class(void);
+	void 	Free(void);
+
+	void	Clear(void);
+
+	bool	Load(CObjectReader* pcFile);
+	bool	Save(CObjectWriter* pcFile);
+
 	void	AddFace(void);
 };
 
 
-#endif // !__MESH_MATERIALS_H__
+#endif // __MESH_MATERIALS_H__
 

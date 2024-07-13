@@ -42,5 +42,5 @@ public:
 };
 
 
-#endif // !__OBJECT_SOURCES_XML_H__
+#endif // __OBJECT_SOURCES_XML_H__
 
