@@ -20,6 +20,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/Logger.h"
+#include "BaseLib/Float2.h"
+#include "BaseLib/Float3.h"
+#include "BaseLib/Float4.h"
+#include "BaseLib/Float4x4.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "Objects.h"
@@ -2556,4 +2560,102 @@ bool CBaseObject::ClipName(void)
 
 	return bResult;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Pointer(CPointer* pcPointer, char* szFieldName)
+{
+	mpcClass->Pointer(this, pcPointer, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Embedded(CBaseObject* pcObject, char* szFieldName)
+{
+	mpcClass->Embedded(this, pcObject, szFieldName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::Primitive(Int8* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt8* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int16* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt16* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int32* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt32* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Int64* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(UInt64* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Bool* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Float32* pcPrimitive, char* szFieldName)	{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Float64* pcPrimitive, char* szFieldName)	{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Char8* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+void CBaseObject::Primitive(Char16* pcPrimitive, char* szFieldName)		{ mpcClass->Primitive(this, pcPrimitive, szFieldName); }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBaseObject::UnmanagedInt8(int8* pc, char* szFieldName)						{ mpcClass->UnmanagedInt8(this, pc, szFieldName); };
+void CBaseObject::UnmanagedInt8(int8* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt8(this, pac, uiLength, szFieldName); };
+void CBaseObject::UnmanagedInt16(int16* pi, char* szFieldName)						{ mpcClass->UnmanagedInt16(this, pi, szFieldName); };
+void CBaseObject::UnmanagedInt16(int16* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt16(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedInt32(int32* pi, char* szFieldName)						{ mpcClass->UnmanagedInt32(this, pi, szFieldName); };
+void CBaseObject::UnmanagedInt32(int32* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt32(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedInt64(int64* pi, char* szFieldName)						{ mpcClass->UnmanagedInt64(this, pi, szFieldName); };
+void CBaseObject::UnmanagedInt64(int64* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedInt64(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedSInt(int* pi, char* szFieldName)							{ mpcClass->UnmanagedSInt(this, pi, szFieldName); };
+void CBaseObject::UnmanagedSInt(int* pai, size uiLength, char* szFieldName)			{ mpcClass->UnmanagedSInt(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt8(uint8* pc, char* szFieldName)						{ mpcClass->UnmanagedUInt8(this, pc, szFieldName); };
+void CBaseObject::UnmanagedUInt8(uint8* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedUInt8(this, pac, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt16(uint16* pi, char* szFieldName)					{ mpcClass->UnmanagedUInt16(this, pi, szFieldName); };
+void CBaseObject::UnmanagedUInt16(uint16* pai, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedUInt16(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt32(uint32* pi, char* szFieldName)					{ mpcClass->UnmanagedUInt32(this, pi, szFieldName); };
+void CBaseObject::UnmanagedUInt32(uint32* pai, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedUInt32(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedUInt64(uint64* pi, char* szFieldName)					{ mpcClass->UnmanagedUInt64(this, pi, szFieldName); };
+void CBaseObject::UnmanagedUInt64(uint64* pai, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedUInt64(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedSUInt(uint* pi, char* szFieldName)						{ mpcClass->UnmanagedSUInt(this, pi, szFieldName); };
+void CBaseObject::UnmanagedSUInt(uint* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedSUInt(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedSize(size* pi, char* szFieldName)						{ mpcClass->UnmanagedSize(this, pi, szFieldName); };
+void CBaseObject::UnmanagedSize(size* pai, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedSize(this, pai, uiLength, szFieldName); };
+void CBaseObject::UnmanagedFloat(float32* pf, char* szFieldName)					{ mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CBaseObject::UnmanagedFloat(float32* paf, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CBaseObject::UnmanagedFloat(float64* pf, char* szFieldName)					{ mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CBaseObject::UnmanagedFloat(float64* paf, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CBaseObject::UnmanagedFloat(float96* pf, char* szFieldName)					{ mpcClass->UnmanagedFloat(this, pf, szFieldName); }
+void CBaseObject::UnmanagedFloat(float96* paf, size uiLength, char* szFieldName)	{ mpcClass->UnmanagedFloat(this, paf, uiLength, szFieldName); }
+void CBaseObject::UnmanagedChar(char8* pc, char* szFieldName)						{ mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CBaseObject::UnmanagedChar(char8* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CBaseObject::UnmanagedChar(char16* pc, char* szFieldName)						{ mpcClass->UnmanagedChar(this, pc, szFieldName); }
+void CBaseObject::UnmanagedChar(char16* pac, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedChar(this, pac, uiLength, szFieldName); }
+void CBaseObject::UnmanagedBool(bool* pb, char* szFieldName)						{ mpcClass->UnmanagedBool(this, pb, szFieldName); }
+void CBaseObject::UnmanagedBool(bool* pab, size uiLength, char* szFieldName)		{ mpcClass->UnmanagedBool(this, pab, uiLength, szFieldName); }
+	 
+void CBaseObject::UnmanagedEnum(void* pe, char* szFieldName)						{ mpcClass->UnmanagedEnum(this, pe, szFieldName); }
+	 
+void CBaseObject::UnmanagedString(CChars* pcChars, char* szFieldName)				{ mpcClass->UnmanagedString(this, pcChars, szFieldName); };
+void CBaseObject::UnmanagedNumber(CNumber* pcNumber, char* szFieldName)				{ mpcClass->UnmanagedNumber(this, pcNumber, szFieldName); };
+void CBaseObject::UnmanagedDate(CDate* pcDate, char* szFieldName)					{ mpcClass->UnmanagedDate(this, pcDate, szFieldName); };
+	 
+void CBaseObject::UnmanagedData(void* pv, size uiSizeof, char* szFieldName)			{ mpcClass->UnmanagedData(this, pv, uiSizeof, szFieldName); };
+void CBaseObject::UnmanagedUnknown(void* pv, size uiSizeof, char* szFieldName)		{ mpcClass->UnmanagedUnknown(this, pv, uiSizeof, szFieldName); };
+void CBaseObject::UnmanagedPointer(void** pv, char* szFieldName)					{ mpcClass->UnmanagedPointer(this, pv, szFieldName); };
+
+void CBaseObject::Unmanaged2Float(SFloat2* pf, char* szFieldName)						{ mpcClass->Unmanaged2Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged2Float(SFloat2* pf, size uiLength, char* szFieldName)		{ mpcClass->Unmanaged2Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged3Float(SFloat3* pf, char* szFieldName)						{ mpcClass->Unmanaged3Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged3Float(SFloat3* pf, size uiLength, char* szFieldName)		{ mpcClass->Unmanaged3Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4Float(SFloat4* pf, char* szFieldName)						{ mpcClass->Unmanaged4Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4Float(SFloat4* pf, size uiLength, char* szFieldName)		{ mpcClass->Unmanaged4Float(this, pf, uiLength, szFieldName); }
+void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName)					{ mpcClass->Unmanaged4x4Float(this, pf, szFieldName); }
+void CBaseObject::Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName)	{ mpcClass->Unmanaged4x4Float(this, pf, uiLength, szFieldName); }
 
