@@ -1,3 +1,4 @@
+#include "ClassDefines.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
 #include "PointerContainer.h"
@@ -9,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CPointerContainer::Class(void)
 {
-	Pointer(mp.This(), "mp");
+	M_Pointer(mp);
 }
 
 
@@ -77,7 +78,7 @@ void CPointerContainer::Clear()
 //////////////////////////////////////////////////////////////////////////
 void CNamedPointerContainer::Class(void)
 {
-	Pointer(mp.This(), "mp");
+	M_Pointer(mp);
 }
 
 

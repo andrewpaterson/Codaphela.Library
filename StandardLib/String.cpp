@@ -1,3 +1,4 @@
+#include "ClassDefines.h"
 #include "ObjectReader.h"
 #include "ObjectWriter.h"
 #include "Objects.h"
@@ -10,6 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CString::Class(void)
 {
+	U_String(msz);
 }
 
 

@@ -49,9 +49,6 @@ public:
 	bool				IsObject(void) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 
-	void				Pointer(CPointer* pcPointer, char* szFieldName);
-	void				Embedded(CBaseObject* pcObject, char* szFieldName);
-
 	bool				IsDirty(void);
 	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 	size				GetNumEmbedded(void);
@@ -81,60 +78,7 @@ public:
 	void				ValidateConsistency(void);
 
 public:
-	void				Primitive(Int8* pcPrimitive, char* szFieldName);
-	void				Primitive(UInt8* pcPrimitive, char* szFieldName);
-	void				Primitive(Int16* pcPrimitive, char* szFieldName);
-	void				Primitive(UInt16* pcPrimitive, char* szFieldName);
-	void				Primitive(Int32* pcPrimitive, char* szFieldName);
-	void				Primitive(UInt32* pcPrimitive, char* szFieldName);
-	void				Primitive(Int64* pcPrimitive, char* szFieldName);
-	void				Primitive(UInt64* pcPrimitive, char* szFieldName);
-	void				Primitive(Bool* pcPrimitive, char* szFieldName);
-	void				Primitive(Float32* pcPrimitive, char* szFieldName);
-	void				Primitive(Float64* pcPrimitive, char* szFieldName);
-	void				Primitive(Char8* pcPrimitive, char* szFieldName);
-	void				Primitive(Char16* pcPrimitive, char* szFieldName);
 
-	void				UnmanagedInt8(int8* pc, char* szFieldName);
-	void				UnmanagedInt8(int8* pac, size uiLength, char* szFieldName);
-	void				UnmanagedInt16(int16* pi, char* szFieldName);
-	void				UnmanagedInt16(int16* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt32(int32* pi, char* szFieldName);
-	void				UnmanagedInt32(int32* pai, size uiLength, char* szFieldName);
-	void				UnmanagedInt64(int64* pi, char* szFieldName);
-	void				UnmanagedInt64(int64* pai, size uiLength, char* szFieldName);
-	void				UnmanagedSInt(int* pi, char* szFieldName);
-	void				UnmanagedSInt(int* pai, size uiLength, char* szFieldName);
-	void				UnmanagedUInt8(uint8* pc, char* szFieldName);
-	void				UnmanagedUInt8(uint8* pac, size uiLength, char* szFieldName);
-	void				UnmanagedUInt16(uint16* pi, char* szFieldName);
-	void				UnmanagedUInt16(uint16* pai, size uiLength, char* szFieldName);
-	void				UnmanagedUInt32(uint32* pi, char* szFieldName);
-	void				UnmanagedUInt32(uint32* pai, size uiLength, char* szFieldName);
-	void				UnmanagedUInt64(uint64* pi, char* szFieldName);
-	void				UnmanagedUInt64(uint64* pai, size uiLength, char* szFieldName);
-	void				UnmanagedSUInt(uint* pi, char* szFieldName);
-	void				UnmanagedSUInt(uint* pai, size uiLength, char* szFieldName);
-	void				UnmanagedSize(size* pi, char* szFieldName);
-	void				UnmanagedSize(size* pai, size uiLength, char* szFieldName);
-	void				UnmanagedFloat(float32* pf, char* szFieldName);
-	void				UnmanagedFloat(float32* paf, size uiLength, char* szFieldName);
-	void				UnmanagedFloat(float64* pf, char* szFieldName);
-	void				UnmanagedFloat(float64* paf, size uiLength, char* szFieldName);
-	void				UnmanagedChar(char8* pc, char* szFieldName);
-	void				UnmanagedChar(char8* pac, size uiLength, char* szFieldName);
-	void				UnmanagedChar(char16* pc, char* szFieldName);
-	void				UnmanagedChar(char16* pac, size uiLength, char* szFieldName);
-	void				UnmanagedBool(bool* pb, char* szFieldName);
-	void				UnmanagedBool(bool* pab, size uiLength, char* szFieldName);
-
-	void				UnmanagedEnum(void* pe, char* szFieldName);
-
-	void				UnmanagedString(CChars* pcChars, char* szFieldName);
-	void				UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
-	void				UnmanagedDate(CDate* pcDate, char* szFieldName);
-
-	void				UnmanagedData(void* pv, size uiSizeof, char* szFieldName);
 
 protected:
 	void				EmbedFields(void);

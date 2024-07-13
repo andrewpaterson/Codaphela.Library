@@ -18,6 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "ClassDefines.h"
 #include "Objects.h"
 #include "ObjectWriter.h"
 #include "ObjectReader.h"
@@ -44,6 +45,9 @@ Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull,
 void CArrayCommonObject::Class(void)
 {
 	CCollection::Class();
+
+	U_Bool(mbSubRoot);
+	U_Unknown(CArrayCommonUnknown, mcArray);
 }
 
 

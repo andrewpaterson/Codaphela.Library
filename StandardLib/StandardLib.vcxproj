@@ -183,6 +183,7 @@
     <ClInclude Include="ArrayUnknownPtr.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Class.h" />
+    <ClInclude Include="ClassDefines.h" />
     <ClInclude Include="Classes.h" />
     <ClInclude Include="PrimitiveClasses.h" />
     <ClInclude Include="UnmanagedClasses.h" />

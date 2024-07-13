@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/Define.h"
 #include "BaseLib/SystemAllocator.h"
 #include "BaseLib/TypeNames.h"
+#include "ClassDefines.h"
 #include "Channels.h"
 
 
@@ -163,20 +164,16 @@ void CChannels::Init(CChannels* pcSource)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Class(void)
 {
-	/*
-	CArrayChannelOffset		masChannelOffsets;
+	U_Size(miSize);
+	U_Size(miByteStride);
+	U_Size(miBitStride);
+	U_Bool(mbOnlyBasicTypes);
 
-	CArrayChar				mabData;
-	char*					mpvUserData;
-
-	SChannelsChangingDesc*	mpsChangingDesc;
-	char*					mpvDataCache;		//A pointer to either mabData.pvArray or mpvUserData
-	*/
-
-	UnmanagedSize(&miSize, "miSize");
-	UnmanagedSize(&miByteStride, "miByteStride");
-	UnmanagedSize(&miBitStride, "miBitStride");
-	UnmanagedBool(&mbOnlyBasicTypes, "mbOnlyBasicTypes");
+	U_Unknown(CArrayChannelOffset, masChannelOffsets);
+	U_Unknown(CArrayChar, mabData);
+	U_Pointer(mpvUserData);
+	U_Pointer(mpsChangingDesc);
+	U_Pointer(mpvDataCache);
 }
 
 

@@ -7,6 +7,10 @@
 #include "BaseLib/ConstructorCall.h"
 #include "BaseLib/Number.h"
 #include "BaseLib/Date.h"
+#include "BaseLib/Float2.h"
+#include "BaseLib/Float3.h"
+#include "BaseLib/Float4.h"
+#include "BaseLib/Float4x4.h"
 #include "Integer.h"
 #include "Float.h"
 #include "Character.h"
@@ -120,6 +124,8 @@ public:
 	void				UnmanagedFloat(CBaseObject* pcThis, float32* paf, size uiLength, char* szFieldName);
 	void				UnmanagedFloat(CBaseObject* pcThis, float64* pf, char* szFieldName);
 	void				UnmanagedFloat(CBaseObject* pcThis, float64* paf, size uiLength, char* szFieldName);
+	void				UnmanagedFloat(CBaseObject* pcThis, float96* pf, char* szFieldName);
+	void				UnmanagedFloat(CBaseObject* pcThis, float96* paf, size uiLength, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char8* pc, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char8* pac, size uiLength, char* szFieldName);
 	void				UnmanagedChar(CBaseObject* pcThis, char16* pc, char* szFieldName);
@@ -135,6 +141,17 @@ public:
 
 	void				UnmanagedData(CBaseObject* pcThis, void* pv, size uiSizeof, char* szFieldName);
 	void				UnmanagedVoid(CBaseObject* pcThis, void* pv, char* szFieldName);
+	void				UnmanagedUnknown(CBaseObject* pcThis, void* pv, size uiSizeof, char* szFieldName);
+	void				UnmanagedPointer(CBaseObject* pcThis, void** pv, char* szFieldName);
+
+	void				Unmanaged2Float(CBaseObject* pcThis, SFloat2* pf, char* szFieldName);
+	void				Unmanaged2Float(CBaseObject* pcThis, SFloat2* pf, size uiLength, char* szFieldName);
+	void				Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, char* szFieldName);
+	void				Unmanaged3Float(CBaseObject* pcThis, SFloat3* pf, size uiLength, char* szFieldName);
+	void				Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, char* szFieldName);
+	void				Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, size uiLength, char* szFieldName);
+	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName);
+	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, size uiLength, char* szFieldName);
 
 protected:
 	CField*				AddField(size uiFieldSize, char* szName);
