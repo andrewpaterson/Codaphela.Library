@@ -95,6 +95,7 @@ enum EPrimitiveType
 	PT_uint64,		//64
 	PT_float32,		//32
 	PT_float64,		//64
+	PT_float96,		//96
 	PT_char8,		//8  ANSI or UTF-8, zero terminated
 	PT_char16,		//16 UTF-16, zero zero terminated
 	PT_M2float32,	//64
@@ -137,7 +138,7 @@ enum EPrimitiveType
 	PT_Enum,
 
 	NUM_PRIMITIVE_TYPES,
-	CLASS_TYPES = 0x40,  //Any type with an ID >= 0x40 is a class type.
+	CLASS_TYPES = 0x80,  //Any type with an ID >= 0x40 is a class type.
 };
 
 
