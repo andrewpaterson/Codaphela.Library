@@ -21,38 +21,60 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "ErrorHandler.h"
+#include "DataTypes.h"
 #include "TypeConverter.h"
 
 
 CTypeConverter gcTypeConverter;
 
 
+#define FLOAT_S(dest_type, source_type, min, max)	\
+if (*pf >= (source_type)0)							\
+	if (*pf >= (source_type)1)						\
+		*psDest = (dest_type)max;					\
+	else											\
+		*psDest = (dest_type)(max * *pf);			\
+else												\
+	if (*pf <= -(source_type)1)						\
+		*psDest = (dest_type)min;					\
+	else											\
+		*psDest = (dest_type)(min * *pf)
+
+#define FLOAT_US(dest_type, source_type, min, max)	\
+	if (*pf >= (source_type)0)						\
+		if (*pf >= (source_type)1)					\
+			* psDest = (dest_type)max;				\
+		else										\
+			* psDest = (dest_type)(max * *pf);		\
+	else											\
+		* psDest = (dest_type)min
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// To 'char' Conversions.
-void ConvertDoubleToChar	(char* pcDest, 			double* f) 				{ *pcDest = (char)((double)0xff * *f); }
-void ConvertFloatToChar		(char* pcDest, 			float* f) 				{ *pcDest = (char)((float)0xff * *f); }
-void ConvertLongToChar		(char* pcDest, 			int64* i)			{ *pcDest = (char)(*i / 0x101010101010101LL); }
-void ConvertIntToChar		(char* pcDest, 			int* i)					{ *pcDest = *i / (0xffffffff/0xff); }
-void ConvertShortToChar		(char* pcDest, 			int16* s) 				{ *pcDest = *s / (0xffff/0xff); }
-void ConvertCharToChar		(char* pcDest, 			char* c)				{ *pcDest = *c; }
-void ConvertULongToChar		(char* pcDest, 			uint64* i)	{ *pcDest = (char)(*i / 0x101010101010101LL); }
-void ConvertUIntToChar		(char* pcDest, 			uint32* i)		{ *pcDest = *i / (0xffffffff/0xff); }
-void ConvertUShortToChar	(char* pcDest, 			uint16* s) 		{ *pcDest = *s / (0xffff/0xff); }
-void ConvertUCharToChar		(char* pcDest, 			uint8* c)		{ *pcDest = *c; }
-void ConvertDoubleToUChar	(uint8* pcDest, double* f) 				{ *pcDest = (uint8)((double)0xff * *f); }
-void ConvertFloatToUChar	(uint8* pcDest, float* f) 				{ *pcDest = (uint8)((float)0xff * *f); }
-void ConvertLongToUChar		(uint8* pcDest, int64* i)			{ *pcDest = (uint8)(*i / 0x101010101010101LL); }
-void ConvertIntToUChar		(uint8* pcDest, int* i)					{ *pcDest = *i / (0xffffffff/0xff); }
-void ConvertShortToUChar	(uint8* pcDest, int16* s) 				{ *pcDest = *s / (0xffff/0xff); }
-void ConvertCharToUChar		(uint8* pcDest, char* c)				{ *pcDest = *c; }
-void ConvertULongToUChar	(uint8* pcDest, uint64* i)	{ *pcDest = (uint8)(*i / 0x101010101010101LL); }
-void ConvertUIntToUChar		(uint8* pcDest, uint32* i)		{ *pcDest = *i / (0xffffffff/0xff); }
-void ConvertUShortToUChar	(uint8* pcDest, uint16* s)		{ *pcDest = *s / (0xffff/0xff); }
-void ConvertUCharToUChar	(uint8* pcDest, uint8* c)		{ *pcDest = *c; }
+// To 'int8' Conversions.
+void ConvertScaleTruncateDoubleToChar	(int8* psDest, 	float64* pf)	{ FLOAT_S(int8, float64, MIN_CHAR, MAX_CHAR); }
+void ConvertScaleTruncateFloatToChar	(int8* psDest, 	float32* pf)	{ FLOAT_S(int8, float32, MIN_CHAR, MAX_CHAR); }
+void ConvertScaleTruncateLongToChar		(int8* psDest, 	int64* i)		{ *psDest = (int8)(*i / 0x200000000000000LL); }
+void ConvertScaleTruncateIntToChar		(int8* psDest, 	int32* i)		{ *psDest = (int8)(*i / 0x2000000); }
+void ConvertScaleTruncateShortToChar	(int8* psDest, 	int16* s) 		{ *psDest = (int8)(*s / 0x200); }
+void ConvertScaleTruncateCharToChar		(int8* psDest, 	int8* c)		{ *psDest = *c; }
+void ConvertScaleTruncateULongToChar	(int8* psDest, 	uint64* i)		{ *psDest = (int8)(*i / 0x200000000000000LL); }
+void ConvertScaleTruncateUIntToChar		(int8* psDest, 	uint32* i)		{ *psDest = (int8)(*i / 0x2000000); }
+void ConvertScaleTruncateUShortToChar	(int8* psDest, 	uint16* s) 		{ *psDest = (int8)(*s / 0x200); }
+void ConvertScaleTruncateUCharToChar	(int8* psDest, 	uint8* c)		{ *psDest = *c > MAX_CHAR ? MAX_CHAR : *c; }
+void ConvertScaleTruncateDoubleToUChar	(uint8* psDest, float64* pf)	{ FLOAT_US(uint8, float64, MIN_UCHAR, MAX_UCHAR); }
+void ConvertScaleTruncateFloatToUChar	(uint8* psDest,	float32* pf) 	{ FLOAT_US(uint8, float32, MIN_UCHAR, MAX_UCHAR); }
+void ConvertScaleTruncateLongToUChar	(uint8* psDest,	int64* i)		{ *psDest = (uint8)(*i / 0x100000000000000LL); }
+void ConvertScaleTruncateIntToUChar		(uint8* psDest,	int32* i)		{ *psDest = (uint8)(*i / 0x1000000); }
+void ConvertScaleTruncateShortToUChar	(uint8* psDest,	int16* s) 		{ *psDest = *s >= 0 ? (uint8)(*s / 0x80) : 0; }
+void ConvertScaleTruncateCharToUChar	(uint8* psDest,	int8* c)		{ *psDest = *c; }
+void ConvertScaleTruncateULongToUChar	(uint8* psDest,	uint64* i)		{ *psDest = (uint8)(*i / 0x101010101010101LL); }
+void ConvertScaleTruncateUIntToUChar	(uint8* psDest,	uint32* i)		{ *psDest = *i / (0xffffffff/0xff); }
+void ConvertScaleTruncateUShortToUChar	(uint8* psDest,	uint16* s)		{ *psDest = *s / 0x100; }
+void ConvertScaleTruncateUCharToUChar	(uint8* psDest,	uint8* c)		{ *psDest = *c; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -61,26 +83,26 @@ void ConvertUCharToUChar	(uint8* pcDest, uint8* c)		{ *pcDest = *c; }
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'int16' Conversions.
-void ConvertDoubleToShort	(int16* psDest,  			double* f) 				{ *psDest = (int16)((double)0xffff * *f); }
-void ConvertFloatToShort	(int16* psDest,  			float* f) 				{ *psDest = (int16)((float)0xffff * *f); }
-void ConvertLongToShort		(int16* psDest,  			int64* i)			{ *psDest = (int16)(*i / 0x1000100010001LL); }
-void ConvertIntToShort		(int16* psDest,  			int* i)					{ *psDest = *i / (0xffffffff/0xffff); }
-void ConvertShortToShort	(int16* psDest,  			int16* s) 				{ *psDest = *s; }
-void ConvertCharToShort		(int16* psDest,  			char* c)				{ *psDest = ((int16)*c << 8) | *c; }
-void ConvertULongToShort	(int16* psDest,  			uint64* i)	{ *psDest = (int16)(*i / 0x1000100010001LL); }
-void ConvertUIntToShort		(int16* psDest,  			uint32* i)		{ *psDest = *i / (0xffffffff/0xffff); }
-void ConvertUShortToShort	(int16* psDest,  			uint16* s) 		{ *psDest = *s; }
-void ConvertUCharToShort	(int16* psDest,  			uint8* c)		{ *psDest = ((int16)*c << 8) | *c; }
-void ConvertDoubleToUShort	(uint16* psDest,  	double* f) 				{ *psDest = (uint16)((double)0xffff * *f); }
-void ConvertFloatToUShort	(uint16* psDest,  	float* f) 				{ *psDest = (uint16)((float)0xffff * *f); }
-void ConvertLongToUShort	(uint16* psDest,  	int64* i)			{ *psDest = (uint16)(*i / 0x1000100010001LL); }
-void ConvertIntToUShort		(uint16* psDest,  	int* i)					{ *psDest = *i / (0xffffffff/0xffff); }
-void ConvertShortToUShort	(uint16* psDest,  	int16* s) 				{ *psDest = *s; }
-void ConvertCharToUShort	(uint16* psDest,  	char* c)				{ *psDest = ((uint16)*c << 8) | *c; }
-void ConvertULongToUShort	(uint16* psDest,  	uint64* i)	{ *psDest = (uint16)(*i / 0x1000100010001LL); }
-void ConvertUIntToUShort	(uint16* psDest,  	uint32* i)		{ *psDest = *i / (0xffffffff/0xffff); }
-void ConvertUShortToUShort	(uint16* psDest,  	uint16* s)		{ *psDest = *s; }
-void ConvertUCharToUShort	(uint16* psDest,  	uint8* c)		{ *psDest = ((uint16)*c << 8) | *c; }
+void ConvertScaleTruncateDoubleToShort	(int16* psDest,		float64* pf) 	{ FLOAT_S(int16, float64, MIN_SHORT, MAX_SHORT); }
+void ConvertScaleTruncateFloatToShort	(int16* psDest,		float32* pf) 	{ FLOAT_S(int16, float32, MIN_SHORT, MAX_SHORT); }
+void ConvertScaleTruncateLongToShort	(int16* psDest,		int64* i)		{ *psDest = (int16)(*i / 0x1000100010001LL); }
+void ConvertScaleTruncateIntToShort		(int16* psDest,		int32* i)		{ *psDest = *i / (0xffffffff/0xffff); }
+void ConvertScaleTruncateShortToShort	(int16* psDest,		int16* s) 		{ *psDest = *s; }
+void ConvertScaleTruncateCharToShort	(int16* psDest,		int8* c)		{ *psDest = ((int16)*c << 8) | *c; }
+void ConvertScaleTruncateULongToShort	(int16* psDest,		uint64* i)		{ *psDest = (int16)(*i / 0x1000100010001LL); }
+void ConvertScaleTruncateUIntToShort	(int16* psDest,		uint32* i)		{ *psDest = *i / (0xffffffff/0xffff); }
+void ConvertScaleTruncateUShortToShort	(int16* psDest,		uint16* s) 		{ *psDest = *s; }
+void ConvertScaleTruncateUCharToShort	(int16* psDest,		uint8* c)		{ *psDest = ((int16)*c << 8) | *c; }
+void ConvertScaleTruncateDoubleToUShort	(uint16* psDest,	float64* pf) 	{ FLOAT_US(uint16, float64, MIN_USHORT, MAX_USHORT); }
+void ConvertScaleTruncateFloatToUShort	(uint16* psDest,	float32* pf) 	{ FLOAT_US(uint16, float32, MIN_USHORT, MAX_USHORT); }
+void ConvertScaleTruncateLongToUShort	(uint16* psDest,	int64* i)		{ *psDest = (uint16)(*i / 0x1000100010001LL); }
+void ConvertScaleTruncateIntToUShort	(uint16* psDest,	int32* i)		{ *psDest = *i / (0xffffffff/0xffff); }
+void ConvertScaleTruncateShortToUShort	(uint16* psDest,	int16* s) 		{ *psDest = *s; }
+void ConvertScaleTruncateCharToUShort	(uint16* psDest,	int8* c)		{ *psDest = ((uint16)*c << 8) | *c; }
+void ConvertScaleTruncateULongToUShort	(uint16* psDest,	uint64* i)		{ *psDest = (uint16)(*i / 0x1000100010001LL); }
+void ConvertScaleTruncateUIntToUShort	(uint16* psDest,	uint32* i)		{ *psDest = *i / (0xffffffff/0xffff); }
+void ConvertScaleTruncateUShortToUShort	(uint16* psDest,	uint16* s)		{ *psDest = *s; }
+void ConvertScaleTruncateUCharToUShort	(uint16* psDest,	uint8* c)		{ *psDest = ((uint16)*c << 8) | *c; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -88,27 +110,27 @@ void ConvertUCharToUShort	(uint16* psDest,  	uint8* c)		{ *psDest = ((uint16)*c 
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// To 'int' Conversions.
-void ConvertDoubleToInt		(int* piDest,  			double* f) 				{ *piDest = (int)((double)0xffffffff * *f); }
-void ConvertFloatToInt		(int* piDest,  			float* f) 				{ *piDest = (int)((float)0xffffffff * *f); }
-void ConvertLongToInt		(int* piDest,  			int64* i)			{ *piDest = (int)(*i / 0x100000001LL); }
-void ConvertIntToInt		(int* piDest,  			int* i)					{ *piDest = *i; }	   
-void ConvertShortToInt		(int* piDest,  			int16* s) 				{ *piDest = ((int)*s << 16) | *s; }
-void ConvertCharToInt		(int* piDest,  			char* c)				{ *piDest = ((int)*c << 24) | ((int)*c << 16) | ((int)*c << 8) | *c; }
-void ConvertULongToInt		(int* piDest,  			uint64* i)	{ *piDest = (int)(*i / 0x100000001LL); }
-void ConvertUIntToInt		(int* piDest,  			uint32* i)		{ *piDest = *i; }
-void ConvertUShortToInt		(int* piDest,  			uint16* s) 		{ *piDest = ((int)*s << 16) | *s; }
-void ConvertUCharToInt		(int* piDest,  			uint8* c)		{ *piDest = ((int)*c << 24) | ((int)*c << 16) | ((int)*c << 8) | *c; }
-void ConvertDoubleToUInt	(uint32* psDest,  double* f) 				{ *psDest = (uint32)((double)0xffffffff * *f); }
-void ConvertFloatToUInt		(uint32* piDest,  float* f) 				{ *piDest = (uint32)((float)0xffffffff * *f); }
-void ConvertLongToUInt		(uint32* piDest, 	int64* i)			{ *piDest = (uint32)(*i / 0x100000001LL); }
-void ConvertIntToUInt		(uint32* piDest,  int* i)					{ *piDest = *i; }
-void ConvertShortToUInt		(uint32* piDest,  int16* s) 				{ *piDest = ((uint32)*s << 16) | *s; }
-void ConvertCharToUInt		(uint32* piDest,  char* c)				{ *piDest = ((uint32)*c << 24) | ((int)*c << 16) | ((int)*c << 8) | *c; }
-void ConvertULongToUInt		(uint32* piDest, 	uint64* i)	{ *piDest = (uint32)(*i / 0x100000001LL); }
-void ConvertUIntToUInt		(uint32* piDest,  uint32* i)		{ *piDest = *i; }
-void ConvertUShortToUInt	(uint32* piDest,  uint16* s)		{ *piDest = ((uint32)*s << 16) | *s; }
-void ConvertUCharToUInt		(uint32* piDest,  uint8* c)		{ *piDest = ((uint32)*c << 24) | ((int)*c << 16) | ((int)*c << 8) | *c; }
+// To 'int32' Conversions.
+void ConvertScaleTruncateDoubleToInt	(int32* piDest,		float64* pf) 	{ *piDest = (int32)((float64)0xffffffff * *pf); }
+void ConvertScaleTruncateFloatToInt		(int32* piDest,		float32* pf) 	{ *piDest = (int32)((float32)0xffffffff * *pf); }
+void ConvertScaleTruncateLongToInt		(int32* piDest,		int64* i)		{ *piDest = (int32)(*i / 0x100000001LL); }
+void ConvertScaleTruncateIntToInt		(int32* piDest,		int32* i)		{ *piDest = *i; }	   
+void ConvertScaleTruncateShortToInt		(int32* piDest,		int16* s) 		{ *piDest = ((int32)*s << 16) | *s; }
+void ConvertScaleTruncateCharToInt		(int32* piDest,		int8* c)		{ *piDest = ((int32)*c << 24) | ((int32)*c << 16) | ((int32)*c << 8) | *c; }
+void ConvertScaleTruncateULongToInt		(int32* piDest,		uint64* i)		{ *piDest = (int32)(*i / 0x100000001LL); }
+void ConvertScaleTruncateUIntToInt		(int32* piDest,		uint32* i)		{ *piDest = *i; }
+void ConvertScaleTruncateUShortToInt	(int32* piDest,		uint16* s) 		{ *piDest = ((int32)*s << 16) | *s; }
+void ConvertScaleTruncateUCharToInt		(int32* piDest,		uint8* c)		{ *piDest = ((int32)*c << 24) | ((int32)*c << 16) | ((int32)*c << 8) | *c; }
+void ConvertScaleTruncateDoubleToUInt	(uint32* psDest,	float64* pf) 	{ *psDest = (uint32)((float64)0xffffffff * *pf); }
+void ConvertScaleTruncateFloatToUInt	(uint32* piDest,	float32* pf) 	{ *piDest = (uint32)((float32)0xffffffff * *pf); }
+void ConvertScaleTruncateLongToUInt		(uint32* piDest, 	int64* i)		{ *piDest = (uint32)(*i / 0x100000001LL); }
+void ConvertScaleTruncateIntToUInt		(uint32* piDest,	int32* i)		{ *piDest = *i; }
+void ConvertScaleTruncateShortToUInt	(uint32* piDest,	int16* s) 		{ *piDest = ((uint32)*s << 16) | *s; }
+void ConvertScaleTruncateCharToUInt		(uint32* piDest,	int8* c)		{ *piDest = ((uint32)*c << 24) | ((int32)*c << 16) | ((int32)*c << 8) | *c; }
+void ConvertScaleTruncateULongToUInt	(uint32* piDest, 	uint64* i)		{ *piDest = (uint32)(*i / 0x100000001LL); }
+void ConvertScaleTruncateUIntToUInt		(uint32* piDest,	uint32* i)		{ *piDest = *i; }
+void ConvertScaleTruncateUShortToUInt	(uint32* piDest,	uint16* s)		{ *piDest = ((uint32)*s << 16) | *s; }
+void ConvertScaleTruncateUCharToUInt	(uint32* piDest,	uint8* c)		{ *piDest = ((uint32)*c << 24) | ((int32)*c << 16) | ((int32)*c << 8) | *c; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -117,26 +139,26 @@ void ConvertUCharToUInt		(uint32* piDest,  uint8* c)		{ *piDest = ((uint32)*c <<
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'long' Conversions.
-void ConvertDoubleToLong	(int64* piDest,  			double* f) 				{ *piDest = (int64)((double)0xffffffffffffffffLL * *f); }
-void ConvertFloatToLong		(int64* piDest,  			float* f) 				{ *piDest = (int64)((float)0xffffffffffffffffLL * *f); }
-void ConvertLongToLong		(int64* piDest,  			int64* i)			{ *piDest = *i; }
-void ConvertIntToLong		(int64* piDest,  			int* i)					{ *piDest = ((int64)*i << 32) | *i; }
-void ConvertShortToLong		(int64* piDest,  			int16* s) 				{ *piDest = ((int64)*s << 48) | ((int64)*s << 32) | ((int64)*s << 16) | *s; }
-void ConvertCharToLong		(int64* piDest,  			char* c)				{ *piDest = ((int64)*c << 56) | ((int64)*c << 48) | ((int64)*c << 40) | ((int64)*c << 32) | ((int64)*c << 24) | ((int64)*c << 16) | ((int64)*c << 8) | *c; }
-void ConvertULongToLong		(int64* piDest,  			uint64* i)	{ *piDest = *i; }
-void ConvertUIntToLong		(int64* piDest,  			uint32* i)		{ *piDest = ((int64)*i << 32) | *i; }
-void ConvertUShortToLong	(int64* piDest,  			uint16* s) 		{ *piDest = ((int64)*s << 48) | ((int64)*s << 32) | ((int64)*s << 16) | *s; }
-void ConvertUCharToLong		(int64* piDest,  			uint8* c)		{ *piDest = ((int64)*c << 56) | ((int64)*c << 48) | ((int64)*c << 40) | ((int64)*c << 32) | ((int64)*c << 24) | ((int64)*c << 16) | ((int64)*c << 8) | *c; }
-void ConvertDoubleToULong	(uint64* psDest,	double* f) 				{ *psDest = (uint64)((double)0xffffffffffffffffLL * *f); }
-void ConvertFloatToULong	(uint64* piDest,	float* f) 				{ *piDest = (uint64)((float)0xffffffffffffffffLL * *f); }
-void ConvertLongToULong		(uint64* piDest,	int64* i)			{ *piDest = *i; }
-void ConvertIntToULong		(uint64* piDest,	int* i)					{ *piDest = ((uint64)*i << 32) | *i; }
-void ConvertShortToULong	(uint64* piDest,	int16* s) 				{ *piDest = ((uint64)*s << 48) | ((uint64)*s << 32) | ((uint64)*s << 16) | *s; }
-void ConvertCharToULong		(uint64* piDest,	char* c)				{ *piDest = ((uint64)*c << 56) | ((uint64)*c << 48) | ((uint64)*c << 40) | ((uint64)*c << 32) | ((uint64)*c << 24) | ((uint64)*c << 16) | ((uint64)*c << 8) | *c; }
-void ConvertULongToULong	(uint64* piDest, 	uint64* i)	{ *piDest = *i; }
-void ConvertUIntToULong		(uint64* piDest,	uint32* i)		{ *piDest = ((uint64)*i << 32) | *i; }
-void ConvertUShortToULong	(uint64* piDest,	uint16* s)		{ *piDest = ((uint64)*s << 48) | ((uint64)*s << 32) | ((uint64)*s << 16) | *s; }
-void ConvertUCharToULong	(uint64* piDest,	uint8* c)		{ *piDest = ((uint64)*c << 56) | ((uint64)*c << 48) | ((uint64)*c << 40) | ((uint64)*c << 32) | ((uint64)*c << 24) | ((uint64)*c << 16) | ((uint64)*c << 8) | *c; }
+void ConvertScaleTruncateDoubleToLong	(int64* piDest,  	float64* pf) 	{ *piDest = (int64)((float64)0xffffffffffffffffLL * *pf); }
+void ConvertScaleTruncateFloatToLong	(int64* piDest,  	float32* pf) 	{ *piDest = (int64)((float32)0xffffffffffffffffLL * *pf); }
+void ConvertScaleTruncateLongToLong		(int64* piDest,  	int64* i)		{ *piDest = *i; }
+void ConvertScaleTruncateIntToLong		(int64* piDest,  	int32* i)		{ *piDest = ((int64)*i << 32) | *i; }
+void ConvertScaleTruncateShortToLong	(int64* piDest,  	int16* s) 		{ *piDest = ((int64)*s << 48) | ((int64)*s << 32) | ((int64)*s << 16) | *s; }
+void ConvertScaleTruncateCharToLong		(int64* piDest,  	int8* c)		{ *piDest = ((int64)*c << 56) | ((int64)*c << 48) | ((int64)*c << 40) | ((int64)*c << 32) | ((int64)*c << 24) | ((int64)*c << 16) | ((int64)*c << 8) | *c; }
+void ConvertScaleTruncateULongToLong	(int64* piDest,  	uint64* i)		{ *piDest = *i; }
+void ConvertScaleTruncateUIntToLong		(int64* piDest,  	uint32* i)		{ *piDest = ((int64)*i << 32) | *i; }
+void ConvertScaleTruncateUShortToLong	(int64* piDest,  	uint16* s) 		{ *piDest = ((int64)*s << 48) | ((int64)*s << 32) | ((int64)*s << 16) | *s; }
+void ConvertScaleTruncateUCharToLong	(int64* piDest,  	uint8* c)		{ *piDest = ((int64)*c << 56) | ((int64)*c << 48) | ((int64)*c << 40) | ((int64)*c << 32) | ((int64)*c << 24) | ((int64)*c << 16) | ((int64)*c << 8) | *c; }
+void ConvertScaleTruncateDoubleToULong	(uint64* psDest,	float64* pf) 	{ *psDest = (uint64)((float64)0xffffffffffffffffLL * *pf); }
+void ConvertScaleTruncateFloatToULong	(uint64* piDest,	float32* pf) 	{ *piDest = (uint64)((float32)0xffffffffffffffffLL * *pf); }
+void ConvertScaleTruncateLongToULong	(uint64* piDest,	int64* i)		{ *piDest = *i; }
+void ConvertScaleTruncateIntToULong		(uint64* piDest,	int32* i)		{ *piDest = ((uint64)*i << 32) | *i; }
+void ConvertScaleTruncateShortToULong	(uint64* piDest,	int16* s) 		{ *piDest = ((uint64)*s << 48) | ((uint64)*s << 32) | ((uint64)*s << 16) | *s; }
+void ConvertScaleTruncateCharToULong	(uint64* piDest,	int8* c)		{ *piDest = ((uint64)*c << 56) | ((uint64)*c << 48) | ((uint64)*c << 40) | ((uint64)*c << 32) | ((uint64)*c << 24) | ((uint64)*c << 16) | ((uint64)*c << 8) | *c; }
+void ConvertScaleTruncateULongToULong	(uint64* piDest, 	uint64* i)		{ *piDest = *i; }
+void ConvertScaleTruncateUIntToULong	(uint64* piDest,	uint32* i)		{ *piDest = ((uint64)*i << 32) | *i; }
+void ConvertScaleTruncateUShortToULong	(uint64* piDest,	uint16* s)		{ *piDest = ((uint64)*s << 48) | ((uint64)*s << 32) | ((uint64)*s << 16) | *s; }
+void ConvertScaleTruncateUCharToULong	(uint64* piDest,	uint8* c)		{ *piDest = ((uint64)*c << 56) | ((uint64)*c << 48) | ((uint64)*c << 40) | ((uint64)*c << 32) | ((uint64)*c << 24) | ((uint64)*c << 16) | ((uint64)*c << 8) | *c; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -144,27 +166,27 @@ void ConvertUCharToULong	(uint64* piDest,	uint8* c)		{ *piDest = ((uint64)*c << 
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// To 'float' Conversions.
-void ConvertDoubleToFloat	(float* pfDest, double* f) 				{ *pfDest = (float)*f; }
-void ConvertFloatToFloat	(float* pfDest, float* f) 				{ *pfDest = *f; }
-void ConvertLongToFloat		(float* pfDest, int64* i)			{ *pfDest = (float)*i / 0xffffffffffffffffLL; }
-void ConvertIntToFloat		(float* pfDest, int* i)					{ *pfDest = (float)*i / 0xffffffff; }
-void ConvertShortToFloat	(float* pfDest, int16* s) 				{ *pfDest = (float)*s / 0xffff; }
-void ConvertCharToFloat		(float* pfDest, char* c)				{ *pfDest = (float)*c / 0xff; }
-void ConvertULongToFloat	(float* pfDest, uint64* i)	{ *pfDest = (float)*i / 0xffffffffffffffffLL; }
-void ConvertUIntToFloat		(float* pfDest, uint32* i)		{ *pfDest = (float)*i / 0xffffffff; }
-void ConvertUShortToFloat	(float* pfDest, uint16* s) 		{ *pfDest = (float)*s / 0xffff; }
-void ConvertUCharToFloat	(float* pfDest, uint8* c)		{ *pfDest = (float)*c / 0xff; }
-void ConvertDoubleToDouble	(double* pfDest, double* f) 			{ *pfDest = *f; }
-void ConvertFloatToDouble	(double* pfDest, float* f) 				{ *pfDest = *f; }
-void ConvertLongToDouble	(double* pfDest, int64* i)			{ *pfDest = (double)*i / 0xffffffffffffffffLL; }
-void ConvertIntToDouble		(double* pfDest, int* i)				{ *pfDest = (double)*i / 0xffffffff; }
-void ConvertShortToDouble	(double* pfDest, int16* s) 				{ *pfDest = (double)*s / 0xffff; }
-void ConvertCharToDouble	(double* pfDest, char* c)				{ *pfDest = (double)*c / 0xff; }
-void ConvertULongToDouble	(double* pfDest, uint64* i)	{ *pfDest = (double)*i / 0xffffffffffffffffLL; }
-void ConvertUIntToDouble	(double* pfDest, uint32* i)		{ *pfDest = (double)*i / 0xffffffff; }
-void ConvertUShortToDouble	(double* pfDest, uint16* s)		{ *pfDest = (double)*s / 0xffff; }
-void ConvertUCharToDouble	(double* pfDest, uint8* c)		{ *pfDest = (double)*c / 0xff; }
+// To 'float32' Conversions.
+void ConvertScaleTruncateDoubleToFloat	(float32* pfDest,	float64* pf) 	{ *pfDest = (float32)*pf; }
+void ConvertScaleTruncateFloatToFloat	(float32* pfDest,	float32* pf) 	{ *pfDest = *pf; }
+void ConvertScaleTruncateLongToFloat	(float32* pfDest,	int64* i)		{ *pfDest = (float32)*i / 0xffffffffffffffffLL; }
+void ConvertScaleTruncateIntToFloat		(float32* pfDest,	int32* i)		{ *pfDest = (float32)*i / 0xffffffff; }
+void ConvertScaleTruncateShortToFloat	(float32* pfDest,	int16* s) 		{ *pfDest = (float32)*s / 0xffff; }
+void ConvertScaleTruncateCharToFloat	(float32* pfDest,	int8* c)		{ *pfDest = (float32)*c / 0xff; }
+void ConvertScaleTruncateULongToFloat	(float32* pfDest,	uint64* i)		{ *pfDest = (float32)*i / 0xffffffffffffffffLL; }
+void ConvertScaleTruncateUIntToFloat	(float32* pfDest,	uint32* i)		{ *pfDest = (float32)*i / 0xffffffff; }
+void ConvertScaleTruncateUShortToFloat	(float32* pfDest,	uint16* s) 		{ *pfDest = (float32)*s / 0xffff; }
+void ConvertScaleTruncateUCharToFloat	(float32* pfDest,	uint8* c)		{ *pfDest = (float32)*c / 0xff; }
+void ConvertScaleTruncateDoubleToDouble	(float64* pfDest,	float64* pf) 	{ *pfDest = *pf; }
+void ConvertScaleTruncateFloatToDouble	(float64* pfDest,	float32* pf) 	{ *pfDest = *pf; }
+void ConvertScaleTruncateLongToDouble	(float64* pfDest,	int64* i)		{ *pfDest = (float64)*i / 0xffffffffffffffffLL; }
+void ConvertScaleTruncateIntToDouble	(float64* pfDest,	int32* i)		{ *pfDest = (float64)*i / 0xffffffff; }
+void ConvertScaleTruncateShortToDouble	(float64* pfDest,	int16* s) 		{ *pfDest = (float64)*s / 0xffff; }
+void ConvertScaleTruncateCharToDouble	(float64* pfDest,	int8* c)		{ *pfDest = (float64)*c / 0xff; }
+void ConvertScaleTruncateULongToDouble	(float64* pfDest,	uint64* i)		{ *pfDest = (float64)*i / 0xffffffffffffffffLL; }
+void ConvertScaleTruncateUIntToDouble	(float64* pfDest,	uint32* i)		{ *pfDest = (float64)*i / 0xffffffff; }
+void ConvertScaleTruncateUShortToDouble	(float64* pfDest,	uint16* s)		{ *pfDest = (float64)*s / 0xffff; }
+void ConvertScaleTruncateUCharToDouble	(float64* pfDest,	uint8* c)		{ *pfDest = (float64)*c / 0xff; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -173,11 +195,11 @@ void ConvertUCharToDouble	(double* pfDest, uint8* c)		{ *pfDest = (double)*c / 0
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Sixbits' Conversions.
-void ConvertUCharToSixbits	(uint8* pcDest,  uint8* c)		{ *pcDest = *c / (0xff/0x3f); }
-void ConvertUShortToSixbits	(uint8* pcDest,  uint16* s)		{ *pcDest = *s / (0xffff/0x3f); }
-void ConvertUIntToSixbits	(uint8* pcDest,  uint32* i)		{ *pcDest = *i / (0xffffffff/0x3f); }
-void ConvertDoubleToSixbits	(uint8* pcDest,  double* f)				{ *pcDest = (uint8)(*f * (double)0x3f); }
-void ConvertFloatToSixbits	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f * (float)0x3f); }
+void ConvertScaleTruncateUCharToSixbits	(uint8* psDest,  uint8* c)		{ *psDest = *c / (0xff/0x3f); }
+void ConvertScaleTruncateUShortToSixbits(uint8* psDest,  uint16* s)		{ *psDest = *s / (0xffff/0x3f); }
+void ConvertScaleTruncateUIntToSixbits	(uint8* psDest,  uint32* i)		{ *psDest = *i / (0xffffffff/0x3f); }
+void ConvertScaleTruncateDoubleToSixbits(uint8* psDest,  float64* pf)	{ *psDest = (uint8)(*pf * (float64)0x3f); }
+void ConvertScaleTruncateFloatToSixbits	(uint8* psDest,  float32* pf)	{ *psDest = (uint8)(*pf * (float32)0x3f); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -186,11 +208,11 @@ void ConvertFloatToSixbits	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f 
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Nickle' Conversions.
-void ConvertUCharToNickle	(uint8* pcDest,  uint8* c)		{ *pcDest = *c / (0xff/0x1f); }
-void ConvertUShortToNickle	(uint8* pcDest,  uint16* s)		{ *pcDest = *s / (0xffff/0x1f); }
-void ConvertUIntToNickle	(uint8* pcDest,  uint32* i)		{ *pcDest = *i / (0xffffffff/0x1f); }
-void ConvertDoubleToNickle	(uint8* pcDest,  double* f)				{ *pcDest = (uint8)(*f * (double)0x1f); }
-void ConvertFloatToNickle	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f * (float)0x1f); }
+void ConvertScaleTruncateUCharToNickle	(uint8* psDest,  uint8* c)		{ *psDest = *c / (0xff/0x1f); }
+void ConvertScaleTruncateUShortToNickle	(uint8* psDest,  uint16* s)		{ *psDest = *s / (0xffff/0x1f); }
+void ConvertScaleTruncateUIntToNickle	(uint8* psDest,  uint32* i)		{ *psDest = *i / (0xffffffff/0x1f); }
+void ConvertScaleTruncateDoubleToNickle	(uint8* psDest,  float64* pf)		{ *psDest = (uint8)(*pf * (float64)0x1f); }
+void ConvertScaleTruncateFloatToNickle	(uint8* psDest,  float32* pf)		{ *psDest = (uint8)(*pf * (float32)0x1f); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -199,11 +221,11 @@ void ConvertFloatToNickle	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f *
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Nybble' Conversions.
-void ConvertUCharToNybble	(uint8* pcDest,  uint8* c)		{ *pcDest = *c / (0xff/0xf); }
-void ConvertUShortToNybble	(uint8* pcDest,  uint16* s)		{ *pcDest = *s / (0xffff/0xf); }
-void ConvertUIntToNybble	(uint8* pcDest,  uint32* i)		{ *pcDest = *i / (0xffffffff/0xf); }
-void ConvertDoubleToNybble	(uint8* pcDest,  double* f)				{ *pcDest = (uint8)(*f * (double)0xf); }
-void ConvertFloatToNybble	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f * (float)0xf); }
+void ConvertScaleTruncateUCharToNybble	(uint8* psDest,  uint8* c)		{ *psDest = *c / (0xff/0xf); }
+void ConvertScaleTruncateUShortToNybble	(uint8* psDest,  uint16* s)		{ *psDest = *s / (0xffff/0xf); }
+void ConvertScaleTruncateUIntToNybble	(uint8* psDest,  uint32* i)		{ *psDest = *i / (0xffffffff/0xf); }
+void ConvertScaleTruncateDoubleToNybble	(uint8* psDest,  float64* pf)		{ *psDest = (uint8)(*pf * (float64)0xf); }
+void ConvertScaleTruncateFloatToNybble	(uint8* psDest,  float32* pf)		{ *psDest = (uint8)(*pf * (float32)0xf); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -212,11 +234,11 @@ void ConvertFloatToNybble	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f *
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Crumb' Conversions.
-void ConvertUCharToCrumb	(uint8* pcDest,  uint8* c)		{ *pcDest = *c / (0xff/0x3); } 
-void ConvertUShortToCrumb	(uint8* pcDest,  uint16* s)		{ *pcDest = *s / (0xffff/0x3); }
-void ConvertUIntToCrumb		(uint8* pcDest,  uint32* i)		{ *pcDest = *i / (0xffffffff/0x3); }
-void ConvertDoubleToCrumb	(uint8* pcDest,  double* f)				{ *pcDest = (uint8)(*f * (double)0x3); }
-void ConvertFloatToCrumb	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f * (float)0x3); }
+void ConvertScaleTruncateUCharToCrumb	(uint8* psDest,  uint8* c)		{ *psDest = *c / (0xff/0x3); } 
+void ConvertScaleTruncateUShortToCrumb	(uint8* psDest,  uint16* s)		{ *psDest = *s / (0xffff/0x3); }
+void ConvertScaleTruncateUIntToCrumb	(uint8* psDest,  uint32* i)		{ *psDest = *i / (0xffffffff/0x3); }
+void ConvertScaleTruncateDoubleToCrumb	(uint8* psDest,  float64* pf)		{ *psDest = (uint8)(*pf * (float64)0x3); }
+void ConvertScaleTruncateFloatToCrumb	(uint8* psDest,  float32* pf)		{ *psDest = (uint8)(*pf * (float32)0x3); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -225,11 +247,11 @@ void ConvertFloatToCrumb	(uint8* pcDest,  float* f)				{ *pcDest = (uint8)(*f * 
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Bit' Conversions.
-void ConvertUCharToBit		(uint8* pcDest,  uint8* c)		{ *pcDest = *c / (0xff); }
-void ConvertUShortToBit		(uint8* pcDest,  uint16* s)		{ *pcDest = *s / (0xffff); }
-void ConvertUIntToBit		(uint8* pcDest,  uint32* i)		{ *pcDest = *i / (0xffffffff); }
-void ConvertDoubleToBit		(uint8* pcDest,  double* f)				{ *pcDest = (uint8)*f; }
-void ConvertFloatToBit		(uint8* pcDest,  float* f)				{ *pcDest = (uint8)*f; }
+void ConvertScaleTruncateUCharToBit		(uint8* psDest,  uint8* c)		{ *psDest = *c / (0xff); }
+void ConvertScaleTruncateUShortToBit	(uint8* psDest,  uint16* s)		{ *psDest = *s / (0xffff); }
+void ConvertScaleTruncateUIntToBit		(uint8* psDest,  uint32* i)		{ *psDest = *i / (0xffffffff); }
+void ConvertScaleTruncateDoubleToBit	(uint8* psDest,  float64* pf)		{ *psDest = (uint8)*pf; }
+void ConvertScaleTruncateFloatToBit		(uint8* psDest,  float32* pf)		{ *psDest = (uint8)*pf; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -238,118 +260,118 @@ void ConvertFloatToBit		(uint8* pcDest,  float* f)				{ *pcDest = (uint8)*f; }
 //////////////////////////////////////////////////////////////////////////
 //
 //Other U.  Clean up later
-void ConvertSixbitsToUShort		(uint16* pDest,  uint8* c)		{ *pDest = (uint16)((float)*c * (65535.0f/63.0f)); }
-void ConvertNickleToUShort		(uint16* pDest,  uint8* c)		{ *pDest = (uint16)((float)*c * (65535.0f/31.0f)); }
-void ConvertNybbleToUShort		(uint16* pDest,  uint8* c)		{ *pDest = (uint16)((float)*c * (65535.0f/15.0f)); }
-void ConvertThreeBitsToUShort	(uint16* pDest,  uint8* c)		{ *pDest = (uint16)((float)*c * (65535.0f/7.0f)); }
-void ConvertCrumbToUShort		(uint16* pDest,  uint8* c)		{ *pDest = (uint16)*c * (0xffff/3); }
-void ConvertBitToUShort			(uint16* pDest,  uint8* c)		{ *pDest = (uint16)*c * 0xffff; }
+void ConvertScaleTruncateSixbitsToUShort	(uint16* pDest, uint8* c)	{ *pDest = (uint16)((float32)*c * (65535.0f/63.0f)); }
+void ConvertScaleTruncateNickleToUShort		(uint16* pDest, uint8* c)	{ *pDest = (uint16)((float32)*c * (65535.0f/31.0f)); }
+void ConvertScaleTruncateNybbleToUShort		(uint16* pDest, uint8* c)	{ *pDest = (uint16)((float32)*c * (65535.0f/15.0f)); }
+void ConvertScaleTruncateThreeBitsToUShort	(uint16* pDest, uint8* c)	{ *pDest = (uint16)((float32)*c * (65535.0f/7.0f)); }
+void ConvertScaleTruncateCrumbToUShort		(uint16* pDest, uint8* c)	{ *pDest = (uint16)*c * (0xffff/3); }
+void ConvertScaleTruncateBitToUShort		(uint16* pDest, uint8* c)	{ *pDest = (uint16)*c * 0xffff; }
 
-void ConvertSixbitsToUChar	(uint8* pDest,  uint8* c)		{ *pDest = (uint8)((float)*c * (255.0f/63.0f)); }
-void ConvertNickleToUChar	(uint8* pDest,  uint8* c)		{ *pDest = (uint8)((float)*c * (255.0f/31.0f)); }
-void ConvertNybbleToUChar	(uint8* pDest,  uint8* c)		{ *pDest = (uint8)((float)*c * (255.0f/15.0f)); }
-void ConvertThreeBitsToUChar(uint8* pDest,  uint8* c)		{ *pDest = (uint8)((float)*c * (255.0f/7.0f)); }
-void ConvertCrumbToUChar	(uint8* pDest,  uint8* c)		{ *pDest = (uint8)*c * (0xff/3); }
-void ConvertBitToUChar		(uint8* pDest,  uint8* c)		{ *pDest = (uint8)*c * 0xff; }
+void ConvertScaleTruncateSixbitsToUChar		(uint8* pDest,  uint8* c)	{ *pDest = (uint8)((float32)*c * (255.0f/63.0f)); }
+void ConvertScaleTruncateNickleToUChar		(uint8* pDest,  uint8* c)	{ *pDest = (uint8)((float32)*c * (255.0f/31.0f)); }
+void ConvertScaleTruncateNybbleToUChar		(uint8* pDest,  uint8* c)	{ *pDest = (uint8)((float32)*c * (255.0f/15.0f)); }
+void ConvertScaleTruncateThreeBitsToUChar	(uint8* pDest,  uint8* c)	{ *pDest = (uint8)((float32)*c * (255.0f/7.0f)); }
+void ConvertScaleTruncateCrumbToUChar		(uint8* pDest,  uint8* c)	{ *pDest = (uint8)*c * (0xff/3); }
+void ConvertScaleTruncateBitToUChar			(uint8* pDest,  uint8* c)	{ *pDest = (uint8)*c * 0xff; }
 									 
-void ConvertSixbitsToUInt	(uint32* pDest,  	uint8* c)		{ *pDest = (uint32)((float)*c * (4294967295.0f/63.0f)); }
-void ConvertNickleToUInt	(uint32* pDest,  	uint8* c)		{ *pDest = (uint32)((float)*c * (4294967295.0f/31.0f)); }
-void ConvertNybbleToUInt	(uint32* pDest,  	uint8* c)		{ *pDest = (uint32)((float)*c * (4294967295.0f/15.0f)); }
-void ConvertThreeBitsToUInt	(uint32* pDest,  	uint8* c)		{ *pDest = (uint32)((float)*c * (4294967295.0f/7.0f)); }
-void ConvertCrumbToUInt		(uint32* pDest,  	uint8* c)		{ *pDest = (uint32)*c * (0xffffffff/3); }
-void ConvertBitToUInt		(uint32* pDest,  	uint8* c)		{ *pDest = (uint32)*c * 0xffffffff; }
+void ConvertScaleTruncateSixbitsToUInt		(uint32* pDest, uint8* c)	{ *pDest = (uint32)((float32)*c * (4294967295.0f/63.0f)); }
+void ConvertScaleTruncateNickleToUInt		(uint32* pDest, uint8* c)	{ *pDest = (uint32)((float32)*c * (4294967295.0f/31.0f)); }
+void ConvertScaleTruncateNybbleToUInt		(uint32* pDest, uint8* c)	{ *pDest = (uint32)((float32)*c * (4294967295.0f/15.0f)); }
+void ConvertScaleTruncateThreeBitsToUInt	(uint32* pDest, uint8* c)	{ *pDest = (uint32)((float32)*c * (4294967295.0f/7.0f)); }
+void ConvertScaleTruncateCrumbToUInt		(uint32* pDest, uint8* c)	{ *pDest = (uint32)*c * (0xffffffff/3); }
+void ConvertScaleTruncateBitToUInt			(uint32* pDest, uint8* c)	{ *pDest = (uint32)*c * 0xffffffff; }
 									 
-void ConvertSixbitsToFloat	(float* pDest,  		uint8* c)		{ *pDest = (float)*c * (1.0f/63.0f); }
-void ConvertNickleToFloat	(float* pDest,  		uint8* c)		{ *pDest = (float)*c * (1.0f/31.0f); }
-void ConvertNybbleToFloat	(float* pDest,  		uint8* c)		{ *pDest = (float)*c * (1.0f/15.0f); }
-void ConvertThreeBitsToFloat(float* pDest,  		uint8* c)		{ *pDest = (float)*c * (1.0f/7.0f); }
-void ConvertCrumbToFloat	(float* pDest,  		uint8* c)		{ *pDest = (float)*c * (1.0f/3.0f); }
-void ConvertBitToFloat		(float* pDest,  		uint8* c)		{ *pDest = (float)*c * (1.0f/1.0f); }
+void ConvertScaleTruncateSixbitsToFloat		(float32* pDest,  uint8* c)	{ *pDest = (float32)*c * (1.0f/63.0f); }
+void ConvertScaleTruncateNickleToFloat		(float32* pDest,  uint8* c)	{ *pDest = (float32)*c * (1.0f/31.0f); }
+void ConvertScaleTruncateNybbleToFloat		(float32* pDest,  uint8* c)	{ *pDest = (float32)*c * (1.0f/15.0f); }
+void ConvertScaleTruncateThreeBitsToFloat	(float32* pDest,  uint8* c)	{ *pDest = (float32)*c * (1.0f/7.0f); }
+void ConvertScaleTruncateCrumbToFloat		(float32* pDest,  uint8* c)	{ *pDest = (float32)*c * (1.0f/3.0f); }
+void ConvertScaleTruncateBitToFloat			(float32* pDest,  uint8* c)	{ *pDest = (float32)*c * (1.0f/1.0f); }
 
-void ConvertIntToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertIntToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertIntToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertIntToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertIntToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertShortToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertShortToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertShortToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertShortToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertShortToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCharToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCharToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCharToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCharToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCharToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertFloatToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertFloatToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToBit(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x01; }
-void ConvertBitToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToCrumb(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x03; }
-void ConvertCrumbToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToNybble(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x0f; }
-void ConvertNybbleToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToNickle(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x1f; }
-void ConvertNickleToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToSixbits(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x3f; }
-void ConvertLongToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertLongToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertLongToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertLongToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertLongToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertDoubleToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertDoubleToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertULongToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertULongToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertULongToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertULongToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertULongToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertBitToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertCrumbToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNybbleToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertNickleToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
-void ConvertSixbitsToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateIntToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateIntToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateIntToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateIntToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateIntToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateShortToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateShortToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateShortToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateShortToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateShortToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCharToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCharToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCharToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCharToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCharToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateFloatToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateFloatToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToBit(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x01; }
+void ConvertScaleTruncateBitToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToCrumb(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x03; }
+void ConvertScaleTruncateCrumbToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToNybble(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x0f; }
+void ConvertScaleTruncateNybbleToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToNickle(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x1f; }
+void ConvertScaleTruncateNickleToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToInt(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToShort(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToChar(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToSixbits(void* pvDest, void* pvSource) { *(uint8*)pvDest = (*(uint8*)pvSource) & 0x3f; }
+void ConvertScaleTruncateLongToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateLongToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateLongToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateLongToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateLongToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateDoubleToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateDoubleToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateULongToBit(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateULongToCrumb(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateULongToNybble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateULongToNickle(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateULongToSixbits(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateBitToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateCrumbToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNybbleToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateNickleToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToLong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToDouble(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
+void ConvertScaleTruncateSixbitsToULong(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types"); }
 
 void ConversionInvalid(void* pvDest, void* pvSource) { gcUserError.Set("Conversion not defined for types (invalid)."); }
 
@@ -359,14 +381,14 @@ void ConversionInvalid(void* pvDest, void* pvSource) { gcUserError.Set("Conversi
 //////////////////////////////////////////////////////////////////////////
 void CTypeConverter::Init(void)
 {
-	int		iDest;
-	int		iSource;
+	int32		iDest;
+	int32		iSource;
 
 	for (iDest = 0; iDest < PRIMTIVE_CONVERTER_END; iDest++)
 	{
 		for (iSource = 0; iSource < PRIMTIVE_CONVERTER_END; iSource++)
 		{
-			mapvConversion[iDest][iSource] = ConversionInvalid;
+			mapvScaleTuncateConversion[iDest][iSource] = ConversionInvalid;
 		}
 	}
 
@@ -391,7 +413,7 @@ void CTypeConverter::Do(EPrimitiveType eDest, void* pvDest, EPrimitiveType eSour
 {
 	if ((eSource < PRIMTIVE_CONVERTER_END) && (eDest < PRIMTIVE_CONVERTER_END))
 	{
-		mapvConversion[eDest][eSource](pvDest, pvSource);
+		mapvScaleTuncateConversion[eDest][eSource](pvDest, pvSource);
 		return;
 	}
 	gcUserError.Set("Conversion not defined for types (out of bounds)."); 

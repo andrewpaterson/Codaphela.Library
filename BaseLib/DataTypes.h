@@ -25,25 +25,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "PrimitiveTypes.h"
 
 
-#define MAX_CHAR	((int8)0x7f)
-#define MIN_CHAR	((int8)0x80)
-#define MAX_UCHAR	((uint8)0xff)
-#define MIN_UCHAR	((uint8)0x00)
+#define MAX_CHAR	0x7f
+#define MIN_CHAR	0x80
+#define MAX_UCHAR	0xff
+#define MIN_UCHAR	0x00
 
-#define MAX_SHORT	((int16)0x7fff)
-#define MIN_SHORT	((int16)0x8000)
-#define MAX_USHORT	((uint16)0xffff)
-#define MIN_USHORT	((uint16)0x0000)
+#define MAX_SHORT	0x7fff
+#define MIN_SHORT	0x8000
+#define MAX_USHORT	0xffff
+#define MIN_USHORT	0x0000
 
-#define MAX_INT		((int32)0x7fffffff)
-#define MIN_INT		((int32)0x80000000)
-#define MAX_UINT	((uint32)0xffffffff)
-#define MIN_UINT	((uint32)0x00000000)
+#define MAX_INT		0x7fffffff
+#define MIN_INT		0x80000000
+#define MAX_UINT	0xffffffff
+#define MIN_UINT	0x00000000
 
-#define MAX_LONG	((int64)0x7fffffffffffffffLL)
-#define MIN_LONG	((int64)0x8000000000000000LL)
-#define MAX_ULONG	((uint64)0xffffffffffffffffLL)
-#define MIN_ULONG	((uint64)0x0000000000000000LL)
+#define MAX_LONG	0x7fffffffffffffffLL
+#define MIN_LONG	0x8000000000000000LL
+#define MAX_ULONG	0xffffffffffffffffLL
+#define MIN_ULONG	0x0000000000000000LL
 
 
 #define INT_BYTE_SIZE		sizeof(int32)

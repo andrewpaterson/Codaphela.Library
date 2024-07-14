@@ -30,27 +30,27 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// To 'char' Conversions.
-void ConvertDoubleToChar	(char* pcDest, 			double* f);
-void ConvertFloatToChar		(char* pcDest, 			float* f);
-void ConvertLongToChar		(char* pcDest, 			int64* i);
-void ConvertIntToChar		(char* pcDest, 			int* i);
-void ConvertShortToChar		(char* pcDest, 			int16* s);
-void ConvertCharToChar		(char* pcDest, 			char* c);
-void ConvertULongToChar		(char* pcDest, 			uint64* i);
-void ConvertUIntToChar		(char* pcDest, 			uint32* i);
-void ConvertUShortToChar	(char* pcDest, 			uint16* s);
-void ConvertUCharToChar		(char* pcDest, 			uint8* c);
-void ConvertDoubleToUChar	(uint8* pcDest, double* f);
-void ConvertFloatToUChar	(uint8* pcDest, float* f);
-void ConvertLongToUChar		(uint8* pcDest, int64* i);
-void ConvertIntToUChar		(uint8* pcDest, int* i);
-void ConvertShortToUChar	(uint8* pcDest, int16* s);
-void ConvertCharToUChar		(uint8* pcDest, char* c);
-void ConvertULongToUChar	(uint8* pcDest, uint64* i);
-void ConvertUIntToUChar		(uint8* pcDest, uint32* i);
-void ConvertUShortToUChar	(uint8* pcDest, uint16* s);
-void ConvertUCharToUChar	(uint8* pcDest, uint8* c);
+// To 'int8' Conversions.
+void ConvertScaleTruncateDoubleToChar	(int8* psDest, 	double* pf);
+void ConvertScaleTruncateFloatToChar	(int8* psDest, 	float* pf);
+void ConvertScaleTruncateLongToChar		(int8* psDest, 	int64* i);
+void ConvertScaleTruncateIntToChar		(int8* psDest, 	int32* i);
+void ConvertScaleTruncateShortToChar	(int8* psDest, 	int16* s);
+void ConvertScaleTruncateCharToChar		(int8* psDest, 	int8* c);
+void ConvertScaleTruncateULongToChar	(int8* psDest, 	uint64* i);
+void ConvertScaleTruncateUIntToChar		(int8* psDest, 	uint32* i);
+void ConvertScaleTruncateUShortToChar	(int8* psDest, 	uint16* s);
+void ConvertScaleTruncateUCharToChar	(int8* psDest, 	uint8* c);
+void ConvertScaleTruncateDoubleToUChar	(uint8* psDest,	double* pf);
+void ConvertScaleTruncateFloatToUChar	(uint8* psDest,	float* pf);
+void ConvertScaleTruncateLongToUChar	(uint8* psDest,	int64* i);
+void ConvertScaleTruncateIntToUChar		(uint8* psDest,	int32* i);
+void ConvertScaleTruncateShortToUChar	(uint8* psDest,	int16* s);
+void ConvertScaleTruncateCharToUChar	(uint8* psDest,	int8* c);
+void ConvertScaleTruncateULongToUChar	(uint8* psDest,	uint64* i);
+void ConvertScaleTruncateUIntToUChar	(uint8* psDest,	uint32* i);
+void ConvertScaleTruncateUShortToUChar	(uint8* psDest,	uint16* s);
+void ConvertScaleTruncateUCharToUChar	(uint8* psDest,	uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -59,26 +59,26 @@ void ConvertUCharToUChar	(uint8* pcDest, uint8* c);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'int16' Conversions.
-void ConvertDoubleToShort	(int16* psDest,  			double* f);
-void ConvertFloatToShort	(int16* psDest,  			float* f);
-void ConvertLongToShort		(int16* psDest,  			int64* i);
-void ConvertIntToShort		(int16* psDest,  			int* i);
-void ConvertShortToShort	(int16* psDest,  			int16* s);
-void ConvertCharToShort		(int16* psDest,  			char* c);
-void ConvertULongToShort	(int16* psDest,  			uint64* i);
-void ConvertUIntToShort		(int16* psDest,  			uint32* i);
-void ConvertUShortToShort	(int16* psDest,  			uint16* s);
-void ConvertUCharToShort	(int16* psDest,  			uint8* c);
-void ConvertDoubleToUShort	(uint16* psDest,  	double* f);
-void ConvertFloatToUShort	(uint16* psDest,  	float* f);
-void ConvertLongToUShort	(uint16* psDest,  	int64* i);
-void ConvertIntToUShort		(uint16* psDest,  	int* i);
-void ConvertShortToUShort	(uint16* psDest,  	int16* s);
-void ConvertCharToUShort	(uint16* psDest,  	char* c);
-void ConvertULongToUShort	(uint16* psDest,  	uint64* i);
-void ConvertUIntToUShort	(uint16* psDest,  	uint32* i);
-void ConvertUShortToUShort	(uint16* psDest,  	uint16* s);
-void ConvertUCharToUShort	(uint16* psDest,  	uint8* c);
+void ConvertScaleTruncateDoubleToShort	(int16* psDest,  	double* pf);
+void ConvertScaleTruncateFloatToShort	(int16* psDest,  	float* pf);
+void ConvertScaleTruncateLongToShort	(int16* psDest,  	int64* i);
+void ConvertScaleTruncateIntToShort		(int16* psDest,  	int32* i);
+void ConvertScaleTruncateShortToShort	(int16* psDest,  	int16* s);
+void ConvertScaleTruncateCharToShort	(int16* psDest,  	int8* c);
+void ConvertScaleTruncateULongToShort	(int16* psDest,  	uint64* i);
+void ConvertScaleTruncateUIntToShort	(int16* psDest,  	uint32* i);
+void ConvertScaleTruncateUShortToShort	(int16* psDest,  	uint16* s);
+void ConvertScaleTruncateUCharToShort	(int16* psDest,  	uint8* c);
+void ConvertScaleTruncateDoubleToUShort	(uint16* psDest,  	double* pf);
+void ConvertScaleTruncateFloatToUShort	(uint16* psDest,  	float* pf);
+void ConvertScaleTruncateLongToUShort	(uint16* psDest,  	int64* i);
+void ConvertScaleTruncateIntToUShort	(uint16* psDest,  	int32* i);
+void ConvertScaleTruncateShortToUShort	(uint16* psDest,  	int16* s);
+void ConvertScaleTruncateCharToUShort	(uint16* psDest,  	int8* c);
+void ConvertScaleTruncateULongToUShort	(uint16* psDest,  	uint64* i);
+void ConvertScaleTruncateUIntToUShort	(uint16* psDest,  	uint32* i);
+void ConvertScaleTruncateUShortToUShort	(uint16* psDest,  	uint16* s);
+void ConvertScaleTruncateUCharToUShort	(uint16* psDest,  	uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -86,27 +86,27 @@ void ConvertUCharToUShort	(uint16* psDest,  	uint8* c);
 //
 //////////////////////////////////////////////////////////////////////////
 //
-// To 'int' Conversions.
-void ConvertDoubleToInt		(int* piDest,  			double* f);
-void ConvertFloatToInt		(int* piDest,  			float* f);
-void ConvertLongToInt		(int* piDest,  			int64* i);
-void ConvertIntToInt		(int* piDest,  			int* i);
-void ConvertShortToInt		(int* piDest,  			int16* s);
-void ConvertCharToInt		(int* piDest,  			char* c);
-void ConvertULongToInt		(int* piDest,  			uint64* i);
-void ConvertUIntToInt		(int* piDest,  			uint32* i);
-void ConvertUShortToInt		(int* piDest,  			uint16* s);
-void ConvertUCharToInt		(int* piDest,  			uint8* c);
-void ConvertDoubleToUInt	(uint32* psDest,  double* f);
-void ConvertFloatToUInt		(uint32* piDest,  float* f);
-void ConvertLongToUInt		(uint32* piDest, 	int64* i);
-void ConvertIntToUInt		(uint32* piDest,  int* i);
-void ConvertShortToUInt		(uint32* piDest,  int16* s);
-void ConvertCharToUInt		(uint32* piDest,  char* c);
-void ConvertULongToUInt		(uint32* piDest, 	uint64* i);
-void ConvertUIntToUInt		(uint32* piDest,  uint32* i);
-void ConvertUShortToUInt	(uint32* piDest,  uint16* s);
-void ConvertUCharToUInt		(uint32* piDest,  uint8* c);
+// To 'int32' Conversions.
+void ConvertScaleTruncateDoubleToInt	(int32* piDest,  	double* pf);
+void ConvertScaleTruncateFloatToInt		(int32* piDest,  	float* pf);
+void ConvertScaleTruncateLongToInt		(int32* piDest,  	int64* i);
+void ConvertScaleTruncateIntToInt		(int32* piDest,  	int32* i);
+void ConvertScaleTruncateShortToInt		(int32* piDest,  	int16* s);
+void ConvertScaleTruncateCharToInt		(int32* piDest,  	int8* c);
+void ConvertScaleTruncateULongToInt		(int32* piDest,  	uint64* i);
+void ConvertScaleTruncateUIntToInt		(int32* piDest,  	uint32* i);
+void ConvertScaleTruncateUShortToInt	(int32* piDest,  	uint16* s);
+void ConvertScaleTruncateUCharToInt		(int32* piDest,  	uint8* c);
+void ConvertScaleTruncateDoubleToUInt	(uint32* psDest,	double* pf);
+void ConvertScaleTruncateFloatToUInt	(uint32* piDest,	float* pf);
+void ConvertScaleTruncateLongToUInt		(uint32* piDest,	int64* i);
+void ConvertScaleTruncateIntToUInt		(uint32* piDest,	int32* i);
+void ConvertScaleTruncateShortToUInt	(uint32* piDest,	int16* s);
+void ConvertScaleTruncateCharToUInt		(uint32* piDest,	int8* c);
+void ConvertScaleTruncateULongToUInt	(uint32* piDest,	uint64* i);
+void ConvertScaleTruncateUIntToUInt		(uint32* piDest,	uint32* i);
+void ConvertScaleTruncateUShortToUInt	(uint32* piDest,	uint16* s);
+void ConvertScaleTruncateUCharToUInt	(uint32* piDest,	uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,26 +115,26 @@ void ConvertUCharToUInt		(uint32* piDest,  uint8* c);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'long' Conversions.
-void ConvertDoubleToLong	(int64* piDest,  			double* f);
-void ConvertFloatToLong		(int64* piDest,  			float* f);
-void ConvertLongToLong		(int64* piDest,  			int64* i);
-void ConvertIntToLong		(int64* piDest,  			int* i);
-void ConvertShortToLong		(int64* piDest,  			int16* s);
-void ConvertCharToLong		(int64* piDest,  			char* c);
-void ConvertULongToLong		(int64* piDest,  			uint64* i);
-void ConvertUIntToLong		(int64* piDest,  			uint32* i);
-void ConvertUShortToLong	(int64* piDest,  			uint16* s);
-void ConvertUCharToLong		(int64* piDest,  			uint8* c);
-void ConvertDoubleToULong	(uint64* psDest,	double* f);
-void ConvertFloatToULong	(uint64* piDest,	float* f);
-void ConvertLongToULong		(uint64* piDest,	int64* i);
-void ConvertIntToULong		(uint64* piDest,	int* i);
-void ConvertShortToULong	(uint64* piDest,	int16* s);
-void ConvertCharToULong		(uint64* piDest,	char* c);
-void ConvertULongToULong	(uint64* piDest, 	uint64* i);
-void ConvertUIntToULong		(uint64* piDest,	uint32* i);
-void ConvertUShortToULong	(uint64* piDest,	uint16* s);
-void ConvertUCharToULong	(uint64* piDest,	uint8* c);
+void ConvertScaleTruncateDoubleToLong	(int64* piDest,  	double* pf);
+void ConvertScaleTruncateFloatToLong	(int64* piDest,  	float* pf);
+void ConvertScaleTruncateLongToLong		(int64* piDest,  	int64* i);
+void ConvertScaleTruncateIntToLong		(int64* piDest,  	int32* i);
+void ConvertScaleTruncateShortToLong	(int64* piDest,  	int16* s);
+void ConvertScaleTruncateCharToLong		(int64* piDest,  	int8* c);
+void ConvertScaleTruncateULongToLong	(int64* piDest,  	uint64* i);
+void ConvertScaleTruncateUIntToLong		(int64* piDest,  	uint32* i);
+void ConvertScaleTruncateUShortToLong	(int64* piDest,  	uint16* s);
+void ConvertScaleTruncateUCharToLong	(int64* piDest,  	uint8* c);
+void ConvertScaleTruncateDoubleToULong	(uint64* psDest,	double* pf);
+void ConvertScaleTruncateFloatToULong	(uint64* piDest,	float* pf);
+void ConvertScaleTruncateLongToULong	(uint64* piDest,	int64* i);
+void ConvertScaleTruncateIntToULong		(uint64* piDest,	int32* i);
+void ConvertScaleTruncateShortToULong	(uint64* piDest,	int16* s);
+void ConvertScaleTruncateCharToULong	(uint64* piDest,	int8* c);
+void ConvertScaleTruncateULongToULong	(uint64* piDest, 	uint64* i);
+void ConvertScaleTruncateUIntToULong	(uint64* piDest,	uint32* i);
+void ConvertScaleTruncateUShortToULong	(uint64* piDest,	uint16* s);
+void ConvertScaleTruncateUCharToULong	(uint64* piDest,	uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -143,27 +143,27 @@ void ConvertUCharToULong	(uint64* piDest,	uint8* c);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'float' Conversions.
-void ConvertDoubleToFloat	(float* pfDest, double* f);
-void ConvertFloatToFloat	(float* pfDest, float* f);
-void ConvertLongToFloat		(float* pfDest, int64* i);
-void ConvertIntToFloat		(float* pfDest, int* i);
-void ConvertShortToFloat	(float* pfDest, int16* s);
-void ConvertCharToFloat		(float* pfDest, char* c);
-void ConvertULongToFloat	(float* pfDest, uint64* i);
-void ConvertUIntToFloat		(float* pfDest, uint32* i);
-void ConvertUShortToFloat	(float* pfDest, uint16* s);
-void ConvertUCharToFloat	(float* pfDest, uint8* c);
+void ConvertScaleTruncateDoubleToFloat	(float* pfDest, double* pf);
+void ConvertScaleTruncateFloatToFloat	(float* pfDest, float* pf);
+void ConvertScaleTruncateLongToFloat	(float* pfDest, int64* i);
+void ConvertScaleTruncateIntToFloat		(float* pfDest, int32* i);
+void ConvertScaleTruncateShortToFloat	(float* pfDest, int16* s);
+void ConvertScaleTruncateCharToFloat	(float* pfDest, int8* c);
+void ConvertScaleTruncateULongToFloat	(float* pfDest, uint64* i);
+void ConvertScaleTruncateUIntToFloat	(float* pfDest, uint32* i);
+void ConvertScaleTruncateUShortToFloat	(float* pfDest, uint16* s);
+void ConvertScaleTruncateUCharToFloat	(float* pfDest, uint8* c);
 
-void ConvertDoubleToDouble	(double* pfDest, double* f);
-void ConvertFloatToDouble	(double* pfDest, float* f);
-void ConvertLongToDouble	(double* pfDest, int64* i);
-void ConvertIntToDouble		(double* pfDest, int* i);
-void ConvertShortToDouble	(double* pfDest, int16* s);
-void ConvertCharToDouble	(double* pfDest, char* c);
-void ConvertULongToDouble	(double* pfDest, uint64* i);
-void ConvertUIntToDouble	(double* pfDest, uint32* i);
-void ConvertUShortToDouble	(double* pfDest, uint16* s);
-void ConvertUCharToDouble	(double* pfDest, uint8* c);
+void ConvertScaleTruncateDoubleToDouble	(double* pfDest, double* pf);
+void ConvertScaleTruncateFloatToDouble	(double* pfDest, float* pf);
+void ConvertScaleTruncateLongToDouble	(double* pfDest, int64* i);
+void ConvertScaleTruncateIntToDouble	(double* pfDest, int32* i);
+void ConvertScaleTruncateShortToDouble	(double* pfDest, int16* s);
+void ConvertScaleTruncateCharToDouble	(double* pfDest, int8* c);
+void ConvertScaleTruncateULongToDouble	(double* pfDest, uint64* i);
+void ConvertScaleTruncateUIntToDouble	(double* pfDest, uint32* i);
+void ConvertScaleTruncateUShortToDouble	(double* pfDest, uint16* s);
+void ConvertScaleTruncateUCharToDouble	(double* pfDest, uint8* c);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -172,11 +172,11 @@ void ConvertUCharToDouble	(double* pfDest, uint8* c);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Sixbits' Conversions.
-void ConvertUCharToSixbits	(uint8* pcDest,  uint8* c);		
-void ConvertUShortToSixbits	(uint8* pcDest,  uint16* s);		
-void ConvertUIntToSixbits	(uint8* pcDest,  uint32* i);		
-void ConvertDoubleToSixbits	(uint8* pcDest,  double* f);				
-void ConvertFloatToSixbits	(uint8* pcDest,  float* f);				
+void ConvertScaleTruncateUCharToSixbits	(uint8* psDest, uint8* c);		
+void ConvertScaleTruncateUShortToSixbits(uint8* psDest, uint16* s);		
+void ConvertScaleTruncateUIntToSixbits	(uint8* psDest, uint32* i);		
+void ConvertScaleTruncateDoubleToSixbits(uint8* psDest, double* pf);				
+void ConvertScaleTruncateFloatToSixbits	(uint8* psDest, float* pf);				
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -185,11 +185,11 @@ void ConvertFloatToSixbits	(uint8* pcDest,  float* f);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Nickle' Conversions.
-void ConvertUCharToNickle	(uint8* pcDest,  uint8* c);		
-void ConvertUShortToNickle	(uint8* pcDest,  uint16* s);		
-void ConvertUIntToNickle	(uint8* pcDest,  uint32* i);		
-void ConvertDoubleToNickle	(uint8* pcDest,  double* f);				
-void ConvertFloatToNickle	(uint8* pcDest,  float* f);				
+void ConvertScaleTruncateUCharToNickle	(uint8* psDest, uint8* c);		
+void ConvertScaleTruncateUShortToNickle	(uint8* psDest, uint16* s);		
+void ConvertScaleTruncateUIntToNickle	(uint8* psDest, uint32* i);		
+void ConvertScaleTruncateDoubleToNickle	(uint8* psDest, double* pf);				
+void ConvertScaleTruncateFloatToNickle	(uint8* psDest, float* pf);				
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -198,11 +198,11 @@ void ConvertFloatToNickle	(uint8* pcDest,  float* f);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Nybble' Conversions.
-void ConvertUCharToNybble	(uint8* pcDest,  uint8* c);
-void ConvertUShortToNybble	(uint8* pcDest,  uint16* s);
-void ConvertUIntToNybble	(uint8* pcDest,  uint32* i);
-void ConvertDoubleToNybble	(uint8* pcDest,  double* f);
-void ConvertFloatToNybble	(uint8* pcDest,  float* f);
+void ConvertScaleTruncateUCharToNybble	(uint8* psDest, uint8* c);
+void ConvertScaleTruncateUShortToNybble	(uint8* psDest, uint16* s);
+void ConvertScaleTruncateUIntToNybble	(uint8* psDest, uint32* i);
+void ConvertScaleTruncateDoubleToNybble	(uint8* psDest, double* pf);
+void ConvertScaleTruncateFloatToNybble	(uint8* psDest, float* pf);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,11 +211,11 @@ void ConvertFloatToNybble	(uint8* pcDest,  float* f);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Crumb' Conversions.
-void ConvertUCharToCrumb	(uint8* pcDest,  uint8* c);
-void ConvertUShortToCrumb	(uint8* pcDest,  uint16* s);
-void ConvertUIntToCrumb		(uint8* pcDest,  uint32* i);
-void ConvertDoubleToCrumb	(uint8* pcDest,  double* f);
-void ConvertFloatToCrumb	(uint8* pcDest,  float* f);
+void ConvertScaleTruncateUCharToCrumb	(uint8* psDest, uint8* c);
+void ConvertScaleTruncateUShortToCrumb	(uint8* psDest, uint16* s);
+void ConvertScaleTruncateUIntToCrumb	(uint8* psDest, uint32* i);
+void ConvertScaleTruncateDoubleToCrumb	(uint8* psDest, double* pf);
+void ConvertScaleTruncateFloatToCrumb	(uint8* psDest, float* pf);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -224,11 +224,11 @@ void ConvertFloatToCrumb	(uint8* pcDest,  float* f);
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'Bit' Conversions.
-void ConvertUCharToBit		(uint8* pcDest,  uint8* c);
-void ConvertUShortToBit		(uint8* pcDest,  uint16* s);
-void ConvertUIntToBit		(uint8* pcDest,  uint32* i);
-void ConvertDoubleToBit		(uint8* pcDest,  double* f);
-void ConvertFloatToBit		(uint8* pcDest,  float* f);
+void ConvertScaleTruncateUCharToBit	(uint8* psDest, uint8* c);
+void ConvertScaleTruncateUShortToBit(uint8* psDest, uint16* s);
+void ConvertScaleTruncateUIntToBit	(uint8* psDest, uint32* i);
+void ConvertScaleTruncateDoubleToBit(uint8* psDest, double* pf);
+void ConvertScaleTruncateFloatToBit	(uint8* psDest, float* pf);
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -237,114 +237,114 @@ void ConvertFloatToBit		(uint8* pcDest,  float* f);
 //////////////////////////////////////////////////////////////////////////
 //
 //Other U.  Clean up later
-void ConvertSixbitsToUShort		(uint16* pDest,  uint8* c);
-void ConvertNickleToUShort		(uint16* pDest,  uint8* c);
-void ConvertNybbleToUShort		(uint16* pDest,  uint8* c);
-void ConvertThreeBitsToUShort	(uint16* pDest,  uint8* c);
-void ConvertCrumbToUShort		(uint16* pDest,  uint8* c);
-void ConvertBitToUShort			(uint16* pDest,  uint8* c);
+void ConvertScaleTruncateSixbitsToUShort	(uint16* pDest,  uint8* c);
+void ConvertScaleTruncateNickleToUShort		(uint16* pDest,  uint8* c);
+void ConvertScaleTruncateNybbleToUShort		(uint16* pDest,  uint8* c);
+void ConvertScaleTruncateThreeBitsToUShort	(uint16* pDest,  uint8* c);
+void ConvertScaleTruncateCrumbToUShort		(uint16* pDest,  uint8* c);
+void ConvertScaleTruncateBitToUShort		(uint16* pDest,  uint8* c);
 
-void ConvertSixbitsToUChar	(uint8* pDest,  uint8* c);
-void ConvertNickleToUChar	(uint8* pDest,  uint8* c);
-void ConvertNybbleToUChar	(uint8* pDest,  uint8* c);
-void ConvertThreeBitsToUChar(uint8* pDest,  uint8* c);
-void ConvertCrumbToUChar	(uint8* pDest,  uint8* c);
-void ConvertBitToUChar		(uint8* pDest,  uint8* c);
+void ConvertScaleTruncateSixbitsToUChar		(uint8* pDest,  uint8* c);
+void ConvertScaleTruncateNickleToUChar		(uint8* pDest,  uint8* c);
+void ConvertScaleTruncateNybbleToUChar		(uint8* pDest,  uint8* c);
+void ConvertScaleTruncateThreeBitsToUChar	(uint8* pDest,  uint8* c);
+void ConvertScaleTruncateCrumbToUChar		(uint8* pDest,  uint8* c);
+void ConvertScaleTruncateBitToUChar			(uint8* pDest,  uint8* c);
 
-void ConvertSixbitsToUInt	(uint32* pDest,  	uint8* c);
-void ConvertNickleToUInt	(uint32* pDest,  	uint8* c);
-void ConvertNybbleToUInt	(uint32* pDest,  	uint8* c);
-void ConvertThreeBitsToUInt	(uint32* pDest,  	uint8* c);
-void ConvertCrumbToUInt		(uint32* pDest,  	uint8* c);
-void ConvertBitToUInt		(uint32* pDest,  	uint8* c);
+void ConvertScaleTruncateSixbitsToUInt		(uint32* pDest, uint8* c);
+void ConvertScaleTruncateNickleToUInt		(uint32* pDest, uint8* c);
+void ConvertScaleTruncateNybbleToUInt		(uint32* pDest, uint8* c);
+void ConvertScaleTruncateThreeBitsToUInt	(uint32* pDest, uint8* c);
+void ConvertScaleTruncateCrumbToUInt		(uint32* pDest, uint8* c);
+void ConvertScaleTruncateBitToUInt			(uint32* pDest, uint8* c);
 
-void ConvertSixbitsToFloat	(float* pDest,  		uint8* c);
-void ConvertNickleToFloat	(float* pDest,  		uint8* c);
-void ConvertNybbleToFloat	(float* pDest,  		uint8* c);
-void ConvertThreeBitsToFloat(float* pDest,  		uint8* c);
-void ConvertCrumbToFloat	(float* pDest,  		uint8* c);
-void ConvertBitToFloat		(float* pDest,  		uint8* c);
+void ConvertScaleTruncateSixbitsToFloat		(float* pDest,	uint8* c);
+void ConvertScaleTruncateNickleToFloat		(float* pDest,	uint8* c);
+void ConvertScaleTruncateNybbleToFloat		(float* pDest,	uint8* c);
+void ConvertScaleTruncateThreeBitsToFloat	(float* pDest,	uint8* c);
+void ConvertScaleTruncateCrumbToFloat		(float* pDest,	uint8* c);
+void ConvertScaleTruncateBitToFloat			(float* pDest,	uint8* c);
 
-void ConvertIntToBit(void* pvDest, void* pvSource);
-void ConvertIntToCrumb(void* pvDest, void* pvSource);
-void ConvertIntToNybble(void* pvDest, void* pvSource);
-void ConvertIntToNickle(void* pvDest, void* pvSource);
-void ConvertIntToSixbits(void* pvDest, void* pvSource);
-void ConvertShortToBit(void* pvDest, void* pvSource);
-void ConvertShortToCrumb(void* pvDest, void* pvSource);
-void ConvertShortToNybble(void* pvDest, void* pvSource);
-void ConvertShortToNickle(void* pvDest, void* pvSource);
-void ConvertShortToSixbits(void* pvDest, void* pvSource);
-void ConvertCharToBit(void* pvDest, void* pvSource);
-void ConvertCharToCrumb(void* pvDest, void* pvSource);
-void ConvertCharToNybble(void* pvDest, void* pvSource);
-void ConvertBitToInt(void* pvDest, void* pvSource);
-void ConvertBitToShort(void* pvDest, void* pvSource);
-void ConvertBitToChar(void* pvDest, void* pvSource);
-void ConvertBitToBit(void* pvDest, void* pvSource);
-void ConvertBitToCrumb(void* pvDest, void* pvSource);
-void ConvertBitToNybble(void* pvDest, void* pvSource);
-void ConvertBitToNickle(void* pvDest, void* pvSource);
-void ConvertBitToSixbits(void* pvDest, void* pvSource);
-void ConvertCrumbToInt(void* pvDest, void* pvSource);
-void ConvertCrumbToShort(void* pvDest, void* pvSource);
-void ConvertCrumbToChar(void* pvDest, void* pvSource);
-void ConvertCrumbToBit(void* pvDest, void* pvSource);
-void ConvertCrumbToCrumb(void* pvDest, void* pvSource);
-void ConvertCrumbToNybble(void* pvDest, void* pvSource);
-void ConvertCrumbToNickle(void* pvDest, void* pvSource);
-void ConvertCrumbToSixbits(void* pvDest, void* pvSource);
-void ConvertNybbleToInt(void* pvDest, void* pvSource);
-void ConvertNybbleToShort(void* pvDest, void* pvSource);
-void ConvertNybbleToChar(void* pvDest, void* pvSource);
-void ConvertNybbleToBit(void* pvDest, void* pvSource);
-void ConvertNybbleToCrumb(void* pvDest, void* pvSource);
-void ConvertNybbleToNybble(void* pvDest, void* pvSource);
-void ConvertNybbleToNickle(void* pvDest, void* pvSource);
-void ConvertNybbleToSixbits(void* pvDest, void* pvSource);
-void ConvertNickleToInt(void* pvDest, void* pvSource);
-void ConvertNickleToShort(void* pvDest, void* pvSource);
-void ConvertNickleToChar(void* pvDest, void* pvSource);
-void ConvertNickleToBit(void* pvDest, void* pvSource);
-void ConvertNickleToCrumb(void* pvDest, void* pvSource);
-void ConvertNickleToNybble(void* pvDest, void* pvSource);
-void ConvertNickleToNickle(void* pvDest, void* pvSource);
-void ConvertNickleToSixbits(void* pvDest, void* pvSource);
-void ConvertSixbitsToInt(void* pvDest, void* pvSource);
-void ConvertSixbitsToShort(void* pvDest, void* pvSource);
-void ConvertSixbitsToChar(void* pvDest, void* pvSource);
-void ConvertSixbitsToBit(void* pvDest, void* pvSource);
-void ConvertSixbitsToCrumb(void* pvDest, void* pvSource);
-void ConvertSixbitsToNybble(void* pvDest, void* pvSource);
-void ConvertSixbitsToNickle(void* pvDest, void* pvSource);
-void ConvertSixbitsToSixbits(void* pvDest, void* pvSource);
-void ConvertLongToBit(void* pvDest, void* pvSource);
-void ConvertLongToCrumb(void* pvDest, void* pvSource);
-void ConvertLongToNybble(void* pvDest, void* pvSource);
-void ConvertLongToNickle(void* pvDest, void* pvSource);
-void ConvertLongToSixbits(void* pvDest, void* pvSource);
-void ConvertDoubleToNickle(void* pvDest, void* pvSource);
-void ConvertDoubleToSixbits(void* pvDest, void* pvSource);
-void ConvertULongToBit(void* pvDest, void* pvSource);
-void ConvertULongToCrumb(void* pvDest, void* pvSource);
-void ConvertULongToNybble(void* pvDest, void* pvSource);
-void ConvertULongToNickle(void* pvDest, void* pvSource);
-void ConvertULongToSixbits(void* pvDest, void* pvSource);
-void ConvertBitToLong(void* pvDest, void* pvSource);
-void ConvertBitToDouble(void* pvDest, void* pvSource);
-void ConvertBitToULong(void* pvDest, void* pvSource);
-void ConvertCrumbToLong(void* pvDest, void* pvSource);
-void ConvertCrumbToDouble(void* pvDest, void* pvSource);
-void ConvertCrumbToULong(void* pvDest, void* pvSource);
-void ConvertNybbleToLong(void* pvDest, void* pvSource);
-void ConvertNybbleToDouble(void* pvDest, void* pvSource);
-void ConvertNybbleToULong(void* pvDest, void* pvSource);
-void ConvertNickleToLong(void* pvDest, void* pvSource);
-void ConvertNickleToDouble(void* pvDest, void* pvSource);
-void ConvertNickleToULong(void* pvDest, void* pvSource);
-void ConvertSixbitsToLong(void* pvDest, void* pvSource);
-void ConvertSixbitsToDouble(void* pvDest, void* pvSource);
-void ConvertSixbitsToULong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateIntToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateIntToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateIntToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateIntToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateIntToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateShortToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateShortToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateShortToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateShortToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateShortToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCharToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCharToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCharToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToInt(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToShort(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToChar(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToInt(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToShort(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToChar(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToInt(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToShort(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToChar(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToInt(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToShort(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToChar(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToInt(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToShort(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToChar(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateLongToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateLongToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateLongToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateLongToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateLongToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateDoubleToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateDoubleToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateULongToBit(void* pvDest, void* pvSource);
+void ConvertScaleTruncateULongToCrumb(void* pvDest, void* pvSource);
+void ConvertScaleTruncateULongToNybble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateULongToNickle(void* pvDest, void* pvSource);
+void ConvertScaleTruncateULongToSixbits(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToLong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToDouble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateBitToULong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToLong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToDouble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateCrumbToULong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToLong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToDouble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNybbleToULong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToLong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToDouble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateNickleToULong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToLong(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToDouble(void* pvDest, void* pvSource);
+void ConvertScaleTruncateSixbitsToULong(void* pvDest, void* pvSource);
 
 
 typedef void	(*ConversionFunc)		(void* pvDest, void* pvSource);
@@ -352,7 +352,7 @@ typedef void	(*ConversionFunc)		(void* pvDest, void* pvSource);
 
 class CTypeConverter
 {
-	ConversionFunc	mapvConversion[PRIMTIVE_CONVERTER_END][PRIMTIVE_CONVERTER_END];  //Dest, source
+	ConversionFunc	mapvScaleTuncateConversion[PRIMTIVE_CONVERTER_END][PRIMTIVE_CONVERTER_END];  //Dest, source
 
 public:
 	void Init(void);
