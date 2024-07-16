@@ -40,7 +40,7 @@ else												\
 	else											\
 		*psDest = (dest_type)(min * *pf)
 
-#define FLOAT_US(dest_type, source_type, min, max)	\
+#define FLOAT_U(dest_type, source_type, min, max)	\
 	if (*pf >= (source_type)0)						\
 		if (*pf >= (source_type)1)					\
 			* psDest = (dest_type)max;				\
@@ -49,34 +49,51 @@ else												\
 	else											\
 		* psDest = (dest_type)min
 
-#define SCALE_TRUNCATE_FLOAT_TO_SINT(dest_type, source_type, min, max) \
-void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pf){ FLOAT_S(dest_type, source_type, min, max); }
+#define SCALE_TRUNCATE_FLOAT_TO_SINT(source_type, dest_type, min, max) \
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pf) { FLOAT_S(dest_type, source_type, min, max); }
+
+#define SCALE_TRUNCATE_FLOAT_TO_UINT(source_type, dest_type, min, max) \
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pf) { FLOAT_U(dest_type, source_type, min, max); }
+
+#define SCALE_TRUNCATE_BIG_SINT_TO_SMALL_SINT(source_type, dest_type, dest_max, source_max) \
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = (dest_type)(*pi / (((u##source_type)source_max + 1) / (dest_max + 1))); }
+
+#define SCALE_TRUNCATE_BIG_UINT_TO_SMALL_SINT(source_type, dest_type, dest_max, source_max) \
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = (dest_type)(*pi / ((((source_type)source_max + 1) / (dest_max + 1)) * 2)); }
+
+#define SCALE_TRUNCATE_BIG_UINT_TO_SMALL_UINT(source_type, dest_type, dest_max, source_max) \
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = (dest_type)(*pi / (((source_type)source_max + 1) / (dest_max + 1))); }
+
+#define SCALE_TRUNCATE_BIG_SINT_TO_SMALL_UINT(source_type, dest_type, dest_max, source_max) \
+void ConvertScaleTruncate_##source_type##_To_##dest_type(dest_type* psDest, source_type* pi) { *psDest = *pi >= 0 ? (dest_type)(*pi / ((((u##source_type)source_max + 1) / (dest_max + 1)) / 2)) : 0; }
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'int8' Conversions.
-SCALE_TRUNCATE_FLOAT_TO_SINT(int8, float64, MIN_CHAR, MAX_CHAR)
-SCALE_TRUNCATE_FLOAT_TO_SINT(int8, float32, MIN_CHAR, MAX_CHAR)
-void ConvertScaleTruncate_int64_To_int8		(int8* psDest, 	int64* pi)		{ *psDest = (int8)(*pi / 0x200000000000000LL); }
-void ConvertScaleTruncate_int32_To_int8		(int8* psDest, 	int32* pi)		{ *psDest = (int8)(*pi / 0x2000000); }
-void ConvertScaleTruncate_int16_To_int8	(int8* psDest, 	int16* pi) 			{ *psDest = (int8)(*pi / 0x200); }
-void ConvertScaleTruncate_int8_To_int8		(int8* psDest, 	int8* pi)		{ *psDest = *pi; }
-void ConvertScaleTruncate_uint64_To_int8	(int8* psDest, 	uint64* pi)		{ *psDest = (int8)(*pi / 0x200000000000000LL); }
-void ConvertScaleTruncate_uint32_To_int8	(int8* psDest, 	uint32* pi)		{ *psDest = (int8)(*pi / 0x2000000); }
-void ConvertScaleTruncate_uint16_To_int8	(int8* psDest, 	uint16* pi) 	{ *psDest = (int8)(*pi / 0x200); }  // (MAX_USHORT+1) / (MAX_CHAR+1)
-void ConvertScaleTruncate_uint8_To_int8	(int8* psDest, 	uint8* pi)		{ *psDest = *pi > MAX_CHAR ? MAX_CHAR : *pi; }
-void ConvertScaleTruncate_float64_To_uint8	(uint8* psDest, float64* pf)	{ FLOAT_US(uint8, float64, MIN_UCHAR, MAX_UCHAR); }
-void ConvertScaleTruncate_float32_To_uint8	(uint8* psDest,	float32* pf) 	{ FLOAT_US(uint8, float32, MIN_UCHAR, MAX_UCHAR); }
-void ConvertScaleTruncate_int64_To_uint8	(uint8* psDest,	int64* pi)		{ *psDest = (uint8)(*pi / 0x100000000000000LL); }
-void ConvertScaleTruncate_int32_To_uint8		(uint8* psDest,	int32* pi)	{ *psDest = (uint8)(*pi / 0x1000000); }
-void ConvertScaleTruncate_int16_To_uint8	(uint8* psDest,	int16* pi) 		{ *psDest = *pi >= 0 ? (uint8)(*pi / 0x80) : 0; }
-void ConvertScaleTruncate_int8_To_uint8	(uint8* psDest,	int8* pi)		{ *psDest = *pi; }
-void ConvertScaleTruncate_uint64_To_uint8	(uint8* psDest,	uint64* pi)		{ *psDest = (uint8)(*pi / 0x101010101010101LL); }
-void ConvertScaleTruncate_uint32_To_uint8	(uint8* psDest,	uint32* pi)		{ *psDest = *pi / (0xffffffff/0xff); }
-void ConvertScaleTruncate_uint16_To_uint8	(uint8* psDest,	uint16* pi)		{ *psDest = *pi / 0x100; }
-void ConvertScaleTruncate_uint8_To_uint8	(uint8* psDest,	uint8* pi)		{ *psDest = *pi; }
+SCALE_TRUNCATE_FLOAT_TO_SINT(float64, int8, MIN_CHAR, MAX_CHAR)
+SCALE_TRUNCATE_FLOAT_TO_SINT(float32, int8, MIN_CHAR, MAX_CHAR)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_SINT(int64, int8, MAX_CHAR, MAX_LONG)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_SINT(int32, int8, MAX_CHAR, MAX_INT)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_SINT(int16, int8, MAX_CHAR, MAX_SHORT)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_SINT(int8, int8, MAX_CHAR, MAX_CHAR)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_SINT(uint64, int8, MAX_CHAR, MAX_LONG)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_SINT(uint32, int8, MAX_CHAR, MAX_INT)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_SINT(uint16, int8, MAX_CHAR, MAX_SHORT)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_SINT(uint8, int8, MAX_CHAR, MAX_CHAR)
+SCALE_TRUNCATE_FLOAT_TO_UINT(float64, uint8, MIN_UCHAR, MAX_UCHAR)
+SCALE_TRUNCATE_FLOAT_TO_UINT(float32, uint8, MIN_UCHAR, MAX_UCHAR)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_UINT(int64, uint8, MAX_CHAR, MAX_LONG)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_UINT(int32, uint8, MAX_CHAR, MAX_INT)
+SCALE_TRUNCATE_BIG_SINT_TO_SMALL_UINT(int16, uint8, MAX_CHAR, MAX_SHORT)
+void ConvertScaleTruncate_int8_To_uint8(uint8* psDest,	int8* pi)	{ *psDest = *pi >= 0 ? *pi / 2 : 0; }
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_UINT(uint64, uint8, MAX_CHAR, MAX_LONG)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_UINT(uint32, uint8, MAX_CHAR, MAX_INT)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_UINT(uint16, uint8, MAX_CHAR, MAX_SHORT)
+SCALE_TRUNCATE_BIG_UINT_TO_SMALL_UINT(uint8, uint8, MAX_CHAR, MAX_CHAR)
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -85,8 +102,8 @@ void ConvertScaleTruncate_uint8_To_uint8	(uint8* psDest,	uint8* pi)		{ *psDest =
 //////////////////////////////////////////////////////////////////////////
 //
 // To 'int16' Conversions.
-void ConvertScaleTruncate_float64_To_int16	(int16* psDest,		float64* pf) 	{ FLOAT_S(int16, float64, MIN_SHORT, MAX_SHORT); }
-void ConvertScaleTruncate_float32_To_int16	(int16* psDest,		float32* pf) 	{ FLOAT_S(int16, float32, MIN_SHORT, MAX_SHORT); }
+SCALE_TRUNCATE_FLOAT_TO_SINT(float64, int16, MIN_SHORT, MAX_SHORT)
+SCALE_TRUNCATE_FLOAT_TO_SINT(float32, int16, MIN_SHORT, MAX_SHORT)
 void ConvertScaleTruncate_int64_To_int16	(int16* psDest,		int64* pi)		{ *psDest = (int16)(*pi / 0x1000100010001LL); }
 void ConvertScaleTruncate_int32_To_int16		(int16* psDest,		int32* pi)		{ *psDest = *pi / (0xffffffff/0xffff); }
 void ConvertScaleTruncate_int16_To_int16	(int16* psDest,		int16* pi) 		{ *psDest = *pi; }
@@ -95,8 +112,8 @@ void ConvertScaleTruncate_uint64_To_int16	(int16* psDest,		uint64* pi)		{ *psDes
 void ConvertScaleTruncate_uint32_To_int16	(int16* psDest,		uint32* pi)		{ *psDest = *pi / (0xffffffff/0xffff); }
 void ConvertScaleTruncate_uint16_To_int16	(int16* psDest,		uint16* pi) 	{ *psDest = *pi; }
 void ConvertScaleTruncate_uint8_To_int16	(int16* psDest,		uint8* pi)		{ *psDest = ((int16)*pi << 8) | *pi; }
-void ConvertScaleTruncate_float64_To_uint16	(uint16* psDest,	float64* pf) 	{ FLOAT_US(uint16, float64, MIN_USHORT, MAX_USHORT); }
-void ConvertScaleTruncate_float32_To_uint16	(uint16* psDest,	float32* pf) 	{ FLOAT_US(uint16, float32, MIN_USHORT, MAX_USHORT); }
+void ConvertScaleTruncate_float64_To_uint16	(uint16* psDest,	float64* pf) 	{ FLOAT_U(uint16, float64, MIN_USHORT, MAX_USHORT); }
+void ConvertScaleTruncate_float32_To_uint16	(uint16* psDest,	float32* pf) 	{ FLOAT_U(uint16, float32, MIN_USHORT, MAX_USHORT); }
 void ConvertScaleTruncate_int64_To_uint16	(uint16* psDest,	int64* pi)		{ *psDest = (uint16)(*pi / 0x1000100010001LL); }
 void ConvertScaleTruncate_int32_To_uint16	(uint16* psDest,	int32* pi)		{ *psDest = *pi / (0xffffffff/0xffff); }
 void ConvertScaleTruncate_int16_To_uint16	(uint16* psDest,	int16* pi) 		{ *psDest = *pi; }
