@@ -33,20 +33,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 // _To_ 'int8' Conversions.
 void ConvertScaleTruncate_float64_To_int8	(int8* psDest, 	float64* pf);
 void ConvertScaleTruncate_float32_To_int8	(int8* psDest, 	float32* pf);
-void ConvertScaleTruncate_int64_To_int8	(int8* psDest, 	int64* pi);
-void ConvertScaleTruncate_int32_To_int8	(int8* psDest, 	int32* pi);
-void ConvertScaleTruncate_int16_To_int8	(int8* psDest, 	int16* pi);
+void ConvertScaleTruncate_int64_To_int8		(int8* psDest, 	int64* pi);
+void ConvertScaleTruncate_int32_To_int8		(int8* psDest, 	int32* pi);
+void ConvertScaleTruncate_int16_To_int8		(int8* psDest, 	int16* pi);
 void ConvertScaleTruncate_int8_To_int8		(int8* psDest, 	int8* pi);
 void ConvertScaleTruncate_uint64_To_int8	(int8* psDest, 	uint64* pi);
 void ConvertScaleTruncate_uint32_To_int8	(int8* psDest, 	uint32* pi);
 void ConvertScaleTruncate_uint16_To_int8	(int8* psDest, 	uint16* pi);
-void ConvertScaleTruncate_uint8_To_int8	(int8* psDest, 	uint8* pi);
+void ConvertScaleTruncate_uint8_To_int8		(int8* psDest, 	uint8* pi);
 void ConvertScaleTruncate_float64_To_uint8	(uint8* psDest,	float64* pf);
 void ConvertScaleTruncate_float32_To_uint8	(uint8* psDest,	float32* pf);
 void ConvertScaleTruncate_int64_To_uint8	(uint8* psDest,	int64* pi);
 void ConvertScaleTruncate_int32_To_uint8	(uint8* psDest,	int32* pi);
 void ConvertScaleTruncate_int16_To_uint8	(uint8* psDest,	int16* pi);
-void ConvertScaleTruncate_int8_To_uint8	(uint8* psDest,	int8* pi);
+void ConvertScaleTruncate_int8_To_uint8		(uint8* psDest,	int8* pi);
 void ConvertScaleTruncate_uint64_To_uint8	(uint8* psDest,	uint64* pi);
 void ConvertScaleTruncate_uint32_To_uint8	(uint8* psDest,	uint32* pi);
 void ConvertScaleTruncate_uint16_To_uint8	(uint8* psDest,	uint16* pi);
