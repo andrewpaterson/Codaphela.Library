@@ -92,6 +92,7 @@ public:
 	void*					GetData(void);
 	size					GetByteSize(void);
 	CChannels*				GetChannels(void);
+	size					GetPixelSize(void);
 	
 	bool					IsSameFormat(CImage* psOther);
 	bool					IsValid(int x, int y);

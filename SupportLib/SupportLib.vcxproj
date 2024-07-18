@@ -181,7 +181,9 @@
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="FakeTracker.h" />
+    <ClInclude Include="ImageToR3G3B2A.h" />
     <ClInclude Include="Scene.h" />
+    <ClInclude Include="SFTWriter.h" />
     <ClInclude Include="TrackerTypes.h" />
     <ClInclude Include="VertexArray.h" />
     <ClInclude Include="VertexChannel.h" />
@@ -336,7 +338,9 @@
     <ClCompile Include="ChannelTypes.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
+    <ClCompile Include="ImageToR3G3B2A.cpp" />
     <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SFTWriter.cpp" />
     <ClCompile Include="VertexChannel.cpp" />
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="ImageChannel.cpp" />

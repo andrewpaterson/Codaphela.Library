@@ -21,30 +21,54 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_FILE_TYPE_H__
-#define __IMAGE_FILE_TYPE_H__
+#include "BaseLib/NaiveFile.h"
+#include "BaseLib/TextFile.h"
+#include "BaseLib/FileUtil.h"
+#include "BaseLib/TypeNames.h"
+#include "ImageToR3G3B2A.h"
+#include "SFTWriter.h"
 
 
-enum EImageType
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveSFT(Ptr<CImage> pcImage, char* szFileName)
 {
-	IT_Unknown,
-	IT_BMP,  // Windows BMP 24 bit
-	IT_EMF,  // EMF
-	IT_GIF,  // GIF 
-	IT_ICO,  // Windows ICO 
-	IT_JPG,  // 24 Bit JPG format
-	IT_WMF,  // WMF
-	IT_TGA,  // Targa
-	IT_RAD,  // Raw file with a RAW descriptor file (RAD)
-	IT_RAW,  // Raw file.
-	IT_PNG,  // PNG
-	IT_TIFF, // Tiff
-	IT_SFT,  // SFT (Andre's Comuputer Format)
-};
+	
+	bool			bResult;
+	CImageR3G3B2A	cRGBTo8bit;
+	CChannel*		pcAlpha;
 
+	cRGBTo8bit.Init();
+	bResult = cRGBTo8bit.Modify(&pcImage);
+	cRGBTo8bit.Kill();
 
-EImageType GuessImageType(char *szFilename);
+	if (!bResult)
+	{
+		return false;
+	}
 
+	CFileBasic	mcFile;
 
-#endif // __IMAGE_FILE_TYPE_H__
+	pcAlpha = pcImage->GetChannel(IMAGE_OPACITY);
+	if (pcAlpha)
+	{
+
+	}
+
+	mcFile.Init(DiskFile(szFileName));
+	if (szFileName)
+	{
+		if (mcFile.Open(EFM_Write_Create))
+		{
+			mcFile.WriteData(pcImage->GetData(), pcImage->GetByteSize());
+			mcFile.Close();
+			mcFile.Kill();
+			return true;
+		}
+		mcFile.Kill();
+	}
+	return false;
+}
 
