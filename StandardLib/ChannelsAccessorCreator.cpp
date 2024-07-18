@@ -36,8 +36,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CChannelsAccessorCreator::Init(CChannels* pcChannels)
 {
 	mpcChannels = pcChannels;
-	masAccess.Init();
-	macAccessor.Init();
+	masAccesses.Init();
+	macAccessors.Init();
 }
 
 
@@ -48,8 +48,8 @@ void CChannelsAccessorCreator::Init(CChannels* pcChannels)
 void CChannelsAccessorCreator::Kill(void)
 {
 	mpcChannels = NULL;
-	macAccessor.Kill();
-	masAccess.Kill();
+	macAccessors.Kill();
+	masAccesses.Kill();
 }
 
 
@@ -98,49 +98,49 @@ CChannelsAccessor* CChannelsAccessorCreator::Create(void)
 		if (bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorContiguous);
-			((CChannelsAccessorContiguous*)pcAccessor)->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			((CChannelsAccessorContiguous*)pcAccessor)->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 
 		if (!bContiguous && bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorByteAligned);
-			pcAccessor->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 
 		if (bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorTypeConvert);
-			pcAccessor->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 
 		if (!bContiguous && !bSourceTypesSame && bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorTypeConvert);
-			pcAccessor->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 
 		if (bChannelByteAligned && !bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorAccessBitty);
-			pcAccessor->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 
 		if (!bChannelByteAligned && bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorChannelBitty);
-			pcAccessor->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 
 		if (!bChannelByteAligned && !bAccessByteAligned)
 		{
 			pcAccessor = UMalloc(CChannelsAccessorWorstCase);
-			pcAccessor->Init(mpcChannels, &macAccessor, iByteSize, iBitSize, iBufferSize);
+			pcAccessor->Init(mpcChannels, &macAccessors, iByteSize, iBitSize, iBufferSize);
 			return pcAccessor;
 		}
 	}
@@ -198,12 +198,12 @@ bool CChannelsAccessorCreator::CreateAccessors(void)
 		return false;
 	}
 
-	macAccessor.Init();  //Safe to call init again if no elements have been added.
-	uiNumAccess = masAccess.NumElements();
+	macAccessors.Init();  //Safe to call init again if no elements have been added.
+	uiNumAccess = masAccesses.NumElements();
 	for (i = 0; i < uiNumAccess; i++)
 	{
-		psAccess = masAccess.Get(i);
-		pcAccessor = macAccessor.Add();
+		psAccess = masAccesses.Get(i);
+		pcAccessor = macAccessors.Add();
 
 		pcChannel = mpcChannels->GetChannel(psAccess->iChannel);
 		iIndex = mpcChannels->GetIndexOfChannel(pcChannel);
@@ -233,7 +233,7 @@ bool CChannelsAccessorCreator::CreateAccessors(void)
 //////////////////////////////////////////////////////////////////////////
 bool CChannelsAccessorCreator::CalculateEmpty(void)
 {
-	if (masAccess.NumElements() == 0)
+	if (masAccesses.NumElements() == 0)
 	{
 		return true;
 	}
@@ -254,14 +254,14 @@ bool CChannelsAccessorCreator::CalculateContiguous(void)
 	size				iIndex;
 	size				uiNumAccess;
 
-	psAccess = masAccess.Get(0);
+	psAccess = masAccesses.Get(0);
 	psChannel = mpcChannels->GetChannel(psAccess->iChannel);
 	iLastIndex = mpcChannels->GetIndexOfChannel(psChannel);
 
-	uiNumAccess = masAccess.NumElements();
+	uiNumAccess = masAccesses.NumElements();
 	for (i = 1; i < uiNumAccess; i++)
 	{
-		psAccess = masAccess.Get(i);
+		psAccess = masAccesses.Get(i);
 		psChannel = mpcChannels->GetChannel(psAccess->iChannel);
 		iIndex = mpcChannels->GetIndexOfChannel(psChannel);
 
@@ -290,10 +290,10 @@ bool CChannelsAccessorCreator::CalculateSourceTypesSame(void)
 	CChannelAccessor*	pcAccessor;;
 	size				uiNumAccessors;
 
-	uiNumAccessors = macAccessor.NumElements();
+	uiNumAccessors = macAccessors.NumElements();
 	for (i = 0; i < uiNumAccessors; i++)
 	{
-		pcAccessor = macAccessor.Get(i);
+		pcAccessor = macAccessors.Get(i);
 
 		if (pcAccessor->meAccessType != pcAccessor->meChannelType)
 		{
@@ -324,10 +324,10 @@ bool CChannelsAccessorCreator::CalculateChannelByteAligned(void)
 		return false;
 	}
 
-	uiNumAccess = masAccess.NumElements();
+	uiNumAccess = masAccesses.NumElements();
 	for (i = 0; i < uiNumAccess; i++)
 	{
-		psAccess = masAccess.Get(i);
+		psAccess = masAccesses.Get(i);
 		pcChannel = mpcChannels->GetChannel(psAccess->iChannel);
 		
 		if (pcChannel->miByteSize == CHANNEL_NON_ALIGNED_BYTES)
@@ -349,10 +349,10 @@ bool CChannelsAccessorCreator::CalculateAccessByteAligned(void)
 	CChannelAccessor*	pcAccessor;
 	size				uiNumAccessors;
 
-	uiNumAccessors = macAccessor.NumElements();
+	uiNumAccessors = macAccessors.NumElements();
 	for (i = 0; i < uiNumAccessors; i++)
 	{
-		pcAccessor = macAccessor.Get(i);
+		pcAccessor = macAccessors.Get(i);
 		if (pcAccessor->miAccessByteSize == -1)
 		{
 			return false;
@@ -374,10 +374,10 @@ size CChannelsAccessorCreator::CalclulateBitSize(void)
 	size				uiNumAccessors;
 
 	iBitSize = 0;
-	uiNumAccessors = macAccessor.NumElements();
+	uiNumAccessors = macAccessors.NumElements();
 	for (i = 0; i < uiNumAccessors; i++)
 	{
-		pcAccessor = macAccessor.Get(i);
+		pcAccessor = macAccessors.Get(i);
 		iBitSize += pcAccessor->miAccessBitSize;
 	}
 	return iBitSize;
@@ -396,7 +396,7 @@ void CChannelsAccessorCreator::AddAccess(size iChannel, EPrimitiveType eType)
 	//Can't create an accessor to a channel that does not exist in the source.
 	if (mpcChannels->HasChannel(iChannel))
 	{
-		psAccess = masAccess.Add();
+		psAccess = masAccesses.Add();
 		psAccess->eType = eType;
 		psAccess->iChannel = iChannel;
 	}

@@ -63,7 +63,7 @@ void CChannelsAccessorWorstCase::Set(size iPos, void* pvSource)
 	void*				pvDest;
 	size				iDestBitPos;
 	size				iSourceBitPos;
-	char				c[16 +1];
+	char				c[16 + 1];
 	size				uiNumAccessors;
 
 	uiNumAccessors = macAccessors.NumElements();
@@ -73,7 +73,7 @@ void CChannelsAccessorWorstCase::Set(size iPos, void* pvSource)
 	for (i = 0; i < uiNumAccessors; i++)
 	{
 		pcAccessor = macAccessors.Get(i);
-		c[pcAccessor->miAccessBitSize/8] = 0;
+		c[pcAccessor->miAccessBitSize / 8] = 0;
 		CopyBits(c, 0, pvSource, iSourceBitPos, pcAccessor->miAccessBitSize, false);
 		pcAccessor->SetFromSub(pcAccessor->meAccessType, pvDest, iDestBitPos, c);
 		iSourceBitPos += pcAccessor->miAccessBitSize;

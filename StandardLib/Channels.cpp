@@ -525,6 +525,14 @@ bool CChannels::EndChange(void)
 			for (i = 0; i < uiAdded; i++)
 			{
 				psAddedChannel = mpsChangingDesc->asAddedChannels.Get(i);
+				psChannel = GetChannel(psAddedChannel->iChannel);
+				if (psChannel)
+				{
+					gcLogger.Error2(__METHOD__, " Channel [", IntToString(psAddedChannel->iChannel), "] already exists in Channels.", NULL);
+					bResult = false;
+					bAnyAdded = false;
+					break;
+				}
 
 				psChannel = masChannelOffsets.Add();
 				psChannel->Init(psAddedChannel->iChannel, psAddedChannel->eType, psAddedChannel->bReverse);

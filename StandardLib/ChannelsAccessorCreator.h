@@ -40,9 +40,9 @@ class CChannelsAccessorCreator
 {
 public:
 	CChannels*				mpcChannels;
-	CArrayChannelAccess		masAccess;
+	CArrayChannelAccess		masAccesses;
 
-	CArrayChannelAccessor	macAccessor;
+	CArrayChannelAccessor	macAccessors;
 
 	void				Init(CChannels* pcChannels);
 	void				Kill(void);
