@@ -39,6 +39,7 @@ enum EImageType
 	IT_RAW,  // Raw file.
 	IT_PNG,  // PNG
 	IT_TIFF, // Tiff
+	IT_SFT,  // SFT (Andre's Comuputer Format)
 };
 
 

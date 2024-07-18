@@ -69,7 +69,7 @@ void CImageResampler::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CImageResampler::Modify(CImage* pcImage)
 {
-	CImage			cDest;
+	CImage	cDest;
 
 	if (meStyle != RS_Unknown)
 	{
@@ -96,22 +96,22 @@ bool CImageResampler::Modify(CImage* pcImage)
 //////////////////////////////////////////////////////////////////////////
 void CImageResampler::ResampleTo(CImage* pcDest, CImage* pcSource)
 {
-	float					fdx;
-	float					fdy;
-	float					fWidth;
-	float					fHeight;
-	CImageAccessor*			pcSourceAccessor;
-	CImageAccessor*			pcDestAccessor;
-	float					fsx;
-	float					fsy;
-	float					fSourceWidth;
-	float					fSourceHeight;
-	float					fScalex;
-	float					fScaley;
-	float					fHScalex;
-	float					fHScaley;
-	float					fTotalArea;
-	SImageColour*			psColour;
+	float				fdx;
+	float				fdy;
+	float				fWidth;
+	float				fHeight;
+	CImageAccessor*		pcSourceAccessor;
+	CImageAccessor*		pcDestAccessor;
+	float				fsx;
+	float				fsy;
+	float				fSourceWidth;
+	float				fSourceHeight;
+	float				fScalex;
+	float				fScaley;
+	float				fHScalex;
+	float				fHScaley;
+	float				fTotalArea;
+	SImageColour*		psColour;
 
 	pcDest->Init();
 	pcDest->BeginChange();

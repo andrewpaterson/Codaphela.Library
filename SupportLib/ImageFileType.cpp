@@ -69,9 +69,12 @@ EImageType GuessImageType(char *szFilename)
 		eType = IT_RAD;
 	else if (szTest.EqualsIgnoreCase(".raw"))
 		eType = IT_RAW;
+	else if (szTest.EqualsIgnoreCase(".sft"))
+		eType = IT_SFT;
 	else
 		eType = IT_Unknown;
 	szTest.Kill();
 
 	return eType;
 }
+

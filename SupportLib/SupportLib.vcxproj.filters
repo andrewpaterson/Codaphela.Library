@@ -636,6 +636,12 @@
     <ClInclude Include="FakeTracker.h">
       <Filter>Source\Scene</Filter>
     </ClInclude>
+    <ClInclude Include="ImageToR3G3B2A.h">
+      <Filter>Source\Image\Modifiers\Colour</Filter>
+    </ClInclude>
+    <ClInclude Include="SFTWriter.h">
+      <Filter>Source\Image\IO\Writer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1069,6 +1075,12 @@
     </ClCompile>
     <ClCompile Include="ChannelTypes.cpp">
       <Filter>Source\Channel</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageToR3G3B2A.cpp">
+      <Filter>Source\Image\Modifiers\Colour</Filter>
+    </ClCompile>
+    <ClCompile Include="SFTWriter.cpp">
+      <Filter>Source\Image\IO\Writer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
