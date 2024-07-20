@@ -31,6 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "TGAReader.h"
 #include "RADReader.h"
 #include "ImageCopier.h"
+#include "ImageReaderHelper.h"
 #include "ImageReader.h"
 
 
@@ -47,7 +48,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //=                by leveraging the power of Windows IPicture routines and OLE
 //=
 //====================================================================================
-bool LoadPictureIPicture(CImage *pcImage, char *szFilename)	
+Ptr<CImage> LoadPictureIPicture(char *szFilename, bool bAddDebug)
 {
 	HDC			hdcTemp;												// The DC To Hold Our Bitmap
 	HBITMAP		hbmpTemp;												// Holds The Bitmap Temporarily
@@ -142,13 +143,22 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 		}
 	}
 
+	Ptr<CImage>	pcImage = OMalloc<CImage>();
+
 	//----------------------------------------------------------------------------------------
 	// setup the texture descriptor
 	//----------------------------------------------------------------------------------------
 	// NOTE: does not set the unique ID correctly
 	if (bNonZeroAlpha)
 	{
-		pcImage->Init(lWidthPixels, lHeightPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
+		pcImage->BeginChange();
+		pcImage->SetSize(lWidthPixels, lHeightPixels);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_RED, bAddDebug);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_GREEN, bAddDebug);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_BLUE, bAddDebug);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_OPACITY, bAddDebug);
+		pcImage->EndChange();
+
 		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
 		cCopier.Init(&cImageImport, pcImage);
 		for (i = 0; i < lHeightPixels; i++)
@@ -163,7 +173,12 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	}
 	else
 	{
-		pcImage->Init(lWidthPixels, lHeightPixels, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+		pcImage->BeginChange();
+		pcImage->SetSize(lWidthPixels, lHeightPixels);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_RED, bAddDebug);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_GREEN, bAddDebug);
+		AddDebugChannel(pcImage, PT_uint8, IMAGE_DIFFUSE_BLUE, bAddDebug);
+		pcImage->EndChange();
 		cImageImport.Init(lWidthPixels, lHeightPixels, pBits, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_IGNORED, CHANNEL_ZERO);
 		cCopier.Init(&cImageImport, pcImage);
 		for (i = 0; i < lHeightPixels; i++)
@@ -180,7 +195,7 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 	
 	pPicture->Release();												// Decrements IPicture Reference Count
 	
-	return true;														// Return True (All Good)
+	return pcImage;														// Return True (All Good)
 }
 
 
@@ -188,14 +203,13 @@ bool LoadPictureIPicture(CImage *pcImage, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool ReadImage(CImage* pcImage, char* szFilename, EImageType eType)
+Ptr<CImage> ReadImage(char* szFilename, EImageType eType, bool bAddDebug)
 {
 	if (eType == IT_Unknown)
 	{
 		eType = GuessImageType(szFilename);
 	}
 
-	//Oi! Check to make sure none of the below expect an initialised image.
 	switch (eType)
 	{
 		case IT_BMP:
@@ -205,16 +219,26 @@ bool ReadImage(CImage* pcImage, char* szFilename, EImageType eType)
 		case IT_JPG:
 		case IT_WMF:
 			// uses OLE and IPicture to load these image formats.
-			return (LoadPictureIPicture(pcImage, szFilename));
+			return (LoadPictureIPicture(szFilename, bAddDebug));
 		case IT_TGA:
-			return (LoadTGA(pcImage, szFilename)); // uses NeHe TGA routines.
+			return (LoadTGA(szFilename)); // uses NeHe TGA routines.
 		case IT_PNG:
-			return (LoadPNG(pcImage, szFilename));
+			return (LoadPNG(szFilename, bAddDebug));
 		case IT_RAD:
-			return (LoadRAD(pcImage, szFilename)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
-		case IT_RAW:
-			return (LoadRAW(pcImage, szFilename)); // special case assuming an initialised image.
+			return (LoadRAD(szFilename)); // uses a text-format RAW descriptor (RAD) file to load a raw file.
 	}
-	return false;
+
+	gcLogger.Error2(__METHOD__, " Could not read image of type [", ImageTypeToString(eType), " (", IntToString(eType), ")].", NULL);
+	return NULL;
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool ReadRawImage(Ptr<CImage> pcImage, char* szFilename)
+{
+	return LoadRAW(szFilename, pcImage);
+}

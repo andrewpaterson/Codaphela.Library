@@ -376,10 +376,16 @@ char* MethodToString(const char* szFile, size iLine, const char* szFunction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* StringToString(char* sz)
+char* StringToString(char* szSource)
 {
-	if (sz != NULL)
+	size	uiCount;
+	char* sz;
+	if (szSource != NULL)
 	{
+
+		uiCount = IncrementLogToStringCount();
+		sz = gaszLogToStringScratchPad[uiCount];
+		StrCpySafe(sz, szSource, LOG_TO_STRING_MAX_LENGTH);
 		return sz;
 	}
 	else

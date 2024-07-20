@@ -36,9 +36,9 @@ public:
 	CImageColour*	mpcColour;
 	bool			mbFilled;
 
-	void Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
-	void Kill(void);
-	bool Modify(CImage* pcImage);
+	void			Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
+	void			Kill(void);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 
 

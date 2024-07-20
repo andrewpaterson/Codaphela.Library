@@ -33,9 +33,9 @@ CONSTRUCTABLE(CImageHeightToNormals);
 public:
 	EChannel meHeightChannel;
 
-	void Init(EChannel eHeightChannel);
-	bool Modify(CImage* pcImage);
-	void Kill(void);
+	void			Init(EChannel eHeightChannel);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	void			Kill(void);
 };
 
 
@@ -45,14 +45,14 @@ CONSTRUCTABLE(CImageHeightToBumpUVs);
 public:
 	EChannel meHeightChannel;
 
-	void Init(EChannel eHeightChannel);
-	bool Modify(CImage* pcImage);
-	void Kill(void);
+	void			Init(EChannel eHeightChannel);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	void			Kill(void);
 };
 
 
 //For testing
-bool ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, CImage* pcImageDest, CImage* pcImageSource, EChannel eHeightChannel);
+Ptr<CImage> ConvertHeightMapTo(bool bNormalMap, bool bUVMapMap, Ptr<CImage> pcImageSource, EChannel eHeightChannel);
 
 
 #endif // __BUMP_MAPPER_H__

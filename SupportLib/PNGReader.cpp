@@ -21,8 +21,11 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "PNGReader.h"
 #include "ImageCopier.h"
+#include "ImageReaderHelper.h"
+#include "PNGReader.h"
+
+
 
 
 /* Read a PNG file.  You may want to return an error code if the read
@@ -31,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 * file, and the other where we are given an open file (possibly with
 * some or all of the magic bytes read - see comments above).
 */
-bool LoadPNG(CImage* pcImage, char *file_name)
+Ptr<CImage> LoadPNG(char* szFileName, bool bAddDebug)
 {
 	png_structp			png_ptr;
 	png_infop			info_ptr;
@@ -46,7 +49,7 @@ bool LoadPNG(CImage* pcImage, char *file_name)
 	bool				bReverse;
 	CImageCopier		cCopier;
 
-	if ((fp = fopen(file_name, "rb")) == NULL)
+	if ((fp = fopen(szFileName, "rb")) == NULL)
 	{
 		return false;
 	}
@@ -138,7 +141,9 @@ bool LoadPNG(CImage* pcImage, char *file_name)
 		bReverse = true;
 	}
 
-	pcImage->Init();
+	Ptr<CImage> pcImage;
+
+	pcImage = OMalloc<CImage>();
 	pcImage->BeginChange();
 	cImageImport.Init();
 	cImageImport.BeginChange();
@@ -146,33 +151,35 @@ bool LoadPNG(CImage* pcImage, char *file_name)
 	if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_GREY, eSourceType, bReverse);
-		pcImage->AddChannel(IMAGE_DIFFUSE_GREY, eSourceType);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
 	}
-	else
-	if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
+	else 	if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
 	{
 		CChars::Dump("PNG_COLOR_TYPE_PALETTE\n");
 		//pcImage->AddChannel(IC_Index, PT_uint8, 0);
 		//cSourceRow.Add(eSourceType, IC_Index);
 		//pcImage->AddPalette(256, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
 	}
-	else 
-	if (info_ptr->color_type == PNG_COLOR_TYPE_RGB)
+	else if (info_ptr->color_type == PNG_COLOR_TYPE_RGB)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eSourceType, bReverse);
-		pcImage->AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eSourceType);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_RED, bAddDebug);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREEN, bAddDebug);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_BLUE, bAddDebug);
 	}
-	else 
-	if (info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+	else if (info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, eSourceType, bReverse);
-		pcImage->AddChannel(IMAGE_OPACITY, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eSourceType);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_OPACITY, bAddDebug);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_RED, bAddDebug);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREEN, bAddDebug);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_BLUE, bAddDebug);
 	}
-	else 
-	if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+	else if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, eSourceType, bReverse);
-		pcImage->AddChannel(IMAGE_OPACITY, IMAGE_DIFFUSE_GREY, eSourceType);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_OPACITY, bAddDebug);
+		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
 	}
 
 	pcImage->ByteAlignChannels();
@@ -196,6 +203,6 @@ bool LoadPNG(CImage* pcImage, char *file_name)
 
 	/* clean up after the read, and free any memory allocated - REQUIRED */
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-	return true;
+	return pcImage;
 }
 

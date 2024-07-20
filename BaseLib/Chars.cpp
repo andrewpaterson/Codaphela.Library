@@ -393,7 +393,7 @@ void CChars::Fake(const char* szString, size iStartInclusive, size iEndExclusive
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChars* CChars::Reinit(void)
+CChars* CChars::ReInit(void)
 {
 	Kill();
 	return Init();

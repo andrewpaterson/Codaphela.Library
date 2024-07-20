@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Object.h"
 #include "ObjectReader.h"
 #include "ObjectWriter.h"
+#include "ChannelDebugDescriptor.h"
 #include "Channel.h"
 
 
@@ -34,17 +35,19 @@ class CChannels : public CObject
 CONSTRUCTABLE(CChannels);
 DESTRUCTABLE(CChannels);
 protected:
-	CArrayChannelOffset		masChannelOffsets;
-	size					miSize;				//The number of 'pixels' in the channels (not the size in bytes).
-	size					miByteStride;		//The number of bytes between 'pixels' zero if not a whole byte.
-	size					miBitStride;		//The number of bits between pixels.
-	bool					mbOnlyBasicTypes;	//Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
+	CArrayChannelOffset			masChannelOffsets;
+	size						miSize;				//The number of 'pixels' in the channels (not the size in bytes).
+	size						miByteStride;		//The number of bytes between 'pixels' zero if not a whole byte.
+	size						miBitStride;		//The number of bits between pixels.
+	bool						mbOnlyBasicTypes;	//Channels are only chars, shorts, ints, longs and floats.  Nothing bit'ty.
 
-	CArrayChar				mabData;
-	char*					mpvUserData;
+	CArrayChar					mabData;
+	char*						mpvUserData;
 
-	SChannelsChangingDesc*	mpsChangingDesc;
-	char*					mpvDataCache;		//A pointer to either mabData.pvArray or mpvUserData
+	SChannelsChangingDesc*		mpsChangingDesc;
+	char*						mpvDataCache;		//A pointer to either mabData.pvArray or mpvUserData
+
+	CMapIntChannelDescriptor*	mpmicChannelDebugs;
 
 public:
 	void 					Init(void);
@@ -54,6 +57,8 @@ public:
 	void					Class(void);
 	void 					Free(void);
 
+	void					ReInit(void);
+
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
@@ -61,6 +66,7 @@ public:
 	void 					SetSize(size iSize);
 	void 					PrivateAddChannel(size iChannel, EPrimitiveType eType, bool bReverse);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
@@ -84,6 +90,7 @@ public:
 	void					FreeData(void);
 
 	void					Copy(CChannels* pcData);
+	void					Copy2(CChannels* pcSource);
 	void					Clear(void);
 	void					Dump(size iLineLength);
 
@@ -102,6 +109,8 @@ public:
 	CArrayChannelOffset*	GetChannelOffsets(void);
 	size					GetByteStride(void);
 	size					GetBitStride(void);
+	char*					GetChannelLongName(size iChannel);
+	char*					GetChannelShortName(size iChannel);
 
 	void					GetAllChannels(CArrayInt* paiChannels);
 	void					GetAllChannels(CArrayChannel* pasChannels);
@@ -114,12 +123,15 @@ public:
 	void					SetBitStrideFromByteStride(void);
 
 	bool					IsValid(size iPos);
+	void					SetChannelDebugNames(size iChannel, char* szShortName, char* szLongName);
 
 	EPrimitiveType			GetLargestPrimitiveType(void);
 
 protected:
 	void					PrivateInit(void);
 	void					Recalculate(void);
+
+	void					CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDebugs);
 };
 
 

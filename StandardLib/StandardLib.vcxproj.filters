@@ -462,6 +462,9 @@
     <ClInclude Include="ClassDefines.h">
       <Filter>Source\Object\Class</Filter>
     </ClInclude>
+    <ClInclude Include="ChannelDebugDescriptor.h">
+      <Filter>Source\Channels</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -751,6 +754,9 @@
     </ClCompile>
     <ClCompile Include="UnmanagedClasses.cpp">
       <Filter>Source\Object\Class</Filter>
+    </ClCompile>
+    <ClCompile Include="ChannelDebugDescriptor.cpp">
+      <Filter>Source\Channels</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

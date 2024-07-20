@@ -117,7 +117,7 @@ CNumber CCalculator::Eval(char* szText)
 	bool				bResult;
 	CChars				sz;
 
-	mszError.Reinit();
+	mszError.ReInit();
 
 	mcParser.Init(szText);
 	bResult = Expression(&pcExpression);

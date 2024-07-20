@@ -32,3 +32,4 @@ void CImageModifier::Kill(void)
 {
 	CUnknown::Kill();
 }
+

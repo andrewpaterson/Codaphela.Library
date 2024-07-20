@@ -36,6 +36,7 @@ public:
 	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, CRectangle* psSourceRect = NULL);
 	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY, int iSourceX1, int iSourceY1, int iSourceX2, int iSourceY2);
 	static void Copy(CImageCel* pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY);
+	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 
 public:
 	Ptr<CImage>			mpcSource;

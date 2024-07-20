@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierStack::Init(CImage* pcImage)
+void CImageModifierStack::Init(Ptr<CImage> pcImage)
 {
 	mpcImage = pcImage;
 	macModifiers.Init();
@@ -61,7 +61,7 @@ void CImageModifierStack::AddModifier(CImageModifier* pcModifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageModifierStack::SetImage(CImage* pcImage)
+void CImageModifierStack::SetImage(Ptr<CImage> pcImage)
 {
 	mpcImage = pcImage;
 }
@@ -75,13 +75,22 @@ void CImageModifierStack::ApplyAll(void)
 {
 	size				i;
 	CImageModifier*		pcModifier;
+	Ptr<CImage>			pcImage;
 
-	if (mpcImage)
+	if (mpcImage.IsNotNull())
 	{
+		pcImage = mpcImage;
+
 		for (i = 0; i < macModifiers.NumElements(); i++)
 		{
 			pcModifier = (CImageModifier*)macModifiers.Get(i);
-			pcModifier->Modify(mpcImage);
+			pcImage = pcModifier->Modify(pcImage);
+		}
+
+		if (pcImage != mpcImage)
+		{
+			mpcImage->ReInit();
+			mpcImage->Copy2(pcImage);
 		}
 	}
 }
@@ -101,4 +110,4 @@ int CImageModifierStack::NumModifiers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImage* CImageModifierStack::GetImage(void) {return mpcImage;}
+Ptr<CImage> CImageModifierStack::GetImage(void) {return mpcImage;}

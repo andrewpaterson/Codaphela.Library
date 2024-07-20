@@ -223,7 +223,7 @@ void CImageCombiner::CalculateChannelsFromCels(void)
 	SSetIterator	sIter;
 	CImageCel*		pcCel;
 	CArrayChannel	asChannels;
-	CImage*			pcLastImage;
+	Ptr<CImage>		pcLastImage;
 
 	pcLastImage = NULL;
 	pcCel = (CImageCel*)mcSourceCels.StartIteration(&sIter);
@@ -432,7 +432,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 	CImageCel*				pcCelSource;
 	CImageAccessor*			pcSource;
 	CImageAccessor*			pcDest;
-	CImage*					pcLastImage;
+	Ptr<CImage>				pcLastImage;
 	CArrayInt				aiDestChannels;
 	CArrayInt				aiSourceChannels;
 	CArrayInt				aiIntersectChannels;

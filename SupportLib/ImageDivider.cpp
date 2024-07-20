@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::Init(CImage* pcImage, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
+void CImageDivider::Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders)
 {
 	CImageAccessor*		pcAccessor;
 	int					iDataSize;
@@ -75,22 +75,22 @@ void CImageDivider::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::GenerateFromBorder(CImage* pcFillMask)
+void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 {
-	CImageAccessor*			pcImageAccessor;
-	int						x, y;
-	SImageColour			cCellColour;
-	CImageFiller			cFiller;
-	CFillRectangle			cFillBounds;
-	bool					bResult;
-	short					iMask;
+	CImageAccessor*		pcImageAccessor;
+	int					x, y;
+	SImageColour		cCellColour;
+	CImageFiller		cFiller;
+	CFillRectangle		cFillBounds;
+	bool				bResult;
+	short				iMask;
 
 	pcImageAccessor = CImageAccessorCreator::Create(mpcImage, mpcImage);
 
 	//The top left colour is the border colour.
 	pcImageAccessor->Get(0, 0, &cCellColour);
 
-	cFiller.Init(&cCellColour, pcImageAccessor, pcFillMask);
+	cFiller.Init(&cCellColour, pcImageAccessor, &pcFillMask);
 	iMask = 1;
 
 	for (y = 0; y < mpcImage->miHeight; y++)
@@ -166,7 +166,7 @@ void CImageDivider::GenerateFromRectangles(CArrayRectangle* pacRectangles)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDivider::AddImageCel(CFillRectangle* pcRect, CImage* pcFillMask)
+void CImageDivider::AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask)
 {
 	if (!((pcRect->GetWidth() == 0) && mbIgnoreEmpty))
 	{
@@ -175,14 +175,14 @@ void CImageDivider::AddImageCel(CFillRectangle* pcRect, CImage* pcFillMask)
 			CImageCelMask*	pcImageCel;
 
 			pcImageCel = mcDestImageCels.Add<CImageCelMask>();
-			pcImageCel->Init(mpcImage, pcFillMask, pcRect);
+			pcImageCel->Init(&mpcImage, &pcFillMask, pcRect);
 		}
 		else
 		{
 			CImageCelMaskTransparent*	pcImageCel;
 
 			pcImageCel = mcDestImageCels.Add<CImageCelMaskTransparent>();
-			pcImageCel->Init(mpcImage, &msTransparentColour, pcFillMask, pcRect);
+			pcImageCel->Init(&mpcImage, &msTransparentColour, &pcFillMask, pcRect);
 		}
 	}
 }
@@ -208,7 +208,7 @@ void CImageDivider::AddImageCel(CRectangle* pcRect)
 			CImageCelTransparent*	pcImageCel;
 
 			pcImageCel = mcDestImageCels.Add<CImageCelTransparent>();
-			pcImageCel->Init(mpcImage, &msTransparentColour, pcRect);
+			pcImageCel->Init(&mpcImage, &msTransparentColour, pcRect);
 		}
 	}
 }

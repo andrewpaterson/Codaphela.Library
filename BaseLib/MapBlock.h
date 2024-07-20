@@ -17,7 +17,7 @@ class CMapBlock : public CMalloc
 friend struct SMNode;
 protected:
 	CArrayBlockSorted	mapArray;  //All that is stored in this array is the SMNode*.  
-	size					miLargestKeySize;
+	size				miLargestKeySize;
 	bool				mbOverwrite;
 	CDataFree*			mpcDataFree;
 	DataCompare			fKeyCompare;

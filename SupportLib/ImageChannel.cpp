@@ -24,6 +24,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageChannel.h"
 
 
+CMapIntString	gmiszImageChannelLongNames;
+CMapIntString	gmiszImageChannelShortNames;
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -237,5 +241,92 @@ void PrintImagePurpose(EImagePurpose ePurpose, CChars* psz)
 		psz->Append("INVALID");
 		break;
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void AddImageChannelDescriptor(EChannel eChannel)
+{
+	EChannelType	eType;
+	EImagePurpose	ePurpose;
+	CChars			szLong;
+	char			szShort[4];
+	size			uiLength;
+
+	ePurpose = (EImagePurpose)CHANNEL_PURPOSE(eChannel);
+	eType = CHANNEL_TYPE(eChannel);
+
+	szLong.Init();
+	PrintImagePurpose(ePurpose, &szLong);
+	szLong.Append(" ");
+	uiLength = szLong.Length();
+	PrintChannelType(eType, &szLong);
+
+	gmiszImageChannelLongNames.Put(eChannel, szLong.Text());
+	if (ePurpose == IP_Unknown)
+	{
+		szShort[0] = 'x';
+		szShort[1] = 'x';
+	}
+	else
+	{
+		szShort[0] = szLong.Text()[0];
+		szShort[1] = szLong.Text()[1];
+	}
+
+	if (eType == CT_Ignored)
+	{
+		szShort[2] = 'x';
+	}
+	else
+	{
+		szShort[2] = szLong.Text()[uiLength];
+	}
+	szShort[3] = '\0';
+	gmiszImageChannelShortNames.Put(eChannel, szShort);
+
+	szLong.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ImageChannelDescriptorInit(void)
+{
+	gmiszImageChannelLongNames.Init();
+	gmiszImageChannelShortNames.Init();
+
+	AddImageChannelDescriptor(IMAGE_IGNORED);
+	AddImageChannelDescriptor(IMAGE_DIFFUSE_GREY);
+	AddImageChannelDescriptor(IMAGE_DIFFUSE_RED);
+	AddImageChannelDescriptor(IMAGE_DIFFUSE_GREEN);
+	AddImageChannelDescriptor(IMAGE_DIFFUSE_BLUE);
+	AddImageChannelDescriptor(IMAGE_OPACITY);
+	AddImageChannelDescriptor(IMAGE_MASK);
+	AddImageChannelDescriptor(IMAGE_BUMP_U);
+	AddImageChannelDescriptor(IMAGE_BUMP_V);
+	AddImageChannelDescriptor(IMAGE_SPECULAR);
+	AddImageChannelDescriptor(IMAGE_NORMAL_X);
+	AddImageChannelDescriptor(IMAGE_NORMAL_Y);
+	AddImageChannelDescriptor(IMAGE_NORMAL_Z);
+	AddImageChannelDescriptor(IMAGE_ILLUMINATION);
+	AddImageChannelDescriptor(IMAGE_ILLUMINATION_RED);
+	AddImageChannelDescriptor(IMAGE_ILLUMINATION_GREEN);
+	AddImageChannelDescriptor(IMAGE_ILLUMINATION_BLUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ImageChannelDescriptorKill(void)
+{
+	gmiszImageChannelLongNames.Kill();
+	gmiszImageChannelShortNames.Kill();
 }
 

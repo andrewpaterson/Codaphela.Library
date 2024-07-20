@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(CImage* pcSourceImage)
+void CImageCel::Init(Ptr<CImage> pcSourceImage)
 {
 	Init(pcSourceImage, 0, 0, pcSourceImage->miWidth, pcSourceImage->miHeight);
 }
@@ -41,7 +41,7 @@ void CImageCel::Init(CImage* pcSourceImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(CImage* pcSourceImage, CRectangle* pcRect)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect)
 {
 	Init(pcSourceImage, pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
 }
@@ -51,7 +51,7 @@ void CImageCel::Init(CImage* pcSourceImage, CRectangle* pcRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(CImage* pcSourceImage, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom)
 {
 	Init(pcSourceImage, iLeft, iTop, iRight, iBottom, 0, 0, 0, 0, SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 }
@@ -61,7 +61,7 @@ void CImageCel::Init(CImage* pcSourceImage, int iLeft, int iTop, int iRight, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Init(CImage* pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment)
+void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment)
 {
 	mcSubImage.Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
 	mpcSourceImage = pcSourceImage;
@@ -99,7 +99,7 @@ void CImageCel::CropTransparentBorders(void)
 {
 	CPixelOpacityChannel	cOpacity;
 
-	cOpacity.Init(mpcSourceImage);
+	cOpacity.Init(&mpcSourceImage);
 	CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -232,7 +232,7 @@ void CImageCel::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int 
 {
 	CPixelOpacityChannel	cOpacity;
 
-	cOpacity.Init(mpcSourceImage);
+	cOpacity.Init(&mpcSourceImage);
 	FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }
@@ -301,7 +301,7 @@ void CImageCel::SetSubImage(CSubImage* pcSubImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImage* CImageCel::GetSourceImage(void)
+Ptr<CImage> CImageCel::GetSourceImage(void)
 {
 	return mpcSourceImage;
 }

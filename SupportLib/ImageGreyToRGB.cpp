@@ -49,7 +49,7 @@ void CImageGreyToRGB::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageGreyToRGB::Modify(CImage* pcImage)
+Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 {
 	CImageAccessor*		pcRed;
 	CImageAccessor*		pcGreen;
@@ -99,9 +99,9 @@ bool CImageGreyToRGB::Modify(CImage* pcImage)
 		pcGreen->Kill();
 		pcBlue->Kill();
 
-		return true;
+		return pcImage;
 	}
 
-	return false;
+	return NULL;
 }
 

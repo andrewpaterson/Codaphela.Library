@@ -30,9 +30,9 @@ class CImageGreyToRGB : public CImageModifier
 {
 CONSTRUCTABLE(CImageGreyToRGB);
 public:
-	void Init(void);
-	void Kill(void);
-	bool Modify(CImage* pcImage);
+	void			Init(void);
+	void			Kill(void);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 
 

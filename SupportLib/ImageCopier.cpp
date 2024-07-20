@@ -215,3 +215,16 @@ void CImageCopier::Copy(CImageCel* pcSource, Ptr<CImage> pcDest, int iDestX, int
 	cCopier.Kill();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCopier::Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+{
+	CImageCopier cCopier;
+
+	cCopier.Init(pcSource, pcDest);
+	cCopier.Copy(0, 0, 0, 0, pcSource->GetWidth(), pcSource->GetHeight());
+	cCopier.Kill();
+}

@@ -29,6 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/NaiveFile.h"
 #include "BaseLib/Operators.h"
+#include "BaseLib/TypeNames.h"
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
@@ -140,7 +141,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(CImage* pcSource)
+Ptr<CImage> CImage::Init(Ptr<CImage> pcSource)
 {
 	PreInit();
 
@@ -201,7 +202,7 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, void* pvUserData, CImageChanne
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImage::Init(int iWidth, int iHeight, CImage* pcChannelsSource)
+Ptr<CImage> CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 {
 	PreInit();
 
@@ -239,6 +240,48 @@ void CImage::Free(void)
 	SafeFree(mpsImageChangingDesc);
 	miWidth = 0;
 	miHeight = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::ReInit(void)
+{
+	Free();
+	mcChannels.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
+{
+	va_list		vaMarker;
+	size		iCount;
+	EChannel	eIC;
+
+	Free();
+	mcChannels.ReInit();
+
+	iCount = 0;
+	eIC = eFirst;
+
+	BeginChange();
+	va_start(vaMarker, eFirst);
+	while (eIC != CHANNEL_ZERO)
+	{
+		AddChannel(eIC, eType);
+		iCount++;
+		eIC = va_arg(vaMarker, EChannel);
+	}
+	va_end(vaMarker);
+
+	SetSize(iWidth, iHeight);
+	EndChange();
 }
 
 
@@ -290,6 +333,41 @@ void CImage::BeginChange(void)
 void CImage::AddChannel(size iChannel, EPrimitiveType eType, bool bReverse)
 {
 	mcChannels.AddChannel(iChannel, eType, bReverse);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName, bool bReverse)
+{
+	mcChannels.AddChannel(iChannel, eType, szShortName, szLongName, bReverse);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImage::AddChannel(Ptr<CImage> pcSourceImage, size iChannel, EPrimitiveType eType)
+{
+	CChannel*	pcChannel;
+	char*		szShortName;
+	char*		szLongName;
+
+	pcChannel = pcSourceImage->GetChannel(iChannel);
+	if (pcChannel)
+	{
+		szShortName = pcSourceImage->GetChannelShortName(iChannel);
+		szLongName = pcSourceImage->GetChannelLongName(iChannel);
+		mcChannels.AddChannel(iChannel, eType, szShortName, szLongName, pcChannel->bReverse);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 
@@ -360,7 +438,7 @@ void CImage::AddChannels(CArrayChannel* pasChannels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::AddChannels(CImage* pcSourceChannels)
+void CImage::AddChannels(Ptr<CImage> pcSourceChannels)
 {
 	mcChannels.AddChannels(&pcSourceChannels->mcChannels);
 }
@@ -373,6 +451,26 @@ void CImage::AddChannels(CImage* pcSourceChannels)
 bool CImage::RemoveChannel(size iChannel)
 {
 	return mcChannels.RemoveChannel(iChannel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CImage::GetChannelLongName(size iChannel)
+{
+	return mcChannels.GetChannelLongName(iChannel);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CImage::GetChannelShortName(size iChannel)
+{
+	return mcChannels.GetChannelShortName(iChannel);
 }
 
 
@@ -453,8 +551,11 @@ bool CImage::IsChanging(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Copy(CImage* pcSource)
+void CImage::Copy(Ptr<CImage> pcSource)
 {
+	//This assumes Image is not initialised.
+	PreInit();
+
 	miWidth = pcSource->miWidth;
 	miHeight = pcSource->miHeight;
 	if (pcSource->mpsImageChangingDesc)
@@ -469,8 +570,34 @@ void CImage::Copy(CImage* pcSource)
 	}
 
 	mcChannels.Copy(&pcSource->mcChannels);
+
+	PostInit();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::Copy2(Ptr<CImage> pcSource)
+{
+	//This assumes Image IS initialised.
+
+	miWidth = pcSource->miWidth;
+	miHeight = pcSource->miHeight;
+	if (pcSource->mpsImageChangingDesc)
+	{
+		mpsImageChangingDesc = (SImageChangingDesc*)malloc(sizeof(SImageChangingDesc));
+		mpsImageChangingDesc->iWidth = pcSource->mpsImageChangingDesc->iWidth;
+		mpsImageChangingDesc->iHeight = pcSource->mpsImageChangingDesc->iHeight;
+	}
+	else
+	{
+		mpsImageChangingDesc = NULL;
+	}
+
+	mcChannels.Copy2(&pcSource->mcChannels);
+}
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -670,7 +797,7 @@ bool CImage::IsValid(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImage::IsSameFormat(CImage* psOther)
+bool CImage::IsSameFormat(Ptr<CImage> psOther)
 {
 	return mcChannels.IsSameFormat(&psOther->mcChannels);
 }
@@ -708,5 +835,105 @@ bool CImage::HasChannels(size iFirst, ...)
 	va_end(vaMarker);
 
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::Print(CChars* psz)
+{
+	CChannels*			pcChannels;
+	CArrayInt			aiChannels;
+	size				i;
+	uint				uiChannel;
+	CChannel*			pcChannel;
+	char*				szChannelName;
+	int					x;
+	int					y;
+	CChannelsAccessor*	apcAccessors[8];
+	uint				ui;
+
+	psz->Append("Object[");
+	GetIdentifier(psz);
+	psz->Append("]  Channels");
+	pcChannels = GetChannels();
+
+	aiChannels.Init();
+	pcChannels->GetAllChannels(&aiChannels);
+
+	for (i = 0; i < aiChannels.NumElements(); i++)
+	{
+		uiChannel = aiChannels.GetValue(i);
+		pcChannel = GetChannel(uiChannel);
+
+		szChannelName = GetChannelLongName(uiChannel);
+
+		psz->Append("[(");
+		PrintPrimitiveType(pcChannel->eType, psz);
+		psz->Append(")\"");
+		psz->Append(szChannelName);
+		psz->Append("\"");
+
+		if (pcChannel->miByteOffset != CHANNEL_NON_ALIGNED_BYTES)
+		{
+			psz->Append(" B:");
+			psz->Append(pcChannel->miByteOffset);
+		}
+		psz->Append(" b:");
+		psz->Append(pcChannel->miBitOffset);
+		psz->Append("]  ");
+
+		apcAccessors[i] = CChannelsAccessorCreator::CreateSingleChannelAccessor(GetChannels(), uiChannel);
+	}
+	psz->RemoveFromEnd(2);
+	psz->AppendNewLine();
+	psz->AppendNewLine();
+
+	for (x = 0; x < miWidth; x++)
+	{
+		for (i = 0; i < aiChannels.NumElements(); i++)
+		{
+			uiChannel = aiChannels.GetValue(i);
+			pcChannel = GetChannel(uiChannel);
+
+			szChannelName = GetChannelShortName(uiChannel);
+			psz->Append(szChannelName);
+			psz->Append(" ");
+		}
+		psz->Append(" ");
+	}
+	psz->AppendNewLine();
+
+	for (y = 0; y < miHeight; y++)
+	{
+		for (x = 0; x < miWidth; x++)
+		{
+			for (i = 0; i < aiChannels.NumElements(); i++)
+			{
+				ui = *((uint*)apcAccessors[i]->Get(x + y * miWidth));
+				psz->Append(" ");
+				psz->AppendHexLoHi(&ui, 1);
+				psz->Append(" ");
+			}
+			psz->Append(" ");
+		}
+		psz->AppendNewLine();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImage::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
 }
 

@@ -169,7 +169,7 @@ public:
 
 			void				DumpFroms(void);
 			void				DumpPointerTos(void);
-			void				Dump(void);
+	virtual void				Dump(void);
 			void				PrintFlags(CChars* psz);
 			void				DumpFlags(void);
 

@@ -30,9 +30,9 @@ class CImageR3G3B2A : public CImageModifier
 {
 CONSTRUCTABLE(CImageR3G3B2A);
 public:
-	void Init(void);
-	void Kill(void);
-	bool Modify(CImage* pcImage);
+	void			Init(void);
+	void			Kill(void);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 
 

@@ -34,21 +34,21 @@ class CImageModifierStack : public CUnknown
 CONSTRUCTABLE(CImageModifierStack);
 protected:
 	CArrayUnknown	macModifiers;  //Image | Modifier 0 | Modifier 1 | etc...
-	CImage*			mpcImage;
+	Ptr<CImage>		mpcImage;
 
 public:
-	void 		Init(CImage* pcImage = NULL);
-	void 		Kill(void);
+	void 			Init(Ptr<CImage> pcImage = NULL);
+	void 			Kill(void);
 
-	void 		AddModifier(CImageModifier* pcModifier);
+	void 			AddModifier(CImageModifier* pcModifier);
 	template<typename M>
-	M*			AddModifier(void);
+	M*				AddModifier(void);
 
-	void		SetImage(CImage* pcImage);  //SetImage and ApplyAll make the stack act on multiple images.  There should be a better way of doing this.
-	void		ApplyAll(void);  //Better way.  CImageModifierStack has a list of images.  But then the cache is broken.  Need a cached image.
+	void			SetImage(Ptr<CImage> pcImage);  //SetImage and ApplyAll make the stack act on multiple images.  There should be a better way of doing this.
+	void			ApplyAll(void);  //Better way.  CImageModifierStack has a list of images.  But then the cache is broken.  Need a cached image.
 
-	int			NumModifiers(void);
-	CImage*		GetImage(void);
+	int				NumModifiers(void);
+	Ptr<CImage>		GetImage(void);
 };
 
 

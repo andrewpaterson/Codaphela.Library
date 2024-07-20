@@ -59,7 +59,7 @@ struct STGAImageHeader
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
+Ptr<CImage> LoadUncompressedTrueColourTGA(char *szFilename, bool bAddDebug)
 {
 	STGAImageHeader 		sTGAImageHeader;
 	STGAFileHeader  		sTGAFileHeader;				// Used To Store Our File Header
@@ -162,7 +162,7 @@ bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 
 	cImageImport.Init();
 	cImageImport.BeginChange();
-	pcImage->Init();
+	Ptr<CImage> pcImage = OMalloc<CImage>();
 	pcImage->BeginChange();
 	if (iBytesPerPixel == 3)
 	{
@@ -196,7 +196,7 @@ bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 	cImageImport.Kill();
 
 	free(pvMem);
-	return true;
+	return pcImage;
 }
 
 
@@ -204,7 +204,7 @@ bool LoadUncompressedTrueColourTGA(CImage *pcImage, char *szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadTGA(CImage* pcImage, char* szFilename)
+Ptr<CImage> LoadTGA(char* szFilename, bool bAddDebug)
 {
 	static char uTGAcompare[12] = {0,0, 2,0,0,0,0,0,0,0,0,0}; // Uncompressed True Colour TGA Header
 	//static char cTGAcompare[12] = {0,0,10,0,0,0,0,0,0,0,0,0}; // Compressed True Colour TGA Header
@@ -241,7 +241,7 @@ bool LoadTGA(CImage* pcImage, char* szFilename)
 	//----------------------------------------------------------------------
 	if (memcmp(uTGAcompare, &tgaheader, 12) == 0)
 	{
-		return LoadUncompressedTrueColourTGA(pcImage, szFilename);
+		return LoadUncompressedTrueColourTGA(szFilename, bAddDebug);
 	}
 	/*
 	else 
@@ -254,6 +254,6 @@ bool LoadTGA(CImage* pcImage, char* szFilename)
 	//----------------------------------------------------------------------
 	// if no header is matched, this is not a supported TGA format.
 	//----------------------------------------------------------------------
-	return false;
+	return NULL;
 }
 

@@ -50,7 +50,7 @@ void CImageRGBToGrey::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageRGBToGrey::Modify(CImage* pcImage)
+Ptr<CImage> CImageRGBToGrey::Modify(Ptr<CImage> pcImage)
 {
 	bool				bDiffuseChannelsSame;
 	ERGBToGreyStyle		eStyle;
@@ -62,7 +62,7 @@ bool CImageRGBToGrey::Modify(CImage* pcImage)
 	{
 		if (eStyle == RGBTGS_OnlyIfChannelsSame)
 		{
-			bDiffuseChannelsSame = AreChannelsSame(pcImage, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE);
+			bDiffuseChannelsSame = AreChannelsSame(&pcImage, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE);
 			if (bDiffuseChannelsSame)
 			{
 				eStyle = RGBTGS_UseRed;
@@ -78,19 +78,25 @@ bool CImageRGBToGrey::Modify(CImage* pcImage)
 			bSuccess &= pcImage->RemoveChannel(IMAGE_DIFFUSE_BLUE);
 			bSuccess &= pcImage->EndChange();
 			bSuccess &= pcImage->RenameChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREY);
-			return bSuccess;
+			return pcImage;
 		}
 
 		if (eStyle == RGBTGS_UseAll)
 		{
-			//Implement me later
-			return false;
+			gcLogger.Error2(__METHOD__, " Implement this.");
+			return NULL;
 		}
 
-		return false;
+		return NULL;
 	}
-
-	return false;
+	else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_ZERO))
+	{
+		return pcImage;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

@@ -181,6 +181,7 @@
   <ItemGroup>
     <ClInclude Include="Array.h" />
     <ClInclude Include="ArrayUnknownPtr.h" />
+    <ClInclude Include="ChannelDebugDescriptor.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Class.h" />
     <ClInclude Include="ClassDefines.h" />
@@ -294,6 +295,7 @@
     <ClInclude Include="PrimitiveVoid.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ChannelDebugDescriptor.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />

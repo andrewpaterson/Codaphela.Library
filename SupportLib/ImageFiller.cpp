@@ -38,11 +38,11 @@ void CImageFiller::Init(void* pvBorderColour, CImageAccessor* pcSource, CImage* 
 	mpcDestImage = pcDestImage;
 	mpcSourceAccessor = pcSource;
 
-	mpcDestImage->Init(	mpcSourceAccessor->GetWidth(), 
-						mpcSourceAccessor->GetImage()->GetHeight(), 
-						PT_int16, 
-						IMAGE_MASK, 
-						CHANNEL_ZERO);
+	mpcDestImage->ReInit(	mpcSourceAccessor->GetWidth(), 
+							mpcSourceAccessor->GetImage()->GetHeight(), 
+							PT_int16, 
+							IMAGE_MASK, 
+							CHANNEL_ZERO);
 
 	mpcDestImage->Clear();
 	mpcDestMaskAccessor = CImageAccessorCreator::Create(mpcDestImage, IMAGE_MASK, CHANNEL_ZERO);

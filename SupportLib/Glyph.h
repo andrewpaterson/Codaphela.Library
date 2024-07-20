@@ -42,7 +42,7 @@ public:
 	int			GetFullDestRight(int x);
 	void		GetFullDestBounds(int x, int y, CRectangle* pcRectangle);
 	void		GetImageDestBounds(int x, int y, CRectangle* pcRectangle);
-	CImage* 	GetSourceImage(void);
+	Ptr<CImage>	GetSourceImage(void);
 	CSubImage*	GetSubImage(void);
 	CImageCel*	GetCel(void);
 	int			GetStep(void);

@@ -642,6 +642,9 @@
     <ClInclude Include="SFTWriter.h">
       <Filter>Source\Image\IO\Writer</Filter>
     </ClInclude>
+    <ClInclude Include="ImageReaderHelper.h">
+      <Filter>Source\Image\IO\Reader</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1081,6 +1084,9 @@
     </ClCompile>
     <ClCompile Include="SFTWriter.cpp">
       <Filter>Source\Image\IO\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageReaderHelper.cpp">
+      <Filter>Source\Image\IO\Reader</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

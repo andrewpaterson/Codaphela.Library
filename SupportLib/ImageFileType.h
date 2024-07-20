@@ -44,6 +44,7 @@ enum EImageType
 
 
 EImageType GuessImageType(char *szFilename);
+char* ImageTypeToString(EImageType eType);
 
 
 #endif // __IMAGE_FILE_TYPE_H__

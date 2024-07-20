@@ -62,7 +62,7 @@ void CImageChannelAdd::AddChannel(EChannel eChannel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageChannelAdd::Modify(CImage* pcImage)
+Ptr<CImage> CImageChannelAdd::Modify(Ptr<CImage> pcImage)
 {
 	size		i;
 	EChannel	eChannel;
@@ -77,6 +77,6 @@ bool CImageChannelAdd::Modify(CImage* pcImage)
 	
 	pcImage->EndChange();
 
-	return true;
+	return pcImage;
 }
 

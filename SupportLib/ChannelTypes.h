@@ -54,7 +54,9 @@ enum EChannelType  //1 byte for type
 typedef int EChannel;
 
 
-#define CHANNEL(ePurpose, eType) ((EChannel)((NUM_CHANNEL_TYPES * ePurpose) + eType + 1))
+#define CHANNEL(purpose, type)		((EChannel)((purpose * NUM_CHANNEL_TYPES) + type + 1))
+#define CHANNEL_PURPOSE(channel)	(int)(channel / NUM_CHANNEL_TYPES)
+#define CHANNEL_TYPE(channel)		(EChannelType)((channel % NUM_CHANNEL_TYPES) - 1)
 
 
 void PrintChannelType(EChannelType eType, CChars* psz);
