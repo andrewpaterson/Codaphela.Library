@@ -62,7 +62,7 @@ public:
 	void	DumpKill(void);
 	void	Fake(const char* szString);
 	void	Fake(const char* szString, size iStartInclusive, size iEndExclusive);
-	CChars* Reinit(void);
+	CChars* ReInit(void);
 
 	size	Length(void);
 	void	Set(const char* szString);

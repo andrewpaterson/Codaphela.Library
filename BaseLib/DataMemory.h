@@ -46,6 +46,7 @@ private:
 	CMemoryFreeListParams*		mpcFreeListParams;
 
 public:
+	void					Init(void);
 	void					Init(CMemoryFreeListParams*	pcFreeListParams);
 	void					Kill(void);
 	void					ReInit(void);

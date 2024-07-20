@@ -53,15 +53,9 @@ void CImageSourceDiskFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CImageSourceDiskFile::LoadImage(void)
 {
-	bool		bResult;
-	CImage*		pcImage;
-		
-	mpcImage = Allocate(mszFileName.Text());
-	pcImage = (CImage*)mpcImage.Object();  //Hack so I don't need to re-write the image reader at this moment.
-	bResult = ReadImage(pcImage, mszFileName.Text());
-	if (!bResult)
+	mpcImage = ReadImage(mszFileName.Text());
+	if (mpcImage.IsNull())
 	{
-		mpcImage->Kill();
 		return false;
 	}
 	return true;

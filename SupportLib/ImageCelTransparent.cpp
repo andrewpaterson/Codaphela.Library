@@ -63,7 +63,7 @@ void CImageCelTransparent::CropTransparentBorders(void)
 {
 	CPixelOpacityTransparentColour cOpacity;
 
-	cOpacity.Init(mpcSourceImage, &msTransparentColour);
+	cOpacity.Init(&mpcSourceImage, &msTransparentColour);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -109,7 +109,7 @@ void CImageCelTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDe
 {
 	CPixelOpacityTransparentColour cOpacity;
 
-	cOpacity.Init(mpcSourceImage, &msTransparentColour);
+	cOpacity.Init(&mpcSourceImage, &msTransparentColour);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }

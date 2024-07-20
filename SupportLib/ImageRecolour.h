@@ -37,11 +37,11 @@ public:
 	CArrayUnknown	macOldColour;
 	CArrayUnknown	macNewColour;
 
-	void Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CRectangle* pcRectangle = NULL);
-	void Kill(void);
+	void			Init(CImageColour* pcOldColour, CImageColour* pcNewColour, CRectangle* pcRectangle = NULL);
+	void			Kill(void);
 
-	void AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewColour);
-	bool Modify(CImage* pcImage);
+	void			AddRecolour(CImageColour* pcOldColour, CImageColour* pcNewColour);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 
 

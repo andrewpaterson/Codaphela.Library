@@ -32,7 +32,7 @@ class CImageDivider : public CUnknown
 {
 CONSTRUCTABLE(CImageDivider);
 protected:
-	CImage*			mpcImage;
+	Ptr<CImage>		mpcImage;
 
 	bool			mbIgnoreEmpty;
 	SImageColour	msTransparentColour;
@@ -42,10 +42,10 @@ protected:
 	CArrayUnknown	mcDestImageCels;
 
 public:
-	void 			Init(CImage* pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void 			Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void 			Kill(void);
 
-	void 			GenerateFromBorder(CImage* pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
+	void		 	GenerateFromBorder(Ptr<CImage> pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
 	void 			GenerateFromNumbers(CImageDividerNumbers* pcNumbers);
 	void 			GenerateFromRectangles(CArrayRectangle* pacRectangles);
 
@@ -55,8 +55,7 @@ public:
 
 private:
 	void CropTransparentBorders(void);
-	void ClearMaskFromTransparent(CImage* pcFillMask);
-	void AddImageCel(CFillRectangle* pcRect, CImage* pcFillMask);
+	void AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask);
 	void AddImageCel(CRectangle* pcRect);
 };
 

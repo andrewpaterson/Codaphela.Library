@@ -73,6 +73,7 @@ bool TypesValidate(void);
 
 
 void PrintPrimitiveType(EPrimitiveType eType, CChars* psz);
+char* PrimitiveTypeToString(EPrimitiveType eType);
 
 
 #endif // __TYPE_NAMES_H__

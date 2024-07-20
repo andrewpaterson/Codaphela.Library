@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
+#include "BaseLib/Logger.h"
 #include "ImageFileType.h"
 
 
@@ -76,5 +77,62 @@ EImageType GuessImageType(char *szFilename)
 	szTest.Kill();
 
 	return eType;
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* ImageTypeToString(EImageType eType)
+{
+	char* sz;
+
+	switch (eType)
+	{
+	case IT_BMP:
+		sz = "BMP";
+		break;
+	case IT_PNG:
+		sz = "PNG";
+		break;
+	case IT_EMF:
+		sz = "EMF";
+		break;
+	case IT_GIF:
+		sz = "GIF";
+		break;
+	case IT_ICO:
+		sz = "ICO";
+		break;
+	case IT_JPG:
+		sz = "JPG";
+		break;
+	case IT_WMF:
+		sz = "WMF";
+		break;
+	case IT_TGA:
+		sz = "TGA";
+		break;
+	case IT_RAD:
+		sz = "RAD";
+		break;
+	case IT_RAW:
+		sz = "RAW";
+		break;
+	case IT_SFT:
+		sz = "SFT";
+		break;
+	case IT_Unknown:
+		sz = "Unknown";
+		break;
+	default:
+		sz = "Unknown";
+		break;
+	}
+
+	return sz;
 }
 

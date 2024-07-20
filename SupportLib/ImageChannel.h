@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __IMAGE_IMAGE__H__
 #define __IMAGE_IMAGE__H__
+#include "BaseLib/MapIntString.h"
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ChannelsHelper.h"
 #include "ChannelTypes.h"
@@ -120,6 +121,14 @@ public:
 
 
 void PrintImagePurpose(EImagePurpose ePurpose, CChars* psz);
+
+
+extern CMapIntString	gmiszImageChannelLongNames;
+extern CMapIntString	gmiszImageChannelShortNames;
+
+
+void ImageChannelDescriptorInit(void);
+void ImageChannelDescriptorKill(void);
 
 
 #endif // __IMAGE_IMAGE__H__

@@ -99,7 +99,7 @@ void CGlyph::GetImageDestBounds(int x, int y, CRectangle* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImage* CGlyph::GetSourceImage(void) {return mpcCel->GetSourceImage();}
+Ptr<CImage> CGlyph::GetSourceImage(void) {return mpcCel->GetSourceImage();}
 CSubImage* CGlyph::GetSubImage(void) {return mpcCel->GetSubImage();}
 CImageCel* CGlyph::GetCel(void) {return mpcCel;}
 int CGlyph::GetStep(void) {return miStep;}

@@ -368,3 +368,21 @@ void PrintPrimitiveType(EPrimitiveType eType, CChars* psz)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* PrimitiveTypeToString(EPrimitiveType eType)
+{
+	CChars	sz;
+	char*	psz;
+	
+	sz.Init();
+	PrintPrimitiveType(eType, &sz);
+	psz = StringToString(sz.Text());
+	sz.Kill();
+
+	return psz;
+}
+

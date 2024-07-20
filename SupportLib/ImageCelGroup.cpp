@@ -119,9 +119,9 @@ CImageCel* CImageCelGroup::GetCel(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 CImage* CImageCelGroup::GetImage(void)
 {
-	size		i;
-	CImageCel*	pcCel;
-	CImage*		pcImage;
+	size			i;
+	CImageCel*		pcCel;
+	Ptr<CImage>		pcImage;
 
 	//If there is only one image in use by the group (the normal case) then return it, otherwise NULL.
 	pcImage = NULL;
@@ -137,6 +137,6 @@ CImage* CImageCelGroup::GetImage(void)
 			return NULL;
 		}
 	}
-	return pcImage;
+	return &pcImage;
 }
 

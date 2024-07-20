@@ -203,6 +203,7 @@
     <ClInclude Include="ExternalString.h" />
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="MapIntString.h" />
     <ClInclude Include="MemCompare.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="RedirectPrintf.h" />
@@ -652,6 +653,7 @@
     <ClCompile Include="IndexBlock.cpp" />
     <ClCompile Include="MapIndexAccess.cpp" />
     <ClCompile Include="MapHelper.cpp" />
+    <ClCompile Include="MapIntString.cpp" />
     <ClCompile Include="MapLongLong.cpp" />
     <ClCompile Include="MapMapAccess.cpp" />
     <ClCompile Include="MapMapIterator.cpp" />

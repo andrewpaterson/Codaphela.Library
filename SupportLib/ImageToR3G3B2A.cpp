@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "ImageAccessorCreator.h"
+#include "ImageCopier.h"
 #include "ImageToR3G3B2A.h"
 
 
@@ -49,14 +50,14 @@ void CImageR3G3B2A::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageR3G3B2A::Modify(CImage* pcImage)
+Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 {
 	if (!pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
 	{
 		return false;
 	}
 
-	CImage				cDest;
+	Ptr<CImage>			pcDest;
 	CChannelsAccessor*	pcAccessor;
 	size				uiNumElements;
 	size				i;
@@ -64,22 +65,21 @@ bool CImageR3G3B2A::Modify(CImage* pcImage)
 	size				uiNumTransparent;
 	uint8				uiAlpha;
 
-	cDest.Init();
-	cDest.BeginChange();
-	cDest.SetSize(pcImage->GetWidth(), pcImage->GetHeight());
-	cDest.AddChannel(IMAGE_DIFFUSE_BLUE, PT_crumb);
-	cDest.AddChannel(IMAGE_DIFFUSE_GREEN, PT_tribble);
-	cDest.AddChannel(IMAGE_DIFFUSE_RED, PT_tribble);
+	pcDest = OMalloc<CImage>();
+	pcDest->BeginChange();
+	pcDest->SetSize(pcImage->GetWidth(), pcImage->GetHeight());
+	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_BLUE, PT_crumb);
+	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_GREEN, PT_tribble);
+	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_RED, PT_tribble);
 	if (pcImage->HasChannel(IMAGE_OPACITY))
 	{
-		cDest.AddChannel(IMAGE_OPACITY, PT_uint8);
+		pcDest->AddChannel(pcImage, IMAGE_OPACITY, PT_uint8);
 	}
-	cDest.EndChange();
+	pcDest->EndChange();
 	
-	pcImage->Copy(&cDest);
-	cDest.Kill();
+	CImageCopier::Copy(pcImage, pcDest);
 
-	if (pcImage->HasChannel(IMAGE_OPACITY))
+	if (pcDest->HasChannel(IMAGE_OPACITY))
 	{
 		uiNumOpaque = 0;
 		uiNumTransparent = 0;
@@ -104,12 +104,12 @@ bool CImageR3G3B2A::Modify(CImage* pcImage)
 
 		if ((uiNumOpaque == uiNumElements) || (uiNumTransparent == uiNumElements))
 		{
-			pcImage->BeginChange();
-			pcImage->RemoveChannel(IMAGE_OPACITY);
-			pcImage->EndChange();
+			pcDest->BeginChange();
+			pcDest->RemoveChannel(IMAGE_OPACITY);
+			pcDest->EndChange();
 		}
 	}
 
-	return true;
+	return pcDest;
 }
 

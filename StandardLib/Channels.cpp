@@ -47,6 +47,7 @@ void CChannels::PrivateInit(void)
 
 	mpsChangingDesc = NULL;
 	mpvDataCache = NULL;
+	mpmicChannelDebugs = NULL;
 }
 
 
@@ -174,6 +175,7 @@ void CChannels::Class(void)
 	U_Pointer(mpvUserData);
 	U_Pointer(mpsChangingDesc);
 	U_Pointer(mpvDataCache);
+	U_Pointer(mpmicChannelDebugs);
 }
 
 
@@ -192,6 +194,20 @@ void CChannels::Free(void)
 	mpvDataCache = NULL;
 
 	SafeKill(mpsChangingDesc);
+	SafeKill(mpmicChannelDebugs);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::ReInit(void)
+{
+	Free();
+
+	mabData.Init();
+	masChannelOffsets.Init();
 }
 
 
@@ -273,6 +289,42 @@ void CChannels::AddChannel(size iChannel, EPrimitiveType eType, bool bReverse)
 	else
 	{
 		gcUserError.Set("Call BeginChange() before adding channels.");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName, bool bReverse)
+{
+	AddChannel(iChannel, eType, bReverse);
+	SetChannelDebugNames(iChannel, szShortName, szLongName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::SetChannelDebugNames(size iChannel, char* szShortName, char* szLongName)
+{
+	CChannelDebugDescriptor*	psDesc;
+
+	if ((szShortName != NULL) && (szLongName != NULL))
+	{
+		if (mpmicChannelDebugs == NULL)
+		{
+			mpmicChannelDebugs = (CMapIntChannelDescriptor*)malloc(sizeof(CMapIntChannelDescriptor));
+			mpmicChannelDebugs->Init();
+		}
+
+		psDesc = mpmicChannelDebugs->Put(iChannel);
+		if (psDesc)
+		{
+			psDesc->Init(szLongName, szShortName);
+		}
 	}
 }
 
@@ -516,6 +568,11 @@ bool CChannels::EndChange(void)
 					}
 					masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), true);
 					Recalculate();
+
+					if (mpmicChannelDebugs)
+					{
+						mpmicChannelDebugs->Remove(psRemovedChannel->iChannel);
+					}
 				}
 			}
 
@@ -577,6 +634,11 @@ bool CChannels::EndChange(void)
 				psRemovedChannel = mpsChangingDesc->asRemovedChannels.Get(i);
 				psChannel = GetChannel(psRemovedChannel->iChannel);
 				masChannelOffsets.RemoveAt(masChannelOffsets.GetIndex(psChannel), true);
+
+				if (mpmicChannelDebugs)
+				{
+					mpmicChannelDebugs->Remove(psRemovedChannel->iChannel);
+				}
 			}
 
 			uiAdded = mpsChangingDesc->asAddedChannels.NumElements();
@@ -999,19 +1061,36 @@ void CChannels::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Copy(CChannels* pcData)
+void CChannels::Copy(CChannels* pcSource)
 {
-	//This assumes channels is not initialised.
+	//This assumes Channels is not initialised.
+	PreInit();
 
 	masChannelOffsets.Init();
-	masChannelOffsets.Copy(&pcData->masChannelOffsets);
-	miSize = pcData->miSize;
-	miByteStride = pcData->miByteStride;
-	miBitStride = pcData->miBitStride;
-	mbOnlyBasicTypes = pcData->mbOnlyBasicTypes;
 	mabData.Init();
-	mabData.Copy(&pcData->mabData);
-	mpvUserData = pcData->mpvUserData;
+
+	Copy2(pcSource);
+
+	PostInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::Copy2(CChannels* pcSource)
+{
+	//This assumes Image IS initialised.
+
+	masChannelOffsets.Copy(&pcSource->masChannelOffsets);
+	miSize = pcSource->miSize;
+	miByteStride = pcSource->miByteStride;
+	miBitStride = pcSource->miBitStride;
+	mbOnlyBasicTypes = pcSource->mbOnlyBasicTypes;
+	mabData.Copy(&pcSource->mabData);
+	mpvUserData = pcSource->mpvUserData;
+
 	if (IsUserAllocated())
 	{
 		mpvDataCache = mpvUserData;
@@ -1020,13 +1099,39 @@ void CChannels::Copy(CChannels* pcData)
 	{
 		mpvDataCache = mabData.GetData();
 	}
-	if (pcData->IsChanging())
+
+	if (pcSource->IsChanging())
 	{
 		BeginChange();
-		mpsChangingDesc->iSize = pcData->mpsChangingDesc->iSize;
-		mpsChangingDesc->pvUserData = pcData->mpsChangingDesc->pvUserData;
-		mpsChangingDesc->asAddedChannels.Copy(&pcData->mpsChangingDesc->asAddedChannels);
-		mpsChangingDesc->asRemovedChannels.Copy(&pcData->mpsChangingDesc->asRemovedChannels);
+		mpsChangingDesc->iSize = pcSource->mpsChangingDesc->iSize;
+		mpsChangingDesc->pvUserData = pcSource->mpsChangingDesc->pvUserData;
+		mpsChangingDesc->asAddedChannels.Copy(&pcSource->mpsChangingDesc->asAddedChannels);
+		mpsChangingDesc->asRemovedChannels.Copy(&pcSource->mpsChangingDesc->asRemovedChannels);
+	}
+
+	if (pcSource->mpmicChannelDebugs != NULL)
+	{
+		CopyChannelDebugs(pcSource->mpmicChannelDebugs);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChannels::CopyChannelDebugs(CMapIntChannelDescriptor* mpmicSourceChannelDebugs)
+{
+	SMapIterator				sIter;
+	uint*						puiChannel;
+	CChannelDebugDescriptor*	pcDesc;
+	bool						bHasNext;
+
+	bHasNext = mpmicSourceChannelDebugs->StartIteration(&sIter, (void**)&puiChannel, NULL, (void**)&pcDesc, NULL);
+	while (bHasNext)
+	{
+		SetChannelDebugNames(*puiChannel, pcDesc->mszShortName, pcDesc->mszLongName);
+		bHasNext = mpmicSourceChannelDebugs->Iterate(&sIter, (void**)&puiChannel, NULL, (void**)&pcDesc, NULL);
 	}
 }
 
@@ -1113,6 +1218,48 @@ size CChannels::GetByteStride(void)
 size CChannels::GetBitStride(void)
 {
 	return miBitStride;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CChannels::GetChannelLongName(size iChannel)
+{
+	CChannelDebugDescriptor*	psDesc;
+
+	if (mpmicChannelDebugs)
+	{
+		psDesc = mpmicChannelDebugs->Get(iChannel);
+		if (psDesc)
+		{
+			return psDesc->mszLongName;
+		}
+	}
+	
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CChannels::GetChannelShortName(size iChannel)
+{
+	CChannelDebugDescriptor* psDesc;
+
+	if (mpmicChannelDebugs)
+	{
+		psDesc = mpmicChannelDebugs->Get(iChannel);
+		if (psDesc)
+		{
+			return psDesc->mszShortName;
+		}
+	}
+
+	return NULL;
 }
 
 

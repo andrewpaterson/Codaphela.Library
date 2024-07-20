@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 void CListVariable::Init(void)
 {
 	mcArray.Init();
-	mcFreeLists.Init(&gcDataMemoryFreeListParams);
+	mcFreeLists.Init();
 }
 
 

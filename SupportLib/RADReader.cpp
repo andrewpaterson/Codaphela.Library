@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/DiskFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/TextParser.h"
+#include "ImageReaderHelper.h"
 #include "RADReader.h"
 
 
@@ -34,7 +35,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
+bool AddChannelsFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport)
 {
 	CEnumeratorVoid		cChannels;
 	CEnumeratorVoid		cTypes;
@@ -113,7 +114,7 @@ bool AddChannelsFromText(CTextParser* pcTextParser, CImage* pcImport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileName)
+bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport, CChars* szRawFileName)
 {
 	int64		iWidth;
 	int64		iHeight;
@@ -160,7 +161,7 @@ bool SetFromText(CTextParser* pcTextParser, CImage* pcImport, CChars* szRawFileN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadRAD(CImage *pcImage, char *szFileName)
+Ptr<CImage> LoadRAD(char *szFileName, bool bAddDebug)
 {
 	CTextParser 	cTextParser;
 	CTextFile		cTextFile;
@@ -190,7 +191,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 		return false;
 	}
 
-	pcImage->Init();
+	Ptr<CImage> pcImage = OMalloc<CImage>();
 	pcImage->BeginChange();
 
 	//Create an image from the text descriptor.
@@ -203,7 +204,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 		szRawFilename.Kill();
 		cTextFile.Kill();
 		cTextParser.Kill();
-		return false;
+		return NULL;
 	}
 
 	pcImage->EndChange();
@@ -214,7 +215,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 		szRawFilename.Kill();
 		cTextFile.Kill();
 		cTextParser.Kill();
-		return false;
+		return NULL;
 	}
 
 	//Finished parsing the rad file 
@@ -229,7 +230,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 	{
 		pcImage->Kill();
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	if (sFile.GetFileSize() != iImageSize)
@@ -237,7 +238,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 		pcImage->Kill();
 		sFile.Close();
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	if (pcImage->GetChannels()->GetByteSize() != iImageSize)
@@ -245,7 +246,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 		pcImage->Kill();
 		sFile.Close();
 		sFile.Kill();
-		return false;
+		return NULL;
 	}
 
 	sFile.Read(pcImage->GetChannels()->GetData(), iImageSize, 1);
@@ -254,7 +255,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 	sFile.Close();
 	sFile.Kill();
 
-	return true;
+	return pcImage;
 }
 
 
@@ -262,7 +263,7 @@ bool LoadRAD(CImage *pcImage, char *szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadRAW(CImage *pcImage, char *szFileName)
+bool LoadRAW(char *szFileName, Ptr<CImage> pcImage)
 {
 	CFileBasic	sFile;
 	size		iImageSize;

@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-bool LoadTGA(CImage* pcImage, char* szFileName);
+Ptr<CImage> LoadTGA(char* szFileName, bool bAddDebug = false);
 
 
 #endif // __TGA_READER_H__

@@ -41,12 +41,12 @@ CONSTRUCTABLE(CImageRGBToGrey);
 public:
 	ERGBToGreyStyle meStyle;
 
-	void Init(ERGBToGreyStyle eStyle);
-	void Kill(void);
-	bool Modify(CImage* pcImage);
+	void			Init(ERGBToGreyStyle eStyle);
+	void			Kill(void);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 
 private:
-	bool AreChannelsSame(CImage* pcIMage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3);
+	bool			AreChannelsSame(CImage* pcIMage, EChannel eChannel1, EChannel eChannel2, EChannel eChannel3);
 };
 
 

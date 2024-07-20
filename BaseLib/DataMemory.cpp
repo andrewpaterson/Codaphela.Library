@@ -32,6 +32,16 @@ CMemoryFreeListParams gcDataMemoryFreeListParams;
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CDataMemory::Init(void)
+{
+	Init(&gcDataMemoryFreeListParams);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CDataMemory::Init(CMemoryFreeListParams* pcFreeListParams)
 {
 	mcFreeLists.Init();
@@ -226,12 +236,12 @@ size CDataMemory::RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* 
 //////////////////////////////////////////////////////////////////////////
 size CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFreeList* pcList)
 {
-	void*						pv;
-	SDataMemoryAllocation*		psFirst;
-	SDataMemoryAllocation*		psLast;
-	size						uiCount;
-	SDataMemoryAllocation*		psAlloc;
-	size						uiNumElements;
+	void*					pv;
+	SDataMemoryAllocation*	psFirst;
+	SDataMemoryAllocation*	psLast;
+	size					uiCount;
+	SDataMemoryAllocation*	psAlloc;
+	size					uiNumElements;
 
 	uiNumElements = pav->NumElements();
 
@@ -267,7 +277,7 @@ size CDataMemory::RemoveElements(CArrayVoidPtr* pav, size i, SFNode* psNode, CFr
 void* CDataMemory::Add(size uiSize)
 {
 	CFreeList*	pcFreeList;
-	void*				pv;
+	void*		pv;
 
 	if (uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
 	{
@@ -355,7 +365,7 @@ void CDataMemory::CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, 
 void* CDataMemory::AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize)
 {
 	SDataMemoryAllocation*	psMemoryAllocation;
-	SFNode*						psNode;
+	SFNode*					psNode;
 
 	psMemoryAllocation = (SDataMemoryAllocation*)pcFreeList->Add(&psNode);
 	psMemoryAllocation->uiSize = uiElementSize;
@@ -451,7 +461,7 @@ CFreeList* CDataMemory::GetFreeList(size iElementSize)
 	size					iIndex;
 	SFreeListDesc*			psDesc;
 	SMemoryFreeListParams*	psParams;
-	size						iStride;
+	size					iStride;
 
 	psParams = mpcFreeListParams->GetFreeListParamsForSize(iElementSize);
 	iStride = CalculateStride(psParams->iMaxElementSize, DATA_MEMORY_ALIGNMENT);
@@ -514,8 +524,8 @@ CFreeList* CDataMemory::GetOrAddFreeList(size iElementSize)
 //////////////////////////////////////////////////////////////////////////
 size CDataMemory::NumElements(void)
 {
-	CFreeList*		pcBlock;
-	size			uiCount;
+	CFreeList*	pcBlock;
+	size		uiCount;
 
 	uiCount = 0;
 	pcBlock = mcFreeLists.GetHead();
@@ -536,8 +546,8 @@ size CDataMemory::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 size CDataMemory::ByteSize(void)
 {
-	size			iSize;
-	CFreeList*		pcFreeList;
+	size		iSize;
+	CFreeList*	pcFreeList;
 
 	iSize = 0;
 	pcFreeList = mcFreeLists.GetHead();

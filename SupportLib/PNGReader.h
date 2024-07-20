@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-bool LoadPNG(CImage* pcImage, char *file_name);
+Ptr<CImage> LoadPNG(char* szFileName, bool bAddDebug = false);
 
 
 #endif //__PNG_READER_H__

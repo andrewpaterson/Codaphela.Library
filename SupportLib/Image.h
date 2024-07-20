@@ -59,22 +59,27 @@ public:
 	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
 	Ptr<CImage>				Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
 	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, CImageChannelsSource* pcSource);
-	Ptr<CImage>				Init(int iWidth, int iHeight, CImage* pcChannelsSource);
-	Ptr<CImage>				Init(CImage* pcChannelsSource);  //This only sets up channels and dimensions.  
+	Ptr<CImage>				Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource);
+	Ptr<CImage>				Init(Ptr<CImage> pcChannelsSource);  //This only sets up channels and dimensions.  
 	void					Class(void);
 	void					Free(void);
+
+	void					ReInit(void);
+	void					ReInit(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
 
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
 	void					BeginChange(void);
 	void 					AddChannel(size iChannel, EPrimitiveType eType, bool bReverse = false);
+	void 					AddChannel(size iChannel, EPrimitiveType eType, char* szShortName, char* szLongName = NULL, bool bReverse = false);
+	bool					AddChannel(Ptr<CImage> pcSourceImage, size iChannel, EPrimitiveType eType);
 	void 					AddChannel(size iChannel1, size iChannel2, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, EPrimitiveType eType, bool bReverse = false);
 	void 					AddChannel(size iChannel1, size iChannel2, size iChannel3, size iChannel4, EPrimitiveType eType, bool bReverse = false);
 	void					AddChannels(CImageChannelsSource* pcSource);
 	void 					AddChannels(CArrayChannel* pasChannels);
-	void 					AddChannels(CImage* pcSourceChannels);
+	void 					AddChannels(Ptr<CImage> pcSourceChannels);
 	bool					RemoveChannel(size iChannel);
 	void					RemovePurpose(EImagePurpose ePurpose);
 	void					SetSize(int iWidth, int iHeight);
@@ -85,7 +90,8 @@ public:
 	bool 					EndChange(void);
 	bool					IsChanging(void);
 
-	void					Copy(CImage* pcSource);
+	void					Copy(Ptr<CImage> pcSource);
+	void					Copy2(Ptr<CImage> pcSource);
 	void					Clear(void);
 
 	void					SetData(void* pvData);
@@ -94,7 +100,7 @@ public:
 	CChannels*				GetChannels(void);
 	size					GetPixelSize(void);
 	
-	bool					IsSameFormat(CImage* psOther);
+	bool					IsSameFormat(Ptr<CImage> psOther);
 	bool					IsValid(int x, int y);
 	CChannel*				GetChannel(size iChannel);
 	size					GetChannelsCount(void);
@@ -104,8 +110,13 @@ public:
 	void					GetAllPrimitiveTypes(CArrayInt* paiPrimitiveTypes);
 	void					GetChannelsForType(EPrimitiveType eType, CArrayInt* paiChannels);
 
+	char*					GetChannelLongName(size iChannel);
+	char*					GetChannelShortName(size iChannel);
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
+
+	void					Print(CChars* psz);
+	void					Dump(void);
 
 protected:
 	void					PrivateInit(void);

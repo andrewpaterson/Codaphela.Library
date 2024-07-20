@@ -35,11 +35,11 @@ public:
 	CArrayInt			maiChannels;
 	int					miGroup;
 
-	void Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
-	void Kill(void);
+	void			 Init(EChannel eChannel, EPrimitiveType eType, int iGroup = 0);
+	void			 Kill(void);
 
-	void AddChannel(EChannel eChannel);
-	bool Modify(CImage* pcImage);
+	void			AddChannel(EChannel eChannel);
+	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 
 

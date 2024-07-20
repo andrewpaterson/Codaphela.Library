@@ -1623,6 +1623,9 @@
     <ClInclude Include="ChunkFileName.h">
       <Filter>Source\File\Chunk</Filter>
     </ClInclude>
+    <ClInclude Include="MapIntString.h">
+      <Filter>Source\Data\Map\Map\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2578,6 +2581,9 @@
     </ClCompile>
     <ClCompile Include="DataTypes.cpp">
       <Filter>Source\Data\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="MapIntString.cpp">
+      <Filter>Source\Data\Map\Map\Primitive</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

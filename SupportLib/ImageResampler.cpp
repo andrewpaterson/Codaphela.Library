@@ -67,9 +67,9 @@ void CImageResampler::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageResampler::Modify(CImage* pcImage)
+Ptr<CImage> CImageResampler::Modify(Ptr<CImage> pcImage)
 {
-	CImage	cDest;
+	Ptr<CImage>		pcDest;
 
 	if (meStyle != RS_Unknown)
 	{
@@ -78,14 +78,12 @@ bool CImageResampler::Modify(CImage* pcImage)
 
 	if ((pcImage->GetWidth() == miWidth) && (pcImage->GetHeight() == miHeight))
 	{
-		return true;
+		return pcImage;
 	}
 
-	ResampleTo(&cDest, pcImage);
-	pcImage->Copy(&cDest);
-	cDest.Kill();
+	pcDest = ResampleTo(pcImage);
 
-	return true;
+	return pcDest;
 }
 
 
@@ -94,7 +92,7 @@ bool CImageResampler::Modify(CImage* pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageResampler::ResampleTo(CImage* pcDest, CImage* pcSource)
+Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 {
 	float				fdx;
 	float				fdy;
@@ -112,24 +110,26 @@ void CImageResampler::ResampleTo(CImage* pcDest, CImage* pcSource)
 	float				fHScaley;
 	float				fTotalArea;
 	SImageColour*		psColour;
+	Ptr<CImage>			pcDest;
 
-	pcDest->Init();
+	pcDest = OMalloc<CImage>();
 	pcDest->BeginChange();
-	pcDest->AddChannels(pcSource);
+	pcDest->AddChannels(&pcSource);
 	pcDest->SetSize(miWidth, miHeight);
 	pcDest->EndChange();
 
+	pcSourceAccessor = CImageAccessorCreator::Create(pcSource, pcSource);
+	pcDestAccessor = CImageAccessorCreator::Create(pcDest, pcDest);
+
 	if ((pcSource->GetWidth() == miWidth) && (pcSource->GetHeight() == miHeight))
 	{
-		pcDest->Copy(pcSource);
+		gcLogger.Error2(__METHOD__, " Implement this.  Copy does not work.");
+		//pcDest->Copy(pcSource);
 	}
 	else
 	{
 		//This assumes the channels in dest and source are the same.
 		//Which is reasonable as dest has just been recreated.
-		pcSourceAccessor = CImageAccessorCreator::Create(pcSource, pcSource);
-		pcDestAccessor = CImageAccessorCreator::Create(pcDest, pcDest);
-
 		fWidth = (float)pcDest->GetWidth();
 		fHeight = (float)pcDest->GetHeight();
 
@@ -156,10 +156,12 @@ void CImageResampler::ResampleTo(CImage* pcDest, CImage* pcSource)
 				}
 			}
 		}
-
-		pcSourceAccessor->Kill();
-		pcDestAccessor->Kill();
 	}
+
+	pcSourceAccessor->Kill();
+	pcDestAccessor->Kill();
+
+	return pcDest;
 }
 
 

@@ -36,15 +36,14 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 bool SaveSFT(Ptr<CImage> pcImage, char* szFileName)
 {
 	
-	bool			bResult;
 	CImageR3G3B2A	cRGBTo8bit;
 	CChannel*		pcAlpha;
 
 	cRGBTo8bit.Init();
-	bResult = cRGBTo8bit.Modify(&pcImage);
+	pcImage = cRGBTo8bit.Modify(&pcImage);
 	cRGBTo8bit.Kill();
 
-	if (!bResult)
+	if (pcImage.IsNull())
 	{
 		return false;
 	}
@@ -54,7 +53,7 @@ bool SaveSFT(Ptr<CImage> pcImage, char* szFileName)
 	pcAlpha = pcImage->GetChannel(IMAGE_OPACITY);
 	if (pcAlpha)
 	{
-
+		int xxx = 0;
 	}
 
 	mcFile.Init(DiskFile(szFileName));

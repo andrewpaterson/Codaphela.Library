@@ -39,13 +39,13 @@ class CImageCel : public CUnknown
 CONSTRUCTABLE(CImageCel);
 protected:
 	CSubImage		mcSubImage;  //The full dimension of the cel and where it's pixels are in the source image.
-	CImage*			mpcSourceImage;
+	Ptr<CImage>		mpcSourceImage;
 
 public:
-	void 			Init(CImage* pcSourceImage);
-	void			Init(CImage* pcSourceImage, CRectangle* pcRect);
-	void 			Init(CImage* pcSourceImage, int iLeft, int iTop, int iRight, int iBottom);
-	void 			Init(CImage* pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+	void 			Init(Ptr<CImage> pcSourceImage);
+	void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
+	void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom);
+	void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
 	void			Kill(void);
 
 	void			Copy(CImageCel* pcSource);
@@ -62,7 +62,7 @@ public:
 	void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 	CSubImage*		GetSubImage(void);
 	void			SetSubImage(CSubImage* pcSubImage);
-	CImage*			GetSourceImage(void);
+	Ptr<CImage>			GetSourceImage(void);
 };
 
 
