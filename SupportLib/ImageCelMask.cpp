@@ -29,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, CFillRectangle* pcRect)
+void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect)
 {
 	Init(pcSourceImage, pcMaskImage, pcRect->miMask, pcRect->IsFillRectangular(), pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
 }
@@ -39,7 +39,7 @@ void CImageCelMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, CFillRectan
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
 {
 	CImageCel::Init(pcSourceImage, iLeft, iTop, iRight, iBottom);
 	mpcMaskImage = pcMaskImage;
@@ -67,7 +67,7 @@ void CImageCelMask::CropTransparentBorders(void)
 {
 	CPixelOpacityMask cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, mpcMaskImage, miMask);
+	cOpacity.Init(&mpcSourceImage, &mpcMaskImage, miMask);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -127,7 +127,7 @@ void CImageCelMask::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, 
 {
 	CPixelOpacityMask	cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, mpcMaskImage, miMask);
+	cOpacity.Init(&mpcSourceImage, &mpcMaskImage, miMask);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }

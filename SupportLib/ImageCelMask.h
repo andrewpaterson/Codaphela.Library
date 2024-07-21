@@ -32,13 +32,13 @@ class CImageCelMask : public CImageCel
 {
 CONSTRUCTABLE(CImageCelMask);
 protected:
-	CImage*		mpcMaskImage;  //Which pixels in the sub image belong to this cel using the mask value.
-	short		miMask;
-	bool		mbFilled;
+	Ptr<CImage>		mpcMaskImage;  //Which pixels in the sub image belong to this cel using the mask value.
+	short			miMask;
+	bool			mbFilled;
 
 public:
-	void 	Init(CImage* pcSourceImage, CImage* pcMaskImage, CFillRectangle* pcRect);
-	void 	Init(CImage* pcSourceImage, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect);
+	void 	Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
 	void	Kill(void);
 
 	void	CropTransparentBorders(void);
