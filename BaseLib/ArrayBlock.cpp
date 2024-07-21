@@ -80,7 +80,7 @@ void CArrayBlock::Fake(size iElementSize, void* pvData, size iNum, size iChunkSi
 void CArrayBlock::ReInit(void)
 {
 	CMallocator*	pcMalloc;
-	size				iChunkSize;
+	size			iChunkSize;
 
 	pcMalloc = mpcMalloc;
 	iChunkSize = miChunkSize;

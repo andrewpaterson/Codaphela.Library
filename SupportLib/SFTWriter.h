@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define SFT_TYPE_CONTAINER			(uint16)0xe4ef
 
 
-struct SSFT_Opaque
+struct SSFTOpaque
 {
 	uint16	uiType;
 	uint16	uiImageWidth;
@@ -42,7 +42,7 @@ struct SSFT_Opaque
 };
 
 
-struct SSFT_Opaque_Cel
+struct SSFTOpaqueCel
 {
 	uint16	uiType;
 	uint16	uiImageWidth;
@@ -56,7 +56,7 @@ struct SSFT_Opaque_Cel
 };
 
 
-struct SSFT_Transparent_Cel
+struct SSFTTransparentCel
 {
 	uint16	uiType;
 	uint16	uiImageWidth;
@@ -70,7 +70,7 @@ struct SSFT_Transparent_Cel
 };
 
 
-struct SSFT_Cel_Run
+struct SSFTCelRun
 {
 	uint16	uiFlags;  //0x8000: Start of run flag.  //0x7fff: run skip mask.  or how many pixels to add before the current run starts drawing
 	uint16	uiRunLength;
@@ -80,7 +80,7 @@ struct SSFT_Cel_Run
 };
 
 
-struct SSFT_Container
+struct SSFTContainer
 {
 	uint16	uiType;
 	uint16	uiCount;
@@ -88,10 +88,14 @@ struct SSFT_Container
 
 
 bool SaveSFT(Ptr<CImage> pcImage, char* szPathName);
+
 bool SaveSFTOpaque(Ptr<CImage> pcImage, char* szFileName);
 bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, char* szFileName, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
 bool SaveSFTTransparentCel(Ptr<CImage> pcImage, char* szFileName, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
 
+bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile);
+bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
+bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
 
 #endif // __SFT_WRITER_H__
 
