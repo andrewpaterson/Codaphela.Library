@@ -55,7 +55,7 @@ void CImageCelMaskTransparent::CropTransparentBorders(void)
 {
 	CPixelOpacityMaskTransparentColour cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &msTransparentColour, mpcMaskImage, miMask);
+	cOpacity.Init(&mpcSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -102,7 +102,8 @@ void CImageCelMaskTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int
 {
 	CPixelOpacityMaskTransparentColour	cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &msTransparentColour, mpcMaskImage, miMask);
+	cOpacity.Init(&mpcSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }
+

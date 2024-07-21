@@ -85,7 +85,7 @@ public:
 	CArrayUnknown*		GetImageCels(void);
 
 private:
-	Ptr<CImage>	Combine(size iFirstCelIndex);
+	Ptr<CImage>			Combine(size iFirstCelIndex);
 	void				PopulateImageArray(void);
 };
 

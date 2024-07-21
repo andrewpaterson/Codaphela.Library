@@ -254,7 +254,7 @@ bool CImageCelsSource::Load(void)
 			return false;
 		}
 
-		mcModifiers.SetImage((CImage*)pcImageSource->GetImage().Object());  //Not sure if this is a hack or not.
+		mcModifiers.SetImage(&pcImageSource->GetImage());  //Not sure if this is a hack or not.
 		mcModifiers.ApplyAll();
 
 		if (pcCelsSource->NeedsMask())
