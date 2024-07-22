@@ -25,8 +25,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FileUtil.h"
 #include "BaseLib/TypeNames.h"
+#include "BaseLib/MapPtrPtr.h"
 #include "StandardLib/ChannelsAccessorCreator.h"
 #include "ImageToR3G3B2A.h"
+#include "ImageCel.h"
 #include "SFTCommon.h"
 #include "SFTWriter.h"
 
@@ -60,7 +62,7 @@ bool SaveSFT(Ptr<CImage> pcImage, char* szFilename)
 	pcAlpha = pcImage->GetChannel(IMAGE_OPACITY);
 	if (pcAlpha)
 	{
-		return SaveSFTTransparentCel(pcImage, szFilename, 0, 0, pcImage->GetWidth(), pcImage->GetHeight());
+		return SaveSFTTransparent(pcImage, szFilename);
 	}
 	else
 	{
@@ -87,7 +89,7 @@ bool SaveSFTOpaque(Ptr<CImage> pcImage, char* szFilename)
 	cFile.Init(DiskFile(szFilename));
 	if (cFile.Open(EFM_Write_Create))
 	{
-		bResult = SaveSFTOpaque(pcImage, &cFile);
+		bResult = SaveSFTOpaque(pcImage, &cFile, 0, 0, pcImage->GetWidth(), pcImage->GetHeight());
 
 		cFile.Close();
 		cFile.Kill();
@@ -103,39 +105,10 @@ bool SaveSFTOpaque(Ptr<CImage> pcImage, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile)
+bool SaveSFTTransparent(Ptr<CImage> pcImage, char* szFilename)
 {
-	SSFTOpaque	sStruct;
-	size		iResult;
-
-	if (pcFile->IsOpen())
-	{
-		sStruct.Init(pcImage->GetWidth(), pcImage->GetHeight());
-		iResult = pcFile->Write(&sStruct, sizeof(SSFTOpaque), 1);
-		if (iResult != 1)
-		{
-			return false;
-		}
-
-		iResult = pcFile->Write(pcImage->GetData(), 1, pcImage->GetByteSize());
-
-		return iResult == pcImage->GetByteSize();
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, char* szFilename, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight)
-{
-	CFileBasic		cFile;
-	bool			bResult;
+	CFileBasic			cFile;
+	bool				bResult;
 
 	if (StrEmpty(szFilename))
 	{
@@ -145,7 +118,7 @@ bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, char* szFilename, int16 iCelLeft, int
 	cFile.Init(DiskFile(szFilename));
 	if (cFile.Open(EFM_Write_Create))
 	{
-		bResult = SaveSFTOpaqueCel(pcImage, &cFile, iCelLeft, iCelTop, uiCelWidth, uiCelHeight);
+		bResult = SaveSFTTransparent(pcImage, &cFile, 0, 0, pcImage->GetWidth(), pcImage->GetHeight());
 
 		cFile.Close();
 		cFile.Kill();
@@ -163,26 +136,51 @@ bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, char* szFilename, int16 iCelLeft, int
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
-	SSFTOpaqueCel	sStruct;
-	size			iResult;
+	SSFTImage	sStruct;
+	size		iResult;
+	size		uiImageWidth;
+	size		uiImageHeight;
+	uint8*		puiData;
+	size		x;
+	size		y;
+	size		x2;
+	size		y2;
+	size		i;
+	uint8*		puiImage;
 
 	if (pcFile->IsOpen())
 	{
-		sStruct.Init(pcImage->GetWidth(), pcImage->GetHeight(), iCelLeft, iCelTop, uiCelWidth, uiCelHeight);
-		iResult = pcFile->Write(&sStruct, sizeof(SSFTOpaqueCel), 1);
+		uiImageWidth = pcImage->GetWidth();
+		uiImageHeight = pcImage->GetHeight();
+
+		sStruct.Init(SFT_TYPE_OPAQUE, uiCelWidth, uiCelHeight);
+		iResult = pcFile->Write(&sStruct, sizeof(SSFTImage), 1);
 		if (iResult != 1)
 		{
 			return false;
 		}
 
-		iResult = pcFile->Write(pcImage->GetData(), 1, pcImage->GetByteSize());
-		if (iResult != pcImage->GetByteSize())
+		puiImage = (uint8*)pcImage->GetData();
+		puiData = (uint8*)malloc(uiCelWidth);
+		y2 = uiImageTopOffset + uiCelHeight;
+		x2 = uiImageLeftOffset + uiCelWidth;
+		for (y = uiImageTopOffset; y < y2; y++)
 		{
-			return false;
-		}
+			for (i = 0, x = uiImageLeftOffset; x < x2; x++, i++)
+			{
+				puiData[i] = puiImage[x + y * uiImageWidth];
+			}
 
+			iResult = pcFile->Write(puiData, 1, uiCelWidth);
+			if (iResult != uiCelWidth)
+			{
+				free(puiData);
+				return false;
+			}
+		}
+		free(puiData);
 		return true;
 	}
 	else
@@ -196,46 +194,15 @@ bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTTransparentCel(Ptr<CImage> pcImage, char* szFilename, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
-	CFileBasic			cFile;
-	bool				bResult;
-	
-	if (StrEmpty(szFilename))
-	{
-		return false;
-	}
-
-	cFile.Init(DiskFile(szFilename));
-	if (cFile.Open(EFM_Write_Create))
-	{
-		bResult = SaveSFTTransparentCel(pcImage, &cFile, iCelLeft, iCelTop, uiCelWidth, uiCelHeight);
-
-		cFile.Close();
-		cFile.Kill();
-		return bResult;
-	}
-	else
-	{
-		cFile.Kill();
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight)
-{
-	SSFTTransparentCel	sStruct;
+	SSFTImage			sStruct;
 	CChannelsAccessor*	pcOppacityAccessor;
 	CChannelsAccessor*	pcDiffueseAccessor;
 	size				x;
 	size				y;
-	size				uiWidth;
-	size				uiHeight;
+	size				uiImageWidth;
+	size				uiImageHeight;
 	bool				bOpaque;
 	uint8				uiColour;
 	SSFTCelRun			sCelRun;
@@ -244,13 +211,15 @@ bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLe
 	uint16				uiRunLength;
 	CArrayChar			auiRow;
 	size				iResult;
+	size				y2;
+	size				x2;
 
 	if (pcFile->IsOpen())
 	{
-		uiWidth = pcImage->GetWidth();
-		uiHeight = pcImage->GetHeight();
-		sStruct.Init((uint16)uiWidth, (uint16)uiHeight, iCelLeft, iCelTop, uiCelWidth, uiCelHeight);
-		iResult = pcFile->Write(&sStruct, sizeof(SSFTTransparentCel), 1);
+		uiImageWidth = pcImage->GetWidth();
+		uiImageHeight = pcImage->GetHeight();
+		sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
+		iResult = pcFile->Write(&sStruct, sizeof(SSFTImage), 1);
 		if (iResult != 1)
 		{
 			return false;
@@ -266,15 +235,17 @@ bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLe
 
 		auiRow.Init();
 		sCelRun.Init(false);
-		for (y = 0; y < uiHeight; y++)
+		y2 = uiImageTopOffset + uiCelHeight;
+		x2 = uiImageLeftOffset + uiCelWidth;
+		for (y = uiImageTopOffset; y < y2; y++)
 		{
 			bLastOpaque = false;
 			uiSkipLength = 0;
 			uiRunLength = 0;
-			for (x = 0; x < uiWidth; x++)
+			for (x = uiImageLeftOffset; x < x2; x++)
 			{
-				bOpaque = *((bool*)pcOppacityAccessor->Get(x + y * uiWidth));
-				uiColour = *((uint8*)pcDiffueseAccessor->Get(x + y * uiWidth));
+				bOpaque = *((bool*)pcOppacityAccessor->Get(x + y * uiImageWidth));
+				uiColour = *((uint8*)pcDiffueseAccessor->Get(x + y * uiImageWidth));
 
 				if (!bOpaque && bLastOpaque)
 				{
@@ -349,4 +320,97 @@ bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLe
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool SaveSFT(CArrayUnknown* pacImageCels, char* szFilename)
+{
+	CImageR3G3B2A	cRGBTo8bit;
+	//CChannel*		pcAlpha;
+	size			i;
+	size			uiNumCels;
+	CMapPtrPtr		cMap;
+	Ptr<CImage>		pcImage;
+	Ptr<CImage>		pcConverted;
+	CImageCel*		pcImageCel;
+	Ptr<CImage>		pcExisting;
+	CFileBasic		cFile;
+	CSubImage*		pcSub;
+	uint16			uiCelWidth;
+	uint16			uiCelHeight;
+	uint16			uiCelLeft;
+	uint16			uiCelTop;
+
+	if (szFilename == NULL)
+	{
+		return false;
+	}
+
+	cFile.Init(DiskFile(szFilename));
+	if (cFile.Open(EFM_Write_Create))
+	{
+		cMap.Init();
+		uiNumCels = pacImageCels->NumElements();
+		for (i = 0; i < uiNumCels; i++)
+		{
+			pcImageCel = (CImageCel*)pacImageCels->Get(i);
+			pcImage = pcImageCel->GetSourceImage();
+			pcExisting = (CImage*)cMap.Get(&pcImage);
+
+			if (pcExisting.IsNull())
+			{
+				cRGBTo8bit.Init();
+				pcConverted = cRGBTo8bit.Modify(&pcImage);
+				if (pcConverted.IsNull())
+				{
+					cMap.Kill();
+					//You should kill the converted images to.  Or use a map that will do that for you.
+					return false;
+				}
+				cRGBTo8bit.Kill();
+			
+				cMap.Put(&pcImage, &pcConverted);
+			}
+		}
+
+		pcConverted = NULL;
+		pcExisting = NULL;
+
+
+		for (i = 0; i < uiNumCels; i++)
+		{
+			pcImageCel = (CImageCel*)pacImageCels->Get(i);
+			pcImage = pcImageCel->GetSourceImage();
+			pcExisting = (CImage*)cMap.Get(&pcImage);
+
+			pcSub = pcImageCel->GetSubImage();
+			uiCelWidth = pcSub->GetImageWidth();
+			uiCelHeight = pcSub->GetImageHeight();
+			uiCelLeft = pcSub->mcImageRect.GetLeft();
+			uiCelTop = pcSub->mcImageRect.GetTop();
+
+			SaveSFTTransparent(pcExisting, &cFile, uiCelLeft, uiCelTop, uiCelWidth, uiCelHeight);
+		}
+
+		//pcAlpha = pcImage->GetChannel(IMAGE_OPACITY);
+		//if (pcAlpha)
+		//{
+		//	return SaveSFTTransparent(pcImage, szFilename);
+		//}
+		//else
+		//{
+		//	return SaveSFTOpaque(pcImage, szFilename);
+		//}
+
+		cFile.Close();
+		cFile.Kill();
+		return false;
+	}
+
+	cFile.Kill();
+	return false;
+
+}
 
