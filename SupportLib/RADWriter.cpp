@@ -113,14 +113,14 @@ bool SaveRAD(Ptr<CImage> pcImage, char *szPathName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveRAW(Ptr<CImage> pcImage, char* szFileName)
+bool SaveRAW(Ptr<CImage> pcImage, char* szFilename)
 {
 	CNaiveFile	cNaiveFile;
 	bool		bResult;
 
 	cNaiveFile.Init();
 	cNaiveFile.Set(pcImage->GetData(), pcImage->GetByteSize());
-	bResult = cNaiveFile.Write(szFileName);
+	bResult = cNaiveFile.Write(szFilename);
 	cNaiveFile.Kill();
 
 	return bResult;

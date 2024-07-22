@@ -35,10 +35,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMTLReader::Init(CMaterial* pcMaterial, char *szFileName)
+void CMTLReader::Init(CMaterial* pcMaterial, char *szFilename)
 {
 	mpcMaterial = pcMaterial;
-	mszFileName.Init(szFileName);
+	mszFileName.Init(szFilename);
 }
 
 

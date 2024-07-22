@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
-bool WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eImageType = IT_Unknown);
+bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eImageType = IT_Unknown);
 
 
 #endif //__IMAGE_WRITER_H__

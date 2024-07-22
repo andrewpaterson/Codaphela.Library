@@ -59,7 +59,7 @@ public:
 	CMaterial*	mpcMaterial;
 	CChars		mszFileName;
 
-	void Init(CMaterial* pcMaterial, char *szFileName);
+	void Init(CMaterial* pcMaterial, char *szFilename);
 	void Kill(void);
 
 	bool Read(void);

@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 * file, and the other where we are given an open file (possibly with
 * some or all of the magic bytes read - see comments above).
 */
-Ptr<CImage> LoadPNG(char* szFileName, bool bAddDebug)
+Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 {
 	png_structp			png_ptr;
 	png_infop			info_ptr;
@@ -49,7 +49,7 @@ Ptr<CImage> LoadPNG(char* szFileName, bool bAddDebug)
 	bool				bReverse;
 	CImageCopier		cCopier;
 
-	if ((fp = fopen(szFileName, "rb")) == NULL)
+	if ((fp = fopen(szFilename, "rb")) == NULL)
 	{
 		return false;
 	}

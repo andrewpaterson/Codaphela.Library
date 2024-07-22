@@ -46,8 +46,8 @@ class CMeshEditor;
 class CTextParser;
 
 
-bool LoadOBJ(Ptr<CMesh> pcMesh, char* szFileName);
-bool LoadOBJ(Ptr<CMeshEditor> pcMesh, char* szFileName);
+bool LoadOBJ(Ptr<CMesh> pcMesh, char* szFilename);
+bool LoadOBJ(Ptr<CMeshEditor> pcMesh, char* szFilename);
 
 
 class CObjReader
@@ -58,8 +58,8 @@ public:
 	int					miMaterial;
 	int					miSmoothingGroup;
 
-	void Init(Ptr<CMesh> pcMesh, char *szFileName);
-	void Init(Ptr<CMeshEditor> pcEditor, char *szFileName);
+	void Init(Ptr<CMesh> pcMesh, char *szFilename);
+	void Init(Ptr<CMeshEditor> pcEditor, char *szFilename);
 	void Kill(void);
 
 	bool Read(void);

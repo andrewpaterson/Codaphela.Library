@@ -65,7 +65,7 @@ bool CImageCelsSourceXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* s
 bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath)
 {
 	CMarkupTag*			pcFileName;
-	CChars				szFileName;
+	CChars				szFilename;
 	CChars				szShortFileName;
 	bool				bResult;
 	CMarkupTag*			pcCels;
@@ -79,7 +79,7 @@ bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 
 	szShortFileName.Init();
 	pcFileName->GetText(&szShortFileName);
-	if (szFileName.Empty())
+	if (szFilename.Empty())
 	{
 		szShortFileName.Kill();
 		CMarkupTextParser::LogErrorTagWasEmpty(pcBrushSourceTag);
@@ -93,10 +93,10 @@ bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 		return false;
 	}
 
-	szFileName.Init(szTexturePath);
-	cFileUtil.AppendToPath(&szFileName, szShortFileName.Text());
+	szFilename.Init(szTexturePath);
+	cFileUtil.AppendToPath(&szFilename, szShortFileName.Text());
 
-	bResult = ImportCels(pcCels, szFileName.Text());
+	bResult = ImportCels(pcCels, szFilename.Text());
 	return bResult;
 }
 
@@ -105,7 +105,7 @@ bool CImageCelsSourceXML::ImportCelSource(CMarkupTag* pcBrushSourceTag, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
+bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFilename)
 {
 	STagIterator				sIter;
 	CSubImageXML				cSubImageXML;
@@ -136,11 +136,11 @@ bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFileName)
 
 	cSubImagesSource.Init(&acSubImages);
 
-	szGroupName.Init(szFileName);
+	szGroupName.Init(szFilename);
 	cFileUtil.RemovePath(&szGroupName);
 
 	cCelsSource.Init();
-	cCelsSource.AddDiskFileSource(szFileName, szGroupName.Text(), &cSubImagesSource);
+	cCelsSource.AddDiskFileSource(szFilename, szGroupName.Text(), &cSubImagesSource);
 	cCelsSource.Load();
 
 	mpcWorld->AddImages(cCelsSource.GetImages());

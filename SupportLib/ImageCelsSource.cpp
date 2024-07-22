@@ -111,18 +111,18 @@ void CImageCelsSource::AddSource(CImageSource* pcImageSource, CImageCelSource* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::AddDiskFileSource(char* szFileName, char* szImageName, CImageCelSource* pcCelSource)
+void CImageCelsSource::AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource)
 {
 	CImageSourceDiskFile*	pcDiskFile;
 	size					iLen;
 	CChars					szNewName;
 	CFileUtil				cFileUtil;
 
-	if (!szFileName)
+	if (!szFilename)
 	{
 		return;
 	}
-	iLen = strlen(szFileName);
+	iLen = strlen(szFilename);
 	if (iLen == 0)
 	{
 		return;
@@ -132,13 +132,13 @@ void CImageCelsSource::AddDiskFileSource(char* szFileName, char* szImageName, CI
 
 	if (szImageName)
 	{
-		pcDiskFile->Init(szFileName, szImageName);
+		pcDiskFile->Init(szFilename, szImageName);
 	}
 	else
 	{
-		szNewName.Init(szFileName);
+		szNewName.Init(szFilename);
 		cFileUtil.RemovePath(&szNewName);
-		pcDiskFile->Init(szFileName, szNewName.Text());
+		pcDiskFile->Init(szFilename, szNewName.Text());
 		szNewName.Kill();
 	}
 	AddSource(pcDiskFile, pcCelSource);

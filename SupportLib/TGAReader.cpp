@@ -27,9 +27,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "TGAReader.h"
 
 
-//+------------------------------------------------------------------+
-//| an INTERNAL struct for describing a .TGA file header             |
-//+------------------------------------------------------------------+
 struct STGAFileHeader
 {
 	uint8  iIDLength;
@@ -43,9 +40,6 @@ struct STGAFileHeader
 };
 
 
-//+------------------------------------------------------------------+
-//| an INTERNAL struct for describing a .TGA image header            |
-//+------------------------------------------------------------------+
 struct STGAImageHeader
 {
 	unsigned short iImageWidth;
@@ -61,34 +55,27 @@ struct STGAImageHeader
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadUncompressedTrueColourTGA(char *szFilename, bool bAddDebug)
 {
-	STGAImageHeader 		sTGAImageHeader;
-	STGAFileHeader  		sTGAFileHeader;				// Used To Store Our File Header
-	CFileBasic				sFile;
-	int   					iWidth;
-	int   					iHeight;
-	int   					iBitsPerPixel;
-	int   					iBytesPerPixel;
-	int   					iImageSize;
-	uint8*			pvMem;
-	CImage					cImageImport;
-	CImageCopier			cCopier;
-	filePos					iRead;
-	int						i;
-	int						iStride;
+	STGAImageHeader 	sTGAImageHeader;
+	STGAFileHeader  	sTGAFileHeader;				// Used To Store Our File Header
+	CFileBasic			sFile;
+	int   				iWidth;
+	int   				iHeight;
+	int   				iBitsPerPixel;
+	int   				iBytesPerPixel;
+	int   				iImageSize;
+	uint8*				pvMem;
+	CImage				cImageImport;
+	CImageCopier		cCopier;
+	filePos				iRead;
+	int					i;
+	int					iStride;
 
-	//----------------------------------------------------------------------
-	// open the tga file.
-	//----------------------------------------------------------------------
 	sFile.Init(DiskFile(szFilename));
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();
 		return false;
 	}
-
-	//----------------------------------------------------------------------
-	// read the header
-	//----------------------------------------------------------------------
 
 	//Error check please.
 	memset(&sTGAFileHeader, 0, sizeof(STGAFileHeader));
