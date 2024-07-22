@@ -259,13 +259,15 @@ bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLe
 		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcImage->GetChannels(), IMAGE_OPACITY, PT_bit);
 		CChannelsAccessorCreator cCreator;
 		cCreator.Init(pcImage->GetChannels());
-		cCreator.AddAccess(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE);
+		cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
+		cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
+		cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
 		pcDiffueseAccessor = cCreator.CreateAndKill();
 
 		auiRow.Init();
+		sCelRun.Init(false);
 		for (y = 0; y < uiHeight; y++)
 		{
-			sCelRun.Init(true);
 			bLastOpaque = false;
 			uiSkipLength = 0;
 			uiRunLength = 0;
@@ -290,12 +292,6 @@ bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLe
 						auiRow.Kill();
 						return false;
 					}
-
-					CChars	sz;
-					sz.Init();
-					sz.AppendData2(auiRow.GetData(), auiRow.NumElements());
-					sz.AppendNewLine();
-					sz.DumpKill();
 
 					auiRow.ReInit();
 					sCelRun.Init(false);
@@ -335,13 +331,17 @@ bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLe
 
 				auiRow.ReInit();
 			}
+
+			sCelRun.Init(true);
 		}
 
 		pcOppacityAccessor->Kill();
 		pcDiffueseAccessor->Kill();
 		auiRow.Kill();
 
-		return true;
+		sCelRun.Init(false);
+		iResult = pcFile->Write(&sCelRun, sizeof(SSFTCelRun), 1);
+		return iResult == 1;
 	}
 	else
 	{

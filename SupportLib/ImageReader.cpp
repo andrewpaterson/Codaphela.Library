@@ -242,3 +242,4 @@ bool ReadRawImage(Ptr<CImage> pcImage, char* szFilename)
 {
 	return LoadRAW(szFilename, pcImage);
 }
+
