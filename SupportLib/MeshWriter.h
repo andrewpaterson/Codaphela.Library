@@ -27,7 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 
-bool WriteMesh(CMesh* pcMesh, char* szFileName, EMeshType eMeshType = MT_Unknown);
+bool WriteMesh(CMesh* pcMesh, char* szFilename, EMeshType eMeshType = MT_Unknown);
 
 
 #endif //__MESH_WRITER_H__

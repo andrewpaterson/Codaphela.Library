@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Mesh.h"
 
 
-bool SaveOBJ(CMesh *pcMesh, char* szFileName);
+bool SaveOBJ(CMesh *pcMesh, char* szFilename);
 
 
 #endif // __OBJ_WRITER_H__

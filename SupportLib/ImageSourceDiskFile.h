@@ -33,7 +33,7 @@ CONSTRUCTABLE(CImageSourceDiskFile);
 public:
 	CChars	mszFileName;
 
-	void Init(char* szFileName, char* szImageName = NULL);
+	void Init(char* szFilename, char* szImageName = NULL);
 	void Kill(void);
 
 	bool LoadImage(void);

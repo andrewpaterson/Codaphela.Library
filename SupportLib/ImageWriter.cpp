@@ -103,7 +103,7 @@ bool GetEncoderClsid(EImageType eImageType, CLSID* psID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFileName, EImageType eImageType)
+void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFilename, EImageType eImageType)
 {
 	// Initialize GDI+.
 	GdiplusStartupInput gdiplusStartupInput;
@@ -122,7 +122,7 @@ void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFileName, EImageType eImageT
 
 	if (GetEncoderClsid(eImageType, &Clsid))
 	{
-		MultiByteToWideChar(CP_ACP, 0, szFileName, -1, wszPath, MAX_PATH);
+		MultiByteToWideChar(CP_ACP, 0, szFilename, -1, wszPath, MAX_PATH);
 
 		iFormat = PixelFormatMax;
 		if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO))
@@ -171,11 +171,11 @@ Shutdown:
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eType)
+bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 {
 	if (eType == IT_Unknown)
 	{
-		eType = GuessImageType(szFileName);
+		eType = GuessImageType(szFilename);
 	}
 
 	//Oi! Check to make sure none of the below expect an initialised image.
@@ -189,14 +189,14 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFileName, EImageType eType)
 	case IT_WMF:
 	case IT_TGA:
 	case IT_PNG:
-		WriteGDIPlusImage(pcImage, szFileName, eType);
+		WriteGDIPlusImage(pcImage, szFilename, eType);
 		return true;
 	case IT_RAD:
-		return (SaveRAD(pcImage, szFileName));
+		return (SaveRAD(pcImage, szFilename));
 	case IT_RAW:
-		return (SaveRAW(pcImage, szFileName));
+		return (SaveRAW(pcImage, szFilename));
 	case IT_SFT:
-		return (SaveSFT(pcImage, szFileName));
+		return (SaveSFT(pcImage, szFilename));
 	}
 	return false;
 }

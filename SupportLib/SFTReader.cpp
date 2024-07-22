@@ -21,50 +21,27 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MTL_READER_H__
-#define __MTL_READER_H__
-#include "BaseLib/Chars.h"
-#include "BaseLib/ArrayTemplate.h"
-#include "MeshEditorWrapper.h"
+#include "BaseLib/DiskFile.h"
+#include "ImageCopier.h"
+#include "SFTCommon.h"
+#include "SFTReader.h"
 
 
-enum EWavefrontMTLPrefix
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 {
-	WMTLP_Ns,		//Glossiness
-	WMTLP_Ni,		//?
-	WMTLP_d, 		//Opacity
-	WMTLP_Tr,		//Opacity
-	WMTLP_Tf,		//Opacity
-	WMTLP_illum,	//?
-	WMTLP_Ka,		//Ambient RGB
-	WMTLP_Kd,		//Diffuse RGB
-	WMTLP_Ks,		//Specular RGB
-	WMTLP_Ke,		//Emmisive RGB
-	WMTLP_map_Ka,	//Ambient RGB Map
-	WMTLP_map_Kd,	//Diffuse RGB Map
-	WMTLP_map_Ks,	//Specular RGB Map
-	WMTLP_map_Ke,	//Emmisive RGB Map
-	WMTLP_map_d,	//Opacity Map
-	WMTLP_map_bump, //Bump Map
-	WMTLP_bump,		//Bump Map
-	WMTLP_map_refl, //Environment Map
-};
+	CFileBasic			sFile;
 
+	sFile.Init(DiskFile(szFilename));
+	if (!sFile.Open(EFM_Read))
+	{
+		sFile.Kill();
+		return NULL;
+	}
 
-class CMaterial;
-class CTextParser;
-class CMTLReader
-{
-public:
-	CMaterial*	mpcMaterial;
-	CChars		mszFileName;
-
-	void Init(CMaterial* pcMaterial, char *szFilename);
-	void Kill(void);
-
-	bool Read(void);
-};
-
-
-#endif // __MTL_READER_H__
+	return NULL;
+}
 

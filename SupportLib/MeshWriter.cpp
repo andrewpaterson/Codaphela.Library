@@ -29,18 +29,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool WriteMesh(CMesh* pcMesh, char* szFileName, EMeshType eType)
+bool WriteMesh(CMesh* pcMesh, char* szFilename, EMeshType eType)
 {
 	if (eType == MT_Unknown)
 	{
-		eType = GuessMeshType(szFileName);
+		eType = GuessMeshType(szFilename);
 	}
 
 	//Oi! Check to make sure none of the below expect an initialised image.
 	switch (eType)
 	{
 	case MT_OBJ:
-		return (SaveOBJ(pcMesh, szFileName));
+		return (SaveOBJ(pcMesh, szFilename));
 	}
 	return false;
 }

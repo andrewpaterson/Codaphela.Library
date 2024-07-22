@@ -21,22 +21,13 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __SFT_WRITER_H__
-#define __SFT_WRITER_H__
-#include "SFTCommon.h"
+#ifndef __SFT_READER_H__
+#define __SFT_READER_H__
 #include "Image.h"
 
 
-bool SaveSFT(Ptr<CImage> pcImage, char* szPathName);
-
-bool SaveSFTOpaque(Ptr<CImage> pcImage, char* szFilename);
-bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, char* szFilename, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
-bool SaveSFTTransparentCel(Ptr<CImage> pcImage, char* szFilename, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
-
-bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile);
-bool SaveSFTOpaqueCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
-bool SaveSFTTransparentCel(Ptr<CImage> pcImage, CFileBasic* pcFile, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
+Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug = false);
 
 
-#endif // __SFT_WRITER_H__
+#endif // __SFT_READER_H__
 

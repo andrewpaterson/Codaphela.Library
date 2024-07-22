@@ -231,7 +231,7 @@ void AddOBJFaces(CMesh* pcMesh, CChars* psz, bool bTextureCoords, bool bVertexNo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveOBJ(CMesh *pcMesh, char* szFileName)
+bool SaveOBJ(CMesh *pcMesh, char* szFilename)
 {
 	CTextFile cTextFile;
 	bool bTextureCoords;
@@ -246,7 +246,7 @@ bool SaveOBJ(CMesh *pcMesh, char* szFileName)
 	bTextureCoords = AddOBJTextureCoords(&pcMesh->mcUVs, &cTextFile.mcText);
 	AddOBJFaces(pcMesh, &cTextFile.mcText, bTextureCoords, bVertexNormals);
 	
-	cTextFile.Write(szFileName);
+	cTextFile.Write(szFilename);
 	cTextFile.Kill();
 	return false;
 }

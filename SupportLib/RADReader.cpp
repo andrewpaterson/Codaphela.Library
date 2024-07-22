@@ -161,7 +161,7 @@ bool SetFromText(CTextParser* pcTextParser, Ptr<CImage> pcImport, CChars* szRawF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadRAD(char *szFileName, bool bAddDebug)
+Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 {
 	CTextParser 	cTextParser;
 	CTextFile		cTextFile;
@@ -171,11 +171,11 @@ Ptr<CImage> LoadRAD(char *szFileName, bool bAddDebug)
 	CFileBasic		sFile;
 	CFileUtil		cFileUtil;
 
-	szRadFilename.Init(szFileName);
+	szRadFilename.Init(szFilename);
 	cFileUtil.FullPath(&szRadFilename);
 
 	cTextFile.Init();
-	if (!cTextFile.Read(szFileName))
+	if (!cTextFile.Read(szFilename))
 	{
 		cTextFile.Kill();
 		return false;
@@ -263,13 +263,13 @@ Ptr<CImage> LoadRAD(char *szFileName, bool bAddDebug)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadRAW(char *szFileName, Ptr<CImage> pcImage)
+bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 {
 	CFileBasic	sFile;
 	size		iImageSize;
 	filePos		iResult;
 
-	sFile.Init(DiskFile(szFileName));
+	sFile.Init(DiskFile(szFilename));
 	if (!sFile.Open(EFM_Read))
 	{
 		sFile.Kill();

@@ -71,25 +71,25 @@ bool CTileMapXML::Import(CTileWorld* pcTileWorld)
 	CMarkupTag*		pcTagBrushSources;
 	CMarkupTag*		pcTagObjectSources;
 	CMarkupTag*		pcTagMaps;
-	CChars			szFileName;
+	CChars			szFilename;
 	CChars			szDirectory;
 	CFileUtil		cFileUtil;
 
 	mpcWorld = pcTileWorld;
 	mpcWorld->Init();
 
-	szFileName.Init();
+	szFilename.Init();
 	szDirectory.Init();
-	cFileUtil.SplitPath(mszMapName.Text(), &szFileName, &szDirectory);
+	cFileUtil.SplitPath(mszMapName.Text(), &szFilename, &szDirectory);
 
 	cXMLFile.Init();
-	bResult = cXMLFile.Read(szFileName.Text(), szDirectory.Text());
-	szFileName.Kill();
+	bResult = cXMLFile.Read(szFilename.Text(), szDirectory.Text());
+	szFilename.Kill();
 	szDirectory.Kill();
 	if (!bResult)
 	{
 		cXMLFile.Kill();
-		gcLogger.Error2(szFileName.Text(), " not found or could not be parsed.", NULL);
+		gcLogger.Error2(szFilename.Text(), " not found or could not be parsed.", NULL);
 		return false;
 	}
 	pcMarkup = &cXMLFile.mcMarkup;

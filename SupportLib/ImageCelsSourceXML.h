@@ -35,7 +35,7 @@ public:
 
 	bool Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath);
 	bool ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath);
-	bool ImportCels(CMarkupTag* pcCelsTag, char* szFileName);
+	bool ImportCels(CMarkupTag* pcCelsTag, char* szFilename);
 };
 
 

@@ -29,10 +29,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageSourceDiskFile::Init(char* szFileName, char* szImageName)
+void CImageSourceDiskFile::Init(char* szFilename, char* szImageName)
 {
 	CImageSource::Init(szImageName);
-	mszFileName.Init(szFileName);
+	mszFileName.Init(szFilename);
 }
 
 

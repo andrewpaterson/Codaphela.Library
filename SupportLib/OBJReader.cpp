@@ -38,12 +38,12 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool LoadOBJ(Ptr<CMesh> pcMesh, char *szFileName)
+bool LoadOBJ(Ptr<CMesh> pcMesh, char *szFilename)
 {
 	CObjReader	cReader;
 	bool		bResult;
 
-	cReader.Init(pcMesh, szFileName);
+	cReader.Init(pcMesh, szFilename);
 	bResult = cReader.Read();
 	cReader.Kill();
 
@@ -55,10 +55,10 @@ bool LoadOBJ(Ptr<CMesh> pcMesh, char *szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMesh> pcMesh, char *szFileName)
+void CObjReader::Init(Ptr<CMesh> pcMesh, char *szFilename)
 {
 	mcWrapper.Init(pcMesh);
-	mszFileName.Init(szFileName);
+	mszFileName.Init(szFilename);
 }
 
 
@@ -66,10 +66,10 @@ void CObjReader::Init(Ptr<CMesh> pcMesh, char *szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjReader::Init(Ptr<CMeshEditor> pcEditor, char *szFileName)
+void CObjReader::Init(Ptr<CMeshEditor> pcEditor, char *szFilename)
 {
 	mcWrapper.Init(pcEditor);
-	mszFileName.Init(szFileName);
+	mszFileName.Init(szFilename);
 
 	miMaterial = -1;
 	miSmoothingGroup = 1;
