@@ -26,47 +26,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/PrimitiveTypes.h"
 
 
-#define SFT_TYPE_OPAQUE				(uint16)0xe457
-#define SFT_TYPE_OPAQUE_CEL			(uint16)0xe434
-#define SFT_TYPE_TRANSPARENT_CEL	(uint16)0xe4f9
-#define SFT_TYPE_CONTAINER			(uint16)0xe4ef
+#define SFT_TYPE_OPAQUE			(uint16)0xe457
+#define SFT_TYPE_TRANSPARENT	(uint16)0xe4f9
+#define SFT_TYPE_CONTAINER		(uint16)0xe4ef
 
 
-struct SSFTOpaque
+struct SSFTImage
 {
 	uint16	uiType;
 	uint16	uiImageWidth;
 	uint16	uiImageHeight;
 
-	void	Init(uint16 uiImageWidth, uint16 uiImageHeight);
-};
-
-
-struct SSFTOpaqueCel
-{
-	uint16	uiType;
-	uint16	uiImageWidth;
-	uint16	uiImageHeight;
-	int16	iCelLeft;
-	int16	iCelTop;
-	uint16	uiCelWidth;
-	uint16	uiCelHeight;
-
-	void	Init(uint16 uiImageWidth, uint16 uiImageHeight, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
-};
-
-
-struct SSFTTransparentCel
-{
-	uint16	uiType;
-	uint16	uiImageWidth;
-	uint16	uiImageHeight;
-	int16	iCelLeft;
-	int16	iCelTop;
-	uint16	uiCelWidth;
-	uint16	uiCelHeight;
-
-	void	Init(uint16 uiImageWidth, uint16 uiImageHeight, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight);
+	void	Init(uint16 uiType, uint16 uiImageWidth, uint16 uiImageHeight);
 };
 
 
@@ -88,8 +59,15 @@ struct SSFTCelRun
 struct SSFTContainer
 {
 	uint16	uiType;
-	uint16	uiCount;
+	uint16	uiCount;  //Count of contained images.
 };
+
+
+struct SSFTContained
+{
+	uint16	uiSkipToNext;  //How many bytes to seek forward to the next contained (or zero if no more images contained).  Relative to the end of this struct.
+	uint16	uiSkipToName;  //How many bytes to seek forward to this images name (or zero if no name).  Relative to the end of this struct.
+};  //end of struct == start of SSFT image type.
 
 
 #endif // __SFT_COMMON_H__

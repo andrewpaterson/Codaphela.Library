@@ -65,13 +65,7 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 
 		return pcImage;
 	}
-	else if (uiType == SFT_TYPE_OPAQUE_CEL)
-	{
-		cFile.Seek(0);
-
-		return NULL;
-	}
-	else if (uiType == SFT_TYPE_TRANSPARENT_CEL)
+	else if (uiType == SFT_TYPE_TRANSPARENT)
 	{
 		cFile.Seek(0);
 		pcImage = LoadSFTTransparentCel(&cFile, bAddDebug);
@@ -127,7 +121,7 @@ uint32 Convert8BitColourTo32BitColour(uint8 uiColour8)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 {
-	SSFTOpaque	sStruct;
+	SSFTImage	sStruct;
 	size		iResult;
 	size		i;
 	uint8		uiColour8;
@@ -137,7 +131,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 	uint8*		puiData;
 	size		iPos;
 
-	iResult = pcFile->Read(&sStruct, sizeof(SSFTOpaque), 1);
+	iResult = pcFile->Read(&sStruct, sizeof(SSFTImage), 1);
 	if (iResult != 1)
 	{
 		return NULL;
@@ -191,7 +185,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> LoadSFTTransparentCel(CFileBasic* pcFile, bool bAddDebug)
 {
-	SSFTTransparentCel	sStruct;
+	SSFTImage			sStruct;
 	size				iResult;
 	size				x;
 	size				y;
@@ -205,25 +199,19 @@ Ptr<CImage> LoadSFTTransparentCel(CFileBasic* pcFile, bool bAddDebug)
 	size				uiWidth;
 	void*				pvResult;
 
-	iResult = pcFile->Read(&sStruct, sizeof(SSFTTransparentCel), 1);
+	iResult = pcFile->Read(&sStruct, sizeof(SSFTImage), 1);
 	if (iResult != 1)
 	{
 		return NULL;
 	}
 
-	if (sStruct.uiType != SFT_TYPE_TRANSPARENT_CEL)
+	if (sStruct.uiType != SFT_TYPE_TRANSPARENT)
 	{
 		return NULL;
 	}
 
-	if ((sStruct.uiCelWidth != sStruct.uiImageWidth) ||
-		(sStruct.uiCelHeight != sStruct.uiImageHeight))
-	{
-		return NULL;
-	}
-
-	uiWidth = sStruct.uiCelWidth;
-	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiCelWidth, sStruct.uiCelHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
+	uiWidth = sStruct.uiImageWidth;
+	Ptr<CImage> pcImage = OMalloc<CImage>(sStruct.uiImageWidth, sStruct.uiImageHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO);
 	if (pcImage.IsNull())
 	{
 		return false;

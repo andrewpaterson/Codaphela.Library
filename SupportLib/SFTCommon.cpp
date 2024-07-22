@@ -29,27 +29,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SSFTOpaque::Init(uint16 uiImageWidth, uint16 uiImageHeight)
+void SSFTImage::Init(uint16 uiType, uint16 uiImageWidth, uint16 uiImageHeight)
 {
-	this->uiType = SFT_TYPE_OPAQUE;
+	this->uiType = uiType;
 	this->uiImageWidth = uiImageWidth;
 	this->uiImageHeight = uiImageHeight;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void SSFTOpaqueCel::Init(uint16 uiImageWidth, uint16 uiImageHeight, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight)
-{
-	this->uiType = SFT_TYPE_OPAQUE_CEL;
-	this->uiImageWidth = uiImageWidth;
-	this->uiImageHeight = uiImageHeight;
-	this->iCelLeft = iCelLeft;
-	this->iCelTop = iCelTop;
-	this->uiCelWidth = uiCelWidth;
-	this->uiCelHeight = uiCelHeight;
 }
 
 
@@ -121,19 +105,4 @@ bool SSFTCelRun::IsDone(void)
 	return (uiFlags == 0) && (uiRunLength == 0);
 }
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void SSFTTransparentCel::Init(uint16 uiImageWidth, uint16 uiImageHeight, int16 iCelLeft, int16 iCelTop, uint16 uiCelWidth, uint16 uiCelHeight)
-{
-	this->uiType = SFT_TYPE_TRANSPARENT_CEL;
-	this->uiImageWidth = uiImageWidth;
-	this->uiImageHeight = uiImageHeight;
-	this->iCelLeft = iCelLeft;
-	this->iCelTop = iCelTop;
-	this->uiCelWidth = uiCelWidth;
-	this->uiCelHeight = uiCelHeight;
-}
 
