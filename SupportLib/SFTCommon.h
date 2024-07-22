@@ -75,8 +75,13 @@ struct SSFTCelRun
 	uint16	uiFlags;  //0x8000: Start of run flag.  //0x7fff: run skip mask.  or how many pixels to add before the current run starts drawing
 	uint16	uiRunLength;
 
-	void Init(bool bStartOfRun);
-	void Set(uint16 uiRunLength, uint16 uiSkipLength);
+	void	Init(bool bStartOfRun);
+	void	Set(uint16 uiRunLength, uint16 uiSkipLength);
+
+	bool	IsStartOfRun(void);
+	uint16	GetRunLength(void);
+	uint16	GetSkipLength(void);
+	bool	IsDone(void);
 };
 
 

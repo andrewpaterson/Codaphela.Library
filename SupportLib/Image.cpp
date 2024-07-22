@@ -842,6 +842,21 @@ bool CImage::HasChannels(size iFirst, ...)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CImage::SetChannelDebugNames(size iChannel)
+{
+	char* szShortName;
+	char* szLongName;
+
+	szLongName = gmiszImageChannelLongNames.Get(iChannel);
+	szShortName = gmiszImageChannelShortNames.Get(iChannel);
+	mcChannels.SetChannelDebugNames(iChannel, szShortName, szLongName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CImage::Print(CChars* psz)
 {
 	CChannels*			pcChannels;

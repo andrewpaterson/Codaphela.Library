@@ -28,6 +28,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug = false);
 
+Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug);
+Ptr<CImage> LoadSFTTransparentCel(CFileBasic* pcFile, bool bAddDebug = false);
+
 
 #endif // __SFT_READER_H__
 

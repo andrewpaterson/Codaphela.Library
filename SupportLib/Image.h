@@ -115,6 +115,8 @@ public:
 	bool					HasChannel(size iChannel);
 	bool					HasChannels(size iFirst, ...);
 
+	void					SetChannelDebugNames(size iChannel);
+
 	void					Print(CChars* psz);
 	void					Dump(void);
 
