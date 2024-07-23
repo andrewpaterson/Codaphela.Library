@@ -234,7 +234,7 @@ filePos CFileBasic::GetFileLength(void)
 //  Description  : gets the length (in bytes) of the file
 // 
 //////////////////////////////////////////////////////////////////////////
-filePos CFileBasic::GetFileSize(void)
+filePos CFileBasic::Size(void)
 {
 	return mpcFile->Size();
 }
@@ -260,6 +260,21 @@ bool CFileBasic::Truncate(filePos iSize)
 // 
 //////////////////////////////////////////////////////////////////////////
 filePos CFileBasic::GetFilePos()
+{
+	return mpcFile->Tell();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// 
+//  Function Name: CFileBasic::FilePos
+// 
+//  Returns      : integer position in the file
+// 
+//  Description  : the position in the current file we are currently at
+// 
+//////////////////////////////////////////////////////////////////////////
+filePos CFileBasic::Tell()
 {
 	return mpcFile->Tell();
 }

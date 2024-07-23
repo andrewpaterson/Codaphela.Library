@@ -206,7 +206,7 @@ void CImageCelsSource::AddDiskFileSources(char* szPathName, char* szFileNameCont
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::AddMemorySource(CImage* pcImage, CImageCelSource* pcCelSource)
+void CImageCelsSource::AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource)
 {
 	CImageSourceMemory*		pcMemory;
 

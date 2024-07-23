@@ -60,13 +60,17 @@ struct SSFTContainer
 {
 	uint16	uiType;
 	uint16	uiCount;  //Count of contained images.
+
+	void	Init(uint16 uicount);
 };
 
 
 struct SSFTContained
 {
 	uint16	uiSkipToNext;  //How many bytes to seek forward to the next contained (or zero if no more images contained).  Relative to the end of this struct.
-	uint16	uiSkipToName;  //How many bytes to seek forward to this images name (or zero if no name).  Relative to the end of this struct.
+
+	void	Init(void);
+	void	Init(uint16 uiSkipToNext);
 };  //end of struct == start of SSFT image type.
 
 

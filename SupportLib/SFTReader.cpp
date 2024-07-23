@@ -26,6 +26,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/ArrayChar.h"
 #include "ImageCopier.h"
+#include "ImageCombiner.h"
+#include "ImageCelsSource.h"
+#include "ImageCelSourceSingle.h"
 #include "SFTCommon.h"
 #include "SFTReader.h"
 
@@ -68,7 +71,7 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 	else if (uiType == SFT_TYPE_TRANSPARENT)
 	{
 		cFile.Seek(0);
-		pcImage = LoadSFTTransparentCel(&cFile, bAddDebug);
+		pcImage = LoadSFTTransparent(&cFile, bAddDebug);
 		cFile.Close();
 		cFile.Kill();
 
@@ -76,9 +79,12 @@ Ptr<CImage> LoadSFT(char* szFilename, bool bAddDebug)
 	}
 	else if (uiType == SFT_TYPE_CONTAINER)
 	{
+		cFile.Seek(0);
+		pcImage = LoadSFTContainer(&cFile, bAddDebug);
 		cFile.Close();
 		cFile.Kill();
-		return NULL;
+
+		return pcImage;
 	}
 	else
 	{
@@ -183,7 +189,7 @@ Ptr<CImage> LoadSFTOpaque(CFileBasic* pcFile, bool bAddDebug)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> LoadSFTTransparentCel(CFileBasic* pcFile, bool bAddDebug)
+Ptr<CImage> LoadSFTTransparent(CFileBasic* pcFile, bool bAddDebug)
 {
 	SSFTImage			sStruct;
 	size				iResult;
@@ -276,5 +282,108 @@ Ptr<CImage> LoadSFTTransparentCel(CFileBasic* pcFile, bool bAddDebug)
 	sMemory.Kill();
 
 	return pcImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
+{
+	SSFTContainer			sContainer;
+	size					iResult;
+	SSFTContained			sContained;
+	bool					bResult;
+	uint16					uiType;
+	filePos					uiFilePos;
+	Ptr<CImage>				pcImage;
+	size					i;
+	CImageCelsSource		cSource;
+	CImageCombiner			cCombiner;
+	CImageCelSourceSingle	cSingle;
+	Ptr<CImage>				pcDestImage;
+
+	cSingle.Init(0, 0, 0, 0, NULL, false, false);
+	cSource.Init();
+
+	iResult = pcFile->Read(&sContainer, sizeof(SSFTContainer), 1);
+	if (iResult != 1)
+	{
+		return NULL;
+	}
+
+	if (sContainer.uiType != SFT_TYPE_CONTAINER)
+	{
+		return NULL;
+	}
+
+	for (i = 0;; i++)
+	{
+		iResult = pcFile->Read(&sContained, sizeof(SSFTContained), 1);
+		if (iResult != 1)
+		{
+			return NULL;
+		}
+
+		uiFilePos = pcFile->Tell();
+		bResult = pcFile->ReadInt16(&uiType);
+		bResult &= pcFile->Seek(uiFilePos);
+		if (!bResult)
+		{
+			return NULL;
+		}
+
+		pcImage = NULL;
+		if (uiType == SFT_TYPE_OPAQUE)
+		{
+			pcImage = LoadSFTOpaque(pcFile, bAddDebug);
+			if (pcImage.IsNull())
+			{
+				return NULL;
+			}
+		}
+		else if (uiType == SFT_TYPE_TRANSPARENT)
+		{
+			pcImage = LoadSFTTransparent(pcFile, bAddDebug);
+			if (pcImage.IsNull())
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			return NULL;
+		}
+
+		cSource.AddMemorySource(pcImage, &cSingle);
+
+		if (sContained.uiSkipToNext != 0)
+		{
+			bResult = pcFile->Seek(uiFilePos - sizeof(SSFTContained));
+			bResult &= pcFile->Seek(sContained.uiSkipToNext, EFSO_CURRENT);
+			if (!bResult)
+			{
+				return NULL;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	cSource.Load();
+
+	cCombiner.Init(ICL_Best, ICS_PowerOf2, ICC_FromCels);
+	cCombiner.AddCels(cSource.GetCels());
+	pcDestImage = cCombiner.Combine();
+
+	cCombiner.Kill();
+	cSingle.Kill();
+	cSource.Kill();
+
+
+	return pcDestImage;
 }
 

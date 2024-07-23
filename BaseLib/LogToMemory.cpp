@@ -32,7 +32,7 @@ void CLogToMemory::Stop(char* szOutput, size uiOutputSize)
 	mcMemoryFile.Open(EFM_Read);
 	cFileBasic.Init(&mcMemoryFile);
 	memset(szOutput, 0, uiOutputSize);
-	cFileBasic.ReadStringChars(szOutput, (int)cFileBasic.GetFileSize());
+	cFileBasic.ReadStringChars(szOutput, (size)cFileBasic.Size());
 	mcMemoryFile.Close();
 	mcMemoryFile.Kill();
 	cFileBasic.Kill();

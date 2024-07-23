@@ -591,7 +591,7 @@ filePos CDurableFile::Size(void)
 	}
 	else
 	{
-		return mcPrimaryFile.GetFileSize();
+		return mcPrimaryFile.Size();
 	}
 }
 

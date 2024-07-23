@@ -287,7 +287,7 @@ void CIndexedFile::Dump(void)
 	filePos			iNumDatas;
 
 	pcFile = mcFile.DumpGetPrimaryFile();
-	iSizeOnDisk = pcFile->GetFileSize();
+	iSizeOnDisk = pcFile->Size();
 	iNumDatas = iSizeOnDisk / muiDataSize;
 
 	sz.Init();
