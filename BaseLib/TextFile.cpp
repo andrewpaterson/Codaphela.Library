@@ -100,7 +100,7 @@ bool CTextFile::Read(CAbstractFile* pcAbstractFile)
 	mcFile.Init(pcAbstractFile);
 	if (mcFile.Open(EFM_Read))
 	{
-		iSize = mcFile.GetFileSize();
+		iSize = mcFile.Size();
 
 		mcText.SetLength((int)iSize);
 		mcFile.ReadData(mcText.Text(), (int)iSize);

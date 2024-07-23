@@ -50,7 +50,8 @@ public:
 	bool		IsOpen(void);
 	filePos		GetFileLength(void);
 	filePos		GetFilePos(void);
-	filePos		GetFileSize(void);  //Same as GetFileLength.
+	filePos		Tell(void);
+	filePos		Size(void);  //Same as GetFileLength.
 
 	bool		Truncate(filePos iSize);
 

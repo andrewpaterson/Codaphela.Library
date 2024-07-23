@@ -117,7 +117,7 @@ bool CNaiveFile::Read(CAbstractFile* pcAbstractFile)
 		mcFile.Init(pcAbstractFile);
 		if (mcFile.Open(EFM_Read))
 		{
-			miSize = mcFile.GetFileSize();
+			miSize = mcFile.Size();
 
 			mpvMem = malloc((int)miSize);
 			mcFile.ReadData(mpvMem, (int)miSize);

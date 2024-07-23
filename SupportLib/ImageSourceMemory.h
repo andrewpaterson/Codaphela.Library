@@ -31,7 +31,7 @@ class CImageSourceMemory : public CImageSource
 {
 CONSTRUCTABLE(CImageSourceMemory); 
 public:
-	void Init(CImage* pcImage);
+	void Init(Ptr<CImage> pcImage);
 	void Kill(void);
 
 	bool LoadImage(void);

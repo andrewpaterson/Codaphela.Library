@@ -569,7 +569,7 @@ bool CPackFiles::BeginWrite(void)
 {
 	ReturnOnFalse(mcFile.Open(EFM_ReadWrite_Create));
 
-	if (mcFile.GetFileSize() > 0)
+	if (mcFile.Size() > 0)
 	{
 		ReturnOnFalse(ReadHeader());
 		ReturnOnFalse(ReadNodes());
@@ -741,7 +741,7 @@ bool CPackFiles::WriteNodes(void)
 		return false;
 	}
 
-	iPosition = mcFile.GetFileSize();
+	iPosition = mcFile.Size();
 
 	mcFile.Seek(miNextNodesPtr, EFSO_SET);
 	ReturnOnFalse(mcFile.WriteInt64(iPosition));
