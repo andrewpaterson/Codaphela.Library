@@ -68,9 +68,9 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 	pcDest = OMalloc<CImage>();
 	pcDest->BeginChange();
 	pcDest->SetSize(pcImage->GetWidth(), pcImage->GetHeight());
-	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_BLUE, PT_crumb);
-	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_GREEN, PT_tribble);
 	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_RED, PT_tribble);
+	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_GREEN, PT_tribble);
+	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_BLUE, PT_crumb);
 	if (pcImage->HasChannel(IMAGE_OPACITY))
 	{
 		pcDest->AddChannel(pcImage, IMAGE_OPACITY, PT_uint8);

@@ -224,9 +224,9 @@ bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLef
 		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcImage->GetChannels(), IMAGE_OPACITY, PT_bit);
 		CChannelsAccessorCreator cCreator;
 		cCreator.Init(pcImage->GetChannels());
-		cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
-		cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
 		cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
+		cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
+		cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
 		pcDiffueseAccessor = cCreator.CreateAndKill();
 
 		auiRow.Init();
