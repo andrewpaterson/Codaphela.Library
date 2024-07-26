@@ -107,9 +107,12 @@ uint32 Convert8BitColourTo32BitColour(uint8 uiColour8)
 	uint8				a;
 	uint32				uiColour32;
 
-	b = uiColour8 & 0x3;
-	g = ((uiColour8 >> 2) & 0x7);
-	r = ((uiColour8 >> 5) & 0x7);
+	//b = (uiColour8 >> 0) & 0x3;
+	//g = (uiColour8 >> 2) & 0x7;
+	//r = (uiColour8 >> 5) & 0x7;
+	b = (uiColour8 >> 6) & 0x3;
+	g = (uiColour8 >> 3) & 0x7;
+	r = (uiColour8 >> 0) & 0x7;
 
 	b = (b << 6) + (b << 4) + (b << 2) + b;
 	g = (g << 5) + (g << 2) + (g >> 1);
