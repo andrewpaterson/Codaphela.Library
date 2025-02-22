@@ -48,10 +48,9 @@ void CProject::Init(bool bDumpLogs, bool bLogBlocks)
 //////////////////////////////////////////////////////////////////////////
 void CProject::Kill(void)
 {
-	CLibrary*	pcLibrary;
-
-	CHeaderFiles* pcHeaderNameMap;
-	int					i;
+	CLibrary*		pcLibrary;
+	CHeaderFiles*	pcHeaderNameMap;
+	size			i;
 
 	for (i = 0; i < mcHeaderNames.NumElements(); i++)
 	{

@@ -128,7 +128,7 @@ void CSourceFile::SetContents(const char* sz)
 //////////////////////////////////////////////////////////////////////////
 char* CSourceFile::ShortName(void)
 {
-	int		iIndex;
+	size		iIndex;
 
 	iIndex = mszFullName.FindFromEnd(FILE_SEPARATOR);
 	if (iIndex == -1)
@@ -189,7 +189,7 @@ char* CSourceFile::GetContents(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CSourceFile::GetContentsLength(void)
+size CSourceFile::GetContentsLength(void)
 {
 	return mszContents.Length();
 }

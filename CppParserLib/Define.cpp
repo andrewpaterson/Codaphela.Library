@@ -51,7 +51,7 @@ void CDefine::AddArgument(CExternalString* pcName)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::SetVariadic(void)
 {
-	SetFlag(&miFlags, DEFINE_FLAGS_VARIADIC, true);
+	SetFlagInt(&miFlags, DEFINE_FLAGS_VARIADIC, true);
 }
 
 
@@ -111,7 +111,7 @@ bool CDefine::IsInMap(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::SetSpecial(bool b)
 {
-	SetFlag(&miFlags, DEFINE_FLAGS_SPECIAL, b);
+	SetFlagInt(&miFlags, DEFINE_FLAGS_SPECIAL, b);
 }
 
 
@@ -121,7 +121,7 @@ void CDefine::SetSpecial(bool b)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::SetBracketed(bool b)
 {
-	SetFlag(&miFlags, DEFINE_FLAGS_BRACKETED, b);
+	SetFlagInt(&miFlags, DEFINE_FLAGS_BRACKETED, b);
 }
 
 
@@ -133,11 +133,11 @@ void CDefine::SetDefineMap(CDefineMap* pcDefineMap)
 {
 	if (pcDefineMap)
 	{
-		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, true);
+		SetFlagInt(&miFlags, DEFINE_FLAGS_IN_MAP, true);
 	}
 	else
 	{
-		SetFlag(&miFlags, DEFINE_FLAGS_IN_MAP, false);
+		SetFlagInt(&miFlags, DEFINE_FLAGS_IN_MAP, false);
 	}
 	mpcDefineMap = pcDefineMap;
 }
@@ -167,7 +167,7 @@ bool CDefine::Equals(CDefine* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDefine::CanProcessArguments(int iNumArguments)
+bool CDefine::CanProcessArguments(size iNumArguments)
 {
 	if (!IsVariadic())
 	{
@@ -206,9 +206,9 @@ int64 CDefine::GetID(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefine::Dump(void)
 {
-	CChars	sz;
-	int		i;
-	CChars* psz;
+	CChars		sz;
+	size		i;
+	CChars*		psz;
 
 	sz.Init();
 

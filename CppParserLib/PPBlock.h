@@ -36,11 +36,11 @@ protected:
 
 public:
 	PP_TOKEN_CONSTRUCT(CPPBlock);
-	void 				Init(int iLine, int iColumn, char* szFileName);
+	void 				Init(size iLine, size iColumn, char* szFileName);
 	void 				Kill(void);
 	bool 				IsBlock(void);
 	void				Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
-	void				SetNext(int	iTokenIndex, int iBlockIndex);
+	void				SetNext(size	iTokenIndex, size iBlockIndex);
 	bool				Equals(CPPToken* pcOther);
 	SPPTokenBlockIndex	GetNextTokenBlock(void);
 	void				DumpPointersAsChars(CArrayIntAndPointer* papc);

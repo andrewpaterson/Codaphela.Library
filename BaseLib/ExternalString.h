@@ -20,6 +20,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __EXTERNAL_STRING_H__
 #define __EXTERNAL_STRING_H__
+#include "PrimitiveTypes.h"
 
 
 class CExternalString

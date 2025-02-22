@@ -93,8 +93,8 @@ CPPBlockSet* CPPBlockSetArray::Add(int iLine, bool bTextBlocks)
 //////////////////////////////////////////////////////////////////////////
 void CPPBlockSetArray::Print(CChars* psz)
 {
-	int				i;
-	CPPBlockSet* pcBlockSet;
+	size			i;
+	CPPBlockSet*	pcBlockSet;
 
 	for (i = 0; i < NumElements(); i++)
 	{
@@ -124,7 +124,7 @@ void CPPBlockSetArray::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 void CPPBlockSetArray::DumpBlockSets(void)
 {
-	int				i;
+	size			i;
 	CPPBlockSet*	pcBlockSet;
 
 	for (i = 0; i < NumElements(); i++)

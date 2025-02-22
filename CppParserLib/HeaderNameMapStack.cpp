@@ -48,7 +48,7 @@ void CHeaderNameMapDirectory::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CHeaderNameMapStack::Kill(void)
 {
-	int							i;
+	size						i;
 	CHeaderNameMapDirectory*	pc;
 
 	for (i = 0; i < miUsedElements; i++)

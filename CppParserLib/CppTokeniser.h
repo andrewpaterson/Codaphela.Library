@@ -55,7 +55,7 @@ public:
 	bool	WideStringLiteral(void);
 	bool	IntegerLiteral(void);
 	bool	ShortLiteral(void);
-	void	IntegerType(unsigned long long int ulliValue);
+	void	IntegerType(uint64 ulliValue);
 	void	DoubleType(long double ldValue);
 	bool	DecimalInteger(void);
 	void	AddToken(CCPPToken* pcToken);

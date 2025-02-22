@@ -53,7 +53,7 @@ void CASCIITree::Kill(void)
 int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 {
 	bool				bResult;
-	int					iDataSize;
+	size				iDataSize;
 	SASCIINameIndex*	psData;
 	int64				lliID;
 
@@ -71,13 +71,13 @@ int64 CASCIITree::Add(char* szText, char* szLastCharInclusive)
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(mlliID), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongToString(mlliID), "].", NULL);
 			return false;
 		}
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongLongToString(mlliID), "].  Key already exists.", NULL);
+		gcLogger.Error2(__METHOD__, " Cannot add key [", StringToString(szText, szLastCharInclusive), "] with ID [", LongToString(mlliID), "].  Key already exists.", NULL);
 		return false;
 	}
 }

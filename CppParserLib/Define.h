@@ -21,7 +21,7 @@ protected:
 	CArrayChars		maszArguments;
 	int64			mlliID;			//If a token is undef'd and redef'd it's muiID will change.
 	CDefineMap*		mpcDefineMap;
-	int				miFlags;
+	uint32			miFlags;
 	CChars			mszName;
 
 public:
@@ -31,7 +31,7 @@ public:
 	void			SetVariadic(void);
 	void 			AddReplacmentToken(CPPToken* pcToken);
 	bool 			Equals(CDefine* pcOther);
-	bool			CanProcessArguments(int iNumArguments);
+	bool			CanProcessArguments(size iNumArguments);
 	char*			GetName(void);
 	int64			GetID(void);
 	bool			IsBacketed(void);

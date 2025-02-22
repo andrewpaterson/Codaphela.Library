@@ -890,7 +890,6 @@
     <ClCompile Include="XMLProlog.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
     <None Include="FunctionCaller_C_Call.inl" />
     <None Include="FunctionCaller_ThisCall.inl" />
     <None Include="FunctionCaller_ThisMultiCall.inl" />

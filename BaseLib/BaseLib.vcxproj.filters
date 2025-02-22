@@ -2601,7 +2601,6 @@
     <None Include="TimSort.inl">
       <Filter>Source\Sort</Filter>
     </None>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl">

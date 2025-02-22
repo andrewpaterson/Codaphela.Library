@@ -37,7 +37,7 @@ void CDefineArguments::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDefineArguments::Kill(void)
 {
-	int		i;
+	size		i;
 
 	SDefineArgument*	psDefineArg;
 
@@ -57,7 +57,7 @@ void CDefineArguments::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 SDefineArgument* CDefineArguments::Get(int64 lliDefineID)
 {
-	int					i;
+	size				i;
 	SDefineArgument*	psDefineArg;
 
 	for (i = 0; i < mcDefineToArguments.NumElements(); i++)
@@ -101,7 +101,7 @@ SDefineArgument* CDefineArguments::Add(int64 lliDefineID)
 //////////////////////////////////////////////////////////////////////////
 void CDefineArguments::Remove(int64 lliDefineID)
 {
-	int					i;
+	size				i;
 	SDefineArgument*	psDefineArg;
 
 	for (i = 0; i < mcDefineToArguments.NumElements(); i++)
@@ -121,7 +121,7 @@ void CDefineArguments::Remove(int64 lliDefineID)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CDefineArguments::GetDefineArgumentsIndex(SDefineArgument* psArguments)
+size CDefineArguments::GetDefineArgumentsIndex(SDefineArgument* psArguments)
 {
 	return mcDefineToArguments.GetIndex(psArguments);
 }

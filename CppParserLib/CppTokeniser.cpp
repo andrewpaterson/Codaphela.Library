@@ -184,7 +184,7 @@ void CCPPTokeniser::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCPPTokeniser::Kill(void)
 {
-	int				i;
+	size			i;
 	CCPPToken*		pcToken;
 
 	for (i = 0; i < mcTokens.NumElements(); i++)
@@ -207,7 +207,7 @@ void CCPPTokeniser::Kill(void)
 bool CCPPTokeniser::Line(void)
 {
 	bool		bResult;
-	int			iTokenNum;
+	size		iTokenNum;
 
 	iTokenNum = -1;
 	while (mcParser.HasToken())
@@ -327,7 +327,7 @@ void CCPPTokeniser::PrintError(CPPLine* pcLine)
 //////////////////////////////////////////////////////////////////////////
 void CCPPTokeniser::PrintTokens(void)
 {
-	int			j;
+	size		j;
 	CCPPToken*	pcToken;
 	CChars		sz;
 	bool		bPrevNewLine;

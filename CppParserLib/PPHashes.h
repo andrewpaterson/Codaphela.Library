@@ -26,11 +26,11 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CPPHashes : public CPPToken
 {
 public:
-	int		miCount;
+	size		miCount;
 
 	PP_TOKEN_CONSTRUCT(CPPHashes);
-	void	Init(int iLine, int iColumn, char* szFileName);
-	void	Init(int iCount, int iLine, int iColumn, char* szFileName);
+	void	Init(size iLine, size iColumn, char* szFileName);
+	void	Init(size iCount, size iLine, size iColumn, char* szFileName);
 	void	Kill(void);
 	bool	IsHash(void);
 	char*	Print(CChars* psz);

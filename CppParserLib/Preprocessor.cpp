@@ -117,7 +117,7 @@ void CPreprocessor::Kill(void)
 void CPreprocessor::AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames)
 {
 	CHeaderFiles*		pcHeaderNameMap;
-	int					i;
+	size				i;
 
 	for (i = 0; i < pcHeaderNames->NumElements(); i++)
 	{
@@ -225,12 +225,12 @@ CSpecialOperator* CPreprocessor::AddSpecialOperator(char* szSpecialOperator, EPr
 CDefine* CPreprocessor::AddDefine(char* szDefine, char* szReplacement, CPPTokenMemory* pcTokenMemory)
 {
 	CDefine*				pcDefine;
-	int						iLen;
+	size						iLen;
 	char*					sz;
 	CPPText					pcText;
 	CPreprocessorTokeniser	cTokeniser;
 
-	iLen = (int)strlen(szReplacement);
+	iLen = strlen(szReplacement);
 	pcDefine = mcDefines.AddDefine(szDefine);
 	sz = (char*)mcDefineStrings.Add(iLen+1);
 	memcpy(sz, szReplacement, iLen+1);
@@ -254,13 +254,13 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	CDefine*				pcDefine;
 	CPPText*				pcText;
 	CPPReplacement*			pcReplacement;
-	int						iReplaceArg;
+	size					iReplaceArg;
 	CPPToken*				pcToken;
 	bool					bAllocated;
 	bool					bAllowWhiteSpace;
 	CDefine*				pcExisting;
-	int						iNumArguments;
-	int						iReplacementNum;
+	size					iNumArguments;
+	size					iReplacementNum;
 	bool					bVariadic;
 	SPreprocessorPosition	sPos;
 	CChars					szError;
@@ -348,7 +348,7 @@ bool CPreprocessor::ProcessUnknownDirective(CPreprocessorTokenParser* pcParser, 
 	CExternalString			cIdentifier;
 	bool					bResult;
 	SPreprocessorPosition	sPos;
-	int						iBracketCount;
+	size					iBracketCount;
 	bool					bHasToken;
 	CPPToken*				pcToken;
 	CPPText*				pcText;
@@ -640,9 +640,9 @@ void CPreprocessor::FindBestInclude(CExternalString* pcInclude, bool bSystemFile
 	CChars						szInclude;
 	CHeaderFile*				pcBestFile;
 	CHeaderFiles*				pcBestHeaderNameMap;
-	int							iMatch;
-	int							iBestMatch;
-	int							i;
+	int32						iMatch;
+	int32						iBestMatch;
+	size						i;
 	CHeaderFiles*				pcHeaderNameMap;
 	CHeaderFile*				pcHeaderFile;
 	CHeaderNameMapDirectory*	pcCurrentDirectory;
@@ -1064,7 +1064,7 @@ bool CPreprocessor::TokeniseFile(CSourceFile* pcFile)
 	bool					bResult;
 	CPPBlockSetArray*		pacBlockSets;
 	char*					szFileContents;
-	int						iFileLength;
+	size					iFileLength;
 	CPPTokenMemory*			pcTokenMemory;
 
 	pcFile->Load();
@@ -1419,7 +1419,7 @@ bool CPreprocessor::ProcessDoubleHash(CPPTokenList* pcDest, CPPHashes* pcHash, C
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, int iDepth)
+bool CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth)
 {
 	CDefine*					pcDefine;
 	bool						bResult;
@@ -1469,7 +1469,7 @@ bool CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 		{
 			pcParser->NextToken();
 			psArguments = mcArguments.Add(pcDefine->GetID());
-			iArgIndex = mcArguments.GetDefineArgumentsIndex(psArguments);
+			iArgIndex = (int)mcArguments.GetDefineArgumentsIndex(psArguments);
 			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
 			if (!bResult)
 			{
@@ -1527,7 +1527,7 @@ bool CPreprocessor::ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pc
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, int iDepth)
+bool CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth)
 {
 	CPPToken*					pcToken;
 	CDefine*					pcDefine;
@@ -1547,7 +1547,7 @@ bool CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 		{
 			pcParser->NextToken();
 			psArguments = mcArguments.Add(pcDefine->GetID());
-			iArgIndex = mcArguments.GetDefineArgumentsIndex(psArguments);
+			iArgIndex = (int)mcArguments.GetDefineArgumentsIndex(psArguments);
 			bResult = FindArguments(pcParser, &psArguments->macTokenArguments);
 			if (!bResult)
 			{
@@ -1607,7 +1607,7 @@ bool CPreprocessor::ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* p
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::KillArguments(SDefineArgument* psArguments)
 {
-	int					i;
+	size				i;
 	CPPTokenList*		pcTokenHolder;
 
 	for (i = 0; i < psArguments->macTokenArguments.NumElements(); i++)
@@ -1840,7 +1840,7 @@ bool CPreprocessor::ProcessHasBuiltInIdentifier(CPPTokenList* pcDest, CPPText* p
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth)
+bool CPreprocessor::ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
 {		
 	CPPToken*				pcNewToken;
 	CPPText*				pcText;
@@ -1897,7 +1897,7 @@ CPPToken* CPreprocessor::DuplicatePPToken(CPPToken* pcSource)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth)
+bool CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
 {
 	CPPToken*			pcNewToken;
 	CPPText*			pcText;
@@ -1941,7 +1941,7 @@ bool CPreprocessor::ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPToken
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth)
+void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth)
 {
 	CArrayPPTokenLists*			pcArguments;
 	CPPTokenList*				pcArgument;
@@ -1970,7 +1970,7 @@ void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CP
 		else
 		{
 			bFirst = true;
-			iNumElements = pcArguments->NumElements();
+			iNumElements = (int)pcArguments->NumElements();
 			for (i = pcReplacement->miArgIndex; i < iNumElements; i++)
 			{
 				pcArgument = pcArguments->Get(i);
@@ -1999,10 +1999,10 @@ void CPreprocessor::ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CP
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth)
+void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth)
 {
-	CArrayPPTokenLists* pcArguments;
-	CPPTokenList* pcArgument;
+	CArrayPPTokenLists*			pcArguments;
+	CPPTokenList*				pcArgument;
 	CPreprocessorTokenParser	cParser;
 	CPPLine						cLine;
 	SDefineArgument*			psDefineArgument;
@@ -2028,7 +2028,7 @@ void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, C
 		else
 		{
 			bFirst = true;
-			iNumElements = pcArguments->NumElements();
+			iNumElements = (int)pcArguments->NumElements();
 			for (i = pcReplacement->miArgIndex; i < iNumElements; i++)
 			{
 				pcArgument = pcArguments->Get(i);
@@ -2057,16 +2057,14 @@ void CPreprocessor::ExpandReplacementNormalLine(CPPReplacement* pcReplacement, C
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessDirectiveLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth)
+bool CPreprocessor::ProcessDirectiveLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
 {
-	int						iHashCount;
 	CPPToken*				pcToken;
 	SPreprocessorPosition	sPos;
 	CChars					szError;
 
 	MarkPositionForError(pcParser, &sPos);
 
-	iHashCount = 0;
 	while (pcParser->HasToken())
 	{
 		pcToken = pcParser->GetToken();
@@ -2087,11 +2085,11 @@ bool CPreprocessor::ProcessDirectiveLine(CPPTokenList* pcDest, CPreprocessorToke
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessor::ProcessNormalLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth)
+bool CPreprocessor::ProcessNormalLine(CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth)
 {
 	CPPHashes*					pcHash;
 	CPPTokenReplacementsHolder	cHolder;
-	int							iHashCount;
+	size						iHashCount;
 	CPPToken*					pcTemp;
 	CPPToken*					pcPrev;
 	CPPToken*					pcToken;
@@ -2338,15 +2336,15 @@ void CPreprocessor::AddTokenToArgument(CPPTokenList* pcArgument, CPPToken* pcTok
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken)
 {
 	SPPTokenBlockIndex			sLine;
-	int							iNumLines;
+	size						iNumLines;
 	CPPToken*					pcToken;
 	CPPDirective*				pcDirective;
 	CPreprocessorTokenParser	cParser;
 	bool						bResult;
-	int							iOldLine;
+	size							iOldLine;
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
@@ -2465,15 +2463,15 @@ SPPTokenBlockIndex CPreprocessor::PreprocessDirectiveTokens(CPPTokenList* pcSour
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSourceTokens, int iBlock, int iToken)
+SPPTokenBlockIndex CPreprocessor::PreprocessNormalLineTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken)
 {
 	SPPTokenBlockIndex			sLine;
-	int							iNumLines;
+	size						iNumLines;
 	CPPToken*					pcToken;
 	CPPLine*					pcLine;
 	CPreprocessorTokenParser	cParser;
 	bool						bResult;
-	int							iOldLine;
+	size						iOldLine;
 	CChars						szError;
 	SPreprocessorPosition		sPos;
 
@@ -2601,7 +2599,7 @@ TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 {
-	int			i;
+	size		i;
 	CChars*		pszText;
 
 	if (pcConfig)
@@ -2621,7 +2619,7 @@ void CPreprocessor::AddConfigDefines(CConfig* pcConfig)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessor::DeltaDefines(CArrayNamedDefines* pcDelta)
 {
-	int					i;
+	size				i;
 	CNamedDefine*		pcNamedDefine;
 	CDefine*			pcExisting;
 	CDefine*			pcDefine;
@@ -2698,7 +2696,7 @@ void CPreprocessor::MarkPositionForError(CPreprocessorTokenParser* pcParser, SPr
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessor::MarkPositionForError(int iLine, int iColumn, SPreprocessorPosition* psPos)
+void CPreprocessor::MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos)
 {
 	char* szShortFileName;
 
@@ -2731,7 +2729,7 @@ void CPreprocessor::StackPop(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CPreprocessor::GetBlockReuse(void)
+size CPreprocessor::GetBlockReuse(void)
 {
 	return miBlockReuse;
 }

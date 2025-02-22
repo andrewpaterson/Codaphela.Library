@@ -66,9 +66,9 @@ protected:
 
 	CChars*					mpszBlocksLog;
 	CChars*					mpszIncludesLog;
-	int						miDefineReuse;
-	int						miIncludeDepth;
-	int						miBlockReuse;
+	size						miDefineReuse;
+	size						miIncludeDepth;
+	size						miBlockReuse;
 
 	CPreprocessorStack		mcStack;
 
@@ -91,7 +91,7 @@ public:
 	void				LogDumping(bool bDumpLogs);
 	void				AddIncludeDirectories(CArrayHeaderNameMap* pcHeaderNames);
 	void				AddIncludeDirectory(CHeaderFiles* pcHeaderNames);
-	int					GetBlockReuse(void);
+	size					GetBlockReuse(void);
 
 	CDefine*			GetDefine(CExternalString* pcString, bool bExact);
 	CDefine*			GetDefine(char* szName, bool bExact);
@@ -105,8 +105,8 @@ public:
 
 	bool				PreprocessFile(CSourceFile* pcFile, CSourceFile* pcFromFile);
 	bool				PreprocessBlockSets(CPPBlockSetArray* pacBlockSets);
-	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenList* pcSourceTokens, int iBlock, int iToken);
-	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenList* pcSourceTokens, int iBlock, int iToken);
+	SPPTokenBlockIndex	PreprocessDirectiveTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken);
+	SPPTokenBlockIndex	PreprocessNormalLineTokens(CPPTokenList* pcSourceTokens, size iBlock, size iToken);
 	bool				PreprocessTranslationUnit(CTranslationUnit* pcFile);
 
 	bool 				ProcessHashDefine(CPreprocessorTokenParser* pcParser);
@@ -124,8 +124,8 @@ public:
 
 	TRISTATE			EvaluateEquation(char* szText, CChars* szCalculatorError);
 
-	bool				ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, int iDepth);
-	bool				ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, int iDepth);
+	bool				ProcessIdentifierDirective(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth);
+	bool				ProcessIdentifierNormalLine(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser, size iDepth);
 	bool				ProcessDefinedIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	bool				ProcessHasIncludeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
 	bool				ProcessHasAttributeIdentifier(CPPTokenList* pcDest, CPPText* pcText, CPreprocessorTokenParser* pcParser);
@@ -134,8 +134,8 @@ public:
 	bool				ProcessHashDefineBracketted(CPreprocessorTokenParser* pcParser, CDefine* pcDefine);
 	bool				ProcessUnknownDirective(CPreprocessorTokenParser* pcParser, CPPTokenList* pcDest);
 	bool				ProcessIncludeFile(CPreprocessorTokenParser* pcParser, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
-	bool				ProcessDirectiveLine(CPPTokenList* pcTokenHolder, CPreprocessorTokenParser* pcParser, int iDepth);
-	bool				ProcessNormalLine(CPPTokenList* pcTokenHolder, CPreprocessorTokenParser* pcParser, int iDepth);
+	bool				ProcessDirectiveLine(CPPTokenList* pcTokenHolder, CPreprocessorTokenParser* pcParser, size iDepth);
+	bool				ProcessNormalLine(CPPTokenList* pcTokenHolder, CPreprocessorTokenParser* pcParser, size iDepth);
 	bool				ProcessSingleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	bool				ProcessDoubleHash(CPPTokenList* pcDest, CPPHashes* pcHash, CPreprocessorTokenParser* pcParser);
 	void				FindBestInclude(CExternalString* pcInclude, bool bSystemFile, CHeaderFile** ppcCFile, CHeaderFiles** ppcHeaderNameMap);
@@ -143,10 +143,10 @@ public:
 	SPPTokenBlockIndex	Condition(CPPConditional* pcCond, SPPTokenBlockIndex iLine);
 	void				AddTokenToArgument(CPPTokenList* pcArgument, CPPToken* pcToken);
 	CPPToken*			AddToken(CPPToken* pcToken, CArrayPPTokenPtrs* pacTokenPts);
-	bool				ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
-	bool				ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, int iDepth);
-	void				ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth);
-	void				ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, int iDepth);
+	bool				ExpandDirectiveTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth);
+	bool				ExpandNormalLineTokenIfNecessary(CPPToken* pcToken, CPPTokenList* pcDest, CPreprocessorTokenParser* pcParser, size iDepth);
+	void				ExpandDirectiveReplacement(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth);
+	void				ExpandReplacementNormalLine(CPPReplacement* pcReplacement, CPPTokenList* pcDest, size iDepth);
 	CPPToken*			QuoteTokens(CPPTokenList* pcDest, CPPTokenListHolder* pcHolder);
 	CPPToken*			ConcaternateTokens(CPPTokenList* pcDest, CPPToken* pcLeft, CPPToken* pcRight);
 	bool				TokeniseFile(CSourceFile* pcFile);
@@ -161,7 +161,7 @@ public:
 	CPPToken*			DuplicatePPToken(CPPToken* pcSource);
 
 	void				MarkPositionForError(CPreprocessorTokenParser* pcParser, SPreprocessorPosition* psPos);
-	void				MarkPositionForError(int iLine, int iColumn, SPreprocessorPosition* psPos);
+	void				MarkPositionForError(size iLine, size iColumn, SPreprocessorPosition* psPos);
 
 	void				StackPush(CPPTokenList* pcTokenList, CPPTokenMemory* pcTokenMemory);
 	void				StackPop(void);
