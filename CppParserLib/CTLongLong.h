@@ -26,12 +26,12 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCTLongLong : public CCTNumber
 {
 public:
-	unsigned long long int	mcValue;
+	uint64	mcValue;
 	bool					mbSigned;
 
 	CPP_TOKEN_CONSTRUCT(CCTLongLong);
 	void Init(void);
-	void Init(unsigned long long int ulli);
+	void Init(uint64 ulli);
 	void Kill(void);
 	bool IsSigned(void);
 	void Append(CChars* psz, CCPPTokeniser* pcTokeniser);

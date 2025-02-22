@@ -711,7 +711,7 @@ CCPPReturn CCPPParser::AccessSpecifier(EAccessSpecifiers* peSimpleType)
 	PARSE_PUSH("AccessSpecifier");
 
 	TRISTATE		tResult;
-	int				i;
+	size			i;
 	char*			szAccess;
 
 	for (i = 0; i < mszAccessSpecifiers.NumElements(); i++)
@@ -1115,7 +1115,7 @@ CCPPReturn CCPPParser::Name(void)
 	PARSE_PUSH("Name");
 
 	TRISTATE	tReturn;
-	int			iLength;
+	size		iLength;
 	char*		sz;
 	bool		bResult;
 
@@ -1502,8 +1502,8 @@ CCPPReturn CCPPParser::DoubleConst(void)
 
 	double		f;
 	TRISTATE		tResult;
-	int				iTemp;
-	int				iExponent;
+	uint16			iTemp;
+	int64			iExponent;
 
 	tResult = mcParser.GetFloat(&f);
 	if (tResult == TRITRUE)
@@ -1612,7 +1612,7 @@ CCPPReturn CCPPParser::StringConst(void)
 	PARSE_PUSH("StringConst");
 
 	TRISTATE	tResult;
-	int			iLength;
+	size		iLength;
 	char*		sz;
 
 	tResult = mcParser.GetQuotedCharacterSequence('"', '"', NULL, &iLength);
@@ -1653,9 +1653,9 @@ CCPPReturn CCPPParser::DecimalInteger(void)
 	PARSE_PUSH("DecimalInteger");
 
 	TRISTATE				tResult;
-	unsigned long long int  ulli;
-	int						iSign;
-	int						iNumDigits;
+	uint64  ulli;
+	int16					iSign;
+	uint16					iNumDigits;
 
 	mcParser.PushPosition();
 
@@ -1685,8 +1685,8 @@ CCPPReturn CCPPParser::IntegerConst(void)
 {
 	PARSE_PUSH("IntegerConst");
 
-	unsigned long long int	ulliNumber;
-	int						iNumDigits;
+	uint64	ulliNumber;
+	uint16					iNumDigits;
 	TRISTATE				tResult;
 	CCPPReturn				cReturn;
 
@@ -2086,7 +2086,7 @@ CCPPReturn CCPPParser::SimpleType(ESimpleTypes* peSimpleType)
 	PARSE_PUSH("SimpleType");
 
 	TRISTATE		tResult;
-	int				i;
+	size			i;
 	char*			szSimpleSpec;
 
 	for (i = 0; i < mszSimpleTypes.NumElements(); i++)
@@ -2116,7 +2116,7 @@ CCPPReturn CCPPParser::SimpleModifier(ESimpleModifiers* peSimpleModifier)
 	PARSE_PUSH("SimpleModifier");
 
 	TRISTATE		tResult;
-	int				i;
+	size			i;
 	char*			szSimpleSpec;
 
 	for (i = 0; i < mszSimpleModifiers.NumElements(); i++)
@@ -2146,7 +2146,7 @@ CCPPReturn CCPPParser::SimpleOperator(ESimpleOperators* peOp)
 	PARSE_PUSH("SimpleOperator");
 
 	TRISTATE		tResult;
-	int				i;
+	size			i;
 	char*			szSimpleOp;
 
 	mcParser.PushPosition();
@@ -2913,7 +2913,7 @@ CCPPReturn CCPPParser::BlockStatement(void)
 bool CCPPParser::ReservedWord(void)
 {
 	TRISTATE		tResult;
-	int				i;
+	size			i;
 	char*			szReservedWord;
 
 	for (i = 0; i < mszReservedWords.NumElements(); i++)

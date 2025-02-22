@@ -81,7 +81,7 @@ char* CPPText::Print(CChars* psz)
 {
 	char	szDest[4];
 	bool	bResult;
-	int		i;
+	size	i;
 	char	c;
 
 	if (!((meType == PPT_SingleQuoted) || (meType == PPT_DoubleQuoted)))

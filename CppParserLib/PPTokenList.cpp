@@ -40,8 +40,8 @@ void CPPTokenList::Kill(void)
 {
 	CPPToken**	ppcToken;
 	CPPToken*	pcToken;
-	int			i;
-	int			iNumTokens;
+	size			i;
+	size			iNumTokens;
 
 	iNumTokens = mcArray.NumElements();
 	for (i = 0; i < iNumTokens; i++)
@@ -76,8 +76,8 @@ char* CPPTokenList::Print(CChars* psz, bool bShowFileAndLine)
 {
 	CPPToken**	ppcToken;
 	CPPToken*	pcToken;
-	int			i;
-	int			iNumTokens;
+	size			i;
+	size			iNumTokens;
 
 	iNumTokens = mcArray.NumElements();
 	for (i = 0; i < iNumTokens; i++)
@@ -122,10 +122,10 @@ char* CPPTokenList::Print(CChars* psz, bool bShowFileAndLine)
 //////////////////////////////////////////////////////////////////////////
 bool CPPTokenList::Equals(CPPTokenList* pcOther)
 {
-	int					i;
-	CPPToken*			pcThisToken;
-	CPPToken*			pcOtherToken;
-	bool				bAnyFailed;
+	size		i;
+	CPPToken*	pcThisToken;
+	CPPToken*	pcOtherToken;
+	bool		bAnyFailed;
 
 	if (mcArray.NumElements() == pcOther->mcArray.NumElements())
 	{
@@ -154,10 +154,10 @@ bool CPPTokenList::Equals(CPPTokenList* pcOther)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CPPTokenList::SavageAppend(CChars* psz, int iDepth)
+void CPPTokenList::SavageAppend(CChars* psz, size iDepth)
 {
 	CPPToken*			pcToken;
-	int					i;
+	size				i;
 	CPPTokenListHolder*	pcHolder;
 
 	for (i = 0; i < mcArray.NumElements(); i++)
@@ -199,7 +199,7 @@ void CPPTokenList::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-CPPToken* CPPTokenList::Get(int iTokenIndex)
+CPPToken* CPPTokenList::Get(size iTokenIndex)
 {
 	CPPToken**	ppcToken;
 
@@ -219,7 +219,7 @@ CPPToken* CPPTokenList::Get(int iTokenIndex)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-int CPPTokenList::NumTokens(void)
+size CPPTokenList::NumTokens(void)
 {
 	return mcArray.NumElements();
 }

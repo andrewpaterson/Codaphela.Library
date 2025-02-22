@@ -96,7 +96,7 @@ void CPreprocessorTokenParser::Init(CPPTokenListHolder* pcLine)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorTokenParser::Kill(void)
 {
-	int				i;
+	size			i;
 	SPPTPPosition*	psPos;
 	SPPHolderMark*	psMark;
 
@@ -758,10 +758,10 @@ bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhiteSpace, b
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessorTokenParser::GetDigits(uint64* pulli, int* piNumDecimals)
 {
-	uint64	ulli;
-	int						i;
-	CPPText*				pcText;
-	int						iTemp;
+	uint64		ulli;
+	size		i;
+	CPPText*	pcText;
+	uint64		iTemp;
 
 	if (mpsCurrent->pcCurrentToken->IsText())
 	{
@@ -795,9 +795,9 @@ bool CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 {
 	uint64	iNum;
 	bool					bReturn;
-	int						i;
+	size					i;
 	CPPText*				pcText;
-	int						j;
+	size					j;
 	char					c;
 
 	PushPosition();
@@ -897,11 +897,11 @@ bool CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 //////////////////////////////////////////////////////////////////////////
 bool CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 {
-	uint64	iNum;
-	bool					bReturn;
-	int						i;
-	CExternalString			cString;
-	char					c;
+	uint64				iNum;
+	bool				bReturn;
+	size				i;
+	CExternalString		cString;
+	char				c;
 
 	PushPosition();
 	SkipWhiteSpace();

@@ -83,3 +83,4 @@ void CCTShort::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 	psz->Append(" short)");
 	psz->Append(mcValue);
 }
+

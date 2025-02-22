@@ -7,12 +7,12 @@ class CSourceFile;
 class CChars;
 struct SPreprocessorPosition
 {
-	int		miLine;
-	int		miColumn;
+	size	miLine;
+	size	miColumn;
 	char*	mszShortName;
 
 	void	Init(CPreprocessorTokenParser* pcParser, char* szShortName);
-	void	Init(int iLine, int iColumn, char* szShortName);
+	void	Init(size iLine, size iColumn, char* szShortName);
 
 	CChars* Message(CChars* pszUninitialised);
 };

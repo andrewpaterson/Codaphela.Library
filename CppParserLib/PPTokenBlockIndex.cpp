@@ -26,7 +26,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SPPTokenBlockIndex::Init(int iTokenIndex, int iBlockIndex)
+void SPPTokenBlockIndex::Init(size iTokenIndex, size iBlockIndex)
 {
 	this->iTokenIndex = iTokenIndex;
 	this->iBlockIndex = iBlockIndex;

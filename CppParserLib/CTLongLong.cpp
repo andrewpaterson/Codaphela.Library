@@ -38,7 +38,7 @@ void CCTLongLong::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCTLongLong::Init(unsigned long long int ulli)
+void CCTLongLong::Init(uint64 ulli)
 {
 	meType = CTNT_LongLong;
 	mcValue = ulli;
@@ -83,3 +83,4 @@ void CCTLongLong::Append(CChars* psz, CCPPTokeniser* pcTokeniser)
 	psz->Append("long long int)");
 	psz->Append((unsigned int)mcValue);
 }
+

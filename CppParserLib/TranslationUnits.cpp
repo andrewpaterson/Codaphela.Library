@@ -62,13 +62,13 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes, bool 
 {
 	CChars			szTemp;
 	CArrayChars		aszTemp;
-	int				i;
+	size			i;
 	CChars*			pszFile;
-	int				iIndex;
-	int				j;
+	size			iIndex;
+	size			j;
 	CChars*			szFile;
 	char*			szExtension;
-	int				iBaseDirLen;
+	size			iBaseDirLen;
 	CFileUtil		cFileUtil;
 	CArrayChars		aszFileNames;
 

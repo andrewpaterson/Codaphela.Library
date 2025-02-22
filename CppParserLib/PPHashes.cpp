@@ -25,7 +25,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHashes::Init(int iLine, int iColumn, char* szFileName)
+void CPPHashes::Init(size iLine, size iColumn, char* szFileName)
 {
 	CPPToken::Init(iLine, iColumn, szFileName);
 }
@@ -35,7 +35,7 @@ void CPPHashes::Init(int iLine, int iColumn, char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPHashes::Init(int iCount, int iLine, int iColumn, char* szFileName)
+void CPPHashes::Init(size iCount, size iLine, size iColumn, char* szFileName)
 {
 	CPPToken::Init(iLine, iColumn, szFileName);
 	Set(iLine, iColumn);

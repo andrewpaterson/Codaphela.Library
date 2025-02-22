@@ -44,7 +44,7 @@ public:
 	SDefineArgument*		Get(int64 lliDefineID);
 	SDefineArgument*		Add(int64 lliDefineID);
 	void					Remove(int64 lliDefineID);
-	int						GetDefineArgumentsIndex(SDefineArgument* psArguments);
+	size					GetDefineArgumentsIndex(SDefineArgument* psArguments);
 };
 
 

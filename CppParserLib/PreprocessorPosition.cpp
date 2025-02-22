@@ -9,7 +9,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void SPreprocessorPosition::Init(int iLine, int iColumn, char* szShortName)
+void SPreprocessorPosition::Init(size iLine, size iColumn, char* szShortName)
 {
 	miLine = iLine;
 	miColumn = iColumn;

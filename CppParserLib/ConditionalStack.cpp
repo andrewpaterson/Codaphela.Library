@@ -58,7 +58,7 @@ bool CConditionalStack::IsParsing(void)
 //////////////////////////////////////////////////////////////////////////
 void CConditionalStack::CalculateIsParsing(void)
 {
-	int						i;
+	size					i;
 	SDefineConditional*		psConditional;
 
 	mbParsing = true;

@@ -20,15 +20,16 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __C_BLOCK_TOKEN_H__
 #define __C_BLOCK_TOKEN_H__
+#include "BaseLib/PrimitiveTypes.h"
 
 
 class CChars;
 struct SPPTokenBlockIndex
 {
-	int	iTokenIndex;
-	int iBlockIndex;
+	size	iTokenIndex;
+	size	iBlockIndex;
 
-	void Init(int iTokenIndex, int iBlockIndex);
+	void Init(size iTokenIndex, size iBlockIndex);
 	void Print(CChars* psz);
 	void Dump(void);
 };

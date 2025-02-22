@@ -74,16 +74,16 @@ void CHeaderFiles::AddFiles(bool bIncludeSubDirectories)
 {
 	CChars					szTemp;
 	CArrayChars				aszHeaderExtensions;
-	int						i;
-	int						j;
+	size					i;
+	size					j;
 	char*					szFile;
 	char*					szExtension;
-	int						iBaseDirLen;
+	size					iBaseDirLen;
 	CArrayChars				aszFileNames;
 	CFileUtil				cFileUtil;
 	bool					bIsExtension;
-	int						iNumFileNames;
-	int						iNumExtensions;
+	size					iNumFileNames;
+	size					iNumExtensions;
 
 	szTemp.Init("h;inl;hpp;rh;");
 
@@ -172,7 +172,7 @@ CHeaderFile* CHeaderFiles::GetFile(char* szRelativeFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CHeaderFiles::GetBaseDirectoryLength(void)
+size CHeaderFiles::GetBaseDirectoryLength(void)
 {
 	return mszBaseDirectory.Length();
 }

@@ -63,7 +63,7 @@ int CASCIIIndex::NumElements(void)
 char* CASCIIIndex::Get(int64 lliID, int* piLength)
 {
 	char*	psz;
-	int		iLength;
+	size	iLength;
 	bool	bResult;
 
 	bResult = mcIDToNameIndex.Get(lliID, &psz, &iLength);

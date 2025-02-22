@@ -111,7 +111,7 @@ bool CNamedDefine::Equals(CNamedDefine* pcOther)
 void CNamedDefine::Dump(void)
 {
 	CChars	sz;
-	int		i;
+	size	i;
 	CChars*	psz;
 
 	sz.Init();
@@ -155,7 +155,7 @@ void CNamedDefine::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayNamedDefines::Equals(CArrayNamedDefines* pcDefines)
 {
-	int				i;
+	size			i;
 	CNamedDefine*	pcThis;
 	CNamedDefine*	pcOther;
 
@@ -184,7 +184,7 @@ bool CArrayNamedDefines::Equals(CArrayNamedDefines* pcDefines)
 //////////////////////////////////////////////////////////////////////////
 void CArrayNamedDefines::Dump(void)
 {
-	int				i;
+	size			i;
 	CNamedDefine*	pcDefine;
 	
 	for (i = 0; i < miUsedElements; i++)

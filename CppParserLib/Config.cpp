@@ -60,8 +60,8 @@ void CConfig::AddDefine(char* szDefine)
 void CConfig::AddDefines(char* szDefines)
 {
 	CChars			szTemp;
-	CArrayChars	aszTemp;
-	int				i;
+	CArrayChars		aszTemp;
+	size			i;
 	CChars*			pszDefine;
 
 	szTemp.Init(szDefines);

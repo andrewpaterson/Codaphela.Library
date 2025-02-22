@@ -35,9 +35,9 @@ public:
 	char*		Print(CChars* psz, bool bShowFileAndLine = false);
 	void		Add(CPPToken* ppcToken);
 	bool		Equals(CPPTokenList* pcOther);
-	void		SavageAppend(CChars* psz, int iDepth);
-	int			NumTokens(void);
-	CPPToken*	Get(int iTokenIndex);
+	void		SavageAppend(CChars* psz, size iDepth);
+	size		NumTokens(void);
+	CPPToken*	Get(size iTokenIndex);
 	void		Dump(void);
 };
 
