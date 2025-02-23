@@ -200,6 +200,9 @@ public:
 	template<class M>	TRISTATE	GetEnumeratorIdentifier(__CEnumeratorTemplate<M>* pcEnumerator, size* piID, bool bSkipWhiteSpace = true);
 	template<class M>	TRISTATE	GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerator, size* piID, bool bSkipWhiteSpace = true);
 
+	//Error Functions.
+	void			GetLineLocationMarkerString(CChars* pszDest);
+
 protected:
 	TRISTATE	GetComment(char* szComment, size* piLength, char* szBegin, char* szEnd);
 	TRISTATE	GetSingleInteger(char cCurrent, uint64* pulli, uint16* piBase, uint16* puiNumDigits);

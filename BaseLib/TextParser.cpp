@@ -66,6 +66,7 @@ void CTextParser::Init(void)
 bool CTextParser::Init(char* szText, size iTextLen)
 {
 	//This assumes that szText has already been passified.
+
 	if (szText == NULL)
 	{
 		meError = TPE_NotSet;
@@ -2237,7 +2238,7 @@ float96	CTextParser::MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint6
 	}
 	else
 	{
-		gcLogger.Error2(__METHOD__, " Cannot make double with base [", IntToString(uiBase), "].");
+		gcLogger.Error2(__METHOD__, " Cannot make double with base [", IntToString(uiBase), "].", NULL);
 		return 0;
 	}
 }
@@ -3957,5 +3958,55 @@ uint16 CTextParser::ChangeWidth(uint16 iWidth, uint16 iOldWidth, void* szDest, s
 		gcLogger.Error2(__METHOD__, " Cannot convert string with character width [", IntToString(iOldWidth), "] to new character width [", IntToString(iWidth), "].", NULL);
 		return 0xffff;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CTextParser::GetLineLocationMarkerString(CChars* pszDest)
+{
+	STextPosition	sState;
+	TRISTATE		tResult;
+	char*			szStartOfLine;
+	char*			szEndOfLine;
+	CChars			szMarker;
+
+	GetPosition(&sState);
+
+	tResult = FindStartOfLine();
+	if (tResult != TRITRUE)
+	{
+		pszDest->Append("!! Could not find start of line at parser position [");
+		pszDest->Append((ptrdiff)(sState.szPos - mszStartOfText));
+		pszDest->Append("] !!");
+		return;
+	}
+	szStartOfLine = mszParserPos;
+	
+	SetPosition(&sState);
+
+	tResult = FindEndOfLine();
+	if (tResult != TRITRUE)
+	{
+		pszDest->Append("!! Could not find end of line at parser position [");
+		pszDest->Append((ptrdiff)(sState.szPos - mszStartOfText));
+		pszDest->Append("] !!");
+		return;
+	}
+	szEndOfLine = mszParserPos;
+
+	SetPosition(&sState);
+
+	pszDest->AppendSubString(szStartOfLine, szEndOfLine);
+	pszDest->AppendNewLine();
+
+	szMarker.Init();
+	szMarker.AppendSubString(szStartOfLine, mszParserPos);
+	szMarker.ReplaceNonTabsWithSpace();
+	pszDest->Append(szMarker);
+	szMarker.Kill();
+	pszDest->Append('^');
 }
 
