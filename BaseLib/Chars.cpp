@@ -2590,7 +2590,7 @@ size CChars::Count(char c)
 	iCount = 0;
 	for (i = 0; i < uiLen; i++)
 	{
-		cAt = GetChar(i);
+		cAt = mcText.GetValue(i);
 		if (cAt == c)
 		{
 			iCount ++;
@@ -2617,6 +2617,28 @@ void CChars::LowerCase(void)
 void CChars::UpperCase(void)
 {
 	ToUpper(mcText.GetData());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::ReplaceNonTabsWithSpace(void)
+{
+	size	i;
+	char	c;
+	size	uiLen;
+
+	uiLen = Length();
+	for (i = 0; i < uiLen; i++)
+	{
+		c = mcText.GetValue(i);
+		if (c != '\t')
+		{
+			mcText.SetValue(i, ' ');
+		}
+	}
 }
 
 

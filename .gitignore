@@ -42,3 +42,4 @@ us.stackdump
 /StandardLib/x64/Release/*
 /InputLib/x64/Release/*
 /JavaParserLib/Debug/*
+/GerberLib/Debug/*

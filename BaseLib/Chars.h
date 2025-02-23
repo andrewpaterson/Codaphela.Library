@@ -165,6 +165,7 @@ public:
 	size	Count(char c);
 	void	LowerCase(void);
 	void	UpperCase(void);
+	void	ReplaceNonTabsWithSpace(void);
 
 	bool	WriteString(CFileWriter* pcWriter);
 	bool	ReadString(CFileReader* pcReader);
