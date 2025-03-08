@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsWhiteSpace(char	c, bool bIncludeNewLines)
+bool IsWhitespace(char	c, bool bIncludeNewLines)
 {
 	if (bIncludeNewLines)
 	{

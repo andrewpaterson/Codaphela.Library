@@ -4,9 +4,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void STextParserConfig::Init(TextParserSkipWhiteSpace pfSkipWhiteSpace, TextParserParseString pfParseString)
+void STextParserConfig::Init(TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString)
 {
-	fSkipWhiteSpace = pfSkipWhiteSpace;
+	fSkipWhitespace = pfSkipWhitespace;
 	fParseString = pfParseString;
 }
 

@@ -998,7 +998,7 @@ size CPlainTextEditor::FindWordLeft(size iPos)
 
 	iPos--;
 	c = mszText.GetChar(iPos);
-	if (IsWhiteSpace(c))
+	if (IsWhitespace(c))
 	{
 		for (;;)
 		{
@@ -1006,7 +1006,7 @@ size CPlainTextEditor::FindWordLeft(size iPos)
 			{
 				iPos--;
 				c = mszText.GetChar(iPos);
-				if (!IsWhiteSpace(c))
+				if (!IsWhitespace(c))
 				{
 					return iPos+1;
 				}
@@ -1067,7 +1067,7 @@ bool CPlainTextEditor::CanGoRight(size iPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPlainTextEditor::IsWhiteSpace(char cCurrent)
+bool CPlainTextEditor::IsWhitespace(char cCurrent)
 {
 	return ((cCurrent == ' ') || (cCurrent == '\n') || (cCurrent == '\t'));
 }
@@ -1095,7 +1095,7 @@ size CPlainTextEditor::FindWordRight(size iPos)
 	char c;
 
 	c = mszText.GetChar(iPos);
-	if (IsWhiteSpace(c))
+	if (IsWhitespace(c))
 	{
 		for (;;)
 		{
@@ -1103,7 +1103,7 @@ size CPlainTextEditor::FindWordRight(size iPos)
 			{
 				iPos++;
 				c = mszText.GetChar(iPos);
-				if (!IsWhiteSpace(c))
+				if (!IsWhitespace(c))
 				{
 					return iPos;
 				}

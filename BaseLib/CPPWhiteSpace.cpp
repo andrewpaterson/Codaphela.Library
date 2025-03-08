@@ -1,19 +1,19 @@
 #include "PointerFunctions.h"
 #include "TextParser.h"
-#include "CPPWhiteSpace.h"
+#include "CPPWhitespace.h"
 
 
 bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);
 void SkipLeftCStyleComment(CTextParser* pcTextParser);
 bool SkipCPPStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);
-bool IsCPPWhiteSpace(char c);
+bool IsCPPWhitespace(char c);
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SkipCPPWhiteSpace(CTextParser* pcTextParser)
+void SkipCPPWhitespace(CTextParser* pcTextParser)
 {
 	char	cCurrent;
 
@@ -27,7 +27,7 @@ void SkipCPPWhiteSpace(CTextParser* pcTextParser)
 		cCurrent = pcTextParser->Current();
 
 		//Nice clean white space...
-		if (IsCPPWhiteSpace(cCurrent))
+		if (IsCPPWhitespace(cCurrent))
 		{
 			pcTextParser->StepRight();
 		}
@@ -79,7 +79,7 @@ void SkipCPPWhiteSpace(CTextParser* pcTextParser)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool IsCPPWhiteSpace(char c)
+bool IsCPPWhitespace(char c)
 {
 	return ((c == ' ')  || 
 			(c == '\n') || 

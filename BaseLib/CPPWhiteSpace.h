@@ -3,7 +3,7 @@
 #include "TextParserConfig.h"
 
 
-void SkipCPPWhiteSpace(CTextParser* pcTextParser);
+void SkipCPPWhitespace(CTextParser* pcTextParser);
 
 
 #endif // __CPP_WHITE_SPACE
