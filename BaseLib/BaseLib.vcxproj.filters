@@ -460,6 +460,12 @@
     <Filter Include="Source\Search">
       <UniqueIdentifier>{e84275a1-c05d-490f-a55a-92d8e7308864}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text\Parser">
+      <UniqueIdentifier>{2c1d4f1c-3214-410d-84fc-a18b4ceb81d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Parser\CPP">
+      <UniqueIdentifier>{bdd91a61-0cd6-45ff-9e70-0fe32dd5442e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -924,9 +930,6 @@
     <ClInclude Include="EscapeCodes.h">
       <Filter>Source\Text</Filter>
     </ClInclude>
-    <ClInclude Include="TextParser.h">
-      <Filter>Source\Text</Filter>
-    </ClInclude>
     <ClInclude Include="IndexTreeRecursor.h">
       <Filter>Source\Data\Index</Filter>
     </ClInclude>
@@ -1211,9 +1214,6 @@
     </ClInclude>
     <ClInclude Include="MarkupTextParser.h">
       <Filter>Source\Data\Markup\Parser</Filter>
-    </ClInclude>
-    <ClInclude Include="TextPosition.h">
-      <Filter>Source\Text</Filter>
     </ClInclude>
     <ClInclude Include="ArrayTemplateEmbeddedPtr.h">
       <Filter>Source\Data\Array\Embedded</Filter>
@@ -1626,6 +1626,18 @@
     <ClInclude Include="MapIntString.h">
       <Filter>Source\Data\Map\Map\Primitive</Filter>
     </ClInclude>
+    <ClInclude Include="TextParser.h">
+      <Filter>Source\Text\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TextParserConfig.h">
+      <Filter>Source\Text\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="TextPosition.h">
+      <Filter>Source\Text\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="CPPWhiteSpace.h">
+      <Filter>Source\Text\Parser\CPP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -1994,9 +2006,6 @@
     <ClCompile Include="EscapeCodes.cpp">
       <Filter>Source\Text</Filter>
     </ClCompile>
-    <ClCompile Include="TextParser.cpp">
-      <Filter>Source\Text</Filter>
-    </ClCompile>
     <ClCompile Include="IndexTreeRecursor.cpp">
       <Filter>Source\Data\Index</Filter>
     </ClCompile>
@@ -2203,9 +2212,6 @@
     </ClCompile>
     <ClCompile Include="MarkupTextParser.cpp">
       <Filter>Source\Data\Markup\Parser</Filter>
-    </ClCompile>
-    <ClCompile Include="TextPosition.cpp">
-      <Filter>Source\Text</Filter>
     </ClCompile>
     <ClCompile Include="RedirectPrintf.cpp">
       <Filter>Source\Error</Filter>
@@ -2584,6 +2590,18 @@
     </ClCompile>
     <ClCompile Include="MapIntString.cpp">
       <Filter>Source\Data\Map\Map\Primitive</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParser.cpp">
+      <Filter>Source\Text\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="TextPosition.cpp">
+      <Filter>Source\Text\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPWhiteSpace.cpp">
+      <Filter>Source\Text\Parser\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParserConfig.cpp">
+      <Filter>Source\Text\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
