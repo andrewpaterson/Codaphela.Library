@@ -88,8 +88,8 @@ public:
 
 	TRISTATE		GetExactIdentifier(char* szIdentifier, bool bSkipWhiteSpace = true);
 	TRISTATE		GetIdentifier(char* szIdentifier, size* piLength = NULL, bool bPassOnTest = false, bool bSkipWhiteSpace = true);
-	TRISTATE		GetString(char* szString, size* piLength = NULL);  //Quotes not included.
-	TRISTATE		GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, size* piLength = NULL, bool bPassOnTest = false, bool bSkipWhiteSpace = true, bool bAllowEscapeCharacters = true);  //'Quotes' not included.
+	TRISTATE		GetString(char* szString, size* piLength = NULL, bool bSkipWhiteSpace = true);
+	TRISTATE		GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, size* piLength = NULL, bool bPassOnTest = false, bool bSkipWhiteSpace = true, bool bAllowEscapeCharacters = true);  //'Quotes' not included.  Used by the XML Parser, should (probably) be an XML specific string reader.
 	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhiteSpace = true);
 	TRISTATE		GetCharacterSequence(char* szSequence, size* piLength = NULL, bool bSkipWhiteSpace = true);
 	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhiteSpace = true);

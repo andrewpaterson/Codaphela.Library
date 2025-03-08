@@ -188,6 +188,7 @@
     <ClInclude Include="CharHelper.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="ChunkFileName.h" />
+    <ClInclude Include="CPPString.h" />
     <ClInclude Include="CPPWhiteSpace.h" />
     <ClInclude Include="DataFree.h" />
     <ClInclude Include="DataIO.h" />
@@ -578,6 +579,7 @@
     <ClCompile Include="BubbleSort.cpp" />
     <ClCompile Include="CharHelper.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
+    <ClCompile Include="CPPString.cpp" />
     <ClCompile Include="CPPWhiteSpace.cpp" />
     <ClCompile Include="DataFree.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
