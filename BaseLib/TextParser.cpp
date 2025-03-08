@@ -57,7 +57,7 @@ bool CTextParser::Init(CChars* szText)
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(void)
 {
-	return Init(NULL, 0);
+	return Init(NULL, (size)0);
 }
 
 
@@ -72,6 +72,16 @@ bool CTextParser::Init(char* szText, size iTextLen)
 	sConfig.Init(SkipCPPWhitespace, ParseCPPString);
 
 	return Init(szText, iTextLen, &sConfig);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextParser::Init(char* szText, STextParserConfig* psConfig)
+{
+	return Init(szText, strlen(szText), psConfig);
 }
 
 
@@ -941,107 +951,6 @@ TRISTATE CTextParser::GetString(char* szString, size* piLength, bool bSkipWhites
 	{
 		PassPosition();
 		return tResult;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-/////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, size* piLength, bool bPassOnTest, bool bSkipWhitespace, bool bAllowEscapeCharacters)
-{
-	size		iPos;
-	char		cCurrent;
-	TRISTATE	tReturn;
-	TRISTATE	tResult;
-	char		cEscape;
-
-	PushPosition();
-
-	if (bSkipWhitespace)
-	{
-		SkipWhitespace();
-	}
-
-	if (!mbOutsideText)
-	{
-		tResult = GetExactCharacter(cOpenQuote, false);
-		if (tResult == TRITRUE)
-		{
-			iPos = 0;
-			for (;;)
-			{
-				if (!mbOutsideText)
-				{
-					cCurrent = mszParserPos[0];
-					if (cCurrent == cCloseQuote)
-					{
-						if (szString)
-							szString[iPos] = 0;
-
-						StepRight();
-
-						if (szString || bPassOnTest)
-							PassPosition();
-						else
-							PopPosition();
-
-						SafeAssign(piLength, iPos);
-						return TRITRUE;
-					}
-					//We have an escape character...
-					else if (cCurrent == '\\' && bAllowEscapeCharacters)
-					{
-						StepRight();
-						tReturn = GetEscapeCode(&cEscape);
-						if (szString)
-							szString[iPos] = cEscape;
-
-						iPos++;
-						if (tReturn == TRIFALSE)
-						{
-							PopPosition();
-							SetErrorSyntaxError();
-							return TRIERROR;
-						}
-						else if (tReturn == TRIERROR)
-						{
-							PopPosition();
-							//Don't set the error here, it's already been set by GetEscapeCode
-							return TRIERROR;
-						}
-					}
-					else
-					{
-						if (szString)
-							szString[iPos] = cCurrent;
-
-						iPos++;
-						StepRight();
-					}
-				}
-				else
-				{
-					//This has never been tested.
-					PopPosition();
-					SetErrorSyntaxError();
-					return TRIERROR;
-				}
-			}
-		}
-		else
-		{
-			//No quote so not a string.
-			PopPosition();
-			return tResult;
-		}
-	}
-	else
-	{
-		PopPosition();
-		SetErrorEndOfFile();
-		return TRIERROR;
 	}
 }
 
@@ -2507,7 +2416,7 @@ TRISTATE CTextParser::FindExactCharacterSequence(char* szSequence)
 	for (;;)
 	{
 		szPosition = mszParserPos;
-		result = GetExactCharacterSequence(szSequence);
+		result = GetExactCharacterSequence(szSequence, false);
 		if (result == TRIERROR)
 		{
 			//We've reached the end of the file without finding the identifier.
@@ -2518,7 +2427,6 @@ TRISTATE CTextParser::FindExactCharacterSequence(char* szSequence)
 		{
 			//Try the next actual character along.
 			StepRight();
-			SkipWhitespace();
 		}
 		else if (result == TRITRUE)
 		{

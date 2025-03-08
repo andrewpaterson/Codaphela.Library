@@ -50,6 +50,7 @@ public:
 	bool 			Init(char* szText);
 	bool 			Init(CChars* szText);
 	bool			Init(void);
+	bool			Init(char* szText, STextParserConfig* psConfig);
 	bool			Init(char* szText, size iTextLen, STextParserConfig* psConfig);
 	void 			Kill(void);
 	bool			IsEmpty(void);
@@ -89,10 +90,9 @@ public:
 	TRISTATE		GetExactIdentifier(char* szIdentifier, bool bSkipWhitespace = true);
 	TRISTATE		GetIdentifier(char* szIdentifier, size* piLength = NULL, bool bPassOnTest = false, bool bSkipWhitespace = true);
 	TRISTATE		GetString(char* szString, size* piLength = NULL, bool bSkipWhitespace = true);
-	TRISTATE		GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, size* piLength = NULL, bool bPassOnTest = false, bool bSkipWhitespace = true, bool bAllowEscapeCharacters = true);  //'Quotes' not included.  Used by the XML Parser, should (probably) be an XML specific string reader.
 	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace = true);
-	TRISTATE		GetCharacterSequence(char* szSequence, size* piLength = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhitespace = true);
+	TRISTATE		GetCharacterSequence(char* szSequence, size* piLength = NULL, bool bSkipWhitespace = true);
 
 	TRISTATE		GetDigit(uint16* pi, uint16 uiBase = 10);
 	TRISTATE		GetSign(int16* pi);

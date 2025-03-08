@@ -4,7 +4,6 @@
 
 
 bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);
-void SkipLeftCStyleComment(CTextParser* pcTextParser);
 bool SkipCPPStyleComment(CTextParser* pcTextParser, char** pszBegin = NULL, char** pszEnd = NULL);
 bool IsCPPWhitespace(char c);
 
@@ -175,82 +174,6 @@ bool SkipCStyleComment(CTextParser* pcTextParser, char** pszBegin, char** pszEnd
 	}
 
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void SkipLeftCStyleComment(CTextParser* pcTextParser)
-{
-	char	cCurrent;
-	size	iDepth;
-
-	iDepth = 0;
-
-	pcTextParser->PushPosition();
-	for (;;)
-	{
-		if (pcTextParser->IsOutside())
-		{
-			pcTextParser->PassPosition();
-			return;
-		}
-
-		cCurrent = pcTextParser->Current();
-		if (cCurrent == '/')
-		{
-			pcTextParser->StepLeft();
-			if (!pcTextParser->IsOutside())
-			{
-				cCurrent = pcTextParser->Current();
-				if (cCurrent == '*')
-				{
-					iDepth++;
-				}
-				else
-				{
-					//Wasn't a comment start... step back.
-					pcTextParser->StepRight();
-				}
-			}
-			else
-			{
-				pcTextParser->PassPosition();
-				return;
-			}
-		}
-		else if (cCurrent == '*')
-		{
-			pcTextParser->StepLeft();
-			if (!pcTextParser->IsOutside())
-			{
-				cCurrent = pcTextParser->Current();
-				if (cCurrent == '/')
-				{
-					iDepth--;
-				}
-				else
-				{
-					//Wasn't the end of a comment... step back...
-					pcTextParser->StepRight();
-				}
-			}
-			else
-			{
-				pcTextParser->PassPosition();
-				return;
-			}
-		}
-
-		if (iDepth == 0)
-		{
-			//No more nested comments...  bail..
-			return;
-		}
-		pcTextParser->StepLeft();
-	}
 }
 
 
