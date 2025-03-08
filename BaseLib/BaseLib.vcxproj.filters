@@ -1641,6 +1641,9 @@
     <ClInclude Include="TextParserParameters.h">
       <Filter>Source\Text\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="CPPString.h">
+      <Filter>Source\Text\Parser\CPP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2605,6 +2608,9 @@
     </ClCompile>
     <ClCompile Include="TextParserConfig.cpp">
       <Filter>Source\Text\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPString.cpp">
+      <Filter>Source\Text\Parser\CPP</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

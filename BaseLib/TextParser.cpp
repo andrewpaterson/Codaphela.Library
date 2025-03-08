@@ -28,6 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "TextParser.h"
 #include "EscapeCodes.h"
 #include "CPPWhiteSpace.h"
+#include "CPPString.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -68,7 +69,7 @@ bool CTextParser::Init(char* szText, size iTextLen)
 {
 	STextParserConfig	sConfig;
 		
-	sConfig.Init(SkipCPPWhiteSpace);
+	sConfig.Init(SkipCPPWhiteSpace, ParseCPPString);
 
 	return Init(szText, iTextLen, &sConfig);
 }
@@ -919,9 +920,28 @@ TRISTATE CTextParser::GetComment(char* szComment, size* piLength, char* szBegin,
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetString(char* szString, size* piLength)
+TRISTATE CTextParser::GetString(char* szString, size* piLength, bool bSkipWhiteSpace)
 {
-	return GetQuotedCharacterSequence('\"', '\"', szString, piLength);
+	TRISTATE	tResult;
+
+	PushPosition();
+
+	if (bSkipWhiteSpace)
+	{
+		SkipWhiteSpace();
+	}
+
+	tResult = msConfig.fParseString(this, szString, piLength);
+	if ((tResult == TRIERROR) || (tResult == TRIFALSE))
+	{
+		PopPosition();
+		return tResult;
+	}
+	else
+	{
+		PassPosition();
+		return tResult;
+	}
 }
 
 
