@@ -1638,6 +1638,9 @@
     <ClInclude Include="CPPWhiteSpace.h">
       <Filter>Source\Text\Parser\CPP</Filter>
     </ClInclude>
+    <ClInclude Include="TextParserParameters.h">
+      <Filter>Source\Text\Parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">

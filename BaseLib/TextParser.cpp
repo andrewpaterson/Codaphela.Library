@@ -992,11 +992,6 @@ TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuo
 							return TRIERROR;
 						}
 					}
-					else if (cCurrent == '\n')
-					{
-						//Just ignore new lines.
-						StepRight();
-					}
 					else
 					{
 						if (szString)
