@@ -189,7 +189,7 @@
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="ChunkFileName.h" />
     <ClInclude Include="CPPString.h" />
-    <ClInclude Include="CPPWhiteSpace.h" />
+    <ClInclude Include="CPPWhitespace.h" />
     <ClInclude Include="DataFree.h" />
     <ClInclude Include="DataIO.h" />
     <ClInclude Include="DataOrderers.h" />
@@ -571,6 +571,8 @@
     <ClInclude Include="OperatorRemainder.h" />
     <ClInclude Include="OperatorAssignment.h" />
     <ClInclude Include="XMLProlog.h" />
+    <ClInclude Include="XMLString.h" />
+    <ClInclude Include="XMLWhitespace.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
@@ -580,7 +582,7 @@
     <ClCompile Include="CharHelper.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="CPPString.cpp" />
-    <ClCompile Include="CPPWhiteSpace.cpp" />
+    <ClCompile Include="CPPWhitespace.cpp" />
     <ClCompile Include="DataFree.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
@@ -895,6 +897,8 @@
     <ClCompile Include="OperatorRemainder.cpp" />
     <ClCompile Include="OperatorAssignment.cpp" />
     <ClCompile Include="XMLProlog.cpp" />
+    <ClCompile Include="XMLString.cpp" />
+    <ClCompile Include="XMLWhitespace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="FunctionCaller_C_Call.inl" />

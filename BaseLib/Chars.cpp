@@ -1959,12 +1959,12 @@ void CChars::Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewInd
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::IsWhiteSpace(size iPos, bool bIncludeNewLines)
+bool CChars::IsWhitespace(size iPos, bool bIncludeNewLines)
 {
 	char	c;
 
 	c = GetChar(iPos);
-	return ::IsWhiteSpace(c, bIncludeNewLines);
+	return ::IsWhitespace(c, bIncludeNewLines);
 }
 
 
@@ -1972,7 +1972,7 @@ bool CChars::IsWhiteSpace(size iPos, bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CChars::IsWhiteSpace(void)
+bool CChars::IsWhitespace(void)
 {
 	size		i;
 	size		uiLen;
@@ -1980,7 +1980,7 @@ bool CChars::IsWhiteSpace(void)
 	uiLen = Length();
 	for (i = 0; i < uiLen; i++)
 	{
-		if (!IsWhiteSpace(i, true))
+		if (!IsWhitespace(i, true))
 		{
 			return false;
 		}
@@ -2014,7 +2014,7 @@ void CChars::SetLength(size iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
+size CChars::FindEndOfLeadingWhitespace(bool bIncludeNewLines)
 {
 	size	iLength;
 	size	iStart;
@@ -2022,7 +2022,7 @@ size CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
 	iLength = Length();
 	for (iStart = 0; iStart < iLength; iStart++)
 	{
-		if (!IsWhiteSpace(iStart, bIncludeNewLines))
+		if (!IsWhitespace(iStart, bIncludeNewLines))
 		{
 			break;
 		}
@@ -2035,7 +2035,7 @@ size CChars::FindEndOfLeadingWhiteSpace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
+size CChars::FindStartOfTrailingWhitespace(bool bIncludeNewLines)
 {
 	size	iLength;
 	size	iEnd;
@@ -2047,7 +2047,7 @@ size CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
 		do
 		{
 			iEnd--;
-			if (!IsWhiteSpace(iEnd, bIncludeNewLines))
+			if (!IsWhitespace(iEnd, bIncludeNewLines))
 			{
 				break;
 			}
@@ -2064,14 +2064,14 @@ size CChars::FindStartOfTrailingWhiteSpace(bool bIncludeNewLines)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CChars::StripWhiteSpace(bool bIncludeNewLines)
+size CChars::StripWhitespace(bool bIncludeNewLines)
 {
 	size	iLength;
 	size	iStart;
 	size	iEnd;
 
-	iStart = FindEndOfLeadingWhiteSpace(bIncludeNewLines);
-	iEnd = FindStartOfTrailingWhiteSpace(bIncludeNewLines);
+	iStart = FindEndOfLeadingWhitespace(bIncludeNewLines);
+	iEnd = FindStartOfTrailingWhitespace(bIncludeNewLines);
 
 	if (iEnd < iStart)
 	{

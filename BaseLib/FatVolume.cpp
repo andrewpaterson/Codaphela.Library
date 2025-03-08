@@ -101,14 +101,14 @@ bool CFatVolume::InitialiseVolumeParametersFromBPB(uint8* puiPartitionsTried, SF
 		muiID = psBPB->uFatEx.sFat16.uiVolumeID;
 		mszLabel.Kill();
 		mszLabel.Init(psBPB->uFatEx.sFat16.szVolumeLabel, 0, 10);
-		mszLabel.StripWhiteSpace();
+		mszLabel.StripWhitespace();
 	}
 	else if (meFileSystem == FAT_FS_TYPE_FAT32)
 	{
 		muiID = psBPB->uFatEx.sFat32.uiVolumeID;
 		mszLabel.Kill();
 		mszLabel.Init(psBPB->uFatEx.sFat32.szVolumeLabel, 0, 10);
-		mszLabel.StripWhiteSpace();
+		mszLabel.StripWhitespace();
 	}
 
 	// if the volume is FAT32 then copy the root entry's cluster from the uiRootCluster field on the BPB .
@@ -246,7 +246,7 @@ EFatCode CFatVolume::InitialiseVolumeLabel(void)
 			{
 				mszLabel.Kill();
 				mszLabel.Init((char*)sQuery.psCurrentEntryRaw->uEntry.sFatRawCommon.szShortName, 0, 10);
-				mszLabel.StripWhiteSpace();
+				mszLabel.StripWhitespace();
 			}
 		}
 	}

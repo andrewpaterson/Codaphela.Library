@@ -119,7 +119,7 @@ private:
 	size	FindWordRight(size iPos);
 	bool 	CanGoLeft(size iPos);
 	bool 	CanGoRight(size iPos);
-	bool	IsWhiteSpace(char cCurrent);
+	bool	IsWhitespace(char cCurrent);
 	bool	IsNormalChar(char cCurrent);
 	bool	IsSelected(void);
 	size	FindStartOfLine(size iPos);

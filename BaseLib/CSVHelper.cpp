@@ -64,7 +64,7 @@ size CCSVHelper::GetColumnIndex(char* szName)
 	{
 		szHeader = pcRow->Get(i);
 		sz.Init(szHeader);
-		sz.StripWhiteSpace();
+		sz.StripWhitespace();
 		if (sz.EqualsIgnoreCase(szName))
 		{
 			sz.Kill();

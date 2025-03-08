@@ -148,10 +148,10 @@ public:
 	char	GetChar(size iIndex);
 	void	SetChar(size iPos, char c);
 	void	Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CChars szOldString);
-	bool	IsWhiteSpace(size iPos, bool bIncludeNewLines);
-	bool	IsWhiteSpace(void);
+	bool	IsWhitespace(size iPos, bool bIncludeNewLines);
+	bool	IsWhitespace(void);
 	void	SetLength(size iLength);
-	size	StripWhiteSpace(bool bIncludeNewLines = false);
+	size	StripWhitespace(bool bIncludeNewLines = false);
 	int		Compare(CChars* szOther);
 	int		Compare(const char* szOther);
 	int		CompareIgnoreCase(CChars* szOther);
@@ -186,8 +186,8 @@ protected:
 	size	ReplaceWithLonger(const char* szFind, const char* szReplace, size iFindLen, size iDifference);
 	size	ReplaceWithShorter(const char* szFind, const char* szReplace, size iReplaceLen, size iFindLen, size iDifference);
 	size	ReplaceWithEqualLength(const char* szFind, const char* szReplace, size iFindLen);
-	size	FindEndOfLeadingWhiteSpace(bool bIncludeNewLines);
-	size	FindStartOfTrailingWhiteSpace(bool bIncludeNewLines);
+	size	FindEndOfLeadingWhitespace(bool bIncludeNewLines);
+	size	FindStartOfTrailingWhitespace(bool bIncludeNewLines);
 	void	SetNonNull(const char* szString, size iLen);
 	void	SetEmpty(void);
 	void	CleanIfEmpty(void);

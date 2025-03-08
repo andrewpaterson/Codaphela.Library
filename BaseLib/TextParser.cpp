@@ -27,7 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StringHelper.h"
 #include "TextParser.h"
 #include "EscapeCodes.h"
-#include "CPPWhiteSpace.h"
+#include "CPPWhitespace.h"
 #include "CPPString.h"
 
 
@@ -69,7 +69,7 @@ bool CTextParser::Init(char* szText, size iTextLen)
 {
 	STextParserConfig	sConfig;
 		
-	sConfig.Init(SkipCPPWhiteSpace, ParseCPPString);
+	sConfig.Init(SkipCPPWhitespace, ParseCPPString);
 
 	return Init(szText, iTextLen, &sConfig);
 }
@@ -262,7 +262,7 @@ void CTextParser::TestEnd(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextParser::IsWhiteSpace(char cCurrent)
+bool CTextParser::IsWhitespace(char cCurrent)
 {
 	return ((cCurrent == ' ') || (cCurrent == '\n') || (cCurrent == '\t'));
 }
@@ -272,9 +272,9 @@ bool CTextParser::IsWhiteSpace(char cCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParser::SkipWhiteSpace(void)
+void CTextParser::SkipWhitespace(void)
 {
-	msConfig.fSkipWhiteSpace(this);
+	msConfig.fSkipWhitespace(this);
 }
 
 
@@ -309,11 +309,11 @@ void CTextParser::SkipNewLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactCharacter(char c, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetExactCharacter(char c, bool bSkipWhitespace)
 {
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	if (!mbOutsideText)
@@ -337,14 +337,14 @@ TRISTATE CTextParser::GetExactCharacter(char c, bool bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactCaseInsensitiveCharacter(char c, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetExactCaseInsensitiveCharacter(char c, bool bSkipWhitespace)
 {
 	char	c1;
 	char	c2;
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	if (!mbOutsideText)
@@ -370,16 +370,16 @@ TRISTATE CTextParser::GetExactCaseInsensitiveCharacter(char c, bool bSkipWhiteSp
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetEnumeratedCharacter(char* szCharacters, char* c, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetEnumeratedCharacter(char* szCharacters, char* c, bool bSkipWhitespace)
 {
 	size		iNumCharacters;
 	char		cCurrent;
 	TRISTATE	tResult;
 	size		i;
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	iNumCharacters = strlen(szCharacters);
@@ -463,7 +463,7 @@ TRISTATE CTextParser::GetIdentifierCharacter(char* pc, bool bFirst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace)
 {
 	char	cCurrent;
 	size	iPos;
@@ -471,9 +471,9 @@ TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence, bool bSkipWhit
 	iPos = 0;
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	//Make sure we're not off the end of the file.
@@ -521,7 +521,7 @@ TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence, bool bSkipWhit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhitespace)
 {
 	size	iPos;
 	char	c1;
@@ -529,9 +529,9 @@ TRISTATE CTextParser::GetExactCaseInsensitiveCharacterSequence(const char* szSeq
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	iPos = 0;
@@ -610,7 +610,7 @@ TRISTATE CTextParser::SkipUTF8BOM(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetCharacterSequence(char* szSequence, size* piLength, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetCharacterSequence(char* szSequence, size* piLength, bool bSkipWhitespace)
 {
 	char	c;
 	bool	bFirst;
@@ -620,9 +620,9 @@ TRISTATE CTextParser::GetCharacterSequence(char* szSequence, size* piLength, boo
 	iPos = 0;
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	//Make sure we're not off the end of the file.
@@ -640,7 +640,7 @@ TRISTATE CTextParser::GetCharacterSequence(char* szSequence, size* piLength, boo
 			c = mszParserPos[0];
 			StepRight();
 
-			if (IsWhiteSpace(c))
+			if (IsWhitespace(c))
 			{
 				if (bFirst)
 				{
@@ -718,7 +718,7 @@ TRISTATE CTextParser::GetCharacterSequence(char* szSequence, size* piLength, boo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhitespace)
 {
 	char		cCurrent;
 	size		iPos;
@@ -727,9 +727,9 @@ TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhiteSpac
 	iPos = 0;
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	//Make sure we're not off the end of the file.
@@ -788,7 +788,7 @@ TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhiteSpac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bPassOnTest, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bPassOnTest, bool bSkipWhitespace)
 {
 	char	c;
 	bool	bFirst;
@@ -798,9 +798,9 @@ TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bPa
 	iPos = 0;
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	//Make sure we're not off the end of the file.
@@ -920,15 +920,15 @@ TRISTATE CTextParser::GetComment(char* szComment, size* piLength, char* szBegin,
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetString(char* szString, size* piLength, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetString(char* szString, size* piLength, bool bSkipWhitespace)
 {
 	TRISTATE	tResult;
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	tResult = msConfig.fParseString(this, szString, piLength);
@@ -949,7 +949,7 @@ TRISTATE CTextParser::GetString(char* szString, size* piLength, bool bSkipWhiteS
 //
 //
 /////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, size* piLength, bool bPassOnTest, bool bSkipWhiteSpace, bool bAllowEscapeCharacters)
+TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuote, char* szString, size* piLength, bool bPassOnTest, bool bSkipWhitespace, bool bAllowEscapeCharacters)
 {
 	size		iPos;
 	char		cCurrent;
@@ -959,9 +959,9 @@ TRISTATE CTextParser::GetQuotedCharacterSequence(char cOpenQuote, char cCloseQuo
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	if (!mbOutsideText)
@@ -1448,15 +1448,15 @@ TRISTATE CTextParser::GetSign(int16* pi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetInteger(uint64* pulli, int16* piSign, uint16* puiNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetInteger(uint64* pulli, int16* piSign, uint16* puiNumDigits, bool bSkipWhitespace)
 {
 	TRISTATE	tResult;
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	//Make sure we're not off the end of the file.
@@ -1467,7 +1467,7 @@ TRISTATE CTextParser::GetInteger(uint64* pulli, int16* piSign, uint16* puiNumDig
 		return TRIERROR;
 	}
 
-	tResult = GetDigits(pulli, piSign, puiNumDigits, bSkipWhiteSpace);
+	tResult = GetDigits(pulli, piSign, puiNumDigits, bSkipWhitespace);
 	if (tResult == TRITRUE)
 	{
 		//Make sure there are no decimals.
@@ -1489,13 +1489,13 @@ TRISTATE CTextParser::GetInteger(uint64* pulli, int16* piSign, uint16* puiNumDig
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetInteger(int64* pi, uint16* puiNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetInteger(int64* pi, uint16* puiNumDigits, bool bSkipWhitespace)
 {
 	uint64		ulliTemp;
 	TRISTATE	tReturn;
 	int16		iSign;
 
-	tReturn = GetInteger(&ulliTemp, &iSign, puiNumDigits, bSkipWhiteSpace);
+	tReturn = GetInteger(&ulliTemp, &iSign, puiNumDigits, bSkipWhitespace);
 	*pi = ulliTemp * iSign;
 	return tReturn;
 }
@@ -1505,7 +1505,7 @@ TRISTATE CTextParser::GetInteger(int64* pi, uint16* puiNumDigits, bool bSkipWhit
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 uiAllowedSeparator, uint16* puiNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 uiAllowedSeparator, uint16* puiNumDigits, bool bSkipWhitespace)
 {
 	char		cCurrent;
 	char		cNext;
@@ -1518,9 +1518,9 @@ TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, ui
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	uiBase = 10;
@@ -1632,7 +1632,7 @@ TRISTATE CTextParser::GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetFloatLiteral(float96* pldf, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 iAllowedExponent, uint16* piExponent, uint16 uiAllowedSeparator, uint16* piNumWholeDigits, uint16* piNumDecinalDigits, uint16* piNumExponentDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetFloatLiteral(float96* pldf, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 iAllowedExponent, uint16* piExponent, uint16 uiAllowedSeparator, uint16* piNumWholeDigits, uint16* piNumDecinalDigits, uint16* piNumExponentDigits, bool bSkipWhitespace)
 {
 	char		cCurrent;
 	char		cNext;
@@ -1654,9 +1654,9 @@ TRISTATE CTextParser::GetFloatLiteral(float96* pldf, uint16 iAllowedPrefix, uint
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	uiBase = 10;
@@ -1920,7 +1920,7 @@ TRISTATE CTextParser::GetSingleInteger(char cCurrent, uint64* pulli, uint16* piB
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetDigits(uint64* pulli, int16* piSign, uint16* puiNumDigits, bool bSkipWhiteSpace, bool bTestSign, uint16 uiBase, uint16 uiAllowedSeparator)
+TRISTATE CTextParser::GetDigits(uint64* pulli, int16* piSign, uint16* puiNumDigits, bool bSkipWhitespace, bool bTestSign, uint16 uiBase, uint16 uiAllowedSeparator)
 {
 	uint64		ulliValue;
 	int16		iSign;
@@ -1932,9 +1932,9 @@ TRISTATE CTextParser::GetDigits(uint64* pulli, int16* piSign, uint16* puiNumDigi
 	//This still needs to be failed on the case where the number is larger than MAX_ULONG.
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	*pulli = 0;
@@ -2079,15 +2079,15 @@ TRISTATE CTextParser::GetIntegerSeparator(uint16 uiAllowedSeparator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetHexadecimal(uint64* pulli, uint16* puiNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetHexadecimal(uint64* pulli, uint16* puiNumDigits, bool bSkipWhitespace)
 {
 	TRISTATE	tReturn;
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	tReturn = GetExactCharacter('0', false);
@@ -2183,7 +2183,7 @@ TRISTATE CTextParser::GetHexadecimalPart(uint64* pulli, uint16* puiNumDigits, ui
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetOctal(uint64* pulli, uint16* puiNumDigits, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetOctal(uint64* pulli, uint16* puiNumDigits, bool bSkipWhitespace)
 {
 	uint64		iNum;
 	uint16		iTemp;
@@ -2192,9 +2192,9 @@ TRISTATE CTextParser::GetOctal(uint64* pulli, uint16* puiNumDigits, bool bSkipWh
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	tReturn = GetExactCharacter('0', false);
@@ -2258,12 +2258,12 @@ TRISTATE CTextParser::GetOctal(uint64* pulli, uint16* puiNumDigits, bool bSkipWh
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetFloat(float* pf, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetFloat(float* pf, bool bSkipWhitespace)
 {
 	double		d;
 	TRISTATE	t;
 
-	t = GetFloat(&d, bSkipWhiteSpace);
+	t = GetFloat(&d, bSkipWhitespace);
 	if (t == TRITRUE)
 	{
 		*pf = (float)d;
@@ -2276,7 +2276,7 @@ TRISTATE CTextParser::GetFloat(float* pf, bool bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 {
 	uint64		ulliLeft;
 	uint64		ulliRight;
@@ -2290,9 +2290,9 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhiteSpace)
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	*pf = 0.0f;
@@ -2408,7 +2408,7 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetNumber(CNumber* pcNumber, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetNumber(CNumber* pcNumber, bool bSkipWhitespace)
 {
 	char*		szStart;
 	double		fIgnored;
@@ -2416,7 +2416,7 @@ TRISTATE CTextParser::GetNumber(CNumber* pcNumber, bool bSkipWhiteSpace)
 	int16		iLength;
 
 	szStart = mszParserPos;
-	tResult = GetFloat(&fIgnored, bSkipWhiteSpace);
+	tResult = GetFloat(&fIgnored, bSkipWhitespace);
 	if (tResult == TRITRUE)
 	{
 		iLength = (int16)(mszParserPos - szStart);
@@ -2467,7 +2467,7 @@ TRISTATE CTextParser::FindExactIdentifier(char* szIdentifier)
 	TRISTATE	result;
 
 	PushPosition();
-	SkipWhiteSpace();
+	SkipWhitespace();
 
 	for (;;)
 	{
@@ -2483,7 +2483,7 @@ TRISTATE CTextParser::FindExactIdentifier(char* szIdentifier)
 		{
 			//Try the next actual character along.
 			StepRight();
-			SkipWhiteSpace();
+			SkipWhitespace();
 		}
 		else if (result == TRITRUE)
 		{
@@ -2518,7 +2518,7 @@ TRISTATE CTextParser::FindExactCharacterSequence(char* szSequence)
 		{
 			//Try the next actual character along.
 			StepRight();
-			SkipWhiteSpace();
+			SkipWhitespace();
 		}
 		else if (result == TRITRUE)
 		{
@@ -2642,7 +2642,7 @@ TRISTATE CTextParser::FindEndOfLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::FindWhiteSpace(void)
+TRISTATE CTextParser::FindWhitespace(void)
 {
 	char	cCurrent;
 	bool	bStartOfComment;
@@ -2656,7 +2656,7 @@ TRISTATE CTextParser::FindWhiteSpace(void)
 		}
 
 		cCurrent = mszParserPos[0];
-		if (IsWhiteSpace(cCurrent))
+		if (IsWhitespace(cCurrent))
 		{
 			return TRITRUE;
 		}
@@ -3275,7 +3275,7 @@ TRISTATE ParseFloat(double* pf, char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* piCharacterWidth, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* piCharacterWidth, bool bSkipWhitespace)
 {
 	TRISTATE	tResult;
 	uint16		iWidth;
@@ -3283,9 +3283,9 @@ TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* 
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	tResult = GetExactCharacter('\'', false);
@@ -3484,7 +3484,7 @@ TRISTATE CTextParser::GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetStringLiteral(void* szDest, size uiDestByteLength, bool bAllowUTF16, size* piCharacterCount, uint16* piCharacterWidth, bool bSkipWhiteSpace)
+TRISTATE CTextParser::GetStringLiteral(void* szDest, size uiDestByteLength, bool bAllowUTF16, size* piCharacterCount, uint16* piCharacterWidth, bool bSkipWhitespace)
 {
 	TRISTATE	tResult;
 	uint16		iWidth;
@@ -3494,9 +3494,9 @@ TRISTATE CTextParser::GetStringLiteral(void* szDest, size uiDestByteLength, bool
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 	}
 
 	tResult = GetExactCharacter('"', false);

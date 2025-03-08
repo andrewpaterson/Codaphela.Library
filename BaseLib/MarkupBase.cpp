@@ -137,7 +137,7 @@ uint32 CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, uint32 iDep
 		szPadding.Init();
 		szPadding.Append(' ', iDepth*2);
 		pszMutableSource->PassifyNewlines();
-		pszMutableSource->StripWhiteSpace(true);
+		pszMutableSource->StripWhitespace(true);
 		iNewLines = pszMutableSource->CountNewLines();
 		pszMutableSource->Insert(0, &szPadding);
 		szPadding.Insert(0, '\n');

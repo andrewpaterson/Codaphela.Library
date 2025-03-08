@@ -7,15 +7,15 @@
 class CTextParser;
 
 
-typedef void(*TextParserSkipWhiteSpace)(CTextParser*);
+typedef void(*TextParserSkipWhitespace)(CTextParser*);
 typedef TRISTATE(*TextParserParseString)(CTextParser*, char*, size*);
 
 struct STextParserConfig
 {
-	TextParserSkipWhiteSpace	fSkipWhiteSpace;
+	TextParserSkipWhitespace	fSkipWhitespace;
 	TextParserParseString		fParseString;
 
-	void Init(TextParserSkipWhiteSpace pfSkipWhiteSpace, TextParserParseString pfParseString);
+	void Init(TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString);
 };
 
 

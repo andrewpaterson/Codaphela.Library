@@ -279,7 +279,7 @@ char* GetNextLine(uint32* piIndex, CArrayChars* pac)
 		else
 		{
 			pc = pac->Get(*piIndex);
-			pc->StripWhiteSpace();
+			pc->StripWhitespace();
 			(*piIndex)++;
 			if (!pc->Empty())
 			{

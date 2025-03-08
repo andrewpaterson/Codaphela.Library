@@ -300,7 +300,7 @@ TRISTATE CXMLParser::ParseEncoding(void)
 		return TRIERROR;
 	}
 
-	szEncoding.StripWhiteSpace();
+	szEncoding.StripWhitespace();
 
 	eEncoding = CCharEncoding::ParseEncoding(szEncoding.Text());
 	szEncoding.Kill();
@@ -340,7 +340,7 @@ TRISTATE CXMLParser::ParseStandalone(void)
 		return TRIERROR;
 	}
 
-	szStandalone.StripWhiteSpace();
+	szStandalone.StripWhitespace();
 	if (szStandalone.EqualsIgnoreCase("yes"))
 	{
 		mcProlog.SetStandalone(true);
@@ -418,7 +418,7 @@ TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 	TRISTATE	tResult;
 	size		i;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 	for (i = 0;; i++)
 	{
 		tResult = mcParser.GetCharacter(&c);
@@ -685,7 +685,7 @@ TRISTATE CXMLParser::ParseNamedReference(void)
 	CChars				szIdentifier;
 	CMarkupNamedRef*	pcNamedRef;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 
 	iLine = mcParser.Line();
 	iColumn = mcParser.Column();
@@ -736,7 +736,7 @@ TRISTATE CXMLParser::ParseText(void)
 	tResult = ParseText(&szText);
 	if (tResult == TRITRUE)
 	{
-		if (!szText.IsWhiteSpace())
+		if (!szText.IsWhitespace())
 		{
 			pcMarkupText = mpcCurrent->AppendText(szText.Text());
 			pcMarkupText->SetLineAndColumn(mcParser.miLine, mcParser.miColumn);

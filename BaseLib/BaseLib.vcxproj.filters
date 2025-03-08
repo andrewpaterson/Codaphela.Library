@@ -1635,7 +1635,7 @@
     <ClInclude Include="TextPosition.h">
       <Filter>Source\Text\Parser</Filter>
     </ClInclude>
-    <ClInclude Include="CPPWhiteSpace.h">
+    <ClInclude Include="CPPWhitespace.h">
       <Filter>Source\Text\Parser\CPP</Filter>
     </ClInclude>
     <ClInclude Include="TextParserParameters.h">
@@ -1643,6 +1643,12 @@
     </ClInclude>
     <ClInclude Include="CPPString.h">
       <Filter>Source\Text\Parser\CPP</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLWhitespace.h">
+      <Filter>Source\Text\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLString.h">
+      <Filter>Source\Text\XML</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2603,7 +2609,7 @@
     <ClCompile Include="TextPosition.cpp">
       <Filter>Source\Text\Parser</Filter>
     </ClCompile>
-    <ClCompile Include="CPPWhiteSpace.cpp">
+    <ClCompile Include="CPPWhitespace.cpp">
       <Filter>Source\Text\Parser\CPP</Filter>
     </ClCompile>
     <ClCompile Include="TextParserConfig.cpp">
@@ -2611,6 +2617,12 @@
     </ClCompile>
     <ClCompile Include="CPPString.cpp">
       <Filter>Source\Text\Parser\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLWhitespace.cpp">
+      <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLString.cpp">
+      <Filter>Source\Text\XML</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

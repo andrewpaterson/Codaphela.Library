@@ -112,7 +112,7 @@ bool CPropertiesFile::Read(void)
 		tResult = cParser.GetExactCharacter('=');
 		if (tResult == TRITRUE) 
 		{
-			cParser.SkipWhiteSpace();
+			cParser.SkipWhitespace();
 			szStartOfValue = cParser.mszParserPos;
 			tResult = cParser.FindEndOfLine();
 
