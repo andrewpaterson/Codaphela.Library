@@ -69,5 +69,10 @@ protected:
 };
 
 
+#define ReturnOnFalseOrCommandSyntaxError(tResult) \
+if (tResult == TRIFALSE) return TRIFALSE;\
+if (tResult == TRIERROR) return Error("Syntax Error, could not parse Command:");
+
+
 #endif //  __GERBER_PARSER_H__
 

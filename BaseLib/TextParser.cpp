@@ -27,6 +27,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StringHelper.h"
 #include "TextParser.h"
 #include "EscapeCodes.h"
+#include "CPPWhiteSpace.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -53,9 +54,9 @@ bool CTextParser::Init(CChars* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParser::Init(void)
+bool CTextParser::Init(void)
 {
-	Init(NULL, 0);
+	return Init(NULL, 0);
 }
 
 
@@ -65,7 +66,23 @@ void CTextParser::Init(void)
 //////////////////////////////////////////////////////////////////////////
 bool CTextParser::Init(char* szText, size iTextLen)
 {
+	STextParserConfig	sConfig;
+		
+	sConfig.Init(SkipCPPWhiteSpace);
+
+	return Init(szText, iTextLen, &sConfig);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CTextParser::Init(char* szText, size iTextLen, STextParserConfig* psConfig)
+{
 	//This assumes that szText has already been passified.
+
+	msConfig = *psConfig;
 
 	if (szText == NULL)
 	{
@@ -254,73 +271,9 @@ bool CTextParser::IsWhiteSpace(char cCurrent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParser::SkipWhiteSpace(bool bSkipComments)
+void CTextParser::SkipWhiteSpace(void)
 {
-	char	cCurrent;
-
-	for (;;)
-	{
-		if (mbOutsideText)
-		{
-			return;
-		}
-
-		cCurrent = mszParserPos[0];
-
-		//Nice clean white space...
-		if (IsWhiteSpace(cCurrent))
-		{
-			StepRight();
-		}
-
-		//Possibly nasty comments...
-		else if (cCurrent == '/')
-		{
-			if (bSkipComments)
-			{
-				StepRight();
-
-				if (!mbOutsideText)
-				{
-					cCurrent = mszParserPos[0];
-					if (cCurrent == '*')
-					{
-						//Put the parser back where it was.
-						StepLeft();
-						if (!SkipCStyleComment())
-						{
-							break;
-						}
-					}
-					else if (cCurrent == '/')
-					{
-						//Put the parser back where it was.
-						StepLeft();
-						if (!SkipCPPStyleComment())
-						{
-							break;
-						}
-					}
-					else
-					{
-						//Was something other than white-space starting with /
-						StepLeft();
-						break;
-					}
-				}
-			}
-			else
-			{
-				//Not skipping comments.
-				break;
-			}
-		}
-		else
-		{
-			//Was not white-space at all.
-			break;
-		}
-	}
+	msConfig.fSkipWhiteSpace(this);
 }
 
 
@@ -348,256 +301,6 @@ void CTextParser::SkipNewLine(void)
 	{
 		StepRight();
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextParser::SkipCStyleComment(char** pszBegin, char** pszEnd)
-{
-	char	cCurrent;
-	size	iDepth;
-
-	iDepth = 0;
-
-	SafeAssign(pszBegin, NULL);
-	SafeAssign(pszEnd, NULL);
-
-	PushPosition();
-	for (;;)
-	{
-		if (mbOutsideText)
-		{
-			PassPosition();
-			return true;
-		}
-
-		cCurrent = mszParserPos[0];
-		if (cCurrent == '/')
-		{
-			StepRight();
-			if (!mbOutsideText)
-			{
-				cCurrent = mszParserPos[0];
-				if (cCurrent == '*')
-				{
-					iDepth++;
-					if (iDepth == 1)
-					{
-						SafeAssign(pszBegin, &mszParserPos[1]);
-					}
-				}
-				else
-				{
-					//Wasn't a comment start... step back.
-					StepLeft();
-				}
-			}
-			else
-			{
-				PassPosition();
-				return true;
-			}
-		}
-		else if (cCurrent == '*')
-		{
-			StepRight();
-			if (!mbOutsideText)
-			{
-				cCurrent = mszParserPos[0];
-				if (cCurrent == '/')
-				{
-					SafeAssign(pszEnd, &mszParserPos[-2]);
-
-					StepRight();
-					return true;
-				}
-				else
-				{
-					//Wasn't the end of a comment... step back...
-					StepLeft();
-				}
-			}
-			else
-			{
-				PassPosition();
-				return true;
-			}
-		}
-
-		if (iDepth == 0)
-		{
-			//No more nested comments...  bail..
-			return true;
-		}
-		StepRight();
-	}
-
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextParser::SkipLeftCStyleComment(void)
-{
-	char	cCurrent;
-	size	iDepth;
-
-	iDepth = 0;
-
-	PushPosition();
-	for (;;)
-	{
-		if (mbOutsideText)
-		{
-			PassPosition();
-			return;
-		}
-
-		cCurrent = mszParserPos[0];
-		if (cCurrent == '/')
-		{
-			StepLeft();
-			if (!mbOutsideText)
-			{
-				cCurrent = mszParserPos[0];
-				if (cCurrent == '*')
-				{
-					iDepth++;
-				}
-				else
-				{
-					//Wasn't a comment start... step back.
-					StepRight();
-				}
-			}
-			else
-			{
-				PassPosition();
-				return;
-			}
-		}
-		else if (cCurrent == '*')
-		{
-			StepLeft();
-			if (!mbOutsideText)
-			{
-				cCurrent = mszParserPos[0];
-				if (cCurrent == '/')
-				{
-					iDepth--;
-				}
-				else
-				{
-					//Wasn't the end of a comment... step back...
-					StepRight();
-				}
-			}
-			else
-			{
-				PassPosition();
-				return;
-			}
-		}
-
-		if (iDepth == 0)
-		{
-			//No more nested comments...  bail..
-			return;
-		}
-		StepLeft();
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CTextParser::SkipCPPStyleComment(char** pszBegin, char** pszEnd)
-{
-	char	cCurrent;
-	size	iCount;
-
-	if (mbOutsideText)
-	{
-		return true;
-	}
-
-	PushPosition();
-	cCurrent = mszParserPos[0];
-
-	SafeAssign(pszBegin, NULL);
-	SafeAssign(pszEnd, NULL);
-
-	if (cCurrent == '/')
-	{
-		StepRight();
-		if (!mbOutsideText)
-		{
-			cCurrent = mszParserPos[0];
-			if (cCurrent == '/')
-			{
-				SafeAssign(pszBegin, &mszParserPos[1]);
-
-				for (iCount = 0;; iCount++)
-				{
-					StepRight();
-					if (!mbOutsideText)
-					{
-						cCurrent = mszParserPos[0];
-
-						if (cCurrent == '\n')
-						{
-							SafeAssign(pszEnd, &mszParserPos[-1]);
-
-							//This is the end of the line and the end of the comment.
-							StepRight();
-							PassPosition();
-							return true;
-						}
-
-						if (mbAnnotated)
-						{
-							if (cCurrent == '@')
-							{
-								SafeAssign(pszBegin, NULL);
-
-								//Wasn't a comment, was an annotation.
-								PopPosition();
-								return false;
-							}
-						}
-					}
-					else
-					{
-						SafeAssign(pszEnd, mszEndOfText);
-
-						PassPosition();
-						return true;
-					}
-				}
-			}
-			else
-			{
-				PopPosition();
-				return true;
-			}
-		}
-		else
-		{
-			//Wasn't a comment.
-			StepLeft();
-			return true;
-		}
-	}
-	PopPosition();
-	return true;
 }
 
 
@@ -1209,74 +912,6 @@ TRISTATE CTextParser::GetComment(char* szComment, size* piLength, char* szBegin,
 
 	PassPosition();
 	return TRITRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetComment(char* szComment, size* piLength, bool bSkipWhiteSpace)
-{
-	char	cCurrent;
-	char*	szBegin;
-	char*	szEnd;
-
-	PushPosition();
-
-	if (bSkipWhiteSpace)
-	{
-		SkipWhiteSpace(false);
-	}
-
-	cCurrent = mszParserPos[0];
-	if (cCurrent == '/')
-	{
-		StepRight();
-
-		if (!mbOutsideText)
-		{
-			cCurrent = mszParserPos[0];
-			if (cCurrent == '*')
-			{
-				StepLeft();
-				if (!SkipCStyleComment(&szBegin, &szEnd))
-				{
-					PassPosition();
-					return TRIERROR;
-				}
-
-				return GetComment(szComment, piLength, szBegin, szEnd);
-			}
-			else if (cCurrent == '/')
-			{
-				StepLeft();
-				if (!SkipCPPStyleComment(&szBegin, &szEnd))
-				{
-					PassPosition();
-					return TRIERROR;
-				}
-
-				return GetComment(szComment, piLength, szBegin, szEnd);
-
-			}
-			else
-			{
-				PopPosition();
-				return TRIFALSE;
-			}
-		}
-		else
-		{
-			PassPosition();
-			return TRIERROR;
-		}
-	}
-	else
-	{
-		PopPosition();
-		return TRIFALSE;
-	}
 }
 
 
@@ -2903,7 +2538,6 @@ void CTextParser::Restart(void)
 TRISTATE CTextParser::FindStartOfLine(void)
 {
 	char	cCurrent;
-	bool	bInQuotes;
 
 	PushPosition();
 
@@ -2915,18 +2549,9 @@ TRISTATE CTextParser::FindStartOfLine(void)
 		return TRIERROR;
 	}
 
-	bInQuotes = false;
 	for (;;)
 	{
 		cCurrent = mszParserPos[0];
-		if (cCurrent == '"')
-		{
-			bInQuotes = !bInQuotes;
-		}
-		if (!bInQuotes)
-		{
-			SkipLeftCStyleComment();
-		}
 		StepLeft();
 
 		//If we have no more text then the start of the line is the start of the text.
@@ -2938,18 +2563,15 @@ TRISTATE CTextParser::FindStartOfLine(void)
 			return TRITRUE;
 		}
 
-		if (!bInQuotes)
-		{
-			//Get the current character.
-			cCurrent = mszParserPos[0];
+		//Get the current character.
+		cCurrent = mszParserPos[0];
 
-			//If we get find an end of line character we've gone to far, go right again.
-			if (cCurrent == '\n')
-			{
-				StepRight();
-				PassPosition();
-				return TRITRUE;
-			}
+		//If we get find an end of line character we've gone to far, go right again.
+		if (cCurrent == '\n')
+		{
+			StepRight();
+			PassPosition();
+			return TRITRUE;
 		}
 	}
 }
@@ -2962,9 +2584,6 @@ TRISTATE CTextParser::FindStartOfLine(void)
 TRISTATE CTextParser::FindEndOfLine(void)
 {
 	char	cCurrent;
-	bool	bInQuotes;
-	char	cPrev;
-	bool	bInCppComment;
 
 	PushPosition();
 
@@ -2976,31 +2595,10 @@ TRISTATE CTextParser::FindEndOfLine(void)
 		return TRIERROR;
 	}
 
-	bInCppComment = false;
-	bInQuotes = false;
 	cCurrent = 0;
 	for (;;)
 	{
-		cPrev = cCurrent;
 		cCurrent = mszParserPos[0];
-
-		if ((cPrev == '/') && (cCurrent == '/'))
-		{
-			bInCppComment = true;
-		}
-
-		if (!bInCppComment)
-		{
-			if (cCurrent == '"')
-			{
-				bInQuotes = !bInQuotes;
-			}
-
-			if (!bInQuotes)
-			{
-				SkipCStyleComment();
-			}
-		}
 
 
 		//If we have no more text then ... blah, blah, blah
@@ -3012,15 +2610,12 @@ TRISTATE CTextParser::FindEndOfLine(void)
 			return TRITRUE;
 		}
 
-		if ((!bInQuotes) || (bInCppComment))  //Note:  (NOT in quotes) OR (in Cpp comment).
+		//If we get find an end of line character we've gone to far, go right again.
+		cCurrent = mszParserPos[0];
+		if (cCurrent == '\n')
 		{
-			//If we get find an end of line character we've gone to far, go right again.
-			cCurrent = mszParserPos[0];
-			if (cCurrent == '\n')
-			{
-				PassPosition();
-				return TRITRUE;
-			}
+			PassPosition();
+			return TRITRUE;
 		}
 
 		StepRight();
@@ -3519,6 +3114,66 @@ void CTextParser::PrintPositionMultilineParser(CChars* pszDest)
 bool CTextParser::IsOutside(void)
 {
 	return mbOutsideText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char CTextParser::Current(void)
+{
+	return mszParserPos[0];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char CTextParser::Current(int iIndex)
+{
+	return mszParserPos[iIndex];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextParser::Position(void)
+{
+	return mszParserPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextParser::Position(int iIndex)
+{
+	return &mszParserPos[iIndex];
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextParser::Start(void)
+{
+	return mszStartOfText;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CTextParser::End(void)
+{
+	return mszEndOfText;
 }
 
 

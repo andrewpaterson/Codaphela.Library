@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "Number.h"
 #include "TextPosition.h"
-
+#include "TextParserConfig.h"
 
 typedef CArrayTemplate<STextPosition>	CArrayTextPosition;
 
@@ -100,11 +100,13 @@ public:
 	size				miColumn;
 	bool				mbAnnotated;
 	ETextParseError		meError;
+	STextParserConfig	msConfig;
 
 	bool 			Init(char* szText, size iTextLen);
 	bool 			Init(char* szText);
 	bool 			Init(CChars* szText);
-	void			Init(void);
+	bool			Init(void);
+	bool			Init(char* szText, size iTextLen, STextParserConfig* psConfig);
 	void 			Kill(void);
 	bool			IsEmpty(void);
 
@@ -112,10 +114,7 @@ public:
 	void 			StepRight(void);
 	void 			StepLeft(void);
 	void			TestEnd(void);
-	void 			SkipWhiteSpace(bool bSkipComments = true);
-	bool 			SkipCStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
-	void			SkipLeftCStyleComment(void);
-	bool  			SkipCPPStyleComment(char** pszBegin = NULL, char** pszEnd = NULL);
+	void 			SkipWhiteSpace(void);
 	void			SkipNewLine(void);
 	void			Restart(void);
 	void			SaveState(SParseState* psTextPosition);
@@ -150,7 +149,6 @@ public:
 	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhiteSpace = true);
 	TRISTATE		GetCharacterSequence(char* szSequence, size* piLength = NULL, bool bSkipWhiteSpace = true);
 	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhiteSpace = true);
-	TRISTATE		GetComment(char* szComment, size* piLength, bool bSkipWhiteSpace = true);
 
 	TRISTATE		GetDigit(uint16* pi, uint16 uiBase = 10);
 	TRISTATE		GetSign(int16* pi);
@@ -194,6 +192,12 @@ public:
 	void			PrintPositionMultilineParser(CChars* pszDest);
 
 	bool			IsOutside(void);
+	char			Current(void);
+	char			Current(int iIndex);
+	char*			Start(void);
+	char*			End(void);
+	char*			Position(void);
+	char*			Position(int iIndex);
 
 	void			Dump(void);
 

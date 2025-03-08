@@ -81,16 +81,10 @@ TRISTATE CGerberParser::ParseCommandG04()
 	TRISTATE tResult;
 
 	tResult = mcParser.GetExactCharacterSequence("G04", false);
-	if (tResult == TRIFALSE)
-	{
-		return TRIFALSE;
-	}
+	ReturnOnFalseOrCommandSyntaxError(tResult);
 
-	if (tResult == TRIERROR)
-	{
-		return Error("Syntax Error, could not parse Command:");
-	}
-	return TRIERROR;
+	mcParser.GetCharacterSequence()
+	return TRITRUE;
 }
 
 
