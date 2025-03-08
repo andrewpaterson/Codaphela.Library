@@ -22,6 +22,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Logger.h"
 #include "XMLParser.h"
+#include "XMLWhitespace.h"
+#include "XMLString.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -127,11 +129,13 @@ bool CXMLParser::IsAllowedTextChar(uint8 cChar)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 {
-	TRISTATE	tResult;
+	TRISTATE			tResult;
+	STextParserConfig	sConfig;
 
 	mszSourceContext = szSourceContext;
 
-	mcParser.Init(szText);
+	sConfig.Init(SkipXMLWhitespace, ParseXMLString);
+	mcParser.Init(szText, &sConfig);
 	tResult = mcParser.SkipUTF8BOM();
 	if (tResult == TRIERROR)
 	{
@@ -455,8 +459,6 @@ TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 {
 	TRISTATE	tResult;
-	TRISTATE	tSingle;
-	TRISTATE	tDouble;
 	char*		szStart;
 
 	tResult = mcParser.GetExactCharacter('=', false);
@@ -466,15 +468,11 @@ TRISTATE CXMLParser::ParseValue(CChars* pszValue)
 	}
 
 	szStart = mcParser.mszParserPos;
-	tSingle = mcParser.GetQuotedCharacterSequence('\'', '\'', NULL, NULL, true, false, false);
-	ReturnOnError(tSingle);
-	if (tSingle == TRIFALSE)
+	tResult = mcParser.GetString(NULL, NULL, true);
+	ReturnOnError(tResult);
+	if (tResult == TRIFALSE)
 	{
-		tDouble = mcParser.GetQuotedCharacterSequence('"', '"', NULL, NULL, true, false, false);
-		if (tDouble != TRITRUE)
-		{
-			return FailAlways(tResult, "'] or [\"");
-		}
+		return FailAlways(tResult, "'] or [\"");
 	}
 
 	pszValue->AppendSubString(szStart + 1, mcParser.mszParserPos - 1);
