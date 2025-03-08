@@ -24,66 +24,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __TEXT_PARSER_H__
 #include "Define.h"
 #include "ErrorTypes.h"
-#include "EnumeratorTemplate.h"
 #include "Define.h"
 #include "Number.h"
-#include "TextPosition.h"
 #include "TextParserConfig.h"
-
-typedef CArrayTemplate<STextPosition>	CArrayTextPosition;
-
-
-struct SParseState
-{
-	STextPosition		sCurrent;
-	CArrayTextPosition	asPrev;
-
-	void Init(void);
-	void Kill(void);
-};
-
-
-enum ETextParseError
-{
-	TPE_EndOfFile,
-	TPE_SyntaxError,
-	TPE_NotSet,
-};
-
-
-#define NUMBER_PREFIX_DEFAULT		0x0000
-#define NUMBER_PREFIX_BINARY		0x0001
-#define NUMBER_PREFIX_OCTAL			0x0002
-#define NUMBER_PREFIX_HEXADECIMAL	0x0004
-#define INTEGER_PREFIX_ALL			(NUMBER_PREFIX_BINARY | NUMBER_PREFIX_OCTAL | NUMBER_PREFIX_HEXADECIMAL)
-#define FLOAT_PREFIX_ALL			NUMBER_PREFIX_HEXADECIMAL
-
-#define INTEGER_SUFFIX_NONE			0x0000
-#define INTEGER_SUFFIX_L			0x0010
-#define INTEGER_SUFFIX_LL			0x0020
-#define INTEGER_SUFFIX_U			0x0040
-#define INTEGER_SUFFIX_UL			0x0080
-#define INTEGER_SUFFIX_ULL			0x0100
-#define INTEGER_SUFFIX_CPP			(INTEGER_SUFFIX_L | INTEGER_SUFFIX_LL | INTEGER_SUFFIX_U | INTEGER_SUFFIX_UL | INTEGER_SUFFIX_ULL)
-#define INTEGER_SUFFIX_JAVA			INTEGER_SUFFIX_L
-
-#define FLOAT_SUFFIX_NONE			0x0000
-#define FLOAT_SUFFIX_F				0x0200
-#define FLOAT_SUFFIX_D				0x0400
-#define FLOAT_SUFFIX_L				0x0800
-#define FLOAT_SUFFIX_CPP			(FLOAT_SUFFIX_F | FLOAT_SUFFIX_D | FLOAT_SUFFIX_L)
-#define FLOAT_SUFFIX_JAVA			(FLOAT_SUFFIX_F | FLOAT_SUFFIX_D)
-
-#define FLOAT_EXPONENT_DEFAULT		0x0000
-#define FLOAT_EXPONENT_DECIMAL		0x1000
-#define FLOAT_EXPONENT_BINARY		0x2000
-#define FLOAT_EXPONENT_ALL			(FLOAT_EXPONENT_DECIMAL | FLOAT_EXPONENT_BINARY)
-
-#define NUMBER_SEPARATOR_UNDERSCORE	0x4000
-#define NUMBER_SEPARATOR_APOSTROPHE	0x8000
-#define NUMBER_SEPARATOR_NONE		0x0000
-
-#define PARSER_NO_DIGIT				0xffff
+#include "TextParserParameters.h"
 
 
 class CTextParser

@@ -335,6 +335,7 @@
     <ClInclude Include="TemporaryMemory.h" />
     <ClInclude Include="TextParser.h" />
     <ClInclude Include="TextParserConfig.h" />
+    <ClInclude Include="TextParserParameters.h" />
     <ClInclude Include="TextPosition.h" />
     <ClInclude Include="TimSort.h" />
     <ClInclude Include="TrackingAllocator.h" />
