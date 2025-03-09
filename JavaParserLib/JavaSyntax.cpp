@@ -51,10 +51,12 @@ void CJavaSyntax::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntax::PrintTokenArray(CChars* pszDest, CIdentifierArray* papcTokens)
 {
-	int						i;
+	size					i;
 	CJavaTokenIdentifier*	pcIdentifier;
+	size					uiNumElements;
 
-	for (i = 0; i < papcTokens->NumElements(); i++)
+	uiNumElements = papcTokens->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (i != 0)
 		{

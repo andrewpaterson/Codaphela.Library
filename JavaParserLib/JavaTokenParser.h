@@ -70,7 +70,6 @@ protected:
 	bool			IsMethodDeclaration(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 	bool			IsAnnotation(CJavaToken* pcStartToken, CJavaToken* pcEndToken);
 
-	TRISTATE		ParseComment(CJavaToken** ppcCurrent);
 	TRISTATE		ParseKeyword(CJavaToken** ppcCurrent);
 	TRISTATE		ParseAmbiguous(CJavaToken** ppcCurrent);
 	TRISTATE		ParseOperator(CJavaToken** ppcCurrent);

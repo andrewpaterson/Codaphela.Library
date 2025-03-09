@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/MemoryStackExtended.h"
 #include "PPBlock.h"
 #include "PPReplacement.h"
-#include "PPWhiteSpace.h"
+#include "PPWhitespace.h"
 #include "PPHashes.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
@@ -57,7 +57,7 @@ public:
 	CPPReplacement*					AddReplacement(void);
 	CPPText*						AddText(void);
 	CPPTextWithSource*				AddTextWithSource(void);
-	CPPWhiteSpace*					AddWhiteSpace(void);
+	CPPWhitespace*					AddWhitespace(void);
 
 	CPPBlock*						AddBlock(void);
 	CPPTokenReplacementsHolder*		AddTokenReplacementsHolder(void);

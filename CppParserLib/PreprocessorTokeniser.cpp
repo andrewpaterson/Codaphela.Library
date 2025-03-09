@@ -100,7 +100,7 @@ bool CPreprocessorTokeniser::TokeniseIntoBlockSets(CPPBlockSetArray* pacDestBloc
 	while (!mcParser.mbEndOfFile)
 	{
 		iLine = mcParser.miLine;
-		mcParser.SkipWhiteSpace();
+		mcParser.SkipWhitespace();
 		if ((*mcParser.GetPos()) == '#')
 		{
 			bDirective = true;
@@ -179,7 +179,7 @@ bool CPreprocessorTokeniser::TokeniseIntoList(CPPTokenList* pcDestTokenHolder, C
 	iLine = 0;
 	while (!mcParser.mbEndOfFile)
 	{
-		mcParser.SkipWhiteSpace();
+		mcParser.SkipWhitespace();
 		if ((*mcParser.GetPos()) == '#')
 		{
 			mcParser.StepRight();
@@ -228,7 +228,7 @@ EPreprocessorDirective CPreprocessorTokeniser::GetDirective(void)
 	CPreprocessorDirective* pcDirective;
 	CExternalString			cName;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 	if (mcParser.mbEndOfFile)
 	{
 		return PPD_nomore;
@@ -288,7 +288,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashDefine(CPPTokenMemory* pcToken
 {
 	CPPDirective*	pcDefine;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 	
 	pcDefine = pcTokens->AddDirective();
 	pcDefine->Init(PPD_define, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
@@ -306,7 +306,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashUndef(CPPTokenMemory* pcTokens
 {
 	CPPDirective*			pcUndef;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 
 	pcUndef = pcTokens->AddDirective();
 	pcUndef->Init(PPD_undef, mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);
@@ -324,7 +324,7 @@ CPPDirective* CPreprocessorTokeniser::TokeniseHashInclude(CPPTokenMemory* pcToke
 {
 	CPPInclude*			pcInclude;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 
 	pcInclude = pcTokens->AddInclude();
 	pcInclude->Init(mcParser.miLine, mcParser.miColumn, mcParser.mszFileName);

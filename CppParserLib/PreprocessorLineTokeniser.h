@@ -33,14 +33,14 @@ class CPreprocessorLineTokensier
 {
 protected:
 	CPPTokenList*			mpcTokenHolder;
-	char*					mszWhiteSpaceStart;
+	char*					mszWhitespaceStart;
 	char*					mszIdentifierStart;
 	char*					mszDecorationStart;
 	char*					mszDoubleQuoteStart;
 	char*					mszSingleQuoteStart;
 	char*					mszHashStart;
 	char*					mszNumberStart;
-	bool					mbOnlyWhiteSpace;
+	bool					mbOnlyWhitespace;
 	CPreprocessorParser*	mpcParser;
 	CPPTokenMemory*			mpcTokens;
 	bool					mbContainsLineContinuers;

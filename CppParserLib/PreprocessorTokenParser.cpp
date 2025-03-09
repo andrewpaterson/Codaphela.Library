@@ -188,7 +188,7 @@ bool CPreprocessorTokenParser::GetIdentifier(CExternalString* pcIdentifier)
 		return false;
 	}
 
-	SkipWhiteSpace();
+	SkipWhitespace();
 
 	if (mpsCurrent->pcCurrentToken->IsText())
 	{
@@ -218,7 +218,7 @@ bool CPreprocessorTokenParser::GetNumber(CExternalString* pcIdentifier)
 		return false;
 	}
 
-	SkipWhiteSpace();
+	SkipWhitespace();
 
 	if (mpsCurrent->pcCurrentToken->IsText())
 	{
@@ -239,7 +239,7 @@ bool CPreprocessorTokenParser::GetNumber(CExternalString* pcIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokenParser::GetExactDecorator(char c, bool bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetExactDecorator(char c, bool bSkipWhitespace)
 {
 	CPPText*	pcText;
 
@@ -248,9 +248,9 @@ bool CPreprocessorTokenParser::GetExactDecorator(char c, bool bSkipWhiteSpace)
 		return false;
 	}
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
 			return false;
@@ -278,7 +278,7 @@ bool CPreprocessorTokenParser::GetExactDecorator(char c, bool bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhitespace)
 {
 	CPPText*	pcText;
 	int			iExpectedLength;
@@ -294,9 +294,9 @@ bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhiteSpace)
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 		if (mpsCurrent->pcCurrentToken == NULL)
 		{
 			PassPosition();
@@ -347,7 +347,7 @@ bool CPreprocessorTokenParser::GetExactDecorator(char* sz, bool bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCaseSensitive, bool bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCaseSensitive, bool bSkipWhitespace)
 {
 	CPPText*	pcText;
 	int			i;
@@ -363,9 +363,9 @@ bool CPreprocessorTokenParser::GetExactIdentifier(char* szIdentifier, bool bCase
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
 			PassPosition();
@@ -434,7 +434,7 @@ bool CPreprocessorTokenParser::GetQuotedCharacterSequence(char cOpen, char cClos
 
 	PushPosition();
 
-	SkipWhiteSpace();
+	SkipWhitespace();
 	bResult = GetExactDecorator(cOpen);
 	pcSequence->miLen = 0;
 	szStart = NULL;
@@ -488,7 +488,7 @@ bool CPreprocessorTokenParser::GetStringDoubleQuoted(CExternalString* pcString)
 		return false;
 	}
 
-	SkipWhiteSpace();
+	SkipWhitespace();
 	if (mpsCurrent->pcCurrentToken->IsText())
 	{
 		pcText = (CPPText*)mpsCurrent->pcCurrentToken;
@@ -510,7 +510,7 @@ bool CPreprocessorTokenParser::GetStringDoubleQuoted(CExternalString* pcString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, bool bSkipWhiteSpace)
+bool CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, bool bSkipWhitespace)
 {
 	CPPText*	pcText;
 
@@ -519,9 +519,9 @@ bool CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, 
 		return false;
 	}
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
 			return false;
@@ -548,11 +548,11 @@ bool CPreprocessorTokenParser::GetStringSingleQuoted(CExternalString* pcString, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorTokenParser::SkipWhiteSpace(void)
+void CPreprocessorTokenParser::SkipWhitespace(void)
 {
 	for (;;)
 	{
-		if ((!mpsCurrent->pcCurrentToken) || (!mpsCurrent->pcCurrentToken->IsWhiteSpace()))
+		if ((!mpsCurrent->pcCurrentToken) || (!mpsCurrent->pcCurrentToken->IsWhitespace()))
 		{
 			return;
 		}
@@ -583,7 +583,7 @@ bool CPreprocessorTokenParser::GetFloat(long double* pf)
 
 	PushPosition();
 
-	SkipWhiteSpace();
+	SkipWhitespace();
 	iSign = 1;
 
 	if (!mpsCurrent->pcCurrentToken)
@@ -667,7 +667,7 @@ bool CPreprocessorTokenParser::GetFloat(long double* pf)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhiteSpace, bool bTestSign)
+bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhitespace, bool bTestSign)
 {	
 	CPPText*	pcText;
 	char		c;
@@ -678,9 +678,9 @@ bool CPreprocessorTokenParser::GetInteger(uint64* pulli, bool bSkipWhiteSpace, b
 
 	PushPosition();
 
-	if (bSkipWhiteSpace)
+	if (bSkipWhitespace)
 	{
-		SkipWhiteSpace();
+		SkipWhitespace();
 		if (!mpsCurrent->pcCurrentToken)
 		{
 			return false;
@@ -801,7 +801,7 @@ bool CPreprocessorTokenParser::GetHexadecimal(uint64* pulli, int* piNumDigits)
 	char					c;
 
 	PushPosition();
-	SkipWhiteSpace();
+	SkipWhitespace();
 
 	bReturn = GetExactIdentifier("0", true, false);
 	if (!bReturn)
@@ -904,7 +904,7 @@ bool CPreprocessorTokenParser::GetOctal(uint64* pulli, int* piNumDigits)
 	char				c;
 
 	PushPosition();
-	SkipWhiteSpace();
+	SkipWhitespace();
 
 	bReturn = GetNumber(&cString);
 	if (!bReturn)

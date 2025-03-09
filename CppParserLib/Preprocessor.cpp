@@ -257,7 +257,7 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 	size					iReplaceArg;
 	CPPToken*				pcToken;
 	bool					bAllocated;
-	bool					bAllowWhiteSpace;
+	bool					bAllowWhitespace;
 	CDefine*				pcExisting;
 	size					iNumArguments;
 	size					iReplacementNum;
@@ -293,7 +293,7 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 		iNumArguments = pcDefine->GetArguments()->NumElements();
 		iReplacementNum = 0;
 		bVariadic = pcDefine->IsVariadic();
-		bAllowWhiteSpace = false;
+		bAllowWhitespace = false;
 		while (pcParser->HasToken())
 		{
 			bAllocated = false;
@@ -316,9 +316,9 @@ bool CPreprocessor::ProcessHashDefine(CPreprocessorTokenParser* pcParser)
 				}
 			}
 
-			if (!pcToken->IsWhiteSpace() || bAllowWhiteSpace)  //Stop leading whitespace from being added.
+			if (!pcToken->IsWhitespace() || bAllowWhitespace)  //Stop leading whitespace from being added.
 			{
-				bAllowWhiteSpace = true;
+				bAllowWhitespace = true;
 				if (!bAllocated)
 				{
 					pcToken = DuplicatePPToken(pcToken);
@@ -488,7 +488,7 @@ bool CPreprocessor::ProcessHashUndef(CPreprocessorTokenParser* pcParser)
 	bool				bResult;
 	CExternalString		cIdentifier;
 
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
@@ -530,7 +530,7 @@ bool CPreprocessor::ProcessHashInclude(CPreprocessorTokenParser* pcParser)
 	CPPTokenList*				pcTokenList;
 	CPPBlock*					pcBlock;
 
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 
 	MarkPositionForError(pcParser, &sPos);
 
@@ -1101,7 +1101,7 @@ SPPTokenBlockIndex CPreprocessor::ProcessHashIfndef(CPreprocessorTokenParser* pc
 	bool				bResult;
 	bool				bEvaluated;
 
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
@@ -1129,7 +1129,7 @@ SPPTokenBlockIndex CPreprocessor::ProcessHashIfdef(CPreprocessorTokenParser* pcP
 	bool				bResult;
 	bool				bEvaluated;
 
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 	bResult = pcParser->GetIdentifier(&cIdentifier);
 	if (bResult)
 	{
@@ -1314,7 +1314,7 @@ bool CPreprocessor::ProcessHashError(CPreprocessorTokenParser* pcParser)
 	CChars			szError;
 	CPPToken*		pcToken;
 
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 	szError.Init("Error (");
 	szError.Append(GetFileName());
 	szError.Append("):");
@@ -1342,7 +1342,7 @@ bool CPreprocessor::ProcessHashPragma(CPreprocessorTokenParser* pcParser)
 	bool			bResult;
 	CHeaderFile*	pcHeader;
 
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 	bResult = pcParser->GetExactIdentifier("once", true, true);
 	if (bResult == TRITRUE)
 	{
@@ -1638,7 +1638,7 @@ bool CPreprocessor::ProcessDefinedIdentifier(CPPTokenList* pcDest, CPPText* pcTe
 	MarkPositionForError(pcParser, &sPos);
 
 	bOpenBracket = pcParser->GetExactDecorator('(');
-	pcParser->SkipWhiteSpace();
+	pcParser->SkipWhitespace();
 	pcToken = pcParser->GetToken();
 	pcTokenMemory = mcStack.GetTokenMemory();
 
@@ -2300,7 +2300,7 @@ bool CPreprocessor::FindArguments(CPreprocessorTokenParser* pcParser, CArrayPPTo
 			}
 			else
 			{
-				pcParser->SkipWhiteSpace();
+				pcParser->SkipWhitespace();
 				pcArgument = pacArguments->Add();
 				pcArgument->Init();
 				continue;

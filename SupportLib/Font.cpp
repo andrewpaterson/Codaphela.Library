@@ -190,7 +190,7 @@ size CFont::Height(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFont::IsWhiteSpace(char c)
+bool CFont::IsWhitespace(char c)
 {
 	//  c <=  to include the space.
 	if ((c <= FIRST_LETTER) || (c >= (char)(FIRST_LETTER + macGlyphs.NumElements())))

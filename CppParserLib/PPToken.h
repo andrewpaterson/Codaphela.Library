@@ -51,7 +51,7 @@ public:
 
 	virtual bool			IsDirective(void);
 	virtual bool			IsText(void);
-	virtual bool			IsWhiteSpace(void);
+	virtual bool			IsWhitespace(void);
 	virtual bool			IsReplacement(void);
 	virtual bool			IsHash(void);
 	virtual bool			IsTokenListHolder(void);

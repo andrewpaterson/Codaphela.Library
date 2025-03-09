@@ -23,7 +23,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GeneralToken.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
-#include "PPWhiteSpace.h"
+#include "PPWhitespace.h"
 #include "PPHashes.h"
 
 
@@ -49,7 +49,7 @@ void CPreprocessorLineTokensier::Init(CPPTokenList* pcLinesTokens, CPreprocessor
 	mpcParser = pcParser;
 	mpcTokenHolder = pcLinesTokens;
 	mpcTokens = pcTokens;
-	mbOnlyWhiteSpace = true;
+	mbOnlyWhitespace = true;
 	mbAllowEscapes = bAllowEscapes;
 	NullAll();
 }
@@ -162,16 +162,16 @@ void CPreprocessorLineTokensier::Preprocess(void)
 				mpcParser->StepRight();
 			}
 		}
-		else if (mpcParser->IsWhiteSpace())
+		else if (mpcParser->IsWhitespace())
 		{
 			//If we're in a quote then white space is parsed as normal text.
 			if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 			{
-				if (!mszWhiteSpaceStart)
+				if (!mszWhitespaceStart)
 				{
 					AddRelevantToken();
 					NullAll();
-					mszWhiteSpaceStart = mpcParser->GetPos();
+					mszWhitespaceStart = mpcParser->GetPos();
 				}
 			}
 			mpcParser->StepRight();
@@ -249,7 +249,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 	if (!(mszSingleQuoteStart || mszDoubleQuoteStart))
 	{
 		//If we haven't already begun white space then the comment is the beginning.
-		if (!mszWhiteSpaceStart)
+		if (!mszWhitespaceStart)
 		{
 			mpcParser->StepRight();
 			if ((*mpcParser->GetPos()) == '/')
@@ -257,7 +257,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 				mpcParser->StepLeft();
 				AddRelevantToken();
 				NullAll();
-				mszWhiteSpaceStart = mpcParser->GetPos();
+				mszWhitespaceStart = mpcParser->GetPos();
 				mpcParser->StepRight(2);
 
 				mpcParser->SkipCPPStyleComment();
@@ -269,7 +269,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 				mpcParser->StepLeft();
 				AddRelevantToken();
 				NullAll();
-				mszWhiteSpaceStart = mpcParser->GetPos();
+				mszWhitespaceStart = mpcParser->GetPos();
 				mpcParser->StepRight(2);
 				mpcParser->SkipCStyleComment();
 				return false;
@@ -326,7 +326,7 @@ bool CPreprocessorLineTokensier::PossibleComment(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokensier::AddRelevantToken(void)
 {
-	CPPWhiteSpace*	pcWhiteSpace;
+	CPPWhitespace*	pcWhitespace;
 	CPPHashes*		pcHashes;
 	CPPText*		pcText;
 
@@ -343,14 +343,14 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 	{
 		AddText(PPT_Number, mszNumberStart, mpcParser->GetPos());
 	}
-	else if ((mszWhiteSpaceStart) && (mszWhiteSpaceStart <= mpcParser->GetEnd()))
+	else if ((mszWhitespaceStart) && (mszWhitespaceStart <= mpcParser->GetEnd()))
 	{
-		if (!mbOnlyWhiteSpace)
+		if (!mbOnlyWhitespace)
 		{
-			pcWhiteSpace = mpcTokens->AddWhiteSpace();
-			pcWhiteSpace->Init(mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
+			pcWhitespace = mpcTokens->AddWhitespace();
+			pcWhitespace->Init(mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
 
-			mpcTokenHolder->Add(pcWhiteSpace);
+			mpcTokenHolder->Add(pcWhitespace);
 		}
 	}
 	else if ((mszHashStart) && (mszHashStart <= mpcParser->GetEnd()))
@@ -359,7 +359,7 @@ void CPreprocessorLineTokensier::AddRelevantToken(void)
 		pcHashes->Init((int)(mpcParser->GetPos() - mszHashStart), mpcParser->miLine, mpcParser->miColumn, mpcParser->mszFileName);
 
 		mpcTokenHolder->Add(pcHashes);
-		mbOnlyWhiteSpace = false;
+		mbOnlyWhitespace = false;
 	}
 }
 
@@ -374,7 +374,7 @@ CPPText* CPreprocessorLineTokensier::AddText(EPreprocessorText eType, char* szSt
 	CChars				sz;
 	CPPTextWithSource*	pcTextWithSource;
 
-	mbOnlyWhiteSpace = false;
+	mbOnlyWhitespace = false;
 	if (!mbContainsLineContinuers)
 	{
 		pcText = mpcTokens->AddText();
@@ -427,7 +427,7 @@ void CPreprocessorLineTokensier::AddDoubleQuotedToken(void)
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
 		}
-		mbOnlyWhiteSpace = false;
+		mbOnlyWhitespace = false;
 	}
 }
 
@@ -461,7 +461,7 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 			mpcTokenHolder->Add(pcTextWithSource);
 			sz.Kill();
 		}
-		mbOnlyWhiteSpace = false;
+		mbOnlyWhitespace = false;
 	}
 }
 
@@ -472,7 +472,7 @@ void CPreprocessorLineTokensier::AddSingleQuotedToken(void)
 //////////////////////////////////////////////////////////////////////////
 void CPreprocessorLineTokensier::NullAll(void)
 {
-	mszWhiteSpaceStart = NULL;
+	mszWhitespaceStart = NULL;
 	mszIdentifierStart = NULL;
 	mszDecorationStart = NULL;
 	mszDoubleQuoteStart = NULL;

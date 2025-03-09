@@ -291,10 +291,10 @@ void CJavaTokenDefinitions::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenDefinitions::KillKeywords(void)
 {
-	char* szName;
-	SEnumeratorIterator		sIterator;
-	int						iID;
-	CJavaTokenKeywordDefinition* pcKeyword;
+	char*							szName;
+	SEnumeratorIterator				sIterator;
+	size							iID;
+	CJavaTokenKeywordDefinition*	pcKeyword;
 
 	mcKeywords.StartIteration(&sIterator, &szName, &iID, &pcKeyword);
 	while (sIterator.bValid)
@@ -313,10 +313,10 @@ void CJavaTokenDefinitions::KillKeywords(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenDefinitions::KillSeparators(void)
 {
-	char* szName;
-	SEnumeratorIterator		sIterator;
-	int						iID;
-	CJavaTokenSeparatorDefinition* pcSeparator;
+	char*							szName;
+	SEnumeratorIterator				sIterator;
+	size							iID;
+	CJavaTokenSeparatorDefinition*	pcSeparator;
 
 	mcSeparators.StartIteration(&sIterator, &szName, &iID, &pcSeparator);
 	while (sIterator.bValid)
@@ -335,10 +335,10 @@ void CJavaTokenDefinitions::KillSeparators(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenDefinitions::KillOperators(void)
 {
-	char* szName;
-	SEnumeratorIterator			sIterator;
-	int							iID;
-	CJavaTokenOperatorDefinition* pcOperator;
+	char*							szName;
+	SEnumeratorIterator				sIterator;
+	size							iID;
+	CJavaTokenOperatorDefinition*	pcOperator;
 
 	mcOperators.StartIteration(&sIterator, &szName, &iID, &pcOperator);
 	while (sIterator.bValid)
@@ -357,9 +357,9 @@ void CJavaTokenDefinitions::KillOperators(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenDefinitions::KillAmbiguous(void)
 {
-	char* szName;
-	SEnumeratorIterator			sIterator;
-	int							iID;
+	char*							szName;
+	SEnumeratorIterator				sIterator;
+	size							iID;
 	CCJavaTokenAmbiguousDefinition* pcAmbiguous;
 
 	mcAmbiguous.StartIteration(&sIterator, &szName, &iID, &pcAmbiguous);
@@ -379,10 +379,10 @@ void CJavaTokenDefinitions::KillAmbiguous(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaTokenDefinitions::KillGenerics(void)
 {
-	char* szName;
+	char*						szName;
 	SEnumeratorIterator			sIterator;
-	int							iID;
-	CJavaTokenScopeDefinition* pcGeneric;
+	size						iID;
+	CJavaTokenScopeDefinition*	pcGeneric;
 
 	mcScopes.StartIteration(&sIterator, &szName, &iID, &pcGeneric);
 	while (sIterator.bValid)

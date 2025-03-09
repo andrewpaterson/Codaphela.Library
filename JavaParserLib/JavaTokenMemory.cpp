@@ -39,31 +39,6 @@ void CJavaTokenMemory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CJavaTokenComment* CJavaTokenMemory::CreateComment(STextPosition* psPosition, char* szComment, int iLength)
-{
-	CJavaTokenComment*	pcToken;
-	char*			szDest;
-
-	pcToken = (CJavaTokenComment*)mcStack.Add(sizeof(CJavaTokenComment) + iLength + 1);
-	if (pcToken)
-	{
-		mapcTokens.Add(pcToken);
-
-		new(pcToken) CJavaTokenComment;
-		szDest = (char*)RemapSinglePointer(pcToken, sizeof(CJavaTokenComment));
-		memcpy(szDest, szComment, iLength);
-		szDest[iLength] = '\0';
-		pcToken->Init(psPosition, szDest, iLength);
-	}
-
-	return pcToken;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 CJavaTokenKeyword* CJavaTokenMemory::CreateKeyword(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword)
 {
 	CJavaTokenKeyword*	pcToken;

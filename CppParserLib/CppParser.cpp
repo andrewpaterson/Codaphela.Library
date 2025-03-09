@@ -328,7 +328,7 @@ void CCPPParser::BuildAST(char* szSourze)
 
 	cReturn = NamespaceBody();
 	
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 	if (mcParser.mbOutsideText)
 	{
 		CChars::Dump("Parsed Succesfully!\n");
@@ -1615,17 +1615,17 @@ CCPPReturn CCPPParser::StringConst(void)
 	size		iLength;
 	char*		sz;
 
-	tResult = mcParser.GetQuotedCharacterSequence('"', '"', NULL, &iLength);
+	tResult = mcParser.GetString(NULL, &iLength);
 	if (tResult == TRITRUE)
 	{
 		if (iLength < MAX_IDENTIFIER)
 		{
-			mcParser.GetQuotedCharacterSequence('"', '"', mszScratchPad);
+			mcParser.GetString(mszScratchPad);
 		}
 		else
 		{
 			sz = (char*)malloc(iLength+1);
-			mcParser.GetQuotedCharacterSequence('"', '"', sz);
+			mcParser.GetString(sz);
 			free(sz);
 		}
 		PARSE_POP(CCPPReturn::True());

@@ -21,7 +21,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "TokenHelper.h"
 #include "PPDirective.h"
 #include "PPLine.h"
-#include "PPWhiteSpace.h"
+#include "PPWhitespace.h"
 #include "PPReplacement.h"
 #include "PPText.h"
 #include "PPTextWithSource.h"
@@ -38,7 +38,7 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
 	CPPDirective*			pcDirective;
 	CPPLine*				pcLine;
-	CPPWhiteSpace*			pcWhiteSpace;
+	CPPWhitespace*			pcWhitespace;
 	CPPReplacement*			pcReplacement;
 	CPPText*				pcText;
 	CPPTextWithSource*		pcTextWithSource;
@@ -52,11 +52,11 @@ CPPToken* DuplicatePPToken(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 		pcDirective->Copy((CPPDirective*)pcSource, pcTokens);
 		return pcDirective;
 	}
-	else if (pcSource->IsWhiteSpace())
+	else if (pcSource->IsWhitespace())
 	{
-		pcWhiteSpace = pcTokens->AddWhiteSpace();
-		pcWhiteSpace->Copy((CPPWhiteSpace*)pcSource, pcTokens);
-		return pcWhiteSpace;
+		pcWhitespace = pcTokens->AddWhitespace();
+		pcWhitespace->Copy((CPPWhitespace*)pcSource, pcTokens);
+		return pcWhitespace;
 	}
 	else if (pcSource->IsReplacement())
 	{

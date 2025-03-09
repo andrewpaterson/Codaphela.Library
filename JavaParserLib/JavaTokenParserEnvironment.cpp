@@ -91,7 +91,7 @@ char* CTokenParserEnvironment::GetOutput(CChars* pszDest)
 	iLength = 0;
 	szBuffer = GetOutput(&iLength);
 	pszDest->Init(szBuffer, 0, iLength);
-	pszDest->StripWhiteSpace(true);
+	pszDest->StripWhitespace(true);
 	return pszDest->Text();
 }
 

@@ -109,7 +109,7 @@ void CPreprocessorParser::StepRight(int iDist)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPreprocessorParser::SkipWhiteSpace(void)
+void CPreprocessorParser::SkipWhitespace(void)
 {
 	char	cCurrent;		
 
@@ -123,7 +123,7 @@ void CPreprocessorParser::SkipWhiteSpace(void)
 		cCurrent = mszParserPos[0];
 
 		//Nice clean white space...
-		if (IsWhiteSpace())
+		if (IsWhitespace())
 		{
 			StepRight();
 		}
@@ -284,7 +284,7 @@ void CPreprocessorParser::TestEnd(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CPreprocessorParser::IsWhiteSpace(void)
+bool CPreprocessorParser::IsWhitespace(void)
 {
 	char c;
 	c = *mszParserPos;

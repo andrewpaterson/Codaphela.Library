@@ -150,7 +150,7 @@ bool CPPToken::IsText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPToken::IsWhiteSpace(void)
+bool CPPToken::IsWhitespace(void)
 {
 	return false;
 }

@@ -445,7 +445,7 @@ bool CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 		return false;
 	}
 
-	szCSV.StripWhiteSpace(true);
+	szCSV.StripWhitespace(true);
 	//szCSV.Replace(" ", "");  //Write a test for this, why does it not work?
 
 	cMemoryFile.Init(szCSV.Text(), szCSV.Length());
