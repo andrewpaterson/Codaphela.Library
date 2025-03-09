@@ -92,7 +92,6 @@ public:
 	TRISTATE		GetString(char* szString, size* piLength = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace = true);
 	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhitespace = true);
-	TRISTATE		GetCharacterSequence(char* szSequence, size* piLength = NULL, bool bSkipWhitespace = true);
 
 	TRISTATE		GetDigit(uint16* pi, uint16 uiBase = 10);
 	TRISTATE		GetSign(int16* pi);

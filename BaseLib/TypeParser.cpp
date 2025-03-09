@@ -659,7 +659,7 @@ TRISTATE CTypeParser::ParseString(CChars* pDest)
 	TRISTATE	tResult;
 
 	mpcParser->PushPosition();
-	tResult = mpcParser->GetCharacterSequence(NULL, &iLen);
+	tResult = mpcParser->GetString(NULL, &iLen);
 	mpcParser->PopPosition();
 
 	if (tResult != TRITRUE)
@@ -668,7 +668,7 @@ TRISTATE CTypeParser::ParseString(CChars* pDest)
 	}
 
 	pDest->InitLength(iLen);
-	mpcParser->GetCharacterSequence(pDest->Text(), NULL);
+	mpcParser->GetString(pDest->Text(), NULL);
 	return TRITRUE;
 }
 
@@ -716,19 +716,19 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 		case PT_char8:
 			if (iDestLength >= CHAR_BYTE_SIZE)
 			{
-				return ParseChar((char*)pvDest);
+				return ParseChar((char8*)pvDest);
 			}
 			break;
 		case PT_float32:
 			if (iDestLength >= FLOAT_BYTE_SIZE)
 			{
-				return ParseFloat((float*)pvDest);
+				return ParseFloat((float32*)pvDest);
 			}
 			break;		
 		case PT_float64:
 			if (iDestLength >= DOUBLE_BYTE_SIZE)
 			{
-				return ParseDouble((double*)pvDest);
+				return ParseDouble((float64*)pvDest);
 			}
 			break;		
 		case PT_uint32:
