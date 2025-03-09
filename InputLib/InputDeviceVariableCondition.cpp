@@ -55,11 +55,13 @@ void CInputDeviceVariableCondition::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceVariableCondition::Copy(CInputDeviceVariableCondition* pcSource, CInputDeviceCopyContext* pcContext)
 {
-	int							i;
+	size						i;
 	CInputDeviceVariableValue*	pcSourceValue;
 	CInputDeviceVariableValue*	pcDestValue;
+	size						uiNumElements;
 
-	for (i = 0; i < pcSource->mapConditions.NumElements(); i++)
+	uiNumElements = pcSource->mapConditions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSourceValue = *pcSource->mapConditions.Get(i);
 		pcDestValue = (CInputDeviceVariableValue*)pcContext->mmppVariables.Get(pcSourceValue);
@@ -119,12 +121,14 @@ bool CInputDeviceVariableCondition::ContainsChord(CInputChord* pcChord)
 //////////////////////////////////////////////////////////////////////////
 bool CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
 {
-	int							i;
+	size						i;
 	CInputDeviceVariableValue*	pcConditionValue;
+	size						uiNumElements;
 
 	if (ContainsChord(pcChord))
 	{
-		for (i = 0; i < mapConditions.NumElements(); i++)
+		uiNumElements = mapConditions.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcConditionValue = *mapConditions.Get(i);
 			if (pcConditionValue->GetCurrentVariableValue() != pcConditionValue)
@@ -147,12 +151,14 @@ bool CInputDeviceVariableCondition::MatchCondition(CInputChord* pcChord)
 //////////////////////////////////////////////////////////////////////////
 bool CInputDeviceVariableCondition::MatchNonChordCondition(void)
 {
-	int							i;
+	size						i;
 	CInputDeviceVariableValue*	pcConditionValue;
+	size						uiNumElements;
 
 	if (mpcChord == NULL)
 	{
-		for (i = 0; i < mapConditions.NumElements(); i++)
+		uiNumElements = mapConditions.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcConditionValue = *mapConditions.Get(i);
 			if (pcConditionValue->GetCurrentVariableValue() != pcConditionValue)

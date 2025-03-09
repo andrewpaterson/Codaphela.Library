@@ -77,13 +77,13 @@ public:
 	void						ToString(CChars* psz);
 	void						AddDevice(CInputDevice* pcDevice);
 	void						RemoveDevice(CInputDevice* pcDevice);
-	int							GetUnusedID(void);
+	size						GetUnusedID(void);
 	CInputVirtualDeviceDesc*	CreateDefaultVirtualDesc(void);
 	CInputDeviceVariableDesc*	StartVariablesIteration(SSetIterator* psIter);
 	CInputDeviceVariableDesc*	IterateVariables(SSetIterator* psIter);
 	CInputSourceDesc*			StartInputsIteration(SSetIterator* psIter);
 	CInputSourceDesc*			IterateInputs(SSetIterator* psIter);
-	int							NumInputs(void);
+	size						NumInputs(void);
 	CInputDataFormat*			GetDataFormat(void);
 	CInputChordDescs*			GetVariableChordDescs(void);
 	bool						IsPhysical(void);

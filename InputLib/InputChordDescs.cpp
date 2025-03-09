@@ -166,9 +166,10 @@ void CInputChordDescs::CopyChordCriteriaDesc(CInputChordCriteriaDesc* pcDest, CI
 	CInputChordCollectiveDesc*	pcSourceCollective;
 	CInputChordCollectiveDesc*	pcDestCollective;
 	CInputChordCollectiveDesc*	pcDestCollective2;
-	int							i;
+	size						i;
 	CInputSourceDesc*			pcDestSource;
 	CInputChordDesc*			pcDestChord;
+	size						uiNumElements;
 
 	switch (pcSource->GetType())
 	{
@@ -198,7 +199,8 @@ void CInputChordDescs::CopyChordCriteriaDesc(CInputChordCriteriaDesc* pcDest, CI
 		pcDestCollective = (CInputChordCollectiveDesc*)pcDest;
 		pcDestCollective->Init(pcSourceCollective->GetType(), pcSourceCollective->GetChordDesc());
 
-		for (i = 0; i < pcSourceCollective->macCriteria.NumElements(); i++)
+		uiNumElements = pcSourceCollective->macCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcSourceCriteria = (CInputChordCriteriaDesc*)pcSourceCollective->macCriteria.Get(i);
 			switch (pcSourceCriteria->GetType())

@@ -330,7 +330,7 @@ void CInputDeviceDesc::CopySources(CInputDeviceCopyContext* pcContext)
 {
 	CInputSourceDesc*	pcInputSourceDesc;
 	CInputSourceDesc*	pcInputDestDesc;
-	int					iNumInputs;
+	size				iNumInputs;
 	SSetIterator		sIter;
 
 	iNumInputs = mlcInputs.NumElements();
@@ -387,7 +387,7 @@ void CInputDeviceDesc::AddDevice(CInputDevice* pcDevice)
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceDesc::RemoveDevice(CInputDevice* pcDevice)
 {
-	int		iIndex;
+	size		iIndex;
 
 	iIndex = mapcDevices.Find(&pcDevice);
 	mapcDevices.RemoveAt(iIndex, false);
@@ -398,18 +398,20 @@ void CInputDeviceDesc::RemoveDevice(CInputDevice* pcDevice)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputDeviceDesc::GetUnusedID(void)
+size CInputDeviceDesc::GetUnusedID(void)
 {
-	int				i;
+	size			i;
 	CInputDevice*	pcDevice;
 	CArrayInt		aiIDs;
-	int				iID;
+	size			iID;
+	size			uiNumElements;
 
-	if (mapcDevices.NumElements() == 0)
+	uiNumElements = mapcDevices.NumElements();
+	if (uiNumElements == 0)
 	{
 		return 0;
 	}
-	else if (mapcDevices.NumElements() == 1)
+	else if (uiNumElements == 1)
 	{
 		pcDevice = *mapcDevices.Get(0);
 		if (pcDevice->GetDescriptionID() == 0)
@@ -420,7 +422,7 @@ int CInputDeviceDesc::GetUnusedID(void)
 	}
 
 	aiIDs.Init();
-	for (i = 0; i < mapcDevices.NumElements(); i++)
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDevice = *mapcDevices.Get(i);
 		aiIDs.Add(pcDevice->GetDescriptionID());
@@ -539,7 +541,7 @@ CInputSourceDesc* CInputDeviceDesc::IterateInputs(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputDeviceDesc::NumInputs(void) { return mlcInputs.NumElements(); }
+size CInputDeviceDesc::NumInputs(void) { return mlcInputs.NumElements(); }
 CInputDataFormat* CInputDeviceDesc::GetDataFormat(void) { return mpcDataFormat; }
 bool CInputDeviceDesc::IsPhysical(void) { return mbPhysical; }
 CInputChordDescs* CInputDeviceDesc::GetVariableChordDescs(void) { return &mcVariableChordDescs; }

@@ -26,9 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SWinKey
 {
-	unsigned int uiVKey;
-	unsigned int uiPressedFlags;
-	unsigned int uiReleasedFlags;
+	uint32	uiVKey;
+	uint32	uiPressedFlags;
+	uint32	uiReleasedFlags;
 };
 
 
@@ -40,15 +40,15 @@ class CKeyboardKeyList
 public:
 	CArrayChars		maszKeys;
 	CArrayWinKey	masKeys;
-	int				miCurrent;
+	size			miCurrent;
 	bool			mbFirst;
 
 	void	Init(void);
 	void	Kill(void);
 	char*	GetCurrent(void);
-	void	Key(unsigned int uiVKey, unsigned int uiFlags);
-	void	Pressed(unsigned int uiVKey, unsigned int uiPressedFlags);
-	void	Released(unsigned int uiVKey, unsigned int uiPressedFlags);
+	void	Key(uint32 uiVKey, uint32 uiFlags);
+	void	Pressed(uint32 uiVKey, uint32 uiPressedFlags);
+	void	Released(uint32 uiVKey, uint32 uiPressedFlags);
 	void	Next(void);
 	void	ToString(CChars* psz);
 	void	Dump(void);

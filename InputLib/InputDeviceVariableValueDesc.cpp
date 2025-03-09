@@ -56,12 +56,14 @@ void CInputDeviceVariableValueDesc::Kill(void)
 void CInputDeviceVariableValueDesc::Copy(CInputDeviceVariableValueDesc* pcSource, CInputDeviceCopyContext* pcContext)
 {
 	CInputDeviceVariableValueConditionDesc*		pcSourceConditionDesc;
-	int											i;
+	size										i;
 	CInputDeviceVariableValueDesc*				pcValueDesc;
 	CInputChordDesc*							pcChordDesc;
+	size										uiNumElements;
 
 	mbInitial = pcSource->mbInitial;
-	for (i = 0; i < pcSource->mapcConditions.NumElements(); i++)
+	uiNumElements = pcSource->mapcConditions.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSourceConditionDesc = (CInputDeviceVariableValueConditionDesc*)pcSource->mapcConditions.Get(i);
 		if (pcSourceConditionDesc->IsChord())

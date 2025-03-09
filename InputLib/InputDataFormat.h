@@ -45,11 +45,11 @@ public:
 
 	void		Add(EPrimitiveType eType, char* szName);
 	void		Done(void);
-	int			GetIndex(char* szName);
-	CChannel*	Get(int iIndex);
-	float		GetConvertToFloat(int iIndex, void* pvData);
-	float		GetCastToFloat(int iIndex, void* pvData);
-	void		GetAsNative(void* pvDest, int iIndex, void* pvData);
+	size		GetIndex(char* szName);
+	CChannel*	Get(size iIndex);
+	float		GetConvertToFloat(size iIndex, void* pvData);
+	float		GetCastToFloat(size iIndex, void* pvData);
+	void		GetAsNative(void* pvDest, size iIndex, void* pvData);
 
 	bool		IsCommon(void);
 	bool		IsCommonName(char* szName);

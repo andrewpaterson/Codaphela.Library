@@ -63,7 +63,7 @@ bool CInputChordReader::Read(void)
 	CMarkupTag*			pcInactiveTag;
 	CMarkupTag*			pcGroupTag;
 	CMarkupTag*			pcOrderedTag;
-	int					iCount;
+	size				iCount;
 	CInputChordDesc*	pcChordDesc;
 	bool				bResult;
 

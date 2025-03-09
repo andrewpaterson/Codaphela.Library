@@ -110,15 +110,17 @@ void CInputVirtualDeviceCommonality::AddIfShared(CInputVirtualDevice* pcOtherVir
 //////////////////////////////////////////////////////////////////////////
 void CInputVirtualDeviceCommonality::ToString(CChars* psz)
 {
-	int							i;
+	size					i;
 	CInputVirtualDevice*	pcOtherDesc;
+	size					uiNumElements;
 
 	psz->Append(" --- CInputVirtualDeviceCommonality ---\n");
 	psz->Append(mpcVirtualDevice->GetName()->Text());
 	psz->AppendNewLine();
 
 	psz->Append(" - CInputVirtualDevice* : mapcSharedDeviceSources -\n");
-	for (i = 0; i < mapcSharedDeviceSources.NumElements(); i++)
+	uiNumElements = mapcSharedDeviceSources.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcOtherDesc = *mapcSharedDeviceSources.Get(i);
 		psz->Append("  ");
@@ -135,9 +137,11 @@ void CInputVirtualDeviceCommonality::ToString(CChars* psz)
 void CInputVirtualDeviceCommonality::Disable(void)
 {
 	CInputVirtualDevice*	pcVirtual;
-	int						i;
+	size					i;
+	size					uiNumElements;
 
-	for (i = 0; i < mapcSharedDeviceSources.NumElements(); i++)
+	uiNumElements = mapcSharedDeviceSources.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcVirtual = *mapcSharedDeviceSources.Get(i);
 		pcVirtual->Disable();

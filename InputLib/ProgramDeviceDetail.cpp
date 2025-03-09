@@ -63,10 +63,12 @@ void CProgramDeviceDetail::Init(char* szID, char* szFriendlyName)
 //////////////////////////////////////////////////////////////////////////
 void CProgramDeviceDetail::Kill(void)
 {
-	int							i;
+	size						i;
 	CProgramDeviceSourceValue*	pcSource;
+	size						uiNumElements;
 
-	for (i = 0; i < macSources.NumElements(); i++)
+	uiNumElements = macSources.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSource = macSources.Get(i);
 		pcSource->Kill();
@@ -112,10 +114,12 @@ void CProgramDeviceDetail::AddEvent(char* szName, float fValue)
 //////////////////////////////////////////////////////////////////////////
 int CProgramDeviceDetail::GetSourceID(char* szName)
 {
-	int							i;
+	size						i;
 	CProgramDeviceSourceValue*	pcSource;
+	size						uiNumElements;
 
-	for (i = 0; i < macSources.NumElements(); i++)
+	uiNumElements = macSources.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSource = macSources.Get(i);
 		if (pcSource->mszName.Equals(szName))

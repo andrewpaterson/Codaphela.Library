@@ -126,7 +126,7 @@ void CActiveInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CActiveInputChordCriteria::Size(void)
+size CActiveInputChordCriteria::Size(void)
 {
 	return 1;
 }
@@ -183,7 +183,7 @@ void CInactiveInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInactiveInputChordCriteria::Size(void)
+size CInactiveInputChordCriteria::Size(void)
 {
 	return 1;
 }
@@ -217,10 +217,12 @@ void CGroupInputChordCriteria::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CGroupInputChordCriteria::Kill(void)
 {
-	int						i;
+	size					i;
 	UInputChordCriteria*	puCriteria;
+	size					uiSize;
 
-	for (i = 0; i < Size(); i++)
+	uiSize = Size();
+	for (i = 0; i < uiSize; i++)
 	{
 		puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Get(i);
 		KillActionCriteria(puCriteria);
@@ -237,12 +239,14 @@ void CGroupInputChordCriteria::Kill(void)
 void CGroupInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest)
 {
 	CActionInputChordCriteria*	psCriteria;
-	int							i;
+	size						i;
 	UInputChordCriteria*		puCriteria;
 	CInputSourceEvaluator*		pcEvaluator;
+	size						uiSize;
 
-	pcDest->FakeSetUsedElements(Size());
-	for (i = 0; i < Size(); i++)
+	uiSize = Size();
+	pcDest->FakeSetUsedElements(uiSize);
+	for (i = 0; i < uiSize; i++)
 	{
 		puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Get(i);
 		switch (puCriteria->eType.eAction)
@@ -277,7 +281,7 @@ void CGroupInputChordCriteria::ToArray(CArrayActionInputChordCriteria* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CGroupInputChordCriteria::Size(void)
+size CGroupInputChordCriteria::Size(void)
 {
 	return mausBasicActionCriteria.NumElements();
 }
@@ -289,12 +293,14 @@ int CGroupInputChordCriteria::Size(void)
 //////////////////////////////////////////////////////////////////////////
 void CGroupInputChordCriteria::ToString(CChars* psz)
 {
-	int							i;
-	UInputChordCriteria*		puCriteria;
+	size					i;
+	UInputChordCriteria*	puCriteria;
+	size					uiSize;
 
 	psz->Append(" --- CGroupInputChordCriteria ---\n");
 
-	for (i = 0; i < Size(); i++)
+	uiSize = Size();
+	for (i = 0; i < uiSize; i++)
 	{
 		puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Get(i);
 		switch (puCriteria->eType.eAction)
@@ -362,9 +368,9 @@ void COrderedInputChordCriteria::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int COrderedInputChordCriteria::Size(void)
+size COrderedInputChordCriteria::Size(void)
 {
-	return Size(mausBasicActionCriteria.NumElements()-1);
+	return Size(mausBasicActionCriteria.NumElements() - 1);
 }
 
 
@@ -372,34 +378,37 @@ int COrderedInputChordCriteria::Size(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int COrderedInputChordCriteria::Size(int iLastIndexInclusive)
+size COrderedInputChordCriteria::Size(size iLastIndexInclusive)
 {
-	int							i;
-	UInputChordCriteria*		puCriteria;
-	int							iSize;
-
-	if (iLastIndexInclusive >= mausBasicActionCriteria.NumElements())
-	{
-		iLastIndexInclusive = mausBasicActionCriteria.NumElements()-1;
-	}
+	size					i;
+	UInputChordCriteria*	puCriteria;
+	size					iSize;
 
 	iSize = 0;
-	for (i = 0; i <= iLastIndexInclusive; i++)
+	if (iLastIndexInclusive != MAX_UINT)
 	{
-		puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Get(i);
-		switch (puCriteria->eType.eAction)
+		if (iLastIndexInclusive >= mausBasicActionCriteria.NumElements())
 		{
-		case BAA_Active:
-			iSize += puCriteria->cActive.Size();
-			break;
-		case BAA_Inactive:
-			iSize += puCriteria->cInactive.Size();
-			break;
-		case BAA_Group:
-			iSize += puCriteria->cGroup.Size();
-			break;
-		default:
-			return 0;
+			iLastIndexInclusive = mausBasicActionCriteria.NumElements() - 1;
+		}
+
+		for (i = 0; i <= iLastIndexInclusive; i++)
+		{
+			puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Get(i);
+			switch (puCriteria->eType.eAction)
+			{
+			case BAA_Active:
+				iSize += puCriteria->cActive.Size();
+				break;
+			case BAA_Inactive:
+				iSize += puCriteria->cInactive.Size();
+				break;
+			case BAA_Group:
+				iSize += puCriteria->cGroup.Size();
+				break;
+			default:
+				return 0;
+			}
 		}
 	}
 	return iSize;
@@ -412,12 +421,14 @@ int COrderedInputChordCriteria::Size(int iLastIndexInclusive)
 //////////////////////////////////////////////////////////////////////////
 void COrderedInputChordCriteria::ToString(CChars* psz)
 {
-	int							i;
-	UInputChordCriteria*		puCriteria;
+	size					i;
+	UInputChordCriteria*	puCriteria;
+	size					uiNumElements;
 
 	psz->Append(" --- COrderedInputChordCriteria ---\n");
 
-	for (i = 0; i < mausBasicActionCriteria.NumElements(); i++)
+	uiNumElements = mausBasicActionCriteria.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		puCriteria = (UInputChordCriteria*)mausBasicActionCriteria.Get(i);
 		switch (puCriteria->eType.eAction)

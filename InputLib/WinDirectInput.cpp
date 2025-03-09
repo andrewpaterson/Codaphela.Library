@@ -173,11 +173,13 @@ int FAR PASCAL EnumGameControllerDevices(LPCDIDEVICEINSTANCE pcdiDeviceInstance,
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::CreateDevices(void)
 {
-	int						i;
+	size					i;
 	CDirectInputDetail*		psJoystickDetail;
 	HRESULT					hResult;
+	size					uiNumElements;
 
-	for (i = 0; i < masDIJoystickDetail.NumElements(); i++)
+	uiNumElements = masDIJoystickDetail.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psJoystickDetail = masDIJoystickDetail.Get(i);
 		if (!IsXInputDevice(psJoystickDetail))
@@ -210,10 +212,12 @@ void CDirectInput::CreateDevices(void)
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::ReleaseDevices(void)
 {
-	int						i;
+	size					i;
 	CDirectInputDetail*		pcDetail;
+	size					uiNumElements;
 
-	for (i = 0; masDIJoystickDetail.NumElements(); i++)
+	uiNumElements = masDIJoystickDetail.NumElements();
+	for (i = 0; uiNumElements; i++)
 	{
 		pcDetail = masDIJoystickDetail.Get(i);
 		pcDetail->ReleaseDevice();
@@ -227,10 +231,12 @@ void CDirectInput::ReleaseDevices(void)
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::ResetDetails(void)
 {
-	int						i;
+	size					i;
 	CDirectInputDetail*		pcDetail;
+	size					uiNumElements;
 
-	for (i = 0; i < masDIJoystickDetail.NumElements(); i++)
+	uiNumElements = masDIJoystickDetail.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDetail = masDIJoystickDetail.Get(i);
 		pcDetail->Kill();
@@ -249,13 +255,15 @@ void CDirectInput::Update(void)
 {
 	DIDEVICEOBJECTDATA		sData[256];	
 	DWORD					dwItems;
-	int						iJoystick;
+	size					iJoystick;
 	DWORD					dwItem;
 	HRESULT					hResult;
 	DIJOYSTATE2				cJoyState;
 	CDirectInputDetail*		pcDetail;
+	size					uiNumJoysticks;
 
-	for (iJoystick = 0; iJoystick > masDIJoystickDetail.NumElements(); iJoystick++)
+	uiNumJoysticks = masDIJoystickDetail.NumElements();
+	for (iJoystick = 0; iJoystick > uiNumJoysticks; iJoystick++)
 	{
 		pcDetail = masDIJoystickDetail.Get(iJoystick);
 		hResult = pcDetail->lpDIDevice->GetDeviceState(sizeof(DIJOYSTATE2), &cJoyState);
@@ -305,13 +313,15 @@ void CDirectInput::AddDetails(DIDEVICEINSTANCE* pcdiDeviceInstance)
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::AddDevicesTo(CInputDevices* pcDevices)
 {
-	int						i;
+	size					i;
 	CDirectInputDetail*		pcDetail;
 	CInputDeviceDesc*		pcDeviceDesc;
 	CInputDevice*			pcInputDevice;
 	DIDEVCAPS				diDevCaps;
+	size					uiNumElements;
 
-	for (i = 0; i < masDIJoystickDetail.NumElements(); i++)
+	uiNumElements = masDIJoystickDetail.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDetail = masDIJoystickDetail.Get(i);
 		if (pcDetail->lpDIDevice)
@@ -344,7 +354,7 @@ void CDirectInput::AddDevicesTo(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceDesc* CDirectInput::AddStandardJoystick(CInputDevices* pcDevices, int iAxes, int iButtons, int iPOVs)
+CInputDeviceDesc* CDirectInput::AddStandardJoystick(CInputDevices* pcDevices, size iAxes, size iButtons, size iPOVs)
 {
 	if (iAxes <= 2)
 	{
@@ -525,15 +535,17 @@ CInputDeviceDesc* CDirectInput::AddStandardJoystick(CInputDevices* pcDevices, in
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDirectInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
+void CDirectInput::Update(CInputDevices* pcDevices, size uiSequence)
 {
-	int					i;
+	size				i;
 	CDirectInputDetail*	pcDetail;
 	HRESULT				hr;
 	DIJOYSTATE2			diJoyState2;
 	CInputDevice*		pcDevice;
+	size				uiNumElements;
 
-	for (i = 0; i < masDIJoystickDetail.NumElements(); i++)
+	uiNumElements = masDIJoystickDetail.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDetail = masDIJoystickDetail.Get(i);
 		if ((pcDetail->lpDIDevice) && (pcDetail->miUniqueID != -1))
@@ -565,10 +577,12 @@ void CDirectInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
 //////////////////////////////////////////////////////////////////////////
 void CDirectInput::DumpDetaills(void)
 {
-	int					i;
+	size				i;
 	CDirectInputDetail*	psDIJoystickDetail;
+	size				uiNumElements;
 
-	for (i = 0; i < masDIJoystickDetail.NumElements(); i++)
+	uiNumElements = masDIJoystickDetail.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psDIJoystickDetail = masDIJoystickDetail.Get(i);
 		psDIJoystickDetail->Dump();

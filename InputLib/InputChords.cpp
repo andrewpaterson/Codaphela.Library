@@ -102,7 +102,7 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	SInputDeviceTimeValue*	psHistory;
 	SMatchResult			sResult;
 	SMatchingAction			sMatch;
-	int						iLowestIndex;
+	size					iLowestIndex;
 	SChordInputEvent		sChordInputEvent;
 	CInputVirtualDevice*	pcVirtual;
 
@@ -120,11 +120,11 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	psHistory->pcSource = psEvent->pcSource;
 	psHistory->uiTime = 0;
 
-	sMatch.iIndex = MAX_INT;
+	sMatch.iIndex = MAX_UINT;
 	sMatch.iLength = 0;
 	sMatch.bTotalMatch = false;
 	sMatch.bPotentialMatch = false;
-	iLowestIndex = MAX_INT;
+	iLowestIndex = MAX_UINT;
 	pcChord = mlcChords.StartIteration(&sIter);
 	while (pcChord)
 	{
@@ -160,7 +160,8 @@ void CInputChords::InputEvent(CUnknown* pcSource, void* pvContext)
 	pcChord = mlcChords.StartIteration(&sIter);
 	while (pcChord)
 	{
-		if ((pcChord->GetMatchedCriteria() == sMatch.iLength) && (pcChord->GetTotalCriteria() == sMatch.iLength))
+		if ((pcChord->GetMatchedCriteria() == sMatch.iLength) && 
+			(pcChord->GetTotalCriteria() == sMatch.iLength))
 		{
 			sChordInputEvent.pcValue = (CInputDeviceValue*)pvContext;
 			sChordInputEvent.pcChord = pcChord;
@@ -276,12 +277,14 @@ void CInputChords::ToString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CInputChords::DumpHistory(void)
 {
-	int						i;
+	size					i;
 	SInputDeviceTimeValue*	psValue;
 	CChars					sz;
+	size					uiNumElements;
 
 	sz.Init();
-	for (i = 0; i < macHistory.NumElements(); i++)
+	uiNumElements = macHistory.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psValue = macHistory.Get(i);
 		sz.Append(psValue->pcSource->GetFriendlyName());

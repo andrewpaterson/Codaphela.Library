@@ -242,11 +242,12 @@ bool CInputDevicesReader::ReadDataFormatChannels(CMarkupTag* pcParentTag, CTypeN
 	bool				bEmptyName;
 	bool				bEmptyCount;
 	EPrimitiveType		eType;
-	int					iIndex;
+	size				iIndex;
 	CTextParser			cTextParser;
-	int					iCount;
+	int64				lliCount;
+	uint16				uiCount;
 	TRISTATE			tResult;
-	int					i;
+	size				i;
 	CChars				szArrayName;
 	STagIterator		sIter;
 
@@ -274,7 +275,7 @@ bool CInputDevicesReader::ReadDataFormatChannels(CMarkupTag* pcParentTag, CTypeN
 		if (!bEmptyName)
 		{
 			iIndex = pcFormat->GetIndex(szName);
-			if (iIndex != -1)
+			if (iIndex != MAX_UINT)
 			{
 				gcLogger.Error2("Data format '", pcFormat->GetCommonName(), "' does not have a name '", szName, "'", NULL);
 				return false;
@@ -289,18 +290,19 @@ bool CInputDevicesReader::ReadDataFormatChannels(CMarkupTag* pcParentTag, CTypeN
 		else
 		{
 			cTextParser.Init(szCount);
-			tResult = cTextParser.GetInteger(&iCount);
+			tResult = cTextParser.GetInteger(&lliCount);
 			cTextParser.Kill();
 			if (tResult != TRITRUE)
 			{
 				return false;
 			}
-			if ((iCount <= 0) || (iCount >= 32768))
+			if ((lliCount <= 0) || (lliCount >= 32768))
 			{
 				return false;
 			}
 
-			for (i = 0; i < iCount; i++)
+			uiCount = (uint16)lliCount;
+			for (i = 0; i < uiCount; i++)
 			{
 				szArrayName.Init(szName);
 				szArrayName.Append("[");
@@ -490,7 +492,7 @@ bool CInputDevicesReader::ReadDevice(CMarkupTag* pcParentTag, CTypeNames* pcType
 	CChars						szFriendly;
 	CInputCategory*				pcCategory;
 	STagIterator				sIter;
-	int							iSourcesCount;
+	size						iSourcesCount;
 	CChars						szComment;
 	CInputVirtualDeviceDesc*	pcDefaultVirtualDesc;
 
@@ -982,10 +984,10 @@ bool CInputDevicesReader::ReadSourceValue(CMarkupTag* pcParentTag, CInputSourceD
 	CMarkupTag*				pcValueTag;
 	char*					szType;
 	CChars					szChannel;
-	int						iIndex;
+	size					iIndex;
 	float		 			fValue;
 	bool					bResult;
-	int						iOrder;
+	int64					iOrder;
 	STagIterator			sIter;
 
 	pcValueTag = pcParentTag->GetTag("Value");
@@ -1058,7 +1060,7 @@ bool CInputDevicesReader::ReadSourceValue(CMarkupTag* pcParentTag, CInputSourceD
 		{
 			return false;
 		}
-		pcSourceValue->SetOrder(iOrder);
+		pcSourceValue->SetOrder((size)iOrder);
 	}
 
 	pcTag = pcParentTag->GetTag("Channel", &sIter);
@@ -1179,7 +1181,7 @@ bool CInputDevicesReader::ReadDeltaDetail(CMarkupTag* pcParentTag, CInputSourceV
 bool CInputDevicesReader::ReadValueChannel(CMarkupTag* pcParentTag, CInputSourceValue* pcSourceValue)
 {
 	char*							szName;
-	int								iIndex;
+	size							iIndex;
 	CMarkupTag*						pcEquals;
 	CMarkupTag*						pcLessThan;
 	CMarkupTag*						pcLessThanOrEquals;
@@ -1188,7 +1190,7 @@ bool CInputDevicesReader::ReadValueChannel(CMarkupTag* pcParentTag, CInputSource
 	CMarkupTag*						pcNotEquals;
 	CMarkupTag*						pcAlwaysValid;
 	CMarkupTag*						pcValid;
-	int								iNumComparators;
+	size							iNumComparators;
 	EInputSourceChannelComparator	eComparator;
 	CInputSouceChannel*				pcChannel;
 	CChars							szTestValue;
