@@ -61,9 +61,10 @@ char* CJavaSyntaxFile::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxFile::TypePrint(CChars* pszDest, int iDepth)
 {
-	int						i;
+	size					i;
 	CJavaSyntaxImport*		pcSyntax;
 	CJavaSyntaxClassCommon*	pcClassCommon;
+	size					uiNumElements;
 
 	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->Append(&mszFilename);
@@ -74,13 +75,15 @@ void CJavaSyntaxFile::TypePrint(CChars* pszDest, int iDepth)
 		mpcPackage->TypePrint(pszDest, iDepth + 1);
 	}
 
-	for (i = 0; i < mapcImports.NumElements(); i++)
+	uiNumElements = mapcImports.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSyntax = mapcImports.GetPtr(i);
 		pcSyntax->TypePrint(pszDest, iDepth + 1);
 	}
 
-	for (i = 0; i < mapcClasses.NumElements(); i++)
+	uiNumElements = mapcClasses.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcClassCommon = mapcClasses.GetPtr(i);
 		pcClassCommon->TypePrint(pszDest, iDepth + 1);
@@ -94,9 +97,10 @@ void CJavaSyntaxFile::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxFile::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	int							i;
+	size						i;
 	CJavaSyntaxImport*			pcSyntax;
 	CJavaSyntaxClassCommon*		pcClassCommon;
+	size						uiNumElements;
 
 	if (mpcPackage)
 	{
@@ -105,14 +109,16 @@ void CJavaSyntaxFile::PrettyPrint(CChars* pszDest, int iBlockDepth)
 		pszDest->AppendNewLine();
 	}
 
-	for (i = 0; i < mapcImports.NumElements(); i++)
+	uiNumElements = mapcImports.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSyntax = mapcImports.GetPtr(i);
 		pcSyntax->PrettyPrint(pszDest);
 		pszDest->AppendNewLine();
 	}
 
-	for (i = 0; i < mapcClasses.NumElements(); i++)
+	uiNumElements = mapcClasses.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcClassCommon = mapcClasses.GetPtr(i);
 		pcClassCommon->PrettyPrint(pszDest, iBlockDepth);

@@ -40,13 +40,15 @@ char* CJavaSyntaxGeneric::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxGeneric::TypePrint(CChars* pszDest, int iDepth)
 {
-	int						i;
-	CJavaSyntaxTypeCommon* pcType;
+	size					i;
+	CJavaSyntaxTypeCommon*	pcType;
+	size					uiNumElements;
 
 	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 
-	for (i = 0; i < mapcGenerics.NumElements(); i++)
+	uiNumElements = mapcGenerics.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcType = mapcGenerics.GetPtr(i);
 		pcType->TypePrint(pszDest, iDepth + 1);
@@ -60,11 +62,14 @@ void CJavaSyntaxGeneric::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxGeneric::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	int						i;
-	CJavaSyntaxTypeCommon* pcType;
+	size					i;
+	CJavaSyntaxTypeCommon*	pcType;
+	size					uiNumElements;
 
 	pszDest->Append('<');
-	for (i = 0; i < mapcGenerics.NumElements(); i++)
+
+	uiNumElements = mapcGenerics.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (i != 0)
 		{

@@ -39,13 +39,15 @@ char* CJavaSyntaxClassBlock::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassBlock::TypePrint(CChars* pszDest, int iDepth)
 {
-	int						i;
+	size					i;
 	CJavaSyntaxStatement*	pcStatement;
+	size					uiNumElements;
 
 	CJavaSyntax::TypePrint(pszDest, iDepth);
 	pszDest->AppendNewLine();
 
-	for (i = 0; i < mapcStatements.NumElements(); i++)
+	uiNumElements = mapcStatements.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcStatement = mapcStatements.GetPtr(i);
 		pcStatement->TypePrint(pszDest, iDepth + 1);
@@ -59,15 +61,18 @@ void CJavaSyntaxClassBlock::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxClassBlock::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	int						i;
-	CJavaSyntaxStatement* pcStatement;
+	size					i;
+	CJavaSyntaxStatement*	pcStatement;
+	size					uiNumElements;
 
 	if (mapcStatements.IsNotEmpty())
 	{
 		pszDest->Append('\t', iBlockDepth);
 		pszDest->Append('{');
 		pszDest->AppendNewLine();
-		for (i = 0; i < mapcStatements.NumElements(); i++)
+
+		uiNumElements = mapcStatements.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcStatement = mapcStatements.GetPtr(i);
 			if (!pcStatement->IsCompoundStatement())

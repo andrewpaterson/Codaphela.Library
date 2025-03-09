@@ -23,13 +23,13 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PPToken.h"
 
 
-class CPPWhiteSpace : public CPPToken
+class CPPWhitespace : public CPPToken
 {
 public:
-	PP_TOKEN_CONSTRUCT(CPPWhiteSpace);
+	PP_TOKEN_CONSTRUCT(CPPWhitespace);
 	void	Init(int iLine, int iColumn, char* szFileName);
 	void	Kill(void);
-	bool	IsWhiteSpace(void);
+	bool	IsWhitespace(void);
 	char*	Print(CChars* psz);
 	void	Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens);
 	bool	Equals(CPPToken* pcOther);

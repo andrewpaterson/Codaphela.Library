@@ -50,12 +50,12 @@ CPPBlock* CPPTokenMemory::AddBlock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPPWhiteSpace* CPPTokenMemory::AddWhiteSpace(void)
+CPPWhitespace* CPPTokenMemory::AddWhitespace(void)
 {
-	CPPWhiteSpace* pcToken;
+	CPPWhitespace* pcToken;
 
-	pcToken = (CPPWhiteSpace*)mcStack.Add(sizeof(CPPWhiteSpace));
-	CPPWhiteSpace::Construct(pcToken);
+	pcToken = (CPPWhitespace*)mcStack.Add(sizeof(CPPWhitespace));
+	CPPWhitespace::Construct(pcToken);
 	return pcToken;
 }
 

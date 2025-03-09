@@ -81,7 +81,7 @@ void CTranslationUnits::AddAllFiles(CChars* pszBaseDir, bool bLogInlucdes, bool 
 	for (i = 0; i < aszTemp.NumElements(); i++)
 	{
 		pszFile = aszTemp.Get(i);
-		pszFile->StripWhiteSpace();
+		pszFile->StripWhitespace();
 
 		iIndex = pszFile->Find(0, ".");
 		szExtension = pszFile->Text(iIndex+1);

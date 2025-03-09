@@ -98,7 +98,7 @@ TRISTATE CJavaTokenParser::Parse(void)
 			}
 		}
 
-		mcParser.SkipWhiteSpace(false);
+		mcParser.SkipWhitespace();
 		if (mcParser.IsOutside())
 		{
 			return TRITRUE;
@@ -107,7 +107,6 @@ TRISTATE CJavaTokenParser::Parse(void)
 		pcPrevious = pcCurrent;
 		pcCurrent = NULL;
 
-		ContinueOnTrueReturnOnError(ParseComment(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseKeyword(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseAmbiguous(&pcCurrent));
 		ContinueOnTrueReturnOnError(ParseOperator(&pcCurrent));
@@ -824,35 +823,6 @@ bool CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJavaTokenParser::ParseComment(CJavaToken** ppcCurrent)
-{
-	char			szText[4 KB];
-	int				iLength;
-	TRISTATE		tResult;
-	STextPosition	sPos;
-
-	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetComment(szText, &iLength, false);
-	if (tResult == TRITRUE)
-	{
-		*ppcCurrent = mpcTokens->CreateComment(&sPos, szText, iLength);
-		return TRITRUE;
-	}
-	else if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
-	else
-	{
-		return TRIFALSE;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 TRISTATE CJavaTokenParser::ParseKeyword(CJavaToken** ppcCurrent)
 {
 	EJavaTokenKeyword				eKeyword;
@@ -861,7 +831,7 @@ TRISTATE CJavaTokenParser::ParseKeyword(CJavaToken** ppcCurrent)
 	STextPosition					sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorIdentifier<CJavaTokenKeywordDefinition>(mpcDefinitions->GetKeywords(), (int*)&eKeyword, false);
+	tResult = mcParser.GetEnumeratorIdentifier<CJavaTokenKeywordDefinition>(mpcDefinitions->GetKeywords(), (size*)&eKeyword, false);
 	if (tResult == TRITRUE)
 	{
 		pcKeyword = mpcDefinitions->GetKeyword(eKeyword);
@@ -891,7 +861,7 @@ TRISTATE CJavaTokenParser::ParseAmbiguous(CJavaToken** ppcCurrent)
 	STextPosition						sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CCJavaTokenAmbiguousDefinition>(mpcDefinitions->GetAmbiguous(), (int*)&eAmbiguous, false);
+	tResult = mcParser.GetEnumeratorSequence<CCJavaTokenAmbiguousDefinition>(mpcDefinitions->GetAmbiguous(), (size*)&eAmbiguous, false);
 	if (tResult == TRITRUE)
 	{
 		pcAmbiguous = mpcDefinitions->GetAmbiguous(eAmbiguous);
@@ -921,7 +891,7 @@ TRISTATE CJavaTokenParser::ParseOperator(CJavaToken** ppcCurrent)
 	STextPosition					sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CJavaTokenOperatorDefinition>(mpcDefinitions->GetOperators(), (int*)&eOperator, false);
+	tResult = mcParser.GetEnumeratorSequence<CJavaTokenOperatorDefinition>(mpcDefinitions->GetOperators(), (size*)&eOperator, false);
 	if (tResult == TRITRUE)
 	{
 		pcOperator = mpcDefinitions->GetOperator(eOperator);
@@ -951,7 +921,7 @@ TRISTATE CJavaTokenParser::ParseSeparator(CJavaToken** ppcCurrent)
 	STextPosition					sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CJavaTokenSeparatorDefinition>(mpcDefinitions->GetSeparators(), (int*)&eSeparator, false);
+	tResult = mcParser.GetEnumeratorSequence<CJavaTokenSeparatorDefinition>(mpcDefinitions->GetSeparators(), (size*)&eSeparator, false);
 	if (tResult == TRITRUE)
 	{
 		pcSeparator = mpcDefinitions->GetSeparator(eSeparator);
@@ -981,7 +951,7 @@ TRISTATE CJavaTokenParser::ParseScope(CJavaToken** ppcCurrent)
 	STextPosition				sPos;
 
 	mcParser.GetPosition(&sPos);
-	tResult = mcParser.GetEnumeratorSequence<CJavaTokenScopeDefinition>(mpcDefinitions->GetScopes(), (int*)&eScope, false);
+	tResult = mcParser.GetEnumeratorSequence<CJavaTokenScopeDefinition>(mpcDefinitions->GetScopes(), (size*)&eScope, false);
 	if (tResult == TRITRUE)
 	{
 		pcScope = mpcDefinitions->GetScope(eScope);
@@ -1045,7 +1015,7 @@ TRISTATE CJavaTokenParser::ParseIdentifier(CJavaToken** ppcCurrent)
 {
 	TRISTATE		tResult;
 	char			szText[4 KB];
-	int				iLength;
+	size			iLength;
 	STextPosition	sPos;
 
 	mcParser.GetPosition(&sPos);
@@ -1074,7 +1044,7 @@ TRISTATE CJavaTokenParser::ParseAnnotation(CJavaToken** ppcCurrent)
 {
 	TRISTATE		tResult;
 	char			szText[4 KB];
-	int				iLength;
+	size			iLength;
 	STextPosition	sPos;
 
 	mcParser.PushPosition();
@@ -1116,10 +1086,10 @@ TRISTATE CJavaTokenParser::ParseAnnotation(CJavaToken** ppcCurrent)
 TRISTATE CJavaTokenParser::ParseInteger(CJavaToken** ppcCurrent)
 {
 	uint64			ulli;
-	int				iBase;
-	int				iNumDigits;
+	uint16			iBase;
+	uint16			iNumDigits;
 	TRISTATE		tResult;
-	int				iSuffix;
+	uint16			iSuffix;
 	STextPosition	sPos;
 
 	mcParser.GetPosition(&sPos);
@@ -1159,13 +1129,13 @@ TRISTATE CJavaTokenParser::ParseInteger(CJavaToken** ppcCurrent)
 TRISTATE CJavaTokenParser::ParseFloat(CJavaToken** ppcCurrent)
 {
 	float96			ldf;
-	int				iBase;
-	int				iNumWholeDigits;
-	int				iNumDecinalDigits;
-	int				iNumExponentDigits;
+	uint16			iBase;
+	uint16			iNumWholeDigits;
+	uint16			iNumDecinalDigits;
+	uint16			iNumExponentDigits;
 	TRISTATE		tResult;
-	int				iSuffix;
-	int				iExponent;
+	uint16			iSuffix;
+	uint16			iExponent;
 	STextPosition	sPos;
 
 	mcParser.GetPosition(&sPos);
@@ -1205,7 +1175,7 @@ TRISTATE CJavaTokenParser::ParseFloat(CJavaToken** ppcCurrent)
 TRISTATE CJavaTokenParser::ParseCharacter(CJavaToken** ppcCurrent)
 {
 	TRISTATE		tResult;
-	int				iWidth;
+	uint16			iWidth;
 	uint16			c;
 	STextPosition	sPos;
 
@@ -1246,9 +1216,9 @@ TRISTATE CJavaTokenParser::ParseCharacter(CJavaToken** ppcCurrent)
 TRISTATE CJavaTokenParser::ParseString(CJavaToken** ppcCurrent)
 {
 	TRISTATE		tResult;
-	int				iWidth;
+	uint16			iWidth;
 	char			sz[4 KB];
-	int				iLength;
+	size			iLength;
 	STextPosition	sPos;
 
 	mcParser.GetPosition(&sPos);

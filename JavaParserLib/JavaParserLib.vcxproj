@@ -198,7 +198,6 @@
     <ClCompile Include="JavaTokenAnnotation.cpp" />
     <ClCompile Include="JavaTokenBoolean.cpp" />
     <ClCompile Include="JavaTokenCharacter.cpp" />
-    <ClCompile Include="JavaTokenComment.cpp" />
     <ClCompile Include="JavaSyntaxClass.cpp" />
     <ClCompile Include="JavaSyntaxEnum.cpp" />
     <ClCompile Include="JavaSyntaxError.cpp" />
@@ -281,7 +280,6 @@
     <ClInclude Include="JavaSyntaxGeneric.h" />
     <ClInclude Include="JavaTokenDefinitions.h" />
     <ClInclude Include="JavaTokenMemory.h" />
-    <ClInclude Include="JavaTokenComment.h" />
     <ClInclude Include="JavaToken.h" />
     <ClInclude Include="JavaTokenParser.h" />
   </ItemGroup>

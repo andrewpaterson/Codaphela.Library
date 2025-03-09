@@ -151,7 +151,6 @@ public:
 	void			GetLineLocationMarkerString(CChars* pszDest);
 
 protected:
-	TRISTATE	GetComment(char* szComment, size* piLength, char* szBegin, char* szEnd);
 	TRISTATE	GetSingleInteger(char cCurrent, uint64* pulli, uint16* piBase, uint16* puiNumDigits);
 	uint16		GetDigit(char cCurrent, uint16 uiBase);
 	bool		IsDigit(char cCurrent, uint16 uiBase);

@@ -5,7 +5,6 @@
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/ArrayTemplatePtr.h"
 #include "BaseLib/TextPosition.h"
-#include "JavaTokenComment.h"
 #include "JavaTokenKeyword.h"
 #include "JavaTokenIdentifier.h"
 #include "JavaTokenAnnotation.h"
@@ -35,7 +34,6 @@ public:
 	void					Init(void);
 	void					Kill(void);
 
-	CJavaTokenComment*		CreateComment(STextPosition* psPosition, char* szComment, int iLength);
 	CJavaTokenIdentifier*	CreateIdentifier(STextPosition* psPosition, char* szIdentifier, int iLength);
 	CJavaTokenAnnotation*	CreateAnnotation(STextPosition* psPosition, char* szAnnotation, int iLength);
 	CJavaTokenKeyword*		CreateKeyword(STextPosition* psPosition, CJavaTokenKeywordDefinition* pcKeyword);

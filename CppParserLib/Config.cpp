@@ -72,7 +72,7 @@ void CConfig::AddDefines(char* szDefines)
 	for (i = 0; i < aszTemp.NumElements(); i++)
 	{
 		pszDefine = aszTemp.Get(i);
-		pszDefine->StripWhiteSpace();
+		pszDefine->StripWhitespace();
 		AddDefine(pszDefine->Text());
 	}
 

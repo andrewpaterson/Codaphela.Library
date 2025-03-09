@@ -51,9 +51,6 @@
     <ClCompile Include="JavaTokenCharacter.cpp">
       <Filter>Source\Token\Elements</Filter>
     </ClCompile>
-    <ClCompile Include="JavaTokenComment.cpp">
-      <Filter>Source\Token\Elements</Filter>
-    </ClCompile>
     <ClCompile Include="JavaTokenFloat.cpp">
       <Filter>Source\Token\Elements</Filter>
     </ClCompile>
@@ -210,9 +207,6 @@
       <Filter>Source\Token\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaTokenCharacter.h">
-      <Filter>Source\Token\Elements</Filter>
-    </ClInclude>
-    <ClInclude Include="JavaTokenComment.h">
       <Filter>Source\Token\Elements</Filter>
     </ClInclude>
     <ClInclude Include="JavaTokenFloat.h">

@@ -369,7 +369,7 @@ bool CObjReader::ReadObjectName(CTextParser* pcTextParser)
 //////////////////////////////////////////////////////////////////////////
 bool CObjReader::ReadMaterialLibrary(CTextParser* pcTextParser)
 {
-	pcTextParser->SkipWhiteSpace();
+	pcTextParser->SkipWhitespace();
 
 	return true;
 }

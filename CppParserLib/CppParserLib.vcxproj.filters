@@ -186,7 +186,7 @@
     <ClCompile Include="PPToken.cpp">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClCompile>
-    <ClCompile Include="PPWhiteSpace.cpp">
+    <ClCompile Include="PPWhitespace.cpp">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClCompile>
     <ClCompile Include="PPConditional.cpp">
@@ -485,7 +485,7 @@
     <ClInclude Include="PPToken.h">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClInclude>
-    <ClInclude Include="PPWhiteSpace.h">
+    <ClInclude Include="PPWhitespace.h">
       <Filter>Source\Preprocessor\Tokens</Filter>
     </ClInclude>
     <ClInclude Include="PPConditional.h">

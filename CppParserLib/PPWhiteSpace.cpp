@@ -18,14 +18,14 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "PPWhiteSpace.h"
+#include "PPWhitespace.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPWhiteSpace::Init(int iLine, int iColumn, char* szFileName)
+void CPPWhitespace::Init(int iLine, int iColumn, char* szFileName)
 {
 	CPPToken::Init(iLine, iColumn, szFileName);
 }
@@ -34,7 +34,7 @@ void CPPWhiteSpace::Init(int iLine, int iColumn, char* szFileName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPWhiteSpace::Kill(void)
+void CPPWhitespace::Kill(void)
 {
 }
 
@@ -43,7 +43,7 @@ void CPPWhiteSpace::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CPPWhiteSpace::Print(CChars* psz)
+char* CPPWhitespace::Print(CChars* psz)
 {
 	psz->Append(' ');
 	return psz->Text();
@@ -54,7 +54,7 @@ char* CPPWhiteSpace::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPWhiteSpace::IsWhiteSpace(void)
+bool CPPWhitespace::IsWhitespace(void)
 {
 	return true;
 }
@@ -64,13 +64,13 @@ bool CPPWhiteSpace::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CPPWhiteSpace::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
+void CPPWhitespace::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 {
-	CPPWhiteSpace*	pcCast;
+	CPPWhitespace*	pcCast;
 
-	if (pcSource->IsWhiteSpace())
+	if (pcSource->IsWhitespace())
 	{
-		pcCast = (CPPWhiteSpace*)pcSource;
+		pcCast = (CPPWhitespace*)pcSource;
 		Init(pcCast->miLine, pcCast->miColumn, pcCast->ShortFileName());
 	}
 }
@@ -80,9 +80,9 @@ void CPPWhiteSpace::Copy(CPPToken* pcSource, CPPTokenMemory* pcTokens)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPWhiteSpace::Equals(CPPToken* pcOther)
+bool CPPWhitespace::Equals(CPPToken* pcOther)
 {
-	if (pcOther->IsWhiteSpace())
+	if (pcOther->IsWhitespace())
 	{
 		return true;
 	}
@@ -94,7 +94,7 @@ bool CPPWhiteSpace::Equals(CPPToken* pcOther)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CPPWhiteSpace::IsEmpty(void)
+bool CPPWhitespace::IsEmpty(void)
 {
 	return true;
 }

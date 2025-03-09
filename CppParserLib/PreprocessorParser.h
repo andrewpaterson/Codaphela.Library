@@ -39,9 +39,9 @@ public:
 	void	StepRight(void);
 	void	StepRight(int iDist);
 	void	StepLeft(void);
-	void	SkipWhiteSpace(void);
+	void	SkipWhitespace(void);
 	void	TestEnd(void);
-	bool	IsWhiteSpace(void);
+	bool	IsWhitespace(void);
 	void	SkipCStyleComment(void);
 	void	SkipCPPStyleComment(void);
 	bool	IsFirstIdentifier(void);

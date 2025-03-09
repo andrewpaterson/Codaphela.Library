@@ -425,7 +425,7 @@ bool CCPPTokeniser::ReservedWord(void)
 	int					iLen;
 	CPPToken*			pcToken;
 
-	mcParser.SkipWhiteSpace();
+	mcParser.SkipWhitespace();
 
 	if (!mcParser.HasToken())
 	{

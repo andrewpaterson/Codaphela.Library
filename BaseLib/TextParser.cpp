@@ -794,33 +794,6 @@ TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bPa
 //////////////////////////////////////////////////////////////////////////
 //
 //
-//////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetComment(char* szComment, size* piLength, char* szBegin, char* szEnd)
-{
-	ptrdiff_t	iLength;
-
-	if ((szBegin == NULL || szEnd == NULL))
-	{
-		PopPosition();
-		return TRIFALSE;
-	}
-
-	iLength = szEnd - szBegin + 1;
-	if (szComment)
-	{
-		memcpy(szComment, szBegin, iLength);
-		szComment[iLength] = '\0';
-	}
-	SafeAssign(piLength, iLength);
-
-	PassPosition();
-	return TRITRUE;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
 /////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetString(char* szString, size* piLength, bool bSkipWhitespace)
 {

@@ -51,10 +51,12 @@ void CJavaSyntaxPackage::TypePrint(CChars* pszDest, int iDepth)
 //////////////////////////////////////////////////////////////////////////
 void CJavaSyntaxPackage::PrettyPrint(CChars* pszDest, int iBlockDepth)
 {
-	int						i;
-	CJavaTokenIdentifier* pcIdentifier;
+	size					i;
+	CJavaTokenIdentifier*	pcIdentifier;
+	size					uiNumElements;
 
-	for (i = 0; i < mapcIdentifiers.NumElements(); i++)
+	uiNumElements = mapcIdentifiers.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		if (i != 0)
 		{

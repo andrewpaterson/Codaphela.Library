@@ -61,7 +61,7 @@ public:
 	bool		Is(char* szName);
 	size 		Width(char* szText);
 	size			Height(void);
-	bool		IsWhiteSpace(char c);
+	bool		IsWhitespace(char c);
 	CGlyph*		GetGlyph(char c);
 	CGlyph*		AddGlyph(CImageCel* pcCel, size iStep);
 	Ptr<CImage>	GetImage(void);
