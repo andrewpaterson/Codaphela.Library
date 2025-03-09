@@ -603,30 +603,23 @@ CJavaToken* CJavaTokenParser::GetLineEndToken(CJavaToken* pcStartToken)
 
 	while (pcToken != NULL)
 	{
-		if (pcToken->IsComment())
+		if (bLineEnder)
 		{
-			return pcToken;
-		}
-		else
-		{
-			if (bLineEnder)
+			if (pcToken->IsKeyword())
 			{
-				if (pcToken->IsKeyword())
+				pcKeyWord = (CJavaTokenKeyword*)pcToken;
+				if (pcKeyWord->Is(JK_while))
 				{
-					pcKeyWord = (CJavaTokenKeyword*)pcToken;
-					if (pcKeyWord->Is(JK_while))
-					{
-						bLineEnder = false;
-					}
-					else
-					{
-						return pcPrevious;
-					}
+					bLineEnder = false;
 				}
 				else
 				{
 					return pcPrevious;
 				}
+			}
+			else
+			{
+				return pcPrevious;
 			}
 		}
 
@@ -707,11 +700,6 @@ bool CJavaTokenParser::PrintSpace(CJavaToken* pcLeft, CJavaToken* pcRight)
 	if (pcRight == NULL)
 	{
 		return false;
-	}
-
-	if (pcRight->IsComment())
-	{
-		return true;
 	}
 
 	bCharThingLeft = pcLeft->IsKeyword() || pcLeft->IsIdentifier() || pcLeft->IsLiteral();

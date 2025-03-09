@@ -90,8 +90,6 @@ bool CJavaSyntaxParser::Parse(void)
 	CJavaSyntaxEnum*		pcEnum;
 	CJavaSyntaxInterface*	pcInterface;
 
-	SkipComments();
-
 	if (HasNext())
 	{
 		pcFile = mpcSyntaxes->CreateFile(&mcSyntaxTree, NULL);
@@ -377,19 +375,6 @@ void CJavaSyntaxParser::Next(void)
 bool CJavaSyntaxParser::HasNext(void)
 {
 	return mpcCurrentToken != NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CJavaSyntaxParser::SkipComments(void)
-{
-	while (mpcCurrentToken && mpcCurrentToken->IsComment())
-	{
-		mpcCurrentToken = mpcCurrentToken->GetNext();
-	}
 }
 
 
@@ -1603,10 +1588,14 @@ CJavaTokenKeyword* CJavaSyntaxParser::GetPrimitveKeyword(void)
 //////////////////////////////////////////////////////////////////////////
 CJavaTokenLiteral* CJavaSyntaxParser::GetLiteral(void)
 {
+	CJavaTokenLiteral*	pcLiteral;
+
 	if (mpcCurrentToken->IsLiteral())
 	{
+		pcLiteral = (CJavaTokenLiteral*)mpcCurrentToken;
+
 		Next();
-		return (CJavaTokenLiteral*)mpcCurrentToken;
+		return pcLiteral;
 	}
 	else
 	{

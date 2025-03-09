@@ -49,7 +49,6 @@ STextPosition* CJavaToken::GetPosition(void)
 //////////////////////////////////////////////////////////////////////////
 CJavaToken* CJavaToken::GetNext(void) {	return mpcNext; }
 bool CJavaToken::IsSeparator(void) { return false; }
-bool CJavaToken::IsComment(void) { return false; }
 bool CJavaToken::IsKeyword(void) { return false; }
 bool CJavaToken::IsIdentifier(void) { return false; }
 bool CJavaToken::IsScope(void) { return false; }

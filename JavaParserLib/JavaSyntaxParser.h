@@ -120,7 +120,6 @@ protected:
 
 	void					Next(void);
 	bool					HasNext(void);
-	void					SkipComments(void);
 
 	bool					ReplaceAmbiguous(CJavaToken* pcSearch, CJavaToken* pcReplacement);
 	CJavaTokenScope*		CreateScope(STextPosition* psPosition, EJavaTokenScope eScope);

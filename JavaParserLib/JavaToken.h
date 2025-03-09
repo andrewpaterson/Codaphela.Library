@@ -24,7 +24,6 @@ public:
 			STextPosition*	GetPosition(void);
 
 	virtual bool			IsSeparator(void);
-	virtual bool			IsComment(void);
 	virtual bool			IsKeyword(void);
 	virtual bool			IsIdentifier(void);
 	virtual bool			IsScope(void);
