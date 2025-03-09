@@ -42,9 +42,11 @@ void CProgramInput::Init(void)
 void CProgramInput::Kill(void)
 {
 	CProgramDeviceDetail*	pcDetail;
-	int						i;
+	size					i;
+	size					uiNumElements;
 
-	for (i = 0; i < macPDeviceDetails.NumElements(); i++)
+	uiNumElements = macPDeviceDetails.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDetail = macPDeviceDetails.Get(i);
 		pcDetail->Kill();
@@ -59,12 +61,14 @@ void CProgramInput::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CProgramInput::AddDevicesTo(CInputDevices* pcDevices)
 {
-	int						i;
+	size					i;
 	CProgramDeviceDetail*	pcDetail;
 	CInputDevice*			pcInputDevice;
 	CInputDeviceDesc*		pcDeviceDesc;
+	size					uiNumElements;
 
-	for (i = 0; i < macPDeviceDetails.NumElements(); i++)
+	uiNumElements = macPDeviceDetails.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDetail = macPDeviceDetails.Get(i);
 		pcDeviceDesc = CreateStandardDesc(pcDevices, pcDetail);
@@ -79,20 +83,24 @@ void CProgramInput::AddDevicesTo(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CProgramInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
+void CProgramInput::Update(CInputDevices* pcDevices, size uiSequence)
 {
-	int						i;
+	size					i;
 	CProgramDeviceDetail*	pcDetail;
 	CInputDevice*			pcDevice;
-	int						j;
+	size					j;
 	SProgramDeviceValue*	psValue;
+	size					uiNumElements;
+	size					uiValuesNumElements;
 
-	for (i = 0; i < macPDeviceDetails.NumElements(); i++)
+	uiNumElements = macPDeviceDetails.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDetail = macPDeviceDetails.Get(i);
 		pcDevice = pcDevices->GetDevice(pcDetail->miUniqueID);
 
-		for (j = 0; j < pcDetail->macValues.NumElements(); j++)
+		uiValuesNumElements = pcDetail->macValues.NumElements();
+		for (j = 0; j < uiValuesNumElements; j++)
 		{
 			psValue = pcDetail->macValues.Get(j);
 			pcDevice->Process(psValue, uiSequence);
@@ -109,19 +117,21 @@ void CProgramInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
 CInputDeviceDesc* CProgramInput::CreateStandardDesc(CInputDevices* pcDevices, CProgramDeviceDetail* pcDetail)
 {
 	CInputDeviceDesc*			pcDesc;
-	int							i;
+	size						i;
 	CProgramDeviceSourceValue*	pcValue;
 	CInputSourceDesc*			pcSourceDesc;
 	CInputSourceValue*			pcSourceValue;
+	size						uiNumElements;
 
 	pcDesc = pcDevices->CreateDescription(pcDetail->mszID.Text(), pcDetail->GetFriendlyName(), mpcCategory, false);
 	pcDesc->SetDataFormat(mpcFormat);
 
-	for (i = 0; i < pcDetail->macSources.NumElements(); i++)
+	uiNumElements = pcDetail->macSources.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcValue = pcDetail->macSources.Get(i);
 		pcSourceDesc = pcDesc->AddInput(ISET_State, pcValue->mszName.Text());
-		pcSourceValue = pcSourceDesc->AddValue(1);
+		pcSourceValue = pcSourceDesc->AddValue((size)1);
 		pcSourceValue->AddChannel(0, ISCC_Equals, &pcValue->miName);
 		pcSourceValue->SetStateDetail(1.0f, 0.0f);
 		pcSourceDesc->SetRest(0.0f, false, true);

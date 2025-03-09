@@ -76,18 +76,18 @@ public:
 	CONSTRUCTABLE(CInputChordActiveDesc);
 
 	CInputSourceDesc*					mpcSourceDesc;  //Only valy valid for ICCDAT_SpecificSource.
-	int									miDescriptionID;  //Only valy valid for ICCDAT_SpecificSource.
+	size									miDescriptionID;  //Only valy valid for ICCDAT_SpecificSource.
 	CInputCategoryGeneric*				mpcGeneric;  //Only valy valid for ICCDAT_GenericSource.
 	EInputChordType						meChordType;  //Only valy valid for ICCDAT_SpecificSource and ICCDAT_GenericSource.
 	EInputChordCriteriaDescActiveType	meActiveType;
 
-	void 				Init(CInputSourceDesc* pcSourceDesc, int iDescriptionID, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
+	void 				Init(CInputSourceDesc* pcSourceDesc, size iDescriptionID, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
 	void 				Init(CInputCategoryGeneric* pcSource, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType);
 	void 				Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);
 	void 				Kill(void);
 	void 				GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);
 	CInputSourceDesc*	GetSourceDesc(void);
-	int					GetDescriptionID(void);
+	size					GetDescriptionID(void);
 };
 
 
@@ -103,8 +103,8 @@ public:
 
 	CInputChordActiveDesc*		AddActiveOrInactive(void);
 	CInputChordCollectiveDesc*	AddGroupOrOrdered(void);
-	CInputChordActiveDesc*		AddActive(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
-	CInputChordActiveDesc*		AddInactive(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
+	CInputChordActiveDesc*		AddActive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
+	CInputChordActiveDesc*		AddInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
 	CInputChordCollectiveDesc*	AddGroup(void);
 	void						RemoveLast(void);
 	void						GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc);

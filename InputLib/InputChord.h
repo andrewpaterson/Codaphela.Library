@@ -31,8 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SMatchResult
 {
-	int		iIndex;
-	int		iLength;
+	size	iIndex;
+	size	iLength;
 };
 
 
@@ -43,15 +43,15 @@ class CInputChord : public CUnknown
 CONSTRUCTABLE(CInputChord);
 protected:
 	UInputChordCriteria				muActionCriteria;
-	int								miTotalCriteria;
-	int								miUpdateCriteria;
+	size							miTotalCriteria;
+	size							miUpdateCriteria;
 	CArrayActionInputChordCriteria	masStartDeviceValue;
 	CArrayActionInputChordCriteria	masScratchPadDeviceValue;  //Shouldn't this live elsewhere?
 	CAction*						mpcAction;
 	CInputChords*					mpcInputChords;
 	CInputChordDesc*				mpcDesc;  //Optional.
 
-	int								miMatchedCriteria;  //How many criteria match the input stream.
+	size							miMatchedCriteria;  //How many criteria match the input stream.
 
 public:
 	void 							Init(CAction* pcAction, CInputChords* pcInputChords, CInputChordDesc* pcDesc);
@@ -68,7 +68,7 @@ public:
 	void							CalculatePotentialStart(void);
 	void							CalculateLongestAction(void);
 	SMatchResult					Match(CArrayInputDeviceTimeValue* pcHistory);
-	int								FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, int iStartPos);
+	size							FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, size iStartPos);
 
 	CInputSourceEvaluator*			AddEvaluatorSpecificSource(CInputVirtualDeviceSource* pcSource, EInputChordType eType);
 	CInputSourceEvaluator*			AddEvaluatorSpecificSource(CInputDevice* pcDevice, CInputSourceDesc* pcSource, EInputChordType eType);
@@ -79,11 +79,11 @@ public:
 
 	CInputChordDesc*				GetDesc(void);
 	UInputChordCriteria*			GetActionCriteria(void);
-	int								GetTotalCriteria(void);
-	int								GetUpdateCriteria(void);
-	int								GetMatchedCriteria(void);
-	void							SetMatchedCriteria(int iMatchedCriteria);
-	int								MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, int iStartPos);
+	size							GetTotalCriteria(void);
+	size							GetUpdateCriteria(void);
+	size							GetMatchedCriteria(void);
+	void							SetMatchedCriteria(size iMatchedCriteria);
+	size							MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, size iStartPos);
 	void							ToString(CChars* psz);
 };
 

@@ -128,14 +128,16 @@ void CInputDeviceVariables::AddVariableValuesFromDesc(CInputDeviceVariableDesc* 
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceVariables::AddVariableConditionsFromDescription(CInputDeviceVariableValueDesc* pcValueDesc, CInputDeviceVariableValue* pcValue)
 {
-	int												i;
+	size											i;
 	CInputDeviceVariableValueConditionDesc*			pcConditionDesc;
 	CInputChord*									pcChord;
 	CInputDeviceVariableValue*						pcVariableValue;
 	CArrayInputDeviceVariableValueConditionDesc*	pcConditions;
+	size											uiNumElements;
 
 	pcConditions = pcValueDesc->GetConditions();
-	for (i = 0; i < pcConditions->NumElements(); i++)
+	uiNumElements = pcConditions->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcConditionDesc = (CInputDeviceVariableValueConditionDesc *)pcConditions->Get(i);
 		if (pcConditionDesc->IsChord())
@@ -276,13 +278,15 @@ void CInputDeviceVariables::VariableAction(CInputDeviceVariable* pcVariable, CIn
 //////////////////////////////////////////////////////////////////////////
 bool CInputDeviceVariables::UpdateChordVariableValues(CArrayInputDeviceVariableValuePtr* papcVariableValues)
 {
-	int							i;
+	size						i;
 	CInputDeviceVariableValue*	pcValue;
 	bool						bAnyChange;
 	bool						bResult;
+	size						uiNumElements;
 
 	bAnyChange = false;
-	for (i = 0; i < papcVariableValues->NumElements(); i++)
+	uiNumElements = papcVariableValues->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcValue = *papcVariableValues->Get(i);
 		bResult = pcValue->MakeCurrent();

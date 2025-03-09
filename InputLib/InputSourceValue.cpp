@@ -43,7 +43,7 @@ void CInputSourceValue::PrivateInit(CInputSourceDesc* pcSourceDesc, CInputDataFo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSourceValue::Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, int iValueChannel)
+void CInputSourceValue::Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, size iValueChannel)
 {
 	PrivateInit(pcSourceDesc, pcDataFormat);
 	meValueType = ISVT_Channel;
@@ -149,7 +149,7 @@ bool CInputSourceValue::Process(void* pvData, float* pfValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSouceChannel* CInputSourceValue::AddChannel(int iChannel, EInputSourceChannelComparator eCompare, void* pvTest)
+CInputSouceChannel* CInputSourceValue::AddChannel(size iChannel, EInputSourceChannelComparator eCompare, void* pvTest)
 {
 	CInputSouceChannel*		pcChannel;
 
@@ -186,15 +186,15 @@ void CInputSourceValue::CopyChannels(CInputSourceValue* pcInputSourceValue)
 CInputSouceChannel* CInputSourceValue::StartChannelsIteration(SSetIterator* psIter) { return mlcChannels.StartIteration(psIter); }
 CInputSouceChannel* CInputSourceValue::IterateChannels(SSetIterator* psIter) { return mlcChannels.Iterate(psIter); }
 CInputDataFormat* CInputSourceValue::GetDataFormat(void) { return mpcDataFormat; }
-int CInputSourceValue::GetOrder(void) { return miOrder; }
-void CInputSourceValue::SetOrder(int iOrder) { miOrder = iOrder; }
+size CInputSourceValue::GetOrder(void) { return miOrder; }
+void CInputSourceValue::SetOrder(size iOrder) { miOrder = iOrder; }
 EInputSourceValueType CInputSourceValue::GetValueType(void) { return meValueType; }
 float CInputSourceValue::GetMaxValue(void) { return muDetail.sState.fMaxValue; }
 float CInputSourceValue::GetMinValue(void) { return muDetail.sState.fMinValue; }
 float CInputSourceValue::GetSensitivity(void) { return muDetail.sDelta.fSensitivity; }
 float CInputSourceValue::GetOffset(void) { return muDetail.sDelta.fOffset; }
 float CInputSourceValue::GetNumber(void) { return muValue.fNumber; }
-int CInputSourceValue::GetChannel(void) { return muValue.iChannel; }
+size CInputSourceValue::GetChannel(void) { return muValue.iChannel; }
 
 
 //////////////////////////////////////////////////////////////////////////

@@ -57,7 +57,7 @@ CInputChordDesc* CInputChordCriteriaDesc::GetChordDesc(void) { return mpcChordDe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordActiveDesc::Init(CInputSourceDesc* pcSourceDesc, int iDescriptionID, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType)
+void CInputChordActiveDesc::Init(CInputSourceDesc* pcSourceDesc, size iDescriptionID, EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc, EInputChordType eChordType)
 {
 	CInputChordCriteriaDesc::Init(eType, pcChordDesc);
 	mpcGeneric = NULL;
@@ -143,7 +143,7 @@ CInputSourceDesc* CInputChordActiveDesc::GetSourceDesc(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputChordActiveDesc::GetDescriptionID(void)
+size CInputChordActiveDesc::GetDescriptionID(void)
 {
 	return miDescriptionID;
 }
@@ -188,7 +188,7 @@ CInputChordActiveDesc* CInputChordCollectiveDesc::AddActiveOrInactive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordActiveDesc* CInputChordCollectiveDesc::AddActive(CInputSourceDesc* pcSourceDesc, int iDescriptionID)
+CInputChordActiveDesc* CInputChordCollectiveDesc::AddActive(CInputSourceDesc* pcSourceDesc, size iDescriptionID)
 {
 	CInputChordActiveDesc*	pcChordDesc;
 
@@ -202,7 +202,7 @@ CInputChordActiveDesc* CInputChordCollectiveDesc::AddActive(CInputSourceDesc* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputChordActiveDesc* CInputChordCollectiveDesc::AddInactive(CInputSourceDesc* pcSourceDesc, int iDescriptionID)
+CInputChordActiveDesc* CInputChordCollectiveDesc::AddInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID)
 {
 	CInputChordActiveDesc*	pcChordDesc;
 
@@ -247,7 +247,7 @@ CInputChordCollectiveDesc* CInputChordCollectiveDesc::AddGroup(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputChordCollectiveDesc::RemoveLast(void)
 {
-	int							iNumElements;
+	size							iNumElements;
 
 	iNumElements = macCriteria.NumElements();
 	if (iNumElements == 0)
@@ -267,12 +267,15 @@ void CInputChordCollectiveDesc::RemoveLast(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputChordCollectiveDesc::GetInputSourceDescs(CArrayIntAndPointer* apcDest, CInputDeviceDesc* pcDeviceDesc)
 {
-	int							i;
+	size						i;
 	CInputChordCriteriaDesc*	pcCriteriaDesc;
+	size						uiNumElements;
 
-	for (i = 0; i < macCriteria.NumElements(); i++)
+	uiNumElements = macCriteria.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCriteriaDesc = (CInputChordCriteriaDesc*)macCriteria.Get(i);
 		pcCriteriaDesc->GetInputSourceDescs(apcDest, pcDeviceDesc);
 	}
 }
+

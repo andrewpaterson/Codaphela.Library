@@ -70,7 +70,7 @@ CInputChordActiveDesc* CInputChordDesc::AsActiveOrInactive(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordDesc::AsActive(CInputSourceDesc* pcSourceDesc, int iDescriptionID)
+void CInputChordDesc::AsActive(CInputSourceDesc* pcSourceDesc, size iDescriptionID)
 {
 	if (mpcRootCriteriaDesc == NULL)
 	{
@@ -84,7 +84,7 @@ void CInputChordDesc::AsActive(CInputSourceDesc* pcSourceDesc, int iDescriptionI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputChordDesc::AsInactive(CInputSourceDesc* pcSourceDesc, int iDescriptionID)
+void CInputChordDesc::AsInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID)
 {
 	if (mpcRootCriteriaDesc == NULL)
 	{

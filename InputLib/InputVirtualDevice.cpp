@@ -71,11 +71,13 @@ void CInputVirtualDevice::Kill(void)
 void CInputVirtualDevice::CallListeners(void)
 {
 	CInputDeviceValue*	pcDeviceValue;
-	int					i;
+	size				i;
+	size				uiNumElements;
 
 	if (mbEnabled)
 	{
-		for (i = 0; i < mapcInputValues.NumElements(); i++)
+		uiNumElements = mapcInputValues.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcDeviceValue = *mapcInputValues.Get(i);
 			mcListeners.CallListeners(&CInputListener::InputEvent, this, (void*)pcDeviceValue);
@@ -90,12 +92,14 @@ void CInputVirtualDevice::CallListeners(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputVirtualDevice::UpdateEvents(void)
 {
-	int				i;
+	size			i;
 	CInputDevice*	pcDevice;
+	size			uiNumElements;
 
 	if (mbEnabled)
 	{
-		for (i = 0; i < mapcDevices.NumElements(); i++)
+		uiNumElements = mapcDevices.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcDevice = *mapcDevices.Get(i);
 			UpdateEvents(pcDevice->GetInputValues());
@@ -273,7 +277,7 @@ bool CInputVirtualDevice::AddSources(CInputDevice* pcDevice, char* szFriendlyNam
 {
 	va_list						vaMarker;
 	char*						pc;
-	int							iCount;
+	size						iCount;
 	bool						bResult;
 
 	iCount = 0;
@@ -391,10 +395,12 @@ void CInputVirtualDevice::Unstoppable(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputVirtualDevice::ToStringEvents(CChars* psz)
 {
-	int					i;
+	size				i;
 	CInputDeviceValue*	pcDeviceValue;
+	size				uiNumElements;
 
-	for (i = 0; i < mapcInputValues.NumElements(); i++)
+	uiNumElements = mapcInputValues.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcDeviceValue = *mapcInputValues.Get(i);
 		pcDeviceValue->ToString(psz);
@@ -561,7 +567,7 @@ void CInputVirtualDevice::AddOrderedAction(CAction* pcAction, char* szFriendlyNa
 {
 	va_list						vaMarker;
 	char*						pc;
-	int							iCount;
+	size						iCount;
 	CInputChord*				pcChord;
 	CInputVirtualDeviceSource*	pcSource;
 	COrderedInputChordCriteria*	pcOrdered;

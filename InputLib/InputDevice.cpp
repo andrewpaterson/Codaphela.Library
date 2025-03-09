@@ -266,8 +266,9 @@ CInputVirtualDevice* CInputDevice::CreateVariableVirtualDeviceFromThis(CInputAct
 	CInputSourceDesc*		pcSource;
 	CInputDevices*			pcInputDevices;
 	CChars					szTemp;
-	CArrayIntAndPointer			apcSourceDescs;
-	int						i;
+	CArrayIntAndPointer		apcSourceDescs;
+	size					i;
+	size					uiNumElements;
 
 	pcInputDevices = GetInputDevices();
 
@@ -280,7 +281,8 @@ CInputVirtualDevice* CInputDevice::CreateVariableVirtualDeviceFromThis(CInputAct
 
 	apcSourceDescs.Init();
 	mpcDesc->GetVariableChordDescs()->GetInputSourceDescs(&apcSourceDescs, mpcDesc);
-	for (i = 0; i < apcSourceDescs.NumElements(); i++)
+	uiNumElements = apcSourceDescs.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcSource = (CInputSourceDesc*)apcSourceDescs.GetPtr(i);
 		pcVirtual->AddSource(this, pcSource);

@@ -192,7 +192,7 @@ void CWinRawInput::Init(CWinInput* pcWinInput)
 //////////////////////////////////////////////////////////////////////////
 void CWinRawInput::Kill(void)
 {
-	int					i;
+	size					i;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
 
 	for (i = 0; i < masRIDeviceDetail.NumElements(); i++)
@@ -212,13 +212,13 @@ void CWinRawInput::ResetDeviceDetails(void)
 	UINT					uiNumDevices;
 	UINT					uiReturn;
 	RAWINPUTDEVICELIST*		pRawList;
-	int						i;
+	size					i;
 
 	uiReturn = GetRawInputDeviceList(NULL, &uiNumDevices, sizeof(RAWINPUTDEVICELIST));
 	pRawList = (RAWINPUTDEVICELIST*)malloc(uiNumDevices*sizeof(RAWINPUTDEVICELIST));
 	uiReturn = GetRawInputDeviceList(pRawList, &uiNumDevices, sizeof(RAWINPUTDEVICELIST));
 
-	for (i = 0; i < (int)uiNumDevices; i++)
+	for (i = 0; i < (size)uiNumDevices; i++)
 	{
 		AddDeviceDetails(&pRawList[i]);
 	}
@@ -236,7 +236,7 @@ CRawInputDeviceDetail* CWinRawInput::AddRawDeviceDetails(void* pDevice, char* sz
 	HKEY 				hKey;
 	DWORD				dwLength;
 	CChars				szKeyName;
-	int					iEnd;
+	size				iEnd;
 	LONG				lRet;
 	CChars				szGuid;
 	CGuidClass			cGuid;
@@ -323,17 +323,19 @@ void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* p
 	LONG 				lEnumRet;
 	HKEY 				hKey;
 	HKEY 				hKey2;
-	DWORD				dwLength=100;
-	int					j = 0;
+	DWORD				dwLength;
+	size				j;
 	CChars				szKeyName;
 	CChars				szFullKey;
-	int					iStart;
+	size				iStart;
 	char 				szValueName[1000];
 	char 				szJoystickName[1000];
 	char				szJoystickRegPath[] = "SYSTEM\\CurrentControlSet\\Control\\MediaProperties\\PrivateProperties\\Joystick\\OEM";
 	RAWINPUTDEVICELIST*	pRawInputDeviceList;
-	int					iLen;
+	size				iLen;
 
+	dwLength = 100;
+	j = 0;
 	pRawInputDeviceList = (RAWINPUTDEVICELIST*)pDevice;
 	szKeyName.Init(szDeviceName);
 	iStart = szKeyName.Find(0, '#');
@@ -358,12 +360,12 @@ void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* p
 				{
 					lRet = RegQueryValueEx(hKey2, "OEMName", NULL, NULL, (unsigned char*)szJoystickName, &dwLength);
 					psRIDeviceDetail->eType = RDT_Joystick;
-					iLen = (int)strlen(szJoystickName);
+					iLen = strlen(szJoystickName);
 					if (iLen > 0)
 					{
 						psRIDeviceDetail->szFriendlyName.Set(szJoystickName);
 					}
-					iLen = (int)strlen(szValueName);
+					iLen = strlen(szValueName);
 					psRIDeviceDetail->szAdditional.Set(szKeyName.Text(iLen));
 					psRIDeviceDetail->szID.Clear();
 					psRIDeviceDetail->AppendDescription(&psRIDeviceDetail->szID);
@@ -389,8 +391,8 @@ void CWinRawInput::UpdateJoystickDetails(void* pDevice, CRawInputDeviceDetail* p
 void CWinRawInput::AddDeviceDetails(void* pDevice)
 {
 	UINT				uiReturn;
-	unsigned int		uiLength;
-	unsigned int		uiSize;
+	size				uiLength;
+	size				uiSize;
 	char				szDeviceName[1024];
 	RID_DEVICE_INFO		sRidInfo;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
@@ -426,7 +428,7 @@ void CWinRawInput::AddDeviceDetails(void* pDevice)
 //////////////////////////////////////////////////////////////////////////
 CRawInputDeviceDetail* CWinRawInput::GetDetailForName(char* szName)
 {
-	int					i;
+	size					i;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
 
 	for (i = 0; i < masRIDeviceDetail.NumElements(); i++)
@@ -447,7 +449,7 @@ CRawInputDeviceDetail* CWinRawInput::GetDetailForName(char* szName)
 //////////////////////////////////////////////////////////////////////////
 CRawInputDeviceDetail* CWinRawInput::GetDetailForHandle(ERawDeviceType eType, HANDLE hDevice)
 {
-	int					i;
+	size					i;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
 
 	for (i = 0; i < masRIDeviceDetail.NumElements(); i++)
@@ -468,7 +470,7 @@ CRawInputDeviceDetail* CWinRawInput::GetDetailForHandle(ERawDeviceType eType, HA
 //////////////////////////////////////////////////////////////////////////
 void CWinRawInput::AddDevicesTo(CInputDevices* pcDevices)
 {
-	int						i;
+	size						i;
 	CRawInputDeviceDetail*	pcDetail;
 	CInputDevice*			pcInputDevice;
 	CInputDeviceDesc*		pcDeviceDesc;
@@ -510,7 +512,7 @@ void CWinRawInput::AddDevicesTo(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputDeviceDesc* CWinRawInput::GetStandardMouseDesc(CInputDevices* pcDevices, int iNumButtons)
+CInputDeviceDesc* CWinRawInput::GetStandardMouseDesc(CInputDevices* pcDevices, size iNumButtons)
 {
 	if (iNumButtons >= 5)
 	{
@@ -545,9 +547,9 @@ CInputDeviceDesc* CWinRawInput::GetStandardKeyboardDesc(CInputDevices* pcDevices
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRawInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
+void CWinRawInput::Update(CInputDevices* pcDevices, size uiSequence)
 {
-	int						i;
+	size					i;
 	SRawInputEvent*			psEvent;
 	CRawInputDeviceDetail*	pcRIDeviceDetail;
 	CInputDevice*			pcDevice;
@@ -586,7 +588,7 @@ void CWinRawInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
 //////////////////////////////////////////////////////////////////////////
 void CWinRawInput::DumpDetails(void)
 {
-	int					i;
+	size					i;
 	CRawInputDeviceDetail*	psRIDeviceDetail;
 
 	for (i = 0; i < masRIDeviceDetail.NumElements(); i++)
@@ -617,9 +619,9 @@ void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pv)
 		psRawEvent->hDevice = pRawInput->header.hDevice;
 		psRawEvent->uEvent.sMouse.lLastX = psMouse->lLastX;
 		psRawEvent->uEvent.sMouse.lLastY = psMouse->lLastY;
-		psRawEvent->uEvent.sMouse.ulButtons = psMouse->ulButtons;
+		psRawEvent->uEvent.sMouse.ulButtons = (uint16)psMouse->ulButtons;
 		psRawEvent->uEvent.sMouse.ulExtraInformation = psMouse->ulExtraInformation;
-		psRawEvent->uEvent.sMouse.ulRawButtons= psMouse->ulRawButtons;
+		psRawEvent->uEvent.sMouse.ulRawButtons= (uint16)psMouse->ulRawButtons;
 		psRawEvent->uEvent.sMouse.usFlags = psMouse->usFlags;
 	}
 	else if (pRawInput->header.dwType == RIM_TYPEKEYBOARD)
@@ -639,13 +641,13 @@ void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pv)
 	{
 		//CChars	sz;
 		//RAWHID* psHID = &pRawInput->data.hid;
-		//int		i;
+		//size		i;
 
 		//sz.Init("----- HIDevice (");
 		//sz.AppendHexHiLo(&pRawInput->header.hDevice, sizeof(pRawInput->header.hDevice));
 		//sz.Append(") -----\n");
 
-		//for (i = 0; i < (int)psHID->dwCount; i++)
+		//for (i = 0; i < (size)psHID->dwCount; i++)
 		//{
 		//	sz.AppendHexLoHi(&psHID->bRawData[i*psHID->dwSizeHid], psHID->dwSizeHid);
 		//	sz.AppendNewLine();

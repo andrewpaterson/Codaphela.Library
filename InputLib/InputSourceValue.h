@@ -46,7 +46,7 @@ enum EInputSourceValueType
 union UInputSourceValue
 {
 	float	fNumber;
-	int		iChannel;
+	size	iChannel;
 };
 
 
@@ -79,30 +79,30 @@ protected:
 	EInputSourceValueType		meValueType;
 	UInputSourceValue			muValue;
 	UInputSourceTypeDetail		muDetail;
-	int							miOrder;
+	size						miOrder;
 
 public:
-	void 					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, int iValueChannel);
+	void 					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, size iValueChannel);
 	void 					Init(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat, float fValueNumber);
 	void 					PrivateInit(CInputSourceDesc* pcSourceDesc, CInputDataFormat* pcDataFormat);
 	void 					Kill(void);
 	void 					SetStateDetail(float fMaxValue, float fMinValue);
 	void 					SetDeltaDetail(float fSensitivity, float fOffset);
 	bool 					Process(void* pvData, float* pfValue);
-	CInputSouceChannel*		AddChannel(int iChannel, EInputSourceChannelComparator eCompare, void* pvTest);
+	CInputSouceChannel*		AddChannel(size iChannel, EInputSourceChannelComparator eCompare, void* pvTest);
 	void 					CopyChannels(CInputSourceValue* pcInputSourceValue);
 	CInputSouceChannel*		StartChannelsIteration(SSetIterator* psIter);
 	CInputSouceChannel*		IterateChannels(SSetIterator* psIter);
 	CInputDataFormat*		GetDataFormat(void);
-	int						GetOrder(void);
-	void					SetOrder(int iOrder);
+	size					GetOrder(void);
+	void					SetOrder(size iOrder);
 	EInputSourceValueType	GetValueType(void);
 	float					GetMaxValue(void);
 	float					GetMinValue(void);
 	float					GetSensitivity(void);
 	float					GetOffset(void);
 	float					GetNumber(void);
-	int						GetChannel(void);
+	size					GetChannel(void);
 	void 					ToString(CChars* psz, EInputSourceType eType);
 };
 

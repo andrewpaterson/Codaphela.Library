@@ -30,7 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, char* szFriendlyName, int iStateIndex)
+void CInputSourceDesc::Init(CInputDeviceDesc* pcDeviceDesc, EInputSourceType eType, char* szFriendlyName, size iStateIndex)
 {
 	meType = eType;
 	mszFriendlyName.Init(szFriendlyName);
@@ -61,7 +61,7 @@ void CInputSourceDesc::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, unsigned int uiSequence)
+void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputDeviceValues* pcEvents, size uiSequence)
 {
 	CInputSourceValue*	pcSourceValue;
 	float				fValue;
@@ -90,7 +90,7 @@ void CInputSourceDesc::Process(void* pvData, CInputDeviceState* pcState, CInputD
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputSourceValue* CInputSourceDesc::AddValue(int iValueChannel)
+CInputSourceValue* CInputSourceDesc::AddValue(size iValueChannel)
 {
 	CInputSourceValue* pcvalue;
 
@@ -194,7 +194,7 @@ bool CInputSourceDesc::HasRestValue(void) { return mbHasRestValue; }
 CInputDeviceDesc* CInputSourceDesc::GetDeviceDesc(void) { return mpcDeviceDesc; }
 CArrayInputCategoryGenericPtr* CInputSourceDesc::GetGenerics(void) { return &mapcGenerics; }
 EInputSourceType CInputSourceDesc::GetType(void) { return meType; }
-int CInputSourceDesc::GetStateIndex(void) { return miStateIndex; }
+size CInputSourceDesc::GetStateIndex(void) { return miStateIndex; }
 char* CInputSourceDesc::GetFriendlyName(void) { return mszFriendlyName.Text(); }
 bool CInputSourceDesc::GetEmitRestEvent(void) { return mbEmitRestEvent; }
 void CInputSourceDesc::SetFriendlyName(char* szFriendlyName) { mszFriendlyName.Set(szFriendlyName); }
@@ -205,9 +205,10 @@ void CInputSourceDesc::SetFriendlyName(char* szFriendlyName) { mszFriendlyName.S
 //////////////////////////////////////////////////////////////////////////
 void CInputSourceDesc::ToString(CChars* psz)
 {
-	int					i;
+	size				i;
 	SSetIterator		sIter;
 	CInputSourceValue*	pcInputSourceValue;
+	size				uiNumElements;
 
 	psz->Append(" --- CInputSourceDesc ---\n");
 	psz->Append("Name: ");
@@ -227,7 +228,8 @@ void CInputSourceDesc::ToString(CChars* psz)
 	psz->AppendNewLine();
 
 	psz->Append(" - CArrayChars : mapcGenerics -\n");
-	for (i = 0; i < mapcGenerics.NumElements(); i++)
+	uiNumElements = mapcGenerics.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 	}
 

@@ -87,7 +87,7 @@ public:
 	Ptr<CString>	RightAlign(const char* sz, char cPadCharacter, size iWidth) { msz.RightAlign(sz, cPadCharacter, iWidth); D(); return this; }
 	Ptr<CString>	RightAlign(Ptr<CString> pString, char cPadCharacter, size iWidth);
 	Ptr<CString>	RightAlign(char cPadCharacter, size iWidth) { msz.RightAlign(cPadCharacter, iWidth); D(); return this; }
-	Ptr<CString>	StripWhiteSpace(bool bIncludeNewLines = false) { msz.StripWhiteSpace(bIncludeNewLines); D(); return this; }
+	Ptr<CString>	StripWhitespace(bool bIncludeNewLines = false) { msz.StripWhitespace(bIncludeNewLines); D(); return this; }
 	Ptr<CString>	Reverse(void) { msz.Reverse(); D(); return this; }
 	Ptr<CString>	Clear(void) { msz.Clear(); D(); return this; }
 	Ptr<CString>	LowerCase(void) { msz.LowerCase(); D(); return this; }
@@ -150,8 +150,8 @@ public:
 	char			GetChar(size iIndex) { return msz.GetChar(iIndex); }
 	void			SetChar(size iPos, char c) { msz.SetChar(iPos, c); D(); }
 	void			Difference(CArrayInt* paiNewToOldIndices, CArrayInt* paiOldToNewIndices, CChars szOldString) { msz.Difference(paiNewToOldIndices, paiOldToNewIndices, szOldString); }
-	bool			IsWhiteSpace(size iPos, bool bIncludeNewLines) { return msz.IsWhiteSpace(iPos, bIncludeNewLines); }
-	bool			IsWhiteSpace(void) { return msz.IsWhiteSpace(); }
+	bool			IsWhitespace(size iPos, bool bIncludeNewLines) { return msz.IsWhitespace(iPos, bIncludeNewLines); }
+	bool			IsWhitespace(void) { return msz.IsWhitespace(); }
 	void			SetLength(size iLength) { msz.SetLength(iLength); D(); }
 	int				Compare(CChars* szOther) { return msz.Compare(szOther); }
 	int				Compare(const char* szOther) { return msz.Compare(szOther); }

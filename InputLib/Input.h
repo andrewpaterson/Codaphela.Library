@@ -37,7 +37,7 @@ CONSTRUCTABLE(CInput);
 protected:
 	CInputDevices		mcDevices;
 	CInputActions		mcActions;
-	unsigned int		muiSequence;  //Sequence is updated everytime CInput::Update is called.  Not every event.
+	uint32				muiSequence;  //Sequence is updated everytime CInput::Update is called.  Not every event.
 
 	CWinInput			mcWinInput;  //Fix this later.
 	CProgramInput		mcProgramInput;

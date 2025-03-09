@@ -46,8 +46,8 @@ public:
 	CInputChordActiveDesc*		AsActiveOrInactive(void);
 	void 						AsActive(CInputCategoryGeneric* pcGeneric);
 	void 						AsInactive(CInputCategoryGeneric* pcGeneric);
-	void 						AsActive(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
-	void 						AsInactive(CInputSourceDesc* pcSourceDesc, int iDescriptionID);
+	void 						AsActive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
+	void 						AsInactive(CInputSourceDesc* pcSourceDesc, size iDescriptionID);
 	CInputChordCollectiveDesc*	AsOrdered(void);
 	CInputChordCollectiveDesc*	AsGroup(void);
 	CInputChordCriteriaDesc*	GetRootCriteriaDesc(void);

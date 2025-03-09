@@ -65,7 +65,7 @@ public:
 	void Init(CInputSourceEvaluator* pcEvaluator);
 	void Kill(void);
 	void ToArray(CArrayActionInputChordCriteria* pcDest);
-	int  Size(void);
+	size Size(void);
 	void ToString(CChars* psz);
 };
 
@@ -76,7 +76,7 @@ public:
 	void Init(CInputSourceEvaluator* pcEvaluator);
 	void Kill(void);
 	void ToArray(CArrayActionInputChordCriteria* pcDest);
-	int  Size(void);
+	size Size(void);
 	void ToString(CChars* psz);
 };
 
@@ -89,7 +89,7 @@ public:
 	void Init(void);
 	void Kill(void);
 	void ToArray(CArrayActionInputChordCriteria* pcDest);
-	int  Size(void);
+	size Size(void);
 	void ToString(CChars* psz);
 
 	CActiveInputChordCriteria*		AddActiveAction(CInputSourceEvaluator* pcAction);
@@ -104,8 +104,8 @@ public:
 
 	void Init(void);
 	void Kill(void);
-	int  Size(void);
-	int  Size(int iLastIndexInclusive);
+	size Size(void);
+	size Size(size iLastIndexInclusive);
 	void ToString(CChars* psz);
 
 	CActiveInputChordCriteria*		AddActiveAction(CInputSourceEvaluator* pcAction);

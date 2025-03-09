@@ -28,24 +28,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayInputDeviceTimeValue* pcHistory, int iStartPos)
+size MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayInputDeviceTimeValue* pcHistory, size iStartPos)
 {
-	//int								iRemain;
-	int								i;
+	size							i;
 	SInputDeviceTimeValue*			psHistory;
-	int								j;
+	size							j;
 	CActionInputChordCriteria*		psChordCriteria;
-	int								iCount;
+	size							iCount;
 	bool							abMatched[MAX_GROUP_SIZE];
 	float							fValue;
 	bool							bMatch;
 	bool							bAnyMatch;
-	int								iEnd;
+	size							iEnd;
 	bool							bResult;
+	size							uiChordNumElements;
 
 	memset(abMatched, 0, MAX_GROUP_SIZE * sizeof(bool));
 	iCount = 0;
-	iEnd = pasChordCriteria->NumElements() + iStartPos;
+	uiChordNumElements = pasChordCriteria->NumElements();
+	iEnd = uiChordNumElements+ iStartPos;
 	if (iEnd > pcHistory->NumElements())
 	{
 		iEnd = pcHistory->NumElements();
@@ -56,7 +57,7 @@ int MatchesGroupEvent(CArrayActionInputChordCriteria* pasChordCriteria, CArrayIn
 		psHistory = pcHistory->Get(i);
 
 		bAnyMatch = false;
-		for (j = 0; j < pasChordCriteria->NumElements(); j++)
+		for (j = 0; j < uiChordNumElements; j++)
 		{
 			if (!abMatched[j])
 			{
@@ -142,9 +143,10 @@ void CInputChord::Done(void)
 //////////////////////////////////////////////////////////////////////////
 void CopyActionCriteria(UInputChordCriteria* puDest, UInputChordCriteria* puSource, CInputDeviceCopyContext* pcContext)
 {
-	int						i;
+	size					i;
 	UInputChordCriteria*	puLoopSource;
 	UInputChordCriteria*	puLoopDest;
+	size					uiNumElements;
 
 	if (puSource->eType.eAction == BAA_Active)
 	{
@@ -157,7 +159,8 @@ void CopyActionCriteria(UInputChordCriteria* puDest, UInputChordCriteria* puSour
 	else if (puSource->eType.eAction == BAA_Group)
 	{
 		puDest->cGroup.Init();
-		for (i = 0; i < puSource->cGroup.mausBasicActionCriteria.NumElements(); i++)
+		uiNumElements = puSource->cGroup.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			puLoopSource = (UInputChordCriteria*)puSource->cGroup.mausBasicActionCriteria.Get(i);
 			puLoopDest = (UInputChordCriteria*)puDest->cGroup.mausBasicActionCriteria.Add();
@@ -167,7 +170,8 @@ void CopyActionCriteria(UInputChordCriteria* puDest, UInputChordCriteria* puSour
 	else if (puSource->eType.eAction == BAA_Ordered)
 	{
 		puDest->cOrdered.Init();
-		for (i = 0; i < puSource->cOrdered.mausBasicActionCriteria.NumElements(); i++)
+		uiNumElements = puSource->cGroup.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			puLoopSource = (UInputChordCriteria*)puDest->cOrdered.mausBasicActionCriteria.Get(i);
 			puLoopDest = (UInputChordCriteria*)puDest->cOrdered.mausBasicActionCriteria.Add();
@@ -271,7 +275,7 @@ COrderedInputChordCriteria* CInputChord::AsOrdered(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int ActionCriteriaSize(UInputChordCriteria* puCriteria)
+size ActionCriteriaSize(UInputChordCriteria* puCriteria)
 {
 	switch (puCriteria->eType.eAction)
 	{
@@ -295,9 +299,10 @@ int ActionCriteriaSize(UInputChordCriteria* puCriteria)
 //////////////////////////////////////////////////////////////////////////
 UInputChordCriteria* FindFirstActionCriteria(UInputChordCriteria* puCriteria)
 {
-	int						i;
+	size					i;
 	UInputChordCriteria*	puIterCriteria;
 	UInputChordCriteria*	puFound;
+	size					uiNumElements;
 
 	switch (puCriteria->eType.eAction)
 	{
@@ -308,7 +313,8 @@ UInputChordCriteria* FindFirstActionCriteria(UInputChordCriteria* puCriteria)
 	case BAA_Group:
 		return puCriteria;
 	case BAA_Ordered:
-		for (i = 0; i < puCriteria->cGroup.mausBasicActionCriteria.NumElements(); i++)
+		uiNumElements = puCriteria->cGroup.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			puIterCriteria = (UInputChordCriteria*)puCriteria->cGroup.mausBasicActionCriteria.Get(i);
 			puFound = FindFirstActionCriteria(puIterCriteria);
@@ -356,14 +362,15 @@ void CInputChord::CalculatePotentialStart(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int FindLongestAction(UInputChordCriteria* puCriteria)
+size FindLongestAction(UInputChordCriteria* puCriteria)
 {
-	int						i;
+	size					i;
 	UInputChordCriteria*	puIterCriteria;
-	int						iLongest;
-	int						iCurrent;
+	size					iLongest;
+	size					iCurrent;
+	size					uiNumElements;
 
-	iLongest = -1;
+	iLongest = MAX_UINT;
 	switch (puCriteria->eType.eAction)
 	{
 	case BAA_Active:
@@ -373,11 +380,12 @@ int FindLongestAction(UInputChordCriteria* puCriteria)
 	case BAA_Group:
 		return puCriteria->cGroup.Size();
 	case BAA_Ordered:
-		for (i = 0; i < puCriteria->cGroup.mausBasicActionCriteria.NumElements(); i++)
+		uiNumElements = puCriteria->cGroup.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			puIterCriteria = (UInputChordCriteria*)puCriteria->cGroup.mausBasicActionCriteria.Get(i);
 			iCurrent = FindLongestAction(puIterCriteria);
-			if (iCurrent > iLongest)
+			if ((iCurrent > iLongest) || (iLongest == MAX_UINT))
 			{
 				iLongest = iCurrent;
 			}
@@ -393,9 +401,9 @@ int FindLongestAction(UInputChordCriteria* puCriteria)
 //////////////////////////////////////////////////////////////////////////
 void CInputChord::CalculateLongestAction(void)
 {
-	int		iLongest;
+	size	iLongest;
 
-	iLongest =  FindLongestAction(&muActionCriteria);
+	iLongest = FindLongestAction(&muActionCriteria);
 	masScratchPadDeviceValue.Allocate(iLongest);
 }
 
@@ -416,32 +424,34 @@ void CInputChord::CalculateTotalCriteria(void)
 //////////////////////////////////////////////////////////////////////////
 SMatchResult CInputChord::Match(CArrayInputDeviceTimeValue* pcHistory)
 {
-	int				iLess;
-	int				iCount;
-	int				iLongestCount;
-	int				iStartIndex;
-	int				iLongestIndex;
+	size			iLess;
+	size			iCount;
+	size			iLongestCount;
+	size			iStartIndex;
+	size			iLongestIndex;
 	SMatchResult	sResult;
+	size			uiNumElements;
 
 	miUpdateCriteria = 0;
 
 	iLess = masStartDeviceValue.NumElements();
 	iLongestCount = 0;
-	iLongestIndex = -1;
+	iLongestIndex = MAX_UINT;
 
 	iStartIndex = FindMatchingStart(pcHistory, 0);
-	if (iStartIndex == -1)
+	if (iStartIndex == MAX_UINT)
 	{
-		sResult.iIndex = -1;
+		sResult.iIndex = MAX_UINT;
 		sResult.iLength = 0;
 		return sResult;
 	}
 
 	iCount = MatchActionEvent(pcHistory, iStartIndex);
 
-	if (iCount < pcHistory->NumElements() - iStartIndex)
+	uiNumElements = pcHistory->NumElements();
+	if ((uiNumElements < iStartIndex) || (iCount < uiNumElements - iStartIndex))
 	{
-		sResult.iIndex = -1;
+		sResult.iIndex = MAX_UINT;
 		sResult.iLength = 0;
 		return sResult;
 	}
@@ -456,14 +466,14 @@ SMatchResult CInputChord::Match(CArrayInputDeviceTimeValue* pcHistory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputChord::FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, int iStartPos)
+size CInputChord::FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, size iStartPos)
 {
-	int						i;
-	bool					bMatch;
-	//int						iLess;
+	size	i;
+	bool	bMatch;
+	size	uiNumElements;
 
-	//iLess = masStartDeviceValue.NumElements();
-	for (i = iStartPos; i < pcHistory->NumElements(); i++)
+	uiNumElements = pcHistory->NumElements();
+	for (i = iStartPos; i < uiNumElements; i++)
 	{
 		bMatch = MatchesGroupEvent(&masStartDeviceValue, pcHistory, i);
 		if (bMatch)
@@ -471,7 +481,7 @@ int CInputChord::FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, int iS
 			return i;
 		}
 	}
-	return -1;
+	return MAX_UINT;
 }
 
 
@@ -479,12 +489,13 @@ int CInputChord::FindMatchingStart(CArrayInputDeviceTimeValue* pcHistory, int iS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int MatchActionEvent(UInputChordCriteria* puCriteria, CArrayInputDeviceTimeValue* pcHistory, int iStartPos, CArrayActionInputChordCriteria* pasScratchPadEvent)
+size MatchActionEvent(UInputChordCriteria* puCriteria, CArrayInputDeviceTimeValue* pcHistory, size iStartPos, CArrayActionInputChordCriteria* pasScratchPadEvent)
 {
-	int						i;
+	size					i;
 	UInputChordCriteria*	puIterCriteria;
-	int						iCount;
-	int						iTotalCount;
+	size					iCount;
+	size					iTotalCount;
+	size					uiNumElements;
 
 	switch (puCriteria->eType.eAction)
 	{
@@ -499,7 +510,8 @@ int MatchActionEvent(UInputChordCriteria* puCriteria, CArrayInputDeviceTimeValue
 		return MatchesGroupEvent(pasScratchPadEvent, pcHistory, iStartPos);
 	case BAA_Ordered:
 		iTotalCount = 0;
-		for (i = 0; i < puCriteria->cGroup.mausBasicActionCriteria.NumElements(); i++)
+		uiNumElements = puCriteria->cGroup.mausBasicActionCriteria.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			puIterCriteria = (UInputChordCriteria*)puCriteria->cGroup.mausBasicActionCriteria.Get(i);
 			iCount = MatchActionEvent(puIterCriteria, pcHistory, iStartPos + iTotalCount, pasScratchPadEvent);
@@ -519,7 +531,7 @@ int MatchActionEvent(UInputChordCriteria* puCriteria, CArrayInputDeviceTimeValue
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputChord::MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, int iStartPos)
+size CInputChord::MatchActionEvent(CArrayInputDeviceTimeValue* pcHistory, size iStartPos)
 {
 	return ::MatchActionEvent(&muActionCriteria, pcHistory, iStartPos, &masScratchPadDeviceValue);
 }
@@ -617,8 +629,9 @@ void CInputChord::Call(void* pvContext)
 //////////////////////////////////////////////////////////////////////////
 CInputChordDesc* CInputChord::GetDesc(void) { return mpcDesc; }
 UInputChordCriteria* CInputChord::GetActionCriteria(void) { return &muActionCriteria; }
-int CInputChord::GetTotalCriteria(void) { return miTotalCriteria; }
-int CInputChord::GetUpdateCriteria(void) { return miUpdateCriteria; }
-int CInputChord::GetMatchedCriteria(void) { return miMatchedCriteria; }
+size CInputChord::GetTotalCriteria(void) { return miTotalCriteria; }
+size CInputChord::GetUpdateCriteria(void) { return miUpdateCriteria; }
+size CInputChord::GetMatchedCriteria(void) { return miMatchedCriteria; }
 
-void CInputChord::SetMatchedCriteria(int iMatchedCriteria) { miMatchedCriteria = iMatchedCriteria; }
+void CInputChord::SetMatchedCriteria(size iMatchedCriteria) { miMatchedCriteria = iMatchedCriteria; }
+

@@ -192,7 +192,7 @@ void CKeyboardKeyList::Next(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKeyboardKeyList::Key(unsigned int uiVkey, unsigned int uiFlags)
+void CKeyboardKeyList::Key(uint32 uiVkey, uint32 uiFlags)
 {
 	CChars	szEvent;
 
@@ -224,7 +224,7 @@ void CKeyboardKeyList::Key(unsigned int uiVkey, unsigned int uiFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKeyboardKeyList::Pressed(unsigned int uiVKey, unsigned int uiFlags)
+void CKeyboardKeyList::Pressed(uint32 uiVKey, uint32 uiFlags)
 {
 	SWinKey*	psWinKey;
 
@@ -238,7 +238,7 @@ void CKeyboardKeyList::Pressed(unsigned int uiVKey, unsigned int uiFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CKeyboardKeyList::Released(unsigned int uiVKey, unsigned int uiFlags)
+void CKeyboardKeyList::Released(uint32 uiVKey, uint32 uiFlags)
 {
 	SWinKey*	psWinKey;
 
@@ -258,7 +258,8 @@ void CKeyboardKeyList::Released(unsigned int uiVKey, unsigned int uiFlags)
 void CKeyboardKeyList::ToString(CChars* psz)
 {
 	SWinKey*	psKey;
-	int			i;
+	size		i;
+	size		uiNumElements;
 
 	psz->Append("\
 <Device Type=\"WinRaw\">\n\
@@ -268,31 +269,36 @@ void CKeyboardKeyList::ToString(CChars* psz)
   <Sources Type=\"Defined\">\n\
     <Format Type=\"Named\">WinRAW Keyboard</Format>\n");
 
-	for (i = 0; i < masKeys.NumElements()-1; i++)
+	uiNumElements = masKeys.NumElements();
+	if (uiNumElements > 0)
 	{
-		psKey = masKeys.Get(i);
+		uiNumElements--;
+		for (i = 0; i < uiNumElements; i++)
+		{
+			psKey = masKeys.Get(i);
 
-		psz->Append("      <Source Type=\"State\">\n");
-		psz->Append("        <Friendly>"); psz->Append(maszKeys.Get(i)); psz->Append("</Friendly>\n");
-		psz->Append("        <State>\n");
-		psz->Append("          <Channel Name=\"VKey\">\n");
-		psz->Append("            <Equals>"); psz->Append(psKey->uiVKey); psz->Append("</Equals>\n");
-		psz->Append("          </Channel>\n");
-		psz->Append("          <Channel Name=\"Flags\">\n");
-		psz->Append("            <Equals>"); psz->Append(psKey->uiPressedFlags); psz->Append("</Equals>\n");
-		psz->Append("          </Channel>\n");
-		psz->Append("          <Value Type=\"Numeric\">1.0</Value>\n");
-		psz->Append("        </State>\n");
-		psz->Append("        <State>\n");
-		psz->Append("          <Channel Name=\"VKey\">\n");
-		psz->Append("            <Equals>"); psz->Append(psKey->uiVKey); psz->Append("</Equals>\n");
-		psz->Append("          </Channel>\n");
-		psz->Append("          <Channel Name=\"Flags\">\n");
-		psz->Append("            <Equals>"); psz->Append(psKey->uiReleasedFlags); psz->Append("</Equals>\n");
-		psz->Append("          </Channel>\n");
-		psz->Append("          <Value Type=\"Numeric\">0.0</Value>\n");
-		psz->Append("        </State>\n");
-		psz->Append("      </Source>\n");
+			psz->Append("      <Source Type=\"State\">\n");
+			psz->Append("        <Friendly>"); psz->Append(maszKeys.Get(i)); psz->Append("</Friendly>\n");
+			psz->Append("        <State>\n");
+			psz->Append("          <Channel Name=\"VKey\">\n");
+			psz->Append("            <Equals>"); psz->Append(psKey->uiVKey); psz->Append("</Equals>\n");
+			psz->Append("          </Channel>\n");
+			psz->Append("          <Channel Name=\"Flags\">\n");
+			psz->Append("            <Equals>"); psz->Append(psKey->uiPressedFlags); psz->Append("</Equals>\n");
+			psz->Append("          </Channel>\n");
+			psz->Append("          <Value Type=\"Numeric\">1.0</Value>\n");
+			psz->Append("        </State>\n");
+			psz->Append("        <State>\n");
+			psz->Append("          <Channel Name=\"VKey\">\n");
+			psz->Append("            <Equals>"); psz->Append(psKey->uiVKey); psz->Append("</Equals>\n");
+			psz->Append("          </Channel>\n");
+			psz->Append("          <Channel Name=\"Flags\">\n");
+			psz->Append("            <Equals>"); psz->Append(psKey->uiReleasedFlags); psz->Append("</Equals>\n");
+			psz->Append("          </Channel>\n");
+			psz->Append("          <Value Type=\"Numeric\">0.0</Value>\n");
+			psz->Append("        </State>\n");
+			psz->Append("      </Source>\n");
+		}
 	}
 
 	psz->Append("\

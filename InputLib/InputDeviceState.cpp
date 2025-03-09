@@ -160,10 +160,12 @@ bool CInputDeviceState::SetValue(SInputSourceState* psSourceState, float fValue)
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceState::ClearFlags(void)
 {
-	int					i;
+	size				i;
 	SInputSourceState*	psState;
+	size				uiNumElements;
 
-	for (i = 0; i < macSourceStates.NumElements(); i++)
+	uiNumElements = macSourceStates.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psState = macSourceStates.Get(i);
 		psState->iFlags &= SOURCE_STATE_VALID;
@@ -177,13 +179,15 @@ void CInputDeviceState::ClearFlags(void)
 //////////////////////////////////////////////////////////////////////////
 void CInputDeviceState::UpdateRestEvents(CInputDeviceValues* pcEvents, unsigned int uiSequence)
 {
-	int					i;
+	size				i;
 	SInputSourceState*	psState;
 	CInputSourceDesc*	pcSourceDesc;
 	bool				bNewValue;
 	float				fValue;
+	size				uiNumElements;
 
-	for (i = 0; i < macSourceStates.NumElements(); i++)
+	uiNumElements = macSourceStates.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psState = macSourceStates.Get(i);
 		pcSourceDesc = psState->pcDesc;

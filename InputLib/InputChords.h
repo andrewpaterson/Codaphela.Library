@@ -40,10 +40,10 @@ typedef CSetType<CInputChord>			CSetInputChords;
 class CInputChordDesc;
 struct SMatchingAction
 {
-	int				iIndex;
-	int				iLength;
-	bool			bPotentialMatch;
-	bool			bTotalMatch;
+	size	iIndex;
+	size	iLength;
+	bool	bPotentialMatch;
+	bool	bTotalMatch;
 
 };
 
@@ -63,7 +63,7 @@ public:
 	CSetInputSourceEvaluators	mscEvaluators;
 	CSetInputChords				mlcChords;
 	CArrayInputDeviceTimeValue	macHistory;
-	unsigned int				muiEvictionAge;
+	uint32						muiEvictionAge;
 	
 	void 					Init(void);
 	void 					Kill(void);

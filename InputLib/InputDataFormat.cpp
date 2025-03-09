@@ -97,12 +97,14 @@ void CInputDataFormat::Done(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CInputDataFormat::GetIndex(char* szName)
+size CInputDataFormat::GetIndex(char* szName)
 {
-	int			i;
+	size		i;
 	CChars*		psz;
+	size		uiNumElements;
 
-	for (i = 0; i < mcChannelNames.NumElements(); i++)
+	uiNumElements = mcChannelNames.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		psz = mcChannelNames.Get(i);
 		if (psz->Equals(szName))
@@ -110,7 +112,7 @@ int CInputDataFormat::GetIndex(char* szName)
 			return i;
 		}
 	}
-	return -1;
+	return MAX_UINT;
 }
 
 
@@ -118,7 +120,7 @@ int CInputDataFormat::GetIndex(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CChannel* CInputDataFormat::Get(int iIndex)
+CChannel* CInputDataFormat::Get(size iIndex)
 {
 	return mcExternalChannels.GetChannelAtIndex(iIndex);
 }
@@ -128,7 +130,7 @@ CChannel* CInputDataFormat::Get(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CInputDataFormat::GetConvertToFloat(int iIndex, void* pvData)
+float CInputDataFormat::GetConvertToFloat(size iIndex, void* pvData)
 {
 	CSingleChannelAccessor	cSingle;
 
@@ -142,7 +144,7 @@ float CInputDataFormat::GetConvertToFloat(int iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-float CInputDataFormat::GetCastToFloat(int iIndex, void* pvData)
+float CInputDataFormat::GetCastToFloat(size iIndex, void* pvData)
 {
 	CSingleChannelAccessor	cSingle;
 
@@ -156,7 +158,7 @@ float CInputDataFormat::GetCastToFloat(int iIndex, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDataFormat::GetAsNative(void* pvDest, int iIndex, void* pvData)
+void CInputDataFormat::GetAsNative(void* pvDest, size iIndex, void* pvData)
 {
 	CSingleChannelAccessor	cSingle;
 

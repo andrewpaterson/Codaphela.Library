@@ -102,23 +102,23 @@ public:
 
 struct SRawMouseEvent
 {
-	unsigned short	usFlags;
-	unsigned int	ulButtons;
-	unsigned int	ulRawButtons;
-	int				lLastX;
-	int				lLastY;
-	unsigned int	ulExtraInformation;
+	uint16		usFlags;
+	uint16		ulButtons;
+	uint16		ulRawButtons;
+	int32		lLastX;
+	int32		lLastY;
+	uint32		ulExtraInformation;
 };
 
 
 struct SRawKeyboardEvent
 {
-	unsigned short	usMakeCode;
-	unsigned short	usFlags;
-	unsigned short	usReserved;
-	unsigned short	usVKey;
-	unsigned int	uiMessage;
-	unsigned int	uiExtraInformation;
+	uint16	usMakeCode;
+	uint16	usFlags;
+	uint16	usReserved;
+	uint16	usVKey;
+	uint32	uiMessage;
+	uint32	uiExtraInformation;
 };
 
 
@@ -155,10 +155,10 @@ public:
 	void					DumpDetails(void);
 	CRawInputDeviceDetail*	GetDetailForName(char* szName);
 	CRawInputDeviceDetail*	GetDetailForHandle(ERawDeviceType eType, HANDLE hDevice);
-	CInputDeviceDesc*		GetStandardMouseDesc(CInputDevices* pcDevices, int iNumButtons);
+	CInputDeviceDesc*		GetStandardMouseDesc(CInputDevices* pcDevices, size iNumButtons);
 	CInputDeviceDesc*		GetStandardKeyboardDesc(CInputDevices* pcDevices);
 	void					AddDevicesTo(CInputDevices* pcDevices);
-	void					Update(CInputDevices* pcDevices, unsigned int uiSequence);
+	void					Update(CInputDevices* pcDevices, size uiSequence);
 };
 
 

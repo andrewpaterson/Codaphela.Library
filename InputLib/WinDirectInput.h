@@ -73,8 +73,8 @@ public:
 	void 				AddDetails(DIDEVICEINSTANCE* pcdiDeviceInstance);
 	bool 				IsXInputDevice(CDirectInputDetail* psDetail);
 	void 				AddDevicesTo(CInputDevices* pcDevices);
-	CInputDeviceDesc*	AddStandardJoystick(CInputDevices* pcDevices, int iAxes, int iButtons, int iPOVs);
-	void 				Update(CInputDevices* pcDevices, unsigned int uiSequence);
+	CInputDeviceDesc*	AddStandardJoystick(CInputDevices* pcDevices, size iAxes, size iButtons, size iPOVs);
+	void 				Update(CInputDevices* pcDevices, size uiSequence);
 	void 				DumpDetaills(void);
 };
 

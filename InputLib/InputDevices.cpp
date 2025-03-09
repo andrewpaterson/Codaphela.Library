@@ -173,12 +173,14 @@ bool CInputDevices::AddActiveOrInactiveCriteria(CInputChordActiveDesc* pcChordCr
 //////////////////////////////////////////////////////////////////////////
 bool CInputDevices::AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, CGroupInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
 {
-	int							i;
+	size						i;
 	UInputChordCriteria*		puChordCriteria;
 	CInputChordCriteriaDesc*	pcCurrentChordDesc;
 	bool						bResult;
+	size						uiNumElements;
 
-	for (i = 0; i < pcChordCriteriaDesc->macCriteria.NumElements(); i++)
+	uiNumElements = pcChordCriteriaDesc->macCriteria.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCurrentChordDesc = (CInputChordCriteriaDesc*)pcChordCriteriaDesc->macCriteria.Get(i);
 		puChordCriteria = (UInputChordCriteria*)pcGroupCriteria->mausBasicActionCriteria.Add();
@@ -198,12 +200,14 @@ bool CInputDevices::AddGroupCriteria(CInputChordCollectiveDesc* pcChordCriteriaD
 //////////////////////////////////////////////////////////////////////////
 bool CInputDevices::AddOrderedCriteria(CInputChordCollectiveDesc* pcChordCriteriaDesc, COrderedInputChordCriteria* pcGroupCriteria, CInputChords* pcChords, CInputDevice* pcDevice)
 {
-	int							i;
+	size						i;
 	UInputChordCriteria*		puChordCriteria;
 	CInputChordCriteriaDesc*	pcCurrentChordDesc;
 	bool						bResult;
+	size						uiNumElements;
 
-	for (i = 0; i < pcChordCriteriaDesc->macCriteria.NumElements(); i++)
+	uiNumElements = pcChordCriteriaDesc->macCriteria.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		pcCurrentChordDesc = (CInputChordCriteriaDesc*)pcChordCriteriaDesc->macCriteria.Get(i);
 		puChordCriteria = (UInputChordCriteria*)pcGroupCriteria->mausBasicActionCriteria.Add();
@@ -364,10 +368,11 @@ bool CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 	CInputVirtualSourceDesc*		pcVirtualSourceDesc;
 	CInputDevice*					pcDevice;
 	CArrayInputDevicePtr			apDevices;
-	int								i;
+	size							i;
 	CInputDeviceDesc*				pcDeviceDesc;
 	SInputDeviceVirtualDevicePair*	psPair;
 	bool							bResult;
+	size							uiNumElements;
 
 	if (pcVirtualDesc->IsDeviceAgnostic())
 	{
@@ -389,7 +394,8 @@ bool CInputDevices::CreateVirtualDevices(CArrayInputDeviceVirtualDevice* pacCrea
 			return false;
 		}
 
-		for (i = 0; i < apDevices.NumElements(); i++)
+		uiNumElements = apDevices.NumElements();
+		for (i = 0; i < uiNumElements; i++)
 		{
 			pcDevice = *apDevices.Get(i);
 			pcVirtual = CreateVirtualDevice(pcVirtualDesc->GetName());
