@@ -80,3 +80,19 @@ CGerberCommandFileAttribute* CGerberCommands::AddFileAttribute(size iNameLength)
 	return pcCommand;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandFormatSpecifier* CGerberCommands::AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals)
+{
+	CGerberCommandFormatSpecifier* pcCommand;
+
+	pcCommand = (CGerberCommandFormatSpecifier*)macCommands.Add(sizeof(CGerberCommandFormatSpecifier));
+	New<CGerberCommandFormatSpecifier>(pcCommand);
+	pcCommand->Init(uiXWholes, uiXDecimals, uiYWholes, uiYDecimals);
+
+	return pcCommand;
+}
+

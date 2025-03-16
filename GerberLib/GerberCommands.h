@@ -4,6 +4,7 @@
 #include "GerberCommandComment.h"
 #include "GerberCommandModeSet.h"
 #include "GerberCommandFileAttribute.h"
+#include "GerberCommandFormatSpecifier.h"
 
 
 class CGerberCommands
@@ -18,6 +19,7 @@ public:
 	CGerberCommandComment*			AddComment(size uiCommentLength);
 	CGerberCommandModeSet*			AddModeSet(EGerberMode eMode);
 	CGerberCommandFileAttribute*	AddFileAttribute(size iNameLength);
+	CGerberCommandFormatSpecifier*  AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
 };
 
 
