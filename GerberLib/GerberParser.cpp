@@ -32,7 +32,7 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 {
 	STextParserConfig	sConfig;
 
-	sConfig.Init(SkipGerberWhitespace, ParseGerberString);
+	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset);
 
 	mcParser.Init(szText, iTextLen, &sConfig);
 	mszFilename.Init(szFileName);
@@ -86,6 +86,36 @@ TRISTATE CGerberParser::Error(char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::GetCommentString(char* szString, size* piLength)
+{
+	TRISTATE	tResult;
+
+	mcParser.SetStringParser(ParseGerberCommentString);
+	tResult = mcParser.GetString(szString, piLength, false);
+	mcParser.SetStringParser(ParseGerberStringUnset);
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::GetFieldString(char* szString, size* piLength)
+{
+	TRISTATE	tResult;
+
+	mcParser.SetStringParser(ParseGerberFieldString);
+	tResult = mcParser.GetString(szString, piLength, false);
+	mcParser.SetStringParser(ParseGerberStringUnset);
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG04()
 {
 	TRISTATE				tResult;
@@ -96,13 +126,12 @@ TRISTATE CGerberParser::ParseCommandG04()
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
-	tResult = mcParser.GetString(NULL, &iLength, false);
-	ReturnErrorOnFalseOrCommandSyntaxError(tResult)
-
+	tResult = GetCommentString(NULL, &iLength);
 	mcParser.PopPosition();
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	pcComment = mpcCommands->AddComment(iLength);
-	mcParser.GetString(pcComment->Text(), &iLength, false);
+	GetCommentString(pcComment->Text(), &iLength);
 	
 	return TRITRUE;
 }
@@ -114,7 +143,55 @@ TRISTATE CGerberParser::ParseCommandG04()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandMO()
 {
-	return TRIERROR;
+	TRISTATE				tResult;
+	EGerberMode				eMode;
+
+	tResult = mcParser.GetExactCharacterSequence("%MO", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mcParser.PushPosition();
+	tResult = mcParser.GetExactCharacterSequence("MM", false);
+	if (tResult == TRIERROR)
+	{
+		mcParser.PopPosition();
+		return TRIERROR;
+	}
+	
+	eMode = GM_Unknown;
+	if (tResult == TRITRUE)
+	{
+		eMode = GM_Millimeters;
+		mcParser.PassPosition();
+	}
+	else
+	{
+		tResult = mcParser.GetExactCharacterSequence("IN", false);
+		if (tResult == TRIERROR)
+		{
+			mcParser.PopPosition();
+			return TRIERROR;
+		}
+		else if (tResult == TRITRUE)
+		{
+			eMode = GM_Inches;
+			mcParser.PassPosition();
+		}
+		else if (tResult == TRIFALSE)
+		{
+			mcParser.PopPosition();
+			ReturnSyntanxError();
+		}
+		else
+		{
+			mcParser.PopPosition();
+			ReturnSyntanxError();
+		}
+	}
+	
+
+	mpcCommands->AddModeSet(eMode);
+	
+	return TRITRUE;
 }
 
 
@@ -124,7 +201,7 @@ TRISTATE CGerberParser::ParseCommandMO()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandFS()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -134,7 +211,7 @@ TRISTATE CGerberParser::ParseCommandFS()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandAD()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -144,7 +221,7 @@ TRISTATE CGerberParser::ParseCommandAD()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandAM()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -154,7 +231,7 @@ TRISTATE CGerberParser::ParseCommandAM()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandDnn()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -164,7 +241,7 @@ TRISTATE CGerberParser::ParseCommandDnn()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG75()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -174,7 +251,7 @@ TRISTATE CGerberParser::ParseCommandG75()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG01()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -184,7 +261,7 @@ TRISTATE CGerberParser::ParseCommandG01()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG02()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -194,7 +271,7 @@ TRISTATE CGerberParser::ParseCommandG02()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG03()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -204,7 +281,7 @@ TRISTATE CGerberParser::ParseCommandG03()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandD01()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -214,7 +291,7 @@ TRISTATE CGerberParser::ParseCommandD01()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandD02()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -224,7 +301,7 @@ TRISTATE CGerberParser::ParseCommandD02()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandD03()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -234,7 +311,7 @@ TRISTATE CGerberParser::ParseCommandD03()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLP()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -244,7 +321,7 @@ TRISTATE CGerberParser::ParseCommandLP()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLM()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -254,7 +331,7 @@ TRISTATE CGerberParser::ParseCommandLM()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLR()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -264,7 +341,7 @@ TRISTATE CGerberParser::ParseCommandLR()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLS()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -274,7 +351,7 @@ TRISTATE CGerberParser::ParseCommandLS()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseRegionStatement()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -284,7 +361,7 @@ TRISTATE CGerberParser::ParseRegionStatement()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseABStatement()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -294,7 +371,7 @@ TRISTATE CGerberParser::ParseABStatement()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseSRStatement()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -304,7 +381,51 @@ TRISTATE CGerberParser::ParseSRStatement()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTF()
 {
-	return TRIERROR;
+	TRISTATE						tResult;
+	size							iLength;
+	CGerberCommandFileAttribute*	pcFileAttribute;
+	char*							szValue;
+
+	tResult = mcParser.GetExactCharacterSequence("%TF", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mcParser.PushPosition();
+	tResult = mcParser.GetIdentifier(NULL, &iLength, false, false);
+	mcParser.PopPosition();
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	pcFileAttribute = mpcCommands->AddFileAttribute(iLength);
+	mcParser.GetIdentifier(pcFileAttribute->NameText(), &iLength, false, false);
+
+	for (;;)
+	{
+		tResult = mcParser.GetExactCharacter('*', false);
+		ReturnOnError(tResult);
+		if (tResult == TRITRUE)
+		{
+			break;
+		}
+
+		tResult = mcParser.GetExactCharacter(',', false);
+		ReturnOnError(tResult);		
+		if (tResult == TRIFALSE)
+		{
+			ReturnSyntanxError();
+		}
+
+		mcParser.PushPosition();
+		tResult = GetFieldString(NULL, &iLength);
+		mcParser.PopPosition();
+		ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+		szValue = pcFileAttribute->AddValue(iLength);
+		GetFieldString(szValue, &iLength);
+		
+		mcParser.StepLeft();
+	}
+
+	return TRITRUE;
+
 }
 
 
@@ -314,7 +435,7 @@ TRISTATE CGerberParser::ParseCommandTF()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTA()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -324,7 +445,7 @@ TRISTATE CGerberParser::ParseCommandTA()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTO()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -334,7 +455,7 @@ TRISTATE CGerberParser::ParseCommandTO()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTD()
 {
-	return TRIERROR;
+	return TRIFALSE;
 }
 
 
@@ -342,91 +463,9 @@ TRISTATE CGerberParser::ParseCommandTD()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CGerberParser::ParseStart(void)
+TRISTATE CGerberParser::ParseEnd()
 {
-	TRISTATE tResult;
-
-	tResult = ParseCommandG04();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandMO();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandFS();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandAD();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandAM();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandDnn();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandG75();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandG01();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandG02();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandG03();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandD01();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandD02();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandD03();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandLP();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandLM();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandLR();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandLS();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseRegionStatement();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseABStatement();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseSRStatement();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandTF();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandTA();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandTO();
-	ReturnOnErrorAndTrue(tResult);
-
-	tResult = ParseCommandTD();
-	return tResult;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-TRISTATE CGerberParser::ParseEnd(void)
-{
-	return TRITRUE;
+	return TRIFALSE;
 }
 
 
@@ -438,17 +477,91 @@ TRISTATE CGerberParser::Parse(void)
 {
 	TRISTATE tResult;
 
-	tResult = ParseStart();
-	if (tResult == TRIERROR)
+	for (;;)
 	{
-		return TRIERROR;
-	}
+		mcParser.SkipWhitespace();
 
-	tResult = ParseEnd();
-	if (tResult != TRITRUE)
-	{
-		return TRIERROR;
+		tResult = ParseCommandG04();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandMO();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandFS();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandAD();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandAM();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandDnn();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG75();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG01();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG02();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandG03();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandD01();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandD02();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandD03();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandLP();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandLM();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandLR();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandLS();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseRegionStatement();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseABStatement();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseSRStatement();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandTF();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandTA();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandTO();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseCommandTD();
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseEnd();
+		if (tResult != TRITRUE)
+		{
+			return TRIERROR;
+		}
+		else
+		{
+			return TRITRUE;
+		}
 	}
-	return TRITRUE;
 }
 

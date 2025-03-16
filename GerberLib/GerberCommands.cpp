@@ -64,3 +64,19 @@ CGerberCommandModeSet* CGerberCommands::AddModeSet(EGerberMode eMode)
 	return pcCommand;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandFileAttribute* CGerberCommands::AddFileAttribute(size iNameLength)
+{
+	CGerberCommandFileAttribute* pcCommand;
+
+	pcCommand = (CGerberCommandFileAttribute*)macCommands.Add(sizeof(CGerberCommandFileAttribute));
+	New<CGerberCommandFileAttribute>(pcCommand);
+	pcCommand->Init(iNameLength);
+
+	return pcCommand;
+}
+
