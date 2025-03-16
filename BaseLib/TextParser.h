@@ -90,7 +90,7 @@ public:
 	TRISTATE		GetEscapeCode(char* c);
 
 	TRISTATE		GetExactIdentifier(char* szIdentifier, bool bSkipWhitespace = true);
-	TRISTATE		GetIdentifier(char* szIdentifier, size* piLength = NULL, bool bPassOnTest = false, bool bSkipWhitespace = true);
+	TRISTATE		GetIdentifier(char* szIdentifier, size* piLength = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetString(char* szString, size* piLength = NULL, bool bSkipWhitespace = true);
 	TRISTATE		GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace = true);
 	TRISTATE		GetExactCaseInsensitiveCharacterSequence(const char* szSequence, bool bSkipWhitespace = true);

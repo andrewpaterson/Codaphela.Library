@@ -1650,6 +1650,12 @@
     <ClInclude Include="XMLString.h">
       <Filter>Source\Text\XML</Filter>
     </ClInclude>
+    <ClInclude Include="CPPIdentifier.h">
+      <Filter>Source\Text\Parser\CPP</Filter>
+    </ClInclude>
+    <ClInclude Include="XMLIdentifier.h">
+      <Filter>Source\Text\XML</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2622,6 +2628,12 @@
       <Filter>Source\Text\XML</Filter>
     </ClCompile>
     <ClCompile Include="XMLString.cpp">
+      <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="CPPIdentifier.cpp">
+      <Filter>Source\Text\Parser\CPP</Filter>
+    </ClCompile>
+    <ClCompile Include="XMLIdentifier.cpp">
       <Filter>Source\Text\XML</Filter>
     </ClCompile>
   </ItemGroup>
