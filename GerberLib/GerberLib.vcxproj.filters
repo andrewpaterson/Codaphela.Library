@@ -36,6 +36,9 @@
     <ClCompile Include="GerberCommandFileAttribute.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberIdentifier.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="GerberCommandFileAttribute.h">
       <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberIdentifier.h">
+      <Filter>Source\Parser</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

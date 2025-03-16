@@ -23,6 +23,7 @@
     <ClCompile Include="GerberCommandModeSet.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
+    <ClCompile Include="GerberIdentifier.cpp" />
     <ClCompile Include="GerberParser.cpp" />
     <ClCompile Include="GerberString.cpp" />
     <ClCompile Include="GerberWhitespace.cpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="GerberCommandModeSet.h" />
     <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberCommandFileAttribute.h" />
+    <ClInclude Include="GerberIdentifier.h" />
     <ClInclude Include="GerberParser.h" />
     <ClInclude Include="GerberString.h" />
     <ClInclude Include="GerberWhitespace.h" />
