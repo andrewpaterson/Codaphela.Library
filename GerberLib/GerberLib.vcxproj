@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GerberCommandComment.cpp" />
+    <ClCompile Include="GerberCommandFormatSpecifier.cpp" />
     <ClCompile Include="GerberCommandModeSet.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
@@ -34,6 +35,7 @@
     <ClInclude Include="GerberCommand.h" />
     <ClInclude Include="GerberCommandComment.h" />
     <ClInclude Include="GerberCommandEnum.h" />
+    <ClInclude Include="GerberCommandFormatSpecifier.h" />
     <ClInclude Include="GerberCommandModeSet.h" />
     <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberCommandFileAttribute.h" />

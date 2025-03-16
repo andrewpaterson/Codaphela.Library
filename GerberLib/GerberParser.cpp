@@ -144,8 +144,8 @@ TRISTATE CGerberParser::ParseCommandG04()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandMO()
 {
-	TRISTATE				tResult;
-	EGerberMode				eMode;
+	TRISTATE		tResult;
+	EGerberMode		eMode;
 
 	tResult = mcParser.GetExactCharacterSequence("%MO", false);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
@@ -179,7 +179,7 @@ TRISTATE CGerberParser::ParseCommandMO()
 		}
 		else if (tResult == TRIFALSE)
 		{
-			mcParser.PopPosition();
+			mcParser.PassPosition();
 			ReturnSyntanxError();
 		}
 		else
@@ -189,6 +189,8 @@ TRISTATE CGerberParser::ParseCommandMO()
 		}
 	}
 	
+	tResult = mcParser.GetExactCharacterSequence("*%", false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddModeSet(eMode);
 	
@@ -202,7 +204,42 @@ TRISTATE CGerberParser::ParseCommandMO()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandFS()
 {
-	return TRIFALSE;
+	TRISTATE	tResult;
+	uint16		uiXWholes;
+	uint16		uiXDecimals;
+	uint16		uiYWholes;
+	uint16		uiYDecimals;
+
+	tResult = mcParser.GetExactCharacterSequence("%FS", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacterSequence("LA", false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter('X', false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetDigit(&uiXWholes);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetDigit(&uiXDecimals);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter('Y', false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetDigit(&uiYWholes);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetDigit(&uiYDecimals);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacterSequence("*%", false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	mpcCommands->AddFormatSpecifier(uiXWholes, uiXDecimals, uiYWholes, uiYDecimals);
+
+	return TRITRUE;
 }
 
 
