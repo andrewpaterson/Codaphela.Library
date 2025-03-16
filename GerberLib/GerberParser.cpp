@@ -19,6 +19,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "GerberParser.h"
+#include "GerberString.h"
+#include "GerberWhitespace.h"
 #include "BaseLib/Logger.h"
 
 
@@ -26,10 +28,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberParser::Init(char* szText, size iTextLen, char* szFileName)
+void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands)
 {
-	mcParser.Init(szText, iTextLen);
+	STextParserConfig	sConfig;
+
+	sConfig.Init(SkipGerberWhitespace, ParseGerberString);
+
+	mcParser.Init(szText, iTextLen, &sConfig);
 	mszFilename.Init(szFileName);
+
+	mpcCommands = pcCommands;
 }
 
 
@@ -39,6 +47,8 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName)
 //////////////////////////////////////////////////////////////////////////
 void CGerberParser::Kill(void)
 {
+	mpcCommands = NULL;
+
 	mszFilename.Kill();
 	mcParser.Kill();
 }
@@ -78,12 +88,22 @@ TRISTATE CGerberParser::Error(char* szError)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG04()
 {
-	TRISTATE tResult;
+	TRISTATE				tResult;
+	size					iLength;
+	CGerberCommandComment*	pcComment;
 
 	tResult = mcParser.GetExactCharacterSequence("G04", false);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
-	mcParser.GetCharacterSequence()
+	mcParser.PushPosition();
+	tResult = mcParser.GetString(NULL, &iLength, false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult)
+
+	mcParser.PopPosition();
+
+	pcComment = mpcCommands->AddComment(iLength);
+	mcParser.GetString(pcComment->Text(), &iLength, false);
+	
 	return TRITRUE;
 }
 

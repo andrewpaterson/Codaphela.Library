@@ -135,6 +135,7 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 	mszSourceContext = szSourceContext;
 
 	sConfig.Init(SkipXMLWhitespace, ParseXMLString);
+
 	mcParser.Init(szText, &sConfig);
 	tResult = mcParser.SkipUTF8BOM();
 	if (tResult == TRIERROR)

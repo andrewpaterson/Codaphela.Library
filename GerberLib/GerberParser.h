@@ -22,16 +22,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __GERBER_PARSER_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/TextParser.h"
-
+#include "GerberCommands.h"
 
 class CGerberParser
 {
 protected:
-	CTextParser	mcParser;
-	CChars		mszFilename;
+	CTextParser			mcParser;
+	CChars				mszFilename;
+	CGerberCommands*	mpcCommands;
 
 public:
-	void		Init(char* szText, size iTextLen, char* szFileName);
+	void		Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands);
 	void		Kill(void);
 
 	TRISTATE	Parse(void);
@@ -68,10 +69,12 @@ protected:
 	TRISTATE	Error(char* szError);
 };
 
-
 #define ReturnOnFalseOrCommandSyntaxError(tResult) \
 if (tResult == TRIFALSE) return TRIFALSE;\
 if (tResult == TRIERROR) return Error("Syntax Error, could not parse Command:");
+
+#define ReturnErrorOnFalseOrCommandSyntaxError(tResult) \
+if (tResult == TRIFALSE || tResult == TRIERROR) return Error("Syntax Error, could not parse Command:");
 
 
 #endif //  __GERBER_PARSER_H__
