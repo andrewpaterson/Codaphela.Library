@@ -46,6 +46,10 @@ public:
 	bool			Read(CFileReader* pcFileReader);
 
 	void			InsertDetachedAfterTail(void* pvData);
+	void*			InsertAfterTail(size uiDataSize);
+	void*			InsertBeforeHead(size uiDataSize);
+	void*			InsertBeforeNode(size uiDataSize, void* psPos);
+	void*			InsertAfterNode(size uiDataSize, void* psPos);
 
 protected:	
 	size			GetNodeSize(void* psData);

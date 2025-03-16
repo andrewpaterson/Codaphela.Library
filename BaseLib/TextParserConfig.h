@@ -9,13 +9,18 @@ class CTextParser;
 
 typedef void(*TextParserSkipWhitespace)(CTextParser*);
 typedef TRISTATE(*TextParserParseString)(CTextParser*, char*, size*);
+typedef TRISTATE (*TextParserParseExactIdentifier)(CTextParser*, char*);
+typedef TRISTATE (*TextParserParseIdentifier)(CTextParser*, char*, size*);
+
 
 struct STextParserConfig
 {
-	TextParserSkipWhitespace	fSkipWhitespace;
-	TextParserParseString		fParseString;
+	TextParserSkipWhitespace		fSkipWhitespace;
+	TextParserParseString			fParseString;
+	TextParserParseExactIdentifier	fParseExactIdentifier;
+	TextParserParseIdentifier		fParseIdentifier;
 
-	void Init(TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString);
+	void Init(TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier);
 };
 
 

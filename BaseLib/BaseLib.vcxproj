@@ -188,6 +188,7 @@
     <ClInclude Include="CharHelper.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="ChunkFileName.h" />
+    <ClInclude Include="CPPIdentifier.h" />
     <ClInclude Include="CPPString.h" />
     <ClInclude Include="CPPWhitespace.h" />
     <ClInclude Include="DataFree.h" />
@@ -536,6 +537,7 @@
     <ClInclude Include="CalcParentheses.h" />
     <ClInclude Include="CalcUnaryExpression.h" />
     <ClInclude Include="XMLEntity.h" />
+    <ClInclude Include="XMLIdentifier.h" />
     <ClInclude Include="XMLParser.h" />
     <ClInclude Include="PlainTextEditor.h" />
     <ClInclude Include="TextEditor.h" />
@@ -581,6 +583,7 @@
     <ClCompile Include="BubbleSort.cpp" />
     <ClCompile Include="CharHelper.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
+    <ClCompile Include="CPPIdentifier.cpp" />
     <ClCompile Include="CPPString.cpp" />
     <ClCompile Include="CPPWhitespace.cpp" />
     <ClCompile Include="DataFree.cpp" />
@@ -863,6 +866,7 @@
     <ClCompile Include="CalcParentheses.cpp" />
     <ClCompile Include="CalcUnaryExpression.cpp" />
     <ClCompile Include="XMLEntity.cpp" />
+    <ClCompile Include="XMLIdentifier.cpp" />
     <ClCompile Include="XMLParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />

@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "XMLParser.h"
 #include "XMLWhitespace.h"
 #include "XMLString.h"
+#include "XMLIdentifier.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -134,7 +135,7 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 
 	mszSourceContext = szSourceContext;
 
-	sConfig.Init(SkipXMLWhitespace, ParseXMLString);
+	sConfig.Init(SkipXMLWhitespace, ParseXMLString, ParseXMLExactIdentifier, ParseXMLIdentifier);
 
 	mcParser.Init(szText, &sConfig);
 	tResult = mcParser.SkipUTF8BOM();

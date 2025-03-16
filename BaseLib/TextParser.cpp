@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "EscapeCodes.h"
 #include "CPPWhitespace.h"
 #include "CPPString.h"
+#include "CPPIdentifier.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -69,7 +70,7 @@ bool CTextParser::Init(char* szText, size iTextLen)
 {
 	STextParserConfig	sConfig;
 		
-	sConfig.Init(SkipCPPWhitespace, ParseCPPString);
+	sConfig.Init(SkipCPPWhitespace, ParseCPPString, ParseCPPExactIdentifier, ParseCPPIdentifier);
 
 	return Init(szText, iTextLen, &sConfig);
 }
@@ -444,44 +445,6 @@ TRISTATE CTextParser::GetCharacter(char* pc)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetIdentifierCharacter(char* pc, bool bFirst)
-{
-	char	cCurrent;
-
-	if (!mbOutsideText)
-	{
-		cCurrent = mszParserPos[0];
-		*pc = cCurrent;
-		//The first character of an identifier must be one of these...
-		if (((cCurrent >= 'a') && (cCurrent <= 'z')) || ((cCurrent >= 'A') && (cCurrent <= 'Z')) || (cCurrent == '_'))
-		{
-			StepRight();
-			return TRITRUE;
-		}
-
-		//Additional characters can also be...
-		if (!bFirst)
-		{
-			if ((cCurrent >= '0') && (cCurrent <= '9'))
-			{
-				StepRight();
-				return TRITRUE;
-			}
-		}
-		return TRIFALSE;
-	}
-	else
-	{
-		SetErrorEndOfFile();
-		return TRIERROR;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetExactCharacterSequence(char* szSequence, bool bSkipWhitespace)
 {
 	char	cCurrent;
@@ -631,11 +594,8 @@ TRISTATE CTextParser::SkipUTF8BOM(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhitespace)
 {
-	char		cCurrent;
-	size		iPos;
 	TRISTATE	tResult;
 
-	iPos = 0;
 	PushPosition();
 
 	if (bSkipWhitespace)
@@ -643,54 +603,16 @@ TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhitespac
 		SkipWhitespace();
 	}
 
-	//Make sure we're not off the end of the file.
-	if (mbOutsideText)
+	tResult = msConfig.fParseExactIdentifier(this, szIdentifier);
+	if ((tResult == TRIERROR) || (tResult == TRIFALSE))
 	{
 		PopPosition();
-		SetErrorEndOfFile();
-		return TRIERROR;
+		return tResult;
 	}
-
-	for (;;)
+	else
 	{
-		if (szIdentifier[iPos] == 0)
-		{
-			//Got all the way to the NULL character.
-			//If there are additional identifier characters then we do not have the right identifier.
-			if (!mbOutsideText)
-			{
-				tResult = GetIdentifierCharacter(&cCurrent, iPos == 0);
-				if (tResult == TRITRUE)
-				{
-					//Put the parser back where it was.
-					PopPosition();
-					return TRIFALSE;
-				}
-			}
-			PassPosition();
-			return TRITRUE;
-		}
-		if (!mbOutsideText)
-		{
-			cCurrent = mszParserPos[0];
-			if (cCurrent == szIdentifier[iPos])
-			{
-				StepRight();
-				iPos++;
-			}
-			else
-			{
-				//Put the parser back where it was.
-				PopPosition();
-				return TRIFALSE;
-			}
-		}
-		else
-		{
-			//Put the parser back where it was.
-			PopPosition();
-			return TRIFALSE;
-		}
+		PassPosition();
+		return tResult;
 	}
 }
 
@@ -699,14 +621,10 @@ TRISTATE CTextParser::GetExactIdentifier(char* szIdentifier, bool bSkipWhitespac
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bPassOnTest, bool bSkipWhitespace)
+TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bSkipWhitespace)
 {
-	char	c;
-	bool	bFirst;
-	size	iPos;
+	TRISTATE	tResult;
 
-	bFirst = true;
-	iPos = 0;
 	PushPosition();
 
 	if (bSkipWhitespace)
@@ -714,88 +632,16 @@ TRISTATE CTextParser::GetIdentifier(char* szIdentifier, size* piLength, bool bPa
 		SkipWhitespace();
 	}
 
-	//Make sure we're not off the end of the file.
-	if (mbOutsideText)
+	tResult = msConfig.fParseIdentifier(this, szIdentifier, piLength);
+	if ((tResult == TRIERROR) || (tResult == TRIFALSE))
 	{
 		PopPosition();
-		SetErrorEndOfFile();
-		return TRIERROR;
+		return tResult;
 	}
-
-	for (;;)
+	else
 	{
-		if (!mbOutsideText)
-		{
-			if (GetIdentifierCharacter(&c, bFirst) != TRITRUE)
-			{
-				if (bFirst)
-				{
-					if (szIdentifier)
-					{
-						szIdentifier[iPos] = 0;
-					}
-
-					PopPosition();
-					return TRIFALSE;
-				}
-				else
-				{
-					if (szIdentifier)
-					{
-						szIdentifier[iPos] = 0;
-					}
-
-					if (szIdentifier || bPassOnTest)
-					{
-						PassPosition();
-					}
-					else
-					{
-						PopPosition();
-					}
-
-					SafeAssign(piLength, iPos);
-					return TRITRUE;
-				}
-			}
-			else
-			{
-				if (szIdentifier)
-				{
-					szIdentifier[iPos] = c;
-				}
-			}
-		}
-		else
-		{
-			if (bFirst)
-			{
-				PopPosition();
-				SetErrorEndOfFile();
-				return TRIERROR;
-			}
-			else
-			{
-				if (szIdentifier)
-				{
-					szIdentifier[iPos] = 0;
-				}
-
-				if (szIdentifier)
-				{
-					PassPosition();
-				}
-				else
-				{
-					PopPosition();
-				}
-
-				SafeAssign(piLength, iPos);
-				return TRITRUE;
-			}
-		}
-		bFirst = false;
-		iPos++;
+		PassPosition();
+		return tResult;
 	}
 }
 
