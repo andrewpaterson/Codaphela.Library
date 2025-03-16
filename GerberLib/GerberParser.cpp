@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "GerberParser.h"
 #include "GerberString.h"
 #include "GerberWhitespace.h"
+#include "GerberIdentifier.h"
 #include "BaseLib/Logger.h"
 
 
@@ -32,7 +33,7 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 {
 	STextParserConfig	sConfig;
 
-	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset);
+	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset, ParseGerberExactIdentifier, ParseGerberIdentifier);
 
 	mcParser.Init(szText, iTextLen, &sConfig);
 	mszFilename.Init(szFileName);
@@ -390,16 +391,16 @@ TRISTATE CGerberParser::ParseCommandTF()
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
-	tResult = mcParser.GetIdentifier(NULL, &iLength, false, false);
+	tResult = mcParser.GetIdentifier(NULL, &iLength, false);
 	mcParser.PopPosition();
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	pcFileAttribute = mpcCommands->AddFileAttribute(iLength);
-	mcParser.GetIdentifier(pcFileAttribute->NameText(), &iLength, false, false);
+	mcParser.GetIdentifier(pcFileAttribute->NameText(), &iLength, false);
 
 	for (;;)
 	{
-		tResult = mcParser.GetExactCharacter('*', false);
+		tResult = mcParser.GetExactCharacterSequence("*%", false);
 		ReturnOnError(tResult);
 		if (tResult == TRITRUE)
 		{

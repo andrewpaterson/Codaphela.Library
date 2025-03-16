@@ -154,6 +154,7 @@ void CTextParser::Kill(void)
 	mszStartOfText = NULL;
 	miTextLen = 0;
 	mszEndOfText = NULL;
+	masPositions.Pop();
 	masPositions.Kill();
 }
 
