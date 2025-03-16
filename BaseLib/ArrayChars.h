@@ -50,6 +50,7 @@ public:
 	CChars*		Add(void);
 	CChars*		Add(char* szString, size iStartInclusive, size iEndExclusive);
 	CChars*		Add(char* szText, char* szLastCharInclusive);
+	CChars* AddLength(size uiLength);
 	CChars*		AddIfUnique(char* szString);
 	CChars*		AddIfUnique(CChars cChars);
 	void		AddList(char* sz, ...);

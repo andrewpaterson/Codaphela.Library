@@ -6,8 +6,9 @@
 
 enum EGerberMode
 {
+	GM_Unknown,
 	GM_Millimeters,
-	GB_Inches
+	GM_Inches,
 };
 
 

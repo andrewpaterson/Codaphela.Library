@@ -33,6 +33,9 @@
     <ClCompile Include="GerberCommands.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberCommandFileAttribute.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -63,6 +66,9 @@
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommands.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandFileAttribute.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>

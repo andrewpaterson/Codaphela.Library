@@ -55,6 +55,8 @@ public:
 	void 			Kill(void);
 	bool			IsEmpty(void);
 
+	void			SetStringParser(TextParserParseString fParseString);
+
 	//These functions do not set errors...
 	void 			StepRight(void);
 	void 			StepLeft(void);

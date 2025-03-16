@@ -38,9 +38,7 @@ public:
 	TRISTATE	Parse(void);
 
 protected:
-	TRISTATE	ParseStart(void);
 	TRISTATE	ParseEnd(void);
-
 	TRISTATE	ParseCommandG04(void);
 	TRISTATE	ParseCommandMO(void);
 	TRISTATE	ParseCommandFS(void);
@@ -67,14 +65,21 @@ protected:
 	TRISTATE	ParseCommandTD(void);
 
 	TRISTATE	Error(char* szError);
+
+	TRISTATE	GetCommentString(char* szString, size* piLength);
+	TRISTATE	GetFieldString(char* szString, size* piLength);
 };
+
+
+#define ReturnSyntanxError() return Error("Syntax Error, could not parse Command:")
+
 
 #define ReturnOnFalseOrCommandSyntaxError(tResult) \
 if (tResult == TRIFALSE) return TRIFALSE;\
-if (tResult == TRIERROR) return Error("Syntax Error, could not parse Command:");
+if (tResult == TRIERROR) ReturnSyntanxError()
 
 #define ReturnErrorOnFalseOrCommandSyntaxError(tResult) \
-if (tResult == TRIFALSE || tResult == TRIERROR) return Error("Syntax Error, could not parse Command:");
+if (tResult == TRIFALSE || tResult == TRIERROR) ReturnSyntanxError()
 
 
 #endif //  __GERBER_PARSER_H__

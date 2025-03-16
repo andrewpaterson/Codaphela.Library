@@ -216,6 +216,27 @@ CChars* CArrayChars::Add(const char* szString)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+CChars* CArrayChars::AddLength(size uiLength)
+{
+	CChars* pcChars2;
+
+	pcChars2 = mcArray.Add();
+	if (!mbFaked)
+	{
+		pcChars2->InitLength(uiLength);
+	}
+	else
+	{
+		pcChars2->Fake(NULL);
+	}
+	return pcChars2;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 CChars* CArrayChars::Add(char* szString, size iStartInclusive, size iEndExclusive)
 {
 	CChars*		pcChars2;
