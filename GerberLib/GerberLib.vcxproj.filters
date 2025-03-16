@@ -10,10 +10,28 @@
     <Filter Include="Source\Parser">
       <UniqueIdentifier>{704c5f55-f0b6-4db7-b8b4-5aef73119587}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Common\Command">
+      <UniqueIdentifier>{0c8491df-5781-4193-8d18-eb16e5fa6ef5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GerberParser.cpp">
       <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberString.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberWhitespace.cpp">
+      <Filter>Source\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandComment.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandModeSet.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommands.cpp">
+      <Filter>Source\Common\Command</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -26,8 +44,26 @@
     <ClInclude Include="GerberBoardSide.h">
       <Filter>Source\Common</Filter>
     </ClInclude>
+    <ClInclude Include="GerberString.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberWhitespace.h">
+      <Filter>Source\Parser</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandEnum.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
     <ClInclude Include="GerberCommand.h">
-      <Filter>Source\Common</Filter>
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandComment.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandModeSet.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommands.h">
+      <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

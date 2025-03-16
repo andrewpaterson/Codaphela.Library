@@ -38,10 +38,6 @@ public:
 	void			Init(CMallocator* pcMalloc);
 	void			Kill(void);
 
-	void*			InsertAfterTail(uint32 uiDataSize);
-	void*			InsertBeforeHead(uint32 uiDataSize);
-	void*			InsertBeforeNode(uint32 uiDataSize, void* psPos);
-	void*			InsertAfterNode(uint32 uiDataSize, void* psPos); 
 	void*			Add(size uiDataSize);
 
 	size			ByteSize(void);

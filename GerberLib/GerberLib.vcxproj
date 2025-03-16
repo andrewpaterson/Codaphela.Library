@@ -19,13 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GerberCommandComment.cpp" />
+    <ClCompile Include="GerberCommandModeSet.cpp" />
+    <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberParser.cpp" />
+    <ClCompile Include="GerberString.cpp" />
+    <ClCompile Include="GerberWhitespace.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberBoardLayer.h" />
     <ClInclude Include="GerberBoardSide.h" />
     <ClInclude Include="GerberCommand.h" />
+    <ClInclude Include="GerberCommandComment.h" />
+    <ClInclude Include="GerberCommandEnum.h" />
+    <ClInclude Include="GerberCommandModeSet.h" />
+    <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberParser.h" />
+    <ClInclude Include="GerberString.h" />
+    <ClInclude Include="GerberWhitespace.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{27C44A6D-223D-4CB9-A7A3-FCAB828F85C7}</ProjectGuid>
