@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberCommandComment::Init(size uiCommentLength)
 {
+	CGerberCommand::Init(GC_G04);
 	szComment.InitLength(uiCommentLength);
 }
 

@@ -2,6 +2,11 @@
 #include "GerberCommands.h"
 
 
+#define ADD_COMMAND(type) 	type*	pcCommand;\
+pcCommand = (type*)macCommands.Add(sizeof(type)); \
+New<type>(pcCommand);
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -39,12 +44,8 @@ void CGerberCommands::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CGerberCommandComment* CGerberCommands::AddComment(size uiCommentLength)
 {
-	CGerberCommandComment*	pcCommand;
-
-	pcCommand = (CGerberCommandComment*)macCommands.Add(sizeof(CGerberCommandComment));
-	New<CGerberCommandComment>(pcCommand);
+	ADD_COMMAND(CGerberCommandComment);
 	pcCommand->Init(uiCommentLength);
-
 	return pcCommand;
 }
 
@@ -55,12 +56,8 @@ CGerberCommandComment* CGerberCommands::AddComment(size uiCommentLength)
 //////////////////////////////////////////////////////////////////////////
 CGerberCommandModeSet* CGerberCommands::AddModeSet(EGerberMode eMode)
 {
-	CGerberCommandModeSet* pcCommand;
-
-	pcCommand = (CGerberCommandModeSet*)macCommands.Add(sizeof(CGerberCommandModeSet));
-	New<CGerberCommandModeSet>(pcCommand);
+	ADD_COMMAND(CGerberCommandModeSet);
 	pcCommand->Init(eMode);
-
 	return pcCommand;
 }
 
@@ -71,12 +68,8 @@ CGerberCommandModeSet* CGerberCommands::AddModeSet(EGerberMode eMode)
 //////////////////////////////////////////////////////////////////////////
 CGerberCommandFileAttribute* CGerberCommands::AddFileAttribute(size iNameLength)
 {
-	CGerberCommandFileAttribute* pcCommand;
-
-	pcCommand = (CGerberCommandFileAttribute*)macCommands.Add(sizeof(CGerberCommandFileAttribute));
-	New<CGerberCommandFileAttribute>(pcCommand);
+	ADD_COMMAND(CGerberCommandFileAttribute);
 	pcCommand->Init(iNameLength);
-
 	return pcCommand;
 }
 
@@ -87,12 +80,21 @@ CGerberCommandFileAttribute* CGerberCommands::AddFileAttribute(size iNameLength)
 //////////////////////////////////////////////////////////////////////////
 CGerberCommandFormatSpecifier* CGerberCommands::AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals)
 {
-	CGerberCommandFormatSpecifier* pcCommand;
-
-	pcCommand = (CGerberCommandFormatSpecifier*)macCommands.Add(sizeof(CGerberCommandFormatSpecifier));
-	New<CGerberCommandFormatSpecifier>(pcCommand);
+	ADD_COMMAND(CGerberCommandFormatSpecifier);
 	pcCommand->Init(uiXWholes, uiXDecimals, uiYWholes, uiYDecimals);
-
 	return pcCommand;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandLoadPolarity* CGerberCommands::AddLoadPolarity(EGerberPolarity ePolarity)
+{
+	ADD_COMMAND(CGerberCommandLoadPolarity);
+	pcCommand->Init(ePolarity);
+	return pcCommand;
+}
+
 

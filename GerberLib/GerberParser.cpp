@@ -349,7 +349,57 @@ TRISTATE CGerberParser::ParseCommandD03()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLP()
 {
-	return TRIFALSE;
+	TRISTATE			tResult;
+	EGerberPolarity		ePolarity;
+
+	tResult = mcParser.GetExactCharacterSequence("%LP", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mcParser.PushPosition();
+	tResult = mcParser.GetExactCharacter('D', false);
+	if (tResult == TRIERROR)
+	{
+		mcParser.PopPosition();
+		return TRIERROR;
+	}
+
+	ePolarity = GP_Unknown;
+	if (tResult == TRITRUE)
+	{
+		ePolarity = GP_Dark;
+		mcParser.PassPosition();
+	}
+	else
+	{
+		tResult = mcParser.GetExactCharacter('C', false);
+		if (tResult == TRIERROR)
+		{
+			mcParser.PopPosition();
+			return TRIERROR;
+		}
+		else if (tResult == TRITRUE)
+		{
+			ePolarity = GP_Clear;
+			mcParser.PassPosition();
+		}
+		else if (tResult == TRIFALSE)
+		{
+			mcParser.PassPosition();
+			ReturnSyntanxError();
+		}
+		else
+		{
+			mcParser.PopPosition();
+			ReturnSyntanxError();
+		}
+	}
+
+	tResult = mcParser.GetExactCharacterSequence("*%", false);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	mpcCommands->AddLoadPolarity(ePolarity);
+
+	return TRITRUE;
 }
 
 

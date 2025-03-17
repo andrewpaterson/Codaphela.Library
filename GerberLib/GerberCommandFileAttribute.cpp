@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberCommandFileAttribute::Init(size iNameLength)
 {
+	CGerberCommand::Init(GC_TF);
 	szName.InitLength(iNameLength);
 	szValues.Init();
 }

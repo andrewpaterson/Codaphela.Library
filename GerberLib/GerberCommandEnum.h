@@ -4,6 +4,7 @@
 
 enum EGerberCommandEnum
 {
+	GC_Unknown,
 	GC_G04, // Comment A human readable comment, does not affect the image. 4.1
 	GC_MO,  // Mode Sets the unit to mm or inch. 4.2.1
 	GC_FS,  // Format specification Sets the coordinate format, e.g.the number of decimals. 4.2.2
@@ -30,7 +31,6 @@ enum EGerberCommandEnum
 	GC_TO,  // Attribute on object Add an object attribute to the dictionary or modify it. 5.4
 	GC_TD,  // Attribute delete Delete one or all attributes in the dictionary. 5.5
 	GC_M02, // End of file. 4.13
-	GC_Unknown
 };
 
 

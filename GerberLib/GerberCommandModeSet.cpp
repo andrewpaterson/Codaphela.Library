@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberCommandModeSet::Init(EGerberMode eMode)
 {
+	CGerberCommand::Init(GC_MO);
 	meMode = eMode;
 }
 
