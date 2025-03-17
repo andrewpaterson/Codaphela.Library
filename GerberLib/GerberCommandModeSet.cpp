@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandModeSet::Init(EGerberMode eMode)
+void CGerberCommandMeasurementMode::Init(EGerberMeasurementMode eMode)
 {
 	CGerberCommand::Init(GC_MO);
 	meMode = eMode;
@@ -16,7 +16,7 @@ void CGerberCommandModeSet::Init(EGerberMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandModeSet::Kill(void)
+void CGerberCommandMeasurementMode::Kill(void)
 {
 }
 

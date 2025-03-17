@@ -48,6 +48,9 @@
     <ClCompile Include="GerberCommand.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberCommandPlotMode.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -90,6 +93,9 @@
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommandLoadPolarity.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandPlotMode.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>

@@ -145,7 +145,7 @@ TRISTATE CGerberParser::ParseCommandG04()
 TRISTATE CGerberParser::ParseCommandMO()
 {
 	TRISTATE		tResult;
-	EGerberMode		eMode;
+	EGerberMeasurementMode		eMode;
 
 	tResult = mcParser.GetExactCharacterSequence("%MO", false);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
@@ -289,7 +289,14 @@ TRISTATE CGerberParser::ParseCommandG75()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG01()
 {
-	return TRIFALSE;
+	TRISTATE				tResult;
+
+	tResult = mcParser.GetExactCharacterSequence("G01*", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mpcCommands->AddPlotMode(GPM_Linear);
+	
+	return TRITRUE;
 }
 
 
@@ -299,7 +306,14 @@ TRISTATE CGerberParser::ParseCommandG01()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG02()
 {
-	return TRIFALSE;
+	TRISTATE				tResult;
+
+	tResult = mcParser.GetExactCharacterSequence("G02*", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mpcCommands->AddPlotMode(GPM_CircularClockwise);
+
+	return TRITRUE;
 }
 
 
@@ -309,7 +323,14 @@ TRISTATE CGerberParser::ParseCommandG02()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG03()
 {
-	return TRIFALSE;
+	TRISTATE				tResult;
+
+	tResult = mcParser.GetExactCharacterSequence("G03*", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mpcCommands->AddPlotMode(GPM_CircularAnticlockwise);
+
+	return TRITRUE;
 }
 
 

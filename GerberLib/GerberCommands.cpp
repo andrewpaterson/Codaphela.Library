@@ -54,9 +54,9 @@ CGerberCommandComment* CGerberCommands::AddComment(size uiCommentLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberCommandModeSet* CGerberCommands::AddModeSet(EGerberMode eMode)
+CGerberCommandMeasurementMode* CGerberCommands::AddModeSet(EGerberMeasurementMode eMode)
 {
-	ADD_COMMAND(CGerberCommandModeSet);
+	ADD_COMMAND(CGerberCommandMeasurementMode);
 	pcCommand->Init(eMode);
 	return pcCommand;
 }
@@ -98,3 +98,31 @@ CGerberCommandLoadPolarity* CGerberCommands::AddLoadPolarity(EGerberPolarity ePo
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandPlotMode* CGerberCommands::AddPlotMode(EGerberPlotMode eMode)
+{
+	if ((eMode == GPM_Linear) || (eMode == GPM_CircularClockwise) || (eMode == GPM_CircularAnticlockwise))
+	{
+		ADD_COMMAND(CGerberCommandPlotMode);
+		if (eMode == GPM_Linear)
+		{
+			pcCommand->Init(GC_G01, GPM_Linear);
+		}
+		else if (eMode == GPM_CircularClockwise)
+		{
+			pcCommand->Init(GC_G02, GPM_CircularClockwise);
+		}
+		else if (eMode == GPM_Linear)
+		{
+			pcCommand->Init(GC_G03, GPM_CircularAnticlockwise);
+		}
+		return pcCommand;
+	}
+	else
+	{
+		return NULL;
+	}
+}
