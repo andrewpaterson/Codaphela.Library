@@ -6,6 +6,7 @@
 #include "GerberCommandFileAttribute.h"
 #include "GerberCommandFormatSpecifier.h"
 #include "GerberCommandLoadPolarity.h"
+#include "GerberCommandPlotMode.h"
 
 
 class CGerberCommands
@@ -18,10 +19,11 @@ public:
 	void							Kill(void);
 
 	CGerberCommandComment*			AddComment(size uiCommentLength);
-	CGerberCommandModeSet*			AddModeSet(EGerberMode eMode);
+	CGerberCommandMeasurementMode*	AddModeSet(EGerberMeasurementMode eMode);
 	CGerberCommandFileAttribute*	AddFileAttribute(size iNameLength);
 	CGerberCommandFormatSpecifier*  AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
 	CGerberCommandLoadPolarity*		AddLoadPolarity(EGerberPolarity ePolarity);
+	CGerberCommandPlotMode*			AddPlotMode(EGerberPlotMode eMode);
 };
 
 

@@ -4,7 +4,7 @@
 #include "GerberCommand.h"
 
 
-enum EGerberMode
+enum EGerberMeasurementMode
 {
 	GM_Unknown,
 	GM_Millimeters,
@@ -12,13 +12,13 @@ enum EGerberMode
 };
 
 
-class CGerberCommandModeSet : public CGerberCommand
+class CGerberCommandMeasurementMode : public CGerberCommand
 {
 protected:
-	EGerberMode meMode;
+	EGerberMeasurementMode meMode;
 
 public:
-	void Init(EGerberMode eMode);
+	void Init(EGerberMeasurementMode eMode);
 	void Kill(void);
 };
 

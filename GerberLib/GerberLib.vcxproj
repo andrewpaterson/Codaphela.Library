@@ -24,6 +24,7 @@
     <ClCompile Include="GerberCommandFormatSpecifier.cpp" />
     <ClCompile Include="GerberCommandLoadPolarity.cpp" />
     <ClCompile Include="GerberCommandModeSet.cpp" />
+    <ClCompile Include="GerberCommandPlotMode.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
     <ClCompile Include="GerberIdentifier.cpp" />
@@ -40,6 +41,7 @@
     <ClInclude Include="GerberCommandFormatSpecifier.h" />
     <ClInclude Include="GerberCommandLoadPolarity.h" />
     <ClInclude Include="GerberCommandModeSet.h" />
+    <ClInclude Include="GerberCommandPlotMode.h" />
     <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberCommandFileAttribute.h" />
     <ClInclude Include="GerberIdentifier.h" />

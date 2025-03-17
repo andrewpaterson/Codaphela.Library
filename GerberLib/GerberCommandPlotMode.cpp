@@ -1,13 +1,13 @@
-#include "GerberCommandModeSet.h"
+#include "GerberCommandPlotMode.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandMeasurementMode::Init(EGerberMeasurementMode eMode)
+void CGerberCommandPlotMode::Init(EGerberCommandEnum eType, EGerberPlotMode eMode)
 {
-	CGerberCommand::Init(GC_MO);
+	CGerberCommand::Init(eType);
 	meMode = eMode;
 }
 
@@ -16,7 +16,7 @@ void CGerberCommandMeasurementMode::Init(EGerberMeasurementMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandMeasurementMode::Kill(void)
+void CGerberCommandPlotMode::Kill(void)
 {
 }
 
