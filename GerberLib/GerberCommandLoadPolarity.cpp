@@ -1,14 +1,14 @@
-#include "GerberCommandModeSet.h"
+#include "GerberCommandLoadPolarity.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandModeSet::Init(EGerberMode eMode)
+void CGerberCommandLoadPolarity::Init(EGerberPolarity ePolarity)
 {
-	CGerberCommand::Init(GC_MO);
-	meMode = eMode;
+	CGerberCommand::Init(GC_LP);
+	mePolarity = ePolarity;
 }
 
 
@@ -16,7 +16,7 @@ void CGerberCommandModeSet::Init(EGerberMode eMode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandModeSet::Kill(void)
+void CGerberCommandLoadPolarity::Kill(void)
 {
 }
 

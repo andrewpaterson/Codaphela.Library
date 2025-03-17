@@ -7,6 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberCommandFormatSpecifier::Init(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals)
 {
+	CGerberCommand::Init(GC_FS);
 	muiXWholes = muiXWholes;
 	muiXDecimals = uiXDecimals;
 	muiYWholes = muiYWholes;

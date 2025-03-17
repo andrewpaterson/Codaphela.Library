@@ -42,6 +42,12 @@
     <ClCompile Include="GerberCommandFormatSpecifier.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberCommandLoadPolarity.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommand.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -81,6 +87,9 @@
       <Filter>Source\Parser</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommandFormatSpecifier.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandLoadPolarity.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>
