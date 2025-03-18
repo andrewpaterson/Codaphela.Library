@@ -5,7 +5,10 @@
 
 
 TRISTATE ParseGerberExactIdentifier(CTextParser* pcTextParser, char* szIdentifier);
+TRISTATE ParseGerberExactIdentifierUnset(CTextParser* pcTextParser, char* szIdentifier);
+
 TRISTATE ParseGerberIdentifier(CTextParser* pcTextParser, char* szIdentifier, size* piLength);
+TRISTATE ParseGerberdentifierUnset(CTextParser* pcTextParser, char* szIdentifier, size* piLength);
 
 
 #endif // __GERBER_IDENTIFIER_H__

@@ -126,3 +126,16 @@ CGerberCommandPlotMode* CGerberCommands::AddPlotMode(EGerberPlotMode eMode)
 		return NULL;
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandApertureMacro* CGerberCommands::AddApertureMacro(size iNameLength)
+{
+	ADD_COMMAND(CGerberCommandApertureMacro);
+	pcCommand->Init(iNameLength);
+	return pcCommand;
+}
+

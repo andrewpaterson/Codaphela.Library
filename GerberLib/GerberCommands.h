@@ -7,6 +7,7 @@
 #include "GerberCommandFormatSpecifier.h"
 #include "GerberCommandLoadPolarity.h"
 #include "GerberCommandPlotMode.h"
+#include "GerberCommandApertureMacro.h"
 
 
 class CGerberCommands
@@ -24,6 +25,7 @@ public:
 	CGerberCommandFormatSpecifier*  AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
 	CGerberCommandLoadPolarity*		AddLoadPolarity(EGerberPolarity ePolarity);
 	CGerberCommandPlotMode*			AddPlotMode(EGerberPlotMode eMode);
+	CGerberCommandApertureMacro*	AddApertureMacro(size iNameLength);
 };
 
 

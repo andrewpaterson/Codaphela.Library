@@ -1,5 +1,6 @@
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/TextParser.h"
+#include "BaseLib/Logger.h"
 #include "GerberIdentifier.h"
 
 
@@ -157,6 +158,28 @@ TRISTATE ParseGerberIdentifier(CTextParser* pcTextParser, char* szIdentifier, si
 		bFirst = false;
 		iPos++;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE ParseGerberExactIdentifierUnset(CTextParser* pcTextParser, char* szIdentifier)
+{
+	gcLogger.Error2(__METHOD__, " Gerber Identifier Parser not set.", NULL);
+	return TRIERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE ParseGerberdentifierUnset(CTextParser* pcTextParser, char* szIdentifier, size* piLength)
+{
+	gcLogger.Error2(__METHOD__, " Gerber Identifier Parser not set.", NULL);
+	return TRIERROR;
 }
 
 

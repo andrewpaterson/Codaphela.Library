@@ -33,7 +33,7 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 {
 	STextParserConfig	sConfig;
 
-	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset, ParseGerberExactIdentifier, ParseGerberIdentifier);
+	sConfig.Init(SkipGerberWhitespace, ParseGerberStringUnset, ParseGerberExactIdentifierUnset, ParseGerberIdentifier);
 
 	mcParser.Init(szText, iTextLen, &sConfig);
 	mszFilename.Init(szFileName);
@@ -117,6 +117,51 @@ TRISTATE CGerberParser::GetFieldString(char* szString, size* piLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::GetNameString(char* szString, size* piLength)
+{
+	TRISTATE	tResult;
+
+	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	tResult = mcParser.GetIdentifier(szString, piLength, false);
+	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::GetStandardNameString(char* szString, size* piLength)
+{
+	TRISTATE	tResult;
+
+	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	tResult = mcParser.GetIdentifier(szString, piLength, false);
+	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::GetUserNameString(char* szString, size* piLength)
+{
+	TRISTATE	tResult;
+
+	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	tResult = mcParser.GetIdentifier(szString, piLength, false);
+	mcParser.SetIdentifierParser(ParseGerberIdentifier);
+	return tResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG04()
 {
 	TRISTATE				tResult;
@@ -144,8 +189,8 @@ TRISTATE CGerberParser::ParseCommandG04()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandMO()
 {
-	TRISTATE		tResult;
-	EGerberMeasurementMode		eMode;
+	TRISTATE				tResult;
+	EGerberMeasurementMode	eMode;
 
 	tResult = mcParser.GetExactCharacterSequence("%MO", false);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
@@ -258,6 +303,138 @@ TRISTATE CGerberParser::ParseCommandAD()
 //
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandAM()
+{
+	CGerberCommandApertureMacro*	pcApertureMacro;
+	TRISTATE						tResult;
+	size							uiLength;
+
+	tResult = mcParser.GetExactCharacterSequence("%AM", false);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &uiLength);
+	mcParser.PopPosition();
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	pcApertureMacro = mpcCommands->AddApertureMacro(uiLength);
+	GetNameString(pcApertureMacro->NameText(), &uiLength);
+
+	tResult = mcParser.GetExactCharacter('*');
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	for (;;)
+	{
+		tResult = ParseApertureMacroPrimitive(pcApertureMacro);
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = ParseApertureMacroVariableDefinition(pcApertureMacro);
+		ContinueOnTrueReturnOnError(tResult);
+
+		tResult = mcParser.GetExactCharacter('%');
+		ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+		return TRITRUE;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroPrimitive(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	uint64		ulli;
+	TRISTATE	tResult;
+	uint16		uiPrimitiveType;
+
+	tResult = mcParser.GetDigits(&ulli, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	uiPrimitiveType = (uint16)ulli;
+	if (uiPrimitiveType == GAMP_Comment)
+	{
+		tResult = ParseApertureMacroComment(pcApertureMacro);
+	}
+	else if (uiPrimitiveType == GAMP_Circle_Exposure)
+	{
+		tResult = ParseApertureMacroCircle(pcApertureMacro);
+	}
+	else if (uiPrimitiveType == GAMP_Vector_Line_Exposure)
+	{
+		tResult = ParseApertureMacroVectorLine(pcApertureMacro);
+	}
+	else if (uiPrimitiveType == GAMP_Center_Line_Exposure)
+	{
+		tResult = ParseApertureMacroCenterLine(pcApertureMacro);
+	}
+	else if (uiPrimitiveType == GAMP_Outline_Exposure)
+	{
+		tResult = ParseApertureMacroOutline(pcApertureMacro);
+	}
+	else if (uiPrimitiveType == GAMP_Polygon_Exposure)
+	{
+		tResult = ParseApertureMacroPolygon(pcApertureMacro);
+	}
+	else if (uiPrimitiveType == GAMP_Thermal_Center)
+	{
+		tResult = ParseApertureMacroThermalCenter(pcApertureMacro);
+	}
+	else
+	{
+		tResult = TRIERROR;
+	}
+
+	if ((tResult == TRIERROR) || (tResult == TRIFALSE))
+	{
+		return TRIERROR;
+	}
+	
+	return TRIFALSE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroComment(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	TRISTATE						tResult;
+	size							uiLength;
+	CGerberApertureMacroComment* pcComment;
+
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &uiLength);
+	mcParser.PopPosition();
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	pcComment = pcApertureMacro->AddComment(uiLength);
+	GetNameString(pcComment->Text(), &uiLength);
+
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroCircle(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	TRISTATE						tResult;
+	CGerberApertureMacroCircle*		pcCircle;
+
+
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroVariableDefinition(CGerberCommandApertureMacro* pcApertureMacro)
 {
 	return TRIFALSE;
 }
@@ -499,12 +676,12 @@ TRISTATE CGerberParser::ParseCommandTF()
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
-	tResult = mcParser.GetIdentifier(NULL, &iLength, false);
+	tResult = GetNameString(NULL, &iLength);
 	mcParser.PopPosition();
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	pcFileAttribute = mpcCommands->AddFileAttribute(iLength);
-	mcParser.GetIdentifier(pcFileAttribute->NameText(), &iLength, false);
+	GetNameString(pcFileAttribute->NameText(), &iLength);
 
 	for (;;)
 	{
