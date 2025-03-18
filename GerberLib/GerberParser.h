@@ -64,10 +64,24 @@ protected:
 	TRISTATE	ParseCommandTO(void);
 	TRISTATE	ParseCommandTD(void);
 
+	TRISTATE	ParseApertureMacroPrimitive(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroVariableDefinition(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroComment(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroCircle(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroVectorLine(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroCenterLine(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroOutline(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroPolygon(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroThermalCenter(CGerberCommandApertureMacro* pcApertureMacro);
+
 	TRISTATE	Error(char* szError);
 
 	TRISTATE	GetCommentString(char* szString, size* piLength);
 	TRISTATE	GetFieldString(char* szString, size* piLength);
+
+	TRISTATE	GetNameString(char* szString, size* piLength);
+	TRISTATE	GetStandardNameString(char* szString, size* piLength);
+	TRISTATE	GetUserNameString(char* szString, size* piLength);
 };
 
 

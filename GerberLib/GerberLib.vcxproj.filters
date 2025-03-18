@@ -13,6 +13,9 @@
     <Filter Include="Source\Common\Command">
       <UniqueIdentifier>{0c8491df-5781-4193-8d18-eb16e5fa6ef5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Common\ApertureMacro">
+      <UniqueIdentifier>{0df4262f-1ce1-4479-b01f-bc4fb016209c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GerberParser.cpp">
@@ -50,6 +53,30 @@
     </ClCompile>
     <ClCompile Include="GerberCommandPlotMode.cpp">
       <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandApertureMacro.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroComment.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroCircle.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacro.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroVectorLine.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroCenterLine.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroOutline.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroPolygon.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +124,30 @@
     </ClInclude>
     <ClInclude Include="GerberCommandPlotMode.h">
       <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandApertureMacro.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroComment.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacro.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroCircle.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroVectorLine.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroCenterLine.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroOutline.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroPolygon.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

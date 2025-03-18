@@ -19,7 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="GerberApertureMacro.cpp" />
+    <ClCompile Include="GerberApertureMacroCenterLine.cpp" />
+    <ClCompile Include="GerberApertureMacroCircle.cpp" />
+    <ClCompile Include="GerberApertureMacroComment.cpp" />
+    <ClCompile Include="GerberApertureMacroOutline.cpp" />
+    <ClCompile Include="GerberApertureMacroPolygon.cpp" />
+    <ClCompile Include="GerberApertureMacroVectorLine.cpp" />
     <ClCompile Include="GerberCommand.cpp" />
+    <ClCompile Include="GerberCommandApertureMacro.cpp" />
     <ClCompile Include="GerberCommandComment.cpp" />
     <ClCompile Include="GerberCommandFormatSpecifier.cpp" />
     <ClCompile Include="GerberCommandLoadPolarity.cpp" />
@@ -33,9 +41,17 @@
     <ClCompile Include="GerberWhitespace.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GerberApertureMacroCenterLine.h" />
+    <ClInclude Include="GerberApertureMacroCircle.h" />
+    <ClInclude Include="GerberApertureMacroComment.h" />
+    <ClInclude Include="GerberApertureMacro.h" />
+    <ClInclude Include="GerberApertureMacroOutline.h" />
+    <ClInclude Include="GerberApertureMacroPolygon.h" />
+    <ClInclude Include="GerberApertureMacroVectorLine.h" />
     <ClInclude Include="GerberBoardLayer.h" />
     <ClInclude Include="GerberBoardSide.h" />
     <ClInclude Include="GerberCommand.h" />
+    <ClInclude Include="GerberCommandApertureMacro.h" />
     <ClInclude Include="GerberCommandComment.h" />
     <ClInclude Include="GerberCommandEnum.h" />
     <ClInclude Include="GerberCommandFormatSpecifier.h" />

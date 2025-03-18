@@ -56,6 +56,8 @@ public:
 	bool			IsEmpty(void);
 
 	void			SetStringParser(TextParserParseString fParseString);
+	void			SetIdentifierParser(TextParserParseIdentifier fParseIdentifier);
+	void			SetExactIdentifierParser(TextParserParseExactIdentifier fParseExactIdentifier);
 
 	//These functions do not set errors...
 	void 			StepRight(void);
