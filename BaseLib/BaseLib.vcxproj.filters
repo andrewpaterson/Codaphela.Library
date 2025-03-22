@@ -358,9 +358,6 @@
     <Filter Include="Source\Text\Calculator">
       <UniqueIdentifier>{918f3281-3f0c-4cf8-9bad-3123ee4e9779}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Text\Calculator\Abstract">
-      <UniqueIdentifier>{0875a27d-c1f2-4400-a4e7-37a5b508aed4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Text\XML">
       <UniqueIdentifier>{f8bd701d-f38a-495b-b113-88d2d33beddf}</UniqueIdentifier>
     </Filter>
@@ -465,6 +462,12 @@
     </Filter>
     <Filter Include="Source\Text\Parser\CPP">
       <UniqueIdentifier>{bdd91a61-0cd6-45ff-9e70-0fe32dd5442e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Calculator\Expression">
+      <UniqueIdentifier>{0875a27d-c1f2-4400-a4e7-37a5b508aed4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Text\Calculator\Parser">
+      <UniqueIdentifier>{c0389c4d-6f6f-405c-b014-feeb1af3fe74}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -1264,25 +1267,25 @@
       <Filter>Source\Text\Calculator</Filter>
     </ClInclude>
     <ClInclude Include="CalcBinaryExpression.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="CalcConstExpression.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="CalcExpression.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="CalcObject.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="CalcOperator.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="CalcParentheses.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="CalcUnaryExpression.h">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClInclude>
     <ClInclude Include="XMLEntity.h">
       <Filter>Source\Text\XML</Filter>
@@ -1655,6 +1658,9 @@
     </ClInclude>
     <ClInclude Include="XMLIdentifier.h">
       <Filter>Source\Text\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="CalculatorParser.h">
+      <Filter>Source\Text\Calculator\Parser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2274,22 +2280,22 @@
       <Filter>Source\Text\Calculator</Filter>
     </ClCompile>
     <ClCompile Include="CalcBinaryExpression.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="CalcConstExpression.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="CalcExpression.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="CalcOperator.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="CalcParentheses.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="CalcUnaryExpression.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="XMLEntity.cpp">
       <Filter>Source\Text\XML</Filter>
@@ -2547,7 +2553,7 @@
       <Filter>Source\Sequence</Filter>
     </ClCompile>
     <ClCompile Include="CalcObject.cpp">
-      <Filter>Source\Text\Calculator\Abstract</Filter>
+      <Filter>Source\Text\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="XMLProlog.cpp">
       <Filter>Source\Text\XML</Filter>
@@ -2635,6 +2641,9 @@
     </ClCompile>
     <ClCompile Include="XMLIdentifier.cpp">
       <Filter>Source\Text\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="CalculatorParser.cpp">
+      <Filter>Source\Text\Calculator\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
