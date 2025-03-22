@@ -78,4 +78,3 @@ public:
 
 #endif // __CALC_ROOT_H__
 
-

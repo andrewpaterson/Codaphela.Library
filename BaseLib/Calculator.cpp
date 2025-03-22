@@ -110,35 +110,17 @@ void CCalculator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber CCalculator::Eval(char* szText)
+CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 {
-	CCalcExpression*	pcExpression;
 	CNumber				cAnswer;
-	bool				bResult;
-	CChars				sz;
 
-	mszError.ReInit();
-
-	mcParser.Init(szText);
-	bResult = Expression(&pcExpression);
-	mcParser.Kill();
-
-	if (bResult)
+	if (!HasError())
 	{
 		cAnswer = pcExpression->Evaluate();
 		cAnswer.Clean();
-		SafeKill(pcExpression);
 	}
 	else
 	{
-		if (!HasError())
-		{
-			sz.Init("Cannot evaluate expression [");
-			sz.Append(szText);
-			sz.Append("]\n");
-			SetError(sz.Text());
-			sz.Kill();
-		}
 		cAnswer.NotANumber();
 	}
 
@@ -150,261 +132,7 @@ CNumber CCalculator::Eval(char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::Expression(CCalcExpression** ppcExpression)
-{
-	bool					bOperator;
-	bool					bOperand;
-	bool					bFirst;
-	CArrayIntAndPointer		cArray;
-	CCalcOperator*			pcOperator;
-	CCalcExpression*		pcOperand;
-
-	cArray.Init();
-	bFirst = true;
-	for (;;)
-	{
-		for (;;)
-		{
-			bOperator = Operator(&pcOperator);
-			if (!bOperator)
-			{
-				break;
-			}
-			cArray.Add(pcOperator, 0);
-		}
-
-		bOperand = Operand(&pcOperand);
-		if (HasError())
-		{
-			cArray.Kill();
-			return false;
-		}
-
-		if (!bOperand && !bOperator)
-		{
-			if (bFirst)
-			{
-				cArray.Kill();
-				return false;
-			}
-			else
-			{
-				BuildExpression(ppcExpression, &cArray);
-
-				cArray.Kill();
-
-				if (*ppcExpression == NULL)
-				{
-					return false;
-				}
-				else
-				{
-					return true;
-				}
-			}
-		}
-		cArray.Add(pcOperand, 0);
-		bFirst = false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculator::Operand(CCalcExpression** ppcExpression)
-{
-	bool					bReturn;
-	CCalcParentheses*		pcParentheses;
-	CCalcConstExpression*	pcConst;
-
-	bReturn = Parentheses(&pcParentheses);
-	if (bReturn)
-	{
-		*ppcExpression = pcParentheses;
-		return true;
-	}
-
-	bReturn = Value(&pcConst);
-	if (bReturn)
-	{
-		*ppcExpression = pcConst;
-		return true;
-	}
-
-	bReturn = Identifier(&pcConst);
-	if (bReturn)
-	{
-		*ppcExpression = pcConst;
-		return true;
-	}
-
-	*ppcExpression = NULL;
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculator::Identifier(CCalcConstExpression** ppcConst)
-{
-	TRISTATE				tResult;
-	CNumber					cNumber;
-	size					iLength;
-	char*					sz;
-
-	tResult = mcParser.GetIdentifier(NULL, &iLength);
-	if (tResult == TRITRUE)
-	{
-		sz = (char*)malloc(iLength+1);
-		mcParser.GetIdentifier(sz);
-		SafeFree(sz);
-		*ppcConst = NewMalloc<CCalcConstExpression>();
-		(*ppcConst)->SetValue(cNumber.Zero());
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculator::Value(CCalcConstExpression** ppcConst)
-{
-	TRISTATE	tResult;
-	CNumber		cNumber;
-	uint64		ulli;
-
-	tResult = mcParser.GetHexadecimal(&ulli);
-	if (tResult == TRITRUE)
-	{
-		*ppcConst = NewMalloc<CCalcConstExpression>();
-		(*ppcConst)->SetValue(cNumber.Init((int32)ulli));  //This needs to properly take an int64.
-		return true;
-	}
-
-	tResult = mcParser.GetNumber(&cNumber);
-	if (tResult == TRITRUE)
-	{
-		tResult = mcParser.GetExactCharacter('L', false);
-		if (tResult == false)
-		{
-			tResult = mcParser.GetExactCharacter('l', false);
-		}
-		*ppcConst = NewMalloc<CCalcConstExpression>();
-		(*ppcConst)->SetValue(&cNumber);
-		return true;
-	}
-
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculator::Operator(CCalcOperator** pcOperator)
-{
-	TRISTATE		tResult;
-	size			i;
-	char*			szSimpleOp;
-	ECalcOperator	eOp;
-
-	mcParser.PushPosition();
-
-	for (i = 0; i < mszOperators.NumElements(); i++)
-	{
-		szSimpleOp = mszOperators.Get(i)->Text();
-		tResult = mcParser.GetExactCharacterSequence(szSimpleOp);
-		if (tResult == TRITRUE)
-		{
-			eOp = (ECalcOperator)i;
-			mcParser.PassPosition();
-			*pcOperator = NewMalloc<CCalcOperator>();
-			(*pcOperator)->Set(eOp);
-			return true;
-		}
-		else if (tResult == TRIERROR)
-		{
-			eOp = CO_invalid;
-			mcParser.PopPosition();
-			*pcOperator = NULL;
-			return false;
-		}
-	}
-
-	eOp = CO_invalid;
-	mcParser.PopPosition();
-	*pcOperator = NULL;
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculator::Parentheses(CCalcParentheses** ppcParentheses)
-{
-	TRISTATE			tResult;
-	bool				bReturn;
-	CCalcExpression*	pcExpression;
-
-	mcParser.PushPosition();
-	tResult = mcParser.GetExactCharacter('(');
-	if (tResult == TRITRUE)
-	{
-		tResult = mcParser.GetExactCharacter(')');
-		if (tResult == TRITRUE)
-		{
-			mcParser.PassPosition();
-			*ppcParentheses = NewMalloc<CCalcParentheses>();
-			(*ppcParentheses)->SetExpression(NULL);
-			return true;
-		}
-		else
-		{
-			bReturn = Expression(&pcExpression);
-			if (bReturn)
-			{
-				tResult = mcParser.GetExactCharacter(')');
-				if (tResult == TRITRUE)
-				{
-					mcParser.PassPosition();
-					*ppcParentheses = NewMalloc<CCalcParentheses>();
-					(*ppcParentheses)->SetExpression(pcExpression);
-					return true;
-				}
-			}
-			SafeKill(pcExpression);
-			mcParser.PopPosition();
-			*ppcParentheses = NULL;
-			return false;
-		}
-	}
-	else
-	{
-		mcParser.PopPosition();
-		*ppcParentheses = NULL;
-		return false;
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray)
+CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressions)
 {
 	size					iIndex;
 	CCalcOperator*			pcOperator;
@@ -421,27 +149,28 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 	bool					bUnary;
 
 	szStart.Init();
-	Print(&szStart, pcArray);
 
-	iOldUsedElements = pcArray->NumElements();
-	while (pcArray->NumElements() > 1)
+	iOldUsedElements = papcExpressions->NumElements();
+	while (papcExpressions->NumElements() > 1)
 	{
-		if (pcArray->NumElements() > iOldUsedElements)
+		if (papcExpressions->NumElements() > iOldUsedElements)
 		{
-			return SetError(&szStart, pcArray, ppcExpression, "Number of elements in expression INCREASED from [", "] to [", "] which should not be possible.");
+			SetError(&szStart, papcExpressions, "Number of elements in expression INCREASED from [", "] to [", "] which should not be possible.");
+			return NULL;
 		}
-		iOldUsedElements = pcArray->NumElements();
+		iOldUsedElements = papcExpressions->NumElements();
 
-		iIndex = GetMinPrecedence(pcArray);
+		iIndex = GetMinPrecedence(papcExpressions);
 		if (iIndex == -1)
 		{
-			return SetError(&szStart, pcArray, ppcExpression, "Confused trying to find order of precedence for inital [", "] with current [", "].");
+			SetError(&szStart, papcExpressions, "Confused trying to find order of precedence for inital [", "] with current [", "].");
+			return NULL;
 		}
-		pcOperator = (CCalcOperator*)pcArray->GetPtr(iIndex);
+		pcOperator = (CCalcOperator*)papcExpressions->GetPtr(iIndex);
 
 		if (pcOperator->IsAmbiguous())
 		{
-			pcObject = (CCalcObject*)pcArray->SafeGetPtr(iIndex - 1);
+			pcObject = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex - 1);
 			bUnary = false;
 			if (pcObject == NULL)
 			{
@@ -454,13 +183,13 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 					bUnary = true;
 				}
 			}
-			ResolveAmbiguity(pcOperator, bUnary);
+			pcOperator->meOp = ResolveAmbiguity(pcOperator->meOp, bUnary);
 		}
 
 		if (pcOperator->IsUnary())
 		{
 			//For the time being always assume Right-to-Left associativity.
-			pcObject = (CCalcObject*)pcArray->SafeGetPtr(iIndex+1);
+			pcObject = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex+1);
 			if (pcObject)
 			{
 				if (pcObject->IsExpression())
@@ -468,25 +197,27 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 					pcOperand = (CCalcExpression*)pcObject;
 					pcUnary = NewMalloc<CCalcUnaryExpression>();
 					pcUnary->Set(pcOperand, pcOperator);
-					pcArray->RemoveAt(iIndex+1);
-					pcArray->Set(iIndex, pcUnary, 0);
+					papcExpressions->RemoveAt(iIndex + 1);
+					papcExpressions->Set(iIndex, pcUnary, 0);
 				}
 				else
 				{
-					return SetError(&szStart, pcArray, ppcExpression, "Unary operator only works on expressions given inital [", "] and current [", "].");
+					SetError(&szStart, papcExpressions, "Unary operator only works on expressions given inital [", "] and current [", "].");
+					return NULL;
 				}
 			}
 			else
 			{
-				return SetError(&szStart, pcArray, ppcExpression, "Unary operator needs right hand operand for inital [", "] with current [", "].");
+				SetError(&szStart, papcExpressions, "Unary operator needs right hand operand for inital [", "] with current [", "].");
+				return NULL;
 			}
 		}
 		else if (pcOperator->IsBinary())
 		{
-			pcObjectLeft = (CCalcObject*)pcArray->SafeGetPtr(iIndex-1);
+			pcObjectLeft = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex-1);
 			if (pcObjectLeft)
 			{
-				pcObjectRight = (CCalcObject*)pcArray->SafeGetPtr(iIndex+1);
+				pcObjectRight = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex+1);
 				if (pcObjectRight)
 				{
 					if (pcObjectLeft->IsExpression() && pcObjectRight->IsExpression())
@@ -495,34 +226,52 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 						pcOperandRight = (CCalcExpression*)pcObjectRight;
 						pcBinary = NewMalloc<CCalcBinaryExpression>();
 						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight);
-						pcArray->RemoveAt(iIndex+1);
-						pcArray->Set(iIndex, pcBinary, 0);
-						pcArray->RemoveAt(iIndex-1);
+						papcExpressions->RemoveAt(iIndex + 1);
+						papcExpressions->Set(iIndex, pcBinary, 0);
+						papcExpressions->RemoveAt(iIndex - 1);
 					}
 					else
 					{
-						return SetError(&szStart, pcArray, ppcExpression, "Binary operator only works on expressions given inital [", "] and current [", "].");
+						SetError(&szStart, papcExpressions, "Binary operator only works on expressions given inital [", "] and current [", "].");
+						return NULL;
 					}
 
 				}
 				else
 				{
-					return SetError(&szStart, pcArray, ppcExpression, "Binary operator needs right hand operand for inital [", "] with current [", "].");
+					SetError(&szStart, papcExpressions, "Binary operator needs right hand operand for inital [", "] with current [", "].");
+					return NULL;
 				}
 			}
 			else
 			{
-				return SetError(&szStart, pcArray, ppcExpression, "Binary operator needs left hand operand for inital [", "] with current [", "].");
+				SetError(&szStart, papcExpressions, "Binary operator needs left hand operand for inital [", "] with current [", "].");
+				return NULL;
 			}
 		}
 		else
 		{
-			return SetError(&szStart, pcArray, ppcExpression, "Don't know what style of operator this is [", "] with current [", "].");
+			SetError(&szStart, papcExpressions, "Don't know what style of operator this is [", "] with current [", "].");
+			return NULL;
 		}
 	}
-	*ppcExpression = (CCalcExpression*)pcArray->GetPtr(0);
+	
 	szStart.Kill();
-	return true;
+	if (papcExpressions->NumElements() == 1)
+	{
+		return (CCalcExpression*)papcExpressions->GetPtr(0);
+	}
+	else if (papcExpressions->NumElements() == 0)
+	{
+		SetError(&szStart, papcExpressions, "No elements remain in expression [", "] with current [", "].");
+		return NULL;
+	}
+	else
+	{
+		SetError(&szStart, papcExpressions, "Too many elements remain in expression [", "] with current [", "].");
+		return NULL;
+	}
+	return NULL;
 }
 
 
@@ -530,20 +279,22 @@ bool CCalculator::BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndP
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* pcArray)
+uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
 {
-	size				i;
-	CCalcObject*		pcObject;
-	CCalcOperator*		pcOperator;
-	uint				iMinPrecedence;
-	size				iMinIndex;
-	uint				iPrecedence;
+	size					i;
+	CCalcObject*			pcObject;
+	CCalcOperator*			pcOperator;
+	uint					iMinPrecedence;
+	size					iMinIndex;
+	uint					iPrecedence;
+	size					uiNumElements;
 
 	iMinPrecedence = 12;
 	iMinIndex = ARRAY_ELEMENT_NOT_FOUND;
-	for (i = 0; i < pcArray->NumElements(); i++)
+	uiNumElements = papcExpressions->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pcObject = (CCalcObject*)pcArray->GetPtr(i);
+		pcObject = (CCalcObject*)papcExpressions->GetPtr(i);
 		if (pcObject->IsOperator())
 		{
 			pcOperator = (CCalcOperator*)pcObject;
@@ -563,28 +314,36 @@ uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, bool bIsUnary)
+ECalcOperator CCalculator::ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary)
 {
 	if (bIsUnary)
 	{
-		if (pcOperator->meOp == CO_Add)
+		if (eOperator == CO_Add)
 		{
-			pcOperator->meOp = CO_UnaryAdd;
+			return CO_UnaryAdd;
 		}
-		else if (pcOperator->meOp == CO_Subtract)
+		else if (eOperator == CO_Subtract)
 		{
-			pcOperator->meOp = CO_UnarySubtract;
+			return CO_UnarySubtract;
+		}
+		else
+		{
+			return eOperator;
 		}
 	}
 	else
 	{
-		if (pcOperator->meOp == CO_UnaryAdd)
+		if (eOperator == CO_UnaryAdd)
 		{
-			pcOperator->meOp = CO_Add;
+			return CO_Add;
 		}
-		else if (pcOperator->meOp == CO_UnarySubtract)
+		else if (eOperator == CO_UnarySubtract)
 		{
-			pcOperator->meOp = CO_Subtract;
+			return CO_Subtract;
+		}
+		else
+		{
+			return eOperator;
 		}
 	}
 }
@@ -594,19 +353,18 @@ void CCalculator::ResolveAmbiguity(CCalcOperator* pcOperator, bool bIsUnary)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight)
+bool CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
 {
 	CChars	szCurrent;
 	CChars	sz;
 
 	szCurrent.Init();
-	Print(&szCurrent, pcArray);
+	Print(&szCurrent, papcExpressions);
 	sz.InitList(szLeft, pszStart->Text(), szMiddle, szCurrent.Text(), szRight, NULL);
 	SetError(sz.Text());
 	sz.Kill();
 	szCurrent.Kill();
 	pszStart->Kill();
-	*ppcExpression = NULL;
 	return false;
 }
 
@@ -639,14 +397,16 @@ bool CCalculator::HasError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Print(CChars* psz, CArrayIntAndPointer* pcArray)
+void CCalculator::Print(CChars* psz, CArrayIntAndPointer* papcExpressions)
 {
 	size			i;
 	CCalcObject*	pcObject;
+	size			uiNumElements;
 
-	for (i = 0; i < pcArray->NumElements(); i++)
+	uiNumElements = papcExpressions->NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
-		pcObject = (CCalcObject*)pcArray->GetPtr(i);
+		pcObject = (CCalcObject*)papcExpressions->GetPtr(i);
 		pcObject->Print(psz);
 	}
 }
@@ -656,13 +416,9 @@ void CCalculator::Print(CChars* psz, CArrayIntAndPointer* pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Dump(CArrayIntAndPointer* pcArray)
+void CCalculator::Print(CChars* psz, CCalcObject* pcExpression)
 {
-	CChars sz;
-
-	sz.Init();
-	Print(&sz, pcArray);
-	sz.DumpKill();
+	pcExpression->Print(psz);
 }
 
 
@@ -673,5 +429,25 @@ void CCalculator::Dump(CArrayIntAndPointer* pcArray)
 char* CCalculator::GetError(void)
 {
 	return mszError.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayChars* CCalculator::GetOperators(void)
+{
+	return &mszOperators;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayInt* CCalculator::GetPrecedence(void)
+{
+	return &maiPrecedence;
 }
 

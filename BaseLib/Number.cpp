@@ -307,8 +307,7 @@ CNumber* CNumber::Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxD
 
 	if (!bAnyDigits)
 	{
-		SetFlag(NUMBER_FLAGS_NAN);
-		return this;
+		return NotANumber();
 	}
 
 	if (iNonZero == -1)

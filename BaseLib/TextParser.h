@@ -108,6 +108,7 @@ public:
 	TRISTATE		GetFloat(float* pf, bool bSkipWhitespace = true);
 	TRISTATE		GetFloat(double* pf, bool bSkipWhitespace = true);
 	TRISTATE		GetNumber(CNumber* pcNumber, bool bSkipWhitespace = true);
+	TRISTATE		GetNumber(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bSkipWhitespace = true);
 	TRISTATE		GetIntegerLiteral(uint64* pulli, uint16 iAllowedPrefix, uint16* piBase, uint16 iAllowedSuffix, uint16* piSuffix, uint16 uiAllowedSeparator, uint16* puiNumDigits, bool bSkipWhitespace);
 	TRISTATE		GetCharacterLiteral(uint16* pc, bool bAllowUTF16, uint16* piCharacterWidth, bool bSkipWhitespace);
 	TRISTATE		GetStringLiteral(void* szDest, size uiDestByteLength, bool bAllowUTF16, size* piCharacterCount, uint16* piCharacterWidth, bool bSkipWhitespace);

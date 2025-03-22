@@ -38,31 +38,29 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalculator
 {
 public:
-	CArrayChars		mszOperators;
-	CTextParser		mcParser;
-	CArrayInt		maiPrecedence;
-	CChars			mszError;
-	bool			mbUseUserError;
+	CArrayChars				mszOperators;
+	CArrayInt				maiPrecedence;
+	CChars					mszError;
+	bool					mbUseUserError;
 
-	void		Init(void);
-	void		Init(bool bUseUserError);
-	void		Kill(void);
-	CNumber		Eval(char* szText);
-	bool		Expression(CCalcExpression** ppcExpression);
-	bool		Operand(CCalcExpression** ppcExpression);
-	bool		Operator(CCalcOperator** pcOperator);
-	bool		Parentheses(CCalcParentheses** ppcParentheses);
-	bool		Value(CCalcConstExpression** ppcConst);
-	bool		Identifier(CCalcConstExpression** ppcConst);
-	bool		BuildExpression(CCalcExpression** ppcExpression, CArrayIntAndPointer* pcArray);
-	uint		GetMinPrecedence(CArrayIntAndPointer* pcArray);
-	void		ResolveAmbiguity(CCalcOperator* pcOperator, bool bIsUnary);
-	bool		SetError(CChars* pszFirst, CArrayIntAndPointer* pcArray, CCalcExpression** ppcExpression, char* szLeft, char* szMiddle, char* szRight);
-	void		SetError(char* szError);
-	void		Print(CChars* psz, CArrayIntAndPointer* pcArray);
-	void		Dump(CArrayIntAndPointer* pcArray);
-	bool		HasError(void);
-	char*		GetError(void);
+	void				Init(void);
+	void				Init(bool bUseUserError);
+	void				Kill(void);
+
+	CNumber				Eval(CCalcExpression* pcExpression);
+
+	CCalcExpression*	BuildExpression(CArrayIntAndPointer* pcArray);
+	uint				GetMinPrecedence(CArrayIntAndPointer* papcExpressions);
+	ECalcOperator		ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
+	bool				SetError(CChars* pszFirst, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
+	void				SetError(char* szError);
+	void				Print(CChars* psz, CArrayIntAndPointer* papcExpressions);
+	void				Print(CChars* psz, CCalcObject* pcExpression);
+	bool				HasError(void);
+	char*				GetError(void);
+
+	CArrayChars*		GetOperators(void);
+	CArrayInt*			GetPrecedence(void);
 };
 
 

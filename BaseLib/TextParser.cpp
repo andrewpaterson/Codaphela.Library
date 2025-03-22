@@ -2061,25 +2061,44 @@ TRISTATE CTextParser::GetFloat(double* pf, bool bSkipWhitespace)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetNumber(CNumber* pcNumber, bool bSkipWhitespace)
 {
+	return GetNumber(pcNumber, DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS, bSkipWhitespace);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTextParser::GetNumber(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bSkipWhitespace)
+{
 	char*		szStart;
 	double		fIgnored;
 	TRISTATE	tResult;
 	int16		iLength;
+	CNumber*	pcResult;
+
+	PushPosition();
 
 	szStart = mszParserPos;
 	tResult = GetFloat(&fIgnored, bSkipWhitespace);
 	if (tResult == TRITRUE)
 	{
 		iLength = (int16)(mszParserPos - szStart);
-		pcNumber->Init(szStart, iLength);
+		pcResult = pcNumber->Init(szStart, cMaxWholeNumbers, cMaxDecimals, iLength);
+		if (pcResult->IsNAN())
+		{
+			PopPosition();
+			return TRIFALSE;
+		}
+		PassPosition();
 		return TRITRUE;
 	}
 	else
 	{
+		PopPosition();
 		return tResult;
 	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
