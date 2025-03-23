@@ -108,7 +108,7 @@ CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressions)
+CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressions* papcExpressions)
 {
 	size					iIndex;
 	CCalcOperator*			pcOperator;
@@ -174,7 +174,7 @@ CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressio
 					pcUnary = NewMalloc<CCalcUnaryExpression>();
 					pcUnary->Set(pcOperand, pcOperator);
 					papcExpressions->RemoveAt(iIndex + 1);
-					papcExpressions->Set(iIndex, pcUnary, 0);
+					papcExpressions->SetPtr(iIndex, pcUnary);
 				}
 				else
 				{
@@ -203,7 +203,7 @@ CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressio
 						pcBinary = NewMalloc<CCalcBinaryExpression>();
 						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight);
 						papcExpressions->RemoveAt(iIndex + 1);
-						papcExpressions->Set(iIndex, pcBinary, 0);
+						papcExpressions->SetPtr(iIndex, pcBinary);
 						papcExpressions->RemoveAt(iIndex - 1);
 					}
 					else
@@ -255,7 +255,7 @@ CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
+size CCalculator::GetMinPrecedence(CCalculatorExpressions* papcExpressions)
 {
 	size					i;
 	CCalcObject*			pcObject;
@@ -331,7 +331,7 @@ ECalcOperator CCalculator::ResolveAmbiguity(ECalcOperator eOperator, bool bIsUna
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::SetError(CChars* pszStart, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
+bool CCalculator::SetError(CChars* pszStart, CCalculatorExpressions* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
 {
 	CChars	szCurrent;
 	CChars	sz;
@@ -375,7 +375,7 @@ bool CCalculator::HasError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Print(CChars* psz, CArrayIntAndPointer* papcExpressions)
+void CCalculator::Print(CChars* psz, CCalculatorExpressions* papcExpressions)
 {
 	size			i;
 	CCalcObject*	pcObject;

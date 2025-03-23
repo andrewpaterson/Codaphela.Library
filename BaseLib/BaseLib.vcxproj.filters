@@ -1665,6 +1665,9 @@
     <ClInclude Include="CalculatorOperator.h">
       <Filter>Source\Text\Calculator</Filter>
     </ClInclude>
+    <ClInclude Include="CalculatorExpressions.h">
+      <Filter>Source\Text\Calculator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2649,6 +2652,9 @@
       <Filter>Source\Text\Calculator\Parser</Filter>
     </ClCompile>
     <ClCompile Include="CalculatorOperator.cpp">
+      <Filter>Source\Text\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="CalculatorExpressions.cpp">
       <Filter>Source\Text\Calculator</Filter>
     </ClCompile>
   </ItemGroup>

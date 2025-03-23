@@ -10,10 +10,16 @@ class CArrayTemplatePtr : public CArrayTemplate<M*>
 public:
 	void	Init(void);
 	void	Kill(void);
+	
 	void	Add(M* pv);
-	M*		GetPtr(size iIndex);
+	
 	bool	Get(size iIndex, M** pv);
 	M**		Get(size iIndex);
+	M*		GetPtr(size iIndex);
+	M*		SafeGetPtr(size iIndex);
+
+	void	SetPtr(size iIndex, M* pv);
+
 	void	QuickSort(void);
 	int32	Find(M* pv);
 	void 	Push(M* pv);
@@ -98,6 +104,38 @@ template<class M>
 M* CArrayTemplatePtr<M>::GetPtr(size iIndex)
 {
 	return *CArrayTemplate<M*>::Get(iIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CArrayTemplatePtr<M>::SafeGetPtr(size iIndex)
+{
+	M** ppv;
+
+	ppv = CArrayTemplate<M*>::SafeGet(iIndex);
+	if (ppv)
+	{
+		return *ppv;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::SetPtr(size iIndex, M* pv)
+{
+	CArrayTemplate<M*>::Set(iIndex, &pv);
 }
 
 
