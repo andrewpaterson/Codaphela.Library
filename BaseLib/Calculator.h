@@ -49,7 +49,7 @@ public:
 	CNumber						Eval(CCalcExpression* pcExpression);
 
 	CCalcExpression*			BuildExpression(CArrayIntAndPointer* pcArray);
-	uint						GetMinPrecedence(CArrayIntAndPointer* papcExpressions);
+	size						GetMinPrecedence(CArrayIntAndPointer* papcExpressions);
 	ECalcOperator				ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
 	bool						SetError(CChars* pszFirst, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
 	void						SetError(char* szError);
@@ -58,7 +58,7 @@ public:
 	bool						HasError(void);
 	char*						GetError(void);
 
-	CArrayCalculatorOperators* GetOperators(void);
+	CArrayCalculatorOperators*	GetOperators(void);
 };
 
 
