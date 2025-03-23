@@ -255,15 +255,16 @@ CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressio
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
+size CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
 {
 	size					i;
 	CCalcObject*			pcObject;
 	CCalcOperator*			pcOperator;
-	uint					iMinPrecedence;
+	uint16					iMinPrecedence;
 	size					iMinIndex;
 	uint16					iPrecedence;
 	size					uiNumElements;
+	CCalculatorOperator*	pcDefinition;
 
 	iMinPrecedence = 12;
 	iMinIndex = ARRAY_ELEMENT_NOT_FOUND;
@@ -274,7 +275,8 @@ uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
 		if (pcObject->IsOperator())
 		{
 			pcOperator = (CCalcOperator*)pcObject;
-			iPrecedence = macOperators.Get(pcOperator->meOp)->GetPrecedence();
+			pcDefinition = macOperators.Get(pcOperator->meOp);
+			iPrecedence = pcDefinition->GetPrecedence();
 			if (iPrecedence < iMinPrecedence)
 			{
 				iMinPrecedence = iPrecedence;

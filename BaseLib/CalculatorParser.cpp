@@ -231,6 +231,7 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	CArrayCalculatorOperators*	pacOperators;
 	size						uiNumOperators;
 	CCalcOperator*				pcOperator;
+	CCalculatorOperator*		pcDefinition;
 
 	mcParser.PushPosition();
 
@@ -239,11 +240,12 @@ CCalcOperator* CCalculatorParser::Operator(void)
 
 	for (i = 0; i < uiNumOperators; i++)
 	{
-		szSimpleOp = pacOperators->Get(i)->GetSymbol();
+		pcDefinition = pacOperators->Get(i);
+		szSimpleOp = pcDefinition->GetSymbol();
 		tResult = mcParser.GetExactCharacterSequence(szSimpleOp);
 		if (tResult == TRITRUE)
 		{
-			eOp = (ECalcOperator)i;
+			eOp = pcDefinition->GetOperator();
 			mcParser.PassPosition();
 			pcOperator = NewMalloc<CCalcOperator>();
 			pcOperator->Set(eOp);
