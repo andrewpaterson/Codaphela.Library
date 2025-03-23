@@ -25,8 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 #include "Number.h"
 #include "ArrayChars.h"
-#include "ArrayInt.h"
-#include "ArrayIntAndPointer.h"
 #include "TextParser.h"
 #include "CalcOperator.h"
 #include "CalcBinaryExpression.h"
@@ -34,6 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcConstExpression.h"
 #include "CalcParentheses.h"
 #include "CalculatorOperator.h"
+#include "CalculatorExpressions.h"
+
 
 class CCalculator
 {
@@ -48,12 +48,12 @@ public:
 
 	CNumber						Eval(CCalcExpression* pcExpression);
 
-	CCalcExpression*			BuildExpression(CArrayIntAndPointer* pcArray);
-	size						GetMinPrecedence(CArrayIntAndPointer* papcExpressions);
+	CCalcExpression*			BuildExpression(CCalculatorExpressions* pcArray);
+	size						GetMinPrecedence(CCalculatorExpressions* papcExpressions);
 	ECalcOperator				ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
-	bool						SetError(CChars* pszFirst, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
+	bool						SetError(CChars* pszFirst, CCalculatorExpressions* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
 	void						SetError(char* szError);
-	void						Print(CChars* psz, CArrayIntAndPointer* papcExpressions);
+	void						Print(CChars* psz, CCalculatorExpressions* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);
 	bool						HasError(void);
 	char*						GetError(void);

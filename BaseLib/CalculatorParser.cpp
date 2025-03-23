@@ -79,7 +79,7 @@ CCalcExpression* CCalculatorParser::Expression(void)
 	CCalcOperator*			pcOperator;
 	CCalcExpression*		pcOperand;
 	CCalcExpression*		pcExpression;
-	CArrayIntAndPointer		apcExpressions;
+	CCalculatorExpressions	apcExpressions;
 
 	apcExpressions.Init();
 	bFirst = true;
@@ -92,7 +92,7 @@ CCalcExpression* CCalculatorParser::Expression(void)
 			{
 				break;
 			}
-			apcExpressions.Add(pcOperator, 0);
+			apcExpressions.Add(pcOperator);
 		}
 
 		pcOperand = Operand();
@@ -111,11 +111,20 @@ CCalcExpression* CCalculatorParser::Expression(void)
 			else
 			{
 				pcExpression = mpcCalculator->BuildExpression(&apcExpressions);
-				apcExpressions.Kill();
-				return pcExpression;
+				if (pcExpression)
+				{
+					apcExpressions.RemoveAll();
+					apcExpressions.Kill();
+					return pcExpression;
+				}
+				else
+				{
+					apcExpressions.Kill();
+					return NULL;
+				}
 			}
 		}
-		apcExpressions.Add(pcOperand, 0);
+		apcExpressions.Add(pcOperand);
 		bFirst = false;
 	}
 }

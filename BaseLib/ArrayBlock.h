@@ -116,6 +116,7 @@ public:
 	bool 	RemoveTail(void);
 	bool	RemoveFirst(void);
 	void	RemoveBatch(size iFirstIndex, size iNumInBatch, size iNumBatches, size iStrideToNextBatch);
+	void	RemoveAll(void);
 
 	void	Set(size iIndex, void* pvData);
 	bool	SafeSet(size iIndex, void* pvData);
