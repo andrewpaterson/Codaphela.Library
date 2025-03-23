@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2025 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -36,7 +36,7 @@ void AddOBJHeading(CChars* psz)
 {
 	psz->Append("# Codaphela Wavefront OBJ Exporter ");
 	psz->Append(ENGINE_VERSION);
-	psz->Append(" - copyright 2011 Andrew Paterson");
+	psz->Append(" - copyright 2025 Andrew Paterson");
 	psz->AppendNewLine();
 	psz->Append("# File Created: ");
 	psz->AppendNewLine();
