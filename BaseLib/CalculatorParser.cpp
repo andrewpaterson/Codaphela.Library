@@ -224,22 +224,22 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 //////////////////////////////////////////////////////////////////////////
 CCalcOperator* CCalculatorParser::Operator(void)
 {
-	TRISTATE		tResult;
-	size			i;
-	char*			szSimpleOp;
-	ECalcOperator	eOp;
-	CArrayChars*	paszOperators;
-	size			uiNumOperators;
-	CCalcOperator*	pcOperator;
+	TRISTATE					tResult;
+	size						i;
+	char*						szSimpleOp;
+	ECalcOperator				eOp;
+	CArrayCalculatorOperators*	pacOperators;
+	size						uiNumOperators;
+	CCalcOperator*				pcOperator;
 
 	mcParser.PushPosition();
 
-	paszOperators = mpcCalculator->GetOperators();
-	uiNumOperators = paszOperators->NumElements();
+	pacOperators = mpcCalculator->GetOperators();
+	uiNumOperators = pacOperators->NumElements();
 
 	for (i = 0; i < uiNumOperators; i++)
 	{
-		szSimpleOp = paszOperators->Get(i)->Text();
+		szSimpleOp = pacOperators->Get(i)->GetSymbol();
 		tResult = mcParser.GetExactCharacterSequence(szSimpleOp);
 		if (tResult == TRITRUE)
 		{

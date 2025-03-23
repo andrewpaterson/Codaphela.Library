@@ -33,34 +33,32 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcUnaryExpression.h"
 #include "CalcConstExpression.h"
 #include "CalcParentheses.h"
-
+#include "CalculatorOperator.h"
 
 class CCalculator
 {
 public:
-	CArrayChars				mszOperators;
-	CArrayInt				maiPrecedence;
-	CChars					mszError;
-	bool					mbUseUserError;
+	CArrayCalculatorOperators	macOperators;
+	CChars						mszError;
+	bool						mbUseUserError;
 
-	void				Init(void);
-	void				Init(bool bUseUserError);
-	void				Kill(void);
+	void						Init(void);
+	void						Init(bool bUseUserError);
+	void						Kill(void);
 
-	CNumber				Eval(CCalcExpression* pcExpression);
+	CNumber						Eval(CCalcExpression* pcExpression);
 
-	CCalcExpression*	BuildExpression(CArrayIntAndPointer* pcArray);
-	uint				GetMinPrecedence(CArrayIntAndPointer* papcExpressions);
-	ECalcOperator		ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
-	bool				SetError(CChars* pszFirst, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
-	void				SetError(char* szError);
-	void				Print(CChars* psz, CArrayIntAndPointer* papcExpressions);
-	void				Print(CChars* psz, CCalcObject* pcExpression);
-	bool				HasError(void);
-	char*				GetError(void);
+	CCalcExpression*			BuildExpression(CArrayIntAndPointer* pcArray);
+	uint						GetMinPrecedence(CArrayIntAndPointer* papcExpressions);
+	ECalcOperator				ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
+	bool						SetError(CChars* pszFirst, CArrayIntAndPointer* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
+	void						SetError(char* szError);
+	void						Print(CChars* psz, CArrayIntAndPointer* papcExpressions);
+	void						Print(CChars* psz, CCalcObject* pcExpression);
+	bool						HasError(void);
+	char*						GetError(void);
 
-	CArrayChars*		GetOperators(void);
-	CArrayInt*			GetPrecedence(void);
+	CArrayCalculatorOperators* GetOperators(void);
 };
 
 

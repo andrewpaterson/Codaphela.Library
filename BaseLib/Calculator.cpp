@@ -41,53 +41,30 @@ void CCalculator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Init(bool bUseUserError)
 {
-	mszOperators.Init();
-	mszOperators.Add("++");
-	mszOperators.Add("--");
-	mszOperators.Add("==");
-	mszOperators.Add("!=");
-	mszOperators.Add(">=");
-	mszOperators.Add("<=");
-	mszOperators.Add("||");
-	mszOperators.Add("&&");
-	mszOperators.Add("<<");
-	mszOperators.Add(">>");
-	mszOperators.Add("+");
-	mszOperators.Add("-");
-	mszOperators.Add("*");
-	mszOperators.Add("/");
-	mszOperators.Add("%");
-	mszOperators.Add("!");
-	mszOperators.Add("&");
-	mszOperators.Add("|");
-	mszOperators.Add("^");
-	mszOperators.Add("<");
-	mszOperators.Add(">");
-	mszOperators.Add("~");
+	macOperators.Init();
 
-	maiPrecedence.Init();
-	maiPrecedence.Add(0);	// CO_Increment,
-	maiPrecedence.Add(0);	// CO_Decrement,
-	maiPrecedence.Add(6);	// CO_EqualTo,
-	maiPrecedence.Add(6);	// CO_NotEqualTo,
-	maiPrecedence.Add(5);	// CO_GreaterThanEqualTo,
-	maiPrecedence.Add(5);	// CO_LessThanEqualTo,
-	maiPrecedence.Add(11);	// CO_LogicalOr,
-	maiPrecedence.Add(10);  // CO_LogicalAnd,
-	maiPrecedence.Add(4);	// CO_LeftShift,
-	maiPrecedence.Add(4);	// CO_RightShift,
-	maiPrecedence.Add(3);	// CO_Add,
-	maiPrecedence.Add(3);	// CO_Subtract,
-	maiPrecedence.Add(2);	// CO_Multiply,
-	maiPrecedence.Add(2);	// CO_Divide,
-	maiPrecedence.Add(2);	// CO_Modulus,
-	maiPrecedence.Add(1);	// CO_LogicalNot,
-	maiPrecedence.Add(7);	// CO_BitwiseAnd,
-	maiPrecedence.Add(9);	// CO_BitwiseOr,
-	maiPrecedence.Add(8);	// CO_BitwiseXor,
-	maiPrecedence.Add(5);	// CO_LessThan,
-	maiPrecedence.Add(5);	// CO_GreaterThan,
-	maiPrecedence.Add(1);	// CO_BitwiseNot,
+	macOperators.Add("++", CO_Increment,		  0);	
+	macOperators.Add("--", CO_Decrement,		  0);	
+	macOperators.Add("==", CO_EqualTo,			  6);	
+	macOperators.Add("!=", CO_NotEqualTo,		  6);	
+	macOperators.Add(">=", CO_GreaterThanEqualTo, 5);	
+	macOperators.Add("<=", CO_LessThanEqualTo,	  5);	
+	macOperators.Add("||", CO_LogicalOr,		  11);	
+	macOperators.Add("&&", CO_LogicalAnd,		  10);  
+	macOperators.Add("<<", CO_LeftShift,		  4);	
+	macOperators.Add(">>", CO_RightShift,		  4);	
+	macOperators.Add( "+", CO_Add,				  3);	
+	macOperators.Add( "-", CO_Subtract,			  3);	
+	macOperators.Add( "*", CO_Multiply,			  2);	
+	macOperators.Add( "/", CO_Divide,			  2);	
+	macOperators.Add( "%", CO_Modulus,			  2);	
+	macOperators.Add( "!", CO_LogicalNot,		  1);	
+	macOperators.Add( "&", CO_BitwiseAnd,		  7);	
+	macOperators.Add( "|", CO_BitwiseOr,		  9);	
+	macOperators.Add( "^", CO_BitwiseXor,		  8);	
+	macOperators.Add( "<", CO_LessThan,			  5);	
+	macOperators.Add( ">", CO_GreaterThan,		  5);	
+	macOperators.Add( "~", CO_BitwiseNot,		  1);	
 
 	mbUseUserError = bUseUserError;
 	mszError.Init();
@@ -101,8 +78,7 @@ void CCalculator::Init(bool bUseUserError)
 void CCalculator::Kill(void)
 {
 	mszError.Kill();
-	maiPrecedence.Kill();
-	mszOperators.Kill();
+	macOperators.Kill();
 }
 
 
@@ -286,7 +262,7 @@ uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
 	CCalcOperator*			pcOperator;
 	uint					iMinPrecedence;
 	size					iMinIndex;
-	uint					iPrecedence;
+	uint16					iPrecedence;
 	size					uiNumElements;
 
 	iMinPrecedence = 12;
@@ -298,7 +274,7 @@ uint CCalculator::GetMinPrecedence(CArrayIntAndPointer* papcExpressions)
 		if (pcObject->IsOperator())
 		{
 			pcOperator = (CCalcOperator*)pcObject;
-			iPrecedence = maiPrecedence.GetValue(pcOperator->meOp);
+			iPrecedence = macOperators.Get(pcOperator->meOp)->GetPrecedence();
 			if (iPrecedence < iMinPrecedence)
 			{
 				iMinPrecedence = iPrecedence;
@@ -436,18 +412,10 @@ char* CCalculator::GetError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayChars* CCalculator::GetOperators(void)
+CArrayCalculatorOperators* CCalculator::GetOperators(void)
 {
-	return &mszOperators;
+	return &macOperators;
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CArrayInt* CCalculator::GetPrecedence(void)
-{
-	return &maiPrecedence;
-}
 
