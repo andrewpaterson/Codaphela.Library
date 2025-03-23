@@ -1,7 +1,7 @@
 
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2022 Andrew Paterson
+Copyright (c) 2025 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela BaseLib
 

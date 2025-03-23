@@ -188,6 +188,7 @@
     <ClInclude Include="CalculatorExpressions.h" />
     <ClInclude Include="CalculatorOperator.h" />
     <ClInclude Include="CalculatorParser.h" />
+    <ClInclude Include="CalcVariable.h" />
     <ClInclude Include="CharHelper.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="ChunkFileName.h" />
@@ -587,6 +588,7 @@
     <ClCompile Include="CalculatorExpressions.cpp" />
     <ClCompile Include="CalculatorOperator.cpp" />
     <ClCompile Include="CalculatorParser.cpp" />
+    <ClCompile Include="CalcVariable.cpp" />
     <ClCompile Include="CharHelper.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="CPPIdentifier.cpp" />
