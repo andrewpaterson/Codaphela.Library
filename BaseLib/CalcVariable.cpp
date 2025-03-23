@@ -20,34 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __WIN_CONFIG_H__
-#define __WIN_CONFIG_H__
+#ifndef __CALC_VARIABLE_H__
+#define __CALC_VARIABLE_H__
 #include "Define.h"
-
-
-enum EWinMode
-{
-	WM_DX_HAL,
-	WM_DX_REF,
-	WM_DX_SW,
-};
-
-
-class CWinConfig
-{
-public:
-	uint16		miWidth;
-	uint16		miHeight;
-	bool		mbWindowed;
-	float		mfAspect;
-	EWinMode	meMode;
-
-	void Init(void);
-	bool Read(void);
-	void Write(void);
-	void Default(void);
-};
-
-
-#endif // __WIN_CONFIG_H__
-
+#include "Number.h"
+#include "CalcObject.h"
