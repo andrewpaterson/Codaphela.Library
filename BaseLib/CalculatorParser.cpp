@@ -105,11 +105,13 @@ CCalcExpression* CCalculatorParser::Expression(void)
 		{
 			if (bFirst)
 			{
+				apcExpressions.Kill();
 				return NULL;
 			}
 			else
 			{
 				pcExpression = mpcCalculator->BuildExpression(&apcExpressions);
+				apcExpressions.Kill();
 				return pcExpression;
 			}
 		}

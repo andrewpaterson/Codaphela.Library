@@ -214,10 +214,10 @@ CCalcExpression* CCalculator::BuildExpression(CArrayIntAndPointer* papcExpressio
 		}
 		else if (pcOperator->IsBinary())
 		{
-			pcObjectLeft = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex-1);
+			pcObjectLeft = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex - 1);
 			if (pcObjectLeft)
 			{
-				pcObjectRight = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex+1);
+				pcObjectRight = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex + 1);
 				if (pcObjectRight)
 				{
 					if (pcObjectLeft->IsExpression() && pcObjectRight->IsExpression())
