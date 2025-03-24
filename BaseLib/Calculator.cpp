@@ -137,7 +137,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressions* papcExpres
 		iOldUsedElements = papcExpressions->NumElements();
 
 		iIndex = GetMinPrecedence(papcExpressions);
-		if (iIndex == -1)
+		if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 		{
 			SetError(&szStart, papcExpressions, "Confused trying to find order of precedence for inital [", "] with current [", "].");
 			return NULL;
@@ -172,6 +172,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressions* papcExpres
 				{
 					pcOperand = (CCalcExpression*)pcObject;
 					pcUnary = NewMalloc<CCalcUnaryExpression>();
+					pcUnary->Init();
 					pcUnary->Set(pcOperand, pcOperator);
 					papcExpressions->RemoveAt(iIndex + 1);
 					papcExpressions->SetPtr(iIndex, pcUnary);
@@ -201,6 +202,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressions* papcExpres
 						pcOperandLeft = (CCalcExpression*)pcObjectLeft;
 						pcOperandRight = (CCalcExpression*)pcObjectRight;
 						pcBinary = NewMalloc<CCalcBinaryExpression>();
+						pcBinary->Init();
 						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight);
 						papcExpressions->RemoveAt(iIndex + 1);
 						papcExpressions->SetPtr(iIndex, pcBinary);

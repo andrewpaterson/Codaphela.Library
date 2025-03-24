@@ -31,6 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcUnaryExpression.h"
 #include "CalcConstExpression.h"
 #include "CalcParentheses.h"
+#include "CalcVariable.h"
 #include "CalculatorOperator.h"
 #include "CalculatorExpressions.h"
 
