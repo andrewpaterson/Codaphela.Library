@@ -42,7 +42,7 @@ public:
 	CCalcOperator*			Operator(void);
 	CCalcParentheses*		Parentheses(void);
 	CCalcConstExpression*	Value(void);
-	CCalcConstExpression*	Identifier(void);
+	CCalcVariable*			Identifier(void);
 };
 
 

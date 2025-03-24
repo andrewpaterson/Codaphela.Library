@@ -22,7 +22,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CALC_CONST_EXPRESSION_H__
 #define __CALC_CONST_EXPRESSION_H__
-#include "CalcOperator.h"
 #include "CalcExpression.h"
 
 
