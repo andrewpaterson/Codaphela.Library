@@ -1,11 +1,11 @@
-#include "CalculatorArrayExpressions.h"
+#include "CalculatorExpressionArray.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCalculatorExpression::Kill(void)
+void CCalculatorExpressionArray::Kill(void)
 {
 	size			i;
 	size			uiNumElements;
@@ -14,10 +14,10 @@ void CArrayCalculatorExpression::Kill(void)
 	uiNumElements = NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
-		pcExpression = __CArrayCalculatorExpressions::GetPtr(i);
+		pcExpression = __CCalculatorExpressionArrays::GetPtr(i);
 		pcExpression->Kill();
 	}
 
-	__CArrayCalculatorExpressions::Kill();
+	__CCalculatorExpressionArrays::Kill();
 }
 

@@ -80,7 +80,7 @@ CCalcExpression* CCalculatorParser::Expression(void)
 	CCalcOperator*			pcOperator;
 	CCalcExpression*		pcOperand;
 	CCalcExpression*		pcExpression;
-	CArrayCalculatorExpression	apcExpressions;
+	CCalculatorExpressionArray	apcExpressions;
 
 	apcExpressions.Init();
 	bFirst = true;

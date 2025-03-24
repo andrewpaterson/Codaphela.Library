@@ -1665,7 +1665,7 @@
     <ClInclude Include="CalculatorOperator.h">
       <Filter>Source\Text\Calculator</Filter>
     </ClInclude>
-    <ClInclude Include="CalculatorArrayExpressions.h">
+    <ClInclude Include="CalculatorExpressionArray.h">
       <Filter>Source\Text\Calculator</Filter>
     </ClInclude>
     <ClInclude Include="CalcVariable.h">
@@ -2657,7 +2657,7 @@
     <ClCompile Include="CalculatorOperator.cpp">
       <Filter>Source\Text\Calculator</Filter>
     </ClCompile>
-    <ClCompile Include="CalculatorArrayExpressions.cpp">
+    <ClCompile Include="CalculatorExpressionArray.cpp">
       <Filter>Source\Text\Calculator</Filter>
     </ClCompile>
     <ClCompile Include="CalcVariable.cpp">
