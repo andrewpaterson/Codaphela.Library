@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CCalcOperator::Init(void)
 {
-	meOp = CO_invalid;
+	meOp = CO_Invalid;
 }
 
 
@@ -39,7 +39,7 @@ void CCalcOperator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalcOperator::Kill(void)
 {
-	meOp = CO_invalid;
+	meOp = CO_Invalid;
 }
 
 
@@ -365,7 +365,7 @@ void CCalcOperator::Print(CChars* psz)
 	case CO_UnarySubtract:
 		psz->Append("-");
 		break;
-	case CO_invalid:
+	case CO_Invalid:
 		psz->Append("INVALID_OPERATOR");
 		break;
 	default:
