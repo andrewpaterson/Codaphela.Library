@@ -53,7 +53,7 @@ enum ECalcOperator
 	CO_BitwiseNot,
 	CO_UnaryAdd,
 	CO_UnarySubtract,
-	CO_invalid,
+	CO_Invalid,
 };
 
 

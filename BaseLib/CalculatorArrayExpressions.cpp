@@ -1,11 +1,11 @@
-#include "CalculatorExpressions.h"
+#include "CalculatorArrayExpressions.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculatorExpressions::Kill(void)
+void CArrayCalculatorExpression::Kill(void)
 {
 	size			i;
 	size			uiNumElements;

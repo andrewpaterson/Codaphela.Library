@@ -20,7 +20,7 @@ void CCalculatorOperator::Init(char* szSymbol, ECalcOperator eOperator, uint16 i
 void CCalculatorOperator::Kill(void)
 {
 	mszSymbol.Kill();
-	meOperator = CO_invalid;
+	meOperator = CO_Invalid;
 }
 
 
