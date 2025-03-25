@@ -104,7 +104,7 @@ CCalcExpression* CCalculatorParser::Expression(void)
 	CCalcOperator*			pcOperator;
 	CCalcExpression*		pcOperand;
 	CCalcExpression*		pcExpression;
-	CCalcuObjectArray	apcExpressions;
+	CCalcObjectArray	apcExpressions;
 
 	apcExpressions.Init();
 	bFirst = true;

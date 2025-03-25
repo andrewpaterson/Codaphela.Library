@@ -32,7 +32,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 typedef CArrayTemplatePtr<CCalcObject> __CCalcObjectArray;
 
 
-class CCalcuObjectArray : public __CCalcObjectArray
+class CCalcObjectArray : public __CCalcObjectArray
 {
 public:
 	void Kill(void);

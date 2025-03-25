@@ -25,9 +25,10 @@ void CCalcVariable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Set(char* szName)
+void CCalcVariable::Set(char* szName, CCalculatorVariables* pcVariableDefinitions)
 {
 	mszName.Set(szName);
+	mpcVariableDefinitions = pcVariableDefinitions;
 }
 
 
@@ -50,5 +51,15 @@ CNumber	CCalcVariable::Evaluate(void)
 void CCalcVariable::Print(CChars* psz)
 {
 	psz->Append(&mszName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CCalcVariable::Get(void)
+{
+	return mszName.Text();
 }
 

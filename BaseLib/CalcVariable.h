@@ -24,17 +24,21 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __CALC_VARIABLE_H__
 #include "CalcExpression.h"
 
+
+class CCalculatorVariables;
 class CCalcVariable : public CCalcExpression
 {
 protected:
-	CChars	mszName;
+	CChars					mszName;
+	CCalculatorVariables*	mpcVariableDefinitions;
 
 public:
-	void	Init(void);
-	void	Kill(void);
-	void	Set(char* szName);
-	CNumber	Evaluate(void);
-	void	Print(CChars* psz);
+	void		Init(void);
+	void		Kill(void);
+	void		Set(char* szName, CCalculatorVariables* pcVariableDefinitions);
+	CNumber		Evaluate(void);
+	void		Print(CChars* psz);
+	char*		Get(void);
 };
 
 
