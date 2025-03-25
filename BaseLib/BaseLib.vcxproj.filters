@@ -1671,6 +1671,12 @@
     <ClInclude Include="CalcObjectArray.h">
       <Filter>Source\Calculator\Expression</Filter>
     </ClInclude>
+    <ClInclude Include="CalculatorVariables.h">
+      <Filter>Source\Calculator</Filter>
+    </ClInclude>
+    <ClInclude Include="CalcVariableDefinition.h">
+      <Filter>Source\Calculator\Expression</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2662,6 +2668,12 @@
     </ClCompile>
     <ClCompile Include="CalcObjectArray.cpp">
       <Filter>Source\Calculator\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="CalcVariableDefinition.cpp">
+      <Filter>Source\Calculator\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="CalculatorVariables.cpp">
+      <Filter>Source\Calculator</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

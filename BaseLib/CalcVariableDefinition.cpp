@@ -1,13 +1,14 @@
-#include "CalcVariable.h"
+#include "CalcVariableDefinition.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Init(void)
+void CCalcVariableDefinition::Init(void)
 {
-	mszName.Init();
+	mpcVariable = NULL;
+	mpcExpression = NULL;
 }
 
 
@@ -15,9 +16,10 @@ void CCalcVariable::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Kill(void)
+void CCalcVariableDefinition::Kill(void)
 {
-	mszName.Kill();
+	SafeFree(mpcVariable);
+	SafeFree(mpcExpression);
 }
 
 
@@ -25,10 +27,10 @@ void CCalcVariable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Set(char* szName, CCalculatorVariables* pcVariableDefinitions)
+void CCalcVariableDefinition::Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression)
 {
-	mszName.Set(szName);
-	mpcVariableDefinitions = pcVariableDefinitions;
+	mpcVariable = pcVariable;
+	mpcExpression = pcExpression;
 }
 
 
@@ -36,11 +38,13 @@ void CCalcVariable::Set(char* szName, CCalculatorVariables* pcVariableDefinition
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber	CCalcVariable::Evaluate(void)
+void CCalcVariableDefinition::Print(CChars* psz)
 {
-	CNumber	cNumber;
-	cNumber.NotANumber();
-	return cNumber;
+	mpcVariable->Print(psz);
+	psz->Append(" ");
+	psz->Append("=");
+	psz->Append(" ");
+	mpcExpression->Print(psz);
 }
 
 
@@ -48,9 +52,9 @@ CNumber	CCalcVariable::Evaluate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Print(CChars* psz)
+char* CCalcVariableDefinition::GetName(void)
 {
-	psz->Append(&mszName);
+	return mpcVariable->Get();
 }
 
 
@@ -58,8 +62,8 @@ void CCalcVariable::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CCalcVariable::Get(void)
+CCalcExpression* CCalcVariableDefinition::GetExpression(void)
 {
-	return mszName.Text();
+	return mpcExpression;
 }
 

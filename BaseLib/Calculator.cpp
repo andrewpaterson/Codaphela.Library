@@ -111,7 +111,7 @@ CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcExpression* CCalculator::BuildExpression(CCalcuObjectArray* papcExpressions)
+CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 {
 	size					iIndex;
 	CCalcOperator*			pcOperator;
@@ -262,7 +262,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalcuObjectArray* papcExpressions
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCalculator::GetMinPrecedence(CCalcuObjectArray* papcExpressions)
+size CCalculator::GetMinPrecedence(CCalcObjectArray* papcExpressions)
 {
 	size					i;
 	CCalcObject*			pcObject;
@@ -338,7 +338,7 @@ ECalcOperator CCalculator::ResolveAmbiguity(ECalcOperator eOperator, bool bIsUna
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::SetError(CChars* pszStart, CCalcuObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
+bool CCalculator::SetError(CChars* pszStart, CCalcObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
 {
 	CChars	szCurrent;
 	CChars	sz;
@@ -382,7 +382,7 @@ bool CCalculator::HasError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Print(CChars* psz, CCalcuObjectArray* papcExpressions)
+void CCalculator::Print(CChars* psz, CCalcObjectArray* papcExpressions)
 {
 	size			i;
 	CCalcObject*	pcObject;
@@ -441,7 +441,7 @@ CCalculatorOperator* CCalculator::GetAssignment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Dump(CCalcuObjectArray* papcExpressions)
+void CCalculator::Dump(CCalcObjectArray* papcExpressions)
 {
 	CChars	sz;
 	

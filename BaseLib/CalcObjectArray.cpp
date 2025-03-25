@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcuObjectArray::Kill(void)
+void CCalcObjectArray::Kill(void)
 {
 	size			i;
 	size			uiNumElements;

@@ -20,24 +20,25 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CALC_OBJECT_ARRAY_H__
-#define __CALC_OBJECT_ARRAY_H__
-#include "Define.h"
-#include "Chars.h"
-#include "CalcOperator.h"
-#include "ArrayTemplatePtr.h"
-#include "CalcObject.h"
+#ifndef __CALC_VARIABLE_DEFINITION_H__
+#define __CALC_VARIABLE_DEFINITION_H__
+#include "CalcVariable.h"
 
-
-typedef CArrayTemplatePtr<CCalcObject> __CCalcObjectArray;
-
-
-class CCalcObjectArray : public __CCalcObjectArray
+class CCalcVariableDefinition : public CCalcObject
 {
+protected:
+	CCalcVariable*		mpcVariable;
+	CCalcExpression*	mpcExpression;
+
 public:
-	void Kill(void);
+	void				Init(void);
+	void				Kill(void);
+	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression);
+	void				Print(CChars* psz);
+	char*				GetName(void);
+	CCalcExpression*	GetExpression(void);
 };
 
 
-#endif // __CALC_OBJECT_ARRAY_H__
+#endif // __CALC_VARIABLE_DEFINITION_H__
 

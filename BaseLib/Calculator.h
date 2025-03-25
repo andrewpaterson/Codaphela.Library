@@ -51,12 +51,12 @@ public:
 
 	CNumber						Eval(CCalcExpression* pcExpression);
 
-	CCalcExpression*			BuildExpression(CCalcuObjectArray* pcArray);
-	size						GetMinPrecedence(CCalcuObjectArray* papcExpressions);
+	CCalcExpression*			BuildExpression(CCalcObjectArray* pcArray);
+	size						GetMinPrecedence(CCalcObjectArray* papcExpressions);
 	ECalcOperator				ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
-	bool						SetError(CChars* pszFirst, CCalcuObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
+	bool						SetError(CChars* pszFirst, CCalcObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
 	void						SetError(char* szError);
-	void						Print(CChars* psz, CCalcuObjectArray* papcExpressions);
+	void						Print(CChars* psz, CCalcObjectArray* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);
 	bool						HasError(void);
 	char*						GetError(void);
@@ -64,7 +64,7 @@ public:
 	CArrayCalculatorOperators*	GetOperators(void);
 	CCalculatorOperator*		GetAssignment(void);
 
-	void						Dump(CCalcuObjectArray* papcExpressions);
+	void						Dump(CCalcObjectArray* papcExpressions);
 	void						Dump(CCalcObject* pcExpression);
 };
 
