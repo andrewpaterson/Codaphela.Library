@@ -33,13 +33,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcParentheses.h"
 #include "CalcVariable.h"
 #include "CalculatorOperator.h"
-#include "CalculatorExpressionArray.h"
+#include "CalcObjectArray.h"
 
 
 class CCalculator
 {
 public:
 	CArrayCalculatorOperators	macOperators;
+	CCalculatorOperator			mcAssignment;
+
 	CChars						mszError;
 	bool						mbUseUserError;
 
@@ -49,17 +51,21 @@ public:
 
 	CNumber						Eval(CCalcExpression* pcExpression);
 
-	CCalcExpression*			BuildExpression(CCalculatorExpressionArray* pcArray);
-	size						GetMinPrecedence(CCalculatorExpressionArray* papcExpressions);
+	CCalcExpression*			BuildExpression(CCalcuObjectArray* pcArray);
+	size						GetMinPrecedence(CCalcuObjectArray* papcExpressions);
 	ECalcOperator				ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
-	bool						SetError(CChars* pszFirst, CCalculatorExpressionArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
+	bool						SetError(CChars* pszFirst, CCalcuObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
 	void						SetError(char* szError);
-	void						Print(CChars* psz, CCalculatorExpressionArray* papcExpressions);
+	void						Print(CChars* psz, CCalcuObjectArray* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);
 	bool						HasError(void);
 	char*						GetError(void);
 
 	CArrayCalculatorOperators*	GetOperators(void);
+	CCalculatorOperator*		GetAssignment(void);
+
+	void						Dump(CCalcuObjectArray* papcExpressions);
+	void						Dump(CCalcObject* pcExpression);
 };
 
 

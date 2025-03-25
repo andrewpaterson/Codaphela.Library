@@ -66,6 +66,8 @@ void CCalculator::Init(bool bUseUserError)
 	macOperators.Add( ">", CO_GreaterThan,		  5);	
 	macOperators.Add( "~", CO_BitwiseNot,		  1);	
 
+	mcAssignment.Init("=", CO_Assignment, 12);
+
 	mbUseUserError = bUseUserError;
 	mszError.Init();
 }
@@ -78,6 +80,7 @@ void CCalculator::Init(bool bUseUserError)
 void CCalculator::Kill(void)
 {
 	mszError.Kill();
+	mcAssignment.Kill();
 	macOperators.Kill();
 }
 
@@ -108,7 +111,7 @@ CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressionArray* papcExpressions)
+CCalcExpression* CCalculator::BuildExpression(CCalcuObjectArray* papcExpressions)
 {
 	size					iIndex;
 	CCalcOperator*			pcOperator;
@@ -125,6 +128,8 @@ CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressionArray* papcEx
 	bool					bUnary;
 
 	szStart.Init();
+
+	Dump(papcExpressions);
 
 	iOldUsedElements = papcExpressions->NumElements();
 	while (papcExpressions->NumElements() > 1)
@@ -257,7 +262,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalculatorExpressionArray* papcEx
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CCalculator::GetMinPrecedence(CCalculatorExpressionArray* papcExpressions)
+size CCalculator::GetMinPrecedence(CCalcuObjectArray* papcExpressions)
 {
 	size					i;
 	CCalcObject*			pcObject;
@@ -333,7 +338,7 @@ ECalcOperator CCalculator::ResolveAmbiguity(ECalcOperator eOperator, bool bIsUna
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculator::SetError(CChars* pszStart, CCalculatorExpressionArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
+bool CCalculator::SetError(CChars* pszStart, CCalcuObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight)
 {
 	CChars	szCurrent;
 	CChars	sz;
@@ -377,7 +382,7 @@ bool CCalculator::HasError(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Print(CChars* psz, CCalculatorExpressionArray* papcExpressions)
+void CCalculator::Print(CChars* psz, CCalcuObjectArray* papcExpressions)
 {
 	size			i;
 	CCalcObject*	pcObject;
@@ -422,4 +427,40 @@ CArrayCalculatorOperators* CCalculator::GetOperators(void)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalculatorOperator* CCalculator::GetAssignment(void)
+{
+	return &mcAssignment;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Dump(CCalcuObjectArray* papcExpressions)
+{
+	CChars	sz;
+	
+	sz.Init();
+	Print(&sz, papcExpressions);;
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Dump(CCalcObject* pcExpression)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz, pcExpression);;
+	sz.DumpKill();
+}
 

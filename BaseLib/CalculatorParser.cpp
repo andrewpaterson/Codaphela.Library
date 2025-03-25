@@ -54,8 +54,28 @@ void CCalculatorParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CCalcExpression* CCalculatorParser::Parse(void)
 {
-	CCalcExpression*	pcExpression;
-	CChars				sz;
+	CCalcExpression* pcExpression;
+	CChars					sz;
+	CCalcVariable* pcIdentifier;
+	TRISTATE				tAssignment;
+	CCalculatorOperator* pcAssignment;
+
+	pcIdentifier = Identifier();
+	if (pcIdentifier)
+	{
+		pcAssignment = mpcCalculator->GetAssignment();
+		tAssignment = mcParser.GetExactCharacterSequence(pcAssignment->GetSymbol(), true);
+
+		if (tAssignment != TRITRUE)
+		{
+			sz.Init("Cannot evaluate expression [");
+			sz.Append(mcParser.Start());
+			sz.Append("]\n");
+			mpcCalculator->SetError(sz.Text());
+			sz.Kill();
+			return NULL;
+		}
+	}
 
 	pcExpression = Expression();
 	if (!pcExpression)
@@ -65,8 +85,12 @@ CCalcExpression* CCalculatorParser::Parse(void)
 		sz.Append("]\n");
 		mpcCalculator->SetError(sz.Text());
 		sz.Kill();
+		return NULL;
 	}
-	return pcExpression;
+	else
+	{
+		return pcExpression;
+	}
 }
 
 
@@ -80,7 +104,7 @@ CCalcExpression* CCalculatorParser::Expression(void)
 	CCalcOperator*			pcOperator;
 	CCalcExpression*		pcOperand;
 	CCalcExpression*		pcExpression;
-	CCalculatorExpressionArray	apcExpressions;
+	CCalcuObjectArray	apcExpressions;
 
 	apcExpressions.Init();
 	bFirst = true;
