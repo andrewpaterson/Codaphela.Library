@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CALCULATOR_EXPRESSION_ARRAY_H__
-#define __CALCULATOR_EXPRESSION_ARRAY_H__
+#ifndef __CALC_OBJECT_ARRAY_H__
+#define __CALC_OBJECT_ARRAY_H__
 #include "Define.h"
 #include "Chars.h"
 #include "CalcOperator.h"
@@ -29,15 +29,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcObject.h"
 
 
-typedef CArrayTemplatePtr<CCalcObject> __CCalculatorExpressionArrays;
+typedef CArrayTemplatePtr<CCalcObject> __CCalcObjectArray;
 
 
-class CCalculatorExpressionArray : public __CCalculatorExpressionArrays
+class CCalcuObjectArray : public __CCalcObjectArray
 {
 public:
 	void Kill(void);
 };
 
 
-#endif // __CALCULATOR_EXPRESSION_ARRAY_H__
+#endif // __CALC_OBJECT_ARRAY_H__
 
