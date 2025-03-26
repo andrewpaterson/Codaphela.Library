@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PointerFunctions.h"
+#include "CalculatorError.h"
 #include "CalcUnaryExpression.h"
 
 
@@ -28,8 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcUnaryExpression::Init(void)
+void CCalcUnaryExpression::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	mpcExpression = NULL;
 	mpcOp = NULL;
 }

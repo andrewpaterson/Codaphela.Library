@@ -68,8 +68,9 @@ void CCalculator::Init(bool bUseUserError)
 
 	mcAssignment.Init("=", CO_Assignment, 12);
 
-	mbUseUserError = bUseUserError;
-	mszError.Init();
+	mcErrors.Init(bUseUserError);
+
+	mcVariables.Init();
 }
 
 
@@ -79,7 +80,8 @@ void CCalculator::Init(bool bUseUserError)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Kill(void)
 {
-	mszError.Kill();
+	mcVariables.Kill();
+	mcErrors.Kill();
 	mcAssignment.Kill();
 	macOperators.Kill();
 }
@@ -177,7 +179,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 				{
 					pcOperand = (CCalcExpression*)pcObject;
 					pcUnary = NewMalloc<CCalcUnaryExpression>();
-					pcUnary->Init();
+					pcUnary->Init(GetErrors());
 					pcUnary->Set(pcOperand, pcOperator);
 					papcExpressions->RemoveAt(iIndex + 1);
 					papcExpressions->SetPtr(iIndex, pcUnary);
@@ -207,7 +209,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 						pcOperandLeft = (CCalcExpression*)pcObjectLeft;
 						pcOperandRight = (CCalcExpression*)pcObjectRight;
 						pcBinary = NewMalloc<CCalcBinaryExpression>();
-						pcBinary->Init();
+						pcBinary->Init(GetErrors());
 						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight);
 						papcExpressions->RemoveAt(iIndex + 1);
 						papcExpressions->SetPtr(iIndex, pcBinary);
@@ -360,11 +362,7 @@ bool CCalculator::SetError(CChars* pszStart, CCalcObjectArray* papcExpressions, 
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::SetError(char* szError)
 {
-	mszError.Append(szError);
-	if (mbUseUserError)
-	{
-		gcUserError.Set(szError);
-	}
+	mcErrors.SetError(szError);
 }
 
 
@@ -374,7 +372,7 @@ void CCalculator::SetError(char* szError)
 //////////////////////////////////////////////////////////////////////////
 bool CCalculator::HasError(void)
 {
-	return !mszError.Empty();
+	return mcErrors.HasError();
 }
 
 
@@ -413,7 +411,7 @@ void CCalculator::Print(CChars* psz, CCalcObject* pcExpression)
 //////////////////////////////////////////////////////////////////////////
 char* CCalculator::GetError(void)
 {
-	return mszError.Text();
+	return mcErrors.GetError();
 }
 
 
@@ -434,6 +432,46 @@ CArrayCalculatorOperators* CCalculator::GetOperators(void)
 CCalculatorOperator* CCalculator::GetAssignment(void)
 {
 	return &mcAssignment;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalculatorVariables* CCalculator::GetVariables(void)
+{
+	return &mcVariables;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalculatorError* CCalculator::GetErrors(void)
+{
+	return &mcErrors;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Add(CCalcVariableDefinition* pcVariableDefinition)
+{
+	mcVariables.Add(pcVariableDefinition);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Add(CCalcExpression* pcExpression)
+{
+	mcVariables.Add(pcExpression);
 }
 
 

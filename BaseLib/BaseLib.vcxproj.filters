@@ -1677,6 +1677,9 @@
     <ClInclude Include="CalcVariableDefinition.h">
       <Filter>Source\Calculator\Expression</Filter>
     </ClInclude>
+    <ClInclude Include="CalculatorError.h">
+      <Filter>Source\Calculator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2673,6 +2676,9 @@
       <Filter>Source\Calculator\Expression</Filter>
     </ClCompile>
     <ClCompile Include="CalculatorVariables.cpp">
+      <Filter>Source\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="CalculatorError.cpp">
       <Filter>Source\Calculator</Filter>
     </ClCompile>
   </ItemGroup>

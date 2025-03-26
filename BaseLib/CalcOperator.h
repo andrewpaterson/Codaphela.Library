@@ -63,7 +63,7 @@ class CCalcOperator : public CCalcObject
 public:
 	ECalcOperator	meOp;
 
-	void	Init(void);
+	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
 	void	Set(ECalcOperator eOp);
 	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);

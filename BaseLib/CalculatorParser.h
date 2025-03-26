@@ -32,10 +32,10 @@ public:
 	CCalculator*	mpcCalculator;
 	CTextParser		mcParser;
 
-	void					Init(CCalculator* pcCalculator, char* szText);
+	void					Init(CCalculator* pcCalculator);
 	void					Kill(void);
 
-	CCalcExpression*		Parse(void);
+	CCalcObject*			Parse(char* szText);
 
 	CCalcExpression*		Expression(void);
 	CCalcExpression*		Operand(void);

@@ -20,6 +20,8 @@ public:
 
 	void Add(CCalcVariableDefinition* pcVariableDefinition);
 	void Add(CCalcExpression* pcExpression);
+
+	CCalcVariableDefinition* Get(char* szName);
 };
 
 

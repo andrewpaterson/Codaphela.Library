@@ -31,12 +31,14 @@ protected:
 	CCalcExpression*	mpcExpression;
 
 public:
-	void				Init(void);
+	void				Init(CCalculatorError* pcError);
 	void				Kill(void);
 	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression);
 	void				Print(CChars* psz);
 	char*				GetName(void);
 	CCalcExpression*	GetExpression(void);
+	bool				IsExpression(void);
+	bool				IsOperator(void);
 };
 
 

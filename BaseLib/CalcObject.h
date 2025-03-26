@@ -26,10 +26,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CChars;
+class CCalculatorError;
 class CCalcObject
 {
+protected:
+	CCalculatorError* mpcError;
+
 public:
-	virtual void Init(void) =0;
+	virtual void Init(CCalculatorError* pcError) =0;
 	virtual void Kill(void) =0;
 	virtual bool IsExpression(void) =0;
 	virtual bool IsOperator(void) =0;

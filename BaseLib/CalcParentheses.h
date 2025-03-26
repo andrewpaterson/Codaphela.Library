@@ -31,7 +31,7 @@ class CCalcParentheses : public CCalcExpression
 public:
 	CCalcExpression*	mpcExpression;
 
-	void	Init(void);
+	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	SetExpression(CCalcExpression* pcExpression);

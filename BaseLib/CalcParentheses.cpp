@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PointerFunctions.h"
+#include "CalculatorError.h"
 #include "CalcParentheses.h"
 
 
@@ -28,8 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcParentheses::Init(void)
+void CCalcParentheses::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	mpcExpression = NULL;
 }
 

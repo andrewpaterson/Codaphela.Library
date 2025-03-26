@@ -1,3 +1,4 @@
+#include "CalculatorError.h"
 #include "CalcVariableDefinition.h"
 
 
@@ -5,8 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariableDefinition::Init(void)
+void CCalcVariableDefinition::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	mpcVariable = NULL;
 	mpcExpression = NULL;
 }
@@ -18,8 +20,8 @@ void CCalcVariableDefinition::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalcVariableDefinition::Kill(void)
 {
-	SafeFree(mpcVariable);
-	SafeFree(mpcExpression);
+	SafeKill(mpcVariable);
+	SafeKill(mpcExpression);
 }
 
 
@@ -65,5 +67,25 @@ char* CCalcVariableDefinition::GetName(void)
 CCalcExpression* CCalcVariableDefinition::GetExpression(void)
 {
 	return mpcExpression;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCalcVariableDefinition::IsExpression(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCalcVariableDefinition::IsOperator(void)
+{
+	return false;
 }
 

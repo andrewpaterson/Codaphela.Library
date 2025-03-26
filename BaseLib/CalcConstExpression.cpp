@@ -27,8 +27,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcConstExpression::Init(void)
+void CCalcConstExpression::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	mcValue.Init();
 }
 

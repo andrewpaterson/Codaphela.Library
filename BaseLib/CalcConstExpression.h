@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CALC_CONST_EXPRESSION_H__
 #define __CALC_CONST_EXPRESSION_H__
+#include "CalculatorError.h"
 #include "CalcExpression.h"
 
 
@@ -30,7 +31,7 @@ class CCalcConstExpression : public CCalcExpression
 public:
 	CNumber	mcValue;
 
-	void	Init(void);
+	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	SetValue(CNumber* pcNumber);
