@@ -191,6 +191,7 @@
     <ClInclude Include="CalculatorVariables.h" />
     <ClInclude Include="CalcVariable.h" />
     <ClInclude Include="CalcVariableDefinition.h" />
+    <ClInclude Include="CalculatorError.h" />
     <ClInclude Include="CharHelper.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="ChunkFileName.h" />
@@ -588,6 +589,7 @@
     <ClCompile Include="BinarySearch.cpp" />
     <ClCompile Include="BubbleSort.cpp" />
     <ClCompile Include="CalcObjectArray.cpp" />
+    <ClCompile Include="CalculatorError.cpp" />
     <ClCompile Include="CalculatorOperator.cpp" />
     <ClCompile Include="CalculatorParser.cpp" />
     <ClCompile Include="CalculatorVariables.cpp" />

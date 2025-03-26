@@ -30,6 +30,8 @@ void CCalculatorVariables::Kill(void)
 		pcCalcObject = mapcExpressionDefintions.GetPtr(i);
 		SafeKill(pcCalcObject);
 	}
+	mapcExpressionDefintions.RemoveAll();
+	mapcExpressionDefintions.Kill();
 }
 
 
@@ -51,5 +53,25 @@ void CCalculatorVariables::Add(CCalcVariableDefinition* pcVariableDefinition)
 void CCalculatorVariables::Add(CCalcExpression* pcExpression)
 {
 	mapcExpressionDefintions.Add(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalcVariableDefinition* CCalculatorVariables::Get(char* szName)
+{
+	CCalcVariableDefinition** ppcVariableDefinition;
+
+	ppcVariableDefinition = mmszpcVariables.Get(szName);
+	if (ppcVariableDefinition)
+	{
+		return *ppcVariableDefinition;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 

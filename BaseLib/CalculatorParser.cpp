@@ -30,11 +30,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculatorParser::Init(CCalculator* pcCalculator, char* szText)
+void CCalculatorParser::Init(CCalculator* pcCalculator)
 {
+	memset(this, 0, sizeof(CCalculatorParser));
 	mpcCalculator = pcCalculator;
-
-	mcParser.Init(szText);
 }
 
 
@@ -44,7 +43,7 @@ void CCalculatorParser::Init(CCalculator* pcCalculator, char* szText)
 //////////////////////////////////////////////////////////////////////////
 void CCalculatorParser::Kill(void)
 {
-	mcParser.Kill();
+	mpcCalculator = NULL;
 }
 
 
@@ -52,13 +51,16 @@ void CCalculatorParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCalcExpression* CCalculatorParser::Parse(void)
+CCalcObject* CCalculatorParser::Parse(char* szText)
 {
-	CCalcExpression* pcExpression;
-	CChars					sz;
-	CCalcVariable* pcIdentifier;
-	TRISTATE				tAssignment;
-	CCalculatorOperator* pcAssignment;
+	CCalcExpression*			pcExpression;
+	CChars						sz;
+	CCalcVariable*				pcIdentifier;
+	TRISTATE					tAssignment;
+	CCalculatorOperator*		pcAssignment;
+	CCalcVariableDefinition*	pcVariableDefinition;
+
+	mcParser.Init(szText);
 
 	pcIdentifier = Identifier();
 	if (pcIdentifier)
@@ -73,6 +75,8 @@ CCalcExpression* CCalculatorParser::Parse(void)
 			sz.Append("]\n");
 			mpcCalculator->SetError(sz.Text());
 			sz.Kill();
+
+			mcParser.Kill();
 			return NULL;
 		}
 	}
@@ -85,10 +89,22 @@ CCalcExpression* CCalculatorParser::Parse(void)
 		sz.Append("]\n");
 		mpcCalculator->SetError(sz.Text());
 		sz.Kill();
+
+		mcParser.Kill();
 		return NULL;
+	}
+
+	if (pcIdentifier)
+	{
+		pcVariableDefinition = NewMalloc<CCalcVariableDefinition>();
+		pcVariableDefinition->Set(pcIdentifier, pcExpression);
+
+		mcParser.Kill();
+		return pcVariableDefinition;
 	}
 	else
 	{
+		mcParser.Kill();
 		return pcExpression;
 	}
 }
@@ -193,22 +209,24 @@ CCalcExpression* CCalculatorParser::Operand(void)
 //////////////////////////////////////////////////////////////////////////
 CCalcVariable* CCalculatorParser::Identifier(void)
 {
-	TRISTATE			tResult;
-	size				iLength;
-	char*				sz;
-	CCalcVariable*		pcIdentifier;
-	CStackMemory<256>	cStack;
+	TRISTATE				tResult;
+	size					iLength;
+	char*					sz;
+	CCalcVariable*			pcIdentifier;
+	CStackMemory<256>		cStack;
+	CCalculatorVariables*	pcVariables;
 
 	mcParser.PushPosition();
 	tResult = mcParser.GetIdentifier(NULL, &iLength);
 	mcParser.PopPosition();
 	if (tResult == TRITRUE)
 	{
+		pcVariables = mpcCalculator->GetVariables();
 		sz = (char*)cStack.Init(iLength + 1);
 		mcParser.GetIdentifier(sz);
 		pcIdentifier = NewMalloc<CCalcVariable>();
-		pcIdentifier->Init();
-		pcIdentifier->Set(sz);
+		pcIdentifier->Init(mpcCalculator->GetErrors());
+		pcIdentifier->Set(sz, pcVariables);
 		cStack.Kill();
 		return pcIdentifier;
 	}
@@ -234,7 +252,7 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 	if (tResult == TRITRUE)
 	{
 		pcConst = NewMalloc<CCalcConstExpression>();
-		pcConst->Init();
+		pcConst->Init(mpcCalculator->GetErrors());
 		pcConst->SetValue(cNumber.Init((int32)ulli));  //This needs to properly take an int64.
 		return pcConst;
 	}
@@ -248,7 +266,7 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 			tResult = mcParser.GetExactCharacter('l', false);
 		}
 		pcConst = NewMalloc<CCalcConstExpression>();
-		pcConst->Init();
+		pcConst->Init(mpcCalculator->GetErrors());
 		pcConst->SetValue(&cNumber);
 		return pcConst;
 	}
@@ -287,7 +305,7 @@ CCalcOperator* CCalculatorParser::Operator(void)
 			eOp = pcDefinition->GetOperator();
 			mcParser.PassPosition();
 			pcOperator = NewMalloc<CCalcOperator>();
-			pcOperator->Init();
+			pcOperator->Init(mpcCalculator->GetErrors());
 			pcOperator->Set(eOp);
 			return pcOperator;
 		}
@@ -322,7 +340,7 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 		{
 			mcParser.PassPosition();
 			pcParentheses = NewMalloc<CCalcParentheses>();
-			pcParentheses->Init();
+			pcParentheses->Init(mpcCalculator->GetErrors());
 			pcParentheses->SetExpression(NULL);
 			return pcParentheses;
 		}
@@ -336,7 +354,7 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 				{
 					mcParser.PassPosition();
 					pcParentheses = NewMalloc<CCalcParentheses>();
-					pcParentheses->Init();
+					pcParentheses->Init(mpcCalculator->GetErrors());
 					pcParentheses->SetExpression(pcExpression);
 					return pcParentheses;
 				}

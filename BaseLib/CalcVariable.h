@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CCalculatorVariables;
+class CCalculatorError;
 class CCalcVariable : public CCalcExpression
 {
 protected:
@@ -33,7 +34,7 @@ protected:
 	CCalculatorVariables*	mpcVariableDefinitions;
 
 public:
-	void		Init(void);
+	void		Init(CCalculatorError* pcError);
 	void		Kill(void);
 	void		Set(char* szName, CCalculatorVariables* pcVariableDefinitions);
 	CNumber		Evaluate(void);

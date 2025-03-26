@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "PointerFunctions.h"
+#include "CalculatorError.h"
 #include "CalcBinaryExpression.h"
 
 
@@ -28,8 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcBinaryExpression::Init(void)
+void CCalcBinaryExpression::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	mpcLeft = NULL;
 	mpcOp = NULL;
 	mpcRight = NULL;

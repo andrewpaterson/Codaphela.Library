@@ -32,7 +32,7 @@ public:
 	CCalcExpression*	mpcExpression;
 	CCalcOperator*		mpcOp;
 
-	void	Init(void);
+	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	Set(CCalcExpression* mpcExpression, CCalcOperator* mpcOp);

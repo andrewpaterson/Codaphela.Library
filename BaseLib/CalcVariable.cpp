@@ -1,3 +1,5 @@
+#include "CalculatorVariables.h"
+#include "CalculatorError.h"
 #include "CalcVariable.h"
 
 
@@ -5,9 +7,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariable::Init(void)
+void CCalcVariable::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	mszName.Init();
+	mpcVariableDefinitions = NULL;
 }
 
 
@@ -17,6 +21,7 @@ void CCalcVariable::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalcVariable::Kill(void)
 {
+	mpcVariableDefinitions = NULL;
 	mszName.Kill();
 }
 
@@ -38,9 +43,30 @@ void CCalcVariable::Set(char* szName, CCalculatorVariables* pcVariableDefinition
 //////////////////////////////////////////////////////////////////////////
 CNumber	CCalcVariable::Evaluate(void)
 {
-	CNumber	cNumber;
-	cNumber.NotANumber();
-	return cNumber;
+	CCalcVariableDefinition*	pcVariableDefinition;
+	CCalcExpression*			pcExpression;
+	CNumber						cNumber;
+	CChars						sz;
+
+	pcVariableDefinition = mpcVariableDefinitions->Get(mszName.Text());
+	if (pcVariableDefinition)
+	{
+		pcExpression = pcVariableDefinition->GetExpression();
+
+		cNumber = pcExpression->Evaluate();
+		return cNumber;
+	}
+	else
+	{
+		//AssertString("Variable [x] is not assigned.", cCalculator.GetError());
+		sz.Init("Variable [");
+		sz.Append(mszName.Text());
+		sz.Append("] is not assigned.");
+		mpcError->SetError(sz.Text());
+		sz.Kill();
+		cNumber.NotANumber();
+		return cNumber;
+	}
 }
 
 

@@ -33,7 +33,7 @@ public:
 	CCalcOperator*		mpcOp;
 	CCalcExpression*	mpcRight;
 
-	void	Init(void);
+	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
 	CNumber	Evaluate(void);
 	void	Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight);

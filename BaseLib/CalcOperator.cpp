@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "CalculatorError.h"
 #include "CalcOperator.h"
 
 
@@ -27,8 +28,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcOperator::Init(void)
+void CCalcOperator::Init(CCalculatorError* pcError)
 {
+	mpcError = pcError;
 	meOp = CO_Invalid;
 }
 

@@ -34,7 +34,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcVariable.h"
 #include "CalculatorOperator.h"
 #include "CalcObjectArray.h"
-
+#include "CalculatorVariables.h"
+#include "CalculatorError.h"
 
 class CCalculator
 {
@@ -42,8 +43,9 @@ public:
 	CArrayCalculatorOperators	macOperators;
 	CCalculatorOperator			mcAssignment;
 
-	CChars						mszError;
-	bool						mbUseUserError;
+	CCalculatorVariables		mcVariables;
+	CCalculatorError			mcErrors;
+
 
 	void						Init(void);
 	void						Init(bool bUseUserError);
@@ -63,6 +65,11 @@ public:
 
 	CArrayCalculatorOperators*	GetOperators(void);
 	CCalculatorOperator*		GetAssignment(void);
+	CCalculatorVariables*		GetVariables(void);
+	CCalculatorError*			GetErrors(void);
+
+	void						Add(CCalcVariableDefinition* pcVariableDefinition);
+	void						Add(CCalcExpression* pcExpression);
 
 	void						Dump(CCalcObjectArray* papcExpressions);
 	void						Dump(CCalcObject* pcExpression);

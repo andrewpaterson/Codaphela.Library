@@ -90,9 +90,11 @@ void CMapBlock::Kill(void)
 {
 	size		i;
 	SMNode**	ppsNode;
+	size		uiNumElements;
 
 	mapArray.InsertHoldingIntoSorted();
-	for (i = 0; i < mapArray.NumElements(); i++)
+	uiNumElements = mapArray.NumElements();
+	for (i = 0; i < uiNumElements; i++)
 	{
 		ppsNode = (SMNode**)mapArray.GetInSorted(i);
 		if (mpcDataFree)

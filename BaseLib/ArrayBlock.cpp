@@ -87,7 +87,6 @@ void CArrayBlock::ReInit(void)
 	Kill();
 	Init(pcMalloc, miElementSize);
 	SetAllocateSize(iChunkSize);
-	
 }
 
 
