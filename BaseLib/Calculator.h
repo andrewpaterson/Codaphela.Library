@@ -52,6 +52,7 @@ public:
 	void						Kill(void);
 
 	CNumber						Eval(CCalcExpression* pcExpression);
+	CNumber						Eval(void);
 
 	CCalcExpression*			BuildExpression(CCalcObjectArray* pcArray);
 	size						GetMinPrecedence(CCalcObjectArray* papcExpressions);
@@ -60,8 +61,10 @@ public:
 	void						SetError(char* szError);
 	void						Print(CChars* psz, CCalcObjectArray* papcExpressions);
 	void						Print(CChars* psz, CCalcObject* pcExpression);
+	void						Print(CChars* psz);
 	bool						HasError(void);
 	char*						GetError(void);
+	void						ClearError(void);
 
 	CArrayCalculatorOperators*	GetOperators(void);
 	CCalculatorOperator*		GetAssignment(void);
@@ -70,6 +73,7 @@ public:
 
 	void						Add(CCalcVariableDefinition* pcVariableDefinition);
 	void						Add(CCalcExpression* pcExpression);
+	void						Add(CCalcObject* pcObject);
 
 	void						Dump(CCalcObjectArray* papcExpressions);
 	void						Dump(CCalcObject* pcExpression);

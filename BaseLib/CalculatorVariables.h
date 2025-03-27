@@ -15,13 +15,18 @@ protected:
 	CCalcVariablesMap	mmszpcVariables;
 
 public:
-	void Init(void);
-	void Kill(void);
+	void						Init(void);
+	void						Kill(void);
+	void						ReInit(void);
 
-	void Add(CCalcVariableDefinition* pcVariableDefinition);
-	void Add(CCalcExpression* pcExpression);
+	void						Add(CCalcVariableDefinition* pcVariableDefinition);
+	void						Add(CCalcExpression* pcExpression);
 
-	CCalcVariableDefinition* Get(char* szName);
+	CCalcVariableDefinition*	Get(char* szName);
+	CCalcExpression*			GetExpression(size uiIndex);
+	size						NumExpressions(void);
+
+	void						Print(CChars* psz);
 };
 
 

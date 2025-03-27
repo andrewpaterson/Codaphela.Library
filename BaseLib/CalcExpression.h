@@ -33,6 +33,7 @@ public:
 	virtual CNumber	Evaluate(void) =0;
 			bool 	IsExpression(void);
 			bool 	IsOperator(void);	
+			bool	IsVariableDefinition(void);
 };
 
 
