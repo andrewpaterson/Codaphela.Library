@@ -95,10 +95,35 @@ CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 {
 	CNumber				cAnswer;
 
-	if (!HasError())
+	if (!HasError() && (pcExpression != NULL))
 	{
 		cAnswer = pcExpression->Evaluate();
 		cAnswer.Clean();
+	}
+	else
+	{
+		cAnswer.NotANumber();
+	}
+
+	return cAnswer;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNumber CCalculator::Eval(void)
+{
+	CNumber				cAnswer;
+	size				uiNumElements;
+	CCalcExpression*	pcExpression;
+
+	uiNumElements = mcVariables.NumExpressions();
+	if (uiNumElements > 0)
+	{
+		pcExpression = mcVariables.GetExpression(uiNumElements - 1);
+		cAnswer = Eval(pcExpression);
 	}
 	else
 	{
@@ -409,9 +434,29 @@ void CCalculator::Print(CChars* psz, CCalcObject* pcExpression)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCalculator::Print(CChars* psz)
+{
+	mcVariables.Print(psz);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 char* CCalculator::GetError(void)
 {
 	return mcErrors.GetError();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::ClearError(void)
+{
+
 }
 
 
@@ -472,6 +517,26 @@ void CCalculator::Add(CCalcVariableDefinition* pcVariableDefinition)
 void CCalculator::Add(CCalcExpression* pcExpression)
 {
 	mcVariables.Add(pcExpression);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::Add(CCalcObject* pcObject)
+{
+	if (pcObject)
+	{
+		if (pcObject->IsExpression())
+		{
+			Add((CCalcExpression*)pcObject);
+		}
+		else if (pcObject->IsVariableDefinition())
+		{
+			Add((CCalcVariableDefinition*)pcObject);
+		}
+	}
 }
 
 

@@ -34,6 +34,7 @@ void CCalculatorParser::Init(CCalculator* pcCalculator)
 {
 	memset(this, 0, sizeof(CCalculatorParser));
 	mpcCalculator = pcCalculator;
+	mpcParser = NULL;
 }
 
 
@@ -43,6 +44,7 @@ void CCalculatorParser::Init(CCalculator* pcCalculator)
 //////////////////////////////////////////////////////////////////////////
 void CCalculatorParser::Kill(void)
 {
+	mpcParser = NULL;
 	mpcCalculator = NULL;
 }
 
@@ -53,6 +55,24 @@ void CCalculatorParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CCalcObject* CCalculatorParser::Parse(char* szText)
 {
+	CCalcObject*	pcObject;
+	CTextParser		cParser;
+
+	cParser.Init(szText);
+	pcObject = Parse(&cParser);
+	cParser.Kill();
+	mpcParser = NULL;
+
+	return pcObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExpression)
+{
 	CCalcExpression*			pcExpression;
 	CChars						sz;
 	CCalcVariable*				pcIdentifier;
@@ -60,37 +80,53 @@ CCalcObject* CCalculatorParser::Parse(char* szText)
 	CCalculatorOperator*		pcAssignment;
 	CCalcVariableDefinition*	pcVariableDefinition;
 
-	mcParser.Init(szText);
+	mpcParser = pcParser;
 
+	mpcParser->PushPosition();
 	pcIdentifier = Identifier();
 	if (pcIdentifier)
 	{
 		pcAssignment = mpcCalculator->GetAssignment();
-		tAssignment = mcParser.GetExactCharacterSequence(pcAssignment->GetSymbol(), true);
+		tAssignment = mpcParser->GetExactCharacterSequence(pcAssignment->GetSymbol(), true);
 
-		if (tAssignment != TRITRUE)
+		if (tAssignment == TRIERROR)
 		{
 			sz.Init("Cannot evaluate expression [");
-			sz.Append(mcParser.Start());
+			sz.Append(mpcParser->Start());
 			sz.Append("]\n");
 			mpcCalculator->SetError(sz.Text());
 			sz.Kill();
 
-			mcParser.Kill();
+			mpcParser->PassPosition();
 			return NULL;
 		}
+		else if (tAssignment == TRIFALSE)
+		{
+			SafeKill(pcIdentifier);
+			mpcParser->PopPosition();
+		}
+		else
+		{
+			mpcParser->PassPosition();
+		}
+	}
+	else
+	{
+		mpcParser->PopPosition();
 	}
 
 	pcExpression = Expression();
 	if (!pcExpression)
 	{
-		sz.Init("Cannot evaluate expression [");
-		sz.Append(mcParser.Start());
-		sz.Append("]\n");
-		mpcCalculator->SetError(sz.Text());
-		sz.Kill();
+		if (bErrorOnBadExpression)
+		{
+			sz.Init("Cannot evaluate expression [");
+			sz.Append(mpcParser->Start());
+			sz.Append("]\n");
+			mpcCalculator->SetError(sz.Text());
+			sz.Kill();
+		}
 
-		mcParser.Kill();
 		return NULL;
 	}
 
@@ -99,16 +135,13 @@ CCalcObject* CCalculatorParser::Parse(char* szText)
 		pcVariableDefinition = NewMalloc<CCalcVariableDefinition>();
 		pcVariableDefinition->Set(pcIdentifier, pcExpression);
 
-		mcParser.Kill();
 		return pcVariableDefinition;
 	}
 	else
 	{
-		mcParser.Kill();
 		return pcExpression;
 	}
 }
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -216,14 +249,14 @@ CCalcVariable* CCalculatorParser::Identifier(void)
 	CStackMemory<256>		cStack;
 	CCalculatorVariables*	pcVariables;
 
-	mcParser.PushPosition();
-	tResult = mcParser.GetIdentifier(NULL, &iLength);
-	mcParser.PopPosition();
+	mpcParser->PushPosition();
+	tResult = mpcParser->GetIdentifier(NULL, &iLength);
+	mpcParser->PopPosition();
 	if (tResult == TRITRUE)
 	{
 		pcVariables = mpcCalculator->GetVariables();
 		sz = (char*)cStack.Init(iLength + 1);
-		mcParser.GetIdentifier(sz);
+		mpcParser->GetIdentifier(sz);
 		pcIdentifier = NewMalloc<CCalcVariable>();
 		pcIdentifier->Init(mpcCalculator->GetErrors());
 		pcIdentifier->Set(sz, pcVariables);
@@ -248,7 +281,7 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 	uint64					ulli;
 	CCalcConstExpression*	pcConst;
 
-	tResult = mcParser.GetHexadecimal(&ulli);
+	tResult = mpcParser->GetHexadecimal(&ulli);
 	if (tResult == TRITRUE)
 	{
 		pcConst = NewMalloc<CCalcConstExpression>();
@@ -257,13 +290,13 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 		return pcConst;
 	}
 
-	tResult = mcParser.GetNumber(&cNumber);
+	tResult = mpcParser->GetNumber(&cNumber);
 	if (tResult == TRITRUE)
 	{
-		tResult = mcParser.GetExactCharacter('L', false);
+		tResult = mpcParser->GetExactCharacter('L', false);
 		if (tResult == false)
 		{
-			tResult = mcParser.GetExactCharacter('l', false);
+			tResult = mpcParser->GetExactCharacter('l', false);
 		}
 		pcConst = NewMalloc<CCalcConstExpression>();
 		pcConst->Init(mpcCalculator->GetErrors());
@@ -290,7 +323,7 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	CCalcOperator*				pcOperator;
 	CCalculatorOperator*		pcDefinition;
 
-	mcParser.PushPosition();
+	mpcParser->PushPosition();
 
 	pacOperators = mpcCalculator->GetOperators();
 	uiNumOperators = pacOperators->NumElements();
@@ -299,11 +332,11 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	{
 		pcDefinition = pacOperators->Get(i);
 		szSimpleOp = pcDefinition->GetSymbol();
-		tResult = mcParser.GetExactCharacterSequence(szSimpleOp);
+		tResult = mpcParser->GetExactCharacterSequence(szSimpleOp);
 		if (tResult == TRITRUE)
 		{
 			eOp = pcDefinition->GetOperator();
-			mcParser.PassPosition();
+			mpcParser->PassPosition();
 			pcOperator = NewMalloc<CCalcOperator>();
 			pcOperator->Init(mpcCalculator->GetErrors());
 			pcOperator->Set(eOp);
@@ -311,12 +344,12 @@ CCalcOperator* CCalculatorParser::Operator(void)
 		}
 		else if (tResult == TRIERROR)
 		{
-			mcParser.PopPosition();
+			mpcParser->PopPosition();
 			return NULL;
 		}
 	}
 
-	mcParser.PopPosition();
+	mpcParser->PopPosition();
 	return NULL;
 }
 
@@ -331,14 +364,14 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 	CCalcParentheses*	pcParentheses;
 	CCalcExpression*	pcExpression;
 
-	mcParser.PushPosition();
-	tResult = mcParser.GetExactCharacter('(');
+	mpcParser->PushPosition();
+	tResult = mpcParser->GetExactCharacter('(');
 	if (tResult == TRITRUE)
 	{
-		tResult = mcParser.GetExactCharacter(')');
+		tResult = mpcParser->GetExactCharacter(')');
 		if (tResult == TRITRUE)
 		{
-			mcParser.PassPosition();
+			mpcParser->PassPosition();
 			pcParentheses = NewMalloc<CCalcParentheses>();
 			pcParentheses->Init(mpcCalculator->GetErrors());
 			pcParentheses->SetExpression(NULL);
@@ -349,10 +382,10 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 			pcExpression = Expression();
 			if (pcExpression)
 			{
-				tResult = mcParser.GetExactCharacter(')');
+				tResult = mpcParser->GetExactCharacter(')');
 				if (tResult == TRITRUE)
 				{
-					mcParser.PassPosition();
+					mpcParser->PassPosition();
 					pcParentheses = NewMalloc<CCalcParentheses>();
 					pcParentheses->Init(mpcCalculator->GetErrors());
 					pcParentheses->SetExpression(pcExpression);
@@ -360,13 +393,13 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 				}
 			}
 			SafeKill(pcExpression);
-			mcParser.PopPosition();
+			mpcParser->PopPosition();
 			return NULL;
 		}
 	}
 	else
 	{
-		mcParser.PopPosition();
+		mpcParser->PopPosition();
 		return NULL;
 	}
 }

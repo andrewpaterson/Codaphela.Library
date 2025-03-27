@@ -37,8 +37,10 @@ public:
 	void				Print(CChars* psz);
 	char*				GetName(void);
 	CCalcExpression*	GetExpression(void);
+
 	bool				IsExpression(void);
 	bool				IsOperator(void);
+	bool				IsVariableDefinition(void);
 };
 
 

@@ -37,6 +37,7 @@ public:
 	virtual void Kill(void) =0;
 	virtual bool IsExpression(void) =0;
 	virtual bool IsOperator(void) =0;
+	virtual bool IsVariableDefinition(void) =0;
 	virtual void Print(CChars* psz) =0;
 			void Dump(void);
 };

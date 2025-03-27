@@ -30,12 +30,13 @@ class CCalculatorParser
 {
 public:
 	CCalculator*	mpcCalculator;
-	CTextParser		mcParser;
+	CTextParser*	mpcParser;
 
 	void					Init(CCalculator* pcCalculator);
 	void					Kill(void);
 
 	CCalcObject*			Parse(char* szText);
+	CCalcObject*			Parse(CTextParser* pcParser, bool bErrorOnBadExpression = true);
 
 	CCalcExpression*		Expression(void);
 	CCalcExpression*		Operand(void);
