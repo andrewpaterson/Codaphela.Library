@@ -352,7 +352,7 @@ char* IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase)
 	int32	iQuotient;
 	uint16  iDigit;
 	size	iPos;
-	bool		bNegative;
+	bool	bNegative;
 
 	if (iBase != 10)
 	{
@@ -433,6 +433,28 @@ char* IntToString(char* szDest, size iDestLength, uint32 iValue, uint16 iBase)
 	StrRev(szDest, iPos);
 
 	return szDest;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////////////
+char* SizeToString(char* szDest, size iDestLength, size iValue, uint16 iBase)
+{
+	if (sizeof(size) == 2)
+	{
+		return ShortToString(szDest, iDestLength, (uint16)iValue, iBase);
+	}
+	else if (sizeof(size) == 4)
+	{
+		return IntToString(szDest, iDestLength, (uint32)iValue, iBase);
+	}
+	else if (sizeof(size) == 8)
+	{
+		return LongToString(szDest, iDestLength, (uint64)iValue, iBase);
+	}
+	return NULL;
 }
 
 

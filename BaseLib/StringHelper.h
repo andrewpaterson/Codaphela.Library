@@ -57,6 +57,7 @@ char*		ShortToString(char* szDest, size iDestLength, int16 iValue, uint16 iBase 
 char*		ShortToString(char* szDest, size iDestLength, uint16 iValue, uint16 iBase = 10);
 char*		IntToString(char* szDest, size iDestLength, int32 iValue, uint16 iBase = 10);
 char*		IntToString(char* szDest, size iDestLength, uint32 iValue, uint16 iBase = 10);
+char*		SizeToString(char* szDest, size iDestLength, size iValue, uint16 iBase = 10);
 char*		LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase = 10);
 char*		LongToString(char* szDest, size iDestLength, uint64 ulliValue, uint16 iBase = 10);
 char*		FlagsToString(char* szDest, size iDestLength, int8 iFlags);

@@ -35,6 +35,7 @@ void CCalculatorParser::Init(CCalculator* pcCalculator)
 	memset(this, 0, sizeof(CCalculatorParser));
 	mpcCalculator = pcCalculator;
 	mpcParser = NULL;
+	mbSkipWhitespace = pcCalculator->IsSkipWhitespace();
 }
 
 
@@ -87,7 +88,7 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 	if (pcIdentifier)
 	{
 		pcAssignment = mpcCalculator->GetAssignment();
-		tAssignment = mpcParser->GetExactCharacterSequence(pcAssignment->GetSymbol(), true);
+		tAssignment = mpcParser->GetExactCharacterSequence(pcAssignment->GetSymbol(), mbSkipWhitespace);
 
 		if (tAssignment == TRIERROR)
 		{
@@ -133,7 +134,7 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 	if (pcIdentifier)
 	{
 		pcVariableDefinition = NewMalloc<CCalcVariableDefinition>();
-		pcVariableDefinition->Set(pcIdentifier, pcExpression);
+		pcVariableDefinition->Set(pcIdentifier, pcExpression, mbSkipWhitespace);
 
 		return pcVariableDefinition;
 	}
@@ -149,10 +150,10 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 //////////////////////////////////////////////////////////////////////////
 CCalcExpression* CCalculatorParser::Expression(void)
 {
-	bool					bFirst;
-	CCalcOperator*			pcOperator;
-	CCalcExpression*		pcOperand;
-	CCalcExpression*		pcExpression;
+	bool				bFirst;
+	CCalcOperator*		pcOperator;
+	CCalcExpression*	pcOperand;
+	CCalcExpression*	pcExpression;
 	CCalcObjectArray	apcExpressions;
 
 	apcExpressions.Init();
@@ -250,13 +251,13 @@ CCalcVariable* CCalculatorParser::Identifier(void)
 	CCalculatorVariables*	pcVariables;
 
 	mpcParser->PushPosition();
-	tResult = mpcParser->GetIdentifier(NULL, &iLength);
+	tResult = mpcParser->GetIdentifier(NULL, &iLength, mbSkipWhitespace);
 	mpcParser->PopPosition();
 	if (tResult == TRITRUE)
 	{
 		pcVariables = mpcCalculator->GetVariables();
 		sz = (char*)cStack.Init(iLength + 1);
-		mpcParser->GetIdentifier(sz);
+		mpcParser->GetIdentifier(sz, NULL, mbSkipWhitespace);
 		pcIdentifier = NewMalloc<CCalcVariable>();
 		pcIdentifier->Init(mpcCalculator->GetErrors());
 		pcIdentifier->Set(sz, pcVariables);
@@ -281,7 +282,7 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 	uint64					ulli;
 	CCalcConstExpression*	pcConst;
 
-	tResult = mpcParser->GetHexadecimal(&ulli);
+	tResult = mpcParser->GetHexadecimal(&ulli, NULL, mbSkipWhitespace);
 	if (tResult == TRITRUE)
 	{
 		pcConst = NewMalloc<CCalcConstExpression>();
@@ -290,7 +291,8 @@ CCalcConstExpression* CCalculatorParser::Value(void)
 		return pcConst;
 	}
 
-	tResult = mpcParser->GetNumber(&cNumber);
+	//This should be a part of the STextParserConfig.
+	tResult = mpcParser->GetNumber(&cNumber, mbSkipWhitespace);
 	if (tResult == TRITRUE)
 	{
 		tResult = mpcParser->GetExactCharacter('L', false);
@@ -328,24 +330,27 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	pacOperators = mpcCalculator->GetOperators();
 	uiNumOperators = pacOperators->NumElements();
 
-	for (i = 0; i < uiNumOperators; i++)
+	for (i = CO_Invalid+1; i < uiNumOperators; i++)
 	{
 		pcDefinition = pacOperators->Get(i);
-		szSimpleOp = pcDefinition->GetSymbol();
-		tResult = mpcParser->GetExactCharacterSequence(szSimpleOp);
-		if (tResult == TRITRUE)
+		eOp = pcDefinition->GetOperator();
+		if (eOp != CO_Invalid)
 		{
-			eOp = pcDefinition->GetOperator();
-			mpcParser->PassPosition();
-			pcOperator = NewMalloc<CCalcOperator>();
-			pcOperator->Init(mpcCalculator->GetErrors());
-			pcOperator->Set(eOp);
-			return pcOperator;
-		}
-		else if (tResult == TRIERROR)
-		{
-			mpcParser->PopPosition();
-			return NULL;
+			szSimpleOp = pcDefinition->GetSymbol();
+			tResult = mpcParser->GetExactCharacterSequence(szSimpleOp, mbSkipWhitespace);
+			if (tResult == TRITRUE)
+			{
+				mpcParser->PassPosition();
+				pcOperator = NewMalloc<CCalcOperator>();
+				pcOperator->Init(mpcCalculator->GetErrors());
+				pcOperator->Set(eOp, mpcCalculator->GetSymbols());
+				return pcOperator;
+			}
+			else if (tResult == TRIERROR)
+			{
+				mpcParser->PopPosition();
+				return NULL;
+			}
 		}
 	}
 
@@ -365,10 +370,10 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 	CCalcExpression*	pcExpression;
 
 	mpcParser->PushPosition();
-	tResult = mpcParser->GetExactCharacter('(');
+	tResult = mpcParser->GetExactCharacter('(', mbSkipWhitespace);
 	if (tResult == TRITRUE)
 	{
-		tResult = mpcParser->GetExactCharacter(')');
+		tResult = mpcParser->GetExactCharacter(')', mbSkipWhitespace);
 		if (tResult == TRITRUE)
 		{
 			mpcParser->PassPosition();
@@ -382,7 +387,7 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 			pcExpression = Expression();
 			if (pcExpression)
 			{
-				tResult = mpcParser->GetExactCharacter(')');
+				tResult = mpcParser->GetExactCharacter(')', mbSkipWhitespace);
 				if (tResult == TRITRUE)
 				{
 					mpcParser->PassPosition();
@@ -403,5 +408,4 @@ CCalcParentheses* CCalculatorParser::Parentheses(void)
 		return NULL;
 	}
 }
-
 

@@ -29,10 +29,11 @@ void CCalcVariableDefinition::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcVariableDefinition::Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression)
+void CCalcVariableDefinition::Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression, bool bPrintSpace)
 {
 	mpcVariable = pcVariable;
 	mpcExpression = pcExpression;
+	mbPrintSpace = bPrintSpace;
 }
 
 
@@ -43,9 +44,11 @@ void CCalcVariableDefinition::Set(CCalcVariable* pcVariable, CCalcExpression* pc
 void CCalcVariableDefinition::Print(CChars* psz)
 {
 	mpcVariable->Print(psz);
-	psz->Append(" ");
+	if (mbPrintSpace)
+		psz->Append(" ");
 	psz->Append("=");
-	psz->Append(" ");
+	if (mbPrintSpace)
+		psz->Append(" ");
 	mpcExpression->Print(psz);
 }
 

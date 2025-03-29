@@ -21,6 +21,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "CalculatorError.h"
+#include "CalculatorSymbols.h"
 #include "CalcOperator.h"
 
 
@@ -49,9 +50,10 @@ void CCalcOperator::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcOperator::Set(ECalcOperator eOp)
+void CCalcOperator::Set(ECalcOperator eOp, CCalculatorSymbols* pcSymbols)
 {
 	meOp = eOp;
+	mpcSymbols = pcSymbols;
 }
 
 
@@ -304,86 +306,16 @@ bool CCalcOperator::IsAmbiguous(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalcOperator::Print(CChars* psz)
 {
-	switch (meOp)
+	CCalculatorOperator* pcOperator;
+
+	pcOperator = mpcSymbols->GetOperator(meOp);
+	if (meOp != CO_Invalid)
 	{
-	case CO_Increment:
-		psz->Append("++");
-		break;
-	case CO_Decrement:
-		psz->Append("--");
-		break;
-	case CO_EqualTo:
-		psz->Append("==");
-		break;
-	case CO_NotEqualTo:
-		psz->Append("!=");
-		break;
-	case CO_GreaterThanEqualTo:
-		psz->Append(">=");
-		break;
-	case CO_LessThanEqualTo:
-		psz->Append("<=");
-		break;
-	case CO_LogicalOr:
-		psz->Append("||");
-		break;
-	case CO_LogicalAnd:
-		psz->Append("&&");
-		break;
-	case CO_LeftShift:
-		psz->Append("<<");
-		break;
-	case CO_RightShift:
-		psz->Append(">>");
-		break;
-	case CO_Add:
-		psz->Append("+");
-		break;
-	case CO_Subtract:
-		psz->Append("-");
-		break;
-	case CO_Multiply:
-		psz->Append("*");
-		break;
-	case CO_Divide:
-		psz->Append("/");
-		break;
-	case CO_Modulus:
-		psz->Append("%");
-		break;
-	case CO_LogicalNot:
-		psz->Append("!");
-		break;
-	case CO_BitwiseAnd:
-		psz->Append("&");
-		break;
-	case CO_BitwiseOr:
-		psz->Append("|");
-		break;
-	case CO_BitwiseXor:
-		psz->Append("^");
-		break;
-	case CO_LessThan:
-		psz->Append("<");
-		break;
-	case CO_GreaterThan:
-		psz->Append(">");
-		break;
-	case CO_BitwiseNot:
-		psz->Append("~");
-		break;
-	case CO_UnaryAdd:
-		psz->Append("+");
-		break;
-	case CO_UnarySubtract:
-		psz->Append("-");
-		break;
-	case CO_Invalid:
+		psz->Append(pcOperator->GetSymbol());
+	}
+	else
+	{
 		psz->Append("INVALID_OPERATOR");
-		break;
-	default:
-		psz->Append("UNKNOWN_OPERATOR");
-		break;
 	}
 }
 

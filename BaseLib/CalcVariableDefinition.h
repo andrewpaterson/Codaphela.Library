@@ -29,11 +29,12 @@ class CCalcVariableDefinition : public CCalcObject
 protected:
 	CCalcVariable*		mpcVariable;
 	CCalcExpression*	mpcExpression;
+	bool				mbPrintSpace;
 
 public:
 	void				Init(CCalculatorError* pcError);
 	void				Kill(void);
-	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression);
+	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression, bool bPrintSpace);
 	void				Print(CChars* psz);
 	char*				GetName(void);
 	CCalcExpression*	GetExpression(void);

@@ -17,6 +17,18 @@ void CCalculatorOperator::Init(char* szSymbol, ECalcOperator eOperator, uint16 i
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCalculatorOperator::Init(void)
+{
+	mszSymbol.Init();
+	meOperator = CO_Invalid;
+	miPrecedence = MAX_USHORT;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCalculatorOperator::Kill(void)
 {
 	mszSymbol.Kill();
@@ -88,3 +100,15 @@ CCalculatorOperator* CArrayCalculatorOperators::Add(char* szSymbol, ECalcOperato
 	return pcOperator;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCalculatorOperators::Add(void)
+{
+	CCalculatorOperator* pcOperator;
+
+	pcOperator = __CArrayCalculatorOperators::Add();
+	pcOperator->Init();
+}

@@ -2071,6 +2071,8 @@ TRISTATE CTextParser::GetNumber(CNumber* pcNumber, bool bSkipWhitespace)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CTextParser::GetNumber(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bSkipWhitespace)
 {
+	//This should be a part of the STextParserConfig.
+
 	char*		szStart;
 	double		fIgnored;
 	TRISTATE	tResult;

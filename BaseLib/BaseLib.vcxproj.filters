@@ -1680,6 +1680,9 @@
     <ClInclude Include="CalculatorError.h">
       <Filter>Source\Calculator</Filter>
     </ClInclude>
+    <ClInclude Include="CalculatorSymbols.h">
+      <Filter>Source\Calculator</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2679,6 +2682,9 @@
       <Filter>Source\Calculator</Filter>
     </ClCompile>
     <ClCompile Include="CalculatorError.cpp">
+      <Filter>Source\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="CalculatorSymbols.cpp">
       <Filter>Source\Calculator</Filter>
     </ClCompile>
   </ItemGroup>
