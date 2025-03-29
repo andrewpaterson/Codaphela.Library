@@ -37,6 +37,7 @@ protected:
 
 public:
 	void Init(char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
+	void Init(void);
 	void Kill(void);
 
 	char*			GetSymbol(void);
@@ -54,6 +55,7 @@ public:
 	void					Kill(void);
 
 	CCalculatorOperator*	Add(char* szSymbol, ECalcOperator eOperator, uint16 iPrecedence);
+	void					Add(void);
 };
 
 

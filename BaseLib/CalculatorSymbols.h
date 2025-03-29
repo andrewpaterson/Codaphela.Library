@@ -20,30 +20,35 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __CALC_VARIABLE_DEFINITION_H__
-#define __CALC_VARIABLE_DEFINITION_H__
-#include "CalcVariable.h"
+#ifndef __CALCULATOR_SYMBOLS_H__
+#define __CALCULATOR_SYMBOLS_H__
+#include "Define.h"
+#include "Chars.h"
+#include "CalculatorOperator.h"
 
-class CCalcVariableDefinition : public CCalcObject
+
+class CCalculatorSymbols
 {
 protected:
-	CCalcVariable*		mpcVariable;
-	CCalcExpression*	mpcExpression;
-	bool				mbPrintSpace;
+	CArrayCalculatorOperators	macOperators;
+	CCalculatorOperator			mcAssignment;
+	bool						mbValidated;
 
 public:
-	void				Init(CCalculatorError* pcError);
-	void				Kill(void);
-	void				Set(CCalcVariable* pcVariable, CCalcExpression* pcExpression, bool bPrintSpace);
-	void				Print(CChars* psz);
-	char*				GetName(void);
-	CCalcExpression*	GetExpression(void);
+	void						Init(bool bEmpty = true);
+	void						Kill(void);
 
-	bool				IsExpression(void);
-	bool				IsOperator(void);
-	bool				IsVariableDefinition(void);
+	bool						Validate(void);
+
+	CCalculatorOperator*		GetOperator(ECalcOperator eOp);
+	
+	bool						SetOperator(char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence);
+	bool						SetAssignment(char* szSymbol, uint16 uiPrecedence);
+
+	CArrayCalculatorOperators*	GetOperators(void);
+	CCalculatorOperator*		GetAssignment(void);
 };
 
 
-#endif // __CALC_VARIABLE_DEFINITION_H__
+#endif // __CALCULATOR_SYMBOLS_H__
 

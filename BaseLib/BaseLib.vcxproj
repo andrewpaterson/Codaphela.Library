@@ -188,6 +188,7 @@
     <ClInclude Include="CalcObjectArray.h" />
     <ClInclude Include="CalculatorOperator.h" />
     <ClInclude Include="CalculatorParser.h" />
+    <ClInclude Include="CalculatorSymbols.h" />
     <ClInclude Include="CalculatorVariables.h" />
     <ClInclude Include="CalcVariable.h" />
     <ClInclude Include="CalcVariableDefinition.h" />
@@ -592,6 +593,7 @@
     <ClCompile Include="CalculatorError.cpp" />
     <ClCompile Include="CalculatorOperator.cpp" />
     <ClCompile Include="CalculatorParser.cpp" />
+    <ClCompile Include="CalculatorSymbols.cpp" />
     <ClCompile Include="CalculatorVariables.cpp" />
     <ClCompile Include="CalcVariable.cpp" />
     <ClCompile Include="CalcVariableDefinition.cpp" />

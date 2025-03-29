@@ -31,6 +31,7 @@ class CCalculatorParser
 public:
 	CCalculator*	mpcCalculator;
 	CTextParser*	mpcParser;
+	bool			mbSkipWhitespace;
 
 	void					Init(CCalculator* pcCalculator);
 	void					Kill(void);

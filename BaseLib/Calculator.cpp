@@ -41,32 +41,7 @@ void CCalculator::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::Init(bool bUseUserError)
 {
-	macOperators.Init();
-
-	macOperators.Add("++", CO_Increment,		  0);	
-	macOperators.Add("--", CO_Decrement,		  0);	
-	macOperators.Add("==", CO_EqualTo,			  6);	
-	macOperators.Add("!=", CO_NotEqualTo,		  6);	
-	macOperators.Add(">=", CO_GreaterThanEqualTo, 5);	
-	macOperators.Add("<=", CO_LessThanEqualTo,	  5);	
-	macOperators.Add("||", CO_LogicalOr,		  11);	
-	macOperators.Add("&&", CO_LogicalAnd,		  10);  
-	macOperators.Add("<<", CO_LeftShift,		  4);	
-	macOperators.Add(">>", CO_RightShift,		  4);	
-	macOperators.Add( "+", CO_Add,				  3);	
-	macOperators.Add( "-", CO_Subtract,			  3);	
-	macOperators.Add( "*", CO_Multiply,			  2);	
-	macOperators.Add( "/", CO_Divide,			  2);	
-	macOperators.Add( "%", CO_Modulus,			  2);	
-	macOperators.Add( "!", CO_LogicalNot,		  1);	
-	macOperators.Add( "&", CO_BitwiseAnd,		  7);	
-	macOperators.Add( "|", CO_BitwiseOr,		  9);	
-	macOperators.Add( "^", CO_BitwiseXor,		  8);	
-	macOperators.Add( "<", CO_LessThan,			  5);	
-	macOperators.Add( ">", CO_GreaterThan,		  5);	
-	macOperators.Add( "~", CO_BitwiseNot,		  1);	
-
-	mcAssignment.Init("=", CO_Assignment, 12);
+	mcSymbols.Init(false);
 
 	mcErrors.Init(bUseUserError);
 
@@ -78,12 +53,27 @@ void CCalculator::Init(bool bUseUserError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCalculator::Init(bool bEmptySymbols, bool bSkipWhitespace, bool bUseUserError)
+{
+	mcSymbols.Init(bEmptySymbols);
+
+	mcErrors.Init(bUseUserError);
+
+	mcVariables.Init();
+
+	mbSkipWhitespace = bSkipWhitespace;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCalculator::Kill(void)
 {
 	mcVariables.Kill();
 	mcErrors.Kill();
-	mcAssignment.Kill();
-	macOperators.Kill();
+	mcSymbols.Kill();
 }
 
 
@@ -94,6 +84,8 @@ void CCalculator::Kill(void)
 CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 {
 	CNumber				cAnswer;
+
+	mcSymbols.Validate();
 
 	if (!HasError() && (pcExpression != NULL))
 	{
@@ -235,7 +227,7 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 						pcOperandRight = (CCalcExpression*)pcObjectRight;
 						pcBinary = NewMalloc<CCalcBinaryExpression>();
 						pcBinary->Init(GetErrors());
-						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight);
+						pcBinary->Set(pcOperandLeft, pcOperator, pcOperandRight, mbSkipWhitespace);
 						papcExpressions->RemoveAt(iIndex + 1);
 						papcExpressions->SetPtr(iIndex, pcBinary);
 						papcExpressions->RemoveAt(iIndex - 1);
@@ -309,7 +301,7 @@ size CCalculator::GetMinPrecedence(CCalcObjectArray* papcExpressions)
 		if (pcObject->IsOperator())
 		{
 			pcOperator = (CCalcOperator*)pcObject;
-			pcDefinition = macOperators.Get(pcOperator->meOp);
+			pcDefinition = mcSymbols.GetOperator(pcOperator->meOp);
 			iPrecedence = pcDefinition->GetPrecedence();
 			if (iPrecedence < iMinPrecedence)
 			{
@@ -466,7 +458,7 @@ void CCalculator::ClearError(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayCalculatorOperators* CCalculator::GetOperators(void)
 {
-	return &macOperators;
+	return mcSymbols.GetOperators();
 }
 
 
@@ -476,7 +468,7 @@ CArrayCalculatorOperators* CCalculator::GetOperators(void)
 //////////////////////////////////////////////////////////////////////////
 CCalculatorOperator* CCalculator::GetAssignment(void)
 {
-	return &mcAssignment;
+	return mcSymbols.GetAssignment();
 }
 
 
@@ -487,6 +479,26 @@ CCalculatorOperator* CCalculator::GetAssignment(void)
 CCalculatorVariables* CCalculator::GetVariables(void)
 {
 	return &mcVariables;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalculatorSymbols* CCalculator::GetSymbols(void)
+{
+	return &mcSymbols;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCalculator::IsSkipWhitespace(void)
+{
+	return mbSkipWhitespace;
 }
 
 

@@ -32,11 +32,12 @@ public:
 	CCalcExpression*	mpcLeft;
 	CCalcOperator*		mpcOp;
 	CCalcExpression*	mpcRight;
+	bool				mbPrintSpace;
 
 	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
 	CNumber	Evaluate(void);
-	void	Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight);
+	void	Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight, bool bPrintSpace);
 	void	Print(CChars* psz);
 };
 

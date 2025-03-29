@@ -32,23 +32,25 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "CalcConstExpression.h"
 #include "CalcParentheses.h"
 #include "CalcVariable.h"
-#include "CalculatorOperator.h"
 #include "CalcObjectArray.h"
 #include "CalculatorVariables.h"
+#include "CalculatorSymbols.h"
 #include "CalculatorError.h"
+
 
 class CCalculator
 {
 public:
-	CArrayCalculatorOperators	macOperators;
-	CCalculatorOperator			mcAssignment;
+	CCalculatorSymbols			mcSymbols;
 
 	CCalculatorVariables		mcVariables;
 	CCalculatorError			mcErrors;
 
+	bool						mbSkipWhitespace;
 
 	void						Init(void);
 	void						Init(bool bUseUserError);
+	void						Init(bool bEmptySymbols, bool bSkipWhitespace, bool bUseUserError);
 	void						Kill(void);
 
 	CNumber						Eval(CCalcExpression* pcExpression);
@@ -70,6 +72,8 @@ public:
 	CCalculatorOperator*		GetAssignment(void);
 	CCalculatorVariables*		GetVariables(void);
 	CCalculatorError*			GetErrors(void);
+	CCalculatorSymbols*			GetSymbols(void);
+	bool						IsSkipWhitespace(void);
 
 	void						Add(CCalcVariableDefinition* pcVariableDefinition);
 	void						Add(CCalcExpression* pcExpression);

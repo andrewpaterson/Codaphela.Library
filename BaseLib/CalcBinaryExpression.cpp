@@ -74,11 +74,12 @@ CNumber	CCalcBinaryExpression::Evaluate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalcBinaryExpression::Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight)
+void CCalcBinaryExpression::Set(CCalcExpression* pcLeft, CCalcOperator* pcOp, CCalcExpression* pcRight, bool bPrintSpace)
 {
 	mpcLeft = pcLeft;
 	mpcOp = pcOp;
 	mpcRight = pcRight;
+	mbPrintSpace = bPrintSpace;
 }
 
 
@@ -90,9 +91,11 @@ void CCalcBinaryExpression::Print(CChars* psz)
 {
 	psz->Append("(");
 	mpcLeft->Print(psz);
-	psz->Append(" ");
+	if (mbPrintSpace)
+		psz->Append(" ");
 	mpcOp->Print(psz);
-	psz->Append(" ");
+	if (mbPrintSpace)
+		psz->Append(" ");
 	mpcRight->Print(psz);
 	psz->Append(")");
 }

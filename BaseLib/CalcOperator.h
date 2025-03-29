@@ -29,6 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 enum ECalcOperator
 {
+	CO_Invalid,
 	CO_Increment,
 	CO_Decrement,
 	CO_EqualTo,
@@ -51,21 +52,23 @@ enum ECalcOperator
 	CO_LessThan,
 	CO_GreaterThan,
 	CO_BitwiseNot,
+
 	CO_UnaryAdd,
 	CO_UnarySubtract,
 	CO_Assignment,
-	CO_Invalid,
 };
 
 
+class CCalculatorSymbols;
 class CCalcOperator : public CCalcObject
 {
 public:
-	ECalcOperator	meOp;
+	ECalcOperator			meOp;
+	CCalculatorSymbols*		mpcSymbols;
 
 	void	Init(CCalculatorError* pcError);
 	void	Kill(void);
-	void	Set(ECalcOperator eOp);
+	void	Set(ECalcOperator eOp, CCalculatorSymbols* pcSymbols);
 	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
 	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
 
