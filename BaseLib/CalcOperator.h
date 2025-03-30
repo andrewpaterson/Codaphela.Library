@@ -30,6 +30,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 enum ECalcOperator
 {
 	CO_Invalid,
+
+	//Parsable operators
 	CO_Increment,
 	CO_Decrement,
 	CO_EqualTo,
@@ -45,6 +47,7 @@ enum ECalcOperator
 	CO_Multiply,
 	CO_Divide,
 	CO_Modulus,
+	CO_Power,
 	CO_LogicalNot,
 	CO_BitwiseAnd,
 	CO_BitwiseOr,
@@ -53,8 +56,11 @@ enum ECalcOperator
 	CO_GreaterThan,
 	CO_BitwiseNot,
 
+	//Implied operators
 	CO_UnaryAdd,
 	CO_UnarySubtract,
+
+	//Special operators
 	CO_Assignment,
 };
 

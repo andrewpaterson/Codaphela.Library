@@ -28,6 +28,7 @@ void CCalculatorSymbols::Init(bool bEmpty)
 		macOperators.Add("*", CO_Multiply, 2);
 		macOperators.Add("/", CO_Divide, 2);
 		macOperators.Add("%", CO_Modulus, 2);
+		macOperators.Add("^", CO_Power, 2);
 		macOperators.Add("!", CO_LogicalNot, 1);
 		macOperators.Add("&", CO_BitwiseAnd, 7);
 		macOperators.Add("|", CO_BitwiseOr, 9);
@@ -35,9 +36,16 @@ void CCalculatorSymbols::Init(bool bEmpty)
 		macOperators.Add("<", CO_LessThan, 5);
 		macOperators.Add(">", CO_GreaterThan, 5);
 		macOperators.Add("~", CO_BitwiseNot, 1);
+		macOperators.Add("+", CO_UnaryAdd, 1);
+		macOperators.Add("-", CO_UnarySubtract, 1);
+		macOperators.Add("=", CO_Assignment, 13);
 	}
 	else
 	{
+		macOperators.Add();
+		macOperators.Add();
+		macOperators.Add();
+		macOperators.Add();
 		macOperators.Add();
 		macOperators.Add();
 		macOperators.Add();
@@ -62,14 +70,7 @@ void CCalculatorSymbols::Init(bool bEmpty)
 		macOperators.Add();
 	}
 
-	if (!bEmpty)
-	{
-		mcAssignment.Init("=", CO_Assignment, 12);
-	}
-	else
-	{
-		mcAssignment.Init();
-	}
+	mpcAssignment = macOperators.Get(CO_Assignment);
 
 	mbValidated = false;
 }
@@ -85,11 +86,13 @@ bool CCalculatorSymbols::Validate(void)
 	size					i;
 	CCalculatorOperator*	pcOperator;
 	ECalcOperator			eOp;
+	uint16					uiMaxPrecedence;
 
+	uiMaxPrecedence = 0;
 	if (!mbValidated)
 	{
 		uiNumElments = macOperators.NumElements();
-		for (i = CO_Invalid+1; i <= CO_BitwiseNot; i++)
+		for (i = CO_Invalid+1; i <= CO_Assignment; i++)
 		{
 			pcOperator = macOperators.SafeGet(i);
 			eOp = pcOperator->GetOperator();
@@ -103,6 +106,21 @@ bool CCalculatorSymbols::Validate(void)
 			}
 		}
 		mbValidated = true;
+
+		for (i = CO_Invalid + 1; i <= CO_Assignment; i++)
+		{
+			pcOperator = macOperators.SafeGet(i);
+			eOp = pcOperator->GetOperator();
+			if (eOp != CO_Invalid)
+			{
+				if (uiMaxPrecedence < pcOperator->GetPrecedence())
+				{
+					uiMaxPrecedence = pcOperator->GetPrecedence();
+				}
+			}
+		}
+
+		muiMaxPrecedence = uiMaxPrecedence;
 	}
 	return true;
 }
@@ -114,7 +132,6 @@ bool CCalculatorSymbols::Validate(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalculatorSymbols::Kill(void)
 {
-	mcAssignment.Kill();
 	macOperators.Kill();
 }
 
@@ -137,9 +154,9 @@ bool CCalculatorSymbols::SetOperator(char* szSymbol, ECalcOperator eOp, uint16 u
 {
 	CCalculatorOperator*	pcOperator;
 
-	if (eOp <= CO_UnarySubtract)
+	pcOperator = macOperators.SafeGet(eOp);
+	if (pcOperator)
 	{
-		pcOperator = macOperators.Get(eOp);
 		pcOperator->Init(szSymbol, eOp, uiPrecedence);
 		return true;
 	}
@@ -147,17 +164,6 @@ bool CCalculatorSymbols::SetOperator(char* szSymbol, ECalcOperator eOp, uint16 u
 	{
 		return false;
 	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CCalculatorSymbols::SetAssignment(char* szSymbol, uint16 uiPrecedence)
-{
-	mcAssignment.Init(szSymbol, CO_Assignment, uiPrecedence);
-	return true;
 }
 
 
@@ -177,5 +183,16 @@ CArrayCalculatorOperators* CCalculatorSymbols::GetOperators(void)
 //////////////////////////////////////////////////////////////////////////
 CCalculatorOperator* CCalculatorSymbols::GetAssignment(void)
 {
-	return &mcAssignment;
+	return mpcAssignment;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CCalculatorSymbols::GetMaxPrecedence(void)
+{
+	return muiMaxPrecedence;
+}
+
