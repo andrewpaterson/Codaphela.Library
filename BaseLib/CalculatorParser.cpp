@@ -81,6 +81,8 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 	CCalculatorOperator*		pcAssignment;
 	CCalcVariableDefinition*	pcVariableDefinition;
 
+	mpcCalculator->GetSymbols()->Validate();
+
 	mpcParser = pcParser;
 
 	mpcParser->PushPosition();
@@ -328,9 +330,9 @@ CCalcOperator* CCalculatorParser::Operator(void)
 	mpcParser->PushPosition();
 
 	pacOperators = mpcCalculator->GetOperators();
-	uiNumOperators = pacOperators->NumElements();
+	uiNumOperators = CO_BitwiseNot;
 
-	for (i = CO_Invalid+1; i < uiNumOperators; i++)
+	for (i = CO_Invalid+1; i <= uiNumOperators; i++)
 	{
 		pcDefinition = pacOperators->Get(i);
 		eOp = pcDefinition->GetOperator();

@@ -148,8 +148,6 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 
 	szStart.Init();
 
-	Dump(papcExpressions);
-
 	iOldUsedElements = papcExpressions->NumElements();
 	while (papcExpressions->NumElements() > 1)
 	{
@@ -292,7 +290,7 @@ size CCalculator::GetMinPrecedence(CCalcObjectArray* papcExpressions)
 	size					uiNumElements;
 	CCalculatorOperator*	pcDefinition;
 
-	iMinPrecedence = 12;
+	iMinPrecedence = mcSymbols.GetMaxPrecedence() + 1;
 	iMinIndex = ARRAY_ELEMENT_NOT_FOUND;
 	uiNumElements = papcExpressions->NumElements();
 	for (i = 0; i < uiNumElements; i++)

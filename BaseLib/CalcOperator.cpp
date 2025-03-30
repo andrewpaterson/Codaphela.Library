@@ -33,6 +33,7 @@ void CCalcOperator::Init(CCalculatorError* pcError)
 {
 	mpcError = pcError;
 	meOp = CO_Invalid;
+	mpcSymbols = NULL;;
 }
 
 

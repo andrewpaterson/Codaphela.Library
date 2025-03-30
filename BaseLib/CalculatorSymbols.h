@@ -31,8 +31,9 @@ class CCalculatorSymbols
 {
 protected:
 	CArrayCalculatorOperators	macOperators;
-	CCalculatorOperator			mcAssignment;
+	CCalculatorOperator*		mpcAssignment;
 	bool						mbValidated;
+	uint16						muiMaxPrecedence;
 
 public:
 	void						Init(bool bEmpty = true);
@@ -41,12 +42,12 @@ public:
 	bool						Validate(void);
 
 	CCalculatorOperator*		GetOperator(ECalcOperator eOp);
-	
 	bool						SetOperator(char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence);
-	bool						SetAssignment(char* szSymbol, uint16 uiPrecedence);
 
 	CArrayCalculatorOperators*	GetOperators(void);
 	CCalculatorOperator*		GetAssignment(void);
+
+	uint16						GetMaxPrecedence(void);
 };
 
 
