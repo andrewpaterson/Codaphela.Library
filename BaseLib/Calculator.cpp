@@ -130,6 +130,66 @@ CNumber CCalculator::Eval(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCalculator::ConvertToUnaryOperators(CCalcObjectArray* papcExpressions)
+{
+	size					i;
+	CCalcOperator*			pcPreviousOperator;
+	CCalcObject*			pcObject;
+	CCalcObject*			pcPrevious;
+	ECalcOperator			eOperator;
+
+	if (!papcExpressions->IsEmpty())
+	{
+		i = papcExpressions->NumElements();
+		pcPrevious = NULL;
+		do
+		{
+			i--;
+			pcObject = (CCalcObject*)papcExpressions->GetPtr(i);
+			if (pcPrevious != NULL)
+			{
+				if (pcPrevious->IsOperator() && pcObject->IsOperator())
+				{
+					pcPreviousOperator = (CCalcOperator*)pcPrevious;
+					eOperator = pcPreviousOperator->GetOperator();
+					if (eOperator == CO_Add)
+					{
+						pcPreviousOperator->SetOperator(CO_UnaryAdd);
+					}
+					else if (eOperator == CO_Subtract)
+					{
+						pcPreviousOperator->SetOperator(CO_UnarySubtract);
+					}
+				}
+			}
+			pcPrevious = pcObject;
+
+		} while (i != 0);
+
+		if (pcPrevious != NULL)
+		{
+			if (pcPrevious->IsOperator())
+			{
+				pcPreviousOperator = (CCalcOperator*)pcPrevious;
+				eOperator = pcPreviousOperator->GetOperator();
+				if (eOperator == CO_Add)
+				{
+					pcPreviousOperator->SetOperator(CO_UnaryAdd);
+				}
+				else if (eOperator == CO_Subtract)
+				{
+					pcPreviousOperator->SetOperator(CO_UnarySubtract);
+				}
+			}
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 {
 	size					iIndex;
@@ -144,9 +204,11 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 	CCalcExpression*		pcOperandRight;
 	size					iOldUsedElements;
 	CChars					szStart;
-	bool					bUnary;
+
+	ConvertToUnaryOperators(papcExpressions);
 
 	szStart.Init();
+	Print(&szStart, papcExpressions);
 
 	iOldUsedElements = papcExpressions->NumElements();
 	while (papcExpressions->NumElements() > 1)
@@ -165,24 +227,6 @@ CCalcExpression* CCalculator::BuildExpression(CCalcObjectArray* papcExpressions)
 			return NULL;
 		}
 		pcOperator = (CCalcOperator*)papcExpressions->GetPtr(iIndex);
-
-		if (pcOperator->IsAmbiguous())
-		{
-			pcObject = (CCalcObject*)papcExpressions->SafeGetPtr(iIndex - 1);
-			bUnary = false;
-			if (pcObject == NULL)
-			{
-				bUnary = true;
-			}
-			else
-			{
-				if (pcObject->IsOperator())
-				{
-					bUnary = true;
-				}
-			}
-			pcOperator->meOp = ResolveAmbiguity(pcOperator->meOp, bUnary);
-		}
 
 		if (pcOperator->IsUnary())
 		{
