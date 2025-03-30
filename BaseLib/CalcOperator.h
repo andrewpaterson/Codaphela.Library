@@ -42,12 +42,12 @@ enum ECalcOperator
 	CO_LogicalAnd,
 	CO_LeftShift,
 	CO_RightShift,
+	CO_Power,
 	CO_Add,
 	CO_Subtract,
 	CO_Multiply,
 	CO_Divide,
 	CO_Modulus,
-	CO_Power,
 	CO_LogicalNot,
 	CO_BitwiseAnd,
 	CO_BitwiseOr,
@@ -72,21 +72,23 @@ public:
 	ECalcOperator			meOp;
 	CCalculatorSymbols*		mpcSymbols;
 
-	void	Init(CCalculatorError* pcError);
-	void	Kill(void);
-	void	Set(ECalcOperator eOp, CCalculatorSymbols* pcSymbols);
-	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
-	void	Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
+	void			Init(CCalculatorError* pcError);
+	void			Kill(void);
+	void			Set(ECalcOperator eOp, CCalculatorSymbols* pcSymbols);
+	void			Evaluate(CNumber* pcAnswer, CNumber* pcNumberLeft, CNumber* pcNumberRight);
+	void			Evaluate(CNumber* pcAnswer, CNumber* pcNumber);
 
-	bool	IsExpression(void);
-	bool	IsOperator(void);
-	bool	IsVariableDefinition(void);
+	bool			IsExpression(void);
+	bool			IsOperator(void);
+	bool			IsVariableDefinition(void);
 
-	bool	IsUnary(void);
-	bool	IsBinary(void);
-	bool	IsAmbiguous(void);
+	bool			IsUnary(void);
+	bool			IsBinary(void);
 
-	void	Print(CChars* psz);
+	ECalcOperator	GetOperator(void);
+	void			SetOperator(ECalcOperator eOp);
+
+	void			Print(CChars* psz);
 };
 
 

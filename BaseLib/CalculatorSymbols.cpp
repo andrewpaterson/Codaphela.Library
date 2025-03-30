@@ -13,8 +13,8 @@ void CCalculatorSymbols::Init(bool bEmpty)
 	macOperators.Add();
 	if (!bEmpty)
 	{
-		macOperators.Add("++", CO_Increment, 0);
-		macOperators.Add("--", CO_Decrement, 0);
+		macOperators.Add("++", CO_Increment, 1);
+		macOperators.Add("--", CO_Decrement, 1);
 		macOperators.Add("==", CO_EqualTo, 6);
 		macOperators.Add("!=", CO_NotEqualTo, 6);
 		macOperators.Add(">=", CO_GreaterThanEqualTo, 5);
@@ -23,12 +23,12 @@ void CCalculatorSymbols::Init(bool bEmpty)
 		macOperators.Add("&&", CO_LogicalAnd, 10);
 		macOperators.Add("<<", CO_LeftShift, 4);
 		macOperators.Add(">>", CO_RightShift, 4);
+		macOperators.Add("^^", CO_Power, 2);
 		macOperators.Add("+", CO_Add, 3);
 		macOperators.Add("-", CO_Subtract, 3);
 		macOperators.Add("*", CO_Multiply, 2);
 		macOperators.Add("/", CO_Divide, 2);
 		macOperators.Add("%", CO_Modulus, 2);
-		macOperators.Add("^", CO_Power, 2);
 		macOperators.Add("!", CO_LogicalNot, 1);
 		macOperators.Add("&", CO_BitwiseAnd, 7);
 		macOperators.Add("|", CO_BitwiseOr, 9);
@@ -36,8 +36,8 @@ void CCalculatorSymbols::Init(bool bEmpty)
 		macOperators.Add("<", CO_LessThan, 5);
 		macOperators.Add(">", CO_GreaterThan, 5);
 		macOperators.Add("~", CO_BitwiseNot, 1);
-		macOperators.Add("+", CO_UnaryAdd, 1);
-		macOperators.Add("-", CO_UnarySubtract, 1);
+		macOperators.Add("+", CO_UnaryAdd, 0);
+		macOperators.Add("-", CO_UnarySubtract, 0);
 		macOperators.Add("=", CO_Assignment, 13);
 	}
 	else

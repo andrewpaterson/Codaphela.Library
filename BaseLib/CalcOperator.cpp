@@ -287,17 +287,19 @@ bool CCalcOperator::IsUnary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalcOperator::IsAmbiguous(void)
+ECalcOperator CCalcOperator::GetOperator(void)
 {
-	switch (meOp)
-	{
-	case CO_Add:
-	case CO_Subtract:
-	case CO_UnaryAdd:
-	case CO_UnarySubtract:
-		return true;
-	}
-	return false;
+	return meOp;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalcOperator::SetOperator(ECalcOperator eOp)
+{
+	meOp = eOp;
 }
 
 
