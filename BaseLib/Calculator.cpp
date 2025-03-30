@@ -360,38 +360,71 @@ size CCalculator::GetMinPrecedence(CCalcObjectArray* papcExpressions)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-ECalcOperator CCalculator::ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary)
+void CCalculator::StripParentheses(CCalcExpression** ppcExpression)
 {
-	if (bIsUnary)
+	CCalcParentheses*	pcChild;
+
+	for (;;)
 	{
-		if (eOperator == CO_Add)
+		if ((*ppcExpression)->IsParentheses())
 		{
-			return CO_UnaryAdd;
-		}
-		else if (eOperator == CO_Subtract)
-		{
-			return CO_UnarySubtract;
+			pcChild = (CCalcParentheses*)*ppcExpression;
+			*ppcExpression = pcChild->mpcExpression;
+			SafeFree(pcChild);
 		}
 		else
 		{
-			return eOperator;
+			break;
 		}
 	}
-	else
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCalculator::RecurseCleanExpression(CCalcExpression* pcExpression)
+{
+	CCalcParentheses*		pcParentheses;
+	CCalcBinaryExpression*	pcBinary;
+	CCalcUnaryExpression*	pcUnary;
+
+	if (pcExpression->IsParentheses())
 	{
-		if (eOperator == CO_UnaryAdd)
-		{
-			return CO_Add;
-		}
-		else if (eOperator == CO_UnarySubtract)
-		{
-			return CO_Subtract;
-		}
-		else
-		{
-			return eOperator;
-		}
+		pcParentheses = (CCalcParentheses*)pcExpression;
+		StripParentheses(&pcParentheses->mpcExpression);
+		CleanExpression(pcParentheses->mpcExpression);
 	}
+	else if (pcExpression->IsBinaryExpression())
+	{
+		pcBinary = (CCalcBinaryExpression*)pcExpression;
+		StripParentheses(&pcBinary->mpcLeft);
+		StripParentheses(&pcBinary->mpcRight);
+		CleanExpression(pcBinary->mpcLeft);
+		CleanExpression(pcBinary->mpcRight);
+	}
+	else if (pcExpression->IsUnaryExpression())
+	{
+		pcUnary = (CCalcUnaryExpression*)pcExpression;
+		StripParentheses(&pcUnary->mpcExpression);
+		CleanExpression(pcUnary->mpcExpression);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCalcExpression* CCalculator::CleanExpression(CCalcExpression* pcExpression)
+{
+	RecurseCleanExpression(pcExpression);
+	if (pcExpression->IsParentheses())
+	{
+		StripParentheses(&pcExpression);
+	}
+	return pcExpression;
 }
 
 

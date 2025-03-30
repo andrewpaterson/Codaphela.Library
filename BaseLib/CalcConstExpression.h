@@ -29,13 +29,13 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalcConstExpression : public CCalcExpression
 {
 public:
-	CNumber	mcValue;
+	CNumber		mcValue;
 
-	void	Init(CCalculatorError* pcError);
-	void	Kill(void);
-	CNumber	Evaluate(void);
-	void	SetValue(CNumber* pcNumber);
-	void	Print(CChars* psz);
+	void		Init(CCalculatorError* pcError);
+	void		Kill(void);
+	CNumber		Evaluate(void);
+	void		SetValue(CNumber* pcNumber);
+	void		Print(CChars* psz);
 };
 
 

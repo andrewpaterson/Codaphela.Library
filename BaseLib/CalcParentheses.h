@@ -31,11 +31,12 @@ class CCalcParentheses : public CCalcExpression
 public:
 	CCalcExpression*	mpcExpression;
 
-	void	Init(CCalculatorError* pcError);
-	void	Kill(void);
-	CNumber	Evaluate(void);
-	void	SetExpression(CCalcExpression* pcExpression);
-	void	Print(CChars* psz);
+	void		Init(CCalculatorError* pcError);
+	void		Kill(void);
+	CNumber		Evaluate(void);
+	void		SetExpression(CCalcExpression* pcExpression);
+	bool		IsParentheses(void);
+	void		Print(CChars* psz);
 };
 
 
