@@ -57,9 +57,11 @@ public:
 	CNumber						Eval(void);
 
 	CCalcExpression*			BuildExpression(CCalcObjectArray* pcArray);
+	CCalcExpression*			CleanExpression(CCalcExpression* pcExpression);
+	void						RecurseCleanExpression(CCalcExpression* pcExpression);
+	void						StripParentheses(CCalcExpression** ppcExpression);
 	void						ConvertToUnaryOperators(CCalcObjectArray* papcExpressions);
 	size						GetMinPrecedence(CCalcObjectArray* papcExpressions);
-	ECalcOperator				ResolveAmbiguity(ECalcOperator eOperator, bool bIsUnary);
 	bool						SetError(CChars* pszFirst, CCalcObjectArray* papcExpressions, char* szLeft, char* szMiddle, char* szRight);
 	void						SetError(char* szError);
 	void						Print(CChars* psz, CCalcObjectArray* papcExpressions);

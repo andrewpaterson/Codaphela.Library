@@ -133,6 +133,8 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 		return NULL;
 	}
 
+	pcExpression = mpcCalculator->CleanExpression(pcExpression);
+
 	if (pcIdentifier)
 	{
 		pcVariableDefinition = NewMalloc<CCalcVariableDefinition>();
@@ -145,6 +147,7 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 		return pcExpression;
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

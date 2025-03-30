@@ -30,12 +30,15 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalcExpression : public CCalcObject
 {
 public:
-	virtual CNumber	Evaluate(void) =0;
-			bool 	IsExpression(void);
-			bool 	IsOperator(void);	
-			bool	IsVariableDefinition(void);
+	virtual CNumber		Evaluate(void) =0;
+			bool 		IsExpression(void);
+			bool 		IsOperator(void);
+			bool		IsVariableDefinition(void);
+	virtual bool		IsParentheses(void);
+	virtual bool		IsBinaryExpression(void);
+	virtual bool		IsUnaryExpression(void);
 };
 
 
-#endif // __CALC_ROOT_H__
+#endif // __CALC_EXPRESSION_H__
 

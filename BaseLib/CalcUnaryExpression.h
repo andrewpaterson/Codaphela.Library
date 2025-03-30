@@ -32,11 +32,12 @@ public:
 	CCalcExpression*	mpcExpression;
 	CCalcOperator*		mpcOp;
 
-	void	Init(CCalculatorError* pcError);
-	void	Kill(void);
-	CNumber	Evaluate(void);
-	void	Set(CCalcExpression* mpcExpression, CCalcOperator* mpcOp);
-	void	Print(CChars* psz);
+	void		Init(CCalculatorError* pcError);
+	void		Kill(void);
+	CNumber		Evaluate(void);
+	void		Set(CCalcExpression* mpcExpression, CCalcOperator* mpcOp);
+	bool		IsUnaryExpression(void);
+	void		Print(CChars* psz);
 };
 
 
