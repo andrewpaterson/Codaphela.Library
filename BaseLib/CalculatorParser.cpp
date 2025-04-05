@@ -81,7 +81,7 @@ CCalcObject* CCalculatorParser::Parse(CTextParser* pcParser, bool bErrorOnBadExp
 	CCalculatorOperator*		pcAssignment;
 	CCalcVariableDefinition*	pcVariableDefinition;
 
-	mpcCalculator->GetSymbols()->Validate();
+	mpcCalculator->GetSymbols()->ValidateSymbols();
 
 	mpcParser = pcParser;
 

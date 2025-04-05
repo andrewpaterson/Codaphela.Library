@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberApertureMacroVectorLine::Init(void)
 {
-	CGerberApertureMacro::Init(GAMP_Vector_Line_Exposure);
+	CGerberApertureMacro::Init(GAMP_Vector_Line);
 }
 
 

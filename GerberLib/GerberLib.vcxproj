@@ -35,6 +35,7 @@
     <ClCompile Include="GerberCommandPlotMode.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
+    <ClCompile Include="GerberExpression.cpp" />
     <ClCompile Include="GerberIdentifier.cpp" />
     <ClCompile Include="GerberParser.cpp" />
     <ClCompile Include="GerberString.cpp" />
@@ -60,6 +61,7 @@
     <ClInclude Include="GerberCommandPlotMode.h" />
     <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberCommandFileAttribute.h" />
+    <ClInclude Include="GerberExpression.h" />
     <ClInclude Include="GerberIdentifier.h" />
     <ClInclude Include="GerberParser.h" />
     <ClInclude Include="GerberString.h" />

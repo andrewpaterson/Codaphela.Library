@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberApertureMacroOutline::Init(void)
 {
-	CGerberApertureMacro::Init(GAMP_Outline_Exposure);
+	CGerberApertureMacro::Init(GAMP_Outline);
 }
 
 

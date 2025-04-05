@@ -80,7 +80,7 @@ void CCalculatorSymbols::Init(bool bEmpty)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CCalculatorSymbols::Validate(void)
+bool CCalculatorSymbols::ValidateSymbols(void)
 {
 	size					uiNumElments;
 	size					i;
