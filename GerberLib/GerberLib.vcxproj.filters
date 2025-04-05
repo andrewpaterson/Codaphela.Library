@@ -16,6 +16,9 @@
     <Filter Include="Source\Common\ApertureMacro">
       <UniqueIdentifier>{0df4262f-1ce1-4479-b01f-bc4fb016209c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Common\Expression">
+      <UniqueIdentifier>{f17c9a3c-047e-4d40-a189-d4d78b435dde}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GerberParser.cpp">
@@ -77,6 +80,9 @@
     </ClCompile>
     <ClCompile Include="GerberApertureMacroPolygon.cpp">
       <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberExpression.cpp">
+      <Filter>Source\Common\Expression</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -148,6 +154,9 @@
     </ClInclude>
     <ClInclude Include="GerberApertureMacroPolygon.h">
       <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberExpression.h">
+      <Filter>Source\Common\Expression</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

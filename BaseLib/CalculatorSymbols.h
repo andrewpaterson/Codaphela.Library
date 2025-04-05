@@ -39,7 +39,7 @@ public:
 	void						Init(bool bEmpty = true);
 	void						Kill(void);
 
-	bool						Validate(void);
+	bool						ValidateSymbols(void);
 
 	CCalculatorOperator*		GetOperator(ECalcOperator eOp);
 	bool						SetOperator(char* szSymbol, ECalcOperator eOp, uint16 uiPrecedence);

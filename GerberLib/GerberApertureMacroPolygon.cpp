@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberApertureMacroPolygon::Init(void)
 {
-	CGerberApertureMacro::Init(GAMP_Polygon_Exposure);
+	CGerberApertureMacro::Init(GAMP_Polygon);
 }
 
 

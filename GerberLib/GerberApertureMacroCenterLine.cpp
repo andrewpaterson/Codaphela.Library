@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CGerberApertureMacroCenterLine::Init(void)
 {
-	CGerberApertureMacro::Init(GAMP_Center_Line_Exposure);
+	CGerberApertureMacro::Init(GAMP_Center_Line);
 }
 
 

@@ -18,11 +18,13 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "GerberParser.h"
+#include "BaseLib/Logger.h"
+#include "BaseLib/CalculatorParser.h"
 #include "GerberString.h"
 #include "GerberWhitespace.h"
 #include "GerberIdentifier.h"
-#include "BaseLib/Logger.h"
+#include "GerberExpression.h"
+#include "GerberParser.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -39,6 +41,7 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 	mszFilename.Init(szFileName);
 
 	mpcCommands = pcCommands;
+	mbSkipWhitespace = true;
 }
 
 
@@ -167,8 +170,8 @@ TRISTATE CGerberParser::ParseCommandG04()
 	TRISTATE				tResult;
 	size					iLength;
 	CGerberCommandComment*	pcComment;
-
-	tResult = mcParser.GetExactCharacterSequence("G04", false);
+	
+	tResult = mcParser.GetExactCharacterSequence("G04", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
@@ -192,11 +195,11 @@ TRISTATE CGerberParser::ParseCommandMO()
 	TRISTATE				tResult;
 	EGerberMeasurementMode	eMode;
 
-	tResult = mcParser.GetExactCharacterSequence("%MO", false);
+	tResult = mcParser.GetExactCharacterSequence("%MO", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
-	tResult = mcParser.GetExactCharacterSequence("MM", false);
+	tResult = mcParser.GetExactCharacterSequence("MM", mbSkipWhitespace);
 	if (tResult == TRIERROR)
 	{
 		mcParser.PopPosition();
@@ -211,7 +214,7 @@ TRISTATE CGerberParser::ParseCommandMO()
 	}
 	else
 	{
-		tResult = mcParser.GetExactCharacterSequence("IN", false);
+		tResult = mcParser.GetExactCharacterSequence("IN", mbSkipWhitespace);
 		if (tResult == TRIERROR)
 		{
 			mcParser.PopPosition();
@@ -234,7 +237,10 @@ TRISTATE CGerberParser::ParseCommandMO()
 		}
 	}
 	
-	tResult = mcParser.GetExactCharacterSequence("*%", false);
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter('%', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddModeSet(eMode);
@@ -255,13 +261,13 @@ TRISTATE CGerberParser::ParseCommandFS()
 	uint16		uiYWholes;
 	uint16		uiYDecimals;
 
-	tResult = mcParser.GetExactCharacterSequence("%FS", false);
+	tResult = mcParser.GetExactCharacterSequence("%FS", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
-	tResult = mcParser.GetExactCharacterSequence("LA", false);
+	tResult = mcParser.GetExactCharacterSequence("LA", mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
-	tResult = mcParser.GetExactCharacter('X', false);
+	tResult = mcParser.GetExactCharacter('X', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	tResult = mcParser.GetDigit(&uiXWholes);
@@ -270,7 +276,7 @@ TRISTATE CGerberParser::ParseCommandFS()
 	tResult = mcParser.GetDigit(&uiXDecimals);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
-	tResult = mcParser.GetExactCharacter('Y', false);
+	tResult = mcParser.GetExactCharacter('Y', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	tResult = mcParser.GetDigit(&uiYWholes);
@@ -279,7 +285,10 @@ TRISTATE CGerberParser::ParseCommandFS()
 	tResult = mcParser.GetDigit(&uiYDecimals);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
-	tResult = mcParser.GetExactCharacterSequence("*%", false);
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter('%', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddFormatSpecifier(uiXWholes, uiXDecimals, uiYWholes, uiYDecimals);
@@ -308,7 +317,7 @@ TRISTATE CGerberParser::ParseCommandAM()
 	TRISTATE						tResult;
 	size							uiLength;
 
-	tResult = mcParser.GetExactCharacterSequence("%AM", false);
+	tResult = mcParser.GetExactCharacterSequence("%AM", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
@@ -319,7 +328,7 @@ TRISTATE CGerberParser::ParseCommandAM()
 	pcApertureMacro = mpcCommands->AddApertureMacro(uiLength);
 	GetNameString(pcApertureMacro->NameText(), &uiLength);
 
-	tResult = mcParser.GetExactCharacter('*');
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	for (;;)
@@ -330,7 +339,7 @@ TRISTATE CGerberParser::ParseCommandAM()
 		tResult = ParseApertureMacroVariableDefinition(pcApertureMacro);
 		ContinueOnTrueReturnOnError(tResult);
 
-		tResult = mcParser.GetExactCharacter('%');
+		tResult = mcParser.GetExactCharacter('%', mbSkipWhitespace);
 		ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 		return TRITRUE;
@@ -344,35 +353,38 @@ TRISTATE CGerberParser::ParseCommandAM()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseApertureMacroPrimitive(CGerberCommandApertureMacro* pcApertureMacro)
 {
-	uint64		ulli;
-	TRISTATE	tResult;
-	uint16		uiPrimitiveType;
+	uint64							ulli;
+	TRISTATE						tResult;
+	EGerberApertureMacroPrimitive	uiPrimitiveType;
 
-	tResult = mcParser.GetDigits(&ulli, NULL, NULL, false, false, 10, NUMBER_SEPARATOR_NONE);
+	tResult = mcParser.GetDigits(&ulli, NULL, NULL, mbSkipWhitespace, false, 10, NUMBER_SEPARATOR_NONE);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
-	uiPrimitiveType = (uint16)ulli;
+	uiPrimitiveType = (EGerberApertureMacroPrimitive)ulli;
 	if (uiPrimitiveType == GAMP_Comment)
 	{
 		tResult = ParseApertureMacroComment(pcApertureMacro);
 	}
-	else if (uiPrimitiveType == GAMP_Circle_Exposure)
+	else if (uiPrimitiveType == GAMP_Circle)
 	{
 		tResult = ParseApertureMacroCircle(pcApertureMacro);
 	}
-	else if (uiPrimitiveType == GAMP_Vector_Line_Exposure)
+	else if (uiPrimitiveType == GAMP_Vector_Line)
 	{
 		tResult = ParseApertureMacroVectorLine(pcApertureMacro);
 	}
-	else if (uiPrimitiveType == GAMP_Center_Line_Exposure)
+	else if (uiPrimitiveType == GAMP_Center_Line)
 	{
 		tResult = ParseApertureMacroCenterLine(pcApertureMacro);
 	}
-	else if (uiPrimitiveType == GAMP_Outline_Exposure)
+	else if (uiPrimitiveType == GAMP_Outline)
 	{
 		tResult = ParseApertureMacroOutline(pcApertureMacro);
 	}
-	else if (uiPrimitiveType == GAMP_Polygon_Exposure)
+	else if (uiPrimitiveType == GAMP_Polygon)
 	{
 		tResult = ParseApertureMacroPolygon(pcApertureMacro);
 	}
@@ -390,7 +402,7 @@ TRISTATE CGerberParser::ParseApertureMacroPrimitive(CGerberCommandApertureMacro*
 		return TRIERROR;
 	}
 	
-	return TRIFALSE;
+	return TRITRUE;
 }
 
 
@@ -402,7 +414,7 @@ TRISTATE CGerberParser::ParseApertureMacroComment(CGerberCommandApertureMacro* p
 {
 	TRISTATE						tResult;
 	size							uiLength;
-	CGerberApertureMacroComment* pcComment;
+	CGerberApertureMacroComment*	pcComment;
 
 	mcParser.PushPosition();
 	tResult = GetNameString(NULL, &uiLength);
@@ -420,13 +432,128 @@ TRISTATE CGerberParser::ParseApertureMacroComment(CGerberCommandApertureMacro* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseExpression(CGerberExpression* pcGerberExpression)
+{
+	
+	CCalculatorParser		cParser;
+	CCalcExpression*		pcExpression;
+	CChars					sz;
+	CCalculator*			pcCalculator;
+
+	pcCalculator = pcGerberExpression->GetCalculator();
+
+	cParser.Init(pcCalculator);
+	pcExpression = (CCalcExpression*)cParser.Parse(&mcParser, false);
+	cParser.Kill();
+
+	if (pcCalculator->HasError())
+	{
+		sz.Init(pcCalculator->GetError());
+		sz.Append(", could not parse Expression:"); 
+		Error(sz.Text());
+		sz.Kill();
+		return TRIERROR;
+	}
+	
+	if (pcExpression == NULL)
+	{
+		return TRIFALSE;
+	}
+
+	pcGerberExpression->SetCalcExpression(pcExpression);
+	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseApertureMacroCircle(CGerberCommandApertureMacro* pcApertureMacro)
 {
 	TRISTATE						tResult;
 	CGerberApertureMacroCircle*		pcCircle;
 
+	pcCircle = pcApertureMacro->AddCircle();
+	
+	tResult = ParseExpression(pcCircle->GetExposure());
+	ReturnOnError(tResult);
+	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
+	tResult = ParseExpression(pcCircle->GetDiameter());
+	ReturnOnError(tResult);
+	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = ParseExpression(pcCircle->GetCenterX());
+	ReturnOnError(tResult);
+	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = ParseExpression(pcCircle->GetCenterY());
+	ReturnOnError(tResult);
+	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
+	if (tResult == TRITRUE)
+	{
+		tResult = ParseExpression(pcCircle->GetRotation());
+		ReturnOnError(tResult);
+	}
+
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+	
 	return TRITRUE;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroVectorLine(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	return TRIERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroCenterLine(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	return TRIERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroOutline(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	return TRIERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroPolygon(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	return TRIERROR;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseApertureMacroThermalCenter(CGerberCommandApertureMacro* pcApertureMacro)
+{
+	return TRIERROR;
 }
 
 
@@ -468,7 +595,7 @@ TRISTATE CGerberParser::ParseCommandG01()
 {
 	TRISTATE				tResult;
 
-	tResult = mcParser.GetExactCharacterSequence("G01*", false);
+	tResult = mcParser.GetExactCharacterSequence("G01*", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddPlotMode(GPM_Linear);
@@ -485,7 +612,7 @@ TRISTATE CGerberParser::ParseCommandG02()
 {
 	TRISTATE				tResult;
 
-	tResult = mcParser.GetExactCharacterSequence("G02*", false);
+	tResult = mcParser.GetExactCharacterSequence("G02*", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddPlotMode(GPM_CircularClockwise);
@@ -502,7 +629,7 @@ TRISTATE CGerberParser::ParseCommandG03()
 {
 	TRISTATE				tResult;
 
-	tResult = mcParser.GetExactCharacterSequence("G03*", false);
+	tResult = mcParser.GetExactCharacterSequence("G03*", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddPlotMode(GPM_CircularAnticlockwise);
@@ -550,11 +677,11 @@ TRISTATE CGerberParser::ParseCommandLP()
 	TRISTATE			tResult;
 	EGerberPolarity		ePolarity;
 
-	tResult = mcParser.GetExactCharacterSequence("%LP", false);
+	tResult = mcParser.GetExactCharacterSequence("%LP", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
-	tResult = mcParser.GetExactCharacter('D', false);
+	tResult = mcParser.GetExactCharacter('D', mbSkipWhitespace);
 	if (tResult == TRIERROR)
 	{
 		mcParser.PopPosition();
@@ -569,7 +696,7 @@ TRISTATE CGerberParser::ParseCommandLP()
 	}
 	else
 	{
-		tResult = mcParser.GetExactCharacter('C', false);
+		tResult = mcParser.GetExactCharacter('C', mbSkipWhitespace);
 		if (tResult == TRIERROR)
 		{
 			mcParser.PopPosition();
@@ -592,7 +719,10 @@ TRISTATE CGerberParser::ParseCommandLP()
 		}
 	}
 
-	tResult = mcParser.GetExactCharacterSequence("*%", false);
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter('%', mbSkipWhitespace);
 	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 
 	mpcCommands->AddLoadPolarity(ePolarity);
@@ -672,7 +802,7 @@ TRISTATE CGerberParser::ParseCommandTF()
 	CGerberCommandFileAttribute*	pcFileAttribute;
 	char*							szValue;
 
-	tResult = mcParser.GetExactCharacterSequence("%TF", false);
+	tResult = mcParser.GetExactCharacterSequence("%TF", mbSkipWhitespace);
 	ReturnOnFalseOrCommandSyntaxError(tResult);
 
 	mcParser.PushPosition();
@@ -685,14 +815,16 @@ TRISTATE CGerberParser::ParseCommandTF()
 
 	for (;;)
 	{
-		tResult = mcParser.GetExactCharacterSequence("*%", false);
-		ReturnOnError(tResult);
+		tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+		ReturnErrorOnCommandSyntaxError(tResult);
 		if (tResult == TRITRUE)
 		{
+			tResult = mcParser.GetExactCharacter('%', mbSkipWhitespace);
+			ReturnErrorOnFalseOrCommandSyntaxError(tResult);
 			break;
 		}
 
-		tResult = mcParser.GetExactCharacter(',', false);
+		tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
 		ReturnOnError(tResult);		
 		if (tResult == TRIFALSE)
 		{
@@ -751,7 +883,15 @@ TRISTATE CGerberParser::ParseCommandTD()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseEnd()
 {
-	return TRIFALSE;
+	TRISTATE tResult;
+
+	tResult = mcParser.GetExactCharacterSequence("M02", mbSkipWhitespace);
+	ReturnOnFalseOrCommandSyntaxError(tResult);
+
+	tResult = mcParser.GetExactCharacter('*', mbSkipWhitespace);
+	ReturnErrorOnFalseOrCommandSyntaxError(tResult);
+
+	return TRITRUE;
 }
 
 
@@ -842,7 +982,7 @@ TRISTATE CGerberParser::Parse(void)
 		tResult = ParseEnd();
 		if (tResult != TRITRUE)
 		{
-			return TRIERROR;
+			ReturnSyntanxError();
 		}
 		else
 		{

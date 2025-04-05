@@ -85,7 +85,7 @@ CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 {
 	CNumber				cAnswer;
 
-	mcSymbols.Validate();
+	mcSymbols.ValidateSymbols();
 
 	if (!HasError() && (pcExpression != NULL))
 	{
@@ -523,7 +523,8 @@ char* CCalculator::GetError(void)
 //////////////////////////////////////////////////////////////////////////
 void CCalculator::ClearError(void)
 {
-
+	mcErrors.Kill();
+	mcErrors.Init(mcErrors.UseUserError());
 }
 
 

@@ -30,6 +30,7 @@ protected:
 	CTextParser			mcParser;
 	CChars				mszFilename;
 	CGerberCommands*	mpcCommands;
+	bool				mbSkipWhitespace;
 
 public:
 	void		Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands);
@@ -64,6 +65,8 @@ protected:
 	TRISTATE	ParseCommandTO(void);
 	TRISTATE	ParseCommandTD(void);
 
+	TRISTATE	ParseExpression(CGerberExpression* pcGerberExpression);
+
 	TRISTATE	ParseApertureMacroPrimitive(CGerberCommandApertureMacro* pcApertureMacro);
 	TRISTATE	ParseApertureMacroVariableDefinition(CGerberCommandApertureMacro* pcApertureMacro);
 	TRISTATE	ParseApertureMacroComment(CGerberCommandApertureMacro* pcApertureMacro);
@@ -94,6 +97,9 @@ if (tResult == TRIERROR) ReturnSyntanxError()
 
 #define ReturnErrorOnFalseOrCommandSyntaxError(tResult) \
 if (tResult == TRIFALSE || tResult == TRIERROR) ReturnSyntanxError()
+
+#define ReturnErrorOnCommandSyntaxError(tResult) \
+if (tResult == TRIERROR) ReturnSyntanxError()
 
 
 #endif //  __GERBER_PARSER_H__

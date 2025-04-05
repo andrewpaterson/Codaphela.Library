@@ -6,8 +6,8 @@
 class CCalculatorError
 {
 protected:
-	CChars						mszError;
-	bool						mbUseUserError;
+	CChars		mszError;
+	bool		mbUseUserError;
 
 public:
 	void	Init(bool bUseUserError);
@@ -16,6 +16,8 @@ public:
 	void	SetError(char* szError);
 	bool	HasError(void);
 	char*	GetError(void);
+
+	bool	UseUserError(void);
 };
 
 
