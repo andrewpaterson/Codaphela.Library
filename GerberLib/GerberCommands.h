@@ -8,6 +8,7 @@
 #include "GerberCommandLoadPolarity.h"
 #include "GerberCommandPlotMode.h"
 #include "GerberCommandApertureMacro.h"
+#include "GerberCommandEndOfFile.h"
 
 
 class CGerberCommands
@@ -26,6 +27,10 @@ public:
 	CGerberCommandLoadPolarity*		AddLoadPolarity(EGerberPolarity ePolarity);
 	CGerberCommandPlotMode*			AddPlotMode(EGerberPlotMode eMode);
 	CGerberCommandApertureMacro*	AddApertureMacro(size iNameLength);
+	CGerberCommandEndOfFile*		AddEndOfFile(void);
+	
+	size							NumCommands(void);
+	CGerberCommand*					GetCommand(size uiIndex);
 };
 
 

@@ -24,6 +24,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/TextParser.h"
 #include "GerberCommands.h"
 
+
 class CGerberParser
 {
 protected:
@@ -40,7 +41,6 @@ public:
 	TRISTATE	Parse(void);
 
 protected:
-	TRISTATE	ParseEnd(void);
 	TRISTATE	ParseCommandG04(void);
 	TRISTATE	ParseCommandMO(void);
 	TRISTATE	ParseCommandFS(void);
@@ -65,6 +65,7 @@ protected:
 	TRISTATE	ParseCommandTA(void);
 	TRISTATE	ParseCommandTO(void);
 	TRISTATE	ParseCommandTD(void);
+	TRISTATE	ParseCommandM02(void);
 
 	TRISTATE	ParseExpression(CGerberExpression* pcGerberExpression);
 
@@ -76,7 +77,7 @@ protected:
 	TRISTATE	ParseApertureMacroCenterLine(CGerberCommandApertureMacro* pcApertureMacro);
 	TRISTATE	ParseApertureMacroOutline(CGerberCommandApertureMacro* pcApertureMacro);
 	TRISTATE	ParseApertureMacroPolygon(CGerberCommandApertureMacro* pcApertureMacro);
-	TRISTATE	ParseApertureMacroThermalCenter(CGerberCommandApertureMacro* pcApertureMacro);
+	TRISTATE	ParseApertureMacroThermal(CGerberCommandApertureMacro* pcApertureMacro);
 
 	TRISTATE	Error(char* szError);
 
@@ -92,14 +93,14 @@ protected:
 #define ReturnSyntanxError() return Error("Syntax Error, could not parse Command:")
 
 
-#define ReturnOnFalseOrCommandSyntaxError(tResult) \
+#define ReturnOnFalseOrSyntaxErrorOnError(tResult) \
 if (tResult == TRIFALSE) return TRIFALSE;\
 if (tResult == TRIERROR) ReturnSyntanxError()
 
-#define ReturnErrorOnFalseOrCommandSyntaxError(tResult) \
+#define ReturnSyntaxErrorOnErrorOrFalse(tResult) \
 if (tResult == TRIFALSE || tResult == TRIERROR) ReturnSyntanxError()
 
-#define ReturnErrorOnCommandSyntaxError(tResult) \
+#define ReturnSyntaxErrorOnError(tResult) \
 if (tResult == TRIERROR) ReturnSyntanxError()
 
 

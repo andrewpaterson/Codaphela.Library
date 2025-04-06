@@ -15,6 +15,8 @@ public:
 	void	Init(size iNameLength);
 	void	Kill(void);
 
+	bool	IsFileAttribute(void);
+
 	char*	NameText(void);
 
 	char*	AddValue(size iValueLength);

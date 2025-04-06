@@ -5,9 +5,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroOutline::Init(CCalculatorSymbols* pcSymbols)
+void CGerberApertureMacroOutline::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
 {
 	CGerberApertureMacro::Init(GAMP_Outline);
+
+	mcExposure.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcPositions.Init();
+	mcRotation.Init(pcSymbols, bSkipWhitespace, bUseUserError);
 }
 
 
@@ -17,5 +21,52 @@ void CGerberApertureMacroOutline::Init(CCalculatorSymbols* pcSymbols)
 //////////////////////////////////////////////////////////////////////////
 void CGerberApertureMacroOutline::Kill(void)
 {
+	mcRotation.Kill();
+	mcPositions.Kill();
+	mcExposure.Kill();
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberExpression* CGerberApertureMacroOutline::GetExposure(void)
+{
+	return &mcExposure;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberExpression* CGerberApertureMacroOutline::GetRotation(void)
+{
+	return &mcRotation;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberExpressionPosition* CGerberApertureMacroOutline::Add(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
+{
+	CGerberExpressionPosition*	pcPosition;
+
+	pcPosition = mcPositions.Add();
+	pcPosition->Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	return pcPosition;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroOutline::IsOutline(void)
+{
+	return true;
+}

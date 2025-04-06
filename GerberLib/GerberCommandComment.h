@@ -13,6 +13,8 @@ public:
 	void	Init(size iCommentLength);
 	void	Kill(void);
 
+	bool	IsComment(void);
+
 	char*	Text(void);
 };
 

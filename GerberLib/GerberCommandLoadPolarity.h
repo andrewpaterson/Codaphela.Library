@@ -20,6 +20,8 @@ protected:
 public:
 	void Init(EGerberPolarity ePolarity);
 	void Kill(void);
+
+	bool IsLoadPolarity(void);
 };
 
 
