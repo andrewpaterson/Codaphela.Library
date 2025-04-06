@@ -31,6 +31,7 @@ protected:
 	CChars				mszFilename;
 	CGerberCommands*	mpcCommands;
 	bool				mbSkipWhitespace;
+	CCalculatorSymbols	mcSymbols;
 
 public:
 	void		Init(char* szText, size iTextLen, char* szFileName, CGerberCommands* pcCommands);

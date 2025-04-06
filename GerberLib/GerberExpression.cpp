@@ -5,18 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberExpression::Init(void)
+void CGerberExpression::Init(CCalculatorSymbols* pcSymbols)
 {
-	CCalculatorSymbols* pcSymbols;
-
-	mcCalculator.Init(true, false, false);
-	pcSymbols = mcCalculator.GetSymbols();
-	pcSymbols->SetOperator("+", CO_Add, 4);
-	pcSymbols->SetOperator("-", CO_Subtract, 4);
-	pcSymbols->SetOperator("x", CO_Multiply, 3);
-	pcSymbols->SetOperator("/", CO_Divide, 2);
-	pcSymbols->SetOperator("=", CO_Assignment, 5);
-
+	mcCalculator.Init(pcSymbols, false, false);
 	mpcExpression = NULL;
 }
 

@@ -29,9 +29,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Init(void)
+void CCalculator::Init(CCalculatorSymbols* pcSymbols)
 {
-	Init(true);
+	Init(pcSymbols, true);
 }
 
 
@@ -39,13 +39,13 @@ void CCalculator::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Init(bool bUseUserError)
+void CCalculator::Init(CCalculatorSymbols* pcSymbols, bool bUseUserError)
 {
-	mcSymbols.Init(false);
-
 	mcErrors.Init(bUseUserError);
 
 	mcVariables.Init();
+
+	mpcSymbols = pcSymbols;
 }
 
 
@@ -53,9 +53,9 @@ void CCalculator::Init(bool bUseUserError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCalculator::Init(bool bEmptySymbols, bool bSkipWhitespace, bool bUseUserError)
+void CCalculator::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
 {
-	mcSymbols.Init(bEmptySymbols);
+	mpcSymbols = pcSymbols;
 
 	mcErrors.Init(bUseUserError);
 
@@ -73,7 +73,8 @@ void CCalculator::Kill(void)
 {
 	mcVariables.Kill();
 	mcErrors.Kill();
-	mcSymbols.Kill();
+	
+	mpcSymbols = NULL;
 }
 
 
@@ -85,7 +86,7 @@ CNumber CCalculator::Eval(CCalcExpression* pcExpression)
 {
 	CNumber				cAnswer;
 
-	mcSymbols.ValidateSymbols();
+	mpcSymbols->ValidateSymbols();
 
 	if (!HasError() && (pcExpression != NULL))
 	{
@@ -334,7 +335,7 @@ size CCalculator::GetMinPrecedence(CCalcObjectArray* papcExpressions)
 	size					uiNumElements;
 	CCalculatorOperator*	pcDefinition;
 
-	iMinPrecedence = mcSymbols.GetMaxPrecedence() + 1;
+	iMinPrecedence = mpcSymbols->GetMaxPrecedence() + 1;
 	iMinIndex = ARRAY_ELEMENT_NOT_FOUND;
 	uiNumElements = papcExpressions->NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -343,7 +344,7 @@ size CCalculator::GetMinPrecedence(CCalcObjectArray* papcExpressions)
 		if (pcObject->IsOperator())
 		{
 			pcOperator = (CCalcOperator*)pcObject;
-			pcDefinition = mcSymbols.GetOperator(pcOperator->meOp);
+			pcDefinition = mpcSymbols->GetOperator(pcOperator->meOp);
 			iPrecedence = pcDefinition->GetPrecedence();
 			if (iPrecedence < iMinPrecedence)
 			{
@@ -534,7 +535,7 @@ void CCalculator::ClearError(void)
 //////////////////////////////////////////////////////////////////////////
 CArrayCalculatorOperators* CCalculator::GetOperators(void)
 {
-	return mcSymbols.GetOperators();
+	return mpcSymbols->GetOperators();
 }
 
 
@@ -544,7 +545,7 @@ CArrayCalculatorOperators* CCalculator::GetOperators(void)
 //////////////////////////////////////////////////////////////////////////
 CCalculatorOperator* CCalculator::GetAssignment(void)
 {
-	return mcSymbols.GetAssignment();
+	return mpcSymbols->GetAssignment();
 }
 
 
@@ -564,7 +565,7 @@ CCalculatorVariables* CCalculator::GetVariables(void)
 //////////////////////////////////////////////////////////////////////////
 CCalculatorSymbols* CCalculator::GetSymbols(void)
 {
-	return &mcSymbols;
+	return mpcSymbols;
 }
 
 

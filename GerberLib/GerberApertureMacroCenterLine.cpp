@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroCenterLine::Init(void)
+void CGerberApertureMacroCenterLine::Init(CCalculatorSymbols* pcSymbols)
 {
 	CGerberApertureMacro::Init(GAMP_Center_Line);
 }

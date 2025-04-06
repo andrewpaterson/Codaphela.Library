@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroPolygon::Init(void)
+void CGerberApertureMacroPolygon::Init(CCalculatorSymbols* pcSymbols)
 {
 	CGerberApertureMacro::Init(GAMP_Polygon);
 }
