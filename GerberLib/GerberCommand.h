@@ -9,8 +9,18 @@ protected:
 	EGerberCommandEnum	meType;
 
 public:
-			void Init(EGerberCommandEnum eType);
-	virtual void Kill(void) =0;
+			void	Init(EGerberCommandEnum eType);
+	virtual void	Kill(void) =0;
+
+	virtual bool	IsApertureMacro(void);
+	virtual bool	IsComment(void);
+	virtual bool	IsFileAttribute(void);
+	virtual bool	IsFormatSpecifier(void);
+	virtual bool	IsLoadPolarity(void);
+	virtual bool	IsMeasurementMode(void);
+	virtual bool	IsPlotMode(void);
+
+	virtual bool	IsEndOfFile(void);
 };
 
 

@@ -20,6 +20,8 @@ protected:
 public:
 	void Init(EGerberMeasurementMode eMode);
 	void Kill(void);
+
+	bool IsMeasurementMode(void);
 };
 
 

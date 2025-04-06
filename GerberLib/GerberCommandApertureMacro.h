@@ -10,6 +10,7 @@
 #include "GerberApertureMacroOutline.h"
 #include "GerberApertureMacroPolygon.h"
 #include "GerberApertureMacroVectorLine.h"
+#include "GerberApertureMacroThermal.h"
 
 
 class CGerberCommandApertureMacro : public CGerberCommand
@@ -22,13 +23,19 @@ public:
 	void								Init(size iNameLength);
 	void								Kill(void);
 
+	bool								IsApertureMacro(void);
+
 	char*								NameText(void);
 	CGerberApertureMacroComment*		AddComment(size uiLength);
-	CGerberApertureMacroCircle*			AddCircle(CCalculatorSymbols* pcSymbols);
-	CGerberApertureMacroCenterLine*		AddCenterLine(CCalculatorSymbols* pcSymbols);
-	CGerberApertureMacroOutline*		AddOutline(CCalculatorSymbols* pcSymbols);
-	CGerberApertureMacroPolygon*		AddPolygon(CCalculatorSymbols* pcSymbols);
-	CGerberApertureMacroVectorLine*		AddVectorLine(CCalculatorSymbols* pcSymbols);
+	CGerberApertureMacroCircle*			AddCircle(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+	CGerberApertureMacroCenterLine*		AddCenterLine(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+	CGerberApertureMacroOutline*		AddOutline(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+	CGerberApertureMacroPolygon*		AddPolygon(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+	CGerberApertureMacroVectorLine*		AddVectorLine(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+	CGerberApertureMacroThermal*		AddThermal(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace);
+
+	size								NumPrimitives(void);
+	CGerberApertureMacro*				GetPrimitive(size uiIndex);
 };
 
 

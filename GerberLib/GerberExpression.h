@@ -10,7 +10,7 @@ public:
 	CCalcExpression*	mpcExpression;
 
 public:
-	void			Init(CCalculatorSymbols* pcSymbols);
+	void			Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void			Kill(void);
 
 	CCalculator*	GetCalculator(void);

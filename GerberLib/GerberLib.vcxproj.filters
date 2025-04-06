@@ -84,6 +84,15 @@
     <ClCompile Include="GerberExpression.cpp">
       <Filter>Source\Common\Expression</Filter>
     </ClCompile>
+    <ClCompile Include="GerberExpressionPosition.cpp">
+      <Filter>Source\Common\Expression</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberApertureMacroThermal.cpp">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandEndOfFile.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -157,6 +166,15 @@
     </ClInclude>
     <ClInclude Include="GerberExpression.h">
       <Filter>Source\Common\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberExpressionPosition.h">
+      <Filter>Source\Common\Expression</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberApertureMacroThermal.h">
+      <Filter>Source\Common\ApertureMacro</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandEndOfFile.h">
+      <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

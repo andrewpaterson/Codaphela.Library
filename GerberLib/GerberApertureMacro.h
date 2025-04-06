@@ -22,8 +22,16 @@ protected:
 	EGerberApertureMacroPrimitive	mePrimitive;
 
 public:
-			void Init(EGerberApertureMacroPrimitive ePrimitive);
-	virtual void Kill(void) = 0;
+			void	Init(EGerberApertureMacroPrimitive ePrimitive);
+	virtual void	Kill(void) = 0;
+
+	virtual bool	IsComment(void);
+	virtual bool	IsCircle(void);
+	virtual bool	IsCenterLine(void);
+	virtual bool	IsOutline(void);
+	virtual bool	IsPolygon(void);
+	virtual bool	IsVectorLine(void);
+	virtual bool	IsThermal(void);
 };
 
 

@@ -66,10 +66,10 @@ CGerberApertureMacroComment* CGerberCommandApertureMacro::AddComment(size uiLeng
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroCircle* CGerberCommandApertureMacro::AddCircle(CCalculatorSymbols* pcSymbols)
+CGerberApertureMacroCircle* CGerberCommandApertureMacro::AddCircle(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroCircle);
-	pcPrimitive->Init(pcSymbols);
+	pcPrimitive->Init(pcSymbols, bSkipWhitespace, false);
 	return pcPrimitive;
 }
 
@@ -78,10 +78,10 @@ CGerberApertureMacroCircle* CGerberCommandApertureMacro::AddCircle(CCalculatorSy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroCenterLine* CGerberCommandApertureMacro::AddCenterLine(CCalculatorSymbols* pcSymbols)
+CGerberApertureMacroCenterLine* CGerberCommandApertureMacro::AddCenterLine(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroCenterLine);
-	pcPrimitive->Init(pcSymbols);
+	pcPrimitive->Init(pcSymbols, bSkipWhitespace, false);
 	return pcPrimitive;
 }
 
@@ -90,10 +90,10 @@ CGerberApertureMacroCenterLine* CGerberCommandApertureMacro::AddCenterLine(CCalc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroOutline* CGerberCommandApertureMacro::AddOutline(CCalculatorSymbols* pcSymbols)
+CGerberApertureMacroOutline* CGerberCommandApertureMacro::AddOutline(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroOutline);
-	pcPrimitive->Init(pcSymbols);
+	pcPrimitive->Init(pcSymbols, bSkipWhitespace, false);
 	return pcPrimitive;
 }
 
@@ -102,10 +102,10 @@ CGerberApertureMacroOutline* CGerberCommandApertureMacro::AddOutline(CCalculator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroPolygon* CGerberCommandApertureMacro::AddPolygon(CCalculatorSymbols* pcSymbols)
+CGerberApertureMacroPolygon* CGerberCommandApertureMacro::AddPolygon(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroPolygon);
-	pcPrimitive->Init(pcSymbols);
+	pcPrimitive->Init(pcSymbols, bSkipWhitespace, false);
 	return pcPrimitive;
 }
 
@@ -114,10 +114,52 @@ CGerberApertureMacroPolygon* CGerberCommandApertureMacro::AddPolygon(CCalculator
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroVectorLine* CGerberCommandApertureMacro::AddVectorLine(CCalculatorSymbols* pcSymbols)
+CGerberApertureMacroVectorLine* CGerberCommandApertureMacro::AddVectorLine(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroVectorLine);
-	pcPrimitive->Init(pcSymbols);
+	pcPrimitive->Init(pcSymbols, bSkipWhitespace, false);
 	return pcPrimitive;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberApertureMacroThermal* CGerberCommandApertureMacro::AddThermal(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace)
+{
+	ADD_PRIMITIVE(CGerberApertureMacroThermal);
+	pcPrimitive->Init(pcSymbols, bSkipWhitespace, false);
+	return pcPrimitive;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberCommandApertureMacro::IsApertureMacro(void)
+{
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CGerberCommandApertureMacro::NumPrimitives(void)
+{
+	return macPrimitives.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberApertureMacro* CGerberCommandApertureMacro::GetPrimitive(size uiIndex)
+{
+	return (CGerberApertureMacro*)macPrimitives.Get(uiIndex);
 }
 

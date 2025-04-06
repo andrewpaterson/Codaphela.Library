@@ -21,6 +21,8 @@ protected:
 public:
 	void Init(EGerberCommandEnum eType, EGerberPlotMode eMode);
 	void Kill(void);
+
+	bool IsPlotMode(void);
 };
 
 

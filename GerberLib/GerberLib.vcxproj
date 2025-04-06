@@ -25,10 +25,12 @@
     <ClCompile Include="GerberApertureMacroComment.cpp" />
     <ClCompile Include="GerberApertureMacroOutline.cpp" />
     <ClCompile Include="GerberApertureMacroPolygon.cpp" />
+    <ClCompile Include="GerberApertureMacroThermal.cpp" />
     <ClCompile Include="GerberApertureMacroVectorLine.cpp" />
     <ClCompile Include="GerberCommand.cpp" />
     <ClCompile Include="GerberCommandApertureMacro.cpp" />
     <ClCompile Include="GerberCommandComment.cpp" />
+    <ClCompile Include="GerberCommandEndOfFile.cpp" />
     <ClCompile Include="GerberCommandFormatSpecifier.cpp" />
     <ClCompile Include="GerberCommandLoadPolarity.cpp" />
     <ClCompile Include="GerberCommandModeSet.cpp" />
@@ -36,6 +38,7 @@
     <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
     <ClCompile Include="GerberExpression.cpp" />
+    <ClCompile Include="GerberExpressionPosition.cpp" />
     <ClCompile Include="GerberIdentifier.cpp" />
     <ClCompile Include="GerberParser.cpp" />
     <ClCompile Include="GerberString.cpp" />
@@ -48,12 +51,14 @@
     <ClInclude Include="GerberApertureMacro.h" />
     <ClInclude Include="GerberApertureMacroOutline.h" />
     <ClInclude Include="GerberApertureMacroPolygon.h" />
+    <ClInclude Include="GerberApertureMacroThermal.h" />
     <ClInclude Include="GerberApertureMacroVectorLine.h" />
     <ClInclude Include="GerberBoardLayer.h" />
     <ClInclude Include="GerberBoardSide.h" />
     <ClInclude Include="GerberCommand.h" />
     <ClInclude Include="GerberCommandApertureMacro.h" />
     <ClInclude Include="GerberCommandComment.h" />
+    <ClInclude Include="GerberCommandEndOfFile.h" />
     <ClInclude Include="GerberCommandEnum.h" />
     <ClInclude Include="GerberCommandFormatSpecifier.h" />
     <ClInclude Include="GerberCommandLoadPolarity.h" />
@@ -62,6 +67,7 @@
     <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberCommandFileAttribute.h" />
     <ClInclude Include="GerberExpression.h" />
+    <ClInclude Include="GerberExpressionPosition.h" />
     <ClInclude Include="GerberIdentifier.h" />
     <ClInclude Include="GerberParser.h" />
     <ClInclude Include="GerberString.h" />

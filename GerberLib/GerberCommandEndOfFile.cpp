@@ -1,14 +1,13 @@
-#include "GerberCommandComment.h"
+#include "GerberCommandEndOfFile.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandComment::Init(size uiCommentLength)
+void CGerberCommandEndOfFile::Init(void)
 {
-	CGerberCommand::Init(GC_G04);
-	szComment.InitLength(uiCommentLength);
+	CGerberCommand::Init(GC_M02);
 }
 
 
@@ -16,9 +15,8 @@ void CGerberCommandComment::Init(size uiCommentLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandComment::Kill(void)
+void CGerberCommandEndOfFile::Kill(void)
 {
-	szComment.Kill();
 }
 
 
@@ -26,17 +24,7 @@ void CGerberCommandComment::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGerberCommandComment::Text(void)
-{
-	return szComment.Text();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CGerberCommandComment::IsComment(void)
+bool CGerberCommandEndOfFile::IsEndOfFile(void)
 {
 	return true;
 }

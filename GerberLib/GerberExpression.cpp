@@ -5,9 +5,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberExpression::Init(CCalculatorSymbols* pcSymbols)
+void CGerberExpression::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
 {
-	mcCalculator.Init(pcSymbols, false, false);
+	mcCalculator.Init(pcSymbols, bSkipWhitespace, bUseUserError);
 	mpcExpression = NULL;
 }
 

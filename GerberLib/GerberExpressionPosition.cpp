@@ -1,15 +1,14 @@
-#include "GerberCommandFileAttribute.h"
+#include "GerberExpressionPosition.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandFileAttribute::Init(size iNameLength)
+void CGerberExpressionPosition::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
 {
-	CGerberCommand::Init(GC_TF);
-	szName.InitLength(iNameLength);
-	szValues.Init();
+	mX.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mY.Init(pcSymbols, bSkipWhitespace, bUseUserError);
 }
 
 
@@ -17,10 +16,10 @@ void CGerberCommandFileAttribute::Init(size iNameLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandFileAttribute::Kill(void)
+void CGerberExpressionPosition::Kill(void)
 {
-	szValues.Kill();
-	szName.Kill();
+	mY.Kill();
+	mX.Kill();
 }
 
 
@@ -28,9 +27,9 @@ void CGerberCommandFileAttribute::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGerberCommandFileAttribute::NameText(void)
+CGerberExpression* CGerberExpressionPosition::GetX(void)
 {
-	return szName.Text();
+	return &mX;
 }
 
 
@@ -38,12 +37,9 @@ char* CGerberCommandFileAttribute::NameText(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CGerberCommandFileAttribute::AddValue(size iValueLength)
+CGerberExpression* CGerberExpressionPosition::GetY(void)
 {
-	CChars* psz;
-
-	psz = szValues.AddLength(iValueLength);
-	return psz->Text();
+	return &mY;
 }
 
 
@@ -51,9 +47,19 @@ char* CGerberCommandFileAttribute::AddValue(size iValueLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandFileAttribute::IsFileAttribute(void)
+void CArrayGerberExpressionPositions::Kill(void)
 {
-	return true;
-}
+	size						i;
+	size						uiNumElements;
+	CGerberExpressionPosition*	pcPosition;
 
+	uiNumElements = NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcPosition = Get(i);
+		pcPosition->Kill();
+	}
+
+	__CArrayGerberExpressionPositions::Kill();
+}
 

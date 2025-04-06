@@ -1,17 +1,17 @@
-#include "GerberApertureMacroCenterLine.h"
+#include "GerberApertureMacroThermal.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroCenterLine::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
+void CGerberApertureMacroThermal::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
 {
-	CGerberApertureMacro::Init(GAMP_Center_Line);
-	mcExposure.Init(pcSymbols, bSkipWhitespace, bUseUserError);
-	mcWidth.Init(pcSymbols, bSkipWhitespace, bUseUserError);
-	mcHeight.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	CGerberApertureMacro::Init(GAMP_Vector_Line);
 	mcCenter.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcOuterDiameter.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcInnerDiameter.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcGapThickness.Init(pcSymbols, bSkipWhitespace, bUseUserError);
 	mcRotation.Init(pcSymbols, bSkipWhitespace, bUseUserError);
 }
 
@@ -20,13 +20,13 @@ void CGerberApertureMacroCenterLine::Init(CCalculatorSymbols* pcSymbols, bool bS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroCenterLine::Kill(void)
+void CGerberApertureMacroThermal::Kill(void)
 {
-	mcRotation.Kill();
 	mcCenter.Kill();
-	mcHeight.Kill();
-	mcWidth.Kill();
-	mcExposure.Kill();
+	mcOuterDiameter.Kill();
+	mcInnerDiameter.Kill();
+	mcGapThickness.Kill();
+	mcRotation.Kill();
 }
 
 
@@ -34,37 +34,7 @@ void CGerberApertureMacroCenterLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberExpression* CGerberApertureMacroCenterLine::GetExposure(void)
-{
-	return &mcExposure;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CGerberExpression* CGerberApertureMacroCenterLine::GetWidth(void)
-{
-	return &mcWidth;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CGerberExpression* CGerberApertureMacroCenterLine::GetHeight(void)
-{
-	return &mcHeight;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CGerberExpression* CGerberApertureMacroCenterLine::GetCenterX(void)
+CGerberExpression* CGerberApertureMacroThermal::GetCenterX(void)
 {
 	return mcCenter.GetX();
 }
@@ -74,7 +44,7 @@ CGerberExpression* CGerberApertureMacroCenterLine::GetCenterX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberExpression* CGerberApertureMacroCenterLine::GetCenterY(void)
+CGerberExpression* CGerberApertureMacroThermal::GetCenterY(void)
 {
 	return mcCenter.GetY();
 }
@@ -84,7 +54,37 @@ CGerberExpression* CGerberApertureMacroCenterLine::GetCenterY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberExpression* CGerberApertureMacroCenterLine::GetRotation(void)
+CGerberExpression* CGerberApertureMacroThermal::GetOuterDiameter(void)
+{
+	return &mcOuterDiameter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberExpression* CGerberApertureMacroThermal::GetInnerDiameter(void)
+{
+	return &mcInnerDiameter;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberExpression* CGerberApertureMacroThermal::GetGapThickness(void)
+{
+	return &mcGapThickness;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberExpression* CGerberApertureMacroThermal::GetRotation(void)
 {
 	return &mcRotation;
 }
@@ -94,7 +94,8 @@ CGerberExpression* CGerberApertureMacroCenterLine::GetRotation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberApertureMacroCenterLine::IsCenterLine(void)
+bool CGerberApertureMacroThermal::IsThermal(void)
 {
 	return true;
 }
+

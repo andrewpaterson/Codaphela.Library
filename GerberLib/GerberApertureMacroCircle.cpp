@@ -5,14 +5,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroCircle::Init(CCalculatorSymbols* pcSymbols)
+void CGerberApertureMacroCircle::Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError)
 {
 	CGerberApertureMacro::Init(GAMP_Circle);
-	mcExposure.Init(pcSymbols);
-	mcDiameter.Init(pcSymbols);
-	mcCenterX.Init(pcSymbols);
-	mcCenterY.Init(pcSymbols);
-	mcRotation.Init(pcSymbols);
+	mcExposure.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcDiameter.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcCenter.Init(pcSymbols, bSkipWhitespace, bUseUserError);
+	mcRotation.Init(pcSymbols, bSkipWhitespace, bUseUserError);
 }
 
 
@@ -23,8 +22,7 @@ void CGerberApertureMacroCircle::Init(CCalculatorSymbols* pcSymbols)
 void CGerberApertureMacroCircle::Kill(void)
 {
 	mcRotation.Kill();
-	mcCenterY.Kill();
-	mcCenterX.Kill();
+	mcCenter.Kill();
 	mcDiameter.Kill();
 	mcExposure.Kill();
 }
@@ -56,7 +54,7 @@ CGerberExpression* CGerberApertureMacroCircle::GetDiameter(void)
 //////////////////////////////////////////////////////////////////////////
 CGerberExpression* CGerberApertureMacroCircle::GetCenterX(void)
 {
-	return &mcCenterX;
+	return mcCenter.GetX();
 }
 
 
@@ -66,7 +64,7 @@ CGerberExpression* CGerberApertureMacroCircle::GetCenterX(void)
 //////////////////////////////////////////////////////////////////////////
 CGerberExpression* CGerberApertureMacroCircle::GetCenterY(void)
 {
-	return &mcCenterY;
+	return mcCenter.GetY();
 }
 
 
@@ -77,5 +75,15 @@ CGerberExpression* CGerberApertureMacroCircle::GetCenterY(void)
 CGerberExpression* CGerberApertureMacroCircle::GetRotation(void)
 {
 	return &mcRotation;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGerberApertureMacroCircle::IsCircle(void)
+{
+	return true;
 }
 
