@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroVectorLine::Init(void)
+void CGerberApertureMacroVectorLine::Init(CCalculatorSymbols* pcSymbols)
 {
 	CGerberApertureMacro::Init(GAMP_Vector_Line);
 }

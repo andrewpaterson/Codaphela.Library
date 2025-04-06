@@ -41,16 +41,16 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CCalculator
 {
 public:
-	CCalculatorSymbols			mcSymbols;
+	CCalculatorSymbols*			mpcSymbols;
 
 	CCalculatorVariables		mcVariables;
 	CCalculatorError			mcErrors;
 
 	bool						mbSkipWhitespace;
 
-	void						Init(void);
-	void						Init(bool bUseUserError);
-	void						Init(bool bEmptySymbols, bool bSkipWhitespace, bool bUseUserError);
+	void						Init(CCalculatorSymbols* pcSymbols);
+	void						Init(CCalculatorSymbols* pcSymbols, bool bUseUserError);
+	void						Init(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	void						Kill(void);
 
 	CNumber						Eval(CCalcExpression* pcExpression);

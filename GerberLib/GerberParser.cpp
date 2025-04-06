@@ -42,6 +42,14 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 
 	mpcCommands = pcCommands;
 	mbSkipWhitespace = true;
+
+	mcSymbols.Init(true);
+	mcSymbols.SetOperator("+", CO_Add, 4);
+	mcSymbols.SetOperator("-", CO_Subtract, 4);
+	mcSymbols.SetOperator("x", CO_Multiply, 3);
+	mcSymbols.SetOperator("/", CO_Divide, 2);
+	mcSymbols.SetOperator("=", CO_Assignment, 5);
+
 }
 
 
@@ -51,6 +59,8 @@ void CGerberParser::Init(char* szText, size iTextLen, char* szFileName, CGerberC
 //////////////////////////////////////////////////////////////////////////
 void CGerberParser::Kill(void)
 {
+	mcSymbols.Kill();
+
 	mpcCommands = NULL;
 
 	mszFilename.Kill();
@@ -474,7 +484,7 @@ TRISTATE CGerberParser::ParseApertureMacroCircle(CGerberCommandApertureMacro* pc
 	TRISTATE						tResult;
 	CGerberApertureMacroCircle*		pcCircle;
 
-	pcCircle = pcApertureMacro->AddCircle();
+	pcCircle = pcApertureMacro->AddCircle(&mcSymbols);
 	
 	tResult = ParseExpression(pcCircle->GetExposure());
 	ReturnOnError(tResult);

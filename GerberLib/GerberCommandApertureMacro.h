@@ -24,11 +24,11 @@ public:
 
 	char*								NameText(void);
 	CGerberApertureMacroComment*		AddComment(size uiLength);
-	CGerberApertureMacroCircle*			AddCircle(void);
-	CGerberApertureMacroCenterLine*		AddCenterLine(void);
-	CGerberApertureMacroOutline*		AddOutline(void);
-	CGerberApertureMacroPolygon*		AddPolygon(void);
-	CGerberApertureMacroVectorLine*		AddVectorLine(void);
+	CGerberApertureMacroCircle*			AddCircle(CCalculatorSymbols* pcSymbols);
+	CGerberApertureMacroCenterLine*		AddCenterLine(CCalculatorSymbols* pcSymbols);
+	CGerberApertureMacroOutline*		AddOutline(CCalculatorSymbols* pcSymbols);
+	CGerberApertureMacroPolygon*		AddPolygon(CCalculatorSymbols* pcSymbols);
+	CGerberApertureMacroVectorLine*		AddVectorLine(CCalculatorSymbols* pcSymbols);
 };
 
 

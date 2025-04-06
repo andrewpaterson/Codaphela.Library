@@ -66,10 +66,10 @@ CGerberApertureMacroComment* CGerberCommandApertureMacro::AddComment(size uiLeng
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroCircle* CGerberCommandApertureMacro::AddCircle(void)
+CGerberApertureMacroCircle* CGerberCommandApertureMacro::AddCircle(CCalculatorSymbols* pcSymbols)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroCircle);
-	pcPrimitive->Init();
+	pcPrimitive->Init(pcSymbols);
 	return pcPrimitive;
 }
 
@@ -78,10 +78,10 @@ CGerberApertureMacroCircle* CGerberCommandApertureMacro::AddCircle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroCenterLine* CGerberCommandApertureMacro::AddCenterLine(void)
+CGerberApertureMacroCenterLine* CGerberCommandApertureMacro::AddCenterLine(CCalculatorSymbols* pcSymbols)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroCenterLine);
-	pcPrimitive->Init();
+	pcPrimitive->Init(pcSymbols);
 	return pcPrimitive;
 }
 
@@ -90,10 +90,10 @@ CGerberApertureMacroCenterLine* CGerberCommandApertureMacro::AddCenterLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroOutline* CGerberCommandApertureMacro::AddOutline(void)
+CGerberApertureMacroOutline* CGerberCommandApertureMacro::AddOutline(CCalculatorSymbols* pcSymbols)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroOutline);
-	pcPrimitive->Init();
+	pcPrimitive->Init(pcSymbols);
 	return pcPrimitive;
 }
 
@@ -102,10 +102,10 @@ CGerberApertureMacroOutline* CGerberCommandApertureMacro::AddOutline(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroPolygon* CGerberCommandApertureMacro::AddPolygon(void)
+CGerberApertureMacroPolygon* CGerberCommandApertureMacro::AddPolygon(CCalculatorSymbols* pcSymbols)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroPolygon);
-	pcPrimitive->Init();
+	pcPrimitive->Init(pcSymbols);
 	return pcPrimitive;
 }
 
@@ -114,10 +114,10 @@ CGerberApertureMacroPolygon* CGerberCommandApertureMacro::AddPolygon(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGerberApertureMacroVectorLine* CGerberCommandApertureMacro::AddVectorLine(void)
+CGerberApertureMacroVectorLine* CGerberCommandApertureMacro::AddVectorLine(CCalculatorSymbols* pcSymbols)
 {
 	ADD_PRIMITIVE(CGerberApertureMacroVectorLine);
-	pcPrimitive->Init();
+	pcPrimitive->Init(pcSymbols);
 	return pcPrimitive;
 }
 

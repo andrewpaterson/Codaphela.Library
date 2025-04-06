@@ -5,14 +5,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroCircle::Init(void)
+void CGerberApertureMacroCircle::Init(CCalculatorSymbols* pcSymbols)
 {
 	CGerberApertureMacro::Init(GAMP_Circle);
-	mcExposure.Init();
-	mcDiameter.Init();
-	mcCenterX.Init();
-	mcCenterY.Init();
-	mcRotation.Init();
+	mcExposure.Init(pcSymbols);
+	mcDiameter.Init(pcSymbols);
+	mcCenterX.Init(pcSymbols);
+	mcCenterY.Init(pcSymbols);
+	mcRotation.Init(pcSymbols);
 }
 
 

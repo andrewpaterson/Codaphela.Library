@@ -15,7 +15,7 @@ protected:
 	CGerberExpression	mcRotation;
 
 public:
-	void				Init(void);
+	void				Init(CCalculatorSymbols* pcSymbols);
 	void				Kill(void);
 
 	CGerberExpression*	GetExposure(void);

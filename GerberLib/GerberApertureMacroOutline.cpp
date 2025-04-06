@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberApertureMacroOutline::Init(void)
+void CGerberApertureMacroOutline::Init(CCalculatorSymbols* pcSymbols)
 {
 	CGerberApertureMacro::Init(GAMP_Outline);
 }
