@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <stdio.h>
 #include "FastFunctions.h"
 #include "IntegerHelper.h"
+#include "FloatHelper.h"
 #include "NumberControl.h"
 
 
@@ -3491,10 +3492,10 @@ CNumber* CNumber::RadiansToDegrees(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CNumber::IntValue(void)
 {
-	int32	iFirst;
+	int16	iFirst;
 	int32	i;
 	int32	iTimes;
-	int32	iValue;
+	char	iValue;
 	int32	iResult;
 
 	iFirst = GetFirstNonZeroDigit();
@@ -3523,39 +3524,98 @@ int32 CNumber::IntValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+uint64 CNumber::ULongValue(void)
+{
+	int16	iFirst;
+	int32	i;
+	uint64	iTimes;
+	char	iValue;
+	uint64	iResult;
+
+	iFirst = GetFirstNonZeroDigit();
+
+	if ((iFirst < 0) || (IsZero()))
+	{
+		return 0;
+	}
+
+	iTimes = 1;
+	iResult = 0;
+
+	for (i = 1; i <= iFirst; i++)
+	{
+		iValue = GetDigitUnsafe(i);
+		iResult += (iValue * iTimes);
+		iTimes *= 10;
+	}
+	iResult *= GetSign();
+
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint64 CNumber::DecimalValue(uint16* puiNumDecimals)
+{
+	int16	iLast;
+	int32	i;
+	uint64	iTimes;
+	char	iValue;
+	uint64	iResult;
+	uint16	uiNumDecimals;
+
+	iLast = GetLastNonZeroDigit();
+
+	if ((iLast > 0) || (IsZero()))
+	{
+		return 0;
+	}
+
+	iTimes = 1;
+	iResult = 0;
+
+	for (i = iLast; i <= -1; i++)
+	{
+		iValue = GetDigitUnsafe(i);
+		iResult += (iValue * iTimes);
+		iTimes *= 10;
+	}
+
+	if (iLast <= -1)
+	{
+		uiNumDecimals = (uint16)-iLast;
+	}
+	else
+	{
+		uiNumDecimals = 0;
+	}
+	
+	SafeAssign(puiNumDecimals, uiNumDecimals);
+
+	return iResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 float32 CNumber::FloatValue(void)
 {
-	//int32		iFirst;
-	//int32		i;
-	//int32		iTimes;
-	//int32		iValue;
-	//int32		iResult;
-	//int32		iLast;
+	float32	fValue;
+	uint64	uiWholeNumbers;
+	uint64	uiDecimalNumbers;
+	uint16	uiNumDecimals;
 
-	//iFirst = GetFirstNonZeroDigit();
-	//iLast = GetLastNonZeroDigit();
+	uiWholeNumbers = ULongValue();
+	uiDecimalNumbers = DecimalValue(&uiNumDecimals);
 
-	//if (IsZero())
-	//{
-	//	return 0;
-	//}
+	fValue = (float32)ConvertDecimalFixedPointToLongDouble(uiWholeNumbers, uiDecimalNumbers, uiNumDecimals, 0);
 
-	//iTimes = 1;
-	//iResult = 0;
-
-	//for (i = iLast; i <= iFirst; i++)
-	//{
-	//	if (i != 0)
-	//	{
-	//		iValue = GetDigitUnsafe(i);
-	//		iResult += (iValue*iTimes);
-	//		iTimes *= 10;
-	//	}
-	//}
-	//iResult *= GetSign();
-
-	//return iResult;
-	return 0;
+	return fValue;
 }
 
 

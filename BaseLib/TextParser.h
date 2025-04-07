@@ -86,7 +86,6 @@ public:
 
 	TRISTATE 		GetExactCharacter(char c, bool bSkipWhitespace = true);
 	TRISTATE 		GetExactCaseInsensitiveCharacter(char c, bool bSkipWhitespace = true);
-	TRISTATE		GetIdentifierCharacter(char* pc, bool bFirst);
 	TRISTATE		GetEnumeratedCharacter(char* szCharacters, char* c, bool bSkipWhitespace = true);
 	TRISTATE		GetCharacter(char* pc);
 	TRISTATE		GetEscapeCode(char* c);

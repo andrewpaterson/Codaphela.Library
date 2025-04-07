@@ -36,6 +36,8 @@ public:
 	CNumber		Evaluate(void);
 	void		SetValue(CNumber* pcNumber);
 	void		Print(CChars* psz);
+	bool		IsConstExpression(void);
+	CNumber*	GetNumber(void);
 };
 
 

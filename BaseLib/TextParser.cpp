@@ -25,6 +25,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Logger.h"
 #include "PointerFunctions.h"
 #include "StringHelper.h"
+#include "FloatHelper.h"
 #include "TextParser.h"
 #include "EscapeCodes.h"
 #include "CPPWhitespace.h"
@@ -1505,20 +1506,7 @@ float96	CTextParser::MakeLongDouble(uint16 uiBase, uint64 ulliWholeNumber, uint6
 
 	if (uiBase == 10)
 	{
-		ldf = (float96)ulliWholeNumber;
-		ldfPow = 1.l / powl(10, iNumDecimalDigits);
-		ldf += ulliDecimalNumber * ldfPow;
-		if (lliExponentNumber > 0)
-		{
-			ldfExp = powl(10, (float96)lliExponentNumber);
-			ldf *= ldfExp;
-		}
-		else if (lliExponentNumber < 0)
-		{
-			ldfExp = 1.l / powl(10, -((float96)lliExponentNumber));
-			ldf *= ldfExp;
-		}
-		return ldf;
+		return ConvertDecimalFixedPointToLongDouble(ulliWholeNumber, ulliDecimalNumber, iNumDecimalDigits, lliExponentNumber);
 	}
 	else if (uiBase == 16)
 	{

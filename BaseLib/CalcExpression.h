@@ -37,6 +37,7 @@ public:
 	virtual bool		IsParentheses(void);
 	virtual bool		IsBinaryExpression(void);
 	virtual bool		IsUnaryExpression(void);
+	virtual bool		IsConstExpression(void);
 };
 
 

@@ -15,6 +15,7 @@ public:
 
 	CCalculator*	GetCalculator(void);
 	void			SetCalcExpression(CCalcExpression* pcExpression);
+	CNumber*		GetConstNumber(void);
 };
 
 
