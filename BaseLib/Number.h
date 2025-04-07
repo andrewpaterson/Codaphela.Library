@@ -62,14 +62,14 @@ class CNumber : public CNumberDetail
 {
 public:
 
-	char		mcDigits[DEFAULT_DIGITS];		// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
-												//
-												// 00000000001111111111222222 2222333333333344 <- Array Position
-												// 01234567890123456789012345 6789012345678901
-												//
-												// ++++++++++++++++++++++++++ ----------------
-												// 2222222111111111100000000000000000001111111 <- Digit Access (Get/Set)
-												// 6543210987654321098765432101234567890123456
+	char		mcDigits[DEFAULT_DIGITS];	// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
+											//
+											// 00000000001111111111222222 2222333333333344 <- Array Position
+											// 01234567890123456789012345 6789012345678901
+											//
+											// ++++++++++++++++++++++++++ ----------------
+											// 2222222111111111100000000000000000001111111 <- Digit Access (Get/Set)
+											// 6543210987654321098765432101234567890123456
 	//Initialisation
 	CNumber*	Init(void);
 	CNumber*	Init(int32 iNumber);
@@ -235,6 +235,8 @@ public:
 	//Conversion
 	int32  		IntValue(void);
 	float32		FloatValue(void);
+	uint64		ULongValue(void);
+	uint64		DecimalValue(uint16* puiNumDecimals);
 	char		GetDigitUnsafe(int16 iDigit);  //zero returns '.' or '\0'.
 	char		SafeGetDigit(int16 iDigit);
 	void		Print(CChars* pcChars);

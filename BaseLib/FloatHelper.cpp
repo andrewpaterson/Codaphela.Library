@@ -647,6 +647,33 @@ bool IsNotANumber(float* pf)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+float96 ConvertDecimalFixedPointToLongDouble(uint64 ulliWholeNumber, uint64 ulliDecimalNumber, uint16 iNumDecimalDigits, int64 lliExponentNumber)
+{
+	float96		ldf;
+	float96		ldfPow;
+	float96		ldfExp;
+
+	ldf = (float96)ulliWholeNumber;
+	ldfPow = 1.l / powl(10, iNumDecimalDigits);
+	ldf += ulliDecimalNumber * ldfPow;
+	if (lliExponentNumber > 0)
+	{
+		ldfExp = powl(10, (float96)lliExponentNumber);
+		ldf *= ldfExp;
+	}
+	else if (lliExponentNumber < 0)
+	{
+		ldfExp = 1.l / powl(10, -((float96)lliExponentNumber));
+		ldf *= ldfExp;
+	}
+	return ldf;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 float det3x3(float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3)
 {
 	float ans;

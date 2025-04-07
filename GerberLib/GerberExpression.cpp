@@ -42,3 +42,20 @@ CCalculator* CGerberExpression::GetCalculator(void)
 	return &mcCalculator;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNumber* CGerberExpression::GetConstNumber(void)
+{
+	CCalcConstExpression*	pcConst;
+
+	if (mpcExpression->IsConstExpression())
+	{
+		pcConst = (CCalcConstExpression*)mpcExpression;
+		return pcConst->GetNumber();
+	}
+	return NULL;
+}
+
