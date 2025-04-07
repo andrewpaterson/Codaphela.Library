@@ -60,7 +60,6 @@ protected:
 class CNumberControl;
 class CNumber : public CNumberDetail
 {
-CONSTRUCTABLE(CNumber);
 public:
 
 	char		mcDigits[DEFAULT_DIGITS];		// WWWWWWWWWWWWWWWWWWWWWWWWWW.DDDDDDDDDDDDDDDD
@@ -78,9 +77,11 @@ public:
 	CNumber*	Init(char* szNumber, size iLen = 0);
 	CNumber*	Init(CNumber* pcNumber);
 	CNumber*	Zero(void);
-	CNumber*	One(void);
-	CNumber*	Pi(void);
-	CNumber*	E(void);
+	CNumber*	One(bool bPositive = true);
+	CNumber*	Two(bool bPositive = true);
+	CNumber*	Half(bool bPositive = true);
+	CNumber*	Pi(bool bPositive = true);
+	CNumber*	E(bool bPositive = true);
 	CNumber*	Digit(char cValue);
 	CNumber*	Digit(int16 iDigit, char cValue);
 	CNumber* 	Copy(CNumber* pcNumber);
@@ -96,9 +97,11 @@ public:
 	CNumber*	Init(const char* szNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals, size iLen = 0);
 	CNumber*	Init(CNumber* pcNumber, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Zero(int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	One(int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	CNumber*	E(int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	CNumber*	One(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
+	CNumber*	Two(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
+	CNumber*	Half(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
+	CNumber*	Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
+	CNumber*	E(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
 	CNumber*	BinaryOne(int16 iBinaryExponent, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Digit(char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	CNumber*	Digit(int16 iDigit, char cValue, int16 cMaxWholeNumbers, int16 cMaxDecimals);
@@ -115,6 +118,7 @@ public:
 	void		SetSign(int16 iSign);
 	int16		GetSign(void);
 	void		SetFlag(int16 iFlag);
+	void		SetPositive(bool bPositive);
 	void		ClearFlag(int16 iFlags);
 	int16		GetMaxWholeNumbers(void);
 	int16		GetMaxDecimals(void);
