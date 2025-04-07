@@ -396,22 +396,22 @@ CNumber* CNumber::Zero(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::One(int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::One(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 {
 	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
 	SetFirstNonZerotDigit(1);
 	SetLastNonZeroDigit(1);
 	SetDigitUnsafe(1, 1);
-	SetSign(1);
+	SetPositive(bPositive);
 	return this;
 }
-CNumber* CNumber::One(void)
+CNumber* CNumber::One(bool bPositive)
 {
 	PrivateInit();
 	SetFirstNonZerotDigit(1);
 	SetLastNonZeroDigit(1);
 	SetDigitUnsafe(1, 1);
-	SetSign(1);
+	SetPositive(bPositive);
 	return this;
 }
 
@@ -420,14 +420,22 @@ CNumber* CNumber::One(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::Two(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 {
-	gcNumberControl.Pi(this, cMaxWholeNumbers, cMaxDecimals);
+	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
+	SetFirstNonZerotDigit(1);
+	SetLastNonZeroDigit(1);
+	SetDigitUnsafe(1, 2);
+	SetPositive(bPositive);
 	return this;
 }
-CNumber* CNumber::Pi(void)
+CNumber* CNumber::Two(bool bPositive)
 {
-	gcNumberControl.Pi(this);
+	PrivateInit();
+	SetFirstNonZerotDigit(1);
+	SetLastNonZeroDigit(1);
+	SetDigitUnsafe(1, 2);
+	SetPositive(bPositive);
 	return this;
 }
 
@@ -436,14 +444,54 @@ CNumber* CNumber::Pi(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNumber* CNumber::E(int16 cMaxWholeNumbers, int16 cMaxDecimals)
+CNumber* CNumber::Half(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 {
-	gcNumberControl.E(this, cMaxWholeNumbers, cMaxDecimals);
+	PrivateInit(cMaxWholeNumbers, cMaxDecimals);
+	SetFirstNonZerotDigit(1);
+	SetLastNonZeroDigit(1);
+	SetDigitUnsafe(1, 2);
+	SetPositive(bPositive);
 	return this;
 }
-CNumber* CNumber::E(void)
+CNumber* CNumber::Half(bool bPositive)
 {
-	gcNumberControl.E(this);
+	PrivateInit();
+	SetFirstNonZerotDigit(-1);
+	SetLastNonZeroDigit(-1);
+	SetDigitUnsafe(-1, 5);
+	SetPositive(bPositive);
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNumber* CNumber::Pi(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
+{
+	gcNumberControl.Pi(this, cMaxWholeNumbers, cMaxDecimals, bPositive);
+	return this;
+}
+CNumber* CNumber::Pi(bool bPositive)
+{
+	gcNumberControl.Pi(this, bPositive);
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNumber* CNumber::E(int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
+{
+	gcNumberControl.E(this, cMaxWholeNumbers, cMaxDecimals, bPositive);
+	return this;
+}
+CNumber* CNumber::E(bool bPositive)
+{
+	gcNumberControl.E(this, bPositive);
 	return this;
 }
 
@@ -655,6 +703,23 @@ void CNumber::SetSign(int16 iSign)
 	else
 	{
 		ClearFlag(NUMBER_FLAGS_NEGATIVE);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNumber::SetPositive(bool bPositive)
+{
+	if (bPositive)
+	{
+		ClearFlag(NUMBER_FLAGS_NEGATIVE);
+	}
+	else
+	{
+		SetFlag(NUMBER_FLAGS_NEGATIVE);
 	}
 }
 

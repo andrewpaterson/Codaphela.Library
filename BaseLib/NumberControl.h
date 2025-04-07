@@ -29,19 +29,20 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CNumberControl
 {
-public:
+protected:
 	CMemoryStackExtended	mcScratchPad;
 	CNumber					mc_pi;
 	CNumber					mc_e;
 	UNumber(1, 255)			mc_pi_lots;
 	UNumber(1, 255)			mc_e_lots;
 
+public:
 	void 		Init(int iScratchPadSize);
 	void 		Kill(void);
-	void 		Pi(CNumber* pcDest);
-	void 		Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals);
-	void 		E(CNumber* pcDest);
-	void 		E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals);
+	void 		Pi(CNumber* pcDest, bool bPositive = true);
+	void 		Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
+	void 		E(CNumber* pcDest, bool bPositive = true);
+	void 		E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
 	CNumber*	Add(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void		Remove(void);
 	void		Remove(int iNumToRemove);

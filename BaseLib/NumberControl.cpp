@@ -80,9 +80,13 @@ void CNumberControl::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::Pi(CNumber* pcDest)
+void CNumberControl::Pi(CNumber* pcDest, bool bPositive)
 {
 	pcDest->Copy(&mc_pi);
+	if (!bPositive)
+	{
+		pcDest->SetPositive(bPositive);
+	}
 }
 
 
@@ -90,9 +94,13 @@ void CNumberControl::Pi(CNumber* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+void CNumberControl::Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 {
 	pcDest->Copy(&mc_pi_lots.c, cMaxWholeNumbers, cMaxDecimals);
+	if (!bPositive)
+	{
+		pcDest->SetPositive(bPositive);
+	}
 }
 
 
@@ -100,9 +108,13 @@ void CNumberControl::Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecim
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::E(CNumber* pcDest)
+void CNumberControl::E(CNumber* pcDest, bool bPositive)
 {
 	pcDest->Copy(&mc_e);
+	if (!bPositive)
+	{
+		pcDest->SetPositive(bPositive);
+	}
 }
 
 
@@ -110,9 +122,13 @@ void CNumberControl::E(CNumber* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNumberControl::E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals)
+void CNumberControl::E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive)
 {
 	pcDest->Copy(&mc_e_lots.c, cMaxWholeNumbers, cMaxDecimals);
+	if (!bPositive)
+	{
+		pcDest->SetPositive(bPositive);
+	}
 }
 
 
