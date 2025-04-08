@@ -16,6 +16,7 @@ public:
 	CCalculator*	GetCalculator(void);
 	void			SetCalcExpression(CCalcExpression* pcExpression);
 	CNumber*		GetConstNumber(void);
+	float64			DoubleValue(void);
 };
 
 

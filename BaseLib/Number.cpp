@@ -3605,15 +3605,35 @@ uint64 CNumber::DecimalValue(uint16* puiNumDecimals)
 //////////////////////////////////////////////////////////////////////////
 float32 CNumber::FloatValue(void)
 {
-	float32	fValue;
-	uint64	uiWholeNumbers;
-	uint64	uiDecimalNumbers;
-	uint16	uiNumDecimals;
+	float32		fValue;
+	uint64		uiWholeNumbers;
+	uint64		uiDecimalNumbers;
+	uint16		uiNumDecimals;
 
 	uiWholeNumbers = ULongValue();
 	uiDecimalNumbers = DecimalValue(&uiNumDecimals);
 
 	fValue = (float32)ConvertDecimalFixedPointToLongDouble(uiWholeNumbers, uiDecimalNumbers, uiNumDecimals, 0);
+
+	return fValue;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+float64 CNumber::DoubleValue(void)
+{
+	float64		fValue;
+	uint64		uiWholeNumbers;
+	uint64		uiDecimalNumbers;
+	uint16		uiNumDecimals;
+
+	uiWholeNumbers = ULongValue();
+	uiDecimalNumbers = DecimalValue(&uiNumDecimals);
+
+	fValue = (float64)ConvertDecimalFixedPointToLongDouble(uiWholeNumbers, uiDecimalNumbers, uiNumDecimals, 0);
 
 	return fValue;
 }
