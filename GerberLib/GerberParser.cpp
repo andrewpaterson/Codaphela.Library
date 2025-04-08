@@ -588,7 +588,7 @@ TRISTATE CGerberParser::ParseApertureMacroCenterLine(CGerberCommandApertureMacro
 	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
 	ReturnSyntaxErrorOnErrorOrFalse(tResult);
 
-	tResult = ParseExpression(pcCenterLine->GetWidth());
+	tResult = ParseExpression(pcCenterLine->GetHeight());
 	ReturnSyntaxErrorOnErrorOrFalse(tResult);
 	tResult = mcParser.GetExactCharacter(',', mbSkipWhitespace);
 	ReturnSyntaxErrorOnErrorOrFalse(tResult);
