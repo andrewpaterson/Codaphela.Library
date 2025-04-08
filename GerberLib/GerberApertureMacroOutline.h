@@ -22,6 +22,8 @@ public:
 	CGerberExpressionPosition*	Add(CCalculatorSymbols* pcSymbols, bool bSkipWhitespace, bool bUseUserError);
 	CGerberExpression*			GetExposure(void);
 	CGerberExpression*			GetRotation(void);
+	size						NumPositions(void);
+	CGerberExpressionPosition*	GetPosition(size uiIndex);
 };
 
 
