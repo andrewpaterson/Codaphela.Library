@@ -59,3 +59,25 @@ CNumber* CGerberExpression::GetConstNumber(void)
 	return NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+float64 CGerberExpression::DoubleValue(void)
+{
+	CCalcConstExpression*	pcConst;
+	CNumber*				pcNumber;
+
+	if (mpcExpression->IsConstExpression())
+	{
+		pcConst = (CCalcConstExpression*)mpcExpression;
+		pcNumber = pcConst->GetNumber();
+		if (pcNumber != NULL)
+		{
+			return pcNumber->DoubleValue();
+		}
+	}
+	return NAN;
+}
+

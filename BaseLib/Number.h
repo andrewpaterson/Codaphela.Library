@@ -235,6 +235,7 @@ public:
 	//Conversion
 	int32  		IntValue(void);
 	float32		FloatValue(void);
+	float64		DoubleValue(void);
 	uint64		ULongValue(void);
 	uint64		DecimalValue(uint16* puiNumDecimals);
 	char		GetDigitUnsafe(int16 iDigit);  //zero returns '.' or '\0'.
