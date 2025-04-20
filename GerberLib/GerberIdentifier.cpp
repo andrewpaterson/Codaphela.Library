@@ -223,3 +223,4 @@ TRISTATE GetGerberIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool 
 		return TRIERROR;
 	}
 }
+
