@@ -1109,6 +1109,10 @@ TRISTATE CGerberParser::Parse(void)
 	for (;;)
 	{
 		mcParser.SkipWhitespace();
+		if (mcParser.IsOutside())
+		{
+			return TRITRUE;
+		}
 
 		tResult = ParseCommandG04();
 		ContinueOnTrueReturnOnError(tResult);
@@ -1183,7 +1187,7 @@ TRISTATE CGerberParser::Parse(void)
 		ContinueOnTrueReturnOnError(tResult);
 
 		tResult = ParseCommandM02();
-		if (tResult != TRITRUE)
+		if (tResult != TRIERROR)
 		{
 			ReturnSyntanxError();
 		}

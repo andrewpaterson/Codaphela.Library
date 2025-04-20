@@ -148,7 +148,6 @@ void* CListVariable::Add(size iElementSize)
 	psType = mcArray.Add();
 	psType->iSize = iElementSize;
 
-
 	psType->pvData = PrivateMalloc(iElementSize);
 	return psType->pvData;
 }

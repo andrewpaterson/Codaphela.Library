@@ -13,10 +13,14 @@ protected:
 	uint16	muiYDecimals;
 
 public:
-	void Init(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
-	void Kill(void);
+	void	Init(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
+	void	Kill(void);
 
-	bool IsFormatSpecifier(void);
+	bool	IsFormatSpecifier(void);
+	uint16	GetXWholeNumbers(void);
+	uint16	GetXDecimals(void);
+	uint16	GetYWholeNumbers(void);
+	uint16	GetYDecimals(void);
 };
 
 
