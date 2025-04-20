@@ -33,7 +33,7 @@
     <ClCompile Include="GerberCommandComment.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
-    <ClCompile Include="GerberCommandModeSet.cpp">
+    <ClCompile Include="GerberCommandMeasurementMode.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
     <ClCompile Include="GerberCommands.cpp">
@@ -119,7 +119,7 @@
     <ClInclude Include="GerberCommandComment.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
-    <ClInclude Include="GerberCommandModeSet.h">
+    <ClInclude Include="GerberCommandMeasurementMode.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommands.h">

@@ -2,7 +2,7 @@
 #define __GERBER_COMMANDS_H__
 #include "BaseLib/ListVariable.h"
 #include "GerberCommandComment.h"
-#include "GerberCommandModeSet.h"
+#include "GerberCommandMeasurementMode.h"
 #include "GerberCommandFileAttribute.h"
 #include "GerberCommandFormatSpecifier.h"
 #include "GerberCommandLoadPolarity.h"

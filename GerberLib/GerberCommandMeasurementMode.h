@@ -22,9 +22,10 @@ public:
 	void Kill(void);
 
 	bool IsMeasurementMode(void);
+	bool IsMillimeters(void);
+	bool IsInches(void);
 };
 
 
 #endif // __GERBER_COMMAND_MODE_SET_H__
-
 
