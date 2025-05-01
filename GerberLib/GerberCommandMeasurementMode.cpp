@@ -37,7 +37,7 @@ bool CGerberCommandMeasurementMode::IsMeasurementMode(void)
 //////////////////////////////////////////////////////////////////////////
 bool CGerberCommandMeasurementMode::IsMillimeters(void)
 {
-	return meMode == GM_Millimeters;
+	return meMode == GMM_Millimeters;
 }
 
 
@@ -47,7 +47,7 @@ bool CGerberCommandMeasurementMode::IsMillimeters(void)
 //////////////////////////////////////////////////////////////////////////
 bool CGerberCommandMeasurementMode::IsInches(void)
 {
-	return meMode == GM_Inches;
+	return meMode == GMM_Inches;
 }
 
 

@@ -17,6 +17,7 @@ public:
 	virtual bool	IsFileAttribute(void);
 	virtual bool	IsFormatSpecifier(void);
 	virtual bool	IsLoadPolarity(void);
+	virtual bool	IsLoadMirroring(void);
 	virtual bool	IsMeasurementMode(void);
 	virtual bool	IsPlotMode(void);
 

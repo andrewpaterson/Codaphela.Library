@@ -28,6 +28,6 @@ public:
 };
 
 
-#endif // __GERBER_COMMAND_MODE_SET_H__
+#endif // __GERBER_COMMAND_LOAD_POLARITY_H__
 
 
