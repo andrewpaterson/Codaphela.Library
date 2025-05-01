@@ -22,6 +22,9 @@ public:
 	void Kill(void);
 
 	bool IsLoadPolarity(void);
+
+	bool IsDark(void);
+	bool IsClear(void);
 };
 
 
