@@ -115,7 +115,7 @@ CGerberCommandPlotMode* CGerberCommands::AddPlotMode(EGerberPlotMode eMode)
 		{
 			pcCommand->Init(GC_G02, GPM_CircularClockwise);
 		}
-		else if (eMode == GPM_Linear)
+		else if (eMode == GPM_CircularAnticlockwise)
 		{
 			pcCommand->Init(GC_G03, GPM_CircularAnticlockwise);
 		}

@@ -23,6 +23,11 @@ public:
 	void Kill(void);
 
 	bool IsPlotMode(void);
+
+	bool IsLinear(void);
+	bool IsCircular(void);
+	bool IsClockwise(void);
+	bool IsAnticlockwise(void);
 };
 
 
