@@ -1,13 +1,14 @@
-#include "GerberCommand.h"
+#include "GerberCommandLoadMirroring.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommand::Init(EGerberCommandEnum eType)
+void CGerberCommandLoadMirroring::Init(EGerberMirroring eMirroring)
 {
-	meType = eType;
+	CGerberCommand::Init(GC_LM);
+	meMirroring = eMirroring;
 }
 
 
@@ -15,9 +16,8 @@ void CGerberCommand::Init(EGerberCommandEnum eType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsApertureMacro(void)
+void CGerberCommandLoadMirroring::Kill(void)
 {
-	return false;
 }
 
 
@@ -25,9 +25,9 @@ bool CGerberCommand::IsApertureMacro(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsComment(void)
+bool CGerberCommandLoadMirroring::IsLoadMirroring(void)
 {
-	return false;
+	return true;
 }
 
 
@@ -35,9 +35,9 @@ bool CGerberCommand::IsComment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsFileAttribute(void)
+bool CGerberCommandLoadMirroring::IsNone(void)
 {
-	return false;
+	return meMirroring == GLM_None;
 }
 
 
@@ -45,9 +45,9 @@ bool CGerberCommand::IsFileAttribute(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsFormatSpecifier(void)
+bool CGerberCommandLoadMirroring::IsX(void)
 {
-	return false;
+	return meMirroring == GLM_X;
 }
 
 
@@ -55,9 +55,9 @@ bool CGerberCommand::IsFormatSpecifier(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsLoadPolarity(void)
+bool CGerberCommandLoadMirroring::IsY(void)
 {
-	return false;
+	return meMirroring == GLM_Y;
 }
 
 
@@ -65,38 +65,8 @@ bool CGerberCommand::IsLoadPolarity(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsLoadMirroring(void)
+bool CGerberCommandLoadMirroring::IsXY(void)
 {
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsMeasurementMode(void)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsPlotMode(void)
-{
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CGerberCommand::IsEndOfFile(void)
-{
-	return false;
+	return meMirroring == GLM_XY;
 }
 

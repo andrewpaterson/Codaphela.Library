@@ -102,6 +102,18 @@ CGerberCommandLoadPolarity* CGerberCommands::AddLoadPolarity(EGerberPolarity ePo
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CGerberCommandLoadMirroring* CGerberCommands::AddLoadMirroring(EGerberMirroring eMirroring)
+{
+	ADD_COMMAND(CGerberCommandLoadMirroring);
+	pcCommand->Init(eMirroring);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CGerberCommandPlotMode* CGerberCommands::AddPlotMode(EGerberPlotMode eMode)
 {
 	if ((eMode == GPM_Linear) || (eMode == GPM_CircularClockwise) || (eMode == GPM_CircularAnticlockwise))

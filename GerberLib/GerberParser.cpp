@@ -215,10 +215,10 @@ TRISTATE CGerberParser::ParseCommandMO()
 		return TRIERROR;
 	}
 	
-	eMode = GM_Unknown;
+	eMode = GMM_Unknown;
 	if (tResult == TRITRUE)
 	{
-		eMode = GM_Millimeters;
+		eMode = GMM_Millimeters;
 		mcParser.PassPosition();
 	}
 	else
@@ -231,7 +231,7 @@ TRISTATE CGerberParser::ParseCommandMO()
 		}
 		else if (tResult == TRITRUE)
 		{
-			eMode = GM_Inches;
+			eMode = GMM_Inches;
 			mcParser.PassPosition();
 		}
 		else if (tResult == TRIFALSE)
@@ -793,7 +793,7 @@ TRISTATE CGerberParser::ParseCommandG75()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG01()
 {
-	TRISTATE				tResult;
+	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactCharacterSequence("G01*", mbSkipWhitespace);
 	ReturnOnFalseOrSyntaxErrorOnError(tResult);
@@ -810,7 +810,7 @@ TRISTATE CGerberParser::ParseCommandG01()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG02()
 {
-	TRISTATE				tResult;
+	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactCharacterSequence("G02*", mbSkipWhitespace);
 	ReturnOnFalseOrSyntaxErrorOnError(tResult);
@@ -827,7 +827,7 @@ TRISTATE CGerberParser::ParseCommandG02()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandG03()
 {
-	TRISTATE				tResult;
+	TRISTATE	tResult;
 
 	tResult = mcParser.GetExactCharacterSequence("G03*", mbSkipWhitespace);
 	ReturnOnFalseOrSyntaxErrorOnError(tResult);
@@ -937,7 +937,55 @@ TRISTATE CGerberParser::ParseCommandLP()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLM()
 {
-	return TRIFALSE;
+	TRISTATE			tResult;
+	EGerberMirroring	eMirroring;
+
+	tResult = mcParser.GetExactCharacterSequence("%LM", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	eMirroring = GLM_Unknown;
+
+	tResult = mcParser.GetExactCharacterSequence("N*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnError(tResult);
+	if (tResult == TRITRUE)
+	{
+		eMirroring = GLM_None;
+	}
+	else
+	{
+		tResult = mcParser.GetExactCharacterSequence("X*%", mbSkipWhitespace);
+		ReturnSyntaxErrorOnError(tResult);
+		if (tResult == TRITRUE)
+		{
+			eMirroring = GLM_X;
+		}
+		else
+		{
+			tResult = mcParser.GetExactCharacterSequence("Y*%", mbSkipWhitespace);
+			ReturnSyntaxErrorOnError(tResult);
+			if (tResult == TRITRUE)
+			{
+				eMirroring = GLM_Y;
+			}
+			else
+			{
+				tResult = mcParser.GetExactCharacterSequence("XY*%", mbSkipWhitespace);
+				ReturnSyntaxErrorOnError(tResult);
+				if (tResult == TRITRUE)
+				{
+					eMirroring = GLM_XY;
+				}
+				else
+				{
+					ReturnSyntanxError();
+				}
+			}
+		}
+	}
+
+	mpcCommands->AddLoadMirroring(eMirroring);
+
+	return TRITRUE;
 }
 
 

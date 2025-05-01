@@ -6,9 +6,9 @@
 
 enum EGerberMeasurementMode
 {
-	GM_Unknown,
-	GM_Millimeters,
-	GM_Inches,
+	GMM_Unknown,
+	GMM_Millimeters,
+	GMM_Inches,
 };
 
 
