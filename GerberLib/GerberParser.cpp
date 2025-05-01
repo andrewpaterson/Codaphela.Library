@@ -1187,7 +1187,7 @@ TRISTATE CGerberParser::Parse(void)
 		ContinueOnTrueReturnOnError(tResult);
 
 		tResult = ParseCommandM02();
-		if (tResult != TRIERROR)
+		if (tResult != TRITRUE)
 		{
 			ReturnSyntanxError();
 		}

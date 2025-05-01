@@ -12,8 +12,8 @@ private:
 	bool		mbSetSilent;
 
 public:
-	void Start(bool bSetSilent);
-	void Stop(char* szOutput, size uiOutputSize);
+	void	Start(bool bSetSilent);
+	void	Stop(char* szOutput, size uiOutputSize);
 };
 
 

@@ -72,7 +72,7 @@ public:
 };
 
 
-extern CLogger gcLogger;
+extern CLogger	gcLogger;
 
 
 #endif // __LOGGER_H__
