@@ -2,24 +2,16 @@
 #define __GERBER_COMMAND_FILE_ATTRIBUTE_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/ArrayChars.h"
-#include "GerberCommand.h"
+#include "GerberCommandAttribute.h"
 
 
-class CGerberCommandFileAttribute : public CGerberCommand
+class CGerberCommandFileAttribute : public CGerberCommandAttribute
 {
-protected:
-	CChars			szName;
-	CArrayChars		szValues;
-
 public:
 	void	Init(size iNameLength);
 	void	Kill(void);
 
 	bool	IsFileAttribute(void);
-
-	char*	NameText(void);
-
-	char*	AddValue(size iValueLength);
 };
 
 

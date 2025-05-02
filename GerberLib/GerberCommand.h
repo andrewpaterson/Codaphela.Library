@@ -16,6 +16,8 @@ public:
 	virtual bool	IsApertureMacro(void);
 	virtual bool	IsComment(void);
 	virtual bool	IsFileAttribute(void);
+	virtual bool	IsApertureAttribute(void);
+	virtual bool	IsObjectAttribute(void);
 	virtual bool	IsFormatSpecifier(void);
 	virtual bool	IsLoadPolarity(void);
 	virtual bool	IsLoadMirroring(void);

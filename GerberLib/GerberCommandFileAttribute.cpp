@@ -8,8 +8,8 @@
 void CGerberCommandFileAttribute::Init(size iNameLength)
 {
 	CGerberCommand::Init(GC_TF);
-	szName.InitLength(iNameLength);
-	szValues.Init();
+	mszName.InitLength(iNameLength);
+	mszValues.Init();
 }
 
 
@@ -19,31 +19,8 @@ void CGerberCommandFileAttribute::Init(size iNameLength)
 //////////////////////////////////////////////////////////////////////////
 void CGerberCommandFileAttribute::Kill(void)
 {
-	szValues.Kill();
-	szName.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CGerberCommandFileAttribute::NameText(void)
-{
-	return szName.Text();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CGerberCommandFileAttribute::AddValue(size iValueLength)
-{
-	CChars* psz;
-
-	psz = szValues.AddLength(iValueLength);
-	return psz->Text();
+	mszValues.Kill();
+	mszName.Kill();
 }
 
 
@@ -55,5 +32,4 @@ bool CGerberCommandFileAttribute::IsFileAttribute(void)
 {
 	return true;
 }
-
 
