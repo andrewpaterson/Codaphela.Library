@@ -1,15 +1,13 @@
-#include "GerberCommandFileAttribute.h"
+#include "GerberCommandApertureAttribute.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandFileAttribute::Init(size iNameLength)
+void CGerberCommandApertureAttribute::Init(size iNameLength)
 {
-	CGerberCommand::Init(GC_TF);
-	mszName.InitLength(iNameLength);
-	mszValues.Init();
+	CGerberCommandAttribute::Init(GC_TA, iNameLength);
 }
 
 
@@ -17,10 +15,9 @@ void CGerberCommandFileAttribute::Init(size iNameLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGerberCommandFileAttribute::Kill(void)
+void CGerberCommandApertureAttribute::Kill(void)
 {
-	mszValues.Kill();
-	mszName.Kill();
+	CGerberCommandAttribute::Kill();
 }
 
 
@@ -28,7 +25,7 @@ void CGerberCommandFileAttribute::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CGerberCommandFileAttribute::IsFileAttribute(void)
+bool CGerberCommandApertureAttribute::IsApertureAttribute(void)
 {
 	return true;
 }
