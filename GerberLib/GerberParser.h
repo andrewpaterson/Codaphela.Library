@@ -68,6 +68,7 @@ protected:
 	TRISTATE	ParseCommandM02(void);
 
 	TRISTATE	ParseExpression(CGerberExpression* pcGerberExpression);
+	TRISTATE	ParseAttributeArguments(CGerberCommandAttribute* pcCommandAttribute);
 
 	TRISTATE	ParseApertureMacroPrimitive(CGerberCommandApertureMacro* pcApertureMacro);
 	TRISTATE	ParseApertureMacroVariableDefinition(CGerberCommandApertureMacro* pcApertureMacro);

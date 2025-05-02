@@ -1071,23 +1071,11 @@ TRISTATE CGerberParser::ParseSRStatement()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CGerberParser::ParseCommandTF()
+TRISTATE CGerberParser::ParseAttributeArguments(CGerberCommandAttribute* pcCommandAttribute)
 {
 	TRISTATE						tResult;
 	size							iLength;
-	CGerberCommandFileAttribute*	pcFileAttribute;
 	char*							szValue;
-
-	tResult = mcParser.GetExactCharacterSequence("%TF", mbSkipWhitespace);
-	ReturnOnFalseOrSyntaxErrorOnError(tResult);
-
-	mcParser.PushPosition();
-	tResult = GetNameString(NULL, &iLength);
-	mcParser.PopPosition();
-	ReturnSyntaxErrorOnErrorOrFalse(tResult);
-
-	pcFileAttribute = mpcCommands->AddFileAttribute(iLength);
-	GetNameString(pcFileAttribute->NameText(), &iLength);
 
 	for (;;)
 	{
@@ -1112,14 +1100,38 @@ TRISTATE CGerberParser::ParseCommandTF()
 		mcParser.PopPosition();
 		ReturnSyntaxErrorOnErrorOrFalse(tResult);
 
-		szValue = pcFileAttribute->AddValue(iLength);
+		szValue = pcCommandAttribute->AddValue(iLength);
 		GetFieldString(szValue, &iLength);
 		
 		mcParser.StepLeft();
 	}
 
 	return TRITRUE;
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CGerberParser::ParseCommandTF()
+{
+	TRISTATE						tResult;
+	size							iLength;
+	CGerberCommandFileAttribute*	pcFileAttribute;
+
+	tResult = mcParser.GetExactCharacterSequence("%TF", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &iLength);
+	mcParser.PopPosition();
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcFileAttribute = mpcCommands->AddFileAttribute(iLength);
+	GetNameString(pcFileAttribute->NameText(), &iLength);
+
+	return ParseAttributeArguments(pcFileAttribute);
 }
 
 
@@ -1129,7 +1141,22 @@ TRISTATE CGerberParser::ParseCommandTF()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTA()
 {
-	return TRIFALSE;
+	TRISTATE							tResult;
+	size								iLength;
+	CGerberCommandApertureAttribute*	pcApertureAttribute;
+
+	tResult = mcParser.GetExactCharacterSequence("%TA", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &iLength);
+	mcParser.PopPosition();
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcApertureAttribute = mpcCommands->AddApertureAttribute(iLength);
+	GetNameString(pcApertureAttribute->NameText(), &iLength);
+
+	return ParseAttributeArguments(pcApertureAttribute);
 }
 
 
@@ -1139,7 +1166,22 @@ TRISTATE CGerberParser::ParseCommandTA()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandTO()
 {
-	return TRIFALSE;
+	TRISTATE						tResult;
+	size							iLength;
+	CGerberCommandObjectAttribute*	pcObjectAttribute;
+
+	tResult = mcParser.GetExactCharacterSequence("%TO", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	mcParser.PushPosition();
+	tResult = GetNameString(NULL, &iLength);
+	mcParser.PopPosition();
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	pcObjectAttribute = mpcCommands->AddObjectAttribute(iLength);
+	GetNameString(pcObjectAttribute->NameText(), &iLength);
+
+	return ParseAttributeArguments(pcObjectAttribute);
 }
 
 
