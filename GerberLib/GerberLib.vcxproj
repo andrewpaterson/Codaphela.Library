@@ -28,7 +28,9 @@
     <ClCompile Include="GerberApertureMacroThermal.cpp" />
     <ClCompile Include="GerberApertureMacroVectorLine.cpp" />
     <ClCompile Include="GerberCommand.cpp" />
+    <ClCompile Include="GerberCommandApertureAttribute.cpp" />
     <ClCompile Include="GerberCommandApertureMacro.cpp" />
+    <ClCompile Include="GerberCommandAttribute.cpp" />
     <ClCompile Include="GerberCommandComment.cpp" />
     <ClCompile Include="GerberCommandEndOfFile.cpp" />
     <ClCompile Include="GerberCommandFormatSpecifier.cpp" />
@@ -37,6 +39,7 @@
     <ClCompile Include="GerberCommandLoadRotation.cpp" />
     <ClCompile Include="GerberCommandLoadScaling.cpp" />
     <ClCompile Include="GerberCommandMeasurementMode.cpp" />
+    <ClCompile Include="GerberCommandObjectAttribute.cpp" />
     <ClCompile Include="GerberCommandPlotMode.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
     <ClCompile Include="GerberCommandFileAttribute.cpp" />
@@ -48,6 +51,7 @@
     <ClCompile Include="GerberWhitespace.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GerberCommandAttribute.h" />
     <ClInclude Include="GerberApertureMacroCenterLine.h" />
     <ClInclude Include="GerberApertureMacroCircle.h" />
     <ClInclude Include="GerberApertureMacroComment.h" />
@@ -59,6 +63,7 @@
     <ClInclude Include="GerberBoardLayer.h" />
     <ClInclude Include="GerberBoardSide.h" />
     <ClInclude Include="GerberCommand.h" />
+    <ClInclude Include="GerberCommandApertureAttribute.h" />
     <ClInclude Include="GerberCommandApertureMacro.h" />
     <ClInclude Include="GerberCommandComment.h" />
     <ClInclude Include="GerberCommandEndOfFile.h" />
@@ -69,6 +74,7 @@
     <ClInclude Include="GerberCommandLoadRotation.h" />
     <ClInclude Include="GerberCommandLoadScaling.h" />
     <ClInclude Include="GerberCommandMeasurementMode.h" />
+    <ClInclude Include="GerberCommandObjectAttribute.h" />
     <ClInclude Include="GerberCommandPlotMode.h" />
     <ClInclude Include="GerberCommands.h" />
     <ClInclude Include="GerberCommandFileAttribute.h" />

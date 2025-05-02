@@ -102,6 +102,15 @@
     <ClCompile Include="GerberCommandLoadScaling.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberCommandApertureAttribute.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandAttribute.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandObjectAttribute.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -192,6 +201,15 @@
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommandLoadScaling.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandApertureAttribute.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandAttribute.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandObjectAttribute.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>

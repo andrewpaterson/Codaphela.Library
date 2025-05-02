@@ -4,6 +4,8 @@
 #include "GerberCommandComment.h"
 #include "GerberCommandMeasurementMode.h"
 #include "GerberCommandFileAttribute.h"
+#include "GerberCommandApertureAttribute.h"
+#include "GerberCommandObjectAttribute.h"
 #include "GerberCommandFormatSpecifier.h"
 #include "GerberCommandLoadPolarity.h"
 #include "GerberCommandLoadMirroring.h"
@@ -20,23 +22,25 @@ protected:
 	CListVariable	macCommands;
 
 public:
-	void							Init(void);
-	void							Kill(void);
+	void								Init(void);
+	void								Kill(void);
 
-	CGerberCommandComment*			AddComment(size uiCommentLength);
-	CGerberCommandMeasurementMode*	AddModeSet(EGerberMeasurementMode eMode);
-	CGerberCommandFileAttribute*	AddFileAttribute(size iNameLength);
-	CGerberCommandFormatSpecifier*  AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
-	CGerberCommandLoadPolarity*		AddLoadPolarity(EGerberPolarity ePolarity);
-	CGerberCommandLoadMirroring*	AddLoadMirroring(EGerberMirroring eMirroring);
-	CGerberCommandLoadRotation*		AddLoadRotation(CNumber* pcDegrees);
-	CGerberCommandLoadScaling*		AddLoadScaling(CNumber* pcScaling);
-	CGerberCommandPlotMode*			AddPlotMode(EGerberPlotMode eMode);
-	CGerberCommandApertureMacro*	AddApertureMacro(size iNameLength);
-	CGerberCommandEndOfFile*		AddEndOfFile(void);
+	CGerberCommandComment*				AddComment(size uiCommentLength);
+	CGerberCommandMeasurementMode*		AddModeSet(EGerberMeasurementMode eMode);
+	CGerberCommandFileAttribute*		AddFileAttribute(size iNameLength);
+	CGerberCommandApertureAttribute*	AddApertureAttribute(size iNameLength);
+	CGerberCommandObjectAttribute*		AddObjectAttribute(size iNameLength);
+	CGerberCommandFormatSpecifier*		AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
+	CGerberCommandLoadPolarity*			AddLoadPolarity(EGerberPolarity ePolarity);
+	CGerberCommandLoadMirroring*		AddLoadMirroring(EGerberMirroring eMirroring);
+	CGerberCommandLoadRotation*			AddLoadRotation(CNumber* pcDegrees);
+	CGerberCommandLoadScaling*			AddLoadScaling(CNumber* pcScaling);
+	CGerberCommandPlotMode*				AddPlotMode(EGerberPlotMode eMode);
+	CGerberCommandApertureMacro*		AddApertureMacro(size iNameLength);
+	CGerberCommandEndOfFile*			AddEndOfFile(void);
 	
-	size							NumCommands(void);
-	CGerberCommand*					GetCommand(size uiIndex);
+	size								NumCommands(void);
+	CGerberCommand*						GetCommand(size uiIndex);
 };
 
 

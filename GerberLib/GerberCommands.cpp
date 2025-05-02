@@ -78,6 +78,30 @@ CGerberCommandFileAttribute* CGerberCommands::AddFileAttribute(size iNameLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CGerberCommandApertureAttribute* CGerberCommands::AddApertureAttribute(size iNameLength)
+{
+	ADD_COMMAND(CGerberCommandApertureAttribute);
+	pcCommand->Init(iNameLength);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandObjectAttribute* CGerberCommands::AddObjectAttribute(size iNameLength)
+{
+	ADD_COMMAND(CGerberCommandObjectAttribute);
+	pcCommand->Init(iNameLength);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CGerberCommandFormatSpecifier* CGerberCommands::AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals)
 {
 	ADD_COMMAND(CGerberCommandFormatSpecifier);
