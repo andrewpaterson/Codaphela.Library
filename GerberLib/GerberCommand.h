@@ -11,6 +11,7 @@ protected:
 public:
 			void	Init(EGerberCommandEnum eType);
 	virtual void	Kill(void) =0;
+			bool	IsType(EGerberCommandEnum eType);
 
 	virtual bool	IsApertureMacro(void);
 	virtual bool	IsComment(void);
@@ -18,9 +19,10 @@ public:
 	virtual bool	IsFormatSpecifier(void);
 	virtual bool	IsLoadPolarity(void);
 	virtual bool	IsLoadMirroring(void);
+	virtual bool	IsLoadRotation(void);
+	virtual bool	IsLoadScaling(void);
 	virtual bool	IsMeasurementMode(void);
 	virtual bool	IsPlotMode(void);
-
 	virtual bool	IsEndOfFile(void);
 };
 
