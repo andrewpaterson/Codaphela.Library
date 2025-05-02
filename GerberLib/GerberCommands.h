@@ -10,6 +10,8 @@
 #include "GerberCommandPlotMode.h"
 #include "GerberCommandApertureMacro.h"
 #include "GerberCommandEndOfFile.h"
+#include "GerberCommandLoadRotation.h"
+#include "GerberCommandLoadScaling.h"
 
 
 class CGerberCommands
@@ -27,6 +29,8 @@ public:
 	CGerberCommandFormatSpecifier*  AddFormatSpecifier(uint16 uiXWholes, uint16 uiXDecimals, uint16 uiYWholes, uint16 uiYDecimals);
 	CGerberCommandLoadPolarity*		AddLoadPolarity(EGerberPolarity ePolarity);
 	CGerberCommandLoadMirroring*	AddLoadMirroring(EGerberMirroring eMirroring);
+	CGerberCommandLoadRotation*		AddLoadRotation(CNumber* pcDegrees);
+	CGerberCommandLoadScaling*		AddLoadScaling(CNumber* pcScaling);
 	CGerberCommandPlotMode*			AddPlotMode(EGerberPlotMode eMode);
 	CGerberCommandApertureMacro*	AddApertureMacro(size iNameLength);
 	CGerberCommandEndOfFile*		AddEndOfFile(void);

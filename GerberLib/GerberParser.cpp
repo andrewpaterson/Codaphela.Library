@@ -995,7 +995,21 @@ TRISTATE CGerberParser::ParseCommandLM()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLR()
 {
-	return TRIFALSE;
+	TRISTATE	tResult;
+	CNumber		cNumber;
+
+	tResult = mcParser.GetExactCharacterSequence("%LR", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	tResult = mcParser.GetNumber(&cNumber);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetExactCharacterSequence("*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	mpcCommands->AddLoadRotation(&cNumber);
+
+	return TRITRUE;
 }
 
 
@@ -1005,7 +1019,21 @@ TRISTATE CGerberParser::ParseCommandLR()
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CGerberParser::ParseCommandLS()
 {
-	return TRIFALSE;
+	TRISTATE	tResult;
+	CNumber		cNumber;
+
+	tResult = mcParser.GetExactCharacterSequence("%LS", mbSkipWhitespace);
+	ReturnOnFalseOrSyntaxErrorOnError(tResult);
+
+	tResult = mcParser.GetNumber(&cNumber);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	tResult = mcParser.GetExactCharacterSequence("*%", mbSkipWhitespace);
+	ReturnSyntaxErrorOnErrorOrFalse(tResult);
+
+	mpcCommands->AddLoadScaling(&cNumber);
+
+	return TRITRUE;
 }
 
 
