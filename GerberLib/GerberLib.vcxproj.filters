@@ -96,6 +96,12 @@
     <ClCompile Include="GerberCommandLoadMirroring.cpp">
       <Filter>Source\Common\Command</Filter>
     </ClCompile>
+    <ClCompile Include="GerberCommandLoadRotation.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
+    <ClCompile Include="GerberCommandLoadScaling.cpp">
+      <Filter>Source\Common\Command</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GerberParser.h">
@@ -180,6 +186,12 @@
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
     <ClInclude Include="GerberCommandLoadMirroring.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandLoadRotation.h">
+      <Filter>Source\Common\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="GerberCommandLoadScaling.h">
       <Filter>Source\Common\Command</Filter>
     </ClInclude>
   </ItemGroup>

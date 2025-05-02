@@ -114,6 +114,30 @@ CGerberCommandLoadMirroring* CGerberCommands::AddLoadMirroring(EGerberMirroring 
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CGerberCommandLoadRotation* CGerberCommands::AddLoadRotation(CNumber* pcDegrees)
+{
+	ADD_COMMAND(CGerberCommandLoadRotation);
+	pcCommand->Init(pcDegrees);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CGerberCommandLoadScaling* CGerberCommands::AddLoadScaling(CNumber* pcScaling)
+{
+	ADD_COMMAND(CGerberCommandLoadScaling);
+	pcCommand->Init(pcScaling);
+	return pcCommand;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CGerberCommandPlotMode* CGerberCommands::AddPlotMode(EGerberPlotMode eMode)
 {
 	if ((eMode == GPM_Linear) || (eMode == GPM_CircularClockwise) || (eMode == GPM_CircularAnticlockwise))

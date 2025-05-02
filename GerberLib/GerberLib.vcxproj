@@ -34,6 +34,8 @@
     <ClCompile Include="GerberCommandFormatSpecifier.cpp" />
     <ClCompile Include="GerberCommandLoadMirroring.cpp" />
     <ClCompile Include="GerberCommandLoadPolarity.cpp" />
+    <ClCompile Include="GerberCommandLoadRotation.cpp" />
+    <ClCompile Include="GerberCommandLoadScaling.cpp" />
     <ClCompile Include="GerberCommandMeasurementMode.cpp" />
     <ClCompile Include="GerberCommandPlotMode.cpp" />
     <ClCompile Include="GerberCommands.cpp" />
@@ -64,6 +66,8 @@
     <ClInclude Include="GerberCommandFormatSpecifier.h" />
     <ClInclude Include="GerberCommandLoadMirroring.h" />
     <ClInclude Include="GerberCommandLoadPolarity.h" />
+    <ClInclude Include="GerberCommandLoadRotation.h" />
+    <ClInclude Include="GerberCommandLoadScaling.h" />
     <ClInclude Include="GerberCommandMeasurementMode.h" />
     <ClInclude Include="GerberCommandPlotMode.h" />
     <ClInclude Include="GerberCommands.h" />
