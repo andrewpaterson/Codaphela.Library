@@ -359,5 +359,5 @@ T* CTrackerTemplate<T>::AddAll(CArrayType<T>* pcArray)
 }
 
 
-#endif //__TRACKER_TEMPLATE_H__
+#endif // __TRACKER_TEMPLATE_H__
 

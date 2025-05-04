@@ -1,0 +1,249 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{3185b6c8-34a7-420f-ba0b-e2177c163239}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc">
+      <UniqueIdentifier>{a642cece-12a3-4639-9354-9c51693588ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\Instruction">
+      <UniqueIdentifier>{78e75463-1e0c-434c-8629-f88ba2d7076f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\W65C816">
+      <UniqueIdentifier>{e80ba460-b69d-4163-a16e-d83d7bdc0220}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\Instruction\Address">
+      <UniqueIdentifier>{3bb46297-63d6-4c5b-9afd-48ef8309a595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\Instruction\Interrupt">
+      <UniqueIdentifier>{5449f406-a537-4d4d-aac5-d648bd7bdd46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\wdc\Instruction\Operation">
+      <UniqueIdentifier>{d0fe7c2b-414d-48c3-90b4-b303ae5106ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\think">
+      <UniqueIdentifier>{e3a08eff-b947-4a67-aae5-643a00d7a26a}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="W65C816.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="Instruction.cpp">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="BusCycle.cpp">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="AddressOffset.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="AbsoluteAddress.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="AbsoluteAddressHigh.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="AbsoluteAddressLowPlusXLow.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="AbsoluteAddressLowPlusYLow.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="ConstantOffset.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="DataBank.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectOffset.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectPage.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionCycleFactory.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="AddressBank.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionCycles.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="InterruptAddress.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="NewProgramBank.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="Address.cpp">
+      <Filter>Source\wdc</Filter>
+    </ClCompile>
+    <ClCompile Include="ReflectiveData.cpp">
+      <Filter>Source\think</Filter>
+    </ClCompile>
+    <ClCompile Include="IntUtil.cpp">
+      <Filter>Source\think</Filter>
+    </ClCompile>
+    <ClCompile Include="NewProgramCounter.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgramBank.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgramCounter.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="SignedData.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="SignedDataLow.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="StackPointer.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="XIndex.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="YIndex.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="AddressOffsetArray.cpp">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816State.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionFactory.cpp">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClCompile>
+    <ClCompile Include="Operation.cpp">
+      <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="OperationArray.cpp">
+      <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClCompile>
+    <ClCompile Include="DataOperation.cpp">
+      <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="W65C816.h">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="Instruction.h">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressingMode.h">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="BusCycle.h">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="BusCycleParameter.h">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressOffset.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="AbsoluteAddress.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="AbsoluteAddressHigh.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="AbsoluteAddressLowPlusXLow.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="AbsoluteAddressLowPlusYLow.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressBank.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="ConstantOffset.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="DataBank.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectOffset.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectPage.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="InstructionCycleFactory.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="InstructionCycles.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="InterruptAddress.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="NewProgramBank.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="Address.h">
+      <Filter>Source\wdc</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectiveData.h">
+      <Filter>Source\think</Filter>
+    </ClInclude>
+    <ClInclude Include="SaveData.h">
+      <Filter>Source\think</Filter>
+    </ClInclude>
+    <ClInclude Include="IntUtil.h">
+      <Filter>Source\think</Filter>
+    </ClInclude>
+    <ClInclude Include="NewProgramCounter.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramBank.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="ProgramCounter.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="SignedData.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="SignedDataLow.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="StackPointer.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="XIndex.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="YIndex.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="AddressOffsetArray.h">
+      <Filter>Source\wdc\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816State.h">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="InstructionFactory.h">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUFlags.h">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="Operation.h">
+      <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="OperationArray.h">
+      <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="DataOperation.h">
+      <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

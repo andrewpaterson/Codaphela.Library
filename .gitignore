@@ -45,3 +45,4 @@ us.stackdump
 /GerberLib/Debug/*
 /ElectronicsLib/Debug/*
 /ElectronicsLib/Release/*
+/MicroprocessorLib/Debug/*
