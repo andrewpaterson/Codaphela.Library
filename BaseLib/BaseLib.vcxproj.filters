@@ -469,6 +469,9 @@
     <Filter Include="Source\Calculator\Parser">
       <UniqueIdentifier>{c0389c4d-6f6f-405c-b014-feeb1af3fe74}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Error\Hex">
+      <UniqueIdentifier>{8b2ec7ed-be69-4b5d-9983-1f0a813f16e2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1683,6 +1686,12 @@
     <ClInclude Include="CalculatorSymbols.h">
       <Filter>Source\Calculator</Filter>
     </ClInclude>
+    <ClInclude Include="HexString.h">
+      <Filter>Source\Error\Hex</Filter>
+    </ClInclude>
+    <ClInclude Include="Printable.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2686,6 +2695,9 @@
     </ClCompile>
     <ClCompile Include="CalculatorSymbols.cpp">
       <Filter>Source\Calculator</Filter>
+    </ClCompile>
+    <ClCompile Include="HexString.cpp">
+      <Filter>Source\Error\Hex</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

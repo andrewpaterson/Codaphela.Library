@@ -35,7 +35,7 @@ template <class M>
 class CLifeInit
 {
 protected:
-	M*				mpcLifeCycleObject;
+	M*		mpcLifeCycleObject;
 	uint8	mcFlags;
 
 public:

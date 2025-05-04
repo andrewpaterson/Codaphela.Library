@@ -295,5 +295,5 @@ TRISTATE CTextParser::GetEnumeratorSequence(__CEnumeratorTemplate<M>* pcEnumerat
 }
 
 
-#endif //__TEXT_PARSER_H__
+#endif // __TEXT_PARSER_H__
 
