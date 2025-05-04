@@ -11,13 +11,14 @@ enum EGerberCommandEnum
 	GC_AD,  //. Aperture define Defines a template - based aperture, assigns a D code to it. 4.3
 	GC_AM,  //* Aperture macro Defines a macro aperture template. 4.5
 	GC_Dnn, //. (nn≥10) Sets the current aperture to D code nn. 4.6
-	GC_D01, //. Plot operation Outside a region statement D01 creates a draw or arc object with the current aperture.Inside it adds a draw / arc segment to the contour under construction.The current point is moved to draw / arc end point after the creation of the draw / arc. 4.8.2
+	GC_D01, //. Plot operation Outside a region statement D01 creates a draw or arc object with the current aperture.  Inside it adds a draw / arc segment to the contour under construction.  The current point is moved to draw / arc end point after the creation of the draw / arc. 4.8.2
 	GC_D02, //. Move operation D02 moves the current point to the coordinate in the command.It does not create an object. 4.8.3
 	GC_D03, //. Flash operation Creates a flash object with the current aperture.The current point is moved to the flash point. 4.8.4
 	GC_G01, //* Sets linear / circular mode to linear. 4.7.1
 	GC_G02, //* Sets linear / circular mode to clockwise circular. 4.7.2
 	GC_G03, //* Sets linear / circular mode to counterclockwise circular. 4.7.2
-	GC_G75, //. A G75 must be called before creating the first arc. 4.7.2
+	GC_G74, //. Single-quadrant arc mode.  Deprecated. 8.1.10
+	GC_G75, //. Multi-quadrant arc mode.  A G75 must be called before creating the first arc. 4.7.2
 	GC_LP,  //* Load polarity Loads the polarity object transformation parameter. 4.9.2
 	GC_LM,  //* Load mirroring Loads the mirror object transformation parameter. 4.9.3
 	GC_LR,  //* Load rotation Loads the rotation object transformation parameter. 4.9.4

@@ -68,5 +68,5 @@ protected:
 };
 
 
-#endif //__INDEXED_FILES_EVICTING_H__
+#endif // __INDEXED_FILES_EVICTING_H__
 

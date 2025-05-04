@@ -38,5 +38,5 @@ public:
 };
 
 
-#endif //__INDEX_LONG_STRING_H__
+#endif // __INDEX_LONG_STRING_H__
 

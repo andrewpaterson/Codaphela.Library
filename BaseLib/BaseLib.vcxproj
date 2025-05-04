@@ -214,9 +214,11 @@
     <ClInclude Include="ExternalString.h" />
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
+    <ClInclude Include="HexString.h" />
     <ClInclude Include="MapIntString.h" />
     <ClInclude Include="MemCompare.h" />
     <ClInclude Include="MemoryManager.h" />
+    <ClInclude Include="Printable.h" />
     <ClInclude Include="RedirectPrintf.h" />
     <ClInclude Include="IndexLongString.h" />
     <ClInclude Include="IndexPrimitiveTemplate.h" />
@@ -615,6 +617,7 @@
     <ClCompile Include="ExternalString.cpp" />
     <ClCompile Include="FloatPrinter.cpp" />
     <ClCompile Include="GlobalDataTypesIO.cpp" />
+    <ClCompile Include="HexString.cpp" />
     <ClCompile Include="IndexLongString.cpp" />
     <ClCompile Include="IndexMapAccess.cpp" />
     <ClCompile Include="IndexMapIterator.cpp" />

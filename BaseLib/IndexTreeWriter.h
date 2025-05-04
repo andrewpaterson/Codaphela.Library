@@ -16,5 +16,5 @@ protected:
 	bool RecurseWrite(CIndexTreeFile* pcFileTree, CIndexTreeNodeFile* pcFileNode);
 };
 
-#endif //__INDEX_TREE_WRITER_H__
+#endif // __INDEX_TREE_WRITER_H__
 

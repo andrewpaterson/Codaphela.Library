@@ -55,5 +55,5 @@ void DebugTimerTick(void);
 extern CTimer	gcTimer;
 
 
-#endif //__TIMER_H__
+#endif // __TIMER_H__
 
