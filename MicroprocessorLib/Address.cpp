@@ -42,15 +42,15 @@ void CAddress::Init(int iBank, int iOffset)
 {
     if (iBank > 0xFF)
     {
-        gcLogger.Error("Call toByte(iBank) before creating an Address.");
+        gcLogger.Error("Call ToByte(iBank) before creating an Address.");
     }
     if (iOffset > 0xFFFF)
     {
-        gcLogger.Error("Call toShort(iOffset) before creating an Address.");
+        gcLogger.Error("Call ToShort(iOffset) before creating an Address.");
     }
 
-    miBank = toByte(iBank);
-    miOffset = toShort(iOffset);
+    miBank = ToByte(iBank);
+    miOffset = ToShort(iOffset);
 }
 
 
@@ -84,19 +84,19 @@ CAddress* CAddress::Offset(int iOffset, bool bWrapOffset)
     {
         if (bWrapOffset)
         {
-            miOffset = toShort(miOffset + iOffset);
+            miOffset = ToShort(miOffset + iOffset);
         }
         else
         {
             int newOffset = miOffset + iOffset;
             if (newOffset >= BANK_SIZE_BYTES)
             {
-                miBank = toByte(miBank + 1);
-                miOffset = toShort((newOffset - BANK_SIZE_BYTES));  //This subtraction is probably unnecessary.
+                miBank = ToByte(miBank + 1);
+                miOffset = ToShort((newOffset - BANK_SIZE_BYTES));  //This subtraction is probably unnecessary.
             }
             else
             {
-                miOffset = toShort(miOffset + iOffset);
+                miOffset = ToShort(miOffset + iOffset);
             }
         }
     }
@@ -142,7 +142,7 @@ void CAddress::SetBank(int iBank)
 //////////////////////////////////////////////////////////////////////////
 void CAddress::SetOffsetLow(int iOffsetLow)
 {
-    miOffset = setLowByte(miOffset, iOffsetLow);
+    miOffset = SetLowByte(miOffset, iOffsetLow);
 }
 
 
@@ -152,7 +152,7 @@ void CAddress::SetOffsetLow(int iOffsetLow)
 //////////////////////////////////////////////////////////////////////////
 void CAddress::SetOffsetHigh(int iOffsetHigh)
 {
-    miOffset = setHighByte(miOffset, iOffsetHigh);
+    miOffset = SetHighByte(miOffset, iOffsetHigh);
 }
 
 

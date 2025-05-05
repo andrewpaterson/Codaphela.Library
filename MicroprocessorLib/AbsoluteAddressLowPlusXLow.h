@@ -3,10 +3,10 @@
 #include "AddressOffset.h"
 
 
-class AbsoluteAddressLowPlusXLow : public CAddressOffset
+class CAbsoluteAddressLowPlusXLow : public CAddressOffset
 {
 public:
-    uint16  GetOffset(CW65C816* pcCPU) override;
+    int32   GetOffset(CW65C816* pcCPU) override;
     void    Print(CChars* psz) override;
 };
 

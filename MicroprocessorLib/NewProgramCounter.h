@@ -1,21 +1,14 @@
 #ifndef __NEW_PROGRAM_COUNTER_H__
 #define __NEW_PROGRAM_COUNTER_H__
+#include "AddressOffset.h"
 
-class NewProgramCounter
-extends AddressOffset
+
+class CNewProgramCounter : public CAddressOffset
 {
-    /*@Override*/
-        public uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().getNewProgramCounter().GetOffset();
-    }
-
-    /*@Override*/
-        public void    Print(CChars* psz)
-    {
-        return "New_PC";
-    }
-}
+public:
+    int32   GetOffset(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
+};
 
 
 #endif // __NEW_PROGRAM_COUNTER_H__

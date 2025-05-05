@@ -1,24 +1,13 @@
 #ifndef __DIRECT_OFFSET_H__
 #define __DIRECT_OFFSET_H__
+#include "AddressOffset.h"
 
 
-public:
-class DirectOffset
-extends AddressOffset
+class CDirectOffset : public CAddressOffset
 {
-    /*@Override*/
-        public:
-uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().getDirectOffset();
-    }
-
-    /*@Override*/
-        public:
-void    Print(CChars* psz)
-    {
-        return "D0";
-    }
+public:
+    int32   GetOffset(CW65C816* pcCPU);
+    void    Print(CChars* psz);
 };
 
 

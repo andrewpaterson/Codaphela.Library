@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 AbsoluteAddressHigh::GetOffset(CW65C816* pcCPU)
+int32 CAbsoluteAddressHigh::GetOffset(CW65C816* pcCPU)
 {
     return pcCPU->GetState().GetAddress().GetOffset() & 0xff00;
 }
@@ -16,7 +16,7 @@ uint16 AbsoluteAddressHigh::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AbsoluteAddressHigh::Print(CChars* psz)
+void CAbsoluteAddressHigh::Print(CChars* psz)
 {
     psz->Append("AAH");
 }

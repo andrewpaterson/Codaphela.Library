@@ -3,30 +3,13 @@
 #include "AddressOffset.h"
 
 
-class CNewProgramBank : public:
-    CAddressOffset
-    {
-        /*@Override*/
-            public:
-    uint16 GetOffset(CW65C816* pcCPU)
-        {
-            return 0;
-        }
-
-        /*@Override*/
-            public:
-    int GetBank(CW65C816* pcCPU)
-        {
-            return pcCPU->GetState().getNewProgramCounter().GetBank();
-        }
-
-        /*@Override*/
-            public:
-    void    Print(CChars* psz)
-        {
-            return "New_PBR,";
-        }
-    };
+class CNewProgramBank : public CAddressOffset
+{
+public:
+    int32   GetOffset(CW65C816* pcCPU) override;
+    uint8   GetBank(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
+};
 
 
 

@@ -63,7 +63,7 @@ public:
     void            Init(void);
     void            Init(W65C816State state);
         
-    CInstruction*   GetOpCodeTable(void);
+    CInstruction*   GetInstruction(uint16 uiOpcode);
     CInstruction*   GetResetOpcode(void);
     CInstruction*   GetIrqOpcode(void);
     CInstruction*   GetNmiOpcode(void);
@@ -73,290 +73,206 @@ public:
     void            CreateAbortValues(void);
     void            CreatePartialAbortValues(void);
     void            RestoreAbortValues(void);
-    void ResetPulled()
-    {
-       mbAbort = false;
-       mbNmi = false;
-       muiOpCodeIndex = GetResetOpcode()->GetCode();
-       mbStopped = false;
-       miCycle = 0;
-    }
-
+    void            ResetPulled(void);
     uint8           GetProcessorRegisterValue(void);
+    void            SetZeroFlag(bool bZeroFlag);
+    void            SetNegativeFlag(bool bSignFlag);
+    void            SetDecimalFlag(bool bDecimalFlag);
+    void            SetInterruptDisableFlag(bool bInterruptDisableFlag);
+    void            SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag);
+    void            SetIndexWidthFlag(bool bIndexWidthFlag);
+    void            SetCarryFlag(bool bCarryFlag);
+    void            SetEmulationFlag(bool bEmulationFlag);
+    bool            IsZeroFlagSet(void);
+    bool            IsNegativeSet(void);
+    bool            IsDecimal(void);
+    bool            IsInterruptDisable(void);
+    bool            IsCarrySet(void);
+    bool            IsEmulation(void);
+    bool            IsBreak(void);
+    bool            IsOverflowFlag(void);
+    void            SetBreakFlag(bool bBreakFlag);
+    void            SetOverflowFlag(bool bOverflowFlag);
+    void            Cycle(CW65C816* pcCPU);
 
-    void SetZeroFlag(bool bZeroFlag)
+    void ExecuteOperation(CW65C816* pcCPU)
     {
-       mbZeroFlag = bZeroFlag;
-    }
+       CBusCycle*           pcBusCycle;
+       COperationArray*     pcOperations;
+       size                 uiNumElements;
+       size                 i;
+       COperation*          pcOperation;
 
-    void SetNegativeFlag(bool bSignFlag)
-    {
-       mbNegativeFlag = bSignFlag;
-    }
-
-        void SetDecimalFlag(bool bDecimalFlag)
-    {
-       mbDecimalFlag = bDecimalFlag;
-    }
-
-        void SetInterruptDisableFlag(bool bInterruptDisableFlag)
-    {
-       mbInterruptDisableFlag = bInterruptDisableFlag;
-    }
-
-        void SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag)
-    {
-       mbAccumulatorWidthFlag = bAccumulatorWidthFlag;
-    }
-
-        void SetIndexWidthFlag(bool bIndexWidthFlag)
-    {
-       mbIndexWidthFlag = bIndexWidthFlag;
-    }
-
-        void SetCarryFlag(bool bCarryFlag)
-    {
-       mbCarryFlag = bCarryFlag;
-    }
-
-        void SetEmulationFlag(bool bEmulationFlag)
-    {
-       mbEmulationFlag = bEmulationFlag;
-    }
-
-        bool IsZeroFlagSet()
-    {
-       return mbZeroFlag;
-    }
-
-        bool IsNegativeSet()
-    {
-       return mbNegativeFlag;
-    }
-
-        bool IsDecimal()
-    {
-       return mbDecimalFlag;
-    }
-
-        bool IsInterruptDisable()
-    {
-       return mbInterruptDisableFlag;
-    }
-
-        bool IsCarrySet()
-    {
-       return mbCarryFlag;
-    }
-
-        bool IsEmulation()
-    {
-       return mbEmulationFlag;
-    }
-
-        bool IsBreak()
-    {
-       return mbBreakFlag;
-    }
-
-        bool IsOverflowFlag()
-    {
-       return mbOverflowFlag;
-    }
-
-        void SetBreakFlag(bool bBreakFlag)
-    {
-       mbBreakFlag = bBreakFlag;
-    }
-
-        void SetOverflowFlag(bool bOverflowFlag)
-    {
-       mbOverflowFlag = bOverflowFlag;
-    }
-
-        void Cycle(CW65C816* pcCPU)
-    {
-       if (mbNextInstruction)
+       pcBusCycle = GetBusCycle();
+       pcOperations = pcBusCycle->GetOperations();
+       uiNumElements = pcOperations->NumElements();
+       for (i = 0; i < uiNumElements; i++)
        {
-          miCycle = -1;
-          mbNextInstruction = false;
-          NextInstruction();
-       }
-
-       nextCycle();
-       while (!GetBusCycle()->mustExecute(pcCPU))
-       {
-          nextCycle();
-       }
-    }
-        
-        //Why is this in state and not W65C816?
-        void ExecuteOperation(CW65C816* pcCPU)
-    {
-       CBusCycle* pcBusCycle = GetBusCycle();
-
-       for (COperation operation : pcBusCycle->getOperations())
-       {
-          operation.Execute(pcCPU);
+           pcOperation = pcOperations->GetPtr(i);
+           pcOperation->Execute(pcCPU);
        }
     }
 
-        CBusCycle* GetBusCycle()
+    CBusCycle* GetBusCycle(void)
     {
-       CInstruction* instruction = opCodeTable[opCodeIndex];
-       CInstructionCycles cycles = instruction.getCycles();
-       return cycles.GetBusCycle(cycle);
+        CInstruction*           pcInstruction;
+        CInstructionCycles*     pcCycles;
+
+        pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
+
+       pcCycles = pcInstruction->GetCycles();
+       return pcCycles->GetBusCycle(miCycle);
     }
 
-        void NextInstruction()
+    void NextInstruction()
     {
-       if (!abort)
+       if (!mbAbort)
        {
-          createAbortValues();
+          CreateAbortValues();
        }
 
-       if (nmi)
+       if (mbNmi)
        {
-          opCodeIndex = nmiOpcode.getCode();
-          nmi = false;
+          muiOpCodeIndex = GetNmiOpcode()->GetCode();
+          mbNmi = false;
        }
        else if (abort)
        {
-          opCodeIndex = abortOpcode.getCode();
-          abort = false;
+          muiOpCodeIndex = GetAbortOpcode()->GetCode();
+          mbAbort = false;
        }
-       else if (irq && !interruptDisableFlag)
+       else if (mbIrq && !mbInterruptDisableFlag)
        {
-          opCodeIndex = irqOpcode.getCode();
+          muiOpCodeIndex = GetIrqOpcode()->GetCode();
        }
        else
        {
-          opCodeIndex = fetchNextOpcode.getCode();
+          muiOpCodeIndex = GetFetchNextOpcode()->GetCode();
        }
     }
 
-        void DoneInstruction()
+    void DoneInstruction()
     {
-       nextInstruction = true;
+       mbNextInstruction = true;
     }
 
-        void nextCycle()
+    void BNextCycle()
     {
-       cycle++;
+        miCycle++;
     }
 
-        int getCycle()
+    int16 GetCycle()
     {
-       return cycle;
+       return miCycle;
     }
 
-        void SetOpCode(int opCodeIndex)
+    void SetOpCode(int uiOpCodeIndex)
     {
-       if ((opCodeIndex >= 0) && (opCodeIndex <= 255))
+       if ((uiOpCodeIndex >= 0) && (uiOpCodeIndex <= 255))
        {
-          this->opCodeIndex = opCodeIndex;
+          muiOpCodeIndex = uiOpCodeIndex;
        }
        else
        {
-          throw new SimulatorException("Invalid Op-code");
+           gcLogger.Error2(__METHOD__, " Invalid Op-code", NULL);
        }
     }
 
-        DataOperation getDataOperation()
+    CDataOperation* GetDataOperation()
     {
-       CBusCycle busCycle = GetBusCycle();
-       if (busCycle != null)
+       CBusCycle* pcBusCycle = GetBusCycle();
+       if (pcBusCycle != NULL)
        {
-          return busCycle.getDataOperation();
+          return pcBusCycle->GetDataOperation();
        }
        else
        {
-          Instruction instruction = opCodeTable[opCodeIndex];
-          System.out.println("W65C816.getDataOperation: CBusCycle for OpCode [" + instruction.getName() + "] Cycle [" + cycle + "] cannot be fetch.  OpCode cycles size [" + instruction.getCycles().size() + "].");
-          return null;
+          CInstruction* pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
+          System.out.println("W65C816.GetDataOperation: CBusCycle for OpCode [" + instruction.getName() + "] Cycle [" + cycle + "] cannot be fetch.  OpCode cycles size [" + instruction.getCycles().size() + "].");
+          return NULL;
        }
     }
 
-        bool IsStopped()
+    bool IsStopped()
     {
-       return this->stopped;
+       return mbStopped;
     }
 
-        bool IsRead()
+    bool IsRead()
     {
-       return getDataOperation().isRead();
+       return GetDataOperation()->IsRead();
     }
 
-        bool IsMemory8Bit()
+    bool IsMemory8Bit()
     {
-       if (isEmulation())
+       if (IsEmulation())
        {
           return true;
        }
        else
        {
-          return this->accumulatorWidthFlag;
+          return mbAccumulatorWidthFlag;
        }
     }
 
-        bool IsMemory16Bit()
+    bool IsMemory16Bit()
     {
-       return !isMemory8Bit();
+       return !IsMemory8Bit();
     }
 
-        bool IsIndex8Bit()
+    bool IsIndex8Bit()
     {
-       if (isEmulation())
+       if (IsEmulation())
        {
           return true;
        }
        else
        {
-          return this->indexWidthFlag;
+          return mbIndexWidthFlag;
        }
     }
 
-        void SetX(int xIndex)
+    void SetX(int uiXIndex)
     {
-       if (isIndex16Bit())
+       if (IsIndex16Bit())
        {
-          assert16Bit(xIndex, "X Index register");
-          this->xIndex = xIndex;
+          Assert16Bit(uiXIndex, "X Index register");
+          muiXIndex = uiXIndex;
        }
        else
        {
-          assert8Bit(xIndex, "X Index register");
-          this->xIndex = setLowByte(this->xIndex, xIndex);
+          Assert8Bit(uiXIndex, "X Index register");
+          muiXIndex = SetLowByte(muiXIndex, uiXIndex);
        }
-       setSignAndZeroFromIndex(xIndex);
+       SetSignAndZeroFromIndex(muiXIndex);
     }
 
-        void SetY(int yIndex)
+        void SetY(int uiYIndex)
     {
-       if (isIndex16Bit())
+       if (IsIndex16Bit())
        {
-          assert16Bit(yIndex, "Y Index register");
-          this->yIndex = yIndex;
+          Assert16Bit(uiYIndex, "Y Index register");
+          muiYIndex = uiYIndex;
        }
        else
        {
-          assert8Bit(yIndex, "Y Index register");
-          this->yIndex = setLowByte(this->yIndex, yIndex);
+          Assert8Bit(uiYIndex, "Y Index register");
+          muiYIndex = SetLowByte(muiYIndex, uiYIndex);
        }
-       setSignAndZeroFromIndex(yIndex);
+       SetSignAndZeroFromIndex(muiYIndex);
     }
 
         void SetA(int accumulator)
     {
        if (isMemory16Bit())
        {
-          assert16Bit(accumulator, "Accumulator");
+          Assert16Bit(accumulator, "Accumulator");
           this->accumulator = accumulator;
        }
        else
        {
-          assert8Bit(accumulator, "Accumulator");
-          this->accumulator = setLowByte(this->accumulator, accumulator);
+          Assert8Bit(accumulator, "Accumulator");
+          this->accumulator = SetLowByte(this->accumulator, accumulator);
        }
 
        setSignAndZeroFromMemory(accumulator);
@@ -364,7 +280,7 @@ public:
 
         void SetC(int accumulator)
     {
-       assert16Bit(accumulator, "Accumulator");
+       Assert16Bit(accumulator, "Accumulator");
        this->accumulator = accumulator;
        setSignAndZeroFlagFrom16BitValue(accumulator);
     }
@@ -373,13 +289,13 @@ public:
     {
        if (isMemory16Bit())
        {
-          assert16Bit(data, "Data");
+          Assert16Bit(data, "Data");
           this->internal16BitData = data;
        }
        else
        {
-          assert8Bit(data, "Data");
-          this->internal16BitData = setLowByte(this->internal16BitData, data);
+          Assert8Bit(data, "Data");
+          this->internal16BitData = SetLowByte(this->internal16BitData, data);
        }
        if (updateFlags)
        {
@@ -391,13 +307,13 @@ public:
     {
        if (isIndex16Bit())
        {
-          assert16Bit(data, "Data");
+          Assert16Bit(data, "Data");
           this->internal16BitData = data;
        }
        else
        {
-          assert8Bit(data, "Data");
-          this->internal16BitData = setLowByte(this->internal16BitData, data);
+          Assert8Bit(data, "Data");
+          this->internal16BitData = SetLowByte(this->internal16BitData, data);
        }
        if (updateFlags)
        {
@@ -442,7 +358,7 @@ public:
        }
        else
        {
-          return toByte(this->accumulator);
+          return ToByte(this->accumulator);
        }
     }
 
@@ -459,7 +375,7 @@ public:
        }
        else
        {
-          return toByte(this->xIndex);
+          return ToByte(this->xIndex);
        }
     }
 
@@ -471,7 +387,7 @@ public:
        }
        else
        {
-          return toByte(this->yIndex);
+          return ToByte(this->yIndex);
        }
     }
 
@@ -482,13 +398,13 @@ public:
 
         void SetDataBank(int dataBank)
     {
-       assert8Bit(dataBank, "Data Bank");
+       Assert8Bit(dataBank, "Data Bank");
        this->dataBank = dataBank;
     }
 
         void SetDirectPage(int directPage)
     {
-       assert16Bit(directPage, "Direct Page");
+       Assert16Bit(directPage, "Direct Page");
        this->directPage = directPage;
     }
 
@@ -563,12 +479,12 @@ public:
 
         bool Is8bitValueZero(int value)
     {
-       return (toByte(value) == 0);
+       return (ToByte(value) == 0);
     }
 
         bool Is16bitValueZero(int value)
     {
-       return (toShort(value) == 0);
+       return (ToShort(value) == 0);
     }
 
         bool IsMemoryNegative(int operand)
@@ -587,7 +503,7 @@ public:
     {
        if (accumulator != 0xffff)
        {
-          accumulator = toShort(--accumulator);
+          accumulator = ToShort(--accumulator);
           xIndex = trimIndex(++xIndex);
           yIndex = trimIndex(++yIndex);
           programCounter.offset(-3, true);
@@ -598,7 +514,7 @@ public:
     {
        if (accumulator != 0xffff)
        {
-          accumulator = toShort(--accumulator);
+          accumulator = ToShort(--accumulator);
           xIndex = trimIndex(--xIndex);
           yIndex = trimIndex(--yIndex);
           programCounter.offset(-3, true);
@@ -609,11 +525,11 @@ public:
     {
        if (isMemory16Bit())
        {
-          value = toShort(value);
+          value = ToShort(value);
        }
        else
        {
-          value = toByte(value);
+          value = ToByte(value);
        }
        return value;
     }
@@ -622,11 +538,11 @@ public:
     {
        if (isIndex16Bit())
        {
-          value = toShort(value);
+          value = ToShort(value);
        }
        else if (isIndex8Bit())
        {
-          value = toByte(value);
+          value = ToByte(value);
        }
        return value;
     }
@@ -658,36 +574,36 @@ public:
 
         void SetProgramAddressBank(int bank)
     {
-       assert8Bit(bank, "Program Address Bank");
+       Assert8Bit(bank, "Program Address Bank");
        programCounter.bank = bank;
     }
 
         void SetAddressLow(int addressLow)
     {
-       assert8Bit(addressLow, "Address Low");
+       Assert8Bit(addressLow, "Address Low");
        this->address.setOffsetLow(addressLow);
     }
 
         void SetAddressHigh(int addressHigh)
     {
-       assert8Bit(addressHigh, "Address High");
+       Assert8Bit(addressHigh, "Address High");
        this->address.setOffsetHigh(addressHigh);
     }
 
         void SetAddressBank(int addressBank)
     {
-       assert8Bit(addressBank, "Address Bank");
+       Assert8Bit(addressBank, "Address Bank");
        this->address.setBank(addressBank);
     }
 
         int getDataLow()
     {
-       return getLowByte(internal16BitData);
+       return GetLowByte(internal16BitData);
     }
 
         int getDataHigh()
     {
-       return getHighByte(internal16BitData);
+       return GetHighByte(internal16BitData);
     }
 
         int getInternal16BitData()
@@ -698,7 +614,7 @@ public:
        }
        else
        {
-          return toByte(internal16BitData);
+          return ToByte(internal16BitData);
        }
     }
 
@@ -710,7 +626,7 @@ public:
        }
        else
        {
-          return toByte(internal16BitData);
+          return ToByte(internal16BitData);
        }
     }
 
@@ -737,7 +653,7 @@ public:
        }
        else
        {
-          return getLowByte(stackPointer) | 0x100;
+          return GetLowByte(stackPointer) | 0x100;
        }
     }
 
@@ -748,7 +664,7 @@ public:
 
         Instruction getOpCode()
     {
-       return opCodeTable[opCodeIndex];
+       return opCodeTable[muiOpCodeIndex];
     }
 
         Address getNewProgramCounter()
@@ -768,54 +684,54 @@ public:
 
         void incrementStackPointer()
     {
-       stackPointer = toShort(++stackPointer);
+       stackPointer = ToShort(++stackPointer);
     }
 
         void decrementStackPointer()
     {
-       stackPointer = toShort(--stackPointer);
+       stackPointer = ToShort(--stackPointer);
     }
 
         void SetDirectOffset(int data)
     {
-       assert8Bit(data, "Direct Offset");
+       Assert8Bit(data, "Direct Offset");
        directOffset = data;
     }
 
         void SetDataLow(int data)
     {
-       assert8Bit(data, "Data Low");
-       this->internal16BitData = setLowByte(this->internal16BitData, data);
+       Assert8Bit(data, "Data Low");
+       this->internal16BitData = SetLowByte(this->internal16BitData, data);
     }
 
         void SetDataHigh(int data)
     {
-       assert8Bit(data, "Data High");
-       this->internal16BitData = setHighByte(this->internal16BitData, data);
+       Assert8Bit(data, "Data High");
+       this->internal16BitData = SetHighByte(this->internal16BitData, data);
     }
 
         void SetStackPointer(int data)
     {
-       assert16Bit(data, "Stack Pointer");
+       Assert16Bit(data, "Stack Pointer");
        stackPointer = data;
     }
 
         void SetNewProgramCounterLow(int data)
     {
-       assert8Bit(data, "Program Counter Low");
+       Assert8Bit(data, "Program Counter Low");
        newProgramCounter.setOffsetLow(data);
 
     }
 
         void SetNewProgramCounterHigh(int data)
     {
-       assert8Bit(data, "Program Counter High");
+       Assert8Bit(data, "Program Counter High");
        newProgramCounter.setOffsetHigh(data);
     }
 
         void SetNewProgramCounterBank(int data)
     {
-       assert8Bit(data, "Program Counter Bank");
+       Assert8Bit(data, "Program Counter Bank");
        newProgramCounter.setBank(data);
     }
 
@@ -824,11 +740,11 @@ public:
        setEmulationFlag(emulation);
        if (emulation)
        {
-          xIndex = toByte(xIndex);
-          yIndex = toByte(yIndex);
+          xIndex = ToByte(xIndex);
+          yIndex = ToByte(yIndex);
           setAccumulatorWidthFlag(true);
           setIndexWidthFlag(true);
-          stackPointer = toByte(stackPointer) | 0x100;
+          stackPointer = ToByte(stackPointer) | 0x100;
        }
     }
 
@@ -836,8 +752,8 @@ public:
     {
        if (indexWidthFlag)
        {
-          xIndex = toByte(xIndex);
-          yIndex = toByte(yIndex);
+          xIndex = ToByte(xIndex);
+          yIndex = ToByte(yIndex);
        }
        if (isEmulation())
        {
@@ -941,7 +857,7 @@ public:
     void execute8BitBCDSBC()
     {
        int value = getDataLow();
-       int accumulator = getLowByte(getA());
+       int accumulator = GetLowByte(getA());
 
        BCDResult bcdResult = bcdSubtract8Bit(value, accumulator, !isCarrySet());
        setCarryFlag(!bcdResult.carry);
@@ -967,7 +883,7 @@ public:
        {
           int digitOfFirst = (bcdFirst & 0xF);
           int digitOfSecond = (bcdSecond & 0xF);
-          int sumOfDigits = toByte(digitOfFirst + digitOfSecond + (carry ? 1 : 0));
+          int sumOfDigits = ToByte(digitOfFirst + digitOfSecond + (carry ? 1 : 0));
           carry = sumOfDigits > 9;
           if (carry)
           {
@@ -995,10 +911,10 @@ public:
           BCDResult bcd8BitResult = bcdAdd8Bit(digitOfFirst, digitOfSecond, carry);
           carry = bcd8BitResult.carry;
           int partialResult = bcd8BitResult.value;
-          result = toShort(result | (partialResult << shift));
+          result = ToShort(result | (partialResult << shift));
           shift += 8;
-          bcdFirst = toShort(bcdFirst >> shift);
-          bcdSecond = toShort(bcdSecond >> shift);
+          bcdFirst = ToShort(bcdFirst >> shift);
+          bcdSecond = ToShort(bcdSecond >> shift);
        }
        return new BCDResult(result, carry);
     }
@@ -1012,7 +928,7 @@ public:
        {
           int digitOfFirst = (bcdFirst & 0xF);
           int digitOfSecond = (bcdSecond & 0xF);
-          int diffOfDigits = toByte(digitOfFirst - digitOfSecond - (borrow ? 1 : 0));
+          int diffOfDigits = ToByte(digitOfFirst - digitOfSecond - (borrow ? 1 : 0));
           borrow = diffOfDigits > 9;
           if (borrow)
           {
@@ -1040,10 +956,10 @@ public:
           BCDResult bcd8BitResult = bcdSubtract8Bit(digitOfFirst, digitOfSecond, borrow);
           borrow = bcd8BitResult.carry;
           int partialResult = bcd8BitResult.value;
-          result = toShort(result | (partialResult << shift));
+          result = ToShort(result | (partialResult << shift));
           shift += 8;
-          bcdFirst = toShort(bcdFirst >> shift);
-          bcdSecond = toShort(bcdSecond >> shift);
+          bcdFirst = ToShort(bcdFirst >> shift);
+          bcdSecond = ToShort(bcdSecond >> shift);
        }
        return new BCDResult(result, borrow);
     }
@@ -1088,7 +1004,7 @@ public:
 
     void perInternal()
     {
-       internal16BitData = toShort(internal16BitData + programCounter.GetOffset());  // + Carry?
+       internal16BitData = ToShort(internal16BitData + programCounter.GetOffset());  // + Carry?
     }
 
     void phdInternal()
@@ -1324,11 +1240,11 @@ public:
     {
        if (isMemory8Bit() && isIndex16Bit())
        {
-          setA(getLowByte(getX()));
+          setA(GetLowByte(getX()));
        }
        else if (isMemory16Bit() && isIndex8Bit())
        {
-          setA(setLowByte(getA(), getX()));
+          setA(SetLowByte(getA(), getX()));
        }
        else
        {
@@ -1349,7 +1265,7 @@ public:
        }
        else
        {
-          setY(toByte(internal16BitData));
+          setY(ToByte(internal16BitData));
        }
     }
 
@@ -1361,7 +1277,7 @@ public:
        }
        else
        {
-          setX(toByte(internal16BitData));
+          setX(ToByte(internal16BitData));
        }
     }
 
@@ -1370,8 +1286,8 @@ public:
        int stackPointer = getStackPointer();
        if (isIndex8Bit())
        {
-          int stackPointerLower8Bits = getLowByte(stackPointer);
-          setX(setLowByte(getX(), stackPointerLower8Bits));
+          int stackPointerLower8Bits = GetLowByte(stackPointer);
+          setX(SetLowByte(getX(), stackPointerLower8Bits));
        }
        else
        {
@@ -1383,11 +1299,11 @@ public:
     {
        if (isMemory8Bit() && isIndex16Bit())
        {
-          setA(getLowByte(getY()));
+          setA(GetLowByte(getY()));
        }
        else if (isMemory16Bit() && isIndex8Bit())
        {
-          setA(setLowByte(getA(), getY()));
+          setA(SetLowByte(getA(), getY()));
        }
        else
        {
@@ -1399,7 +1315,7 @@ public:
     {
        if (isEmulation())
        {
-          int newStackPointer = 0x100 | getLowByte(getX());
+          int newStackPointer = 0x100 | GetLowByte(getX());
           setStackPointer(newStackPointer);
        }
        else
@@ -1424,7 +1340,7 @@ public:
 
     void repInternal()
     {
-       int value = toByte(~getDataLow());
+       int value = ToByte(~getDataLow());
        setProcessorRegisterValue(getProcessorRegisterValue() & value);
        processorStatusChanged();
     }
@@ -1434,8 +1350,8 @@ public:
        if ((isMemory8Bit() && isIndex8Bit()) ||
           (isMemory16Bit() && isIndex8Bit()))
        {
-          int lower8BitsOfA = getLowByte(getA());
-          setY(setLowByte(getY(), lower8BitsOfA));
+          int lower8BitsOfA = GetLowByte(getA());
+          setY(SetLowByte(getY(), lower8BitsOfA));
        }
        else
        {
@@ -1448,8 +1364,8 @@ public:
        if ((isMemory8Bit() && isIndex8Bit()) ||
           (isMemory16Bit() && isIndex8Bit()))
        {
-          int lower8BitsOfA = getLowByte(getA());
-          setX(setLowByte(getX(), lower8BitsOfA));
+          int lower8BitsOfA = GetLowByte(getA());
+          setX(SetLowByte(getX(), lower8BitsOfA));
        }
        else
        {
@@ -1513,8 +1429,8 @@ public:
 
     void xbaInternal()
     {
-       int lowerA = IntUtil.getLowByte(getA());
-       int higherA = IntUtil.getHighByte(getA());
+       int lowerA = IntUtil.GetLowByte(getA());
+       int higherA = IntUtil.GetHighByte(getA());
        accumulator = higherA | (lowerA << 8);
     }
 
@@ -1544,7 +1460,7 @@ public:
        int stackPointer = getStackPointer();
        if (isEmulation())
        {
-          stackPointer = setLowByte(stackPointer, getLowByte(getA()));
+          stackPointer = SetLowByte(stackPointer, GetLowByte(getA()));
        }
        else
        {
@@ -1643,14 +1559,14 @@ public:
 
         bool noteFourX(bool nextWillRead)
     {
-       return (getLowByte(getAddress().GetOffset()) + getLowByte(getX())) > 0xFF ||
+       return (GetLowByte(getAddress().GetOffset()) + GetLowByte(getX())) > 0xFF ||
           !nextWillRead ||
           isIndex16Bit();
     }
 
         bool noteFourY(bool nextWillRead)
     {
-       return (getLowByte(getAddress().GetOffset()) + getLowByte(getY())) > 0xFF ||
+       return (GetLowByte(getAddress().GetOffset()) + GetLowByte(getY())) > 0xFF ||
           !nextWillRead ||
           isIndex16Bit();
     }
@@ -1667,12 +1583,12 @@ public:
 
         int getAddressOffsetX()
     {
-       return toByte(getLowByte(getAddress().GetOffset()) + getLowByte(getX()));
+       return ToByte(GetLowByte(getAddress().GetOffset()) + GetLowByte(getX()));
     }
 
         int getAddressOffsetY()
     {
-       return toByte(getLowByte(getAddress().GetOffset()) + getLowByte(getY()));
+       return ToByte(GetLowByte(getAddress().GetOffset()) + GetLowByte(getY()));
     }
 
         void writeProgramBank()
@@ -1682,12 +1598,12 @@ public:
 
         void writeProgramCounterHigh()
     {
-       setData(IntUtil.getHighByte(getProgramCounter().GetOffset()));
+       setData(IntUtil.GetHighByte(getProgramCounter().GetOffset()));
     }
 
         void writeProgramCounterLow()
     {
-       setData(IntUtil.getLowByte(getProgramCounter().GetOffset()));
+       setData(IntUtil.GetLowByte(getProgramCounter().GetOffset()));
     }
 };
 

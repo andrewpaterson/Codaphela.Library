@@ -2,15 +2,15 @@
 #define __INT_UTIL_H__
 
 
-int toShort(int value);
-int toByte(int value);
-int toNybble(int value);
-int getLowByte(int value);
-int getHighByte(int value);
-int setLowByte(int variable, int data);
-int setHighByte(int variable, int data);
-void assert8Bit(int value, char* variable);
-void assert16Bit(int value, char* variable);
+int ToShort(int value);
+int ToByte(int value);
+int ToNybble(int value);
+int GetLowByte(int value);
+int GetHighByte(int value);
+int SetLowByte(int variable, int data);
+int SetHighByte(int variable, int data);
+void Assert8Bit(int value, char* variable);
+void Assert16Bit(int value, char* variable);
 
 
 #endif // __INT_UTIL_H__

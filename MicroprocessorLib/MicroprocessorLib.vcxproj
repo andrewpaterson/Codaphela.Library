@@ -31,6 +31,7 @@
     <ClCompile Include="AddressOffset.cpp" />
     <ClCompile Include="AddressOffsetArray.cpp" />
     <ClCompile Include="BusCycle.cpp" />
+    <ClCompile Include="BusCycleArray.cpp" />
     <ClCompile Include="ConstantOffset.cpp" />
     <ClCompile Include="DataBank.cpp" />
     <ClCompile Include="DataOperation.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="AddressOffset.h" />
     <ClInclude Include="AddressOffsetArray.h" />
     <ClInclude Include="BusCycle.h" />
+    <ClInclude Include="BusCycleArray.h" />
     <ClInclude Include="BusCycleParameter.h" />
     <ClInclude Include="ConstantOffset.h" />
     <ClInclude Include="CPUFlags.h" />

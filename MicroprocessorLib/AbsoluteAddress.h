@@ -6,8 +6,8 @@
 class CAbsoluteAddress : public CAddressOffset
 {
 public:
-    uint16  GetOffset(CW65C816* pcCPU);
-    void    Print(CChars* psz);
+    int32   GetOffset(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
 };
 
 

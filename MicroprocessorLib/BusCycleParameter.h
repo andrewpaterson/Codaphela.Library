@@ -3,10 +3,11 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/Killable.h"
 #include "BaseLib/Printable.h"
+#include "StandardLib/Unknown.h"
 
 
 class CW65C816;
-class CBusCycleParameter : public CKillable, CPrintable
+class CBusCycleParameter : public CUnknown
 {
 public:
 	virtual bool IsAddress(void) =0;
