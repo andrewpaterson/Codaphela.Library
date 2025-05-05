@@ -1,23 +1,15 @@
 #ifndef __X_INDEX_H__
 #define __X_INDEX_H__
+#include "AddressOffset.h"
 
 
-public class XIndex
-extends AddressOffset
+class CXIndex : public CAddressOffset
 {
-    /*@Override*/
-        public uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().getX();
-    }
-
-    /*@Override*/
-        public void    Print(CChars* psz)
-    {
-        return "X";
-    }
-}
-
+public:
+    int32   GetOffset(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
+};
 
 
 #endif // __X_INDEX_H__
+

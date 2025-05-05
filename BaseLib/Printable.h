@@ -6,7 +6,7 @@ class CChars;
 class CPrintable
 {
 public:
-	virtual void Print(CChars* psz) = 0;
+	virtual void Print(CChars* psz) =0;
 };
 
 

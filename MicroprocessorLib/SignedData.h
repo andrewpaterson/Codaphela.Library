@@ -1,23 +1,14 @@
 #ifndef __SIGNED_DATA_H__
 #define __SIGNED_DATA_H__
+#include "AddressOffset.h"
 
 
-public class SignedData
-extends AddressOffset
+class CSignedData : public CAddressOffset
 {
-    /*@Override*/
-        public uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().getData16BitOffset();
-    }
-
-    /*@Override*/
-        public void    Print(CChars* psz)
-    {
-        return "R";
-    }
+public:
+    int32   GetOffset(CW65C816* pcCPU);
+    void    Print(CChars* psz);
 };
-
 
 
 #endif // __SIGNED_DATA_H__

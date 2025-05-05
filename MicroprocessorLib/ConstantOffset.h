@@ -1,42 +1,19 @@
 #ifndef __CONSTANT_OFFSET_H__
 #define __CONSTANT_OFFSET_H__
+#include "BaseLib/Logger.h"
+#include "AddressOffset.h"
+
+
+class CConstantOffset : public CAddressOffset
+{
+private:
+    int32   miOffset;
 
 public:
-class ConstantOffset
-extends AddressOffset
-{
-    private final int offset;
-
-    public:
-ConstantOffset(int offset)
-    {
-        if (offset < 0 || offset > 3)
-        {
-            throw new SimulatorException("Numeric Offset must be in the range 0...3.");
-        }
-        this->offset = offset;
-    }
-
-    /*@Override*/
-        public:
-uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return offset;
-    }
-
-    /*@Override*/
-        public:
-void    Print(CChars* psz)
-    {
-        if (offset >= 0)
-        {
-            return "+" + offset;
-        }
-        else
-        {
-            return "" + offset;
-        }
-    }
+    void    Init(int32 iOffset);
+    int32   GetOffset(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
+    bool    IsConstantOffset(void);
 };
 
 

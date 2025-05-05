@@ -129,6 +129,9 @@
     <ClCompile Include="DataOperation.cpp">
       <Filter>Source\wdc\Instruction\Operation</Filter>
     </ClCompile>
+    <ClCompile Include="BusCycleArray.cpp">
+      <Filter>Source\wdc\Instruction</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">
@@ -244,6 +247,9 @@
     </ClInclude>
     <ClInclude Include="DataOperation.h">
       <Filter>Source\wdc\Instruction\Operation</Filter>
+    </ClInclude>
+    <ClInclude Include="BusCycleArray.h">
+      <Filter>Source\wdc\Instruction</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -2,11 +2,12 @@
 #define __INSTRUCTION_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/Chars.h"
+#include "StandardLib/Unknown.h"
 #include "InstructionCycles.h"
 #include "AddressingMode.h"
 
 
-class CInstruction
+class CInstruction : public CUnknown
 {
 protected:
     uint16                  muiCode;

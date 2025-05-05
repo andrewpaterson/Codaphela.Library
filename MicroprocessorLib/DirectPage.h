@@ -1,24 +1,13 @@
 #ifndef __DIRECT_PAGE_H__
 #define __DIRECT_PAGE_H__
+#include "AddressOffset.h"
 
 
-public:
-class DirectPage
-extends AddressOffset
+class CDirectPage : public CAddressOffset
 {
-    /*@Override*/
-        public:
-uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().getDirectPage();
-    }
-
-    /*@Override*/
-        public:
-void    Print(CChars* psz)
-    {
-        return "D";
-    }
+public:
+    int32   GetOffset(CW65C816* pcCPU);
+    void    Print(CChars* psz);
 };
 
 

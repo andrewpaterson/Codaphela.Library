@@ -1,6 +1,9 @@
 #ifndef __INSTRUCTION_CYCLES_H__
 #define __INSTRUCTION_CYCLES_H__
 #include "BaseLib/ArrayTemplate.h"
+#include "BaseLib/Malloc.h"
+#include "ProgramCounter.h"
+#include "BusCycleArray.h"
 
 
 typedef bool tNotLock;
@@ -12,311 +15,329 @@ extern tNotLock gtRMW;
 class CInstructionCycles
 {
 protected:
-    protected List<BusCycle> cycles;
-    protected AddressingMode addressingMode;
+    CBusCycleArray      mapcCycles;
+    EAddressingMode     meAddressingMode;
 
-    public:
-InstructionCycles(AddressingMode addressingMode,
-        BusCycle... cycles)
+public:
+    void Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles)
     {
-        this->addressingMode = addressingMode;
-        this->cycles = Arrays.asList(cycles);
-        for (int i = 0; i < cycles.length; i++)
+        CBusCycle*  pcBusCycle;
+        size        uiNumCycles;
+        size        i;
+
+        memcpy(&mapcCycles, papcCycles, sizeof(CBusCycleArray));
+        meAddressingMode = eAddressingMode;
+
+        uiNumCycles = mapcCycles.NumElements();
+        for (i = 0; i < uiNumCycles; i++)
         {
-            BusCycle cycle = this->cycles.get(i);
-            cycle.setCycle(i + 1);
+            pcBusCycle = mapcCycles.GetPtr(i);
+            pcBusCycle->SetCycle(i + 1);
         }
 
-        this->validate();
+        Validate();
     }
 
-    private void validate()
+
+private:
+    void Validate()
     {
-        validateDoneOperation();
+        ValidateDoneOperation();
     }
 
-    protected void validateDoneOperation()
+protected:
+    void ValidateDoneOperation()
     {
-        int done8 = 0;
-        int done16 = 0;
-        for (BusCycle cycle : cycles)
+        CBusCycle*  pcBusCycle;
+        size        uiNumCycles;
+        size        i;
+        size        uiDone8;
+        size        uiDone16;
+
+        uiDone8 = 0;
+        uiDone16 = 0;
+
+        uiNumCycles = mapcCycles.NumElements();
+        for (i = 0; i < uiNumCycles; i++)
         {
-            done8 += cycle.getDone8();
-            done16 += cycle.getDone16();
+            pcBusCycle = mapcCycles.GetPtr(i);
+            uiDone8 += pcBusCycle->GetDone8();
+            uiDone16 += pcBusCycle->GetDone16();
         }
 
-        if (done8 != 1 && done16 != 1)
+        if (uiDone8 != 1 && uiDone16 != 1)
         {
-            throw new SimulatorException("Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.");
+            gcLogger.Error2(__METHOD__, " Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.", NULL);
         }
     }
 
-    protected static ProgramCounter PC()
+public:
+    static CProgramCounter* PC()
     {
-        return new ProgramCounter();
+        return NewMalloc<CProgramCounter>();
     }
 
-    protected static StackPointer S()
+    static CStackPointer* S()
     {
         return new StackPointer();
     }
 
-    protected static AddressOffset[] Address(AddressOffset... addressOffsets)
+    static CAddressOffset[] Address(AddressOffset... addressOffsets)
     {
         return addressOffsets;
     }
 
-    protected static WriteDataHigh Write_DataHigh()
+    static CWriteDataHigh Write_DataHigh()
     {
         return Write_DataHigh(true);
     }
 
-    protected static WriteDataHigh Write_DataHigh(bool notMemoryLock)
+    static CWriteDataHigh Write_DataHigh(bool notMemoryLock)
     {
         return new WriteDataHigh(notMemoryLock);
     }
 
-    protected static ProgramBank PBR()
+    static CProgramBank PBR()
     {
         return new ProgramBank();
     }
 
-    protected static AbsoluteAddress AA()
+    static CAbsoluteAddress AA()
     {
         return new AbsoluteAddress();
     }
 
-    protected static XIndex X()
+    static CXIndex X()
     {
         return new XIndex();
     }
 
-    protected static YIndex Y()
+    static CYIndex Y()
     {
         return new YIndex();
     }
 
-    protected static ConstantOffset o(int offset)
+    static CConstantOffset o(int offset)
     {
         return new ConstantOffset(offset);
     }
 
-    protected static DataBank DBR()
+    static CDataBank DBR()
     {
         return new DataBank();
     }
 
-    protected static AbsoluteAddressHigh AAH()
+    static CAbsoluteAddressHigh AAH()
     {
         return new AbsoluteAddressHigh();
     }
 
-    protected static InterruptAddress VA(InterruptVector interruptVector)
+    static CInterruptAddress VA(InterruptVector interruptVector)
     {
         return new InterruptAddress(interruptVector);
     }
 
-    protected static DirectOffset DirectOffset()
+    static CDirectOffset DirectOffset()
     {
         return new DirectOffset();
     }
 
-    protected static DirectPage DP()
+    static CDirectPage DP()
     {
         return new DirectPage();
     }
 
-    protected static NewProgramCounter New_PC()
+    static CNewProgramCounter New_PC()
     {
         return new NewProgramCounter();
     }
 
-    protected static NewProgramBank New_PBR()
+    static CNewProgramBank New_PBR()
     {
         return new NewProgramBank();
     }
 
-    protected static AddressBank AAB()
+    static CAddressBank AAB()
     {
         return new AddressBank();
     }
 
-    protected static InternalFirst OpCode()
+    static CInternalFirst OpCode()
     {
         return new InternalFirst();
     }
 
-    protected static IncrementProgramCounter PC_inc()
+    static CIncrementProgramCounter PC_inc()
     {
         return new IncrementProgramCounter();
     }
 
-    protected static DecrementStackPointer SP_dec()
+    static CDecrementStackPointer SP_dec()
     {
         return new DecrementStackPointer();
     }
 
-    protected static IncrementStackPointer SP_inc()
+    static CIncrementStackPointer SP_inc()
     {
         return new IncrementStackPointer();
     }
 
-    protected static WriteProgramBank Write_PBR()
+    static CWriteProgramBank Write_PBR()
     {
         return new WriteProgramBank();
     }
 
-    protected static ReadNewProgramCounterHigh Read_NewPCH()
+    static CReadNewProgramCounterHigh Read_NewPCH()
     {
         return new ReadNewProgramCounterHigh(true);
     }
 
-    protected static InternalOperation IO()
+    static CInternalOperation IO()
     {
         return new InternalOperation(true);
     }
 
-    protected static SetProgramCounter PC_e(AddressOffset... addressOffsets)
+    static CSetProgramCounter PC_e(AddressOffset... addressOffsets)
     {
         return new SetProgramCounter(addressOffsets);
     }
 
-    protected static WriteProgramCounterLow Write_PCL()
+    static CWriteProgramCounterLow Write_PCL()
     {
         return new WriteProgramCounterLow();
     }
 
-    protected static WriteProgramCounterHigh Write_PCH()
+    static CWriteProgramCounterHigh Write_PCH()
     {
         return new WriteProgramCounterHigh();
     }
 
-    protected static ReadAbsoluteAddressHigh Read_AAH()
+    static CReadAbsoluteAddressHigh Read_AAH()
     {
         return new ReadAbsoluteAddressHigh(true, true);
     }
 
-    protected static ReadAbsoluteAddressHigh Read_AAH(bool notMemoryLock)
+    static CReadAbsoluteAddressHigh Read_AAH(bool notMemoryLock)
     {
         return new ReadAbsoluteAddressHigh(notMemoryLock, true);
     }
 
-    protected static ReadNewProgramBank Read_NewPBR()
+    static CReadNewProgramBank Read_NewPBR()
     {
         return new ReadNewProgramBank(true);
     }
 
-    protected static ReadNewProgramCounterLow Read_NewPCL()
+    static CReadNewProgramCounterLow Read_NewPCL()
     {
         return new ReadNewProgramCounterLow(true);
     }
 
-    protected static ReadAbsoluteAddressLow Read_AAL()
+    static CReadAbsoluteAddressLow Read_AAL()
     {
         return new ReadAbsoluteAddressLow(true, true);
     }
 
-    protected static ReadAbsoluteAddressLow Read_AAVL()
+    static CReadAbsoluteAddressLow Read_AAVL()
     {
         return new ReadAbsoluteAddressLow(true, false);
     }
 
-    protected static ReadAbsoluteAddressHigh Read_AAVH()
+    static CReadAbsoluteAddressHigh Read_AAVH()
     {
         return new ReadAbsoluteAddressHigh(true, false);
     }
 
-    protected static AbsoluteAddressLowPlusXLow AAL_XL()
+    static CAbsoluteAddressLowPlusXLow AAL_XL()
     {
         return new AbsoluteAddressLowPlusXLow();
     }
 
-    protected static AbsoluteAddressLowPlusYLow AAL_YL()
+    static CAbsoluteAddressLowPlusYLow AAL_YL()
     {
         return new AbsoluteAddressLowPlusYLow();
     }
 
-    protected static DirectOffset D0()
+    static CDirectOffset D0()
     {
         return DirectOffset();
     }
 
-    protected static ReadDirectOffset Read_D0()
+    static CReadDirectOffset Read_D0()
     {
         return new ReadDirectOffset(true);
     }
 
-    protected static ReadAbsoluteAddressBank Read_AAB()
+    static CReadAbsoluteAddressBank Read_AAB()
     {
         return new ReadAbsoluteAddressBank(true);
     }
 
-    protected static ReadDataBank Read_DBR()
+    static CReadDataBank Read_DBR()
     {
         return new ReadDataBank(true);
     }
 
-    protected static WriteProcessorStatus Write_PS()
+    static CWriteProcessorStatus Write_PS()
     {
         return new WriteProcessorStatus();
     }
 
-    protected static ReadProcessorStatus Read_PS()
+    static CReadProcessorStatus Read_PS()
     {
         return new ReadProcessorStatus();
     }
 
-    protected static ReadAbsoluteAddressLow Read_AAL(bool notMemoryLock)
+    static CReadAbsoluteAddressLow Read_AAL(bool notMemoryLock)
     {
         return new ReadAbsoluteAddressLow(notMemoryLock, true);
     }
 
-    protected static InternalOperation IO(bool notMemoryLock)
+    static CInternalOperation IO(bool notMemoryLock)
     {
         return new InternalOperation(notMemoryLock);
     }
 
-    protected static ReadDataHigh Read_DataHigh()
+    static CReadDataHigh Read_DataHigh()
     {
         return Read_DataHigh(true);
     }
 
-    protected static ReadDataHigh Read_DataHigh(bool notMemoryLock)
+    static CReadDataHigh Read_DataHigh(bool notMemoryLock)
     {
         return new ReadDataHigh(notMemoryLock);
     }
 
-    protected static ReadDataLow Read_DataLow(bool notMemoryLock)
+    static CReadDataLow Read_DataLow(bool notMemoryLock)
     {
         return new ReadDataLow(notMemoryLock);
     }
 
-    protected static ReadDataLow Read_DataLow()
+    static CReadDataLow Read_DataLow()
     {
         return Read_DataLow(true);
     }
 
-    protected static WriteDataLow Write_DataLow()
+    static CWriteDataLow Write_DataLow()
     {
         return Write_DataLow(true);
     }
 
-    protected static ReadDirectOffset Read_D0(bool notMemoryLock)
+    static CReadDirectOffset Read_D0(bool notMemoryLock)
     {
         return new ReadDirectOffset(notMemoryLock);
     }
 
-    protected static WriteDataLow Write_DataLow(bool notMemoryLock)
+    static CWriteDataLow Write_DataLow(bool notMemoryLock)
     {
         return new WriteDataLow(notMemoryLock);
     }
 
-    protected static DoneInstruction DONE()
+    static CDoneInstruction DONE()
     {
         return new DoneInstruction();
     }
 
-    protected static SetProgramBank PBR_e(int bank)
+    static CSetProgramBank PBR_e(int bank)
     {
         return new SetProgramBank(bank);
     }
@@ -333,52 +354,50 @@ static WriteAbsoluteAddressHigh Write_AAH()
         return new WriteAbsoluteAddressHigh();
     }
 
-    protected static ExecuteIf16Bit E16Bit(Executor<W65C816> consumer, WidthFromRegister width)
+    static CExecuteIf16Bit E16Bit(Executor<W65C816> consumer, WidthFromRegister width)
     {
 
         return new ExecuteIf16Bit(consumer, width);
     }
 
-    protected static ExecuteIf8Bit E8Bit(Executor<W65C816> consumer, WidthFromRegister width)
+    static CExecuteIf8Bit E8Bit(Executor<W65C816> consumer, WidthFromRegister width)
     {
         return new ExecuteIf8Bit(consumer, width);
     }
 
-    protected static Execute E(Executor<W65C816> consumer)
+    static CExecute E(Executor<W65C816> consumer)
     {
         return new Execute(consumer);
     }
 
-    protected static Operation DONE16Bit(WidthFromRegister width)
+    static COperation DONE16Bit(WidthFromRegister width)
     {
         return new DoneInstructionIf16Bit(width);
     }
 
-    protected static Operation DONE8Bit(WidthFromRegister width)
+    static COperation DONE8Bit(WidthFromRegister width)
     {
         return new DoneInstructionIf8Bit(width);
     }
 
-    public:
+public:
 AddressingMode GetAddressingMode()
     {
         return addressingMode;
     }
 
-    public:
-BusCycle getBusCycle(int index)
+CBusCycle* GetBusCycle(int16 miIndex)
     {
-        if ((index >= 0) && (index < cycles.size()))
+        if ((miIndex >= 0) && (miIndex < mapcCycles.size()))
         {
-            return cycles.get(index);
+            return mapcCycles.get(miIndex);
         }
-        return null;
+        return NULL;
     }
 
-    public:
-int size()
+int Size()
     {
-        return cycles.size();
+        return mapcCycles.NumElements();
     }
 };
 

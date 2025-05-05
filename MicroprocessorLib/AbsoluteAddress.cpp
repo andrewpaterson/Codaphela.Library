@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CAbsoluteAddress::GetOffset(CW65C816* pcCPU)
+int32 CAbsoluteAddress::GetOffset(CW65C816* pcCPU)
 {
     return pcCPU->GetState()->GetAddress()->GetOffset();
 }

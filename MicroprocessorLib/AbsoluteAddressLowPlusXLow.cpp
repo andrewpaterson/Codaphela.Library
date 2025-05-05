@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 AbsoluteAddressLowPlusXLow::GetOffset(CW65C816* pcCPU)
+int32 CAbsoluteAddressLowPlusXLow::GetOffset(CW65C816* pcCPU)
 {
     return pcCPU->GetState().GetAddressOffsetX();
 }
@@ -16,7 +16,7 @@ uint16 AbsoluteAddressLowPlusXLow::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void AbsoluteAddressLowPlusXLow::Print(CChars* psz)
+void CAbsoluteAddressLowPlusXLow::Print(CChars* psz)
 {
     psz->Append("(AAL+XL)");
 }

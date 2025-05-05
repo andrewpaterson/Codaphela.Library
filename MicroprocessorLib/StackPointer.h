@@ -1,22 +1,14 @@
 #ifndef __STACK_POINTER_H__
 #define __STACK_POINTER_H__
+#include "AddressOffset.h"
 
 
-public class StackPointer
-extends AddressOffset
+class CStackPointer : public CAddressOffset
 {
-    /*@Override*/
-        public uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().getStackPointer();
-    }
-
-    /*@Override*/
-        public void    Print(CChars* psz)
-    {
-        return "S";
-    }
-}
+public:
+    int32   GetOffset(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
+};
 
 
 #endif // __STACK_POINTER_H__

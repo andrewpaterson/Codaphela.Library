@@ -1,23 +1,33 @@
+#include "W65C816.h"
 #include "AddressBank.h"
 
 
-uint16 GetOffset(CW65C816* pcCPU)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+int32 CAddressBank::GetOffset(CW65C816* pcCPU)
 {
     return 0;
 }
 
-/*@Override*/
-        public:
-            int GetBank(CW65C816* pcCPU)
-            {
-                return pcCPU->GetState().GetAddress().GetBank();
-            }
 
-            /*@Override*/
-        public:
-            void    Print(CChars* psz)
-            {
-                return "AAB,";
-            }
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CAddressBank::GetBank(CW65C816* pcCPU)
+{
+    return pcCPU->GetState().GetAddress().GetBank();
+}
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CAddressBank::Print(CChars* psz)
+{
+    psz->Append("AAB,");
+}
 

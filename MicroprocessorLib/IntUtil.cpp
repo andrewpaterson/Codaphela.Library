@@ -2,49 +2,49 @@
 #include "IntUtil.h"
 
 
-int toShort(int value)
+int ToShort(int value)
 {
     return value & 0xffff;
 }
 
 
-int toByte(int value)
+int ToByte(int value)
 {
     return value & 0xff;
 }
 
 
-int toNybble(int value)
+int ToNybble(int value)
 {
     return value & 0xf;
 }
 
 
-int getLowByte(int value)
+int GetLowByte(int value)
 {
-    return toByte(value);
+    return ToByte(value);
 }
 
 
-int getHighByte(int value)
+int GetHighByte(int value)
 {
-    return toByte((value & 0xFF00) >> 8);
+    return ToByte((value & 0xFF00) >> 8);
 }
 
 
-int setLowByte(int variable, int data)
+int SetLowByte(int variable, int data)
 {
-    return (variable & 0xFF00) | toByte(data);
+    return (variable & 0xFF00) | ToByte(data);
 }
 
 
-int setHighByte(int variable, int data)
+int SetHighByte(int variable, int data)
 {
-    return (variable & 0xFF) | (toByte(data) << 8);
+    return (variable & 0xFF) | (ToByte(data) << 8);
 }
 
 
-void assert8Bit(int value, char* variable)
+void Assert8Bit(int value, char* variable)
 {
     if ((value < 0) || (value > 0xFF))
     {
@@ -53,7 +53,7 @@ void assert8Bit(int value, char* variable)
 }
 
 
-void assert16Bit(int value, char* variable)
+void Assert16Bit(int value, char* variable)
 {
     if ((value < 0) || (value > 0xFFFF))
     {

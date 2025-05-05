@@ -1,23 +1,13 @@
 #ifndef __ABSOLUTE_ADDRESS_LOW_PLUS_Y_LOW_H__
 #define __ABSOLUTE_ADDRESS_LOW_PLUS_Y_LOW_H__
+#include "AddressOffset.h"
 
 
-class AbsoluteAddressLowPlusYLow
-extends AddressOffset
+class CAbsoluteAddressLowPlusYLow : public CAddressOffset
 {
-    /*@Override*/
-        public:
-uint16 GetOffset(CW65C816* pcCPU)
-    {
-        return pcCPU->GetState().GetAddressOffsetY();
-    }
-
-    /*@Override*/
-        public:
-void    Print(CChars* psz)
-    {
-        return "(AAL+YL)";
-    }
+public:
+    int32   GetOffset(CW65C816* pcCPU) override;
+    void    Print(CChars* psz) override;
 };
 
 
