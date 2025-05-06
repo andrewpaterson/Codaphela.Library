@@ -24,14 +24,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPUFlags.h"
 
 
+class CW65C816State;
 class CW65C816
 {
 protected:
+	CW65C816State*	mpcState;
 
 public:
-	void		Init(void);
-	void		Kill(void);
+	void			Init(void);
+	void			Kill(void);
 
+	CW65C816State*	GetState(void);
 };
 
 

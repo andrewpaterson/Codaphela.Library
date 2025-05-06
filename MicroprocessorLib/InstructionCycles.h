@@ -3,12 +3,12 @@
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Malloc.h"
 #include "ProgramCounter.h"
+#include "StackPointer.h"
 #include "BusCycleArray.h"
+#include "AddressingMode.h"
 
 
 typedef bool tNotLock;
-
-
 extern tNotLock gtRMW;
 
 
@@ -19,73 +19,20 @@ protected:
     EAddressingMode     meAddressingMode;
 
 public:
-    void Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles)
-    {
-        CBusCycle*  pcBusCycle;
-        size        uiNumCycles;
-        size        i;
-
-        memcpy(&mapcCycles, papcCycles, sizeof(CBusCycleArray));
-        meAddressingMode = eAddressingMode;
-
-        uiNumCycles = mapcCycles.NumElements();
-        for (i = 0; i < uiNumCycles; i++)
-        {
-            pcBusCycle = mapcCycles.GetPtr(i);
-            pcBusCycle->SetCycle(i + 1);
-        }
-
-        Validate();
-    }
-
+    void Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles);
 
 private:
-    void Validate()
-    {
-        ValidateDoneOperation();
-    }
+    void Validate(void);
 
 protected:
-    void ValidateDoneOperation()
-    {
-        CBusCycle*  pcBusCycle;
-        size        uiNumCycles;
-        size        i;
-        size        uiDone8;
-        size        uiDone16;
-
-        uiDone8 = 0;
-        uiDone16 = 0;
-
-        uiNumCycles = mapcCycles.NumElements();
-        for (i = 0; i < uiNumCycles; i++)
-        {
-            pcBusCycle = mapcCycles.GetPtr(i);
-            uiDone8 += pcBusCycle->GetDone8();
-            uiDone16 += pcBusCycle->GetDone16();
-        }
-
-        if (uiDone8 != 1 && uiDone16 != 1)
-        {
-            gcLogger.Error2(__METHOD__, " Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.", NULL);
-        }
-    }
+    void ValidateDoneOperation(void);
 
 public:
-    static CProgramCounter* PC()
-    {
-        return NewMalloc<CProgramCounter>();
-    }
+    static CProgramCounter* PC(void);
 
-    static CStackPointer* S()
-    {
-        return new StackPointer();
-    }
+    static CStackPointer* S(void);
 
-    static CAddressOffset[] Address(AddressOffset... addressOffsets)
-    {
-        return addressOffsets;
-    }
+    static CAddressOffsetArray* Address(CAddressOffset* pcOffset, ...);
 
     static CWriteDataHigh Write_DataHigh()
     {

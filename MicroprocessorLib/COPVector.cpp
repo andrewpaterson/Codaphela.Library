@@ -1,0 +1,21 @@
+#include "W65C816.h"
+#include "W65C816State.h"
+#include "COPVector.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 CCOPVector::GetAddress(CW65C816* pcCPU)
+{
+    if (pcCPU->GetState()->IsEmulation())
+    {
+        return 0xfff4;
+    }
+    else
+    {
+        return 0xffe4;
+    }
+}
+
