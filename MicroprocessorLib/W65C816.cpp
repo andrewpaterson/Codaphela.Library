@@ -20,6 +20,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/CalculatorParser.h"
+#include "BaseLib/PointerFunctions.h"
+#include "W65C816State.h"
 #include "W65C816.h"
 
 
@@ -29,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::Init(void)
 {
-
+	mpcState = NewMalloc<CW65C816State>();
 }
 
 
@@ -39,7 +41,16 @@ void CW65C816::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::Kill(void)
 {
-
+	SafeKill(mpcState);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CW65C816State* CW65C816::GetState(void)
+{
+	return mpcState;
+}
 

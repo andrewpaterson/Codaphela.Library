@@ -132,6 +132,27 @@
     <ClCompile Include="BusCycleArray.cpp">
       <Filter>Source\wdc\Instruction</Filter>
     </ClCompile>
+    <ClCompile Include="InterruptVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="AbortVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="BRKVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="COPVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="IRQVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="NMIVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="ResetVector.cpp">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">
@@ -250,6 +271,27 @@
     </ClInclude>
     <ClInclude Include="BusCycleArray.h">
       <Filter>Source\wdc\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="InterruptVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClInclude>
+    <ClInclude Include="AbortVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClInclude>
+    <ClInclude Include="BRKVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClInclude>
+    <ClInclude Include="COPVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClInclude>
+    <ClInclude Include="IRQVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClInclude>
+    <ClInclude Include="NMIVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
+    </ClInclude>
+    <ClInclude Include="ResetVector.h">
+      <Filter>Source\wdc\Instruction\Interrupt</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

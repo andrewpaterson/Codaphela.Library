@@ -1,5 +1,124 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include "InstructionCycles.h"
 
 
 tNotLock gtRMW = false;
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstructionCycles::Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles)
+{
+    CBusCycle* pcBusCycle;
+    size        uiNumCycles;
+    size        i;
+
+    memcpy(&mapcCycles, papcCycles, sizeof(CBusCycleArray));
+    meAddressingMode = eAddressingMode;
+
+    uiNumCycles = mapcCycles.NumElements();
+    for (i = 0; i < uiNumCycles; i++)
+    {
+        pcBusCycle = mapcCycles.GetPtr(i);
+        pcBusCycle->SetCycle(i + 1);
+    }
+
+    Validate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstructionCycles::Validate(void)
+{
+    ValidateDoneOperation();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstructionCycles::ValidateDoneOperation(void)
+{
+    CBusCycle* pcBusCycle;
+    size        uiNumCycles;
+    size        i;
+    size        uiDone8;
+    size        uiDone16;
+
+    uiDone8 = 0;
+    uiDone16 = 0;
+
+    uiNumCycles = mapcCycles.NumElements();
+    for (i = 0; i < uiNumCycles; i++)
+    {
+        pcBusCycle = mapcCycles.GetPtr(i);
+        uiDone8 += pcBusCycle->GetDone8();
+        uiDone16 += pcBusCycle->GetDone16();
+    }
+
+    if (uiDone8 != 1 && uiDone16 != 1)
+    {
+        gcLogger.Error2(__METHOD__, " Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.", NULL);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CProgramCounter* CInstructionCycles::PC(void)
+{
+    return NewMalloc<CProgramCounter>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CInstructionCycles::S(void)
+{
+    return NewMalloc<CStackPointer>();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CAddressOffsetArray* CInstructionCycles::Address(CAddressOffset* pcOffset, ...)
+{
+    va_list		            vaMarker;
+    size		            iCount;
+    CAddressOffsetArray*    papcOffsets;
+
+    papcOffsets = NewMalloc<CAddressOffsetArray>();
+    papcOffsets->Init();
+
+    if (pcOffset)
+    {
+        iCount = 0;
+
+        va_start(vaMarker, pcOffset);
+        while (pcOffset)
+        {
+            papcOffsets->Add(pcOffset);
+            iCount++;
+            pcOffset = va_arg(vaMarker, CAddressOffset*);
+        }
+        va_end(vaMarker);
+    }
+
+
+    return papcOffsets;
+}
 

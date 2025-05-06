@@ -9,7 +9,7 @@
 #include "W65C816.h" // ?!?
 
 
-class W65C816State 
+class CW65C816State : public CUnknown
 {
 public:
     bool        mbEmulationFlag;
@@ -61,7 +61,7 @@ public:
 
 public:
     void            Init(void);
-    void            Init(W65C816State state);
+    void            Init(CW65C816State state);
         
     CInstruction*   GetInstruction(uint16 uiOpcode);
     CInstruction*   GetResetOpcode(void);

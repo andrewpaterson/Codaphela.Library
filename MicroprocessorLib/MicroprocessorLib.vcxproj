@@ -22,6 +22,7 @@
     <ProjectGuid>{27C44A6D-223D-4CB9-A7A3-FCAB828F85C7}</ProjectGuid>
   </PropertyGroup>
   <ItemGroup>
+    <ClCompile Include="AbortVector.cpp" />
     <ClCompile Include="AbsoluteAddress.cpp" />
     <ClCompile Include="AbsoluteAddressHigh.cpp" />
     <ClCompile Include="AbsoluteAddressLowPlusXLow.cpp" />
@@ -30,9 +31,11 @@
     <ClCompile Include="AddressBank.cpp" />
     <ClCompile Include="AddressOffset.cpp" />
     <ClCompile Include="AddressOffsetArray.cpp" />
+    <ClCompile Include="BRKVector.cpp" />
     <ClCompile Include="BusCycle.cpp" />
     <ClCompile Include="BusCycleArray.cpp" />
     <ClCompile Include="ConstantOffset.cpp" />
+    <ClCompile Include="COPVector.cpp" />
     <ClCompile Include="DataBank.cpp" />
     <ClCompile Include="DataOperation.cpp" />
     <ClCompile Include="DirectOffset.cpp" />
@@ -41,8 +44,11 @@
     <ClCompile Include="InstructionCycleFactory.cpp" />
     <ClCompile Include="InstructionCycles.cpp" />
     <ClCompile Include="InterruptAddress.cpp" />
+    <ClCompile Include="InterruptVector.cpp" />
     <ClCompile Include="IntUtil.cpp" />
+    <ClCompile Include="IRQVector.cpp" />
     <ClCompile Include="NewProgramBank.cpp" />
+    <ClCompile Include="NMIVector.cpp" />
     <ClCompile Include="Operation.cpp" />
     <ClCompile Include="OperationArray.cpp" />
     <ClCompile Include="ProgramBank.cpp" />
@@ -52,6 +58,7 @@
     <ClCompile Include="SignedData.cpp" />
     <ClCompile Include="SignedDataLow.cpp" />
     <ClCompile Include="InstructionFactory.cpp" />
+    <ClCompile Include="ResetVector.cpp" />
     <ClCompile Include="StackPointer.cpp" />
     <ClCompile Include="W65C816.cpp" />
     <ClCompile Include="W65C816State.cpp" />
@@ -59,6 +66,7 @@
     <ClCompile Include="YIndex.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AbortVector.h" />
     <ClInclude Include="AbsoluteAddress.h" />
     <ClInclude Include="AbsoluteAddressHigh.h" />
     <ClInclude Include="AbsoluteAddressLowPlusXLow.h" />
@@ -68,10 +76,12 @@
     <ClInclude Include="AddressingMode.h" />
     <ClInclude Include="AddressOffset.h" />
     <ClInclude Include="AddressOffsetArray.h" />
+    <ClInclude Include="BRKVector.h" />
     <ClInclude Include="BusCycle.h" />
     <ClInclude Include="BusCycleArray.h" />
     <ClInclude Include="BusCycleParameter.h" />
     <ClInclude Include="ConstantOffset.h" />
+    <ClInclude Include="COPVector.h" />
     <ClInclude Include="CPUFlags.h" />
     <ClInclude Include="DataBank.h" />
     <ClInclude Include="DataOperation.h" />
@@ -82,14 +92,18 @@
     <ClInclude Include="InstructionCycles.h" />
     <ClInclude Include="InstructionFactory.h" />
     <ClInclude Include="InterruptAddress.h" />
+    <ClInclude Include="InterruptVector.h" />
     <ClInclude Include="IntUtil.h" />
+    <ClInclude Include="IRQVector.h" />
     <ClInclude Include="NewProgramBank.h" />
     <ClInclude Include="NewProgramCounter.h" />
+    <ClInclude Include="NMIVector.h" />
     <ClInclude Include="Operation.h" />
     <ClInclude Include="OperationArray.h" />
     <ClInclude Include="ProgramBank.h" />
     <ClInclude Include="ProgramCounter.h" />
     <ClInclude Include="ReflectiveData.h" />
+    <ClInclude Include="ResetVector.h" />
     <ClInclude Include="SaveData.h" />
     <ClInclude Include="SignedData.h" />
     <ClInclude Include="SignedDataLow.h" />

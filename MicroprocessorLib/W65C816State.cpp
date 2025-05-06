@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::Init(void)
+void CW65C816State::Init(void)
 {
     mcProgramCounter.Init();
     muiStackPointer = 0x01FF;
@@ -48,7 +48,7 @@ void W65C816State::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::Init(W65C816State state)
+void CW65C816State::Init(CW65C816State state)
 {
     mbZeroFlag = state.mbZeroFlag;
     mbNegativeFlag = state.mbNegativeFlag;
@@ -95,7 +95,7 @@ void W65C816State::Init(W65C816State state)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* W65C816State::GetInstruction(uint16 uiOpcode)
+CInstruction* CW65C816State::GetInstruction(uint16 uiOpcode)
 {
 	return CInstructionFactory::GetInstance()->GetInstruction(uiOpcode);
 }
@@ -105,7 +105,7 @@ CInstruction* W65C816State::GetInstruction(uint16 uiOpcode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* W65C816State::GetResetOpcode(void)
+CInstruction* CW65C816State::GetResetOpcode(void)
 {
 	return CInstructionFactory::GetInstance()->GetReset();
 }
@@ -115,7 +115,7 @@ CInstruction* W65C816State::GetResetOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* W65C816State::GetIrqOpcode(void)
+CInstruction* CW65C816State::GetIrqOpcode(void)
 {
 	return CInstructionFactory::GetInstance()->GetIRQ();
 }
@@ -125,7 +125,7 @@ CInstruction* W65C816State::GetIrqOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* W65C816State::GetNmiOpcode(void)
+CInstruction* CW65C816State::GetNmiOpcode(void)
 {
 	return CInstructionFactory::GetInstance()->GetNMI();
 }
@@ -135,7 +135,7 @@ CInstruction* W65C816State::GetNmiOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* W65C816State::GetAbortOpcode(void)
+CInstruction* CW65C816State::GetAbortOpcode(void)
 {
 	return CInstructionFactory::GetInstance()->GetAbort();
 }
@@ -145,7 +145,7 @@ CInstruction* W65C816State::GetAbortOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* W65C816State::GetFetchNextOpcode(void)
+CInstruction* CW65C816State::GetFetchNextOpcode(void)
 {
 	return CInstructionFactory::GetInstance()->GetFetchNext();
 }
@@ -155,7 +155,7 @@ CInstruction* W65C816State::GetFetchNextOpcode(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::CreateAbortValues(void)
+void CW65C816State::CreateAbortValues(void)
 {
     muiAbortProcessRegister = GetProcessorRegisterValue();
     muiAbortAccumulator = muiAccumulator;
@@ -171,7 +171,7 @@ void W65C816State::CreateAbortValues(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::CreatePartialAbortValues(void)
+void CW65C816State::CreatePartialAbortValues(void)
 {
     muiAbortProcessRegister = GetProcessorRegisterValue();
     muiAbortDataBank = muiDataBank;
@@ -182,7 +182,7 @@ void W65C816State::CreatePartialAbortValues(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::RestoreAbortValues(void)
+void CW65C816State::RestoreAbortValues(void)
 {
     muiAbortProcessRegister = GetProcessorRegisterValue();
     muiAccumulator = muiAbortAccumulator;
@@ -199,7 +199,7 @@ void W65C816State::RestoreAbortValues(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::ResetPulled(void)
+void CW65C816State::ResetPulled(void)
 {
     mbAbort = false;
     mbNmi = false;
@@ -213,7 +213,7 @@ void W65C816State::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 W65C816State::GetProcessorRegisterValue(void)
+uint8 CW65C816State::GetProcessorRegisterValue(void)
 {
     int value = 0;
     if (IsCarrySet())
@@ -261,7 +261,7 @@ uint8 W65C816State::GetProcessorRegisterValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::ResetPulled(void)
+void CW65C816State::ResetPulled(void)
 {
     mbAbort = false;
     mbNmi = false;
@@ -275,7 +275,7 @@ void W65C816State::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::ResetPulled(void)
+void CW65C816State::ResetPulled(void)
 {
     mbAbort = false;
     mbNmi = false;
@@ -289,7 +289,7 @@ void W65C816State::ResetPulled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetZeroFlag(bool bZeroFlag)
+void CW65C816State::SetZeroFlag(bool bZeroFlag)
 {
     mbZeroFlag = bZeroFlag;
 }
@@ -299,7 +299,7 @@ void W65C816State::SetZeroFlag(bool bZeroFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetNegativeFlag(bool bSignFlag)
+void CW65C816State::SetNegativeFlag(bool bSignFlag)
 {
     mbNegativeFlag = bSignFlag;
 }
@@ -309,7 +309,7 @@ void W65C816State::SetNegativeFlag(bool bSignFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetDecimalFlag(bool bDecimalFlag)
+void CW65C816State::SetDecimalFlag(bool bDecimalFlag)
 {
     mbDecimalFlag = bDecimalFlag;
 }
@@ -319,7 +319,7 @@ void W65C816State::SetDecimalFlag(bool bDecimalFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetInterruptDisableFlag(bool bInterruptDisableFlag)
+void CW65C816State::SetInterruptDisableFlag(bool bInterruptDisableFlag)
 {
     mbInterruptDisableFlag = bInterruptDisableFlag;
 }
@@ -329,7 +329,7 @@ void W65C816State::SetInterruptDisableFlag(bool bInterruptDisableFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag)
+void CW65C816State::SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag)
 {
     mbAccumulatorWidthFlag = bAccumulatorWidthFlag;
 }
@@ -339,7 +339,7 @@ void W65C816State::SetAccumulatorWidthFlag(bool bAccumulatorWidthFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetIndexWidthFlag(bool bIndexWidthFlag)
+void CW65C816State::SetIndexWidthFlag(bool bIndexWidthFlag)
 {
     mbIndexWidthFlag = bIndexWidthFlag;
 }
@@ -349,7 +349,7 @@ void W65C816State::SetIndexWidthFlag(bool bIndexWidthFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetCarryFlag(bool bCarryFlag)
+void CW65C816State::SetCarryFlag(bool bCarryFlag)
 {
     mbCarryFlag = bCarryFlag;
 }
@@ -359,7 +359,7 @@ void W65C816State::SetCarryFlag(bool bCarryFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetEmulationFlag(bool bEmulationFlag)
+void CW65C816State::SetEmulationFlag(bool bEmulationFlag)
 {
     mbEmulationFlag = bEmulationFlag;
 }
@@ -369,7 +369,7 @@ void W65C816State::SetEmulationFlag(bool bEmulationFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsZeroFlagSet(void)
+bool CW65C816State::IsZeroFlagSet(void)
 {
     return mbZeroFlag;
 }
@@ -379,7 +379,7 @@ bool W65C816State::IsZeroFlagSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsNegativeSet(void)
+bool CW65C816State::IsNegativeSet(void)
 {
     return mbNegativeFlag;
 }
@@ -389,7 +389,7 @@ bool W65C816State::IsNegativeSet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsDecimal(void)
+bool CW65C816State::IsDecimal(void)
 {
     return mbDecimalFlag;
 }
@@ -399,7 +399,7 @@ bool W65C816State::IsDecimal(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsInterruptDisable(void)
+bool CW65C816State::IsInterruptDisable(void)
 {
     return mbInterruptDisableFlag;
 }
@@ -409,7 +409,7 @@ bool W65C816State::IsInterruptDisable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsCarrySet(void)
+bool CW65C816State::IsCarrySet(void)
 {
     return mbCarryFlag;
 }
@@ -419,7 +419,7 @@ bool W65C816State::IsCarrySet(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsEmulation(void)
+bool CW65C816State::IsEmulation(void)
 {
     return mbEmulationFlag;
 }
@@ -429,7 +429,7 @@ bool W65C816State::IsEmulation(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsBreak(void)
+bool CW65C816State::IsBreak(void)
 {
     return mbBreakFlag;
 }
@@ -439,7 +439,7 @@ bool W65C816State::IsBreak(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool W65C816State::IsOverflowFlag(void)
+bool CW65C816State::IsOverflowFlag(void)
 {
     return mbOverflowFlag;
 }
@@ -449,7 +449,7 @@ bool W65C816State::IsOverflowFlag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetBreakFlag(bool bBreakFlag)
+void CW65C816State::SetBreakFlag(bool bBreakFlag)
 {
     mbBreakFlag = bBreakFlag;
 }
@@ -459,7 +459,7 @@ void W65C816State::SetBreakFlag(bool bBreakFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::SetOverflowFlag(bool bOverflowFlag)
+void CW65C816State::SetOverflowFlag(bool bOverflowFlag)
 {
     mbOverflowFlag = bOverflowFlag;
 }
@@ -469,7 +469,7 @@ void W65C816State::SetOverflowFlag(bool bOverflowFlag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void W65C816State::Cycle(CW65C816* pcCPU)
+void CW65C816State::Cycle(CW65C816* pcCPU)
 {
     if (mbNextInstruction)
     {
