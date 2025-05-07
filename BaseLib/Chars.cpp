@@ -263,7 +263,7 @@ CChars* CChars::InitList(const char* szFirst, ...)
 
 	va_list			vaMarker;
 	const char*		pc;
-	size				iCount;
+	size			iCount;
 
 	if (szFirst)
 	{
@@ -295,7 +295,7 @@ CChars* CChars::InitList(CChars* szFirst, ...)
 
 	va_list		vaMarker;
 	CChars*		pc;
-	size			iCount;
+	size		iCount;
 
 	if (szFirst)
 	{

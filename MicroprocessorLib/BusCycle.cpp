@@ -53,12 +53,12 @@ void CBusCycle::Validate(void)
 
     if (uiDataBusOperation != 1)
     {
-        gcLogger.Error2(__METHOD__, " Exactly [1] data bus operation must be specified in a bus cycle.", NULL);
+        LOG_ERROR("Exactly[1] data bus operation must be specified in a bus cycle.");
     }
 
     if (mapcAddressOffsets.NumElements() == 0)
     {
-        gcLogger.Error2(__METHOD__, " At least [1] address offset must be specified in a bus cycle.", NULL);
+        LOG_ERROR("At least [1] address offset must be specified in a bus cycle.");
     }
 }
 

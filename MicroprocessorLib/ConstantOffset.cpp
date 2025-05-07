@@ -10,7 +10,7 @@ void CConstantOffset::Init(int32 iOffset)
 {
     if (iOffset < 0 || iOffset > 3)
     {
-        gcLogger.Error2(__METHOD__, " Numeric Offset must be in the range 0...3.");
+        LOG_ERROR("Numeric Offset must be in the range 0...3.");
     }
     miOffset = iOffset;
 }

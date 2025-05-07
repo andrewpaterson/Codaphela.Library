@@ -35,7 +35,12 @@ public:
 	void			Kill(void);
 
 	CW65C816State*	GetState(void);
+
+	void BIT(void);
 };
+
+
+typedef void(CW65C816::*CW65C816Func)(void);
 
 
 #endif //  __W65C816_H__

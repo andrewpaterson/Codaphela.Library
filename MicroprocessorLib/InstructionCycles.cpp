@@ -66,7 +66,7 @@ void CInstructionCycles::ValidateDoneOperation(void)
 
     if (uiDone8 != 1 && uiDone16 != 1)
     {
-        gcLogger.Error2(__METHOD__, " Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.", NULL);
+        LOG_ERROR("Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.");
     }
 }
 

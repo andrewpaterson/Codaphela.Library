@@ -21,19 +21,18 @@ protected:
 public:
     void Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles);
 
-private:
-    void Validate(void);
+    static CProgramCounter*     PC(void);
+    static CStackPointer*       S(void);
+    static CAddressOffsetArray* Address(CAddressOffset* pcOffset, ...);
 
 protected:
     void ValidateDoneOperation(void);
 
+private:
+    void Validate(void);
+
+
 public:
-    static CProgramCounter* PC(void);
-
-    static CStackPointer* S(void);
-
-    static CAddressOffsetArray* Address(CAddressOffset* pcOffset, ...);
-
     static CWriteDataHigh Write_DataHigh()
     {
         return Write_DataHigh(true);
