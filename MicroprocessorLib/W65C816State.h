@@ -174,7 +174,7 @@ public:
        }
        else
        {
-           gcLogger.Error2(__METHOD__, " Invalid Op-code", NULL);
+           LOG_ERROR("Invalid Op-code.";
        }
     }
 
@@ -188,7 +188,7 @@ public:
        else
        {
           CInstruction* pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
-          System.out.println("W65C816.GetDataOperation: CBusCycle for OpCode [" + instruction.getName() + "] Cycle [" + cycle + "] cannot be fetch.  OpCode cycles size [" + instruction.getCycles().size() + "].");
+          //System.out.println("W65C816.GetDataOperation: CBusCycle for OpCode [" + instruction.getName() + "] Cycle [" + cycle + "] cannot be fetch.  OpCode cycles size [" + instruction.getCycles().size() + "].");
           return NULL;
        }
     }
@@ -1107,7 +1107,7 @@ public:
        return value;
     }
 
-    void bitInternal()
+    void BitInternal(void)
     {
        int value = getInternal16BitData();
 

@@ -1,0 +1,15 @@
+#ifndef __READ_DIRECT_OFFSET_H__
+#define __READ_DIRECT_OFFSET_H__
+#include "DataOperation.h"
+
+
+class CReadDirectOffset : public CDataOperation
+{
+public:
+	void Execute(CW65C816* pcCPU) override;
+	void Print(CChars* psz) override;
+};
+
+
+#endif // __READ_DIRECT_OFFSET_H__
+
