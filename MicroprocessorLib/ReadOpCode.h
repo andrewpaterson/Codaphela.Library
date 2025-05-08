@@ -6,8 +6,12 @@
 class CReadOpCode : public CDataOperation
 {
 public:
-	void Execute(CW65C816* pcCPU) override;
-	void Print(CChars* psz) override;
+	void	Init(void);
+	void	Execute(CW65C816* pcCPU) override;
+	void	Print(CChars* psz) override;
+	size	GetDone8(void) override;
+	size	GetDone16(void) override;
+	bool	IsFetchOpCode(void) override;
 };
 
 

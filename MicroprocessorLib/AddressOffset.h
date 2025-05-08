@@ -9,6 +9,7 @@ class CAddress;
 class CAddressOffset : public CBusCycleParameter
 {
 public:
+            void    Init(void);
             bool    IsOperation(void) override;
             bool    IsAddress(void) override;
     virtual uint8   GetBank(CW65C816* pcCPU) =0;

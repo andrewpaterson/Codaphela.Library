@@ -1,5 +1,6 @@
 #ifndef __EXECUTE_H__
 #define __EXECUTE_H__
+#include "W65C816Func.h"
 #include "Operation.h"
 
 

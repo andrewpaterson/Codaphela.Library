@@ -3,7 +3,7 @@
 #include "DataOperation.h"
 
 
-class CReadAbsoluteAddressHigh : public CDataOperation
+class CReadAbsoluteAddressLow : public CDataOperation
 {
 public:
 	void Execute(CW65C816* pcCPU) override;

@@ -23,6 +23,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/PointerFunctions.h"
 #include "W65C816State.h"
 #include "W65C816.h"
+#include "W65C816Func.h"
 
 
 //////////////////////////////////////////////////////////////////////////

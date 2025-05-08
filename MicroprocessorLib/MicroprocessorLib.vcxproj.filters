@@ -66,9 +66,6 @@
     <ClCompile Include="DirectPage.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="InstructionCycleFactory.cpp">
-      <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
-    </ClCompile>
     <ClCompile Include="AddressBank.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClCompile>
@@ -282,6 +279,12 @@
     <ClCompile Include="WidthFromRegister.cpp">
       <Filter>Source\wdc\W65C816</Filter>
     </ClCompile>
+    <ClCompile Include="BCDResult.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClCompile>
+    <ClCompile Include="InstructionCycleFactory.cpp">
+      <Filter>Source\wdc\W65C816\Instruction</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">
@@ -327,9 +330,6 @@
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="DirectPage.h">
-      <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
-    </ClInclude>
-    <ClInclude Include="InstructionCycleFactory.h">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClInclude>
     <ClInclude Include="InstructionCycles.h">
@@ -550,6 +550,15 @@
     </ClInclude>
     <ClInclude Include="WidthFromRegister.h">
       <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816Func.h">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="BCDResult.h">
+      <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="InstructionCycleFactory.h">
+      <Filter>Source\wdc\W65C816\Instruction</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

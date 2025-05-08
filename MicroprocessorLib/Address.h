@@ -14,21 +14,21 @@
 class CAddress : public CReflectiveData
 {
 protected:
-    uint8    miBank;
-    uint16   miOffset;
+    uint8    muiBank;
+    uint16   muiOffset;
 
 public:
     void        Init(CAddress* pcAddress);
     void        Init(void);
-    void        Init(int iBank, int iOffset);
-    int         GetBank(void);
-    int         GetOffset(void);
-    CAddress*   Offset(int iOffset, bool bWrapOffset);
+    void        Init(uint8 uiBank, uint16 uiOffset);
+    uint8       GetBank(void);
+    uint16      GetOffset(void);
+    CAddress*   Offset(int16 iOffset);
     void        Print(CChars* psz);
-    void        SetOffset(int iOffset);
-    void        SetBank(int iBank);
-    void        SetOffsetLow(int iOffsetLow);
-    void        SetOffsetHigh(int iOffsetHigh);
+    void        SetOffset(uint16 uiOffset);
+    void        SetBank(uint8 uiBank);
+    void        SetOffsetLow(uint8 uiOffsetLow);
+    void        SetOffsetHigh(uint8 uiOffsetHigh);
 };
 
 

@@ -2,8 +2,6 @@
 #define __INSTRUCTION_CYCLES_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Malloc.h"
-#include "ProgramCounter.h"
-#include "StackPointer.h"
 #include "BusCycleArray.h"
 #include "AddressingMode.h"
 
@@ -19,11 +17,8 @@ protected:
     EAddressingMode     meAddressingMode;
 
 public:
-    void Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles);
-
-    static CProgramCounter*     PC(void);
-    static CStackPointer*       S(void);
-    static CAddressOffsetArray* Address(CAddressOffset* pcOffset, ...);
+    void    Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles);
+    void    Kill(void);
 
 protected:
     void ValidateDoneOperation(void);
