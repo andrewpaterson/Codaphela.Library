@@ -1,63 +1,90 @@
 #include "BaseLib/Logger.h"
+#include "BaseLib/PrimitiveTypes.h"
 #include "IntUtil.h"
 
 
-int ToShort(int value)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 ToByte(uint16 uiValue)
 {
-    return value & 0xffff;
+    return uiValue & 0xff;
 }
 
 
-int ToByte(int value)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 ToNybble(uint16 uiValue)
 {
-    return value & 0xff;
+    return uiValue & 0xf;
 }
 
 
-int ToNybble(int value)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 GetLowByte(uint16 uiValue)
 {
-    return value & 0xf;
+    return ToByte(uiValue);
 }
 
 
-int GetLowByte(int value)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 GetHighByte(uint16 uiValue)
 {
-    return ToByte(value);
+    return ToByte((uiValue & 0xFF00) >> 8);
 }
 
 
-int GetHighByte(int value)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 SetLowByte(uint16 uiVariable, uint16 uiData)
 {
-    return ToByte((value & 0xFF00) >> 8);
+    return (uiVariable & 0xFF00) | ToByte(uiData);
 }
 
 
-int SetLowByte(int variable, int data)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint16 SetHighByte(uint16 uiVariable, uint16 uiData)
 {
-    return (variable & 0xFF00) | ToByte(data);
+    return (uiVariable & 0xFF) | (ToByte(uiData) << 8);
 }
 
 
-int SetHighByte(int variable, int data)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Assert8Bit(uint16 uiValue, char* pszVariable)
 {
-    return (variable & 0xFF) | (ToByte(data) << 8);
-}
-
-
-void Assert8Bit(int value, char* variable)
-{
-    if ((value < 0) || (value > 0xFF))
+    if (uiValue > 0xFF)
     {
-        gcLogger.Error2(__METHOD__, " ", variable ,"value [0x", IntToString(value, 16), + "] must in the range 0...0xFF.", NULL);
+        gcLogger.Error2(__METHOD__, " ", pszVariable,"uiValue [0x", IntToString(uiValue, 16), + "] must in the range 0...0xFF.", NULL);
     }
 }
 
 
-void Assert16Bit(int value, char* variable)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void Assert16Bit(uint16 uiValue, char* pszVariable)
 {
-    if ((value < 0) || (value > 0xFFFF))
+    if (uiValue > 0xFFFF)
     {
-        gcLogger.Error2(__METHOD__, " ", variable, "value [0x", IntToString(value, 16), +"] must in the range 0...0xFFFF.", NULL);
+        gcLogger.Error2(__METHOD__, " ", pszVariable, "uiValue [0x", IntToString(uiValue, 16), +"] must in the range 0...0xFFFF.", NULL);
     }
 }
 

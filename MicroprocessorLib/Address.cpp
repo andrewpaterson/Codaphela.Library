@@ -6,10 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool AreOffsetsOnDifferentPages(int iOffsetFirst, int iOffsetSecond)
+bool AreOffsetsOnDifferentPages(uint16 iOffsetFirst, uint16 iOffsetSecond)
 {
-    int pageOfFirst = iOffsetFirst / PAGE_SIZE_BYTES;
-    int pageOfSecond = iOffsetSecond / PAGE_SIZE_BYTES;
+    uint16 pageOfFirst = iOffsetFirst / PAGE_SIZE_BYTES;
+    uint16 pageOfSecond = iOffsetSecond / PAGE_SIZE_BYTES;
     return pageOfFirst != pageOfSecond;
 }
 
@@ -38,19 +38,10 @@ void CAddress::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAddress::Init(int iBank, int iOffset)
+void CAddress::Init(uint8 uiBank, uint16 uiOffset)
 {
-    if (iBank > 0xFF)
-    {
-        gcLogger.Error("Call ToByte(iBank) before creating an Address.");
-    }
-    if (iOffset > 0xFFFF)
-    {
-        gcLogger.Error("Call ToShort(iOffset) before creating an Address.");
-    }
-
-    miBank = ToByte(iBank);
-    miOffset = ToShort(iOffset);
+    muiBank = ToByte(uiBank);
+    muiOffset = uiOffset;
 }
 
 
@@ -58,9 +49,9 @@ void CAddress::Init(int iBank, int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CAddress::GetBank()
+uint8 CAddress::GetBank(void)
 {
-    return miBank;
+    return muiBank;
 }
 
 
@@ -68,9 +59,9 @@ int CAddress::GetBank()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CAddress::GetOffset()
+uint16 CAddress::GetOffset(void)
 {
-    return miOffset;
+    return muiOffset;
 }
 
 
@@ -78,27 +69,11 @@ int CAddress::GetOffset()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CAddress* CAddress::Offset(int iOffset, bool bWrapOffset)
+CAddress* CAddress::Offset(int16 uiOffset)
 {
-    if (iOffset != 0)
+    if (uiOffset != 0)
     {
-        if (bWrapOffset)
-        {
-            miOffset = ToShort(miOffset + iOffset);
-        }
-        else
-        {
-            int newOffset = miOffset + iOffset;
-            if (newOffset >= BANK_SIZE_BYTES)
-            {
-                miBank = ToByte(miBank + 1);
-                miOffset = ToShort((newOffset - BANK_SIZE_BYTES));  //This subtraction is probably unnecessary.
-            }
-            else
-            {
-                miOffset = ToShort(miOffset + iOffset);
-            }
-        }
+        muiOffset = ToShort(muiOffset + uiOffset);
     }
     return this;
 }
@@ -110,9 +85,9 @@ CAddress* CAddress::Offset(int iOffset, bool bWrapOffset)
 //////////////////////////////////////////////////////////////////////////
 void CAddress::Print(CChars* psz)
 {
-    psz->Append(HexByteToString((uint8)miBank));
+    psz->Append(HexByteToString((uint8)muiBank));
     psz->Append(":");
-    psz->Append(HexShortToString((uint16)miOffset));
+    psz->Append(HexShortToString((uint16)muiOffset));
 }
 
 
@@ -120,9 +95,9 @@ void CAddress::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAddress::SetOffset(int iOffset)
+void CAddress::SetOffset(uint16 uiOffset)
 {
-    miOffset = iOffset;
+    muiOffset = uiOffset;
 }
 
 
@@ -130,9 +105,9 @@ void CAddress::SetOffset(int iOffset)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAddress::SetBank(int iBank)
+void CAddress::SetBank(uint8 uiBank)
 {
-    miBank = iBank;
+    muiBank = uiBank;
 }
 
 
@@ -140,9 +115,9 @@ void CAddress::SetBank(int iBank)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAddress::SetOffsetLow(int iOffsetLow)
+void CAddress::SetOffsetLow(uint8 uiOffsetLow)
 {
-    miOffset = SetLowByte(miOffset, iOffsetLow);
+    muiOffset = SetLowByte(muiOffset, uiOffsetLow);
 }
 
 
@@ -150,9 +125,9 @@ void CAddress::SetOffsetLow(int iOffsetLow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CAddress::SetOffsetHigh(int iOffsetHigh)
+void CAddress::SetOffsetHigh(uint8 uiOffsetHigh)
 {
-    miOffset = SetHighByte(miOffset, iOffsetHigh);
+    muiOffset = SetHighByte(muiOffset, uiOffsetHigh);
 }
 
 

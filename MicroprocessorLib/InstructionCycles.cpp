@@ -13,7 +13,7 @@ tNotLock gtRMW = false;
 //////////////////////////////////////////////////////////////////////////
 void CInstructionCycles::Init(EAddressingMode eAddressingMode, CBusCycleArray* papcCycles)
 {
-    CBusCycle* pcBusCycle;
+    CBusCycle*  pcBusCycle;
     size        uiNumCycles;
     size        i;
 
@@ -28,6 +28,16 @@ void CInstructionCycles::Init(EAddressingMode eAddressingMode, CBusCycleArray* p
     }
 
     Validate();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInstructionCycles::Kill(void)
+{
+    mapcCycles.Kill();
 }
 
 
@@ -68,57 +78,5 @@ void CInstructionCycles::ValidateDoneOperation(void)
     {
         LOG_ERROR("Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.");
     }
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CProgramCounter* CInstructionCycles::PC(void)
-{
-    return NewMalloc<CProgramCounter>();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CStackPointer* CInstructionCycles::S(void)
-{
-    return NewMalloc<CStackPointer>();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CAddressOffsetArray* CInstructionCycles::Address(CAddressOffset* pcOffset, ...)
-{
-    va_list		            vaMarker;
-    size		            iCount;
-    CAddressOffsetArray*    papcOffsets;
-
-    papcOffsets = NewMalloc<CAddressOffsetArray>();
-    papcOffsets->Init();
-
-    if (pcOffset)
-    {
-        iCount = 0;
-
-        va_start(vaMarker, pcOffset);
-        while (pcOffset)
-        {
-            papcOffsets->Add(pcOffset);
-            iCount++;
-            pcOffset = va_arg(vaMarker, CAddressOffset*);
-        }
-        va_end(vaMarker);
-    }
-
-
-    return papcOffsets;
 }
 

@@ -6,6 +6,7 @@
 class CAddressBank : public CAddressOffset
 {
 public:
+    void    Init(void);
     int32   GetOffset(CW65C816* pcCPU) override;
     uint8   GetBank(CW65C816* pcCPU);
     void    Print(CChars* psz) override;

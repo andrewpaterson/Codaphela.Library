@@ -31,6 +31,7 @@
     <ClCompile Include="AddressBank.cpp" />
     <ClCompile Include="AddressOffset.cpp" />
     <ClCompile Include="AddressOffsetArray.cpp" />
+    <ClCompile Include="BCDResult.cpp" />
     <ClCompile Include="BRKVector.cpp" />
     <ClCompile Include="BusCycle.cpp" />
     <ClCompile Include="BusCycleArray.cpp" />
@@ -118,6 +119,7 @@
     <ClInclude Include="AddressingMode.h" />
     <ClInclude Include="AddressOffset.h" />
     <ClInclude Include="AddressOffsetArray.h" />
+    <ClInclude Include="BCDResult.h" />
     <ClInclude Include="BRKVector.h" />
     <ClInclude Include="BusCycle.h" />
     <ClInclude Include="BusCycleArray.h" />
@@ -184,6 +186,7 @@
     <ClInclude Include="SignedDataLow.h" />
     <ClInclude Include="StackPointer.h" />
     <ClInclude Include="W65C816.h" />
+    <ClInclude Include="W65C816Func.h" />
     <ClInclude Include="W65C816State.h" />
     <ClInclude Include="WaitOperation.h" />
     <ClInclude Include="WidthFromRegister.h" />

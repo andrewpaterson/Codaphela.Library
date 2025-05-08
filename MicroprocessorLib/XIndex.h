@@ -6,6 +6,7 @@
 class CXIndex : public CAddressOffset
 {
 public:
+    void    Init(void);
     int32   GetOffset(CW65C816* pcCPU) override;
     void    Print(CChars* psz) override;
 };
