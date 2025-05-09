@@ -4,9 +4,6 @@
 #include "InstructionCycles.h"
 
 
-tNotLock gtRMW = false;
-
-
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -24,7 +21,7 @@ void CInstructionCycles::Init(EAddressingMode eAddressingMode, CBusCycleArray* p
     for (i = 0; i < uiNumCycles; i++)
     {
         pcBusCycle = mapcCycles.GetPtr(i);
-        pcBusCycle->SetCycle(i + 1);
+        pcBusCycle->SetCycle((int16)(i + 1));
     }
 
     Validate();
@@ -78,5 +75,39 @@ void CInstructionCycles::ValidateDoneOperation(void)
     {
         LOG_ERROR("Exactly [1] 8 bit and [1] 16 bit done  operation must be specified in an Instruction cycle.");
     }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+EAddressingMode CInstructionCycles::GetAddressingMode(void)
+{
+    return meAddressingMode;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CBusCycle* CInstructionCycles::GetBusCycle(int16 miIndex)
+{
+    if ((miIndex >= 0) && (miIndex < (int16)mapcCycles.NumElements()))
+    {
+        return mapcCycles.GetPtr(miIndex);
+    }
+    return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CInstructionCycles::Size(void)
+{
+    return mapcCycles.NumElements();
 }
 

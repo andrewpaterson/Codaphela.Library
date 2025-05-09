@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataOperation::Init(bool bValidProgramAddress, bool bValidDataAddress, bool bNotMemoryLock, bool bRead, bool bNotVectorPull)
+void CDataOperation::Init(bool bValidProgramAddress, bool bValidDataAddress, NotMemoryLock bNotMemoryLock, bool bRead, bool bNotVectorPull)
 {
     mbValidProgramAddress = bValidProgramAddress;
     mbValidDataAddress = bValidDataAddress;

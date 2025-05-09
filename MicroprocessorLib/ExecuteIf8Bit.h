@@ -12,9 +12,9 @@ protected:
 	EWidthFromRegister  meWidth;
 
 public:
-	void Init(CW65C816Func fFunction, EWidthFromRegister eWidth);
-	void Execute(CW65C816* pcCPU) override;
-	void Print(CChars* psz) override;
+	void	Init(CW65C816Func fFunction, EWidthFromRegister eWidth);
+	void	Execute(CW65C816* pcCPU) override;
+	void	Print(CChars* psz) override;
 };
 
 

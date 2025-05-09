@@ -560,5 +560,8 @@
     <ClInclude Include="InstructionCycleFactory.h">
       <Filter>Source\wdc\W65C816\Instruction</Filter>
     </ClInclude>
+    <ClInclude Include="NotMemoryLock.h">
+      <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

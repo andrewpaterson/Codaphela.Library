@@ -61,3 +61,4 @@ bool CReadOpCode::IsFetchOpCode(void)
 {
 	return true;
 }
+
