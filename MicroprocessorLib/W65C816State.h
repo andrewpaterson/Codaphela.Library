@@ -96,7 +96,6 @@ public:
 	void			SetBreakFlag(bool bBreakFlag);
 	void			SetOverflowFlag(bool bOverflowFlag);
 	void			Cycle(CW65C816* pcCPU);
-
 	void			ExecuteOperation(CW65C816* pcCPU);
 	CBusCycle*		GetBusCycle(void);
 	void			NextInstruction(void);
@@ -198,16 +197,16 @@ public:
 	void			PER(void);
 	void			PHD(void);
 	void			PLP(void);
-	void			BRK(void);
+	void			SoftBreak(void);
 	void			ORA(void);
 	void			TSB(void);
 	void			TRB(void);
-	void			IncrementA(void);
-	void			IncrementX(void);
-	void			IncrementY(void);
-	void			DecrementA(void);
-	void			DecrementY(void);
-	void			DecrementX(void);
+	void			INC_A(void);
+	void			INX(void);
+	void			INY(void);
+	void			DEC_A(void);
+	void			DEY(void);
+	void			DEX(void);
 	uint16			RotateLeft(uint16 uiValue);
 	uint16			RotateRight(uint16 uiValue);
 	uint16			ShiftRight(uint16 uiValue);

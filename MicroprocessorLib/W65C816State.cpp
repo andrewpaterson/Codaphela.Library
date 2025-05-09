@@ -1966,7 +1966,7 @@ void CW65C816State::PLP(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::BRK(void)
+void CW65C816State::SoftBreak(void)
 {
 	SetInterruptDisableFlag(true);
 	SetDecimalFlag(false);
@@ -2019,7 +2019,7 @@ void CW65C816State::TRB(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::IncrementA(void)
+void CW65C816State::INC_A(void)
 {
 	uint16 a;
 
@@ -2033,7 +2033,7 @@ void CW65C816State::IncrementA(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::IncrementX(void)
+void CW65C816State::INX(void)
 {
 	uint16 x;
 
@@ -2047,7 +2047,7 @@ void CW65C816State::IncrementX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::IncrementY(void)
+void CW65C816State::INY(void)
 {
 	uint16 y;
 
@@ -2061,7 +2061,7 @@ void CW65C816State::IncrementY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::DecrementA(void)
+void CW65C816State::DEC_A(void)
 {
 	uint16 a;
 
@@ -2070,7 +2070,12 @@ void CW65C816State::DecrementA(void)
 	SetSignAndZeroFromMemory(a);
 }
 
-void CW65C816State::DecrementY(void)
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816State::DEY(void)
 {
 	uint16 y;
 
@@ -2084,7 +2089,7 @@ void CW65C816State::DecrementY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::DecrementX(void)
+void CW65C816State::DEX(void)
 {
 	uint16 x;
 
