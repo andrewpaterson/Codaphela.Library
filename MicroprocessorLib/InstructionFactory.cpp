@@ -30,7 +30,12 @@ CInstructionFactory* CInstructionFactory::GetInstance(void)
 //////////////////////////////////////////////////////////////////////////
 void CInstructionFactory::Init(void)
 {
-
+	CreateInstructions();
+	mpcReset = CreateReset();
+	mpcIRQ = CreateIRQ();
+	mpcNMI = CreateNMI();
+	mpcAbort = CreateAbort();
+	fetchNext = CreateFetchNext();
 }
  
 
@@ -40,7 +45,7 @@ void CInstructionFactory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 CInstruction* CInstructionFactory::GetInstruction(uint16 uiOpcode)
 {
-
+	return mapcInstructions[uiOpcode];
 }
 
 

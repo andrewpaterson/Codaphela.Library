@@ -141,6 +141,7 @@
     <ClInclude Include="IncrementProgramCounter.h" />
     <ClInclude Include="IncrementStackPointer.h" />
     <ClInclude Include="Instruction.h" />
+    <ClInclude Include="InstructionCodes.h" />
     <ClInclude Include="InstructionCycleFactory.h" />
     <ClInclude Include="InstructionCycles.h" />
     <ClInclude Include="InstructionFactory.h" />
