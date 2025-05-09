@@ -54,3 +54,4 @@ size CDoneInstructionIf8Bit::GetDone8(void)
 {
     return 1;
 }
+

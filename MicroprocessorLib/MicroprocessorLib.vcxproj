@@ -160,6 +160,7 @@
     <ClInclude Include="NoteSix.h" />
     <ClInclude Include="NoteThree.h" />
     <ClInclude Include="NoteTwo.h" />
+    <ClInclude Include="NotMemoryLock.h" />
     <ClInclude Include="Operation.h" />
     <ClInclude Include="OperationArray.h" />
     <ClInclude Include="ProgramBank.h" />

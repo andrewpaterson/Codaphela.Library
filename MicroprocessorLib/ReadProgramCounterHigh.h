@@ -6,8 +6,9 @@
 class CReadProgramCounterHigh : public CDataOperation
 {
 public:
-	void Execute(CW65C816* pcCPU) override;
-	void Print(CChars* psz) override;
+	void	Init(NotMemoryLock bNotMemoryLock);
+	void	Execute(CW65C816* pcCPU) override;
+	void	Print(CChars* psz) override;
 };
 
 

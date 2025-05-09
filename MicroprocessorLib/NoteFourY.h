@@ -5,6 +5,14 @@
 
 class CNoteFourY : public COperation
 {
+protected:
+	bool mbNextWillRead;
+
+public:
+	void	Init(bool bNextWillRead);
+	void	Execute(CW65C816* pcCPU) override;
+	bool    MustExecute(CW65C816* pcCPU) override;
+	void	Print(CChars* psz) override;
 };
 
 
