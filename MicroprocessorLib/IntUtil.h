@@ -3,14 +3,14 @@
 #include "BaseLib/PrimitiveTypes.h"
 
 
-uint8 ToByte(int value);
-uint8 ToNybble(int value);
-uint8 GetLowByte(int value);
-uint8 GetHighByte(int value);
-uint16 SetLowByte(int variable, uint8 data);
-uint16 SetHighByte(int variable, uint8 data);
-void Assert8Bit(uint16 value, char* variable);
-void Assert16Bit(uint16 value, char* variable);
+uint8 ToByte(uint16 uiValue);
+uint8 ToNybble(uint16 uiValue);
+uint8 GetLowByte(uint16 uiValue);
+uint8 GetHighByte(uint16 uiValue);
+uint16 SetLowByte(uint16 uiVariable, uint8 uiData);
+uint16 SetHighByte(uint16 uiVariable, uint8 uiData);
+void Assert8Bit(uint16 uiValue, char* pszVariable);
+void Assert16Bit(uint16 uiValue, char* pszVariable);
 
 
 #endif // __INT_UTIL_H__

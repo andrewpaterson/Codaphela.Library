@@ -36,7 +36,7 @@ uint8 GetLowByte(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 GetHighByte(uint16 uiValue)
+uint8 GetHighByte(uint16 uiValue)
 {
     return (uint8)((uiValue & 0xFF00) >> 8);
 }
