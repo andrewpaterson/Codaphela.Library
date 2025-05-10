@@ -25,6 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "CPUFlags.h"
 
 
+class CInstruction;
 class CW65C816State;
 class CW65C816
 {
@@ -35,9 +36,8 @@ public:
 	void			Init(void);
 	void			Kill(void);
 
-	CW65C816State*	GetState(void);
+    CW65C816State*  GetState(void);
 
-	void            BIT(void);
     void            ASL(void);
     void            ASL_A(void);
     void            PER(void);
@@ -131,166 +131,27 @@ public:
     void            NMI(void);
     void            RES(void);
 
-    void GetAddressValueHex(CChars* psz)
-    {
-        uint16      ui16;
-        uint8       ui8;
-        CAddress*   pcAddress;
+    void            GetAddressValueHex(CChars* psz);
+    void            GetAccumulaTorValueHex(CChars* psz);
+    void            GetXValueHex(CChars* psz);
+    void            GetYValueHex(CChars* psz);
+    void            GetDataBankValueHex(CChars* psz);
+    void            GetStackValueHex(CChars* psz);
+    void            GetDirectPageValueHex(CChars* psz);
+    void            GetProgramCounterValueHex(CChars* psz);
+    void            GetDataValueHex(CChars* psz);
+    void            GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction);
+    void            GetOpcodeValueHex(CChars* psz);
+    void            GetOpcodeMnemonicString(CChars* psz);
+    void            GetStatusString(CChars* psz);
+    char*           GetType(void);
+    void            GetCycleString(CChars* psz);
 
-        pcAddress = mpcState->GetAddress();
-        ui16 = pcAddress->GetOffset();
-        ui8 = pcAddress->GetBank();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui8, 1);
-        psz->Append(":");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetAccumulaTorValueHex(CChars* psz)
-    {
-        uint16      ui16;
-
-        ui16 = mpcState->GetA();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetXValueHex(CChars* psz)
-    {
-        uint16      ui16;
-
-        ui16 = mpcState->GetX();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetYValueHex(CChars* psz)
-    {
-        uint16      ui16;
-
-        ui16 = mpcState->GetY();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetDataBankValueHex(CChars* psz)
-    {
-        uint8      ui8;
-
-        ui8 = mpcState->GetDataBank();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui8, 1);
-    }
-
-    void GetStackValueHex(CChars* psz)
-    {
-        uint16      ui16;
-
-        ui16 = mpcState->GetStackPointer();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetDirectPageValueHex(CChars* psz)
-    {
-        uint16      ui16;
-
-        ui16 = mpcState->GetDirectPage();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetProgramCounterValueHex(CChars* psz)
-    {
-        uint16      ui16;
-        uint8       ui8;
-        CAddress*   pcAddress;
-
-        pcAddress = mpcState->GetProgramCounter();
-        ui16 = pcAddress->GetOffset();
-        ui8 = pcAddress->GetBank();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui8, 1);
-        psz->Append(":");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetDataValueHex(CChars* psz)
-    {
-        uint16      ui16;
-
-        ui16 = mpcState->GetData16Bit();
-        psz->Append("0x");
-        psz->AppendHexHiLo(&ui16, 2);
-    }
-
-    void GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* opCode)
-    {
-        if (cycle != 0)
-        {
-            int code = opCode->GetCode();
-            if (code >= 0 && code <= 255)
-            {
-                return GetByteStringHex(code);
-            }
-            else
-            {
-                return "---";
-            }
-        }
-        else
-        {
-            return "###";
-        }
-    }
-
-    void GetOpcodeValueHex(CChars* psz)
-    {
-        return GetOpcodeValueHex(mpcState->GetCycle(), mpcState->GetOpCode());
-    }
-
-    void GetOpcodeMnemonicString(CChars* psz)
-    {
-        return mpcState->GetOpCode().GetName();
-    }
-
-private:
-    void GetStatusString(CChars* psz)
-    {
-        String z = mpcState->isZeroFlagSet() ? "Z:1 " : "Z:0 ";
-        String n = mpcState->isNegativeSet() ? "N:1 " : "N:0 ";
-        String d = mpcState->isDecimal() ? "D:1 " : "D:0 ";
-        String i = mpcState->isInterruptDisable() ? "I:1 " : "I:0 ";
-        String m = mpcState->isMemory8Bit() ? "M8  " : "M16 ";
-        String x = "";
-        bool emulation = mpcState->isEmulation();
-        if (!emulation)
-        {
-            x = mpcState->isIndex8Bit() ? "X8  " : "X16 ";
-        }
-        String c = mpcState->isCarrySet() ? "C1 " : "C0 ";
-        String e = emulation ? "E1 " : "E0 ";
-        String o = mpcState->isOverflowFlag() ? "O1 " : "O0 ";
-        String b = "";
-        if (emulation)
-        {
-            b = mpcState->isBreak() ? "B1 " : "B0 ";
-        }
-        return z + n + d + i + m + x + c + e + o + b;
-    }
-
-    char* GetType(void)
-    {
-        return "W65C816 Microprocessor";
-    }
-
-    void GetCycleString(CChars* psz)
-    {
-        psz->Append(mpcState->GetCycle());
-    }
-
-private:
-    void Branch(bool condition);
+protected:
+    void            Branch(bool condition);
+    void            To8BitHexString(CChars* psz, uint8 ui8);
+    void            To16BitHexString(CChars* psz, uint16 ui16);
+    void            ToAddressHexString(CChars* psz, CAddress* pcAddress);
 };
 
 

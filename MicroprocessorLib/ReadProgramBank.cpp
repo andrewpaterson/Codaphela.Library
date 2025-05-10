@@ -19,7 +19,8 @@ void CReadProgramBank::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadProgramBank::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetNewProgramCounterBank(cpu.getData());
+	//Is this the right Data?
+	pcCPU->GetState()->SetNewProgramCounterBank((uint8)pcCPU->GetState()->GetData());
 }
 
 

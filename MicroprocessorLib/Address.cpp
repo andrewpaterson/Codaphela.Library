@@ -40,7 +40,7 @@ void CAddress::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CAddress::Init(uint8 uiBank, uint16 uiOffset)
 {
-    muiBank = ToByte(uiBank);
+    muiBank = uiBank;
     muiOffset = uiOffset;
 }
 
@@ -73,7 +73,7 @@ CAddress* CAddress::Offset(int16 uiOffset)
 {
     if (uiOffset != 0)
     {
-        muiOffset = ToShort(muiOffset + uiOffset);
+        muiOffset = muiOffset + uiOffset;
     }
     return this;
 }

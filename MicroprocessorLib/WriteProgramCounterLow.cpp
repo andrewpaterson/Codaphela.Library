@@ -19,7 +19,7 @@ void CWriteProgramCounterLow::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteProgramCounterLow::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->writeProgramCounterLow();
+    pcCPU->GetState()->WriteProgramCounterLow();
 }
 
 

@@ -18,7 +18,7 @@ void CRestoreAbortValues::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CRestoreAbortValues::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->restoreAbortValues();
+	pcCPU->GetState()->RestoreAbortValues();
 }
 
 

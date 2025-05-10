@@ -9,7 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CWriteDataHigh::Init(NotMemoryLock bNotMemoryLock)
 {
-	CWriteDataHigh::Init(false, true, bNotMemoryLock, false, true);
+	CDataOperation::Init(false, true, bNotMemoryLock, false, true);
 }
 
 
@@ -19,7 +19,7 @@ void CWriteDataHigh::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CWriteDataHigh::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->writeDataHigh();
+    pcCPU->GetState()->WriteDataHigh();
 }
 
 

@@ -8,9 +8,9 @@
 #include "CPUFlags.h"
 #include "BusCycle.h"
 #include "IntUtil.h"
-#include "W65C816.h" // ?!?
 
 
+class CW65C816;
 class CW65C816State : public CUnknown
 {
 public:
@@ -58,7 +58,7 @@ public:
 	bool		mbIrq;
 	bool		mbAbort;
 	bool		mbNextInstruction;
-	uint8		muiData;
+	uint16		muiData;
 	bool		mbNmi;
 
 public:
@@ -193,7 +193,7 @@ public:
 	uint16			SetBit(uint16 uiValue, uint16 uiBitNumber);
 	bool			IsBusEnable(void);
 	uint16			GetData(void);
-	void			SetData(uint16 data);
+	void			SetData(uint16 uiData);
 	void			PER(void);
 	void			PHD(void);
 	void			PLP(void);

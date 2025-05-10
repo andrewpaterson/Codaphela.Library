@@ -12,12 +12,13 @@ class CInstruction : public CUnknown
 protected:
     uint16                  muiCode;
     CChars                  mszName;
-    EAddressingMode*        meAddressingMode;
+    EAddressingMode         meAddressingMode;
     CInstructionCycles*     mpcCycles;
     CChars                  mszDescription;
 
 public:
     void                    Init(uint16 uiCode, CInstructionCycles* pcCycles, char* szName, char* szDescription);
+    void                    Kill(void) override;
     uint16                  GetCode(void);
     char*                   GetName(void);
     CInstructionCycles*     GetCycles(void);

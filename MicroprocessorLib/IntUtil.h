@@ -1,15 +1,16 @@
 #ifndef __INT_UTIL_H__
 #define __INT_UTIL_H__
+#include "BaseLib/PrimitiveTypes.h"
 
 
-uint16 ToByte(int value);
-uint16 ToNybble(int value);
-uint16 GetLowByte(int value);
-uint16 GetHighByte(int value);
-uint16 SetLowByte(int variable, int data);
-uint16 SetHighByte(int variable, int data);
-void Assert8Bit(int value, char* variable);
-void Assert16Bit(int value, char* variable);
+uint8 ToByte(int value);
+uint8 ToNybble(int value);
+uint8 GetLowByte(int value);
+uint8 GetHighByte(int value);
+uint16 SetLowByte(int variable, uint8 data);
+uint16 SetHighByte(int variable, uint8 data);
+void Assert8Bit(uint16 value, char* variable);
+void Assert16Bit(uint16 value, char* variable);
 
 
 #endif // __INT_UTIL_H__

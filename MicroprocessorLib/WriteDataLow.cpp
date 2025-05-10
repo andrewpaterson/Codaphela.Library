@@ -19,7 +19,7 @@ void CWriteDataLow::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CWriteDataLow::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->writeDataLow();
+    pcCPU->GetState()->WriteDataLow();
 }
 
 

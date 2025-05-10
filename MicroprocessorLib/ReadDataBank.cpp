@@ -19,7 +19,8 @@ void CReadDataBank::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDataBank::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetDataBank(pcCPU->GetState()->GetData());
+	//Is this the right Data?
+    pcCPU->GetState()->SetDataBank((uint8)pcCPU->GetState()->GetData());
 }
 
 

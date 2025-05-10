@@ -19,7 +19,7 @@ void CWriteProgramBank::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteProgramBank::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->writeProgramBank();
+    pcCPU->GetState()->WriteProgramBank();
 }
 
 
