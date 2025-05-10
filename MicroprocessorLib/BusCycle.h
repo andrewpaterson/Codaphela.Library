@@ -19,6 +19,7 @@ protected:
 
 public:
     void                Init(CAddressOffsetArray* papcAddressOffsets, COperationArray* papcOperations);
+    void                Kill(void);
 
     void                GetAddress(CAddress* pcDest, CW65C816* pcCPU);
     CDataOperation*     GetDataOperation(void);

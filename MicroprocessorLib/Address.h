@@ -32,7 +32,7 @@ public:
 };
 
 
-bool AreOffsetsOnDifferentPages(int iOffsetFirst, int iOffsetSecond);
+bool AreOffsetsOnDifferentPages(uint16 iOffsetFirst, uint16 iOffsetSecond);
 
 
 #endif // __ADDRESS_H__

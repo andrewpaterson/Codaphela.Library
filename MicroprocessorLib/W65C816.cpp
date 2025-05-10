@@ -34,6 +34,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 void CW65C816::CW65C816::Init(void)
 {
 	mpcState = NewMalloc<CW65C816State>();
+    mpcState->Init();
 }
 
 

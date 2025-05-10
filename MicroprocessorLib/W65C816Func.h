@@ -1,8 +1,8 @@
 #ifndef __W65C816_FUNC_H__
 #define __W65C816_FUNC_H__
+#include "W65C816.h"
 
 
-class CW65C816;
 typedef void(CW65C816::*CW65C816Func)(void);
 
 
