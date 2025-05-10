@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/CalculatorParser.h"
 #include "BaseLib/PointerFunctions.h"
+#include "Instruction.h"
 #include "W65C816State.h"
 #include "W65C816.h"
 #include "W65C816Func.h"
@@ -987,5 +988,236 @@ void CW65C816::NMI(void)
 void CW65C816::RES(void)
 {
     mpcState->Reset();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::To8BitHexString(CChars* psz, uint8 ui8)
+{
+    psz->AppendHexHiLo(&ui8, 1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::To16BitHexString(CChars* psz, uint16 ui16)
+{
+    psz->AppendHexHiLo(&ui16, 2);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::ToAddressHexString(CChars* psz, CAddress* pcAddress)
+{
+    uint16      ui16;
+    uint8       ui8;
+
+    pcAddress = mpcState->GetAddress();
+    ui16 = pcAddress->GetOffset();
+    ui8 = pcAddress->GetBank();
+    psz->Append("0x");
+    To8BitHexString(psz, ui8);
+    psz->Append(":");
+    To16BitHexString(psz, ui16);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetAddressValueHex(CChars* psz)
+{
+    ToAddressHexString(psz, mpcState->GetAddress());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetAccumulaTorValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To16BitHexString(psz, mpcState->GetA());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetXValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To16BitHexString(psz, mpcState->GetX());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetYValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To16BitHexString(psz, mpcState->GetY());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetDataBankValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To8BitHexString(psz, mpcState->GetDataBank());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetStackValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To16BitHexString(psz, mpcState->GetStackPointer());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetDirectPageValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To16BitHexString(psz, mpcState->GetDirectPage());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetProgramCounterValueHex(CChars* psz)
+{
+    ToAddressHexString(psz, mpcState->GetProgramCounter());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetDataValueHex(CChars* psz)
+{
+    psz->Append("0x");
+    To16BitHexString(psz, mpcState->GetData16Bit());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction)
+{
+    uint16  uiCode;
+
+    if (cycle != 0)
+    {
+        uiCode = pcInstruction->GetCode();
+        if (uiCode <= 255)
+        {
+            psz->Append("0x");
+            To8BitHexString(psz, (uint8)uiCode);
+        }
+        else
+        {
+            psz->Append("---");
+        }
+    }
+    else
+    {
+        psz->Append("###");
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetOpcodeValueHex(CChars* psz)
+{
+    return GetOpcodeValueHex(psz, mpcState->GetCycle(), mpcState->GetOpCode());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetOpcodeMnemonicString(CChars* psz)
+{
+    CInstruction*   pcInstruction;
+
+    pcInstruction = mpcState->GetOpCode();
+    psz->Append(pcInstruction->GetName());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetStatusString(CChars* psz)
+{
+    mpcState->IsZeroFlagSet() ? psz->Append("Z:1 ") : psz->Append("Z:0 ");
+    mpcState->IsNegativeSet() ? psz->Append("N:1 ") : psz->Append("N:0 ");
+    mpcState->IsDecimal() ? psz->Append("D:1 ") : psz->Append("D:0 ");
+    mpcState->IsInterruptDisable() ? psz->Append("I:1 ") : psz->Append("I:0 ");
+    mpcState->IsMemory8Bit() ? psz->Append("M8  ") : psz->Append("M16 ");
+    bool emulation = mpcState->IsEmulation();
+    if (!emulation)
+    {
+        mpcState->IsIndex8Bit() ? psz->Append("X8  ") : psz->Append("X16 ");
+    }
+    mpcState->IsCarrySet() ? psz->Append("C1 ") : psz->Append("C0 ");
+    emulation ? psz->Append("E1 ") : psz->Append("E0 ");
+    mpcState->IsOverflowFlag() ? psz->Append("O1 ") : psz->Append("O0 ");
+    if (emulation)
+    {
+        mpcState->IsBreak() ? psz->Append("B1 ") : psz->Append("B0 ");
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CW65C816::GetType(void)
+{
+    return "W65C816 Microprocessor";
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetCycleString(CChars* psz)
+{
+    psz->Append(mpcState->GetCycle());
 }
 

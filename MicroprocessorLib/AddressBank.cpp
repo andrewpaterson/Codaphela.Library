@@ -28,7 +28,7 @@ int32 CAddressBank::GetOffset(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 uint8 CAddressBank::GetBank(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetAddress().GetBank();
+    return pcCPU->GetState()->GetAddress()->GetBank();
 }
 
 

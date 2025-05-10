@@ -19,7 +19,7 @@ void CWriteProcessorStatus::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteProcessorStatus::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->writeProcessorStatus();
+    pcCPU->GetState()->WriteProcessorStatus();
 }
 
 

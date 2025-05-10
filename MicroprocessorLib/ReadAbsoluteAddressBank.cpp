@@ -19,7 +19,8 @@ void CReadAbsoluteAddressBank::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadAbsoluteAddressBank::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->SetAddressBank(pcCPU->GetState()->GetData());
+	//Is this the right Data?
+	pcCPU->GetState()->SetAddressBank((uint8)pcCPU->GetState()->GetData());
 }
 
 

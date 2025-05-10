@@ -39,6 +39,7 @@ bool CNoteOne::MustExecute(CW65C816* pcCPU)
     else
     {
         LOG_ERROR("Unknown Width.");
+        return false;
     }
 }
 

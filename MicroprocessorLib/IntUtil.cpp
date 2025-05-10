@@ -1,5 +1,4 @@
 #include "BaseLib/Logger.h"
-#include "BaseLib/PrimitiveTypes.h"
 #include "IntUtil.h"
 
 
@@ -7,9 +6,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 ToByte(uint16 uiValue)
+uint8 ToByte(uint16 uiValue)
 {
-    return uiValue & 0xff;
+    return (uint8)uiValue;
 }
 
 
@@ -17,7 +16,7 @@ uint16 ToByte(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 ToNybble(uint16 uiValue)
+uint8 ToNybble(uint16 uiValue)
 {
     return uiValue & 0xf;
 }
@@ -27,9 +26,9 @@ uint16 ToNybble(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 GetLowByte(uint16 uiValue)
+uint8 GetLowByte(uint16 uiValue)
 {
-    return ToByte(uiValue);
+    return (uint8)uiValue;
 }
 
 
@@ -39,7 +38,7 @@ uint16 GetLowByte(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 uint16 GetHighByte(uint16 uiValue)
 {
-    return ToByte((uiValue & 0xFF00) >> 8);
+    return (uint8)((uiValue & 0xFF00) >> 8);
 }
 
 
@@ -47,9 +46,9 @@ uint16 GetHighByte(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 SetLowByte(uint16 uiVariable, uint16 uiData)
+uint16 SetLowByte(uint16 uiVariable, uint8 uiData)
 {
-    return (uiVariable & 0xFF00) | ToByte(uiData);
+    return (uiVariable & 0xFF00) | uiData;
 }
 
 
@@ -57,9 +56,9 @@ uint16 SetLowByte(uint16 uiVariable, uint16 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 SetHighByte(uint16 uiVariable, uint16 uiData)
+uint16 SetHighByte(uint16 uiVariable, uint8 uiData)
 {
-    return (uiVariable & 0xFF) | (ToByte(uiData) << 8);
+    return (uiVariable & 0xFF) | (uiData << 8);
 }
 
 

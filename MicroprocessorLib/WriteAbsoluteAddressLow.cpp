@@ -19,7 +19,7 @@ void CWriteAbsoluteAddressLow::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteAbsoluteAddressLow::Execute(CW65C816* pcCPU)
 {
-    cpu.setData(GetLowByte(pcCPU->GetState()->GetAddress().getOffset()));
+    pcCPU->GetState()->SetData(GetLowByte(pcCPU->GetState()->GetAddress()->GetOffset()));
 }
 
 
@@ -31,5 +31,4 @@ void CWriteAbsoluteAddressLow::Print(CChars* psz)
 {
 	psz->Append("Write(AAL)");
 }
-
 

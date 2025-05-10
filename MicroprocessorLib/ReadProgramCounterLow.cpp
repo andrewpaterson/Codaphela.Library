@@ -19,7 +19,8 @@ void CReadProgramCounterLow::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadProgramCounterLow::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetNewProgramCounterLow(cpu.getData());
+	//Is this the right Data?
+	pcCPU->GetState()->SetNewProgramCounterLow((uint8)pcCPU->GetState()->GetData());
 }
 
 

@@ -19,7 +19,8 @@ void CReadDirectOffset::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDirectOffset::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetDirectOffset(cpu.getData());
+	//Is this the right Data?
+	pcCPU->GetState()->SetDirectOffset((uint8)pcCPU->GetState()->GetData());
 }
 
 

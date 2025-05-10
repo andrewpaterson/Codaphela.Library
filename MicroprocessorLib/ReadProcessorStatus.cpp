@@ -19,7 +19,7 @@ void CReadProcessorStatus::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CReadProcessorStatus::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->readProcessorStatus();
+    pcCPU->GetState()->ReadProcessorStatus();
 }
 
 

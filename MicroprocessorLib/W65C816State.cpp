@@ -262,34 +262,6 @@ uint8 CW65C816State::GetProcessorRegisterValue(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::ResetPulled(void)
-{
-    mbAbort = false;
-    mbNmi = false;
-    muiOpCodeIndex = GetResetOpcode()->GetCode();
-    mbStopped = false;
-    miCycle = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CW65C816State::ResetPulled(void)
-{
-    mbAbort = false;
-    mbNmi = false;
-    muiOpCodeIndex = GetResetOpcode()->GetCode();
-    mbStopped = false;
-    miCycle = 0;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetZeroFlag(bool bZeroFlag)
 {
     mbZeroFlag = bZeroFlag;
@@ -541,7 +513,7 @@ void CW65C816State::NextInstruction(void)
 		muiOpCodeIndex = GetNmiOpcode()->GetCode();
 		mbNmi = false;
 	}
-	else if (abort)
+	else if (mbAbort)
 	{
 		muiOpCodeIndex = GetAbortOpcode()->GetCode();
 		mbAbort = false;
@@ -702,7 +674,7 @@ void CW65C816State::SetX(uint16 uiXIndex)
 	else
 	{
 		Assert8Bit(uiXIndex, "X Index register");
-		muiXIndex = SetLowByte(muiXIndex, uiXIndex);
+		muiXIndex = SetLowByte(muiXIndex, (uint8)uiXIndex);
 	}
 	SetSignAndZeroFromIndex(muiXIndex);
 }
@@ -722,7 +694,7 @@ void CW65C816State::SetY(uint16 uiYIndex)
 	else
 	{
 		Assert8Bit(uiYIndex, "Y Index register");
-		muiYIndex = SetLowByte(muiYIndex, uiYIndex);
+		muiYIndex = SetLowByte(muiYIndex, (uint8)uiYIndex);
 	}
 	SetSignAndZeroFromIndex(muiYIndex);
 }
@@ -742,7 +714,7 @@ void CW65C816State::SetA(uint16 uiAccumulator)
 	else
 	{
 		Assert8Bit(uiAccumulator, "Accumulator");
-		muiAccumulator = SetLowByte(muiAccumulator, uiAccumulator);
+		muiAccumulator = SetLowByte(muiAccumulator, (uint8)uiAccumulator);
 	}
 
 	SetSignAndZeroFromMemory(muiAccumulator);
@@ -775,7 +747,7 @@ void CW65C816State::SetData(uint16 uiData, bool bUpdateFlags)
 	else
 	{
 		Assert8Bit(uiData, "Data");
-		muiInternal16BitData = SetLowByte(muiInternal16BitData, uiData);
+		muiInternal16BitData = SetLowByte(muiInternal16BitData, (uint8)uiData);
 	}
 	if (bUpdateFlags)
 	{
@@ -798,7 +770,7 @@ void CW65C816State::SetIndexData(uint16 uiData, bool bUpdateFlags)
 	else
 	{
 		Assert8Bit(uiData, "Data");
-		muiInternal16BitData = SetLowByte(muiInternal16BitData, uiData);
+		muiInternal16BitData = SetLowByte(muiInternal16BitData, (uint8)uiData);
 	}
 	if (bUpdateFlags)
 	{
@@ -1366,7 +1338,7 @@ CAddress* CW65C816State::GetAddress(void)
 //////////////////////////////////////////////////////////////////////////
 CInstruction* CW65C816State::GetOpCode(void)
 {
-	CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
+	return CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
 }
 
 
@@ -1773,7 +1745,6 @@ CBCDResult CW65C816State::BCDAdd16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, boo
 	uint16		uiResult;
 	uint16		uiDigitOfFirst;
 	uint16		uiDigitOfSecond;
-	uint16		uiSumOfDigits;
 	CBCDResult	cResult;
 	CBCDResult	cBCD8BitResult;
 
@@ -1809,6 +1780,8 @@ CBCDResult CW65C816State::BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond,
 	uint16		uiDiffOfDigits;
 	CBCDResult	cResult;
 
+	uiShift = 0;
+	uiResult = 0;
 	while (uiShift < 8)
 	{
 		uiDigitOfFirst = uiBCDFirst & 0xF;
@@ -1842,10 +1815,11 @@ CBCDResult CW65C816State::BCDSubtract16Bit(uint16 uiBCDFirst, uint16 uiBCDSecond
 	uint16		uiResult;
 	uint16		uiDigitOfFirst;
 	uint16		uiDigitOfSecond;
-	uint16		uiDiffOfDigits;
 	CBCDResult	cResult;
 	CBCDResult	cBCD8BitResult;
 
+	uiShift = 0;
+	uiResult = 0;
 	while (uiShift < 16)
 	{
 		uiDigitOfFirst = (uiBCDFirst & 0xFF);
@@ -1925,9 +1899,9 @@ uint16 CW65C816State::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetData(uint16 data)
+void CW65C816State::SetData(uint16 uiData)
 {
-	muiData = data;
+	muiData = uiData;
 }
 
 
@@ -2357,7 +2331,7 @@ void CW65C816State::TXA(void)
 	}
 	else if (IsMemory16Bit() && IsIndex8Bit())
 	{
-		SetA(SetLowByte(GetA(), GetX()));
+		SetA(SetLowByte(GetA(), (uint8)GetX()));
 	}
 	else
 	{
@@ -2419,7 +2393,7 @@ void CW65C816State::TSX(void)
 	if (IsIndex8Bit())
 	{
 		uiStackPointerLower8Bits = GetLowByte(uiStackPointer);
-		SetX(SetLowByte(GetX(), uiStackPointerLower8Bits));
+		SetX(SetLowByte(GetX(), (uint8)uiStackPointerLower8Bits));
 	}
 	else
 	{
@@ -2440,7 +2414,7 @@ void CW65C816State::TYA(void)
 	}
 	else if (IsMemory16Bit() && IsIndex8Bit())
 	{
-		SetA(SetLowByte(GetA(), GetY()));
+		SetA(SetLowByte(GetA(), (uint8)GetY()));
 	}
 	else
 	{
@@ -2517,7 +2491,7 @@ void CW65C816State::REP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::TAY(void)
 {
-	uint16	uiLower8BitsOfA;
+	uint8	uiLower8BitsOfA;
 
 	if ((IsMemory8Bit() && IsIndex8Bit()) ||
 		(IsMemory16Bit() && IsIndex8Bit()))
@@ -2538,7 +2512,7 @@ void CW65C816State::TAY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::TAX(void)
 {
-	uint16	uiLower8BitsOfA;
+	uint8	uiLower8BitsOfA;
 
 	if ((IsMemory8Bit() && IsIndex8Bit()) ||
 		(IsMemory16Bit() && IsIndex8Bit()))
@@ -2788,7 +2762,7 @@ void CW65C816State::WriteProcessorStatus(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ReadProcessorStatus(void)
 {
-	SetProcessorRegisterValue(GetData());
+	SetProcessorRegisterValue((uint8)GetData());
 }
 
 

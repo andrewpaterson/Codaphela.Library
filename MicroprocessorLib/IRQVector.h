@@ -6,7 +6,8 @@
 class CIRQVector : public CInterruptVector
 {
 public:
-    uint16 GetAddress(CW65C816* pcCPU) override;
+    void    Init(void);
+    uint16  GetAddress(CW65C816* pcCPU) override;
 };
 
 

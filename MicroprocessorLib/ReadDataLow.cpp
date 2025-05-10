@@ -19,7 +19,8 @@ void CReadDataLow::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDataLow::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetDataLow(cpu.getData());
+	//Is this the right Data?
+	pcCPU->GetState()->SetDataLow((uint8)pcCPU->GetState()->GetData());
 }
 
 
