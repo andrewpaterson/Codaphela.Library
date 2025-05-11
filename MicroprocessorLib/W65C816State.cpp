@@ -52,6 +52,9 @@ void CW65C816State::Init(void)
     mcAddress.Init();
     mbNmi = false;
 
+	mbPreviousClockHigh = false;
+	mbPreviousClockLow = false;
+
     CreateAbortValues();
 }
 
@@ -100,6 +103,8 @@ void CW65C816State::Init(CW65C816State state)
     mbNextInstruction = state.mbNextInstruction;
     muiData = state.muiData;
     mbNmi = state.mbNmi;
+	mbPreviousClockHigh = state.mbPreviousClockHigh;
+	mbPreviousClockLow = state.mbPreviousClockLow;
 }
 
 
@@ -2145,7 +2150,7 @@ void CW65C816State::BIT(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::BIT_I(void)
+void CW65C816State::BIT_A(void)
 {
 	if (IsMemory16Bit())
 	{

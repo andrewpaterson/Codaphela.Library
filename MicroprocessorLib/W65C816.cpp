@@ -31,10 +31,12 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::CW65C816::Init(void)
+void CW65C816::CW65C816::Init(CW65C816Pins* pcPins)
 {
 	mpcState = NewMalloc<CW65C816State>();
     mpcState->Init();
+
+    mpcPins = pcPins;
 }
 
 
@@ -295,9 +297,9 @@ void CW65C816::BIT(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::BIT_I(void)
+void CW65C816::BIT_A(void)
 {
-    mpcState->BIT_I();
+    mpcState->BIT_A();
 }
 
 
@@ -1220,5 +1222,132 @@ char* CW65C816::GetType(void)
 void CW65C816::GetCycleString(CChars* psz)
 {
     psz->Append(mpcState->GetCycle());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::DisableBuses(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CW65C816Pins* CW65C816::GetPins(void)
+{
+    return mpcPins;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::InputTransition(CTimeline* pcTimeline)
+{
+    CW65C816Pins* pcPins = GetPins();
+    bool reset = pcPins->ReadRES(pcTimeline).IsLow();
+    if (reset)
+    {
+        mpcState->ResetPulled();
+    }
+
+    STraceValue clockValue = pcPins->ReadPhi2(pcTimeline);
+    bool nmi = pcPins->ReadNMI(pcTimeline).IsLow();
+    bool irq = pcPins->ReadIRQ(pcTimeline).IsLow();
+    bool abort = pcPins->ReadAbort(pcTimeline).IsLow();
+
+    mpcState->mbBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
+    if (!mpcState->IsBusEnable())
+    {
+        DisableBuses();
+    }
+
+    if (clockValue.IsHigh() || clockValue.IsLow())
+    {
+        bool fallingEdge = clockValue.IsHigh() && mpcState->mbPreviousClockLow;
+        bool risingEdge = clockValue.IsLow() && mpcState->mbPreviousClockHigh;
+
+        mpcState->mbPreviousClockLow = clockValue.IsLow();
+        mpcState->mbPreviousClockHigh = clockValue.IsHigh();
+
+        if (!mpcState->IsStopped())
+        {
+            if (fallingEdge)
+            {
+                ExecuteLowHalf(pcTimeline);
+            }
+
+            if (risingEdge)
+            {
+                ExecuteHighHalf(pcTimeline);
+            }
+        }
+    }
+
+    mpcState->mbNmi = !nmi;
+    mpcState->mbIrq = !irq;
+    mpcState->mbAbort = !abort;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::ExecuteLowHalf(CTimeline* pcTimeline)
+{
+    CW65C816Pins* pcPins = GetPins();
+    CDataOperation* pcDataOperation = mpcState->GetDataOperation();
+    CBusCycle* pcBusCycle = mpcState->GetBusCycle();
+    bool bRead = pcDataOperation->IsRead();
+    CAddress cAddress;
+
+    pcBusCycle->GetAddress(&cAddress, this);
+
+    pcPins->WriteRWB(pcTimeline, bRead);
+    pcPins->WriteMX(pcTimeline, mpcState->IsIndex8Bit());
+    pcPins->WriteVDA(pcTimeline, pcDataOperation->IsValidDataAddress());
+    pcPins->WriteVPA(pcTimeline, pcDataOperation->IsValidProgramAddress());
+    pcPins->WriteMLB(pcTimeline, pcDataOperation->IsNotMemoryLock());
+    pcPins->WriteVPB(pcTimeline, pcDataOperation->IsNotVectorPull());
+    pcPins->WriteE(pcTimeline, mpcState->IsEmulation());
+    //pcPins->writeRdy(pcTimeline, pcDataOperation->isReady());
+    pcPins->WriteAddress(pcTimeline, cAddress.GetOffset());
+    pcPins->WriteData(pcTimeline, cAddress.GetBank());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::ExecuteHighHalf(CTimeline* pcTimeline)
+{
+    CW65C816Pins* pcPins = GetPins();
+
+    CDataOperation* pcDataOperation = mpcState->GetDataOperation();
+    bool read = pcDataOperation->IsRead();
+
+    if (read)
+    {
+        mpcState->muiData = pcPins->ReadData(pcTimeline);
+    }
+
+    pcPins->WriteMX(pcTimeline, mpcState->IsMemory8Bit());
+
+    mpcState->ExecuteOperation(this);
+
+    if (!read)
+    {
+        pcPins->WriteData(pcTimeline, (uint8)mpcState->GetData());
+    }
+
+    mpcState->Cycle(this);
 }
 

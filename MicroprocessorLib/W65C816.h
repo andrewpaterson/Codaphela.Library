@@ -22,7 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __W65C816_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "Address.h"
+#include "TraceValue.h"
 #include "CPUFlags.h"
+#include "Timeline.h"
+#include "W65C816Pins.h"
 
 
 class CInstruction;
@@ -31,9 +34,10 @@ class CW65C816
 {
 protected:
 	CW65C816State*	mpcState;
+    CW65C816Pins*   mpcPins;
 
 public:
-	void			Init(void);
+	void			Init(CW65C816Pins* pcPins);
 	void			Kill(void);
 
     CW65C816State*  GetState(void);
@@ -56,14 +60,16 @@ public:
     void            BPL(void);
     void            BMI(void);
     void            CLC(void);
+    void            INC(void);
     void            INC_A(void);
     void            TCS(void);
     void            AND(void);
     void            BIT(void);
-    void            BIT_I(void);
+    void            BIT_A(void);
     void            ROL(void);
     void            ROL_A(void);
     void            SEC(void);
+    void            DEC(void);
     void            DEC_A(void);
     void            TSC(void);
     void            EOR(void);
@@ -71,8 +77,8 @@ public:
     void            MVP(void);
     void            MVN(void);
     void            LSR(void);
-    void            PHA(void);
     void            LSR_A(void);
+    void            PHA(void);
     void            BVC(void);
     void            CLI(void);
     void            PHY(void);
@@ -110,7 +116,6 @@ public:
     void            TAX(void);
     void            PHX(void);
     void            STP(void);
-    void            DEC(void);
     void            INY(void);
     void            DEX(void);
     void            BNE(void);
@@ -118,7 +123,6 @@ public:
     void            CPX(void);
     void            SBC(void);
     void            SEP(void);
-    void            INC(void);
     void            INX(void);
     void            NOP(void);
     void            XBA(void);
@@ -126,6 +130,7 @@ public:
     void            SED(void);
     void            PLX(void);
     void            XCE(void);
+
     void            ABORT(void);
     void            IRQ(void);
     void            NMI(void);
@@ -147,11 +152,18 @@ public:
     char*           GetType(void);
     void            GetCycleString(CChars* psz);
 
+    void            InputTransition(CTimeline* pcTimeline);// override;
+
 protected:
     void            Branch(bool condition);
     void            To8BitHexString(CChars* psz, uint8 ui8);
     void            To16BitHexString(CChars* psz, uint16 ui16);
     void            ToAddressHexString(CChars* psz, CAddress* pcAddress);
+    void            DisableBuses(void);
+    CW65C816Pins*   GetPins(void);// override;
+
+    void            ExecuteLowHalf(CTimeline* pcTimeline);
+    void            ExecuteHighHalf(CTimeline* pcTimeline);
 };
 
 

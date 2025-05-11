@@ -28,6 +28,12 @@
     <Filter Include="Source\wdc\W65C816\Instruction\Operation\Note">
       <UniqueIdentifier>{7368ed0a-40af-4a4a-b4ab-7af760bee65d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Common">
+      <UniqueIdentifier>{83973da1-d22a-48bc-be9b-dfb19847226c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Common\Wire">
+      <UniqueIdentifier>{ebe1a1e3-8032-456f-a077-952564ef7afd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="W65C816.cpp">
@@ -287,6 +293,15 @@
     </ClCompile>
     <ClCompile Include="InterruptVector.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Interrupt</Filter>
+    </ClCompile>
+    <ClCompile Include="TraceValue.cpp">
+      <Filter>Source\Common\Wire</Filter>
+    </ClCompile>
+    <ClCompile Include="Timeline.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="W65C816Pins.cpp">
+      <Filter>Source\wdc\W65C816</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -568,6 +583,15 @@
     </ClInclude>
     <ClInclude Include="InstructionCodes.h">
       <Filter>Source\wdc\W65C816\Instruction</Filter>
+    </ClInclude>
+    <ClInclude Include="TraceValue.h">
+      <Filter>Source\Common\Wire</Filter>
+    </ClInclude>
+    <ClInclude Include="Timeline.h">
+      <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="W65C816Pins.h">
+      <Filter>Source\wdc\W65C816</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
