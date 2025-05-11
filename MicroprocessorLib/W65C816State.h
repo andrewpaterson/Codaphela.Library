@@ -60,6 +60,8 @@ public:
 	bool		mbNextInstruction;
 	uint16		muiData;
 	bool		mbNmi;
+	bool		mbPreviousClockLow;
+	bool		mbPreviousClockHigh;
 
 public:
 	void			Init(void);
@@ -211,7 +213,7 @@ public:
 	uint16			RotateRight(uint16 uiValue);
 	uint16			ShiftRight(uint16 uiValue);
 	void			BIT(void);
-	void			BIT_I(void);
+	void			BIT_A(void);
 	void			ROR(void);
 	void			ROR_A(void);
 	void			ROL(void);

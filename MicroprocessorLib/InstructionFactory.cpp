@@ -282,7 +282,7 @@ void CInstructionFactory::CreateInstructions(void)
     mapcInstructions[134] = CreateSTX(STX_DirectPage, CreateDirectWriteCycles(&CW65C816::STX, WFR_XY));
     mapcInstructions[135] = CreateSTA(STA_DirectPageIndirectLong, CreateDirectIndirectLongWriteCycles(&CW65C816::STA));
     mapcInstructions[136] = CreateDEY(DEY_Implied, CreateImpliedCycles(&CW65C816::DEY));
-    mapcInstructions[137] = CreateBIT(BIT_Immediate, CreateImmediateCycles(&CW65C816::BIT_I, WFR_M));
+    mapcInstructions[137] = CreateBIT(BIT_Immediate, CreateImmediateCycles(&CW65C816::BIT_A, WFR_M));
     mapcInstructions[138] = CreateTXA(TXA_Implied, CreateImpliedCycles(&CW65C816::TXA));
     mapcInstructions[139] = CreatePHB(PHB_StackImplied, CreateStackPHBCycles(&CW65C816::PHB));
     mapcInstructions[140] = CreateSTY(STY_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STY, WFR_XY));
