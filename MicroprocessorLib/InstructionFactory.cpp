@@ -8,7 +8,6 @@
 
 
 CInstructionFactory	gcInstructionFactory;
-bool				gbInstructionFactoryInitialised = false;
 
 
 #define INSTRUCTION(uiCode, cycles, name, description) \
@@ -26,16 +25,7 @@ bool				gbInstructionFactoryInitialised = false;
 //////////////////////////////////////////////////////////////////////////
 CInstructionFactory* CInstructionFactory::GetInstance(void)
 {
-	if (gbInstructionFactoryInitialised)
-	{
-		return &gcInstructionFactory;
-	}
-	else
-	{
-		gcInstructionFactory.Init();
-		gbInstructionFactoryInitialised = true;
-		return &gcInstructionFactory;
-	}
+	return &gcInstructionFactory;
 }
 
 
@@ -78,8 +68,6 @@ void CInstructionFactory::Kill(void)
     SafeKill(mpcNMI);
     SafeKill(mpcAbort);
     SafeKill(mpcFetchNext);
-
-    gbInstructionFactoryInitialised = false;
 }
  
 
