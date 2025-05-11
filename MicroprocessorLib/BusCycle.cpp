@@ -12,7 +12,11 @@ void CBusCycle::Init(CAddressOffsetArray* papcAddressOffsets, COperationArray* p
     COperation*     pcOperation;
 
     memcpy(&mapcAddressOffsets, papcAddressOffsets, sizeof(CAddressOffsetArray));
+    free(papcAddressOffsets);
+
     memcpy(&mapcOperations, papcOperations, sizeof(COperationArray));
+    free(papcOperations);
+
     miCycle = -1;
 
     Validate();
@@ -39,7 +43,6 @@ void CBusCycle::Kill(void)
 
     mapcAddressOffsets.Kill();
     mapcOperations.Kill();
-
 }
 
 

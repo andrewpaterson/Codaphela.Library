@@ -7,7 +7,9 @@ class CDoneInstruction : public COperation
 {
 public:
 	void	Init(void);
+
 	void	Execute(CW65C816* pcCPU) override;
+
 	void	Print(CChars* psz) override;
 	size	GetDone8(void) override;
 	size	GetDone16(void) override;

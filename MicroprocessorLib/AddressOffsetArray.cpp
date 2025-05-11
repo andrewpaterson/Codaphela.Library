@@ -16,7 +16,7 @@ void CAddressOffsetArray::Kill(void)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcAddressOffset = __CAddressOffsetArray::GetPtr(i);
-		pcAddressOffset->Kill();
+		SafeKill(pcAddressOffset);
 	}
 
 	__CAddressOffsetArray::Kill();

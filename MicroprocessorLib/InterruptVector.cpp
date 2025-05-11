@@ -1,15 +1,13 @@
-#include "W65C816.h"
-#include "W65C816State.h"
-#include "IRQVector.h"
+#include "InterruptVector.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIRQVector::Init(void)
+void CInterruptVector::Init(void)
 {
-    CInterruptVector::Init();
+	CRefered::Init();
 }
 
 
@@ -17,15 +15,7 @@ void CIRQVector::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CIRQVector::GetAddress(CW65C816* pcCPU)
+void CInterruptVector::Kill(void)
 {
-    if (pcCPU->GetState()->IsEmulation())
-    {
-        return 0xfffe;
-    }
-    else
-    {
-        return 0xffee;
-    }
 }
 

@@ -11,7 +11,9 @@ protected:
 
 public:
     void    Init(EWidthFromRegister eWidth);
+
 	void    Execute(CW65C816* pcCPU) override;
+
 	void    Print(CChars* psz) override;
     size	GetDone8(void) override;
 };

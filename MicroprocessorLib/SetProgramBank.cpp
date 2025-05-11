@@ -9,7 +9,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CSetProgramBank::Init(uint8 uiBank)
 {
-    muiBank = uiBank;
+	COperation::Init();
+	
+	muiBank = uiBank;
 }
 
 

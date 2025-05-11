@@ -15,6 +15,8 @@ void CInstructionCycles::Init(EAddressingMode eAddressingMode, CBusCycleArray* p
     size        i;
 
     memcpy(&mapcCycles, papcCycles, sizeof(CBusCycleArray));
+    free(papcCycles);
+
     meAddressingMode = eAddressingMode;
 
     uiNumCycles = mapcCycles.NumElements();

@@ -7,7 +7,9 @@ class CRestoreAbortValues : public COperation
 {
 public:
 	void	Init(void);
+
 	void	Execute(CW65C816* pcCPU) override;
+
 	void	Print(CChars* psz) override;
 };
 

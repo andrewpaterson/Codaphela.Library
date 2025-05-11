@@ -285,6 +285,9 @@
     <ClCompile Include="InstructionCycleFactory.cpp">
       <Filter>Source\wdc\W65C816\Instruction</Filter>
     </ClCompile>
+    <ClCompile Include="InterruptVector.cpp">
+      <Filter>Source\wdc\W65C816\Instruction\Interrupt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">

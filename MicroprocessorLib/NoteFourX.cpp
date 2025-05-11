@@ -9,6 +9,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CNoteFourX::Init(bool bNextWillRead)
 {
+	COperation::Init();
+
 	mbNextWillRead = bNextWillRead;
 }
 

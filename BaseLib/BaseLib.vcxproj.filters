@@ -1692,6 +1692,9 @@
     <ClInclude Include="Printable.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
+    <ClInclude Include="Refered.h">
+      <Filter>Source\Constructor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2698,6 +2701,9 @@
     </ClCompile>
     <ClCompile Include="HexString.cpp">
       <Filter>Source\Error\Hex</Filter>
+    </ClCompile>
+    <ClCompile Include="Refered.cpp">
+      <Filter>Source\Constructor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

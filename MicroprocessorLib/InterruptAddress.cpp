@@ -1,3 +1,4 @@
+#include "BaseLib/Refered.h"
 #include "W65C816.h"
 #include "InterruptAddress.h"
 
@@ -9,6 +10,18 @@
 void CInterruptAddress::Init(CInterruptVector* pcInterruptVector)
 {
     mpcInterruptVector = pcInterruptVector;
+    mpcInterruptVector->ReferenceAdded();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CInterruptAddress::Kill(void)
+{
+    mpcInterruptVector->ReferenceFreed();
+    TryKill(mpcInterruptVector);
 }
 
 

@@ -6,6 +6,8 @@ class CW65C816;
 class COperation : public CBusCycleParameter
 {
 public:
+            void    Init(void);
+
     virtual void    Execute(CW65C816* pcCPU) =0;
 
             bool    IsOperation(void) override;

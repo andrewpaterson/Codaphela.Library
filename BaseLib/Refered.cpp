@@ -1,14 +1,14 @@
-#include "W65C816.h"
-#include "W65C816State.h"
-#include "DataBank.h"
+#include "Logger.h"
+#include "Refered.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataBank::Init(void)
+void CRefered::Init(void)
 {
+	miReferenceCount = 0;
 }
 
 
@@ -16,8 +16,9 @@ void CDataBank::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataBank::Kill(void)
+bool CRefered::CanKill(void)
 {
+	return miReferenceCount <= 0;
 }
 
 
@@ -25,9 +26,9 @@ void CDataBank::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int32 CDataBank::GetOffset(CW65C816* pcCPU)
+void CRefered::ReferenceAdded(void)
 {
-    return 0;
+	miReferenceCount++;
 }
 
 
@@ -35,18 +36,12 @@ int32 CDataBank::GetOffset(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CDataBank::GetBank(CW65C816* pcCPU)
+void CRefered::ReferenceFreed(void)
 {
-    return pcCPU->GetState()->GetDataBank();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CDataBank::Print(CChars* psz)
-{
-    psz->Append("DBR,");
+	miReferenceCount--;
+	if (miReferenceCount < 0)
+	{
+		LOG_ERROR("Refered reference count may not be < 0");
+	}
 }
 

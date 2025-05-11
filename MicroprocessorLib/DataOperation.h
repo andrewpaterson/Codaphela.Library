@@ -16,6 +16,7 @@ protected:
 
 public:
             void Init(bool bValidProgramAddress, bool bValidDataAddress, NotMemoryLock bNotMemoryLock, bool bRead, bool bNotVectorPull);
+
             bool IsData(void) override;
             bool IsRead(void);
             bool IsValidProgramAddress(void);
