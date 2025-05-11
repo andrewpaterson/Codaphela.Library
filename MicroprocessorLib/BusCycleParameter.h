@@ -3,11 +3,12 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/Killable.h"
 #include "BaseLib/Printable.h"
+#include "BaseLib/Refered.h"
 #include "StandardLib/Unknown.h"
 
 
 class CW65C816;
-class CBusCycleParameter : public CUnknown
+class CBusCycleParameter : public CUnknown,  public CRefered
 {
 public:
 	virtual bool IsAddress(void) =0;

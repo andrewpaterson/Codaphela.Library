@@ -10,6 +10,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CExecuteIf8Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth)
 {
+    COperation::Init();
+
 	mfFunction = fFunction;
 	meWidth = eWidth;
 }

@@ -21,6 +21,7 @@ public:
     void        Init(CAddress* pcAddress);
     void        Init(void);
     void        Init(uint8 uiBank, uint16 uiOffset);
+
     uint8       GetBank(void);
     uint16      GetOffset(void);
     CAddress*   Offset(int16 iOffset);

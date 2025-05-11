@@ -7,6 +7,8 @@ class CDirectPage : public CAddressOffset
 {
 public:
     void    Init(void);
+    void    Kill(void) override;
+
     int32   GetOffset(CW65C816* pcCPU);
     void    Print(CChars* psz);
 };

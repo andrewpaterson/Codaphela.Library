@@ -9,6 +9,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::Init(void)
 {
+	CInstruction*	pcReset;
+
     mcProgramCounter.Init();
     muiStackPointer = 0x01FF;
     muiAccumulator = 0;
@@ -34,7 +36,16 @@ void CW65C816State::Init(void)
 
     muiData = 0;
     miCycle = 0;
-    muiOpCodeIndex = GetResetOpcode()->GetCode();
+
+	pcReset = GetResetOpcode();
+	if (pcReset)
+	{
+		muiOpCodeIndex = pcReset->GetCode();
+	}
+	else
+	{
+		muiOpCodeIndex = 0xffff;
+	}
     muiInternal16BitData = 0;
     muiDirectOffset = 0;
     mcNewProgramCounter.Init();

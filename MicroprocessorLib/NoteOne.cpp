@@ -9,6 +9,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CNoteOne::Init(EWidthFromRegister eWidth)
 {
+    COperation::Init();
+
     meWidth = eWidth;
 }
 

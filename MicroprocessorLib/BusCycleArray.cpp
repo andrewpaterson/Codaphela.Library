@@ -16,7 +16,7 @@ void CBusCycleArray::Kill(void)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcBusCycle = __CBusCycleArray::GetPtr(i);
-		pcBusCycle->Kill();
+		SafeKill(pcBusCycle);
 	}
 
 	__CBusCycleArray::Kill();

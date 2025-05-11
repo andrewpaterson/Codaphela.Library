@@ -7,6 +7,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CDataOperation::Init(bool bValidProgramAddress, bool bValidDataAddress, NotMemoryLock bNotMemoryLock, bool bRead, bool bNotVectorPull)
 {
+    COperation::Init();
+
     mbValidProgramAddress = bValidProgramAddress;
     mbValidDataAddress = bValidDataAddress;
     mbNotMemoryLock = bNotMemoryLock;

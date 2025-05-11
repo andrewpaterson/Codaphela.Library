@@ -22,7 +22,7 @@ void CInstruction::Init(uint16 uiCode, CInstructionCycles* pcCycles, char* szNam
 void CInstruction::Kill(void)
 {
     mpcCycles->Kill();
-    mpcCycles = NULL;
+    SafeKill(mpcCycles);
 
     mszName.Kill();
     mszDescription.Kill();

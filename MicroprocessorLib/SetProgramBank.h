@@ -7,9 +7,12 @@ class CSetProgramBank : public COperation
 {
 protected:
 	uint8	muiBank;
+
 public:
 	void	Init(uint8 uiBank);
+
 	void	Execute(CW65C816* pcCPU) override;
+
 	void	Print(CChars* psz) override;
 };
 

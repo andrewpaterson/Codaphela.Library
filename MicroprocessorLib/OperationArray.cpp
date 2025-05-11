@@ -16,7 +16,7 @@ void COperationArray::Kill(void)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcOperation = __COperationArray::GetPtr(i);
-		pcOperation->Kill();
+		SafeKill(pcOperation);
 	}
 
 	__COperationArray::Kill();

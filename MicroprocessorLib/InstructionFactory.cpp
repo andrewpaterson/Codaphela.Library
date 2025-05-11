@@ -45,6 +45,8 @@ CInstructionFactory* CInstructionFactory::GetInstance(void)
 //////////////////////////////////////////////////////////////////////////
 void CInstructionFactory::Init(void)
 {
+    memset(this, 0, sizeof(CInstructionFactory));
+
 	CreateInstructions();
     ValidateOpCodes();
 
@@ -68,14 +70,16 @@ void CInstructionFactory::Kill(void)
     for (i = 0; i <= 255; i++)
     {
         pcInstruction = mapcInstructions[i];
-        pcInstruction->Kill();
+        SafeKill(pcInstruction);
     }
 
-    mpcReset->Kill();
-    mpcIRQ->Kill();
-    mpcNMI->Kill();
-    mpcAbort->Kill();
-    mpcFetchNext->Kill();
+    SafeKill(mpcReset);
+    SafeKill(mpcIRQ);
+    SafeKill(mpcNMI);
+    SafeKill(mpcAbort);
+    SafeKill(mpcFetchNext);
+
+    gbInstructionFactoryInitialised = false;
 }
  
 
@@ -145,9 +149,17 @@ CInstruction* CInstructionFactory::GetFetchNext(void)
 //////////////////////////////////////////////////////////////////////////
 void CInstructionFactory::CreateInstructions(void)
 {
-    mapcInstructions[0] = CreateBRK(BRK_Interrupt, CreateStackSoftwareInterruptCycles(new CBRKVector(), &CW65C816::BRK));
+    CBRKVector* pcBRKVector;
+    CCOPVector* pcCOPVector;
+
+    pcBRKVector = NewMalloc<CBRKVector>();
+    pcBRKVector->Init();
+    pcCOPVector = NewMalloc<CCOPVector>();
+    pcCOPVector->Init();
+
+    mapcInstructions[0] = CreateBRK(BRK_Interrupt, CreateStackSoftwareInterruptCycles(pcBRKVector, &CW65C816::BRK));
     mapcInstructions[1] = CreateORA(ORA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::ORA));
-    mapcInstructions[2] = CreateCOP(COP_Interrupt, CreateStackSoftwareInterruptCycles(new CCOPVector(), &CW65C816::COP));
+    mapcInstructions[2] = CreateCOP(COP_Interrupt, CreateStackSoftwareInterruptCycles(pcCOPVector, &CW65C816::COP));
     mapcInstructions[3] = CreateORA(ORA_StackRelative, CreateStackRelativeCycles(&CW65C816::ORA));
     mapcInstructions[4] = CreateTSB(TSB_DirectPage, CreateDirectRMWCycles(&CW65C816::TSB));
     mapcInstructions[5] = CreateORA(ORA_DirectPage, CreateDirectCycles(&CW65C816::ORA, WFR_M));

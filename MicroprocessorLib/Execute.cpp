@@ -8,6 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CExecute::Init(CW65C816Func fFunction)
 {
+	COperation::Init();
+
 	mfFunction = fFunction;
 }
 

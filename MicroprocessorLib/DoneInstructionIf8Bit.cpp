@@ -9,6 +9,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CDoneInstructionIf8Bit::Init(EWidthFromRegister eWidth)
 {
+    COperation::Init();
+
     meWidth = eWidth;
 }
 

@@ -7,7 +7,9 @@ class CReadAbsoluteAddressHigh : public CDataOperation
 {
 public:
 	void	Init(NotMemoryLock bNotMemoryLock, bool bnotVectorPull);
+
 	void	Execute(CW65C816* pcCPU) override;
+
 	void	Print(CChars* psz) override;
 };
 

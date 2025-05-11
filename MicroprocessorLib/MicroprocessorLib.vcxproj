@@ -56,6 +56,7 @@
     <ClCompile Include="InternalFirst.cpp" />
     <ClCompile Include="InternalOperation.cpp" />
     <ClCompile Include="InterruptAddress.cpp" />
+    <ClCompile Include="InterruptVector.cpp" />
     <ClCompile Include="IntUtil.cpp" />
     <ClCompile Include="IRQVector.cpp" />
     <ClCompile Include="NewProgramBank.cpp" />

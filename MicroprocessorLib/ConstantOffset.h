@@ -11,6 +11,8 @@ private:
 
 public:
     void    Init(int32 iOffset);
+    void    Kill(void) override;
+
     int32   GetOffset(CW65C816* pcCPU) override;
     void    Print(CChars* psz) override;
     bool    IsConstantOffset(void);

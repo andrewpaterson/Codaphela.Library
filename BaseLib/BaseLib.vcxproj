@@ -338,6 +338,7 @@
     <ClInclude Include="PackFilePacker.h" />
     <ClInclude Include="PackFilesGeneral.h" />
     <ClInclude Include="QuickSort.h" />
+    <ClInclude Include="Refered.h" />
     <ClInclude Include="ScratchPadAllocator.h" />
     <ClInclude Include="Source\Aarvark\Aardvark.h" />
     <ClInclude Include="StackMemory.h" />
@@ -705,6 +706,7 @@
     <ClCompile Include="PackFilePacker.cpp" />
     <ClCompile Include="QuickSort.cpp" />
     <ClCompile Include="RedirectPrintf.cpp" />
+    <ClCompile Include="Refered.cpp" />
     <ClCompile Include="ScratchPadAllocator.cpp" />
     <ClCompile Include="DebugOutputFile.cpp" />
     <ClCompile Include="Source\Aarvark\Aardvark.cpp" />

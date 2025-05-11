@@ -9,6 +9,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CDoneInstructionIf16Bit::Init(EWidthFromRegister eWidth)
 {
+    COperation::Init();
     meWidth = eWidth;
 }
 
