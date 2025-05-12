@@ -753,7 +753,7 @@ void CW65C816State::SetC(uint16 uiAccumulator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetData(uint16 uiData, bool bUpdateFlags)
+void CW65C816State::SetInternal16BitData(uint16 uiData, bool bUpdateFlags)
 {
 	if (IsMemory16Bit())
 	{
@@ -835,7 +835,7 @@ void CW65C816State::SetSignAndZeroFromIndex(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetInternal16BitData(uint16 uiInternal16BitData)
 {
-	SetData(uiInternal16BitData, true);
+	SetInternal16BitData(uiInternal16BitData, true);
 }
 
 
@@ -1422,7 +1422,7 @@ void CW65C816State::SetDirectOffset(uint8 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetDataLow(uint8 uiData)
+void CW65C816State::SetInternal16BitDataLow(uint8 uiData)
 {
 	muiInternal16BitData = SetLowByte(muiInternal16BitData, uiData);
 }
@@ -1432,7 +1432,7 @@ void CW65C816State::SetDataLow(uint8 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetDataHigh(uint8 uiData)
+void CW65C816State::SetInternal16BitDataHigh(uint8 uiData)
 {
 	muiInternal16BitData = SetHighByte(muiInternal16BitData, uiData);
 }
@@ -1905,7 +1905,7 @@ bool CW65C816State::IsBusEnable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65C816State::GetData(void)
+uint8 CW65C816State::GetData(void)
 {
 	return muiData;
 }
@@ -1915,7 +1915,7 @@ uint16 CW65C816State::GetData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetData(uint16 uiData)
+void CW65C816State::SetData(uint8 uiData)
 {
 	muiData = uiData;
 }
@@ -1986,7 +1986,7 @@ void CW65C816State::TSB(void)
 	uint16 uiValue;
 
 	uiValue = GetInternal16BitData();
-	SetData((uiValue | GetA()), false);
+	SetInternal16BitData((uiValue | GetA()), false);
 	SetZeroFlag((uiValue & GetA()) == 0);
 }
 
@@ -2000,7 +2000,7 @@ void CW65C816State::TRB(void)
 	uint16 uiValue;
 
 	uiValue = GetInternal16BitData();
-	SetData(uiValue & TrimMemory(~GetA()), false);
+	SetInternal16BitData(uiValue & TrimMemory(~GetA()), false);
 	SetZeroFlag((uiValue & GetA()) == 0);
 }
 

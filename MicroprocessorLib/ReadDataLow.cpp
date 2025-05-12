@@ -19,8 +19,7 @@ void CReadDataLow::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDataLow::Execute(CW65C816* pcCPU)
 {
-	//Is this the right Data?
-	pcCPU->GetState()->SetDataLow((uint8)pcCPU->GetState()->GetData());
+	pcCPU->GetState()->SetInternal16BitDataLow(pcCPU->GetState()->GetData());
 }
 
 

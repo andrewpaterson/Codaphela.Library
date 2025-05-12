@@ -29,7 +29,6 @@ void CInternalOperation::Init(bool bValidProgramAddress, bool bValidDataAddress,
 //////////////////////////////////////////////////////////////////////////
 void CInternalOperation::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->GetData();
 }
 
 
@@ -41,5 +40,4 @@ void CInternalOperation::Print(CChars* psz)
 {
 	psz->Append("IO");
 }
-
 

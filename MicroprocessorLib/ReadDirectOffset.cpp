@@ -19,8 +19,8 @@ void CReadDirectOffset::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDirectOffset::Execute(CW65C816* pcCPU)
 {
-	//Is this the right Data?
-	pcCPU->GetState()->SetDirectOffset((uint8)pcCPU->GetState()->GetData());
+	//This is not the 16bit Direct Page this is 8bit direct offset D0.
+	pcCPU->GetState()->SetDirectOffset(pcCPU->GetState()->GetData());
 }
 
 

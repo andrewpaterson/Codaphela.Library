@@ -139,7 +139,7 @@ void CW65C816::PLB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHB(void)
 {
-    mpcState->SetDataLow(mpcState->GetDataBank());
+    mpcState->SetInternal16BitDataLow(mpcState->GetDataBank());
 }
 
 
@@ -149,7 +149,7 @@ void CW65C816::PHB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHK(void)
 {
-    mpcState->SetDataLow(mpcState->GetProgramCounter()->GetBank());
+    mpcState->SetInternal16BitDataLow(mpcState->GetProgramCounter()->GetBank());
 }
 
 
@@ -169,7 +169,7 @@ void CW65C816::PLP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHP(void)
 {
-    mpcState->SetDataLow(mpcState->GetProcessorRegisterValue());
+    mpcState->SetInternal16BitDataLow(mpcState->GetProcessorRegisterValue());
 }
 
 
@@ -408,7 +408,7 @@ void CW65C816::LSR(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHA(void)
 {
-    mpcState->SetData(mpcState->GetA(), false);
+    mpcState->SetInternal16BitData(mpcState->GetA(), false);
 }
 
 
@@ -568,7 +568,7 @@ void CW65C816::BRA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::STA(void)
 {
-    mpcState->SetData(mpcState->GetA(), false);
+    mpcState->SetInternal16BitData(mpcState->GetA(), false);
 }
 
 
@@ -1345,7 +1345,7 @@ void CW65C816::ExecuteHighHalf(CTimeline* pcTimeline)
 
     if (!read)
     {
-        pcPins->WriteData(pcTimeline, (uint8)mpcState->GetData());
+        pcPins->WriteData(pcTimeline, mpcState->GetData());
     }
 
     mpcState->Cycle(this);
