@@ -58,7 +58,7 @@ public:
 	bool		mbIrq;
 	bool		mbAbort;
 	bool		mbNextInstruction;
-	uint16		muiData;
+	uint8		muiData;
 	bool		mbNmi;
 	bool		mbPreviousClockLow;
 	bool		mbPreviousClockHigh;
@@ -115,7 +115,7 @@ public:
 	void			SetY(uint16 uiYIndex);
 	void			SetA(uint16 uiAccumulator);
 	void			SetC(uint16 uiAccumulator);
-	void			SetData(uint16 uiData, bool bUpdateFlags);
+	void			SetInternal16BitData(uint16 uiData, bool bUpdateFlags);
 	void			SetIndexData(uint16 uiData, bool bUpdateFlags);
 	void			SetSignAndZeroFromMemory(uint16 uiValue);
 	void			SetSignAndZeroFromIndex(uint16 uiValue);
@@ -170,8 +170,8 @@ public:
 	void			IncrementStackPointer(void);
 	void			DecrementStackPointer(void);
 	void			SetDirectOffset(uint8 uiData);
-	void			SetDataLow(uint8 uiData);
-	void			SetDataHigh(uint8 uiData);
+	void			SetInternal16BitDataLow(uint8 uiData);
+	void			SetInternal16BitDataHigh(uint8 uiData);
 	void			SetStackPointer(uint16 uiData);
 	void			SetNewProgramCounterLow(uint8 uiData);
 	void			SetNewProgramCounterHigh(uint8 uiData);
@@ -194,8 +194,8 @@ public:
 	uint16			ClearBit(uint16 uiValue, uint16 uiBitNumber);
 	uint16			SetBit(uint16 uiValue, uint16 uiBitNumber);
 	bool			IsBusEnable(void);
-	uint16			GetData(void);
-	void			SetData(uint16 uiData);
+	uint8			GetData(void);
+	void			SetData(uint8 uiData);
 	void			PER(void);
 	void			PHD(void);
 	void			PLP(void);

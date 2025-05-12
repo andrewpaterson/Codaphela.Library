@@ -136,6 +136,8 @@ public:
     void            NMI(void);
     void            RES(void);
 
+    void            InputTransition(CTimeline* pcTimeline);// override;
+
     void            GetAddressValueHex(CChars* psz);
     void            GetAccumulaTorValueHex(CChars* psz);
     void            GetXValueHex(CChars* psz);
@@ -152,14 +154,13 @@ public:
     char*           GetType(void);
     void            GetCycleString(CChars* psz);
 
-    void            InputTransition(CTimeline* pcTimeline);// override;
-
 protected:
     void            Branch(bool condition);
     void            To8BitHexString(CChars* psz, uint8 ui8);
     void            To16BitHexString(CChars* psz, uint16 ui16);
     void            ToAddressHexString(CChars* psz, CAddress* pcAddress);
     void            DisableBuses(void);
+
     CW65C816Pins*   GetPins(void);// override;
 
     void            ExecuteLowHalf(CTimeline* pcTimeline);
