@@ -6,6 +6,7 @@
 
 class CDataOperation : public COperation
 {
+CONSTRUCTABLE(CDataOperation);
 protected:
     bool            mbValidProgramAddress;
     bool            mbValidDataAddress;

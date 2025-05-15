@@ -150,9 +150,11 @@ public:
     void            GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction);
     void            GetOpcodeValueHex(CChars* psz);
     void            GetOpcodeMnemonicString(CChars* psz);
+    void            GetCycleOperationString(CChars* psz);
     void            GetStatusString(CChars* psz);
     char*           GetType(void);
     void            GetCycleString(CChars* psz);
+    int16           GetCycle(void);
 
 protected:
     void            Branch(bool condition);
@@ -163,8 +165,8 @@ protected:
 
     CW65C816Pins*   GetPins(void);// override;
 
-    void            ExecuteLowHalf(CTimeline* pcTimeline);
-    void            ExecuteHighHalf(CTimeline* pcTimeline);
+    void            ExecutPhi2Falling(CTimeline* pcTimeline);
+    void            ExecutPhi2Rising(CTimeline* pcTimeline);
 };
 
 

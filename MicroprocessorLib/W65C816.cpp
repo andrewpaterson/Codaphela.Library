@@ -1176,7 +1176,37 @@ void CW65C816::GetOpcodeMnemonicString(CChars* psz)
     CInstruction*   pcInstruction;
 
     pcInstruction = mpcState->GetOpCode();
-    psz->Append(pcInstruction->GetName());
+    if (pcInstruction)
+    {
+
+        psz->Append(pcInstruction->GetName());
+    }
+    else
+    {
+        psz->Append("---");
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::GetCycleOperationString(CChars* psz)
+{
+    CBusCycle*          pcBusCycle;
+    CDataOperation*     pcDataOperation;
+
+    pcBusCycle = mpcState->GetBusCycle();
+    if (pcBusCycle)
+    {
+        pcDataOperation = pcBusCycle->GetDataOperation();
+        pcDataOperation->Print(psz);
+    }
+    else
+    {
+        psz->Append("---");
+    }
 }
 
 
@@ -1229,6 +1259,16 @@ void CW65C816::GetCycleString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+int16 CW65C816::GetCycle(void)
+{
+    return mpcState->GetCycle();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CW65C816::DisableBuses(void)
 {
 }
@@ -1270,8 +1310,8 @@ void CW65C816::InputTransition(CTimeline* pcTimeline)
 
     if (clockValue.IsHigh() || clockValue.IsLow())
     {
-        bool fallingEdge = clockValue.IsHigh() && mpcState->mbPreviousClockLow;
-        bool risingEdge = clockValue.IsLow() && mpcState->mbPreviousClockHigh;
+        bool risingEdge = clockValue.IsHigh() && mpcState->mbPreviousClockLow;
+        bool fallingEdge= clockValue.IsLow() && mpcState->mbPreviousClockHigh;
 
         mpcState->mbPreviousClockLow = clockValue.IsLow();
         mpcState->mbPreviousClockHigh = clockValue.IsHigh();
@@ -1280,18 +1320,20 @@ void CW65C816::InputTransition(CTimeline* pcTimeline)
         {
             if (fallingEdge)
             {
-                ExecuteLowHalf(pcTimeline);
+                ExecutPhi2Falling(pcTimeline);
             }
 
             if (risingEdge)
             {
-                ExecuteHighHalf(pcTimeline);
+                ExecutPhi2Rising(pcTimeline);
             }
         }
     }
 
-    mpcState->mbNmi = !nmi;
     mpcState->mbIrq = !irq;
+
+    //These don't look properly edge triggered.
+    mpcState->mbNmi = !nmi;
     mpcState->mbAbort = !abort;
 }
 
@@ -1300,26 +1342,44 @@ void CW65C816::InputTransition(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::ExecuteLowHalf(CTimeline* pcTimeline)
+void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
 {
-    CW65C816Pins* pcPins = GetPins();
-    CDataOperation* pcDataOperation = mpcState->GetDataOperation();
-    CBusCycle* pcBusCycle = mpcState->GetBusCycle();
-    bool bRead = pcDataOperation->IsRead();
-    CAddress cAddress;
+    CBusCycle*          pcBusCycle;
+    bool                bRead;
+    CAddress            cAddress;
+    CW65C816Pins*       pcPins;
+    CDataOperation*     pcDataOperation;
 
-    pcBusCycle->GetAddress(&cAddress, this);
+    pcPins = GetPins();
+    pcDataOperation = mpcState->GetDataOperation();
+    if (pcDataOperation)
+    {
+        pcBusCycle = mpcState->GetBusCycle();
+        bRead = pcDataOperation->IsRead();
 
-    pcPins->WriteRWB(pcTimeline, bRead);
-    pcPins->WriteMX(pcTimeline, mpcState->IsIndex8Bit());
-    pcPins->WriteVDA(pcTimeline, pcDataOperation->IsValidDataAddress());
-    pcPins->WriteVPA(pcTimeline, pcDataOperation->IsValidProgramAddress());
-    pcPins->WriteMLB(pcTimeline, pcDataOperation->IsNotMemoryLock());
-    pcPins->WriteVPB(pcTimeline, pcDataOperation->IsNotVectorPull());
-    pcPins->WriteE(pcTimeline, mpcState->IsEmulation());
-    //pcPins->writeRdy(pcTimeline, pcDataOperation->isReady());
-    pcPins->WriteAddress(pcTimeline, cAddress.GetOffset());
-    pcPins->WriteData(pcTimeline, cAddress.GetBank());
+        if (bRead)
+        {
+            //Data on the data pins is READ on PHI falling
+            mpcState->muiData = pcPins->ReadData(pcTimeline);
+        }
+
+        mpcState->ExecuteOperation(this);
+
+        pcBusCycle->GetAddress(&cAddress, this);
+
+        //All signals are written 10ns after PHI falling.  Including the Bank on the data pins.
+        //If the write doesn't take that into account then it is okay that is is instaneous after the read.
+        pcPins->WriteRWB(pcTimeline, bRead);
+        pcPins->WriteMX(pcTimeline, mpcState->IsIndex8Bit());
+        pcPins->WriteVDA(pcTimeline, pcDataOperation->IsValidDataAddress());
+        pcPins->WriteVPA(pcTimeline, pcDataOperation->IsValidProgramAddress());
+        pcPins->WriteMLB(pcTimeline, pcDataOperation->IsNotMemoryLock());
+        pcPins->WriteVPB(pcTimeline, pcDataOperation->IsNotVectorPull());
+        pcPins->WriteE(pcTimeline, mpcState->IsEmulation());
+        pcPins->WriteRdy(pcTimeline, pcDataOperation->IsReady());
+        pcPins->WriteAddress(pcTimeline, cAddress.GetOffset());
+        pcPins->WriteData(pcTimeline, cAddress.GetBank());
+    }
 }
 
 
@@ -1327,27 +1387,27 @@ void CW65C816::ExecuteLowHalf(CTimeline* pcTimeline)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::ExecuteHighHalf(CTimeline* pcTimeline)
+void CW65C816::ExecutPhi2Rising(CTimeline* pcTimeline)
 {
-    CW65C816Pins* pcPins = GetPins();
+    CW65C816Pins*       pcPins;
+    CDataOperation*     pcDataOperation;
+    bool                bRead;
 
-    CDataOperation* pcDataOperation = mpcState->GetDataOperation();
-    bool read = pcDataOperation->IsRead();
+    pcPins = GetPins();
 
-    if (read)
+    pcDataOperation = mpcState->GetDataOperation();
+    if (pcDataOperation)
     {
-        mpcState->muiData = pcPins->ReadData(pcTimeline);
+        bRead = pcDataOperation->IsRead();
+
+        pcPins->WriteMX(pcTimeline, mpcState->IsMemory8Bit());
+
+        if (!bRead)
+        {
+            pcPins->WriteData(pcTimeline, mpcState->GetData());
+        }
+
+        mpcState->Cycle(this);
     }
-
-    pcPins->WriteMX(pcTimeline, mpcState->IsMemory8Bit());
-
-    mpcState->ExecuteOperation(this);
-
-    if (!read)
-    {
-        pcPins->WriteData(pcTimeline, mpcState->GetData());
-    }
-
-    mpcState->Cycle(this);
 }
 

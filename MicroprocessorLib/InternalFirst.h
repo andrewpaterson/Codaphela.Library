@@ -5,6 +5,7 @@
 
 class CInternalFirst : public CDataOperation
 {
+CONSTRUCTABLE(CInternalFirst);
 public:
 	void	Init(void);
 
