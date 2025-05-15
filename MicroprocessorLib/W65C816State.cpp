@@ -9,8 +9,6 @@
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::Init(void)
 {
-	CInstruction*	pcReset;
-
     mcProgramCounter.Init();
     muiStackPointer = 0x01FF;
     muiAccumulator = 0;
@@ -37,15 +35,7 @@ void CW65C816State::Init(void)
     muiData = 0;
     miCycle = 0;
 
-	pcReset = GetResetOpcode();
-	if (pcReset)
-	{
-		muiOpCodeIndex = pcReset->GetCode();
-	}
-	else
-	{
-		muiOpCodeIndex = 0xffff;
-	}
+	muiOpCodeIndex = 0xffff;
     muiInternal16BitData = 0;
     muiDirectOffset = 0;
     mcNewProgramCounter.Init();
@@ -481,11 +471,11 @@ void CW65C816State::Cycle(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ExecuteOperation(CW65C816* pcCPU)
 {
-	CBusCycle* pcBusCycle;
-	COperationArray* pcOperations;
-	size				 uiNumElements;
-	size				 i;
-	COperation* pcOperation;
+	CBusCycle*			pcBusCycle;
+	COperationArray*	pcOperations;
+	size				uiNumElements;
+	size				i;
+	COperation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
 	pcOperations = pcBusCycle->GetOperations();
@@ -504,13 +494,18 @@ void CW65C816State::ExecuteOperation(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 CBusCycle* CW65C816State::GetBusCycle(void)
 {
-	CInstruction* pcInstruction;
-	CInstructionCycles* pcCycles;
+	CInstruction*			pcInstruction;
 
 	pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
 
-	pcCycles = pcInstruction->GetCycles();
-	return pcCycles->GetBusCycle(miCycle);
+	if (pcInstruction != NULL)
+	{
+		return pcInstruction->GetBusCycle(miCycle);
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -605,8 +600,6 @@ CDataOperation* CW65C816State::GetDataOperation(void)
 	}
 	else
 	{
-		CInstruction* pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
-		//System.out.println("W65C816.GetDataOperation: CBusCycle for OpCode [" + instruction.getName() + "] Cycle [" + cycle + "] cannot be fetch.  OpCode cycles size [" + instruction.getCycles().size() + "].");
 		return NULL;
 	}
 }

@@ -469,6 +469,26 @@ bool PrivateAssertChar(char cExpected, char cActual, size iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(int32 iExpected, uint32 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertInt(iExpected, (int32)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertInt(uint32 iExpected, uint32 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertInt((int32)iExpected, (int32)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool PrivateAssertInt(int32 iExpected, int32 iActual, size iLine, char* szFile)
 {
 	char szExpected[32];
@@ -532,7 +552,111 @@ bool PrivateAssertSize(size iExpected, size iActual, size iLine, char* szFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(int32 iExpected, uint32 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertIntHex(iExpected, (int32)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertIntHex(uint32 iExpected, uint32 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertIntHex((int32)iExpected, (int32)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool PrivateAssertIntHex(int32 iExpected, int32 iActual, size iLine, char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (iExpected != iActual)
+	{
+		ToIntHexString(iExpected, szExpected, 32);
+		ToIntHexString(iActual, szActual, 32);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertByte(uint8 iExpected, uint8 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertByte((int8)iExpected, (int8)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertByte(int8 iExpected, uint8 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertByte(iExpected, (int8)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertByte(int8 iExpected, int8 iActual, size iLine, char* szFile)
+{
+	char szExpected[32];
+	char szActual[32];
+
+	if (iExpected != iActual)
+	{
+		ToIntString(iExpected, szExpected, 32);
+		ToIntString(iActual, szActual, 32);
+		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
+	}
+	else
+	{
+		return Pass();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertByteHex(int8 iExpected, uint8 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertByteHex(iExpected, (int8)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertByteHex(uint8 iExpected, uint8 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertByteHex((int8)iExpected, (int8)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertByteHex(int8 iExpected, int8 iActual, size iLine, char* szFile)
 {
 	char szExpected[32];
 	char szActual[32];
@@ -589,6 +713,26 @@ bool PrivateAssertShort(int16 iExpected, int16 iActual, size iLine, char* szFile
 	{
 		return Pass();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertShortHex(int16 iExpected, uint16 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertShortHex(iExpected, (int16)iActual, iLine, szFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool PrivateAssertShortHex(uint16 iExpected, uint16 iActual, size iLine, char* szFile)
+{
+	return PrivateAssertShortHex((int16)iExpected, (int16)iActual, iLine, szFile);
 }
 
 

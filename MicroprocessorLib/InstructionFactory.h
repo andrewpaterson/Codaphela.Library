@@ -6,15 +6,20 @@
 #include "W65C816.h"
 
 
+#define INSTRUCTIONS_SIZE 256 + 5
+
+
 class CInstructionFactory
 {
 protected:
-	CInstruction*	mapcInstructions[256];
+	CInstruction*	mapcInstructions[INSTRUCTIONS_SIZE];
 	CInstruction*	mpcReset;
 	CInstruction*	mpcIRQ;
 	CInstruction*	mpcNMI;
 	CInstruction*	mpcAbort;
 	CInstruction*	mpcFetchNext;
+
+    uint16          muiInstructions;
 
 public:
 	static	CInstructionFactory*	GetInstance(void);
@@ -30,6 +35,7 @@ public:
 			CInstruction*			GetFetchNext(void);
 
 protected:
+            CInstruction*           Instruct(CInstruction* pcInstruction);
             void                    CreateInstructions(void);
             void                    ValidateOpCodes(void);
             CInstruction*           CreateBEQ(uint16 uiCode, CInstructionCycles* pcInstructionCycles);
@@ -130,11 +136,11 @@ protected:
             CInstruction*           CreateORA(uint16 uiCode, CInstructionCycles* pcInstructionCycles);
             CInstruction*           CreateBRK(uint16 uiCode, CInstructionCycles* pcInstructionCycles);
 
-            void                    CreateReset(void);
-            void                    CreateIRQ(void);
-            void                    CreateNMI(void);
-            void                    CreateAbort(void);
-            void                    CreateFetchNext(void);
+           CInstruction*            CreateReset(void);
+           CInstruction*            CreateIRQ(void);
+           CInstruction*            CreateNMI(void);
+           CInstruction*            CreateAbort(void);
+           CInstruction*            CreateFetchNext(void);
 };
 
 

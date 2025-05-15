@@ -29,7 +29,7 @@ void CReadOpCode::Execute(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CReadOpCode::Print(CChars* psz)
 {
-	psz->Append("OpCode");
+	psz->Append("Opcode");
 }
 
 

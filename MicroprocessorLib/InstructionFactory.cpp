@@ -40,11 +40,11 @@ void CInstructionFactory::Init(void)
 	CreateInstructions();
     ValidateOpCodes();
 
-	CreateReset();
-	CreateIRQ();
-	CreateNMI();
-	CreateAbort();
-    CreateFetchNext();
+	Instruct(CreateReset());
+    Instruct(CreateIRQ());
+    Instruct(CreateNMI());
+    Instruct(CreateAbort());
+    Instruct(CreateFetchNext());
 }
 
 
@@ -77,7 +77,14 @@ void CInstructionFactory::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CInstruction* CInstructionFactory::GetInstruction(uint16 uiOpcode)
 {
-	return mapcInstructions[uiOpcode];
+    if (uiOpcode < INSTRUCTIONS_SIZE)
+    {
+        return mapcInstructions[uiOpcode];
+    }
+    else
+    {
+        return NULL;
+    }
 }
 
 
@@ -145,262 +152,275 @@ void CInstructionFactory::CreateInstructions(void)
     pcCOPVector = NewMalloc<CCOPVector>();
     pcCOPVector->Init();
 
-    mapcInstructions[0] = CreateBRK(BRK_Interrupt, CreateStackSoftwareInterruptCycles(pcBRKVector, &CW65C816::BRK));
-    mapcInstructions[1] = CreateORA(ORA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::ORA));
-    mapcInstructions[2] = CreateCOP(COP_Interrupt, CreateStackSoftwareInterruptCycles(pcCOPVector, &CW65C816::COP));
-    mapcInstructions[3] = CreateORA(ORA_StackRelative, CreateStackRelativeCycles(&CW65C816::ORA));
-    mapcInstructions[4] = CreateTSB(TSB_DirectPage, CreateDirectRMWCycles(&CW65C816::TSB));
-    mapcInstructions[5] = CreateORA(ORA_DirectPage, CreateDirectCycles(&CW65C816::ORA, WFR_M));
-    mapcInstructions[6] = CreateASL(ASL_DirectPage, CreateDirectRMWCycles(&CW65C816::ASL));
-    mapcInstructions[7] = CreateORA(ORA_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::ORA));
-    mapcInstructions[8] = CreatePHP(PHP_StackImplied, CreateStackImpliedPHPCycles(&CW65C816::PHP));
-    mapcInstructions[9] = CreateORA(ORA_Immediate, CreateImmediateCycles(&CW65C816::ORA, WFR_M));
-    mapcInstructions[10] = CreateSLA(ASL_Accumulator, CreateAccumulatorCycles(&CW65C816::ASL_A));
-    mapcInstructions[11] = CreatePHD(PHD_StackImplied, CreateStackPHDCycles(&CW65C816::PHD));
-    mapcInstructions[12] = CreateTSB(TSB_Absolute, CreateAbsoluteRMWCycles(&CW65C816::TSB));
-    mapcInstructions[13] = CreateORA(ORA_Absolute, CreateAbsoluteCycles(&CW65C816::ORA, WFR_M));
-    mapcInstructions[14] = CreateASL(ASL_Absolute, CreateAbsoluteRMWCycles(&CW65C816::ASL));
-    mapcInstructions[15] = CreateORA(ORA_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::ORA));
-    mapcInstructions[16] = CreateBPL(BPL_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BPL));
-    mapcInstructions[17] = CreateORA(ORA_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::ORA));
-    mapcInstructions[18] = CreateORA(ORA_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::ORA));
-    mapcInstructions[19] = CreateORA(ORA_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::ORA));
-    mapcInstructions[20] = CreateTRB(TRB_DirectPage, CreateDirectRMWCycles(&CW65C816::TRB));
-    mapcInstructions[21] = CreateORA(ORA_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::ORA, WFR_M));
-    mapcInstructions[22] = CreateASL(ASL_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::ASL));
-    mapcInstructions[23] = CreateORA(ORA_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::ORA));
-    mapcInstructions[24] = CreateCLC(CLC_Implied, CreateImpliedCycles(&CW65C816::CLC));
-    mapcInstructions[25] = CreateORA(ORA_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::ORA, WFR_M));
-    mapcInstructions[26] = CreateINC_A(INC_Accumulator, CreateAccumulatorCycles(&CW65C816::INC_A));
-    mapcInstructions[27] = CreateTCS(TCS_Implied, CreateImpliedCycles(&CW65C816::TCS));
-    mapcInstructions[28] = CreateTRB(TRB_Absolute, CreateAbsoluteRMWCycles(&CW65C816::TRB));
-    mapcInstructions[29] = CreateORA(ORA_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::ORA, WFR_M));
-    mapcInstructions[30] = CreateASL(ASL_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::ASL));
-    mapcInstructions[31] = CreateORA(ORA_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::ORA));
-    mapcInstructions[32] = CreateJSR(JSR_Absolute, CreateAbsoluteJSRCycles());
-    mapcInstructions[33] = CreateAND(AND_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::AND));
-    mapcInstructions[34] = CreateJSL(JSL_AbsoluteLong, CreateAbsoluteLongJSLCycles());
-    mapcInstructions[35] = CreateAND(AND_StackRelative, CreateStackRelativeCycles(&CW65C816::AND));
-    mapcInstructions[36] = CreateBIT(BIT_DirectPage, CreateDirectCycles(&CW65C816::BIT, WFR_M));
-    mapcInstructions[37] = CreateAND(AND_DirectPage, CreateDirectCycles(&CW65C816::AND, WFR_M));
-    mapcInstructions[38] = CreateROL(ROL_DirectPage, CreateDirectRMWCycles(&CW65C816::ROL));
-    mapcInstructions[39] = CreateAND(AND_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::AND));
-    mapcInstructions[40] = CreatePLP(PLP_StackImplied, CreateStackPLPCycles(&CW65C816::PLP));
-    mapcInstructions[41] = CreateAND(AND_Immediate, CreateImmediateCycles(&CW65C816::AND, WFR_M));
-    mapcInstructions[42] = CreateRLA(ROL_Accumulator, CreateAccumulatorCycles(&CW65C816::ROL_A));
-    mapcInstructions[43] = CreatePLD(PLD_StackImplied, CreateStackPLDCycles(&CW65C816::PLD));
-    mapcInstructions[44] = CreateBIT(BIT_Absolute, CreateAbsoluteCycles(&CW65C816::BIT, WFR_M));
-    mapcInstructions[45] = CreateAND(AND_Absolute, CreateAbsoluteCycles(&CW65C816::AND, WFR_M));
-    mapcInstructions[46] = CreateROL(ROL_Absolute, CreateAbsoluteRMWCycles(&CW65C816::ROL));
-    mapcInstructions[47] = CreateAND(AND_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::AND));
-    mapcInstructions[48] = CreateBMI(BMI_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BMI));
-    mapcInstructions[49] = CreateAND(AND_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::AND));
-    mapcInstructions[50] = CreateAND(AND_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::AND));
-    mapcInstructions[51] = CreateAND(AND_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::AND));
-    mapcInstructions[52] = CreateBIT(BIT_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::BIT, WFR_M));
-    mapcInstructions[53] = CreateAND(AND_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::AND, WFR_M));
-    mapcInstructions[54] = CreateROL(ROL_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::ROL));
-    mapcInstructions[55] = CreateAND(AND_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::AND));
-    mapcInstructions[56] = CreateSEC(SEC_Implied, CreateImpliedCycles(&CW65C816::SEC));
-    mapcInstructions[57] = CreateAND(AND_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::AND, WFR_M));
-    mapcInstructions[58] = CreateDEC_A(DEC_Accumulator, CreateAccumulatorCycles(&CW65C816::DEC_A));
-    mapcInstructions[59] = CreateTSC(TSC_Implied, CreateImpliedCycles(&CW65C816::TSC));
-    mapcInstructions[60] = CreateBIT(BIT_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::BIT, WFR_M));
-    mapcInstructions[61] = CreateAND(AND_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::AND, WFR_M));
-    mapcInstructions[62] = CreateROL(ROL_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::ROL));
-    mapcInstructions[63] = CreateAND(AND_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::AND));
-    mapcInstructions[64] = CreateRTI(RTI_StackImplied, CreateStackRTICycles());
-    mapcInstructions[65] = CreateEOR(EOR_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::EOR));
-    mapcInstructions[66] = CreateWDM(WDM_Implied, CreateWDMImpliedCycles(&CW65C816::WDM));
-    mapcInstructions[67] = CreateEOR(EOR_StackRelative, CreateStackRelativeCycles(&CW65C816::EOR));
-    mapcInstructions[68] = CreateMVP(MVP_BlockMove, CreateBlockMoveCycles(&CW65C816::MVP));
-    mapcInstructions[69] = CreateEOR(EOR_DirectPage, CreateDirectCycles(&CW65C816::EOR, WFR_M));
-    mapcInstructions[70] = CreateLSR(LSR_DirectPage, CreateDirectRMWCycles(&CW65C816::LSR));
-    mapcInstructions[71] = CreateEOR(EOR_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::EOR));
-    mapcInstructions[72] = CreatePHA(PHA_StackImplied, CreateStackPushCycles(&CW65C816::PHA, WFR_M));
-    mapcInstructions[73] = CreateEOR(EOR_Immediate, CreateImmediateCycles(&CW65C816::EOR, WFR_M));
-    mapcInstructions[74] = CreateSRA(LSR_Accumulator, CreateAccumulatorCycles(&CW65C816::LSR_A));
-    mapcInstructions[75] = CreatePHK(PHK_StackImplied, CreateStackPHKCycles(&CW65C816::PHK));
-    mapcInstructions[76] = CreateJMP(JMP_Absolute, CreateAbsoluteJMPCycles());
-    mapcInstructions[77] = CreateEOR(EOR_Absolute, CreateAbsoluteCycles(&CW65C816::EOR, WFR_M));
-    mapcInstructions[78] = CreateLSR(LSR_Absolute, CreateAbsoluteRMWCycles(&CW65C816::LSR));
-    mapcInstructions[79] = CreateEOR(EOR_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::EOR));
-    mapcInstructions[80] = CreateBVC(BVC_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BVC));
-    mapcInstructions[81] = CreateEOR(EOR_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::EOR));
-    mapcInstructions[82] = CreateEOR(EOR_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::EOR));
-    mapcInstructions[83] = CreateEOR(EOR_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::EOR));
-    mapcInstructions[84] = CreateMVN(MVN_BlockMove, CreateBlockMoveCycles(&CW65C816::MVN));
-    mapcInstructions[85] = CreateEOR(EOR_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::EOR, WFR_M));
-    mapcInstructions[86] = CreateLSR(LSR_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::LSR));
-    mapcInstructions[87] = CreateEOR(EOR_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::EOR));
-    mapcInstructions[88] = CreateCLI(CLI_Implied, CreateImpliedCycles(&CW65C816::CLI));
-    mapcInstructions[89] = CreateEOR(EOR_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::EOR, WFR_M));
-    mapcInstructions[90] = CreatePHY(PHY_StackImplied, CreateStackPushCycles(&CW65C816::PHY, WFR_XY));
-    mapcInstructions[91] = CreateTCD(TCD_Implied, CreateImpliedCycles(&CW65C816::TCD));
-    mapcInstructions[92] = CreateJMP(JML_AbsoluteLong, CreateAbsoluteLongJMLCycles());
-    mapcInstructions[93] = CreateEOR(EOR_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::EOR, WFR_M));
-    mapcInstructions[94] = CreateLSR(LSR_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::LSR));
-    mapcInstructions[95] = CreateEOR(EOR_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::EOR));
-    mapcInstructions[96] = CreateRTS(RTS_StackImplied, CreateStackRTSCycles());
-    mapcInstructions[97] = CreateADC(ADC_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::ADC));
-    mapcInstructions[98] = CreatePER(PER_StackProgramCounterRelativeLong, CreateStackPERCycles(&CW65C816::PER));
-    mapcInstructions[99] = CreateADC(ADC_StackRelative, CreateStackRelativeCycles(&CW65C816::ADC));
-    mapcInstructions[100] = CreateSTZ(STZ_DirectPage, CreateDirectWriteCycles(&CW65C816::STZ, WFR_M));
-    mapcInstructions[101] = CreateADC(ADC_DirectPage, CreateDirectCycles(&CW65C816::ADC, WFR_M));
-    mapcInstructions[102] = CreateROR(ROR_DirectPage, CreateDirectRMWCycles(&CW65C816::ROR));
-    mapcInstructions[103] = CreateADC(ADC_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::ADC));
-    mapcInstructions[104] = CreatePLA(PLA_Stack, CreateStackPullCycles(&CW65C816::PLA, WFR_M));
-    mapcInstructions[105] = CreateADC(ADC_Immediate, CreateImmediateCycles(&CW65C816::ADC, WFR_M));
-    mapcInstructions[106] = CreateRRA(ROR_Accumulator, CreateAccumulatorCycles(&CW65C816::ROR_A));
-    mapcInstructions[107] = CreateRTL(RTL_StackImplied, CreateStackRTLCycles());
-    mapcInstructions[108] = CreateJMP(JMP_AbsoluteIndirect, CreateAbsoluteIndirectJMPCycles());
-    mapcInstructions[109] = CreateADC(ADC_Absolute, CreateAbsoluteCycles(&CW65C816::ADC, WFR_M));
-    mapcInstructions[110] = CreateROR(ROR_Absolute, CreateAbsoluteRMWCycles(&CW65C816::ROR));
-    mapcInstructions[111] = CreateADC(ADC_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::ADC));
-    mapcInstructions[112] = CreateBVS(BVS_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BVS));
-    mapcInstructions[113] = CreateADC(ADC_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::ADC));
-    mapcInstructions[114] = CreateADC(ADC_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::ADC));
-    mapcInstructions[115] = CreateADC(ADC_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::ADC));
-    mapcInstructions[116] = CreateSTZ(STZ_DirectPageIndexedWithX, CreateDirectIndexedWithXWriteCycles(&CW65C816::STZ, WFR_M));
-    mapcInstructions[117] = CreateADC(ADC_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::ADC, WFR_M));
-    mapcInstructions[118] = CreateROR(ROR_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::ROR));
-    mapcInstructions[119] = CreateADC(ADC_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::ADC));
-    mapcInstructions[120] = CreateSEI(SEI_Implied, CreateImpliedCycles(&CW65C816::SEI));
-    mapcInstructions[121] = CreateADC(ADC_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::ADC, WFR_M));
-    mapcInstructions[122] = CreatePLY(PLY_StackImplied, CreateStackPullCycles(&CW65C816::PLY, WFR_XY));
-    mapcInstructions[123] = CreateTDC(TDC_Implied, CreateImpliedCycles(&CW65C816::TDC));
-    mapcInstructions[124] = CreateJMP(JMP_AbsoluteIndexedIndirectWithX, CreateAbsoluteIndexedIndirectWithXJMPCycles());
-    mapcInstructions[125] = CreateADC(ADC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::ADC, WFR_M));
-    mapcInstructions[126] = CreateROR(ROR_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::ROR));
-    mapcInstructions[127] = CreateADC(ADC_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::ADC));
-    mapcInstructions[128] = CreateBRA(BRA_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BRA));
-    mapcInstructions[129] = CreateSTA(STA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXWriteCycles(&CW65C816::STA));
-    mapcInstructions[130] = CreateBRL(BRL_ProgramCounterRelativeLong, CreateRelativeLongCycles(&CW65C816::BRA));
-    mapcInstructions[131] = CreateSTA(STA_StackRelative, CreateStackRelativeWriteCycles(&CW65C816::STA));
-    mapcInstructions[132] = CreateSTY(STY_DirectPage, CreateDirectWriteCycles(&CW65C816::STY, WFR_XY));
-    mapcInstructions[133] = CreateSTA(STA_DirectPage, CreateDirectWriteCycles(&CW65C816::STA, WFR_M));
-    mapcInstructions[134] = CreateSTX(STX_DirectPage, CreateDirectWriteCycles(&CW65C816::STX, WFR_XY));
-    mapcInstructions[135] = CreateSTA(STA_DirectPageIndirectLong, CreateDirectIndirectLongWriteCycles(&CW65C816::STA));
-    mapcInstructions[136] = CreateDEY(DEY_Implied, CreateImpliedCycles(&CW65C816::DEY));
-    mapcInstructions[137] = CreateBIT(BIT_Immediate, CreateImmediateCycles(&CW65C816::BIT_A, WFR_M));
-    mapcInstructions[138] = CreateTXA(TXA_Implied, CreateImpliedCycles(&CW65C816::TXA));
-    mapcInstructions[139] = CreatePHB(PHB_StackImplied, CreateStackPHBCycles(&CW65C816::PHB));
-    mapcInstructions[140] = CreateSTY(STY_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STY, WFR_XY));
-    mapcInstructions[141] = CreateSTA(STA_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STA, WFR_M));
-    mapcInstructions[142] = CreateSTX(STX_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STX, WFR_XY));
-    mapcInstructions[143] = CreateSTA(STA_AbsoluteLong, CreateAbsoluteLongWriteCycles(&CW65C816::STA));
-    mapcInstructions[144] = CreateBCC(BCC_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BCC));
-    mapcInstructions[145] = CreateSTA(STA_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYWriteCycles(&CW65C816::STA));
-    mapcInstructions[146] = CreateSTA(STA_DirectPageIndirect, CreateDirectIndirectWriteCycles(&CW65C816::STA));
-    mapcInstructions[147] = CreateSTA(STA_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYWriteCycles(&CW65C816::STA));
-    mapcInstructions[148] = CreateSTY(STY_DirectPageIndexedWithX, CreateDirectIndexedWithXWriteCycles(&CW65C816::STY, WFR_XY));
-    mapcInstructions[149] = CreateSTA(STA_DirectPageIndexedWithX, CreateDirectIndexedWithXWriteCycles(&CW65C816::STA, WFR_M));
-    mapcInstructions[150] = CreateSTX(STX_DirectPageIndexedWithY, CreateDirectIndexedWithYWriteCycles(&CW65C816::STX, WFR_XY));
-    mapcInstructions[151] = CreateSTA(STA_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYWriteCycles(&CW65C816::STA));
-    mapcInstructions[152] = CreateTYA(TYA_Implied, CreateImpliedCycles(&CW65C816::TYA));
-    mapcInstructions[153] = CreateSTA(STA_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYWriteCycles(&CW65C816::STA));
-    mapcInstructions[154] = CreateTXS(TXS_Implied, CreateImpliedCycles(&CW65C816::TXS));
-    mapcInstructions[155] = CreateTXY(TXY_Implied, CreateImpliedCycles(&CW65C816::TXY));
-    mapcInstructions[156] = CreateSTZ(STZ_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STZ, WFR_M));
-    mapcInstructions[157] = CreateSTA(STA_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXWriteCycles(&CW65C816::STA));
-    mapcInstructions[158] = CreateSTZ(STZ_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXWriteCycles(&CW65C816::STZ));
-    mapcInstructions[159] = CreateSTA(STA_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXWriteCycles(&CW65C816::STA));
-    mapcInstructions[160] = CreateLDY(LDY_Immediate, CreateImmediateCycles(&CW65C816::LDY, WFR_XY));
-    mapcInstructions[161] = CreateLDA(LDA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::LDA));
-    mapcInstructions[162] = CreateLDX(LDX_Immediate, CreateImmediateCycles(&CW65C816::LDX, WFR_XY));
-    mapcInstructions[163] = CreateLDA(LDA_StackRelative, CreateStackRelativeCycles(&CW65C816::LDA));
-    mapcInstructions[164] = CreateLDY(LDY_DirectPage, CreateDirectCycles(&CW65C816::LDY, WFR_XY));
-    mapcInstructions[165] = CreateLDA(LDA_DirectPage, CreateDirectCycles(&CW65C816::LDA, WFR_M));
-    mapcInstructions[166] = CreateLDX(LDX_DirectPage, CreateDirectCycles(&CW65C816::LDX, WFR_XY));
-    mapcInstructions[167] = CreateLDA(LDA_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::LDA));
-    mapcInstructions[168] = CreateTAY(TAY_Implied, CreateImpliedCycles(&CW65C816::TAY));
-    mapcInstructions[169] = CreateLDA(LDA_Immediate, CreateImmediateCycles(&CW65C816::LDA, WFR_M));
-    mapcInstructions[170] = CreateTAX(TAX_Implied, CreateImpliedCycles(&CW65C816::TAX));
-    mapcInstructions[171] = CreatePLB(PLB_StackImplied, CreateStackPLBCycles(&CW65C816::PLB));
-    mapcInstructions[172] = CreateLDY(LDY_Absolute, CreateAbsoluteCycles(&CW65C816::LDY, WFR_XY));
-    mapcInstructions[173] = CreateLDA(LDA_Absolute, CreateAbsoluteCycles(&CW65C816::LDA, WFR_M));
-    mapcInstructions[174] = CreateLDX(LDX_Absolute, CreateAbsoluteCycles(&CW65C816::LDX, WFR_XY));
-    mapcInstructions[175] = CreateLDA(LDA_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::LDA));
-    mapcInstructions[176] = CreateBCS(BCS_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BCS));
-    mapcInstructions[177] = CreateLDA(LDA_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::LDA));
-    mapcInstructions[178] = CreateLDA(LDA_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::LDA));
-    mapcInstructions[179] = CreateLDA(LDA_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::LDA));
-    mapcInstructions[180] = CreateLDY(LDY_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::LDY, WFR_XY));
-    mapcInstructions[181] = CreateLDA(LDA_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::LDA, WFR_M));
-    mapcInstructions[182] = CreateLDX(LDX_DirectPageIndexedWithY, CreateDirectIndexedWithYCycles(&CW65C816::LDX, WFR_XY));
-    mapcInstructions[183] = CreateLDA(LDA_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::LDA));
-    mapcInstructions[184] = CreateCLV(CLV_Implied, CreateImpliedCycles(&CW65C816::CLV));
-    mapcInstructions[185] = CreateLDA(LDA_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::LDA, WFR_M));
-    mapcInstructions[186] = CreateTSX(TSX_Implied, CreateImpliedCycles(&CW65C816::TSX));
-    mapcInstructions[187] = CreateTYX(TYX_Implied, CreateImpliedCycles(&CW65C816::TYX));
-    mapcInstructions[188] = CreateLDY(LDY_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::LDY, WFR_XY));
-    mapcInstructions[189] = CreateLDA(LDA_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::LDA, WFR_M));
-    mapcInstructions[190] = CreateLDX(LDX_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::LDX, WFR_XY));
-    mapcInstructions[191] = CreateLDA(LDA_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::LDA));
-    mapcInstructions[192] = CreateCPY(CPY_Immediate, CreateImmediateCycles(&CW65C816::CPY, WFR_XY));
-    mapcInstructions[193] = CreateCMP(CMP_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::CMP));
-    mapcInstructions[194] = CreateREP(REP_Immediate, CreateImmediateREPSEPCycles(&CW65C816::REP));
-    mapcInstructions[195] = CreateCMP(CMP_StackRelative, CreateStackRelativeCycles(&CW65C816::CMP));
-    mapcInstructions[196] = CreateCPY(CPY_DirectPage, CreateDirectCycles(&CW65C816::CPY, WFR_XY));
-    mapcInstructions[197] = CreateCMP(CMP_DirectPage, CreateDirectCycles(&CW65C816::CMP, WFR_M));
-    mapcInstructions[198] = CreateDEC(DEC_DirectPage, CreateDirectRMWCycles(&CW65C816::DEC));
-    mapcInstructions[199] = CreateCMP(CMP_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::CMP));
-    mapcInstructions[200] = CreateINY(INY_Implied, CreateImpliedCycles(&CW65C816::INY));
-    mapcInstructions[201] = CreateCMP(CMP_Immediate, CreateImmediateCycles(&CW65C816::CMP, WFR_M));
-    mapcInstructions[202] = CreateDEX(DEX_Implied, CreateImpliedCycles(&CW65C816::DEX));
-    mapcInstructions[203] = CreateWAI(WAI_Implied, CreateWaitForInterruptCycles());
-    mapcInstructions[204] = CreateCPY(CPY_Absolute, CreateAbsoluteCycles(&CW65C816::CPY, WFR_XY));
-    mapcInstructions[205] = CreateCMP(CMP_Absolute, CreateAbsoluteCycles(&CW65C816::CMP, WFR_M));
-    mapcInstructions[206] = CreateDEC(DEC_Absolute, CreateAbsoluteRMWCycles(&CW65C816::DEC));
-    mapcInstructions[207] = CreateCMP(CMP_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::CMP));
-    mapcInstructions[208] = CreateBNE(BNE_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BNE));
-    mapcInstructions[209] = CreateCMP(CMP_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::CMP));
-    mapcInstructions[210] = CreateCMP(CMP_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::CMP));
-    mapcInstructions[211] = CreateCMP(CMP_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::CMP));
-    mapcInstructions[212] = CreatePEI(PEI_StackDirectPageIndirect, CreateStackPEICycles());
-    mapcInstructions[213] = CreateCMP(CMP_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::CMP, WFR_M));
-    mapcInstructions[214] = CreateDEC(DEC_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::DEC));
-    mapcInstructions[215] = CreateCMP(CMP_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::CMP));
-    mapcInstructions[216] = CreateCLD(CLD_Implied, CreateImpliedCycles(&CW65C816::CLD));
-    mapcInstructions[217] = CreateCMP(CMP_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::CMP, WFR_M));
-    mapcInstructions[218] = CreatePHX(PHX_StackImplied, CreateStackPushCycles(&CW65C816::PHX, WFR_XY));
-    mapcInstructions[219] = CreateSTP(STP_Implied, CreateStopTheClockCycles(&CW65C816::STP));
-    mapcInstructions[220] = CreateJMP(JML_AbsoluteIndirectLong, CreateAbsoluteIndirectJMLCycles());
-    mapcInstructions[221] = CreateCMP(CMP_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::CMP, WFR_M));
-    mapcInstructions[222] = CreateDEC(DEC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::DEC));
-    mapcInstructions[223] = CreateCMP(CMP_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::CMP));
-    mapcInstructions[224] = CreateCPX(CPX_Immediate, CreateImmediateCycles(&CW65C816::CPX, WFR_XY));
-    mapcInstructions[225] = CreateSBC(SBC_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::SBC));
-    mapcInstructions[226] = CreateSEP(SEP_Immediate, CreateImmediateREPSEPCycles(&CW65C816::SEP));
-    mapcInstructions[227] = CreateSBC(SBC_StackRelative, CreateStackRelativeCycles(&CW65C816::SBC));
-    mapcInstructions[228] = CreateCPX(CPX_DirectPage, CreateDirectCycles(&CW65C816::CPX, WFR_XY));
-    mapcInstructions[229] = CreateSBC(SBC_DirectPage, CreateDirectCycles(&CW65C816::SBC, WFR_M));
-    mapcInstructions[230] = CreateINC(INC_DirectPage, CreateDirectRMWCycles(&CW65C816::INC));
-    mapcInstructions[231] = CreateSBC(SBC_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::SBC));
-    mapcInstructions[232] = CreateINX(INX_Implied, CreateImpliedCycles(&CW65C816::INX));
-    mapcInstructions[233] = CreateSBC(SBC_Immediate, CreateImmediateCycles(&CW65C816::SBC, WFR_M));
-    mapcInstructions[234] = CreateNOP(NOP_Implied, CreateImpliedCycles(&CW65C816::NOP));
-    mapcInstructions[235] = CreateXBA(XBA_Implied, CreateImpliedXBACycles(&CW65C816::XBA));
-    mapcInstructions[236] = CreateCPX(CPX_Absolute, CreateAbsoluteCycles(&CW65C816::CPX, WFR_XY));
-    mapcInstructions[237] = CreateSBC(SBC_Absolute, CreateAbsoluteCycles(&CW65C816::SBC, WFR_M));
-    mapcInstructions[238] = CreateINC(INC_Absolute, CreateAbsoluteRMWCycles(&CW65C816::INC));
-    mapcInstructions[239] = CreateSBC(SBC_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::SBC));
-    mapcInstructions[240] = CreateBEQ(BEQ_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BEQ));
-    mapcInstructions[241] = CreateSBC(SBC_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::SBC));
-    mapcInstructions[242] = CreateSBC(SBC_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::SBC));
-    mapcInstructions[243] = CreateSBC(SBC_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::SBC));
-    mapcInstructions[244] = CreatePEA(PEA_StackImmediate, CreateStackPEACycles());
-    mapcInstructions[245] = CreateSBC(SBC_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::SBC, WFR_M));
-    mapcInstructions[246] = CreateINC(INC_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::INC));
-    mapcInstructions[247] = CreateSBC(SBC_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::SBC));
-    mapcInstructions[248] = CreateSED(SED_Implied, CreateImpliedCycles(&CW65C816::SED));
-    mapcInstructions[249] = CreateSBC(SBC_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::SBC, WFR_M));
-    mapcInstructions[250] = CreatePLX(PLX_StackImplied, CreateStackPullCycles(&CW65C816::PLX, WFR_XY));
-    mapcInstructions[251] = CreateXCE(XCE_Implied, CreateImpliedCycles(&CW65C816::XCE));
-    mapcInstructions[252] = CreateJSR(JSR_AbsoluteIndexedIndirectWithX, CreateAbsoluteIndexedIndirectWithXJSRCycles());
-    mapcInstructions[253] = CreateSBC(SBC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::SBC, WFR_M));
-    mapcInstructions[254] = CreateINC(INC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::INC));
-    mapcInstructions[255] = CreateSBC(SBC_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::SBC));
+    muiInstructions = 0;
+
+    mapcInstructions[0] = Instruct(CreateBRK(BRK_Interrupt, CreateStackSoftwareInterruptCycles(pcBRKVector, &CW65C816::BRK)));
+    mapcInstructions[1] = Instruct(CreateORA(ORA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::ORA)));
+    mapcInstructions[2] = Instruct(CreateCOP(COP_Interrupt, CreateStackSoftwareInterruptCycles(pcCOPVector, &CW65C816::COP)));
+    mapcInstructions[3] = Instruct(CreateORA(ORA_StackRelative, CreateStackRelativeCycles(&CW65C816::ORA)));
+    mapcInstructions[4] = Instruct(CreateTSB(TSB_DirectPage, CreateDirectRMWCycles(&CW65C816::TSB)));
+    mapcInstructions[5] = Instruct(CreateORA(ORA_DirectPage, CreateDirectCycles(&CW65C816::ORA, WFR_M)));
+    mapcInstructions[6] = Instruct(CreateASL(ASL_DirectPage, CreateDirectRMWCycles(&CW65C816::ASL)));
+    mapcInstructions[7] = Instruct(CreateORA(ORA_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::ORA)));
+    mapcInstructions[8] = Instruct(CreatePHP(PHP_StackImplied, CreateStackImpliedPHPCycles(&CW65C816::PHP)));
+    mapcInstructions[9] = Instruct(CreateORA(ORA_Immediate, CreateImmediateCycles(&CW65C816::ORA, WFR_M)));
+    mapcInstructions[10] = Instruct(CreateSLA(ASL_Accumulator, CreateAccumulatorCycles(&CW65C816::ASL_A)));
+    mapcInstructions[11] = Instruct(CreatePHD(PHD_StackImplied, CreateStackPHDCycles(&CW65C816::PHD)));
+    mapcInstructions[12] = Instruct(CreateTSB(TSB_Absolute, CreateAbsoluteRMWCycles(&CW65C816::TSB)));
+    mapcInstructions[13] = Instruct(CreateORA(ORA_Absolute, CreateAbsoluteCycles(&CW65C816::ORA, WFR_M)));
+    mapcInstructions[14] = Instruct(CreateASL(ASL_Absolute, CreateAbsoluteRMWCycles(&CW65C816::ASL)));
+    mapcInstructions[15] = Instruct(CreateORA(ORA_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::ORA)));
+    mapcInstructions[16] = Instruct(CreateBPL(BPL_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BPL)));
+    mapcInstructions[17] = Instruct(CreateORA(ORA_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::ORA)));
+    mapcInstructions[18] = Instruct(CreateORA(ORA_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::ORA)));
+    mapcInstructions[19] = Instruct(CreateORA(ORA_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::ORA)));
+    mapcInstructions[20] = Instruct(CreateTRB(TRB_DirectPage, CreateDirectRMWCycles(&CW65C816::TRB)));
+    mapcInstructions[21] = Instruct(CreateORA(ORA_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::ORA, WFR_M)));
+    mapcInstructions[22] = Instruct(CreateASL(ASL_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::ASL)));
+    mapcInstructions[23] = Instruct(CreateORA(ORA_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::ORA)));
+    mapcInstructions[24] = Instruct(CreateCLC(CLC_Implied, CreateImpliedCycles(&CW65C816::CLC)));
+    mapcInstructions[25] = Instruct(CreateORA(ORA_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::ORA, WFR_M)));
+    mapcInstructions[26] = Instruct(CreateINC_A(INC_Accumulator, CreateAccumulatorCycles(&CW65C816::INC_A)));
+    mapcInstructions[27] = Instruct(CreateTCS(TCS_Implied, CreateImpliedCycles(&CW65C816::TCS)));
+    mapcInstructions[28] = Instruct(CreateTRB(TRB_Absolute, CreateAbsoluteRMWCycles(&CW65C816::TRB)));
+    mapcInstructions[29] = Instruct(CreateORA(ORA_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::ORA, WFR_M)));
+    mapcInstructions[30] = Instruct(CreateASL(ASL_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::ASL)));
+    mapcInstructions[31] = Instruct(CreateORA(ORA_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::ORA)));
+    mapcInstructions[32] = Instruct(CreateJSR(JSR_Absolute, CreateAbsoluteJSRCycles()));
+    mapcInstructions[33] = Instruct(CreateAND(AND_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::AND)));
+    mapcInstructions[34] = Instruct(CreateJSL(JSL_AbsoluteLong, CreateAbsoluteLongJSLCycles()));
+    mapcInstructions[35] = Instruct(CreateAND(AND_StackRelative, CreateStackRelativeCycles(&CW65C816::AND)));
+    mapcInstructions[36] = Instruct(CreateBIT(BIT_DirectPage, CreateDirectCycles(&CW65C816::BIT, WFR_M)));
+    mapcInstructions[37] = Instruct(CreateAND(AND_DirectPage, CreateDirectCycles(&CW65C816::AND, WFR_M)));
+    mapcInstructions[38] = Instruct(CreateROL(ROL_DirectPage, CreateDirectRMWCycles(&CW65C816::ROL)));
+    mapcInstructions[39] = Instruct(CreateAND(AND_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::AND)));
+    mapcInstructions[40] = Instruct(CreatePLP(PLP_StackImplied, CreateStackPLPCycles(&CW65C816::PLP)));
+    mapcInstructions[41] = Instruct(CreateAND(AND_Immediate, CreateImmediateCycles(&CW65C816::AND, WFR_M)));
+    mapcInstructions[42] = Instruct(CreateRLA(ROL_Accumulator, CreateAccumulatorCycles(&CW65C816::ROL_A)));
+    mapcInstructions[43] = Instruct(CreatePLD(PLD_StackImplied, CreateStackPLDCycles(&CW65C816::PLD)));
+    mapcInstructions[44] = Instruct(CreateBIT(BIT_Absolute, CreateAbsoluteCycles(&CW65C816::BIT, WFR_M)));
+    mapcInstructions[45] = Instruct(CreateAND(AND_Absolute, CreateAbsoluteCycles(&CW65C816::AND, WFR_M)));
+    mapcInstructions[46] = Instruct(CreateROL(ROL_Absolute, CreateAbsoluteRMWCycles(&CW65C816::ROL)));
+    mapcInstructions[47] = Instruct(CreateAND(AND_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::AND)));
+    mapcInstructions[48] = Instruct(CreateBMI(BMI_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BMI)));
+    mapcInstructions[49] = Instruct(CreateAND(AND_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::AND)));
+    mapcInstructions[50] = Instruct(CreateAND(AND_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::AND)));
+    mapcInstructions[51] = Instruct(CreateAND(AND_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::AND)));
+    mapcInstructions[52] = Instruct(CreateBIT(BIT_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::BIT, WFR_M)));
+    mapcInstructions[53] = Instruct(CreateAND(AND_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::AND, WFR_M)));
+    mapcInstructions[54] = Instruct(CreateROL(ROL_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::ROL)));
+    mapcInstructions[55] = Instruct(CreateAND(AND_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::AND)));
+    mapcInstructions[56] = Instruct(CreateSEC(SEC_Implied, CreateImpliedCycles(&CW65C816::SEC)));
+    mapcInstructions[57] = Instruct(CreateAND(AND_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::AND, WFR_M)));
+    mapcInstructions[58] = Instruct(CreateDEC_A(DEC_Accumulator, CreateAccumulatorCycles(&CW65C816::DEC_A)));
+    mapcInstructions[59] = Instruct(CreateTSC(TSC_Implied, CreateImpliedCycles(&CW65C816::TSC)));
+    mapcInstructions[60] = Instruct(CreateBIT(BIT_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::BIT, WFR_M)));
+    mapcInstructions[61] = Instruct(CreateAND(AND_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::AND, WFR_M)));
+    mapcInstructions[62] = Instruct(CreateROL(ROL_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::ROL)));
+    mapcInstructions[63] = Instruct(CreateAND(AND_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::AND)));
+    mapcInstructions[64] = Instruct(CreateRTI(RTI_StackImplied, CreateStackRTICycles()));
+    mapcInstructions[65] = Instruct(CreateEOR(EOR_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::EOR)));
+    mapcInstructions[66] = Instruct(CreateWDM(WDM_Implied, CreateWDMImpliedCycles(&CW65C816::WDM)));
+    mapcInstructions[67] = Instruct(CreateEOR(EOR_StackRelative, CreateStackRelativeCycles(&CW65C816::EOR)));
+    mapcInstructions[68] = Instruct(CreateMVP(MVP_BlockMove, CreateBlockMoveCycles(&CW65C816::MVP)));
+    mapcInstructions[69] = Instruct(CreateEOR(EOR_DirectPage, CreateDirectCycles(&CW65C816::EOR, WFR_M)));
+    mapcInstructions[70] = Instruct(CreateLSR(LSR_DirectPage, CreateDirectRMWCycles(&CW65C816::LSR)));
+    mapcInstructions[71] = Instruct(CreateEOR(EOR_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::EOR)));
+    mapcInstructions[72] = Instruct(CreatePHA(PHA_StackImplied, CreateStackPushCycles(&CW65C816::PHA, WFR_M)));
+    mapcInstructions[73] = Instruct(CreateEOR(EOR_Immediate, CreateImmediateCycles(&CW65C816::EOR, WFR_M)));
+    mapcInstructions[74] = Instruct(CreateSRA(LSR_Accumulator, CreateAccumulatorCycles(&CW65C816::LSR_A)));
+    mapcInstructions[75] = Instruct(CreatePHK(PHK_StackImplied, CreateStackPHKCycles(&CW65C816::PHK)));
+    mapcInstructions[76] = Instruct(CreateJMP(JMP_Absolute, CreateAbsoluteJMPCycles()));
+    mapcInstructions[77] = Instruct(CreateEOR(EOR_Absolute, CreateAbsoluteCycles(&CW65C816::EOR, WFR_M)));
+    mapcInstructions[78] = Instruct(CreateLSR(LSR_Absolute, CreateAbsoluteRMWCycles(&CW65C816::LSR)));
+    mapcInstructions[79] = Instruct(CreateEOR(EOR_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::EOR)));
+    mapcInstructions[80] = Instruct(CreateBVC(BVC_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BVC)));
+    mapcInstructions[81] = Instruct(CreateEOR(EOR_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::EOR)));
+    mapcInstructions[82] = Instruct(CreateEOR(EOR_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::EOR)));
+    mapcInstructions[83] = Instruct(CreateEOR(EOR_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::EOR)));
+    mapcInstructions[84] = Instruct(CreateMVN(MVN_BlockMove, CreateBlockMoveCycles(&CW65C816::MVN)));
+    mapcInstructions[85] = Instruct(CreateEOR(EOR_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::EOR, WFR_M)));
+    mapcInstructions[86] = Instruct(CreateLSR(LSR_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::LSR)));
+    mapcInstructions[87] = Instruct(CreateEOR(EOR_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::EOR)));
+    mapcInstructions[88] = Instruct(CreateCLI(CLI_Implied, CreateImpliedCycles(&CW65C816::CLI)));
+    mapcInstructions[89] = Instruct(CreateEOR(EOR_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::EOR, WFR_M)));
+    mapcInstructions[90] = Instruct(CreatePHY(PHY_StackImplied, CreateStackPushCycles(&CW65C816::PHY, WFR_XY)));
+    mapcInstructions[91] = Instruct(CreateTCD(TCD_Implied, CreateImpliedCycles(&CW65C816::TCD)));
+    mapcInstructions[92] = Instruct(CreateJMP(JML_AbsoluteLong, CreateAbsoluteLongJMLCycles()));
+    mapcInstructions[93] = Instruct(CreateEOR(EOR_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::EOR, WFR_M)));
+    mapcInstructions[94] = Instruct(CreateLSR(LSR_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::LSR)));
+    mapcInstructions[95] = Instruct(CreateEOR(EOR_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::EOR)));
+    mapcInstructions[96] = Instruct(CreateRTS(RTS_StackImplied, CreateStackRTSCycles()));
+    mapcInstructions[97] = Instruct(CreateADC(ADC_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::ADC)));
+    mapcInstructions[98] = Instruct(CreatePER(PER_StackProgramCounterRelativeLong, CreateStackPERCycles(&CW65C816::PER)));
+    mapcInstructions[99] = Instruct(CreateADC(ADC_StackRelative, CreateStackRelativeCycles(&CW65C816::ADC)));
+    mapcInstructions[100] = Instruct(CreateSTZ(STZ_DirectPage, CreateDirectWriteCycles(&CW65C816::STZ, WFR_M)));
+    mapcInstructions[101] = Instruct(CreateADC(ADC_DirectPage, CreateDirectCycles(&CW65C816::ADC, WFR_M)));
+    mapcInstructions[102] = Instruct(CreateROR(ROR_DirectPage, CreateDirectRMWCycles(&CW65C816::ROR)));
+    mapcInstructions[103] = Instruct(CreateADC(ADC_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::ADC)));
+    mapcInstructions[104] = Instruct(CreatePLA(PLA_Stack, CreateStackPullCycles(&CW65C816::PLA, WFR_M)));
+    mapcInstructions[105] = Instruct(CreateADC(ADC_Immediate, CreateImmediateCycles(&CW65C816::ADC, WFR_M)));
+    mapcInstructions[106] = Instruct(CreateRRA(ROR_Accumulator, CreateAccumulatorCycles(&CW65C816::ROR_A)));
+    mapcInstructions[107] = Instruct(CreateRTL(RTL_StackImplied, CreateStackRTLCycles()));
+    mapcInstructions[108] = Instruct(CreateJMP(JMP_AbsoluteIndirect, CreateAbsoluteIndirectJMPCycles()));
+    mapcInstructions[109] = Instruct(CreateADC(ADC_Absolute, CreateAbsoluteCycles(&CW65C816::ADC, WFR_M)));
+    mapcInstructions[110] = Instruct(CreateROR(ROR_Absolute, CreateAbsoluteRMWCycles(&CW65C816::ROR)));
+    mapcInstructions[111] = Instruct(CreateADC(ADC_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::ADC)));
+    mapcInstructions[112] = Instruct(CreateBVS(BVS_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BVS)));
+    mapcInstructions[113] = Instruct(CreateADC(ADC_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::ADC)));
+    mapcInstructions[114] = Instruct(CreateADC(ADC_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::ADC)));
+    mapcInstructions[115] = Instruct(CreateADC(ADC_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::ADC)));
+    mapcInstructions[116] = Instruct(CreateSTZ(STZ_DirectPageIndexedWithX, CreateDirectIndexedWithXWriteCycles(&CW65C816::STZ, WFR_M)));
+    mapcInstructions[117] = Instruct(CreateADC(ADC_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::ADC, WFR_M)));
+    mapcInstructions[118] = Instruct(CreateROR(ROR_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::ROR)));
+    mapcInstructions[119] = Instruct(CreateADC(ADC_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::ADC)));
+    mapcInstructions[120] = Instruct(CreateSEI(SEI_Implied, CreateImpliedCycles(&CW65C816::SEI)));
+    mapcInstructions[121] = Instruct(CreateADC(ADC_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::ADC, WFR_M)));
+    mapcInstructions[122] = Instruct(CreatePLY(PLY_StackImplied, CreateStackPullCycles(&CW65C816::PLY, WFR_XY)));
+    mapcInstructions[123] = Instruct(CreateTDC(TDC_Implied, CreateImpliedCycles(&CW65C816::TDC)));
+    mapcInstructions[124] = Instruct(CreateJMP(JMP_AbsoluteIndexedIndirectWithX, CreateAbsoluteIndexedIndirectWithXJMPCycles()));
+    mapcInstructions[125] = Instruct(CreateADC(ADC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::ADC, WFR_M)));
+    mapcInstructions[126] = Instruct(CreateROR(ROR_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::ROR)));
+    mapcInstructions[127] = Instruct(CreateADC(ADC_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::ADC)));
+    mapcInstructions[128] = Instruct(CreateBRA(BRA_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BRA)));
+    mapcInstructions[129] = Instruct(CreateSTA(STA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXWriteCycles(&CW65C816::STA)));
+    mapcInstructions[130] = Instruct(CreateBRL(BRL_ProgramCounterRelativeLong, CreateRelativeLongCycles(&CW65C816::BRA)));
+    mapcInstructions[131] = Instruct(CreateSTA(STA_StackRelative, CreateStackRelativeWriteCycles(&CW65C816::STA)));
+    mapcInstructions[132] = Instruct(CreateSTY(STY_DirectPage, CreateDirectWriteCycles(&CW65C816::STY, WFR_XY)));
+    mapcInstructions[133] = Instruct(CreateSTA(STA_DirectPage, CreateDirectWriteCycles(&CW65C816::STA, WFR_M)));
+    mapcInstructions[134] = Instruct(CreateSTX(STX_DirectPage, CreateDirectWriteCycles(&CW65C816::STX, WFR_XY)));
+    mapcInstructions[135] = Instruct(CreateSTA(STA_DirectPageIndirectLong, CreateDirectIndirectLongWriteCycles(&CW65C816::STA)));
+    mapcInstructions[136] = Instruct(CreateDEY(DEY_Implied, CreateImpliedCycles(&CW65C816::DEY)));
+    mapcInstructions[137] = Instruct(CreateBIT(BIT_Immediate, CreateImmediateCycles(&CW65C816::BIT_A, WFR_M)));
+    mapcInstructions[138] = Instruct(CreateTXA(TXA_Implied, CreateImpliedCycles(&CW65C816::TXA)));
+    mapcInstructions[139] = Instruct(CreatePHB(PHB_StackImplied, CreateStackPHBCycles(&CW65C816::PHB)));
+    mapcInstructions[140] = Instruct(CreateSTY(STY_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STY, WFR_XY)));
+    mapcInstructions[141] = Instruct(CreateSTA(STA_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STA, WFR_M)));
+    mapcInstructions[142] = Instruct(CreateSTX(STX_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STX, WFR_XY)));
+    mapcInstructions[143] = Instruct(CreateSTA(STA_AbsoluteLong, CreateAbsoluteLongWriteCycles(&CW65C816::STA)));
+    mapcInstructions[144] = Instruct(CreateBCC(BCC_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BCC)));
+    mapcInstructions[145] = Instruct(CreateSTA(STA_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYWriteCycles(&CW65C816::STA)));
+    mapcInstructions[146] = Instruct(CreateSTA(STA_DirectPageIndirect, CreateDirectIndirectWriteCycles(&CW65C816::STA)));
+    mapcInstructions[147] = Instruct(CreateSTA(STA_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYWriteCycles(&CW65C816::STA)));
+    mapcInstructions[148] = Instruct(CreateSTY(STY_DirectPageIndexedWithX, CreateDirectIndexedWithXWriteCycles(&CW65C816::STY, WFR_XY)));
+    mapcInstructions[149] = Instruct(CreateSTA(STA_DirectPageIndexedWithX, CreateDirectIndexedWithXWriteCycles(&CW65C816::STA, WFR_M)));
+    mapcInstructions[150] = Instruct(CreateSTX(STX_DirectPageIndexedWithY, CreateDirectIndexedWithYWriteCycles(&CW65C816::STX, WFR_XY)));
+    mapcInstructions[151] = Instruct(CreateSTA(STA_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYWriteCycles(&CW65C816::STA)));
+    mapcInstructions[152] = Instruct(CreateTYA(TYA_Implied, CreateImpliedCycles(&CW65C816::TYA)));
+    mapcInstructions[153] = Instruct(CreateSTA(STA_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYWriteCycles(&CW65C816::STA)));
+    mapcInstructions[154] = Instruct(CreateTXS(TXS_Implied, CreateImpliedCycles(&CW65C816::TXS)));
+    mapcInstructions[155] = Instruct(CreateTXY(TXY_Implied, CreateImpliedCycles(&CW65C816::TXY)));
+    mapcInstructions[156] = Instruct(CreateSTZ(STZ_Absolute, CreateAbsoluteWriteCycles(&CW65C816::STZ, WFR_M)));
+    mapcInstructions[157] = Instruct(CreateSTA(STA_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXWriteCycles(&CW65C816::STA)));
+    mapcInstructions[158] = Instruct(CreateSTZ(STZ_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXWriteCycles(&CW65C816::STZ)));
+    mapcInstructions[159] = Instruct(CreateSTA(STA_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXWriteCycles(&CW65C816::STA)));
+    mapcInstructions[160] = Instruct(CreateLDY(LDY_Immediate, CreateImmediateCycles(&CW65C816::LDY, WFR_XY)));
+    mapcInstructions[161] = Instruct(CreateLDA(LDA_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::LDA)));
+    mapcInstructions[162] = Instruct(CreateLDX(LDX_Immediate, CreateImmediateCycles(&CW65C816::LDX, WFR_XY)));
+    mapcInstructions[163] = Instruct(CreateLDA(LDA_StackRelative, CreateStackRelativeCycles(&CW65C816::LDA)));
+    mapcInstructions[164] = Instruct(CreateLDY(LDY_DirectPage, CreateDirectCycles(&CW65C816::LDY, WFR_XY)));
+    mapcInstructions[165] = Instruct(CreateLDA(LDA_DirectPage, CreateDirectCycles(&CW65C816::LDA, WFR_M)));
+    mapcInstructions[166] = Instruct(CreateLDX(LDX_DirectPage, CreateDirectCycles(&CW65C816::LDX, WFR_XY)));
+    mapcInstructions[167] = Instruct(CreateLDA(LDA_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::LDA)));
+    mapcInstructions[168] = Instruct(CreateTAY(TAY_Implied, CreateImpliedCycles(&CW65C816::TAY)));
+    mapcInstructions[169] = Instruct(CreateLDA(LDA_Immediate, CreateImmediateCycles(&CW65C816::LDA, WFR_M)));
+    mapcInstructions[170] = Instruct(CreateTAX(TAX_Implied, CreateImpliedCycles(&CW65C816::TAX)));
+    mapcInstructions[171] = Instruct(CreatePLB(PLB_StackImplied, CreateStackPLBCycles(&CW65C816::PLB)));
+    mapcInstructions[172] = Instruct(CreateLDY(LDY_Absolute, CreateAbsoluteCycles(&CW65C816::LDY, WFR_XY)));
+    mapcInstructions[173] = Instruct(CreateLDA(LDA_Absolute, CreateAbsoluteCycles(&CW65C816::LDA, WFR_M)));
+    mapcInstructions[174] = Instruct(CreateLDX(LDX_Absolute, CreateAbsoluteCycles(&CW65C816::LDX, WFR_XY)));
+    mapcInstructions[175] = Instruct(CreateLDA(LDA_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::LDA)));
+    mapcInstructions[176] = Instruct(CreateBCS(BCS_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BCS)));
+    mapcInstructions[177] = Instruct(CreateLDA(LDA_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::LDA)));
+    mapcInstructions[178] = Instruct(CreateLDA(LDA_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::LDA)));
+    mapcInstructions[179] = Instruct(CreateLDA(LDA_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::LDA)));
+    mapcInstructions[180] = Instruct(CreateLDY(LDY_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::LDY, WFR_XY)));
+    mapcInstructions[181] = Instruct(CreateLDA(LDA_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::LDA, WFR_M)));
+    mapcInstructions[182] = Instruct(CreateLDX(LDX_DirectPageIndexedWithY, CreateDirectIndexedWithYCycles(&CW65C816::LDX, WFR_XY)));
+    mapcInstructions[183] = Instruct(CreateLDA(LDA_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::LDA)));
+    mapcInstructions[184] = Instruct(CreateCLV(CLV_Implied, CreateImpliedCycles(&CW65C816::CLV)));
+    mapcInstructions[185] = Instruct(CreateLDA(LDA_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::LDA, WFR_M)));
+    mapcInstructions[186] = Instruct(CreateTSX(TSX_Implied, CreateImpliedCycles(&CW65C816::TSX)));
+    mapcInstructions[187] = Instruct(CreateTYX(TYX_Implied, CreateImpliedCycles(&CW65C816::TYX)));
+    mapcInstructions[188] = Instruct(CreateLDY(LDY_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::LDY, WFR_XY)));
+    mapcInstructions[189] = Instruct(CreateLDA(LDA_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::LDA, WFR_M)));
+    mapcInstructions[190] = Instruct(CreateLDX(LDX_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::LDX, WFR_XY)));
+    mapcInstructions[191] = Instruct(CreateLDA(LDA_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::LDA)));
+    mapcInstructions[192] = Instruct(CreateCPY(CPY_Immediate, CreateImmediateCycles(&CW65C816::CPY, WFR_XY)));
+    mapcInstructions[193] = Instruct(CreateCMP(CMP_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::CMP)));
+    mapcInstructions[194] = Instruct(CreateREP(REP_Immediate, CreateImmediateREPSEPCycles(&CW65C816::REP)));
+    mapcInstructions[195] = Instruct(CreateCMP(CMP_StackRelative, CreateStackRelativeCycles(&CW65C816::CMP)));
+    mapcInstructions[196] = Instruct(CreateCPY(CPY_DirectPage, CreateDirectCycles(&CW65C816::CPY, WFR_XY)));
+    mapcInstructions[197] = Instruct(CreateCMP(CMP_DirectPage, CreateDirectCycles(&CW65C816::CMP, WFR_M)));
+    mapcInstructions[198] = Instruct(CreateDEC(DEC_DirectPage, CreateDirectRMWCycles(&CW65C816::DEC)));
+    mapcInstructions[199] = Instruct(CreateCMP(CMP_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::CMP)));
+    mapcInstructions[200] = Instruct(CreateINY(INY_Implied, CreateImpliedCycles(&CW65C816::INY)));
+    mapcInstructions[201] = Instruct(CreateCMP(CMP_Immediate, CreateImmediateCycles(&CW65C816::CMP, WFR_M)));
+    mapcInstructions[202] = Instruct(CreateDEX(DEX_Implied, CreateImpliedCycles(&CW65C816::DEX)));
+    mapcInstructions[203] = Instruct(CreateWAI(WAI_Implied, CreateWaitForInterruptCycles()));
+    mapcInstructions[204] = Instruct(CreateCPY(CPY_Absolute, CreateAbsoluteCycles(&CW65C816::CPY, WFR_XY)));
+    mapcInstructions[205] = Instruct(CreateCMP(CMP_Absolute, CreateAbsoluteCycles(&CW65C816::CMP, WFR_M)));
+    mapcInstructions[206] = Instruct(CreateDEC(DEC_Absolute, CreateAbsoluteRMWCycles(&CW65C816::DEC)));
+    mapcInstructions[207] = Instruct(CreateCMP(CMP_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::CMP)));
+    mapcInstructions[208] = Instruct(CreateBNE(BNE_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BNE)));
+    mapcInstructions[209] = Instruct(CreateCMP(CMP_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::CMP)));
+    mapcInstructions[210] = Instruct(CreateCMP(CMP_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::CMP)));
+    mapcInstructions[211] = Instruct(CreateCMP(CMP_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::CMP)));
+    mapcInstructions[212] = Instruct(CreatePEI(PEI_StackDirectPageIndirect, CreateStackPEICycles()));
+    mapcInstructions[213] = Instruct(CreateCMP(CMP_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::CMP, WFR_M)));
+    mapcInstructions[214] = Instruct(CreateDEC(DEC_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::DEC)));
+    mapcInstructions[215] = Instruct(CreateCMP(CMP_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::CMP)));
+    mapcInstructions[216] = Instruct(CreateCLD(CLD_Implied, CreateImpliedCycles(&CW65C816::CLD)));
+    mapcInstructions[217] = Instruct(CreateCMP(CMP_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::CMP, WFR_M)));
+    mapcInstructions[218] = Instruct(CreatePHX(PHX_StackImplied, CreateStackPushCycles(&CW65C816::PHX, WFR_XY)));
+    mapcInstructions[219] = Instruct(CreateSTP(STP_Implied, CreateStopTheClockCycles(&CW65C816::STP)));
+    mapcInstructions[220] = Instruct(CreateJMP(JML_AbsoluteIndirectLong, CreateAbsoluteIndirectJMLCycles()));
+    mapcInstructions[221] = Instruct(CreateCMP(CMP_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::CMP, WFR_M)));
+    mapcInstructions[222] = Instruct(CreateDEC(DEC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::DEC)));
+    mapcInstructions[223] = Instruct(CreateCMP(CMP_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::CMP)));
+    mapcInstructions[224] = Instruct(CreateCPX(CPX_Immediate, CreateImmediateCycles(&CW65C816::CPX, WFR_XY)));
+    mapcInstructions[225] = Instruct(CreateSBC(SBC_DirectPageIndexedIndirectWithX, CreateDirectIndexedIndirectWithXCycles(&CW65C816::SBC)));
+    mapcInstructions[226] = Instruct(CreateSEP(SEP_Immediate, CreateImmediateREPSEPCycles(&CW65C816::SEP)));
+    mapcInstructions[227] = Instruct(CreateSBC(SBC_StackRelative, CreateStackRelativeCycles(&CW65C816::SBC)));
+    mapcInstructions[228] = Instruct(CreateCPX(CPX_DirectPage, CreateDirectCycles(&CW65C816::CPX, WFR_XY)));
+    mapcInstructions[229] = Instruct(CreateSBC(SBC_DirectPage, CreateDirectCycles(&CW65C816::SBC, WFR_M)));
+    mapcInstructions[230] = Instruct(CreateINC(INC_DirectPage, CreateDirectRMWCycles(&CW65C816::INC)));
+    mapcInstructions[231] = Instruct(CreateSBC(SBC_DirectPageIndirectLong, CreateDirectIndirectLongCycles(&CW65C816::SBC)));
+    mapcInstructions[232] = Instruct(CreateINX(INX_Implied, CreateImpliedCycles(&CW65C816::INX)));
+    mapcInstructions[233] = Instruct(CreateSBC(SBC_Immediate, CreateImmediateCycles(&CW65C816::SBC, WFR_M)));
+    mapcInstructions[234] = Instruct(CreateNOP(NOP_Implied, CreateImpliedCycles(&CW65C816::NOP)));
+    mapcInstructions[235] = Instruct(CreateXBA(XBA_Implied, CreateImpliedXBACycles(&CW65C816::XBA)));
+    mapcInstructions[236] = Instruct(CreateCPX(CPX_Absolute, CreateAbsoluteCycles(&CW65C816::CPX, WFR_XY)));
+    mapcInstructions[237] = Instruct(CreateSBC(SBC_Absolute, CreateAbsoluteCycles(&CW65C816::SBC, WFR_M)));
+    mapcInstructions[238] = Instruct(CreateINC(INC_Absolute, CreateAbsoluteRMWCycles(&CW65C816::INC)));
+    mapcInstructions[239] = Instruct(CreateSBC(SBC_AbsoluteLong, CreateAbsoluteLongCycles(&CW65C816::SBC)));
+    mapcInstructions[240] = Instruct(CreateBEQ(BEQ_ProgramCounterRelative, CreateRelativeShortCycles(&CW65C816::BEQ)));
+    mapcInstructions[241] = Instruct(CreateSBC(SBC_DirectPageIndirectIndexedWithY, CreateDirectIndirectIndexedWithYCycles(&CW65C816::SBC)));
+    mapcInstructions[242] = Instruct(CreateSBC(SBC_DirectPageIndirect, CreateDirectIndirectCycles(&CW65C816::SBC)));
+    mapcInstructions[243] = Instruct(CreateSBC(SBC_StackRelativeIndirectIndexedWithY, CreateStackRelativeIndirectIndexedWithYCycles(&CW65C816::SBC)));
+    mapcInstructions[244] = Instruct(CreatePEA(PEA_StackImmediate, CreateStackPEACycles()));
+    mapcInstructions[245] = Instruct(CreateSBC(SBC_DirectPageIndexedWithX, CreateDirectIndexedWithXCycles(&CW65C816::SBC, WFR_M)));
+    mapcInstructions[246] = Instruct(CreateINC(INC_DirectPageIndexedWithX, CreateDirectIndexedWithXRMWCycles(&CW65C816::INC)));
+    mapcInstructions[247] = Instruct(CreateSBC(SBC_DirectPageIndirectLongIndexedWithY, CreateDirectIndirectLongIndexedWithYCycles(&CW65C816::SBC)));
+    mapcInstructions[248] = Instruct(CreateSED(SED_Implied, CreateImpliedCycles(&CW65C816::SED)));
+    mapcInstructions[249] = Instruct(CreateSBC(SBC_AbsoluteIndexedWithY, CreateAbsoluteIndexedWithYCycles(&CW65C816::SBC, WFR_M)));
+    mapcInstructions[250] = Instruct(CreatePLX(PLX_StackImplied, CreateStackPullCycles(&CW65C816::PLX, WFR_XY)));
+    mapcInstructions[251] = Instruct(CreateXCE(XCE_Implied, CreateImpliedCycles(&CW65C816::XCE)));
+    mapcInstructions[252] = Instruct(CreateJSR(JSR_AbsoluteIndexedIndirectWithX, CreateAbsoluteIndexedIndirectWithXJSRCycles()));
+    mapcInstructions[253] = Instruct(CreateSBC(SBC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXCycles(&CW65C816::SBC, WFR_M)));
+    mapcInstructions[254] = Instruct(CreateINC(INC_AbsoluteIndexedWithX, CreateAbsoluteIndexedWithXRMWCycles(&CW65C816::INC)));
+    mapcInstructions[255] = Instruct(CreateSBC(SBC_AbsoluteLongIndexedWithX, CreateAbsoluteLongIndexedWithXCycles(&CW65C816::SBC)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CInstruction* CInstructionFactory::Instruct(CInstruction* pcInstruction)
+{
+    muiInstructions++;
+    return pcInstruction;
 }
 
 
@@ -419,7 +439,7 @@ void CInstructionFactory::ValidateOpCodes(void)
         if (pcInstruction->GetCode() != i)
         {
 
-            gcLogger.Error2(__METHOD__, " OpCode [", pcInstruction->GetName(), "] has uiCode [", ShortToString(pcInstruction->GetCode()), "] but is at index [", ShortToString(i), "].", NULL);
+            gcLogger.Error2(__METHOD__, " Opcode [", pcInstruction->GetName(), "] has uiCode [", ShortToString(pcInstruction->GetCode()), "] but is at index [", ShortToString(i), "].", NULL);
         }
     }
 }
@@ -1491,7 +1511,7 @@ CInstruction* CInstructionFactory::CreateBRK(uint16 uiCode, CInstructionCycles* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstructionFactory::CreateReset(void)
+CInstruction* CInstructionFactory::CreateReset(void)
 {
     CResetVector* pcVector;
 
@@ -1499,8 +1519,11 @@ void CInstructionFactory::CreateReset(void)
     pcVector->Init();
 
     mpcReset = NewMalloc<CInstruction>();
-    mpcReset->Init(256, CreateStackResetCycles(pcVector, &CW65C816::RES), "RES",
+    mpcReset->Init(muiInstructions, CreateStackResetCycles(pcVector, &CW65C816::RES), "RES",
         "Reset the CPU.");
+
+    mapcInstructions[muiInstructions] = mpcReset;
+    return mpcReset;
 }
 
 
@@ -1508,7 +1531,7 @@ void CInstructionFactory::CreateReset(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstructionFactory::CreateIRQ(void)
+CInstruction* CInstructionFactory::CreateIRQ(void)
 {
     CIRQVector* pcVector;
 
@@ -1516,8 +1539,11 @@ void CInstructionFactory::CreateIRQ(void)
     pcVector->Init();
 
     mpcIRQ = NewMalloc<CInstruction>();
-    mpcIRQ->Init(256, CreateStackHardwareInterruptCycles(pcVector, &CW65C816::IRQ), "IRQ",
+    mpcIRQ->Init(muiInstructions, CreateStackHardwareInterruptCycles(pcVector, &CW65C816::IRQ), "IRQ",
         "Interrupt request.");
+
+    mapcInstructions[muiInstructions] = mpcIRQ;
+    return mpcIRQ;
 }
 
 
@@ -1525,7 +1551,7 @@ void CInstructionFactory::CreateIRQ(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstructionFactory::CreateNMI(void)
+CInstruction* CInstructionFactory::CreateNMI(void)
 {
     CNMIVector* pcVector;
 
@@ -1533,8 +1559,11 @@ void CInstructionFactory::CreateNMI(void)
     pcVector->Init();
 
     mpcNMI = NewMalloc<CInstruction>();
-    mpcNMI->Init(256, CreateStackHardwareInterruptCycles(pcVector, &CW65C816::NMI), "NMI",
+    mpcNMI->Init(muiInstructions, CreateStackHardwareInterruptCycles(pcVector, &CW65C816::NMI), "NMI",
         "Non-maskable interrupt.");
+
+    mapcInstructions[muiInstructions] = mpcNMI;
+    return mpcNMI;
 }
 
 
@@ -1542,7 +1571,7 @@ void CInstructionFactory::CreateNMI(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstructionFactory::CreateAbort(void)
+CInstruction* CInstructionFactory::CreateAbort(void)
 {
     CNMIVector* pcVector;
 
@@ -1550,8 +1579,11 @@ void CInstructionFactory::CreateAbort(void)
     pcVector->Init();
 
     mpcAbort = NewMalloc<CInstruction>();
-    mpcAbort->Init(256, CreateStackAbortInterruptCycles(pcVector, &CW65C816::ABORT), "ABORT",
+    mpcAbort->Init(muiInstructions, CreateStackAbortInterruptCycles(pcVector, &CW65C816::ABORT), "ABORT",
         "Stop the current instruction and return processor status to what it was prior to the current instruction.");
+
+    mapcInstructions[muiInstructions] = mpcAbort;
+    return mpcAbort;
 }
 
 
@@ -1559,10 +1591,13 @@ void CInstructionFactory::CreateAbort(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstructionFactory::CreateFetchNext(void)
+CInstruction* CInstructionFactory::CreateFetchNext(void)
 {
     mpcFetchNext = NewMalloc<CInstruction>();
-    mpcFetchNext->Init(257, CreateFetchOpCodeCycles(), "NEXT",
+    mpcFetchNext->Init(muiInstructions, CreateFetchOpCodeCycles(), "NEXT",
         "Fetch Opcode from address in program counter.");
+
+    mapcInstructions[muiInstructions] = mpcFetchNext;
+    return mpcFetchNext;
 }
 

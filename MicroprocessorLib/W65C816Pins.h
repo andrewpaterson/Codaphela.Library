@@ -28,6 +28,7 @@ protected:
 public:
 	void			Init(void);
 
+	//Microprocessor side methods.
 	void			WriteRWB(CTimeline* pcTimeline, bool bValue);
 	void			WriteMX(CTimeline* pcTimeline, bool bValue);
 	void			WriteVDA(CTimeline* pcTimeline, bool bValue);
@@ -46,6 +47,32 @@ public:
 	STraceValue		ReadIRQ(CTimeline* pcTimeline);
 	STraceValue		ReadAbort(CTimeline* pcTimeline);
 	STraceValue		ReadBE(CTimeline* pcTimeline);
+
+	//Circuit side methods.
+	void			Reset(void);
+	void			HalfCycle(void);
+
+	void			SetData(uint8 uiData);
+	void			SetRDY(bool bValue);
+	void			SetABORTB(bool bValue);
+	void			SetIRQB(bool bValue);
+	void			SetNMIB(bool bValue);
+	void			SetRESB(bool bValue);
+	void			SetPHI2(bool bValue);
+	void			SetBE(bool bValue);
+
+	uint8			GetData(void);
+	uint16			GetAddress(void);
+
+	bool			GetVPB(void);
+	bool			GetRDY(void);
+	bool			GetMLB(void);
+	bool			GetVPA(void);
+	bool			GetVDA(void);
+	bool			GetMX(void);
+	bool			GetE(void);
+	bool			GetRWB(void);
+	bool			GetPHI2(void);
 };
 
 
