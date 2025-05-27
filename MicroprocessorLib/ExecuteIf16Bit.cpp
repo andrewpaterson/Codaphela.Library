@@ -8,12 +8,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecuteIf16Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth)
+void CExecuteIf16Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth, bool bInitialSide)
 {
     COperation::Init();
 
     mfFunction = fFunction;
     meWidth = eWidth;
+    mbInitialSide = bInitialSide;
 }
 
 
@@ -42,6 +43,16 @@ void CExecuteIf16Bit::Execute(CW65C816* pcCPU)
         LOG_ERROR("Unknown Width.");
     }
 }
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CExecuteIf16Bit::IsInitialSide(void)
+{
+    return mbInitialSide;
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////

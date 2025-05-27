@@ -34,6 +34,7 @@ void CW65C816State::Init(void)
 
     muiData = 0;
     miCycle = 0;
+	miNextCycle = 0;
 
 	muiOpCodeIndex = 0xffff;
     muiInternal16BitData = 0;
@@ -73,6 +74,7 @@ void CW65C816State::Init(CW65C816State state)
     mcProgramCounter.Init(&state.mcProgramCounter);
     muiStackPointer = state.muiStackPointer;
     miCycle = state.miCycle;
+	miNextCycle = state.miNextCycle;
     muiOpCodeIndex = state.muiOpCodeIndex;
     mbStopped = state.mbStopped;
     muiAbortProcessRegister = state.muiAbortProcessRegister;
@@ -213,6 +215,7 @@ void CW65C816State::ResetPulled(void)
     muiOpCodeIndex = GetResetOpcode()->GetCode();
     mbStopped = false;
     miCycle = 0;
+	miNextCycle = 0;
 }
 
 
@@ -452,11 +455,12 @@ void CW65C816State::Cycle(CW65C816* pcCPU)
 {
     if (mbNextInstruction)
     {
-        miCycle = -1;
+		miNextCycle = 0;
         mbNextInstruction = false;
         NextInstruction();
     }
 
+	miCycle = miNextCycle;
     NextCycle();
     while (!GetBusCycle()->MustExecute(pcCPU))
     {
@@ -469,7 +473,7 @@ void CW65C816State::Cycle(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::ExecuteOperation(CW65C816* pcCPU)
+void CW65C816State::ExecuteInitialSideOperation(CW65C816* pcCPU)
 {
 	CBusCycle*			pcBusCycle;
 	COperationArray*	pcOperations;
@@ -483,7 +487,36 @@ void CW65C816State::ExecuteOperation(CW65C816* pcCPU)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcOperation = pcOperations->GetPtr(i);
-		pcOperation->Execute(pcCPU);
+		if (pcOperation->IsInitialSide())
+		{
+			pcOperation->Execute(pcCPU);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816State::ExecuteTrailingSideOperation(CW65C816* pcCPU)
+{
+	CBusCycle*			pcBusCycle;
+	COperationArray*	pcOperations;
+	size				uiNumElements;
+	size				i;
+	COperation*			pcOperation;
+
+	pcBusCycle = GetBusCycle();
+	pcOperations = pcBusCycle->GetOperations();
+	uiNumElements = pcOperations->NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcOperation = pcOperations->GetPtr(i);
+		if (pcOperation->IsTrailingSide())
+		{
+			pcOperation->Execute(pcCPU);
+		}
 	}
 }
 
@@ -556,7 +589,7 @@ void CW65C816State::DoneInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::NextCycle(void)
 {
-	miCycle++;
+	miNextCycle++;
 }
 
 
@@ -1216,7 +1249,7 @@ void CW65C816State::SetAddressLow(uint8 uiAddressLow)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetAddressHigh(uint8 uiAddressHigh)
 {
-	mcAddress.SetOffsetLow(uiAddressHigh);
+	mcAddress.SetOffsetHigh(uiAddressHigh);
 }
 
 

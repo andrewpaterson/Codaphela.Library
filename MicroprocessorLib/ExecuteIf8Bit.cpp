@@ -8,12 +8,13 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecuteIf8Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth)
+void CExecuteIf8Bit::Init(CW65C816Func fFunction, EWidthFromRegister eWidth, bool bInitialSide)
 {
     COperation::Init();
 
 	mfFunction = fFunction;
 	meWidth = eWidth;
+    mbInitialSide = bInitialSide;
 }
 
 
@@ -48,6 +49,16 @@ void CExecuteIf8Bit::Execute(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CExecuteIf8Bit::IsInitialSide(void)
+{
+    return mbInitialSide;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CExecuteIf8Bit::Print(CChars* psz)
 {
 	//Work out some way of getting the function name out.
@@ -55,4 +66,5 @@ void CExecuteIf8Bit::Print(CChars* psz)
 	psz->Append(CWidthFromRegister::GetName(meWidth));
 	psz->Append("(HELP!)");
 }
+
 

@@ -1163,7 +1163,7 @@ void CW65C816::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruc
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::GetOpcodeValueHex(CChars* psz)
 {
-    return GetOpcodeValueHex(psz, mpcState->GetCycle(), mpcState->GetOpCode());
+    return GetOpcodeValueHex(psz, GetCycle(), mpcState->GetOpCode());
 }
 
 
@@ -1251,7 +1251,7 @@ char* CW65C816::GetType(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::GetCycleString(CChars* psz)
 {
-    psz->Append(mpcState->GetCycle());
+    psz->Append(GetCycle());
 }
 
 
@@ -1261,7 +1261,7 @@ void CW65C816::GetCycleString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 int16 CW65C816::GetCycle(void)
 {
-    return mpcState->GetCycle();
+    return mpcState->GetCycle() + 1;
 }
 
 
@@ -1354,16 +1354,26 @@ void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
     pcDataOperation = mpcState->GetDataOperation();
     if (pcDataOperation)
     {
-        pcBusCycle = mpcState->GetBusCycle();
         bRead = pcDataOperation->IsRead();
 
         if (bRead)
         {
             //Data on the data pins is READ on PHI falling
-            mpcState->muiData = pcPins->ReadData(pcTimeline);
+            mpcState->SetData(pcPins->ReadData(pcTimeline));
         }
 
-        mpcState->ExecuteOperation(this);
+        mpcState->ExecuteTrailingSideOperation(this);
+    }
+
+    mpcState->Cycle(this);
+
+    pcDataOperation = mpcState->GetDataOperation();
+    if (pcDataOperation)
+    {
+        pcBusCycle = mpcState->GetBusCycle();
+        bRead = pcDataOperation->IsRead();
+
+        mpcState->ExecuteInitialSideOperation(this);
 
         pcBusCycle->GetAddress(&cAddress, this);
 
@@ -1406,8 +1416,6 @@ void CW65C816::ExecutPhi2Rising(CTimeline* pcTimeline)
         {
             pcPins->WriteData(pcTimeline, mpcState->GetData());
         }
-
-        mpcState->Cycle(this);
     }
 }
 
