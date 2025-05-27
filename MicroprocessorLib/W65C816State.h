@@ -37,6 +37,7 @@ public:
 	uint16		muiStackPointer;
 
 	int16		miCycle;
+	int16		miNextCycle;
 	uint16		muiOpCodeIndex;
 	bool		mbStopped;
 
@@ -98,7 +99,10 @@ public:
 	void			SetBreakFlag(bool bBreakFlag);
 	void			SetOverflowFlag(bool bOverflowFlag);
 	void			Cycle(CW65C816* pcCPU);
-	void			ExecuteOperation(CW65C816* pcCPU);
+
+	void			ExecuteInitialSideOperation(CW65C816* pcCPU);
+	void			ExecuteTrailingSideOperation(CW65C816* pcCPU);
+
 	CBusCycle*		GetBusCycle(void);
 	void			NextInstruction(void);
 	void			DoneInstruction(void);

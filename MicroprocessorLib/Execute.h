@@ -8,11 +8,13 @@ class CExecute : public COperation
 {
 protected:
 	CW65C816Func	mfFunction;
+	bool			mbInitialSide;
 
 public:
-	void	Init(CW65C816Func fFunction);
+	void	Init(CW65C816Func fFunction, bool bInitialSide);
 
 	void	Execute(CW65C816* pcCPU) override;
+	bool	IsInitialSide(void) override;
 
 	void	Print(CChars* psz) override;
 };

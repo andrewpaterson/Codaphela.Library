@@ -50,6 +50,10 @@ void ToShortString(int16 i, char* szString, size iStringLength);
 void ToShortString(uint16 i, char* szString, size iStringLength);
 void ToIntString(int32 i, char* szString, size iStringLength);
 void ToIntString(uint32 i, char* szString, size iStringLength);
+void ToByteHexString(int8 i, char* szString, size iStringLength);
+void ToByteHexString(uint8 i, char* szString, size iStringLength);
+void ToShortHexString(int16 i, char* szString, size iStringLength);
+void ToShortHexString(uint16 i, char* szString, size iStringLength);
 void ToIntHexString(int32 i, char* szString, size iStringLength);
 void ToIntHexString(uint32 i, char* szString, size iStringLength);
 void ToLongString(int64 i, char* szString, size iStringLength);
@@ -663,8 +667,8 @@ bool PrivateAssertByteHex(int8 iExpected, int8 iActual, size iLine, char* szFile
 
 	if (iExpected != iActual)
 	{
-		ToIntHexString(iExpected, szExpected, 32);
-		ToIntHexString(iActual, szActual, 32);
+		ToByteHexString(iExpected, szExpected, 32);
+		ToByteHexString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
 	}
 	else
@@ -747,8 +751,8 @@ bool PrivateAssertShortHex(int16 iExpected, int16 iActual, size iLine, char* szF
 
 	if (iExpected != iActual)
 	{
-		ToIntHexString(iExpected, szExpected, 32);
-		ToIntHexString(iActual, szActual, 32);
+		ToShortHexString(iExpected, szExpected, 32);
+		ToShortHexString(iActual, szActual, 32);
 		return Failed((const char*)szExpected, (const char*)szActual, iLine, szFile, false);
 	}
 	else
@@ -1528,6 +1532,50 @@ void ToLongString(int64 i, char* szString, size iStringLength)
 void ToLongString(uint64 i, char* szString, size iStringLength)
 {
 	LongToString(szString, iStringLength, i, 10);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToByteHexString(int8 i, char* szString, size iStringLength)
+{
+	return ToByteHexString((uint8)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToByteHexString(uint8 i, char* szString, size iStringLength)
+{
+	ByteToString(&szString[2], iStringLength - 2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortHexString(int16 i, char* szString, size iStringLength)
+{
+	return ToShortHexString((uint16)i, szString, iStringLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void ToShortHexString(uint16 i, char* szString, size iStringLength)
+{
+	ShortToString(&szString[2], iStringLength - 2, i, 16);
+	szString[0] = '0';
+	szString[1] = 'x';
 }
 
 

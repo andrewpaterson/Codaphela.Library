@@ -16,6 +16,9 @@ public:
     virtual bool    IsData(void);
     virtual size    GetDone8(void);
     virtual size    GetDone16(void);
+
+    virtual bool    IsInitialSide(void) =0;
+            bool    IsTrailingSide(void);
 };
 
 

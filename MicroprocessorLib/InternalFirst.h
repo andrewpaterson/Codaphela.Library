@@ -10,6 +10,7 @@ public:
 	void	Init(void);
 
 	void	Execute(CW65C816* pcCPU) override;
+	bool	IsInitialSide(void) override;
 
 	void	Print(CChars* psz) override;
 };

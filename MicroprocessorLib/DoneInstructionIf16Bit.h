@@ -13,6 +13,7 @@ public:
 	void    Init(EWidthFromRegister eWidth);
 
 	void	Execute(CW65C816* pcCPU) override;
+	bool	IsInitialSide(void) override;
 
 	void	Print(CChars* psz) override;
 	size	GetDone16(void) override;

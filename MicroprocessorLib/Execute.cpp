@@ -6,11 +6,12 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExecute::Init(CW65C816Func fFunction)
+void CExecute::Init(CW65C816Func fFunction, bool bInitialSide)
 {
 	COperation::Init();
 
 	mfFunction = fFunction;
+	mbInitialSide = bInitialSide;
 }
 
 
@@ -21,6 +22,16 @@ void CExecute::Init(CW65C816Func fFunction)
 void CExecute::Execute(CW65C816* pcCPU)
 {
 	(pcCPU->*mfFunction)();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CExecute::IsInitialSide(void)
+{
+	return mbInitialSide;
 }
 
 
