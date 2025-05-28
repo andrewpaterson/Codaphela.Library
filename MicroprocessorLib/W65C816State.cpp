@@ -32,12 +32,12 @@ void CW65C816State::Init(void)
     mbBusEnable = true;
     mbNextInstruction = false;
 
-    muiData = 0;
+    //muiData = 0;
     miCycle = 0;
 	miNextCycle = 0;
 
 	muiOpCodeIndex = 0xffff;
-    muiInternal16BitData = 0;
+    muiData = 0;
     muiDirectOffset = 0;
     mcNewProgramCounter.Init();
     mcAddress.Init();
@@ -45,6 +45,8 @@ void CW65C816State::Init(void)
 
 	mbPreviousClockHigh = false;
 	mbPreviousClockLow = false;
+
+	muiResetCount = 0;
 
     CreateAbortValues();
 }
@@ -86,17 +88,17 @@ void CW65C816State::Init(CW65C816State state)
     mcAbortProgramCounter.Init(&state.mcAbortProgramCounter);
     muiAbortStackPointer = state.muiAbortStackPointer;
     mcAddress.Init(&state.mcAddress);
-    muiInternal16BitData = state.muiInternal16BitData;
+    muiData = state.muiData;
     muiDirectOffset = state.muiDirectOffset;
     mcNewProgramCounter.Init(&state.mcNewProgramCounter);
     mbBusEnable = state.mbBusEnable;
     mbIrq = state.mbIrq;
     mbAbort = state.mbAbort;
     mbNextInstruction = state.mbNextInstruction;
-    muiData = state.muiData;
     mbNmi = state.mbNmi;
 	mbPreviousClockHigh = state.mbPreviousClockHigh;
 	mbPreviousClockLow = state.mbPreviousClockLow;
+	muiResetCount = state.muiResetCount;
 }
 
 
@@ -216,6 +218,43 @@ void CW65C816State::ResetPulled(void)
     mbStopped = false;
     miCycle = 0;
 	miNextCycle = 0;
+
+	IncrementReset();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CW65C816State::IsReseting(STraceValue clockValue)
+{
+	return (muiResetCount > 0) && 
+		   ((muiResetCount <= 3) ||
+			(muiResetCount == 4) && (!clockValue.IsLow()));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816State::ClearReset(void)
+{
+	muiResetCount = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816State::IncrementReset(void)
+{
+	if (muiResetCount <= 3)
+	{
+		muiResetCount++;
+	}
 }
 
 
@@ -779,17 +818,17 @@ void CW65C816State::SetC(uint16 uiAccumulator)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetInternal16BitData(uint16 uiData, bool bUpdateFlags)
+void CW65C816State::SetMemoryData(uint16 uiData, bool bUpdateFlags)
 {
 	if (IsMemory16Bit())
 	{
 		Assert16Bit(uiData, "Data");
-		muiInternal16BitData = uiData;
+		muiData = uiData;
 	}
 	else
 	{
 		Assert8Bit(uiData, "Data");
-		muiInternal16BitData = SetLowByte(muiInternal16BitData, (uint8)uiData);
+		muiData = SetLowByte(muiData, (uint8)uiData);
 	}
 	if (bUpdateFlags)
 	{
@@ -807,12 +846,12 @@ void CW65C816State::SetIndexData(uint16 uiData, bool bUpdateFlags)
 	if (IsIndex16Bit())
 	{
 		Assert16Bit(uiData, "Data");
-		muiInternal16BitData = uiData;
+		muiData = uiData;
 	}
 	else
 	{
 		Assert8Bit(uiData, "Data");
-		muiInternal16BitData = SetLowByte(muiInternal16BitData, (uint8)uiData);
+		muiData = SetLowByte(muiData, (uint8)uiData);
 	}
 	if (bUpdateFlags)
 	{
@@ -859,9 +898,19 @@ void CW65C816State::SetSignAndZeroFromIndex(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetInternal16BitData(uint16 uiInternal16BitData)
+void CW65C816State::SetMemoryData(uint16 uiInternal16BitData)
 {
-	SetInternal16BitData(uiInternal16BitData, true);
+	SetMemoryData(uiInternal16BitData, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816State::SetDataLow(uint8 uiData)
+{
+	muiData = SetLowByte(muiData, uiData);
 }
 
 
@@ -1269,7 +1318,7 @@ void CW65C816State::SetAddressBank(uint8 uiAddressBank)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65C816State::GetDataLow(void)
 {
-	return GetLowByte(muiInternal16BitData);
+	return GetLowByte(muiData);
 }
 
 
@@ -1279,7 +1328,7 @@ uint8 CW65C816State::GetDataLow(void)
 //////////////////////////////////////////////////////////////////////////
 uint8 CW65C816State::GetDataHigh(void)
 {
-	return GetHighByte(muiInternal16BitData);
+	return GetHighByte(muiData);
 }
 
 
@@ -1287,15 +1336,15 @@ uint8 CW65C816State::GetDataHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65C816State::GetInternal16BitData(void)
+uint16 CW65C816State::GetMemoryData(void)
 {
 	if (IsMemory16Bit())
 	{
-		return muiInternal16BitData;
+		return muiData;
 	}
 	else
 	{
-		return ToByte(muiInternal16BitData);
+		return ToByte(muiData);
 	}
 }
 
@@ -1308,11 +1357,11 @@ uint16 CW65C816State::GetIndexData(void)
 {
 	if (IsIndex16Bit())
 	{
-		return muiInternal16BitData;
+		return muiData;
 	}
 	else
 	{
-		return ToByte(muiInternal16BitData);
+		return ToByte(muiData);
 	}
 }
 
@@ -1323,7 +1372,7 @@ uint16 CW65C816State::GetIndexData(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CW65C816State::GetData16Bit(void)
 {
-	return muiInternal16BitData;
+	return muiData;
 }
 
 
@@ -1450,7 +1499,7 @@ void CW65C816State::SetDirectOffset(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetInternal16BitDataLow(uint8 uiData)
 {
-	muiInternal16BitData = SetLowByte(muiInternal16BitData, uiData);
+	muiData = SetLowByte(muiData, uiData);
 }
 
 
@@ -1460,7 +1509,7 @@ void CW65C816State::SetInternal16BitDataLow(uint8 uiData)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetInternal16BitDataHigh(uint8 uiData)
 {
-	muiInternal16BitData = SetHighByte(muiInternal16BitData, uiData);
+	muiData = SetHighByte(muiData, uiData);
 }
 
 
@@ -1555,7 +1604,7 @@ void CW65C816State::Execute8BitADC(void)
 	bool	bCarryOutOfPenultimateBit;
 	bool	bCarry;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 	bCarryValue = GetCarry();
 
@@ -1585,7 +1634,7 @@ void CW65C816State::Execute16BitADC(void)
 	bool	bCarryOutOfPenultimateBit;
 	bool	bCarry;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 	bCarryValue = GetCarry();
 
@@ -1631,7 +1680,7 @@ void CW65C816State::Execute16BitBCDADC(void)
 	uint16		uiAccumulator;
 	CBCDResult	cBCDResult;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 
 	cBCDResult = BCDAdd16Bit(uiOperand, uiAccumulator, IsCarrySet());
@@ -1653,7 +1702,7 @@ void CW65C816State::Execute8BitSBC(void)
 	bool	bBorrowFromPenultimateBit;
 	bool	bBorrow;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 	uiBorrowValue = 1 - GetCarry();
 
@@ -1683,7 +1732,7 @@ void CW65C816State::Execute16BitSBC(void)
 	bool	bBorrowFromPenultimateBit;
 	bool	bBorrow;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 	uiBorrowValue = 1 - GetCarry();
 
@@ -1729,7 +1778,7 @@ void CW65C816State::Execute16BitBCDSBC(void)
 	uint16		uiAccumulator;
 	CBCDResult	cBCDResult;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	uiAccumulator = GetA();
 
 	cBCDResult = BCDSubtract16Bit(uiOperand, uiAccumulator, !IsCarrySet());
@@ -1931,29 +1980,9 @@ bool CW65C816State::IsBusEnable(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint8 CW65C816State::GetData(void)
-{
-	return muiData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetData(uint8 uiData)
-{
-	muiData = uiData;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CW65C816State::PER(void)
 {
-	muiInternal16BitData = muiInternal16BitData + mcProgramCounter.GetOffset();  // + Carry?
+	muiData = muiData + mcProgramCounter.GetOffset();  // + Carry?
 }
 
 
@@ -1963,7 +1992,7 @@ void CW65C816State::PER(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::PHD(void)
 {
-	muiInternal16BitData = muiDirectPage;
+	muiData = muiDirectPage;
 }
 
 
@@ -1999,7 +2028,7 @@ void CW65C816State::SoftBreak(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ORA(void)
 {
-	SetA(GetA() | GetInternal16BitData());
+	SetA(GetA() | GetMemoryData());
 }
 
 
@@ -2011,8 +2040,8 @@ void CW65C816State::TSB(void)
 {
 	uint16 uiValue;
 
-	uiValue = GetInternal16BitData();
-	SetInternal16BitData((uiValue | GetA()), false);
+	uiValue = GetMemoryData();
+	SetMemoryData((uiValue | GetA()), false);
 	SetZeroFlag((uiValue & GetA()) == 0);
 }
 
@@ -2025,8 +2054,8 @@ void CW65C816State::TRB(void)
 {
 	uint16 uiValue;
 
-	uiValue = GetInternal16BitData();
-	SetInternal16BitData(uiValue & TrimMemory(~GetA()), false);
+	uiValue = GetMemoryData();
+	SetMemoryData(uiValue & TrimMemory(~GetA()), false);
 	SetZeroFlag((uiValue & GetA()) == 0);
 }
 
@@ -2155,7 +2184,7 @@ void CW65C816State::BIT(void)
 {
 	uint16 uiValue;
 
-	uiValue = GetInternal16BitData();
+	uiValue = GetMemoryData();
 
 	if (IsMemory16Bit())
 	{
@@ -2180,11 +2209,11 @@ void CW65C816State::BIT_A(void)
 {
 	if (IsMemory16Bit())
 	{
-		SetZeroFlagFrom16BitValue((GetInternal16BitData() & GetA()));
+		SetZeroFlagFrom16BitValue((GetMemoryData() & GetA()));
 	}
 	else
 	{
-		SetZeroFlagFrom8BitValue((GetInternal16BitData() & GetA()));
+		SetZeroFlagFrom8BitValue((GetMemoryData() & GetA()));
 	}
 }
 
@@ -2195,7 +2224,7 @@ void CW65C816State::BIT_A(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ROR(void)
 {
-	SetInternal16BitData(RotateRight(GetInternal16BitData()));
+	SetMemoryData(RotateRight(GetMemoryData()));
 }
 
 
@@ -2215,7 +2244,7 @@ void CW65C816State::ROR_A(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ROL(void)
 {
-	SetInternal16BitData(RotateLeft(GetInternal16BitData()));
+	SetMemoryData(RotateLeft(GetMemoryData()));
 }
 
 
@@ -2246,7 +2275,7 @@ uint16 CW65C816State::ShiftRight(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::LSR(void)
 {
-	SetInternal16BitData(ShiftRight(GetInternal16BitData()));
+	SetMemoryData(ShiftRight(GetMemoryData()));
 }
 
 
@@ -2269,11 +2298,11 @@ void CW65C816State::ASL(void)
 	uint16	uiOperand;
 	bool	bCarry;
 
-	uiOperand = GetInternal16BitData();
+	uiOperand = GetMemoryData();
 	bCarry = IsMemoryNegative(uiOperand);
 	uiOperand = TrimMemory(uiOperand << 1);
 	SetCarryFlag(bCarry);
-	SetInternal16BitData(uiOperand);
+	SetMemoryData(uiOperand);
 }
 
 
@@ -2313,7 +2342,7 @@ void CW65C816State::EOR(void)
 {
 	uint16 uiResult;
 
-	uiResult = TrimMemory(GetA() ^ GetInternal16BitData());
+	uiResult = TrimMemory(GetA() ^ GetMemoryData());
 	SetSignAndZeroFromMemory(uiResult);
 	SetA(uiResult);
 }
@@ -2388,7 +2417,7 @@ void CW65C816State::TXA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::LDA(void)
 {
-	SetA(GetInternal16BitData());
+	SetA(GetMemoryData());
 }
 
 
@@ -2400,11 +2429,11 @@ void CW65C816State::LDY(void)
 {
 	if (IsIndex16Bit())
 	{
-		SetY(muiInternal16BitData);
+		SetY(muiData);
 	}
 	else
 	{
-		SetY(ToByte(muiInternal16BitData));
+		SetY(ToByte(muiData));
 	}
 }
 
@@ -2417,11 +2446,11 @@ void CW65C816State::LDX(void)
 {
 	if (IsIndex16Bit())
 	{
-		SetX(muiInternal16BitData);
+		SetX(muiData);
 	}
 	else
 	{
-		SetX(ToByte(muiInternal16BitData));
+		SetX(ToByte(muiData));
 	}
 }
 
@@ -2507,7 +2536,7 @@ void CW65C816State::CMP(void)
 {
 	uint16 uiValue;
 
-	uiValue = GetInternal16BitData();
+	uiValue = GetMemoryData();
 	SetSignAndZeroFromMemory(TrimMemory(GetA() - uiValue));
 	SetCarryFlag(GetA() >= uiValue);
 }
@@ -2575,7 +2604,7 @@ void CW65C816State::TAX(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::DEC(void)
 {
-	SetInternal16BitData(TrimMemory(GetInternal16BitData() - 1));
+	SetMemoryData(TrimMemory(GetMemoryData() - 1));
 }
 
 
@@ -2585,7 +2614,7 @@ void CW65C816State::DEC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::INC(void)
 {
-	SetInternal16BitData(TrimMemory(GetInternal16BitData() + 1));
+	SetMemoryData(TrimMemory(GetMemoryData() + 1));
 }
 
 
@@ -2732,7 +2761,7 @@ void CW65C816State::TCS(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::AND(void)
 {
-	SetA((GetA() & GetInternal16BitData()));
+	SetA((GetA() & GetMemoryData()));
 }
 
 
@@ -2794,7 +2823,7 @@ void CW65C816State::DoneIfMemory16Bit(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::WriteProcessorStatus(void)
 {
-	SetData(GetProcessorRegisterValue());
+	SetDataLow(GetProcessorRegisterValue());
 }
 
 
@@ -2804,7 +2833,7 @@ void CW65C816State::WriteProcessorStatus(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ReadProcessorStatus(void)
 {
-	SetProcessorRegisterValue((uint8)GetData());
+	SetProcessorRegisterValue(GetDataLow());
 }
 
 
@@ -2854,7 +2883,7 @@ uint16 CW65C816State::GetData8BitOffset(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::WriteDataLow(void)
 {
-	SetData(GetDataLow());
+	//SetDataLow(GetDataLow());
 }
 
 
@@ -2864,7 +2893,7 @@ void CW65C816State::WriteDataLow(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::WriteDataHigh(void)
 {
-	SetData(GetDataHigh());
+	SetDataLow(GetDataHigh());
 }
 
 
@@ -2874,7 +2903,7 @@ void CW65C816State::WriteDataHigh(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::ReadOpCode(void)
 {
-	SetOpCode(GetData());
+	SetOpCode(GetDataLow());
 }
 
 
@@ -2945,7 +2974,7 @@ uint16 CW65C816State::GetAddressOffsetY(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::WriteProgramBank(void)
 {
-	SetData(mcProgramCounter.GetBank());
+	SetDataLow(mcProgramCounter.GetBank());
 }
 
 
@@ -2955,7 +2984,7 @@ void CW65C816State::WriteProgramBank(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::WriteProgramCounterHigh(void)
 {
-	SetData(GetHighByte(mcProgramCounter.GetOffset()));
+	SetDataLow(GetHighByte(mcProgramCounter.GetOffset()));
 }
 
 
@@ -2965,6 +2994,6 @@ void CW65C816State::WriteProgramCounterHigh(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::WriteProgramCounterLow(void)
 {
-	SetData(GetLowByte(mcProgramCounter.GetOffset()));
+	SetDataLow(GetLowByte(mcProgramCounter.GetOffset()));
 }
 

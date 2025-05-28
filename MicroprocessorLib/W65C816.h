@@ -41,6 +41,7 @@ public:
 	void			Kill(void);
 
     CW65C816State*  GetState(void);
+    CW65C816Pins*   GetPins(void);
 
     void            ASL(void);
     void            ASL_A(void);
@@ -162,8 +163,6 @@ protected:
     void            To16BitHexString(CChars* psz, uint16 ui16);
     void            ToAddressHexString(CChars* psz, CAddress* pcAddress);
     void            DisableBuses(void);
-
-    CW65C816Pins*   GetPins(void);// override;
 
     void            ExecutPhi2Falling(CTimeline* pcTimeline);
     void            ExecutPhi2Rising(CTimeline* pcTimeline);
