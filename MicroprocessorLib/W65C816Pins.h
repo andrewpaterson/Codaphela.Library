@@ -4,6 +4,7 @@
 #include "TraceValue.h"
 #include "MetaBus8.h"
 #include "MetaBus16.h"
+#include "MetaTrace.h"
 
 
 class CTimeline;
@@ -12,23 +13,25 @@ class CW65C816Pins
 protected:
 	CMetaBus16*		mpcAddress;
 	CMetaBus8*		mpcData;
-	bool			mbVPB;
-	bool			mbRDY;
-	bool			mbABORTB;
-	bool			mbIRQB;
-	bool			mbNMIB;
-	bool			mbMLB;
-	bool			mbVPA;
-	bool			mbVDA;
-	bool			mbRESB;
-	bool			mbMX;
-	bool			mbPHI2;
-	bool			mbBE;
-	bool			mbE;
-	bool			mbRWB;
+	CMetaTrace*		mpcVPB;
+	CMetaTrace*		mpcRDY;
+	CMetaTrace*		mpcABORTB;
+	CMetaTrace*		mpcIRQB;
+	CMetaTrace*		mpcNMIB;
+	CMetaTrace*		mpcMLB;
+	CMetaTrace*		mpcVPA;
+	CMetaTrace*		mpcVDA;
+	CMetaTrace*		mpcRESB;
+	CMetaTrace*		mpcMX;
+	CMetaTrace*		mpcPHI2;
+	CMetaTrace*		mpcBE;
+	CMetaTrace*		mpcE;
+	CMetaTrace*		mpcRWB;
 
 public:
-	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData);
+	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
+	void			SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB);
+	void			SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMetaTrace* pcNMIB);
 	void			Kill(void);
 
 	//Microprocessor side methods.
@@ -53,7 +56,6 @@ public:
 	STraceValue		ReadBE(CTimeline* pcTimeline);
 
 	//Circuit side methods.
-	void			Reset(void);
 	void			HalfCycle(void);
 
 	void			SetRDY(bool bValue);
@@ -65,15 +67,15 @@ public:
 	void			SetBE(bool bValue);
 
 
-	bool			GetVPB(void);
-	bool			GetRDY(void);
-	bool			GetMLB(void);
-	bool			GetVPA(void);
-	bool			GetVDA(void);
-	bool			GetMX(void);
-	bool			GetE(void);
-	bool			GetRWB(void);
-	bool			GetPHI2(void);
+	STraceValue		GetVPB(void);
+	STraceValue		GetRDY(void);
+	STraceValue		GetMLB(void);
+	STraceValue		GetVPA(void);
+	STraceValue		GetVDA(void);
+	STraceValue		GetMX(void);
+	STraceValue		GetE(void);
+	STraceValue		GetRWB(void);
+	STraceValue		GetPHI2(void);
 };
 
 
