@@ -749,12 +749,10 @@ void CW65C816State::SetX(uint16 uiXIndex)
 {
 	if (IsIndex16Bit())
 	{
-		Assert16Bit(uiXIndex, "X Index register");
 		muiXIndex = uiXIndex;
 	}
 	else
 	{
-		Assert8Bit(uiXIndex, "X Index register");
 		muiXIndex = SetLowByte(muiXIndex, (uint8)uiXIndex);
 	}
 	SetSignAndZeroFromIndex(muiXIndex);
@@ -769,12 +767,10 @@ void CW65C816State::SetY(uint16 uiYIndex)
 {
 	if (IsIndex16Bit())
 	{
-		Assert16Bit(uiYIndex, "Y Index register");
 		muiYIndex = uiYIndex;
 	}
 	else
 	{
-		Assert8Bit(uiYIndex, "Y Index register");
 		muiYIndex = SetLowByte(muiYIndex, (uint8)uiYIndex);
 	}
 	SetSignAndZeroFromIndex(muiYIndex);
@@ -789,12 +785,10 @@ void CW65C816State::SetA(uint16 uiAccumulator)
 {
 	if (IsMemory16Bit())
 	{
-		Assert16Bit(uiAccumulator, "Accumulator");
 		muiAccumulator = uiAccumulator;
 	}
 	else
 	{
-		Assert8Bit(uiAccumulator, "Accumulator");
 		muiAccumulator = SetLowByte(muiAccumulator, (uint8)uiAccumulator);
 	}
 
@@ -808,7 +802,6 @@ void CW65C816State::SetA(uint16 uiAccumulator)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetC(uint16 uiAccumulator)
 {
-	Assert16Bit(uiAccumulator, "Accumulator");
 	muiAccumulator = uiAccumulator;
 	SetSignAndZeroFlagFrom16BitValue(uiAccumulator);
 }
@@ -822,12 +815,10 @@ void CW65C816State::SetMemoryData(uint16 uiData, bool bUpdateFlags)
 {
 	if (IsMemory16Bit())
 	{
-		Assert16Bit(uiData, "Data");
 		muiData = uiData;
 	}
 	else
 	{
-		Assert8Bit(uiData, "Data");
 		muiData = SetLowByte(muiData, (uint8)uiData);
 	}
 	if (bUpdateFlags)
@@ -845,14 +836,13 @@ void CW65C816State::SetIndexData(uint16 uiData, bool bUpdateFlags)
 {
 	if (IsIndex16Bit())
 	{
-		Assert16Bit(uiData, "Data");
 		muiData = uiData;
 	}
 	else
 	{
-		Assert8Bit(uiData, "Data");
 		muiData = SetLowByte(muiData, (uint8)uiData);
 	}
+
 	if (bUpdateFlags)
 	{
 		SetSignAndZeroFromIndex(uiData);
@@ -991,7 +981,6 @@ uint8 CW65C816State::GetDataBank(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816State::SetDataBank(uint8 uiDataBank)
 {
-	Assert8Bit(uiDataBank, "Data Bank");
 	muiDataBank = uiDataBank;
 }
 
