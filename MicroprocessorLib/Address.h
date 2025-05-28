@@ -4,14 +4,13 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/HexString.h"
 #include "IntUtil.h"
-#include "ReflectiveData.h"
 
 
 #define BANK_SIZE_BYTES 0x10000
 #define PAGE_SIZE_BYTES 0x100
 
 
-class CAddress : public CReflectiveData
+class CAddress
 {
 protected:
     uint8    muiBank;

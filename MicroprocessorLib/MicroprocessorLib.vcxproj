@@ -84,7 +84,6 @@
     <ClCompile Include="ReadProgramBank.cpp" />
     <ClCompile Include="ReadProgramCounterHigh.cpp" />
     <ClCompile Include="ReadProgramCounterLow.cpp" />
-    <ClCompile Include="ReflectiveData.cpp" />
     <ClCompile Include="NewProgramCounter.cpp" />
     <ClCompile Include="RestoreAbortValues.cpp" />
     <ClCompile Include="SetProgramBank.cpp" />
@@ -182,10 +181,8 @@
     <ClInclude Include="ReadProgramBank.h" />
     <ClInclude Include="ReadProgramCounterHigh.h" />
     <ClInclude Include="ReadProgramCounterLow.h" />
-    <ClInclude Include="ReflectiveData.h" />
     <ClInclude Include="ResetVector.h" />
     <ClInclude Include="RestoreAbortValues.h" />
-    <ClInclude Include="SaveData.h" />
     <ClInclude Include="SetProgramBank.h" />
     <ClInclude Include="SetProgramCounter.h" />
     <ClInclude Include="SignedData.h" />

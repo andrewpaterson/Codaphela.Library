@@ -10,9 +10,6 @@
     <Filter Include="Source\wdc\W65C816">
       <UniqueIdentifier>{e80ba460-b69d-4163-a16e-d83d7bdc0220}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\think">
-      <UniqueIdentifier>{e3a08eff-b947-4a67-aae5-643a00d7a26a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\wdc\W65C816\Instruction">
       <UniqueIdentifier>{78e75463-1e0c-434c-8629-f88ba2d7076f}</UniqueIdentifier>
     </Filter>
@@ -86,12 +83,6 @@
     </ClCompile>
     <ClCompile Include="Address.cpp">
       <Filter>Source\wdc</Filter>
-    </ClCompile>
-    <ClCompile Include="ReflectiveData.cpp">
-      <Filter>Source\think</Filter>
-    </ClCompile>
-    <ClCompile Include="IntUtil.cpp">
-      <Filter>Source\think</Filter>
     </ClCompile>
     <ClCompile Include="NewProgramCounter.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
@@ -303,6 +294,9 @@
     <ClCompile Include="W65C816Pins.cpp">
       <Filter>Source\wdc\W65C816</Filter>
     </ClCompile>
+    <ClCompile Include="IntUtil.cpp">
+      <Filter>Source\Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">
@@ -361,15 +355,6 @@
     </ClInclude>
     <ClInclude Include="Address.h">
       <Filter>Source\wdc</Filter>
-    </ClInclude>
-    <ClInclude Include="ReflectiveData.h">
-      <Filter>Source\think</Filter>
-    </ClInclude>
-    <ClInclude Include="SaveData.h">
-      <Filter>Source\think</Filter>
-    </ClInclude>
-    <ClInclude Include="IntUtil.h">
-      <Filter>Source\think</Filter>
     </ClInclude>
     <ClInclude Include="NewProgramCounter.h">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
@@ -592,6 +577,9 @@
     </ClInclude>
     <ClInclude Include="W65C816Pins.h">
       <Filter>Source\wdc\W65C816</Filter>
+    </ClInclude>
+    <ClInclude Include="IntUtil.h">
+      <Filter>Source\Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
