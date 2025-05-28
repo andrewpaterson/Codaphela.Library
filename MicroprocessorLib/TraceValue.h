@@ -15,6 +15,7 @@ struct STraceValue
 {
 	ETraceValue	eValue;
 
+	void	Init(void);
 	void	Init(ETraceValue eTraceValue);
 	void	Init(bool bValue);
 	bool	IsHigh(void);

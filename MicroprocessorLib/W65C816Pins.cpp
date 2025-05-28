@@ -5,24 +5,48 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData)
+void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB)
 {
 	mpcAddress = pcAddress;
 	mpcData = pcData;
-	mbVPB = false;
-	mbRDY = false;
-	mbABORTB = false;
-	mbIRQB = false;
-	mbNMIB = false;
-	mbMLB = false;
-	mbVPA = false;
-	mbVDA = false;
-	mbRESB = false;
-	mbMX = false;
-	mbPHI2 = false;
-	mbBE = false;
-	mbE = false;
-	mbRWB = false;
+	mpcVPB = NULL;
+	mpcRDY = NULL;
+	mpcABORTB = NULL;
+	mpcIRQB = NULL;
+	mpcNMIB = NULL;
+	mpcMLB = NULL;
+	mpcVPA = NULL;
+	mpcVDA = NULL;
+	mpcRESB = pcRESB;
+	mpcMX = NULL;
+	mpcPHI2 = pcPHI2;
+	mpcBE = NULL;
+	mpcE = NULL;
+	mpcRWB = pcRWB;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816Pins::SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB)
+{
+	mpcVPB = pcVPB;
+	mpcVPA = pcVPA;
+	mpcVDA = pcVDA;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816Pins::SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMetaTrace* pcNMIB)
+{
+	mpcABORTB = pcABORTB;
+	mpcIRQB = pcIRQB;
+	mpcNMIB = pcNMIB;
 }
 
 
@@ -32,22 +56,22 @@ void CW65C816Pins::Init(CMetaBus16* pcAddress, CMetaBus8* pcData)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::Kill(void)
 {
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CW65C816Pins::Reset(void)
-{
-	mbRDY = true;
-	mbABORTB = true;
-	mbIRQB = true;
-	mbNMIB = true;
-	mbRESB = false;
-	mbPHI2 = false;
-	mbBE = true;
+	mpcAddress = NULL;
+	mpcData = NULL;
+	mpcVPB = NULL;
+	mpcRDY = NULL;
+	mpcABORTB = NULL;
+	mpcIRQB = NULL;
+	mpcNMIB = NULL;
+	mpcMLB = NULL;
+	mpcVPA = NULL;
+	mpcVDA = NULL;
+	mpcRESB = NULL;
+	mpcMX = NULL;
+	mpcPHI2 = NULL;
+	mpcBE = NULL;
+	mpcE = NULL;
+	mpcRWB = NULL;
 }
 
 
@@ -57,7 +81,15 @@ void CW65C816Pins::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::HalfCycle(void)
 {
-	mbPHI2 = !mbPHI2;
+	bool	bLow;
+	bool	bHigh;
+
+	bLow = mpcPHI2->Get().IsLow();
+	bHigh = mpcPHI2->Get().IsHigh();
+	if (bLow || bHigh)
+	{
+		mpcPHI2->Set(!bHigh);
+	}
 }
 
 
@@ -67,7 +99,7 @@ void CW65C816Pins::HalfCycle(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 {
-	mbRWB = bValue;
+	mpcRWB->Set(bValue);
 }
 
 
@@ -77,7 +109,7 @@ void CW65C816Pins::WriteRWB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteMX(CTimeline* pcTimeline, bool bValue)
 {
-	mbMX = bValue;
+	SafeSetTrace(mpcMX, bValue);
 }
 
 
@@ -87,7 +119,7 @@ void CW65C816Pins::WriteMX(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 {
-	mbVDA = bValue;
+	SafeSetTrace(mpcVDA, bValue);
 }
 
 
@@ -97,7 +129,7 @@ void CW65C816Pins::WriteVDA(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 {
-	mbVPA = bValue;
+	SafeSetTrace(mpcVPA, bValue);
 }
 
 
@@ -107,7 +139,7 @@ void CW65C816Pins::WriteVPA(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteMLB(CTimeline* pcTimeline, bool bValue)
 {
-	mbMLB = bValue;
+	SafeSetTrace(mpcMLB, bValue);
 }
 
 
@@ -117,7 +149,7 @@ void CW65C816Pins::WriteMLB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 {
-	mbVPB = bValue;
+	SafeSetTrace(mpcVPB, bValue);
 }
 
 
@@ -127,7 +159,7 @@ void CW65C816Pins::WriteVPB(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteE(CTimeline* pcTimeline, bool bValue)
 {
-	mbE = bValue;
+	SafeSetTrace(mpcE, bValue);
 }
 
 
@@ -137,7 +169,7 @@ void CW65C816Pins::WriteE(CTimeline* pcTimeline, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::WriteRdy(CTimeline* pcTimeline, bool bValue)
 {
-	mbRDY = bValue;
+	SafeSetTrace(mpcRDY, bValue);
 }
 
 
@@ -187,10 +219,7 @@ uint16 CW65C816Pins::ReadAddress(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadRES(CTimeline* pcTimeline)
 {
-	STraceValue	s;
-
-	s.Init(mbRESB);
-	return s;
+	return mpcRESB->Get();
 }
 
 
@@ -200,10 +229,7 @@ STraceValue CW65C816Pins::ReadRES(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadPhi2(CTimeline* pcTimeline)
 {
-	STraceValue	s;
-
-	s.Init(mbPHI2);
-	return s;
+	return mpcPHI2->Get();
 }
 
 
@@ -213,10 +239,7 @@ STraceValue CW65C816Pins::ReadPhi2(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadNMI(CTimeline* pcTimeline)
 {
-	STraceValue	s;
-
-	s.Init(mbNMIB);
-	return s;
+	SafeGetTrace(mpcNMIB);
 }
 
 
@@ -226,10 +249,7 @@ STraceValue CW65C816Pins::ReadNMI(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadIRQ(CTimeline* pcTimeline)
 {
-	STraceValue	s;
-
-	s.Init(mbIRQB);
-	return s;
+	SafeGetTrace(mpcIRQB);
 }
 
 
@@ -239,10 +259,7 @@ STraceValue CW65C816Pins::ReadIRQ(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadAbort(CTimeline* pcTimeline)
 {
-	STraceValue	s;
-
-	s.Init(mbABORTB);
-	return s;
+	SafeGetTrace(mpcABORTB);
 }
 
 
@@ -252,10 +269,7 @@ STraceValue CW65C816Pins::ReadAbort(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 STraceValue CW65C816Pins::ReadBE(CTimeline* pcTimeline)
 {
-	STraceValue	s;
-
-	s.Init(mbBE);
-	return s;
+	SafeGetTrace(mpcBE);
 }
 
 
@@ -265,7 +279,7 @@ STraceValue CW65C816Pins::ReadBE(CTimeline* pcTimeline)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetRDY(bool bValue)
 {
-	mbRDY = bValue;
+	SafeSetTrace(mpcRDY, bValue);
 }
 
 
@@ -275,7 +289,7 @@ void CW65C816Pins::SetRDY(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetABORTB(bool bValue)
 {
-	mbABORTB = bValue;
+	SafeSetTrace(mpcABORTB, bValue);
 }
 
 
@@ -285,7 +299,7 @@ void CW65C816Pins::SetABORTB(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetIRQB(bool bValue)
 {
-	mbIRQB = bValue;
+	SafeSetTrace(mpcIRQB, bValue);
 }
 
 
@@ -295,7 +309,7 @@ void CW65C816Pins::SetIRQB(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetNMIB(bool bValue)
 {
-	mbNMIB = bValue;
+	SafeSetTrace(mpcNMIB, bValue);
 }
 
 
@@ -305,7 +319,7 @@ void CW65C816Pins::SetNMIB(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetRESB(bool bValue)
 {
-	mbRESB = bValue;
+	mpcRESB->Set(bValue);
 }
 
 
@@ -315,7 +329,7 @@ void CW65C816Pins::SetRESB(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetPHI2(bool bValue)
 {
-	mbPHI2 = bValue;
+	mpcPHI2->Set(bValue);
 }
 
 
@@ -325,7 +339,7 @@ void CW65C816Pins::SetPHI2(bool bValue)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::SetBE(bool bValue)
 {
-	mbBE = bValue;
+	SafeSetTrace(mpcBE, bValue);
 }
 
 
@@ -333,9 +347,9 @@ void CW65C816Pins::SetBE(bool bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetVPB(void)
+STraceValue CW65C816Pins::GetVPB(void)
 {
-	return mbVPB;
+	SafeGetTrace(mpcVPB);
 }
 
 
@@ -343,9 +357,9 @@ bool CW65C816Pins::GetVPB(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetRDY(void)
+STraceValue CW65C816Pins::GetRDY(void)
 {
-	return mbRDY;
+	SafeGetTrace(mpcRDY);
 }
 
 
@@ -353,9 +367,9 @@ bool CW65C816Pins::GetRDY(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetMLB(void)
+STraceValue CW65C816Pins::GetMLB(void)
 {
-	return mbMLB;
+	SafeGetTrace(mpcMLB);
 }
 
 
@@ -363,9 +377,9 @@ bool CW65C816Pins::GetMLB(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetVPA(void)
+STraceValue CW65C816Pins::GetVPA(void)
 {
-	return mbVPA;
+	SafeGetTrace(mpcVPA);
 }
 
 
@@ -373,9 +387,9 @@ bool CW65C816Pins::GetVPA(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetVDA(void)
+STraceValue CW65C816Pins::GetVDA(void)
 {
-	return mbVDA;
+	SafeGetTrace(mpcVDA);
 }
 
 
@@ -383,9 +397,9 @@ bool CW65C816Pins::GetVDA(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetMX(void)
+STraceValue CW65C816Pins::GetMX(void)
 {
-	return mbMX;
+	SafeGetTrace(mpcMX);
 }
 
 
@@ -393,9 +407,9 @@ bool CW65C816Pins::GetMX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetE(void)
+STraceValue CW65C816Pins::GetE(void)
 {
-	return mbE;
+	SafeGetTrace(mpcE);
 }
 
 
@@ -403,9 +417,9 @@ bool CW65C816Pins::GetE(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetRWB(void)
+STraceValue CW65C816Pins::GetRWB(void)
 {
-	return mbRWB;
+	return mpcRWB->Get();
 }
 
 
@@ -413,8 +427,8 @@ bool CW65C816Pins::GetRWB(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CW65C816Pins::GetPHI2(void)
+STraceValue CW65C816Pins::GetPHI2(void)
 {
-	return mbPHI2;
+	return mpcPHI2->Get();
 }
 
