@@ -31,6 +31,9 @@
     <Filter Include="Source\Common\Wire">
       <UniqueIdentifier>{ebe1a1e3-8032-456f-a077-952564ef7afd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Meta">
+      <UniqueIdentifier>{1434093c-1795-4898-88ac-ab597c79f3db}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="W65C816.cpp">
@@ -296,6 +299,15 @@
     </ClCompile>
     <ClCompile Include="IntUtil.cpp">
       <Filter>Source\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaBus8.cpp">
+      <Filter>Source\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaBus16.cpp">
+      <Filter>Source\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaBus32.cpp">
+      <Filter>Source\Meta</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -580,6 +592,15 @@
     </ClInclude>
     <ClInclude Include="IntUtil.h">
       <Filter>Source\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaBus8.h">
+      <Filter>Source\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaBus16.h">
+      <Filter>Source\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaBus32.h">
+      <Filter>Source\Meta</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
