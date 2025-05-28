@@ -8,6 +8,7 @@
 #include "CPUFlags.h"
 #include "BusCycle.h"
 #include "IntUtil.h"
+#include "TraceValue.h"
 
 
 class CW65C816;
@@ -52,17 +53,17 @@ public:
 
 	//These are not the values on the pins, they are internal data.
 	CAddress	mcAddress;
-	uint16		muiInternal16BitData;
+	uint16		muiData;
 	uint16		muiDirectOffset;
 	CAddress	mcNewProgramCounter;
 	bool		mbBusEnable;
 	bool		mbIrq;
 	bool		mbAbort;
 	bool		mbNextInstruction;
-	uint8		muiData;
 	bool		mbNmi;
 	bool		mbPreviousClockLow;
 	bool		mbPreviousClockHigh;
+	uint16		muiResetCount;
 
 public:
 	void			Init(void);
@@ -79,6 +80,10 @@ public:
 	void			CreatePartialAbortValues(void);
 	void			RestoreAbortValues(void);
 	void			ResetPulled(void);
+	void			IncrementReset(void);
+	bool			IsReseting(STraceValue clockValue);
+	void			ClearReset(void);
+
 	uint8			GetProcessorRegisterValue(void);
 	void			SetZeroFlag(bool bZeroFlag);
 	void			SetNegativeFlag(bool bSignFlag);
@@ -119,11 +124,12 @@ public:
 	void			SetY(uint16 uiYIndex);
 	void			SetA(uint16 uiAccumulator);
 	void			SetC(uint16 uiAccumulator);
-	void			SetInternal16BitData(uint16 uiData, bool bUpdateFlags);
+	void			SetMemoryData(uint16 uiData, bool bUpdateFlags);
 	void			SetIndexData(uint16 uiData, bool bUpdateFlags);
 	void			SetSignAndZeroFromMemory(uint16 uiValue);
 	void			SetSignAndZeroFromIndex(uint16 uiValue);
-	void			SetInternal16BitData(uint16 uiInternal16BitData);
+	void			SetMemoryData(uint16 uiInternal16BitData);
+	void			SetDataLow(uint8 uiData);
 	uint16			GetA(void);
 	uint16			GetC(void);
 	uint16			GetX(void);
@@ -159,7 +165,7 @@ public:
 	void			SetAddressBank(uint8 uiAddressBank);
 	uint8			GetDataLow(void);
 	uint8			GetDataHigh(void);
-	uint16			GetInternal16BitData(void);
+	uint16			GetMemoryData(void);
 	uint16			GetIndexData(void);
 	uint16			GetData16Bit(void);
 	uint16			GetDirectPage(void);
@@ -198,8 +204,6 @@ public:
 	uint16			ClearBit(uint16 uiValue, uint16 uiBitNumber);
 	uint16			SetBit(uint16 uiValue, uint16 uiBitNumber);
 	bool			IsBusEnable(void);
-	uint8			GetData(void);
-	void			SetData(uint8 uiData);
 	void			PER(void);
 	void			PHD(void);
 	void			PLP(void);

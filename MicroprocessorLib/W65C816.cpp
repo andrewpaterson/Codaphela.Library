@@ -64,6 +64,16 @@ CW65C816State* CW65C816::GetState(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CW65C816Pins* CW65C816::GetPins(void)
+{
+    return mpcPins;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CW65C816::CW65C816::Branch(bool condition)
 {
     if (!condition)
@@ -408,7 +418,7 @@ void CW65C816::LSR(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHA(void)
 {
-    mpcState->SetInternal16BitData(mpcState->GetA(), false);
+    mpcState->SetMemoryData(mpcState->GetA(), false);
 }
 
 
@@ -478,7 +488,7 @@ void CW65C816::ADC(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::STZ(void)
 {
-    mpcState->SetInternal16BitData(0);
+    mpcState->SetMemoryData(0);
 }
 
 
@@ -488,7 +498,7 @@ void CW65C816::STZ(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PLA(void)
 {
-    mpcState->SetA(mpcState->GetInternal16BitData());
+    mpcState->SetA(mpcState->GetMemoryData());
 }
 
 
@@ -568,7 +578,7 @@ void CW65C816::BRA(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::STA(void)
 {
-    mpcState->SetInternal16BitData(mpcState->GetA(), false);
+    mpcState->SetMemoryData(mpcState->GetA(), false);
 }
 
 
@@ -1278,29 +1288,31 @@ void CW65C816::DisableBuses(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CW65C816Pins* CW65C816::GetPins(void)
-{
-    return mpcPins;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CW65C816::InputTransition(CTimeline* pcTimeline)
 {
-    CW65C816Pins* pcPins = GetPins();
-    bool reset = pcPins->ReadRES(pcTimeline).IsLow();
-    if (reset)
+    CW65C816Pins*   pcPins;
+    bool            reset;
+    bool            nmi;
+    bool            irq;
+    bool            abort;
+    STraceValue     clockValue;
+
+    pcPins = GetPins();
+    clockValue = pcPins->ReadPhi2(pcTimeline);
+    reset = pcPins->ReadRES(pcTimeline).IsLow();
+    if (reset || mpcState->IsReseting(clockValue))
     {
         mpcState->ResetPulled();
     }
+    else
+    {
+        mpcState->ClearReset();
+    }
 
-    STraceValue clockValue = pcPins->ReadPhi2(pcTimeline);
-    bool nmi = pcPins->ReadNMI(pcTimeline).IsLow();
-    bool irq = pcPins->ReadIRQ(pcTimeline).IsLow();
-    bool abort = pcPins->ReadAbort(pcTimeline).IsLow();
+    clockValue = pcPins->ReadPhi2(pcTimeline);
+    nmi = pcPins->ReadNMI(pcTimeline).IsLow();
+    irq = pcPins->ReadIRQ(pcTimeline).IsLow();
+    abort = pcPins->ReadAbort(pcTimeline).IsLow();
 
     mpcState->mbBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
     if (!mpcState->IsBusEnable())
@@ -1359,7 +1371,7 @@ void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
         if (bRead)
         {
             //Data on the data pins is READ on PHI falling
-            mpcState->SetData(pcPins->ReadData(pcTimeline));
+            mpcState->SetDataLow(pcPins->ReadData(pcTimeline));
         }
 
         mpcState->ExecuteTrailingSideOperation(this);
@@ -1414,7 +1426,7 @@ void CW65C816::ExecutPhi2Rising(CTimeline* pcTimeline)
 
         if (!bRead)
         {
-            pcPins->WriteData(pcTimeline, mpcState->GetData());
+            pcPins->WriteData(pcTimeline, mpcState->GetDataLow());
         }
     }
 }
