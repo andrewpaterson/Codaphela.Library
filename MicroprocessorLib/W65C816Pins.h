@@ -2,31 +2,34 @@
 #define __W65C816_PINS_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
+#include "MetaBus8.h"
+#include "MetaBus16.h"
 
 
 class CTimeline;
 class CW65C816Pins
 {
 protected:
-	uint16	muiAddress;
-	uint8	muiData;
-	bool	mbVPB;
-	bool	mbRDY;
-	bool	mbABORTB;
-	bool	mbIRQB;
-	bool	mbNMIB;
-	bool	mbMLB;
-	bool	mbVPA;
-	bool	mbVDA;
-	bool	mbRESB;
-	bool	mbMX;
-	bool	mbPHI2;
-	bool	mbBE;
-	bool	mbE;
-	bool	mbRWB;
+	CMetaBus16*		mpcAddress;
+	CMetaBus8*		mpcData;
+	bool			mbVPB;
+	bool			mbRDY;
+	bool			mbABORTB;
+	bool			mbIRQB;
+	bool			mbNMIB;
+	bool			mbMLB;
+	bool			mbVPA;
+	bool			mbVDA;
+	bool			mbRESB;
+	bool			mbMX;
+	bool			mbPHI2;
+	bool			mbBE;
+	bool			mbE;
+	bool			mbRWB;
 
 public:
-	void			Init(void);
+	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData);
+	void			Kill(void);
 
 	//Microprocessor side methods.
 	void			WriteRWB(CTimeline* pcTimeline, bool bValue);
@@ -41,6 +44,7 @@ public:
 	void			WriteData(CTimeline* pcTimeline, uint8 uiData);
 
 	uint8			ReadData(CTimeline* pcTimeline);
+	uint16			ReadAddress(CTimeline* pcTimeline);
 	STraceValue		ReadRES(CTimeline* pcTimeline);
 	STraceValue		ReadPhi2(CTimeline* pcTimeline);
 	STraceValue		ReadNMI(CTimeline* pcTimeline);
@@ -52,7 +56,6 @@ public:
 	void			Reset(void);
 	void			HalfCycle(void);
 
-	void			SetData(uint8 uiData);
 	void			SetRDY(bool bValue);
 	void			SetABORTB(bool bValue);
 	void			SetIRQB(bool bValue);
@@ -61,8 +64,6 @@ public:
 	void			SetPHI2(bool bValue);
 	void			SetBE(bool bValue);
 
-	uint8			GetData(void);
-	uint16			GetAddress(void);
 
 	bool			GetVPB(void);
 	bool			GetRDY(void);

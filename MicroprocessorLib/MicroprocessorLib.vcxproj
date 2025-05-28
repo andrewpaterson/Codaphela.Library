@@ -59,6 +59,9 @@
     <ClCompile Include="InterruptVector.cpp" />
     <ClCompile Include="IntUtil.cpp" />
     <ClCompile Include="IRQVector.cpp" />
+    <ClCompile Include="MetaBus16.cpp" />
+    <ClCompile Include="MetaBus32.cpp" />
+    <ClCompile Include="MetaBus8.cpp" />
     <ClCompile Include="NewProgramBank.cpp" />
     <ClCompile Include="NMIVector.cpp" />
     <ClCompile Include="NoteFourX.cpp" />
@@ -154,6 +157,9 @@
     <ClInclude Include="InterruptVector.h" />
     <ClInclude Include="IntUtil.h" />
     <ClInclude Include="IRQVector.h" />
+    <ClInclude Include="MetaBus16.h" />
+    <ClInclude Include="MetaBus32.h" />
+    <ClInclude Include="MetaBus8.h" />
     <ClInclude Include="NewProgramBank.h" />
     <ClInclude Include="NewProgramCounter.h" />
     <ClInclude Include="NMIVector.h" />
