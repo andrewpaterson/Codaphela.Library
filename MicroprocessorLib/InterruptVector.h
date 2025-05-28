@@ -4,7 +4,6 @@
 #include "BaseLib/Logger.h"
 #include "BaseLib/Refered.h"
 #include "StandardLib/Unknown.h"
-#include "ReflectiveData.h"
 
 
 class CW65C816;
