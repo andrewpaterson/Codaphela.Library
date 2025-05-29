@@ -1028,15 +1028,27 @@ void CW65C816::To16BitHexString(CChars* psz, uint16 ui16)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::ToAddressHexString(CChars* psz, CAddress* pcAddress)
+void CW65C816::Append0x(CChars* psz, bool bAppend0x)
+{
+    if (bAppend0x)
+    {
+        psz->Append("0x");
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppend0x)
 {
     uint16      ui16;
     uint8       ui8;
 
-    pcAddress = mpcState->GetAddress();
     ui16 = pcAddress->GetOffset();
     ui8 = pcAddress->GetBank();
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To8BitHexString(psz, ui8);
     psz->Append(":");
     To16BitHexString(psz, ui16);
@@ -1047,9 +1059,9 @@ void CW65C816::ToAddressHexString(CChars* psz, CAddress* pcAddress)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetAddressValueHex(CChars* psz)
+void CW65C816::GetAddressValueHex(CChars* psz, bool bAppend0x)
 {
-    ToAddressHexString(psz, mpcState->GetAddress());
+    ToAddressHexString(psz, mpcState->GetAddress(), bAppend0x);
 }
 
 
@@ -1057,9 +1069,9 @@ void CW65C816::GetAddressValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetAccumulaTorValueHex(CChars* psz)
+void CW65C816::GetAccumulatorValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To16BitHexString(psz, mpcState->GetA());
 }
 
@@ -1068,9 +1080,9 @@ void CW65C816::GetAccumulaTorValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetXValueHex(CChars* psz)
+void CW65C816::GetXValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To16BitHexString(psz, mpcState->GetX());
 }
 
@@ -1079,9 +1091,9 @@ void CW65C816::GetXValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetYValueHex(CChars* psz)
+void CW65C816::GetYValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To16BitHexString(psz, mpcState->GetY());
 }
 
@@ -1090,9 +1102,9 @@ void CW65C816::GetYValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetDataBankValueHex(CChars* psz)
+void CW65C816::GetDataBankValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To8BitHexString(psz, mpcState->GetDataBank());
 }
 
@@ -1101,9 +1113,9 @@ void CW65C816::GetDataBankValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetStackValueHex(CChars* psz)
+void CW65C816::GetStackValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To16BitHexString(psz, mpcState->GetStackPointer());
 }
 
@@ -1112,9 +1124,9 @@ void CW65C816::GetStackValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetDirectPageValueHex(CChars* psz)
+void CW65C816::GetDirectPageValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To16BitHexString(psz, mpcState->GetDirectPage());
 }
 
@@ -1123,9 +1135,9 @@ void CW65C816::GetDirectPageValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetProgramCounterValueHex(CChars* psz)
+void CW65C816::GetProgramCounterValueHex(CChars* psz, bool bAppend0x)
 {
-    ToAddressHexString(psz, mpcState->GetProgramCounter());
+    ToAddressHexString(psz, mpcState->GetProgramCounter(), bAppend0x);
 }
 
 
@@ -1133,9 +1145,9 @@ void CW65C816::GetProgramCounterValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetDataValueHex(CChars* psz)
+void CW65C816::GetDataValueHex(CChars* psz, bool bAppend0x)
 {
-    psz->Append("0x");
+    Append0x(psz, bAppend0x);
     To16BitHexString(psz, mpcState->GetData16Bit());
 }
 
@@ -1144,7 +1156,7 @@ void CW65C816::GetDataValueHex(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction)
+void CW65C816::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction, bool bAppend0x)
 {
     uint16  uiCode;
 
@@ -1153,27 +1165,42 @@ void CW65C816::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruc
         uiCode = pcInstruction->GetCode();
         if (uiCode <= 255)
         {
-            psz->Append("0x");
+            Append0x(psz, bAppend0x);
             To8BitHexString(psz, (uint8)uiCode);
         }
         else
         {
-            psz->Append("---");
+            if (bAppend0x)
+            {
+                psz->Append("-----");
+            }
+            else
+            {
+                psz->Append("---");
+            }
         }
     }
     else
     {
-        psz->Append("###");
+        if (bAppend0x)
+        {
+            psz->Append("#####");
+        }
+        else
+        {
+            psz->Append("###");
+        }
     }
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816::GetOpcodeValueHex(CChars* psz)
+void CW65C816::GetOpcodeValueHex(CChars* psz, bool bAppend0x)
 {
-    return GetOpcodeValueHex(psz, GetCycle(), mpcState->GetOpcode());
+    return GetOpcodeValueHex(psz, GetCycle(), mpcState->GetOpcode(), bAppend0x);
 }
 
 
@@ -1226,24 +1253,27 @@ void CW65C816::GetCycleOperationString(CChars* psz)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::GetStatusString(CChars* psz)
 {
-    mpcState->IsZeroFlagSet() ? psz->Append("Z:1 ") : psz->Append("Z:0 ");
-    mpcState->IsNegativeSet() ? psz->Append("N:1 ") : psz->Append("N:0 ");
-    mpcState->IsDecimal() ? psz->Append("D:1 ") : psz->Append("D:0 ");
-    mpcState->IsInterruptDisable() ? psz->Append("I:1 ") : psz->Append("I:0 ");
-    mpcState->IsMemory8Bit() ? psz->Append("M8  ") : psz->Append("M16 ");
     bool emulation = mpcState->IsEmulation();
-    if (!emulation)
-    {
-        mpcState->IsIndex8Bit() ? psz->Append("X8  ") : psz->Append("X16 ");
-    }
+
+    mpcState->IsZeroFlagSet() ? psz->Append("Z1 ") : psz->Append("Z0 ");
+    mpcState->IsNegativeSet() ? psz->Append("N1 ") : psz->Append("N0 ");
+    mpcState->IsDecimal() ? psz->Append("D1 ") : psz->Append("D0 ");
+    mpcState->IsInterruptDisable() ? psz->Append("I1 ") : psz->Append("I0 ");
+    mpcState->IsMemory8Bit() ? psz->Append("M8  ") : psz->Append("M16 ");
+    mpcState->IsIndex8Bit() ? psz->Append("X8  ") : psz->Append("X16 ");
     mpcState->IsCarrySet() ? psz->Append("C1 ") : psz->Append("C0 ");
     emulation ? psz->Append("E1 ") : psz->Append("E0 ");
-    mpcState->IsOverflowFlag() ? psz->Append("O1 ") : psz->Append("O0 ");
-    if (emulation)
+    if (!emulation)
     {
-        mpcState->IsBreak() ? psz->Append("B1 ") : psz->Append("B0 ");
+        mpcState->IsOverflowFlag() ? psz->Append("O1") : psz->Append("O0");
+    }
+    else
+    {
+        mpcState->IsOverflowFlag() ? psz->Append("O1 ") : psz->Append("O0 ");
+        mpcState->IsBreak() ? psz->Append("B1") : psz->Append("B0");
     }
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1272,6 +1302,16 @@ void CW65C816::GetCycleString(CChars* psz)
 int16 CW65C816::GetCycle(void)
 {
     return mpcState->GetCycle() + 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CW65C816::IsStopped(void)
+{
+    return mpcState->IsStopped();
 }
 
 

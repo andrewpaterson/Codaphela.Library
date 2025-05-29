@@ -1579,7 +1579,7 @@ CInstruction* CInstructionFactory::CreateAbort(void)
     pcVector->Init();
 
     mpcAbort = NewMalloc<CInstruction>();
-    mpcAbort->Init(muiInstructions, CreateStackAbortInterruptCycles(pcVector, &CW65C816::ABORT), "ABORT",
+    mpcAbort->Init(muiInstructions, CreateStackAbortInterruptCycles(pcVector, &CW65C816::ABORT), "ABT",
         "Stop the current instruction and return processor status to what it was prior to the current instruction.");
 
     mapcInstructions[muiInstructions] = mpcAbort;

@@ -3,32 +3,39 @@
 #include "W65C816.h"
 #include "Timeline.h"
 
+class CMetaW65C816;
+typedef void(*MetaW65C816TickHigh)(CMetaW65C816*);
+typedef void(*MetaW65C816TickLow)(CMetaW65C816*);
+
 
 class CMetaW65C816
 {
 protected:
-	CW65C816		mcMPU;
-	CW65C816Pins	mcPins;
-	CTimeline		mcTimeline;
-	CMetaBus16 		mcAddress;
-	CMetaBus8 		mcData;
-	CMetaTrace 		mcVPB;
-	CMetaTrace 		mcRDY;
-	CMetaTrace 		mcABORTB;
-	CMetaTrace 		mcIRQB;
-	CMetaTrace 		mcNMIB;
-	CMetaTrace 		mcMLB;
-	CMetaTrace 		mcVPA;
-	CMetaTrace 		mcVDA;
-	CMetaTrace 		mcRESB;
-	CMetaTrace 		mcMX;
-	CMetaTrace 		mcPHI2;
-	CMetaTrace 		mcBE;
-	CMetaTrace 		mcE;
-	CMetaTrace 		mcRWB;
+	CW65C816				mcMPU;
+	CW65C816Pins			mcPins;
+	CTimeline				mcTimeline;
+	CMetaBus16 				mcAddress;
+	CMetaBus8 				mcData;
+	CMetaTrace 				mcVPB;
+	CMetaTrace 				mcRDY;
+	CMetaTrace 				mcABORTB;
+	CMetaTrace 				mcIRQB;
+	CMetaTrace 				mcNMIB;
+	CMetaTrace 				mcMLB;
+	CMetaTrace 				mcVPA;
+	CMetaTrace 				mcVDA;
+	CMetaTrace 				mcRESB;
+	CMetaTrace 				mcMX;
+	CMetaTrace 				mcPHI2;
+	CMetaTrace 				mcBE;
+	CMetaTrace 				mcE;
+	CMetaTrace 				mcRWB;
+
+	MetaW65C816TickHigh		mfTickHigh;
+	MetaW65C816TickLow		mfTickLow;
 
 public:
-	void			Init(void);
+	void			Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow);
 	void			Kill(void);
 
 	CW65C816*		GetMPU(void);
@@ -49,9 +56,10 @@ public:
 	CMetaTrace* 	GetE(void);
 	CMetaTrace* 	GetRWB(void);
 
-	void			TickInstruction(void);
+	bool			TickInstruction(void);
 
 	void			Print(CChars* psz);
+	void			Print(CChars* psz, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool, bool bDB, bool bP);
 	void			Dump(void);
 };
 

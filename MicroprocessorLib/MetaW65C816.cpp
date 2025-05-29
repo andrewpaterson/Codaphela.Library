@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::Init(void)
+void CMetaW65C816::Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow)
 {
 	mcAddress.Init();
 	mcData.Init();
@@ -30,6 +30,9 @@ void CMetaW65C816::Init(void)
 	mcPins.SetOtherTraces(&mcMLB, &mcMX, &mcBE, &mcE, &mcRDY);
 
 	mcMPU.Init(&mcPins);
+
+	mfTickHigh = fTickHigh;
+	mfTickLow = fTickLow;
 }
 
 
@@ -65,7 +68,7 @@ void CMetaW65C816::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::TickInstruction(void)
+bool CMetaW65C816::TickInstruction(void)
 {
 	int i = 0;
 	if (mcRESB.IsLow())
@@ -79,7 +82,7 @@ void CMetaW65C816::TickInstruction(void)
 
 		mcPHI2.Invert();
 		mcMPU.InputTransition(&mcTimeline);
-		Dump();
+		mfTickLow(this);
 
 		mcPHI2.Invert();
 		mcMPU.InputTransition(&mcTimeline);
@@ -92,14 +95,20 @@ void CMetaW65C816::TickInstruction(void)
 
 		if (mcPHI2.IsHigh())
 		{
+			mfTickHigh(this);
 		}
 
 		if (mcPHI2.IsLow())
 		{
-			Dump();
+			mfTickLow(this);
 			if (mcVDA.IsHigh() && mcVPA.IsHigh())
 			{
-				return;
+				return true;
+			}
+
+			if (mcMPU.IsStopped())
+			{
+				return false;
 			}
 		}
 	}
@@ -112,11 +121,86 @@ void CMetaW65C816::TickInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::Print(CChars* psz)
 {
-	mcMPU.GetOpcodeMnemonicString(psz);
-	psz->Append(": (");
-	mcMPU.GetCycleString(psz);
-	psz->Append(") ");
-	mcMPU.GetCycleOperationString(psz);
+	Print(psz, true, true, true, true, true, true, true, true, true);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMetaW65C816::Print(CChars* psz, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool, bool bDB, bool bP)
+{
+	CChars	sz;
+	int32	i;
+
+	sz.Init();
+	mcMPU.GetOpcodeMnemonicString(&sz);
+	sz.Append(": (");
+	mcMPU.GetCycleString(&sz);
+	sz.Append(") ");
+	mcMPU.GetCycleOperationString(&sz);
+	psz->LeftAlign(sz, ' ', 25);
+	sz.Kill();
+
+	if (bA)
+	{
+		psz->Append("A.");
+		mcMPU.GetAccumulatorValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bX)
+	{
+		psz->Append("X.");
+		mcMPU.GetXValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bY)
+	{
+		psz->Append("Y.");
+		mcMPU.GetXValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bPC)
+	{
+		psz->Append("PC.");
+		mcMPU.GetProgramCounterValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bS)
+	{
+		psz->Append("S.");
+		mcMPU.GetStackValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bDP)
+	{
+		psz->Append("DP.");
+		mcMPU.GetDirectPageValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bDB)
+	{
+		psz->Append("DB.");
+		mcMPU.GetDataBankValueHex(psz, false);
+		psz->Append("  ");
+	}
+	if (bP)
+	{
+		psz->Append("  P(");
+		mcMPU.GetStatusString(psz);
+		psz->Append(")  ");
+	}
+
+	for (i = psz->Length() - 1; i >= 0; i--)
+	{
+		if (psz->GetChar(i) != ' ')
+		{
+			break;
+		}
+	}
+	i = psz->Length() - i - 1;
+	psz->RemoveFromEnd(i);
 }
 
 
