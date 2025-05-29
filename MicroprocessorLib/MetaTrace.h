@@ -19,6 +19,7 @@ public:
 
 	void			Set(bool bValue);
 	STraceValue		Get(void);
+	void			Invert(void);
 };
 
 

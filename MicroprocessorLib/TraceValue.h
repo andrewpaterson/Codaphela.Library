@@ -20,6 +20,8 @@ struct STraceValue
 	void	Init(bool bValue);
 	bool	IsHigh(void);
 	bool	IsLow(void);
+
+	void	Invert(void);
 };
 
 
