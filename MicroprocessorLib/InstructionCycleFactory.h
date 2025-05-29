@@ -45,7 +45,7 @@
 #include "ReadDataHigh.h"
 #include "ReadDataBank.h"
 #include "ReadDirectOffset.h"
-#include "ReadOpCode.h"
+#include "ReadOpcode.h"
 #include "ReadProcessorStatus.h"
 #include "ReadProgramBank.h"
 #include "ReadProgramCounterHigh.h"
@@ -75,7 +75,7 @@
 #include "InstructionCycles.h"
 
 
-CInstructionCycles* CreateFetchOpCodeCycles(void);
+CInstructionCycles* CreateFetchOpcodeCycles(void);
 CInstructionCycles* CreateAbsoluteCycles(CW65C816Func fOperation, EWidthFromRegister eWidth);
 CInstructionCycles* CreateAbsoluteWriteCycles(CW65C816Func fOperation, EWidthFromRegister eWidth);
 CInstructionCycles* CreateAbsoluteJMPCycles(void);

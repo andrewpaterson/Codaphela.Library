@@ -3,7 +3,7 @@
 #include "DataOperation.h"
 
 
-class CReadOpCode : public CDataOperation
+class CReadOpcode : public CDataOperation
 {
 public:
 	void	Init(void);
@@ -14,7 +14,7 @@ public:
 	void	Print(CChars* psz) override;
 	size	GetDone8(void) override;
 	size	GetDone16(void) override;
-	bool	IsFetchOpCode(void) override;
+	bool	IsFetchOpcode(void) override;
 };
 
 

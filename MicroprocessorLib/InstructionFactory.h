@@ -37,7 +37,7 @@ public:
 protected:
             CInstruction*           Instruct(CInstruction* pcInstruction);
             void                    CreateInstructions(void);
-            void                    ValidateOpCodes(void);
+            void                    ValidateOpcodes(void);
             CInstruction*           CreateBEQ(uint16 uiCode, CInstructionCycles* pcInstructionCycles);
             CInstruction*           CreateXBA(uint16 uiCode, CInstructionCycles* pcInstructionCycles);
             CInstruction*           CreateNOP(uint16 uiCode, CInstructionCycles* pcInstructionCycles);

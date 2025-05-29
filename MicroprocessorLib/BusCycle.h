@@ -29,7 +29,7 @@ public:
     void                ToAddressOffsetString(CChars* psz);
     void                ToOperationString(CChars* psz);
     void                ToDataString(CChars* psz);
-    bool                IsFetchOpCode();
+    bool                IsFetchOpcode();
     void                SetCycle(int16 iCycle);
     int16               GetCycle(void);
     COperationArray*    GetOperations(void);

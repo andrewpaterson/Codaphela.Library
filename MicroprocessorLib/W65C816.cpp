@@ -1173,7 +1173,7 @@ void CW65C816::GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruc
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::GetOpcodeValueHex(CChars* psz)
 {
-    return GetOpcodeValueHex(psz, GetCycle(), mpcState->GetOpCode());
+    return GetOpcodeValueHex(psz, GetCycle(), mpcState->GetOpcode());
 }
 
 
@@ -1185,7 +1185,7 @@ void CW65C816::GetOpcodeMnemonicString(CChars* psz)
 {
     CInstruction*   pcInstruction;
 
-    pcInstruction = mpcState->GetOpCode();
+    pcInstruction = mpcState->GetOpcode();
     if (pcInstruction)
     {
 
@@ -1291,16 +1291,16 @@ void CW65C816::DisableBuses(void)
 void CW65C816::InputTransition(CTimeline* pcTimeline)
 {
     CW65C816Pins*   pcPins;
-    bool            reset;
-    bool            nmi;
-    bool            irq;
-    bool            abort;
-    STraceValue     clockValue;
+    bool            bReset;
+    bool            bNmi;
+    bool            bIrq;
+    bool            bAbort;
+    STraceValue     sClockValue;
 
     pcPins = GetPins();
-    clockValue = pcPins->ReadPhi2(pcTimeline);
-    reset = pcPins->ReadRES(pcTimeline).IsLow();
-    if (reset || mpcState->IsReseting(clockValue))
+    sClockValue = pcPins->ReadPhi2(pcTimeline);
+    bReset = pcPins->ReadRES(pcTimeline).IsLow();
+    if (bReset || mpcState->IsReseting(sClockValue))
     {
         mpcState->ResetPulled();
     }
@@ -1309,10 +1309,9 @@ void CW65C816::InputTransition(CTimeline* pcTimeline)
         mpcState->ClearReset();
     }
 
-    clockValue = pcPins->ReadPhi2(pcTimeline);
-    nmi = pcPins->ReadNMI(pcTimeline).IsLow();
-    irq = pcPins->ReadIRQ(pcTimeline).IsLow();
-    abort = pcPins->ReadAbort(pcTimeline).IsLow();
+    bNmi = pcPins->ReadNMI(pcTimeline).IsLow();
+    bIrq = pcPins->ReadIRQ(pcTimeline).IsLow();
+    bAbort = pcPins->ReadAbort(pcTimeline).IsLow();
 
     mpcState->mbBusEnable = pcPins->ReadBE(pcTimeline).IsHigh();
     if (!mpcState->IsBusEnable())
@@ -1320,13 +1319,13 @@ void CW65C816::InputTransition(CTimeline* pcTimeline)
         DisableBuses();
     }
 
-    if (clockValue.IsHigh() || clockValue.IsLow())
+    if (sClockValue.IsHigh() || sClockValue.IsLow())
     {
-        bool risingEdge = clockValue.IsHigh() && mpcState->mbPreviousClockLow;
-        bool fallingEdge= clockValue.IsLow() && mpcState->mbPreviousClockHigh;
+        bool risingEdge = sClockValue.IsHigh() && mpcState->mbPreviousClockLow;
+        bool fallingEdge= sClockValue.IsLow() && mpcState->mbPreviousClockHigh;
 
-        mpcState->mbPreviousClockLow = clockValue.IsLow();
-        mpcState->mbPreviousClockHigh = clockValue.IsHigh();
+        mpcState->mbPreviousClockLow = sClockValue.IsLow();
+        mpcState->mbPreviousClockHigh = sClockValue.IsHigh();
 
         if (!mpcState->IsStopped())
         {
@@ -1342,11 +1341,11 @@ void CW65C816::InputTransition(CTimeline* pcTimeline)
         }
     }
 
-    mpcState->mbIrq = !irq;
+    mpcState->mbIrq = bIrq;
 
     //These don't look properly edge triggered.
-    mpcState->mbNmi = !nmi;
-    mpcState->mbAbort = !abort;
+    mpcState->mbNmi = bNmi;
+    mpcState->mbAbort = bAbort;
 }
 
 

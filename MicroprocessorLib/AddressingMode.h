@@ -26,7 +26,7 @@ enum EAddressingMode
 	AM_Implied,                          //Operand is implied by Opcode,
 	AM_BlockMove,
 	AM_StopTheClock,
-	AM_OpCode,                           //Operand is (next) Opcode
+	AM_Opcode,                           //Operand is (next) Opcode
 	
 	AM_Direct,                           //D0 = [PB: PC + 1]                                                 Address =  00: DP + D0
 	AM_DirectIndexedWithX,               //D0 = [PB: PC + 1]                                                 Address =  00: DP + D0 + X

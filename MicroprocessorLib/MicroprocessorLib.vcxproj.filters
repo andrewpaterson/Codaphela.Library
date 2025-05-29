@@ -34,6 +34,9 @@
     <Filter Include="Source\Meta">
       <UniqueIdentifier>{1434093c-1795-4898-88ac-ab597c79f3db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\wdc\W65C816\Meta">
+      <UniqueIdentifier>{ec5393fa-0d73-4725-b944-252c3341b250}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="W65C816.cpp">
@@ -270,7 +273,7 @@
     <ClCompile Include="NoteTwo.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Operation\Note</Filter>
     </ClCompile>
-    <ClCompile Include="ReadOpCode.cpp">
+    <ClCompile Include="ReadOpcode.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Operation</Filter>
     </ClCompile>
     <ClCompile Include="ReadProcessorStatus.cpp">
@@ -311,6 +314,9 @@
     </ClCompile>
     <ClCompile Include="MetaTrace.cpp">
       <Filter>Source\Meta</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaW65C816.cpp">
+      <Filter>Source\wdc\W65C816\Meta</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -560,7 +566,7 @@
     <ClInclude Include="NoteTwo.h">
       <Filter>Source\wdc\W65C816\Instruction\Operation\Note</Filter>
     </ClInclude>
-    <ClInclude Include="ReadOpCode.h">
+    <ClInclude Include="ReadOpcode.h">
       <Filter>Source\wdc\W65C816\Instruction\Operation</Filter>
     </ClInclude>
     <ClInclude Include="ReadProcessorStatus.h">
@@ -607,6 +613,9 @@
     </ClInclude>
     <ClInclude Include="MetaTrace.h">
       <Filter>Source\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaW65C816.h">
+      <Filter>Source\wdc\W65C816\Meta</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

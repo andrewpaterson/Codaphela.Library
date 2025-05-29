@@ -25,7 +25,7 @@ public:
             bool IsNotMemoryLock(void);
             bool IsNotVectorPull(void);
             bool IsReady(void);
-    virtual bool IsFetchOpCode(void);
+    virtual bool IsFetchOpcode(void);
 };
 
 

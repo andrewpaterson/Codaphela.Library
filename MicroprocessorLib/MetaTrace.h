@@ -20,6 +20,8 @@ public:
 	void			Set(bool bValue);
 	STraceValue		Get(void);
 	void			Invert(void);
+	bool			IsHigh(void);
+	bool			IsLow(void);
 };
 
 
