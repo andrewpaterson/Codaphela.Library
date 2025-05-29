@@ -36,7 +36,7 @@ void CW65C816State::Init(void)
     miCycle = 0;
 	miNextCycle = 0;
 
-	muiOpCodeIndex = 0xffff;
+	muiOpcodeIndex = 0xffff;
     muiData = 0;
     muiDirectOffset = 0;
     mcNewProgramCounter.Init();
@@ -77,7 +77,7 @@ void CW65C816State::Init(CW65C816State state)
     muiStackPointer = state.muiStackPointer;
     miCycle = state.miCycle;
 	miNextCycle = state.miNextCycle;
-    muiOpCodeIndex = state.muiOpCodeIndex;
+    muiOpcodeIndex = state.muiOpcodeIndex;
     mbStopped = state.mbStopped;
     muiAbortProcessRegister = state.muiAbortProcessRegister;
     muiAbortAccumulator = state.muiAbortAccumulator;
@@ -214,7 +214,7 @@ void CW65C816State::ResetPulled(void)
 {
     mbAbort = false;
     mbNmi = false;
-    muiOpCodeIndex = GetResetOpcode()->GetCode();
+    muiOpcodeIndex = GetResetOpcode()->GetCode();
     mbStopped = false;
     miCycle = 0;
 	miNextCycle = 0;
@@ -503,6 +503,7 @@ void CW65C816State::Cycle(CW65C816* pcCPU)
     NextCycle();
     while (!GetBusCycle()->MustExecute(pcCPU))
     {
+		miCycle = miNextCycle;
         NextCycle();
     }
 }
@@ -568,7 +569,7 @@ CBusCycle* CW65C816State::GetBusCycle(void)
 {
 	CInstruction*			pcInstruction;
 
-	pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
+	pcInstruction = CInstructionFactory::GetInstance()->GetInstruction(muiOpcodeIndex);
 
 	if (pcInstruction != NULL)
 	{
@@ -593,21 +594,21 @@ void CW65C816State::NextInstruction(void)
 
 	if (mbNmi)
 	{
-		muiOpCodeIndex = GetNmiOpcode()->GetCode();
+		muiOpcodeIndex = GetNmiOpcode()->GetCode();
 		mbNmi = false;
 	}
 	else if (mbAbort)
 	{
-		muiOpCodeIndex = GetAbortOpcode()->GetCode();
+		muiOpcodeIndex = GetAbortOpcode()->GetCode();
 		mbAbort = false;
 	}
 	else if (mbIrq && !mbInterruptDisableFlag)
 	{
-		muiOpCodeIndex = GetIrqOpcode()->GetCode();
+		muiOpcodeIndex = GetIrqOpcode()->GetCode();
 	}
 	else
 	{
-		muiOpCodeIndex = GetFetchNextOpcode()->GetCode();
+		muiOpcodeIndex = GetFetchNextOpcode()->GetCode();
 	}
 }
 
@@ -646,11 +647,11 @@ int16 CW65C816State::GetCycle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetOpCode(uint16 uiOpCodeIndex)
+void CW65C816State::SetOpcode(uint16 uiOpcodeIndex)
 {
-	if ((uiOpCodeIndex >= 0) && (uiOpCodeIndex <= 255))
+	if ((uiOpcodeIndex >= 0) && (uiOpcodeIndex <= 255))
 	{
-		muiOpCodeIndex = uiOpCodeIndex;
+		muiOpcodeIndex = uiOpcodeIndex;
 	}
 	else
 	{
@@ -1416,9 +1417,9 @@ CAddress* CW65C816State::GetAddress(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInstruction* CW65C816State::GetOpCode(void)
+CInstruction* CW65C816State::GetOpcode(void)
 {
-	return CInstructionFactory::GetInstance()->GetInstruction(muiOpCodeIndex);
+	return CInstructionFactory::GetInstance()->GetInstruction(muiOpcodeIndex);
 }
 
 
@@ -2890,9 +2891,9 @@ void CW65C816State::WriteDataHigh(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::ReadOpCode(void)
+void CW65C816State::ReadOpcode(void)
 {
-	SetOpCode(GetDataLow());
+	SetOpcode(GetDataLow());
 }
 
 

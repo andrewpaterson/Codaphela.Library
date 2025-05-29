@@ -39,7 +39,7 @@ public:
 
 	int16		miCycle;
 	int16		miNextCycle;
-	uint16		muiOpCodeIndex;
+	uint16		muiOpcodeIndex;
 	bool		mbStopped;
 
 	uint8		muiAbortProcessRegister;
@@ -113,7 +113,7 @@ public:
 	void			DoneInstruction(void);
 	void			NextCycle(void);
 	int16			GetCycle(void);
-	void			SetOpCode(uint16 uiOpCodeIndex);
+	void			SetOpcode(uint16 uiOpcodeIndex);
 	CDataOperation* GetDataOperation(void);
 	bool			IsStopped(void);
 	bool			IsRead(void);
@@ -173,7 +173,7 @@ public:
 	uint16			GetStackPointer(void);
 	CAddress*		GetAddress(void);
 
-	CInstruction*	GetOpCode(void);
+	CInstruction*	GetOpcode(void);
 	CAddress*		GetNewProgramCounter(void);
 	void			IncrementProgramAddress(void);
 	void			DecrementProgramCounter(void);
@@ -266,7 +266,7 @@ public:
 	uint16			GetData8BitOffset(void);
 	void			WriteDataLow(void);
 	void			WriteDataHigh(void);
-	void			ReadOpCode(void);
+	void			ReadOpcode(void);
 	bool			NoteFourX(bool bNextWillRead);
 	bool			NoteFourY(bool bNextWillRead);
 	bool			NoteSix(void);

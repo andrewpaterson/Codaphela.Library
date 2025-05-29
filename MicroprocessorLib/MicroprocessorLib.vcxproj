@@ -63,6 +63,7 @@
     <ClCompile Include="MetaBus32.cpp" />
     <ClCompile Include="MetaBus8.cpp" />
     <ClCompile Include="MetaTrace.cpp" />
+    <ClCompile Include="MetaW65C816.cpp" />
     <ClCompile Include="NewProgramBank.cpp" />
     <ClCompile Include="NMIVector.cpp" />
     <ClCompile Include="NoteFourX.cpp" />
@@ -83,7 +84,7 @@
     <ClCompile Include="ReadDataHigh.cpp" />
     <ClCompile Include="ReadDataLow.cpp" />
     <ClCompile Include="ReadDirectOffset.cpp" />
-    <ClCompile Include="ReadOpCode.cpp" />
+    <ClCompile Include="ReadOpcode.cpp" />
     <ClCompile Include="ReadProcessorStatus.cpp" />
     <ClCompile Include="ReadProgramBank.cpp" />
     <ClCompile Include="ReadProgramCounterHigh.cpp" />
@@ -162,6 +163,7 @@
     <ClInclude Include="MetaBus32.h" />
     <ClInclude Include="MetaBus8.h" />
     <ClInclude Include="MetaTrace.h" />
+    <ClInclude Include="MetaW65C816.h" />
     <ClInclude Include="NewProgramBank.h" />
     <ClInclude Include="NewProgramCounter.h" />
     <ClInclude Include="NMIVector.h" />
@@ -184,7 +186,7 @@
     <ClInclude Include="ReadDataHigh.h" />
     <ClInclude Include="ReadDataLow.h" />
     <ClInclude Include="ReadDirectOffset.h" />
-    <ClInclude Include="ReadOpCode.h" />
+    <ClInclude Include="ReadOpcode.h" />
     <ClInclude Include="ReadProcessorStatus.h" />
     <ClInclude Include="ReadProgramBank.h" />
     <ClInclude Include="ReadProgramCounterHigh.h" />

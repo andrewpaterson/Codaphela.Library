@@ -38,7 +38,7 @@ void CInstructionFactory::Init(void)
     memset(this, 0, sizeof(CInstructionFactory));
 
 	CreateInstructions();
-    ValidateOpCodes();
+    ValidateOpcodes();
 
 	Instruct(CreateReset());
     Instruct(CreateIRQ());
@@ -428,7 +428,7 @@ CInstruction* CInstructionFactory::Instruct(CInstruction* pcInstruction)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInstructionFactory::ValidateOpCodes(void)
+void CInstructionFactory::ValidateOpcodes(void)
 {
     uint16          i;
     CInstruction*   pcInstruction;
@@ -1594,7 +1594,7 @@ CInstruction* CInstructionFactory::CreateAbort(void)
 CInstruction* CInstructionFactory::CreateFetchNext(void)
 {
     mpcFetchNext = NewMalloc<CInstruction>();
-    mpcFetchNext->Init(muiInstructions, CreateFetchOpCodeCycles(), "NEXT",
+    mpcFetchNext->Init(muiInstructions, CreateFetchOpcodeCycles(), "OPC",
         "Fetch Opcode from address in program counter.");
 
     mapcInstructions[muiInstructions] = mpcFetchNext;

@@ -32,6 +32,7 @@ public:
 	void			Init(CMetaBus16* pcAddress, CMetaBus8* pcData, CMetaTrace* pcPHI2, CMetaTrace* pcRESB, CMetaTrace* pcRWB);
 	void			SetImportantTraces(CMetaTrace* pcVPA, CMetaTrace* pcVDA, CMetaTrace* pcVPB);
 	void			SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, CMetaTrace* pcNMIB);
+	void			SetOtherTraces(CMetaTrace* pcMLB, CMetaTrace* pcMX, CMetaTrace* pcBE, CMetaTrace* pcE, CMetaTrace* pcRDY);
 	void			Kill(void);
 
 	//Microprocessor side methods.

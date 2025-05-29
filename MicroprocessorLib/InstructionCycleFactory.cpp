@@ -533,16 +533,16 @@ CNoteFourY* NoteFourY(bool bNextWillRead)
 }
 
 
-CInstructionCycles* CreateFetchOpCodeCycles(void)
+CInstructionCycles* CreateFetchOpcodeCycles(void)
 {
-	CReadOpCode* pcReadOpCode;
+	CReadOpcode* pcReadOpcode;
 
-	pcReadOpCode = NewMalloc<CReadOpCode>();
-	pcReadOpCode->Init();
+	pcReadOpcode = NewMalloc<CReadOpcode>();
+	pcReadOpcode->Init();
 
 	//0*
-	return InstructionCycles(AM_OpCode,
-		BusCycle(	Address(PBR(), PC(), NULL), Operation(pcReadOpCode, PC_inc(), NULL)),
+	return InstructionCycles(AM_Opcode,
+		BusCycle(	Address(PBR(), PC(), NULL), Operation(pcReadOpcode, PC_inc(), NULL)),
 		NULL);
 }
 

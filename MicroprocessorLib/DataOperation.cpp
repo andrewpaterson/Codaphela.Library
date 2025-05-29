@@ -91,7 +91,7 @@ bool CDataOperation::IsReady(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDataOperation::IsFetchOpCode(void)
+bool CDataOperation::IsFetchOpcode(void)
 {
     return false;
 }

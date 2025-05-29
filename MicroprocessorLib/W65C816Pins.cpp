@@ -54,6 +54,20 @@ void CW65C816Pins::SetInterruptTraces(CMetaTrace* pcABORTB, CMetaTrace* pcIRQB, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CW65C816Pins::SetOtherTraces(CMetaTrace* pcMLB, CMetaTrace* pcMX, CMetaTrace* pcBE, CMetaTrace* pcE, CMetaTrace* pcRDY)
+{
+	mpcMLB = pcMLB;
+	mpcMX = pcMX;
+	mpcBE = pcBE;
+	mpcE = pcE;
+	mpcRDY = pcRDY;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CW65C816Pins::Kill(void)
 {
 	mpcAddress = NULL;

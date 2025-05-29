@@ -152,7 +152,7 @@ bool CBusCycle::MustExecute(CW65C816* pcCPU)
 {
     size            uiNumOperations;
     size            i;
-    COperation* pcOperation;
+    COperation*     pcOperation;
     bool            bMustExecute;
 
     bMustExecute = true;
@@ -239,9 +239,9 @@ void CBusCycle::ToDataString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBusCycle::IsFetchOpCode(void)
+bool CBusCycle::IsFetchOpcode(void)
 {
-    return mpcDataOperation->IsFetchOpCode();
+    return mpcDataOperation->IsFetchOpcode();
 }
 
 

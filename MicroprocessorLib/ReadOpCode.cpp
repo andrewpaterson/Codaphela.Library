@@ -1,13 +1,13 @@
 #include "W65C816.h"
 #include "W65C816State.h"
-#include "ReadOpCode.h"
+#include "ReadOpcode.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadOpCode::Init(void)
+void CReadOpcode::Init(void)
 {
 	CDataOperation::Init(true, true, true, true, true);
 }
@@ -17,9 +17,9 @@ void CReadOpCode::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadOpCode::Execute(CW65C816* pcCPU)
+void CReadOpcode::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->ReadOpCode();
+	pcCPU->GetState()->ReadOpcode();
 }
 
 
@@ -27,7 +27,7 @@ void CReadOpCode::Execute(CW65C816* pcCPU)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadOpCode::IsInitialSide(void)
+bool CReadOpcode::IsInitialSide(void)
 {
 	return false;
 }
@@ -37,9 +37,9 @@ bool CReadOpCode::IsInitialSide(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CReadOpCode::Print(CChars* psz)
+void CReadOpcode::Print(CChars* psz)
 {
-	psz->Append("Opcode");
+	psz->Append("Read(Opcode)");
 }
 
 
@@ -47,17 +47,7 @@ void CReadOpCode::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CReadOpCode::GetDone8(void)
-{
-	return 1;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CReadOpCode::GetDone16(void)
+size CReadOpcode::GetDone8(void)
 {
 	return 1;
 }
@@ -67,7 +57,17 @@ size CReadOpCode::GetDone16(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CReadOpCode::IsFetchOpCode(void)
+size CReadOpcode::GetDone16(void)
+{
+	return 1;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CReadOpcode::IsFetchOpcode(void)
 {
 	return true;
 }
