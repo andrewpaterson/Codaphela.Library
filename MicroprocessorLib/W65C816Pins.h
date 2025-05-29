@@ -54,28 +54,6 @@ public:
 	STraceValue		ReadIRQ(CTimeline* pcTimeline);
 	STraceValue		ReadAbort(CTimeline* pcTimeline);
 	STraceValue		ReadBE(CTimeline* pcTimeline);
-
-	//Circuit side methods.
-	void			HalfCycle(void);
-
-	void			SetRDY(bool bValue);
-	void			SetABORTB(bool bValue);
-	void			SetIRQB(bool bValue);
-	void			SetNMIB(bool bValue);
-	void			SetRESB(bool bValue);
-	void			SetPHI2(bool bValue);
-	void			SetBE(bool bValue);
-
-
-	STraceValue		GetVPB(void);
-	STraceValue		GetRDY(void);
-	STraceValue		GetMLB(void);
-	STraceValue		GetVPA(void);
-	STraceValue		GetVDA(void);
-	STraceValue		GetMX(void);
-	STraceValue		GetE(void);
-	STraceValue		GetRWB(void);
-	STraceValue		GetPHI2(void);
 };
 
 

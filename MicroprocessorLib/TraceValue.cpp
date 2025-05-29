@@ -57,3 +57,21 @@ bool STraceValue::IsLow(void)
 	return eValue == TV_Low;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void STraceValue::Invert(void)
+{
+	bool	bLow;
+	bool	bHigh;
+
+	bLow = IsLow();
+	bHigh = IsHigh();
+	if (bLow || bHigh)
+	{
+		Init(!bHigh);
+	}
+}
+
