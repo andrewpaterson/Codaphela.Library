@@ -139,30 +139,32 @@ public:
 
     void            InputTransition(CTimeline* pcTimeline);// override;
 
-    void            GetAddressValueHex(CChars* psz);
-    void            GetAccumulaTorValueHex(CChars* psz);
-    void            GetXValueHex(CChars* psz);
-    void            GetYValueHex(CChars* psz);
-    void            GetDataBankValueHex(CChars* psz);
-    void            GetStackValueHex(CChars* psz);
-    void            GetDirectPageValueHex(CChars* psz);
-    void            GetProgramCounterValueHex(CChars* psz);
-    void            GetDataValueHex(CChars* psz);
-    void            GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction);
-    void            GetOpcodeValueHex(CChars* psz);
+    void            GetAddressValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetAccumulatorValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetXValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetYValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetDataBankValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetStackValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetDirectPageValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetProgramCounterValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetDataValueHex(CChars* psz, bool bAppend0x = true);
+    void            GetOpcodeValueHex(CChars* psz, int cycle, CInstruction* pcInstruction, bool bAppend0x = true);
+    void            GetOpcodeValueHex(CChars* psz, bool bAppend0x = true);
     void            GetOpcodeMnemonicString(CChars* psz);
     void            GetCycleOperationString(CChars* psz);
     void            GetStatusString(CChars* psz);
     char*           GetType(void);
     void            GetCycleString(CChars* psz);
     int16           GetCycle(void);
+    bool            IsStopped(void);
 
 protected:
     void            Branch(bool condition);
     void            To8BitHexString(CChars* psz, uint8 ui8);
     void            To16BitHexString(CChars* psz, uint16 ui16);
-    void            ToAddressHexString(CChars* psz, CAddress* pcAddress);
+    void            ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppend0x = true);
     void            DisableBuses(void);
+    void            Append0x(CChars* psz, bool bAppend0x);
 
     void            ExecutPhi2Falling(CTimeline* pcTimeline);
     void            ExecutPhi2Rising(CTimeline* pcTimeline);
