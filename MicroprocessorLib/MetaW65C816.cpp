@@ -102,14 +102,14 @@ bool CMetaW65C816::TickInstruction(void)
 		if (mcPHI2.IsLow())
 		{
 			mfTickLow(this, mpvContext);
-			if (mcVDA.IsHigh() && mcVPA.IsHigh())
-			{
-				return true;
-			}
 
 			if (mcMPU.IsStopped())
 			{
 				return false;
+			}
+			if (mcVDA.IsHigh() && mcVPA.IsHigh())
+			{
+				return true;
 			}
 		}
 	}
@@ -122,7 +122,7 @@ bool CMetaW65C816::TickInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::Print(CChars* psz)
 {
-	Print(psz, true, true, true, true, true, true, true, true, true);
+	Print(psz, true, true, true, true, true, true, true, true);
 }
 
 
@@ -130,7 +130,7 @@ void CMetaW65C816::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::Print(CChars* psz, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool, bool bDB, bool bP)
+void CMetaW65C816::Print(CChars* psz, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP)
 {
 	CChars	sz;
 	int32	i;

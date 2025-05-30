@@ -19,7 +19,7 @@ void CReadDataHigh::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDataHigh::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->SetInternal16BitDataHigh(pcCPU->GetState()->GetDataLow());
+	pcCPU->GetState()->SetDataHigh(pcCPU->GetState()->GetDataLow());
 }
 
 

@@ -149,7 +149,7 @@ void CW65C816::PLB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHB(void)
 {
-    mpcState->SetInternal16BitDataLow(mpcState->GetDataBank());
+    mpcState->SetDataLow(mpcState->GetDataBank());
 }
 
 
@@ -159,7 +159,7 @@ void CW65C816::PHB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHK(void)
 {
-    mpcState->SetInternal16BitDataLow(mpcState->GetProgramCounter()->GetBank());
+    mpcState->SetDataLow(mpcState->GetProgramCounter()->GetBank());
 }
 
 
@@ -179,7 +179,7 @@ void CW65C816::PLP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHP(void)
 {
-    mpcState->SetInternal16BitDataLow(mpcState->GetProcessorRegisterValue());
+    mpcState->SetDataLow(mpcState->GetProcessorRegisterValue());
 }
 
 

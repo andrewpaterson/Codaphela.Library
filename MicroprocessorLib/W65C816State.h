@@ -128,8 +128,7 @@ public:
 	void			SetIndexData(uint16 uiData, bool bUpdateFlags);
 	void			SetSignAndZeroFromMemory(uint16 uiValue);
 	void			SetSignAndZeroFromIndex(uint16 uiValue);
-	void			SetMemoryData(uint16 uiInternal16BitData);
-	void			SetDataLow(uint8 uiData);
+	void			SetMemoryData(uint16 uiData);
 	uint16			GetA(void);
 	uint16			GetC(void);
 	uint16			GetX(void);
@@ -180,8 +179,8 @@ public:
 	void			IncrementStackPointer(void);
 	void			DecrementStackPointer(void);
 	void			SetDirectOffset(uint8 uiData);
-	void			SetInternal16BitDataLow(uint8 uiData);
-	void			SetInternal16BitDataHigh(uint8 uiData);
+	void			SetDataLow(uint8 uiData);
+	void			SetDataHigh(uint8 uiData);
 	void			SetStackPointer(uint16 uiData);
 	void			SetNewProgramCounterLow(uint8 uiData);
 	void			SetNewProgramCounterHigh(uint8 uiData);

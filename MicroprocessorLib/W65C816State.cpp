@@ -889,9 +889,9 @@ void CW65C816State::SetSignAndZeroFromIndex(uint16 uiValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetMemoryData(uint16 uiInternal16BitData)
+void CW65C816State::SetMemoryData(uint16 uiData)
 {
-	SetMemoryData(uiInternal16BitData, true);
+	SetMemoryData(uiData, true);
 }
 
 
@@ -1487,17 +1487,7 @@ void CW65C816State::SetDirectOffset(uint8 uiData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetInternal16BitDataLow(uint8 uiData)
-{
-	muiData = SetLowByte(muiData, uiData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CW65C816State::SetInternal16BitDataHigh(uint8 uiData)
+void CW65C816State::SetDataHigh(uint8 uiData)
 {
 	muiData = SetHighByte(muiData, uiData);
 }
