@@ -5,7 +5,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow)
+void CMetaW65C816::Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow, void* pvContext)
 {
 	mcAddress.Init();
 	mcData.Init();
@@ -33,6 +33,7 @@ void CMetaW65C816::Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickL
 
 	mfTickHigh = fTickHigh;
 	mfTickLow = fTickLow;
+	mpvContext = pvContext;
 }
 
 
@@ -82,7 +83,7 @@ bool CMetaW65C816::TickInstruction(void)
 
 		mcPHI2.Invert();
 		mcMPU.InputTransition(&mcTimeline);
-		mfTickLow(this);
+		mfTickLow(this, mpvContext);
 
 		mcPHI2.Invert();
 		mcMPU.InputTransition(&mcTimeline);
@@ -95,12 +96,12 @@ bool CMetaW65C816::TickInstruction(void)
 
 		if (mcPHI2.IsHigh())
 		{
-			mfTickHigh(this);
+			mfTickHigh(this, mpvContext);
 		}
 
 		if (mcPHI2.IsLow())
 		{
-			mfTickLow(this);
+			mfTickLow(this, mpvContext);
 			if (mcVDA.IsHigh() && mcVPA.IsHigh())
 			{
 				return true;

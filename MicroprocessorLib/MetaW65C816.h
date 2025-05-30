@@ -4,8 +4,8 @@
 #include "Timeline.h"
 
 class CMetaW65C816;
-typedef void(*MetaW65C816TickHigh)(CMetaW65C816*);
-typedef void(*MetaW65C816TickLow)(CMetaW65C816*);
+typedef void(*MetaW65C816TickHigh)(CMetaW65C816*, void*);
+typedef void(*MetaW65C816TickLow)(CMetaW65C816*, void*);
 
 
 class CMetaW65C816
@@ -33,9 +33,10 @@ protected:
 
 	MetaW65C816TickHigh		mfTickHigh;
 	MetaW65C816TickLow		mfTickLow;
+	void*					mpvContext;
 
 public:
-	void			Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow);
+	void			Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow, void* pvContext);
 	void			Kill(void);
 
 	CW65C816*		GetMPU(void);
