@@ -54,6 +54,7 @@ public:
 	//These are not the values on the pins, they are internal data.
 	CAddress	mcAddress;
 	uint16		muiData;
+	uint8		muiPData;
 	uint16		muiDirectOffset;
 	CAddress	mcNewProgramCounter;
 	bool		mbBusEnable;
@@ -164,6 +165,7 @@ public:
 	void			SetAddressBank(uint8 uiAddressBank);
 	uint8			GetDataLow(void);
 	uint8			GetDataHigh(void);
+	uint8			GetPData(void);
 	uint16			GetMemoryData(void);
 	uint16			GetIndexData(void);
 	uint16			GetData16Bit(void);
@@ -181,6 +183,7 @@ public:
 	void			SetDirectOffset(uint8 uiData);
 	void			SetDataLow(uint8 uiData);
 	void			SetDataHigh(uint8 uiData);
+	void			SetPData(uint8 uiData);
 	void			SetStackPointer(uint16 uiData);
 	void			SetNewProgramCounterLow(uint8 uiData);
 	void			SetNewProgramCounterHigh(uint8 uiData);

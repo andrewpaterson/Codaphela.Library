@@ -139,7 +139,7 @@ void CW65C816::PHD(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PLB(void)
 {
-    mpcState->SetDataBank(mpcState->GetDataLow());
+    mpcState->SetDataBank(mpcState->GetPData());
 }
 
 
@@ -149,7 +149,7 @@ void CW65C816::PLB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHB(void)
 {
-    mpcState->SetDataLow(mpcState->GetDataBank());
+    mpcState->SetPData(mpcState->GetDataBank());
 }
 
 
@@ -159,7 +159,7 @@ void CW65C816::PHB(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHK(void)
 {
-    mpcState->SetDataLow(mpcState->GetProgramCounter()->GetBank());
+    mpcState->SetPData(mpcState->GetProgramCounter()->GetBank());
 }
 
 
@@ -179,7 +179,7 @@ void CW65C816::PLP(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::PHP(void)
 {
-    mpcState->SetDataLow(mpcState->GetProcessorRegisterValue());
+    mpcState->SetPData(mpcState->GetProcessorRegisterValue());
 }
 
 
@@ -1444,7 +1444,7 @@ void CW65C816::ExecutPhi2Falling(CTimeline* pcTimeline)
         if (bRead)
         {
             //Data on the data pins is READ on PHI falling
-            mpcState->SetDataLow(pcPins->ReadData(pcTimeline));
+            mpcState->SetPData(pcPins->ReadData(pcTimeline));
         }
 
         mpcState->ExecuteTrailingSideOperation(this);
@@ -1499,7 +1499,7 @@ void CW65C816::ExecutPhi2Rising(CTimeline* pcTimeline)
 
         if (!bRead)
         {
-            pcPins->WriteData(pcTimeline, mpcState->GetDataLow());
+            pcPins->WriteData(pcTimeline, mpcState->GetPData());
         }
     }
 }
