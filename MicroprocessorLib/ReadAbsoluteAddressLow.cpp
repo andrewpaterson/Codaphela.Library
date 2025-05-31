@@ -19,7 +19,7 @@ void CReadAbsoluteAddressLow::Init(NotMemoryLock bNotMemoryLock, bool bNotVector
 //////////////////////////////////////////////////////////////////////////
 void CReadAbsoluteAddressLow::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->SetAddressLow(pcCPU->GetState()->GetDataLow());
+	pcCPU->GetState()->SetAddressLow(pcCPU->GetState()->GetPData());
 }
 
 
