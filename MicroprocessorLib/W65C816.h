@@ -30,6 +30,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CInstruction;
 class CW65C816State;
+class CDataOperation;
 class CW65C816
 {
 protected:
@@ -157,6 +158,8 @@ public:
     void            GetCycleString(CChars* psz);
     int16           GetCycle(void);
     bool            IsStopped(void);
+    CInstruction*   GetInstruction(void);
+    CDataOperation* GetDataOperation(void);
 
 protected:
     void            Branch(bool condition);

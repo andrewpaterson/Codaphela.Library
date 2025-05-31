@@ -1203,6 +1203,18 @@ void CW65C816::GetOpcodeValueHex(CChars* psz, bool bAppend0x)
     return GetOpcodeValueHex(psz, GetCycle(), mpcState->GetOpcode(), bAppend0x);
 }
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CInstruction* CW65C816::GetInstruction(void)
+{
+    CInstruction* pcInstruction;
+
+    pcInstruction = mpcState->GetOpcode();
+    return pcInstruction;
+}
+
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -1243,6 +1255,28 @@ void CW65C816::GetCycleOperationString(CChars* psz)
     else
     {
         psz->Append("---");
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CDataOperation* CW65C816::GetDataOperation(void)
+{
+    CBusCycle*          pcBusCycle;
+    CDataOperation*     pcDataOperation;
+
+    pcBusCycle = mpcState->GetBusCycle();
+    if (pcBusCycle)
+    {
+        pcDataOperation = pcBusCycle->GetDataOperation();
+        return pcDataOperation;
+    }
+    else
+    {
+        return NULL;
     }
 }
 

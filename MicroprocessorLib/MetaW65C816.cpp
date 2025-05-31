@@ -1,3 +1,5 @@
+#include "Instruction.h"
+#include "InstructionFactory.h"
 #include "MetaW65C816.h"
 
 
@@ -120,6 +122,59 @@ bool CMetaW65C816::TickInstruction(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMetaW65C816::IsResetInstruction(void)
+{
+	return IsInstruction(CInstructionFactory::GetInstance()->GetReset());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMetaW65C816::IsStopInstruction(void)
+{
+	return IsInstruction(CInstructionFactory::GetInstance()->GetInstruction(STP_Implied));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMetaW65C816::IsInstruction(CInstruction* pcExpectedInstruction)
+{
+	CInstruction* pcInstruction;
+
+	pcInstruction = mcMPU.GetInstruction();
+	return pcInstruction == pcExpectedInstruction;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMetaW65C816::IsFetchOpcodeCycle(void)
+{
+	CDataOperation*		pcOperation;
+
+	pcOperation = mcMPU.GetDataOperation();
+	if (pcOperation != NULL)
+	{
+		if (pcOperation->IsFetchOpcode())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::Print(CChars* psz)
 {
 	Print(psz, true, true, true, true, true, true, true, true, true, true, true);
@@ -145,7 +200,7 @@ void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 	{
 		psz->Append("(");
 		mcMPU.GetCycleString(psz);
-		psz->Append(") ");
+		psz->Append(")  ");
 	}
 
 	if (bOperation)

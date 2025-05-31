@@ -58,6 +58,10 @@ public:
 	CMetaTrace* 	GetRWB(void);
 
 	bool			TickInstruction(void);
+	bool			IsResetInstruction(void);
+	bool			IsStopInstruction(void);
+	bool			IsInstruction(CInstruction* pcExpectedInstruction);
+	bool			IsFetchOpcodeCycle(void);
 
 	void			Print(CChars* psz);
 	void			Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP);
