@@ -73,7 +73,9 @@ void CMetaW65C816::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CMetaW65C816::TickInstruction(void)
 {
-	int i = 0;
+	int		i;
+	bool	bRunning;
+	
 	if (mcRESB.IsLow())
 	{
 		for (i = 0; i < 4; i++)
@@ -107,14 +109,18 @@ bool CMetaW65C816::TickInstruction(void)
 
 			if (mcMPU.IsStopped())
 			{
-				return false;
+				bRunning = false;
+				break;
 			}
 			if (mcVDA.IsHigh() && mcVPA.IsHigh())
 			{
-				return true;
+				bRunning = true;
+				break;
 			}
 		}
+
 	}
+	return bRunning;
 }
 
 
