@@ -37,7 +37,7 @@ bool CNoteTwo::IsInitialSide(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNoteTwo::MustExecute(CW65C816* pcCPU)
 {
-	return ToByte(pcCPU->GetDirectPage()) == 0;
+	return GetLowByte(pcCPU->GetDirectPage()) == 0;
 }
 
 

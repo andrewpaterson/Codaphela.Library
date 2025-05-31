@@ -18,7 +18,7 @@ void CWriteAbsoluteAddressHigh::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteAbsoluteAddressHigh::Execute(CW65C816* pcCPU)
 {
-	pcCPU->SetIOData(GetHighByte(pcCPU->GetAddress()->GetOffset()));
+	pcCPU->SetIOData(pcCPU->GetAddress()->GetOffsetHigh());
 }
 
 

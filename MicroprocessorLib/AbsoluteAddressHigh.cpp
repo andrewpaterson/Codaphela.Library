@@ -26,7 +26,7 @@ void CAbsoluteAddressHigh::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CAbsoluteAddressHigh::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetAddress()->GetOffset() & 0xff00;
+    return pcCPU->GetAddress()->GetOffsetHigh() << 8;
 }
 
 

@@ -1871,7 +1871,7 @@ uint16 CW65C816::GetA(void)
 	}
 	else
 	{
-		return ToByte(muiAccumulator);
+		return GetLowByte(muiAccumulator);
 	}
 }
 
@@ -1898,7 +1898,7 @@ uint16 CW65C816::GetX(void)
 	}
 	else
 	{
-		return ToByte(muiXIndex);
+		return GetLowByte(muiXIndex);
 	}
 }
 
@@ -1915,7 +1915,7 @@ uint16 CW65C816::GetY(void)
 	}
 	else
 	{
-		return ToByte(muiYIndex);
+		return GetLowByte(muiYIndex);
 	}
 }
 
@@ -2075,7 +2075,7 @@ bool CW65C816::Is16bitValueNegative(uint16 uiValue)
 //////////////////////////////////////////////////////////////////////////
 bool CW65C816::Is8bitValueZero(uint16 uiValue)
 {
-	return (ToByte(uiValue) == 0);
+	return (GetLowByte(uiValue) == 0);
 }
 
 
@@ -2146,7 +2146,7 @@ uint16 CW65C816::TrimMemory(uint16 uiValue)
 {
 	if (IsMemory8Bit())
 	{
-		uiValue = ToByte(uiValue);
+		uiValue = GetLowByte(uiValue);
 	}
 	return uiValue;
 }
@@ -2160,7 +2160,7 @@ uint16 CW65C816::TrimIndex(uint16 uiValue)
 {
 	if (IsIndex8Bit())
 	{
-		uiValue = ToByte(uiValue);
+		uiValue = GetLowByte(uiValue);
 	}
 	return uiValue;
 }
@@ -2288,7 +2288,7 @@ uint16 CW65C816::GetMemoryData(void)
 	}
 	else
 	{
-		return ToByte(muiData);
+		return GetLowByte(muiData);
 	}
 }
 
@@ -2305,7 +2305,7 @@ uint16 CW65C816::GetIndexData(void)
 	}
 	else
 	{
-		return ToByte(muiData);
+		return GetLowByte(muiData);
 	}
 }
 
@@ -2497,11 +2497,11 @@ void CW65C816::SetEmulationMode(bool bEmulation)
 	SetEmulationFlag(bEmulation);
 	if (bEmulation)
 	{
-		muiXIndex = ToByte(muiXIndex);
-		muiYIndex = ToByte(muiYIndex);
+		muiXIndex = GetLowByte(muiXIndex);
+		muiYIndex = GetLowByte(muiYIndex);
 		SetAccumulatorWidthFlag(true);
 		SetIndexWidthFlag(true);
-		muiStackPointer = ToByte(muiStackPointer) | 0x100;
+		muiStackPointer = GetLowByte(muiStackPointer) | 0x100;
 	}
 }
 
@@ -2514,8 +2514,8 @@ void CW65C816::ProcessorStatusChanged(void)
 {
 	if (mbIndexWidthFlag)
 	{
-		muiXIndex = ToByte(muiXIndex);
-		muiYIndex = ToByte(muiYIndex);
+		muiXIndex = GetLowByte(muiXIndex);
+		muiYIndex = GetLowByte(muiYIndex);
 	}
 	if (IsEmulation())
 	{
@@ -2741,7 +2741,7 @@ CBCDResult CW65C816::BCDAdd8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool bCar
 	{
 		uiDigitOfFirst = (uiBCDFirst & 0xF);
 		uiDigitOfSecond = (uiBCDSecond & 0xF);
-		uiSumOfDigits = ToByte(uiDigitOfFirst + uiDigitOfSecond + (bCarry ? 1 : 0));
+		uiSumOfDigits = GetLowByte(uiDigitOfFirst + uiDigitOfSecond + (bCarry ? 1 : 0));
 		bCarry = uiSumOfDigits > 9;
 		if (bCarry)
 		{
@@ -2811,7 +2811,7 @@ CBCDResult CW65C816::BCDSubtract8Bit(uint16 uiBCDFirst, uint16 uiBCDSecond, bool
 	{
 		uiDigitOfFirst = uiBCDFirst & 0xF;
 		uiDigitOfSecond = uiBCDSecond & 0xF;
-		uiDiffOfDigits = ToByte(uiDigitOfFirst - uiDigitOfSecond - (bBorrow ? 1 : 0));
+		uiDiffOfDigits = GetLowByte(uiDigitOfFirst - uiDigitOfSecond - (bBorrow ? 1 : 0));
 		bBorrow = uiDiffOfDigits > 9;
 		if (bBorrow)
 		{
@@ -3367,7 +3367,7 @@ void CW65C816::LDY(void)
 	}
 	else
 	{
-		SetY(ToByte(muiData));
+		SetY(GetLowByte(muiData));
 	}
 }
 
@@ -3384,7 +3384,7 @@ void CW65C816::LDX(void)
 	}
 	else
 	{
-		SetX(ToByte(muiData));
+		SetX(GetLowByte(muiData));
 	}
 }
 
@@ -3847,9 +3847,9 @@ void CW65C816::ReadOpcode(void)
 //////////////////////////////////////////////////////////////////////////
 bool CW65C816::NoteFourX(bool bNextWillRead)
 {
-	return (GetLowByte(mcAddress.GetOffset()) + GetLowByte(GetX())) > 0xFF ||
-		!bNextWillRead ||
-		IsIndex16Bit();
+	return ((uint16)mcAddress.GetOffsetLow() + (uint16)GetLowByte(GetX())) > 0xFF ||
+		   !bNextWillRead ||
+		   IsIndex16Bit();
 }
 
 
@@ -3859,9 +3859,9 @@ bool CW65C816::NoteFourX(bool bNextWillRead)
 //////////////////////////////////////////////////////////////////////////
 bool CW65C816::NoteFourY(bool bNextWillRead)
 {
-	return (GetLowByte(mcAddress.GetOffset()) + GetLowByte(GetY())) > 0xFF ||
-		!bNextWillRead ||
-		IsIndex16Bit();
+	return ((uint16)mcAddress.GetOffsetLow() + (uint16)GetLowByte(GetY())) > 0xFF ||
+		   !bNextWillRead ||
+		   IsIndex16Bit();
 }
 
 
@@ -3886,9 +3886,9 @@ bool CW65C816::NoteSix(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65C816::GetAddressOffsetX(void)
+uint16 CW65C816::GetAddressOffsetLowX(void)
 {
-	return ToByte(GetLowByte(mcAddress.GetOffset()) + GetLowByte(GetX()));
+	return GetLowByte(mcAddress.GetOffsetLow() + GetLowByte(GetX()));
 }
 
 
@@ -3896,9 +3896,9 @@ uint16 CW65C816::GetAddressOffsetX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint16 CW65C816::GetAddressOffsetY(void)
+uint16 CW65C816::GetAddressOffsetLowY(void)
 {
-	return ToByte(GetLowByte(mcAddress.GetOffset()) + GetLowByte(GetY()));
+	return GetLowByte(mcAddress.GetOffsetLow() + GetLowByte(GetY()));
 }
 
 
@@ -3918,7 +3918,7 @@ void CW65C816::WriteProgramBank(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::WriteProgramCounterHigh(void)
 {
-	SetIOData(GetHighByte(mcProgramCounter.GetOffset()));
+	SetIOData(mcProgramCounter.GetOffsetHigh());
 }
 
 
@@ -3928,6 +3928,6 @@ void CW65C816::WriteProgramCounterHigh(void)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::WriteProgramCounterLow(void)
 {
-	SetIOData(GetLowByte(mcProgramCounter.GetOffset()));
+	SetIOData(mcProgramCounter.GetOffsetLow());
 }
 

@@ -3,7 +3,7 @@
 #include "BaseLib/Chars.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/HexString.h"
-#include "IntUtil.h"
+#include "BaseLib/IntegerHelper.h"
 
 
 #define BANK_SIZE_BYTES 0x10000
@@ -23,6 +23,8 @@ public:
 
     uint8       GetBank(void);
     uint16      GetOffset(void);
+    uint8       GetOffsetLow(void);
+    uint8       GetOffsetHigh(void);
     CAddress*   Offset(int16 iOffset);
     void        Print(CChars* psz);
     void        SetOffset(uint16 uiOffset);

@@ -26,7 +26,7 @@ void CAbsoluteAddressLowPlusXLow::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CAbsoluteAddressLowPlusXLow::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetAddressOffsetX();
+    return pcCPU->GetAddressOffsetLowX();
 }
 
 
