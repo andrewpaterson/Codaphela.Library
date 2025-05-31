@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "WriteDataLow.h"
 
 
@@ -19,7 +18,7 @@ void CWriteDataLow::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CWriteDataLow::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->WriteDataLow();
+    pcCPU->WriteDataLow();
 }
 
 

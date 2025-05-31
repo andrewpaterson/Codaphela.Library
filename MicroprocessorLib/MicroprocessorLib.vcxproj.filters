@@ -117,9 +117,6 @@
     <ClCompile Include="AddressOffsetArray.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClCompile>
-    <ClCompile Include="W65C816State.cpp">
-      <Filter>Source\wdc\W65C816</Filter>
-    </ClCompile>
     <ClCompile Include="InstructionFactory.cpp">
       <Filter>Source\wdc\W65C816\Instruction</Filter>
     </ClCompile>
@@ -403,9 +400,6 @@
     </ClInclude>
     <ClInclude Include="AddressOffsetArray.h">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
-    </ClInclude>
-    <ClInclude Include="W65C816State.h">
-      <Filter>Source\wdc\W65C816</Filter>
     </ClInclude>
     <ClInclude Include="InstructionFactory.h">
       <Filter>Source\wdc\W65C816\Instruction</Filter>

@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "NoteFourY.h"
 
 
@@ -40,7 +39,7 @@ bool CNoteFourY::IsInitialSide(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNoteFourY::MustExecute(CW65C816* pcCPU)
 {
-	return pcCPU->GetState()->NoteFourY(mbNextWillRead);
+	return pcCPU->NoteFourY(mbNextWillRead);
 }
 
 

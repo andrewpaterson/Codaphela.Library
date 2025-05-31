@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "ReadOpcode.h"
 
 
@@ -19,7 +18,7 @@ void CReadOpcode::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CReadOpcode::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->ReadOpcode();
+	pcCPU->ReadOpcode();
 }
 
 

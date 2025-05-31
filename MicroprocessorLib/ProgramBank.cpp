@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "ProgramBank.h"
 
 
@@ -37,7 +36,7 @@ int32 CProgramBank::GetOffset(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 uint8 CProgramBank::GetBank(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetProgramCounter()->GetBank();
+    return pcCPU->GetProgramCounter()->GetBank();
 }
 
 

@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "NoteOne.h"
 
 
@@ -42,11 +41,11 @@ bool CNoteOne::MustExecute(CW65C816* pcCPU)
 {
     if (meWidth == WFR_M)
     {
-        return pcCPU->GetState()->IsMemory16Bit();
+        return pcCPU->IsMemory16Bit();
     }
     else if (meWidth == WFR_XY)
     {
-        return pcCPU->GetState()->IsIndex16Bit();
+        return pcCPU->IsIndex16Bit();
     }
     else
     {

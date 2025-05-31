@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "WriteProgramBank.h"
 
 
@@ -19,7 +18,7 @@ void CWriteProgramBank::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteProgramBank::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->WriteProgramBank();
+    pcCPU->WriteProgramBank();
 }
 
 

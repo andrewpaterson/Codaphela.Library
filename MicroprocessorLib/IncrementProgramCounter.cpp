@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "IncrementProgramCounter.h"
 
 
@@ -19,7 +18,7 @@ void CIncrementProgramCounter::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIncrementProgramCounter::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->IncrementProgramAddress();
+	pcCPU->IncrementProgramAddress();
 }
 
 
