@@ -377,8 +377,8 @@ public:
 	bool			NoteFourX(bool bNextWillRead);
 	bool			NoteFourY(bool bNextWillRead);
 	bool			NoteSix(void);
-	uint16			GetAddressOffsetX(void);
-	uint16			GetAddressOffsetY(void);
+	uint16			GetAddressOffsetLowX(void);
+	uint16			GetAddressOffsetLowY(void);
 	void			WriteProgramBank(void);
 	void			WriteProgramCounterHigh(void);
 	void			WriteProgramCounterLow(void);

@@ -297,9 +297,6 @@
     <ClCompile Include="W65C816Pins.cpp">
       <Filter>Source\wdc\W65C816</Filter>
     </ClCompile>
-    <ClCompile Include="IntUtil.cpp">
-      <Filter>Source\Common</Filter>
-    </ClCompile>
     <ClCompile Include="MetaBus8.cpp">
       <Filter>Source\Meta</Filter>
     </ClCompile>
@@ -592,9 +589,6 @@
     </ClInclude>
     <ClInclude Include="W65C816Pins.h">
       <Filter>Source\wdc\W65C816</Filter>
-    </ClInclude>
-    <ClInclude Include="IntUtil.h">
-      <Filter>Source\Common</Filter>
     </ClInclude>
     <ClInclude Include="MetaBus8.h">
       <Filter>Source\Meta</Filter>

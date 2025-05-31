@@ -57,7 +57,6 @@
     <ClCompile Include="InternalOperation.cpp" />
     <ClCompile Include="InterruptAddress.cpp" />
     <ClCompile Include="InterruptVector.cpp" />
-    <ClCompile Include="IntUtil.cpp" />
     <ClCompile Include="IRQVector.cpp" />
     <ClCompile Include="MetaBus16.cpp" />
     <ClCompile Include="MetaBus32.cpp" />
@@ -156,7 +155,6 @@
     <ClInclude Include="InternalOperation.h" />
     <ClInclude Include="InterruptAddress.h" />
     <ClInclude Include="InterruptVector.h" />
-    <ClInclude Include="IntUtil.h" />
     <ClInclude Include="IRQVector.h" />
     <ClInclude Include="MetaBus16.h" />
     <ClInclude Include="MetaBus32.h" />
