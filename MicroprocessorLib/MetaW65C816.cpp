@@ -122,7 +122,7 @@ bool CMetaW65C816::TickInstruction(void)
 //////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::Print(CChars* psz)
 {
-	Print(psz, true, true, true, true, true, true, true, true);
+	Print(psz, true, true, true, true, true, true, true, true, true, true, true);
 }
 
 
@@ -130,19 +130,31 @@ void CMetaW65C816::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::Print(CChars* psz, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP)
+void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP)
 {
 	CChars	sz;
 	int32	i;
 
-	sz.Init();
-	mcMPU.GetOpcodeMnemonicString(&sz);
-	sz.Append(": (");
-	mcMPU.GetCycleString(&sz);
-	sz.Append(") ");
-	mcMPU.GetCycleOperationString(&sz);
-	psz->LeftAlign(sz, ' ', 25);
-	sz.Kill();
+	if (bMnemonic)
+	{
+		mcMPU.GetOpcodeMnemonicString(psz);
+		psz->Append(": ");
+	}
+	
+	if (bCycle)
+	{
+		psz->Append("(");
+		mcMPU.GetCycleString(psz);
+		psz->Append(") ");
+	}
+
+	if (bOperation)
+	{
+		sz.Init();
+		mcMPU.GetCycleOperationString(&sz);
+		psz->LeftAlign(sz, ' ', 16);
+		sz.Kill();
+	}
 
 	if (bA)
 	{

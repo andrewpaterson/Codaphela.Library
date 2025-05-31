@@ -60,7 +60,7 @@ public:
 	bool			TickInstruction(void);
 
 	void			Print(CChars* psz);
-	void			Print(CChars* psz, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP);
+	void			Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP);
 	void			Dump(void);
 };
 
