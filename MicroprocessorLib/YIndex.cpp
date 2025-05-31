@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "YIndex.h"
 
 
@@ -27,7 +26,7 @@ void CYIndex::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CYIndex::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetY();
+    return pcCPU->GetY();
 }
 
 

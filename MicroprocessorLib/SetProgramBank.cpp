@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "SetProgramBank.h"
 
 
@@ -21,7 +20,7 @@ void CSetProgramBank::Init(uint8 uiBank)
 //////////////////////////////////////////////////////////////////////////
 void CSetProgramBank::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetProgramAddressBank(muiBank);
+    pcCPU->SetProgramAddressBank(muiBank);
 }
 
 

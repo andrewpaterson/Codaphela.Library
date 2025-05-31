@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "NoteSeven.h"
 
 
@@ -38,7 +37,7 @@ bool CNoteSeven::IsInitialSide(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNoteSeven::MustExecute(CW65C816* pcCPU)
 {
-	return !pcCPU->GetState()->IsEmulation();
+	return !pcCPU->IsEmulation();
 }
 
 

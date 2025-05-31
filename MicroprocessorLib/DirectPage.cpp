@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "DirectPage.h"
 
 
@@ -27,7 +26,7 @@ void CDirectPage::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CDirectPage::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetDirectPage();
+    return pcCPU->GetDirectPage();
 }
 
 

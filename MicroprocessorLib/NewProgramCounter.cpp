@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "NewProgramCounter.h"
 
 
@@ -27,7 +26,7 @@ void CNewProgramCounter::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CNewProgramCounter::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetNewProgramCounter()->GetOffset();
+    return pcCPU->GetNewProgramCounter()->GetOffset();
 }
 
 

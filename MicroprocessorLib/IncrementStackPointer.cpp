@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "IncrementStackPointer.h"
 
 
@@ -18,7 +17,7 @@ void CIncrementStackPointer::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIncrementStackPointer::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->IncrementProgramAddress();
+	pcCPU->IncrementProgramAddress();
 }
 
 

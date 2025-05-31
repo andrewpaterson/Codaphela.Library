@@ -1,6 +1,5 @@
 #include "BaseLib/Logger.h"
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "ExecuteIf16Bit.h"
 
 
@@ -26,14 +25,14 @@ void CExecuteIf16Bit::Execute(CW65C816* pcCPU)
 {
     if (meWidth == WFR_M)
     {
-        if (pcCPU->GetState()->IsMemory16Bit())
+        if (pcCPU->IsMemory16Bit())
         {
             (pcCPU->*mfFunction)();
         }
     }
     else if (meWidth == WFR_XY)
     {
-        if (pcCPU->GetState()->IsIndex16Bit())
+        if (pcCPU->IsIndex16Bit())
         {
             (pcCPU->*mfFunction)();
         }

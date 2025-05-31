@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "AbsoluteAddressLowPlusYLow.h"
 
 
@@ -27,7 +26,7 @@ void CAbsoluteAddressLowPlusYLow::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CAbsoluteAddressLowPlusYLow::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetAddressOffsetY();
+    return pcCPU->GetAddressOffsetY();
 }
 
 

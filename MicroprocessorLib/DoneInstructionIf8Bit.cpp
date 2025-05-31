@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "DoneInstructionIf8Bit.h"
 
 
@@ -23,17 +22,17 @@ void CDoneInstructionIf8Bit::Execute(CW65C816* pcCPU)
 {
     if (meWidth == WFR_M)
     {
-        pcCPU->GetState()->DoneIfMemory8Bit();
+        pcCPU->DoneIfMemory8Bit();
     }
     else if (meWidth == WFR_XY)
     {
-        pcCPU->GetState()->DoneIfIndex8Bit();
+        pcCPU->DoneIfIndex8Bit();
     }
     else
     {
         LOG_ERROR("Unknown Width.");
     }
-	pcCPU->GetState()->DoneInstruction();
+	pcCPU->DoneInstruction();
 }
 
 

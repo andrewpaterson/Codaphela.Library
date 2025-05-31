@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "AbortVector.h"
 
 
@@ -19,7 +18,7 @@ void CAbortVector::Init(void)
 //////////////////////////////////////////////////////////////////////////
 uint16 CAbortVector::GetAddress(CW65C816* pcCPU)
 {
-    if (pcCPU->GetState()->IsEmulation())
+    if (pcCPU->IsEmulation())
     {
         return 0xfff8;
     }

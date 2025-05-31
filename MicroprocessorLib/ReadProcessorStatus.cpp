@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "ReadProcessorStatus.h"
 
 
@@ -19,7 +18,7 @@ void CReadProcessorStatus::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CReadProcessorStatus::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->ReadProcessorStatus();
+    pcCPU->ReadProcessorStatus();
 }
 
 

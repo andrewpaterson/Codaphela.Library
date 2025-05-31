@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "DoneInstruction.h"
 
 
@@ -19,7 +18,7 @@ void CDoneInstruction::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CDoneInstruction::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->DoneInstruction();
+	pcCPU->DoneInstruction();
 }
 
 

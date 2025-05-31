@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "SignedData.h"
 
 
@@ -27,7 +26,7 @@ void CSignedData::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int32 CSignedData::GetOffset(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetData16BitOffset();
+    return pcCPU->GetData16BitOffset();
 }
 
 

@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "NoteTwo.h"
 
 
@@ -38,7 +37,7 @@ bool CNoteTwo::IsInitialSide(void)
 //////////////////////////////////////////////////////////////////////////
 bool CNoteTwo::MustExecute(CW65C816* pcCPU)
 {
-	return ToByte(pcCPU->GetState()->GetDirectPage()) == 0;
+	return ToByte(pcCPU->GetDirectPage()) == 0;
 }
 
 

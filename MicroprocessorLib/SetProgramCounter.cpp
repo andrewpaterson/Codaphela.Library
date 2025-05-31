@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "Address.h"
 #include "SetProgramCounter.h"
 
@@ -36,7 +35,7 @@ void CSetProgramCounter::Execute(CW65C816* pcCPU)
     CAddress  cAddress;
 
     CalculateAddressFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
-    pcCPU->GetState()->SetProgramCounter(&cAddress);
+    pcCPU->SetProgramCounter(&cAddress);
 
 }
 

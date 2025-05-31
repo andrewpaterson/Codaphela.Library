@@ -1,5 +1,4 @@
 #include "W65C816.h"
-#include "W65C816State.h"
 #include "DataBank.h"
 
 
@@ -37,7 +36,7 @@ int32 CDataBank::GetOffset(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 uint8 CDataBank::GetBank(CW65C816* pcCPU)
 {
-    return pcCPU->GetState()->GetDataBank();
+    return pcCPU->GetDataBank();
 }
 
 
