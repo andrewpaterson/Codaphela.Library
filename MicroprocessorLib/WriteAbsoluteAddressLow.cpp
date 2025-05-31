@@ -19,7 +19,7 @@ void CWriteAbsoluteAddressLow::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWriteAbsoluteAddressLow::Execute(CW65C816* pcCPU)
 {
-    pcCPU->GetState()->SetPData(GetLowByte(pcCPU->GetState()->GetAddress()->GetOffset()));
+    pcCPU->GetState()->SetIOData(GetLowByte(pcCPU->GetState()->GetAddress()->GetOffset()));
 }
 
 

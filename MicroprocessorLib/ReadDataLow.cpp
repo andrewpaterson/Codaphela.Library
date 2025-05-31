@@ -19,7 +19,7 @@ void CReadDataLow::Init(NotMemoryLock bNotMemoryLock)
 //////////////////////////////////////////////////////////////////////////
 void CReadDataLow::Execute(CW65C816* pcCPU)
 {
-	pcCPU->GetState()->SetDataLow(pcCPU->GetState()->GetPData());
+	pcCPU->GetState()->SetDataLow(pcCPU->GetState()->GetIOData());
 }
 
 
