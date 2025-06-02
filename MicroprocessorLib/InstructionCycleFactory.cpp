@@ -1045,10 +1045,10 @@ CInstructionCycles* CreateDirectIndirectLongWriteCycles(CW65C816Func fOperation,
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(Read_D0(), PC_inc(), NULL)),
 		BusCycle(	Address(PBR(), PC(), NULL),			Operation(IO(), NoteTwo(), NULL)),
 		BusCycle(	Address(DP(), D0(), NULL),			Operation(Read_AAL(), NULL)),
-		BusCycle(	Address(DP(), D0(), o(1), NULL),		Operation(Read_AAH(), NULL)),
-		BusCycle(	Address(DP(), D0(), o(2), NULL),		Operation(Read_AAB(), NULL)),
+		BusCycle(	Address(DP(), D0(), o(1), NULL),	Operation(Read_AAH(), NULL)),
+		BusCycle(	Address(DP(), D0(), o(2), NULL),	Operation(Read_AAB(), NULL)),
 		BusCycle(	Address(AAB(), AA(), NULL),			Operation(E(fOperation, bInitialSide), Write_DataLow(), DONE8Bit(WFR_M), NULL)),
-		BusCycle(	Address(AAB(), AA(), o(1), NULL),		Operation(Write_DataHigh(), DONE16Bit(WFR_M), NULL)),
+		BusCycle(	Address(AAB(), AA(), o(1), NULL),	Operation(Write_DataHigh(), DONE16Bit(WFR_M), NULL)),
 		NULL);
 }
 
@@ -1062,7 +1062,7 @@ CInstructionCycles* CreateDirectIndexedWithXCycles(CW65C816Func fOperation, EWid
 		BusCycle(	Address(PBR(), PC(), NULL),				Operation(IO(), NoteTwo(), NULL)),
 		BusCycle(	Address(PBR(), PC(), NULL),				Operation(IO(), NULL)),
 		BusCycle(	Address(DP(), D0(), X(), NULL),			Operation(Read_DataLow(), E8Bit(fOperation, eWidth, bInitialSide), DONE8Bit(eWidth), NULL)),
-		BusCycle(	Address(DP(), D0(), X(), o(1), NULL),		Operation(Read_DataHigh(), E16Bit(fOperation, eWidth, bInitialSide), DONE16Bit(eWidth), NULL)),
+		BusCycle(	Address(DP(), D0(), X(), o(1), NULL),	Operation(Read_DataHigh(), E16Bit(fOperation, eWidth, bInitialSide), DONE16Bit(eWidth), NULL)),
 		NULL);
 }
 
