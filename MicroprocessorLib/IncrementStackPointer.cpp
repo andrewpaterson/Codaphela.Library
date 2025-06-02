@@ -17,7 +17,7 @@ void CIncrementStackPointer::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIncrementStackPointer::Execute(CW65C816* pcCPU)
 {
-	pcCPU->IncrementProgramAddress();
+	pcCPU->IncrementStackPointer();
 }
 
 
