@@ -232,7 +232,7 @@ void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 	if (bY)
 	{
 		psz->Append("Y.");
-		mcMPU.GetXValueHex(psz, false);
+		mcMPU.GetYValueHex(psz, false);
 		psz->Append("  ");
 	}
 	if (bPC)
