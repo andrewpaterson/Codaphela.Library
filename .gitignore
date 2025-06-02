@@ -46,3 +46,4 @@ us.stackdump
 /ElectronicsLib/Debug/*
 /ElectronicsLib/Release/*
 /MicroprocessorLib/Debug/*
+/MicroprocessorLib/Release/*

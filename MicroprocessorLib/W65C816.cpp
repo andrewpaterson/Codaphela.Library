@@ -1467,11 +1467,11 @@ void CW65C816::Cycle(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::ExecuteInitialSideOperation(CW65C816* pcCPU)
 {
-	CBusCycle* pcBusCycle;
-	COperationArray* pcOperations;
+	CBusCycle*			pcBusCycle;
+	COperationArray*	pcOperations;
 	size				uiNumElements;
 	size				i;
-	COperation* pcOperation;
+	COperation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
 	pcOperations = pcBusCycle->GetOperations();
@@ -1493,11 +1493,11 @@ void CW65C816::ExecuteInitialSideOperation(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CW65C816::ExecuteTrailingSideOperation(CW65C816* pcCPU)
 {
-	CBusCycle* pcBusCycle;
-	COperationArray* pcOperations;
+	CBusCycle*			pcBusCycle;
+	COperationArray*	pcOperations;
 	size				uiNumElements;
 	size				i;
-	COperation* pcOperation;
+	COperation*			pcOperation;
 
 	pcBusCycle = GetBusCycle();
 	pcOperations = pcBusCycle->GetOperations();
