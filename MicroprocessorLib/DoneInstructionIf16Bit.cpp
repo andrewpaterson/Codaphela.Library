@@ -31,7 +31,6 @@ void CDoneInstructionIf16Bit::Execute(CW65C816* pcCPU)
     {
         LOG_ERROR("Unknown Width.");
     }
-    pcCPU->DoneInstruction();
 }
 
 

@@ -851,17 +851,17 @@ void CW65C816::GetStatusString(CChars* psz)
     IsNegativeSet() ? psz->Append("N1 ") : psz->Append("N0 ");
     IsDecimal() ? psz->Append("D1 ") : psz->Append("D0 ");
     IsInterruptDisable() ? psz->Append("I1 ") : psz->Append("I0 ");
-    IsMemory8Bit() ? psz->Append("M8  ") : psz->Append("M16 ");
-    IsIndex8Bit() ? psz->Append("X8  ") : psz->Append("X16 ");
+    IsMemory8Bit() ? psz->Append("M.8 ") : psz->Append("M16 ");
+    IsIndex8Bit() ? psz->Append("X.8 ") : psz->Append("X16 ");
     IsCarrySet() ? psz->Append("C1 ") : psz->Append("C0 ");
-    emulation ? psz->Append("E1 ") : psz->Append("E0 ");
-    if (!emulation)
+	emulation ? psz->Append("E1 ") : psz->Append("E0 ");
+	IsOverflowFlag() ? psz->Append("V1 ") : psz->Append("V0 ");
+	if (!emulation)
     {
-        IsOverflowFlag() ? psz->Append("V1") : psz->Append("V0");
+		psz->Append("..");
     }
     else
     {
-        IsOverflowFlag() ? psz->Append("V1 ") : psz->Append("V0 ");
         IsBreak() ? psz->Append("B1") : psz->Append("B0");
     }
 }
@@ -3484,7 +3484,7 @@ void CW65C816::REP(void)
 {
 	uint8 uiValue;
 
-	uiValue = ~GetIOData();
+	uiValue = ~GetDataLow();
 	SetProcessorRegisterValue(GetProcessorRegisterValue() & uiValue);
 	ProcessorStatusChanged();
 }
@@ -3647,9 +3647,6 @@ void CW65C816::XCE(void)
 	bOldEmulation = IsEmulation();
 	SetEmulationMode(bOldCarry);
 	SetCarryFlag(bOldEmulation);
-
-	SetAccumulatorWidthFlag(IsEmulation());
-	SetIndexWidthFlag(IsEmulation());
 }
 
 
