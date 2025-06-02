@@ -857,11 +857,11 @@ void CW65C816::GetStatusString(CChars* psz)
     emulation ? psz->Append("E1 ") : psz->Append("E0 ");
     if (!emulation)
     {
-        IsOverflowFlag() ? psz->Append("O1") : psz->Append("O0");
+        IsOverflowFlag() ? psz->Append("V1") : psz->Append("V0");
     }
     else
     {
-        IsOverflowFlag() ? psz->Append("O1 ") : psz->Append("O0 ");
+        IsOverflowFlag() ? psz->Append("V1 ") : psz->Append("V0 ");
         IsBreak() ? psz->Append("B1") : psz->Append("B0");
     }
 }
