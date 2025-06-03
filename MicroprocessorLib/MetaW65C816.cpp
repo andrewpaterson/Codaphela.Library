@@ -272,22 +272,30 @@ void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 
 	psz->Append("  ");
 
-	if (bAddressBus)
+	if (bBank && bAddressBus)
+	{
+		psz->Append("Addr.");
+		psz->AppendHexHiLo(&muiBank, 1);
+		psz->Append(":");
+		mcAddress.Print(psz, false);
+		psz->Append("  ");
+	}
+	else if (bAddressBus)
 	{
 		psz->Append("Addr.");
 		mcAddress.Print(psz, false);
+		psz->Append("  ");
+	}
+	else if (bBank)
+	{
+		psz->Append("Bank.");
+		psz->AppendHexHiLo(&muiBank, 1);
 		psz->Append("  ");
 	}
 	if (bDataBus)
 	{
 		psz->Append("Data.");
 		mcData.Print(psz, false);
-		psz->Append("  ");
-	}
-	if (bBank)
-	{
-		psz->Append("Bank.");
-		psz->AppendHexHiLo(&muiBank, 1);
 		psz->Append("  ");
 	}
 	if (bRWB)
