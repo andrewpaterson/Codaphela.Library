@@ -55,6 +55,7 @@ public:
 	STraceValue		ReadIRQ(CTimeline* pcTimeline);
 	STraceValue		ReadAbort(CTimeline* pcTimeline);
 	STraceValue		ReadBE(CTimeline* pcTimeline);
+	STraceValue		ReadMX(CTimeline* pcTimeline);
 };
 
 

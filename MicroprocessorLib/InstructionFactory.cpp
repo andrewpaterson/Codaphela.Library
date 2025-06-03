@@ -474,7 +474,7 @@ CInstruction* CInstructionFactory::CreateXBA(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateNOP(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "NOP",
-        "No Operation for two cycles.");
+        "No Operation for two cycles");
 }
 
 
@@ -529,7 +529,7 @@ CInstruction* CInstructionFactory::CreateWAI(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateDEX(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "DEX",
-        "Decrement Index X by One.");
+        "Decrement Index X by One");
 }
 
 
@@ -562,7 +562,7 @@ CInstruction* CInstructionFactory::CreatePEA(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateINC(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "INC",
-        "Increment memory; result in memory and update NZ.");
+        "Increment memory; result in memory and update NZ");
 }
 
 
@@ -606,7 +606,7 @@ CInstruction* CInstructionFactory::CreateSED(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateSBC(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "SBC",
-        "Subtract memory and carry from A; result in A and update NZC.");
+        "Subtract memory and carry from A; result in A and update NZC");
 }
 
 
@@ -672,7 +672,7 @@ CInstruction* CInstructionFactory::CreatePEI(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateDEC(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "DEC",
-        "Decrement memory; result in memory and update NZ.");
+        "Decrement memory; result in memory and update NZ");
 }
 
 
@@ -879,7 +879,7 @@ CInstruction* CInstructionFactory::CreateRTL(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateRRA(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "ROR",
-        "Rotate accumulator right one bit; update NZC.");
+        "Rotate accumulator right one bit; update NZC");
 }
 
 
@@ -901,7 +901,7 @@ CInstruction* CInstructionFactory::CreatePLA(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateROR(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "ROR",
-        "Rotate memory right one bit; update NZC.");
+        "Rotate memory right one bit; update NZC");
 }
 
 
@@ -923,7 +923,7 @@ CInstruction* CInstructionFactory::CreatePER(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateADC(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "ADC",
-        "Add memory and carry to A; result in A and update NZC.");
+        "Add memory and carry to A; result in A and update NZC");
 }
 
 
@@ -1022,7 +1022,7 @@ CInstruction* CInstructionFactory::CreatePHK(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateSRA(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "LSR",
-        "Shift accumulator right one bit; update NZC.");
+        "Shift accumulator right one bit; update NZC");
 }
 
 
@@ -1044,7 +1044,7 @@ CInstruction* CInstructionFactory::CreatePHA(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateLSR(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles,
-        "LSR", "Shift memory right one bit; update NZC.");
+        "LSR", "Shift memory right one bit; update NZC");
 }
 
 
@@ -1110,7 +1110,7 @@ CInstruction* CInstructionFactory::CreateTSC(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateDEC_A(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "DEC",
-        "Decrement accumulator; update NZ.");
+        "Decrement accumulator; update NZ");
 }
 
 
@@ -1154,7 +1154,7 @@ CInstruction* CInstructionFactory::CreatePLP(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateRLA(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "ROL",
-        "Rotate Accumulator One Bit Left.");
+        "Rotate Accumulator One Bit Left");
 }
 
 
@@ -1176,7 +1176,7 @@ CInstruction* CInstructionFactory::CreatePLD(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateROL(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "ROL",
-        "Rotate Memory One Bit Left.");
+        "Rotate Memory One Bit Left");
 }
 
 
@@ -1340,7 +1340,7 @@ CInstruction* CInstructionFactory::CreateBIT(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateJSL(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "JSL",
-        "Jump long to new location save return address on Stack.");
+        "Jump long to new location save return address on Stack");
 }
 
 
@@ -1351,7 +1351,7 @@ CInstruction* CInstructionFactory::CreateJSL(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateAND(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "AND",
-        "Bitwise AND memory with A; result in A and update NZ.");
+        "Bitwise AND memory with A; result in A and update NZ");
 }
 
 
@@ -1362,7 +1362,7 @@ CInstruction* CInstructionFactory::CreateAND(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateJSR(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "JSR",
-        "Jump to new location save return address on Stack.");
+        "Jump to new location save return address on Stack");
 }
 
 
@@ -1384,7 +1384,7 @@ CInstruction* CInstructionFactory::CreateTCS(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateINC_A(uint16 uiCode, CInstructionCycles* busCycles)
 {
     INSTRUCTION(uiCode, busCycles, "INC",
-        "Increment accumulator; update NZ.");
+        "Increment accumulator; update NZ");
 }
 
 
@@ -1439,7 +1439,7 @@ CInstruction* CInstructionFactory::CreatePHD(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateSLA(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "ASL",
-        "Shift accumulator left one bit; update NZC.");
+        "Shift accumulator left one bit; update NZC");
 }
 
 
@@ -1449,7 +1449,7 @@ CInstruction* CInstructionFactory::CreateSLA(uint16 uiCode, CInstructionCycles* 
 //////////////////////////////////////////////////////////////////////////
 CInstruction* CInstructionFactory::CreateASL(uint16 uiCode, CInstructionCycles* directRMWCycles)
 {
-    INSTRUCTION(uiCode, directRMWCycles, "ASL", "Shift memory left 1 bit; result in memory and update NZC.");
+    INSTRUCTION(uiCode, directRMWCycles, "ASL", "Shift memory left 1 bit; result in memory and update NZC");
 }
 
 
@@ -1481,7 +1481,7 @@ CInstruction* CInstructionFactory::CreateTSB(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateCOP(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "COP",
-        "Force co-processor software interrupt.");
+        "Force co-processor software interrupt");
 }
 
 
@@ -1492,7 +1492,7 @@ CInstruction* CInstructionFactory::CreateCOP(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateORA(uint16 uiCode, CInstructionCycles* directIndexedIndirectWithXCycles)
 {
     INSTRUCTION(uiCode, directIndexedIndirectWithXCycles,
-        "ORA", "'OR' memory with A; result in A and update NZ.");
+        "ORA", "'OR' memory with A; result in A and update NZ");
 }
 
 
@@ -1503,7 +1503,7 @@ CInstruction* CInstructionFactory::CreateORA(uint16 uiCode, CInstructionCycles* 
 CInstruction* CInstructionFactory::CreateBRK(uint16 uiCode, CInstructionCycles* pcInstructionCycles)
 {
     INSTRUCTION(uiCode, pcInstructionCycles, "BRK",
-        "Force break software interrupt.");
+        "Force software break interrupt");
 }
 
 
@@ -1520,7 +1520,7 @@ CInstruction* CInstructionFactory::CreateReset(void)
 
     mpcReset = NewMalloc<CInstruction>();
     mpcReset->Init(muiInstructions, CreateStackResetCycles(pcVector, &CW65C816::RES, false), "RES",
-        "Reset the CPU.");
+        "Reset the CPU");
 
     mapcInstructions[muiInstructions] = mpcReset;
     return mpcReset;
@@ -1540,7 +1540,7 @@ CInstruction* CInstructionFactory::CreateIRQ(void)
 
     mpcIRQ = NewMalloc<CInstruction>();
     mpcIRQ->Init(muiInstructions, CreateStackHardwareInterruptCycles(pcVector, &CW65C816::IRQ, false), "IRQ",
-        "Interrupt request.");
+        "Interrupt request");
 
     mapcInstructions[muiInstructions] = mpcIRQ;
     return mpcIRQ;
@@ -1560,7 +1560,7 @@ CInstruction* CInstructionFactory::CreateNMI(void)
 
     mpcNMI = NewMalloc<CInstruction>();
     mpcNMI->Init(muiInstructions, CreateStackHardwareInterruptCycles(pcVector, &CW65C816::NMI, false), "NMI",
-        "Non-maskable interrupt.");
+        "Non-maskable interrupt");
 
     mapcInstructions[muiInstructions] = mpcNMI;
     return mpcNMI;
@@ -1580,7 +1580,7 @@ CInstruction* CInstructionFactory::CreateAbort(void)
 
     mpcAbort = NewMalloc<CInstruction>();
     mpcAbort->Init(muiInstructions, CreateStackAbortInterruptCycles(pcVector, &CW65C816::ABORT, false), "ABT",
-        "Stop the current instruction and return processor status to what it was prior to the current instruction.");
+        "Stop the current instruction and return processor status to what it was prior to the current instruction");
 
     mapcInstructions[muiInstructions] = mpcAbort;
     return mpcAbort;
@@ -1595,7 +1595,7 @@ CInstruction* CInstructionFactory::CreateFetchNext(void)
 {
     mpcFetchNext = NewMalloc<CInstruction>();
     mpcFetchNext->Init(muiInstructions, CreateFetchOpcodeCycles(), "OPC",
-        "Fetch Opcode from address in program counter.");
+        "Fetch Opcode from address in program counter");
 
     mapcInstructions[muiInstructions] = mpcFetchNext;
     return mpcFetchNext;

@@ -87,6 +87,8 @@ bool CMetaW65C816::TickInstruction(void)
 
 		mcPHI2.Invert();
 		mcMPU.InputTransition(&mcTimeline);
+		SetBank(mcPins.ReadData(&mcTimeline));
+		SetX(mcPins.ReadMX(&mcTimeline));
 		mfTickLow(this, mpvContext);
 
 		mcPHI2.Invert();
@@ -105,6 +107,8 @@ bool CMetaW65C816::TickInstruction(void)
 
 		if (mcPHI2.IsLow())
 		{
+			SetBank(mcPins.ReadData(&mcTimeline));
+			SetX(mcPins.ReadMX(&mcTimeline));
 			mfTickLow(this, mpvContext);
 
 			if (mcMPU.IsStopped())
@@ -183,7 +187,7 @@ bool CMetaW65C816::IsFetchOpcodeCycle(void)
 //////////////////////////////////////////////////////////////////////////
 void CMetaW65C816::Print(CChars* psz)
 {
-	Print(psz, true, true, true, true, true, true, true, true, true, true, true);
+	Print(psz, true, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false);
 }
 
 
@@ -191,7 +195,7 @@ void CMetaW65C816::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP)
+void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP, bool bAddressBus, bool bDataBus, bool bBank, bool bVPB, bool bRDY, bool bMLB, bool bVPA, bool bVDA, bool bWM, bool bWX, bool bE, bool bRWB, bool bAddressOperation, bool bDataOperation, bool bDescription)
 {
 	CChars	sz;
 	int32	i;
@@ -266,6 +270,105 @@ void CMetaW65C816::Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperati
 		psz->Append(")  ");
 	}
 
+	psz->Append("  ");
+
+	if (bAddressBus)
+	{
+		psz->Append("Addr.");
+		mcAddress.Print(psz, false);
+		psz->Append("  ");
+	}
+	if (bDataBus)
+	{
+		psz->Append("Data.");
+		mcData.Print(psz, false);
+		psz->Append("  ");
+	}
+	if (bBank)
+	{
+		psz->Append("Bank.");
+		psz->AppendHexHiLo(&muiBank, 1);
+		psz->Append("  ");
+	}
+	if (bRWB)
+	{
+		psz->Append("RWB");
+		mcRWB.Print(psz);
+		psz->Append(" ");
+	}
+	if (bVPA)
+	{
+		psz->Append("VPA");
+		mcVPA.Print(psz);
+		psz->Append(" ");
+	}
+	if (bVDA)
+	{
+		psz->Append("VDA");
+		mcVDA.Print(psz);
+		psz->Append(" ");
+	}
+	if (bVPB)
+	{
+		psz->Append("VPB");
+		mcVPB.Print(psz);
+		psz->Append(" ");
+	}
+	if (bE)
+	{
+		psz->Append("E");
+		mcE.Print(psz);
+		psz->Append(" ");
+	}
+	if (bRDY)
+	{
+		psz->Append("RDY");
+		mcRDY.Print(psz);
+		psz->Append(" ");
+	}
+	if (bMLB)
+	{
+		psz->Append("MLB");
+		mcMLB.Print(psz);
+		psz->Append(" ");
+	}
+	if (bWM)
+	{
+		psz->Append("M");
+		mcMX.Print(psz);
+		psz->Append(" ");
+	}
+	if (bWX)
+	{
+		psz->Append("X");
+		msX.Print(psz);
+		psz->Append(" ");
+	}
+
+	if (bAddressOperation)
+	{
+		psz->Append("   ");
+		sz.Init();
+		mcMPU.ToAddressOperationString(&sz);
+		psz->LeftAlign(sz, ' ', 11);
+		sz.Kill();
+		
+	}
+	if (bDataOperation)
+	{
+		psz->Append("   ");
+		sz.Init();
+		mcMPU.ToDataOperationString(&sz);
+		psz->LeftAlign(sz, ' ', 60);
+		sz.Kill();
+	}
+	if (bDescription)
+	{
+		psz->Append("   ");
+		mcMPU.ToInstructionDescription(psz);
+		psz->Append(".");
+	}
+
 	for (i = psz->Length() - 1; i >= 0; i--)
 	{
 		if (psz->GetChar(i) != ' ')
@@ -290,6 +393,46 @@ void CMetaW65C816::Dump(void)
 	Print(&sz);
 	sz.AppendNewLine();
 	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMetaW65C816::SetBank(uint8 uiBank)
+{
+	muiBank = uiBank;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8 CMetaW65C816::GetBank(void)
+{
+	return muiBank;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMetaW65C816::SetX(STraceValue sX)
+{
+	msX = sX;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+STraceValue CMetaW65C816::GetX(void)
+{
+	return msX;
 }
 
 

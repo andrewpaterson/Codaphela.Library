@@ -617,6 +617,54 @@ void CW65C816::ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppend
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CW65C816::ToAddressOperationString(CChars* psz)
+{
+	CBusCycle*	pcBusCycle;
+	
+	pcBusCycle = GetBusCycle();
+	if (pcBusCycle)
+	{
+		pcBusCycle->ToAddressOffsetString(psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::ToDataOperationString(CChars* psz)
+{
+	CBusCycle* pcBusCycle;
+
+	pcBusCycle = GetBusCycle();
+	if (pcBusCycle)
+	{
+		pcBusCycle->ToOperationString(psz);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CW65C816::ToInstructionDescription(CChars* psz)
+{
+	CInstruction*	pcInstruction;
+
+	pcInstruction = GetInstruction();
+	if (pcInstruction)
+	{
+		psz->Append(pcInstruction->GetDescription());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CW65C816::GetAddressValueHex(CChars* psz, bool bAppend0x)
 {
     ToAddressHexString(psz, GetAddress(), bAppend0x);
@@ -1532,6 +1580,7 @@ CBusCycle* CW65C816::GetBusCycle(void)
 		return NULL;
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

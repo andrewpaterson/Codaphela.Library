@@ -1,9 +1,10 @@
 #ifndef __META_BUS_32_H__
 #define __META_BUS_32_H__
 #include "BaseLib/PrimitiveTypes.h"
+#include "MetaSignal.h"
 
 
-class CMetaBus32
+class CMetaBus32 : public CMetaSignal
 {
 protected:
 	uint32	muiValue;

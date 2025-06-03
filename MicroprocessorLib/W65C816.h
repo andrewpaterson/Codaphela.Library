@@ -219,6 +219,9 @@ public:
     void            ToAddressHexString(CChars* psz, CAddress* pcAddress, bool bAppend0x = true);
     void            DisableBuses(void);
     void            Append0x(CChars* psz, bool bAppend0x);
+	void			ToAddressOperationString(CChars* psz);
+	void			ToDataOperationString(CChars* psz);
+	void			ToInstructionDescription(CChars* psz);
 
     void            ExecutPhi2Falling(CTimeline* pcTimeline);
     void            ExecutPhi2Rising(CTimeline* pcTimeline);

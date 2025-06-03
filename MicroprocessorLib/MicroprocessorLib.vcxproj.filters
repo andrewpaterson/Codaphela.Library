@@ -315,6 +315,9 @@
     <ClCompile Include="CompoundAddress.cpp">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClCompile>
+    <ClCompile Include="MetaSignal.cpp">
+      <Filter>Source\Meta</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">
@@ -610,6 +613,9 @@
     </ClInclude>
     <ClInclude Include="CompoundAddress.h">
       <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
+    </ClInclude>
+    <ClInclude Include="MetaSignal.h">
+      <Filter>Source\Meta</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
