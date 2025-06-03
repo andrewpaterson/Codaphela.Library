@@ -34,7 +34,7 @@ void CSetProgramCounter::Execute(CW65C816* pcCPU)
 {
     CAddress  cAddress;
 
-    CalculateAddressFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
+    CalculateAddressWrappingFromAddressOffsets(&cAddress, pcCPU, &mapcAddressOffsets);
     pcCPU->SetProgramCounter(&cAddress);
 
 }
