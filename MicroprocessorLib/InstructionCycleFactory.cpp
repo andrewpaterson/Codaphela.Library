@@ -866,7 +866,7 @@ CInstructionCycles* CreateDirectIndexedIndirectWithXCycles(CW65C816Func fOperati
 		BusCycle(	Address(PBR(), PC(), NULL),						Operation(Read_D0(), PC_inc(), NULL)),
 		BusCycle(	Address(PBR(), PC(), NULL),						Operation(IO(), NoteTwo(), NULL)),
 		BusCycle(	Address(PBR(), PC(), NULL),						Operation(IO(), NULL)),
-		BusCycle(	Address(DP(),  D0(), X(), NULL),					Operation(Read_AAL(), NULL)),
+		BusCycle(	Address(DP(),  D0(), X(), NULL),				Operation(Read_AAL(), NULL)),
 		BusCycle(	Address(DP(),  D0(), X(), o(1), NULL),			Operation(Read_AAH(), NULL)),
 		BusCycle(	Address(DBR(), AA(), NULL),						Operation(Read_DataLow(), E8Bit(fOperation, WFR_M, bInitialSide), DONE8Bit(WFR_M), NULL)),
 		BusCycle(	Address(DBR(), Span(AA(), o(1), NULL), NULL),	Operation(Read_DataHigh(), E16Bit(fOperation, WFR_M, bInitialSide), DONE16Bit(WFR_M), NULL)),
