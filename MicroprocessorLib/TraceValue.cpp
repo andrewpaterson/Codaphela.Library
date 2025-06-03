@@ -75,3 +75,28 @@ void STraceValue::Invert(void)
 	}
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void STraceValue::Print(CChars* psz)
+{
+	if (eValue == TV_Low)
+	{
+		psz->Append('0');
+	}
+	else if (eValue == TV_High)
+	{
+		psz->Append('1');
+	}
+	else if (eValue == TV_Undriven)
+	{
+		psz->Append('-');
+	}
+	else if (eValue == TV_Unsettled)
+	{
+		psz->Append('X');
+	}
+}
+

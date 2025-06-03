@@ -1,5 +1,6 @@
 #ifndef __TRACE_VALUE_H__
 #define __TRACE_VALUE_H__
+#include "BaseLib/Chars.h"
 
 
 enum ETraceValue
@@ -22,6 +23,8 @@ struct STraceValue
 	bool	IsLow(void);
 
 	void	Invert(void);
+
+	void	Print(CChars* psz);
 };
 
 

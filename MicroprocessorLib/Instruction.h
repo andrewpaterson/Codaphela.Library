@@ -22,6 +22,7 @@ public:
 
     uint16                  GetCode(void);
     char*                   GetName(void);
+    char*                   GetDescription(void);
     CInstructionCycles*     GetCycles(void);
     CBusCycle*              GetBusCycle(int16 iCycle);
 };

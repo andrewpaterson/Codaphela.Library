@@ -35,6 +35,9 @@ protected:
 	MetaW65C816TickLow		mfTickLow;
 	void*					mpvContext;
 
+	uint8					muiBank;
+	STraceValue				msX;
+
 public:
 	void			Init(MetaW65C816TickHigh fTickHigh, MetaW65C816TickLow fTickLow, void* pvContext);
 	void			Kill(void);
@@ -63,8 +66,14 @@ public:
 	bool			IsInstruction(CInstruction* pcExpectedInstruction);
 	bool			IsFetchOpcodeCycle(void);
 
+	void			SetBank(uint8 uiBank);
+	uint8			GetBank(void);
+	void			SetX(STraceValue sX);
+	STraceValue		GetX(void);
+
+
 	void			Print(CChars* psz);
-	void			Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP);
+	void			Print(CChars* psz, bool bMnemonic, bool bCycle, bool bOperation, bool bA, bool bX, bool bY, bool bPC, bool bS, bool bDP, bool bDB, bool bP, bool bAddressBus, bool bDataBus, bool bBank, bool bVPB, bool bRDY, bool bMLB, bool bVPA, bool bVDA, bool bWM, bool bWX, bool bE, bool bRWB, bool bAddressOperation, bool bDataOperation, bool bDescription);
 	void			Dump(void);
 };
 

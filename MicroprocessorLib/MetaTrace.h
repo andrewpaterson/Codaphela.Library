@@ -2,12 +2,13 @@
 #define __META_TRACE_H__
 #include "BaseLib/PrimitiveTypes.h"
 #include "TraceValue.h"
+#include "MetaSignal.h"
 
 
 extern STraceValue gcMetaTraceUndriven;
 
 
-class CMetaTrace
+class CMetaTrace : public CMetaSignal
 {
 protected:
 	STraceValue		msValue;
@@ -22,6 +23,8 @@ public:
 	void			Invert(void);
 	bool			IsHigh(void);
 	bool			IsLow(void);
+
+	void			Print(CChars* psz);
 };
 
 

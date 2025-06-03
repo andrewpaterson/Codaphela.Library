@@ -62,6 +62,7 @@
     <ClCompile Include="MetaBus16.cpp" />
     <ClCompile Include="MetaBus32.cpp" />
     <ClCompile Include="MetaBus8.cpp" />
+    <ClCompile Include="MetaSignal.cpp" />
     <ClCompile Include="MetaTrace.cpp" />
     <ClCompile Include="MetaW65C816.cpp" />
     <ClCompile Include="NewProgramBank.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="MetaBus16.h" />
     <ClInclude Include="MetaBus32.h" />
     <ClInclude Include="MetaBus8.h" />
+    <ClInclude Include="MetaSignal.h" />
     <ClInclude Include="MetaTrace.h" />
     <ClInclude Include="MetaW65C816.h" />
     <ClInclude Include="NewProgramBank.h" />
