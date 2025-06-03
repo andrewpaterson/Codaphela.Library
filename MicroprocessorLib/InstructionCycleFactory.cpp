@@ -1,3 +1,4 @@
+#include "CompoundAddress.h"
 #include "InstructionCycleFactory.h"
 
 
@@ -57,44 +58,6 @@ CInstructionCycles* InstructionCycles(EAddressingMode eAddressingMode, CBusCycle
 	pcInstructionCycles->Init(eAddressingMode, papcBusCycles);
 
     return pcInstructionCycles;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CAddressOffsetArray* Address(CAddressOffset* pcOffset, ...)
-{
-	va_list		            vaMarker;
-	size		            iCount;
-	CAddressOffsetArray*	papcOffsets;
-
-	papcOffsets = NewMalloc<CAddressOffsetArray>();
-	papcOffsets->Init();
-
-	if (pcOffset)
-	{
-		iCount = 0;
-
-		va_start(vaMarker, pcOffset);
-		while (pcOffset)
-		{
-			if (iCount > 10)
-			{
-				LOG_ERROR("Address Offsets have no terminal NULL.");
-				return NULL;
-			}
-
-			papcOffsets->Add(pcOffset);
-
-			iCount++;
-			pcOffset = va_arg(vaMarker, CAddressOffset*);
-		}
-		va_end(vaMarker);
-	}
-
-	return papcOffsets;
 }
 
 
@@ -961,14 +924,14 @@ CInstructionCycles* CreateDirectIndirectIndexedWithYCycles(CW65C816Func fOperati
 {
 	//13
 	return InstructionCycles(AM_DirectIndirectIndexedWithY,
-		BusCycle(	Address(PBR(), PC(), NULL),				Operation(Opcode(), PC_inc(), NULL)),
-		BusCycle(	Address(PBR(), PC(), NULL),				Operation(Read_D0(), PC_inc(), NULL)),
-		BusCycle(	Address(PBR(), PC(), NULL),				Operation(IO(), NoteTwo(), NULL)),
-		BusCycle(	Address(DP(), D0(), NULL),				Operation(Read_AAL(), NULL)),
-		BusCycle(	Address(DP(), D0(), o(1), NULL),		Operation(Read_AAH(), NULL)),
-		BusCycle(	Address(DBR(), AAH(), AAL_YL(), NULL),	Operation(IO(), NoteFourY(true), NULL)),
-		BusCycle(	Address(DBR(), AA(), Y(), NULL),		Operation(Read_DataLow(), E8Bit(fOperation, WFR_M, bInitialSide), DONE8Bit(WFR_M), NULL)),
-		BusCycle(	Address(DBR(), AA(), Y(), o(1), NULL),	Operation(Read_DataHigh(), E16Bit(fOperation, WFR_M, bInitialSide), DONE16Bit(WFR_M), NULL)),
+		BusCycle(	Address(PBR(), PC(), NULL),							Operation(Opcode(), PC_inc(), NULL)),
+		BusCycle(	Address(PBR(), PC(), NULL),							Operation(Read_D0(), PC_inc(), NULL)),
+		BusCycle(	Address(PBR(), PC(), NULL),							Operation(IO(), NoteTwo(), NULL)),
+		BusCycle(	Address(DP(), D0(), NULL),							Operation(Read_AAL(), NULL)),
+		BusCycle(	Address(DP(), D0(), o(1), NULL),					Operation(Read_AAH(), NULL)),
+		BusCycle(	Address(DBR(), AAH(), AAL_YL(), NULL),				Operation(IO(), NoteFourY(true), NULL)),
+		BusCycle(	Address(DBR(), Span(AA(), Y(), NULL), NULL),		Operation(Read_DataLow(), E8Bit(fOperation, WFR_M, bInitialSide), DONE8Bit(WFR_M), NULL)),
+		BusCycle(	Address(DBR(), Span(AA(), Y(), o(1), NULL),	NULL),	Operation(Read_DataHigh(), E16Bit(fOperation, WFR_M, bInitialSide), DONE16Bit(WFR_M), NULL)),
 		NULL);
 }
 

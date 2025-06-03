@@ -312,6 +312,9 @@
     <ClCompile Include="MetaW65C816.cpp">
       <Filter>Source\wdc\W65C816\Meta</Filter>
     </ClCompile>
+    <ClCompile Include="CompoundAddress.cpp">
+      <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="W65C816.h">
@@ -604,6 +607,9 @@
     </ClInclude>
     <ClInclude Include="MetaW65C816.h">
       <Filter>Source\wdc\W65C816\Meta</Filter>
+    </ClInclude>
+    <ClInclude Include="CompoundAddress.h">
+      <Filter>Source\wdc\W65C816\Instruction\Address</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

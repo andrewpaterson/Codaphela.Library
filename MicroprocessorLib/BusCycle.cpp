@@ -86,7 +86,7 @@ void CBusCycle::Validate(void)
 //////////////////////////////////////////////////////////////////////////
 void CBusCycle::GetAddress(CAddress* pcDest, CW65C816* pcCPU)
 {
-    CalculateAddressFromAddressOffsets(pcDest, pcCPU, &mapcAddressOffsets);
+    CalculateAddressWrappingFromAddressOffsets(pcDest, pcCPU, &mapcAddressOffsets);
 }
 
 
@@ -175,27 +175,7 @@ bool CBusCycle::MustExecute(CW65C816* pcCPU)
 //////////////////////////////////////////////////////////////////////////
 void CBusCycle::ToAddressOffsetString(CChars* psz)
 {
-    size                uiNumOffsets;
-    size                i;
-    CAddressOffset* pcOffset;
-    bool                bFirst;
-
-    bFirst = true;
-    uiNumOffsets = mapcAddressOffsets.NumElements();
-    for (i = 0; i < uiNumOffsets; i++)
-    {
-        pcOffset = mapcAddressOffsets.GetPtr(i);
-        if (!bFirst && !(pcOffset->IsConstantOffset()))
-        {
-            if (psz->GetChar(psz->Length() - 1) != ',')
-            {
-                psz->Append("+");
-            }
-        }
-        pcOffset->Print(psz);
-
-        bFirst = false;
-    }
+    mapcAddressOffsets.Print(psz);
 }
 
 

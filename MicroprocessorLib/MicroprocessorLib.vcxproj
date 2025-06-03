@@ -35,6 +35,7 @@
     <ClCompile Include="BRKVector.cpp" />
     <ClCompile Include="BusCycle.cpp" />
     <ClCompile Include="BusCycleArray.cpp" />
+    <ClCompile Include="CompoundAddress.cpp" />
     <ClCompile Include="ConstantOffset.cpp" />
     <ClCompile Include="COPVector.cpp" />
     <ClCompile Include="DataBank.cpp" />
@@ -130,6 +131,7 @@
     <ClInclude Include="BusCycle.h" />
     <ClInclude Include="BusCycleArray.h" />
     <ClInclude Include="BusCycleParameter.h" />
+    <ClInclude Include="CompoundAddress.h" />
     <ClInclude Include="ConstantOffset.h" />
     <ClInclude Include="COPVector.h" />
     <ClInclude Include="CPUFlags.h" />
