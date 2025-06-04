@@ -4,7 +4,9 @@
 #include "TextParserConfig.h"
 
 
-TRISTATE ParseXMLString(CTextParser* pcTextParser, char* szString, size* piLength);
+TRISTATE ParseXMLTextString(CTextParser* pcTextParser, char* szString, size* piLength);
+TRISTATE ParseXMLValueString(CTextParser* pcTextParser, char* szString, size* piLength);
+TRISTATE ParseXMLStringUnset(CTextParser* pcTextParser, char* szString, size* piLength);
 
 
 #endif // __XML_STRING_H__
