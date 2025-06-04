@@ -77,43 +77,6 @@ void CXMLParser::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CXMLParser::IsAllowedIdentifierChar(bool bFirstChar, uint8 cChar)
-{
-	if (((cChar >= 'a') && (cChar <= 'z')) || ((cChar >= 'A') && (cChar <= 'Z')))
-	{
-		return true;
-	}
-
-	if ((cChar == ':') || (cChar == '_') || (cChar == 0xf8))
-	{
-		return true;
-	}
-
-	if (((cChar >= 0xc0) && (cChar <= 0xd6)) || ((cChar >= 0xd8) && (cChar <= 0xf6)))
-	{
-		return true;
-	}
-
-	if (!bFirstChar)
-	{
-		if ((cChar >= '0') && (cChar <= '9'))
-		{
-			return true;
-		}
-
-		if ((cChar == '-') || (cChar == '.') || (cChar == 0xb7))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CXMLParser::IsAllowedTextChar(uint8 cChar)
 {
 	if ((cChar == '&') || (cChar == '>') || (cChar == '<'))
@@ -420,37 +383,25 @@ TRISTATE CXMLParser::ParseProlog(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::ParseIdentifier(CChars* pszIdentifier)
 {
-	char		c;
 	TRISTATE	tResult;
-	size		i;
+	char*		psz;
+	size		uiIdentifierLength;
+	size		uiStringLength;
 
-	mcParser.SkipWhitespace();
-	for (i = 0;; i++)
+	mcParser.PushPosition();
+	tResult = mcParser.GetIdentifier(NULL, &uiIdentifierLength, true);
+	mcParser.PopPosition();
+	if (tResult != TRITRUE)
 	{
-		tResult = mcParser.GetCharacter(&c);
-		if (tResult != TRITRUE)
-		{
-			if (i == 0)
-			{
-				return TRIFALSE;
-			}
-			return TRITRUE;
-		}
-
-		if (IsAllowedIdentifierChar(i == 0, c))
-		{
-			pszIdentifier->Append(c);
-		}
-		else
-		{
-			mcParser.StepLeft();
-			if (i == 0)
-			{
-				return TRIFALSE;
-			}
-			return TRITRUE;
-		}
+		return tResult;
 	}
+
+	uiStringLength = pszIdentifier->Length();
+	pszIdentifier->Append(' ', uiIdentifierLength);
+
+	psz = pszIdentifier->Text(uiStringLength);
+	tResult = mcParser.GetIdentifier(psz, NULL, true);
+	return tResult;
 }
 
 

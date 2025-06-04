@@ -167,22 +167,55 @@ TRISTATE ParseXMLIdentifier(CTextParser* pcTextParser, char* szIdentifier, size*
 TRISTATE GetXMLIdentifierCharacter(CTextParser* pcTextParser, char* pc, bool bFirst)
 {
 	char	cCurrent;
+	bool	bValid;
 
 	if (!pcTextParser->IsOutside())
 	{
 		cCurrent = pcTextParser->Current();
 		*pc = cCurrent;
+
+		bValid = false;
 		//The first character of an identifier must be one of these...
-		if (((cCurrent >= 'a') && (cCurrent <= 'z')) || ((cCurrent >= 'A') && (cCurrent <= 'Z')) || (cCurrent == '_'))
+		if (((cCurrent >= 'a') && (cCurrent <= 'z')) || 
+			((cCurrent >= 'A') && (cCurrent <= 'Z')))
+		{
+			bValid = true;
+		}
+
+		if ((cCurrent == ':') || 
+			(cCurrent == '_') || 
+			(cCurrent == 0xf8))
+		{
+			bValid = true;
+		}
+
+		if (((cCurrent >= 0xc0) && (cCurrent <= 0xd6)) || 
+			((cCurrent >= 0xd8) && (cCurrent <= 0xf6)))
+		{
+			bValid = true;
+		}
+
+		if (bValid)
 		{
 			pcTextParser->StepRight();
 			return TRITRUE;
 		}
-
+				
 		//Additional characters can also be...
 		if (!bFirst)
 		{
 			if ((cCurrent >= '0') && (cCurrent <= '9'))
+			{
+				bValid = true;
+			}
+			if ((cCurrent == '-') || 
+				(cCurrent == '.') || 
+				(cCurrent == 0xb7))
+			{
+				bValid = true;
+			}
+
+			if (bValid)
 			{
 				pcTextParser->StepRight();
 				return TRITRUE;

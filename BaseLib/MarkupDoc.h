@@ -29,6 +29,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CMarkupReference;
 typedef CArrayTemplate<CMarkupReference*>	CArrayMarkupReference;
+
+
 class CMarkupSubstitute;
 typedef CArrayTemplate<CMarkupSubstitute*>	CArrayMarkupSubstitute;
 
