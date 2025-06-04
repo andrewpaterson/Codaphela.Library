@@ -472,6 +472,9 @@
     <Filter Include="Source\Error\Hex">
       <UniqueIdentifier>{8b2ec7ed-be69-4b5d-9983-1f0a813f16e2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text\JSON">
+      <UniqueIdentifier>{39a8feb6-cc80-47be-b816-8019d738d212}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1695,6 +1698,9 @@
     <ClInclude Include="Refered.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
+    <ClInclude Include="JSONParser.h">
+      <Filter>Source\Text\JSON</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2704,6 +2710,9 @@
     </ClCompile>
     <ClCompile Include="Refered.cpp">
       <Filter>Source\Constructor</Filter>
+    </ClCompile>
+    <ClCompile Include="JSONParser.cpp">
+      <Filter>Source\Text\JSON</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

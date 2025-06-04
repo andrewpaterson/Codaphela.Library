@@ -33,6 +33,7 @@ public:
 	CTextParser*	mpcParser;
 	bool			mbSkipWhitespace;
 
+public:
 	void					Init(CCalculator* pcCalculator);
 	void					Kill(void);
 
