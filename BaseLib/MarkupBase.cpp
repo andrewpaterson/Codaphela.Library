@@ -160,8 +160,8 @@ uint32 CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, uint32 iDep
 void CMarkupBase::ReplaceIllegalChars(CChars* pszMutableSource)
 {
 	pszMutableSource->Replace("&", "&amp;");
-	pszMutableSource->Replace("<", "&gt;");
-	pszMutableSource->Replace(">", "&lt;");
+	pszMutableSource->Replace("<", "&lt;");
+	pszMutableSource->Replace(">", "&gt;");
 	pszMutableSource->Replace("\'", "&apos;");
 	pszMutableSource->Replace("\"", "&quot;");
 }
