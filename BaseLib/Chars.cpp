@@ -2891,7 +2891,16 @@ char* CChars::CopyIntoBuffer(char* szDest, size iDestLength)
 {
 	size		iLength;
 
-	if (iDestLength != 0)
+	if (iDestLength == ARRAY_ELEMENT_NOT_FOUND)
+	{
+		strcpy(szDest, Text());
+		return szDest;
+	}
+	else if (iDestLength == 0)
+	{
+		return szDest;
+	}
+	else
 	{
 		iLength = Length();
 		if (iLength < iDestLength)
@@ -2903,15 +2912,6 @@ char* CChars::CopyIntoBuffer(char* szDest, size iDestLength)
 			memcpy(szDest, Text(), iDestLength - 2);
 			szDest[iDestLength - 1] = '\0';
 		}
-		return szDest;
-	}
-	else if (iDestLength == 0)
-	{
-		return szDest;
-	}
-	else
-	{
-		strcpy(szDest, Text());
 		return szDest;
 	}
 }
