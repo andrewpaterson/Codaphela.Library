@@ -98,7 +98,7 @@ TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
 
 	mszSourceContext = szSourceContext;
 
-	sConfig.Init(SkipXMLWhitespace, ParseXMLString, ParseXMLExactIdentifier, ParseXMLIdentifier);
+	sConfig.Init(SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
 
 	mcParser.Init(szText, &sConfig);
 	tResult = mcParser.SkipUTF8BOM();
