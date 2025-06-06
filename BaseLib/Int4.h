@@ -9,7 +9,10 @@ class SInt4
 {
 CONSTRUCTABLE(SInt4);
 public:
-	int x, y, z, w;
+	int x;
+	int y;
+	int z;
+	int w;
 
 	void	Init(int x, int y, int z, int w);
 	void	Zero(void);

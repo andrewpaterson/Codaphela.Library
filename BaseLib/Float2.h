@@ -36,7 +36,8 @@ class SFloat2
 {
 CONSTRUCTABLE(SFloat2);
 public:
-	float x, y;
+	float x;
+	float y;
 
 	SFloat2() {};
 	SFloat2(const float *);

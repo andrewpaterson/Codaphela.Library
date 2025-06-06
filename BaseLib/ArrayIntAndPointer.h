@@ -36,16 +36,16 @@ struct SIntAndPointer
 class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>
 {
 public:
-	void 	Add(void* pvData, uint iInt);
-	void 	AddIfUnique(void* pvData, uint iInt);
-	bool 	Get(size iElementPos, void** pvData, uint* iType);
+	void 	Add(void* pvData, uint uiType);
+	void 	AddIfUnique(void* pvData, uint uiType);
+	bool 	Get(size iElementPos, void** pvData, uint* uiType);
 	void*	GetPtr(size iElementPos);
 	void*	SafeGetPtr(size iElementPos);
-	size	GetType(size iElementPos);
-	size	SafeGetType(size iElementPos);
-	void	Set(size iElementPos, void* pvData, uint iInt);
+	uint	GetType(size iElementPos);
+	uint	SafeGetType(size iElementPos);
+	void	Set(size iElementPos, void* pvData, uint uiType);
 	void	Remove(void* pv);
-	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, uint iInt);
+	void*	InsertIntoSorted(DataCompare fCompare, void* pvElement, uint uiType);
 	bool	FindInSorted(void* pvElement, DataCompare fCompare, size* piIndex);
 	bool	BinarySearch(void* pvData, size iLeft, size iRight, DataCompare fCompare, size* piIndex);
 };

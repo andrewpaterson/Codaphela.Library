@@ -34,10 +34,10 @@ class SFloat4x4
 {
 CONSTRUCTABLE(SFloat4x4);
 public:
-	SFloat4	x;
-	SFloat4	y;
-	SFloat4 z;
-	SFloat4 pos;
+	SFloat4		x;
+	SFloat4		y;
+	SFloat4		z;
+	SFloat4		pos;
 
 	void 		Init(void);
 	void 		Init(SFloat3* psX, SFloat3* psY, SFloat3* psZ, SFloat3* psPos);

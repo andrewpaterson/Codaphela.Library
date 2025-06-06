@@ -8,7 +8,8 @@ class SInt2
 {
 CONSTRUCTABLE(SInt2);
 public:
-	int x, y;
+	int x;
+	int y;
 
 	SInt2();
 	SInt2(const SInt2& v);

@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapIntString : public CMapIntTemplate<char*>
 {
 protected:
-	CDataMemory	mcMemory;
+	CDataMemory		mcMemory;
 
 public:
 	void	Init(bool bOverwrite = true);
