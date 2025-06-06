@@ -95,22 +95,24 @@ void CDataMemory::ReInit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataMemory::Remove(void* pv)
+bool CDataMemory::Remove(void* pv)
 {
 	SDataMemoryAllocation*	psAlloc;
 	CFreeList*				pcList;
+	bool					bRemoved;
 
 	psAlloc = DATA_MEMORY_GET_ALLOCATION(pv);
 	if (psAlloc->uiSize <= mpcFreeListParams->GetMaxFreeListElementSize())
 	{
 		pcList = psAlloc->psFreeListNode->pcList;
 
-		DeallocateInFreeList(pcList, psAlloc);
+		bRemoved = DeallocateInFreeList(pcList, psAlloc);
 	}
 	else
 	{
-		DeallocateInLargeList(psAlloc);
+		bRemoved = DeallocateInLargeList(psAlloc);
 	}
+	return bRemoved;
 }
 
 
@@ -131,7 +133,7 @@ size CDataMemory::GetSize(void* pv)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDataMemory::Remove(CArrayVoidPtr* pav)
+bool CDataMemory::RemoveMultiple(CArrayVoidPtr* pav)
 {
 	size					i;
 	void*					pv;
@@ -378,9 +380,10 @@ void* CDataMemory::AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc)
+bool CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc)
 {
 	SFNode*			psFreeListNode;
+	bool			bRemoved;
 
 	psFreeListNode = psAlloc->psFreeListNode;
 
@@ -393,12 +396,13 @@ void CDataMemory::DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocat
 	memset(pvMem, 0xef, iSize);
 #endif
 
-	pcFreeList->Remove(psFreeListNode, psAlloc);
+	bRemoved = pcFreeList->Remove(psFreeListNode, psAlloc);
 
 	if (!pcFreeList->HasElements())
 	{
 		FreeFreeList(pcFreeList);
 	}
+	return bRemoved;
 }
 
 
@@ -444,9 +448,10 @@ void* CDataMemory::AllocateInLargeList(size uiSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CDataMemory::DeallocateInLargeList(SDataMemoryAllocation* psAlloc)
+bool CDataMemory::DeallocateInLargeList(SDataMemoryAllocation* psAlloc)
 {
 	mcLargeList.Remove(psAlloc);
+	return true;
 }
 
 

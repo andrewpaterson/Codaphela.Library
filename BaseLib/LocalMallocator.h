@@ -8,7 +8,7 @@ class CLocalMallocator : public CMallocator
 public:
 	virtual void		Kill(void) =0;
 
-			bool		IsLocal(void);
+			bool		IsLocal(void) override;
 
 	virtual bool		Read(CFileReader* pcFileReader) =0;
 	virtual bool		Write(CFileWriter* pcFileWriter) =0;
