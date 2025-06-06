@@ -104,8 +104,8 @@ bool CXMLFile::Read(char* szFilename, CMarkupDoc* pcDoc, CChars* pszDirectory)
 	}
 
 	cTextFile.PassifyNewlines();
-	cXMLParser.Init(pcDoc, &gcLogger);
-	tResult = cXMLParser.Parse(cTextFile.Text(), szFilename);
+	cXMLParser.Init(cTextFile.Text(), szFilename, pcDoc, &gcLogger);
+	tResult = cXMLParser.Parse();
 	if (tResult != TRITRUE)
 	{
 		cXMLParser.Kill();
