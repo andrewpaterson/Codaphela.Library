@@ -1692,9 +1692,6 @@
     <ClInclude Include="HexString.h">
       <Filter>Source\Error\Hex</Filter>
     </ClInclude>
-    <ClInclude Include="Printable.h">
-      <Filter>Source\Constructor</Filter>
-    </ClInclude>
     <ClInclude Include="Refered.h">
       <Filter>Source\Constructor</Filter>
     </ClInclude>
@@ -2743,6 +2740,9 @@
     </ClCompile>
     <ClCompile Include="DataMemoryAllocator.cpp">
       <Filter>Source\Memory\Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="Killable.cpp">
+      <Filter>Source\Constructor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

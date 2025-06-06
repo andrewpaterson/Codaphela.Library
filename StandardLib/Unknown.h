@@ -22,11 +22,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __UNKNOWN_H__
 #include "BaseLib/ChunkFile.h"
 #include "BaseLib/Constructable.h"
-#include "BaseLib/Printable.h"
 
 
 class CUnknowns;
-class CUnknown : public CConstructable, public CKillable, public CPrintable
+class CUnknown : public CConstructable, public CKillable
 {
 CONSTRUCTABLE(CUnknown);
 protected:
