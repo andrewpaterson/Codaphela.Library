@@ -110,7 +110,7 @@ struct inflate_state {
     unsigned ndist;             /* number of distance code lengths */
     unsigned have;              /* number of code lengths in lens[] */
     code *next;             /* next available space in codes[] */
-    unsigned short lens[320];   /* temporary storage for code lengths */
-    unsigned short work[288];   /* work area for code table building */
+    uint16 lens[320];   /* temporary storage for code lengths */
+    uint16 work[288];   /* work area for code table building */
     code codes[ENOUGH];         /* space for code tables */
 };

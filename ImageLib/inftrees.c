@@ -30,12 +30,12 @@ const char inflate_copyright[] =
    longest code or if it is less than the shortest code.
  */
 int inflate_table(type, lens, codes, table, bits, work)
-codetype type;
-unsigned short *lens;
-unsigned codes;
-code * *table;
-unsigned *bits;
-unsigned short *work;
+codetype    type;
+uint16*     lens;
+unsigned    codes;
+code**      table;
+unsigned*   bits;
+uint16*     work;
 {
     unsigned len;               /* a code's length in bits */
     unsigned sym;               /* index of code symbols */
@@ -52,22 +52,22 @@ unsigned short *work;
     unsigned mask;              /* mask for low root bits */
     code this;                  /* table entry for duplication */
     code *next;             /* next available space in table */
-    const unsigned short *base;     /* base value table to use */
-    const unsigned short *extra;    /* extra bits table to use */
+    const uint16 *base;     /* base value table to use */
+    const uint16 *extra;    /* extra bits table to use */
     int end;                    /* use base and extra for symbol > end */
-    unsigned short count[MAXBITS+1];    /* number of codes of each length */
-    unsigned short offs[MAXBITS+1];     /* offsets in table for each length */
-    static const unsigned short lbase[31] = { /* Length codes 257..285 base */
+    uint16 count[MAXBITS+1];    /* number of codes of each length */
+    uint16 offs[MAXBITS+1];     /* offsets in table for each length */
+    static const uint16 lbase[31] = { /* Length codes 257..285 base */
         3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
         35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258, 0, 0};
-    static const unsigned short lext[31] = { /* Length codes 257..285 extra */
+    static const uint16 lext[31] = { /* Length codes 257..285 extra */
         16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 18, 18, 18, 18,
         19, 19, 19, 19, 20, 20, 20, 20, 21, 21, 21, 21, 16, 201, 196};
-    static const unsigned short dbase[32] = { /* Distance codes 0..29 base */
+    static const uint16 dbase[32] = { /* Distance codes 0..29 base */
         1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
         257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145,
         8193, 12289, 16385, 24577, 0, 0};
-    static const unsigned short dext[32] = { /* Distance codes 0..29 extra */
+    static const uint16 dext[32] = { /* Distance codes 0..29 extra */
         16, 16, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22,
         23, 23, 24, 24, 25, 25, 26, 26, 27, 27,
         28, 28, 29, 29, 64, 64};
@@ -117,7 +117,7 @@ unsigned short *work;
     if (max == 0) {                     /* no symbols to code at all */
         this.op = (uint8)64;    /* invalid code marker */
         this.bits = (uint8)1;
-        this.val = (unsigned short)0;
+        this.val = (uint16)0;
         *(*table)++ = this;             /* make a table to force an error */
         *(*table)++ = this;
         *bits = 1;
@@ -144,7 +144,7 @@ unsigned short *work;
 
     /* sort symbols by length, by symbol order within each length */
     for (sym = 0; sym < codes; sym++)
-        if (lens[sym] != 0) work[offs[lens[sym]]++] = (unsigned short)sym;
+        if (lens[sym] != 0) work[offs[lens[sym]]++] = (uint16)sym;
 
     /*
        Create and fill in decoding tables.  In this loop, the table being
@@ -284,7 +284,7 @@ unsigned short *work;
             low = huff & mask;
             (*table)[low].op = (uint8)curr;
             (*table)[low].bits = (uint8)root;
-            (*table)[low].val = (unsigned short)(next - *table);
+            (*table)[low].val = (uint16)(next - *table);
         }
     }
 
@@ -297,7 +297,7 @@ unsigned short *work;
      */
     this.op = (uint8)64;                /* invalid code marker */
     this.bits = (uint8)(len - drop);
-    this.val = (unsigned short)0;
+    this.val = (uint16)0;
     while (huff != 0) {
         /* when done with sub-table, drop back to root table */
         if (drop != 0 && (huff & mask) != low) {
