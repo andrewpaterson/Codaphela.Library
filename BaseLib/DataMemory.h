@@ -69,7 +69,7 @@ public:
 
 	CFreeList*				TestGetFreeListsHead(void);
 	void*					TestGetLargeListsHead(void);
-	size						NumFreeLists(void);
+	size					NumFreeLists(void);
 
 protected:
 	size					RemoveNode(CArrayVoidPtr* pav, size i, SDataMemoryAllocation* psAlloc, SFNode* psNode, CFreeList* pcList);

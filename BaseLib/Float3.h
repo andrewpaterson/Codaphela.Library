@@ -34,7 +34,9 @@ class SFloat3
 {
 CONSTRUCTABLE(SFloat3);
 public:
-	float x, y, z;
+	float x;
+	float y;
+	float z;
 
 	SFloat3() {};
 	SFloat3(const float *);

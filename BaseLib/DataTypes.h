@@ -138,10 +138,11 @@ enum EPrimitiveType
 	PT_Enum,
 
 	NUM_PRIMITIVE_TYPES,
-	CLASS_TYPES = 0x80,  //Any type with an ID >= 0x40 is a class type.
+	CLASS_TYPES = 0x80,  //Any type with an ID >= 0x80 is a class type.
 };
 
 
+//This doesn't work for size == 2 bytes.
 #define SIZE_IN_BITS		0x80000000 //If GetSize returns a size with this flag set then the size is in bits, not bytes.
 
 

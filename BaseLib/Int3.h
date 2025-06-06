@@ -8,7 +8,9 @@ class SInt3
 {
 CONSTRUCTABLE(SInt3);
 public:
-	int x, y, z;
+	int x;
+	int y;
+	int z;
 
 	SInt3();
 	SInt3(int x, int y, int z);

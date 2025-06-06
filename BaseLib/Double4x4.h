@@ -36,8 +36,8 @@ CONSTRUCTABLE(SDouble4x4);
 public:
 	SDouble4	x;
 	SDouble4	y;
-	SDouble4 z;
-	SDouble4 pos;
+	SDouble4	z;
+	SDouble4	pos;
 
 	void 		Init(void);
 	void 		Init(SDouble3* psX, SDouble3* psY, SDouble3* psZ, SDouble3* psPos);

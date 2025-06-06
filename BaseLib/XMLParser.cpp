@@ -127,7 +127,7 @@ bool CXMLParser::IsAllowedTextChar(uint8 cChar)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CXMLParser::Parse(void)
 {
-	TRISTATE			tResult;
+	TRISTATE	tResult;
 
 	tResult = mcParser.SkipUTF8BOM();
 	ReturnOnError(tResult);
