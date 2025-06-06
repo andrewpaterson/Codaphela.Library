@@ -12,23 +12,23 @@ protected:
 	CGeneralMemory		mcMemory;
 
 public:
-	void			Init(void);
-	void			Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
-	void			Kill(void);
+	void				Init(void);
+	void				Init(int iDefaultAlignment, bool bDefaultFreeListParams = true);
+	void				Kill(void);
 
-	void*			Malloc(size uiSize);
-	void*			Malloc(size uiSize, char(**pacDebugName)[4]);
-	void*			Realloc(void* pv, size uiSize);
-	bool			Free(void* pv);
-	size			FreeMultiple(CArrayVoidPtr* pav);
+	void*				Malloc(size uiSize) override;
+	void*				Malloc(size uiSize, char(**pacDebugName)[4]) override;
+	void*				Realloc(void* pv, size uiSize) override;
+	bool				Free(void* pv) override;
+	size				FreeMultiple(CArrayVoidPtr* pav) override;
 
-	const char*		GetName(void);
+	const char*			GetName(void);
 
-	bool			Read(CFileReader* pcFileReader);
-	bool			Write(CFileWriter* pcFileWriter);
+	bool				Read(CFileReader* pcFileReader) override;
+	bool				Write(CFileWriter* pcFileWriter) override;
 
-	CGeneralMemory*	GetMemory(void);
-	size			SizeOffset(void);
+	CGeneralMemory*		GetMemory(void);
+	size				SizeOffset(void);
 
 public:
 	static CLifeInit<CMallocator> Create(void);

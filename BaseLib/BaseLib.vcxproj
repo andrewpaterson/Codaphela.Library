@@ -202,6 +202,7 @@
     <ClInclude Include="CPPWhitespace.h" />
     <ClInclude Include="DataFree.h" />
     <ClInclude Include="DataIO.h" />
+    <ClInclude Include="DataMemoryAllocator.h" />
     <ClInclude Include="DataOrderers.h" />
     <ClInclude Include="DataCompare.h" />
     <ClInclude Include="DatasIO.h" />
@@ -612,6 +613,7 @@
     <ClCompile Include="CPPString.cpp" />
     <ClCompile Include="CPPWhitespace.cpp" />
     <ClCompile Include="DataFree.cpp" />
+    <ClCompile Include="DataMemoryAllocator.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
     <ClCompile Include="DataTypes.cpp" />

@@ -8,9 +8,9 @@
 
 struct SMemoryFreeListParams
 {
-	size	iMaxListSize;			//This is the size of the actual element in the free list including SGeneralMemoryAllocation
+	size	iMaxListSize;	//This is the size of the actual element in the free list including SGeneralMemoryAllocation
 
-								   //These exist for some binary search Compare function stuffs.
+	//These exist for some binary search Compare function stuffs.
 	size	iMaxElementSize;
 	size	iMinElementSize;
 

@@ -52,8 +52,8 @@ public:
 	void					ReInit(void);
 
 	void*					Add(size iSize);
-	void					Remove(void* pv);
-	bool					Remove(CArrayVoidPtr* pav);
+	bool					Remove(void* pv);
+	bool					RemoveMultiple(CArrayVoidPtr* pav);
 	size					GetSize(void* pv);
 	CFreeList*				GetFreeList(size iElementSize);
 	void*					Grow(void* pvInitial, size iSize);
@@ -78,10 +78,10 @@ protected:
 private:
 	CFreeList*				GetOrAddFreeList(size iElementSize);
 	void*					AllocateInFreeList(CFreeList* pcFreeList, size uiElementSize);
-	void					DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc);
+	bool					DeallocateInFreeList(CFreeList* pcFreeList, SDataMemoryAllocation* psAlloc);
 	void					FreeFreeList(CFreeList* pcFreeList);
 	void*					AllocateInLargeList(size uiSize);
-	void					DeallocateInLargeList(SDataMemoryAllocation* psAlloc);
+	bool					DeallocateInLargeList(SDataMemoryAllocation* psAlloc);
 	void					CopyAllocation(void* pvDest, void* pvSource, size uiDestSize, size uiSourceSize);
 };
 

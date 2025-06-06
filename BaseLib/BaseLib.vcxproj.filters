@@ -1713,6 +1713,9 @@
     <ClInclude Include="BaseParser.h">
       <Filter>Source\Text\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="DataMemoryAllocator.h">
+      <Filter>Source\Memory\Manager</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2737,6 +2740,9 @@
     </ClCompile>
     <ClCompile Include="BaseParser.cpp">
       <Filter>Source\Text\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="DataMemoryAllocator.cpp">
+      <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
