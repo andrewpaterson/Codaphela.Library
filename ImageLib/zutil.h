@@ -46,7 +46,7 @@
 
 typedef uint8  uch;
 typedef uch uchf;
-typedef unsigned short ush;
+typedef uint16 ush;
 typedef ush ushf;
 typedef uint32  ulg;
 

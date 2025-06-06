@@ -32,18 +32,18 @@ struct STGAFileHeader
 	uint8  iIDLength;
 	uint8  iColourMapType;
 	uint8  iImageType;
-	unsigned short iFirstEntryIndex;
-	unsigned short iColourMapLength;
+	uint16 iFirstEntryIndex;
+	uint16 iColourMapLength;
 	uint8  iColourMapEntrySize;
-	unsigned short iOriginX;
-	unsigned short iOriginY;
+	uint16 iOriginX;
+	uint16 iOriginY;
 };
 
 
 struct STGAImageHeader
 {
-	unsigned short iImageWidth;
-	unsigned short iImageHeight;
+	uint16 iImageWidth;
+	uint16 iImageHeight;
 	uint8  iPixelDepth;
 	uint8  iPixelDescriptor;
 };
