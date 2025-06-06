@@ -31,9 +31,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(CMarkup* pcMarkup, CLogger* pcLogger)
+void CXMLParser::Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
 {
-	Init(pcMarkup->mpcDoc, pcLogger);
+	Init(szText, szFileName, pcMarkup->mpcDoc, pcLogger);
 }
 
 
@@ -41,12 +41,43 @@ void CXMLParser::Init(CMarkup* pcMarkup, CLogger* pcLogger)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
+void CXMLParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
 {
+	CBaseParser::Init(szText, szFileName, pcLogger, SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
+
 	mpcDoc = pcDoc;
 	miDepth = 0;
 	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
+
+	mcProlog.Init();
+	macEntities.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CXMLParser::Init(char* szText, size iTextLen, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger)
+{
+	Init(szText, iTextLen, szFileName, pcMarkup->mpcDoc, pcLogger);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CXMLParser::Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger)
+{
+	CBaseParser::Init(szText, iTextLen, szFileName, pcLogger, SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
+
+	mpcDoc = pcDoc;
+	miDepth = 0;
+	mpcCurrent = NULL;
+	mpcLogger = pcLogger;
+
 	mcProlog.Init();
 	macEntities.Init();
 }
@@ -58,10 +89,13 @@ void CXMLParser::Init(CMarkupDoc* pcDoc, CLogger* pcLogger)
 //////////////////////////////////////////////////////////////////////////
 void CXMLParser::Kill(void)
 {
-	size				i;
+	size			i;
 	CXMLEntity*		pcEntity;
 
+	CBaseParser::Kill();
+
 	mpcCurrent = NULL;
+	mpcDoc = NULL;
 
 	for (i = 0; i < macEntities.NumElements(); i++)
 	{
@@ -91,49 +125,27 @@ bool CXMLParser::IsAllowedTextChar(uint8 cChar)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CXMLParser::Parse(char* szText, char* szSourceContext)
+TRISTATE CXMLParser::Parse(void)
 {
 	TRISTATE			tResult;
-	STextParserConfig	sConfig;
 
-	mszSourceContext = szSourceContext;
-
-	sConfig.Init(SkipXMLWhitespace, ParseXMLValueString, ParseXMLExactIdentifier, ParseXMLIdentifier);
-
-	mcParser.Init(szText, &sConfig);
 	tResult = mcParser.SkipUTF8BOM();
-	if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
+	ReturnOnError(tResult);
 
 	tResult = ParseProlog();
-	if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
-	
+	ReturnOnError(tResult);
+
 	tResult = ParseComments();
-	if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
+	ReturnOnError(tResult);
 
 	tResult = ParseDocType();
-	if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
+	ReturnOnError(tResult);
 
 	tResult = ParseComments();
-	if (tResult == TRIERROR)
-	{
-		return TRIERROR;
-	}
+	ReturnOnError(tResult);
 
 	tResult = ParseElement();
 
-	mcParser.Kill();
 	if (tResult != TRITRUE)
 	{
 		return TRIERROR;

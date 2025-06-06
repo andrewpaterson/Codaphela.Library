@@ -1701,6 +1701,18 @@
     <ClInclude Include="JSONParser.h">
       <Filter>Source\Text\JSON</Filter>
     </ClInclude>
+    <ClInclude Include="JSONIdentifier.h">
+      <Filter>Source\Text\JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="JSONString.h">
+      <Filter>Source\Text\JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="JSONWhitespace.h">
+      <Filter>Source\Text\JSON</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseParser.h">
+      <Filter>Source\Text\Parser</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2713,6 +2725,18 @@
     </ClCompile>
     <ClCompile Include="JSONParser.cpp">
       <Filter>Source\Text\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="JSONIdentifier.cpp">
+      <Filter>Source\Text\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="JSONString.cpp">
+      <Filter>Source\Text\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="JSONWhitespace.cpp">
+      <Filter>Source\Text\JSON</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseParser.cpp">
+      <Filter>Source\Text\Parser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

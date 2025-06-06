@@ -183,6 +183,7 @@
     <ClInclude Include="ArrayElementNotFound.h" />
     <ClInclude Include="ArrayTemplateEmbeddedPtr.h" />
     <ClInclude Include="ArrayTemplatePtr.h" />
+    <ClInclude Include="BaseParser.h" />
     <ClInclude Include="BinarySearch.h" />
     <ClInclude Include="BubbleSort.h" />
     <ClInclude Include="CalcObjectArray.h" />
@@ -215,7 +216,10 @@
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="HexString.h" />
+    <ClInclude Include="JSONIdentifier.h" />
     <ClInclude Include="JSONParser.h" />
+    <ClInclude Include="JSONString.h" />
+    <ClInclude Include="JSONWhitespace.h" />
     <ClInclude Include="MapIntString.h" />
     <ClInclude Include="MemCompare.h" />
     <ClInclude Include="MemoryManager.h" />
@@ -591,6 +595,7 @@
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
     <ClCompile Include="ArrayChar.cpp" />
+    <ClCompile Include="BaseParser.cpp" />
     <ClCompile Include="BinarySearch.cpp" />
     <ClCompile Include="BubbleSort.cpp" />
     <ClCompile Include="CalcObjectArray.cpp" />
@@ -624,7 +629,10 @@
     <ClCompile Include="IndexMapAccess.cpp" />
     <ClCompile Include="IndexMapIterator.cpp" />
     <ClCompile Include="IndexStringBlock.cpp" />
+    <ClCompile Include="JSONIdentifier.cpp" />
     <ClCompile Include="JSONParser.cpp" />
+    <ClCompile Include="JSONString.cpp" />
+    <ClCompile Include="JSONWhitespace.cpp" />
     <ClCompile Include="LogToMemory.cpp" />
     <ClCompile Include="Malloc.cpp" />
     <ClCompile Include="ArrayBlock.cpp" />

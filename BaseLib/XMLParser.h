@@ -24,30 +24,29 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __XML_PARSER_H__
 #include "Markup.h"
 #include "Logger.h"
-#include "TextParser.h"
+#include "BaseParser.h"
 #include "XMLEntity.h"
 #include "XMLProlog.h"
 
 
-class CXMLParser
+class CXMLParser : public CBaseParser
 {
 protected:
 	CXMLProlog			mcProlog;
 
 public:
-	CTextParser			mcParser;
 	int					miDepth;
 	CMarkupTag*			mpcCurrent;
 	CArrayXMLEntity		macEntities;
 	CMarkupDoc*			mpcDoc;
-	char*				mszSourceContext;  //Generally a filename.
-	CLogger*			mpcLogger;
 
-	void		Init(CMarkup* pcMarkup, CLogger* pcLogger);
-	void		Init(CMarkupDoc* pcDoc, CLogger* pcLogger);
+	void		Init(char* szText, size iTextLen, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
+	void		Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
+	void		Init(char* szText, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
+	void		Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger* pcLogger);
 	void		Kill(void);
 
-	TRISTATE	Parse(char* szText, char* szSourceContext);
+	TRISTATE	Parse(void);
 	TRISTATE	ParseProlog(void);
 	TRISTATE	ParseStandalone(void);
 	TRISTATE	ParseVersion(void);
