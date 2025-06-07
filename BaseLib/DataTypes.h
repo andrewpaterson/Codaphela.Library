@@ -99,6 +99,7 @@ enum EPrimitiveType
 	PT_float96,		//96
 	PT_char8,		//8  ANSI or UTF-8, zero terminated
 	PT_char16,		//16 UTF-16, zero zero terminated
+
 	PT_M2float32,	//64
 	PT_M3float32,	//96
 	PT_M4float32,   //128
