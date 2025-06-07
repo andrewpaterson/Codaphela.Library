@@ -22,7 +22,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MARKUP_H__
 #define __MARKUP_H__
-#include "FreeList.h"
+#include "DataMemoryAllocator.h"
+#include "ArrayTemplatePtr.h"
 #include "MarkupTag.h"
 #include "MarkupText.h"
 #include "MarkupSubstitute.h"
@@ -32,16 +33,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMarkup
 {
 public:
-	CFreeList	mcTags;
-	CFreeList	mcTexts;
-	CFreeList	mcSubDocs;
-	CFreeList	mcSubTexts;
-	CFreeList	mcRefDocs;
-	CFreeList	mcRefTexts;
-	CFreeList	mcNamedRefs;
-	CFreeList	mcDocs;
+	CDataMemoryAllocator				mcMemory;
+	CArrayTemplatePtr<CMarkupSubDoc>	mapcSubDocs;
+	CArrayTemplatePtr<CMarkupSubText>	mapcSubTexts;
 
-	CMarkupDoc*	mpcDoc;
+	CMarkupDoc*		mpcDoc;
 
 	void				Init(void);
 	void				Kill(void);

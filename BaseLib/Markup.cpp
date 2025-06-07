@@ -30,14 +30,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //////////////////////////////////////////////////////////////////////////
 void CMarkup::Init(void)
 {
-	mcTags.Init(sizeof(CMarkupTag));
-	mcTexts.Init(sizeof(CMarkupText));
-	mcSubDocs.Init(sizeof(CMarkupSubDoc));
-	mcSubTexts.Init(sizeof(CMarkupSubText));
-	mcRefDocs.Init(sizeof(CMarkupRefDoc));
-	mcRefTexts.Init(sizeof(CMarkupRefText));
-	mcNamedRefs.Init(sizeof(CMarkupNamedRef));
-	mcDocs.Init(sizeof(CMarkupDoc));
+	mcMemory.Init();
+	mapcSubDocs.Init();
+	mapcSubTexts.Init();
 
 	mpcDoc = AllocateDoc();
 	mpcDoc->Init(this);
@@ -51,15 +46,10 @@ void CMarkup::Init(void)
 void CMarkup::Kill(void)
 {
 	mpcDoc->Kill();
+	mapcSubDocs.Kill();
+	mapcSubTexts.Kill();
 
-	mcTexts.Kill();
-	mcTags.Kill();
-	mcSubDocs.Kill();
-	mcSubTexts.Kill();
-	mcRefDocs.Kill();
-	mcRefTexts.Kill();
-	mcNamedRefs.Kill();
-	mcDocs.Kill();
+	mcMemory.Kill();
 }
 
 
@@ -72,7 +62,7 @@ CMarkupTag* CMarkup::AllocateTag(CMarkupDoc* pcDoc)
 	CMarkupTag*					pcTag;
 	CPostMalloc<CMarkupTag>		cPostMalloc;
 
-	pcTag = (CMarkupTag*)mcTags.Add();
+	pcTag = (CMarkupTag*)mcMemory.Malloc(sizeof(CMarkupTag));
 	cPostMalloc.PostMalloc(pcTag);
 
 	pcTag->mpcDoc = pcDoc;
@@ -89,7 +79,7 @@ CMarkupText* CMarkup::AllocateText(CMarkupDoc* pcDoc)
 	CMarkupText*				pcText;
 	CPostMalloc<CMarkupText>	cPostMalloc;
 
-	pcText = (CMarkupText*)mcTexts.Add();
+	pcText = (CMarkupText*)mcMemory.Malloc(sizeof(CMarkupText));
 	cPostMalloc.PostMalloc(pcText);
 
 	pcText->mpcDoc = pcDoc;
@@ -106,10 +96,13 @@ CMarkupSubDoc* CMarkup::AllocateSubDoc(void)
 	CMarkupSubDoc*				pcSubDoc;
 	CPostMalloc<CMarkupSubDoc>	cPostMalloc;
 
-	pcSubDoc = (CMarkupSubDoc*)mcSubDocs.Add();
+	pcSubDoc = (CMarkupSubDoc*)mcMemory.Malloc(sizeof(CMarkupSubDoc));
 	cPostMalloc.PostMalloc(pcSubDoc);
 
 	pcSubDoc->mpcMarkup = this;
+
+	mapcSubDocs.Add(pcSubDoc);
+
 	return pcSubDoc;
 }
 
@@ -120,13 +113,16 @@ CMarkupSubDoc* CMarkup::AllocateSubDoc(void)
 //////////////////////////////////////////////////////////////////////////
 CMarkupSubText* CMarkup::AllocateSubText(void)
 {
-	CMarkupSubText*				pcSubText;
-	CPostMalloc<CMarkupSubText>	cPostMalloc;
+	CMarkupSubText*					pcSubText;
+	CPostMalloc<CMarkupSubText>		cPostMalloc;
 
-	pcSubText = (CMarkupSubText*)mcSubTexts.Add();
+	pcSubText = (CMarkupSubText*)mcMemory.Malloc(sizeof(CMarkupSubText));
 	cPostMalloc.PostMalloc(pcSubText);
 
 	pcSubText->mpcMarkup = this;
+
+	mapcSubTexts.Add(pcSubText);
+
 	return pcSubText;
 }
 
@@ -140,7 +136,7 @@ CMarkupRefDoc* CMarkup::AllocateRefDoc(CMarkupDoc* pcDoc)
 	CMarkupRefDoc*				pcRefDoc;
 	CPostMalloc<CMarkupRefDoc>	cPostMalloc;
 
-	pcRefDoc = (CMarkupRefDoc*)mcRefDocs.Add();
+	pcRefDoc = (CMarkupRefDoc*)mcMemory.Malloc(sizeof(CMarkupRefDoc));
 	cPostMalloc.PostMalloc(pcRefDoc);
 
 	pcRefDoc->mpcDoc = pcDoc;
@@ -154,10 +150,10 @@ CMarkupRefDoc* CMarkup::AllocateRefDoc(CMarkupDoc* pcDoc)
 //////////////////////////////////////////////////////////////////////////
 CMarkupRefText* CMarkup::AllocateRefText(CMarkupDoc* pcDoc)
 {
-	CMarkupRefText*				pcRefText;
-	CPostMalloc<CMarkupRefText>	cPostMalloc;
+	CMarkupRefText*					pcRefText;
+	CPostMalloc<CMarkupRefText>		cPostMalloc;
 
-	pcRefText = (CMarkupRefText*)mcRefTexts.Add();
+	pcRefText = (CMarkupRefText*)mcMemory.Malloc(sizeof(CMarkupRefText));
 	cPostMalloc.PostMalloc(pcRefText);
 
 	pcRefText->mpcDoc = pcDoc;
@@ -174,7 +170,7 @@ CMarkupNamedRef* CMarkup::AllocateNamedRef(CMarkupDoc* pcDoc)
 	CMarkupNamedRef*				pcNamedRef;
 	CPostMalloc<CMarkupNamedRef>	cPostMalloc;
 
-	pcNamedRef = (CMarkupNamedRef*)mcNamedRefs.Add();
+	pcNamedRef = (CMarkupNamedRef*)mcMemory.Malloc(sizeof(CMarkupNamedRef));
 	cPostMalloc.PostMalloc(pcNamedRef);
 
 	pcNamedRef->mpcDoc = pcDoc;
@@ -188,9 +184,9 @@ CMarkupNamedRef* CMarkup::AllocateNamedRef(CMarkupDoc* pcDoc)
 //////////////////////////////////////////////////////////////////////////
 CMarkupDoc* CMarkup::AllocateDoc(void)
 {
-	CMarkupDoc* pcDoc;
+	CMarkupDoc*		pcDoc;
 
-	pcDoc = (CMarkupDoc*)mcDocs.Add();
+	pcDoc = (CMarkupDoc*)mcMemory.Malloc(sizeof(CMarkupDoc));
 	return pcDoc;
 }
 
@@ -201,7 +197,7 @@ CMarkupDoc* CMarkup::AllocateDoc(void)
 //////////////////////////////////////////////////////////////////////////
 void CMarkup::Deallocated(CMarkupNamedRef* pc)
 {
-	mcNamedRefs.Remove(pc);
+	mcMemory.Free(pc);
 }
 
 
@@ -231,29 +227,31 @@ CMarkupTag* CMarkup::GetRootTag(void)
 //////////////////////////////////////////////////////////////////////////
 CMarkupSubstitute* CMarkup::GetSubstitute(char* szName)
 {
-	SFreeListIterator	sIter;
 	CMarkupSubDoc*		pcDoc;
 	CMarkupSubText*		pcText;
-
-	pcDoc = (CMarkupSubDoc*)mcSubDocs.StartIteration(&sIter);
-	while (pcDoc)
+	size				ui;
+	size				uiNumElements;
+	
+	uiNumElements = mapcSubDocs.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
 	{
+		pcDoc = mapcSubDocs.GetPtr(ui);
 		if (pcDoc->Is(szName))
 		{
 			return pcDoc;
 		}
-		pcDoc = (CMarkupSubDoc*)mcSubDocs.Iterate(&sIter);
-	}	
+	}
 
-	pcText = (CMarkupSubText*)mcSubTexts.StartIteration(&sIter);
-	while (pcText)
+	uiNumElements = mapcSubTexts.NumElements();
+	for (ui = 0; ui < uiNumElements; ui++)
 	{
+		pcText = mapcSubTexts.GetPtr(ui);
 		if (pcText->Is(szName))
 		{
 			return pcText;
 		}
-		pcText = (CMarkupSubText*)mcSubTexts.Iterate(&sIter);
 	}
+
 	return NULL;
 }
 
