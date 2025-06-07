@@ -100,44 +100,47 @@ void CTypeNames::Init(void)
 	mmsziPrettyNames.Init();
 	mmsziCppNames.Init();
 
-	AddType(PT_Undefined,	0,					"Undefined",	"",					"PT_Undefined");
-	AddType(PT_int8,		BYTE_BYTE_SIZE,		"Byte",			"int8",				"PT_int8");
-	AddType(PT_int16,		SHORT_BYTE_SIZE,	"Short",		"int16",			"PT_int16");
-	AddType(PT_int32,		INT_BYTE_SIZE,		"Int",			"int32",			"PT_int32");
-	AddType(PT_int64,		LONG_BYTE_SIZE,		"Long",			"int64",			"PT_int64");
-	AddType(PT_uint8,		BYTE_BYTE_SIZE,		"UByte",		"uint8",			"PT_uint8");
-	AddType(PT_uint16,		SHORT_BYTE_SIZE,	"UShort",		"uint16",			"PT_uint16");
-	AddType(PT_uint32,		INT_BYTE_SIZE,		"UInt",			"uint32",			"PT_uint32");
-	AddType(PT_uint64,		LONG_BYTE_SIZE,		"ULong",		"uint64",			"PT_uint64");
-	AddType(PT_float32,		FLOAT_BYTE_SIZE,	"Float",		"float",			"PT_float32");
-	AddType(PT_float64,		DOUBLE_BYTE_SIZE,	"Double",		"double",			"PT_float64");
-	AddType(PT_M2float32,	FLOAT2_BYTE_SIZE,	"Float2",		"SFloat2",			"PT_M2float32");
-	AddType(PT_M3float32,	FLOAT3_BYTE_SIZE,	"Float3",		"SFloat3",			"PT_M3float32");
-	AddType(PT_M4float32,	FLOAT4_BYTE_SIZE,	"Float4",		"SFloat4",			"PT_M4float32");
-	AddType(PT_M2float64,	DOUBLE2_BYTE_SIZE,	"Double2",		"SDouble2",			"PT_M2float64");
-	AddType(PT_M3float64,	DOUBLE3_BYTE_SIZE,	"Double3",		"SDouble3",			"PT_M3float64");
-	AddType(PT_M4float64,	DOUBLE4_BYTE_SIZE,	"Double4",		"SDouble4",			"PT_M4float64");
-	AddType(PT_M2int32,		INT2_BYTE_SIZE,		"Int2",			"SInt2",			"PT_M2int32");
-	AddType(PT_M3int32,		INT3_BYTE_SIZE,		"Int3",			"SInt3",			"PT_M3int32");
-	AddType(PT_M4int32,		INT4_BYTE_SIZE,		"Int4",			"SInt4",			"PT_M4int32");
-	AddType(PT_char8,		CHAR_BYTE_SIZE,		"Char",			"char",				"PT_char8");
-	AddType(PT_char16,		WIDE_CHAR_BYTE_SIZE,"Widechar",		"wchar_t",			"PT_char16");
-	AddType(PT_bit,			BIT_SIZE,			"Bit",			"",					"PT_bit");
-	AddType(PT_crumb,		CRUMB_SIZE,			"Crumb",		"",					"PT_crumb");
-	AddType(PT_tribble,		TRIBBLE_SIZE,		"Tribble",		"",					"PT_tribble");
-	AddType(PT_nybble,		NYBBLE_SIZE,		"Nybble",		"",					"PT_nybble");
-	AddType(PT_nickle,		NICKLE_SIZE,		"Nickle",		"",					"PT_nickle");
-	AddType(PT_sixbits,		SIXBITS_SIZE,		"Sixbits",		"",					"PT_sixbits");
-	AddType(PT_bool,		BOOL_BYTE_SIZE,		"Bool",			"bool",				"PT_bool");
-	AddType(PT_Pointer,		sizeof(void*),		"VoidPointer",	"void*",			"PT_Pointer");
-	AddType(PT_void,		VOID_BYTE_SIZE,		"Void",			"void",				"PT_void");
-	AddType(PT_Data,		BYTE_BYTE_SIZE,		"Data",			"",					"PT_Data");
-	AddType(PT_M4x4float32, FLOAT4x4_BYTE_SIZE,	"Float4x4",		"",					"PT_M4x4float32");
-	AddType(PT_M4x4float64, DOUBLE4x4_BYTE_SIZE,"Double4x4",	"",					"PT_M4x4float64");
-	AddType(PT_String,		0,					"Chars",		"CChars",			"PT_String");
-	AddType(PT_Number,		0,					"Chars",		"CChars",			"PT_String");
-	AddType(PT_Date,		sizeof(CDate),		"Date",			"CDate",			"PT_Date");
-	AddType(PT_DateTime,	sizeof(CDateTime),	"DateTime",		"CDateTime",		"PT_DateTime");
+	AddType(PT_Undefined,		0,						"Undefined",		"",					"PT_Undefined");
+	AddType(PT_int8,			BYTE_BYTE_SIZE,			"Byte",				"int8",				"PT_int8");
+	AddType(PT_int16,			SHORT_BYTE_SIZE,		"Short",			"int16",			"PT_int16");
+	AddType(PT_int32,			INT_BYTE_SIZE,			"Int",				"int32",			"PT_int32");
+	AddType(PT_int64,			LONG_BYTE_SIZE,			"Long",				"int64",			"PT_int64");
+	AddType(PT_uint8,			BYTE_BYTE_SIZE,			"UByte",			"uint8",			"PT_uint8");
+	AddType(PT_uint16,			SHORT_BYTE_SIZE,		"UShort",			"uint16",			"PT_uint16");
+	AddType(PT_uint32,			INT_BYTE_SIZE,			"UInt",				"uint32",			"PT_uint32");
+	AddType(PT_uint64,			LONG_BYTE_SIZE,			"ULong",			"uint64",			"PT_uint64");
+	AddType(PT_float32,			FLOAT_BYTE_SIZE,		"Float",			"float",			"PT_float32");
+	AddType(PT_float64,			DOUBLE_BYTE_SIZE,		"Double",			"double",			"PT_float64");
+	AddType(PT_M2float32,		FLOAT2_BYTE_SIZE,		"Float2",			"SFloat2",			"PT_M2float32");
+	AddType(PT_M3float32,		FLOAT3_BYTE_SIZE,		"Float3",			"SFloat3",			"PT_M3float32");
+	AddType(PT_M4float32,		FLOAT4_BYTE_SIZE,		"Float4",			"SFloat4",			"PT_M4float32");
+	AddType(PT_M2float64,		DOUBLE2_BYTE_SIZE,		"Double2",			"SDouble2",			"PT_M2float64");
+	AddType(PT_M3float64,		DOUBLE3_BYTE_SIZE,		"Double3",			"SDouble3",			"PT_M3float64");
+	AddType(PT_M4float64,		DOUBLE4_BYTE_SIZE,		"Double4",			"SDouble4",			"PT_M4float64");
+	AddType(PT_M2int32,			INT2_BYTE_SIZE,			"Int2",				"SInt2",			"PT_M2int32");
+	AddType(PT_M3int32,			INT3_BYTE_SIZE,			"Int3",				"SInt3",			"PT_M3int32");
+	AddType(PT_M4int32,			INT4_BYTE_SIZE,			"Int4",				"SInt4",			"PT_M4int32");
+	AddType(PT_char8,			CHAR_BYTE_SIZE,			"Char",				"char8",			"PT_char8");
+	AddType(PT_char16,			WIDE_CHAR_BYTE_SIZE,	"Widechar",			"char16",			"PT_char16");
+	AddType(PT_bit,				BIT_SIZE,				"Bit",				"",					"PT_bit");
+	AddType(PT_crumb,			CRUMB_SIZE,				"Crumb",			"",					"PT_crumb");
+	AddType(PT_tribble,			TRIBBLE_SIZE,			"Tribble",			"",					"PT_tribble");
+	AddType(PT_nybble,			NYBBLE_SIZE,			"Nybble",			"",					"PT_nybble");
+	AddType(PT_nickle,			NICKLE_SIZE,			"Nickle",			"",					"PT_nickle");
+	AddType(PT_sixbits,			SIXBITS_SIZE,			"Sixbits",			"",					"PT_sixbits");
+	AddType(PT_bool,			BOOL_BYTE_SIZE,			"Bool",				"bool",				"PT_bool");
+	AddType(PT_Pointer,			sizeof(void*),			"VoidPointer",		"void*",			"PT_Pointer");
+	AddType(PT_void,			VOID_BYTE_SIZE,			"Void",				"void",				"PT_void");
+	AddType(PT_Data,			BYTE_BYTE_SIZE,			"Data",				"",					"PT_Data");
+	AddType(PT_M4x4float32,		FLOAT4x4_BYTE_SIZE,		"Float4x4",			"",					"PT_M4x4float32");
+	AddType(PT_M4x4float64,		DOUBLE4x4_BYTE_SIZE,	"Double4x4",		"",					"PT_M4x4float64");
+	AddType(PT_String,			0,						"Chars",			"CChars",			"PT_String");
+	AddType(PT_Number,			0,						"Chars",			"CChars",			"PT_String");
+	AddType(PT_Date,			sizeof(CDate),			"Date",				"CDate",			"PT_Date");
+	AddType(PT_DateTime,		sizeof(CDateTime),		"DateTime",			"CDateTime",		"PT_DateTime");
+	AddType(PT_Enum,			ENUM_BYTE_SIZE,			"Enum",				"enum",				"PT_Enum");
+	AddType(PT_char8Pointer,	sizeof(void*),			"CharPointer",		"char8*",			"PT_char8Pointer");
+	AddType(PT_char16Pointer,	sizeof(void*),			"WideCharPointer",	"char16*",			"PT_char16Pointer");
 }
 
 
@@ -147,9 +150,9 @@ void CTypeNames::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTypeNames::Kill(void)
 {
-	size			i;
+	size		i;
 	STypeName*	psTypeName;
-	size			iNumElements;
+	size		iNumElements;
 
 	mmsziCppNames.Kill();
 	mmsziPrettyNames.Kill();

@@ -67,6 +67,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define VOID_BYTE_SIZE		0
 #define FLOAT4x4_BYTE_SIZE	sizeof(SFloat4x4)
 #define DOUBLE4x4_BYTE_SIZE	sizeof(SDouble4x4)
+#define ENUM_BYTE_SIZE		(sizeof(size) + sizeof(size))  //enum value followed by enum type
 
 #define BIT_SIZE			(1 | SIZE_IN_BITS)
 #define CRUMB_SIZE			(2 | SIZE_IN_BITS)
@@ -128,7 +129,7 @@ enum EPrimitiveType
 	PT_Date,		//CDate
 	PT_DateTime,	//CDateTime
 
-	PT_void,		//0
+	PT_void,		//Implies no type.  NULL if the value is used.
 
 	//Pointers.
 	PT_Pointer,		//An arbitrary void pointer.
@@ -136,6 +137,9 @@ enum EPrimitiveType
 
 	//Enum
 	PT_Enum,
+
+	PT_char8Pointer,	//A zero terminated string.
+	PT_char16Pointer,
 
 	NUM_PRIMITIVE_TYPES,
 	CLASS_TYPES = 0x80,  //Any type with an ID >= 0x80 is a class type.

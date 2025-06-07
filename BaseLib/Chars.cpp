@@ -106,6 +106,27 @@ CChars* CChars::InitLength(size iLength)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CChars* CChars::InitLength(CMallocator* pcMalloc, size iLength)
+{
+	if (iLength != 0)
+	{
+		mcText.Init(pcMalloc);
+		mcText.Resize(iLength + 1);
+		mcText.SetValue(iLength, '\0');
+		return this;
+	}
+	else
+	{
+		InitEmpty();
+		return this;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(void)
 {
 	InitEmpty();

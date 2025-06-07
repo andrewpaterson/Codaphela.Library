@@ -57,6 +57,7 @@ public:
 	CChars* InitList(const char* szFirst, ...);
 	CChars* InitList(CChars* szFirst, ...);
 	CChars* InitLength(size iLength);
+	CChars* InitLength(CMallocator* pcMalloc, size iLength);
 	bool	InitData2(const char* szData, size iDataLength);
 	void	Kill(void);
 	void	DumpKill(void);

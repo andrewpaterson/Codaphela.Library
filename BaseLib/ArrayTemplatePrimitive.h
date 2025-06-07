@@ -30,10 +30,10 @@ template<class M>
 class CArrayTemplatePrimitive : public CArrayTemplate<M>
 {
 public:
-	M 		GetValue(size iElementPos);
-	M		SafeGetValue(size iElementPos);
-	M 		operator[](size iElementPos);
-	void	SetValue(size iElementPos, M iElement);
+	M 		GetValue(size iIndex);
+	M		SafeGetValue(size iIndex);
+	M 		operator[](size iIndex);
+	void	SetValue(size iIndex, M iElement);
 	void 	Add(M iElement);
 	void 	Add(M* paElements, size iNumElements);
 	void	InsertAt(M iElement, size iIndex);
@@ -80,9 +80,9 @@ int ComparePrimitive(const void* arg1, const void* arg2)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::GetValue(size iElementPos)
+M CArrayTemplatePrimitive<M>::GetValue(size iIndex)
 {
-	return (*(CArrayTemplate<M>::Get(iElementPos)));
+	return (*(CArrayTemplate<M>::Get(iIndex)));
 }
 
 
@@ -91,9 +91,9 @@ M CArrayTemplatePrimitive<M>::GetValue(size iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::operator[](size iElementPos)
+M CArrayTemplatePrimitive<M>::operator[](size iIndex)
 {
-	return (*(CArrayTemplate<M>::Get(iElementPos)));
+	return (*(CArrayTemplate<M>::Get(iIndex)));
 }
 
 
@@ -102,11 +102,11 @@ M CArrayTemplatePrimitive<M>::operator[](size iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M CArrayTemplatePrimitive<M>::SafeGetValue(size iElementPos)
+M CArrayTemplatePrimitive<M>::SafeGetValue(size iIndex)
 {
-	if (iElementPos < miUsedElements)
+	if (iIndex < miUsedElements)
 	{
-		return ((M*)mpvArray)[iElementPos];
+		return ((M*)mpvArray)[iIndex];
 	}
 	return -1;
 }
@@ -117,9 +117,9 @@ M CArrayTemplatePrimitive<M>::SafeGetValue(size iElementPos)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayTemplatePrimitive<M>::SetValue(size iElementPos, M iElement)
+void CArrayTemplatePrimitive<M>::SetValue(size iIndex, M iElement)
 {
-	((M*)mpvArray)[iElementPos] = iElement;
+	((M*)mpvArray)[iIndex] = iElement;
 }
 
 
