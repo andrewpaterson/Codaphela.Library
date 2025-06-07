@@ -29,7 +29,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 struct SIntAndPointer
 {
 	void*	pvData;
-	uint	iValue;  //Arbitrary type values... no need to be a registered type.
+	uint	uiType;  //Arbitrary type values... no need to be a registered type.
 };
 
 
