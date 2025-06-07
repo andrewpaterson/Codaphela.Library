@@ -36,6 +36,7 @@ private:
 	CArrayFreeListAlignedDesc	mcOrder;
 
 	CMemoryFreeListParams		mcFreeListParams;
+
 	uint8						miDefaultAlignment;
 
 	size						muiAllocCount;
