@@ -32,7 +32,7 @@ void CArrayIntAndPointer::Add(void* pvData, uint uiType)
 	SIntAndPointer*	psPtr;
 
 	psPtr = CArrayTemplate<SIntAndPointer>::Add();
-	psPtr->iValue = uiType;
+	psPtr->uiType = uiType;
 	psPtr->pvData = pvData;
 }
 
@@ -49,7 +49,7 @@ void CArrayIntAndPointer::AddIfUnique(void* pvData, uint uiType)
 	for (i = 0; i < miUsedElements; i++)
 	{
 		psPtr = CArrayTemplate<SIntAndPointer>::Get(i);
-		if ((psPtr->pvData == pvData) && (psPtr->iValue == uiType))
+		if ((psPtr->pvData == pvData) && (psPtr->uiType == uiType))
 		{
 			return;
 		}
@@ -71,7 +71,7 @@ bool CArrayIntAndPointer::Get(size uiIndex, void** pvData, uint* uiType)
 	if (psPtr)
 	{
 		*pvData = psPtr->pvData;
-		*uiType = psPtr->iValue;
+		*uiType = psPtr->uiType;
 		return true;
 	}
 	else
@@ -120,7 +120,7 @@ size CArrayIntAndPointer::GetType(size uiIndex)
 	SIntAndPointer*	psPtr;
 
 	psPtr = CArrayTemplate<SIntAndPointer>::Get(uiIndex);
-	return psPtr->iValue;
+	return psPtr->uiType;
 }
 
 
@@ -150,7 +150,7 @@ void CArrayIntAndPointer::Set(size uiIndex, void* pvData, uint uiType)
 	SIntAndPointer*	psTypedPointer;
 
 	psTypedPointer = CArrayTemplate<SIntAndPointer>::Get(uiIndex);
-	psTypedPointer->iValue = uiType;
+	psTypedPointer->uiType = uiType;
 	psTypedPointer->pvData = pvData;
 }
 
@@ -185,7 +185,7 @@ void* CArrayIntAndPointer::InsertIntoSorted(DataCompare fCompare, void* pvElemen
 
 	bExists = FindInSorted(pvElement, fCompare, &iPos);
 
-	sTypedPointer.iValue = uiType;
+	sTypedPointer.uiType = uiType;
 	sTypedPointer.pvData = pvElement;
 	if (iPos < miUsedElements)
 	{
