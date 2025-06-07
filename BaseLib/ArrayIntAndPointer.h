@@ -23,14 +23,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __ARRAY_TYPED_POINTER_H__
 #define __ARRAY_TYPED_POINTER_H__
 #include "ArrayTemplate.h"
+#include "IntAndPointer.h"
 #include "Define.h"
-
-
-struct SIntAndPointer
-{
-	void*	pvData;
-	uint	uiType;  //Arbitrary type values... no need to be a registered type.
-};
 
 
 class CArrayIntAndPointer : public CArrayTemplate<SIntAndPointer>

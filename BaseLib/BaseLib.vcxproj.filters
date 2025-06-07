@@ -1713,6 +1713,12 @@
     <ClInclude Include="DataMemoryAllocator.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
+    <ClInclude Include="MapStringIntAndPointer.h">
+      <Filter>Source\Data\Map\Map\String</Filter>
+    </ClInclude>
+    <ClInclude Include="IntAndPointer.h">
+      <Filter>Source\Data\Primitive</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2743,6 +2749,9 @@
     </ClCompile>
     <ClCompile Include="Killable.cpp">
       <Filter>Source\Constructor</Filter>
+    </ClCompile>
+    <ClCompile Include="MapStringIntAndPointer.cpp">
+      <Filter>Source\Data\Map\Map\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

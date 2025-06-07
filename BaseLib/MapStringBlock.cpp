@@ -92,7 +92,7 @@ void* CMapStringBlock::Get(const char* szKey, size* piDataSize)
 void* CMapStringBlock::Put(char* szKey, size iDataSize)
 {
 	void*	pvData;
-	size		iStrLen;
+	size	iStrLen;
 
 	if (StrEmpty(szKey))
 	{

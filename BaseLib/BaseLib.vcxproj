@@ -217,11 +217,13 @@
     <ClInclude Include="FloatPrinter.h" />
     <ClInclude Include="GlobalDataTypesIO.h" />
     <ClInclude Include="HexString.h" />
+    <ClInclude Include="IntAndPointer.h" />
     <ClInclude Include="JSONIdentifier.h" />
     <ClInclude Include="JSONParser.h" />
     <ClInclude Include="JSONString.h" />
     <ClInclude Include="JSONWhitespace.h" />
     <ClInclude Include="MapIntString.h" />
+    <ClInclude Include="MapStringIntAndPointer.h" />
     <ClInclude Include="MemCompare.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="RedirectPrintf.h" />
@@ -702,6 +704,7 @@
     <ClCompile Include="MapMapIterator.cpp" />
     <ClCompile Include="MapNode.cpp" />
     <ClCompile Include="MapStringBlock.cpp" />
+    <ClCompile Include="MapStringIntAndPointer.cpp" />
     <ClCompile Include="MarkupTextParser.cpp" />
     <ClCompile Include="MemoryAllocator.cpp" />
     <ClCompile Include="Mallocators.cpp" />
