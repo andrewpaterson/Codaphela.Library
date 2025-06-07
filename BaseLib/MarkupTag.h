@@ -67,7 +67,7 @@ public:
 	CMarkupText*		AppendText(void);
 	CMarkupText*		AppendText(char* szText);
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
-	bool				AddAttribute(char* szAttribute, char* szValue);
+	bool				AddStringAttribute(char* szAttribute, char* szValue);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	void				Print(CChars* psz);

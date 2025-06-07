@@ -34,7 +34,7 @@ void CMarkupTag::Init(CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
 	macBases.Init();
-	mcAttributes.Init(1);
+	mcAttributes.Init();
 	mszName.Init();
 	miLine = ARRAY_ELEMENT_NOT_FOUND;
 	miColumn = ARRAY_ELEMENT_NOT_FOUND;
@@ -49,7 +49,7 @@ void CMarkupTag::Init(char* szName, CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
 	macBases.Init();
-	mcAttributes.Init(1);
+	mcAttributes.Init();
 	mszName.Init(szName);
 	miLine = ARRAY_ELEMENT_NOT_FOUND;
 	miColumn = ARRAY_ELEMENT_NOT_FOUND;
@@ -449,7 +449,7 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddAttribute(char* szAttribute, char* szValue)
+bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szValue)
 {
 	if (mcAttributes.Get(szAttribute))
 	{
@@ -458,6 +458,7 @@ bool CMarkupTag::AddAttribute(char* szAttribute, char* szValue)
 	mcAttributes.Put(szAttribute, szValue);
 	return true;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //

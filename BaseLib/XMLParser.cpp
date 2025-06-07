@@ -854,7 +854,7 @@ TRISTATE CXMLParser::ParseAttribute(void)
 		szIdentifier.Kill();
 		return TRIERROR;
 	}
-	bResult = mpcCurrent->AddAttribute(szIdentifier.Text(), szValue.Text());
+	bResult = mpcCurrent->AddStringAttribute(szIdentifier.Text(), szValue.Text());
 
 	szValue.Kill();
 	szIdentifier.Kill();
