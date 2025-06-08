@@ -42,11 +42,12 @@ class CMarkupText;
 class CMarkupNamedRef;
 class CMarkupTag : public CMarkupBase
 {
-public:
+protected:
 	CArrayMarkupBase	macBases;
 	CMapStringString	mcAttributes;
 	CChars				mszName;
 
+public:
 	void				Init(CMarkupTag* pcParent);
 	void				Init(char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
