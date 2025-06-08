@@ -218,7 +218,7 @@ void CMarkupTextParser::TagToError(CChars* psz, CMarkupTag* pcParentTag)
 		pcTag = pcParentTag;
 		while (pcTag)
 		{
-			psz->Insert(0, &pcTag->mszName);
+			psz->Insert(0, pcTag->GetName());
 			psz->Insert(0, '.');
 			pcTag = pcTag->mpcParent;
 		}
