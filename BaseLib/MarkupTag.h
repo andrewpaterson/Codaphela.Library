@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __MARKUP_TAG_H__
 #define __MARKUP_TAG_H__
 #include "ArrayTemplate.h"
+#include "Number.h"
 #include "MarkupBase.h"
 #include "MapStringIntAndPointer.h"
 
@@ -68,7 +69,8 @@ public:
 	CMarkupText*		AppendText(void);
 	CMarkupText*		AppendText(char* szText);
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
-	bool				AddStringAttribute(char* szAttribute, char* szValue);
+	bool				AddStringAttribute(char* szAttribute, char* szString);
+	bool				AddNumberAttribute(char* szAttribute, CNumber* pcNumber);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	CMallocator*		GetMalloc(void);

@@ -244,6 +244,8 @@ public:
 	bool		PrintFloating(CChars* pcChars);
 	void		Dump(void);
 	void		Dump(bool bNewLine);
+
+	size		ByteSize(void);
 };
 
 
