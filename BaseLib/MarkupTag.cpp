@@ -466,11 +466,11 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szValue)
+bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szString)
 {
 	CMallocator*	pcMalloc;
 	size			uiLength;
-	char*			szString;
+	char*			szAllocatedString;
 
 	if (mcAttributes.Get(szAttribute))
 	{
@@ -479,12 +479,39 @@ bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szValue)
 	
 	pcMalloc = GetMalloc();
 
-	uiLength = strlen(szValue) + 1;
+	uiLength = strlen(szString) + 1;
 
-	szString = (char*)pcMalloc->Malloc(uiLength);
-	memcpy(szString, szValue, uiLength);
+	szAllocatedString = (char*)pcMalloc->Malloc(uiLength);
+	memcpy(szAllocatedString, szString, uiLength);
 
-	mcAttributes.Put(szAttribute, PT_char8Pointer, szString);
+	mcAttributes.Put(szAttribute, PT_char8Pointer, szAllocatedString);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddNumberAttribute(char* szAttribute, CNumber* pcNumber)
+{
+	CMallocator*	pcMalloc;
+	size			uiByteSize;
+	CNumber*		pcAllocatedNumber;
+
+	if (mcAttributes.Get(szAttribute))
+	{
+		return false;
+	}
+
+	pcMalloc = GetMalloc();
+
+	uiByteSize = pcNumber->ByteSize();
+
+	pcAllocatedNumber = (CNumber*)pcMalloc->Malloc(uiByteSize);
+	memcpy(pcAllocatedNumber, pcNumber, uiByteSize);
+
+	mcAttributes.Put(szAttribute, PT_char8Pointer, pcAllocatedNumber);
 	return true;
 }
 
