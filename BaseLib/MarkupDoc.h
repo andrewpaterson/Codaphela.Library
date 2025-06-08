@@ -55,6 +55,8 @@ public:
 
 	void			AddSubstitute(CMarkupSubstitute* pcSubstitute);
 
+	CMarkup*		GetMarkup(void);
+
 	size			Print(CChars* psz);
 	size			Print(CChars* psz, size iDepth, size iLine);
 	void			Dump(void);

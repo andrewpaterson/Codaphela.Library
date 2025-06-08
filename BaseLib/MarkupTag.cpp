@@ -65,8 +65,25 @@ void CMarkupTag::Kill(void)
 	CMarkupBase*	pcBase;
 	size			i;
 	size			uiNumElements;
+	CMallocator*	pcMalloc;
+	SMapIterator	sIter;
+	void*			pvData;
+	bool			bValid;
+	size			uiType;
 
 	mszName.Kill();
+
+	pcMalloc = GetMalloc();
+	bValid = mcAttributes.StartIteration(&sIter, NULL, NULL, &pvData, &uiType);
+	while (bValid)
+	{
+		if (pvData)
+		{
+			pcMalloc->Free(pvData);
+		}
+		bValid = mcAttributes.Iterate(&sIter, NULL, NULL, &pvData, &uiType);
+	}
+
 	mcAttributes.Kill();
 
 	uiNumElements = macBases.NumElements();
@@ -93,9 +110,9 @@ bool CMarkupTag::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMarkupTag::GetAttribute(char* szAttribute)
+void* CMarkupTag::GetAttribute(char* szAttribute, uint* puiType)
 {
-	return mcAttributes.Get(szAttribute);
+	return mcAttributes.Get(szAttribute, puiType);
 }
 
 
@@ -451,11 +468,23 @@ CMarkupNamedRef* CMarkupTag::AppendNamedReference(char* szIdentifier)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szValue)
 {
+	CMallocator*	pcMalloc;
+	size			uiLength;
+	char*			szString;
+
 	if (mcAttributes.Get(szAttribute))
 	{
 		return false;
 	}
-	mcAttributes.Put(szAttribute, szValue);
+	
+	pcMalloc = GetMalloc();
+
+	uiLength = strlen(szValue) + 1;
+
+	szString = (char*)pcMalloc->Malloc(uiLength);
+	memcpy(szString, szValue, uiLength);
+
+	mcAttributes.Put(szAttribute, PT_char8Pointer, szString);
 	return true;
 }
 
@@ -504,6 +533,16 @@ bool CMarkupTag::Swap(CMarkupBase* pcNew, CMarkupBase* pcOld)
 		}
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMallocator* CMarkupTag::GetMalloc(void)
+{
+	return mpcDoc->GetMarkup()->GetMemory();
 }
 
 

@@ -100,3 +100,51 @@ SIntAndPointer* CMapStringIntAndPointer::Put(const char* szKey, uint uiType, voi
 	return ps;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringIntAndPointer::StartIteration(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, uint* puiType)
+{
+	SIntAndPointer*		ps;
+	bool				bValid;
+
+	bValid = __CMapStringIntAndPointer::StartIteration(psIterator, ppvKey, piKeySize, (void**)&ps, NULL);
+	if (bValid)
+	{
+		SafeAssign(ppvData, ps->pvData);
+		SafeAssign(puiType, ps->uiType);
+	}
+	else
+	{
+		SafeAssign(ppvData, NULL);
+		SafeAssign(puiType, PT_Undefined);
+	}
+	return bValid;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringIntAndPointer::Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, uint* puiType)
+{
+	SIntAndPointer*		ps;
+	bool				bValid;
+
+	bValid = __CMapStringIntAndPointer::Iterate(psIterator, ppvKey, piKeySize, (void**)&ps, NULL);
+	if (bValid)
+	{
+		SafeAssign(ppvData, ps->pvData);
+		SafeAssign(puiType, ps->uiType);
+	}
+	else
+	{
+		SafeAssign(ppvData, NULL);
+		SafeAssign(puiType, PT_Undefined);
+	}
+	return bValid;
+}
+
