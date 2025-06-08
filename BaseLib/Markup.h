@@ -39,23 +39,25 @@ public:
 
 	CMarkupDoc*		mpcDoc;
 
-	void				Init(void);
-	void				Kill(void);
+	void					Init(void);
+	void					Kill(void);
 
-	CMarkupTag*			AllocateTag(CMarkupDoc* pcDoc);
-	CMarkupText*		AllocateText(CMarkupDoc* pcDoc);
-	CMarkupSubDoc*		AllocateSubDoc(void);
-	CMarkupSubText*		AllocateSubText(void);
-	CMarkupRefDoc*		AllocateRefDoc(CMarkupDoc* pcDoc);
-	CMarkupRefText*		AllocateRefText(CMarkupDoc* pcDoc);
-	CMarkupNamedRef*	AllocateNamedRef(CMarkupDoc* pcDoc);
-	CMarkupDoc*			AllocateDoc(void);
+	CMarkupTag*				AllocateTag(CMarkupDoc* pcDoc);
+	CMarkupText*			AllocateText(CMarkupDoc* pcDoc);
+	CMarkupSubDoc*			AllocateSubDoc(void);
+	CMarkupSubText*			AllocateSubText(void);
+	CMarkupRefDoc*			AllocateRefDoc(CMarkupDoc* pcDoc);
+	CMarkupRefText*			AllocateRefText(CMarkupDoc* pcDoc);
+	CMarkupNamedRef*		AllocateNamedRef(CMarkupDoc* pcDoc);
+	CMarkupDoc*				AllocateDoc(void);
 
-	void				Deallocated(CMarkupNamedRef* pc);
+	void					Deallocated(CMarkupNamedRef* pc);
 
-	CMarkupTag*			SetRootTag(char* szTagName);
-	CMarkupTag*			GetRootTag(void);
-	CMarkupSubstitute*	GetSubstitute(char* szName);
+	CMarkupTag*				SetRootTag(char* szTagName);
+	CMarkupTag*				GetRootTag(void);
+	CMarkupSubstitute*		GetSubstitute(char* szName);
+
+	CDataMemoryAllocator*	GetMemory(void);
 };
 
 

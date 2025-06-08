@@ -17,6 +17,9 @@ public:
 
 	SIntAndPointer*		Put(char* szKey, uint uiType, void* pvData);
 	SIntAndPointer*		Put(const char* szKey, uint uiType, void* pvData);
+
+	bool				StartIteration(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, uint* puiType = NULL);
+	bool				Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, uint* puiType = NULL);
 };
 
 

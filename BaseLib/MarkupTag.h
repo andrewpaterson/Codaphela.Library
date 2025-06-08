@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __MARKUP_TAG_H__
 #include "ArrayTemplate.h"
 #include "MarkupBase.h"
-#include "MapStringString.h"
+#include "MapStringIntAndPointer.h"
 
 
 typedef CArrayTemplate<CMarkupBase*>	CArrayMarkupBase;
@@ -43,16 +43,16 @@ class CMarkupNamedRef;
 class CMarkupTag : public CMarkupBase
 {
 protected:
-	CArrayMarkupBase	macBases;
-	CMapStringString	mcAttributes;
-	CChars				mszName;
+	CArrayMarkupBase			macBases;
+	CMapStringIntAndPointer		mcAttributes;
+	CChars						mszName;
 
 public:
 	void				Init(CMarkupTag* pcParent);
 	void				Init(char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
 	bool				IsEmpty(void);
-	char*				GetAttribute(char* szAttribute);
+	void*				GetAttribute(char* szAttribute, uint* puiType);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
@@ -71,6 +71,7 @@ public:
 	bool				AddStringAttribute(char* szAttribute, char* szValue);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
+	CMallocator*		GetMalloc(void);
 	void				Print(CChars* psz);
 	size				Print(CChars* psz, size iDepth, size iLine);
 	void				Dump(void);
