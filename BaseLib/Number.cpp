@@ -4024,6 +4024,6 @@ void CNumber::Dump(bool bNewLine)
 //////////////////////////////////////////////////////////////////////////
 size CNumber::ByteSize(void)
 {
-	return NUMBER_SIZE(cWholeNumbers, cMaxDecimals);
+	return NUMBER_SIZE(mcMaxWholeNumbers, mcMaxDecimals);
 }
 
