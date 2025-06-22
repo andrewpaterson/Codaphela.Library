@@ -379,7 +379,6 @@ TRISTATE CJSONParser::ParseMember(void)
 TRISTATE CJSONParser::ParseLiteral(void)
 {
 	TRISTATE	tResult;
-	CNumber		cNumber;
 	
 	tResult = mcParser.GetExactCharacterSequence("\"true\"");
 	ReturnOnError(tResult);
@@ -396,14 +395,6 @@ TRISTATE CJSONParser::ParseLiteral(void)
 	}
 
 	tResult = mcParser.GetExactCharacterSequence("\"null\"");
-	ReturnOnError(tResult);
-	if (tResult == TRITRUE)
-	{
-		return TRITRUE;
-	}
-
-
-	tResult = mcParser.GetNumber(&cNumber);
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
