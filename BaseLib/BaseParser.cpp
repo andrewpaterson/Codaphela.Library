@@ -60,7 +60,7 @@ TRISTATE CBaseParser::GetString(CChars* psz)
 	}
 	else if (tResult == TRIFALSE)
 	{
-		return TRIERROR;
+		return TRIFALSE;
 	}
 	mcParser.PopPosition();
 
