@@ -88,7 +88,7 @@ bool CMarkupBase::IsNamedRef(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMarkupBase::GetLine(void)
+size CMarkupBase::GetLine(void)
 {
 	return miLine;
 }
@@ -98,7 +98,7 @@ uint32 CMarkupBase::GetLine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMarkupBase::GetColumn(void)
+size CMarkupBase::GetColumn(void)
 {
 	return miColumn;
 }
@@ -108,7 +108,7 @@ uint32 CMarkupBase::GetColumn(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMarkupBase::SetLineAndColumn(uint32 iLine, uint32 iColumn)
+void CMarkupBase::SetLineAndColumn(size iLine, size iColumn)
 {
 	miLine = iLine;
 	miColumn = iColumn;
@@ -119,9 +119,9 @@ void CMarkupBase::SetLineAndColumn(uint32 iLine, uint32 iColumn)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, uint32 iDepth, uint32 iLine, bool bAllowSameLine)
+size CMarkupBase::Print(CChars* pszDest, CChars* pszMutableSource, size iDepth, size iLine, bool bAllowSameLine)
 {
-	uint32				iNewLines;
+	size				iNewLines;
 	CChars			szPadding;
 
 	iNewLines = pszMutableSource->CountNewLines();

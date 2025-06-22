@@ -475,16 +475,7 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifie
 		return TRIFALSE;
 	}
 	
-	if (!mpcCurrent)
-	{
-		//This should be a function on Doc.
-		mpcCurrent = mpcDoc->SetRootTag(pszIdentifier->Text());
-	}
-	else
-	{
-		mpcCurrent = mpcCurrent->AppendTag(pszIdentifier->Text());
-	}
-	mpcCurrent->SetLineAndColumn(iLine, iColumn);
+	mpcCurrent = mpcDoc->AppendTag(mpcCurrent, pszIdentifier->Text(), iLine, iColumn);
 
 	for (;;)
 	{
@@ -522,7 +513,7 @@ TRISTATE CXMLParser::ParseStartTagOrEmptyTag(bool* pbStart, CChars* pszIdentifie
 		return TRIERROR;
 	}
 
-	if (!*pbStart)
+	if (!(*pbStart))
 	{
 		mpcCurrent = mpcCurrent->mpcParent;
 	}
