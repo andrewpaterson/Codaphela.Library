@@ -80,7 +80,7 @@ CMarkupTag* CMarkupDoc::GetRootTag(void)
 //////////////////////////////////////////////////////////////////////////
 CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
 {
-	CMarkupTag*	pcTag;
+	CMarkupTag* pcTag;
 
 	if (mpcRootTag == NULL)
 	{
@@ -90,6 +90,26 @@ CMarkupTag* CMarkupDoc::SetRootTag(char* szTagName)
 		return pcTag;
 	}
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMarkupTag* CMarkupDoc::AppendTag(CMarkupTag* pcCurrent, char* szTagName, size iLine, size iColumn)
+{
+	if (!pcCurrent)
+	{
+		//This should be a function on Doc.
+		pcCurrent = SetRootTag(szTagName);
+	}
+	else
+	{
+		pcCurrent = pcCurrent->AppendTag(szTagName);
+	}
+	pcCurrent->SetLineAndColumn(iLine, iColumn);
+	return pcCurrent;
 }
 
 

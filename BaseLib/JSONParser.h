@@ -42,13 +42,13 @@ public:
 
 	TRISTATE	Parse(void);
 
-	TRISTATE	ParseElement(void);
-	TRISTATE	ParseValue(void);
-	TRISTATE	ParseObject(void);
-	TRISTATE	ParseArray(void);
-	TRISTATE	ParseLiteral(void);
-	TRISTATE	ParseString(void);
-	TRISTATE	ParseNumber(void);
+	TRISTATE	ParseElement(char* szElementName);
+	TRISTATE	ParseValue(char* szElementName);
+	TRISTATE	ParseObject(char* szElementName);
+	TRISTATE	ParseArray(char* szElementName);
+	TRISTATE	ParseLiteral(char* szElementName);
+	TRISTATE	ParseString(char* szElementName);
+	TRISTATE	ParseNumber(char* szElementName);
 	TRISTATE	ParseMember(void);
 };
 

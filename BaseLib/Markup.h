@@ -37,7 +37,7 @@ public:
 	CArrayTemplatePtr<CMarkupSubDoc>	mapcSubDocs;
 	CArrayTemplatePtr<CMarkupSubText>	mapcSubTexts;
 
-	CMarkupDoc*		mpcDoc;
+	CMarkupDoc*							mpcDoc;
 
 	void					Init(void);
 	void					Kill(void);
@@ -58,6 +58,9 @@ public:
 	CMarkupSubstitute*		GetSubstitute(char* szName);
 
 	CDataMemoryAllocator*	GetMemory(void);
+
+	void					Print(CChars* psz);
+	void					Dump(void);
 };
 
 

@@ -71,6 +71,8 @@ public:
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
 	bool				AddStringAttribute(char* szAttribute, char* szString);
 	bool				AddNumberAttribute(char* szAttribute, CNumber* pcNumber);
+	bool				AddBooleanAttribute(char* szAttribute, bool bValue);
+	bool				AddNullAttribute(char* szAttribute);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	CMallocator*		GetMalloc(void);

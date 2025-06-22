@@ -511,7 +511,51 @@ bool CMarkupTag::AddNumberAttribute(char* szAttribute, CNumber* pcNumber)
 	pcAllocatedNumber = (CNumber*)pcMalloc->Malloc(uiByteSize);
 	memcpy(pcAllocatedNumber, pcNumber, uiByteSize);
 
-	mcAttributes.Put(szAttribute, PT_char8Pointer, pcAllocatedNumber);
+	mcAttributes.Put(szAttribute, PT_Number, pcAllocatedNumber);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddBooleanAttribute(char* szAttribute, bool bValue)
+{
+	CMallocator* pcMalloc;
+	bool* pbValue;
+
+	if (mcAttributes.Get(szAttribute))
+	{
+		return false;
+	}
+
+	pcMalloc = GetMalloc();
+
+	pbValue = (bool*)pcMalloc->Malloc(sizeof(bool));
+	*pbValue = bValue;
+
+	mcAttributes.Put(szAttribute, PT_bool, pbValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddNullAttribute(char* szAttribute)
+{
+	CMallocator* pcMalloc;
+	
+	if (mcAttributes.Get(szAttribute))
+	{
+		return false;
+	}
+
+	pcMalloc = GetMalloc();
+
+	mcAttributes.Put(szAttribute, PT_void, NULL);
 	return true;
 }
 
@@ -598,6 +642,8 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 	SMapIterator	sIter;
 	bool			bResult;
 	size			uiNumElements;
+	uint			uiType;
+	CNumber*		pcNumber;
 
 	uiNumElements = macBases.NumElements();
 
@@ -608,16 +654,40 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 	psz->Append(mszName);
 
 	mcAttributes.FinaliseSorted();
-	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&szValue, NULL);
+	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&szValue, &uiType);
 	while (bResult)
 	{
 		psz->Append(' ');
 		psz->Append(szKey);
 		psz->Append('=');
-		psz->Append('"');
-		psz->Append(szValue);
-		psz->Append('"');
-		bResult = mcAttributes.Iterate(&sIter, (void**)&szKey, NULL, (void**)&szValue, NULL);
+		if (uiType == PT_char8Pointer)
+		{
+			psz->Append('"');
+			psz->Append(szValue);
+			psz->Append('"');
+		}
+		else if (uiType == PT_Number)
+		{
+			pcNumber = (CNumber*)szValue;
+			pcNumber->Print(psz);
+		}
+		else if (uiType == PT_bool)
+		{
+			if (*((bool*)szValue))
+			{
+				psz->Append("true");
+			}
+			else
+			{
+				psz->Append("false");
+			}
+		}
+		else if (uiType == PT_void)
+		{
+			psz->Append("null");
+		}
+
+		bResult = mcAttributes.Iterate(&sIter, (void**)&szKey, NULL, (void**)&szValue, &uiType);
 	}
 
 	if (macBases.NumElements() == 0)
