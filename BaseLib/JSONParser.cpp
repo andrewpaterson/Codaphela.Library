@@ -340,20 +340,34 @@ TRISTATE CJSONParser::ParseMember(void)
 	ReturnOnErrorAndFalse(tResult);
 
 	tResult = mcParser.GetExactCharacter(':');
-	ReturnOnError(tResult);
+	if (tResult == TRIERROR)
+	{
+		szString.Kill();
+		return TRIERROR;
+	}
+	
 	if (tResult == TRIFALSE)
 	{
+		szString.Kill();
 		Error("Expected ':'");
 		return TRIERROR;
 	}
 
 	tResult = ParseElement();
-	ReturnOnError(tResult);
+	if (tResult == TRIERROR)
+	{
+		szString.Kill();
+		return TRIERROR;
+	}
+
 	if (tResult == TRIFALSE)
 	{
+		szString.Kill();
 		Error("Expected Element");
 		return TRIERROR;
 	}
+
+	szString.Kill();
 	return TRITRUE;
 }
 
@@ -365,6 +379,7 @@ TRISTATE CJSONParser::ParseMember(void)
 TRISTATE CJSONParser::ParseLiteral(void)
 {
 	TRISTATE	tResult;
+	CNumber		cNumber;
 	
 	tResult = mcParser.GetExactCharacterSequence("\"true\"");
 	ReturnOnError(tResult);
@@ -381,6 +396,14 @@ TRISTATE CJSONParser::ParseLiteral(void)
 	}
 
 	tResult = mcParser.GetExactCharacterSequence("\"null\"");
+	ReturnOnError(tResult);
+	if (tResult == TRITRUE)
+	{
+		return TRITRUE;
+	}
+
+
+	tResult = mcParser.GetNumber(&cNumber);
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
@@ -408,6 +431,7 @@ TRISTATE CJSONParser::ParseString(void)
 		return TRIFALSE;
 	}
 
+	szString.Kill();
 	return TRITRUE;
 }
 
