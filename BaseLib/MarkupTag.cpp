@@ -34,7 +34,8 @@ void CMarkupTag::Init(CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
 	macBases.Init();
-	mcAttributes.Init();
+	mcNamedAttributes.Init();
+	mcOrderedAttributes.Init();
 	mszName.Init();
 	miLine = ARRAY_ELEMENT_NOT_FOUND;
 	miColumn = ARRAY_ELEMENT_NOT_FOUND;
@@ -49,7 +50,8 @@ void CMarkupTag::Init(char* szName, CMarkupTag* pcParent)
 {
 	CMarkupBase::Init(MUT_Tag, pcParent);
 	macBases.Init();
-	mcAttributes.Init();
+	mcNamedAttributes.Init();
+	mcOrderedAttributes.Init();
 	mszName.Init(szName);
 	miLine = ARRAY_ELEMENT_NOT_FOUND;
 	miColumn = ARRAY_ELEMENT_NOT_FOUND;
@@ -74,17 +76,27 @@ void CMarkupTag::Kill(void)
 	mszName.Kill();
 
 	pcMalloc = GetMalloc();
-	bValid = mcAttributes.StartIteration(&sIter, NULL, NULL, &pvData, &uiType);
+	bValid = mcNamedAttributes.StartIteration(&sIter, NULL, NULL, &pvData, &uiType);
 	while (bValid)
 	{
 		if (pvData)
 		{
 			pcMalloc->Free(pvData);
 		}
-		bValid = mcAttributes.Iterate(&sIter, NULL, NULL, &pvData, &uiType);
+		bValid = mcNamedAttributes.Iterate(&sIter, NULL, NULL, &pvData, &uiType);
 	}
+	mcNamedAttributes.Kill();
 
-	mcAttributes.Kill();
+	uiNumElements = mcOrderedAttributes.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		mcOrderedAttributes.Get(i, &pvData, &uiType);
+		if (pvData)
+		{
+			pcMalloc->Free(pvData);
+		}
+	}
+	mcOrderedAttributes.Kill();
 
 	uiNumElements = macBases.NumElements();
 	for (i = 0; i < uiNumElements; i++)
@@ -110,9 +122,32 @@ bool CMarkupTag::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMarkupTag::GetAttribute(char* szAttribute, uint* puiType)
+void* CMarkupTag::GetNamedAttribute(char* szAttribute, uint* puiType)
 {
-	return mcAttributes.Get(szAttribute, puiType);
+	return mcNamedAttributes.Get(szAttribute, puiType);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMarkupTag::GetNumOrderedAttributes(void)
+{
+	return mcOrderedAttributes.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMarkupTag::GetOrderedAttribute(size uiIndex, uint* puiType)
+{
+	void*	pvData;
+
+	mcOrderedAttributes.Get(uiIndex, &pvData, puiType);
+	return pvData;
 }
 
 
@@ -472,7 +507,7 @@ bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szString)
 	size			uiLength;
 	char*			szAllocatedString;
 
-	if (mcAttributes.Get(szAttribute))
+	if (mcNamedAttributes.Get(szAttribute))
 	{
 		return false;
 	}
@@ -484,7 +519,29 @@ bool CMarkupTag::AddStringAttribute(char* szAttribute, char* szString)
 	szAllocatedString = (char*)pcMalloc->Malloc(uiLength);
 	memcpy(szAllocatedString, szString, uiLength);
 
-	mcAttributes.Put(szAttribute, PT_char8Pointer, szAllocatedString);
+	mcNamedAttributes.Put(szAttribute, PT_char8Pointer, szAllocatedString);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddStringAttribute(char* szString)
+{
+	CMallocator*	pcMalloc;
+	size			uiLength;
+	char*			szAllocatedString;
+
+	pcMalloc = GetMalloc();
+
+	uiLength = strlen(szString) + 1;
+
+	szAllocatedString = (char*)pcMalloc->Malloc(uiLength);
+	memcpy(szAllocatedString, szString, uiLength);
+
+	mcOrderedAttributes.Add(szAllocatedString, PT_char8Pointer);
 	return true;
 }
 
@@ -499,7 +556,7 @@ bool CMarkupTag::AddNumberAttribute(char* szAttribute, CNumber* pcNumber)
 	size			uiByteSize;
 	CNumber*		pcAllocatedNumber;
 
-	if (mcAttributes.Get(szAttribute))
+	if (mcNamedAttributes.Get(szAttribute))
 	{
 		return false;
 	}
@@ -511,7 +568,7 @@ bool CMarkupTag::AddNumberAttribute(char* szAttribute, CNumber* pcNumber)
 	pcAllocatedNumber = (CNumber*)pcMalloc->Malloc(uiByteSize);
 	memcpy(pcAllocatedNumber, pcNumber, uiByteSize);
 
-	mcAttributes.Put(szAttribute, PT_Number, pcAllocatedNumber);
+	mcNamedAttributes.Put(szAttribute, PT_Number, pcAllocatedNumber);
 	return true;
 }
 
@@ -520,12 +577,35 @@ bool CMarkupTag::AddNumberAttribute(char* szAttribute, CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddNumberAttribute(CNumber* pcNumber)
+{
+	CMallocator*	pcMalloc;
+	size			uiByteSize;
+	CNumber*		pcAllocatedNumber;
+
+	pcMalloc = GetMalloc();
+
+	uiByteSize = pcNumber->ByteSize();
+
+	pcAllocatedNumber = (CNumber*)pcMalloc->Malloc(uiByteSize);
+	memcpy(pcAllocatedNumber, pcNumber, uiByteSize);
+
+	mcOrderedAttributes.Add(pcAllocatedNumber, PT_Number);
+	return true;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::AddBooleanAttribute(char* szAttribute, bool bValue)
 {
-	CMallocator* pcMalloc;
-	bool* pbValue;
+	CMallocator*	pcMalloc;
+	bool*			pbValue;
 
-	if (mcAttributes.Get(szAttribute))
+	if (mcNamedAttributes.Get(szAttribute))
 	{
 		return false;
 	}
@@ -535,7 +615,26 @@ bool CMarkupTag::AddBooleanAttribute(char* szAttribute, bool bValue)
 	pbValue = (bool*)pcMalloc->Malloc(sizeof(bool));
 	*pbValue = bValue;
 
-	mcAttributes.Put(szAttribute, PT_bool, pbValue);
+	mcNamedAttributes.Put(szAttribute, PT_bool, pbValue);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddBooleanAttribute(bool bValue)
+{
+	CMallocator*	pcMalloc;
+	bool*			pbValue;
+
+	pcMalloc = GetMalloc();
+
+	pbValue = (bool*)pcMalloc->Malloc(sizeof(bool));
+	*pbValue = bValue;
+
+	mcOrderedAttributes.Add(pbValue, PT_bool);
 	return true;
 }
 
@@ -546,16 +645,32 @@ bool CMarkupTag::AddBooleanAttribute(char* szAttribute, bool bValue)
 //////////////////////////////////////////////////////////////////////////
 bool CMarkupTag::AddNullAttribute(char* szAttribute)
 {
-	CMallocator* pcMalloc;
-	
-	if (mcAttributes.Get(szAttribute))
+	CMallocator*	pcMalloc;
+
+	if (mcNamedAttributes.Get(szAttribute))
 	{
 		return false;
 	}
 
 	pcMalloc = GetMalloc();
 
-	mcAttributes.Put(szAttribute, PT_void, NULL);
+	mcNamedAttributes.Put(szAttribute, PT_void, NULL);
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMarkupTag::AddNullAttribute(void)
+{
+	CMallocator* pcMalloc;
+
+
+	pcMalloc = GetMalloc();
+
+	mcOrderedAttributes.Add(NULL, PT_void);
 	return true;
 }
 
@@ -631,6 +746,43 @@ void CMarkupTag::Print(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CMarkupTag::PrintType(CChars* psz, char* szValue, uint uiType)
+{
+	CNumber*	pcNumber;
+
+	if (uiType == PT_char8Pointer)
+	{
+		psz->Append('"');
+		psz->Append(szValue);
+		psz->Append('"');
+	}
+	else if (uiType == PT_Number)
+	{
+		pcNumber = (CNumber*)szValue;
+		pcNumber->Print(psz);
+	}
+	else if (uiType == PT_bool)
+	{
+		if (*((bool*)szValue))
+		{
+			psz->Append("true");
+		}
+		else
+		{
+			psz->Append("false");
+		}
+	}
+	else if (uiType == PT_void)
+	{
+		psz->Append("null");
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 {
 	size			i;
@@ -638,95 +790,127 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 	CChars			szText;
 	bool			bPadClosing;
 	char*			szKey;
-	char*			szValue;
 	SMapIterator	sIter;
 	bool			bResult;
-	size			uiNumElements;
+	size			uiNumBases;
+	size			uiNumNamedAttributes;
+	size			uiNumOrderedAttributes;
 	uint			uiType;
-	CNumber*		pcNumber;
+	char*			szValue;
+	bool			bAddSpace;
+	bool			bNameEmpty;
 
-	uiNumElements = macBases.NumElements();
+	mcNamedAttributes.FinaliseSorted();
 
+	uiNumBases = macBases.NumElements();
+	uiNumNamedAttributes = mcNamedAttributes.NumElements();
+	uiNumOrderedAttributes = mcOrderedAttributes.NumElements();
+	bNameEmpty = mszName.Empty();
+	
 	miLine = iLine;
-	miColumn = iDepth*2;
-	psz->Append(' ', iDepth*2);
-	psz->Append('<');
-	psz->Append(mszName);
+	miColumn = iDepth * 2;
 
-	mcAttributes.FinaliseSorted();
-	bResult = mcAttributes.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&szValue, &uiType);
-	while (bResult)
+	if ((uiNumBases != 0) || (uiNumNamedAttributes != 0) || (uiNumOrderedAttributes != 0) || !bNameEmpty)
 	{
-		psz->Append(' ');
-		psz->Append(szKey);
-		psz->Append('=');
-		if (uiType == PT_char8Pointer)
-		{
-			psz->Append('"');
-			psz->Append(szValue);
-			psz->Append('"');
-		}
-		else if (uiType == PT_Number)
-		{
-			pcNumber = (CNumber*)szValue;
-			pcNumber->Print(psz);
-		}
-		else if (uiType == PT_bool)
-		{
-			if (*((bool*)szValue))
-			{
-				psz->Append("true");
-			}
-			else
-			{
-				psz->Append("false");
-			}
-		}
-		else if (uiType == PT_void)
-		{
-			psz->Append("null");
-		}
+		psz->Append(' ', iDepth * 2);
 
-		bResult = mcAttributes.Iterate(&sIter, (void**)&szKey, NULL, (void**)&szValue, &uiType);
-	}
-
-	if (macBases.NumElements() == 0)
-	{
-		psz->Append('/');
-	}
-	psz->Append('>');
-	iLine++;
-	psz->AppendNewLine();
-
-	if (uiNumElements > 0)
-	{
-		bPadClosing = true;
-		if (ContainsOnlyText())
+		if ((uiNumBases != 0) || (uiNumNamedAttributes != 0) || !bNameEmpty)
 		{
-			szText.Init();
-			GetText(&szText);
-			iLine = CMarkupBase::Print(psz, &szText, iDepth+1, iLine, true);
-			szText.Kill();
+			psz->Append('<');
 		}
 		else
 		{
-			for (i = 0; i < uiNumElements; i++)
+			psz->Append('[');
+		}
+
+		bAddSpace = false;
+		if (!bNameEmpty)
+		{
+			psz->Append(mszName);
+			bAddSpace = true;
+		}
+
+		bResult = mcNamedAttributes.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&szValue, &uiType);
+		while (bResult)
+		{
+			if (bAddSpace)
 			{
-				pcBase = *macBases.Get(i);
-				iLine = pcBase->Print(psz, iDepth + 1, iLine);
+				psz->Append(' ');
+			}
+			bAddSpace = true;
+
+			psz->Append(szKey);
+			psz->Append('=');
+			PrintType(psz, szValue, uiType);
+
+			bResult = mcNamedAttributes.Iterate(&sIter, (void**)&szKey, NULL, (void**)&szValue, &uiType);
+		}
+
+		for (i = 0; i < uiNumOrderedAttributes; i++)
+		{
+			bResult = mcOrderedAttributes.Get(i, (void**)&szValue, &uiType);
+			if (bResult)
+			{
+				if (i != 0)
+				{
+					psz->Append(",");
+				}
+				if (bAddSpace)
+				{
+					psz->Append(' ');
+				}
+				bAddSpace = true;
+
+				PrintType(psz, szValue, uiType);
 			}
 		}
 
-		if (miLine != iLine)
+		if ((uiNumBases != 0) || (uiNumNamedAttributes != 0) || !bNameEmpty)
 		{
-			psz->Append(' ', iDepth*2);
+			if (uiNumBases == 0)
+			{
+				psz->Append('/');
+			}
+			psz->Append('>');
 		}
-		psz->Append('<');
-		psz->Append('/');
-		psz->Append(mszName);
-		psz->Append('>');
+		else
+		{
+			psz->Append(']');
+		}
+
 		iLine++;
 		psz->AppendNewLine();
+
+		if (uiNumBases > 0)
+		{
+			bPadClosing = true;
+			if (ContainsOnlyText())
+			{
+				szText.Init();
+				GetText(&szText);
+				iLine = CMarkupBase::Print(psz, &szText, iDepth + 1, iLine, true);
+				szText.Kill();
+			}
+			else
+			{
+				for (i = 0; i < uiNumBases; i++)
+				{
+					pcBase = *macBases.Get(i);
+					iLine = pcBase->Print(psz, iDepth + 1, iLine);
+				}
+			}
+
+			if (miLine != iLine)
+			{
+				psz->Append(' ', iDepth * 2);
+			}
+			psz->Append('<');
+			psz->Append('/');
+			psz->Append(mszName);
+			psz->Append('>');
+			iLine++;
+			psz->AppendNewLine();
+		}
 	}
 	return iLine;
 }

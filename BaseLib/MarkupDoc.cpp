@@ -101,7 +101,6 @@ CMarkupTag* CMarkupDoc::AppendTag(CMarkupTag* pcCurrent, char* szTagName, size i
 {
 	if (!pcCurrent)
 	{
-		//This should be a function on Doc.
 		pcCurrent = SetRootTag(szTagName);
 	}
 	else

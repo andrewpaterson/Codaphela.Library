@@ -36,7 +36,6 @@ protected:
 
 public:
 	int					miDepth;
-	CMarkupTag*			mpcCurrent;
 	CArrayXMLEntity		macEntities;
 	CMarkupDoc*			mpcDoc;
 

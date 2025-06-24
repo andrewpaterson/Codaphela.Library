@@ -24,6 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __JSON_PARSER_H__
 #include "Markup.h"
 #include "Logger.h"
+#include "BaseParserString.h"
 #include "BaseParser.h"
 
 
@@ -31,7 +32,6 @@ class CJSONParser : public CBaseParser
 {
 public:
 	int					miDepth;
-	CMarkupTag*			mpcCurrent;
 	CMarkupDoc*			mpcDoc;
 
 	void		Init(char* szText, size iTextLen, char* szFileName, CMarkup* pcMarkup, CLogger* pcLogger);
@@ -42,10 +42,10 @@ public:
 
 	TRISTATE	Parse(void);
 
-	TRISTATE	ParseElement(char* szElementName);
-	TRISTATE	ParseValue(char* szElementName);
-	TRISTATE	ParseObject(char* szElementName);
-	TRISTATE	ParseArray(char* szElementName);
+	TRISTATE	ParseElement(SBaseParserString* psElement);
+	TRISTATE	ParseValue(SBaseParserString* psElement);
+	TRISTATE	ParseObject(SBaseParserString* psElement);
+	TRISTATE	ParseArray(SBaseParserString* psElement);
 	TRISTATE	ParseLiteral(char* szElementName);
 	TRISTATE	ParseString(char* szElementName);
 	TRISTATE	ParseNumber(char* szElementName);
