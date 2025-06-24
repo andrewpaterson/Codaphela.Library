@@ -2,14 +2,17 @@
 #define __BASE_PARSER_H__
 #include "TextParser.h"
 #include "Logger.h"
+#include "BaseParserString.h"
 
 
+class CMarkupTag;
 class CBaseParser
 {
 protected:
 	CTextParser		mcParser;
 	CChars			mszFilename;
 	CLogger*		mpcLogger;
+	CMarkupTag*		mpcCurrent;
 
 public:
 	void		Init(char* szText, size iTextLen, char* szFileName, CLogger* pcLogger, TextParserSkipWhitespace pfSkipWhitespace, TextParserParseString pfParseString, TextParserParseExactIdentifier pfParseExactIdentifier, TextParserParseIdentifier pfParseIdentifier);
@@ -18,7 +21,12 @@ public:
 
 protected:
 	TRISTATE	Error(char* szError);
-	TRISTATE	GetString(CChars* psz);
+	TRISTATE	GetString(SBaseParserString* psString, bool bSkipWhitespace);
+
+	TRISTATE	AddStringAttribute(char* szElementName, char* szString);
+	TRISTATE	AddNumberAttribute(char* szElementName, CNumber* pcNumber);
+	TRISTATE	AddBooleanAttribute(char* szElementName, bool bValue);
+	TRISTATE	AddNullAttribute(char* szElementName);
 };
 
 

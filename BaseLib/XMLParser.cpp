@@ -47,7 +47,6 @@ void CXMLParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogger
 
 	mpcDoc = pcDoc;
 	miDepth = 0;
-	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
 
 	mcProlog.Init();
@@ -75,7 +74,6 @@ void CXMLParser::Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc*
 
 	mpcDoc = pcDoc;
 	miDepth = 0;
-	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
 
 	mcProlog.Init();
@@ -94,7 +92,6 @@ void CXMLParser::Kill(void)
 
 	CBaseParser::Kill();
 
-	mpcCurrent = NULL;
 	mpcDoc = NULL;
 
 	for (i = 0; i < macEntities.NumElements(); i++)

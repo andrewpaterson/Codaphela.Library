@@ -80,9 +80,16 @@ SIntAndPointer* CMapStringIntAndPointer::Put(char* szKey, uint uiType, void* pvD
 	SIntAndPointer*		ps;
 
 	ps = __CMapStringIntAndPointer::Put(szKey);
-	ps->pvData = pvData;
-	ps->uiType = uiType;
-	return ps;
+	if (ps)
+	{
+		ps->pvData = pvData;
+		ps->uiType = uiType;
+		return ps;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 
@@ -95,9 +102,16 @@ SIntAndPointer* CMapStringIntAndPointer::Put(const char* szKey, uint uiType, voi
 	SIntAndPointer* ps;
 
 	ps = __CMapStringIntAndPointer::Put(szKey);
-	ps->pvData = pvData;
-	ps->uiType = uiType;
-	return ps;
+	if (ps)
+	{
+		ps->pvData = pvData;
+		ps->uiType = uiType;
+		return ps;
+	}
+	else
+	{
+		return NULL;
+	}
 }
 
 

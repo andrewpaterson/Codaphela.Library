@@ -26,6 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Number.h"
 #include "MarkupBase.h"
 #include "MapStringIntAndPointer.h"
+#include "ArrayIntAndPointer.h"
 
 
 typedef CArrayTemplate<CMarkupBase*>	CArrayMarkupBase;
@@ -45,7 +46,8 @@ class CMarkupTag : public CMarkupBase
 {
 protected:
 	CArrayMarkupBase			macBases;
-	CMapStringIntAndPointer		mcAttributes;
+	CMapStringIntAndPointer		mcNamedAttributes;
+	CArrayIntAndPointer			mcOrderedAttributes;
 	CChars						mszName;
 
 public:
@@ -53,7 +55,9 @@ public:
 	void				Init(char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
 	bool				IsEmpty(void);
-	void*				GetAttribute(char* szAttribute, uint* puiType);
+	void*				GetNamedAttribute(char* szAttribute, uint* puiType);
+	size				GetNumOrderedAttributes(void);
+	void*				GetOrderedAttribute(size uiIndex, uint* puiType);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
@@ -69,9 +73,13 @@ public:
 	CMarkupText*		AppendText(void);
 	CMarkupText*		AppendText(char* szText);
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
+	bool				AddStringAttribute(char* szString);
 	bool				AddStringAttribute(char* szAttribute, char* szString);
+	bool				AddNumberAttribute(CNumber* pcNumber);
 	bool				AddNumberAttribute(char* szAttribute, CNumber* pcNumber);
+	bool				AddBooleanAttribute(bool bValue);
 	bool				AddBooleanAttribute(char* szAttribute, bool bValue);
+	bool				AddNullAttribute(void);
 	bool				AddNullAttribute(char* szAttribute);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
@@ -79,6 +87,9 @@ public:
 	void				Print(CChars* psz);
 	size				Print(CChars* psz, size iDepth, size iLine);
 	void				Dump(void);
+
+protected:
+	void CMarkupTag::PrintType(CChars* psz, char* szValue, uint uiType);
 };
 
 

@@ -47,7 +47,6 @@ void CJSONParser::Init(char* szText, char* szFileName, CMarkupDoc* pcDoc, CLogge
 
 	mpcDoc = pcDoc;
 	miDepth = 0;
-	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
 }
 
@@ -72,7 +71,6 @@ void CJSONParser::Init(char* szText, size iTextLen, char* szFileName, CMarkupDoc
 
 	mpcDoc = pcDoc;
 	miDepth = 0;
-	mpcCurrent = NULL;
 	mpcLogger = pcLogger;
 }
 
@@ -85,7 +83,6 @@ void CJSONParser::Kill(void)
 {
 	CBaseParser::Kill();
 
-	mpcCurrent = NULL;
 	mpcDoc = NULL;
 }
 
@@ -96,7 +93,8 @@ void CJSONParser::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJSONParser::Parse(void)
 {
-	TRISTATE	tResult;
+	TRISTATE			tResult;
+	SBaseParserString	sString;
 
 	tResult = mcParser.SkipUTF8BOM();
 	if (tResult == TRIERROR)
@@ -104,7 +102,9 @@ TRISTATE CJSONParser::Parse(void)
 		return TRIERROR;
 	}
 
-	tResult = ParseElement("");
+	sString.Init(mcParser.Column(), mcParser.Line());
+	tResult = ParseElement(&sString);
+	sString.Kill();
 
 	if (tResult != TRITRUE)
 	{
@@ -118,14 +118,14 @@ TRISTATE CJSONParser::Parse(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseElement(char* szElementName)
+TRISTATE CJSONParser::ParseElement(SBaseParserString* psElement)
 {
 	TRISTATE	tResult;
 
 	mcParser.PushPosition();
 	mcParser.SkipWhitespace();
 
-	tResult = ParseValue(szElementName);
+	tResult = ParseValue(psElement);
 
 	mcParser.SkipWhitespace();
 
@@ -144,39 +144,39 @@ TRISTATE CJSONParser::ParseElement(char* szElementName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseValue(char* szElementName)
+TRISTATE CJSONParser::ParseValue(SBaseParserString* psElement)
 {
 	TRISTATE	tResult;
 
-	tResult = ParseObject(szElementName);
+	tResult = ParseObject(psElement);
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
 		return TRITRUE;
 	}
 
-	tResult = ParseArray(szElementName);
+	tResult = ParseArray(psElement);
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
 		return TRITRUE;
 	}
 
-	tResult = ParseLiteral(szElementName);
+	tResult = ParseLiteral(psElement->GetString());
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
 		return TRITRUE;
 	}
 
-	tResult = ParseString(szElementName);
+	tResult = ParseString(psElement->GetString());
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
 		return TRITRUE;
 	}
 
-	tResult = ParseNumber(szElementName);
+	tResult = ParseNumber(psElement->GetString());
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
@@ -190,23 +190,18 @@ TRISTATE CJSONParser::ParseValue(char* szElementName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseObject(char* szElementName)
+TRISTATE CJSONParser::ParseObject(SBaseParserString* psElement)
 {
 	TRISTATE	tResult;
 	bool		bFirst;
 	bool		bLast;
-	size		iLine;
-	size		iColumn;
-
-	iLine = mcParser.Line();
-	iColumn = mcParser.Column();
 
 	tResult = mcParser.GetExactCharacter('{');
 	ReturnOnErrorAndFalse(tResult);
 
 	mcParser.PushPosition();
 
-	mpcCurrent = mpcDoc->AppendTag(mpcCurrent, szElementName, iLine, iColumn);
+	mpcCurrent = mpcDoc->AppendTag(mpcCurrent, psElement->szString.Text(), psElement->uiLine, psElement->uiColumn);
 
 	bFirst = true;
 	bLast = false;
@@ -268,16 +263,19 @@ TRISTATE CJSONParser::ParseObject(char* szElementName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CJSONParser::ParseArray(char* szElementName)
+TRISTATE CJSONParser::ParseArray(SBaseParserString* psElement)
 {
-	TRISTATE	tResult;
-	bool		bFirst;
-	bool		bLast;
+	TRISTATE			tResult;
+	bool				bFirst;
+	bool				bLast;
+	SBaseParserString	sString;
 
 	tResult = mcParser.GetExactCharacter('[');
 	ReturnOnErrorAndFalse(tResult);
 
 	mcParser.PushPosition();
+
+	mpcCurrent = mpcDoc->AppendTag(mpcCurrent, psElement->GetString(), psElement->uiLine, psElement->uiColumn);
 
 	bFirst = true;
 	bLast = false;
@@ -299,6 +297,7 @@ TRISTATE CJSONParser::ParseArray(char* szElementName)
 
 		if (tResult == TRITRUE)
 		{
+			mpcCurrent = mpcCurrent->mpcParent;
 			mcParser.PassPosition();
 			return TRITRUE;
 		}
@@ -320,7 +319,9 @@ TRISTATE CJSONParser::ParseArray(char* szElementName)
 		}
 
 		bFirst = false;
-		tResult = ParseElement(szElementName);
+		sString.Init(mcParser.Column(), mcParser.Line());
+		tResult = ParseElement(&sString);
+		sString.Kill();
 		if (tResult == TRIERROR)
 		{
 			mcParser.PopPosition();
@@ -340,41 +341,41 @@ TRISTATE CJSONParser::ParseArray(char* szElementName)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJSONParser::ParseMember(void)
 {
-	TRISTATE	tResult;
-	CChars		szString;
+	TRISTATE			tResult;
+	SBaseParserString	sString;
 
-	tResult = GetString(&szString);
+	tResult = GetString(&sString, true);
 	ReturnOnErrorAndFalse(tResult);
 
 	tResult = mcParser.GetExactCharacter(':');
 	if (tResult == TRIERROR)
 	{
-		szString.Kill();
+		sString.Kill();
 		return TRIERROR;
 	}
 	
 	if (tResult == TRIFALSE)
 	{
-		szString.Kill();
+		sString.Kill();
 		Error("Expected ':'");
 		return TRIERROR;
 	}
 
-	tResult = ParseElement(szString.Text());
+	tResult = ParseElement(&sString);
 	if (tResult == TRIERROR)
 	{
-		szString.Kill();
+		sString.Kill();
 		return TRIERROR;
 	}
 
 	if (tResult == TRIFALSE)
 	{
-		szString.Kill();
+		sString.Kill();
 		Error("Expected Element");
 		return TRIERROR;
 	}
 
-	szString.Kill();
+	sString.Kill();
 	return TRITRUE;
 }
 
@@ -391,24 +392,21 @@ TRISTATE CJSONParser::ParseLiteral(char* szElementName)
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		mpcCurrent->AddBooleanAttribute(szElementName, true);
-		return TRITRUE;
+		return AddBooleanAttribute(szElementName, true);
 	}
 
 	tResult = mcParser.GetExactCharacterSequence("\"false\"");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		mpcCurrent->AddBooleanAttribute(szElementName, false);
-		return TRITRUE;
+		return AddBooleanAttribute(szElementName, true);
 	}
 
 	tResult = mcParser.GetExactCharacterSequence("\"null\"");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		mpcCurrent->AddNullAttribute(szElementName);
-		return TRITRUE;
+		return AddNullAttribute(szElementName);
 	}
 
 	return TRIFALSE;
@@ -421,10 +419,10 @@ TRISTATE CJSONParser::ParseLiteral(char* szElementName)
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CJSONParser::ParseString(char* szElementName)
 {
-	TRISTATE	tResult;
-	CChars		szString;
+	TRISTATE			tResult;
+	SBaseParserString	sString;
 
-	tResult = GetString(&szString);
+	tResult = GetString(&sString, true);
 	ReturnOnError(tResult);
 
 	if (tResult == TRIFALSE)
@@ -432,10 +430,11 @@ TRISTATE CJSONParser::ParseString(char* szElementName)
 		return TRIFALSE;
 	}
 
-	mpcCurrent->AddStringAttribute(szElementName, szString.Text());
+	tResult = AddStringAttribute(szElementName, sString.GetString());
+	sString.Kill();
 
-	szString.Kill();
-	return TRITRUE;
+	ReturnErrorOnFalse(tResult);
+	return tResult;
 }
 
 
@@ -456,8 +455,9 @@ TRISTATE CJSONParser::ParseNumber(char* szElementName)
 		return TRIFALSE;
 	}
 
-	mpcCurrent->AddNumberAttribute(szElementName, &cNumber);
-	
-	return TRITRUE;
+	tResult = AddNumberAttribute(szElementName, &cNumber);
+
+	ReturnErrorOnFalse(tResult);
+	return tResult;
 }
 

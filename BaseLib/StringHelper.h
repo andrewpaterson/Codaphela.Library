@@ -44,10 +44,11 @@ void		ToLower(char* szString);
 void		ToUpper(char* szString);
 char		ToLower(char c);
 char		ToUpper(char c);
-bool		StrEmpty(const char* szString);
 size		StrPrintable(const char* szString);
 size		StrPrintable(const char* szString, size iLength);
-size		StrLen(const char* szString, const char* szLastCharInclusive = NULL);
+size		StrLen(const char* szString);
+size		StrLen(const char* szString, const char* szLastCharInclusive);
+bool		StrEmpty(const char* szString);
 char*		NullToEmpty(const char* szString);
 char		GetHexChar(char c4Bit);
 

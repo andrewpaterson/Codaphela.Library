@@ -2582,7 +2582,7 @@ void CTextParser::SetPosition(STextPosition* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size	CTextParser::Line(void)
+size CTextParser::Line(void)
 {
 	return miLine;
 }
@@ -2592,7 +2592,7 @@ size	CTextParser::Line(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size	CTextParser::Column(void)
+size CTextParser::Column(void)
 {
 	return miColumn;
 }
