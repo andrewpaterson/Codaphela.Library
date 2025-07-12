@@ -33,6 +33,7 @@ public:
 	D		Get(const char* szKey, D sNullValue = -1);
 	bool	Put(char* szKey, D sData);
 	bool	Put(const char* szKey, D sData);
+	char*	GetWithValue(D sData);
 };
 
 
@@ -97,6 +98,31 @@ template<class D>
 bool CMapStringPrimitive<D>::Put(const char* szKey, D sData)
 {
 	return CMapStringTemplate<D>::Put(szKey, &sData);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+char* CMapStringPrimitive<D>::GetWithValue(D sData)
+{
+	SMapIterator	sIter;
+	char*			szKey;
+	D*				piData;
+	bool			bResult;
+
+	bResult = StartIteration(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
+	while (bResult)
+	{
+		if (*piData == sData)
+		{
+			return szKey;
+		}
+		bResult = Iterate(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
+	}
+	return NULL;
 }
 
 

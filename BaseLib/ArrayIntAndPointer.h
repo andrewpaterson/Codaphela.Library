@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_TYPED_POINTER_H__
-#define __ARRAY_TYPED_POINTER_H__
+#ifndef __ARRAY_INT_AND_POINTER_H__
+#define __ARRAY_INT_AND_POINTER_H__
 #include "ArrayTemplate.h"
 #include "IntAndPointer.h"
 #include "Define.h"
@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // __ARRAY_TYPED_POINTER_H__
+#endif // __ARRAY_INT_AND_POINTER_H__
 

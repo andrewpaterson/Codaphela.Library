@@ -23,10 +23,10 @@ protected:
 	TRISTATE	Error(char* szError);
 	TRISTATE	GetString(SBaseParserString* psString, bool bSkipWhitespace);
 
-	TRISTATE	AddStringAttribute(char* szElementName, char* szString);
-	TRISTATE	AddNumberAttribute(char* szElementName, CNumber* pcNumber);
-	TRISTATE	AddBooleanAttribute(char* szElementName, bool bValue);
-	TRISTATE	AddNullAttribute(char* szElementName);
+	TRISTATE	AddStringAttribute(char* szElementName, char* szString, bool bAllowDuplicates);
+	TRISTATE	AddNumberAttribute(char* szElementName, CNumber* pcNumber, bool bAllowDuplicates);
+	TRISTATE	AddBooleanAttribute(char* szElementName, bool bValue, bool bAllowDuplicates);
+	TRISTATE	AddNullAttribute(char* szElementName, bool bAllowDuplicates);
 };
 
 

@@ -119,7 +119,7 @@ TRISTATE CBaseParser::Error(char* szError)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddStringAttribute(char* szElementName, char* szString)
+TRISTATE CBaseParser::AddStringAttribute(char* szElementName, char* szString, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -131,7 +131,7 @@ TRISTATE CBaseParser::AddStringAttribute(char* szElementName, char* szString)
 	}
 	else
 	{
-		bResult = mpcCurrent->AddStringAttribute(szElementName, szString);
+		bResult = mpcCurrent->AddStringAttribute(szElementName, szString, bAllowDuplicates);
 	}
 
 	ReturnErrorOnFalse(bResult);
@@ -143,7 +143,7 @@ TRISTATE CBaseParser::AddStringAttribute(char* szElementName, char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddNumberAttribute(char* szElementName, CNumber* pcNumber)
+TRISTATE CBaseParser::AddNumberAttribute(char* szElementName, CNumber* pcNumber, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -155,7 +155,7 @@ TRISTATE CBaseParser::AddNumberAttribute(char* szElementName, CNumber* pcNumber)
 	}
 	else
 	{
-		bResult = mpcCurrent->AddNumberAttribute(szElementName, pcNumber);
+		bResult = mpcCurrent->AddNumberAttribute(szElementName, pcNumber, bAllowDuplicates);
 	}
 
 	ReturnErrorOnFalse(bResult);
@@ -167,7 +167,7 @@ TRISTATE CBaseParser::AddNumberAttribute(char* szElementName, CNumber* pcNumber)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddNullAttribute(char* szElementName)
+TRISTATE CBaseParser::AddNullAttribute(char* szElementName, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -179,7 +179,7 @@ TRISTATE CBaseParser::AddNullAttribute(char* szElementName)
 	}
 	else
 	{
-		bResult = mpcCurrent->AddNullAttribute(szElementName);
+		bResult = mpcCurrent->AddNullAttribute(szElementName, bAllowDuplicates);
 	}
 
 	ReturnErrorOnFalse(bResult);
@@ -191,7 +191,7 @@ TRISTATE CBaseParser::AddNullAttribute(char* szElementName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-TRISTATE CBaseParser::AddBooleanAttribute(char* szElementName, bool bValue)
+TRISTATE CBaseParser::AddBooleanAttribute(char* szElementName, bool bValue, bool bAllowDuplicates)
 {
 	bool	bNoName;
 	bool	bResult;
@@ -203,7 +203,7 @@ TRISTATE CBaseParser::AddBooleanAttribute(char* szElementName, bool bValue)
 	}
 	else
 	{
-		bResult = mpcCurrent->AddBooleanAttribute(szElementName, bValue);
+		bResult = mpcCurrent->AddBooleanAttribute(szElementName, bValue, bAllowDuplicates);
 	}
 
 	ReturnErrorOnFalse(bResult);

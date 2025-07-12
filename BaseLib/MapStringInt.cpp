@@ -22,27 +22,3 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "MapStringInt.h"
 
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-char* CMapStringInt::GetWithValue(int32 iData)
-{
-	SMapIterator	sIter;
-	char*			szKey;
-	int32*			piData;
-	bool			bResult;
-
-	bResult = StartIteration(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
-	while (bResult)
-	{
-		if (*piData == iData)
-		{
-			return szKey;
-		}
-		bResult = Iterate(&sIter, (void**)&szKey, NULL, (void**)&piData, NULL);
-	}
-	return NULL;
-}
-

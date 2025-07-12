@@ -181,6 +181,7 @@
   <ItemGroup>
     <ClInclude Include="AccessDataOrderer.h" />
     <ClInclude Include="ArrayElementNotFound.h" />
+    <ClInclude Include="ArrayNameIntAndPointer.h" />
     <ClInclude Include="ArrayTemplateEmbeddedPtr.h" />
     <ClInclude Include="ArrayTemplatePtr.h" />
     <ClInclude Include="BaseParser.h" />
@@ -598,6 +599,7 @@
   <ItemGroup>
     <ClCompile Include="AccessDataOrderer.cpp" />
     <ClCompile Include="ArrayChar.cpp" />
+    <ClCompile Include="ArrayNameIntAndPointer.cpp" />
     <ClCompile Include="BaseParser.cpp" />
     <ClCompile Include="BinarySearch.cpp" />
     <ClCompile Include="BubbleSort.cpp" />

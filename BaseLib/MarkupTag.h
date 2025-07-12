@@ -26,7 +26,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Number.h"
 #include "MarkupBase.h"
 #include "MapStringIntAndPointer.h"
-#include "ArrayIntAndPointer.h"
+#include "ArrayNameIntAndPointer.h"
 
 
 typedef CArrayTemplate<CMarkupBase*>	CArrayMarkupBase;
@@ -46,8 +46,7 @@ class CMarkupTag : public CMarkupBase
 {
 protected:
 	CArrayMarkupBase			macBases;
-	CMapStringIntAndPointer		mcNamedAttributes;
-	CArrayIntAndPointer			mcOrderedAttributes;
+	CArrayNameIntAndPointer		mcAttributes;
 	CChars						mszName;
 
 public:
@@ -55,9 +54,9 @@ public:
 	void				Init(char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
 	bool				IsEmpty(void);
-	void*				GetNamedAttribute(char* szAttribute, uint* puiType);
-	size				GetNumOrderedAttributes(void);
-	void*				GetOrderedAttribute(size uiIndex, uint* puiType);
+	bool				GetAttribute(char* szAttribute, void** ppvData, uint* puiType);
+	size				GetNumAttributes(void);
+	void*				GetAttribute(size uiIndex, uint* puiType, char** szName);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);
@@ -74,13 +73,13 @@ public:
 	CMarkupText*		AppendText(char* szText);
 	CMarkupNamedRef*	AppendNamedReference(char* szIdentifier);
 	bool				AddStringAttribute(char* szString);
-	bool				AddStringAttribute(char* szAttribute, char* szString);
+	bool				AddStringAttribute(char* szAttribute, char* szString, bool bAllowDuplicates);
 	bool				AddNumberAttribute(CNumber* pcNumber);
-	bool				AddNumberAttribute(char* szAttribute, CNumber* pcNumber);
+	bool				AddNumberAttribute(char* szAttribute, CNumber* pcNumber, bool bAllowDuplicates);
 	bool				AddBooleanAttribute(bool bValue);
-	bool				AddBooleanAttribute(char* szAttribute, bool bValue);
+	bool				AddBooleanAttribute(char* szAttribute, bool bValue, bool bAllowDuplicates);
 	bool				AddNullAttribute(void);
-	bool				AddNullAttribute(char* szAttribute);
+	bool				AddNullAttribute(char* szAttribute, bool bAllowDuplicates);
 	bool				ContainsOnlyText(void);
 	bool				Swap(CMarkupBase* pcNew, CMarkupBase* pcOld);
 	CMallocator*		GetMalloc(void);
@@ -89,7 +88,8 @@ public:
 	void				Dump(void);
 
 protected:
-	void CMarkupTag::PrintType(CChars* psz, char* szValue, uint uiType);
+	void				PrintType(CChars* psz, char* szValue, uint uiType);
+	char*				MallocString(char* szSource);
 };
 
 

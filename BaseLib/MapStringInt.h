@@ -27,8 +27,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CMapStringInt : public CMapStringPrimitive<int32>
 {
-public:
-	char*	GetWithValue(int32 iData);
 };
 
 
