@@ -1722,6 +1722,9 @@
     <ClInclude Include="BaseParserString.h">
       <Filter>Source\Text\Parser</Filter>
     </ClInclude>
+    <ClInclude Include="ArrayNameIntAndPointer.h">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2758,6 +2761,9 @@
     </ClCompile>
     <ClCompile Include="BaseParserString.cpp">
       <Filter>Source\Text\Parser</Filter>
+    </ClCompile>
+    <ClCompile Include="ArrayNameIntAndPointer.cpp">
+      <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

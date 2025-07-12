@@ -392,21 +392,21 @@ TRISTATE CJSONParser::ParseLiteral(char* szElementName)
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		return AddBooleanAttribute(szElementName, true);
+		return AddBooleanAttribute(szElementName, true, true);
 	}
 
 	tResult = mcParser.GetExactCharacterSequence("\"false\"");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		return AddBooleanAttribute(szElementName, true);
+		return AddBooleanAttribute(szElementName, true, true);
 	}
 
 	tResult = mcParser.GetExactCharacterSequence("\"null\"");
 	ReturnOnError(tResult);
 	if (tResult == TRITRUE)
 	{
-		return AddNullAttribute(szElementName);
+		return AddNullAttribute(szElementName, true);
 	}
 
 	return TRIFALSE;
@@ -430,7 +430,7 @@ TRISTATE CJSONParser::ParseString(char* szElementName)
 		return TRIFALSE;
 	}
 
-	tResult = AddStringAttribute(szElementName, sString.GetString());
+	tResult = AddStringAttribute(szElementName, sString.GetString(), true);
 	sString.Kill();
 
 	ReturnErrorOnFalse(tResult);
@@ -455,7 +455,7 @@ TRISTATE CJSONParser::ParseNumber(char* szElementName)
 		return TRIFALSE;
 	}
 
-	tResult = AddNumberAttribute(szElementName, &cNumber);
+	tResult = AddNumberAttribute(szElementName, &cNumber, true);
 
 	ReturnErrorOnFalse(tResult);
 	return tResult;
