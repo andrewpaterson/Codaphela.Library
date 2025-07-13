@@ -88,8 +88,10 @@ void CMeshAdjuster::SetSelectionColours(void)
 {
 	SSelectionColour*	psSelectionColour;
 
-	mcEdgeSelectionColours.Unuse();
-	mcVertSelectionColours.Unuse();
+	//These .ReInit() used to be .Unuse() I don't know what Unuse did.
+	mcEdgeSelectionColours.ReInit();
+	mcVertSelectionColours.ReInit();
+
 	if (miSelected)
 	{
 		//Edge
@@ -143,7 +145,7 @@ void CMeshAdjuster::SetSelectionColours(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshAdjuster::Draw(void)
 {
-	BOOL	bDrawFaces;
+	bool	bDrawFaces;
 
 	SetSelectionColours();
 
@@ -191,7 +193,7 @@ void CMeshAdjuster::CreateObjectAsNecessary(void)
 	//Create the graphics object for the conversion destination.
 	if (!mpcSelectionObject)
 	{
-		mpcSelectionObject = mpcWorldEditor->mpcSceneConverter->GetWorld()->CreateGraphicsObject(TRUE);
+		mpcSelectionObject = mpcWorldEditor->mpcSceneConverter->GetWorld()->CreateGraphicsObject(true);
 		miLightlessMaterialIndex= mpcSelectionObject->AddMaterial(mpcWorldEditor->mpCLightInstancelessMaterial);
 		miZBufferlessMaterialIndex = mpcSelectionObject->AddMaterial(mpcWorldEditor->mpcZBufferlessMaterial);
 		miBlendMaterialIndex = mpcSelectionObject->AddMaterial(mpcWorldEditor->mpcBlendMaterial);

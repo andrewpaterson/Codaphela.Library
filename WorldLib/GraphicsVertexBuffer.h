@@ -31,21 +31,21 @@ Microsoft DirectX is Copyright Microsoft Corporation
 class CVertexBufferExtended : public SVertexBuffer
 {
 protected:
-	BOOL PrivateChangeBufferSize(int iNewSize);
-	BOOL PrivateReleaseAndCopy(void* pvDest);
+	bool PrivateChangeBufferSize(int iNewSize);
+	bool PrivateReleaseAndCopy(void* pvDest);
 
 public:
 	int miUsedVerticies;
 	int miChunkSize;
 
 	void Init(void);
-	void Init(int iD3DVertexType, int iNumVerts, BOOL bDynamic);
+	void Init(int iD3DVertexType, int iNumVerts, bool bDynamic);
 	void Kill(void);
-	BOOL Finalise(void);	//Use this when the vertex buffer is unlikely to be changed again.
-	BOOL AppendVerticies(int iNumVerts, void* psVerts);  //Assumes vertices exist and must be copied.
-	BOOL AppendVerticies(int iNumVerts, void** pvFirstNewVert, int* iSizeInBytes = NULL);  //Only allocates memory (buffer).
-	BOOL InsertVerticies(int iNumVerts, int iPos, void* psVerts);	//Vertices are inserted at pos, not after.
-	BOOL RemoveVerticies(int iNumVerts);
+	bool Finalise(void);	//Use this when the vertex buffer is unlikely to be changed again.
+	bool AppendVerticies(int iNumVerts, void* psVerts);  //Assumes vertices exist and must be copied.
+	bool AppendVerticies(int iNumVerts, void** pvFirstNewVert, int* iSizeInBytes = NULL);  //Only allocates memory (buffer).
+	bool InsertVerticies(int iNumVerts, int iPos, void* psVerts);	//Vertices are inserted at pos, not after.
+	bool RemoveVerticies(int iNumVerts);
 };
 
 
@@ -55,10 +55,10 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	CVertexBufferExtended*	AddVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bUseExisting);
+	CVertexBufferExtended*	AddVertexBuffer(int iD3DVertexType, int iNumVerts, bool bUseExisting);
 	CVertexBufferExtended*	GetVertexBuffer(int iD3DVertexType);
 	void					RemoveVertexBuffer(int iD3DVertexType);
-	void					SetNumVertexBuffers(int iNumBuffers);
+	void					SetNumVertexBuffers(size iNumBuffers);
 	int						GetVertexBufferIndex(int iD3DVertexType);
 };
 

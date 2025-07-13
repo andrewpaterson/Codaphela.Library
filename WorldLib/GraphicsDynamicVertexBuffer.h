@@ -37,9 +37,9 @@ public:
 	void 	Kill(void);
 	void*	AddVertex(void);
 	void*	AddVertices(int iNumVerts);
-	BOOL	Lock(void);
-	BOOL	Unlock(void);
-	BOOL	Clear(void);
+	bool	Lock(void);
+	bool	Unlock(void);
+	bool	Clear(void);
 };
 
 
@@ -49,11 +49,11 @@ public:
 	void Init(void);
 	void Kill(void);
 
-	CGraphicsDynamicVertexBuffer*	AddVertexBuffer(int iD3DVertexType, BOOL bUseExisting);
+	CGraphicsDynamicVertexBuffer*	AddVertexBuffer(int iD3DVertexType, bool bUseExisting);
 	CGraphicsDynamicVertexBuffer*	GetVertexBuffer(int iD3DVertexType);
 	int								GetVertexBufferIndex(int iD3DVertexType);
 	void							RemoveVertexBuffer(int iD3DVertexType);
-	void							SetNumVertexBuffers(int iNumBuffers);
+	void							SetNumVertexBuffers(size iNumBuffers);
 };
 
 

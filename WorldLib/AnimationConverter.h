@@ -22,7 +22,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __ANIMATION_CONVERTER_H__
 #define __ANIMATION_CONVERTER_H__
-#include "SupportLib/Sequence.h"
 #include "SupportLib/Scene.h"
 #include "Movement.h"
 
@@ -36,8 +35,8 @@ protected:
 public:
 	void Init(CSceneConverter* pcSceneConverter);
 	void Kill(void);
-	BOOL Convert(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix);
-	BOOL IsAnimationConverted(void);
+	bool Convert(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix);
+	bool IsAnimationConverted(void);
 };
 
 

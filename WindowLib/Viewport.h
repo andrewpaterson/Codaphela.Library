@@ -44,7 +44,7 @@ public:
 
 	void 				Init(CWorld* pcWorld, CInput* pcInput, CComponentFactory* pcFactory, CRectangle* pcClientRect);
 	void 				Kill(void);
-	BOOL 				Draw(void);
+	bool 				Draw(void);
 	void				SetRequiredSize(void);
 	void				SetActualSize(void);
 	CGraphicsObject*	CreateGraphicsObject(void);
@@ -55,7 +55,7 @@ public:
 	void				Activate(void);
 	void				Deactivate(void);
 
-	BOOL				IsPointInAbsolute(int x, int y);
+	bool				IsPointInAbsolute(int x, int y);
 	CComponent*			GetFocussedComponent(void);
 };
 

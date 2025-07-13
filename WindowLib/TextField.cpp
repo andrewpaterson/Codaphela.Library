@@ -26,7 +26,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextField::Init(CViewport* pcViewport, char* szString, BOOL bDefaultBorder, BOOL bDefaultBackground)
+void CTextField::Init(CViewport* pcViewport, char* szString, bool bDefaultBorder, bool bDefaultBackground)
 {
 	CLabel::Init(pcViewport, szString, bDefaultBorder, bDefaultBackground);
 
@@ -49,7 +49,7 @@ void CTextField::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextField::Draw(void)
+bool CTextField::Draw(void)
 {
 	return CLabel::Draw();
 }
@@ -72,8 +72,8 @@ void CTextField::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //////////////////////////////////////////////////////////////////////////
 void CTextField::FocusGained(void)
 {
-	StartTimer(600, TRUE);
-	mpcText->mbCaretVisible = TRUE;
+	StartTimer(600, true);
+	mpcText->mbCaretVisible = true;
 }
 
 
@@ -84,7 +84,7 @@ void CTextField::FocusGained(void)
 void CTextField::FocusLost(void)
 {
 	StopTimer();
-	mpcText->mbCaretVisible = FALSE;
+	mpcText->mbCaretVisible = false;
 }
 
 

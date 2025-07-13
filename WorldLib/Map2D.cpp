@@ -32,8 +32,8 @@ void CMap2D::Init(CGraphicsObject* pcGraphicsObject)
 {
 	macActiveSet.Init();
 	macCacheSet.Init();
-	macActiveSet.KillElements(FALSE);
-	macCacheSet.KillElements(FALSE);
+	macActiveSet.KillElements(false);
+	macCacheSet.KillElements(false);
 	mpcGraphicsObject = pcGraphicsObject;
 	mcPosition.x = 0;
 	mcPosition.y = 0;
@@ -47,8 +47,8 @@ void CMap2D::Init(CGraphicsObject* pcGraphicsObject)
 //////////////////////////////////////////////////////////////////////////
 void CMap2D::Kill(void)
 {
-	macActiveSet.KillElements(TRUE);
-	macCacheSet.KillElements(TRUE);
+	macActiveSet.KillElements(true);
+	macCacheSet.KillElements(true);
 	macCacheSet.Kill();
 	macActiveSet.Kill();
 }

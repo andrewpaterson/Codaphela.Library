@@ -33,7 +33,7 @@ void CAnimation::Init(void)
 	mfTimeMultiplier = 1.0f;
 	mfCelTime = 0.0f;
 	maCelIndices.Init();
-	mbEnabled = TRUE;
+	mbEnabled = true;
 	miCurrentCel = 0;
 }
 
@@ -52,12 +52,12 @@ void CAnimation::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CAnimation::Save(CFileWriter* pcFile)
+bool CAnimation::Save(CFileWriter* pcFile)
 {
 	ReturnOnFalse(pcFile->WriteBool(mbEnabled));
-	ReturnOnFalse(pcFile->WriteInt(miCurrentCel));
+	ReturnOnFalse(pcFile->WriteInt32(miCurrentCel));
 	ReturnOnFalse(maCelIndices.Write(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -65,13 +65,13 @@ BOOL CAnimation::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CAnimation::Load(CFileReader* pcFile)
+bool CAnimation::Load(CFileReader* pcFile)
 {
 	Init();
 	ReturnOnFalse(pcFile->ReadBool(&mbEnabled));
-	ReturnOnFalse(pcFile->ReadInt(&miCurrentCel));
+	ReturnOnFalse(pcFile->ReadInt32(&miCurrentCel));
 	ReturnOnFalse(maCelIndices.Read(pcFile));
-	return TRUE;
+	return true;
 }
 
 
@@ -102,13 +102,13 @@ void* CAnimation::Update(void)
 {
 	SAnimationCelIndex*		psCel;
 	float					fFrac;
-	BOOL					bNewFrame;
+	bool					bNewFrame;
 
 	psCel = maCelIndices.SafeGet(miCurrentCel);
 	if (psCel)
 	{
 		mfCelTime += gcTimer.GetUpdateTimeInSeconds() * mfTimeMultiplier;
-		bNewFrame = FALSE;
+		bNewFrame = false;
 
 		do 
 		{
@@ -117,13 +117,13 @@ void* CAnimation::Update(void)
 				if (psCel->iNextCel != -1)
 				{
 					miCurrentCel = psCel->iNextCel;
-					bNewFrame = TRUE;
+					bNewFrame = true;
 				}
 				mfCelTime -= psCel->fTime;  //FIX TIMER.
 			}
 			else if (mfCelTime == 0.0f)
 			{
-				bNewFrame = TRUE;
+				bNewFrame = true;
 			}
 
 			psCel = maCelIndices.SafeGet(miCurrentCel);
@@ -131,11 +131,11 @@ void* CAnimation::Update(void)
 			{
 				if (bNewFrame)
 				{
-					SetFlag(&psCel->iFlags, AHOF_FirstTick, TRUE);
+					SetFlagInt(&psCel->iFlags, AHOF_FirstTick, true);
 				}
 				else
 				{
-					SetFlag(&psCel->iFlags, AHOF_FirstTick, FALSE);
+					SetFlagInt(&psCel->iFlags, AHOF_FirstTick, false);
 				}
 				if (psCel->Func)
 				{
@@ -227,7 +227,7 @@ void CAnimation::Restart(void)
 {
 	mfCelTime = 0.0f;
 	miCurrentCel = 0;
-	mbEnabled = TRUE;
+	mbEnabled = true;
 	mfTimeMultiplier = 1.0f;
 }
 
@@ -238,7 +238,7 @@ void CAnimation::Restart(void)
 //////////////////////////////////////////////////////////////////////////
 void CAnimation::Enable(void)
 {
-	mbEnabled = TRUE;
+	mbEnabled = true;
 }
 
 
@@ -248,7 +248,7 @@ void CAnimation::Enable(void)
 //////////////////////////////////////////////////////////////////////////
 void CAnimation::Disable(void)
 {
-	mbEnabled = FALSE;
+	mbEnabled = false;
 }
 
 
@@ -307,14 +307,19 @@ void CAnimation::PointLastCelToFirst(void)
 void CAnimation::MakeLoopingAnimation(void)
 {
 	SAnimationCelIndex*	psCel;
-	int					i;
+	size				i;
+	size				uiNumElements;
 
-	for (i = 0; i < maCelIndices.NumElements()-1; i++)
+	uiNumElements = maCelIndices.NumElements();
+	if (uiNumElements > 1)
 	{
-		psCel = maCelIndices.Get(i);
-		psCel->iNextCel = i+1;
+		for (i = 0; i < uiNumElements - 1; i++)
+		{
+			psCel = maCelIndices.Get(i);
+			psCel->iNextCel = i + 1;
+		}
+		PointLastCelToFirst();
 	}
-	PointLastCelToFirst();
 }
 
 
@@ -325,14 +330,20 @@ void CAnimation::MakeLoopingAnimation(void)
 void CAnimation::MakeLoopOnceAnimation(void)
 {
 	SAnimationCelIndex*	psCel;
-	int					i;
+	size				i;
+	size				uiNumElements;
 
-	for (i = 0; i < maCelIndices.NumElements()-1; i++)
+	uiNumElements = maCelIndices.NumElements();
+	if (uiNumElements > 1)
 	{
-		psCel = maCelIndices.Get(i);
-		psCel->iNextCel = i+1;
+		psCel = NULL;
+		for (i = 0; i < uiNumElements - 1; i++)
+		{
+			psCel = maCelIndices.Get(i);
+			psCel->iNextCel = i + 1;
+		}
+		psCel->iNextCel = -1;
 	}
-	psCel->iNextCel = -1;
 }
 
 
@@ -352,12 +363,12 @@ void AnimationHappenOnceFunction(void* pvCel, float fFractionalTime, void* pvDat
 	psHappenOnceData = (SAnimationHappenOnceData*)pvData;
 	if (psCel->iFlags & AHOF_FirstTick) 
 	{
-		SetFlag(&psCel->iFlags, AHOF_Occured, FALSE);
+		SetFlagInt(&psCel->iFlags, AHOF_Occured, false);
 	}
 	
 	if (psHappenOnceData->fFractionalTimeToOccur >= fFractionalTime)
 	{
-		SetFlag(&psCel->iFlags, AHOF_Occured, TRUE);
+		SetFlagInt(&psCel->iFlags, AHOF_Occured, true);
 		if (psHappenOnceData->Func)
 		{
 			psHappenOnceData->Func(psCel->pvCel, fFractionalTime, psCel->pvData);

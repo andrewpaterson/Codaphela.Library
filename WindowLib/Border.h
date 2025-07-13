@@ -97,7 +97,7 @@ public:
 
 	void				Init(CViewport* pcViewport);
 	void				Kill(void);
-	BOOL				Draw(void);
+	bool				Draw(void);
 	void				SetRequiredSize(void);
 
 	void				SetBorderParameters(CBorderParameters* pcParameters);

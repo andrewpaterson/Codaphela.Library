@@ -41,7 +41,6 @@ void CVertexBufferArrayFormat::Init(SD3DVertexType* psVertexType)
 	mpsVertexType = psVertexType;
 	miNumVerticies = 0;
 	macMeshVertexArrays.Init();
-	macMeshVertexArrays.KillElements(FALSE);
 }
 
 
@@ -90,7 +89,7 @@ void CMeshConverter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex)
+bool CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex)
 {
 	//This assumes mpcMesh is already touched
 
@@ -101,7 +100,7 @@ BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** 
 
 	if (mpcSceneConverter->GetMapper()->GetMesh(pcMesh->GetOI(), ppcGraphicsObject, ppcMeshObject))
 	{
-		return TRUE;
+		return true;
 	}
 
 	//Get the Position array, also make sure it has one.
@@ -114,35 +113,35 @@ BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** 
 		sz.Append("] has no vertex position channel");
 		gcUserError.Set(sz.Text());
 		sz.Kill();
-		return FALSE;
+		return false;
 	}
 
 	maiMatrixIndices.Init();
 
 	//Create the graphics object for the conversion destination.
-	mpcGraphicsObject = mpcSceneConverter->GetWorld()->CreateGraphicsObject(FALSE);
+	mpcGraphicsObject = mpcSceneConverter->GetWorld()->CreateGraphicsObject(false);
 	mpcMeshObject = mpcSceneConverter->GetWorld()->CreateMeshObject();
 
 	FillUniqueMatricies();
 
 	if (!ConvertMaterials())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!ConvertMesh())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!CreateLinkNodes())
 	{
-		return FALSE;
+		return false;
 	}
 
 	if (!SetObjectMatricies())
 	{
-		return FALSE;
+		return false;
 	}
 
 	maiMatrixIndices.Kill();
@@ -154,7 +153,7 @@ BOOL CMeshConverter::Convert(CGraphicsObject** ppcGraphicsObject, CMeshObject** 
 
 	SafeAssign(ppcGraphicsObject, mpcGraphicsObject);
 	SafeAssign(ppcMeshObject, mpcMeshObject);
-	return TRUE;
+	return true;
 }
 
 
@@ -302,8 +301,8 @@ void CMeshConverter::FillUniqueMatricies(void)
 //////////////////////////////////////////////////////////////////////////
 SD3DVertexType* CMeshConverter::GetVertexFormatForFaceType(SMeshFaceType sFaceType)
 {
-	BOOL				bNormal;
-	BOOL				bColour; 
+	bool				bNormal;
+	bool				bColour; 
 	int					iNumberOfTextures;
 	int					iNumberOfMatrices;
 	SD3DVertexType*		psVertexType;
@@ -324,10 +323,10 @@ SD3DVertexType* CMeshConverter::GetVertexFormatForFaceType(SMeshFaceType sFaceTy
 		iNumberOfMatrices = MAX_BONES;
 	}
 
-	psVertexType = gcD3D.GetVertexTypeFor(bNormal, bColour, iNumberOfTextures, iNumberOfMatrices, FALSE);
+	psVertexType = gcD3D.GetVertexTypeFor(bNormal, bColour, iNumberOfTextures, iNumberOfMatrices, false);
 	if (psVertexType == NULL)
 	{
-		iD3DVertexFormat = gcD3D.GetVertexFormatFor(bNormal, bColour, iNumberOfTextures, iNumberOfMatrices, FALSE);
+		iD3DVertexFormat = gcD3D.GetVertexFormatFor(bNormal, bColour, iNumberOfTextures, iNumberOfMatrices, false);
 		gcD3D.AddVertexFormat(iD3DVertexFormat);
 		psVertexType = gcD3D.GetVertexType(iD3DVertexFormat);
 	}
@@ -340,13 +339,13 @@ SD3DVertexType* CMeshConverter::GetVertexFormatForFaceType(SMeshFaceType sFaceTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::ConvertMaterials(void)
+bool CMeshConverter::ConvertMaterials(void)
 {
 	CMaterial*			pcMaterial;
 	CGraphicsMaterial*	pcGraphicsMaterial;
 	CGraphicsState*		pcGraphicsState;
 	int					iMaterialIndex;
-	BOOL				bResult;
+	bool				bResult;
 	int					iNumMaterials;
 	int					i;
 
@@ -365,7 +364,7 @@ BOOL CMeshConverter::ConvertMaterials(void)
 			bResult = mpcSceneConverter->ConvertMaterialToGraphicsMaterial(&pcGraphicsMaterial, &pcGraphicsState, pcMaterial);
 			if (!bResult)
 			{
-				return FALSE;
+				return false;
 			}
 			mpcGraphicsObject->AddMaterial(pcGraphicsMaterial);
 			mpcGraphicsObject->AddState(pcGraphicsState);
@@ -377,7 +376,7 @@ BOOL CMeshConverter::ConvertMaterials(void)
 		mpcGraphicsObject->AddState(mpcSceneConverter->GetWorld()->GetGreyGraphicsState());
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -419,7 +418,7 @@ void CMeshConverter::CollectVertexBuffersByFormat(CArrayVertexBufferArrayFormat*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::ConvertMesh(void)
+bool CMeshConverter::ConvertMesh(void)
 {
 	int								i;
 	int								iVertexBufferIndex;
@@ -439,7 +438,7 @@ BOOL CMeshConverter::ConvertMesh(void)
 
 	if (!CreateIndexBuffer())
 	{
-		return FALSE;
+		return false;
 	}
 
 	CollectVertexBuffersByFormat(&cArray);
@@ -452,16 +451,16 @@ BOOL CMeshConverter::ConvertMesh(void)
 		pcVertexBufferFormatArray = cArray.Get(i);
 
 		iFormat = pcVertexBufferFormatArray->mpsVertexType->iD3DVertexFormat;
-		pcVertexBuffer = mpcGraphicsObject->AddVertexBuffer(iFormat, pcVertexBufferFormatArray->miNumVerticies, TRUE, &iVertexBufferIndex);
+		pcVertexBuffer = mpcGraphicsObject->AddVertexBuffer(iFormat, pcVertexBufferFormatArray->miNumVerticies, true, &iVertexBufferIndex);
 		if (pcVertexBuffer == NULL)
 		{
-			return FALSE;
+			return false;
 		}
 
 		pvFirstNewVert = pcVertexBuffer->pvLockedBuffer;
 		if (!pvFirstNewVert)
 		{
-			return FALSE;
+			return false;
 		}
 
 		iStartVertex = 0;
@@ -480,7 +479,7 @@ BOOL CMeshConverter::ConvertMesh(void)
 			iNumIndices = pcMeshVertexBuffer->GetFaceIndicies()->NumElements() * 3;
 			if (!SetGraphicsPrimitive(i, iMaterial, iNumFaces, iNumIndices, iStartIndex, iStartVertex, iVertexBufferIndex))
 			{
-				return FALSE;
+				return false;
 			}
 
 			iStartIndex += iNumIndices;
@@ -490,7 +489,7 @@ BOOL CMeshConverter::ConvertMesh(void)
 	}
 	cArray.Kill();
 
-	return TRUE;
+	return true;
 }
 
 
@@ -498,7 +497,7 @@ BOOL CMeshConverter::ConvertMesh(void)
 ////
 ////
 ////////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::CreateIndexBuffer(void)
+bool CMeshConverter::CreateIndexBuffer(void)
 {
 	int						i;
 	int						iNumFaces;
@@ -522,7 +521,7 @@ BOOL CMeshConverter::CreateIndexBuffer(void)
 	if (iNumFaces != mpcMesh->NumFaces())
 	{
 		gcUserError.Set("Cached face count != Mesh face count.");
-		return FALSE;
+		return false;
 	}
 
 	mpcGraphicsObject->CreateIndexBuffer(0, iNumFaces * 3);
@@ -565,8 +564,8 @@ BOOL CMeshConverter::CreateIndexBuffer(void)
 	}
 
 	gcD3D.UnlockIndexBuffer(psIndexBuffer);
-	mpcGraphicsObject->SetFlag(GRAPH_OBJ_FLAGS_INDEX_BUFFER, TRUE);
-	return TRUE;
+	mpcGraphicsObject->SetFlag(GRAPH_OBJ_FLAGS_INDEX_BUFFER, true);
+	return true;
 }
 
 
@@ -574,7 +573,7 @@ BOOL CMeshConverter::CreateIndexBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::SetGraphicsPrimitive(int iPrimitive, int iMaterialIndex, int iNumFaces, int iNumIndices, int iStartIndex, int iStartVertex, int iVertexBufferIndex)
+bool CMeshConverter::SetGraphicsPrimitive(int iPrimitive, int iMaterialIndex, int iNumFaces, int iNumIndices, int iStartIndex, int iStartVertex, int iVertexBufferIndex)
 {
 	CGraphicsPrimitive*		pcGraphicsPrimitive;
 	int						iStateIndex;
@@ -617,10 +616,10 @@ BOOL CMeshConverter::SetGraphicsPrimitive(int iPrimitive, int iMaterialIndex, in
 
 	if (pcGraphicsPrimitive->miFlags & GRAPH_PRIM_FLAGS_TRANSLUCENT)
 	{
-		mpcGraphicsObject->SetFlag(GRAPH_OBJ_FLAGS_HAS_TRANSLUCENY, TRUE);
+		mpcGraphicsObject->SetFlag(GRAPH_OBJ_FLAGS_HAS_TRANSLUCENY, true);
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -971,7 +970,7 @@ void CMeshConverter::WeightAdjustIndices(int iNumWeights, SSkinWeight* psWeights
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::CreateLinkNodes(void)
+bool CMeshConverter::CreateLinkNodes(void)
 {
 	int					i;
 	CConnection*		pcConnection;
@@ -1007,10 +1006,10 @@ BOOL CMeshConverter::CreateLinkNodes(void)
 			if (Float4x4Inverse(&pcLinkNode->psToSubObjectSpaceFromZeroSpace->sD3DMatrix, &fDeterminant, psMatrix) == NULL)
 			{
 				gcUserError.Set("Matrix has no inverse");
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
 	else
 	{
@@ -1021,7 +1020,7 @@ BOOL CMeshConverter::CreateLinkNodes(void)
 		sz.Append("] has no Connection (root node matrix).");
 		gcUserError.Set(sz.Text());
 		sz.Kill();
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1030,7 +1029,7 @@ BOOL CMeshConverter::CreateLinkNodes(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshConverter::SetObjectMatricies(void)
+bool CMeshConverter::SetObjectMatricies(void)
 {
 	int				i;
 	SMatrix**		ppsMatrix;
@@ -1043,7 +1042,7 @@ BOOL CMeshConverter::SetObjectMatricies(void)
 		if (maiMatrixIndices.NumElements() != mpcConnectionsAndIndices->NumElements())
 		{
 			gcLogger.Error("Number of matrix indices is different to number of connections");
-			return FALSE;
+			return false;
 		}
 	}
 
@@ -1059,7 +1058,7 @@ BOOL CMeshConverter::SetObjectMatricies(void)
 		if (maiMatrixIndices.NumElements() != mpcMesh->mcSkin.mcInverseSkinMatricies.NumElements())
 		{
 			gcLogger.Error("Number of matrix indices is different to number inverse skin matrices");
-			return FALSE;
+			return false;
 		}
 
 		for (i = 0; i < mpcMesh->mcSkin.mcInverseSkinMatricies.NumElements(); i++)
@@ -1069,6 +1068,6 @@ BOOL CMeshConverter::SetObjectMatricies(void)
 			*psAdjMatrix = *psInverseSkinMatrix;
 		}
 	}
-	return TRUE;
+	return true;
 }
 

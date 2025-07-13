@@ -39,7 +39,7 @@ void CComponent::Init(CViewport* pcViewport)
 	msPosition.Init(0, 0);
 	msRequiredSize.Init(-1, -1);
 	msDesiredSize.Init(-1, -1);
-	mbCanGetFocus = FALSE;
+	mbCanGetFocus = false;
 	mcName.Init();
 	mpcParent = NULL;
 	mpcViewport = pcViewport;
@@ -59,7 +59,7 @@ void CComponent::Kill(void)
 
 	if (mpcParent)
 	{
-		mpcParent->RemoveComponent(this, FALSE);
+		mpcParent->RemoveComponent(this, false);
 	}
 	mpcParent = NULL;
 
@@ -97,7 +97,7 @@ SInt2 CComponent::GetBestSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponent::IsPointIn(int x, int y)
+bool CComponent::IsPointIn(int x, int y)
 {
 	//x and y are assumed relative to 'this' component.
 	return (((x >= msPosition.x) && (x <= msPosition.x + msActualSize.x)) && ((y >= msPosition.y) && (y <= msPosition.y + msActualSize.y)));
@@ -108,7 +108,7 @@ BOOL CComponent::IsPointIn(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::StartTimer(int iTime, BOOL bRepeat)
+void CComponent::StartTimer(int iTime, bool bRepeat)
 {
 }
 
@@ -126,9 +126,9 @@ void CComponent::StopTimer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponent::HasFocus()
+bool CComponent::HasFocus()
 {
-	return FALSE;
+	return false;
 }
 
 
@@ -136,7 +136,7 @@ BOOL CComponent::HasFocus()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponent::Draw(void)
+bool CComponent::Draw(void)
 {
 	return DrawChildren();
 }
@@ -146,11 +146,11 @@ BOOL CComponent::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponent::DrawChildren(void)
+bool CComponent::DrawChildren(void)
 {
 	int				i;
 	CComponent*		pcComponent;
-	BOOL			bResult;
+	bool			bResult;
 
 	for (i = 0; i < mcComponents.Size(); i++)
 	{
@@ -158,10 +158,10 @@ BOOL CComponent::DrawChildren(void)
 		bResult = pcComponent->Draw();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -180,7 +180,7 @@ void CComponent::AddComponent(CComponent* pcComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::RemoveComponent(CComponent* pcComponent, BOOL bKillComponent)
+void CComponent::RemoveComponent(CComponent* pcComponent, bool bKillComponent)
 {
 	mcComponents.Remove(pcComponent, bKillComponent);
 }
@@ -190,7 +190,7 @@ void CComponent::RemoveComponent(CComponent* pcComponent, BOOL bKillComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponent::RemoveAllComponents(BOOL bKillComponents)
+void CComponent::RemoveAllComponents(bool bKillComponents)
 {
 	if (bKillComponents)
 	{
@@ -258,14 +258,14 @@ void CComponent::FromChildSpace(CComponent* pcChildComponent, int x, int y, int*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponent::GetContainerBounds(SContainerBounds* psDest)
+bool CComponent::GetContainerBounds(SContainerBounds* psDest)
 {
 	//The only way the function can be called is if the component is not a container.
 	if (mpcParent)
 	{
 		return mpcParent->GetContainerBounds(psDest);
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -327,7 +327,7 @@ int CComponent::GetDepth(void)
 void CComponent::Dump(void)
 {
 	CChars			sz;
-	int				i;
+	size			i;
 	CComponent*		pcComponent;
 
 	sz.Init();
@@ -351,13 +351,13 @@ void CComponent::Dump(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponent::IsFocussed(void)
+bool CComponent::IsFocussed(void)
 {
 	if (mpcViewport->mcFocus.GetFocussedComponent() == this)
 	{
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 

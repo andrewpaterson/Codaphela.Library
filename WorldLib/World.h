@@ -60,7 +60,7 @@ typedef CArrayType<CTransformNode>			CAnimMatrixList;
 typedef CLinkedListTemplateFreeList<SMatrix>	CTransformNodeList;
 
 
-BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, BOOL bStencil, BOOL bExcluseive, HWND hWndInput);
+bool InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, bool bStencil, bool bExcluseive, HWND hWndInput);
 void KillMain(void);
 
 
@@ -91,7 +91,7 @@ public:
 	CCameraInstance*		mpsCurrentCamera;
 	CGraphicsMaterial*		mpcLastMaterial;
 
-	BOOL					mbClearBuffer;
+	bool					mbClearBuffer;
 	int						miClearColour;
 
 	SMatrix					msIdentity;
@@ -118,9 +118,9 @@ public:
 	void				InvalidateGraphicsMaterial(CGraphicsMaterial* pcGraphicsMaterial);
 	void				ReleaseGraphicsMaterial(CGraphicsMaterial* pcGraphicsMaterial);
 
-	CGraphicsTexture*	CreateGraphicsTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, BOOL bDynamic);
+	CGraphicsTexture*	CreateGraphicsTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, bool bDynamic);
 
-	CGraphicsObject*	CreateGraphicsObject(BOOL bDynamicBuffers);
+	CGraphicsObject*	CreateGraphicsObject(bool bDynamicBuffers);
 	void				DrawGraphicsObject(CGraphicsObject* pcGraphicsObject);
 	void				ReleaseGraphicsObject(CGraphicsObject* pcGraphicsObject);
 

@@ -49,13 +49,13 @@ public:
 	void				Init(CScene* pcScene, CWorld* pcWorld);
 	void				Kill(void);
 
-	BOOL				ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImage* pcImage, BOOL bDiscard, int iWidth, int iHeight, EPrimitiveTypes eType, EChannel eFirst, ...);
-	BOOL				ConvertMeshToGraphicsObject(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex);
-	BOOL				ConvertMaterialToGraphicsMaterial(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial);
-	BOOL				ConvertSequenceToMovement(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix);
-	BOOL				ConvertInstanceToGraphicsInstance(CInstance* pcInstance);
-	BOOL				ConvertMeshes(void);
-	BOOL				ConvertScene(void);
+	bool				ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImage* pcImage, bool bDiscard, int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
+	bool				ConvertMeshToGraphicsObject(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex);
+	bool				ConvertMaterialToGraphicsMaterial(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial);
+	bool				ConvertSequenceToMovement(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix);
+	bool				ConvertInstanceToGraphicsInstance(CInstance* pcInstance);
+	bool				ConvertMeshes(void);
+	bool				ConvertScene(void);
 
 	CWorld*				GetWorld(void);
 	CScene*				GetScene(void);

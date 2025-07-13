@@ -89,7 +89,7 @@ void* CGraphicsDynamicVertexBuffer::AddVertices(int iMoreVerts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsDynamicVertexBuffer::Clear(void)
+bool CGraphicsDynamicVertexBuffer::Clear(void)
 {
 	if (mcVerts.NumElements() > 0)
 	{
@@ -101,7 +101,7 @@ BOOL CGraphicsDynamicVertexBuffer::Clear(void)
 	}
 	miUsedVerticies = 0;
 	iNumVerticies = 0;
-	return TRUE;
+	return true;
 }
 
 
@@ -109,7 +109,7 @@ BOOL CGraphicsDynamicVertexBuffer::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsDynamicVertexBuffer::Lock(void)
+bool CGraphicsDynamicVertexBuffer::Lock(void)
 {
 	if (!(iFlags & Flags_Locked))
 	{
@@ -118,13 +118,13 @@ BOOL CGraphicsDynamicVertexBuffer::Lock(void)
 		miUsedVerticies = 0;
 		iNumVerticies = 0;
 		mcVerts.ReInit();
-		SetFlag(&iFlags, Flags_Locked, TRUE);
-		return TRUE;
+		SetFlagInt(&iFlags, Flags_Locked, true);
+		return true;
 	}
 	else
 	{
 		gcUserError.Set("Cannot lock an already locked vertex buffer.");
-		return FALSE;
+		return false;
 	}
 }
 
@@ -133,37 +133,37 @@ BOOL CGraphicsDynamicVertexBuffer::Lock(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsDynamicVertexBuffer::Unlock(void)
+bool CGraphicsDynamicVertexBuffer::Unlock(void)
 {
 	if (iFlags & Flags_Locked)
 	{
 		if (mcVerts.NumElements() == 0)
 		{
-			SetFlag(&iFlags, Flags_Locked, FALSE);
-			return TRUE;
+			SetFlagInt(&iFlags, Flags_Locked, false);
+			return true;
 		}
 
-		if (!gcD3D.CreateVertexBuffer(iVertexFormat, mcVerts.NumElements(), TRUE, this))
+		if (!gcD3D.CreateVertexBuffer(iVertexFormat, mcVerts.NumElements(), true, this))
 		{
 			miUsedVerticies = 0;
 			gcUserError.Set("Could not change vertex buffer size.");
-			return FALSE;
+			return false;
 		}
 
 		miUsedVerticies = mcVerts.NumElements();
-		gcD3D.LockVertexBuffer(this, TRUE);
+		gcD3D.LockVertexBuffer(this, true);
 		if (pvLockedBuffer == NULL)
 		{
-			return FALSE;
+			return false;
 		}
 
 		memcpy_fast(pvLockedBuffer, mcVerts.GetData(), miUsedVerticies * iVertexSize);
 
 		gcD3D.UnlockVertexBuffer(this);
-		return TRUE;
+		return true;
 	}
 	gcUserError.Set("Cannot unlock an already unlocked vertex buffer.");
-	return FALSE;
+	return false;
 }
 
 
@@ -183,7 +183,7 @@ void CGraphicsDynamicVertexBufferArray::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsDynamicVertexBufferArray::Kill(void)
 {
-	int								i;
+	size							i;
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
 
 	for (i = 0; i < miUsedElements; i++)
@@ -199,7 +199,7 @@ void CGraphicsDynamicVertexBufferArray::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGraphicsDynamicVertexBuffer* CGraphicsDynamicVertexBufferArray::AddVertexBuffer(int iD3DVertexType, BOOL bUseExisting)
+CGraphicsDynamicVertexBuffer* CGraphicsDynamicVertexBufferArray::AddVertexBuffer(int iD3DVertexType, bool bUseExisting)
 {
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
 
@@ -226,7 +226,7 @@ CGraphicsDynamicVertexBuffer* CGraphicsDynamicVertexBufferArray::AddVertexBuffer
 //////////////////////////////////////////////////////////////////////////
 CGraphicsDynamicVertexBuffer* CGraphicsDynamicVertexBufferArray::GetVertexBuffer(int iD3DVertexType)
 {
-	int						i;
+	size							i;
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
 
 	for (i = 0; i < miUsedElements; i++)
@@ -269,10 +269,10 @@ void CGraphicsDynamicVertexBufferArray::RemoveVertexBuffer(int iD3DVertexType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicsDynamicVertexBufferArray::SetNumVertexBuffers(int iNumBuffers)
+void CGraphicsDynamicVertexBufferArray::SetNumVertexBuffers(size iNumBuffers)
 {
-	int								iOldUsed;
-	int								i;
+	size							iOldUsed;
+	size							i;
 	CGraphicsDynamicVertexBuffer*	psBuffer;
 
 	if (iNumBuffers != miUsedElements)
@@ -309,7 +309,7 @@ void CGraphicsDynamicVertexBufferArray::SetNumVertexBuffers(int iNumBuffers)
 //////////////////////////////////////////////////////////////////////////
 int CGraphicsDynamicVertexBufferArray::GetVertexBufferIndex(int iD3DVertexType)
 {
-	int								i;
+	size							i;
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
 
 	for (i = 0; i < miUsedElements; i++)

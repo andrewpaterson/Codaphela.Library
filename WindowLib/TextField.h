@@ -34,10 +34,10 @@ public:
 
 	CPlainGraphicalTextEditor	mcEditor;
 
-	void 	Init(CViewport* pcViewport, char* szString, BOOL bDefaultBorder = TRUE, BOOL bDefaultBackground = TRUE);
+	void 	Init(CViewport* pcViewport, char* szString, bool bDefaultBorder = true, bool bDefaultBackground = true);
 	void 	Kill(void);
 
-	BOOL	Draw(void);
+	bool	Draw(void);
 	void	Layout(SInt2 sPosition, SInt2 sAreaSize);
 
 	void	FocusGained(void);
@@ -79,9 +79,9 @@ public:
 	void 	SelectAll(void) {mcEditor.SelectAll();};
 	void 	ClearSelection(void) {mcEditor.ClearSelection();};
 
-	void 	Printable(char c, BOOL bInsert) {mcEditor.Printable(c, bInsert);};
-	void 	Space(BOOL bInsert) {mcEditor.Space(bInsert);};
-	void 	Tab(BOOL bInsert) {mcEditor.Tab(bInsert);};
+	void 	Printable(char c, bool bInsert) {mcEditor.Printable(c, bInsert);};
+	void 	Space(bool bInsert) {mcEditor.Space(bInsert);};
+	void 	Tab(bool bInsert) {mcEditor.Tab(bInsert);};
 	void 	BackTab(void) {mcEditor.BackTab();};
 	void 	Enter(void) {mcEditor.Enter();};
 	void 	HomeEnter(void) {mcEditor.HomeEnter();};

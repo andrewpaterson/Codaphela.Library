@@ -53,7 +53,7 @@ void CGraphicsPrimitive::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsPrimitive::Draw(void)
+bool CGraphicsPrimitive::Draw(void)
 {
 	CGraphicsState*			pcState;
 	CGraphicsMaterial*		pcMaterial;
@@ -65,33 +65,33 @@ BOOL CGraphicsPrimitive::Draw(void)
 
 	if (!(miFlags & GRAPH_PRIM_FLAGS_DRAW))
 	{
-		return TRUE;
+		return true;
 	}
 	if (mpcGraphicsObject == NULL)
 	{
 		gcUserError.Set("Cannot Draw because graphics object is NULL.");
-		return FALSE;
+		return false;
 	}
 	if (miFlags & GRAPH_PRIM_FLAGS_INVALID)
 	{
 		gcUserError.Set("Cannot Draw because primitive is marked as invalid.");
-		return FALSE;
+		return false;
 	}
 	if (miViewportPointerIndex == -1)
 	{
 		gcUserError.Set("Cannot Draw because Viewport is invalid.");
-		return FALSE;
+		return false;
 	}
 	if (miMaterialPointerIndex == -1)
 	{
 		gcUserError.Set("Cannot Draw because Material is invalid.");
-		return FALSE;
+		return false;
 	}
 
 	//Enable index'd matrix blending if more than one matrix is used per vertex.
 	if (miFlags & GRAPH_PRIM_FLAGS_MATRIX_INDICIES)
 	{
-		gcD3D.SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, TRUE);
+		gcD3D.SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, true);
 
 		//Set the number of matricies to be used.  See D3DVERTEXBLENDFLAGS for more info.
 		if (miNumMatricies == 1)
@@ -118,7 +118,7 @@ BOOL CGraphicsPrimitive::Draw(void)
 			gcD3D.SetWorldMatrix(0, &sTemp);
 		}
 
-		gcD3D.SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE);
+		gcD3D.SetRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, false);
 		gcD3D.SetRenderState(D3DRS_VERTEXBLEND, 0);
 	}
 
@@ -127,7 +127,7 @@ BOOL CGraphicsPrimitive::Draw(void)
 	if (psVertexBuffer->iFlags & Flags_Locked)
 	{
 		gcUserError.Set("Cannot Draw if a vertex buffer is locked.");
-		return FALSE;
+		return false;
 	}
 
 	gcD3D.SetVertexBuffer(psVertexBuffer);

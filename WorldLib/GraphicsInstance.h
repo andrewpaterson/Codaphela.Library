@@ -64,7 +64,7 @@ public:
 	SMatrix*			GetMatrix(int iNum);
 	void				ReverseCullAsNecessary(void);
 	void				UnreverseCullAsNecessary(void);
-	BOOL				CanDraw(void);
+	bool				CanDraw(void);
 	void				Update(void);
 
 	void				SetFlag(int iFlag, int iFlagValue);

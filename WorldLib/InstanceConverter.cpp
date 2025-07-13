@@ -50,7 +50,7 @@ void CInstanceConverter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::Convert(CInstance* pcInstance)
+bool CInstanceConverter::Convert(CInstance* pcInstance)
 {
 	CGraphicsInstance*	pcGraphicsInstance;
 	CMeshInstance*		pcMeshInstance;
@@ -62,7 +62,7 @@ BOOL CInstanceConverter::Convert(CInstance* pcInstance)
 	{
 		if (!ConvertMeshAndLinks(&pcGraphicsInstance, &pcMeshInstance, pcInstance->miObjectIndex, &pcInstance->maiConnections))
 		{
-			return FALSE;
+			return false;
 		}
 		mpcSceneConverter->GetMapper()->AddGraphicsInstance(pcInstance->GetOI(), pcGraphicsInstance, pcMeshInstance);
 	}
@@ -70,17 +70,17 @@ BOOL CInstanceConverter::Convert(CInstance* pcInstance)
 	{
 		if (!ConvertCamera(&pcCameraInstance, pcInstance->miObjectIndex, &pcInstance->maiConnections))
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	else if (pcInstance->meType == TT_Light)
 	{
 		if (!ConvertLight(&pcLightInstance, pcInstance->miObjectIndex, &pcInstance->maiConnections))
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -110,7 +110,7 @@ void CInstanceConverter::ConvertConnectionsAndIndices(CArrayIntAndPointer* pcCon
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArrayIntMinimal* pcConnectionIndices)
+bool CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	CGraphicsObject*		pcGraphicsObject;
 	CMeshObject*			pcMeshObject;
@@ -128,7 +128,7 @@ BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInst
 	if (!mpcSceneConverter->ConvertMeshToGraphicsObject(&pcGraphicsObject, &pcMeshObject, pcMesh, &cConnectionAndIndex))
 	{
 		cConnectionAndIndex.Kill();
-		return FALSE;
+		return false;
 	}
 
 	pcGraphicsInstance = mpcSceneConverter->GetWorld()->CreateGraphicsInstance();
@@ -141,7 +141,7 @@ BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInst
 	*ppcMeshInstance = pcMeshInstance;
 
 	cConnectionAndIndex.Kill();
-	return TRUE;
+	return true;
 }
 
 
@@ -149,7 +149,7 @@ BOOL CInstanceConverter::ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInst
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArrayIntMinimal* pcConnectionIndices)
+bool CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	CCamera*			pcCamera;
 	CCameraInstance*	pcCameraInstance;
@@ -165,7 +165,7 @@ BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int 
 	if (!pcConnection)
 	{
 		gcUserError.Set("Cannot convert CameraInstance.  Cannot find a connection");
-		return TRUE;
+		return true;
 	}
 
 	pcCamera = (CCamera*)mpcSceneConverter->GetScene()->mcCameraTracker.GetWithID(iCameraIndex);
@@ -181,7 +181,7 @@ BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int 
 	//Convert any animation this node may have.
 	ConvertSequence(iConnectionIndex, pcCameraInstance->GetWorldTransform());
 
-	return TRUE;
+	return true;
 }
 
 
@@ -189,7 +189,7 @@ BOOL CInstanceConverter::ConvertCamera(CCameraInstance** ppcCameraInstance, int 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArrayIntMinimal* pcConnectionIndices)
+bool CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArrayIntMinimal* pcConnectionIndices)
 {
 	CLight*				pcLight;
 	CLightInstance*		pcLightInstance;
@@ -205,7 +205,7 @@ BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLi
 	if (!pcConnection)
 	{
 		gcUserError.Set("Cannot convert LightInstance.  Cannot find a connection");
-		return TRUE;
+		return true;
 	}
 
 	pcLight = (CLight*)mpcSceneConverter->GetScene()->mcLightTracker.GetWithID(iLightIndex);
@@ -239,7 +239,7 @@ BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLi
 			pcLightInstance->SetPoint(0.0f, 0.0f, (1.0f/(CONVERSION_LIGHT_RANGE*0.001f)), sqrtf(CONVERSION_LIGHT_RANGE));
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -247,7 +247,7 @@ BOOL CInstanceConverter::ConvertLight(CLightInstance** ppcLightInstance, int iLi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayIntAndPointer* pcConnectionsAndIndices)
+bool CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayIntAndPointer* pcConnectionsAndIndices)
 {
 	int					i;
 	CConnection*		pcConnection;
@@ -264,7 +264,7 @@ BOOL CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMes
 	if (!pcConnection)
 	{
 		gcUserError.Set("Cannot convert MeshInstance.  Cannot find a connection");
-		return FALSE;
+		return false;
 	}
 	
 	pcGraphicsInstance->SetFlag(GRAPH_INST_FLAGS_REVERSE_CULL, pcConnection->mbParity);
@@ -316,7 +316,7 @@ BOOL CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMes
 		ConvertSequence(iConnectionIndex, psLinkInstanceNode->psWorldTransform);
 		psLinkInstanceNode->eTransform = LINT_World;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -324,7 +324,7 @@ BOOL CInstanceConverter::ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMes
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CInstanceConverter::ConvertSequence(int iConnectionIndex, SMatrix* psMatrix)
+bool CInstanceConverter::ConvertSequence(int iConnectionIndex, SMatrix* psMatrix)
 {
 	CSequence*	pcSequence;
 	CMovement*	pcMovement;
@@ -334,6 +334,6 @@ BOOL CInstanceConverter::ConvertSequence(int iConnectionIndex, SMatrix* psMatrix
 	{
 		return mpcSceneConverter->ConvertSequenceToMovement(&pcMovement, pcSequence, psMatrix);
 	}
-	return TRUE;
+	return true;
 }
 

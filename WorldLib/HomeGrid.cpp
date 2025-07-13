@@ -44,7 +44,7 @@ void CHomeGrid::Init(CWorldEditor* pcWorldEditor)
 	miMajorColour = 0xffe0e0e0;
 	miMinorColour = 0xffa0a0a0;
 
-	mpcGraphicsObject = mpcWorld->CreateGraphicsObject(TRUE);
+	mpcGraphicsObject = mpcWorld->CreateGraphicsObject(true);
 	mpcGridMaterial = mpcWorld->GetWhiteGraphicsMaterial();
 	mpcGridState = mpcWorld->GetWhiteGraphicsState();
 	mpcGraphicsObject->AddVertexBuffer(D3DFVF_CVERTEX, 0);
@@ -87,7 +87,7 @@ void CHomeGrid::SetGrid(float fSizeX, float fSizeY, float fSpaceX, float fSpaceY
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CHomeGrid::Draw(void)
+bool CHomeGrid::Draw(void)
 {
 	int						iXSize;
 	int						iZSize;
@@ -105,13 +105,13 @@ BOOL CHomeGrid::Draw(void)
 
 	if (!mpcGraphicsObject->BeginDynamic())
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcGraphicsPrimitive = mpcGraphicsObject->StartPrimitive(D3DPT_LINELIST, D3DFVF_CVERTEX, mpcGridMaterial, mpcGridState, mpcWorld->mpcFullViewport);
 	if (!pcGraphicsPrimitive)
 	{
-		return FALSE;
+		return false;
 	}
 
 	pcGraphicsPrimitive->miFlags = GRAPH_PRIM_FLAGS_DRAW;
@@ -136,7 +136,7 @@ BOOL CHomeGrid::Draw(void)
 
 	if (!mpcGraphicsObject->EndDynamic())
 	{
-		return FALSE;
+		return false;
 	}
 
 	return mpcGraphicsObject->Draw();

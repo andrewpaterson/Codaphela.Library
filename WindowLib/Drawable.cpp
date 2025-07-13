@@ -52,7 +52,7 @@ void CDrawable::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDrawable::Draw(void)
+bool CDrawable::Draw(void)
 {
 	SContainerBounds	sBounds;
 
@@ -120,13 +120,13 @@ void CDrawable::GetPosition(SInt2* psPosition)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDrawable::HasSizeChanged(void)
+bool CDrawable::HasSizeChanged(void)
 {
 	if (msOldSize == msActualSize)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -134,12 +134,12 @@ BOOL CDrawable::HasSizeChanged(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CDrawable::HasPositionChanged(void)
+bool CDrawable::HasPositionChanged(void)
 {
 	if (msOldPosition == msPosition)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 

@@ -25,10 +25,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CContainer::GetContainerBounds(SContainerBounds* psDest)
+bool CContainer::GetContainerBounds(SContainerBounds* psDest)
 {
 	memcpy(psDest, &msBounds, sizeof(SContainerBounds));
-	return TRUE;
+	return true;
 }
 
 

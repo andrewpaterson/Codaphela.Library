@@ -101,7 +101,7 @@ void CMeshInstanceNode::Transform(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshInstanceNode::Update(void)
+bool CMeshInstanceNode::Update(void)
 {
 	return psFinalTransform->Update();
 }
@@ -131,7 +131,7 @@ void CMeshInstance::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshInstance::Init(CMeshObject* pcMeshObject, BOOL bCacheVertices, BOOL bCacheNormals, CScratchPad* pcScratchPad)
+void CMeshInstance::Init(CMeshObject* pcMeshObject, bool bCacheVertices, bool bCacheNormals, CScratchPad* pcScratchPad)
 {
 	Init();
 	mpcScratchPad = pcScratchPad;
@@ -158,7 +158,7 @@ void CMeshInstance::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMeshInstance::Cache(CMeshObject* pcMeshObject, BOOL bCacheVertices, BOOL bCacheNormals)
+void CMeshInstance::Cache(CMeshObject* pcMeshObject, bool bCacheVertices, bool bCacheNormals)
 {
 	mpcMeshObject = pcMeshObject;
 
@@ -235,7 +235,7 @@ void CMeshInstance::CalculateTransforms(void)
 void CMeshInstance::UpdateMatrixState(void)
 {
 	CMeshInstanceNode*	psNode;
-	BOOL				bAnyMatriciesChanged;
+	bool				bAnyMatriciesChanged;
 
 	if (!((meVertexCaching == LCF_NoCache) && (meNormalCaching == LCF_NoCache)))
 	{
@@ -316,9 +316,9 @@ void CMeshInstance::UpdateUnskinnedCaches(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshInstance::UpdateSkinnedVertexCache(void)
 {
-	int					i;
+	size				i;
 	CMeshInstanceNode*	psNode;
-	SFloat3*		pvScratchVectors;
+	SFloat3*			pvScratchVectors;
 	SSkinnedVector*		psSkinnedVector;
 
 	if (meVertexCaching == LCF_UseCache)
@@ -351,9 +351,9 @@ void CMeshInstance::UpdateSkinnedVertexCache(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshInstance::UpdateSkinnedNormalCache(void)
 {
-	int					i;
+	size				i;
 	CMeshInstanceNode*	psNode;
-	SFloat3*		pvScratchVectors;
+	SFloat3*			pvScratchVectors;
 	SSkinnedVector*		psSkinnedVector;
 
 	if (meNormalCaching == LCF_UseCache)
@@ -394,7 +394,7 @@ void CMeshInstance::SetSkinnedVertexCachePointers(void)
 
 	if (mpcMeshObject->IsSkinned())
 	{
-		cMapNodeToScratchPad.Init(&gcSystemAllocator, FALSE);
+		cMapNodeToScratchPad.Init(&gcSystemAllocator, false);
 		GenerateVertexScratchPadMap(&cMapNodeToScratchPad);
 
 		iNumVerts = mpcMeshObject->GetSkinnedVertexPtrs()->NumElements();
@@ -432,7 +432,7 @@ void CMeshInstance::SetSkinnedNormalCachePointers(void)
 
 	if (mpcMeshObject->IsSkinned())
 	{
-		cMapNodeToScratchPad.Init(&gcSystemAllocator, FALSE);
+		cMapNodeToScratchPad.Init(&gcSystemAllocator, false);
 		GenerateNormalScratchPadMap(&cMapNodeToScratchPad);
 
 		iNumNormals = mpcMeshObject->GetSkinnedNormalPtrs()->NumElements();

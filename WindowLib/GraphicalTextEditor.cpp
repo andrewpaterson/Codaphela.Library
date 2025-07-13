@@ -29,8 +29,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CGraphicalTextEditor::Init(CTextData* pcText)
 {
 	mpcText = pcText;
-	mbMultiLine = FALSE;
-	mbInsert = TRUE;
+	mbMultiLine = false;
+	mbInsert = true;
 	DocumentHome();
 }
 
@@ -279,7 +279,7 @@ void CGraphicalTextEditor::Enter(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicalTextEditor::Printable(char c, BOOL bInsert)
+void CGraphicalTextEditor::Printable(char c, bool bInsert)
 {
 	msEditPos = mpcText->Insert(msEditPos, c);
 }
@@ -289,7 +289,7 @@ void CGraphicalTextEditor::Printable(char c, BOOL bInsert)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicalTextEditor::Space(BOOL bInsert)
+void CGraphicalTextEditor::Space(bool bInsert)
 {
 	msEditPos = mpcText->Insert(msEditPos, ' ');
 	
@@ -300,7 +300,7 @@ void CGraphicalTextEditor::Space(BOOL bInsert)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicalTextEditor::Tab(BOOL bInsert)
+void CGraphicalTextEditor::Tab(bool bInsert)
 {
 	msEditPos = mpcText->Insert(msEditPos, '\t');
 }
@@ -449,7 +449,7 @@ void CGraphicalTextEditor::DocumentEnd(void)
 
 	pcLine = mpcText->GetLastLine();
 	msEditPos.y = pcLine->miBaseline;
-	msEditPos = FindEndOfLine(msEditPos, FALSE);
+	msEditPos = FindEndOfLine(msEditPos, false);
 	ClearSelection();
 }
 
@@ -487,8 +487,8 @@ void CGraphicalTextEditor::Copy(CChars* pszDest)
 	pszDest->Init();
 	if (msSelectionStart.x == -1)
 	{
-		sStart = FindStartOfLine(msEditPos, FALSE);
-		sEnd = FindEndOfLine(msEditPos, FALSE);
+		sStart = FindStartOfLine(msEditPos, false);
+		sEnd = FindEndOfLine(msEditPos, false);
 		mpcText->GetText(pszDest, sStart, sEnd);
 	}
 	else
@@ -549,8 +549,8 @@ void CGraphicalTextEditor::CutLine(CChars* pszDest)
 	SInt2	sStart;
 	SInt2	sEnd;
 
-	sStart = FindStartOfLine(msEditPos, FALSE);
-	sEnd = FindEndOfLine(msEditPos, FALSE);
+	sStart = FindStartOfLine(msEditPos, false);
+	sEnd = FindEndOfLine(msEditPos, false);
 
 	mpcText->GetText(pszDest, sStart, sEnd);
 	msEditPos = DeleteSubstring(sStart, sEnd);
@@ -576,8 +576,8 @@ void CGraphicalTextEditor::DeleteLine(void)
 	SInt2	sStart;
 	SInt2	sEnd;
 
-	sStart = FindStartOfLine(msEditPos, FALSE);
-	sEnd = FindEndOfLine(msEditPos, FALSE);
+	sStart = FindStartOfLine(msEditPos, false);
+	sEnd = FindEndOfLine(msEditPos, false);
 	msEditPos = DeleteSubstring(sStart, sEnd);
 }
 
@@ -771,14 +771,14 @@ void CGraphicalTextEditor::TouchSelection(void)
 	}
 	else if (msSelectionStart.y > msSelectionEnd.y)
 	{
-		Swap(&msSelectionStart.y, &msSelectionEnd.y);
-		Swap(&msSelectionStart.x, &msSelectionEnd.x);
+		SwapInt(&msSelectionStart.y, &msSelectionEnd.y);
+		SwapInt(&msSelectionStart.x, &msSelectionEnd.x);
 	}
 	if (msSelectionStart.y == msSelectionEnd.y)
 	{
 		if (msSelectionStart.x > msSelectionEnd.x)
 		{
-			Swap(&msSelectionStart.x, &msSelectionEnd.x);
+			SwapInt(&msSelectionStart.x, &msSelectionEnd.x);
 		}	
 	}
 }
@@ -800,7 +800,7 @@ SInt2 CGraphicalTextEditor::FindUp(SInt2 sPos)
 	{
 		pcLine = mpcText->GetLine(iLine-1);
 		sPos.y = pcLine->miBaseline;
-		iChar = pcLine->GetCharIndex(miCenterLineX, TRUE);
+		iChar = pcLine->GetCharIndex(miCenterLineX, true);
 		pcChar = pcLine->GetChar(iChar);
 		if (pcChar)
 		{
@@ -827,7 +827,7 @@ SInt2 CGraphicalTextEditor::FindDown(SInt2 sPos)
 	{
 		pcLine = mpcText->GetLine(iLine+1);
 		sPos.y = pcLine->miBaseline;
-		iChar = pcLine->GetCharIndex(miCenterLineX, TRUE);
+		iChar = pcLine->GetCharIndex(miCenterLineX, true);
 		pcChar = pcLine->GetChar(iChar);
 		if (pcChar)
 		{
@@ -842,7 +842,7 @@ SInt2 CGraphicalTextEditor::FindDown(SInt2 sPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CGraphicalTextEditor::FindStartOfLine(SInt2 sPos, BOOL bSkipWhiteSpace)
+SInt2 CGraphicalTextEditor::FindStartOfLine(SInt2 sPos, bool bSkipWhiteSpace)
 {
 	int				iLine;
 	CTextCharLine*	pcLine;
@@ -870,7 +870,7 @@ SInt2 CGraphicalTextEditor::FindStartOfLine(SInt2 sPos, BOOL bSkipWhiteSpace)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CGraphicalTextEditor::FindEndOfLine(SInt2 sPos, BOOL bSkipWhiteSpace)
+SInt2 CGraphicalTextEditor::FindEndOfLine(SInt2 sPos, bool bSkipWhiteSpace)
 {
 	int				iLine;
 	CTextCharLine*	pcLine;

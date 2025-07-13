@@ -163,7 +163,7 @@ SMatrix* CGraphicsInstance::GetMatrix(int iNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsInstance::CanDraw(void)
+bool CGraphicsInstance::CanDraw(void)
 {
 	return miFlags & GRAPH_INST_FLAGS_DRAW;
 }
@@ -176,8 +176,8 @@ BOOL CGraphicsInstance::CanDraw(void)
 void CGraphicsInstance::Update(void)
 {
 	CLightInstance*	pcLight;
-	int				iLight;
-	int				i;
+	size			iLight;
+	size			i;
 
 	if (!CanDraw())
 	{
@@ -215,7 +215,7 @@ void CGraphicsInstance::Update(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsInstance::SetFlag(int iFlag, int iFlagValue)
 {
-	::SetFlag(&miFlags, iFlag, iFlagValue);
+	::SetFlagInt(&miFlags, iFlag, iFlagValue);
 }
 
 

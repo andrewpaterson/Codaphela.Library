@@ -48,7 +48,7 @@ void CComponentInputDevice::Kill(void)
 	CComponentInputCommand*		psCommand;
 	CComponentInputNumKey*		psNumKey;
 	CComponentInputMotion*		psMotion;
-	int							i;
+	size						i;
 
 	for (i = 0; i < masNumKeys.NumElements(); i++)
 	{
@@ -102,7 +102,7 @@ void CComponentInputDevice::AddPrintable(CInputSourceDesc* pcSource, char cNoShi
 CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* pcSource)
 {
 	CComponentInputPrintable*	psPrintable;
-	int						i;
+	size						i;
 
 	for (i = 0; i < masPrintables.NumElements(); i++)
 	{
@@ -120,7 +120,7 @@ CComponentInputPrintable* CComponentInputDevice::GetPrintable(CInputSourceDesc* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInputDevice::AddCommand(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed)
+void CComponentInputDevice::AddCommand(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed)
 {
 	CComponentInputCommand*		psCommand;
 
@@ -133,10 +133,10 @@ void CComponentInputDevice::AddCommand(EComponentInputCommand eCommand, CInputSo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed)
+CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed)
 {
 	CComponentInputCommand*		psCommand;
-	int						i;
+	size						i;
 
 	for (i = 0; i < masCommands.NumElements(); i++)
 	{
@@ -157,7 +157,7 @@ CComponentInputCommand* CComponentInputDevice::GetCommand(CInputSourceDesc* pcSo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(EComponentInputCommand eCommand, char* szFriendlyName, BOOL bControl, BOOL bAlt, BOOL bShift)
+CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(EComponentInputCommand eCommand, char* szFriendlyName, bool bControl, bool bAlt, bool bShift)
 {
 	return AddButtonPressedAction(szFriendlyName, eCommand, bControl, bAlt, bShift);
 }
@@ -167,7 +167,7 @@ CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(ECompon
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(char* szFriendlyName, EComponentInputCommand eCommand, BOOL bControl, BOOL bAlt, BOOL bShift)
+CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(char* szFriendlyName, EComponentInputCommand eCommand, bool bControl, bool bAlt, bool bShift)
 {
 	CInputVirtualDeviceSource*	pcSource;
 
@@ -178,7 +178,7 @@ CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(char* s
 		{
 			mpcVirtual->AddActiveAction(mpcComponentInput->GetButtonPressedAction(), pcSource);
 		}
-		AddCommand(eCommand, pcSource->GetSourceDesc(), bControl, bAlt, bShift, TRUE);
+		AddCommand(eCommand, pcSource->GetSourceDesc(), bControl, bAlt, bShift, true);
 	}
 	return pcSource;
 }
@@ -188,7 +188,7 @@ CInputVirtualDeviceSource* CComponentInputDevice::AddButtonPressedAction(char* s
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CInputVirtualDeviceSource* CComponentInputDevice::AddButtonReleasedAction(char* szFriendlyName, EComponentInputCommand eCommand, BOOL bControl, BOOL bAlt, BOOL bShift)
+CInputVirtualDeviceSource* CComponentInputDevice::AddButtonReleasedAction(char* szFriendlyName, EComponentInputCommand eCommand, bool bControl, bool bAlt, bool bShift)
 {
 	CInputVirtualDeviceSource*	pcSource;
 
@@ -199,7 +199,7 @@ CInputVirtualDeviceSource* CComponentInputDevice::AddButtonReleasedAction(char* 
 		{
 			mpcVirtual->AddActiveAction(mpcComponentInput->GetButtonReleasedAction(), pcSource);
 		}
-		AddCommand(eCommand, pcSource->GetSourceDesc(), bControl, bAlt, bShift, FALSE);
+		AddCommand(eCommand, pcSource->GetSourceDesc(), bControl, bAlt, bShift, false);
 	}
 	return pcSource;
 }
@@ -263,7 +263,7 @@ void CComponentInputDevice::AddNumKeyRemap(CInputSourceDesc* pcSource, CInputSou
 CComponentInputNumKey* CComponentInputDevice::GetNumKeyRemap(CInputSourceDesc* pcSource)
 {
 	CComponentInputNumKey*		psNumKey;
-	int						i;
+	size						i;
 
 	for (i = 0; i < masNumKeys.NumElements(); i++)
 	{
@@ -297,7 +297,7 @@ void CComponentInputDevice::AddMotion(CInputSourceDesc* pcSource, float fXMultip
 CComponentInputMotion* CComponentInputDevice::GetMotion(CInputSourceDesc* pcSource)
 {
 	CComponentInputMotion*	psMotion;
-	int						i;
+	size					i;
 
 	for (i = 0; i < masMotions.NumElements(); i++)
 	{
@@ -315,7 +315,7 @@ CComponentInputMotion* CComponentInputDevice::GetMotion(CInputSourceDesc* pcSour
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponentInputDevice::HasSpecificAction(CInputVirtualDeviceSource* pcSource, EBasicActionActive eActionType)
+bool CComponentInputDevice::HasSpecificAction(CInputVirtualDeviceSource* pcSource, EBasicActionActive eActionType)
 {
 	SSetIterator			sIter;
 	CInputChord*			pcInputChord;
@@ -333,12 +333,12 @@ BOOL CComponentInputDevice::HasSpecificAction(CInputVirtualDeviceSource* pcSourc
 			{
 				if (puCriteria->cActive.mpcEvaluator->GetDeviceSource()->pcSource == pcSource->GetSourceDesc())
 				{
-					return TRUE;
+					return true;
 				}
 			}
 		}
 		pcInputChord = pcChords->IterateChords(&sIter);
 	}
-	return FALSE;
+	return false;
 }
 

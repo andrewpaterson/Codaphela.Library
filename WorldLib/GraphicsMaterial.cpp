@@ -122,7 +122,7 @@ void CGraphicsMaterial::SetRenderState(D3DRENDERSTATETYPE iD3DRenderState, DWORD
 void CGraphicsMaterial::SetRenderStates(void)
 {
 	SRenderState*	psRenderState;
-	int				i;
+	size			i;
 
 	for (i = 0; i < masRenderStates.NumElements(); i++)
 	{
@@ -139,7 +139,7 @@ void CGraphicsMaterial::SetRenderStates(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsMaterial::UnsetRenderStates(void)
 {
-	int				i;
+	size			i;
 	SRenderState*	psRenderState;
 
 	//Remove any unusual render states this material uses.
@@ -197,7 +197,7 @@ void CGraphicsMaterial::SetGreyDefaults(int iNumTextures)
 	msMaterial.sD3DMaterial.Emissive.b = 0.0f;
 	msMaterial.sD3DMaterial.Emissive.a = 0.0f;
 	msMaterial.sD3DMaterial.Power      = 16.0f;
-	SetRenderState(D3DRS_LIGHTING, TRUE);
+	SetRenderState(D3DRS_LIGHTING, true);
 }
 
 
@@ -233,7 +233,7 @@ void CGraphicsMaterial::SetWhiteDefaults(int iNumTextures)
 	msMaterial.sD3DMaterial.Emissive.b = 0.0f;
 	msMaterial.sD3DMaterial.Emissive.a = 0.0f;
 	msMaterial.sD3DMaterial.Power      = 0.0f;
-	SetRenderState(D3DRS_LIGHTING, FALSE);
+	SetRenderState(D3DRS_LIGHTING, false);
 }
 
 

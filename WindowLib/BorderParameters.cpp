@@ -46,7 +46,7 @@ void CBorderParameters::Init(int eStyle, EBorderEdgeType eEdgeType, CGraphicsSta
 
 	mpcGraphicsTexture = NULL;
 	cTextureConverter.Init(pcWorld);
-	cTextureConverter.Convert(&mpcGraphicsTexture, &cImage, FALSE);
+	cTextureConverter.Convert(&mpcGraphicsTexture, &cImage, false);
 	cTextureConverter.Kill();
 
 	mpcGraphicsMaterial = CreateMaterial(1, pcWorld, cImage.HasChannel(IMAGE_OPACITY));

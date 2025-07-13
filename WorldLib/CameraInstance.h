@@ -60,12 +60,12 @@ public:
 	void 		SetWorldMatrix(SMatrix* psMatrix);
 	void 		SetFOV(float fVertical, float fAspectRatio);
 	void 		SetNearAndFarPlanes(float fNearPlane, float fFarPlane);
-	BOOL 		Use(void);
+	bool 		Use(void);
 	void 		Adjust(SFloat4x4* psDest);
 	void 		LookAt(SFloat3* psFrom, SFloat3* psTo, SFloat3* psUp);
 	void 		CalculateView(void);
 	void 		CalculateProjection(void);
-	BOOL 		IsSphereVisible(CSphere* pcSphere);
+	bool 		IsSphereVisible(CSphere* pcSphere);
 	void 		PickRay(CRay* pcRay, SFloat2 sCursorPosition);
 	void 		CreateAdjustment(void);
 	SMatrix*	GetViewTransform(void);

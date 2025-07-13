@@ -171,7 +171,7 @@ void CMeshObject::SetNormal(int iNormal, SFloat3* psVec)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshObject::IsSkinned(void)
+bool CMeshObject::IsSkinned(void)
 {
 	return (mcNodes.NumElements() != 0);
 }

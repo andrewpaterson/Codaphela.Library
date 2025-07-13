@@ -48,7 +48,7 @@ public:
 	void 			Draw(void);
 	void			SetupSelectionColours(void);
 	void			SetupMaterials(void);
-	BOOL 			AddScene(void);
+	bool 			AddScene(void);
 	CMeshAdjuster*	AddMeshAdjuster(CMeshEditor* pcMeshEditor, CGraphicsInstance* pcGraphicsInstance, CMeshInstance* pcMeshInstance);
 	void			ClearAllSelections(void);
 	void			SetPointSize(float fPointSize);

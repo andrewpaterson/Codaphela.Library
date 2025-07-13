@@ -34,7 +34,7 @@ public:
 	void Kill(void);
 
 	void Layout(SInt2 sPosition, SInt2 sAreaSize);
-	BOOL Draw(void);
+	bool Draw(void);
 };
 
 

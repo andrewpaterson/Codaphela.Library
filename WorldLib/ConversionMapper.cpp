@@ -53,7 +53,7 @@ void CImageGraphicsTexture::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CGraphicsTexture* CImageGraphicsTexture::GetGraphicsTexture(D3DFORMAT d3dFormat)
 {
-	int								i;
+	size							i;
 	SImageGraphicsTextureFormat*	psImageTexture;
 
 	if (miMinusOne == -1)
@@ -129,7 +129,7 @@ void CConversionMapper::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CConversionMapper::Kill(void)
 {
-	int						i;
+	size					i;
 	CImageGraphicsTexture*	pcImageTexture;
 
 	macInstances.Kill();
@@ -153,7 +153,7 @@ void CConversionMapper::AddGraphicsObject(OIndex iMeshID, CGraphicsObject* pcGra
 {
 	SMeshIDToGraphicsObjectAndMeshObject*		psMeshObject;
 
-	macMeshes.GrowToAtLeastNumElements((int)(iMeshID+1), TRUE);
+	macMeshes.GrowToAtLeastNumElements((int)(iMeshID+1), true);
 
 	psMeshObject = macMeshes.Get((int)iMeshID);
 	psMeshObject->iMeshID = iMeshID;
@@ -175,7 +175,7 @@ void CConversionMapper::AddGraphicsMaterial(OIndex iMaterialID, CGraphicsMateria
 		return;
 	}
 
-	macMaterials.GrowToAtLeastNumElements((int)(iMaterialID+1), TRUE, -1);
+	macMaterials.GrowToAtLeastNumElements((int)(iMaterialID+1), true, -1);
 
 	psMaterialThing = macMaterials.Get((int)iMaterialID);
 	psMaterialThing->iMaterialID = iMaterialID;
@@ -192,7 +192,7 @@ void CConversionMapper::AddGraphicsInstance(OIndex iSpecimenID, CGraphicsInstanc
 {
 	SSpecimenIDToGraphicsInstanceAndMeshInstance*		psInstanceInstance;
 
-	macInstances.GrowToAtLeastNumElements((int)(iSpecimenID+1), TRUE, -1);
+	macInstances.GrowToAtLeastNumElements((int)(iSpecimenID+1), true, -1);
 
 	psInstanceInstance = macInstances.Get((int)iSpecimenID);
 	psInstanceInstance->iSpecimenID = iSpecimenID;
@@ -205,16 +205,16 @@ void CConversionMapper::AddGraphicsInstance(OIndex iSpecimenID, CGraphicsInstanc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConversionMapper::AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture* pcGraphicsTexture)
+bool CConversionMapper::AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture* pcGraphicsTexture)
 {
 	CImageGraphicsTexture*		pcImageTexture;
 
 	if (iImageIndex == -1)
 	{
-		return FALSE;
+		return false;
 	}
 
-	pcImageTexture = (CImageGraphicsTexture*)macTextures.GrowToAtLeastNumElements((int)(iImageIndex+1), TRUE, -1);
+	pcImageTexture = (CImageGraphicsTexture*)macTextures.GrowToAtLeastNumElements((int)(iImageIndex+1), true, -1);
 	if (pcImageTexture->miInitialised == 1)
 	{
 		pcImageTexture->AddGraphicsTexture(pcGraphicsTexture, d3dFormat);
@@ -223,7 +223,7 @@ BOOL CConversionMapper::AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraph
 	{
 		pcImageTexture->Init(pcGraphicsTexture, d3dFormat);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -231,7 +231,7 @@ BOOL CConversionMapper::AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraph
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConversionMapper::GetMaterial(OIndex iMaterialIndex, CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState)
+bool CConversionMapper::GetMaterial(OIndex iMaterialIndex, CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState)
 {
 	SMaterialIDToGraphicsMaterialAndGraphicsState*	psMaterial;
 
@@ -240,13 +240,13 @@ BOOL CConversionMapper::GetMaterial(OIndex iMaterialIndex, CGraphicsMaterial** p
 	{
 		*ppcGraphicsMaterial = psMaterial->pcGraphicsMaterial;
 		*ppcGraphicsState = psMaterial->pcGraphicsState;
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		*ppcGraphicsMaterial = NULL;
 		*ppcGraphicsState = NULL;
-		return FALSE;
+		return false;
 	}
 }
 
@@ -255,7 +255,7 @@ BOOL CConversionMapper::GetMaterial(OIndex iMaterialIndex, CGraphicsMaterial** p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConversionMapper::GetMesh(OIndex iMeshIndex, CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject)
+bool CConversionMapper::GetMesh(OIndex iMeshIndex, CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject)
 {
 	SMeshIDToGraphicsObjectAndMeshObject*		psMesh;
 
@@ -264,13 +264,13 @@ BOOL CConversionMapper::GetMesh(OIndex iMeshIndex, CGraphicsObject** ppcGraphics
 	{
 		*ppcGraphicsObject = psMesh->pcGraphicsObject;
 		*ppcMeshObject = psMesh->pcMeshObject;
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		*ppcGraphicsObject = NULL;
 		*ppcMeshObject = NULL;
-		return FALSE;
+		return false;
 	}
 }
 
@@ -279,7 +279,7 @@ BOOL CConversionMapper::GetMesh(OIndex iMeshIndex, CGraphicsObject** ppcGraphics
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CConversionMapper::GetImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture** ppcGraphicsTexture)
+bool CConversionMapper::GetImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture** ppcGraphicsTexture)
 {
 	CImageGraphicsTexture*		pcImageTexture;
 	CGraphicsTexture*			pcTexture;
@@ -291,10 +291,10 @@ BOOL CConversionMapper::GetImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraph
 		if (pcTexture)
 		{
 			*ppcGraphicsTexture = pcTexture;
-			return TRUE;
+			return true;
 		}
 	}
 	*ppcGraphicsTexture = NULL;
-	return FALSE;
+	return false;
 }
 

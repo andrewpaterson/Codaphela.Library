@@ -48,7 +48,7 @@ void CVertexBufferExtended::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CVertexBufferExtended::Init(int iD3DVertexType, int iNumVerts, BOOL bDynamic)
+void CVertexBufferExtended::Init(int iD3DVertexType, int iNumVerts, bool bDynamic)
 {
 	gcD3D.CreateVertexBuffer(iD3DVertexType, iNumVerts, bDynamic, this);
 	miUsedVerticies = 0;
@@ -72,7 +72,7 @@ void CVertexBufferExtended::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::Finalise(void)
+bool CVertexBufferExtended::Finalise(void)
 {
 	return PrivateChangeBufferSize(miUsedVerticies);
 }
@@ -82,7 +82,7 @@ BOOL CVertexBufferExtended::Finalise(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void* psVerts)
+bool CVertexBufferExtended::AppendVerticies(int iNumVerts, void* psVerts)
 {
 	void*	psPos;
 	int		iByteSize;
@@ -91,7 +91,7 @@ BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void* psVerts)
 
 	//There are no vertex formats which are not 4 byte aligned.
 	memcpy_fast(psPos, psVerts, iByteSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -99,7 +99,7 @@ BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void* psVerts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::InsertVerticies(int iNumVerts, int iPos, void* psVerts)
+bool CVertexBufferExtended::InsertVerticies(int iNumVerts, int iPos, void* psVerts)
 {
 	void*	psStartPos;
 	int		iMovedVerts;
@@ -120,7 +120,7 @@ BOOL CVertexBufferExtended::InsertVerticies(int iNumVerts, int iPos, void* psVer
 
 	//Now copy the new verts into the empty spaces.
 	memcpy_fast(psStartPos, psVerts, iByteSize);
-	return TRUE;
+	return true;
 }
 
 
@@ -128,7 +128,7 @@ BOOL CVertexBufferExtended::InsertVerticies(int iNumVerts, int iPos, void* psVer
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void** pvFirstNewVert, int* iSizeInBytes)
+bool CVertexBufferExtended::AppendVerticies(int iNumVerts, void** pvFirstNewVert, int* iSizeInBytes)
 {
 	int		iNeededVerts;
 	void*	psBuffer;
@@ -151,14 +151,14 @@ BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void** pvFirstNewVert
 
 		if (!PrivateChangeBufferSize(iNumAllocations * miChunkSize))
 		{
-			return FALSE;
+			return false;
 		}
 	}
 	psBuffer = gcD3D.LockVertexBuffer(this);
 	if (!psBuffer)
 	{
 		gcUserError.Set("Could not lock vertex buffer.");
-		return FALSE;
+		return false;
 	}
 
 	miUsedVerticies += iNumVerts;
@@ -167,7 +167,7 @@ BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void** pvFirstNewVert
 	{
 		*pvFirstNewVert = RemapSinglePointer(psBuffer, iOldUsedVerts * iVertexSize);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -175,14 +175,14 @@ BOOL CVertexBufferExtended::AppendVerticies(int iNumVerts, void** pvFirstNewVert
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::RemoveVerticies(int iNumVerts)
+bool CVertexBufferExtended::RemoveVerticies(int iNumVerts)
 {
 	miUsedVerticies -= iNumVerts;
 	if (miUsedVerticies < 0)
 	{
 		miUsedVerticies = 0;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -190,7 +190,7 @@ BOOL CVertexBufferExtended::RemoveVerticies(int iNumVerts)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::PrivateChangeBufferSize(int iNewSize)
+bool CVertexBufferExtended::PrivateChangeBufferSize(int iNewSize)
 {
 	SVertexBuffer	sNewVertBuffer;
 	void*			psNewVerts;
@@ -198,13 +198,13 @@ BOOL CVertexBufferExtended::PrivateChangeBufferSize(int iNewSize)
 	//Don't change the buffer if it is not needed.
 	if (iNewSize == iNumVerticies)
 	{
-		return TRUE;
+		return true;
 	}
 
 	if (!gcD3D.CreateVertexBuffer(iVertexFormat, iNewSize, (iFlags & Flags_Dynamic), &sNewVertBuffer))
 	{
 		gcUserError.Set("Could not change vertex buffer size.");
-		return FALSE;
+		return false;
 	}
 
 	//Get where the verts are in memory.
@@ -212,7 +212,7 @@ BOOL CVertexBufferExtended::PrivateChangeBufferSize(int iNewSize)
 	if (!psNewVerts)
 	{
 		gcUserError.Set("Could not change vertex buffer size.");
-		return FALSE;
+		return false;
 	}
 	
 	//Find how many need copying.
@@ -227,7 +227,7 @@ BOOL CVertexBufferExtended::PrivateChangeBufferSize(int iNewSize)
 	//Use the new vertex buffer.
 	memcpy(this, &sNewVertBuffer, sizeof(SVertexBuffer));
 	gcD3D.UnlockVertexBuffer(this);
-	return TRUE;
+	return true;
 }
 
 
@@ -235,20 +235,20 @@ BOOL CVertexBufferExtended::PrivateChangeBufferSize(int iNewSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CVertexBufferExtended::PrivateReleaseAndCopy(void* pvDest)
+bool CVertexBufferExtended::PrivateReleaseAndCopy(void* pvDest)
 {
 	void*	psOldVerts;
 
 	if (iNumVerticies == 0)
 	{
 		//A vertex buffer cannot be created with 0 verts so there is nothing to release.
-		return TRUE;
+		return true;
 	}
 
 	psOldVerts = gcD3D.LockVertexBuffer(this);
 	if (!psOldVerts)
 	{
-		return FALSE;
+		return false;
 	}
 
 	//Copy them.
@@ -258,7 +258,7 @@ BOOL CVertexBufferExtended::PrivateReleaseAndCopy(void* pvDest)
 	gcD3D.UnlockVertexBuffer(this);  //Not sure if this is necessary or if it will cause slowdown.
 	gcD3D.ReleaseVertexBuffer(this);
 	iNumVerticies = 0;
-	return TRUE;
+	return true;
 }
 
 
@@ -278,7 +278,7 @@ void CGraphicsVertexBufferArray::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsVertexBufferArray::Kill(void)
 {
-	int						i;
+	size					i;
 	CVertexBufferExtended*	psVertexBuffer;
 
 	for (i = 0; i < miUsedElements; i++)
@@ -294,12 +294,12 @@ void CGraphicsVertexBufferArray::Kill(void)
 //
 //
 //////////////////////////s////////////////////////////////////////////////
-CVertexBufferExtended* CGraphicsVertexBufferArray::AddVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bUseExisting)
+CVertexBufferExtended* CGraphicsVertexBufferArray::AddVertexBuffer(int iD3DVertexType, int iNumVerts, bool bUseExisting)
 {
 	CVertexBufferExtended*	psVertexBuffer;
 	void*					pvFirstNewVert;
 	int						iSizeInBytes;
-	BOOL					bResult;
+	bool					bResult;
 
 	if (!iNumVerts)
 	{
@@ -325,7 +325,7 @@ CVertexBufferExtended* CGraphicsVertexBufferArray::AddVertexBuffer(int iD3DVerte
 		psVertexBuffer = Add();
 		if (psVertexBuffer)
 		{
-			psVertexBuffer->Init(iD3DVertexType, iNumVerts, FALSE);
+			psVertexBuffer->Init(iD3DVertexType, iNumVerts, false);
 			return psVertexBuffer;
 		}
 		else
@@ -343,7 +343,7 @@ CVertexBufferExtended* CGraphicsVertexBufferArray::AddVertexBuffer(int iD3DVerte
 //////////////////////////////////////////////////////////////////////////
 CVertexBufferExtended* CGraphicsVertexBufferArray::GetVertexBuffer(int iD3DVertexType)
 {
-	int						i;
+	size					i;
 	CVertexBufferExtended*	psVertexBuffer;
 
 	for (i = 0; i < miUsedElements; i++)
@@ -386,10 +386,10 @@ void CGraphicsVertexBufferArray::RemoveVertexBuffer(int iD3DVertexType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicsVertexBufferArray::SetNumVertexBuffers(int iNumBuffers)
+void CGraphicsVertexBufferArray::SetNumVertexBuffers(size iNumBuffers)
 {
-	int						iOldUsed;
-	int						i;
+	size					iOldUsed;
+	size					i;
 	CVertexBufferExtended*	psBuffer;
 
 	if (iNumBuffers != miUsedElements)
@@ -426,7 +426,7 @@ void CGraphicsVertexBufferArray::SetNumVertexBuffers(int iNumBuffers)
 //////////////////////////////////////////////////////////////////////////
 int CGraphicsVertexBufferArray::GetVertexBufferIndex(int iD3DVertexType)
 {
-	int						i;
+	size					i;
 	CVertexBufferExtended*	psVertexBuffer;
 
 	for (i = 0; i < miUsedElements; i++)

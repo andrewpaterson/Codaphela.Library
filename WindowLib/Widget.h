@@ -33,9 +33,9 @@ public:
 	CBlock*		mpcBackground;
 	CBorder*	mpcBorder;
 
-	void 		Init(CViewport* pcViewport, BOOL bDefaultBorder = TRUE, BOOL bDefaultBackground = TRUE);
+	void 		Init(CViewport* pcViewport, bool bDefaultBorder = true, bool bDefaultBackground = true);
 	void 		Kill(void);
-	BOOL 		Draw(void);
+	bool 		Draw(void);
 	void		Layout(SInt2 sPosition, SInt2 sAreaSize);
 
 	CBorder*	GetBorder(void);

@@ -37,10 +37,10 @@ void CMeshSelectionConverter::Init(CScene* pcScene, CWorld* pcWorld)
 
 	mfZOffset = 0.5f;
 	mfNormalLength = 4.0f;
-	mbNormals = FALSE;
-	mbVerticies = FALSE;
-	mbEdges = TRUE;
-	mbFaces = FALSE;
+	mbNormals = false;
+	mbVerticies = false;
+	mbEdges = true;
+	mbFaces = false;
 }
 
 
@@ -154,7 +154,7 @@ void CMeshSelectionConverter::AddSelectedFaces(void)
 	int					iStartVertex;
 	CArrayInt			aiSkinIndices;
 	int					iColour;
-	BOOL				bSelected;
+	bool				bSelected;
 
 	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
 	iNumFaces = 0;
@@ -203,7 +203,7 @@ void CMeshSelectionConverter::AddSelectedEdges(void)
 	int					iNumEdges;
 	int					iStartVertex;
 	CArrayInt			aiSkinIndices;
-	BOOL				bSelected;
+	bool				bSelected;
 
 	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
 	iNumEdges = 0;
@@ -313,7 +313,7 @@ void CMeshSelectionConverter::AddSelectedVerts(void)
 	int					iNumCorners;
 	int					iStartVertex;
 	CArrayInt			aiSkinIndices;
-	BOOL				bSelected;
+	bool				bSelected;
 	
 	iStartVertex = mpcObject->GetNumberOfVerticesOfType(D3DFVF_CVERTEX);
 	iNumCorners = 0;
@@ -547,9 +547,9 @@ void CMeshSelectionConverter::FinalisePrimitives(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CMeshSelectionConverter::IsNormalFacingCamera(SFloat3* psNormal)
+bool CMeshSelectionConverter::IsNormalFacingCamera(SFloat3* psNormal)
 {
-	return TRUE;
+	return true;
 
 	//SFloat3	cOut;
 
@@ -558,7 +558,7 @@ BOOL CMeshSelectionConverter::IsNormalFacingCamera(SFloat3* psNormal)
 	//	Float3TransformNormal(&cOut, (SFloat3*)psNormal, mpsCameraView);
 	//	return cOut.z <= 0;
 	//}
-	//return FALSE;
+	//return false;
 }
 
 

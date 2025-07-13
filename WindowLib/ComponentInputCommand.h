@@ -98,12 +98,12 @@ class CComponentInputCommand
 public:
 	EComponentInputCommand		eCommand;
 	CInputSourceDesc*			pcSource;
-	BOOL						bPressed;
-	BOOL						bControl;
-	BOOL						bAlt;
-	BOOL						bShift;
+	bool						bPressed;
+	bool						bControl;
+	bool						bAlt;
+	bool						bShift;
 
-	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed);
+	void Init(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
 	void Kill(void);
 };
 

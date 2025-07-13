@@ -49,20 +49,20 @@ public:
 
 	void 								AddPrintable(CInputSourceDesc* pcSource, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
 	virtual CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
-	void								AddCommand(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed);
-	virtual CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed);
+	void								AddCommand(EComponentInputCommand eCommand, CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
+	virtual CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
 	void								AddNumKeyRemap(CInputSourceDesc* pcSource, CInputSourceDesc* pcYesNumLockRemap, CInputSourceDesc* pcNoNumLockRemap);
 	virtual CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	void								AddMotion(CInputSourceDesc* pcSource, float fXMultiplier, float fYMultiplier);
 	virtual CComponentInputMotion*		GetMotion(CInputSourceDesc* pcSource);
 
-	CInputVirtualDeviceSource*			AddButtonPressedAction(char* szFriendlyName, EComponentInputCommand eCommand, BOOL bControl, BOOL bAlt, BOOL bShift);
-	CInputVirtualDeviceSource*			AddButtonPressedAction(EComponentInputCommand eCommand, char* szFriendlyName, BOOL bControl, BOOL bAlt, BOOL bShift);
-	CInputVirtualDeviceSource*			AddButtonReleasedAction(char* szFriendlyName, EComponentInputCommand eCommand, BOOL bControl, BOOL bAlt, BOOL bShift);
+	CInputVirtualDeviceSource*			AddButtonPressedAction(char* szFriendlyName, EComponentInputCommand eCommand, bool bControl, bool bAlt, bool bShift);
+	CInputVirtualDeviceSource*			AddButtonPressedAction(EComponentInputCommand eCommand, char* szFriendlyName, bool bControl, bool bAlt, bool bShift);
+	CInputVirtualDeviceSource*			AddButtonReleasedAction(char* szFriendlyName, EComponentInputCommand eCommand, bool bControl, bool bAlt, bool bShift);
 	CInputVirtualDeviceSource*			AddRangeAction(char* szFriendlyName);
 	CInputVirtualDeviceSource*			AddPrintable(char* szFriendlyName, char cNoShiftNoCaps, char cYesShiftNoCaps, char cNoShiftYesCaps, char cYesShiftYesCaps);
 
-	BOOL								HasSpecificAction(CInputVirtualDeviceSource* pcSource, EBasicActionActive eActionType);
+	bool								HasSpecificAction(CInputVirtualDeviceSource* pcSource, EBasicActionActive eActionType);
 };
 
 

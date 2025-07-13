@@ -27,7 +27,7 @@ Microsoft DirectX and associated libraries are Copyright Microsoft Corporation
 
 
 void InitDirectX(void);
-BOOL InitDirectX(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, BOOL bStencil, BOOL bExclusive, HWND hWndInput);
+bool InitDirectX(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, bool bStencil, bool bExclusive, HWND hWndInput);
 void KillDirectX(void);
 
 

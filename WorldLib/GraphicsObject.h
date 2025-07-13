@@ -75,20 +75,20 @@ protected:
 	CWorld*								mpcWorld;
 
 public:
-	void 					Init(BOOL bDynamicBuffers, CWorld* pcWorld);
+	void 					Init(bool bDynamicBuffers, CWorld* pcWorld);
 	void 					Kill(void);
 	void					KillPrimitives(void);
 	void					Reinit(void);
-	BOOL 					Draw(void);
+	bool 					Draw(void);
 	void					Sort(void);
 	void					SetFlags(int iFlag);
-	void					SetFlag(int iFlag, BOOL bValue);
-	BOOL					HasFlag(int iFlag);
+	void					SetFlag(int iFlag, bool bValue);
+	bool					HasFlag(int iFlag);
 	void					Lock(void);
 	void					Unlock(void);
 
 	void					SetNumVertexBuffers(int iNumBuffers);
-	CVertexBufferExtended*	AddVertexBuffer(int iD3DVertexType, int iNumVertsInStaticBuffer, BOOL bUseExisting = TRUE, int* piIndex = NULL);
+	CVertexBufferExtended*	AddVertexBuffer(int iD3DVertexType, int iNumVertsInStaticBuffer, bool bUseExisting = true, int* piIndex = NULL);
 	CVertexBufferExtended*	GetVertexBufferForType(int iD3DVertexType);
 	CVertexBufferExtended*	GetVertexBufferForIndex(int iIndex);
 	int						GetVertexBufferIndex(int iD3DVertexType);
@@ -125,7 +125,7 @@ public:
 	int						GetIndexForGraphicsViewportPointer(CViewportInstance* pcGraphicsViewport);
 
 	int						GetNumPrimitives(void);
-	CGraphicsPrimitive*		AddPrimitives(int iNumToAdd);
+	CGraphicsPrimitive*		AddPrimitives(size iNumToAdd);
 	CGraphicsPrimitive*		AddPrimitive(int iNumPrimitives, D3DPRIMITIVETYPE eType, int iFlags, int iNumVerticies, int iStartIndex, int iStartVertex, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexBufferIndex, int iViewportPointerIndex);
 	CGraphicsPrimitive*		GrowPrimitive(int iNumAdditionalPrimitives, D3DPRIMITIVETYPE eType, int iNumAdditionalVerticies, int iVertexBufferIndex, int iMaterialPointerIndex, int iStatePointerIndex, int iViewportPointerIndex);
 	void*					GrowPrimitiveNew(int iNumAdditionalPrimitives, D3DPRIMITIVETYPE eType, int iNumAdditionalVerticies, int iD3DVertexType, int iMaterialPointerIndex, int iStatePointerIndex, int iViewportPointerIndex, CGraphicsPrimitive** ppcPrimitive = NULL);
@@ -152,16 +152,16 @@ public:
 	int						GetFlags(void);
 
 	//Helper functions.
-	BOOL					BeginDynamic(void);
-	BOOL					EndDynamic(void);
+	bool					BeginDynamic(void);
+	bool					EndDynamic(void);
 	void*					AddDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimitive, int iD3DVertexType, int iNumPrimitives, int iNumVerticies);
 	void*					AddDynamicVertex(int iD3DVertexType);
 	int						GetNumberOfVerticesOfType(int iD3DVertexType);
 	int						GetNumberOfVertices(int iVertexBufferIndex);
 	int						GetNumberOfStaticBuffers(void);
-	BOOL					UnlockDynamicVertexBuffers(void);
-	BOOL					LockDynamicVertexBuffers(void);
-	BOOL					RemoveDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimitive, int iD3DVertexType, int iNumPrimitives, int iNumVerticies);
+	bool					UnlockDynamicVertexBuffers(void);
+	bool					LockDynamicVertexBuffers(void);
+	bool					RemoveDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimitive, int iD3DVertexType, int iNumPrimitives, int iNumVerticies);
 };
 
 

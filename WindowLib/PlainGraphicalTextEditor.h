@@ -43,7 +43,7 @@ public:
 	void 	Delete(void);
 	void 	Backspace(void);
 	void 	Enter(void);
-	void 	Printable(char c, BOOL bInsert);
+	void 	Printable(char c, bool bInsert);
 	void 	Home(void);
 	void 	End(void);
 	void 	DocumentHome(void);
@@ -75,8 +75,8 @@ public:
 	void 	DeleteLine(void);
 	void 	EndEnter(void);
 	void 	HomeEnter(void);
-	void 	Space(BOOL bInsert);
-	void 	Tab(BOOL bInsert);
+	void 	Space(bool bInsert);
+	void 	Tab(bool bInsert);
 	void 	BackTab(void);
 };
 

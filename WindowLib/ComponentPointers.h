@@ -34,7 +34,7 @@ public:
 	void		KillComponents(void);
 
 	void 		Add(CComponent* pcComponent);
-	void 		Remove(CComponent* pcComponent, BOOL bKillComponent);
+	void 		Remove(CComponent* pcComponent, bool bKillComponent);
 	void 		RemoveAll(void);
 	CComponent* Get(int iIndex);
 	int			Size(void);

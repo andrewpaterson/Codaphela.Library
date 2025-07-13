@@ -76,7 +76,7 @@ void CRotationInterpolator::Update(float fPos)
 //////////////////////////////////////////////////////////////////////////
 void CRotation::Init(void)
 {
-	msType.iValue = -1;
+	msType.uiType = SIZE_MAX;
 	msType.pvData = NULL;
 }
 
@@ -108,7 +108,7 @@ void* CRotation::Set(ERotationType eType)
 	{
 		msType.pvData = malloc(sizeof(CRotationInterpolator));
 		psLinear = (CRotationInterpolator*)msType.pvData;
-		msType.iValue = eType;
+		msType.uiType = eType;
 		psLinear->Init();
 		return psLinear;
 	}
@@ -122,7 +122,7 @@ void* CRotation::Set(ERotationType eType)
 //////////////////////////////////////////////////////////////////////////
 void CRotation::Update(float fFractionalTime)
 {
-	switch(msType.iValue) 
+	switch(msType.uiType)
 	{
 	case RT_SphericalLinearRotation:
 		((CRotationInterpolator*)msType.pvData)->Update(fFractionalTime);
@@ -137,7 +137,7 @@ void CRotation::Update(float fFractionalTime)
 //////////////////////////////////////////////////////////////////////////
 SQuaternion* CRotation::GetRotation(void)
 {
-	switch(msType.iValue) 
+	switch(msType.uiType)
 	{
 	case RT_SphericalLinearRotation:
 		return &(((CRotationInterpolator*)msType.pvData)->msOutput);

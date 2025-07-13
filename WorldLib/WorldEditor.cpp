@@ -61,22 +61,22 @@ void CWorldEditor::SetupMaterials(void)
 
 	mpcZBufferlessMaterial = mpcSceneConverter->GetWorld()->CreateGraphicsMaterial();
 	mpcZBufferlessMaterial->SetWhiteDefaults(0);
-	mpcZBufferlessMaterial->SetRenderState(D3DRS_ZENABLE, FALSE);
+	mpcZBufferlessMaterial->SetRenderState(D3DRS_ZENABLE, false);
 
 	mpCLightInstancelessMaterial = mpcSceneConverter->GetWorld()->CreateGraphicsMaterial();
 	mpCLightInstancelessMaterial->SetWhiteDefaults(0);
 	mpCLightInstancelessMaterial->SetRenderState(D3DRS_POINTSIZE, *((DWORD*)&mfPointSize));
-	mpCLightInstancelessMaterial->SetRenderState(D3DRS_POINTSCALEENABLE, FALSE);
+	mpCLightInstancelessMaterial->SetRenderState(D3DRS_POINTSCALEENABLE, false);
 
 	mpcBlendMaterial = mpcSceneConverter->GetWorld()->CreateGraphicsMaterial();
 	mpcBlendMaterial->SetWhiteDefaults(0);
-	mpcBlendMaterial->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
-	mpcBlendMaterial->SetRenderState(D3DRS_ALPHATESTENABLE, TRUE);
+	mpcBlendMaterial->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
+	mpcBlendMaterial->SetRenderState(D3DRS_ALPHATESTENABLE, true);
 	mpcBlendMaterial->SetRenderState(D3DRS_ALPHAFUNC, D3DCMP_LESS);
 	mpcBlendMaterial->SetRenderState(D3DRS_ALPHAREF, 255);
 	mpcBlendMaterial->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 	mpcBlendMaterial->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
-	mpcZBufferlessMaterial->SetRenderState(D3DRS_ZENABLE, FALSE);
+	mpcZBufferlessMaterial->SetRenderState(D3DRS_ZENABLE, false);
 }
 
 
@@ -122,7 +122,7 @@ void CWorldEditor::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWorldEditor::AddScene(void)
+bool CWorldEditor::AddScene(void)
 {
 	int												iNumSceneInstances;
 	int												i;
@@ -130,12 +130,12 @@ BOOL CWorldEditor::AddScene(void)
 	SSpecimenIDToGraphicsInstanceAndMeshInstance*	pcInstanceInstance;
 	CInstance*										pcInstance;
 	int												iMeshIndex;
-	BOOL											bResult;
+	bool											bResult;
 
 	bResult = mpcSceneConverter->ConvertScene();
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 
 	iNumSceneInstances = mpcSceneConverter->GetScene()->mcInstanceTracker.Num();
@@ -153,7 +153,7 @@ BOOL CWorldEditor::AddScene(void)
 			}
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 

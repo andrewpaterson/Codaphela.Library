@@ -33,7 +33,7 @@ void CText::Init(CViewport* pcViewport)
 
 	mcTextData.Init(GetFactory()->mpcDefaultFont);
 	mfAlpha = 1.0f;
-	mbCaretVisible = FALSE;
+	mbCaretVisible = false;
 	msCaretPos.Init(0, 0);
 
 	mpcCaret = gcUnknowns.Add<CCaret>();
@@ -61,7 +61,7 @@ void CText::Kill(void)
 void CText::Layout(SInt2 sPosition, SInt2 sAreaSize)
 {
 	CRectangle	cRect;
-	BOOL		bValid;
+	bool		bValid;
 
 	mcTextData.Layout();
 	CDrawable::Layout(sPosition, sAreaSize);
@@ -75,7 +75,7 @@ void CText::Layout(SInt2 sPosition, SInt2 sAreaSize)
 	}
 	else
 	{
-		mbCaretVisible = FALSE;
+		mbCaretVisible = false;
 	}
 }
 
@@ -84,7 +84,7 @@ void CText::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CText::Draw(void)
+bool CText::Draw(void)
 {
 	mcTextData.CreateQuads(mpcViewport->mpcGraphicsObject, mpcGraphicsViewport, &msPosition, &mpcViewport->mcMap2D);
 	return CDrawable::Draw();

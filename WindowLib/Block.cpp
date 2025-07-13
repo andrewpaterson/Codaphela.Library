@@ -52,7 +52,7 @@ void CBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBlock::Draw(void)
+bool CBlock::Draw(void)
 {
 	CreateQuad();
 	return CDrawable::Draw();

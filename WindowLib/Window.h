@@ -44,8 +44,8 @@ public:
 	HINSTANCE		mhInstance;
 	HWND			hWnd;
 	HCURSOR			hCursor;
-	BOOL			mbActive;
-	BOOL			mbLoop;
+	bool			mbActive;
+	bool			mbLoop;
 
 	CTimer			mcLoopTimer;
 
@@ -55,10 +55,10 @@ public:
 	void 				Init(HINSTANCE hInst, char* szName, CInput* pcInput);
 	virtual void 		Kill(void);
 	void				Layout(void);
-	BOOL				Draw(void);
-	BOOL 				FullScreen(int nCmdShow);
-	BOOL 				Windowed(int nCmdShow, int xp, int yp, int xs, int ys);
-	BOOL				Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle);
+	bool				Draw(void);
+	bool 				FullScreen(int nCmdShow);
+	bool 				Windowed(int nCmdShow, int xp, int yp, int xs, int ys);
+	bool				Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle);
 	void				Destroy(void);
 	int					WinLoop(void);
 	virtual void		ActiveTick(void);
@@ -67,12 +67,12 @@ public:
 	int					GetClientWidth(void);
 	int					GetClientHeight(void);
 	void				AddComponent(CComponent* pcComponent);
-	void				RemoveComponent(CComponent* pcComponent, BOOL bKillComponent);
-	void				RemoveAllComponents(BOOL bKillComponents);
+	void				RemoveComponent(CComponent* pcComponent, bool bKillComponent);
+	void				RemoveAllComponents(bool bKillComponents);
 	CComponent*			FindComponentAtRelative(int x, int y);
-	BOOL				IsPointInRelative(int x, int y);
+	bool				IsPointInRelative(int x, int y);
 	CComponent*			FindComponentAtAbsolute(int x, int y);
-	BOOL				IsPointInAbsolute(int x, int y);
+	bool				IsPointInAbsolute(int x, int y);
 	void				Activate(void);
 	void				Deactivate(void);
 	void				EndingWinloop(char* szReason);

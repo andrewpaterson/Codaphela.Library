@@ -51,10 +51,10 @@ public:
 	SFloat3*				mpsCameraDir;
 	float					mfZOffset;
 	float					mfNormalLength;
-	BOOL					mbNormals;
-	BOOL					mbVerticies;
-	BOOL					mbEdges;
-	BOOL					mbFaces;
+	bool					mbNormals;
+	bool					mbVerticies;
+	bool					mbEdges;
+	bool					mbFaces;
 
 	void	Init(CScene* pcScene, CWorld* pcWorld);
 	void	Kill(void);
@@ -75,7 +75,7 @@ public:
 	void	AssignSkinnedVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset, CMeshSkinVert* pcSkinVert);
 	void 	AssignTransformedVertex(D3DCVERTEX* psVertex, SFloat3* psPosition, unsigned int iColour, float fZOffset);
 	void	FinalisePrimitives(void);
-	BOOL	IsNormalFacingCamera(SFloat3* psNormal);
+	bool	IsNormalFacingCamera(SFloat3* psNormal);
 	int		AddBrokenLine(SFloat3* psStart, SFloat3* psEnd, SMatrix* psMatrix);
 };
 

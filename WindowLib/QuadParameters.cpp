@@ -47,7 +47,7 @@ void CQuadParameters::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGraphicsMaterial* CQuadParameters::CreateMaterial(int iNumTextures, CWorld* pcWorld, BOOL bAlpha)
+CGraphicsMaterial* CQuadParameters::CreateMaterial(int iNumTextures, CWorld* pcWorld, bool bAlpha)
 {
 	CGraphicsMaterial*	pcMaterial;
 
@@ -56,11 +56,11 @@ CGraphicsMaterial* CQuadParameters::CreateMaterial(int iNumTextures, CWorld* pcW
 	pcMaterial->SetWhiteDefaults(iNumTextures);
 	if (bAlpha)
 	{
-		pcMaterial->SetRenderState(D3DRS_ALPHABLENDENABLE, TRUE);
+		pcMaterial->SetRenderState(D3DRS_ALPHABLENDENABLE, true);
 		pcMaterial->SetRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 		pcMaterial->SetRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 	}
-	pcMaterial->SetRenderState(D3DRS_ZENABLE, FALSE);
+	pcMaterial->SetRenderState(D3DRS_ZENABLE, false);
 	pcMaterial->SetRenderState(D3DRS_CULLMODE, D3DCULL_CCW);
 	return pcMaterial;
 }

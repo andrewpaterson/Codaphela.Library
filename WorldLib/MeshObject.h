@@ -81,7 +81,7 @@ public:
 	void 							Kill(void);
 	void 							SetVertex(int iVertex, SFloat3* psVec);
 	void 							SetNormal(int iNormal, SFloat3* psVec);
-	BOOL 							IsSkinned(void);
+	bool 							IsSkinned(void);
 
 	CArrayVector*					GetVerticies(void);
 	CArrayVector*					GetNormals(void);

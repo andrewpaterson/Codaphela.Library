@@ -132,7 +132,7 @@ int CTextChar::GetRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextChar::IsWhiteSpace(void)
+bool CTextChar::IsWhiteSpace(void)
 {
 	return ((mcChar == ' ') || (mcChar == '\t'));
 }
@@ -142,7 +142,7 @@ BOOL CTextChar::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextChar::GetBounds(CRectangle* pcDest)
+bool CTextChar::GetBounds(CRectangle* pcDest)
 {
 	CGlyph*		pcGlyph;
 
@@ -151,7 +151,7 @@ BOOL CTextChar::GetBounds(CRectangle* pcDest)
 	pcDest->miRight--;
 	pcDest->miBottom--;
 
-	return TRUE;
+	return true;
 }
 
 
@@ -192,7 +192,7 @@ void CTextCharLine::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 CTextParameters* CTextCharLine::Layout(int x, int y, CTextParameters* pcLastFont)
 {
-	int					i;
+	size				i;
 	CTextChar*			pcChar;
 	int					iMaxAscent;
 	int					iMaxDescent;
@@ -252,7 +252,7 @@ CTextParameters* CTextCharLine::Layout(int x, int y, CTextParameters* pcLastFont
 //////////////////////////////////////////////////////////////////////////
 void CTextCharLine::CreateQuads(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
 {
-	int					i;
+	size				i;
 	CTextChar*			pcChar;
 
 	for (i = 0; i < mcChars.NumElements(); i++)
@@ -326,7 +326,7 @@ CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char c)
 void CTextCharLine::Append(CChars* pcText)
 {
 	CTextChar*	pcChar;
-	int				i;
+	size		i;
 
 	for (i = 0; i < mcChars.NumElements(); i++)
 	{
@@ -350,9 +350,9 @@ CTextChar* CTextCharLine::GetLastChar(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTextCharLine::GetCharIndex(int x, BOOL bClamp)
+int CTextCharLine::GetCharIndex(int x, bool bClamp)
 {
-	int			i;
+	size		i;
 	CTextChar*	pcChar;	
 
 	if (IsEmpty())
@@ -402,7 +402,7 @@ int CTextCharLine::GetLastCharIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::IsLeftAllWhiteSpace(int x)
+bool CTextCharLine::IsLeftAllWhiteSpace(int x)
 {
 	int			iChar;
 	int			i;
@@ -422,12 +422,12 @@ BOOL CTextCharLine::IsLeftAllWhiteSpace(int x)
 			pcChar = mcChars.Get(i);
 			if (!pcChar->IsWhiteSpace())
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -435,7 +435,7 @@ BOOL CTextCharLine::IsLeftAllWhiteSpace(int x)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::IsRightAllWhiteSpace(int x)  
+bool CTextCharLine::IsRightAllWhiteSpace(int x)  
 {
 	int			iChar;
 	int			i;
@@ -457,12 +457,12 @@ BOOL CTextCharLine::IsRightAllWhiteSpace(int x)
 			pcChar = mcChars.Get(i);
 			if (!pcChar->IsWhiteSpace())
 			{
-				return FALSE;
+				return false;
 			}
 		}
-		return TRUE;
+		return true;
 	}
-	return FALSE;
+	return false;
 }
 
 
@@ -472,7 +472,7 @@ BOOL CTextCharLine::IsRightAllWhiteSpace(int x)
 //////////////////////////////////////////////////////////////////////////
 int CTextCharLine::GetFirstNonWhiteSpaceCharIndex(void)
 {
-	int			i;
+	size		i;
 	CTextChar*	pcChar;
 
 	for (i = 0; i < mcChars.NumElements(); i++)
@@ -512,7 +512,7 @@ int CTextCharLine::GetLastNonWhiteSpaceCharIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::IsEmpty(void)
+bool CTextCharLine::IsEmpty(void)
 {
 	return mcChars.NumElements() == 0;
 }
@@ -521,9 +521,9 @@ BOOL CTextCharLine::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::IsOutOfBoundsRight(int iIndex)
+bool CTextCharLine::IsOutOfBoundsRight(int iIndex)
 {
-	return iIndex >= mcChars.NumElements();
+	return iIndex >= (int)mcChars.NumElements();
 }
 
 
@@ -531,7 +531,7 @@ BOOL CTextCharLine::IsOutOfBoundsRight(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::IsOutOfBoundsLeft(int iIndex)
+bool CTextCharLine::IsOutOfBoundsLeft(int iIndex)
 {
 	return iIndex < 0;
 }
@@ -541,7 +541,7 @@ BOOL CTextCharLine::IsOutOfBoundsLeft(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::IsOutOfBounds(int iIndex)
+bool CTextCharLine::IsOutOfBounds(int iIndex)
 {
 	return IsOutOfBoundsLeft(iIndex) || IsOutOfBoundsRight(iIndex);
 }
@@ -550,7 +550,7 @@ BOOL CTextCharLine::IsOutOfBounds(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
+bool CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
 {
 	CTextChar*	pcChar;
 
@@ -565,7 +565,7 @@ BOOL CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
 		pcDest->miTop = this->msTopLeft.y;
 		pcDest->miRight = this->msBottomRight.x+1;
 		pcDest->miBottom = this->msBottomRight.y;
-		return TRUE;
+		return true;
 	}
 }
 
@@ -617,7 +617,7 @@ void CTextData::Init(CTextParameters* pcDefaultFont, CChars* pcText)
 //////////////////////////////////////////////////////////////////////////
 void CTextData::Kill(void)
 {
-	int					i;
+	size			i;
 	CTextCharLine*	pcLine;
 
 	for (i = 0; i < mcLines.NumElements(); i++)
@@ -670,7 +670,7 @@ void CTextData::Reinit(CChars* pcText)
 //////////////////////////////////////////////////////////////////////////
 void CTextData::Append(CChars* pcText)
 {
-	int					i;
+	size			i;
 	CTextCharLine*	pcLine;
 
 	for (i = 0; i < mcLines.NumElements(); i++)
@@ -688,7 +688,7 @@ void CTextData::Append(CChars* pcText)
 //////////////////////////////////////////////////////////////////////////
 void CTextData::Layout(void)
 {
-	int					i;
+	size				i;
 	CTextCharLine*		pcLine;
 	int					x;
 	int					y;
@@ -723,7 +723,7 @@ void CTextData::Clear(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextData::CreateQuads(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
 {
-	int				i;
+	size			i;
 	CTextCharLine*	pcLine;
 
 	for (i = 0; i < mcLines.NumElements(); i++)
@@ -794,13 +794,13 @@ SInt2 CTextData::Remove(SInt2 sPosStart, SInt2 sPosEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextChar* CTextData::Insert(int iColumn, int iLine, CTextParameters* pcFont, char* szText, int iLen)
+CTextChar* CTextData::Insert(int iColumn, size iLine, CTextParameters* pcFont, char* szText, size iLen)
 {
-	int					i;
+	size				i;
 	char				c;
 	CTextCharLine*		pcLine;
-	int					iLineStart;
-	int					iLineEnd;
+	size				iLineStart;
+	size				iLineEnd;
 	CTextChar*			pcChar;
 
 	if (iLine >= mcLines.NumElements())
@@ -929,7 +929,7 @@ SInt2 CTextData::Join(SInt2 sPos)
 //////////////////////////////////////////////////////////////////////////
 int CTextData::GetLineIndex(int y)
 {
-	int				i;
+	size			i;
 	CTextCharLine*	pcLine;
 	
 	//Does not take X into account.
@@ -998,7 +998,7 @@ CTextChar* CTextData::GetChar(int iX, int iLine)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CTextData::GetBounds(int iX, int iLine, CRectangle* pcDest)
+bool CTextData::GetBounds(int iX, int iLine, CRectangle* pcDest)
 {
 	CTextCharLine*	pcLine;
 
@@ -1007,6 +1007,6 @@ BOOL CTextData::GetBounds(int iX, int iLine, CRectangle* pcDest)
 	{
 		return pcLine->GetBounds(iX, pcDest);
 	}
-	return FALSE;
+	return false;
 }
 

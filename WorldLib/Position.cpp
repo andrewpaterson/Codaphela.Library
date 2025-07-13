@@ -126,7 +126,7 @@ void CDirectedInterpolator::SetDirections(SFloat3* psStart, SFloat3* psEnd)
 //////////////////////////////////////////////////////////////////////////
 void CPosition::Init(void)
 {
-	msType.iValue = -1;
+	msType.uiType = SIZE_MAX;
 	msType.pvData = NULL;
 }
 
@@ -160,7 +160,7 @@ void* CPosition::Set(EPositionType eType)
 		//Why the fuck do you malloc this?!??!
 		msType.pvData = malloc(sizeof(CLinearPositionInterpolator));
 		psLinear = (CLinearPositionInterpolator*)msType.pvData;
-		msType.iValue = eType;
+		msType.uiType = eType;
 		psLinear->Init();
 		return psLinear;
 	}
@@ -168,7 +168,7 @@ void* CPosition::Set(EPositionType eType)
 	{
 		msType.pvData = malloc(sizeof(CDirectedInterpolator));
 		psDirected = (CDirectedInterpolator*)msType.pvData;
-		msType.iValue = eType;
+		msType.uiType = eType;
 		psDirected->Init();
 		return psDirected;
 	}
@@ -182,7 +182,7 @@ void* CPosition::Set(EPositionType eType)
 //////////////////////////////////////////////////////////////////////////
 void CPosition::Update(float fFractionalTime)
 {
-	switch(msType.iValue) 
+	switch(msType.uiType)
 	{
 	case PT_LinearPosition:
 		((CLinearPositionInterpolator*)msType.pvData)->Update(fFractionalTime);
@@ -200,7 +200,7 @@ void CPosition::Update(float fFractionalTime)
 //////////////////////////////////////////////////////////////////////////
 SFloat3* CPosition::GetPosition(void)
 {
-	switch(msType.iValue) 
+	switch(msType.uiType)
 	{
 	case PT_LinearPosition:
 	case PT_DirectedPosition:

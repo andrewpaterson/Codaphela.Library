@@ -80,7 +80,7 @@ void CBorder::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CBorder::Draw(void)
+bool CBorder::Draw(void)
 {
 	CreateQuads();
 	return CDrawable::Draw();

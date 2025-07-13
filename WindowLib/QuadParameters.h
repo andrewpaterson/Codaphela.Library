@@ -38,7 +38,7 @@ public:
 	void				Init(CGraphicsState* pcGraphicsState);
 	void 				Kill(void);
 
-	CGraphicsMaterial*	CreateMaterial(int iNumTextures, CWorld* pcWorld, BOOL bAlpha);
+	CGraphicsMaterial*	CreateMaterial(int iNumTextures, CWorld* pcWorld, bool bAlpha);
 	CGraphicsState*		GetGraphicsState(void);
 };
 
