@@ -37,12 +37,12 @@ protected:
 	D3DLIGHT9	msLight;
 	SMatrix*	mpsMatrix;
 	int			miSlot;
-	BOOL		mbEnabled;
+	bool		mbEnabled;
 
 public:
 	void 		Init(void);
 	void 		Kill(void);
-	BOOL 		Use(int iSlot);
+	bool 		Use(int iSlot);
 	void 		Unuse(void);
 	void 		SetColour(float r, float g, float b);
 	void 		SetGrey(float g);
@@ -50,8 +50,8 @@ public:
 	void 		SetMatrix(SMatrix* psMatrix);
 	void 		SetPoint(float fConstAtten, float fLinearAtten, float fQuadraticAtten, float fRange);
 	void 		SetDirectional(float fConstAtten, float fRange);
-	BOOL		IsEnabled(void);
-	void		SetEnabled(BOOL bEnabled);
+	bool		IsEnabled(void);
+	void		SetEnabled(bool bEnabled);
 };
 
 

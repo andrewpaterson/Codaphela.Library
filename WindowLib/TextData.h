@@ -41,8 +41,8 @@ public:
 	void				CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
 	int					GetWidth(void);
 	int					GetRight(void);
-	BOOL				IsWhiteSpace(void);
-	BOOL				GetBounds(CRectangle* pcDest);
+	bool				IsWhiteSpace(void);
+	bool				GetBounds(CRectangle* pcDest);
 };
 
 
@@ -67,18 +67,18 @@ public:
 	void 				Append(CChars* pcText);
 
 	CTextChar*			GetLastChar(void);
-	int					GetCharIndex(int x, BOOL bClamp = FALSE);
+	int					GetCharIndex(int x, bool bClamp = false);
 	CTextChar*			GetChar(int iIndex);
 	int					GetLastCharIndex(void);
-	BOOL				IsLeftAllWhiteSpace(int x);
-	BOOL				IsRightAllWhiteSpace(int x);
+	bool				IsLeftAllWhiteSpace(int x);
+	bool				IsRightAllWhiteSpace(int x);
 	int					GetFirstNonWhiteSpaceCharIndex(void);
 	int					GetLastNonWhiteSpaceCharIndex(void);
-	BOOL				IsEmpty(void);
-	BOOL 				IsOutOfBoundsRight(int iIndex);
-	BOOL 				IsOutOfBoundsLeft(int iIndex);
-	BOOL 				IsOutOfBounds(int iIndex);
-	BOOL				GetBounds(int iX, CRectangle* pcDest);
+	bool				IsEmpty(void);
+	bool 				IsOutOfBoundsRight(int iIndex);
+	bool 				IsOutOfBoundsLeft(int iIndex);
+	bool 				IsOutOfBounds(int iIndex);
+	bool				GetBounds(int iX, CRectangle* pcDest);
 };
 
 
@@ -109,7 +109,7 @@ public:
 	SInt2			Insert(SInt2 sPos, char c);
 	SInt2			Insert(SInt2 sPos, char* szString);
 	void 			Append(CChars* pcText);
-	CTextChar*  	Insert(int iColumn, int iLine, CTextParameters* pcFont, char* szText, int iLen);
+	CTextChar*  	Insert(int iColumn, size iLine, CTextParameters* pcFont, char* szText, size iLen);
 	void			GetText(CChars* pcText);
 	void			GetText(CChars* pcText, SInt2 sStart, SInt2 iEnd);
 	SInt2			Split(SInt2 sPos);
@@ -120,7 +120,7 @@ public:
 	CTextCharLine*	GetLastLine(void);
 	int				GetLastLineIndex(void);
 	CTextChar*		GetChar(int iX, int iLine);
-	BOOL			GetBounds(int iX, int iLine, CRectangle* pcDest);
+	bool			GetBounds(int iX, int iLine, CRectangle* pcDest);
 };
 
 

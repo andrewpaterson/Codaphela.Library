@@ -67,7 +67,7 @@ public:
 	void 				Init(CWorld* pcWorld);
 	void 				Kill(void);
 
-	BOOL 				Draw(void);
+	bool 				Draw(void);
 	void 				CalculateNumMatricies(void);
 	void 				Set(CGraphicsObject* pcGraphicsObject, int iNumPrimitives, D3DPRIMITIVETYPE eType, int iFlags, int iNumVerticies, int iStartIndex, int iStartVertex, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexBufferIndex, int iViewportPointerIndex);
 	void 				Grow(int iNumAdditionalPrimitives, int iNumAdditionalVerticies);

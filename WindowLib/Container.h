@@ -28,7 +28,7 @@ class CContainer : public CComponent
 public:
 	SContainerBounds		msBounds;
 
-	BOOL	GetContainerBounds(SContainerBounds* psDest);
+	bool	GetContainerBounds(SContainerBounds* psDest);
 	void	SetBounds(SInt2 sPosition, SInt2 sAreaSize);
 };
 

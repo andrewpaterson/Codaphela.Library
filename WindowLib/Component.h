@@ -43,7 +43,7 @@ struct SContainerBounds
 };
 
 
-class CComponent : public CUnknown, public CFocusListener, public CComponentListener
+class CComponent : public CFocusListener, public CComponentListener
 {
 CONSTRUCTABLE(CComponent);
 protected:
@@ -53,7 +53,7 @@ protected:
 	SInt2	 			msPosition;
 	SInt2				msRequiredSize;
 	SInt2				msDesiredSize;
-	BOOL				mbCanGetFocus;
+	bool				mbCanGetFocus;
 	CChars				mcName;
 	CComponent*			mpcParent;
 	CComponentPointers	mcComponents;
@@ -73,8 +73,8 @@ public:
 	SInt2				GetActualSize(void);
 	void 				SetFactory(CComponentFactory* pcFactory);
 	virtual void		SetRequiredSize(void);
-	virtual BOOL		Draw(void);
-	BOOL				DrawChildren(void);
+	virtual bool		Draw(void);
+	bool				DrawChildren(void);
 	virtual void		Layout(SInt2 sPosition, SInt2 sAreaSize);
 	void				LayoutChildren(SInt2 sPosition, SInt2 sAreaSize);
 	void				SetWorld(CWorld* pcWorld);
@@ -83,20 +83,20 @@ public:
 	CComponent*			GetParent(void);
 	void				SetParent(CComponent* pcComponent);
 
-	void 				StartTimer(int iTime, BOOL bRepeat);
+	void 				StartTimer(int iTime, bool bRepeat);
 	void				StopTimer(void);
 
-	BOOL 				IsPointIn(int x, int y);
-	BOOL 				HasFocus(void);
+	bool 				IsPointIn(int x, int y);
+	bool 				HasFocus(void);
 	virtual	void		AddComponent(CComponent* pcComponent);
-	virtual	void		RemoveComponent(CComponent* pcComponent, BOOL bKillComponent);
-	virtual	void		RemoveAllComponents(BOOL bKillComponents);
+	virtual	void		RemoveComponent(CComponent* pcComponent, bool bKillComponent);
+	virtual	void		RemoveAllComponents(bool bKillComponents);
 	CComponent*			FindComponentAt(int x, int y);
 	void				ToChildSpace(CComponent* pcChildComponent, int x, int y, int* px, int* py);
 	void				FromChildSpace(CComponent* pcChildComponent, int x, int y, int* px, int* py);
-	virtual BOOL		GetContainerBounds(SContainerBounds* psDest);
+	virtual bool		GetContainerBounds(SContainerBounds* psDest);
 
-	BOOL				IsFocussed(void);
+	bool				IsFocussed(void);
 
 	int					GetDepth(void);
 	void				Dump(void);

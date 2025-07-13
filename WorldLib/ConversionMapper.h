@@ -98,11 +98,11 @@ public:
 	void AddGraphicsObject(OIndex iMeshID, CGraphicsObject* pcGraphicsObject, CMeshObject* pcMeshObject);
 	void AddGraphicsMaterial(OIndex iMaterialID, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState);
 	void AddGraphicsInstance(OIndex iSpecimenID, CGraphicsInstance* pcGraphicsInstance, CMeshInstance* pcMeshInstance);
-	BOOL AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture* pcGraphicsTexture);
+	bool AddImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture* pcGraphicsTexture);
 
-	BOOL GetMaterial(OIndex iMaterialID, CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState);
-	BOOL GetMesh(OIndex iMeshID, CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject);
-	BOOL GetImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture** ppcGraphicsTexture);
+	bool GetMaterial(OIndex iMaterialID, CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState);
+	bool GetMesh(OIndex iMeshID, CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject);
+	bool GetImage(OIndex iImageIndex, D3DFORMAT d3dFormat, CGraphicsTexture** ppcGraphicsTexture);
 };
 
 

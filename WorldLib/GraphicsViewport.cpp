@@ -97,25 +97,25 @@ void CViewportInstance::Set(int iX, int iY, int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CViewportInstance::Contains(int iLeft, int iTop, int iRight, int iBottom)
+bool CViewportInstance::Contains(int iLeft, int iTop, int iRight, int iBottom)
 {
 	if ((int)msViewport.sD3DViewport.X >= iRight)
 	{
-		return FALSE;
+		return false;
 	}
 	if ((int)msViewport.sD3DViewport.X + (int)msViewport.sD3DViewport.Width < iLeft)
 	{
-		return FALSE;
+		return false;
 	}
 	if ((int)msViewport.sD3DViewport.Y >= iBottom)
 	{
-		return FALSE;
+		return false;
 	}
 	if ((int)msViewport.sD3DViewport.Y + (int)msViewport.sD3DViewport.Height < iTop)
 	{
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -123,7 +123,7 @@ BOOL CViewportInstance::Contains(int iLeft, int iTop, int iRight, int iBottom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CViewportInstance::Contains(CRectangle* pcRect)
+bool CViewportInstance::Contains(CRectangle* pcRect)
 {
 	return Contains(pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
 }

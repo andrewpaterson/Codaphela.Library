@@ -31,7 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //There's one of these per Viewport.
 class CViewport;
 class CComponent;
-class CComponentInput : public CUnknown, public CListener
+class CComponentInput : public CListener
 {
 CONSTRUCTABLE(CComponentInput);
 protected:
@@ -41,9 +41,9 @@ protected:
 	int							miShift;
 	int							miAlt;
 
-	BOOL						mbCapsLock;
-	BOOL						mbNumLock;
-	BOOL						mbInsert;
+	bool						mbCapsLock;
+	bool						mbNumLock;
+	bool						mbInsert;
 
 	CInput*						mpcInput;
 	CViewport*					mpcViewport;
@@ -69,11 +69,11 @@ public:
 	void InitActions(void);
 	void Kill(void);
 
-	BOOL						PointerInClientRect(void);
+	bool						PointerInClientRect(void);
 	CComponent*					GetFocussedComponent(void);
-	BOOL						HasFocussedComponent(void);
+	bool						HasFocussedComponent(void);
 
-	CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed);
+	CComponentInputCommand*		GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed);
 	CComponentInputPrintable*	GetPrintable(CInputSourceDesc* pcSource);
 	CComponentInputNumKey*		GetNumKeyRemap(CInputSourceDesc* pcSource);
 	CComponentInputMotion*		GetMotion(CInputSourceDesc* pcSource);
@@ -97,7 +97,7 @@ public:
 	void ButtonPressed(CUnknown* pcSource, void* pvContext);
 	void ButtonReleased(CUnknown* pcSource, void* pvContext);
 	void NumpadButtonPressed(CUnknown* pcSource, void* pvContext);
-	void ButtonToggle(CInputSourceDesc* pcSource, BOOL bIgnoreShift, BOOL bPressed);
+	void ButtonToggle(CInputSourceDesc* pcSource, bool bIgnoreShift, bool bPressed);
 
 	void ShiftPressed(CUnknown* pcSource, void* pvContext);
 	void ShiftReleased(CUnknown* pcSource, void* pvContext);

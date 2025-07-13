@@ -97,7 +97,7 @@ SInt3 CQuad2D::GetPosition(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
+bool CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 {
 	int							i;
 	SFloat4*					psTopLeft;
@@ -118,7 +118,7 @@ BOOL CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 	int							iStateIndex;
 	int							iViewportIndex;
 	int							iD3DVertexType;
-	BOOL						bColour;
+	bool						bColour;
 	CVertexBufferExtended*		psVertexBuffer;
 	CGraphicsPrimitive*			pcGraphicsPrimitive;
 	int							iSize;
@@ -127,7 +127,7 @@ BOOL CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 	//Make sure there is something to draw.
 	if (!IsValid())
 	{
-		return FALSE;
+		return false;
 	}
 
 	iMaterialIndex = pcGraphicsObject->AddMaterial(mpcGraphicsMaterial);
@@ -136,7 +136,7 @@ BOOL CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 
 	bColour = (mdwColour != 0xffffffff);
 
-	iD3DVertexType = gcD3D.GetVertexFormatFor(FALSE, bColour, mpcGraphicsMaterial->GetNumTextures(), 0, TRUE);
+	iD3DVertexType = gcD3D.GetVertexFormatFor(false, bColour, mpcGraphicsMaterial->GetNumTextures(), 0, true);
 
 	pvFirstVert = pcGraphicsObject->GrowPrimitiveNew(2, D3DPT_TRIANGLELIST, 6, iD3DVertexType, iMaterialIndex, iStateIndex, iViewportIndex, &pcGraphicsPrimitive);
 	psVertexBuffer = pcGraphicsObject->GetVertexBufferForIndex(pcGraphicsPrimitive->miVertexBufferIndex);
@@ -206,7 +206,7 @@ BOOL CQuad2D::Draw(CGraphicsObject* pcGraphicsObject)
 		psUVBL1->y = psUVBL2->y =	masUVs[i].asUV[3].y;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -318,7 +318,7 @@ void CQuad2D::MovePosition(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CQuad2D::IsValid(void)
+bool CQuad2D::IsValid(void)
 {
 	return (mpcGraphicsMaterial != NULL) && (mpcGraphicsState != NULL) && (mpcGraphicsViewport != NULL);
 }
@@ -328,7 +328,7 @@ BOOL CQuad2D::IsValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CQuad2D::IsInViewport(void)
+bool CQuad2D::IsInViewport(void)
 {
 	return mpcGraphicsViewport->Contains((int)msPosition.x, (int)msPosition.y, (int)msPosition.x + msSize.x, (int)msPosition.y + msSize.y);
 }

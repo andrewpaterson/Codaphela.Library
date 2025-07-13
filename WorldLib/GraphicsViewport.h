@@ -42,8 +42,8 @@ public:
 	void 		Draw(void);
 	void		Invalidate(void);
 	void		Set(int iX, int iY, int iWidth, int iHeight);
-	BOOL		Contains(int iLeft, int iTop, int iRight, int iBottom);
-	BOOL		Contains(CRectangle* pcRect);
+	bool		Contains(int iLeft, int iTop, int iRight, int iBottom);
+	bool		Contains(CRectangle* pcRect);
 };
 
 

@@ -41,9 +41,9 @@ public:
 	void 				Init(CSceneConverter* pcSceneConverter);
 	void 				Init(CWorld* pcWorld);
 	void 				Kill(void);
-	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImageCopier* pcExport, BOOL bDiscard);
-	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, Ptr<CImage> pcImage, Ptr<CImage> pcExport, BOOL bDiscard);
-	BOOL				Convert(CGraphicsTexture** ppcGraphicsTexture, Ptr<CImage> pcImage, BOOL bDiscard);
+	bool				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImageCopier* pcExport, bool bDiscard);
+	bool				Convert(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, Ptr<CImage> pcImage, Ptr<CImage> pcExport, bool bDiscard);
+	bool				Convert(CGraphicsTexture** ppcGraphicsTexture, Ptr<CImage> pcImage, bool bDiscard);
 
 private:
 	void				SetExternalChannel(Ptr<CImage> pcExport, D3DFORMAT d3dFormat);

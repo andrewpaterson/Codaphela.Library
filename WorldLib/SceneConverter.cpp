@@ -62,13 +62,13 @@ void CSceneConverter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImage* pcImage, BOOL bDiscard, int iWidth, int iHeight, EPrimitiveTypes eType, EChannel eFirst, ...)
+bool CSceneConverter::ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DFORMAT d3dFormat, CImage* pcImage, bool bDiscard, int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list				vaMarker;
 	int					iCount;
 	EChannel		eIC;
 	CImage				cExport;
-	BOOL				bResult;
+	bool				bResult;
 
 	cExport.Init();
 	iCount = 0;
@@ -98,7 +98,7 @@ BOOL CSceneConverter::ConvertTexture(CGraphicsTexture** ppcGraphicsTexture, D3DF
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertMeshToGraphicsObject(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex)
+bool CSceneConverter::ConvertMeshToGraphicsObject(CGraphicsObject** ppcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex)
 {
 	return mcMeshConverter.Convert(ppcGraphicsObject, ppcMeshObject, pcMesh, pcConnectionAndIndex);
 }
@@ -108,7 +108,7 @@ BOOL CSceneConverter::ConvertMeshToGraphicsObject(CGraphicsObject** ppcGraphicsO
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertMaterialToGraphicsMaterial(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial)
+bool CSceneConverter::ConvertMaterialToGraphicsMaterial(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial)
 {
 	return mcMaterialConverter.Convert(ppcGraphicsMaterial, ppcGraphicsState, pcMaterial);
 }
@@ -118,7 +118,7 @@ BOOL CSceneConverter::ConvertMaterialToGraphicsMaterial(CGraphicsMaterial** ppcG
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertSequenceToMovement(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix)
+bool CSceneConverter::ConvertSequenceToMovement(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix)
 {
 	return mcAnimationConverter.Convert(ppcMovement, pcSequence, psMatrix);
 }
@@ -128,7 +128,7 @@ BOOL CSceneConverter::ConvertSequenceToMovement(CMovement** ppcMovement, CSequen
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertInstanceToGraphicsInstance(CInstance* pcInstance)
+bool CSceneConverter::ConvertInstanceToGraphicsInstance(CInstance* pcInstance)
 {
 	return mcInstanceConverter.Convert(pcInstance);
 }
@@ -138,17 +138,17 @@ BOOL CSceneConverter::ConvertInstanceToGraphicsInstance(CInstance* pcInstance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertScene(void)
+bool CSceneConverter::ConvertScene(void)
 {
 	int		iInstance;
-	BOOL	bResult;
+	bool	bResult;
 
-	bResult = TRUE;
+	bResult = true;
 	for (iInstance = 0; iInstance < mpcScene->mcInstanceTracker.Num(); iInstance++)
 	{
 		if (!ConvertInstanceToGraphicsInstance((CInstance*)mpcScene->mcInstanceTracker.Get(iInstance)))
 		{
-			bResult = FALSE;
+			bResult = false;
 		}
 	}
 	return bResult;
@@ -159,22 +159,22 @@ BOOL CSceneConverter::ConvertScene(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CSceneConverter::ConvertMeshes(void)
+bool CSceneConverter::ConvertMeshes(void)
 {
 	int					iMesh;
-	BOOL				bResult;
+	bool				bResult;
 	CGraphicsObject*	pcGraphicsObject;
 	CMeshObject*		pcMeshObject;
 	CMesh*				pcMesh;
 	CArrayIntAndPointer		cConnectionAndIndex;
 
-	bResult = TRUE;
+	bResult = true;
 	for (iMesh = 0; iMesh < mpcScene->mcMeshTracker.Num(); iMesh++)
 	{
 		pcMesh = (CMesh*)mpcScene->mcMeshTracker.Get(iMesh);
 		if (!ConvertMeshToGraphicsObject(&pcGraphicsObject, &pcMeshObject, pcMesh, &cConnectionAndIndex))
 		{
-			bResult = FALSE;
+			bResult = false;
 		}
 	}
 	return bResult;

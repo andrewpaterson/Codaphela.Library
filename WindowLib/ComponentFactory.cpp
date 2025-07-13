@@ -117,7 +117,7 @@ void* CComponentFactory::PrivateAllocateComponent(int iType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponentFactory::RemoveComponent(CComponent* pcComponent)
+bool CComponentFactory::RemoveComponent(CComponent* pcComponent)
 {
 	//Caution,  this just removes the component.  It does NOT release it. 
 	return macComponents.Remove(pcComponent);
@@ -253,7 +253,7 @@ CBlock* CComponentFactory::CreateBlock(CBlockParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextField* CComponentFactory::CreateTextField(char* szString, BOOL bDefaultBorder, BOOL bDefaultBackground)
+CTextField* CComponentFactory::CreateTextField(char* szString, bool bDefaultBorder, bool bDefaultBackground)
 {
 	CTextField*		pcTextField;
 
@@ -297,7 +297,7 @@ CViewport* CComponentFactory::CreateViewport(CInput* pcInput, CRectangle* pcClie
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CWidget* CComponentFactory::CreateWidget(BOOL bDefaultBorder, BOOL bDefaultBackground)
+CWidget* CComponentFactory::CreateWidget(bool bDefaultBorder, bool bDefaultBackground)
 {
 	CWidget*	pcWidget;
 

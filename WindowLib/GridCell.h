@@ -51,7 +51,7 @@ struct SFillParams
 
 struct SGridCellAxisParams
 {
-	BOOL	bUseDesiredSize;
+	bool	bUseDesiredSize;
 	union
 	{
 		SUseDesiredSizeParams	sDesiredSize;

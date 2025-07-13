@@ -34,14 +34,14 @@ public:
 
 	float		mfAlpha;
 	CTextData	mcTextData;
-	BOOL		mbCaretVisible;
+	bool		mbCaretVisible;
 	CCaret*		mpcCaret;
 	SInt2		msCaretPos;
 
 	void 		Init(CViewport* pcViewport);
 	void 		Kill(void);
 
-	BOOL 		Draw(void);
+	bool 		Draw(void);
 	void 		SetRequiredSize(void);
 	void		Layout(SInt2 sPosition, SInt2 sAreaSize);
 

@@ -37,7 +37,7 @@ void CGraphicsTexture::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicsTexture::Init(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, BOOL bDynamic)
+void CGraphicsTexture::Init(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, bool bDynamic)
 {
 	Init();
 	gcD3D.CreateTexture(iWidth, iHeight, D3DFormat, eUsage, bDynamic, &msTexture);

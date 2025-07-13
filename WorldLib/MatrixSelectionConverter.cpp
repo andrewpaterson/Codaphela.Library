@@ -106,7 +106,7 @@ void CTransformNodeSelectionConverter::AddMatrices(void)
 //////////////////////////////////////////////////////////////////////////
 void CTransformNodeSelectionConverter::FinalisePrimitives(void)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = 0; i < mpcObject->GetPrimitives()->NumElements(); i++)

@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWidget::Init(CViewport* pcViewport, BOOL bDefaultBorder, BOOL bDefaultBackground)
+void CWidget::Init(CViewport* pcViewport, bool bDefaultBorder, bool bDefaultBackground)
 {
 	CFillContainer*	mpcFill;
 
@@ -67,7 +67,7 @@ void CWidget::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWidget::Draw(void)
+bool CWidget::Draw(void)
 {
 	return CComponent::Draw();
 }

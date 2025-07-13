@@ -68,7 +68,7 @@ class CAnimation : public CStandardTrackerObject
 CONSTRUCTABLE(CAnimation);
 protected:
 	CAnimationIndexCelArray		maCelIndices;
-	BOOL						mbEnabled;
+	bool						mbEnabled;
 	int							miCurrentCel;
 	float						mfCelTime;
 	float						mfTimeMultiplier;
@@ -76,8 +76,8 @@ protected:
 public:
 	void 						Init(void);
 	void 						Kill(void);
-	BOOL 						Save(CFileWriter* pcFile);
-	BOOL						Load(CFileReader* pcFile);
+	bool 						Save(CFileWriter* pcFile);
+	bool						Load(CFileReader* pcFile);
 	void 						Add(void* pvCel, float fTime, int iNextCel, CelFunc Func = NULL, void* pvData = NULL);
 	void						Copy(CAnimation* pcSource);
 	void* 						Update(void);

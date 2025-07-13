@@ -65,7 +65,7 @@ public:
 	void	TransformFromSubObject(void);  //Setup psWorldSpaceTransform given psSubObjectTransform.
 	void	TransformFromWorld(void);  //Setup psSubObjectTransform given psWorldSpaceTransform.
 	void	Transform(void);
-	BOOL	Update(void);
+	bool	Update(void);
 };
 
 
@@ -95,9 +95,9 @@ protected:
 
 public:
 	void 						Init(void);
-	void 						Init(CMeshObject* pcMeshObject, BOOL bCacheVertices, BOOL bCacheNormals, CScratchPad* pcScratchPad);
+	void 						Init(CMeshObject* pcMeshObject, bool bCacheVertices, bool bCacheNormals, CScratchPad* pcScratchPad);
 	void 						Kill(void);
-	void 						Cache(CMeshObject* pcMeshObject, BOOL bCacheVertices, BOOL bCacheNormals);
+	void 						Cache(CMeshObject* pcMeshObject, bool bCacheVertices, bool bCacheNormals);
 	CMeshInstanceNode*			AddNode(CMeshObjectNode* pcMeshObjectNode);
 	void						Update(void);  //This update is called by the world update.
 	void						CalculateTransforms(void);

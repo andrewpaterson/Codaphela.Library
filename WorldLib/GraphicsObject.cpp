@@ -30,7 +30,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicsObject::Init(BOOL bDynamicBuffers, CWorld* pcWorld)
+void CGraphicsObject::Init(bool bDynamicBuffers, CWorld* pcWorld)
 {
 	memset(&msIndexBuffer, 0, sizeof(SIndexBuffer));
 	msStaticVertexBuffers.Init();
@@ -83,7 +83,7 @@ void CGraphicsObject::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::Reinit(void)
 {
-	BOOL		bDynamicBuffers;
+	bool		bDynamicBuffers;
 	CWorld*		pcWorld;
 
 	bDynamicBuffers = FixBool(miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS);
@@ -97,14 +97,14 @@ void CGraphicsObject::Reinit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::Draw(void)
+bool CGraphicsObject::Draw(void)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcGraphPrim;
 	SMatrix*				psMatrix;
 	SFloat4x4				sTemp;
 	SFloat4x4*				psAdjMatrix;
-	BOOL					bResult;
+	bool					bResult;
 
 	//Having GRAPH_OBJ_FLAGS_MATRIX_INDICIES set implies that GRAPH_PRIM_FLAGS_MATRIX_INDICIES is set on every GraphicsPrimitive also.
 	if (miFlags & GRAPH_OBJ_FLAGS_MATRIX_INDICIES)
@@ -132,11 +132,11 @@ BOOL CGraphicsObject::Draw(void)
 
 	if (miFlags & GRAPH_OBJ_FLAGS_SOFTWARE)
 	{
-		gcD3D.SetSoftwareVertexProcessing(TRUE);
+		gcD3D.SetSoftwareVertexProcessing(true);
 	}
 	else
 	{
-		gcD3D.SetSoftwareVertexProcessing(FALSE);
+		gcD3D.SetSoftwareVertexProcessing(false);
 	}
 
 	//Sort the primitives before drawing (only really necessary in cases of complex translucency.
@@ -153,10 +153,10 @@ BOOL CGraphicsObject::Draw(void)
 		bResult = pcGraphPrim->Draw();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -166,11 +166,11 @@ BOOL CGraphicsObject::Draw(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::Sort(void)
 {
-	int						i;
+	size					i;
 	CCameraInstance*		pcCamera;
 	CGraphicsPrimitive*		pcPrimitive;
-	int						iOpaque;
-	int						iTranslucent;
+	uint					iOpaque;
+	uint					iTranslucent;
 
 	//If the number of primitives has changed since last then change the draw order array.
 	if (maiPrimitives.NumElements() != maPrimitives.NumElements())
@@ -216,7 +216,7 @@ void CGraphicsObject::Sort(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::Lock(void)
 {
-	int						i;
+	size					i;
 	CVertexBufferExtended*	psVertexBuffer;
 
 	gcD3D.LockIndexBuffer(GetIndexBuffer());
@@ -234,7 +234,7 @@ void CGraphicsObject::Lock(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::Unlock(void)
 {
-	int						i;
+	size					i;
 	CVertexBufferExtended*	psVertexBuffer;
 
 	gcD3D.UnlockIndexBuffer(GetIndexBuffer());
@@ -260,9 +260,9 @@ void CGraphicsObject::SetFlags(int iFlags)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGraphicsObject::SetFlag(int iFlag, BOOL bValue)
+void CGraphicsObject::SetFlag(int iFlag, bool bValue)
 {
-	::SetFlag(&miFlags, iFlag, bValue);
+	::SetFlagInt(&miFlags, iFlag, bValue);
 }
 
 
@@ -270,7 +270,7 @@ void CGraphicsObject::SetFlag(int iFlag, BOOL bValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::HasFlag(int iFlag)
+bool CGraphicsObject::HasFlag(int iFlag)
 {
 	return miFlags & iFlag;
 }
@@ -279,7 +279,7 @@ BOOL CGraphicsObject::HasFlag(int iFlag)
 //////////////////////////////////////////////////////////////////////////
 // Vertex Buffers
 //////////////////////////////////////////////////////////////////////////
-CVertexBufferExtended* CGraphicsObject::AddVertexBuffer(int iD3DVertexType, int iNumVertsInStaticBuffer, BOOL bUseExisting, int* piIndex)
+CVertexBufferExtended* CGraphicsObject::AddVertexBuffer(int iD3DVertexType, int iNumVertsInStaticBuffer, bool bUseExisting, int* piIndex)
 {
 	CVertexBufferExtended*	psVertexBuffer;
 	int						iIndex;
@@ -478,9 +478,10 @@ void CGraphicsObject::RemoveMaterial(int iNum)
 //////////////////////////////////////////////////////////////////////////
 int CGraphicsObject::GetIndexForGraphicsMaterialPointer(CGraphicsMaterial* pcGraphicsMaterial)
 {
-	CGraphicsMaterial* pcGraphicsMaterialComp;
+	CGraphicsMaterial*	pcGraphicsMaterialComp;
+	size				i;
 
-	for (int i = 0; i <	mapMaterials.NumElements(); i++)
+	for (i = 0; i <	mapMaterials.NumElements(); i++)
 	{
 		pcGraphicsMaterialComp = (*(mapMaterials.Get(i)));
 		if (pcGraphicsMaterialComp == pcGraphicsMaterial)
@@ -686,8 +687,9 @@ void CGraphicsObject::RemoveState(int iNum)
 int CGraphicsObject::GetIndexForGraphicsStatePointer(CGraphicsState* pcGraphicsState)
 {
 	CGraphicsState* pcGraphicsStateComp;
+	size			i;
 
-	for (int i = 0; i <	mapStates.NumElements(); i++)
+	for (i = 0; i <	mapStates.NumElements(); i++)
 	{
 		pcGraphicsStateComp = (*(mapStates.Get(i)));
 		if (pcGraphicsStateComp == pcGraphicsState)
@@ -780,9 +782,10 @@ void CGraphicsObject::RemoveViewport(int iNum)
 //////////////////////////////////////////////////////////////////////////
 int CGraphicsObject::GetIndexForGraphicsViewportPointer(CViewportInstance* pcGraphicsViewport)
 {
-	CViewportInstance* pcGraphicsViewportComp;
+	CViewportInstance*	pcGraphicsViewportComp;
+	size				i;
 
-	for (int i = 0; i <	mapViewports.NumElements(); i++)
+	for (i = 0; i <	mapViewports.NumElements(); i++)
 	{
 		pcGraphicsViewportComp = (*(mapViewports.Get(i)));
 		if (pcGraphicsViewportComp == pcGraphicsViewport)
@@ -801,10 +804,10 @@ int CGraphicsObject::GetIndexForGraphicsViewportPointer(CViewportInstance* pcGra
 //////////////////////////////////////////////////////////////////////////
 // Primitives.
 //////////////////////////////////////////////////////////////////////////
-CGraphicsPrimitive* CGraphicsObject::AddPrimitives(int iNumToAdd)
+CGraphicsPrimitive* CGraphicsObject::AddPrimitives(size iNumToAdd)
 {
-	int						i;
-	int						iFirst;
+	size	i;
+	size	iFirst;
 
 	//This is the equivalent of calling .Init on each CGraphicsPrimitive.
 	iFirst = maPrimitives.AddNum(iNumToAdd);
@@ -901,7 +904,7 @@ void* CGraphicsObject::GrowPrimitiveNew(int iNumAdditionalPrimitives, D3DPRIMITI
 	{
 		if (iNumAdditionalPrimitives > 0)
 		{
-			pcVertexBuffer = (CGraphicsDynamicVertexBuffer*)AddVertexBuffer(iD3DVertexType, 0, FALSE, &iVertexBufferIndex);
+			pcVertexBuffer = (CGraphicsDynamicVertexBuffer*)AddVertexBuffer(iD3DVertexType, 0, false, &iVertexBufferIndex);
 			pcPrimitive = AddPrimitive(iNumAdditionalPrimitives, eType, 0, iNumAdditionalVerticies, 0, 0, iMaterialPointerIndex, iStatePointerIndex, iVertexBufferIndex, iViewportPointerIndex);
 			pvFirstNewVert = pcVertexBuffer->AddVertices(iNumAdditionalVerticies);
 		}
@@ -1003,7 +1006,7 @@ void CGraphicsObject::RemovePrimitiveAtIndex(int iNum)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::RemovePrimitivesWithBadMaterials(void)
 {
-	int						i;
+	size						i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = 0; i < maPrimitives.NumElements(); i++)
@@ -1025,7 +1028,7 @@ void CGraphicsObject::RemovePrimitivesWithBadMaterials(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::RemovePrimitivesWithBadStates(void)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = 0; i < maPrimitives.NumElements(); i++)
@@ -1047,7 +1050,7 @@ void CGraphicsObject::RemovePrimitivesWithBadStates(void)
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::RemovePrimitivesWithBadVertexBuffers(void)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = 0; i < maPrimitives.NumElements(); i++)
@@ -1152,18 +1155,18 @@ SIndexBuffer* CGraphicsObject::GetIndexBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::BeginDynamic(void)
+bool CGraphicsObject::BeginDynamic(void)
 {
 	if (miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS)
 	{
-		SetFlag(GRAPH_OBJ_FLAGS_EDITING_DYNAMIC, TRUE);
+		SetFlag(GRAPH_OBJ_FLAGS_EDITING_DYNAMIC, true);
 		RemoveAllPrimitives();
 		return LockDynamicVertexBuffers();
 	}
 	else
 	{
 		gcUserError.Set("Cannot begin dynamic if object is not using dynamic buffers.");
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1172,17 +1175,17 @@ BOOL CGraphicsObject::BeginDynamic(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::EndDynamic(void)
+bool CGraphicsObject::EndDynamic(void)
 {
 	if (miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS)
 	{
-		SetFlag(GRAPH_OBJ_FLAGS_EDITING_DYNAMIC, FALSE);
+		SetFlag(GRAPH_OBJ_FLAGS_EDITING_DYNAMIC, false);
 		return UnlockDynamicVertexBuffers();
 	}
 	else
 	{
 		gcUserError.Set("Cannot end dynamic if object is not using dynamic buffers.");
-		return FALSE;
+		return false;
 	}
 }
 
@@ -1195,7 +1198,7 @@ void* CGraphicsObject::AddDynamicVertex(int iD3DVertexType)
 {
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
 
-	//Assumes miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS is TRUE
+	//Assumes miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS is true
 
 	psVertexBuffer = msDynamicVertexBuffers.GetVertexBuffer(iD3DVertexType);
 	return psVertexBuffer->AddVertex();
@@ -1211,7 +1214,7 @@ void* CGraphicsObject::AddDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimiti
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
 	void*							pvVertex;
 	
-	//Assumes miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS is TRUE
+	//Assumes miFlags & GRAPH_OBJ_FLAGS_DYNAMIC_BUFFERS is true
 
 	psVertexBuffer = msDynamicVertexBuffers.GetVertexBuffer(iD3DVertexType);
 	pvVertex = psVertexBuffer->AddVertices(iNumVerticies);
@@ -1228,19 +1231,19 @@ void* CGraphicsObject::AddDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimiti
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::RemoveDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimitive, int iD3DVertexType, int iNumPrimitives, int iNumVerticies)
+bool CGraphicsObject::RemoveDynamicVerticies(CGraphicsPrimitive* pcGraphicsPrimitive, int iD3DVertexType, int iNumPrimitives, int iNumVerticies)
 {
 	CVertexBufferExtended*	psVertexBuffer;
-	BOOL					bResult;
+	bool					bResult;
 
 	psVertexBuffer = GetVertexBufferForType(iD3DVertexType);
 	bResult = psVertexBuffer->RemoveVerticies(iNumVerticies);
 	if (!bResult)
 	{
-		return FALSE;
+		return false;
 	}
 	pcGraphicsPrimitive->Shrink(iNumPrimitives, iNumVerticies);
-	return TRUE;
+	return true;
 }
 
 
@@ -1301,11 +1304,11 @@ int CGraphicsObject::GetVertexBufferIndex(int iD3DVertexType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::UnlockDynamicVertexBuffers(void)
+bool CGraphicsObject::UnlockDynamicVertexBuffers(void)
 {
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
-	int								iVertexBuffer;
-	BOOL							bResult;
+	size							iVertexBuffer;
+	bool							bResult;
 
 	for (iVertexBuffer = 0; iVertexBuffer < msDynamicVertexBuffers.NumElements(); iVertexBuffer++)
 	{
@@ -1313,10 +1316,10 @@ BOOL CGraphicsObject::UnlockDynamicVertexBuffers(void)
 		bResult = psVertexBuffer->Unlock();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1324,11 +1327,11 @@ BOOL CGraphicsObject::UnlockDynamicVertexBuffers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CGraphicsObject::LockDynamicVertexBuffers(void)
+bool CGraphicsObject::LockDynamicVertexBuffers(void)
 {
 	CGraphicsDynamicVertexBuffer*	psVertexBuffer;
-	int								iVertexBuffer;
-	BOOL							bResult;
+	size							iVertexBuffer;
+	bool							bResult;
 
 	for (iVertexBuffer = 0; iVertexBuffer < msDynamicVertexBuffers.NumElements(); iVertexBuffer++)
 	{
@@ -1336,10 +1339,10 @@ BOOL CGraphicsObject::LockDynamicVertexBuffers(void)
 		bResult = psVertexBuffer->Lock();
 		if (!bResult)
 		{
-			return FALSE;
+			return false;
 		}
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1349,7 +1352,7 @@ BOOL CGraphicsObject::LockDynamicVertexBuffers(void)
 //////////////////////////////////////////////////////////////////////////
 int CGraphicsObject::GetPrimitiveWithTypeIndex(D3DPRIMITIVETYPE eType, int iStartIndex)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = iStartIndex; i < maPrimitives.NumElements(); i++)
@@ -1370,7 +1373,7 @@ int CGraphicsObject::GetPrimitiveWithTypeIndex(D3DPRIMITIVETYPE eType, int iStar
 //////////////////////////////////////////////////////////////////////////
 CGraphicsPrimitive* CGraphicsObject::GetPrimitiveWithVertexBufferIndex(D3DPRIMITIVETYPE eType, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexBufferIndex, int iViewportIndex)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = 0; i < maPrimitives.NumElements(); i++)
@@ -1395,7 +1398,7 @@ CGraphicsPrimitive* CGraphicsObject::GetPrimitiveWithVertexBufferIndex(D3DPRIMIT
 //////////////////////////////////////////////////////////////////////////
 CGraphicsPrimitive* CGraphicsObject::GetPrimitiveWithVertexFormat(D3DPRIMITIVETYPE eType, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexFormat, int iViewportIndex)
 {
-	int						i;
+	size					i;
 	CGraphicsPrimitive*		pcPrimitive;
 	CVertexBufferExtended*	psVertexBuffer;
 
@@ -1425,8 +1428,8 @@ CGraphicsPrimitive* CGraphicsObject::GetPrimitiveWithVertexFormat(D3DPRIMITIVETY
 //////////////////////////////////////////////////////////////////////////
 void CGraphicsObject::KillPrimitives(void)
 {
-	CGraphicsPrimitive*	pcPrimitive;
-	int					i;
+	CGraphicsPrimitive*		pcPrimitive;
+	size					i;
 
 	for (i = 0; i < maPrimitives.NumElements(); i++)
 	{

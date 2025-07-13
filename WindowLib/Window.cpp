@@ -41,7 +41,7 @@ void CWindow::Init(HINSTANCE hInst, char* szName, CInput* pcInput)
 	mszClassName.Append(szName);
 	mhInstance = hInst;
 	hWnd = NULL;
-	mbActive = FALSE;
+	mbActive = false;
 	mpcInput = pcInput;
 	mpcViewport = NULL;
 }
@@ -74,7 +74,7 @@ void CWindow::Layout(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindow::Draw(void)
+bool CWindow::Draw(void)
 {
 	return mpcViewport->Draw();
 }
@@ -84,7 +84,7 @@ BOOL CWindow::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
+bool CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
 {
 	WNDCLASS	wc;
 	RECT		rect;
@@ -99,7 +99,7 @@ BOOL CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
 	mcClientRect.miTop = rect.top;
 	mcClientRect.miRight = rect.right;
 	mcClientRect.miBottom = rect.bottom;
-	AdjustWindowRect(&rect, iStyle, FALSE);
+	AdjustWindowRect(&rect, iStyle, false);
 	xs = mcClientRect.GetWidth();
 	ys = mcClientRect.GetHeight();
 	
@@ -119,7 +119,7 @@ BOOL CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
 	if (!hWnd)
 	{
 		gcUserError.Set("Could not Create Window");
-		return FALSE;
+		return false;
 	}
 	
 	SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG)((size_t)this));
@@ -127,8 +127,8 @@ BOOL CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
 	UpdateWindow(hWnd);
 	SetFocus(hWnd);
 	SetCursor(hCursor);
-	mbActive = TRUE;
-	return TRUE;
+	mbActive = true;
+	return true;
 }
 
 
@@ -136,7 +136,7 @@ BOOL CWindow::Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindow::FullScreen(int nCmdShow)
+bool CWindow::FullScreen(int nCmdShow)
 {
 	return Create(nCmdShow, 0, 0, GetScreenWidth(), GetScreenHeight(), WS_POPUP);
 }
@@ -146,7 +146,7 @@ BOOL CWindow::FullScreen(int nCmdShow)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindow::Windowed(int nCmdShow, int xp, int yp, int xs, int ys)
+bool CWindow::Windowed(int nCmdShow, int xp, int yp, int xs, int ys)
 {
 	return Create(nCmdShow, xp, yp, xs, ys, WS_POPUPWINDOW | WS_MAXIMIZEBOX | WS_CAPTION | WS_MINIMIZEBOX | WS_SIZEBOX);
 }
@@ -158,11 +158,11 @@ BOOL CWindow::Windowed(int nCmdShow, int xp, int yp, int xs, int ys)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Destroy(void)
 {
-	mbActive = FALSE;
+	mbActive = false;
 	DestroyWindow(hWnd);
 	UnregisterClass(mszClassName.Text(), mhInstance);
 	hWnd = NULL;
-	mbLoop = FALSE;
+	mbLoop = false;
 }
 
 
@@ -194,7 +194,7 @@ int CWindow::WinLoop(void)
 {
 	MSG		msg;
 
-	mbLoop = TRUE;
+	mbLoop = true;
 	gcLogger.Add("Start winloop...\n");
 
 	int		iCount;
@@ -228,7 +228,7 @@ int CWindow::WinLoop(void)
 		}
 		//if (iCount == 100)
 		//{
-		//	mbLoop = FALSE;
+		//	mbLoop = false;
 		//}
 		iCount++;
 	}
@@ -311,7 +311,7 @@ void CWindow::AddComponent(CComponent* pcComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::RemoveComponent(CComponent* pcComponent, BOOL bKillComponent)
+void CWindow::RemoveComponent(CComponent* pcComponent, bool bKillComponent)
 {
 	mpcViewport->RemoveComponent(pcComponent, bKillComponent);
 }
@@ -321,7 +321,7 @@ void CWindow::RemoveComponent(CComponent* pcComponent, BOOL bKillComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::RemoveAllComponents(BOOL bKillComponents)
+void CWindow::RemoveAllComponents(bool bKillComponents)
 {
 	mpcViewport->RemoveAllComponents(bKillComponents);
 }
@@ -341,7 +341,7 @@ CComponent* CWindow::FindComponentAtRelative(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindow::IsPointInRelative(int x, int y)
+bool CWindow::IsPointInRelative(int x, int y)
 {
 	return mpcViewport->IsPointIn(x, y);
 }
@@ -363,7 +363,7 @@ CComponent* CWindow::FindComponentAtAbsolute(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CWindow::IsPointInAbsolute(int x, int y)
+bool CWindow::IsPointInAbsolute(int x, int y)
 {
 	return mpcViewport->IsPointInAbsolute(x, y);
 }
@@ -376,7 +376,7 @@ BOOL CWindow::IsPointInAbsolute(int x, int y)
 void CWindow::UpdateRectangle(void)
 {
 	RECT	rect;
-	BOOL	bResult;
+	bool	bResult;
 	POINT	point;
 
 	point.x = point.y = 0;
@@ -401,7 +401,7 @@ void CWindow::UpdateRectangle(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Activate(void)
 {
-	mbActive = TRUE;
+	mbActive = true;
 	if (mpcViewport)
 	{
 		mpcViewport->Activate();
@@ -415,7 +415,7 @@ void CWindow::Activate(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Deactivate(void)
 {
-	mbActive = FALSE;
+	mbActive = false;
 	if (mpcViewport)
 	{
 		mpcViewport->Deactivate();
@@ -495,7 +495,7 @@ long FAR PASCAL CWindowCB(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			pcWindow->UpdateRectangle();
 			break;
 		case WM_ACTIVATEAPP:
-			if ((BOOL)wParam)
+			if ((bool)wParam)
 			{
 				pcWindow->Activate();
 			}

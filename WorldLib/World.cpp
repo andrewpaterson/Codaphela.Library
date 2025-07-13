@@ -49,7 +49,7 @@ void CWorld::Init(void)
 	mpcLastMaterial = NULL;
 
 	mcGraphicsMaterialList.Init();
-	mcGraphicsMaterialList.KillElements(FALSE);
+	mcGraphicsMaterialList.KillElements(false);
 	mcGraphicsTextureList.Init();
 	mcGraphicsObjectList.Init();
 	mcGraphicsStateList.Init();
@@ -75,7 +75,7 @@ void CWorld::Init(void)
 	SetupViewport();
 	SetRenderStates();
 
-	mbClearBuffer = TRUE;
+	mbClearBuffer = true;
 	miClearColour = 0xccddee;
 }
 
@@ -328,7 +328,7 @@ void CWorld::ReleaseGraphicsMaterial(CGraphicsMaterial* pcGraphicsMaterial)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGraphicsTexture* CWorld::CreateGraphicsTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, BOOL bDynamic)
+CGraphicsTexture* CWorld::CreateGraphicsTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, bool bDynamic)
 {
 	CGraphicsTexture*	pcGraphicsTexture;
 
@@ -344,7 +344,7 @@ CGraphicsTexture* CWorld::CreateGraphicsTexture(int iWidth, int iHeight, D3DFORM
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGraphicsObject* CWorld::CreateGraphicsObject(BOOL bDynamicBuffers)
+CGraphicsObject* CWorld::CreateGraphicsObject(bool bDynamicBuffers)
 {
 	CGraphicsObject*		pcGraphicsObject;
 
@@ -979,12 +979,12 @@ void CWorld::ReleaseMeshInstance(CMeshInstance* pcMeshInstance)
 void CWorld::SetRenderStates(void)
 {
 	gcD3D.SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-	gcD3D.SetRenderState(D3DRS_LIGHTING, TRUE);
+	gcD3D.SetRenderState(D3DRS_LIGHTING, true);
 	gcD3D.SetRenderState(D3DRS_AMBIENT, 0x00000000);
-	gcD3D.SetRenderState(D3DRS_FOGENABLE, FALSE);
-	gcD3D.SetRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	gcD3D.SetRenderState(D3DRS_ZENABLE, TRUE);
-	gcD3D.SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+	gcD3D.SetRenderState(D3DRS_FOGENABLE, false);
+	gcD3D.SetRenderState(D3DRS_ALPHABLENDENABLE, false);
+	gcD3D.SetRenderState(D3DRS_ZENABLE, true);
+	gcD3D.SetRenderState(D3DRS_SPECULARENABLE, true);
 }
 
 
@@ -992,7 +992,7 @@ void CWorld::SetRenderStates(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, BOOL bStencil, BOOL bExclusive, HWND hWndInput)
+bool InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DFORMAT fmt, bool bStencil, bool bExclusive, HWND hWndInput)
 {
 	gcLogger.Init();
 	gcLogger.Add("Main world initialisation...\n");
@@ -1002,7 +1002,7 @@ BOOL InitMain(int iAd, D3DDEVTYPE devType, HWND hWndScreen, int dx, int dy, D3DF
 	OperatorsInit();
 	UnknownsInit();
 	gcLogger.Add("Main world initialisation.  Done.\n");
-	return TRUE;
+	return true;
 }
 
 

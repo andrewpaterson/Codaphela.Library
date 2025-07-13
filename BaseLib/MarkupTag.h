@@ -54,9 +54,9 @@ public:
 	void				Init(char* szName, CMarkupTag* pcParent);
 	void				Kill(void);
 	bool				IsEmpty(void);
-	bool				GetAttribute(char* szAttribute, void** ppvData, uint* puiType);
+	bool				GetAttribute(char* szAttribute, void** ppvData, uint* puiType = NULL);
+	void*				GetAttribute(size uiIndex, uint* puiType, char** szName = NULL);
 	size				GetNumAttributes(void);
-	void*				GetAttribute(size uiIndex, uint* puiType, char** szName);
 	CMarkupTag*			GetTag(char* szTagName, STagIterator* psIter = NULL);
 	CMarkupTag*			GetTag(char* szTagName, size iTagNumber);
 	CMarkupTag*			GetNextTag(STagIterator* psIter);

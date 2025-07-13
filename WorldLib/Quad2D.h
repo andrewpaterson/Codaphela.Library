@@ -24,6 +24,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #define __QUAD_2D_H__
 #include "BaseLib/DataTypes.h"
 #include "BaseLib/GeometricTypes.h"
+#include "BaseLib/Int3.h"
 #include "StandardLib/StandardHeader.h"
 #include "SupportLib/Rectangle.h"
 #include "GraphicsObject.h"
@@ -47,7 +48,7 @@ protected:
 public:
 	void				Init(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CViewportInstance* pcGraphicsViewport, int iWidth, int iHeight, int x, int y);
 	void 				Kill(void);
-	BOOL 				Draw(CGraphicsObject* pcGraphicsObject);
+	bool 				Draw(CGraphicsObject* pcGraphicsObject);
 	SInt3				GetPosition(void);
 	void 				SetPosition(SInt3* psPosition);
 	void 				SetPosition(int x, int y, int z);
@@ -63,8 +64,8 @@ public:
 	void				SetUVCoords(int iTextureLayer, SUVCornersFull* psUVs);
 	void				SetColour(unsigned int dwColour);
 	SUVCornersFull*		GetUVs(int iLayer);
-	BOOL				IsValid(void);
-	BOOL				IsInViewport(void);
+	bool				IsValid(void);
+	bool				IsInViewport(void);
 };
 
 

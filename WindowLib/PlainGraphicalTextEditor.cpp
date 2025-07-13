@@ -118,7 +118,7 @@ void CPlainGraphicalTextEditor::Enter(void)
 }
 
 
-void CPlainGraphicalTextEditor::Printable(char c, BOOL bInsert)
+void CPlainGraphicalTextEditor::Printable(char c, bool bInsert)
 {
 	mcEditor.Printable(c, bInsert);
 	Sync();
@@ -342,14 +342,14 @@ void CPlainGraphicalTextEditor::HomeEnter(void)
 }
 
 
-void CPlainGraphicalTextEditor::Space(BOOL bInsert)
+void CPlainGraphicalTextEditor::Space(bool bInsert)
 {
 	mcEditor.Space(bInsert);
 	Sync();
 }
 
 
-void CPlainGraphicalTextEditor::Tab(BOOL bInsert)
+void CPlainGraphicalTextEditor::Tab(bool bInsert)
 {
 	mcEditor.Tab(bInsert);
 	Sync();

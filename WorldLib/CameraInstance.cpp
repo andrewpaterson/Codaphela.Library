@@ -121,7 +121,7 @@ void CCameraInstance::SetNearAndFarPlanes(float fNearPlane, float fFarPlane)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCameraInstance::Use(void)
+bool CCameraInstance::Use(void)
 {
 	//It's allowable to have a NULL surface... the render target won't be changed.
 	if (mpsSurface != NULL)
@@ -214,10 +214,10 @@ void CCameraInstance::CreateAdjustment(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCameraInstance::IsSphereVisible(CSphere* pcSphere)
+bool CCameraInstance::IsSphereVisible(CSphere* pcSphere)
 {
 	//Naive implementation.
-	return TRUE;  
+	return true;  
 
 	//Cone = mcShapeTrans.GetFirstCone()
 

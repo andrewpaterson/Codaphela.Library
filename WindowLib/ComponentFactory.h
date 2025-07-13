@@ -63,14 +63,14 @@ public:
 	void 				Kill(void);
 
 	void*				PrivateAllocateComponent(int iType);
-	BOOL				RemoveComponent(CComponent* pcComponent);
+	bool				RemoveComponent(CComponent* pcComponent);
 	CComponent*			GetComponent(int iIndex);
 
 	CGraphicsState*		CreateState(int iNumTextures);
 
 	CTextParameters*	CreateTextParameters(Ptr<CFont> pFont);
 	CText*				CreateText(void);
-	CTextField*			CreateTextField(char* szString, BOOL bDefaultBorder = TRUE, BOOL bDefaultBackground = TRUE);
+	CTextField*			CreateTextField(char* szString, bool bDefaultBorder = true, bool bDefaultBackground = true);
 
 	CBorderParameters*	CreateBorderParameters(char* szTexture, int iCornerWidth, int iConerHeight, int iEdgeWidth);
 	CBorder*			CreateBorder(CBorderParameters* pcParameters = NULL);
@@ -80,7 +80,7 @@ public:
 
 	CToolbar*			CreateToolbar(void);
 	CViewport*			CreateViewport(CInput* pcInput, CRectangle* pcClientRect);
-	CWidget*			CreateWidget(BOOL bDefaultBorder = TRUE, BOOL bDefaultBackground = TRUE);
+	CWidget*			CreateWidget(bool bDefaultBorder = true, bool bDefaultBackground = true);
 	CFillContainer*		CreateFillContainer(void);
 
 	CTextParameters*	GetDefaultFont(void);

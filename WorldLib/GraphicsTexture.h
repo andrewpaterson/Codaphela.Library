@@ -34,7 +34,7 @@ protected:
 
 public:
 	void 		Init(void);
-	void 		Init(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, BOOL bDynamic);
+	void 		Init(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, bool bDynamic);
 	void 		Kill(void);
 	int			GetWidth(void);
 	int			GetHeight(void);

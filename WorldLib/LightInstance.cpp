@@ -36,7 +36,7 @@ void CLightInstance::Init(void)
 	msLight.Range = 3000.0f;
 	msLight.Attenuation1 = (1.0f/(msLight.Range*2.0f));
 	miSlot = -1;
-	mbEnabled = TRUE;
+	mbEnabled = true;
 }
 
 
@@ -80,7 +80,7 @@ void CLightInstance::SetDirectional(float fConstAtten, float fRange)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLightInstance::Use(int iSlot)
+bool CLightInstance::Use(int iSlot)
 {
 	if (mbEnabled)
 	{
@@ -95,7 +95,7 @@ BOOL CLightInstance::Use(int iSlot)
 
 		return gcD3D.LightEnable(miSlot, &msLight);
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -139,5 +139,5 @@ void CLightInstance::SetGrey(float g)
 //////////////////////////////////////////////////////////////////////////
 void CLightInstance::SetMatrix(SMatrix* psMatrix) { mpsMatrix = psMatrix; }
 SMatrix* CLightInstance::GetMatrix(void) { return mpsMatrix; }
-BOOL CLightInstance::IsEnabled(void) { return mbEnabled; }
-void CLightInstance::SetEnabled(BOOL bEnabled) { mbEnabled = bEnabled; }
+bool CLightInstance::IsEnabled(void) { return mbEnabled; }
+void CLightInstance::SetEnabled(bool bEnabled) { mbEnabled = bEnabled; }

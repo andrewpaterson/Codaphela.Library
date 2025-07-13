@@ -65,7 +65,7 @@ void CParticleSystem::Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGra
 	mpcGraphicsMaterial = pcMaterial;
 	mpcViewport = pcViewport;
 
-	mpcGraphicsObject = mpcWorld->CreateGraphicsObject(TRUE);
+	mpcGraphicsObject = mpcWorld->CreateGraphicsObject(true);
 	mpcGraphicsObject->AddMatrix(mpcWorld->GetIdentityMatrix());							 
 
 	//Calculate how many verts are used to drawn one particle.
@@ -176,7 +176,7 @@ void CParticleSystem::Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGra
 	//Setup the free list.  I should probably alow the chunk size to be passed in.
 	mcParticles.Init(256, msParticleType.iSize);
 
-	miVertexType = gcD3D.GetVertexFormatFor(FALSE, FixBool(iFlags & (PSF_Colour | PSF_Fade)), iNumUVLayers, 0, FALSE);
+	miVertexType = gcD3D.GetVertexFormatFor(false, FixBool(iFlags & (PSF_Colour | PSF_Fade)), iNumUVLayers, 0, false);
 	gcD3D.AddVertexFormat(miVertexType);
 }
 
@@ -285,7 +285,7 @@ void CParticleSystem::CalcBounding(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CParticleSystem::DrawParticles(CCameraInstance* pcCameraInstance)
+bool CParticleSystem::DrawParticles(CCameraInstance* pcCameraInstance)
 {
 	SFreeListIterator		sIterator;
 	void*					pvParticle;
@@ -304,7 +304,7 @@ BOOL CParticleSystem::DrawParticles(CCameraInstance* pcCameraInstance)
 	if (!pcGraphicsPrimitive)
 	{
 		//Couldn't add the graphics primitive for some reason.
-		return FALSE;
+		return false;
 	}
 	pcGraphicsPrimitive->miFlags = GRAPH_PRIM_FLAGS_DRAW;
 
@@ -312,21 +312,21 @@ BOOL CParticleSystem::DrawParticles(CCameraInstance* pcCameraInstance)
 	if (!((msParticleType.iFlags & PSF_Position) && (msParticleType.iFlags & PSF_Size)))
 	{
 		//Can't handle particles without size and position
-		return FALSE;
+		return false;
 	}
 
 	iParticleStyle = msParticleType.iFlags & PSF_ParticleTypeMask;
 	if (iParticleStyle == PSF_ALIGNMENT_UNKNOWN)
 	{
 		//Can't draw particles we don't know how to align.
-		return FALSE;
+		return false;
 	}
 
 	pvVertex = mpcGraphicsObject->AddDynamicVerticies(pcGraphicsPrimitive, miVertexType, miNumParticles * miTrianglesPerParticle, miNumParticles * miVerticiesPerParticle);
 	if (!pvVertex)
 	{
 		//Couldn't add the required number of particles.  bail.
-		return FALSE;
+		return false;
 	}
 
 	iUVOffset = gcD3D.GetVertexFormatUVOffset(miVertexType, 0);
@@ -361,7 +361,7 @@ BOOL CParticleSystem::DrawParticles(CCameraInstance* pcCameraInstance)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CParticleSystem::Draw(CCameraInstance* pcCameraInstance)
+bool CParticleSystem::Draw(CCameraInstance* pcCameraInstance)
 {
 	CalcBounding();
 	return DrawParticles(pcCameraInstance);

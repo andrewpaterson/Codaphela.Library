@@ -73,7 +73,7 @@ void CComponentPointers::Add(CComponent* pcComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentPointers::Remove(CComponent* pcComponent, BOOL bKillComponent)
+void CComponentPointers::Remove(CComponent* pcComponent, bool bKillComponent)
 {
 	mcComponents.Remove(pcComponent);
 	if (bKillComponent)

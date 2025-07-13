@@ -26,12 +26,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CLabel::Init(CViewport* pcViewport, char* szString, BOOL bDefaultBorder, BOOL bDefaultBackground)
+void CLabel::Init(CViewport* pcViewport, char* szString, bool bDefaultBorder, bool bDefaultBackground)
 {
 	CFillContainer*		mpcFill1;
 
 	CComponent::Init(pcViewport);
-	mbCanGetFocus = TRUE;
+	mbCanGetFocus = true;
 
 	mpcWidget = GetFactory()->CreateWidget(bDefaultBorder, bDefaultBackground);
 	mpcFill1 = GetFactory()->CreateFillContainer();
@@ -62,7 +62,7 @@ void CLabel::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CLabel::Draw(void)
+bool CLabel::Draw(void)
 {
 	return CComponent::Draw();
 }

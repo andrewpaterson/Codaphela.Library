@@ -39,7 +39,7 @@ public:
 	void 				Init(CViewport* pcViewport, CBlockParameters* pcBlockParameters);
 	void 				Kill(void);
 
-	BOOL 				Draw(void);
+	bool 				Draw(void);
 	void				SetRequiredSize(void);
 	void				CreateQuad(void);
 

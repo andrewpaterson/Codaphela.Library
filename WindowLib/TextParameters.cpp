@@ -39,7 +39,7 @@ void CTextParameters::Init(CFont* pcFont, CGraphicsState* pcGraphicsState, CWorl
 
 	mpcGraphicsTexture = NULL;
 	cTextureConverter.Init(pcWorld);
-	cTextureConverter.Convert(&mpcGraphicsTexture, pcFont->GetImage(), FALSE);
+	cTextureConverter.Convert(&mpcGraphicsTexture, pcFont->GetImage(), false);
 	cTextureConverter.Kill();
 	mpcGraphicsMaterial = CreateMaterial(1, pcWorld, pcFont->GetImage()->HasChannel(IMAGE_OPACITY));
 	mpcGraphicsMaterial->SetTexture(0, mpcGraphicsTexture);
@@ -69,3 +69,4 @@ int CTextParameters::GetDescent(void) { return mpcFont->GetDescent(); }
 CGraphicsTexture* CTextParameters::GetGraphicsTexture(void) { return mpcGraphicsTexture; }
 CGraphicsMaterial* CTextParameters::GetGraphicsMaterial(void) { return mpcGraphicsMaterial; }
 CFont* CTextParameters::GetFont(void) { return mpcFont; }
+

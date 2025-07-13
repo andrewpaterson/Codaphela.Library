@@ -28,12 +28,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CGraphicalTextEditor : public CTextEditor
 {
 public:
-	BOOL		mbMultiLine;
+	bool		mbMultiLine;
 	int			miTabWidth;  //In Spaces
 
 	CTextData*	mpcText;
 
-	BOOL		mbInsert;
+	bool		mbInsert;
 
 	SInt2		msEditPos;  //In pixels
 	int			miCenterLineX;  //For moving up and down (including page up and page down).  Resets to edit pos on anything other than up or down.
@@ -54,7 +54,7 @@ public:
 	void 	Delete(void);
 	void 	Backspace(void);
 	void 	Enter(void);
-	void 	Printable(char c, BOOL bInsert);
+	void 	Printable(char c, bool bInsert);
 	void 	Home(void);
 	void 	End(void);
 	void 	DocumentHome(void);
@@ -88,8 +88,8 @@ public:
 	void 	DeleteLine(void);
 	void 	EndEnter(void);
 	void 	HomeEnter(void);
-	void 	Space(BOOL bInsert);
-	void 	Tab(BOOL bInsert);
+	void 	Space(bool bInsert);
+	void 	Tab(bool bInsert);
 	void 	BackTab(void);
 
 	SInt2	FindLeft(SInt2 sPos);
@@ -98,8 +98,8 @@ public:
 	SInt2	FindStartOfWord(void);
 	SInt2	FindUp(SInt2 sPos);
 	SInt2	FindDown(SInt2 sPos);
-	SInt2	FindStartOfLine(SInt2 sPos, BOOL bSkipWhiteSpace);
-	SInt2	FindEndOfLine(SInt2 sPos, BOOL bSkipWhiteSpace);
+	SInt2	FindStartOfLine(SInt2 sPos, bool bSkipWhiteSpace);
+	SInt2	FindEndOfLine(SInt2 sPos, bool bSkipWhiteSpace);
 	void	TouchSelection(void);
 	SInt2	DeleteSubstring(SInt2 sStartInclusive, SInt2 sEndExclusive);
 };

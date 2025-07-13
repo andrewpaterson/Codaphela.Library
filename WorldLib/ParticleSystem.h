@@ -194,9 +194,9 @@ public:
 	int				GetParticleObjectSize(void);
 	int				GetUserDataOffset(void);
 
-	BOOL			Draw(CCameraInstance* pcCameraInstance);
+	bool			Draw(CCameraInstance* pcCameraInstance);
 	void			CalcBounding(void);
-	BOOL			DrawParticles(CCameraInstance* pcCameraInstance);
+	bool			DrawParticles(CCameraInstance* pcCameraInstance);
 	void*			DrawUnalignedUnboundParticle(SFloat4x4* psCameraMatrix, void* pvParticle, void* pvVertex, SD3DVertexType* psVertexType, int iVertexUVOffset, int iVertexColourOffset);
 	float			ScaledForwardDotProduct(SFloat3* pvCameraForward, void* pvParticle);
 	int				AdjustedColour(void* pvParticle, float fForwardDot);

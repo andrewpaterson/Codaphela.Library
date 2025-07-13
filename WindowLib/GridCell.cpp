@@ -29,9 +29,9 @@ void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, int iWidthFil
 {
 	msTopLeft.Init(iTop, iLeft);
 	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = FALSE;
+	sWidthParams.bUseDesiredSize = false;
 	sWidthParams.u.sFill.iWeight = iWidthFill;
-	sHeightParams.bUseDesiredSize = FALSE;
+	sHeightParams.bUseDesiredSize = false;
 	sHeightParams.u.sFill.iWeight = iHeightFill;
 }
 
@@ -44,9 +44,9 @@ void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, int iWidthFil
 {
 	msTopLeft.Init(iTop, iLeft);
 	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = FALSE;
+	sWidthParams.bUseDesiredSize = false;
 	sWidthParams.u.sFill.iWeight = iWidthFill;
-	sHeightParams.bUseDesiredSize = TRUE;
+	sHeightParams.bUseDesiredSize = true;
 	sHeightParams.u.sDesiredSize.eAlign = eUseDesiredHeight;
 }
 
@@ -59,9 +59,9 @@ void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, EGridUseDesir
 {
 	msTopLeft.Init(iTop, iLeft);
 	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = TRUE;
+	sWidthParams.bUseDesiredSize = true;
 	sWidthParams.u.sDesiredSize.eAlign = eUseDesiredWidth;
-	sHeightParams.bUseDesiredSize = FALSE;
+	sHeightParams.bUseDesiredSize = false;
 	sHeightParams.u.sFill.iWeight = iHeightFill;
 }
 
@@ -74,9 +74,9 @@ void CGridCell::Init(int iTop, int iLeft, int iWidth, int iHeight, EGridUseDesir
 {
 	msTopLeft.Init(iTop, iLeft);
 	msSize.Init(iWidth, iHeight);
-	sWidthParams.bUseDesiredSize = TRUE;
+	sWidthParams.bUseDesiredSize = true;
 	sWidthParams.u.sDesiredSize.eAlign = eUseDesiredWidth;
-	sHeightParams.bUseDesiredSize = TRUE;
+	sHeightParams.bUseDesiredSize = true;
 	sHeightParams.u.sDesiredSize.eAlign = eUseDesiredHeight;
 }
 

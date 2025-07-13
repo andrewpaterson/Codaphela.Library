@@ -60,7 +60,7 @@ void CCaret::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CCaret::Draw(void)
+bool CCaret::Draw(void)
 {
 	return CBlock::Draw();
 }

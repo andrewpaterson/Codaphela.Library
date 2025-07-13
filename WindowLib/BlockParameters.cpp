@@ -32,7 +32,7 @@ void CBlockParameters::Init(CGraphicsState* pcGraphicsState, CWorld* pcWorld, in
 
 	CQuadParameters::Init(pcGraphicsState);
 
-	mpcGraphicsMaterial = CreateMaterial(0, pcWorld, FALSE);
+	mpcGraphicsMaterial = CreateMaterial(0, pcWorld, false);
 	for (i = 0; i < MAX_TEX; i++)
 	{
 		macRects[i].Init();

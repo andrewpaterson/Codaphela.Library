@@ -35,7 +35,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 	CInputCategory*				pcMouses;
 	CArrayInputDevicePtr		apcKeyboards;
 	CArrayInputDevicePtr		apcMouses;
-	int							i;
+	size						i;
 	CInputDevice*				pcKeyboard;
 	CComponentInputKeyboard*	pcInputKeyboard;
 	CInputDevice*				pcMouse;
@@ -50,7 +50,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 	pcKeyboards = pcInput->GetCategory("Keyboard");
 	apcKeyboards.Init();
 
-	pcKeyboards->GetDevices(&apcKeyboards, FALSE);
+	pcKeyboards->GetDevices(&apcKeyboards, false);
 	for (i = 0; i < apcKeyboards.NumElements(); i++)
 	{
 		pcKeyboard = *apcKeyboards.Get(i);
@@ -62,7 +62,7 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 	pcMouses = pcInput->GetCategory("Mouse");
 	apcMouses.Init();
 
-	pcMouses->GetDevices(&apcMouses, FALSE);
+	pcMouses->GetDevices(&apcMouses, false);
 	for (i = 0; i < apcMouses.NumElements(); i++)
 	{
 		pcMouse = *apcMouses.Get(i);
@@ -75,9 +75,9 @@ void CComponentInput::Init(CInput* pcInput, CViewport* pcViewport)
 	miControl = 0;
 	miAlt = 0;
 	miShift = 0;
-	mbCapsLock = FALSE;
-	mbInsert = TRUE;
-	mbNumLock = FALSE;
+	mbCapsLock = false;
+	mbInsert = true;
+	mbNumLock = false;
 
 	mcPointer.Init();
 }
@@ -128,7 +128,7 @@ void CComponentInput::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CComponentInputCommand* CComponentInput::GetCommand(CInputSourceDesc* pcSource, BOOL bControl, BOOL bAlt, BOOL bShift, BOOL bPressed)
+CComponentInputCommand* CComponentInput::GetCommand(CInputSourceDesc* pcSource, bool bControl, bool bAlt, bool bShift, bool bPressed)
 {
 	SSetIterator				sIter;
 	CComponentInputDevice*		pcInputDevice;
@@ -245,12 +245,12 @@ CInput* CComponentInput::GetInput(void) { return mpcInput; }
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComponentInput::ButtonToggle(CInputSourceDesc* pcSource, BOOL bIgnoreShift, BOOL bPressed)
+void CComponentInput::ButtonToggle(CInputSourceDesc* pcSource, bool bIgnoreShift, bool bPressed)
 {
 	CComponentInputPrintable*	psPrintable;
-	BOOL						bControl;
-	BOOL						bAlt;
-	BOOL						bShift;
+	bool						bControl;
+	bool						bAlt;
+	bool						bShift;
 	CComponentInputCommand*		psCommand;
 	int							x;
 	int							y;
@@ -268,7 +268,7 @@ void CComponentInput::ButtonToggle(CInputSourceDesc* pcSource, BOOL bIgnoreShift
 	}
 	else
 	{
-		bShift = FALSE;
+		bShift = false;
 	}
 
 	psCommand = GetCommand(pcSource, bControl, bAlt, bShift, bPressed);
@@ -487,7 +487,7 @@ void CComponentInput::ButtonPressed(CUnknown* pcSource, void* pvContext)
 	SChordInputEvent*		pcValue;
 
 	pcValue = (SChordInputEvent*)pvContext;
-	ButtonToggle(pcValue->pcValue->pcSource, FALSE, TRUE);
+	ButtonToggle(pcValue->pcValue->pcSource, false, true);
 }
 
 
@@ -500,7 +500,7 @@ void CComponentInput::ButtonReleased(CUnknown* pcSource, void* pvContext)
 	SChordInputEvent*		pcValue;
 
 	pcValue = (SChordInputEvent*)pvContext;
-	ButtonToggle(pcValue->pcValue->pcSource, FALSE, FALSE);
+	ButtonToggle(pcValue->pcValue->pcSource, false, false);
 }
 
 
@@ -541,7 +541,7 @@ void CComponentInput::PointerMotion(CUnknown* pcSource, void* pvContext)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponentInput::PointerInClientRect(void)
+bool CComponentInput::PointerInClientRect(void)
 {
 	return mpcViewport->IsPointInAbsolute(mcPointer.GetX(), mcPointer.GetY());
 }
@@ -561,11 +561,11 @@ void CComponentInput::NumpadButtonPressed(CUnknown* pcSource, void* pvContext)
 	psNumKey = GetNumKeyRemap(pcValue->pcValue->pcSource);
 	if (!mbNumLock)
 	{
-		ButtonToggle(psNumKey->pcNoNumLockRemap, TRUE, TRUE);
+		ButtonToggle(psNumKey->pcNoNumLockRemap, true, true);
 	}
 	else
 	{
-		ButtonToggle(psNumKey->pcYesNumLockRemap, FALSE, TRUE);
+		ButtonToggle(psNumKey->pcYesNumLockRemap, false, true);
 	}
 }
 
@@ -686,7 +686,7 @@ CComponent* CComponentInput::GetFocussedComponent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CComponentInput::HasFocussedComponent(void)
+bool CComponentInput::HasFocussedComponent(void)
 {
 	return mpcViewport->GetFocussedComponent() != NULL;
 }

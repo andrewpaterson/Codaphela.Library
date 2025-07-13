@@ -19,6 +19,7 @@ along with Codaphela CppParserLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Calculator.h"
+#include "BaseLib/CalculatorParser.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/FastFunctions.h"
 #include "BaseLib/Logger.h"
@@ -2567,11 +2568,19 @@ bool CPreprocessor::Preprocess(char* szSource, CChars* pszDest, bool bShowFileAn
 //////////////////////////////////////////////////////////////////////////
 TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError)
 {
-	CCalculator	cCalculator;
-	CNumber		cAnswer;
+	CCalculator			cCalculator;
+	CCalculatorSymbols	cSymbols;
+	CCalculatorParser	cParser;
+	CNumber				cAnswer;
+	CCalcExpression*	pcExpression;
 
-	cCalculator.Init(false);
-	cAnswer = cCalculator.Eval(szText);
+	cSymbols.Init(false);
+	cCalculator.Init(&cSymbols, false);
+
+	cParser.Init(&cCalculator);
+	pcExpression = (CCalcExpression*)cParser.Parse(szText);
+	cParser.Kill();
+	
 	if (cCalculator.HasError())
 	{
 		szCalculatorError->Append(cCalculator.GetError());
@@ -2580,6 +2589,8 @@ TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError
 	}
 	else
 	{
+		cAnswer = cCalculator.Eval(pcExpression);
+
 		cCalculator.Kill();
 		if (cAnswer.IsZero())
 		{

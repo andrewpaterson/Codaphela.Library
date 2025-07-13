@@ -34,15 +34,15 @@ public:
 
 	void 	Init(CViewport* pcViewport);
 	void 	Kill(void);
-	BOOL 	Draw(void);
+	bool 	Draw(void);
 
 	void 	SetActualSize(int fWidth, int fHeight);
 	void	SetActualSize(SInt2 sSize);
 	void 	SetPosition(int x, int y);
 	void	SetPosition(SInt2 sPosition);
 	void 	GetPosition(SInt2* psPosition);
-	BOOL 	HasSizeChanged(void);
-	BOOL 	HasPositionChanged(void);
+	bool 	HasSizeChanged(void);
+	bool 	HasPositionChanged(void);
 };
 
 

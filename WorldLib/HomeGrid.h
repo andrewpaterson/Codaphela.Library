@@ -56,7 +56,7 @@ public:
 	void		Init(CWorldEditor* pcWorldEditor);
 	void		Kill(void);
 
-	BOOL		Draw(void);
+	bool		Draw(void);
 	D3DCVERTEX*	DrawHalfGrid(D3DCVERTEX* psVertex, SFloat3* psCenter, SFloat3* psPerp, SFloat3* psDir, int iMin, int iMax, float fStep, float fWidth);
 	void		CreateObjectAsNecessary(void);
 	void		SetColours(int iCenterColour, int iMajorColour, int iMinorColour);

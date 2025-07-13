@@ -131,7 +131,7 @@ struct SMatrix
 
 	void			Set(SFloat4x4* psMatrix);
 	void			Fix(void);
-	BOOL			Update(void);
+	bool			Update(void);
 
 	SFloat3*		At(void);
 	SFloat3*		Up(void);
@@ -194,7 +194,7 @@ public:
 	int							aiRenderStates[MAX_RENDER_STATES];
 
 	int							iViewportID;
-	BOOL						bSoftwareMode;
+	bool						bSoftwareMode;
 
 	SIndexBuffer*				mpsCurrentIndexBuffer;
 	SMaterial*					mpsCurrentMaterial;
@@ -205,10 +205,10 @@ public:
 	SSurface*					mpsCurrentSurface;
 
 	D3DCAPS9					sD3DCaps;
-	BOOL						bMixedVertexProcessing;
-	BOOL						bAutoGenerateMipmaps;
-	BOOL						bPureDevice;
-	BOOL						bIndexBuffers;
+	bool						bMixedVertexProcessing;
+	bool						bAutoGenerateMipmaps;
+	bool						bPureDevice;
+	bool						bIndexBuffers;
 	SSurface					sBackBuffer;
 	D3DFORMAT					iFrameBufferFormat;
 	D3DFORMAT					iDepthBufferFormat;
@@ -244,31 +244,31 @@ public:
 	float					mfMinTessalation;
 	float					mfMaxTessalation;
 
-	BOOL					mbLogCalls;
+	bool					mbLogCalls;
 	CChars					mszLog;
-	int						miLogFlushSize;
+	size					miLogFlushSize;
 
-	BOOL					mbAlwaysSetMaterial;
-	BOOL					mbAlwaysSetTexture;
-	BOOL					mbAlwaysSetVertexBuffer;
-	BOOL					mbAlwaysSetIndexBuffer;
-	BOOL					mbAlwaysSetViewport;
+	bool					mbAlwaysSetMaterial;
+	bool					mbAlwaysSetTexture;
+	bool					mbAlwaysSetVertexBuffer;
+	bool					mbAlwaysSetIndexBuffer;
+	bool					mbAlwaysSetViewport;
 
 	//Initialising the main D3D object.
 	void	Init(void);
-	BOOL 	Init(D3DDEVTYPE d);
+	bool 	Init(D3DDEVTYPE d);
 	void 	Kill(void);
 
 	//Initialising each D3D display device.
 	int		GetNVidiaPerfHUDAdapter(int iDefaultAd);
-	BOOL 	InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFORMAT fmt, BOOL bStencil);
+	bool 	InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFORMAT fmt, bool bStencil);
 	void 	InitGeneral(void);
 	void	GetBackBuffer(void);
 	void	SetupCache(int ad);
 	void	PostInit(int ad, D3DFORMAT D3DFmt, D3DFORMAT D3DDepth);
 	void	ResetDevice(int iAD);
 	int		GetUsage(int iD3DVertexType);
-	void	SetSoftwareVertexProcessing(BOOL bSoftware);
+	void	SetSoftwareVertexProcessing(bool bSoftware);
 
 	//Texture sampler and state.
 	void 	FillStageStates(int iAd);
@@ -299,16 +299,16 @@ public:
 	D3DFORMAT GetIndexBufferFormat(SIndexBuffer* psIndexBuffer);
 
 	//Vertex buffer.
-	BOOL	CreateVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bDynamic, SVertexBuffer* psVertexBuffer);
+	bool	CreateVertexBuffer(int iD3DVertexType, int iNumVerts, bool bDynamic, SVertexBuffer* psVertexBuffer);
 	void	SetVertexBuffer(SVertexBuffer* psVertexBuffer);
 	void	ReleaseVertexBuffer(SVertexBuffer* psVertexBuffer);
 	void	InvalidateVertexBuffer(void);
-	void*	LockVertexBuffer(SVertexBuffer* psVertexBuffer, BOOL bDiscard = FALSE);
+	void*	LockVertexBuffer(SVertexBuffer* psVertexBuffer, bool bDiscard = false);
 	void	UnlockVertexBuffer(SVertexBuffer* psVertexBuffer);
 	D3DFORMAT GetVertexBufferFormat(SVertexBuffer* psVertexBuffer);
 
 	//Texture buffer.
-	void 	CreateTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, BOOL bDynamic, STexture* psTexture);
+	void 	CreateTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, bool bDynamic, STexture* psTexture);
 	void 	ReleaseTexture(STexture* psTexture);
 	void 	SetTexture(int iStage, STexture* psTexture);
 	void 	InvalidateTexture(int iStage);
@@ -360,8 +360,8 @@ public:
 	int		CalculateVertetFormatColourOffest(int iD3DVertexFormat);
 	int		CalculateVertetFormatWeightOffset(int iD3DVertexFormat);
 	int		CalculateVertetFormatUVOffset(int iD3DVertexFormat);
-	int		GetVertexFormatFor(BOOL bNormal, BOOL bColour, int iNumberOfTextures, int iNumberOfMatricies, BOOL bPretransformed);
-	SD3DVertexType* GetVertexTypeFor(BOOL bNormal, BOOL bColour, int iNumberOfTextures, int iNumberOfMatricies, BOOL bPretransformed);
+	int		GetVertexFormatFor(bool bNormal, bool bColour, int iNumberOfTextures, int iNumberOfMatricies, bool bPretransformed);
+	SD3DVertexType* GetVertexTypeFor(bool bNormal, bool bColour, int iNumberOfTextures, int iNumberOfMatricies, bool bPretransformed);
 	SD3DVertexType* GetVertexType(int iD3DVertexFormat);
 	int		GetVertexFormatPositionOffset(int iD3DVertexFormat);
 	int		GetVertexFormatNormalOffset(int iD3DVertexFormat);
@@ -378,9 +378,9 @@ public:
 	//Device capabilities.
 	int		GetDeviceBehaviour(int iAD);
 	void	GetAdaptorCapabilities(int iAD);
-	D3DFORMAT GetBestDepthBufferFormat(int iAD, D3DFORMAT AdapterFormat, BOOL bNeedsStencil);
+	D3DFORMAT GetBestDepthBufferFormat(int iAD, D3DFORMAT AdapterFormat, bool bNeedsStencil);
 	D3DFORMAT GetBestFrameBufferFormat(int iAD, D3DFORMAT AdapterFormat);
-	D3DFORMAT GetBestTextureBufferFormat(int iAD, DWORD D3DUsage, BOOL bNeedsAlpha);
+	D3DFORMAT GetBestTextureBufferFormat(int iAD, DWORD D3DUsage, bool bNeedsAlpha);
 	D3DFORMAT GetBestIndexBufferFormat(int iAD, int iNumIndices);
 	void	GetDisplayModes(int iAD, D3DFORMAT fmt);
 
@@ -391,12 +391,12 @@ public:
 	void	ClearBuffer(int r, int g, int b);
 	void 	Present(void);
 	void 	Present(HWND hWnd);
-	BOOL	DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumVerticies, int iStartIndex, int iNumPrimitives);
-	BOOL	DrawPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumPrimitives);
-	BOOL	SetCamera(SMatrix* psProjection, SMatrix* psView);
-	BOOL	LightEnable(int iLight, D3DLIGHT9* psLight);
-	BOOL	LightDisable(int iLight);
-	BOOL	CreateMesh(int iNumTriangles, int iNumIndices, int iMeshOptions, unsigned int iVertexFormat, ID3DXMesh** ppXMesh);
+	bool	DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumVerticies, int iStartIndex, int iNumPrimitives);
+	bool	DrawPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumPrimitives);
+	bool	SetCamera(SMatrix* psProjection, SMatrix* psView);
+	bool	LightEnable(int iLight, D3DLIGHT9* psLight);
+	bool	LightDisable(int iLight);
+	bool	CreateMesh(int iNumTriangles, int iNumIndices, int iMeshOptions, unsigned int iVertexFormat, ID3DXMesh** ppXMesh);
 
 	//Logging
 	void	Log(char* sz);
@@ -456,7 +456,7 @@ extern CD3D	gcD3D;
 //	General Functions.
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL D3DVectorRectContainPoint(D3DVectorRect* psRect, D3DVECTOR* psVec, float fEdgeThickness);
+bool D3DVectorRectContainPoint(D3DVectorRect* psRect, D3DVECTOR* psVec, float fEdgeThickness);
 
 
 #endif //__DIRECT_3D_DRAGON__

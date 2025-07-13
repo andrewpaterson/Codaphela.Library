@@ -254,9 +254,9 @@ bool CInputDevicesReader::ReadDataFormatChannels(CMarkupTag* pcParentTag, CTypeN
 	pcTag = pcParentTag->GetTag("Channel", &sIter);
 	while (pcTag)
 	{
-		szType = pcTag->GetAttribute("Type");
-		szName = pcTag->GetAttribute("Name");
-		szCount = pcTag->GetAttribute("Count");
+		pcTag->GetAttribute("Type", (void**)&szType);
+		pcTag->GetAttribute("Name", (void**)&szName);
+		pcTag->GetAttribute("Count", (void**)&szCount);
 
 		if (!szType || (strlen(szType) == 0))
 		{
@@ -330,7 +330,7 @@ bool CInputDevicesReader::ReadNamedDataFormat(CMarkupTag* pcParentTag, CTypeName
 	bool				bEmptyName;
 	CInputDataFormat*	pcFormat;
 
-	szName = pcParentTag->GetAttribute("Name");
+	pcParentTag->GetAttribute("Name", (void**)&szName);
 	bEmptyName = (!szName || (strlen(szName) == 0));
 	if (bEmptyName)
 	{
@@ -362,7 +362,7 @@ CInputDataFormat* CInputDevicesReader::ReadDefinedDataFormat(CMarkupTag* pcParen
 	CInputDataFormat*	pcFormat;
 	bool				bResult;
 
-	szType = pcParentTag->GetAttribute("Type");
+	pcParentTag->GetAttribute("Type", (void**)&szType);
 	bEmptyType = (!szType || (strlen(szType) == 0));
 	if (bEmptyType)
 	{
@@ -418,7 +418,7 @@ bool CInputDevicesReader::ReadDevices(CMarkupTag* pcParentTag, CTypeNames* pcTyp
 	pcTag = pcParentTag->GetTag("Device", &sIter);
 	while (pcTag)
 	{
-		szPhyscical = pcTag->GetAttribute("Physical");
+		pcTag->GetAttribute("Physical", (void**)&szPhyscical);
 		bPhysical = true;
 		if (szPhyscical)
 		{
@@ -428,7 +428,7 @@ bool CInputDevicesReader::ReadDevices(CMarkupTag* pcParentTag, CTypeNames* pcTyp
 			}
 		}
 
-		szType = pcTag->GetAttribute("Type");
+		pcTag->GetAttribute("Type", (void**)&szType);
 		if (!szType || (strlen(szType) == 0))
 		{
 			gcLogger.Error2("'", pcTag->GetName(), "' tag attribute 'Type' is empty", NULL);
@@ -645,7 +645,7 @@ bool CInputDevicesReader::ReadChanges(CMarkupTag* pcParentTag, CInputDeviceDesc*
 	pcTag = pcParentTag->GetTag("Rename", &sIter);
 	while (pcTag)
 	{
-		szExisting = pcTag->GetAttribute("Source");
+		pcTag->GetAttribute("Source", (void**)&szExisting);
 		if (!szExisting || (strlen(szExisting) == 0))
 		{
 			gcLogger.Error2("'", pcTag->GetName(), "' tag attribute 'Source' is empty", NULL);
@@ -694,7 +694,7 @@ bool CInputDevicesReader::ReadSources(CMarkupTag* pcParentTag, CInputDeviceDesc*
 	CInputDeviceCopyContext		cCopyContext;
 	CChars						szDump;
 
-	szAttribute = pcParentTag->GetAttribute("Type");
+	pcParentTag->GetAttribute("Type", (void**)&szAttribute);
 	if (!szAttribute || (strlen(szAttribute) == 0))
 	{
 		gcLogger.Error2("'", pcParentTag->GetName(), "' tag attribute 'Type' is empty", NULL);
@@ -812,7 +812,7 @@ bool CInputDevicesReader::ReadSource(CMarkupTag* pcParentTag, CInputDeviceDesc* 
 	CInputCategoryGeneric*	pcGeneric;
 	CChars					szDump;
 
-	szAttribute = pcParentTag->GetAttribute("Type");
+	pcParentTag->GetAttribute("Type", (void**)&szAttribute);
 	if (!szAttribute || (strlen(szAttribute) == 0))
 	{
 		gcLogger.Error2("'", pcParentTag->GetName(), "' tag attribute 'Type' is empty", NULL);
@@ -853,7 +853,7 @@ bool CInputDevicesReader::ReadSource(CMarkupTag* pcParentTag, CInputDeviceDesc* 
 	pcRestTag = pcParentTag->GetTag("Rest");
 	if (pcRestTag)
 	{
-		szType = pcRestTag->GetAttribute("Type");
+		pcRestTag->GetAttribute("Type", (void**)&szType);
 		if (!szType || (strlen(szType) == 0))
 		{
 			szFriendly.Kill();
@@ -886,7 +886,7 @@ bool CInputDevicesReader::ReadSource(CMarkupTag* pcParentTag, CInputDeviceDesc* 
 			return false;
 		}
 
-		szEmit = pcRestTag->GetAttribute("Emit");
+		pcRestTag->GetAttribute("Emit", (void**)&szEmit);
 		if (szEmit)
 		{
 			if (strcmp(szEmit, "True") == 0)
@@ -996,7 +996,7 @@ bool CInputDevicesReader::ReadSourceValue(CMarkupTag* pcParentTag, CInputSourceD
 		return false;
 	}
 
-	szType = pcValueTag->GetAttribute("Type");
+	pcValueTag->GetAttribute("Type", (void**)&szType);
 	if (!szType || (strlen(szType) == 0))
 	{
 		return false;
@@ -1199,8 +1199,7 @@ bool CInputDevicesReader::ReadValueChannel(CMarkupTag* pcParentTag, CInputSource
 	char							vTest[8];
 	TRISTATE						tResult;
 
-	szName = pcParentTag->GetAttribute("Name");
-
+	pcParentTag->GetAttribute("Name", (void**)&szName);
 	if ((!szName || (strlen(szName) == 0)))
 	{
 		return false;
@@ -1312,7 +1311,7 @@ bool CInputDevicesReader::ReadVariables1(CMarkupTag* pcParentTag, CInputDeviceDe
 	char*						szAttribute;
 	int							iInitialValue;
 	
-	szAttribute = pcParentTag->GetAttribute("Type");
+	pcParentTag->GetAttribute("Type", (void**)&szAttribute);
 	if (!szAttribute || (strlen(szAttribute) == 0))
 	{
 		gcLogger.Error2("'", pcParentTag->GetName(), "' tag attribute 'Type' is empty", NULL);
@@ -1324,7 +1323,7 @@ bool CInputDevicesReader::ReadVariables1(CMarkupTag* pcParentTag, CInputDeviceDe
 		pcTag = pcParentTag->GetTag("Variable", &sIter);
 		while (pcTag)
 		{
-			szName = pcTag->GetAttribute("Name");
+			pcTag->GetAttribute("Name", (void**)&szName);
 			if (!szName || (strlen(szName) == 0))
 			{
 				gcLogger.Error2("'", pcTag->GetName(), "' variable tag attribute 'Name' is empty", NULL);
@@ -1411,13 +1410,13 @@ bool CInputDevicesReader::ReadVariables2(CMarkupTag* pcParentTag, CInputDeviceDe
 	CInputDeviceDesc*			pcSourceDesc;
 	CInputDeviceCopyContext		cCopyContext;
 
-	szAttribute = pcParentTag->GetAttribute("Type");
+	pcParentTag->GetAttribute("Type", (void**)&szAttribute);
 	if (strcmp(szAttribute, "Defined") == 0)
 	{
 		pcTag = pcParentTag->GetTag("Variable", &sIter);
 		while (pcTag)
 		{
-			szName = pcTag->GetAttribute("Name");
+			pcTag->GetAttribute("Name", (void**)&szName);
 			pcVariable = pcDeviceDesc->GetVariable(szName);
 			pcValueTag = pcTag->GetTag("Value", &sValueIter);
 
@@ -1472,14 +1471,14 @@ bool CInputDevicesReader::ReadVariableValue1(CMarkupTag* pcValueTag, CInputDevic
 	char*						szValueName;
 	char*						szInitial;
 
-	szValueName = pcValueTag->GetAttribute("Name");
+	pcValueTag->GetAttribute("Name", (void**)&szValueName);
 	if ((szValueName == NULL) || (strlen(szValueName) == 0))
 	{
 		gcLogger.Error("'Value' tag attribute 'Name' is empty");
 		return false;
 	}
 
-	szInitial = pcValueTag->GetAttribute("Initial");
+	pcValueTag->GetAttribute("Initial", (void**)&szInitial);
 	if (szInitial)
 	{
 		if (strcmp("True", szInitial) == 0)
@@ -1520,10 +1519,10 @@ bool CInputDevicesReader::ReadVariableValue2(CMarkupTag* pcValueTag, CInputDevic
 	CInputDeviceVariableValueDesc*	pcVariableValueDesc;
 	char*							szInitial;
 
-	szValueName = pcValueTag->GetAttribute("Name");
+	pcValueTag->GetAttribute("Name", (void**)&szValueName);
 	pcVariableValueDesc = pcVariable->GetValue(szValueName);
 
-	szInitial = pcValueTag->GetAttribute("Initial");
+	pcValueTag->GetAttribute("Initial", (void**)&szInitial);
 	if (szInitial)
 	{
 		if (strcmp("True", szInitial) == 0)
@@ -1572,14 +1571,14 @@ bool CInputDevicesReader::ReadVariableValueVariable(CMarkupTag* pcTag, CInputDev
 	CInputDeviceVariableDesc*		pcConditionVariableDesc;
 	CInputDeviceVariableValueDesc*	pcConditionValueDesc;
 
-	szName = pcTag->GetAttribute("Name");
+	pcTag->GetAttribute("Name", (void**)&szName);
 	if ((szName == NULL) || (strlen(szName) == 0))
 	{
 		gcLogger.Error("'Variable' tag attribute 'Name' is empty");
 		return false;
 	}
 
-	szEquals = pcTag->GetAttribute("Equals");
+	pcTag->GetAttribute("Equals", (void**)&szEquals);
 	if ((szEquals == NULL) || (strlen(szEquals) == 0))
 	{
 		gcLogger.Error("'Variable' tag attribute 'Equals' is empty");

@@ -48,9 +48,9 @@ protected:
 public:
 	void 					Init(CSceneConverter* pcSceneConverter);
 	void 					Kill(void);
-	BOOL 					Convert(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial);
+	bool 					Convert(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState, CMaterial* pcMaterial);
 
-	BOOL 					CompleteConversion(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState);
+	bool 					CompleteConversion(CGraphicsMaterial** ppcGraphicsMaterial, CGraphicsState** ppcGraphicsState);
 	void 					ConvertSamplerState(SSamplerState* psSamplerState, CMaterialImage* psMaterialImage);
 	_D3DTEXTUREADDRESS		ConvertTextureAddress(EUVAddress eUVAddress);
 	_D3DTEXTUREFILTERTYPE	ConvertTextureFilterType(EUVFilter eUVFilter);

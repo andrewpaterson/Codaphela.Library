@@ -48,7 +48,7 @@ void CAnimationConverter::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CAnimationConverter::Convert(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix)
+bool CAnimationConverter::Convert(CMovement** ppcMovement, CSequence* pcSequence, SMatrix* psMatrix)
 {
 	CAnimKeyFrame*					pcAnimKeyFrame;
 	CAnimKeyFrame*					pcAnimKeyFramePrev;
@@ -111,7 +111,7 @@ BOOL CAnimationConverter::Convert(CMovement** ppcMovement, CSequence* pcSequence
 	{
 		*ppcMovement = pcMovement;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -119,8 +119,8 @@ BOOL CAnimationConverter::Convert(CMovement** ppcMovement, CSequence* pcSequence
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CAnimationConverter::IsAnimationConverted(void)
+bool CAnimationConverter::IsAnimationConverted(void)
 {
 	//I should probably fix this at some point...
-	return FALSE;
+	return false;
 }

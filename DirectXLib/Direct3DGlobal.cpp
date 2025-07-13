@@ -160,17 +160,17 @@ void CD3D::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::Init(D3DDEVTYPE d)
+bool CD3D::Init(D3DDEVTYPE d)
 {
 	char			szText[256];
 
-	mbAlwaysSetMaterial = FALSE;
-	mbAlwaysSetTexture = FALSE;
-	mbAlwaysSetVertexBuffer = FALSE;
-	mbAlwaysSetIndexBuffer = FALSE;
-	mbAlwaysSetViewport = FALSE;
+	mbAlwaysSetMaterial = false;
+	mbAlwaysSetTexture = false;
+	mbAlwaysSetVertexBuffer = false;
+	mbAlwaysSetIndexBuffer = false;
+	mbAlwaysSetViewport = false;
 
-	mbLogCalls = FALSE;
+	mbLogCalls = false;
 	mszLog.Init();
 	miLogFlushSize = 1;
 
@@ -183,14 +183,14 @@ BOOL CD3D::Init(D3DDEVTYPE d)
 	if (lpD3D == NULL)
 	{
 		gcUserError.Set("Cannot initialise DirectX9");
-		return FALSE;
+		return false;
 	}
 
 	if (d == D3DDEVTYPE_SW)
 	{
 		//Find out how to register the old RAMP rasterizer...
 		lpD3D->RegisterSoftwareDevice(NULL);
-		return FALSE;
+		return false;
 	}
 
 	//Get the number of video cards in this system.
@@ -207,10 +207,10 @@ BOOL CD3D::Init(D3DDEVTYPE d)
 	if (iNumMonitors == 0)
 	{
 		gcUserError.Set("No DirectX devices available!");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 
@@ -240,7 +240,7 @@ int CD3D::GetNVidiaPerfHUDAdapter(int iDefaultAd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFORMAT fmt, BOOL bStencil)
+bool CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFORMAT fmt, bool bStencil)
 {
 	D3DFORMAT				w;
 	D3DPRESENT_PARAMETERS	dp;
@@ -268,7 +268,7 @@ BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFO
 	iBehaviourFlags = GetDeviceBehaviour(ad);
 	if (iBehaviourFlags == 0)
 	{
-		return FALSE;
+		return false;
 	}
 
 	nvAd = GetNVidiaPerfHUDAdapter(ad);
@@ -280,14 +280,14 @@ BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFO
 		if (lpD3D->GetAdapterDisplayMode(ad, &dmc) != D3D_OK)
 		{
 			gcUserError.Set("Cannot get adapter display mode.");
-			return FALSE;
+			return false;
 		}
 
 		ZeroMemory(&dp, sizeof(D3DPRESENT_PARAMETERS));
-		dp.Windowed = TRUE;
+		dp.Windowed = true;
 		dp.SwapEffect = D3DSWAPEFFECT_FLIP;
 		dp.BackBufferFormat = dmc.Format;
-		dp.EnableAutoDepthStencil = TRUE;
+		dp.EnableAutoDepthStencil = true;
 		dp.AutoDepthStencilFormat = GetBestDepthBufferFormat(ad, dmc.Format, bStencil);
 		dp.hDeviceWindow = hWnd;
 		dp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
@@ -297,10 +297,10 @@ BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFO
 		if (FAILED(hResult))
 		{
 			gcUserError.Set("Cannot create Direct3DDevice.");
-			return FALSE;
+			return false;
 		}
 		PostInit(ad, dmc.Format, dp.AutoDepthStencilFormat);
-		return TRUE;
+		return true;
 	}
 
 	gcLogger.Add("Using full screen mode\n");
@@ -317,7 +317,7 @@ BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFO
 	if (acMonitor[ad].iNumModes == 0)
 	{
 		gcUserError.Set("Cannot find frame buffer format.");
-		return FALSE;
+		return false;
 	}
 
 	acMonitor[ad].iFrameBufferFormat = w;
@@ -330,8 +330,8 @@ BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFO
 	dp.MultiSampleType = D3DMULTISAMPLE_NONE;
 	dp.SwapEffect = D3DSWAPEFFECT_FLIP;
 	dp.hDeviceWindow = hWnd;
-	dp.Windowed = FALSE;
-	dp.EnableAutoDepthStencil = TRUE;
+	dp.Windowed = false;
+	dp.EnableAutoDepthStencil = true;
 	dp.AutoDepthStencilFormat = GetBestDepthBufferFormat(ad, w, bStencil);;
 	dp.Flags = 0;
 	dp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
@@ -340,11 +340,11 @@ BOOL CD3D::InitDevice(int ad, HWND hWnd, unsigned int dx, unsigned int dy, D3DFO
 	if (lpD3D->CreateDevice(nvAd, meDevType, hWnd, iBehaviourFlags, &dp, &lpD3DDevice )!=D3D_OK)
 	{
 		gcUserError.Set("Cannot create Direct3DDevice.");
-		return FALSE;
+		return false;
 	}
 
 	PostInit(ad, dp.BackBufferFormat, dp.AutoDepthStencilFormat);
-	return TRUE;
+	return true;
 }
 
 
@@ -357,8 +357,8 @@ void CD3D::PostInit(int ad, D3DFORMAT D3DFmt, D3DFORMAT D3DDepth)
 	acMonitor[ad].iFrameBufferFormat = D3DFmt;
 	acMonitor[ad].iDepthBufferFormat = D3DDepth;
 	GetAdaptorCapabilities(ad);
-	acMonitor[ad].bSoftwareMode = FALSE;
-	acMonitor[ad].iTextureFormat = GetBestTextureBufferFormat(ad, 0, TRUE);
+	acMonitor[ad].bSoftwareMode = false;
+	acMonitor[ad].iTextureFormat = GetBestTextureBufferFormat(ad, 0, true);
 	iCurrMon = ad;
 	FillStageStates(ad);
 	FillSamplerStates(ad);
@@ -366,7 +366,7 @@ void CD3D::PostInit(int ad, D3DFORMAT D3DFmt, D3DFORMAT D3DDepth)
 	FillMatricies(ad);
 	InitGeneral();
 	GetBackBuffer();
-	CreateTexture(0, 0, D3DFMT_UNKNOWN, TU_Null, FALSE, &acMonitor[ad].msNullTexture);
+	CreateTexture(0, 0, D3DFMT_UNKNOWN, TU_Null, false, &acMonitor[ad].msNullTexture);
 }
 
 
@@ -394,10 +394,10 @@ void CD3D::ResetDevice(int iAD)
 			if (hResult == D3DERR_DEVICENOTRESET)
 			{
 				ZeroMemory(&dp, sizeof(D3DPRESENT_PARAMETERS));
-				dp.Windowed = TRUE;
+				dp.Windowed = true;
 				dp.SwapEffect = D3DSWAPEFFECT_COPY;
 				dp.BackBufferFormat = acMonitor[iAD].iFrameBufferFormat;
-				dp.EnableAutoDepthStencil = TRUE;
+				dp.EnableAutoDepthStencil = true;
 				dp.AutoDepthStencilFormat = acMonitor[iAD].iDepthBufferFormat;
 				dp.hDeviceWindow = acMonitor[iAD].hWnd;
 
@@ -481,7 +481,7 @@ void CD3D::GetBackBuffer(void)
 void CD3D::InitGeneral(void)
 {
 	SetRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-	SetRenderState(D3DRS_LIGHTING, FALSE);
+	SetRenderState(D3DRS_LIGHTING, false);
 	SetRenderState(D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_COLOR1);
 }
 
@@ -612,7 +612,7 @@ void CD3D::Present(HWND hWnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CD3D::SetSoftwareVertexProcessing(BOOL bSoftware)
+void CD3D::SetSoftwareVertexProcessing(bool bSoftware)
 {
 	HRESULT	hResult;
 	if (acMonitor[iCurrMon].bSoftwareMode != bSoftware)
@@ -717,29 +717,29 @@ void CD3D::FillRenderStates(int iAd)
 
 	memset(&acMonitor[iAd].aiRenderStates, -1, sizeof(int) * MAX_RENDER_STATES);
 
-	ForceRenderState(D3DRS_ZENABLE, TRUE);
+	ForceRenderState(D3DRS_ZENABLE, true);
 	ForceRenderState(D3DRS_FILLMODE, D3DFILL_SOLID);
 	ForceRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
-	ForceRenderState(D3DRS_ZWRITEENABLE, TRUE);
-	ForceRenderState(D3DRS_LASTPIXEL, FALSE);
+	ForceRenderState(D3DRS_ZWRITEENABLE, true);
+	ForceRenderState(D3DRS_LASTPIXEL, false);
 	ForceRenderState(D3DRS_ZFUNC, D3DCMP_LESS);
 	ForceRenderState(D3DRS_CULLMODE, D3DCULL_CW);
-	ForceRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+	ForceRenderState(D3DRS_ALPHATESTENABLE, false);
 	ForceRenderState(D3DRS_SRCBLEND, D3DBLEND_SRCALPHA);
 	ForceRenderState(D3DRS_DESTBLEND, D3DBLEND_INVSRCALPHA);
 	ForceRenderState(D3DRS_ALPHAREF, 255);
 	ForceRenderState(D3DRS_ALPHAFUNC, D3DCMP_GREATEREQUAL);
-	ForceRenderState(D3DRS_DITHERENABLE, FALSE);
-	ForceRenderState(D3DRS_ALPHABLENDENABLE, FALSE);
-	ForceRenderState(D3DRS_FOGENABLE, FALSE);
-	ForceRenderState(D3DRS_SPECULARENABLE, FALSE);
+	ForceRenderState(D3DRS_DITHERENABLE, false);
+	ForceRenderState(D3DRS_ALPHABLENDENABLE, false);
+	ForceRenderState(D3DRS_FOGENABLE, false);
+	ForceRenderState(D3DRS_SPECULARENABLE, false);
 	ForceRenderState(D3DRS_FOGCOLOR, 0);
 	ForceRenderState(D3DRS_FOGTABLEMODE, D3DFOG_EXP);
 	ForceRenderState(D3DRS_FOGSTART, *((DWORD*) (&mfFogStart)));
 	ForceRenderState(D3DRS_FOGEND, *((DWORD*) (&mfFogEnd)));
 	ForceRenderState(D3DRS_FOGDENSITY, *((DWORD*) (&mfFogDensity)));
-	ForceRenderState(D3DRS_RANGEFOGENABLE, FALSE);
-	ForceRenderState(D3DRS_STENCILENABLE, FALSE);
+	ForceRenderState(D3DRS_RANGEFOGENABLE, false);
+	ForceRenderState(D3DRS_STENCILENABLE, false);
 	ForceRenderState(D3DRS_STENCILFAIL, D3DSTENCILOP_KEEP);
 	ForceRenderState(D3DRS_STENCILZFAIL, D3DSTENCILOP_KEEP);
 	ForceRenderState(D3DRS_STENCILPASS, D3DSTENCILOP_KEEP);
@@ -756,48 +756,48 @@ void CD3D::FillRenderStates(int iAd)
 	ForceRenderState(D3DRS_WRAP5, 0);
 	ForceRenderState(D3DRS_WRAP6, 0);
 	ForceRenderState(D3DRS_WRAP7, 0);
-	ForceRenderState(D3DRS_CLIPPING, TRUE);
-	ForceRenderState(D3DRS_LIGHTING, FALSE);
+	ForceRenderState(D3DRS_CLIPPING, true);
+	ForceRenderState(D3DRS_LIGHTING, false);
 	ForceRenderState(D3DRS_AMBIENT, 0x00000000);
-	ForceRenderState(D3DRS_FOGVERTEXMODE, FALSE);
-	ForceRenderState(D3DRS_COLORVERTEX, TRUE);
-	ForceRenderState(D3DRS_LOCALVIEWER, TRUE);
-	ForceRenderState(D3DRS_NORMALIZENORMALS, FALSE);
+	ForceRenderState(D3DRS_FOGVERTEXMODE, false);
+	ForceRenderState(D3DRS_COLORVERTEX, true);
+	ForceRenderState(D3DRS_LOCALVIEWER, true);
+	ForceRenderState(D3DRS_NORMALIZENORMALS, false);
 	ForceRenderState(D3DRS_DIFFUSEMATERIALSOURCE, D3DMCS_MATERIAL);
 	ForceRenderState(D3DRS_SPECULARMATERIALSOURCE, D3DMCS_MATERIAL);
 	ForceRenderState(D3DRS_AMBIENTMATERIALSOURCE, D3DMCS_MATERIAL);
 	ForceRenderState(D3DRS_EMISSIVEMATERIALSOURCE, D3DMCS_MATERIAL);
-	ForceRenderState(D3DRS_VERTEXBLEND, FALSE);
+	ForceRenderState(D3DRS_VERTEXBLEND, false);
 	ForceRenderState(D3DRS_CLIPPLANEENABLE, 0);
 	ForceRenderState(D3DRS_POINTSIZE, *((DWORD*) (&mfPointSize)));
 	ForceRenderState(D3DRS_POINTSIZE_MIN, *((DWORD*) (&mfPointSizeMin)));
-	ForceRenderState(D3DRS_POINTSPRITEENABLE, FALSE);
-	ForceRenderState(D3DRS_POINTSCALEENABLE, FALSE);
+	ForceRenderState(D3DRS_POINTSPRITEENABLE, false);
+	ForceRenderState(D3DRS_POINTSCALEENABLE, false);
 	ForceRenderState(D3DRS_POINTSCALE_A, *((DWORD*) (&mfPointScaleA)));
 	ForceRenderState(D3DRS_POINTSCALE_B, *((DWORD*) (&mfPointScaleB)));
 	ForceRenderState(D3DRS_POINTSCALE_C, *((DWORD*) (&mfPointScaleC)));
-	ForceRenderState(D3DRS_MULTISAMPLEANTIALIAS, FALSE);
+	ForceRenderState(D3DRS_MULTISAMPLEANTIALIAS, false);
 	ForceRenderState(D3DRS_MULTISAMPLEMASK, 0xffffffff);
 	ForceRenderState(D3DRS_PATCHEDGESTYLE, D3DPATCHEDGE_DISCRETE);
 	ForceRenderState(D3DRS_DEBUGMONITORTOKEN, D3DDMT_ENABLE);
 	ForceRenderState(D3DRS_POINTSIZE_MAX, *((DWORD*) (&mfPointSizeMax)));
-	ForceRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, FALSE);
+	ForceRenderState(D3DRS_INDEXEDVERTEXBLENDENABLE, false);
 	ForceRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALPHA|D3DCOLORWRITEENABLE_BLUE|D3DCOLORWRITEENABLE_GREEN|D3DCOLORWRITEENABLE_RED);
 	ForceRenderState(D3DRS_TWEENFACTOR, *((DWORD*) (&mfTweenFactor)));
 	ForceRenderState(D3DRS_BLENDOP, D3DBLENDOP_ADD);
 	ForceRenderState(D3DRS_POSITIONDEGREE, D3DDEGREE_CUBIC);
 	ForceRenderState(D3DRS_NORMALDEGREE, D3DDEGREE_LINEAR);
-	ForceRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
+	ForceRenderState(D3DRS_SCISSORTESTENABLE, false);
 	ForceRenderState(D3DRS_SLOPESCALEDEPTHBIAS, 0);  //This is the coplanar z-fighting thing
-	ForceRenderState(D3DRS_ANTIALIASEDLINEENABLE, FALSE);
+	ForceRenderState(D3DRS_ANTIALIASEDLINEENABLE, false);
 	ForceRenderState(D3DRS_MINTESSELLATIONLEVEL, *((DWORD*) (&mfMinTessalation)));
 	ForceRenderState(D3DRS_MAXTESSELLATIONLEVEL, *((DWORD*) (&mfMaxTessalation)));
 	ForceRenderState(D3DRS_ADAPTIVETESS_X, 0);
 	ForceRenderState(D3DRS_ADAPTIVETESS_Y, 0);
 	ForceRenderState(D3DRS_ADAPTIVETESS_Z, 0);
 	ForceRenderState(D3DRS_ADAPTIVETESS_W, 0);
-	ForceRenderState(D3DRS_ENABLEADAPTIVETESSELLATION, FALSE);
-	ForceRenderState(D3DRS_TWOSIDEDSTENCILMODE, FALSE);
+	ForceRenderState(D3DRS_ENABLEADAPTIVETESSELLATION, false);
+	ForceRenderState(D3DRS_TWOSIDEDSTENCILMODE, false);
 	ForceRenderState(D3DRS_CCW_STENCILFAIL, D3DSTENCILOP_KEEP);
 	ForceRenderState(D3DRS_CCW_STENCILZFAIL, D3DSTENCILOP_KEEP);
 	ForceRenderState(D3DRS_CCW_STENCILPASS, D3DSTENCILOP_KEEP);
@@ -806,7 +806,7 @@ void CD3D::FillRenderStates(int iAd)
 	ForceRenderState(D3DRS_COLORWRITEENABLE2, 0xf);
 	ForceRenderState(D3DRS_COLORWRITEENABLE3, 0xf);
 	ForceRenderState(D3DRS_BLENDFACTOR, 0xffffffff);
-	ForceRenderState(D3DRS_SRGBWRITEENABLE, FALSE);
+	ForceRenderState(D3DRS_SRGBWRITEENABLE, false);
 	ForceRenderState(D3DRS_DEPTHBIAS, 0);  //This is the coplanar z-fighting thing
 	ForceRenderState(D3DRS_WRAP8, 0);
 	ForceRenderState(D3DRS_WRAP9, 0);
@@ -816,7 +816,7 @@ void CD3D::FillRenderStates(int iAd)
 	ForceRenderState(D3DRS_WRAP13, 0);
 	ForceRenderState(D3DRS_WRAP14, 0);
 	ForceRenderState(D3DRS_WRAP15, 0);
-	ForceRenderState(D3DRS_SEPARATEALPHABLENDENABLE, FALSE);
+	ForceRenderState(D3DRS_SEPARATEALPHABLENDENABLE, false);
 	ForceRenderState(D3DRS_SRCBLENDALPHA, D3DBLEND_ONE);
 	ForceRenderState(D3DRS_DESTBLENDALPHA, D3DBLEND_ZERO);
 	ForceRenderState(D3DRS_BLENDOPALPHA, D3DBLENDOP_ADD);
@@ -1015,7 +1015,7 @@ void* CD3D::LockIndexBuffer(SIndexBuffer* psIndexBuffer)
 
 	hResult = psIndexBuffer->lpD3DIndexBuffer->Lock(0, 0, (void**)&pData, 0);
 	ReturnNULLOnFailure(hResult, "LockIndexBuffer");
-	SetFlag(&psIndexBuffer->iFlags, Flags_Locked, (hResult == S_OK));
+	SetFlagInt(&psIndexBuffer->iFlags, Flags_Locked, (hResult == S_OK));
 	psIndexBuffer->pvLockedBuffer = pData;
 	return pData;
 }
@@ -1031,7 +1031,7 @@ void CD3D::UnlockIndexBuffer(SIndexBuffer* psIndexBuffer)
 
 	hResult = psIndexBuffer->lpD3DIndexBuffer->Unlock();
 	ReturnOnFailure(hResult, "UnlockIndexBuffer");
-	SetFlag(&psIndexBuffer->iFlags, Flags_Locked, FALSE);
+	SetFlagInt(&psIndexBuffer->iFlags, Flags_Locked, false);
 	psIndexBuffer->pvLockedBuffer = NULL;
 }
 
@@ -1040,7 +1040,7 @@ void CD3D::UnlockIndexBuffer(SIndexBuffer* psIndexBuffer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::CreateVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bDynamic, SVertexBuffer* psVertexBuffer)
+bool CD3D::CreateVertexBuffer(int iD3DVertexType, int iNumVerts, bool bDynamic, SVertexBuffer* psVertexBuffer)
 {
 	HRESULT		hResult;
 	int			iUsage;
@@ -1050,7 +1050,7 @@ BOOL CD3D::CreateVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bDynamic, 
 	if (iNumVerts == 0)
 	{
 		gcUserError.Set("Could not create vertex buffer with no vertices.");
-		return FALSE;
+		return false;
 	}
 
 	//Check if hardware or software vertex processing is needed.
@@ -1060,7 +1060,7 @@ BOOL CD3D::CreateVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bDynamic, 
 	if (iVertexSize == 0)
 	{
 		gcUserError.Set("Could not create vertex buffer with a zero vertex size.");
-		return FALSE;
+		return false;
 	}
 
 	psVertexBuffer->iVertexFormat = iD3DVertexType;
@@ -1080,9 +1080,9 @@ BOOL CD3D::CreateVertexBuffer(int iD3DVertexType, int iNumVerts, BOOL bDynamic, 
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not CreateVertexBuffer");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -1153,7 +1153,7 @@ void CD3D::InvalidateVertexBuffer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CD3D::LockVertexBuffer(SVertexBuffer* psVertexBuffer, BOOL bDiscard)
+void* CD3D::LockVertexBuffer(SVertexBuffer* psVertexBuffer, bool bDiscard)
 {
 	HRESULT		hResult;
 	int			D3DLock;
@@ -1164,7 +1164,7 @@ void* CD3D::LockVertexBuffer(SVertexBuffer* psVertexBuffer, BOOL bDiscard)
 		if (psVertexBuffer->iFlags & Flags_Dynamic)
 		{
 			D3DLock = D3DLOCK_DISCARD;
-			SetFlag(&psVertexBuffer->iFlags, Flags_Discard, TRUE);
+			SetFlagInt(&psVertexBuffer->iFlags, Flags_Discard, true);
 		}
 	}
 
@@ -1175,7 +1175,7 @@ void* CD3D::LockVertexBuffer(SVertexBuffer* psVertexBuffer, BOOL bDiscard)
 	}
 	hResult = psVertexBuffer->lpD3DVertexBuffer->Lock(0, 0, &psVertexBuffer->pvLockedBuffer, D3DLock);
 	ReturnNULLOnFailure(hResult, "LockVertexBuffer");
-	SetFlag(&psVertexBuffer->iFlags, Flags_Locked, (hResult == S_OK));
+	SetFlagInt(&psVertexBuffer->iFlags, Flags_Locked, (hResult == S_OK));
 	return psVertexBuffer->pvLockedBuffer;
 }
 
@@ -1190,7 +1190,7 @@ void CD3D::UnlockVertexBuffer(SVertexBuffer* psVertexBuffer)
 
 	hResult = psVertexBuffer->lpD3DVertexBuffer->Unlock();
 	ReturnOnFailure(hResult, "UnlockVertexBuffer");
-	SetFlag(&psVertexBuffer->iFlags, Flags_Locked | Flags_Discard, FALSE);
+	SetFlagInt(&psVertexBuffer->iFlags, Flags_Locked | Flags_Discard, false);
 	psVertexBuffer->pvLockedBuffer = NULL;
 }
 
@@ -1199,7 +1199,7 @@ void CD3D::UnlockVertexBuffer(SVertexBuffer* psVertexBuffer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CD3D::CreateTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, BOOL bDynamic, STexture* psTexture)
+void CD3D::CreateTexture(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, bool bDynamic, STexture* psTexture)
 {
 	HRESULT			hResult;
 	int				iUsage;
@@ -1439,16 +1439,16 @@ void CD3D::InvalidateWorldMatrix(int iMatrixNum)
 //////////////////////////////////////////////////////////////////////////
 void CD3D::CreateSurface(int iWidth, int iHeight, D3DFORMAT D3DFormat, ED3DTextureUsage eUsage, SSurface* psSurface)
 {
-	BOOL			bLockable;
-	BOOL			bRenderTarget;
+	bool			bLockable;
+	bool			bRenderTarget;
 	HRESULT			hResult;
 
-	bRenderTarget = FALSE;
-	bLockable = FALSE;
+	bRenderTarget = false;
+	bLockable = false;
 	if ((eUsage == TU_RenderTarget) || (eUsage == TU_RenderTargetLockable))
-		bRenderTarget = TRUE;
+		bRenderTarget = true;
 	if (eUsage == TU_RenderTargetLockable)
-		bLockable = TRUE;
+		bLockable = true;
 
 	if (bRenderTarget)
 	{
@@ -1514,7 +1514,7 @@ void* CD3D::LockSurface(SSurface* psSurface)
 
 	hResult = psSurface->mpD3DSurface->LockRect(&lRect, NULL, 0);
 	ReturnNULLOnFailure(hResult, "LockRect - LockSurface");
-	SetFlag(&psSurface->iFlags, Flags_Locked, (hResult == S_OK));
+	SetFlagInt(&psSurface->iFlags, Flags_Locked, (hResult == S_OK));
 	return (void*)lRect.pBits;
 }
 
@@ -1529,7 +1529,7 @@ void CD3D::UnlockSurface(SSurface* psSurface)
 
 	hResult = psSurface->mpD3DSurface->UnlockRect();
 	ReturnOnFailure(hResult, "UnlockRect");
-	SetFlag(&psSurface->iFlags, Flags_Locked, FALSE);
+	SetFlagInt(&psSurface->iFlags, Flags_Locked, false);
 }
 
 
@@ -2081,7 +2081,7 @@ int CD3D::GetVertexFormatPositionOffset(int iD3DVertexFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CD3D::GetVertexFormatFor(BOOL bNormal, BOOL bColour, int iNumberOfTextures, int iNumberOfMatricies, BOOL bPretransformed)
+int CD3D::GetVertexFormatFor(bool bNormal, bool bColour, int iNumberOfTextures, int iNumberOfMatricies, bool bPretransformed)
 {
 	int iD3DVertexFormat;
 
@@ -2140,7 +2140,7 @@ int CD3D::GetVertexFormatFor(BOOL bNormal, BOOL bColour, int iNumberOfTextures, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SD3DVertexType* CD3D::GetVertexTypeFor(BOOL bNormal, BOOL bColour, int iNumberOfTextures, int iNumberOfMatricies, BOOL bPretransformed)
+SD3DVertexType* CD3D::GetVertexTypeFor(bool bNormal, bool bColour, int iNumberOfTextures, int iNumberOfMatricies, bool bPretransformed)
 {
 	int		iD3DVertexFormat;
 
@@ -2345,7 +2345,7 @@ void CD3D::GetAdaptorCapabilities(int iAD)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-D3DFORMAT CD3D::GetBestDepthBufferFormat(int iAD, D3DFORMAT AdapterFormat, BOOL bNeedsStencil)
+D3DFORMAT CD3D::GetBestDepthBufferFormat(int iAD, D3DFORMAT AdapterFormat, bool bNeedsStencil)
 {
 	HRESULT	hResult;
 
@@ -2453,7 +2453,7 @@ D3DFORMAT CD3D::GetBestFrameBufferFormat(int iAD, D3DFORMAT AdapterFormat)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-D3DFORMAT CD3D::GetBestTextureBufferFormat(int iAD, DWORD D3DUsage, BOOL bNeedsAlpha)
+D3DFORMAT CD3D::GetBestTextureBufferFormat(int iAD, DWORD D3DUsage, bool bNeedsAlpha)
 {
 	HRESULT	hResult;
 
@@ -2508,7 +2508,7 @@ D3DFORMAT CD3D::GetBestTextureBufferFormat(int iAD, DWORD D3DUsage, BOOL bNeedsA
 	if (bNeedsAlpha)
 	{
 		//Couldn't get it with alpha, try without.
-		return GetBestTextureBufferFormat(iAD, D3DUsage, FALSE);
+		return GetBestTextureBufferFormat(iAD, D3DUsage, false);
 	}
 	gcLogger.Add("Best Texture Format D3DFMT_UNKNOWN\n");
 	return D3DFMT_UNKNOWN;
@@ -2647,7 +2647,7 @@ void CD3D::GetDisplayModes(int iAD, D3DFORMAT fmt)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumVerticies, int iStartIndex, int iNumPrimitives)
+bool CD3D::DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumVerticies, int iStartIndex, int iNumPrimitives)
 {
 	HRESULT		hResult;
 
@@ -2677,9 +2677,9 @@ BOOL CD3D::DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iN
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not DrawIndexedPrimitive");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -2687,7 +2687,7 @@ BOOL CD3D::DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::DrawPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumPrimitives)
+bool CD3D::DrawPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumPrimitives)
 {
 	HRESULT		hResult;
 
@@ -2713,9 +2713,9 @@ BOOL CD3D::DrawPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumPrimi
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not DrawPrimitive");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -2723,7 +2723,7 @@ BOOL CD3D::DrawPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumPrimi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::SetCamera(SMatrix* psProjection, SMatrix* psView)
+bool CD3D::SetCamera(SMatrix* psProjection, SMatrix* psView)
 {
 	HRESULT hResult; 
 
@@ -2747,16 +2747,16 @@ BOOL CD3D::SetCamera(SMatrix* psProjection, SMatrix* psView)
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not SetTransform");
-		return FALSE;
+		return false;
 	}
 
 	hResult = gcD3D.lpD3DDevice->SetTransform(D3DTS_VIEW, (D3DXMATRIX*)&psView->sD3DMatrix);
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not SetTransform");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -2764,17 +2764,17 @@ BOOL CD3D::SetCamera(SMatrix* psProjection, SMatrix* psView)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::LightDisable(int iLight)
+bool CD3D::LightDisable(int iLight)
 {
 	HRESULT hResult;
 
-	hResult = lpD3DDevice->LightEnable(iLight, FALSE);
+	hResult = lpD3DDevice->LightEnable(iLight, false);
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not LightEnable");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -2782,24 +2782,24 @@ BOOL CD3D::LightDisable(int iLight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::LightEnable(int iLight, D3DLIGHT9* psLight)
+bool CD3D::LightEnable(int iLight, D3DLIGHT9* psLight)
 {
 	HRESULT hResult;
 
-	hResult = lpD3DDevice->LightEnable(iLight, TRUE);
+	hResult = lpD3DDevice->LightEnable(iLight, true);
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not LightEnable");
-		return FALSE;
+		return false;
 	}
 
 	hResult = gcD3D.lpD3DDevice->SetLight(iLight, psLight);
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not SetLight");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 
@@ -2807,7 +2807,7 @@ BOOL CD3D::LightEnable(int iLight, D3DLIGHT9* psLight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CD3D::CreateMesh(int iNumTriangles, int iNumIndices, int iMeshOptions, unsigned int iVertexFormat, ID3DXMesh** ppXMesh)
+bool CD3D::CreateMesh(int iNumTriangles, int iNumIndices, int iMeshOptions, unsigned int iVertexFormat, ID3DXMesh** ppXMesh)
 {
 	HRESULT hResult;
 
@@ -2815,9 +2815,9 @@ BOOL CD3D::CreateMesh(int iNumTriangles, int iNumIndices, int iMeshOptions, unsi
 	if (FAILED(hResult))
 	{
 		gcUserError.Set("Could not D3DXCreateMeshFVF");
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -3661,7 +3661,7 @@ void CD3D::LogD3DFOGMODE(CChars* psz, D3DFOGMODE eTextureAddress)
 //////////////////////////////////////////////////////////////////////////
 void CD3D::LogD3DXMATRIX(CChars* psz, SFloat4x4* psMatrix)
 {
-	psMatrix->ToString(psz, TRUE);
+	psMatrix->Print(psz, true);
 }
 
 
@@ -4349,15 +4349,15 @@ void SMatrix::Fix(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL SMatrix::Update(void)
+bool SMatrix::Update(void)
 {
 	if (Float4x4Equals(&sD3DMatrix, &sD3DOldMatrix))
 	{
-		return TRUE;
+		return true;
 	}
 
 	sD3DOldMatrix = sD3DMatrix;
-	return FALSE;
+	return false;
 }
 
 
@@ -4367,17 +4367,17 @@ BOOL SMatrix::Update(void)
 //////////////////////////////////////////////////////////////////////////
 //	General Functions.
 //////////////////////////////////////////////////////////////////////////
-BOOL D3DVectorRectContainPoint(D3DVectorRect* psRect, D3DVECTOR* psVec, float fEdgeThickness)
+bool D3DVectorRectContainPoint(D3DVectorRect* psRect, D3DVECTOR* psVec, float fEdgeThickness)
 {
 	if (psVec->x > psRect->sBottomRight.x + fEdgeThickness)
-		return FALSE;
+		return false;
 	if (psVec->x < psRect->sTopLeft.x - fEdgeThickness)
-		return FALSE;
+		return false;
 	if (psVec->y > psRect->sBottomRight.y + fEdgeThickness)
-		return FALSE;
+		return false;
 	if (psVec->y < psRect->sTopLeft.y - fEdgeThickness)
-		return FALSE;
-	return TRUE;
+		return false;
+	return true;
 }
 
 

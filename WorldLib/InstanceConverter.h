@@ -43,12 +43,12 @@ public:
 	void Init(CSceneConverter* pcSceneConverter);
 	void Kill(void);
 
-	BOOL Convert(CInstance* pcInstance);
-	BOOL ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArrayIntMinimal* pcConnectionIndices);
-	BOOL ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArrayIntMinimal* pcConnectionIndices);
-	BOOL ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArrayIntMinimal* pcConnectionIndices);
-	BOOL ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayIntAndPointer* pcConnectionsAndIndices);
-	BOOL ConvertSequence(int iConnectionIndex, SMatrix* psMatrix);
+	bool Convert(CInstance* pcInstance);
+	bool ConvertMeshAndLinks(CGraphicsInstance** ppcGraphicsInstance, CMeshInstance** ppcMeshInstance, int iMeshIndex, CArrayIntMinimal* pcConnectionIndices);
+	bool ConvertCamera(CCameraInstance** ppcCameraInstance, int iCameraIndex, CArrayIntMinimal* pcConnectionIndices);
+	bool ConvertLight(CLightInstance** ppcLightInstance, int iLightIndex, CArrayIntMinimal* pcConnectionIndices);
+	bool ConvertLinkInstance(CMeshInstance* pcMeshInstance, CMeshObject* pcMeshObject, CGraphicsInstance* pcGraphicsInstance, CArrayIntAndPointer* pcConnectionsAndIndices);
+	bool ConvertSequence(int iConnectionIndex, SMatrix* psMatrix);
 	void ConvertConnectionsAndIndices(CArrayIntAndPointer* pcConnectionAndIndex, CArrayIntMinimal* pcConnectionIndices);
 };
 

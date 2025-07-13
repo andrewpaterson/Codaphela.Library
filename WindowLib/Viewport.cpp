@@ -71,7 +71,7 @@ CGraphicsObject* CViewport::CreateGraphicsObject(void)
 {
 	CGraphicsObject*	pcGraphicsObject;
 
-	pcGraphicsObject = mpcWorld->CreateGraphicsObject(TRUE);
+	pcGraphicsObject = mpcWorld->CreateGraphicsObject(true);
 	pcGraphicsObject->AddMatrix(mpcWorld->GetIdentityMatrix());
 	return pcGraphicsObject;
 }
@@ -94,7 +94,7 @@ void CViewport::Layout(void)
 //////////////////////////////////////////////////////////////////////////
 void CViewport::FinalisePrimitives(void)
 {
-	int						i;
+	size						i;
 	CGraphicsPrimitive*		pcPrimitive;
 
 	for (i = 0; i < mpcGraphicsObject->GetPrimitives()->NumElements(); i++)
@@ -109,22 +109,22 @@ void CViewport::FinalisePrimitives(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CViewport::Draw(void)
+bool CViewport::Draw(void)
 {
 	if (!mpcGraphicsObject->BeginDynamic())
 	{
-		return FALSE;
+		return false;
 	}
 	mcMap2D.Clear();
 	if (!CFixedContainer::Draw())
 	{
-		return FALSE;
+		return false;
 	}
 	mcMap2D.Draw();
 	FinalisePrimitives();
 	if (!mpcGraphicsObject->EndDynamic())
 	{
-		return FALSE;
+		return false;
 	}
 	return mpcGraphicsObject->Draw();
 }
@@ -203,7 +203,7 @@ void CViewport::Deactivate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-BOOL CViewport::IsPointInAbsolute(int x, int y)
+bool CViewport::IsPointInAbsolute(int x, int y)
 {
 	x -= mpcClientRect->GetLeft();
 	y -= mpcClientRect->GetTop();

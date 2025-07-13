@@ -70,23 +70,23 @@ protected:
 public:
 	void				Init(CSceneConverter* pcSceneConverter);
 	void 				Kill(void);
-	BOOL				Convert(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex);
+	bool				Convert(CGraphicsObject** pcGraphicsObject, CMeshObject** ppcMeshObject, CMesh* pcMesh, CArrayIntAndPointer* pcConnectionAndIndex);
 	SD3DVertexType*		GetVertexFormatForFaceType(SMeshFaceType sFaceType);
 	void				CollectVertexBuffersByFormat(CArrayVertexBufferArrayFormat* pcArray);
-	BOOL				ConvertMesh(void);
-	BOOL				ConvertMaterials(void);
-	BOOL				CreateLinkNodes(void);
+	bool				ConvertMesh(void);
+	bool				ConvertMaterials(void);
+	bool				CreateLinkNodes(void);
 	void				FillUniqueMatricies(void);
 	void				OptimiseGraphicsObject(void);
-	BOOL				CreateIndexBuffer(void);
-	BOOL				SetGraphicsPrimitive(int iPrimitive, int iMaterial, int iNumFaces, int iNumIndices, int iStartIndex, int iStartVertex, int iVertexBufferIndex);
+	bool				CreateIndexBuffer(void);
+	bool				SetGraphicsPrimitive(int iPrimitive, int iMaterial, int iNumFaces, int iNumIndices, int iStartIndex, int iStartVertex, int iVertexBufferIndex);
 	void				PopulatePositions(SD3DVertexType* psVertexType, void* pvFirstNewVert, CVertexArray* pcVertexArray);
 	void				PopulateNormals(SD3DVertexType* psVertexType, void* pvFirstNewVert, CVertexArray* pcVertexArray);
 	void				PopulateColours(SD3DVertexType* psVertexType, void* pvFirstNewVert, CVertexArray* pcVertexArray);
 	void				PopulateUVs(SD3DVertexType* psVertexType, void* pvFirstNewVert, CVertexArray* pcVertexArray);
 	void				PopulateVertexWeights(SD3DVertexType* psVertexType, void* pvFirstNewVert, CVertexArray* pcVertexArray);
 	void				WeightAdjustIndices(int iNumWeights, SSkinWeight* psWeights, CMeshSkinVert* psSkinVert);
-	BOOL				SetObjectMatricies(void);
+	bool				SetObjectMatricies(void);
 };
 
 

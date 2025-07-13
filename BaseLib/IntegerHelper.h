@@ -39,9 +39,13 @@ size	CountBitsSingly(void* pvBitArray, size iBitLength);  //Slow, for testing.
 void 	SetBit(size iBit, void* pvBitArray, bool bBit);
 void 	SetBits(size iStart, void* pvBitArray, bool bBit, size iLength);
 void 	SetFlagByte(uint8* psiDest, uint8 iFlag, bool iFlagValue);
+void 	SetFlagByte(int8* psiDest, int8 iFlag, bool iFlagValue);
 void 	SetFlagShort(uint16* psiDest, uint16 iFlag, bool iFlagValue);
+void 	SetFlagShort(int16* psiDest, int16 iFlag, bool iFlagValue);
 void 	SetFlagInt(uint32* piDest, uint32 iFlag, bool iFlagValue);
+void 	SetFlagInt(int32* piDest, int32 iFlag, bool iFlagValue);
 void 	SetFlagLong(uint64* psiDest, uint64 iFlag, bool iFlagValue); 
+void 	SetFlagLong(int64* psiDest, int64 iFlag, bool iFlagValue); 
 void 	SetFlagSize(size* piDest, size iFlag, bool iFlagValue);
 size 	FindFirstClearBit(void* pvArray, size iArraySize);
 size 	FindFirstSetBit(void* pvArray, size iArraySize);

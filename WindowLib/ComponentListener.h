@@ -62,9 +62,9 @@ public:
 	virtual void ClearSelection(void) {};
 
 	//Modification
-	virtual void Printable(char c, BOOL bInsert) {};
-	virtual void Space(BOOL bInsert) {};
-	virtual void Tab(BOOL bInsert) {};
+	virtual void Printable(char c, bool bInsert) {};
+	virtual void Space(bool bInsert) {};
+	virtual void Tab(bool bInsert) {};
 	virtual void BackTab(void) {};
 	virtual void Enter(void) {};
 	virtual void HomeEnter(void) {};

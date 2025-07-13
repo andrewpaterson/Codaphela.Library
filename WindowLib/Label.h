@@ -32,10 +32,10 @@ public:
 	CWidget*			mpcWidget;
 	CFillContainer*		mpcFill;
 
-	void 	Init(CViewport* pcViewport, char* szString, BOOL bDefaultBorder = TRUE, BOOL bDefaultBackground = TRUE);
+	void 	Init(CViewport* pcViewport, char* szString, bool bDefaultBorder = true, bool bDefaultBackground = true);
 	void 	Kill(void);
 
-	BOOL	Draw(void);
+	bool	Draw(void);
 	void	Layout(SInt2 sPosition, SInt2 sAreaSize);
 
 	void 	SetText(char* szText);
