@@ -1443,10 +1443,10 @@ bool CBaseObject::LoadManaged(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 {
-	size						uiNumFields;
+	size					uiNumFields;
 	CEmbeddedObjectField**	ppacEmbeddedObjectFields;
 	CArrayVoidPtr*			papv;
-	size						i;
+	size					i;
 	CBaseObject*			pcEmbeddedObject;
 	bool					bResult;
 
@@ -1473,12 +1473,12 @@ bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadPointers(CObjectReader* pcFile)
 {
-	size						uiNumFields;
-	CPointerField**			ppacPointerFields;
-	CArrayVoidPtr*			papv;
-	size						i;
-	CPointer*				pcPointer;
-	bool					bResult;
+	size				uiNumFields;
+	CPointerField**		ppacPointerFields;
+	CArrayVoidPtr*		papv;
+	size				i;
+	CPointer*			pcPointer;
+	bool				bResult;
 
 	papv = mpcClass->GetPointerFields();
 	ppacPointerFields = (CPointerField**)papv->GetData();
@@ -1503,15 +1503,15 @@ bool CBaseObject::LoadPointers(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 {
-	size						uiNumFields;
-	CPrimitiveField**		ppacPrimitiveFields;
-	CArrayVoidPtr*			papv;
-	size						i;
-	CPrimitiveObject*		pcPrimitive;
-	bool					bResult;
-	CPrimitiveField*		pcPrimitiveField;
-	SDataIO*				psIO;
-	void*					pvPrimitive;
+	size				uiNumFields;
+	CPrimitiveField**	ppacPrimitiveFields;
+	CArrayVoidPtr*		papv;
+	size				i;
+	CPrimitiveObject*	pcPrimitive;
+	bool				bResult;
+	CPrimitiveField*	pcPrimitiveField;
+	SDataIO*			psIO;
+	void*				pvPrimitive;
 
 	papv = mpcClass->GetPrimitiveFields();
 	ppacPrimitiveFields = (CPrimitiveField**)papv->GetData();

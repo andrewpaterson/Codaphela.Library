@@ -31,7 +31,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 typedef CArrayTemplate<CListener*>	CArrayListenerPtr;
-typedef void (CListener::*ListenerFunc)(CUnknown*, void*);
+typedef void (CListener::*ListenerFunc)(CListener*, void*);
 
 
 class CListenerCall
@@ -49,8 +49,8 @@ public:
 	template <class M>
 	bool			AddListener(M* pcListener);
 	template <class M>
-	void			CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext);
-	void			CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext);
+	void			CallListeners(void(M::*ListenerFunc)(CListener*, void*), CListener* pcSource, void* pvContext);
+	void			CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CListener*, void*), CListener* pcSource, void* pvContext);
 	bool			RemoveListener(CListener* pcRemoved);
 };
 
@@ -102,7 +102,7 @@ bool CListenerCall::AddListener(M* pcListener)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CListenerCall::CallListeners(void(M::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
+void CListenerCall::CallListeners(void(M::*ListenerFunc)(CListener*, void*), CListener* pcSource, void* pvContext)
 {
 	size				i;
 	M*					pcListener;

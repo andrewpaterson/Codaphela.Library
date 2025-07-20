@@ -94,7 +94,7 @@ bool CListenerCall::RemoveListener(CListener* pcRemoved)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CListenerCall::CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CUnknown*, void*), CUnknown* pcSource, void* pvContext)
+void CListenerCall::CallListenersName(char* szClassName, void(CListener::*ListenerFunc)(CListener*, void*), CListener* pcSource, void* pvContext)
 {
 	size				i;
 	CListener*			pcListener;

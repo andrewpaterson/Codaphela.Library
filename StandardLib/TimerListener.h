@@ -35,7 +35,7 @@ class CTimerListener : public CListener
 {
 CONSTRUCTABLE(CTimerListener); 
 public:
-	virtual void	TimerAlarm(CUnknown* pcSource, void* pvContext) {};
+	virtual void	TimerAlarm(CListener* pcSource, void* pvContext) {};
 };
 
 
