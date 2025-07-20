@@ -31,7 +31,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CBorderParameters::Init(int eStyle, EBorderEdgeType eEdgeType, CGraphicsState* pcGraphicsState, CWorld* pcWorld, char* szTexture, int iCornerWidth, int iConerHeight, int iEdgeWidth)
 {
-	CImage				cImage;
+	Ptr<CImage>		pcImage;
 
 	CTextureConverter	cTextureConverter;
 
@@ -39,19 +39,20 @@ void CBorderParameters::Init(int eStyle, EBorderEdgeType eEdgeType, CGraphicsSta
 	meBorderStyle = eStyle;
 	meEdgeType = eEdgeType;
 
-	if (!ReadImage(&cImage, szTexture))
+	pcImage = ReadImage(szTexture);
+	if (pcImage.IsNull())
 	{
 		return;
 	}
 
 	mpcGraphicsTexture = NULL;
 	cTextureConverter.Init(pcWorld);
-	cTextureConverter.Convert(&mpcGraphicsTexture, &cImage, false);
+	cTextureConverter.Convert(&mpcGraphicsTexture, pcImage, false);
 	cTextureConverter.Kill();
 
-	mpcGraphicsMaterial = CreateMaterial(1, pcWorld, cImage.HasChannel(IMAGE_OPACITY));
+	mpcGraphicsMaterial = CreateMaterial(1, pcWorld, pcImage->HasChannel(IMAGE_OPACITY));
 	mpcGraphicsMaterial->SetTexture(0, mpcGraphicsTexture);
-	cImage.Kill();
+	pcImage->Kill();  //Shouldn't exiting the method call this?
 
 	SetCornerSizes(iCornerWidth, iConerHeight);
 	SetEdgeWidths(iEdgeWidth);

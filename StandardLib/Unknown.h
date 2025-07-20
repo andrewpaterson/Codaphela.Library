@@ -34,14 +34,14 @@ protected:
 public:
 						CUnknown(void);
 			void		SetUnknowns(CUnknowns* pcUnknowns);
-			void 		Kill(void);
+			void 		Kill(void) override;
 
 	virtual bool		IsUnknown(void);
 	virtual bool		Iterable(void);
 			bool		SaveHeader(CFileWriter* pcFile);
 	virtual bool		Save(CFileWriter* pcFile);
 	virtual bool		Load(CFileReader* pcFile);
-			void		Print(CChars* psz);
+			void		Print(CChars* psz)  override;
 	virtual int			Compare(CUnknown* pcRight);
 			CUnknowns*	GetUnknownsThisIn(void);
 			void		SetNotInUnknowns(void);
