@@ -1,3 +1,4 @@
+#include "Chars.h"
 #include "Killable.h"
 
 

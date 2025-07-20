@@ -29,9 +29,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CText : public CDrawable
 {
+CONSTRUCTABLE(CText); 
 public:
-	CONSTRUCTABLE(CText);
-
 	float		mfAlpha;
 	CTextData	mcTextData;
 	bool		mbCaretVisible;

@@ -28,7 +28,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextParameters::Init(CFont* pcFont, CGraphicsState* pcGraphicsState, CWorld* pcWorld)
+void CTextParameters::Init(Ptr<CFont> pcFont, CGraphicsState* pcGraphicsState, CWorld* pcWorld)
 {
 	CTextureConverter	cTextureConverter;
 
@@ -68,5 +68,5 @@ int CTextParameters::GetAscent(void) { return mpcFont->GetAscent(); }
 int CTextParameters::GetDescent(void) { return mpcFont->GetDescent(); }
 CGraphicsTexture* CTextParameters::GetGraphicsTexture(void) { return mpcGraphicsTexture; }
 CGraphicsMaterial* CTextParameters::GetGraphicsMaterial(void) { return mpcGraphicsMaterial; }
-CFont* CTextParameters::GetFont(void) { return mpcFont; }
+Ptr<CFont> CTextParameters::GetFont(void) { return mpcFont; }
 

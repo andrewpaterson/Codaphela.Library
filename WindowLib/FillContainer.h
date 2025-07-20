@@ -44,9 +44,8 @@ enum EFillStyleVertical
 
 class CFillContainer : public CContainer
 {
+CONSTRUCTABLE(CFillContainer); 
 public:
-	CONSTRUCTABLE(CFillContainer);
-
 	EFillStyleHorizontal	meHorizontal;
 	EFillStyleVertical		meVertical;
 	SInsets					msInsets;

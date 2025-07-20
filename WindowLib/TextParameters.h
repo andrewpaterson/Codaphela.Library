@@ -32,13 +32,13 @@ class CTextParameters : public CQuadParameters
 public:
 	CONSTRUCTABLE(CTextParameters);
 
-	CFont*				mpcFont;
+	Ptr<CFont>			mpcFont;
 	int					miTabSpaceCount;  //tab width = miTabSpaceCount*miSpaceWidth.
 	unsigned int		miColour;
 	CGraphicsTexture*	mpcGraphicsTexture;
 	CGraphicsMaterial*	mpcGraphicsMaterial;
 
-	void				Init(CFont* pcFont, CGraphicsState* pcGraphicsState, CWorld* pcWorld);
+	void				Init(Ptr<CFont> pcFont, CGraphicsState* pcGraphicsState, CWorld* pcWorld);
 	void 				Kill(void);
 	void				SetFont(CFont* pcFont);
 	CGlyph*				GetGlyph(char c);
@@ -46,7 +46,7 @@ public:
 	int					GetDescent(void);
 	CGraphicsTexture*	GetGraphicsTexture(void);
 	CGraphicsMaterial*	GetGraphicsMaterial(void);
-	CFont*				GetFont(void);
+	Ptr<CFont>			GetFont(void);
 };
 
 
