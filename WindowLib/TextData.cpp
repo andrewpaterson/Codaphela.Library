@@ -97,7 +97,7 @@ void CTextChar::CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CViewportI
 //////////////////////////////////////////////////////////////////////////
 int CTextChar::GetWidth(void)
 {
-	CFont*	pcFont;
+	Ptr<CFont>	pcFont;
 
 	pcFont = mpcFont->GetFont();
 	if (mcChar == ' ')

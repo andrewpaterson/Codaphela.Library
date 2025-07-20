@@ -31,9 +31,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CInputDeviceVariableListener : public CListener
 {
+CONSTRUCTABLE(CInputDeviceVariableListener);
 public:
-	CONSTRUCTABLE(CInputDeviceVariableListener);
-
 	virtual void VariableAction(CUnknown* pcSource, void* pvContext) {};
 };
 

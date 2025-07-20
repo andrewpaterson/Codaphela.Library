@@ -73,7 +73,7 @@
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(COMMONLIBRARIES);$(IncludePath);$(DXSDK_DIR)include</IncludePath>
     <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(COMMONLIBRARIES);$(IncludePath);$(DXSDK_DIR)include</IncludePath>
   </PropertyGroup>
-    <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;_CRT_SECURE_NO_DEPRECATE;BREAK_ON_WARNING;BREAK_ON_ERROR;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -180,6 +180,7 @@
   <ItemGroup>
     <ClCompile Include="ComponentInput.cpp" />
     <ClCompile Include="ComponentInputCommand.cpp" />
+    <ClCompile Include="ComponentInputListener.cpp" />
     <ClCompile Include="ComponentInputMotion.cpp" />
     <ClCompile Include="ComponentInputNumKey.cpp" />
     <ClCompile Include="ComponentInputPrintable.cpp" />
@@ -220,6 +221,7 @@
   <ItemGroup>
     <ClInclude Include="ComponentInput.h" />
     <ClInclude Include="ComponentInputCommand.h" />
+    <ClInclude Include="ComponentInputListener.h" />
     <ClInclude Include="ComponentInputMotion.h" />
     <ClInclude Include="ComponentInputNumKey.h" />
     <ClInclude Include="ComponentInputPrintable.h" />

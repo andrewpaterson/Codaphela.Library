@@ -43,7 +43,7 @@ struct SContainerBounds
 };
 
 
-class CComponent : public CFocusListener, public CComponentListener
+class CComponent : public CUnknown, public CFocusListener, public CComponentListener
 {
 CONSTRUCTABLE(CComponent);
 protected:
