@@ -35,8 +35,8 @@ public:
 	void 	Kill(void);
 
 	template <class M>
-	void	SetFunction(void(M::*ActionFunc)(CUnknown*, void*));
-	void	CallListeners(CUnknown* pcSource, void* pvContext);
+	void	SetFunction(void(M::*ActionFunc)(CListener*, void*));
+	void	CallListeners(CListener* pcSource, void* pvContext);
 };
 
 
@@ -59,7 +59,7 @@ void CClassFunctionsCall::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CClassFunctionsCall::SetFunction(void(M::*ActionFunc)(CUnknown*, void*))
+void CClassFunctionsCall::SetFunction(void(M::*ActionFunc)(CListener*, void*))
 {
 	mFunction = (ListenerFunc)ActionFunc;
 }

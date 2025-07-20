@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 //Remember, an action can only be invoked by one specific listener class.
 //For instance: A timer alarm cannot invoke an action that expects an input event.
-class CAction : public CUnknown
+class CAction : public CUnknown, public CListener
 {
 CONSTRUCTABLE(CAction);
 protected:
@@ -35,7 +35,7 @@ protected:
 
 public:
 	template <class M>
-	void 	Init(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
+	void 	Init(char* szName, void(M::*ActionFunc)(CListener*, void*));
 	void 	Kill(void);
 	bool	Is(char* szName);
 	void	Call(void *pvContext);
@@ -51,7 +51,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CAction::Init(char* szName, void(M::*ActionFunc)(CUnknown*, void*))
+void CAction::Init(char* szName, void(M::*ActionFunc)(CListener*, void*))
 {
 	mcFunction.Init<M>();
 	mcFunction.SetFunction(ActionFunc);
