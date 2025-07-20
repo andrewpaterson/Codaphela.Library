@@ -24,6 +24,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "InputLib/Input.h"
 #include "ComponentInputKeyboard.h"
 #include "ComponentInputMouse.h"
+#include "ComponentInputListener.h"
 #include "ComponentListener.h"
 #include "SystemPointer.h"
 
@@ -31,11 +32,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //There's one of these per Viewport.
 class CViewport;
 class CComponent;
-class CComponentInput : public CListener
+class CComponentInput : public CUnknown
 {
 CONSTRUCTABLE(CComponentInput);
 protected:
 	CSetComponentInputDevices	mlcInputDevices;
+	CComponentInputListener		mcListener;
 
 	int							miControl;
 	int							miShift;
@@ -65,9 +67,9 @@ protected:
 	CAction*					mpcPointerMotionAction;
 
 public:
-	void Init(CInput* pcInput, CViewport* pcViewport);
-	void InitActions(void);
-	void Kill(void);
+	void						Init(CInput* pcInput, CViewport* pcViewport);
+	void						InitActions(void);
+	void						Kill(void);
 
 	bool						PointerInClientRect(void);
 	CComponent*					GetFocussedComponent(void);

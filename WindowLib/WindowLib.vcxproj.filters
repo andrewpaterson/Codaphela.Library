@@ -147,6 +147,9 @@
     <ClCompile Include="TextData.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="ComponentInputListener.cpp">
+      <Filter>Source\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentInput.h">
@@ -268,6 +271,9 @@
     </ClInclude>
     <ClInclude Include="TextData.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInputListener.h">
+      <Filter>Source\Input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

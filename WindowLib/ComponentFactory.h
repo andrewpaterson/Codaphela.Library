@@ -45,7 +45,6 @@ public:
 	CWorld*					mpcWorld;
 	CFontList*				mpcFontList;
 	CViewport*				mpcViewport;
-	CComponentInput			mcInput;
 	CListVariable			macComponents;
 
 	CTextParameters*		mpcSansSerif;
@@ -64,7 +63,6 @@ public:
 
 	void*				PrivateAllocateComponent(int iType);
 	bool				RemoveComponent(CComponent* pcComponent);
-	CComponent*			GetComponent(int iIndex);
 
 	CGraphicsState*		CreateState(int iNumTextures);
 

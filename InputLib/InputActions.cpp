@@ -69,3 +69,4 @@ void CInputActions::VariableAction(CUnknown* pcSource, void* pvContext)
 	psChordInputEvent = (SChordInputEvent*)pvContext;
 	psChordInputEvent->pcValue->pcDevice->VariableAction(psChordInputEvent->pcChord);
 }
+
