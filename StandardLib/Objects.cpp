@@ -1415,7 +1415,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 void CObjects::FreeObject(CBaseObject* pvObject)
 {
 	RemoveFromMemory(pvObject);
-	pvObject->ClearIdentifiers();
+	pvObject->FreeIdentifiers();
 }
 
 

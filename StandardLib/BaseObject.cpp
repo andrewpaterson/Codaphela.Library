@@ -372,12 +372,12 @@ void CBaseObject::FreeInternal(bool bAllocatedInObjects)
 	//Clean up all the to and from pointers
 	FreePointers();
 
-	FreeIdentifiers();
-
 	if (bAllocatedInObjects)
 	{
 		SetFlag(OBJECT_FLAGS_FREED, true);
 	}
+
+	//Note that FreeIdentifiers cannot be called here because the object is not yet RemovedFromMemory.
 }
 
 
@@ -388,16 +388,6 @@ void CBaseObject::FreeInternal(bool bAllocatedInObjects)
 void CBaseObject::FreePointers(void)
 {
 	CEmbeddedObject::FreePointers();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CBaseObject::FreeIdentifiers(void)
-{
-	mon.Kill();
 }
 
 
@@ -1096,7 +1086,7 @@ bool CBaseObject::InitIdentifiers(const char* szName, OIndex oi)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::ClearIdentifiers(void)
+void CBaseObject::FreeIdentifiers(void)
 {
 	moi = INVALID_O_INDEX;
 	mon.Kill();
