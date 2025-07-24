@@ -53,6 +53,10 @@ Ptr<SpecificClass> ONMalloc(const char* szObjectName, Args ... args);
 #define  LOG_OBJECT_ALLOCATION_FAILURE(Class, Index, Name) LogObjectAllocationFailure(Class, Index, Name, __ENGINE_PRETTY_FUNCTION__)
 #define  LOG_OBJECT_DESTRUCTION(pcObject) LogObjectDestruction(pcObject, __ENGINE_PRETTY_FUNCTION__)
 
+typedef void (*AllocationCallback)(CBaseObject*);
+typedef void (*HollocationCallback)(CBaseObject*);
+typedef void (*DestructionCallback)(CBaseObject*);
+
 
 class CHollowObject;
 class CObjects
@@ -73,6 +77,10 @@ protected:
 	CStackPointers*			mpcStackPointers;
 
 	CDistCalculator			mcDistCalculator;
+
+	AllocationCallback		mAllocationCallback;
+	HollocationCallback		mHollocationCallback;
+	DestructionCallback		mDestructionCallback;
 
 public:
 												CObjects();
@@ -125,11 +133,18 @@ public:
 						CPointer				TestGetFromMemory(OIndex oi);
 						CPointer				TestGetFromMemory(char* szName);
 
+						void					PrintMemoryNames(CChars* psz);
 						void					DumpMemory(void);
 						void					DumpNames(void);
 						void					DumpGraph(void);
+						void					DumpMemoryNames(void);
+
 						void					ValidateEmpty(void);
 						void					ValidateObjectsConsistency(void);
+
+						void					SetAllocationCallback(AllocationCallback fAllocationCallback);
+						void					SetHollocationCallback(HollocationCallback fHollocationCallback);
+						void					SetDestructionCallback(DestructionCallback fDestructionCallback);
 
 protected:
 						Ptr<CRoot>				GetRoot(void);
