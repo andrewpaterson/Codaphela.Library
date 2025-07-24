@@ -81,6 +81,7 @@ public:
 	char*				GetName(void);
 	bool				IsNamed(void);
 	const char*			ClassName(void);
+	CClass*				GetClass(void);
 	bool				IsDirty(void);
 	bool				IsEmbeddingAllocatedInObjects(void);
 	void				Kill(void);

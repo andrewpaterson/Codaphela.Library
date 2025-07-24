@@ -102,7 +102,7 @@ void CBaseObject::PreClass(void)
 		SetFlag(OBJECT_FLAGS_CALLED_CLASS, true);
 
 		pcClasses = GetClasses();
-		Class(pcClasses);
+		CompleteClass(pcClasses);
 		EmbedFields();
 	}
 }
@@ -112,7 +112,7 @@ void CBaseObject::PreClass(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CClass* CBaseObject::Class(CClasses* pcClasses)
+CClass* CBaseObject::CompleteClass(CClasses* pcClasses)
 {
 	CClass*		pcClass;
 	const char* szClassName;
@@ -1360,7 +1360,6 @@ bool CBaseObject::SavePrimitives(CObjectWriter* pcFile)
 bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 {
 	size				uiNumFields;
-	CUnmanagedField**	ppacUnmanagedFields;
 	CArrayVoidPtr*		papv;
 	size				i;
 	CUnmanagedField*	pcUnmanagedField;
@@ -1370,11 +1369,10 @@ bool CBaseObject::SaveUnmanaged(CObjectWriter* pcFile)
 	void*				pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();
-	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
 	uiNumFields = papv->NumElements();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcUnmanagedField = ppacUnmanagedFields[i];
+		pcUnmanagedField = (CUnmanagedField*)papv->GetPtr(i);
 		pvUnmanaged = pcUnmanagedField->GetData(this);
 		uiCount = pcUnmanagedField->GetLength();
 		uiSize = pcUnmanagedField->GetSizeOf();
@@ -1474,18 +1472,18 @@ bool CBaseObject::LoadEmbeddedObjectsManaged(CObjectReader* pcFile)
 bool CBaseObject::LoadPointers(CObjectReader* pcFile)
 {
 	size				uiNumFields;
-	CPointerField**		ppacPointerFields;
+	CPointerField*		pcPointerField;
 	CArrayVoidPtr*		papv;
 	size				i;
 	CPointer*			pcPointer;
 	bool				bResult;
 
 	papv = mpcClass->GetPointerFields();
-	ppacPointerFields = (CPointerField**)papv->GetData();
 	uiNumFields = papv->NumElements();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcPointer = ppacPointerFields[i]->GetPointer(this);
+		pcPointerField = (CPointerField*)papv->GetPtr(i);
+		pcPointer = pcPointerField->GetPointer(this);
 		bResult = pcFile->ReadPointer(pcPointer);
 		if (!bResult)
 		{
@@ -1540,10 +1538,9 @@ bool CBaseObject::LoadPrimitives(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 {
-	size						uiNumFields;
-	CUnmanagedField**		ppacUnmanagedFields;
+	size					uiNumFields;
 	CArrayVoidPtr*			papv;
-	size						i;
+	size					i;
 	CUnmanagedField*		pcUnmanagedField;
 	bool					bResult;
 	size					uiCount;
@@ -1551,11 +1548,10 @@ bool CBaseObject::LoadUnmanaged(CObjectReader* pcFile)
 	void*					pvUnmanaged;
 
 	papv = mpcClass->GetUnmanagedFields();
-	ppacUnmanagedFields = (CUnmanagedField**)papv->GetData();
 	uiNumFields = papv->NumElements();
 	for (i = 0; i < uiNumFields; i++)
 	{
-		pcUnmanagedField = ppacUnmanagedFields[i];
+		pcUnmanagedField = (CUnmanagedField*)papv->GetPtr(i);
 		pvUnmanaged = pcUnmanagedField->GetData(this);
 		uiCount = pcUnmanagedField->GetLength();
 		uiSize = pcUnmanagedField->GetSizeOf();

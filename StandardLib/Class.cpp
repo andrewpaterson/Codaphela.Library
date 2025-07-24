@@ -348,7 +348,7 @@ void CClass::UnmanagedPointer(CBaseObject* pcThis, void** pv, char* szFieldName)
 	CUnmanagedField* pcUnmanagedField;
 
 	pcUnmanagedField = AddUnmanaged(szFieldName);
-	pcUnmanagedField->Init(PT_Pointer, (size)pv - (size)pcThis, this, sizeof(void*), szFieldName);
+	pcUnmanagedField->Init(PT_Pointer, (size)pv - (size)pcThis, this, 1, szFieldName);
 }
 
 

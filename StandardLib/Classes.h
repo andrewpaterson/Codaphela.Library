@@ -106,7 +106,7 @@ void CClasses::AddSystemClassAndConstructor(void)
 
 	pvM = StackConstruct<Class>(&cStack);
 	szClassName = pvM->ClassName();
-	pcClass = pvM->CBaseObject::Class(this);
+	pcClass = pvM->CBaseObject::CompleteClass(this);
 	pcClass->System();
 	cStack.Kill();
 

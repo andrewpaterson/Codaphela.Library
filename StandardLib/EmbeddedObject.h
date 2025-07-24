@@ -25,6 +25,7 @@ class CObject;
 class CObjects;
 class CObjectWriter;
 class CObjectReader;
+class CClass;
 class CEmbeddedObject : public CUnknown
 {
 friend class CPointer;
@@ -107,6 +108,7 @@ public:
 			size				NumTotalFroms(void);
 			bool				ContainsFrom(CEmbeddedObject* pcBaseObject);
 	virtual CEmbeddedObject*	GetClosestFromToRoot(void);
+	virtual CClass*				GetClass(void) =0;
 
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
