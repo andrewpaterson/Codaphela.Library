@@ -361,6 +361,10 @@ bool CBaseObject::Flush(void)
 void CBaseObject::FreeInternal(bool bAllocatedInObjects)
 {
 	LOG_OBJECT_DESTRUCTION(this);
+	if (mpcObjectsThisIn)
+	{
+		mpcObjectsThisIn->mDestructionCallback(this);
+	}
 
 	//Frees user data.
 	Free();

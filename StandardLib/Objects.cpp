@@ -118,6 +118,15 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 //
 //
 ////////////////////////////////////////////////////////////////////////////
+void ObjectCallbackNotSet(CBaseObject* pvObject)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+////////////////////////////////////////////////////////////////////////////
 CObjects::CObjects()
 {
 	mbInitialised = false;
@@ -139,6 +148,10 @@ void CObjects::Init(CUnknowns* pcUnknownsAllocatingFrom, CStackPointers* pcStack
 
 	mpcDataConnection = pcDataConnection;
 	mpcSequenceConnection = pcSequenceConnection;
+
+	mAllocationCallback = &ObjectCallbackNotSet;
+	mHollocationCallback = &ObjectCallbackNotSet;
+	mDestructionCallback = &ObjectCallbackNotSet;
 
 	mcMemory.Init();
 	mcSource.Init();
@@ -218,15 +231,37 @@ void CObjects::PrintMemory(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::PrintMemoryNames(CChars* psz)
+{
+	CIndexTreeMemory*			pcIndex;
+	SIndexTreeMemoryIterator	sIter;
+	bool						bExists;
+
+	pcIndex = mcMemory.GetNames();
+
+	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+	while (bExists)
+	{
+		psz->Append((char*)sIter.pvKey, sIter.iKeyLength);
+		psz->AppendNewLine();
+
+		bExists = pcIndex->Iterate(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CObjects::DumpMemory(void)
 {
 	CChars	sz;
 
-	sz.Init("-------------------------- Indices -------------------------- \n");
+	sz.Init("-------------------------- Indices --------------------------- \n");
 	PrintMemory(&sz);
 	sz.Append("------------------------------------------------------------ \n");
-	sz.Dump();
-	sz.Kill();
+	sz.DumpKill();
 
 	mcMemory.GetNames()->Dump();
 }
@@ -240,17 +275,47 @@ void CObjects::DumpNames(void)
 {
 	CChars	sz;
 
-	sz.Init("-------------------------- Names -------------------------- \n");
-	sz.Dump();
-	sz.Kill();
+	sz.Init("---------------------------- Names --------------------------- \n");
+	sz.DumpKill();
 
 	//mpcDataConnection->StartNameIteration()
 	//	...
 
 	sz.Init();
 	sz.Append("------------------------------------------------------------ \n");
-	sz.Dump();
-	sz.Kill();
+	sz.DumpKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpMemoryNames(void)
+{
+	CChars						sz;
+	CIndexTreeMemory*			pcIndex;
+	SIndexTreeMemoryIterator	sIter;
+	bool						bExists;
+
+	sz.Init("------------------------- Memory Names ----------------------- \n");
+	sz.DumpKill();
+
+	pcIndex = mcMemory.GetNames();
+
+	bExists = pcIndex->StartIteration(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+	while (bExists)
+	{
+		sz.Init((char*)sIter.pvKey, 0, sIter.iKeyLength);
+		sz.AppendNewLine();
+		sz.DumpKill();
+
+		bExists = pcIndex->Iterate(&sIter, NULL, NULL, NULL, NULL, NULL, NULL);
+	}
+
+	sz.Init();
+	sz.Append("------------------------------------------------------------ \n");
+	sz.DumpKill();
 }
 
 
@@ -272,8 +337,7 @@ void CObjects::DumpGraph(void)
 	}
 
 	sz.Append("------------------------------------------------------------ \n");
-	sz.Dump();
-	sz.Kill();
+	sz.DumpKill();
 
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
@@ -485,6 +549,36 @@ void CObjects::RecurseValidateSceneGraph(CBaseObject* pcBaseObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CObjects::SetAllocationCallback(AllocationCallback fAllocationCallback)
+{
+	mAllocationCallback = fAllocationCallback;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::SetHollocationCallback(HollocationCallback fHollocationCallback)
+{
+	mHollocationCallback = fHollocationCallback;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::SetDestructionCallback(DestructionCallback fDestructionCallback)
+{
+	mDestructionCallback = fDestructionCallback;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CObjects::Flush(void)
 {
 	SIndexesIterator	sIter;
@@ -670,6 +764,7 @@ bool CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 		if (bResult)
 		{
 			LOG_OBJECT_ALLOCATION(pvObject);
+			mAllocationCallback(pvObject);
 		}
 		else
 		{
@@ -698,6 +793,7 @@ bool CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 		if (bResult)
 		{
 			LOG_OBJECT_ALLOCATION(pvObject);
+			mAllocationCallback(pvObject);
 		}
 		else
 		{
@@ -728,7 +824,6 @@ bool CObjects::RemoveFromMemory(CBaseObject* pvObject)
 	if (!StrEmpty(szName))
 	{
 		bResult &= mcMemory.RemoveName(szName);
-
 	}
 	return bResult;
 }
@@ -1747,6 +1842,7 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded)
 	if (pcHollow)
 	{
 		LOG_OBJECT_ALLOCATION(pcHollow);
+		mHollocationCallback(pcHollow);
 	}
 	else
 	{
