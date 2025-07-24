@@ -59,7 +59,7 @@ public:
 	virtual OIndex				GetIndex(void);
 	virtual bool				IsNamed(void);
 	virtual char*				GetName(void);
-	virtual void				ClearIdentifiers(void);
+	virtual void				FreeIdentifiers(void);
 	virtual bool				IsDirty(void) =0;
 	virtual void				SetDirty(bool bDirty) =0;
 	virtual bool				IsBaseObject(void);

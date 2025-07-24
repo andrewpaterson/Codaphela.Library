@@ -99,7 +99,7 @@ char* CEmbeddedObject::GetName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::ClearIdentifiers(void)
+void CEmbeddedObject::FreeIdentifiers(void)
 {
 }
 

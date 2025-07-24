@@ -111,7 +111,7 @@ public:
 			bool				Load(CObjectReader* pcFile) override;
 
 			OIndex				GetIndex(void) override;
-			void				ClearIdentifiers(void) override;
+			void				FreeIdentifiers(void) override;
 
 			bool				IsRoot(void);
 	virtual bool				IsSubRoot(void);
@@ -212,7 +212,6 @@ protected:
 			bool				SaveHeapFroms(CObjectWriter* pcFile);
 			bool				LoadHeapFroms(CObjectReader* pcFile);
 
-	virtual void				FreeIdentifiers(void);
 			void				FreePointers(void) override;
 			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
 			bool				RemoveToFrom(CEmbeddedObject* pcPointedTo);
