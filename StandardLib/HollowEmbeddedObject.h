@@ -33,6 +33,7 @@ public:
 	void				SetDirty(bool bDirty);
 	bool				IsRoot(void);
 	bool				TestedForRoot(void);
+	CClass*				GetClass(void);
 
 protected:
 	void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);

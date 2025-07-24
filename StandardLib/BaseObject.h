@@ -156,7 +156,7 @@ public:
 			CClasses*			GetClasses(void);
 			CStackPointers*		GetStackPointers(void);
 	virtual void				SetDistToStack(int iDistToStack);
-			CClass*				Class(CClasses* pcClasses);
+			CClass*				CompleteClass(CClasses* pcClasses);
 
 	virtual bool				ContainsPointerTo(CEmbeddedObject* pcEmbedded);
 			CEmbeddedObject* 	TestGetPointerTo(size iToIndex);
