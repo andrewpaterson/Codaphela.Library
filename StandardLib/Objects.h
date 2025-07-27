@@ -134,7 +134,8 @@ public:
 						CPointer				TestGetFromMemory(char* szName);
 
 						void					PrintMemoryNames(CChars* psz);
-						void					DumpMemory(void);
+						void					DumpMemoryUseIteration(void);
+						void					DumpMemoryUseRecursion(void);
 						void					DumpNames(void);
 						void					DumpGraph(void);
 						void					DumpMemoryNames(void);
@@ -182,7 +183,8 @@ protected:
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, OIndex oi);
 						CHollowObject*			AllocateHollow(size uiNumEmbedded, const char* szObjectName, OIndex oi);
 						void					AppenedHollowEmbeddedObjects(CBaseObject* pcHollow, size uiNumEmbedded, void* pvEmbedded) ;
-						void					PrintMemory(CChars* psz);
+						void					PrintMemoryUseIteration(CChars* psz);
+						void					PrintMemoryUseRecursion(CChars* psz);
 
 public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);

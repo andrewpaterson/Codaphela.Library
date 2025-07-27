@@ -153,3 +153,13 @@ OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 	return INVALID_O_INDEX;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexedObjects::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
+{
+	mcIndexes.Print(pszDest, bShowFlags, bShowFlags);
+}
+
