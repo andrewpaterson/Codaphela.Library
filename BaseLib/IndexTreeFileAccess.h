@@ -23,13 +23,13 @@ public:
 	CIndexTreeFile*		GetTree(void);
 
 protected:
-	bool	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize);
-	bool	Get(void* pvKey, size iKeySize, void* pvData, size* uiDataSize, size uiMaxDataSize);
-	bool	Remove(void* pvKey, size iKeySize);
-	size	DataSize(void* pvKey, size iKeySize);
-	bool	Has(void* pvKey, size iKeySize);
-	bool	Flush(void* pvKey, size iKeySize);
-	bool	Evict(void* pvKey, size iKeySize);
+	bool	Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	Get(uint8* pvKey, size iKeySize, void* pvData, size* uiDataSize, size uiMaxDataSize);
+	bool	Remove(uint8* pvKey, size iKeySize);
+	size	DataSize(uint8* pvKey, size iKeySize);
+	bool	Has(uint8* pvKey, size iKeySize);
+	bool	Flush(uint8* pvKey, size iKeySize);
+	bool	Evict(uint8* pvKey, size iKeySize);
 };
 
 

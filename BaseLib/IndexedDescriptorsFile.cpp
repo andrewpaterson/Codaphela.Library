@@ -55,7 +55,7 @@ bool CIndexedDescriptorsFile::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedDescriptorsFile::Remove(OIndex oi)
 {
-	return mcIndexTree.Remove(&oi, sizeof(OIndex));
+	return mcIndexTree.Remove((uint8*)&oi, sizeof(OIndex));
 }
 
 
@@ -65,7 +65,7 @@ bool CIndexedDescriptorsFile::Remove(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
+	return mcIndexTree.Get((uint8*)&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
 }
 
 
@@ -77,11 +77,11 @@ bool CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 {
 	if (!bNoEviction)
 	{
-		return mcIndexTree.Get(&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
+		return mcIndexTree.Get((uint8*)&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
 	}
 	else
 	{
-		return mcIndexTree.GetWithoutEviction(&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
+		return mcIndexTree.GetWithoutEviction((uint8*)&oi, sizeof(OIndex), pcDescriptor, NULL, sizeof(CIndexedDataDescriptor));
 	}
 }
 
@@ -92,7 +92,7 @@ bool CIndexedDescriptorsFile::Get(CIndexedDataDescriptor* pcDescriptor, OIndex o
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex oi)
 {
-	return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
+	return mcIndexTree.Put((uint8*)&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 }
 
 
@@ -104,11 +104,11 @@ bool CIndexedDescriptorsFile::Set(CIndexedDataDescriptor* pcDescriptor, OIndex o
 {
 	if (!bNoEviction)
 	{
-		return mcIndexTree.Put(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
+		return mcIndexTree.Put((uint8*)&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 	}
 	else
 	{
-		return mcIndexTree.PutWithoutEviction(&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
+		return mcIndexTree.PutWithoutEviction((uint8*)&oi, sizeof(OIndex), pcDescriptor, sizeof(CIndexedDataDescriptor));
 	}
 }
 
@@ -122,7 +122,7 @@ bool CIndexedDescriptorsFile::SetCache(void* pvCache, uint32 uiDataSize, OIndex 
 	CIndexTreeNode*			pcNode;
 	CIndexedDataDescriptor*	pcDescriptor;
 
-	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(OIndex));
+	pcNode = mcIndexTree.GetMemoryNode((uint8*)&oi, sizeof(OIndex));
 	if (pcNode)
 	{
 		pcDescriptor = (CIndexedDataDescriptor*)pcNode->GetDataPtr();
@@ -213,7 +213,7 @@ bool CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 	CIndexTreeNodeFile*		pcNode;
 	CIndexedDataDescriptor*	pcReturn;
 
-	pcNode = mcIndexTree.GetMemoryNode(&oi, sizeof(OIndex));
+	pcNode = mcIndexTree.GetMemoryNode((uint8*)&oi, sizeof(OIndex));
 	if (pcNode)
 	{
 		pcReturn = (CIndexedDataDescriptor*)pcNode->GetDataPtr();
@@ -233,7 +233,7 @@ bool CIndexedDescriptorsFile::GetIfInMemory(CIndexedDataDescriptor* pcDescriptor
 //////////////////////////////////////////////////////////////////////////
 bool CIndexedDescriptorsFile::Evict(OIndex oi)
 {
-	return mcIndexTree.Evict(&oi, sizeof(OIndex));
+	return mcIndexTree.Evict((uint8*)&oi, sizeof(OIndex));
 }
 
 
@@ -354,7 +354,7 @@ OIndex CIndexedDescriptorsFile::StartIteration(SIndexTreeFileIterator* psIterato
 	size	iKeySize;
 	bool	bExists;
 
-	bExists = mcIndexTree.StartIteration(psIterator, &oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
+	bExists = mcIndexTree.StartIteration(psIterator, (uint8*)&oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
 	if (bExists)
 	{
 		return oi;
@@ -376,7 +376,7 @@ OIndex CIndexedDescriptorsFile::Iterate(SIndexTreeFileIterator* psIterator, void
 	size	iKeySize;
 	bool	bExists;
 
-	bExists = mcIndexTree.Iterate(psIterator, &oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
+	bExists = mcIndexTree.Iterate(psIterator, (uint8*)&oi, &iKeySize, sizeof(OIndex), pvData, piDataSize, iMaxDataSize);
 	if (bExists)
 	{
 		return oi;

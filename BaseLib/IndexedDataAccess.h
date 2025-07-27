@@ -20,13 +20,13 @@ public:
 	void				FreeIterator(CIndexTreeIterator* pcIter);
 
 protected:
-	bool	Put(void* pvKey, size iKeySize, void* pvData, size iDataSize);
-	bool	Get(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize);
-	size	DataSize(void* pvKey, size iKeySize);
-	bool	Remove(void* pvKey, size iKeySize);
-	bool	Has(void* pvKey, size iKeySize);
-	bool	Flush(void* pvKey, size iKeySize);
-	bool	Evict(void* pvKey, size iKeySize);
+	bool	Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool	Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize);
+	size	DataSize(uint8* pvKey, size iKeySize);
+	bool	Remove(uint8* pvKey, size iKeySize);
+	bool	Has(uint8* pvKey, size iKeySize);
+	bool	Flush(uint8* pvKey, size iKeySize);
+	bool	Evict(uint8* pvKey, size iKeySize);
 };
 
 

@@ -36,20 +36,20 @@ public:
 	void				Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig);
 	void				Kill(void);
 
-	bool				Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
-	void*				Get(void* pvKey, size iKeySize);
+	bool				Get(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
+	void*				Get(uint8* pvKey, size iKeySize);
 
-	bool				GetLongestPartial(void* pvKey, size iKeySize, void** ppvData, size* piDataSize);
-	void*				GetLongestPartial(void* pvKey, size iKeySize);
+	bool				GetLongestPartial(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
+	void*				GetLongestPartial(uint8* pvKey, size iKeySize);
 
-	void*				Put(void* pvKey, size iKeySize, size iDataSize);
-	bool				Put(void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	void*				Put(uint8* pvKey, size iKeySize, size iDataSize);
+	bool				Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize);
 
-	bool				Remove(void* pvKey, size iKeySize);
+	bool				Remove(uint8* pvKey, size iKeySize);
 
-	size				DataSize(void* pvKey, size iKeySize);
+	size				DataSize(uint8* pvKey, size iKeySize);
 
-	bool				HasKey(void* pvKey, size iKeySize);
+	bool				HasKey(uint8* pvKey, size iKeySize);
 
 	size					NumElements(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);

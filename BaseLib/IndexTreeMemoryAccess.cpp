@@ -69,7 +69,7 @@ bool CIndexTreeMemoryAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeMemoryAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	void* pvResult;
 
@@ -82,7 +82,7 @@ bool CIndexTreeMemoryAccess::Put(void* pvKey, size iKeySize, void* pvData, size 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Get(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
+bool CIndexTreeMemoryAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	bool	bResult;
 
@@ -95,7 +95,7 @@ bool CIndexTreeMemoryAccess::Get(void* pvKey, size iKeySize, void* pvData, size*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Remove(void* pvKey, size iKeySize)
+bool CIndexTreeMemoryAccess::Remove(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->Remove(pvKey, iKeySize);
 }
@@ -105,7 +105,7 @@ bool CIndexTreeMemoryAccess::Remove(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Has(void* pvKey, size iKeySize)
+bool CIndexTreeMemoryAccess::Has(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->HasKey(pvKey, iKeySize);
 }
@@ -115,7 +115,7 @@ bool CIndexTreeMemoryAccess::Has(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeMemoryAccess::DataSize(void* pvKey, size iKeySize)
+size CIndexTreeMemoryAccess::DataSize(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->GetDataSize(pvKey, iKeySize);
 }
@@ -125,7 +125,7 @@ size CIndexTreeMemoryAccess::DataSize(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Flush(void* pvKey, size iKeySize)
+bool CIndexTreeMemoryAccess::Flush(uint8* pvKey, size iKeySize)
 {
 	if (Has(pvKey, iKeySize))
 	{
@@ -139,7 +139,7 @@ bool CIndexTreeMemoryAccess::Flush(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemoryAccess::Evict(void* pvKey, size iKeySize)
+bool CIndexTreeMemoryAccess::Evict(uint8* pvKey, size iKeySize)
 {
 	return false;
 }

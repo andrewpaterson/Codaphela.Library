@@ -3,7 +3,6 @@
 #include "MapAccess.h"
 
 
-
 class CIndexBlock;
 class CIndexMapAccess : public CMapAccess
 {

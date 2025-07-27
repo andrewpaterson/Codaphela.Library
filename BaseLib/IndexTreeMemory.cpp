@@ -177,7 +177,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetRoot(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, size iKeySize)
+CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(uint8* pvKey, size iKeySize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	size					i;
@@ -210,7 +210,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNode(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey, size iKeySize)
+CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(uint8* pvKey, size iKeySize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	size					i;
@@ -249,7 +249,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::GetNodeFromLongestPartialKey(void* pvKey
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::Get(void* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize)
+bool CIndexTreeMemory::Get(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	size					uiDataSize;
@@ -263,7 +263,7 @@ bool CIndexTreeMemory::Get(void* pvKey, size iKeySize, void* pvDestData, size* p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::GetLongestPartial(void* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize)
+bool CIndexTreeMemory::GetLongestPartial(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize)
 {
 	CIndexTreeNodeMemory*	pcNode;
 	size					uiDataSize;
@@ -312,7 +312,7 @@ bool CIndexTreeMemory::GetNodeData(CIndexTreeNodeMemory* pcNode, size& uiDataSiz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CIndexTreeMemory::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+void* CIndexTreeMemory::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	size					uiDataSize;
@@ -362,7 +362,7 @@ void* CIndexTreeMemory::Put(void* pvKey, size iKeySize, void* pvData, size iData
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(void* pvKey, size iKeySize)
+CIndexTreeNodeMemory* CIndexTreeMemory::GetOrAllocateKey(uint8* pvKey, size iKeySize)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	size					c;
@@ -582,7 +582,7 @@ CIndexTreeNodeMemory* CIndexTreeMemory::SetOldWithCurrent(CIndexTreeNodeMemory* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::Remove(void* pvKey, size iKeySize)
+bool CIndexTreeMemory::Remove(uint8* pvKey, size iKeySize)
 {
 	size					c;
 	CIndexTreeNodeMemory*	pcCurrent;
@@ -1016,7 +1016,7 @@ size CIndexTreeMemory::GetNodeData(CIndexTreeNode* pcNode, void* pvDestData, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
+bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	size							iDataSize;
@@ -1051,7 +1051,7 @@ bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, void
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
+bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize)
 {
 	SIndexTreeMemoryUnsafeIterator	sIter;
 	size							iDataSize;
@@ -1470,7 +1470,7 @@ void CIndexTreeMemory::RecursePrintNodes(CChars* pszDest, CIndexTreeRecursor* pc
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::DebugKey(CChars* pszDest, void* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
+void CIndexTreeMemory::DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed)
 {
 	CIndexTreeNodeMemory*	pcCurrent;
 	size					c;
@@ -1871,7 +1871,7 @@ bool CIndexTreeMemory::RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::HasKey(void* pvKey, size iKeySize)
+bool CIndexTreeMemory::HasKey(uint8* pvKey, size iKeySize)
 {
 	CIndexTreeNodeMemory* pcNode;
 
@@ -1898,7 +1898,7 @@ bool CIndexTreeMemory::HasKey(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeMemory::GetDataSize(void* pvKey, size iKeySize)
+size CIndexTreeMemory::GetDataSize(uint8* pvKey, size iKeySize)
 {
 	CIndexTreeNodeMemory* pcNode;
 

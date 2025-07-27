@@ -60,7 +60,7 @@ size CIndexTreeIterator::GetKeySize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CIndexTreeIterator::GetKey(void)
+uint8* CIndexTreeIterator::GetKey(void)
 {
 	return macKey;
 }

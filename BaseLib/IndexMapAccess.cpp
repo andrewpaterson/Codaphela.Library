@@ -76,7 +76,7 @@ void* CIndexMapAccess::Put(void* pvKey, size iKeySize, void* pvData, size uiData
 {
 	void* pv;
 
-	pv = mpcIndex->Put(pvKey, iKeySize, uiDataSize);
+	pv = mpcIndex->Put((uint8*)pvKey, iKeySize, uiDataSize);
 	if (pv)
 	{
 		memcpy(pv, pvData, uiDataSize);
@@ -98,7 +98,7 @@ void* CIndexMapAccess::Get(void* pvKey, size iKeySize, size* puiDataSize)
 	bool	bResult;
 	void* pvData;
 
-	bResult = mpcIndex->Get(pvKey, iKeySize, &pvData, (size*)puiDataSize);
+	bResult = mpcIndex->Get((uint8*)pvKey, iKeySize, &pvData, (size*)puiDataSize);
 	if (bResult)
 	{
 		return pvData;
@@ -116,7 +116,7 @@ void* CIndexMapAccess::Get(void* pvKey, size iKeySize, size* puiDataSize)
 //////////////////////////////////////////////////////////////////////////
 size CIndexMapAccess::DataSize(void* pvKey, size iKeySize)
 {
-	return mpcIndex->DataSize(pvKey, iKeySize);
+	return mpcIndex->DataSize((uint8*)pvKey, iKeySize);
 }
 
 
@@ -126,7 +126,7 @@ size CIndexMapAccess::DataSize(void* pvKey, size iKeySize)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexMapAccess::Remove(void* pvKey, size iKeySize)
 {
-	return mpcIndex->Remove(pvKey, iKeySize);
+	return mpcIndex->Remove((uint8*)pvKey, iKeySize);
 }
 
 
@@ -136,6 +136,6 @@ bool CIndexMapAccess::Remove(void* pvKey, size iKeySize)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexMapAccess::Has(void* pvKey, size iKeySize)
 {
-	return mpcIndex->HasKey(pvKey, iKeySize);
+	return mpcIndex->HasKey((uint8*)pvKey, iKeySize);
 }
 

@@ -6,7 +6,7 @@
 class CIndexTreeIterator
 {
 protected:
-	char			macKey[MAX_KEY_SIZE];
+	uint8			macKey[MAX_KEY_SIZE];
 	char			macData[MAX_DATA_SIZE];
 	int				miType;
 	bool			mbStarted;
@@ -20,7 +20,7 @@ public:
 			size	GetDataSize(void);
 			void*	GetData(void);
 			size	GetKeySize(void);
-			char*	GetKey(void);
+			uint8*	GetKey(void);
 
 	virtual bool	Iterate(void) =0;
 

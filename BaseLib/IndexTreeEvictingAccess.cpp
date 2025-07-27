@@ -84,7 +84,7 @@ bool CIndexTreeEvictingAccess::ValidateIndex(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexTreeEvictingAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	return mpcTree->Put(pvKey, iKeySize, pvData, iDataSize);
 }
@@ -94,7 +94,7 @@ bool CIndexTreeEvictingAccess::Put(void* pvKey, size iKeySize, void* pvData, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Get(void* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
+bool CIndexTreeEvictingAccess::Get(uint8* pvKey, size iKeySize, void* pvData, size* piDataSize, size uiMaxDataSize)
 {
 	size	iDataSize;
 	bool	bResult;
@@ -110,7 +110,7 @@ bool CIndexTreeEvictingAccess::Get(void* pvKey, size iKeySize, void* pvData, siz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Remove(void* pvKey, size iKeySize)
+bool CIndexTreeEvictingAccess::Remove(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->Remove(pvKey, iKeySize);
 }
@@ -121,7 +121,7 @@ bool CIndexTreeEvictingAccess::Remove(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeEvictingAccess::DataSize(void* pvKey, size iKeySize)
+size CIndexTreeEvictingAccess::DataSize(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->GetDataSize(pvKey, iKeySize);
 }
@@ -131,7 +131,7 @@ size CIndexTreeEvictingAccess::DataSize(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Has(void* pvKey, size iKeySize)
+bool CIndexTreeEvictingAccess::Has(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->HasKey(pvKey, iKeySize);
 }
@@ -141,7 +141,7 @@ bool CIndexTreeEvictingAccess::Has(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Evict(void* pvKey, size iKeySize)
+bool CIndexTreeEvictingAccess::Evict(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->Evict(pvKey, iKeySize);
 }
@@ -151,7 +151,7 @@ bool CIndexTreeEvictingAccess::Evict(void* pvKey, size iKeySize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvictingAccess::Flush(void* pvKey, size iKeySize)
+bool CIndexTreeEvictingAccess::Flush(uint8* pvKey, size iKeySize)
 {
 	return mpcTree->Flush(pvKey, iKeySize);
 }
