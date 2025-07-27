@@ -44,6 +44,8 @@ public:
 	bool			Remove(OIndex oi);
 	size			NumIndexed(void);
 
+	void			Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
+
 	OIndex			StartIteration(SIndexesIterator* psIterator);
 	OIndex			Iterate(SIndexesIterator* psIterator);
 };

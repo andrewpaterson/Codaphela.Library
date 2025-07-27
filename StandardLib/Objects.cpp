@@ -200,7 +200,7 @@ void CObjects::ValidateEmpty(void)
 		sz.Append("Memory not empty.  ");
 		sz.Append(iNumIndexed);
 		sz.Append(" objects are still indexed.\n");
-		PrintMemory(&sz);
+		PrintMemoryUseIteration(&sz);
 		gcLogger.Error(sz.Text());
 		sz.Kill();
 	}
@@ -211,7 +211,7 @@ void CObjects::ValidateEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::PrintMemory(CChars* psz)
+void CObjects::PrintMemoryUseIteration(CChars* psz)
 {
 	SIndexesIterator	sIter;
 	CBaseObject*		pcBaseObject;
@@ -224,6 +224,16 @@ void CObjects::PrintMemory(CChars* psz)
 		psz->Append("\n");
 		pcBaseObject = mcMemory.Iterate(&sIter);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::PrintMemoryUseRecursion(CChars* psz)
+{
+	mcMemory.GetObjects()->Print(psz, true, true);
 }
 
 
@@ -254,16 +264,31 @@ void CObjects::PrintMemoryNames(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::DumpMemory(void)
+void CObjects::DumpMemoryUseIteration(void)
 {
 	CChars	sz;
 
 	sz.Init("-------------------------- Indices --------------------------- \n");
-	PrintMemory(&sz);
+	PrintMemoryUseIteration(&sz);
 	sz.Append("------------------------------------------------------------ \n");
 	sz.DumpKill();
 
 	mcMemory.GetNames()->Dump();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CObjects::DumpMemoryUseRecursion(void)
+{
+	CChars	sz;
+
+	sz.Init("-------------------------- Indices --------------------------- \n");
+	PrintMemoryUseRecursion(&sz);
+	sz.Append("------------------------------------------------------------ \n");
+	sz.DumpKill();
 }
 
 
@@ -1425,7 +1450,10 @@ void CObjects::FreeObject(CBaseObject* pvObject)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjects::StartMemoryIteration(SIndexesIterator* psIter)
 {
-	return mcMemory.GetObjects()->StartIteration(psIter);
+	CIndexedObjects*	pcIndexedObjects;
+
+	pcIndexedObjects = mcMemory.GetObjects();
+	return pcIndexedObjects->StartIteration(psIter);
 }
 
 
@@ -1435,7 +1463,10 @@ OIndex CObjects::StartMemoryIteration(SIndexesIterator* psIter)
 //////////////////////////////////////////////////////////////////////////
 OIndex CObjects::IterateMemory(SIndexesIterator* psIter)
 {
-	return mcMemory.GetObjects()->Iterate(psIter);
+	CIndexedObjects* pcIndexedObjects;
+
+	pcIndexedObjects = mcMemory.GetObjects();
+	return pcIndexedObjects->Iterate(psIter);
 }
 
 
