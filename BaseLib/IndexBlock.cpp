@@ -79,7 +79,7 @@ void CIndexBlock::DataWillBeFreed(SIndexBlockNode* psNode)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexBlock::Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize)
+bool CIndexBlock::Get(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize)
 {
 	SIndexBlockNode		sNode;
 	bool				bResult;
@@ -102,7 +102,7 @@ bool CIndexBlock::Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::Get(void* pvKey, size iKeySize)
+void* CIndexBlock::Get(uint8* pvKey, size iKeySize)
 {
 	SIndexBlockNode		sNode;
 	bool				bResult;
@@ -123,7 +123,7 @@ void* CIndexBlock::Get(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexBlock::GetLongestPartial(void* pvKey, size iKeySize, void** ppvData, size* piDataSize)
+bool CIndexBlock::GetLongestPartial(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize)
 {
 	SIndexBlockNode		sNode;
 	bool				bResult;
@@ -146,7 +146,7 @@ bool CIndexBlock::GetLongestPartial(void* pvKey, size iKeySize, void** ppvData, 
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::GetLongestPartial(void* pvKey, size iKeySize)
+void* CIndexBlock::GetLongestPartial(uint8* pvKey, size iKeySize)
 {
 	SIndexBlockNode		sNode;
 	bool				bResult;
@@ -167,7 +167,7 @@ void* CIndexBlock::GetLongestPartial(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void* CIndexBlock::Put(void* pvKey, size iKeySize, size iDataSize)
+void* CIndexBlock::Put(uint8* pvKey, size iKeySize, size iDataSize)
 {
 	SIndexBlockNode		sNode;
 	void*				pvData;
@@ -184,7 +184,7 @@ void* CIndexBlock::Put(void* pvKey, size iKeySize, size iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexBlock::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CIndexBlock::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	void*	pv;
 
@@ -205,7 +205,7 @@ bool CIndexBlock::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexBlock::Remove(void* pvKey, size iKeySize)
+bool CIndexBlock::Remove(uint8* pvKey, size iKeySize)
 {
 	SIndexBlockNode		sNode;
 	bool				bExists;
@@ -246,7 +246,7 @@ void CIndexBlock::SetDataFreeCallback(CDataFree* pcDataFree)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CIndexBlock::DataSize(void* pvKey, size iKeySize)
+size CIndexBlock::DataSize(uint8* pvKey, size iKeySize)
 {
 	return mcIndex.GetDataSize(pvKey, iKeySize);
 }
@@ -256,7 +256,7 @@ size CIndexBlock::DataSize(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CIndexBlock::HasKey(void* pvKey, size iKeySize)
+bool CIndexBlock::HasKey(uint8* pvKey, size iKeySize)
 {
 	return mcIndex.HasKey(pvKey, iKeySize);
 }
@@ -364,7 +364,7 @@ bool CIndexBlock::Read(CFileReader* pcFileReader)
 
 	size	iCount;
 	size	i;
-	char	acKey[1024];
+	uint8	acKey[1024];
 	size	iKeySize;
 	size	iDataSize;
 	void*	pvData;

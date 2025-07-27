@@ -115,12 +115,12 @@ bool CNamedIndexes::Add(char* szName, size iNameLength, OIndex oi)
 			return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "] with index [", IndexToString(oi), "].", NULL);
 		}
 
-		bExists = mcIndexTree.HasKey(szName, iNameLength);
+		bExists = mcIndexTree.HasKey((uint8*)szName, iNameLength);
 		if (bExists)
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot Add Name [", szName, "] and index [", IndexToString(oi), "].  It already exists.", NULL);
 		}
-		return mcIndexTree.Put(szName, iNameLength, &oi, sizeof(OIndex));
+		return mcIndexTree.Put((uint8*)szName, iNameLength, &oi, sizeof(OIndex));
 	}
 	else
 	{
@@ -141,12 +141,12 @@ bool CNamedIndexes::Set(char* szName, OIndex oi)
 	if (!StrEmpty(szName))
 	{
 		iKeySize = strlen(szName);
-		bExists = mcIndexTree.HasKey(szName, iKeySize);
+		bExists = mcIndexTree.HasKey((uint8*)szName, iKeySize);
 		if (bExists)
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot Set Name [", szName, "] and index [", IndexToString(oi), "].  The Name does not exist.", NULL);
 		}
-		return mcIndexTree.Put(szName, iKeySize, &oi, sizeof(OIndex));
+		return mcIndexTree.Put((uint8*)szName, iKeySize, &oi, sizeof(OIndex));
 	}
 	else
 	{
@@ -165,12 +165,12 @@ bool CNamedIndexes::Set(CChars* szName, OIndex oi)
 
 	if ((szName != NULL) && (!szName->Empty()))
 	{
-		bExists = mcIndexTree.HasKey(szName->Text(), szName->Length());
+		bExists = mcIndexTree.HasKey((uint8*)szName->Text(), szName->Length());
 		if (!bExists)
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot Set Name [", szName->Text(), "] and index [", IndexToString(oi), "].  The Name does not exist.", NULL);
 		}
-		return mcIndexTree.Put(szName->Text(), szName->Length(), &oi, sizeof(OIndex));
+		return mcIndexTree.Put((uint8*)szName->Text(), szName->Length(), &oi, sizeof(OIndex));
 	}
 	else
 	{
@@ -190,7 +190,7 @@ bool CNamedIndexes::Put(char* szName, OIndex oi)
 	if (!StrEmpty(szName))
 	{
 		iKeySize = strlen(szName);
-		return mcIndexTree.Put(szName, iKeySize, &oi, sizeof(OIndex));
+		return mcIndexTree.Put((uint8*)szName, iKeySize, &oi, sizeof(OIndex));
 	}
 	else
 	{
@@ -207,7 +207,7 @@ bool CNamedIndexes::Put(CChars* szName, OIndex oi)
 {
 	if ((szName != NULL) && (!szName->Empty()))
 	{
-		return mcIndexTree.Put(szName->Text(), szName->Length(), &oi, sizeof(OIndex));
+		return mcIndexTree.Put((uint8*)szName->Text(), szName->Length(), &oi, sizeof(OIndex));
 	}
 	else
 	{
@@ -229,7 +229,7 @@ OIndex CNamedIndexes::Get(char* szName)
 	if (!StrEmpty(szName))
 	{
 		iKeySize = strlen(szName);
-		bExists = mcIndexTree.Get(szName, iKeySize, &iResult, NULL, sizeof(OIndex));
+		bExists = mcIndexTree.Get((uint8*)szName, iKeySize, &iResult, NULL, sizeof(OIndex));
 		if (bExists)
 		{
 			return iResult;
@@ -251,7 +251,7 @@ OIndex CNamedIndexes::Get(CChars* szName)
 
 	if ((szName != NULL) && !szName->Empty())
 	{
-		bExists = mcIndexTree.Get(szName->Text(), szName->Length(), &iResult, NULL, sizeof(OIndex));
+		bExists = mcIndexTree.Get((uint8*)szName->Text(), szName->Length(), &iResult, NULL, sizeof(OIndex));
 		if (bExists)
 		{
 			return iResult;
@@ -272,7 +272,7 @@ bool CNamedIndexes::Remove(char* szName)
 	if (szName)
 	{
 		iKeySize = strlen(szName);
-		return mcIndexTree.Remove(szName, iKeySize);
+		return mcIndexTree.Remove((uint8*)szName, iKeySize);
 	}
 	return false;
 }
@@ -284,7 +284,7 @@ bool CNamedIndexes::Remove(char* szName)
 //////////////////////////////////////////////////////////////////////////
 bool CNamedIndexes::Remove(CChars* szName)
 {
-	return mcIndexTree.Remove(szName->Text(), szName->Length());
+	return mcIndexTree.Remove((uint8*)szName->Text(), szName->Length());
 }
 
 
@@ -328,7 +328,7 @@ bool CNamedIndexes::StartIteration(SIndexTreeFileIterator* psIterator, char* szK
 	bool	bExists;
 	size	iDataSize;
 
-	bExists = mcIndexTree.StartIteration(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
+	bExists = mcIndexTree.StartIteration(psIterator, (uint8*)szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
 	if (bExists)
 	{
 		if (szKey)
@@ -358,7 +358,7 @@ bool CNamedIndexes::Iterate(SIndexTreeFileIterator* psIterator, char* szKey, OIn
 	bool	bExists;
 	size	iDataSize;
 
-	bExists = mcIndexTree.Iterate(psIterator, szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
+	bExists = mcIndexTree.Iterate(psIterator, (uint8*)szKey, &iKeySize, MAX_KEY_SIZE, poi, &iDataSize, sizeof(OIndex));
 	if (bExists)
 	{
 		if (szKey)

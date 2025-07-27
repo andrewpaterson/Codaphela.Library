@@ -61,23 +61,23 @@ public:
 	bool					Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, CIndexTreeFileDataCallback* pcWriterCallback, CLifeInit<CMallocator> cMalloc, EIndexWriteThrough eWriteThrough, EIndexKeyReverse eKeyReverse, int iMaxDataSize, int iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	bool					Kill(void);
 
-	bool					Get(void* pvKey, size iKeySize, void* pvObject, size* piDataSize, size uiMaxDataSize);
-	bool					Put(void* pvKey, size iKeySize, void* pvObject, size iDataSize);
-	bool					Remove(void* pvKey, size iKeySize);
-	bool					HasKey(void* pvKey, size iKeySize);
-	size					GetDataSize(void* pvKey, size iKeySize);
+	bool					Get(uint8* pvKey, size iKeySize, void* pvObject, size* piDataSize, size uiMaxDataSize);
+	bool					Put(uint8* pvKey, size iKeySize, void* pvObject, size iDataSize);
+	bool					Remove(uint8* pvKey, size iKeySize);
+	bool					HasKey(uint8* pvKey, size iKeySize);
+	size					GetDataSize(uint8* pvKey, size iKeySize);
 
 	bool					Flush(void);
 
-	bool					StartIteration(SIndexTreeFileIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize);
-	bool					Iterate(SIndexTreeFileIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize);
-	bool					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* piDataSize);
-	bool					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void* pvKey, size* piKeySize, size iMaxKeySize, void** pvData, size* piDataSize);
+	bool					StartIteration(SIndexTreeFileIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize);
+	bool					Iterate(SIndexTreeFileIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* piDataSize, size iMaxDataSize);
+	bool					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* piDataSize);
+	bool					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** pvData, size* piDataSize);
 	bool					StartUnsafeIteration(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size* piDataSize);
 	bool					UnsafeIterate(SIndexTreeFileUnsafeIterator* psIterator, void** ppvData, size* piDataSize);
 
-	bool					Evict(void* pvKey, size iKeySize);
-	bool					Flush(void* pvKey, size iKeySize);
+	bool					Evict(uint8* pvKey, size iKeySize);
+	bool					Flush(uint8* pvKey, size iKeySize);
 
 	void					SetDiagnosticCallback(CIndexTreeFileDiagnosticCallback* pcCallback);
 
@@ -102,8 +102,8 @@ protected:
 	CIndexTreeNodeFile*		ParentPut(CIndexTreeNodeFile* pcParent, size uiIndexInParent, uint8 uiDataSize);
 
 	CIndexTreeNodeFile*		GetRoot(void);
-	CIndexTreeNodeFile*		GetNode(void* pvKey, size iKeySize);
-	CIndexTreeNodeFile*		GetMemoryNode(void* pvKey, size iKeySize);
+	CIndexTreeNodeFile*		GetNode(uint8* pvKey, size iKeySize);
+	CIndexTreeNodeFile*		GetMemoryNode(uint8* pvKey, size iKeySize);
 	CIndexTreeNodeFile*		GetNodeForData(void* pvData);
 	size					GetNodeKeySize(CIndexTreeNode* pcNode);
 	size					GetNodeKey(CIndexTreeNode* pcNode, uint8* pvDestKey, size iDestKeySize);
@@ -115,7 +115,7 @@ protected:
 	int						GetNodeKeysSize(CArrayVoidPtr* apvNodes);
 
 	bool					ValidateIndexTree(bool bReadNodes);
-	bool					ValidateKey(void* pvKey, size iKeySize);
+	bool					ValidateKey(uint8* pvKey, size iKeySize);
 	bool					ValidateKey(char* pszKey);
 
 	size					ByteSize(void);
@@ -130,7 +130,7 @@ protected:
 	size					NumMemoryElements(void);
 	size					NumMemoryElements(size iSize);
 
-	void					DebugKey(CChars* pszDest, void* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
+	void					DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
 	void					PrintChildren(CChars* pszDest, bool bShowFlags, bool bShowSize);
 
 	bool					InitRoot(char* szSubDirectory);
@@ -158,7 +158,7 @@ protected:
 
 	CIndexTreeNodeFile*		AllocateChildNode(CIndexTreeNodeFile* pcParent, size uiIndexInParent);
 	CIndexTreeNodeFile*		SetNodeData(CIndexTreeNodeFile* pcCurrent, void* pvObject, size uiDataSize);
-	CIndexTreeNodeFile*		AllocateKey(void* pvKey, size iKeySize);
+	CIndexTreeNodeFile*		AllocateKey(uint8* pvKey, size iKeySize);
 	bool					HasData(CIndexTreeNodeFile* pcNode);
 	void					RemapNodePointers(CIndexTreeNodeFile* pcOldNode, CIndexTreeNodeFile* pcNode);
 

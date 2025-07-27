@@ -126,7 +126,7 @@ OIndex CIndexedObjects::StartIteration(SIndexesIterator* psIterator)
 	OIndex		oi;
 	size		iKeyLength;
 
-	bResult = mcIndexes.StartIteration(psIterator, &oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
+	bResult = mcIndexes.StartIteration(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
 	if ((bResult) && (iKeyLength == sizeof(OIndex)))
 	{
 			return oi;
@@ -145,7 +145,7 @@ OIndex CIndexedObjects::Iterate(SIndexesIterator* psIterator)
 	OIndex		oi;
 	size		iKeyLength;
 
-	bResult = mcIndexes.Iterate(psIterator, &oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
+	bResult = mcIndexes.Iterate(psIterator, (uint8*)&oi, &iKeyLength, sizeof(oi), NULL, NULL, 0);
 	if ((bResult) && (iKeyLength == sizeof(OIndex)))
 	{
 		return oi;

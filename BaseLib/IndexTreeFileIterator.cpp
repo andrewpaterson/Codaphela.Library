@@ -33,11 +33,11 @@ bool CIndexTreeFileIterator::Iterate(void)
 
 	if (mbStarted)
 	{
-		bHasData = mpcTree->Iterate(&sIter, &macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
+		bHasData = mpcTree->Iterate(&sIter, macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
 	}
 	else
 	{
-		bHasData = mpcTree->StartIteration(&sIter, &macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
+		bHasData = mpcTree->StartIteration(&sIter, macKey, &miKeySize, MAX_KEY_SIZE, &macData, &miDataSize, MAX_DATA_SIZE);
 		mbStarted = true;
 	}
 

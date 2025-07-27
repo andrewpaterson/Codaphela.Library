@@ -68,7 +68,7 @@ void CMapIndexAccess::Dump(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Put(void* pvKey, size iKeySize, void* pvData, size iDataSize)
+bool CMapIndexAccess::Put(uint8* pvKey, size iKeySize, void* pvData, size iDataSize)
 {
 	return mpcMap->Put(pvKey, iKeySize, pvData, iDataSize);
 }
@@ -78,7 +78,7 @@ bool CMapIndexAccess::Put(void* pvKey, size iKeySize, void* pvData, size iDataSi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Get(void* pvKey, size iKeySize, void* pvDestData, size* piDataSize, size uiMaxDataSize)
+bool CMapIndexAccess::Get(uint8* pvKey, size iKeySize, void* pvDestData, size* piDataSize, size uiMaxDataSize)
 {
 	void*	pvData;
 	bool	bResult;
@@ -98,7 +98,7 @@ bool CMapIndexAccess::Get(void* pvKey, size iKeySize, void* pvDestData, size* pi
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-size CMapIndexAccess::DataSize(void* pvKey, size iKeySize)
+size CMapIndexAccess::DataSize(uint8* pvKey, size iKeySize)
 {
 	return mpcMap->DataSize(pvKey, iKeySize);
 }
@@ -108,7 +108,7 @@ size CMapIndexAccess::DataSize(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Remove(void* pvKey, size iKeySize)
+bool CMapIndexAccess::Remove(uint8* pvKey, size iKeySize)
 {
 	return mpcMap->Remove(pvKey, iKeySize);
 }
@@ -118,7 +118,7 @@ bool CMapIndexAccess::Remove(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Has(void* pvKey, size iKeySize)
+bool CMapIndexAccess::Has(uint8* pvKey, size iKeySize)
 {
 	return mpcMap->HasKey(pvKey, iKeySize);
 }
@@ -128,7 +128,7 @@ bool CMapIndexAccess::Has(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Flush(void* pvKey, size iKeySize)
+bool CMapIndexAccess::Flush(uint8* pvKey, size iKeySize)
 {
 	if (Has(pvKey, iKeySize))
 	{
@@ -142,7 +142,7 @@ bool CMapIndexAccess::Flush(void* pvKey, size iKeySize)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapIndexAccess::Evict(void* pvKey, size iKeySize)
+bool CMapIndexAccess::Evict(uint8* pvKey, size iKeySize)
 {
 	return false;
 }

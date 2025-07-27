@@ -31,7 +31,7 @@ public:
 template<class M>
 bool CIndexPrimitiveBlock<M>::Get(M sData, void** ppvData, size* piDataSize)
 {
-	return CIndexBlock::Get(&sData, sizeof(M), ppvData, piDataSize);
+	return CIndexBlock::Get((uint8*)&sData, sizeof(M), ppvData, piDataSize);
 }
 
 
@@ -42,7 +42,7 @@ bool CIndexPrimitiveBlock<M>::Get(M sData, void** ppvData, size* piDataSize)
 template<class M>
 void* CIndexPrimitiveBlock<M>::Get(M sData)
 {
-	return CIndexBlock::Get(&sData, sizeof(M));
+	return CIndexBlock::Get((uint8*)&sData, sizeof(M));
 }
 
 
@@ -64,7 +64,7 @@ void* CIndexPrimitiveBlock<M>::Put(M sData, size iDataSize)
 template<class M>
 bool CIndexPrimitiveBlock<M>::Put(M sData, void* pvData, size iDataSize)
 {
-	return CIndexBlock::Put(&sData, sizeof(M), pvData, iDataSize);
+	return CIndexBlock::Put((uint8*)&sData, sizeof(M), pvData, iDataSize);
 }
 
 
