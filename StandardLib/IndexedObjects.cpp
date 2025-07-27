@@ -163,3 +163,13 @@ void CIndexedObjects::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 	mcIndexes.Print(pszDest, bShowFlags, bShowFlags);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CIndexTreeMemory* CIndexedObjects::GetIndexes(void)
+{
+	return &mcIndexes;
+}
+

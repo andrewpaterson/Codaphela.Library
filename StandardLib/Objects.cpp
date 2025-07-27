@@ -268,12 +268,18 @@ void CObjects::DumpMemoryUseIteration(void)
 {
 	CChars	sz;
 
-	sz.Init("-------------------------- Indices --------------------------- \n");
+	sz.Init("------------------------- Indices -------------------------- \n");
 	PrintMemoryUseIteration(&sz);
 	sz.Append("------------------------------------------------------------ \n");
 	sz.DumpKill();
 
 	mcMemory.GetNames()->Dump();
+	sz.Init("------------------------------------------------------------ \n");
+	sz.DumpKill();
+
+	mcMemory.GetObjects()->GetIndexes()->Dump();
+	sz.Init("------------------------------------------------------------ \n");
+	sz.DumpKill();
 }
 
 
