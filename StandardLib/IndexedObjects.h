@@ -36,18 +36,20 @@ protected:
 	CIndexTreeMemory	mcIndexes;
 
 public:
-	void			Init(void);
-	void			Kill(void);
-	CBaseObject*	Get(OIndex oi);
-	bool			Has(OIndex oi);
-	bool			Add(OIndex oi, CBaseObject* pvMemory);
-	bool			Remove(OIndex oi);
-	size			NumIndexed(void);
+	void				Init(void);
+	void				Kill(void);
+	CBaseObject*		Get(OIndex oi);
+	bool				Has(OIndex oi);
+	bool				Add(OIndex oi, CBaseObject* pvMemory);
+	bool				Remove(OIndex oi);
+	size				NumIndexed(void);
 
-	void			Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
+	void				Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 
-	OIndex			StartIteration(SIndexesIterator* psIterator);
-	OIndex			Iterate(SIndexesIterator* psIterator);
+	OIndex				StartIteration(SIndexesIterator* psIterator);
+	OIndex				Iterate(SIndexesIterator* psIterator);
+
+	CIndexTreeMemory*	GetIndexes(void);
 };
 
 
