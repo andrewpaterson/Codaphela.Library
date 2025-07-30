@@ -185,7 +185,8 @@ public:
 	virtual void				ValidateObjectIdentifiers(void);
 			void				ValidateBaseObjectDetail(void);
 			void				ValidateAllocation(void);
-			void				ValidateHasClass(void);
+			void				ValidateHasClassFlag(char* szMethod);
+			void				ValidateHasClassField(char* szMethod);
 			void				ValidateInitCalled(void);
 			void				ValidateKillCalled(void);
 	
