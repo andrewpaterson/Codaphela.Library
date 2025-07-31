@@ -804,11 +804,11 @@ void CObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //////////////////////////////////////////////////////////////////////////
 size CObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
-	size					uiNumPointers;
-	size					i;
+	size				uiNumPointers;
+	size				i;
 	CPointer**			ppPointer;
 	CEmbeddedObject*	pcPointedTo;
-	size					uiCount;
+	size				uiCount;
 
 	uiCount = 0;
 	uiNumPointers = mapPointers.NumElements();
