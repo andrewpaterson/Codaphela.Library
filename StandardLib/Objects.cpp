@@ -789,24 +789,17 @@ bool CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 {
 	bool	bResult;
 
-	if (pvObject)
+	bResult = mcMemory.AddUnitialisedIntoMemoryWithIndex(pvObject);
+	if (bResult)
 	{
-		bResult = mcMemory.AddUnitialisedIntoMemoryWithIndex(pvObject);
-		if (bResult)
-		{
-			LOG_OBJECT_ALLOCATION(pvObject);
-			mAllocationCallback(pvObject);
-		}
-		else
-		{
-			LOG_OBJECT_ALLOCATION_FAILURE(pvObject->ClassName(), pvObject->GetIndex(), "");
-		}
-		return bResult;
+		LOG_OBJECT_ALLOCATION(pvObject);
+		mAllocationCallback(pvObject);
 	}
 	else
 	{
-		return false;
+		LOG_OBJECT_ALLOCATION_FAILURE(pvObject->ClassName(), pvObject->GetIndex(), "");
 	}
+	return bResult;
 }
 
 
@@ -844,7 +837,7 @@ bool CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::RemoveFromMemory(CBaseObject* pvObject)
+bool CObjects::RemoveMemoryIdentifiers(CBaseObject* pvObject)
 {
 	char*	szName;
 	bool	bResult;
@@ -1445,7 +1438,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 //////////////////////////////////////////////////////////////////////////
 void CObjects::FreeObject(CBaseObject* pvObject)
 {
-	RemoveFromMemory(pvObject);
+	RemoveMemoryIdentifiers(pvObject);
 	pvObject->FreeIdentifiers();
 }
 
@@ -1655,7 +1648,7 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(char* szClassName, char* szObjectName)
 {
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pvObject;
@@ -1699,13 +1692,6 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(cha
 			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
 			return NULL;
 		}
-	}
-
-	bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pvObject);
-	if (!bResult)
-	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
-		return NULL;
 	}
 
 	return pvObject;
@@ -1845,11 +1831,18 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has head froms already.", NULL);
 		}
-		RemoveFromMemory(pvExisting);
+		RemoveMemoryIdentifiers(pvExisting);
 
 		iCount = cRemapper.Remap(pvExisting, pvObject);
 
-		return true;
+		if (!pvObject->IsNamed())
+		{
+			return AddUnitialisedIntoMemoryWithIndex(pvObject);
+		}
+		else
+		{
+			return AddUnitialisedIntoMemoryWithNameAndIndex(pvObject);
+		}
 	}
 	else
 	{

@@ -511,7 +511,7 @@ bool CNamedIndexedData::Get(CChars* szName, uint32* puiDataSize, void* pvData, u
 bool CNamedIndexedData::Get(OIndex oi, uint32* puiDataSize, void* pvData, uint32 uiMaxDataSize)
 {
 	CStackMemory<>			cStack;
-	uint32			uiDataSize;
+	uint32					uiDataSize;
 	bool					bResult;
 	CNamedIndexedHeader*	pcHeader;
 	int						iNameLength;

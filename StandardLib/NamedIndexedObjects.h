@@ -56,6 +56,8 @@ public:
 
 	bool				ValidateNoDirty(void);
 	bool				FreeObjects(void);
+
+	void				Dump(void);
 };
 
 

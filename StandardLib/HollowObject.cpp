@@ -79,9 +79,12 @@ void CHollowObject::EmbedFields(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CHollowObject::Dehollow(void)
 {
+	char*	szName;
+
 	if (IsNamed())
 	{
-		return mpcObjectsThisIn->Dehollow(mon.Text());
+		szName = mon.Text();
+		return mpcObjectsThisIn->Dehollow(szName);
 	}
 	else
 	{
