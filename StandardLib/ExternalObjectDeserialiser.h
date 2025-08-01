@@ -30,7 +30,7 @@ protected:
 	bool						mbNamedHollows;
 	
 public:
-	void					Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory);
+	void					Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects);
 	void					Kill(void);
 
 	CBaseObject*			Read(char* szObjectName);

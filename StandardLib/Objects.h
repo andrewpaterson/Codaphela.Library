@@ -151,8 +151,9 @@ protected:
 						Ptr<CRoot>				GetRoot(void);
 						bool					HasRoot(void);
 
-						bool					AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject);
-						bool					AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
+						bool					AddIntoMemory(CBaseObject* pvObject);
+						bool					AddIntoMemoryWithIndex(CBaseObject* pvObject);
+						bool					AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject);
 	template<class M> 	Ptr<M>					PointTo(M* pcObject);
 	template<class M> 	Ptr<M>					PointToSetDirty(M* pcObject);
 	template<class M>	M*						AllocateUninitialisedByTemplate(void);
@@ -353,7 +354,7 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>();
 	if (pcObject)
 	{
-		bResult = AddUnitialisedIntoMemoryWithIndex(pcObject);
+		bResult = AddIntoMemoryWithIndex(pcObject);
 		if (bResult)
 		{
 			return PointToSetDirty(pcObject);
@@ -382,7 +383,7 @@ Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
 	SpecificClass*	pcObject = AllocateUninitialisedByTemplate<SpecificClass>(szObjectName);
 	if (pcObject)
 	{
-		bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pcObject);
+		bResult = AddIntoMemoryWithNameAndIndex(pcObject);
 		if (bResult)
 		{
 			return PointToSetDirty(pcObject);

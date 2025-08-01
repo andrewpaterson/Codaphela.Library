@@ -785,11 +785,11 @@ bool CObjects::ForceSave(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
+bool CObjects::AddIntoMemoryWithIndex(CBaseObject* pvObject)
 {
 	bool	bResult;
 
-	bResult = mcMemory.AddUnitialisedIntoMemoryWithIndex(pvObject);
+	bResult = mcMemory.AddIntoMemoryWithIndex(pvObject);
 	if (bResult)
 	{
 		LOG_OBJECT_ALLOCATION(pvObject);
@@ -807,13 +807,13 @@ bool CObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
+bool CObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 {
 	bool	bResult;
 
 	if (pvObject)
 	{
-		bResult = mcMemory.AddUnitialisedIntoMemoryWithNameAndIndex(pvObject);
+		bResult = mcMemory.AddIntoMemoryWithNameAndIndex(pvObject);
 		if (bResult)
 		{
 			LOG_OBJECT_ALLOCATION(pvObject);
@@ -1598,7 +1598,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* sz
 		return NULL;
 	}
 
-	bResult = AddUnitialisedIntoMemoryWithIndex(pvObject);
+	bResult = AddIntoMemoryWithIndex(pvObject);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
@@ -1633,7 +1633,7 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 		return NULL;
 	}
 
-	bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pvObject);
+	bResult = AddIntoMemoryWithNameAndIndex(pvObject);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
@@ -1693,6 +1693,10 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWith
 			return NULL;
 		}
 	}
+	else
+	{
+		AddIntoMemory(pvObject);
+	}
 
 	return pvObject;
 }
@@ -1742,7 +1746,7 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClass
 			return NULL;
 		}
 
-		bResult = AddUnitialisedIntoMemoryWithIndex(pvObject);
+		bResult = AddIntoMemoryWithIndex(pvObject);
 		if (!bResult)
 		{
 			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
@@ -1805,13 +1809,30 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 			return NULL;
 		}
 	
-		bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pvObject);
+		bResult = AddIntoMemoryWithNameAndIndex(pvObject);
 		if (!bResult)
 		{
 			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
 			return NULL;
 		}
 		return pvObject;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CObjects::AddIntoMemory(CBaseObject* pvObject)
+{
+	if (!pvObject->IsNamed())
+	{
+		return AddIntoMemoryWithIndex(pvObject);
+	}
+	else
+	{
+		return AddIntoMemoryWithNameAndIndex(pvObject);
 	}
 }
 
@@ -1835,14 +1856,7 @@ bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
 
 		iCount = cRemapper.Remap(pvExisting, pvObject);
 
-		if (!pvObject->IsNamed())
-		{
-			return AddUnitialisedIntoMemoryWithIndex(pvObject);
-		}
-		else
-		{
-			return AddUnitialisedIntoMemoryWithNameAndIndex(pvObject);
-		}
+		return AddIntoMemory(pvObject);
 	}
 	else
 	{
@@ -1880,7 +1894,7 @@ CHollowObject* CObjects::AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded)
 		return NULL;
 	}
 
-	bResult = AddUnitialisedIntoMemoryWithIndex(pcHollow);
+	bResult = AddIntoMemoryWithIndex(pcHollow);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
@@ -1922,7 +1936,7 @@ CHollowObject* CObjects::AllocateHollowWithNameAndIndex(char* szObjectName, OInd
 		return NULL;
 	}
 
-	bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pcHollow);
+	bResult = AddIntoMemoryWithNameAndIndex(pcHollow);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
@@ -1964,7 +1978,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName
 		return NULL;
 	}
 
-	bResult = AddUnitialisedIntoMemoryWithNameAndIndex(pcHollow);
+	bResult = AddIntoMemoryWithNameAndIndex(pcHollow);
 	if (!bResult)
 	{
 		mpcUnknownsAllocatingFrom->RemoveInKill(pcHollow);
