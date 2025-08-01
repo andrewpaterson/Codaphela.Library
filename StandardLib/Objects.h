@@ -123,7 +123,7 @@ public:
 						CBaseObject*			Dehollow(char* szObjectName);
 
 						bool					ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject);
-						bool					RemoveFromMemory(CBaseObject* pvObject);
+						bool					RemoveMemoryIdentifiers(CBaseObject* pvObject);
 
 						CStackPointers*			GetStackPointers(void);
 						CClasses*				GetClasses(void);
@@ -190,7 +190,7 @@ public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);
 						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName);
 
-						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialised(char* szClassName, char* szObjectName);  //This mean overwrite an existing object with a new object (with the same name).
+						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(char* szClassName, char* szObjectName);  //This overwrites an existing object with a new object (with the same name).
 						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
 						CHollowObject*			AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded);
 						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);

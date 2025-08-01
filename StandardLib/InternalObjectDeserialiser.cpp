@@ -155,32 +155,34 @@ CBaseObject* CInternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 {
 	OIndex	oiExisting;
 	char*	szName;
+	char*	szClassName;
 
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
 	}
-	else if (pcHeader->mcType == OBJECT_POINTER_ID)
-	{
-		return mpcObjects->AllocateForInternalDeserialisationWithIndex(pcHeader->mszClassName.Text(), pcHeader->moi);
-	}
-	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
-	{
-		szName = pcHeader->mszObjectName.Text();
-		if (!StrEmpty(szName))
-		{
-			return mpcObjects->AllocateForInternalDeserialisationWithNameAndIndex(pcHeader->mszClassName.Text(), szName, pcHeader->moi, &oiExisting);
-		}
-		else
-		{
-			return mpcObjects->AllocateForInternalDeserialisationWithIndex(pcHeader->mszClassName.Text(), pcHeader->moi);
-		}
-	}
 	else
 	{
-		gcLogger.Error("Cant allocate object for unknown header type.");
-		return NULL;
+		szClassName = pcHeader->mszClassName.Text();
+		if (pcHeader->mcType == OBJECT_POINTER_ID)
+		{
+			return mpcObjects->AllocateForInternalDeserialisationWithIndex(szClassName, pcHeader->moi);
+		}
+		else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
+		{
+			szName = pcHeader->mszObjectName.Text();
+			if (!StrEmpty(szName))
+			{
+				return mpcObjects->AllocateForInternalDeserialisationWithNameAndIndex(szClassName, szName, pcHeader->moi, &oiExisting);
+			}
+			else
+			{
+				return mpcObjects->AllocateForInternalDeserialisationWithIndex(szClassName, pcHeader->moi);
+			}
+		}
 	}
+	gcLogger.Error("Cant allocate object for unknown header type.");
+	return NULL;
 }
 
 
@@ -215,11 +217,12 @@ CBaseObject* CInternalObjectDeserialiser::GetFromMemory(CObjectIdentifier* pcIde
 //////////////////////////////////////////////////////////////////////////
 bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointerToIdentifier, CEmbeddedObject** ppcPtrToBeUpdated, CBaseObject* pcObjectContainingPtrToBeUpdated, uint16 iNumEmbedded, uint16 iEmbeddedIndex)
 {
-	CEmbeddedObject*		pcEmbeddedObject;
-	OIndex					oiNew;
-	CBaseObject*			pcHollowObject;
-	CBaseObject*			pcExistingObject;
-	bool					bIsNamed;
+	CEmbeddedObject*	pcEmbeddedObject;
+	OIndex				oiNew;
+	CBaseObject*		pcHollowObject;
+	CBaseObject*		pcExistingObject;
+	bool				bIsNamed;
+	char*				szName;
 
 	if (!((pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_NAMED) || (pcObjectPointerToIdentifier->mcType == OBJECT_POINTER_ID)))
 	{
@@ -244,7 +247,8 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 	}
 	else
 	{
-		pcHollowObject = mpcObjects->AllocateHollowWithNameAndIndex(pcObjectPointerToIdentifier->GetName(), oiNew, iNumEmbedded);
+		szName = pcObjectPointerToIdentifier->GetName();
+		pcHollowObject = mpcObjects->AllocateHollowWithNameAndIndex(szName, oiNew, iNumEmbedded);
 	}
 
 	if (!pcHollowObject)

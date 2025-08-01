@@ -397,3 +397,23 @@ bool CNamedIndexedObjects::FreeObjects(void)
 	return true;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNamedIndexedObjects::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init("\n=============================== Memory Names ===============================\n");
+	sz.DumpKill();
+
+	mcMemoryNames.Dump();
+
+	sz.Init("\n============================== Memory Indexes ==============================\n");
+	sz.DumpKill();
+
+	mcMemoryIndexedObjects.GetIndexes()->Dump();
+}
+
