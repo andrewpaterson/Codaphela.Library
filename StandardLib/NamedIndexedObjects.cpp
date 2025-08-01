@@ -191,7 +191,7 @@ bool CNamedIndexedObjects::RemoveName(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObject)
+bool CNamedIndexedObjects::AddIntoMemoryWithIndex(CBaseObject* pvObject)
 {
 	bool	bResult;
 	OIndex	oi;
@@ -218,7 +218,7 @@ bool CNamedIndexedObjects::AddUnitialisedIntoMemoryWithIndex(CBaseObject* pvObje
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexedObjects::AddUnitialisedIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
+bool CNamedIndexedObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 {
 	bool					bResult;
 	bool					bHasObject;

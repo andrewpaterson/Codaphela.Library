@@ -122,7 +122,7 @@ CBaseObject* CObjectConverterNative::Convert(CObjectSource* pcSource, char* szOb
 		return NULL;
 	}
 
-	cGraphDeserialiser.Init(pcReader, true, &gcObjects, gcObjects.GetMemory());
+	cGraphDeserialiser.Init(pcReader, true, &gcObjects);
 	pvObject = cGraphDeserialiser.Read(szObjectName);
 
 	mcIndexRemap.InsertArrayAfterEnd(cGraphDeserialiser.GetArrayIndexNewOld());

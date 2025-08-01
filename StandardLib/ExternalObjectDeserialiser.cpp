@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects, CNamedIndexedObjects* pcMemory)
+void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNamedHollows, CObjects* pcObjects)
 {
 	CDependentReadObjects::Init();
 	mcIndexRemap.Init();
@@ -18,7 +18,7 @@ void CExternalObjectDeserialiser::Init(CExternalObjectReader* pcReader, bool bNa
 	mcPointers.Init();
 	mpcReader = pcReader;
 	mpcObjects = pcObjects;
-	mpcMemory = pcMemory;
+	mpcMemory = pcObjects->GetMemory();
 	mbNamedHollows = bNamedHollows;
 }
 
@@ -419,33 +419,35 @@ bool CExternalObjectDeserialiser::AddHeapFromPointersAndCreateHollowObject(CDepe
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHeader* pcHeader)
 {
-	char* szName;
+	char*	szName;
+	char*	szClassName;
 
 	if (pcHeader->mcType == OBJECT_POINTER_NULL)
 	{
 		return NULL;
 	}
-	else if (pcHeader->mcType == OBJECT_POINTER_ID)
-	{
-		return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(pcHeader->mszClassName.Text());
-	}
-	else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
-	{
-		szName = pcHeader->mszClassName.Text();
-		if (!StrEmpty(szName))
-		{
-			return mpcObjects->GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(szName, pcHeader->mszObjectName.Text());
-		}
-		else
-		{
-			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(pcHeader->mszClassName.Text());
-		}
-	}
 	else
 	{
-		gcLogger.Error("Cant allocate object for unknown header type.");
-		return NULL;
+		szClassName = pcHeader->mszClassName.Text();
+		if (pcHeader->mcType == OBJECT_POINTER_ID)
+		{
+			return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName);
+		}
+		else if (pcHeader->mcType == OBJECT_POINTER_NAMED)
+		{
+			szName = pcHeader->mszObjectName.Text();
+			if (!StrEmpty(szName))
+			{
+				return mpcObjects->GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(szClassName, szName);
+			}
+			else
+			{
+				return mpcObjects->AllocateUninitialisedByClassNameAndAddIntoMemory(szClassName);
+			}
+		}
 	}
+	gcLogger.Error("Cant allocate object for unknown header type.");
+	return NULL;
 }
 
 
