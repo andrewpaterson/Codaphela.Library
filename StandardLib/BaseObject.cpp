@@ -943,6 +943,7 @@ size CBaseObject::SerialisedSize(void)
 	cMemory.Open(EFM_ReadWrite_Create);
 	cWriter.Init(&cMemory, NULL);
 	cWriter.Write(this);
+	cWriter.WriteHeapFroms(this);
 	iLength = cMemory.GetBufferSize();
 	cMemory.Close();
 	cWriter.Kill();

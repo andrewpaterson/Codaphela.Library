@@ -475,7 +475,7 @@ bool CExternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcHeader, CEmb
 	{
 		if (pcHeader->IsNamed())
 		{
-			bNameExistsInDatabase = gcObjects.Contains(pcHeader->mszObjectName.Text());
+			bNameExistsInDatabase = mpcObjects->Contains(pcHeader->mszObjectName.Text());
 			if (bNameExistsInDatabase)
 			{
 				cDependent.SetExisting();

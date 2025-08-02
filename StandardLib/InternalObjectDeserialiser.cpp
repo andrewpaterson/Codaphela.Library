@@ -241,14 +241,14 @@ bool CInternalObjectDeserialiser::AddDependent(CObjectIdentifier* pcObjectPointe
 	oiNew = pcObjectPointerToIdentifier->moi;
 	bIsNamed = pcObjectPointerToIdentifier->IsNamed();
 
-	if (!bIsNamed)
-	{
-		pcHollowObject = mpcObjects->AllocateHollowWithIndex(oiNew, iNumEmbedded);
-	}
-	else
+	if (bIsNamed)
 	{
 		szName = pcObjectPointerToIdentifier->GetName();
 		pcHollowObject = mpcObjects->AllocateHollowWithNameAndIndex(szName, oiNew, iNumEmbedded);
+	}
+	else
+	{
+		pcHollowObject = mpcObjects->AllocateHollowWithIndex(oiNew, iNumEmbedded);
 	}
 
 	if (!pcHollowObject)

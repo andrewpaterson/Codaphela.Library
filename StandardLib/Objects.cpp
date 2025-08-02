@@ -1657,7 +1657,6 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWi
 
 	//Only called by the ExternalObjectDeserialiser.
 
-	//Old objects pointing to the oi are left still pointing to the oi?
 	pvOldObject = GetFromMemory(szObjectName);
 	if (!pvOldObject)
 	{

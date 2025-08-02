@@ -671,20 +671,20 @@ void CArrayCommonObject::BaseValidatePointerTos(void)
 void CArrayCommonObject::ValidatePointerTos(void)
 {
 	size 				iCount;
-	CEmbeddedObject**	ppcPointedTo;
-	size 				i;
+	CEmbeddedObject*	ppcPointedTo;
 	size 				uiNumElements;
+	SSetIterator		sIter;
 
-	uiNumElements = mcArray.UnsafeNumElements();
+	uiNumElements = mcArray.NumElements();
 	iCount = 0;
-	for (i = 0; i < uiNumElements; i++)
+	ppcPointedTo = (CEmbeddedObject*)mcArray.StartIteration(&sIter);
+	while (ppcPointedTo)
 	{
-		ppcPointedTo = (CEmbeddedObject**)mcArray.UnsafeGetPointer(i);
-		if (*ppcPointedTo)
-		{
-			ValidatePointerTo(*ppcPointedTo);
-		}
+		ValidatePointerTo(ppcPointedTo);
+		ppcPointedTo = (CEmbeddedObject*)mcArray.Iterate(&sIter);
+		iCount++;
 	}
+
 }
 
 
