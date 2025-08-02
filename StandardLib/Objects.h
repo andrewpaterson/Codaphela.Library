@@ -211,6 +211,7 @@ void ObjectsInit(CUnknowns* pcUnknowns, CStackPointers* pcStackPointers, CDataCo
 void ObjectsKill(void);
 bool ObjectsValidate(void);
 bool ObjectsFlush(void);
+void ObjectsDump(void);
 
 void LogObjectAllocation(CBaseObject* pcObject, char* szMethod);
 void LogObjectDestruction(CBaseObject* pcObject, char* szMethod);

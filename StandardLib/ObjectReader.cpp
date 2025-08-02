@@ -94,7 +94,6 @@ CBaseObject* CObjectReader::Read(void)
 	CBaseObject*	pvObject;
 
 	pvObject = mpcDependents->AllocateForDeserialisation(&sHeader);
-
 	if (pvObject == NULL)
 	{
 		CChars	sz;
