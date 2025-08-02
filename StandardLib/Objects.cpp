@@ -1658,24 +1658,12 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWi
 	//Only called by the ExternalObjectDeserialiser.
 
 	//Old objects pointing to the oi are left still pointing to the oi?
-	oi = INVALID_O_INDEX;
 	pvOldObject = GetFromMemory(szObjectName);
-	if (pvOldObject)
-	{
-		oi = pvOldObject->GetIndex();
-	}
-	else
+	if (!pvOldObject)
 	{
 		pvOldObject = GetFromDatabase(szObjectName);
-		if (pvOldObject)
-		{
-			oi = pvOldObject->GetIndex();
-		}
-		else
-		{
-			oi = GetNextIndex();
-		}
 	}
+	oi = GetNextIndex();
 
 	pvObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
 	if (!pvObject)
