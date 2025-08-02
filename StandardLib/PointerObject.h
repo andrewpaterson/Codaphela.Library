@@ -83,6 +83,7 @@ public:
 	const char*			ClassName(void);
 	CClass*				GetClass(void);
 	bool				IsDirty(void);
+	void				LogicalDirty(void);
 	bool				IsEmbeddingAllocatedInObjects(void);
 	void				Kill(void);
 	void				AssignObject(CEmbeddedObject* pcObject);

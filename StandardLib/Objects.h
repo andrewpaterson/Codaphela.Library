@@ -104,6 +104,7 @@ public:
 	template<class M>	Ptr<M>					Malloc(char* szObjectName);
 
 						Ptr<CRoot>				Root(void);
+						void					LogicalDirty(CBaseObject* pcObject);
 
 						bool					Remove(CArrayBlockObjectPtr* papcKilled);
 
