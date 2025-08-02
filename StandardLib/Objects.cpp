@@ -1591,7 +1591,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* sz
 	OIndex			oi;
 	bool			bResult;
 
-	oi = GetIndexGenerator()->GetNext();
+	oi = GetNextIndex();
 	pvObject = AllocateUninitialisedByClassName(szClassName, oi);
 	if (!pvObject)
 	{
@@ -1625,7 +1625,7 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 		return NULL;
 	}
 
-	oi = GetIndexGenerator()->GetNext();
+	oi = GetNextIndex();
 	pvObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
 	if (!pvObject)
 	{
@@ -1648,14 +1648,14 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(char* szClassName, char* szObjectName)
+CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName)
 {
 	CBaseObject*	pvOldObject;
 	CBaseObject*	pvObject;
 	OIndex			oi;
 	bool			bResult;
 
-	//Only called by the ExternalObjectDeserialiser.  And some tests that should actually be calling an Allocate only and not Replace method.
+	//Only called by the ExternalObjectDeserialiser.
 
 	//Old objects pointing to the oi are left still pointing to the oi?
 	oi = INVALID_O_INDEX;
@@ -1695,7 +1695,12 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWith
 	}
 	else
 	{
-		AddIntoMemory(pvObject);
+		bResult = AddIntoMemory(pvObject);
+		if (!bResult)
+		{
+			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			return NULL;
+		}
 	}
 
 	return pvObject;
@@ -1971,7 +1976,7 @@ CBaseObject* CObjects::GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName
 		return pvExisting;
 	}
 
-	oi = GetIndexGenerator()->GetNext();
+	oi = GetNextIndex();
 	pcHollow = AllocateHollow(uiNumEmbedded, szObjectName, oi);
 	if (!pcHollow)
 	{
