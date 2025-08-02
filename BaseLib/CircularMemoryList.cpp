@@ -465,7 +465,7 @@ SMemoryCacheDescriptor* CCircularMemoryList::GetDescriptorNoRemap(void* pvCacheB
 //////////////////////////////////////////////////////////////////////////
 size CCircularMemoryList::NumElements(size iSize)
 {
-	SMemoryCacheDescriptor* psDescriptor;
+	SMemoryCacheDescriptor*		psDescriptor;
 	size						iNum;
 
 	if (IsEmpty())

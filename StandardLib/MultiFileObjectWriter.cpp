@@ -87,11 +87,13 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	CFileBasic		cFile;
 	char*			szExtension;
 	CChars			szUnnamed;
+	char*			szName;
 
 	if (pcSerialised->IsNamed())
 	{
-		ReturnOnFalse(ObjectStartsWithBaseName(pcSerialised->GetName()));
-		Filename(pcSerialised->GetName(), mszDirectory.Text(), &szDirectory, &szFilename);
+		szName = pcSerialised->GetName();
+		ReturnOnFalse(ObjectStartsWithBaseName(szName));
+		Filename(szName, mszDirectory.Text(), &szDirectory, &szFilename);
 	}
 	else if (pcSerialised->IsIndexed())
 	{
@@ -102,9 +104,6 @@ bool CMultiFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 	{
 		return false;
 	}
-
-	//What the actual fuck is going on in this method?
-	ReturnOnFalse(ObjectStartsWithBaseName(pcSerialised->GetName()));
 
 	cFileUtil.MakeDir(szDirectory.Text());
 	cFile.Init(DiskFile(szFilename.Text()));

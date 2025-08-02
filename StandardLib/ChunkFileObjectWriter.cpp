@@ -123,15 +123,17 @@ bool CChunkFileObjectWriter::Write(CSerialisedObject* pcSerialised)
 {
 	CChars	szChunkName;
 	bool	bResult;
+	char*	szName;
 
 	if (pcSerialised->IsNamed())
 	{
-		bResult = ObjectStartsWithBaseName(pcSerialised->GetName());
+		szName = pcSerialised->GetName();
+		bResult = ObjectStartsWithBaseName(szName);
 		if (!bResult)
 		{
 			return false;
 		}
-		RemainingName(&szChunkName, pcSerialised->GetName());
+		RemainingName(&szChunkName, szName);
 	}
 	else if (pcSerialised->IsIndexed())
 	{
