@@ -438,7 +438,7 @@ CBaseObject* CExternalObjectDeserialiser::AllocateForDeserialisation(CObjectHead
 			szName = pcHeader->mszObjectName.Text();
 			if (!StrEmpty(szName))
 			{
-				return mpcObjects->GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(szClassName, szName);
+				return mpcObjects->GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(szClassName, szName);
 			}
 			else
 			{

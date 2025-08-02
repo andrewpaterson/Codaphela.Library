@@ -191,7 +191,7 @@ public:
 						CBaseObject*			AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName);
 						CBaseObject*			AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName);
 
-						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUnitialisedWithSameName(char* szClassName, char* szObjectName);  //This overwrites an existing object with a new object (with the same name).
+						CBaseObject*			GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName);  //This overwrites an existing object with a new object (with the same name).
 						CBaseObject*			AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi);
 						CHollowObject*			AllocateHollowWithIndex(OIndex oi, size uiNumEmbedded);
 						CBaseObject*			GetNamedObjectInMemoryOrAllocateHollow(char* szObjectName, size uiNumEmbedded);
