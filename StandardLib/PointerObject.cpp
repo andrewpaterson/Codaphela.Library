@@ -294,6 +294,11 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 			}
 		}
 	}
+
+	if (mpcObject)
+	{
+		mpcObject->LogicalDirty();
+	}
 }
 
 
@@ -625,6 +630,19 @@ bool CPointer::IsDirty(void)
 	else
 	{
 		return false;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::LogicalDirty(void)
+{
+	if (mpcObject)
+	{
+		return mpcObject->LogicalDirty();
 	}
 }
 

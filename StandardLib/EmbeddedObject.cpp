@@ -136,6 +136,26 @@ CBaseObject* CEmbeddedObject::GetEmbeddingContainer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::LogicalDirty(void)
+{
+	//This needs to be called when a object is done being dirtied and can be flushed in the case where the Codabase is write-through
+
+	CObjects*		pcObjects;
+	CBaseObject*	pcObject;
+
+	pcObject = GetEmbeddingContainer();
+	pcObjects = pcObject->GetObjectsThisIn();
+	if (pcObjects)
+	{
+		pcObjects->LogicalDirty(pcObject);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CEmbeddedObject::IsNotEmbedded(void)
 {
 	return mpcEmbedded == NULL;

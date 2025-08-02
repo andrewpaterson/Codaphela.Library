@@ -59,6 +59,7 @@ public:
 
 	bool	Flush(void);
 	bool	Flush(bool bClearCache);
+	bool	IsWriteThrough(void);
 
 	int64	NumIndices(void);
 	int64	NumIndicesCached(void);

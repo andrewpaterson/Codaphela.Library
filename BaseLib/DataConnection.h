@@ -45,6 +45,7 @@ public:
 
 	virtual bool	Flush(void) =0;
 	virtual bool	Flush(bool bClearCache) =0;
+	virtual bool	IsWriteThrough(void) =0;
 
 	virtual OIndex 	StartIndexIteration(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize) =0;
 	virtual OIndex	IndexIterate(SIndexTreeFileIterator* psIterator, void* pvData, size* piDataSize, size iMaxDataSize) =0;

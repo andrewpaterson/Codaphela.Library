@@ -62,6 +62,7 @@ public:
 	virtual void				FreeIdentifiers(void);
 	virtual bool				IsDirty(void) =0;
 	virtual void				SetDirty(bool bDirty) =0;
+			void				LogicalDirty(void);
 	virtual bool				IsBaseObject(void);
 	virtual void				RemovePointerTo(CEmbeddedObject* pcTo) =0;
 			CBaseObject*		GetEmbeddingContainer(void);
