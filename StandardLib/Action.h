@@ -35,7 +35,7 @@ protected:
 
 public:
 	template <class M>
-	void 	Init(char* szName, void(M::*ActionFunc)(CListener*, void*));
+	void 	Init(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
 	void 	Kill(void);
 	bool	Is(char* szName);
 	void	Call(void *pvContext);
@@ -51,7 +51,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-void CAction::Init(char* szName, void(M::*ActionFunc)(CListener*, void*))
+void CAction::Init(char* szName, void(M::*ActionFunc)(CUnknown*, void*))
 {
 	mcFunction.Init<M>();
 	mcFunction.SetFunction(ActionFunc);

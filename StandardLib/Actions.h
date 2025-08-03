@@ -36,7 +36,7 @@ public:
 	void 		Kill(void);
 
 	template <class M>
-	CAction*	AddAction(char* szName, void(M::*ActionFunc)(CListener*, void*));
+	CAction*	AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
 	CAction*	GetAction(char* szName);
 };
 
@@ -46,7 +46,7 @@ public:
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CAction* CActions::AddAction(char* szName, void(M::*ActionFunc)(CListener*, void*))
+CAction* CActions::AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*))
 {
 	CAction*		pcAction;
 

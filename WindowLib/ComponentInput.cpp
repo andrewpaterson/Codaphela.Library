@@ -94,22 +94,22 @@ void CComponentInput::InitActions(void)
 	CInputActions*	pcActions;
 
 	pcActions = mpcInput->GetActions();
-	mpcShiftPressedAction = pcActions->AddAction("Shift Pressed", &CComponentInputListener::ShiftPressed, &mcListener);
-	mpcShiftReleasedAction = pcActions->AddAction("Shift Released", &CComponentInputListener::ShiftReleased, &mcListener);
-	mpcControlPressedAction = pcActions->AddAction("Control Pressed", &CComponentInputListener::ControlPressed, &mcListener);
-	mpcControlReleasedAction = pcActions->AddAction("Control Released", &CComponentInputListener::ControlReleased, &mcListener);
-	mpcAltPressedAction = pcActions->AddAction("Alt Pressed", &CComponentInputListener::AltPressed, &mcListener);
-	mpcAltReleasedAction = pcActions->AddAction("Alt Released", &CComponentInputListener::AltReleased, &mcListener);
+	mpcShiftPressedAction = pcActions->AddActionX("Shift Pressed", &CComponentInputListener::ShiftPressed, &mcListener);
+	mpcShiftReleasedAction = pcActions->AddActionX("Shift Released", &CComponentInputListener::ShiftReleased, &mcListener);
+	mpcControlPressedAction = pcActions->AddActionX("Control Pressed", &CComponentInputListener::ControlPressed, &mcListener);
+	mpcControlReleasedAction = pcActions->AddActionX("Control Released", &CComponentInputListener::ControlReleased, &mcListener);
+	mpcAltPressedAction = pcActions->AddActionX("Alt Pressed", &CComponentInputListener::AltPressed, &mcListener);
+	mpcAltReleasedAction = pcActions->AddActionX("Alt Released", &CComponentInputListener::AltReleased, &mcListener);
 
-	mpcNumLockPressedAction = pcActions->AddAction("Num Lock Pressed", &CComponentInputListener::NumLockPressed, &mcListener);
-	mpcCapsLockPressedAction = pcActions->AddAction("Caps Lock Pressed", &CComponentInputListener::CapsLockPressed, &mcListener);
-	mpcInsertPressedAction = pcActions->AddAction("Insert Pressed", &CComponentInputListener::InsertPressed, &mcListener);
+	mpcNumLockPressedAction = pcActions->AddActionX("Num Lock Pressed", &CComponentInputListener::NumLockPressed, &mcListener);
+	mpcCapsLockPressedAction = pcActions->AddActionX("Caps Lock Pressed", &CComponentInputListener::CapsLockPressed, &mcListener);
+	mpcInsertPressedAction = pcActions->AddActionX("Insert Pressed", &CComponentInputListener::InsertPressed, &mcListener);
 
-	mpcButtonPressedAction = pcActions->AddAction("Button Pressed", &CComponentInputListener::ButtonPressed, &mcListener);
-	mpcButtonReleasedAction = pcActions->AddAction("Button Released", &CComponentInputListener::ButtonReleased, &mcListener);
-	mpcNumpadButtonPressedAction = pcActions->AddAction("Numpad Button Pressed", &CComponentInputListener::NumpadButtonPressed, &mcListener);
+	mpcButtonPressedAction = pcActions->AddActionX("Button Pressed", &CComponentInputListener::ButtonPressed, &mcListener);
+	mpcButtonReleasedAction = pcActions->AddActionX("Button Released", &CComponentInputListener::ButtonReleased, &mcListener);
+	mpcNumpadButtonPressedAction = pcActions->AddActionX("Numpad Button Pressed", &CComponentInputListener::NumpadButtonPressed, &mcListener);
 
-	mpcPointerMotionAction = pcActions->AddAction("Pointer Motion", &CComponentInputListener::PointerMotion, &mcListener);
+	mpcPointerMotionAction = pcActions->AddActionX("Pointer Motion", &CComponentInputListener::PointerMotion, &mcListener);
 }
 
 

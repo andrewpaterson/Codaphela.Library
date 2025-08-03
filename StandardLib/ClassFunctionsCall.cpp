@@ -48,7 +48,7 @@ void CClassFunctionsCall::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CClassFunctionsCall::CallListeners(CListener* pcSource, void* pvContext)
+void CClassFunctionsCall::CallListeners(CUnknown* pcSource, void* pvContext)
 {
 	CListenerCall::CallListenersName(mszClassName.Text(), mFunction, pcSource, pvContext);
 }
