@@ -58,9 +58,9 @@ public:
 	bool	SetValue(CInputSourceDesc* pcSourceDesc, float fValue);
 	bool	SetValue(SInputSourceState* psSourceState, float fValue);
 	void	ClearFlags(void);
-	void	UpdateRestEvents(CInputDeviceValues* pcEvents, unsigned int uiSequence);
+	void	UpdateRestEvents(CInputDeviceValues* pcEvents, uint32 uiSequence);
 };
 
 
-#endif // !__INPUT_STATE_H__
+#endif // __INPUT_STATE_H__
 

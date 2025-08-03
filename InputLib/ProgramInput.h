@@ -39,11 +39,11 @@ public:
 	void					AddCategory(CInputDevices* pcDevices);
 	CProgramDeviceDetail*	AddDetail(char* szID, char* szFriendlyName);
 	void 					AddDevicesTo(CInputDevices* pcDevices);
-	void 					Update(CInputDevices* pcDevices, unsigned int uiSequence);
+	void 					Update(CInputDevices* pcDevices, uint32 uiSequence);
 	CInputDeviceDesc*		CreateStandardDesc(CInputDevices* pcDevices, CProgramDeviceDetail* pcDetail);
 	char*					GetCategoryName(void);
 };
 
 
-#endif // !__PROGRAM_INPUT_H__
+#endif // __PROGRAM_INPUT_H__
 

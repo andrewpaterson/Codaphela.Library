@@ -41,7 +41,7 @@ public:
 	CAction*	AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, void*));
 
 	template <class M>
-	CAction*	AddActionX(char* szName, void(M::*ActionFunc)(CUnknown*, void*), M* pcListener);
+	CAction*	AddActionWithListener(char* szName, void(M::*ActionFunc)(CUnknown*, void*), M* pcListener);
 
 	void		VariableAction(CUnknown* pcSource, void* pvContext);
 };
@@ -63,7 +63,7 @@ CAction* CInputActions::AddAction(char* szName, void(M::*ActionFunc)(CUnknown*, 
 //
 //////////////////////////////////////////////////////////////////////////
 template <class M>
-CAction* CInputActions::AddActionX(char* szName, void(M::*ActionFunc)(CUnknown*, void*), M* pcListener)
+CAction* CInputActions::AddActionWithListener(char* szName, void(M::*ActionFunc)(CUnknown*, void*), M* pcListener)
 {
 	CAction*	pcAction;
 

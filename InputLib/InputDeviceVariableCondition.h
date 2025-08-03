@@ -47,5 +47,5 @@ public:
 };
 
 
-#endif // !__INPUT_DEVICE_VARIABLE_CONDITION_H__
+#endif // __INPUT_DEVICE_VARIABLE_CONDITION_H__
 

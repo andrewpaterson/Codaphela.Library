@@ -219,10 +219,7 @@
     <ClCompile Include="InputDeviceVariableValueConditionDesc.cpp" />
     <ClCompile Include="InputDeviceVariableValueDesc.cpp" />
     <ClCompile Include="NativeDetail.cpp" />
-    <ClCompile Include="WinDirectInput.cpp" />
-    <ClCompile Include="WinInput.cpp" />
-    <ClCompile Include="WinRaw.cpp" />
-    <ClCompile Include="WinXInput.cpp" />
+    <ClCompile Include="NativeInput.cpp" />
     <ClCompile Include="ProgramDeviceDetail.cpp" />
     <ClCompile Include="ProgramInput.cpp" />
   </ItemGroup>
@@ -273,10 +270,7 @@
     <ClInclude Include="InputDeviceVariableValueConditionDesc.h" />
     <ClInclude Include="InputDeviceVariableValueDesc.h" />
     <ClInclude Include="NativeDetail.h" />
-    <ClInclude Include="WinDirectInput.h" />
-    <ClInclude Include="WinInput.h" />
-    <ClInclude Include="WinRaw.h" />
-    <ClInclude Include="WinXInput.h" />
+    <ClInclude Include="NativeInput.h" />
     <ClInclude Include="ProgramDeviceDetail.h" />
     <ClInclude Include="ProgramInput.h" />
   </ItemGroup>

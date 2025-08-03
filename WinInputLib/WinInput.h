@@ -26,9 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "WinDirectInput.h"
 #include "WinXInput.h"
 #include "WinRaw.h"
-#include "InputDevices.h"
-#include "InputDeviceValue.h"
-
+#include "InputLib/InputDevices.h"
+#include "InputLib/InputDeviceValue.h"
+#include "InputLib/NativeInput.h"
 
 class CWinInput
 {
@@ -45,7 +45,7 @@ public:
 	void Init(HWND hWnd, bool bExclusive);
 	void Kill(void);
 	void AddDevicesTo(CInputDevices* pcDevices);
-	void Update(CInputDevices* pcDevices, unsigned int uiSequence);
+	void Update(CInputDevices* pcDevices, uint32 uiSequence);
 
 	CDirectInput*	GetJoystick(void);
 	CWinRawInput*	GetRaw(void);
@@ -57,5 +57,5 @@ public:
 };
 
 
-#endif // !__WIN_INPUT_H__
+#endif // __WIN_INPUT_H__
 

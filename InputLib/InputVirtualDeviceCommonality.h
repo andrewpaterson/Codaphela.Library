@@ -46,5 +46,5 @@ public:
 };
 
 
-#endif // !__INPUT_VIRTUAL_DEVICE_COMMONALITY_H__
+#endif // __INPUT_VIRTUAL_DEVICE_COMMONALITY_H__
 

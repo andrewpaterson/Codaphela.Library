@@ -83,7 +83,7 @@ void CInputDevice::GenerateRestState(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDevice::Process(void* pvInput, unsigned int uiSequence)
+void CInputDevice::Process(void* pvInput, uint32 uiSequence)
 {
 	CInputSourceDesc*	pcSourceDesc;
 	SSetIterator		sIter;
@@ -111,7 +111,7 @@ void CInputDevice::ClearStateFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDevice::UpdateRestEvents(unsigned int uiSequence)
+void CInputDevice::UpdateRestEvents(uint32 uiSequence)
 {
 	mcState.UpdateRestEvents(&mcInputValues, uiSequence);
 }

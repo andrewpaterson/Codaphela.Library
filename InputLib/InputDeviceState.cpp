@@ -177,7 +177,7 @@ void CInputDeviceState::ClearFlags(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceState::UpdateRestEvents(CInputDeviceValues* pcEvents, unsigned int uiSequence)
+void CInputDeviceState::UpdateRestEvents(CInputDeviceValues* pcEvents, uint32 uiSequence)
 {
 	size				i;
 	SInputSourceState*	psState;

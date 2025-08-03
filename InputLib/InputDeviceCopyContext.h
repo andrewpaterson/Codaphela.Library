@@ -43,5 +43,5 @@ public:
 };
 
 
-#endif // !__INPUT_DEVICE_COPY_CONTEXT_H__
+#endif // __INPUT_DEVICE_COPY_CONTEXT_H__
 

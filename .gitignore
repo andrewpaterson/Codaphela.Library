@@ -47,3 +47,5 @@ us.stackdump
 /ElectronicsLib/Release/*
 /MicroprocessorLib/Debug/*
 /MicroprocessorLib/Release/*
+/WinInputLib/Debug/*
+/WinInputLib/Release/*

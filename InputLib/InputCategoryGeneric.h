@@ -44,5 +44,5 @@ typedef CSetType<CInputCategoryGeneric>		CSetInputCategoryGeneric;
 typedef CArrayTemplate<CInputCategoryGeneric*>		CArrayInputCategoryGenericPtr;
 
 
-#endif // !__INPUT_CATEGORY_GENERIC_H__
+#endif // __INPUT_CATEGORY_GENERIC_H__
 

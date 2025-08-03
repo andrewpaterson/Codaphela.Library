@@ -26,9 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 //#undef XINPUT_USE_9_1_0
 #include <XInput.h>
 #include "BaseLib/Define.h"
-#include "InputDevices.h"
-#include "InputDeviceValue.h"
-#include "NativeDetail.h"
+#include "InputLib/InputDevices.h"
+#include "InputLib/InputDeviceValue.h"
+#include "InputLib/NativeDetail.h"
 #define MAX_XINPUT_CONTROLLERS	4
 
 
@@ -61,12 +61,12 @@ public:
 	void 				Init(CWinInput* pcWinInput);
 	void 				Kill(void);
 	void 				ResetDetails(void);
-	void 				Update(CInputDevices* pcDevices, unsigned int uiSequence);
+	void 				Update(CInputDevices* pcDevices, uint32 uiSequence);
 	void 				AddDevicesTo(CInputDevices* pcDevices);
 	CInputDeviceDesc*	AddStandardGamepad(CInputDevices* pcDevices);
 	void				DumpDetails(void);
 };
 
 
-#endif // !__WIN_X_INPUT_H__
+#endif // __WIN_X_INPUT_H__
 

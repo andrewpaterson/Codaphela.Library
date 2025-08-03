@@ -26,9 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "StandardLib/Unknown.h"
 #include "InputDevices.h"
 #include "InputActions.h"
-#include "WinInput.h"
 #include "ProgramInput.h"
 #include "InputDeviceValue.h"
+#include "NativeInput.h"
 
 
 class CInput : public CUnknown
@@ -39,15 +39,14 @@ protected:
 	CInputActions		mcActions;
 	uint32				muiSequence;  //Sequence is updated everytime CInput::Update is called.  Not every event.
 
-	CWinInput			mcWinInput;  //Fix this later.
+	CNativeInput*		mpcNativeInput;
 	CProgramInput		mcProgramInput;
 
 public:
-	void 				Init(void);
+	void 				Init(CNativeInput* pcNativeInput);
 	void 				Kill(void);
 	bool 				Read(char* szDirectory = NULL);
 	void 				AddProgramInput(void);
-	void 				AddWinInput(HWND hWnd, bool bExclusive);
 
 	void 				Update(void);
 	void 				Step(void);
@@ -60,12 +59,11 @@ public:
 	void 				DumpEvents(void);
 	CInputCategory*		GetCategory(char* szName);
 
-	CWinInput*			GetWinInput(void);
 	CProgramInput*		GetProgramInput(void);
 	CInputDevices*		GetDevices(void);
 	CInputActions*		GetActions(void);
 };
 
 
-#endif // !__INPUT_H__
+#endif // __INPUT_H__
 

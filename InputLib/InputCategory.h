@@ -58,5 +58,5 @@ public:
 typedef CSetType<CInputCategory> CLinkListCategory;
 
 
-#endif // !__INPUT_CATEGORY_H__
+#endif // __INPUT_CATEGORY_H__
 

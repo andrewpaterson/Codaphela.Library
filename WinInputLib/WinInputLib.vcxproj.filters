@@ -1,0 +1,185 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{f15e3297-597a-4601-83e0-c8980bdfcedc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML">
+      <UniqueIdentifier>{fde28291-59d1-426f-8dae-33b57e223f3a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices">
+      <UniqueIdentifier>{52369202-9b5a-4e5d-ac67-a5b981097ab0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\DirectInput">
+      <UniqueIdentifier>{a6efb5d3-c813-4efb-a664-24beba7e730a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\DirectInput\Joysticks">
+      <UniqueIdentifier>{8333b070-61d1-4180-a4fb-cf9c81c6fa91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw">
+      <UniqueIdentifier>{115e29ec-89f3-401e-807c-27c642b3aa34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Mouses">
+      <UniqueIdentifier>{ea4932d8-1924-4a5e-8e0c-aa4cfbf8dca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Mouses\Microsoft">
+      <UniqueIdentifier>{986ab773-0ee8-49eb-8f95-babfd6aff455}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Mouses\Logitech">
+      <UniqueIdentifier>{43bcaa73-1a4a-47e4-83ac-69956aac3fdf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Keyboards">
+      <UniqueIdentifier>{561bcbac-5065-488a-ad3b-808e89c414fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Keyboards\Microsoft">
+      <UniqueIdentifier>{b0be3cd1-fcd6-47b4-8db9-1f997ce512d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Keyboards\AOpen">
+      <UniqueIdentifier>{e536600e-a748-45b6-9160-eed987ad0c32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\WinRaw\Keyboards\Logitech">
+      <UniqueIdentifier>{cb8faa7f-bf07-4065-8093-7d21c6ff7374}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="XML\Devices\XInput">
+      <UniqueIdentifier>{b3419e4b-bdfe-4b4b-b4fe-b8f58c4f2ca1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Windows">
+      <UniqueIdentifier>{ef55821a-cf29-4337-82ae-55fee6966b53}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WinDirectInput.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WinInput.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WinRaw.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WinXInput.cpp">
+      <Filter>Source Files\Windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WinDirectInput.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WinInput.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WinRaw.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="WinXInput.h">
+      <Filter>Source Files\Windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="xml\Categories.xml">
+      <Filter>XML\Devices</Filter>
+    </None>
+    <None Include="xml\InputDevices.xml">
+      <Filter>XML\Devices</Filter>
+    </None>
+    <None Include="xml\LinuxFormats.xml">
+      <Filter>XML\Devices</Filter>
+    </None>
+    <None Include="xml\WindowsFormats.xml">
+      <Filter>XML\Devices</Filter>
+    </None>
+    <None Include="xml\DirectInputCreativeGameport.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputFakePS2Gamepad.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputFastJoystick.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputLogitechExtreme3DJoystick.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputManhattanUSBGameport.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputStandardJoysticks.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputStd8ButtonPOVHat.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputStdJoystickAxes.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\DirectInputStdJoystickButtons.xml">
+      <Filter>XML\Devices\DirectInput\Joysticks</Filter>
+    </None>
+    <None Include="xml\WinRawHIDCompliantMouse.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawPS2CompatibleMouse.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawStandardMouseAxes.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawStandardMouseButtons.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawStandardMouses.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawStandardMouseWheels.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawTerminalServerMouse.xml">
+      <Filter>XML\Devices\WinRaw\Mouses</Filter>
+    </None>
+    <None Include="xml\WinRawMicrosoftOpticalWheelMouse.xml">
+      <Filter>XML\Devices\WinRaw\Mouses\Microsoft</Filter>
+    </None>
+    <None Include="xml\WinRawMicrosoftWirelessOpticalWheelMouse.xml">
+      <Filter>XML\Devices\WinRaw\Mouses\Microsoft</Filter>
+    </None>
+    <None Include="xml\WinRawLogitechCordlessMouseMan.xml">
+      <Filter>XML\Devices\WinRaw\Mouses\Logitech</Filter>
+    </None>
+    <None Include="xml\WinRawLogitechG7Mouse.xml">
+      <Filter>XML\Devices\WinRaw\Mouses\Logitech</Filter>
+    </None>
+    <None Include="xml\WinRawGeniusPS2Keyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards</Filter>
+    </None>
+    <None Include="xml\WinRawIGameFlexibleKeyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards</Filter>
+    </None>
+    <None Include="xml\WinRawStd104ButtonKeyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards</Filter>
+    </None>
+    <None Include="xml\WinRawTerminalServerKeyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards</Filter>
+    </None>
+    <None Include="xml\WinRawMicrosoftMultimediaKeyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards\Microsoft</Filter>
+    </None>
+    <None Include="xml\WinRawMicrosoftWirelessKeyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards\Microsoft</Filter>
+    </None>
+    <None Include="xml\WinRawAOpenPS2Keyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards\AOpen</Filter>
+    </None>
+    <None Include="xml\WinRawLogitechWirelessKeyboard.xml">
+      <Filter>XML\Devices\WinRaw\Keyboards\Logitech</Filter>
+    </None>
+    <None Include="xml\XInputStdGamepad.xml">
+      <Filter>XML\Devices\XInput</Filter>
+    </None>
+    <None Include="xml\XInputXBox360Wired.xml">
+      <Filter>XML\Devices\XInput</Filter>
+    </None>
+    <None Include="xml\XInputXBox360Wireless.xml">
+      <Filter>XML\Devices\XInput</Filter>
+    </None>
+  </ItemGroup>
+</Project>
