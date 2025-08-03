@@ -93,5 +93,5 @@ public:
 };
 
 
-#endif // !__INPUT_DEVICE_DESC_H__
+#endif // __INPUT_DEVICE_DESC_H__
 

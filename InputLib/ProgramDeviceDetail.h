@@ -71,5 +71,5 @@ public:
 typedef CArrayTemplate<CProgramDeviceDetail>	CArrayProgramDeviceDetail;
 
 
-#endif // !__PROGRAM_DEVICE_DETAIL_H__
+#endif // __PROGRAM_DEVICE_DETAIL_H__
 

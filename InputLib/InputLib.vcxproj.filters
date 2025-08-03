@@ -34,9 +34,6 @@
     <Filter Include="Source Files\Native">
       <UniqueIdentifier>{1daf9496-55b1-4c03-be28-61d3c97088ec}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Native\Windows">
-      <UniqueIdentifier>{ef55821a-cf29-4337-82ae-55fee6966b53}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Native\Program">
       <UniqueIdentifier>{bf695178-aa39-49db-a453-f05991c247d0}</UniqueIdentifier>
     </Filter>
@@ -204,23 +201,14 @@
     <ClCompile Include="NativeDetail.cpp">
       <Filter>Source Files\Native</Filter>
     </ClCompile>
-    <ClCompile Include="WinDirectInput.cpp">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="WinInput.cpp">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="WinRaw.cpp">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="WinXInput.cpp">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="ProgramDeviceDetail.cpp">
       <Filter>Source Files\Native\Program</Filter>
     </ClCompile>
     <ClCompile Include="ProgramInput.cpp">
       <Filter>Source Files\Native\Program</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeInput.cpp">
+      <Filter>Source Files\Native</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -362,23 +350,14 @@
     <ClInclude Include="NativeDetail.h">
       <Filter>Source Files\Native</Filter>
     </ClInclude>
-    <ClInclude Include="WinDirectInput.h">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="WinInput.h">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="WinRaw.h">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="WinXInput.h">
-      <Filter>Source Files\Native\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="ProgramDeviceDetail.h">
       <Filter>Source Files\Native\Program</Filter>
     </ClInclude>
     <ClInclude Include="ProgramInput.h">
       <Filter>Source Files\Native\Program</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeInput.h">
+      <Filter>Source Files\Native</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

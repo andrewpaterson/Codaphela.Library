@@ -73,4 +73,4 @@ public:
 typedef CArrayUnknown /*Type<CInputDeviceVariableValueConditionDesc>*/	CArrayInputDeviceVariableValueConditionDesc;
 
 
-#endif // !__INPUT_DEVICE_VARIABLE_VALUE_CONDITION_DESC_H__
+#endif // __INPUT_DEVICE_VARIABLE_VALUE_CONDITION_DESC_H__

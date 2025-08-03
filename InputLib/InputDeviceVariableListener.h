@@ -37,4 +37,4 @@ public:
 };
 
 
-#endif // !__INPUT_DEVICE_VARIABLE_LISTENER_H__
+#endif // __INPUT_DEVICE_VARIABLE_LISTENER_H__

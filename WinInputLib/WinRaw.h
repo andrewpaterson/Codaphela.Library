@@ -28,11 +28,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/GuidClass.h"
-#include "InputDevices.h"
-#include "InputDeviceValue.h"
-#include "NativeDetail.h"
+#include "InputLib/InputDevices.h"
+#include "InputLib/InputDeviceValue.h"
+#include "InputLib/NativeDetail.h"
 
-#include "KeyboardKeyList.h"
+#include "InputLib/KeyboardKeyList.h"
 
 
 enum ERawDeviceType
@@ -165,5 +165,5 @@ public:
 void WinRawInputEvent(CWinRawInput* pcWinRaw, void* pRawInput);
 
 
-#endif // !__WIN_RAW_H__
+#endif // __WIN_RAW_H__
 

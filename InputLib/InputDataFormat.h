@@ -33,10 +33,10 @@ class CInputDataFormat : public CUnknown
 {
 CONSTRUCTABLE(CInputDataFormat);
 protected:
-	CChannels			mcExternalChannels;
+	CChannels		mcExternalChannels;
 	CArrayChars		mcChannelNames;
-	bool				mbCommon;
-	CChars				mszCommonName;
+	bool			mbCommon;
+	CChars			mszCommonName;
 
 public:
 	void 		Init(void);
@@ -60,5 +60,5 @@ public:
 typedef CSetType<CInputDataFormat> CSetInputDataFormat;
 
 
-#endif // !__INPUT_DATA_FORMAT_H__
+#endif // __INPUT_DATA_FORMAT_H__
 

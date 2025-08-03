@@ -81,7 +81,7 @@ void CWinInput::AddDevicesTo(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
+void CWinInput::Update(CInputDevices* pcDevices, uint32 uiSequence)
 {
 	if ((mbNotInitialised == false) && (mbUsable == true))
 	{

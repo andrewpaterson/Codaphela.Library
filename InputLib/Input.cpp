@@ -27,13 +27,18 @@ Microsoft Windows is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInput::Init(void)
+void CInput::Init(CNativeInput* pcNativeInput)
 {
 	muiSequence = 0;
 	mcDevices.Init(&mcActions);
-	mcWinInput.Init();
+	mpcNativeInput = pcNativeInput;
 	mcProgramInput.Init();
 	mcActions.Init(&mcDevices);
+
+	if (mpcNativeInput)
+	{
+		mpcNativeInput->AddDevicesTo(&mcDevices);
+	}
 }
 
 
@@ -46,7 +51,6 @@ void CInput::Kill(void)
 	mcActions.Kill();
 	mcDevices.Kill();
 	mcProgramInput.Kill();
-	mcWinInput.Kill();
 	CUnknown::Kill();
 }
 
@@ -81,17 +85,6 @@ void CInput::AddProgramInput(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInput::AddWinInput(HWND hWnd, bool bExclusive)
-{
-	mcWinInput.Init(hWnd, bExclusive);
-	mcWinInput.AddDevicesTo(&mcDevices);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CInput::Step(void)
 {
 	muiSequence++;
@@ -106,7 +99,10 @@ void CInput::Update(void)
 {
 	ClearStateFlags();
 	ClearEvents();
-	mcWinInput.Update(&mcDevices, muiSequence);
+	if (mpcNativeInput)
+	{
+		mpcNativeInput->Update(&mcDevices, muiSequence);
+	}
 	mcProgramInput.Update(&mcDevices, muiSequence);
 	UpdateRestEvents();
 	SortEvents();
@@ -240,7 +236,7 @@ CInputCategory* CInput::GetCategory(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CWinInput* CInput::GetWinInput(void){ return &mcWinInput; }
 CProgramInput* CInput::GetProgramInput(void) { return &mcProgramInput; }
 CInputDevices* CInput::GetDevices(void) { return &mcDevices; }
 CInputActions* CInput::GetActions(void) { return &mcActions; }
+

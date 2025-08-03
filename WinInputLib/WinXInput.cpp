@@ -215,7 +215,7 @@ CInputDeviceDesc* CWinXInput::AddStandardGamepad(CInputDevices* pcDevices)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinXInput::Update(CInputDevices* pcDevices, unsigned int uiSequence)
+void CWinXInput::Update(CInputDevices* pcDevices, uint32 uiSequence)
 {
 	int					dwResult;
 	XINPUT_STATE		sXState;

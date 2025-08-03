@@ -54,7 +54,7 @@ void SInputDeviceValue::ToString(CChars* psz)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceValue::Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, bool bRestEmitted, int iOrder)
+void CInputDeviceValue::Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, uint32 uiSequence, bool bRestEmitted, int iOrder)
 {
 	SInputDeviceValue::Init(pcDevice, pcSource, fValue);
 	this->uiSequence = uiSequence;
@@ -87,7 +87,7 @@ void CInputDeviceValues::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CInputDeviceValues::Add(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, bool bRestEmitted, int iOrder)
+void CInputDeviceValues::Add(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, uint32 uiSequence, bool bRestEmitted, int iOrder)
 {
 	CInputDeviceValue*	psInputEvent;
 

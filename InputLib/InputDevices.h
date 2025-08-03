@@ -93,5 +93,5 @@ private:
 };
 
 
-#endif // !__INPUT_DEVICES_H__
+#endif // __INPUT_DEVICES_H__
 

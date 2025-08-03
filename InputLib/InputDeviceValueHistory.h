@@ -28,12 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 struct SInputDeviceTimeValue : SInputDeviceValue
 {
-	unsigned int		uiTime;  //You're going to need to update this with a timer and evict events that are too aged.
+	uint32		uiTime;  //You're going to need to update this with a timer and evict events that are too aged.
 };
 
 
 typedef CArrayTemplate<SInputDeviceTimeValue>	CArrayInputDeviceTimeValue;
 
 
-#endif // !__INPUT_EVENT_HISTORY_H__
+#endif // __INPUT_EVENT_HISTORY_H__
 

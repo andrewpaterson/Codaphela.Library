@@ -54,5 +54,5 @@ public:
 };
 
 
-#endif // !__INPUT_DEVICE_VARIABLES_H__
+#endif // __INPUT_DEVICE_VARIABLES_H__
 

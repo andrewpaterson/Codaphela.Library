@@ -45,5 +45,5 @@ public:
 };
 
 
-#endif // !__INPUT_CHORD_READER_H__
+#endif // __INPUT_CHORD_READER_H__
 

@@ -63,5 +63,5 @@ public:
 typedef CSetType<CInputSouceChannel> CSetInputSouceChannel;
 
 
-#endif // !__INPUT_SOURCE_CHANNEL_H__
+#endif // __INPUT_SOURCE_CHANNEL_H__
 

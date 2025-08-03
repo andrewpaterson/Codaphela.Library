@@ -88,5 +88,5 @@ public:
 };
 
 
-#endif // !__INPUT_ACTION_H__
+#endif // __INPUT_ACTION_H__
 

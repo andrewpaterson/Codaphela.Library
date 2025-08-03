@@ -30,5 +30,5 @@ protected:
 };
 
 
-#endif // !__BASE_PARSER_H__
+#endif // __BASE_PARSER_H__
 

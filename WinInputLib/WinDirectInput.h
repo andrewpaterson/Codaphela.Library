@@ -26,9 +26,9 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define DIRECTINPUT_VERSION 0x0800
 #include <DInput.h>
 #include "BaseLib/ArrayTemplate.h"
-#include "InputDevices.h"
-#include "InputDeviceValue.h"
-#include "NativeDetail.h"
+#include "InputLib/InputDevices.h"
+#include "InputLib/InputDeviceValue.h"
+#include "InputLib/NativeDetail.h"
 
 
 class CDirectInputDetail : public CNativeDetail
@@ -79,5 +79,5 @@ public:
 };
 
 
-#endif // !__WIN_DIRECT_INPUT_H__
+#endif // __WIN_DIRECT_INPUT_H__
 

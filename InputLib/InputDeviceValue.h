@@ -50,11 +50,11 @@ struct SInputDeviceValue : SInputDeviceValueSource
 class CInputDeviceValue : public SInputDeviceValue
 {
 public:
-	unsigned int	uiSequence;
+	uint32	uiSequence;
 	int				iOrder;
 	bool			bRestEmitted;
 
-	void Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, bool bRestEmitted, int iOrder);
+	void Init(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, uint32 uiSequence, bool bRestEmitted, int iOrder);
 };
 
 
@@ -73,7 +73,7 @@ public:
 
 	void				Init(void);
 	void				Kill(void);
-	void				Add(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, unsigned int uiSequence, bool bRestEmitted, int iOrder);
+	void				Add(CInputDevice* pcDevice, CInputSourceDesc* pcSource, float fValue, uint32 uiSequence, bool bRestEmitted, int iOrder);
 	void				Clear(void);
 	void				Sort(void);
 	CInputDeviceValue*	StartIteration(void);
@@ -83,5 +83,5 @@ public:
 };
 
 
-#endif // !__INPUT_DEVICE_VALUE_H__
+#endif // __INPUT_DEVICE_VALUE_H__
 

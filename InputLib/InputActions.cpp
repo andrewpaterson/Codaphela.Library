@@ -33,7 +33,7 @@ void CInputActions::Init(CInputDevices* pcInputDevices)
 {
 	mpcInputDevices = pcInputDevices;
 	mcActions.Init();
-	AddAction<CInputDeviceVariableListener>(INPUT_DEVICE_VARIABLE_ACTION, (ListenerFunc)&CInputActions::VariableAction, this);
+	AddActionWithListener<CInputDeviceVariableListener>(INPUT_DEVICE_VARIABLE_ACTION, (ListenerFunc)&CInputActions::VariableAction, this);
 }
 
 

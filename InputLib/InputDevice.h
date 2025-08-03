@@ -53,9 +53,9 @@ public:
 	void 						Kill(void);
 	CInputDevices*				GetInputDevices(void);
 	void 						GenerateRestState(void);
-	void 						Process(void* pvInput, unsigned int uiSequence);
+	void 						Process(void* pvInput, uint32 uiSequence);
 	void 						ClearStateFlags(void);
-	void 						UpdateRestEvents(unsigned int uiSequence);
+	void 						UpdateRestEvents(uint32 uiSequence);
 	void 						GetSources(CArrayInputSourceDescPtr* pcActions, CInputCategoryGeneric* pcGeneric);
 	void 						ClearEvents(void);
 	void 						SortEvents(void);
@@ -81,5 +81,5 @@ typedef CSetType<CInputDevice>	CSetInputDevice;
 typedef CSetType<CInputDeviceDesc> CSetInputDeviceDesc;
 
 
-#endif // !__INPUT_DEVICE_H__
+#endif // __INPUT_DEVICE_H__
 
