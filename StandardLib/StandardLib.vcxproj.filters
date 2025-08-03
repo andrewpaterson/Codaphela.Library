@@ -764,4 +764,7 @@
       <Filter>Source\Object\Object\Source</Filter>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="DatabaseTodo.txt" />
+  </ItemGroup>
 </Project>

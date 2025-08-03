@@ -396,6 +396,9 @@
   <ItemGroup>
     <None Include="ObjectsSources.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="DatabaseTodo.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
