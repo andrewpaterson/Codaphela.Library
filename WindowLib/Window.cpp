@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Define.h"
 #include "BaseLib/WindowsHeaders.h"
 #include "BaseLib/Logger.h"
-#include "InputLib/WinRaw.h"
 #include "Window.h"
 #include "ComponentFactory.h"
 
