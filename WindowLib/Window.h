@@ -49,8 +49,8 @@ public:
 
 	CTimer			mcLoopTimer;
 
-	static int		GetScreenWidth(void);
-	static int		GetScreenHeight(void);
+	static int			GetScreenWidth(void);
+	static int			GetScreenHeight(void);
 
 	void 				Init(HINSTANCE hInst, char* szName, CInput* pcInput);
 	virtual void 		Kill(void);
@@ -82,5 +82,5 @@ public:
 };
 
 
-#endif //__WINDOW_H__
+#endif // __WINDOW_H__
 

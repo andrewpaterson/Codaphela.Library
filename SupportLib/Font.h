@@ -50,27 +50,27 @@ protected:
 	int				miDescent;
 
 public:
-	Ptr<CFont>	Init(char* szName, size iSpaceWidth, int iAscent, int iDescent);
-	void		Class(void);
-	void 		Free(void);
+	Ptr<CFont>		Init(char* szName, size iSpaceWidth, int iAscent, int iDescent);
+	void			Class(void);
+	void 			Free(void);
 
-	bool		Save(CObjectWriter* pcFile);
-	bool		Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
 
-	void 		Done(void);
-	bool		Is(char* szName);
-	size 		Width(char* szText);
+	void 			Done(void);
+	bool			Is(char* szName);
+	size 			Width(char* szText);
 	size			Height(void);
-	bool		IsWhitespace(char c);
-	CGlyph*		GetGlyph(char c);
-	CGlyph*		AddGlyph(CImageCel* pcCel, size iStep);
-	Ptr<CImage>	GetImage(void);
-	void		SetImage(Ptr<CImage> pcImage);
+	bool			IsWhitespace(char c);
+	CGlyph*			GetGlyph(char c);
+	CGlyph*			AddGlyph(CImageCel* pcCel, size iStep);
+	Ptr<CImage>		GetImage(void);
+	void			SetImage(Ptr<CImage> pcImage);
 	size			GetSpace(void);
 	size			GetAscent(void);
 	size			GetDescent(void);
 };
 
 
-#endif //__FONT_H__
+#endif // __FONT_H__
 
