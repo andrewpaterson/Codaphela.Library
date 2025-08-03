@@ -16,6 +16,11 @@ void BubbleSort(DataCompare fCompare, void* pvArray, size uiStride, size iNumEle
 	void*	pvLeft;
 	void*	pvRight;
 
+	if (iNumElements == 0)
+	{
+		return;
+	}
+
 	bSwapped = true;
 	iNumDone = 0;
 	while (bSwapped)
