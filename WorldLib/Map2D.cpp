@@ -98,7 +98,7 @@ void CMap2D::SetPosition(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CQuad2D* CMap2D::CreateQuad(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CViewportInstance* pcGraphicsViewport, int iWidth, int iHeight, int x, int y)
+CQuad2D* CMap2D::CreateQuad(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CGraphicsViewport* pcGraphicsViewport, int iWidth, int iHeight, int x, int y)
 {
 	CQuad2D*	pcQuad;
 

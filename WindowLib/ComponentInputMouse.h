@@ -26,9 +26,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CComponentInputMouse : public CComponentInputDevice
 {
+CONSTRUCTABLE(CComponentInputMouse); 
 public:
-	CONSTRUCTABLE(CComponentInputMouse);
-
 	CInputVirtualDeviceSource*	mButton1;
 	CInputVirtualDeviceSource*	mButton1Released;
 	CInputVirtualDeviceSource*	mButton2;

@@ -171,7 +171,7 @@ protected:
 	SUVCorners			msDefaultUVs;
 	CGraphicsState*		mpcGraphicsState;
 	CGraphicsMaterial*	mpcGraphicsMaterial;
-	CViewportInstance*	mpcViewport;
+	CGraphicsViewport*	mpcViewport;
 	CSphereHelper		mcSphere;
 	CWorld*				mpcWorld;
 
@@ -187,7 +187,7 @@ protected:
 
 public:
 	void			Init(void);
-	void			Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGraphicsMaterial* pcMaterial, CGraphicsState* pcState, CViewportInstance* pcViewport, CWorld* pcWorld);
+	void			Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGraphicsMaterial* pcMaterial, CGraphicsState* pcState, CGraphicsViewport* pcViewport, CWorld* pcWorld);
 	void			InitVars(void);
 	void			Kill(void);
 

@@ -20,8 +20,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __DRAWABLE_H__
 #define __DRAWABLE_H__
-#include "WorldLib/GraphicsViewport.h"
 #include "Component.h"
+#include "GrahicsHack.h"
 
 
 class CDrawable : public CComponent
@@ -30,7 +30,7 @@ CONSTRUCTABLE(CDrawable);
 public:
 	SInt2				msOldSize;
 	SInt2	 			msOldPosition;
-	CViewportInstance*	mpcGraphicsViewport;
+	CGraphicsViewport*	mpcGraphicsViewport;
 
 	void 	Init(CViewport* pcViewport);
 	void 	Kill(void);

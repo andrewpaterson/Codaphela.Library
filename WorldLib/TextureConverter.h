@@ -25,7 +25,6 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "BaseLib/ArrayTemplate.h"
 #include "SupportLib/ImageCopier.h"
 #include "SupportLib/Scene.h"
-#include "WorldLib/GraphicsTexture.h"
 
 
 class CWorld;

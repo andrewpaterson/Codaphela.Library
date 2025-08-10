@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "QuadParameters.h"
 #include "Viewport.h"
 #include "SupportLib/ImageReader.h"
-#include "WorldLib/World.h"
 
 
 //////////////////////////////////////////////////////////////////////////

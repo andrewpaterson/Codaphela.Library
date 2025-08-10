@@ -25,9 +25,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BorderParameters.h"
 #include "BlockParameters.h"
 #include "Viewport.h"
+#include "GraphicsState.h"
 
 
-class CWorld;
 class CTextField;
 class CToolbar;
 class CButton;

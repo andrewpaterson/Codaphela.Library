@@ -49,7 +49,7 @@ void CParticleSystem::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CParticleSystem::Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGraphicsMaterial* pcMaterial, CGraphicsState* pcState, CViewportInstance* pcViewport, CWorld* pcWorld)
+void CParticleSystem::Init(int iFlags, int iNumUVLayers, int iUserDataSize, CGraphicsMaterial* pcMaterial, CGraphicsState* pcState, CGraphicsViewport* pcViewport, CWorld* pcWorld)
 {
 	int		iOffset;
 

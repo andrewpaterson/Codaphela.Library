@@ -34,7 +34,7 @@ typedef CArrayType<CCameraInstance>	CWorldCameraList;
 typedef CArrayType<CLightInstance>	CWorldLightList;
 typedef CArrayType<CParticleSystem>	CParticleSystemList;
 typedef CArrayType<CMovement>			CMovementList;
-typedef CArrayType<CViewportInstance>	CWorldViewportList;
+typedef CArrayType<CGraphicsViewport>	CWorldViewportList;
 
 
 #endif //__WORLD_LISTS_H__

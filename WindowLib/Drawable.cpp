@@ -19,7 +19,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Numbers.h"
-#include "WorldLib/World.h"
 #include "Viewport.h"
 #include "Drawable.h"
 

@@ -31,8 +31,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //There's a one to one relationship between CViewport and CWindow.  In theory the window is OS specific and the viewport isn't.
 class CWindow : public CInputListener
 {
+CONSTRUCTABLE(CWindow);
 public:
-	CONSTRUCTABLE(CWindow);
 
 	CViewport*		mpcViewport;
 	CInput*			mpcInput;

@@ -72,9 +72,8 @@ enum EInputChordCriteriaDescActiveType
 
 class CInputChordActiveDesc : public CInputChordCriteriaDesc
 {
+CONSTRUCTABLE(CInputChordActiveDesc);
 public:
-	CONSTRUCTABLE(CInputChordActiveDesc);
-
 	CInputSourceDesc*					mpcSourceDesc;  //Only valy valid for ICCDAT_SpecificSource.
 	size									miDescriptionID;  //Only valy valid for ICCDAT_SpecificSource.
 	CInputCategoryGeneric*				mpcGeneric;  //Only valy valid for ICCDAT_GenericSource.
@@ -93,9 +92,8 @@ public:
 
 class CInputChordCollectiveDesc : public CInputChordCriteriaDesc
 {
+CONSTRUCTABLE(CInputChordCollectiveDesc);
 public:
-	CONSTRUCTABLE(CInputChordCollectiveDesc);
-
 	CArrayInputChordCriteriaDesc	macCriteria;
 
 	void 						Init(EInputChordCriteriaDescType eType, CInputChordDesc* pcChordDesc);

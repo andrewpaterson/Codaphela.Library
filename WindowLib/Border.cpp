@@ -22,7 +22,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BorderParameters.h"
 #include "Viewport.h"
 #include "SupportLib/ColourARGB.h"
-#include "WorldLib/World.h"
 #include "ComponentFactory.h"
 
 

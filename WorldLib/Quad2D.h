@@ -40,13 +40,13 @@ protected:
 	SInt3				msPosition;
 	CGraphicsMaterial*	mpcGraphicsMaterial;
 	CGraphicsState*		mpcGraphicsState;
-	CViewportInstance*	mpcGraphicsViewport;
+	CGraphicsViewport*	mpcGraphicsViewport;
 	SInt2				msSize;
 	unsigned int		mdwColour;
 	SUVCornersFull		masUVs[MAX_QUAD_UV_LAYERS];
 
 public:
-	void				Init(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CViewportInstance* pcGraphicsViewport, int iWidth, int iHeight, int x, int y);
+	void				Init(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CGraphicsViewport* pcGraphicsViewport, int iWidth, int iHeight, int x, int y);
 	void 				Kill(void);
 	bool 				Draw(CGraphicsObject* pcGraphicsObject);
 	SInt3				GetPosition(void);
@@ -57,7 +57,7 @@ public:
 
 	void 				SetGraphicsState(CGraphicsState* psState);
 	void 				SetGraphicsMaterial(CGraphicsMaterial* psMaterial);
-	void 				SetGraphicsViewport(CViewportInstance* psViewport);
+	void 				SetGraphicsViewport(CGraphicsViewport* psViewport);
 	void 				SetDimensions(int iWidth, int iHeight);
 	void				SetUVCoordsFromRectangle(int iTextureLayer, CRectangle* psRect);
 	void 				SetUVCoords(int iTextureLayer, float u1, float v1, float u2, float v2);

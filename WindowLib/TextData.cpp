@@ -47,7 +47,7 @@ void CTextChar::Layout(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextChar::CreateQuad(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
+void CTextChar::CreateQuad(CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
 {
 	if (!IsWhiteSpace())
 	{
@@ -60,7 +60,7 @@ void CTextChar::CreateQuad(CGraphicsObject* pcGraphicsObject, CViewportInstance*
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextChar::CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
+void CTextChar::CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
 {
 	CQuad2D*	pcQuad;
 	CGlyph*		pcGlyph;
@@ -250,7 +250,7 @@ CTextParameters* CTextCharLine::Layout(int x, int y, CTextParameters* pcLastFont
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextCharLine::CreateQuads(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
+void CTextCharLine::CreateQuads(CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
 {
 	size				i;
 	CTextChar*			pcChar;
@@ -721,7 +721,7 @@ void CTextData::Clear(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextData::CreateQuads(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
+void CTextData::CreateQuads(CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D)
 {
 	size			i;
 	CTextCharLine*	pcLine;

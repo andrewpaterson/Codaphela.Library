@@ -27,13 +27,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CBlockParameters : public CQuadParameters
 {
+CONSTRUCTABLE(CBlockParameters); 
 public:
-	CONSTRUCTABLE(CBlockParameters);
-
 	CRectangle			macRects[MAX_TEX];
-	unsigned int			miColour;
+	unsigned int		miColour;
 	CGraphicsMaterial*	mpcGraphicsMaterial;
-	CGraphicsTexture*	mpcGraphicsTexture;  //[MAX_TEX]
+	CGraphicsTexture*	mpcGraphicsTexture;
 	SInt2				msSize;
  
 	void				Init(CGraphicsState* pcGraphicsState, CWorld* pcWorld, int r, int g, int b, int a);

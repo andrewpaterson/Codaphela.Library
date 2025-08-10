@@ -19,8 +19,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/ImageReader.h"
-#include "WorldLib/World.h"
-#include "WorldLib/TextureConverter.h"
 #include "BorderParameters.h"
 #include "Viewport.h"
 
@@ -166,3 +164,4 @@ CGraphicsTexture* CBorderParameters::GetGraphicsTexture(void)
 {
 	return mpcGraphicsTexture;
 }
+

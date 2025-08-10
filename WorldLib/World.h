@@ -99,7 +99,7 @@ public:
 	CGraphicsState*			mpcGreyState;
 	CGraphicsMaterial*		mpcWhiteMaterial;  //Unlit material
 	CGraphicsState*			mpcWhiteState;
-	CViewportInstance*		mpcFullViewport;
+	CGraphicsViewport*		mpcFullViewport;
 
 	void 				Init(void);
 	void 				Kill(void);
@@ -138,8 +138,8 @@ public:
 	void				ReleaseLight(CLightInstance* pcLightInstance);
 	void				UseLights(CArrayPtrLight* papLights);
 
-	CViewportInstance*	CreateViewport(void);
-	void				ReleaseViewport(CViewportInstance* pcViewport);
+	CGraphicsViewport*	CreateViewport(void);
+	void				ReleaseViewport(CGraphicsViewport* pcViewport);
 
 	CParticleSystem*	CreateParticleSystem(void);
 	void				ReleaseParticleSystem(CParticleSystem* pcParticleSystem);

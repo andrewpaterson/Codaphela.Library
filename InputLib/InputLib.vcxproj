@@ -276,40 +276,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="xml\Categories.xml" />
-    <None Include="xml\InputDevices.xml" />
-    <None Include="xml\LinuxFormats.xml" />
-    <None Include="xml\WindowsFormats.xml" />
-    <None Include="xml\DirectInputCreativeGameport.xml" />
-    <None Include="xml\DirectInputFakePS2Gamepad.xml" />
-    <None Include="xml\DirectInputFastJoystick.xml" />
-    <None Include="xml\DirectInputLogitechExtreme3DJoystick.xml" />
-    <None Include="xml\DirectInputManhattanUSBGameport.xml" />
-    <None Include="xml\DirectInputStandardJoysticks.xml" />
-    <None Include="xml\DirectInputStd8ButtonPOVHat.xml" />
-    <None Include="xml\DirectInputStdJoystickAxes.xml" />
-    <None Include="xml\DirectInputStdJoystickButtons.xml" />
-    <None Include="xml\WinRawHIDCompliantMouse.xml" />
-    <None Include="xml\WinRawPS2CompatibleMouse.xml" />
-    <None Include="xml\WinRawStandardMouseAxes.xml" />
-    <None Include="xml\WinRawStandardMouseButtons.xml" />
-    <None Include="xml\WinRawStandardMouses.xml" />
-    <None Include="xml\WinRawStandardMouseWheels.xml" />
-    <None Include="xml\WinRawTerminalServerMouse.xml" />
-    <None Include="xml\WinRawMicrosoftOpticalWheelMouse.xml" />
-    <None Include="xml\WinRawMicrosoftWirelessOpticalWheelMouse.xml" />
-    <None Include="xml\WinRawLogitechCordlessMouseMan.xml" />
-    <None Include="xml\WinRawLogitechG7Mouse.xml" />
-    <None Include="xml\WinRawGeniusPS2Keyboard.xml" />
-    <None Include="xml\WinRawIGameFlexibleKeyboard.xml" />
-    <None Include="xml\WinRawStd104ButtonKeyboard.xml" />
-    <None Include="xml\WinRawTerminalServerKeyboard.xml" />
-    <None Include="xml\WinRawMicrosoftMultimediaKeyboard.xml" />
-    <None Include="xml\WinRawMicrosoftWirelessKeyboard.xml" />
-    <None Include="xml\WinRawAOpenPS2Keyboard.xml" />
-    <None Include="xml\WinRawLogitechWirelessKeyboard.xml" />
-    <None Include="xml\XInputStdGamepad.xml" />
-    <None Include="xml\XInputXBox360Wired.xml" />
-    <None Include="xml\XInputXBox360Wireless.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

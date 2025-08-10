@@ -21,11 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __QUAD_Parameters_H__
 #define __QUAD_Parameters_H__
 #include "StandardLib/StandardHeader.h"
-#include "WorldLib/GraphicsTexture.h"
-#include "WorldLib/GraphicsMaterial.h"
-#include "WorldLib/GraphicsState.h"
-#include "WorldLib/Quad2D.h"
-#include "WorldLib/World.h"
+#include "GrahicsHack.h"
 
 
 class CQuadParameters : public CUnknown
