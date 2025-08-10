@@ -726,7 +726,7 @@ void CGraphicsObject::SetNumViewports(int iNumViewports)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CGraphicsObject::AddViewport(CViewportInstance* pcGraphicsViewport)
+int CGraphicsObject::AddViewport(CGraphicsViewport* pcGraphicsViewport)
 {
 	return mapViewports.GetAdjustedIndex(mapViewports.AddIfUnique(&pcGraphicsViewport));
 }
@@ -736,9 +736,9 @@ int CGraphicsObject::AddViewport(CViewportInstance* pcGraphicsViewport)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CViewportInstance** CGraphicsObject::AddViewports(int iNumToAdd)
+CGraphicsViewport** CGraphicsObject::AddViewports(int iNumToAdd)
 {
-	CViewportInstance**	pcGraphicsViewport;
+	CGraphicsViewport**	pcGraphicsViewport;
 
 	pcGraphicsViewport = mapViewports.SetArraySize(mapMatricies.NumElements() + iNumToAdd, 0);
 
@@ -751,9 +751,9 @@ CViewportInstance** CGraphicsObject::AddViewports(int iNumToAdd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CViewportInstance* CGraphicsObject::GetViewport(int iNum)
+CGraphicsViewport* CGraphicsObject::GetViewport(int iNum)
 {
-	CViewportInstance** ppcViewport;
+	CGraphicsViewport** ppcViewport;
 
 	ppcViewport = mapViewports.SafeGet(iNum);
 	if (ppcViewport)
@@ -780,9 +780,9 @@ void CGraphicsObject::RemoveViewport(int iNum)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CGraphicsObject::GetIndexForGraphicsViewportPointer(CViewportInstance* pcGraphicsViewport)
+int CGraphicsObject::GetIndexForGraphicsViewportPointer(CGraphicsViewport* pcGraphicsViewport)
 {
-	CViewportInstance*	pcGraphicsViewportComp;
+	CGraphicsViewport*	pcGraphicsViewportComp;
 	size				i;
 
 	for (i = 0; i <	mapViewports.NumElements(); i++)
@@ -930,7 +930,7 @@ void* CGraphicsObject::GrowPrimitiveNew(int iNumAdditionalPrimitives, D3DPRIMITI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGraphicsPrimitive* CGraphicsObject::StartPrimitive(D3DPRIMITIVETYPE eType, int iD3DVertexType, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CViewportInstance* pcViewport)
+CGraphicsPrimitive* CGraphicsObject::StartPrimitive(D3DPRIMITIVETYPE eType, int iD3DVertexType, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CGraphicsViewport* pcViewport)
 {
 	int					iVertexBufferIndex;
 	int					iStateIndex;

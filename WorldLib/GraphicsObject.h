@@ -51,7 +51,7 @@ typedef CArrayTemplate<CGraphicsPrimitive>	CArrayPrimitives;
 typedef	CArrayTemplateMinimal<CGraphicsMaterial*>	CArrayPtrMaterials;
 typedef CArrayTemplateMinimal<CGraphicsState*>		CArrayPtrStates;
 typedef CArrayTemplate<SFloat4x4>			CArrayFloat4x4;
-typedef CArrayTemplateMinimal<CViewportInstance*>	CArrayPtrViewports;
+typedef CArrayTemplateMinimal<CGraphicsViewport*>	CArrayPtrViewports;
 
 
 //Remember each vertex buffer can be used by many primitives.  
@@ -69,7 +69,7 @@ protected:
 	CArrayPtrMaterials					mapMaterials;    		//Pointers to the materials.  Altered by CGraphicsInstance
 	CArrayPtrStates						mapStates;		 		//Pointers to the states.   Altered by CGraphicsInstance
 	CArrayPtrViewports					mapViewports;			//Pointers to the viewports.   Altered by CGraphicsInstance
-	CArrayIntMinimal						maiPrimitives;	 		//The primitives to draw and the order to draw them in.
+	CArrayIntMinimal					maiPrimitives;	 		//The primitives to draw and the order to draw them in.
 	CArrayFloat4x4						macAdjMatricies;		//A final matrix with which to multiply the controlling matrix.
 	int									miFlags;		 		//The GRAPH_OBJ_FLAGS for this object.
 	CWorld*								mpcWorld;
@@ -118,18 +118,18 @@ public:
 	int						GetIndexForGraphicsStatePointer(CGraphicsState* pcGraphicsState);
 
 	void					SetNumViewports(int iNumViewports);
-	int						AddViewport(CViewportInstance* pcGraphicsViewport);
-	CViewportInstance**		AddViewports(int iNumToAdd);
-	CViewportInstance*		GetViewport(int iNum);
+	int						AddViewport(CGraphicsViewport* pcGraphicsViewport);
+	CGraphicsViewport**		AddViewports(int iNumToAdd);
+	CGraphicsViewport*		GetViewport(int iNum);
 	void					RemoveViewport(int iNum);
-	int						GetIndexForGraphicsViewportPointer(CViewportInstance* pcGraphicsViewport);
+	int						GetIndexForGraphicsViewportPointer(CGraphicsViewport* pcGraphicsViewport);
 
 	int						GetNumPrimitives(void);
 	CGraphicsPrimitive*		AddPrimitives(size iNumToAdd);
 	CGraphicsPrimitive*		AddPrimitive(int iNumPrimitives, D3DPRIMITIVETYPE eType, int iFlags, int iNumVerticies, int iStartIndex, int iStartVertex, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexBufferIndex, int iViewportPointerIndex);
 	CGraphicsPrimitive*		GrowPrimitive(int iNumAdditionalPrimitives, D3DPRIMITIVETYPE eType, int iNumAdditionalVerticies, int iVertexBufferIndex, int iMaterialPointerIndex, int iStatePointerIndex, int iViewportPointerIndex);
 	void*					GrowPrimitiveNew(int iNumAdditionalPrimitives, D3DPRIMITIVETYPE eType, int iNumAdditionalVerticies, int iD3DVertexType, int iMaterialPointerIndex, int iStatePointerIndex, int iViewportPointerIndex, CGraphicsPrimitive** ppcPrimitive = NULL);
-	CGraphicsPrimitive*		StartPrimitive(D3DPRIMITIVETYPE eType, int iD3DVertexType, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CViewportInstance* pcViewport);
+	CGraphicsPrimitive*		StartPrimitive(D3DPRIMITIVETYPE eType, int iD3DVertexType, CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CGraphicsViewport* pcViewport);
 	CGraphicsPrimitive*		GetPrimitive(int iNum);
 	CGraphicsPrimitive*		GetPrimitiveWithVertexBufferIndex(D3DPRIMITIVETYPE eType, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexBufferIndex, int iViewportIndex);
 	CGraphicsPrimitive*		GetPrimitiveWithVertexFormat(D3DPRIMITIVETYPE eType, int iMaterialPointerIndex, int iStatePointerIndex, int iVertexFormat, int iViewportIndex);

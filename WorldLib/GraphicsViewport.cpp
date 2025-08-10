@@ -29,7 +29,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewportInstance::Init(void)
+void CGraphicsViewport::Init(void)
 {
 	mpcWorld = NULL;
 	msViewport.Zero();
@@ -40,7 +40,7 @@ void CViewportInstance::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewportInstance::Init(CWorld* pcWorld)
+void CGraphicsViewport::Init(CWorld* pcWorld)
 {
 	mpcWorld = pcWorld;
 	gcD3D.CreateViewport(&msViewport);
@@ -51,7 +51,7 @@ void CViewportInstance::Init(CWorld* pcWorld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewportInstance::Kill(void)
+void CGraphicsViewport::Kill(void)
 {
 	gcD3D.ReleaseViewport(&msViewport);
 	CUnknown::Kill();
@@ -62,7 +62,7 @@ void CViewportInstance::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewportInstance::Draw(void)
+void CGraphicsViewport::Draw(void)
 {
 	gcD3D.SetViewport(&msViewport);
 }
@@ -72,7 +72,7 @@ void CViewportInstance::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewportInstance::Invalidate(void)
+void CGraphicsViewport::Invalidate(void)
 {
 	//Invalidates the current one rather than this one.  Meh.
 	gcD3D.InvalidateViewport();
@@ -83,7 +83,7 @@ void CViewportInstance::Invalidate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CViewportInstance::Set(int iX, int iY, int iWidth, int iHeight)
+void CGraphicsViewport::Set(int iX, int iY, int iWidth, int iHeight)
 {
 	msViewport.sD3DViewport.X = iX;
 	msViewport.sD3DViewport.Y = iY;
@@ -97,7 +97,7 @@ void CViewportInstance::Set(int iX, int iY, int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CViewportInstance::Contains(int iLeft, int iTop, int iRight, int iBottom)
+bool CGraphicsViewport::Contains(int iLeft, int iTop, int iRight, int iBottom)
 {
 	if ((int)msViewport.sD3DViewport.X >= iRight)
 	{
@@ -123,7 +123,7 @@ bool CViewportInstance::Contains(int iLeft, int iTop, int iRight, int iBottom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CViewportInstance::Contains(CRectangle* pcRect)
+bool CGraphicsViewport::Contains(CRectangle* pcRect)
 {
 	return Contains(pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
 }

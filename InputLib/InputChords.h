@@ -57,9 +57,8 @@ struct SChordInputEvent
 
 class CInputChords : public CInputListener
 {
+CONSTRUCTABLE(CInputChords); 
 public:
-	CONSTRUCTABLE(CInputChords);
-
 	CSetInputSourceEvaluators	mscEvaluators;
 	CSetInputChords				mlcChords;
 	CArrayInputDeviceTimeValue	macHistory;

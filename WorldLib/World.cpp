@@ -671,9 +671,9 @@ void CWorld::UseLights(CArrayPtrLight* papLights)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CViewportInstance* CWorld::CreateViewport(void)
+CGraphicsViewport* CWorld::CreateViewport(void)
 {
-	CViewportInstance*		pcViewport;
+	CGraphicsViewport*		pcViewport;
 
 	pcViewport = mcViewportList.Add();
 	if (pcViewport)
@@ -688,7 +688,7 @@ CViewportInstance* CWorld::CreateViewport(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWorld::ReleaseViewport(CViewportInstance* pcViewport)
+void CWorld::ReleaseViewport(CGraphicsViewport* pcViewport)
 {
 	mcViewportList.Remove(pcViewport);
 }

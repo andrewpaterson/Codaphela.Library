@@ -31,6 +31,12 @@
     <Filter Include="Source\Pointer">
       <UniqueIdentifier>{9e45ef4e-3f4b-422a-8240-fb5b89675f6c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Window">
+      <UniqueIdentifier>{93a9b39a-7f94-442f-b5c8-7784b7e597fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Um">
+      <UniqueIdentifier>{1b3cf513-01a0-4f62-83ee-14cc1048a21c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComponentInput.cpp">
@@ -81,13 +87,7 @@
     <ClCompile Include="Toolbar.cpp">
       <Filter>Source\Component\Widgets</Filter>
     </ClCompile>
-    <ClCompile Include="Viewport.cpp">
-      <Filter>Source\Component\Widgets</Filter>
-    </ClCompile>
     <ClCompile Include="Widget.cpp">
-      <Filter>Source\Component\Widgets</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
       <Filter>Source\Component\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="Container.cpp">
@@ -141,14 +141,47 @@
     <ClCompile Include="SystemPointer.cpp">
       <Filter>Source\Pointer</Filter>
     </ClCompile>
-    <ClCompile Include="Focus.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="TextData.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentInputListener.cpp">
       <Filter>Source\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="TextData.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Viewport.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Focus.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Source.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Quad2D.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsState.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsTexture.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsMaterial.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsObject.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="Map2D.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsViewport.cpp">
+      <Filter>Source\Um</Filter>
+    </ClCompile>
+    <ClCompile Include="Direct3DGlobal.cpp">
+      <Filter>Source\Um</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -206,13 +239,7 @@
     <ClInclude Include="Toolbar.h">
       <Filter>Source\Component\Widgets</Filter>
     </ClInclude>
-    <ClInclude Include="Viewport.h">
-      <Filter>Source\Component\Widgets</Filter>
-    </ClInclude>
     <ClInclude Include="Widget.h">
-      <Filter>Source\Component\Widgets</Filter>
-    </ClInclude>
-    <ClInclude Include="Window.h">
       <Filter>Source\Component\Widgets</Filter>
     </ClInclude>
     <ClInclude Include="Container.h">
@@ -266,14 +293,50 @@
     <ClInclude Include="SystemPointer.h">
       <Filter>Source\Pointer</Filter>
     </ClInclude>
-    <ClInclude Include="Focus.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="TextData.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentInputListener.h">
       <Filter>Source\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="TextData.h">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Viewport.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Focus.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeWindow.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="Quad2D.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsState.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsTexture.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsMaterial.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="GrahicsHack.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsObject.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="Map2D.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsViewport.h">
+      <Filter>Source\Um</Filter>
+    </ClInclude>
+    <ClInclude Include="Direct3DGlobal.h">
+      <Filter>Source\Um</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

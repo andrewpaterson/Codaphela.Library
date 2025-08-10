@@ -42,7 +42,7 @@ public:
 	void 		Kill(void);
 	void 		Draw(void);
 	void 		SetPosition(int x, int y);
-	CQuad2D*	CreateQuad(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CViewportInstance* pcGraphicsViewport, int iWidth, int iHeight, int x, int y);
+	CQuad2D*	CreateQuad(CGraphicsMaterial* pcGraphicsMaterial, CGraphicsState* pcGraphicsState, CGraphicsViewport* pcGraphicsViewport, int iWidth, int iHeight, int x, int y);
 	void		Clear(void);
 	int			NumQuads(void);
 	CQuad2D*	StartIteration(SSetIterator* psIter);

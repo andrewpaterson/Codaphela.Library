@@ -25,9 +25,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CComponentInputKeyboard : public CComponentInputDevice
 {
+CONSTRUCTABLE(CComponentInputKeyboard); 
 public:
-	CONSTRUCTABLE(CComponentInputKeyboard);
-
 	CInputVirtualDeviceSource*	mQ;
 	CInputVirtualDeviceSource*	mW;
 	CInputVirtualDeviceSource*	mE;

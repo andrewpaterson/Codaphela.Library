@@ -20,7 +20,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
 #include "BaseLib/FileUtil.h"
-#include "WorldLib/World.h"
 #include "SupportLib/Font.h"
 #include "Viewport.h"
 #include "ComponentFactory.h"

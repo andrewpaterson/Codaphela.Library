@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "WorldLib/World.h"
 #include "SupportLib/ColourARGB.h"
 #include "Block.h"
 #include "BlockParameters.h"
@@ -100,7 +99,7 @@ void CBlock::SetRequiredSize(void)
 void CBlock::AdjustColour(CQuad2D* pcQuad)
 {
 	float			fAlpha;
-	unsigned int		iColour;
+	unsigned int	iColour;
 
 	fAlpha = Convert8BitColourToFloat(Get8BitAlphaColour(mpcBlockParameters->miColour));
 	fAlpha *= mfAlpha;

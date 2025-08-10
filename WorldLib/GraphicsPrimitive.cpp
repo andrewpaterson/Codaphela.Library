@@ -61,7 +61,7 @@ bool CGraphicsPrimitive::Draw(void)
 	SMatrix*				psMatrix;
 	SFloat4x4				sTemp;
 	SFloat4x4*				psAdjMatrix;
-	CViewportInstance*		pcViewport;
+	CGraphicsViewport*		pcViewport;
 
 	if (!(miFlags & GRAPH_PRIM_FLAGS_DRAW))
 	{

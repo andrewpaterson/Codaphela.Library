@@ -30,9 +30,9 @@ class CFocus : public CUnknown
 {
 CONSTRUCTABLE(CFocus);
 protected:
-	CComponent*					mpcMouseOverComponent;
-	CComponent*					mpcFocussedComponent;
-	CViewport*					mpcViewport;
+	CComponent*		mpcMouseOverComponent;
+	CComponent*		mpcFocussedComponent;
+	CViewport*		mpcViewport;
 
 public:
 	void 		Init(CViewport* pcViewport);

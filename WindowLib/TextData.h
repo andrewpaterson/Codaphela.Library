@@ -22,8 +22,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TEXT_DATA_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/Chars.h"
-#include "WorldLib/Map2D.h"
-#include "WorldLib/World.h"
 #include "TextParameters.h"
 
 
@@ -37,8 +35,8 @@ public:
 
 	void 				Init(char c, CTextParameters* pcFont);
 	void				Layout(int x, int y);
-	void				CreateQuad(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
-	void				CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
+	void				CreateQuad(CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
+	void				CreateQuad(char c, CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
 	int					GetWidth(void);
 	int					GetRight(void);
 	bool				IsWhiteSpace(void);
@@ -61,7 +59,7 @@ public:
 	void 				Init(CTextParameters* pcFont, char* szText, int iLen);
 	void 				Kill(void);
 	CTextParameters*	Layout(int x, int y, CTextParameters* pcLastFont);
-	void				CreateQuads(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
+	void				CreateQuads(CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
 	CTextChar* 			Insert(int x, CTextParameters* pcFont, char* szText, int iLen);
 	CTextChar*			Insert(int x, CTextParameters* pcFont, char c);
 	void 				Append(CChars* pcText);
@@ -100,7 +98,7 @@ public:
 	void 			Kill(void);
 	void 			Layout(void);
 	void			Clear(void);
-	void 			CreateQuads(CGraphicsObject* pcGraphicsObject, CViewportInstance* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
+	void 			CreateQuads(CGraphicsObject* pcGraphicsObject, CGraphicsViewport* pcViewport, SInt2* psPosition, CMap2D* pcMap2D);
 	void 			AddLines(int iNumLines);
 	SInt2			GetRequiredSize(void);
 

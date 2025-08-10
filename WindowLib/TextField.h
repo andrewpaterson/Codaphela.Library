@@ -29,9 +29,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //CMotionListener listener should become pointer listener and CKeyListener should become input listener
 class CTextField : public CLabel
 {
+CONSTRUCTABLE(CTextField); 
 public:
-	CONSTRUCTABLE(CTextField);
-
 	CPlainGraphicalTextEditor	mcEditor;
 
 	void 	Init(CViewport* pcViewport, char* szString, bool bDefaultBorder = true, bool bDefaultBackground = true);

@@ -26,9 +26,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CTextParameters : public CQuadParameters
 {
+CONSTRUCTABLE(CTextParameters); 
 public:
-	CONSTRUCTABLE(CTextParameters);
-
 	Ptr<CFont>			mpcFont;
 	int					miTabSpaceCount;  //tab width = miTabSpaceCount*miSpaceWidth.
 	unsigned int		miColour;

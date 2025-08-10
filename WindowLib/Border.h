@@ -20,10 +20,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __BORDER_H__
 #define __BORDER_H__
-#include "DirectXLib/Direct3DGlobal.h"
 #include "SupportLib/ColourARGB.h"
-#include "WorldLib/Quad2D.h"
 #include "Drawable.h"
+#include "Quad2D.h"
+#include "Direct3DGlobal.h"
 
 
 enum EBorderStyle
@@ -89,9 +89,8 @@ class CBorderParameters;
 
 class CBorder : public CDrawable
 {
+CONSTRUCTABLE(CBorder); 
 public:
-	CONSTRUCTABLE(CBorder);
-
 	CBorderParameters*		mpcBorderParameters;
 	float					mfAlpha;
 

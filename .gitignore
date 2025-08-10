@@ -49,3 +49,5 @@ us.stackdump
 /MicroprocessorLib/Release/*
 /WinInputLib/Debug/*
 /WinInputLib/Release/*
+/WinGdiLib/Debug/*
+/WinGdiLib/Release/*

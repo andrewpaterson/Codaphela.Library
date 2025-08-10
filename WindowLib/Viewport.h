@@ -23,18 +23,18 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/GeometricTypes.h"
 #include "BaseLib/WinInit.h"
 #include "SupportLib/WinText.h"
-#include "WorldLib/Map2D.h"
 #include "FixedContainer.h"
 #include "TextParameters.h"
 #include "Focus.h"
 #include "ComponentInput.h"
+#include "GrahicsHack.h"
+#include "Map2D.h"
 
 
 class CViewport : public CFixedContainer
 {
+CONSTRUCTABLE(CViewport); 
 public:
-	CONSTRUCTABLE(CViewport);
-
 	CGraphicsObject*	mpcGraphicsObject;
 	CFocus				mcFocus;
 	CComponentFactory*	mpcFactory;

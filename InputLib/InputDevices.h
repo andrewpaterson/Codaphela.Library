@@ -32,9 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CInputActions;
 class CInputDevices : public CListener
 {
+CONSTRUCTABLE(CInputDevices); 
 public:
-	CONSTRUCTABLE(CInputDevices);
-
 	CSetInputDevice					mlcDevices;
 	CSetInputDeviceDesc				mlcDeviceDescs;
 	CInputCategories				mcCategories;
