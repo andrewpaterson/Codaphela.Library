@@ -944,6 +944,38 @@ void SwapSize(size* pui1, size* pui2)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void SwapBit(uint8* puiByte, size uiBit1, size uiBit2)
+{
+	bool	bBit1;
+	bool	bBit2;
+
+	bBit1 = GetBit(uiBit1, puiByte);
+	bBit2 = GetBit(uiBit2, puiByte);
+	SetBit(uiBit1, puiByte, bBit2);
+	SetBit(uiBit2, puiByte, bBit1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SwapBit(uint16* puiByte, size uiBit1, size uiBit2)
+{
+	bool	bBit1;
+	bool	bBit2;
+
+	bBit1 = GetBit(uiBit1, puiByte);
+	bBit2 = GetBit(uiBit2, puiByte);
+	SetBit(uiBit1, puiByte, bBit2);
+	SetBit(uiBit2, puiByte, bBit1);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size FindFirstInt(int32* piIntArray, int32 iSearch, size iMaxLength)
 {
 	size	i;

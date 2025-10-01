@@ -906,6 +906,22 @@ void CChars::Insert(size iPos, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CChars::Insert(size iPos, char c, size uiCount)
+{
+	size i;
+
+	mcText.InsertNumAt(uiCount, iPos);
+	for (i = 0; i < uiCount; i++)
+	{
+		mcText.Set(iPos + i, &c);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CChars::Insert(size iPos, const char* szString)
 {
 	char*	pcNew;
@@ -1173,6 +1189,25 @@ void CChars::RightAlign(CChars szString, char cPadCharacter, size uiWidth)
 	else
 	{
 		AppendSubString(szString, 0, uiWidth);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CChars::RightAlign(size uiOffset, char cPadCharacter, size uiWidth)
+{
+	size	uiLen;
+
+	uiLen = Length() - uiOffset;
+	if (uiLen != 0)
+	{
+		if (uiLen <= uiWidth)
+		{
+			Insert(uiOffset, cPadCharacter, uiWidth - uiLen);
+		}
 	}
 }
 

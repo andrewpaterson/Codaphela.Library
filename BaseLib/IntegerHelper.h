@@ -59,6 +59,8 @@ void 	SwapInt32(int32* pi1, int32* pi2);
 void	SwapInt(int* pi1, int* pi2);
 void 	SwapByte(uint8* pc1, uint8* pi2);
 void	SwapSize(size* pui1, size* pui2);
+void	SwapBit(uint8* puiByte, size uiBit1, size uiBit2);
+void	SwapBit(uint16* puiByte, size uiBit1, size uiBit2);
 size 	FindFirstInt(int32* piIntArray, int32 iSearch, size iMaxLength);
 size	FindFirstByte(uint8* pcCharArray, uint8 uiSearch, size iMaxLength);
 uint8	GetHighNybble(uint8 c);
