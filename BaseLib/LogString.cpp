@@ -8,7 +8,7 @@
 
 
 char gaszLogToStringScratchPad[LOG_TO_STRING_SCRATCH_PAD_SIZE][LOG_TO_STRING_MAX_LENGTH];
-size  giLogToStringCount = 0;
+size giLogToStringCount = 0;
 
 
 //////////////////////////////////////////////////////////////////////////

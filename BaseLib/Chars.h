@@ -102,6 +102,7 @@ public:
 	CChars*	AppendPointer(void* pv);
 	bool	AppendFlag(uint32 msFlags, uint32 uiFlag, const char* szFlagName, bool bAppendComma = false);
 	void	Insert(size iPos, char c);
+	void	Insert(size iPos, char c, size uiCount);
 	void	Insert(size iPos, const char* szString);
 	void	Insert(size iPos, CChars* pszString);
 	void	Minimize(void);
@@ -112,6 +113,7 @@ public:
 	void	LeftAlign(const char* szString, char cPadCharacter, size iWidth);
 	void	RightAlign(CChars szString, char cPadCharacter, size iWidth);
 	void	RightAlign(const char* szString, char cPadCharacter, size iWidth);
+	void	RightAlign(size uiOffset, char cPadCharacter, size uiWidth);
 	void	RightAlign(char cPadCharacter, size iWidth);
 	void	RemoveLastCharacter(void);
 	void	RemoveFromStart(size iNumChars);
