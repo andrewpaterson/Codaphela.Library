@@ -23,61 +23,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Rectangle.h"
 #include "InputLib/Input.h"
 #include "WindowLib/NativeWindow.h"
-#include "WindowLib/SystemPointer.h"
-#include "WindowLib/Container.h"
-#include "WindowLib/Viewport.h"
 
 
-//There's a one to one relationship between CViewport and CWindow.  In theory the window is OS specific and the viewport isn't.
 class CWinGDIWindow : public CNativeWindow
 {
 CONSTRUCTABLE(CWinGDIWindow);
 public:
-	CViewport*		mpcViewport;
-	CInput*			mpcInput;
-	CRectangle		mcClientRect;
-
-	CChars			mszMenuName;
-	CChars			mszClassName;
-	CChars			mszWindowName;
-	HINSTANCE		mhInstance;
-	HWND			hWnd;
-	HCURSOR			hCursor;
-	bool			mbActive;
-	bool			mbLoop;
-
-	CTimer			mcLoopTimer;
-
-	static int			GetScreenWidth(void);
-	static int			GetScreenHeight(void);
-
-	void 				Init(HINSTANCE hInst, char* szName, CInput* pcInput);
-	virtual void 		Kill(void);
-	void				Layout(void);
-	bool				Draw(void);
-	bool 				FullScreen(int nCmdShow);
-	bool 				Windowed(int nCmdShow, int xp, int yp, int xs, int ys);
-	bool				Create(int nCmdShow, int xp, int yp, int xs, int ys, int iStyle);
-	void				Destroy(void);
-	int					WinLoop(void);
-	virtual void		ActiveTick(void);
-	void				UpdateRectangle(void);
-	void				GetClientSize(int* px, int* py);
-	int					GetClientWidth(void);
-	int					GetClientHeight(void);
-	void				AddComponent(CComponent* pcComponent);
-	void				RemoveComponent(CComponent* pcComponent, bool bKillComponent);
-	void				RemoveAllComponents(bool bKillComponents);
-	CComponent*			FindComponentAtRelative(int x, int y);
-	bool				IsPointInRelative(int x, int y);
-	CComponent*			FindComponentAtAbsolute(int x, int y);
-	bool				IsPointInAbsolute(int x, int y);
-	void				Activate(void);
-	void				Deactivate(void);
-	void				EndingWinloop(char* szReason);
-
-	CViewport*			GetViewport(void);
-	CInput*				GetInput(void);
 };
 
 

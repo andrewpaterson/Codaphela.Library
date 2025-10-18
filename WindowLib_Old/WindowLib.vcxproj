@@ -18,14 +18,6 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="NativeWindow.h" />
-    <ClInclude Include="Window.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="NativeWindow.cpp" />
-    <ClCompile Include="Window.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{B5D4C7AA-49EF-45D2-B970-0AB1F1184AE6}</ProjectGuid>
     <RootNamespace>WindowLib</RootNamespace>
@@ -185,6 +177,109 @@
     </ClCompile>
     <Lib />
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="ComponentInput.cpp" />
+    <ClCompile Include="ComponentInputCommand.cpp" />
+    <ClCompile Include="ComponentInputListener.cpp" />
+    <ClCompile Include="ComponentInputMotion.cpp" />
+    <ClCompile Include="ComponentInputNumKey.cpp" />
+    <ClCompile Include="ComponentInputPrintable.cpp" />
+    <ClCompile Include="ComponentInputDevice.cpp" />
+    <ClCompile Include="ComponentInputKeyboard.cpp" />
+    <ClCompile Include="ComponentInputMouse.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="ComponentFactory.cpp" />
+    <ClCompile Include="ComponentPointers.cpp" />
+    <ClCompile Include="Direct3DGlobal.cpp" />
+    <ClCompile Include="GraphicsObject.cpp" />
+    <ClCompile Include="GraphicsViewport.cpp" />
+    <ClCompile Include="Map2D.cpp" />
+    <ClCompile Include="Quad2D.cpp" />
+    <ClCompile Include="GraphicalTextEditor.cpp" />
+    <ClCompile Include="GraphicsMaterial.cpp" />
+    <ClCompile Include="GraphicsState.cpp" />
+    <ClCompile Include="GraphicsTexture.cpp" />
+    <ClCompile Include="PlainGraphicalTextEditor.cpp" />
+    <ClCompile Include="Label.cpp" />
+    <ClCompile Include="Source.cpp" />
+    <ClCompile Include="TextField.cpp" />
+    <ClCompile Include="Toolbar.cpp" />
+    <ClCompile Include="Viewport.cpp" />
+    <ClCompile Include="Widget.cpp" />
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="Container.cpp" />
+    <ClCompile Include="ContainerCell.cpp" />
+    <ClCompile Include="FillContainer.cpp" />
+    <ClCompile Include="FixedContainer.cpp" />
+    <ClCompile Include="FlowContainer.cpp" />
+    <ClCompile Include="GridCell.cpp" />
+    <ClCompile Include="GridContainer.cpp" />
+    <ClCompile Include="Block.cpp" />
+    <ClCompile Include="BlockParameters.cpp" />
+    <ClCompile Include="Border.cpp" />
+    <ClCompile Include="BorderParameters.cpp" />
+    <ClCompile Include="Caret.cpp" />
+    <ClCompile Include="Drawable.cpp" />
+    <ClCompile Include="QuadParameters.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="TextParameters.cpp" />
+    <ClCompile Include="SystemPointer.cpp" />
+    <ClCompile Include="Focus.cpp" />
+    <ClCompile Include="TextData.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ComponentInput.h" />
+    <ClInclude Include="ComponentInputCommand.h" />
+    <ClInclude Include="ComponentInputListener.h" />
+    <ClInclude Include="ComponentInputMotion.h" />
+    <ClInclude Include="ComponentInputNumKey.h" />
+    <ClInclude Include="ComponentInputPrintable.h" />
+    <ClInclude Include="ComponentInputDevice.h" />
+    <ClInclude Include="ComponentInputKeyboard.h" />
+    <ClInclude Include="ComponentInputMouse.h" />
+    <ClInclude Include="ComponentListener.h" />
+    <ClInclude Include="Direct3DGlobal.h" />
+    <ClInclude Include="GrahicsHack.h" />
+    <ClInclude Include="GraphicsObject.h" />
+    <ClInclude Include="GraphicsViewport.h" />
+    <ClInclude Include="Map2D.h" />
+    <ClInclude Include="Quad2D.h" />
+    <ClInclude Include="FocusListener.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="ComponentFactory.h" />
+    <ClInclude Include="ComponentPointers.h" />
+    <ClInclude Include="GraphicalTextEditor.h" />
+    <ClInclude Include="GraphicsMaterial.h" />
+    <ClInclude Include="GraphicsState.h" />
+    <ClInclude Include="GraphicsTexture.h" />
+    <ClInclude Include="NativeWindow.h" />
+    <ClInclude Include="PlainGraphicalTextEditor.h" />
+    <ClInclude Include="Label.h" />
+    <ClInclude Include="TextField.h" />
+    <ClInclude Include="Toolbar.h" />
+    <ClInclude Include="Viewport.h" />
+    <ClInclude Include="Widget.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="Container.h" />
+    <ClInclude Include="ContainerCell.h" />
+    <ClInclude Include="FillContainer.h" />
+    <ClInclude Include="FixedContainer.h" />
+    <ClInclude Include="FlowContainer.h" />
+    <ClInclude Include="GridCell.h" />
+    <ClInclude Include="GridContainer.h" />
+    <ClInclude Include="Block.h" />
+    <ClInclude Include="BlockParameters.h" />
+    <ClInclude Include="Border.h" />
+    <ClInclude Include="BorderParameters.h" />
+    <ClInclude Include="Caret.h" />
+    <ClInclude Include="Drawable.h" />
+    <ClInclude Include="QuadParameters.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="TextParameters.h" />
+    <ClInclude Include="SystemPointer.h" />
+    <ClInclude Include="Focus.h" />
+    <ClInclude Include="TextData.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
