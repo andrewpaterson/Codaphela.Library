@@ -51,3 +51,5 @@ us.stackdump
 /WinInputLib/Release/*
 /WinGdiLib/Debug/*
 /WinGdiLib/Release/*
+/WindowLib_Old/Debug/*
+/WindowLib_Old/Release/*

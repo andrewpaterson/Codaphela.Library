@@ -104,23 +104,7 @@ bool CWinConfig::Read(void)
 	}
 
 	szMode = cFile.Get("Mode");
-	meMode = WM_DX_HAL;
-	if (szMode)
-	{
-		if (StringInsensitiveCompare(szMode, "DX_HAL") == 0)
-		{
-			meMode = WM_DX_HAL;
-		}		
-		if (StringInsensitiveCompare(szMode, "DX_REF") == 0)
-		{
-			meMode = WM_DX_REF;
-		}		
-		if (StringInsensitiveCompare(szMode, "DX_SW") == 0)
-		{
-			meMode = WM_DX_SW;
-		}
-	}
-
+	
 	cFile.Kill();
 	return true;
 }
@@ -136,7 +120,6 @@ void CWinConfig::Default(void)
 	miHeight = 0;
 	mbWindowed = true;
 	mfAspect = 0;
-	meMode = WM_DX_HAL;
 }
 
 

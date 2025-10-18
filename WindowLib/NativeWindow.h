@@ -1,14 +1,16 @@
 #ifndef __NATIVE_WINDOW_H__
 #define __NATIVE_WINDOW_H__
-#include "InputLib/InputListener.h"
+#include "BaseLib/Constructable.h"
 
 
-class CNativeWindow : public CInputListener
+class CNativeWindow : public CConstructable
 {
-CONSTRUCTABLE(CNativeWindow);
 public:
+	void Init(void);
+	void Kill(void);
 };
 
 
 #endif // __NATIVE_WINDOW_H__
+
 

@@ -25,14 +25,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Define.h"
 
 
-enum EWinMode
-{
-	WM_DX_HAL,
-	WM_DX_REF,
-	WM_DX_SW,
-};
-
-
 class CWinConfig
 {
 public:
@@ -40,7 +32,6 @@ public:
 	uint16		miHeight;
 	bool		mbWindowed;
 	float		mfAspect;
-	EWinMode	meMode;
 
 	void Init(void);
 	bool Read(void);
