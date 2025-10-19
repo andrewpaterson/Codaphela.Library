@@ -22,7 +22,6 @@
     <ProjectGuid>{d42e3a40-2620-4520-bea0-ce1f3e064e08}</ProjectGuid>
     <RootNamespace>WinGdiLib</RootNamespace>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -96,9 +95,7 @@
       <CallingConvention>VectorCall</CallingConvention>
     </ClCompile>
     <Lib />
-    <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
-    </Bscmake>
+    <Bscmake />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

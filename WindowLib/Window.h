@@ -11,8 +11,10 @@ protected:
 	CNativeWindow* mpcNativeWindow;
 
 public:
-	void Init(CNativeWindow* pcNativeWindow);
-	void Kill(void);
+			void	Init(CNativeWindow* pcNativeWindow);
+			void	Kill(void);
+
+	virtual bool	Show(void);
 };
 
 

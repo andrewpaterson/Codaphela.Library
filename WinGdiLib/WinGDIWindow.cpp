@@ -69,24 +69,46 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle)
+void CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle)
+{
+    CNativeWindow::Init(szWindowTitle);
+    
+    mszWindowClass.Init(szWindowClass);
+    mhInstance = hInstance;
+    mhPrevInstance = mhPrevInstance;
+    miCmdShow = nCmdShow;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::Kill(void)
+{
+    UnregisterClassA(mszWindowClass.Text(), mhInstance);
+    mszWindowClass.Kill();
+    CNativeWindow::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDIWindow::CreateNativeWindow(void)
 {
     WNDCLASSA   sWindowClass;
     bool        bResult;
     ATOM        uiAtom;
     CChars      szError;
 
-    CNativeWindow::Init(szWindowTitle);
-    
-    mszWindowClass.Init(szWindowClass);
-    mhInstance = hInstance;
-    mhPrevInstance = mhPrevInstance;
 
     memset(&sWindowClass, 0, sizeof(WNDCLASSA));
 
     sWindowClass.lpfnWndProc = WindowProc;
-    sWindowClass.hInstance = hInstance;
-    sWindowClass.lpszClassName = szWindowClass;
+    sWindowClass.hInstance = mhInstance;
+    sWindowClass.lpszClassName = mszWindowClass.Text();;
     sWindowClass.hCursor = LoadCursorA(NULL, IDC_ARROW);
     sWindowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
@@ -101,18 +123,18 @@ bool CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdS
 
     // Create the window
     HWND hWnd = CreateWindowExA(0,                             // Optional window styles
-                                mszWindowClass.Text(),         // Window class
-                                mszWindowTitle.Text(),            // Window title
-                                WS_OVERLAPPEDWINDOW,           // Window style
-                                CW_USEDEFAULT, CW_USEDEFAULT,  // Position
-                                800, 600,                      // Size
-                                NULL,                          // Parent window
-                                NULL,                          // Menu
-                                hInstance,                     // Instance handle
-                                NULL                           // Additional application data
+        mszWindowClass.Text(),         // Window class
+        mszWindowTitle.Text(),            // Window title
+        WS_OVERLAPPEDWINDOW,           // Window style
+        CW_USEDEFAULT, CW_USEDEFAULT,  // Position
+        800, 600,                      // Size
+        NULL,                          // Parent window
+        NULL,                          // Menu
+        mhInstance,                     // Instance handle
+        NULL                           // Additional application data
     );
 
-    if (hWnd == NULL) 
+    if (hWnd == NULL)
     {
         szError = ErrorToString();
         gcLogger.Error2(__METHOD__, " CreateWindowExA failed [", szError.Text(), "].", NULL);
@@ -120,7 +142,7 @@ bool CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdS
         return false;
     }
 
-    bResult = ShowWindow(hWnd, nCmdShow);
+    bResult = ShowWindow(hWnd, miCmdShow);
     if (bResult)
     {
         szError = ErrorToString();
@@ -146,19 +168,7 @@ bool CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Kill(void)
-{
-    UnregisterClassA(mszWindowClass.Text(), mhInstance);
-    mszWindowClass.Kill();
-    CNativeWindow::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CWinGDIWindow::Run(void)
+bool CWinGDIWindow::ExecuteNativeWindow(void)
 {
     bool        bResult;
     LRESULT     lResult;
@@ -180,5 +190,24 @@ bool CWinGDIWindow::Run(void)
         }
     }
     return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDIWindow::Show(void)
+{
+    bool   bResult;
+
+    bResult = CreateNativeWindow();
+    if (!bResult)
+    {
+        return false;
+    }
+
+    bResult = ExecuteNativeWindow();
+    return bResult;
 }
 
