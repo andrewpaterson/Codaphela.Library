@@ -32,11 +32,16 @@ protected:
 	CChars					mszWindowClass;
 	HINSTANCE				mhInstance;
 	HINSTANCE 				mhPrevInstance;
+	int						miCmdShow;
 
 public:
-	bool Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle);
-	bool Run(void);
-	void Kill(void);
+	void	Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle);
+	bool	Show(void);
+	void	Kill(void);
+
+protected:
+	bool	CreateNativeWindow(void);
+	bool	ExecuteNativeWindow(void);
 };
 
 

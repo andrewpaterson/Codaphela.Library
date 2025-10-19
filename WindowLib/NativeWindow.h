@@ -7,12 +7,16 @@
 class CNativeWindow : public CConstructable
 {
 CONSTRUCTABLE(CNativeWindow);
+friend class CWindow;
 protected:
 	CChars	mszWindowTitle;
 
 public:
-	void Init(const char* szWindowTitle);
-	void Kill(void);
+			void	Init(const char* szWindowTitle);
+			void	Kill(void);
+
+protected:
+	virtual bool	Show(void) =0;
 };
 
 
