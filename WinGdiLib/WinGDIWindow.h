@@ -28,7 +28,15 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CWinGDIWindow : public CNativeWindow
 {
 CONSTRUCTABLE(CWinGDIWindow);
+protected:
+	CChars					mszWindowClass;
+	HINSTANCE				mhInstance;
+	HINSTANCE 				mhPrevInstance;
+
 public:
+	bool Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle);
+	bool Run(void);
+	void Kill(void);
 };
 
 

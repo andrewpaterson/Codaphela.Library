@@ -4,9 +4,9 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Init(void)
+void CWindow::Init(CNativeWindow* pcNativeWindow)
 {
-
+	mpcNativeWindow = pcNativeWindow;
 }
 
 
@@ -16,6 +16,6 @@ void CWindow::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Kill(void)
 {
-
+	mpcNativeWindow = NULL;
 }
 
