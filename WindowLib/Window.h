@@ -1,11 +1,17 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
+#include "BaseLib/Constructable.h"
+#include "NativeWindow.h"
 
 
-class CWindow
+class CWindow : public CConstructable
 {
+CONSTRUCTABLE(CWindow); 
+protected:
+	CNativeWindow* mpcNativeWindow;
+
 public:
-	void Init(void);
+	void Init(CNativeWindow* pcNativeWindow);
 	void Kill(void);
 };
 
