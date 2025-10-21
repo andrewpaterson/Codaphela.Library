@@ -31,13 +31,24 @@ CONSTRUCTABLE(CWinGDIWindow);
 protected:
 	CChars					mszWindowClass;
 	HINSTANCE				mhInstance;
-	HINSTANCE 				mhPrevInstance;
+	HINSTANCE 				mhLastInstance;
 	int						miCmdShow;
+	HWND					mhWnd;
+	HDC						mhLastDC;
+	CRectangle				mcLastRectangle;
+	HDC						mhMemDC;
+	HBITMAP					mhMemBitmap;
+	HBITMAP					mhOldBitmap;
+	int						miX;
+	bool					mbPainting;
 
 public:
-	void	Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle);
+	void	Init(HINSTANCE hInstance, HINSTANCE hLastInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle);
 	bool	Show(void);
 	void	Kill(void);
+
+	void	Draw(void);
+	void	Tick(void);
 
 protected:
 	bool	CreateNativeWindow(void);

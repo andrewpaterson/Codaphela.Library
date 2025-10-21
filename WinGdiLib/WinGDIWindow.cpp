@@ -23,45 +23,20 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/Chars.h"
+#include "SupportLib/Rectangle.h"
 #include "WinGDIWindow.h"
 
 
-CChars ErrorToString(void)
-{
-    DWORD       uiError;
-    char        szError[256];
-    CChars      sz;
-
-    uiError = GetLastError();
-    FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, uiError, 0, szError, 256, NULL);
-    sz.Init(szError);
-    sz.Replace("\r\n", "");
-    return sz;
-}
-
-
-LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
-{
-    switch (uiMessage)
-    {
-        case WM_DESTROY:
-        {
-            PostQuitMessage(0);
-            return 0;
-        }
-        case WM_PAINT: 
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
-            // Basic GDI drawing: Fill a rectangle with a color
-            HBRUSH brush = CreateSolidBrush(RGB(0, 128, 255)); // Blue color
-            FillRect(hdc, &ps.rcPaint, brush);
-            DeleteObject(brush);
-            EndPaint(hWnd, &ps);
-            return 0;
-        }
-    }
-    return DefWindowProcA(hWnd, uiMessage, wParam, lParam);
+#define ERROR_CHECK(p, q, r) \
+if (q) \
+{ \
+    p = ErrorToString(); \
+    if (!p.Empty()) \
+    { \
+        gcLogger.Error2(__METHOD__, " "##r##" failed [", p.Text(), "].", NULL); \
+        p.Kill(); \
+        return false; \
+    } \
 }
 
 
@@ -69,14 +44,23 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle)
+void CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hLastInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle)
 {
     CNativeWindow::Init(szWindowTitle);
     
     mszWindowClass.Init(szWindowClass);
     mhInstance = hInstance;
-    mhPrevInstance = mhPrevInstance;
+    mhLastInstance = NULL;
     miCmdShow = nCmdShow;
+    mhWnd = NULL;
+    mhLastDC = NULL;
+    mcLastRectangle.Init(-1, -1, -1, -1);
+    mhMemDC = NULL;
+    mhMemBitmap = NULL;
+    mhOldBitmap = NULL;
+    mbPainting = false;
+
+    miX = 0;
 }
 
 
@@ -96,13 +80,168 @@ void CWinGDIWindow::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CChars ErrorToString(void)
+{
+    DWORD       uiError;
+    char        szError[256];
+    CChars      sz;
+
+    uiError = GetLastError();
+    if (uiError != ERROR_SUCCESS)
+    {
+        FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, uiError, 0, szError, 256, NULL);
+        sz.Init(szError);
+        sz.Replace("\r\n", "");
+    }
+    else
+    {
+        sz.Init();
+    }
+    return sz;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::Tick(void)
+{
+    miX += 2;
+    if (miX > 350)
+    {
+        miX -= 350;
+    }
+
+    InvalidateRect(mhWnd, NULL, TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::Draw(void)
+{
+    PAINTSTRUCT     sPaintStruct;
+    HDC             hDC;
+    RECT            cRect;
+    CRectangle      cRectangle;
+    int32           iWidth;
+    int32           iHeight;
+
+    if (!mbPainting)
+    {
+        mbPainting = true;
+        hDC = BeginPaint(mhWnd, &sPaintStruct);
+
+        GetClientRect(mhWnd, &cRect);
+        cRectangle.Init(cRect.left, cRect.top, cRect.right, cRect.bottom);
+        iWidth = cRectangle.GetWidth();
+        iHeight = cRectangle.GetHeight();
+
+        if (hDC != mhLastDC)
+        {
+            if (!mcLastRectangle.Equals(&cRectangle))
+            {
+                if (mhMemDC)
+                {
+                    // Clean up
+                    SelectObject(mhMemDC, mhOldBitmap);
+                    DeleteObject(mhMemBitmap);
+                    DeleteDC(mhMemDC);
+                }
+
+                // Create double-buffering resources
+                mhMemDC = CreateCompatibleDC(hDC);
+                mhMemBitmap = CreateCompatibleBitmap(hDC, iWidth, iHeight);
+                mhOldBitmap = (HBITMAP)SelectObject(mhMemDC, mhMemBitmap);
+            }
+        }
+
+        // Fill background in memory DC
+        FillRect(mhMemDC, &cRect, (HBRUSH)(COLOR_WINDOW + 1));
+
+        // Draw a 10x10 grid of colored pixels in memory DC
+        for (int x = 50; x < 150; x += 10)
+        {
+            for (int y = 50; y < 150; y += 10)
+            {
+                SetPixel(mhMemDC, x + miX, y, RGB(255, 0, 0)); // Red pixels
+            }
+        }
+
+        // Copy memory DC to window DC
+        BitBlt(hDC, 0, 0, iWidth, iHeight, mhMemDC, 0, 0, SRCCOPY);
+
+        EndPaint(mhWnd, &sPaintStruct);
+        mhLastDC = hDC;
+        mcLastRectangle.Init(&cRectangle);
+
+        mbPainting = false;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
+{
+    CWinGDIWindow*  pcWindow;
+    CREATESTRUCTA*  pCreateStruct = (CREATESTRUCTA*)lParam;
+
+    pCreateStruct = (CREATESTRUCTA*)lParam;
+
+    pcWindow = (CWinGDIWindow*)GetWindowLongPtrA(hWnd, GWLP_USERDATA);
+
+    switch (uiMessage)
+    {
+    case WM_CREATE:
+    {
+        pCreateStruct = (CREATESTRUCTA*)lParam;
+        pcWindow = (CWinGDIWindow*)pCreateStruct->lpCreateParams;
+        if (pcWindow)
+        {
+            SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)pcWindow);
+            SetTimer(hWnd, 1, 1000 / 60, NULL);
+            return ERROR_SUCCESS;
+        }
+        else
+        {
+            return ERROR_INVALID_PARAMETER;
+        }
+    }
+    case WM_TIMER: 
+    {
+        pcWindow->Tick();
+        return 0;
+    }
+    case WM_DESTROY:
+    {
+        PostQuitMessage(0);
+        return 0;
+    }
+    case WM_PAINT:
+    {
+        pcWindow->Draw();
+        return 0;
+    }
+    }
+    return DefWindowProcA(hWnd, uiMessage, wParam, lParam);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CWinGDIWindow::CreateNativeWindow(void)
 {
     WNDCLASSA   sWindowClass;
     bool        bResult;
     ATOM        uiAtom;
     CChars      szError;
-
 
     memset(&sWindowClass, 0, sizeof(WNDCLASSA));
 
@@ -113,52 +252,25 @@ bool CWinGDIWindow::CreateNativeWindow(void)
     sWindowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
     uiAtom = RegisterClassA(&sWindowClass);
-    if (uiAtom == 0)
-    {
-        szError = ErrorToString();
-        gcLogger.Error2(__METHOD__, " RegisterClassA failed [", szError.Text(), "].", NULL);
-        szError.Kill();
-        return false;
-    }
+    ERROR_CHECK(szError, uiAtom == 0, "RegisterClassA");
 
-    // Create the window
-    HWND hWnd = CreateWindowExA(0,                             // Optional window styles
-        mszWindowClass.Text(),         // Window class
-        mszWindowTitle.Text(),            // Window title
-        WS_OVERLAPPEDWINDOW,           // Window style
-        CW_USEDEFAULT, CW_USEDEFAULT,  // Position
-        800, 600,                      // Size
-        NULL,                          // Parent window
-        NULL,                          // Menu
-        mhInstance,                     // Instance handle
-        NULL                           // Additional application data
-    );
+    mhWnd = CreateWindowExA(0,                             // Optional window styles
+                            mszWindowClass.Text(),         // Window class
+                            mszWindowTitle.Text(),         // Window title
+                            WS_OVERLAPPEDWINDOW,           // Window style
+                            CW_USEDEFAULT, CW_USEDEFAULT,  // Position
+                            800, 600,                      // Size
+                            NULL,                          // Parent window
+                            NULL,                          // Menu
+                            mhInstance,                    // Instance handle
+                            this);
+    ERROR_CHECK(szError, mhWnd == NULL, "CreateWindowExA");
 
-    if (hWnd == NULL)
-    {
-        szError = ErrorToString();
-        gcLogger.Error2(__METHOD__, " CreateWindowExA failed [", szError.Text(), "].", NULL);
-        szError.Kill();
-        return false;
-    }
+    bResult = ShowWindow(mhWnd, miCmdShow);
+    ERROR_CHECK(szError, bResult, "ShowWindow");
 
-    bResult = ShowWindow(hWnd, miCmdShow);
-    if (bResult)
-    {
-        szError = ErrorToString();
-        gcLogger.Error2(__METHOD__, " ShowWindow failed [", szError.Text(), "].", NULL);
-        szError.Kill();
-        return false;
-    }
-
-    bResult = UpdateWindow(hWnd);
-    if (!bResult)
-    {
-        szError = ErrorToString();
-        gcLogger.Error2(__METHOD__, " UpdateWindow failed [", szError.Text(), "].", NULL);
-        szError.Kill();
-        return false;
-    }
+    bResult = UpdateWindow(mhWnd);
+    ERROR_CHECK(szError, !bResult, "UpdateWindow");
 
     return true;
 }
@@ -173,21 +285,16 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
     bool        bResult;
     LRESULT     lResult;
     CChars      szError;
-
-    // Message loop
-    MSG sMessage = { 0 };
+    MSG         sMessage;
+    
+    memset(&sMessage, 0, sizeof(MSG));
     while (GetMessageA(&sMessage, NULL, 0, 0))
     {
         bResult = TranslateMessage(&sMessage);
+        ERROR_CHECK(szError, bResult, "TranslateMessage");
+
         lResult = DispatchMessageA(&sMessage);
 
-        if (bResult)
-        {
-            szError = ErrorToString();
-            gcLogger.Error2(__METHOD__, " TranslateMessage failed [", szError.Text(), "].", NULL);
-            szError.Kill();
-            return false;
-        }
     }
     return true;
 }

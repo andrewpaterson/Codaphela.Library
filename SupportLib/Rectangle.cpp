@@ -24,6 +24,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Rectangle.h"
 
 
+#define HALF_TEXEL	(0.5f)
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -41,12 +44,25 @@ void CRectangle::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::Init(int x1, int y1, int x2, int y2)
+void CRectangle::Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
-	miLeft = x1;
-	miTop = y1;
-	miRight = x2;
-	miBottom = y2;
+	miLeft = iLeft;
+	miTop = iTop;
+	miRight = iRight;
+	miBottom = iBottom;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRectangle::Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom)
+{
+	miLeft = (int32)iLeft;
+	miTop = (int32)iTop;
+	miRight = (int32)iRight;
+	miBottom = (int32)iBottom;
 }
 
 
@@ -98,7 +114,7 @@ void CRectangle::Copy(CRectangle* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetWidth(void)
+int32 CRectangle::GetWidth(void)
 {
 	return miRight - miLeft;
 }
@@ -108,7 +124,7 @@ int CRectangle::GetWidth(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetHeight(void)
+int32 CRectangle::GetHeight(void)
 {
 	return miBottom - miTop;
 }
@@ -118,7 +134,7 @@ int CRectangle::GetHeight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetArea(void)
+int32 CRectangle::GetArea(void)
 {
 	return GetWidth() * GetHeight();
 }
@@ -128,7 +144,7 @@ int CRectangle::GetArea(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::SetWidth(int iWidth)
+void CRectangle::SetWidth(int32 iWidth)
 {
 	miRight = miLeft + iWidth;
 }
@@ -138,7 +154,7 @@ void CRectangle::SetWidth(int iWidth)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::SetHeight(int iHeight)
+void CRectangle::SetHeight(int32 iHeight)
 {
 	miBottom = miTop + iHeight;
 }
@@ -148,7 +164,7 @@ void CRectangle::SetHeight(int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::SetSize(int iWidth, int iHeight)
+void CRectangle::SetSize(int32 iWidth, int32 iHeight)
 {
 	SetWidth(iWidth);
 	SetHeight(iHeight);
@@ -159,10 +175,10 @@ void CRectangle::SetSize(int iWidth, int iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::SetPos(int x, int y)
+void CRectangle::SetPos(int32 x, int32 y)
 {
-	int	iWidth;
-	int	iHeight;
+	int32	iWidth;
+	int32	iHeight;
 	
 	iWidth = GetWidth();
 	iHeight = GetHeight();
@@ -177,7 +193,7 @@ void CRectangle::SetPos(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetLeft(void)
+int32 CRectangle::GetLeft(void)
 {
 	return miLeft;
 }
@@ -187,7 +203,7 @@ int CRectangle::GetLeft(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetTop(void)
+int32 CRectangle::GetTop(void)
 {
 	return miTop;
 }
@@ -197,7 +213,7 @@ int CRectangle::GetTop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetRight(void)
+int32 CRectangle::GetRight(void)
 {
 	return miRight;
 }
@@ -207,7 +223,7 @@ int CRectangle::GetRight(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CRectangle::GetBottom(void)
+int32 CRectangle::GetBottom(void)
 {
 	return miBottom;
 }
@@ -217,7 +233,7 @@ int CRectangle::GetBottom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRectangle::GrowToContain(int iXPos, int iYPos)
+void CRectangle::GrowToContain(int32 iXPos, int32 iYPos)
 {
 	if (iXPos < miLeft)
 	{
@@ -253,7 +269,7 @@ bool CRectangle::IsValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRectangle::IsIn(int x, int y)
+bool CRectangle::IsIn(int32 x, int32 y)
 {
 	return (((x >= miLeft) && (x <= miRight)) && ((y >= miTop) && (y <= miBottom)));
 }
@@ -263,20 +279,37 @@ bool CRectangle::IsIn(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CRectangle::IsIn(int iLeft, int iTop, int iRight, int iBottom)
+bool CRectangle::IsIn(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 {
 	return (IsIn(iLeft, iTop) && IsIn(iRight, iBottom));
 }
 
 
-#define HALF_TEXEL	(0.5f)
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CRectangle::Equals(CRectangle* pcOther)
+{
+	if (pcOther)
+	{
+		if ((miTop == pcOther->miTop) &&
+			(miBottom == pcOther->miBottom) &&
+			(miLeft == pcOther->miLeft) &&
+			(miRight == pcOther->miRight))
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat2	CRectangle::GetUVCoordinatesTopLeft(int iTextureXSize, int iTextureYSize)
+SFloat2	CRectangle::GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize)
 {
 	SFloat2	sTopLeft;
 
@@ -290,7 +323,7 @@ SFloat2	CRectangle::GetUVCoordinatesTopLeft(int iTextureXSize, int iTextureYSize
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SFloat2	CRectangle::GetUVCoordinatesBottomRight(int iTextureXSize, int iTextureYSize)
+SFloat2	CRectangle::GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize)
 {
 	SFloat2 sBottomRight;
 
