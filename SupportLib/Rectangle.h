@@ -30,40 +30,44 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 
-//Left 0 to Right 1 gives a width of 1 pixel.  0 to 0 gives a width of 0.
+//Left 0 to Right 1 gives a width of 1.  0 to 0 gives a width of 0.
 
 class CRectangle
 {
 public:
-	int    miLeft;
-	int    miTop;
+	int32    miLeft;
+	int32    miTop;
 
-	int    miRight;
-	int    miBottom;
+	int32    miRight;
+	int32    miBottom;
 
-	void	Init(void);
-	void 	Init(int iLeft, int iTop, int iRight, int iBottom);
-	void 	Init(SInt2 sTopLeft, SInt2 sBottomRight);
-	void 	Init(CRectangle* pcSource);
-	void 	Kill(void);
-	void	Copy(CRectangle* pcSource);
-	int		GetLeft(void);
-	int		GetTop(void);
-	int		GetRight(void);
-	int		GetBottom(void);
-	int 	GetWidth(void);
-	int 	GetHeight(void);
-	int 	GetArea(void);
-	void	SetWidth(int iWidth);
-	void	SetHeight(int iHeight);
-	void	SetSize(int iWidth, int iHeight);
-	void	SetPos(int x, int y);
-	void	GrowToContain(int iXPos, int iYPos);
-	bool	IsValid(void);
-	bool	IsIn(int x, int y);
-	bool	IsIn(int iLeft, int iTop, int iRight, int iBottom);
-	SFloat2	GetUVCoordinatesTopLeft(int iTextureXSize, int iTextureYSize);
-	SFloat2	GetUVCoordinatesBottomRight(int iTextureXSize, int iTextureYSize);
+public:
+	void		Init(void);
+	void 		Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+	void 		Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom);
+	void 		Init(SInt2 sTopLeft, SInt2 sBottomRight);
+	void 		Init(CRectangle* pcSource);
+	void 		Kill(void);
+	void		Copy(CRectangle* pcSource);
+	int32		GetLeft(void);
+	int32		GetTop(void);
+	int32		GetRight(void);
+	int32		GetBottom(void);
+	int32 		GetWidth(void);
+	int32 		GetHeight(void);
+	int32 		GetArea(void);
+	void		SetWidth(int32 iWidth);
+	void		SetHeight(int32 iHeight);
+	void		SetSize(int32 iWidth, int32 iHeight);
+	void		SetPos(int32 x, int32 y);
+	void		GrowToContain(int32 iXPos, int32 iYPos);
+	bool		IsValid(void);
+	bool		IsIn(int32 x, int32 y);
+	bool		IsIn(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);
+	bool		Equals(CRectangle* pcOther);
+
+	SFloat2		GetUVCoordinatesTopLeft(int32 iTextureXSize, int32 iTextureYSize);
+	SFloat2		GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iTextureYSize);
 };
 
 
