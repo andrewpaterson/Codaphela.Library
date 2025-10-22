@@ -20,6 +20,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include <windows.h>
 #include "SupportLib/Rectangle.h"
 #include "InputLib/Input.h"
 #include "WindowLib/NativeWindow.h"
@@ -31,7 +32,7 @@ CONSTRUCTABLE(CWinGDIWindow);
 protected:
 	CChars					mszWindowClass;
 	HINSTANCE				mhInstance;
-	HINSTANCE 				mhLastInstance;
+	HINSTANCE 				mhPrevInstance;
 	int						miCmdShow;
 	HWND					mhWnd;
 	HDC						mhLastDC;
@@ -39,20 +40,20 @@ protected:
 	HDC						mhMemDC;
 	HBITMAP					mhMemBitmap;
 	HBITMAP					mhOldBitmap;
-	int						miX;
 	bool					mbPainting;
 
 public:
-	void	Init(HINSTANCE hInstance, HINSTANCE hLastInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle);
-	bool	Show(void);
+	void	Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
 	void	Kill(void);
 
 	void	Draw(void);
-	void	Tick(void);
 
-protected:
 	bool	CreateNativeWindow(void);
 	bool	ExecuteNativeWindow(void);
+	void	PaintNativeWindow(void);
+
+protected:
+	void	CleanAfterDraw(void);
 };
 
 

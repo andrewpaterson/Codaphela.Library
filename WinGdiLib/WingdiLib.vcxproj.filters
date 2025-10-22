@@ -9,9 +9,15 @@
     <ClInclude Include="WinGDIWindow.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="WinGDIWindowFactory.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinGDIWindow.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinGDIWindowFactory.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
