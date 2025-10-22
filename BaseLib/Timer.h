@@ -28,12 +28,12 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CTimer
 {
 private:
-	int		miStart;
-	int		miStart2;
+	int64	miStart;
+	int64	miStart2;
 
 public:
-	int		miTotalTime;  //Time in milliseconds since the timer was intialised/reset.
-	int		miUpdateTime;  //Time in milliseconds since the last update function.
+	int64	miTotalTime;  //Time in milliseconds since the timer was intialised/reset.
+	int64	miUpdateTime;  //Time in milliseconds since the last update function.
 	float	mfTotalTime;
 	float	mfUpdateTime;
 	float	mfUpdatesPerSecond;
@@ -47,10 +47,15 @@ public:
 	float GetUpdatesPerSecond(void) { return mfUpdatesPerSecond; }
 	float GetTotalTimeInSeconds(void) { return mfTotalTime; }
 
+	int64 GetUpdateTimeInMillieconds(void) { return miUpdateTime; }
+	int64 GetTotalTimeInMillieconds(void) { return miTotalTime; }
+
 	void HumanReadable(CChars* psz);
 };
 
+
 void DebugTimerTick(void);
+
 
 extern CTimer	gcTimer;
 
