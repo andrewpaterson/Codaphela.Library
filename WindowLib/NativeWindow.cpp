@@ -1,3 +1,4 @@
+#include "NativeWindowFactory.h"
 #include "NativeWindow.h"
 
 
@@ -5,9 +6,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindow::Init(const char* szWindowTitle)
+void CNativeWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory)
 {
 	mszWindowTitle.Init(szWindowTitle);
+	mpcWindowFactory = pcWindowFactory;
 }
 
 
@@ -18,6 +20,16 @@ void CNativeWindow::Init(const char* szWindowTitle)
 void CNativeWindow::Kill(void)
 {
 	mszWindowTitle.Kill();
+	mpcWindowFactory = NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNativeWindowFactory* CNativeWindow::GetFactory(void)
+{
+	return mpcWindowFactory;
+}
 

@@ -34,6 +34,9 @@
     <Filter Include="Source\Component\Window">
       <UniqueIdentifier>{93a9b39a-7f94-442f-b5c8-7784b7e597fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Factory">
+      <UniqueIdentifier>{edca1fd7-3233-4280-9dcd-f5aa0be9793d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeWindow.h">
@@ -42,6 +45,12 @@
     <ClInclude Include="Window.h">
       <Filter>Source\Component\Window</Filter>
     </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeWindowFactory.h">
+      <Filter>Source\Factory</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -49,6 +58,12 @@
     </ClCompile>
     <ClCompile Include="Window.cpp">
       <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeWindowFactory.cpp">
+      <Filter>Source\Factory</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

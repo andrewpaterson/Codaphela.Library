@@ -172,9 +172,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="WinGDIWindow.h" />
+    <ClInclude Include="WinGDIWindowFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinGDIWindow.cpp" />
+    <ClCompile Include="WinGDIWindowFactory.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

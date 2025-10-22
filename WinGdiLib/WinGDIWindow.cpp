@@ -18,7 +18,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <windows.h>
 #include "BaseLib/Define.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
@@ -44,13 +43,13 @@ if (q) \
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hLastInstance, int nCmdShow, const char* szWindowClass, const char* szWindowTitle)
+void CWinGDIWindow::Init(const char* szWindowTitle, CNativeWindowFactory * pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
 {
-    CNativeWindow::Init(szWindowTitle);
+    CNativeWindow::Init(szWindowTitle, pcWindowFactory);
     
     mszWindowClass.Init(szWindowClass);
     mhInstance = hInstance;
-    mhLastInstance = NULL;
+    mhPrevInstance = NULL;
     miCmdShow = nCmdShow;
     mhWnd = NULL;
     mhLastDC = NULL;
@@ -59,8 +58,6 @@ void CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hLastInstance, int nCmdS
     mhMemBitmap = NULL;
     mhOldBitmap = NULL;
     mbPainting = false;
-
-    miX = 0;
 }
 
 
@@ -70,6 +67,8 @@ void CWinGDIWindow::Init(HINSTANCE hInstance, HINSTANCE hLastInstance, int nCmdS
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::Kill(void)
 {
+    CleanAfterDraw();
+
     UnregisterClassA(mszWindowClass.Text(), mhInstance);
     mszWindowClass.Kill();
     CNativeWindow::Kill();
@@ -104,14 +103,8 @@ CChars ErrorToString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Tick(void)
+void CWinGDIWindow::PaintNativeWindow(void)
 {
-    miX += 2;
-    if (miX > 350)
-    {
-        miX -= 350;
-    }
-
     InvalidateRect(mhWnd, NULL, TRUE);
 }
 
@@ -143,13 +136,7 @@ void CWinGDIWindow::Draw(void)
         {
             if (!mcLastRectangle.Equals(&cRectangle))
             {
-                if (mhMemDC)
-                {
-                    // Clean up
-                    SelectObject(mhMemDC, mhOldBitmap);
-                    DeleteObject(mhMemBitmap);
-                    DeleteDC(mhMemDC);
-                }
+                CleanAfterDraw();
 
                 // Create double-buffering resources
                 mhMemDC = CreateCompatibleDC(hDC);
@@ -166,7 +153,7 @@ void CWinGDIWindow::Draw(void)
         {
             for (int y = 50; y < 150; y += 10)
             {
-                SetPixel(mhMemDC, x + miX, y, RGB(255, 0, 0)); // Red pixels
+                SetPixel(mhMemDC, x /* + miX */, y, RGB(255, 0, 0)); // Red pixels
             }
         }
 
@@ -186,6 +173,23 @@ void CWinGDIWindow::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::CleanAfterDraw(void)
+{
+    if (mhMemDC)
+    {
+        // Clean up
+        SelectObject(mhMemDC, mhOldBitmap);
+        DeleteObject(mhMemBitmap);
+        DeleteDC(mhMemDC);
+    }
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lParam)
 {
     CWinGDIWindow*  pcWindow;
@@ -197,37 +201,32 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
 
     switch (uiMessage)
     {
-    case WM_CREATE:
-    {
-        pCreateStruct = (CREATESTRUCTA*)lParam;
-        pcWindow = (CWinGDIWindow*)pCreateStruct->lpCreateParams;
-        if (pcWindow)
+        case WM_CREATE:
         {
-            SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)pcWindow);
-            SetTimer(hWnd, 1, 1000 / 60, NULL);
+            pCreateStruct = (CREATESTRUCTA*)lParam;
+            pcWindow = (CWinGDIWindow*)pCreateStruct->lpCreateParams;
+            if (pcWindow)
+            {
+                SetWindowLongPtrA(hWnd, GWLP_USERDATA, (LONG_PTR)pcWindow);
+                return ERROR_SUCCESS;
+            }
+            else
+            {
+                return ERROR_INVALID_PARAMETER;
+            }
+        }
+        case WM_DESTROY:
+        {
+            PostQuitMessage(0);
             return ERROR_SUCCESS;
         }
-        else
+        case WM_PAINT:
         {
-            return ERROR_INVALID_PARAMETER;
+            pcWindow->Draw();
+            return ERROR_SUCCESS;
         }
     }
-    case WM_TIMER: 
-    {
-        pcWindow->Tick();
-        return 0;
-    }
-    case WM_DESTROY:
-    {
-        PostQuitMessage(0);
-        return 0;
-    }
-    case WM_PAINT:
-    {
-        pcWindow->Draw();
-        return 0;
-    }
-    }
+
     return DefWindowProcA(hWnd, uiMessage, wParam, lParam);
 }
 
@@ -247,7 +246,7 @@ bool CWinGDIWindow::CreateNativeWindow(void)
 
     sWindowClass.lpfnWndProc = WindowProc;
     sWindowClass.hInstance = mhInstance;
-    sWindowClass.lpszClassName = mszWindowClass.Text();;
+    sWindowClass.lpszClassName = mszWindowClass.Text();
     sWindowClass.hCursor = LoadCursorA(NULL, IDC_ARROW);
     sWindowClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
 
@@ -283,38 +282,23 @@ bool CWinGDIWindow::CreateNativeWindow(void)
 bool CWinGDIWindow::ExecuteNativeWindow(void)
 {
     bool        bResult;
-    LRESULT     lResult;
     CChars      szError;
     MSG         sMessage;
+    bool        bHasMessage;
     
     memset(&sMessage, 0, sizeof(MSG));
-    while (GetMessageA(&sMessage, NULL, 0, 0))
+    bHasMessage = PeekMessageA(&sMessage, NULL, 0, 0, PM_REMOVE);
+    if (bHasMessage)
     {
+        if (sMessage.message == WM_QUIT)
+        {
+            return false;
+        }
         bResult = TranslateMessage(&sMessage);
         ERROR_CHECK(szError, bResult, "TranslateMessage");
 
-        lResult = DispatchMessageA(&sMessage);
-
+        DispatchMessageA(&sMessage);
     }
     return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CWinGDIWindow::Show(void)
-{
-    bool   bResult;
-
-    bResult = CreateNativeWindow();
-    if (!bResult)
-    {
-        return false;
-    }
-
-    bResult = ExecuteNativeWindow();
-    return bResult;
 }
 
