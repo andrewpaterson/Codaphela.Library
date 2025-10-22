@@ -32,10 +32,16 @@ CTimer	gcTimer;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-uint32 GetDebugTickCount()
+int64 GetDebugTickCount()
 {
-	//return giTime;
-	return GetTickCount();
+	LARGE_INTEGER	freq;
+	LARGE_INTEGER	counter;
+	int64			uiMilliseconds;
+
+	QueryPerformanceFrequency(&freq);
+	QueryPerformanceCounter(&counter);
+	uiMilliseconds = (counter.QuadPart * 1000) / freq.QuadPart;
+	return uiMilliseconds;
 }
 
 
@@ -58,7 +64,7 @@ void CTimer::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTimer::Update(void)
 {
-	int		iTime;
+	int64	iTime;
 
 	iTime = GetDebugTickCount();
 
@@ -101,7 +107,6 @@ void CTimer::Reset(void)
 //////////////////////////////////////////////////////////////////////////
 void CTimer::Kill(void)
 {
-	//Does nothing.
 }
 
 

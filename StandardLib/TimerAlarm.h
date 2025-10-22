@@ -30,21 +30,21 @@ class CTimerAlarm
 {
 public:
 	bool		mbRepeat;
-	int			miTime;  //How long before the action occurs. All times in milliseconds.
-	int			miRemainingTime;
+	int64		miTime;  //How long before the action occurs. All times in milliseconds.
+	int64		miRemainingTime;
 	bool		mbWaitForFirstUpdate;
 	bool		mbRunning;
 	int			miId;
 	CChars		mszName;
 	CAction*	mpcAction;
 
-	void	Init(CAction* pcAction, char* szTimerName, int iTime, bool bRepeat);
+	void	Init(CAction* pcAction, char* szTimerName, int64 iTime, bool bRepeat);
 	void	Kill(void);
 	float	Update(void);
 	void	Reset(void);
 	void	Start(void);
 	void	Stop(void);
-	void	Pause(int iPauseTime);
+	void	Pause(int64 iPauseTime);
 };
 
 
