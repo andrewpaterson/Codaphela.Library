@@ -1,5 +1,5 @@
-#ifndef __WIN_GDI_WINDOW_H__
-#define __WIN_GDI_WINDOW_H__
+#ifndef __CANVAS_H__
+#define __CANVAS_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2012 Andrew Paterson
@@ -20,43 +20,30 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include <windows.h>
-#include "SupportLib/Rectangle.h"
-#include "InputLib/Input.h"
-#include "WindowLib/NativeWindow.h"
-#include "WinGDICanvas.h"
+#include "StandardLib/Unknown.h"
+#include "BasicComponent.h"
 
 
-class CWinGDIWindow : public CNativeWindow
+class CNativeCanvas;
+class CCanvas : public CBasicComponent
 {
-CONSTRUCTABLE(CWinGDIWindow);
+CONSTRUCTABLE(CCanvas);
 protected:
-	CChars			mszWindowClass;
-	HINSTANCE		mhInstance;
-	HINSTANCE 		mhPrevInstance;
-	int				miCmdShow;
-	HWND			mhWnd;
-	HDC				mhLastDC;
-	CRectangle		mcLastRectangle;
-	HDC				mhMemDC;
-	HBITMAP			mhMemBitmap;
-	HBITMAP			mhOldBitmap;
-	bool			mbPainting;
+	CNativeCanvas*	mpcNativeCanvas;
+	EColourFormat	meFormat;
+	int32			miWidth;
+	int32			miHeight;
 
 public:
-	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
-	void	Kill(void);
+	void			Init(CNativeWindowFactory* pcWindowFactory);
+	void			Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcWindowFactory);
+	void			Kill(void);
 
-	void	Draw(void);
-
-	bool	CreateNativeWindow(void) override;
-	bool	ExecuteNativeWindow(void) override;
-	void	PaintNativeWindow(void) override;
-
-protected:
-	void			DestroyCanvas(void);
+	EColourFormat	GetFormat(void);
+	int32			GetWidth(void);
+	int32			GetHeight(void);
 };
 
 
-#endif // __WIN_GDI_WINDOW_H__
+#endif // __CANVAS_H__
 

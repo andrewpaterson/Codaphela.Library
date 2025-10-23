@@ -1,22 +1,31 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
-#include "BaseLib/Constructable.h"
+#include "Component.h"
+#include "Canvas.h"
 #include "NativeWindow.h"
 
 
-class CWindow : public CConstructable
+class CWindow : public CComponent
 {
 CONSTRUCTABLE(CWindow); 
 protected:
+	CChars			mszWindowTitle;
+
 	CNativeWindow*	mpcNativeWindow;
-	int64			miTime;
+	CCanvas			mcCanvas;
 
 public:
-			void	Init(CNativeWindow* pcNativeWindow);
-			void	Kill(void);
+			void			Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory);
+			void			Kill(void);
 
-	virtual bool	Show(void);
-	virtual void	Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
+	virtual bool			Show(void);
+	virtual void			Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
+
+	virtual	void			CanvasChanged(CCanvas* pcNewCanvas);
+			void			CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight);
+
+			const char*		GetWindowTitle(void);
+			CCanvas*		GetCanvas(void);
 };
 
 

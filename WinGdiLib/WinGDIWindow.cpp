@@ -23,6 +23,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "BaseLib/Chars.h"
 #include "SupportLib/Rectangle.h"
+#include "WindowLib/Window.h"
+#include "WinGDIWindowFactory.h"
 #include "WinGDIWindow.h"
 
 
@@ -43,9 +45,9 @@ if (q) \
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Init(const char* szWindowTitle, CNativeWindowFactory * pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
+void CWinGDIWindow::Init(CWindow * pcWindow, CNativeWindowFactory * pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
 {
-    CNativeWindow::Init(szWindowTitle, pcWindowFactory);
+    CNativeWindow::Init(pcWindow, pcWindowFactory);
     
     mszWindowClass.Init(szWindowClass);
     mhInstance = hInstance;
@@ -67,7 +69,7 @@ void CWinGDIWindow::Init(const char* szWindowTitle, CNativeWindowFactory * pcWin
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::Kill(void)
 {
-    CleanAfterDraw();
+    DestroyCanvas();
 
     UnregisterClassA(mszWindowClass.Text(), mhInstance);
     mszWindowClass.Kill();
@@ -99,15 +101,6 @@ CChars ErrorToString(void)
     return sz;
 }
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::PaintNativeWindow(void)
-{
-    InvalidateRect(mhWnd, NULL, TRUE);
-}
-
 
 //////////////////////////////////////////////////////////////////////////
 //
@@ -132,18 +125,13 @@ void CWinGDIWindow::Draw(void)
         iWidth = cRectangle.GetWidth();
         iHeight = cRectangle.GetHeight();
 
-        if (hDC != mhLastDC)
+        if ((hDC != mhLastDC) || (!mcLastRectangle.Equals(&cRectangle)))
         {
-            if (!mcLastRectangle.Equals(&cRectangle))
-            {
-                CleanAfterDraw();
+            DestroyCanvas();
 
-                // Create double-buffering resources
-                mhMemDC = CreateCompatibleDC(hDC);
-                mhMemBitmap = CreateCompatibleBitmap(hDC, iWidth, iHeight);
-                mhOldBitmap = (HBITMAP)SelectObject(mhMemDC, mhMemBitmap);
-            }
+            mpcWindow->CreateCanvas(CF_R8G8B8, iWidth, iHeight);
         }
+
 
         // Fill background in memory DC
         FillRect(mhMemDC, &cRect, (HBRUSH)(COLOR_WINDOW + 1));
@@ -173,16 +161,14 @@ void CWinGDIWindow::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::CleanAfterDraw(void)
+void CWinGDIWindow::DestroyCanvas(void)
 {
     if (mhMemDC)
     {
-        // Clean up
         SelectObject(mhMemDC, mhOldBitmap);
         DeleteObject(mhMemBitmap);
         DeleteDC(mhMemDC);
     }
-
 }
 
 
@@ -237,10 +223,13 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
 //////////////////////////////////////////////////////////////////////////
 bool CWinGDIWindow::CreateNativeWindow(void)
 {
-    WNDCLASSA   sWindowClass;
-    bool        bResult;
-    ATOM        uiAtom;
-    CChars      szError;
+    WNDCLASSA               sWindowClass;
+    bool                    bResult;
+    ATOM                    uiAtom;
+    CChars                  szError;
+    CWinGDIWindowFactory*   pcFactory;
+
+    pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
 
     memset(&sWindowClass, 0, sizeof(WNDCLASSA));
 
@@ -255,7 +244,7 @@ bool CWinGDIWindow::CreateNativeWindow(void)
 
     mhWnd = CreateWindowExA(0,                             // Optional window styles
                             mszWindowClass.Text(),         // Window class
-                            mszWindowTitle.Text(),         // Window title
+                            mpcWindow->GetWindowTitle(),   // Window title
                             WS_OVERLAPPEDWINDOW,           // Window style
                             CW_USEDEFAULT, CW_USEDEFAULT,  // Position
                             800, 600,                      // Size
@@ -270,6 +259,8 @@ bool CWinGDIWindow::CreateNativeWindow(void)
 
     bResult = UpdateWindow(mhWnd);
     ERROR_CHECK(szError, !bResult, "UpdateWindow");
+
+    pcFactory->SetHWnd(mhWnd);
 
     return true;
 }
@@ -300,5 +291,15 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
         DispatchMessageA(&sMessage);
     }
     return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::PaintNativeWindow(void)
+{
+    InvalidateRect(mhWnd, NULL, TRUE);
 }
 

@@ -178,13 +178,21 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BasicComponent.h" />
     <ClInclude Include="Canvas.h" />
+    <ClInclude Include="Component.h" />
+    <ClInclude Include="NativeCanvas.h" />
+    <ClInclude Include="BasicNativeComponent.h" />
     <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="NativeWindowFactory.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BasicComponent.cpp" />
     <ClCompile Include="Canvas.cpp" />
+    <ClCompile Include="Component.cpp" />
+    <ClCompile Include="NativeCanvas.cpp" />
+    <ClCompile Include="BasicNativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />
     <ClCompile Include="NativeWindowFactory.cpp" />
     <ClCompile Include="Window.cpp" />

@@ -654,6 +654,9 @@
     <ClInclude Include="SFTCommon.h">
       <Filter>Source\Image\IO\Common</Filter>
     </ClInclude>
+    <ClInclude Include="ColourFormat.h">
+      <Filter>Source\Image\Colour</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">

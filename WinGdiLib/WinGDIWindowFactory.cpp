@@ -1,4 +1,5 @@
 #include "WinGDIWindow.h"
+#include "WinGDICanvas.h"
 #include "WinGDIWindowFactory.h"
 
 
@@ -14,6 +15,7 @@ void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, 
     mhInstance = hInstance;
     mhPrevInstance = NULL;
     miCmdShow = nCmdShow;
+    memset(&mhWnd, 0, sizeof(HWND));
 }
 
 
@@ -31,13 +33,50 @@ void CWinGDIWindowFactory::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CNativeWindow* CWinGDIWindowFactory::CreateNativeWindow(char* szWindowTitle)
+CNativeWindow* CWinGDIWindowFactory::CreateNativeWindow(CWindow* pcWindow)
 {
-    CWinGDIWindow*  pcWindow;
+    CWinGDIWindow*  pcNativeWindow;
 
-    pcWindow = NativeMalloc<CWinGDIWindow>();
-    pcWindow->Init(szWindowTitle, this, mhInstance, mhPrevInstance, miCmdShow, mszWindowClass.Text());
+    pcNativeWindow = NativeMalloc<CWinGDIWindow>();
+    pcNativeWindow->Init(pcWindow, 
+                         this, 
+                         mhInstance,
+                         mhPrevInstance,
+                         miCmdShow,
+                         mszWindowClass.Text());
 
-    return pcWindow;
+    return pcNativeWindow;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CNativeCanvas* CWinGDIWindowFactory::CreateNativeCanvas(CCanvas* pcCanvas)
+{
+    CWinGDICanvas*  pcNativeCanvas;
+    bool            bResult;
+
+    pcNativeCanvas = NativeMalloc<CWinGDICanvas>();
+    pcNativeCanvas->Init(pcCanvas, this);
+    bResult = pcNativeCanvas->CreateNativeCanvas();
+    if (!bResult)
+    {
+        DestroyNativeCanvas(pcNativeCanvas);
+        return NULL;
+    }
+    else
+    {
+        return pcNativeCanvas;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindowFactory::SetHWnd(HWND hWnd) { mhWnd = hWnd; }
+HWND CWinGDIWindowFactory::GetHWnd(void) { return mhWnd; }
 

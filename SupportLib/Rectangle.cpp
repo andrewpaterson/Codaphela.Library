@@ -331,3 +331,4 @@ SFloat2	CRectangle::GetUVCoordinatesBottomRight(int32 iTextureXSize, int32 iText
 	sBottomRight.y = ((float)miBottom + HALF_TEXEL) / (float)iTextureYSize;
 	return sBottomRight;
 }
+

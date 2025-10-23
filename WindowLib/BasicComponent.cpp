@@ -1,16 +1,13 @@
-#include "NativeWindowFactory.h"
-#include "NativeWindow.h"
+#include "BasicComponent.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
+void CBasicComponent::Init(CBasicNativeComponent* pcNativeComponent)
 {
-	CBasicNativeComponent::Init(pcWindowFactory);
-	mpcWindowFactory = pcWindowFactory;
-	mpcWindow = pcWindow;
+	mpcNativeComponent = pcNativeComponent;
 }
 
 
@@ -18,8 +15,8 @@ void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindow::Kill(void)
+void CBasicComponent::Kill(void)
 {
-	CBasicNativeComponent::Kill();
+	mpcNativeComponent = NULL;
 }
 

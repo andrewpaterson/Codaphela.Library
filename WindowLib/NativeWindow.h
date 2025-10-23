@@ -1,23 +1,20 @@
 #ifndef __NATIVE_WINDOW_H__
 #define __NATIVE_WINDOW_H__
-#include "BaseLib/Constructable.h"
 #include "BaseLib/Chars.h"
+#include "BasicNativeComponent.h"
 
 
 class CNativeWindowFactory;
-class CNativeWindow : public CConstructable
+class CNativeWindow : public CBasicNativeComponent
 {
 CONSTRUCTABLE(CNativeWindow);
 friend class CWindow;
 protected:
-	CChars					mszWindowTitle;
-	CNativeWindowFactory*	mpcWindowFactory;
+	CWindow*	mpcWindow;
 
 public:
-			void					Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory);
-			void					Kill(void);
-
-			CNativeWindowFactory*	GetFactory(void);
+			void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory);
+			void	Kill(void);
 
 protected:
 	virtual bool	CreateNativeWindow(void) =0;
