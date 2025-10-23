@@ -24,36 +24,37 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Rectangle.h"
 #include "InputLib/Input.h"
 #include "WindowLib/NativeWindow.h"
+#include "WinGDICanvas.h"
 
 
 class CWinGDIWindow : public CNativeWindow
 {
 CONSTRUCTABLE(CWinGDIWindow);
 protected:
-	CChars					mszWindowClass;
-	HINSTANCE				mhInstance;
-	HINSTANCE 				mhPrevInstance;
-	int						miCmdShow;
-	HWND					mhWnd;
-	HDC						mhLastDC;
-	CRectangle				mcLastRectangle;
-	HDC						mhMemDC;
-	HBITMAP					mhMemBitmap;
-	HBITMAP					mhOldBitmap;
-	bool					mbPainting;
+	CChars			mszWindowClass;
+	HINSTANCE		mhInstance;
+	HINSTANCE 		mhPrevInstance;
+	int				miCmdShow;
+	HWND			mhWnd;
+	HDC				mhLastDC;
+	CRectangle		mcLastRectangle;
+	HDC				mhMemDC;
+	HBITMAP			mhMemBitmap;
+	HBITMAP			mhOldBitmap;
+	bool			mbPainting;
 
 public:
-	void	Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
+	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
 	void	Kill(void);
 
 	void	Draw(void);
 
-	bool	CreateNativeWindow(void);
-	bool	ExecuteNativeWindow(void);
-	void	PaintNativeWindow(void);
+	bool	CreateNativeWindow(void) override;
+	bool	ExecuteNativeWindow(void) override;
+	void	PaintNativeWindow(void) override;
 
 protected:
-	void	CleanAfterDraw(void);
+	void			DestroyCanvas(void);
 };
 
 

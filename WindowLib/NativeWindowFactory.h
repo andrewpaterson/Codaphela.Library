@@ -2,8 +2,11 @@
 #define __NATIVE_WINDOW_FACTORY_H__
 #include "BaseLib/Constructable.h"
 #include "NativeWindow.h"
+#include "NativeCanvas.h"
 
 
+class CWindow;
+class CCanvas;
 class CNativeWindowFactory : public CConstructable
 {
 CONSTRUCTABLE(CNativeWindowFactory);
@@ -15,8 +18,11 @@ public:
 			void			Init(CMallocator* pcMallocator);
 			void			Kill(void);
 
-	virtual CNativeWindow*	CreateNativeWindow(char* szWindowTitle) =0;
+	virtual CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) =0;
 			bool			DestroyNativeWindow(CNativeWindow* pcWindow);
+
+	virtual CNativeCanvas*	CreateNativeCanvas(CCanvas* pcCanvas) =0;
+			bool			DestroyNativeCanvas(CNativeCanvas* pcCanvas);
 
 protected:
 	template<class Class>

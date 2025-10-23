@@ -6,10 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory)
+void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
 {
-	mszWindowTitle.Init(szWindowTitle);
+	CBasicNativeComponent::Init(pcWindowFactory);
 	mpcWindowFactory = pcWindowFactory;
+	mpcWindow = pcWindow;
 }
 
 
@@ -19,17 +20,6 @@ void CNativeWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWind
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindow::Kill(void)
 {
-	mszWindowTitle.Kill();
-	mpcWindowFactory = NULL;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CNativeWindowFactory* CNativeWindow::GetFactory(void)
-{
-	return mpcWindowFactory;
+	CBasicNativeComponent::Kill();
 }
 

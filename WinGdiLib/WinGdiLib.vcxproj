@@ -171,10 +171,12 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="WinGDICanvas.h" />
     <ClInclude Include="WinGDIWindow.h" />
     <ClInclude Include="WinGDIWindowFactory.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="WinGDICanvas.cpp" />
     <ClCompile Include="WinGDIWindow.cpp" />
     <ClCompile Include="WinGDIWindowFactory.cpp" />
   </ItemGroup>

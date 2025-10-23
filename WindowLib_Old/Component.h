@@ -71,7 +71,6 @@ public:
 	void				SetPosition(SInt2 sPosition);
 	SInt2 				GetPosition(void);
 	SInt2				GetActualSize(void);
-	void 				SetFactory(CComponentFactory* pcFactory);
 	virtual void		SetRequiredSize(void);
 	virtual bool		Draw(void);
 	bool				DrawChildren(void);

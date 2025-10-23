@@ -8,10 +8,14 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Init(CNativeWindow* pcNativeWindow)
+void CWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory)
 {
-	mpcNativeWindow = pcNativeWindow;
-	miTime = 0;
+	mszWindowTitle.Init(szWindowTitle);
+
+	mpcNativeWindow = pcWindowFactory->CreateNativeWindow(this);
+	CComponent::Init(mpcNativeWindow);
+
+	mcCanvas.Init(pcWindowFactory);
 }
 
 
@@ -21,8 +25,14 @@ void CWindow::Init(CNativeWindow* pcNativeWindow)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Kill(void)
 {
+	mcCanvas.Kill();
+
 	mpcNativeWindow->GetFactory()->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
+
+	mszWindowTitle.Kill();
+
+	CComponent::Kill();
 }
 
 
@@ -62,10 +72,52 @@ bool CWindow::Show(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
 {
-	if (iTotalTimeInMillieconds > miTime + 1000)
-	{
-		EngineOutput("Tick... ");
-		miTime = iTotalTimeInMillieconds;
-	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CanvasChanged(CCanvas* pcNewCanvas)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
+{
+	CNativeWindowFactory*	pcFactory;
+	CCanvas					cNewCanvas;
+	CNativeCanvas*			pcNativeCanvas;
+
+	pcFactory = mpcNativeWindow->GetFactory();
+
+    cNewCanvas.Init(eFormat, iWidth, iHeight, pcFactory);
+    pcNativeCanvas = pcFactory->CreateNativeCanvas(&cNewCanvas);
+
+    CanvasChanged(&cNewCanvas);
+
+	mcCanvas.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+const char* CWindow::GetWindowTitle(void)
+{
+	return mszWindowTitle.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CCanvas* CWindow::GetCanvas(void) { return &mcCanvas;  }
 

@@ -31,3 +31,15 @@ bool CNativeWindowFactory::DestroyNativeWindow(CNativeWindow* pcWindow)
 	return mpcMallocator->Free(pcWindow);
 }
 
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CNativeWindowFactory::DestroyNativeCanvas(CNativeCanvas* pcCanvas)
+{
+	pcCanvas->Kill();
+	return mpcMallocator->Free(pcCanvas);
+}
+

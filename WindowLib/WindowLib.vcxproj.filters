@@ -51,6 +51,18 @@
     <ClInclude Include="NativeWindowFactory.h">
       <Filter>Source\Factory</Filter>
     </ClInclude>
+    <ClInclude Include="NativeCanvas.h">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicNativeComponent.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="BasicComponent.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -64,6 +76,18 @@
     </ClCompile>
     <ClCompile Include="NativeWindowFactory.cpp">
       <Filter>Source\Factory</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeCanvas.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="Component.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicNativeComponent.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="BasicComponent.cpp">
+      <Filter>Source\Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
