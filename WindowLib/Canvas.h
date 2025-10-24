@@ -42,6 +42,10 @@ public:
 	EColourFormat	GetFormat(void);
 	int32			GetWidth(void);
 	int32			GetHeight(void);
+
+	uint8*			GetPixelData(void);
+
+	CNativeCanvas*	GetNativeCanvas(void);
 };
 
 

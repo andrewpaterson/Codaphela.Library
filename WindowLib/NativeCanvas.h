@@ -38,6 +38,8 @@ public:
 
 protected:
 	virtual bool	CreateNativeCanvas(void) =0;
+	virtual bool	DestroyNativeCanvas(void) =0;
+	virtual uint8*	GetPixelData(void) =0;
 };
 
 

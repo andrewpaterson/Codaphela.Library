@@ -38,9 +38,6 @@ protected:
 	HWND			mhWnd;
 	HDC				mhLastDC;
 	CRectangle		mcLastRectangle;
-	HDC				mhMemDC;
-	HBITMAP			mhMemBitmap;
-	HBITMAP			mhOldBitmap;
 	bool			mbPainting;
 
 public:
@@ -52,9 +49,6 @@ public:
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
 	void	PaintNativeWindow(void) override;
-
-protected:
-	void			DestroyCanvas(void);
 };
 
 

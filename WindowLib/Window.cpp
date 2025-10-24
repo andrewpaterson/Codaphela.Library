@@ -79,8 +79,20 @@ void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::CanvasChanged(CCanvas* pcNewCanvas)
+void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 {
+	CNativeWindowFactory*	pcFactory;
+	CCanvas					cNewCanvas;
+
+	pcFactory = mpcNativeWindow->GetFactory();
+
+    cNewCanvas.Init(eFormat, iWidth, iHeight, pcFactory);
+
+	CanvasChanged(&cNewCanvas);
+
+	mcCanvas.Kill();
+
+	memcpy(&mcCanvas, &cNewCanvas, sizeof(CCanvas));
 }
 
 
@@ -88,20 +100,19 @@ void CWindow::CanvasChanged(CCanvas* pcNewCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
+void CWindow::DestroyCanvas(void)
 {
-	CNativeWindowFactory*	pcFactory;
-	CCanvas					cNewCanvas;
-	CNativeCanvas*			pcNativeCanvas;
-
-	pcFactory = mpcNativeWindow->GetFactory();
-
-    cNewCanvas.Init(eFormat, iWidth, iHeight, pcFactory);
-    pcNativeCanvas = pcFactory->CreateNativeCanvas(&cNewCanvas);
-
-    CanvasChanged(&cNewCanvas);
-
 	mcCanvas.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Paint(void)
+{
+	mpcNativeWindow->PaintNativeWindow();
 }
 
 
