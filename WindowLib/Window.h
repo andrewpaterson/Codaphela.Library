@@ -18,11 +18,13 @@ public:
 			void			Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory);
 			void			Kill(void);
 
-	virtual bool			Show(void);
-	virtual void			Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds);
+			bool			Show(void);
+			void			Paint(void);
+	virtual void			Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds) =0;
 
-	virtual	void			CanvasChanged(CCanvas* pcNewCanvas);
+	virtual	void			CanvasChanged(CCanvas* pcNewCanvas) =0;
 			void			CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight);
+			void			DestroyCanvas(void);
 
 			const char*		GetWindowTitle(void);
 			CCanvas*		GetCanvas(void);

@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/DebugOutput.h"
 #include "SupportLib/Rectangle.h"
 #include "WindowLib/Window.h"
 #include "WinGDIWindowFactory.h"
@@ -56,9 +57,6 @@ void CWinGDIWindow::Init(CWindow * pcWindow, CNativeWindowFactory * pcWindowFact
     mhWnd = NULL;
     mhLastDC = NULL;
     mcLastRectangle.Init(-1, -1, -1, -1);
-    mhMemDC = NULL;
-    mhMemBitmap = NULL;
-    mhOldBitmap = NULL;
     mbPainting = false;
 }
 
@@ -69,7 +67,7 @@ void CWinGDIWindow::Init(CWindow * pcWindow, CNativeWindowFactory * pcWindowFact
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::Kill(void)
 {
-    DestroyCanvas();
+    mpcWindow->DestroyCanvas();
 
     UnregisterClassA(mszWindowClass.Text(), mhInstance);
     mszWindowClass.Kill();
@@ -114,6 +112,8 @@ void CWinGDIWindow::Draw(void)
     CRectangle      cRectangle;
     int32           iWidth;
     int32           iHeight;
+    CCanvas*        pcCanvas;
+    CWinGDICanvas*  pcNativeCanvas;
 
     if (!mbPainting)
     {
@@ -127,47 +127,23 @@ void CWinGDIWindow::Draw(void)
 
         if ((hDC != mhLastDC) || (!mcLastRectangle.Equals(&cRectangle)))
         {
-            DestroyCanvas();
+            mpcWindow->DestroyCanvas();
 
             mpcWindow->CreateCanvas(CF_R8G8B8, iWidth, iHeight);
         }
 
 
-        // Fill background in memory DC
-        FillRect(mhMemDC, &cRect, (HBRUSH)(COLOR_WINDOW + 1));
-
-        // Draw a 10x10 grid of colored pixels in memory DC
-        for (int x = 50; x < 150; x += 10)
-        {
-            for (int y = 50; y < 150; y += 10)
-            {
-                SetPixel(mhMemDC, x /* + miX */, y, RGB(255, 0, 0)); // Red pixels
-            }
-        }
+        pcCanvas = mpcWindow->GetCanvas();
+        pcNativeCanvas = (CWinGDICanvas*)pcCanvas->GetNativeCanvas();
 
         // Copy memory DC to window DC
-        BitBlt(hDC, 0, 0, iWidth, iHeight, mhMemDC, 0, 0, SRCCOPY);
+        BitBlt(hDC, 0, 0, iWidth, iHeight, pcNativeCanvas->GetMemDC(), 0, 0, SRCCOPY);
 
         EndPaint(mhWnd, &sPaintStruct);
         mhLastDC = hDC;
         mcLastRectangle.Init(&cRectangle);
 
         mbPainting = false;
-    }
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::DestroyCanvas(void)
-{
-    if (mhMemDC)
-    {
-        SelectObject(mhMemDC, mhOldBitmap);
-        DeleteObject(mhMemBitmap);
-        DeleteDC(mhMemDC);
     }
 }
 
@@ -301,5 +277,6 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
 void CWinGDIWindow::PaintNativeWindow(void)
 {
     InvalidateRect(mhWnd, NULL, TRUE);
+    EngineOutput("Tick...\n");
 }
 

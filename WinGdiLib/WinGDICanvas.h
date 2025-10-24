@@ -29,10 +29,19 @@ class CWinGDICanvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CWinGDICanvas);
 protected:
+	HDC				mhMemDC;
+	HBITMAP			mhMemBitmap;
+	uint8*			mpuiPixelData;
+
 public:
 	void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
 
 	bool	CreateNativeCanvas(void) override;
+	bool	DestroyNativeCanvas(void) override;
+
+	uint8*	GetPixelData(void);
+
+	HDC		GetMemDC(void);
 };
 
 

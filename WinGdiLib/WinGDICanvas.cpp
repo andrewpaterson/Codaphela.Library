@@ -10,6 +10,8 @@
 void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
+    mhMemDC = NULL;
+    mhMemBitmap = NULL;
 }
 
 
@@ -19,24 +21,76 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 bool CWinGDICanvas::CreateNativeCanvas()
 {
-    CWinGDIWindowFactory* pcFactory; 
+    CWinGDIWindowFactory*   pcFactory; 
+    BITMAPINFO              sBitmapInfo;
+    HWND                    hWnd;
+    HDC                     hDC;
 
     pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
 
-    HDC hdc = GetDC(pcFactory->GetHWnd());
+    hWnd = pcFactory->GetHWnd();
+    hDC = GetDC(hWnd);
 
-    BITMAPINFO bmi;
-    memset(&bmi, 0, sizeof(BITMAPINFO));
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = mpcCanvas->GetWidth();
-    bmi.bmiHeader.biHeight = -mpcCanvas->GetHeight();
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32; // 32-bit ARGB
-    bmi.bmiHeader.biCompression = BI_RGB;
-    uint32_t* g_pixelBuffer = NULL;
-    HDC g_memDC = CreateCompatibleDC(hdc);
-    HBITMAP g_memBitmap = CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, (void**)&g_pixelBuffer, NULL, 0);
+    memset(&sBitmapInfo, 0, sizeof(BITMAPINFO));
+    sBitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    sBitmapInfo.bmiHeader.biWidth = mpcCanvas->GetWidth();
+    sBitmapInfo.bmiHeader.biHeight = -mpcCanvas->GetHeight();
+    sBitmapInfo.bmiHeader.biPlanes = 1;
+    sBitmapInfo.bmiHeader.biBitCount = 32; // 32-bit ARGB
+    sBitmapInfo.bmiHeader.biCompression = BI_RGB;
+    
+    mhMemDC = CreateCompatibleDC(hDC);
+    if (mhMemDC)
+    {
+        mhMemBitmap = CreateDIBSection(hDC, &sBitmapInfo, DIB_RGB_COLORS, (void**)&mpuiPixelData, NULL, 0);
+        if (mhMemBitmap)
+        {
+            SelectObject(mhMemDC, mhMemBitmap);
+            ReleaseDC(hWnd, hDC);
+            return true;
+        }
+    }
+    mhMemDC = NULL;
+    mhMemBitmap = NULL;
+    return false;
+}
 
-	return false;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDICanvas::DestroyNativeCanvas(void)
+{
+    if (mhMemDC)
+    {
+        DeleteObject(mhMemBitmap);
+        DeleteDC(mhMemDC);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+HDC CWinGDICanvas::GetMemDC(void)
+{
+    return mhMemDC;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+uint8* CWinGDICanvas::GetPixelData(void)
+{
+    return mpuiPixelData;
 }
 

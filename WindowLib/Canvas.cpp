@@ -19,11 +19,11 @@ void CCanvas::Init(CNativeWindowFactory* pcWindowFactory)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcWindowFactory)
 {
-	mpcNativeCanvas = pcWindowFactory->CreateNativeCanvas(this);
 	meFormat = eFormat;
 	miWidth = iWidth;
 	miHeight = iHeight;
 
+	mpcNativeCanvas = pcWindowFactory->CreateNativeCanvas(this);
 	CBasicComponent::Init(mpcNativeCanvas);
 }
 
@@ -34,8 +34,11 @@ void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWi
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::Kill(void)
 {
-	mpcNativeCanvas->mpcWindowFactory->DestroyNativeCanvas(mpcNativeCanvas);
-	mpcNativeCanvas = NULL;
+	if (mpcNativeCanvas)
+	{
+		mpcNativeCanvas->mpcWindowFactory->DestroyNativeCanvas(mpcNativeCanvas);
+		mpcNativeCanvas = NULL;
+	}
 
 	meFormat = CF_Unknown;
 	miWidth = -1;
@@ -49,7 +52,18 @@ void CCanvas::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+uint8* CCanvas::GetPixelData(void)
+{
+	return mpcNativeCanvas->GetPixelData();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EColourFormat CCanvas::GetFormat(void) { return meFormat; }
 int32 CCanvas::GetWidth(void) { return miWidth; }
 int32 CCanvas::GetHeight(void) { return miHeight; }
+CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 
