@@ -46,6 +46,8 @@ public:
 	uint8*			GetPixelData(void);
 
 	CNativeCanvas*	GetNativeCanvas(void);
+
+	void			CopyRect(CCanvas* pcCanvas);
 };
 
 

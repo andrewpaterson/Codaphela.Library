@@ -94,3 +94,31 @@ uint8* CWinGDICanvas::GetPixelData(void)
     return mpuiPixelData;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDICanvas::CopyRect(CNativeCanvas* pcSourceCanvas)
+{
+    CWinGDICanvas*  pcSourceGDICanvas;
+
+    pcSourceGDICanvas = (CWinGDICanvas*)pcSourceCanvas;
+    
+    // Create device contexts for source and destination
+    HDC hSourceDC = pcSourceGDICanvas->mhMemDC;
+    HDC hDestDC = mhMemDC;
+
+    // Select DIB sections into their respective DCs
+    HBITMAP hOldSourceBitmap = (HBITMAP)SelectObject(hSourceDC, pcSourceGDICanvas->mhMemBitmap);
+    HBITMAP hOldDestBitmap = (HBITMAP)SelectObject(hDestDC, mhMemBitmap);
+
+    // Copy the source DIB to the destination DIB using BitBlt
+    BitBlt(hDestDC, 0, 0, mpcCanvas->GetWidth(), mpcCanvas->GetHeight(), hSourceDC, 0, 0, SRCCOPY);
+
+    // Clean up: Restore original bitmaps and delete DCs
+    SelectObject(hSourceDC, hOldSourceBitmap);
+    SelectObject(hDestDC, hOldDestBitmap);
+}
+
+
