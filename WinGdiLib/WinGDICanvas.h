@@ -42,6 +42,8 @@ public:
 	uint8*	GetPixelData(void);
 
 	HDC		GetMemDC(void);
+
+	void	CopyRect(CNativeCanvas* pcSourceCanvas);
 };
 
 

@@ -23,6 +23,7 @@ public:
 	virtual void			Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds) =0;
 
 	virtual	void			CanvasChanged(CCanvas* pcNewCanvas) =0;
+
 			void			CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight);
 			void			DestroyCanvas(void);
 

@@ -62,6 +62,25 @@ uint8* CCanvas::GetPixelData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCanvas::CopyRect(CCanvas* pcSourceCanvas)
+{
+	CNativeCanvas*	pcSourceNativeCanvas;
+	CNativeCanvas*	pcDestNativeCanvas;
+
+	pcDestNativeCanvas = GetNativeCanvas();
+	pcSourceNativeCanvas = pcSourceCanvas->GetNativeCanvas();
+
+	if (pcDestNativeCanvas)
+	{
+		pcDestNativeCanvas->CopyRect(pcSourceNativeCanvas);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EColourFormat CCanvas::GetFormat(void) { return meFormat; }
 int32 CCanvas::GetWidth(void) { return miWidth; }
 int32 CCanvas::GetHeight(void) { return miHeight; }

@@ -70,15 +70,6 @@ bool CWindow::Show(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
-{
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 {
 	CNativeWindowFactory*	pcFactory;
@@ -88,6 +79,7 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 
     cNewCanvas.Init(eFormat, iWidth, iHeight, pcFactory);
 
+	mcCanvas.CopyRect(&cNewCanvas);
 	CanvasChanged(&cNewCanvas);
 
 	mcCanvas.Kill();

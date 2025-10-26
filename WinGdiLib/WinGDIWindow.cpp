@@ -125,25 +125,27 @@ void CWinGDIWindow::Draw(void)
         iWidth = cRectangle.GetWidth();
         iHeight = cRectangle.GetHeight();
 
-        if ((hDC != mhLastDC) || (!mcLastRectangle.Equals(&cRectangle)))
+        if (!mcLastRectangle.Equals(&cRectangle))
         {
-            mpcWindow->DestroyCanvas();
-
             mpcWindow->CreateCanvas(CF_R8G8B8, iWidth, iHeight);
         }
 
-
         pcCanvas = mpcWindow->GetCanvas();
         pcNativeCanvas = (CWinGDICanvas*)pcCanvas->GetNativeCanvas();
-
-        // Copy memory DC to window DC
-        BitBlt(hDC, 0, 0, iWidth, iHeight, pcNativeCanvas->GetMemDC(), 0, 0, SRCCOPY);
+        if (pcNativeCanvas)
+        {
+            BitBlt(hDC, 0, 0, iWidth, iHeight, pcNativeCanvas->GetMemDC(), 0, 0, SRCCOPY);
+        }
 
         EndPaint(mhWnd, &sPaintStruct);
         mhLastDC = hDC;
         mcLastRectangle.Init(&cRectangle);
 
         mbPainting = false;
+    }
+    else
+    {
+        EngineOutput("Overprint.\n");
     }
 }
 
@@ -186,6 +188,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         {
             pcWindow->Draw();
             return ERROR_SUCCESS;
+        }
+        case WM_ERASEBKGND:
+        {
+            return 1;
         }
     }
 
@@ -277,6 +283,5 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
 void CWinGDIWindow::PaintNativeWindow(void)
 {
     InvalidateRect(mhWnd, NULL, TRUE);
-    EngineOutput("Tick...\n");
 }
 
