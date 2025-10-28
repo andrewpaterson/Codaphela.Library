@@ -15,6 +15,9 @@
     <ClInclude Include="WinGDICanvas.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="WinGDIHelper.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinGDIWindow.cpp">
@@ -24,6 +27,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="WinGDICanvas.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinGDIHelper.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

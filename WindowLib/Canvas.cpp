@@ -62,7 +62,7 @@ uint8* CCanvas::GetPixelData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::CopyRect(CCanvas* pcSourceCanvas)
+void CCanvas::CopyCanvas(CCanvas* pcSourceCanvas)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
 	CNativeCanvas*	pcDestNativeCanvas;
@@ -72,8 +72,28 @@ void CCanvas::CopyRect(CCanvas* pcSourceCanvas)
 
 	if (pcDestNativeCanvas)
 	{
-		pcDestNativeCanvas->CopyRect(pcSourceNativeCanvas);
+		pcDestNativeCanvas->CopyCanvas(pcSourceNativeCanvas);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::FillRect(CRectangle* pcRect, ARGB32 sColour)
+{
+	mpcNativeCanvas->FillRect(pcRect, sColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::SetPixel(int32 iX, int32 iY, ARGB32 sColour)
+{
+	mpcNativeCanvas->SetPixel(iX, iY, sColour);
 }
 
 

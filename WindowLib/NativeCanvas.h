@@ -22,7 +22,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
 #include "BasicNativeComponent.h"
-#include "SupportLib/ColourFormat.h"
+#include "SupportLib/ColourARGB32.h"
+#include "SupportLib/Rectangle.h"
 
 
 class CNativeCanvas : public CBasicNativeComponent
@@ -41,7 +42,10 @@ protected:
 	virtual bool	DestroyNativeCanvas(void) =0;
 	virtual uint8*	GetPixelData(void) =0;
 
-	virtual void	CopyRect(CNativeCanvas* pcSourceCanvas) =0;
+	virtual void	CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
+
+	virtual void	FillRect(CRectangle* pcRect, ARGB32 sColour) =0;
+	virtual void	SetPixel(int32 iX, int32 iY, ARGB32 sColour) =0;
 };
 
 

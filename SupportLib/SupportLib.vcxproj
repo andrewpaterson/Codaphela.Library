@@ -178,6 +178,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Colour.h" />
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
@@ -250,7 +251,7 @@
     <ClInclude Include="ImageSourceChunkedFile.h" />
     <ClInclude Include="ImageSourceDiskFile.h" />
     <ClInclude Include="ImageSourceMemory.h" />
-    <ClInclude Include="ColourARGB.h" />
+    <ClInclude Include="ColourARGB32.h" />
     <ClInclude Include="ImageColour.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="MaterialHelper.h" />
@@ -340,6 +341,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelTypes.cpp" />
+    <ClCompile Include="Colour.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />
@@ -406,7 +408,7 @@
     <ClCompile Include="ImageSource.cpp" />
     <ClCompile Include="ImageSourceDiskFile.cpp" />
     <ClCompile Include="ImageSourceMemory.cpp" />
-    <ClCompile Include="ColourARGB.cpp" />
+    <ClCompile Include="ColourARGB32.cpp" />
     <ClCompile Include="ImageColour.cpp" />
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="MaterialHelper.cpp" />

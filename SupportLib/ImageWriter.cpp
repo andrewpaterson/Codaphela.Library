@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include <windows.h>
 #include <GdiPlus.h>
 #include <GdiPlusHeaders.h>
-#include "ColourARGB.h"
+#include "ColourARGB32.h"
 #include "RADWriter.h"
 #include "SFTWriter.h"
 #include "ImageCopier.h"

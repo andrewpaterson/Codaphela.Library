@@ -79,7 +79,7 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 
     cNewCanvas.Init(eFormat, iWidth, iHeight, pcFactory);
 
-	mcCanvas.CopyRect(&cNewCanvas);
+	mcCanvas.CopyCanvas(&cNewCanvas);
 	CanvasChanged(&cNewCanvas);
 
 	mcCanvas.Kill();
