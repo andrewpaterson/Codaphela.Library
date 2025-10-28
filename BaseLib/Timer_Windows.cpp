@@ -20,8 +20,8 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "Timer.h"
 #ifdef _WIN32
+#include "Timer.h"
 #include "WindowsHeaders.h"
 
 

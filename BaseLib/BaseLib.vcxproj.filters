@@ -1308,12 +1308,6 @@
     <ClInclude Include="Timer.h">
       <Filter>Source\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="WinConfig.h">
-      <Filter>Source\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="WinInit.h">
-      <Filter>Source\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="ConnectSocket.h">
       <Filter>Source\Windows\Socket</Filter>
     </ClInclude>
@@ -2370,12 +2364,6 @@
       <Filter>Source\Text\Editor</Filter>
     </ClCompile>
     <ClCompile Include="Timer_Windows.cpp">
-      <Filter>Source\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="WinConfig.cpp">
-      <Filter>Source\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="WinInit.cpp">
       <Filter>Source\Windows</Filter>
     </ClCompile>
     <ClCompile Include="ConnectSocket.cpp">

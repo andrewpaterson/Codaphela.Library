@@ -561,8 +561,6 @@
     <ClInclude Include="PlainTextEditor.h" />
     <ClInclude Include="TextEditor.h" />
     <ClInclude Include="Timer.h" />
-    <ClInclude Include="WinConfig.h" />
-    <ClInclude Include="WinInit.h" />
     <ClInclude Include="ConnectSocket.h" />
     <ClInclude Include="ListenSocket.h" />
     <ClInclude Include="Socket.h" />
@@ -909,8 +907,6 @@
     <ClCompile Include="XMLParser.cpp" />
     <ClCompile Include="PlainTextEditor.cpp" />
     <ClCompile Include="Timer_Windows.cpp" />
-    <ClCompile Include="WinConfig.cpp" />
-    <ClCompile Include="WinInit.cpp" />
     <ClCompile Include="ConnectSocket.cpp" />
     <ClCompile Include="ListenSocket.cpp" />
     <ClCompile Include="Socket.cpp" />
