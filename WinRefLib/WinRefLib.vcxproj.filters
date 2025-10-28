@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source">
+      <UniqueIdentifier>{f15e3297-597a-4601-83e0-c8980bdfcedc}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="WinRefCanvas.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="WinRefHelper.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="WinRefWindow.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="WinRefWindowFactory.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="WinRefCanvas.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinRefHelper.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinRefWindow.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WinRefWindowFactory.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

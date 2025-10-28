@@ -190,7 +190,6 @@
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="ComponentFactory.cpp" />
     <ClCompile Include="ComponentPointers.cpp" />
-    <ClCompile Include="Direct3DGlobal.cpp" />
     <ClCompile Include="GraphicsObject.cpp" />
     <ClCompile Include="GraphicsViewport.cpp" />
     <ClCompile Include="Map2D.cpp" />
