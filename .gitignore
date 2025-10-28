@@ -53,3 +53,5 @@ us.stackdump
 /WinGdiLib/Release/*
 /WindowLib_Old/Debug/*
 /WindowLib_Old/Release/*
+/WinRefLib/Debug/*
+/WinRefLib/Release/*

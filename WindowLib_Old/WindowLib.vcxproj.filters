@@ -180,9 +180,6 @@
     <ClCompile Include="GraphicsViewport.cpp">
       <Filter>Source\Um</Filter>
     </ClCompile>
-    <ClCompile Include="Direct3DGlobal.cpp">
-      <Filter>Source\Um</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentInput.h">
