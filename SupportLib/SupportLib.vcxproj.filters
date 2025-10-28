@@ -375,7 +375,7 @@
     <ClInclude Include="ImageSourceMemory.h">
       <Filter>Source\Image\Source</Filter>
     </ClInclude>
-    <ClInclude Include="ColourARGB.h">
+    <ClInclude Include="ColourARGB32.h">
       <Filter>Source\Image\Colour</Filter>
     </ClInclude>
     <ClInclude Include="ImageColour.h">
@@ -657,6 +657,9 @@
     <ClInclude Include="ColourFormat.h">
       <Filter>Source\Image\Colour</Filter>
     </ClInclude>
+    <ClInclude Include="Colour.h">
+      <Filter>Source\Image\Colour</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -839,7 +842,7 @@
     <ClCompile Include="ImageSourceMemory.cpp">
       <Filter>Source\Image\Source</Filter>
     </ClCompile>
-    <ClCompile Include="ColourARGB.cpp">
+    <ClCompile Include="ColourARGB32.cpp">
       <Filter>Source\Image\Colour</Filter>
     </ClCompile>
     <ClCompile Include="ImageColour.cpp">
@@ -1105,6 +1108,9 @@
     </ClCompile>
     <ClCompile Include="SFTCommon.cpp">
       <Filter>Source\Image\IO\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Colour.cpp">
+      <Filter>Source\Image\Colour</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

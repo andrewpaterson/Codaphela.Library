@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include <math.h>
 #include "BaseLib/GeometricTypes.h"
-#include "ColourARGB.h"
+#include "ColourARGB32.h"
 #include "ImageWriter.h"
 #include "ImageAccessorCreator.h"
 #include "ImageAccessor.h"

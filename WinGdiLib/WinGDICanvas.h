@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <windows.h>
-#include "SupportLib/Rectangle.h"
 #include "WindowLib/NativeCanvas.h"
 
 
@@ -43,7 +42,9 @@ public:
 
 	HDC		GetMemDC(void);
 
-	void	CopyRect(CNativeCanvas* pcSourceCanvas);
+	void	CopyCanvas(CNativeCanvas* pcSourceCanvas);
+	void	FillRect(CRectangle* pcRectangle, ARGB32 sColour);
+	void	SetPixel(int32 iX, int32 iY, ARGB32 sColour);
 };
 
 

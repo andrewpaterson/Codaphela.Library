@@ -26,7 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/FileBasic.h"
 #include "BaseLib/TextFile.h"
 #include "BaseLib/DiskFile.h"
-#include "ColourARGB.h"
+#include "ColourARGB32.h"
 #include "PNGReader.h"
 #include "TGAReader.h"
 #include "RADReader.h"

@@ -21,6 +21,9 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Unknown.h"
+#include "SupportLib/Colour.h"
+#include "SupportLib/ColourARGB32.h"
+#include "SupportLib/Rectangle.h"
 #include "BasicComponent.h"
 
 
@@ -47,7 +50,9 @@ public:
 
 	CNativeCanvas*	GetNativeCanvas(void);
 
-	void			CopyRect(CCanvas* pcCanvas);
+	void			CopyCanvas(CCanvas* pcCanvas);
+	void			FillRect(CRectangle* pcRect, ARGB32 sColour);
+	void			SetPixel(int32 iX, int32 iY, ARGB32 sColour);
 };
 
 
