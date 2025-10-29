@@ -56,8 +56,6 @@ void CWinGDIWindow::Init(CWindow * pcWindow, CNativeWindowFactory * pcWindowFact
     miCmdShow = nCmdShow;
     mhWnd = NULL;
     mhLastDC = NULL;
-    mcLastRectangle.Init(-1, -1, -1, -1);
-    mbPainting = false;
 }
 
 
@@ -104,49 +102,19 @@ CChars ErrorToString(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Draw(void)
+void CWinGDIWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
 {
     PAINTSTRUCT     sPaintStruct;
     HDC             hDC;
-    RECT            cRect;
-    CRectangle      cRectangle;
-    int32           iWidth;
-    int32           iHeight;
-    CCanvas*        pcCanvas;
-    CWinGDICanvas*  pcNativeCanvas;
+    CWinGDICanvas*  pcGDICanvas;
 
-    if (!mbPainting)
-    {
-        mbPainting = true;
-        hDC = BeginPaint(mhWnd, &sPaintStruct);
+    pcGDICanvas = (CWinGDICanvas*)pcNativeCanvas;
 
-        GetClientRect(mhWnd, &cRect);
-        cRectangle.Init(cRect.left, cRect.top, cRect.right, cRect.bottom);
-        iWidth = cRectangle.GetWidth();
-        iHeight = cRectangle.GetHeight();
+    hDC = BeginPaint(mhWnd, &sPaintStruct);
+    BitBlt(hDC, 0, 0, iWidth, iHeight, pcGDICanvas->GetMemDC(), 0, 0, SRCCOPY);
 
-        if (!mcLastRectangle.Equals(&cRectangle))
-        {
-            mpcWindow->CreateCanvas(CF_R8G8B8, iWidth, iHeight);
-        }
-
-        pcCanvas = mpcWindow->GetCanvas();
-        pcNativeCanvas = (CWinGDICanvas*)pcCanvas->GetNativeCanvas();
-        if (pcNativeCanvas)
-        {
-            BitBlt(hDC, 0, 0, iWidth, iHeight, pcNativeCanvas->GetMemDC(), 0, 0, SRCCOPY);
-        }
-
-        EndPaint(mhWnd, &sPaintStruct);
-        mhLastDC = hDC;
-        mcLastRectangle.Init(&cRectangle);
-
-        mbPainting = false;
-    }
-    else
-    {
-        EngineOutput("Overprint.\n");
-    }
+    EndPaint(mhWnd, &sPaintStruct);
+    mhLastDC = hDC;
 }
 
 
@@ -186,7 +154,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uiMessage, WPARAM wParam, LPARAM lPa
         }
         case WM_PAINT:
         {
-            pcWindow->Draw();
+            pcWindow->CNativeWindow::Present();
             return ERROR_SUCCESS;
         }
         case WM_ERASEBKGND:
@@ -280,8 +248,21 @@ bool CWinGDIWindow::ExecuteNativeWindow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::PaintNativeWindow(void)
+void CWinGDIWindow::SignalPresent(void)
 {
     InvalidateRect(mhWnd, NULL, TRUE);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDIWindow::GetRectangle(CRectangle* pcDest)
+{
+    RECT            cRect;
+
+    GetClientRect(mhWnd, &cRect);
+    pcDest->Init(cRect.left, cRect.top, cRect.right, cRect.bottom);
 }
 

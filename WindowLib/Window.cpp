@@ -104,7 +104,7 @@ void CWindow::DestroyCanvas(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Paint(void)
 {
-	mpcNativeWindow->PaintNativeWindow();
+	mpcNativeWindow->SignalPresent();
 }
 
 

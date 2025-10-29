@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include <windows.h>
-#include "SupportLib/Rectangle.h"
 #include "InputLib/Input.h"
 #include "WindowLib/NativeWindow.h"
 #include "WinGDICanvas.h"
@@ -37,18 +36,18 @@ protected:
 	int				miCmdShow;
 	HWND			mhWnd;
 	HDC				mhLastDC;
-	CRectangle		mcLastRectangle;
-	bool			mbPainting;
 
 public:
 	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass);
 	void	Kill(void);
 
-	void	Draw(void);
+	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
 
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
-	void	PaintNativeWindow(void) override;
+
+	void	GetRectangle(CRectangle* pcDest) override;
+	void	SignalPresent(void) override;
 };
 
 
