@@ -70,6 +70,17 @@ Ptr<CImage> CImage::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CImage::Init(int iWidth, int iHeight)
+{
+	Init(iWidth, iHeight, PT_char8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImage::Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...)
 {
 	va_list		vaMarker;

@@ -57,6 +57,19 @@ void CRectangle::Init(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CRectangle::Init(int32 iWidth, int32 iHeight)
+{
+	miLeft = 0;
+	miTop = 0;
+	miRight = iWidth;
+	miBottom = iHeight;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CRectangle::Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom)
 {
 	miLeft = (int32)iLeft;

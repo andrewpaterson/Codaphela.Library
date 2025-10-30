@@ -55,6 +55,7 @@ public:
 	SImageChangingDesc*		mpsImageChangingDesc;
 	
 	Ptr<CImage>				Init(void);
+	Ptr<CImage>				Init(int iWidth, int iHeight);
 	Ptr<CImage>				Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
 	Ptr<CImage>				Init(int iWidth, int iHeight, void* pvUserData, EPrimitiveType eType, EChannel eFirst, ...);
 	Ptr<CImage>				Init(int iWidth, int iHeight, CImageChannelsSource* pcSource);
