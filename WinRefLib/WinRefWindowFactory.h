@@ -12,9 +12,10 @@ class CWinRefWindowFactory : public CNativeWindowFactory
 {
 CONSTRUCTABLE(CWinRefWindowFactory);
 protected:
+	CRectangle	mcBounds;
 
 public:
-	void			Init(CMallocator* pcMallocator);
+	void			Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight);
 	void			Kill(void);
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;

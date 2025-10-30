@@ -46,7 +46,7 @@ if (q) \
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDIWindow::Init(CWindow * pcWindow, CNativeWindowFactory * pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
+void CWinGDIWindow::Init(CWindow* pcWindow, CNativeWindowFactory * pcWindowFactory, HINSTANCE hInstance, HINSTANCE hPrevInstance, int nCmdShow, const char* szWindowClass)
 {
     CNativeWindow::Init(pcWindow, pcWindowFactory);
     
@@ -112,8 +112,8 @@ void CWinGDIWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 
     hDC = BeginPaint(mhWnd, &sPaintStruct);
     BitBlt(hDC, 0, 0, iWidth, iHeight, pcGDICanvas->GetMemDC(), 0, 0, SRCCOPY);
-
     EndPaint(mhWnd, &sPaintStruct);
+
     mhLastDC = hDC;
 }
 

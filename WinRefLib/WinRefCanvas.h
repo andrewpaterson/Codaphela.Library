@@ -20,6 +20,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/Pointer.h"
+#include "SupportLib/Image.h"
 #include "WindowLib/NativeCanvas.h"
 
 
@@ -27,6 +29,7 @@ class CWinRefCanvas : public CNativeCanvas
 {
 CONSTRUCTABLE(CWinRefCanvas);
 protected:
+	Ptr<CImage>		mpImage;
 
 public:
 	void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);

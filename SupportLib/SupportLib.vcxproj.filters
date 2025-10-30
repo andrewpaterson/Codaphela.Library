@@ -660,6 +660,12 @@
     <ClInclude Include="Colour.h">
       <Filter>Source\Image\Colour</Filter>
     </ClInclude>
+    <ClInclude Include="PNGWriter.h">
+      <Filter>Source\Image\IO\Writer</Filter>
+    </ClInclude>
+    <ClInclude Include="GDIPlusWriter.h">
+      <Filter>Source\Image\IO\Writer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1111,6 +1117,12 @@
     </ClCompile>
     <ClCompile Include="Colour.cpp">
       <Filter>Source\Image\Colour</Filter>
+    </ClCompile>
+    <ClCompile Include="PNGWriter.cpp">
+      <Filter>Source\Image\IO\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="GDIPlusWriter.cpp">
+      <Filter>Source\Image\IO\Writer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
