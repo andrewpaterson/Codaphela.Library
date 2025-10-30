@@ -7,9 +7,10 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindowFactory::Init(CMallocator* pcMallocator)
+void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight)
 {
     CNativeWindowFactory::Init(pcMallocator);
+    mcBounds.Init(iWidth, iHeight);
 }
 
 
@@ -32,8 +33,7 @@ CNativeWindow* CWinRefWindowFactory::CreateNativeWindow(CWindow* pcWindow)
     CWinRefWindow*  pcNativeWindow;
 
     pcNativeWindow = NativeMalloc<CWinRefWindow>();
-    pcNativeWindow->Init(pcWindow, 
-                         this);
+    pcNativeWindow->Init(pcWindow, this, &mcBounds);
 
     return pcNativeWindow;
 }

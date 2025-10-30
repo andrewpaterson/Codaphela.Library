@@ -1,5 +1,5 @@
-#ifndef __WIN_Ref_WINDOW_H__
-#define __WIN_Ref_WINDOW_H__
+#ifndef __WIN_REF_WINDOW_H__
+#define __WIN_REF_WINDOW_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2012 Andrew Paterson
@@ -30,18 +30,23 @@ class CWinRefWindow : public CNativeWindow
 {
 CONSTRUCTABLE(CWinRefWindow);
 protected:
+	CRectangle	mcBounds;
+	bool		mbRunning;
+	bool		mbCreated;
 
 public:
-	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory);
+	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds);
 	void	Kill(void);
 
-	void	Draw(void);
+	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
 
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;
-	void	PaintNativeWindow(void) override;
+
+	void	GetRectangle(CRectangle* pcDest) override;
+	void	SignalPresent(void) override;
 };
 
 
-#endif // __WIN_Ref_WINDOW_H__
+#endif // __WIN_REF_WINDOW_H__
 

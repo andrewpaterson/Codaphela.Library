@@ -33,9 +33,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
+void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds)
 {
     CNativeWindow::Init(pcWindow, pcWindowFactory);
+    mbRunning = true;
+    mbCreated = false;
+    mcBounds.Init(pcBounds);
 }
 
 
@@ -45,16 +48,8 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Kill(void)
 {
+    mbCreated = false;
     CNativeWindow::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Draw(void)
-{
 }
 
 
@@ -64,7 +59,8 @@ void CWinRefWindow::Draw(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::CreateNativeWindow(void)
 {
-    return false;
+    mbCreated = true;
+    return true;
 }
 
 
@@ -74,7 +70,7 @@ bool CWinRefWindow::CreateNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::ExecuteNativeWindow(void)
 {
-    return false;
+    return mbRunning;
 }
 
 
@@ -82,7 +78,30 @@ bool CWinRefWindow::ExecuteNativeWindow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::PaintNativeWindow(void)
+void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
 {
+    CWinRefCanvas*  pcRefCanvas;
+
+    pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::SignalPresent(void)
+{
+    CNativeWindow::Present();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefWindow::GetRectangle(CRectangle* pcDest)
+{
+    pcDest->Init(&mcBounds);
 }
 

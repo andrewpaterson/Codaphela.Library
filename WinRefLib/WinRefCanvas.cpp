@@ -11,6 +11,7 @@
 void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
+    mpImage = NULL;
 }
 
 
@@ -21,9 +22,19 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 bool CWinRefCanvas::CreateNativeCanvas()
 {
     CWinRefWindowFactory*   pcFactory; 
+    int32                   iWidth;
+    int32                   iHeight;
 
     pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
+    iWidth = mpcCanvas->GetWidth();
+    iHeight = mpcCanvas->GetHeight();
 
+    mpImage = OMalloc<CImage>(iWidth, iHeight);
+
+    if (mpImage.IsNotNull())
+    {
+        return true;
+    }
     return false;
 }
 
@@ -34,7 +45,11 @@ bool CWinRefCanvas::CreateNativeCanvas()
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefCanvas::DestroyNativeCanvas(void)
 {
-    return false;
+    if (mpImage.IsNotNull())
+    {
+        mpImage = NULL;
+    }
+    return true;
 }
 
 
@@ -44,7 +59,7 @@ bool CWinRefCanvas::DestroyNativeCanvas(void)
 //////////////////////////////////////////////////////////////////////////
 uint8* CWinRefCanvas::GetPixelData(void)
 {
-    return NULL;
+    return (uint8*)mpImage->GetData();
 }
 
 
