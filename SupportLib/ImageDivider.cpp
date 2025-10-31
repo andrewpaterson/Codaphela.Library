@@ -44,7 +44,7 @@ void CImageDivider::Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour,
 	mbCropTransparentBorders = bCropTransparentBorders;
 	if (psTransparentColour)
 	{
-		pcAccessor = CImageAccessorCreator::Create(pcImage, pcImage);
+		pcAccessor = CImageAccessorCreator::Create(pcImage);
 		iDataSize = pcAccessor->GetBufferSize();
 		pcAccessor->Kill();
 
@@ -85,7 +85,7 @@ void CImageDivider::GenerateFromBorder(Ptr<CImage> pcFillMask)
 	bool				bResult;
 	short				iMask;
 
-	pcImageAccessor = CImageAccessorCreator::Create(mpcImage, mpcImage);
+	pcImageAccessor = CImageAccessorCreator::Create(mpcImage);
 
 	//The top left colour is the border colour.
 	pcImageAccessor->Get(0, 0, &cCellColour);

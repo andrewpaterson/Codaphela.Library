@@ -34,13 +34,14 @@ class CImageAccessorCreator
 public:
 	static CImageAccessor* CreateEmpty(void);
 	static CImageAccessor* Create(Ptr<CImage> pcImage, int iFirst, ...);
+	static CImageAccessor* Create(Ptr<CImage> pcImage);
 	static CImageAccessor* Create(Ptr<CImage> pcImage, Ptr<CImage> pcChannels);
 	static CImageAccessor* Create(Ptr<CImage> pcImage, CArrayInt* paiChannels);
 	static CImageAccessor* Create(Ptr<CImage> pcImage, CImageColour* pcColour);
 
 public:
 	CChannelsAccessorCreator	mcCreator;
-	Ptr<CImage>						mpcImage;
+	Ptr<CImage>					mpcImage;
 
 	void				Init(Ptr<CImage> pcImage);
 	void				Kill(void);

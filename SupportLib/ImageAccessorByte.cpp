@@ -29,13 +29,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorByte::Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor)
+void CImageAccessorByte::Init(Ptr<CImage> pcImage, CChannelsAccessorContiguous* pcAccessor)
 {
-	CChannelsAccessorContiguous*	pcContiguous;
-
 	CImageAccessor::Init(pcImage, pcAccessor);
-	pcContiguous = (CChannelsAccessorContiguous*)pcAccessor;
-	miOffset = pcContiguous->miByteOffset;
+
+	miOffset = pcAccessor->miByteOffset;
 	miPixelStride = mpcImage->GetChannels()->GetByteStride();
 	miImageStride = miPixelStride * miWidth;
 	SyncDataCache();

@@ -178,6 +178,9 @@
     <Filter Include="Source\Image\IO\Common">
       <UniqueIdentifier>{69516bc9-34d7-4a85-8403-e4a19afc539e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Image\Draw">
+      <UniqueIdentifier>{a799085a-3d26-466c-98d2-2e92f2e52c8b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -333,7 +336,7 @@
     <ClInclude Include="ImageModifierStack.h">
       <Filter>Source\Image\Modifiers</Filter>
     </ClInclude>
-    <ClInclude Include="ImageDrawBox.h">
+    <ClInclude Include="ImageModifierDrawBox.h">
       <Filter>Source\Image\Modifiers\Shape</Filter>
     </ClInclude>
     <ClInclude Include="ImageChannelAdd.h">
@@ -666,6 +669,9 @@
     <ClInclude Include="GDIPlusWriter.h">
       <Filter>Source\Image\IO\Writer</Filter>
     </ClInclude>
+    <ClInclude Include="ImageDraw.h">
+      <Filter>Source\Image\Draw</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -809,7 +815,7 @@
     <ClCompile Include="ImageModifierStack.cpp">
       <Filter>Source\Image\Modifiers</Filter>
     </ClCompile>
-    <ClCompile Include="ImageDrawBox.cpp">
+    <ClCompile Include="ImageModifierDrawBox.cpp">
       <Filter>Source\Image\Modifiers\Shape</Filter>
     </ClCompile>
     <ClCompile Include="ImageChannelAdd.cpp">
@@ -1123,6 +1129,9 @@
     </ClCompile>
     <ClCompile Include="GDIPlusWriter.cpp">
       <Filter>Source\Image\IO\Writer</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageDraw.cpp">
+      <Filter>Source\Image\Draw</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

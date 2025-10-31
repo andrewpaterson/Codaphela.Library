@@ -90,7 +90,7 @@ void CImageModifierStack::ApplyAll(void)
 		if (pcImage != mpcImage)
 		{
 			mpcImage->ReInit();
-			mpcImage->Copy2(pcImage);
+			mpcImage->CopyIntoInitialised(pcImage);
 		}
 	}
 }

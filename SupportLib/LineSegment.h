@@ -27,10 +27,10 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CLineSegment
 {
 public:
-	SFloat3	msStart;  //starting point of line
-	SFloat3	msDirection;  //unit direction from start to msEnd
-	float	mfLength;		
-	SFloat3	msEnd;	//msEnd of line
+	SFloat3		msStart;		//starting point of line
+	SFloat3		msDirection;	//unit direction from start to msEnd
+	float		mfLength;		
+	SFloat3		msEnd;		//msEnd of line
 
 	void Set(SFloat3* sStart, SFloat3* sEnd);
 	void Set(float x1, float y1, float z1, float x2, float y2, float z2);

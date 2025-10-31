@@ -1069,7 +1069,7 @@ void CChannels::Copy(CChannels* pcSource)
 	masChannelOffsets.Init();
 	mabData.Init();
 
-	Copy2(pcSource);
+	CopyIntoInitialised(pcSource);
 
 	PostInit();
 }
@@ -1079,7 +1079,7 @@ void CChannels::Copy(CChannels* pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CChannels::Copy2(CChannels* pcSource)
+void CChannels::CopyIntoInitialised(CChannels* pcSource)
 {
 	//This assumes Image IS initialised.
 

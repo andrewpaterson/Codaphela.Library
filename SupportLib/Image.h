@@ -92,7 +92,7 @@ public:
 	bool					IsChanging(void);
 
 	void					Copy(Ptr<CImage> pcSource);
-	void					Copy2(Ptr<CImage> pcSource);
+	void					CopyIntoInitialised(Ptr<CImage> pcSource);
 	void					Clear(void);
 
 	void					SetData(void* pvData);

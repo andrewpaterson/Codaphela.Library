@@ -81,8 +81,8 @@ public:
 	bool				Load(void);
 
 	Ptr<CArray<CImage>>	GetImages(void);
-	CArrayUnknown*		GetCels(void);
-	CArrayUnknown*		GetImageCels(void);
+	CArrayUnknown*		GetCels(void);			//Remove one of these.
+	CArrayUnknown*		GetImageCels(void);		//Remove one of these.
 
 private:
 	Ptr<CImage>			Combine(size iFirstCelIndex);

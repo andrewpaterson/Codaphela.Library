@@ -184,6 +184,7 @@
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="FakeTracker.h" />
     <ClInclude Include="GDIPlusWriter.h" />
+    <ClInclude Include="ImageDraw.h" />
     <ClInclude Include="ImageReaderHelper.h" />
     <ClInclude Include="ImageToR3G3B2A.h" />
     <ClInclude Include="PNGWriter.h" />
@@ -239,7 +240,7 @@
     <ClInclude Include="ImageCelsSource.h" />
     <ClInclude Include="ImageModifier.h" />
     <ClInclude Include="ImageModifierStack.h" />
-    <ClInclude Include="ImageDrawBox.h" />
+    <ClInclude Include="ImageModifierDrawBox.h" />
     <ClInclude Include="ImageChannelAdd.h" />
     <ClInclude Include="ImageChannelRename.h" />
     <ClInclude Include="ImageGreyToRGB.h" />
@@ -347,6 +348,7 @@
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="GDIPlusWriter.cpp" />
+    <ClCompile Include="ImageDraw.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />
     <ClCompile Include="ImageToR3G3B2A.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
@@ -399,7 +401,7 @@
     <ClCompile Include="ImageCelsSource.cpp" />
     <ClCompile Include="ImageModifier.cpp" />
     <ClCompile Include="ImageModifierStack.cpp" />
-    <ClCompile Include="ImageDrawBox.cpp" />
+    <ClCompile Include="ImageModifierDrawBox.cpp" />
     <ClCompile Include="ImageChannelAdd.cpp" />
     <ClCompile Include="ImageChannelRename.cpp" />
     <ClCompile Include="ImageGreyToRGB.cpp" />

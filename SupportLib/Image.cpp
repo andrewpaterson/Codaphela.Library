@@ -590,7 +590,7 @@ void CImage::Copy(Ptr<CImage> pcSource)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImage::Copy2(Ptr<CImage> pcSource)
+void CImage::CopyIntoInitialised(Ptr<CImage> pcSource)
 {
 	//This assumes Image IS initialised.
 
@@ -607,7 +607,7 @@ void CImage::Copy2(Ptr<CImage> pcSource)
 		mpsImageChangingDesc = NULL;
 	}
 
-	mcChannels.Copy2(&pcSource->mcChannels);
+	mcChannels.CopyIntoInitialised(&pcSource->mcChannels);
 }
 
 //////////////////////////////////////////////////////////////////////////
