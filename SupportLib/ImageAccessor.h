@@ -63,7 +63,7 @@ public:
 	int					GetBitSize(void);
 	int					GetByteSize(void);
 	CChannelsAccessor*	GetAccessor(void);
-	Ptr<CImage>				GetImage(void);
+	Ptr<CImage>			GetImage(void);
 	int					GetWidth(void);
 };
 

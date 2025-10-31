@@ -27,9 +27,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageModifier.h"
 
 
-class CImageDrawBox : public CImageModifier
+class CImageModifierDrawBox : public CImageModifier
 {
-CONSTRUCTABLE(CImageDrawBox);
+CONSTRUCTABLE(CImageModifierDrawBox);
 public:
 	CRectangle		mcRectangle;
 	bool			mbWholeImage;
@@ -38,6 +38,7 @@ public:
 
 	void			Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled = true);
 	void			Kill(void);
+
 	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
 };
 

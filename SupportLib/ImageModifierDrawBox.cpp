@@ -22,14 +22,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "ImageAccessorCreator.h"
-#include "ImageDrawBox.h"
+#include "ImageDraw.h"
+#include "ImageModifierDrawBox.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled)
+void CImageModifierDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, bool bFilled)
 {
 	mpcColour = pcColour;
 	mbFilled = bFilled;
@@ -49,7 +50,7 @@ void CImageDrawBox::Init(CRectangle* pcRectangle, CImageColour* pcColour, bool b
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDrawBox::Kill(void)
+void CImageModifierDrawBox::Kill(void)
 {
 	CImageModifier::Kill();
 }
@@ -59,48 +60,22 @@ void CImageDrawBox::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CImageDrawBox::Modify(Ptr<CImage> pcImage)
+Ptr<CImage> CImageModifierDrawBox::Modify(Ptr<CImage> pImage)
 {
-	CImageAccessor*		pcAccessor;
-	int					x;
-	int					y;
-	SImageColour		sColour[4];
+	CImageDraw			cDraw;
 
-	pcAccessor = CImageAccessorCreator::Create(pcImage, mpcColour);
-	pcAccessor->MakeColour(sColour, mpcColour);
-
+	cDraw.Init(pImage);
+	cDraw.SetColour(mpcColour);
 	if (mbWholeImage)
 	{
-		mcRectangle.Init(0, 0, pcImage->GetWidth(), pcImage->GetHeight());
-	}
-
-	if (mbFilled)
-	{
-		for (y = mcRectangle.miTop; y < mcRectangle.miBottom; y++)
-		{
-			for (x = mcRectangle.miLeft; x < mcRectangle.miRight; x++)
-			{
-				pcAccessor->Set(x, y, sColour);
-			}
-		}
+		cDraw.DrawBox(mbFilled);
 	}
 	else
 	{
-		for (x = mcRectangle.miLeft; x < mcRectangle.miRight; x++)
-		{
-			pcAccessor->Set(x, mcRectangle.miTop, sColour);
-			pcAccessor->Set(x, mcRectangle.miBottom-1, sColour);
-		}
-
-		for (y = mcRectangle.miTop; y < mcRectangle.miBottom; y++)
-		{
-			pcAccessor->Set(mcRectangle.miLeft, y, sColour);
-			pcAccessor->Set(mcRectangle.miRight-1, y, sColour);
-		}
+		cDraw.DrawBox(&mcRectangle, mbFilled);
 	}
+	cDraw.Kill();
 
-	pcAccessor->Kill();
-
-	return pcImage;
+	return pImage;
 }
 

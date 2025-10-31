@@ -31,13 +31,13 @@ class CImageAccessorByte : public CImageAccessor
 {
 CONSTRUCTABLE(CImageAccessorByte);
 protected:
-	int				miOffset;
-	int				miImageStride;
-	int				miPixelStride;
+	size	miOffset;
+	size	miImageStride;
+	size	miPixelStride;
 	uint8*	mpucImageData;
 
 public:
-	void	Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor);
+	void	Init(Ptr<CImage> pcImage, CChannelsAccessorContiguous* pcAccessor);
 	void	Kill(void);
 
 	void*	Get(int x, int y);

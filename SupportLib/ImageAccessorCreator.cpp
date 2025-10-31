@@ -74,7 +74,7 @@ CImageAccessor* CImageAccessorCreator::Create(void)
 		if (pcContiguous->GetByteSize() == 1)
 		{
 			pcByte = UMalloc(CImageAccessorByte);
-			pcByte->Init(mpcImage, pcAccessor);
+			pcByte->Init(mpcImage, pcContiguous);
 			return pcByte;
 		}
 	}
@@ -241,6 +241,20 @@ CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, int iFirst, .
 	}
 	va_end(vaMarker);
 
+	return cCreator.CreateAndKill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage)
+{
+	CImageAccessorCreator	cCreator;
+
+	cCreator.Init(pcImage);
+	cCreator.AddAccess(pcImage);
 	return cCreator.CreateAndKill();
 }
 

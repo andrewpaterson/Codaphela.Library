@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 
 
+//Image Modifiers are used by the Image Modifier Stack in the CImageCelsSource.
 class CImageModifier : public CUnknown
 {
 CONSTRUCTABLE(CImageModifier);

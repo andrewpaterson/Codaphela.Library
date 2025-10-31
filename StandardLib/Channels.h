@@ -90,7 +90,7 @@ public:
 	void					FreeData(void);
 
 	void					Copy(CChannels* pcData);
-	void					Copy2(CChannels* pcSource);
+	void					CopyIntoInitialised(CChannels* pcSource);
 	void					Clear(void);
 	void					Dump(size iLineLength);
 
