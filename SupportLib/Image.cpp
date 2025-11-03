@@ -72,7 +72,7 @@ Ptr<CImage> CImage::Init(void)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImage::Init(int iWidth, int iHeight)
 {
-	Init(iWidth, iHeight, PT_char8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+	Init(iWidth, iHeight, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
 	return this;
 }
 

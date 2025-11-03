@@ -57,14 +57,24 @@ void CImageDraw::SetColour(CImageColour* pcColour)
 //////////////////////////////////////////////////////////////////////////
 void CImageDraw::DrawBox(CRectangle* pcRetangle, bool bFilled)
 {
-	int					x;
-	int					y;
+	DrawBox(pcRetangle->miLeft, pcRetangle->miTop, pcRetangle->miRight, pcRetangle->miBottom, bFilled);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::DrawBox(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, bool bFilled)
+{
+	int32		x;
+	int32		y;
 
 	if (bFilled)
 	{
-		for (y = pcRetangle->miTop; y < pcRetangle->miBottom; y++)
+		for (y = iTop; y < iBottom; y++)
 		{
-			for (x = pcRetangle->miLeft; x < pcRetangle->miRight; x++)
+			for (x = iLeft; x < iRight; x++)
 			{
 				mpcAccessor->Set(x, y, &msColour);
 			}
@@ -72,16 +82,16 @@ void CImageDraw::DrawBox(CRectangle* pcRetangle, bool bFilled)
 	}
 	else
 	{
-		for (x = pcRetangle->miLeft; x < pcRetangle->miRight; x++)
+		for (x = iLeft; x < iRight; x++)
 		{
-			mpcAccessor->Set(x, pcRetangle->miTop, &msColour);
-			mpcAccessor->Set(x, pcRetangle->miBottom - 1, &msColour);
+			mpcAccessor->Set(x, iTop, &msColour);
+			mpcAccessor->Set(x, iBottom - 1, &msColour);
 		}
 
-		for (y = pcRetangle->miTop; y < pcRetangle->miBottom; y++)
+		for (y = iTop; y < iBottom; y++)
 		{
-			mpcAccessor->Set(pcRetangle->miLeft, y, &msColour);
-			mpcAccessor->Set(pcRetangle->miRight - 1, y, &msColour);
+			mpcAccessor->Set(iLeft, y, &msColour);
+			mpcAccessor->Set(iRight - 1, y, &msColour);
 		}
 	}
 }
@@ -93,9 +103,48 @@ void CImageDraw::DrawBox(CRectangle* pcRetangle, bool bFilled)
 //////////////////////////////////////////////////////////////////////////
 void CImageDraw::DrawBox(bool bFilled)
 {
-	CRectangle			cRectangle;
+	DrawBox(0, 0, mpImage->GetWidth(), mpImage->GetHeight(), bFilled);
+}
 
-	cRectangle.Init(0, 0, mpImage->GetWidth(), mpImage->GetHeight());
-	DrawBox(&cRectangle, bFilled);
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::DrawLine(int32 x0, int32 y0, int32 x1, int32 y1)
+{
+	int32 dx;
+	int32 dy;
+	int32 sx;
+	int32 sy;
+	int32 err;
+
+	dx = abs(x1 - x0);
+	dy = abs(y1 - y0);
+	sx = (x0 < x1) ? 1 : -1;
+	sy = (y0 < y1) ? 1 : -1;
+	err = dx - dy;
+
+	while (true)
+	{
+		mpcAccessor->Set(x0, y0, &msColour);
+
+		if ((x0 == x1) && (y0 == y1))
+		{
+			break;
+		}
+
+		int32 e2 = 2 * err;
+		if (e2 > -dy) 
+		{
+			err -= dy;
+			x0 += sx;
+		}
+		if (e2 < dx)
+		{
+			err += dx;
+			y0 += sy;
+		}
+	}
 }
 

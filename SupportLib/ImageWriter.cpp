@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ColourARGB32.h"
 #include "RADWriter.h"
 #include "SFTWriter.h"
+#include "PNGWriter.h"
 #include "GDIPlusWriter.h"
 
 
@@ -50,8 +51,9 @@ bool WriteImage(Ptr<CImage> pcImage, char* szFilename, EImageType eType)
 	case IT_JPG:
 	case IT_WMF:
 	case IT_TGA:
-	case IT_PNG:
 		WriteGDIPlusImage(pcImage, szFilename, eType);
+	case IT_PNG:
+		SavePNG(pcImage, szFilename);
 		return true;
 	case IT_RAD:
 		return (SaveRAD(pcImage, szFilename));
