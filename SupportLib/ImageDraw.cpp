@@ -72,26 +72,26 @@ void CImageDraw::DrawBox(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, b
 
 	if (bFilled)
 	{
-		for (y = iTop; y < iBottom; y++)
+		for (y = iTop; y <= iBottom; y++)
 		{
-			for (x = iLeft; x < iRight; x++)
+			for (x = iLeft; x <= iRight; x++)
 			{
-				mpcAccessor->Set(x, y, &msColour);
+				mpcAccessor->SafeSet(x, y, &msColour);
 			}
 		}
 	}
 	else
 	{
-		for (x = iLeft; x < iRight; x++)
+		for (x = iLeft; x <= iRight; x++)
 		{
-			mpcAccessor->Set(x, iTop, &msColour);
-			mpcAccessor->Set(x, iBottom - 1, &msColour);
+			mpcAccessor->SafeSet(x, iTop, &msColour);
+			mpcAccessor->SafeSet(x, iBottom, &msColour);
 		}
 
-		for (y = iTop; y < iBottom; y++)
+		for (y = iTop; y <= iBottom; y++)
 		{
-			mpcAccessor->Set(iLeft, y, &msColour);
-			mpcAccessor->Set(iRight - 1, y, &msColour);
+			mpcAccessor->SafeSet(iLeft, y, &msColour);
+			mpcAccessor->SafeSet(iRight, y, &msColour);
 		}
 	}
 }
@@ -119,15 +119,15 @@ void CImageDraw::DrawLine(int32 x0, int32 y0, int32 x1, int32 y1)
 	int32 sy;
 	int32 err;
 
-	dx = abs(x1 - x0);
-	dy = abs(y1 - y0);
+	dx = IntAbs(x1 - x0);
+	dy = IntAbs(y1 - y0);
 	sx = (x0 < x1) ? 1 : -1;
 	sy = (y0 < y1) ? 1 : -1;
 	err = dx - dy;
 
 	while (true)
 	{
-		mpcAccessor->Set(x0, y0, &msColour);
+		mpcAccessor->SafeSet(x0, y0, &msColour);
 
 		if ((x0 == x1) && (y0 == y1))
 		{
@@ -145,6 +145,46 @@ void CImageDraw::DrawLine(int32 x0, int32 y0, int32 x1, int32 y1)
 			err += dx;
 			y0 += sy;
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::DrawHorizontalLine(int32 x0, int32 x1, int32 y)
+{
+	int32	x;
+
+	if (x0 > x1)
+	{
+		SwapInt32(&x0, &x1);
+	}
+
+	for (x = x0; x <= x1; x++)
+	{
+		mpcAccessor->SafeSet(x, y, &msColour);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::DrawVerticalLine(int32 x, int32 y0, int32 y1)
+{
+	int32	y;
+
+	if (y0 > y1)
+	{
+		SwapInt32(&y0, &y1);
+	}
+
+	for (y = y0; y <= y1; y++)
+	{
+		mpcAccessor->SafeSet(x, y, &msColour);
 	}
 }
 
