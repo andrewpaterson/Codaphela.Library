@@ -364,3 +364,4 @@ Ptr<CImage> CWinText::DrawTextToImage(CChars* pszLetters, HDC hDC)
 
 	return pcDestImage;
 }
+
