@@ -24,6 +24,8 @@ public:
 	void	DrawBox(bool bFilled);
 
 	void	DrawLine(int32 x0, int32 y0, int32 x1, int32 y1);
+	void	DrawHorizontalLine(int32 x0, int32 x1, int32 y);
+	void	DrawVerticalLine(int32 x, int32 y0, int32 y1);
 };
 
 
