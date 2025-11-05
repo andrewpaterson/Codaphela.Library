@@ -876,7 +876,7 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 		bAddSpace = false;
 		if (!bNameEmpty)
 		{
-			psz->Append(mszName);
+			psz->Append(&mszName);
 			bAddSpace = true;
 		}
 
@@ -946,7 +946,7 @@ size CMarkupTag::Print(CChars* psz, size iDepth, size iLine)
 			}
 			psz->Append('<');
 			psz->Append('/');
-			psz->Append(mszName);
+			psz->Append(&mszName);
 			psz->Append('>');
 			iLine++;
 			psz->AppendNewLine();

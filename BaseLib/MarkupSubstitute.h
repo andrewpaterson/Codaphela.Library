@@ -36,7 +36,7 @@ enum EMarkupSubstituteType
 class CMarkupSubstitute : public CKillable
 {
 public:
-	CChars					mszName;
+	CCharsImmutable			mszName;
 	EMarkupSubstituteType	meType;
 	size					miReferences;
 

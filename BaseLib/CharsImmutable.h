@@ -44,6 +44,7 @@ union UString
 };
 
 
+class CChars;
 class CCharsImmutable
 {
 CONSTRUCTABLE(CCharsImmutable);
@@ -65,6 +66,15 @@ public:
 
 	char*	Text(void);
 	size	Length(void);
+	void	Set(char* sz);
+	bool	Empty(void);
+
+	bool	Equals(const char* szString);
+	bool	Equals(const char* szString, size iLen);
+	bool	Equals(CChars* pszString);
+	bool	EqualsIgnoreCase(const char* szString);
+	bool	EqualsIgnoreCase(CChars* pszString);
+
 
 	bool	WriteString(CFileWriter* pcWriter);
 	bool	ReadString(CFileReader* pcReader);

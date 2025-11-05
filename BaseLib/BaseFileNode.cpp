@@ -99,3 +99,4 @@ CBaseFileNode* CBaseFileNode::GetParent(void)
 {
 	return mpcParent;
 }
+

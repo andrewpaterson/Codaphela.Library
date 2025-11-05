@@ -30,6 +30,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "ArrayTemplate.h"
 #include "ArrayTemplateMinimal.h"
 #include "ArrayInt.h"
+#include "CharsImmutable.h"
 
 
 class CArrayChars;
@@ -71,6 +72,7 @@ public:
 	CChars* Append(const char* szString, size iStrlen);
 	CChars* Append(CChars szString);
 	CChars* Append(CChars* psz);
+	CChars* Append(CCharsImmutable* psz);
 	CChars* Append(char cPadCharacter);
 	CChars* Append(char cPadCharacter, size iNumber);
 	CChars* Append(int32 i);

@@ -36,9 +36,9 @@ enum EXMLEntityType
 class CXMLEntity
 {
 public:
-	CChars			mszName;
-	CChars			mszValue;
-	EXMLEntityType	meType;
+	CCharsImmutable		mszName;
+	CChars				mszValue;
+	EXMLEntityType		meType;
 
 	void	Init(char* szName, char* szValue, EXMLEntityType eType);
 	void	Kill(void);

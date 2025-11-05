@@ -62,7 +62,7 @@ public:
 class CMarkupNamedRef : public CMarkupReference
 {
 public:
-	CChars	mszName;
+	CCharsImmutable		mszName;
 
 	void 		Init(char* szName, CMarkupTag* pcParent);
 	void 		Kill(void);
