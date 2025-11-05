@@ -195,6 +195,7 @@
     <ClInclude Include="CalcVariableDefinition.h" />
     <ClInclude Include="CalculatorError.h" />
     <ClInclude Include="CharHelper.h" />
+    <ClInclude Include="CharsImmutable.h" />
     <ClInclude Include="ChunkFileFileSystem.h" />
     <ClInclude Include="ChunkFileName.h" />
     <ClInclude Include="CPPIdentifier.h" />
@@ -609,6 +610,7 @@
     <ClCompile Include="CalcVariable.cpp" />
     <ClCompile Include="CalcVariableDefinition.cpp" />
     <ClCompile Include="CharHelper.cpp" />
+    <ClCompile Include="CharsImmutable.cpp" />
     <ClCompile Include="ChunkFileFileSystem.cpp" />
     <ClCompile Include="CPPIdentifier.cpp" />
     <ClCompile Include="CPPString.cpp" />

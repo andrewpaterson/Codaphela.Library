@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __TILE_H__
 #define __TILE_H__
+#include "BaseLib/CharsImmutable.h"
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayType.h"
 
@@ -32,8 +33,8 @@ class CTile : public CUnknown
 {
 CONSTRUCTABLE(CTile);
 public:
-	CTileType*	mpcType;
-	CChars		mszName;
+	CTileType*			mpcType;
+	CCharsImmutable		mszName;
 
 	void Init(CTileType* pcType, char* szName);
 	void Kill(void);

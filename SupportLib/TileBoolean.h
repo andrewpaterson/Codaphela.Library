@@ -29,9 +29,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CTileBoolean : public CTile
 {
 CONSTRUCTABLE(CTileBoolean);
-public:
+protected:
 	bool	mbValue;
 
+public:
 	void Init(bool bValue, CTileType* pcType, char* szName);
 	void Kill(void);
 };

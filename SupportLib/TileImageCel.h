@@ -30,9 +30,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CTileImageCel : public CTile
 {
 CONSTRUCTABLE(CTileImageCel);
-public:
+protected:	
 	CImageCel*	mpcImageCel;
 
+public:
 	void Init(CImageCel* pcImageCel, CTileType* pcType, char* szName);
 	void Kill(void);
 };
