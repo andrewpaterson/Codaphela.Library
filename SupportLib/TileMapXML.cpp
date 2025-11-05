@@ -478,10 +478,10 @@ bool CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 				return false;
 			}
 			
-			pcTile = pcLayer->mpcTileType->Get((size)iCelIndex);
+			pcTile = pcLayer->GetTile((size)iCelIndex);
 			if (pcTile)
 			{
-				pcLayer->Set(i, iRow, pcTile);
+				pcLayer->SetTile(i, iRow, pcTile);
 			}
 		}
 	}

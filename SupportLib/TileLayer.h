@@ -33,17 +33,20 @@ class CTileType;
 class CTileLayer : public CUnknown
 {
 CONSTRUCTABLE(CTileLayer);
-public:
+protected:
 	CArrayUnknown	macTiles;
 	CChars			mszname;
 	CTileMap*		mpcTileMap;
 	bool			mbVisible;
 	CTileType*		mpcTileType;
 
-	void Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType);
-	void Kill(void);
+public:
+	void	Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType);
+	void	Kill(void);
 
-	void Set(int x, int y, CTile* pcTile);
+	void	SetTile(int x, int y, CTile* pcTile);
+	CTile*	GetTile(size uiIndex);
+	CTile*	GetTile(int x, int y);
 };
 
 
