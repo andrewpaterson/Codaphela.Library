@@ -31,7 +31,7 @@ class CPropertiesFile
 {
 protected:
 	CMapStringString	mcProperties;
-	CChars				mszName;
+	CCharsImmutable		mszName;
 
 public:
 	void 	Init(char* szFilename);

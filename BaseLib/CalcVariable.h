@@ -22,6 +22,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __CALC_VARIABLE_H__
 #define __CALC_VARIABLE_H__
+#include "CharsImmutable.h"
 #include "CalcExpression.h"
 
 
@@ -30,7 +31,7 @@ class CCalculatorError;
 class CCalcVariable : public CCalcExpression
 {
 protected:
-	CChars					mszName;
+	CCharsImmutable			mszName;
 	CCalculatorVariables*	mpcVariableDefinitions;
 
 public:

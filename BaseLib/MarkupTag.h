@@ -47,7 +47,7 @@ class CMarkupTag : public CMarkupBase
 protected:
 	CArrayMarkupBase			macBases;
 	CArrayNameIntAndPointer		mcAttributes;
-	CChars						mszName;
+	CCharsImmutable				mszName;
 
 public:
 	void				Init(CMarkupTag* pcParent);
