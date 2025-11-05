@@ -31,17 +31,18 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CMarkupTag;
 class CTileMapXML
 {
-public:
-	CChars					mszMapName;
-	CChars					mszTexturePath;
-	CTileWorld*				mpcWorld;
+protected:
+	CChars			mszMapName;
+	CChars			mszTexturePath;
+	CTileWorld*		mpcWorld;
 
+public:
 	void Init(char* szMapName, char* szTexturePath);
 	void Kill(void);
 
 	bool Import(CTileWorld* pcTileWorld);
 
-private:
+protected:
 	bool ImportBrushSources(CMarkupTag* pcTag);
 	bool ImportObjectSources(CMarkupTag* pcTag);
 	bool ImportMaps(CMarkupTag* pcTag);

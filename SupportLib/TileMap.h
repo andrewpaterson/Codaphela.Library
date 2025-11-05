@@ -34,19 +34,22 @@ class CTileWorld;
 class CTileMap : public CUnknown
 {
 CONSTRUCTABLE(CTileMap);
-public:
+protected:
 	CArrayTileLayer		macTileLayers;
 	CChars				mszName;
 	SInt2				msMapSize;
 	SInt2				msCelSize;
 	CTileWorld*			mpcWorld;
 
+public:
 	void			Init(void);
 	void 			Init(char* szName, int iCelSizeX, int iCelSizeY, CTileWorld* pcWorld);
 	void 			Kill(void);
 
 	void			SetMapSize(int iMapSizeX, int iMapSizeY);
 	CTileLayer*		AddLayer(char* szName, CTileType* pcTileType);
+	int				GetMapSizeX(void);
+	int				GetMapSizeY(void);
 };
 
 

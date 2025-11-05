@@ -35,13 +35,14 @@ class CWorld;
 class CTileWorld : public CUnknown
 {
 CONSTRUCTABLE(CTileWorld);
-public:
+protected:
 	CArrayTileMap			macMaps;
 	CArrayTileType			macTileTypes;
 	CTileType*				mpcImageType;
 	CArray<CImage>			macImages;
 	CArray<CImageCelGroup>	macGroups;
 	
+public:
 	void 						Init(void);
 	void 						Kill(void);
 

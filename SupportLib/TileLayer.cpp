@@ -44,7 +44,7 @@ void CTileLayer::Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType)
 	mpcTileType = pcTileType;
 
 	pcNull = mpcTileType->GetNull();
-	iSize = pcTileMap->msMapSize.x * pcTileMap->msMapSize.y;
+	iSize = pcTileMap->GetMapSizeX() * pcTileMap->GetMapSizeY();
 	for (i = 0; i < iSize; i++)
 	{
 		macTiles.Add(pcNull);
@@ -68,8 +68,35 @@ void CTileLayer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::Set(int x, int y, CTile* pcTile)
+void CTileLayer::SetTile(int x, int y, CTile* pcTile)
 {
-	macTiles.Set(x + y * mpcTileMap->msMapSize.x, pcTile);
+	int		iYOffset;
+
+	iYOffset = y * mpcTileMap->GetMapSizeX();
+	macTiles.Set(x + iYOffset, pcTile);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTile* CTileLayer::GetTile(size uiIndex)
+{
+	return mpcTileType->Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTile* CTileLayer::GetTile(int x, int y)
+{
+	int		iYOffset;
+
+	iYOffset = y * mpcTileMap->GetMapSizeX();
+	return mpcTileType->Get(x + iYOffset);
+}
+
 
