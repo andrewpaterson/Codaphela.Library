@@ -31,11 +31,11 @@ class CTile;
 class CTileType : public CUnknown
 {
 CONSTRUCTABLE(CTileType);
-public:
-
+protected:
 	CArrayUnknown	macTiles;
 	CChars			mszTypeName;
 
+public:
 	void 	Init(char* szTypeName);
 	void 	Kill(void);
 	bool 	Is(char* szName);

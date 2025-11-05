@@ -44,3 +44,4 @@ void CTile::Kill(void)
 	mszName.Kill();
 	CUnknown::Kill();
 }
+

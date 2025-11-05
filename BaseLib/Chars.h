@@ -33,8 +33,6 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 class CArrayChars;
-
-
 class CChars
 {
 CONSTRUCTABLE(CChars);
@@ -176,7 +174,7 @@ public:
 
 	char*	CopyIntoBuffer(char* szDest, size iDestLength);
 
-	//Suspicious... should probably be in a helper class or something.
+	//Suspicious... should be in CharsHelper or something.
 	void	PassifyNewlines(void);
 	void	MakeCPlusPlus(void);
 	char*	FindLineContaining(char* szPosition, size* piLineNumber);

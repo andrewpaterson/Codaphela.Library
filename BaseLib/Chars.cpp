@@ -159,7 +159,7 @@ CChars* CChars::Init(const char* szString)
 //////////////////////////////////////////////////////////////////////////
 CChars* CChars::Init(CChars szString, size iStartInclusive, size iEndExclusive)
 {
-	if (iEndExclusive > iStartInclusive)
+	if ((iEndExclusive > iStartInclusive) && (iEndExclusive != SIZE_MAX))
 	{
 		mcText.Init();
 		AppendSubString(szString, iStartInclusive, iEndExclusive);
@@ -3012,10 +3012,6 @@ void CChars::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 void CChars::Dump(const char* szString)
 {
-	CChars	c;
-
-	c.Init(szString);
-	c.Dump();
-	c.Kill();
+	EngineOutput(szString);
 }
 

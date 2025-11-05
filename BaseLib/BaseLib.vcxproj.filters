@@ -1719,6 +1719,9 @@
     <ClInclude Include="ArrayNameIntAndPointer.h">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
     </ClInclude>
+    <ClInclude Include="CharsImmutable.h">
+      <Filter>Source\Data\String</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2752,6 +2755,9 @@
     </ClCompile>
     <ClCompile Include="ArrayNameIntAndPointer.cpp">
       <Filter>Source\Data\Array\Basic\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="CharsImmutable.cpp">
+      <Filter>Source\Data\String</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

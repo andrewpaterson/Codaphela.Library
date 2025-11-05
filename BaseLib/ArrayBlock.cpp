@@ -1489,17 +1489,10 @@ bool CArrayBlock::WriteAllocatorAndHeader(CFileWriter* pcFileWriter)
 	bool	bResult;
 
 	bResult = gcMallocators.Write(pcFileWriter, mpcMalloc);
-	if (!bResult)
-	{
-		return false;
-	}
+	ReturnOnFalse(bResult);
 
 	bResult = WriteHeader(pcFileWriter);
-	if (!bResult)
-	{
-		return false;
-	}
-	return true;
+	return bResult;
 }
 
 
