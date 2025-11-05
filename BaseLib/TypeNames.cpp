@@ -135,7 +135,8 @@ void CTypeNames::Init(void)
 	AddType(PT_M4x4float32,		FLOAT4x4_BYTE_SIZE,		"Float4x4",			"",					"PT_M4x4float32");
 	AddType(PT_M4x4float64,		DOUBLE4x4_BYTE_SIZE,	"Double4x4",		"",					"PT_M4x4float64");
 	AddType(PT_String,			0,						"Chars",			"CChars",			"PT_String");
-	AddType(PT_Number,			0,						"Chars",			"CChars",			"PT_String");
+	AddType(PT_StringImmutable,	0,						"CCharsImmutable",	"CCharsImmutable",	"PT_StringImmutable");
+	AddType(PT_Number,			0,						"Chars",			"CChars",			"PT_Number");
 	AddType(PT_Date,			sizeof(CDate),			"Date",				"CDate",			"PT_Date");
 	AddType(PT_DateTime,		sizeof(CDateTime),		"DateTime",			"CDateTime",		"PT_DateTime");
 	AddType(PT_Enum,			ENUM_BYTE_SIZE,			"Enum",				"enum",				"PT_Enum");

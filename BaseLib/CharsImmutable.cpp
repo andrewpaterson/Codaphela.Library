@@ -114,13 +114,23 @@ void CCharsImmutable::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Init(size uiLength, CMallocator* pcMalloc)
+void CCharsImmutable::InitLength(size uiLength, CMallocator* pcMalloc)
 {
 	mbMallocated = true;
 
 	muString.sStringAlloc.pcMalloc = pcMalloc;
 	muString.sStringAlloc.szString = (char*)pcMalloc->Malloc(uiLength + 1);
 	muString.sStringAlloc.uiLength = uiLength;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CCharsImmutable::InitLength(size uiLength)
+{
+	InitLength(uiLength, &gcSystemAllocator);
 }
 
 
@@ -333,7 +343,7 @@ bool CCharsImmutable::ReadString(CFileReader* pcReader)
 		{
 			return false;
 		}
-		Init(uiLength - 1, pcMalloc);
+		InitLength(uiLength - 1, pcMalloc);
 	}
 	else
 	{

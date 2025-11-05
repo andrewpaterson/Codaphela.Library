@@ -38,6 +38,7 @@ protected:
 	CClass* mpcChar16;
 
 	CClass* mpcString;
+	CClass* mpcStringImmutable;
 	CClass* mpcNumber;
 	CClass* mpcDate;
 	CClass* mpcDateTime;
@@ -79,6 +80,7 @@ public:
 	CClass*		GetChar(void);
 	CClass*		GetWidechar(void);
 	CClass*		GetString(void);
+	CClass*		GetStringImmutable(void);
 	CClass*		GetNumber(void);
 	CClass*		GetDate(void);
 	CClass*		GetDateTime(void);

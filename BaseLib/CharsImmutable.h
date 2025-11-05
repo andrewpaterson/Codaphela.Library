@@ -60,7 +60,8 @@ public:
 	void	Init(char* sz, size uiLength);
 	void	Init(char* sz, size uiLength, CMallocator* pcMalloc);
 	void	Init(void);
-	void	Init(size uiLength, CMallocator* pcMalloc);
+	void	InitLength(size uiLength);
+	void	InitLength(size uiLength, CMallocator* pcMalloc);
 	void	Kill(void);
 	void	Dump(void);
 

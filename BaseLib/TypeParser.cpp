@@ -672,6 +672,30 @@ TRISTATE CTypeParser::ParseString(CChars* pDest)
 	return TRITRUE;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+TRISTATE CTypeParser::ParseString(CCharsImmutable* pDest)
+{
+	size		iLen;
+	TRISTATE	tResult;
+
+	mpcParser->PushPosition();
+	tResult = mpcParser->GetString(NULL, &iLen);
+	mpcParser->PopPosition();
+
+	if (tResult != TRITRUE)
+	{
+		return tResult;
+	}
+
+	pDest->InitLength(iLen);
+	mpcParser->GetString(pDest->Text(), NULL);
+	return TRITRUE;
+}
+
   
 //////////////////////////////////////////////////////////////////////////
 //
@@ -807,6 +831,12 @@ TRISTATE CTypeParser::Parse(EPrimitiveType eType, void* pvDest, size iDestLength
 			if (iDestLength >= sizeof(CChars))
 			{
 				return ParseString((CChars*)pvDest);
+			}
+			break;		
+		case PT_StringImmutable:
+			if (iDestLength >= sizeof(CCharsImmutable))
+			{
+				return ParseString((CCharsImmutable*)pvDest);
 			}
 			break;
 		case PT_Number:
