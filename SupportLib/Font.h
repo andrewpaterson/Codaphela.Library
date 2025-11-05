@@ -39,15 +39,15 @@ class CFont : public CObject
 CONSTRUCTABLE(CFont);
 DESTRUCTABLE(CFont);
 protected:
-	CChars			mszName;
-	Ptr<CImage>		pcImage;
-	size			miAverageWidth;
-	size			miHeight;
-	bool			mbFixedWidh;
-	size			miSpace;
-	CArrayGlyph		macGlyphs;
-	int				miAscent;
-	int				miDescent;
+	CCharsImmutable		mszName;
+	Ptr<CImage>			pcImage;
+	size				miAverageWidth;
+	size				miHeight;
+	bool				mbFixedWidh;
+	size				miSpace;
+	CArrayGlyph			macGlyphs;
+	int					miAscent;
+	int					miDescent;
 
 public:
 	Ptr<CFont>		Init(char* szName, size iSpaceWidth, int iAscent, int iDescent);

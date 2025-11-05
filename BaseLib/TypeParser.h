@@ -69,6 +69,7 @@ public:
 	TRISTATE	ParseBool(bool* pDest);
 
 	TRISTATE	ParseString(CChars* pDest);  
+	TRISTATE	ParseString(CCharsImmutable* pDest);
 	TRISTATE	ParseNumber(CNumber* pDest);	
 	TRISTATE	ParseDate(CDate* pDest);
 

@@ -296,6 +296,7 @@ protected:
 			void				UnmanagedEnum(void* pe, char* szFieldName);
 
 			void				UnmanagedString(CChars* pcChars, char* szFieldName);
+			void				UnmanagedString(CCharsImmutable* pcChars, char* szFieldName);
 			void				UnmanagedNumber(CNumber* pcNumber, char* szFieldName);
 			void				UnmanagedDate(CDate* pcDate, char* szFieldName);
 

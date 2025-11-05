@@ -47,6 +47,7 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 	mpcSixbits = AddClassByPrettyName(PT_sixbits);
 
 	mpcString = AddClassByCPPName(PT_String);
+	mpcStringImmutable = AddClassByCPPName(PT_StringImmutable);
 	mpcNumber = AddClassByCPPName(PT_Number);
 	mpcDate = AddClassByCPPName(PT_Date);
 	mpcDateTime = AddClassByCPPName(PT_DateTime);
@@ -139,6 +140,7 @@ CClass* CUnmanagedClasses::GetVoid(void) { return mpcVoid; }
 CClass* CUnmanagedClasses::GetChar(void) { return mpcChar8; }
 CClass* CUnmanagedClasses::GetWidechar(void) { return mpcChar16; }
 CClass* CUnmanagedClasses::GetString(void) { return mpcString; }
+CClass* CUnmanagedClasses::GetStringImmutable(void) { return mpcStringImmutable; }
 CClass* CUnmanagedClasses::GetNumber(void) { return mpcNumber; }
 CClass* CUnmanagedClasses::GetDate(void) { return mpcDate; }
 CClass* CUnmanagedClasses::GetDateTime(void) { return mpcDateTime; }

@@ -2665,6 +2665,7 @@ void CBaseObject::UnmanagedBool(bool* pab, size uiLength, char* szFieldName)		{ 
 void CBaseObject::UnmanagedEnum(void* pe, char* szFieldName)						{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL); mpcClass->UnmanagedEnum(this, pe, szFieldName); }
 
 void CBaseObject::UnmanagedString(CChars* pcChars, char* szFieldName)				{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedString(this, pcChars, szFieldName); };
+void CBaseObject::UnmanagedString(CCharsImmutable* pcChars, char* szFieldName)		{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedString(this, pcChars, szFieldName); };
 void CBaseObject::UnmanagedNumber(CNumber* pcNumber, char* szFieldName)				{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedNumber(this, pcNumber, szFieldName); };
 void CBaseObject::UnmanagedDate(CDate* pcDate, char* szFieldName)					{ ValidateHasClassField(mpcClass == NULL ? __METHOD__ : NULL);  mpcClass->UnmanagedDate(this, pcDate, szFieldName); };
 

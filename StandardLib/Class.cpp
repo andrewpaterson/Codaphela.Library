@@ -287,6 +287,7 @@ void CClass::UnmanagedBool(CBaseObject* pcThis, bool* pab, size uiLength, char* 
 void CClass::UnmanagedEnum(CBaseObject* pcThis, void* pe, char* szFieldName)						{ Unmanaged(pcThis, PT_Enum, pe, szFieldName); }
 
 void CClass::UnmanagedString(CBaseObject* pcThis, CChars* pcChars, char* szFieldName)				{ Unmanaged(pcThis, PT_String, pcChars, szFieldName); }
+void CClass::UnmanagedString(CBaseObject* pcThis, CCharsImmutable* pcChars, char* szFieldName)		{ Unmanaged(pcThis, PT_StringImmutable, pcChars, szFieldName); }
 void CClass::UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName)				{ Unmanaged(pcThis, PT_Number, pcNumber, szFieldName); }
 void CClass::UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName)					{ Unmanaged(pcThis, PT_Date, pcDate, szFieldName); }
 

@@ -125,10 +125,11 @@ enum EPrimitiveType
 	PT_M4x4float64,
 
 	//"Complex" primitives
-	PT_String,		//CChars
-	PT_Number,		//CNumber
-	PT_Date,		//CDate
-	PT_DateTime,	//CDateTime
+	PT_String,			//CChars
+	PT_StringImmutable,	//CCharsImmutable
+	PT_Number,			//CNumber
+	PT_Date,			//CDate
+	PT_DateTime,		//CDateTime
 
 	PT_void,		//Implies no type.  NULL if the value is used.
 

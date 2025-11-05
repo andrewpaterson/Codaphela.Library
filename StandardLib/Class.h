@@ -136,6 +136,7 @@ public:
 	void				UnmanagedEnum(CBaseObject* pcThis, void* pe, char* szFieldName);
 
 	void				UnmanagedString(CBaseObject* pcThis, CChars* pcChars, char* szFieldName);
+	void				UnmanagedString(CBaseObject* pcThis, CCharsImmutable* pcChars, char* szFieldName);
 	void				UnmanagedNumber(CBaseObject* pcThis, CNumber* pcNumber, char* szFieldName);
 	void				UnmanagedDate(CBaseObject* pcThis, CDate* pcDate, char* szFieldName);
 
