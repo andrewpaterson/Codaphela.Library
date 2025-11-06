@@ -21,32 +21,36 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_TYPE_H__
-#define __TILE_TYPE_H__
+#ifndef __MOVABLE_BLOCKS_H__
+#define __MOVABLE_BLOCKS_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/Pointer.h"
+#include "Image.h"
+#include "ImageCelGroup.h"
+#include "TileMap.h"
+#include "MovableBlockType.h"
 
 
-class CTile;
-class CTileType : public CUnknown
+class CMovableBlocks : public CUnknown
 {
-CONSTRUCTABLE(CTileType);
+CONSTRUCTABLE(CMovableBlocks);
 protected:
-	CArrayUnknown		macTiles;
-	CCharsImmutable		mszTypeName;
-
+	CArrayMovableBlockType	macTileTypes;
+	CArray<CImage>			macImages;
+	CArray<CImageCelGroup>	macGroups;
+	
 public:
-	void 	Init(char* szTypeName);
-	void 	Kill(void);
-	bool 	Is(char* szName);
-	CTile*	GetNull(void);
-	void	AddTile(CTile* pcTile);
-	CTile*	Get(size iIndex);
+	void 					Init(void);
+	void 					Kill(void);
+
+	CMovableBlockType*		AddType(char* szTypeName);
+	CMovableBlockType*		GetType(char* szTypeName);
+
+	void					AddImages(Ptr<CArray<CImage>> pacImages);
+	void					AddGroup(Ptr<CImageCelGroup> pcGroup);
+	Ptr<CImageCelGroup>		GetGroup(char* szName);
 };
 
 
-typedef CArrayType<CTileType>	CArrayTileType;
-
-
-#endif // __TILE_TYPE_H__
+#endif // __MOVABLE_BLOCKS_H__
 

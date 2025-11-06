@@ -21,26 +21,39 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_IMAGE_CEL_H__
-#define __TILE_IMAGE_CEL_H__
-#include "ImageCel.h"
-#include "Tile.h"
+#ifndef __TILE_MAP_XML_H__
+#define __TILE_MAP_XML_H__
+#include "BaseLib/Chars.h"
+#include "ImageCelsSource.h"
+#include "MovableBlocks.h"
+#include "Maps.h"
 
-
-class CTileImageCel : public CTile
+class CMarkupTag;
+class CTileMapXML
 {
-CONSTRUCTABLE(CTileImageCel);
-protected:	
-	CImageCel*	mpcImageCel;
+protected:
+	CChars				mszMapName;
+	CChars				mszTexturePath;
+	CMovableBlocks*		mpcMovableBlocks;
+	CMaps*				mpcTileMaps;
 
 public:
-	void	Init(CImageCel* pcImageCel, CTileType* pcType, char* szName);
-	void	Kill(void);
+	void Init(char* szMapName, char* szTexturePath);
+	void Kill(void);
+
+	bool Import(CMovableBlocks* pcTileWorld);
+
+protected:
+	bool ImportBrushSources(CMarkupTag* pcTag);
+	bool ImportObjectSources(CMarkupTag* pcTag);
+	bool ImportMaps(CMarkupTag* pcTag);
+	bool ImportMap(CMarkupTag* pcTag);
+	bool ImportMap(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer);
 };
 
 
-typedef CArrayType<CTileImageCel>	CArrayTileImageCel;
-
-
-#endif // __TILE_IMAGE_CEL_H__
+#endif // __TILE_MAP_XML_H__
 

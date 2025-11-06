@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2025 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -21,26 +21,26 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_H__
-#define __TILE_H__
-#include "BaseLib/CharsImmutable.h"
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "MovableBlockBoolean.h"
 
 
-class CTileType;
-class CTile : public CUnknown
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockBoolean::Init(bool bValue, CMovableBlockType* pcType, char* szName)
 {
-CONSTRUCTABLE(CTile);
-protected:
-	CTileType*			mpcType;
-	CCharsImmutable		mszName;
-
-public:
-	void Init(CTileType* pcType, char* szName);
-	void Kill(void);
-};
+	CMovableBlock::Init(pcType, szName);
+	mbValue = bValue;
+}
 
 
-#endif // __TILE_H__
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockBoolean::Kill(void)
+{
+	CMovableBlock::Kill();
+}
 

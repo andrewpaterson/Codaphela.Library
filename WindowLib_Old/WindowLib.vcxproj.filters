@@ -156,9 +156,6 @@
     <ClCompile Include="Focus.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
-    <ClCompile Include="Source.cpp">
-      <Filter>Source\Component\Window</Filter>
-    </ClCompile>
     <ClCompile Include="Quad2D.cpp">
       <Filter>Source\Um</Filter>
     </ClCompile>

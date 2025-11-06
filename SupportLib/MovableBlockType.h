@@ -21,40 +21,32 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_WORLD_H__
-#define __TILE_WORLD_H__
+#ifndef __MOVABLE_BLOCK_TYPE_H__
+#define __MOVABLE_BLOCK_TYPE_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/Pointer.h"
-#include "Image.h"
-#include "ImageCelGroup.h"
-#include "TileMap.h"
-#include "TileType.h"
+#include "StandardLib/ArrayType.h"
 
 
-class CWorld;
-class CTileWorld : public CUnknown
+class CMovableBlock;
+class CMovableBlockType : public CUnknown
 {
-CONSTRUCTABLE(CTileWorld);
+CONSTRUCTABLE(CMovableBlockType);
 protected:
-	CArrayTileMap			macMaps;
-	CArrayTileType			macTileTypes;
-	CTileType*				mpcImageType;
-	CArray<CImage>			macImages;
-	CArray<CImageCelGroup>	macGroups;
-	
+	CArrayUnknown		macTiles;
+	CCharsImmutable		mszTypeName;
+
 public:
-	void 					Init(void);
-	void 					Kill(void);
-
-	CTileType*				AddType(char* szTypeName);
-	CTileMap*				AddMap(char* szName, int iCelWidth, int iCelHeight);
-	CTileType*				GetType(char* szTypeName);
-
-	void					AddImages(Ptr<CArray<CImage>> pacImages);
-	void					AddGroup(Ptr<CImageCelGroup> pcGroup);
-	Ptr<CImageCelGroup>		GetGroup(char* szName);
+	void 			Init(char* szTypeName);
+	void 			Kill(void);
+	bool 			Is(char* szName);
+	CMovableBlock*	GetNull(void);
+	void			AddTile(CMovableBlock* pcTile);
+	CMovableBlock*	Get(size iIndex);
 };
 
 
-#endif // __TILE_WORLD_H__
+typedef CArrayType<CMovableBlockType>	CArrayMovableBlockType;
+
+
+#endif // __MOVABLE_BLOCK_TYPE_H__
 

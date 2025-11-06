@@ -7,6 +7,6 @@
 //////////////////////////////////////////////////////////////////////////
 void CLineInfinite::Init(SFloat3* psStart, SFloat3* psDirection)
 {
-	CRay:Init(psStart, psDirection);
+	CRay::Init(psStart, psDirection);
 }
 

@@ -25,28 +25,28 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __TILE_LAYER_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayType.h"
-#include "Tile.h"
+#include "MovableBlock.h"
 
 
 class CTileMap;
-class CTileType;
+class CMovableBlockType;
 class CTileLayer : public CUnknown
 {
 CONSTRUCTABLE(CTileLayer);
 protected:
-	CArrayUnknown	macTiles;
-	CChars			mszname;
-	CTileMap*		mpcTileMap;
-	bool			mbVisible;
-	CTileType*		mpcTileType;
+	CArrayUnknown		macTiles;
+	CCharsImmutable		mszname;
+	CTileMap*			mpcTileMap;
+	bool				mbVisible;
+	CMovableBlockType*	mpcTileType;
 
 public:
-	void	Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType);
-	void	Kill(void);
+	void			Init(char* szName, CTileMap* pcTileMap, CMovableBlockType*	pcTileType);
+	void			Kill(void);
 
-	void	SetTile(int x, int y, CTile* pcTile);
-	CTile*	GetTile(size uiIndex);
-	CTile*	GetTile(int x, int y);
+	void			SetTile(int x, int y, CMovableBlock* pcTile);
+	CMovableBlock*	GetTile(size uiIndex);
+	CMovableBlock*	GetTile(int x, int y);
 };
 
 

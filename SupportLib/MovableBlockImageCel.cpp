@@ -21,16 +21,16 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "TileImageCel.h"
+#include "MovableBlockImageCel.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileImageCel::Init(CImageCel* pcImageCel, CTileType* pcType, char* szName)
+void CMovableBlockImageCel::Init(CImageCel* pcImageCel, CMovableBlockType* pcType, char* szName)
 {
-	CTile::Init(pcType, szName);
+	CMovableBlock::Init(pcType, szName);
 	mpcImageCel = pcImageCel;
 }
 
@@ -39,8 +39,8 @@ void CTileImageCel::Init(CImageCel* pcImageCel, CTileType* pcType, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileImageCel::Kill(void)
+void CMovableBlockImageCel::Kill(void)
 {
-	CTile::Kill();
+	CMovableBlock::Kill();
 }
 

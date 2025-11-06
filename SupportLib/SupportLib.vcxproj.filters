@@ -163,23 +163,29 @@
     <Filter Include="Source\Vertex">
       <UniqueIdentifier>{d4ba6af5-fe4d-4472-b2aa-a6e97ee1061d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Shapes">
-      <UniqueIdentifier>{0d88d093-83c9-4ffe-81ae-1fff439ed168}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Tiles">
-      <UniqueIdentifier>{f9966598-3342-4d28-8bd1-9b844f27cbcd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Tiles\XML">
-      <UniqueIdentifier>{3ffc1149-9b68-4360-ab1e-bd6017d28d51}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Tiles\Types">
-      <UniqueIdentifier>{4e292f05-3f67-4e9d-97e3-21412d330d96}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Image\IO\Common">
       <UniqueIdentifier>{69516bc9-34d7-4a85-8403-e4a19afc539e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source\Image\Draw">
       <UniqueIdentifier>{a799085a-3d26-466c-98d2-2e92f2e52c8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Shape">
+      <UniqueIdentifier>{0d88d093-83c9-4ffe-81ae-1fff439ed168}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Map">
+      <UniqueIdentifier>{aa081b8b-bf04-4b1a-a8f3-6d2cffa960ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Map\Tile">
+      <UniqueIdentifier>{f9966598-3342-4d28-8bd1-9b844f27cbcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Map\Sprite">
+      <UniqueIdentifier>{34a16da4-f3e9-443c-b54d-85a874a225d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Map\MovableBlock">
+      <UniqueIdentifier>{cce3c654-6e62-4c0c-a962-911a64877736}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Map\XML">
+      <UniqueIdentifier>{3ffc1149-9b68-4360-ab1e-bd6017d28d51}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -574,70 +580,52 @@
       <Filter>Source\Connection</Filter>
     </ClInclude>
     <ClInclude Include="TileLayer.h">
-      <Filter>Source\Tiles</Filter>
+      <Filter>Source\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="TileMap.h">
-      <Filter>Source\Tiles</Filter>
-    </ClInclude>
-    <ClInclude Include="TileMapXML.h">
-      <Filter>Source\Tiles</Filter>
-    </ClInclude>
-    <ClInclude Include="TileWorld.h">
-      <Filter>Source\Tiles</Filter>
+      <Filter>Source\Map\Tile</Filter>
     </ClInclude>
     <ClInclude Include="ImageCelsSourceXML.h">
-      <Filter>Source\Tiles\XML</Filter>
+      <Filter>Source\Map\XML</Filter>
     </ClInclude>
     <ClInclude Include="ObjectSourcesXML.h">
-      <Filter>Source\Tiles\XML</Filter>
+      <Filter>Source\Map\XML</Filter>
     </ClInclude>
     <ClInclude Include="SubImageXML.h">
-      <Filter>Source\Tiles\XML</Filter>
-    </ClInclude>
-    <ClInclude Include="Tile.h">
-      <Filter>Source\Tiles\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="TileBoolean.h">
-      <Filter>Source\Tiles\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="TileImageCel.h">
-      <Filter>Source\Tiles\Types</Filter>
-    </ClInclude>
-    <ClInclude Include="TileType.h">
-      <Filter>Source\Tiles\Types</Filter>
+      <Filter>Source\Map\XML</Filter>
     </ClInclude>
     <ClInclude Include="Box.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="ConvexHull.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="HalfSpace.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="LineInfinite.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="LineSegment.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Plane.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Polygon.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Ray.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="ShapeHelper.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Sphere.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="Triangle.h">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClInclude>
     <ClInclude Include="FakeTracker.h">
       <Filter>Source\Scene</Filter>
@@ -672,6 +660,30 @@
     <ClInclude Include="ImageDraw.h">
       <Filter>Source\Image\Draw</Filter>
     </ClInclude>
+    <ClInclude Include="MovableBlock.h">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockBoolean.h">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockImageCel.h">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockType.h">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlocks.h">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteMap.h">
+      <Filter>Source\Map\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="Maps.h">
+      <Filter>Source\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="MapsXML.h">
+      <Filter>Source\Map\XML</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -679,9 +691,6 @@
     </ClCompile>
     <ClCompile Include="Scene.cpp">
       <Filter>Source\Scene</Filter>
-    </ClCompile>
-    <ClCompile Include="VertexChannel.cpp">
-      <Filter>Source\Vertex</Filter>
     </ClCompile>
     <ClCompile Include="Image.cpp">
       <Filter>Source\Image</Filter>
@@ -1035,70 +1044,52 @@
       <Filter>Source\Connection</Filter>
     </ClCompile>
     <ClCompile Include="TileLayer.cpp">
-      <Filter>Source\Tiles</Filter>
+      <Filter>Source\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="TileMap.cpp">
-      <Filter>Source\Tiles</Filter>
-    </ClCompile>
-    <ClCompile Include="TileMapXML.cpp">
-      <Filter>Source\Tiles</Filter>
-    </ClCompile>
-    <ClCompile Include="TileWorld.cpp">
-      <Filter>Source\Tiles</Filter>
+      <Filter>Source\Map\Tile</Filter>
     </ClCompile>
     <ClCompile Include="ImageCelsSourceXML.cpp">
-      <Filter>Source\Tiles\XML</Filter>
+      <Filter>Source\Map\XML</Filter>
     </ClCompile>
     <ClCompile Include="ObjectSourcesXML.cpp">
-      <Filter>Source\Tiles\XML</Filter>
+      <Filter>Source\Map\XML</Filter>
     </ClCompile>
     <ClCompile Include="SubImageXML.cpp">
-      <Filter>Source\Tiles\XML</Filter>
-    </ClCompile>
-    <ClCompile Include="Tile.cpp">
-      <Filter>Source\Tiles\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="TileBoolean.cpp">
-      <Filter>Source\Tiles\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="TileImageCel.cpp">
-      <Filter>Source\Tiles\Types</Filter>
-    </ClCompile>
-    <ClCompile Include="TileType.cpp">
-      <Filter>Source\Tiles\Types</Filter>
+      <Filter>Source\Map\XML</Filter>
     </ClCompile>
     <ClCompile Include="Box.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="ConvexHull.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="HalfSpace.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="LineInfinite.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="LineSegment.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Plane.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Polygon.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Ray.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="ShapeHelper.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Sphere.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="Triangle.cpp">
-      <Filter>Source\Shapes</Filter>
+      <Filter>Source\Shape</Filter>
     </ClCompile>
     <ClCompile Include="FakeTracker.cpp">
       <Filter>Source\Scene</Filter>
@@ -1132,6 +1123,30 @@
     </ClCompile>
     <ClCompile Include="ImageDraw.cpp">
       <Filter>Source\Image\Draw</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlock.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockBoolean.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockImageCel.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockType.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlocks.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteMap.cpp">
+      <Filter>Source\Map\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="Maps.cpp">
+      <Filter>Source\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="MapsXML.cpp">
+      <Filter>Source\Map\XML</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -24,16 +24,16 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_CELS_SOURCE_XML_H__
 #define __IMAGE_CELS_SOURCE_XML_H__
 #include "BaseLib/MarkupTag.h"
-#include "TileWorld.h"
+#include "MovableBlocks.h"
 
 
 class CImageCelsSource;
 class CImageCelsSourceXML
 {
 public:
-	CTileWorld*		mpcWorld;
+	CMovableBlocks*		mpcWorld;
 
-	bool Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath);
+	bool Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag, char* szTexturePath);
 	bool ImportCelSource(CMarkupTag* pcBrushSourceTag, char* szTexturePath);
 	bool ImportCels(CMarkupTag* pcCelsTag, char* szFilename);
 };

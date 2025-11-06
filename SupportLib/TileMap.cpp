@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "TileWorld.h"
 #include "TileMap.h"
 
 
@@ -76,7 +75,7 @@ void CTileMap::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileLayer* CTileMap::AddLayer(char* szName, CTileType* pcTileType)
+CTileLayer* CTileMap::AddLayer(char* szName, CMovableBlockType* pcTileType)
 {
 	CTileLayer* pcLayer;
 

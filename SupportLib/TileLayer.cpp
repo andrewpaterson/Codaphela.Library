@@ -21,7 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "TileType.h"
+#include "MovableBlockType.h"
 #include "TileMap.h"
 #include "TileLayer.h"
 
@@ -30,10 +30,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::Init(char* szName, CTileMap* pcTileMap, CTileType*	pcTileType)
+void CTileLayer::Init(char* szName, CTileMap* pcTileMap, CMovableBlockType*	pcTileType)
 {
 	int			i;
-	CTile*		pcNull;
+	CMovableBlock*		pcNull;
 	int			iSize;
 
 	macTiles.Init();
@@ -68,7 +68,7 @@ void CTileLayer::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileLayer::SetTile(int x, int y, CTile* pcTile)
+void CTileLayer::SetTile(int x, int y, CMovableBlock* pcTile)
 {
 	int		iYOffset;
 
@@ -81,7 +81,7 @@ void CTileLayer::SetTile(int x, int y, CTile* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTile* CTileLayer::GetTile(size uiIndex)
+CMovableBlock* CTileLayer::GetTile(size uiIndex)
 {
 	return mpcTileType->Get(uiIndex);
 }
@@ -91,7 +91,7 @@ CTile* CTileLayer::GetTile(size uiIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTile* CTileLayer::GetTile(int x, int y)
+CMovableBlock* CTileLayer::GetTile(int x, int y)
 {
 	int		iYOffset;
 
