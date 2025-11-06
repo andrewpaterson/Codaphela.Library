@@ -26,6 +26,7 @@ along with Codaphela ShapeLib.  If not, see <http://www.gnu.org/licenses/>.
 class CLineInfinite : public CRay
 {
 public:
+	void	Init(SFloat3* psStart, SFloat3* psDirection);
 };
 
 

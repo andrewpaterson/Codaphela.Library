@@ -95,14 +95,14 @@ bool CMeshBoundingBox::Save(CObjectWriter* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CMeshBoundingBox::GenerateBoundingBox(CMeshPositions* pcPositions, CMeshNormals* pcNormals)
 {
-	SFloat3*			psPoints;
-	CBox				cBox;
-	SFloat3*			psCenter;
-	SFloat3*			psXAxis;
-	SFloat3*			psYAxis;
-	SFloat3*			psZAxis;
-	int					iCenterIndex;
-	int					iLongAxisIndex;
+	SFloat3*	psPoints;
+	CBox		cBox;
+	SFloat3*	psCenter;
+	SFloat3*	psXAxis;
+	SFloat3*	psYAxis;
+	SFloat3*	psZAxis;
+	int			iCenterIndex;
+	int			iLongAxisIndex;
 
 	psPoints = pcPositions->mcPositions.GetData();
 

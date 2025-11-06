@@ -29,10 +29,11 @@ public:
 	SFloat3		msStart;		//Starting point of line
 	SFloat3		msDirection;	//unit direction from start
 
-	void SetFromPositions(SFloat3* s, SFloat3* e);
-	void SetFromDirection(SFloat3* sStartOfRay, SFloat3* sDirection);
-	void SetFromDirection(float xs, float ys, float zs, float xd, float yd, float zd);
-	void Copy(CRay* pcSource);
+	void	Init(SFloat3* psStart, SFloat3* psDirection);
+	void	SetFromPositions(SFloat3* s, SFloat3* e);
+	void	SetFromDirection(SFloat3* sStartOfRay, SFloat3* sDirection);
+	void	SetFromDirection(float xs, float ys, float zs, float xd, float yd, float zd);
+	void	Copy(CRay* pcSource);
 };
 
 
