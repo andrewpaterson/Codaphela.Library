@@ -93,7 +93,7 @@ CTileMap* CTileWorld::AddMap(char* szName, int iCelWidth, int iCelHeight)
 	CTileMap*	pcMap;
 
 	pcMap = macMaps.Add();
-	pcMap->Init(szName, iCelWidth, iCelHeight, this);
+	pcMap->Init(szName, iCelWidth, iCelHeight);
 	return pcMap;
 }
 

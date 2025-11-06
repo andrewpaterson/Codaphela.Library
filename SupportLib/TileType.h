@@ -32,8 +32,8 @@ class CTileType : public CUnknown
 {
 CONSTRUCTABLE(CTileType);
 protected:
-	CArrayUnknown	macTiles;
-	CChars			mszTypeName;
+	CArrayUnknown		macTiles;
+	CCharsImmutable		mszTypeName;
 
 public:
 	void 	Init(char* szTypeName);

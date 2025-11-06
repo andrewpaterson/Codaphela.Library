@@ -581,9 +581,6 @@
     <ClCompile Include="SingleChannelAccessor.cpp">
       <Filter>Source\Channels\Accessor\Single</Filter>
     </ClCompile>
-    <ClCompile Include="StandardHeader.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="NamedIndexedObjects.cpp">
       <Filter>Source\Object\Object\Indexed</Filter>
     </ClCompile>

@@ -34,8 +34,8 @@ protected:
 	CImageCel*	mpcImageCel;
 
 public:
-	void Init(CImageCel* pcImageCel, CTileType* pcType, char* szName);
-	void Kill(void);
+	void	Init(CImageCel* pcImageCel, CTileType* pcType, char* szName);
+	void	Kill(void);
 };
 
 

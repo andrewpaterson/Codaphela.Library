@@ -42,6 +42,7 @@ public:
 	int		FindUnsignedFurthestPoint(SFloat3* psPoints, int iStride, int iNumPoints);
 	int		FindFurthestPoint(SFloat3* psPoints, int iStride, int* aiIndices, int iNumIndices);
 	void	D(SFloat3* psPosition1, SFloat3* psNormal);
+	void	Copy(CHalfSpace* psSource);
 };
 
 

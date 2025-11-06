@@ -43,16 +43,16 @@ protected:
 	CArray<CImageCelGroup>	macGroups;
 	
 public:
-	void 						Init(void);
-	void 						Kill(void);
+	void 					Init(void);
+	void 					Kill(void);
 
-	CTileType*					AddType(char* szTypeName);
-	CTileMap*					AddMap(char* szName, int iCelWidth, int iCelHeight);
-	CTileType*					GetType(char* szTypeName);
+	CTileType*				AddType(char* szTypeName);
+	CTileMap*				AddMap(char* szName, int iCelWidth, int iCelHeight);
+	CTileType*				GetType(char* szTypeName);
 
-	void						AddImages(Ptr<CArray<CImage>> pacImages);
-	void						AddGroup(Ptr<CImageCelGroup> pcGroup);
-	Ptr<CImageCelGroup>	GetGroup(char* szName);
+	void					AddImages(Ptr<CArray<CImage>> pacImages);
+	void					AddGroup(Ptr<CImageCelGroup> pcGroup);
+	Ptr<CImageCelGroup>		GetGroup(char* szName);
 };
 
 

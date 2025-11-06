@@ -32,10 +32,11 @@ class CTileType;
 class CTile : public CUnknown
 {
 CONSTRUCTABLE(CTile);
-public:
+protected:
 	CTileType*			mpcType;
 	CCharsImmutable		mszName;
 
+public:
 	void Init(CTileType* pcType, char* szName);
 	void Kill(void);
 };
