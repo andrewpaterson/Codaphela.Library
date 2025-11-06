@@ -36,7 +36,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCelsSourceXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
+bool CImageCelsSourceXML::Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcBrushSourceTag;

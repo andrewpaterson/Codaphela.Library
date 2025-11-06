@@ -22,37 +22,36 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Objects.h"
-#include "TileBoolean.h"
-#include "TileImageCel.h"
-#include "TileWorld.h"
+#include "MovableBlockBoolean.h"
+#include "MovableBlockImageCel.h"
+#include "MovableBlocks.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileWorld::Init(void)
+void CMovableBlocks::Init(void)
 {
-	CTileImageCel*	pcNullImageTile;
-	CTileBoolean*	pcNullBooleanTile;
-	CTileType*		pcBooleanType;
+	CMovableBlockImageCel*	pcNullImageTile;
+	CMovableBlockBoolean*	pcNullBooleanTile;
+	CMovableBlockType*		pcBooleanType;
+	CMovableBlockType*		pcImageType;
 
-	macMaps.Init();
 	macTileTypes.Init();
 
 	macImages.Init();
 	macGroups.Init();
 
-	mpcImageType = AddType("Image");
-	pcNullImageTile = UMalloc(CTileImageCel);
-	pcNullImageTile->Init(NULL, mpcImageType, "NULL");
-	mpcImageType->AddTile(pcNullImageTile);
+	pcImageType = AddType("Image");
+	pcNullImageTile = UMalloc(CMovableBlockImageCel);
+	pcNullImageTile->Init(NULL, pcImageType, "NULL");
+	pcImageType->AddTile(pcNullImageTile);
 
 	pcBooleanType = AddType("Boolean");
-	pcNullBooleanTile = UMalloc(CTileBoolean);
+	pcNullBooleanTile = UMalloc(CMovableBlockBoolean);
 	pcNullBooleanTile->Init(false, pcBooleanType, "NULL");
 	pcBooleanType->AddTile(pcNullBooleanTile);
-	
 }
 
 
@@ -60,13 +59,11 @@ void CTileWorld::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileWorld::Kill(void)
+void CMovableBlocks::Kill(void)
 {
 	macGroups.Kill();
 	macImages.Kill();
-
 	macTileTypes.Kill();
-	macMaps.Kill();
 }
 
 
@@ -74,9 +71,9 @@ void CTileWorld::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileType* CTileWorld::AddType(char* szTypeName)
+CMovableBlockType* CMovableBlocks::AddType(char* szTypeName)
 {
-	CTileType*	pcType;
+	CMovableBlockType*	pcType;
 
 	pcType = macTileTypes.Add();
 	pcType->Init(szTypeName);
@@ -88,33 +85,19 @@ CTileType* CTileWorld::AddType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTileMap* CTileWorld::AddMap(char* szName, int iCelWidth, int iCelHeight)
-{
-	CTileMap*	pcMap;
-
-	pcMap = macMaps.Add();
-	pcMap->Init(szName, iCelWidth, iCelHeight);
-	return pcMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CTileType* CTileWorld::GetType(char* szTypeName)
+CMovableBlockType* CMovableBlocks::GetType(char* szTypeName)
 {
 	SSetIterator	sIter;
-	CTileType*		pcType;
+	CMovableBlockType*		pcType;
 
-	pcType = (CTileType*)macTileTypes.StartIteration(&sIter);
+	pcType = (CMovableBlockType*)macTileTypes.StartIteration(&sIter);
 	while (pcType)
 	{
 		if (pcType->Is(szTypeName))
 		{
 			return pcType;
 		}
-		pcType = (CTileType*)macTileTypes.Iterate(&sIter);
+		pcType = (CMovableBlockType*)macTileTypes.Iterate(&sIter);
 	}
 	return NULL;
 }
@@ -124,7 +107,7 @@ CTileType* CTileWorld::GetType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileWorld::AddImages(Ptr<CArray<CImage>> pacImages)
+void CMovableBlocks::AddImages(Ptr<CArray<CImage>> pacImages)
 {
 	macImages.AddAll(pacImages);
 }
@@ -134,21 +117,7 @@ void CTileWorld::AddImages(Ptr<CArray<CImage>> pacImages)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-//CImageCelGroup* CTileWorld::AddGroup(char* szName)
-//{
-//	CImageCelGroup*		pcGroup;
-//
-//	pcGroup = macGroups.Add();
-//	pcGroup->Init(szName);
-//	return pcGroup;
-//}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTileWorld::AddGroup(Ptr<CImageCelGroup> pcGroup)
+void CMovableBlocks::AddGroup(Ptr<CImageCelGroup> pcGroup)
 {
 	macGroups.Add(pcGroup);
 }
@@ -158,7 +127,7 @@ void CTileWorld::AddGroup(Ptr<CImageCelGroup> pcGroup)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImageCelGroup> CTileWorld::GetGroup(char* szName)
+Ptr<CImageCelGroup> CMovableBlocks::GetGroup(char* szName)
 {
 	size					i;
 	Ptr<CImageCelGroup>		pcImageCelGroup;
@@ -171,7 +140,7 @@ Ptr<CImageCelGroup> CTileWorld::GetGroup(char* szName)
 			return pcImageCelGroup;
 		}
 	}
-	//Should this be ONull?
+
 	return NULL;
 }
 

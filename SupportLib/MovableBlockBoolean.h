@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2025 Andrew Paterson
+Copyright (c) 2012 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -21,4 +21,22 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "VertexChannel.h"
+#ifndef __MOVABLE_BLOCK_BOOLEAN_H__
+#define __MOVABLE_BLOCK_BOOLEAN_H__
+#include "MovableBlock.h"
+
+
+class CMovableBlockBoolean : public CMovableBlock
+{
+CONSTRUCTABLE(CMovableBlockBoolean);
+protected:
+	bool	mbValue;
+
+public:
+	void Init(bool bValue, CMovableBlockType* pcType, char* szName);
+	void Kill(void);
+};
+
+
+#endif // __MOVABLE_BLOCK_BOOLEAN_H__
+

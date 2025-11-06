@@ -21,22 +21,26 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_BOOLEAN_H__
-#define __TILE_BOOLEAN_H__
-#include "Tile.h"
+#ifndef __MOVABLE_BLOCK_H__
+#define __MOVABLE_BLOCK_H__
+#include "BaseLib/CharsImmutable.h"
+#include "StandardLib/Unknown.h"
+#include "StandardLib/ArrayType.h"
 
 
-class CTileBoolean : public CTile
+class CMovableBlockType;
+class CMovableBlock : public CUnknown
 {
-CONSTRUCTABLE(CTileBoolean);
+CONSTRUCTABLE(CMovableBlock);
 protected:
-	bool	mbValue;
+	CMovableBlockType*	mpcType;
+	CCharsImmutable		mszName;
 
 public:
-	void Init(bool bValue, CTileType* pcType, char* szName);
+	void Init(CMovableBlockType* pcType, char* szName);
 	void Kill(void);
 };
 
 
-#endif // __TILE_BOOLEAN_H__
+#endif // __MOVABLE_BLOCK_H__
 

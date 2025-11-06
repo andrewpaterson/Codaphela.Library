@@ -21,17 +21,17 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "Tile.h"
+#include "SpriteMap.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTile::Init(CTileType* pcType, char* szName)
+void CSpriteMap::Init(void)
 {
-	mpcType = pcType;
-	mszName.Init(szName);
+	mszName.Init();
+	macSpriteLayers.Init();
 }
 
 
@@ -39,9 +39,34 @@ void CTile::Init(CTileType* pcType, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTile::Kill(void)
+void CSpriteMap::Init(char* szName)
 {
-	mszName.Kill();
+	mszName.Init(szName);
+	macSpriteLayers.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteMap::Kill(void)
+{
+	macSpriteLayers.Kill();
 	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CSpriteLayer* CSpriteMap::AddLayer(char* szName, CMovableBlockType* pcSpriteType)
+{
+	CSpriteLayer* pcLayer;
+
+	pcLayer = macSpriteLayers.Add();
+	pcLayer->Init(szName, this, pcSpriteType);
+	return pcLayer;
 }
 

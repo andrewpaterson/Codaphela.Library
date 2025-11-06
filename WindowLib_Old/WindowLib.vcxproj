@@ -200,7 +200,6 @@
     <ClCompile Include="GraphicsTexture.cpp" />
     <ClCompile Include="PlainGraphicalTextEditor.cpp" />
     <ClCompile Include="Label.cpp" />
-    <ClCompile Include="Source.cpp" />
     <ClCompile Include="TextField.cpp" />
     <ClCompile Include="Toolbar.cpp" />
     <ClCompile Include="Viewport.cpp" />

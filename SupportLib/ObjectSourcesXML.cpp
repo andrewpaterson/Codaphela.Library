@@ -23,8 +23,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/MarkupTextParser.h"
-#include "TileWorld.h"
-#include "TileImageCel.h"
+#include "MovableBlocks.h"
+#include "MovableBlockImageCel.h"
 #include "ObjectSourcesXML.h"
 
 
@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*		pcObjectClass;
 	STagIterator	sIter;
@@ -58,13 +58,13 @@ bool CObjectSourcesXML::Import(CTileWorld* pcWorld, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportObjectClass(CMovableBlocks* pcWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*	pcClass;
 	CMarkupTag*	pcFields;
 	CMarkupTag*	pcObjects;
 	CChars		szClass;
-	CTileType*	pcType;
+	CMovableBlockType*	pcType;
 	bool		bResult;
 
 	pcClass = CMarkupTextParser::GetTag(pcTag, "Class");
@@ -112,7 +112,7 @@ bool CObjectSourcesXML::ImportObjectClass(CTileWorld* pcWorld, CMarkupTag* pcTag
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportImages(CMovableBlockType* pcType, CMarkupTag* pcTag)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcObject;
@@ -136,7 +136,7 @@ bool CObjectSourcesXML::ImportImages(CTileType* pcType, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportImage(CMovableBlockType* pcType, CMarkupTag* pcTag)
 {
 	CMarkupTag*					pcName;
 	CMarkupTag*					pcCelIndex;
@@ -147,7 +147,7 @@ bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 	int64						iCelIndex;
 	int64						iBrushID;
 	CChars						szSourceName;
-	CTileImageCel*				pcTile;
+	CMovableBlockImageCel*				pcTile;
 	Ptr<CImageCelGroup>	pcGroup;
 	CImageCel*					pcCel;
 
@@ -214,7 +214,7 @@ bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 		return false;
 	}
 
-	pcTile = UMalloc(CTileImageCel);
+	pcTile = UMalloc(CMovableBlockImageCel);
 	pcTile->Init(pcCel, pcType, szName.Text());
 	pcType->AddTile(pcTile);
 
@@ -226,7 +226,7 @@ bool CObjectSourcesXML::ImportImage(CTileType* pcType, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::ImportBooleans(CTileType* pcType, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportBooleans(CMovableBlockType* pcType, CMarkupTag* pcTag)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcObject;

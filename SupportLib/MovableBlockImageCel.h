@@ -21,37 +21,26 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_LAYER_H__
-#define __TILE_LAYER_H__
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#ifndef __MOVABLE_BLOCK_IMAGE_CEL_H__
+#define __MOVABLE_BLOCK_IMAGE_CEL_H__
+#include "ImageCel.h"
 #include "MovableBlock.h"
 
 
-class CTileMap;
-class CMovableBlockType;
-class CTileLayer : public CUnknown
+class CMovableBlockImageCel : public CMovableBlock
 {
-CONSTRUCTABLE(CTileLayer);
-protected:
-	CArrayUnknown		macTiles;
-	CCharsImmutable		mszname;
-	CTileMap*			mpcTileMap;
-	bool				mbVisible;
-	CMovableBlockType*	mpcTileType;
+CONSTRUCTABLE(CMovableBlockImageCel);
+protected:	
+	CImageCel*	mpcImageCel;
 
 public:
-	void			Init(char* szName, CTileMap* pcTileMap, CMovableBlockType*	pcTileType);
-	void			Kill(void);
-
-	void			SetTile(int x, int y, CMovableBlock* pcTile);
-	CMovableBlock*	GetTile(size uiIndex);
-	CMovableBlock*	GetTile(int x, int y);
+	void	Init(CImageCel* pcImageCel, CMovableBlockType* pcType, char* szName);
+	void	Kill(void);
 };
 
 
-typedef CArrayType<CTileLayer>	CArrayTileLayer;
+typedef CArrayType<CMovableBlockImageCel>	CArrayTileImageCel;
 
 
-#endif // __TILE_LAYER_H__
+#endif // __MOVABLE_BLOCK_IMAGE_CEL_H__
 

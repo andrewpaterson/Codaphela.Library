@@ -21,17 +21,17 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "TileBoolean.h"
+#include "MovableBlock.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileBoolean::Init(bool bValue, CTileType* pcType, char* szName)
+void CMovableBlock::Init(CMovableBlockType* pcType, char* szName)
 {
-	CTile::Init(pcType, szName);
-	mbValue = bValue;
+	mpcType = pcType;
+	mszName.Init(szName);
 }
 
 
@@ -39,8 +39,9 @@ void CTileBoolean::Init(bool bValue, CTileType* pcType, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileBoolean::Kill(void)
+void CMovableBlock::Kill(void)
 {
-	CTile::Kill();
+	mszName.Kill();
+	CUnknown::Kill();
 }
 

@@ -26,8 +26,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ChannelTypes.h"
 
 
-enum EVertexPurpose	//1 bytes for purpose.  
+enum EVertexPurpose
 {
+	//1 byte for purpose.
 	VP_Unknown,
 	VP_Position,
 	VP_Diffuse,

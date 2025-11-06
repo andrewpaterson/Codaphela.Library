@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2025 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -21,38 +21,42 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_MAP_XML_H__
-#define __TILE_MAP_XML_H__
-#include "BaseLib/Chars.h"
-#include "ImageCelsSource.h"
-#include "TileWorld.h"
+#include "StandardLib/Objects.h"
+#include "MovableBlockBoolean.h"
+#include "MovableBlockImageCel.h"
+#include "Maps.h"
 
 
-class CMarkupTag;
-class CTileMapXML
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::Init(void)
 {
-protected:
-	CChars			mszMapName;
-	CChars			mszTexturePath;
-	CTileWorld*		mpcWorld;
-
-public:
-	void Init(char* szMapName, char* szTexturePath);
-	void Kill(void);
-
-	bool Import(CTileWorld* pcTileWorld);
-
-protected:
-	bool ImportBrushSources(CMarkupTag* pcTag);
-	bool ImportObjectSources(CMarkupTag* pcTag);
-	bool ImportMaps(CMarkupTag* pcTag);
-	bool ImportMap(CMarkupTag* pcTag);
-	bool ImportMap2(CMarkupTag* pcTag, CTileMap* pcMap);
-	bool ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap);
-	bool ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap);
-	bool ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer);
-};
+	macMaps.Init();
+}
 
 
-#endif // __TILE_MAP_XML_H__
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMaps::Kill(void)
+{
+	macMaps.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CTileMap* CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
+{
+	CTileMap* pcMap;
+
+	pcMap = macMaps.Add();
+	pcMap->Init(szName, iCelWidth, iCelHeight);
+	return pcMap;
+}
 

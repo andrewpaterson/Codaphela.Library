@@ -21,15 +21,15 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "Tile.h"
-#include "TileType.h"
+#include "MovableBlock.h"
+#include "MovableBlockType.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileType::Init(char*szTypeName)
+void CMovableBlockType::Init(char*szTypeName)
 {
 	macTiles.Init();
 	mszTypeName.Init(szTypeName);
@@ -40,7 +40,7 @@ void CTileType::Init(char*szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileType::Kill(void)
+void CMovableBlockType::Kill(void)
 {
 	mszTypeName.Kill();
 	macTiles.Kill();
@@ -51,7 +51,7 @@ void CTileType::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileType::Is(char* szName)
+bool CMovableBlockType::Is(char* szName)
 {
 	return mszTypeName.Equals(szName);
 }
@@ -61,10 +61,10 @@ bool CTileType::Is(char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTile* CTileType::GetNull(void)
+CMovableBlock* CMovableBlockType::GetNull(void)
 {
 	//The 'NULL' tile is always the zero'th tile.
-	return (CTile*)macTiles.Get(0);
+	return (CMovableBlock*)macTiles.Get(0);
 }
 
 
@@ -72,7 +72,7 @@ CTile* CTileType::GetNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileType::AddTile(CTile* pcTile)
+void CMovableBlockType::AddTile(CMovableBlock* pcTile)
 {
 	macTiles.Add(pcTile);
 }
@@ -82,8 +82,8 @@ void CTileType::AddTile(CTile* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTile* CTileType::Get(size uiIndex)
+CMovableBlock* CMovableBlockType::Get(size uiIndex)
 {
-	return (CTile*)macTiles.Get(uiIndex);
+	return (CMovableBlock*)macTiles.Get(uiIndex);
 }
 
