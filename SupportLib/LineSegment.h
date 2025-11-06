@@ -35,7 +35,7 @@ public:
 	void Set(SFloat3* sStart, SFloat3* sEnd);
 	void Set(float x1, float y1, float z1, float x2, float y2, float z2);
 	void Set(void);
-	void Copy(CLineSegment* source);
+	void Copy(CLineSegment* pcSource);
 
 	bool Save(CFileWriter* pcFile);
 	bool Load(CFileReader* pcFile);

@@ -57,3 +57,14 @@ void CRay::SetFromDirection(float xs, float ys, float zs, float xd, float yd, fl
 	Float3Normalize((SFloat3*)&msDirection, (SFloat3*)&msDirection);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CRay::Copy(CRay* pcSource)
+{
+	msStart.Copy(&pcSource->msStart);
+	msDirection.Copy(&pcSource->msDirection);
+}
+

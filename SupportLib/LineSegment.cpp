@@ -89,3 +89,16 @@ bool CLineSegment::Load(CFileReader* pcFile)
 
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CLineSegment::Copy(CLineSegment* pcSource)
+{
+	msStart.Copy(&pcSource->msStart);
+	msDirection.Copy(&pcSource->msDirection);
+	mfLength = pcSource->mfLength;
+	msEnd.Copy(&pcSource->msEnd);
+}
+

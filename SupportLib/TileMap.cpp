@@ -35,7 +35,6 @@ void CTileMap::Init(void)
 	msMapSize.Init(0, 0);
 	msCelSize.Init(0, 0);
 	macTileLayers.Init();
-	mpcWorld = NULL;
 }
 
 
@@ -43,9 +42,8 @@ void CTileMap::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMap::Init(char* szName, int iCelSizeX, int iCelSizeY, CTileWorld* pcWorld)
+void CTileMap::Init(char* szName, int iCelSizeX, int iCelSizeY)
 {
-	mpcWorld = pcWorld;
 	mszName.Init(szName);
 	msMapSize.Init(0, 0);
 	msCelSize.Init(iCelSizeX, iCelSizeY);

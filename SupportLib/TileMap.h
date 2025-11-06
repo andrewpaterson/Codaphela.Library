@@ -39,11 +39,10 @@ protected:
 	CChars				mszName;
 	SInt2				msMapSize;
 	SInt2				msCelSize;
-	CTileWorld*			mpcWorld;
 
 public:
 	void			Init(void);
-	void 			Init(char* szName, int iCelSizeX, int iCelSizeY, CTileWorld* pcWorld);
+	void 			Init(char* szName, int iCelSizeX, int iCelSizeY);
 	void 			Kill(void);
 
 	void			SetMapSize(int iMapSizeX, int iMapSizeY);

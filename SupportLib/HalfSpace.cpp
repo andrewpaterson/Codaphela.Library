@@ -227,3 +227,15 @@ void CHalfSpace::D(SFloat3* psPosition1, SFloat3* psNormal)
 {
 	d = Float3Dot(psNormal, psPosition1);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CHalfSpace::Copy(CHalfSpace* psSource)
+{
+	mpsNormal->Copy(psSource->mpsNormal);
+	d = psSource->d;
+}
+
