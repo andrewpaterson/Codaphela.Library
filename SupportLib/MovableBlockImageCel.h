@@ -34,8 +34,12 @@ protected:
 	CImageCel*	mpcImageCel;
 
 public:
-	void	Init(CImageCel* pcImageCel, CMovableBlockType* pcType, char* szName);
-	void	Kill(void);
+	void		Init(CImageCel* pcImageCel, CMovableBlockType* pcType, char* szName);
+	void		Kill(void);
+
+	CImageCel*	GetCel(void);
+
+	void		Abstract(void) override;
 };
 
 

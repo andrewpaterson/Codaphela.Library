@@ -37,9 +37,16 @@ protected:
 	CCharsImmutable		mszName;
 
 public:
-	void Init(CMovableBlockType* pcType, char* szName);
-	void Kill(void);
+			void				Init(CMovableBlockType* pcType, char* szName);
+			void				Kill(void);
+
+			char*				GetName(void);
+			CMovableBlockType*	GetType(void);
+	virtual	void				Abstract(void) =0;
 };
+
+
+typedef CArrayType<CMovableBlock>	CArrayMovableBlock;
 
 
 #endif // __MOVABLE_BLOCK_H__

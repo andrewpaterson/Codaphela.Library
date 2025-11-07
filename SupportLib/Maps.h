@@ -28,7 +28,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "TileMap.h"
-#include "MovableBlockType.h"
+#include "SpriteMap.h"
 
 
 class CMaps : public CUnknown

@@ -38,7 +38,7 @@ protected:
 	CCharsImmutable		mszname;
 	CTileMap*			mpcTileMap;
 	bool				mbVisible;
-	CMovableBlockType*	mpcTileType;
+	CMovableBlockType*		mpcTileType;
 
 public:
 	void			Init(char* szName, CTileMap* pcTileMap, CMovableBlockType*	pcTileType);

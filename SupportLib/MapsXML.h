@@ -21,21 +21,22 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TILE_MAP_XML_H__
-#define __TILE_MAP_XML_H__
+#ifndef __MAPS_XML_H__
+#define __MAPS_XML_H__
 #include "BaseLib/Chars.h"
 #include "ImageCelsSource.h"
 #include "MovableBlocks.h"
 #include "Maps.h"
 
+
 class CMarkupTag;
-class CTileMapXML
+class CMapsXML
 {
 protected:
 	CChars				mszMapName;
 	CChars				mszTexturePath;
 	CMovableBlocks*		mpcMovableBlocks;
-	CMaps*				mpcTileMaps;
+	CMaps*				mpcMaps;
 
 public:
 	void Init(char* szMapName, char* szTexturePath);
@@ -47,13 +48,13 @@ protected:
 	bool ImportBrushSources(CMarkupTag* pcTag);
 	bool ImportObjectSources(CMarkupTag* pcTag);
 	bool ImportMaps(CMarkupTag* pcTag);
-	bool ImportMap(CMarkupTag* pcTag);
-	bool ImportMap(CMarkupTag* pcTag, CTileMap* pcMap);
+	bool ImportTileMap(CMarkupTag* pcTag);
+	bool ImportTileMap(CMarkupTag* pcTag, CTileMap* pcMap);
 	bool ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap);
 	bool ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap);
 	bool ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer);
 };
 
 
-#endif // __TILE_MAP_XML_H__
+#endif // __MAPS_XML_H__
 

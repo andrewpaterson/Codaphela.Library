@@ -33,8 +33,12 @@ protected:
 	bool	mbValue;
 
 public:
-	void Init(bool bValue, CMovableBlockType* pcType, char* szName);
-	void Kill(void);
+	void	Init(bool bValue, CMovableBlockType* pcType, char* szName);
+	void	Kill(void);
+
+	bool	GetValue(void);
+
+	void	Abstract(void) override;
 };
 
 

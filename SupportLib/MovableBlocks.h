@@ -35,7 +35,7 @@ class CMovableBlocks : public CUnknown
 {
 CONSTRUCTABLE(CMovableBlocks);
 protected:
-	CArrayMovableBlockType	macTileTypes;
+	CArrayMovableBlockType	macTypes;
 	CArray<CImage>			macImages;
 	CArray<CImageCelGroup>	macGroups;
 	

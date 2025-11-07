@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/ArrayType.h"
 #include "BaseLib/Int2.h"
 #include "TileLayer.h"
+#include "MovableBlockType.h"
 #include "MovableBlock.h"
 
 
@@ -34,7 +35,7 @@ class CTileMap : public CUnknown
 {
 CONSTRUCTABLE(CTileMap);
 protected:
-	CArrayTileLayer		macTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. and ImageCelTile and BooleanTile.
+	CArrayTileLayer		macTileLayers;	//Layers are not multiple graphics layers.  All the layers together make up the complete information about a single tile.  E.g. an ImageCelTile and a BooleanTile.
 	CCharsImmutable		mszName;
 	SInt2				msMapSize;		//The tile is indexed by x + y * msMapSize.x
 	SInt2				msCelSize;

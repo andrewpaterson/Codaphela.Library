@@ -38,7 +38,7 @@ void CMovableBlocks::Init(void)
 	CMovableBlockType*		pcBooleanType;
 	CMovableBlockType*		pcImageType;
 
-	macTileTypes.Init();
+	macTypes.Init();
 
 	macImages.Init();
 	macGroups.Init();
@@ -63,7 +63,7 @@ void CMovableBlocks::Kill(void)
 {
 	macGroups.Kill();
 	macImages.Kill();
-	macTileTypes.Kill();
+	macTypes.Kill();
 }
 
 
@@ -75,7 +75,7 @@ CMovableBlockType* CMovableBlocks::AddType(char* szTypeName)
 {
 	CMovableBlockType*	pcType;
 
-	pcType = macTileTypes.Add();
+	pcType = macTypes.Add();
 	pcType->Init(szTypeName);
 	return pcType;
 }
@@ -90,14 +90,14 @@ CMovableBlockType* CMovableBlocks::GetType(char* szTypeName)
 	SSetIterator	sIter;
 	CMovableBlockType*		pcType;
 
-	pcType = (CMovableBlockType*)macTileTypes.StartIteration(&sIter);
+	pcType = (CMovableBlockType*)macTypes.StartIteration(&sIter);
 	while (pcType)
 	{
 		if (pcType->Is(szTypeName))
 		{
 			return pcType;
 		}
-		pcType = (CMovableBlockType*)macTileTypes.Iterate(&sIter);
+		pcType = (CMovableBlockType*)macTypes.Iterate(&sIter);
 	}
 	return NULL;
 }
