@@ -25,23 +25,23 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MOVABLE_BLOCK_TYPE_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/ArrayType.h"
+#include "MovableBlock.h"
 
 
-class CMovableBlock;
 class CMovableBlockType : public CUnknown
 {
 CONSTRUCTABLE(CMovableBlockType);
 protected:
-	CArrayUnknown		macTiles;
+	CArrayUnknown		macBlocksOfType;
 	CCharsImmutable		mszTypeName;
 
 public:
 	void 			Init(char* szTypeName);
 	void 			Kill(void);
-	bool 			Is(char* szName);
-	CMovableBlock*	GetNull(void);
+	bool 			Is(char* szTypeName);
+	CMovableBlock* GetNull(void);
 	void			AddTile(CMovableBlock* pcTile);
-	CMovableBlock*	Get(size iIndex);
+	CMovableBlock* Get(size iIndex);
 };
 
 

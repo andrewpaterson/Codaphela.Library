@@ -669,9 +669,6 @@
     <ClInclude Include="MovableBlockImageCel.h">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
-    <ClInclude Include="MovableBlockType.h">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClInclude>
     <ClInclude Include="MovableBlocks.h">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
@@ -683,6 +680,15 @@
     </ClInclude>
     <ClInclude Include="MapsXML.h">
       <Filter>Source\Map\XML</Filter>
+    </ClInclude>
+    <ClInclude Include="Sprite.h">
+      <Filter>Source\Map\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteType.h">
+      <Filter>Source\Map\Sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockType.h">
+      <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1133,9 +1139,6 @@
     <ClCompile Include="MovableBlockImageCel.cpp">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClCompile>
-    <ClCompile Include="MovableBlockType.cpp">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClCompile>
     <ClCompile Include="MovableBlocks.cpp">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClCompile>
@@ -1147,6 +1150,15 @@
     </ClCompile>
     <ClCompile Include="MapsXML.cpp">
       <Filter>Source\Map\XML</Filter>
+    </ClCompile>
+    <ClCompile Include="Sprite.cpp">
+      <Filter>Source\Map\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteType.cpp">
+      <Filter>Source\Map\Sprite</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockType.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

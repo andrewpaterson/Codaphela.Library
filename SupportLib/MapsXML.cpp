@@ -28,20 +28,19 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "BaseLib/MarkupTextParser.h"
 #include "ObjectSourcesXML.h"
 #include "ImageCelsSourceXML.h"
-#include "TileMapXML.h"
+#include "MapsXML.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMapXML::Init(char* szMapName, char* szTexturePath)
+void CMapsXML::Init(char* szMapName, char* szTexturePath)
 {
 	CFileUtil		cFileUtil;
 
 	mpcMovableBlocks = NULL;
-	mpcTileMaps = NULL;
-	mpcSpriteMaps = NULL;
+	mpcMaps = NULL;
 
 	mszMapName.Init(szMapName);
 	mszTexturePath.Init(szTexturePath);
@@ -55,11 +54,10 @@ void CTileMapXML::Init(char* szMapName, char* szTexturePath)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTileMapXML::Kill(void)
+void CMapsXML::Kill(void)
 {
 	mpcMovableBlocks = NULL;
-	mpcTileMaps = NULL;
-	mpcSpriteMaps = NULL;
+	mpcMaps = NULL;
 
 	mszTexturePath.Kill();
 	mszMapName.Kill();
@@ -70,7 +68,7 @@ void CTileMapXML::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::Import(CMovableBlocks* pcTileWorld)
+bool CMapsXML::Import(CMovableBlocks* pcTileWorld)
 {
 	CXMLFile		cXMLFile;
 	CMarkup*		pcMarkup;
@@ -159,7 +157,7 @@ bool CTileMapXML::Import(CMovableBlocks* pcTileWorld)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportObjectSources(CMarkupTag* pcTag)
+bool CMapsXML::ImportObjectSources(CMarkupTag* pcTag)
 {
 	CObjectSourcesXML	cObjectSourcesXML;
 	bool				bResult;
@@ -178,7 +176,7 @@ bool CTileMapXML::ImportObjectSources(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportBrushSources(CMarkupTag* pcTag)
+bool CMapsXML::ImportBrushSources(CMarkupTag* pcTag)
 {
 	CImageCelsSourceXML cImageCelsSourceXML;
 	bool				bResult;
@@ -197,7 +195,7 @@ bool CTileMapXML::ImportBrushSources(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportMaps(CMarkupTag* pcTag)
+bool CMapsXML::ImportMaps(CMarkupTag* pcTag)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcTileMapWrapper;
@@ -206,7 +204,7 @@ bool CTileMapXML::ImportMaps(CMarkupTag* pcTag)
 	pcTileMapWrapper = pcTag->GetTag("TileMapWrapper", &sIter);
 	while (pcTileMapWrapper)
 	{
-		bResult = ImportMap(pcTileMapWrapper);
+		bResult = ImportTileMap(pcTileMapWrapper);
 		if (!bResult)
 		{
 			return false;
@@ -221,7 +219,7 @@ bool CTileMapXML::ImportMaps(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportMap(CMarkupTag* pcTag)
+bool CMapsXML::ImportTileMap(CMarkupTag* pcTag)
 {
 	CMarkupTag*		pcTileMap;
 	CMarkupTag*		pcName;
@@ -275,9 +273,9 @@ bool CTileMapXML::ImportMap(CMarkupTag* pcTag)
 		return false;
 	}
 
-	pcMap = mpcTileMaps->AddMap(szName.Text(), (int)iCelWidth, (int)iCelHeight);
+	pcMap = mpcMaps->AddTileMap(szName.Text(), (int)iCelWidth, (int)iCelHeight);
 
-	bResult = ImportMap(pcTileMap, pcMap);
+	bResult = ImportTileMap(pcTileMap, pcMap);
 	if (!bResult)
 	{
 		return false;
@@ -292,7 +290,7 @@ bool CTileMapXML::ImportMap(CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportMap(CMarkupTag* pcTag, CTileMap* pcMap)
+bool CMapsXML::ImportTileMap(CMarkupTag* pcTag, CTileMap* pcMap)
 {
 	CMarkupTag*		pcWidth;
 	CMarkupTag*		pcHeight;
@@ -337,7 +335,7 @@ bool CTileMapXML::ImportMap(CMarkupTag* pcTag, CTileMap* pcMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap)
+bool CMapsXML::ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcLayer;
@@ -361,7 +359,7 @@ bool CTileMapXML::ImportLayers(CMarkupTag* pcTag, CTileMap* pcMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
+bool CMapsXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
 {
 	CMarkupTag*		pcName;
 	CMarkupTag*		pcObjectClass;
@@ -428,7 +426,7 @@ bool CTileMapXML::ImportLayer(CMarkupTag* pcTag, CTileMap* pcMap)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTileMapXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
+bool CMapsXML::ImportTiles(CMarkupTag* pcTag, CTileLayer* pcLayer)
 {
 	CChars				szCSV;
 	CCSVFileImmutable	cCSVFile;

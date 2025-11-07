@@ -21,17 +21,17 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "MovableBlock.h"
+#include "SpriteType.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlock::Init(CMovableBlockType* pcType, char* szName)
+void CSpriteType::Init(char* szTypeName)
 {
-	mpcType = pcType;
-	mszName.Init(szName);
+	macBlockLayers.Init();
+	mszTypeName.Init(szTypeName);
 }
 
 
@@ -39,10 +39,10 @@ void CMovableBlock::Init(CMovableBlockType* pcType, char* szName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlock::Kill(void)
+void CSpriteType::Kill(void)
 {
-	mszName.Kill();
-	CUnknown::Kill();
+	mszTypeName.Kill();
+	macBlockLayers.Kill();
 }
 
 
@@ -50,6 +50,39 @@ void CMovableBlock::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CMovableBlock::GetName(void) { return mszName.Text(); }
-CMovableBlockType* CMovableBlock::GetType(void) { return mpcType; }
+bool CSpriteType::Is(char* szTypeName)
+{
+	return mszTypeName.Equals(szTypeName);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMovableBlock* CSpriteType::GetNull(void)
+{
+	//The 'NULL' tile is always the zero'th tile.
+	return (CMovableBlock*)macBlockLayers.Get(0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteType::AddTile(CMovableBlock* pcTile)
+{
+	macBlockLayers.Add(pcTile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMovableBlock* CSpriteType::Get(size uiIndex)
+{
+	return (CMovableBlock*)macBlockLayers.Get(uiIndex);
+}
 

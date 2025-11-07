@@ -42,7 +42,7 @@ typedef CArrayTemplateMinimal<SSkinWeight>	CArrayVertWeight;
 
 
 //Each one of these represents one vertex in the mesh.  The sum of each of the vert weights must equal one.
-// !! THE WEIGHTS MUST BE SORTED largest to smallest and not zero.  Call SortSkinWeights on new verts to be sure.
+//  THE WEIGHTS MUST BE SORTED largest to smallest and not zero.  Call SortSkinWeights on new verts to be sure.
 class CMeshSkinVert
 {
 public:

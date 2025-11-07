@@ -21,7 +21,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "MovableBlock.h"
 #include "MovableBlockType.h"
 
 
@@ -29,9 +28,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockType::Init(char*szTypeName)
+void CMovableBlockType::Init(char* szTypeName)
 {
-	macTiles.Init();
+	macBlocksOfType.Init();
 	mszTypeName.Init(szTypeName);
 }
 
@@ -43,7 +42,7 @@ void CMovableBlockType::Init(char*szTypeName)
 void CMovableBlockType::Kill(void)
 {
 	mszTypeName.Kill();
-	macTiles.Kill();
+	macBlocksOfType.Kill();
 }
 
 
@@ -51,9 +50,9 @@ void CMovableBlockType::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMovableBlockType::Is(char* szName)
+bool CMovableBlockType::Is(char* szTypeName)
 {
-	return mszTypeName.Equals(szName);
+	return mszTypeName.Equals(szTypeName);
 }
 
 
@@ -64,7 +63,7 @@ bool CMovableBlockType::Is(char* szName)
 CMovableBlock* CMovableBlockType::GetNull(void)
 {
 	//The 'NULL' tile is always the zero'th tile.
-	return (CMovableBlock*)macTiles.Get(0);
+	return (CMovableBlock*)macBlocksOfType.Get(0);
 }
 
 
@@ -74,7 +73,7 @@ CMovableBlock* CMovableBlockType::GetNull(void)
 //////////////////////////////////////////////////////////////////////////
 void CMovableBlockType::AddTile(CMovableBlock* pcTile)
 {
-	macTiles.Add(pcTile);
+	macBlocksOfType.Add(pcTile);
 }
 
 
@@ -84,6 +83,6 @@ void CMovableBlockType::AddTile(CMovableBlock* pcTile)
 //////////////////////////////////////////////////////////////////////////
 CMovableBlock* CMovableBlockType::Get(size uiIndex)
 {
-	return (CMovableBlock*)macTiles.Get(uiIndex);
+	return (CMovableBlock*)macBlocksOfType.Get(uiIndex);
 }
 

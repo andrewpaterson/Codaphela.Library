@@ -187,11 +187,13 @@
     <ClInclude Include="ImageDraw.h" />
     <ClInclude Include="ImageReaderHelper.h" />
     <ClInclude Include="ImageToR3G3B2A.h" />
+    <ClInclude Include="MovableBlockType.h" />
     <ClInclude Include="PNGWriter.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SFTCommon.h" />
     <ClInclude Include="SFTReader.h" />
     <ClInclude Include="SFTWriter.h" />
+    <ClInclude Include="Sprite.h" />
     <ClInclude Include="SpriteMap.h" />
     <ClInclude Include="Maps.h" />
     <ClInclude Include="TrackerTypes.h" />
@@ -331,7 +333,7 @@
     <ClInclude Include="MovableBlock.h" />
     <ClInclude Include="MovableBlockBoolean.h" />
     <ClInclude Include="MovableBlockImageCel.h" />
-    <ClInclude Include="MovableBlockType.h" />
+    <ClInclude Include="SpriteType.h" />
     <ClInclude Include="Box.h" />
     <ClInclude Include="ConvexHull.h" />
     <ClInclude Include="HalfSpace.h" />
@@ -353,6 +355,7 @@
     <ClCompile Include="ImageDraw.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />
     <ClCompile Include="ImageToR3G3B2A.cpp" />
+    <ClCompile Include="MovableBlockType.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SFTCommon.cpp" />
@@ -364,6 +367,7 @@
     <ClCompile Include="Font.cpp" />
     <ClCompile Include="FontList.cpp" />
     <ClCompile Include="Glyph.cpp" />
+    <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="SpriteMap.cpp" />
     <ClCompile Include="Maps.cpp" />
     <ClCompile Include="WinText.cpp" />
@@ -487,7 +491,7 @@
     <ClCompile Include="MovableBlock.cpp" />
     <ClCompile Include="MovableBlockBoolean.cpp" />
     <ClCompile Include="MovableBlockImageCel.cpp" />
-    <ClCompile Include="MovableBlockType.cpp" />
+    <ClCompile Include="SpriteType.cpp" />
     <ClCompile Include="Box.cpp" />
     <ClCompile Include="ConvexHull.cpp" />
     <ClCompile Include="HalfSpace.cpp" />

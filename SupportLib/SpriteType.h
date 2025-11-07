@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2025 Andrew Paterson
+Copyright (c) 2012 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -21,35 +21,32 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#ifndef __SPRITE_TYPE_H__
+#define __SPRITE_TYPE_H__
+#include "StandardLib/Unknown.h"
+#include "StandardLib/ArrayType.h"
 #include "MovableBlock.h"
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMovableBlock::Init(CMovableBlockType* pcType, char* szName)
+class CSpriteType : public CUnknown
 {
-	mpcType = pcType;
-	mszName.Init(szName);
-}
+CONSTRUCTABLE(CSpriteType);
+protected:
+	CArrayUnknown		macBlockLayers;
+	CCharsImmutable		mszTypeName;
+
+public:
+	void 			Init(char* szTypeName);
+	void 			Kill(void);
+	bool 			Is(char* szTypeName);
+	CMovableBlock*	GetNull(void);
+	void			AddTile(CMovableBlock* pcTile);
+	CMovableBlock*	Get(size iIndex);
+};
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMovableBlock::Kill(void)
-{
-	mszName.Kill();
-	CUnknown::Kill();
-}
+typedef CArrayType<CSpriteType>	CArraySpriteType;
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-char* CMovableBlock::GetName(void) { return mszName.Text(); }
-CMovableBlockType* CMovableBlock::GetType(void) { return mpcType; }
+#endif // __SPRITE_TYPE_H__
 
