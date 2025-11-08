@@ -36,13 +36,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CImageCelsSourceXML::Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
+bool CImageCelsSourceXML::Import(CMapsContext* pcWorld, CMarkupTag* pcTag, char* szTexturePath)
 {
 	STagIterator	sIter;
 	CMarkupTag*		pcBrushSourceTag;
 	bool			bResult;
 
-	mpcWorld = pcWorld;
+	mpcContext = pcWorld;
 
 	pcBrushSourceTag = pcTag->GetTag("BrushSource", &sIter);
 	while (pcBrushSourceTag)
@@ -143,10 +143,10 @@ bool CImageCelsSourceXML::ImportCels(CMarkupTag* pcCelsTag, char* szFilename)
 	cCelsSource.AddDiskFileSource(szFilename, szGroupName.Text(), &cSubImagesSource);
 	cCelsSource.Load();
 
-	mpcWorld->AddImages(cCelsSource.GetImages());
+	mpcContext->AddImages(cCelsSource.GetImages());
 
 	pcGroup = ONMalloc<CImageCelGroup>(szGroupName.Text());
-	mpcWorld->AddGroup(pcGroup);
+	mpcContext->AddGroup(pcGroup);
 	pcGroup->AddCels(cCelsSource.GetImageCels());
 
 	szGroupName.Kill();

@@ -187,6 +187,7 @@
     <ClInclude Include="ImageDraw.h" />
     <ClInclude Include="ImageReaderHelper.h" />
     <ClInclude Include="ImageToR3G3B2A.h" />
+    <ClInclude Include="MovableBlockMap.h" />
     <ClInclude Include="MovableBlockType.h" />
     <ClInclude Include="PNGWriter.h" />
     <ClInclude Include="Scene.h" />
@@ -326,7 +327,7 @@
     <ClInclude Include="TileLayer.h" />
     <ClInclude Include="TileMap.h" />
     <ClInclude Include="MapsXML.h" />
-    <ClInclude Include="MovableBlocks.h" />
+    <ClInclude Include="MapsContext.h" />
     <ClInclude Include="ImageCelsSourceXML.h" />
     <ClInclude Include="ObjectSourcesXML.h" />
     <ClInclude Include="SubImageXML.h" />
@@ -355,6 +356,7 @@
     <ClCompile Include="ImageDraw.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />
     <ClCompile Include="ImageToR3G3B2A.cpp" />
+    <ClCompile Include="MovableBlockMap.cpp" />
     <ClCompile Include="MovableBlockType.cpp" />
     <ClCompile Include="PNGWriter.cpp" />
     <ClCompile Include="Scene.cpp" />
@@ -484,7 +486,7 @@
     <ClCompile Include="TileLayer.cpp" />
     <ClCompile Include="TileMap.cpp" />
     <ClCompile Include="MapsXML.cpp" />
-    <ClCompile Include="MovableBlocks.cpp" />
+    <ClCompile Include="MapsContext.cpp" />
     <ClCompile Include="ImageCelsSourceXML.cpp" />
     <ClCompile Include="ObjectSourcesXML.cpp" />
     <ClCompile Include="SubImageXML.cpp" />

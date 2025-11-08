@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Init(void)
 {
-	mszName.Init();
+	CMovableBlockMap::Init();
 	macSprites.Init();
 }
 
@@ -41,6 +41,7 @@ void CSpriteMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CSpriteMap::Init(char* szName)
 {
+	CMovableBlockMap::Init(szName);
 	mszName.Init(szName);
 	macSprites.Init();
 }
@@ -53,7 +54,7 @@ void CSpriteMap::Init(char* szName)
 void CSpriteMap::Kill(void)
 {
 	macSprites.Kill();
-	CUnknown::Kill();
+	CMovableBlockMap::Kill();
 }
 
 
@@ -69,4 +70,14 @@ CSprite* CSpriteMap::AddSprite(CSpriteType* pcSpriteType, int32 x, int32 y)
 	pcSprite->Init(pcSpriteType, x, y);
 	return pcSprite;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CSpriteMap::Abstract(void)
+{
+}
+
 

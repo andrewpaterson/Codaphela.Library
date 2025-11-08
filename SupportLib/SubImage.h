@@ -83,10 +83,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CSubImage
 {
 public:
-	CRectangle	mcImageRect;  //For width and height.
-	SInt2		msOffsetTopLeft;  //+ve
-	SInt2		msOffsetBottomRight;  //+ve
-	SInt2		msAlignment;  //-ve
+	CRectangle	mcImageRect;
+	SInt2		msOffsetTopLeft;		//+ve
+	SInt2		msOffsetBottomRight;	//+ve
+	SInt2		msAlignment;			//-ve
 
 	void 	Init(void);
 	void 	Init(int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);

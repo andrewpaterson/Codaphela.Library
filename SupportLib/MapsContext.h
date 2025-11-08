@@ -21,21 +21,23 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MOVABLE_BLOCKS_H__
-#define __MOVABLE_BLOCKS_H__
+#ifndef __MAPS_CONTEXT_H__
+#define __MAPS_CONTEXT_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/Pointer.h"
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "TileMap.h"
+#include "SpriteType.h"
 #include "MovableBlockType.h"
 
 
-class CMovableBlocks : public CUnknown
+class CMapsContext : public CUnknown
 {
-CONSTRUCTABLE(CMovableBlocks);
+CONSTRUCTABLE(CMapsContext);
 protected:
-	CArrayMovableBlockType	macTypes;
+	CArrayMovableBlockType	macBlockTypes;  
+	CArraySpriteType		macSpriteTypes;
 	CArray<CImage>			macImages;
 	CArray<CImageCelGroup>	macGroups;
 	
@@ -43,8 +45,11 @@ public:
 	void 					Init(void);
 	void 					Kill(void);
 
-	CMovableBlockType*		AddType(char* szTypeName);
-	CMovableBlockType*		GetType(char* szTypeName);
+	CMovableBlockType*		AddBlockType(char* szTypeName);
+	CMovableBlockType*		GetBlockType(char* szTypeName);
+
+	CSpriteType*			AddSpriteType(char* szTypeName);
+	CSpriteType*			GetSpriteType(char* szTypeName);
 
 	void					AddImages(Ptr<CArray<CImage>> pacImages);
 	void					AddGroup(Ptr<CImageCelGroup> pcGroup);
@@ -52,5 +57,5 @@ public:
 };
 
 
-#endif // __MOVABLE_BLOCKS_H__
+#endif // __MAPS_CONTEXT_H__
 

@@ -21,28 +21,27 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAPS_H__
-#define __MAPS_H__
+#ifndef __MOVABLE_BLOCK_MAP_H__
+#define __MOVABLE_BLOCK_MAP_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknown.h"
-#include "TileMap.h"
-#include "SpriteMap.h"
 
 
-class CMaps : public CUnknown
+class CMovableBlockMap : public CUnknown
 {
-CONSTRUCTABLE(CMaps);
+CONSTRUCTABLE(CMovableBlockMap);
 protected:
-	CArrayUnknown	macMaps;
+	CCharsImmutable		mszName;
 
 public:
-	void 			Init(void);
-	void 			Kill(void);
+			void	Init(void);
+			void 	Init(char* szName);
+			void	Kill(void);
 
-	CTileMap*		AddTileMap(char* szName, int iCelWidth, int iCelHeight);
-	CSpriteMap*		AddSpriteMap(char* szName);
+			char*	GetName(void);
+
+	virtual	void	Abstract(void) =0;
 };
 
 
-#endif // __MAPS_H__
+#endif // __MOVABLE_BLOCK_MAP_H__
 

@@ -30,7 +30,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CTileMap::Init(void)
 {
-	mszName.Init();
+	CMovableBlockMap::Init();
 	msMapSize.Init(0, 0);
 	msCelSize.Init(0, 0);
 	macTileLayers.Init();
@@ -43,7 +43,7 @@ void CTileMap::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTileMap::Init(char* szName, int iCelSizeX, int iCelSizeY)
 {
-	mszName.Init(szName);
+	CMovableBlockMap::Init(szName);
 	msMapSize.Init(0, 0);
 	msCelSize.Init(iCelSizeX, iCelSizeY);
 	macTileLayers.Init();
@@ -67,7 +67,7 @@ void CTileMap::SetMapSize(int iMapSizeX, int iMapSizeY)
 void CTileMap::Kill(void)
 {
 	macTileLayers.Kill();
-	CUnknown::Kill();
+	CMovableBlockMap::Kill();
 }
 
 
@@ -89,9 +89,8 @@ CTileLayer* CTileMap::AddLayer(char* szName, CMovableBlockType* pcTileType)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTileMap::GetMapSizeX(void)
+void CTileMap::Abstract(void)
 {
-	return msMapSize.x;
 }
 
 
@@ -99,8 +98,7 @@ int CTileMap::GetMapSizeX(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTileMap::GetMapSizeY(void)
-{
-	return msMapSize.y;
-}
+int CTileMap::GetMapSizeX(void) { return msMapSize.x; }
+int CTileMap::GetMapSizeY(void) { return msMapSize.y; }
+
 

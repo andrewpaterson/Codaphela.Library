@@ -187,6 +187,9 @@
     <Filter Include="Source\Map\XML">
       <UniqueIdentifier>{3ffc1149-9b68-4360-ab1e-bd6017d28d51}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Map\MovableBlock\Specific">
+      <UniqueIdentifier>{c1cebc11-9ee0-4f3e-85f2-4f354c0dabb8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CopyPaste.h">
@@ -663,15 +666,6 @@
     <ClInclude Include="MovableBlock.h">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClInclude>
-    <ClInclude Include="MovableBlockBoolean.h">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClInclude>
-    <ClInclude Include="MovableBlockImageCel.h">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClInclude>
-    <ClInclude Include="MovableBlocks.h">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClInclude>
     <ClInclude Include="SpriteMap.h">
       <Filter>Source\Map\Sprite</Filter>
     </ClInclude>
@@ -689,6 +683,18 @@
     </ClInclude>
     <ClInclude Include="MovableBlockType.h">
       <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockMap.h">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockBoolean.h">
+      <Filter>Source\Map\MovableBlock\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="MovableBlockImageCel.h">
+      <Filter>Source\Map\MovableBlock\Specific</Filter>
+    </ClInclude>
+    <ClInclude Include="MapsContext.h">
+      <Filter>Source\Map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1133,15 +1139,6 @@
     <ClCompile Include="MovableBlock.cpp">
       <Filter>Source\Map\MovableBlock</Filter>
     </ClCompile>
-    <ClCompile Include="MovableBlockBoolean.cpp">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClCompile>
-    <ClCompile Include="MovableBlockImageCel.cpp">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClCompile>
-    <ClCompile Include="MovableBlocks.cpp">
-      <Filter>Source\Map\MovableBlock</Filter>
-    </ClCompile>
     <ClCompile Include="SpriteMap.cpp">
       <Filter>Source\Map\Sprite</Filter>
     </ClCompile>
@@ -1159,6 +1156,18 @@
     </ClCompile>
     <ClCompile Include="MovableBlockType.cpp">
       <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockMap.cpp">
+      <Filter>Source\Map\MovableBlock</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockBoolean.cpp">
+      <Filter>Source\Map\MovableBlock\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="MovableBlockImageCel.cpp">
+      <Filter>Source\Map\MovableBlock\Specific</Filter>
+    </ClCompile>
+    <ClCompile Include="MapsContext.cpp">
+      <Filter>Source\Map</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

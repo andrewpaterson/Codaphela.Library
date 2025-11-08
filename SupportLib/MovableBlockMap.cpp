@@ -1,6 +1,6 @@
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
-Copyright (c) 2012 Andrew Paterson
+Copyright (c) 2025 Andrew Paterson
 
 This file is part of The Codaphela Project: Codaphela SupportLib
 
@@ -21,28 +21,46 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAPS_H__
-#define __MAPS_H__
-#include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayUnknown.h"
-#include "TileMap.h"
-#include "SpriteMap.h"
+#include "MovableBlockMap.h"
 
 
-class CMaps : public CUnknown
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockMap::Init(void)
 {
-CONSTRUCTABLE(CMaps);
-protected:
-	CArrayUnknown	macMaps;
-
-public:
-	void 			Init(void);
-	void 			Kill(void);
-
-	CTileMap*		AddTileMap(char* szName, int iCelWidth, int iCelHeight);
-	CSpriteMap*		AddSpriteMap(char* szName);
-};
+	mszName.Init();
+}
 
 
-#endif // __MAPS_H__
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockMap::Init(char* szName)
+{
+	mszName.Init();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockMap::Kill(void)
+{
+	mszName.Kill();
+	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CMovableBlockMap::GetName(void)
+{
+	return mszName.Text();
+}
 
