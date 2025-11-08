@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MAPS_XML_H__
 #include "BaseLib/Chars.h"
 #include "ImageCelsSource.h"
-#include "MovableBlocks.h"
+#include "MapsContext.h"
 #include "Maps.h"
 
 
@@ -35,17 +35,17 @@ class CMapsXML
 protected:
 	CChars				mszMapName;
 	CChars				mszTexturePath;
-	CMovableBlocks*		mpcMovableBlocks;
+	CMapsContext*		mpcContext;
 	CMaps*				mpcMaps;
 
 public:
 	void Init(char* szMapName, char* szTexturePath);
 	void Kill(void);
 
-	bool Import(CMovableBlocks* pcTileWorld);
+	bool Import(CMapsContext* pcTileWorld);
 
 protected:
-	bool ImportBrushSources(CMarkupTag* pcTag);
+	bool ImportImageCels(CMarkupTag* pcTag);
 	bool ImportObjectSources(CMarkupTag* pcTag);
 	bool ImportMaps(CMarkupTag* pcTag);
 	bool ImportTileMap(CMarkupTag* pcTag);

@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/MarkupTextParser.h"
-#include "MovableBlocks.h"
+#include "MapsContext.h"
 #include "MovableBlockImageCel.h"
 #include "ObjectSourcesXML.h"
 
@@ -32,13 +32,13 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::Import(CMapsContext* pcWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*		pcObjectClass;
 	STagIterator	sIter;
 	bool			bResult;
 	
-	mpcWorld = pcWorld;
+	mpcContext = pcWorld;
 	pcObjectClass = pcTag->GetTag("ObjectClass", &sIter);
 	while (pcObjectClass)
 	{
@@ -58,7 +58,7 @@ bool CObjectSourcesXML::Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjectSourcesXML::ImportObjectClass(CMovableBlocks* pcWorld, CMarkupTag* pcTag)
+bool CObjectSourcesXML::ImportObjectClass(CMapsContext* pcWorld, CMarkupTag* pcTag)
 {
 	CMarkupTag*	pcClass;
 	CMarkupTag*	pcFields;
@@ -87,12 +87,12 @@ bool CObjectSourcesXML::ImportObjectClass(CMovableBlocks* pcWorld, CMarkupTag* p
 	bResult = false;
 	if (szClass.EqualsIgnoreCase("Image"))
 	{
-		pcType = pcWorld->GetType("Image");
+		pcType = pcWorld->GetBlockType("Image");
 		bResult = ImportImages(pcType, pcObjects);
 	}
 	else if (szClass.EqualsIgnoreCase("Boolean"))
 	{
-		pcType = pcWorld->GetType("Boolean");
+		pcType = pcWorld->GetBlockType("Boolean");
 		bResult = ImportBooleans(pcType, pcObjects);
 	}
 	else
@@ -196,7 +196,7 @@ bool CObjectSourcesXML::ImportImage(CMovableBlockType* pcType, CMarkupTag* pcTag
 	}
 
 
-	pcGroup = mpcWorld->GetGroup(szSourceName.Text());
+	pcGroup = mpcContext->GetGroup(szSourceName.Text());
 	if (!pcGroup)
 	{
 		szName.Kill();

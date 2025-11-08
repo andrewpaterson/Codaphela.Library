@@ -32,16 +32,16 @@ class CMovableBlockType : public CUnknown
 {
 CONSTRUCTABLE(CMovableBlockType);
 protected:
-	CArrayUnknown		macBlocksOfType;
+	CArrayUnknown		macBlocksOfType;  //These are ALL the blocks of this type, e.g. all the image cel blocks 
 	CCharsImmutable		mszTypeName;
 
 public:
 	void 			Init(char* szTypeName);
 	void 			Kill(void);
 	bool 			Is(char* szTypeName);
-	CMovableBlock* GetNull(void);
+	CMovableBlock*	GetNull(void);
 	void			AddTile(CMovableBlock* pcTile);
-	CMovableBlock* Get(size iIndex);
+	CMovableBlock*	Get(size iIndex);
 };
 
 

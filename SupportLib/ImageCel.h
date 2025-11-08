@@ -62,7 +62,7 @@ public:
 	void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
 	CSubImage*		GetSubImage(void);
 	void			SetSubImage(CSubImage* pcSubImage);
-	Ptr<CImage>			GetSourceImage(void);
+	Ptr<CImage>		GetSourceImage(void);
 };
 
 

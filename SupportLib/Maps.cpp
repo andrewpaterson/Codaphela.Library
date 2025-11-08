@@ -55,8 +55,22 @@ CTileMap* CMaps::AddTileMap(char* szName, int iCelWidth, int iCelHeight)
 {
 	CTileMap* pcMap;
 
-	pcMap = macMaps.Add();
+	pcMap = macMaps.Add<CTileMap>();
 	pcMap->Init(szName, iCelWidth, iCelHeight);
+	return pcMap;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CSpriteMap* CMaps::AddSpriteMap(char* szName)
+{
+	CSpriteMap* pcMap;
+
+	pcMap = macMaps.Add<CSpriteMap>();
+	pcMap->Init(szName);
 	return pcMap;
 }
 

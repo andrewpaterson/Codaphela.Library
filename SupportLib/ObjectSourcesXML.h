@@ -27,15 +27,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "ImageCelGroup.h"
 
 
-class CMovableBlocks;
+class CMapsContext;
 class CMovableBlockType;
 class CObjectSourcesXML
 {
 public:
-	CMovableBlocks*		mpcWorld;
+	CMapsContext*		mpcContext;
 
-	bool	Import(CMovableBlocks* pcWorld, CMarkupTag* pcTag);
-	bool	ImportObjectClass(CMovableBlocks* pcWorld, CMarkupTag* pcTag);
+	bool	Import(CMapsContext* pcWorld, CMarkupTag* pcTag);
+	bool	ImportObjectClass(CMapsContext* pcWorld, CMarkupTag* pcTag);
 	bool	ImportImages(CMovableBlockType* pcType, CMarkupTag* pcTag);
 	bool	ImportImage(CMovableBlockType* pcType, CMarkupTag* pcTag);
 	bool	ImportBooleans(CMovableBlockType* pcType, CMarkupTag* pcTag);
