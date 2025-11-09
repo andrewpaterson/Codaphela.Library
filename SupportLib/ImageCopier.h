@@ -38,13 +38,14 @@ public:
 	static void Copy(CImageCel* pcSource, Ptr<CImage> pcDest, int iDestX, int iDestY);
 	static void Copy(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 
-public:
+protected:
 	Ptr<CImage>			mpcSource;
 	Ptr<CImage>			mpcDest;
 	CImageAccessor*		mpcSourceAccessor;
 	CImageAccessor*		mpcDestAccessor;
 	bool				mbKillAccessors;
 
+public:
 	void Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);

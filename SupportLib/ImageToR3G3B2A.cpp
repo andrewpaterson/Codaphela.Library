@@ -101,6 +101,7 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 			}
 			pcAccessor->Set(i, &uiAlpha);
 		}
+		pcAccessor->Kill();
 
 		if ((uiNumOpaque == uiNumElements) || (uiNumTransparent == uiNumElements))
 		{

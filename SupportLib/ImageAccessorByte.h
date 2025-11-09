@@ -37,7 +37,7 @@ protected:
 	uint8*	mpucImageData;
 
 public:
-	void	Init(Ptr<CImage> pcImage, CChannelsAccessorContiguous* pcAccessor);
+	void	Init(Ptr<CImage> pcImage, CChannelsAccessorContiguous* pcAccessor, bool bKillChannelAccessor);
 	void	Kill(void);
 
 	void*	Get(int x, int y);
