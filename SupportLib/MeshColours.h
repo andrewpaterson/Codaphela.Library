@@ -24,6 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MESH_VERTEX_COLOURS_H__
 #define __MESH_VERTEX_COLOURS_H__
 #include "BaseLib/ArrayInt.h"
+#include "MeshDefines.h"
 #include "MeshDetail.h"
 
 

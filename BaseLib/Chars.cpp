@@ -1282,6 +1282,19 @@ CChars* CChars::AppendSubString(CChars szString, size iStartInclusive, size iEnd
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CChars* CChars::AppendSubString(CChars* pszString, size iStartInclusive, size iEndExclusive)
+{
+	const char* pcPosition;
+
+	pcPosition = (char*)RemapSinglePointer((void*)pszString->Text(), iStartInclusive);
+	return AppendSubString(pcPosition, iEndExclusive-iStartInclusive);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CChars* CChars::AppendSubString(const char* szString, size iStartInclusive, size iEndExclusive)
 {
 	const char* pcPosition;
