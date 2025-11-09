@@ -92,6 +92,7 @@ public:
 	CChars*	AppendHexLoHi(void* pv, size iNumBytes);
 	CChars*	AppendSubString(const char* szString, size iLength);
 	CChars*	AppendSubString(CChars szString, size iStartInclusive, size iEndExclusive);
+	CChars* AppendSubString(CChars* pszString, size iStartInclusive, size iEndExclusive);
 	CChars*	AppendSubString(const char* szString, size iStartInclusive, size iEndExclusive);
 	CChars*	AppendSubString(const char* szStartInclusive, const char* szEndExclusive);
 	CChars*	AppendBool(bool bValue);

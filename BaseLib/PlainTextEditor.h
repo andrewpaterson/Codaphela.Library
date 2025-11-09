@@ -95,6 +95,7 @@ public:
 	void 	BackTab(void);
 
 	char*	Text(void);
+	char*	Line(CChars* pszDest, bool bFromEditPosition = true);
 	size	Length(void);
 	void	SetPageLength(size iPageSize);
 	void	SetPosition(size iPosition);
@@ -103,7 +104,7 @@ public:
 	SInt2	GetEditPosition(void);
 	SInt2	GetPosition(size iPosition);
 
-private:
+protected:
 	size	FindUp(size iPos);
 	size	FindDown(size iPos);
 	size	FindLeft(size iPos);

@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MESH_UV_COORDS_H__
 #include "BaseLib/ArrayTemplate.h"
 #include "BaseLib/GeometricTypes.h"
+#include "MeshDefines.h"
 #include "MeshDetail.h"
 
 

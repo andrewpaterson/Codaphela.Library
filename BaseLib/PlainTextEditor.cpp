@@ -1150,6 +1150,7 @@ size CPlainTextEditor::FindWordRight(size iPos)
 //////////////////////////////////////////////////////////////////////////
 bool CPlainTextEditor::IsSelected(void)
 {
+	//I think this should be an || not an && but I haven't read the code around miSelectionFloating.
 	if ((miSelectionAnchor == SIZE_MAX) && (miSelectionFloating == SIZE_MAX))
 	{
 		return false;
@@ -1164,6 +1165,29 @@ bool CPlainTextEditor::IsSelected(void)
 char* CPlainTextEditor::Text(void)
 {
 	return mszText.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CPlainTextEditor::Line(CChars* pszDest, bool bFromEditPosition)
+{
+	size	uiEndOfLineIndex;
+	size	uiStartOfLineIndex;
+	
+	uiEndOfLineIndex = FindEndOfLine(miEditPos);
+	if (bFromEditPosition)
+	{
+		pszDest->AppendSubString(&mszText, miEditPos, uiEndOfLineIndex);
+	}
+	else
+	{
+		uiStartOfLineIndex = FindStartOfLine(miEditPos);
+		pszDest->AppendSubString(&mszText, uiStartOfLineIndex, uiEndOfLineIndex);
+	}
+	return pszDest->Text();
 }
 
 
