@@ -11,6 +11,7 @@
 void CUnmanagedClasses::Init(CClasses* pcClasses)
 {
 	mpcClasses = pcClasses;
+	uiNumUnmanagedClasses = 0;
 
 	mpcUndefined = AddClassByPrettyName(PT_Undefined);
 
@@ -61,6 +62,9 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 void CUnmanagedClasses::Kill(void)
 {
 	mpcClasses = NULL;
+	uiNumUnmanagedClasses = 0;
+
+	memset(this, 0, sizeof(CUnmanagedClasses));
 }
 
 
@@ -110,6 +114,9 @@ CClass* CUnmanagedClasses::AddClass(EPrimitiveType eType, const char* szName, in
 	pcClass->System();
 	pcClass->Unmanaged();
 	pcClass->Complete();
+	
+	uiNumUnmanagedClasses++;
+
 	return pcClass;
 }
 

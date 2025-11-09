@@ -77,6 +77,16 @@ void CMemoryFreeListParams::Init(size iHeaderSize, bool bDefaultFreeListParams)
 //////////////////////////////////////////////////////////////////////////
 void CMemoryFreeListParams::Kill(void)
 {
+	size					i;
+	size					uiNumElements;
+	SMemoryFreeListParams*	psParams;
+
+	uiNumElements = mcParams.NumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		psParams = mcParams.Get(i);
+
+	}
 	mcParams.Kill();
 	miHeaderSize = 0;
 }

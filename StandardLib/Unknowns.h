@@ -84,7 +84,8 @@ protected:
 };
 
 
-extern CUnknowns gcUnknowns;
+extern CUnknowns	gcUnknowns;
+extern bool			gbUnknowns;
 
 
 void UnknownsInit(void);

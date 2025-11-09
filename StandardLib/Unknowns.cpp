@@ -25,7 +25,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Unknowns.h"
 
 
-CUnknowns gcUnknowns;
+CUnknowns	gcUnknowns;
+bool		gbUnknowns = false;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -423,7 +424,13 @@ int CUnknowns::GetIterableListsHeadNumElements(void)
 //////////////////////////////////////////////////////////////////////////
 void UnknownsInit(void)
 {
+	if (gbUnknowns)
+	{
+		gcLogger.Error("Unknowns has already been initialised.");
+	}
+
 	gcUnknowns.Init("Global", &gcConstructors);
+	gbUnknowns = true;
 }
 
 
@@ -433,6 +440,12 @@ void UnknownsInit(void)
 //////////////////////////////////////////////////////////////////////////
 void UnknownsKill(void)
 {
+	if (!gbUnknowns)
+	{
+		gcLogger.Error("Global Memory has already been Killed.");
+	}
+
 	gcUnknowns.Kill();
+	gbUnknowns = false;
 }
 

@@ -39,10 +39,20 @@ void CClasses::Init(CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CClasses::Kill(void)
 {
+	SFreeListIterator	sIter;
+	CClass*				pcClass;
+
 	mcUnmanaged.Kill();
 
 	mmcpClassesByName.Kill();
 	mmcpClassesByType.Kill();
+	
+	pcClass = (CClass*)maClasses.StartIteration(&sIter);
+	while (pcClass)
+	{
+		pcClass->Kill();
+		pcClass = (CClass*)maClasses.Iterate(&sIter);
+	}
 	maClasses.Kill();
 }
 
