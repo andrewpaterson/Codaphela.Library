@@ -96,6 +96,9 @@ public:
 	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
 
+	size				NumStackFroms(void);
+	size				NumHeapFroms(void);
+
 	void				DumpFroms(void);
 	void				DumpPointerTos(void);
 	void				Dump(void);
