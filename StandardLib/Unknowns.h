@@ -29,8 +29,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "Iterables.h"
 
 
-#define UMalloc(classtype)	((classtype*)gcUnknowns.Add<classtype>());
-
+#define UMalloc(classtype)	((classtype*)gcUnknowns.Add<classtype>())
+#define UFree(object) (gcUnknowns.Remove(object))
 
 class CUnknowns
 {
