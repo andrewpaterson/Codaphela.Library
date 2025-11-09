@@ -253,3 +253,4 @@ void CImageDivider::CopyCellsTo(CArrayCommonUnknown* pcImageCels)
 //
 //////////////////////////////////////////////////////////////////////////
 CArrayUnknown* CImageDivider::GetDestImageCels(void) {return &mcDestImageCels;}
+

@@ -42,7 +42,7 @@ void CTileLayer::Init(char* szName, CTileMap* pcTileMap, CMovableBlockType*	pcTi
 	mbVisible = true;
 	mpcTileType = pcTileType;
 
-	pcNull = mpcTileType->GetNull();
+	pcNull = mpcTileType->GetNullBlock();
 	iSize = pcTileMap->GetMapSizeX() * pcTileMap->GetMapSizeY();
 	for (i = 0; i < iSize; i++)
 	{
@@ -82,7 +82,7 @@ void CTileLayer::SetTile(int x, int y, CMovableBlock* pcTile)
 //////////////////////////////////////////////////////////////////////////
 CMovableBlock* CTileLayer::GetTile(size uiIndex)
 {
-	return mpcTileType->Get(uiIndex);
+	return mpcTileType->GetBlock(uiIndex);
 }
 
 
@@ -95,7 +95,7 @@ CMovableBlock* CTileLayer::GetTile(int x, int y)
 	int		iYOffset;
 
 	iYOffset = y * mpcTileMap->GetMapSizeX();
-	return mpcTileType->Get(x + iYOffset);
+	return mpcTileType->GetBlock(x + iYOffset);
 }
 
 

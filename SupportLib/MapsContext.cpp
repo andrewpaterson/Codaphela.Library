@@ -47,12 +47,12 @@ void CMapsContext::Init(void)
 	pcImageType = AddBlockType("Image");
 	pcNullImageTile = UMalloc(CMovableBlockImageCel);
 	pcNullImageTile->Init(NULL, pcImageType, "NULL");
-	pcImageType->AddTile(pcNullImageTile);
+	pcImageType->AddBlock(pcNullImageTile);
 
 	pcBooleanType = AddBlockType("Boolean");
 	pcNullBooleanTile = UMalloc(CMovableBlockBoolean);
 	pcNullBooleanTile->Init(false, pcBooleanType, "NULL");
-	pcBooleanType->AddTile(pcNullBooleanTile);
+	pcBooleanType->AddBlock(pcNullBooleanTile);
 }
 
 
@@ -180,5 +180,15 @@ Ptr<CImageCelGroup> CMapsContext::GetGroup(char* szName)
 	}
 
 	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CArrayMovableBlockType* CMapsContext::GetBlockTypes(void)
+{
+	return &macBlockTypes;
 }
 

@@ -60,7 +60,7 @@ bool CMovableBlockType::Is(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlock* CMovableBlockType::GetNull(void)
+CMovableBlock* CMovableBlockType::GetNullBlock(void)
 {
 	//The 'NULL' tile is always the zero'th tile.
 	return (CMovableBlock*)macBlocksOfType.Get(0);
@@ -71,7 +71,17 @@ CMovableBlock* CMovableBlockType::GetNull(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMovableBlockType::AddTile(CMovableBlock* pcTile)
+size CMovableBlockType::NumBlocks(void)
+{
+	return macBlocksOfType.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMovableBlockType::AddBlock(CMovableBlock* pcTile)
 {
 	macBlocksOfType.Add(pcTile);
 }
@@ -81,8 +91,18 @@ void CMovableBlockType::AddTile(CMovableBlock* pcTile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CMovableBlock* CMovableBlockType::Get(size uiIndex)
+CMovableBlock* CMovableBlockType::GetBlock(size uiIndex)
 {
 	return (CMovableBlock*)macBlocksOfType.Get(uiIndex);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CMovableBlockType::GetName(void)
+{
+	return mszTypeName.Text();
 }
 

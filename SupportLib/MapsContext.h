@@ -42,18 +42,19 @@ protected:
 	CArray<CImageCelGroup>	macGroups;
 	
 public:
-	void 					Init(void);
-	void 					Kill(void);
+	void 						Init(void);
+	void 						Kill(void);
 
-	CMovableBlockType*		AddBlockType(char* szTypeName);
-	CMovableBlockType*		GetBlockType(char* szTypeName);
+	CMovableBlockType*			AddBlockType(char* szTypeName);
+	CMovableBlockType*			GetBlockType(char* szTypeName);
+	CArrayMovableBlockType*		GetBlockTypes(void);
 
-	CSpriteType*			AddSpriteType(char* szTypeName);
-	CSpriteType*			GetSpriteType(char* szTypeName);
+	CSpriteType*				AddSpriteType(char* szTypeName);
+	CSpriteType*				GetSpriteType(char* szTypeName);
 
-	void					AddImages(Ptr<CArray<CImage>> pacImages);
-	void					AddGroup(Ptr<CImageCelGroup> pcGroup);
-	Ptr<CImageCelGroup>		GetGroup(char* szName);
+	void						AddImages(Ptr<CArray<CImage>> pacImages);
+	void						AddGroup(Ptr<CImageCelGroup> pcGroup);
+	Ptr<CImageCelGroup>			GetGroup(char* szName);
 };
 
 

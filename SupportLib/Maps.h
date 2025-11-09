@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/ArrayUnknown.h"
 #include "TileMap.h"
 #include "SpriteMap.h"
+#include "MapsContext.h"
 
 
 class CMaps : public CUnknown
@@ -34,13 +35,16 @@ class CMaps : public CUnknown
 CONSTRUCTABLE(CMaps);
 protected:
 	CArrayUnknown	macMaps;
+	CMapsContext*	mpcContext;
 
 public:
-	void 			Init(void);
+	void 			Init(CMapsContext* pcContext);
 	void 			Kill(void);
 
 	CTileMap*		AddTileMap(char* szName, int iCelWidth, int iCelHeight);
 	CSpriteMap*		AddSpriteMap(char* szName);
+
+	CMapsContext*	GetContext(void);
 };
 
 

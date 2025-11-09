@@ -31,8 +31,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMaps::Init(void)
+void CMaps::Init(CMapsContext* pcContext)
 {
+	mpcContext = pcContext;
 	macMaps.Init();
 }
 
@@ -44,6 +45,7 @@ void CMaps::Init(void)
 void CMaps::Kill(void)
 {
 	macMaps.Kill();
+	mpcContext = NULL;
 }
 
 
@@ -73,4 +75,11 @@ CSpriteMap* CMaps::AddSpriteMap(char* szName)
 	pcMap->Init(szName);
 	return pcMap;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CMapsContext* CMaps::GetContext(void) {	return mpcContext; }
 
