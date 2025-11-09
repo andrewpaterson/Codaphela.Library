@@ -47,7 +47,6 @@ void CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	cCreator.AddAccess(mpcSourceAccessor);
 	mpcDestAccessor = cCreator.CreateAndKill();
 
-	//Just because it's easier not to have mpcSourceAccessor->mpcImage etc... all over the place.
 	mpcSource = pcSource;
 	mpcDest = pcDest;
 	mbKillAccessors = true;
@@ -75,7 +74,12 @@ void CImageCopier::Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDest
 void CImageCopier::Kill(void)
 {
 	if (mbKillAccessors)
-	mpcSourceAccessor->Kill();
+	{
+		mpcSourceAccessor->Kill();
+		mpcDestAccessor->Kill();
+	}
+	mpcSourceAccessor = NULL;
+	mpcDestAccessor = NULL;
 }
 
 

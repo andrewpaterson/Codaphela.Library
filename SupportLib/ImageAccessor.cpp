@@ -33,7 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessor::Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor)
+void CImageAccessor::Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor)
 {
 	mpcImage = pcImage;
 	if (mpcImage.IsNotNull())
@@ -45,6 +45,7 @@ void CImageAccessor::Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor)
 		miWidth = -1;
 	}
 	mpcAccessor = pcAccessor;
+	mbKillChannelAccessor = bKillChannelAccessor;
 }
 
 
@@ -54,6 +55,10 @@ void CImageAccessor::Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor)
 //////////////////////////////////////////////////////////////////////////
 void CImageAccessor::Kill(void)
 {
+	if (mbKillChannelAccessor)
+	{
+		mpcAccessor->Kill();
+	}
 	mpcAccessor = NULL;
 	CUnknown::Kill();
 }

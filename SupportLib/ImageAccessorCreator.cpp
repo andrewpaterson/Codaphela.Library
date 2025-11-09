@@ -74,13 +74,13 @@ CImageAccessor* CImageAccessorCreator::Create(void)
 		if (pcContiguous->GetByteSize() == 1)
 		{
 			pcByte = UMalloc(CImageAccessorByte);
-			pcByte->Init(mpcImage, pcContiguous);
+			pcByte->Init(mpcImage, pcContiguous, true);
 			return pcByte;
 		}
 	}
 
 	pcChannelBased = UMalloc(CImageAccessor);
-	pcChannelBased->Init(mpcImage, pcAccessor);
+	pcChannelBased->Init(mpcImage, pcAccessor, true);
 	return pcChannelBased;
 }
 
@@ -214,7 +214,7 @@ CImageAccessor* CImageAccessorCreator::CreateEmpty(void)
 	CImageAccessor*	pcAccessor;
 
 	pcAccessor = UMalloc(CImageAccessor);
-	pcAccessor->Init(NULL, NULL);
+	pcAccessor->Init(NULL, NULL, false);
 	return pcAccessor;
 }
 

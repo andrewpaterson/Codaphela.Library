@@ -40,9 +40,10 @@ protected:
 	CChannelsAccessor*	mpcAccessor;
 	Ptr<CImage>			mpcImage;
 	int					miWidth;
+	bool				mbKillChannelAccessor;
 
 public:
-	void 				Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor);
+	void 				Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
 	virtual void		Kill(void);
 
 	virtual void*		Get(int x, int y);
