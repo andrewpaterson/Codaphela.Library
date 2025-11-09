@@ -37,7 +37,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool HasTransparency(Ptr<CImage> pcImage, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool HasTransparency(Ptr<CImage> pImage, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
 	size				x;
 	size				y;
@@ -48,11 +48,11 @@ bool HasTransparency(Ptr<CImage> pcImage, size uiImageLeftOffset, size uiImageTo
 	bool				bOpaque;
 	size				uiImageWidth;
 
-	uiImageWidth = pcImage->GetWidth();
-	pcAlpha = pcImage->GetChannel(IMAGE_OPACITY);
+	uiImageWidth = pImage->GetWidth();
+	pcAlpha = pImage->GetChannel(IMAGE_OPACITY);
 	if (pcAlpha)
 	{
-		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcImage->GetChannels(), IMAGE_OPACITY, PT_bit);
+		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY, PT_bit);
 		y2 = uiImageTopOffset + uiCelHeight;
 		x2 = uiImageLeftOffset + uiCelWidth;
 		for (y = uiImageTopOffset; y < y2; y++)
@@ -81,7 +81,7 @@ bool HasTransparency(Ptr<CImage> pcImage, size uiImageLeftOffset, size uiImageTo
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFT(Ptr<CImage> pcImage, char* szFilename, bool bForceTransparent)
+bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent)
 {
 	CImageR3G3B2A	cRGBTo8bit;
 	CFileBasic		cFile;
@@ -93,10 +93,10 @@ bool SaveSFT(Ptr<CImage> pcImage, char* szFilename, bool bForceTransparent)
 	}
 
 	cRGBTo8bit.Init();
-	pcImage = cRGBTo8bit.Modify(&pcImage);
+	pImage = cRGBTo8bit.Modify(&pImage);
 	cRGBTo8bit.Kill();
 
-	if (pcImage.IsNull())
+	if (pImage.IsNull())
 	{
 		return false;
 	}
@@ -109,13 +109,13 @@ bool SaveSFT(Ptr<CImage> pcImage, char* szFilename, bool bForceTransparent)
 	cFile.Init(DiskFile(szFilename));
 	if (cFile.Open(EFM_Write_Create))
 	{
-		if (HasTransparency(pcImage, 0, 0, pcImage->GetWidth(), pcImage->GetHeight()) || bForceTransparent)
+		if (HasTransparency(pImage, 0, 0, pImage->GetWidth(), pImage->GetHeight()) || bForceTransparent)
 		{
-			bResult = SaveSFTTransparent(pcImage, &cFile, 0, 0, pcImage->GetWidth(), pcImage->GetHeight());
+			bResult = SaveSFTTransparent(pImage, &cFile, 0, 0, pImage->GetWidth(), pImage->GetHeight());
 		}
 		else
 		{
-			bResult = SaveSFTOpaque(pcImage, &cFile, 0, 0, pcImage->GetWidth(), pcImage->GetHeight());
+			bResult = SaveSFTOpaque(pImage, &cFile, 0, 0, pImage->GetWidth(), pImage->GetHeight());
 		}
 
 		cFile.Close();
@@ -132,7 +132,7 @@ bool SaveSFT(Ptr<CImage> pcImage, char* szFilename, bool bForceTransparent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTOpaque(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
 	SSFTImage	sStruct;
 	size		iResult;
@@ -148,8 +148,8 @@ bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffs
 
 	if (pcFile->IsOpen())
 	{
-		uiImageWidth = pcImage->GetWidth();
-		uiImageHeight = pcImage->GetHeight();
+		uiImageWidth = pImage->GetWidth();
+		uiImageHeight = pImage->GetHeight();
 
 		sStruct.Init(SFT_TYPE_OPAQUE, uiCelWidth, uiCelHeight);
 		iResult = pcFile->Write(&sStruct, sizeof(SSFTImage), 1);
@@ -158,7 +158,7 @@ bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffs
 			return false;
 		}
 
-		puiImage = (uint8*)pcImage->GetData();
+		puiImage = (uint8*)pImage->GetData();
 		puiData = (uint8*)malloc(uiCelWidth);
 		y2 = uiImageTopOffset + uiCelHeight;
 		x2 = uiImageLeftOffset + uiCelWidth;
@@ -190,7 +190,7 @@ bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffs
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
+bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight)
 {
 	SSFTImage			sStruct;
 	CChannelsAccessor*	pcOppacityAccessor;
@@ -212,8 +212,8 @@ bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLef
 
 	if (pcFile->IsOpen())
 	{
-		uiImageWidth = pcImage->GetWidth();
-		uiImageHeight = pcImage->GetHeight();
+		uiImageWidth = pImage->GetWidth();
+		uiImageHeight = pImage->GetHeight();
 		sStruct.Init(SFT_TYPE_TRANSPARENT, uiCelWidth, uiCelHeight);
 		iResult = pcFile->Write(&sStruct, sizeof(SSFTImage), 1);
 		if (iResult != 1)
@@ -221,9 +221,9 @@ bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLef
 			return false;
 		}
 
-		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pcImage->GetChannels(), IMAGE_OPACITY, PT_bit);
+		pcOppacityAccessor = CChannelsAccessorCreator::CreateSingleChannelAccessor(pImage->GetChannels(), IMAGE_OPACITY, PT_bit);
 		CChannelsAccessorCreator cCreator;
-		cCreator.Init(pcImage->GetChannels());
+		cCreator.Init(pImage->GetChannels());
 		cCreator.AddAccess(IMAGE_DIFFUSE_RED, PT_tribble);
 		cCreator.AddAccess(IMAGE_DIFFUSE_GREEN, PT_tribble);
 		cCreator.AddAccess(IMAGE_DIFFUSE_BLUE, PT_crumb);
@@ -359,7 +359,7 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	size			i;
 	size			uiNumCels;
 	CMapPtrPtr		cMap;
-	Ptr<CImage>		pcImage;
+	Ptr<CImage>		pImage;
 	Ptr<CImage>		pcConverted;
 	CImageCel*		pcImageCel;
 	Ptr<CImage>		pcExisting;
@@ -389,13 +389,13 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	for (i = 0; i < uiNumCels; i++)
 	{
 		pcImageCel = (CImageCel*)pacImageCels->Get(i);
-		pcImage = pcImageCel->GetSourceImage();
-		pcExisting = (CImage*)cMap.Get(&pcImage);
+		pImage = pcImageCel->GetSourceImage();
+		pcExisting = (CImage*)cMap.Get(&pImage);
 
 		if (pcExisting.IsNull())
 		{
 			cRGBTo8bit.Init();
-			pcConverted = cRGBTo8bit.Modify(&pcImage);
+			pcConverted = cRGBTo8bit.Modify(&pImage);
 			if (pcConverted.IsNull())
 			{
 				cMap.Kill();
@@ -404,7 +404,7 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 			}
 			cRGBTo8bit.Kill();
 			
-			cMap.Put(&pcImage, &pcConverted);
+			cMap.Put(&pImage, &pcConverted);
 		}
 	}
 
@@ -430,8 +430,8 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 		cMemoryBasic.Open(EFM_ReadWrite_Create);
 
 		pcImageCel = (CImageCel*)pacImageCels->Get(i);
-		pcImage = pcImageCel->GetSourceImage();
-		pcExisting = (CImage*)cMap.Get(&pcImage);
+		pImage = pcImageCel->GetSourceImage();
+		pcExisting = (CImage*)cMap.Get(&pImage);
 
 		pcSub = pcImageCel->GetSubImage();
 		uiCelWidth = pcSub->GetImageWidth();

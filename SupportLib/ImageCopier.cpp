@@ -80,6 +80,9 @@ void CImageCopier::Kill(void)
 	}
 	mpcSourceAccessor = NULL;
 	mpcDestAccessor = NULL;
+
+	mpcSource = NULL;
+	mpcDest = NULL;
 }
 
 

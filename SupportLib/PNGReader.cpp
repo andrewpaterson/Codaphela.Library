@@ -139,51 +139,51 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 		bReverse = true;
 	}
 
-	Ptr<CImage> pcImage = OMalloc<CImage>();
+	Ptr<CImage> pImage = OMalloc<CImage>();
 
 	CImage cImageImport;
 
-	pcImage->BeginChange();
+	pImage->BeginChange();
 	cImageImport.Init();
 	cImageImport.BeginChange();
 
 	if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_GREY, eSourceType, bReverse);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
 	}
 	else 	if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
 	{
 		CChars::Dump("PNG_COLOR_TYPE_PALETTE\n");
-		//pcImage->AddChannel(IC_Index, PT_uint8, 0);
+		//pImage->AddChannel(IC_Index, PT_uint8, 0);
 		//cSourceRow.Add(eSourceType, IC_Index);
-		//pcImage->AddPalette(256, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+		//pImage->AddPalette(256, PT_uint8, IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
 	}
 	else if (info_ptr->color_type == PNG_COLOR_TYPE_RGB)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, eSourceType, bReverse);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_RED, bAddDebug);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREEN, bAddDebug);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_BLUE, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_RED, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_GREEN, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_BLUE, bAddDebug);
 	}
 	else if (info_ptr->color_type == PNG_COLOR_TYPE_RGB_ALPHA)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, eSourceType, bReverse);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_OPACITY, bAddDebug);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_RED, bAddDebug);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREEN, bAddDebug);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_BLUE, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_OPACITY, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_RED, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_GREEN, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_BLUE, bAddDebug);
 	}
 	else if (info_ptr->color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
 		cImageImport.AddChannel(IMAGE_DIFFUSE_GREY, IMAGE_OPACITY, eSourceType, bReverse);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_OPACITY, bAddDebug);
-		AddDebugChannel(pcImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_OPACITY, bAddDebug);
+		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
 	}
 
-	pcImage->ByteAlignChannels();
-	pcImage->SetSize(iWidth, iHeight);
-	pcImage->EndChange();
+	pImage->ByteAlignChannels();
+	pImage->SetSize(iWidth, iHeight);
+	pImage->EndChange();
 
 	cImageImport.SetData(row_pointers[0]);
 	cImageImport.SetSize(iWidth, iHeight);
@@ -191,7 +191,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 
 	CImageCopier		cCopier;
 
-	cCopier.Init(&cImageImport, pcImage);
+	cCopier.Init(&cImageImport, pImage);
 	for (i = 0; i < iHeight; i++)
 	{
 		cImageImport.SetData(row_pointers[i]);
@@ -204,6 +204,6 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 
 	/* clean up after the read, and free any memory allocated - REQUIRED */
 	png_destroy_read_struct(&png_ptr, &info_ptr, png_infopp_NULL);
-	return pcImage;
+	return pImage;
 }
 

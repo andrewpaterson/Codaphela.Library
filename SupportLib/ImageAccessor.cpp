@@ -60,6 +60,7 @@ void CImageAccessor::Kill(void)
 		mpcAccessor->Kill();
 	}
 	mpcAccessor = NULL;
+	mpcImage = NULL;
 	CUnknown::Kill();
 }
 
