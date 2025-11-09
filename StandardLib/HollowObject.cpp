@@ -240,7 +240,7 @@ void CHollowObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CHollowObject::GetNumEmbedded(void)
+size CHollowObject::NumEmbedded(void)
 {
 	return GetNumEmbeddedFromFlags();
 }
@@ -282,7 +282,7 @@ size CHollowObject::GetEmbeddedIndex(CEmbeddedObject* pcEmbedded)
 	}
 	else
 	{
-		uiNumEmbedded = GetNumEmbedded();
+		uiNumEmbedded = NumEmbedded();
 		for (i = 1; i < uiNumEmbedded; i++)
 		{
 			pcCurrent = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
@@ -322,7 +322,7 @@ size CHollowObject::NumHeapFroms(void)
 	size					uiNumEmbedded;
 
 	iCount = CEmbeddedObject::NumHeapFroms();
-	uiNumEmbedded = GetNumEmbedded();
+	uiNumEmbedded = NumEmbedded();
 	for (i = 1; i < uiNumEmbedded; i++)
 	{
 		pcHollowEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);
@@ -344,7 +344,7 @@ size CHollowObject::NumStackFroms(void)
 	size					uiNumEmbedded;
 
 	iCount = CEmbeddedObject::NumStackFroms();
-	uiNumEmbedded = GetNumEmbedded();
+	uiNumEmbedded = NumEmbedded();
 	for (i = 1; i < uiNumEmbedded; i++)
 	{
 		pcHollowEmbedded = (CHollowEmbeddedObject*)GetEmbeddedObject(i);

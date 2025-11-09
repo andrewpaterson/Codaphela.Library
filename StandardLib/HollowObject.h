@@ -40,7 +40,7 @@ public:
 			void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
 			void				GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 			size				NumPointerTos(void);
-			size				GetNumEmbedded(void);
+			size				NumEmbedded(void);
 			CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			size				NumHeapFroms(void);

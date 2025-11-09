@@ -952,7 +952,7 @@ bool CObject::RecurseGetEmbeddedIndex(CEmbeddedObject* pcTest, size* piIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CObject::GetNumEmbedded(void)
+size CObject::NumEmbedded(void)
 {
 	size			i;
 	CBaseObject*	pcEmbedded;
@@ -971,7 +971,7 @@ size CObject::GetNumEmbedded(void)
 	{
 		pcEmbedded = *mapEmbedded.Get(i);
 
-		uiCount += pcEmbedded->GetNumEmbedded();
+		uiCount += pcEmbedded->NumEmbedded();
 	}
 
 	SetFlagNumEmbedded(uiCount);

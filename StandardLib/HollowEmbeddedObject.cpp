@@ -37,7 +37,7 @@ void CHollowEmbeddedObject::RemovePointerTo(CEmbeddedObject* pcTo)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CHollowEmbeddedObject::GetNumEmbedded(void)
+size CHollowEmbeddedObject::NumEmbedded(void)
 {
 	return 0;
 }

@@ -72,7 +72,7 @@ public:
 			bool				IsInStack(void);
 	virtual bool				IsRoot(void) =0;
 	virtual size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	virtual size				GetNumEmbedded(void) =0;
+	virtual size				NumEmbedded(void) =0;
 			void				SetEmbedding(CBaseObject* pcEmbedded);
 	virtual CEmbeddedObject*	GetEmbeddedObject(size iIndex) =0;
 	virtual CBaseObject*		Dehollow(void) =0;

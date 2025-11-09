@@ -175,7 +175,7 @@ bool CObjectWriter::WriteDependent(CEmbeddedObject* pcDependent)
 	{
 		pcContainer = pcDependent->GetEmbeddingContainer();
 		iEmbeddedIndex = pcContainer->GetEmbeddedIndex(pcDependent);
-		iNumEmbedded = pcContainer->GetNumEmbedded();
+		iNumEmbedded = pcContainer->NumEmbedded();
 
 		InitIdentifier(&sIdentifier, pcContainer);
 		bResult = WriteIdentifier(&sIdentifier);

@@ -378,12 +378,14 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	uint64			uiNext64KCount;
 	uint64			uiFilePos;
 	SSFTContainer	sContainer;
+	CArray<CImage>	aConveted;
 
 	if (!pcDiskBasic->IsOpen())
 	{
 		return false;
 	}
 
+	aConveted.Init();  // Necessary to stop the images being destroyed on pcConverted reassignment.
 	cMap.Init();
 	uiNumCels = pacImageCels->NumElements();
 	for (i = 0; i < uiNumCels; i++)
@@ -402,10 +404,12 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 				//You should kill the converted images to.  Or use a map that will do that for you.
 				return false;
 			}
+			aConveted.Add(pcConverted);
 			cRGBTo8bit.Kill();
 			
 			cMap.Put(&pImage, &pcConverted);
 		}
+		pcExisting = NULL;
 	}
 
 	sContainer.Init((uint16)uiNumCels);
@@ -418,7 +422,6 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	}
 
 	pcConverted = NULL;
-	pcExisting = NULL;
 	
 	uiContainedPos = pcDiskBasic->Tell();
 	for (i = 0; i < uiNumCels; i++)
@@ -483,6 +486,7 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	}
 
 	cMap.Kill();
+	aConveted.Kill();
 	return true;
 }
 
