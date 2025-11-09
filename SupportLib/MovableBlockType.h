@@ -38,10 +38,15 @@ protected:
 public:
 	void 			Init(char* szTypeName);
 	void 			Kill(void);
+
 	bool 			Is(char* szTypeName);
-	CMovableBlock*	GetNull(void);
-	void			AddTile(CMovableBlock* pcTile);
-	CMovableBlock*	Get(size iIndex);
+	char*			GetName(void);
+
+	size			NumBlocks(void);
+	void			AddBlock(CMovableBlock* pcTile);
+
+	CMovableBlock*	GetBlock(size iIndex);
+	CMovableBlock*	GetNullBlock(void);
 };
 
 

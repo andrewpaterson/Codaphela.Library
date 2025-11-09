@@ -54,9 +54,9 @@ public:
 	CArrayUnknown*	GetDestImageCels(void);
 
 private:
-	void CropTransparentBorders(void);
-	void AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask);
-	void AddImageCel(CRectangle* pcRect);
+	void	CropTransparentBorders(void);
+	void	AddImageCel(CFillRectangle* pcRect, Ptr<CImage> pcFillMask);
+	void	AddImageCel(CRectangle* pcRect);
 };
 
 

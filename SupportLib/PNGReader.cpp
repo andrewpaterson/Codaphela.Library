@@ -44,10 +44,8 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 	int					iWidth;
 	int					iHeight;
 	int					i;
-	CImage				cImageImport;
 	EPrimitiveType		eSourceType;
 	bool				bReverse;
-	CImageCopier		cCopier;
 
 	if ((fp = fopen(szFilename, "rb")) == NULL)
 	{
@@ -141,9 +139,10 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 		bReverse = true;
 	}
 
-	Ptr<CImage> pcImage;
+	Ptr<CImage> pcImage = OMalloc<CImage>();
 
-	pcImage = OMalloc<CImage>();
+	CImage cImageImport;
+
 	pcImage->BeginChange();
 	cImageImport.Init();
 	cImageImport.BeginChange();
@@ -189,6 +188,8 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 	cImageImport.SetData(row_pointers[0]);
 	cImageImport.SetSize(iWidth, iHeight);
 	cImageImport.EndChange();
+
+	CImageCopier		cCopier;
 
 	cCopier.Init(&cImageImport, pcImage);
 	for (i = 0; i < iHeight; i++)

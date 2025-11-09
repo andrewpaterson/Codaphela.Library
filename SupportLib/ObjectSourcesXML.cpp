@@ -216,7 +216,7 @@ bool CObjectSourcesXML::ImportImage(CMovableBlockType* pcType, CMarkupTag* pcTag
 
 	pcTile = UMalloc(CMovableBlockImageCel);
 	pcTile->Init(pcCel, pcType, szName.Text());
-	pcType->AddTile(pcTile);
+	pcType->AddBlock(pcTile);
 
 	return true;
 }
