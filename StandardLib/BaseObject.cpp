@@ -595,6 +595,8 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 	bool					bMustKill;
 	CDistCalculator			cDistCalculator;
 	CArrayBlockObjectPtr*	papcKilled;
+	CBaseObject*			pcKilled;
+	bool					bOnlyThisKilled;
 	
 	if (IsRoot())
 	{
@@ -606,7 +608,30 @@ void CBaseObject::TryFree(bool bKillIfNoRoot, bool bHeapFromChanged)
 		cDistCalculator.Init();
 		papcKilled = cDistCalculator.Calculate(this, bHeapFromChanged);
 
-		mpcObjectsThisIn->Remove(papcKilled);
+		if (!mpcObjectsThisIn)
+		{
+			if (papcKilled->NumElements() > 0)
+			{
+				bOnlyThisKilled = false;
+				if (papcKilled->NumElements() == 1)
+				{
+					pcKilled = *papcKilled->Get(0);
+					if (pcKilled == this)
+					{
+						bOnlyThisKilled = true;
+					}
+				}
+
+				if (!bOnlyThisKilled)
+				{
+					gcLogger.Error2(__METHOD__, " Uh, probably if not in an objects then the only pointer to this object should be itself.  Maybe some stack kak?", NULL);
+				}
+			}
+		}
+		else
+		{
+			mpcObjectsThisIn->Remove(papcKilled);
+		}
 		cDistCalculator.Kill();
 	}
 	else
