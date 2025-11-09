@@ -51,7 +51,7 @@ public:
 
 	bool				IsDirty(void);
 	size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
-	size				GetNumEmbedded(void);
+	size				NumEmbedded(void);
 	CEmbeddedObject*	GetEmbeddedObject(size iIndex);
 	CBaseObject*		Dehollow(void);
 	size				NumHeapFroms(void);

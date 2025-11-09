@@ -1677,7 +1677,7 @@ bool CBaseObject::IsBaseObject(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CBaseObject::GetNumEmbedded(void)
+size CBaseObject::NumEmbedded(void)
 {
 	SetFlagNumEmbedded(1);
 	return 1;
@@ -1877,7 +1877,7 @@ void CBaseObject::DumpFroms(void)
 	sz.Append(NumStackFroms());
 	sz.Append("]\n");
 
-	iNumEmbedded = GetNumEmbedded();
+	iNumEmbedded = NumEmbedded();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);
@@ -1938,7 +1938,7 @@ void CBaseObject::DumpPointerTos(void)
 	szLine.AppendNewLine();
 
 	iTotalTos = 0;
-	iNumEmbedded = GetNumEmbedded();
+	iNumEmbedded = NumEmbedded();
 	for (i = 0; i < iNumEmbedded; i++)
 	{
 		pcEmbedded = GetEmbeddedObject(i);

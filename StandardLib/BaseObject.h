@@ -132,7 +132,7 @@ public:
 			size				SerialisedSize(void);
 	virtual char*				GetIdentifier(CChars* psz);
 
-			size				GetNumEmbedded(void);
+			size				NumEmbedded(void);
 
 	virtual void				SetPointerTosExpectedDistToRoot(int iDistToRoot) =0;
 			void				SetDirty(bool bDirty);

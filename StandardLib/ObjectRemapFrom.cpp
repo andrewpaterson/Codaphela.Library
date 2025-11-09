@@ -95,8 +95,8 @@ int CObjectRemapFrom::CalculateNumEmbedded(CEmbeddedObject* pcOld, CEmbeddedObje
 	int	iNumEmbeddedNew;
 	int	iNumEmbedded;
 
-	iNumEmbeddedNew = pcNew->GetNumEmbedded();
-	iNumEmbeddedOld = pcOld->GetNumEmbedded();
+	iNumEmbeddedNew = pcNew->NumEmbedded();
+	iNumEmbeddedOld = pcOld->NumEmbedded();
 
 	iNumEmbedded = iNumEmbeddedNew;
 	if (iNumEmbeddedOld < iNumEmbeddedNew)
