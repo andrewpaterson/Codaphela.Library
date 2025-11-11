@@ -66,6 +66,7 @@ CBaseObject::~CBaseObject()
 			ValidateHasClassFlag(__METHOD__);
 		}
 	}
+	FreePointers();
 
 	ValidateInitCalled();
 	ValidateKillCalled();
@@ -240,6 +241,10 @@ void CBaseObject::Initialised(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Kill(void)
 {
+	//This method is for the user to forcibly kill an object.
+	//It is not called internally.
+	//It is the equivalent of setting the last pointer to the object to NULL.
+
 	bool		bHeapFromChanged;
 	CObjects*	pcObjectsThisIn;
 
@@ -250,8 +255,6 @@ void CBaseObject::Kill(void)
 
 	pcObjectsThisIn = GetObjectsThisIn();
 
-	//This method is for the user to forcibly kill an object.
-	//It is not called internally.
 	SetFlag(OBJECT_FLAGS_CALLED_KILL, true);
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, false);
 
@@ -315,20 +318,6 @@ bool CBaseObject::IsKilled(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::Safe(void)
-{
-	//This exists so that objects on the stack can be safely destructed.
-	PreInit();
-	PostInit();
-	SetFlag(OBJECT_FLAGS_CALLED_KILL, true);
-	SetFlag(OBJECT_FLAGS_CALLED_INIT, false);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CBaseObject::Flush(void)
 {
 	bool	bResult;
@@ -371,9 +360,6 @@ void CBaseObject::FreeInternal(bool bAllocatedInObjects)
 
 	//Frees user data.
 	Free();
-
-	//Clean up all the to and from pointers
-	FreePointers();
 
 	if (bAllocatedInObjects)
 	{

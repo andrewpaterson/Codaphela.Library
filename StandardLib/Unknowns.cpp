@@ -21,6 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/ArrayVoidPtr.h"
 #include "BaseLib/MemoryAllocator.h"
 #include "BaseLib/GlobalMemory.h"
+#include "BaseLib/DebugOutput.h"
 #include "Unknown.h"
 #include "Unknowns.h"
 
@@ -336,7 +337,7 @@ void CUnknowns::DebugName(CUnknown* pcUnknown, char (*pszDebug)[4])
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
+void CUnknowns::DumpAllocationDetail(CUnknown* pcUnknown)
 {
 	SGeneralMemoryAllocation*	psAlloc;
 	CChars				sz;
@@ -344,14 +345,18 @@ void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
 	psAlloc = GENERAL_MEMORY_GET_ALLOCATION(pcUnknown);
 	if (!IsFreed(pcUnknown))
 	{
-		sz.Init("Size: ");
+		sz.Init();
+		sz.Append("DebugName: ");
+		sz.Append(psAlloc->szDebug, 4);
+		sz.AppendNewLine();
+		sz.Append("Size: ");
 		sz.Append(psAlloc->uiSize);
 		sz.AppendNewLine();
 		sz.Append("AllocCount: ");
 		sz.Append(psAlloc->uiAllocCount);
 		sz.AppendNewLine();
-		sz.Append("DebugName: ");
-		sz.Append(psAlloc->szDebug, 4);
+		sz.Append("Node: ");
+		sz.AppendPointer(psAlloc->psFreeListNode);
 		sz.AppendNewLine();
 
 		sz.Dump();
@@ -366,6 +371,57 @@ void CUnknowns::DumpAddDetail(CUnknown* pcUnknown)
 		sz.Dump();
 		sz.Kill();
 	}
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknowns::Dump(void)
+{
+	SMemoryIterator		sIter;
+	SMemory				sMemory;
+	CUnknown*			pcUnknown;
+	CChars				sz;
+	CMemoryAllocator*	pcAlloc;
+	CGeneralMemory*		pcMemory;
+	size				uiCount;
+
+	sz.Init();
+	sz.Append("------------------");
+	sz.AppendNewLine(); 
+	sz.Append("Num Unknowns: ");
+	sz.Append(miNumElements);
+	sz.AppendNewLine();
+	sz.Append("------------------");
+	sz.AppendNewLine();
+	sz.DumpKill();
+
+	uiCount = 0;
+	if (strcmp(mpcMalloc->ShortName(), "CMemoryAllocator") == 0)
+	{
+		pcAlloc = (CMemoryAllocator*)mpcMalloc;
+		pcMemory = pcAlloc->GetMemory();
+		sMemory = pcMemory->StartIteration(&sIter);
+		while (sMemory.bValid)
+		{
+			pcUnknown = (CUnknown*)sMemory.pvMem;
+			DumpAllocationDetail(pcUnknown);
+			EngineOutput("\n");
+			sMemory = pcMemory->Iterate(&sIter);
+			uiCount++;
+		}
+	}
+
+	sz.Init();
+	sz.Append("------------------");
+	sz.AppendNewLine();
+	sz.Append("Counted Unknowns: ");
+	sz.Append(uiCount);
+	sz.AppendNewLine();
+	sz.Append("------------------");
+	sz.AppendNewLine();
+	sz.DumpKill();
 }
 
 

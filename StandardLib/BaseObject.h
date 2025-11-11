@@ -105,7 +105,6 @@ public:
 			void				Kill(void) override;
 	virtual void				Free(void) =0;
 	virtual bool				Flush(void);
-			void				Safe(void);
 
 			bool				Save(CObjectWriter* pcFile) override;
 			bool				Load(CObjectReader* pcFile) override;
