@@ -98,6 +98,7 @@ public:
 
 	size				NumStackFroms(void);
 	size				NumHeapFroms(void);
+	size				NumEmbedded(void);
 
 	void				DumpFroms(void);
 	void				DumpPointerTos(void);

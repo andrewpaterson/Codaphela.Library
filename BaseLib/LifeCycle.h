@@ -140,7 +140,12 @@ void CLifeInit<M>::Null(void)
 template <class M>
 void CLifeInit<M>::ConfigureLife(CLife<M>* pcLife, M** ppcLifeCycleObject)
 {
-	pcLife->Init(ppcLifeCycleObject, MustFree(), MustKill());
+	bool	bMustFree;
+	bool	bMustKill;
+
+	bMustFree = MustFree();
+	bMustKill = MustKill();
+	pcLife->Init(ppcLifeCycleObject, bMustFree, bMustKill);
 	if (ppcLifeCycleObject)
 	{
 		*ppcLifeCycleObject = mpcLifeCycleObject;

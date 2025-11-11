@@ -20,7 +20,7 @@ void CGlobalMemoryAllocator::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void* CGlobalMemoryAllocator::Malloc(size uiSize)
 {
-	return gcMemory.Add((uint32)uiSize);
+	return gcMemory.Add(uiSize);
 }
 
 

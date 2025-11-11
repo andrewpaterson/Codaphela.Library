@@ -69,8 +69,9 @@ public:
 	template<class M>	void			RemoveDuringIteration(SIteratorTemplate<M>* psIter);
 
 						//Debug stuff
-						void			DumpAddDetail(CUnknown* pcUnknown);
+						void			DumpAllocationDetail(CUnknown* pcUnknown);
 						size			NumElements(void);
+						void			Dump(void);
 
 						int				GetIterableListsHeadNumElements(void);
 

@@ -132,6 +132,7 @@ void CObject::EmbedEmbeddedObjectFields(void)
 void CObject::FreePointers(void)
 {
 	CBaseObject::FreePointers();
+
 	mapEmbedded.Kill();
 	mapPointers.Kill();
 }

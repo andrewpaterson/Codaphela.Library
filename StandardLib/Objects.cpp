@@ -118,7 +118,7 @@ void LogObjectDestruction(CBaseObject* pcObject, char* szMethod)
 //
 //
 ////////////////////////////////////////////////////////////////////////////
-void ObjectCallbackNotSet(CBaseObject* pvObject)
+void ObjectCallbackNotSet(CBaseObject* pcObject)
 {
 }
 
@@ -785,19 +785,19 @@ bool CObjects::ForceSave(CBaseObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::AddIntoMemoryWithIndex(CBaseObject* pvObject)
+bool CObjects::AddIntoMemoryWithIndex(CBaseObject* pcObject)
 {
 	bool	bResult;
 
-	bResult = mcMemory.AddIntoMemoryWithIndex(pvObject);
+	bResult = mcMemory.AddIntoMemoryWithIndex(pcObject);
 	if (bResult)
 	{
-		LOG_OBJECT_ALLOCATION(pvObject);
-		mAllocationCallback(pvObject);
+		LOG_OBJECT_ALLOCATION(pcObject);
+		mAllocationCallback(pcObject);
 	}
 	else
 	{
-		LOG_OBJECT_ALLOCATION_FAILURE(pvObject->ClassName(), pvObject->GetIndex(), "");
+		LOG_OBJECT_ALLOCATION_FAILURE(pcObject->ClassName(), pcObject->GetIndex(), "");
 	}
 	return bResult;
 }
@@ -807,21 +807,21 @@ bool CObjects::AddIntoMemoryWithIndex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
+bool CObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pcObject)
 {
 	bool	bResult;
 
-	if (pvObject)
+	if (pcObject)
 	{
-		bResult = mcMemory.AddIntoMemoryWithNameAndIndex(pvObject);
+		bResult = mcMemory.AddIntoMemoryWithNameAndIndex(pcObject);
 		if (bResult)
 		{
-			LOG_OBJECT_ALLOCATION(pvObject);
-			mAllocationCallback(pvObject);
+			LOG_OBJECT_ALLOCATION(pcObject);
+			mAllocationCallback(pcObject);
 		}
 		else
 		{
-			LOG_OBJECT_ALLOCATION_FAILURE(pvObject->ClassName(), pvObject->GetIndex(), pvObject->GetName());
+			LOG_OBJECT_ALLOCATION_FAILURE(pcObject->ClassName(), pcObject->GetIndex(), pcObject->GetName());
 		}
 
 		return bResult;
@@ -837,14 +837,14 @@ bool CObjects::AddIntoMemoryWithNameAndIndex(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::RemoveMemoryIdentifiers(CBaseObject* pvObject)
+bool CObjects::RemoveMemoryIdentifiers(CBaseObject* pcObject)
 {
 	char*	szName;
 	bool	bResult;
 
-	bResult = mcMemory.RemoveIndex(pvObject->GetIndex());
+	bResult = mcMemory.RemoveIndex(pcObject->GetIndex());
 
-	szName = pvObject->GetName();
+	szName = pcObject->GetName();
 	if (!StrEmpty(szName))
 	{
 		bResult &= mcMemory.RemoveName(szName);
@@ -917,20 +917,20 @@ bool CObjects::HasRoot(void)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Get(OIndex oi)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	CPointer		pObject;
 
-	pvObject = mcMemory.Get(oi);
-	if (pvObject)
+	pcObject = mcMemory.Get(oi);
+	if (pcObject)
 	{
-		pObject.AssignObject(pvObject);
+		pObject.AssignObject(pcObject);
 		return pObject;
 	}
 
-	pvObject = GetFromDatabase(oi);
-	if (pvObject)
+	pcObject = GetFromDatabase(oi);
+	if (pcObject)
 	{
-		pObject.AssignObject(pvObject);
+		pObject.AssignObject(pcObject);
 		return pObject;
 	}
 
@@ -944,28 +944,28 @@ CPointer CObjects::Get(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Get(char* szObjectName)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	CPointer		pObject;
 
-	pvObject = GetFromMemory(szObjectName);
-	if (pvObject)
+	pcObject = GetFromMemory(szObjectName);
+	if (pcObject)
 	{
-		pObject.AssignObject(pvObject);
+		pObject.AssignObject(pcObject);
 		pObject.Dereference();
 		return pObject;
 	}
 
-	pvObject = GetFromDatabase(szObjectName);
-	if (pvObject)
+	pcObject = GetFromDatabase(szObjectName);
+	if (pcObject)
 	{
-		pObject.AssignObject(pvObject);
+		pObject.AssignObject(pcObject);
 		return pObject;
 	}
 
-	pvObject = GetFromSources(szObjectName);
-	if (pvObject)
+	pcObject = GetFromSources(szObjectName);
+	if (pcObject)
 	{
-		pObject.AssignObject(pvObject);
+		pObject.AssignObject(pcObject);
 		return pObject;
 	}
 
@@ -1049,7 +1049,7 @@ CBaseObject* CObjects::GetFromDatabase(OIndex oi)
 CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 {
 	CInternalObjectDeserialiser		cDeserialiser;
-	CBaseObject*					pvObject;
+	CBaseObject*					pcObject;
 
 	if (!mpcDataConnection)
 	{
@@ -1057,9 +1057,9 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 	}
 
 	cDeserialiser.Init(this, mpcDataConnection, &mcMemory);
-	pvObject = cDeserialiser.Read(szObjectName);
+	pcObject = cDeserialiser.Read(szObjectName);
 	cDeserialiser.Kill();
-	return pvObject;
+	return pcObject;
 }
 
 
@@ -1070,13 +1070,13 @@ CBaseObject* CObjects::GetFromDatabase(char* szObjectName)
 CBaseObject* CObjects::GetFromSources(char* szObjectName)
 {
 	CObjectSource*	pcSource;
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 
 	pcSource = mcSource.GetSource(szObjectName);
 	if (pcSource)
 	{
-		pvObject = pcSource->Convert(szObjectName);
-		return pvObject;
+		pcObject = pcSource->Convert(szObjectName);
+		return pcObject;
 	}
 	else
 	{
@@ -1144,19 +1144,19 @@ CBaseObject* CObjects::Dehollow(OIndex oi)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::Dehollow(char* szObjectName)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	CPointer		pObject;
 
-	pvObject = GetFromDatabase(szObjectName);
-	if (pvObject)
+	pcObject = GetFromDatabase(szObjectName);
+	if (pcObject)
 	{
-		return pvObject;
+		return pcObject;
 	}
 
-	pvObject = GetFromSources(szObjectName);
-	if (pvObject)
+	pcObject = GetFromSources(szObjectName);
+	if (pcObject)
 	{
-		return pvObject;
+		return pcObject;
 	}
 
 	return NULL;
@@ -1169,12 +1169,12 @@ CBaseObject* CObjects::Dehollow(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Contains(char* szObjectName)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 
 	//This does not check mcSources intentionally.
 
-	pvObject = mcMemory.Get(szObjectName);
-	if (pvObject)
+	pcObject = mcMemory.Get(szObjectName);
+	if (pcObject)
 	{
 		return true;
 	}
@@ -1199,12 +1199,12 @@ bool CObjects::Contains(char* szObjectName)
 //////////////////////////////////////////////////////////////////////////
 bool CObjects::Contains(OIndex oi)
 {
-	CBaseObject* pvObject;
+	CBaseObject* pcObject;
 
 	//This does not check mcSources intentionally.
 
-	pvObject = mcMemory.Get(oi);
-	if (pvObject)
+	pcObject = mcMemory.Get(oi);
+	if (pcObject)
 	{
 		return true;
 	}
@@ -1277,8 +1277,8 @@ bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 //////////////////////////////////////////////////////////////////////////
 CPointer CObjects::Null(void)
 {
-	CPointer	pvObject;
-	return pvObject;
+	CPointer	pcObject;
+	return pcObject;
 }
 
 
@@ -1449,10 +1449,11 @@ CBaseObject* CObjects::AllocateUninitialisedByClassName(const char* szClassName,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObjects::FreeObject(CBaseObject* pvObject)
+void CObjects::FreeObject(CBaseObject* pcObject)
 {
-	RemoveMemoryIdentifiers(pvObject);
-	pvObject->FreeIdentifiers();
+	pcObject->FreePointers();
+	RemoveMemoryIdentifiers(pcObject);
+	pcObject->FreeIdentifiers();
 }
 
 
@@ -1600,25 +1601,25 @@ CClasses* CObjects::GetClasses(void)
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* szClassName)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	OIndex			oi;
 	bool			bResult;
 
 	oi = GetNextIndex();
-	pvObject = AllocateUninitialisedByClassName(szClassName, oi);
-	if (!pvObject)
+	pcObject = AllocateUninitialisedByClassName(szClassName, oi);
+	if (!pcObject)
 	{
 		return NULL;
 	}
 
-	bResult = AddIntoMemoryWithIndex(pvObject);
+	bResult = AddIntoMemoryWithIndex(pcObject);
 	if (!bResult)
 	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 		return NULL;
 	}
 	
-	return pvObject;
+	return pcObject;
 }
 
 
@@ -1629,7 +1630,7 @@ CBaseObject* CObjects::AllocateUninitialisedByClassNameAndAddIntoMemory(char* sz
 CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(char* szClassName, char* szObjectName)
 {
 	bool			bResult;
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	OIndex			oi;
 
 	if (Contains(szObjectName))
@@ -1639,21 +1640,21 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 	}
 
 	oi = GetNextIndex();
-	pvObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
-	if (!pvObject)
+	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
+	if (!pcObject)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
 		return NULL;
 	}
 
-	bResult = AddIntoMemoryWithNameAndIndex(pvObject);
+	bResult = AddIntoMemoryWithNameAndIndex(pcObject);
 	if (!bResult)
 	{
-		mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+		mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 		return NULL;
 	}
 
-	return pvObject;
+	return pcObject;
 }
 
 
@@ -1664,7 +1665,7 @@ CBaseObject* CObjects::AllocateNamedUninitialisedByClassNameAndAddIntoMemory(cha
 CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWithSameName(char* szClassName, char* szObjectName)
 {
 	CBaseObject*	pvOldObject;
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	OIndex			oi;
 	bool			bResult;
 
@@ -1677,8 +1678,8 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWi
 	}
 	oi = GetNextIndex();
 
-	pvObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
-	if (!pvObject)
+	pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
+	if (!pcObject)
 	{
 		gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].", NULL);
 		return NULL;
@@ -1686,24 +1687,24 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWi
 
 	if (pvOldObject)
 	{
-		bResult = ReplaceBaseObject(pvOldObject, pvObject);
+		bResult = ReplaceBaseObject(pvOldObject, pcObject);
 		if (!bResult)
 		{
-			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 			return NULL;
 		}
 	}
 	else
 	{
-		bResult = AddIntoMemory(pvObject);
+		bResult = AddIntoMemory(pcObject);
 		if (!bResult)
 		{
-			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 			return NULL;
 		}
 	}
 
-	return pvObject;
+	return pcObject;
 }
 
 
@@ -1713,19 +1714,19 @@ CBaseObject* CObjects::GetNamedObjectInMemoryAndReplaceOrAllocateUninitialisedWi
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClassName, OIndex oi)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	bool			bResult;
 	CHollowObject*	pcHollowObject;
 	CBaseObject*	pcAllocatedObject;
 
 	//Only called by the InternalObjectDeserialiser.
 
-	pvObject = GetFromMemory(oi);
-	if (pvObject)
+	pcObject = GetFromMemory(oi);
+	if (pcObject)
 	{
-		if (pvObject->IsHollow())
+		if (pcObject->IsHollow())
 		{
-			pcHollowObject = (CHollowObject*)pvObject;
+			pcHollowObject = (CHollowObject*)pcObject;
 			pcAllocatedObject = AllocateUninitialisedByClassName(szClassName, oi);
 			bResult = ReplaceBaseObject(pcHollowObject, pcAllocatedObject);
 			if (!bResult)
@@ -1745,19 +1746,19 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClass
 	}
 	else
 	{
-		pvObject = AllocateUninitialisedByClassName(szClassName, oi);
-		if (!pvObject)
+		pcObject = AllocateUninitialisedByClassName(szClassName, oi);
+		if (!pcObject)
 		{
 			return NULL;
 		}
 
-		bResult = AddIntoMemoryWithIndex(pvObject);
+		bResult = AddIntoMemoryWithIndex(pcObject);
 		if (!bResult)
 		{
-			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 			return NULL;
 		}
-		return pvObject;
+		return pcObject;
 	}
 }
 
@@ -1768,19 +1769,19 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithIndex(char* szClass
 //////////////////////////////////////////////////////////////////////////
 CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* szClassName, char* szObjectName, OIndex oi, OIndex* poiExisting)
 {
-	CBaseObject*	pvObject;
+	CBaseObject*	pcObject;
 	bool			bResult;
 	CHollowObject*	pcHollowObject;
 	CBaseObject*	pcAllocatedObject;
 
 	//Only called by the InternalObjectDeserialiser.
 
-	pvObject = GetFromMemory(szObjectName, oi);
-	if (pvObject)
+	pcObject = GetFromMemory(szObjectName, oi);
+	if (pcObject)
 	{
-		if (pvObject->IsHollow())
+		if (pcObject->IsHollow())
 		{
-			pcHollowObject = (CHollowObject*)pvObject;
+			pcHollowObject = (CHollowObject*)pcObject;
 			if (pcHollowObject->GetIndex() != oi)
 			{
 				gcLogger.Error2(__METHOD__, " Cannot allocate object named [", szObjectName, "] class [", szClassName, "].  It already exists in memory with index [", LongToString(oi), "] but expected index [", LongToString(pcHollowObject->GetIndex()), "].", NULL);
@@ -1808,19 +1809,19 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 	}
 	else
 	{
-		pvObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
-		if (!pvObject)
+		pcObject = AllocateUninitialisedByClassName(szClassName, szObjectName, oi);
+		if (!pcObject)
 		{
 			return NULL;
 		}
 	
-		bResult = AddIntoMemoryWithNameAndIndex(pvObject);
+		bResult = AddIntoMemoryWithNameAndIndex(pcObject);
 		if (!bResult)
 		{
-			mpcUnknownsAllocatingFrom->RemoveInKill(pvObject);
+			mpcUnknownsAllocatingFrom->RemoveInKill(pcObject);
 			return NULL;
 		}
-		return pvObject;
+		return pcObject;
 	}
 }
 
@@ -1829,15 +1830,15 @@ CBaseObject* CObjects::AllocateForInternalDeserialisationWithNameAndIndex(char* 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::AddIntoMemory(CBaseObject* pvObject)
+bool CObjects::AddIntoMemory(CBaseObject* pcObject)
 {
-	if (!pvObject->IsNamed())
+	if (!pcObject->IsNamed())
 	{
-		return AddIntoMemoryWithIndex(pvObject);
+		return AddIntoMemoryWithIndex(pcObject);
 	}
 	else
 	{
-		return AddIntoMemoryWithNameAndIndex(pvObject);
+		return AddIntoMemoryWithNameAndIndex(pcObject);
 	}
 }
 
@@ -1846,22 +1847,22 @@ bool CObjects::AddIntoMemory(CBaseObject* pvObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pvObject)
+bool CObjects::ReplaceBaseObject(CBaseObject* pvExisting, CBaseObject* pcObject)
 {
 	CObjectRemapFrom	cRemapper;
 	size				iCount;
 
-	if (pvExisting && pvObject)
+	if (pvExisting && pcObject)
 	{
-		if (pvObject->HasHeapFroms())
+		if (pcObject->HasHeapFroms())
 		{
 			return gcLogger.Error2(__METHOD__, " Cannot remap.  Object has head froms already.", NULL);
 		}
 		RemoveMemoryIdentifiers(pvExisting);
 
-		iCount = cRemapper.Remap(pvExisting, pvObject);
+		iCount = cRemapper.Remap(pvExisting, pcObject);
 
-		return AddIntoMemory(pvObject);
+		return AddIntoMemory(pcObject);
 	}
 	else
 	{
