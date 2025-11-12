@@ -168,7 +168,12 @@ void* CFreeList::Add(SFNode** ppsNode)
 			psNode = (SFNode*)mcList.GetNext(psNode);
 			if (psNode == NULL)
 			{
-				return AllocateNewSetFirst();
+				pvTemp = AllocateNewSetFirst();
+				if (ppsNode)
+				{
+					*ppsNode = mpsNotFull;
+				}
+				return pvTemp;
 			}
 		}
 

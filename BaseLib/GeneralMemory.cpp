@@ -397,6 +397,7 @@ void* CGeneralMemory::AllocateInFreeList(CFreeList* pcFreeList, size uiElementSi
 	SGeneralMemoryAllocation*	psMemoryAllocation;
 	SFNode*						psNode;
 
+	psNode = NULL;
 	psMemoryAllocation = (SGeneralMemoryAllocation*)pcFreeList->Add(&psNode);
 	psMemoryAllocation->uiSize = uiElementSize;
 	psMemoryAllocation->psFreeListNode = psNode;
