@@ -17,7 +17,6 @@ public:
 	int				UpdateDistToStackForObjectsWithFromStackDist(CDistCalculatorParameters* pcParameters);
 	void			UpdateDistToStackForAllObjects(CDistCalculatorParameters* pcParameters);
 	void			ResetObjectsToUnattachedDistToRoot(CDistCalculatorParameters* pcParameters);
-	void			ClearTouchedFlags(CDistCalculatorParameters* pcParameters);
 };
 
 

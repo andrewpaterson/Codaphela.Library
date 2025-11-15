@@ -37,6 +37,7 @@ public:
 	virtual void			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;
+	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
 
 protected:
 			void			Class(void);

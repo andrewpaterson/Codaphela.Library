@@ -89,7 +89,7 @@ int CDistToStackCalculator::UpdateDistToStackForObjectsWithFromStackDist(CDistCa
 		{
 			iNumUpdated++;
 			iClosestFrom = pcClosest->GetDistToStack();
-			pcBaseObject->SetDistToStack(iClosestFrom+1);
+			pcBaseObject->SetDistToStack(iClosestFrom + 1);
 			pcParameters->RemoveCompletelyDetached(i);
 		}
 	}

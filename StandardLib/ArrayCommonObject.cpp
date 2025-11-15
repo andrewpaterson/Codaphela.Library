@@ -203,12 +203,24 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Add(CPointer& pObject)
 {
-	bool	bAdded;
+	bool				bAdded;
+	CEmbeddedObject*	pcObject;
 
-	bAdded = mcArray.Add(pObject.Object());
+	pcObject = pObject.Object();
+	bAdded = mcArray.Add(pcObject);
 	if (bAdded)
 	{
-		pObject.AddHeapFrom(this);
+		if (pcObject)
+		{
+			if (IsAllocatedInObjects())
+			{
+				pObject.AddHeapFrom(this);
+			}
+			else
+			{
+				pcObject->AddStackFrom(this);
+			}
+		}
 	}
 	return bAdded;
 }
@@ -696,6 +708,15 @@ void CArrayCommonObject::ValidateConsistency(void)
 {
 	ValidateEmbeddedConsistency();
 	ValidateCanFindRoot();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
+{
 }
 
 

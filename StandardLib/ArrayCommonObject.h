@@ -71,6 +71,7 @@ public:
 	CBaseObject*			UnsafeGet(size  iIndex);
 	bool					UnsafeRemove(CBaseObject* pcObject);
 	CEmbeddedObject*		GetEmbeddedObject(size iIndex);
+	void					UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
 
 	void					BaseValidatePointerTos(void);
 	void					ValidatePointerTos(void);

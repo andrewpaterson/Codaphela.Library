@@ -57,7 +57,6 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 		return false;
 	}
 
-	Ptr<CImage>			pcDest;
 	CChannelsAccessor*	pcAccessor;
 	size				uiNumElements;
 	size				i;
@@ -65,7 +64,7 @@ Ptr<CImage> CImageR3G3B2A::Modify(Ptr<CImage> pcImage)
 	size				uiNumTransparent;
 	uint8				uiAlpha;
 
-	pcDest = OMalloc<CImage>();
+	Ptr<CImage> pcDest = OMalloc<CImage>();
 	pcDest->BeginChange();
 	pcDest->SetSize(pcImage->GetWidth(), pcImage->GetHeight());
 	pcDest->AddChannel(pcImage, IMAGE_DIFFUSE_RED, PT_tribble);

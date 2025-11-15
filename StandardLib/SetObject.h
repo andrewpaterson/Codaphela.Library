@@ -22,7 +22,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __SET_OBJECT_H__
 #include "SetUnknown.h"
 #include "ArrayCommonObject.h"
-#include "PointerObject.h"
 #include "Pointer.h"
 
 
@@ -44,6 +43,7 @@ public:
 	template<class M>	Ptr<M>			Iterate(SSetIterator* psIter);
 
 						void			TouchAll(void);
+						void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
 };
 
 

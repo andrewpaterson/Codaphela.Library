@@ -10,17 +10,17 @@ CStackPointers	gcStackPointers;
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::Init(int iNumPointers)
+void CStackPointers::Init(size iNumPointers)
 {
-	int				i;
+	size				i;
 	CStackPointer*	pcStackPointer;
 
 	mpcMemory = (CStackPointer*)malloc(sizeof(CStackPointer) * iNumPointers);
-	miNumPointers = iNumPointers;
+	miAllocatedPointers = iNumPointers;
 
 	miLastUsed = 0;
 
-	for (i = 0; i < miNumPointers; i++)
+	for (i = 0; i < miAllocatedPointers; i++)
 	{
 		pcStackPointer = &mpcMemory[i];
 		pcStackPointer->Kill();
@@ -34,6 +34,7 @@ void CStackPointers::Init(int iNumPointers)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointers::Kill(void)
 {
+	ClearAllPointers();
 	SafeFree(mpcMemory);
 	mpcMemory = NULL;
 }
@@ -86,6 +87,49 @@ CStackPointer* CStackPointers::Add(CPointer* pcPointer, CStackPointer* pcFirst)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointers::Add(CCollection* pcCollection)
+{
+	CStackPointer* pcStackPointer;
+
+	pcStackPointer = FindUnused();
+	if (pcStackPointer)
+	{
+		pcStackPointer->Init(pcCollection);
+		return pcStackPointer;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointers::Add(CCollection* pcCollection, CStackPointer* pcFirst)
+{
+	CStackPointer* pcStackPointer;
+
+	pcStackPointer = FindUnused();
+	if (pcStackPointer)
+	{
+		pcStackPointer->Init(pcCollection);
+		Add(pcStackPointer, pcFirst);
+		return pcStackPointer;
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CStackPointers::Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
 {
 	CStackPointer*	pcLast;
@@ -101,13 +145,13 @@ void CStackPointers::Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst)
 //////////////////////////////////////////////////////////////////////////
 CStackPointer* CStackPointers::FindUnused(void)
 {
-	int				i;
+	size				i;
 	CStackPointer*	pcPointer;
 
-	for (i = miLastUsed; i < miNumPointers; i++)
+	for (i = miLastUsed; i < miAllocatedPointers; i++)
 	{
 		pcPointer = &mpcMemory[i];
-		if (!pcPointer->mbUsed)
+		if (!pcPointer->IsUsed())
 		{
 			miLastUsed = i;
 			return pcPointer;
@@ -117,7 +161,7 @@ CStackPointer* CStackPointers::FindUnused(void)
 	for (i = 0; i < miLastUsed; i++)
 	{
 		pcPointer = &mpcMemory[i];
-		if (!pcPointer->mbUsed)
+		if (!pcPointer->IsUsed())
 		{
 			miLastUsed = i;
 			return pcPointer;
@@ -132,23 +176,51 @@ CStackPointer* CStackPointers::FindUnused(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CStackPointers::UsedPointers(void)
+size CStackPointers::NumElements(void)
 {
-	int				i;
+	size			i;
 	CStackPointer*	pcStackPointer;
-	int				iCount;
+	size			uiCount;
 
-	iCount = 0;
-	for (i = 0; i < miNumPointers; i++)
+	uiCount = 0;
+	for (i = 0; i < miAllocatedPointers; i++)
 	{
 		pcStackPointer = &mpcMemory[i];
-		if (pcStackPointer->mbUsed)
+		if (pcStackPointer->IsUsed())
 		{
-			iCount++;
+			uiCount++;
 		}
 	}	
 
-	return iCount;
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SStackPointer* CStackPointers::Get(size uiIndex)
+{
+	size			i;
+	CStackPointer*	pcStackPointer;
+	size			uiCount;
+
+	uiCount = 0;
+	for (i = 0; i < miAllocatedPointers; i++)
+	{
+		pcStackPointer = &mpcMemory[i];
+		if (pcStackPointer->IsUsed())
+		{
+			if (uiCount == uiIndex)
+			{
+				return pcStackPointer->Get();
+			}
+			uiCount++;
+		}
+	}	
+
+	return NULL;
 }
 
 
@@ -158,13 +230,13 @@ int CStackPointers::UsedPointers(void)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointers::ClearAllPointers(void)
 {
-	int				i;
+	size				i;
 	CStackPointer*	pcStackPointer;
 
-	for (i = 0; i < miNumPointers; i++)
+	for (i = 0; i < miAllocatedPointers; i++)
 	{
 		pcStackPointer = &mpcMemory[i];
-		if (pcStackPointer->mbUsed)
+		if (pcStackPointer->IsUsed())
 		{
 			pcStackPointer->ClearPointer();
 		}
@@ -196,9 +268,9 @@ CStackPointer* CStackPointers::Remove(CStackPointer* pcFirst, CPointer* pcPointe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::TestAdd(int iIndex)
+void CStackPointers::TestAdd(size iIndex)
 {
-	mpcMemory[iIndex].Init(NULL);
+	mpcMemory[iIndex].Init();
 }
 
 
@@ -206,7 +278,7 @@ void CStackPointers::TestAdd(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::TestKill(int iIndex)
+void CStackPointers::TestKill(size iIndex)
 {
 	mpcMemory[iIndex].Kill();
 }
@@ -216,7 +288,7 @@ void CStackPointers::TestKill(int iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CStackPointers::TestSetLastUsed(int iLastUsed)
+void CStackPointers::TestSetLastUsed(size iLastUsed)
 {
 	miLastUsed = iLastUsed;
 }
@@ -226,7 +298,7 @@ void CStackPointers::TestSetLastUsed(int iLastUsed)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CStackPointers::TestFindUnusedIndex(int iLastUsed)
+size CStackPointers::TestFindUnusedIndex(size iLastUsed)
 {
 	CStackPointer*	pcUnused;
 	size			iIndex;
