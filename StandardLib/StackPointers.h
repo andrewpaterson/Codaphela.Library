@@ -7,28 +7,32 @@ class CStackPointers
 {
 protected:
 	CStackPointer*	mpcMemory;
-	int				miNumPointers;
+	size			miAllocatedPointers;
 	
-	int				miLastUsed;
+	size			miLastUsed;
 
 public:
-	void			Init(int iNumPointers);
+	void			Init(size iNumPointers);
 	void			Kill(void);
 
 	CStackPointer*	Add(CPointer* pcPointer);
 	CStackPointer*	Add(CPointer* pcPointer, CStackPointer* pcFirst);
+	CStackPointer*	Add(CCollection* pcCollection);
+	CStackPointer*	Add(CCollection* pcCollection, CStackPointer* pcFirst);
 	void			Add(CStackPointer* pcStackPointer, CStackPointer* pcFirst);
-	int				UsedPointers(void);
 
 	void			RemoveAll(CStackPointer* pcFirst);
 	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer);
 	void			ClearAllPointers(void);
 
 	CStackPointer*	FindUnused(void);
-	void			TestAdd(int iIndex);
-	void			TestKill(int iIndex);
-	void			TestSetLastUsed(int iLastUsed);
-	int				TestFindUnusedIndex(int iLastUsed);
+	size			NumElements(void);
+	SStackPointer*	Get(size uiIndex);
+
+	void			TestAdd(size iIndex);
+	void			TestKill(size iIndex);
+	void			TestSetLastUsed(size iLastUsed);
+	size			TestFindUnusedIndex(size iLastUsed);
 };
 
 

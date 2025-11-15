@@ -45,6 +45,7 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	int					iCount;
 	CStackPointer*		pcStackPointer;
 	CStackPointer*		pcFirstStackPointer;
+	SStackPointer*		psStackPointer;
 
 	iCount = 0;
 
@@ -73,7 +74,19 @@ int CObjectRemapFrom::RemapEmbedded(CEmbeddedObject* pcNew, CEmbeddedObject* pcO
 	{
 		while (pcStackPointer)
 		{
-			pcStackPointer->GetPointer()->UnsafePointTo(pcNew);
+			psStackPointer = pcStackPointer->Get();
+			if (psStackPointer->meType == SPT_Pointer)
+			{
+				psStackPointer->u.pcPointer->UnsafePointTo(pcNew);
+			}
+			else if (psStackPointer->meType == SPT_Collection)
+			{
+				psStackPointer->u.pcCollection->UnsafePointTo(pcOld, pcNew);
+			}
+			else
+			{
+				gcLogger.Error2(__METHOD__, " Unknown Stack Pointer Type.", NULL);
+			}
 			pcStackPointer = pcStackPointer->GetNext();
 		}
 		pcNew->AddStackFroms(pcFirstStackPointer);

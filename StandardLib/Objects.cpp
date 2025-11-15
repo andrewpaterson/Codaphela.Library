@@ -2055,7 +2055,6 @@ void ObjectsKill(void)
 	}
 
 	gcObjects.Kill();
-	gcStackPointers.ClearAllPointers();
 	gcStackPointers.Kill();
 	TransientSequenceKill();
 	UnknownsKill();

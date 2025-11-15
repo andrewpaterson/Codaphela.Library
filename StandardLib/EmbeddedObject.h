@@ -98,6 +98,7 @@ public:
 			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
 
 			void				AddStackFrom(CPointer* pcPointer);
+			void				AddStackFrom(CCollection* pcCollection);
 			void				AddStackFroms(CStackPointer* pcStackPointer);
 			bool				HasStackPointers(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
@@ -126,7 +127,7 @@ protected:
 	virtual void				RemoveAllHeapFroms(void);
 	virtual void				RemoveAllStackFroms(void);
 			bool				PrivateRemoveHeapFrom(CBaseObject* pcFrom);
-	virtual void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
+	virtual void				GetStackFroms(CArrayStackPointer* papcFroms);
 	virtual void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
 	virtual CStackPointers*		GetStackPointers(void) =0;
 	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);

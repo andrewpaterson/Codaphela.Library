@@ -39,6 +39,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 CBaseObject::CBaseObject()
 {
+	// The Constructor code is only called if an Object is allocated on the stack.
 	mpcObjectsThisIn = NULL;
 	mpcClass = NULL;
 	miDistToRoot = UNATTACHED_DIST_TO_ROOT;
@@ -58,7 +59,7 @@ CBaseObject::CBaseObject()
 //////////////////////////////////////////////////////////////////////////
 CBaseObject::~CBaseObject()
 {
-	//This destructor code will only be called if the object was allocated on the stack.
+	//This Destructor code will only be called if the object was allocated on the stack.
 	if (mpcUnknownsThisIn == NULL)
 	{
 		if (!HasClass())
@@ -81,6 +82,7 @@ CBaseObject::~CBaseObject()
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::Allocate(CObjects* pcObjects)
 {
+	//Allocate is only called if an object is allocated in Objects.
 	mpcObjectsThisIn = pcObjects;
 	SetFlag(OBJECT_FLAGS_CALLED_ALLOCATE, true);
 	PreClass();

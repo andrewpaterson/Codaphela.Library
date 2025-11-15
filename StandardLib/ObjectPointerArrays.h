@@ -13,7 +13,7 @@ typedef CArrayTemplateEmbedded<CBaseObject*, 32>	CArrayTemplateEmbeddedBaseObjec
 
 
 class CPointer;
-typedef CArrayTemplateEmbedded<CPointer*, 32>	CArrayTypedPointerPtr;
+typedef CArrayTemplateEmbedded<SStackPointer, 32>	CArrayStackPointer;
 
 
 #endif // __OBJECT_POINTER_ARRAYS_H__

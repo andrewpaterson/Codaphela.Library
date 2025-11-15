@@ -58,7 +58,7 @@ public:
 	size				NumStackFroms(void);
 	void				SetFlag(uint16 iFlag, uint16 iFlagValue);
 	void				GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms);
-	void				GetStackFroms(CArrayTypedPointerPtr* papcFroms);
+	void				GetStackFroms(CArrayStackPointer* papcFroms);
 	CBaseObject*		GetClosestFromToRoot(void);
 	CBaseObject*		GetClosestFromToStack(void);
 	size				NumPointerTos(void);

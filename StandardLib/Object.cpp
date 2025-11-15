@@ -1272,7 +1272,7 @@ void CObject::SetFlag(uint16 iFlag, uint16 iFlagValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CObject::GetStackFroms(CArrayTypedPointerPtr* papcFroms)
+void CObject::GetStackFroms(CArrayStackPointer* papcFroms)
 {
 	size			i;
 	size			uiNumEmbedded;

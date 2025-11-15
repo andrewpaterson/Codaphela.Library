@@ -614,6 +614,29 @@ void CEmbeddedObject::AddStackFrom(CPointer* pcPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::AddStackFrom(CCollection* pcCollection)
+{
+	CStackPointers* pcStackPointers;
+
+	pcStackPointers = GetStackPointers();
+	if (pcStackPointers)
+	{
+		if (mpcStackFroms)
+		{
+			pcStackPointers->Add(pcCollection, mpcStackFroms);
+		}
+		else
+		{
+			mpcStackFroms = pcStackPointers->Add(pcCollection);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::AddStackFroms(CStackPointer* pcStackPointer)
 {
 	CStackPointers*	pcStackPointers;
@@ -905,16 +928,16 @@ CStackPointer* CEmbeddedObject::GetFirstStackFrom(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::GetStackFroms(CArrayTypedPointerPtr* papcFroms)
+void CEmbeddedObject::GetStackFroms(CArrayStackPointer* papcFroms)
 {
 	CStackPointer*	pcStackPointer;
-	CPointer*		pcPointer;
+	SStackPointer*	psPointer;
 
 	pcStackPointer = mpcStackFroms;
 	while (pcStackPointer)
 	{
-		pcPointer = pcStackPointer->GetPointer();
-		papcFroms->Add(&pcPointer);
+		psPointer = pcStackPointer->Get();
+		papcFroms->Add(psPointer);
 
 		pcStackPointer = pcStackPointer->GetNext();
 	}

@@ -1,5 +1,19 @@
 #include "Pointer.h"
+#include "Collection.h"
 #include "StackPointer.h"
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointer::Init(void)
+{
+	msPointer.meType = SPT_Unknown;
+	msPointer.u.pcPointer = NULL;
+	mpcNext = NULL;
+	mbUsed = true;
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -8,7 +22,21 @@
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Init(CPointer* pcPointer)
 {
-	mpcPointer = pcPointer;
+	msPointer.meType = SPT_Pointer;
+	msPointer.u.pcPointer = pcPointer;
+	mpcNext = NULL;
+	mbUsed = true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CStackPointer::Init(CCollection* pcCollection)
+{
+	msPointer.meType = SPT_Pointer;
+	msPointer.u.pcCollection = pcCollection;
 	mpcNext = NULL;
 	mbUsed = true;
 }
@@ -20,9 +48,20 @@ void CStackPointer::Init(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Kill(void)
 {
-	mpcPointer = NULL;
+	msPointer.meType = SPT_Unknown;
+	msPointer.u.pcPointer = NULL;
 	mpcNext = NULL;
 	mbUsed = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CStackPointer::IsUsed(void)
+{
+	return mbUsed;
 }
 
 
@@ -101,7 +140,7 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
 	while (pcNext != NULL)
 	{
 		pcThis = pcNext;
-		if (pcThis->mpcPointer == pcPointer)
+		if (pcThis->msPointer.u.pcPointer == pcPointer)
 		{
 			if (pcPrev)
 			{
@@ -149,9 +188,11 @@ void CStackPointer::RemoveAll(void)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::ClearPointer(void)
 {
-	mpcPointer->UnsafeClearObject();
+	if (msPointer.meType == SPT_Pointer)
+	{
+		msPointer.u.pcPointer->UnsafeClearObject();
+	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -169,7 +210,18 @@ CStackPointer* CStackPointer::ClearPointerGetNext(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer* CStackPointer::GetPointer(void)
+EStackPointerType CStackPointer::GetType(void)
 {
-	return mpcPointer;
+	return msPointer.meType;
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SStackPointer* CStackPointer::Get(void)
+{
+	return &msPointer;
+}
+
