@@ -75,12 +75,7 @@ void CDistToRootCalculator::ValidateExpectedDistStartingObjects(CBaseObject* pcO
 {
 	if (pcParameters->NumExpectedDists() == 0) 
 	{
-		CChars	sz;
-
-		sz.Init();
-		pcObject->PrintObject(&sz);
-		gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", sz.Text(), NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Could not find any starting objects for ", ObjectToString(pcObject, false), NULL);
 	}
 }
 
