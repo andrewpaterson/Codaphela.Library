@@ -339,10 +339,14 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;
 	CObjects*		pcObjectsThisIn;
+	bool			bRemoved;
 
-	pcObjectsThisIn = GetObjectsThisIn();
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
-	PrivateRemoveHeapFrom(pcFromObject);
+	bRemoved = PrivateRemoveHeapFrom(pcFromObject);
+	if (!bRemoved)
+	{
+		gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} heap from from Object {", ObjectToString(this), "}.", NULL);
+	}
 
 	pcContainer = GetEmbeddingContainer();
 	pcContainer->TryFree(true, true);
@@ -350,6 +354,7 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 #ifdef _DEBUG
 	if (bValidate)
 	{
+		pcObjectsThisIn = GetObjectsThisIn();
 		if (pcObjectsThisIn)
 		{
 			pcObjectsThisIn->ValidateObjectsConsistency();
@@ -773,7 +778,17 @@ CObjects* CEmbeddedObject::GetObjects(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded)
+char* CEmbeddedObject::PrintObject(CChars* psz)
+{
+	return PrintObject(psz, IsEmbedded());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded)
 {
 	int		iDistToRoot;
 	int		iDistToStack;
@@ -816,6 +831,7 @@ void CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded)
 	{
 		psz->Append(")");
 	}
+	return psz->Text();
 }
 
 
@@ -825,8 +841,6 @@ void CEmbeddedObject::PrintObject(CChars* psz, bool bEmbedded)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 {
-	CChars	szObject;
-	CChars	szFromObject;
 	int		iThisDistToRoot;
 	int		iOtherDistToRoot;
 	bool	bFromPointsTo;
@@ -835,25 +849,13 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 	iOtherDistToRoot = pcBaseObject->GetDistToRoot();
 	if ((iThisDistToRoot >= ROOT_DIST_TO_ROOT && iOtherDistToRoot >= ROOT_DIST_TO_ROOT) && (iOtherDistToRoot < iThisDistToRoot - 1))
 	{
-		szObject.Init();
-		PrintObject(&szObject, IsEmbedded());
-		szFromObject.Init();
-		pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} cannot have a DistToRoot that is different by more than 1.", NULL);
-		szFromObject.Kill();
-		szObject.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} pointed to from object {", ObjectToString(pcBaseObject), "} cannot have a DistToRoot that is different by more than 1.", NULL);
 	}
 
 	bFromPointsTo = pcBaseObject->ContainsPointerTo(this);
 	if (!bFromPointsTo)
 	{
-		szObject.Init();
-		PrintObject(&szObject, IsEmbedded());
-		szFromObject.Init();
-		pcBaseObject->PrintObject(&szFromObject, pcBaseObject->IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointed to from object {", szFromObject.Text(), "} does not have a from pointing to.", NULL);
-		szFromObject.Kill();
-		szObject.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} pointed to from object {", ObjectToString(pcBaseObject), "} does not have a from pointing to.", NULL);
 	}
 }
 
@@ -864,20 +866,12 @@ void CEmbeddedObject::ValidateFrom(CBaseObject* pcBaseObject)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::ValidatePointerTo(CEmbeddedObject* pcPointedTo)
 {
-	CChars	szObject;
-	CChars	szToObject;
 	bool	bToPointsToFrom;
 
 	bToPointsToFrom = pcPointedTo->ContainsFrom(this);
 	if (!bToPointsToFrom)
 	{
-		szObject.Init();
-		PrintObject(&szObject, IsEmbedded());
-		szToObject.Init();
-		pcPointedTo->PrintObject(&szToObject, pcPointedTo->IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} pointing to object {", szToObject.Text(), "} does not have a from pointing to.", NULL);
-		szToObject.Kill();
-		szObject.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} pointing to Object {", ObjectToString(pcPointedTo), "} does not have a from pointing to.", NULL);
 	}
 }
 
@@ -1013,5 +1007,61 @@ void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
 
 	pcContainer = GetEmbeddingContainer();
 	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* ObjectToString(CEmbeddedObject* pcObject)
+{
+	CChars	szChars;
+	size	uiCount;
+	char*	sz;
+
+	szChars.Init();
+	if (pcObject)
+	{
+		pcObject->PrintObject(&szChars);
+	}
+	else
+	{
+		szChars.Append("NULL");
+	}
+
+	uiCount = IncrementLogToStringCount();
+	sz = gaszLogToStringScratchPad[uiCount];
+	StrCpySafe(sz, szChars.Text(), LOG_TO_STRING_MAX_LENGTH);
+	szChars.Kill();
+	return sz;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+char* ObjectToString(CEmbeddedObject* pcObject, bool bEmbedded)
+{
+	CChars	szChars;
+	size	uiCount;
+	char* sz;
+
+	szChars.Init();
+	if (pcObject)
+	{
+		pcObject->PrintObject(&szChars, bEmbedded);
+	}
+	else
+	{
+		szChars.Append("NULL");
+	}
+
+	uiCount = IncrementLogToStringCount();
+	sz = gaszLogToStringScratchPad[uiCount];
+	StrCpySafe(sz, szChars.Text(), LOG_TO_STRING_MAX_LENGTH);
+	szChars.Kill();
+	return sz;
 }
 

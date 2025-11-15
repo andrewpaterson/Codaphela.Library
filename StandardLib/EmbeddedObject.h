@@ -114,7 +114,8 @@ public:
 
 			CObjects*			GetObjects(void);
 	virtual CObjects*			GetObjectsThisIn(void) =0;
-			void				PrintObject(CChars* psz, bool bEmbedded = false);
+			char*				PrintObject(CChars* psz);
+			char*				PrintObject(CChars* psz, bool bEmbedded);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				LogExpectedToBeInitialised(char* szMethod);
 			void				LogCantInitFreedObject(char* szMethod);
@@ -133,6 +134,10 @@ protected:
 	virtual CEmbeddedObject*	GetClosestFromForCanFindRoot(void);
 	virtual void				UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) =0;
 };
+
+
+char* ObjectToString(CEmbeddedObject* pcObject);
+char* ObjectToString(CEmbeddedObject* pcObject, bool bEmbedded);
 
 
 #endif // __EMBEDDED_OBJECT__

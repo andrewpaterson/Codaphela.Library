@@ -2086,14 +2086,9 @@ void CBaseObject::Dump(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlagNotSet(uint16 iFlag, char* szFlag)
 {
-	CChars	sz;
-
 	if (muiFlags & iFlag)
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have flag [", szFlag,"] set.", NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have flag [", szFlag,"] set.", NULL);
 	}
 }
 
@@ -2104,14 +2099,9 @@ void CBaseObject::ValidateFlagNotSet(uint16 iFlag, char* szFlag)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateFlagSet(uint16 iFlag, char* szFlag)
 {
-	CChars	sz;
-
 	if (!(muiFlags & iFlag))
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have flag [", szFlag,"] set.", NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have flag [", szFlag,"] set.", NULL);
 	}
 }
 
@@ -2124,7 +2114,6 @@ void CBaseObject::ValidateCanFindRoot(void)
 {
 	ValidateNotEmbedded(__METHOD__);
 
-	CChars	sz;
 	bool	bCanFindRoot;
 
 	if (miDistToRoot > ROOT_DIST_TO_ROOT)
@@ -2133,20 +2122,14 @@ void CBaseObject::ValidateCanFindRoot(void)
 
 		if (!bCanFindRoot)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} has a positive dist to root and should be able to find the Root object.", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a positive dist to root and should be able to find the Root object.", NULL);
 		}
 	}
 	else if (miDistToRoot == ROOT_DIST_TO_ROOT)
 	{
 		if (!IsRoot())
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} has a dist to root [0] but is not the Root object.", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a dist to root [0] but is not the Root object.", NULL);
 		}
 	}
 	else if (miDistToRoot == UNATTACHED_DIST_TO_ROOT)
@@ -2155,25 +2138,16 @@ void CBaseObject::ValidateCanFindRoot(void)
 
 		if (bCanFindRoot)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} has an [UNATTACHED_DIST_TO_ROOT] dist to root should not be able to find the Root object.", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has an [UNATTACHED_DIST_TO_ROOT] dist to root should not be able to find the Root object.", NULL);
 		}
 	}
 	else if (miDistToRoot == CLEARED_DIST_TO_ROOT)
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have dist to root [CLEARED_DIST_TO_ROOT].", NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have dist to root [CLEARED_DIST_TO_ROOT].", NULL);
 	}
 	else
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have dist to root [", IntToString(miDistToRoot), "].", NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have dist to root [", IntToString(miDistToRoot), "].", NULL);
 	}
 }
 
@@ -2200,7 +2174,7 @@ void CBaseObject::ValidateContainerFlag(void)
 		if ((iEmbeddedFlags) != (iThisFlags))
 		{
 			sz.Init();
-			PrintObject(&sz, IsEmbedded());
+			PrintObject(&sz);
 			szFlags = ShortToFlags(muiFlags);
 			szEmbeddedFlags = ShortToFlags(mpcEmbedded->muiFlags);
 			szIgnoredFlags = ShortToFlags(iIgnoredFlags);
@@ -2244,7 +2218,6 @@ void CBaseObject::ValidateAllocation(void)
 	bool	bAllocateCalled;
 	bool	bInObjects;
 	bool	bAllSame;
-	CChars	sz;
 
 	bDistToStackZero = GetDistToStack() == 0;
 	bAllocateCalled = FixBool(muiFlags & OBJECT_FLAGS_CALLED_ALLOCATE);
@@ -2253,10 +2226,7 @@ void CBaseObject::ValidateAllocation(void)
 
 	if (!bAllSame)
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have a dist to stack of [", IntToString(GetDistToStack()), "] and flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "].", NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a dist to stack of [", IntToString(GetDistToStack()), "] and flag OBJECT_FLAGS_CALLED_ALLOCATE [", IntToString(bAllocateCalled), "] and be allocated in Objects [0x", PointerToString(GetObjectsThisIn()), "].", NULL);
 	}
 }
 
@@ -2267,15 +2237,11 @@ void CBaseObject::ValidateAllocation(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateDistToRoot(void)
 {
-	CChars			sz;
 	CBaseObject*	pcContainer;
 
 	if (!((miDistToRoot >= ROOT_DIST_TO_ROOT) || (miDistToRoot == UNATTACHED_DIST_TO_ROOT)))
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have a dist to root of [", IntToString(miDistToRoot), "].", NULL);
-		sz.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a dist to root of [", IntToString(miDistToRoot), "].", NULL);
 	}
 
 	if (IsEmbedded())
@@ -2283,10 +2249,7 @@ void CBaseObject::ValidateDistToRoot(void)
 		pcContainer = GetEmbeddingContainer();
 		if (pcContainer->GetDistToRoot() != GetDistToRoot())
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have a dist to root [", IntToString(miDistToRoot), "] the same as it's embedding object [", IntToString(pcContainer->GetDistToRoot()),"].", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have a dist to root [", IntToString(miDistToRoot), "] the same as it's embedding object [", IntToString(pcContainer->GetDistToRoot()),"].", NULL);
 		}
 	}
 }
@@ -2298,26 +2261,18 @@ void CBaseObject::ValidateDistToRoot(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateIndex(void)
 {
-	CChars			sz;
-
 	if (IsEmbedded())
 	{
 		if (moi != INVALID_O_INDEX)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have an Index [", IndexToString(moi), "] of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
 		}
 	}
 	else
 	{
 		if (moi == INVALID_O_INDEX)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have an Index of INVALID_O_INDEX [", IndexToString(INVALID_O_INDEX),"].", NULL);
 		}
 	}
 }
@@ -2329,26 +2284,18 @@ void CBaseObject::ValidateIndex(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateObjectsThisIn(void)
 {
-	CChars			sz;
-
 	if (IsEmbedded())
 	{
 		if (mpcObjectsThisIn != NULL)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should not have ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have ObjectsThisIn [", PointerToString(mpcObjectsThisIn), "] set.", NULL);
 		}
 	}
 	else
 	{
 		if (mpcObjectsThisIn == NULL)
 		{
-			sz.Init();
-			PrintObject(&sz, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", sz.Text(), "} should have ObjectsThisIn [NULL] set.", NULL);
-			sz.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should have ObjectsThisIn [NULL] set.", NULL);
 		}
 	}
 }
@@ -2386,9 +2333,6 @@ void CBaseObject::ValidateEmbeddedConsistency(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateObjectIdentifiers(void)
 {
-	CChars			szThis;
-	CChars			szOther;
-	CChars			szContainer;
 	CBaseObject*	pcContainer;
 	char*			szName;
 	CBaseObject*	pcThis;
@@ -2399,16 +2343,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		{
 			pcContainer = GetEmbeddingContainer();
 
-			szContainer.Init();
-			pcContainer->PrintObject(&szContainer, false);
-
-			szThis.Init();
-			PrintObject(&szThis, IsEmbedded());
-
-			gcLogger.Error2(__METHOD__, " Object {", szThis.Text(), "} should not have a name as it's embedded in object {", szContainer.Text(), "}.", NULL);
-
-			szThis.Kill();
-			szContainer.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} should not have a name as it's embedded in object {", ObjectToString(pcContainer,  false), "}.", NULL);
 		}
 		else
 		{
@@ -2416,22 +2351,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 			pcThis = mpcObjectsThisIn->GetFromMemory(szName);
 			if (pcThis != this)
 			{
-				szThis.Init();
-				PrintObject(&szThis, IsEmbedded());
-				szOther.Init();
-				if (pcThis != NULL)
-				{
-					pcThis->PrintObject(&szOther, IsEmbedded());
-				}
-				else
-				{
-					szOther.Append("NULL");
-				}
-
-				gcLogger.Error2(__METHOD__, " 'this' Object {", szThis.Text(), "} does not match the Named Object {", szOther.Text(), "} in Objects.", NULL);
-
-				szOther.Kill();
-				szThis.Kill();
+				gcLogger.Error2(__METHOD__, " 'this' Object {", ObjectToString(this), "} does not match the Named Object {", ObjectToString(pcThis), "} in Objects.", NULL);
 			}
 		}
 	}
@@ -2441,12 +2361,7 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 		pcThis = mpcObjectsThisIn->GetFromMemory(GetIndex());
 		if (pcThis != this)
 		{
-			szThis.Init();
-			PrintObject(&szThis, IsEmbedded());
-
-			gcLogger.Error2(__METHOD__, " Object {", szThis.Text(), "} does not match the Object in Objects.", NULL);
-
-			szThis.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} does not match the Object in Objects.", NULL);
 		}
 	}
 }
@@ -2458,16 +2373,9 @@ void CBaseObject::ValidateObjectIdentifiers(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateHasClassFlag(char* szMethod)
 {
-	CChars sz;
-
 	if (!HasClass())
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-
-		gcLogger.Error2(szMethod, " Object {", sz.Text(), "} does not have Class initialised.  Call PreInit() first in Init().", NULL);
-
-		sz.Kill();
+		gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class initialised.  Call PreInit() first in Init().", NULL);
 	}
 }
 
@@ -2478,16 +2386,9 @@ void CBaseObject::ValidateHasClassFlag(char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateHasClassField(char* szMethod)
 {
-	CChars sz;
-
 	if (mpcClass == NULL)
 	{
-		sz.Init();
-		PrintObject(&sz, IsEmbedded());
-
-		gcLogger.Error2(szMethod, " Object {", sz.Text(), "} does not have Class field set.", NULL);
-
-		sz.Kill();
+		gcLogger.Error2(szMethod, " Object {", ObjectToString(this), "} does not have Class field set.", NULL);
 	}
 }
 
@@ -2498,23 +2399,15 @@ void CBaseObject::ValidateHasClassField(char* szMethod)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateInitCalled(void)
 {
-	CChars	szObject;
-
 	if (muiPreInits != muiPostInits)
 	{
-		szObject.Init();
-		PrintObject(&szObject, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has pre-inits [", IntToString(muiPreInits), "] not equal to post inits [", IntToString(muiPostInits), "].  Call PreInit() first in Init().", NULL);
-		szObject.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has pre-inits [", IntToString(muiPreInits), "] not equal to post inits [", IntToString(muiPostInits), "].  Call PreInit() first in Init().", NULL);
 	}
 	else if (muiPreInits == 0)
 	{
 		if (!IsEmbedded())
 		{
-			szObject.Init();
-			PrintObject(&szObject, IsEmbedded());
-			gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has a pre-init of zero.  Call PreInit() first in Init().", NULL);
-			szObject.Kill();
+			gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has a pre-init of zero.  Call PreInit() first in Init().", NULL);
 		}
 	}
 }
@@ -2526,14 +2419,9 @@ void CBaseObject::ValidateInitCalled(void)
 //////////////////////////////////////////////////////////////////////////
 void CBaseObject::ValidateKillCalled(void)
 {
-	CChars	szObject;
-
 	if (!(muiFlags & OBJECT_FLAGS_CALLED_KILL))
 	{
-		szObject.Init();
-		PrintObject(&szObject, IsEmbedded());
-		gcLogger.Error2(__METHOD__, " Object {", szObject.Text(), "} has not beel killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
-		szObject.Kill();
+		gcLogger.Error2(__METHOD__, " Object {", ObjectToString(this), "} has not beel killed.  Ensure sub-classes are declared DESTRUCTABLE().", NULL);
 	}
 }
 
