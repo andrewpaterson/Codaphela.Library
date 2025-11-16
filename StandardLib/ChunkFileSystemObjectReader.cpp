@@ -86,6 +86,7 @@ bool CChunkFileSystemObjectReader::End(void)
 {
 	mcChunkFileFileSystem.ReadClose();
 	mcChunkFileFileSystem.Kill();
+	mcChunkFile.Kill();
 	return true;
 }
 
