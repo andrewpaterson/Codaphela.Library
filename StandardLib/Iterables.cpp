@@ -149,6 +149,7 @@ void CIterables::Kill(void)
 		pcList->Kill();
 		pcList = mcIterableLists.GetNext(pcList);
 	}
+	mcIterableLists.Kill();
 }
 
 

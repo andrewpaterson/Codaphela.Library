@@ -37,6 +37,19 @@ void CListenerCall::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CListenerCall::Kill(void)
 {
+	SMapIterator		sIter;
+	void*				pvData;
+	size				uiDataSize;
+	bool				bContinue;
+	CArrayListenerPtr*	pcArray;
+
+	bContinue = mcListeners.StartIteration(&sIter, NULL, NULL, &pvData, &uiDataSize);
+	while (bContinue)
+	{
+		pcArray = (CArrayListenerPtr*)pvData;
+		pcArray->Kill();
+		bContinue = mcListeners.Iterate(&sIter, NULL, NULL, &pvData, &uiDataSize);
+	}
 	mcListeners.Kill();
 }
 
