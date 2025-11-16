@@ -335,17 +335,20 @@ void CEmbeddedObject::ValidateInitialised(char* szMethod)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate)
+bool CEmbeddedObject::RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate)
 {
 	CBaseObject*	pcContainer;
 	CObjects*		pcObjectsThisIn;
 	bool			bRemoved;
 
+	pcObjectsThisIn = GetObjectsThisIn();
+
 	//Removing a 'from' kicks off memory reclamation.  This is the entry point for memory management.
 	bRemoved = PrivateRemoveHeapFrom(pcFromObject);
 	if (!bRemoved)
 	{
-		gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} heap from from Object {", ObjectToString(this), "}.", NULL);
+		gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcFromObject), "} Heap-From from Object {", ObjectToString(this), "}.", NULL);
+		return false;
 	}
 
 	pcContainer = GetEmbeddingContainer();
@@ -354,13 +357,14 @@ void CEmbeddedObject::RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate)
 #ifdef _DEBUG
 	if (bValidate)
 	{
-		pcObjectsThisIn = GetObjectsThisIn();
 		if (pcObjectsThisIn)
 		{
 			pcObjectsThisIn->ValidateObjectsConsistency();
 		}
 	}
 #endif
+
+	return true;
 }
 
 
@@ -675,7 +679,7 @@ bool CEmbeddedObject::IsInStack(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, bool bFreeIfNoRoot)
+bool CEmbeddedObject::RemoveStackFromTryFree(CPointer* pcPointer, bool bFreeIfNoRoot)
 {
 	CStackPointers*	pcStackPointers;
 	CBaseObject*	pcContainer;
@@ -688,8 +692,36 @@ void CEmbeddedObject::RemoveStackFromTryKill(CPointer* pcPointer, bool bFreeIfNo
 			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
 			pcContainer = GetEmbeddingContainer();
 			pcContainer->TryFree(bFreeIfNoRoot, false);
+			return true;
 		}
 	}
+	gcLogger.Error2(__METHOD__, " Could not remove Pointer Stack-From from Object {", ObjectToString(this), "}.", NULL);
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot)
+{
+	CStackPointers*		pcStackPointers;
+	CBaseObject*		pcContainer;
+
+	if (mpcStackFroms)
+	{
+		pcStackPointers = GetStackPointers();
+		if (pcStackPointers)
+		{
+			mpcStackFroms = pcStackPointers->Remove(mpcStackFroms, pcPointer);
+			pcContainer = GetEmbeddingContainer();
+			pcContainer->TryFree(bFreeIfNoRoot, false);
+			return true;
+		}
+	}
+	gcLogger.Error2(__METHOD__, " Could not remove Collection Stack-From from Object {", ObjectToString(this), "}.", NULL);
+	return false;
 }
 
 
@@ -967,6 +999,26 @@ void CEmbeddedObject::ValidateNotEmbedded(char* szMethod)
 	if (IsEmbedded())
 	{
 		LogNotExpectedToBeEmbedded(szMethod);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CEmbeddedObject::IsEmbeddingContainerAllocatedInObjects(void)
+{
+	CEmbeddedObject*	pcEmbedded;
+
+	pcEmbedded = GetEmbeddingContainer();
+	if (pcEmbedded)
+	{
+		return pcEmbedded->IsAllocatedInObjects();
+	}
+	else
+	{
+		return false;
 	}
 }
 

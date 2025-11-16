@@ -82,6 +82,7 @@ CPointer::CPointer()
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CPointer& cPointer)
 {
+	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
@@ -97,6 +98,7 @@ CPointer::CPointer(CPointer& cPointer)
 //////////////////////////////////////////////////////////////////////////
 CPointer::CPointer(CEmbeddedObject* pcObject)
 {
+	//Constructor only called if a Pointer is declared on the Stack.
 	mpcEmbedding = NULL;
 	mpcObject = NULL;
 
@@ -116,7 +118,7 @@ CPointer::~CPointer()
 
 	if (mpcObject)
 	{
-		mpcObject->RemoveStackFromTryKill(this, false);
+		mpcObject->RemoveStackFromTryFree(this, false);
 	}
 }
 
@@ -323,7 +325,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 					mpcObject->SetDirty(true);
 				}
 				pcOldObject->SetDirty(true);
-				pcOldObject->RemoveHeapFrom(mpcEmbedding, true);
+				pcOldObject->RemoveHeapFromTryFree(mpcEmbedding, true);
 			}
 			else if (mpcObject)
 			{
@@ -336,7 +338,7 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 		{
 			if (pcOldObject)
 			{
-				pcOldObject->RemoveStackFromTryKill(this, bKillIfNoRoot);
+				pcOldObject->RemoveStackFromTryFree(this, bKillIfNoRoot);
 			}
 
 			if (mpcObject)
@@ -350,6 +352,16 @@ void CPointer::PointTo(CEmbeddedObject* pcNewObject, bool bKillIfNoRoot)
 	{
 		mpcObject->LogicalDirty();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CPointer::PointToNull(void)
+{
+	PointTo(NULL, true);
 }
 
 

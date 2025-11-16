@@ -85,8 +85,8 @@ protected:
 	void				FreeInternal(bool bAllocatedInObjects) override;
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
-	void				RemoveAllPointerTosDontKill(void);
-	void				RemoveAllPointerTos(void);
+	void				RemoveAllPointerTosDontFree(void);
+	void				RemoveAllPointerTosTryFree(void);
 	void				RemoveAllHeapFroms(void);
 	void				RemoveAllStackFroms(void);
 	CBaseObject*		GetClosestFromForCanFindRoot(void);

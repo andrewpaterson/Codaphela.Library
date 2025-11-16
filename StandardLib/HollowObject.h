@@ -45,8 +45,8 @@ public:
 			size				GetEmbeddedIndex(CEmbeddedObject* pcEmbedded);
 			size				NumHeapFroms(void);
 			size				NumStackFroms(void);
-			void				RemoveAllPointerTosDontKill(void);
-			void				RemoveAllPointerTos(void);
+			void				RemoveAllPointerTosDontFree(void);
+			void				RemoveAllPointerTosTryFree(void);
 			void				BaseValidatePointerTos(void);
 			void				ValidateConsistency(void);
 

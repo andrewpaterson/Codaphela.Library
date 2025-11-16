@@ -1261,7 +1261,7 @@ bool CObjects::Remove(CArrayBlockObjectPtr* papcKilled)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcKilled = *papcKilled->Get(i);
-		pcKilled->RemoveAllPointerTosDontKill();
+		pcKilled->RemoveAllPointerTosDontFree();
 	}
 
 	KillDontFreeObjects(papcKilled);

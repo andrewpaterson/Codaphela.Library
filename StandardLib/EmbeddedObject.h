@@ -66,6 +66,7 @@ public:
 	virtual bool				IsBaseObject(void);
 	virtual void				RemovePointerTo(CEmbeddedObject* pcTo) =0;
 			CBaseObject*		GetEmbeddingContainer(void);
+			bool				IsEmbeddingContainerAllocatedInObjects(void);
 			bool				IsEmbedded(void);
 			bool				IsNotEmbedded(void);
 	virtual bool				IsInitialised(void) =0;
@@ -92,7 +93,7 @@ public:
 
 			bool				HasHeapFroms(void);
 			void				AddHeapFrom(CBaseObject* pcFromObject, bool bValidate);
-			void				RemoveHeapFrom(CBaseObject* pcFromObject, bool bValidate);
+			bool				RemoveHeapFromTryFree(CBaseObject* pcFromObject, bool bValidate);
 	virtual size				NumHeapFroms(void);
 			CBaseObject*		GetHeapFrom(size iFromIndex);
 			void				UnsafeAddHeapFrom(CBaseObject* pcFromObject);
@@ -102,7 +103,8 @@ public:
 			void				AddStackFroms(CStackPointer* pcStackPointer);
 			bool				HasStackPointers(void);
 			void				PrivateRemoveStackFrom(CPointer* pcPointer);
-			void				RemoveStackFromTryKill(CPointer* pcPointer, bool bKillIfNoRoot);
+			bool				RemoveStackFromTryFree(CPointer* pcPointer, bool bKillIfNoRoot);
+			bool				RemoveStackFromTryFree(CCollection* pcPointer, bool bFreeIfNoRoot);
 	virtual size				NumStackFroms(void);
 			CStackPointer*		GetFirstStackFrom(void);
 	virtual CEmbeddedObject*	GetClosestFromToStack(void);

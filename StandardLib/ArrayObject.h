@@ -34,11 +34,10 @@ public:
 
 	void				Add(CPointer& pObject);
 	void				AddAll(Ptr<CArrayObject> pcArray);
-	void				Insert(size  iIndex, CPointer& pObject);
 	CPointer			Get(size  iIndex);
-	void				Set(size  iIndex, CPointer& pObject);
+	bool				Insert(size  iIndex, CPointer& pObject);
+	bool				Remove(size  iIndex);
 	bool				Remove(CPointer& pObject);
-	bool				RemoveAt(size  iIndex);
 
 	template<class M>
 	Ptr<M>				Get(size  iIndex);
