@@ -38,13 +38,14 @@ public:
 	void					Class(void);
 
 	bool					Add(CPointer& pObject);
-	void					AddAll(CArrayCommonObject* pcArray);
-	void					Set(size  iIndex, CPointer& pObject);
+	bool					Add(CEmbeddedObject* pcObject);
+	bool					AddAll(CArrayCommonObject* pcArray);
+	bool					Set(size iIndex, CPointer& pObject);
 
 	bool					Remove(CPointer& pObject);
-	bool					Remove(CBaseObject* pcObject);
-	void					RemoveAll(void);
-	void					Clear(void);
+	bool					Remove(CEmbeddedObject* pcObject);
+	bool					RemoveAll(void);
+	bool					Clear(void);
 
 	size 					NumElements(void);
 	size 					NonNullElements(void);
@@ -61,8 +62,8 @@ public:
 	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
 	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
-	void					RemoveAllPointerTosDontKill(void);
-	void					RemoveAllPointerTos(void);
+	void					RemoveAllPointerTosDontFree(void);
+	void					RemoveAllPointerTosTryFree(void);
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
 	bool					Save(CObjectWriter* pcFile) override;
@@ -88,6 +89,10 @@ protected:
 	void					SetPointedTosDistToRoot(int iDistToRoot);
 
 	void					UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+
+	bool					InsertAt(size iIndex, CPointer& pObject);
+	bool					InsertAt(size iIndex, CEmbeddedObject* pcObject);
+	bool					RemoveAt(size iIndex);
 };
 
 

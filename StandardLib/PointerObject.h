@@ -90,8 +90,8 @@ public:
 	CEmbeddedObject*	Dereference(void);
 	CEmbeddedObject*	DereferenceArrow(void);
 
-	void				PointTo(CEmbeddedObject* pcObject, bool bKillIfNoRoot);
 	void				AddHeapFrom(CBaseObject* pcFrom);
+	void				PointToNull(void);
 
 	CEmbeddedObject*	Return(void);
 	void				UnsafeClearObject(void);
@@ -103,6 +103,9 @@ public:
 	void				DumpFroms(void);
 	void				DumpPointerTos(void);
 	void				Dump(void);
+
+protected:
+	void				PointTo(CEmbeddedObject* pcObject, bool bKillIfNoRoot);
 };
 
 

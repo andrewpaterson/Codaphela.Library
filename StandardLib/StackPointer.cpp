@@ -35,7 +35,7 @@ void CStackPointer::Init(CPointer* pcPointer)
 //////////////////////////////////////////////////////////////////////////
 void CStackPointer::Init(CCollection* pcCollection)
 {
-	msPointer.meType = SPT_Pointer;
+	msPointer.meType = SPT_Collection;
 	msPointer.u.pcCollection = pcCollection;
 	mpcNext = NULL;
 	mbUsed = true;
@@ -140,26 +140,72 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
 	while (pcNext != NULL)
 	{
 		pcThis = pcNext;
-		if (pcThis->msPointer.u.pcPointer == pcPointer)
+		if (pcThis->msPointer.meType == SPT_Pointer)
 		{
-			if (pcPrev)
+			if (pcThis->msPointer.u.pcPointer == pcPointer)
 			{
-				pcPrev->SetNext(pcThis->mpcNext);
-				pcThis->Kill();
-				return this;
-			}
-			else
-			{
-				pcNext = mpcNext;
-				Kill();
-				return pcNext;
+				if (pcPrev)
+				{
+					pcPrev->SetNext(pcThis->mpcNext);
+					pcThis->Kill();
+					return this;
+				}
+				else
+				{
+					pcNext = mpcNext;
+					Kill();
+					return pcNext;
+				}
 			}
 		}
 		pcPrev = pcNext;
 		pcNext = pcNext->mpcNext;
 	}
 
-	return this;
+	gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Pointer).", NULL);
+	return NULL;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CStackPointer* CStackPointer::Remove(CCollection* pcPointer)
+{
+	CStackPointer* pcNext;
+	CStackPointer* pcPrev;
+	CStackPointer* pcThis;
+
+	pcNext = this;
+	pcPrev = NULL;
+	while (pcNext != NULL)
+	{
+		pcThis = pcNext;
+		if (pcThis->msPointer.meType == SPT_Collection)
+		{
+			if (pcThis->msPointer.u.pcCollection == pcPointer)
+			{
+				if (pcPrev)
+				{
+					pcPrev->SetNext(pcThis->mpcNext);
+					pcThis->Kill();
+					return this;
+				}
+				else
+				{
+					pcNext = mpcNext;
+					Kill();
+					return pcNext;
+				}
+			}
+		}
+		pcPrev = pcNext;
+		pcNext = pcNext->mpcNext;
+	}
+
+	gcLogger.Error2(__METHOD__, " Could not remove Stack Pointer (Collection).", NULL);
+	return NULL;
 }
 
 

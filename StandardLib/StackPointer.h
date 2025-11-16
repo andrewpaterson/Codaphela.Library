@@ -44,6 +44,7 @@ public:
 	CStackPointer*		GetNext(void);
 	
 	CStackPointer*		Remove(CPointer* pcPointer);
+	CStackPointer*		Remove(CCollection* pcPointer);
 	void				RemoveAll(void);
 	void				ClearPointer(void);
 	CStackPointer*		ClearPointerGetNext(void);

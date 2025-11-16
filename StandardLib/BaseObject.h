@@ -203,8 +203,8 @@ protected:
 			void				KillInternal(bool bHeapFromChanged) override;
 			void				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
 
-	virtual void				RemoveAllPointerTosDontKill(void) =0;
-	virtual void				RemoveAllPointerTos(void) =0;
+	virtual void				RemoveAllPointerTosDontFree(void) =0;
+	virtual void				RemoveAllPointerTosTryFree(void) =0;
 
 			bool				SaveManaged(CObjectWriter* pcFile);
 			bool				LoadManaged(CObjectReader* pcFile);
@@ -214,7 +214,7 @@ protected:
 
 			void				FreePointers(void) override;
 			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) =0;
-			bool				RemoveToFrom(CEmbeddedObject* pcPointedTo);
+			bool				RemoveToFromDontFree(CEmbeddedObject* pcPointedTo);
 			void				SetExpectedDistToRoot(int iExpectedDistToRoot);
 			void				SetCalculatedDistToRoot(void);
 			int					CalculateDistToRootFromPointedFroms(void);

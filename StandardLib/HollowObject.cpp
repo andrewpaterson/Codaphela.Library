@@ -185,7 +185,7 @@ size CHollowObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcN
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::RemoveAllPointerTosDontKill(void)
+void CHollowObject::RemoveAllPointerTosDontFree(void)
 {
 }
 
@@ -194,7 +194,7 @@ void CHollowObject::RemoveAllPointerTosDontKill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CHollowObject::RemoveAllPointerTos(void)
+void CHollowObject::RemoveAllPointerTosTryFree(void)
 {
 }
 

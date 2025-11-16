@@ -296,7 +296,7 @@ void CBaseObject::KillInternal(bool bHeapFromChanged)
 	}
 	else
 	{
-		RemoveAllPointerTos();  //Handles embedded objects.
+		RemoveAllPointerTosTryFree();  //Handles embedded objects.
 
 		RemoveAllStackFroms();  //Handles embedded objects (in Object.RemoveAllStackFroms()).
 		RemoveAllHeapFroms();   //Handles embedded objects (in Object.RemoveAllHeapFroms()).
@@ -921,7 +921,7 @@ bool CBaseObject::HasDistTouchedFlag(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CBaseObject::RemoveToFrom(CEmbeddedObject* pcPointedTo)
+bool CBaseObject::RemoveToFromDontFree(CEmbeddedObject* pcPointedTo)
 {
 	CBaseObject*	pcBaseObject;
 

@@ -23,6 +23,7 @@ public:
 
 	void			RemoveAll(CStackPointer* pcFirst);
 	CStackPointer* 	Remove(CStackPointer* pcFirst, CPointer* pcPointer);
+	CStackPointer*	Remove(CStackPointer* pcFirst, CCollection* pcPointer);
 	void			ClearAllPointers(void);
 
 	CStackPointer*	FindUnused(void);

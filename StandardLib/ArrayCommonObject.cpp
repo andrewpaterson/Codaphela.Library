@@ -66,63 +66,6 @@ void CArrayCommonObject::FreePointers(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAll(void)
-{
-	size 			i;
-	CBaseObject*	pcObject;
-	size 			uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcObject = UnsafeGet(i);
-		if (pcObject)
-		{
-			pcObject->RemoveHeapFrom(this, false);
-		}
-	}
-
-	mcArray.ReInit();
-
-#ifdef _DEBUG
-	mpcObjectsThisIn->ValidateObjectsConsistency();
-#endif // _DEBUG
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Clear(void)
-{
-	RemoveAll();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::Remove(CBaseObject* pcObject)
-{
-	//This is a test method.
-	if (pcObject)
-	{
-		if (mcArray.Remove(pcObject))
-		{
-			pcObject->RemoveHeapFrom(this, true);
-			return true;
-		}
-	}
-	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::UnsafeRemove(CBaseObject* pcObject)
 {
 	//This is a test method.
@@ -203,18 +146,29 @@ bool CArrayCommonObject::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Add(CPointer& pObject)
 {
-	bool				bAdded;
 	CEmbeddedObject*	pcObject;
 
 	pcObject = pObject.Object();
+	return Add(pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
+{
+	bool				bAdded;
+
 	bAdded = mcArray.Add(pcObject);
 	if (bAdded)
 	{
 		if (pcObject)
 		{
-			if (IsAllocatedInObjects())
+			if (IsEmbeddingContainerAllocatedInObjects())
 			{
-				pObject.AddHeapFrom(this);
+				pcObject->AddHeapFrom(this, true);
 			}
 			else
 			{
@@ -230,22 +184,24 @@ bool CArrayCommonObject::Add(CPointer& pObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
+bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 {
 	size 			i;
 	size 			uiNumElements;
 	CBaseObject*	pcObject;
+	bool			bAdded;
 
 	uiNumElements = pcArray->NumElements();
 	for (i = 0; i < uiNumElements; i++)
 	{
 		pcObject = pcArray->UnsafeGet(i);
-		mcArray.Add(pcObject);
-		if (pcObject != NULL)
+		bAdded = Add(pcObject);
+		if (!bAdded)
 		{
-			pcObject->AddHeapFrom(this, true);
+			return false;
 		}
 	}
+	return true;
 }
 
 
@@ -253,23 +209,40 @@ void CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::Set(size iIndex, CPointer& pObject)
+bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 {
-	CBaseObject*		pcPointedTo;
+	CBaseObject*	pcPointedTo;
+	bool			bResult;
 
 	if (iIndex >= mcArray.UnsafeNumElements())
 	{
-		return;
+		return false;
 	}
 
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-	mcArray.Set(iIndex, pObject.Object());
-	if (pcPointedTo)
+	bResult = mcArray.Set(iIndex, pObject.Object());
+
+	if (bResult)
 	{
-		pcPointedTo->RemoveHeapFrom(this, true);
+		if (pcPointedTo)
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				bResult = pcPointedTo->RemoveHeapFromTryFree(this, true);
+			}
+			else
+			{
+				bResult = pcPointedTo->RemoveStackFromTryFree(this, true);
+			}
+		}
 	}
 
-	pObject.AddHeapFrom(this);
+	if (bResult)
+	{
+		pObject.AddHeapFrom(this);
+		return true;
+	}
+	return false;
 }
 
 
@@ -279,15 +252,158 @@ void CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Remove(CPointer& pObject)
 {
+	CEmbeddedObject*	pcObject;
+
 	if (pObject.IsNotNull())
 	{
-		if (mcArray.Remove(pObject.Object()))
-		{
-			pObject->RemoveHeapFrom(this, true);
-			return true;
-		}
+		pcObject = pObject.Object();
+		return Remove(pcObject);
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
+{
+	//This method is only publically called from tests.
+	if (pcObject)
+	{
+		if (mcArray.Remove(pcObject))
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				return pcObject->RemoveHeapFromTryFree(this, true);
+			}
+			else
+			{
+				return pcObject->RemoveStackFromTryFree(this, true);
+			}
+		}
+		return gcLogger.Error2(__METHOD__, " Could not remove Object {", ObjectToString(pcObject), "} from Array {", ObjectToString(this), "}.", NULL);
+	}
+	return gcLogger.Error2(__METHOD__, " Could not remove Object {NULL} from Array {", ObjectToString(this), "}.", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::RemoveAll(void)
+{
+	size 			i;
+	CBaseObject*	pcObject;
+	size 			uiNumElements;
+	bool			bRemoved;
+
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcObject = UnsafeGet(i);
+		if (pcObject)
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				bRemoved = pcObject->RemoveHeapFromTryFree(this, false);
+			}
+			else
+			{
+				bRemoved = pcObject->RemoveStackFromTryFree(this, true);
+			}
+			if (!bRemoved)
+			{
+				return false;
+			}
+		}
+	}
+
+	mcArray.ReInit();
+
+#ifdef _DEBUG
+	mpcObjectsThisIn->ValidateObjectsConsistency();
+#endif // _DEBUG
+
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveAllPointerTosDontFree(void)
+{
+	CBaseObject* pcPointedTo;
+	size 			i;
+	size 			uiNumElements;
+
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				RemoveToFromDontFree(pcPointedTo);
+			}
+			else
+			{
+				//I'm not sure if that can ever be called.
+				gcLogger.Error2(__METHOD__, " is not yet implemented for Stack-Froms.", NULL);
+			}
+		}
+	}
+	mcArray.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CArrayCommonObject::RemoveAllPointerTosTryFree(void)
+{
+	//Called by KillInternal.
+	//You could factor out a common method between this and RemoveAll.
+
+	CBaseObject*	pcPointedTo;
+	size 			i;
+	size 			uiNumElements;
+	bool			bRemoved;
+
+	uiNumElements = mcArray.UnsafeNumElements();
+	for (i = 0; i < uiNumElements; i++)
+	{
+		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
+		if (pcPointedTo)
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				bRemoved = pcPointedTo->RemoveHeapFromTryFree(this, false);
+			}
+			else
+			{
+				bRemoved = pcPointedTo->RemoveStackFromTryFree(this, true);
+			}
+			mcArray.UnsafeSet(i, NULL);
+		}
+	}
+	mcArray.ReInit();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::Clear(void)
+{
+	return RemoveAll();
 }
 
 
@@ -373,53 +489,6 @@ size CArrayCommonObject::BaseNumPointerTos(void)
 		}
 	}
 	return iCount;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAllPointerTosDontKill(void)
-{
-	CBaseObject*	pcPointedTo;
-	size 			i;
-	size 			uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			RemoveToFrom(pcPointedTo);
-		}
-	}
-	mcArray.ReInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::RemoveAllPointerTos(void)
-{
-	CBaseObject*	pcPointedTo;
-	size 			i;
-	size 			uiNumElements;
-
-	uiNumElements = mcArray.UnsafeNumElements();
-	for (i = 0; i < uiNumElements; i++)
-	{
-		pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(i);
-		if (pcPointedTo)
-		{
-			pcPointedTo->RemoveHeapFrom(this, true);
-			mcArray.UnsafeSet(i, NULL);
-		}
-	}
-	mcArray.ReInit();
 }
 
 
@@ -629,7 +698,7 @@ CBaseObject* CArrayCommonObject::UnsafeGet(size iIndex)
 size CArrayCommonObject::RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 {
 	size 					iCount;
-	CEmbeddedObject**	ppcPointedTo;
+	CEmbeddedObject**		ppcPointedTo;
 	size 					i;
 	size 					uiNumElements;
 
@@ -757,5 +826,76 @@ void CArrayCommonObject::KillAll(void)
 		pcObject = (CBaseObject*)mcArray.UnsafeGet(i);
 		pcObject->Kill();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::InsertAt(size iIndex, CPointer& pObject)
+{
+	CEmbeddedObject* pcObject;
+
+	pcObject = pObject.Object();
+	return InsertAt(iIndex, pcObject);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
+{
+	bool				bAdded;
+
+	bAdded = mcArray.Insert(iIndex, pcObject);
+	if (bAdded)
+	{
+		if (pcObject)
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				pcObject->AddHeapFrom(this, true);
+			}
+			else
+			{
+				pcObject->AddStackFrom(this);
+			}
+		}
+	}
+	return bAdded;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::RemoveAt(size iIndex)
+{
+	CEmbeddedObject*	pcObject;
+	bool				bResult;
+
+	if (iIndex < mcArray.UnsafeNumElements())
+	{
+		pcObject = UnsafeGet(iIndex);
+		bResult = mcArray.Remove(iIndex);
+
+		if (bResult && pcObject)
+		{
+			if (IsEmbeddingContainerAllocatedInObjects())
+			{
+				bResult = pcObject->RemoveHeapFromTryFree(this, true);
+			}
+			else
+			{
+				bResult = pcObject->RemoveStackFromTryFree(this, true);
+			}
+		}
+		return bResult;
+	}
+	return false;
 }
 

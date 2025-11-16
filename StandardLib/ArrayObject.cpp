@@ -56,10 +56,9 @@ void CArrayObject::AddAll(Ptr<CArrayObject> pcArray)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Insert(size iIndex, CPointer& pObject)
+bool CArrayObject::Insert(size iIndex, CPointer& pObject)
 {
-	mcArray.Insert(iIndex, pObject.Object());
-	pObject.AddHeapFrom(this);
+	return CArrayCommonObject::InsertAt(iIndex, pObject);
 }
 
 
@@ -86,18 +85,9 @@ CPointer CArrayObject::Get(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CArrayObject::Set(size iIndex, CPointer& pObject)
+bool CArrayObject::Remove(size iIndex)
 {
-	CBaseObject*	pcObject;
-
-	if (iIndex < mcArray.UnsafeNumElements())
-	{
-		pcObject = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-		
-		CPointer	pTemp;
-		pTemp.AssignObject(pcObject);
-		pTemp = pObject;
-	}
+	return CArrayCommonObject::RemoveAt(iIndex);
 }
 
 
@@ -108,26 +98,5 @@ void CArrayObject::Set(size iIndex, CPointer& pObject)
 bool CArrayObject::Remove(CPointer& pObject)
 {
 	return CArrayCommonObject::Remove(pObject);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayObject::RemoveAt(size iIndex)
-{
-	CPointer	pObject;
-
-	pObject = Get(iIndex);
-	if (pObject.IsNotNull())
-	{
-		if (mcArray.Remove(iIndex))
-		{
-			pObject->RemoveHeapFrom(this, true);
-			return true;
-		}
-	}
-	return false;
 }
 

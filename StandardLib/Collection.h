@@ -34,7 +34,7 @@ public:
 			void			Kill(void) final;
 			bool			IsCollection(void) override;
 			bool			IsObject(void) override;
-	virtual void			RemoveAll(void) =0;
+	virtual bool			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;
 	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
