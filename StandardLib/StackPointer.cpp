@@ -153,7 +153,7 @@ CStackPointer* CStackPointer::Remove(CPointer* pcPointer)
 				else
 				{
 					pcNext = mpcNext;
-					Kill();
+					pcThis->Kill();
 					return pcNext;
 				}
 			}

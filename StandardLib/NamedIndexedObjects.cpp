@@ -391,7 +391,11 @@ bool CNamedIndexedObjects::FreeObjects(void)
 	while (oi != INVALID_O_INDEX)
 	{
 		pcObject = Get(oi);
+
 		pcObject->FreeInternal(true);
+		pcObject->FreeIdentifiers();
+		pcObject->FreePointers();
+
 		oi = mcMemoryIndexedObjects.Iterate(&sIter);
 	}
 	return true;
