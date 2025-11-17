@@ -309,15 +309,18 @@ bool CObjectReader::ReadDependent(CEmbeddedObject** ppcObjectPtr, CBaseObject* p
 
 			*ppcObjectPtr = NULL;
 			bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, pcContaining, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
+			cHeader.Kill();
 			return bResult;
 		}
 		else
 		{
+			cHeader.Kill();
 			return true;
 		}
 	}
 	else
 	{
+		cHeader.Kill();
 		return false;
 	}
 
