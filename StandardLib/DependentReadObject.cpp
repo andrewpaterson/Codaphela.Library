@@ -8,10 +8,9 @@
 //////////////////////////////////////////////////////////////////////////
 void CDependentReadObject::Init(CObjectIdentifier* pcObjectPtr)
 {
-	CObjectIdentifier*	pcThis;
-
-	pcThis = this;
-	memcpy_fast(pcThis, pcObjectPtr, sizeof(CObjectIdentifier));
+	mcType = pcObjectPtr->mcType;
+	moi = pcObjectPtr->moi;
+	mszObjectName.Init(pcObjectPtr->GetName());
 	miFlags = 0;
 }
 
