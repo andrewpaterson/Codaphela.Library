@@ -23,6 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include <string.h>
 #include "SystemAllocator.h"
 #include "GlobalMemory.h"
+#include "StringHelper.h"
 #include "FileWriter.h"
 #include "FileReader.h"
 #include "DebugOutput.h"
@@ -33,7 +34,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Init(char* sz)
+void CCharsImmutable::Init(const char* sz)
 {
 	Init(sz, &gcSystemAllocator);
 }
@@ -43,7 +44,7 @@ void CCharsImmutable::Init(char* sz)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Init(char* sz, CMallocator* pcMalloc)
+void CCharsImmutable::Init(const char* sz, CMallocator* pcMalloc)
 {
 	size	uiLength;
 
@@ -69,7 +70,7 @@ void CCharsImmutable::Init(char* sz, CMallocator* pcMalloc)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Init(char* sz, size uiLength)
+void CCharsImmutable::Init(const char* sz, size uiLength)
 {
 	Init(sz, uiLength, &gcSystemAllocator);
 }
@@ -79,7 +80,7 @@ void CCharsImmutable::Init(char* sz, size uiLength)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Init(char* sz, size uiLength, CMallocator* pcMalloc)
+void CCharsImmutable::Init(const char* sz, size uiLength, CMallocator* pcMalloc)
 {
 	if (uiLength >= MAX_EMBEDDED_CHARS)
 	{
@@ -96,6 +97,17 @@ void CCharsImmutable::Init(char* sz, size uiLength, CMallocator* pcMalloc)
 		memcpy(muString.sz, sz, uiLength);
 		muString.sz[uiLength] = '\0';
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CCharsImmutable::_Init(void)
+{
+	//_Init() just exists to make converting from CChars easier.
+	Init();
 }
 
 
@@ -187,7 +199,7 @@ size CCharsImmutable::Length(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CCharsImmutable::Set(char* sz)
+void CCharsImmutable::Set(const char* sz)
 {
 	CMallocator*	pcMalloc;
 
@@ -296,6 +308,326 @@ bool CCharsImmutable::EqualsIgnoreCase(CChars* pszString)
 
 
 //////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::Contains(const char* szString)
+{
+	char* pc;
+
+	if (!szString)
+	{
+		return false;
+	}
+
+	pc = strstr(Text(), szString);
+	if (pc)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::ContainsIgnoreCase(const char* szString)
+{
+	char* pc;
+
+	pc = StrIStr(Text(), szString);
+	if (pc)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::Contains(char c)
+{
+	return Find(0, c) != ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::EndsWith(const char* szString)
+{
+	size	uiLen;
+
+	if (szString == NULL)
+	{
+		return false;
+	}
+
+	uiLen = strlen(szString);
+	if (uiLen > Length())
+	{
+		return false;
+	}
+
+	return SubStringEquals(Length() - uiLen, szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::EndsWith(char c)
+{
+	size		iLength;
+
+	iLength = Length();
+	if (iLength != 0)
+	{
+		if (Text()[iLength - 1] == c)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::EndsWithIgnoreCase(const char* szString)
+{
+	size	uiLen;
+
+	if (szString == NULL)
+	{
+		return false;
+	}
+
+	uiLen = strlen(szString);
+	if (uiLen > Length())
+	{
+		return false;
+	}
+
+	return SubStringEqualsIgnoreCase(Length() - strlen(szString), szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::StartsWith(const char* szString)
+{
+	if (szString == NULL)
+	{
+		return false;
+	}
+
+	return SubStringEquals(0, szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::StartsWithIgnoreCase(const char* szString)
+{
+	if (szString == NULL)
+	{
+		return false;
+	}
+
+	return SubStringEqualsIgnoreCase(0, szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::StartsWith(char c)
+{
+	size		iLength;
+
+	iLength = Length();
+	if (iLength != 0)
+	{
+		if (Text()[0] == c)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::FindFromEnd(const char* szString)
+{
+	size iOtherLen;
+
+	iOtherLen = strlen(szString);
+	return FindFromEnd(Length() - iOtherLen, szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::FindFromEnd(size iIndex, const char* szString)
+{
+	size	i;
+
+	if (iIndex > Length())
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+
+	i = iIndex + 1;
+	do
+	{
+		i--;
+		if (SubStringEquals(i, szString))
+		{
+			return i;
+		}
+	} while (i != 0);
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::FindFromEnd(char c)
+{
+	if (Length() == 0)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+
+	return FindFromEnd(Length() - 1, c);
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::FindFromEnd(size iIndex, char c)
+{
+	size	i;
+	char*	szText;
+
+	szText = Text();
+	i = iIndex + 1;
+	do
+	{
+		i--;
+		if (szText[i] == c)
+		{
+			return i;
+		}
+	} while (i != 0);
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::Find(const char* szString)
+{
+	return Find(0, szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::Find(size iIndex, const char* szString)
+{
+	size	iOtherLen;
+	size	i;
+	size	uiLen;
+	size	iDiff;
+
+	uiLen = Length();
+	if (iIndex > uiLen)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+
+	iOtherLen = strlen(szString);
+	if (iOtherLen > uiLen - iIndex)
+	{
+		return ARRAY_ELEMENT_NOT_FOUND;
+	}
+
+	iDiff = uiLen - iOtherLen;
+	for (i = iIndex; i <= iDiff; i++)
+	{
+		if (SubStringEquals(i, szString))
+		{
+			return i;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::Find(size iIndex, char c)
+{
+	size	i;
+	size	uiLen;
+	char*	szText;
+
+	szText = Text();
+	uiLen = Length();
+	for (i = iIndex; i < uiLen; i++)
+	{
+		if (szText[i] == c)
+		{
+			return i;
+		}
+	}
+	return ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CCharsImmutable::Find(char c)
+{
+	return Find(0, c);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
@@ -352,5 +684,90 @@ bool CCharsImmutable::ReadString(CFileReader* pcReader)
 
 	bResult = pcReader->ReadStringChars(Text(), uiLength);
 	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::SubStringEquals(size iStart, const char* szString)
+{
+	size	i;
+	size	j;
+	size	uiLen;
+	size	iSubLen;
+	char*	szText;
+
+	szText = Text();
+	uiLen = Length();
+	if (uiLen == 0)
+	{
+		iSubLen = strlen(szString);
+		if (iSubLen != 0)
+		{
+			return false;
+		}
+		else
+		{
+			return iStart == 0;
+		}
+	}
+
+	if (iStart >= uiLen)
+	{
+		return false;
+	}
+
+	for (i = iStart, j = 0; i < uiLen; i++, j++)
+	{
+		if (szString[j] != 0)
+		{
+			if (szText[i] != szString[j])
+			{
+				return false;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCharsImmutable::SubStringEqualsIgnoreCase(size iStart, const char* szString)
+{
+	size	i;
+	size	j;
+	size	uiLen;
+	size    c1;
+	size    c2;
+	char*	szText;
+
+	szText = Text();
+	uiLen = Length();
+	for (i = iStart, j = 0; i < uiLen; i++, j++)
+	{
+		if (szString[j] != 0)
+		{
+			c1 = ToLower(szText[i]);
+			c2 = ToLower(szString[j]);
+			if (c1 != c2)
+			{
+				return false;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+	return true;
 }
 

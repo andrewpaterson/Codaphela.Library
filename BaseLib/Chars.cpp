@@ -1587,6 +1587,16 @@ bool CChars::ContainsIgnoreCase(const char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CChars::Contains(char c)
+{
+	return Find(0, c) != ARRAY_ELEMENT_NOT_FOUND;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 size CChars::Occurrences(const char* szString)
 {
 	size	iCount;
@@ -1646,6 +1656,26 @@ bool CChars::StartsWithIgnoreCase(const char* szString)
 	}
 
 	return SubStringEqualsIgnoreCase(0, szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CChars::StartsWith(char c)
+{
+	size		iLength;
+
+	iLength = Length();
+	if (iLength != 0)
+	{
+		if (Text()[0] == c)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 
@@ -1725,7 +1755,9 @@ bool CChars::SubStringEquals(size iStart, const char* szString)
 	size	j;
 	size	uiLen;
 	size	iSubLen;
+	char*	szText;
 
+	szText = Text();
 	uiLen = Length();
 	if (uiLen == 0)
 	{
@@ -1749,7 +1781,7 @@ bool CChars::SubStringEquals(size iStart, const char* szString)
 	{
 		if (szString[j] != 0)
 		{
-			if (mcText.GetValue(i) != szString[j])
+			if (szText[i] != szString[j])
 			{
 				return false;
 			}
@@ -1774,13 +1806,15 @@ bool CChars::SubStringEqualsIgnoreCase(size iStart, const char* szString)
 	size	uiLen;
 	size    c1;
 	size    c2;
+	char*	szText;
 
+	szText = Text();
 	uiLen = Length();
 	for (i = iStart, j = 0; i < uiLen; i++, j++)
 	{
 		if (szString[j] != 0)
 		{
-			c1 = ToLower(mcText.GetValue(i));
+			c1 = ToLower(szText[i]);
 			c2 = ToLower(szString[j]);
 			if (c1 != c2)
 			{
@@ -1859,12 +1893,14 @@ size CChars::FindFromEnd(char c)
 size CChars::FindFromEnd(size iIndex, char c)
 {
 	size	i;
+	char*	szText;
 
+	szText = Text();
 	i = iIndex + 1;
 	do
 	{
 		i--;
-		if (mcText.GetValue(i) == c)
+		if (szText[i] == c)
 		{
 			return i;
 		}
@@ -1927,11 +1963,13 @@ size CChars::Find(size iIndex, char c)
 {
 	size	i;
 	size	uiLen;
+	char* szText;
 
+	szText = Text();
 	uiLen = Length();
 	for (i = iIndex; i < uiLen; i++)
 	{
-		if (mcText.GetValue(i) == c)
+		if (szText[i] == c)
 		{
 			return i;
 		}
