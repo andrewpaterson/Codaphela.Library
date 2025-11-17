@@ -2460,17 +2460,24 @@ bool CBaseObject::IsNamed(const char* szName)
 bool CBaseObject::ClipName(void)
 {
 	bool	bResult;
+	CChars	szNewName;
 
 	bResult = true;
-	if (mon.Contains("\\"))
+	if (mon.Contains("\\") || mon.Length() >= MAX_NAMED_OBJECT_NAME_LENGTH)
 	{
-		mon.Replace("\\", "/");
-		bResult = false;
-	}
-	if (mon.Length() >= MAX_NAMED_OBJECT_NAME_LENGTH)
-	{
-		mon.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH - 1);
-		bResult = false;
+		szNewName.Init(mon.Text());
+		if (szNewName.Contains("\\"))
+		{
+			szNewName.Replace("\\", "/");
+			bResult = false;
+		}
+		if (szNewName.Length() >= MAX_NAMED_OBJECT_NAME_LENGTH)
+		{
+			szNewName.SetLength(MAX_NAMED_OBJECT_NAME_LENGTH - 1);
+			bResult = false;
+		}
+		mon.Set(szNewName.Text());
+		szNewName.Kill();
 	}
 
 	return bResult;

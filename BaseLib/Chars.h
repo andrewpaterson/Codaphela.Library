@@ -132,11 +132,13 @@ public:
 	bool	EqualsIgnoreCase(CChars szString);
 	bool	Contains(const char* szString);
 	bool	ContainsIgnoreCase(const char* szString);
+	bool	Contains(char c);
 	bool	EndsWith(const char* szString);
 	bool	EndsWithIgnoreCase(const char* szString);
 	bool	EndsWith(char c);
 	bool	StartsWith(const char* szString);
 	bool	StartsWithIgnoreCase(const char* szString);
+	bool	StartsWith(char c);
 	size	Occurrences(const char* szString);
 	bool	SubStringEquals(size iStart, const char* szString);
 	bool	SubStringEqualsIgnoreCase(size iStart, const char* szString);

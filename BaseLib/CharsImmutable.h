@@ -55,10 +55,11 @@ protected:
 	UString		muString;
 
 public:
-	void	Init(char* sz);
-	void	Init(char* sz, CMallocator* pcMalloc);
-	void	Init(char* sz, size uiLength);
-	void	Init(char* sz, size uiLength, CMallocator* pcMalloc);
+	void	_Init(void);
+	void	Init(const char* sz);
+	void	Init(const char* sz, CMallocator* pcMalloc);
+	void	Init(const char* sz, size uiLength);
+	void	Init(const char* sz, size uiLength, CMallocator* pcMalloc);
 	void	Init(void);
 	void	InitLength(size uiLength);
 	void	InitLength(size uiLength, CMallocator* pcMalloc);
@@ -67,7 +68,7 @@ public:
 
 	char*	Text(void);
 	size	Length(void);
-	void	Set(char* sz);
+	void	Set(const char* sz);
 	bool	Empty(void);
 
 	bool	Equals(const char* szString);
@@ -75,7 +76,25 @@ public:
 	bool	Equals(CChars* pszString);
 	bool	EqualsIgnoreCase(const char* szString);
 	bool	EqualsIgnoreCase(CChars* pszString);
-
+	bool	Contains(const char* szString);
+	bool	ContainsIgnoreCase(const char* szString);
+	bool	Contains(char c);
+	bool	EndsWith(const char* szString);
+	bool	EndsWithIgnoreCase(const char* szString);
+	bool	EndsWith(char c);
+	bool	StartsWith(const char* szString);
+	bool	StartsWithIgnoreCase(const char* szString);
+	bool	StartsWith(char c);
+	bool	SubStringEquals(size iStart, const char* szString);
+	bool	SubStringEqualsIgnoreCase(size iStart, const char* szString);
+	size	FindFromEnd(const char* szString);
+	size	FindFromEnd(size iPos, const char* szString);
+	size	FindFromEnd(char c);
+	size	FindFromEnd(size iIndex, char c);
+	size	Find(const char* szString);
+	size	Find(size iPos, const char* szString);
+	size	Find(size iPos, char c);
+	size	Find(char c);
 
 	bool	WriteString(CFileWriter* pcWriter);
 	bool	ReadString(CFileReader* pcReader);

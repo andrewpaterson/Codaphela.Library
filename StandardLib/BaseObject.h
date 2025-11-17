@@ -82,16 +82,16 @@ friend class CNamedIndexedObjects;
 
 CONSTRUCTABLE(CBaseObject);
 protected:
-	OIndex		moi;
-	CChars		mon;
-	CObjects*	mpcObjectsThisIn;
-	CClass*		mpcClass;
-	int			miDistToRoot;
-	int			miDistToStack;
-	uint16		muiFlags;
-	uint16		muiNumEmbedded;
-	uint16		muiPreInits;
-	uint16		muiPostInits;
+	OIndex				moi;
+	CCharsImmutable		mon;
+	CObjects*			mpcObjectsThisIn;
+	CClass*				mpcClass;
+	int					miDistToRoot;
+	int					miDistToStack;
+	uint16				muiFlags;
+	uint16				muiNumEmbedded;
+	uint16				muiPreInits;
+	uint16				muiPostInits;
 
 public:
 								CBaseObject();
