@@ -21,6 +21,7 @@ public:
 			void	Kill(void);
 
 			bool	Present(void);
+	virtual void	Stop(void) =0;
 
 protected:
 			bool	BeginPresent(CRectangle* pcRectangle);

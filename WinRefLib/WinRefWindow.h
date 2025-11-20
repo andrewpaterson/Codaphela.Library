@@ -39,6 +39,7 @@ public:
 	void	Kill(void);
 
 	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;
+	void	Stop(void) override;
 
 	bool	CreateNativeWindow(void) override;
 	bool	ExecuteNativeWindow(void) override;

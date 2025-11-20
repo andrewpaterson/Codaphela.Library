@@ -53,16 +53,14 @@ bool CWindow::Show(void)
 		return false;
 	}
 
-	for (;;)
+	bRunning = true;
+	while (bRunning)
 	{
 		cTimer.Update();
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
 		bRunning = mpcNativeWindow->ExecuteNativeWindow();
-		if (!bRunning)
-		{
-			return true;
-		}
 	}
+	return true;
 }
 
 
