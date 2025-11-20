@@ -168,6 +168,8 @@ void CBaseObject::PreInit(void)
 {
 	CBaseObject*	pcContainer;
 
+	ValidateNotInitialised(__METHOD__);
+
 	PreClass();
 
 	pcContainer = GetEmbeddingContainer();
@@ -261,7 +263,7 @@ void CBaseObject::Kill(void)
 	SetFlag(OBJECT_FLAGS_CALLED_INIT, false);
 
 	bHeapFromChanged = HasHeapFroms();
-	KillInternal(bHeapFromChanged);
+	KillInternal(bHeapFromChanged, true);
 
 #ifdef _DEBUG
 	if (pcObjectsThisIn)
@@ -276,9 +278,12 @@ void CBaseObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBaseObject::KillInternal(bool bHeapFromChanged)
+void CBaseObject::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded)
 {
-	ValidateNotEmbedded(__METHOD__);
+	if (bValidateNotEmbedded)
+	{
+		ValidateNotEmbedded(__METHOD__);
+	}
 
 	CDistCalculator			cDistCalculator;
 	CArrayBlockObjectPtr*	papcKilled;

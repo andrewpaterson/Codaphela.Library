@@ -70,7 +70,7 @@ public:
 						void			TouchAll(void);
 						void			KillAll(void);
 protected:
-						void			KillInternal(bool bHeapFromChanged) override;
+						void			KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
 };
 
 

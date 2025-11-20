@@ -40,7 +40,7 @@ public:
 								~CEmbeddedObject();
 
 			void				Kill(void);
-	virtual void				KillInternal(bool bHeapFromChanged);
+	virtual void				KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded);
 
 	virtual void				Evict(void);
 
@@ -120,8 +120,10 @@ public:
 			char*				PrintObject(CChars* psz, bool bEmbedded);
 			void				LogNotExpectedToBeEmbedded(char* szMethod);
 			void				LogExpectedToBeInitialised(char* szMethod);
+			void				LogExpectedToNotBeInitialised(char* szMethod);
 			void				LogCantInitFreedObject(char* szMethod);
 			void				ValidateInitialised(char* szMethod);
+			void				ValidateNotInitialised(char* szMethod);
 			void				ValidateNotEmbedded(char* szMethod);
 			bool				TestRemoveHeapFrom(CBaseObject* pcFromObject);
 			void				TestRemoveStackFrom(CPointer* pcPointer);

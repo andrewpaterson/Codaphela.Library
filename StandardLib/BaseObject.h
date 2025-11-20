@@ -200,7 +200,7 @@ protected:
 	virtual	void				EmbedFields(void) =0;
 
 			void				FreeInternal(bool bAllocatedInObjects) override;
-			void				KillInternal(bool bHeapFromChanged) override;
+			void				KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded) override;
 			void				TryFree(bool bKillIfNoRoot, bool bHeapFromChanged);
 
 	virtual void				RemoveAllPointerTosDontFree(void) =0;

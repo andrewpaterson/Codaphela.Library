@@ -56,10 +56,10 @@ Ptr<CRoot> CRoot::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CRoot::KillInternal(bool bHeapFromChanged)
+void CRoot::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded)
 {
 	mpObjects->Kill();
-	CBaseObject::KillInternal(bHeapFromChanged);
+	CBaseObject::KillInternal(bHeapFromChanged, bValidateNotEmbedded);
 }
 
 

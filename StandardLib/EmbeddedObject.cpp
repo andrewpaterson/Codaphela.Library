@@ -40,7 +40,7 @@ void CEmbeddedObject::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CEmbeddedObject::KillInternal(bool bHeapFromChanged)
+void CEmbeddedObject::KillInternal(bool bHeapFromChanged, bool bValidateNotEmbedded)
 {
 	NotImplemented(__METHOD__);
 }
@@ -327,6 +327,19 @@ void CEmbeddedObject::ValidateInitialised(char* szMethod)
 	if (!IsInitialised())
 	{
 		LogExpectedToBeInitialised(szMethod);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::ValidateNotInitialised(char* szMethod)
+{
+	if (IsInitialised())
+	{
+		LogExpectedToNotBeInitialised(szMethod);
 	}
 }
 
@@ -998,6 +1011,7 @@ void CEmbeddedObject::ValidateNotEmbedded(char* szMethod)
 {
 	if (IsEmbedded())
 	{
+		// Ensure that an Object embedded in another Object as a field of that object is not being addressed directly.  (nothing to do with pointers on the stack)
 		LogNotExpectedToBeEmbedded(szMethod);
 	}
 }
@@ -1059,6 +1073,19 @@ void CEmbeddedObject::LogExpectedToBeInitialised(char* szMethod)
 
 	pcContainer = GetEmbeddingContainer();
 	gcLogger.Error2(szMethod, " Cannot be called on un-initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CEmbeddedObject::LogExpectedToNotBeInitialised(char* szMethod)
+{
+	CBaseObject* pcContainer;
+
+	pcContainer = GetEmbeddingContainer();
+	gcLogger.Error2(szMethod, " Cannot be called on already initialised object of class [", ClassName(), "] with index [", IndexToString(GetIndex()), "].", NULL);
 }
 
 
