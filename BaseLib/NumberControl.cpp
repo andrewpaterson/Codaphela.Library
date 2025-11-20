@@ -20,6 +20,7 @@ along with Codaphela BaseLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft Windows is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
+#include "Logger.h"
 #include "NumberControl.h"
 
 
@@ -49,6 +50,21 @@ void NumberKill(void)
 {
 	gcNumberControl.Kill();
 	gbNumberControl = false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool ValidateNumberInitialised(char* szMethod)
+{
+	if (!gbNumberControl)
+	{
+		gcLogger.Error2(szMethod, " Number Control has not been initialised.", NULL);
+		return false;
+	}
+	return true;
 }
 
 
