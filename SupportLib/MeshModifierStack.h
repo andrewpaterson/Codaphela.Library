@@ -44,6 +44,8 @@ public:
 	bool	Load(CObjectReader* pcFile);
 	bool	Save(CObjectWriter* pcFile);
 
+	void	ReInit(void);
+
 	void 	AddModifier(CMeshModifier* pcEditor);
 	template<typename M>
 	M*		AddModifier(void);
