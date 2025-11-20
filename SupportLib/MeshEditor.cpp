@@ -129,8 +129,7 @@ void CMeshEditor::Collapse(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::RemoveModifiers(void)
 {
-	mcModifiers.Kill();
-	mcModifiers.Init();
+	mcModifiers.ReInit();
 }
 
 
