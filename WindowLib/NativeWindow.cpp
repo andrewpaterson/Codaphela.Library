@@ -97,4 +97,3 @@ bool CNativeWindow::Present(void)
 }
 
 
-
