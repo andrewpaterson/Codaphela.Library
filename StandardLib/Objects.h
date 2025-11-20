@@ -363,7 +363,7 @@ Ptr<SpecificClass> CObjects::Malloc(void)
 		}
 		else
 		{
-			pcObject->KillInternal(false);
+			pcObject->KillInternal(false, true);
 			return NULL;
 		}
 	}
@@ -392,7 +392,7 @@ Ptr<SpecificClass> CObjects::Malloc(char* szObjectName)
 		}
 		else
 		{
-			pcObject->KillInternal(false);
+			pcObject->KillInternal(false, true);
 			return NULL;
 		}
 	}

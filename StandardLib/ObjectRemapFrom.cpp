@@ -27,7 +27,7 @@ int CObjectRemapFrom::Remap(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew)
 		iCount += RemapEmbedded(pcEmbeddedNew, pcEmbeddedOld);
 	}
 
-	pcOld->KillInternal(bHeapFromChanged);
+	pcOld->KillInternal(bHeapFromChanged, true);
 
 	return iCount;
 }

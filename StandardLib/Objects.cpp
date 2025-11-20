@@ -2051,7 +2051,7 @@ void ObjectsKill(void)
 {
 	if (!gbObjects)
 	{
-		gcLogger.Error("Global Memory has already been Killed.");
+		gcLogger.Error("Objects has already been Killed.");
 	}
 
 	gcObjects.Kill();
