@@ -1,3 +1,4 @@
+#include "LogString.h"
 #include "StringHelper.h"
 #include "IntegerHelper.h"
 #include "Number.h"
@@ -64,6 +65,11 @@ char* NormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDeci
 	int			iSignificantDigits;
 	int			iIndex;
 	int			iLength;
+
+	if (!ValidateNumberInitialised(__METHOD__))
+	{
+		return NULL;
+	}
 
 	pui = (uint8*)&f;
 	iExponent = (int)((*((INTEGER*)pui) & iExponentMask) >> iExponentShift);
@@ -217,6 +223,11 @@ char* SubnormalNumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxD
 	int			iIndex;
 	int			iLength;
 
+	if (!ValidateNumberInitialised(__METHOD__))
+	{
+		return NULL;
+	}
+
 	pui = (uint8*)&f;
 	iExponent = -126;
 	iMantissa = *((INTEGER*)pui) & iMantissaMask;
@@ -339,6 +350,11 @@ char* NumberToString(char* szDest, size iDestLength, FLOAT f, int iMaxDecimals, 
 	INTEGER		iMantissa;
 	bool		bNegative;
 	int			iExponent;
+
+	if (!ValidateNumberInitialised(__METHOD__))
+	{
+		return NULL;
+	}
 
 	pui = (uint8*)&f;
 	iExponent = (int)((*((INTEGER*)pui) & iExponentMask) >> iExponentShift);
