@@ -3,10 +3,11 @@
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
 #include "SupportLib/ColourFormat.h"
-#include"BasicNativeComponent.h"
+#include "StandardLib/Object.h"
+#include "BasicNativeComponent.h"
 
 
-class CBasicComponent : public CConstructable, public CKillable
+class CBasicComponent : public CObject
 {
 CONSTRUCTABLE(CBasicComponent);
 protected:
@@ -14,7 +15,11 @@ protected:
 
 public:
 	void	Init(CBasicNativeComponent* pcNativeComponent);
-	void	Kill(void);
+	void	Class(void);
+	void 	Free(void);
+
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 };
 
 

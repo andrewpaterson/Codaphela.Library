@@ -8,7 +8,11 @@ class CComponent : public CBasicComponent
 CONSTRUCTABLE(CComponent);
 public:
 	void	Init(CBasicNativeComponent* pcNativeComponent);
-	void	Kill(void);
+	void	Class(void);
+	void 	Free(void);
+
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
 };
 
 

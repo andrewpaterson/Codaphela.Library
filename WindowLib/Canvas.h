@@ -40,7 +40,11 @@ protected:
 public:
 	void			Init(CNativeWindowFactory* pcWindowFactory);
 	void			Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcWindowFactory);
-	void			Kill(void);
+	void			Class(void);
+	void 			Free(void);
+
+	bool			Save(CObjectWriter* pcFile) override;
+	bool			Load(CObjectReader* pcFile) override;
 
 	EColourFormat	GetFormat(void);
 	int32			GetWidth(void);

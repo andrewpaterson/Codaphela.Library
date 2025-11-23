@@ -52,6 +52,8 @@ void CUnmanagedClasses::Init(CClasses* pcClasses)
 	mpcNumber = AddClassByCPPName(PT_Number);
 	mpcDate = AddClassByCPPName(PT_Date);
 	mpcDateTime = AddClassByCPPName(PT_DateTime);
+
+	mpcEnum = AddClassByCPPName(PT_Enum);
 }
 
 
@@ -157,4 +159,5 @@ CClass* CUnmanagedClasses::GetTribble(void) { return mpcTribble; }
 CClass* CUnmanagedClasses::GetNybble(void) { return mpcNybble; }
 CClass* CUnmanagedClasses::GetNickle(void) { return mpcNickle; }
 CClass* CUnmanagedClasses::GetSixbits(void) { return mpcSixbits; }
+CClass* CUnmanagedClasses::GetEnum(void) { return mpcEnum; }
 

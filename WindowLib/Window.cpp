@@ -1,5 +1,6 @@
 #include "BaseLib/Timer.h"
 #include "BaseLib/DebugOutput.h"
+#include "StandardLib/ClassDefines.h"
 #include "NativeWindowFactory.h"
 #include "Window.h"
 
@@ -10,12 +11,16 @@
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory)
 {
+	PreInit();
+
 	mszWindowTitle.Init(szWindowTitle);
 
 	mpcNativeWindow = pcWindowFactory->CreateNativeWindow(this);
 	CComponent::Init(mpcNativeWindow);
 
 	mcCanvas.Init(pcWindowFactory);
+
+	PostInit();
 }
 
 
@@ -23,16 +28,48 @@ void CWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFact
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Kill(void)
+void CWindow::Free(void)
 {
-	mcCanvas.Kill();
-
 	mpcNativeWindow->GetFactory()->DestroyNativeWindow(mpcNativeWindow);
 	mpcNativeWindow = NULL;
 
 	mszWindowTitle.Kill();
 
-	CComponent::Kill();
+	CComponent::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Class(void)
+{
+	CComponent::Class();
+
+	U_String(mszWindowTitle);
+	U_Pointer(mpcNativeWindow);
+	M_Embedded(mcCanvas);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
