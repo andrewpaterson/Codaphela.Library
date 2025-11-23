@@ -16,7 +16,11 @@ protected:
 
 public:
 			void			Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory);
-			void			Kill(void);
+			void			Class(void);
+			void 			Free(void);
+
+			bool			Save(CObjectWriter* pcFile) override;
+			bool			Load(CObjectReader* pcFile) override;
 
 			bool			Show(void);
 			void			Paint(void);

@@ -43,6 +43,7 @@ protected:
 	CClass* mpcNumber;
 	CClass* mpcDate;
 	CClass* mpcDateTime;
+	CClass* mpcEnum;
 
 	CClass* mpcBit;
 	CClass* mpcCrumb;
@@ -91,6 +92,7 @@ public:
 	CClass*		GetNybble(void);
 	CClass*		GetNickle(void);
 	CClass*		GetSixbits(void);
+	CClass*		GetEnum(void);
 
 protected:
 	CClass*		AddClassByPrettyName(EPrimitiveType eType);

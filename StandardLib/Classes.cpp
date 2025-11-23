@@ -256,11 +256,11 @@ void CClasses::ValidateType(EPrimitiveType eType)
 			{
 				szName = "";
 			}
-			gcLogger.Error2(__METHOD__, " Classes does not contain unmanaged primitive class with ID [", IntToString(eType), "] and name [", szName, "].", NULL);
+			gcLogger.Error2(__METHOD__, " Classes does not contain unmanaged primitive class with ID [", IntToString(eType), "] and name [", szName, "].  Check CUnmanagedClasses is initialised.", NULL);
 		}
 		else
 		{
-			gcLogger.Error2(__METHOD__, " Classes does not contain unmanaged primitive class with ID [", IntToString(eType), "].", NULL);
+			gcLogger.Error2(__METHOD__, " Classes does not contain unmanaged primitive class with ID [", IntToString(eType), "].  Check CUnmanagedClasses is initialised.", NULL);
 		}
 	}
 	else
