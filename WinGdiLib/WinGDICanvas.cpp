@@ -16,12 +16,30 @@ void CWinGDICanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 }
 
 
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinGDICanvas::CreateNativeCanvas()
+void CWinGDICanvas::Kill(void)
 {
+    if (mhMemDC)
+    {
+        DeleteObject(mhMemBitmap);
+        DeleteDC(mhMemDC);
+    }
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinGDICanvas::CreateNativeCanvas(void)
+{
+    //This is split from .Init() so that it can fail on its own.
+
     CWinGDIWindowFactory*   pcFactory; 
     BITMAPINFO              sBitmapInfo;
     HWND                    hWnd;
@@ -61,25 +79,6 @@ bool CWinGDICanvas::CreateNativeCanvas()
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinGDICanvas::DestroyNativeCanvas(void)
-{
-    if (mhMemDC)
-    {
-        DeleteObject(mhMemBitmap);
-        DeleteDC(mhMemDC);
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 HDC CWinGDICanvas::GetMemDC(void)
 {
     return mhMemDC;
@@ -108,6 +107,11 @@ void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
     HBITMAP         hOldSourceBitmap;
     HBITMAP         hOldDestBitmap;
 
+    if (!pcSourceCanvas)
+    {
+        return;
+    }
+
     pcSourceGDICanvas = (CWinGDICanvas*)pcSourceCanvas;
     hSourceDC = pcSourceGDICanvas->mhMemDC;
     hDestDC = mhMemDC;
@@ -126,7 +130,7 @@ void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDICanvas::FillRect(CRectangle* pcRectangle, ARGB32 sColour)
+void CWinGDICanvas::DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour)
 {
     RECT        sRect;
     HBRUSH      hBrush;
@@ -136,7 +140,14 @@ void CWinGDICanvas::FillRect(CRectangle* pcRectangle, ARGB32 sColour)
 
     sRef = RGB(Get8BitRedColour(sColour), Get8BitGreenColour(sColour), Get8BitBlueColour(sColour));
     hBrush = CreateSolidBrush(sRef);
-    ::FillRect(mhMemDC, &sRect, hBrush);
+    if (bFilled)
+    {
+        ::FillRect(mhMemDC, &sRect, hBrush);
+    }
+    else
+    {
+        ::FrameRect(mhMemDC, &sRect, hBrush);
+    }
     DeleteObject(hBrush);
 }
 
@@ -145,7 +156,7 @@ void CWinGDICanvas::FillRect(CRectangle* pcRectangle, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinGDICanvas::SetPixel(int32 iX, int32 iY, ARGB32 sColour)
+void CWinGDICanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 {
     COLORREF    sRef;
 

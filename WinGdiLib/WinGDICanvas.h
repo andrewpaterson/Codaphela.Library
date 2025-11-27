@@ -34,17 +34,18 @@ protected:
 
 public:
 	void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
+	void	Kill(void) override;
 
 	bool	CreateNativeCanvas(void) override;
-	bool	DestroyNativeCanvas(void) override;
+	bool	DestroyNativeCanvas(void);
 
 	uint8*	GetPixelData(void);
 
 	HDC		GetMemDC(void);
 
 	void	CopyCanvas(CNativeCanvas* pcSourceCanvas);
-	void	FillRect(CRectangle* pcRectangle, ARGB32 sColour);
-	void	SetPixel(int32 iX, int32 iY, ARGB32 sColour);
+	void	DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
+	void	DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
 };
 
 

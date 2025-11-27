@@ -49,14 +49,15 @@ public:
 	EColourFormat	GetFormat(void);
 	int32			GetWidth(void);
 	int32			GetHeight(void);
+	bool			IsValid(void);
 
 	uint8*			GetPixelData(void);
 
 	CNativeCanvas*	GetNativeCanvas(void);
 
-	void			CopyCanvas(CCanvas* pcCanvas);
-	void			FillRect(CRectangle* pcRect, ARGB32 sColour);
-	void			SetPixel(int32 iX, int32 iY, ARGB32 sColour);
+	void			CopyCanvas(Ptr<CCanvas> pcSourceCanvas);
+	void			DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
+	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
 };
 
 

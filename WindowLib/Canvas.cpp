@@ -8,11 +8,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(CNativeWindowFactory* pcWindowFactory)
+void CCanvas::Init(CNativeWindowFactory* pcFactory)
 {
 	PreInit();
 
-	Init(CF_Unknown, -1, -1, pcWindowFactory);
+	Init(CF_Unknown, -1, -1, pcFactory);
 
 	PostInit();
 }
@@ -22,13 +22,13 @@ void CCanvas::Init(CNativeWindowFactory* pcWindowFactory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcWindowFactory)
+void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcFactory)
 {
 	meFormat = eFormat;
 	miWidth = iWidth;
 	miHeight = iHeight;
 
-	mpcNativeCanvas = pcWindowFactory->CreateNativeCanvas(this);
+	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
 	CBasicComponent::Init(mpcNativeCanvas);
 }
 
@@ -49,7 +49,7 @@ void CCanvas::Free(void)
 	miWidth = -1;
 	miHeight = -1;
 
-	CBasicComponent::Kill();
+	CBasicComponent::Free();
 }
 
 
@@ -100,7 +100,7 @@ uint8* CCanvas::GetPixelData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::CopyCanvas(CCanvas* pcSourceCanvas)
+void CCanvas::CopyCanvas(Ptr<CCanvas> pcSourceCanvas)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
 	CNativeCanvas*	pcDestNativeCanvas;
@@ -119,9 +119,9 @@ void CCanvas::CopyCanvas(CCanvas* pcSourceCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::FillRect(CRectangle* pcRect, ARGB32 sColour)
+void CCanvas::DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour)
 {
-	mpcNativeCanvas->FillRect(pcRect, sColour);
+	mpcNativeCanvas->DrawBox(pcRect, bFilled, sColour);
 }
 
 
@@ -129,9 +129,24 @@ void CCanvas::FillRect(CRectangle* pcRect, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::SetPixel(int32 iX, int32 iY, ARGB32 sColour)
+void CCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 {
-	mpcNativeCanvas->SetPixel(iX, iY, sColour);
+	mpcNativeCanvas->DrawPixel(iX, iY, sColour);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::IsValid(void)
+{
+	if ((meFormat == CF_Unknown) ||
+		(miWidth == -1) ||
+		(miHeight == -1))
+	{
+		return false;
+	}
+	return true;
 }
 
 

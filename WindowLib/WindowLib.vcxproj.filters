@@ -57,9 +57,6 @@
     <ClInclude Include="BasicNativeComponent.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="Component.h">
-      <Filter>Source\Component</Filter>
-    </ClInclude>
     <ClInclude Include="BasicComponent.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
@@ -79,9 +76,6 @@
     </ClCompile>
     <ClCompile Include="NativeCanvas.cpp">
       <Filter>Source\Component\Drawing</Filter>
-    </ClCompile>
-    <ClCompile Include="Component.cpp">
-      <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="BasicNativeComponent.cpp">
       <Filter>Source\Component</Filter>

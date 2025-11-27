@@ -7,10 +7,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight)
+void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath)
 {
     CNativeWindowFactory::Init(pcMallocator);
     mcBounds.Init(iWidth, iHeight);
+    mszImagePath.Init(szImagePath);
 }
 
 
@@ -20,6 +21,7 @@ void CWinRefWindowFactory::Init(CMallocator* pcMallocator, int32 iWidth, int32 i
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindowFactory::Kill(void)
 {
+    mszImagePath.Kill();
     CNativeWindowFactory::Kill();
 }
 
@@ -33,7 +35,7 @@ CNativeWindow* CWinRefWindowFactory::CreateNativeWindow(CWindow* pcWindow)
     CWinRefWindow*  pcNativeWindow;
 
     pcNativeWindow = NativeMalloc<CWinRefWindow>();
-    pcNativeWindow->Init(pcWindow, this, &mcBounds);
+    pcNativeWindow->Init(pcWindow, this, &mcBounds, mszImagePath.Text());
 
     return pcNativeWindow;
 }

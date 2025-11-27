@@ -13,9 +13,10 @@ class CWinRefWindowFactory : public CNativeWindowFactory
 CONSTRUCTABLE(CWinRefWindowFactory);
 protected:
 	CRectangle	mcBounds;
+	CChars		mszImagePath;
 
 public:
-	void			Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight);
+	void			Init(CMallocator* pcMallocator, int32 iWidth, int32 iHeight, char* szImagePath);
 	void			Kill(void);
 
 	CNativeWindow*	CreateNativeWindow(CWindow* pcWindow) override;

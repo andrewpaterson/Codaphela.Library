@@ -19,6 +19,8 @@ public:
 
 	void	SetColour(CImageColour* pcColour);
 
+	void	DrawPixel(int32 x, int32 y);
+
 	void	DrawBox(CRectangle* pcRetangle, bool bFilled);
 	void	DrawBox(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, bool bFilled);
 	void	DrawBox(bool bFilled);

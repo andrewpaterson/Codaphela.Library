@@ -2,8 +2,8 @@
 #define __CLASS_DEFINES_H__
 
 
-#define M_Pointer(name) Pointer(name.This(), #name)
-#define M_Embedded(name) Embedded(&name, #name);
+#define M_Pointer(name)		Pointer(name.This(), #name)
+#define M_Embedded(name)	Embedded(&name, #name);
 
 #define M_Int8(name)		Primitive(&name, #name)
 #define M_UInt8(name)		Primitive(&name, #name)
