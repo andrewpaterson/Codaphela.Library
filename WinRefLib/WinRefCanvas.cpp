@@ -1,3 +1,4 @@
+#include "SupportLib/ImageAccessorCreator.h"
 #include "WindowLib/Canvas.h"
 #include "WinRefWindowFactory.h"
 #include "WinRefHelper.h"
@@ -12,6 +13,7 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 {
 	CNativeCanvas::Init(pcCanvas, pcWindowFactory);
     mpImage = NULL;
+    msLastColour = 0xffffffff;
 }
 
 
@@ -19,8 +21,25 @@ void CWinRefCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinRefCanvas::CreateNativeCanvas()
+void CWinRefCanvas::Kill(void)
 {
+    if (mpImage.IsNotNull())
+    {
+        mcDraw.Kill();
+        mpImage = NULL;
+    }
+    CNativeCanvas::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWinRefCanvas::CreateNativeCanvas(void)
+{
+    //This is split from .Init() so that it can fail on its own.
+
     CWinRefWindowFactory*   pcFactory; 
     int32                   iWidth;
     int32                   iHeight;
@@ -31,24 +50,13 @@ bool CWinRefCanvas::CreateNativeCanvas()
 
     mpImage = OMalloc<CImage>(iWidth, iHeight);
 
-    if (mpImage.IsNotNull())
+    if (mpImage.IsNull())
     {
-        return true;
+        return false;
     }
-    return false;
-}
 
+    mcDraw.Init(mpImage);
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CWinRefCanvas::DestroyNativeCanvas(void)
-{
-    if (mpImage.IsNotNull())
-    {
-        mpImage = NULL;
-    }
     return true;
 }
 
@@ -67,6 +75,16 @@ uint8* CWinRefCanvas::GetPixelData(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CImage> CWinRefCanvas::GetImage(void)
+{
+    return mpImage;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 {
 }
@@ -76,8 +94,10 @@ void CWinRefCanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefCanvas::FillRect(CRectangle* pcRectangle, ARGB32 sColour)
+void CWinRefCanvas::DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour)
 {
+    SetColour(sColour);
+    mcDraw.DrawBox(pcRectangle, bFilled);
 }
 
 
@@ -85,7 +105,30 @@ void CWinRefCanvas::FillRect(CRectangle* pcRectangle, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefCanvas::SetPixel(int32 iX, int32 iY, ARGB32 sColour)
+void CWinRefCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 {
+    SetColour(sColour);
+    mcDraw.DrawPixel(iX, iY);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinRefCanvas::SetColour(ARGB32 sColour)
+{
+    CImageColourRGB	    cColour;
+    float               r;
+    float               g;
+    float               b;
+
+    if (sColour != msLastColour)
+    {
+        Get32BitColour(&r, &g, &b, sColour);
+        cColour.Init(r, g, b);
+        mcDraw.SetColour(&cColour);
+        msLastColour = sColour;
+    }
 }
 

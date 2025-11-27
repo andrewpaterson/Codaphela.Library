@@ -189,6 +189,14 @@ void Get32BitColour(float* r, float* g, float* b, float* a, ARGB32 uiColour)
 }
 
 
+void Get32BitColour(float* r, float* g, float* b, ARGB32 uiColour)
+{
+	*r = Convert8BitColourToFloat(Get8BitRedColour(uiColour));
+	*g = Convert8BitColourToFloat(Get8BitGreenColour(uiColour));
+	*b = Convert8BitColourToFloat(Get8BitBlueColour(uiColour));
+}
+
+
 ARGB32 Add32BitColours(ARGB32 uiColour1, ARGB32 uiColour2)
 {
 	uint32		r1, g1, b1, a1;

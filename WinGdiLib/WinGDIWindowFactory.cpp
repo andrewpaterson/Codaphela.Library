@@ -25,6 +25,7 @@ void CWinGDIWindowFactory::Init(CMallocator* pcMallocator, HINSTANCE hInstance, 
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindowFactory::Kill(void)
 {
+    mszWindowClass.Kill();
     CNativeWindowFactory::Kill();
 }
 

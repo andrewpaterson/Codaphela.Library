@@ -23,4 +23,3 @@ void CNativeCanvas::Kill(void)
 	CBasicNativeComponent::Kill();
 }
 
-

@@ -39,13 +39,12 @@ public:
 
 protected:
 	virtual bool	CreateNativeCanvas(void) =0;
-	virtual bool	DestroyNativeCanvas(void) =0;
 	virtual uint8*	GetPixelData(void) =0;
 
 	virtual void	CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
 
-	virtual void	FillRect(CRectangle* pcRect, ARGB32 sColour) =0;
-	virtual void	SetPixel(int32 iX, int32 iY, ARGB32 sColour) =0;
+	virtual void	DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour) =0;
+	virtual void	DrawPixel(int32 iX, int32 iY, ARGB32 sColour) =0;
 };
 
 

@@ -33,9 +33,11 @@ protected:
 	CRectangle	mcBounds;
 	bool		mbRunning;
 	bool		mbCreated;
+	char*		mszImagePath;
+	uint64		muiFrame;
 
 public:
-	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds);
+	void	Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds, char* szImagePath);
 	void	Kill(void);
 
 	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) override;

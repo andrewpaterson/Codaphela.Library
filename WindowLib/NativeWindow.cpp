@@ -77,14 +77,14 @@ bool CNativeWindow::Present(void)
     CRectangle      cRectangle;
     bool            bResult;
     CNativeCanvas*  pcNativeCanvas;
-    CCanvas*        pcCanvas;
+    Ptr<CCanvas>    pCanvas;
 
     bResult = BeginPresent(&cRectangle);
     if (bResult)
     {
-        pcCanvas = mpcWindow->GetCanvas();
+        pCanvas = mpcWindow->GetCanvas();
 
-        pcNativeCanvas = pcCanvas->GetNativeCanvas();
+        pcNativeCanvas = pCanvas->GetNativeCanvas();
         if (pcNativeCanvas)
         {
             Present(pcNativeCanvas, cRectangle.GetWidth(), cRectangle.GetHeight());

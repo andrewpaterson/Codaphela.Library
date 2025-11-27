@@ -64,6 +64,7 @@ ARGB32	Set32BitColour(uint8 r, uint8 g, uint8 b);
 ARGB32	Set32BitColour(float r, float g, float b);
 void	Get32BitColour(uint32* r, uint32* g, uint32* b, uint32* a, ARGB32 uiColour);
 void	Get32BitColour(float* r, float* g, float* b, float* a, ARGB32 uiColour);
+void	Get32BitColour(float* r, float* g, float* b, ARGB32 uiColour);
 ARGB32	Add32BitColours(ARGB32 uiColour1, ARGB32 uiColour2);
 ARGB32	Subtract32BitColours(ARGB32 uiColour1, ARGB32 uiColour2);
 ARGB32	Minimum32BitColour(ARGB32 uiColour1, ARGB32 uiColour2);

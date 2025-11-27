@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/LogString.h"
 #include "BaseLib/Chars.h"
 #include "BaseLib/DebugOutput.h"
+#include "SupportLib/PNGWriter.h"
 #include "SupportLib/Rectangle.h"
 #include "WindowLib/Window.h"
 #include "WinRefWindowFactory.h"
@@ -33,12 +34,14 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds)
+void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds, char* szImagePath)
 {
     CNativeWindow::Init(pcWindow, pcWindowFactory);
     mbRunning = true;
     mbCreated = false;
     mcBounds.Init(pcBounds);
+    mszImagePath = szImagePath;
+    muiFrame = 0;
 }
 
 
@@ -48,6 +51,8 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CWinRefWindow::Kill(void)
 {
+    muiFrame = -1;
+    mszImagePath = NULL;
     mbCreated = false;
     CNativeWindow::Kill();
 }
@@ -91,8 +96,19 @@ bool CWinRefWindow::ExecuteNativeWindow(void)
 void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
 {
     CWinRefCanvas*  pcRefCanvas;
+    CFileUtil       cFileUtil;
+    CChars          szFileName;
 
     pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
+
+    szFileName.Init(mszImagePath);
+    cFileUtil.AppendToPath(&szFileName, "Frame");
+    szFileName.Append(muiFrame);
+    szFileName.Append(".png");
+    SavePNG(pcRefCanvas->GetImage(), szFileName.Text());
+    szFileName.Kill();
+
+    muiFrame++;
 }
 
 

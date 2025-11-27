@@ -1,6 +1,7 @@
 #include "BaseLib/Timer.h"
 #include "BaseLib/DebugOutput.h"
 #include "StandardLib/ClassDefines.h"
+#include "StandardLib/Objects.h"
 #include "NativeWindowFactory.h"
 #include "Window.h"
 
@@ -9,16 +10,16 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcWindowFactory)
+void CWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcFactory)
 {
 	PreInit();
 
 	mszWindowTitle.Init(szWindowTitle);
 
-	mpcNativeWindow = pcWindowFactory->CreateNativeWindow(this);
-	CComponent::Init(mpcNativeWindow);
+	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
+	CBasicComponent::Init(mpcNativeWindow);
 
-	mcCanvas.Init(pcWindowFactory);
+	mpCanvas = OMalloc<CCanvas>(pcFactory);
 
 	PostInit();
 }
@@ -35,7 +36,7 @@ void CWindow::Free(void)
 
 	mszWindowTitle.Kill();
 
-	CComponent::Free();
+	CBasicComponent::Free();
 }
 
 
@@ -45,11 +46,11 @@ void CWindow::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Class(void)
 {
-	CComponent::Class();
+	CBasicComponent::Class();
 
 	U_String(mszWindowTitle);
 	U_Pointer(mpcNativeWindow);
-	M_Embedded(mcCanvas);
+	M_Pointer(mpCanvas);
 }
 
 
@@ -108,18 +109,16 @@ bool CWindow::Show(void)
 void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 {
 	CNativeWindowFactory*	pcFactory;
-	CCanvas					cNewCanvas;
+	Ptr<CCanvas>			pNewCanvas;
 
 	pcFactory = mpcNativeWindow->GetFactory();
 
-    cNewCanvas.Init(eFormat, iWidth, iHeight, pcFactory);
+	pNewCanvas = OMalloc<CCanvas>(eFormat, iWidth, iHeight, pcFactory);
 
-	mcCanvas.CopyCanvas(&cNewCanvas);
-	CanvasChanged(&cNewCanvas);
+	pNewCanvas->CopyCanvas(mpCanvas);
+	CanvasChanged(pNewCanvas);
 
-	mcCanvas.Kill();
-
-	memcpy(&mcCanvas, &cNewCanvas, sizeof(CCanvas));
+	mpCanvas = pNewCanvas;
 }
 
 
@@ -129,7 +128,7 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::DestroyCanvas(void)
 {
-	mcCanvas.Kill();
+	mpCanvas = NULL;
 }
 
 
@@ -157,5 +156,5 @@ const char* CWindow::GetWindowTitle(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CCanvas* CWindow::GetCanvas(void) { return &mcCanvas;  }
+Ptr<CCanvas> CWindow::GetCanvas(void) { return mpCanvas;  }
 

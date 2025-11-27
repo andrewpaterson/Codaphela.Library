@@ -2,8 +2,9 @@
 #define __BASIC_COMPONENT_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
-#include "SupportLib/ColourFormat.h"
+#include "StandardLib/Pointer.h"
 #include "StandardLib/Object.h"
+#include "SupportLib/ColourFormat.h"
 #include "BasicNativeComponent.h"
 
 

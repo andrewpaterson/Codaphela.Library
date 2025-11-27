@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Pointer.h"
 #include "SupportLib/Image.h"
+#include "SupportLib/ImageDraw.h"
 #include "WindowLib/NativeCanvas.h"
 
 
@@ -30,18 +31,24 @@ class CWinRefCanvas : public CNativeCanvas
 CONSTRUCTABLE(CWinRefCanvas);
 protected:
 	Ptr<CImage>		mpImage;
+	CImageDraw		mcDraw;
+	ARGB32			msLastColour;
 
 public:
-	void	Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
+	void			Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory);
+	void			Kill(void) override;
 
-	bool	CreateNativeCanvas(void) override;
-	bool	DestroyNativeCanvas(void) override;
+	bool			CreateNativeCanvas(void) override;
 
-	uint8*	GetPixelData(void);
+	uint8*			GetPixelData(void);
+	Ptr<CImage>		GetImage(void);
 
-	void	CopyCanvas(CNativeCanvas* pcSourceCanvas);
-	void	FillRect(CRectangle* pcRectangle, ARGB32 sColour);
-	void	SetPixel(int32 iX, int32 iY, ARGB32 sColour);
+	void			CopyCanvas(CNativeCanvas* pcSourceCanvas);
+	void			DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
+	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
+
+protected:
+	void	SetColour(ARGB32 sColour);
 };
 
 
