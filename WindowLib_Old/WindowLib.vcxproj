@@ -206,7 +206,6 @@
     <ClCompile Include="Widget.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="Container.cpp" />
-    <ClCompile Include="ContainerCell.cpp" />
     <ClCompile Include="FillContainer.cpp" />
     <ClCompile Include="FixedContainer.cpp" />
     <ClCompile Include="FlowContainer.cpp" />
