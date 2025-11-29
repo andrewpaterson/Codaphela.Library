@@ -26,6 +26,15 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "PrimitiveVoid.h"
 #include "BaseObject.h"
 
+/* Implement these on anything extending CObject
+	void	Init(void);
+	void	Class(void) override;
+	void 	Free(void) override;
+
+	bool	Save(CObjectWriter* pcFile) override;
+	bool	Load(CObjectReader* pcFile) override;
+*/
+
 
 class CObject : public CBaseObject
 {

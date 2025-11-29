@@ -128,7 +128,10 @@ int CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CDistCalculator
 	for (i = 0; i < pcParameters->NumTouched(); i++)
 	{
 		pcBaseObject = pcParameters->GetTouched(i);
-		iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);
+		if (pcBaseObject->IsAllocatedInObjects())
+		{
+			iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);
+		}
 	}
 
 	return iNumWithStackPointers;

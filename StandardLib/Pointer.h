@@ -44,6 +44,8 @@ public:
 
 	Ptr<M>	operator + (Ptr<M> obj);
 	Ptr<M>	operator + (char* sz);
+
+	explicit operator bool() const;
 };
 
 
@@ -196,6 +198,17 @@ Ptr<M> Ptr<M>::operator + (char* sz)
 	{
 		return Ptr();
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+Ptr<M>::operator bool() const 
+{
+	return mpcObject != NULL;
 }
 
 
