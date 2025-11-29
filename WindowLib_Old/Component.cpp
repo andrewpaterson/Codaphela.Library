@@ -34,7 +34,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Init(CViewport* pcViewport)
 {
-	mcComponents.Init();
+	macChildren.Init();
 	msActualSize.Init(0, 0);
 	msPosition.Init(0, 0);
 	msRequiredSize.Init(-1, -1);
@@ -53,7 +53,7 @@ void CComponent::Init(CViewport* pcViewport)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::Kill(void)
 {
-	mcComponents.Kill();
+	macChildren.Kill();
 
 	mcName.Kill();
 
@@ -73,7 +73,7 @@ void CComponent::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::KillAlsoChildren(void)
 {
-	mcComponents.KillComponents();
+	macChildren.KillComponents();
 	Kill();
 }
 
@@ -152,9 +152,9 @@ bool CComponent::DrawChildren(void)
 	CComponent*		pcComponent;
 	bool			bResult;
 
-	for (i = 0; i < mcComponents.Size(); i++)
+	for (i = 0; i < macChildren.Size(); i++)
 	{
-		pcComponent = mcComponents.Get(i);
+		pcComponent = macChildren.Get(i);
 		bResult = pcComponent->Draw();
 		if (!bResult)
 		{
@@ -171,7 +171,7 @@ bool CComponent::DrawChildren(void)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::AddComponent(CComponent* pcComponent)
 {
-	mcComponents.Add(pcComponent);
+	macChildren.Add(pcComponent);
 	pcComponent->mpcParent = this;
 }
 
@@ -182,7 +182,7 @@ void CComponent::AddComponent(CComponent* pcComponent)
 //////////////////////////////////////////////////////////////////////////
 void CComponent::RemoveComponent(CComponent* pcComponent, bool bKillComponent)
 {
-	mcComponents.Remove(pcComponent, bKillComponent);
+	macChildren.Remove(pcComponent, bKillComponent);
 }
 
 
@@ -194,12 +194,12 @@ void CComponent::RemoveAllComponents(bool bKillComponents)
 {
 	if (bKillComponents)
 	{
-		mcComponents.KillComponents();
+		macChildren.KillComponents();
 	}
 	else
 	{
-		mcComponents.Kill();
-		mcComponents.Init();
+		macChildren.Kill();
+		macChildren.Init();
 	}
 }
 
@@ -219,9 +219,9 @@ CComponent* CComponent::FindComponentAt(int x, int y)
 		return NULL;
 	}
 
-	for (i = 0; i < mcComponents.Size(); i++)
+	for (i = 0; i < macChildren.Size(); i++)
 	{
-		pcComponent = mcComponents.Get(i);
+		pcComponent = macChildren.Get(i);
 		pcComponent = pcComponent->FindComponentAt(x, y);
 		if (pcComponent)
 		{
@@ -292,9 +292,9 @@ void CComponent::LayoutChildren(SInt2 sPosition, SInt2 sAreaSize)
 	int				i;
 	CComponent*		pcComponent;
 
-	for (i = 0; i < mcComponents.Size(); i++)
+	for (i = 0; i < macChildren.Size(); i++)
 	{
-		pcComponent = mcComponents.Get(i);
+		pcComponent = macChildren.Get(i);
 		pcComponent->Layout(sPosition, sAreaSize);
 	}
 }
@@ -339,9 +339,9 @@ void CComponent::Dump(void)
 	sz.Dump();
 	sz.Kill();
 
-	for (i = 0; i < mcComponents.mcComponents.NumElements(); i++)
+	for (i = 0; i < macChildren.macChildren.NumElements(); i++)
 	{
-		pcComponent = mcComponents.Get(i);
+		pcComponent = macChildren.Get(i);
 		pcComponent->Dump();
 	}
 }
