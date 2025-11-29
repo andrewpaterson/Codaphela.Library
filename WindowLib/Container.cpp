@@ -18,29 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BaseLib/Define.h"
-#include "BaseLib/Logger.h"
-#include "BaseLib/LogString.h"
-#include "BaseLib/Chars.h"
-#include "BaseLib/DebugOutput.h"
-#include "SupportLib/PNGWriter.h"
-#include "SupportLib/Rectangle.h"
-#include "WindowLib/Window.h"
-#include "WinRefWindowFactory.h"
-#include "WinRefWindow.h"
+#include "StandardLib/ClassDefines.h"
+#include "Container.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds, char* szImagePath)
+void CContainer::Init(void)
 {
-    CNativeWindow::Init(pcWindow, pcWindowFactory);
-    mbCreated = false;
-    mcBounds.Init(pcBounds);
-    mszImagePath = szImagePath;
-    muiFrame = 0;
+	PreInit();
+
+	CBasicComponent::Init();
+
+	PostInit();
 }
 
 
@@ -48,12 +40,9 @@ void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Kill(void)
+void CContainer::Free(void)
 {
-    muiFrame = -1;
-    mszImagePath = NULL;
-    mbCreated = false;
-    CNativeWindow::Kill();
+	CBasicComponent::Free();
 }
 
 
@@ -61,10 +50,10 @@ void CWinRefWindow::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinRefWindow::CreateNativeWindow(void)
+void CContainer::Class(void)
 {
-    mbCreated = true;
-    return true;
+	CBasicComponent::Class();
+	U_Data(SContainerBounds, msBounds);
 }
 
 
@@ -72,9 +61,10 @@ bool CWinRefWindow::CreateNativeWindow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CWinRefWindow::ExecuteNativeWindow(void)
+bool CContainer::GetContainerBounds(SContainerBounds* psDest)
 {
-    return true;
+	memcpy(psDest, &msBounds, sizeof(SContainerBounds));
+	return true;
 }
 
 
@@ -82,22 +72,49 @@ bool CWinRefWindow::ExecuteNativeWindow(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight)
+void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 {
-    CWinRefCanvas*  pcRefCanvas;
-    CFileUtil       cFileUtil;
-    CChars          szFileName;
+	SContainerBounds	sParentBounds;
+	int					iThisRight;
+	int					iThisBottom;
+	int					iThisLeft;
+	int					iThisTop;
+	int					iParentRight;
+	int					iParentBottom;
 
-    pcRefCanvas = (CWinRefCanvas*)pcNativeCanvas;
+	iThisRight = (int)(sPosition.x + sAreaSize.x);
+	iThisBottom = (int)(sPosition.y + sAreaSize.y);
+	iThisLeft = (int)sPosition.x;
+	iThisTop = (int)sPosition.y;
+	if (mpParent.IsNotNull())
+	{
+		mpParent->GetContainerBounds(&sParentBounds);
+		iParentRight = sParentBounds.msSize.x + sParentBounds.msTopLeft.x;
+		iParentBottom = sParentBounds.msSize.y + sParentBounds.msTopLeft.y;
 
-    szFileName.Init(mszImagePath);
-    cFileUtil.AppendToPath(&szFileName, "Frame");
-    szFileName.Append(muiFrame);
-    szFileName.Append(".png");
-    SavePNG(pcRefCanvas->GetImage(), szFileName.Text());
-    szFileName.Kill();
+		if (iThisRight > iParentRight)
+		{
+			iThisRight = iParentRight;
+		}
+		if (iThisBottom > iParentBottom)
+		{
+			iThisBottom = iParentBottom;
+		}
 
-    muiFrame++;
+		if (iThisLeft < sParentBounds.msTopLeft.x)
+		{
+			iThisLeft = sParentBounds.msTopLeft.x;
+		}
+		if (iThisTop < sParentBounds.msTopLeft.y)
+		{
+			iThisTop = sParentBounds.msTopLeft.y;
+		}
+	}
+
+	msBounds.msSize.x = iThisRight - iThisLeft;
+	msBounds.msSize.y = iThisBottom - iThisTop;
+	msBounds.msTopLeft.x = iThisLeft;
+	msBounds.msTopLeft.y = iThisTop;
 }
 
 
@@ -105,18 +122,8 @@ void CWinRefWindow::Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::SignalPresent(void)
+bool CContainer::Draw(void)
 {
-    CNativeWindow::Present();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::GetRectangle(CRectangle* pcDest)
-{
-    pcDest->Init(&mcBounds);
+	return true;
 }
 

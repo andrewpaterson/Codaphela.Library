@@ -3,24 +3,35 @@
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
 #include "StandardLib/Pointer.h"
+#include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "SupportLib/ColourFormat.h"
-#include "BasicNativeComponent.h"
+#include "ContainerBounds.h"
 
 
 class CBasicComponent : public CObject
 {
 CONSTRUCTABLE(CBasicComponent);
+DESTRUCTABLE(CBasicComponent);
 protected:
-	CBasicNativeComponent*	mpcNativeComponent;
+	Ptr<CBasicComponent>		mpParent;
+	CArray<CBasicComponent>		maChildren;
 
 public:
-	void	Init(CBasicNativeComponent* pcNativeComponent);
-	void	Class(void);
-	void 	Free(void);
+			void	Init(void);
+			void	Class(void);
+			void 	Free(void);
 
-	bool	Save(CObjectWriter* pcFile) override;
-	bool	Load(CObjectReader* pcFile) override;
+			bool	Save(CObjectWriter* pcFile) override;
+			bool	Load(CObjectReader* pcFile) override;
+
+	virtual	bool	Draw(void);
+			bool	DrawChildren(void);
+	virtual bool	GetContainerBounds(SContainerBounds* psDest);
+
+			void	AddComponent(Ptr<CBasicComponent> pComponent);
+			void	RemoveComponent(Ptr<CBasicComponent> pComponent);
+			void	RemoveAllComponents(void);
 };
 
 

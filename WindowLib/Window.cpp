@@ -3,6 +3,7 @@
 #include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "NativeWindowFactory.h"
+#include "WindowTick.h"
 #include "Window.h"
 
 
@@ -10,16 +11,19 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Init(const char* szWindowTitle, CNativeWindowFactory* pcFactory)
+void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick> pTick, Ptr<CCanvasDraw> pDraw)
 {
 	PreInit();
 
-	mszWindowTitle.Init(szWindowTitle);
+	mszWindowTitle.Init(szTitle);
 
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
-	CBasicComponent::Init(mpcNativeWindow);
+	CComplexComponent::Init(mpcNativeWindow);
 
-	mpCanvas = OMalloc<CCanvas>(pcFactory);
+	mpWindowTick = pTick;
+	mpCanvas = OMalloc<CCanvas>(pcFactory, pDraw);
+	AddComponent(mpCanvas);
+	mbTicking = false;
 
 	PostInit();
 }
@@ -36,7 +40,7 @@ void CWindow::Free(void)
 
 	mszWindowTitle.Kill();
 
-	CBasicComponent::Free();
+	CComplexComponent::Free();
 }
 
 
@@ -46,11 +50,12 @@ void CWindow::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Class(void)
 {
-	CBasicComponent::Class();
+	CComplexComponent::Class();
 
 	U_String(mszWindowTitle);
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
+	M_Pointer(mpWindowTick);
 }
 
 
@@ -81,8 +86,8 @@ bool CWindow::Load(CObjectReader* pcFile)
 bool CWindow::Show(void)
 {
 	bool	bCreated;
-	bool	bRunning;
 	CTimer	cTimer;
+	bool	bResult;
 
 	cTimer.Init();
 	bCreated = mpcNativeWindow->CreateNativeWindow();
@@ -91,14 +96,16 @@ bool CWindow::Show(void)
 		return false;
 	}
 
-	bRunning = true;
-	while (bRunning)
+	bResult = true;
+	mbTicking = true;
+	while (mbTicking)
 	{
 		cTimer.Update();
 		Tick(cTimer.GetUpdateTimeInMillieconds(), cTimer.GetTotalTimeInMillieconds());
-		bRunning = mpcNativeWindow->ExecuteNativeWindow();
+		bResult = mpcNativeWindow->ExecuteNativeWindow();
+		mbTicking &= bResult;
 	}
-	return true;
+	return bResult;
 }
 
 
@@ -110,15 +117,21 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 {
 	CNativeWindowFactory*	pcFactory;
 	Ptr<CCanvas>			pNewCanvas;
+	Ptr<CCanvasDraw>		pDraw;
 
 	pcFactory = mpcNativeWindow->GetFactory();
+	pDraw = mpCanvas->GetCanvasDraw();
 
-	pNewCanvas = OMalloc<CCanvas>(eFormat, iWidth, iHeight, pcFactory);
+	pNewCanvas = OMalloc<CCanvas>(eFormat, iWidth, iHeight, pDraw, pcFactory);
 
 	pNewCanvas->CopyCanvas(mpCanvas);
-	CanvasChanged(pNewCanvas);
+
+	//This should be optimised into ReplaceComponent.
+	RemoveComponent(mpCanvas);
+	AddComponent(pNewCanvas);
 
 	mpCanvas = pNewCanvas;
+	
 }
 
 
@@ -138,6 +151,7 @@ void CWindow::DestroyCanvas(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Paint(void)
 {
+	Draw();
 	mpcNativeWindow->SignalPresent();
 }
 
@@ -149,6 +163,26 @@ void CWindow::Paint(void)
 const char* CWindow::GetWindowTitle(void)
 {
 	return mszWindowTitle.Text();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Tick(int64 iUpdateTimeInMillieconds, int64 iTotalTimeInMillieconds)
+{
+	mpWindowTick->Tick(this, iUpdateTimeInMillieconds, iTotalTimeInMillieconds);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWindow::Stop(void)
+{
+	mbTicking = false;
 }
 
 

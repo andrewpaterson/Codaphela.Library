@@ -24,40 +24,46 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "SupportLib/Colour.h"
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/Rectangle.h"
-#include "BasicComponent.h"
+#include "ComplexComponent.h"
+#include "CanvasDraw.h"
 
 
 class CNativeCanvas;
-class CCanvas : public CBasicComponent
+class CCanvas : public CComplexComponent
 {
 CONSTRUCTABLE(CCanvas);
+DESTRUCTABLE(CCanvas);
 protected:
-	CNativeCanvas*	mpcNativeCanvas;
-	EColourFormat	meFormat;
-	int32			miWidth;
-	int32			miHeight;
+	CNativeCanvas*		mpcNativeCanvas;
+	EColourFormat		meFormat;
+	int32				miWidth;
+	int32				miHeight;
+	Ptr<CCanvasDraw>	mpCanvasDraw;
 
 public:
-	void			Init(CNativeWindowFactory* pcWindowFactory);
-	void			Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcWindowFactory);
-	void			Class(void);
-	void 			Free(void);
+	void				Init(CNativeWindowFactory* pcWindowFactory, Ptr<CCanvasDraw> pDraw);
+	void				Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcWindowFactory);
+	void				Class(void);
+	void 				Free(void);
 
-	bool			Save(CObjectWriter* pcFile) override;
-	bool			Load(CObjectReader* pcFile) override;
+	bool				Save(CObjectWriter* pcFile) override;
+	bool				Load(CObjectReader* pcFile) override;
 
-	EColourFormat	GetFormat(void);
-	int32			GetWidth(void);
-	int32			GetHeight(void);
-	bool			IsValid(void);
+	EColourFormat		GetFormat(void);
+	int32				GetWidth(void);
+	int32				GetHeight(void);
+	bool				IsValid(void);
 
-	uint8*			GetPixelData(void);
+	uint8*				GetPixelData(void);
 
-	CNativeCanvas*	GetNativeCanvas(void);
+	CNativeCanvas*		GetNativeCanvas(void);
+	Ptr<CCanvasDraw>	GetCanvasDraw(void);
 
-	void			CopyCanvas(Ptr<CCanvas> pcSourceCanvas);
-	void			DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
-	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
+	bool				Draw(void) override;
+
+	void				CopyCanvas(Ptr<CCanvas> pcSourceCanvas);
+	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
+	void				DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
 };
 
 
