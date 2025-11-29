@@ -269,7 +269,6 @@ bool CArrayCommonObject::Remove(CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Remove(CEmbeddedObject* pcObject)
 {
-	//This method is only publically called from tests.
 	if (pcObject)
 	{
 		if (mcArray.Remove(pcObject))

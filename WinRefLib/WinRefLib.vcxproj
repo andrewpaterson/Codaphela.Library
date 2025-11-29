@@ -172,13 +172,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="WinRefCanvas.h" />
-    <ClInclude Include="WinRefHelper.h" />
     <ClInclude Include="WinRefWindow.h" />
     <ClInclude Include="WinRefWindowFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WinRefCanvas.cpp" />
-    <ClCompile Include="WinRefHelper.cpp" />
     <ClCompile Include="WinRefWindow.cpp" />
     <ClCompile Include="WinRefWindowFactory.cpp" />
   </ItemGroup>

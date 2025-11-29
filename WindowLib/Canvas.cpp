@@ -8,11 +8,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(CNativeWindowFactory* pcFactory)
+void CCanvas::Init(CNativeWindowFactory* pcFactory, Ptr<CCanvasDraw> pDraw)
 {
 	PreInit();
 
-	Init(CF_Unknown, -1, -1, pcFactory);
+	Init(CF_Unknown, -1, -1, pDraw, pcFactory);
 
 	PostInit();
 }
@@ -22,14 +22,16 @@ void CCanvas::Init(CNativeWindowFactory* pcFactory)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, CNativeWindowFactory* pcFactory)
+void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcFactory)
 {
 	meFormat = eFormat;
 	miWidth = iWidth;
 	miHeight = iHeight;
 
 	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
-	CBasicComponent::Init(mpcNativeCanvas);
+	CComplexComponent::Init(mpcNativeCanvas);
+
+	mpCanvasDraw = pDraw;
 }
 
 
@@ -49,7 +51,7 @@ void CCanvas::Free(void)
 	miWidth = -1;
 	miHeight = -1;
 
-	CBasicComponent::Free();
+	CComplexComponent::Free();
 }
 
 
@@ -59,10 +61,13 @@ void CCanvas::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::Class(void)
 {
+	CComplexComponent::Class();
+
 	U_Pointer(mpcNativeCanvas);
 	U_Enum(meFormat);
 	U_Int32(miWidth);
 	U_Int32(miHeight);
+	M_Pointer(mpCanvasDraw);
 }
 
 
@@ -93,6 +98,17 @@ bool CCanvas::Load(CObjectReader* pcFile)
 uint8* CCanvas::GetPixelData(void)
 {
 	return mpcNativeCanvas->GetPixelData();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::Draw(void)
+{
+	mpCanvasDraw->Draw(this);
+	return true;
 }
 
 
@@ -158,4 +174,5 @@ EColourFormat CCanvas::GetFormat(void) { return meFormat; }
 int32 CCanvas::GetWidth(void) { return miWidth; }
 int32 CCanvas::GetHeight(void) { return miHeight; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
+Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 

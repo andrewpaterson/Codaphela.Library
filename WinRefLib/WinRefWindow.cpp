@@ -37,7 +37,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CWinRefWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory, CRectangle* pcBounds, char* szImagePath)
 {
     CNativeWindow::Init(pcWindow, pcWindowFactory);
-    mbRunning = true;
     mbCreated = false;
     mcBounds.Init(pcBounds);
     mszImagePath = szImagePath;
@@ -62,16 +61,6 @@ void CWinRefWindow::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWinRefWindow::Stop(void)
-{
-    mbRunning = false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::CreateNativeWindow(void)
 {
     mbCreated = true;
@@ -85,7 +74,7 @@ bool CWinRefWindow::CreateNativeWindow(void)
 //////////////////////////////////////////////////////////////////////////
 bool CWinRefWindow::ExecuteNativeWindow(void)
 {
-    return mbRunning;
+    return true;
 }
 
 

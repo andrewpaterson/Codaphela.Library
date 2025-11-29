@@ -1,7 +1,6 @@
 #include "SupportLib/ImageAccessorCreator.h"
 #include "WindowLib/Canvas.h"
 #include "WinRefWindowFactory.h"
-#include "WinRefHelper.h"
 #include "WinRefCanvas.h"
 
 

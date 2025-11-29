@@ -60,6 +60,21 @@
     <ClInclude Include="BasicComponent.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
+    <ClInclude Include="ContainerBounds.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Container.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="ComplexComponent.h">
+      <Filter>Source\Component</Filter>
+    </ClInclude>
+    <ClInclude Include="CanvasDraw.h">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowTick.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -82,6 +97,18 @@
     </ClCompile>
     <ClCompile Include="BasicComponent.cpp">
       <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Container.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="ComplexComponent.cpp">
+      <Filter>Source\Component</Filter>
+    </ClCompile>
+    <ClCompile Include="CanvasDraw.cpp">
+      <Filter>Source\Component\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowTick.cpp">
+      <Filter>Source\Component\Window</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

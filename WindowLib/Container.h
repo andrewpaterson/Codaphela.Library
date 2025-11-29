@@ -1,0 +1,27 @@
+#ifndef __CONTAINER_H__
+#define __CONTAINER_H__
+#include "BasicComponent.h"
+#include "ContainerBounds.h"
+
+
+class CContainer : public CBasicComponent
+{
+CONSTRUCTABLE(CContainer);
+DESTRUCTABLE(CContainer);
+protected:
+	SContainerBounds		msBounds;
+
+public:
+	void	Init(void);
+	void	Class(void);
+	void 	Free(void);
+
+	bool	GetContainerBounds(SContainerBounds* psDest);
+	void	SetBounds(SInt2 sPosition, SInt2 sAreaSize);
+
+	bool	Draw(void) override;
+};
+
+
+#endif // __CONTAINER_H__
+
