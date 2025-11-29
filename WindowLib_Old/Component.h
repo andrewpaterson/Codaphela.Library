@@ -56,7 +56,7 @@ protected:
 	bool				mbCanGetFocus;
 	CChars				mcName;
 	CComponent*			mpcParent;
-	CComponentPointers	mcComponents;
+	CComponentPointers	macChildren;
 
 public:
 	void				Init(CViewport* pcViewport);
