@@ -93,9 +93,6 @@
     <ClCompile Include="Container.cpp">
       <Filter>Source\Component\Containers</Filter>
     </ClCompile>
-    <ClCompile Include="ContainerCell.cpp">
-      <Filter>Source\Component\Containers</Filter>
-    </ClCompile>
     <ClCompile Include="FillContainer.cpp">
       <Filter>Source\Component\Containers</Filter>
     </ClCompile>
