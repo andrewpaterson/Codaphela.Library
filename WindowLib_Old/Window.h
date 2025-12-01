@@ -33,7 +33,6 @@ class CWindow : public CInputListener
 {
 CONSTRUCTABLE(CWindow);
 public:
-
 	CViewport*		mpcViewport;
 	CInput*			mpcInput;
 	CRectangle		mcClientRect;

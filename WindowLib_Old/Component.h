@@ -82,9 +82,6 @@ public:
 	CComponent*			GetParent(void);
 	void				SetParent(CComponent* pcComponent);
 
-	void 				StartTimer(int iTime, bool bRepeat);
-	void				StopTimer(void);
-
 	bool 				IsPointIn(int x, int y);
 	bool 				HasFocus(void);
 	virtual	void		AddComponent(CComponent* pcComponent);

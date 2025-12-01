@@ -31,10 +31,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 void SInsets::Init(void)
 {
-	mafWidths[0] = 0;
-	mafWidths[1] = 0;
-	mafWidths[2] = 0;
-	mafWidths[3] = 0;
+	maiWidths[0] = 0;
+	maiWidths[1] = 0;
+	maiWidths[2] = 0;
+	maiWidths[3] = 0;
 }
 
 
@@ -42,12 +42,12 @@ void SInsets::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void SInsets::Init(int* pafWidths)
+void SInsets::Init(int* paiWidths)
 {
-	mafWidths[0] = pafWidths[0];
-	mafWidths[1] = pafWidths[1];
-	mafWidths[2] = pafWidths[2];
-	mafWidths[3] = pafWidths[3];
+	maiWidths[0] = paiWidths[0];
+	maiWidths[1] = paiWidths[1];
+	maiWidths[2] = paiWidths[2];
+	maiWidths[3] = paiWidths[3];
 }
 
 
@@ -100,20 +100,20 @@ void CBorder::SetBorderParameters(CBorderParameters* pcParameters)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBorder::CalculateEdgePositions(int* pafEdgeLength, int* pafEdgeStart)
+void CBorder::CalculateEdgePositions(int* paiEdgeLength, int* paiEdgeStart)
 {
 	int			i;
 	int			iPow2;
 	int			iCornerNum;
 
-	pafEdgeLength[0] = msActualSize.x;
-	pafEdgeLength[1] = msActualSize.y;
-	pafEdgeLength[2] = msActualSize.x;
-	pafEdgeLength[3] = msActualSize.y;
-	pafEdgeStart[0] = 0;
-	pafEdgeStart[1] = 0;
-	pafEdgeStart[2] = 0;
-	pafEdgeStart[3] = 0;
+	paiEdgeLength[0] = msActualSize.x;
+	paiEdgeLength[1] = msActualSize.y;
+	paiEdgeLength[2] = msActualSize.x;
+	paiEdgeLength[3] = msActualSize.y;
+	paiEdgeStart[0] = 0;
+	paiEdgeStart[1] = 0;
+	paiEdgeStart[2] = 0;
+	paiEdgeStart[3] = 0;
 
 	//Setup the corners and work out edge lengths and positions;
 	iPow2 = 1;
@@ -126,27 +126,27 @@ void CBorder::CalculateEdgePositions(int* pafEdgeLength, int* pafEdgeStart)
 				iCornerNum = i / 2;
 				if (iPow2 & BS_TopLeft)
 				{
-					pafEdgeLength[0] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
-					pafEdgeLength[3] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
-					pafEdgeStart[0] = mpcBorderParameters->masCornerSizes[iCornerNum].x;
-					pafEdgeStart[3] = mpcBorderParameters->masCornerSizes[iCornerNum].y;
+					paiEdgeLength[0] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
+					paiEdgeLength[3] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
+					paiEdgeStart[0] = mpcBorderParameters->masCornerSizes[iCornerNum].x;
+					paiEdgeStart[3] = mpcBorderParameters->masCornerSizes[iCornerNum].y;
 				}
 				else if (iPow2 & BS_TopRight)
 				{
-					pafEdgeLength[0] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
-					pafEdgeLength[1] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
-					pafEdgeStart[1] = mpcBorderParameters->masCornerSizes[iCornerNum].y;
+					paiEdgeLength[0] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
+					paiEdgeLength[1] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
+					paiEdgeStart[1] = mpcBorderParameters->masCornerSizes[iCornerNum].y;
 				}
 				else if (iPow2 & BS_BottomRight)
 				{
-					pafEdgeLength[1] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
-					pafEdgeLength[2] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
-					pafEdgeStart[2] = mpcBorderParameters->masCornerSizes[iCornerNum].x;
+					paiEdgeLength[1] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
+					paiEdgeLength[2] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
+					paiEdgeStart[2] = mpcBorderParameters->masCornerSizes[iCornerNum].x;
 				}
 				else if (iPow2 & BS_BottomLeft)
 				{
-					pafEdgeLength[2] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
-					pafEdgeLength[3] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
+					paiEdgeLength[2] -= mpcBorderParameters->masCornerSizes[iCornerNum].x;
+					paiEdgeLength[3] -= mpcBorderParameters->masCornerSizes[iCornerNum].y;
 				}
 			}
 		}
@@ -159,7 +159,7 @@ void CBorder::CalculateEdgePositions(int* pafEdgeLength, int* pafEdgeStart)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBorder::SetQuadDimensions(CQuad2D* mapcQuads[BORDER_QUADS], int* pafEdgeLength, int* pafEdgeStart)
+void CBorder::SetQuadDimensions(CQuad2D* mapcQuads[BORDER_QUADS], int* paiEdgeLength, int* paiEdgeStart)
 {
 	int			i;
 	int			iPow2;
@@ -203,23 +203,23 @@ void CBorder::SetQuadDimensions(CQuad2D* mapcQuads[BORDER_QUADS], int* pafEdgeLe
 				iEdgeNum = (i-1) / 2;
 				if (iPow2 & BS_Top)
 				{
-					pcQuad->SetDimensions((int)pafEdgeLength[0], (int)mpcBorderParameters->maiEdgeWidths[0]);
-					pcQuad->MovePosition(pafEdgeStart[0], 0);
+					pcQuad->SetDimensions((int)paiEdgeLength[0], (int)mpcBorderParameters->maiEdgeWidths[0]);
+					pcQuad->MovePosition(paiEdgeStart[0], 0);
 				}
 				else if (iPow2 & BS_Right)
 				{
-					pcQuad->SetDimensions((int)mpcBorderParameters->maiEdgeWidths[1], (int)pafEdgeLength[1]);
-					pcQuad->MovePosition((msActualSize.x - mpcBorderParameters->maiEdgeWidths[1]), pafEdgeStart[1]);
+					pcQuad->SetDimensions((int)mpcBorderParameters->maiEdgeWidths[1], (int)paiEdgeLength[1]);
+					pcQuad->MovePosition((msActualSize.x - mpcBorderParameters->maiEdgeWidths[1]), paiEdgeStart[1]);
 				}
 				else if (iPow2 & BS_Bottom)
 				{
-					pcQuad->SetDimensions((int)pafEdgeLength[2], (int)mpcBorderParameters->maiEdgeWidths[2]);
-					pcQuad->MovePosition(pafEdgeStart[2], (msActualSize.y - mpcBorderParameters->maiEdgeWidths[2]));
+					pcQuad->SetDimensions((int)paiEdgeLength[2], (int)mpcBorderParameters->maiEdgeWidths[2]);
+					pcQuad->MovePosition(paiEdgeStart[2], (msActualSize.y - mpcBorderParameters->maiEdgeWidths[2]));
 				}
 				else if (iPow2 & BS_Left)
 				{
-					pcQuad->SetDimensions((int)mpcBorderParameters->maiEdgeWidths[3], (int)pafEdgeLength[3]);
-					pcQuad->MovePosition(0, pafEdgeStart[3]);
+					pcQuad->SetDimensions((int)mpcBorderParameters->maiEdgeWidths[3], (int)paiEdgeLength[3]);
+					pcQuad->MovePosition(0, paiEdgeStart[3]);
 				}
 			}
 		}

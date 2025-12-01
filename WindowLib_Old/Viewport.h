@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __VIEWPORT_H__
 #define __VIEWPORT_H__
 #include "BaseLib/GeometricTypes.h"
-#include "BaseLib/WinInit.h"
 #include "SupportLib/WinText.h"
 #include "FixedContainer.h"
 #include "TextParameters.h"
