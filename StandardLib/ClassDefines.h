@@ -75,6 +75,13 @@
 #define U_4x4Float32(name)				Unmanaged4x4Float(&name, #name)
 #define U_4x4Float32Array(name, length)	Unmanaged4x4Float(name, length, #name)
 
+#define U_2Int32(name)					Unmanaged2Int(&name, #name)
+#define U_2Int32Array(name, length)		Unmanaged2Int(name, length, #name)
+#define U_3Int32(name)					Unmanaged3Int(&name, #name)
+#define U_3Int32Array(name, length)		Unmanaged3Int(name, length, #name)
+#define U_4Int32(name)					Unmanaged4Int(&name, #name)
+#define U_4Int32Array(name, length)		Unmanaged4Int(name, length, #name)
+
 
 #endif // __CLASS_DEFINES_H__
 
