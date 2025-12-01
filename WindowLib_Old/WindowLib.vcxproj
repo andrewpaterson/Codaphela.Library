@@ -249,7 +249,6 @@
     <ClInclude Include="GraphicsMaterial.h" />
     <ClInclude Include="GraphicsState.h" />
     <ClInclude Include="GraphicsTexture.h" />
-    <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="PlainGraphicalTextEditor.h" />
     <ClInclude Include="Label.h" />
     <ClInclude Include="TextField.h" />

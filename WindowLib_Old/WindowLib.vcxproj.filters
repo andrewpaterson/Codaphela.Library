@@ -299,9 +299,6 @@
     <ClInclude Include="Focus.h">
       <Filter>Source\Component\Window</Filter>
     </ClInclude>
-    <ClInclude Include="NativeWindow.h">
-      <Filter>Source\Component\Window</Filter>
-    </ClInclude>
     <ClInclude Include="Quad2D.h">
       <Filter>Source\Um</Filter>
     </ClInclude>

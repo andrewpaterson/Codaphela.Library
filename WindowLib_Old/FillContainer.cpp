@@ -69,10 +69,10 @@ void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 
 	sOrigin = sPosition;
 	sArea = sAreaSize;
-	sOrigin.x += msInsets.mafWidths[BEI_Left];
-	sOrigin.y += msInsets.mafWidths[BEI_Top];
-	sArea.x -= (msInsets.mafWidths[BEI_Left] + msInsets.mafWidths[BEI_Right]);
-	sArea.y -= (msInsets.mafWidths[BEI_Bottom] + msInsets.mafWidths[BEI_Top]);
+	sOrigin.x += msInsets.maiWidths[BEI_Left];
+	sOrigin.y += msInsets.maiWidths[BEI_Top];
+	sArea.x -= (msInsets.maiWidths[BEI_Left] + msInsets.maiWidths[BEI_Right]);
+	sArea.y -= (msInsets.maiWidths[BEI_Bottom] + msInsets.maiWidths[BEI_Top]);
 
 	SetBounds(sOrigin, sArea);
 

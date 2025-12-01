@@ -77,10 +77,10 @@ enum EBorderEdgeType
 //This belongs in it's own file.
 struct SInsets
 {
-	int mafWidths[4];
+	int maiWidths[4];
 
 	void Init(void);
-	void Init(int* pafWidths);
+	void Init(int* paiWidths);
 };
 
 
@@ -100,10 +100,10 @@ public:
 	void				SetRequiredSize(void);
 
 	void				SetBorderParameters(CBorderParameters* pcParameters);
-	void				CalculateEdgePositions(int* pafEdgeLength, int* pafEdgeStart);
+	void				CalculateEdgePositions(int* paiEdgeLength, int* paiEdgeStart);
 	void				CalculateUVCoords(SUVCornersFull* apsUVs);
 	void				CreateQuads(void);
-	void				SetQuadDimensions(CQuad2D* mapcQuads[BORDER_QUADS], int* pafEdgeLength, int* pafEdgeStart);
+	void				SetQuadDimensions(CQuad2D* mapcQuads[BORDER_QUADS], int* paiEdgeLength, int* paiEdgeStart);
 	void				GetUsableArea(SInt2* psPosition, SInt2* psSize, SInt2* psContainerSize);
 	void				SetAlpha(float fAlpha);
 
