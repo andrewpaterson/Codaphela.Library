@@ -11,6 +11,9 @@
 #include "BaseLib/Float3.h"
 #include "BaseLib/Float4.h"
 #include "BaseLib/Float4x4.h"
+#include "BaseLib/Int2.h"
+#include "BaseLib/Int3.h"
+#include "BaseLib/Int4.h"
 #include "Integer.h"
 #include "Float.h"
 #include "Character.h"
@@ -153,6 +156,13 @@ public:
 	void				Unmanaged4Float(CBaseObject* pcThis, SFloat4* pf, size uiLength, char* szFieldName);
 	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, char* szFieldName);
 	void				Unmanaged4x4Float(CBaseObject* pcThis, SFloat4x4* pf, size uiLength, char* szFieldName);
+
+	void				Unmanaged2Int(CBaseObject* pcThis, SInt2* pf, char* szFieldName);
+	void				Unmanaged2Int(CBaseObject* pcThis, SInt2* pf, size uiLength, char* szFieldName);
+	void				Unmanaged3Int(CBaseObject* pcThis, SInt3* pf, char* szFieldName);
+	void				Unmanaged3Int(CBaseObject* pcThis, SInt3* pf, size uiLength, char* szFieldName);
+	void				Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, char* szFieldName);
+	void				Unmanaged4Int(CBaseObject* pcThis, SInt4* pf, size uiLength, char* szFieldName);
 
 protected:
 	CField*				AddField(size uiFieldSize, char* szName);

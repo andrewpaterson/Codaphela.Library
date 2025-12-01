@@ -128,6 +128,8 @@ int CDistToStackCalculator::CollectDetachedAndSetDistToStackZero(CDistCalculator
 	for (i = 0; i < pcParameters->NumTouched(); i++)
 	{
 		pcBaseObject = pcParameters->GetTouched(i);
+		//I'm not sure if this is the right way to detect that object was declared on the stack.
+		//And if on the stack it should not (ultimately) be attempted to be freed from Objects.
 		if (pcBaseObject->IsAllocatedInObjects())
 		{
 			iNumWithStackPointers += pcBaseObject->CollectDetachedAndSetDistToStackZero(pcParameters);

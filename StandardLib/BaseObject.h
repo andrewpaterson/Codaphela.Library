@@ -312,6 +312,13 @@ protected:
 			void				Unmanaged4x4Float(SFloat4x4* pf, char* szFieldName);
 			void				Unmanaged4x4Float(SFloat4x4* pf, size uiLength, char* szFieldName);
 
+			void				Unmanaged2Int(SInt2* pf, char* szFieldName);
+			void				Unmanaged2Int(SInt2* pf, size uiLength, char* szFieldName);
+			void				Unmanaged3Int(SInt3* pf, char* szFieldName);
+			void				Unmanaged3Int(SInt3* pf, size uiLength, char* szFieldName);
+			void				Unmanaged4Int(SInt4* pf, char* szFieldName);
+			void				Unmanaged4Int(SInt4* pf, size uiLength, char* szFieldName);
+
 private:
 			bool				ClipName(void);
 };
