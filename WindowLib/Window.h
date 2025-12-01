@@ -18,6 +18,8 @@ protected:
 	Ptr<CCanvas>		mpCanvas;
 	Ptr<CWindowTick>	mpWindowTick;
 	bool				mbTicking;
+	CFocus				mFocus;
+	CRectangle			mcClientRect;
 
 public:
 	void			Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWindowTick>	pTick, Ptr<CCanvasDraw> pDraw);
@@ -37,6 +39,8 @@ public:
 	
 	const char*		GetWindowTitle(void);
 	Ptr<CCanvas>	GetCanvas(void);
+	Ptr<CFocus>		GetFocus(void);
+	CRectangle*		GetClientRect(void);
 };
 
 

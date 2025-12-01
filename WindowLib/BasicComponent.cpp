@@ -1,4 +1,5 @@
 #include "StandardLib/ClassDefines.h"
+#include "Window.h"
 #include "BasicComponent.h"
 
 
@@ -6,11 +7,17 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBasicComponent::Init(void)
+void CBasicComponent::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
 	maChildren.Init();
+	msActualSize.Init(0, 0);
+	msPosition.Init(0, 0);
+	msRequiredSize.Init(-1, -1);
+	msDesiredSize.Init(-1, -1);
+	mbCanGetFocus = false;
+	mpParent = NULL;
 
 	PostInit();
 }
@@ -31,7 +38,17 @@ void CBasicComponent::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CBasicComponent::Class(void)
 {
+	U_2Int32(msActualSize);
+	U_2Int32(msPosition);
+	U_2Int32(msRequiredSize);
+	U_2Int32(msDesiredSize);
+	U_2Int32(msDesiredSize);
+	U_Bool(mbCanGetFocus);
+	M_Pointer(mpParent);
 	M_Embedded(maChildren);
+	M_Pointer(mpWindow);
+
+	
 }
 
 
@@ -136,3 +153,171 @@ bool CBasicComponent::GetContainerBounds(SContainerBounds* psDest)
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt2 CBasicComponent::GetBestSize(void)
+{
+	if (msDesiredSize.x != -1.0f)
+	{
+		return msDesiredSize;
+	}
+	SetRequiredSize();
+	return msRequiredSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBasicComponent::IsPointIn(int x, int y)
+{
+	//x and y are assumed relative to 'this' component.
+	return (((x >= msPosition.x) && (x <= msPosition.x + msActualSize.x)) && ((y >= msPosition.y) && (y <= msPosition.y + msActualSize.y)));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBasicComponent::HasFocus(void)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CBasicComponent> CBasicComponent::FindComponentAt(int x, int y)
+{
+	size					i;
+	Ptr<CBasicComponent>	pcComponent;
+	size					uiSize;
+
+	//x and y are assumed relative to 'this' component.
+	if (!IsPointIn(x, y))
+	{
+		return NULL;
+	}
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pcComponent = maChildren.Get(i);
+		pcComponent = pcComponent->FindComponentAt(x, y);
+		if (pcComponent)
+		{
+			return pcComponent;
+		}
+	}
+
+	return this;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBasicComponent::ToChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py)
+{
+	*px = x - pcChildComponent->msPosition.x;
+	*py = y - pcChildComponent->msPosition.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBasicComponent::FromChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py)
+{
+	*px = x + pcChildComponent->msPosition.x;
+	*py = y + pcChildComponent->msPosition.y;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBasicComponent::Layout(SInt2 sPosition, SInt2 sAreaSize)
+{
+
+	SetPosition(sPosition);
+	SetActualSize(sAreaSize);
+
+	LayoutChildren(sPosition, sAreaSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBasicComponent::LayoutChildren(SInt2 sPosition, SInt2 sAreaSize)
+{
+	size					i;
+	Ptr<CBasicComponent>	pcComponent;
+	size					uiSize;
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pcComponent = maChildren.Get(i);
+		pcComponent->Layout(sPosition, sAreaSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CBasicComponent::GetDepth(void)
+{
+	size					iDepth;
+	Ptr<CBasicComponent>	pcComponent;
+
+	iDepth = 0;
+	pcComponent = mpParent;
+	while (pcComponent != NULL)
+	{
+		iDepth++;
+		pcComponent = pcComponent->mpParent;
+	}
+	return iDepth;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CBasicComponent::IsFocussed(void)
+{
+	if (mpWindow->GetFocus()->GetFocussedComponent() == this)
+	{
+		return true;
+	}
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CBasicComponent::SetActualSize(int fWidth, int fHeight) { msActualSize.Init(fWidth, fHeight); }
+void CBasicComponent::SetActualSize(SInt2 sSize) { msActualSize = sSize; }
+void CBasicComponent::SetPosition(int x, int y) { msPosition.Init(x, y); }
+void CBasicComponent::SetPosition(SInt2 sPosition) { msPosition = sPosition; }
+SInt2 CBasicComponent::GetPosition(void) { return msPosition; }
+void CBasicComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
+void CBasicComponent::SetRequiredSize(void) { msRequiredSize = msDesiredSize; }
+SInt2 CBasicComponent::GetActualSize(void) { return msActualSize; }

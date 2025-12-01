@@ -17,7 +17,7 @@ protected:
 	CBasicNativeComponent*	mpcNativeComponent;
 
 public:
-	void	Init(CBasicNativeComponent* pcNativeComponent);
+	void	Init(Ptr<CWindow> pWindow, CBasicNativeComponent* pcNativeComponent);
 	void	Class(void);
 	void 	Free(void);
 

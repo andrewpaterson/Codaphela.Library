@@ -6,32 +6,64 @@
 #include "StandardLib/Array.h"
 #include "StandardLib/Object.h"
 #include "SupportLib/ColourFormat.h"
+#include "Focus.h"
+#include "FocusListener.h"
+#include "ComponentListener.h"
 #include "ContainerBounds.h"
 
 
-class CBasicComponent : public CObject
+class CWindow;
+class CBasicComponent : public CObject, public CFocusListener, public CComponentListener
 {
 CONSTRUCTABLE(CBasicComponent);
 DESTRUCTABLE(CBasicComponent);
 protected:
+	SInt2						msActualSize;
+	SInt2	 					msPosition;
+	SInt2						msRequiredSize;
+	SInt2						msDesiredSize;
+	bool						mbCanGetFocus;
 	Ptr<CBasicComponent>		mpParent;
 	CArray<CBasicComponent>		maChildren;
+	Ptr<CWindow>				mpWindow;
 
 public:
-			void	Init(void);
-			void	Class(void);
-			void 	Free(void);
+			void					Init(Ptr<CWindow> pWindow);
+			void					Class(void);
+			void 					Free(void);
 
-			bool	Save(CObjectWriter* pcFile) override;
-			bool	Load(CObjectReader* pcFile) override;
+			bool					Save(CObjectWriter* pcFile) override;
+			bool					Load(CObjectReader* pcFile) override;
 
-	virtual	bool	Draw(void);
-			bool	DrawChildren(void);
-	virtual bool	GetContainerBounds(SContainerBounds* psDest);
+	virtual	bool					Draw(void);
+			bool					DrawChildren(void);
+	virtual bool					GetContainerBounds(SContainerBounds* psDest);
 
-			void	AddComponent(Ptr<CBasicComponent> pComponent);
-			void	RemoveComponent(Ptr<CBasicComponent> pComponent);
-			void	RemoveAllComponents(void);
+			void					AddComponent(Ptr<CBasicComponent> pComponent);
+			void					RemoveComponent(Ptr<CBasicComponent> pComponent);
+			void					RemoveAllComponents(void);
+
+			SInt2					GetBestSize(void);
+			bool					IsPointIn(int x, int y);
+			bool					HasFocus(void);
+			Ptr<CBasicComponent>	FindComponentAt(int x, int y);
+			void					ToChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py);
+			void					FromChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py);
+
+			void					Layout(SInt2 sPosition, SInt2 sAreaSize);
+			void					LayoutChildren(SInt2 sPosition, SInt2 sAreaSize);
+			size					GetDepth(void);
+
+			bool					IsFocussed(void);
+
+			void					SetActualSize(int fWidth, int fHeight);
+			void					SetActualSize(SInt2 sSize);
+			void					SetPosition(int x, int y);
+			void					SetPosition(SInt2 sPosition);
+			SInt2					GetPosition(void);
+			void					SetDesiredSize(int fWidth, int fHeight);
+			void					SetRequiredSize(void);
+			SInt2					GetActualSize(void);
 };
 
 

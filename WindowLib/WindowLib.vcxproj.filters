@@ -19,9 +19,6 @@
     <Filter Include="Source\Component\Drawing">
       <UniqueIdentifier>{4dc6ddc6-71b6-40c5-b3cc-c2851f700f0c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Events">
-      <UniqueIdentifier>{c568e792-b11d-4df0-abd7-4aced1fe4523}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Input">
       <UniqueIdentifier>{5a73d02b-2d07-4746-a8e4-53250cbbf666}</UniqueIdentifier>
     </Filter>
@@ -36,6 +33,12 @@
     </Filter>
     <Filter Include="Source\Factory">
       <UniqueIdentifier>{edca1fd7-3233-4280-9dcd-f5aa0be9793d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Event">
+      <UniqueIdentifier>{c568e792-b11d-4df0-abd7-4aced1fe4523}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Inset">
+      <UniqueIdentifier>{6c9eaa14-949c-4b84-9dc2-26ea3c5752a7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,6 +78,33 @@
     <ClInclude Include="WindowTick.h">
       <Filter>Source\Component\Window</Filter>
     </ClInclude>
+    <ClInclude Include="Focus.h">
+      <Filter>Source\Component\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="FocusListener.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentListener.h">
+      <Filter>Source\Event</Filter>
+    </ClInclude>
+    <ClInclude Include="FillContainer.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="FixedContainer.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="FlowContainer.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="GridCell.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="GridContainer.h">
+      <Filter>Source\Component\Containers</Filter>
+    </ClInclude>
+    <ClInclude Include="Insets.h">
+      <Filter>Source\Component\Inset</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -109,6 +139,27 @@
     </ClCompile>
     <ClCompile Include="WindowTick.cpp">
       <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="Focus.cpp">
+      <Filter>Source\Component\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="FillContainer.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="FixedContainer.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="FlowContainer.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="GridCell.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="GridContainer.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="Insets.cpp">
+      <Filter>Source\Component\Inset</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
