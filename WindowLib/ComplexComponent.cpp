@@ -6,11 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComplexComponent::Init(CBasicNativeComponent* pcNativeComponent)
+void CComplexComponent::Init(Ptr<CWindow> pWindow, CBasicNativeComponent* pcNativeComponent)
 {
 	PreInit();
 
-	CBasicComponent::Init();
+	CBasicComponent::Init(pWindow);
 
 	PostInit();
 }

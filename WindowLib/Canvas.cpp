@@ -8,11 +8,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(CNativeWindowFactory* pcFactory, Ptr<CCanvasDraw> pDraw)
+void CCanvas::Init(Ptr<CWindow> pWindow, CNativeWindowFactory* pcFactory, Ptr<CCanvasDraw> pDraw)
 {
 	PreInit();
 
-	Init(CF_Unknown, -1, -1, pDraw, pcFactory);
+	Init(pWindow, CF_Unknown, -1, -1, pDraw, pcFactory);
 
 	PostInit();
 }
@@ -22,14 +22,14 @@ void CCanvas::Init(CNativeWindowFactory* pcFactory, Ptr<CCanvasDraw> pDraw)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcFactory)
+void CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcFactory)
 {
 	meFormat = eFormat;
 	miWidth = iWidth;
 	miHeight = iHeight;
 
 	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
-	CComplexComponent::Init(mpcNativeCanvas);
+	CComplexComponent::Init(pWindow, mpcNativeCanvas);
 
 	mpCanvasDraw = pDraw;
 }

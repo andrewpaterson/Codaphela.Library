@@ -18,12 +18,15 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mszWindowTitle.Init(szTitle);
 
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
-	CComplexComponent::Init(mpcNativeWindow);
+	CComplexComponent::Init(this, mpcNativeWindow);
 
 	mpWindowTick = pTick;
-	mpCanvas = OMalloc<CCanvas>(pcFactory, pDraw);
+	mpCanvas = OMalloc<CCanvas>(this, pcFactory, pDraw);
 	AddComponent(mpCanvas);
 	mbTicking = false;
+
+	mFocus.Init(this);
+	mcClientRect.Init();
 
 	PostInit();
 }
@@ -56,6 +59,9 @@ void CWindow::Class(void)
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
 	M_Pointer(mpWindowTick);
+	U_Bool(mbTicking);
+	M_Embedded(mFocus);
+	U_Data(CRectangle, mcClientRect);
 }
 
 
@@ -122,7 +128,8 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 	pcFactory = mpcNativeWindow->GetFactory();
 	pDraw = mpCanvas->GetCanvasDraw();
 
-	pNewCanvas = OMalloc<CCanvas>(eFormat, iWidth, iHeight, pDraw, pcFactory);
+	mcClientRect.SetSize(iWidth, iHeight);
+	pNewCanvas = OMalloc<CCanvas>(this, eFormat, iWidth, iHeight, pDraw, pcFactory);
 
 	pNewCanvas->CopyCanvas(mpCanvas);
 
@@ -141,6 +148,8 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::DestroyCanvas(void)
 {
+	mcClientRect.Kill();
+	mcClientRect.Init();
 	mpCanvas = NULL;
 }
 
@@ -190,5 +199,7 @@ void CWindow::Stop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCanvas> CWindow::GetCanvas(void) { return mpCanvas;  }
+Ptr<CCanvas>	CWindow::GetCanvas(void) { return mpCanvas; }
+Ptr<CFocus>		CWindow::GetFocus(void) { return &mFocus; }
+CRectangle*		CWindow::GetClientRect(void) { return &mcClientRect; }
 

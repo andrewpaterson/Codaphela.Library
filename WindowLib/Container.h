@@ -12,7 +12,7 @@ protected:
 	SContainerBounds		msBounds;
 
 public:
-	void	Init(void);
+	void	Init(Ptr<CWindow> pWindow);
 	void	Class(void);
 	void 	Free(void);
 

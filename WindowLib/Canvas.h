@@ -41,8 +41,8 @@ protected:
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 
 public:
-	void				Init(CNativeWindowFactory* pcWindowFactory, Ptr<CCanvasDraw> pDraw);
-	void				Init(EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcWindowFactory);
+	void				Init(Ptr<CWindow> pWindow, CNativeWindowFactory* pcWindowFactory, Ptr<CCanvasDraw> pDraw);
+	void				Init(Ptr<CWindow> pWindow, EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcWindowFactory);
 	void				Class(void);
 	void 				Free(void);
 
