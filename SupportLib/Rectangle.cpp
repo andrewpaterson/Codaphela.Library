@@ -272,6 +272,19 @@ void CRectangle::GrowToContain(int32 iXPos, int32 iYPos)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CRectangle::Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight, int32 iShrinkBottom)
+{
+	miLeft += iShrinkLeft;
+	miTop += iShrinkTop;
+	miRight -= iShrinkRight;
+	miBottom -= iShrinkBottom;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CRectangle::IsValid(void)
 {
 	return (miLeft <= miRight) && (miTop <= miBottom);

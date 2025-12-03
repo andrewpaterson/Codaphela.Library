@@ -1,3 +1,5 @@
+#ifndef __ASSERT_FILE_FUNCTIONS_H__
+#define __ASSERT_FILE_FUNCTIONS_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -18,8 +20,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ASSERT_FILE_FUNCTIONS_H__
-#define __ASSERT_FILE_FUNCTIONS_H__
 #include "Assert.h"
 
 
