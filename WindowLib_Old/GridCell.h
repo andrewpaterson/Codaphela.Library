@@ -60,7 +60,7 @@ struct SGridCellAxisParams
 };
 
 
-class CGridCell : public CContainerCell
+class CGridCell
 {
 public:
 	SInt2					msTopLeft;  //Position in grid.

@@ -236,9 +236,6 @@
     <ClInclude Include="Container.h">
       <Filter>Source\Component\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="ContainerCell.h">
-      <Filter>Source\Component\Containers</Filter>
-    </ClInclude>
     <ClInclude Include="FillContainer.h">
       <Filter>Source\Component\Containers</Filter>
     </ClInclude>
