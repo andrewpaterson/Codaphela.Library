@@ -257,7 +257,6 @@
     <ClInclude Include="Widget.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="Container.h" />
-    <ClInclude Include="ContainerCell.h" />
     <ClInclude Include="FillContainer.h" />
     <ClInclude Include="FixedContainer.h" />
     <ClInclude Include="FlowContainer.h" />
