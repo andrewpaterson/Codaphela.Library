@@ -29,6 +29,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 
 class CNativeCanvas;
+class CContainer;
 class CCanvas : public CComplexComponent
 {
 CONSTRUCTABLE(CCanvas);
@@ -39,6 +40,7 @@ protected:
 	int32				miWidth;
 	int32				miHeight;
 	Ptr<CCanvasDraw>	mpCanvasDraw;
+	Ptr<CContainer>		mpContainer;
 
 public:
 	void				Init(Ptr<CWindow> pWindow, CNativeWindowFactory* pcWindowFactory, Ptr<CCanvasDraw> pDraw);
@@ -59,9 +61,15 @@ public:
 	CNativeCanvas*		GetNativeCanvas(void);
 	Ptr<CCanvasDraw>	GetCanvasDraw(void);
 
+	bool				SetContainer(Ptr<CContainer> pContainer);
+	Ptr<CContainer>		GetContainer(void);
+	bool				ClearContainer(void);
+
 	bool				Draw(void) override;
 
-	void				CopyCanvas(Ptr<CCanvas> pcSourceCanvas);
+	void				LayoutActualSize(void);
+
+	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
 	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
 	void				DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
 };

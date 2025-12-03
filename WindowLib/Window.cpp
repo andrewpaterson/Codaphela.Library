@@ -146,11 +146,11 @@ void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::DestroyCanvas(void)
+void CWindow::Paint(void)
 {
-	mcClientRect.Kill();
-	mcClientRect.Init();
-	mpCanvas = NULL;
+	Layout();
+	Draw();
+	mpcNativeWindow->SignalPresent();
 }
 
 
@@ -158,10 +158,9 @@ void CWindow::DestroyCanvas(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::Paint(void)
+void CWindow::Layout(void)
 {
-	Draw();
-	mpcNativeWindow->SignalPresent();
+	mpCanvas->LayoutActualSize();
 }
 
 
@@ -199,7 +198,28 @@ void CWindow::Stop(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CWindow::SetContainer(Ptr<CContainer> pContainer)
+{
+	return mpCanvas->SetContainer(pContainer);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CWindow::ClearContainer(void)
+{
+	return mpCanvas->ClearContainer();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 Ptr<CCanvas>	CWindow::GetCanvas(void) { return mpCanvas; }
 Ptr<CFocus>		CWindow::GetFocus(void) { return &mFocus; }
 CRectangle*		CWindow::GetClientRect(void) { return &mcClientRect; }
+Ptr<CContainer>	CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
 

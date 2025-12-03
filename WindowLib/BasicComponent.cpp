@@ -122,9 +122,9 @@ void CBasicComponent::AddComponent(Ptr<CBasicComponent> pComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBasicComponent::RemoveComponent(Ptr<CBasicComponent> pComponent)
+bool CBasicComponent::RemoveComponent(Ptr<CBasicComponent> pComponent)
 {
-	maChildren.Remove(pComponent);
+	return maChildren.Remove(pComponent);
 }
 
 
@@ -132,9 +132,19 @@ void CBasicComponent::RemoveComponent(Ptr<CBasicComponent> pComponent)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CBasicComponent::RemoveAllComponents(void)
+bool CBasicComponent::RemoveAllComponents(void)
 {
-	maChildren.RemoveAll();
+	return maChildren.RemoveAll();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CBasicComponent::NumComponents(void)
+{
+	return maChildren.NumElements();
 }
 
 

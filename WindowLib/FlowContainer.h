@@ -45,8 +45,8 @@ public:
 	void Init(Ptr<CWindow> pWindow);
 	void Free(void);
 
-	void SetRequiredSize(void);
-	void Layout(SInt2 sPosition, SInt2 sAreaSize);
+	void SetRequiredSize(void) override;
+	void Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
 	void SetFlowStyle(EFlowStyleDirection eD, EFlowStyleWrap eW);
 };

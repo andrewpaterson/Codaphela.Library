@@ -12,14 +12,17 @@ protected:
 	SContainerBounds		msBounds;
 
 public:
-	void	Init(Ptr<CWindow> pWindow);
-	void	Class(void);
-	void 	Free(void);
+			void	Init(Ptr<CWindow> pWindow);
+			void	Class(void);
+			void 	Free(void);
 
-	bool	GetContainerBounds(SContainerBounds* psDest);
-	void	SetBounds(SInt2 sPosition, SInt2 sAreaSize);
+			bool	GetContainerBounds(SContainerBounds* psDest);
+			void	SetBounds(SInt2 sPosition, SInt2 sAreaSize);
 
-	bool	Draw(void) override;
+	virtual void	SetRequiredSize(void) =0;
+			void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+
+			bool	Draw(void) override;
 };
 
 

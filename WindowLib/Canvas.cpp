@@ -107,7 +107,11 @@ uint8* CCanvas::GetPixelData(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::Draw(void)
 {
-	mpCanvasDraw->Draw(this);
+	CComplexComponent::Draw();
+	if (mpCanvasDraw)
+	{
+		mpCanvasDraw->Draw(this);
+	}
 	return true;
 }
 
@@ -116,18 +120,37 @@ bool CCanvas::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::CopyCanvas(Ptr<CCanvas> pcSourceCanvas)
+void CCanvas::LayoutActualSize(void)
+{
+	if (IsValid())
+	{
+		CComplexComponent::SetActualSize(miWidth, miHeight);
+		Layout(msPosition, msActualSize);
+		//mcFocus.Update(mcInput.GetPointer()->GetX(), mcInput.GetPointer()->GetY());
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CCanvas::CopyCanvas(Ptr<CCanvas> pSourceCanvas)
 {
 	CNativeCanvas*	pcSourceNativeCanvas;
 	CNativeCanvas*	pcDestNativeCanvas;
+	Ptr<CContainer>	pContainer;
 
 	pcDestNativeCanvas = GetNativeCanvas();
-	pcSourceNativeCanvas = pcSourceCanvas->GetNativeCanvas();
+	pcSourceNativeCanvas = pSourceCanvas->GetNativeCanvas();
+	pContainer = pSourceCanvas->GetContainer();
 
 	if (pcDestNativeCanvas)
 	{
 		pcDestNativeCanvas->CopyCanvas(pcSourceNativeCanvas);
 	}
+
+	SetContainer(pContainer);
 }
 
 
@@ -170,9 +193,53 @@ bool CCanvas::IsValid(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CCanvas::SetContainer(Ptr<CContainer> pContainer)
+{
+	if (!mpContainer)
+	{
+		if (pContainer)
+		{
+			AddComponent(pContainer);
+		}
+		mpContainer = pContainer;
+		return true;
+	}
+	else
+	{
+		return gcLogger.Error2(__METHOD__, " Container is already set on Canvas.", NULL);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CCanvas::ClearContainer(void)
+{
+	bool	bResult;
+
+	if (mpContainer)
+	{
+		bResult = RemoveComponent(mpContainer);
+		if (!bResult)
+		{
+			return gcLogger.Error2(__METHOD__, " Container is set on Canvas but is not a child component.", NULL);
+		}
+		mpContainer = NULL;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 EColourFormat CCanvas::GetFormat(void) { return meFormat; }
 int32 CCanvas::GetWidth(void) { return miWidth; }
 int32 CCanvas::GetHeight(void) { return miHeight; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
+Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }
 

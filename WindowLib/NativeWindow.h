@@ -37,4 +37,3 @@ protected:
 
 #endif // __NATIVE_WINDOW_H__
 
-
