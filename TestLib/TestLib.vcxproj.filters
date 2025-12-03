@@ -16,6 +16,9 @@
     <ClCompile Include="AssertFile.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="AssertGeometric.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Assert.h">
@@ -25,6 +28,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="AssertFile.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="AssertGeometric.h">
       <Filter>Source</Filter>
     </ClInclude>
   </ItemGroup>

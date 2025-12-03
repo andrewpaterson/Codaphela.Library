@@ -1,5 +1,5 @@
-#ifndef __ASSERT_FILE_FUNCTIONS_H__
-#define __ASSERT_FILE_FUNCTIONS_H__
+#ifndef __ASSERT_GEOMETRIC_FUNCTIONS_H__
+#define __ASSERT_GEOMETRIC_FUNCTIONS_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2025 Andrew Paterson
@@ -20,13 +20,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela TestLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/Int2.h"
 #include "Assert.h"
 
 
-bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* szFile);
-
-#define AssertFilePath(e, a)			Validate(PrivateAssertFilePath(e, a, __LINE__, __FILE__))
+bool PrivateAssertInt2(int iExpectedX, int iExpectedY, SInt2* psActual, int iLine, char* szFile);
 
 
-#endif // __ASSERT_FILE_FUNCTIONS_H__
+#define AssertInt2(ex, ey, a)			Validate(PrivateAssertInt2(ex, ey, a, __LINE__, __FILE__))
+
+
+#endif // __ASSERT_GEOMETRIC_FUNCTIONS_H__
 

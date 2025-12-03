@@ -62,6 +62,7 @@ public:
 	void		SetSize(int32 iWidth, int32 iHeight);
 	void		SetPos(int32 x, int32 y);
 	void		GrowToContain(int32 iXPos, int32 iYPos);
+	void		Shrink(int32 iShrinkLeft, int32 iShrinkTop, int32 iShrinkRight, int32 iShrinkBottom);
 	bool		IsValid(void);
 	bool		IsIn(int32 x, int32 y);
 	bool		IsIn(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom);

@@ -17,7 +17,7 @@ bool PrivateAssertFilePath(char* szExpected, char* szActual, int iLine, char* sz
 	cFileUtil.CurrentDirectory(&szWorking);
 	szExpectedWorking.Init(szExpected);
 	cFileUtil.PrependToPath(&szExpectedWorking, szWorking.Text());
-	bResult = PrivateAssertString(szExpectedWorking.Text(), szActual, false, iLine, szFile);
+	bResult = PrivateAssertString(szExpectedWorking.Text(), szActual, false, NULL, iLine, szFile);
 	szExpectedWorking.Kill();
 	szWorking.Kill();
 
