@@ -60,6 +60,37 @@ void CFillContainer::SetFillStyle(EFillStyleHorizontal eH, EFillStyleVertical eV
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CFillContainer::SetRequiredSize(void)
+{
+	size					i;
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+	SInt2					sSize;
+
+	//There should only be one componet, but if there are the largest size will be used.
+	msRequiredSize.Init(0, 0);
+	
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetBestSize();
+		if (sSize.x > msRequiredSize.x)
+		{
+			msRequiredSize.x = sSize.x;
+		}
+		if (sSize.y > msRequiredSize.y)
+		{
+			msRequiredSize.y = sSize.y;
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 {
 	SInt2					sSize;
@@ -130,6 +161,7 @@ void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 			sPosition.y = sPosition.y + sAreaSize.y - sSize.y;
 			sAreaSize.y = sSize.y;
 		}
+
 		pComponent->Layout(sPosition, sAreaSize);
 	}
 }

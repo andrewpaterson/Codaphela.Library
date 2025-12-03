@@ -44,7 +44,8 @@ enum EFillStyleVertical
 
 class CFillContainer : public CContainer
 {
-CONSTRUCTABLE(CFillContainer); 
+CONSTRUCTABLE(CFillContainer);
+DESTRUCTABLE(CFillContainer);
 protected:
 	EFillStyleHorizontal	meHorizontal;
 	EFillStyleVertical		meVertical;
@@ -54,7 +55,9 @@ public:
 	void 	Init(Ptr<CWindow> pWindow);
 	void 	Free(void);
 
-	void 	Layout(SInt2 sPosition, SInt2 sAreaSize);
+	void	SetRequiredSize(void) override;
+	void 	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+
 	void 	SetFillStyle(EFillStyleHorizontal eH, EFillStyleVertical eV);
 	void 	SetInsets(SInsets* psInsets);
 };

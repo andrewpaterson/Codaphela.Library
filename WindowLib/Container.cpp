@@ -81,6 +81,7 @@ void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 	int					iThisTop;
 	int					iParentRight;
 	int					iParentBottom;
+	bool				bHasParentContainer;
 
 	iThisRight = (int)(sPosition.x + sAreaSize.x);
 	iThisBottom = (int)(sPosition.y + sAreaSize.y);
@@ -88,26 +89,29 @@ void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 	iThisTop = (int)sPosition.y;
 	if (mpParent.IsNotNull())
 	{
-		mpParent->GetContainerBounds(&sParentBounds);
-		iParentRight = sParentBounds.msSize.x + sParentBounds.msTopLeft.x;
-		iParentBottom = sParentBounds.msSize.y + sParentBounds.msTopLeft.y;
+		bHasParentContainer = mpParent->GetContainerBounds(&sParentBounds);
+		if (bHasParentContainer)
+		{
+			iParentRight = sParentBounds.msSize.x + sParentBounds.msTopLeft.x;
+			iParentBottom = sParentBounds.msSize.y + sParentBounds.msTopLeft.y;
 
-		if (iThisRight > iParentRight)
-		{
-			iThisRight = iParentRight;
-		}
-		if (iThisBottom > iParentBottom)
-		{
-			iThisBottom = iParentBottom;
-		}
+			if (iThisRight > iParentRight)
+			{
+				iThisRight = iParentRight;
+			}
+			if (iThisBottom > iParentBottom)
+			{
+				iThisBottom = iParentBottom;
+			}
 
-		if (iThisLeft < sParentBounds.msTopLeft.x)
-		{
-			iThisLeft = sParentBounds.msTopLeft.x;
-		}
-		if (iThisTop < sParentBounds.msTopLeft.y)
-		{
-			iThisTop = sParentBounds.msTopLeft.y;
+			if (iThisLeft < sParentBounds.msTopLeft.x)
+			{
+				iThisLeft = sParentBounds.msTopLeft.x;
+			}
+			if (iThisTop < sParentBounds.msTopLeft.y)
+			{
+				iThisTop = sParentBounds.msTopLeft.y;
+			}
 		}
 	}
 
@@ -125,5 +129,16 @@ void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 bool CContainer::Draw(void)
 {
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+{
+	// This intentionally does not call CBasicComponent::Layout 
+	// because a container must fully implement it's own Layout.
 }
 

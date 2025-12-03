@@ -44,3 +44,55 @@ void CGridContainer::Free(void)
 	CContainer::Free();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGridContainer::SetRequiredSize(void)
+{
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+	size					i;
+	SInt2					sSize;
+	SInt2					sTotalSize;
+
+	msRequiredSize.Init(0, 0);
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetBestSize();
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGridContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+{
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+	size					i;
+	SInt2					sSize;
+	int						fXPos;
+	int						fYPos;
+	SInt2					sOffset;
+
+	SetBounds(sPosition, sAreaSize);
+
+	fXPos = 0;
+	fYPos = 0;
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetBestSize();
+
+		pComponent->Layout(sOffset, sSize);
+	}
+}
+

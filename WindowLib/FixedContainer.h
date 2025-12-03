@@ -25,11 +25,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CFixedContainer : public CContainer
 {
+CONSTRUCTABLE(CFixedContainer);
+DESTRUCTABLE(CFixedContainer);
 public:
 	void Init(Ptr<CWindow> pWindow);
 	void Free(void);
 
-	void SetRequiredSize(void);
+	void SetRequiredSize(void) override;
 	void Layout(SInt2 sPosition, SInt2 sAreaSize);
 };
 

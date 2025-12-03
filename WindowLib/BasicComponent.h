@@ -40,8 +40,9 @@ public:
 	virtual bool					GetContainerBounds(SContainerBounds* psDest);
 
 			void					AddComponent(Ptr<CBasicComponent> pComponent);
-			void					RemoveComponent(Ptr<CBasicComponent> pComponent);
-			void					RemoveAllComponents(void);
+			bool					RemoveComponent(Ptr<CBasicComponent> pComponent);
+			bool					RemoveAllComponents(void);
+			size					NumComponents(void);
 
 			SInt2					GetBestSize(void);
 			bool					IsPointIn(int x, int y);
@@ -50,7 +51,7 @@ public:
 			void					ToChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py);
 			void					FromChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py);
 
-			void					Layout(SInt2 sPosition, SInt2 sAreaSize);
+	virtual	void					Layout(SInt2 sPosition, SInt2 sAreaSize);
 			void					LayoutChildren(SInt2 sPosition, SInt2 sAreaSize);
 			size					GetDepth(void);
 

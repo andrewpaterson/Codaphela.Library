@@ -46,33 +46,6 @@ void CFixedContainer::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFixedContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
-{
-	SInt2					sSize;
-	size					i;
-	Ptr<CBasicComponent>	pComponent;
-	size					uiSize;
-
-	SetPosition(sPosition);
-	SetActualSize(sAreaSize);
-	SetBounds(sPosition, sAreaSize);
-
-	//Fixed containers are a bit special.  They assume that the actual position and size have already been set.
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
-
-	{
-		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetBestSize();
-		pComponent->Layout(pComponent->GetPosition(), sSize);
-	}
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CFixedContainer::SetRequiredSize(void)
 {
 	size					i;
@@ -82,8 +55,8 @@ void CFixedContainer::SetRequiredSize(void)
 	SInt2					sSize;
 	SInt2					sTemp;
 
-	msRequiredSize.x = 0;
-	msRequiredSize.y = 0;
+	msRequiredSize.Init(0, 0);
+
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
@@ -99,6 +72,33 @@ void CFixedContainer::SetRequiredSize(void)
 		{
 			msRequiredSize.y = sTemp.y;
 		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFixedContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
+{
+	SInt2					sSize;
+	size					i;
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+
+	SetPosition(sPosition);
+	SetActualSize(sAreaSize);
+	SetBounds(sPosition, sAreaSize);
+
+	//Fixed containers are a bit special.  They assume that the actual position and size have already been set.
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetBestSize();
+
+		pComponent->Layout(pComponent->GetPosition(), sSize);
 	}
 }
 
