@@ -191,7 +191,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 
 	CImageCopier		cCopier;
 
-	cCopier.Init(&cImageImport, pImage);
+	cCopier.Init(&cImageImport, &pImage);
 	for (i = 0; i < iHeight; i++)
 	{
 		cImageImport.SetData(row_pointers[i]);

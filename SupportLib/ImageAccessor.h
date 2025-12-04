@@ -38,12 +38,12 @@ class CImageAccessor : public CUnknown
 CONSTRUCTABLE(CImageAccessor);
 protected:
 	CChannelsAccessor*	mpcAccessor;
-	Ptr<CImage>			mpcImage;  //This should be a * not a Ptr pointer.
+	CImage*				mpcImage;
 	int					miWidth;
 	bool				mbKillChannelAccessor;
 
 public:
-	void 				Init(Ptr<CImage> pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
+	void 				Init(CImage* pcImage, CChannelsAccessor* pcAccessor, bool bKillChannelAccessor);
 	virtual void		Kill(void);
 
 	virtual void*		Get(int x, int y);
@@ -64,7 +64,7 @@ public:
 	int					GetBitSize(void);
 	int					GetByteSize(void);
 	CChannelsAccessor*	GetAccessor(void);
-	Ptr<CImage>			GetImage(void);
+	CImage*			GetImage(void);
 	int					GetWidth(void);
 };
 

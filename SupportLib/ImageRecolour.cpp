@@ -100,11 +100,11 @@ Ptr<CImage> CImageRecolour::Modify(Ptr<CImage> pcImage)
 		pcColourOld = (CImageColour*)macOldColour.Get(i);
 		pcColourNew = (CImageColour*)macNewColour.Get(i);
 
-		pcAccessorOld = CImageAccessorCreator::Create(pcImage, pcColourOld);
+		pcAccessorOld = CImageAccessorCreator::Create(&pcImage, pcColourOld);
 		sColourOld[0].Zero();
 		pcAccessorOld->MakeColour(sColourOld, pcColourOld);
 
-		pcAccessorNew = CImageAccessorCreator::Create(pcImage, pcColourNew);
+		pcAccessorNew = CImageAccessorCreator::Create(&pcImage, pcColourNew);
 		sColourNew[0].Zero();
 		pcAccessorNew->MakeColour(sColourNew, pcColourNew);
 

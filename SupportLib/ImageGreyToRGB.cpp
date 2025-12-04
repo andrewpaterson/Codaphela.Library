@@ -78,9 +78,9 @@ Ptr<CImage> CImageGreyToRGB::Modify(Ptr<CImage> pcImage)
 			return false;
 		}
 
-		pcRed = CImageAccessorCreator::Create(pcImage, eChannelType, IMAGE_DIFFUSE_RED, CHANNEL_ZERO);
-		pcGreen = CImageAccessorCreator::Create(pcImage, eChannelType, IMAGE_DIFFUSE_GREEN, CHANNEL_ZERO);
-		pcBlue = CImageAccessorCreator::Create(pcImage, eChannelType, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
+		pcRed = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_RED, CHANNEL_ZERO);
+		pcGreen = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_GREEN, CHANNEL_ZERO);
+		pcBlue = CImageAccessorCreator::Create(&pcImage, eChannelType, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO);
 
 		iHeight = pcImage->GetHeight();
 		iWidth = pcImage->GetWidth();

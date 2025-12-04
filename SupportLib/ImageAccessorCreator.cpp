@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::Init(Ptr<CImage> pcImage)
+void CImageAccessorCreator::Init(CImage* pcImage)
 {
 	mcCreator.Init(&pcImage->mcChannels);
 	mpcImage = pcImage;
@@ -159,7 +159,7 @@ void CImageAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(Ptr<CImage> pcChannels)
+void CImageAccessorCreator::AddAccess(CImage* pcChannels)
 {
 	mcCreator.AddAccess(&pcChannels->mcChannels);
 }
@@ -223,7 +223,7 @@ CImageAccessor* CImageAccessorCreator::CreateEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, int iFirst, ...)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, int iFirst, ...)
 {
 	CImageAccessorCreator	cCreator;
 	va_list					vaMarker;
@@ -249,7 +249,7 @@ CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, int iFirst, .
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage)
 {
 	CImageAccessorCreator	cCreator;
 
@@ -263,7 +263,7 @@ CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, Ptr<CImage> pcChannels)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, CImage* pcChannels)
 {
 	CImageAccessorCreator	cCreator;
 
@@ -277,7 +277,7 @@ CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, Ptr<CImage> p
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, CArrayInt* paiChannels)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, CArrayInt* paiChannels)
 {
 	CImageAccessorCreator	cCreator;
 
@@ -291,7 +291,7 @@ CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, CArrayInt* pa
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageAccessor* CImageAccessorCreator::Create(Ptr<CImage> pcImage, CImageColour* pcColour)
+CImageAccessor* CImageAccessorCreator::Create(CImage* pcImage, CImageColour* pcColour)
 {
 	CImageAccessorCreator	cCreator;
 

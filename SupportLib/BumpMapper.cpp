@@ -102,7 +102,7 @@ void AssignNormalMapFromNormals(Ptr<CImage> pcImage, SFloat3* pasNormals)
 	CImageAccessor*		pcAccessor;
 	int					iWidth;
 
-	pcAccessor = CImageAccessorCreator::Create(pcImage, PT_uint8, IMAGE_NORMAL_X, IMAGE_NORMAL_Y, IMAGE_NORMAL_Z, CHANNEL_ZERO);
+	pcAccessor = CImageAccessorCreator::Create(&pcImage, PT_uint8, IMAGE_NORMAL_X, IMAGE_NORMAL_Y, IMAGE_NORMAL_Z, CHANNEL_ZERO);
 
 	iWidth = (pcImage->miWidth + 1);
 	for (y = 0; y < pcImage->miHeight; y++)
@@ -143,7 +143,7 @@ void AssignBumpMapFromNormals(Ptr<CImage> pcImage, SFloat3* pasNormals)
 	CImageAccessor*		pcAccessor;
 	int					iWidth;
 
-	pcAccessor = CImageAccessorCreator::Create(pcImage, PT_uint8, IMAGE_BUMP_U, IMAGE_BUMP_V, CHANNEL_ZERO);
+	pcAccessor = CImageAccessorCreator::Create(&pcImage, PT_uint8, IMAGE_BUMP_U, IMAGE_BUMP_V, CHANNEL_ZERO);
 
 	iWidth = (pcImage->miWidth + 1);
 	for (y = 0; y < pcImage->miHeight; y++)
