@@ -32,24 +32,11 @@ void CNativeWindow::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNativeWindow::BeginPresent(CRectangle* pcRectangle)
+bool CNativeWindow::BeginPresent(void)
 {
-    int32           iWidth;
-    int32           iHeight;
-
     if (!mbPainting)
     {
         mbPainting = true;
-  
-        GetRectangle(pcRectangle);
-
-        iWidth = pcRectangle->GetWidth();
-        iHeight = pcRectangle->GetHeight();
-
-        if (!mcLastRectangle.Equals(pcRectangle))
-        {
-            mpcWindow->CreateCanvas(CF_R8G8B8, iWidth, iHeight);
-        }
         return true;
     }
     return false;
@@ -60,10 +47,8 @@ bool CNativeWindow::BeginPresent(CRectangle* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CNativeWindow::EndPresent(CRectangle* pcRectangle)
+void CNativeWindow::EndPresent(void)
 {
-    mcLastRectangle.Init(pcRectangle);
-
     mbPainting = false;
 }
 
@@ -74,12 +59,12 @@ void CNativeWindow::EndPresent(CRectangle* pcRectangle)
 //////////////////////////////////////////////////////////////////////////
 bool CNativeWindow::Present(void)
 {
-    CRectangle      cRectangle;
     bool            bResult;
     CNativeCanvas*  pcNativeCanvas;
     Ptr<CCanvas>    pCanvas;
+    SInt2           sSize;
 
-    bResult = BeginPresent(&cRectangle);
+    bResult = BeginPresent();
     if (bResult)
     {
         pCanvas = mpcWindow->GetCanvas();
@@ -87,10 +72,11 @@ bool CNativeWindow::Present(void)
         pcNativeCanvas = pCanvas->GetNativeCanvas();
         if (pcNativeCanvas)
         {
-            Present(pcNativeCanvas, cRectangle.GetWidth(), cRectangle.GetHeight());
+            sSize = pCanvas->GetActualSize();
+            Present(pcNativeCanvas, sSize.x, sSize.y);
         }
 
-        EndPresent(&cRectangle);
+        EndPresent();
         return true;
     }
     return false;

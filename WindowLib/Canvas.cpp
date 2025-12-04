@@ -1,5 +1,6 @@
 #include "StandardLib/ClassDefines.h"
 #include "NativeWindowFactory.h"
+#include "Window.h"
 #include "NativeCanvas.h"
 #include "Canvas.h"
 
@@ -8,30 +9,18 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(Ptr<CWindow> pWindow, CNativeWindowFactory* pcFactory, Ptr<CCanvasDraw> pDraw)
+void CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw)
 {
 	PreInit();
 
-	Init(pWindow, CF_Unknown, -1, -1, pDraw, pcFactory);
-
-	PostInit();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcFactory)
-{
 	meFormat = eFormat;
-	miWidth = iWidth;
-	miHeight = iHeight;
 
-	mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
-	CComplexComponent::Init(pWindow, mpcNativeCanvas);
+	mpcNativeCanvas = NULL;
+	CComplexComponent::Init(pWindow);
 
 	mpCanvasDraw = pDraw;
+
+	PostInit();
 }
 
 
@@ -48,8 +37,6 @@ void CCanvas::Free(void)
 	}
 
 	meFormat = CF_Unknown;
-	miWidth = -1;
-	miHeight = -1;
 
 	CComplexComponent::Free();
 }
@@ -65,8 +52,6 @@ void CCanvas::Class(void)
 
 	U_Pointer(mpcNativeCanvas);
 	U_Enum(meFormat);
-	U_Int32(miWidth);
-	U_Int32(miHeight);
 	M_Pointer(mpCanvasDraw);
 }
 
@@ -107,6 +92,19 @@ uint8* CCanvas::GetPixelData(void)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::Draw(void)
 {
+	CNativeWindowFactory*	pcFactory;
+
+	if (HasNativeChanged())
+	{
+		pcFactory = mpWindow->GetFactory();
+		if (mpcNativeCanvas)
+		{
+			pcFactory->DestroyNativeCanvas(mpcNativeCanvas);
+			mpcNativeCanvas = NULL;
+		}
+		mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
+	}
+
 	CComplexComponent::Draw();
 	if (mpCanvasDraw)
 	{
@@ -120,14 +118,22 @@ bool CCanvas::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::LayoutActualSize(void)
+bool CCanvas::HasNativeChanged(void)
 {
-	if (IsValid())
+	SInt2	sSize;
+
+	if (mpcNativeCanvas == NULL)
 	{
-		CComplexComponent::SetActualSize(miWidth, miHeight);
-		Layout(msPosition, msActualSize);
-		//mcFocus.Update(mcInput.GetPointer()->GetX(), mcInput.GetPointer()->GetY());
+		return true;
 	}
+
+	sSize = mpcNativeCanvas->GetSize();
+	if ((msActualSize.x != sSize.x) ||
+		(msActualSize.y != sSize.y))
+	{
+		return false;
+	}
+	return true;
 }
 
 
@@ -179,9 +185,7 @@ void CCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //////////////////////////////////////////////////////////////////////////
 bool CCanvas::IsValid(void)
 {
-	if ((meFormat == CF_Unknown) ||
-		(miWidth == -1) ||
-		(miHeight == -1))
+	if (meFormat == CF_Unknown)
 	{
 		return false;
 	}
@@ -237,8 +241,6 @@ bool CCanvas::ClearContainer(void)
 //
 //////////////////////////////////////////////////////////////////////////
 EColourFormat CCanvas::GetFormat(void) { return meFormat; }
-int32 CCanvas::GetWidth(void) { return miWidth; }
-int32 CCanvas::GetHeight(void) { return miHeight; }
 CNativeCanvas* CCanvas::GetNativeCanvas(void) { return mpcNativeCanvas; }
 Ptr<CCanvasDraw> CCanvas::GetCanvasDraw(void) { return mpCanvasDraw; }
 Ptr<CContainer> CCanvas::GetContainer(void) { return mpContainer; }

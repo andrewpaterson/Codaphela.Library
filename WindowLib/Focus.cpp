@@ -84,8 +84,8 @@ void CFocus::Update(int x, int y)
 {
 	Ptr<CBasicComponent> pcComponent;
 
-	x = x - mpWindow->GetClientRect()->miLeft;
-	y = y - mpWindow->GetClientRect()->miTop;
+	//x = x - mpWindow->GetClientRect()->miLeft;
+	//y = y - mpWindow->GetClientRect()->miTop;
 
 	pcComponent = mpWindow->FindComponentAt(x, y);
 

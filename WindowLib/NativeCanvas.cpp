@@ -10,6 +10,7 @@ void CNativeCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 {
 	CBasicNativeComponent::Init(pcWindowFactory);
 	mpcCanvas = pcCanvas;
+	msSize.Init(-1, -1);
 }
 
 
@@ -21,5 +22,25 @@ void CNativeCanvas::Kill(void)
 {
 	mpcCanvas = NULL;
 	CBasicNativeComponent::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt2 CNativeCanvas::GetSize(void)
+{
+	return msSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CNativeCanvas::SetSize(int x, int y)
+{
+	msSize.Init(x, y);
 }
 

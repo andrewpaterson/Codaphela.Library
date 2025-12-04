@@ -23,8 +23,8 @@ public:
 			bool	Present(void);
 
 protected:
-			bool	BeginPresent(CRectangle* pcRectangle);
-			void	EndPresent(CRectangle* pcRectangle);
+			bool	BeginPresent(void);
+			void	EndPresent(void);
 
 	virtual	void	Present(CNativeCanvas* pcNativeCanvas, int32 iWidth, int32 iHeight) =0;
 

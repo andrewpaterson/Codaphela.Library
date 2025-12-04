@@ -40,21 +40,21 @@ bool CWinRefCanvas::CreateNativeCanvas(void)
     //This is split from .Init() so that it can fail on its own.
 
     CWinRefWindowFactory*   pcFactory; 
-    int32                   iWidth;
-    int32                   iHeight;
+    SInt2                   sSize;
 
     pcFactory = (CWinRefWindowFactory*)mpcWindowFactory;
-    iWidth = mpcCanvas->GetWidth();
-    iHeight = mpcCanvas->GetHeight();
+    sSize = mpcCanvas->GetActualSize();
 
-    mpImage = OMalloc<CImage>(iWidth, iHeight);
+    mpImage = OMalloc<CImage>(sSize.x, sSize.y);
 
     if (mpImage.IsNull())
     {
+        SetSize(-1, -1);
         return false;
     }
 
-    mcDraw.Init(mpImage);
+    SetSize(sSize.x, sSize.y);
+    mcDraw.Init(&mpImage);
 
     return true;
 }

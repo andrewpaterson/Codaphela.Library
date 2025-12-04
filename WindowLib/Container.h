@@ -21,8 +21,6 @@ public:
 
 	virtual void	SetRequiredSize(void) =0;
 			void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
-
-			bool	Draw(void) override;
 };
 
 

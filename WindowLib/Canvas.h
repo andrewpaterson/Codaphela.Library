@@ -37,14 +37,11 @@ DESTRUCTABLE(CCanvas);
 protected:
 	CNativeCanvas*		mpcNativeCanvas;
 	EColourFormat		meFormat;
-	int32				miWidth;
-	int32				miHeight;
 	Ptr<CCanvasDraw>	mpCanvasDraw;
 	Ptr<CContainer>		mpContainer;
 
 public:
-	void				Init(Ptr<CWindow> pWindow, CNativeWindowFactory* pcWindowFactory, Ptr<CCanvasDraw> pDraw);
-	void				Init(Ptr<CWindow> pWindow, EColourFormat eFormat, int32 iWidth, int32 iHeight, Ptr<CCanvasDraw> pDraw, CNativeWindowFactory* pcWindowFactory);
+	void				Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw);
 	void				Class(void);
 	void 				Free(void);
 
@@ -52,22 +49,19 @@ public:
 	bool				Load(CObjectReader* pcFile) override;
 
 	EColourFormat		GetFormat(void);
-	int32				GetWidth(void);
-	int32				GetHeight(void);
 	bool				IsValid(void);
 
 	uint8*				GetPixelData(void);
 
 	CNativeCanvas*		GetNativeCanvas(void);
 	Ptr<CCanvasDraw>	GetCanvasDraw(void);
+	bool				HasNativeChanged(void);
 
 	bool				SetContainer(Ptr<CContainer> pContainer);
 	Ptr<CContainer>		GetContainer(void);
 	bool				ClearContainer(void);
 
 	bool				Draw(void) override;
-
-	void				LayoutActualSize(void);
 
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
 	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
