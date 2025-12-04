@@ -33,17 +33,17 @@ class CImageAccessorCreator
 {
 public:
 	static CImageAccessor* CreateEmpty(void);
-	static CImageAccessor* Create(Ptr<CImage> pcImage, int iFirst, ...);
-	static CImageAccessor* Create(Ptr<CImage> pcImage);
-	static CImageAccessor* Create(Ptr<CImage> pcImage, Ptr<CImage> pcChannels);
-	static CImageAccessor* Create(Ptr<CImage> pcImage, CArrayInt* paiChannels);
-	static CImageAccessor* Create(Ptr<CImage> pcImage, CImageColour* pcColour);
+	static CImageAccessor* Create(CImage* pcImage, int iFirst, ...);
+	static CImageAccessor* Create(CImage* pcImage);
+	static CImageAccessor* Create(CImage* pcImage, CImage* pcChannels);
+	static CImageAccessor* Create(CImage* pcImage, CArrayInt* paiChannels);
+	static CImageAccessor* Create(CImage* pcImage, CImageColour* pcColour);
 
 public:
 	CChannelsAccessorCreator	mcCreator;
-	Ptr<CImage>					mpcImage;
+	CImage*						mpcImage;
 
-	void				Init(Ptr<CImage> pcImage);
+	void				Init(CImage* pcImage);
 	void				Kill(void);
 	CImageAccessor*		Create(void);
 	CImageAccessor*		CreateAndKill(void);
@@ -53,7 +53,7 @@ public:
 	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(Ptr<CImage> pcChannels);
+	void	AddAccess(CImage* pcChannels);
 	void	AddAccess(CImageAccessor* pcChannels);
 
 	void	AddAccess(CImageColour* pcColour);

@@ -118,8 +118,8 @@ Ptr<CImage> CImageResampler::ResampleTo(Ptr<CImage> pcSource)
 	pcDest->SetSize(miWidth, miHeight);
 	pcDest->EndChange();
 
-	pcSourceAccessor = CImageAccessorCreator::Create(pcSource, pcSource);
-	pcDestAccessor = CImageAccessorCreator::Create(pcDest, pcDest);
+	pcSourceAccessor = CImageAccessorCreator::Create(&pcSource, &pcSource);
+	pcDestAccessor = CImageAccessorCreator::Create(&pcDest, &pcDest);
 
 	if ((pcSource->GetWidth() == miWidth) && (pcSource->GetHeight() == miHeight))
 	{

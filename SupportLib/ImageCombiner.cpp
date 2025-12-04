@@ -482,7 +482,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 			pcDest = CImageAccessorCreator::Create(&mpcDestImage, &aiIntersectChannels);
 
 			pcSource->Kill();
-			pcSource = CImageAccessorCreator::Create(pcCelSource->GetSourceImage(), &aiIntersectChannels);
+			pcSource = CImageAccessorCreator::Create(&pcCelSource->GetSourceImage(), &aiIntersectChannels);
 
 			aiIntersectChannels.Kill();
 			pcLastImage = pcCelSource->GetSourceImage();
