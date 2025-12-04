@@ -4,9 +4,6 @@
 #include "FatCommon.h"
 
 
-// This is the file handle structure. All the fields in this structure
-// are reserved for internal use and should not be accessed directly by the
-// developer.
 class CFatVolume;
 struct SFatFile
 {
