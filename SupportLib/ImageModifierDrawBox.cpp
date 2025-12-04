@@ -64,7 +64,7 @@ Ptr<CImage> CImageModifierDrawBox::Modify(Ptr<CImage> pImage)
 {
 	CImageDraw			cDraw;
 
-	cDraw.Init(pImage);
+	cDraw.Init(&pImage);
 	cDraw.SetColour(mpcColour);
 	if (mbWholeImage)
 	{

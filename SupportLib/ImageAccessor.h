@@ -38,7 +38,7 @@ class CImageAccessor : public CUnknown
 CONSTRUCTABLE(CImageAccessor);
 protected:
 	CChannelsAccessor*	mpcAccessor;
-	Ptr<CImage>			mpcImage;
+	Ptr<CImage>			mpcImage;  //This should be a * not a Ptr pointer.
 	int					miWidth;
 	bool				mbKillChannelAccessor;
 
