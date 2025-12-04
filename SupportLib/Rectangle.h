@@ -47,6 +47,7 @@ public:
 	void		Init(int32 iWidth, int32 iHeight);
 	void 		Init(int64 iLeft, int64 iTop, int64 iRight, int64 iBottom);
 	void 		Init(SInt2 sTopLeft, SInt2 sBottomRight);
+	void 		Init(SInt2 sSize);
 	void 		Init(CRectangle* pcSource);
 	void 		Kill(void);
 	void		Copy(CRectangle* pcSource);

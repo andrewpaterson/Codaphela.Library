@@ -9,12 +9,12 @@
 class CImageDraw
 {
 protected:
-	Ptr<CImage>			mpImage;
+	CImage*				mpcImage;
 	CImageAccessor*		mpcAccessor;
 	SImageColour		msColour;
 
 public:
-	void	Init(Ptr<CImage> pImage);
+	void	Init(CImage* ppImage);  //* pointer instead of Ptr pointer because CImageDraw is not an object.
 	void	Kill(void);
 
 	void	SetColour(CImageColour* pcColour);

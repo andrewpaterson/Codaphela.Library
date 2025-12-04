@@ -6,11 +6,11 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::Init(Ptr<CImage> pImage)
+void CImageDraw::Init(CImage* pcImage)
 {
 	CImageColourRGB	cColour;
 
-	mpImage = pImage;
+	mpcImage = pcImage;
 	mpcAccessor = NULL;
 	
 	cColour.Init(1.0f, 1.0f, 1.0f);
@@ -30,7 +30,7 @@ void CImageDraw::Kill(void)
 		mpcAccessor->Kill();
 		mpcAccessor = NULL;
 	}
-	mpImage = NULL;
+	mpcImage = NULL;
 }
 
 
@@ -46,7 +46,7 @@ void CImageDraw::SetColour(CImageColour* pcColour)
 		mpcAccessor = NULL;
 	}
 
-	mpcAccessor = CImageAccessorCreator::Create(mpImage, pcColour);
+	mpcAccessor = CImageAccessorCreator::Create(mpcImage, pcColour);
 	mpcAccessor->MakeColour(&msColour, pcColour);
 }
 
@@ -112,7 +112,7 @@ void CImageDraw::DrawBox(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, b
 //////////////////////////////////////////////////////////////////////////
 void CImageDraw::DrawBox(bool bFilled)
 {
-	DrawBox(0, 0, mpImage->GetWidth(), mpImage->GetHeight(), bFilled);
+	DrawBox(0, 0, mpcImage->GetWidth(), mpcImage->GetHeight(), bFilled);
 }
 
 
