@@ -48,7 +48,7 @@ public:
 	void			DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
 
 protected:
-	void	SetColour(ARGB32 sColour);
+	void			SetColour(ARGB32 sColour);
 };
 
 

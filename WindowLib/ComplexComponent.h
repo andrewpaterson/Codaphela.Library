@@ -9,15 +9,14 @@
 #include "BasicComponent.h"
 
 
+//I don't know what this class achieves anymore.
 class CComplexComponent : public CBasicComponent
 {
 CONSTRUCTABLE(CComplexComponent);
 DESTRUCTABLE(CComplexComponent);
 protected:
-	CBasicNativeComponent*	mpcNativeComponent;
-
 public:
-	void	Init(Ptr<CWindow> pWindow, CBasicNativeComponent* pcNativeComponent);
+	void	Init(Ptr<CWindow> pWindow);
 	void	Class(void);
 	void 	Free(void);
 

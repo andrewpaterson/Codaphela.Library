@@ -6,7 +6,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CComplexComponent::Init(Ptr<CWindow> pWindow, CBasicNativeComponent* pcNativeComponent)
+void CComplexComponent::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
@@ -22,8 +22,6 @@ void CComplexComponent::Init(Ptr<CWindow> pWindow, CBasicNativeComponent* pcNati
 //////////////////////////////////////////////////////////////////////////
 void CComplexComponent::Free(void)
 {
-	mpcNativeComponent = NULL;
-
 	CBasicComponent::Free();
 }
 
@@ -34,7 +32,7 @@ void CComplexComponent::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CComplexComponent::Class(void)
 {
-	U_Pointer(mpcNativeComponent);
+	CBasicComponent::Class();
 }
 
 

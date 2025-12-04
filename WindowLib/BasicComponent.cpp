@@ -18,6 +18,7 @@ void CBasicComponent::Init(Ptr<CWindow> pWindow)
 	msDesiredSize.Init(-1, -1);
 	mbCanGetFocus = false;
 	mpParent = NULL;
+	mpWindow = pWindow;
 
 	PostInit();
 }
@@ -47,8 +48,6 @@ void CBasicComponent::Class(void)
 	M_Pointer(mpParent);
 	M_Embedded(maChildren);
 	M_Pointer(mpWindow);
-
-	
 }
 
 
@@ -273,14 +272,14 @@ void CBasicComponent::Layout(SInt2 sPosition, SInt2 sAreaSize)
 void CBasicComponent::LayoutChildren(SInt2 sPosition, SInt2 sAreaSize)
 {
 	size					i;
-	Ptr<CBasicComponent>	pcComponent;
+	Ptr<CBasicComponent>	pComponent;
 	size					uiSize;
 
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
-		pcComponent = maChildren.Get(i);
-		pcComponent->Layout(sPosition, sAreaSize);
+		pComponent = maChildren.Get(i);
+		pComponent->Layout(sPosition, sAreaSize);
 	}
 }
 

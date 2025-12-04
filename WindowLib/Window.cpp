@@ -17,16 +17,16 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 
 	mszWindowTitle.Init(szTitle);
 
-	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
-	CComplexComponent::Init(this, mpcNativeWindow);
+	mpcFactory = pcFactory;
+	mpcNativeWindow = pcFactory->CreateNativeWindow(this);  //Hmmm....
+	CComplexComponent::Init(this);
 
 	mpWindowTick = pTick;
-	mpCanvas = OMalloc<CCanvas>(this, pcFactory, pDraw);
+	mpCanvas = OMalloc<CCanvas>(this, CF_R8G8B8, pDraw);
 	AddComponent(mpCanvas);
 	mbTicking = false;
 
 	mFocus.Init(this);
-	mcClientRect.Init();
 
 	PostInit();
 }
@@ -44,6 +44,8 @@ void CWindow::Free(void)
 	mszWindowTitle.Kill();
 
 	CComplexComponent::Free();
+
+	mpcFactory = NULL;
 }
 
 
@@ -61,7 +63,7 @@ void CWindow::Class(void)
 	M_Pointer(mpWindowTick);
 	U_Bool(mbTicking);
 	M_Embedded(mFocus);
-	U_Data(CRectangle, mcClientRect);
+	U_Pointer(mpcFactory);
 }
 
 
@@ -119,33 +121,6 @@ bool CWindow::Show(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CWindow::CreateCanvas(EColourFormat eFormat, int32 iWidth, int32 iHeight)
-{
-	CNativeWindowFactory*	pcFactory;
-	Ptr<CCanvas>			pNewCanvas;
-	Ptr<CCanvasDraw>		pDraw;
-
-	pcFactory = mpcNativeWindow->GetFactory();
-	pDraw = mpCanvas->GetCanvasDraw();
-
-	mcClientRect.SetSize(iWidth, iHeight);
-	pNewCanvas = OMalloc<CCanvas>(this, eFormat, iWidth, iHeight, pDraw, pcFactory);
-
-	pNewCanvas->CopyCanvas(mpCanvas);
-
-	//This should be optimised into ReplaceComponent.
-	RemoveComponent(mpCanvas);
-	AddComponent(pNewCanvas);
-
-	mpCanvas = pNewCanvas;
-	
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CWindow::Paint(void)
 {
 	Layout();
@@ -160,7 +135,14 @@ void CWindow::Paint(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Layout(void)
 {
-	mpCanvas->LayoutActualSize();
+	CRectangle	cRect;
+
+	mpcNativeWindow->GetRectangle(&cRect);
+	SetActualSize(cRect.GetWidth(), cRect.GetHeight());
+	SetPosition(0, 0);  //The position of the Window within itself.
+	CComplexComponent::Layout(GetPosition(), GetActualSize());
+
+	//mFocus.Update(mcInput.GetPointer()->GetX(), mcInput.GetPointer()->GetY());
 }
 
 
@@ -218,8 +200,8 @@ bool CWindow::ClearContainer(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CCanvas>	CWindow::GetCanvas(void) { return mpCanvas; }
-Ptr<CFocus>		CWindow::GetFocus(void) { return &mFocus; }
-CRectangle*		CWindow::GetClientRect(void) { return &mcClientRect; }
-Ptr<CContainer>	CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
+Ptr<CCanvas>			CWindow::GetCanvas(void) { return mpCanvas; }
+Ptr<CFocus>				CWindow::GetFocus(void) { return &mFocus; }
+Ptr<CContainer>			CWindow::GetContainer(void) { return mpCanvas->GetContainer(); }
+CNativeWindowFactory*	CWindow::GetFactory(void) { return mpcFactory; }
 
