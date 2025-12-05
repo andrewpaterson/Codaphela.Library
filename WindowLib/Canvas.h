@@ -64,8 +64,10 @@ public:
 	bool				Draw(void) override;
 
 	void				CopyCanvas(Ptr<CCanvas> pSourceCanvas);
+
+	void				DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas);
 	void				DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour);
-	void				DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
+	void				DrawPixel(int iX, int iY, ARGB32 sColour);
 };
 
 

@@ -19,15 +19,17 @@ public:
 
 	void	SetColour(CImageColour* pcColour);
 
-	void	DrawPixel(int32 x, int32 y);
+	void	DrawPixel(int x, int y);
 
 	void	DrawBox(CRectangle* pcRetangle, bool bFilled);
-	void	DrawBox(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, bool bFilled);
+	void	DrawBox(int iLeft, int iTop, int iRight, int iBottom, bool bFilled);
 	void	DrawBox(bool bFilled);
 
-	void	DrawLine(int32 x0, int32 y0, int32 x1, int32 y1);
-	void	DrawHorizontalLine(int32 x0, int32 x1, int32 y);
-	void	DrawVerticalLine(int32 x, int32 y0, int32 y1);
+	void	DrawLine(int x0, int y0, int x1, int y1);
+	void	DrawHorizontalLine(int x0, int x1, int y);
+	void	DrawVerticalLine(int x, int y0, int y1);
+
+	void	DrawImage(int x, int y, CImage* pcSource);
 };
 
 

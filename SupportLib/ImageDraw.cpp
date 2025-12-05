@@ -1,3 +1,4 @@
+#include "StandardLib/ChannelsCopier.h"
 #include "ImageAccessorCreator.h"
 #include "ImageDraw.h"
 
@@ -54,7 +55,7 @@ void CImageDraw::SetColour(CImageColour* pcColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawPixel(int32 x, int32 y)
+void CImageDraw::DrawPixel(int x, int y)
 {
 	mpcAccessor->SafeSet(x, y, &msColour);
 }
@@ -74,10 +75,10 @@ void CImageDraw::DrawBox(CRectangle* pcRetangle, bool bFilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawBox(int32 iLeft, int32 iTop, int32 iRight, int32 iBottom, bool bFilled)
+void CImageDraw::DrawBox(int iLeft, int iTop, int iRight, int iBottom, bool bFilled)
 {
-	int32		x;
-	int32		y;
+	int		x;
+	int		y;
 
 	if (bFilled)
 	{
@@ -120,13 +121,13 @@ void CImageDraw::DrawBox(bool bFilled)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawLine(int32 x0, int32 y0, int32 x1, int32 y1)
+void CImageDraw::DrawLine(int x0, int y0, int x1, int y1)
 {
-	int32 dx;
-	int32 dy;
-	int32 sx;
-	int32 sy;
-	int32 err;
+	int dx;
+	int dy;
+	int sx;
+	int sy;
+	int err;
 
 	dx = IntAbs(x1 - x0);
 	dy = IntAbs(y1 - y0);
@@ -143,7 +144,7 @@ void CImageDraw::DrawLine(int32 x0, int32 y0, int32 x1, int32 y1)
 			break;
 		}
 
-		int32 e2 = 2 * err;
+		int e2 = 2 * err;
 		if (e2 > -dy) 
 		{
 			err -= dy;
@@ -162,9 +163,9 @@ void CImageDraw::DrawLine(int32 x0, int32 y0, int32 x1, int32 y1)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawHorizontalLine(int32 x0, int32 x1, int32 y)
+void CImageDraw::DrawHorizontalLine(int x0, int x1, int y)
 {
-	int32	x;
+	int	x;
 
 	if (x0 > x1)
 	{
@@ -182,9 +183,9 @@ void CImageDraw::DrawHorizontalLine(int32 x0, int32 x1, int32 y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageDraw::DrawVerticalLine(int32 x, int32 y0, int32 y1)
+void CImageDraw::DrawVerticalLine(int x, int y0, int y1)
 {
-	int32	y;
+	int	y;
 
 	if (y0 > y1)
 	{
@@ -195,5 +196,32 @@ void CImageDraw::DrawVerticalLine(int32 x, int32 y0, int32 y1)
 	{
 		mpcAccessor->SafeSet(x, y, &msColour);
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageDraw::DrawImage(int x, int y, CImage* pcSource)
+{
+	int					i;
+	int					iSourceWidth;
+	int					iSourceHeight;
+	int					iDestWidth;
+	int					iDestHeight;
+	CChannelsCopier		cCopy;
+
+	iSourceWidth = pcSource->GetWidth();
+	iSourceHeight = pcSource->GetHeight();
+	iDestWidth = mpcImage->GetWidth();
+	iDestHeight = mpcImage->GetHeight();
+
+	cCopy.Init(pcSource->GetChannels(), mpcImage->GetChannels());
+	for (i = 0; i < iSourceHeight; i++)
+	{
+		cCopy.Copy(i * iSourceWidth, (y + i) * iDestWidth + x, iSourceWidth);
+	}
+	cCopy.Kill();
 }
 

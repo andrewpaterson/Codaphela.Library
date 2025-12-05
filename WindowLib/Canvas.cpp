@@ -93,6 +93,7 @@ uint8* CCanvas::GetPixelData(void)
 bool CCanvas::Draw(void)
 {
 	CNativeWindowFactory*	pcFactory;
+	Ptr<CCanvas>			pWindowCanvas;
 
 	if (HasNativeChanged())
 	{
@@ -109,6 +110,12 @@ bool CCanvas::Draw(void)
 	if (mpCanvasDraw)
 	{
 		mpCanvasDraw->Draw(this);
+	}
+
+	pWindowCanvas = mpWindow->GetCanvas();
+	if (&pWindowCanvas != this)
+	{
+		pWindowCanvas->DrawCanvas(msPosition.x, msPosition.y, this);
 	}
 	return true;
 }
@@ -164,6 +171,19 @@ void CCanvas::CopyCanvas(Ptr<CCanvas> pSourceCanvas)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CCanvas::DrawCanvas(int iX, int iY, Ptr<CCanvas> pSourceCanvas)
+{
+	CNativeCanvas*	pcSourceNativeCanvas;
+
+	pcSourceNativeCanvas = pSourceCanvas->GetNativeCanvas();
+	mpcNativeCanvas->DrawCanvas(iX, iY, pcSourceNativeCanvas);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CCanvas::DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour)
 {
 	mpcNativeCanvas->DrawBox(pcRect, bFilled, sColour);
@@ -174,7 +194,7 @@ void CCanvas::DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
+void CCanvas::DrawPixel(int iX, int iY, ARGB32 sColour)
 {
 	mpcNativeCanvas->DrawPixel(iX, iY, sColour);
 }

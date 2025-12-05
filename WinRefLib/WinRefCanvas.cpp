@@ -115,6 +115,19 @@ void CWinRefCanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CWinRefCanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
+{
+    CWinRefCanvas*   pcRefSource;
+
+    pcRefSource = (CWinRefCanvas*)pcSource;
+    mcDraw.DrawImage(iX, iY, &pcRefSource->GetImage());
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CWinRefCanvas::SetColour(ARGB32 sColour)
 {
     CImageColourRGB	    cColour;

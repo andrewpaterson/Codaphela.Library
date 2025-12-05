@@ -45,7 +45,8 @@ protected:
 	virtual void	CopyCanvas(CNativeCanvas* pcSourceCanvas) =0;
 
 	virtual void	DrawBox(CRectangle* pcRect, bool bFilled, ARGB32 sColour) =0;
-	virtual void	DrawPixel(int32 iX, int32 iY, ARGB32 sColour) =0;
+	virtual void	DrawPixel(int iX, int iY, ARGB32 sColour) =0;
+	virtual void	DrawCanvas(int iX, int iY, CNativeCanvas* pcSource) =0;
 
 			SInt2	GetSize(void);
 			void	SetSize(int x, int y);
