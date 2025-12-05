@@ -64,7 +64,7 @@ public:
 	int					GetBitSize(void);
 	int					GetByteSize(void);
 	CChannelsAccessor*	GetAccessor(void);
-	CImage*			GetImage(void);
+	CImage*				GetImage(void);
 	int					GetWidth(void);
 };
 
