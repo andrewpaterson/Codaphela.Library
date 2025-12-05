@@ -185,6 +185,7 @@
     <ClInclude Include="ComponentListener.h" />
     <ClInclude Include="Container.h" />
     <ClInclude Include="ContainerBounds.h" />
+    <ClInclude Include="ContainerStyles.h" />
     <ClInclude Include="FillContainer.h" />
     <ClInclude Include="FixedContainer.h" />
     <ClInclude Include="FlowContainer.h" />

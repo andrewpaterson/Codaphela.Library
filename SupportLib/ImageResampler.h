@@ -1,3 +1,5 @@
+#ifndef __IMAGE_RESAMPLER_H__
+#define __IMAGE_RESAMPLER_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -21,8 +23,6 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __IMAGE_RESAMPLER_H__
-#define __IMAGE_RESAMPLER_H__
 #include "Image.h"
 #include "ImageModifier.h"
 

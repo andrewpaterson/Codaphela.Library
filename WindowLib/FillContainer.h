@@ -20,26 +20,9 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "ContainerStyles.h"
 #include "Container.h"
 #include "Insets.h"
-
-
-enum EFillStyleHorizontal
-{
-	FSH_Stretch,
-	FSH_Left,
-	FSH_Center,
-	FSH_Right,
-};
-
-
-enum EFillStyleVertical
-{
-	FSV_Stretch,
-	FSV_Top,
-	FSV_Center,
-	FSV_Bottom,
-};
 
 
 class CFillContainer : public CContainer
@@ -47,8 +30,8 @@ class CFillContainer : public CContainer
 CONSTRUCTABLE(CFillContainer);
 DESTRUCTABLE(CFillContainer);
 protected:
-	EFillStyleHorizontal	meHorizontal;
-	EFillStyleVertical		meVertical;
+	EContainerStyleHorizontal	meHorizontal;
+	EContainerStyleVertical		meVertical;
 	SInsets					msInsets;
 
 public:
@@ -58,7 +41,7 @@ public:
 	void	SetRequiredSize(void) override;
 	void 	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
-	void 	SetFillStyle(EFillStyleHorizontal eH, EFillStyleVertical eV);
+	void 	SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleVertical eV);
 	void 	SetInsets(SInsets* psInsets);
 };
 

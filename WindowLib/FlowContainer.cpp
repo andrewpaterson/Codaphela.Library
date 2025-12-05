@@ -29,8 +29,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CFlowContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
-	meWrap = FSW_Wrap;
-	meDirection = FSD_Right;
+	meWrap = CSW_Wrap;
+	meDirection = CSD_Right;
 }
 
 
@@ -63,7 +63,7 @@ void CFlowContainer::SetRequiredSize(void)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetBestSize();
-		if (meDirection == FSD_Right)
+		if (meDirection == CSD_Right)
 		{
 			sTotalSize.x += sSize.x;
 			if (sTotalSize.y < sSize.y)
@@ -71,7 +71,7 @@ void CFlowContainer::SetRequiredSize(void)
 				sTotalSize.y = sSize.y;
 			}
 		}
-		else if (meDirection == FSD_Down)
+		else if (meDirection == CSD_Down)
 		{
 			sTotalSize.y += sSize.y;
 			if (sTotalSize.x < sSize.x)
@@ -107,9 +107,9 @@ void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetBestSize();
-		if (meDirection == FSD_Right)
+		if (meDirection == CSD_Right)
 		{
-			if ((meWrap == FSW_Wrap) && ((fXPos + sSize.x) > sAreaSize.x))
+			if ((meWrap == CSW_Wrap) && ((fXPos + sSize.x) > sAreaSize.x))
 			{
 				fXPos = 0;
 				fYPos += sSize.y;
@@ -117,9 +117,9 @@ void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 			sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
 			fXPos += sSize.x;
 		}
-		else if (meDirection == FSD_Down)
+		else if (meDirection == CSD_Down)
 		{
-			if ((meWrap == FSW_Wrap) && ((fYPos + sSize.y) > sAreaSize.y))
+			if ((meWrap == CSW_Wrap) && ((fYPos + sSize.y) > sAreaSize.y))
 			{
 				fYPos = 0;
 				fXPos += sSize.x;
@@ -137,7 +137,7 @@ void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::SetFlowStyle(EFlowStyleDirection eD, EFlowStyleWrap eW)
+void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW)
 {
 	meWrap = eW;
 	meDirection = eD;
