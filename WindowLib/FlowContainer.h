@@ -20,27 +20,15 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
+#include "ContainerStyles.h"
 #include "Container.h"
-
-
-enum EFlowStyleWrap
-{
-	FSW_Wrap,
-	FSW_Continue,
-};
-
-enum EFlowStyleDirection
-{
-	FSD_Right,
-	FSD_Down,
-};
 
 
 class CFlowContainer : public CContainer
 {
 public:
-	EFlowStyleWrap		meWrap;
-	EFlowStyleDirection	meDirection;
+	EContainerStyleWrap		meWrap;
+	EContainerStyleDirection	meDirection;
 
 	void Init(Ptr<CWindow> pWindow);
 	void Free(void);
@@ -48,7 +36,7 @@ public:
 	void SetRequiredSize(void) override;
 	void Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
-	void SetFlowStyle(EFlowStyleDirection eD, EFlowStyleWrap eW);
+	void SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW);
 };
 
 

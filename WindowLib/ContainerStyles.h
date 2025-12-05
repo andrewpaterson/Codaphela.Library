@@ -1,5 +1,5 @@
-#ifndef __IMAGE_RESAMPLER_H__
-#define __IMAGE_RESAMPLER_H__
+#ifndef __CONTAINER_STYLES_H__
+#define __CONTAINER_STYLES_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -23,48 +23,45 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "Image.h"
-#include "ImageModifier.h"
 
 
-enum EPow2Style
+enum EContainerStyleWrap
 {
-	RS_Unknown,
-	RS_Up,
-	RS_Down,
-	RS_Auto
+	CSW_Unknown,
+	CSW_Wrap,
+	CSW_Continue,
 };
 
 
-enum EImageResample
+enum EContainerStyleDirection
 {
-	IR_NearestNeighbour,
-	IR_Bilinear,
-	IR_Bicubic,
-	IR_Smart,  //http://www.hiend3d.com/smartflt.html
+	CSD_Unknown,
+	CSD_Right,
+	CSD_Down,
+	CSD_Up,
+	CSD_Left,
 };
 
 
-class CImage;
-class CImageResampler : public CImageModifier
+enum EContainerStyleHorizontal
 {
-CONSTRUCTABLE(CImageResampler);
-private:
-	void			GetPowerOf2Size(EPow2Style eStyle, int iSourceWidth, int iSourceHeight, int* piDestWidth, int* piDestHeight);
-	Ptr<CImage>		ResampleTo(Ptr<CImage> pcSource);
-
-public:
-	EImageResample	meResample;
-	int				miWidth;
-	int				miHeight;
-	EPow2Style		meStyle;
-
-	void			Init(EImageResample eResample, EPow2Style eStyle);
-	void			Init(EImageResample eResample, int iWidth, int iHeight);
-	void			Kill(void);
-	Ptr<CImage>		Modify(Ptr<CImage> pcImage);
+	CSH_Unknown,
+	CSH_Stretch,
+	CSH_Left,
+	CSH_Center,
+	CSH_Right,
 };
 
 
-#endif // __IMAGE_RESAMPLER_H__
+enum EContainerStyleVertical
+{
+	CSV_Unknown,
+	CSV_Stretch,
+	CSV_Top,
+	CSV_Center,
+	CSV_Bottom,
+};
+
+
+#endif // __CONTAINER_STYLES_H__
 

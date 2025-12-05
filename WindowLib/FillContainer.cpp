@@ -29,8 +29,8 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 void CFillContainer::Init(Ptr<CWindow> pWindow)
 {
 	CContainer::Init(pWindow);
-	meHorizontal = FSH_Stretch;
-	meVertical = FSV_Stretch;
+	meHorizontal = CSH_Stretch;
+	meVertical = CSV_Stretch;
 	msInsets.Init();
 }
 
@@ -49,7 +49,7 @@ void CFillContainer::Free(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFillContainer::SetFillStyle(EFillStyleHorizontal eH, EFillStyleVertical eV)
+void CFillContainer::SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleVertical eV)
 {
 	meHorizontal = eH;
 	meVertical = eV;
@@ -125,38 +125,38 @@ void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 		}
 
 		//Horizontal.
-		if (meHorizontal == FSH_Stretch)
+		if (meHorizontal == CSH_Stretch)
 		{
 		}
-		else if (meHorizontal == FSH_Left)
+		else if (meHorizontal == CSH_Left)
 		{
 			sAreaSize.x = sSize.x;
 		}
-		else if (meHorizontal == FSH_Center)
+		else if (meHorizontal == CSH_Center)
 		{
 			sPosition.x = sPosition.x + (sAreaSize.x - sSize.x) / 2;
 			sAreaSize.x = sSize.x;
 		}
-		else if (meHorizontal == FSH_Right)
+		else if (meHorizontal == CSH_Right)
 		{
 			sPosition.x = sPosition.x + sAreaSize.x - sSize.x;
 			sAreaSize.x = sSize.x;
 		}
 
 		//Vertical.
-		if (meVertical == FSV_Stretch)
+		if (meVertical == CSV_Stretch)
 		{
 		}
-		else if (meVertical == FSV_Top)
+		else if (meVertical == CSV_Top)
 		{
 			sAreaSize.y = sSize.y;
 		}
-		else if (meVertical == FSV_Center)
+		else if (meVertical == CSV_Center)
 		{
 			sPosition.y = sPosition.y + (sAreaSize.y - sSize.y) / 2;
 			sAreaSize.y = sSize.y;
 		}
-		else if (meVertical == FSV_Bottom)
+		else if (meVertical == CSV_Bottom)
 		{
 			sPosition.y = sPosition.y + sAreaSize.y - sSize.y;
 			sAreaSize.y = sSize.y;
