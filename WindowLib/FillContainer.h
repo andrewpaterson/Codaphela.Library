@@ -32,7 +32,7 @@ DESTRUCTABLE(CFillContainer);
 protected:
 	EContainerStyleHorizontal	meHorizontal;
 	EContainerStyleVertical		meVertical;
-	SInsets					msInsets;
+	SInsets						msInsets;
 
 public:
 	void 	Init(Ptr<CWindow> pWindow);

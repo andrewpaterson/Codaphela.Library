@@ -33,6 +33,7 @@ CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);
 protected:
 	SContainerBounds		msBounds;
+	SInt2					msRequiredSize;
 
 public:
 			void	Init(Ptr<CWindow> pWindow);

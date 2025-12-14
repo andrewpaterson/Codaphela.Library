@@ -90,9 +90,6 @@
     <ClInclude Include="FillContainer.h">
       <Filter>Source\Component\Containers</Filter>
     </ClInclude>
-    <ClInclude Include="FixedContainer.h">
-      <Filter>Source\Component\Containers</Filter>
-    </ClInclude>
     <ClInclude Include="FlowContainer.h">
       <Filter>Source\Component\Containers</Filter>
     </ClInclude>
@@ -149,9 +146,6 @@
     <ClCompile Include="FillContainer.cpp">
       <Filter>Source\Component\Containers</Filter>
     </ClCompile>
-    <ClCompile Include="FixedContainer.cpp">
-      <Filter>Source\Component\Containers</Filter>
-    </ClCompile>
     <ClCompile Include="FlowContainer.cpp">
       <Filter>Source\Component\Containers</Filter>
     </ClCompile>
@@ -163,6 +157,12 @@
     </ClCompile>
     <ClCompile Include="Insets.cpp">
       <Filter>Source\Component\Inset</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerBounds.cpp">
+      <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="ContainerStyles.cpp">
+      <Filter>Source\Component\Containers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

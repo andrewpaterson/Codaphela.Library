@@ -187,7 +187,6 @@
     <ClInclude Include="ContainerBounds.h" />
     <ClInclude Include="ContainerStyles.h" />
     <ClInclude Include="FillContainer.h" />
-    <ClInclude Include="FixedContainer.h" />
     <ClInclude Include="FlowContainer.h" />
     <ClInclude Include="Focus.h" />
     <ClInclude Include="FocusListener.h" />
@@ -207,8 +206,9 @@
     <ClCompile Include="CanvasDraw.cpp" />
     <ClCompile Include="ComplexComponent.cpp" />
     <ClCompile Include="Container.cpp" />
+    <ClCompile Include="ContainerBounds.cpp" />
+    <ClCompile Include="ContainerStyles.cpp" />
     <ClCompile Include="FillContainer.cpp" />
-    <ClCompile Include="FixedContainer.cpp" />
     <ClCompile Include="FlowContainer.cpp" />
     <ClCompile Include="Focus.cpp" />
     <ClCompile Include="GridCell.cpp" />

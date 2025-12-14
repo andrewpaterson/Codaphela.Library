@@ -7,6 +7,8 @@ struct SContainerBounds
 {
 	SInt2	msTopLeft;
 	SInt2	msSize;
+
+	void	Init(void);
 };
 
 

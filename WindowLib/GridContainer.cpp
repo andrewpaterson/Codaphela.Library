@@ -63,7 +63,7 @@ void CGridContainer::SetRequiredSize(void)
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetBestSize();
+		sSize = pComponent->GetDesiredSize();
 	}
 }
 
@@ -90,7 +90,7 @@ void CGridContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetBestSize();
+		sSize = pComponent->GetDesiredSize();
 
 		pComponent->Layout(sOffset, sSize);
 	}
