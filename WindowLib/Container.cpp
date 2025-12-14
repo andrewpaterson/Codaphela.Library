@@ -31,6 +31,8 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 	PreInit();
 
 	CBasicComponent::Init(pWindow);
+	msRequiredSize.Init(-1, -1);
+	msBounds.Init();
 
 	PostInit();
 }
@@ -54,6 +56,7 @@ void CContainer::Class(void)
 {
 	CBasicComponent::Class();
 	U_Data(SContainerBounds, msBounds);
+	U_2Int32(msRequiredSize);
 }
 
 
@@ -83,10 +86,10 @@ void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 	int					iParentBottom;
 	bool				bHasParentContainer;
 
-	iThisRight = (int)(sPosition.x + sAreaSize.x);
-	iThisBottom = (int)(sPosition.y + sAreaSize.y);
-	iThisLeft = (int)sPosition.x;
-	iThisTop = (int)sPosition.y;
+	iThisRight = sPosition.x + sAreaSize.x;
+	iThisBottom = sPosition.y + sAreaSize.y;
+	iThisLeft = sPosition.x;
+	iThisTop = sPosition.y;
 	if (mpParent.IsNotNull())
 	{
 		bHasParentContainer = mpParent->GetContainerBounds(&sParentBounds);

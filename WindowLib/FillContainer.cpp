@@ -74,7 +74,7 @@ void CFillContainer::SetRequiredSize(void)
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetBestSize();
+		sSize = pComponent->GetDesiredSize();
 		if (sSize.x > msRequiredSize.x)
 		{
 			msRequiredSize.x = sSize.x;
@@ -118,7 +118,7 @@ void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 
 		pComponent = maChildren.Get(i);
 
-		sSize = pComponent->GetBestSize();
+		sSize = pComponent->GetDesiredSize();
 		if (sSize.x == -1)
 		{
 			sSize = sAreaSize;

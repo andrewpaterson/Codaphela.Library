@@ -14,7 +14,6 @@ void CBasicComponent::Init(Ptr<CWindow> pWindow)
 	maChildren.Init();
 	msActualSize.Init(0, 0);
 	msPosition.Init(0, 0);
-	msRequiredSize.Init(-1, -1);
 	msDesiredSize.Init(-1, -1);
 	mbCanGetFocus = false;
 	mpParent = NULL;
@@ -41,8 +40,6 @@ void CBasicComponent::Class(void)
 {
 	U_2Int32(msActualSize);
 	U_2Int32(msPosition);
-	U_2Int32(msRequiredSize);
-	U_2Int32(msDesiredSize);
 	U_2Int32(msDesiredSize);
 	U_Bool(mbCanGetFocus);
 	M_Pointer(mpParent);
@@ -159,21 +156,6 @@ bool CBasicComponent::GetContainerBounds(SContainerBounds* psDest)
 		return mpParent->GetContainerBounds(psDest);
 	}
 	return false;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-SInt2 CBasicComponent::GetBestSize(void)
-{
-	if (msDesiredSize.x != -1.0f)
-	{
-		return msDesiredSize;
-	}
-	SetRequiredSize();
-	return msRequiredSize;
 }
 
 
@@ -328,5 +310,6 @@ void CBasicComponent::SetPosition(int x, int y) { msPosition.Init(x, y); }
 void CBasicComponent::SetPosition(SInt2 sPosition) { msPosition = sPosition; }
 SInt2 CBasicComponent::GetPosition(void) { return msPosition; }
 void CBasicComponent::SetDesiredSize(int fWidth, int fHeight) { msDesiredSize.Init(fWidth, fHeight); }
-void CBasicComponent::SetRequiredSize(void) { msRequiredSize = msDesiredSize; }
 SInt2 CBasicComponent::GetActualSize(void) { return msActualSize; }
+SInt2 CBasicComponent::GetDesiredSize(void) { return msDesiredSize; }
+

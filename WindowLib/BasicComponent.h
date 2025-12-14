@@ -20,7 +20,6 @@ DESTRUCTABLE(CBasicComponent);
 protected:
 	SInt2						msActualSize;
 	SInt2	 					msPosition;
-	SInt2						msRequiredSize;
 	SInt2						msDesiredSize;
 	bool						mbCanGetFocus;
 	Ptr<CBasicComponent>		mpParent;
@@ -44,7 +43,6 @@ public:
 			bool					RemoveAllComponents(void);
 			size					NumComponents(void);
 
-			SInt2					GetBestSize(void);
 			bool					IsPointIn(int x, int y);
 			bool					HasFocus(void);
 			Ptr<CBasicComponent>	FindComponentAt(int x, int y);
@@ -62,8 +60,8 @@ public:
 			void					SetPosition(int x, int y);
 			void					SetPosition(SInt2 sPosition);
 			SInt2					GetPosition(void);
+			SInt2					GetDesiredSize(void);
 			void					SetDesiredSize(int fWidth, int fHeight);
-			void					SetRequiredSize(void);
 			SInt2					GetActualSize(void);
 };
 

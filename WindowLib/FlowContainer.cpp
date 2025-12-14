@@ -31,6 +31,7 @@ void CFlowContainer::Init(Ptr<CWindow> pWindow)
 	CContainer::Init(pWindow);
 	meWrap = CSW_Wrap;
 	meDirection = CSD_Right;
+	muAlignment.eVertical = CSV_Top;
 }
 
 
@@ -56,14 +57,16 @@ void CFlowContainer::SetRequiredSize(void)
 	SInt2					sSize;
 	SInt2					sTotalSize;
 
+	//This works out how much space the component needs, not where it needs that space.
+
 	sTotalSize.Init(0, 0);
 
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetBestSize();
-		if (meDirection == CSD_Right)
+		sSize = pComponent->GetDesiredSize();
+		if ((meDirection == CSD_Right) || (meDirection == CSD_Left))
 		{
 			sTotalSize.x += sSize.x;
 			if (sTotalSize.y < sSize.y)
@@ -71,7 +74,7 @@ void CFlowContainer::SetRequiredSize(void)
 				sTotalSize.y = sSize.y;
 			}
 		}
-		else if (meDirection == CSD_Down)
+		else if ((meDirection == CSD_Down) || (meDirection == CSD_Up))
 		{
 			sTotalSize.y += sSize.y;
 			if (sTotalSize.x < sSize.x)
@@ -90,44 +93,62 @@ void CFlowContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 {
+	SetBounds(sPosition, sAreaSize);
+
+	if (meDirection == CSD_Right)
+	{
+		if (meWrap == CSW_Wrap)
+		{
+			LayoutRightWrap(sPosition, sAreaSize);
+		}
+		else
+		{
+			LayoutRight(sPosition, sAreaSize);
+		}
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize)
+{
+	size	uiSize;
+
+	uiSize = maChildren.Size();
+	LayoutRight(sPosition, sAreaSize, 0, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd)
+{
 	Ptr<CBasicComponent>	pComponent;
-	size					uiSize;
 	size					i;
 	SInt2					sSize;
 	int						fXPos;
 	int						fYPos;
 	SInt2					sOffset;
 
-	SetBounds(sPosition, sAreaSize);
-
 	fXPos = 0;
-	fYPos = 0;
-	uiSize = maChildren.Size();
-	for (i = 0; i < uiSize; i++)
+	for (i = iStart; i < iEnd; i++)
 	{
 		pComponent = maChildren.Get(i);
-		sSize = pComponent->GetBestSize();
-		if (meDirection == CSD_Right)
+		sSize = pComponent->GetDesiredSize();
+		if (muAlignment.eVertical == CSV_Stretch)
 		{
-			if ((meWrap == CSW_Wrap) && ((fXPos + sSize.x) > sAreaSize.x))
-			{
-				fXPos = 0;
-				fYPos += sSize.y;
-			}
-			sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
-			fXPos += sSize.x;
+			sSize.y = sAreaSize.y;
 		}
-		else if (meDirection == CSD_Down)
-		{
-			if ((meWrap == CSW_Wrap) && ((fYPos + sSize.y) > sAreaSize.y))
-			{
-				fYPos = 0;
-				fXPos += sSize.x;
-			}
-			sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
-			fYPos += sSize.y;
-		}
-		
+
+		fYPos = AlignComponentVertical(muAlignment.eVertical, sSize.y, sAreaSize.y);
+		sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
+		fXPos += sSize.x;
+
 		pComponent->Layout(sOffset, sSize);
 	}
 }
@@ -137,9 +158,71 @@ void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW)
+void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
+{
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+	size					i;
+	SInt2					sSize;
+	int						fXPos;
+	int						fYPos;
+	SInt2					sOffset;
+	int						iCount;
+	int						iFirst;
+	SInt2					sLocalAreaSize;
+	SInt2					sLocalPosition;
+
+	fXPos = 0;
+	fYPos = 0;
+	iCount = 0;
+	iFirst = 0;
+	sLocalAreaSize.Init(0, 0);
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetDesiredSize();
+		if ((fXPos + sSize.x) > sAreaSize.x)
+		{
+			sLocalAreaSize.x = fXPos;
+			LayoutRight(sLocalPosition, sLocalAreaSize, iFirst, i);
+			fXPos = 0;
+			fYPos += sSize.y;
+			iCount = 0;
+		}
+
+		if (sLocalAreaSize.y < sSize.y)
+		{
+			sLocalAreaSize.y = sSize.y;
+		}
+
+		iCount++;
+		sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
+		fXPos += sSize.x;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA)
 {
 	meWrap = eW;
 	meDirection = eD;
+	muAlignment.eHorizontal = eA;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA)
+{
+	meWrap = eW;
+	meDirection = eD;
+	muAlignment.eVertical = eA;
 }
 

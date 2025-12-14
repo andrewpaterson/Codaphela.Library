@@ -27,16 +27,22 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CFlowContainer : public CContainer
 {
 public:
-	EContainerStyleWrap		meWrap;
+	EContainerStyleWrap			meWrap;
 	EContainerStyleDirection	meDirection;
+	UContainerAlignment			muAlignment;
 
-	void Init(Ptr<CWindow> pWindow);
-	void Free(void);
+	void	Init(Ptr<CWindow> pWindow);
+	void	Free(void);
 
-	void SetRequiredSize(void) override;
-	void Layout(SInt2 sPosition, SInt2 sAreaSize) override;
+	void	SetRequiredSize(void) override;
+	void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
-	void SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW);
+	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize);
+	void	LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize);
+	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd);
+
+	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
+	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
 };
 
 
