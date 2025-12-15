@@ -53,6 +53,7 @@ void CCanvas::Class(void)
 	U_Pointer(mpcNativeCanvas);
 	U_Enum(meFormat);
 	M_Pointer(mpCanvasDraw);
+	M_Pointer(mpContainer);
 }
 
 

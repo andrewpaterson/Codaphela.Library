@@ -42,8 +42,8 @@ protected:
 
 public:
 	void				Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw);
-	void				Class(void);
-	void 				Free(void);
+	void				Class(void) override;
+	void 				Free(void) override;
 
 	bool				Save(CObjectWriter* pcFile) override;
 	bool				Load(CObjectReader* pcFile) override;
