@@ -54,8 +54,8 @@ public:
 	void 					Init(size iSize, EPrimitiveType eType, size iFirst, ...);
 	void 					Init(size iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...);
 	void					Init(CChannels* pcSource);
-	void					Class(void);
-	void 					Free(void);
+	void					Class(void) override;
+	void 					Free(void) override;
 
 	void					ReInit(void);
 

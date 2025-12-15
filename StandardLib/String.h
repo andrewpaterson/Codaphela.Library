@@ -24,8 +24,8 @@ public:
 	Ptr<CString>	Init(CChars* psz);
 	Ptr<CString>	Init(CChars sz);
 	Ptr<CString>	Init(Ptr<CString> pString);
-	void			Class(void);
-	void			Free(void);
+	void			Class(void) override;
+	void			Free(void) override;
 
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;

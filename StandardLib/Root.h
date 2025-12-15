@@ -40,8 +40,8 @@ public:
 						CRoot();
 
 						Ptr<CRoot>		Init(void);
-						void			Class(void);
-						void			Free(void);
+						void			Class(void) override;
+						void			Free(void) override;
 
 						void			Add(CPointer& pObject);
 						bool			Remove(CPointer& pObject);

@@ -11,11 +11,11 @@ DESTRUCTABLE(CPointerContainer);
 public:
 	Ptr<>	mp;
 
-	void					Class(void);
+	void					Class(void) override;
 	Ptr<CPointerContainer>	Init(void);
 	Ptr<CPointerContainer>	Init(CPointer& pPointer);
 	Ptr<CPointerContainer>	Init(CEmbeddedObject* pcObject);
-	void					Free(void);
+	void					Free(void) override;
 
 	void					Clear();
 };
@@ -31,8 +31,8 @@ public:
 	Ptr<CNamedPointerContainer>	Init(void);
 	Ptr<CNamedPointerContainer>	Init(CPointer& pPointer);
 	Ptr<CNamedPointerContainer>	Init(CEmbeddedObject* pcObject);
-	void						Free(void);
-	void						Class(void);
+	void						Free(void) override;
+	void						Class(void) override;
 
 	void						Clear();
 };
