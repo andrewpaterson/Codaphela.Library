@@ -52,11 +52,11 @@ public:
 
 protected:
 			void				EmbedFields(void);
-			void				Class(void);
+			void				Class(void) override;
 			CBaseObject*		Dehollow(void);
 
 			void				FreePointers(void) override;
-			void				Free(void);
+			void				Free(void) override;
 			size				RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 			void				RemovePointerTo(CEmbeddedObject* pcTo);
 	virtual	CEmbeddedObject*	GetRemappedEmbeddedObject(size iIndex);

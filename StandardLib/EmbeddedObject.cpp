@@ -417,7 +417,7 @@ CBaseObject* CEmbeddedObject::GetHeapFrom(size iFrom)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::GetHeapFroms(CArrayTemplateEmbeddedBaseObjectPtr* papcFroms)
 {
-	papcFroms->Copy((CArrayTemplateEmbeddedBaseObjectPtr*)&mapHeapFroms);
+	papcFroms->Copy(&mapHeapFroms);
 }
 
 

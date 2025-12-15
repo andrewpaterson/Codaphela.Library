@@ -40,7 +40,7 @@ public:
 	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
 
 protected:
-			void			Class(void);
+			void			Class(void) override;
 			void			EmbedFields(void);
 };
 

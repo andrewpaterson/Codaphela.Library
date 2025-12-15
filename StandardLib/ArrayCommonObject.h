@@ -35,7 +35,7 @@ protected:
 
 public:
 	Ptr<CArrayCommonObject>	Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
-	void					Class(void);
+	void					Class(void) override;
 
 	bool					Add(CPointer& pObject);
 	bool					Add(CEmbeddedObject* pcObject);
@@ -83,7 +83,7 @@ public:
 
 protected:
 	void					FreePointers(void) override;
-	void					Free(void);
+	void					Free(void) override;
 	void					RemovePointerTo(CEmbeddedObject* pcTo);
 	size 					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
 	void					SetPointedTosDistToRoot(int iDistToRoot);
