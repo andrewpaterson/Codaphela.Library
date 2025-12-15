@@ -58,6 +58,7 @@ void CWindow::Class(void)
 	CComplexComponent::Class();
 
 	U_String(mszWindowTitle);
+
 	U_Pointer(mpcNativeWindow);
 	M_Pointer(mpCanvas);
 	M_Pointer(mpWindowTick);
