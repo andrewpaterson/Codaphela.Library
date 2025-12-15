@@ -18,7 +18,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 	mszWindowTitle.Init(szTitle);
 
 	mpcFactory = pcFactory;
-	mpcNativeWindow = pcFactory->CreateNativeWindow(this);  //Hmmm....
+	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
 	CComplexComponent::Init(this);
 
 	mpWindowTick = pTick;
