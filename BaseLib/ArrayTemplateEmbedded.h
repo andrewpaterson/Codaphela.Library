@@ -77,7 +77,8 @@ public:
 	bool	Remove(M* pvElement, bool bPreserveOrder = true);
 	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
 	M*		SafeGet(size iIndex);
-	void	Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded);
+	template<int8 J>
+	void	Copy(CArrayTemplateEmbedded<M, J>* pcArrayTemplateEmbedded);
 	bool	TestInternalConsistency(void);
 	void 	Zero(void);
 	bool	Write(CFileWriter* pcFileWriter);
@@ -601,7 +602,8 @@ M* CArrayTemplateEmbedded<M, I>::SafeGet(size iIndex)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, int8 I>
-void CArrayTemplateEmbedded<M, I>::Copy(CArrayTemplateEmbedded<M, I>* pcArrayTemplateEmbedded)
+template<int8 J>
+void CArrayTemplateEmbedded<M, I>::Copy(CArrayTemplateEmbedded<M, J>* pcArrayTemplateEmbedded)
 {
 	size	i;
 	size	iNumElements;
