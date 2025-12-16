@@ -229,6 +229,8 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 	iFirst = 0;
 	sLocalAreaSize.Init(0, 0);
 	sLocalPosition.Init(0, 0);
+	sLocalPosition.y = AlignComponentVertical(muAlignment.eVertical, sRequiredArea.y, sAreaSize.y);
+
 	uiSize = maChildren.Size();
 	for (i = 0; i < uiSize; i++)
 	{
