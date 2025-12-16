@@ -219,8 +219,6 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 	size					uiSize;
 	size					i;
 	SInt2					sSize;
-	int						fYPos;
-	int						iCount;
 	int						iFirst;
 	SInt2					sLocalAreaSize;
 	SInt2					sLocalPosition;
@@ -228,8 +226,6 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 
 	sRequiredArea = CalculateAreaForHorizontalLayout(sAreaSize.x);
 
-	fYPos = 0;
-	iCount = 0;
 	iFirst = 0;
 	sLocalAreaSize.Init(0, 0);
 	sLocalPosition.Init(0, 0);
@@ -240,10 +236,8 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 		sSize = pComponent->GetDesiredSize();
 		if ((sLocalAreaSize.x + sSize.x) > sAreaSize.x)
 		{
-			sLocalPosition.y = fYPos;
 			LayoutRight(sLocalPosition, sLocalAreaSize, iFirst, i);
-			fYPos += sLocalAreaSize.y;
-			iCount = 0;
+			sLocalPosition.y += sLocalAreaSize.y;
 			sLocalAreaSize.Init(0, 0);
 			iFirst = i;
 		}
@@ -253,13 +247,11 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 			sLocalAreaSize.y = sSize.y;
 		}
 
-		iCount++;
 		sLocalAreaSize.x += sSize.x;
 	}
 
-	sLocalPosition.y = fYPos;
 	LayoutRight(sLocalPosition, sLocalAreaSize, iFirst, i);
-}
+} 
 
 
 //////////////////////////////////////////////////////////////////////////
