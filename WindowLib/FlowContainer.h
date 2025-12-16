@@ -37,12 +37,14 @@ public:
 	void	SetRequiredSize(void) override;
 	void	Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
+	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
+	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
+
+protected:
 	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize);
 	void	LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize);
 	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd);
-
-	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleHorizontal eA);
-	void	SetFlowStyle(EContainerStyleDirection eD, EContainerStyleWrap eW, EContainerStyleVertical eA);
+	SInt2	CalculateAreaForHorizontalLayout(int width);
 };
 
 
