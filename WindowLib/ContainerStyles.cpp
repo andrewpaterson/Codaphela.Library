@@ -30,17 +30,17 @@ int AlignComponentVertical(EContainerStyleVertical eAlignment, int iComponentHei
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int AlignComponentHorizontal(EContainerStyleVertical eAlignment, int iComponentWidth, int iAvailableWidth)
+int AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponentWidth, int iAvailableWidth)
 {
-	if (eAlignment == CSV_Top)
+	if (eAlignment == CSH_Left)
 	{
 		return 0;
 	}
-	else if (eAlignment == CSV_Center)
+	else if (eAlignment == CSH_Center)
 	{
 		return (iAvailableWidth - iComponentWidth) / 2;
 	}
-	else if (eAlignment == CSV_Bottom)
+	else if (eAlignment == CSH_Right)
 	{
 		return iAvailableWidth - iComponentWidth;
 	}
