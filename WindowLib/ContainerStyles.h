@@ -71,7 +71,7 @@ union UContainerAlignment
 
 
 int AlignComponentVertical(EContainerStyleVertical eAlignment, int iComponentHeight, int iAvailableHeight);
-int AlignComponentHorizontal(EContainerStyleVertical eAlignment, int iComponentWidth, int iAvailableWidth);
+int AlignComponentHorizontal(EContainerStyleHorizontal eAlignment, int iComponentHeight, int iAvailableHeight);
 
 
 

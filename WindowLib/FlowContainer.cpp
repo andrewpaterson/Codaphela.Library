@@ -106,6 +106,17 @@ void CFlowContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 			LayoutRight(sPosition, sAreaSize);
 		}
 	}
+	else if (meDirection == CSD_Down)
+	{
+		if (meWrap == CSW_Wrap)
+		{
+			LayoutDownWrap(sPosition, sAreaSize);
+		}
+		else
+		{
+			LayoutDown(sPosition, sAreaSize);
+		}
+	}
 }
 
 
@@ -158,7 +169,7 @@ void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int width)
+SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
 {
 	Ptr<CBasicComponent>	pComponent;
 	size					uiSize;
@@ -178,7 +189,7 @@ SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int width)
 	{
 		pComponent = maChildren.Get(i);
 		sSize = pComponent->GetDesiredSize();
-		if ((sLocalAreaSize.x + sSize.x) > width)
+		if ((sLocalAreaSize.x + sSize.x) > iWidth)
 		{
 			sArea.y = sLocalAreaSize.y + fYPos;
 			if (sLocalAreaSize.x > sArea.x)
@@ -253,6 +264,155 @@ void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 	}
 
 	LayoutRight(sLocalPosition, sLocalAreaSize, iFirst, i);
+} 
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize)
+{
+	size	uiSize;
+
+	uiSize = maChildren.Size();
+	LayoutDown(sPosition, sAreaSize, 0, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd)
+{
+	Ptr<CBasicComponent>	pComponent;
+	size					i;
+	SInt2					sSize;
+	int						fYPos;
+	int						fXPos;
+	SInt2					sOffset;
+
+	fYPos = 0;
+	for (i = iStart; i < iEnd; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetDesiredSize();
+		if (muAlignment.eVertical == CSV_Stretch)
+		{
+			sSize.x = sAreaSize.x;
+		}
+
+		fXPos = AlignComponentHorizontal(muAlignment.eHorizontal, sSize.x, sAreaSize.x);
+		sOffset.Init(fXPos + sPosition.x, fYPos + sPosition.y);
+		fYPos += sSize.y;
+
+		pComponent->Layout(sOffset, sSize);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+SInt2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
+{
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+	size					i;
+	SInt2					sSize;
+	int						fXPos;
+	int						iFirst;
+	SInt2					sLocalAreaSize;
+	SInt2					sArea;
+
+	fXPos = 0;
+	iFirst = 0;
+	sLocalAreaSize.Init(0, 0);
+	sArea.Init(0, 0);
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetDesiredSize();
+		if ((sLocalAreaSize.y + sSize.y) > iHeight)
+		{
+			sArea.x = sLocalAreaSize.x + fXPos;
+			if (sLocalAreaSize.y > sArea.y)
+			{
+				sArea.y = sLocalAreaSize.y;
+			}
+
+			fXPos += sLocalAreaSize.x;
+			sLocalAreaSize.Init(0, 0);
+			iFirst = i;
+		}
+
+		if (sLocalAreaSize.x < sSize.x)
+		{
+			sLocalAreaSize.x = sSize.x;
+		}
+
+		sLocalAreaSize.y += sSize.y;
+	}
+
+	sArea.x = sLocalAreaSize.x + fXPos;
+	if (sLocalAreaSize.y > sArea.y)
+	{
+		sArea.y = sLocalAreaSize.y;
+	}
+
+	return sArea;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CFlowContainer::LayoutDownWrap(SInt2 sPosition, SInt2 sAreaSize)
+{
+	Ptr<CBasicComponent>	pComponent;
+	size					uiSize;
+	size					i;
+	SInt2					sSize;
+	int						iFirst;
+	SInt2					sLocalAreaSize;
+	SInt2					sLocalPosition;
+	SInt2					sRequiredArea;
+
+	sRequiredArea = CalculateAreaForVerticalLayout(sAreaSize.y);
+
+	iFirst = 0;
+	sLocalAreaSize.Init(0, 0);
+	sLocalPosition.Init(0, 0);
+	sLocalPosition.x = AlignComponentHorizontal(muAlignment.eHorizontal, sRequiredArea.x, sAreaSize.x);
+
+	uiSize = maChildren.Size();
+	for (i = 0; i < uiSize; i++)
+	{
+		pComponent = maChildren.Get(i);
+		sSize = pComponent->GetDesiredSize();
+		if ((sLocalAreaSize.y + sSize.y) > sAreaSize.y)
+		{
+			LayoutDown(sLocalPosition, sLocalAreaSize, iFirst, i);
+			sLocalPosition.x += sLocalAreaSize.x;
+			sLocalAreaSize.Init(0, 0);
+			iFirst = i;
+		}
+
+		if (sLocalAreaSize.x < sSize.x)
+		{
+			sLocalAreaSize.x = sSize.x;
+		}
+
+		sLocalAreaSize.y += sSize.y;
+	}
+
+	LayoutDown(sLocalPosition, sLocalAreaSize, iFirst, i);
 } 
 
 

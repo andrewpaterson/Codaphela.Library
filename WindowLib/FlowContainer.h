@@ -44,7 +44,12 @@ protected:
 	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize);
 	void	LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize);
 	void	LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd);
-	SInt2	CalculateAreaForHorizontalLayout(int width);
+	SInt2	CalculateAreaForHorizontalLayout(int iWidth);
+
+	void	LayoutDown(SInt2 sPosition, SInt2 sAreaSize);
+	void	LayoutDownWrap(SInt2 sPosition, SInt2 sAreaSize);
+	void	LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd);
+	SInt2	CalculateAreaForVerticalLayout(int iHeight);
 };
 
 
