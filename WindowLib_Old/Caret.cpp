@@ -64,3 +64,4 @@ bool CCaret::Draw(void)
 {
 	return CBlock::Draw();
 }
+

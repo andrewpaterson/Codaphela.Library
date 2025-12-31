@@ -21,7 +21,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "StandardLib/Unknown.h"
-#include "SupportLib/Colour.h"
+#include "StandardLib/Pointer.h"
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/Rectangle.h"
 #include "ComplexComponent.h"
@@ -41,7 +41,7 @@ protected:
 	Ptr<CContainer>		mpContainer;
 
 public:
-	void				Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw);
+	Ptr<CCanvas>		Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw);
 	void				Class(void) override;
 	void 				Free(void) override;
 

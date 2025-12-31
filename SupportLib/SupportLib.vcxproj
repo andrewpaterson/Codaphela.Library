@@ -178,7 +178,6 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Colour.h" />
     <ClInclude Include="ColourFormat.h" />
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
@@ -349,7 +348,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ChannelTypes.cpp" />
-    <ClCompile Include="Colour.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
     <ClCompile Include="GDIPlusWriter.cpp" />

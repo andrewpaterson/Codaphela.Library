@@ -40,6 +40,12 @@
     <Filter Include="Source\Component\Inset">
       <UniqueIdentifier>{6c9eaa14-949c-4b84-9dc2-26ea3c5752a7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Drawing\Canvas">
+      <UniqueIdentifier>{8abda37a-d787-43bc-bb24-8c3257248f26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Component\Drawing\Text">
+      <UniqueIdentifier>{bf81206b-63ee-4b55-9d42-047fb257362e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeWindow.h">
@@ -48,14 +54,8 @@
     <ClInclude Include="Window.h">
       <Filter>Source\Component\Window</Filter>
     </ClInclude>
-    <ClInclude Include="Canvas.h">
-      <Filter>Source\Component\Drawing</Filter>
-    </ClInclude>
     <ClInclude Include="NativeWindowFactory.h">
       <Filter>Source\Factory</Filter>
-    </ClInclude>
-    <ClInclude Include="NativeCanvas.h">
-      <Filter>Source\Component\Drawing</Filter>
     </ClInclude>
     <ClInclude Include="BasicNativeComponent.h">
       <Filter>Source\Component</Filter>
@@ -71,9 +71,6 @@
     </ClInclude>
     <ClInclude Include="ComplexComponent.h">
       <Filter>Source\Component</Filter>
-    </ClInclude>
-    <ClInclude Include="CanvasDraw.h">
-      <Filter>Source\Component\Drawing</Filter>
     </ClInclude>
     <ClInclude Include="WindowTick.h">
       <Filter>Source\Component\Window</Filter>
@@ -105,6 +102,27 @@
     <ClInclude Include="ContainerStyles.h">
       <Filter>Source\Component\Containers</Filter>
     </ClInclude>
+    <ClInclude Include="Canvas.h">
+      <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClInclude>
+    <ClInclude Include="CanvasDraw.h">
+      <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClInclude>
+    <ClInclude Include="NativeCanvas.h">
+      <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClInclude>
+    <ClInclude Include="Text.h">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextData.h">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="TextParameters.h">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
+    <ClInclude Include="Caret.h">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NativeWindow.cpp">
@@ -113,14 +131,8 @@
     <ClCompile Include="Window.cpp">
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
-    <ClCompile Include="Canvas.cpp">
-      <Filter>Source\Component\Drawing</Filter>
-    </ClCompile>
     <ClCompile Include="NativeWindowFactory.cpp">
       <Filter>Source\Factory</Filter>
-    </ClCompile>
-    <ClCompile Include="NativeCanvas.cpp">
-      <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
     <ClCompile Include="BasicNativeComponent.cpp">
       <Filter>Source\Component</Filter>
@@ -133,9 +145,6 @@
     </ClCompile>
     <ClCompile Include="ComplexComponent.cpp">
       <Filter>Source\Component</Filter>
-    </ClCompile>
-    <ClCompile Include="CanvasDraw.cpp">
-      <Filter>Source\Component\Drawing</Filter>
     </ClCompile>
     <ClCompile Include="WindowTick.cpp">
       <Filter>Source\Component\Window</Filter>
@@ -163,6 +172,27 @@
     </ClCompile>
     <ClCompile Include="ContainerStyles.cpp">
       <Filter>Source\Component\Containers</Filter>
+    </ClCompile>
+    <ClCompile Include="Canvas.cpp">
+      <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="CanvasDraw.cpp">
+      <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeCanvas.cpp">
+      <Filter>Source\Component\Drawing\Canvas</Filter>
+    </ClCompile>
+    <ClCompile Include="Text.cpp">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextData.cpp">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="TextParameters.cpp">
+      <Filter>Source\Component\Drawing\Text</Filter>
+    </ClCompile>
+    <ClCompile Include="Caret.cpp">
+      <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

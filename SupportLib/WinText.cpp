@@ -219,7 +219,7 @@ Ptr<CFont> CWinText::GenerateFont(SWinFontInstance* pcWinFont, char* szFontName)
 
 	GetTextMetrics(hDC, &sTextMetric);
 
-	pcFont = OMalloc<CFont>(szFontName, acRectangles.Get(0)->GetWidth(), sTextMetric.tmAscent, sTextMetric.tmDescent);
+	pcFont = OMalloc<CFont>(szFontName, acRectangles.Get(0)->GetWidth(), (int16)sTextMetric.tmAscent, (int16)sTextMetric.tmDescent);
 
 	pcImageTemp = DrawTextToImage(&szLetters, hDC);
 

@@ -26,10 +26,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 class CCaret : public CBlock
 {
 CONSTRUCTABLE(CCaret);
-public:
-
+protected:
 	CBlockParameters*	mpcBlackParameters;
 
+public:
 	void Init(CViewport* pcViewport);
 	void Kill(void);
 

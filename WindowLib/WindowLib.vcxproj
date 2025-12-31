@@ -181,6 +181,7 @@
     <ClInclude Include="BasicComponent.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
+    <ClInclude Include="Caret.h" />
     <ClInclude Include="ComplexComponent.h" />
     <ClInclude Include="ComponentListener.h" />
     <ClInclude Include="Container.h" />
@@ -197,6 +198,9 @@
     <ClInclude Include="BasicNativeComponent.h" />
     <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="NativeWindowFactory.h" />
+    <ClInclude Include="Text.h" />
+    <ClInclude Include="TextData.h" />
+    <ClInclude Include="TextParameters.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
   </ItemGroup>
@@ -204,6 +208,7 @@
     <ClCompile Include="BasicComponent.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CanvasDraw.cpp" />
+    <ClCompile Include="Caret.cpp" />
     <ClCompile Include="ComplexComponent.cpp" />
     <ClCompile Include="Container.cpp" />
     <ClCompile Include="ContainerBounds.cpp" />
@@ -218,6 +223,9 @@
     <ClCompile Include="BasicNativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />
     <ClCompile Include="NativeWindowFactory.cpp" />
+    <ClCompile Include="Text.cpp" />
+    <ClCompile Include="TextData.cpp" />
+    <ClCompile Include="TextParameters.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowTick.cpp" />
   </ItemGroup>

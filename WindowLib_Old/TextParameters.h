@@ -20,6 +20,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __TEXT_PARAMETERS_H__
 #define __TEXT_PARAMETERS_H__
+#include "BaseLib/Int2.h"
 #include "SupportLib/Font.h"
 #include "QuadParameters.h"
 

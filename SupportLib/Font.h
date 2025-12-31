@@ -44,13 +44,13 @@ protected:
 	size				miAverageWidth;
 	size				miHeight;
 	bool				mbFixedWidh;
-	size				miSpace;
+	int16				miSpace;
 	CArrayGlyph			macGlyphs;
-	int					miAscent;
-	int					miDescent;
+	int16				miAscent;
+	int16				miDescent;
 
 public:
-	Ptr<CFont>		Init(char* szName, size iSpaceWidth, int iAscent, int iDescent);
+	Ptr<CFont>		Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDescent);
 	void			Class(void);
 	void 			Free(void);
 
@@ -61,14 +61,14 @@ public:
 	bool			Is(char* szName);
 	size 			Width(char* szText);
 	size			Height(void);
-	bool			IsWhitespace(char c);
-	CGlyph*			GetGlyph(char c);
-	CGlyph*			AddGlyph(CImageCel* pcCel, size iStep);
+	bool			IsWhitespace(uint16 c);
+	CGlyph*			GetGlyph(uint16 c);
+	CGlyph*			AddGlyph(CImageCel* pcCel, int16 iStep);
 	Ptr<CImage>		GetImage(void);
 	void			SetImage(Ptr<CImage> pcImage);
-	size			GetSpace(void);
-	size			GetAscent(void);
-	size			GetDescent(void);
+	int16			GetSpace(void);
+	int16			GetAscent(void);
+	int16			GetDescent(void);
 };
 
 

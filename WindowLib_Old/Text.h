@@ -1,3 +1,5 @@
+#ifndef __TEXT_H__
+#define __TEXT_H__
 /** ---------------- COPYRIGHT NOTICE, DISCLAIMER, and LICENSE ------------- **
 
 Copyright (c) 2009 Andrew Paterson
@@ -18,8 +20,6 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __TEXT_H__
-#define __TEXT_H__
 #include "BaseLib/Chars.h"
 #include "TextParameters.h"
 #include "Drawable.h"
@@ -46,7 +46,6 @@ public:
 
 	void 		SetText(char* sz);
 	void 		SetText(CChars sz);
-	void 		AdjustColour(void);
 	void 		SetAlpha(float fAlpha);
 };
 

@@ -31,10 +31,10 @@ class CGlyph : public CUnknown
 CONSTRUCTABLE(CGlyph);
 protected:
 	CImageCel*	mpcCel;
-	int			miStep;
+	int16		miStep;
 
 public:
-	void		Init(CImageCel* pcCel, int iStep);
+	void		Init(CImageCel* pcCel, int16 iStep);
 	void		Kill(void);
 
 	int			GetFullWidth(void);
@@ -45,7 +45,7 @@ public:
 	Ptr<CImage>	GetSourceImage(void);
 	CSubImage*	GetSubImage(void);
 	CImageCel*	GetCel(void);
-	int			GetStep(void);
+	int16		GetStep(void);
 };
 
 

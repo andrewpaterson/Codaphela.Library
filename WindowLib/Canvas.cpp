@@ -9,7 +9,7 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw)
+Ptr<CCanvas> CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw> pDraw)
 {
 	PreInit();
 
@@ -21,6 +21,8 @@ void CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCanvasDraw>
 	mpCanvasDraw = pDraw;
 
 	PostInit();
+	
+	return this;
 }
 
 
