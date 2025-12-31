@@ -28,9 +28,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGlyph::Init(CImageCel* pcCel, int iStep)
+void CGlyph::Init(CImageCel* pcCel, int16 iStep)
 {
-	mpcCel = pcCel;
+	mpcCel = pcCel; 
+	miStep = iStep;
 }
 
 
@@ -102,4 +103,5 @@ void CGlyph::GetImageDestBounds(int x, int y, CRectangle* pcRectangle)
 Ptr<CImage> CGlyph::GetSourceImage(void) {return mpcCel->GetSourceImage();}
 CSubImage* CGlyph::GetSubImage(void) {return mpcCel->GetSubImage();}
 CImageCel* CGlyph::GetCel(void) {return mpcCel;}
-int CGlyph::GetStep(void) {return miStep;}
+int16 CGlyph::GetStep(void) {return miStep;}
+

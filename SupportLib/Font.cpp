@@ -31,7 +31,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CFont::Init(char* szName, size iSpaceWidth, int iAscent, int iDescent)
+Ptr<CFont> CFont::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDescent)
 {
 	PreInit();
 
@@ -62,10 +62,10 @@ void CFont::Class(void)
 	U_Size(miAverageWidth);
 	U_Size(miHeight);
 	U_Bool(mbFixedWidh);
-	U_Size(miSpace);
+	U_Int16(miSpace);
 	U_Unknown(CArrayGlyph, macGlyphs);
-	U_SInt(miAscent);
-	U_SInt(miDescent);
+	U_Int16(miAscent);
+	U_Int16(miDescent);
 }
 
 
@@ -190,7 +190,7 @@ size CFont::Height(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFont::IsWhitespace(char c)
+bool CFont::IsWhitespace(uint16 c)
 {
 	//  c <=  to include the space.
 	if ((c <= FIRST_LETTER) || (c >= (char)(FIRST_LETTER + macGlyphs.NumElements())))
@@ -205,7 +205,7 @@ bool CFont::IsWhitespace(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGlyph* CFont::GetGlyph(char c)
+CGlyph* CFont::GetGlyph(uint16 c)
 {
 	size	iChar;
 
@@ -222,7 +222,7 @@ CGlyph* CFont::GetGlyph(char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGlyph* CFont::AddGlyph(CImageCel* pcCel, size iStep)
+CGlyph* CFont::AddGlyph(CImageCel* pcCel, int16 iStep)
 {
 	CGlyph*		pcGlyph;
 
@@ -256,7 +256,7 @@ void CFont::SetImage(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFont::GetSpace(void)
+int16 CFont::GetSpace(void)
 {
 	return miSpace;
 }
@@ -267,7 +267,7 @@ size CFont::GetSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFont::GetAscent(void)
+int16 CFont::GetAscent(void)
 {
 	return miAscent;
 }
@@ -277,7 +277,7 @@ size CFont::GetAscent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CFont::GetDescent(void)
+int16 CFont::GetDescent(void)
 {
 	return miDescent;
 }

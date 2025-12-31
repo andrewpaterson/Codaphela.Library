@@ -32,6 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 class CImageCelGroup : public CObject
 {
 CONSTRUCTABLE(CImageCelGroup);
+DESTRUCTABLE(CImageCelGroup);
 protected:
 	CArrayImageCel	mcImageCels;
 
