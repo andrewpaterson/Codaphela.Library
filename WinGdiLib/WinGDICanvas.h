@@ -46,6 +46,7 @@ public:
 	void	CopyCanvas(CNativeCanvas* pcSourceCanvas);
 	void	DrawBox(CRectangle* pcRectangle, bool bFilled, ARGB32 sColour);
 	void	DrawPixel(int32 iX, int32 iY, ARGB32 sColour);
+	void	DrawCanvas(int iX, int iY, CNativeCanvas* pcSource);
 };
 
 

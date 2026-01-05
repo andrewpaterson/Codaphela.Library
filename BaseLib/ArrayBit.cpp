@@ -132,6 +132,26 @@ void CArrayBit::GrowBy(size iNumBits)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
+void CArrayBit::GrowTo(size iNumBits)
+{
+	size	uiSize;
+	size	uiDiff;
+
+	uiSize = NumElements();
+	if (iNumBits <= uiSize)
+	{
+		return;
+	}
+
+	uiDiff = iNumBits - uiSize;
+	GrowBy(uiDiff);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
 bool CArrayBit::Get(size iBit)
 {
 	return GetBit(iBit, GetData());
@@ -291,5 +311,50 @@ void* CArrayBit::GetData(void)
 size CArrayBit::ByteSize(size iNumBits)
 {
 	return (iNumBits + 7) / 8;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBit::Print(CChars* psz)
+{
+	size	ui;
+	size	uiNumElements;
+	bool	bBit;
+
+	uiNumElements = NumElements();
+	if (uiNumElements != 0)
+	{
+		ui = uiNumElements;
+		do
+		{
+			ui--;
+			bBit = Get(ui);
+			if (bBit)
+			{
+				psz->Append('1');
+			}
+			else
+			{
+				psz->Append('0');
+			}
+		} while (ui);
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CArrayBit::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
 }
 

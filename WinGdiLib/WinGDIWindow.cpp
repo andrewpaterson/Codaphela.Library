@@ -22,6 +22,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Logger.h"
 #include "BaseLib/LogString.h"
 #include "BaseLib/Chars.h"
+#include "BaseLib/WindowsError.h"
 #include "BaseLib/DebugOutput.h"
 #include "SupportLib/Rectangle.h"
 #include "WindowLib/Window.h"
@@ -65,8 +66,6 @@ void CWinGDIWindow::Init(CWindow* pcWindow, CNativeWindowFactory * pcWindowFacto
 //////////////////////////////////////////////////////////////////////////
 void CWinGDIWindow::Kill(void)
 {
-    mpcWindow->DestroyCanvas();
-
     UnregisterClassA(mszWindowClass.Text(), mhInstance);
     mszWindowClass.Kill();
     CNativeWindow::Kill();
@@ -89,13 +88,13 @@ void CWinGDIWindow::Stop(void)
 CChars ErrorToString(void)
 {
     DWORD       uiError;
-    char        szError[256];
+    char*       szError;
     CChars      sz;
 
     uiError = GetLastError();
     if (uiError != ERROR_SUCCESS)
     {
-        FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, uiError, 0, szError, 256, NULL);
+        szError = WindowsErrorCodeToString(uiError);
         sz.Init(szError);
         sz.Replace("\r\n", "");
     }

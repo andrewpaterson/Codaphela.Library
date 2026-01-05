@@ -88,6 +88,7 @@ public:
 	CChars*	AppendQuoted(const char* szString);
 	CChars* AppendNewLine(void);
 	CChars* AppendNewLine(CChars szString);
+	CChars* AppendCarriageReturn(void);
 	CChars*	AppendHexHiLo(void* pv, size iNumBytes);
 	CChars*	AppendHexLoHi(void* pv, size iNumBytes);
 	CChars*	AppendSubString(const char* szString, size iLength);
