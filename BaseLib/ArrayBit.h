@@ -51,6 +51,7 @@ public:
 	void	Zero(void);
 	void	ReInit(void);
 	void	GrowBy(size iNumBits);
+	void	GrowTo(size iNumBits);
 
 	bool	Get(size iBit);  //return 0 or not 0 (not necessarily 1).
 	void	Get(void* pvDest, size iDestOffset, size iOffset, size iNumBits);
@@ -69,6 +70,9 @@ public:
 	size	ByteSize(size iNumBits);
 
 	bool	IsLarge(void);
+
+	void	Print(CChars* psz);
+	void	Dump(void);
 };
 
 

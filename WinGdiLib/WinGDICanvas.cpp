@@ -41,19 +41,21 @@ bool CWinGDICanvas::CreateNativeCanvas(void)
     //This is split from .Init() so that it can fail on its own.
 
     CWinGDIWindowFactory*   pcFactory; 
+    SInt2                   sSize;
     BITMAPINFO              sBitmapInfo;
     HWND                    hWnd;
     HDC                     hDC;
 
     pcFactory = (CWinGDIWindowFactory*)mpcWindowFactory;
+    sSize = mpcCanvas->GetActualSize();
 
     hWnd = pcFactory->GetHWnd();
     hDC = GetDC(hWnd);
 
     memset(&sBitmapInfo, 0, sizeof(BITMAPINFO));
     sBitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    sBitmapInfo.bmiHeader.biWidth = mpcCanvas->GetWidth();
-    sBitmapInfo.bmiHeader.biHeight = -mpcCanvas->GetHeight();
+    sBitmapInfo.bmiHeader.biWidth = sSize.x;
+    sBitmapInfo.bmiHeader.biHeight = -sSize.y;
     sBitmapInfo.bmiHeader.biPlanes = 1;
     sBitmapInfo.bmiHeader.biBitCount = 32; // 32-bit ARGB
     sBitmapInfo.bmiHeader.biCompression = BI_RGB;
@@ -102,6 +104,7 @@ uint8* CWinGDICanvas::GetPixelData(void)
 void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
 {
     CWinGDICanvas*  pcSourceGDICanvas;
+    SInt2           sSize;
     HDC             hSourceDC;
     HDC             hDestDC;
     HBITMAP         hOldSourceBitmap;
@@ -119,7 +122,7 @@ void CWinGDICanvas::CopyCanvas(CNativeCanvas* pcSourceCanvas)
     hOldSourceBitmap = (HBITMAP)SelectObject(hSourceDC, pcSourceGDICanvas->mhMemBitmap);
     hOldDestBitmap = (HBITMAP)SelectObject(hDestDC, mhMemBitmap);
 
-    BitBlt(hDestDC, 0, 0, mpcCanvas->GetWidth(), mpcCanvas->GetHeight(), hSourceDC, 0, 0, SRCCOPY);
+    BitBlt(hDestDC, 0, 0, sSize.x, sSize.y, hSourceDC, 0, 0, SRCCOPY);
 
     SelectObject(hSourceDC, hOldSourceBitmap);
     SelectObject(hDestDC, hOldDestBitmap);
@@ -162,5 +165,14 @@ void CWinGDICanvas::DrawPixel(int32 iX, int32 iY, ARGB32 sColour)
 
     sRef = RGB(Get8BitRedColour(sColour), Get8BitGreenColour(sColour), Get8BitBlueColour(sColour));
     ::SetPixel(mhMemDC, iX, iY, sRef);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CWinGDICanvas::DrawCanvas(int iX, int iY, CNativeCanvas* pcSource)
+{
 }
 

@@ -555,6 +555,7 @@ char* LongToString(char* szDest, size iDestLength, int64 lliValue, uint16 iBase)
 char* StrRev(char* szString, size iLength)
 {
 	size	i;
+	size	j;
 	char	c;
 
 	if (iLength <= 1)
@@ -562,10 +563,19 @@ char* StrRev(char* szString, size iLength)
 		return szString;
 	}
 
-	for (i = 0; i < iLength/2; i++)
+	if (iLength % 2 == 0)
 	{
-		c = szString[iLength-1-i];
-		szString[iLength-1-i] = szString[i];
+		j = 0;
+	}
+	else
+	{
+		j = 1;
+	}
+
+	for (i = 0; i < iLength / 2; i++, j++)
+	{
+		c = szString[iLength - 1 - j];
+		szString[iLength - 1 - j] = szString[i];
 		szString[i] = c;
 	}
 	return szString;
@@ -770,7 +780,7 @@ char* StrCpySafe(char* szDest, const char* szSource, size iDestLength, size* piS
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToLower(char* szString)
+char* ToLower(char* szString)
 {
 	size	iLen;
 	size	i;
@@ -788,6 +798,7 @@ void ToLower(char* szString)
 			}
 		}
 	}
+	return szString;
 }
 
 
@@ -795,7 +806,7 @@ void ToLower(char* szString)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void ToUpper(char* szString)
+char* ToUpper(char* szString)
 {
 	size	iLen;
 	size	i;
@@ -813,6 +824,7 @@ void ToUpper(char* szString)
 			}
 		}
 	}
+	return szString;
 }
 
 
