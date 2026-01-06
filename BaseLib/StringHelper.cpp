@@ -1006,19 +1006,40 @@ char* StrCpy(char* szDest, const char* szString, const char* szLastCharInclusive
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char GetHexChar(char c4Bit)
+char GetHexChar(size c4Bit)
 {
 	if (c4Bit < 10)
 	{
-		return '0' + c4Bit;
+		return '0' + (char)c4Bit;
 	}
 	else if (c4Bit < 16)
 	{
-		return 'a' + c4Bit - 10;
+		return 'a' + (char)c4Bit - 10;
 	}
 	else
 	{
 		return '?';
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size GetCharHex(char cHexChar)
+{
+	if (cHexChar >= '0' && cHexChar <= '9')
+	{
+		return cHexChar - '0';
+	}
+	else if (cHexChar >= 'a' && cHexChar <= 'f')
+	{
+		return cHexChar - 'a' + 10;
+	}
+	else
+	{
+		return SIZE_MAX;
 	}
 }
 

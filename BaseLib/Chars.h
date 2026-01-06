@@ -78,6 +78,7 @@ public:
 	CChars* Append(int32 i);
 	CChars* Append(int32 i, uint16 iBase);
 	CChars* Append(uint32 ui);
+	CChars* Append(uint32 ui, uint16 iBase);
 	CChars* Append(float f, size iMaxDecimals = -1, bool bAppendF = false);
 	CChars* Append(double d, size iMaxDecimals = -1, bool bAppendD = false);
 	CChars* Append(int64 lli);

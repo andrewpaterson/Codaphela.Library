@@ -662,7 +662,7 @@ CChars* CChars::Append(int32 i)
 {
 	char szString[32];
 
-	IntToString(szString, 32, i, 10);
+	IntToString(szString, 32, i);
 	return Append(szString);
 }
 
@@ -715,6 +715,19 @@ CChars* CChars::Append(uint32 ui)
 	char szString[32];
 
 	IntToString(szString, 32, ui);
+	return Append(szString);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CChars* CChars::Append(uint32 ui, uint16 iBase)
+{
+	char szString[32];
+
+	IntToString(szString, 32, ui, iBase);
 	return Append(szString);
 }
 

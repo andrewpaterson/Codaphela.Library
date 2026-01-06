@@ -50,7 +50,8 @@ size		StrLen(const char* szString);
 size		StrLen(const char* szString, const char* szLastCharInclusive);
 bool		StrEmpty(const char* szString);
 char*		NullToEmpty(const char* szString);
-char		GetHexChar(char c4Bit);
+char		GetHexChar(size c4Bit);
+size		GetCharHex(char cHexChar);
 
 char*		ByteToString(char* szDest, size iDestLength, int8 iValue, uint16 iBase = 10);
 char*		ByteToString(char* szDest, size iDestLength, uint8 iValue, uint16 iBase = 10);
