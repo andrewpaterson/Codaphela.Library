@@ -1192,7 +1192,7 @@ int CompareLongReverse(const void* arg1, const void* arg2)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint8 GetCrumb(uint16 iCrumb, void* pvArray)
+uint8 GetCrumb(size iCrumb, void* pvArray)
 {
 	size iBytePos;
 	size iCrumbInByte;
@@ -1208,7 +1208,7 @@ uint8 GetCrumb(uint16 iCrumb, void* pvArray)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-uint8 GetNybble(uint16 iNybble, void* pvArray)
+uint8 GetNybble(size iNybble, void* pvArray)
 {
 	size iBytePos;
 	size iNybbleInByte;
@@ -1500,4 +1500,39 @@ uint16 SetHighByte(uint16 uiVariable, uint8 uiData)
 {
 	return (uiVariable & 0xFF) | (uiData << 8);
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size Min(size ui1, size ui2)
+{
+	if (ui1 < ui2)
+	{
+		return ui1;
+	}
+	else
+	{
+		return ui2;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size Max(size ui1, size ui2)
+{
+	if (ui1 > ui2)
+	{
+		return ui1;
+	}
+	else
+	{
+		return ui2;
+	}
+}
+
 
