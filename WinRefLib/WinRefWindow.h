@@ -21,7 +21,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Rectangle.h"
-#include "InputLib/Input.h"
 #include "WindowLib/NativeWindow.h"
 #include "WinRefCanvas.h"
 

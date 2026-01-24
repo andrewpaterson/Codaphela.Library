@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __IMAGE_CEL_H__
 #define __IMAGE_CEL_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "Image.h"
 #include "SubImage.h"
 #include "PixelOpacity.h"
@@ -66,7 +66,7 @@ public:
 };
 
 
-typedef CArrayType<CImageCel> CArrayImageCel;
+typedef CArrayUnknownTemplate<CImageCel> CArrayImageCel;
 
 
 #endif // __IMAGE_CEL_H__

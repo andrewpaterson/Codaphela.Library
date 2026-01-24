@@ -22,7 +22,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #include "Quad2D.h"
 #include "World.h"
-#include "SupportLib/ColourARGB.h"
+#include "SupportLib/ColourARGB32.h"
 
 
 //////////////////////////////////////////////////////////////////////////

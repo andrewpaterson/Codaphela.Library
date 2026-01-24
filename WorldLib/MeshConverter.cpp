@@ -272,11 +272,11 @@ void CMeshConverter::OptimiseGraphicsObject(void)
 //////////////////////////////////////////////////////////////////////////
 void CMeshConverter::FillUniqueMatricies(void)
 {
-	int				iNumElements;
+	size			iNumElements;
 	SSkinWeight*	psSkinVert;
 	CMeshSkinVert*	pcMeshSkinVert;
-	int				i;
-	int				j;
+	size			i;
+	size			j;
 
 	if (mpcMesh->mcSkin.InUse())
 	{

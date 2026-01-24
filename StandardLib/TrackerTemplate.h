@@ -22,7 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __TRACKER_TEMPLATE_H__
 #include "BaseLib/ChunkFile.h"
 #include "StandardHeader.h"
-#include "ArrayType.h"
+#include "ArrayUnknownTemplate.h"
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -35,7 +35,7 @@ class CTrackerTemplate
 protected:
 	bool			mbIndexAndIDSame;
 	CChars			mszClassName;
-	CArrayType<T>	mcArray;
+	CArrayUnknownTemplate<T>	mcArray;
 
 public:
 	void 	Init(void);
@@ -54,7 +54,7 @@ public:
 	T*		CopyWithID(int iID);
 	T*		GetOrAdd(char* szName);
 	T*		GetWithName(char* szName);
-	T*		AddAll(CArrayType<T>* pcArray);
+	T*		AddAll(CArrayUnknownTemplate<T>* pcArray);
 };
 
 
@@ -341,7 +341,7 @@ T* CTrackerTemplate<T>::GetOrAdd(char* szName)
 //
 //////////////////////////////////////////////////////////////////////////
 template <class T>
-T* CTrackerTemplate<T>::AddAll(CArrayType<T>* pcArray)
+T* CTrackerTemplate<T>::AddAll(CArrayUnknownTemplate<T>* pcArray)
 {
 	int		i;
 	T*		q;

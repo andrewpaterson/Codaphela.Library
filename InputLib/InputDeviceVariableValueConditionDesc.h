@@ -23,7 +23,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #ifndef __INPUT_DEVICE_VARIABLE_VALUE_CONDITION_DESC_H__
 #define __INPUT_DEVICE_VARIABLE_VALUE_CONDITION_DESC_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 
 
 class CInputChordDesc;

@@ -239,7 +239,7 @@
     <ClInclude Include="Unknown.h" />
     <ClInclude Include="SetType.h" />
     <ClInclude Include="SetUnknown.h" />
-    <ClInclude Include="ArrayType.h" />
+    <ClInclude Include="ArrayUnknownTemplate.h" />
     <ClInclude Include="ArrayUnknown.h" />
     <ClInclude Include="MapCommon.h" />
     <ClInclude Include="MapStringUnknown.h" />

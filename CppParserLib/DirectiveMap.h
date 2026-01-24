@@ -1,5 +1,6 @@
 #ifndef __DIRECTIVE_MAP_H__
 #define __DIRECTIVE_MAP_H__
+#include "BaseLib/PrimitiveTypes.h"
 #include "BaseLib/IndexPrimitiveTemplate.h"
 #include "ASCIITree.h"
 #include "PreprocessorDirective.h"

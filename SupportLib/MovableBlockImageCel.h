@@ -43,7 +43,7 @@ public:
 };
 
 
-typedef CArrayType<CMovableBlockImageCel>	CArrayTileImageCel;
+typedef CArrayUnknownTemplate<CMovableBlockImageCel>	CArrayTileImageCel;
 
 
 #endif // __MOVABLE_BLOCK_IMAGE_CEL_H__

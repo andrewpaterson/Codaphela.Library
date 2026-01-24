@@ -47,7 +47,7 @@ public:
 };
 
 
-typedef CArrayType<CImageSourceWithCelSources> CArrayImageSourceWithCelSources;
+typedef CArrayUnknownTemplate<CImageSourceWithCelSources> CArrayImageSourceWithCelSources;
 
 
 //This class *does not* add the Cels to a Group because they probably need to be hit with the Image Combiner first.

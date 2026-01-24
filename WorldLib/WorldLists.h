@@ -22,7 +22,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __WORLD_LISTS_H__
 #define __WORLD_LISTS_H__
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "CameraInstance.h"
 #include "LightInstance.h"
 #include "GraphicsObject.h"
@@ -30,11 +30,11 @@ Microsoft DirectX is Copyright Microsoft Corporation
 #include "Movement.h"
 
 
-typedef CArrayType<CCameraInstance>	CWorldCameraList;
-typedef CArrayType<CLightInstance>	CWorldLightList;
-typedef CArrayType<CParticleSystem>	CParticleSystemList;
-typedef CArrayType<CMovement>			CMovementList;
-typedef CArrayType<CGraphicsViewport>	CWorldViewportList;
+typedef CArrayUnknownTemplate<CCameraInstance>	CWorldCameraList;
+typedef CArrayUnknownTemplate<CLightInstance>	CWorldLightList;
+typedef CArrayUnknownTemplate<CParticleSystem>	CParticleSystemList;
+typedef CArrayUnknownTemplate<CMovement>			CMovementList;
+typedef CArrayUnknownTemplate<CGraphicsViewport>	CWorldViewportList;
 
 
 #endif //__WORLD_LISTS_H__

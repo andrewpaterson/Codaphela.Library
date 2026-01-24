@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __SPRITE_TYPE_H__
 #define __SPRITE_TYPE_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "MovableBlock.h"
 
 
@@ -45,7 +45,7 @@ public:
 };
 
 
-typedef CArrayType<CSpriteType>	CArraySpriteType;
+typedef CArrayUnknownTemplate<CSpriteType>	CArraySpriteType;
 
 
 #endif // __SPRITE_TYPE_H__

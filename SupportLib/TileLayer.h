@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __TILE_LAYER_H__
 #define __TILE_LAYER_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "MovableBlock.h"
 
 
@@ -50,7 +50,7 @@ public:
 };
 
 
-typedef CArrayType<CTileLayer>	CArrayTileLayer;
+typedef CArrayUnknownTemplate<CTileLayer>	CArrayTileLayer;
 
 
 #endif // __TILE_LAYER_H__

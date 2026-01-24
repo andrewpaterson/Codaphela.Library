@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __MOVABLE_BLOCK_H__
 #include "BaseLib/CharsImmutable.h"
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 
 
 class CMovableBlockType;
@@ -46,7 +46,7 @@ public:
 };
 
 
-typedef CArrayType<CMovableBlock>	CArrayMovableBlock;
+typedef CArrayUnknownTemplate<CMovableBlock>	CArrayMovableBlock;
 
 
 #endif // __MOVABLE_BLOCK_H__

@@ -132,7 +132,7 @@
     <ClInclude Include="SetUnknown.h">
       <Filter>Source\Object\Unknown\Collections\Set</Filter>
     </ClInclude>
-    <ClInclude Include="ArrayType.h">
+    <ClInclude Include="ArrayUnknownTemplate.h">
       <Filter>Source\Object\Unknown\Collections\Array</Filter>
     </ClInclude>
     <ClInclude Include="ArrayUnknown.h">

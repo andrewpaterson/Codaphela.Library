@@ -388,7 +388,7 @@ public:
 	void 	BeginScene(void);
 	void 	EndScene(void);
 	void 	ClearBuffer(int colour);
-	void	ClearBuffer(int r, int g, int b);
+	void	ClearBuffer(uint8 r, uint8 g, uint8 b);
 	void 	Present(void);
 	void 	Present(HWND hWnd);
 	bool	DrawIndexedPrimitive(D3DPRIMITIVETYPE eType, int iStartVertex, int iNumVerticies, int iStartIndex, int iNumPrimitives);

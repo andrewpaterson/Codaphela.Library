@@ -25,7 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __IMAGE_CEL_GROUP_H__
 #include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "ImageCel.h"
 
 

@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela EditorLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "SupportLib/ColourARGB.h"
+#include "SupportLib/ColourARGB32.h"
 #include "SupportLib/MeshEditor.h"
 #include "SceneConverter.h"
 #include "MeshAdjuster.h"
