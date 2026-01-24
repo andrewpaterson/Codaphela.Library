@@ -2,7 +2,6 @@
 #define __BUS_CYCLE_PARAMETER_H__
 #include "BaseLib/Chars.h"
 #include "BaseLib/Killable.h"
-#include "BaseLib/Printable.h"
 #include "BaseLib/Refered.h"
 #include "StandardLib/Unknown.h"
 

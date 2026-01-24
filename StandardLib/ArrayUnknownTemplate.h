@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __ARRAY_TYPE_H__
-#define __ARRAY_TYPE_H__
+#ifndef __ARRAY_UNKNOWN_TEMPLATE_H__
+#define __ARRAY_UNKNOWN_TEMPLATE_H__
 #include "Unknowns.h"
 #include "ArrayUnknown.h"
 
 
 template<class M>
-class CArrayType : public CArrayUnknown
+class CArrayUnknownTemplate : public CArrayUnknown
 {
-CONSTRUCTABLE(CArrayType);
+CONSTRUCTABLE(CArrayUnknownTemplate);
 public:
 	void 	Init(void);
 	void 	Init(CUnknowns* pcUnknownsAllocatingFrom);
@@ -59,7 +59,7 @@ protected:
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Init(void)
+void CArrayUnknownTemplate<M>::Init(void)
 {
 	CArrayUnknown::Init();
 	TypeKnown(true);
@@ -71,7 +71,7 @@ void CArrayType<M>::Init(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
+void CArrayUnknownTemplate<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
 {
 	CArrayUnknown::Init(pcUnknownsAllocatingFrom, iChunkSize);
 }
@@ -82,7 +82,7 @@ void CArrayType<M>::Init(CUnknowns* pcUnknownsAllocatingFrom)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Kill(void)
+void CArrayUnknownTemplate<M>::Kill(void)
 {
 	CArrayUnknown::Kill();
 }
@@ -93,7 +93,7 @@ void CArrayType<M>::Kill(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Add(M* pcUnknown)
+void CArrayUnknownTemplate<M>::Add(M* pcUnknown)
 {
 	CArrayUnknown::Add(pcUnknown);
 }
@@ -104,7 +104,7 @@ void CArrayType<M>::Add(M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayType<M>::Add(void)
+M* CArrayUnknownTemplate<M>::Add(void)
 {
 	return (M*)CArrayUnknown::Add<M>();
 }
@@ -115,7 +115,7 @@ M* CArrayType<M>::Add(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Insert(int iIndex, M* pcUnknown)
+void CArrayUnknownTemplate<M>::Insert(int iIndex, M* pcUnknown)
 {
 	CArrayUnknown::Insert(iIndex, pcUnknown);
 }
@@ -126,7 +126,7 @@ void CArrayType<M>::Insert(int iIndex, M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayType<M>::Insert(int iIndex)
+M* CArrayUnknownTemplate<M>::Insert(int iIndex)
 {
 	return (M*)CArrayUnknown::Insert<M>(iIndex);
 }
@@ -137,7 +137,7 @@ M* CArrayType<M>::Insert(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArrayType<M>::Remove(int iIndex)
+void CArrayUnknownTemplate<M>::Remove(int iIndex)
 {
 	CArrayUnknown::Remove(iIndex);
 }
@@ -148,7 +148,7 @@ void CArrayType<M>::Remove(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayType<M>::Remove(M* pcUnknown)
+bool CArrayUnknownTemplate<M>::Remove(M* pcUnknown)
 {
 	return CArrayUnknown::Remove(pcUnknown);
 }
@@ -159,7 +159,7 @@ bool CArrayType<M>::Remove(M* pcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayType<M>::Get(int iIndex)
+M* CArrayUnknownTemplate<M>::Get(int iIndex)
 {
 	return (M*)CArrayUnknown::Get(iIndex);
 }
@@ -170,7 +170,7 @@ M* CArrayType<M>::Get(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayType<M>::Last(void)
+M* CArrayUnknownTemplate<M>::Last(void)
 {
 	return (M*)CArrayUnknown::Last();
 }
@@ -181,7 +181,7 @@ M* CArrayType<M>::Last(void)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayType<M>::StartIteration(SSetIterator* psIter)
+M* CArrayUnknownTemplate<M>::StartIteration(SSetIterator* psIter)
 {
 	return (M*)CArrayUnknown::StartIteration(psIter);
 }
@@ -192,7 +192,7 @@ M* CArrayType<M>::StartIteration(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-M* CArrayType<M>::Iterate(SSetIterator* psIter)
+M* CArrayUnknownTemplate<M>::Iterate(SSetIterator* psIter)
 {
 	return (M*)CArrayUnknown::Iterate(psIter);
 }
@@ -203,7 +203,7 @@ M* CArrayType<M>::Iterate(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
+bool CArrayUnknownTemplate<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	M*	pcUnknown;
 
@@ -219,11 +219,11 @@ bool CArrayType<M>::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArrayType<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
+bool CArrayUnknownTemplate<M>::SaveElement(CFileWriter* pcFile, CUnknown* pcUnknown)
 {
 	return pcUnknown->Save(pcFile);
 }
 
 
-#endif // __ARRAY_TYPE_H__
+#endif // __ARRAY_UNKNOWN_TEMPLATE_H__
 

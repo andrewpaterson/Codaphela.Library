@@ -21,7 +21,7 @@ public:
 };
 
 
-typedef CArrayType<CSprite>	CArraySprite;
+typedef CArrayUnknownTemplate<CSprite>	CArraySprite;
 
 
 #endif // __SPRITE_H__

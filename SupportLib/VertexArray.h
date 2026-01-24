@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __VERTEX_ARRAY_H__
 #define __VERTEX_ARRAY_H__
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "StandardLib/Channels.h"
 #include "VertexChannel.h"
 
@@ -36,7 +36,7 @@ public:
 };
 
 
-typedef CArrayType<CVertexArray>	CArrayVertexArray;
+typedef CArrayUnknownTemplate<CVertexArray>	CArrayVertexArray;
 
 
 #endif // __VERTEX_ARRAY_H__

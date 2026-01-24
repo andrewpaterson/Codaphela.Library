@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __MESH_VERTEX_ARRAY_H__
 #define __MESH_VERTEX_ARRAY_H__
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "StandardLib/Array.h"
 #include "VertexArray.h"
 #include "MeshFaceTypes.h"

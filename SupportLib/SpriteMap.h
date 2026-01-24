@@ -23,7 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #ifndef __SPRITE_MAP_H__
 #define __SPRITE_MAP_H__
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "BaseLib/Int2.h"
 #include "Sprite.h"
 #include "MovableBlockMap.h"
@@ -46,7 +46,7 @@ public:
 };
 
 
-typedef CArrayType<CSpriteMap>	CArraySpriteMap;
+typedef CArrayUnknownTemplate<CSpriteMap>	CArraySpriteMap;
 
 
 #endif // __SPRITE_MAP_H__

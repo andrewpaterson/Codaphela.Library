@@ -27,9 +27,9 @@ Microsoft DirectX and associated libraries are Copyright Microsoft Corporation
 #include "BaseLib/FloatHelper.h"
 #include "BaseLib/Logger.h"
 #include "BaseLib/Numbers.h"
-#include "FlexibleVertexFormats.h"
 #include "BaseLib/GeometricTypes.h"
-#include "SupportLib/ColourARGB.h"
+#include "SupportLib/ColourARGB32.h"
+#include "FlexibleVertexFormats.h"
 
 
 CD3D	gcD3D;
@@ -654,7 +654,7 @@ void CD3D::ClearBuffer(int colour)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CD3D::ClearBuffer(int r, int g, int b)
+void CD3D::ClearBuffer(uint8 r, uint8 g, uint8 b)
 {
 	ClearBuffer(Set32BitColour(r, g, b, 255));
 }

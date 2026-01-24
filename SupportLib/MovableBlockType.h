@@ -24,7 +24,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __MOVABLE_BLOCK_TYPE_H__
 #define __MOVABLE_BLOCK_TYPE_H__
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "MovableBlock.h"
 
 
@@ -50,7 +50,7 @@ public:
 };
 
 
-typedef CArrayType<CMovableBlockType>	CArrayMovableBlockType;
+typedef CArrayUnknownTemplate<CMovableBlockType>	CArrayMovableBlockType;
 
 
 #endif // __MOVABLE_BLOCK_TYPE_H__

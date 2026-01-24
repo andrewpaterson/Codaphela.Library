@@ -21,7 +21,7 @@ Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
-#include "SupportLib/ColourARGB.h"
+#include "SupportLib/ColourARGB32.h"
 #include "SupportLib/ImageResampler.h"
 #include "SupportLib/Image.h"
 #include "SceneConverter.h"

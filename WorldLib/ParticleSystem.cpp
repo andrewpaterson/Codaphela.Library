@@ -20,7 +20,7 @@ along with Codaphela WorldLib.  If not, see <http://www.gnu.org/licenses/>.
 Microsoft DirectX is Copyright Microsoft Corporation
 
 ** ------------------------------------------------------------------------ **/
-#include "SupportLib/ColourARGB.h"
+#include "SupportLib/ColourARGB32.h"
 #include "DirectXLib/FlexibleVertexFormats.h"
 #include "World.h"
 #include "ParticleSystem.h"

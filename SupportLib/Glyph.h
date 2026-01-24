@@ -49,7 +49,7 @@ public:
 };
 
 
-typedef CArrayType<CGlyph> CArrayGlyph;
+typedef CArrayUnknownTemplate<CGlyph> CArrayGlyph;
 
 
 #endif // __GLYPH_H__

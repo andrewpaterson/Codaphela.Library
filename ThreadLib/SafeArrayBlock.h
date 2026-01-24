@@ -12,34 +12,34 @@ private:
 	CArrayBlock	c;
 
 public:
-	void 	Init(int iElementSize);
-	void 	Init(CMallocator* pcMalloc, int iElementSize);
-	void	Init(CMallocator* pcMalloc, int iElementSize, int iChunkSize);
+	void 	Init(size iElementSize);
+	void 	Init(CMallocator* pcMalloc, size iElementSize);
+	void	Init(CMallocator* pcMalloc, size iElementSize, size iChunkSize);
 	void 	ReInit(void);
 
 	void 	Finalise(void);
 	void 	Kill(void);
 
-	int		NumElements(void);
+	size	NumElements(void);
 	bool	IsEmpty(void);
 	bool	IsNotEmpty(void);
-	int		AllocatedElements(void);
-	int 	ElementSize(void);
+	size	AllocatedElements(void);
+	size 	ElementSize(void);
 
 	void	Add(void* pvData);
-	int		AddGetIndex(void* pvData);
-	int 	AddIfUnique(void* pData);
-	int 	AddIfUniqueKey(void* pData, int iKeyOffset, int iKeySize);
+	size	AddGetIndex(void* pvData);
+	size 	AddIfUnique(void* pData);
+	size 	AddIfUniqueKey(void* pData, size iKeyOffset, size iKeySize);
 
 	void 	Copy(CArrayBlock* pcTemplateArray);
 	void 	Copy(CSafeArrayBlock* pcTemplateArray);
-	int		Copy(CStackMemory<>* pcTemp);
+	size	Copy(CStackMemory<>* pcTemp);
 
-	bool	Get(int iIndex, void* pvDest);
+	bool	Get(size iIndex, void* pvDest);
 	bool	Tail(void* pvDest);
 
-	void	InsertAt(void* pvData, int iIndex);
-	int		InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, bool bOverwriteExisting);
+	void	InsertAt(void* pvData, size iIndex);
+	size	InsertIntoSorted(int(*fCompare)(const void*, const void*), void* pvData, bool bOverwriteExisting);
 
 	bool	Pop(void* pvDest);
 	bool	Pop(void);
@@ -47,29 +47,29 @@ public:
 	bool	PopFirst(void* pvData);
 	bool	PopFirst(void);
 
-	int		Resize(int iNumElements);
+	size	Resize(size iNumElements);
 
 	void	BubbleSort(int(*fCompare)(const void*, const void*));
 	void	QuickSort(int(*fCompare)(const void*, const void*));
 	void	Reverse(void);
 
 	bool	Contains(void* pData);
-	int 	Find(void* pData);
-	bool	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), int* piIndex);
+	size 	Find(void* pData);
+	bool	FindInSorted(void* pData, int(*fCompare)(const void*, const void*), size* piIndex);
 
-	void 	RemoveAt(int iIndex, int bPreserveOrder = true);
-	void	RemoveRange(int iStartIndex, int iEndIndexExclusive, bool bPreserveOrder = true);
+	void 	RemoveAt(size iIndex, bool bPreserveOrder = true);
+	void	RemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder = true);
 	bool 	RemoveTail(void);
 
-	void	Set(int iIndex, void* pvData);
-	void	Swap(int iIndex1, int iIndex2);
+	void	Set(size iIndex, void* pvData);
+	void	Swap(size iIndex1, size iIndex2);
 	void 	Zero(void);
 
-	int 	ByteSize(void);
-	int		ChunkSize(void);
-	int		SetUsedElements(int iNumElements);
+	size 	ByteSize(void);
+	size	ChunkSize(void);
+	size	SetUsedElements(size iNumElements);
 
-	bool	SetChunkSize(int iChunkSize);
+	bool	SetChunkSize(size iChunkSize);
 
 	bool	Write(CFileWriter* pcFileWriter);
 	bool	Read(CFileReader* pcFileReader);

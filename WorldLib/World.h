@@ -47,16 +47,16 @@ class CSequence;
 class CInstance;
 
 
-typedef CArrayType<CMeshObject>				CMeshObjectList;
-typedef CArrayType<CMeshInstance>			CMeshInstanceList;
-typedef CArrayType<CGraphicsMaterial>		CGraphicsMaterialList;
-typedef CArrayType<CGraphicsTexture>		CGraphicsTextureList;
-typedef CArrayType<CGraphicsState>			CGraphicsStateList;
-typedef CArrayType<CGraphicsObject>			CGraphicsObjectList;
-typedef CArrayType<CGraphicsInstance>		CGraphicsInstanceList;
-typedef CArrayType<CPosition>				CPositionList;
-typedef CArrayType<CRotation>				CRotationList;
-typedef CArrayType<CTransformNode>			CAnimMatrixList;
+typedef CArrayUnknownTemplate<CMeshObject>				CMeshObjectList;
+typedef CArrayUnknownTemplate<CMeshInstance>			CMeshInstanceList;
+typedef CArrayUnknownTemplate<CGraphicsMaterial>		CGraphicsMaterialList;
+typedef CArrayUnknownTemplate<CGraphicsTexture>			CGraphicsTextureList;
+typedef CArrayUnknownTemplate<CGraphicsState>			CGraphicsStateList;
+typedef CArrayUnknownTemplate<CGraphicsObject>			CGraphicsObjectList;
+typedef CArrayUnknownTemplate<CGraphicsInstance>		CGraphicsInstanceList;
+typedef CArrayUnknownTemplate<CPosition>				CPositionList;
+typedef CArrayUnknownTemplate<CRotation>				CRotationList;
+typedef CArrayUnknownTemplate<CTransformNode>			CAnimMatrixList;
 typedef CLinkedListTemplateFreeList<SMatrix>	CTransformNodeList;
 
 

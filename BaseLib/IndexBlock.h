@@ -1,5 +1,6 @@
 #ifndef __INDEX_BLOCK_H__
 #define __INDEX_BLOCK_H__
+#include "BaseLib/PrimitiveTypes.h"
 #include "Malloc.h"
 #include "IndexTreeMemory.h"
 

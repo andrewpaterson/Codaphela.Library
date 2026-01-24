@@ -24,7 +24,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 #define __INPUT_CHORD_CRITERIA_DESC_H__
 #include "BaseLib/ArrayIntAndPointer.h"
 #include "StandardLib/Unknown.h"
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "InputCategoryGeneric.h"
 #include "InputSourceEvaluator.h"
 #include "InputChordDesc.h"

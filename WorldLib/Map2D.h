@@ -22,12 +22,12 @@ Microsoft DirectX is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_2D_H__
 #define __MAP_2D_H__
-#include "StandardLib/ArrayType.h"
+#include "StandardLib/ArrayUnknownTemplate.h"
 #include "Quad2D.h"
 #include "GraphicsViewport.h"
 
 
-typedef CArrayType<CQuad2D>		CArrayQuad2D;
+typedef CArrayUnknownTemplate<CQuad2D>		CArrayQuad2D;
 
 
 class CMap2D
