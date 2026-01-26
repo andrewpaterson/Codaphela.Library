@@ -20,10 +20,10 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __CARET_H__
 #define __CARET_H__
-#include "ComplexComponent.h"
+#include "BasicComponent.h"
 
 
-class CCaret : public CComplexComponent
+class CCaret : public CBasicComponent
 {
 CONSTRUCTABLE(CCaret);
 DESTRUCTABLE(CCaret);

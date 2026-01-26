@@ -24,13 +24,13 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "StandardLib/Pointer.h"
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/Rectangle.h"
-#include "ComplexComponent.h"
+#include "BasicComponent.h"
 #include "CanvasDraw.h"
 
 
 class CNativeCanvas;
 class CContainer;
-class CCanvas : public CComplexComponent
+class CCanvas : public CBasicComponent
 {
 CONSTRUCTABLE(CCanvas);
 DESTRUCTABLE(CCanvas);

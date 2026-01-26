@@ -13,9 +13,6 @@
     <Filter Include="Source\Component\Widgets">
       <UniqueIdentifier>{e6d6bffe-421f-4e79-ad7c-71eef9e4a824}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Component\Containers">
-      <UniqueIdentifier>{88a4135b-d80d-4b41-8542-04c1384b9057}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Component\Drawing">
       <UniqueIdentifier>{4dc6ddc6-71b6-40c5-b3cc-c2851f700f0c}</UniqueIdentifier>
     </Filter>
@@ -46,6 +43,9 @@
     <Filter Include="Source\Component\Drawing\Text">
       <UniqueIdentifier>{bf81206b-63ee-4b55-9d42-047fb257362e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Component\Container">
+      <UniqueIdentifier>{88a4135b-d80d-4b41-8542-04c1384b9057}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NativeWindow.h">
@@ -64,13 +64,10 @@
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="ContainerBounds.h">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="Container.h">
-      <Filter>Source\Component\Containers</Filter>
-    </ClInclude>
-    <ClInclude Include="ComplexComponent.h">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="WindowTick.h">
       <Filter>Source\Component\Window</Filter>
@@ -85,22 +82,22 @@
       <Filter>Source\Event</Filter>
     </ClInclude>
     <ClInclude Include="FillContainer.h">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="FlowContainer.h">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="GridCell.h">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="GridContainer.h">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="Insets.h">
       <Filter>Source\Component\Inset</Filter>
     </ClInclude>
     <ClInclude Include="ContainerStyles.h">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClInclude>
     <ClInclude Include="Canvas.h">
       <Filter>Source\Component\Drawing\Canvas</Filter>
@@ -141,10 +138,7 @@
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="Container.cpp">
-      <Filter>Source\Component\Containers</Filter>
-    </ClCompile>
-    <ClCompile Include="ComplexComponent.cpp">
-      <Filter>Source\Component</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="WindowTick.cpp">
       <Filter>Source\Component\Window</Filter>
@@ -153,25 +147,25 @@
       <Filter>Source\Component\Window</Filter>
     </ClCompile>
     <ClCompile Include="FillContainer.cpp">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="FlowContainer.cpp">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="GridCell.cpp">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="GridContainer.cpp">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="Insets.cpp">
       <Filter>Source\Component\Inset</Filter>
     </ClCompile>
     <ClCompile Include="ContainerBounds.cpp">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="ContainerStyles.cpp">
-      <Filter>Source\Component\Containers</Filter>
+      <Filter>Source\Component\Container</Filter>
     </ClCompile>
     <ClCompile Include="Canvas.cpp">
       <Filter>Source\Component\Drawing\Canvas</Filter>

@@ -30,7 +30,7 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
-	CComplexComponent::Init(pWindow);
+	CBasicComponent::Init(pWindow);
 
 	mcTextData.Init();
 	mfAlpha = 1.0f;
@@ -52,7 +52,7 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CText::Class(void)
 {
-	CComplexComponent::Class();
+	CBasicComponent::Class();
 	U_Float32(mfAlpha);
 	U_Data(CTextData, mcTextData);
 	U_Bool(mbCaretVisible);

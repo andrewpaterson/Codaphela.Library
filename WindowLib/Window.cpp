@@ -19,7 +19,7 @@ void CWindow::Init(const char* szTitle, CNativeWindowFactory* pcFactory, Ptr<CWi
 
 	mpcFactory = pcFactory;
 	mpcNativeWindow = pcFactory->CreateNativeWindow(this);
-	CComplexComponent::Init(this);
+	CBasicComponent::Init(this);
 
 	mpWindowTick = pTick;
 	mpCanvas = OMalloc<CCanvas>(this, CF_R8G8B8, pDraw);
@@ -43,7 +43,7 @@ void CWindow::Free(void)
 
 	mszWindowTitle.Kill();
 
-	CComplexComponent::Free();
+	CBasicComponent::Free();
 
 	mpcFactory = NULL;
 }
@@ -55,7 +55,7 @@ void CWindow::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CWindow::Class(void)
 {
-	CComplexComponent::Class();
+	CBasicComponent::Class();
 
 	U_String(mszWindowTitle);
 
@@ -141,7 +141,7 @@ void CWindow::Layout(void)
 	mpcNativeWindow->GetRectangle(&cRect);
 	SetActualSize(cRect.GetWidth(), cRect.GetHeight());
 	SetPosition(0, 0);  //The position of the Window within itself.
-	CComplexComponent::Layout(GetPosition(), GetActualSize());
+	CBasicComponent::Layout(GetPosition(), GetActualSize());
 
 	//mFocus.Update(mcInput.GetPointer()->GetX(), mcInput.GetPointer()->GetY());
 }
