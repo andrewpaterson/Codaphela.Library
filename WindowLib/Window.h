@@ -1,13 +1,13 @@
 #ifndef __WINDOW_H__
 #define __WINDOW_H__
-#include "ComplexComponent.h"
+#include "BasicComponent.h"
 #include "Canvas.h"
 #include "NativeWindow.h"
 #include "CanvasDraw.h"
 
 
 class CWindowTick;
-class CWindow : public CComplexComponent
+class CWindow : public CBasicComponent
 {
 CONSTRUCTABLE(CWindow); 
 DESTRUCTABLE(CWindow);

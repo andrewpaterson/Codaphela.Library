@@ -23,12 +23,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/Int2.h"
 #include "StandardLib/Pointer.h"
-#include "ComplexComponent.h"
+#include "BasicComponent.h"
 #include "Caret.h"
 #include "TextData.h"
 
 
-class CText : public CComplexComponent
+class CText : public CBasicComponent
 {
 CONSTRUCTABLE(CText);
 DESTRUCTABLE(CText);
