@@ -228,9 +228,6 @@
     <ClInclude Include="Glyph.h">
       <Filter>Source\Image\Font</Filter>
     </ClInclude>
-    <ClInclude Include="WinText.h">
-      <Filter>Source\Image\Font</Filter>
-    </ClInclude>
     <ClInclude Include="ImageAccessorCreator.h">
       <Filter>Source\Image\Accessor</Filter>
     </ClInclude>
@@ -717,9 +714,6 @@
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="Glyph.cpp">
-      <Filter>Source\Image\Font</Filter>
-    </ClCompile>
-    <ClCompile Include="WinText.cpp">
       <Filter>Source\Image\Font</Filter>
     </ClCompile>
     <ClCompile Include="ImageAccessorCreator.cpp">

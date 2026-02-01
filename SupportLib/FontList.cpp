@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "FontList.h"
 
 
@@ -28,10 +29,11 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontList::Init(HWND hWnd)
+void CFontList::Init(void)
 {
-	mscFonts.Init();
-	mcWinText.Init(hWnd);
+	PreInit();
+	maFonts.Init();
+	PostInit();
 }
 
 
@@ -39,10 +41,8 @@ void CFontList::Init(HWND hWnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFontList::Kill(void)
+void CFontList::Free(void)
 {
-	mcWinText.Kill();
-	mscFonts.Kill();
 }
 
 
@@ -50,66 +50,28 @@ void CFontList::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CFont> CFontList::CreateFromSystem(char* szName, int iHeight, int iWidth, int iWeight)
+void CFontList::Class(void)
 {
-	Ptr<CFont>			pcFont;
-	CChars				szUniqueName;
-	SWinFontInstance*	psWinFont;
+	M_Embedded(maFonts);
+}
 
-	szUniqueName.Init(szName);
-	if (iHeight > 0)
-	{
-		szUniqueName.Append(" ");
-		szUniqueName.Append(iHeight);
-	}
-	if (iWeight != FW_DONTCARE)
-	{
-		switch (iWeight)
-		{
-		case FW_THIN:
-			szUniqueName.Append(" Thin");
-			break;
-		case FW_EXTRALIGHT:
-			szUniqueName.Append(" Extralight");
-			break;
-		case FW_LIGHT:
-			szUniqueName.Append(" Light");
-			break;
-		case FW_NORMAL:
-			szUniqueName.Append(" Normal");
-			break;
-		case FW_MEDIUM:
-			szUniqueName.Append(" Medium");
-			break;
-		case FW_SEMIBOLD:
-			szUniqueName.Append(" Semibold");
-			break;
-		case FW_BOLD:
-			szUniqueName.Append(" Bold");
-			break;
-		case FW_EXTRABOLD:
-			szUniqueName.Append(" Extrabold");
-			break;
-		case FW_HEAVY:
-			szUniqueName.Append(" Heavy");
-			break;
-		}
-	}
-
-	pcFont = Get(szUniqueName.Text());
-	if (pcFont.IsNotNull())
-	{
-		szUniqueName.Kill();
-		return pcFont;
-	}
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFontList::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
 
 
-	psWinFont = mcWinText.Create(szName, iHeight, iWidth, iWeight);
-	pcFont = mcWinText.GenerateFont(psWinFont, szUniqueName.Text());
-	szUniqueName.Kill();
-	mscFonts.Add(pcFont);
-
-	return pcFont;
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CFontList::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -122,14 +84,14 @@ Ptr<CFont> CFontList::Get(char* szName)
 	SSetIterator	sIter;
 	Ptr<CFont>		pcFont;
 
-	pcFont = mscFonts.StartIteration(&sIter);
+	pcFont = maFonts.StartIteration(&sIter);
 	while (pcFont.IsNotNull())
 	{
 		if (pcFont->Is(szName))
 		{
 			return pcFont;
 		}
-		pcFont = mscFonts.Iterate(&sIter);
+		pcFont = maFonts.Iterate(&sIter);
 	}
 	return NULL;
 }
