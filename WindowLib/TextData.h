@@ -24,7 +24,6 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/Int2.h"
 #include "SupportLib/Font.h"
-#include "TextParameters.h"
 
 
 class CTextChar
@@ -32,18 +31,21 @@ class CTextChar
 protected:
 	SInt2				msTopLeft;
 	uint16				mcChar;	 //Could be a tab or a space.
+	CFont*				mpcFont;
 
 public:
-	void 				Init(uint16 c);
+	void 				Init(uint16 c, CFont* pcFont);
 	void				Layout(int x, int y);
-	size				GetWidth(CTextParameters* pcFont);
-	size				GetHeight(CTextParameters* pcFont);
-	int					GetRight(CTextParameters* pcFont);
+	size				GetWidth(void);
+	size				GetHeight(void);
+	int					GetRight(void);
 	bool				IsWhiteSpace(void);
-	bool				GetBounds(CTextParameters* pcFont, CRectangle* pcDest);
+	bool				GetBounds(CRectangle* pcDest);
 	char				GetASCIIChar(void);
 	int					GetX(void);
 	int					GetY(void);
+	int					GetAscent(void);
+	int					GetDescent(void);
 };
 
 
@@ -57,16 +59,14 @@ protected:
 	SInt2				msTopLeft;
 	int					miBaseline;
 	SInt2				msBottomRight;  //Inclusive (ie: this line msBottomRight.y+1 == next line msBottomRight.y)
-	CTextParameters*	mpcFont;
 
 public:
 	void 				Init(void);
-	void 				Init(CTextParameters* pcFont, char* szText, int iLen);
+	void 				Init(CFont* pcFont, char* szText, int iLen);
 	void 				Kill(void);
-	CTextParameters*	Layout(int x, int y, CTextParameters* pcLastFont);
-	CTextChar*			Insert(int x, CTextParameters* pcFont, char* szText, int iLen);
-	CTextChar*			Insert(int x, CTextParameters* pcFont, char c);
-	void 				Append(CChars* pcText);
+	void				Layout(int x, int y);
+	CTextChar*			Insert(int x, CFont* pcFont, char* szText, int iLen);
+	CTextChar*			Insert(int x, CFont* pcFont, char c);
 
 	CTextChar*			GetLastChar(void);
 	int					GetCharIndex(int x, bool bClamp = false);
@@ -81,7 +81,6 @@ public:
 	bool 				IsOutOfBoundsLeft(int iIndex);
 	bool 				IsOutOfBounds(int iIndex);
 	bool				GetBounds(int iX, CRectangle* pcDest);
-	CTextParameters*	GetFont(void);
 	int					GetTopLeftY(void);
 	int					GetBottomRightY(void);
 };
@@ -96,11 +95,11 @@ public:
 	CArrayRenderCharLines	mcLines;
 
 	void 			Init(void);
-	void 			Init(CTextParameters* pcFont, char* szText);
-	void 			Init(CTextParameters* pcFont, CChars* pcText);
+	void 			Init(CFont* pcFont, char* szText);
+	void 			Init(CFont* pcFont, CChars* pcText);
 	void			Reinit(void);
-	void			Reinit(CTextParameters* pcFont, char* szText);
-	void			Reinit(CTextParameters* pcFont, CChars* pcText);
+	void			Reinit(CFont* pcFont, char* szText);
+	void			Reinit(CFont* pcFont, CChars* pcText);
 	void 			Kill(void);
 	void 			Layout(void);
 	void			Clear(void);
@@ -109,10 +108,9 @@ public:
 
 	SInt2			Remove(SInt2 sPos);
 	SInt2			Remove(SInt2 sPosStart, SInt2 sPosEnd);
-	SInt2			Insert(SInt2 sPos, CTextParameters* pcFont, char c);
-	SInt2			Insert(SInt2 sPos, CTextParameters* pcFont, char* szString);
-	void 			Append(CTextParameters* pcFont, CChars* pcText);
-	CTextChar*		Insert(int iColumn, size iLine, CTextParameters* pcFont, char* szText, size iLen);
+	SInt2			Insert(SInt2 sPos, CFont* pcFont, char c);
+	SInt2			Insert(SInt2 sPos, CFont* pcFont, char* szString);
+	CTextChar*		Insert(int iColumn, size iLine, CFont* pcFont, char* szText, size iLen);
 	void			GetText(CChars* pcText);
 	void			GetText(CChars* pcText, SInt2 sStart, SInt2 iEnd);
 	SInt2			Split(SInt2 sPos);

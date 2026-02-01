@@ -75,7 +75,7 @@ bool CIndexPrimitiveBlock<M>::Put(M sData, void* pvData, size iDataSize)
 template<class M>
 bool CIndexPrimitiveBlock<M>::Remove(M sData)
 {
-	return CIndexBlock::Remove(&sData, sizeof(M));
+	return CIndexBlock::Remove((uint8*)&sData, sizeof(M));
 }
 
 

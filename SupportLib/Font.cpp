@@ -38,9 +38,10 @@ Ptr<CFont> CFont::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDe
 	mszName.Init(szName);
 	pcImage = NULL;
 	miAverageWidth = 0;
+	miTabSpaceCount = 4;
 	miHeight = iAscent + iDescent;
 	mbFixedWidh = false;
-	miSpace = iSpaceWidth;
+	miSpaceWidth = iSpaceWidth;
 	miAscent = iAscent;
 	miDescent = iDescent;
 	macGlyphs.Init();
@@ -62,10 +63,11 @@ void CFont::Class(void)
 	U_Size(miAverageWidth);
 	U_Size(miHeight);
 	U_Bool(mbFixedWidh);
-	U_Int16(miSpace);
+	U_Int16(miSpaceWidth);
 	U_Unknown(CArrayGlyph, macGlyphs);
 	U_Int16(miAscent);
 	U_Int16(miDescent);
+	U_Int16(miTabSpaceCount);
 }
 
 
@@ -165,7 +167,7 @@ size CFont::Width(char* szText)
 		}
 		else if (iChar == FIRST_LETTER)
 		{
-			iWidth += miSpace;
+			iWidth += miSpaceWidth;
 		}
 		else
 		{
@@ -173,16 +175,6 @@ size CFont::Width(char* szText)
 		}
 	}
 	return iWidth;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CFont::Height(void)
-{
-	return miHeight;
 }
 
 
@@ -236,16 +228,6 @@ CGlyph* CFont::AddGlyph(CImageCel* pcCel, int16 iStep)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CFont::GetImage(void)
-{
-	return pcImage;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CFont::SetImage(Ptr<CImage> pcImage)
 {
 	this->pcImage = pcImage;
@@ -256,29 +238,10 @@ void CFont::SetImage(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int16 CFont::GetSpace(void)
-{
-	return miSpace;
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int16 CFont::GetAscent(void)
-{
-	return miAscent;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int16 CFont::GetDescent(void)
-{
-	return miDescent;
-}
+Ptr<CImage> CFont::GetImage(void) { return pcImage; }
+int16 CFont::GetSpaceWidth(void) { return miSpaceWidth; }
+int16 CFont::GetAscent(void) { return miAscent; }
+int16 CFont::GetDescent(void) { return miDescent; }
+int16 CFont::GetTabSpaceCount(void) { return miTabSpaceCount; }
+size CFont::Height(void) { return miHeight; }
 

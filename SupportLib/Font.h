@@ -44,10 +44,11 @@ protected:
 	size				miAverageWidth;
 	size				miHeight;
 	bool				mbFixedWidh;
-	int16				miSpace;
+	int16				miSpaceWidth;
 	CArrayGlyph			macGlyphs;
 	int16				miAscent;
 	int16				miDescent;
+	int16				miTabSpaceCount;  //tab width = miTabSpaceCount * miSpaceWidth.
 
 public:
 	Ptr<CFont>		Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDescent);
@@ -69,6 +70,9 @@ public:
 	int16			GetSpace(void);
 	int16			GetAscent(void);
 	int16			GetDescent(void);
+	int16			GetTabSpaceCount(void);
+	int16			GetSpaceWidth(void);
+
 };
 
 

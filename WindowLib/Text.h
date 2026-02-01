@@ -23,6 +23,7 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Chars.h"
 #include "BaseLib/Int2.h"
 #include "StandardLib/Pointer.h"
+#include "SupportLib/Font.h"
 #include "BasicComponent.h"
 #include "Caret.h"
 #include "TextData.h"
@@ -33,7 +34,6 @@ class CText : public CBasicComponent
 CONSTRUCTABLE(CText);
 DESTRUCTABLE(CText);
 public:
-	float			mfAlpha;
 	CTextData		mcTextData;
 	bool			mbCaretVisible;
 	Ptr<CCaret>		mpCaret;
@@ -51,8 +51,8 @@ public:
 	void 		SetRequiredSize(void);
 	void		Layout(SInt2 sPosition, SInt2 sAreaSize) override;
 
-	void 		SetText(char* sz, CTextParameters* pcFont);
-	void 		SetText(CChars sz, CTextParameters* pcFont);
+	void 		SetText(char* sz, Ptr<CFont> pFont);
+	void 		SetText(CChars sz, Ptr<CFont> pFont);
 	void 		SetAlpha(float fAlpha);
 };
 
