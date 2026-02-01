@@ -114,9 +114,6 @@
     <ClInclude Include="TextData.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
-    <ClInclude Include="TextParameters.h">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClInclude>
     <ClInclude Include="Caret.h">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClInclude>
@@ -180,9 +177,6 @@
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
     <ClCompile Include="TextData.cpp">
-      <Filter>Source\Component\Drawing\Text</Filter>
-    </ClCompile>
-    <ClCompile Include="TextParameters.cpp">
       <Filter>Source\Component\Drawing\Text</Filter>
     </ClCompile>
     <ClCompile Include="Caret.cpp">

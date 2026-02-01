@@ -33,7 +33,6 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 	CBasicComponent::Init(pWindow);
 
 	mcTextData.Init();
-	mfAlpha = 1.0f;
 	mbCaretVisible = false;
 	msCaretPos.Init(0, 0);
 
@@ -53,7 +52,6 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 void CText::Class(void)
 {
 	CBasicComponent::Class();
-	U_Float32(mfAlpha);
 	U_Data(CTextData, mcTextData);
 	U_Bool(mbCaretVisible);
 	M_Pointer(mpCaret);
@@ -132,13 +130,13 @@ bool CText::Draw(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CText::SetText(char* sz, CTextParameters* pcFont)
+void CText::SetText(char* sz, Ptr<CFont> pFont)
 {
 	int					iLen;
 
 	iLen = (int)strlen(sz);
 	mcTextData.Kill();
-	mcTextData.Init(pcFont, sz);
+	mcTextData.Init(&pFont, sz);
 }
 
 
@@ -146,10 +144,10 @@ void CText::SetText(char* sz, CTextParameters* pcFont)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CText::SetText(CChars sz, CTextParameters* pcFont)
+void CText::SetText(CChars sz, Ptr<CFont> pFont)
 {
 	mcTextData.Kill();
-	mcTextData.Init(pcFont, &sz);
+	mcTextData.Init(&pFont, &sz);
 }
 
 
@@ -166,13 +164,4 @@ void CText::SetText(CChars sz, CTextParameters* pcFont)
 //	msRequiredSize.y = sSize.y;
 //}
 
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CText::SetAlpha(float fAlpha)
-{
-	mfAlpha = fAlpha;
-}
 

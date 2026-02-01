@@ -199,7 +199,6 @@
     <ClInclude Include="NativeWindowFactory.h" />
     <ClInclude Include="Text.h" />
     <ClInclude Include="TextData.h" />
-    <ClInclude Include="TextParameters.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="WindowTick.h" />
   </ItemGroup>
@@ -223,7 +222,6 @@
     <ClCompile Include="NativeWindowFactory.cpp" />
     <ClCompile Include="Text.cpp" />
     <ClCompile Include="TextData.cpp" />
-    <ClCompile Include="TextParameters.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="WindowTick.cpp" />
   </ItemGroup>

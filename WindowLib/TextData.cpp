@@ -26,10 +26,11 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextChar::Init(uint16 c)
+void CTextChar::Init(uint16 c, CFont* pcFont)
 {
 	msTopLeft.Init(0, 0);
 	mcChar = c;
+	mpcFont = pcFont;
 }
 
 
@@ -47,19 +48,19 @@ void CTextChar::Layout(int x, int y)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextChar::GetWidth(CTextParameters* pcFont)
+size CTextChar::GetWidth(void)
 {
 	if (mcChar == ' ')
 	{
-		return pcFont->GetSpaceWidth();
+		return mpcFont->GetSpaceWidth();
 	}
 	else if (mcChar == '\t')
 	{
-		return pcFont->GetTabSpaceCount() * pcFont->GetSpaceWidth();
+		return mpcFont->GetTabSpaceCount() * mpcFont->GetSpaceWidth();
 	}
 	else
 	{
-		return pcFont->GetGlyph(mcChar)->GetFullWidth();
+		return mpcFont->GetGlyph(mcChar)->GetFullWidth();
 	}
 }
 
@@ -68,11 +69,11 @@ size CTextChar::GetWidth(CTextParameters* pcFont)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CTextChar::GetHeight(CTextParameters* pcFont)
+size CTextChar::GetHeight(void)
 {
 	CRectangle	cRect;
 
-	GetBounds(pcFont, &cRect);
+	GetBounds(&cRect);
 	
 	return cRect.GetHeight();
 }
@@ -82,11 +83,11 @@ size CTextChar::GetHeight(CTextParameters* pcFont)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CTextChar::GetRight(CTextParameters* pcFont)
+int CTextChar::GetRight(void)
 {
 	CGlyph*		pcGlyph;
 
-	pcGlyph = pcFont->GetGlyph(mcChar);
+	pcGlyph = mpcFont->GetGlyph(mcChar);
 	return pcGlyph->GetFullDestRight(msTopLeft.x) - 1;
 }
 
@@ -105,11 +106,11 @@ bool CTextChar::IsWhiteSpace(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CTextChar::GetBounds(CTextParameters* pcFont, CRectangle* pcDest)
+bool CTextChar::GetBounds(CRectangle* pcDest)
 {
 	CGlyph*		pcGlyph;
 
-	pcGlyph = pcFont->GetGlyph(mcChar);
+	pcGlyph = mpcFont->GetGlyph(mcChar);
 	pcGlyph->GetFullDestBounds(msTopLeft.x, msTopLeft.y, pcDest);
 	pcDest->miRight--;
 	pcDest->miBottom--;
@@ -122,30 +123,11 @@ bool CTextChar::GetBounds(CTextParameters* pcFont, CRectangle* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char CTextChar::GetASCIIChar(void)
-{
-	return (char)mcChar;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CTextChar::GetX(void)
-{
-	return msTopLeft.x;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CTextChar::GetY(void)
-{
-	return msTopLeft.y;
-}
+char CTextChar::GetASCIIChar(void) { return (char)mcChar; }
+int CTextChar::GetX(void) { return msTopLeft.x; }
+int CTextChar::GetY(void) { return msTopLeft.y; }
+int CTextChar::GetAscent(void) { return mpcFont->GetAscent(); }
+int CTextChar::GetDescent(void) { return mpcFont->GetDescent(); }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -162,7 +144,7 @@ void CTextCharLine::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextCharLine::Init(CTextParameters* pcFont, char* szText, int iLen)
+void CTextCharLine::Init(CFont* pcFont, char* szText, int iLen)
 {
 	Init();
 	Insert(0, pcFont, szText, iLen);
@@ -184,46 +166,39 @@ void CTextCharLine::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextParameters* CTextCharLine::Layout(int x, int y, CTextParameters* pcLastFont)
+void CTextCharLine::Layout(int x, int y)
 {
 	size				i;
 	CTextChar*			pcChar;
 	int					iMaxAscent;
 	int					iMaxDescent;
 	int					iCharX;
+	size				uiNumChars;
 
 	iMaxAscent = 0;
 	iMaxDescent = 0;
 	iCharX = x;
 
-	if (mpcFont->GetAscent() > iMaxAscent)
+	uiNumChars = mcChars.NumElements();
+	for (i = 0; i < uiNumChars; i++)
 	{
-		iMaxAscent = mpcFont->GetAscent();
-	}
-	if (mpcFont->GetDescent() > iMaxDescent)
-	{
-		iMaxDescent = mpcFont->GetDescent();
-	}
-
-	pcLastFont = mpcFont;
-	if (mcChars.NumElements() > 0)
-	{
-		for (i = 0; i < mcChars.NumElements(); i++)
+		pcChar = mcChars.Get(i);
+		if (pcChar->GetAscent() > iMaxAscent)
 		{
-			pcChar = mcChars.Get(i);
+			iMaxAscent = pcChar->GetAscent();
 		}
-
-		for (i = 0; i < mcChars.NumElements(); i++)
+		if (pcChar->GetDescent() > iMaxDescent)
 		{
-			pcChar = mcChars.Get(i);
-			pcChar->Layout(iCharX, y + iMaxAscent);
-			iCharX += pcChar->GetWidth(mpcFont);
+			iMaxDescent = pcChar->GetDescent();
 		}
 	}
-	else
+
+	for (i = 0; i < uiNumChars; i++)
 	{
-		iMaxAscent = pcLastFont->GetAscent();
-		iMaxDescent = pcLastFont->GetDescent();
+		pcChar = mcChars.Get(i);
+		pcChar->Layout(iCharX, y + iMaxAscent);
+		iCharX += pcChar->GetWidth();
+
 	}
 
 	msTopLeft.Init(x, y);
@@ -234,8 +209,6 @@ CTextParameters* CTextCharLine::Layout(int x, int y, CTextParameters* pcLastFont
 		msBottomRight.x = x;
 	}
 	msBottomRight.y = y + iMaxAscent + iMaxDescent;  //Er, possible off by one error.  Dunno.
-
-	return pcLastFont;
 }
 
 
@@ -243,7 +216,7 @@ CTextParameters* CTextCharLine::Layout(int x, int y, CTextParameters* pcLastFont
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char* szText, int iLen)
+CTextChar* CTextCharLine::Insert(int x, CFont* pcFont, char* szText, int iLen)
 {
 	CTextChar* pcNewArray;
 	CTextChar* pcChar;
@@ -278,7 +251,7 @@ CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char* szText, i
 		{
 			c = ' ';
 		}
-		pcChar->Init(c);
+		pcChar->Init(c, pcFont);
 	}
 	return &pcNewArray[iLen - 1];
 }
@@ -289,26 +262,9 @@ CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char* szText, i
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextChar* CTextCharLine::Insert(int x, CTextParameters* pcFont, char c)
+CTextChar* CTextCharLine::Insert(int x, CFont* pcFont, char c)
 {
 	return Insert(x, pcFont, &c, 1);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextCharLine::Append(CChars* pcText)
-{
-	CTextChar* pcChar;
-	size		i;
-
-	for (i = 0; i < mcChars.NumElements(); i++)
-	{
-		pcChar = mcChars.Get(i);
-		pcText->Append((char)pcChar->GetASCIIChar());
-	}
 }
 
 
@@ -345,7 +301,7 @@ int CTextCharLine::GetCharIndex(int x, bool bClamp)
 	for (i = 0; i < mcChars.NumElements(); i++)
 	{
 		pcChar = mcChars.Get(i);
-		if ((x >= pcChar->GetX()) && (x <= pcChar->GetRight(mpcFont)))
+		if ((x >= pcChar->GetX()) && (x <= pcChar->GetRight()))
 		{
 			return i;
 		}
@@ -534,7 +490,7 @@ bool CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
 	pcChar = GetChar(iX);
 	if (pcChar)
 	{
-		return pcChar->GetBounds(mpcFont, pcDest);
+		return pcChar->GetBounds(pcDest);
 	}
 	else
 	{
@@ -551,30 +507,8 @@ bool CTextCharLine::GetBounds(int iX, CRectangle* pcDest)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextParameters* CTextCharLine::GetFont(void)
-{
-	return mpcFont;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CTextCharLine::GetTopLeftY(void)
-{
-	return msTopLeft.y;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-int CTextCharLine::GetBottomRightY(void)
-{
-	return msBottomRight.y;
-}
+int CTextCharLine::GetTopLeftY(void) { return msTopLeft.y; }
+int CTextCharLine::GetBottomRightY(void) { return msBottomRight.y; }
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -596,7 +530,7 @@ void CTextData::Init(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextData::Init(CTextParameters* pcFont, char* szText)
+void CTextData::Init(CFont* pcFont, char* szText)
 {
 	int		iLen;
 
@@ -610,7 +544,7 @@ void CTextData::Init(CTextParameters* pcFont, char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextData::Init(CTextParameters* pcFont, CChars* pcText)
+void CTextData::Init(CFont* pcFont, CChars* pcText)
 {
 	Init();
 	Insert(0, 0, pcFont, pcText->Text(), pcText->Length());
@@ -649,7 +583,7 @@ void CTextData::Reinit(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextData::Reinit(CTextParameters* pcFont, char* szText)
+void CTextData::Reinit(CFont* pcFont, char* szText)
 {
 	int		iLen;
 
@@ -663,35 +597,10 @@ void CTextData::Reinit(CTextParameters* pcFont, char* szText)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CTextData::Reinit(CTextParameters* pcFont, CChars* pcText)
+void CTextData::Reinit(CFont* pcFont, CChars* pcText)
 {
 	Clear();
 	Insert(0, 0, pcFont, pcText->Text(), pcText->Length());
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CTextData::Append(CTextParameters* pcFont, CChars* pcText)
-{
-	size			i;
-	CTextCharLine*	pcLine;
-
-	for (i = 0; i < mcLines.NumElements(); i++)
-	{
-		pcLine = mcLines.Get(i);
-		if (pcLine->GetFont() == pcFont)
-		{
-			pcLine->Append(pcText);
-			pcText->AppendNewLine();
-		}
-		else
-		{
-			mcLines.Add();
-		}
-	}
 }
 
 
@@ -705,15 +614,13 @@ void CTextData::Layout(void)
 	CTextCharLine*		pcLine;
 	int					x;
 	int					y;
-	CTextParameters*	pcLastFont;
 
-	pcLastFont = NULL;
 	x = 0;
 	y = 0;
 	for (i = 0; i < mcLines.NumElements(); i++)
 	{
 		pcLine = mcLines.Get(i);
-		pcLastFont = pcLine->Layout(x, y, pcLastFont);
+		pcLine->Layout(x, y);
 		y += (pcLine->GetBottomRightY() - pcLine->GetTopLeftY());
 	}
 }
@@ -790,7 +697,7 @@ SInt2 CTextData::Remove(SInt2 sPosStart, SInt2 sPosEnd)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CTextChar* CTextData::Insert(int iColumn, size iLine, CTextParameters* pcFont, char* szText, size iLen)
+CTextChar* CTextData::Insert(int iColumn, size iLine, CFont* pcFont, char* szText, size iLen)
 {
 	size				i;
 	char				c;
@@ -835,7 +742,7 @@ CTextChar* CTextData::Insert(int iColumn, size iLine, CTextParameters* pcFont, c
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CTextData::Insert(SInt2 sPos, CTextParameters* pcFont, char c)
+SInt2 CTextData::Insert(SInt2 sPos, CFont* pcFont, char c)
 {
 	int				iLine;
 	CTextCharLine* pcLine;
@@ -846,7 +753,7 @@ SInt2 CTextData::Insert(SInt2 sPos, CTextParameters* pcFont, char c)
 	pcChar = pcLine->Insert(sPos.x, pcFont, c);
 	Layout();
 
-	sPos.x = pcChar->GetRight(pcFont) + 1;
+	sPos.x = pcChar->GetRight() + 1;
 	return sPos;
 }
 
@@ -855,7 +762,7 @@ SInt2 CTextData::Insert(SInt2 sPos, CTextParameters* pcFont, char c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-SInt2 CTextData::Insert(SInt2 sPos, CTextParameters* pcFont, char* szString)
+SInt2 CTextData::Insert(SInt2 sPos, CFont* pcFont, char* szString)
 {
 	int				iLine;
 	CTextCharLine*	pcLine;
@@ -868,7 +775,7 @@ SInt2 CTextData::Insert(SInt2 sPos, CTextParameters* pcFont, char* szString)
 	pcChar = pcLine->Insert(sPos.x, pcFont, szString, iLen);
 	Layout();
 
-	sPos.x = pcChar->GetRight(pcFont) + 1;
+	sPos.x = pcChar->GetRight() + 1;
 	return sPos;
 }
 
