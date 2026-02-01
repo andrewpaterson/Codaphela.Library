@@ -205,7 +205,6 @@
     <ClInclude Include="Font.h" />
     <ClInclude Include="FontList.h" />
     <ClInclude Include="Glyph.h" />
-    <ClInclude Include="WinText.h" />
     <ClInclude Include="ImageAccessorCreator.h" />
     <ClInclude Include="ImageAccessor.h" />
     <ClInclude Include="ImageAccessorByte.h" />
@@ -370,7 +369,6 @@
     <ClCompile Include="Sprite.cpp" />
     <ClCompile Include="SpriteMap.cpp" />
     <ClCompile Include="Maps.cpp" />
-    <ClCompile Include="WinText.cpp" />
     <ClCompile Include="ImageAccessorCreator.cpp" />
     <ClCompile Include="ImageAccessor.cpp" />
     <ClCompile Include="ImageAccessorByte.cpp" />

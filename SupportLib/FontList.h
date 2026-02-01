@@ -24,22 +24,25 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __FONT_LIST_H__
 #define __FONT_LIST_H__
 #include "StandardLib/Set.h"
-#include "WinText.h"
 #include "Font.h"
 
 
-class CFontList
+class CFontList : public CObject
 {
-public:
-	CWinText		mcWinText;
-	CSet<CFont>		mscFonts;
+protected:
+	CSet<CFont>		maFonts;
 
-	void 		Init(HWND hWnd);
-	void 		Kill(void);
-	void		SetHWnd(HWND hWnd);
-	Ptr<CFont>	CreateFromSystem(char* szName, int iHeight, int iWidth, int iWeight);
+public:
+	void 		Init(void);
+	void		Class(void);
+	void 		Free(void);
+
+	bool		Save(CObjectWriter* pcFile);
+	bool		Load(CObjectReader* pcFile);
+
 	Ptr<CFont>	Get(char* szName);
 };
+
 
 #endif // __FONT_LIST_H__
 
