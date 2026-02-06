@@ -76,6 +76,6 @@ void CImageAccessorByte::Set(int x, int y, void* pvSource)
 //////////////////////////////////////////////////////////////////////////
 void CImageAccessorByte::SyncDataCache(void)
 {
-	mpucImageData = (uint8*)mpcImage->mcChannels.GetData();
+	mpucImageData = (uint8*)mpcImage->GetChannels()->GetData();
 }
 

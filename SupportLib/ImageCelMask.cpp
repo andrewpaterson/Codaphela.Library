@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "FillRectangle.h"
 #include "ImageCelMask.h"
 
@@ -39,12 +40,16 @@ void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, CFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, uint16 iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
 {
+	PreInit();
+
 	CImageCel::Init(pcSourceImage, iLeft, iTop, iRight, iBottom);
 	mpcMaskImage = pcMaskImage;
 	miMask = iMask;
 	mbFilled = bFilled;
+
+	PostInit();
 }
 
 
@@ -52,10 +57,43 @@ void CImageCelMask::Init(Ptr<CImage> pcSourceImage, Ptr<CImage> pcMaskImage, sho
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMask::Kill(void)
+void CImageCelMask::Class(void)
 {
-	mpcMaskImage = NULL;
-	CImageCel::Kill();
+	CImageCel::Class();
+
+	M_Pointer(mpcMaskImage);
+	U_UInt16(miMask);
+	U_Bool(mbFilled);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelMask::Free(void) 
+{
+	CImageCel::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelMask::Save(CObjectWriter* pcFile)
+{
+	return CImageCel::Save(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelMask::Load(CObjectReader* pcFile)
+{
+	return CImageCel::Load(pcFile);
 }
 
 
@@ -137,4 +175,4 @@ void CImageCelMask::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-short CImageCelMask::GetMask(void) {return miMask;}
+uint16 CImageCelMask::GetMask(void) {return miMask;}

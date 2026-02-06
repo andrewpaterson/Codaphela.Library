@@ -46,6 +46,9 @@ struct SImageChangingDesc
 
 class CImage : public CObject
 {
+friend class CImageCopier;
+friend class CImageAccessor;
+friend class CImageDivider;
 CONSTRUCTABLE(CImage);
 DESTRUCTABLE(CImage);
 public:
@@ -53,7 +56,8 @@ public:
 	int						miWidth;
 	int						miHeight;
 	SImageChangingDesc*		mpsImageChangingDesc;
-	
+
+public:
 	Ptr<CImage>				Init(void);
 	Ptr<CImage>				Init(int iWidth, int iHeight);
 	Ptr<CImage>				Init(int iWidth, int iHeight, EPrimitiveType eType, EChannel eFirst, ...);
@@ -124,6 +128,9 @@ public:
 protected:
 	void					PrivateInit(void);
 };
+
+
+typedef CArray<CImage> CArrayImage;
 
 
 #endif // __IMAGE_H__

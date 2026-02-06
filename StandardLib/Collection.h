@@ -22,7 +22,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __COLLECTION_H__
 #include "BaseObject.h"
 #include "StackPointers.h"
-
+#include "StandardLib/SetIterator.h"
 
 //Note: This class has no fields.
 class CObjects;
@@ -38,6 +38,8 @@ public:
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;
 	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
+	virtual CPointer		StartIterationPointer(SSetIterator* psIter) =0;
+	virtual CPointer		IteratePointer(SSetIterator* psIter) =0;
 
 protected:
 			void			Class(void) override;

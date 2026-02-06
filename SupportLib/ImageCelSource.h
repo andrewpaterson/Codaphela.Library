@@ -26,6 +26,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Unknown.h"
 #include "Image.h"
 #include "ImageDivider.h"
+#include "ImageCel.h"
 
 
 //Image Cel Sources can be used multiple times on different images.  They cannot carry the results of their divide.
@@ -39,7 +40,7 @@ protected:
 
 public:
 	void			Init(SImageColour* psTransparentColour, bool bIgnoreEmpty, bool bCropTransparentBorders);
-	virtual void	Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask) =0;
+	virtual void	Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask) =0;
 	virtual bool	NeedsMask(void);
 	void			Kill(void);
 };

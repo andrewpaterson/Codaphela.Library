@@ -36,9 +36,6 @@ public:
 
 						void			RemoveDuringIteration(SSetIterator* psIter);
 
-						CPointer		StartIteration(SSetIterator* psIter);
-						CPointer		Iterate(SSetIterator* psIter);
-
 	template<class M>	Ptr<M>			StartIteration(SSetIterator* psIter);
 	template<class M>	Ptr<M>			Iterate(SSetIterator* psIter);
 

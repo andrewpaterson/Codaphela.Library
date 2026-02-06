@@ -147,9 +147,9 @@ bool CObjectSourcesXML::ImportImage(CMovableBlockType* pcType, CMarkupTag* pcTag
 	int64						iCelIndex;
 	int64						iBrushID;
 	CChars						szSourceName;
-	CMovableBlockImageCel*				pcTile;
-	Ptr<CImageCelGroup>	pcGroup;
-	CImageCel*					pcCel;
+	CMovableBlockImageCel*		pcTile;
+	Ptr<CImageCelGroup>			pcGroup;
+	Ptr<CImageCel>				pcCel;
 
 	pcName = CMarkupTextParser::GetTag(pcTag, "Name");
 	if (!pcName)

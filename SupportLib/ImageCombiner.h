@@ -54,29 +54,36 @@ enum EImageCombineChannels
 };
 
 
-class CImageCombiner
+class CImageCombiner : public CObject
 {
+CONSTRUCTABLE(CImageCombiner);
+DESTRUCTABLE(CImageCombiner);
 public:
 	EImageCombineLayout		meLayout;
 	EImageCombineSize		meSize;
 	EImageCombineChannels	meChannels;
 	SInt2					msSize;  //Only if ICS_UserSpecified.
 	Ptr<CImage>				mpcDestImage;  //Assumed to be uninitialised.
-	CArrayUnknown			mcSourceCels;
-	CArrayUnknown			mcDestCels;  //Theres a one-to-one between dest and source cells.
+	CArrayImageCel			mcSourceCels;
+	CArrayImageCel			mcDestCels;  //Theres a one-to-one between dest and source cells.
 	int						miOutsideEdgeWidth;  //Gap around the outside of the destination image and the rectangles.
 	int						miInnerEdgeWidth;  //Gap between rectangles.
 	CArrayChannel			masChannels;
 
-	void				Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels);
-	void 				Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bKillDestCels = false);  //Don't pass ICS_UserSpecified in here, use the one below.
-	void 				Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0, bool bKillDestCels = false);
-	void				Kill(void);
-	void 				AddCel(CImageCel* pcCel);
-	void 				AddCels(CArrayUnknown* pcCels);
-	void				AddChannel(EChannel eChannel, EPrimitiveType eType);
-	Ptr<CImage>			Combine(void);
-	CArrayUnknown*		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be false.
+	void					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth);
+	void 					Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);  //Don't pass ICS_UserSpecified in here, use the one below.
+	void 					Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels = ICC_FromCels, int iOutsideEdgeWidth = 0, int iInnerEdgeWidth = 0);
+	void					Class(void);
+	void 					Free(void);
+
+	bool					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile);
+
+	void 					AddCel(Ptr<CImageCel> pcCel);
+	void 					AddCels(Ptr<CArrayImageCel>);
+	void					AddChannel(EChannel eChannel, EPrimitiveType eType);
+	Ptr<CImage>				Combine(void);
+	Ptr<CArrayImageCel>		GetCels(void);  //If something else is taking ownership of the cels (the normal case) then bKillDestCels must be false.
 
 private:
 	CRectanglePacker*	GetPacker(void);
@@ -87,7 +94,7 @@ private:
 	SInt2				Pack(CArrayPackedRectangle* pacPackedRects);
 	void				Draw(CArrayPackedRectangle* pacPackedRects);
 	void				CreateDestCels(CArrayPackedRectangle* pacPackedRects);
-	CPackedRectangle*	GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, CImageCel* pcSourceCel);
+	CPackedRectangle*	GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pcSourceCel);
 };
 
 

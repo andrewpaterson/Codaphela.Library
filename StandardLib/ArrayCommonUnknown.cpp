@@ -793,14 +793,14 @@ bool CArrayCommonUnknown::RemoveEnd(size iIndexInclusive)
 	size	i;
 	bool	bResult;
 
-	if (iIndexInclusive == ARRAY_ELEMENT_NOT_FOUND)
+	i = mcArray.NumElements();
+	if ((iIndexInclusive == ARRAY_ELEMENT_NOT_FOUND) || (iIndexInclusive >= i))
 	{
 		return false;
 	}
 
 	//Don't call this if you're using a set.
 	bResult = true;
-	i = mcArray.NumElements();
 	if (i != iIndexInclusive)
 	{
 		do

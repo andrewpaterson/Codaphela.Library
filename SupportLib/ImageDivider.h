@@ -25,12 +25,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __IMAGE_DIVIDER_H__
 #include "StandardLib/SetUnknown.h"
 #include "Image.h"
+#include "ImageCel.h"
 #include "ImageFiller.h"
 #include "ImageDividerNumbers.h"
 
-class CImageDivider : public CUnknown
+
+class CImageDivider : public CObject
 {
 CONSTRUCTABLE(CImageDivider);
+DESTRUCTABLE(CImageDivider);
 protected:
 	Ptr<CImage>		mpcImage;
 
@@ -39,19 +42,23 @@ protected:
 	bool			mbUseTransparentColour;
 	bool			mbCropTransparentBorders;
 
-	CArrayUnknown	mcDestImageCels;
+	CArrayImageCel	mcDestImageCels;
 
 public:
-	void 			Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
-	void 			Kill(void);
+	void 					Init(Ptr<CImage> pcImage, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
+	void					Class(void);
+	void 					Free(void);
 
-	void		 	GenerateFromBorder(Ptr<CImage> pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
-	void 			GenerateFromNumbers(CImageDividerNumbers* pcNumbers);
-	void 			GenerateFromRectangles(CArrayRectangle* pacRectangles);
+	bool					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile);
 
-	void 			CopyCellsTo(CArrayCommonUnknown* pcImageCels);
+	void		 			GenerateFromBorder(Ptr<CImage> pcFillMask);  //Use the pixel colour RGB (+A if available) in the top left corner to mask out rectangles.
+	void 					GenerateFromNumbers(CImageDividerNumbers* pcNumbers);
+	void 					GenerateFromRectangles(CArrayRectangle* pacRectangles);
 
-	CArrayUnknown*	GetDestImageCels(void);
+	void 					CopyCellsTo(Ptr<CArrayImageCel> pcImageCels);
+
+	Ptr<CArrayImageCel>		GetDestImageCels(void);
 
 private:
 	void	CropTransparentBorders(void);

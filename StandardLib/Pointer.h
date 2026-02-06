@@ -46,7 +46,13 @@ public:
 	Ptr<M>	operator + (char* sz);
 
 	explicit operator bool() const;
+
+	const char*		TemplateClassName(void);
 };
+
+
+bool ValidatePointerClass(char* szMethod, char* szParameter, const char* szInstanceClassName, const char* szExpectedClassName);
+#define ValidatePtr(p) ValidatePointerClass(__METHOD__, #p, p.IsNotNull() ? p->ClassName() : NULL, p.TemplateClassName());
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -211,6 +217,20 @@ Ptr<M>::operator bool() const
 	return mpcObject != NULL;
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+const char* Ptr<M>::TemplateClassName(void)
+{
+	const char* szClassName;
+	M			m;
+
+	szClassName = m.ClassName();
+	return szClassName;
+}
 
 #endif // __POINTER_H__
 

@@ -34,8 +34,13 @@ protected:
 	SImageColour	msTransparentColour;  //Treat this colour as transparent.
 
 public:
-	void 	Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, CFillRectangle* pcRect);
-	void 	Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect);
+	void 	Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom);
+	void	Class(void);
+	void 	Free(void);
+
+	bool	Save(CObjectWriter* pcFile);
+	bool	Load(CObjectReader* pcFile);
 
 	void	CropTransparentBorders(void);
 

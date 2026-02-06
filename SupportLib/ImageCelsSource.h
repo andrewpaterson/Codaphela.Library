@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __IMAGE_CELS_SOURCE_H__
 #include "StandardLib/Unknown.h"
 #include "StandardLib/Pointer.h"
+#include "StandardLib/Array.h"
 #include "Image.h"
 #include "ImageCelGroup.h"
 #include "ImageSource.h"
@@ -51,9 +52,10 @@ typedef CArrayUnknownTemplate<CImageSourceWithCelSources> CArrayImageSourceWithC
 
 
 //This class *does not* add the Cels to a Group because they probably need to be hit with the Image Combiner first.
-class CImageCelsSource : public CUnknown
+class CImageCelsSource : public CObject
 {
 CONSTRUCTABLE(CImageCelsSource);
+DESTRUCTABLE(CImageCelsSource);
 protected:
 	bool								mbPackOnLoad;	//This will crop transparent edges as the image is loaded to save memory.
 														//Also cropped images don't need the mask image.
@@ -63,30 +65,33 @@ protected:
 	CArrayUnknown						macCelSources;
 
 	//Output
-	CArrayUnknown						macImageCels;
-	CArray<CImage>						macFillMasks;
-	CArray<CImage>						macImages;
+	CArrayImageCel						maImageCels;
+	CArrayImage							maFillMasks;
+	CArrayImage							maImages;
 
 public:
-	void 				Init(bool bPackOnLoad = false);
-	void 				Kill(void);
+	void 					Init(bool bPackOnLoad = false);
+	void					Class(void);
+	void 					Free(void);
 
-	void				AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
-	void				AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);
-	void				AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource);
-	void				AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource);
+	bool					Save(CObjectWriter* pcFile);
+	bool					Load(CObjectReader* pcFile);
 
-	void				AddModifier(CImageModifier* pcModifier);
+	void					AddSource(CImageSource* pcImageSource, CImageCelSource* pcCelSource);
+	void					AddDiskFileSources(char* szPathName, char* szFileNameContains, char* szImageName, CImageCelSource* pcCelSource);
+	void					AddDiskFileSource(char* szFilename, char* szImageName, CImageCelSource* pcCelSource);
+	void					AddMemorySource(Ptr<CImage> pcImage, CImageCelSource* pcCelSource);
 
-	bool				Load(void);
+	void					AddModifier(CImageModifier* pcModifier);
 
-	Ptr<CArray<CImage>>	GetImages(void);
-	CArrayUnknown*		GetCels(void);			//Remove one of these.
-	CArrayUnknown*		GetImageCels(void);		//Remove one of these.
+	bool					Load(void);
+
+	Ptr<CArrayImage>		GetImages(void);
+	Ptr<CArrayImageCel>		GetImageCels(void);
 
 private:
-	Ptr<CImage>			Combine(size iFirstCelIndex);
-	void				PopulateImageArray(void);
+	Ptr<CImage>				Combine(size iFirstCelIndex);
+	void					PopulateImageArray(void);
 };
 
 

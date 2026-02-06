@@ -38,7 +38,7 @@ CONSTRUCTABLE(CMapsContext);
 protected:
 	CArrayMovableBlockType	macBlockTypes;  
 	CArraySpriteType		macSpriteTypes;
-	CArray<CImage>			macImages;
+	CArrayImage				macImages;
 	CArray<CImageCelGroup>	macGroups;
 	
 public:
@@ -52,7 +52,7 @@ public:
 	CSpriteType*				AddSpriteType(char* szTypeName);
 	CSpriteType*				GetSpriteType(char* szTypeName);
 
-	void						AddImages(Ptr<CArray<CImage>> pacImages);
+	void						AddImages(Ptr<CArrayImage> pacImages);
 	void						AddGroup(Ptr<CImageCelGroup> pcGroup);
 	Ptr<CImageCelGroup>			GetGroup(char* szName);
 };

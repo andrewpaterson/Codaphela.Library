@@ -25,6 +25,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __IMAGE_CEL_GROUP_H__
 #include "BaseLib/Chars.h"
 #include "StandardLib/Object.h"
+#include "StandardLib/Pointer.h"
 #include "StandardLib/ArrayUnknownTemplate.h"
 #include "ImageCel.h"
 
@@ -34,20 +35,20 @@ class CImageCelGroup : public CObject
 CONSTRUCTABLE(CImageCelGroup);
 DESTRUCTABLE(CImageCelGroup);
 protected:
-	CArrayImageCel	mcImageCels;
+	CArrayImageCel	maImageCels;
 
 public:
-	void 		Init(void);
-	void 		Free(void);
-	void		Class(void);
+	void 			Init(void);
+	void 			Free(void);
+	void			Class(void);
 
-	bool		Load(CObjectReader* pcFile);
-	bool		Save(CObjectWriter* pcFile);
-	void		AddCel(CImageCel* pcCel);
-	void		AddCels(CArrayCommonUnknown* pcCels);
-	int			NumCels(void);
-	CImageCel*	GetCel(size iIndex);
-	CImage*		GetImage(void);
+	bool			Load(CObjectReader* pcFile);
+	bool			Save(CObjectWriter* pcFile);
+	void			AddCel(Ptr<CImageCel> pCel);
+	void			AddCels(Ptr<CArrayImageCel> paCels);
+	int				NumCels(void);
+	Ptr<CImageCel>	GetCel(size iIndex);
+	Ptr<CImage>		GetImage(void);
 };
 
 

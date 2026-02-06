@@ -45,6 +45,7 @@ public:
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CEmbeddedObject* pcObject);
 	bool					RemoveAll(void);
+	bool					RemoveEnd(size iIndexInclusive);
 	bool					Clear(void);
 
 	size 					NumElements(void);
@@ -77,6 +78,8 @@ public:
 	void					BaseValidatePointerTos(void);
 	void					ValidatePointerTos(void);
 	void					ValidateConsistency(void);
+	CPointer				StartIterationPointer(SSetIterator* psIter) override;
+	CPointer				IteratePointer(SSetIterator* psIter) override;
 
 	void					TouchAll(void);
 	void					KillAll(void);
@@ -93,6 +96,7 @@ protected:
 	bool					InsertAt(size iIndex, CPointer& pObject);
 	bool					InsertAt(size iIndex, CEmbeddedObject* pcObject);
 	bool					RemoveAt(size iIndex);
+	bool					RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult);
 };
 
 

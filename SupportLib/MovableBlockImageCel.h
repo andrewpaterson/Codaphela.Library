@@ -31,15 +31,15 @@ class CMovableBlockImageCel : public CMovableBlock
 {
 CONSTRUCTABLE(CMovableBlockImageCel);
 protected:	
-	CImageCel*	mpcImageCel;
+	Ptr<CImageCel>	mpImageCel;
 
 public:
-	void		Init(CImageCel* pcImageCel, CMovableBlockType* pcType, char* szName);
-	void		Kill(void);
+	void			Init(Ptr<CImageCel> pImageCel, CMovableBlockType* pcType, char* szName);
+	void			Kill(void);
 
-	CImageCel*	GetCel(void);
+	Ptr<CImageCel>	GetCel(void);
 
-	void		Abstract(void) override;
+	void			Abstract(void) override;
 };
 
 

@@ -33,6 +33,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "StandardLib/Unknowns.h"
 #include "StandardLib/ObjectWriter.h"
 #include "StandardLib/ObjectReader.h"
+#include "StandardLib/ClassDefines.h"
 #include "ColourARGB32.h"
 #include "SubImage.h"
 #include "ImageAccessorCreator.h"
@@ -235,10 +236,10 @@ Ptr<CImage> CImage::Init(int iWidth, int iHeight, Ptr<CImage> pcChannelsSource)
 //////////////////////////////////////////////////////////////////////////
 void CImage::Class(void)
 {
-	Embedded(&mcChannels, "mcChannels");
-	UnmanagedSInt(&miWidth, "miWidth");
-	UnmanagedSInt(&miHeight, "miHeight");
-	UnmanagedPointer((void**)&mpsImageChangingDesc, "mpsImageChangingDesc");
+	M_Embedded(mcChannels);
+	U_SInt(miWidth);
+	U_SInt(miHeight);
+	U_Pointer(mpsImageChangingDesc);
 }
 
 

@@ -60,19 +60,27 @@ CBaseObject::CBaseObject()
 CBaseObject::~CBaseObject()
 {
 	//This Destructor code will only be called if the object was allocated on the stack.
-	if (mpcUnknownsThisIn == NULL)
+	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
 	{
-		if (!HasClass())
+		if (mpcUnknownsThisIn == NULL)
 		{
-			ValidateHasClassFlag(__METHOD__);
+			if (!HasClass())
+			{
+				ValidateHasClassFlag(__METHOD__);
+			}
 		}
+		FreePointers();
+
+		ValidateInitCalled();
+		ValidateKillCalled();
+
+		muiFlags = 0;
 	}
-	FreePointers();
-
-	ValidateInitCalled();
-	ValidateKillCalled();
-
-	muiFlags = 0;
+	else
+	{
+		//Skip all destruction as this object was only constructed to get its ClassName().
+		muiFlags = 0;
+	}
 }
 
 
@@ -246,7 +254,7 @@ void CBaseObject::Initialised(void)
 void CBaseObject::Kill(void)
 {
 	//This method is for the user to forcibly kill an object.
-	//It is not called internally.
+	//It is not called internally except by ~Object().
 	//It is the equivalent of setting the last pointer to the object to NULL.
 
 	bool		bHeapFromChanged;

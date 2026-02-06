@@ -39,7 +39,7 @@ void CImageCelSourceGrid::Init(CImageDividerNumbers* pcNumbers, SImageColour* ps
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceGrid::Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask)
+void CImageCelSourceGrid::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 

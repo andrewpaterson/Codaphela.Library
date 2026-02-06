@@ -23,6 +23,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Logger.h"
 #include "BaseLib/TypeNames.h"
+#include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "ImageCombiner.h"
 #include "ImageReader.h"
@@ -39,20 +40,22 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels)
+void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth)
 {
+	PreInit();
+
 	meSize = eSize;
 	msSize.Init(iWidth, iHeight);
 	meLayout = eLayout;
 	mpcDestImage = NULL;
 	meChannels = eChannels;
 	mcSourceCels.Init();
-	mcSourceCels.KillElements(false);
 	mcDestCels.Init();
-	mcDestCels.KillElements(bKillDestCels);
 	miOutsideEdgeWidth = iOutsideEdgeWidth;
 	miInnerEdgeWidth = iInnerEdgeWidth;
 	masChannels.Init();
+
+	PostInit();
 }
 
 
@@ -60,9 +63,9 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels)
+void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth)
 {
-	Init(eLayout, -1, -1, eSize, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth, bKillDestCels);
+	Init(eLayout, -1, -1, eSize, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth);
 }
 
 
@@ -70,9 +73,9 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, EImageCombineSize eSize, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth, bool bKillDestCels)
+void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, EImageCombineChannels eChannels, int iOutsideEdgeWidth, int iInnerEdgeWidth)
 {
-	Init(eLayout, iWidth, iHeight, ICS_UserSpecified, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth, bKillDestCels);
+	Init(eLayout, iWidth, iHeight, ICS_UserSpecified, eChannels, iOutsideEdgeWidth, iInnerEdgeWidth);
 }
 
 
@@ -80,11 +83,47 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::Kill(void)
+void CImageCombiner::Free(void)
 {
-	masChannels.Kill();
-	mcSourceCels.Kill();
-	mcDestCels.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCombiner::Class(void)
+{
+	U_Enum(meLayout);
+	U_Enum(meSize);
+	U_Enum(meChannels);
+	U_2Int32(msSize);
+	M_Pointer(mpcDestImage);
+	M_Embedded(mcSourceCels);
+	M_Embedded(mcDestCels);
+	U_SInt(miOutsideEdgeWidth);
+	U_SInt(miInnerEdgeWidth);
+	U_Data(CArrayChannel, masChannels);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCombiner::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCombiner::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -119,7 +158,7 @@ Ptr<CImage> CImageCombiner::Combine(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddCel(CImageCel* pcCel)
+void CImageCombiner::AddCel(Ptr<CImageCel> pcCel)
 {
 	mcSourceCels.Add(pcCel);
 }
@@ -129,7 +168,7 @@ void CImageCombiner::AddCel(CImageCel* pcCel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCombiner::AddCels(CArrayUnknown* pcCels)
+void CImageCombiner::AddCels(Ptr<CArrayImageCel> pcCels)
 {
 	mcSourceCels.AddAll(pcCels);
 }
@@ -221,12 +260,12 @@ void CImageCombiner::CalculateChannels(void)
 void CImageCombiner::CalculateChannelsFromCels(void)
 {
 	SSetIterator	sIter;
-	CImageCel*		pcCel;
+	Ptr<CImageCel>	pcCel;
 	CArrayChannel	asChannels;
 	Ptr<CImage>		pcLastImage;
 
 	pcLastImage = NULL;
-	pcCel = (CImageCel*)mcSourceCels.StartIteration(&sIter);
+	pcCel = mcSourceCels.StartIteration(&sIter);
 	while (pcCel)
 	{
 		if (pcCel->GetSourceImage() != pcLastImage)
@@ -238,7 +277,7 @@ void CImageCombiner::CalculateChannelsFromCels(void)
 			pcLastImage = pcCel->GetSourceImage();
 		}
 			
-		pcCel = (CImageCel*)mcSourceCels.Iterate(&sIter);
+		pcCel = mcSourceCels.Iterate(&sIter);
 	}
 }
 
@@ -335,23 +374,23 @@ SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 {
 	CRectanglePacker*		pcPacker;
 	SSetIterator			sIter;
-	CImageCel*				pcCel;
+	Ptr<CImageCel>			pcCel;
 	SInt2					sTextureSize;
 	bool					bResult;
 	bool					bNonEmpty;
 
 	pcPacker = GetPacker();
 
-	pcCel = (CImageCel*)mcSourceCels.StartIteration(&sIter);
+	pcCel = mcSourceCels.StartIteration(&sIter);
 	bNonEmpty = false;
 	while (pcCel)
 	{
 		if (!pcCel->GetSubImage()->IsImageEmpty())
 		{
-			bResult = pcPacker->AddRectangle(pcCel);
+			bResult = pcPacker->AddRectangle(&pcCel);
 			bNonEmpty = true;
 		}
-		pcCel = (CImageCel*)mcSourceCels.Iterate(&sIter);
+		pcCel = mcSourceCels.Iterate(&sIter);
 	}
 
 	pcPacker->Pack();
@@ -371,25 +410,26 @@ SInt2 CImageCombiner::Pack(CArrayPackedRectangle* pacPackedRects)
 //////////////////////////////////////////////////////////////////////////
 void CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 {
-	CImageCel*			pcCelDest;
-	size				i;
-	CPackedRectangle*	pcPackedRect;
-	CImageCel*			pcCelSource;
+	Ptr<CImageCel>			pcCelDest;
+	size					i;
+	CPackedRectangle*		pcPackedRect;
+	Ptr<CImageCel>			pcCelSource;
 
 	for (i = 0; i < mcSourceCels.NumElements(); i++)
 	{
-		pcCelSource = (CImageCel*)mcSourceCels.Get(i);
+		pcCelSource = mcSourceCels.Get(i);
 		pcPackedRect = GetPackedRectangle(pacPackedRects, pcCelSource);
 		
-		pcCelDest = (CImageCel*)mcDestCels.Add<CImageCel>();
 		if (pcPackedRect)
 		{
-			pcCelDest->Init(&mpcDestImage, pcPackedRect);
+			pcCelDest = OMalloc<CImageCel>(mpcDestImage, pcPackedRect);
 		}
 		else
 		{
-			pcCelDest->Init(&mpcDestImage, 0, 0, 0, 0);
+			pcCelDest = OMalloc<CImageCel>(mpcDestImage, 0, 0, 0, 0);
 		}
+		mcDestCels.Add(pcCelDest);
+
 		pcCelDest->GetSubImage()->msOffsetTopLeft = pcCelSource->GetSubImage()->msOffsetTopLeft;
 		pcCelDest->GetSubImage()->msOffsetBottomRight = pcCelSource->GetSubImage()->msOffsetBottomRight;
 		pcCelDest->GetSubImage()->msAlignment = pcCelSource->GetSubImage()->msAlignment;
@@ -401,7 +441,7 @@ void CImageCombiner::CreateDestCels(CArrayPackedRectangle* pacPackedRects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, CImageCel* pcSourceCel)
+CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacPackedRects, Ptr<CImageCel> pcSourceCel)
 {
 	CPackedRectangle*		pcPackedRect;
 	CPackedRectangle*		pcFoundPackedRect;
@@ -411,7 +451,7 @@ CPackedRectangle* CImageCombiner::GetPackedRectangle(CArrayPackedRectangle* pacP
 	for (j = 0; j < pacPackedRects->NumElements(); j++)
 	{
 		pcPackedRect = pacPackedRects->Get(j);
-		if ((CImageCel*)pcPackedRect->mpvUserData == pcSourceCel)
+		if ((CImageCel*)pcPackedRect->mpvUserData == &pcSourceCel)
 		{
 			pcFoundPackedRect = pcPackedRect;
 			break;
@@ -521,7 +561,7 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayUnknown* CImageCombiner::GetCels(void)
+Ptr<CArrayImageCel> CImageCombiner::GetCels(void)
 {
 	return &mcDestCels;
 }

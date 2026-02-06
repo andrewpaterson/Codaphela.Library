@@ -83,11 +83,14 @@ bool HasTransparency(Ptr<CImage> pImage, size uiImageLeftOffset, size uiImageTop
 //////////////////////////////////////////////////////////////////////////
 bool SaveSFT(Ptr<CImage> pImage, char* szFilename, bool bForceTransparent)
 {
+	ValidatePtr(pImage);
+
 	CImageR3G3B2A	cRGBTo8bit;
 	CFileBasic		cFile;
 	bool			bResult;
 
-	if (szFilename == NULL)
+
+	if ((szFilename == NULL) || pImage.IsNull())
 	{
 		return false;
 	}
@@ -324,12 +327,14 @@ bool SaveSFTTransparent(Ptr<CImage> pImage, CFileBasic* pcFile, size uiImageLeft
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFT(CArrayUnknown* pacImageCels, char* szFilename)
+bool SaveSFTCelArray(Ptr<CArrayImageCel> pcImageCels, char* szFilename)
 {
-	CFileBasic		cDiskBasic;
-	bool			bResult;
+	ValidatePtr(pcImageCels);
 
-	if (szFilename == NULL)
+	CFileBasic			cDiskBasic;
+	bool				bResult;
+
+	if ((szFilename == NULL) || pcImageCels.IsNull())
 	{
 		return false;
 	}
@@ -337,7 +342,7 @@ bool SaveSFT(CArrayUnknown* pacImageCels, char* szFilename)
 	cDiskBasic.Init(DiskFile(szFilename));
 	if (cDiskBasic.Open(EFM_Write_Create))
 	{
-		bResult = SaveSFTContainer(pacImageCels, &cDiskBasic);
+		bResult = SaveSFTContainer(pcImageCels, &cDiskBasic);
 
 		cDiskBasic.Close();
 		cDiskBasic.Kill();
@@ -353,7 +358,7 @@ bool SaveSFT(CArrayUnknown* pacImageCels, char* szFilename)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
+bool SaveSFTContainer(Ptr<CArrayImageCel> pcImageCels, CFileBasic* pcDiskBasic)
 {
 	CImageR3G3B2A	cRGBTo8bit;
 	size			i;
@@ -361,7 +366,7 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	CMapPtrPtr		cMap;
 	Ptr<CImage>		pImage;
 	Ptr<CImage>		pcConverted;
-	CImageCel*		pcImageCel;
+	Ptr<CImageCel>	pcImageCel;
 	Ptr<CImage>		pcExisting;
 	CSubImage*		pcSub;
 	uint16			uiCelWidth;
@@ -378,7 +383,7 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 	uint64			uiNext64KCount;
 	uint64			uiFilePos;
 	SSFTContainer	sContainer;
-	CArray<CImage>	aConveted;
+	CArrayImage		aConveted;
 
 	if (!pcDiskBasic->IsOpen())
 	{
@@ -387,10 +392,10 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 
 	aConveted.Init();  // Necessary to stop the images being destroyed on pcConverted reassignment.
 	cMap.Init();
-	uiNumCels = pacImageCels->NumElements();
+	uiNumCels = pcImageCels->NumElements();
 	for (i = 0; i < uiNumCels; i++)
 	{
-		pcImageCel = (CImageCel*)pacImageCels->Get(i);
+		pcImageCel = pcImageCels->Get(i);
 		pImage = pcImageCel->GetSourceImage();
 		pcExisting = (CImage*)cMap.Get(&pImage);
 
@@ -432,7 +437,7 @@ bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcDiskBasic)
 		cMemoryBasic.Init(&cMemoryFile);
 		cMemoryBasic.Open(EFM_ReadWrite_Create);
 
-		pcImageCel = (CImageCel*)pacImageCels->Get(i);
+		pcImageCel = pcImageCels->Get(i);
 		pImage = pcImageCel->GetSourceImage();
 		pcExisting = (CImage*)cMap.Get(&pImage);
 

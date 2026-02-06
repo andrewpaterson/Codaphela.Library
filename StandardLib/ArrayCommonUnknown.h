@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __ARRAY_COMMON_UNKNOWN_H__
 #define __ARRAY_COMMON_UNKNOWN_H__
+#include "SetIterator.h"
 #include "ArrayUnknownPtr.h"
 #include "Unknown.h"
 
@@ -30,13 +31,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define ARRAY_COMMOM_IGNORE_NULL	0x0008
 #define ARRAY_COMMOM_PRESERVE_ORDER	0x0010
 #define ARRAY_COMMOM_TYPE_KNOWN		0x0020
-
-
-struct SSetIterator
-{
-	size		iIndex;
-	bool	bStepFirst;
-};
 
 
 enum EArrayUnsetReturn

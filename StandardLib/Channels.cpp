@@ -69,13 +69,12 @@ void CChannels::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 {
-	PreInit();
+	Init();
 
 	va_list		vaMarker;
 	size		iCount;
 	size		i;
 
-	PrivateInit();
 	iCount = 0;
 	i = iFirst;
 
@@ -91,8 +90,6 @@ void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 
 	SetSize(iSize);
 	EndChange();
-
-	PostInit();
 }
 
 
@@ -102,13 +99,12 @@ void CChannels::Init(size iSize, EPrimitiveType eType, size iFirst, ...)
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iFirst, ...)
 {
-	PreInit();
+	Init();
 
 	va_list		vaMarker;
 	size		iCount;
 	size		i;
 
-	PrivateInit();
 	iCount = 0;
 	i = iFirst;
 
@@ -125,8 +121,6 @@ void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iF
 	SetSize(iSize);
 	SetData(pvUserData);
 	EndChange();
-
-	PostInit();
 }
 
 
@@ -136,13 +130,12 @@ void CChannels::Init(size iSize, void* pvUserData, EPrimitiveType eType, size iF
 //////////////////////////////////////////////////////////////////////////
 void CChannels::Init(CChannels* pcSource)
 {
-	PreInit();
+	Init();
 
 	CChannel*	psSource;
 	size		i;
 	size		uiOffsets;
 
-	PrivateInit();
 	BeginChange();
 
 	uiOffsets = pcSource->masChannelOffsets.NumElements();
@@ -154,8 +147,6 @@ void CChannels::Init(CChannels* pcSource)
 
 	SetSize(pcSource->miSize);
 	EndChange();
-
-	PostInit();
 }
 
 
