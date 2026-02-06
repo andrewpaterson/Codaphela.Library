@@ -197,6 +197,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 	//Create an image from the text descriptor.
 	szRawFilename.Init(szRadFilename);
 	cFileUtil.RemoveLastFromPath(&szRawFilename);
+	szRadFilename.Kill();
 
 	if (!SetFromText(&cTextParser, pcImage, &szRawFilename))
 	{
@@ -226,6 +227,7 @@ Ptr<CImage> LoadRAD(char *szFilename, bool bAddDebug)
 	iImageSize = pcImage->GetByteSize();
 
 	sFile.Init(DiskFile(szRawFilename.Text()));
+	szRawFilename.Kill();
 	if (!sFile.Open(EFM_Read))
 	{
 		pcImage->Kill();
