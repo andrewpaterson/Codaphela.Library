@@ -35,7 +35,7 @@ protected:
 public:
 	void Init(CArraySubImage* pacSubImages = NULL, SImageColour* psTransparentColour = NULL, bool bIgnoreEmpty = true, bool bCropTransparentBorders = true);
 	void AddSubImage(CSubImage* pcSubImage);
-	void Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask);
+	void Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask);
 	void Kill(void);
 };
 

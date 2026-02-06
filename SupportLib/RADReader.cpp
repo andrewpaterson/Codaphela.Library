@@ -285,14 +285,14 @@ bool LoadRAW(char *szFilename, Ptr<CImage> pcImage)
 		return false;
 	}
 
-	if (pcImage->mcChannels.GetByteSize() != iImageSize)
+	if (pcImage->GetChannels()->GetByteSize() != iImageSize)
 	{
 		sFile.Close();
 		sFile.Kill();
 		return false;
 	}
 
-	iResult = sFile.Read(pcImage->mcChannels.GetData(), iImageSize, 1);
+	iResult = sFile.Read(pcImage->GetChannels()->GetData(), iImageSize, 1);
 
 	//Close the file
 	sFile.Close();

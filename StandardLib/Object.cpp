@@ -61,7 +61,10 @@ void CObject::Allocate(CObjects* pcObjects)
 //////////////////////////////////////////////////////////////////////////
 void CObject::Kill(void)
 {
-	CBaseObject::Kill();
+	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	{
+		CBaseObject::Kill();
+	}
 }
 
 

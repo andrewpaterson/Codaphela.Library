@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "ImageCelMaskTransparent.h"
 
 
@@ -28,7 +29,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMaskTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, CFillRectangle* pcRect)
+void CImageCelMaskTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, CFillRectangle* pcRect)
 {
 	CImageCelMask::Init(pcSourceImage, pcMaskImage, pcRect);
 	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));
@@ -39,10 +40,52 @@ void CImageCelMaskTransparent::Init(CImage* pcSourceImage, SImageColour* psTrans
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelMaskTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent, CImage* pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelMaskTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, Ptr<CImage> pcMaskImage, short iMask, bool bFilled, int iLeft, int iTop, int iRight, int iBottom)
 {
 	CImageCelMask::Init(pcSourceImage, pcMaskImage, iMask, bFilled, iLeft, iTop, iRight, iBottom);
 	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelMaskTransparent::Class(void)
+{
+	CImageCelMask::Class();
+
+	U_Data(SImageColour, msTransparentColour);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelMaskTransparent::Free(void)
+{
+	CImageCelMask::Free();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelMaskTransparent::Save(CObjectWriter* pcFile)
+{
+	return CImageCelMask::Save(pcFile);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelMaskTransparent::Load(CObjectReader* pcFile)
+{
+	return CImageCelMask::Load(pcFile);
 }
 
 

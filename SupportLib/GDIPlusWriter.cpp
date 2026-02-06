@@ -102,24 +102,24 @@ void WriteGDIPlusImage(Ptr<CImage> pcImage, char* szFilename, EImageType eImageT
 		if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, IMAGE_OPACITY, CHANNEL_ZERO))
 		{
 			iFormat = PixelFormat32bppARGB;
-			cImageExport.Init(pcImage->miWidth, pcImage->miHeight, (void*)1, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
+			cImageExport.Init(pcImage->GetWidth(), pcImage->GetHeight(), (void*)1, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, IMAGE_OPACITY, CHANNEL_ZERO);
 		}
 		else if (pcImage->HasChannels(IMAGE_DIFFUSE_RED, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_BLUE, CHANNEL_ZERO))
 		{
 			iFormat = PixelFormat24bppRGB;
-			cImageExport.Init(pcImage->miWidth, pcImage->miHeight, (void*)1, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_ZERO);
+			cImageExport.Init(pcImage->GetWidth(), pcImage->GetHeight(), (void*)1, PT_uint8, IMAGE_DIFFUSE_BLUE, IMAGE_DIFFUSE_GREEN, IMAGE_DIFFUSE_RED, CHANNEL_ZERO);
 		}
 		else if (pcImage->HasChannels(IMAGE_DIFFUSE_GREY, CHANNEL_ZERO))
 		{
 			iFormat = PixelFormat16bppGrayScale;
-			cImageExport.Init(pcImage->miWidth, pcImage->miHeight, (void*)1, PT_uint16, IMAGE_DIFFUSE_GREY, CHANNEL_ZERO);
+			cImageExport.Init(pcImage->GetWidth(), pcImage->GetHeight(), (void*)1, PT_uint16, IMAGE_DIFFUSE_GREY, CHANNEL_ZERO);
 		}
 		else
 		{
 			goto Shutdown;
 		}
 
-		Bitmap bitmap(pcImage->miWidth, pcImage->miHeight, iFormat);
+		Bitmap bitmap(pcImage->GetWidth(), pcImage->GetHeight(), iFormat);
 
 		sResult = bitmap.LockBits(NULL, Gdiplus::ImageLockModeWrite, iFormat, &bitmapData);
 		pixels = (char*)bitmapData.Scan0;

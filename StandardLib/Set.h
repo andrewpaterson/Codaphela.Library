@@ -118,7 +118,7 @@ void CSet<M>::RemoveDuringIteration(SSetIterator* psIter)
 template<class M>
 Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter)
 {
-	return CSetObject::StartIteration(psIter);
+	return StartIterationPointer(psIter);
 }
 
 
@@ -129,7 +129,7 @@ Ptr<M> CSet<M>::StartIteration(SSetIterator* psIter)
 template<class M>
 Ptr<M> CSet<M>::Iterate(SSetIterator* psIter)
 {
-	return CSetObject::Iterate(psIter);
+	return IteratePointer(psIter);
 }
 
 

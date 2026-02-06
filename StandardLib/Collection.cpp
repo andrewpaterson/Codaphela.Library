@@ -48,7 +48,10 @@ void CCollection::Class(void)
 //////////////////////////////////////////////////////////////////////////
 void CCollection::Kill(void)
 {
-	CBaseObject::Kill();
+	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	{
+		CBaseObject::Kill();
+	}
 }
 
 

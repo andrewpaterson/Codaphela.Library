@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/FileUtil.h"
+#include "StandardLib/ClassDefines.h"
 #include "StandardLib/Objects.h"
 #include "ImageSourceDiskFile.h"
 #include "ImageSourceMemory.h"
@@ -66,15 +67,19 @@ CImageCelSource* CImageSourceWithCelSources::GetCelsSource(void) { return mpcCel
 //////////////////////////////////////////////////////////////////////////
 void CImageCelsSource::Init(bool bPackOnLoad)
 {
+	PreInit();
+
 	mbPackOnLoad = bPackOnLoad;
 
 	macCelSources.Init();
 	macImageSources.Init();
 	mcModifiers.Init();
 
-	macImageCels.Init();
-	macFillMasks.Init();
-	macImages.Init();
+	maImageCels.Init();
+	maFillMasks.Init();
+	maImages.Init();
+
+	PostInit();
 }
 
 
@@ -82,15 +87,47 @@ void CImageCelsSource::Init(bool bPackOnLoad)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelsSource::Kill(void)
+void CImageCelsSource::Free(void)
 {
-	macImages.Kill();
-	macFillMasks.Kill();
-	macImageCels.Kill();
 	macImageSources.Kill();
 	mcModifiers.Kill();
 	macCelSources.Kill();
-	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCelsSource::Class(void)
+{
+	U_Bool(mbPackOnLoad);
+	U_Data(CArrayImageSourceWithCelSources, macImageSources);
+	U_Data(CImageModifierStack, mcModifiers);
+	U_Data(CArrayUnknown, macCelSources);
+	M_Embedded(maImageCels);
+	M_Embedded(maFillMasks);
+	M_Embedded(maImages);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelsSource::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCelsSource::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -260,10 +297,10 @@ bool CImageCelsSource::Load(void)
 		if (pcCelsSource->NeedsMask())
 		{
 			pcMask = OMallocNoI<CImage>();
-			macFillMasks.Add(pcMask);
+			maFillMasks.Add(pcMask);
 		}
-		iFirstCelIndex = macImageCels.NumElements();
-		pcCelsSource->Divide((CImage*)pcImageSource->GetImage().Object(), &macImageCels, (CImage*)pcMask.Object());
+		iFirstCelIndex = maImageCels.NumElements();
+		pcCelsSource->Divide((CImage*)pcImageSource->GetImage().Object(), &maImageCels, (CImage*)pcMask.Object());
 
 		if (mbPackOnLoad)
 		{
@@ -272,7 +309,7 @@ bool CImageCelsSource::Load(void)
 			pcImageSource->SetImage(pcCombined);
 			if (pcMask.IsNotNull())
 			{
-				macFillMasks.Remove(pcMask);
+				maFillMasks.Remove(pcMask);
 			}
 		}
 
@@ -296,21 +333,23 @@ Ptr<CImage> CImageCelsSource::Combine(size iFirstCelIndex)
 	CImageCombiner	cImageCombiner;
 	Ptr<CImage>		pcDest;
 	size			i;
-	CImageCel*		pcCel;
+	Ptr<CImageCel>	pCel;
+	size			uiNumElements;
 
 	pcDest = OMalloc<CImage>();
 	cImageCombiner.Init(ICL_Best, ICS_Arbitrary);
 
-	for (i = iFirstCelIndex; i < macImageCels.NumElements(); i++)
+	uiNumElements = maImageCels.NumElements();
+	for (i = iFirstCelIndex; i < uiNumElements; i++)
 	{
-		pcCel = (CImageCel*)macImageCels.Get(i);
-		cImageCombiner.AddCel(pcCel);
+		pCel = maImageCels.Get(i);
+		cImageCombiner.AddCel(pCel);
 	}
 	pcDest = cImageCombiner.Combine();
 	if (pcDest.IsNotNull())
 	{
-		macImageCels.RemoveEnd(iFirstCelIndex);
-		macImageCels.AddAll(&cImageCombiner.mcDestCels);
+		maImageCels.RemoveEnd(iFirstCelIndex);
+		maImageCels.AddAll(&cImageCombiner.mcDestCels);
 		cImageCombiner.Kill();
 		return pcDest;
 	}
@@ -336,7 +375,7 @@ void CImageCelsSource::PopulateImageArray(void)
 	{
 		pcSource = macImageSources.Get(i);
 		pcImage = pcSource->GetImageSource()->GetImage();
-		macImages.Add(pcImage);
+		maImages.Add(pcImage);
 	}	
 }
 
@@ -345,9 +384,9 @@ void CImageCelsSource::PopulateImageArray(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayUnknown* CImageCelsSource::GetCels(void)
+Ptr<CArrayImageCel> CImageCelsSource::GetImageCels(void)
 {
-	return &macImageCels;
+	return &maImageCels;
 }
 
 
@@ -355,18 +394,8 @@ CArrayUnknown* CImageCelsSource::GetCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CArrayUnknown* CImageCelsSource::GetImageCels(void)
+Ptr<CArrayImage> CImageCelsSource::GetImages(void)
 {
-	return &macImageCels;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-Ptr<CArray<CImage>> CImageCelsSource::GetImages(void)
-{
-	return Ptr<CImage>(&macImages);
+	return Ptr<CImage>(&maImages);
 }
 

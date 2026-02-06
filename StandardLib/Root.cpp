@@ -212,7 +212,7 @@ CPointer CRoot::Get(char* szObjectName)
 		return Null();
 	}
 
-	CPointer pObject = mpObjects->StartIteration(&sIter);
+	CPointer pObject = mpObjects->StartIterationPointer(&sIter);
 	while (pObject.IsNotNull())
 	{
 		szName = pObject.GetName();
@@ -223,7 +223,7 @@ CPointer CRoot::Get(char* szObjectName)
 				return pObject;
 			}
 		}
-		pObject = mpObjects->Iterate(&sIter);
+		pObject = mpObjects->IteratePointer(&sIter);
 	}
 
 	return Null();

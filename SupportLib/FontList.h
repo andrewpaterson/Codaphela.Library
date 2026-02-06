@@ -29,6 +29,8 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CFontList : public CObject
 {
+CONSTRUCTABLE(CFontList);
+DESTRUCTABLE(CFontList);
 protected:
 	CSet<CFont>		maFonts;
 

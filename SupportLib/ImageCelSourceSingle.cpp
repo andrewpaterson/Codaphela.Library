@@ -42,7 +42,7 @@ void CImageCelSourceSingle::Init(int iLeftOffset, int iTopOffset, int iRightOffs
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceSingle::Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask)
+void CImageCelSourceSingle::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
 {
 	CImageDividerNumbers	cNumbers;
 	CImageDivider			cDivider;

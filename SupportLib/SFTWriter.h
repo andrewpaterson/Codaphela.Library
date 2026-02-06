@@ -25,14 +25,15 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #define __SFT_WRITER_H__
 #include "SFTCommon.h"
 #include "Image.h"
+#include "ImageCel.h"
 
 
 bool SaveSFT(Ptr<CImage> pcImage, char* szPathName, bool bForceTransparent = false);
-bool SaveSFT(CArrayUnknown* pacImageCels, char* szFilename);
+bool SaveSFTCelArray(Ptr<CArrayImageCel> pacImageCels, char* szFilename);
 
 bool SaveSFTOpaque(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
 bool SaveSFTTransparent(Ptr<CImage> pcImage, CFileBasic* pcFile, size uiImageLeftOffset, size uiImageTopOffset, uint16 uiCelWidth, uint16 uiCelHeight);
-bool SaveSFTContainer(CArrayUnknown* pacImageCels, CFileBasic* pcFile);
+bool SaveSFTContainer(Ptr<CArrayImageCel> pacImageCels, CFileBasic* pcFile);
 
 
 #endif // __SFT_WRITER_H__

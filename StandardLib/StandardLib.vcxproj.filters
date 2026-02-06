@@ -465,6 +465,9 @@
     <ClInclude Include="ChannelDebugDescriptor.h">
       <Filter>Source\Channels</Filter>
     </ClInclude>
+    <ClInclude Include="SetIterator.h">
+      <Filter>Source\Object\Unknown\Collections\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -754,6 +757,9 @@
     </ClCompile>
     <ClCompile Include="ChannelDebugDescriptor.cpp">
       <Filter>Source\Channels</Filter>
+    </ClCompile>
+    <ClCompile Include="Pointer.cpp">
+      <Filter>Source\Object\Object\Pointer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

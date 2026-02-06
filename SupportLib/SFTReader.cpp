@@ -379,7 +379,7 @@ Ptr<CImage> LoadSFTContainer(CFileBasic* pcFile, bool bAddDebug)
 	cSource.Load();
 
 	cCombiner.Init(ICL_Best, ICS_PowerOf2, ICC_FromCels);
-	cCombiner.AddCels(cSource.GetCels());
+	cCombiner.AddCels(cSource.GetImageCels());
 	pcDestImage = cCombiner.Combine();
 
 	cCombiner.Kill();

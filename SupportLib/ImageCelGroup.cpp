@@ -31,7 +31,7 @@ void CImageCelGroup::Init(void)
 {
 	PreInit();
 
-	mcImageCels.Init();
+	maImageCels.Init();
 
 	PostInit();
 }
@@ -43,7 +43,7 @@ void CImageCelGroup::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CImageCelGroup::Free(void)
 {
-	mcImageCels.Kill();
+	maImageCels.Kill();
 }
 
 
@@ -77,9 +77,9 @@ bool CImageCelGroup::Save(CObjectWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelGroup::AddCel(CImageCel* pcCel)
+void CImageCelGroup::AddCel(Ptr<CImageCel> pCel)
 {
-	mcImageCels.Add(pcCel);
+	maImageCels.Add(pCel);
 }
 
 
@@ -87,9 +87,9 @@ void CImageCelGroup::AddCel(CImageCel* pcCel)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelGroup::AddCels(CArrayCommonUnknown* pcCels)
+void CImageCelGroup::AddCels(Ptr<CArrayImageCel> paCels)
 {
-	mcImageCels.AddAll(pcCels);
+	maImageCels.AddAll(paCels);
 }
 
 
@@ -99,7 +99,7 @@ void CImageCelGroup::AddCels(CArrayCommonUnknown* pcCels)
 //////////////////////////////////////////////////////////////////////////
 int CImageCelGroup::NumCels(void)
 {
-	return mcImageCels.NumElements();
+	return maImageCels.NumElements();
 }
 
 
@@ -107,9 +107,9 @@ int CImageCelGroup::NumCels(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImageCel* CImageCelGroup::GetCel(size iIndex)
+Ptr<CImageCel> CImageCelGroup::GetCel(size iIndex)
 {
-	return mcImageCels.Get(iIndex);
+	return maImageCels.Get(iIndex);
 }
 
 
@@ -117,17 +117,17 @@ CImageCel* CImageCelGroup::GetCel(size iIndex)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CImage* CImageCelGroup::GetImage(void)
+Ptr<CImage> CImageCelGroup::GetImage(void)
 {
-	size			i;
-	CImageCel*		pcCel;
-	Ptr<CImage>		pcImage;
+	size				i;
+	Ptr < CImageCel>	pcCel;
+	Ptr<CImage>			pcImage;
 
 	//If there is only one image in use by the group (the normal case) then return it, otherwise NULL.
 	pcImage = NULL;
-	for (i = 0; i < mcImageCels.NumElements(); i++)
+	for (i = 0; i < maImageCels.NumElements(); i++)
 	{
-		pcCel = mcImageCels.Get(i);
+		pcCel = maImageCels.Get(i);
 		if (pcImage == NULL)
 		{
 			pcImage = pcCel->GetSourceImage();

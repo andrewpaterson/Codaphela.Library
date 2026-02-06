@@ -145,7 +145,7 @@ CSpriteType* CMapsContext::GetSpriteType(char* szTypeName)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapsContext::AddImages(Ptr<CArray<CImage>> pacImages)
+void CMapsContext::AddImages(Ptr<CArrayImage> pacImages)
 {
 	macImages.AddAll(pacImages);
 }

@@ -38,7 +38,7 @@ void CImageCelSourceBorders::Init(SImageColour* psTransparentColour, bool bIgnor
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceBorders::Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask)
+void CImageCelSourceBorders::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 

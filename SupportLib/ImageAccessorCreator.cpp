@@ -34,7 +34,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //////////////////////////////////////////////////////////////////////////
 void CImageAccessorCreator::Init(CImage* pcImage)
 {
-	mcCreator.Init(&pcImage->mcChannels);
+	mcCreator.Init(pcImage->GetChannels());
 	mpcImage = pcImage;
 }
 
@@ -159,9 +159,9 @@ void CImageAccessorCreator::AddAccess(CArrayInt* paiChannels, EPrimitiveType eTy
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageAccessorCreator::AddAccess(CImage* pcChannels)
+void CImageAccessorCreator::AddAccess(CImage* pcImage)
 {
-	mcCreator.AddAccess(&pcChannels->mcChannels);
+	mcCreator.AddAccess(pcImage->GetChannels());
 }
 
 

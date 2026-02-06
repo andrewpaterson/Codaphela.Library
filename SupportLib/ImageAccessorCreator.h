@@ -53,7 +53,7 @@ public:
 	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(int iChannel1, int iChannel2, int iChannel3, int iChannel4, EPrimitiveType eType = PT_Undefined);
 	void	AddAccess(CArrayInt* paiChannels, EPrimitiveType eType = PT_Undefined);
-	void	AddAccess(CImage* pcChannels);
+	void	AddAccess(CImage* pcImage);
 	void	AddAccess(CImageAccessor* pcChannels);
 
 	void	AddAccess(CImageColour* pcColour);

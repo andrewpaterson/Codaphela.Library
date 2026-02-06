@@ -58,7 +58,7 @@ void CImageCelSourceRectangles::AddRectangle(CRectangle* pcRect)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelSourceRectangles::Divide(CImage* pcImage, CArrayUnknown* pcDestImageCels, CImage* pcMask)
+void CImageCelSourceRectangles::Divide(CImage* pcImage, Ptr<CArrayImageCel> pcDestImageCels, CImage* pcMask)
 {
 	CImageDivider	cDivider;
 

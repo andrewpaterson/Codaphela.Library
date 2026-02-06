@@ -783,6 +783,36 @@ void CArrayCommonObject::ValidateConsistency(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CPointer CArrayCommonObject::StartIterationPointer(SSetIterator* psIter)
+{
+	CBaseObject*	pcObject;
+	CPointer		pObject;
+
+	pcObject = (CBaseObject*)mcArray.StartIteration(psIter);
+	pObject.AssignObject(pcObject);
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CPointer CArrayCommonObject::IteratePointer(SSetIterator* psIter)
+{
+	CBaseObject*	pcObject;
+	CPointer		pObject;
+
+	pcObject = (CBaseObject*)mcArray.Iterate(psIter);
+	pObject.AssignObject(pcObject);
+	return pObject;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CArrayCommonObject::UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld)
 {
 }
@@ -872,6 +902,27 @@ bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult)
+{
+	if (bResult && pcObject)
+	{
+		if (IsEmbeddingContainerAllocatedInObjects())
+		{
+			bResult = pcObject->RemoveHeapFromTryFree(this, true);
+		}
+		else
+		{
+			bResult = pcObject->RemoveStackFromTryFree(this, true);
+		}
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::RemoveAt(size iIndex)
 {
 	CEmbeddedObject*	pcObject;
@@ -882,19 +933,43 @@ bool CArrayCommonObject::RemoveAt(size iIndex)
 		pcObject = UnsafeGet(iIndex);
 		bResult = mcArray.Remove(iIndex);
 
-		if (bResult && pcObject)
-		{
-			if (IsEmbeddingContainerAllocatedInObjects())
-			{
-				bResult = pcObject->RemoveHeapFromTryFree(this, true);
-			}
-			else
-			{
-				bResult = pcObject->RemoveStackFromTryFree(this, true);
-			}
-		}
+		bResult = RemoveObjectTryFree(pcObject, bResult);
 		return bResult;
 	}
 	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CArrayCommonObject::RemoveEnd(size iIndexInclusive)
+{
+	size				uiNumElements;
+	size				i;
+	CEmbeddedObject*	pcObject;
+	bool				bResult;
+
+	bResult = true;
+	uiNumElements = mcArray.UnsafeNumElements();
+	if (iIndexInclusive < uiNumElements)
+	{
+		for (i = iIndexInclusive; i < uiNumElements; i++)
+		{
+			pcObject = UnsafeGet(i);
+			bResult = RemoveObjectTryFree(pcObject, bResult);
+			if (!bResult)
+			{
+				break;
+			}
+		}
+		mcArray.RemoveEnd(iIndexInclusive);
+	}
+	else
+	{
+		bResult = false;
+	}
+	return bResult;
 }
 

@@ -69,45 +69,15 @@ void CSetObject::RemoveDuringIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CPointer CSetObject::StartIteration(SSetIterator* psIter)
-{
-	CBaseObject*	pcObject;
-	CPointer		pObject;
-
-	pcObject = (CBaseObject*)mcArray.StartIteration(psIter);
-	pObject.AssignObject(pcObject);
-	return pObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-CPointer CSetObject::Iterate(SSetIterator* psIter)
-{
-	CBaseObject*	pcObject;
-	CPointer		pObject;
-
-	pcObject = (CBaseObject*)mcArray.Iterate(psIter);
-	pObject.AssignObject(pcObject);
-	return pObject;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CSetObject::TouchAll(void)
 {
 	SSetIterator	sIter;
 	CPointer		p;
 
-	p = StartIteration(&sIter);
+	p = StartIterationPointer(&sIter);
 	while (p.IsNotNull())
 	{
-		p = Iterate(&sIter);
+		p = IteratePointer(&sIter);
 	}
 }
 

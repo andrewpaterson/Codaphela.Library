@@ -22,6 +22,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/TypeConverter.h"
+#include "StandardLib/ClassDefines.h"
 #include "ImageAccessorCreator.h"
 #include "ImageColour.h"
 #include "ImageCel.h"
@@ -63,8 +64,12 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight,
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment)
 {
+	PreInit();
+
 	mcSubImage.Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
 	mpcSourceImage = pcSourceImage;
+
+	PostInit();
 }
 
 
@@ -72,11 +77,39 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCel::Kill(void)
+void CImageCel::Free(void)
 {
-	mpcSourceImage = NULL;
-	mcSubImage.Kill();
-	CUnknown::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CImageCel::Class(void)
+{
+	U_Data(CSubImage, mcSubImage);
+	M_Pointer(mpcSourceImage);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCel::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CImageCel::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 

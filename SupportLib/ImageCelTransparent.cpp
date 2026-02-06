@@ -28,9 +28,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent)
+void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent)
 {
-	Init(pcSourceImage, psTransparent, 0, 0, pcSourceImage->miWidth, pcSourceImage->miHeight);
+	Init(pcSourceImage, psTransparent, 0, 0, pcSourceImage->GetWidth(), pcSourceImage->GetHeight());
 }
 
 
@@ -38,7 +38,7 @@ void CImageCelTransparent::Init(CImage* pcSourceImage, SImageColour* psTranspare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent, CRectangle* pcRect)
+void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, CRectangle* pcRect)
 {
 	Init(pcSourceImage, psTransparent, pcRect->miLeft, pcRect->miTop, pcRect->miRight, pcRect->miBottom);
 }
@@ -48,7 +48,7 @@ void CImageCelTransparent::Init(CImage* pcSourceImage, SImageColour* psTranspare
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCelTransparent::Init(CImage* pcSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom)
+void CImageCelTransparent::Init(Ptr<CImage> pcSourceImage, SImageColour* psTransparent, int iLeft, int iTop, int iRight, int iBottom)
 {
 	CImageCel::Init(pcSourceImage, iLeft, iTop, iRight, iBottom);
 	memcpy(&msTransparentColour, psTransparent, sizeof(SImageColour));

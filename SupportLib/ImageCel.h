@@ -34,9 +34,10 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //	     CImageCelTransparent and CImageCelMask allow additional trasparency through masking.
 
 
-class CImageCel : public CUnknown
+class CImageCel : public CObject
 {
 CONSTRUCTABLE(CImageCel);
+DESTRUCTABLE(CImageCel);
 protected:
 	CSubImage		mcSubImage;  //The full dimension of the cel and where it's pixels are in the source image.
 	Ptr<CImage>		mpcSourceImage;
@@ -46,7 +47,11 @@ public:
 	void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
 	void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom);
 	void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
-	void			Kill(void);
+	void			Class(void);
+	void 			Free(void);
+
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
 
 	void			Copy(CImageCel* pcSource);
 
@@ -66,7 +71,7 @@ public:
 };
 
 
-typedef CArrayUnknownTemplate<CImageCel> CArrayImageCel;
+typedef CArray<CImageCel> CArrayImageCel;
 
 
 #endif // __IMAGE_CEL_H__

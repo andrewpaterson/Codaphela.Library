@@ -1043,10 +1043,14 @@ bool CEmbeddedObject::IsEmbeddingContainerAllocatedInObjects(void)
 //////////////////////////////////////////////////////////////////////////
 void CEmbeddedObject::LogNotExpectedToBeEmbedded(char* szMethod)
 {
-	CBaseObject* pcContainer;
+	CBaseObject*	pcContainer;
+	const char*		szContainerClass;
 
 	pcContainer = GetEmbeddingContainer();
-	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()), "] and embedding class [", pcContainer->ClassName(), "].", NULL);
+	szContainerClass = pcContainer->ClassName();
+
+	//If DESTRUCTABLE(xxx) is not present at the top of the class after CONSTRUCTABLE(xxx) then wrong destructor on BaseObject will be called.
+	gcLogger.Error2(szMethod, " Cannot be called on embedded object of class [", ClassName(), "] with embedding index [", IndexToString(pcContainer->GetIndex()), "] and embedding class [", szContainerClass, "].  Ensure DESTRUCTABLE(", szContainerClass, "); is present.", NULL);
 }
 
 
