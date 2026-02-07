@@ -51,6 +51,7 @@ void CMeshVertexArray::Init(SMeshFaceType sFaceType)
 //////////////////////////////////////////////////////////////////////////
 void CMeshVertexArray::Free(void)
 {
+	mcFaceIndicies.Kill();
 }
 
 

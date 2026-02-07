@@ -52,11 +52,6 @@ void CMeshEditor::Init(Ptr<CMesh> pcMesh)
 //////////////////////////////////////////////////////////////////////////
 void CMeshEditor::Free(void)
 {
-	mcModifiers.Kill();
-
-	mcSelections.Kill();
-	mcEdgeVisibility.Kill();
-	mcPolygons.Kill();
 }
 
 
