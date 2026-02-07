@@ -198,7 +198,6 @@ bool CChannelsAccessorCreator::CreateAccessors(void)
 		return false;
 	}
 
-	macAccessors.Init();  //Safe to call init again if no elements have been added.
 	uiNumAccess = masAccesses.NumElements();
 	for (i = 0; i < uiNumAccess; i++)
 	{
