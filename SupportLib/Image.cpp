@@ -624,6 +624,7 @@ void CImage::RemovePurpose(EImagePurpose ePurpose)
 
 	if (IsChanging())
 	{
+		mai.Init();
 		GetAllChannels(&mai);
 
 		for (i = 0; i < mai.NumElements(); i++)
@@ -948,6 +949,8 @@ void CImage::Print(CChars* psz)
 		}
 		psz->AppendNewLine();
 	}
+
+	aiChannels.Kill();
 }
 
 
