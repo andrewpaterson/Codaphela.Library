@@ -65,15 +65,6 @@ void CMesh::PrivateInit(void)
 //////////////////////////////////////////////////////////////////////////
 void CMesh::Free(void)
 {
-	mcNormals.Kill();
-	mcUVs.Kill();
-	mcSkin.Kill();
-	mcMaterials.Kill();
-	mcColours.Kill();
-	mcConnectivity.Kill();
-	mcPositions.Kill();
-	mcFaceTypes.Kill();
-	mcCache.Kill();
 }
 
 

@@ -85,6 +85,7 @@ void CImageCombiner::Init(EImageCombineLayout eLayout, int iWidth, int iHeight, 
 //////////////////////////////////////////////////////////////////////////
 void CImageCombiner::Free(void)
 {
+	masChannels.Kill();
 }
 
 
