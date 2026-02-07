@@ -1264,8 +1264,6 @@ void CChannels::GetAllChannels(CArrayInt* paiChannels)
 	CChannel*	psChannel;
 	size		uiOffsets;
 
-	paiChannels->Init();
-
 	uiOffsets = masChannelOffsets.NumElements();
 	for (j = 0; j < uiOffsets; j++)
 	{
@@ -1288,7 +1286,6 @@ void CChannels::GetAllChannels(CArrayChannel* pasChannels)
 
 	uiOffsets = masChannelOffsets.NumElements();
 
-	pasChannels->Init();
 	pasChannels->Resize(uiOffsets);
 
 	for (j = 0; j < uiOffsets; j++)

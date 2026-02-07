@@ -270,6 +270,7 @@ void CImageCombiner::CalculateChannelsFromCels(void)
 	{
 		if (pcCel->GetSourceImage() != pcLastImage)
 		{
+			asChannels.Init();
 			pcCel->GetAllChannels(&asChannels);
 			UpdateChannels(&asChannels);
 			asChannels.Kill();
@@ -511,6 +512,8 @@ void CImageCombiner::Draw(CArrayPackedRectangle* pacPackedRects)
 
 		if (pcLastImage != pcCelSource->GetSourceImage())
 		{
+			aiDestChannels.Init();
+			aiSourceChannels.Init();
 			mpcDestImage->GetAllChannels(&aiDestChannels);
 			pcCelSource->GetSourceImage()->GetAllChannels(&aiSourceChannels);
 			aiIntersectChannels.Init();

@@ -43,31 +43,31 @@ protected:
 	Ptr<CImage>		mpcSourceImage;
 
 public:
-	void 			Init(Ptr<CImage> pcSourceImage);
-	void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
-	void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom);
-	void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
-	void			Class(void);
-	void 			Free(void);
+			void 			Init(Ptr<CImage> pcSourceImage);
+			void			Init(Ptr<CImage> pcSourceImage, CRectangle* pcRect);
+			void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom);
+			void 			Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight, int iBottom, int iLeftOffset, int iTopOffset, int iRightOffset, int iBottomOffset, int iAlignment = SUB_IMAGE_ALIGNMENT_LEFT | SUB_IMAGE_ALIGNMENT_TOP);
+			void			Class(void);
+			void 			Free(void);
 
-	bool			Save(CObjectWriter* pcFile);
-	bool			Load(CObjectReader* pcFile);
+			bool			Save(CObjectWriter* pcFile);
+			bool			Load(CObjectReader* pcFile);
 
-	void			Copy(CImageCel* pcSource);
+			void			Copy(CImageCel* pcSource);
 
 	//Remove these from CImageCel, create a new class CDividerCel and put them there.
-	virtual	void	CropTransparentBorders(void);
-	void			CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity);
-	bool			IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2); //X/Y in Source space
-	bool			IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2);  //X/Y in Source space
+	virtual	void			CropTransparentBorders(void);
+			void			CropTransparentBorders(CPixelOpacityBase* pcPixelOpacity);
+			bool			IsColumnTransparent(CPixelOpacityBase* pcOpacity, int x, int y1, int y2); //X/Y in Source space
+			bool			IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, int x2);  //X/Y in Source space
 
-	virtual	void	GetAllChannels(CArrayChannel* pasChannels);
-	virtual	bool	MustFixDrawOpacity(void);
-	virtual	void	FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
-	void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
-	CSubImage*		GetSubImage(void);
-	void			SetSubImage(CSubImage* pcSubImage);
-	Ptr<CImage>		GetSourceImage(void);
+	virtual	void			GetAllChannels(CArrayChannel* pasChannels);
+	virtual	bool			MustFixDrawOpacity(void);
+	virtual	void			FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
+			void			FixDrawOpacity(CPixelOpacityBase* pcPixelOpacity, CImageAccessor* pcDestOpacity, int iDestTop, int iDestLeft);
+			CSubImage*		GetSubImage(void);
+			void			SetSubImage(CSubImage* pcSubImage);
+			Ptr<CImage>		GetSourceImage(void);
 };
 
 
