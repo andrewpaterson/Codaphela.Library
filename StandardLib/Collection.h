@@ -30,6 +30,7 @@ class CCollection : public CBaseObject
 {
 CONSTRUCTABLE(CCollection);
 public:
+							~CCollection();
 			void			Init(void);
 			void			Kill(void) final;
 			bool			IsCollection(void) override;

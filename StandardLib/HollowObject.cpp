@@ -27,9 +27,40 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CHollowObject::CHollowObject(void)
+CHollowObject::CHollowObject()
 {
 	muiFlags &= ~OBJECT_FLAGS_DIRTY;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+CHollowObject::~CHollowObject()
+{
+	//This Destructor code will only be called if the object was allocated on the stack.
+	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
+	{
+		if (mpcUnknownsThisIn == NULL)
+		{
+			if (!HasClass())
+			{
+				ValidateHasClassFlag(__METHOD__);
+			}
+		}
+		FreePointers();
+
+		ValidateInitCalled();
+		ValidateKillCalled();
+
+		muiFlags = 0;
+	}
+	else
+	{
+		//Skip all destruction as this object was only constructed to get its ClassName().
+		muiFlags = 0;
+	}
 }
 
 

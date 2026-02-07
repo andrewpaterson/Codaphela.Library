@@ -27,7 +27,8 @@ class CHollowObject : public CBaseObject
 {
 CONSTRUCTABLE(CHollowObject);
 public:
-								CHollowObject(void);
+								CHollowObject();
+								~CHollowObject();
 			void				Init(size iNumEmbedded);
 			void				Kill(void) final;
 
