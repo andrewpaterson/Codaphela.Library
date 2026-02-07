@@ -188,6 +188,7 @@ void CPixelOpacityMaskTransparentColour::Init(CImage* pcImage, SImageColour* psT
 //////////////////////////////////////////////////////////////////////////
 void CPixelOpacityMaskTransparentColour::Kill(void)
 {
+	mpcAllChannels->Kill();
 	mpcMaskChannel->Kill();
 	CPixelOpacityChannel::Kill();
 }
