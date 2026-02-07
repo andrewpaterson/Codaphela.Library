@@ -278,6 +278,7 @@ bool CObjectReader::ReadPointer(CPointer* pObject)
 		pcEmbedding = pObject->Embedding();
 
 		bResult &= mpcDependents->AddDependent(&cHeader, ppcObjectPtr, (CBaseObject*)pcEmbedding, cHeader.miNumEmbedded, cHeader.miEmbeddedIndex);
+		cHeader.Kill();
 		return bResult;
 	}
 	else
