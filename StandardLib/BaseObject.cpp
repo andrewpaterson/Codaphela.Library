@@ -59,28 +59,12 @@ CBaseObject::CBaseObject()
 //////////////////////////////////////////////////////////////////////////
 CBaseObject::~CBaseObject()
 {
-	//This Destructor code will only be called if the object was allocated on the stack.
-	if (muiFlags != OBJECT_FLAGS_CALLED_CONSTRUCTOR)
-	{
-		if (mpcUnknownsThisIn == NULL)
-		{
-			if (!HasClass())
-			{
-				ValidateHasClassFlag(__METHOD__);
-			}
-		}
-		FreePointers();
+	//All the CBaseObject is pushed into its immediate sub-classes (anything : public CBaseObject).  
+	//  CCollection
+	//  CHollowObject
+	//  CObject 
 
-		ValidateInitCalled();
-		ValidateKillCalled();
-
-		muiFlags = 0;
-	}
-	else
-	{
-		//Skip all destruction as this object was only constructed to get its ClassName().
-		muiFlags = 0;
-	}
+	//This is because FreePointers() is virtual and overridden in at least Object.
 }
 
 

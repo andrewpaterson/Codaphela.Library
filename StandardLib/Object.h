@@ -52,8 +52,9 @@ protected:
 
 public:
 						CObject();
+						~CObject();
 	void				Allocate(CObjects* pcObjects);
-	void				Kill(void) final;
+	void				Kill(void) final override;
 	bool				IsCollection(void) override;
 	bool				IsObject(void) override;
 	void				SetPointerTosExpectedDistToRoot(int iDistToRoot);
