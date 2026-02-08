@@ -2584,14 +2584,18 @@ TRISTATE CPreprocessor::EvaluateEquation(char* szText, CChars* szCalculatorError
 	if (cCalculator.HasError())
 	{
 		szCalculatorError->Append(cCalculator.GetError());
+		SafeKill(pcExpression);
 		cCalculator.Kill();
+		cSymbols.Kill();
 		return TRIERROR;
 	}
 	else
 	{
 		cAnswer = cCalculator.Eval(pcExpression);
 
+		SafeKill(pcExpression);
 		cCalculator.Kill();
+		cSymbols.Kill();
 		if (cAnswer.IsZero())
 		{
 			return TRIFALSE;
