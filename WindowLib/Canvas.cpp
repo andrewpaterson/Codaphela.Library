@@ -16,7 +16,7 @@ Ptr<CCanvas> CCanvas::Init(Ptr<CWindow> pWindow, EColourFormat eFormat, Ptr<CCan
 	meFormat = eFormat;
 
 	mpcNativeCanvas = NULL;
-	CBasicComponent::Init(pWindow);
+	CComponent::Init(pWindow);
 
 	mpCanvasDraw = pDraw;
 
@@ -40,7 +40,7 @@ void CCanvas::Free(void)
 
 	meFormat = CF_Unknown;
 
-	CBasicComponent::Free();
+	CComponent::Free();
 }
 
 
@@ -50,7 +50,7 @@ void CCanvas::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CCanvas::Class(void)
 {
-	CBasicComponent::Class();
+	CComponent::Class();
 
 	U_Pointer(mpcNativeCanvas);
 	U_Enum(meFormat);
@@ -109,7 +109,7 @@ bool CCanvas::Draw(void)
 		mpcNativeCanvas = pcFactory->CreateNativeCanvas(this);
 	}
 
-	CBasicComponent::Draw();
+	CComponent::Draw();
 	if (mpCanvasDraw)
 	{
 		mpCanvasDraw->Draw(this);

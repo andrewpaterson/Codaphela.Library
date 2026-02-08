@@ -30,7 +30,7 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
-	CBasicComponent::Init(pWindow);
+	CComponent::Init(pWindow);
 
 	mcTextData.Init();
 	mbCaretVisible = false;
@@ -51,7 +51,7 @@ Ptr<CText> CText::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CText::Class(void)
 {
-	CBasicComponent::Class();
+	CComponent::Class();
 	U_Data(CTextData, mcTextData);
 	U_Bool(mbCaretVisible);
 	M_Pointer(mpCaret);

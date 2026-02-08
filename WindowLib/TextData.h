@@ -91,9 +91,10 @@ typedef CArrayTemplate<CTextCharLine>	CArrayRenderCharLines;
 
 class CTextData
 {
-public:
+protected:
 	CArrayRenderCharLines	mcLines;
 
+public:
 	void 			Init(void);
 	void 			Init(CFont* pcFont, char* szText);
 	void 			Init(CFont* pcFont, CChars* pcText);

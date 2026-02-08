@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactory)
 {
-	CBasicNativeComponent::Init(pcWindowFactory);
+	CNativeComponent::Init(pcWindowFactory);
 	mpcWindowFactory = pcWindowFactory;
 	mpcWindow = pcWindow;
 	mcLastRectangle.Init(-1, -1, -1, -1);
@@ -24,7 +24,7 @@ void CNativeWindow::Init(CWindow* pcWindow, CNativeWindowFactory* pcWindowFactor
 //////////////////////////////////////////////////////////////////////////
 void CNativeWindow::Kill(void)
 {
-	CBasicNativeComponent::Kill();
+	CNativeComponent::Kill();
 }
 
 

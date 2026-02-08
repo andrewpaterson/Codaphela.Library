@@ -82,7 +82,7 @@ bool CFocus::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFocus::Update(int x, int y)
 {
-	Ptr<CBasicComponent> pcComponent;
+	Ptr<CComponent> pcComponent;
 
 	//x = x - mpWindow->GetClientRect()->miLeft;
 	//y = y - mpWindow->GetClientRect()->miTop;
@@ -156,7 +156,7 @@ void CFocus::Deactivate(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CBasicComponent> CFocus::GetFocussedComponent(void)
+Ptr<CComponent> CFocus::GetFocussedComponent(void)
 {
 	return mpFocussedComponent;
 }
@@ -166,7 +166,7 @@ Ptr<CBasicComponent> CFocus::GetFocussedComponent(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CBasicComponent> CFocus::GetMouseOverComponent(void)
+Ptr<CComponent> CFocus::GetMouseOverComponent(void)
 {
 	return mpFocussedComponent;
 }

@@ -178,7 +178,7 @@
     <Lib />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="BasicComponent.h" />
+    <ClInclude Include="Component.h" />
     <ClInclude Include="Canvas.h" />
     <ClInclude Include="CanvasDraw.h" />
     <ClInclude Include="Caret.h" />
@@ -194,7 +194,7 @@
     <ClInclude Include="GridContainer.h" />
     <ClInclude Include="Insets.h" />
     <ClInclude Include="NativeCanvas.h" />
-    <ClInclude Include="BasicNativeComponent.h" />
+    <ClInclude Include="NativeComponent.h" />
     <ClInclude Include="NativeWindow.h" />
     <ClInclude Include="NativeWindowFactory.h" />
     <ClInclude Include="Text.h" />
@@ -203,7 +203,7 @@
     <ClInclude Include="WindowTick.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BasicComponent.cpp" />
+    <ClCompile Include="Component.cpp" />
     <ClCompile Include="Canvas.cpp" />
     <ClCompile Include="CanvasDraw.cpp" />
     <ClCompile Include="Caret.cpp" />
@@ -217,7 +217,7 @@
     <ClCompile Include="GridContainer.cpp" />
     <ClCompile Include="Insets.cpp" />
     <ClCompile Include="NativeCanvas.cpp" />
-    <ClCompile Include="BasicNativeComponent.cpp" />
+    <ClCompile Include="NativeComponent.cpp" />
     <ClCompile Include="NativeWindow.cpp" />
     <ClCompile Include="NativeWindowFactory.cpp" />
     <ClCompile Include="Text.cpp" />

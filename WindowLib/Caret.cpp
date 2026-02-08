@@ -9,7 +9,7 @@ Ptr<CCaret> CCaret::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
-	CBasicComponent::Init(pWindow);
+	CComponent::Init(pWindow);
 
 	PostInit();
 
@@ -23,7 +23,7 @@ Ptr<CCaret> CCaret::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CCaret::Class(void)
 {
-	CBasicComponent::Class();
+	CComponent::Class();
 }
 
 

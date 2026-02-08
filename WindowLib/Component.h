@@ -1,5 +1,5 @@
-#ifndef __BASIC_COMPONENT_H__
-#define __BASIC_COMPONENT_H__
+#ifndef __COMPONENT_H__
+#define __COMPONENT_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
 #include "StandardLib/Pointer.h"
@@ -13,17 +13,17 @@
 
 
 class CWindow;
-class CBasicComponent : public CObject, public CFocusListener, public CComponentListener
+class CComponent : public CObject, public CFocusListener, public CComponentListener
 {
-CONSTRUCTABLE(CBasicComponent);
-DESTRUCTABLE(CBasicComponent);
+CONSTRUCTABLE(CComponent);
+DESTRUCTABLE(CComponent);
 protected:
 	SInt2						msActualSize;
 	SInt2	 					msPosition;
 	SInt2						msDesiredSize;
 	bool						mbCanGetFocus;
-	Ptr<CBasicComponent>		mpParent;
-	CArray<CBasicComponent>		maChildren;
+	Ptr<CComponent>		mpParent;
+	CArray<CComponent>		maChildren;
 	Ptr<CWindow>				mpWindow;
 
 public:
@@ -38,16 +38,16 @@ public:
 			bool					DrawChildren(void);
 	virtual bool					GetContainerBounds(SContainerBounds* psDest);
 
-			void					AddComponent(Ptr<CBasicComponent> pComponent);
-			bool					RemoveComponent(Ptr<CBasicComponent> pComponent);
+			void					AddComponent(Ptr<CComponent> pComponent);
+			bool					RemoveComponent(Ptr<CComponent> pComponent);
 			bool					RemoveAllComponents(void);
 			size					NumComponents(void);
 
 			bool					IsPointIn(int x, int y);
 			bool					HasFocus(void);
-			Ptr<CBasicComponent>	FindComponentAt(int x, int y);
-			void					ToChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py);
-			void					FromChildSpace(Ptr<CBasicComponent> pcChildComponent, int x, int y, int* px, int* py);
+			Ptr<CComponent>	FindComponentAt(int x, int y);
+			void					ToChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
+			void					FromChildSpace(Ptr<CComponent> pcChildComponent, int x, int y, int* px, int* py);
 
 	virtual	void					Layout(SInt2 sPosition, SInt2 sAreaSize);
 			void					LayoutChildren(SInt2 sPosition, SInt2 sAreaSize);
@@ -66,5 +66,5 @@ public:
 };
 
 
-#endif // __BASIC_COMPONENT_H__
+#endif // __COMPONENT_H__
 

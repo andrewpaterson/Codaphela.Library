@@ -1,13 +1,13 @@
-#ifndef __BASIC_NATIVE_COMPONENT_H__
-#define __BASIC_NATIVE_COMPONENT_H__
+#ifndef __NATIVE_COMPONENT_H__
+#define __NATIVE_COMPONENT_H__
 #include "BaseLib/Constructable.h"
 #include "BaseLib/Killable.h"
 
 
 class CNativeWindowFactory;
-class CBasicNativeComponent : public CConstructable, public CKillable
+class CNativeComponent : public CConstructable, public CKillable
 {
-CONSTRUCTABLE(CBasicNativeComponent);
+CONSTRUCTABLE(CNativeComponent);
 protected:
 	CNativeWindowFactory*	mpcWindowFactory;
 
@@ -19,5 +19,5 @@ public:
 };
 
 
-#endif // __BASIC_NATIVE_COMPONENT_H__
+#endif // __NATIVE_COMPONENT_H__
 

@@ -57,10 +57,10 @@
     <ClInclude Include="NativeWindowFactory.h">
       <Filter>Source\Factory</Filter>
     </ClInclude>
-    <ClInclude Include="BasicNativeComponent.h">
+    <ClInclude Include="NativeComponent.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
-    <ClInclude Include="BasicComponent.h">
+    <ClInclude Include="Component.h">
       <Filter>Source\Component</Filter>
     </ClInclude>
     <ClInclude Include="ContainerBounds.h">
@@ -128,10 +128,10 @@
     <ClCompile Include="NativeWindowFactory.cpp">
       <Filter>Source\Factory</Filter>
     </ClCompile>
-    <ClCompile Include="BasicNativeComponent.cpp">
+    <ClCompile Include="NativeComponent.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
-    <ClCompile Include="BasicComponent.cpp">
+    <ClCompile Include="Component.cpp">
       <Filter>Source\Component</Filter>
     </ClCompile>
     <ClCompile Include="Container.cpp">

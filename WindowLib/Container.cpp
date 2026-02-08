@@ -30,7 +30,7 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 {
 	PreInit();
 
-	CBasicComponent::Init(pWindow);
+	CComponent::Init(pWindow);
 	msRequiredSize.Init(-1, -1);
 	msBounds.Init();
 
@@ -44,7 +44,7 @@ void CContainer::Init(Ptr<CWindow> pWindow)
 //////////////////////////////////////////////////////////////////////////
 void CContainer::Free(void)
 {
-	CBasicComponent::Free();
+	CComponent::Free();
 }
 
 
@@ -54,7 +54,7 @@ void CContainer::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CContainer::Class(void)
 {
-	CBasicComponent::Class();
+	CComponent::Class();
 	U_Data(SContainerBounds, msBounds);
 	U_2Int32(msRequiredSize);
 }
@@ -131,7 +131,7 @@ void CContainer::SetBounds(SInt2 sPosition, SInt2 sAreaSize)
 //////////////////////////////////////////////////////////////////////////
 void CContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 {
-	// This intentionally does not call CBasicComponent::Layout 
+	// This intentionally does not call CComponent::Layout 
 	// because a container must fully implement it's own Layout.
 }
 
