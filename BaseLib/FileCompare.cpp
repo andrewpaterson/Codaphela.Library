@@ -43,6 +43,8 @@ bool CFileCompare::Compare(const char* szName1, const char* szName2, CChars* psz
 
 	if (!bExists1 && !bExists2)
 	{
+		cFile2.Kill();
+		cFile1.Kill();
 		return true;
 	}
 

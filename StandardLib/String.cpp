@@ -455,6 +455,8 @@ Ptr<CArray<CString>> CString::Split(char cSplitter)
 		pString = GetObjects()->Malloc<CString>()->Init(psz);
 		paDest->Add(pString);
 	}
+	aszTemp.Kill();
+	msz.Kill();
 	
 	return paDest;
 }
