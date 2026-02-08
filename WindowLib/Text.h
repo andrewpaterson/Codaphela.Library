@@ -24,16 +24,16 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "BaseLib/Int2.h"
 #include "StandardLib/Pointer.h"
 #include "SupportLib/Font.h"
-#include "BasicComponent.h"
+#include "Component.h"
 #include "Caret.h"
 #include "TextData.h"
 
 
-class CText : public CBasicComponent
+class CText : public CComponent
 {
 CONSTRUCTABLE(CText);
 DESTRUCTABLE(CText);
-public:
+protected:
 	CTextData		mcTextData;
 	bool			mbCaretVisible;
 	Ptr<CCaret>		mpCaret;
@@ -53,7 +53,6 @@ public:
 
 	void 		SetText(char* sz, Ptr<CFont> pFont);
 	void 		SetText(CChars sz, Ptr<CFont> pFont);
-	void 		SetAlpha(float fAlpha);
 };
 
 

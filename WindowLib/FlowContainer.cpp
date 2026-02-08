@@ -51,7 +51,7 @@ void CFlowContainer::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::SetRequiredSize(void)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;
@@ -139,7 +139,7 @@ void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					i;
 	SInt2					sSize;
 	int						fXPos;
@@ -171,7 +171,7 @@ void CFlowContainer::LayoutRight(SInt2 sPosition, SInt2 sAreaSize, size iStart, 
 //////////////////////////////////////////////////////////////////////////
 SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;
@@ -226,7 +226,7 @@ SInt2 CFlowContainer::CalculateAreaForHorizontalLayout(int iWidth)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::LayoutRightWrap(SInt2 sPosition, SInt2 sAreaSize)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;
@@ -288,7 +288,7 @@ void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, size iEnd)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					i;
 	SInt2					sSize;
 	int						fYPos;
@@ -320,7 +320,7 @@ void CFlowContainer::LayoutDown(SInt2 sPosition, SInt2 sAreaSize, size iStart, s
 //////////////////////////////////////////////////////////////////////////
 SInt2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;
@@ -375,7 +375,7 @@ SInt2 CFlowContainer::CalculateAreaForVerticalLayout(int iHeight)
 //////////////////////////////////////////////////////////////////////////
 void CFlowContainer::LayoutDownWrap(SInt2 sPosition, SInt2 sAreaSize)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;

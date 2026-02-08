@@ -21,17 +21,17 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "SupportLib/Rectangle.h"
-#include "BasicComponent.h"
+#include "Component.h"
 
 
 class CWindow;
-class CBasicComponent;
+class CComponent;
 class CFocus : public CObject
 {
 CONSTRUCTABLE(CFocus);
 protected:
-	Ptr<CBasicComponent>	mpMouseOverComponent;
-	Ptr<CBasicComponent>	mpFocussedComponent;
+	Ptr<CComponent>	mpMouseOverComponent;
+	Ptr<CComponent>	mpFocussedComponent;
 	Ptr<CWindow>			mpWindow;
 
 public:
@@ -46,8 +46,8 @@ public:
 	void 					Request(void);
 	void 					Activate(int x, int y);
 	void 					Deactivate(void);
-	Ptr<CBasicComponent>	GetFocussedComponent(void);
-	Ptr<CBasicComponent>	GetMouseOverComponent(void);
+	Ptr<CComponent>	GetFocussedComponent(void);
+	Ptr<CComponent>	GetMouseOverComponent(void);
 };
 
 

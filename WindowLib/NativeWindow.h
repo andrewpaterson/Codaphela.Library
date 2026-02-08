@@ -2,12 +2,12 @@
 #define __NATIVE_WINDOW_H__
 #include "BaseLib/Chars.h"
 #include "SupportLib/Rectangle.h"
-#include "BasicNativeComponent.h"
+#include "NativeComponent.h"
 
 
 class CNativeWindowFactory;
 class CNativeCanvas;
-class CNativeWindow : public CBasicNativeComponent
+class CNativeWindow : public CNativeComponent
 {
 CONSTRUCTABLE(CNativeWindow);
 friend class CWindow;

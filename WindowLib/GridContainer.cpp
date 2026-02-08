@@ -51,7 +51,7 @@ void CGridContainer::Free(void)
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::SetRequiredSize(void)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;
@@ -74,7 +74,7 @@ void CGridContainer::SetRequiredSize(void)
 //////////////////////////////////////////////////////////////////////////
 void CGridContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 {
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	size					i;
 	SInt2					sSize;

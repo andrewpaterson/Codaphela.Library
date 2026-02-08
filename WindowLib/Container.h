@@ -23,11 +23,11 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
-#include "BasicComponent.h"
+#include "Component.h"
 #include "ContainerBounds.h"
 
 
-class CContainer : public CBasicComponent
+class CContainer : public CComponent
 {
 CONSTRUCTABLE(CContainer);
 DESTRUCTABLE(CContainer);

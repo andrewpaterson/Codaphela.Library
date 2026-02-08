@@ -18,7 +18,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#include "BasicComponent.h"
+#include "Component.h"
 #include "FillContainer.h"
 
 
@@ -63,7 +63,7 @@ void CFillContainer::SetFillStyle(EContainerStyleHorizontal eH, EContainerStyleV
 void CFillContainer::SetRequiredSize(void)
 {
 	size					i;
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 	SInt2					sSize;
 
@@ -97,7 +97,7 @@ void CFillContainer::Layout(SInt2 sPosition, SInt2 sAreaSize)
 	size					i;
 	SInt2					sOrigin;
 	SInt2					sArea;
-	Ptr<CBasicComponent>	pComponent;
+	Ptr<CComponent>	pComponent;
 	size					uiSize;
 
 	sOrigin = sPosition;

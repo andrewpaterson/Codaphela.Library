@@ -8,7 +8,7 @@
 //////////////////////////////////////////////////////////////////////////
 void CNativeCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactory)
 {
-	CBasicNativeComponent::Init(pcWindowFactory);
+	CNativeComponent::Init(pcWindowFactory);
 	mpcCanvas = pcCanvas;
 	msSize.Init(-1, -1);
 }
@@ -21,7 +21,7 @@ void CNativeCanvas::Init(CCanvas* pcCanvas, CNativeWindowFactory* pcWindowFactor
 void CNativeCanvas::Kill(void)
 {
 	mpcCanvas = NULL;
-	CBasicNativeComponent::Kill();
+	CNativeComponent::Kill();
 }
 
 

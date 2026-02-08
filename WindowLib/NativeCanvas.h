@@ -21,12 +21,12 @@ along with Codaphela WindowLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/Chars.h"
-#include "BasicNativeComponent.h"
+#include "NativeComponent.h"
 #include "SupportLib/ColourARGB32.h"
 #include "SupportLib/Rectangle.h"
 
 
-class CNativeCanvas : public CBasicNativeComponent
+class CNativeCanvas : public CNativeComponent
 {
 CONSTRUCTABLE(CNativeCanvas);
 friend class CCanvas;
