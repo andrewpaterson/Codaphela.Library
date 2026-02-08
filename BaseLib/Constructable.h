@@ -55,6 +55,9 @@ size ClassSize(void)\
 	return sizeof(c);\
 }
 
+//  Destructable must be present on every class implementing Kill whose Kill method must be called on destruction.  
+//  It cannot just be added to, say, CConstructable because due to the 'accuracies' of C++ only the Kill method on
+//  CConstructable will be called.  Not the Kill methods on any sub-classes.
 #define DESTRUCTABLE(c) \
 public:\
 ~c(void)\
