@@ -461,6 +461,7 @@
     <ClInclude Include="TypeConverter.h" />
     <ClInclude Include="TypeNames.h" />
     <ClInclude Include="TypeParser.h" />
+    <ClInclude Include="UTF-8.h" />
     <ClInclude Include="Validation.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WindowsError.h" />
@@ -822,6 +823,7 @@
     <ClCompile Include="TypeNames.cpp" />
     <ClCompile Include="TypeParser.cpp" />
     <ClCompile Include="MemCompare.cpp" />
+    <ClCompile Include="UTF-8.cpp" />
     <ClCompile Include="WindowsError.cpp" />
     <ClCompile Include="CalcObject.cpp" />
     <ClCompile Include="CharEncoding.cpp" />

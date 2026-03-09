@@ -240,6 +240,16 @@ void CArrayCommonUnknown::SetChunkSize(size iChunkSize)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+void CArrayCommonUnknown::GrowTo(size iNumElements)
+{
+	mcArray.GrowToAtLeastNumElements(iNumElements, true, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown)
 {
 	return gcUnknowns.LoadUnknown(pcFile, ppcUnknown);

@@ -563,19 +563,11 @@ char* StrRev(char* szString, size iLength)
 		return szString;
 	}
 
-	if (iLength % 2 == 0)
-	{
-		j = 0;
-	}
-	else
-	{
-		j = 1;
-	}
 
-	for (i = 0; i < iLength / 2; i++, j++)
+	for (i = 0, j = iLength - 1; i < iLength / 2; i++, j--)
 	{
-		c = szString[iLength - 1 - j];
-		szString[iLength - 1 - j] = szString[i];
+		c = szString[j];
+		szString[j] = szString[i];
 		szString[i] = c;
 	}
 	return szString;

@@ -67,6 +67,8 @@ public:
 	void					RemoveAllPointerTosTryFree(void);
 	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
 
+	void					GrowTo(size iNumElements);
+
 	bool					Save(CObjectWriter* pcFile) override;
 	bool					Load(CObjectReader* pcFile) override;
 
