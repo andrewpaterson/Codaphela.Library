@@ -67,7 +67,7 @@ void CImageCel::Init(Ptr<CImage> pcSourceImage, int iLeft, int iTop, int iRight,
 	PreInit();
 
 	mcSubImage.Init(iLeft, iTop, iRight, iBottom, iLeftOffset, iTopOffset, iRightOffset, iBottomOffset, iAlignment);
-	mpcSourceImage = pcSourceImage;
+	mpSourceImage = pcSourceImage;
 
 	PostInit();
 }
@@ -89,7 +89,7 @@ void CImageCel::Free(void)
 void CImageCel::Class(void)
 {
 	U_Data(CSubImage, mcSubImage);
-	M_Pointer(mpcSourceImage);
+	M_Pointer(mpSourceImage);
 }
 
 
@@ -120,7 +120,7 @@ bool CImageCel::Load(CObjectReader* pcFile)
 void CImageCel::Copy(CImageCel* pcSource)
 {
 	mcSubImage = *pcSource->GetSubImage();
-	mpcSourceImage = pcSource->GetSourceImage();
+	mpSourceImage = pcSource->GetSourceImage();
 }
 
 
@@ -132,7 +132,7 @@ void CImageCel::CropTransparentBorders(void)
 {
 	CPixelOpacityChannel	cOpacity;
 
-	cOpacity.Init(&mpcSourceImage);
+	cOpacity.Init(&mpSourceImage);
 	CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -238,7 +238,7 @@ bool CImageCel::IsRowTransparent(CPixelOpacityBase* pcOpacity, int y, int x1, in
 //////////////////////////////////////////////////////////////////////////
 void CImageCel::GetAllChannels(CArrayChannel* pasChannels)
 {
-	mpcSourceImage->GetAllChannels(pasChannels);
+	mpSourceImage->GetAllChannels(pasChannels);
 }
 
 
@@ -248,7 +248,7 @@ void CImageCel::GetAllChannels(CArrayChannel* pasChannels)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCel::MustFixDrawOpacity(void)
 {
-	if (mpcSourceImage->HasChannel(IMAGE_OPACITY))
+	if (mpSourceImage->HasChannel(IMAGE_OPACITY))
 	{
 		//If we already have an opacity channel then it has been used correctly
 		return false;
@@ -265,7 +265,7 @@ void CImageCel::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, int 
 {
 	CPixelOpacityChannel	cOpacity;
 
-	cOpacity.Init(&mpcSourceImage);
+	cOpacity.Init(&mpSourceImage);
 	FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }
@@ -336,6 +336,6 @@ void CImageCel::SetSubImage(CSubImage* pcSubImage)
 //////////////////////////////////////////////////////////////////////////
 Ptr<CImage> CImageCel::GetSourceImage(void)
 {
-	return mpcSourceImage;
+	return mpSourceImage;
 }
 

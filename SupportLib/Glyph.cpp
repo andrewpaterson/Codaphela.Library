@@ -21,6 +21,7 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "StandardLib/ClassDefines.h"
 #include "Glyph.h"
 
 
@@ -28,9 +29,9 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGlyph::Init(CImageCel* pcCel, int16 iStep)
+void CGlyph::Init(Ptr<CImageCel> pCel, int16 iStep)
 {
-	mpcCel = pcCel; 
+	mpCel = pCel;
 	miStep = iStep;
 }
 
@@ -39,10 +40,39 @@ void CGlyph::Init(CImageCel* pcCel, int16 iStep)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CGlyph::Kill(void)
+void CGlyph::Class(void)
 {
-	mpcCel->Kill();
-	CUnknown::Kill();
+	M_Pointer(mpCel);
+	U_Int16(miStep);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CGlyph::Free(void)
+{
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGlyph::Save(CObjectWriter* pcFile)
+{
+	return false;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CGlyph::Load(CObjectReader* pcFile)
+{
+	return false;
 }
 
 
@@ -52,7 +82,7 @@ void CGlyph::Kill(void)
 //////////////////////////////////////////////////////////////////////////
 int CGlyph::GetFullWidth(void)
 {
-	return mpcCel->GetSubImage()->GetFullWidth();
+	return mpCel->GetSubImage()->GetFullWidth();
 }
 
 
@@ -62,7 +92,7 @@ int CGlyph::GetFullWidth(void)
 //////////////////////////////////////////////////////////////////////////
 int CGlyph::GetFullHeight(void)
 {
-	return mpcCel->GetSubImage()->GetFullHeight();
+	return mpCel->GetSubImage()->GetFullHeight();
 }
 
 
@@ -72,7 +102,7 @@ int CGlyph::GetFullHeight(void)
 //////////////////////////////////////////////////////////////////////////
 int CGlyph::GetFullDestRight(int x)
 {
-	return mpcCel->GetSubImage()->GetFullRight() + x;
+	return mpCel->GetSubImage()->GetFullRight() + x;
 }
 
 
@@ -82,7 +112,7 @@ int CGlyph::GetFullDestRight(int x)
 //////////////////////////////////////////////////////////////////////////
 void CGlyph::GetFullDestBounds(int x, int y, CRectangle* pcRectangle)
 {
-	mpcCel->GetSubImage()->GetFullDestBounds(x, y, pcRectangle);
+	mpCel->GetSubImage()->GetFullDestBounds(x, y, pcRectangle);
 }
 
 
@@ -92,7 +122,7 @@ void CGlyph::GetFullDestBounds(int x, int y, CRectangle* pcRectangle)
 //////////////////////////////////////////////////////////////////////////
 void CGlyph::GetImageDestBounds(int x, int y, CRectangle* pcRectangle)
 {
-	mpcCel->GetSubImage()->GetImageDestBounds(x, y, pcRectangle);
+	mpCel->GetSubImage()->GetImageDestBounds(x, y, pcRectangle);
 }
 
 
@@ -100,8 +130,8 @@ void CGlyph::GetImageDestBounds(int x, int y, CRectangle* pcRectangle)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CGlyph::GetSourceImage(void) {return mpcCel->GetSourceImage();}
-CSubImage* CGlyph::GetSubImage(void) {return mpcCel->GetSubImage();}
-CImageCel* CGlyph::GetCel(void) {return mpcCel;}
+Ptr<CImage> CGlyph::GetSourceImage(void) {return mpCel->GetSourceImage();}
+CSubImage* CGlyph::GetSubImage(void) {return mpCel->GetSubImage();}
+Ptr<CImageCel> CGlyph::GetCel(void) {return mpCel;}
 int16 CGlyph::GetStep(void) {return miStep;}
 

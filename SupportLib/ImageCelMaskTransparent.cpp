@@ -98,7 +98,7 @@ void CImageCelMaskTransparent::CropTransparentBorders(void)
 {
 	CPixelOpacityMaskTransparentColour cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
+	cOpacity.Init(&mpSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -114,8 +114,8 @@ void CImageCelMaskTransparent::GetAllChannels(CArrayChannel* pasChannels)
 	SChannel	sTransparent;
 
 	iOpacity = IMAGE_OPACITY;
-	mpcSourceImage->GetAllChannels(pasChannels);
-	if (!mpcSourceImage->HasChannel(iOpacity))
+	mpSourceImage->GetAllChannels(pasChannels);
+	if (!mpSourceImage->HasChannel(iOpacity))
 	{
 		//Just use the first type.
 		sTransparent.eType = pasChannels->Get(0)->eType;
@@ -123,7 +123,6 @@ void CImageCelMaskTransparent::GetAllChannels(CArrayChannel* pasChannels)
 		pasChannels->InsertAt(&sTransparent, 0);
 	}
 }
-
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -145,7 +144,7 @@ void CImageCelMaskTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int
 {
 	CPixelOpacityMaskTransparentColour	cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
+	cOpacity.Init(&mpSourceImage, &msTransparentColour, &mpcMaskImage, miMask);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }

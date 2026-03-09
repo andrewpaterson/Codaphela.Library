@@ -182,6 +182,8 @@
     <ClInclude Include="CopyPaste.h" />
     <ClInclude Include="ChannelTypes.h" />
     <ClInclude Include="FakeTracker.h" />
+    <ClInclude Include="FontFactory.h" />
+    <ClInclude Include="FontImportParameters.h" />
     <ClInclude Include="GDIPlusWriter.h" />
     <ClInclude Include="ImageDraw.h" />
     <ClInclude Include="ImageReaderHelper.h" />
@@ -349,6 +351,8 @@
     <ClCompile Include="ChannelTypes.cpp" />
     <ClCompile Include="CopyPaste_Windows.cpp" />
     <ClCompile Include="FakeTracker.cpp" />
+    <ClCompile Include="FontFactory.cpp" />
+    <ClCompile Include="FontImportParameters.cpp" />
     <ClCompile Include="GDIPlusWriter.cpp" />
     <ClCompile Include="ImageDraw.cpp" />
     <ClCompile Include="ImageReaderHelper.cpp" />

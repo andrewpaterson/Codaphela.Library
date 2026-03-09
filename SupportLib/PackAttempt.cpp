@@ -327,3 +327,4 @@ void CPackAttempt::Dump(void)
 	sz.Dump();
 	sz.Kill();
 }
+
