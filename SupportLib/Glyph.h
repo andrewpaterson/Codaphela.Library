@@ -24,32 +24,38 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #ifndef __GLYPH_H__
 #define __GLYPH_H__
 #include "ImageCel.h"
+#include "StandardLib/Array.h"
 
 
-class CGlyph : public CUnknown
+class CGlyph : public CObject
 {
 CONSTRUCTABLE(CGlyph);
+DESTRUCTABLE(CGlyph);
 protected:
-	CImageCel*	mpcCel;
-	int16		miStep;
+	Ptr<CImageCel>	mpCel;
+	int16			miStep;
 
 public:
-	void		Init(CImageCel* pcCel, int16 iStep);
-	void		Kill(void);
+	void			Init(Ptr<CImageCel> pCel, int16 iStep);
+	void			Class(void);
+	void 			Free(void);
 
-	int			GetFullWidth(void);
-	int			GetFullHeight(void);
-	int			GetFullDestRight(int x);
-	void		GetFullDestBounds(int x, int y, CRectangle* pcRectangle);
-	void		GetImageDestBounds(int x, int y, CRectangle* pcRectangle);
-	Ptr<CImage>	GetSourceImage(void);
-	CSubImage*	GetSubImage(void);
-	CImageCel*	GetCel(void);
-	int16		GetStep(void);
+	bool			Save(CObjectWriter* pcFile);
+	bool			Load(CObjectReader* pcFile);
+
+	int				GetFullWidth(void);
+	int				GetFullHeight(void);
+	int				GetFullDestRight(int x);
+	void			GetFullDestBounds(int x, int y, CRectangle* pcRectangle);
+	void			GetImageDestBounds(int x, int y, CRectangle* pcRectangle);
+	Ptr<CImage>		GetSourceImage(void);
+	CSubImage*		GetSubImage(void);
+	Ptr<CImageCel>	GetCel(void);
+	int16			GetStep(void);
 };
 
 
-typedef CArrayUnknownTemplate<CGlyph> CArrayGlyph;
+typedef CArray<CGlyph> CArrayGlyph;
 
 
 #endif // __GLYPH_H__

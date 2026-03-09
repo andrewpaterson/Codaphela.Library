@@ -63,7 +63,7 @@ void CImageCelTransparent::CropTransparentBorders(void)
 {
 	CPixelOpacityTransparentColour cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &msTransparentColour);
+	cOpacity.Init(&mpSourceImage, &msTransparentColour);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -79,8 +79,8 @@ void CImageCelTransparent::GetAllChannels(CArrayChannel* pasChannels)
 	SChannel	sTransparent;
 
 	iOpacity = IMAGE_OPACITY;
-	mpcSourceImage->GetAllChannels(pasChannels);
-	if (!mpcSourceImage->HasChannel(iOpacity))
+	mpSourceImage->GetAllChannels(pasChannels);
+	if (!mpSourceImage->HasChannel(iOpacity))
 	{
 		//Just use the first type.
 		sTransparent.eType = pasChannels->Get(0)->eType;
@@ -109,7 +109,7 @@ void CImageCelTransparent::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDe
 {
 	CPixelOpacityTransparentColour cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &msTransparentColour);
+	cOpacity.Init(&mpSourceImage, &msTransparentColour);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }

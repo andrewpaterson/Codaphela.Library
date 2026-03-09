@@ -690,6 +690,12 @@
     <ClInclude Include="MapsContext.h">
       <Filter>Source\Map</Filter>
     </ClInclude>
+    <ClInclude Include="FontFactory.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
+    <ClInclude Include="FontImportParameters.h">
+      <Filter>Source\Image\Font</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CopyPaste_Windows.cpp">
@@ -1156,6 +1162,12 @@
     </ClCompile>
     <ClCompile Include="MapsContext.cpp">
       <Filter>Source\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="FontFactory.cpp">
+      <Filter>Source\Image\Font</Filter>
+    </ClCompile>
+    <ClCompile Include="FontImportParameters.cpp">
+      <Filter>Source\Image\Font</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -36,7 +36,7 @@ Ptr<CFont> CFont::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDe
 	PreInit();
 
 	mszName.Init(szName);
-	pcImage = NULL;
+	mpImage = NULL;
 	miAverageWidth = 0;
 	miTabSpaceCount = 4;
 	miHeight = iAscent + iDescent;
@@ -59,7 +59,7 @@ Ptr<CFont> CFont::Init(char* szName, int16 iSpaceWidth, int16 iAscent, int16 iDe
 void CFont::Class(void)
 {
 	U_String(mszName);
-	M_Pointer(pcImage);
+	M_Pointer(mpImage);
 	U_Size(miAverageWidth);
 	U_Size(miHeight);
 	U_Bool(mbFixedWidh);
@@ -108,27 +108,27 @@ bool CFont::Load(CObjectReader* pcFile)
 //////////////////////////////////////////////////////////////////////////
 void CFont::Done(void)
 {
-	size		i;
-	CGlyph*		pcGlyph;
-	size		iTotalWidth;
-	size		iLastWidth;
-	size		iWidth;
+	size			i;
+	Ptr<CGlyph>		pGlyph;
+	size			iTotalWidth;
+	size			iLastWidth;
+	size			iWidth;
 
 	iTotalWidth = 0;
 	iWidth = 0;
 	mbFixedWidh = true;
 	for (i = 0; i < macGlyphs.NumElements(); i++)
 	{
-		pcGlyph = macGlyphs.Get(i);
+		pGlyph = macGlyphs.Get(i);
 		iLastWidth = iWidth;
-		iWidth = pcGlyph->GetFullWidth();
-		iTotalWidth += pcGlyph->GetFullWidth();
+		iWidth = pGlyph->GetFullWidth();
+		iTotalWidth += pGlyph->GetFullWidth();
 		if ((iLastWidth != iWidth) && (i > 1))
 		{
 			mbFixedWidh = false;
 		}
-		pcGlyph->GetSubImage()->SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
-		pcGlyph->GetSubImage()->msAlignment.y = -miAscent;
+		pGlyph->GetSubImage()->SetHorizontalAlignment(SUB_IMAGE_ALIGNMENT_LEFT);
+		pGlyph->GetSubImage()->msAlignment.y = -miAscent;
 	}
 	miAverageWidth = iTotalWidth / macGlyphs.NumElements();
 }
@@ -197,7 +197,7 @@ bool CFont::IsWhitespace(uint16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGlyph* CFont::GetGlyph(uint16 c)
+Ptr<CGlyph> CFont::GetGlyph(uint16 c)
 {
 	size	iChar;
 
@@ -214,13 +214,14 @@ CGlyph* CFont::GetGlyph(uint16 c)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CGlyph* CFont::AddGlyph(CImageCel* pcCel, int16 iStep)
+Ptr<CGlyph> CFont::PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep)
 {
-	CGlyph*		pcGlyph;
+	Ptr<CGlyph>		pGlyph;
 
-	pcGlyph = macGlyphs.Add();
-	pcGlyph->Init(pcCel, iStep);
-	return pcGlyph;
+	macGlyphs.GrowTo(c);
+	pGlyph = OMalloc<CGlyph>(pCel, iStep);
+	macGlyphs.Set(c, pGlyph);
+	return pGlyph;
 }
 
 
@@ -228,9 +229,9 @@ CGlyph* CFont::AddGlyph(CImageCel* pcCel, int16 iStep)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CFont::SetImage(Ptr<CImage> pcImage)
+void CFont::SetImage(Ptr<CImage> pImage)
 {
-	this->pcImage = pcImage;
+	mpImage = pImage;
 }
 
 
@@ -238,7 +239,7 @@ void CFont::SetImage(Ptr<CImage> pcImage)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CImage> CFont::GetImage(void) { return pcImage; }
+Ptr<CImage> CFont::GetImage(void) { return mpImage; }
 int16 CFont::GetSpaceWidth(void) { return miSpaceWidth; }
 int16 CFont::GetAscent(void) { return miAscent; }
 int16 CFont::GetDescent(void) { return miDescent; }

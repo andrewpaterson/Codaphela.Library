@@ -105,7 +105,7 @@ void CImageCelMask::CropTransparentBorders(void)
 {
 	CPixelOpacityMask cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &mpcMaskImage, miMask);
+	cOpacity.Init(&mpSourceImage, &mpcMaskImage, miMask);
 	CImageCel::CropTransparentBorders(&cOpacity);
 	cOpacity.Kill();
 }
@@ -124,14 +124,14 @@ void CImageCelMask::GetAllChannels(CArrayChannel* pasChannels)
 	{
 		//If the borders defined a rectangle without bits cut out then we don't need to worry about wether
 		//the image has opacity or not.
-		mpcSourceImage->GetAllChannels(pasChannels);
+		mpSourceImage->GetAllChannels(pasChannels);
 	}
 	else
 	{
 		//If the borders are irregular then opacity is implied.
 		iOpacity = IMAGE_OPACITY;
-		mpcSourceImage->GetAllChannels(pasChannels);
-		if (!mpcSourceImage->HasChannel(iOpacity))
+		mpSourceImage->GetAllChannels(pasChannels);
+		if (!mpSourceImage->HasChannel(iOpacity))
 		{
 			//Just use the first type.
 			sTransparent.eType = pasChannels->Get(0)->eType;
@@ -148,7 +148,7 @@ void CImageCelMask::GetAllChannels(CArrayChannel* pasChannels)
 //////////////////////////////////////////////////////////////////////////
 bool CImageCelMask::MustFixDrawOpacity(void)
 {
-	if (mbFilled && mpcSourceImage->HasChannel(IMAGE_OPACITY))
+	if (mbFilled && mpSourceImage->HasChannel(IMAGE_OPACITY))
 	{
 		//If we already have an opacity channel and then border was full rectangular then it has been used correctly
 		return false;
@@ -165,7 +165,7 @@ void CImageCelMask::FixDrawOpacity(CImageAccessor* pcDestOpacity, int iDestTop, 
 {
 	CPixelOpacityMask	cOpacity;
 
-	cOpacity.Init(&mpcSourceImage, &mpcMaskImage, miMask);
+	cOpacity.Init(&mpSourceImage, &mpcMaskImage, miMask);
 	CImageCel::FixDrawOpacity(&cOpacity, pcDestOpacity, iDestLeft, iDestTop);
 	cOpacity.Kill();
 }

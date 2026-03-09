@@ -40,7 +40,7 @@ CONSTRUCTABLE(CImageCel);
 DESTRUCTABLE(CImageCel);
 protected:
 	CSubImage		mcSubImage;  //The full dimension of the cel and where it's pixels are in the source image.
-	Ptr<CImage>		mpcSourceImage;
+	Ptr<CImage>		mpSourceImage;
 
 public:
 			void 			Init(Ptr<CImage> pcSourceImage);

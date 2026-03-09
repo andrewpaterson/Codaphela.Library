@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 class CImageDividerNumbers
 {
+friend class CImageDivider;
 public:
 	int iCelWidth;
 	int iCelHeight;
@@ -37,10 +38,13 @@ public:
 	int iWidthSpacing;
 	int iHeightSpacing;
 
+public:
 	void InitGeneral(int iCelWidth, int iCelHeight, int iColumnCount, int iRowCount, int iLeftOffset, int iTopOffset, int iWidthSpacing, int iHeightSpacing);
 	void InitFromCelSize(int iCelWidth, int iCelHeight, int iLeftOffset = 0, int iTopOffset = 0, int iWidthSpacing = 0, int iHeightSpacing = 0);
 	void InitFromRowsColumns(int iColumnCount, int iRowCount, int iLeftOffset = 0, int iTopOffset = 0, int iWidthSpacing = 0, int iHeightSpacing = 0);
 	void InitFromSingle(int iLeftOffset = 0, int iTopOffset = 0, int iRightOffset = 0, int iBottomOffset = 0);
+
+protected:
 	void Calculate(int iImageWidth, int iImageHeight);
 };
 

@@ -31,7 +31,6 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 
 
 #define FIRST_LETTER	32
-#define NUM_LETTERS		96
 
 
 class CFont : public CObject
@@ -40,7 +39,7 @@ CONSTRUCTABLE(CFont);
 DESTRUCTABLE(CFont);
 protected:
 	CCharsImmutable		mszName;
-	Ptr<CImage>			pcImage;
+	Ptr<CImage>			mpImage;
 	size				miAverageWidth;
 	size				miHeight;
 	bool				mbFixedWidh;
@@ -63,16 +62,14 @@ public:
 	size 			Width(char* szText);
 	size			Height(void);
 	bool			IsWhitespace(uint16 c);
-	CGlyph*			GetGlyph(uint16 c);
-	CGlyph*			AddGlyph(CImageCel* pcCel, int16 iStep);
+	Ptr<CGlyph>		GetGlyph(uint16 c);
+	Ptr<CGlyph>		PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CImage>		GetImage(void);
-	void			SetImage(Ptr<CImage> pcImage);
-	int16			GetSpace(void);
+	void			SetImage(Ptr<CImage> pImage);
 	int16			GetAscent(void);
 	int16			GetDescent(void);
 	int16			GetTabSpaceCount(void);
 	int16			GetSpaceWidth(void);
-
 };
 
 

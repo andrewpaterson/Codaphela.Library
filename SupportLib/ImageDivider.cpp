@@ -283,5 +283,5 @@ void CImageDivider::CopyCellsTo(Ptr<CArrayImageCel> pcImageCels)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-Ptr<CArrayImageCel> CImageDivider::GetDestImageCels(void) {return &mcDestImageCels;}
+Ptr<CArrayImageCel> CImageDivider::GetDestImageCels(void) { return &mcDestImageCels; }
 
