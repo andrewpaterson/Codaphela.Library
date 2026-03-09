@@ -30,7 +30,7 @@ public:
 	bool			Save(CObjectWriter* pcFile) override;
 	bool			Load(CObjectReader* pcFile) override;
 
-	void			D(void);
+	void			D(void);  //Set dirty.
 
 	Ptr<CString>	AddOperator(Ptr<CString> pString);
 	Ptr<CString>	AddOperator(char* sz);

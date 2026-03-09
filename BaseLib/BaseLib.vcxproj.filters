@@ -475,6 +475,9 @@
     <Filter Include="Source\Text\JSON">
       <UniqueIdentifier>{39a8feb6-cc80-47be-b816-8019d738d212}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Text\Encoding">
+      <UniqueIdentifier>{31917a0c-e105-4327-ba3d-75d7b21483b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataMacro.h">
@@ -1722,6 +1725,9 @@
     <ClInclude Include="CharsImmutable.h">
       <Filter>Source\Data\String</Filter>
     </ClInclude>
+    <ClInclude Include="UTF-8.h">
+      <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="TreeBlock.cpp">
@@ -2758,6 +2764,9 @@
     </ClCompile>
     <ClCompile Include="CharsImmutable.cpp">
       <Filter>Source\Data\String</Filter>
+    </ClCompile>
+    <ClCompile Include="UTF-8.cpp">
+      <Filter>Source\Text\Encoding</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

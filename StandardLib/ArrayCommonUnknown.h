@@ -101,6 +101,7 @@ public:
 	bool				SaveArrayHeader(CFileWriter* pcFile);
 	void				PostLoad(uint16 iFlags);
 	void				SetChunkSize(size iChunkSize);
+	void				GrowTo(size iNumElements);
 
 protected:
 	virtual bool		LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);

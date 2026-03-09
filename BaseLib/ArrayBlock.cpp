@@ -342,7 +342,10 @@ void* CArrayBlock::InsertAt(void* pvData, size iIndex)
 	void* pv;
 
 	pv = InsertAt(iIndex);
-	memcpy(pv, pvData, miElementSize);
+	if (pv)
+	{
+		memcpy(pv, pvData, miElementSize);
+	}
 	return pv;
 }
 
@@ -374,7 +377,7 @@ size CArrayBlock::RemoveAtNoDeallocate(size iIndex, bool bPreserveOrder, size iD
 	void*	pSource;
 	void*	pDest;
 	void*	pEnd;
-	size		iUsedElements;
+	size	iUsedElements;
 
 	iUsedElements = miUsedElements;
 	iUsedElements--;
@@ -417,8 +420,8 @@ void CArrayBlock::RemoveAt(size iIndex, bool bPreserveOrder)
 //////////////////////////////////////////////////////////////////////////
 void CArrayBlock::PrivateRemoveRange(size iStartIndex, size iEndIndexExclusive, bool bPreserveOrder, size iDataSize)
 {
-	size		iNumTrailing;
-	size		iNumToRemove;
+	size	iNumTrailing;
+	size	iNumToRemove;
 	void*	pvEnd;
 	void*	pvStart;
 	void*	pv;

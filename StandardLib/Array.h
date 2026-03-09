@@ -35,13 +35,13 @@ public:
 
 	void			Add(Ptr<M> pObject);
 	void			AddAll(Ptr<CArrayCommonObject> pcArray);
-	void			Insert(int iIndex, Ptr<M> pObject);
-	Ptr<M>			Get(int iIndex);
-	void			Set(int iIndex, Ptr<M> pObject);
+	void			Insert(size iIndex, Ptr<M> pObject);
+	Ptr<M>			Get(size iIndex);
+	void			Set(size iIndex, Ptr<M> pObject);
 	Ptr<M>			StartIteration(SSetIterator* psIter);
 	Ptr<M>			Iterate(SSetIterator* psIter);
 
-	bool			RemoveAt(int iIndex);
+	bool			RemoveAt(size iIndex);
 	bool			Remove(Ptr<M> pObject);
 };
 
@@ -86,7 +86,7 @@ void CArray<M>::AddAll(Ptr<CArrayCommonObject> pcArray)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::Insert(int iIndex, Ptr<M> pObject)
+void CArray<M>::Insert(size iIndex, Ptr<M> pObject)
 {
 	CArrayObject::Insert(iIndex, pObject);
 }
@@ -97,7 +97,7 @@ void CArray<M>::Insert(int iIndex, Ptr<M> pObject)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-void CArray<M>::Set(int iIndex, Ptr<M> pObject)
+void CArray<M>::Set(size iIndex, Ptr<M> pObject)
 {
 	CArrayObject::Set(iIndex, pObject);
 }
@@ -129,7 +129,7 @@ Ptr<M> CArray<M>::Iterate(SSetIterator* psIter)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-Ptr<M> CArray<M>::Get(int iIndex)
+Ptr<M> CArray<M>::Get(size iIndex)
 {
 	return CArrayObject::Get(iIndex);
 }
@@ -139,7 +139,7 @@ Ptr<M> CArray<M>::Get(int iIndex)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool CArray<M>::RemoveAt(int iIndex)
+bool CArray<M>::RemoveAt(size iIndex)
 {
 	return CArrayObject::RemoveAt(iIndex);
 }
