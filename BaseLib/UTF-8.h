@@ -25,12 +25,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 #include "Chars.h"
 
 
+#define	UNICODE_ZWJ		0x200D
+#define UNICODE_ERROR SIZE_MAX;
 
 class CUTF8
 {
 protected:
-	CChars* mpsz;  //underlying byte array.
-	size	muiPos;
+	CChars*		mpsz;  //underlying byte array.
+	size		muiPos;
 
 public:
 	void Init(CChars* sz);
@@ -38,7 +40,13 @@ public:
 
 	uint16	GetUint16(void);  // Retuns 0xFFFD if larger than uint16
 	uint32	GetUint32(void);  // Retuns 0xFFFD if larger than uint32
-	bool	GetMulti(uint8* puiBuffer, size uiBufferLength);
+	size	GetMulti(uint8* puiBuffer, size uiBufferLength);
+
+	size	GetLength(void);
+	size	GetPosition(void);
+
+protected:
+	size	GetElementLength(void);
 };
 
 
