@@ -27,6 +27,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 #include "FontImportParameters.h"
 
 
+class CImageDividerNumbers;
 class CFontFactory : public CObject
 {
 CONSTRUCTABLE(CFontFactory);

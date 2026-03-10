@@ -18,16 +18,16 @@ You should have received a copy of the GNU Lesser General Public License
 along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
-#ifndef __MAP_COMMON_H__
-#define __MAP_COMMON_H__
+#ifndef __MAP_COMMON_UNKNOWN_H__
+#define __MAP_COMMON_UNKNOWN_H__
 #include "Unknown.h"
 
 #define MAP_COMMOM_KILL_ELEMENT	0x0001
 
 
-class CMapCommon : public CUnknown
+class CMapCommonUnknown : public CUnknown
 {
-CONSTRUCTABLE(CMapCommon);
+CONSTRUCTABLE(CMapCommonUnknown);
 protected:
 	uint16	miFlags;
 
@@ -39,9 +39,8 @@ public:
 	bool 			IsKillElements(void);
 	bool 			IsEmpty(void);
 	bool 			IsNotEmpty(void);
-
 };
 
 
-#endif // __MAP_COMMON_H__
+#endif // __MAP_COMMON_UNKNOWN_H__
 

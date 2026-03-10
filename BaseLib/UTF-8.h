@@ -26,13 +26,14 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 #define	UNICODE_ZWJ		0x200D
-#define UNICODE_ERROR SIZE_MAX;
+#define UNICODE_ERROR	SIZE_MAX;
 
 class CUTF8
 {
 protected:
 	CChars*		mpsz;  //underlying byte array.
 	size		muiPos;
+	size		muiError;
 
 public:
 	void Init(CChars* sz);
@@ -44,6 +45,7 @@ public:
 
 	size	GetLength(void);
 	size	GetPosition(void);
+	size	GetError(void);
 
 protected:
 	size	GetElementLength(void);

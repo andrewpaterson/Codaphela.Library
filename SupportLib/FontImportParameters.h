@@ -8,8 +8,8 @@
 class CFontImportParams
 {
 public:
-	CChars	mszFileName;
-	CChars	mszCharArray;
+	CChars	mszImageFileName;
+	CChars	mszCharacterFileName;
 	CChars	mszFontName;
 	SInt2	msCharsGrid;
 	SInt2	msCharSize;
@@ -25,8 +25,8 @@ public:
 	void	Kill(void);
 
 	char*	FontName(void);
-	char*	FileName(void);
-	char*	Characters(void);
+	char*	GetImageFileName(void);
+	char*	GetCharacterFileName(void);
 };
 
 

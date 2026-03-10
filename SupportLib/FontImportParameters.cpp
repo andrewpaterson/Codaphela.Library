@@ -6,12 +6,15 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CFontImportParams::Init(char* szFileName, char* szCharArray, int iCharWidth, int iCharHeight)
+bool CFontImportParams::Init(char* szImageFileName, char* szCharacterFileName, int iCharWidth, int iCharHeight)
 {
-	CFileUtil cFileUtil;
+	CFileUtil	cFileUtil;
+	bool		bExists1;
+	bool		bExists2;
 
-	mszFileName.Init(szFileName);
-	mszCharArray.Init(szCharArray);
+	mszImageFileName.Init(szImageFileName);
+	mszCharacterFileName.Init(szCharacterFileName);
+
 	msCharsGrid.Init(-1, -1);
 	msCharSize.Init(iCharWidth, iCharHeight);
 	miSpaceWidth = iCharWidth;
@@ -21,11 +24,13 @@ bool CFontImportParams::Init(char* szFileName, char* szCharArray, int iCharWidth
 	miDescent = 0;
 	miAscent = iCharHeight;
 
-	mszFontName.Init(szFileName);
+	mszFontName.Init(mszImageFileName);
 	cFileUtil.RemovePath(&mszFontName);
 	cFileUtil.RemoveExtension(&mszFontName);
 
-	return cFileUtil.Exists(szFileName);
+	bExists1 = cFileUtil.Exists(mszImageFileName.Text());
+	bExists2 = cFileUtil.Exists(mszCharacterFileName.Text());
+	return (bExists1 && bExists2);
 }
 
 
@@ -35,8 +40,8 @@ bool CFontImportParams::Init(char* szFileName, char* szCharArray, int iCharWidth
 //////////////////////////////////////////////////////////////////////////
 void CFontImportParams::Kill(void)
 {
-	mszFileName.Kill();
-	mszCharArray.Kill();
+	mszCharacterFileName.Kill();
+	mszImageFileName.Kill();
 	mszFontName.Kill();
 }
 
@@ -55,9 +60,9 @@ char* CFontImportParams::FontName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParams::FileName(void)
+char* CFontImportParams::GetImageFileName(void)
 {
-	return mszFileName.Text();
+	return mszImageFileName.Text();
 }
 
 
@@ -65,8 +70,8 @@ char* CFontImportParams::FileName(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-char* CFontImportParams::Characters(void)
+char* CFontImportParams::GetCharacterFileName(void)
 {
-	return mszCharArray.Text();
+	return mszCharacterFileName.Text();
 }
 

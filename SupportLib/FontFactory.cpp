@@ -21,6 +21,8 @@ libpng is Copyright Glenn Randers-Pehrson
 zlib is Copyright Jean-loup Gailly and Mark Adler
 
 ** ------------------------------------------------------------------------ **/
+#include "BaseLib/TextFile.h"
+#include "BaseLib/UTF-8.h"
 #include "StandardLib/ClassDefines.h"
 #include "SupportLib/Image.h"
 #include "SupportLib/ImageReader.h"
@@ -99,7 +101,23 @@ void CFontFactory::Convert(CImageDividerNumbers* pcDest, CFontImportParams* pcSo
 //////////////////////////////////////////////////////////////////////////
 Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 {
-	Ptr<CImage>	pImage = ReadImage(pcParams->mszFileName.Text());
+	CTextFile				cTextFile;
+	Ptr<CImage>				pImage;
+	CImageDivider			cDivider;
+	CImageDividerNumbers	cNumbers;
+	CArrayImageCel			cCels;
+	CChars					szCharacters;
+	Ptr<CImageCel>			pCel;
+	Ptr<CFont>				pFont;
+	bool					bResult;
+	CUTF8					cUTF8;
+	size					uiLength;
+	uint8					auiBuffer[64];
+	uint16					c16;
+	uint32					c32;
+	size					ui;
+
+	pImage = ReadImage(pcParams->GetImageFileName());
 	
 	if (pImage.IsNull())
 	{
@@ -119,15 +137,16 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 		pcParams->msCharsGrid.y = pImage->GetHeight() / pcParams->msCharSize.y;
 	}
 
-	Ptr<CFont> pFont = OMalloc<CFont>(pcParams->FontName(), pcParams->miSpaceWidth, pcParams->miAscent, pcParams->miDescent);
-	
-	CImageDivider			cDivider;
-	CImageDividerNumbers	cNumbers;
-	CArrayImageCel			cCels;
-	size					ui;
-	char*					szCharacters;
-	char					c;
-	Ptr<CImageCel>			pCel;
+	cTextFile.Init();
+	bResult = cTextFile.Read(pcParams->GetCharacterFileName());
+	if (!bResult)
+	{
+		pImage = NULL;
+		cTextFile.Kill();
+		return NULL;
+	}
+	szCharacters.Init(cTextFile.Text());
+	cTextFile.Kill();
 
 	Convert(&cNumbers, pcParams);
 
@@ -137,16 +156,37 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 	cDivider.GenerateFromNumbers(&cNumbers);
 	cDivider.CopyCellsTo(&cCels);
 
-	szCharacters = pcParams->Characters();
+	pFont = OMalloc<CFont>(pcParams->FontName(), pcParams->miSpaceWidth, pcParams->miAscent, pcParams->miDescent);
+
 	ui = 0;
-	c = szCharacters[ui];
-	while (c != '\0')
+	cUTF8.Init(&szCharacters);
+	uiLength = cUTF8.GetLength();
+	while ((uiLength != 0) || (uiLength != cUTF8.GetError()))
 	{
 		pCel = cCels.Get(ui);
-		pFont->PutGlyph((uint16)c, pCel, pcParams->msCharSize.x);
-		c = szCharacters[ui];
+		if (uiLength <= 2)
+		{
+			c16 = cUTF8.GetUint16();
+			pFont->PutGlyph(c16, pCel, pcParams->msCharSize.x);
+		}
+		else if (uiLength <= 4)
+		{
+			c32 = cUTF8.GetUint32();
+			pFont->PutGlyph(c32, pCel, pcParams->msCharSize.x);
+		}
+		else
+		{
+			uiLength = cUTF8.GetMulti(auiBuffer, 64);
+			if ((uiLength != 0) || (uiLength != cUTF8.GetError()))
+			{
+				pFont->PutGlyph(auiBuffer, uiLength, pCel, pcParams->msCharSize.x);
+			}
+		}
+		
+		ui++;
 	}
 	cCels.Kill();
+	szCharacters.Kill();
 	return pFont;
 }
 

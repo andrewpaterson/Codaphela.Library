@@ -242,7 +242,7 @@
     <ClInclude Include="SetUnknown.h" />
     <ClInclude Include="ArrayUnknownTemplate.h" />
     <ClInclude Include="ArrayUnknown.h" />
-    <ClInclude Include="MapCommon.h" />
+    <ClInclude Include="MapCommonUnknown.h" />
     <ClInclude Include="MapStringUnknown.h" />
     <ClInclude Include="ArrayCommonUnknown.h" />
     <ClInclude Include="Iterables.h" />
@@ -348,7 +348,7 @@
     <ClCompile Include="Unknown.cpp" />
     <ClCompile Include="SetUnknown.cpp" />
     <ClCompile Include="ArrayUnknown.cpp" />
-    <ClCompile Include="MapCommon.cpp" />
+    <ClCompile Include="MapCommonUnknown.cpp" />
     <ClCompile Include="MapStringUnknown.cpp" />
     <ClCompile Include="ArrayCommonUnknown.cpp" />
     <ClCompile Include="Iterables.cpp" />

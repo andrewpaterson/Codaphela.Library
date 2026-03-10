@@ -229,6 +229,36 @@ Ptr<CGlyph> CFont::PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::PutGlyph(uint32 c, Ptr<CImageCel> pCel, int16 iStep)
+{
+	Ptr<CGlyph>		pGlyph;
+
+	macGlyphs.GrowTo(c);
+	pGlyph = OMalloc<CGlyph>(pCel, iStep);
+	macGlyphs.Set(c, pGlyph);
+	return pGlyph;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+Ptr<CGlyph> CFont::PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel, int16 iStep)
+{
+	Ptr<CGlyph>		pGlyph;
+
+	//macGlyphs.GrowTo(c);
+	pGlyph = OMalloc<CGlyph>(pCel, iStep);
+	//macGlyphs.Set(c, pGlyph);
+	return pGlyph;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 void CFont::SetImage(Ptr<CImage> pImage)
 {
 	mpImage = pImage;

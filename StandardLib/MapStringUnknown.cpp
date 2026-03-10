@@ -53,7 +53,7 @@ void CMapStringUnknownDataFree::DataWillBeFreed(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
-	CMapCommon::Init(bKillElements, bOverwriteExisting);
+	CMapCommonUnknown::Init(bKillElements, bOverwriteExisting);
 	mcMap.Init(true, bOverwriteExisting);
 	mcDataFree.Init(this);
 	mcMap.SetDataFreeCallback(&mcDataFree);
@@ -85,7 +85,7 @@ void CMapStringUnknown::Kill(void)
 	//}
 	
 	mcMap.Kill();
-	CMapCommon::Kill();
+	CMapCommonUnknown::Kill();
 }
 
 
