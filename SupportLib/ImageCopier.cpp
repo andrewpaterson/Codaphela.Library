@@ -32,7 +32,7 @@ zlib is Copyright Jean-loup Gailly and Mark Adler
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
+bool CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 {
 	CImageAccessorCreator	cCreator;
 
@@ -42,14 +42,23 @@ void CImageCopier::Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest)
 	cCreator.AddAccess(&pcDest);
 	mpcSourceAccessor = cCreator.CreateAndKill();
 
-	//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
-	cCreator.Init(&pcDest);
-	cCreator.AddAccess(mpcSourceAccessor);
-	mpcDestAccessor = cCreator.CreateAndKill();
+	if (mpcSourceAccessor)
+	{
+		//This looks a bit retarded but it creates an accessor capable of reading the source accesses output.
+		cCreator.Init(&pcDest);
+		cCreator.AddAccess(mpcSourceAccessor);
+		mpcDestAccessor = cCreator.CreateAndKill();
+	}
+	else
+	{
+		mpcDestAccessor = NULL;
+	}
 
 	mpcSource = pcSource;
 	mpcDest = pcDest;
 	mbKillAccessors = true;
+
+	return (mpcSourceAccessor != NULL) && (mpcDestAccessor != NULL);
 }
 
 
@@ -75,8 +84,14 @@ void CImageCopier::Kill(void)
 {
 	if (mbKillAccessors)
 	{
-		mpcSourceAccessor->Kill();
-		mpcDestAccessor->Kill();
+		if (mpcSourceAccessor)
+		{
+			mpcSourceAccessor->Kill();
+		}
+		if (mpcDestAccessor)
+		{
+			mpcDestAccessor->Kill();
+		}
 	}
 	mpcSourceAccessor = NULL;
 	mpcDestAccessor = NULL;

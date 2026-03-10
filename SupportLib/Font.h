@@ -64,6 +64,8 @@ public:
 	bool			IsWhitespace(uint16 c);
 	Ptr<CGlyph>		GetGlyph(uint16 c);
 	Ptr<CGlyph>		PutGlyph(uint16 c, Ptr<CImageCel> pCel, int16 iStep);
+	Ptr<CGlyph>		PutGlyph(uint32 c, Ptr<CImageCel> pCel, int16 iStep);
+	Ptr<CGlyph>		PutGlyph(uint8* puiBuffer, size uiLength, Ptr<CImageCel> pCel, int16 iStep);
 	Ptr<CImage>		GetImage(void);
 	void			SetImage(Ptr<CImage> pImage);
 	int16			GetAscent(void);

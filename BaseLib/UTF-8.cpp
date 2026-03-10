@@ -9,6 +9,7 @@ void CUTF8::Init(CChars* sz)
 {
 	mpsz = sz;
 	muiPos = 0;
+	muiError = UNICODE_ERROR;
 }
 
 
@@ -176,7 +177,6 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 	bool	bLastZWJ;
 	size	uiStartPos;
 	size	uiTotalLength;
-	size	uiError;
 
 	if (muiPos >= mpsz->Length())
 	{
@@ -189,11 +189,10 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 	for (;;)
 	{
 		uiLength = GetElementLength();
-		uiError = UNICODE_ERROR;  //Why is this required.
-		if (uiLength == uiError)
+		if (uiLength == muiError)
 		{
 			muiPos = uiStartPos;
-			return UNICODE_ERROR;
+			return muiError;
 		}
 
 		if (uiLength == UNICODE_ZWJ)
@@ -201,7 +200,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 			if (bLastZWJ)
 			{
 				muiPos = uiStartPos;
-				return UNICODE_ERROR;
+				return muiError;
 			}
 			muiPos += 3;
 			uiTotalLength += 3;
@@ -221,7 +220,7 @@ size CUTF8::GetMulti(uint8* puiBuffer, size uiBufferLength)
 					if (uiBufferLength < uiTotalLength)
 					{
 						muiPos = uiStartPos;
-						return UNICODE_ERROR;
+						return muiError;
 					}
 					memcpy(puiBuffer, mpsz->Text(uiStartPos), uiTotalLength);
 				}
@@ -255,7 +254,7 @@ size CUTF8::GetLength(void)
 			if (bLastZWJ)
 			{
 				muiPos = uiStartPos;
-				return UNICODE_ERROR;
+				return muiError;
 			}
 			muiPos += 3;
 			uiTotalLength += 3;
@@ -308,7 +307,7 @@ size CUTF8::GetElementLength(void)
 	{
 		if (muiPos + 1 >= mpsz->Length())
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 		return 2;
 	}
@@ -317,7 +316,7 @@ size CUTF8::GetElementLength(void)
 	{
 		if (muiPos + 2 >= mpsz->Length())
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 
 		c2 = pc[muiPos + 1];
@@ -325,13 +324,13 @@ size CUTF8::GetElementLength(void)
 
 		if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80))
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 
 		c32 = ((c & 0x0F) << 12) | ((c2 & 0x3F) << 6) | (c3 & 0x3F);
 		if (c32 < 0x0800 || (c32 >= 0xD800 && c32 <= 0xDFFF))
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 		if (c32 == UNICODE_ZWJ)
 		{
@@ -345,7 +344,7 @@ size CUTF8::GetElementLength(void)
 	{
 		if (muiPos + 3 >= mpsz->Length())
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 
 		c2 = pc[muiPos + 1];
@@ -354,18 +353,18 @@ size CUTF8::GetElementLength(void)
 
 		if (((c2 & 0xC0) != 0x80) || ((c3 & 0xC0) != 0x80) || ((c4 & 0xC0) != 0x80))
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 
 		c32 = ((c & 0x07) << 18) | ((c2 & 0x3F) << 12) | ((c3 & 0x3F) << 6) | (c4 & 0x3F);
 		if (c32 < 0x10000 || c32 > 0x10FFFF)
 		{
-			return UNICODE_ERROR;
+			return muiError;
 		}
 		return 4;
 	}
 
-	return UNICODE_ERROR;
+	return muiError;
 }
 
 
@@ -376,5 +375,15 @@ size CUTF8::GetElementLength(void)
 size CUTF8::GetPosition(void)
 {
 	return muiPos;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+size CUTF8::GetError(void)
+{
+	return muiError;
 }
 

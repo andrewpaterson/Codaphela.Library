@@ -152,7 +152,7 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 		cImageImport.AddChannel(IMAGE_DIFFUSE_GREY, eSourceType, bReverse);
 		AddDebugChannel(pImage, eSourceType, IMAGE_DIFFUSE_GREY, bAddDebug);
 	}
-	else 	if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
+	else if (info_ptr->color_type == PNG_COLOR_TYPE_PALETTE)
 	{
 		CChars::Dump("PNG_COLOR_TYPE_PALETTE\n");
 		//pImage->AddChannel(IC_Index, PT_uint8, 0);
@@ -190,12 +190,20 @@ Ptr<CImage> LoadPNG(char* szFilename, bool bAddDebug)
 	cImageImport.EndChange();
 
 	CImageCopier		cCopier;
+	bool				bResult;
 
-	cCopier.Init(&cImageImport, &pImage);
-	for (i = 0; i < iHeight; i++)
+	bResult = cCopier.Init(&cImageImport, &pImage);
+	if (bResult)
 	{
-		cImageImport.SetData(row_pointers[i]);
-		cCopier.Copy(0, i, 0, 0, iWidth, 1);
+		for (i = 0; i < iHeight; i++)
+		{
+			cImageImport.SetData(row_pointers[i]);
+			cCopier.Copy(0, i, 0, 0, iWidth, 1);
+		}
+	}
+	else
+	{
+		pImage = NULL;
 	}
 	cCopier.Kill();
 

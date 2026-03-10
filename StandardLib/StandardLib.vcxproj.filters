@@ -31,18 +31,6 @@
     <Filter Include="Source\Object\Object">
       <UniqueIdentifier>{34cf358b-c053-45ae-abe8-b1bbf53110cf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Object\Collections">
-      <UniqueIdentifier>{ef35a852-e3ae-4a08-9966-65e1a2886333}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Object\Collections\Set">
-      <UniqueIdentifier>{1c4b627b-6c79-42ea-adf3-78125790998f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Object\Collections\Array">
-      <UniqueIdentifier>{2f3fe29a-dbf3-4f94-9964-30d1a99b9bf3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Object\Collections\Common">
-      <UniqueIdentifier>{c36036e3-a9f4-4d63-8360-adf787463e9b}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Object\Pointer">
       <UniqueIdentifier>{910031f2-a533-4d80-bb22-53fa29ad7ce7}</UniqueIdentifier>
     </Filter>
@@ -121,6 +109,18 @@
     <Filter Include="Source\Object\Object\IO\ChunkFile">
       <UniqueIdentifier>{1fea8d17-7695-4b54-9773-e80e042c3ac2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Object\Collection">
+      <UniqueIdentifier>{ef35a852-e3ae-4a08-9966-65e1a2886333}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collection\Set">
+      <UniqueIdentifier>{1c4b627b-6c79-42ea-adf3-78125790998f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collection\Array">
+      <UniqueIdentifier>{2f3fe29a-dbf3-4f94-9964-30d1a99b9bf3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collection\Common">
+      <UniqueIdentifier>{c36036e3-a9f4-4d63-8360-adf787463e9b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Unknown.h">
@@ -138,7 +138,7 @@
     <ClInclude Include="ArrayUnknown.h">
       <Filter>Source\Object\Unknown\Collections\Array</Filter>
     </ClInclude>
-    <ClInclude Include="MapCommon.h">
+    <ClInclude Include="MapCommonUnknown.h">
       <Filter>Source\Object\Unknown\Collections\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapStringUnknown.h">
@@ -165,11 +165,8 @@
     <ClInclude Include="Root.h">
       <Filter>Source\Object\Object</Filter>
     </ClInclude>
-    <ClInclude Include="Collection.h">
-      <Filter>Source\Object\Object\Collections</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayCommonObject.h">
-      <Filter>Source\Object\Object\Collections\Common</Filter>
+      <Filter>Source\Object\Object\Collection\Common</Filter>
     </ClInclude>
     <ClInclude Include="Pointer.h">
       <Filter>Source\Object\Object\Pointer</Filter>
@@ -352,16 +349,16 @@
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClInclude>
     <ClInclude Include="ArrayObject.h">
-      <Filter>Source\Object\Object\Collections\Array</Filter>
+      <Filter>Source\Object\Object\Collection\Array</Filter>
     </ClInclude>
     <ClInclude Include="Array.h">
-      <Filter>Source\Object\Object\Collections\Array</Filter>
+      <Filter>Source\Object\Object\Collection\Array</Filter>
     </ClInclude>
     <ClInclude Include="SetObject.h">
-      <Filter>Source\Object\Object\Collections\Set</Filter>
+      <Filter>Source\Object\Object\Collection\Set</Filter>
     </ClInclude>
     <ClInclude Include="Set.h">
-      <Filter>Source\Object\Object\Collections\Set</Filter>
+      <Filter>Source\Object\Object\Collection\Set</Filter>
     </ClInclude>
     <ClInclude Include="EmbeddedObject.h">
       <Filter>Source\Object\Object</Filter>
@@ -468,6 +465,9 @@
     <ClInclude Include="SetIterator.h">
       <Filter>Source\Object\Unknown\Collections\Common</Filter>
     </ClInclude>
+    <ClInclude Include="Collection.h">
+      <Filter>Source\Object\Object\Collection\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Unknown.cpp">
@@ -479,7 +479,7 @@
     <ClCompile Include="ArrayUnknown.cpp">
       <Filter>Source\Object\Unknown\Collections\Array</Filter>
     </ClCompile>
-    <ClCompile Include="MapCommon.cpp">
+    <ClCompile Include="MapCommonUnknown.cpp">
       <Filter>Source\Object\Unknown\Collections\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapStringUnknown.cpp">
@@ -506,11 +506,8 @@
     <ClCompile Include="Root.cpp">
       <Filter>Source\Object\Object</Filter>
     </ClCompile>
-    <ClCompile Include="Collection.cpp">
-      <Filter>Source\Object\Object\Collections</Filter>
-    </ClCompile>
     <ClCompile Include="ArrayCommonObject.cpp">
-      <Filter>Source\Object\Object\Collections\Common</Filter>
+      <Filter>Source\Object\Object\Collection\Common</Filter>
     </ClCompile>
     <ClCompile Include="PointerObject.cpp">
       <Filter>Source\Object\Object\Pointer</Filter>
@@ -672,10 +669,10 @@
       <Filter>Source\Object\Object\Serilalisation</Filter>
     </ClCompile>
     <ClCompile Include="ArrayObject.cpp">
-      <Filter>Source\Object\Object\Collections\Array</Filter>
+      <Filter>Source\Object\Object\Collection\Array</Filter>
     </ClCompile>
     <ClCompile Include="SetObject.cpp">
-      <Filter>Source\Object\Object\Collections\Set</Filter>
+      <Filter>Source\Object\Object\Collection\Set</Filter>
     </ClCompile>
     <ClCompile Include="EmbeddedObject.cpp">
       <Filter>Source\Object\Object</Filter>
@@ -760,6 +757,9 @@
     </ClCompile>
     <ClCompile Include="Pointer.cpp">
       <Filter>Source\Object\Object\Pointer</Filter>
+    </ClCompile>
+    <ClCompile Include="Collection.cpp">
+      <Filter>Source\Object\Object\Collection\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

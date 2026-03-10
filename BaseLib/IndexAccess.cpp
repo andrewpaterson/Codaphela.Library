@@ -37,6 +37,16 @@ bool CIndexAccess::PutStringPtr(char* pszKey, void* pvPointer)
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CIndexAccess::PutStringShort(char* pszKey, int16 iIndex)
+{
+	return Put((uint8*)pszKey, StrKeySize(pszKey), &iIndex, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CIndexAccess::PutStringInt(char* pszKey, int32 iIndex)
 {
 	return Put((uint8*)pszKey, StrKeySize(pszKey), &iIndex, sizeof(int32));
@@ -80,6 +90,16 @@ bool CIndexAccess::PutStringData(char* pszKey, void* pvData, size iDataSize)
 bool CIndexAccess::PutLongPtr(int64 lliKey, void* pvPointer)
 {
 	return Put((uint8*)&lliKey, sizeof(int64), &pvPointer, sizeof(void*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexAccess::PutLongShort(int64 lliKey, int16 iData)
+{
+	return Put((uint8*)&lliKey, sizeof(int64), &iData, sizeof(int16));
 }
 
 
@@ -140,6 +160,16 @@ bool CIndexAccess::PutLongData(int64 lliKey, void* pvData, size iDataSize)
 bool CIndexAccess::PutIntPtr(int32 iKey, void* pvPointer)
 {
 	return Put((uint8*)&iKey, sizeof(int32), &pvPointer, sizeof(void*));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexAccess::PutIntShort(int32 iKey, int16 iData)
+{
+	return Put((uint8*)&iKey, sizeof(int32), &iData, sizeof(int16));
 }
 
 
@@ -217,9 +247,29 @@ bool CIndexAccess::PutKeyData(uint8* pvKey, size iKeySize, void* pvData, size iD
 //
 //
 //////////////////////////////////////////////////////////////////////////
+bool CIndexAccess::PutKeyShort(uint8* pvKey, size iKeySize, int16 iData)
+{
+	return Put((uint8*)pvKey, iKeySize, &iData, sizeof(int16));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 bool CIndexAccess::PutKeyInt(uint8* pvKey, size iKeySize, int32 iData)
 {
 	return Put((uint8*)pvKey, iKeySize, &iData, sizeof(int32));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexAccess::PutKeyLong(uint8* pvKey, size iKeySize, int64 iData)
+{
+	return Put((uint8*)pvKey, iKeySize, &iData, sizeof(int64));
 }
 
 

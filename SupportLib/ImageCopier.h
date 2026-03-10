@@ -46,7 +46,7 @@ protected:
 	bool				mbKillAccessors;
 
 public:
-	void Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
+	bool Init(Ptr<CImage> pcSource, Ptr<CImage> pcDest);
 	void Init(CImageAccessor* pcSourceAccessor, CImageAccessor* pcDestAccessor);
 	void Kill(void);
 

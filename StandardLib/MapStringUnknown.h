@@ -21,7 +21,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef __MAP_STRING_UNKNOWN_H__
 #define __MAP_STRING_UNKNOWN_H__
 #include "BaseLib/MapStringTemplate.h"
-#include "MapCommon.h"
+#include "MapCommonUnknown.h"
 
 
 class CMapStringUnknownDataFree : public CDataFree
@@ -35,7 +35,7 @@ public:
 };
 
 
-class CMapStringUnknown : public CMapCommon
+class CMapStringUnknown : public CMapCommonUnknown
 {
 friend class CMapStringUnknownDataFree;
 CONSTRUCTABLE(CMapStringUnknown);

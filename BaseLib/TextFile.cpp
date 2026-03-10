@@ -42,8 +42,7 @@ CTextFile* CTextFile::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CTextFile::Init(char* szText)
 {
-	mcText.Init();
-	mcText.Append(szText);
+	mcText.Init(szText);
 	mszFilename.Init();
 }
 

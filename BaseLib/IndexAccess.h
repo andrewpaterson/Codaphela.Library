@@ -19,7 +19,7 @@ public:
 	virtual void	Dump(void) =0;
 
 			bool	PutLongPtr(int64 lliKey, void* pvPointer);
-			bool	PutLongShort(int64 lliKey, int32 iData);
+			bool	PutLongShort(int64 lliKey, int16 iData);
 			bool	PutLongInt(int64 lliKey, int32 iData);
 			bool	PutLongChar(int64 lliKey, char cData);
 			bool	PutLongString(int64 lliKey, char* pszData);

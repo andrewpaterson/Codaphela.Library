@@ -19,14 +19,14 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/IntegerHelper.h"
-#include "MapCommon.h"
+#include "MapCommonUnknown.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapCommon::Init(bool bKillElements, bool bOverwriteExisting)
+void CMapCommonUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	miFlags = 0;
 	SetFlagShort(&miFlags, MAP_COMMOM_KILL_ELEMENT, bKillElements);
@@ -37,7 +37,7 @@ void CMapCommon::Init(bool bKillElements, bool bOverwriteExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapCommon::Kill(void)
+void CMapCommonUnknown::Kill(void)
 {
 	CUnknown::Kill();
 }
@@ -47,7 +47,7 @@ void CMapCommon::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapCommon::IsKillElements(void)
+bool CMapCommonUnknown::IsKillElements(void)
 {
 	return miFlags & MAP_COMMOM_KILL_ELEMENT;
 }
@@ -57,7 +57,7 @@ bool CMapCommon::IsKillElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapCommon::IsEmpty(void)
+bool CMapCommonUnknown::IsEmpty(void)
 {
 	return NumElements() == 0;
 }
@@ -67,7 +67,7 @@ bool CMapCommon::IsEmpty(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapCommon::IsNotEmpty(void)
+bool CMapCommonUnknown::IsNotEmpty(void)
 {
 	return NumElements() != 0;
 }
