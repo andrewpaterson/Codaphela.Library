@@ -27,35 +27,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknownDataFree::Init(CMapStringUnknown* pcMap)
-{
-	mpcMap = pcMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CMapStringUnknownDataFree::DataWillBeFreed(void* pvData)
-{
-	CUnknown** ppcExisting;
-
-	ppcExisting = (CUnknown**)pvData;
-
-	mpcMap->DataWillBeFreed(*ppcExisting);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMapStringUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	CMapCommonUnknown::Init(bKillElements, bOverwriteExisting);
 	mcMap.Init(true, bOverwriteExisting);
-	mcDataFree.Init(this);
 	mcMap.SetDataFreeCallback(&mcDataFree);
 }
 
@@ -66,24 +41,6 @@ void CMapStringUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 //////////////////////////////////////////////////////////////////////////
 void CMapStringUnknown::Kill(void)
 {
-	//CUnknown**		ppcUnknown;
-	//SMapIterator	sIter;
-	//char*			szKey;
-	//bool			bResult;
-
-	//if (miFlags & MAP_COMMOM_KILL_ELEMENT)
-	//{
-	//	bResult = mcMap.StartIteration(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
-	//	while (bResult)
-	//	{
-	//		if (ppcUnknown)
-	//		{
-	//			(*ppcUnknown)->Kill();
-	//		}
-	//		bResult = mcMap.Iterate(&sIter, (void**)&szKey, NULL, (void**)&ppcUnknown, NULL);
-	//	}
-	//}
-	
 	mcMap.Kill();
 	CMapCommonUnknown::Kill();
 }
@@ -208,7 +165,7 @@ CUnknown* CMapStringUnknown::Get(char* szKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-int CMapStringUnknown::NumElements(void)
+size CMapStringUnknown::NumElements(void)
 {
 	return mcMap.NumElements();
 }
@@ -218,11 +175,88 @@ int CMapStringUnknown::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::DataWillBeFreed(CUnknown* pcUnknown)
+size CMapStringUnknown::GetSortedSize(void)
 {
+	return mcMap.GetSortedSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapStringUnknown::GetHoldingSize(void)
+{
+	return mcMap.GetHoldingSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringUnknown::StartIteration(SMapIterator* psIterator, char** ppcKey, CUnknown** ppcData)
+{
+	char*		ppcK;
+	CUnknown**	ppcV;
+	bool		bResult;
+
+	bResult = mcMap.StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
+	if (bResult)
+	{
+		*ppcKey = ppcK;
+		*ppcData = *ppcV;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringUnknown::Iterate(SMapIterator* psIterator, char** ppcKey, CUnknown** ppcData)
+{
+	char*		ppcK;
+	CUnknown**	ppcV;
+	bool		bResult;
+
+	bResult = mcMap.Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
+	if (bResult)
+	{
+		*ppcKey = ppcK;
+		*ppcData = *ppcV;
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapStringUnknown::DataWillBeFreed(SMNode* psNode)
+{
+	CUnknown* pcValue;
+
 	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
-		pcUnknown->Kill();
+		pcValue = *((CUnknown**)mcMap.GetValue(psNode));
+		if (pcValue)
+		{
+			pcValue->Kill();
+		}
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapStringUnknown::Pack(void)
+{
+	mcMap.Pack();
+}
+
 

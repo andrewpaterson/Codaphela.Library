@@ -22,23 +22,42 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #define __MAP_COMMON_UNKNOWN_H__
 #include "Unknown.h"
 
+
 #define MAP_COMMOM_KILL_ELEMENT	0x0001
+
+
+class CMapCommonUnknown;
+class CMapCommonUnknownDataFree : public CDataFree
+{
+private:
+	CMapCommonUnknown*	mpcMap;
+
+public:
+	void Init(CMapCommonUnknown* pcMap);
+	void DataWillBeFreed(void* pvData);
+};
 
 
 class CMapCommonUnknown : public CUnknown
 {
 CONSTRUCTABLE(CMapCommonUnknown);
 protected:
-	uint16	miFlags;
+	uint16						miFlags;
+	CMapCommonUnknownDataFree	mcDataFree;
 
 public:
-	void 			Init(bool bKillElements = true, bool bOverwriteExisting = true);
-	void 			Kill(void);
+			void 		Init(bool bKillElements = true, bool bOverwriteExisting = true);
+			void 		Kill(void);
 
-	virtual int		NumElements(void) =0;
-	bool 			IsKillElements(void);
-	bool 			IsEmpty(void);
-	bool 			IsNotEmpty(void);
+	virtual size		NumElements(void) =0;
+	virtual size		GetSortedSize(void) =0;
+	virtual size		GetHoldingSize(void) =0;
+
+			bool 		IsKillElements(void);
+			bool 		IsEmpty(void);
+			bool 		IsNotEmpty(void);
+
+	virtual void		DataWillBeFreed(SMNode* psNode) =0;
 };
 
 

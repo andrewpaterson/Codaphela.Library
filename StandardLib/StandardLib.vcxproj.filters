@@ -10,21 +10,6 @@
     <Filter Include="Source\Object\Unknown">
       <UniqueIdentifier>{f6afd551-23b2-4f18-afc8-8b9c8cc67541}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source\Object\Unknown\Collections">
-      <UniqueIdentifier>{42dcacf3-192e-43fa-bd33-4fc5deb6a2fe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Unknown\Collections\Set">
-      <UniqueIdentifier>{5fc0746a-f6d9-410e-962d-e54e045193d8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Unknown\Collections\Array">
-      <UniqueIdentifier>{5e693dc7-0404-4431-ab25-3df47103a23c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Unknown\Collections\Map">
-      <UniqueIdentifier>{0e90f5d5-f4a4-45e3-afaa-4a0ebc6ac6e2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source\Object\Unknown\Collections\Common">
-      <UniqueIdentifier>{59f74b6a-bde7-4beb-ae5b-64832f6da672}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source\Object\Unknown\Allocation">
       <UniqueIdentifier>{460059db-f325-43ce-b93b-78bbf6e2fe45}</UniqueIdentifier>
     </Filter>
@@ -121,31 +106,55 @@
     <Filter Include="Source\Object\Object\Collection\Common">
       <UniqueIdentifier>{c36036e3-a9f4-4d63-8360-adf787463e9b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Object\Unknown\Collection">
+      <UniqueIdentifier>{42dcacf3-192e-43fa-bd33-4fc5deb6a2fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collection\Set">
+      <UniqueIdentifier>{5fc0746a-f6d9-410e-962d-e54e045193d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collection\Array">
+      <UniqueIdentifier>{5e693dc7-0404-4431-ab25-3df47103a23c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collection\Map">
+      <UniqueIdentifier>{0e90f5d5-f4a4-45e3-afaa-4a0ebc6ac6e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collection\Common">
+      <UniqueIdentifier>{59f74b6a-bde7-4beb-ae5b-64832f6da672}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collection\Map">
+      <UniqueIdentifier>{29a4f847-74f0-425c-8cfc-34e5d4510831}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Object\Collection\Index">
+      <UniqueIdentifier>{1284da6e-ecd9-4a29-b85c-315dd56957b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Object\Unknown\Collection\Index">
+      <UniqueIdentifier>{06591157-ef77-4258-8999-45ba4c68eb09}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Unknown.h">
       <Filter>Source\Object\Unknown</Filter>
     </ClInclude>
     <ClInclude Include="SetType.h">
-      <Filter>Source\Object\Unknown\Collections\Set</Filter>
+      <Filter>Source\Object\Unknown\Collection\Set</Filter>
     </ClInclude>
     <ClInclude Include="SetUnknown.h">
-      <Filter>Source\Object\Unknown\Collections\Set</Filter>
+      <Filter>Source\Object\Unknown\Collection\Set</Filter>
     </ClInclude>
     <ClInclude Include="ArrayUnknownTemplate.h">
-      <Filter>Source\Object\Unknown\Collections\Array</Filter>
+      <Filter>Source\Object\Unknown\Collection\Array</Filter>
     </ClInclude>
     <ClInclude Include="ArrayUnknown.h">
-      <Filter>Source\Object\Unknown\Collections\Array</Filter>
+      <Filter>Source\Object\Unknown\Collection\Array</Filter>
     </ClInclude>
     <ClInclude Include="MapCommonUnknown.h">
-      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+      <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapStringUnknown.h">
-      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+      <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClInclude>
     <ClInclude Include="ArrayCommonUnknown.h">
-      <Filter>Source\Object\Unknown\Collections\Common</Filter>
+      <Filter>Source\Object\Unknown\Collection\Common</Filter>
     </ClInclude>
     <ClInclude Include="Iterables.h">
       <Filter>Source\Object\Unknown\Allocation</Filter>
@@ -463,10 +472,22 @@
       <Filter>Source\Channels</Filter>
     </ClInclude>
     <ClInclude Include="SetIterator.h">
-      <Filter>Source\Object\Unknown\Collections\Common</Filter>
+      <Filter>Source\Object\Unknown\Collection\Common</Filter>
     </ClInclude>
     <ClInclude Include="Collection.h">
       <Filter>Source\Object\Object\Collection\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MapObject.h">
+      <Filter>Source\Object\Object\Collection\Map</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexObject.h">
+      <Filter>Source\Object\Object\Collection\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexUnknown.h">
+      <Filter>Source\Object\Unknown\Collection\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="MapUnknownUnknown.h">
+      <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -474,19 +495,19 @@
       <Filter>Source\Object\Unknown</Filter>
     </ClCompile>
     <ClCompile Include="SetUnknown.cpp">
-      <Filter>Source\Object\Unknown\Collections\Set</Filter>
+      <Filter>Source\Object\Unknown\Collection\Set</Filter>
     </ClCompile>
     <ClCompile Include="ArrayUnknown.cpp">
-      <Filter>Source\Object\Unknown\Collections\Array</Filter>
+      <Filter>Source\Object\Unknown\Collection\Array</Filter>
     </ClCompile>
     <ClCompile Include="MapCommonUnknown.cpp">
-      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+      <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClCompile>
     <ClCompile Include="MapStringUnknown.cpp">
-      <Filter>Source\Object\Unknown\Collections\Map</Filter>
+      <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClCompile>
     <ClCompile Include="ArrayCommonUnknown.cpp">
-      <Filter>Source\Object\Unknown\Collections\Common</Filter>
+      <Filter>Source\Object\Unknown\Collection\Common</Filter>
     </ClCompile>
     <ClCompile Include="Iterables.cpp">
       <Filter>Source\Object\Unknown\Allocation</Filter>
@@ -760,6 +781,18 @@
     </ClCompile>
     <ClCompile Include="Collection.cpp">
       <Filter>Source\Object\Object\Collection\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="MapObject.cpp">
+      <Filter>Source\Object\Object\Collection\Map</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexObject.cpp">
+      <Filter>Source\Object\Object\Collection\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexUnknown.cpp">
+      <Filter>Source\Object\Unknown\Collection\Index</Filter>
+    </ClCompile>
+    <ClCompile Include="MapUnknownUnknown.cpp">
+      <Filter>Source\Object\Unknown\Collection\Map</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

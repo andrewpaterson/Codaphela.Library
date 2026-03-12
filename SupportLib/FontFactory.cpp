@@ -184,6 +184,7 @@ Ptr<CFont> CFontFactory::Generate(CFontImportParams* pcParams)
 		}
 		
 		ui++;
+		uiLength = cUTF8.GetLength();
 	}
 	cCels.Kill();
 	szCharacters.Kill();
