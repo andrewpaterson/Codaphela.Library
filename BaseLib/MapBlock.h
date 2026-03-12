@@ -20,7 +20,7 @@ protected:
 	size				miLargestKeySize;
 	bool				mbOverwrite;
 	CDataFree*			mpcDataFree;
-	DataCompare			fKeyCompare;
+	DataCompare			mfKeyCompare;
 
 public:
 	void				_Init(void);
@@ -44,6 +44,9 @@ public:
 	bool				HasKey(void* pvKey, size iKeySize);
 
 	size				NumElements(void);
+	size				GetSortedSize(void);
+	size				GetHoldingSize(void);
+
 	CArrayBlockSorted*	GetArray(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
 
@@ -57,20 +60,25 @@ public:
 	void				FinaliseSorted(void);
 	size				ByteSize(void);
 	void				Dump(void);
+	void				Pack(void);
 
-protected:
+public:
 	bool				WriteExceptData(CFileWriter* pcFileWriter);
 	bool				ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare);
 	void*				WriteKey(CFileWriter* pcFileWriter, size iIndex, size* piDataSize);
 	void*				ReadKey(CFileReader* pcFileReader, size iIndex, size* piDataSize);
 
+	void*				GetValue(SMNode* psNode);
+	void*				GetKey(SMNode* psNode);
+
+protected:
 	SMNode*				AllocateNode(size iKeySize, size iDataSize, void** ppvKey, void** ppvData);
 	void				RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
+	void				FreeNode(SMNode* psNode);
 
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
 	SMNode*				GetNode(void* pvKey, size iKeySize);
-	void*				GetData(SMNode* psNode);
 };
 
 

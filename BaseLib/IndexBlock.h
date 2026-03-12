@@ -8,12 +8,12 @@
 struct SIndexBlockNode
 {
 	void*	pvData;
-	size		iDataSize;
+	size	iDataSize;
 };
 
 
 class CIndexBlock;
-class CIndexBlockMapvDataFreeCallback : public CDataFree 
+class CIndexBlockMapvDataFreeCallback : public CDataFree
 {
 private:
 	CIndexBlock*	mpcIndexBlock;
@@ -28,9 +28,9 @@ class CIndexBlock : public CMalloc
 {
 friend class CIndexBlockMapvDataFreeCallback;
 protected:
-	CIndexTreeMemory				mcIndex;
-	CIndexBlockMapvDataFreeCallback	mcIndexCallback;
-	CDataFree*						mpcDataFree;
+	CIndexTreeMemory					mcIndex;
+	CIndexBlockMapvDataFreeCallback		mcIndexCallback;
+	CDataFree*							mpcDataFree;
 
 public:
 	void				Init(void);

@@ -21,6 +21,9 @@ public:
 	void	SetPtr(size iIndex, M* pv);
 
 	void	QuickSort(void);
+	void	TimSort(void);
+	void	BubbleSort(void);
+
 	int32	Find(M* pv);
 	void 	Push(M* pv);
 	M*		Pop(void);
@@ -147,6 +150,28 @@ template<class M>
 void CArrayTemplatePtr<M>::QuickSort(void)
 {
 	CArrayTemplate<M*>::QuickSort(&ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::TimSort(void)
+{
+	CArrayTemplate<M*>::TimSort(&ComparePtrPtr);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+void CArrayTemplatePtr<M>::BubbleSort(void)
+{
+	CArrayTemplate<M*>::BubbleSort(&ComparePtrPtr);
 }
 
 

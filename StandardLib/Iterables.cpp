@@ -174,6 +174,7 @@ void CIterables::Add(CUnknown* pcUnknown)
 		}
 		pcList = mcIterableLists.GetNext(pcList);
 	}
+
 	pcList = mcIterableLists.Add();
 	pcList->Init(szName);
 	pcList->Add(pcUnknown);

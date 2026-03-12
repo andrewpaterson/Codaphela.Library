@@ -41,7 +41,6 @@ friend class CMapStringUnknownDataFree;
 CONSTRUCTABLE(CMapStringUnknown);
 private:
 	CMapStringTemplate<CUnknown*>	mcMap;
-	CMapStringUnknownDataFree		mcDataFree;
 
 public:
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
@@ -50,13 +49,21 @@ public:
 	bool		Load(CFileReader* pcFile);
 
 	template<class M>
-	M*			Put(char* szKey);
+	M*			Put(char* szKey);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
 	bool		Put(char* szKey, CUnknown* pcValue);
 	CUnknown*	Get(char* szKey);
-	int			NumElements(void);
+
+	size		NumElements(void);
+	size		GetSortedSize(void);
+	size		GetHoldingSize(void);
+
+	bool		StartIteration(SMapIterator* psIterator, char** ppvKey, CUnknown** ppvData);
+	bool		Iterate(SMapIterator* psIterator, char** ppvKey, CUnknown** ppvData);
+
+	void		Pack(void);
 
 protected:
-	void DataWillBeFreed(CUnknown* pcUnknown);
+	void		DataWillBeFreed(SMNode* psNode);
 };
 
 

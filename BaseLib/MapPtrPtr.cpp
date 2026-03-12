@@ -65,7 +65,7 @@ void* CMapPtrPtr::Get(void* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool CMapPtrPtr::Put(void* pvKey, void*  psData)
+bool CMapPtrPtr::Put(void* pvKey, void* psData)
 {
 	return CMapTemplate<void*, void*>::Put(&pvKey, &psData);
 }

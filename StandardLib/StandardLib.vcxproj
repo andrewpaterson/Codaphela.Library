@@ -185,6 +185,10 @@
     <ClInclude Include="Class.h" />
     <ClInclude Include="ClassDefines.h" />
     <ClInclude Include="Classes.h" />
+    <ClInclude Include="IndexObject.h" />
+    <ClInclude Include="IndexUnknown.h" />
+    <ClInclude Include="MapObject.h" />
+    <ClInclude Include="MapUnknownUnknown.h" />
     <ClInclude Include="PrimitiveClasses.h" />
     <ClInclude Include="SetIterator.h" />
     <ClInclude Include="UnmanagedClasses.h" />
@@ -298,6 +302,10 @@
     <ClCompile Include="ChannelDebugDescriptor.cpp" />
     <ClCompile Include="Class.cpp" />
     <ClCompile Include="Classes.cpp" />
+    <ClCompile Include="IndexObject.cpp" />
+    <ClCompile Include="IndexUnknown.cpp" />
+    <ClCompile Include="MapObject.cpp" />
+    <ClCompile Include="MapUnknownUnknown.cpp" />
     <ClCompile Include="Pointer.cpp" />
     <ClCompile Include="PrimitiveClasses.cpp" />
     <ClCompile Include="UnmanagedClasses.cpp" />

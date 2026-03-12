@@ -20,17 +20,17 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/DataCompare.h"
 #include "Unknowns.h"
-#include "MapStringUnknown.h"
+#include "MapUnknownUnknown.h"
 
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::Init(bool bKillElements, bool bOverwriteExisting)
+void CMapUnknownUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	CMapCommonUnknown::Init(bKillElements, bOverwriteExisting);
-	mcMap.Init(true, bOverwriteExisting);
+	mcMap.Init();
 	mcMap.SetDataFreeCallback(&mcDataFree);
 }
 
@@ -39,7 +39,7 @@ void CMapStringUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::Kill(void)
+void CMapUnknownUnknown::Kill(void)
 {
 	mcMap.Kill();
 	CMapCommonUnknown::Kill();
@@ -50,7 +50,7 @@ void CMapStringUnknown::Kill(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
+bool CMapUnknownUnknown::Save(CFileWriter* pcFileWriter)
 {
 	size		i;
 	CUnknown**	ppcUnknown;
@@ -59,7 +59,6 @@ bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
 	size		iDataSize;
 
 	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
-	ReturnOnFalse(mcMap.WriteCaseSensitivity(pcFileWriter));
 	ReturnOnFalse(mcMap.WriteExceptData(pcFileWriter));
 
 	iNumElements = mcMap.NumElements();
@@ -82,7 +81,7 @@ bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Load(CFileReader* pcFileReader)
+bool CMapUnknownUnknown::Load(CFileReader* pcFileReader)
 {
 	size			i;
 	CUnknown**		ppcUnknown;
@@ -90,11 +89,9 @@ bool CMapStringUnknown::Load(CFileReader* pcFileReader)
 	size			iNumElements;
 	void*			pvData;
 	size			iDataSize;
-	DataCompare		CaseFunc;
 
 	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
-	CaseFunc = mcMap.ReadCaseSensitivity(pcFileReader);
-	if (!mcMap.ReadExceptData(pcFileReader, CaseFunc))
+	if (!mcMap.ReadExceptData(pcFileReader, ComparePtrPtr))
 	{
 		return false;
 	}
@@ -124,18 +121,14 @@ bool CMapStringUnknown::Load(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Put(char* szKey, CUnknown* pcValue)
+bool CMapUnknownUnknown::Put(CUnknown* pcKey, CUnknown* pcValue)
 {
-	CUnknown**	ppcNew;
+	bool		bResult;
 
-	if (!StrEmpty(szKey))
+	if (pcKey)
 	{
-		ppcNew = mcMap.Put(szKey);
-		if (ppcNew)
-		{
-			*ppcNew = pcValue;
-			return true;
-		}
+		bResult = mcMap.Put(pcKey, pcValue);
+		return bResult;
 	}
 	return false;
 }
@@ -145,19 +138,12 @@ bool CMapStringUnknown::Put(char* szKey, CUnknown* pcValue)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CMapStringUnknown::Get(char* szKey)
+CUnknown* CMapUnknownUnknown::Get(CUnknown* pcKey)
 {
-	CUnknown**	ppcValue;
+	CUnknown* pcValue;
 
-	ppcValue = mcMap.Get(szKey);
-	if (ppcValue)
-	{
-		return *ppcValue;
-	}
-	else
-	{
-		return NULL;
-	}
+	pcValue = (CUnknown*)mcMap.Get(pcKey);
+	return pcValue;
 }
 
 
@@ -165,7 +151,7 @@ CUnknown* CMapStringUnknown::Get(char* szKey)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapStringUnknown::NumElements(void)
+size CMapUnknownUnknown::NumElements(void)
 {
 	return mcMap.NumElements();
 }
@@ -175,7 +161,7 @@ size CMapStringUnknown::NumElements(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapStringUnknown::GetSortedSize(void)
+size CMapUnknownUnknown::GetSortedSize(void)
 {
 	return mcMap.GetSortedSize();
 }
@@ -185,7 +171,7 @@ size CMapStringUnknown::GetSortedSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CMapStringUnknown::GetHoldingSize(void)
+size CMapUnknownUnknown::GetHoldingSize(void)
 {
 	return mcMap.GetHoldingSize();
 }
@@ -195,16 +181,16 @@ size CMapStringUnknown::GetHoldingSize(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::StartIteration(SMapIterator* psIterator, char** ppcKey, CUnknown** ppcData)
+bool CMapUnknownUnknown::StartIteration(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcData)
 {
-	char*		ppcK;
+	CUnknown**	ppcK;
 	CUnknown**	ppcV;
 	bool		bResult;
 
 	bResult = mcMap.StartIteration(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
 	if (bResult)
 	{
-		*ppcKey = ppcK;
+		*ppcKey = *ppcK;
 		*ppcData = *ppcV;
 	}
 	return bResult;
@@ -215,16 +201,16 @@ bool CMapStringUnknown::StartIteration(SMapIterator* psIterator, char** ppcKey, 
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Iterate(SMapIterator* psIterator, char** ppcKey, CUnknown** ppcData)
+bool CMapUnknownUnknown::Iterate(SMapIterator* psIterator, CUnknown** ppcKey, CUnknown** ppcData)
 {
-	char*		ppcK;
+	CUnknown**	ppcK;
 	CUnknown**	ppcV;
 	bool		bResult;
 
 	bResult = mcMap.Iterate(psIterator, (void**)&ppcK, NULL, (void**)&ppcV, NULL);
 	if (bResult)
 	{
-		*ppcKey = ppcK;
+		*ppcKey = *ppcK;
 		*ppcData = *ppcV;
 	}
 	return bResult;
@@ -235,17 +221,20 @@ bool CMapStringUnknown::Iterate(SMapIterator* psIterator, char** ppcKey, CUnknow
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::DataWillBeFreed(SMNode* psNode)
+void CMapUnknownUnknown::DataWillBeFreed(SMNode* psNode)
 {
-	CUnknown* pcValue;
+	CUnknown*	pcKey;
+	CUnknown*	pcValue;
 
 	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
+		pcKey = *((CUnknown**)mcMap.GetKey(psNode));
 		pcValue = *((CUnknown**)mcMap.GetValue(psNode));
 		if (pcValue)
 		{
 			pcValue->Kill();
 		}
+		pcKey->Kill();
 	}
 }
 
@@ -254,7 +243,7 @@ void CMapStringUnknown::DataWillBeFreed(SMNode* psNode)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::Pack(void)
+void CMapUnknownUnknown::Pack(void)
 {
 	mcMap.Pack();
 }

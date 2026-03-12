@@ -16,7 +16,7 @@ void CMapBlock::_Init(void)
 	miLargestKeySize = 0;
 	mbOverwrite = false;
 	mpcDataFree = NULL;
-	fKeyCompare = NULL;
+	mfKeyCompare = NULL;
 }
 
 
@@ -74,7 +74,7 @@ void CMapBlock::Init(CMallocator* pcMalloc, DataCompare fKeyCompare, DataCompare
 	iHoldingBufferSize = 256;
 	iHoldingBuffers = 4;
 
-	this->fKeyCompare = fKeyCompare;
+	mfKeyCompare = fKeyCompare;
 	mapArray.Init(pcMalloc, sizeof(void*), iHoldingBufferSize, iHoldingBuffers, fCompare);
 	miLargestKeySize = 0;
 	mbOverwrite = bOverwrite;
@@ -97,16 +97,29 @@ void CMapBlock::Kill(void)
 	for (i = 0; i < uiNumElements; i++)
 	{
 		ppsNode = (SMNode**)mapArray.GetInSorted(i);
-		if (mpcDataFree)
-		{
-			mpcDataFree->DataWillBeFreed(GetData(*ppsNode));
-		}
-		mpcMalloc->Free(*ppsNode);
+		FreeNode(*ppsNode);
 	}
 
 	miLargestKeySize = 0;
 	mapArray.Kill();
 	CMalloc::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::FreeNode(SMNode* psNode)
+{
+	void*	pvData;
+
+	if (mpcDataFree)
+	{
+		pvData = GetValue(psNode);
+		mpcDataFree->DataWillBeFreed(psNode);
+	}
+	mpcMalloc->Free(psNode);
 }
 
 
@@ -146,7 +159,7 @@ bool CMapBlock::Get(void* pvKey, size iKeySize, void** ppvData, size* piDataSize
 		return false;
 	}
 
-	pvData = GetData(psNode);
+	pvData = GetValue(psNode);
 
 	SafeAssign(ppvData, pvData);
 	SafeAssign(piDataSize, psNode->iDataSize);
@@ -245,11 +258,7 @@ bool CMapBlock::Remove(void* pvKey, size iKeySize)
 	if (psNode)
 	{
 		mapArray.Remove(&psNode);
-		if (mpcDataFree)
-		{
-			mpcDataFree->DataWillBeFreed(GetData(psNode));
-		}
-		mpcMalloc->Free(psNode);
+		FreeNode(psNode);
 		return true;
 	}
 	else
@@ -311,7 +320,7 @@ SMNode* CMapBlock::GetNode(void* pvKey, size iKeySize)
 
 	psSourceNode = (SMNode*)ac;
 
-	psSourceNode->fKeyCompare = fKeyCompare;
+	psSourceNode->fKeyCompare = mfKeyCompare;
 	psSourceNode->iDataSize = 0;
 	psSourceNode->iKeySize = iKeySize;
 	pvSourceKey = RemapSinglePointer(psSourceNode, sizeof(SMNode));
@@ -335,6 +344,26 @@ SMNode* CMapBlock::GetNode(void* pvKey, size iKeySize)
 size CMapBlock::NumElements(void)
 {
 	return mapArray.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapBlock::GetSortedSize(void)
+{
+	return mapArray.GetSortedSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CMapBlock::GetHoldingSize(void)
+{
+	return mapArray.GetHoldingSize();
 }
 
 
@@ -456,7 +485,7 @@ bool CMapBlock::ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompar
 
 	CMalloc::Init(pcMalloc);
 
-	this->fKeyCompare = fKeyCompare;
+	mfKeyCompare = fKeyCompare;
 	miLargestKeySize = 0;
 
 	return true;
@@ -633,7 +662,7 @@ SMNode* CMapBlock::AllocateNode(size iKeySize, size iDataSize, void** ppvKey, vo
 
 	psNode->iKeySize = iKeySize;
 	psNode->iDataSize = iDataSize;
-	psNode->fKeyCompare = fKeyCompare;
+	psNode->fKeyCompare = mfKeyCompare;
 
 	RemapKeyAndData(psNode, ppvKey, ppvData);
 	if (psNode->iKeySize > miLargestKeySize)
@@ -726,9 +755,19 @@ void CMapBlock::GetInSorted(size iIndex, void** ppvKey, void** ppvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void* CMapBlock::GetData(SMNode* psNode)
+void* CMapBlock::GetValue(SMNode* psNode)
 {
 	return RemapSinglePointer(psNode, sizeof(SMNode) + psNode->iKeySize);
+
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void* CMapBlock::GetKey(SMNode* psNode)
+{
+	return RemapSinglePointer(psNode, sizeof(SMNode));
 }
 
 
@@ -752,6 +791,16 @@ size CMapBlock::ByteSize(void)
 		bExists = Iterate(&sIter, NULL, &iKeySize, NULL, &iDataSize);
 	}
 	return mapArray.ByteSize();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CMapBlock::Pack(void)
+{
+	InsertHoldingIntoSorted();
 }
 
 

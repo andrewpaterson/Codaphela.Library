@@ -24,7 +24,6 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "ArrayCommonUnknown.h"
 
 
-class CArrayCommonUnknown;
 class CArrayCommonObject : public CCollection
 {
 CONSTRUCTABLE(CArrayCommonObject);
