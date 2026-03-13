@@ -165,7 +165,7 @@ bool CPropertiesFile::Write(void)
 
 	cFile.Init();
 
-	mcProperties.FinaliseSorted();
+	mcProperties.Pack();
 	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);
 	while (bResult)
 	{
@@ -211,7 +211,7 @@ void CPropertiesFile::Print(CChars* pszDest)
 	SMapIterator	sIter;
 	bool			bResult;
 
-	mcProperties.FinaliseSorted();
+	mcProperties.Pack();
 	bResult = mcProperties.StartIteration(&sIter, (void**)&szProperty, NULL, (void**)&szValue, NULL);
 	while (bResult)
 	{
