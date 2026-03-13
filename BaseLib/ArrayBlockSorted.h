@@ -68,6 +68,7 @@ public:
 
 	void			Print(CChars* psz);
 	void			Dump(void);
+	void			Sort(void);
 
 protected:
 	bool			AddIntoHoldingArrays(void* pv, bool* pbUpdateSortedArray);

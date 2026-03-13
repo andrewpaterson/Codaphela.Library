@@ -57,7 +57,6 @@ public:
 	bool				Read(CFileReader* pcFileReader);
 	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
 
-	void				FinaliseSorted(void);
 	size				ByteSize(void);
 	void				Dump(void);
 	void				Pack(void);
@@ -65,15 +64,18 @@ public:
 public:
 	bool				WriteExceptData(CFileWriter* pcFileWriter);
 	bool				ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare);
+	SMNode*				WriteSizes(CFileWriter* pcFileWriter, size iIndex);
 	void*				WriteKey(CFileWriter* pcFileWriter, size iIndex, size* piDataSize);
+	SMNode*				ReadSizes(CFileReader* pcFileReader, size iIndex);
 	void*				ReadKey(CFileReader* pcFileReader, size iIndex, size* piDataSize);
 
 	void*				GetValue(SMNode* psNode);
 	void*				GetKey(SMNode* psNode);
+	void				RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
+	void				Sort(void);
 
 protected:
-	SMNode*				AllocateNode(size iKeySize, size iDataSize, void** ppvKey, void** ppvData);
-	void				RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
+	SMNode*				AllocateNode(size iKeySize, size iDataSize);
 	void				FreeNode(SMNode* psNode);
 
 	void				InsertHoldingIntoSorted(void);
