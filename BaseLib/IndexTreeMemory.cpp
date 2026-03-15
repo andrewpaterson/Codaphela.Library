@@ -23,7 +23,7 @@ void CIndexTreeMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	Init(LifeLocal<CMallocator>(&gcSystemAllocator), eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer);
+	Init(LifeLocal<CMallocator>(&gcSystemAllocator), eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer, this, this);
 }
 
 
@@ -46,13 +46,14 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 	Init(cMalloc, eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE);
 }
 
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize)
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
 {
-	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>());
+	Init(cMalloc, IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE, LifeNull<CIndexTreeDataOrderer>(), pcDataIO, pcDataSize);
 }
 
 
@@ -60,11 +61,21 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig)
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize)
+{
+	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>(), this, this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
 {
 	if (pcConfig)
 	{
-		Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer());
+		Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer(), pcDataIO, pcDataSize);
 	}
 	else
 	{
@@ -73,16 +84,23 @@ void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig)
 }
 
 
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
+{
+	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer, this, this);
+}
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
 {
 	CIndexTree::Init(cMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, cDataOrderer);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
 	mpcDataFree = NULL;
+	mpcDataIO = pcDataIO;
+	mpcDataSize = pcDataSize;
 }
 
 
@@ -119,7 +137,7 @@ void CIndexTreeMemory::RecurseKill(CIndexTreeNodeMemory* pcNode)
 		{
 			if (pcNode->HasData())
 			{
-				mpcDataFree->DataWillBeFreed(GetDataForNode(pcNode));
+				mpcDataFree->FreeData(GetDataForNode(pcNode));
 			}
 		}
 		FreeNode(pcNode);
@@ -340,7 +358,7 @@ void* CIndexTreeMemory::Put(uint8* pvKey, size iKeySize, void* pvData, size iDat
 	{
 		if (mpcDataFree)
 		{
-			mpcDataFree->DataWillBeFreed(GetDataForNode(pcCurrent));
+			mpcDataFree->FreeData(GetDataForNode(pcCurrent));
 		}
 	}
 
@@ -635,7 +653,7 @@ bool CIndexTreeMemory::Remove(CIndexTreeNodeMemory*	pcCurrent)
 	RemoveReorderData(pcCurrent);
 	if (mpcDataFree)
 	{
-		mpcDataFree->DataWillBeFreed(GetDataForNode(pcCurrent));
+		mpcDataFree->FreeData(GetDataForNode(pcCurrent));
 	}
 	pcNode = ReallocateNodeForSmallerData(pcCurrent, NULL, 0);
 
@@ -746,13 +764,18 @@ bool CIndexTreeMemory::WriteConfig(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 {
-	SIndexTreeMemoryUnsafeIterator		sIter;
-	void*								pvData;
-	size								iDataSize;
-	size								iKeySize;
-	bool								bResult;
-	uint8								acKey[MAX_KEY_SIZE];
-	size								iCount;
+	SIndexTreeMemoryUnsafeIterator	sIter;
+	void*							pvData;
+	size							iDataSize;
+	size							iKeySize;
+	bool							bResult;
+	uint8							acKey[MAX_KEY_SIZE];
+	size							iCount;
+
+	if (!pcFileWriter)
+	{
+		return false;
+	}
 
 	if (!WriteConfig(pcFileWriter))
 	{
@@ -769,19 +792,8 @@ bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	while (bResult)
 	{
 		iKeySize = GetKey(pvData, acKey, MAX_KEY_SIZE);
-		if (!pcFileWriter->WriteSize(iKeySize))
-		{
-			return false;
-		}
-		if (!pcFileWriter->WriteSize(iDataSize))
-		{
-			return false;
-		}
-		if (!pcFileWriter->WriteData(acKey, iKeySize))
-		{
-			return false;
-		}
-		if (!pcFileWriter->WriteData(pvData, iDataSize))
+		bResult = WriteElement(pcFileWriter, acKey, iKeySize, pvData, iDataSize);
+		if (!bResult)
 		{
 			return false;
 		}
@@ -797,15 +809,59 @@ bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader)
+bool CIndexTreeMemory::WriteElement(CFileWriter* pcFileWriter, void* pvKey, size iKeySize, void* pvValue, size iValueSize)
 {
-	CIndexTreeMemoryConfig				cConfig;
-	bool								bResult;
+	SIndexIOElement		sElement;
+	size				iWriteValueSize;
+
+	if (!pcFileWriter->WriteSize(iKeySize))
+	{
+		return false;
+	}
+	iWriteValueSize = mpcDataSize->AdjustDataSize(pvValue, iValueSize);
+	if (!pcFileWriter->WriteSize(iWriteValueSize))
+	{
+		return false;
+	}
+	if (!pcFileWriter->WriteData(pvKey, iKeySize))
+	{
+		return false;
+	}
+	sElement.Init(iKeySize, iValueSize, pvValue);
+	if (!mpcDataIO->WriteData(pcFileWriter, &sElement))
+	{
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::WriteData(CFileWriter* pcFileWriter, void* pvData)
+{
+	SIndexIOElement* sElement;
+
+	sElement = (SIndexIOElement*)pvData;
+	return pcFileWriter->WriteData(sElement->pvData, sElement->iValueSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+{
+	CIndexTreeMemoryConfig	cConfig;
+	bool					bResult;
 
 	bResult = cConfig.Read(pcFileReader);
 	if (bResult)
 	{
-		Init(cConfig.GetMalloc(), cConfig.GetKeyReverse(), cConfig.GetMaxDataSize(), cConfig.GetMaxKeySize(), cConfig.GetDataOrderer());
+		Init(cConfig.GetMalloc(), cConfig.GetKeyReverse(), cConfig.GetMaxDataSize(), cConfig.GetMaxKeySize(), cConfig.GetDataOrderer(), pcDataIO, pcDataSize);
 	}
 	cConfig.Kill();
 	return bResult;
@@ -818,16 +874,23 @@ bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::Read(CFileReader* pcFileReader)
 {
+	return Read(pcFileReader, this, this);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+{
 	//Do not call .Init() before Read().
 
-	size				iCount;
-	size				i;
-	uint8				acKey[1024];
-	size				iKeySize;
-	size				iDataSize;
-	void*			pvData;
+	size	iCount;
+	size	i;
+	bool	bResult;
 
-	if (!ReadConfig(pcFileReader))
+	if (!ReadConfig(pcFileReader, pcDataIO, pcDataSize))
 	{
 		return false;
 	}
@@ -839,30 +902,64 @@ bool CIndexTreeMemory::Read(CFileReader* pcFileReader)
 
 	for (i = 0; i < iCount; i++)
 	{
-		if (!pcFileReader->ReadSize(&iKeySize))
-		{
-			return false;
-		}
-		if (!pcFileReader->ReadSize(&iDataSize))
-		{
-			return false;
-		}
-		if (!pcFileReader->ReadData(acKey, iKeySize))
-		{
-			return false;
-		}
-		pvData = Put(acKey, iKeySize, NULL, iDataSize);
-		if (!pvData)
-		{
-			return false;
-		}
-		if (!pcFileReader->ReadData(pvData, iDataSize))
+		bResult = ReadElement(pcFileReader);
+		if (!bResult)
 		{
 			return false;
 		}
 	}
 
 	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::ReadElement(CFileReader* pcFileReader)
+{
+	uint8				acKey[1024];
+	size				iKeySize;
+	size				iValueSize;
+	SIndexIOElement		sElement;
+
+	if (!pcFileReader->ReadSize(&iKeySize))
+	{
+		return false;
+	}
+	if (!pcFileReader->ReadSize(&iValueSize))
+	{
+		return false;
+	}
+	if (!pcFileReader->ReadData(acKey, iKeySize))
+	{
+		return false;
+	}
+	sElement.Init(iKeySize, iValueSize, acKey);
+	if (!mpcDataIO->ReadData(pcFileReader, &sElement))
+	{
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexTreeMemory::ReadData(CFileReader* pcFileReader, void* pvData)
+{
+	SIndexIOElement* sElement;
+
+	sElement = (SIndexIOElement*)pvData;
+	pvData = Put((uint8*)sElement->pvData, sElement->iKeySize, NULL, sElement->iValueSize);
+	if (!pvData)
+	{
+		return false;
+	}
+	return pcFileReader->ReadData(pvData, sElement->iValueSize);
 }
 
 
@@ -883,6 +980,17 @@ size CIndexTreeMemory::NumElements(void)
 void CIndexTreeMemory::SetDataFreeCallback(CDataFree* pcDataFree)
 {
 	mpcDataFree = pcDataFree;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::SetDataIOCallback(CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+{
+	mpcDataIO = pcDataIO;
+	mpcDataSize = pcDataSize;
 }
 
 
@@ -1260,26 +1368,18 @@ bool CIndexTreeMemory::ValidateIndexTree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-size CIndexTreeMemory::GetUserMemorySize(void)
-{
-	return 0; //mcMalloc.AllocatedUserSize();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Print(CChars* pszDest, bool bShowFlags, bool bShowSize)
 {
 	CChars				sz;
+	size				uiSize;
 
 	sz.Init();
 	sz.Append("= [IndexTreeMemory]");
 	if (bShowSize)
 	{
+		uiSize = ByteSize();
 		sz.Append("[");
-		sz.Append((uint64)this->GetUserMemorySize());
+		sz.Append((uint64)uiSize);
 		sz.Append("] ");
 	}
 
@@ -1922,6 +2022,17 @@ size CIndexTreeMemory::GetDataSize(uint8* pvKey, size iKeySize)
 	return pcNode->GetDataSize();
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIndexTreeMemory::AdjustDataSize(void* pvValue, size iValueSize)
+{
+	return iValueSize;
+}
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
@@ -1996,5 +2107,17 @@ size CIndexTreeMemory::RecurseCountListSize(CIndexTreeNodeMemory* pcNode)
 	{
 		return 0;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void SIndexIOElement::Init(size iKeySize, size iValueSize, void* pvData)
+{
+	this->iKeySize = iKeySize;
+	this->iValueSize = iValueSize;
+	this->pvData = pvData;
 }
 

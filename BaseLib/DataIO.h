@@ -6,8 +6,8 @@
 
 struct SDataTypeIO
 {
-	bool Save(CFileWriter* pcFile);
-	bool Load(CFileReader* pcFile);
+	bool Save(CFileWriter* pcFileWriter);
+	bool Load(CFileReader* pcFileReader);
 };
 
 
@@ -22,12 +22,20 @@ struct SDataIO
 };
 
 
+class CDataIO
+{
+public:
+	virtual bool WriteData(CFileWriter* pcFileWriter, void* pvData) =0;
+	virtual bool ReadData(CFileReader* pcFileReader, void* pvData) =0;
+};
+
+
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool SaveMultiple(M* psThis, CFileWriter* pcFile, size uiCount)
+bool SaveMultiple(M* psThis, CFileWriter* pcFileWriter, size uiCount)
 {
 	size	i;
 	bool	bResult;
@@ -47,7 +55,7 @@ bool SaveMultiple(M* psThis, CFileWriter* pcFile, size uiCount)
 //
 //////////////////////////////////////////////////////////////////////////
 template<class M>
-bool LoadMultiple(M* psThis, CFileReader* pcFile, size uiCount)
+bool LoadMultiple(M* psThis, CFileReader* pcFileReader, size uiCount)
 {
 	size	i;
 	bool	bResult;

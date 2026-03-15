@@ -13,28 +13,28 @@ struct SIndexBlockNode
 
 
 class CIndexBlock;
-class CIndexBlockMapvDataFreeCallback : public CDataFree
+class CIndexBlockDataFree : public CDataFree
 {
 private:
 	CIndexBlock*	mpcIndexBlock;
 
 public:
 	void Init(CIndexBlock* pcIndexBlock);
-	void DataWillBeFreed(void* pvData);
+	void FreeData(void* pvData);
 };
 
 
-class CIndexBlock : public CMalloc
+class CIndexBlock : public CDataIO, public CIndexTreeDataSize
 {
-friend class CIndexBlockMapvDataFreeCallback;
+friend class CIndexBlockDataFree;
 protected:
-	CIndexTreeMemory					mcIndex;
-	CIndexBlockMapvDataFreeCallback		mcIndexCallback;
-	CDataFree*							mpcDataFree;
+	CIndexTreeMemory		mcIndex;
+	CIndexBlockDataFree		mcIndexFree;
 
 public:
 	void				Init(void);
-	void				Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig);
+	void				Init(CLifeInit<CMallocator> cMalloc);
+	void				Init(CIndexTreeConfig* pcConfig);
 	void				Kill(void);
 
 	bool				Get(uint8* pvKey, size iKeySize, void** ppvData, size* piDataSize);
@@ -52,7 +52,7 @@ public:
 
 	bool				HasKey(uint8* pvKey, size iKeySize);
 
-	size					NumElements(void);
+	size				NumElements(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
 	void				Dump(void);
 
@@ -62,10 +62,17 @@ public:
 	bool				Write(CFileWriter* pcFileWriter);
 	bool				Read(CFileReader* pcFileReader);
 
+	bool				WriteData(CFileWriter* pcFileWriter, void* pvData);
+	bool				ReadData(CFileReader* pcFileReader, void* pvData);
+
 	bool				ValidateIndexTree(void);
 
 protected:
-	void				DataWillBeFreed(SIndexBlockNode* psNode);
+	size				AdjustDataSize(void* pvValue, size iValueSize);
+
+	void*				Malloc(size uiSize);
+	void*				Realloc(void* pv, size iMemSize);
+	void				Free(void* pv);
 };
 
 #endif // __INDEX_BLOCK_H__

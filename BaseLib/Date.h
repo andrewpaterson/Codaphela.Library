@@ -60,8 +60,8 @@ public:
 	bool	After(CDate* pcRight);
 	bool	Before(CDate* pcRight);
 
-	bool 	Save(CFileWriter* pcFile);
-	bool 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFileWriter);
+	bool 	Load(CFileReader* pcFileReader);
 };
 
 

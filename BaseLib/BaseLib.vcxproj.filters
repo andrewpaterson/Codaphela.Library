@@ -2660,9 +2660,6 @@
     <ClCompile Include="MemoryManager.cpp">
       <Filter>Source\Memory\Manager</Filter>
     </ClCompile>
-    <ClCompile Include="DataFree.cpp">
-      <Filter>Source\Data</Filter>
-    </ClCompile>
     <ClCompile Include="ArrayChar.cpp">
       <Filter>Source\Data\Array\Primitive\Specific</Filter>
     </ClCompile>
@@ -2767,6 +2764,9 @@
     </ClCompile>
     <ClCompile Include="UTF-8.cpp">
       <Filter>Source\Text\Encoding</Filter>
+    </ClCompile>
+    <ClCompile Include="DataFree.cpp">
+      <Filter>Source\Data</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

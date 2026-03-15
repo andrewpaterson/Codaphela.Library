@@ -371,13 +371,13 @@ void SFloat3::Copy(const SFloat2* ps)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat3::Save(CFileWriter* pcFile)
+bool SFloat3::Save(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = pcFile->WriteFloat(x);
-	bResult &= pcFile->WriteFloat(y);
-	bResult &= pcFile->WriteFloat(z);
+	bResult = pcFileWriter->WriteFloat(x);
+	bResult &= pcFileWriter->WriteFloat(y);
+	bResult &= pcFileWriter->WriteFloat(z);
 	return bResult;
 }
 
@@ -386,13 +386,13 @@ bool SFloat3::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat3::Load(CFileReader* pcFile)
+bool SFloat3::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFile->ReadFloat(&x);
-	bResult &= pcFile->ReadFloat(&y);
-	bResult &= pcFile->ReadFloat(&z);
+	bResult = pcFileReader->ReadFloat(&x);
+	bResult &= pcFileReader->ReadFloat(&y);
+	bResult &= pcFileReader->ReadFloat(&z);
 	return bResult;
 }
 

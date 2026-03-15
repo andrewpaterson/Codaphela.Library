@@ -61,8 +61,8 @@ public:
 	void 	Init(double x, double y, double z, double w);
 	void 	Zero(void);
 
-	bool 	Save(CFileWriter* pcFile);
-	bool 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFileWriter);
+	bool 	Load(CFileReader* pcFileReader);
 	
 	void 	Fix(void);
 	int		WholeNumbers(void);

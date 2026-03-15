@@ -214,12 +214,12 @@ void SDouble2::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDouble2::Save(CFileWriter* pcFile)
+bool SDouble2::Save(CFileWriter* pcFileWriter)
 {
 	bool bResult;
 
-	bResult = pcFile->WriteFloat(x);
-	bResult &= pcFile->WriteFloat(y);
+	bResult = pcFileWriter->WriteFloat(x);
+	bResult &= pcFileWriter->WriteFloat(y);
 	return bResult;
 }
 
@@ -228,12 +228,12 @@ bool SDouble2::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDouble2::Load(CFileReader* pcFile)
+bool SDouble2::Load(CFileReader* pcFileReader)
 {
 	bool bResult;
 
-	bResult = pcFile->ReadFloat(&x);
-	bResult &= pcFile->ReadFloat(&y);
+	bResult = pcFileReader->ReadFloat(&x);
+	bResult &= pcFileReader->ReadFloat(&y);
 	return bResult;
 }
 

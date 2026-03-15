@@ -256,6 +256,8 @@ bool CMapStringBlock::Read(CFileReader* pcFileReader)
 	DataCompare		fCaseFunc;
 	bool			bResult;
 
+	mpcDataIO = this;
+	mpcDataFree = NULL;
 	fCaseFunc = ReadCaseSensitivity(pcFileReader);
 	if (fCaseFunc == NULL)
 	{

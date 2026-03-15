@@ -26,8 +26,8 @@ public:
 	SInt3& operator += (const SInt3&);
 	SInt3& operator -= (const SInt3&);
 
-	bool	Save(CFileWriter* pcFile);
-	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFileWriter);
+	bool	Load(CFileReader* pcFileReader);
 };
 
 
