@@ -12,14 +12,14 @@ CONSTRUCTABLE(CLASS_TYPE); \
  \
 	C_PRIMITIVE	mVal; \
  \
-	bool Save(CFileWriter* pcFile) \
+	bool Save(CFileWriter* pcFileWriter) \
 	{ \
-		return pcFile-> WRITE_FUNC (mVal); \
+		return pcFileWriter-> WRITE_FUNC (mVal); \
 	} \
  \
-	bool Load(CFileReader* pcFile) \
+	bool Load(CFileReader* pcFileReader) \
 	{ \
-		return pcFile-> READ_FUNC (&mVal); \
+		return pcFileReader-> READ_FUNC (&mVal); \
 	} \
 };
 
@@ -45,12 +45,12 @@ DATA_TYPE_IO_DEFINITION(SIOFloat64, float64, WriteFloat, ReadFloat)
 struct SIOVoid
 {
 CONSTRUCTABLE(SIOVoid);
-	bool Save(CFileWriter* pcFile)
+	bool Save(CFileWriter* pcFileWriter)
 	{
 		return true;
 	}
 
-	bool Load(CFileReader* pcFile)
+	bool Load(CFileReader* pcFileReader)
 	{
 		return true;
 	}
@@ -60,14 +60,14 @@ CONSTRUCTABLE(SIOVoid);
 struct SIOData
 {
 CONSTRUCTABLE(SIOData);
-	bool Save(CFileWriter* pcFile)
+	bool Save(CFileWriter* pcFileWriter)
 	{
-		return pcFile->WriteData(this, 1); 
+		return pcFileWriter->WriteData(this, 1); 
 	}
 
-	bool Load(CFileReader* pcFile)
+	bool Load(CFileReader* pcFileReader)
 	{
-		return pcFile->ReadData(this, 1);
+		return pcFileReader->ReadData(this, 1);
 	}
 };
 

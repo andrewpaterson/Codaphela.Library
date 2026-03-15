@@ -43,8 +43,8 @@ public:
 	void 		Init(SDouble3* psX, SDouble3* psY, SDouble3* psZ, SDouble3* psPos);
 	void		Zero(void);
 
-	bool 		Save(CFileWriter* pcFile);
-	bool 		Load(CFileReader* pcFile);
+	bool 		Save(CFileWriter* pcFileWriter);
+	bool 		Load(CFileReader* pcFileReader);
 
 	void 		Fix(void);
 	void		Identity(void);

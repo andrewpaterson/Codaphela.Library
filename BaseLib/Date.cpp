@@ -39,13 +39,13 @@ void CDate::Init(int16 sYear, int8 cMonth, int8 cDay)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDate::Save(CFileWriter* pcFile)
+bool CDate::Save(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = pcFile->WriteInt16(msYear);
-	bResult &= pcFile->WriteInt8(mcMonth);
-	bResult &= pcFile->WriteInt8(mcDay);
+	bResult = pcFileWriter->WriteInt16(msYear);
+	bResult &= pcFileWriter->WriteInt8(mcMonth);
+	bResult &= pcFileWriter->WriteInt8(mcDay);
 	return bResult;
 }
 
@@ -54,13 +54,13 @@ bool CDate::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CDate::Load(CFileReader* pcFile)
+bool CDate::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFile->ReadInt16(&msYear);
-	bResult &= pcFile->ReadInt8(&mcMonth);
-	bResult &= pcFile->ReadInt8(&mcDay);
+	bResult = pcFileReader->ReadInt16(&msYear);
+	bResult &= pcFileReader->ReadInt8(&mcMonth);
+	bResult &= pcFileReader->ReadInt8(&mcDay);
 	return bResult;
 }
 

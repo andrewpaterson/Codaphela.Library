@@ -5,7 +5,7 @@
 
 class CSystemAllocator : public CMallocator
 {
-CONSTRUCTABLE(CSystemAllocator);
+CONSTRUCTABLE(CSystemAllocator)
 public:
 	void		Kill(void);
 

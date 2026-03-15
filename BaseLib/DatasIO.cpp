@@ -116,7 +116,7 @@ size CDatasIO::NumDataIOs(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SDataTypeIO::Save(CFileWriter* pcFile)
+bool SDataTypeIO::Save(CFileWriter* pcFileWriter)
 {
 	return true;
 }
@@ -126,7 +126,7 @@ bool SDataTypeIO::Save(CFileWriter* pcFile)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool SDataTypeIO::Load(CFileReader* pcFile)
+bool SDataTypeIO::Load(CFileReader* pcFileReader)
 {
 	return true;
 }

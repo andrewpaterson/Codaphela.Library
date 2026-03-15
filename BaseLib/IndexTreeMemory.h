@@ -2,6 +2,7 @@
 #define __INDEX_TREE_MEMORY_H__
 #include "PrimitiveTypes.h"
 #include "DataFree.h"
+#include "DataIO.h"
 #include "IndexTreeNodeMemory.h"
 #include "IndexTreeRecursor.h"
 #include "IndexTreeMemoryConfig.h"
@@ -23,7 +24,24 @@ struct SIndexTreeMemoryIterator
 };
 
 
-class CIndexTreeMemory : public CIndexTree
+struct SIndexIOElement
+{
+	size	iKeySize;
+	size	iValueSize;
+	void*	pvData;
+
+	void Init(size iKeySize, size iValueSize, void* pvData);
+};
+
+
+class CIndexTreeDataSize
+{
+public:
+	virtual size AdjustDataSize(void* pvValue, size iValueSize) =0;
+};
+
+
+class CIndexTreeMemory : public CIndexTree, public CDataIO, public CIndexTreeDataSize
 {
 friend class CIndexTreeWriter;
 friend class CIndexTreeMemoryIterator;
@@ -31,7 +49,8 @@ protected:
 	CIndexTreeNodeMemory*	mpcRoot;
 	size					miSize;
 	CDataFree*				mpcDataFree;
-	//CCountingAllocator		mcMalloc;
+	CDataIO*				mpcDataIO;
+	CIndexTreeDataSize*		mpcDataSize;
 
 public:
 	void					Init(void);
@@ -39,8 +58,10 @@ public:
 	void					Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize);
-	void					Init(CIndexTreeConfig* pcConfig);
+	void					Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	void					Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
+	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
 	bool					Kill(void);
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
@@ -55,6 +76,7 @@ public:
 
 	size					NumElements(void);
 	void					SetDataFreeCallback(CDataFree* pcDataFree);
+	void					SetDataIOCallback(CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
 
 	bool					StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* puiDataSize, size uiMaxDataSize);
 	bool					Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* puiDataSize, size uiMaxDataSize);
@@ -67,14 +89,19 @@ public:
 
 	bool					Write(CFileWriter* pcFileWriter);
 	bool					Read(CFileReader* pcFileReader);
+	bool					Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
 
-	bool					WriteConfig(CFileWriter* pcFileWriter);  //Should be protected
-	bool					ReadConfig(CFileReader* pcFileReader);
+	bool					WriteConfig(CFileWriter* pcFileWriter);
+	bool					ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	bool					WriteElement(CFileWriter* pcFileWriter, void* pvKey, size iKeySize, void* pvData, size iDataSize);
+	bool					ReadElement(CFileReader* pcFileReader);
+
+	bool					WriteData(CFileWriter* pcFileWriter, void* pvData) override;
+	bool					ReadData(CFileReader* pcFileReader, void* pvData) override;
 
 	bool					ValidateIndexTree(void);
 	CIndexTreeNodeMemory*	GetRoot(void);
 
-	size					GetUserMemorySize(void);
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 	void					Dump(void);
 
@@ -130,6 +157,8 @@ protected:
 	void					RecursePrintNodes(CChars* pszDest, CIndexTreeRecursor* pcCursor, bool bShowFlags, bool bShowSize);
 	void					DebugKey(CChars* pszDest, uint8* pvKey, size iKeySize, bool bSkipRoot, bool bShowFlags, bool bShowSize, bool bKeyAlreadyReversed);
 	CIndexTreeNodeMemory*	DebugNode(CChars* pszDest, CIndexTreeNodeMemory* pcParent, size uiIndexInParent, bool bShowFlags, bool bShowSize);
+
+	size					AdjustDataSize(void* pvValue, size iValueSize);
 };
 
 

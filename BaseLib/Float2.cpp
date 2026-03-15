@@ -213,12 +213,12 @@ void SFloat2::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat2::Save(CFileWriter* pcFile)
+bool SFloat2::Save(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = pcFile->WriteFloat(x);
-	bResult &= pcFile->WriteFloat(y);
+	bResult = pcFileWriter->WriteFloat(x);
+	bResult &= pcFileWriter->WriteFloat(y);
 	return bResult;
 }
 
@@ -227,12 +227,12 @@ bool SFloat2::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SFloat2::Load(CFileReader* pcFile)
+bool SFloat2::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFile->ReadFloat(&x);
-	bResult &= pcFile->ReadFloat(&y);
+	bResult = pcFileReader->ReadFloat(&x);
+	bResult &= pcFileReader->ReadFloat(&y);
 	return bResult;
 }
 

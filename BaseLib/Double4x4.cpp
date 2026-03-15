@@ -94,14 +94,14 @@ void SDouble4x4::Fix(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDouble4x4::Save(CFileWriter* pcFile)
+bool SDouble4x4::Save(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = x.Save(pcFile);
-	bResult |= y.Save(pcFile);
-	bResult |= z.Save(pcFile);
-	bResult |= pos.Save(pcFile);
+	bResult = x.Save(pcFileWriter);
+	bResult |= y.Save(pcFileWriter);
+	bResult |= z.Save(pcFileWriter);
+	bResult |= pos.Save(pcFileWriter);
 	return bResult;
 }
 
@@ -110,14 +110,14 @@ bool SDouble4x4::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDouble4x4::Load(CFileReader* pcFile)
+bool SDouble4x4::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = x.Load(pcFile);
-	bResult |= y.Load(pcFile);
-	bResult |= z.Load(pcFile);
-	bResult |= pos.Load(pcFile);
+	bResult = x.Load(pcFileReader);
+	bResult |= y.Load(pcFileReader);
+	bResult |= z.Load(pcFileReader);
+	bResult |= pos.Load(pcFileReader);
 	return bResult;
 }
 

@@ -27,8 +27,8 @@ public:
 	SInt2& operator += (const SInt2&);
 	SInt2& operator -= (const SInt2&);
 
-	bool	Save(CFileWriter* pcFile);
-	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFileWriter);
+	bool	Load(CFileReader* pcFileReader);
 };
 
 

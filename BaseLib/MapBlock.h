@@ -3,6 +3,7 @@
 #include "Malloc.h"
 #include "DataCompare.h"
 #include "DataFree.h"
+#include "DataIO.h"
 #include "MapNode.h"
 #include "ArrayBlockSorted.h"
 
@@ -12,7 +13,18 @@ struct SMapIterator : SArraySortedIterator
 };
 
 
-class CMapBlock : public CMalloc
+class CMapBlock;
+class CMapBlockDataIO : public CDataIO
+{
+private:
+	CMapBlock*	mpcMap;
+
+public:
+	void Init(CMapBlock* pcMap);
+};
+
+
+class CMapBlock : public CMalloc, public CDataIO
 {
 friend struct SMNode;
 protected:
@@ -20,6 +32,7 @@ protected:
 	size				miLargestKeySize;
 	bool				mbOverwrite;
 	CDataFree*			mpcDataFree;
+	CDataIO*			mpcDataIO;
 	DataCompare			mfKeyCompare;
 
 public:
@@ -49,6 +62,7 @@ public:
 
 	CArrayBlockSorted*	GetArray(void);
 	void				SetDataFreeCallback(CDataFree* pcDataFree);
+	void				SetDataIOCallback(CDataIO* pcDataIO);
 
 	bool				StartIteration(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize);
 	bool				Iterate(SMapIterator* psIterator, void** ppvKey, size* piKeySize, void** ppvData, size* piDataSize);
@@ -56,6 +70,7 @@ public:
 	bool				Write(CFileWriter* pcFileWriter);
 	bool				Read(CFileReader* pcFileReader);
 	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
+	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO);
 
 	size				ByteSize(void);
 	void				Dump(void);
@@ -65,13 +80,11 @@ public:
 	bool				WriteExceptData(CFileWriter* pcFileWriter);
 	bool				ReadExceptData(CFileReader* pcFileReader, DataCompare fKeyCompare);
 	SMNode*				WriteSizes(CFileWriter* pcFileWriter, size iIndex);
-	void*				WriteKey(CFileWriter* pcFileWriter, size iIndex, size* piDataSize);
 	SMNode*				ReadSizes(CFileReader* pcFileReader, size iIndex);
-	void*				ReadKey(CFileReader* pcFileReader, size iIndex, size* piDataSize);
 
 	void*				GetValue(SMNode* psNode);
 	void*				GetKey(SMNode* psNode);
-	void				RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
+	static void			RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
 	void				Sort(void);
 
 protected:
@@ -81,6 +94,9 @@ protected:
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(size iIndex, void** ppvKey, void** ppvData);
 	SMNode*				GetNode(void* pvKey, size iKeySize);
+
+	bool				WriteData(CFileWriter* pcFileWriter, void* pvData);
+	bool				ReadData(CFileReader* pcFileReader, void* pvData);
 };
 
 

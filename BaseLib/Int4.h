@@ -17,8 +17,8 @@ public:
 	void	Init(int x, int y, int z, int w);
 	void	Zero(void);
 
-	bool	Save(CFileWriter* pcFile);
-	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFileWriter);
+	bool	Load(CFileReader* pcFileReader);
 };
 
 

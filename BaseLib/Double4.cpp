@@ -235,14 +235,14 @@ void SDouble4::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDouble4::Save(CFileWriter* pcFile)
+bool SDouble4::Save(CFileWriter* pcFileWriter)
 {
 	bool	bResult;
 
-	bResult = pcFile->WriteFloat(x);
-	bResult &= pcFile->WriteFloat(y);
-	bResult &= pcFile->WriteFloat(z);
-	bResult &= pcFile->WriteFloat(w);
+	bResult = pcFileWriter->WriteFloat(x);
+	bResult &= pcFileWriter->WriteFloat(y);
+	bResult &= pcFileWriter->WriteFloat(z);
+	bResult &= pcFileWriter->WriteFloat(w);
 	return bResult;
 }
 
@@ -251,14 +251,14 @@ bool SDouble4::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SDouble4::Load(CFileReader* pcFile)
+bool SDouble4::Load(CFileReader* pcFileReader)
 {
 	bool	bResult;
 
-	bResult = pcFile->ReadFloat(&x);
-	bResult &= pcFile->ReadFloat(&y);
-	bResult &= pcFile->ReadFloat(&z);
-	bResult &= pcFile->ReadFloat(&w);
+	bResult = pcFileReader->ReadFloat(&x);
+	bResult &= pcFileReader->ReadFloat(&y);
+	bResult &= pcFileReader->ReadFloat(&z);
+	bResult &= pcFileReader->ReadFloat(&w);
 	return bResult;
 }
 

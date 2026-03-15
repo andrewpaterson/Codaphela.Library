@@ -43,8 +43,8 @@ public:
 	void 		Init(SFloat3* psX, SFloat3* psY, SFloat3* psZ, SFloat3* psPos);
 	void		Zero(void);
 
-	bool 		Save(CFileWriter* pcFile);
-	bool 		Load(CFileReader* pcFile);
+	bool 		Save(CFileWriter* pcFileWriter);
+	bool 		Load(CFileReader* pcFileReader);
 
 	void 		Fix(void);
 	void		Identity(void);

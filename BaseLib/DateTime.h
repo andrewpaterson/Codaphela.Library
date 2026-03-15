@@ -34,8 +34,8 @@ public:
 	int64		miNanosecondsInDay;
 
 	void 	Init(void);  //Sets date/time to now.
-	bool	Save(CFileWriter* pcFile);
-	bool	Load(CFileReader* pcFile);
+	bool	Save(CFileWriter* pcFileWriter);
+	bool	Load(CFileReader* pcFileReader);
 };
 
 

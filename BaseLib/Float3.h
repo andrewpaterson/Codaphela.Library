@@ -65,8 +65,8 @@ public:
 	void 	Init(const SFloat3& v);
 	void 	Zero(void);
 
-	bool 	Save(CFileWriter* pcFile);
-	bool 	Load(CFileReader* pcFile);
+	bool 	Save(CFileWriter* pcFileWriter);
+	bool 	Load(CFileReader* pcFileReader);
 
 	void 	Fix(void);
 	void 	Print(CChars* psx, int iWholeNumbers = -1, int iDecimals = 2);

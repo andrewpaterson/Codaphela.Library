@@ -8,7 +8,18 @@ typedef void (*DataFree)(const void* pvData);
 class CDataFree
 {
 public:
-	virtual void DataWillBeFreed(void* pvData) =0;
+	virtual void FreeData(void* pvData) =0;
+};
+
+
+class CDataFreeCallBack : public CDataFree
+{
+protected:
+	DataFree	mfDataFree;
+
+public:
+	void	Init(DataFree fDataFree);
+	void	FreeData(void* pvData) override;
 };
 
 

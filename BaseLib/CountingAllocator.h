@@ -28,14 +28,14 @@ public:
 	void*			Realloc(void* pv, size uiSize);
 	bool			Free(void* pv);
 
-	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
+	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator) should be used!
 	const char*		ClassName(void);
 	size			ClassSize(void);
 
 	bool			IsLocal(void);
 	size			SizeOffset(void);
 
-	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator); should be used!
+	//This looks so very wrong.  CONSTRUCTABLE(CCountingAllocator) should be used!
 	const char*		ShortName(void);
 };
 

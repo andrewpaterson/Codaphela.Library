@@ -125,10 +125,10 @@ void SInt2::Zero(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SInt2::Save(CFileWriter* pcFile)
+bool SInt2::Save(CFileWriter* pcFileWriter)
 {
-	ReturnOnFalse(pcFile->WriteInt32(x));
-	ReturnOnFalse(pcFile->WriteInt32(y));
+	ReturnOnFalse(pcFileWriter->WriteInt32(x));
+	ReturnOnFalse(pcFileWriter->WriteInt32(y));
 	return true;
 }
 
@@ -137,10 +137,10 @@ bool SInt2::Save(CFileWriter* pcFile)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-bool SInt2::Load(CFileReader* pcFile)
+bool SInt2::Load(CFileReader* pcFileReader)
 {
-	ReturnOnFalse(pcFile->ReadInt32(&x));
-	ReturnOnFalse(pcFile->ReadInt32(&y));
+	ReturnOnFalse(pcFileReader->ReadInt32(&x));
+	ReturnOnFalse(pcFileReader->ReadInt32(&y));
 	return true;
 }
 

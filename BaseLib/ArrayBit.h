@@ -62,8 +62,8 @@ public:
 	void	Set(size iBit, bool bBit);  //bBit can only take 1 or 0.
 	void	Set(size iOffset, void* pvSource, size iSourceOffset, size iNumBits);
 
-	bool	Read(CFileReader* pcFile);
-	bool	Write(CFileWriter* pcFile);
+	bool	Read(CFileReader* pcFileReader);
+	bool	Write(CFileWriter* pcFileWriter);
 
 	size	NumElements(void);
 	void*	GetData(void);

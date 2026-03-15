@@ -6,7 +6,7 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CIndexBlockMapvDataFreeCallback::Init(CIndexBlock* pcIndexBlock)
+void CIndexBlockDataFree::Init(CIndexBlock* pcIndexBlock)
 {
 	mpcIndexBlock = pcIndexBlock;
 }
@@ -16,13 +16,12 @@ void CIndexBlockMapvDataFreeCallback::Init(CIndexBlock* pcIndexBlock)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CIndexBlockMapvDataFreeCallback::DataWillBeFreed(void* pvData)
+void CIndexBlockDataFree::FreeData(void* pvData)
 {
 	SIndexBlockNode* psNode;
 
 	psNode = (SIndexBlockNode*)pvData;
 
-	mpcIndexBlock->DataWillBeFreed(psNode);
 	mpcIndexBlock->Free(psNode->pvData);
 }
 
@@ -33,7 +32,7 @@ void CIndexBlockMapvDataFreeCallback::DataWillBeFreed(void* pvData)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Init(void)
 {
-	Init(&gcSystemAllocator, NULL);
+	Init(LifeLocal<CMallocator>(&gcSystemAllocator));
 }
 
 
@@ -41,14 +40,25 @@ void CIndexBlock::Init(void)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CIndexBlock::Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig)
+void CIndexBlock::Init(CLifeInit<CMallocator> cMalloc)
 {
-	CMalloc::Init(pcMalloc);
+	mcIndexFree.Init(this);
 
-	mcIndex.Init(pcConfig);
-	mcIndexCallback.Init(this);
-	mcIndex.SetDataFreeCallback(&mcIndexCallback);
-	mpcDataFree = NULL;
+	mcIndex.Init(cMalloc, this, this);
+	mcIndex.SetDataFreeCallback(&mcIndexFree);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CIndexBlock::Init(CIndexTreeConfig* pcConfig)
+{
+	mcIndexFree.Init(this);
+
+	mcIndex.Init(pcConfig, this, this);
+	mcIndex.SetDataFreeCallback(&mcIndexFree);
 }
 
 
@@ -59,19 +69,6 @@ void CIndexBlock::Init(CMallocator* pcMalloc, CIndexTreeConfig* pcConfig)
 void CIndexBlock::Kill(void)
 {
 	mcIndex.Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CIndexBlock::DataWillBeFreed(SIndexBlockNode* psNode)
-{
-	if (mpcDataFree)
-	{
-		mpcDataFree->DataWillBeFreed(psNode->pvData);
-	}
 }
 
 
@@ -172,7 +169,7 @@ void* CIndexBlock::Put(uint8* pvKey, size iKeySize, size iDataSize)
 	SIndexBlockNode		sNode;
 	void*				pvData;
 
-	pvData = mpcMalloc->Malloc(iDataSize);
+	pvData = Malloc(iDataSize);
 	sNode.iDataSize = iDataSize;
 	sNode.pvData = pvData;
 	mcIndex.Put(pvKey, iKeySize, &sNode, sizeof(sNode));
@@ -238,7 +235,7 @@ size CIndexBlock::NumElements(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::SetDataFreeCallback(CDataFree* pcDataFree)
 {
-	mpcDataFree = pcDataFree;
+	mcIndex.SetDataFreeCallback(pcDataFree);
 }
 
 
@@ -307,51 +304,23 @@ bool CIndexBlock::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppv
 //////////////////////////////////////////////////////////////////////////
 bool CIndexBlock::Write(CFileWriter* pcFileWriter)
 {
-	SIndexTreeMemoryUnsafeIterator	sIter;
-	void*							pvData;
-	size							iDataSize;
-	size							iKeySize;
-	bool							bResult;
-	char							acKey[MAX_KEY_SIZE];
-	size							iCount;
-
-	if (!mcIndex.WriteConfig(pcFileWriter))
-	{
-		return false;
-	}
-
-	if (!pcFileWriter->WriteSize(mcIndex.NumElements()))
-	{
-		return false;
-	}
-
-	iCount = 0;
-	bResult = StartIteration(&sIter, &pvData, &iDataSize, acKey, &iKeySize, MAX_KEY_SIZE);
-	while (bResult)
-	{
-		if (!pcFileWriter->WriteSize(iKeySize))
-		{
-			return false;
-		}
-		if (!pcFileWriter->WriteSize(iDataSize))
-		{
-			return false;
-		}
-		if (!pcFileWriter->WriteData(acKey, iKeySize))
-		{
-			return false;
-		}
-		if (!pcFileWriter->WriteData(pvData, iDataSize))
-		{
-			return false;
-		}
-
-		bResult = Iterate(&sIter, &pvData, &iDataSize, acKey, &iKeySize, MAX_KEY_SIZE);
-		iCount ++;
-	}
-	return mcIndex.NumElements() == iCount;
+	return mcIndex.Write(pcFileWriter);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexBlock::WriteData(CFileWriter* pcFileWriter, void* pvData)
+{
+	SIndexIOElement*	sElement;
+	SIndexBlockNode*	psValue;
+
+	sElement = (SIndexIOElement*)pvData;
+	psValue = (SIndexBlockNode*)sElement->pvData;
+	return pcFileWriter->WriteData(psValue->pvData, psValue->iDataSize);
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -362,54 +331,28 @@ bool CIndexBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	size	iCount;
-	size	i;
-	uint8	acKey[1024];
-	size	iKeySize;
-	size	iDataSize;
-	void*	pvData;
+	mcIndexFree.Init(this);
+	mcIndex.SetDataFreeCallback(&mcIndexFree);
+	return mcIndex.Read(pcFileReader, this, this);
+}
 
-	if (!mcIndex.ReadConfig(pcFileReader))
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexBlock::ReadData(CFileReader* pcFileReader, void* pvData)
+{
+	SIndexIOElement*	sElement;
+	void*				pvValue;
+
+	sElement = (SIndexIOElement*)pvData;
+	pvValue = Put((uint8*)sElement->pvData, sElement->iKeySize, sElement->iValueSize);
+	if (pvValue == NULL)
 	{
 		return false;
 	}
-
-	mcIndexCallback.Init(this);
-	mcIndex.SetDataFreeCallback(&mcIndexCallback);
-	mpcDataFree = NULL;
-	mpcMalloc = mcIndex.GetMallocator();
-
-	if (!pcFileReader->ReadSize(&iCount))
-	{
-		return false;
-	}
-
-	for (i = 0; i < iCount; i++)
-	{
-		if (!pcFileReader->ReadSize(&iKeySize))
-		{
-			return false;
-		}
-		if (!pcFileReader->ReadSize(&iDataSize))
-		{
-			return false;
-		}
-		if (!pcFileReader->ReadData(acKey, iKeySize))
-		{
-			return false;
-		}
-		pvData = Put(acKey, iKeySize, iDataSize);
-		if (!pvData)
-		{
-			return false;
-		}
-		if (!pcFileReader->ReadData(pvData, iDataSize))
-		{
-			return false;
-		}
-	}
-
-	return true;
+	return pcFileReader->ReadData(pvValue, sElement->iValueSize);
 }
 
 
@@ -429,5 +372,48 @@ void CIndexBlock::Dump(void)
 bool CIndexBlock::ValidateIndexTree(void)
 {
 	return mcIndex.ValidateIndexTree();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIndexBlock::AdjustDataSize(void* pvValue, size iValueSize)
+{
+	SIndexBlockNode* psValue;
+
+	psValue = (SIndexBlockNode*)pvValue;
+	return psValue->iDataSize;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexBlock::Malloc(size uiSize)
+{
+	return mcIndex.GetMallocator()->Malloc(uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void* CIndexBlock::Realloc(void* pv, size uiSize)
+{
+	return mcIndex.GetMallocator()->Realloc(pv, uiSize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CIndexBlock::Free(void* pv)
+{
+	mcIndex.GetMallocator()->Free(pv);
 }
 
