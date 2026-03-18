@@ -43,6 +43,7 @@ public:
 	void 		Pi(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
 	void 		E(CNumber* pcDest, bool bPositive = true);
 	void 		E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecimals, bool bPositive = true);
+	CNumber*	Add(void);
 	CNumber*	Add(int16 cMaxWholeNumbers, int16 cMaxDecimals);
 	void		Remove(void);
 	void		Remove(int iNumToRemove);

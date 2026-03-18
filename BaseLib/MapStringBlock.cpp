@@ -251,19 +251,27 @@ DataCompare CMapStringBlock::ReadCaseSensitivity(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CMapStringBlock::Read(CFileReader* pcFileReader)
 {
+	return Read(pcFileReader, this, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringBlock::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree)
+{
 	//Do not call .Init() before Read().
 
 	DataCompare		fCaseFunc;
 	bool			bResult;
 
-	mpcDataIO = this;
-	mpcDataFree = NULL;
 	fCaseFunc = ReadCaseSensitivity(pcFileReader);
 	if (fCaseFunc == NULL)
 	{
 		return false;
 	}
-	bResult = CMapBlock::Read(pcFileReader, fCaseFunc);
+	bResult = CMapBlock::Read(pcFileReader, fCaseFunc, pcDataIO, pcDataFree);
 	return bResult;
 }
 

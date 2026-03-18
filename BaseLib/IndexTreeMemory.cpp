@@ -788,7 +788,7 @@ bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 	}
 
 	iCount = 0;
-	bResult = StartUnsafeIteration(&sIter, &pvData, &iDataSize);
+	bResult = StartIteration(&sIter, &pvData, &iDataSize);
 	while (bResult)
 	{
 		iKeySize = GetKey(pvData, acKey, MAX_KEY_SIZE);
@@ -798,7 +798,7 @@ bool CIndexTreeMemory::Write(CFileWriter* pcFileWriter)
 			return false;
 		}
 
-		bResult = UnsafeIterate(&sIter, &pvData, &iDataSize);
+		bResult = Iterate(&sIter, &pvData, &iDataSize);
 		iCount ++;
 	}
 	return miSize == iCount;
@@ -1138,7 +1138,7 @@ bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryIterator* psIterator, uint
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 	psIterator->iKeyLength = 0;
 
-	bResult = StartUnsafeIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
+	bResult = StartIteration(&sIter, psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
@@ -1177,7 +1177,7 @@ bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 		return false;
 	}
 
-	bResult = UnsafeIterate(&sIter, (uint8*)psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
+	bResult = Iterate(&sIter, (uint8*)psIterator->pvKey, &psIterator->iKeyLength, MAX_KEY_SIZE, NULL, NULL);
 	psIterator->iIndex = sIter.iIndex;
 
 	if (bResult)
@@ -1202,12 +1202,12 @@ bool CIndexTreeMemory::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* piDataSize)
+bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* piDataSize)
 {
 	psIterator->pcNode = mpcRoot;
 	psIterator->iIndex = mpcRoot->GetFirstIndex();
 
-	return UnsafeIterate(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, piDataSize);
+	return Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, piDataSize);
 }
 
 
@@ -1215,7 +1215,7 @@ bool CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** pvData, size* piDataSize)
+bool CIndexTreeMemory::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** pvData, size* piDataSize)
 {
 	void*	pvDataTemp;
 	size	iKeySize;
@@ -1259,9 +1259,9 @@ bool CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator,
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* piDataSize)
+bool CIndexTreeMemory::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* piDataSize)
 {
-	return StartUnsafeIteration(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
+	return StartIteration(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
 
 
@@ -1269,9 +1269,9 @@ bool CIndexTreeMemory::StartUnsafeIteration(SIndexTreeMemoryUnsafeIterator* psIt
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::UnsafeIterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* piDataSize)
+bool CIndexTreeMemory::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppvData, size* piDataSize)
 {
-	return UnsafeIterate(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
+	return Iterate(psIterator, NULL, NULL, miMaxDataSize, ppvData, piDataSize);
 }
 
 

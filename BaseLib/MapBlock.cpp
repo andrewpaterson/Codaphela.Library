@@ -10,16 +10,6 @@
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapBlockDataIO::Init(CMapBlock* pcMap)
-{
-	mpcMap = pcMap;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 void CMapBlock::_Init(void)
 {
 	mapArray._Init();
@@ -602,7 +592,7 @@ bool CMapBlock::Write(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Read(CFileReader* pcFileReader)
 {
-	return Read(pcFileReader, &CompareMNodeKey, this);
+	return Read(pcFileReader, &CompareMNodeKey, this, NULL);
 }
 
 
@@ -612,7 +602,7 @@ bool CMapBlock::Read(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 {
-	return Read(pcFileReader, fKeyCompare, this);
+	return Read(pcFileReader, fKeyCompare, this, NULL);
 }
 
 
@@ -620,7 +610,7 @@ bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO)
+bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO, CDataFree* pcDataFree)
 {
 	size		i;
 	size		iNumElements;
@@ -632,6 +622,7 @@ bool CMapBlock::Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO
 		return false;
 	}
 
+	mpcDataFree = pcDataFree;
 	mpcDataIO = pcDataIO;
 	if (!ReadExceptData(pcFileReader, fKeyCompare))
 	{

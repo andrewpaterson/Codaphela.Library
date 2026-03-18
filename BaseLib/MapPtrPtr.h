@@ -22,10 +22,10 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_PTR_PTR_H__
 #define __MAP_PTR_PTR_H__
-#include "MapTemplate.h"
+#include "MapTemplateTemplate.h"
 
 
-class CMapPtrPtr : public CMapTemplate<void*, void*>
+class CMapPtrPtr : public CMapTemplateTemplate<void*, void*>
 {
 public:
 	void	Init(void);

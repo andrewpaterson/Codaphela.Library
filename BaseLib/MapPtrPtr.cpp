@@ -52,7 +52,7 @@ void* CMapPtrPtr::Get(void* pvKey)
 {
 	void** ppvResult;
 
-	ppvResult = CMapTemplate<void*, void*>::Get(&pvKey);
+	ppvResult = CMapTemplateTemplate<void*, void*>::Get(&pvKey);
 	if (ppvResult)
 	{
 		return *ppvResult;
@@ -67,7 +67,7 @@ void* CMapPtrPtr::Get(void* pvKey)
 //////////////////////////////////////////////////////////////////////////
 bool CMapPtrPtr::Put(void* pvKey, void* psData)
 {
-	return CMapTemplate<void*, void*>::Put(&pvKey, &psData);
+	return CMapTemplateTemplate<void*, void*>::Put(&pvKey, &psData);
 }
 
 
@@ -77,6 +77,6 @@ bool CMapPtrPtr::Put(void* pvKey, void* psData)
 //////////////////////////////////////////////////////////////////////////
 bool CMapPtrPtr::Remove(void* pvKey)
 {
-	return CMapTemplate<void*, void*>::Remove(&pvKey);
+	return CMapTemplateTemplate<void*, void*>::Remove(&pvKey);
 }
 

@@ -1104,7 +1104,7 @@
     <ClInclude Include="GlobalDataTypesIO.h">
       <Filter>Source\Data\Types\File</Filter>
     </ClInclude>
-    <ClInclude Include="MapTemplate.h">
+    <ClInclude Include="MapTemplateTemplate.h">
       <Filter>Source\Data\Map\Map</Filter>
     </ClInclude>
     <ClInclude Include="MapPtrPtr.h">
@@ -1185,7 +1185,7 @@
     <ClInclude Include="TimSort.h">
       <Filter>Source\Sort</Filter>
     </ClInclude>
-    <ClInclude Include="IndexTemplate.h">
+    <ClInclude Include="IndexTemplateTemplate.h">
       <Filter>Source\Data\Map\Index</Filter>
     </ClInclude>
     <ClInclude Include="IndexStringTemplate.h">
@@ -1727,6 +1727,12 @@
     </ClInclude>
     <ClInclude Include="UTF-8.h">
       <Filter>Source\Text\Encoding</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexPtr.h">
+      <Filter>Source\Data\Map\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexTemplate.h">
+      <Filter>Source\Data\Map\Index</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2767,6 +2773,9 @@
     </ClCompile>
     <ClCompile Include="DataFree.cpp">
       <Filter>Source\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexPtr.cpp">
+      <Filter>Source\Data\Map\Index</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

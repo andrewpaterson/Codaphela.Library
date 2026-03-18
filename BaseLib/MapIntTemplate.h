@@ -53,7 +53,7 @@ void CMapIntTemplate<D>::Init(bool bOverwrite)
 template<class D>
 void CMapIntTemplate<D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
-	CMapTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
+	CMapTemplateTemplate<int, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
 
 
