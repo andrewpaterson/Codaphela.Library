@@ -56,7 +56,7 @@ void CMapLongTemplate<D>::Init(bool bOverwrite)
 template<class D>
 void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
-	CMapTemplate<int64, D>::Init(pcMalloc, &CompareLong, bOverwrite);
+	CMapTemplateTemplate<int64, D>::Init(pcMalloc, &CompareLong, bOverwrite);
 };
 
 
@@ -67,7 +67,7 @@ void CMapLongTemplate<D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 template<class D>
 bool CMapLongTemplate<D>::Read(CFileReader* pcFileReader)
 {
-	return CMapTemplate<int64, D>::Read(pcFileReader, &CompareLong);
+	return CMapTemplateTemplate<int64, D>::Read(pcFileReader, &CompareLong);
 }
 
 #endif // __MAP_LONG_TEMPLATE_H__

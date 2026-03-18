@@ -107,7 +107,7 @@ void CArrayBit::GrowBy(size iNumBits)
 	uiOldByteSize = ByteSize(miNumBits);
 	uiNewByteSize = ByteSize(miNumBits + iNumBits);
 
-	uiTransitionSize = sizeof(uint32)*3;
+	uiTransitionSize = sizeof(uint32) * 3;
 	if ((uiNewByteSize <= uiTransitionSize) || (uiOldByteSize == uiNewByteSize))
 	{
 		miNumBits += iNumBits;

@@ -13,17 +13,6 @@ struct SMapIterator : SArraySortedIterator
 };
 
 
-class CMapBlock;
-class CMapBlockDataIO : public CDataIO
-{
-private:
-	CMapBlock*	mpcMap;
-
-public:
-	void Init(CMapBlock* pcMap);
-};
-
-
 class CMapBlock : public CMalloc, public CDataIO
 {
 friend struct SMNode;
@@ -70,7 +59,7 @@ public:
 	bool				Write(CFileWriter* pcFileWriter);
 	bool				Read(CFileReader* pcFileReader);
 	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare);
-	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO);
+	bool				Read(CFileReader* pcFileReader, DataCompare fKeyCompare, CDataIO* pcDataIO, CDataFree* pcDataFree);
 
 	size				ByteSize(void);
 	void				Dump(void);

@@ -152,6 +152,16 @@ void CNumberControl::E(CNumber* pcDest, int16 cMaxWholeNumbers, int16 cMaxDecima
 //
 //
 //////////////////////////////////////////////////////////////////////////
+CNumber* CNumberControl::Add(void)
+{
+	return Add(DEFAULT_WHOLE_NUMBERS, DEFAULT_DECIMALS);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
 CNumber* CNumberControl::Add(int16 cMaxWholeNumbers, int16 cMaxDecimals)
 {
 	return (CNumber*)mcScratchPad.Add(NUMBER_SIZE(cMaxWholeNumbers, cMaxDecimals));

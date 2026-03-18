@@ -31,7 +31,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 
 template<class M, class D>
-class CMapTemplate : public CMapBlock
+class CMapTemplateTemplate : public CMapBlock
 {
 public:
 	D*		Get(M* psKey);
@@ -50,7 +50,7 @@ public:
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-D* CMapTemplate<M, D>::Get(M* psKey)
+D* CMapTemplateTemplate<M, D>::Get(M* psKey)
 {
 	void*	pvData;
 
@@ -64,7 +64,7 @@ D* CMapTemplate<M, D>::Get(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-D* CMapTemplate<M, D>::Put(M* psKey)
+D* CMapTemplateTemplate<M, D>::Put(M* psKey)
 {
 	return (D*)CMapBlock::Put(psKey, sizeof(M), sizeof(D));
 }
@@ -75,7 +75,7 @@ D* CMapTemplate<M, D>::Put(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-bool CMapTemplate<M, D>::Put(M* psKey, D* psData)
+bool CMapTemplateTemplate<M, D>::Put(M* psKey, D* psData)
 {
 	return CMapBlock::Put(psKey, sizeof(M), psData, sizeof(D));
 }
@@ -86,7 +86,7 @@ bool CMapTemplate<M, D>::Put(M* psKey, D* psData)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-bool CMapTemplate<M, D>::HasKey(M* psKey)
+bool CMapTemplateTemplate<M, D>::HasKey(M* psKey)
 {
 	return CMapBlock::HasKey(psKey, sizeof(M));
 }
@@ -97,7 +97,7 @@ bool CMapTemplate<M, D>::HasKey(M* psKey)
 //																		//
 //////////////////////////////////////////////////////////////////////////
 template<class M, class D>
-bool CMapTemplate<M, D>::Remove(M* psKey)
+bool CMapTemplateTemplate<M, D>::Remove(M* psKey)
 {
 	return CMapBlock::Remove(psKey, sizeof(M));
 }

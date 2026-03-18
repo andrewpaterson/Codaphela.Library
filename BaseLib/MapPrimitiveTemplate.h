@@ -22,11 +22,11 @@ Microsoft Windows is Copyright Microsoft Corporation
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_PRIMITIVE_TEMPLATE_H__
 #define __MAP_PRIMITIVE_TEMPLATE_H__
-#include "MapTemplate.h"
+#include "MapTemplateTemplate.h"
 
 
 template<class M, class D>
-class CMapPrimitiveTemplate : public CMapTemplate<M , D>
+class CMapPrimitiveTemplate : public CMapTemplateTemplate<M , D>
 {
 public:
 	void	Init(bool bOverwrite);
@@ -57,7 +57,7 @@ void CMapPrimitiveTemplate<M, D>::Init(bool bOverwrite)
 template<class M, class D>
 void CMapPrimitiveTemplate<M, D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 {
-	CMapTemplate<M, D>::Init(pcMalloc, &CompareInt, bOverwrite);
+	CMapTemplateTemplate<M, D>::Init(pcMalloc, &CompareInt, bOverwrite);
 };
 
 
@@ -68,7 +68,7 @@ void CMapPrimitiveTemplate<M, D>::Init(CMallocator* pcMalloc, bool bOverwrite)
 template<class M, class D>
 D* CMapPrimitiveTemplate<M, D>::Get(M iKey)
 {
-	return CMapTemplate<M, D>::Get(&iKey);
+	return CMapTemplateTemplate<M, D>::Get(&iKey);
 }
 
 
@@ -79,7 +79,7 @@ D* CMapPrimitiveTemplate<M, D>::Get(M iKey)
 template<class M, class D>
 D* CMapPrimitiveTemplate<M, D>::Put(M iKey)
 {
-	return CMapTemplate<M, D>::Put(&iKey);
+	return CMapTemplateTemplate<M, D>::Put(&iKey);
 }
 
 
@@ -90,7 +90,7 @@ D* CMapPrimitiveTemplate<M, D>::Put(M iKey)
 template<class M, class D>
 bool CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
 {
-	return CMapTemplate<M, D>::Put(&iKey, psData);
+	return CMapTemplateTemplate<M, D>::Put(&iKey, psData);
 }
 
 
@@ -101,7 +101,7 @@ bool CMapPrimitiveTemplate<M, D>::Put(M iKey, D* psData)
 template<class M, class D>
 bool CMapPrimitiveTemplate<M, D>::HasKey(M iKey)
 {
-	return CMapTemplate<M, D>::HasKey(&iKey);
+	return CMapTemplateTemplate<M, D>::HasKey(&iKey);
 }
 
 
@@ -112,7 +112,7 @@ bool CMapPrimitiveTemplate<M, D>::HasKey(M iKey)
 template<class M, class D>
 bool CMapPrimitiveTemplate<M, D>::Remove(M iKey)
 {
-	return CMapTemplate<M, D>::Remove(&iKey);
+	return CMapTemplateTemplate<M, D>::Remove(&iKey);
 }
 
 

@@ -3,23 +3,26 @@
 #include "IndexBlock.h"
 
 
-template<class M, class D>
+template<class D>
 class CIndexTemplate : public CIndexBlock
 {
-	bool	Get(M* pvKey, D** ppvData);
-	D*		Get(M* pvKey);
+public:
+	bool	Get(uint8* pvKey, size iKeySize, D** ppvData);
+	D*		Get(uint8* pvKey, size iKeySize);
 
-	D*		Put(M* pvKey);
-	bool	Put(M* pvKey, void* pvData);
+	D*		Put(uint8* pvKey, size iKeySize);
+	bool	Put(uint8* pvKey, size iKeySize, void* pvData);
 
-	bool	Remove(M* pvKey);
+	bool	Remove(uint8* pvKey, size iKeySize);
 
-	size	DataSize(M* pvKey);
+	size	DataSize(uint8* pvKey, size iKeySize);
 
-	bool	HasKey(M* pvKey);
+	bool	HasKey(uint8* pvKey, size iKeySize);
 
-	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey);
-	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey);
+	bool	StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData);
+	bool	Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData);
+	bool	StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData);
+	bool	Iterate(SIndexTreeMemoryIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData);
 };
 
 
@@ -27,12 +30,12 @@ class CIndexTemplate : public CIndexBlock
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-bool CIndexTemplate<M, D>::Get(M* pvKey, D** ppvData)
+template<class D>
+bool CIndexTemplate<D>::Get(uint8* pvKey, size iKeySize, D** ppvData)
 {
 	size iDataSize;
 
-	return CIndexBlock::Get(pvKey, sizeof(M), ppvData, &iDataSize);
+	return CIndexBlock::Get(pvKey, iKeySize, ppvData, &iDataSize);
 }
 
 
@@ -40,10 +43,10 @@ bool CIndexTemplate<M, D>::Get(M* pvKey, D** ppvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-D* CIndexTemplate<M, D>::Get(M* pvKey)
+template<class D>
+D* CIndexTemplate<D>::Get(uint8* pvKey, size iKeySize)
 {
-	return CIndexBlock::Get(pvKey, sizeof(M));
+	return (D*)CIndexBlock::Get(pvKey, iKeySize);
 }
 
 
@@ -51,10 +54,10 @@ D* CIndexTemplate<M, D>::Get(M* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-D* CIndexTemplate<M, D>::Put(M* pvKey)
+template<class D>
+D* CIndexTemplate<D>::Put(uint8* pvKey, size iKeySize)
 {
-	return CIndexBlock::Put(pvKey, sizeof(M));
+	return (D*)CIndexBlock::Put(pvKey, iKeySize, sizeof(D));
 }
 
 
@@ -62,10 +65,10 @@ D* CIndexTemplate<M, D>::Put(M* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-bool CIndexTemplate<M, D>::Put(M* pvKey, void* pvData)
+template<class D>
+bool CIndexTemplate<D>::Put(uint8* pvKey, size iKeySize, void* pvData)
 {
-	return CIndexBlock::Put(pvKey, sizeof(M), sizeof(D));
+	return CIndexBlock::Put(pvKey, iKeySize, pvData, sizeof(D));
 }
 
 
@@ -73,10 +76,10 @@ bool CIndexTemplate<M, D>::Put(M* pvKey, void* pvData)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-bool CIndexTemplate<M, D>::Remove(M* pvKey)
+template<class D>
+bool CIndexTemplate<D>::Remove(uint8* pvKey, size iKeySize)
 {
-	return CIndexBlock::Remove(pvKey, sizeof(M));
+	return CIndexBlock::Remove(pvKey, iKeySize);
 }
 
 
@@ -84,10 +87,10 @@ bool CIndexTemplate<M, D>::Remove(M* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-size CIndexTemplate<M, D>::DataSize(M* pvKey)
+template<class D>
+size CIndexTemplate<D>::DataSize(uint8* pvKey, size iKeySize)
 {
-	return CIndexBlock::DataSize(pvKey, sizeof(M));
+	return CIndexBlock::DataSize(pvKey, iKeySize);
 }
 
 
@@ -95,20 +98,10 @@ size CIndexTemplate<M, D>::DataSize(M* pvKey)
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-bool CIndexTemplate<M, D>::HasKey(M* pvKey)
+template<class D>
+bool CIndexTemplate<D>::HasKey(uint8* pvKey, size iKeySize)
 {
-	return CIndexBlock::HasKey(pvKey, sizeof(M));
-}
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-bool CIndexTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
-{
-	return CIndexBlock::StartIteration(psIterator, ppvData, NULL, pvDestKey);
+	return CIndexBlock::HasKey(pvKey, iKeySize);
 }
 
 
@@ -116,10 +109,43 @@ bool CIndexTemplate<M, D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIter
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-template<class M, class D>
-bool CIndexTemplate<M, D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, D** ppvData, M* pvDestKey)
+template<class D>
+bool CIndexTemplate<D>::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData)
 {
-	return CIndexBlock:Iterate(psIterator, ppvData, pvDestKey);
+	return CIndexBlock::StartIteration(psIterator, (void**)ppvData, NULL, pvDestKey, puiKeySize, uiMaxKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+bool CIndexTemplate<D>::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData)
+{
+	return CIndexBlock::Iterate(psIterator, (void**)ppvData, NULL, pvDestKey, puiKeySize, uiMaxKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+bool CIndexTemplate<D>::StartIteration(SIndexTreeMemoryIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData)
+{
+	return CIndexBlock::StartIteration(psIterator, (uint8*)pvDestKey, puiKeySize, uiMaxKeySize, (void**)ppvData, NULL, sizeof(D));
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+template<class D>
+bool CIndexTemplate<D>::Iterate(SIndexTreeMemoryIterator* psIterator, void* pvDestKey, size* puiKeySize, size uiMaxKeySize, D** ppvData)
+{
+	return CIndexBlock::Iterate(psIterator, (uint8*)pvDestKey, puiKeySize, uiMaxKeySize, (void**)ppvData, NULL, sizeof(D));
 }
 
 

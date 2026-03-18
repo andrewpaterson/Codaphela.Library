@@ -32,38 +32,39 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CMapStringBlock : public CMapBlock
 {
 public:
-	void		Init(bool bCaseSensitive = true, bool bOverwrite = true);
-	void		Init(CMallocator* pcMalloc, bool bCaseSensitive = true, bool bOverwrite = true);
-	void		Kill(void);
+	void			Init(bool bCaseSensitive = true, bool bOverwrite = true);
+	void			Init(CMallocator* pcMalloc, bool bCaseSensitive = true, bool bOverwrite = true);
+	void			Kill(void);
 
-	void*		Get(const char* szKey);
-	void*		Get(const char* szKey, size* piDataSize);
+	void*			Get(const char* szKey);
+	void*			Get(const char* szKey, size* piDataSize);
 
-	void*		Put(char* szKey, size iDataSize);
-	bool		Put(char* szKey, void* psData, size iDataSize);
-	void*		Put(const char* szKey, size iDataSize);
-	bool		Put(const char* szKey, void* psData, size iDataSize);
+	void*			Put(char* szKey, size iDataSize);
+	bool			Put(char* szKey, void* psData, size iDataSize);
+	void*			Put(const char* szKey, size iDataSize);
+	bool			Put(const char* szKey, void* psData, size iDataSize);
 
-	bool		Remove(char* szKey);
-	bool		Remove(const char* szKey);
+	bool			Remove(char* szKey);
+	bool			Remove(const char* szKey);
 
-	bool		HasKey(char* szKey);
-	bool		HasKey(const char* szKey);
+	bool			HasKey(char* szKey);
+	bool			HasKey(const char* szKey);
 
-	bool		WriteCaseSensitivity(CFileWriter* pcFileWriter);
-	bool		Write(CFileWriter* pcFileWriter);
-	DataCompare	ReadCaseSensitivity(CFileReader* pcFileReader);
-	bool		Read(CFileReader* pcFileReader);
+	bool			WriteCaseSensitivity(CFileWriter* pcFileWriter);
+	bool			Write(CFileWriter* pcFileWriter);
+	DataCompare		ReadCaseSensitivity(CFileReader* pcFileReader);
+	bool			Read(CFileReader* pcFileReader);
+	bool			Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CDataFree* pcDataFree);
 
-	char*		GetKeyForData(void* psData);
+	char*			GetKeyForData(void* psData);
 
-	bool		IsCaseSensitive(void);
-	void		SetCaseSensitive(bool bCaseSensitive);
+	bool			IsCaseSensitive(void);
+	void			SetCaseSensitive(bool bCaseSensitive);
 
-	void		GetKeysAsString(CChars* pszDest, char* szSeparator);
+	void			GetKeysAsString(CChars* pszDest, char* szSeparator);
 
 protected:
-	DataCompare	CalculateCompareFunc(bool bCaseSensitive);
+	DataCompare		CalculateCompareFunc(bool bCaseSensitive);
 };
 
 

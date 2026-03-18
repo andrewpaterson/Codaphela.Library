@@ -6,30 +6,6 @@
 //																		//
 //																		//
 //////////////////////////////////////////////////////////////////////////
-void CIndexBlockDataFree::Init(CIndexBlock* pcIndexBlock)
-{
-	mpcIndexBlock = pcIndexBlock;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
-void CIndexBlockDataFree::FreeData(void* pvData)
-{
-	SIndexBlockNode* psNode;
-
-	psNode = (SIndexBlockNode*)pvData;
-
-	mpcIndexBlock->Free(psNode->pvData);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//																		//
-//																		//
-//////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Init(void)
 {
 	Init(LifeLocal<CMallocator>(&gcSystemAllocator));
@@ -42,10 +18,8 @@ void CIndexBlock::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Init(CLifeInit<CMallocator> cMalloc)
 {
-	mcIndexFree.Init(this);
-
 	mcIndex.Init(cMalloc, this, this);
-	mcIndex.SetDataFreeCallback(&mcIndexFree);
+	mcIndex.SetDataFreeCallback(this);
 }
 
 
@@ -55,10 +29,8 @@ void CIndexBlock::Init(CLifeInit<CMallocator> cMalloc)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Init(CIndexTreeConfig* pcConfig)
 {
-	mcIndexFree.Init(this);
-
 	mcIndex.Init(pcConfig, this, this);
-	mcIndex.SetDataFreeCallback(&mcIndexFree);
+	mcIndex.SetDataFreeCallback(this);
 }
 
 
@@ -268,7 +240,7 @@ bool CIndexBlock::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, voi
 	bool				bResult;
 	SIndexBlockNode*	psNode;
 
-	bResult = mcIndex.StartUnsafeIteration(psIterator, (uint8*)pvDestKey, puiKeySize, uiMaxKeySize, (void**)&psNode, NULL);
+	bResult = mcIndex.StartIteration(psIterator, (uint8*)pvDestKey, puiKeySize, uiMaxKeySize, (void**)&psNode, NULL);
 	if (bResult)
 	{
 		SafeAssign(ppvData, psNode->pvData);
@@ -287,7 +259,7 @@ bool CIndexBlock::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppv
 	bool				bResult;
 	SIndexBlockNode*	psNode;
 
-	bResult = mcIndex.UnsafeIterate(psIterator, (uint8*)pvDestKey, puiKeySize, uiMaxKeySize, (void**)&psNode, NULL);
+	bResult = mcIndex.Iterate(psIterator, (uint8*)pvDestKey, puiKeySize, uiMaxKeySize, (void**)&psNode, NULL);
 	if (bResult)
 	{
 		SafeAssign(ppvData, psNode->pvData);
@@ -295,6 +267,50 @@ bool CIndexBlock::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, void** ppv
 	}
 	return bResult;
 
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexBlock::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* puiDataSize, size uiMaxDataSize)
+{
+	bool				bResult;
+	SIndexBlockNode		sNode;
+
+	bResult = mcIndex.StartIteration(psIterator, (uint8*)pvKey, piKeySize, iMaxKeySize, (void*)&sNode, NULL, sizeof(SIndexBlockNode));
+	if (bResult)
+	{
+		if (sNode.pvData)
+		{
+			SafeAssign(ppvData, *((void**)sNode.pvData));
+		}
+		SafeAssign(puiDataSize, sNode.iDataSize);
+	}
+	return bResult;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexBlock::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void** ppvData, size* puiDataSize, size uiMaxDataSize)
+{
+	bool				bResult;
+	SIndexBlockNode		sNode;
+
+	bResult = mcIndex.Iterate(psIterator, (uint8*)pvKey, piKeySize, iMaxKeySize, (void*)&sNode, puiDataSize, uiMaxDataSize);
+	if (bResult)
+	{
+		if (sNode.pvData)
+		{
+			SafeAssign(ppvData, *((void**)sNode.pvData));
+		}
+		SafeAssign(puiDataSize, sNode.iDataSize);
+	}
+	return bResult;
 }
 
 
@@ -331,8 +347,7 @@ bool CIndexBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	mcIndexFree.Init(this);
-	mcIndex.SetDataFreeCallback(&mcIndexFree);
+	mcIndex.SetDataFreeCallback(this);
 	return mcIndex.Read(pcFileReader, this, this);
 }
 
@@ -415,5 +430,18 @@ void* CIndexBlock::Realloc(void* pv, size uiSize)
 void CIndexBlock::Free(void* pv)
 {
 	mcIndex.GetMallocator()->Free(pv);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//																		//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+void CIndexBlock::FreeData(void* pvData)
+{
+	SIndexBlockNode* psNode;
+
+	psNode = (SIndexBlockNode*)pvData;
+	Free(psNode->pvData);
 }
 
