@@ -31,7 +31,8 @@ void CMapStringUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
 	CMapCommonUnknown::Init(bKillElements, bOverwriteExisting);
 	mcMap.Init(true, bOverwriteExisting);
-	mcMap.SetDataFreeCallback(&mcDataFree);
+	mcMap.SetDataFreeCallback(this);
+	mcMap.SetDataIOCallback(this);
 }
 
 
@@ -43,80 +44,6 @@ void CMapStringUnknown::Kill(void)
 {
 	mcMap.Kill();
 	CMapCommonUnknown::Kill();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
-{
-	size		i;
-	CUnknown**	ppcUnknown;
-	size		iNumElements;
-	void*		pvData;
-	size		iDataSize;
-
-	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
-	ReturnOnFalse(mcMap.WriteCaseSensitivity(pcFileWriter));
-	ReturnOnFalse(mcMap.WriteExceptData(pcFileWriter));
-
-	iNumElements = mcMap.NumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pvData = mcMap.WriteKey(pcFileWriter, i, &iDataSize);
-		if (!pvData)
-		{
-			return false;
-		}
-		ppcUnknown = (CUnknown**)pvData;
-		ReturnOnFalse((*ppcUnknown)->SaveHeader(pcFileWriter));
-		ReturnOnFalse((*ppcUnknown)->Save(pcFileWriter));
-	}
-	return true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CMapStringUnknown::Load(CFileReader* pcFileReader)
-{
-	size			i;
-	CUnknown**		ppcUnknown;
-	CUnknown*		pcUnknown;
-	size			iNumElements;
-	void*			pvData;
-	size			iDataSize;
-	DataCompare		CaseFunc;
-
-	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
-	CaseFunc = mcMap.ReadCaseSensitivity(pcFileReader);
-	if (!mcMap.ReadExceptData(pcFileReader, CaseFunc))
-	{
-		return false;
-	}
-
-	iNumElements = mcMap.NumElements();
-	for (i = 0; i < iNumElements; i++)
-	{
-		pvData = mcMap.ReadKey(pcFileReader, i, &iDataSize);
-		if (!pvData)
-		{
-			return false;
-		}
-		ppcUnknown = (CUnknown**)pvData;
-		pcUnknown = gcUnknowns.AddFromHeader(pcFileReader);
-		if (!pcUnknown)
-		{
-			return false;
-		}
-		ReturnOnFalse(pcUnknown->Load(pcFileReader));
-		*ppcUnknown = pcUnknown;
-	}
-	return true;
 }
 
 
@@ -168,6 +95,28 @@ CUnknown* CMapStringUnknown::Get(char* szKey)
 size CMapStringUnknown::NumElements(void)
 {
 	return mcMap.NumElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringUnknown::Save(CFileWriter* pcFileWriter)
+{
+	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
+	return mcMap.Write(pcFileWriter);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringUnknown::Load(CFileReader* pcFileReader)
+{
+	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
+	return mcMap.Read(pcFileReader, this, this);
 }
 
 
@@ -235,10 +184,12 @@ bool CMapStringUnknown::Iterate(SMapIterator* psIterator, char** ppcKey, CUnknow
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CMapStringUnknown::DataWillBeFreed(SMNode* psNode)
+void CMapStringUnknown::FreeData(void* pvData)
 {
-	CUnknown* pcValue;
+	SMNode*		psNode;
+	CUnknown*	pcValue;
 
+	psNode = (SMNode*)pvData;
 	if (miFlags & MAP_COMMOM_KILL_ELEMENT)
 	{
 		pcValue = *((CUnknown**)mcMap.GetValue(psNode));
@@ -247,6 +198,80 @@ void CMapStringUnknown::DataWillBeFreed(SMNode* psNode)
 			pcValue->Kill();
 		}
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringUnknown::WriteData(CFileWriter* pcFile, void* pvData)
+{
+	CUnknown**	ppcUnknown;
+	void*		pvValue;
+	void*		pvKey;
+	bool		bResult;
+	SMNode*		psNode;
+
+	psNode = (SMNode*)pvData;
+
+	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
+	ppcUnknown = (CUnknown**)pvValue;
+
+	bResult = pcFile->WriteData(pvKey, psNode->iKeySize);
+	if (!bResult)
+	{
+		return false;
+	}
+
+	bResult = (*ppcUnknown)->SaveHeader(pcFile);
+	if (!bResult)
+	{
+		return false;
+	}
+	bResult = (*ppcUnknown)->Save(pcFile);
+	if (!bResult)
+	{
+		return false;
+	}
+	return true;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CMapStringUnknown::ReadData(CFileReader* pcFile, void* pvData)
+{
+	CUnknown**	ppcUnknownValue;
+	CUnknown*	pcUnknownValue;
+	void*		pvValue;
+	void*		pvKey;
+	bool		bResult;
+	SMNode*		psNode;
+
+	psNode = (SMNode*)pvData;
+	mcMap.RemapKeyAndData(psNode, &pvKey, &pvValue);
+	bResult = pcFile->ReadData(pvKey, psNode->iKeySize);
+	if (!bResult)
+	{
+		return false;
+	}
+
+	ppcUnknownValue = (CUnknown**)pvValue;
+	pcUnknownValue = gcUnknowns.AddFromHeader(pcFile);
+	if (!pcUnknownValue)
+	{
+		return false;
+	}
+	bResult = pcUnknownValue->Load(pcFile);
+	if (!bResult)
+	{
+		return false;
+	}
+	*ppcUnknownValue = pcUnknownValue;
+	return true;
 }
 
 

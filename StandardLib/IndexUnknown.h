@@ -20,6 +20,116 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __INDEX_UNKNOWN_H__
 #define __INDEX_UNKNOWN_H__
+#include "BaseLib/IndexTreeMemory.h"
+#include "Unknown.h"
+
+
+#define INDEX_TREE_KILL_ELEMENT	0x0001
+
+
+class CIndexUnknown : public CUnknown, public CDataFree, public CDataIO, public CIndexTreeDataSize
+{
+CONSTRUCTABLE(CIndexUnknown)
+friend class CIndexUnknownDataFree;
+private:
+	uint16					miFlags;
+	CIndexTreeMemory		mcIndex;
+
+public:
+	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
+	void		Kill(void);
+	bool		Save(CFileWriter* pcFile);
+	bool		Load(CFileReader* pcFile);
+
+	template<class M>
+	M*			Put(uint8* pvKey, size iKeySize);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.
+	bool		Put(uint8* pvKey, size iKeySize, CUnknown* pcValue);
+	template<class M>
+	M*			Put(char* szKey);
+	bool		Put(char* szKey, CUnknown* pcValue);
+	CUnknown*	Get(char* szKey);
+	CUnknown*	Get(uint8* pvKey, size iKeySize);
+
+	size		NumElements(void);
+	bool 		IsKillElements(void);
+	bool 		IsEmpty(void);
+	bool 		IsNotEmpty(void);
+
+	bool		StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
+	bool		Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
+
+protected:
+	void		FreeData(void* pvData);
+	bool		WriteData(CFileWriter* pcFileWriter, void* pvData);
+	bool		ReadData(CFileReader* pcFileReader, void* pvData);
+	size		AdjustDataSize(void* pvValue, size iValueSize);
+};
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CIndexUnknown::Put(uint8* pvKey, size iKeySize)
+{
+	M*		pv;
+	bool	bResult;
+
+	if (iKeySize > 0)
+	{
+		pv = gcUnknowns.Add<M>();
+		bResult = Put(pvKey, iKeySize, pv);
+		if (bResult)
+		{
+			return pv;
+		}
+		else
+		{
+			//Nasty, but if we allocated (and didn't initialise) the object then it must be freed but not killed.
+			gcUnknowns.RemoveInKill(pv);
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+template<class M>
+M* CIndexUnknown::Put(char* szKey)
+{
+	M*		pv;
+	bool	bResult;
+	size	iKeySize;
+
+	iKeySize = strlen(szKey);
+	if (iKeySize > 0)
+	{
+		pv = gcUnknowns.Add<M>();
+		bResult = Put(pvKey, iKeySize, pv);
+		if (bResult)
+		{
+			return pv;
+		}
+		else
+		{
+			//Nasty, but if we allocated (and didn't initialise) the object then it must be freed but not killed.
+			gcUnknowns.RemoveInKill(pv);
+			return NULL;
+		}
+	}
+	else
+	{
+		return NULL;
+	}
+}
 
 
 #endif // __INDEX_UNKNOWN_H__
