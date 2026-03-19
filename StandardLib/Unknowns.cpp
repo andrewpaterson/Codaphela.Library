@@ -159,7 +159,7 @@ CUnknown* CUnknowns::AddFromHeader(CFileReader* pcFile)
 	}
 	else
 	{
-		psz = (char*)malloc(iLength+1);
+		psz = (char*)malloc(iLength + 1);
 		bResult = pcFile->ReadStringChars(psz, iLength);
 		if (bResult != true)
 		{

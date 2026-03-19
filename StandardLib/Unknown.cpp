@@ -169,3 +169,17 @@ void CUnknown::NotImplemented(char* szMethod)
 	gcLogger.Error2(szMethod, " is not implemented and should not be called.", NULL);
 }
 
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CUnknown::Dump(void)
+{
+	CChars	sz;
+
+	sz.Init();
+	Print(&sz);
+	sz.DumpKill();
+}
+

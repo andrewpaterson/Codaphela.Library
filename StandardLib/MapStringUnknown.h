@@ -24,27 +24,16 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 #include "MapCommonUnknown.h"
 
 
-class CMapStringUnknownDataFree : public CDataFree
-{
-private:
-	CMapStringUnknown*	mpcMap;
-
-public:
-	void Init(CMapStringUnknown* pcMap);
-	void DataWillBeFreed(void* pvData);
-};
-
-
 class CMapStringUnknown : public CMapCommonUnknown
 {
-friend class CMapStringUnknownDataFree;
-CONSTRUCTABLE(CMapStringUnknown);
+CONSTRUCTABLE(CMapStringUnknown)
 private:
 	CMapStringTemplate<CUnknown*>	mcMap;
 
 public:
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
+
 	bool		Save(CFileWriter* pcFile);
 	bool		Load(CFileReader* pcFile);
 
@@ -63,7 +52,10 @@ public:
 	void		Pack(void);
 
 protected:
-	void		DataWillBeFreed(SMNode* psNode);
+	void		FreeData(void* pvData) override;
+
+	bool		WriteData(CFileWriter* pcFile, void* pvData) override;
+	bool		ReadData(CFileReader* pcFile, void* pvData) override;
 };
 
 

@@ -20,34 +20,25 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #ifndef __MAP_COMMON_UNKNOWN_H__
 #define __MAP_COMMON_UNKNOWN_H__
+#include "BaseLib/DataIO.h"
 #include "Unknown.h"
 
 
 #define MAP_COMMOM_KILL_ELEMENT	0x0001
 
 
-class CMapCommonUnknown;
-class CMapCommonUnknownDataFree : public CDataFree
-{
-private:
-	CMapCommonUnknown*	mpcMap;
-
-public:
-	void Init(CMapCommonUnknown* pcMap);
-	void DataWillBeFreed(void* pvData);
-};
-
-
-class CMapCommonUnknown : public CUnknown
+class CMapCommonUnknown : public CUnknown, public CDataIO, public CDataFree
 {
 CONSTRUCTABLE(CMapCommonUnknown);
 protected:
 	uint16						miFlags;
-	CMapCommonUnknownDataFree	mcDataFree;
 
 public:
 			void 		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 			void 		Kill(void);
+
+	virtual bool		Save(CFileWriter* pcFile) =0;
+	virtual bool		Load(CFileReader* pcFile) =0;
 
 	virtual size		NumElements(void) =0;
 	virtual size		GetSortedSize(void) =0;
@@ -56,8 +47,6 @@ public:
 			bool 		IsKillElements(void);
 			bool 		IsEmpty(void);
 			bool 		IsNotEmpty(void);
-
-	virtual void		DataWillBeFreed(SMNode* psNode) =0;
 };
 
 

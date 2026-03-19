@@ -1108,6 +1108,10 @@ bool PrivateAssertNumber(const char* szExpected, CNumber* pcActual, char* szPref
 	}
 
 	pcExpected = gcNumberControl.Add(pcActual->GetMaxWholeNumbers(), iDecimals);
+	if (!pcExpected)
+	{
+		pcExpected = gcNumberControl.Add();
+	}
 	pcExpected->Init(szExpected, pcActual->GetMaxWholeNumbers(), iDecimals);
 	if (!pcExpected->Equals(pcActual))
 	{

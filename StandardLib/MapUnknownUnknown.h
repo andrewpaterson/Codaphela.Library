@@ -9,9 +9,9 @@ class CMapUnknownUnknown : public CMapCommonUnknown
 friend class CMapUnknownUnknownDataFree;
 CONSTRUCTABLE(CMapUnknownUnknown);
 private:
-	CMapPtrPtr						mcMap;
+	CMapPtrPtr	mcMap;
 
-public:
+public:	
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
 	bool		Save(CFileWriter* pcFile);
@@ -32,9 +32,14 @@ public:
 	bool		Iterate(SMapIterator* psIterator, CUnknown** ppvKey, CUnknown** ppvData);
 
 	void		Pack(void);
+	void		Print(CChars* psz);
+	void		Dump(void);
+	void		Sort(void);
 
 protected:
-	void		DataWillBeFreed(SMNode* psNode);
+	void		FreeData(void* pvData) override;
+	bool		WriteData(CFileWriter* pcFile, void* pvData) override;
+	bool		ReadData(CFileReader* pcFile, void* pvData) override;
 };
 
 
