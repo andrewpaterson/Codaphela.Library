@@ -29,22 +29,42 @@ class CObjects;
 class CCollection : public CBaseObject
 {
 CONSTRUCTABLE(CCollection);
+protected:
+	bool	mbSubRoot;
+
 public:
 							~CCollection();
 			void			Init(void);
 			void			Kill(void) final;
 			bool			IsCollection(void) override;
 			bool			IsObject(void) override;
-	virtual bool			RemoveAll(void) =0;
 			CBaseObject*	Dehollow(void);
 	virtual void			TouchAll(void) =0;
-	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
+	virtual void			KillAll(void) =0;
+
 	virtual CPointer		StartIterationPointer(SSetIterator* psIter) =0;
 	virtual CPointer		IteratePointer(SSetIterator* psIter) =0;
+
+	virtual size			NumElements(void) =0;
+			size			Length(void);
+			size			Size(void);
+	virtual size			NonNullElements(void) =0;
+	virtual bool			IsEmpty(void) =0;
+
+	virtual bool			RemoveAll(void) =0;
+			bool			Clear(void);
+
+			void			MakeSubRoot(void);
+			bool			IsSubRoot(void);
+
+	virtual void			UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld) =0;
 
 protected:
 			void			Class(void) override;
 			void			EmbedFields(void);
+
+			bool			AddObjectFrom(CEmbeddedObject* pcObject, bool bResult);
+			bool			RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult);
 };
 
 

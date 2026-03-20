@@ -31,9 +31,10 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 //////////////////////////////////////////////////////////////////////////
 Ptr<CArrayCommonObject> CArrayCommonObject::Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder)
 {
-	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder);
-	mbSubRoot = false;
+	PreInit();
 	CCollection::Init();
+	mcArray.Init(false, false, bUnique, bIgnoreNull, bPreserveOrder);
+	PostInit();
 	return this;
 }
 
@@ -46,7 +47,6 @@ void CArrayCommonObject::Class(void)
 {
 	CCollection::Class();
 
-	U_Bool(mbSubRoot);
 	U_Unknown(CArrayCommonUnknown, mcArray);
 }
 
@@ -162,20 +162,7 @@ bool CArrayCommonObject::Add(CEmbeddedObject* pcObject)
 	bool				bAdded;
 
 	bAdded = mcArray.Add(pcObject);
-	if (bAdded)
-	{
-		if (pcObject)
-		{
-			if (IsEmbeddingContainerAllocatedInObjects())
-			{
-				pcObject->AddHeapFrom(this, true);
-			}
-			else
-			{
-				pcObject->AddStackFrom(this);
-			}
-		}
-	}
+	bAdded = AddObjectFrom(pcObject, bAdded);
 	return bAdded;
 }
 
@@ -211,38 +198,21 @@ bool CArrayCommonObject::AddAll(CArrayCommonObject* pcArray)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::Set(size iIndex, CPointer& pObject)
 {
-	CBaseObject*	pcPointedTo;
-	bool			bResult;
+	CBaseObject*		pcPointedTo;
+	bool				bResult;
+	CEmbeddedObject*	pvObject;
 
 	if (iIndex >= mcArray.UnsafeNumElements())
 	{
 		return false;
 	}
 
+	pvObject = pObject.Object();
 	pcPointedTo = (CBaseObject*)mcArray.UnsafeGet(iIndex);
-	bResult = mcArray.Set(iIndex, pObject.Object());
-
-	if (bResult)
-	{
-		if (pcPointedTo)
-		{
-			if (IsEmbeddingContainerAllocatedInObjects())
-			{
-				bResult = pcPointedTo->RemoveHeapFromTryFree(this, true);
-			}
-			else
-			{
-				bResult = pcPointedTo->RemoveStackFromTryFree(this, true);
-			}
-		}
-	}
-
-	if (bResult)
-	{
-		pObject.AddHeapFrom(this);
-		return true;
-	}
-	return false;
+	bResult = mcArray.Set(iIndex, pvObject);
+	bResult = RemoveObjectTryFree(pcPointedTo, bResult);
+	bResult = AddObjectFrom(pvObject, bResult);
+	return bResult;
 }
 
 
@@ -410,37 +380,7 @@ void CArrayCommonObject::RemoveAllPointerTosTryFree(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::Clear(void)
-{
-	return RemoveAll();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
 size CArrayCommonObject::NumElements(void)
-{
-	return mcArray.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CArrayCommonObject::Size(void)
-{
-	return mcArray.NumElements();
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-size CArrayCommonObject::Length(void)
 {
 	return mcArray.NumElements();
 }
@@ -527,26 +467,6 @@ void CArrayCommonObject::UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistC
 void CArrayCommonObject::RemovePointerTo(CEmbeddedObject* pcTo)
 {
 	mcArray.Remove((CUnknown*)pcTo);
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-void CArrayCommonObject::MakeSubRoot(void)
-{
-	mbSubRoot = true;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::IsSubRoot(void)
-{
-	return mbSubRoot;
 }
 
 
@@ -887,46 +807,13 @@ bool CArrayCommonObject::InsertAt(size iIndex, CPointer& pObject)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonObject::InsertAt(size iIndex, CEmbeddedObject* pcObject)
 {
-	bool				bAdded;
+	bool				bResult;
 
-	bAdded = mcArray.Insert(iIndex, pcObject);
-	if (bAdded)
-	{
-		if (pcObject)
-		{
-			if (IsEmbeddingContainerAllocatedInObjects())
-			{
-				pcObject->AddHeapFrom(this, true);
-			}
-			else
-			{
-				pcObject->AddStackFrom(this);
-			}
-		}
-	}
-	return bAdded;
-}
-
-
-//////////////////////////////////////////////////////////////////////////
-//
-//
-//////////////////////////////////////////////////////////////////////////
-bool CArrayCommonObject::RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult)
-{
-	if (bResult && pcObject)
-	{
-		if (IsEmbeddingContainerAllocatedInObjects())
-		{
-			bResult = pcObject->RemoveHeapFromTryFree(this, true);
-		}
-		else
-		{
-			bResult = pcObject->RemoveStackFromTryFree(this, true);
-		}
-	}
+	bResult = mcArray.Insert(iIndex, pcObject);
+	bResult = AddObjectFrom(pcObject, bResult);
 	return bResult;
 }
+
 
 
 //////////////////////////////////////////////////////////////////////////
