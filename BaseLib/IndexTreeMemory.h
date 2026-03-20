@@ -58,10 +58,10 @@ public:
 	void					Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize);
-	void					Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
-	void					Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	void					Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
+	void					Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 	bool					Kill(void);
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
@@ -75,8 +75,8 @@ public:
 	size					GetKey(void* pvData, uint8* pvDestKey, size iDestKeySize);
 
 	size					NumElements(void);
-	void					SetDataFreeCallback(CDataFree* pcDataFree);
-	void					SetDataIOCallback(CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	void					SetDataFreeCallback(CDataFree* pcDataFree);  //For testing
+	void					SetDataIOCallback(CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);  //For testing
 
 	bool					StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* puiDataSize, size uiMaxDataSize);
 	bool					Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, void* pvData, size* puiDataSize, size uiMaxDataSize);
@@ -89,10 +89,10 @@ public:
 
 	bool					Write(CFileWriter* pcFileWriter);
 	bool					Read(CFileReader* pcFileReader);
-	bool					Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	bool					Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 
 	bool					WriteConfig(CFileWriter* pcFileWriter);
-	bool					ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize);
+	bool					ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 	bool					WriteElement(CFileWriter* pcFileWriter, void* pvKey, size iKeySize, void* pvData, size iDataSize);
 	bool					ReadElement(CFileReader* pcFileReader);
 

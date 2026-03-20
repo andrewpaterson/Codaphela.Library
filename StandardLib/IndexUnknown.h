@@ -38,8 +38,8 @@ private:
 public:
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
-	bool		Save(CFileWriter* pcFile);
-	bool		Load(CFileReader* pcFile);
+	bool		Save(CFileWriter* pcFileWriter);
+	bool		Load(CFileReader* pcFileReader);
 
 	template<class M>
 	M*			Put(uint8* pvKey, size iKeySize);  //Note this allocates M and returns a pointer to it.  Not a pointer to the pointer in the map.

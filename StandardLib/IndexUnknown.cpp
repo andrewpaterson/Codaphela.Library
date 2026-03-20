@@ -101,9 +101,10 @@ size CIndexUnknown::NumElements(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::Save(CFileWriter* pcFile)
+bool CIndexUnknown::Save(CFileWriter* pcFileWriter)
 {
-	return mcIndex.Write(pcFile);
+	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
+	return mcIndex.Write(pcFileWriter);
 }
 
 
@@ -111,10 +112,10 @@ bool CIndexUnknown::Save(CFileWriter* pcFile)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexUnknown::Load(CFileReader* pcFile)
+bool CIndexUnknown::Load(CFileReader* pcFileReader)
 {
-	mcIndex.SetDataFreeCallback(this);
-	return mcIndex.Read(pcFile, this, this);
+	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
+	return mcIndex.Read(pcFileReader, this, this, this);
 }
 
 
@@ -189,6 +190,7 @@ void CIndexUnknown::FreeData(void* pvData)
 		}
 	}
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //                                                                      //

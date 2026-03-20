@@ -618,7 +618,6 @@
     <ClCompile Include="CPPIdentifier.cpp" />
     <ClCompile Include="CPPString.cpp" />
     <ClCompile Include="CPPWhitespace.cpp" />
-    <ClCompile Include="DataFree.cpp" />
     <ClCompile Include="DataMemoryAllocator.cpp" />
     <ClCompile Include="DataOrderers.cpp" />
     <ClCompile Include="DatasIO.cpp" />
