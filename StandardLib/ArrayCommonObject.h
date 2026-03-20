@@ -30,7 +30,6 @@ CONSTRUCTABLE(CArrayCommonObject);
 DESTRUCTABLE(CArrayCommonObject);
 protected:
 	CArrayCommonUnknown		mcArray;
-	bool					mbSubRoot;
 
 public:
 	Ptr<CArrayCommonObject>	Init(bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
@@ -43,28 +42,23 @@ public:
 
 	bool					Remove(CPointer& pObject);
 	bool					Remove(CEmbeddedObject* pcObject);
-	bool					RemoveAll(void);
 	bool					RemoveEnd(size iIndexInclusive);
-	bool					Clear(void);
+	bool					RemoveAll(void) override;
 
-	size 					NumElements(void);
-	size 					NonNullElements(void);
-	size 					Size(void);
-	size 					Length(void);
-	bool					IsEmpty(void);
+	size 					NumElements(void) override;
+	size 					NonNullElements(void) override;
+	bool					IsEmpty(void) override;
 
-	void					MakeSubRoot(void);
-	bool					IsSubRoot(void);
-	void					SetPointerTosExpectedDistToRoot(int iDistToRoot);
+	void					SetPointerTosExpectedDistToRoot(int iDistToRoot) override;
 
-	size 					NumPointerTos(void);
-	size 					BaseNumPointerTos(void);
-	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos);
-	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded);
-	void					RemoveAllPointerTosDontFree(void);
-	void					RemoveAllPointerTosTryFree(void);
-	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters);
+	size 					NumPointerTos(void) override;
+	size 					BaseNumPointerTos(void)  override;
+	void					GetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
+	void					BaseGetPointerTos(CArrayTemplateEmbeddedObjectPtr* papcTos) override;
+	bool					ContainsPointerTo(CEmbeddedObject* pcEmbedded) override;
+	void					RemoveAllPointerTosDontFree(void) override;
+	void					RemoveAllPointerTosTryFree(void) override;
+	void					CollectAndClearPointerTosInvalidDistToRootObjects(CDistCalculatorParameters* pcParameters) override;
 
 	void					GrowTo(size iNumElements);
 
@@ -76,28 +70,27 @@ public:
 	CEmbeddedObject*		GetEmbeddedObject(size iIndex);
 	void					UnsafePointTo(CEmbeddedObject* pcNew, CEmbeddedObject* pcOld);
 
-	void					BaseValidatePointerTos(void);
-	void					ValidatePointerTos(void);
-	void					ValidateConsistency(void);
+	void					BaseValidatePointerTos(void) override;
+	void					ValidatePointerTos(void) override;
+	void					ValidateConsistency(void) override;
 	CPointer				StartIterationPointer(SSetIterator* psIter) override;
 	CPointer				IteratePointer(SSetIterator* psIter) override;
 
-	void					TouchAll(void);
-	void					KillAll(void);
+	void					TouchAll(void) override;
+	void					KillAll(void) override;
 
 protected:
 	void					FreePointers(void) override;
 	void					Free(void) override;
-	void					RemovePointerTo(CEmbeddedObject* pcTo);
-	size 					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew);
+	void					RemovePointerTo(CEmbeddedObject* pcTo) override;
+	size 					RemapPointerTos(CEmbeddedObject* pcOld, CEmbeddedObject* pcNew) override;
 	void					SetPointedTosDistToRoot(int iDistToRoot);
 
-	void					UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist);
+	void					UpdateAttachedEmbeddedObjectPointerTosDistToRoot(CDistCalculatorParameters* pcParameters, int iExpectedDist) override;
 
 	bool					InsertAt(size iIndex, CPointer& pObject);
 	bool					InsertAt(size iIndex, CEmbeddedObject* pcObject);
 	bool					RemoveAt(size iIndex);
-	bool					RemoveObjectTryFree(CEmbeddedObject* pcObject, bool bResult);
 };
 
 

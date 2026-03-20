@@ -34,8 +34,8 @@ protected:
 	bool					mbSubRoot;
 
 public:
-	Ptr<CMapObject>	Init(void);
-	void			Free(void) override;
+	Ptr<CMapObject>		Init(void);
+	void				Free(void) override;
 };
 
 
