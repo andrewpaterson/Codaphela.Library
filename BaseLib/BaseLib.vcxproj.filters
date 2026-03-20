@@ -1617,9 +1617,6 @@
     <ClInclude Include="MemoryManager.h">
       <Filter>Source\Memory\Manager</Filter>
     </ClInclude>
-    <ClInclude Include="DataFree.h">
-      <Filter>Source\Data</Filter>
-    </ClInclude>
     <ClInclude Include="ArrayElementNotFound.h">
       <Filter>Source\Data\Array\Basic</Filter>
     </ClInclude>
@@ -1733,6 +1730,9 @@
     </ClInclude>
     <ClInclude Include="IndexTemplate.h">
       <Filter>Source\Data\Map\Index</Filter>
+    </ClInclude>
+    <ClInclude Include="DataFree.h">
+      <Filter>Source\Data</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -2770,9 +2770,6 @@
     </ClCompile>
     <ClCompile Include="UTF-8.cpp">
       <Filter>Source\Text\Encoding</Filter>
-    </ClCompile>
-    <ClCompile Include="DataFree.cpp">
-      <Filter>Source\Data</Filter>
     </ClCompile>
     <ClCompile Include="IndexPtr.cpp">
       <Filter>Source\Data\Map\Index</Filter>

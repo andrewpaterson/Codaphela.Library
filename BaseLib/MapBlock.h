@@ -76,9 +76,10 @@ public:
 	static void			RemapKeyAndData(SMNode* psNode, void** ppvKey, void** ppvData);
 	void				Sort(void);
 
-protected:
 	SMNode*				AllocateNode(size iKeySize, size iDataSize);
 	void				FreeNode(SMNode* psNode);
+
+protected:
 
 	void				InsertHoldingIntoSorted(void);
 	void				GetInSorted(size iIndex, void** ppvKey, void** ppvData);

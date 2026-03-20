@@ -56,11 +56,10 @@ public:
 
 	bool				ValidateIndexTree(void);
 
-protected:
 	size				AdjustDataSize(void* pvValue, size iValueSize);
-
 	void				FreeData(void* pvData);
 
+protected:
 	void*				Malloc(size uiSize);
 	void*				Realloc(void* pv, size iMemSize);
 	void				Free(void* pv);

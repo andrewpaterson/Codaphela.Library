@@ -18,8 +18,7 @@ void CIndexBlock::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Init(CLifeInit<CMallocator> cMalloc)
 {
-	mcIndex.Init(cMalloc, this, this);
-	mcIndex.SetDataFreeCallback(this);
+	mcIndex.Init(cMalloc, this, this, this);
 }
 
 
@@ -29,8 +28,7 @@ void CIndexBlock::Init(CLifeInit<CMallocator> cMalloc)
 //////////////////////////////////////////////////////////////////////////
 void CIndexBlock::Init(CIndexTreeConfig* pcConfig)
 {
-	mcIndex.Init(pcConfig, this, this);
-	mcIndex.SetDataFreeCallback(this);
+	mcIndex.Init(pcConfig, this, this, this);
 }
 
 
@@ -347,8 +345,7 @@ bool CIndexBlock::Read(CFileReader* pcFileReader)
 {
 	//Do not call .Init() before Read().
 
-	mcIndex.SetDataFreeCallback(this);
-	return mcIndex.Read(pcFileReader, this, this);
+	return mcIndex.Read(pcFileReader, this, this, this);
 }
 
 

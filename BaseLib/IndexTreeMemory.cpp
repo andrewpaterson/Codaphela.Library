@@ -23,7 +23,7 @@ void CIndexTreeMemory::Init(void)
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(EIndexKeyReverse eKeyReverse, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	Init(LifeLocal<CMallocator>(&gcSystemAllocator), eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer, this, this);
+	Init(LifeLocal<CMallocator>(&gcSystemAllocator), eKeyReverse, MAX_DATA_SIZE, MAX_KEY_SIZE, cDataOrderer, this, this, NULL);
 }
 
 
@@ -51,9 +51,9 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
 {
-	Init(cMalloc, IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE, LifeNull<CIndexTreeDataOrderer>(), pcDataIO, pcDataSize);
+	Init(cMalloc, IKR_No, MAX_DATA_SIZE, MAX_KEY_SIZE, LifeNull<CIndexTreeDataOrderer>(), pcDataIO, pcDataSize, pcDataFree);
 }
 
 
@@ -63,7 +63,7 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, CDataIO* pcDataIO, C
 //////////////////////////////////////////////////////////////////////////
 void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize)
 {
-	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>(), this, this);
+	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, LifeNull<CIndexTreeDataOrderer>(), this, this, NULL);
 }
 
 
@@ -71,11 +71,11 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
 {
 	if (pcConfig)
 	{
-		Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer(), pcDataIO, pcDataSize);
+		Init(pcConfig->GetMalloc(), pcConfig->GetKeyReverse(), pcConfig->GetMaxDataSize(), pcConfig->GetMaxKeySize(), pcConfig->GetDataOrderer(), pcDataIO, pcDataSize, pcDataFree);
 	}
 	else
 	{
@@ -86,19 +86,19 @@ void CIndexTreeMemory::Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CInde
 
 void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer)
 {
-	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer, this, this);
+	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer, this, this, NULL	);
 }
 
 //////////////////////////////////////////////////////////////////////////
 //
 //
 //////////////////////////////////////////////////////////////////////////
-void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
 {
 	CIndexTree::Init(cMalloc, eKeyReverse, sizeof(CIndexTreeNodeMemory), sizeof(CIndexTreeNodeMemory) + sizeof(CIndexTreeDataNode), sizeof(CIndexTreeNodeMemory*), iMaxDataSize, iMaxKeySize, cDataOrderer);
 	mpcRoot = AllocateRoot();
 	miSize = 0;
-	mpcDataFree = NULL;
+	mpcDataFree = pcDataFree;
 	mpcDataIO = pcDataIO;
 	mpcDataSize = pcDataSize;
 }
@@ -853,7 +853,7 @@ bool CIndexTreeMemory::WriteData(CFileWriter* pcFileWriter, void* pvData)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
 {
 	CIndexTreeMemoryConfig	cConfig;
 	bool					bResult;
@@ -861,7 +861,7 @@ bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, 
 	bResult = cConfig.Read(pcFileReader);
 	if (bResult)
 	{
-		Init(cConfig.GetMalloc(), cConfig.GetKeyReverse(), cConfig.GetMaxDataSize(), cConfig.GetMaxKeySize(), cConfig.GetDataOrderer(), pcDataIO, pcDataSize);
+		Init(cConfig.GetMalloc(), cConfig.GetKeyReverse(), cConfig.GetMaxDataSize(), cConfig.GetMaxKeySize(), cConfig.GetDataOrderer(), pcDataIO, pcDataSize, pcDataFree);
 	}
 	cConfig.Kill();
 	return bResult;
@@ -874,7 +874,7 @@ bool CIndexTreeMemory::ReadConfig(CFileReader* pcFileReader, CDataIO* pcDataIO, 
 //////////////////////////////////////////////////////////////////////////
 bool CIndexTreeMemory::Read(CFileReader* pcFileReader)
 {
-	return Read(pcFileReader, this, this);
+	return Read(pcFileReader, this, this, NULL);
 }
 
 
@@ -882,7 +882,7 @@ bool CIndexTreeMemory::Read(CFileReader* pcFileReader)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize)
+bool CIndexTreeMemory::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree)
 {
 	//Do not call .Init() before Read().
 
@@ -890,7 +890,7 @@ bool CIndexTreeMemory::Read(CFileReader* pcFileReader, CDataIO* pcDataIO, CIndex
 	size	i;
 	bool	bResult;
 
-	if (!ReadConfig(pcFileReader, pcDataIO, pcDataSize))
+	if (!ReadConfig(pcFileReader, pcDataIO, pcDataSize, pcDataFree))
 	{
 		return false;
 	}
