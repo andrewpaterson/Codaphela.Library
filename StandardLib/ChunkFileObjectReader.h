@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CChunkFileObjectReader : public CExternalObjectReader
 {
-CONSTRUCTABLE(CChunkFileObjectReader);
+CONSTRUCTABLE(CChunkFileObjectReader)
 protected:
 	CChunkFileFileSystem*	mpcChunkFile;
 

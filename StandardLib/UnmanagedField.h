@@ -6,7 +6,7 @@
 class CBaseObject;
 class CUnmanagedField : public CField
 {
-CONSTRUCTABLE(CUnmanagedField);
+CONSTRUCTABLE(CUnmanagedField)
 protected:
 	size		muiLength;
 	uint32		muiElementSize;

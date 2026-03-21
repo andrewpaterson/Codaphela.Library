@@ -6,7 +6,7 @@
 
 class CFileObjectReader : public CExternalObjectReader, public CObjectIO
 {
-CONSTRUCTABLE(CFileObjectReader);
+CONSTRUCTABLE(CFileObjectReader)
 protected:
 	CFileBasic*		mpcFile;
 

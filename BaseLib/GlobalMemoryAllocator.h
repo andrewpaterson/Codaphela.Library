@@ -6,7 +6,7 @@
 
 class CGlobalMemoryAllocator : public CMallocator
 {
-CONSTRUCTABLE(CGlobalMemoryAllocator);
+CONSTRUCTABLE(CGlobalMemoryAllocator)
 public:
 	void		Kill(void);
 

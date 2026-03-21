@@ -27,8 +27,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMapObject : public CCollection
 {
-CONSTRUCTABLE(CMapObject);
-DESTRUCTABLE(CMapObject);
+CONSTRUCTABLE(CMapObject)
+DESTRUCTABLE(CMapObject)
 protected:
 	CMapUnknownUnknown		mcMap;
 	bool					mbSubRoot;

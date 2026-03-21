@@ -44,7 +44,7 @@ enum EArrayUnsetReturn
 //This is called CArrayCommonUnknown because it *HAS* a _CArrayUnknownPtr not because it *IS* a the base class for unknown arrays (although it is that also).
 class CArrayCommonUnknown : public CUnknown
 {
-CONSTRUCTABLE(CArrayCommonUnknown);
+CONSTRUCTABLE(CArrayCommonUnknown)
 protected:
 	uint16				miFlags;
 

@@ -7,7 +7,7 @@
 class CMapUnknownUnknown : public CMapCommonUnknown
 {
 friend class CMapUnknownUnknownDataFree;
-CONSTRUCTABLE(CMapUnknownUnknown);
+CONSTRUCTABLE(CMapUnknownUnknown)
 private:
 	CMapPtrPtr	mcMap;
 

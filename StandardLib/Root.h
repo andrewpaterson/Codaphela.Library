@@ -30,8 +30,8 @@ class CRoot : public CObject
 {
 friend class CObjects;
 friend class CUnknowns;
-CONSTRUCTABLE(CRoot);
-DESTRUCTABLE(CRoot);
+CONSTRUCTABLE(CRoot)
+DESTRUCTABLE(CRoot)
 protected:
 	Ptr<CSetObject>		mpObjects;
 	CObjects*			mpcObjectsAllocatingFrom;

@@ -7,7 +7,7 @@ class CObjects;
 class CHollowObject;
 class CHollowEmbeddedObject : public CEmbeddedObject
 {
-CONSTRUCTABLE(CHollowEmbeddedObject);
+CONSTRUCTABLE(CHollowEmbeddedObject)
 public:
 	void				FreeInternal(bool bAllocatedInObjects) override;
 	bool				Save(CObjectWriter* pcFile) override;

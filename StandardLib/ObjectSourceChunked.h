@@ -8,7 +8,7 @@ class CExternalObjectReader;
 class CChunkFileObjectReader;
 class CObjectSourceChunked : public CObjectSource
 {
-CONSTRUCTABLE(CObjectSourceChunked);
+CONSTRUCTABLE(CObjectSourceChunked)
 protected:
 	CArrayChars					mcNames;
 	CChunkFile					mcChunkFile;

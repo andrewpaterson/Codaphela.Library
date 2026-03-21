@@ -5,7 +5,7 @@
 
 class CNullAllocator : public CMallocator
 {
-CONSTRUCTABLE(CNullAllocator);
+CONSTRUCTABLE(CNullAllocator)
 public:
 	void		Kill(void);
 

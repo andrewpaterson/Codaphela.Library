@@ -5,7 +5,7 @@
 
 class CObjectSourceText : public CObjectSingleSource
 {
-CONSTRUCTABLE(CObjectSource);
+CONSTRUCTABLE(CObjectSource)
 public:
 	void		Init(CObjectConverter* pcConverter, CAbstractFile* pcFile, char* szFilename);
 	void		Kill(void);

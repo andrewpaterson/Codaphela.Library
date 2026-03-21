@@ -7,7 +7,7 @@
 
 class CFreeListAllocator : public CLocalMallocator
 {
-CONSTRUCTABLE(CFreeListAllocator);
+CONSTRUCTABLE(CFreeListAllocator)
 protected:
 	CFreeList	mcFreeList;
 

@@ -14,7 +14,7 @@
 class CIndexedDataConfig : public CConstructable, public CKillable
 {
 friend class CIndexedData;
-CONSTRUCTABLE(CIndexedDataConfig);
+CONSTRUCTABLE(CIndexedDataConfig)
 public:
 			void									Kill(void);
 

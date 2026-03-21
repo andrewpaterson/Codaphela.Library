@@ -11,7 +11,7 @@ class CClass;
 class CClasses;
 class CField : public CUnknown
 {
-CONSTRUCTABLE(CField);
+CONSTRUCTABLE(CField)
 protected:
 	uint32		muiOffset;
 	CClass*		mpcFieldClass;

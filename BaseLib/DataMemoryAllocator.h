@@ -7,7 +7,7 @@
 
 class CDataMemoryAllocator : public CLocalMallocator
 {
-CONSTRUCTABLE(CDataMemoryAllocator);
+CONSTRUCTABLE(CDataMemoryAllocator)
 protected:
 	CDataMemory		mcMemory;
 

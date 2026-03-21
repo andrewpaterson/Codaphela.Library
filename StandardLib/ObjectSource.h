@@ -31,7 +31,7 @@ class CSerialisedObject;
 class CObjectConverter;
 class CObjectSource : public CUnknown
 {
-CONSTRUCTABLE(CObjectSource);
+CONSTRUCTABLE(CObjectSource)
 protected:
 	CObjectConverter*	mpcConverter;
 	CAbstractFile*		mpcFile;

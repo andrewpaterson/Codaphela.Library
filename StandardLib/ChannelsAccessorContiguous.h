@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CChannelsAccessorContiguous  : public CChannelsAccessor  //Non converting contiguous.
 {
-CONSTRUCTABLE(CChannelsAccessorContiguous); 
+CONSTRUCTABLE(CChannelsAccessorContiguous)
 public:
 	size	miByteOffset;
 

@@ -12,8 +12,8 @@ class CObjectWriter;
 class CObjectReader;
 class CString : public CObject
 {
-CONSTRUCTABLE(CString);
-DESTRUCTABLE(CString);
+CONSTRUCTABLE(CString)
+DESTRUCTABLE(CString)
 protected:
 	CChars	msz;
 

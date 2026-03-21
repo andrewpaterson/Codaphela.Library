@@ -29,7 +29,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMapCommonUnknown : public CUnknown, public CDataIO, public CDataFree
 {
-CONSTRUCTABLE(CMapCommonUnknown);
+CONSTRUCTABLE(CMapCommonUnknown)
 protected:
 	uint16						miFlags;
 
