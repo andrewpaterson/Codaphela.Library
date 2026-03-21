@@ -8,7 +8,7 @@
 
 class CSequenceConfig : public CConstructable, public CKillable
 {
-CONSTRUCTABLE(CSequenceConfig);
+CONSTRUCTABLE(CSequenceConfig)
 public:
 			void		Kill(void);
 

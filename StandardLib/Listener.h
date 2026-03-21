@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CListener : public CConstructable
 {
-CONSTRUCTABLE(CListener);
+CONSTRUCTABLE(CListener)
 public:
 };
 

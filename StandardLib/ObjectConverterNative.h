@@ -11,7 +11,7 @@ class CIndexGenerator;
 class CObjectSource;
 class CObjectConverterNative : public CObjectConverter
 {
-CONSTRUCTABLE(CObjectConverterNative);
+CONSTRUCTABLE(CObjectConverterNative)
 protected:
 	CArrayIndexNewOld			mcIndexRemap;  //For testing.
 

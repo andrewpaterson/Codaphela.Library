@@ -6,7 +6,7 @@
 
 class CAccessDataOrderer : public CIndexTreeDataOrderer
 {
-CONSTRUCTABLE(CAccessDataOrderer);
+CONSTRUCTABLE(CAccessDataOrderer)
 public:
 	void	Init(void);
 	void	Kill(void);

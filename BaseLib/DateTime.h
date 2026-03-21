@@ -28,7 +28,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CDateTime
 {
-CONSTRUCTABLE(CDateTime);
+CONSTRUCTABLE(CDateTime)
 public:
 	CDate		mcDate;
 	int64		miNanosecondsInDay;

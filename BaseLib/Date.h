@@ -34,7 +34,7 @@ enum EDateRounding
 
 class CDate
 {
-CONSTRUCTABLE(CDate);
+CONSTRUCTABLE(CDate)
 public:
 	int16	msYear;
 	int8	mcMonth;

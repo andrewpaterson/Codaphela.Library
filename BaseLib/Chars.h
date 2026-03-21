@@ -36,7 +36,7 @@ Microsoft Windows is Copyright Microsoft Corporation
 class CArrayChars;
 class CChars
 {
-CONSTRUCTABLE(CChars);
+CONSTRUCTABLE(CChars)
 friend class CFileReader;
 friend class CFileWriter;
 protected:

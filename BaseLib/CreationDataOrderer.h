@@ -7,7 +7,7 @@
 
 class CCreationDataOrderer : public CIndexTreeDataOrderer
 {
-CONSTRUCTABLE(CCreationDataOrderer);
+CONSTRUCTABLE(CCreationDataOrderer)
 public:
 	void	Init(void);
 	void	Kill(void);

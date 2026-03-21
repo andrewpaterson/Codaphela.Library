@@ -7,7 +7,7 @@
 
 class CScratchPadAllocator : public CLocalMallocator
 {
-CONSTRUCTABLE(CScratchPadAllocator);
+CONSTRUCTABLE(CScratchPadAllocator)
 protected:
 	CScratchPad		mcScratchPad;
 

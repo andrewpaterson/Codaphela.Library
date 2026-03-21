@@ -26,7 +26,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CChannelsCopier : public CUnknown
 {
-CONSTRUCTABLE(CChannelsCopier);
+CONSTRUCTABLE(CChannelsCopier)
 protected:
 	CChannelsAccessor*	mpcSourceAccessor;
 	CChannelsAccessor*	mpcDestAccessor;

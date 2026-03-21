@@ -7,7 +7,7 @@ class CExternalObjectReader;
 class CFileObjectReader;
 class CObjectSourceSimple : public CObjectSingleSource
 {
-CONSTRUCTABLE(CObjectSourceSimple);
+CONSTRUCTABLE(CObjectSourceSimple)
 protected:
 	CFileObjectReader*	mpcReader;
 

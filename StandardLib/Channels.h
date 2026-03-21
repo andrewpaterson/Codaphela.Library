@@ -32,8 +32,8 @@ Microsoft Windows is Copyright Microsoft Corporation
 
 class CChannels : public CObject
 {
-CONSTRUCTABLE(CChannels);
-DESTRUCTABLE(CChannels);
+CONSTRUCTABLE(CChannels)
+DESTRUCTABLE(CChannels)
 protected:
 	CArrayChannelOffset			masChannelOffsets;
 	size						miSize;				//The number of 'pixels' in the channels (not the size in bytes).

@@ -47,7 +47,7 @@ union UString
 class CChars;
 class CCharsImmutable
 {
-CONSTRUCTABLE(CCharsImmutable);
+CONSTRUCTABLE(CCharsImmutable)
 friend class CFileReader;
 friend class CFileWriter;
 protected:

@@ -6,8 +6,8 @@
 
 class CPointerContainer : public CObject
 {
-CONSTRUCTABLE(CPointerContainer);
-DESTRUCTABLE(CPointerContainer);
+CONSTRUCTABLE(CPointerContainer)
+DESTRUCTABLE(CPointerContainer)
 public:
 	Ptr<>	mp;
 
@@ -23,8 +23,8 @@ public:
 
 class CNamedPointerContainer : public CObject
 {
-CONSTRUCTABLE(CNamedPointerContainer);
-DESTRUCTABLE(CNamedPointerContainer);
+CONSTRUCTABLE(CNamedPointerContainer)
+DESTRUCTABLE(CNamedPointerContainer)
 public:
 	Ptr<>	mp;
 

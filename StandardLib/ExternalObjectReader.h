@@ -7,7 +7,7 @@
 
 class CExternalObjectReader : public CUnknown
 {
-CONSTRUCTABLE(CExternalObjectReader);
+CONSTRUCTABLE(CExternalObjectReader)
 public:
 			void				Kill(void);
 

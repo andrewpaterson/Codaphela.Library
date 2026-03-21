@@ -26,8 +26,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CArrayCommonObject : public CCollection
 {
-CONSTRUCTABLE(CArrayCommonObject);
-DESTRUCTABLE(CArrayCommonObject);
+CONSTRUCTABLE(CArrayCommonObject)
+DESTRUCTABLE(CArrayCommonObject)
 protected:
 	CArrayCommonUnknown		mcArray;
 

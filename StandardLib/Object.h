@@ -44,7 +44,7 @@ friend class CPointer;
 friend class CObjects;
 friend class CExternalObjectDeserialiser;
 
-CONSTRUCTABLE(CObject);
+CONSTRUCTABLE(CObject)
 protected:
 	//Both pointers and embedded objects are now explicitly setup in the class.  Remove these fields.
 	CArrayTemplateEmbedded<CPointer*, 5>		mapPointers;  //Pointers in this object.  

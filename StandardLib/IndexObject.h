@@ -27,8 +27,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CIndexObject : public CCollection
 {
-CONSTRUCTABLE(CIndexObject);
-DESTRUCTABLE(CIndexObject);
+CONSTRUCTABLE(CIndexObject)
+DESTRUCTABLE(CIndexObject)
 protected:
 	CIndexTreeMemory	mcIndex;
 	bool				mbSubRoot;

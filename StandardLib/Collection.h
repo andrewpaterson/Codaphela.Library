@@ -28,7 +28,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 class CObjects;
 class CCollection : public CBaseObject
 {
-CONSTRUCTABLE(CCollection);
+CONSTRUCTABLE(CCollection)
 protected:
 	bool	mbSubRoot;
 

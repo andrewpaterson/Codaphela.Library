@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CObjectSingleSource : public CObjectSource
 {
-CONSTRUCTABLE(CObjectSingleSource);
+CONSTRUCTABLE(CObjectSingleSource)
 protected:
 	CChars	mszObjectName;
 

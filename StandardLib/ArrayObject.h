@@ -27,8 +27,8 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CArrayObject : public CArrayCommonObject
 {
-CONSTRUCTABLE(CArrayObject);
-DESTRUCTABLE(CArrayObject);
+CONSTRUCTABLE(CArrayObject)
+DESTRUCTABLE(CArrayObject)
 public:
 	Ptr<CArrayObject>	Init(void);
 

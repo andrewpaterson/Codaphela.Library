@@ -7,7 +7,7 @@
 
 class CModificationDataOrderer : public CIndexTreeDataOrderer
 {
-CONSTRUCTABLE(CModificationDataOrderer);
+CONSTRUCTABLE(CModificationDataOrderer)
 public:
 	void	Init(void);
 	void	Kill(void);

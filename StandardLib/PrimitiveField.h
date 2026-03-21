@@ -7,7 +7,7 @@ class CPrimitiveObject;
 class CBaseObject;
 class CPrimitiveField : public CField
 {
-CONSTRUCTABLE(CPrimitiveField);
+CONSTRUCTABLE(CPrimitiveField)
 protected:
 	SDataIO*	mpcIO;
 	uint32		muiValueOffset;

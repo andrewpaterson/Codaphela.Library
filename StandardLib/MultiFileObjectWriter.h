@@ -27,7 +27,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CMultiFileObjectWriter : public CExternalObjectWriter, public CObjectIO
 {
-CONSTRUCTABLE(CMultiFileObjectWriter);
+CONSTRUCTABLE(CMultiFileObjectWriter)
 protected:
 	CChars	mszObjectBaseName;
 	CChars	mszDirectory;

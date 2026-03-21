@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CChannelsAccessorTypeConvert : public CChannelsAccessor  //Does type conversions on byte aligned types
 {
-CONSTRUCTABLE(CChannelsAccessorTypeConvert); 
+CONSTRUCTABLE(CChannelsAccessorTypeConvert)
 public:
 	void*	Get(size iPos);
 	void	Set(size iPos, void* pvData);

@@ -80,7 +80,7 @@ friend class CObjectWriter;
 friend class CObjectReader;
 friend class CNamedIndexedObjects;
 
-CONSTRUCTABLE(CBaseObject);
+CONSTRUCTABLE(CBaseObject)
 protected:
 	OIndex				moi;
 	CCharsImmutable		mon;

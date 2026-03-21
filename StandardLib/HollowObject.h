@@ -25,7 +25,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 
 class CHollowObject : public CBaseObject
 {
-CONSTRUCTABLE(CHollowObject);
+CONSTRUCTABLE(CHollowObject)
 public:
 								CHollowObject();
 								~CHollowObject();

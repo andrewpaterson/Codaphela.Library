@@ -13,7 +13,7 @@
 class CNamedIndexesConfig : public CConstructable, public CKillable
 {
 friend class CNamedIndexes;
-CONSTRUCTABLE(CNamedIndexesConfig);
+CONSTRUCTABLE(CNamedIndexesConfig)
 public:
 	virtual void									Kill(void);
 
