@@ -122,16 +122,18 @@ bool CIndexTreeFile::Init(CDurableFileController* pcDurableFileControl, char* sz
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeFile::Kill(void)
+void CIndexTreeFile::Kill(void)
 {
 	if (mpcDurableFileControl->IsBegun())
 	{
-		return gcLogger.Error2(__METHOD__, " DurableFileController.End must called before Kill.", NULL);
+		gcLogger.Error2(__METHOD__, " DurableFileController.End must called before Kill.", NULL);
+		return;
 	}
 
 	if (!IsFlushed())
 	{
-		return gcLogger.Error2(__METHOD__, " Flush must called before Kill.", NULL);
+		gcLogger.Error2(__METHOD__, " Flush must called before Kill.", NULL);
+		return;
 	}
 
 	mcPassThruMallocLife.Kill();
@@ -140,7 +142,17 @@ bool CIndexTreeFile::Kill(void)
 	mpcDurableFileControl = NULL;
 	RecurseKill(mpcRoot);
 
-	return CIndexTree::Kill();
+	CIndexTree::Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeFile::ReInit(void)
+{
+	gcLogger.Error2(__METHOD__, " Not yet implemented.", NULL);
 }
 
 

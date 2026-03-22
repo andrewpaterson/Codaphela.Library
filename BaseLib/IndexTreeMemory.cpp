@@ -108,10 +108,50 @@ void CIndexTreeMemory::Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKe
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeMemory::Kill(void)
+void CIndexTreeMemory::Kill(void)
 {
 	RecurseKill(mpcRoot);
-	return CIndexTree::Kill();
+	CIndexTree::Kill();
+	mpcRoot = NULL;;
+	miSize = 0;
+	mpcDataFree = NULL;
+	mpcDataIO = NULL;
+	mpcDataSize = NULL;
+
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+void CIndexTreeMemory::ReInit(void)
+{
+	CDataFree*							pcDataFree;
+	CDataIO*							pcDataIO;
+	CIndexTreeDataSize*					pcDataSize;
+
+	CLifeInit<CMallocator>				cMalloc;
+	CLifeInit<CIndexTreeDataOrderer>	cDataOrderer;
+	EIndexKeyReverse					eKeyReverse;
+	size								iMaxDataSize; 
+	size								iMaxKeySize;
+
+	// This have never been tested.
+
+	pcDataFree = mpcDataFree;
+	pcDataIO = mpcDataIO;
+	pcDataSize = mpcDataSize;
+
+	cMalloc.Init(mpcMalloc, mcMallocLife.MustFree(), mcMallocLife.MustKill());
+	cDataOrderer.Init(mpcDataOrderer, mcDataOrdererLife.MustFree(), mcDataOrdererLife.MustKill());
+
+	eKeyReverse = meReverseKey;
+	iMaxDataSize = miMaxDataSize;
+	iMaxKeySize = miMaxKeySize;
+
+	Kill();
+	Init(cMalloc, eKeyReverse, iMaxDataSize, iMaxKeySize, cDataOrderer, pcDataIO, pcDataSize, pcDataFree);
 }
 
 
@@ -2107,6 +2147,48 @@ size CIndexTreeMemory::RecurseCountListSize(CIndexTreeNodeMemory* pcNode)
 	{
 		return 0;
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIndexTreeMemory::NonNullElements(void)
+{
+	return RecurseNonNullElements(mpcRoot);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CIndexTreeMemory::RecurseNonNullElements(CIndexTreeNodeMemory* pcNode)
+{
+	size					i;
+	CIndexTreeNodeMemory*	pcChild;
+	void*					pvData;
+	size					uiNumIndexes;
+	size					uiCount;
+
+	uiCount = 0;
+	if (pcNode != NULL)
+	{
+		pvData = pcNode->GetDataPtr();
+		if (pvData != NULL)
+		{
+			uiCount++;
+		}
+
+		uiNumIndexes = pcNode->NumIndexes();
+		for (i = 0; i < uiNumIndexes; i++)
+		{
+			pcChild = pcNode->GetNode(i);
+			uiCount += RecurseNonNullElements(pcChild);
+		}
+	}
+	return uiCount;
 }
 
 

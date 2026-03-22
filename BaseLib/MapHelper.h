@@ -4,6 +4,7 @@
 #include "Define.h"
 
 
+//This is WAY too big.  Should be be, like, 64 bytes.
 #define MAX_KEY_SIZE ((size)(4 KB))
 
 

@@ -17,8 +17,9 @@ protected:
 public:
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough);
 	void	Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedDataEvictionCallback* pcEvictionUserCallback);
-	bool	Kill(void);
+	void	Kill(void);
 
+	bool	CanKill(void);
 	bool	DescriptorEvicted(OIndex oi, void* pvCache, uint32 uiDataSize);
 	bool	Flush(bool bClearCache);
 

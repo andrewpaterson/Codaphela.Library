@@ -40,12 +40,9 @@ void CIndexedDescriptorsFile::Init(CIndexedDataCommon* pcIndexedData, CDurableFi
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedDescriptorsFile::Kill(void)
+void CIndexedDescriptorsFile::Kill(void)
 {
-	bool bResult;
-
-	bResult = mcIndexTree.Kill();
-	return bResult;
+	mcIndexTree.Kill();
 }
 
 

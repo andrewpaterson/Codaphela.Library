@@ -29,7 +29,7 @@ protected:
 
 public:
 	void			Init(CDurableFileController* pcDurableFileControl, char* szSubDirectory, char* szDataExtension, char* szDescriptorName, char* szDescriptorRewrite, size iCacheSize, EIndexWriteThrough eWriteThrough, CIndexedFilesEvictionCallback* pcEvictionCallback);
-	bool			Kill(void);
+	void			Kill(void);
 
 	bool			GetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiMaxDataSize);
 	bool			SetData(OIndex oi, CIndexedDataDescriptor* pcDescriptor, void* pvData, size uiDataSize);
