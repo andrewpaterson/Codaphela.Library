@@ -17,7 +17,7 @@ protected:
 
 public:
 			void			Init(CIndexedDataEvictionCallback* pcIndexedDataEvictionCallback);
-	virtual bool			Kill(void) =0;
+	virtual void			Kill(void) =0;
 
 			bool			IsCaching(void);
 			bool			IsWriteThrough(void);

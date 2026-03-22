@@ -38,14 +38,10 @@ void CNamedIndexes::Init(CDurableFileController* pcController, CLifeInit<CNamedI
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CNamedIndexes::Kill(void)
+void CNamedIndexes::Kill(void)
 {
-	bool	bResult;
-
-	bResult = mcIndexTree.Kill();
+	mcIndexTree.Kill();
 	mcConfig.Kill();
-
-	return bResult;
 }
 
 

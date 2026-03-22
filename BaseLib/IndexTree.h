@@ -35,7 +35,8 @@ protected:
 
 public:
 			bool					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size tSizeofNode, size tSizeofDataNode, size tSizeofNodePtr, size iMaxDataSize, size	iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
-	virtual bool					Kill(void);
+	virtual void					Kill(void);
+	virtual void					ReInit(void) =0;
 
 	virtual bool					Remove(uint8* pvKey, size iKeySize) =0;
 	virtual bool					HasKey(uint8* pvKey, size iKeySize) =0;

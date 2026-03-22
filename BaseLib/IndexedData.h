@@ -51,7 +51,9 @@ protected:
 
 public:
 	void 			Init(CDurableFileController* pcController, CLifeInit<CIndexedDataConfig> cConfig);
-	bool 			Kill(void);
+	void 			Kill(void);
+
+	bool			CanKill(void);
 
 	bool			Flush(void);
 	bool			Flush(bool bClearDataCache);

@@ -39,7 +39,7 @@ protected:
 	
 public:
 	void	Init(CDurableFileController* pcController, CLifeInit<CNamedIndexesConfig> pcConfig);
-	bool	Kill(void);
+	void	Kill(void);
 
 	bool	Add(char* szName, OIndex oi);
 	bool	Add(CChars* szName, OIndex oi);

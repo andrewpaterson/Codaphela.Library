@@ -77,13 +77,10 @@ bool CIndexTreeEvicting::Init(CDurableFileController* pcDurableFileControl, char
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexTreeEvicting::Kill(void)
+void CIndexTreeEvicting::Kill(void)
 {
-	bool bResult;
-
 	mcEvictionStrategy.Kill();
-	bResult = mcIndexTree.Kill();
-	return bResult;
+	mcIndexTree.Kill();
 }
 
 

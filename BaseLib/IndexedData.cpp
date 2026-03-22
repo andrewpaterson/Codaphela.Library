@@ -50,17 +50,31 @@ void CIndexedData::Init(CDurableFileController* pcController, CLifeInit<CIndexed
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedData::Kill(void)
+void CIndexedData::Kill(void)
 {
-	bool bResult;
-
 	mpcDurableFileControl = NULL;
 
-	bResult = mcData.Kill();
-	bResult &= mcIndices.Kill();
+	mcData.Kill();
+	mcIndices.Kill();
 	mcConfig.Kill();
+}
 
-	return bResult;;
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexedData::CanKill(void)
+{
+	if (!mcData.IsFlushed())
+	{
+		return false;
+	}
+	if (!mcIndices.IsFlushed())
+	{
+		return false;
+	}
+	return true;
 }
 
 

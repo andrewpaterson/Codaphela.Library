@@ -62,7 +62,8 @@ public:
 	void					Init(CIndexTreeConfig* pcConfig, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer);
 	void					Init(CLifeInit<CMallocator> cMalloc, EIndexKeyReverse eKeyReverse, size iMaxDataSize, size iMaxKeySize, CLifeInit<CIndexTreeDataOrderer> cDataOrderer, CDataIO* pcDataIO, CIndexTreeDataSize* pcDataSize, CDataFree* pcDataFree);
-	bool					Kill(void);
+	void					Kill(void) override;
+	void					ReInit(void) override;
 
 	bool					Get(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
 	bool					GetLongestPartial(uint8* pvKey, size iKeySize, void* pvDestData, size* puiDataSize, size uiMaxDataSize);
@@ -102,6 +103,9 @@ public:
 	bool					ValidateIndexTree(void);
 	CIndexTreeNodeMemory*	GetRoot(void);
 
+	size					CountListSize(void);
+	size					NonNullElements(void);
+
 	void					Print(CChars* pszDest, bool bShowFlags, bool bShowSize);
 	void					Dump(void);
 
@@ -135,7 +139,6 @@ protected:
 	void					RecurseFindAll(CIndexTreeNodeMemory* pcNode, CArrayVoidPtr* papvElements);
 	size					RecurseSize(CIndexTreeNodeMemory* pcNode);
 	size					RecurseNumNodes(CIndexTreeNodeMemory* pcNode);
-	size					CountListSize(void);
 	size					RecurseCountListSize(CIndexTreeNodeMemory* pcNode);
 	size					RecurseByteSize(CIndexTreeNodeMemory* pcNode);
 	bool					ValidateLimits(void);
@@ -144,6 +147,7 @@ protected:
 	bool					RecurseValidateParentIndex(CIndexTreeRecursor* pcCursor);
 	bool					ValidateNodeTree(void);
 	bool					RecurseValidateNodeTree(CIndexTreeRecursor* pcCursor);
+	size					RecurseNonNullElements(CIndexTreeNodeMemory* pcNode);
 
 	size					NumAllocatedNodes(void);
 

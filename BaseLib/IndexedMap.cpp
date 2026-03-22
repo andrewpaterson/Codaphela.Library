@@ -35,7 +35,20 @@ void CIndexedMap::Init(CDurableFileController* pcDurableFileControl, char* szSub
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CIndexedMap::Kill(void)
+void CIndexedMap::Kill(void)
+{
+	mcData.Kill();
+
+	mcDescriptorsFile.Kill();
+	mcDescriptors.Kill();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+bool CIndexedMap::CanKill(void)
 {
 	if (!mcData.IsFlushed())
 	{
@@ -45,13 +58,9 @@ bool CIndexedMap::Kill(void)
 	{
 		return false;
 	}
-
-	mcData.Kill();
-
-	mcDescriptorsFile.Kill();
-	mcDescriptors.Kill();
 	return true;
 }
+
 
 //////////////////////////////////////////////////////////////////////////
 //
