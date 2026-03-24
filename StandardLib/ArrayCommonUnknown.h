@@ -56,52 +56,54 @@ private:
 	void				PrivateKill(void);
 
 public:
-	void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
-	void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize);
-	void 				Kill(void);
-	void 				ReInit(void);
+			void 				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder);
+			void				Init(bool bTypeKnown, bool bKillElements, bool bUnique, bool bIgnoreNull, bool bPreserveOrder, size iChunkSize);
+			void 				Kill(void) override;
+	virtual void 				ReInit(void);  //This should be virtual.
 
-	bool				Save(CFileWriter* pcFile);
-	bool				Load(CFileReader* pcFile);
+			bool				Save(CFileWriter* pcFile) override;
+			bool				Load(CFileReader* pcFile) override;
 
-	size				NumElements(void);
-	void				KillElements(bool bKill);
-	void				UniqueElements(bool bUnique);
-	void				IgnoreNullElements(bool bIgnoreNull);
-	void				PreserveOrder(bool bPreserveOrder);
-	void				Sort(void);
-	bool				Contains(CUnknown* pcUnknown);
-	size				Find(CUnknown* pcUnknown);
-	void				CleanNullsIfNecessary(bool bCleanNullsIfNecessary);
-	void				CleanNullsIfNecessary(void);
-	void				TypeKnown(bool bTypeKnown);
-	bool				Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
-	bool				AddAll(CArrayCommonUnknown* pcSource);
-	bool				Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
-	bool				Insert(size iIndex, CUnknown* pcUnknown);
-	bool				RemoveEnd(size iIndexInclusive);
-	bool				Remove(CUnknown* pcUnknown);
-	bool				Remove(size iIndex, bool bCleanNullsIfNecessary = true);
-	bool				RemoveLast(bool bCleanNullsIfNecessary = true);
-	bool				RemoveDuringIteration(SSetIterator* psIter);
-	EArrayUnsetReturn	Unset(size iIndex);
-	CUnknown*			First(void);
-	CUnknown*			Last(void);
-	CUnknown*			StartIteration(SSetIterator* psIter);
-	CUnknown*			Iterate(SSetIterator* psIter);
-	bool				IsKillElements(void);
-	bool				IsEmpty(void);
-	bool				IsNotEmpty(void);
-	void				UnsafeSet(size iIndex, CUnknown* pcUnknown);
-	CUnknown*			UnsafeGet(size iIndex);
-	CUnknown**			UnsafeGetPointer(size iIndex);
-	size				UnsafeNumElements(void);
-	size				UnsafeNonNullElements(void);
-	bool				LoadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements);
-	bool				SaveArrayHeader(CFileWriter* pcFile);
-	void				PostLoad(uint16 iFlags);
-	void				SetChunkSize(size iChunkSize);
-	void				GrowTo(size iNumElements);
+			//Most of these should be protected or virtual.
+			size				NumElements(void);
+			void				KillElements(bool bKill);
+			void				UniqueElements(bool bUnique);
+			void				IgnoreNullElements(bool bIgnoreNull);
+			void				PreserveOrder(bool bPreserveOrder);
+			void				Sort(void);
+			bool				Contains(CUnknown* pcUnknown);
+			size				Find(CUnknown* pcUnknown);
+			size				FindNext(CUnknown* pcUnknown, size uiStartIndex);
+			void				CleanNullsIfNecessary(bool bCleanNullsIfNecessary);
+			void				CleanNullsIfNecessary(void);
+			void				TypeKnown(bool bTypeKnown);
+			bool				Add(CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
+			bool				AddAll(CArrayCommonUnknown* pcSource);
+			bool				Set(size iIndex, CUnknown* pcUnknown, bool bCleanNullsIfNecessary = true);
+			bool				Insert(size iIndex, CUnknown* pcUnknown);
+			bool				RemoveEnd(size iIndexInclusive);
+	virtual size				Remove(CUnknown* pcUnknown);
+			bool				Remove(size iIndex, bool bCleanNullsIfNecessary = true);
+			bool				RemoveLast(bool bCleanNullsIfNecessary = true);
+			bool				RemoveDuringIteration(SSetIterator* psIter);
+			EArrayUnsetReturn	Unset(size iIndex);
+			CUnknown*			First(void);
+			CUnknown*			Last(void);
+			bool				StartIteration(SSetIterator* psIter, CUnknown** ppcUnknown);
+			bool				Iterate(SSetIterator* psIter, CUnknown** ppcUnknown);
+			bool				IsKillElements(void);
+			bool				IsEmpty(void);
+			bool				IsNotEmpty(void);
+			void				UnsafeSet(size iIndex, CUnknown* pcUnknown);
+			CUnknown*			UnsafeGet(size iIndex);
+			CUnknown**			UnsafeGetPointer(size iIndex);
+			size				UnsafeNumElements(void);
+			size				UnsafeNonNullElements(void);
+			bool				LoadArrayHeader(CFileReader* pcFile, uint16* piFlags, size* piNumElements);
+			bool				SaveArrayHeader(CFileWriter* pcFile);
+			void				PostLoad(uint16 iFlags);
+			void				SetChunkSize(size iChunkSize);
+			void				GrowTo(size iNumElements);
 
 protected:
 	virtual bool		LoadElement(CFileReader* pcFile, CUnknown** ppcUnknown);

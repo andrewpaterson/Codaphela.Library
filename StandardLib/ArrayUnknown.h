@@ -42,7 +42,7 @@ public:
 	void		Set(size iIndex, CUnknown* pcUnknown);
 
 	void		Remove(size iIndex);
-	bool		Remove(CUnknown* pcUnknown);
+	size		Remove(CUnknown* pcUnknown) override;
 };
 
 

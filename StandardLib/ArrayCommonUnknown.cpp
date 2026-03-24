@@ -20,6 +20,7 @@ along with Codaphela StandardLib.  If not, see <http://www.gnu.org/licenses/>.
 ** ------------------------------------------------------------------------ **/
 #include "BaseLib/PointerFunctions.h"
 #include "BaseLib/PrimitiveTypes.h"
+#include "SetIterator.h"
 #include "Unknowns.h"
 #include "ArrayUnknown.h"
 
@@ -166,17 +167,18 @@ bool CArrayCommonUnknown::Save(CFileWriter* pcFile)
 {
 	SSetIterator	sIter;
 	CUnknown*		pcUnknown;
-	size				iCount;
+	size			iCount;
+	bool			bExists;
 
 	iCount = 0;
 
 	ReturnOnFalse(SaveArrayHeader(pcFile));
 
-	pcUnknown = StartIteration(&sIter);
-	while (pcUnknown)
+	bExists = StartIteration(&sIter, &pcUnknown);
+	while (bExists)
 	{
 		ReturnOnFalse(SaveElement(pcFile, pcUnknown));
-		pcUnknown = Iterate(&sIter);
+		bExists = Iterate(&sIter, &pcUnknown);
 		iCount++;
 	}
 
@@ -368,27 +370,39 @@ bool CArrayCommonUnknown::Contains(CUnknown* pcUnknown)
 //////////////////////////////////////////////////////////////////////////
 size CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 {
-	CUnknown*		pcCurrent;
-	size				iIndex;
-	bool			bResult;
+	return FindNext(pcUnknown, 0);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//
+//
+//////////////////////////////////////////////////////////////////////////
+size CArrayCommonUnknown::FindNext(CUnknown* pcUnknown, size uiStartIndex)
+{
+	CUnknown*	pcCurrent;
+	size		iIndex;
+	bool		bResult;
+	size		uiNumElements;
 
 	if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
 	{
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 
 	if (miFlags & ARRAY_COMMOM_IS_PTR_SORTED)
 	{
 		bResult = mcArray.FindInSorted(&pcUnknown, ComparePtrPtr, &iIndex);
-		if (bResult)
+		if (bResult && (iIndex >= uiStartIndex))
 		{
 			return iIndex;
 		}
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 	else
 	{
-		for (iIndex = 0; iIndex < mcArray.NumElements(); iIndex++)
+		uiNumElements = mcArray.NumElements();
+		for (iIndex = uiStartIndex; iIndex < uiNumElements; iIndex++)
 		{
 			pcCurrent = *mcArray.Get(iIndex);
 			if (pcCurrent == pcUnknown)
@@ -396,7 +410,7 @@ size CArrayCommonUnknown::Find(CUnknown* pcUnknown)
 				return iIndex;
 			}
 		}
-		return -1;
+		return ARRAY_ELEMENT_NOT_FOUND;
 	}
 }
 
@@ -596,24 +610,35 @@ void CArrayCommonUnknown::CleanNullsIfNecessary(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-bool CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
+size CArrayCommonUnknown::Remove(CUnknown* pcUnknown)
 {
 	size	iIndex;
+	bool	bResult;
+	size	uiRemoved;
 
+	uiRemoved = 0;
 	if ((miFlags & ARRAY_COMMOM_IGNORE_NULL) && (pcUnknown == NULL))
 	{
-		return false;
+		return uiRemoved;
 	}
 
 	iIndex = Find(pcUnknown);
-	if (iIndex != ARRAY_ELEMENT_NOT_FOUND)
+	if (iIndex == ARRAY_ELEMENT_NOT_FOUND)
 	{
-		return Remove(iIndex);
+		return uiRemoved;
 	}
-	else
+
+	while (iIndex != ARRAY_ELEMENT_NOT_FOUND)
 	{
-		return false;
+		bResult = Remove(iIndex);
+		if (!bResult)
+		{
+			return ARRAY_ELEMENT_NOT_FOUND;
+		}
+		uiRemoved++;
+		iIndex = FindNext(pcUnknown, iIndex);
 	}
+	return uiRemoved;
 }
 
 
@@ -755,8 +780,9 @@ EArrayUnsetReturn CArrayCommonUnknown::Unset(size iIndex)
 //////////////////////////////////////////////////////////////////////////
 bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 {
-	bool	bRemoved;
-
+	bool		bRemoved;
+	CUnknown*	pcUnknown;
+	
 	if ((mcArray.NumElements() > psIter->iIndex) && (psIter->iIndex != ARRAY_ELEMENT_NOT_FOUND))
 	{
 		bRemoved = Remove(psIter->iIndex, false);
@@ -764,7 +790,7 @@ bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 		{
 			if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
 			{
-				Iterate(psIter);
+				Iterate(psIter, &pcUnknown);
 				psIter->bStepFirst = false;
 			}
 			else
@@ -777,7 +803,7 @@ bool CArrayCommonUnknown::RemoveDuringIteration(SSetIterator* psIter)
 		{
 			if (miFlags & ARRAY_COMMOM_IGNORE_NULL)
 			{
-				Iterate(psIter);
+				Iterate(psIter, &pcUnknown);
 				psIter->bStepFirst = false;
 			}
 			else
@@ -881,8 +907,15 @@ size CArrayCommonUnknown::UnsafeNonNullElements(void)
 CUnknown* CArrayCommonUnknown::First(void)
 {
 	SSetIterator	sIter;
+	CUnknown*		pcUnknown;
+	bool			bExists;
 
-	return StartIteration(&sIter);
+	bExists = StartIteration(&sIter, &pcUnknown);
+	if (bExists)
+	{
+		return pcUnknown;
+	}
+	return NULL;
 }
 
 
@@ -893,7 +926,7 @@ CUnknown* CArrayCommonUnknown::First(void)
 CUnknown* CArrayCommonUnknown::Last(void)
 {
 	CUnknown*	pcUnknown;
-	size			i;
+	size		i;
 	size		uiNumElements;
 
 	uiNumElements = mcArray.NumElements();
@@ -930,7 +963,7 @@ CUnknown* CArrayCommonUnknown::Last(void)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CArrayCommonUnknown::StartIteration(SSetIterator* psIter)
+bool CArrayCommonUnknown::StartIteration(SSetIterator* psIter, CUnknown** ppcUnknown)
 {
 	CUnknown*	pcUnknown;
 
@@ -942,13 +975,15 @@ CUnknown* CArrayCommonUnknown::StartIteration(SSetIterator* psIter)
 
 		if ((pcUnknown == NULL) && (miFlags & ARRAY_COMMOM_IGNORE_NULL))
 		{
-			return Iterate(psIter);
+			return Iterate(psIter, ppcUnknown);
 		}
-		return pcUnknown;
+		SafeAssign(ppcUnknown, pcUnknown);
+		return true;
 	}
 	psIter->bStepFirst = false;
 	psIter->iIndex = 0;
-	return NULL;
+	*ppcUnknown = NULL;
+	return false;
 }
 
 
@@ -956,33 +991,35 @@ CUnknown* CArrayCommonUnknown::StartIteration(SSetIterator* psIter)
 //
 //
 //////////////////////////////////////////////////////////////////////////
-CUnknown* CArrayCommonUnknown::Iterate(SSetIterator* psIter)
+bool CArrayCommonUnknown::Iterate(SSetIterator* psIter, CUnknown** ppcUnknown)
 {
+	bool		bExists;
 	CUnknown*	pcUnknown;
-	bool		bMore;
 
 	if (mcArray.NumElements() != 0)
 	{
 		if (!(miFlags & ARRAY_COMMOM_IGNORE_NULL))
 		{
-			PrivateIterate(psIter, &pcUnknown);
-			return pcUnknown;
+			bExists = PrivateIterate(psIter, &pcUnknown);
+			SafeAssign(ppcUnknown, pcUnknown);
+			return bExists;
 		}
 		else
 		{
 			for (;;)
 			{
-				bMore = PrivateIterate(psIter, &pcUnknown);
-				if (bMore)
+				bExists = PrivateIterate(psIter, &pcUnknown);
+				SafeAssign(ppcUnknown, pcUnknown);
+				if (bExists)
 				{
 					if (pcUnknown)
 					{
-						return pcUnknown;
+						return true;
 					}
 				}
 				else
 				{
-					return NULL;
+					return false;
 				}
 			}
 		}
@@ -991,7 +1028,8 @@ CUnknown* CArrayCommonUnknown::Iterate(SSetIterator* psIter)
 	{
 		psIter->bStepFirst = false;
 		psIter->iIndex = 0;
-		return NULL;
+		SafeAssign(ppcUnknown, NULL);
+		return false;
 	}
 }
 

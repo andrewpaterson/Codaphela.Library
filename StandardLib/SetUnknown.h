@@ -29,17 +29,17 @@ CONSTRUCTABLE(CSetUnknown)
 public:
 	void 		Init(void);
 	void 		Init(size iChunkSize);
-	void 		Kill(void);
+	void 		Kill(void) override;
 
 	template<class M>
 	M*			Add(void);
 	void		Add(CUnknown* pcUnknown);
 
-	bool		Remove(CUnknown* pcUnknown);
+	size		Remove(CUnknown* pcUnknown) override;
 	void		RemoveDuringIteration(SSetIterator* psIter);
 
-	CUnknown*	StartIteration(SSetIterator* psIter);
-	CUnknown*	Iterate(SSetIterator* psIter);
+	bool		StartIteration(SSetIterator* psIter, CUnknown** ppcUnknown);
+	bool		Iterate(SSetIterator* psIter, CUnknown** ppcUnknown);
 };
 
 

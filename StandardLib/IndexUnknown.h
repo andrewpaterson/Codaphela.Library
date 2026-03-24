@@ -32,12 +32,14 @@ class CIndexUnknown : public CUnknown, public CDataFree, public CDataIO, public 
 CONSTRUCTABLE(CIndexUnknown)
 friend class CIndexUnknownDataFree;
 private:
-	uint16					miFlags;
+	uint16					muiFlags;
 	CIndexTreeMemory		mcIndex;
 
 public:
 	void		Init(bool bKillElements = true, bool bOverwriteExisting = true);
 	void		Kill(void);
+	void		ReInit(void);
+
 	bool		Save(CFileWriter* pcFileWriter);
 	bool		Load(CFileReader* pcFileReader);
 
@@ -49,14 +51,22 @@ public:
 	bool		Put(char* szKey, CUnknown* pcValue);
 	CUnknown*	Get(char* szKey);
 	CUnknown*	Get(uint8* pvKey, size iKeySize);
+	bool		Remove(char* szKey);
+	bool		Remove(uint8* pvKey, size iKeySize);
+	size		Remove(CUnknown* pvData);
 
 	size		NumElements(void);
+	size		NonNullElements(void);
 	bool 		IsKillElements(void);
 	bool 		IsEmpty(void);
 	bool 		IsNotEmpty(void);
 
 	bool		StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
 	bool		Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
+	bool		StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
+	bool		Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData);
+	bool		StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData);
+	bool		Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData);
 
 protected:
 	void		FreeData(void* pvData);

@@ -8,8 +8,8 @@
 //////////////////////////////////////////////////////////////////////////
 void CIndexUnknown::Init(bool bKillElements, bool bOverwriteExisting)
 {
-	miFlags = 0;
-	SetFlagShort(&miFlags, INDEX_TREE_KILL_ELEMENT, bKillElements);
+	muiFlags = 0;
+	SetFlagShort(&muiFlags, INDEX_TREE_KILL_ELEMENT, bKillElements);
 	mcIndex.Init();
 	mcIndex.SetDataFreeCallback(this);
 	mcIndex.SetDataIOCallback(this, this);
@@ -24,6 +24,23 @@ void CIndexUnknown::Kill(void)
 {
 	mcIndex.Kill();
 	CUnknown::Kill();
+	muiFlags = 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+void CIndexUnknown::ReInit(void)
+{
+	uint16	uiFlags;
+
+	uiFlags = muiFlags;
+	mcIndex.ReInit();
+	muiFlags = uiFlags;
+
+	//Does not call CUnknown::Kill, Init.
 }
 
 
@@ -91,6 +108,65 @@ CUnknown* CIndexUnknown::Get(char* szKey)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::Remove(char* szKey)
+{
+	size	uiLength;
+
+	uiLength = strlen(szKey);
+	return Remove((uint8*)szKey, uiLength);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::Remove(uint8* pvKey, size iKeySize)
+{
+	return mcIndex.Remove(pvKey, iKeySize);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+size CIndexUnknown::Remove(CUnknown* pvData)
+{
+	SIndexTreeMemoryIterator	sIter;
+	CUnknown*					pcUnknown;
+	CUnknown*					pcUnknownNext;
+	bool						bExists;
+	uint8						auiKey[MAX_KEY_SIZE];
+	size						uiKeySize;
+	bool						bResult;
+	size						uiCount;
+
+	uiCount = 0;
+	bExists = StartIteration(&sIter, auiKey, &uiKeySize, MAX_KEY_SIZE, &pcUnknown);
+	while (bExists)
+	{
+		//Iterate must be called before the node is removed.
+		bExists = Iterate(&sIter, NULL, NULL, 0, &pcUnknownNext);
+		if (pcUnknown == pvData)
+		{
+			bResult = Remove(auiKey, uiKeySize);
+			if (!bResult)
+			{
+				return ARRAY_ELEMENT_NOT_FOUND;
+			}
+			uiCount++;
+		}
+		pcUnknown = pcUnknownNext;
+	}
+	return uiCount;
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 size CIndexUnknown::NumElements(void)
 {
 	return mcIndex.NumElements();
@@ -101,9 +177,19 @@ size CIndexUnknown::NumElements(void)
 //                                                                      //
 //                                                                      //
 //////////////////////////////////////////////////////////////////////////
+size CIndexUnknown::NonNullElements(void)
+{
+	return mcIndex.NonNullElements();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Save(CFileWriter* pcFileWriter)
 {
-	ReturnOnFalse(pcFileWriter->WriteInt16(miFlags));
+	ReturnOnFalse(pcFileWriter->WriteInt16(muiFlags));
 	return mcIndex.Write(pcFileWriter);
 }
 
@@ -114,7 +200,7 @@ bool CIndexUnknown::Save(CFileWriter* pcFileWriter)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Load(CFileReader* pcFileReader)
 {
-	ReturnOnFalse(pcFileReader->ReadInt16(&miFlags));
+	ReturnOnFalse(pcFileReader->ReadInt16(&muiFlags));
 	return mcIndex.Read(pcFileReader, this, this, this);
 }
 
@@ -125,7 +211,7 @@ bool CIndexUnknown::Load(CFileReader* pcFileReader)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::IsKillElements(void)
 {
-	return miFlags & INDEX_TREE_KILL_ELEMENT;
+	return muiFlags & INDEX_TREE_KILL_ELEMENT;
 }
 
 
@@ -155,9 +241,7 @@ bool CIndexUnknown::IsNotEmpty(void)
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData)
 {
-	size	uiDataSize;
-
-	return mcIndex.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, &uiDataSize, sizeof(CUnknown*));
+	return mcIndex.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, NULL, sizeof(CUnknown*));
 }
 
 
@@ -167,9 +251,47 @@ bool CIndexUnknown::StartIteration(SIndexTreeMemoryIterator* psIterator, uint8* 
 //////////////////////////////////////////////////////////////////////////
 bool CIndexUnknown::Iterate(SIndexTreeMemoryIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData)
 {
-	size	uiDataSize;
+	return mcIndex.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, NULL, sizeof(CUnknown*));
+}
 
-	return mcIndex.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, ppvData, &uiDataSize, sizeof(CUnknown*));
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData)
+{
+	return mcIndex.StartIteration(psIterator, pvKey, piKeySize, iMaxKeySize, (void**)ppvData, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, uint8* pvKey, size* piKeySize, size iMaxKeySize, CUnknown** ppvData)
+{
+	return mcIndex.Iterate(psIterator, pvKey, piKeySize, iMaxKeySize, (void**)ppvData, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::StartIteration(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData)
+{
+	return mcIndex.StartIteration(psIterator, (void**)ppvData, NULL);
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//                                                                      //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+bool CIndexUnknown::Iterate(SIndexTreeMemoryUnsafeIterator* psIterator, CUnknown** ppvData)
+{
+	return mcIndex.Iterate(psIterator, (void**)ppvData, NULL);
 }
 
 
@@ -181,7 +303,7 @@ void CIndexUnknown::FreeData(void* pvData)
 {
 	CUnknown**	ppcValue;
 
-	if (miFlags & INDEX_TREE_KILL_ELEMENT)
+	if (muiFlags & INDEX_TREE_KILL_ELEMENT)
 	{
 		ppcValue = (CUnknown**)pvData;
 		if (ppcValue)

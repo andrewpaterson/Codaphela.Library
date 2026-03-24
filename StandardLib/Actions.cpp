@@ -49,15 +49,16 @@ CAction* CActions::GetAction(char* szName)
 {
 	SSetIterator	sIter;
 	CAction*		pcAction;
+	bool			bExists;
 
-	pcAction = mlcActions.StartIteration(&sIter);
-	while (pcAction)
+	bExists = mlcActions.StartIteration(&sIter, &pcAction);
+	while (bExists)
 	{
 		if (pcAction->Is(szName))
 		{
 			return pcAction;
 		}
-		pcAction = mlcActions.Iterate(&sIter);	
+		bExists = mlcActions.Iterate(&sIter, &pcAction);	
 	}
 	return NULL;
 }

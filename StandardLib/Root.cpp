@@ -206,24 +206,28 @@ CPointer CRoot::Get(char* szObjectName)
 {
 	SSetIterator	sIter;
 	char*			szName;
+	bool			bExists;
 
 	if (StrEmpty(szObjectName))
 	{
 		return Null();
 	}
 
-	CPointer pObject = mpObjects->StartIterationPointer(&sIter);
-	while (pObject.IsNotNull())
+	CPointer pObject = mpObjects->StartIterationPointer(&sIter, &bExists);
+	while (bExists)
 	{
-		szName = pObject.GetName();
-		if (szName != NULL)
+		if (pObject.IsNotNull())
 		{
-			if (strcmp(szObjectName, szName) == 0)
+			szName = pObject.GetName();
+			if (szName != NULL)
 			{
-				return pObject;
+				if (strcmp(szObjectName, szName) == 0)
+				{
+					return pObject;
+				}
 			}
+			pObject = mpObjects->IteratePointer(&sIter, &bExists);
 		}
-		pObject = mpObjects->IteratePointer(&sIter);
 	}
 
 	return Null();

@@ -87,11 +87,8 @@ public:
 	void				ValidatePointerTos(void);
 	void				ValidateConsistency(void);
 
-public:
-
-
 protected:
-	void				EmbedFields(void);
+	void				EmbedFields(void) override;
 	void				FreeInternal(bool bAllocatedInObjects) override;
 	void				FreePointers(void) override;
 	void				RemovePointerTo(CEmbeddedObject* pcTo);
